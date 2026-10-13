@@ -15,7 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, windows-2022, ubuntu-24.04]
+        # ubuntu-24.04-arm: native ARM64 build of the GPUI app (T005).
+        os: [macos-15, windows-2022, ubuntu-24.04, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     env:
@@ -49,6 +50,42 @@ jobs:
         run: cargo build -p joyword --locked
       # GPU windows, IME, accessibility, printing and Office round-trips require
       # separate real-machine evidence. A successful job is only a build gate.
+
+  # Headless crates cross-compiled for Xinchuang targets and run under QEMU
+  # user mode (T005). This proves code generation and the glibc/new-world
+  # LoongArch ABI only; it is not a run on a domestic CPU or distribution.
+  cross-linux:
+    name: headless tests (${{ matrix.target }}, QEMU)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            packages: gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+            linker: aarch64-linux-gnu-gcc
+            runner: qemu-aarch64 -L /usr/aarch64-linux-gnu
+          - target: loongarch64-unknown-linux-gnu
+            packages: gcc-14-loongarch64-linux-gnu libc6-dev-loong64-cross
+            linker: loongarch64-linux-gnu-gcc-14
+            runner: qemu-loongarch64 -L /usr/loongarch64-linux-gnu
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cross toolchain and QEMU user mode
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user ${{ matrix.packages }}
+      - name: Fixed Rust toolchain with target
+        run: rustup toolchain install 1.98.1 --profile minimal --target ${{ matrix.target }}
+      - name: Headless tests under QEMU
+        run: |
+          prefix="CARGO_TARGET_$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')"
+          export "${prefix}_LINKER=${{ matrix.linker }}"
+          export "${prefix}_RUNNER=${{ matrix.runner }}"
+          cargo test --locked --target ${{ matrix.target }}
 
   dependencies:
     runs-on: ubuntu-24.04
