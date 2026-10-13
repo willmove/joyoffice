@@ -1,0 +1,22 @@
+[package]
+name = "joyword"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = []
+# Development-only escape hatch for macOS machines without the Metal compiler.
+# Release validation must also build without this feature using full Xcode.
+dev-runtime-shaders = ["gpui/runtime_shaders"]
+
+[dependencies]
+gpui.workspace = true
+joyword-foundation.workspace = true
+
+[lints]
+workspace = true
+

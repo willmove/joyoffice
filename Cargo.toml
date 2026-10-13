@@ -1,0 +1,27 @@
+[workspace]
+members = ["apps/joyword", "crates/joyword-foundation"]
+default-members = ["crates/joyword-foundation"]
+resolver = "3"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+repository = "https://github.com/willmove/joyoffice"
+
+[workspace.dependencies]
+gpui = "=0.2.2"
+joyword-foundation = { path = "crates/joyword-foundation" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"
+

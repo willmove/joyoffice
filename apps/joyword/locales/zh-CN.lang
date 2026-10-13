@@ -1,0 +1,7 @@
+language=English
+stage=M0 工程验证 · 页面投影与窗口外壳；文档编辑、保存和 AI 尚未接入。
+welcome=你好，JoyWord
+intro=面向中文办公与审阅的原生文字处理软件。
+projection=这是一张工程验证页面。缩放只改变显示比例，不改变物理页面尺寸。
+next=下一阶段：中文输入、编辑事务、DOCX 保存与重新打开。
+status=工程样例 · AI 未加载

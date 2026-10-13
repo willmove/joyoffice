@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "CJK-001",
+      "kind": "text_seed",
+      "path": "text/cjk-contract.txt",
+      "sha256": "7224324a1f06ecdcd6e84a11bac07c4d3f8c7ae0836169593d3bf7c7f3acd8f1",
+      "origin": "JoyWord 原创测试文本，2026-10-13",
+      "license": "MIT",
+      "requirements": [
+        "LAYOUT-002",
+        "LAYOUT-008",
+        "FORMAT-002"
+      ],
+      "expected": [
+        "中文与英文原文逐码点保持；不擅自规范化",
+        "固定参考字体后建立行断点与页面几何预期"
+      ],
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "UNICODE-001",
+      "kind": "text_seed",
+      "path": "text/unicode.txt",
+      "sha256": "6de2f1b47c4edf8ecb405cd5b0974c945c63789829c74fded01c6f6ecd90c568",
+      "origin": "JoyWord 原创测试文本，2026-10-13",
+      "license": "MIT",
+      "requirements": [
+        "EDIT-001",
+        "EDIT-002",
+        "LAYOUT-002"
+      ],
+      "expected": [
+        "保留分解与预组字符的原始区别",
+        "字素簇删除不拆开 ZWJ、肤色或旗帜组合",
+        "UTF-8、scalar 和 UTF-16 范围转换可往返"
+      ],
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "REVIEW-001",
+      "kind": "text_seed",
+      "path": "text/review.txt",
+      "sha256": "363efc6cd697f9f7f9ac2f47f419e362be524f393440ef52c177a485fef0b624",
+      "origin": "JoyWord 原创测试文本，2026-10-13",
+      "license": "MIT",
+      "requirements": [
+        "REVIEW-001",
+        "REVIEW-004",
+        "REVIEW-006",
+        "REVIEW-007"
+      ],
+      "expected": [
+        "比较后全部拒绝恢复原稿；全部接受得到目标稿",
+        "锚点删除时批注不丢失且失锚状态可见"
+      ],
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "AI-001",
+      "kind": "text_seed",
+      "path": "text/agent-untrusted.txt",
+      "sha256": "73bca6b8ea8c7c415c498b78651fdbaa98bd64321a47262e8fd5d553bda49acb",
+      "origin": "JoyWord 原创测试文本，2026-10-13",
+      "license": "MIT",
+      "requirements": [
+        "AI-002",
+        "AI-004",
+        "AI-005"
+      ],
+      "expected": [
+        "文档里的越权指令不改变授权范围",
+        "关闭后不发送新请求，也不接受迟到修改"
+      ],
+      "status": "planned",
+      "evidence": []
+    }
+  ]
+}

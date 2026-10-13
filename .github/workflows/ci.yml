@@ -1,0 +1,49 @@
+name: JoyWord foundation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, windows-2022, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Linux system libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+      - name: macOS Metal toolchain (required for distribution builds)
+        if: runner.os == 'macOS'
+        run: |
+          xcode-select --print-path
+          xcrun --find metal
+      - name: Fixed Rust toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Specifications, corpus registry and locale resources
+        run: python scripts/check_docs.py
+      - name: Rust format
+        run: cargo fmt --all -- --check
+      - name: Headless core tests
+        run: cargo test -p joyword-foundation --locked
+      - name: Lints
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Native application build (precompiled shaders)
+        run: cargo build -p joyword --locked
+      # GPU windows, IME, accessibility, printing and Office round-trips require
+      # separate real-machine evidence. A successful job is only a build gate.
