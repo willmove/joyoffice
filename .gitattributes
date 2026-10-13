@@ -1,0 +1,10 @@
+# Corpus inputs are hashed byte-for-byte (tests/fixtures/manifest.json).
+# Never let checkout convert their LF line endings, including on Windows.
+tests/fixtures/text/** -text
+*.docx binary
+*.dotx binary
+*.docm binary
+*.dotm binary
+*.doc binary
+*.wps binary
+*.pdf binary

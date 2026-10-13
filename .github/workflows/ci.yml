@@ -8,6 +8,8 @@ on:
 permissions:
   contents: read
 
+# Third-party actions are pinned to full commit SHAs (T001); the comment names
+# the release. scripts/check_docs.py rejects unpinned `uses:` references.
 jobs:
   build:
     strategy:
@@ -19,8 +21,8 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
       - name: Linux system libraries
@@ -39,11 +41,25 @@ jobs:
         run: python scripts/check_docs.py
       - name: Rust format
         run: cargo fmt --all -- --check
-      - name: Headless core tests
-        run: cargo test -p joyword-foundation --locked
+      - name: Headless core tests (foundation and document model)
+        run: cargo test --locked
       - name: Lints
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Native application build (precompiled shaders)
         run: cargo build -p joyword --locked
       # GPU windows, IME, accessibility, printing and Office round-trips require
       # separate real-machine evidence. A successful job is only a build gate.
+
+  dependencies:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fixed Rust toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal
+      - uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2.87.21
+        with:
+          tool: cargo-deny@0.20.2
+      # Licenses, RustSec advisories, banned crates and registry sources (deny.toml).
+      - name: Dependency licenses and advisories
+        run: cargo deny --locked --all-features check

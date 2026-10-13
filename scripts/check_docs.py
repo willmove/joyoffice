@@ -152,13 +152,23 @@ def validate():
     used_keys = set(re.findall(r'self\.label\("([^"]+)"\)', ui_source))
     check(used_keys <= locale_keys[0] & locale_keys[1], "locales: UI references missing keys")
 
+    workflows = sorted((ROOT / ".github/workflows").glob("*.yml"))
+    actions = 0
+    for workflow in workflows:
+        text = workflow.read_text(encoding="utf-8")
+        for ref in re.findall(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", text, re.M):
+            actions += 1
+            check(ref.startswith("./") or bool(re.fullmatch(r"[\w.-]+/[\w./-]+@[0-9a-f]{40}", ref)),
+                  f"{workflow.relative_to(ROOT)}: action not pinned to a full commit SHA: {ref}")
+
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
     print(f"OK: {len(requirements)} requirements; {len(tasks)} tasks; acyclic dependencies; "
           f"stage-consistent; M0–M7 required by {RELEASE_GATE}; "
-          f"{len(markdown)} Markdown files; {len(case_ids)} planned seeds; locale parity.")
+          f"{len(markdown)} Markdown files; {len(case_ids)} planned seeds; locale parity; "
+          f"{actions} workflow actions pinned by SHA.")
     print("Metadata validation only; Office compatibility and GUI behavior are not tested here.")
     return 0
 

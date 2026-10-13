@@ -1,0 +1,50 @@
+# cargo-deny policy (T001, QUALITY-002). Passing it is not a substitute for the
+# THIRD_PARTY_NOTICES and SBOM that PROVENANCE requires before any release.
+
+[graph]
+all-features = true
+
+[advisories]
+# Every RustSec advisory, including unmaintained and unsound crates, fails the
+# check unless it is listed here with a reason and a revisit condition.
+# 2026-10-13: the entries below are "unmaintained" notices (no vulnerability)
+# reached only through gpui 0.2.2. Revisit all of them when ADR-010 selects the
+# long-term GPUI source; none may be added for JoyWord's own direct dependencies.
+ignore = [
+    { id = "RUSTSEC-2025-0052", reason = "async-std via gpui_http_client 0.2.2; ADR-010" },
+    { id = "RUSTSEC-2024-0384", reason = "instant via gpui_util 0.2.2 (futures-lite 1); ADR-010" },
+    { id = "RUSTSEC-2024-0436", reason = "paste via metal/image under gpui 0.2.2; ADR-010" },
+    { id = "RUSTSEC-2026-0173", reason = "proc-macro-error2 via gpui 0.2.2 stacksafe; ADR-010" },
+    { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile via gpui_http_client 0.2.2; ADR-010" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz via gpui 0.2.2 text stack; ADR-010" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser via gpui 0.2.2 text stack; ADR-010" },
+]
+
+[licenses]
+# Each entry is needed by at least one crate in Cargo.lock. Copyleft or notice
+# obligations (MPL-2.0 in cbindgen/dwrote/option-ext, Unicode-3.0, BSD) are
+# recorded in docs/joyword/PROVENANCE.md and must reach the notices file.
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC0-1.0",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "NCSA",
+    "Unicode-3.0",
+    "Zlib",
+]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
