@@ -486,6 +486,28 @@ impl<T: Item> SeqTree<T> {
     }
 }
 
+impl<T: Item<Summary = ()>> SeqTree<T> {
+    /// Mutable access with path copying. Limited to items without a summary,
+    /// because cached summaries could not be refreshed once the borrow ends.
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
+        if index >= self.len() {
+            return None;
+        }
+        let mut node = Arc::make_mut(self.root.as_mut()?);
+        let mut index = index;
+        loop {
+            match node {
+                Node::Leaf { items, .. } => return items.get_mut(index),
+                Node::Internal { children, .. } => {
+                    let (position, offset) = child_at(children, index);
+                    index -= offset;
+                    node = Arc::make_mut(&mut children[position]);
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 impl<T: Item> SeqTree<T>
 where
@@ -731,6 +753,26 @@ mod tests {
             assert_eq!(prefix.weight, weights[..index].iter().sum::<usize>());
             assert_eq!(prefix.count, index);
         }
+    }
+
+    #[derive(Clone, Debug, PartialEq)]
+    struct Plain(u32);
+
+    impl Item for Plain {
+        type Summary = ();
+        fn summary(&self) {}
+    }
+
+    #[test]
+    fn get_mut_copies_only_the_path() {
+        let base: SeqTree<Plain> = (0..10_000).map(Plain).collect();
+        let mut edited = base.clone();
+        edited.get_mut(7_777).unwrap().0 = 0;
+        assert!(edited.unshared_nodes(&base) <= 5);
+        assert_eq!(base.get(7_777), Some(&Plain(7_777)));
+        assert_eq!(edited.get(7_777), Some(&Plain(0)));
+        assert!(edited.get_mut(10_000).is_none());
+        assert!(SeqTree::<Plain>::new().get_mut(0).is_none());
     }
 
     #[test]

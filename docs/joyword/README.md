@@ -43,7 +43,8 @@ M0–M7 构成 1.0，M8 是 1.0 之后的扩展，均属当前路线图；M9 是
 
 - ADR-003：T100 基准选定持久化 B 树块序列与分块段落文本；行内对象占位码点定为 U+FDD0（ARCHITECTURE §2）。
 - T001：CI Actions 按 commit SHA 固定（检查器校验），新增 cargo-deny 依赖检查与 deny.toml；修复首次三端 CI 暴露的 Windows 换行与 Linux libc 问题。
-- T100 状态改为 in_progress；结果与剩余项见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- T100、T101 状态改为 in_progress；结果与剩余项见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- ARCHITECTURE §4 记录 T101 的命令位置约定、映射步骤、锚点删除行为与快照撤销。
 
 ### v0.2（2026-10-13，规格评审修订）
 

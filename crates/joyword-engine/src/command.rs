@@ -1,0 +1,162 @@
+//! Typed edit commands (ARCHITECTURE §3). Commands name logical targets by
+//! story, node and scalar offset; they cannot carry scripts or raw XML.
+//! Positions in a command refer to the document as left by the previous
+//! commands of the same transaction.
+
+use std::fmt;
+
+use joyword_model::{
+    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, Position, RunProps,
+    ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
+};
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Command {
+    /// Ordinary text; line and paragraph separators are separate commands.
+    InsertText {
+        at: Position,
+        text: String,
+    },
+    InsertInline {
+        at: Position,
+        kind: InlineKind,
+    },
+    /// Deletes between two positions in the same container, merging the
+    /// paragraphs at both ends when they differ.
+    DeleteRange {
+        start: Position,
+        end: Position,
+    },
+    SplitParagraph {
+        at: Position,
+    },
+    FormatText {
+        start: Position,
+        end: Position,
+        change: RunChange,
+    },
+    FormatParagraph {
+        story: StoryId,
+        paragraph: NodeId,
+        change: ParagraphChange,
+    },
+    /// Moves a block before `before` (or to the end) of its own container.
+    MoveBlock {
+        story: StoryId,
+        block: NodeId,
+        before: Option<NodeId>,
+    },
+    RemoveBlock {
+        story: StoryId,
+        block: NodeId,
+    },
+}
+
+/// Character formatting changes of the M1 subset.
+#[derive(Clone, Debug, PartialEq)]
+pub enum RunChange {
+    Bold(Toggle),
+    Italic(Toggle),
+    Strike(Toggle),
+    Underline(Option<Underline>),
+    Size(Option<Measure>),
+    Color(Option<Color>),
+    AsciiFont(Option<FontRef>),
+    EastAsiaFont(Option<FontRef>),
+}
+
+impl RunChange {
+    pub(crate) fn apply(&self, props: &mut RunProps) {
+        match self {
+            RunChange::Bold(value) => props.bold = *value,
+            RunChange::Italic(value) => props.italic = *value,
+            RunChange::Strike(value) => props.strike = *value,
+            RunChange::Underline(value) => props.underline = *value,
+            RunChange::Size(value) => props.size = *value,
+            RunChange::Color(value) => props.color = *value,
+            RunChange::AsciiFont(value) => {
+                props.fonts.ascii = value.clone();
+                props.fonts.h_ansi = value.clone();
+            }
+            RunChange::EastAsiaFont(value) => props.fonts.east_asia = value.clone(),
+        }
+    }
+}
+
+/// Paragraph formatting changes of the M1 subset.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ParagraphChange {
+    Style(Option<StyleId>),
+    Justification(Option<Justification>),
+    Indent(Indent),
+    Spacing(Spacing),
+}
+
+/// Condition checked against the document before any command runs, so a
+/// proposal computed on stale content is rejected (AI-004).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Precondition {
+    /// Plain text of one paragraph range; inline objects read as U+FFFC.
+    Text {
+        story: StoryId,
+        paragraph: NodeId,
+        start: ScalarOffset,
+        end: ScalarOffset,
+        expected: String,
+    },
+}
+
+/// Why a command could not apply. The whole transaction is rejected.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum CommandError {
+    UnknownStory(StoryId),
+    UnknownNode(NodeId),
+    NotAParagraph(NodeId),
+    /// The positions are in different stories, cells or content controls.
+    CrossContainer,
+    ReversedRange,
+    /// Inside or deleting a locked content control.
+    Locked(NodeId),
+    /// Line breaks, paragraph separators and control characters are not
+    /// ordinary text.
+    InvalidText(char),
+    MissingResource,
+    /// A container would be left without blocks.
+    LastBlock(NodeId),
+    Text(TextError),
+}
+
+impl From<TextError> for CommandError {
+    fn from(error: TextError) -> Self {
+        CommandError::Text(error)
+    }
+}
+
+impl fmt::Display for CommandError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CommandError::UnknownStory(story) => write!(f, "unknown story {story}"),
+            CommandError::UnknownNode(node) => write!(f, "unknown node {node}"),
+            CommandError::NotAParagraph(node) => write!(f, "{node} is not a paragraph"),
+            CommandError::CrossContainer => f.write_str("range crosses a container boundary"),
+            CommandError::ReversedRange => f.write_str("range ends before it starts"),
+            CommandError::Locked(node) => write!(f, "content control {node} is locked"),
+            CommandError::InvalidText(ch) => write!(f, "U+{:04X} is not ordinary text", *ch as u32),
+            CommandError::MissingResource => f.write_str("image resource does not exist"),
+            CommandError::LastBlock(node) => write!(f, "{node} is the last block of its container"),
+            CommandError::Text(error) => write!(f, "{error}"),
+        }
+    }
+}
+
+/// Ordinary text excludes C0/C1 controls other than tab, and line or
+/// paragraph separators (U+2028, U+2029), which have typed commands.
+pub(crate) fn check_text(text: &str) -> Result<(), CommandError> {
+    match text
+        .chars()
+        .find(|&ch| (ch.is_control() && ch != '\t') || matches!(ch, '\u{2028}' | '\u{2029}'))
+    {
+        Some(ch) => Err(CommandError::InvalidText(ch)),
+        None => Ok(()),
+    }
+}

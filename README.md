@@ -2,7 +2,7 @@
 
 JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字处理软件 **JoyWord**。JoySheet、JoyDeck 为后续方向。项目采用 MIT 许可证。
 
-**当前是规格基线、M0 工程样例与无界面文档模型，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 物理页面投影、语言切换及缩放；joyword-model 提供类型化文档结构、结构共享快照和不变量校验（T100 进行中），尚未接入窗口。尚未实现 DOCX、编辑事务、修订、批注、PDF 或 AI。
+**当前是规格基线、M0 工程样例与无界面的文档模型和编辑引擎，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 物理页面投影、语言切换及缩放；joyword-model 提供类型化文档结构、结构共享快照和不变量校验（T100），joyword-engine 提供原子编辑事务、位置映射与撤销（T101），二者尚未接入窗口。尚未实现 DOCX、排版、修订、批注、PDF 或 AI。
 
 ## 规格与任务
 
@@ -13,7 +13,7 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 
 ## 运行 M0 样例
 
-工具链固定 Rust 1.98.1，GPUI 固定 0.2.2；提交 Cargo.lock。三端 CI 已实际运行：macOS 含预编译 Metal 构建通过，Windows／Linux 的首轮失败已修复、待复跑确认。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
+工具链固定 Rust 1.98.1，GPUI 固定 0.2.2；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux）已实际运行并通过；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
 
 Mac 开发环境缺少 Metal 编译工具时，可使用 GPUI 的运行时着色器选项：
 
@@ -59,8 +59,8 @@ Mac 开发路径静态检查：
 cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings
 ```
 
-默认 workspace 成员只含基础库与文档模型，使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
+默认 workspace 成员只含基础库、文档模型与编辑引擎，使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
 
 ## 实施原则
 
-从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；当前尚未引入 AI 模块。后续工作从三端 CI 复跑、GPUI 来源决策（ADR-010）、T003 的字形／IME／统一 PDF 验证开始；文档模型（T100）与事务（T101）并行推进，再进入 M1 中文编辑与 DOCX 保存重开闭环。
+从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；当前尚未引入 AI 模块。后续工作从 GPUI 来源决策（ADR-010）、T003 的字形／IME／统一 PDF 验证开始；文档模型（T100）与事务（T101）已有实现、待人工验收，再进入 M1 中文编辑与 DOCX 保存重开闭环。

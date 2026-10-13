@@ -89,6 +89,12 @@ impl IdAllocator {
         PreservedId(self.take())
     }
 
+    /// Advances to cover every identifier `other` has issued, so restoring an
+    /// older document state never re-issues identifiers.
+    pub fn merge(&mut self, other: &IdAllocator) {
+        self.next = self.next.max(other.next);
+    }
+
     /// Whether `raw` was handed out by this allocator.
     pub fn issued(&self, raw: u64) -> bool {
         raw < self.next.get()

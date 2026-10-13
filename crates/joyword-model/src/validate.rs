@@ -297,24 +297,8 @@ impl Validator<'_> {
             },
         );
         self.order += 1;
-        let covered: usize = paragraph.runs().iter().map(|run| run.len).sum();
-        if covered != len {
-            self.out.error(Issue::RunLengthMismatch {
-                paragraph: id,
-                runs: covered,
-                text: len,
-            });
-        }
-        if paragraph.runs().iter().any(|run| run.len == 0) {
-            self.out.error(Issue::EmptyRun { paragraph: id });
-        }
-        let markers = paragraph.text().summary().markers;
-        if markers != paragraph.inlines().len() {
-            self.out.error(Issue::InlineCountMismatch {
-                paragraph: id,
-                markers,
-                inlines: paragraph.inlines().len(),
-            });
+        for issue in paragraph.invariant_issues() {
+            self.out.error(issue);
         }
         if let Some(style) = &paragraph.style {
             self.style(style, StyleKind::Paragraph);
@@ -509,6 +493,36 @@ impl Validator<'_> {
                 }
             }
         }
+    }
+}
+
+impl Paragraph {
+    /// Structural invariants of one paragraph: runs cover the text exactly,
+    /// no run is empty, and every object position has an inline object.
+    pub fn invariant_issues(&self) -> Vec<Issue> {
+        let mut issues = Vec::new();
+        let id = self.id();
+        let len = self.len();
+        let covered: usize = self.runs().iter().map(|run| run.len).sum();
+        if covered != len {
+            issues.push(Issue::RunLengthMismatch {
+                paragraph: id,
+                runs: covered,
+                text: len,
+            });
+        }
+        if self.runs().iter().any(|run| run.len == 0) {
+            issues.push(Issue::EmptyRun { paragraph: id });
+        }
+        let markers = self.text().summary().markers;
+        if markers != self.inlines().len() {
+            issues.push(Issue::InlineCountMismatch {
+                paragraph: id,
+                markers,
+                inlines: self.inlines().len(),
+            });
+        }
+        issues
     }
 }
 

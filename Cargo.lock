@@ -2840,6 +2840,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-engine"
+version = "0.0.1"
+dependencies = [
+ "joyword-model",
+]
+
+[[package]]
 name = "joyword-foundation"
 version = "0.0.1"
 

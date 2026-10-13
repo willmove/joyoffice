@@ -16,6 +16,7 @@ use crate::id::{AnnotationId, IdAllocator, NodeId, PreservedId, StoryId};
 use crate::props::{Measure, Toggle};
 use crate::resource::ResourceTable;
 use crate::style::{Style, StyleKind, StyleSheet};
+use crate::validate::MAX_NESTING;
 
 /// Compatibility mode JoyWord writes into new documents (FORMAT-001).
 pub const NEW_DOCUMENT_COMPATIBILITY_MODE: u32 = 15;
@@ -226,6 +227,18 @@ impl Document {
         DocumentSnapshot(self.clone())
     }
 
+    /// Replaces every piece of content with `source`'s while keeping this
+    /// document's version counter and identifier allocator, so undo and redo
+    /// never move either backwards. The caller advances the version.
+    pub fn restore_content(&mut self, source: &Document) {
+        let version = self.version;
+        let mut ids = self.ids.clone();
+        ids.merge(&source.ids);
+        *self = source.clone();
+        self.version = version;
+        self.ids = ids;
+    }
+
     pub fn ids(&mut self) -> &mut IdAllocator {
         &mut self.ids
     }
@@ -325,21 +338,25 @@ impl Document {
     }
 
     /// Finds a paragraph anywhere in a story, including tables and content
-    /// controls. Linear in story size; editing indexes arrive with T101.
+    /// controls. Linear in story size; an index arrives with incremental
+    /// layout (LAYOUT-010).
     pub fn find_paragraph(&self, story: StoryId, id: NodeId) -> Option<&Paragraph> {
-        fn search(blocks: &BlockSeq, id: NodeId) -> Option<&Paragraph> {
+        fn search(blocks: &BlockSeq, id: NodeId, depth: usize) -> Option<&Paragraph> {
+            if depth > MAX_NESTING {
+                return None;
+            }
             blocks.iter().find_map(|block| match block {
                 Block::Paragraph(paragraph) => (paragraph.id() == id).then_some(paragraph.as_ref()),
                 Block::Table(table) => table
                     .rows
                     .iter()
                     .flat_map(|row| row.cells.iter())
-                    .find_map(|cell| search(&cell.blocks, id)),
-                Block::Sdt(sdt) => search(&sdt.blocks, id),
+                    .find_map(|cell| search(&cell.blocks, id, depth + 1)),
+                Block::Sdt(sdt) => search(&sdt.blocks, id, depth + 1),
                 Block::Opaque(_) => None,
             })
         }
-        search(&self.story(story)?.blocks, id)
+        search(&self.story(story)?.blocks, id, 0)
     }
 }
 

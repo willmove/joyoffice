@@ -39,7 +39,7 @@
 - 错误路径：缺少 Xcode／Metal 工具链（Xcode 26 起需单独下载）、Linux 系统库、Windows SDK 时显示对应原因，不假称平台不支持。
 - 自动验证：三端执行 locked build、fmt、clippy、核心测试和 cargo-deny；开发 shader 与发行路径分开。
 - 人工验收：在三台参考环境核对工具链及可启动产物；CI 配置不算成功运行证据。
-- 完成证据：三端 CI 已实际运行（macOS 含预编译 Metal 构建通过；Windows 换行与 Linux libc 失败已定位并修复，待复跑）；Actions 按 SHA 固定，cargo-deny 本机通过；GPUI 来源（ADR-010）未定。详见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：三端 CI 运行 38481758247（提交 ac40043）全部通过：三端 fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建，以及 cargo-deny；Actions 按 SHA 固定。GPUI 来源（ADR-010）、本机 Metal 构建与三台参考环境人工核对未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T002：GPUI 原生窗口与页面投影
 
@@ -103,19 +103,19 @@
 - 错误路径：无效树、重复 ID、样式环和不合法范围返回有界错误。
 - 自动验证：模型不变量、Unicode 边界、结构序列化、原始保留信息与快照结构共享开销测试。
 - 人工验收：加载原创正文／表格结构样例，检查不支持节点被保留而非忽略。
-- 完成证据：joyword-model 首个切片与文本存储基准已落地，37 项自动测试通过；编号定义、修订与批注正文模型及人工验收未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：joyword-model 与文本存储基准已落地，自动验证项均有测试并在三端 CI 通过；剩余人工验收（加载原创正文／表格样例并确认不支持节点被保留），见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T101：事务与位置映射
 
 - 输入：合法文档快照、带版本的 Command、选区和范围标注。
-- 状态：`planned`
+- 状态：`in_progress`
 - 需求：`EDIT-004`、`EDIT-005`、`REVIEW-006`
 - 前置：`T100`
 - 产物：原子 apply、单调版本、ChangeSet、PositionMap 和权限入口。
 - 错误路径：过期版本、跨范围、无效命令不能提交半次修改。
 - 自动验证：失败原子性、位置映射组合、分裂／合并／移动及撤销性质测试。
 - 人工验收：跨段编辑后检查选择、书签、批注锚点和撤销结果。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：joyword-engine 已实现原子事务、单调版本、ChangeSet、PositionMap、权限入口与快照撤销，16 项测试含参考模型随机对照；人工验收需界面（T102／T106），见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T102：输入、选择与基础格式
 

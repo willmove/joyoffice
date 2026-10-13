@@ -194,6 +194,73 @@ impl Paragraph {
         }
     }
 
+    /// Formatting that content inserted at `at` receives: the run of the
+    /// preceding character, the first run at the paragraph start, or the
+    /// paragraph mark formatting in an empty paragraph.
+    pub fn format_at(&self, at: ScalarOffset) -> (Option<StyleId>, Arc<RunProps>) {
+        let run = match at.0 {
+            0 => self.runs.first(),
+            offset => self.run_at(offset - 1).map(|(index, _)| &self.runs[index]),
+        };
+        match run {
+            Some(run) => (run.style.clone(), run.props.clone()),
+            None => (None, self.mark_props.clone()),
+        }
+    }
+
+    /// Joins `runs[index - 1]` and `runs[index]` when their format is equal.
+    fn join_runs_at(&mut self, index: usize) {
+        if index == 0 || index >= self.runs.len() {
+            return;
+        }
+        let (left, right) = (&self.runs[index - 1], &self.runs[index]);
+        if left.style == right.style && left.props == right.props {
+            let len = right.len;
+            self.runs[index - 1].len += len;
+            self.runs.remove(index);
+        }
+    }
+
+    /// Applies `change` to every run overlapping `range`, splitting runs at the
+    /// range ends and joining equal neighbours within it. Returns whether any
+    /// run's properties changed.
+    pub fn format_runs(
+        &mut self,
+        range: std::ops::Range<ScalarOffset>,
+        mut change: impl FnMut(&mut RunProps),
+    ) -> Result<bool, TextError> {
+        if range.start > range.end {
+            return Err(TextError::InvalidRange {
+                start: range.start.0,
+                end: range.end.0,
+            });
+        }
+        if range.end.0 > self.len() {
+            return Err(TextError::OutOfBounds {
+                offset: range.end.0,
+                len: self.len(),
+            });
+        }
+        if range.start == range.end {
+            return Ok(false);
+        }
+        let first = self.split_run_at(range.start.0);
+        let last = self.split_run_at(range.end.0);
+        let mut changed = false;
+        for run in &mut self.runs[first..last] {
+            let mut props = RunProps::clone(&run.props);
+            change(&mut props);
+            if props != *run.props {
+                run.props = Arc::new(props);
+                changed = true;
+            }
+        }
+        for boundary in (first..=last).rev() {
+            self.join_runs_at(boundary);
+        }
+        Ok(changed)
+    }
+
     /// Inserts ordinary text. It joins the run of the preceding character, or
     /// the first run at the paragraph start, or the paragraph mark formatting
     /// in an empty paragraph.
@@ -563,6 +630,36 @@ mod tests {
             paragraph.plain_text(|o| format!("[{}]", o.id)),
             format!("甲[{}]方签字[{}]日期", image.id, paragraph.inlines()[1].id)
         );
+    }
+
+    #[test]
+    fn format_runs_splits_and_rejoins_boundaries() {
+        let mut ids = IdAllocator::default();
+        let mut paragraph = sample(&mut ids);
+        // Bold "方签": splits run 0 and joins the existing bold run.
+        let changed = paragraph
+            .format_runs(ScalarOffset(1)..ScalarOffset(3), |p| p.bold = Some(true))
+            .unwrap();
+        assert!(changed);
+        assert_eq!(run_lengths(&paragraph), vec![1, 3, 1, 2]);
+        // Applying the same format again is a no-op and leaves runs unchanged.
+        let again = paragraph
+            .format_runs(ScalarOffset(1)..ScalarOffset(4), |p| p.bold = Some(true))
+            .unwrap();
+        assert!(!again);
+        assert_eq!(run_lengths(&paragraph), vec![1, 3, 1, 2]);
+        assert!(
+            paragraph
+                .format_runs(ScalarOffset(2)..ScalarOffset(1), |_| {})
+                .is_err()
+        );
+        assert!(
+            paragraph
+                .format_runs(ScalarOffset(0)..ScalarOffset(8), |_| {})
+                .is_err()
+        );
+        assert_eq!(paragraph.format_at(ScalarOffset(2)).1, bold());
+        assert_eq!(paragraph.format_at(ScalarOffset(0)).1, Arc::default());
     }
 
     #[test]

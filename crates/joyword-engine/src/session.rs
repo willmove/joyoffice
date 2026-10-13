@@ -1,0 +1,884 @@
+//! Document session: atomic transactions, version checks, permissions,
+//! annotation mapping and snapshot-based undo (ARCHITECTURE §3–§4).
+//!
+//! `apply` runs every command on a candidate copy (O(1) thanks to structural
+//! sharing). Any failure drops the candidate, so the document, its version
+//! and the undo history stay exactly as they were. Undo records keep the
+//! shared before/after states, which restores content, formatting and anchors
+//! exactly; restoring publishes a new version and never reuses an old one.
+
+use std::collections::BTreeSet;
+use std::fmt;
+use std::sync::Arc;
+
+use joyword_model::{
+    Anchor, AnnotationId, AnnotationKind, Bias, Block, Document, DocumentSnapshot, DocumentVersion,
+    InlineKind, InlineObject, Issue, MAX_NESTING, NodeId, ParaProps, Paragraph, Position, RunProps,
+    ScalarOffset, StoryId, TextError,
+};
+
+use crate::command::{Command, CommandError, ParagraphChange, Precondition, check_text};
+use crate::locate::{self, Location};
+use crate::map::{MapStep, PositionMap, Selection};
+
+/// Who asked for a change. Agent writes pass the AI switch (AI-005).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Origin {
+    User,
+    Agent,
+    System,
+}
+
+/// Session-wide permission switches checked before any command runs.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct EditPolicy {
+    /// Protected, tracked-change or otherwise unsupported documents open
+    /// read-only until the matching capability exists (FORMAT-002).
+    pub read_only: bool,
+    /// Off by default: AI is disabled until the user enables it (AI-001).
+    pub agent_writes: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Transaction {
+    pub base_version: DocumentVersion,
+    pub origin: Origin,
+    pub preconditions: Vec<Precondition>,
+    pub commands: Vec<Command>,
+    /// Selection before the change, restored by undo.
+    pub selection: Option<Selection>,
+}
+
+impl Transaction {
+    pub fn new(base_version: DocumentVersion, commands: Vec<Command>) -> Self {
+        Self {
+            base_version,
+            origin: Origin::User,
+            preconditions: Vec::new(),
+            commands,
+            selection: None,
+        }
+    }
+}
+
+/// What a transaction touched; drives layout invalidation.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ChangeSet {
+    pub stories: BTreeSet<StoryId>,
+    /// Paragraphs whose content or format changed.
+    pub paragraphs: BTreeSet<NodeId>,
+    pub inserted: BTreeSet<NodeId>,
+    pub removed: BTreeSet<NodeId>,
+    pub moved: BTreeSet<NodeId>,
+    pub annotations: BTreeSet<AnnotationId>,
+}
+
+impl ChangeSet {
+    pub fn is_empty(&self) -> bool {
+        self.paragraphs.is_empty()
+            && self.inserted.is_empty()
+            && self.removed.is_empty()
+            && self.moved.is_empty()
+            && self.annotations.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ApplyResult {
+    pub version: DocumentVersion,
+    pub changes: ChangeSet,
+    pub map: PositionMap,
+    /// The transaction's selection mapped through the change.
+    pub selection: Option<Selection>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Outcome {
+    Applied(Box<ApplyResult>),
+    /// Nothing changed; the version and undo history are untouched.
+    NoOp(DocumentVersion),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum TxError {
+    StaleVersion {
+        base: DocumentVersion,
+        current: DocumentVersion,
+    },
+    ReadOnly,
+    AgentWritesDisabled,
+    PreconditionFailed {
+        index: usize,
+    },
+    Command {
+        index: usize,
+        error: CommandError,
+    },
+    /// The candidate broke a model invariant; nothing was committed.
+    Invariant(Vec<Issue>),
+}
+
+impl fmt::Display for TxError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TxError::StaleVersion { base, current } => {
+                write!(f, "transaction based on {base}, document is at {current}")
+            }
+            TxError::ReadOnly => f.write_str("document is read-only"),
+            TxError::AgentWritesDisabled => f.write_str("AI writes are disabled"),
+            TxError::PreconditionFailed { index } => write!(f, "precondition {index} failed"),
+            TxError::Command { index, error } => write!(f, "command {index}: {error}"),
+            TxError::Invariant(issues) => write!(f, "invariant violated: {issues:?}"),
+        }
+    }
+}
+
+impl std::error::Error for TxError {}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum UndoError {
+    Nothing,
+    ReadOnly,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct UndoResult {
+    pub version: DocumentVersion,
+    pub changes: ChangeSet,
+    /// Selection to restore.
+    pub selection: Option<Selection>,
+}
+
+#[derive(Clone, Debug)]
+struct UndoEntry {
+    before: Document,
+    after: Document,
+    /// Version of the state this entry can be applied to.
+    version: DocumentVersion,
+    selection_before: Option<Selection>,
+    selection_after: Option<Selection>,
+    changes: ChangeSet,
+}
+
+pub struct Session {
+    document: Document,
+    policy: EditPolicy,
+    undo: Vec<UndoEntry>,
+    redo: Vec<UndoEntry>,
+}
+
+impl Session {
+    pub fn new(document: Document) -> Self {
+        Self {
+            document,
+            policy: EditPolicy::default(),
+            undo: Vec::new(),
+            redo: Vec::new(),
+        }
+    }
+
+    pub fn document(&self) -> &Document {
+        &self.document
+    }
+
+    pub fn snapshot(&self) -> DocumentSnapshot {
+        self.document.snapshot()
+    }
+
+    pub fn version(&self) -> DocumentVersion {
+        self.document.version()
+    }
+
+    pub fn policy(&self) -> &EditPolicy {
+        &self.policy
+    }
+
+    pub fn set_policy(&mut self, policy: EditPolicy) {
+        self.policy = policy;
+    }
+
+    pub fn can_undo(&self) -> bool {
+        !self.undo.is_empty()
+    }
+
+    pub fn can_redo(&self) -> bool {
+        !self.redo.is_empty()
+    }
+
+    pub fn apply(&mut self, transaction: Transaction) -> Result<Outcome, TxError> {
+        let current = self.document.version();
+        if transaction.base_version != current {
+            return Err(TxError::StaleVersion {
+                base: transaction.base_version,
+                current,
+            });
+        }
+        if transaction.commands.is_empty() {
+            return Ok(Outcome::NoOp(current));
+        }
+        if self.policy.read_only {
+            return Err(TxError::ReadOnly);
+        }
+        if transaction.origin == Origin::Agent && !self.policy.agent_writes {
+            return Err(TxError::AgentWritesDisabled);
+        }
+        for (index, precondition) in transaction.preconditions.iter().enumerate() {
+            if !holds(&self.document, precondition) {
+                return Err(TxError::PreconditionFailed { index });
+            }
+        }
+
+        let mut candidate = self.document.clone();
+        let mut map = PositionMap::new();
+        let mut changes = ChangeSet::default();
+        for (index, command) in transaction.commands.iter().enumerate() {
+            let mut step = PositionMap::new();
+            execute(&mut candidate, command, &mut step, &mut changes)
+                .map_err(|error| TxError::Command { index, error })?;
+            remap_annotations(&mut candidate, &step, &mut changes);
+            map = map.then(&step);
+        }
+        if changes.is_empty() {
+            return Ok(Outcome::NoOp(current));
+        }
+        let issues = touched_issues(&candidate, &changes);
+        if !issues.is_empty() {
+            return Err(TxError::Invariant(issues));
+        }
+
+        let version = candidate.advance_version();
+        let selection = transaction
+            .selection
+            .and_then(|selection| selection.map(&map));
+        self.undo.push(UndoEntry {
+            before: std::mem::replace(&mut self.document, candidate),
+            after: Document::clone(&self.document),
+            version,
+            selection_before: transaction.selection,
+            selection_after: selection,
+            changes: changes.clone(),
+        });
+        self.redo.clear();
+        Ok(Outcome::Applied(Box::new(ApplyResult {
+            version,
+            changes,
+            map,
+            selection,
+        })))
+    }
+
+    pub fn undo(&mut self) -> Result<UndoResult, UndoError> {
+        self.step_history(true)
+    }
+
+    pub fn redo(&mut self) -> Result<UndoResult, UndoError> {
+        self.step_history(false)
+    }
+
+    fn step_history(&mut self, backwards: bool) -> Result<UndoResult, UndoError> {
+        if self.policy.read_only {
+            return Err(UndoError::ReadOnly);
+        }
+        let (from, to) = if backwards {
+            (&mut self.undo, &mut self.redo)
+        } else {
+            (&mut self.redo, &mut self.undo)
+        };
+        let mut entry = from.pop().ok_or(UndoError::Nothing)?;
+        debug_assert_eq!(
+            entry.version,
+            self.document.version(),
+            "history out of step"
+        );
+        let (state, selection) = if backwards {
+            (&entry.before, entry.selection_before)
+        } else {
+            (&entry.after, entry.selection_after)
+        };
+        self.document.restore_content(state);
+        let version = self.document.advance_version();
+        // Both the moved entry and the new top of `from` now apply to the
+        // state just published.
+        entry.version = version;
+        if let Some(next) = from.last_mut() {
+            next.version = version;
+        }
+        let changes = entry.changes.clone();
+        to.push(entry);
+        Ok(UndoResult {
+            version,
+            changes,
+            selection,
+        })
+    }
+}
+
+fn holds(document: &Document, precondition: &Precondition) -> bool {
+    let Precondition::Text {
+        story,
+        paragraph,
+        start,
+        end,
+        expected,
+    } = precondition;
+    let Some(paragraph) = document.find_paragraph(*story, *paragraph) else {
+        return false;
+    };
+    if start > end || end.0 > paragraph.len() {
+        return false;
+    }
+    let text = paragraph.plain_text(|_| "\u{FFFC}".into());
+    let actual: String = text.chars().skip(start.0).take(end.0 - start.0).collect();
+    actual == *expected
+}
+
+fn locate_paragraph(document: &Document, at: &Position) -> Result<Location, CommandError> {
+    if document.story(at.story).is_none() {
+        return Err(CommandError::UnknownStory(at.story));
+    }
+    let location = locate::locate(document, at.story, at.paragraph)
+        .ok_or(CommandError::UnknownNode(at.paragraph))?;
+    if locate::paragraph(document, &location).is_none() {
+        return Err(CommandError::NotAParagraph(at.paragraph));
+    }
+    Ok(location)
+}
+
+fn locate_block(
+    document: &Document,
+    story: StoryId,
+    block: NodeId,
+) -> Result<Location, CommandError> {
+    if document.story(story).is_none() {
+        return Err(CommandError::UnknownStory(story));
+    }
+    locate::locate(document, story, block).ok_or(CommandError::UnknownNode(block))
+}
+
+fn check_offset(
+    document: &Document,
+    location: &Location,
+    at: &Position,
+) -> Result<usize, CommandError> {
+    let len = locate::paragraph(document, location)
+        .expect("located paragraph")
+        .len();
+    if at.offset.0 > len {
+        return Err(CommandError::Text(TextError::OutOfBounds {
+            offset: at.offset.0,
+            len,
+        }));
+    }
+    Ok(len)
+}
+
+fn execute(
+    document: &mut Document,
+    command: &Command,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    match command {
+        Command::InsertText { at, text } => insert_text(document, at, text, map, changes),
+        Command::InsertInline { at, kind } => insert_inline(document, at, kind, map, changes),
+        Command::DeleteRange { start, end } => delete_range(document, start, end, map, changes),
+        Command::SplitParagraph { at } => split_paragraph(document, at, map, changes),
+        Command::FormatText { start, end, change } => format_text(
+            document,
+            start,
+            end,
+            &mut |props| change.apply(props),
+            changes,
+        ),
+        Command::FormatParagraph {
+            story,
+            paragraph,
+            change,
+        } => format_paragraph(document, *story, *paragraph, change, changes),
+        Command::MoveBlock {
+            story,
+            block,
+            before,
+        } => move_block(document, *story, *block, *before, changes),
+        Command::RemoveBlock { story, block } => {
+            remove_block(document, *story, *block, map, changes)
+        }
+    }
+}
+
+fn insert_text(
+    document: &mut Document,
+    at: &Position,
+    text: &str,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    check_text(text)?;
+    let location = locate_paragraph(document, at)?;
+    if location.content_locked {
+        return Err(CommandError::Locked(at.paragraph));
+    }
+    check_offset(document, &location, at)?;
+    if text.is_empty() {
+        return Ok(());
+    }
+    let paragraph = locate::paragraph_mut(document, &location).expect("located paragraph");
+    paragraph.insert_text(at.offset, text)?;
+    map.push(MapStep::Insert {
+        paragraph: at.paragraph,
+        at: at.offset.0,
+        len: text.chars().count(),
+    });
+    changes.stories.insert(at.story);
+    changes.paragraphs.insert(at.paragraph);
+    Ok(())
+}
+
+fn insert_inline(
+    document: &mut Document,
+    at: &Position,
+    kind: &InlineKind,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let location = locate_paragraph(document, at)?;
+    if location.content_locked {
+        return Err(CommandError::Locked(at.paragraph));
+    }
+    check_offset(document, &location, at)?;
+    if let InlineKind::Image { resource, .. } = kind
+        && document.resources().get(*resource).is_none()
+    {
+        return Err(CommandError::MissingResource);
+    }
+    let id = document.ids().node();
+    let paragraph = locate::paragraph_mut(document, &location).expect("located paragraph");
+    let (style, props) = paragraph.format_at(at.offset);
+    let object = InlineObject {
+        id,
+        kind: kind.clone(),
+        source: None,
+    };
+    paragraph.insert_inline(at.offset, object, style, props)?;
+    map.push(MapStep::Insert {
+        paragraph: at.paragraph,
+        at: at.offset.0,
+        len: 1,
+    });
+    changes.stories.insert(at.story);
+    changes.paragraphs.insert(at.paragraph);
+    changes.inserted.insert(id);
+    Ok(())
+}
+
+/// Locates both ends of a range in one container, in order.
+fn locate_range(
+    document: &Document,
+    start: &Position,
+    end: &Position,
+) -> Result<(Location, Location), CommandError> {
+    if start.story != end.story {
+        return Err(CommandError::CrossContainer);
+    }
+    let first = locate_paragraph(document, start)?;
+    let last = locate_paragraph(document, end)?;
+    if !first.same_container(&last) {
+        return Err(CommandError::CrossContainer);
+    }
+    check_offset(document, &first, start)?;
+    check_offset(document, &last, end)?;
+    if first.index > last.index || (first.index == last.index && start.offset > end.offset) {
+        return Err(CommandError::ReversedRange);
+    }
+    Ok((first, last))
+}
+
+fn delete_range(
+    document: &mut Document,
+    start: &Position,
+    end: &Position,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let (first, last) = locate_range(document, start, end)?;
+    if first.content_locked {
+        return Err(CommandError::Locked(start.paragraph));
+    }
+    if first.index == last.index {
+        if start.offset == end.offset {
+            return Ok(());
+        }
+        let paragraph = locate::paragraph_mut(document, &first).expect("located paragraph");
+        paragraph.remove(start.offset..end.offset)?;
+        map.push(MapStep::Delete {
+            paragraph: start.paragraph,
+            start: start.offset.0,
+            end: end.offset.0,
+        });
+        changes.stories.insert(start.story);
+        changes.paragraphs.insert(start.paragraph);
+        return Ok(());
+    }
+
+    let story = start.story;
+    let seq = locate::container(document, story, &first.containers).expect("located container");
+    let mut removed_paragraphs = Vec::new();
+    let mut removed_blocks = Vec::new();
+    for index in first.index + 1..last.index {
+        let block = seq.get(index).expect("index between located blocks");
+        if let Some(locked) = locate::deletion_lock(block) {
+            return Err(CommandError::Locked(locked));
+        }
+        locate::paragraphs_in(block, &mut removed_paragraphs);
+        removed_blocks.push(block.id());
+    }
+    let first_len = seq
+        .get(first.index)
+        .and_then(Block::as_paragraph)
+        .expect("located paragraph")
+        .len();
+
+    let seq = locate::container_mut(document, story, &first.containers).expect("located container");
+    let Block::Paragraph(tail) = seq.remove(last.index) else {
+        unreachable!("located paragraph");
+    };
+    for index in (first.index + 1..last.index).rev() {
+        seq.remove(index);
+    }
+    let mut tail = Arc::unwrap_or_clone(tail);
+    tail.remove(ScalarOffset(0)..end.offset)?;
+    let Some(Block::Paragraph(head)) = seq.get_mut(first.index) else {
+        unreachable!("located paragraph");
+    };
+    let head = Arc::make_mut(head);
+    // Merged paragraph keeps the first paragraph's properties. Word's exact
+    // rule is a black-box behavior to confirm in the T004 rule catalog.
+    head.remove(start.offset..ScalarOffset(first_len))?;
+    head.append(tail);
+
+    map.push(MapStep::DeleteAcross {
+        story,
+        first: start.paragraph,
+        start: start.offset.0,
+        last: end.paragraph,
+        end: end.offset.0,
+        removed: removed_paragraphs.clone(),
+    });
+    changes.stories.insert(story);
+    changes.paragraphs.insert(start.paragraph);
+    changes.removed.insert(end.paragraph);
+    changes.removed.extend(removed_paragraphs);
+    changes.removed.extend(removed_blocks);
+    Ok(())
+}
+
+fn split_paragraph(
+    document: &mut Document,
+    at: &Position,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let location = locate_paragraph(document, at)?;
+    if location.content_locked {
+        return Err(CommandError::Locked(at.paragraph));
+    }
+    check_offset(document, &location, at)?;
+    let new = document.ids().node();
+    let seq =
+        locate::container_mut(document, at.story, &location.containers).expect("located container");
+    let Some(Block::Paragraph(paragraph)) = seq.get_mut(location.index) else {
+        unreachable!("located paragraph");
+    };
+    let tail = Arc::make_mut(paragraph).split_off(at.offset, new)?;
+    seq.insert(location.index + 1, tail.into());
+    map.push(MapStep::Split {
+        paragraph: at.paragraph,
+        at: at.offset.0,
+        new,
+    });
+    changes.stories.insert(at.story);
+    changes.paragraphs.insert(at.paragraph);
+    changes.inserted.insert(new);
+    Ok(())
+}
+
+fn format_text(
+    document: &mut Document,
+    start: &Position,
+    end: &Position,
+    change: &mut dyn FnMut(&mut RunProps),
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let (first, last) = locate_range(document, start, end)?;
+    if first.content_locked {
+        return Err(CommandError::Locked(start.paragraph));
+    }
+    let story = start.story;
+    let seq = locate::container_mut(document, story, &first.containers).expect("located container");
+    let mut touched = Vec::new();
+    for index in first.index..=last.index {
+        locate::for_each_paragraph_mut(seq, index, &mut |paragraph, locked| {
+            let id = paragraph.id();
+            let from = if id == start.paragraph {
+                start.offset
+            } else {
+                ScalarOffset(0)
+            };
+            let to = if id == end.paragraph {
+                end.offset
+            } else {
+                ScalarOffset(paragraph.len())
+            };
+            if from == to {
+                return Ok(());
+            }
+            if locked {
+                return Err(CommandError::Locked(id));
+            }
+            if paragraph.format_runs(from..to, &mut *change)? {
+                touched.push(id);
+            }
+            Ok(())
+        })?;
+    }
+    if !touched.is_empty() {
+        changes.stories.insert(story);
+        changes.paragraphs.extend(touched);
+    }
+    Ok(())
+}
+
+fn format_paragraph(
+    document: &mut Document,
+    story: StoryId,
+    paragraph: NodeId,
+    change: &ParagraphChange,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let at = Position {
+        story,
+        paragraph,
+        offset: ScalarOffset(0),
+        bias: Bias::Before,
+    };
+    let location = locate_paragraph(document, &at)?;
+    if location.content_locked {
+        return Err(CommandError::Locked(paragraph));
+    }
+    let target = locate::paragraph_mut(document, &location).expect("located paragraph");
+    let changed = match change {
+        ParagraphChange::Style(style) => {
+            let changed = target.style != *style;
+            target.style = style.clone();
+            changed
+        }
+        other => {
+            let mut props = ParaProps::clone(&target.props);
+            match other {
+                ParagraphChange::Justification(value) => props.justification = *value,
+                ParagraphChange::Indent(value) => props.indent = *value,
+                ParagraphChange::Spacing(value) => props.spacing = *value,
+                ParagraphChange::Style(_) => unreachable!("handled above"),
+            }
+            let changed = props != *target.props;
+            if changed {
+                target.props = Arc::new(props);
+            }
+            changed
+        }
+    };
+    if changed {
+        changes.stories.insert(story);
+        changes.paragraphs.insert(paragraph);
+    }
+    Ok(())
+}
+
+fn move_block(
+    document: &mut Document,
+    story: StoryId,
+    block: NodeId,
+    before: Option<NodeId>,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let location = locate_block(document, story, block)?;
+    if location.content_locked {
+        return Err(CommandError::Locked(block));
+    }
+    let target = match before {
+        Some(before) => {
+            let target = locate_block(document, story, before)?;
+            if !target.same_container(&location) {
+                return Err(CommandError::CrossContainer);
+            }
+            target.index
+        }
+        None => locate::container(document, story, &location.containers)
+            .expect("located container")
+            .len(),
+    };
+    if target == location.index || target == location.index + 1 {
+        return Ok(());
+    }
+    let seq =
+        locate::container_mut(document, story, &location.containers).expect("located container");
+    let moving = seq.remove(location.index);
+    let index = if target > location.index {
+        target - 1
+    } else {
+        target
+    };
+    seq.insert(index, moving);
+    changes.stories.insert(story);
+    changes.moved.insert(block);
+    Ok(())
+}
+
+fn remove_block(
+    document: &mut Document,
+    story: StoryId,
+    block: NodeId,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let location = locate_block(document, story, block)?;
+    if location.content_locked {
+        return Err(CommandError::Locked(block));
+    }
+    let seq = locate::container(document, story, &location.containers).expect("located container");
+    if seq.len() == 1 {
+        return Err(CommandError::LastBlock(block));
+    }
+    let removed = seq.get(location.index).expect("located block");
+    if let Some(locked) = locate::deletion_lock(removed) {
+        return Err(CommandError::Locked(locked));
+    }
+    let mut paragraphs = Vec::new();
+    locate::paragraphs_in(removed, &mut paragraphs);
+    // Positions inside collapse to the start of the next block, else the end
+    // of the previous one.
+    let fallback = seq
+        .get(location.index + 1)
+        .and_then(|next| locate::edge_paragraph(next, true))
+        .or_else(|| {
+            location
+                .index
+                .checked_sub(1)
+                .and_then(|previous| seq.get(previous))
+                .and_then(|previous| locate::edge_paragraph(previous, false))
+        })
+        .map(|(paragraph, offset)| (story, paragraph, offset));
+    locate::container_mut(document, story, &location.containers)
+        .expect("located container")
+        .remove(location.index);
+    for &paragraph in &paragraphs {
+        map.push(MapStep::Remove {
+            paragraph,
+            fallback,
+        });
+    }
+    changes.stories.insert(story);
+    changes.removed.insert(block);
+    changes.removed.extend(paragraphs);
+    Ok(())
+}
+
+/// Maps every anchored annotation through one command's steps. A comment
+/// whose non-empty range is deleted becomes visibly detached (REVIEW-006);
+/// other annotations collapse to an empty range. Lost anchors detach.
+fn remap_annotations(document: &mut Document, map: &PositionMap, changes: &mut ChangeSet) {
+    if map.is_identity() {
+        return;
+    }
+    let mut updates = Vec::new();
+    for annotation in document.annotations() {
+        let Anchor::Range { start, end } = annotation.anchor else {
+            continue;
+        };
+        let mapped_start = map.map(start).position();
+        let mapped_end = map.map(end).position();
+        let mapped_kind = match &annotation.kind {
+            AnnotationKind::Field {
+                separator: Some(separator),
+            } => AnnotationKind::Field {
+                separator: map.map(*separator).position(),
+            },
+            other => other.clone(),
+        };
+        let anchor = match (mapped_start, mapped_end) {
+            (Some(new_start), Some(new_end)) => {
+                let emptied = start != end
+                    && new_start.paragraph == new_end.paragraph
+                    && new_start.offset == new_end.offset;
+                if emptied && matches!(annotation.kind, AnnotationKind::Comment { .. }) {
+                    Anchor::Detached
+                } else {
+                    Anchor::Range {
+                        start: new_start,
+                        end: new_end,
+                    }
+                }
+            }
+            _ => Anchor::Detached,
+        };
+        if anchor != annotation.anchor || mapped_kind != annotation.kind {
+            updates.push((annotation.id, anchor, mapped_kind));
+        }
+    }
+    for (id, anchor, kind) in updates {
+        let annotation = document.annotation_mut(id).expect("annotation exists");
+        annotation.anchor = anchor;
+        annotation.kind = kind;
+        changes.annotations.insert(id);
+    }
+}
+
+/// Invariants of every surviving paragraph the transaction touched, found in
+/// one walk per touched story.
+fn touched_issues(document: &Document, changes: &ChangeSet) -> Vec<Issue> {
+    fn walk(block: &Block, changes: &ChangeSet, issues: &mut Vec<Issue>, depth: usize) {
+        if depth > MAX_NESTING {
+            return;
+        }
+        match block {
+            Block::Paragraph(paragraph) => check(paragraph, changes, issues),
+            Block::Table(table) => {
+                for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
+                    if cell.blocks.is_empty() {
+                        issues.push(Issue::EmptyCell { cell: cell.id });
+                    }
+                    for inner in cell.blocks.iter() {
+                        walk(inner, changes, issues, depth + 1);
+                    }
+                }
+            }
+            Block::Sdt(sdt) => {
+                for inner in sdt.blocks.iter() {
+                    walk(inner, changes, issues, depth + 1);
+                }
+            }
+            Block::Opaque(_) => {}
+        }
+    }
+
+    fn check(paragraph: &Paragraph, changes: &ChangeSet, issues: &mut Vec<Issue>) {
+        let id = paragraph.id();
+        if changes.paragraphs.contains(&id) || changes.inserted.contains(&id) {
+            issues.extend(paragraph.invariant_issues());
+        }
+    }
+
+    let mut issues = Vec::new();
+    for &story in &changes.stories {
+        let Some(found) = document.story(story) else {
+            continue;
+        };
+        if found.blocks.is_empty() {
+            issues.push(Issue::EmptyStory { story });
+        }
+        for block in found.blocks.iter() {
+            walk(block, changes, &mut issues, 0);
+        }
+    }
+    issues
+}
