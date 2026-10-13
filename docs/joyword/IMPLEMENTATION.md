@@ -5,27 +5,52 @@
 ## 已落地的内容
 
 - 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.2：82 个需求、58 个任务），每项有输入、输出、依赖、错误路径和验收要求。
-- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword GPUI 工程窗口。
-- 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI 配置。
+- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100 首个切片）；joyword GPUI 工程窗口。
+- 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
 - 中文／英文独立资源；静态 A4 页面、语言切换和 50%–150% 缩放。
-- 原创 UTF-8 种子、散列清单，以及需求覆盖／依赖／本地链接／语料／语言资源检查器。
+- 原创 UTF-8 种子、散列清单，以及需求覆盖／依赖／本地链接／语料／语言资源／Actions 固定检查器。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
-尚无文档模型、编辑事务、文件格式、排版内核、IME 编辑、PDF、修订、批注、剪贴板或 AI 实现。工程页面由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
+尚无编辑事务、文件格式、排版内核、IME 编辑、PDF、修订、批注、剪贴板或 AI 实现。joyword-model 只是无界面的数据结构与不变量，还没有接入窗口；工程页面仍由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
+
+### joyword-model（T100，进行中）
+
+| 部分 | 已实现 | 尚未实现 |
+| --- | --- | --- |
+| 结构共享 | 持久化 B 树 SeqTree（扇出 16，路径复制、缓存摘要、按维度定位）；Document 各字段共享，快照 O(1) | 文档级块索引（T101 编辑时按需加入） |
+| 文本 | 段落文本按 ≤1 KiB UTF-8 块存储；UTF-8／标量／UTF-16 偏移互转并拒绝字符内与代理对内位置；不做 Unicode 规范化 | 字素簇边界（随 T102 选型） |
+| 结构 | story（正文、页眉页脚、脚注尾注、批注、文本框）；段落、表格（网格、gridBefore／After、横向与纵向合并）、块级 SDT、不透明块；行内对象以 U+FDD0 占原子位置并经类型化片段读取 | 编号定义、修订对象、批注线程正文结构 |
+| 属性 | 原始单位 Measure（twip、半磅、八分之一磅、EMU、百分之一字符／行、pct、auto）；toggle 区分未设置与显式关闭；四槽字体、hint、主题字体与语言 | 样式层级的 toggle 解析与直接格式合并（T200） |
+| 样式 | 按规范名称识别内置样式（中文 Word 的 `a`／`1`、WPS 数字 ID）；basedOn 链有环、缺失、深度与类型诊断及有界回退 | 主题、表格条件格式与潜在样式 |
+| 标注与资源 | 书签、批注锚点、跨段复杂域（含 separate）、权限、行内 SDT 共用 Position（story、段落、标量偏移、偏向）；失锚状态可见；资源按 SHA-256 与来源区分，不自动去重 | 位置映射（T101） |
+| 校验与序列化 | 重复／未分配 ID、run 覆盖、对象位置、空单元格、网格、纵向合并、分节边界、页眉页脚类型、标注范围等诊断；嵌套 ≤64 层、诊断 ≤256 条；确定性模型转储，可忽略 ID 用于语义比较 | 与 T004 比较器的对接 |
+
+### T100 文本存储基准
+
+`cargo run --release -p joyword-model --example text_storage`；Apple M4／24 GiB／macOS 27.0.1，Rust 1.98.1 release（thin LTO、codegen-units=1），单次运行。内存为子进程持有 10 万个 36 字（76 字节）短段落的 RSS 增量，含分配器开销，不含 run／属性等段落结构；编辑为 2000 次随机位置单字插入，每次保留前一版本以模拟后台快照。
+
+| 方案 | 每段内存 | 100 字插入 p50／p95 | 1 万字 | 100 万字 | UTF-16 偏移 p95（100 万字） |
+| --- | --- | --- | --- | --- | --- |
+| 整段 `Arc<str>` 写时复制 | 114 B | 1.17／4.38 µs | 12.0／27.2 µs | 1.08／2.00 ms | 583 µs |
+| **分块 B 树（选定）** | 236 B | 0.33／1.50 µs | 1.17／1.62 µs | 1.42／2.08 µs | 0.46 µs |
+| Ropey 1.6.1 | 1038 B | 0.21／0.29 µs | 0.29／0.58 µs | 0.67／1.54 µs | 0.21 µs |
+
+结论（ADR-003）：`Arc<str>` 的插入与 IME 偏移换算随段落长度线性增长，排除；Ropey 常数更快，但短段落内存为选定方案的 4.4 倍（5 万段约 50 MiB 对 12 MiB），排除；选定方案在百万字符段落中插入 p95 约 2 µs，远低于 50 ms 输入预算。数值是单机单次测量，只用于选型，不是 QUALITY §5 的性能成绩。
 
 ## 当前环境
 
 | 项目 | 实际情况 |
 | --- | --- |
 | 本机 | Apple M4，24 GiB，macOS 27.0.1，arm64 |
-| Rust／Cargo | 1.98.1／1.98.1；工具链文件精确固定 |
-| GPUI | crates.io 0.2.2（最后官方版本，已停更），长期来源待 ADR-010 选定；锁文件约 708 个外部包全部经由 GPUI 引入，含 MPL-2.0、Unicode-3.0 等需登记的许可 |
-| Xcode／Metal | 只有 Command Line Tools；`xcrun --find metal` 失败 |
-| 开发构建 | dev-runtime-shaders 使用 GPUI 官方运行时着色器选项，已编译成功 |
+| Rust／Cargo | 1.98.1／1.98.1；工具链文件精确固定；为交叉检查额外安装 x86_64-unknown-linux-gnu 标准库目标 |
+| GPUI | crates.io 0.2.2（最后官方版本，已停更），长期来源待 ADR-010 选定；cargo-deny 报告其间接依赖中 7 条“停止维护”公告（async-std、instant、paste、proc-macro-error2、rustls-pemfile、rustybuzz、ttf-parser），无漏洞公告 |
+| 依赖锁 | libc 锁定为 0.2.186：0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 GPUI 间接引入的 xattr 0.2.3 无法编译 |
+| Xcode／Metal | 本机只有 Command Line Tools，`xcrun --find metal` 失败；CI 的 macos-15 镜像（Xcode 16.4）具备 metal |
+| 开发构建 | dev-runtime-shaders 使用 GPUI 官方运行时着色器选项，本机已编译成功 |
 | 对照软件 | 发现已安装 WPS、Pages；本次未做 Office 运行或往返测试 |
-| Windows／Linux | 工作流已配置；未在真实 runner 或机器上执行 |
+| Windows／Linux | GitHub Actions 已实际执行，结果见下表；尚无真实机器人工运行 |
 
-不以未测量的最新 GPUI 网站能力反推 0.2.2 已满足所有要求。当前直接依赖只有 GPUI 和本地基础库；HarfRust、Fontique、Skrifa、ICU4X、Ropey、krilla 仍是选型，尚未接入自研内核。
+当前直接依赖：GPUI、本地基础库、joyword-model 的 sha2（资源散列）；Ropey 仅为基准 dev 依赖。HarfRust、Fontique、Skrifa、ICU4X、krilla 仍是选型，尚未接入自研内核。
 
 ## 验证记录
 
@@ -33,21 +58,23 @@
 | --- | --- |
 | 开发构建 | `cargo build -p joyword --features dev-runtime-shaders --locked` 成功 |
 | 真实窗口 | 验证中；系统辅助功能／屏幕录制授权尚未可用，不能确认界面交互 |
-| 文档／语料／资源检查 | 2026-10-13 `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内 |
-| 基础库测试 | `cargo test -p joyword-foundation --locked` 通过 3 项 |
-| rustfmt／clippy | `cargo fmt --all -- --check` 通过；`cargo clippy -p joyword-foundation --all-targets --locked -- -D warnings` 无警告；含 GPUI 的 workspace clippy 尚未执行 |
-| 标准 Metal 构建 | 环境前置不满足；不能记录通过 |
-| 三端 CI、Office 往返、性能 | 未执行，不能计为通过 |
+| 文档／语料／资源检查 | `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内，4 处 Actions 引用均按 SHA 固定 |
+| 核心测试 | `cargo test --locked` 通过：基础库 3 项；模型 25 项单元测试与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点） |
+| rustfmt／clippy | `cargo fmt --all -- --check` 通过；`cargo clippy -p joyword-foundation -p joyword-model --all-targets -- -D warnings` 无警告 |
+| 依赖检查 | 本机 cargo-deny 0.20.2（安装在临时目录，未加入 PATH）：advisories、bans、licenses、sources 全部 ok |
+| 三端 CI（修复前） | 运行 38419060698 与 38419419204（提交 97286e8）：macos-15 全部步骤通过，含不启用 dev-runtime-shaders 的预编译 Metal 构建；windows-2022 因检出时 LF→CRLF 使四个种子散列不符而失败（已加 .gitattributes）；ubuntu-24.04 在 clippy 编译 xattr 时失败（已锁 libc，并以 `cargo check -p xattr@0.2.3 --target x86_64-unknown-linux-gnu` 本机验证） |
+| 三端 CI（修复后） | 尚未运行；推送后复核才能记录通过 |
+| Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 与 proc-macro-error2 2.0.1 的 future-incompat 提示；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
 
 ## 未完成的 M0 门槛与下一步
 
-1. T001：依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染）；安装完整 Xcode 并单独下载 Metal 工具链后验证普通构建；加入 cargo-deny、按 SHA 固定 Actions，实际执行 Windows／Linux／macOS CI 并保留运行证据。
+1. T001：推送后确认 Windows／Linux 复跑通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机安装完整 Xcode 并单独下载 Metal 工具链后验证普通构建。
 2. T002：实际检查中英文窗口、切换、缩放和退出；不把编译或进程存在算成交互通过。
 3. T003：整形—屏幕—PDF 使用同一字体实例与定位字形，验证中文 IME、组合取消／提交／撤销及 DPI。GPUI 0.2.2 的 GlyphId 不可在外部构造（上游主干已公开），按字节加载字体也不返回 FontId；外部整形结果接入取决于 ADR-010 的来源选择或最小补丁，禁止用系统同名字体替代来宣称同一字形。
-4. T004：在种子登记上实现规范文件生成、语义／几何比较器和固定参考环境（Word 为 Office LTSC 2024，并对照 WPS）；当前种子全部为 planned。
+4. T004：在种子登记上实现规范文件生成、语义／几何比较器（可复用模型的无 ID 转储）和固定参考环境（Word 为 Office LTSC 2024，并对照 WPS）；当前种子全部为 planned。
 5. T005：准备统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）测试机或镜像，核对 LoongArch ABI，验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。
-6. T100 只依赖 T000，可与 M0 并行；T101–T107 按依赖推进，在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
+6. T100：补编号定义、修订对象与批注线程结构，完成人工验收后才能标 done。T101（事务与位置映射）的前置已满足，可在模型上开始；T101–T107 按依赖推进，在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
 
 M0 整体尚未通过，M1–M9 未实施。后续完成任务时须更新本记录、TASKS 状态与对应测试报告。

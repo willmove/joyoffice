@@ -1,0 +1,20 @@
+[package]
+name = "joyword-model"
+description = "JoyWord typed document model: stories, blocks, styles, annotations and snapshots"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyword-foundation.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+# Benchmark comparison only (examples/text_storage.rs); not a model dependency.
+ropey = "=1.6.1"

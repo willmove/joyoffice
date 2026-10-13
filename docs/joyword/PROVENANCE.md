@@ -23,13 +23,14 @@
 | 依赖 | 定位 | 许可／来源依据 | 注意事项 |
 | --- | --- | --- | --- |
 | GPUI | UI 框架 | [上游许可](https://zed.dev/software-overview)，Apache-2.0 | 编辑器主体许可不同；仅依赖框架；记录传递依赖；来源按 ADR-010，第三方发布需审查发布者与构建来源 |
-| Ropey | 文本容器 | [crate 文档](https://docs.rs/ropey/latest/ropey/)；引入版本时复核 LICENSE | 尚不等于实现 Word 模型 |
+| sha2 0.10.9 | joyword-model 资源内容散列（直接依赖） | RustCrypto，MIT OR Apache-2.0（crate 元数据） | 与 GPUI 间接锁定的版本相同；只用于身份散列，不用于密码学保护 |
+| Ropey 1.6.1 | 仅 T100 文本存储基准的 dev 依赖 | [上游](https://github.com/cessen/ropey)，MIT | 不进入产品构建；基准结论见 IMPLEMENTATION |
 | HarfRust | 字体整形 | [上游](https://github.com/harfbuzz/harfrust)，MIT | 记录版本、字体和特性；不根据库名称声称兼容 Word |
 | Fontique／Skrifa／ICU4X | 字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
 | quick-xml／zip | 通用格式基础 | 各选定发行包的 LICENSE 与元数据 | 自研上层映射，关闭不需要的能力 |
 | krilla | PDF 绘图与定位字形 | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0 | 精确记录 feature；避免依赖自动整形作为第二排版路径 |
 
-MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext）、Unicode-3.0 和 BSD 等许可，均须进入通知清单。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
+MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib、CC0-1.0 和 NCSA 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 0.2.2 间接引入的“停止维护”公告逐条登记理由，待 ADR-010 选定来源时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
 
 ## 4. 字体、图标、模板与样例
 

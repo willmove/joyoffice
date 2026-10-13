@@ -1,0 +1,583 @@
+//! Block structure: paragraphs, tables, content controls and preserved blocks
+//! (ARCHITECTURE §2, §2.2).
+//!
+//! Blocks are reference counted so a [`BlockSeq`] edit copies only the edited
+//! block and its tree path. Inline objects, breaks and preserved inline content
+//! occupy one atomic position each, represented in text by [`OBJECT_MARKER`]
+//! and in order by the paragraph's inline list; consumers read typed
+//! [`Segment`]s and never see the marker.
+
+use std::sync::Arc;
+
+use crate::id::{NodeId, PreservedId, ResourceId, SourceRef};
+use crate::props::{Measure, ParaProps, RunProps};
+use crate::style::StyleId;
+use crate::text::{OBJECT_MARKER, ParagraphText, ScalarOffset, TextError};
+use crate::tree::{Item, SeqTree};
+
+/// Ordered blocks of a story, table cell or content control.
+pub type BlockSeq = SeqTree<Block>;
+
+/// A contiguous span of characters sharing formatting. Runs cover the whole
+/// paragraph and are never empty.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Run {
+    /// Length in Unicode scalars, inline object markers included.
+    pub len: usize,
+    pub style: Option<StyleId>,
+    pub props: Arc<RunProps>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum BreakKind {
+    /// Soft line break (`w:br` without a type).
+    Line,
+    Page,
+    Column,
+}
+
+/// Source content the model does not interpret, held by the format layer.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Preserved {
+    /// Qualified element name, e.g. `m:oMath` or `w:object`.
+    pub element: Arc<str>,
+    pub handle: PreservedId,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum InlineKind {
+    Break(BreakKind),
+    Image {
+        resource: ResourceId,
+        width: Measure,
+        height: Measure,
+    },
+    Preserved(Preserved),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct InlineObject {
+    pub id: NodeId,
+    pub kind: InlineKind,
+    pub source: Option<Arc<SourceRef>>,
+}
+
+/// Typed view of paragraph content for export, clipboard and Agent tools.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Segment<'a> {
+    Text(String),
+    Inline(&'a InlineObject),
+}
+
+/// Content removed from a paragraph, kept for undo.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Removed {
+    pub text: String,
+    pub inlines: Vec<InlineObject>,
+    pub runs: Vec<Run>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Paragraph {
+    id: NodeId,
+    text: ParagraphText,
+    runs: Vec<Run>,
+    inlines: Vec<InlineObject>,
+    pub style: Option<StyleId>,
+    pub props: Arc<ParaProps>,
+    /// Properties of the paragraph mark (`w:pPr/w:rPr`); also the formatting
+    /// of text typed into an empty paragraph.
+    pub mark_props: Arc<RunProps>,
+    pub source: Option<Arc<SourceRef>>,
+}
+
+impl Paragraph {
+    pub fn new(id: NodeId) -> Self {
+        Self {
+            id,
+            text: ParagraphText::new(),
+            runs: Vec::new(),
+            inlines: Vec::new(),
+            style: None,
+            props: Arc::default(),
+            mark_props: Arc::default(),
+            source: None,
+        }
+    }
+
+    pub fn id(&self) -> NodeId {
+        self.id
+    }
+
+    pub fn text(&self) -> &ParagraphText {
+        &self.text
+    }
+
+    pub fn runs(&self) -> &[Run] {
+        &self.runs
+    }
+
+    pub fn inlines(&self) -> &[InlineObject] {
+        &self.inlines
+    }
+
+    /// Length in positions: scalars plus one per inline object.
+    pub fn len(&self) -> usize {
+        self.text.len_scalars()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.text.is_empty()
+    }
+
+    /// Appends text as a new run (importer and builder entry point).
+    pub fn push_text(
+        &mut self,
+        text: &str,
+        style: Option<StyleId>,
+        props: Arc<RunProps>,
+    ) -> Result<(), TextError> {
+        let end = ScalarOffset(self.len());
+        self.text.insert_str(end, text)?;
+        let len = text.chars().count();
+        if len > 0 {
+            self.runs.push(Run { len, style, props });
+        }
+        Ok(())
+    }
+
+    /// Appends an inline object as its own run.
+    pub fn push_inline(
+        &mut self,
+        object: InlineObject,
+        style: Option<StyleId>,
+        props: Arc<RunProps>,
+    ) {
+        let end = ScalarOffset(self.len());
+        self.text
+            .insert_raw(end, OBJECT_MARKER.encode_utf8(&mut [0; 4]))
+            .expect("end offset is valid");
+        self.inlines.push(object);
+        self.runs.push(Run {
+            len: 1,
+            style,
+            props,
+        });
+    }
+
+    /// Run containing the character at `offset`, with the run's start.
+    fn run_at(&self, offset: usize) -> Option<(usize, usize)> {
+        let mut start = 0;
+        for (index, run) in self.runs.iter().enumerate() {
+            if offset < start + run.len {
+                return Some((index, start));
+            }
+            start += run.len;
+        }
+        None
+    }
+
+    /// Splits runs so that `offset` falls on a run boundary; returns the index
+    /// of the first run at or after `offset`.
+    fn split_run_at(&mut self, offset: usize) -> usize {
+        match self.run_at(offset) {
+            None => self.runs.len(),
+            Some((index, start)) if start == offset => index,
+            Some((index, start)) => {
+                let tail = self.runs[index].len - (offset - start);
+                self.runs[index].len = offset - start;
+                let mut right = self.runs[index].clone();
+                right.len = tail;
+                self.runs.insert(index + 1, right);
+                index + 1
+            }
+        }
+    }
+
+    /// Inserts ordinary text. It joins the run of the preceding character, or
+    /// the first run at the paragraph start, or the paragraph mark formatting
+    /// in an empty paragraph.
+    pub fn insert_text(&mut self, at: ScalarOffset, text: &str) -> Result<(), TextError> {
+        self.text.insert_str(at, text)?;
+        let len = text.chars().count();
+        if len == 0 {
+            return Ok(());
+        }
+        if self.runs.is_empty() {
+            self.runs.push(Run {
+                len,
+                style: None,
+                props: self.mark_props.clone(),
+            });
+        } else {
+            let index = match at.0 {
+                0 => 0,
+                offset => self.run_at(offset - 1).expect("offset within runs").0,
+            };
+            self.runs[index].len += len;
+        }
+        Ok(())
+    }
+
+    /// Inserts an inline object at `at` as its own run with the given format.
+    pub fn insert_inline(
+        &mut self,
+        at: ScalarOffset,
+        object: InlineObject,
+        style: Option<StyleId>,
+        props: Arc<RunProps>,
+    ) -> Result<(), TextError> {
+        let index = self.text.markers_before(at)?;
+        self.text
+            .insert_raw(at, OBJECT_MARKER.encode_utf8(&mut [0; 4]))?;
+        self.inlines.insert(index, object);
+        let run = self.split_run_at(at.0);
+        self.runs.insert(
+            run,
+            Run {
+                len: 1,
+                style,
+                props,
+            },
+        );
+        Ok(())
+    }
+
+    /// Removes a range of positions, returning text, inline objects and the
+    /// removed runs so the caller can build an exact inverse.
+    pub fn remove(&mut self, range: std::ops::Range<ScalarOffset>) -> Result<Removed, TextError> {
+        let first_inline = self.text.markers_before(range.start)?;
+        let text = self.text.remove_raw(range.clone())?;
+        let inline_count = text.chars().filter(|&ch| ch == OBJECT_MARKER).count();
+        let inlines = self
+            .inlines
+            .drain(first_inline..first_inline + inline_count)
+            .collect();
+        let start = self.split_run_at(range.start.0);
+        let end = self.split_run_at(range.end.0);
+        let runs = self.runs.drain(start..end).collect();
+        Ok(Removed {
+            text: text.replace(OBJECT_MARKER, ""),
+            inlines,
+            runs,
+        })
+    }
+
+    /// Splits the paragraph at `at`. The tail keeps paragraph formatting under
+    /// a new identity and no source reference, since it is new content.
+    pub fn split_off(&mut self, at: ScalarOffset, new_id: NodeId) -> Result<Paragraph, TextError> {
+        let first_inline = self.text.markers_before(at)?;
+        let text = self.text.split_off(at)?;
+        let run = self.split_run_at(at.0);
+        Ok(Paragraph {
+            id: new_id,
+            text,
+            runs: self.runs.split_off(run),
+            inlines: self.inlines.split_off(first_inline),
+            style: self.style.clone(),
+            props: self.props.clone(),
+            mark_props: self.mark_props.clone(),
+            source: None,
+        })
+    }
+
+    /// Appends the content of `next` (paragraph merge). Formatting of `self`
+    /// is kept; `next`'s identity ends.
+    pub fn append(&mut self, next: Paragraph) {
+        self.text.append(&next.text);
+        self.runs.extend(next.runs);
+        self.inlines.extend(next.inlines);
+    }
+
+    /// Text and inline objects in order, without object markers.
+    pub fn segments(&self) -> Vec<Segment<'_>> {
+        let mut segments = Vec::new();
+        let mut current = String::new();
+        let mut inlines = self.inlines.iter();
+        for ch in self.text.chars() {
+            if ch == OBJECT_MARKER {
+                if !current.is_empty() {
+                    segments.push(Segment::Text(std::mem::take(&mut current)));
+                }
+                if let Some(inline) = inlines.next() {
+                    segments.push(Segment::Inline(inline));
+                }
+            } else {
+                current.push(ch);
+            }
+        }
+        if !current.is_empty() {
+            segments.push(Segment::Text(current));
+        }
+        segments
+    }
+
+    /// Plain text with each inline object rendered by `inline`; markers never
+    /// appear in the result.
+    pub fn plain_text(&self, inline: impl Fn(&InlineObject) -> String) -> String {
+        self.segments()
+            .into_iter()
+            .map(|segment| match segment {
+                Segment::Text(text) => text,
+                Segment::Inline(object) => inline(object),
+            })
+            .collect()
+    }
+}
+
+/// Vertical merge state of a table cell (`w:vMerge`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum VerticalMerge {
+    #[default]
+    None,
+    Restart,
+    Continue,
+}
+
+#[derive(Clone, Debug)]
+pub struct Cell {
+    pub id: NodeId,
+    /// Grid columns spanned (`w:gridSpan`), at least 1.
+    pub grid_span: u32,
+    pub vertical_merge: VerticalMerge,
+    pub width: Option<Measure>,
+    /// Cell content; Word requires at least one paragraph.
+    pub blocks: BlockSeq,
+    pub preserved: Option<PreservedId>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Row {
+    pub id: NodeId,
+    /// Grid columns skipped before the first cell (`w:gridBefore`).
+    pub grid_before: u32,
+    /// Grid columns left empty after the last cell (`w:gridAfter`).
+    pub grid_after: u32,
+    pub cells: Vec<Cell>,
+    pub header: bool,
+    pub preserved: Option<PreservedId>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Table {
+    pub id: NodeId,
+    /// Column widths of `w:tblGrid`, independent of any screen geometry.
+    pub grid: Vec<Measure>,
+    pub rows: Vec<Row>,
+    pub style: Option<StyleId>,
+    pub preserved: Option<PreservedId>,
+    pub source: Option<Arc<SourceRef>>,
+}
+
+/// Content control locking (`w:lock`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum SdtLock {
+    #[default]
+    Unlocked,
+    /// The control cannot be deleted.
+    SdtLocked,
+    /// The content cannot be edited.
+    ContentLocked,
+    SdtContentLocked,
+}
+
+impl SdtLock {
+    pub fn content_editable(self) -> bool {
+        matches!(self, SdtLock::Unlocked | SdtLock::SdtLocked)
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct SdtProps {
+    pub tag: Option<Arc<str>>,
+    pub alias: Option<Arc<str>>,
+    pub lock: SdtLock,
+    pub preserved: Option<PreservedId>,
+}
+
+/// Block-level content control: a transparent container (ARCHITECTURE §2).
+#[derive(Clone, Debug)]
+pub struct Sdt {
+    pub id: NodeId,
+    pub props: SdtProps,
+    pub blocks: BlockSeq,
+    pub source: Option<Arc<SourceRef>>,
+}
+
+/// A block the model keeps but does not interpret, e.g. an unknown element.
+#[derive(Clone, Debug)]
+pub struct OpaqueBlock {
+    pub id: NodeId,
+    pub preserved: Preserved,
+    pub source: Option<Arc<SourceRef>>,
+}
+
+#[derive(Clone, Debug)]
+pub enum Block {
+    Paragraph(Arc<Paragraph>),
+    Table(Arc<Table>),
+    Sdt(Arc<Sdt>),
+    Opaque(Arc<OpaqueBlock>),
+}
+
+impl Block {
+    pub fn id(&self) -> NodeId {
+        match self {
+            Block::Paragraph(paragraph) => paragraph.id,
+            Block::Table(table) => table.id,
+            Block::Sdt(sdt) => sdt.id,
+            Block::Opaque(opaque) => opaque.id,
+        }
+    }
+
+    pub fn as_paragraph(&self) -> Option<&Paragraph> {
+        match self {
+            Block::Paragraph(paragraph) => Some(paragraph),
+            _ => None,
+        }
+    }
+}
+
+impl From<Paragraph> for Block {
+    fn from(paragraph: Paragraph) -> Self {
+        Block::Paragraph(Arc::new(paragraph))
+    }
+}
+
+impl From<Table> for Block {
+    fn from(table: Table) -> Self {
+        Block::Table(Arc::new(table))
+    }
+}
+
+impl From<Sdt> for Block {
+    fn from(sdt: Sdt) -> Self {
+        Block::Sdt(Arc::new(sdt))
+    }
+}
+
+impl From<OpaqueBlock> for Block {
+    fn from(opaque: OpaqueBlock) -> Self {
+        Block::Opaque(Arc::new(opaque))
+    }
+}
+
+impl Item for Block {
+    type Summary = ();
+
+    fn summary(&self) {}
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::id::IdAllocator;
+
+    fn bold() -> Arc<RunProps> {
+        Arc::new(RunProps {
+            bold: Some(true),
+            ..RunProps::default()
+        })
+    }
+
+    fn sample(ids: &mut IdAllocator) -> Paragraph {
+        let mut paragraph = Paragraph::new(ids.node());
+        paragraph.push_text("甲方", None, Arc::default()).unwrap();
+        paragraph.push_text("签字", None, bold()).unwrap();
+        paragraph.push_inline(
+            InlineObject {
+                id: ids.node(),
+                kind: InlineKind::Break(BreakKind::Line),
+                source: None,
+            },
+            None,
+            Arc::default(),
+        );
+        paragraph.push_text("日期", None, Arc::default()).unwrap();
+        paragraph
+    }
+
+    fn run_lengths(paragraph: &Paragraph) -> Vec<usize> {
+        paragraph.runs().iter().map(|run| run.len).collect()
+    }
+
+    fn plain(paragraph: &Paragraph) -> String {
+        paragraph.plain_text(|_| "⏎".into())
+    }
+
+    #[test]
+    fn segments_hide_object_markers() {
+        let mut ids = IdAllocator::default();
+        let paragraph = sample(&mut ids);
+        assert_eq!(paragraph.len(), 7);
+        assert_eq!(plain(&paragraph), "甲方签字⏎日期");
+        assert!(!plain(&paragraph).contains(OBJECT_MARKER));
+        assert!(matches!(paragraph.segments()[1], Segment::Inline(_)));
+    }
+
+    #[test]
+    fn typing_joins_preceding_run_and_empty_paragraph_uses_mark_format() {
+        let mut ids = IdAllocator::default();
+        let mut paragraph = sample(&mut ids);
+        paragraph.insert_text(ScalarOffset(4), "人").unwrap();
+        assert_eq!(run_lengths(&paragraph), vec![2, 3, 1, 2]);
+        paragraph.insert_text(ScalarOffset(0), "（").unwrap();
+        assert_eq!(run_lengths(&paragraph), vec![3, 3, 1, 2]);
+
+        let mut empty = Paragraph::new(ids.node());
+        empty.mark_props = bold();
+        empty.insert_text(ScalarOffset(0), "标题").unwrap();
+        assert_eq!(empty.runs()[0].props, bold());
+    }
+
+    #[test]
+    fn remove_returns_exact_content_and_inlines() {
+        let mut ids = IdAllocator::default();
+        let mut paragraph = sample(&mut ids);
+        let removed = paragraph.remove(ScalarOffset(3)..ScalarOffset(6)).unwrap();
+        assert_eq!(removed.text, "字日");
+        assert_eq!(removed.inlines.len(), 1);
+        assert_eq!(removed.runs.iter().map(|r| r.len).sum::<usize>(), 3);
+        assert_eq!(plain(&paragraph), "甲方签期");
+        assert_eq!(run_lengths(&paragraph), vec![2, 1, 1]);
+        assert!(paragraph.inlines().is_empty());
+        assert!(paragraph.remove(ScalarOffset(3)..ScalarOffset(9)).is_err());
+        assert_eq!(plain(&paragraph), "甲方签期");
+    }
+
+    #[test]
+    fn insert_inline_splits_run_and_keeps_order() {
+        let mut ids = IdAllocator::default();
+        let mut paragraph = sample(&mut ids);
+        let image = InlineObject {
+            id: ids.node(),
+            kind: InlineKind::Break(BreakKind::Page),
+            source: None,
+        };
+        paragraph
+            .insert_inline(ScalarOffset(1), image.clone(), None, Arc::default())
+            .unwrap();
+        assert_eq!(run_lengths(&paragraph), vec![1, 1, 1, 2, 1, 2]);
+        assert_eq!(paragraph.inlines()[0], image);
+        assert_eq!(
+            paragraph.plain_text(|o| format!("[{}]", o.id)),
+            format!("甲[{}]方签字[{}]日期", image.id, paragraph.inlines()[1].id)
+        );
+    }
+
+    #[test]
+    fn split_and_merge_round_trip() {
+        let mut ids = IdAllocator::default();
+        let original = sample(&mut ids);
+        let mut head = original.clone();
+        let tail = head.split_off(ScalarOffset(3), ids.node()).unwrap();
+        assert_eq!(plain(&head), "甲方签");
+        assert_eq!(plain(&tail), "字⏎日期");
+        assert_eq!(run_lengths(&head), vec![2, 1]);
+        assert_eq!(run_lengths(&tail), vec![1, 1, 2]);
+        assert_ne!(tail.id(), head.id());
+        head.append(tail);
+        assert_eq!(plain(&head), plain(&original));
+        assert_eq!(head.inlines(), original.inlines());
+    }
+}
