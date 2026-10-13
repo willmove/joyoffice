@@ -137,20 +137,33 @@ def validate():
             check(hashlib.sha256(path.read_bytes()).hexdigest() == case["sha256"],
                   f"{case_id}: input SHA-256 mismatch")
 
+    # UI strings live in joyword-shell; plural variants `key[one]` count as
+    # one base key. Full parity, placeholder and CLDR checks run in Rust tests.
     locale_keys = []
     for locale in ["zh-CN", "en"]:
-        resource = ROOT / f"apps/joyword/locales/{locale}.lang"
+        resource = ROOT / f"crates/joyword-shell/locales/{locale}.lang"
         keys = set()
+        seen = set()
         for line in resource.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
             key, separator, value = line.partition("=")
+            key = key.strip()
             check(bool(separator) and bool(value.strip()), f"{locale}: invalid resource line")
-            check(key not in keys, f"{locale}: duplicate key {key}")
-            keys.add(key)
+            check(key not in seen, f"{locale}: duplicate key {key}")
+            seen.add(key)
+            keys.add(re.sub(r"\[(one|other)\]$", "", key))
         locale_keys.append(keys)
     check(locale_keys[0] == locale_keys[1], "locales: Chinese and English key sets differ")
-    ui_source = (ROOT / "apps/joyword/src/main.rs").read_text(encoding="utf-8")
-    used_keys = set(re.findall(r'self\.label\("([^"]+)"\)', ui_source))
-    check(used_keys <= locale_keys[0] & locale_keys[1], "locales: UI references missing keys")
+    ui_sources = [ROOT / "apps/joyword/src/main.rs", *sorted((ROOT / "crates/joyword-shell/src").glob("*.rs"))]
+    used_keys = set()
+    for source in ui_sources:
+        text = source.read_text(encoding="utf-8").split("#[cfg(test)]")[0]
+        used_keys |= set(re.findall(r'(?:label|text|format|format_count|Disabled)\(\s*"([a-z][a-z0-9_.]*)"', text))
+        used_keys |= set(re.findall(r'label: "([a-z][a-z0-9_.]*)"', text))
+    missing = sorted(used_keys - (locale_keys[0] & locale_keys[1]))
+    check(not missing, f"locales: UI references missing keys {missing}")
 
     workflows = sorted((ROOT / ".github/workflows").glob("*.yml"))
     actions = 0

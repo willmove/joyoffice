@@ -5,12 +5,14 @@ members = [
     "crates/joyword-engine",
     "crates/joyword-foundation",
     "crates/joyword-model",
+    "crates/joyword-shell",
 ]
 default-members = [
     "crates/joyoffice-opc",
     "crates/joyword-engine",
     "crates/joyword-foundation",
     "crates/joyword-model",
+    "crates/joyword-shell",
 ]
 resolver = "3"
 
@@ -27,6 +29,7 @@ joyword-foundation = { path = "crates/joyword-foundation" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-engine = { path = "crates/joyword-engine" }
 joyword-model = { path = "crates/joyword-model" }
+joyword-shell = { path = "crates/joyword-shell" }
 crc32fast = "=1.5.2"
 flate2 = { version = "=1.1.10", default-features = false, features = ["rust_backend"] }
 quick-xml = "=0.41.0"

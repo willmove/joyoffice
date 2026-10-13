@@ -5,9 +5,9 @@
 ## 已落地的内容
 
 - 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.2：82 个需求、58 个任务），每项有输入、输出、依赖、错误路径和验收要求。
-- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword GPUI 工程窗口。
+- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
 - 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
-- 中文／英文独立资源；静态 A4 页面、语言切换和 50%–150% 缩放。
+- 中文／英文独立资源（支持插值与复数）；静态 A4 页面、语言切换和 50%–150% 缩放，均可从菜单、快捷键和界面按钮触发。
 - 原创 UTF-8 种子、散列清单，以及需求覆盖／依赖／本地链接／语料／语言资源／Actions 固定检查器。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
@@ -50,6 +50,15 @@
 
 尚无 cargo-fuzz 目标；当前以测试内两轮各 3000 次的确定性变异冒烟代替（字节级变异与“先变异 XML 再打包”），它已发现并修复两处越界 panic。夜间 fuzz 作业随 M1 加入。
 
+### joyword-shell（T106，进行中）
+
+| 部分 | 已实现 | 尚未实现 |
+| --- | --- | --- |
+| 命令注册表 | 稳定命令 ID、本地化标签、平台快捷键、菜单分组；`invoke` 是菜单、快捷键、界面按钮的唯一执行入口，先查可用状态（如缩放上下限）再执行；校验重复 ID、各平台快捷键冲突与缺失标签；只登记已实现命令（退出、放大、缩小、实际大小、切换界面语言） | 文件、编辑命令随 T102／T103 加入；命令搜索与功能区（T205） |
+| 本地化 | `key[one]`／`key[other]` 复数形式按 CLDR 基数规则选择（中文仅 other，英文 one／other），`{name}` 插值与 `{{`／`}}` 转义；校验语法、重复、未知或缺失复数类别、未闭合花括号，以及跨语言的键与占位符一致 | 更多语言 |
+| 偏好设置 | 作者姓名／缩写（缩写可自动推导）、度量单位、自动保存间隔、界面语言、新文档纸型（按语言给默认值）、最近文件；`schema` 迁移（0→1）、非法值逐项回退、损坏文件回退默认并另存原件、较新版本只读不覆盖、未知键原样写回、临时文件加重命名的原子保存 | 设置界面；修订作者接入 T300 |
+| 多文档 | 未命名编号不复用并本地化；同一路径不重复打开；脏状态绑定已保存版本（保存期间继续编辑仍为未保存）；关闭时有未保存更改需确认，取消保持会话，保存不可用时不提供“保存”；退出前列出未保存文档 | 窗口与对话框界面（依赖 T103 打开／保存） |
+
 ### T100 文本存储基准
 
 `cargo run --release -p joyword-model --example text_storage`；Apple M4／24 GiB／macOS 27.0.1，Rust 1.98.1 release（thin LTO、codegen-units=1），单次运行。内存为子进程持有 10 万个 36 字（76 字节）短段落的 RSS 增量，含分配器开销，不含 run／属性等段落结构；编辑为 2000 次随机位置单字插入，每次保留前一版本以模拟后台快照。
@@ -67,7 +76,7 @@
 | 项目 | 实际情况 |
 | --- | --- |
 | 本机 | Apple M4，24 GiB，macOS 27.0.1，arm64 |
-| Rust／Cargo | 1.98.1／1.98.1；工具链文件精确固定；为交叉检查额外安装 x86_64-unknown-linux-gnu 标准库目标 |
+| Rust／Cargo | 1.98.1／1.98.1；工具链文件精确固定；为交叉检查额外安装 x86_64、aarch64 与 loongarch64 的 linux-gnu 标准库目标 |
 | GPUI | crates.io 0.2.2（最后官方版本，已停更），长期来源待 ADR-010 选定；cargo-deny 报告其间接依赖中 7 条“停止维护”公告（async-std、instant、paste、proc-macro-error2、rustls-pemfile、rustybuzz、ttf-parser），无漏洞公告 |
 | 依赖锁 | libc 锁定为 0.2.186：0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 GPUI 间接引入的 xattr 0.2.3 无法编译 |
 | Xcode／Metal | 本机只有 Command Line Tools，`xcrun --find metal` 失败；CI 的 macos-15 镜像（Xcode 16.4）具备 metal |
@@ -75,20 +84,21 @@
 | 对照软件 | 发现已安装 WPS、Pages；本次未做 Office 运行或往返测试 |
 | Windows／Linux | GitHub Actions 已实际执行并通过，见下表；尚无真实机器人工运行 |
 
-当前直接依赖：GPUI、本地基础库、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast；Ropey 仅为基准 dev 依赖。HarfRust、Fontique、Skrifa、ICU4X、krilla 仍是选型，尚未接入自研内核。
+当前直接依赖：GPUI、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast；Ropey 仅为基准 dev 依赖。HarfRust、Fontique、Skrifa、ICU4X、krilla 仍是选型，尚未接入自研内核。
 
 ## 验证记录
 
 | 项目 | 结果与范围 |
 | --- | --- |
 | 开发构建 | `cargo build -p joyword --features dev-runtime-shaders --locked` 成功 |
-| 真实窗口 | 验证中；系统辅助功能／屏幕录制授权尚未可用，不能确认界面交互 |
+| 真实窗口 | 2026-10-14 启动冒烟：`target/debug/joyword`（dev-runtime-shaders）启动后 CGWindowList 中出现其屏幕窗口，4 秒内未崩溃，随后正常结束；按窗口截图因当前进程缺少屏幕录制授权而失败。语言切换、缩放、菜单与关闭的交互尚未人工确认 |
 | 文档／语料／资源检查 | `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内，4 处 Actions 引用均按 SHA 固定 |
-| 核心测试 | `cargo test --locked` 通过 70 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟） |
+| 核心测试 | `cargo test --locked` 通过 82 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟）；外壳 12 项单元测试（发布资源有效且一致、插值与复数、资源错误诊断、注册表与资源一致、菜单／快捷键／名称执行同一命令与禁用状态、分组与冲突校验、偏好往返／损坏回退与备份／新版本只读／迁移、未命名编号、关闭确认与取消、保存版本绑定）；应用 1 项（每个注册命令都有 GPUI 动作与快捷键绑定） |
 | rustfmt／clippy | `cargo fmt --all -- --check` 通过；含 GPUI 的 `cargo clippy --workspace --all-targets --features dev-runtime-shaders -- -D warnings` 无警告 |
 | 依赖检查 | 本机 cargo-deny 0.20.2（安装在临时目录，未加入 PATH）：advisories、bans、licenses、sources 全部 ok |
 | 三端 CI（修复前） | 运行 38419060698 与 38419419204（提交 97286e8）：macos-15 全部步骤通过，含不启用 dev-runtime-shaders 的预编译 Metal 构建；windows-2022 因检出时 LF→CRLF 使四个种子散列不符而失败（已加 .gitattributes）；ubuntu-24.04 在 clippy 编译 xattr 时失败（已锁 libc，并以 `cargo check -p xattr@0.2.3 --target x86_64-unknown-linux-gnu` 本机验证） |
 | 三端 CI（修复后） | 运行 38481758247（提交 ac40043，2026-10-13）全部通过：macos-15-arm64、windows-2022、ubuntu-24.04 各自完成文档检查、fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建；cargo-deny 作业通过。引擎测试在此之后加入，随下次推送进入 CI |
+| 多架构 CI | 运行 38484920106（提交 92cb8b0）：ubuntu-24.04-arm 原生构建通过（文档检查、fmt、核心测试、clippy 与完整 GPUI 应用构建）；x86 runner 上交叉编译 aarch64-unknown-linux-gnu 与 loongarch64-unknown-linux-gnu（Ubuntu 24.04 的 gcc 交叉工具链与 glibc 2.39 交叉库）并在 QEMU 用户态运行无界面测试，两个目标均通过。QEMU 结果只证明代码生成与新世界 LoongArch ABI，不等于国产 CPU 或发行版上的运行 |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 与 proc-macro-error2 2.0.1 的 future-incompat 提示；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
@@ -99,8 +109,9 @@
 2. T002：实际检查中英文窗口、切换、缩放和退出；不把编译或进程存在算成交互通过。
 3. T003：整形—屏幕—PDF 使用同一字体实例与定位字形，验证中文 IME、组合取消／提交／撤销及 DPI。GPUI 0.2.2 的 GlyphId 不可在外部构造（上游主干已公开），按字节加载字体也不返回 FontId；外部整形结果接入取决于 ADR-010 的来源选择或最小补丁，禁止用系统同名字体替代来宣称同一字形。
 4. T004：在种子登记上实现规范文件生成、语义／几何比较器（可复用模型的无 ID 转储）和固定参考环境（Word 为 Office LTSC 2024，并对照 WPS）；当前种子全部为 planned。
-5. T005：准备统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）测试机或镜像，核对 LoongArch ABI，验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。
+5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
 6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。T102（输入、选择与基础格式）还需 T105 排版命中数据。
 7. T103：在 OPC 层之上实现 DOCX 声明子集的语义映射（正文段落、基础字符／段落格式、样式按规范名称、兼容模式）、PackageBacking 与未知内容保留、ImportResult／ExportPlan、锁文件检测与保留元数据的原子保存，并加入 fuzz 目标；规范最小样例随 T004 建立。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
+8. T106：在 T103 提供打开／保存后接入文件对话框、最近文件菜单、多窗口与未保存提示界面；作者名修改后重启核对属于人工验收。
 
 M0 整体尚未通过，M1–M9 未实施。后续完成任务时须更新本记录、TASKS 状态与对应测试报告。

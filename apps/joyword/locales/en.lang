@@ -1,7 +1,0 @@
-language=简体中文
-stage=M0 engineering spike · Window and page projection only. Editing, saving and AI are not implemented.
-welcome=Hello, JoyWord
-intro=Native word processing for writing and document review.
-projection=This is an engineering test page. Zoom changes the view, not the physical page size.
-next=Next milestone: IME input, editing transactions and a DOCX save/reopen workflow.
-status=Engineering sample · AI not loaded

@@ -1,0 +1,16 @@
+[package]
+name = "joyword-shell"
+description = "JoyWord application shell without UI: commands, localization, preferences and open documents"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyword-engine.workspace = true
+joyword-model.workspace = true
+
+[lints]
+workspace = true

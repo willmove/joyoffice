@@ -46,6 +46,7 @@ M0–M7 构成 1.0，M8 是 1.0 之后的扩展，均属当前路线图；M9 是
 - T100、T101 状态改为 in_progress；结果与剩余项见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 - ARCHITECTURE §4 记录 T101 的命令位置约定、映射步骤、锚点删除行为与快照撤销。
 - T103 状态改为 in_progress：新增格式中立的 joyoffice-opc（ARCHITECTURE §5 记录自写严格 ZIP 读取器与外部目标只记录不访问）。
+- T005、T106 状态改为 in_progress：CI 增加原生 ARM64 构建及 ARM64／LoongArch64 的 QEMU 无界面测试；新增 joyword-shell（命令注册表、本地化复数与插值、偏好、多文档会话），界面文字资源从 apps/joyword/locales 迁到 crates/joyword-shell/locales。
 
 ### v0.2（2026-10-13，规格评审修订）
 

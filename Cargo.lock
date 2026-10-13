@@ -2846,6 +2846,7 @@ version = "0.0.1"
 dependencies = [
  "gpui",
  "joyword-foundation",
+ "joyword-shell",
 ]
 
 [[package]]
@@ -2866,6 +2867,14 @@ dependencies = [
  "joyword-foundation",
  "ropey",
  "sha2 0.10.9",
+]
+
+[[package]]
+name = "joyword-shell"
+version = "0.0.1"
+dependencies = [
+ "joyword-engine",
+ "joyword-model",
 ]
 
 [[package]]
