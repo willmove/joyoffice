@@ -3,7 +3,10 @@
 //! geometry `expected.json`; `scripts/verify_unified_pdf.py` then reads the
 //! PDF back with an independent tool and compares text and positions.
 //!
-//! Usage: unified_scene <font-file> <face-index> <out-dir>
+//! Usage: unified_scene <font-file> <face-index> <out-dir> [split-third-line]
+//!
+//! `split-third-line` breaks the third line after ten characters, giving
+//! `scripts/compare_pdf_lines.py` a known line-break difference to detect.
 //!
 //! Line spacing here is a fixed 1.5 × size, not Word's rule; the check is
 //! about one scene driving the PDF exactly, not about Word pagination.
@@ -36,9 +39,13 @@ fn json_string(text: &str) -> String {
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().collect();
-    let [_, font_path, index, out_dir] = args.as_slice() else {
-        eprintln!("usage: unified_scene <font-file> <face-index> <out-dir>");
-        return ExitCode::from(2);
+    let (font_path, index, out_dir, split) = match args.as_slice() {
+        [_, font, index, out] => (font, index, out, false),
+        [_, font, index, out, variant] if variant == "split-third-line" => (font, index, out, true),
+        _ => {
+            eprintln!("usage: unified_scene <font-file> <face-index> <out-dir> [split-third-line]");
+            return ExitCode::from(2);
+        }
     };
     let Ok(index) = index.parse::<u32>() else {
         eprintln!("face index must be a number");
@@ -69,7 +76,17 @@ fn main() -> ExitCode {
     };
     let mut lines_json = Vec::new();
     let mut missing = 0;
-    for (line_index, line) in SEED.lines().enumerate() {
+    let mut lines: Vec<String> = SEED.lines().map(str::to_owned).collect();
+    if split {
+        let third = lines.remove(2);
+        let cut = third
+            .char_indices()
+            .nth(10)
+            .map_or(third.len(), |(at, _)| at);
+        lines.insert(2, third[cut..].to_owned());
+        lines.insert(2, third[..cut].to_owned());
+    }
+    for (line_index, line) in lines.iter().map(String::as_str).enumerate() {
         let run = shape(&font, line, size, FeatureSet::default());
         missing += run.missing.len();
         let baseline = Emu::new(margin.raw() + leading.raw() * (line_index as i64 + 1));

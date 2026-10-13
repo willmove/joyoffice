@@ -1,0 +1,15 @@
+[package]
+name = "joyword-corpus"
+description = "Reproducible original format cases for the JoyWord corpus registry (T004)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyoffice-opc.workspace = true
+
+[lints]
+workspace = true

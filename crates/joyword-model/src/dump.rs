@@ -436,3 +436,39 @@ impl Document {
         dumper.out
     }
 }
+
+/// First difference between two documents' identifier-free dumps (T004
+/// semantic comparison). Line numbers are 1-based; a missing line is empty.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SemanticDifference {
+    pub line: usize,
+    pub expected: String,
+    pub actual: String,
+}
+
+impl Document {
+    /// `None` when both documents have the same semantic content, ignoring
+    /// allocated identifiers.
+    pub fn semantic_difference(&self, actual: &Document) -> Option<SemanticDifference> {
+        let options = DumpOptions { node_ids: false };
+        let expected = self.canonical_dump(options);
+        let actual = actual.canonical_dump(options);
+        let mut left = expected.lines();
+        let mut right = actual.lines();
+        let mut line = 0;
+        loop {
+            line += 1;
+            match (left.next(), right.next()) {
+                (None, None) => return None,
+                (a, b) if a == b => continue,
+                (a, b) => {
+                    return Some(SemanticDifference {
+                        line,
+                        expected: a.unwrap_or_default().to_owned(),
+                        actual: b.unwrap_or_default().to_owned(),
+                    });
+                }
+            }
+        }
+    }
+}

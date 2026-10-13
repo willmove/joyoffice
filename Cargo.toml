@@ -2,6 +2,7 @@
 members = [
     "apps/joyword",
     "crates/joyoffice-opc",
+    "crates/joyword-corpus",
     "crates/joyword-engine",
     "crates/joyword-foundation",
     "crates/joyword-layout",
@@ -11,6 +12,7 @@ members = [
 ]
 default-members = [
     "crates/joyoffice-opc",
+    "crates/joyword-corpus",
     "crates/joyword-engine",
     "crates/joyword-foundation",
     "crates/joyword-layout",
@@ -31,6 +33,7 @@ repository = "https://github.com/willmove/joyoffice"
 gpui = "=0.2.2"
 joyword-foundation = { path = "crates/joyword-foundation" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
+joyword-corpus = { path = "crates/joyword-corpus" }
 joyword-engine = { path = "crates/joyword-engine" }
 joyword-layout = { path = "crates/joyword-layout" }
 joyword-model = { path = "crates/joyword-model" }

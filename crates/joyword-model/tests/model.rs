@@ -602,3 +602,30 @@ fn image_references_must_resolve() {
         .insert(resource, "image/png", Arc::from(&b"png"[..]), None);
     assert!(document.validate().is_empty());
 }
+
+#[test]
+fn semantic_difference_ignores_identifiers_and_points_at_the_first_change() {
+    let text = seed("cjk-contract.txt");
+    let expected = document_from_lines(&text);
+    let mut shifted = Document::new_blank();
+    for _ in 0..10 {
+        shifted.ids().node();
+    }
+    let blocks: Vec<Block> = text
+        .lines()
+        .map(|line| paragraph(shifted.ids(), line))
+        .collect();
+    let body = shifted.body_id();
+    shifted.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+    assert_eq!(expected.semantic_difference(&shifted), None);
+
+    let changed: String = text.replacen("青禾", "青木", 1);
+    let other = document_from_lines(&changed);
+    let difference = expected
+        .semantic_difference(&other)
+        .expect("one paragraph differs");
+    assert!(
+        difference.expected.contains("青禾") && difference.actual.contains("青木"),
+        "{difference:?}"
+    );
+}

@@ -29,7 +29,7 @@ pub use document::{
     HeaderFooterKind, NEW_DOCUMENT_COMPATIBILITY_MODE, Orientation, PageSetup, Section, Story,
     StoryKind,
 };
-pub use dump::DumpOptions;
+pub use dump::{DumpOptions, SemanticDifference};
 pub use id::{AnnotationId, IdAllocator, NodeId, PreservedId, ResourceId, SourceRef, StoryId};
 pub use props::{
     Color, FontHint, FontRef, FontSlots, Indent, Justification, Languages, LineSpacing, Measure,

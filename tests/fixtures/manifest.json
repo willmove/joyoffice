@@ -78,6 +78,132 @@
       ],
       "status": "planned",
       "evidence": []
+    },
+    {
+      "id": "DOCX-MIN-001",
+      "kind": "format_case",
+      "path": "docx/DOCX-MIN-001.docx",
+      "document": "docx/DOCX-MIN-001.docx",
+      "sha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+      "origin": "JoyWord 原创规范最小样例，由 crates/joyword-corpus 确定性生成，2026-10-14",
+      "license": "MIT",
+      "requirements": [
+        "FORMAT-001",
+        "FORMAT-002"
+      ],
+      "expected": [
+        "正文段落文字逐码点读入",
+        "缺少 settings 时兼容模式按 12 解释，无编辑保存不新增部件",
+        "无编辑保存保留原包的部件与关系"
+      ],
+      "reference_profile": {
+        "word": "Office LTSC 2024：参考结果未建立",
+        "wps": "固定版本 WPS：参考结果未建立",
+        "fonts": "未指定",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-MIN-002",
+      "kind": "format_case",
+      "path": "docx/DOCX-MIN-002.docx",
+      "document": "docx/DOCX-MIN-002.docx",
+      "sha256": "515c0d997dffd877f2cd3e1ab8b6b6768ea4a301c05fdb1b3ac39a321bdebc07",
+      "origin": "JoyWord 原创规范最小样例，由 crates/joyword-corpus 确定性生成，2026-10-14",
+      "license": "MIT",
+      "requirements": [
+        "STYLE-001",
+        "FORMAT-001"
+      ],
+      "expected": [
+        "样式 ID a／1 按 w:name 识别为 Normal 与 heading 1",
+        "docDefaults 的四槽字体与字号读入且未设置与显式值可区分",
+        "兼容模式 15 原样保留"
+      ],
+      "reference_profile": {
+        "word": "Office LTSC 2024：参考结果未建立",
+        "wps": "固定版本 WPS：参考结果未建立",
+        "fonts": "未指定",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-MIN-003",
+      "kind": "format_case",
+      "path": "docx/DOCX-MIN-003.docx",
+      "document": "docx/DOCX-MIN-003.docx",
+      "sha256": "d00d910c4d5af5f202498e013c995bddb47f687abd43e9f4d59dda2a087869d9",
+      "origin": "JoyWord 原创规范最小样例，由 crates/joyword-corpus 确定性生成，2026-10-14",
+      "license": "MIT",
+      "requirements": [
+        "FORMAT-002",
+        "FORMAT-003"
+      ],
+      "expected": [
+        "mc:Ignorable 命名空间中的未知元素与 customXml 部件在保存后保留",
+        "编辑相邻段落不丢弃未知内容；无法保证时阻止或提示另存"
+      ],
+      "reference_profile": {
+        "word": "Office LTSC 2024：参考结果未建立",
+        "wps": "固定版本 WPS：参考结果未建立",
+        "fonts": "未指定",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-MIN-004",
+      "kind": "format_case",
+      "path": "docx/DOCX-MIN-004.docx",
+      "document": "docx/DOCX-MIN-004.docx",
+      "sha256": "9f5a016623eb35253b12b11be5ec3ab90fa24a30fba9e2321d8011298574e470",
+      "origin": "JoyWord 原创规范最小样例，由 crates/joyword-corpus 确定性生成，2026-10-14",
+      "license": "MIT",
+      "requirements": [
+        "QUALITY-005",
+        "FORMAT-002"
+      ],
+      "expected": [
+        "打开时不访问网页、file:// 主机路径与附加模板",
+        "外部目标在诊断中按网页与网络共享分类可见"
+      ],
+      "reference_profile": {
+        "word": "Office LTSC 2024：参考结果未建立",
+        "wps": "固定版本 WPS：参考结果未建立",
+        "fonts": "未指定",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-MIN-005",
+      "kind": "format_case",
+      "path": "docx/DOCX-MIN-005.docx",
+      "document": "docx/DOCX-MIN-005.docx",
+      "sha256": "917b5dee4368c6e1c595728e0825a14b39e3f58756a4374c12f83c66a6abaa44",
+      "origin": "JoyWord 原创规范最小样例，由 crates/joyword-corpus 确定性生成，2026-10-14",
+      "license": "MIT",
+      "requirements": [
+        "FORMAT-002",
+        "REVIEW-001"
+      ],
+      "expected": [
+        "限制编辑与强制修订在对应能力实现前以只读打开或明确提示，不得绕过"
+      ],
+      "reference_profile": {
+        "word": "Office LTSC 2024：参考结果未建立",
+        "wps": "固定版本 WPS：参考结果未建立",
+        "fonts": "未指定",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
     }
   ]
 }

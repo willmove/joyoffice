@@ -127,7 +127,12 @@ def validate():
             check(case["status"] == "planned", f"{case_id}: a text seed cannot claim compatibility")
         if case["kind"] == "format_case":
             local_file(fixtures, case["document"], case_id)
-            check(bool(case["reference_profile"]), f"{case_id}: missing reference profile")
+            profile = case["reference_profile"]
+            check(isinstance(profile, dict) and profile.get("status") in ["unverified", "established"],
+                  f"{case_id}: reference profile needs status unverified or established")
+            # A missing reference result keeps a case unverified; it cannot pass.
+            check(case["status"] != "passed" or profile.get("status") == "established",
+                  f"{case_id}: passed without an established reference result")
         if case["status"] in ["passed", "failed"]:
             check(bool(case["evidence"]), f"{case_id}: result needs evidence")
         for evidence in case["evidence"]:
@@ -180,7 +185,7 @@ def validate():
         return 1
     print(f"OK: {len(requirements)} requirements; {len(tasks)} tasks; acyclic dependencies; "
           f"stage-consistent; M0–M7 required by {RELEASE_GATE}; "
-          f"{len(markdown)} Markdown files; {len(case_ids)} planned seeds; locale parity; "
+          f"{len(markdown)} Markdown files; {len(case_ids)} registered cases; locale parity; "
           f"{actions} workflow actions pinned by SHA.")
     print("Metadata validation only; Office compatibility and GUI behavior are not tested here.")
     return 0
