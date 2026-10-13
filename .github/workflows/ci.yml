@@ -41,7 +41,7 @@ jobs:
         run: python scripts/check_docs.py
       - name: Rust format
         run: cargo fmt --all -- --check
-      - name: Headless core tests (foundation, document model, editing engine)
+      - name: Headless core tests (foundation, model, engine, OPC)
         run: cargo test --locked
       - name: Lints
         run: cargo clippy --workspace --all-targets --locked -- -D warnings

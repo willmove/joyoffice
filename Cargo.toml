@@ -1,11 +1,13 @@
 [workspace]
 members = [
     "apps/joyword",
+    "crates/joyoffice-opc",
     "crates/joyword-engine",
     "crates/joyword-foundation",
     "crates/joyword-model",
 ]
 default-members = [
+    "crates/joyoffice-opc",
     "crates/joyword-engine",
     "crates/joyword-foundation",
     "crates/joyword-model",
@@ -22,8 +24,12 @@ repository = "https://github.com/willmove/joyoffice"
 [workspace.dependencies]
 gpui = "=0.2.2"
 joyword-foundation = { path = "crates/joyword-foundation" }
+joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-engine = { path = "crates/joyword-engine" }
 joyword-model = { path = "crates/joyword-model" }
+crc32fast = "=1.5.2"
+flate2 = { version = "=1.1.10", default-features = false, features = ["rust_backend"] }
+quick-xml = "=0.41.0"
 sha2 = "=0.10.9"
 
 [workspace.lints.rust]

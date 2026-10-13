@@ -5,13 +5,13 @@
 ## 已落地的内容
 
 - 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.2：82 个需求、58 个任务），每项有输入、输出、依赖、错误路径和验收要求。
-- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyword GPUI 工程窗口。
+- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword GPUI 工程窗口。
 - 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
 - 中文／英文独立资源；静态 A4 页面、语言切换和 50%–150% 缩放。
 - 原创 UTF-8 种子、散列清单，以及需求覆盖／依赖／本地链接／语料／语言资源／Actions 固定检查器。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
-尚无文件格式、排版内核、IME 编辑、PDF、修订、批注、剪贴板或 AI 实现。joyword-model 与 joyword-engine 是无界面的数据结构、不变量与事务层，还没有接入窗口；工程页面仍由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
+尚无 DOCX 语义读写、排版内核、IME 编辑、PDF、修订、批注、剪贴板或 AI 实现。joyword-model 与 joyword-engine 是无界面的数据结构、不变量与事务层，还没有接入窗口；工程页面仍由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
 
 ### joyword-model（T100，进行中：仅剩人工验收）
 
@@ -38,6 +38,18 @@
 
 人工验收（跨段编辑后在界面中检查选择、书签、批注锚点和撤销结果）需要 T102 的文档画布与 T106 的命令入口，尚未进行。
 
+### joyoffice-opc（T103 起步）
+
+| 部分 | 已实现 | 尚未实现 |
+| --- | --- | --- |
+| ZIP 容器 | 按 PKWARE APPNOTE 自写读取器：EOCD／ZIP64 定位，中央目录越界检查，本地头与中央目录名称一致，条目区（含本地头）不重叠，只接受 stored／deflate，拒绝加密与多卷，以声明大小为解压上限并校验 CRC-32；最小写出器（stored／deflate） | 原子保存与元数据保留（FORMAT-004） |
+| 资源预算 | 条目数、单部件与总解压量、压缩比（>1 MiB 时）、XML 深度与事件数、关系数，均在相应工作之前检查；默认值待 QUALITY-006 语料校准 | 图像像素预算、用户确认的受控提升 |
+| 部件与关系 | 部件名规则（绝对路径、空段、`.`／`..`、结尾点、非法字符、编码的分隔符）、大小写等价去重、部件不能同时是目录；[Content_Types].xml 的 Default／Override；关系 Id 唯一、相对目标解析且不得越出包根；外部目标分类为网页／本地文件／网络共享（含 UNC 与 file://host）／邮件／其他，只记录不访问 | 标记兼容（MCE）与 DOCX 语义映射 |
+| 包级 XML | 拒绝 DOCTYPE（因此不处理 DTD、实体定义与外部实体），只展开预定义实体和字符引用，拒绝 UTF-16 | — |
+| 保留 | 每个部件的精确解压字节与内容类型、[Content_Types].xml 原文 | PackageBacking 与编辑后保存 |
+
+尚无 cargo-fuzz 目标；当前以测试内两轮各 3000 次的确定性变异冒烟代替（字节级变异与“先变异 XML 再打包”），它已发现并修复两处越界 panic。夜间 fuzz 作业随 M1 加入。
+
 ### T100 文本存储基准
 
 `cargo run --release -p joyword-model --example text_storage`；Apple M4／24 GiB／macOS 27.0.1，Rust 1.98.1 release（thin LTO、codegen-units=1），单次运行。内存为子进程持有 10 万个 36 字（76 字节）短段落的 RSS 增量，含分配器开销，不含 run／属性等段落结构；编辑为 2000 次随机位置单字插入，每次保留前一版本以模拟后台快照。
@@ -63,7 +75,7 @@
 | 对照软件 | 发现已安装 WPS、Pages；本次未做 Office 运行或往返测试 |
 | Windows／Linux | GitHub Actions 已实际执行并通过，见下表；尚无真实机器人工运行 |
 
-当前直接依赖：GPUI、本地基础库、joyword-model 的 sha2（资源散列）；Ropey 仅为基准 dev 依赖。HarfRust、Fontique、Skrifa、ICU4X、krilla 仍是选型，尚未接入自研内核。
+当前直接依赖：GPUI、本地基础库、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast；Ropey 仅为基准 dev 依赖。HarfRust、Fontique、Skrifa、ICU4X、krilla 仍是选型，尚未接入自研内核。
 
 ## 验证记录
 
@@ -72,7 +84,7 @@
 | 开发构建 | `cargo build -p joyword --features dev-runtime-shaders --locked` 成功 |
 | 真实窗口 | 验证中；系统辅助功能／屏幕录制授权尚未可用，不能确认界面交互 |
 | 文档／语料／资源检查 | `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内，4 处 Actions 引用均按 SHA 固定 |
-| 核心测试 | `cargo test --locked` 通过 58 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调） |
+| 核心测试 | `cargo test --locked` 通过 70 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟） |
 | rustfmt／clippy | `cargo fmt --all -- --check` 通过；含 GPUI 的 `cargo clippy --workspace --all-targets --features dev-runtime-shaders -- -D warnings` 无警告 |
 | 依赖检查 | 本机 cargo-deny 0.20.2（安装在临时目录，未加入 PATH）：advisories、bans、licenses、sources 全部 ok |
 | 三端 CI（修复前） | 运行 38419060698 与 38419419204（提交 97286e8）：macos-15 全部步骤通过，含不启用 dev-runtime-shaders 的预编译 Metal 构建；windows-2022 因检出时 LF→CRLF 使四个种子散列不符而失败（已加 .gitattributes）；ubuntu-24.04 在 clippy 编译 xattr 时失败（已锁 libc，并以 `cargo check -p xattr@0.2.3 --target x86_64-unknown-linux-gnu` 本机验证） |
@@ -88,6 +100,7 @@
 3. T003：整形—屏幕—PDF 使用同一字体实例与定位字形，验证中文 IME、组合取消／提交／撤销及 DPI。GPUI 0.2.2 的 GlyphId 不可在外部构造（上游主干已公开），按字节加载字体也不返回 FontId；外部整形结果接入取决于 ADR-010 的来源选择或最小补丁，禁止用系统同名字体替代来宣称同一字形。
 4. T004：在种子登记上实现规范文件生成、语义／几何比较器（可复用模型的无 ID 转储）和固定参考环境（Word 为 Office LTSC 2024，并对照 WPS）；当前种子全部为 planned。
 5. T005：准备统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）测试机或镜像，核对 LoongArch ABI，验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。
-6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。T102（输入、选择与基础格式）还需 T105 排版命中数据，T103（DOCX 读写）依赖 T004 的规范样例，可分别推进；在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
+6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。T102（输入、选择与基础格式）还需 T105 排版命中数据。
+7. T103：在 OPC 层之上实现 DOCX 声明子集的语义映射（正文段落、基础字符／段落格式、样式按规范名称、兼容模式）、PackageBacking 与未知内容保留、ImportResult／ExportPlan、锁文件检测与保留元数据的原子保存，并加入 fuzz 目标；规范最小样例随 T004 建立。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
 
 M0 整体尚未通过，M1–M9 未实施。后续完成任务时须更新本记录、TASKS 状态与对应测试报告。
