@@ -5,13 +5,13 @@
 ## 已落地的内容
 
 - 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.2：82 个需求、58 个任务），每项有输入、输出、依赖、错误路径和验收要求。
-- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
+- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword-layout 字体身份、整形与页面场景，joyword-pdf 由同一场景写出 PDF（T003）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
 - 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
 - 中文／英文独立资源（支持插值与复数）；静态 A4 页面、语言切换和 50%–150% 缩放，均可从菜单、快捷键和界面按钮触发。
 - 原创 UTF-8 种子、散列清单，以及需求覆盖／依赖／本地链接／语料／语言资源／Actions 固定检查器。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
-尚无 DOCX 语义读写、排版内核、IME 编辑、PDF、修订、批注、剪贴板或 AI 实现。joyword-model 与 joyword-engine 是无界面的数据结构、不变量与事务层，还没有接入窗口；工程页面仍由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
+尚无 DOCX 语义读写、断行分页排版、IME 编辑、PDF、修订、批注、剪贴板或 AI 实现。joyword-model 与 joyword-engine 是无界面的数据结构、不变量与事务层，还没有接入窗口；工程页面仍由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
 
 ### joyword-model（T100，进行中：仅剩人工验收）
 
@@ -59,6 +59,14 @@
 | 偏好设置 | 作者姓名／缩写（缩写可自动推导）、度量单位、自动保存间隔、界面语言、新文档纸型（按语言给默认值）、最近文件；`schema` 迁移（0→1）、非法值逐项回退、损坏文件回退默认并另存原件、较新版本只读不覆盖、未知键原样写回、临时文件加重命名的原子保存 | 设置界面；修订作者接入 T300 |
 | 多文档 | 未命名编号不复用并本地化；同一路径不重复打开；脏状态绑定已保存版本（保存期间继续编辑仍为未保存）；关闭时有未保存更改需确认，取消保持会话，保存不可用时不提供“保存”；退出前列出未保存文档 | 窗口与对话框界面（依赖 T103 打开／保存） |
 
+### 统一字形链路（T003，进行中）
+
+- joyword-layout：字体身份为字体文件 SHA-256 加 face index；HarfRust 整形时 kern、liga、clig、calt 逐项显式开关（默认全关，等文档属性驱动）；字形位置按累计笔位置从字体单位换算为 EMU，整行不累积舍入；缺字记录簇位置而不替换原文；页面场景以 EMU 记录字形 id、位置与簇映射。
+- joyword-pdf：用 krilla 的定位字形接口逐字形写出场景位置，与整形使用同一字体字节；字体以子集嵌入并带 ToUnicode，文字可检索；关闭 krilla 自带整形。验证中发现并修复一处缺陷：krilla 按字号 1 询问字形度量，原实现直接返回磅值，导致 PDF 中每字多出 11 em 的间距；修复后同一行 TJ 微调最大 0.004／1000 em。
+- 本机证据（2026-10-14，macOS 系统字体 Songti.ttc face 0，sha256 dd2f0628…5a87777，仅本地使用）：原创合同种子 5 行无缺字；PDF 22.8 KB；macOS PDFKit 读回 5 行文字与场景一致；同一场景两次输出字节相同。
+- CI 证据：unified-pdf 作业在 Ubuntu 24.04 安装 fonts-noto-cjk（OFL）与 poppler-utils，强制要求测试字体，运行整形／PDF 测试和示例，并用 `pdftotext -bbox-layout` 比对每行文字、行首（容差 0.01 pt）与行尾（容差 0.05 pt），PDF 作为构件上传。结果见验证记录。
+- 尚未完成：GPUI 屏幕侧按字体字节取得 FontId 并绘制外部字形（0.2.2 不可能，取决于 ADR-010）；中文 IME 组合输入、撤销与多显示器 DPI；两个独立阅读器的人工检查。
+
 ### T100 文本存储基准
 
 `cargo run --release -p joyword-model --example text_storage`；Apple M4／24 GiB／macOS 27.0.1，Rust 1.98.1 release（thin LTO、codegen-units=1），单次运行。内存为子进程持有 10 万个 36 字（76 字节）短段落的 RSS 增量，含分配器开销，不含 run／属性等段落结构；编辑为 2000 次随机位置单字插入，每次保留前一版本以模拟后台快照。
@@ -84,7 +92,7 @@
 | 对照软件 | 发现已安装 WPS、Pages；本次未做 Office 运行或往返测试 |
 | Windows／Linux | GitHub Actions 已实际执行并通过，见下表；尚无真实机器人工运行 |
 
-当前直接依赖：GPUI、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast；Ropey 仅为基准 dev 依赖。HarfRust、Fontique、Skrifa、ICU4X、krilla 仍是选型，尚未接入自研内核。
+当前直接依赖：GPUI、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast、joyword-layout 的 HarfRust 0.8.4 与 read-fonts 0.39.2、joyword-pdf 的 krilla 0.8.2；Ropey 仅为基准 dev 依赖。Fontique、ICU4X 仍是选型，尚未接入。
 
 ## 验证记录
 
@@ -93,7 +101,7 @@
 | 开发构建 | `cargo build -p joyword --features dev-runtime-shaders --locked` 成功 |
 | 真实窗口 | 2026-10-14 启动冒烟：`target/debug/joyword`（dev-runtime-shaders）启动后 CGWindowList 中出现其屏幕窗口，4 秒内未崩溃，随后正常结束；按窗口截图因当前进程缺少屏幕录制授权而失败。语言切换、缩放、菜单与关闭的交互尚未人工确认 |
 | 文档／语料／资源检查 | `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内，4 处 Actions 引用均按 SHA 固定 |
-| 核心测试 | `cargo test --locked` 通过 82 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟）；外壳 12 项单元测试（发布资源有效且一致、插值与复数、资源错误诊断、注册表与资源一致、菜单／快捷键／名称执行同一命令与禁用状态、分组与冲突校验、偏好往返／损坏回退与备份／新版本只读／迁移、未命名编号、关闭确认与取消、保存版本绑定）；应用 1 项（每个注册命令都有 GPUI 动作与快捷键绑定） |
+| 核心测试 | `cargo test --locked` 通过 89 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟）；外壳 12 项单元测试（发布资源有效且一致、插值与复数、资源错误诊断、注册表与资源一致、菜单／快捷键／名称执行同一命令与禁用状态、分组与冲突校验、偏好往返／损坏回退与备份／新版本只读／迁移、未命名编号、关闭确认与取消、保存版本绑定）；应用 1 项（每个注册命令都有 GPUI 动作与快捷键绑定）；排版 3 项与 PDF 4 项（累计笔位置换算无漂移、特性显式、屏幕／PDF 单位换算误差 ≤0.01 pt；有 CJK 字体时：每簇有字形且位置单调、宽度等于前进量之和、缺字报告不改原文、PDF 确定性／子集嵌入／ToUnicode、未知字体被拒绝） |
 | rustfmt／clippy | `cargo fmt --all -- --check` 通过；含 GPUI 的 `cargo clippy --workspace --all-targets --features dev-runtime-shaders -- -D warnings` 无警告 |
 | 依赖检查 | 本机 cargo-deny 0.20.2（安装在临时目录，未加入 PATH）：advisories、bans、licenses、sources 全部 ok |
 | 三端 CI（修复前） | 运行 38419060698 与 38419419204（提交 97286e8）：macos-15 全部步骤通过，含不启用 dev-runtime-shaders 的预编译 Metal 构建；windows-2022 因检出时 LF→CRLF 使四个种子散列不符而失败（已加 .gitattributes）；ubuntu-24.04 在 clippy 编译 xattr 时失败（已锁 libc，并以 `cargo check -p xattr@0.2.3 --target x86_64-unknown-linux-gnu` 本机验证） |
@@ -107,7 +115,7 @@
 
 1. T001：三端 CI 已通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机安装完整 Xcode 并单独下载 Metal 工具链后验证普通构建。
 2. T002：实际检查中英文窗口、切换、缩放和退出；不把编译或进程存在算成交互通过。
-3. T003：整形—屏幕—PDF 使用同一字体实例与定位字形，验证中文 IME、组合取消／提交／撤销及 DPI。GPUI 0.2.2 的 GlyphId 不可在外部构造（上游主干已公开），按字节加载字体也不返回 FontId；外部整形结果接入取决于 ADR-010 的来源选择或最小补丁，禁止用系统同名字体替代来宣称同一字形。
+3. T003：整形—场景—PDF 已贯通并有独立读回验证；剩余屏幕侧同一字形绘制（依赖 ADR-010 的 GPUI 来源或补丁，禁止用系统同名字体替代来宣称同一字形）、中文 IME 组合取消／提交／撤销、多显示器 DPI，以及两个阅读器的人工检查。
 4. T004：在种子登记上实现规范文件生成、语义／几何比较器（可复用模型的无 ID 转储）和固定参考环境（Word 为 Office LTSC 2024，并对照 WPS）；当前种子全部为 planned。
 5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
 6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。T102（输入、选择与基础格式）还需 T105 排版命中数据。

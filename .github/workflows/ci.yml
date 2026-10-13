@@ -87,6 +87,37 @@ jobs:
           export "${prefix}_RUNNER=${{ matrix.runner }}"
           cargo test --locked --target ${{ matrix.target }}
 
+  # T003: shape original text with one OFL font, render the same page scene
+  # to PDF and read it back with poppler. Proves the scene's text and
+  # positions reach the PDF; it is not a visual or Word-compatibility check.
+  unified-pdf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
+      JOYWORD_TEST_FONT: /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:2
+      JOYWORD_REQUIRE_TEST_FONT: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Noto CJK (OFL) and poppler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk poppler-utils
+          dpkg-query -W fonts-noto-cjk poppler-utils
+          sha256sum /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
+      - name: Fixed Rust toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal
+      - name: Shaping and PDF tests with the required font
+        run: cargo test --locked -p joyword-layout -p joyword-pdf
+      - name: Unified scene PDF
+        run: cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
+      - name: Independent read-back (pdftotext)
+        run: python3 scripts/verify_unified_pdf.py target/unified
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unified-scene-pdf
+          path: target/unified
+
   dependencies:
     runs-on: ubuntu-24.04
     timeout-minutes: 15

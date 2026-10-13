@@ -1,0 +1,17 @@
+[package]
+name = "joyword-pdf"
+description = "JoyWord PDF output that consumes page scenes without re-shaping"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyword-foundation.workspace = true
+joyword-layout.workspace = true
+krilla.workspace = true
+
+[lints]
+workspace = true

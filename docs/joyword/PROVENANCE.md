@@ -25,11 +25,12 @@
 | GPUI | UI 框架 | [上游许可](https://zed.dev/software-overview)，Apache-2.0 | 编辑器主体许可不同；仅依赖框架；记录传递依赖；来源按 ADR-010，第三方发布需审查发布者与构建来源 |
 | sha2 0.10.9 | joyword-model 资源内容散列（直接依赖） | RustCrypto，MIT OR Apache-2.0（crate 元数据） | 与 GPUI 间接锁定的版本相同；只用于身份散列，不用于密码学保护 |
 | Ropey 1.6.1 | 仅 T100 文本存储基准的 dev 依赖 | [上游](https://github.com/cessen/ropey)，MIT | 不进入产品构建；基准结论见 IMPLEMENTATION |
-| HarfRust | 字体整形 | [上游](https://github.com/harfbuzz/harfrust)，MIT | 记录版本、字体和特性；不根据库名称声称兼容 Word |
+| HarfRust 0.8.4 | joyword-layout 字体整形（直接依赖） | [上游](https://github.com/harfbuzz/harfrust)，MIT | 选此版本以与 krilla 共用 read-fonts 0.39；特性逐项显式开关；不根据库名称声称兼容 Word |
+| read-fonts 0.39.2 | joyword-layout 字体表读取（直接依赖） | MIT OR Apache-2.0（crate 元数据） | 与 HarfRust、krilla 的 skrifa 0.42.1 共用同一版本 |
 | Fontique／Skrifa／ICU4X | 字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
-| krilla | PDF 绘图与定位字形 | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0 | 精确记录 feature；避免依赖自动整形作为第二排版路径 |
+| krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出与定位字形（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）与 raster-images；只消费页面场景中的字形与位置 |
 
 MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib、CC0-1.0 和 NCSA 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 0.2.2 间接引入的“停止维护”公告逐条登记理由，待 ADR-010 选定来源时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
 
@@ -38,6 +39,7 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 样例文字由项目原创或明确授权；不得默认把用户合同、邮件或公司资料提交到仓库。
 - 字体记录来源、版本／散列、许可证、face index 和嵌入限制。系统字体可以用于本地测试，不据此获得重新分发权。
 - 持续集成优先使用许可明确、可重新分发的固定测试字体；生产版使用系统字体与可选字体包。
+- 当前 CI 的 T003 作业在运行时从 Ubuntu 软件源安装 fonts-noto-cjk（SIL OFL 1.1），记录软件包版本与文件散列，不放入仓库；本机测试可用系统字体（如 macOS 宋体），只作本地证据，不分发。
 - Windows 中文字体（宋体、黑体、仿宋、楷体、微软雅黑、等线）和方正等商业字体不随产品分发；测试与回退字体优先选 OFL：思源宋体／黑体、Noto CJK、霞鹜文楷、朱雀仿宋（技术预览），以及西文度量兼容的 Carlito、Caladea、Liberation。
 - 图标和模板原创或使用许可明确的资源；JoyWord 品牌与其他产品标识分开。
 - 参考软件生成的测试文件记录生成者、环境和样例内容来源；不将专有字体嵌入公开语料。

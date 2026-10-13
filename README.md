@@ -47,6 +47,13 @@ cargo test --locked
 cargo deny --locked --all-features check
 ```
 
+T003 统一字形链路（同一字体字节整形 → 页面场景 → PDF，再用独立阅读器读回；字体需自备，例如 Linux 的 Noto CJK 或 macOS 的宋体，不随仓库分发）：
+
+```sh
+cargo run -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
+python3 scripts/verify_unified_pdf.py target/unified
+```
+
 T100 文本存储基准：
 
 ```sh

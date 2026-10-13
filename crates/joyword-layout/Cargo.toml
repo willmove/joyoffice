@@ -1,0 +1,18 @@
+[package]
+name = "joyword-layout"
+description = "JoyWord font identity, shaping and page scenes (T003, T105)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+harfrust.workspace = true
+joyword-foundation.workspace = true
+read-fonts.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true

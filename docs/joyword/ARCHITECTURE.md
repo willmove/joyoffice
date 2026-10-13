@@ -103,7 +103,7 @@ OPC 层（joyoffice-opc，ADR-011）使用自写的严格 ZIP 读取器：只接
 
 文档几何采用有符号 64 位 EMU：1 inch = 914400 EMU，1 point = 12700 EMU，1 twip = 635 EMU。输入单位由不同类型包装，计算使用有界／溢出检查。整形结果从字体 units-per-em 转换时保留累加精度，避免逐字舍入导致整段漂移。转为屏幕和 PDF 浮点坐标只发生在输出边界。
 
-字体身份至少包含字体字节散列、collection face index、variation axes、特性及语言／方向参数。Fontique 枚举和回退，HarfRust 整形，Skrifa 提供字形与度量，ICU4X 提供分析；这些库与 Parley 系列须对齐到同一组版本，避免同一字体经两套解析栈处理。整形特性完全由文档属性驱动：kern、liga 等不沿用 HarfRust 默认值，而按 `w:kern` 阈值、`w14:ligatures` 等显式设置启用。JoyWord 决定段落断行、中文兼容规则和分页。UI 标签可以使用 GPUI 默认文字系统，文档正文必须使用统一字体身份和定位结果。
+字体身份至少包含字体字节散列、collection face index、variation axes、特性及语言／方向参数。Fontique 枚举和回退，HarfRust 整形，Skrifa 提供字形与度量，ICU4X 提供分析；这些库与 Parley 系列须对齐到同一组版本，避免同一字体经两套解析栈处理。当前选定（T003）：HarfRust 0.8.4、read-fonts 0.39.2 与 krilla 0.8.2（经 skrifa 0.42.1）共用一套 read-fonts；HarfRust 0.14 需要 read-fonts 0.45，待 krilla 跟进后整体升级。GPUI 自带的另一套字体栈只用于界面文字。整形特性完全由文档属性驱动：kern、liga 等不沿用 HarfRust 默认值，而按 `w:kern` 阈值、`w14:ligatures` 等显式设置启用。JoyWord 决定段落断行、中文兼容规则和分页。UI 标签可以使用 GPUI 默认文字系统，文档正文必须使用统一字体身份和定位结果。
 
 GPUI FontId 与文档 FontKey 的映射必须通过 M0 测试验证；不能假设同名字体或同一 glyph ID 必然属于同一 face。GPUI 0.2.2 的 GlyphId 不可在外部构造，按字节加载字体也不返回 FontId，按名称解析会与系统同名字体冲突；来源与补丁策略见 ADR-010。若公共 API 不足，使用独立适配补丁并记录来源，不能修改排版结果凑合显示。krilla 使用定位字形接口消费相同场景，不再自行整形文本。
 
