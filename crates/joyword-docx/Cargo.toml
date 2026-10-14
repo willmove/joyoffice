@@ -1,0 +1,20 @@
+[package]
+name = "joyword-docx"
+description = "Read-only DOCX import into the JoyWord model with original-package backing (T103 first slice)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyoffice-opc.workspace = true
+joyword-model.workspace = true
+quick-xml.workspace = true
+
+[dev-dependencies]
+joyword-corpus.workspace = true
+
+[lints]
+workspace = true
