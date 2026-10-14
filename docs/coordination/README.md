@@ -2,6 +2,8 @@
 
 日期：2026-10-14。总协调者为发出本轮任务的 Codex 聊天。由用户在各软件中启动执行者，并把最终交接转回本聊天。目前没有自动调度、自动跨软件发消息或后台监控。
 
+第一轮成果已由 PR #1 合入 main（2b9d58c2866703f4cd10b7f5e0fc56c961c23c57）。后续由协调者在 codex/coordination-docx-session 分支执行 [C01：DOCX 会话安全接入](tasks/C01-DOCX-SESSION.md)，交付见 [C01 报告](reports/C01-DOCX-SESSION.md)；W01–W04 不重复启动。下文保留第一轮派工与交接记录。
+
 ## 基线与分配
 
 代码基线 c3fabea449ea25a876301b35305105e00cafba06（main；T002 已人工验收）。任务从包含本协作包的 codex/multi-agent-coordination 分支启动，记录启动时完整 HEAD。机器清单取得后可重新映射机器，任务 ID 保持不变。

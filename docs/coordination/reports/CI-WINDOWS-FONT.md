@@ -16,3 +16,9 @@
 固定子集实测支持 fi 连字与 AV 字距；使用它的 8 项字体集成测试及 layout 单元测试通过，固定字体实际读取两次；CJK 强制为 Songti face 0。全默认成员测试、相关 clippy、fmt 与规格检查再次执行，见对应日志。
 
 最终 Windows runner 结果必须来自包含本修正的新提交；初版失败记录不会被改写为通过。草稿 PR #1 保留待新一轮 CI 完成后再判定跨平台构建门槛。
+
+## 后续远程核对（2026-10-14）
+
+固定字体修正提交 100bf6b26ea80d37159a040a670a30b2beede279 的两次 CI [38525056320](https://github.com/willmove/joyoffice/actions/runs/38525056320) 与 [38525061210](https://github.com/willmove/joyoffice/actions/runs/38525061210) 均全部通过，包括 Windows 作业；PR #1 已合并，main 为 2b9d58c2866703f4cd10b7f5e0fc56c961c23c57。
+
+main 的后续运行 [38529091352](https://github.com/willmove/joyoffice/actions/runs/38529091352) 标记失败，但 8 个作业均未执行任何步骤。GitHub check-run 注释原文为：`The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings`。这是账户付款／消费额度阻塞；不能视为代码回归，也不能将该次 main CI 记录为通过。账户设置恢复后需重新执行。
