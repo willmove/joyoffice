@@ -1,5 +1,6 @@
 //! Real-font tests. Set JOYWORD_TEST_FONT=path:face for CJK and
-//! JOYWORD_LINE_LATIN_FONT=path:face for Latin/ligatures. An explicit path
+//! JOYWORD_LINE_LATIN_FONT=path:face for Latin/ligatures. The default Latin
+//! face is the pinned, OFL-licensed repository fixture. An explicit path
 //! failing to load is an error. Missing automatic candidates print SKIPPED;
 //! JOYWORD_REQUIRE_TEST_FONT makes either missing font an error.
 
@@ -25,11 +26,13 @@ fn font(latin: bool) -> Option<LoadedFont> {
             let (path, index) = spec.rsplit_once(':').expect("font spec must be path:face");
             vec![(path.to_owned(), index.parse().expect("numeric face index"))]
         }
-        Err(_) if latin => vec![
-            ("/System/Library/Fonts/Avenir Next.ttc".into(), 0),
-            ("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf".into(), 0),
-            ("C:\\Windows\\Fonts\\segoeui.ttf".into(), 0),
-        ],
+        Err(_) if latin => vec![(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../tests/fixtures/fonts/joyoffice-test-serif.ttf")
+                .to_string_lossy()
+                .into_owned(),
+            0,
+        )],
         Err(_) => vec![
             ("/System/Library/Fonts/Supplemental/Songti.ttc".into(), 0),
             (
@@ -53,7 +56,7 @@ fn font(latin: bool) -> Option<LoadedFont> {
         }
     }
     assert!(
-        std::env::var_os("JOYWORD_REQUIRE_TEST_FONT").is_none(),
+        !latin && std::env::var_os("JOYWORD_REQUIRE_TEST_FONT").is_none(),
         "required {variable} unavailable"
     );
     eprintln!("SKIPPED real-font test: {variable} unavailable");

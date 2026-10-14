@@ -20,6 +20,7 @@
 - W02：独立 macOS 探针以 GPUI 0.2.2 的 GlyphId 可见性补丁、TTC face 抽取和唯一名称注册验证已有外部字形绘制路径；协调者复验 4 项测试和已有截图，恢复实验自有代码 unsafe_code = forbid。只接收实验结果，Linux GL/CPU、Retina、IME 与生产字体处理仍未验收，未据此裁决正式来源，详见[W02 审查](../coordination/reports/W02-REVIEW.md)。
 - 总协调者发现并修复 W01 的两个拒绝边界：MCE 前缀未声明时被静默忽略、文字/CDATA/属性中的非法 XML 控制字符未拒绝；两项回归先失败后通过。未修改公开 API 或依赖。
 - 源码校验点 2d4093b885eaf5928929f972ca25c48bd330082e：本机强制真实字体的默认成员测试 135 项通过、0 跳过字体标记；三个相关 crate 的 all-targets clippy、fmt、规格检查及 9 项 Python 工具测试通过。W01/W03 交付提交和详细范围见[集成审查](../coordination/reports/WAVE01-REVIEW.md)。这些结果不能替代新版三端 CI、Office 或 GUI 验收。
+- 后续 Windows CI 暴露 W03 的 Segoe UI 连字前提不成立，已以 4,164 bytes 的固定 OFL 测试子集替代系统拉丁字体，保留 fi/AV 断言，本机 135 项重新通过；远程修正后运行待确认，见[CI 记录](../coordination/reports/CI-WINDOWS-FONT.md)。
 
 ### joyword-model（T100，进行中：仅剩人工验收）
 
