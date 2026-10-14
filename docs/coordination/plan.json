@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-10-14",
+  "wave": "wave-01",
+  "code_base": "c3fabea449ea25a876301b35305105e00cafba06",
+  "coordination_ref": "refs/heads/codex/multi-agent-coordination",
+  "coordinator": "当前 Codex 总协调聊天",
+  "mode": "manual_dispatch_git_delivery",
+  "tasks": [
+    {"id": "W01", "agent": "Claude Desktop / Code", "branch": "codex/w01-docx-import", "directory": "joyoffice-w01", "card": "docs/coordination/tasks/W01-DOCX.md", "state": "assigned_not_started"},
+    {"id": "W02", "agent": "ZCode Desktop", "branch": "codex/w02-gpui-font-probe", "directory": "joyoffice-w02", "card": "docs/coordination/tasks/W02-GPUI.md", "state": "assigned_not_started"},
+    {"id": "W03", "agent": "DeepSeek Harness Desktop", "branch": "codex/w03-line-layout", "directory": "joyoffice-w03", "card": "docs/coordination/tasks/W03-LAYOUT.md", "state": "assigned_not_started"},
+    {"id": "W04", "agent": "空闲主机上的一个 Agent，可选", "branch": "codex/w04-reference-validation", "directory": "joyoffice-w04", "card": "docs/coordination/tasks/W04-VALIDATION.md", "state": "optional_not_started"}
+  ]
+}
