@@ -2881,6 +2881,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-docx"
+version = "0.0.1"
+dependencies = [
+ "joyoffice-opc",
+ "joyword-corpus",
+ "joyword-model",
+ "quick-xml",
+]
+
+[[package]]
 name = "joyword-engine"
 version = "0.0.1"
 dependencies = [

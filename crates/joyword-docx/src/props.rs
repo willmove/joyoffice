@@ -1,0 +1,545 @@
+//! Paragraph and run property subsets (ECMA-376 Part 1 §17.3.1 paragraph
+//! properties, §17.3.2 run properties, §17.18 and §22.9.2 simple types;
+//! Transitional spellings from Part 4).
+//!
+//! Values keep their source unit (twips, half points, hundredths of a
+//! character or line); nothing is converted to EMU here. Unset stays `None`,
+//! and an explicit "off" stays `Some(false)`. Anything the model has no
+//! field for — an unmapped child, an attribute that overrides a mapped one
+//! (a theme font or theme colour), a universal measure such as `2cm`, an
+//! unknown value — clears [`Findings::complete`], and the caller preserves the
+//! whole property element.
+
+use std::sync::Arc;
+
+use joyword_model::{
+    Color, FontHint, FontRef, Indent, Justification, LineSpacing, Measure, NumberingRef, ParaProps,
+    RunProps, Spacing, StyleId, ThemeFont, Toggle, Underline,
+};
+
+use crate::ns::W;
+use crate::xml::Element;
+
+/// An attribute value outside the supported set.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Invalid {
+    pub element: String,
+    pub attribute: String,
+    pub value: String,
+}
+
+#[derive(Debug)]
+pub(crate) struct Findings {
+    /// Every child and value was represented in the model.
+    pub complete: bool,
+    pub invalid: Vec<Invalid>,
+}
+
+impl Default for Findings {
+    fn default() -> Self {
+        Self {
+            complete: true,
+            invalid: Vec::new(),
+        }
+    }
+}
+
+impl Findings {
+    pub(crate) fn invalid(&mut self, element: &Element, attribute: &str, value: &str) {
+        self.complete = false;
+        self.invalid.push(Invalid {
+            element: element.qname.to_string(),
+            attribute: attribute.to_owned(),
+            value: value.to_owned(),
+        });
+    }
+}
+
+pub(crate) fn val(element: &Element) -> Option<&str> {
+    element.attribute(Some(W), "val")
+}
+
+/// ST_OnOff (§22.9.2.7; Transitional adds `on` and `off`, Part 4). A
+/// missing value means "on".
+pub(crate) fn on_off(value: Option<&str>) -> Option<bool> {
+    match value {
+        None | Some("true" | "1" | "on") => Some(true),
+        Some("false" | "0" | "off") => Some(false),
+        Some(_) => None,
+    }
+}
+
+fn toggle(element: &Element, findings: &mut Findings) -> Toggle {
+    let value = val(element);
+    let parsed = on_off(value);
+    if parsed.is_none() {
+        findings.invalid(element, "w:val", value.unwrap_or_default());
+    }
+    parsed
+}
+
+/// Decimal integer as in ST_DecimalNumber and the numeric form of the
+/// measure types. Universal measures (`1in`, `2.5cm`) are not mapped.
+fn integer(element: &Element, attribute: &str, findings: &mut Findings) -> Option<i64> {
+    let value = element.attribute(Some(W), attribute)?;
+    match value.parse::<i64>() {
+        Ok(number) => Some(number),
+        Err(_) => {
+            findings.invalid(element, &format!("w:{attribute}"), value);
+            None
+        }
+    }
+}
+
+/// An ST_TwipsMeasure or ST_SignedTwipsMeasure attribute in twips.
+pub(crate) fn twips(
+    element: &Element,
+    attribute: &str,
+    findings: &mut Findings,
+) -> Option<Measure> {
+    measure(element, attribute, Measure::Twips, findings)
+}
+
+fn measure(
+    element: &Element,
+    attribute: &str,
+    unit: fn(i64) -> Measure,
+    findings: &mut Findings,
+) -> Option<Measure> {
+    integer(element, attribute, findings).map(unit)
+}
+
+/// The first of `attributes` that is present, so `w:start` wins over its
+/// Transitional alias `w:left` when a producer writes both.
+fn first_measure(
+    element: &Element,
+    attributes: &[&str],
+    unit: fn(i64) -> Measure,
+    findings: &mut Findings,
+) -> Option<Measure> {
+    let name = attributes
+        .iter()
+        .find(|name| element.attribute(Some(W), name).is_some())?;
+    if attributes
+        .iter()
+        .filter(|name| element.attribute(Some(W), name).is_some())
+        .count()
+        > 1
+    {
+        // The other spelling is kept only in the preserved element.
+        findings.complete = false;
+    }
+    measure(element, name, unit, findings)
+}
+
+/// Chooses between a relative (`*Chars`, `*Lines`) and an absolute value of
+/// one property. ECMA-376 lets a specified relative value win; Word ignores
+/// a zero relative value ([MS-OI29500] notes on Part 1 §17.3.1.12 and
+/// §17.3.1.33), which is followed here. When both are present the element
+/// is preserved so the value not chosen is not lost.
+fn relative_or_absolute(
+    relative: Option<Measure>,
+    absolute: Option<Measure>,
+    findings: &mut Findings,
+) -> Option<Measure> {
+    if relative.is_some() && absolute.is_some() {
+        findings.complete = false;
+    }
+    match (relative, absolute) {
+        (Some(Measure::CharHundredths(0) | Measure::LineHundredths(0)), Some(absolute)) => {
+            Some(absolute)
+        }
+        (relative, absolute) => relative.or(absolute),
+    }
+}
+
+/// `w:ind` (§17.3.1.12); `left`/`right` and their `*Chars` forms are the
+/// Transitional spellings of `start`/`end` (Part 4).
+fn indent(element: &Element, findings: &mut Findings) -> Indent {
+    let mut pick = |chars: &[&str], twips: &[&str]| {
+        let relative = first_measure(element, chars, Measure::CharHundredths, findings);
+        let absolute = first_measure(element, twips, Measure::Twips, findings);
+        relative_or_absolute(relative, absolute, findings)
+    };
+    Indent {
+        start: pick(&["startChars", "leftChars"], &["start", "left"]),
+        end: pick(&["endChars", "rightChars"], &["end", "right"]),
+        first_line: pick(&["firstLineChars"], &["firstLine"]),
+        hanging: pick(&["hangingChars"], &["hanging"]),
+    }
+}
+
+/// `w:spacing` (§17.3.1.33). `beforeLines`/`afterLines` and `before`/`after`
+/// are chosen like indentation characters. A missing `lineRule` means
+/// `auto`, where `line` is in 240ths of a line; otherwise it is in twips.
+fn spacing(element: &Element, findings: &mut Findings) -> Spacing {
+    let mut pick = |lines: &str, twips: &str| {
+        let relative = measure(element, lines, Measure::LineHundredths, findings);
+        let absolute = measure(element, twips, Measure::Twips, findings);
+        relative_or_absolute(relative, absolute, findings)
+    };
+    let before = pick("beforeLines", "before");
+    let after = pick("afterLines", "after");
+    let flag = |name: &str, findings: &mut Findings| {
+        let value = element.attribute(Some(W), name)?;
+        let parsed = on_off(Some(value));
+        if parsed.is_none() {
+            findings.invalid(element, &format!("w:{name}"), value);
+        }
+        parsed
+    };
+    let before_auto = flag("beforeAutospacing", findings);
+    let after_auto = flag("afterAutospacing", findings);
+    let line = integer(element, "line", findings).and_then(|line| {
+        match element.attribute(Some(W), "lineRule").unwrap_or("auto") {
+            "auto" => Some(LineSpacing::Auto(line)),
+            "exact" => Some(LineSpacing::Exact(Measure::Twips(line))),
+            "atLeast" => Some(LineSpacing::AtLeast(Measure::Twips(line))),
+            other => {
+                findings.invalid(element, "w:lineRule", other);
+                None
+            }
+        }
+    });
+    Spacing {
+        before,
+        after,
+        before_auto,
+        after_auto,
+        line,
+    }
+}
+
+fn justification(element: &Element, findings: &mut Findings) -> Option<Justification> {
+    let value = val(element).unwrap_or_default();
+    let justification = match value {
+        "start" | "left" => Justification::Start,
+        "end" | "right" => Justification::End,
+        "center" => Justification::Center,
+        "both" => Justification::Both,
+        "distribute" => Justification::Distribute,
+        // Kashida, Thai distribution and numTab have no model value yet.
+        _ => {
+            findings.invalid(element, "w:val", value);
+            return None;
+        }
+    };
+    Some(justification)
+}
+
+fn numbering(element: &Element, findings: &mut Findings) -> Option<NumberingRef> {
+    let number = |local: &str, findings: &mut Findings| {
+        let child = element.child(W, local)?;
+        let value = val(child).unwrap_or_default();
+        let parsed = value.parse::<u32>().ok();
+        if parsed.is_none() {
+            findings.invalid(child, "w:val", value);
+        }
+        parsed
+    };
+    let num_id = number("numId", findings);
+    let level = number("ilvl", findings);
+    if element
+        .elements()
+        .any(|child| !child.is(W, "numId") && !child.is(W, "ilvl"))
+    {
+        findings.complete = false;
+    }
+    match (num_id, level.map(u8::try_from)) {
+        (Some(num_id), Some(Ok(level))) => Some(NumberingRef { num_id, level }),
+        _ => {
+            // A reference without both values is kept only in the source.
+            findings.complete = false;
+            None
+        }
+    }
+}
+
+/// Mapped paragraph properties and the children the caller handles.
+pub(crate) struct Para<'e> {
+    pub props: ParaProps,
+    pub style: Option<StyleId>,
+    /// `w:rPr`: paragraph mark run properties.
+    pub mark: Option<&'e Element>,
+    /// `w:sectPr`: the paragraph ends a section.
+    pub section: Option<&'e Element>,
+}
+
+/// `w:pPr` (§17.3.1.26) or a style's / default `w:pPr`.
+pub(crate) fn para<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e> {
+    let mut out = Para {
+        props: ParaProps::default(),
+        style: None,
+        mark: None,
+        section: None,
+    };
+    let props = &mut out.props;
+    for child in element.elements() {
+        if child.namespace.as_deref() != Some(W) {
+            findings.complete = false;
+            continue;
+        }
+        match &*child.local {
+            "pStyle" => out.style = val(child).map(StyleId::new),
+            "keepNext" => props.keep_next = toggle(child, findings),
+            "keepLines" => props.keep_lines = toggle(child, findings),
+            "widowControl" => props.widow_control = toggle(child, findings),
+            "pageBreakBefore" => props.page_break_before = toggle(child, findings),
+            "snapToGrid" => props.snap_to_grid = toggle(child, findings),
+            "jc" => props.justification = justification(child, findings),
+            "ind" => props.indent = indent(child, findings),
+            "spacing" => props.spacing = spacing(child, findings),
+            "outlineLvl" => {
+                let value = val(child).unwrap_or_default();
+                match value.parse::<u8>() {
+                    Ok(level) if level <= 9 => props.outline_level = Some(level),
+                    _ => findings.invalid(child, "w:val", value),
+                }
+            }
+            "numPr" => props.numbering = numbering(child, findings),
+            "rPr" => out.mark = Some(child),
+            "sectPr" => out.section = Some(child),
+            _ => findings.complete = false,
+        }
+    }
+    out
+}
+
+fn theme_font(value: &str) -> Option<ThemeFont> {
+    Some(match value {
+        "majorAscii" => ThemeFont::MajorAscii,
+        "majorHAnsi" => ThemeFont::MajorHAnsi,
+        "majorEastAsia" => ThemeFont::MajorEastAsia,
+        "majorBidi" => ThemeFont::MajorBidi,
+        "minorAscii" => ThemeFont::MinorAscii,
+        "minorHAnsi" => ThemeFont::MinorHAnsi,
+        "minorEastAsia" => ThemeFont::MinorEastAsia,
+        "minorBidi" => ThemeFont::MinorBidi,
+        _ => return None,
+    })
+}
+
+/// `w:rFonts` (§17.3.2.26): a theme attribute takes precedence over the
+/// named font of the same slot.
+fn fonts(element: &Element, out: &mut RunProps, findings: &mut Findings) {
+    let slot = |named: &str, theme: &str, findings: &mut Findings| -> Option<FontRef> {
+        let named_value = element.attribute(Some(W), named);
+        if let Some(value) = element.attribute(Some(W), theme) {
+            if named_value.is_some() {
+                findings.complete = false;
+            }
+            return match theme_font(value) {
+                Some(theme) => Some(FontRef::Theme(theme)),
+                None => {
+                    findings.invalid(element, &format!("w:{theme}"), value);
+                    None
+                }
+            };
+        }
+        named_value.map(|name| FontRef::Named(Arc::from(name)))
+    };
+    out.fonts.ascii = slot("ascii", "asciiTheme", findings);
+    out.fonts.h_ansi = slot("hAnsi", "hAnsiTheme", findings);
+    out.fonts.east_asia = slot("eastAsia", "eastAsiaTheme", findings);
+    out.fonts.complex_script = slot("cs", "cstheme", findings);
+    if let Some(value) = element.attribute(Some(W), "hint") {
+        out.fonts.hint = match value {
+            "default" => Some(FontHint::Default),
+            "eastAsia" => Some(FontHint::EastAsia),
+            "cs" => Some(FontHint::ComplexScript),
+            other => {
+                findings.invalid(element, "w:hint", other);
+                None
+            }
+        };
+    }
+}
+
+fn underline(element: &Element, findings: &mut Findings) -> Option<Underline> {
+    if element.attribute(Some(W), "color").is_some()
+        || element.attribute(Some(W), "themeColor").is_some()
+    {
+        findings.complete = false;
+    }
+    let value = val(element).unwrap_or_default();
+    Some(match value {
+        "none" => Underline::None,
+        "single" => Underline::Single,
+        "double" => Underline::Double,
+        "thick" => Underline::Thick,
+        "dotted" => Underline::Dotted,
+        "dash" => Underline::Dash,
+        "wave" => Underline::Wave,
+        "words" => Underline::Words,
+        _ => {
+            findings.invalid(element, "w:val", value);
+            return None;
+        }
+    })
+}
+
+fn color(element: &Element, findings: &mut Findings) -> Option<Color> {
+    if element.attributes.iter().any(|attribute| {
+        attribute.namespace.as_deref() == Some(W) && attribute.local.starts_with("theme")
+    }) {
+        findings.complete = false;
+    }
+    let value = val(element).unwrap_or_default();
+    if value == "auto" {
+        return Some(Color::Auto);
+    }
+    let hex = |range: std::ops::Range<usize>| {
+        value
+            .get(range)
+            .and_then(|digits| u8::from_str_radix(digits, 16).ok())
+    };
+    match (value.len(), hex(0..2), hex(2..4), hex(4..6)) {
+        (6, Some(r), Some(g), Some(b)) => Some(Color::Rgb(r, g, b)),
+        _ => {
+            findings.invalid(element, "w:val", value);
+            None
+        }
+    }
+}
+
+/// `w:rPr` (§17.3.2.28), a paragraph mark's or a style's / default `w:rPr`.
+pub(crate) fn run(element: &Element, findings: &mut Findings) -> (RunProps, Option<StyleId>) {
+    let mut out = RunProps::default();
+    let mut style = None;
+    for child in element.elements() {
+        if child.namespace.as_deref() != Some(W) {
+            findings.complete = false;
+            continue;
+        }
+        match &*child.local {
+            "rStyle" => style = val(child).map(StyleId::new),
+            "b" => out.bold = toggle(child, findings),
+            "i" => out.italic = toggle(child, findings),
+            "strike" => out.strike = toggle(child, findings),
+            "vanish" => out.hidden = toggle(child, findings),
+            "u" => out.underline = underline(child, findings),
+            "sz" => out.size = measure(child, "val", Measure::HalfPoints, findings),
+            "rFonts" => fonts(child, &mut out, findings),
+            "color" => out.color = color(child, findings),
+            "lang" => {
+                let tag = |name: &str| child.attribute(Some(W), name).map(Arc::from);
+                out.languages.latin = tag("val");
+                out.languages.east_asia = tag("eastAsia");
+                out.languages.bidi = tag("bidi");
+            }
+            _ => findings.complete = false,
+        }
+    }
+    (out, style)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::xml::XmlReader;
+    use joyoffice_opc::Budget;
+
+    fn element(xml: &str) -> Element {
+        let xml = format!(r#"<x xmlns:w="{W}">{xml}</x>"#);
+        let root = XmlReader::new("/t.xml", xml.as_bytes(), &Budget::default())
+            .unwrap()
+            .whole()
+            .unwrap();
+        root.elements().next().unwrap().clone()
+    }
+
+    #[test]
+    fn on_off_accepts_transitional_spellings() {
+        for (value, expected) in [
+            (None, Some(true)),
+            (Some("1"), Some(true)),
+            (Some("on"), Some(true)),
+            (Some("true"), Some(true)),
+            (Some("0"), Some(false)),
+            (Some("off"), Some(false)),
+            (Some("false"), Some(false)),
+            (Some("yes"), None),
+        ] {
+            assert_eq!(on_off(value), expected, "{value:?}");
+        }
+    }
+
+    #[test]
+    fn run_subset_keeps_unset_off_and_flags_unmapped_content() {
+        let mut findings = Findings::default();
+        let rpr = element(
+            r#"<w:rPr><w:rStyle w:val="a5"/><w:b/><w:i w:val="0"/><w:sz w:val="21"/><w:rFonts w:ascii="Times New Roman" w:eastAsia="宋体" w:hint="eastAsia"/><w:color w:val="FF0000"/><w:lang w:val="en-US" w:eastAsia="zh-CN"/></w:rPr>"#,
+        );
+        let (props, style) = run(&rpr, &mut findings);
+        assert!(findings.complete, "{findings:?}");
+        assert_eq!(style, Some(StyleId::new("a5")));
+        assert_eq!(
+            (props.bold, props.italic, props.strike),
+            (Some(true), Some(false), None)
+        );
+        assert_eq!(props.size, Some(Measure::HalfPoints(21)));
+        assert_eq!(props.fonts.east_asia, Some(FontRef::Named("宋体".into())));
+        assert_eq!(props.fonts.hint, Some(FontHint::EastAsia));
+        assert_eq!(props.color, Some(Color::Rgb(0xFF, 0, 0)));
+        assert_eq!(props.languages.east_asia.as_deref(), Some("zh-CN"));
+
+        let mut findings = Findings::default();
+        let rpr = element(
+            r#"<w:rPr><w:szCs w:val="21"/><w:rFonts w:ascii="A" w:asciiTheme="minorHAnsi"/><w:sz w:val="12pt"/><w:b w:val="maybe"/></w:rPr>"#,
+        );
+        let (props, _) = run(&rpr, &mut findings);
+        assert!(!findings.complete);
+        assert_eq!(
+            props.fonts.ascii,
+            Some(FontRef::Theme(ThemeFont::MinorHAnsi))
+        );
+        assert_eq!(props.size, None);
+        assert_eq!(props.bold, None);
+        assert_eq!(findings.invalid.len(), 2);
+    }
+
+    #[test]
+    fn paragraph_subset_keeps_source_units() {
+        let mut findings = Findings::default();
+        let ppr = element(
+            r#"<w:pPr><w:pStyle w:val="1"/><w:jc w:val="left"/><w:ind w:left="420" w:firstLineChars="200"/><w:spacing w:before="156" w:line="360"/><w:outlineLvl w:val="0"/><w:numPr><w:ilvl w:val="0"/><w:numId w:val="3"/></w:numPr><w:rPr><w:b/></w:rPr></w:pPr>"#,
+        );
+        let mapped = para(&ppr, &mut findings);
+        assert!(findings.complete, "{findings:?}");
+        assert_eq!(mapped.style, Some(StyleId::new("1")));
+        let props = mapped.props;
+        assert_eq!(props.justification, Some(Justification::Start));
+        assert_eq!(props.indent.start, Some(Measure::Twips(420)));
+        assert_eq!(props.indent.first_line, Some(Measure::CharHundredths(200)));
+        assert_eq!(props.spacing.before, Some(Measure::Twips(156)));
+        assert_eq!(props.spacing.line, Some(LineSpacing::Auto(360)));
+        assert_eq!(props.outline_level, Some(0));
+        assert_eq!(
+            props.numbering,
+            Some(NumberingRef {
+                num_id: 3,
+                level: 0
+            })
+        );
+        assert!(mapped.mark.is_some());
+
+        let mut findings = Findings::default();
+        let ppr = element(
+            r#"<w:pPr><w:ind w:firstLine="420" w:firstLineChars="200"/><w:jc w:val="thaiDistribute"/><w:spacing w:line="12" w:lineRule="sometimes"/></w:pPr>"#,
+        );
+        let props = para(&ppr, &mut findings).props;
+        assert!(!findings.complete);
+        assert_eq!(props.indent.first_line, Some(Measure::CharHundredths(200)));
+        assert_eq!(props.justification, None);
+        assert_eq!(props.spacing.line, None);
+
+        let mut findings = Findings::default();
+        let ppr = element(
+            r#"<w:pPr><w:ind w:firstLine="420" w:firstLineChars="0"/><w:spacing w:before="100" w:beforeLines="0"/></w:pPr>"#,
+        );
+        let props = para(&ppr, &mut findings).props;
+        assert!(!findings.complete);
+        assert_eq!(props.indent.first_line, Some(Measure::Twips(420)));
+        assert_eq!(props.spacing.before, Some(Measure::Twips(100)));
+    }
+}
