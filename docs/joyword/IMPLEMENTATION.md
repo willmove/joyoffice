@@ -59,6 +59,12 @@
 
 尚无 cargo-fuzz 目标；当前以测试内两轮各 3000 次的确定性变异冒烟代替（字节级变异与“先变异 XML 再打包”），它已发现并修复两处越界 panic。夜间 fuzz 作业随 M1 加入。
 
+### DOCX 会话接入（C01，T103/T106 增量）
+
+- joyword-shell::docx::DocxSession 持有 importer 的模型、PackageBacking、diagnostics 和 editability；只读原因或任意 locked 节点存在时，在首笔事务前令 engine 整篇只读。可变 engine 不暴露，适配器没有清除导入限制的入口。
+- 不受限文档的内存编辑、撤销／重做由既有 engine 执行；AI 写入保持默认关闭。未提交编辑时可取得精确原包字节；提交后即返回 EditedPackage，全部撤销后也不假设原包代表当前会话。此接口不写文件、不更新保存版本、不提供编辑后导出。
+- 五个原创 DOCX fixture 与独立保护设置的 8 项集成测试、本机 143 项完整回归通过，见 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md)。GPUI 打开流程、多文档管理器和保存路径尚未接入；后续 DOCX 打开必须持有适配器，不能将其模型传入无格式限制的通用 open_file。
+
 ### joyword-shell（T106，进行中）
 
 | 部分 | 已实现 | 尚未实现 |
@@ -138,7 +144,7 @@
 4. T004：比较工具与可重复生成的最小样例已有；需要建立固定参考环境（Word 为 Office LTSC 2024，对照固定版本 WPS 与固定字体），在其中打开最小样例、导出参考 PDF 并记录，再按实测建立排版行为规则目录。
 5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
 6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。T102（输入、选择与基础格式）还需 T105 排版命中数据。
-7. T103：只读导入与 PackageBacking 已有首个切片；下一步接入可编辑边界、ExportPlan、未知内容的安全写回、锁文件检测与保留元数据的原子保存，并加入 fuzz 目标。规范最小样例随 T004 建立。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
+7. T103：只读导入与 PackageBacking 已有首个切片；shell 的 DocxSession 已将全篇只读和局部 locked 的保守限制接入 engine，持有原包与诊断，并拒绝把任何已提交编辑的会话作为原包复制（包括撤销后的会话）。后续 DOCX 打开入口需持有该适配器。下一步实现 ExportPlan、未知内容的安全写回、锁文件检测、保留元数据的原子保存及 fuzz 目标，见 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md)。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
 8. T106：在 T103 提供打开／保存后接入文件对话框、最近文件菜单、多窗口与未保存提示界面；作者名修改后重启核对属于人工验收。
 
 M0 整体尚未通过；M1 已有无界面切片，尚未通过编辑保存闭环门槛，M2–M9 未实施。后续完成任务时须更新本记录、TASKS 状态与对应测试报告。

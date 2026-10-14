@@ -2933,6 +2933,8 @@ dependencies = [
 name = "joyword-shell"
 version = "0.0.1"
 dependencies = [
+ "joyoffice-opc",
+ "joyword-docx",
  "joyword-engine",
  "joyword-model",
 ]
