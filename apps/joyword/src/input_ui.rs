@@ -268,6 +268,7 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Result<(), String> {
+        self.input_error = None;
         match id {
             EDIT_UNDO => self.apply_input(cx, TextInput::undo),
             EDIT_REDO => self.apply_input(cx, TextInput::redo),
@@ -290,7 +291,10 @@ impl JoyWord {
             _ => return Err(format!("{id} is not an input command")),
         }
         window.invalidate_character_coordinates();
-        Ok(())
+        match &self.input_error {
+            Some(reason) => Err(reason.clone()),
+            None => Ok(()),
+        }
     }
     fn move_visual(&mut self, id: CommandId, cx: &mut Context<Self>) {
         if self.editor.as_ref().is_some_and(TextInput::is_composing) {
