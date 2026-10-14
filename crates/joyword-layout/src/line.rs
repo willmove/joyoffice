@@ -16,6 +16,7 @@
 //! model, <https://harfbuzz.github.io/working-with-harfbuzz-clusters.html>.
 
 use std::ops::Range;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use harfrust::{Direction, UnicodeBuffer};
 use joyword_foundation::Emu;
@@ -149,6 +150,8 @@ pub enum BreakError {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LineError {
     NonPositiveWidth,
+    /// Only the crate-internal cancellable document request returns this.
+    Cancelled,
     /// Size must be 1..=1_000_000_000 EMU for bounded shaping arithmetic.
     InvalidSize,
     LimitExceeded(LineLimit),
@@ -226,7 +229,7 @@ pub fn layout_paragraph_auto(
         size,
         features,
         width,
-        BreakInput::Unicode,
+        BreakInput::Unicode(None),
         limits,
     )
 }
@@ -234,7 +237,38 @@ pub fn layout_paragraph_auto(
 #[derive(Clone, Copy)]
 enum BreakInput<'a> {
     Explicit(&'a [usize]),
-    Unicode,
+    Unicode(Option<&'a AtomicBool>),
+}
+
+pub(crate) fn layout_paragraph_auto_cancellable(
+    font: &LoadedFont,
+    text: &str,
+    size: Emu,
+    features: FeatureSet,
+    width: Emu,
+    limits: LineLimits,
+    cancellation: &AtomicBool,
+) -> Result<ParagraphLines, LineError> {
+    layout_with_breaks(
+        font,
+        text,
+        size,
+        features,
+        width,
+        BreakInput::Unicode(Some(cancellation)),
+        limits,
+    )
+}
+
+impl BreakInput<'_> {
+    fn check(self) -> Result<(), LineError> {
+        if let Self::Unicode(Some(flag)) = self
+            && flag.load(Ordering::Acquire)
+        {
+            return Err(LineError::Cancelled);
+        }
+        Ok(())
+    }
 }
 
 fn unicode_breaks(text: &str, limit: usize) -> Result<Vec<usize>, LineError> {
@@ -261,13 +295,14 @@ fn layout_with_breaks(
     input: BreakInput<'_>,
     limits: LineLimits,
 ) -> Result<ParagraphLines, LineError> {
+    input.check()?;
     let limits = limits.capped();
     let explicit = match input {
         BreakInput::Explicit(points) => points,
-        BreakInput::Unicode => &[],
+        BreakInput::Unicode(_) => &[],
     };
     validate_input(text, size, width, explicit, limits)?;
-    if matches!(input, BreakInput::Unicode)
+    if matches!(input, BreakInput::Unicode(_))
         && let Some((offset, _)) = text.char_indices().find(|(_, ch)| *ch == '\u{00ad}')
     {
         // UAX #14 permits breaking after SHY, but rendering a discretionary
@@ -276,15 +311,16 @@ fn layout_with_breaks(
         return Err(LineError::UnsupportedText { offset });
     }
     let generated = match input {
-        BreakInput::Unicode => unicode_breaks(text, limits.max_breakpoints)?,
+        BreakInput::Unicode(_) => unicode_breaks(text, limits.max_breakpoints)?,
         BreakInput::Explicit(_) => Vec::new(),
     };
     let breakpoints = match input {
         BreakInput::Explicit(points) => points,
-        BreakInput::Unicode => &generated,
+        BreakInput::Unicode(_) => &generated,
     };
     let mut stats = LineStats::default();
     let mut measure = |part: &str| {
+        input.check()?;
         charge_shape(&mut stats, limits, part.len())?;
         let run = shape(font, part, size, features);
         validate_run(&run)?;
@@ -294,7 +330,7 @@ fn layout_with_breaks(
     let mut cluster_starts: Vec<usize> = paragraph.glyphs.iter().map(|g| g.cluster).collect();
     cluster_starts.dedup();
     let safe: Vec<_> = match input {
-        BreakInput::Unicode => breakpoints
+        BreakInput::Unicode(_) => breakpoints
             .iter()
             .copied()
             .filter(|offset| cluster_starts.binary_search(offset).is_ok())
@@ -302,7 +338,7 @@ fn layout_with_breaks(
         BreakInput::Explicit(_) => Vec::new(),
     };
     let breakpoints = match input {
-        BreakInput::Unicode => safe.as_slice(),
+        BreakInput::Unicode(_) => safe.as_slice(),
         BreakInput::Explicit(_) => breakpoints,
     };
     let ends = validate_breaks(text, breakpoints, &cluster_starts)?;
@@ -315,6 +351,7 @@ fn layout_with_breaks(
     let mut byte_start = 0;
     let mut scalar_start = 0;
     loop {
+        input.check()?;
         if result.lines.len() >= limits.max_lines {
             return Err(LineError::LimitExceeded(LineLimit::Lines));
         }

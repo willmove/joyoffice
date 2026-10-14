@@ -11,9 +11,13 @@ publish = false
 [dependencies]
 harfrust.workspace = true
 joyword-foundation.workspace = true
+joyword-model.workspace = true
 read-fonts.workspace = true
 sha2.workspace = true
 unicode-linebreak.workspace = true
+
+[dev-dependencies]
+joyword-engine.workspace = true
 
 [lints]
 workspace = true

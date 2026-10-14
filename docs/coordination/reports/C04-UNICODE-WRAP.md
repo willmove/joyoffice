@@ -46,3 +46,7 @@
 用户在本轮授权从北京时间约 18:27 开始独占桌面 30 分钟。实际检测屏幕捕获权限和辅助功能权限均为 false，screencapture 返回 could not create image from display；已请求用户开启系统权限，没有绕过权限或记录 GUI 通过。WPS 安装版本为 12.1.29181（build 29181）；已向其发送打开原创 C03 副本的本地请求，但无法观察内容，因此不算 WPS 验收。JoyWord 当前仍无文档输入入口，不能宣称真实 IME 已通过。
 
 下一步补齐 T105 的单节分页、快照版本键和命中数据，再接 T102 画布与 IME。固定 Word 规则、四槽字体和语言定制仍需后续实测。C04 的远程 CI 另按源码提交记录，不沿用 C03 通过结论。
+
+## 后续核验的远程 CI
+
+Actions [38551299360](https://github.com/willmove/joyoffice/actions/runs/38551299360) 绑定 C04 源码 01e4b6d28682c02ce55dd10c33ce9e6447f1c8c3：8／8 作业成功（macOS、Windows、x86／ARM Linux 构建、ARM／LoongArch QEMU、统一 PDF 与依赖检查）。此结果未替代 GUI 或真机验收。用户随后明确选择“先继续后台开发”，GUI 暂缓，继续 C05。

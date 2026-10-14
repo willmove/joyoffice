@@ -69,3 +69,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 - LAYOUT-002／LAYOUT-003／LAYOUT-009；依据 [Unicode 15.0 UAX #14 rev. 49](https://www.unicode.org/reports/tr14/tr14-49.html) §1、§6、§8 及 unicode-linebreak 0.1.5 的公开 API。候选规则复用通用 Unicode 库，字体身份、簇安全、预算、行拟合与重整形仍使用项目既有独立实现。
 - 默认 Unicode 禁则不是固定 Word profile；需要词典的分词、语言定制、连字符生成、混合字体与分页不在此切片内。不能正确显示 discretionary soft hyphen 时明确拒绝，不静默遗漏可见字形。原创真实字体测试及环境见 [C04 报告](../coordination/reports/C04-UNICODE-WRAP.md)。
+
+### 文档分页快照与命中几何（C05）
+
+- LAYOUT-003／LAYOUT-009；页框与段前分页语义参考 ECMA-376 Part 1 §17.6 及微软公开规范说明 [PageSize](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagesize?view=openxml-3.0.1)、[PageBreakBefore](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagebreakbefore?view=openxml-3.0.1)。只读取规范／API 文档，未读取 Open XML SDK 实现，不由 Office 引擎承担内核。
+- 基于现有 model、engine、真实字体与 C04 断行独立实现固定行盒预览分页、源位置几何和内容键。累加段间距、固定基线和 cluster 边界命中为显式预览选择，不等同于 Word 的段间距折叠、页顶规则或字体布局 profile。
+- 原创连续文本与事务测试，PDF 原样消费 PageScene；Poppler／pdfplumber 为独立验证工具，不进入 Rust 产品依赖。证据与未覆盖项见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。

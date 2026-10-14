@@ -2906,7 +2906,9 @@ name = "joyword-layout"
 version = "0.0.1"
 dependencies = [
  "harfrust",
+ "joyword-engine",
  "joyword-foundation",
+ "joyword-model",
  "read-fonts 0.39.2",
  "sha2 0.10.9",
  "unicode-linebreak",
@@ -2925,8 +2927,10 @@ dependencies = [
 name = "joyword-pdf"
 version = "0.0.1"
 dependencies = [
+ "joyword-engine",
  "joyword-foundation",
  "joyword-layout",
+ "joyword-model",
  "krilla",
 ]
 

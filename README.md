@@ -2,7 +2,7 @@
 
 JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字处理软件 **JoyWord**。JoySheet、JoyDeck 为后续方向。项目采用 MIT 许可证。
 
-**当前是规格基线、M0 工程样例与无界面的文档内核，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 页面、语言切换及缩放；模型与事务（T100/T101）尚未接入窗口。joyword-docx 已在 OPC 预算之上实现声明子集的只读导入与原始包保留（T103 首个切片）；joyword-layout 已有单字体、显式或 Unicode 默认自动断点的横向行拟合切片，统一场景可输出实验 PDF（T003/T105）。joyword-shell 的命令注册表已驱动窗口入口（T106）；无界面 DOCX 会话已支持现有段落／格式边界内的保守文字导出与往返校验（C02），超出范围明确拒绝，并可将已验证计划安全写为新路径的导出副本（C03）；尚无原件覆盖保存。完整 DOCX 编辑保存、中文规则与分页、IME、修订、批注及 AI 尚未接入；当前切片和人工验收边界见实施记录。
+**当前是规格基线、M0 工程样例与无界面的文档内核，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 页面、语言切换及缩放；模型与事务（T100/T101）尚未接入窗口。joyword-docx 已在 OPC 预算之上实现声明子集的只读导入与原始包保留（T103 首个切片）；joyword-layout 已有单字体、显式或 Unicode 默认自动断点的横向行拟合，以及显式单字体 profile 下的单节分页、版本快照和命中几何，统一场景可输出多页实验 PDF（T003/T105）。joyword-shell 的命令注册表已驱动窗口入口（T106）；无界面 DOCX 会话已支持现有段落／格式边界内的保守文字导出与往返校验（C02），超出范围明确拒绝，并可将已验证计划安全写为新路径的导出副本（C03）；尚无原件覆盖保存。完整 DOCX 编辑保存、Word 兼容中文规则与分页、IME、修订、批注及 AI 尚未接入；当前切片和人工验收边界见实施记录。
 
 ## 规格与任务
 
@@ -54,6 +54,15 @@ T003 统一字形链路（同一字体字节整形 → 页面场景 → PDF，�
 cargo run -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
 python3 scripts/verify_unified_pdf.py target/unified
 ```
+
+C05 文档快照 → 单节分页 → 同场景 PDF（显式预览度量，非 Word 兼容规则；独立读回需要 Poppler）：
+
+```sh
+cargo run -p joyword-pdf --example document_flow -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/document-flow
+python3 scripts/verify_document_pdf.py target/document-flow
+```
+
+额外安装 pdfplumber 后，可加 `--glyph-baselines` 独立核对全部字符的绝对基线。
 
 T100 文本存储基准：
 
