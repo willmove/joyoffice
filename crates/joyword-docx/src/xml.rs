@@ -20,6 +20,8 @@ use quick_xml::Reader;
 use quick_xml::XmlVersion;
 use quick_xml::events::{BytesStart, Event};
 
+use crate::ns::MC;
+
 /// Namespace bound to the `xml` prefix (Namespaces in XML 1.0, §3).
 pub(crate) const XML_NAMESPACE: &str = "http://www.w3.org/XML/1998/namespace";
 const XMLNS_NAMESPACE: &str = "http://www.w3.org/2000/xmlns/";
@@ -204,6 +206,9 @@ impl<'a> XmlReader<'a> {
                 .normalized_value(XmlVersion::Implicit1_0)
                 .map_err(|error| self.malformed(error.to_string()))?
                 .into_owned();
+            if !value.chars().all(is_xml_char) {
+                return Err(self.malformed("invalid XML character in attribute"));
+            }
             if key == "xmlns" {
                 declarations.push((Arc::from(""), Arc::from(value)));
             } else if let Some(prefix) = key.strip_prefix("xmlns:") {
@@ -228,6 +233,18 @@ impl<'a> XmlReader<'a> {
                 Some(_) => self.resolve(&declarations, prefix)?,
                 None => None,
             };
+            // ISO/IEC 29500-3 sections 7.1/7.4 require these prefix-list
+            // values to name namespaces bound in this element's scope.
+            // Do not let prefixed_list's filtering erase invalid mandatory
+            // processing instructions before the importer can enforce them.
+            if namespace.as_deref() == Some(MC) && matches!(local, "MustUnderstand" | "Ignorable") {
+                for prefix in value.split_ascii_whitespace() {
+                    let bound = self.resolve(&declarations, Some(prefix))?;
+                    if bound.as_deref().is_none_or(|uri| uri == MC) {
+                        return Err(self.malformed(format!("invalid mc:{local} prefix {prefix:?}")));
+                    }
+                }
+            }
             if attributes.iter().any(|existing: &Attribute| {
                 existing.namespace == namespace && &*existing.local == local
             }) {
@@ -317,6 +334,9 @@ impl<'a> XmlReader<'a> {
                         .xml10_content()
                         .map_err(|error| self.malformed(error.to_string()))?
                         .into_owned();
+                    if !text.chars().all(is_xml_char) {
+                        return Err(self.malformed("invalid XML character in text"));
+                    }
                     if self.depth == 0 {
                         if text.trim_matches(is_xml_space).is_empty() {
                             continue;
@@ -330,6 +350,9 @@ impl<'a> XmlReader<'a> {
                         .xml10_content()
                         .map_err(|error| self.malformed(error.to_string()))?
                         .into_owned();
+                    if !text.chars().all(is_xml_char) {
+                        return Err(self.malformed("invalid XML character in CDATA"));
+                    }
                     return Ok(Step::Text(text));
                 }
                 Event::GeneralRef(reference) => {

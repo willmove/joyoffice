@@ -99,6 +99,40 @@ fn body(body: &str) -> Vec<u8> {
 }
 
 #[test]
+fn rejects_unbound_markup_compatibility_prefixes() {
+    for attribute in ["MustUnderstand", "Ignorable"] {
+        let namespaces = format!(
+            r#" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:{attribute}="missing""#
+        );
+        let bytes = package(&document_xml(&namespaces, "<w:p/>"), None);
+        assert!(
+            matches!(
+                import(&bytes, &Budget::default()),
+                Err(ImportError::Xml { .. })
+            ),
+            "undeclared prefixes in mc:{attribute} must not be silently ignored"
+        );
+    }
+}
+
+#[test]
+fn rejects_literal_xml_control_characters() {
+    for content in [
+        "<w:p><w:r><w:t>before\u{1}after</w:t></w:r></w:p>",
+        "<w:p><w:r><w:t><![CDATA[before\u{1}after]]></w:t></w:r></w:p>",
+        "<w:p><w:pPr><w:pStyle w:val=\"bad\u{1}style\"/></w:pPr></w:p>",
+    ] {
+        assert!(
+            matches!(
+                import(&body(content), &Budget::default()),
+                Err(ImportError::Xml { .. })
+            ),
+            "invalid XML characters must be rejected in text, CDATA and attributes"
+        );
+    }
+}
+
+#[test]
 fn min_001_reads_body_text_and_defaults_compatibility_mode_to_12() {
     let bytes = fixture("DOCX-MIN-001");
     let result = open(&bytes);
