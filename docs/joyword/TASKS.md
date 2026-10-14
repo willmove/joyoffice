@@ -44,14 +44,14 @@
 ### T002：GPUI 原生窗口与页面投影
 
 - 输入：固定 GPUI API、物理单位约定和中英文工程样例文字。
-- 状态：`in_progress`
+- 状态：`done`
 - 需求：`PLATFORM-001`、`PLATFORM-003`、`LAYOUT-001`
 - 前置：`T000`
 - 产物：JoyWord 工程验证窗口、A4 页面、缩放、中英文资源和正常退出。
 - 错误路径：窗口／GPU 初始化失败（含无 Vulkan 的 Linux、无独立 GPU 的虚拟机）返回诊断；不创建假编辑或保存按钮。
 - 自动验证：构建 app；检查物理单位换算与缩放不改变页面尺寸。
 - 人工验收：启动窗口，切换语言、缩放、关闭；确认明确标注 M0 工程样例。
-- 完成证据：启动冒烟：开发构建启动后在屏幕上创建窗口，未崩溃；截图受屏幕录制授权所限，交互（语言切换、缩放、关闭）仍待人工验收；输入和 PDF 不属于此任务完成证明。见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：自动验证（构建、物理单位换算与缩放测试、三端 CI 构建）通过；2026-10-14 用户在 macOS 上运行 `cargo run -p joyword --features dev-runtime-shaders --locked` 人工确认中英文切换、缩放和正常关闭均正常，窗口标注为 M0 工程样例。输入和 PDF 不属于此任务完成证明。见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T003：字体、IME 与统一 PDF 技术验证
 
