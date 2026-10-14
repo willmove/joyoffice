@@ -432,3 +432,16 @@ fn missing_outline_table_is_an_error_instead_of_blank_success() {
         Err(RasterError::Outline { .. })
     ));
 }
+
+#[test]
+fn legacy_ebdt_strikes_do_not_disable_existing_scalable_outlines() {
+    let original = font();
+    // SimSun contains EBDT alongside glyf. Table presence must not prevent
+    // this declared outline renderer from using unchanged scalable glyphs.
+    let bytes = retag_table(original.data().to_vec(), b"name", b"EBDT");
+    let font = LoadedFont::from_bytes(bytes.into(), 0).unwrap();
+    let a = render(&scene(&original, "AV fi"), &original);
+    let b = render(&scene(&font, "AV fi"), &font);
+    assert_eq!(a.rgba(), b.rgba());
+    assert_eq!(a.stats(), b.stats());
+}

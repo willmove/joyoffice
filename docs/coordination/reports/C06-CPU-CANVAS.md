@@ -69,3 +69,9 @@ cargo run -p joyword-render --example compare_rasters --locked -- /Users/willm/C
 ## 后续
 
 继续以 T102 的系统输入／组合态、model 位置与画布几何联动为优先项；T103 原件保存、结构／格式导出、文件锁／元数据与 T104 恢复仍未完成。GUI 按用户“先继续后台开发”要求暂缓，本轮未启动或操作桌面，没有宣称 IME、Word/WPS、DPI 真机或新画布人工验收通过。来源及通用库许可见 [PROVENANCE](../../joyword/PROVENANCE.md)。
+
+## Windows EBDT 回归修正
+
+绑定 70239f9ec26f2f5e2f6eab6614e50f6bce6c5126 的 [38557949339](https://github.com/willmove/joyoffice/actions/runs/38557949339) 实际为 7／8 通过：Windows 默认成员的两个 CJK 光栅测试失败，原因是 CI 的 simsun.ttc face 0（SHA-256 1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab）同时含 EBDT 与可缩放轮廓，被原先表存在即拒绝的策略拦住。未跳过该字体或放宽测试。
+
+按微软公开 [EBDT](https://learn.microsoft.com/en-us/typography/opentype/spec/ebdt)／[EBLC](https://learn.microsoft.com/en-us/typography/opentype/spec/eblc) 规范区分传统单色／灰度 strike 与彩色绘制：未 hint 的轮廓 profile 可直接用既有可缩放字形，EBDT 不再整体禁用字体；只有位图而缺轮廓仍返回 Outline 错误，COLR／CBDT／sbix／SVG 拒绝不变。新增固定字体的 EBDT 共存像素不变回归，本机强制真实 CJK 的 render 21 项测试与该 crate 全目标 clippy 通过。修正提交的远程 Windows 实测另行核验，不将失败运行描述为通过。

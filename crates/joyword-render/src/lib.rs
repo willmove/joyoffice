@@ -312,7 +312,11 @@ pub fn rasterize(
         let face = font.font_ref();
         // A monochrome base outline is not a correct replacement for a color
         // glyph or bitmap/SVG font. Refuse these until their paint is supported.
-        if [b"COLR", b"CBDT", b"sbix", b"SVG ", b"EBDT"]
+        // Legacy EBDT strikes (e.g. SimSun) may accompany scalable outlines.
+        // This explicitly unhinted outline profile uses the scalable glyphs,
+        // just as the PDF consumer does. Bitmap-only faces still fail below
+        // when an outline cannot be obtained; colored paint stays refused.
+        if [b"COLR", b"CBDT", b"sbix", b"SVG "]
             .iter()
             .any(|t| face.data_for_tag(Tag::new(t)).is_some())
         {

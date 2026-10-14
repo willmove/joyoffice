@@ -84,3 +84,5 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - LAYOUT-001／LAYOUT-009；依据既有 EMU 场景契约、微软公开 [OpenType glyf 说明](https://learn.microsoft.com/en-us/typography/opentype/spec/glyf)，以及固定 Skrifa 0.42.1 的 outline::DrawSettings／OutlinePen、tiny-skia 0.11.4 的 Pixmap／PathBuilder 公共 API。精确版本的 crate 本地 rustdoc 和源码已核对；浏览器未能访问相应 docs.rs 版本页，未以 latest API 代替固定版本。
 - 坐标变换、预算、请求版本、缓存复杂度计费与独立像素核对器为项目原创实现；轮廓解析和光栅算法复用通用字体／图形库。GPUI 的公开图像元素接收明确转换的 BGRA，不借用 Zed 编辑器实现，也不改字体元数据来迁就名字解析。
 - 20 段原创种子在 CPU 和 PDF 共用 PageScene，Poppler 是独立参考光栅器；同场景比较不是 Word 黑盒参考或原生窗口验收，具体结果见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。
+
+- C06 Windows 回归补充：依据微软公开 [EBDT](https://learn.microsoft.com/en-us/typography/opentype/spec/ebdt)／[EBLC](https://learn.microsoft.com/en-us/typography/opentype/spec/eblc)，传统单色／灰度 bitmap strike 可与可缩放轮廓共存。显式轮廓 profile 使用后者，彩色绘制和缺轮廓的纯 bitmap 字体仍不支持，见 C06 报告的失败与修正记录。
