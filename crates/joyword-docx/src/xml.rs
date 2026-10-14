@@ -233,7 +233,7 @@ impl<'a> XmlReader<'a> {
                 Some(_) => self.resolve(&declarations, prefix)?,
                 None => None,
             };
-            // ISO/IEC 29500-3 sections 7.1/7.4 require these prefix-list
+            // ECMA-376 Part 3 sections 7.2/7.4 require these prefix-list
             // values to name namespaces bound in this element's scope.
             // Do not let prefixed_list's filtering erase invalid mandatory
             // processing instructions before the importer can enforce them.

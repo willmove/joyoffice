@@ -7,9 +7,46 @@
   "coordinator": "当前 Codex 总协调聊天",
   "mode": "manual_dispatch_git_delivery",
   "tasks": [
-    {"id": "W01", "agent": "Claude Desktop / Code", "branch": "codex/w01-docx-import", "directory": "joyoffice-w01", "card": "docs/coordination/tasks/W01-DOCX.md", "state": "assigned_not_started"},
-    {"id": "W02", "agent": "ZCode Desktop", "branch": "codex/w02-gpui-font-probe", "directory": "joyoffice-w02", "card": "docs/coordination/tasks/W02-GPUI.md", "state": "assigned_not_started"},
-    {"id": "W03", "agent": "DeepSeek Harness Desktop", "branch": "codex/w03-line-layout", "directory": "joyoffice-w03", "card": "docs/coordination/tasks/W03-LAYOUT.md", "state": "assigned_not_started"},
-    {"id": "W04", "agent": "空闲主机上的一个 Agent，可选", "branch": "codex/w04-reference-validation", "directory": "joyoffice-w04", "card": "docs/coordination/tasks/W04-VALIDATION.md", "state": "optional_not_started"}
-  ]
+    {
+      "id": "W01",
+      "agent": "Claude Desktop / Code",
+      "branch": "codex/w01-docx-import",
+      "directory": "joyoffice-w01",
+      "card": "docs/coordination/tasks/W01-DOCX.md",
+      "state": "reviewed_slice",
+      "result_commit": "1be58b28ac63c5c4249147cf5a36f48bb30592c9",
+      "review_fix": "2d4093b885eaf5928929f972ca25c48bd330082e",
+      "acceptance_complete": false
+    },
+    {
+      "id": "W02",
+      "agent": "ZCode Desktop",
+      "branch": "codex/w02-gpui-font-probe",
+      "directory": "joyoffice-w02",
+      "card": "docs/coordination/tasks/W02-GPUI.md",
+      "state": "in_progress_user_reported"
+    },
+    {
+      "id": "W03",
+      "agent": "DeepSeek Harness Desktop",
+      "branch": "codex/w03-line-layout",
+      "directory": "joyoffice-w03",
+      "card": "docs/coordination/tasks/W03-LAYOUT.md",
+      "state": "reviewed_slice",
+      "result_commit": "4487380ec2b7cad2f7395326b6dd70df0fb77130",
+      "actual_agent": "Codex Desktop (per W03 report)",
+      "acceptance_complete": false
+    },
+    {
+      "id": "W04",
+      "agent": "Codex coordinator",
+      "branch": "codex/w04-reference-validation",
+      "directory": "joyoffice-w04",
+      "card": "docs/coordination/tasks/W04-VALIDATION.md",
+      "state": "in_progress_background_validation",
+      "tested_revision": "2d4093b885eaf5928929f972ca25c48bd330082e",
+      "acceptance_complete": false
+    }
+  ],
+  "integration_branch": "codex/wave01-integration"
 }

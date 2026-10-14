@@ -2,7 +2,7 @@
 
 JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字处理软件 **JoyWord**。JoySheet、JoyDeck 为后续方向。项目采用 MIT 许可证。
 
-**当前是规格基线、M0 工程样例与无界面的文档模型和编辑引擎，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 物理页面投影、语言切换及缩放；joyword-model 提供类型化文档结构、结构共享快照和不变量校验（T100），joyword-engine 提供原子编辑事务、位置映射与撤销（T101），二者尚未接入窗口；joyoffice-opc 以资源预算读取不可信的 OPC 包（T103 起步）；joyword-shell 的命令注册表已驱动窗口的菜单、快捷键与按钮（T106）。尚未实现 DOCX、排版、修订、批注、PDF 或 AI。
+**当前是规格基线、M0 工程样例与无界面的文档内核，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 页面、语言切换及缩放；模型与事务（T100/T101）尚未接入窗口。joyword-docx 已在 OPC 预算之上实现声明子集的只读导入与原始包保留（T103 首个切片）；joyword-layout 已有单字体、显式断点的横向行拟合切片，统一场景可输出实验 PDF（T003/T105）。joyword-shell 的命令注册表已驱动窗口入口（T106）。完整 DOCX 编辑保存、中文规则与分页、IME、修订、批注及 AI 尚未接入；当前切片和人工验收边界见实施记录。
 
 ## 规格与任务
 
@@ -10,6 +10,7 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 - [架构与 ADR](docs/joyword/ARCHITECTURE.md) · [兼容矩阵](docs/joyword/COMPATIBILITY.md) · [质量门槛](docs/joyword/QUALITY.md)
 - [原生 Agent 设计](docs/joyword/AI.md) · [公开资料调研](docs/joyword/RESEARCH.md) · [独立实现与来源](docs/joyword/PROVENANCE.md)
 - [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)
+- [多 Agent 分工与交付](docs/coordination/README.md) · [W01/W03 集成审查](docs/coordination/reports/WAVE01-REVIEW.md)
 
 ## 运行 M0 样例
 
@@ -66,7 +67,7 @@ Mac 开发路径静态检查：
 cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings
 ```
 
-默认 workspace 成员只含无界面的 crate（基础库、模型、引擎、OPC、外壳逻辑），使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
+默认 workspace 成员只含无界面的 crate（含基础库、模型、引擎、DOCX/OPC、排版/PDF、语料及外壳逻辑），使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
 
 ## 实施原则
 
