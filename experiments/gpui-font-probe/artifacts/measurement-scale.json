@@ -1,0 +1,7 @@
+{
+  "evidence_a": "artifacts/evidence-z100.json",
+  "evidence_b": "artifacts/evidence-z200.json",
+  "glyphs_checked": 89,
+  "max_abs_deviation_from_2x_px": 0.0,
+  "all_exactly_two": true
+}

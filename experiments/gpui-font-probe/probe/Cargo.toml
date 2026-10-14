@@ -1,0 +1,27 @@
+[package]
+name = "gpui-font-probe"
+description = "W02: independent GPUI same-font external-glyph drawing probe (ADR-010 lead)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+gpui.workspace = true
+joyword-foundation.workspace = true
+joyword-layout.workspace = true
+joyword-pdf.workspace = true
+sha2.workspace = true
+core-graphics.workspace = true
+core-foundation.workspace = true
+image.workspace = true
+
+# 本机只有 CommandLineTools 时，gpui 构建期 metal 编译不可用，改用
+# gpui 官方运行时着色器选项（与根仓库 apps/joyword 的 dev-runtime-shaders
+# 同一上游特性）。装有完整 Xcode 的机器可不用该特性。
+[features]
+runtime-shaders = ["gpui/runtime_shaders"]
+
+[lints]
+workspace = true

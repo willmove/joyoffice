@@ -1,0 +1,44 @@
+# W02 独立实验 workspace：不加入根 workspace，不改正式应用依赖。
+# GPUI 来源见 vendor/PATCH.md：crates.io gpui 0.2.2 的 vendored 副本 +
+# 一处可见性补丁（GlyphId 字段 pub(crate) → pub），使外部整形结果可被
+# Window::paint_glyph 消费。gpui-pre 0.3.9 / 固定 Zed commit 两个候选
+# 只做源码级核对，结论记录在 docs/coordination/reports/W02.md。
+[workspace]
+resolver = "3"
+members = ["probe"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+publish = false
+
+[workspace.dependencies]
+gpui = "=0.2.2"
+joyword-foundation = { path = "../../crates/joyword-foundation" }
+joyword-layout = { path = "../../crates/joyword-layout" }
+joyword-pdf = { path = "../../crates/joyword-pdf" }
+read-fonts = "=0.39.2"
+sha2 = "=0.10.9"
+# 证据采集：按窗口 ID 捕获本进程窗口（core-graphics 的安全封装）。
+core-graphics = "=0.24.0"
+core-foundation = "=0.10.0"
+image = { version = "=0.25.10", default-features = false, features = ["png"] }
+
+# 根 workspace 用 forbid；本实验只有 capture 模块为了把窗口列表数组项
+# 转成 CFDictionary 需要 core-foundation 未封装的 get-rule 转换，局部
+# allow（链路代码仍然全面禁止 unsafe，见 docs/coordination/reports/W02.md）。
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = "warn"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+# 仅本实验 workspace 内生效；根 workspace 不受影响。
+[patch.crates-io]
+gpui = { path = "vendor/gpui-0.2.2" }
