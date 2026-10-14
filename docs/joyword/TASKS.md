@@ -139,7 +139,7 @@
 - 错误路径：损坏包、未知嵌套、失效关系、超预算和不安全编辑只读／拒绝，原件保持；受保护或强制修订的文档在对应能力实现前只读打开或明确提示。
 - 自动验证：规范最小文件、无编辑复制、编辑往返、未知部件散列、失败保存、元数据保留和 fuzz 冒烟测试。
 - 人工验收：打开自建与固定 Word／WPS 样例，编辑支持区域、保存、重新打开。
-- 完成证据：已有格式中立 OPC 与 joyword-docx 声明子集只读导入（普通段落、基础属性、规范样式、兼容模式、保护与未知内容保留），W01 切片经集成复验及两项拒绝边界修正。C01 增量接入 shell 的 DOCX 会话：只读或 locked 非空时由 engine 整篇拒绝编辑，原包和诊断随会话保留；编辑／撤销后拒绝作为未编辑原包复制。导出计划、编辑后保存、完整语义与 fuzz 目标未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)、[集成审查](../coordination/reports/WAVE01-REVIEW.md)和 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md)。
+- 完成证据：已有格式中立 OPC 与 joyword-docx 声明子集只读导入（普通段落、基础属性、规范样式、兼容模式、保护与未知内容保留），W01 切片经集成复验及两项拒绝边界修正。C01 增量接入 shell 的 DOCX 会话：只读或 locked 非空时由 engine 整篇拒绝编辑，原包和诊断随会话保留；编辑／撤销后拒绝作为未编辑原包复制。C02 已增量实现版本绑定的保守 ExportPlan 与现有段落、现有格式边界内文字修改的字节导出，并在原预算下重新导入验证；结构／格式／对象改动、受限与签名包编辑明确拒绝。文件系统保存、完整语义与 fuzz 目标未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)、[集成审查](../coordination/reports/WAVE01-REVIEW.md)、[C01 报告](../coordination/reports/C01-DOCX-SESSION.md)和 [C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)。
 
 ### T104：撤销、本地日志与恢复
 

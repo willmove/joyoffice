@@ -1,0 +1,685 @@
+//! Conservative edited export (ECMA-376 Part 1 §17.3.3.31, Part 2).
+//!
+//! Only text leaves change. Paragraph/run/property markup, comments outside
+//! text leaves, relationships and every other part stay byte-for-byte intact.
+//! Structural edits, changed formatting boundaries, signed packages and any
+//! imported restriction are refused. The completed output is re-imported under
+//! the same budget before a plan can be returned. This module performs no IO.
+
+use std::fmt;
+use std::ops::Range;
+use std::sync::Arc;
+
+use joyoffice_opc::{Budget, Method, PartName, write_archive};
+use joyword_model::{
+    Block, Document, DocumentSnapshot, DocumentVersion, NodeId, Paragraph, RunProps, StyleId,
+};
+
+use crate::xml::{Element, XML_NAMESPACE, XmlReader};
+use crate::{ImportError, PackageBacking, W, import};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ExportError {
+    Import(ImportError),
+    Restricted,
+    SignedPackage,
+    Unsupported {
+        node: Option<NodeId>,
+        reason: &'static str,
+    },
+    Budget {
+        part: String,
+        limit: u64,
+    },
+    Write(String),
+    RoundTripMismatch,
+}
+
+impl fmt::Display for ExportError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Import(error) => write!(f, "export verification: {error}"),
+            Self::Restricted => f.write_str("restricted DOCX cannot be exported after editing"),
+            Self::SignedPackage => f.write_str(
+                "editing a signed package requires explicit signature invalidation support",
+            ),
+            Self::Unsupported { node, reason } => {
+                write!(f, "unsupported DOCX edit at {node:?}: {reason}")
+            }
+            Self::Budget { part, limit } => {
+                write!(f, "export of {part} exceeds byte budget {limit}")
+            }
+            Self::Write(error) => write!(f, "DOCX package writer: {error}"),
+            Self::RoundTripMismatch => {
+                f.write_str("exported DOCX does not reproduce the current document")
+            }
+        }
+    }
+}
+
+impl std::error::Error for ExportError {}
+
+impl From<ImportError> for ExportError {
+    fn from(error: ImportError) -> Self {
+        Self::Import(error)
+    }
+}
+
+/// Original package kind; exact copies retain templates and macro packages.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ExportTarget {
+    Docx,
+    Dotx,
+    Docm,
+    Dotm,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ExportMode {
+    /// Original ZIP, including its metadata, copied exactly.
+    OriginalPackage,
+    /// Only text leaves patched; ZIP container metadata is regenerated.
+    TextPatch,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ExportWarning {
+    /// ZIP timestamps, extra fields, directory records and comments are not
+    /// retained by the current package writer. OPC part bytes are retained.
+    ZipMetadataRegenerated,
+}
+
+/// An immutable, verified output for one document version. Creating a plan
+/// does not write a file, change the backing, or mark a session saved.
+#[derive(Clone, Debug)]
+pub struct ExportPlan {
+    version: DocumentVersion,
+    mode: ExportMode,
+    target: ExportTarget,
+    bytes: Arc<[u8]>,
+    changed: Vec<PartName>,
+    preserved: Vec<PartName>,
+    warnings: Vec<ExportWarning>,
+}
+
+impl ExportPlan {
+    pub fn version(&self) -> DocumentVersion {
+        self.version
+    }
+    pub fn mode(&self) -> ExportMode {
+        self.mode
+    }
+    pub fn target(&self) -> ExportTarget {
+        self.target
+    }
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+    pub fn changed_parts(&self) -> &[PartName] {
+        &self.changed
+    }
+    /// Exact uncompressed bytes, not identical ZIP headers/compression.
+    /// The content-types stream is also kept exactly in TextPatch mode.
+    pub fn preserved_parts(&self) -> &[PartName] {
+        &self.preserved
+    }
+    pub fn warnings(&self) -> &[ExportWarning] {
+        &self.warnings
+    }
+    pub fn target_content_type(&self) -> &'static str {
+        match self.target {
+            ExportTarget::Docx => {
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            }
+            ExportTarget::Dotx => {
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.template"
+            }
+            ExportTarget::Docm => "application/vnd.ms-word.document.macroEnabled.12",
+            ExportTarget::Dotm => "application/vnd.ms-word.template.macroEnabled.12",
+        }
+    }
+}
+
+fn unsupported(node: Option<NodeId>, reason: &'static str) -> ExportError {
+    ExportError::Unsupported { node, reason }
+}
+
+/// Reconstruct the trusted baseline from the backing, rather than trusting
+/// caller-supplied editability or a mutable original model. IDs and source
+/// locators must still correspond to that import. No budget is lifted.
+pub fn plan_export(
+    backing: &PackageBacking,
+    current: &DocumentSnapshot,
+    budget: &Budget,
+) -> Result<ExportPlan, ExportError> {
+    let source = import(backing.original_bytes(), budget)?;
+    let original = &source.document;
+    check_envelope(original, current)?;
+    let text_bytes = current
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .try_fold(0u64, |sum, p| {
+            sum.checked_add(p.text().summary().bytes as u64)
+        });
+    if text_bytes.is_none_or(|n| n > budget.max_part_bytes) {
+        return Err(ExportError::Budget {
+            part: source.backing.main_part().to_string(),
+            limit: budget.max_part_bytes,
+        });
+    }
+    let mut edited = Vec::new();
+    for (before, after) in original
+        .body()
+        .blocks
+        .iter()
+        .zip(current.body().blocks.iter())
+    {
+        match (before, after) {
+            (Block::Paragraph(before), Block::Paragraph(after)) if before.id() == after.id() => {
+                if before.as_ref() != after.as_ref() {
+                    edited.push((before.as_ref(), after.as_ref()));
+                }
+            }
+            (Block::Opaque(before), Block::Opaque(after))
+                if before.id == after.id
+                    && before.preserved == after.preserved
+                    && before.source == after.source => {}
+            _ => {
+                return Err(unsupported(
+                    Some(after.id()),
+                    "body structure or order changed",
+                ));
+            }
+        }
+    }
+    let package = source.backing.package();
+    let main_name = source.backing.main_part();
+    let main = package
+        .part(main_name.as_str())
+        .expect("imported main part");
+    let target = match main.content_type.as_deref() {
+        Some(ty) if ty == crate::ns::MAIN_CONTENT_TYPES[0] => ExportTarget::Docx,
+        Some(ty) if ty == crate::ns::MAIN_CONTENT_TYPES[1] => ExportTarget::Dotx,
+        Some(ty) if ty == crate::ns::MAIN_CONTENT_TYPES[2] => ExportTarget::Docm,
+        Some(ty) if ty == crate::ns::MAIN_CONTENT_TYPES[3] => ExportTarget::Dotm,
+        _ => return Err(unsupported(None, "unknown package kind")),
+    };
+    let mut plan = ExportPlan {
+        version: current.version(),
+        mode: ExportMode::OriginalPackage,
+        target,
+        bytes: source.backing.original_bytes().into(),
+        changed: Vec::new(),
+        warnings: Vec::new(),
+        preserved: package.parts().map(|part| part.name.clone()).collect(),
+    };
+    if edited.is_empty() {
+        return Ok(plan);
+    }
+    if !source.editability.is_unrestricted() {
+        return Err(ExportError::Restricted);
+    }
+    if has_signatures(package) {
+        return Err(ExportError::SignedPackage);
+    }
+    // Refuse templates and macro-enabled output until the plan can express
+    // their target type and signature/macro policy explicitly.
+    if main.content_type.as_deref()
+        != Some("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml")
+    {
+        return Err(unsupported(
+            None,
+            "edited export currently requires ordinary DOCX",
+        ));
+    }
+    let root = XmlReader::new(main_name.as_str(), &main.data, budget)
+        .and_then(XmlReader::whole)
+        .map_err(|error| ImportError::Xml {
+            part: main_name.to_string(),
+            error,
+        })?;
+    let body = root
+        .child(W, "body")
+        .ok_or_else(|| unsupported(None, "missing source body"))?;
+    let mut patches = Vec::new();
+    for (before, after) in edited {
+        let source_ref = before
+            .source
+            .as_ref()
+            .ok_or_else(|| unsupported(Some(before.id()), "paragraph has no original XML"))?;
+        let element = body
+            .elements()
+            .find(|element| {
+                element.is(W, "p")
+                    && source_ref.part.as_ref() == main_name.as_str()
+                    && source_ref.locator.as_ref()
+                        == format!("@{}..{}", element.span.start, element.span.end)
+            })
+            .ok_or_else(|| {
+                unsupported(Some(before.id()), "paragraph source does not match backing")
+            })?;
+        patch_paragraph(
+            before,
+            after,
+            element,
+            &main.data,
+            &mut patches,
+            budget.max_part_bytes,
+        )?;
+    }
+    patches.sort_by_key(|(range, _)| range.start);
+    let mut output_len = main.data.len() as u64;
+    let mut end = 0;
+    for (range, bytes) in &patches {
+        if range.start < end || range.end > main.data.len() {
+            return Err(unsupported(None, "overlapping XML patches"));
+        }
+        end = range.end;
+        output_len = output_len
+            .checked_sub(range.len() as u64)
+            .and_then(|n| n.checked_add(bytes.len() as u64))
+            .ok_or_else(|| ExportError::Budget {
+                part: main_name.to_string(),
+                limit: budget.max_part_bytes,
+            })?;
+    }
+    if output_len > budget.max_part_bytes {
+        return Err(ExportError::Budget {
+            part: main_name.to_string(),
+            limit: budget.max_part_bytes,
+        });
+    }
+    let total = package.content_types_xml().len() as u64
+        + package
+            .parts()
+            .map(|part| part.data.len() as u64)
+            .sum::<u64>();
+    if total - main.data.len() as u64 + output_len > budget.max_total_bytes {
+        return Err(ExportError::Budget {
+            part: "package".into(),
+            limit: budget.max_total_bytes,
+        });
+    }
+    let mut main_bytes = Vec::new();
+    let mut start = 0;
+    for (range, bytes) in patches {
+        main_bytes.extend_from_slice(&main.data[start..range.start]);
+        main_bytes.extend_from_slice(&bytes);
+        start = range.end;
+    }
+    main_bytes.extend_from_slice(&main.data[start..]);
+    let mut items = vec![(
+        "[Content_Types].xml",
+        package.content_types_xml(),
+        Method::Stored,
+    )];
+    for part in package.parts() {
+        let data = if part.name == *main_name {
+            main_bytes.as_slice()
+        } else {
+            &part.data
+        };
+        // Store the changed part: highly repetitive new text must not create
+        // an archive that this very budget rejects for compression ratio.
+        let method = if part.name == *main_name {
+            Method::Stored
+        } else {
+            part.method
+        };
+        items.push((part.name.item_name(), data, method));
+    }
+    let bytes = write_archive(&items).map_err(|error| ExportError::Write(error.to_string()))?;
+    let verified = import(&bytes, budget)?;
+    if !verified.editability.is_unrestricted()
+        || !equivalent_text_document(current, &verified.document)
+    {
+        return Err(ExportError::RoundTripMismatch);
+    }
+    plan.mode = ExportMode::TextPatch;
+    plan.warnings.push(ExportWarning::ZipMetadataRegenerated);
+    plan.bytes = bytes.into();
+    plan.changed.push(main_name.clone());
+    plan.preserved.retain(|part| part != main_name);
+    Ok(plan)
+}
+
+fn has_signatures(package: &joyoffice_opc::Package) -> bool {
+    let signed_rel = |source| {
+        package
+            .relationships(source)
+            .iter()
+            .any(|rel| rel.kind.contains("digital-signature"))
+    };
+    signed_rel(None)
+        || package.parts().any(|part| {
+            part.name
+                .as_str()
+                .to_ascii_lowercase()
+                .starts_with("/_xmlsignatures/")
+                || part
+                    .content_type
+                    .as_deref()
+                    .is_some_and(|ty| ty.contains("digital-signature"))
+                || signed_rel(Some(&part.name))
+        })
+}
+
+// Compare all non-text fields, including ones the human-readable semantic
+// dump intentionally omits (custom styles, source handles, section anchors).
+fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError> {
+    let sections_equal = before.sections().len() == after.sections().len()
+        && before
+            .sections()
+            .iter()
+            .zip(after.sections())
+            .all(|(a, b)| {
+                a.id == b.id
+                    && a.last_block == b.last_block
+                    && a.page == b.page
+                    && a.title_page == b.title_page
+                    && a.headers == b.headers
+                    && a.footers == b.footers
+                    && a.preserved == b.preserved
+            });
+    if before.body_id() != after.body_id()
+        || before.stories().count() != after.stories().count()
+        || before.stories().count() != 1
+        || before.body().blocks.len() != after.body().blocks.len()
+        || before.body().kind != after.body().kind
+        || !sections_equal
+        || before.settings() != after.settings()
+        || before.styles().defaults != after.styles().defaults
+        || !before.styles().iter().eq(after.styles().iter())
+        || !before.annotations().eq(after.annotations())
+        || before.resources().len() != after.resources().len()
+        || !before
+            .resources()
+            .iter()
+            .zip(after.resources().iter())
+            .all(|(a, b)| {
+                a.id() == b.id()
+                    && a.media_type() == b.media_type()
+                    && a.data() == b.data()
+                    && a.source() == b.source()
+            })
+    {
+        return Err(unsupported(None, "non-text document content changed"));
+    }
+    Ok(())
+}
+
+#[derive(PartialEq)]
+struct Group {
+    style: Option<StyleId>,
+    props: Arc<RunProps>,
+    text: String,
+}
+
+fn groups(paragraph: &Paragraph) -> Vec<Group> {
+    let mut groups: Vec<Group> = Vec::new();
+    let text = paragraph.plain_text(|_| "\u{FFFC}".into());
+    let mut chars = text.chars();
+    for run in paragraph.runs() {
+        let text: String = chars.by_ref().take(run.len).collect();
+        if let Some(last) = groups.last_mut()
+            && last.style == run.style
+            && last.props == run.props
+        {
+            last.text.push_str(&text);
+        } else {
+            groups.push(Group {
+                style: run.style.clone(),
+                props: run.props.clone(),
+                text,
+            });
+        }
+    }
+    groups
+}
+
+fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
+    a.id() == b.id()
+        && a.style == b.style
+        && a.props == b.props
+        && a.mark_props == b.mark_props
+        && a.source == b.source
+}
+
+fn equivalent_text_document(before: &Document, after: &Document) -> bool {
+    // Reimport changes byte locators, and text-token partitioning is not
+    // semantic. All other metadata is checked before applying any patches;
+    // exact preserved markup and non-main part bytes are never rewritten.
+    before.semantic_difference(after).is_none() || {
+        let mut normalized = before.clone();
+        let mut actual = after.clone();
+        for document in [&mut normalized, &mut actual] {
+            let body = document.body_id();
+            let blocks: Vec<_> = document
+                .body()
+                .blocks
+                .iter()
+                .map(|block| {
+                    let Block::Paragraph(p) = block else {
+                        return block.clone();
+                    };
+                    if !p.inlines().is_empty() {
+                        return block.clone();
+                    }
+                    let mut n = Paragraph::new(p.id());
+                    n.style = p.style.clone();
+                    n.props = p.props.clone();
+                    n.mark_props = p.mark_props.clone();
+                    for group in groups(p) {
+                        if n.push_text(&group.text, group.style, group.props).is_err() {
+                            return block.clone();
+                        }
+                    }
+                    Block::from(n)
+                })
+                .collect();
+            document.story_mut(body).expect("body").blocks =
+                joyword_model::BlockSeq::from_vec(blocks);
+        }
+        normalized.semantic_difference(&actual).is_none()
+    }
+}
+
+fn patch_paragraph(
+    before: &Paragraph,
+    after: &Paragraph,
+    element: &Element,
+    xml: &[u8],
+    patches: &mut Vec<(Range<usize>, Vec<u8>)>,
+    limit: u64,
+) -> Result<(), ExportError> {
+    let error = |reason| unsupported(Some(before.id()), reason);
+    if !same_paragraph_metadata(before, after)
+        || !before.inlines().is_empty()
+        || !after.inlines().is_empty()
+    {
+        return Err(error(
+            "paragraph formatting, source or inline objects changed",
+        ));
+    }
+    let before_groups = groups(before);
+    let after_groups = groups(after);
+    if !before.is_empty()
+        && !after_groups.is_empty()
+        && (before_groups.len() != after_groups.len()
+            || !before_groups
+                .iter()
+                .zip(&after_groups)
+                .all(|(a, b)| a.style == b.style && a.props == b.props))
+    {
+        return Err(error("character formatting boundaries changed"));
+    }
+    // One source leaf corresponds to each import push_text call. Empty text
+    // leaves do not create runs. No unknown element is reconstructed.
+    let mut slots = Vec::new();
+    for run in element.elements() {
+        if run.is(W, "pPr") || run.is(W, "proofErr") {
+            continue;
+        }
+        if !run.is(W, "r") {
+            return Err(error("unsupported paragraph markup"));
+        }
+        for leaf in run.elements() {
+            if leaf.is(W, "rPr") || leaf.is(W, "lastRenderedPageBreak") {
+                continue;
+            }
+            if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {
+                return Err(error("unsupported run content"));
+            }
+            if leaf.attributes.iter().any(|attr| {
+                !(attr.namespace.as_deref() == Some(XML_NAMESPACE)
+                    && attr.local.as_ref() == "space"
+                    && matches!(attr.value.as_str(), "default" | "preserve"))
+            }) {
+                return Err(error("text leaf has unknown attributes"));
+            }
+            if leaf
+                .declarations
+                .iter()
+                .any(|(_, uri)| uri.as_ref() != W && uri.as_ref() != XML_NAMESPACE)
+            {
+                return Err(error("text leaf declares an unknown namespace"));
+            }
+            let raw = &xml[leaf.span.clone()];
+            if raw.windows(4).any(|w| w == b"<!--") || raw.windows(2).any(|w| w == b"<?") {
+                return Err(error(
+                    "text leaf contains comments or processing instructions",
+                ));
+            }
+            let text = if leaf.is(W, "tab") {
+                "\t".to_owned()
+            } else {
+                leaf.text()
+            };
+            if !text.is_empty() {
+                slots.push((leaf, text));
+            }
+        }
+    }
+    if slots.len() != before.runs().len() {
+        return Err(error("source text tokens do not match imported runs"));
+    }
+    if before.is_empty() && !after.is_empty() {
+        if after_groups.len() != 1
+            || after_groups[0].style.is_some()
+            || !after_groups[0].props.is_empty()
+        {
+            return Err(error(
+                "new text in an empty paragraph requires default character properties",
+            ));
+        }
+        let text = bounded_text_xml(&after_groups[0].text, limit)?;
+        let run = format!(r#"<jwe:r xmlns:jwe="{W}">{text}</jwe:r>"#);
+        let raw = &xml[element.span.clone()];
+        if raw.ends_with(b"/>") {
+            // Replace only '/>'; every original attribute/declaration stays.
+            let start = element.span.end - 2;
+            patches.push((
+                start..element.span.end,
+                format!(">{run}</{}>", element.qname).into_bytes(),
+            ));
+        } else {
+            let relative = raw
+                .iter()
+                .rposition(|&b| b == b'<')
+                .ok_or_else(|| error("missing paragraph end tag"))?;
+            let start = element.span.start + relative;
+            if !xml[start..element.span.end].starts_with(b"</") {
+                return Err(error("missing paragraph end tag"));
+            }
+            patches.push((start..start, run.into_bytes()));
+        }
+        return Ok(());
+    }
+    let mut group_index = 0;
+    let mut previous: Option<&joyword_model::Run> = None;
+    for ((leaf, text), run) in slots.into_iter().zip(before.runs()) {
+        if run.len != text.chars().count() {
+            return Err(error("source text token length changed"));
+        }
+        let same = previous.is_some_and(|prev| prev.style == run.style && prev.props == run.props);
+        if previous.is_some() && !same {
+            group_index += 1;
+        }
+        let replacement = if !same {
+            after_groups
+                .get(group_index)
+                .map_or("", |group| &group.text)
+        } else {
+            ""
+        };
+        patches.push((
+            leaf.span.clone(),
+            bounded_text_xml(replacement, limit)?.into_bytes(),
+        ));
+        previous = Some(run);
+    }
+    Ok(())
+}
+
+fn bounded_text_xml(text: &str, limit: u64) -> Result<String, ExportError> {
+    // Count the exact escaped output before allocating, including tab markup.
+    let mut size = 0u64;
+    for (index, part) in text.split('\t').enumerate() {
+        if index > 0 {
+            size = size.saturating_add(format!(r#"<jwe:tab xmlns:jwe="{W}"/>"#).len() as u64);
+        }
+        if part.is_empty() {
+            continue;
+        }
+        size = size.saturating_add(
+            format!(r#"<jwe:t xmlns:jwe="{W}" xml:space="preserve"></jwe:t>"#).len() as u64,
+        );
+        for ch in part.chars() {
+            size = size.saturating_add(match ch {
+                '&' => 5,
+                '<' | '>' => 4,
+                '\r' => 5,
+                _ => ch.len_utf8() as u64,
+            });
+        }
+        if size > limit {
+            return Err(ExportError::Budget {
+                part: "text leaf".into(),
+                limit,
+            });
+        }
+    }
+    if size > limit {
+        return Err(ExportError::Budget {
+            part: "text leaf".into(),
+            limit,
+        });
+    }
+    Ok(text_xml(text))
+}
+
+fn text_xml(text: &str) -> String {
+    let mut xml = String::new();
+    for (index, part) in text.split('\t').enumerate() {
+        if index > 0 {
+            xml.push_str(&format!(r#"<jwe:tab xmlns:jwe="{W}"/>"#));
+        }
+        if part.is_empty() {
+            continue;
+        }
+        xml.push_str(&format!(r#"<jwe:t xmlns:jwe="{W}" xml:space="preserve">"#));
+        for ch in part.chars() {
+            match ch {
+                '&' => xml.push_str("&amp;"),
+                '<' => xml.push_str("&lt;"),
+                '>' => xml.push_str("&gt;"),
+                '\r' => xml.push_str("&#13;"),
+                _ => xml.push(ch),
+            }
+        }
+        xml.push_str("</jwe:t>");
+    }
+    xml
+}

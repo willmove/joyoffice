@@ -4,11 +4,10 @@
 //! XML the model does not interpret, keyed by the [`PreservedId`] the model
 //! refers to.
 //!
-//! This is preservation, not round-tripping. Only an unedited document may be
-//! written back, by copying [`PackageBacking::original_bytes`]. Writing an
-//! edited document needs an export plan that merges these fragments back,
-//! which this slice does not implement; nothing here claims an edited save
-//! keeps fidelity.
+//! Raw backing is preservation, not an edited export. An unchanged document
+//! may copy [`PackageBacking::original_bytes`]. Edited output must use
+//! [`crate::plan_export`], which only permits proven text-leaf patches and
+//! rejects edits outside that boundary.
 
 use std::collections::BTreeMap;
 use std::ops::Range;

@@ -106,8 +106,8 @@ pub enum ReadOnlyReason {
 ///
 /// Read-only reasons apply to the whole document. Locked nodes are blocks
 /// and paragraphs that contain preserved content; editing them could break
-/// what the backing keeps. This crate has no save path for edited content,
-/// so even an editable result can only be written back unchanged.
+/// what the backing keeps. Edited output additionally requires a successful
+/// export plan; editability alone is not a guarantee that an edit can export.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Editability {
     read_only: BTreeSet<ReadOnlyReason>,
