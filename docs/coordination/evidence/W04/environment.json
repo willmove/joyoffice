@@ -1,0 +1,94 @@
+{
+  "tested_revision": "2d4093b885eaf5928929f972ca25c48bd330082e",
+  "time": "2026-10-14T13:45:54.916322+08:00",
+  "system": "macOS-27.0.1-arm64-arm-64bit",
+  "architecture": "arm64",
+  "cpu": {
+    "command": [
+      "/usr/sbin/sysctl",
+      "-n",
+      "machdep.cpu.brand_string"
+    ],
+    "exit_code": 0,
+    "stdout": "Apple M4\n",
+    "stderr": ""
+  },
+  "memory_bytes": {
+    "command": [
+      "/usr/sbin/sysctl",
+      "-n",
+      "hw.memsize"
+    ],
+    "exit_code": 0,
+    "stdout": "25769803776\n",
+    "stderr": ""
+  },
+  "os": {
+    "command": [
+      "/usr/bin/sw_vers"
+    ],
+    "exit_code": 0,
+    "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434\n",
+    "stderr": ""
+  },
+  "displays": {
+    "command": [
+      "/usr/sbin/system_profiler",
+      "SPDisplaysDataType"
+    ],
+    "exit_code": 0,
+    "stdout": "Graphics/Displays:\n\n    Apple M4:\n\n      Chipset Model: Apple M4\n      Type: GPU\n      Bus: Built-In\n      Total Number of Cores: 10\n      Vendor: Apple (0x106b)\n      Metal Support: Metal 4\n      Displays:\n        Display:\n          Resolution: 1920 x 1080 (1080p FHD - Full High Definition)\n          UI Looks like: 1920 x 1080 @ 60.00Hz\n          Main Display: Yes\n          Mirror: Off\n          Online: Yes\n          Rotation: Supported\n\n",
+    "stderr": ""
+  },
+  "metal_tool": {
+    "command": [
+      "xcrun",
+      "--find",
+      "metal"
+    ],
+    "exit_code": 72,
+    "stdout": "",
+    "stderr": "xcrun: error: unable to find utility \"metal\", not a developer tool or in PATH\n"
+  },
+  "rustc": {
+    "command": [
+      "rustc",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "rustc 1.98.1 (48a229cea 2026-09-01)\n",
+    "stderr": ""
+  },
+  "cargo": {
+    "command": [
+      "cargo",
+      "--version"
+    ],
+    "exit_code": 0,
+    "stdout": "cargo 1.98.1 (797e8a9bc 2026-08-05)\n",
+    "stderr": ""
+  },
+  "fonts": [
+    {
+      "path": "/System/Library/Fonts/Supplemental/Songti.ttc",
+      "face": 0,
+      "sha256": "dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777"
+    },
+    {
+      "path": "/System/Library/Fonts/Avenir Next.ttc",
+      "face": 0,
+      "sha256": "e03834eefdb4164c2af2c35b985285eb4fd67ff8db54aaed3bdc6d9c8b7f3c3c"
+    }
+  ],
+  "office": [
+    {
+      "app": "wpsoffice",
+      "version": "12.1.29181",
+      "build": "29181"
+    },
+    {
+      "app": "Microsoft Word",
+      "status": "not found in /Applications"
+    }
+  ]
+}

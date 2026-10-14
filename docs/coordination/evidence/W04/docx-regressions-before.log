@@ -1,0 +1,34 @@
+   Compiling flate2 v1.1.10
+   Compiling joyoffice-opc v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyoffice-opc)
+   Compiling joyword-corpus v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-corpus)
+   Compiling joyword-docx v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-docx)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.57s
+     Running unittests src/lib.rs (target/debug/deps/joyword_docx-9597efb32e87c192)
+
+running 1 test
+test xml::tests::rejects_doctype_entities_encodings_and_bad_names ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/import.rs (target/debug/deps/import-c08d3510cafe1d59)
+
+running 2 tests
+
+thread 'rejects_unbound_markup_compatibility_prefixes' (2456732) panicked at crates/joyword-docx/tests/import.rs:108:9:
+undeclared prefixes in mc:MustUnderstand must not be silently ignored
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'rejects_literal_xml_control_characters' (2456731) panicked at crates/joyword-docx/tests/import.rs:122:9:
+invalid XML characters must be rejected in text, CDATA and attributes
+test rejects_literal_xml_control_characters ... FAILED
+test rejects_unbound_markup_compatibility_prefixes ... FAILED
+
+failures:
+
+failures:
+    rejects_literal_xml_control_characters
+    rejects_unbound_markup_compatibility_prefixes
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p joyword-docx --test import`
