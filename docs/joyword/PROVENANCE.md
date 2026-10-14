@@ -50,3 +50,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 任何后续扩展的来源登记随代码一起评审；发布前验证 LICENSE、NOTICE、字体／资源授权和依赖清单齐全。
 
+
+### 保守 DOCX 文字导出（C02）
+
+- FORMAT-002／FORMAT-003／QUALITY-005；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.3.1、§17.3.2、§17.3.3.23（tab）、§17.3.3.31（t）与 Part 2（OPC）。空白处理交叉核对微软公开 [TextType.Space API 规范说明](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.texttype.space?view=openxml-3.0.1)，未读取 SDK 实现源码。
+- 独立实现采用原始 XML 叶子范围补丁，写出 xml:space="preserve" 与 XML 预定义实体／字符引用；tab 使用独立元素。不能证明安全的节点修改拒绝。原 OPC writer 仅重建 ZIP 容器；其元数据变化在 ExportPlan 显式披露。
+- 原创测试覆盖中英／emoji／组合字符、XML 转义、tab、CDATA、空段落、属性／未知部件／外链保留、保护与签名拒绝、版本竞争、撤销重做和资源预算；未把自导入一致视为 Word/WPS 往返或排版证明。详细环境与命令见 [C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)。

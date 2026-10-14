@@ -1,6 +1,6 @@
 [package]
 name = "joyword-docx"
-description = "Read-only DOCX import into the JoyWord model with original-package backing (T103 first slice)"
+description = "DOCX import and conservative text export with original-package backing (T103)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

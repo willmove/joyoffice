@@ -9,7 +9,10 @@
 use std::fmt;
 
 use joyoffice_opc::Budget;
-use joyword_docx::{Diagnostics, Editability, ImportError, PackageBacking, import};
+use joyword_docx::{
+    Diagnostics, Editability, ExportError, ExportPlan, ImportError, PackageBacking, import,
+    plan_export,
+};
 use joyword_engine::{EditPolicy, Outcome, Session, Transaction, TxError, UndoError, UndoResult};
 use joyword_model::DocumentVersion;
 
@@ -33,13 +36,15 @@ impl fmt::Display for EditedPackage {
 impl std::error::Error for EditedPackage {}
 
 /// One imported package and its engine session, kept together for their
-/// entire lifetime. Saving edited DOCX is unavailable in this slice.
+/// entire lifetime. Export plans provide verified bytes; file-system saving
+/// and saved-version tracking belong to a separate storage boundary.
 pub struct DocxSession {
     session: Session,
     backing: PackageBacking,
     diagnostics: Diagnostics,
     editability: Editability,
     imported_version: DocumentVersion,
+    budget: Budget,
 }
 
 impl DocxSession {
@@ -59,6 +64,7 @@ impl DocxSession {
             diagnostics: result.diagnostics,
             editability: result.editability,
             imported_version,
+            budget: budget.clone(),
         })
     }
 
@@ -94,10 +100,20 @@ impl DocxSession {
         self.session.redo()
     }
 
+    /// Build a verified export for the current immutable version, using the
+    /// original import budget. This does not save or change session state.
+    pub fn export_plan(&self) -> Result<ExportPlan, ExportError> {
+        plan_export(
+            &self.backing,
+            &self.session.document().snapshot(),
+            &self.budget,
+        )
+    }
+
     /// Return the exact source package only if no edit was ever committed.
     /// A rejected or empty transaction leaves this available. Undo publishes
-    /// a new version, so even a full undo conservatively requires a future
-    /// edited exporter rather than assuming semantic equality proves fidelity.
+    /// a new version, so a full undo must still use the verified export-plan
+    /// path rather than this version-only original-byte accessor.
     /// This returns bytes; it does not write a file or mark the session saved.
     pub fn unchanged_package_bytes(&self) -> Result<&[u8], EditedPackage> {
         let current = self.session.version();

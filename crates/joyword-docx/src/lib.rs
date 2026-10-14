@@ -1,4 +1,4 @@
-//! Read-only DOCX import (T103 first slice; ARCHITECTURE §3 ImportResult,
+//! DOCX import and conservative text export (T103; ARCHITECTURE §3 ImportResult,
 //! §5 format layer).
 //!
 //! [`import`] reads a WordprocessingML package from untrusted bytes through
@@ -24,10 +24,13 @@
 //! the whole document read-only. External relationship targets are recorded
 //! and classified, never resolved or accessed. Strict documents are refused.
 //!
-//! Not in this slice: saving or exporting, tables, content controls,
-//! headers/footers, notes, comments, numbering definitions, bookmarks and
-//! fields as annotations, images. Only an unedited document can be written
-//! back, by copying [`PackageBacking::original_bytes`].
+//! [`plan_export`] supports text changes within existing paragraphs and
+//! character formatting boundaries. Unknown markup and parts stay intact;
+//! unsupported edits are refused. The plan is versioned and re-imported under
+//! the same budget. Exact copies retain the original container; edited output
+//! explicitly reports regenerated ZIP metadata. No file-system save is done.
+//! Tables, content controls, headers/footers, notes, comments, numbering
+//! definitions, bookmarks/fields as annotations and images remain unmapped.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
 //! §17.3, §17.6, §17.7, §17.13.5, §17.15; Part 2 (OPC); Part 3 (Markup
@@ -36,6 +39,7 @@
 
 mod backing;
 mod body;
+mod export;
 mod import;
 mod ns;
 mod props;
@@ -43,6 +47,7 @@ mod result;
 mod xml;
 
 pub use backing::{Fragment, PackageBacking, PreservedReason};
+pub use export::{ExportError, ExportMode, ExportPlan, ExportTarget, ExportWarning, plan_export};
 pub use import::import;
 pub use ns::{
     MC, R, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, W, W_STRICT,
