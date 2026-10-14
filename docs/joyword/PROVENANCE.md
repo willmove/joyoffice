@@ -92,4 +92,6 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 - EDIT-002／EDIT-003／EDIT-004／EDIT-005／PLATFORM-004；采用 [Unicode 17.0 UAX #29 rev. 47](https://www.unicode.org/reports/tr29/tr29-47.html) §3 默认扩展字素、§4 默认词边界，精确复用 unicode-segmentation 1.13.3（本地 tables.rs 版本已核对）。字素适用于移动／删除，默认词边界不宣称中文词典分词；不做文本 Unicode 规范化。
 - 平台范围契约依据固定 GPUI 0.2.2 的公开 EntityInputHandler／InputHandler／UTF16Selection 与 AppKit [NSTextInputClient](https://developer.apple.com/documentation/appkit/nstextinputclient)、[unmarkText](https://developer.apple.com/documentation/appkit/nstextinputclient/unmarktext()) 说明。读取通用工具包公开 API 及平台事件路由核对接口，不读取／迁移 Zed 编辑器实现；平台说明不等于系统拼音已实际验收。
-- 组合态临时快照、原事务范围折叠、单事务确认、显示修订门、关闭提示版本检查与原创独立 String 随机模型为项目自行实现。无新外部包、无依赖升级。详细自动测试及未覆盖项见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。
+- 组合态临时快照、原事务范围折叠、单事务确认、显示修订门、关闭提示版本检查与原创独立 String 随机模型为项目自行实现。输入实现无新外部包；后续 CI 检出新公告后单独升级间接 Rustls，见下述安全修正。详细自动测试及未覆盖项见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。
+
+- C07 依赖审查补充（2026-10-15）：[Rustls 0.23.46 上游发布说明](https://github.com/rustls/rustls/releases/tag/v%2F0.23.46) 列出四项安全修正，对应 RustSec RUSTSEC-2026-0346、0347、0348、0349。现有 GPUI→gpui_http_client→zed-reqwest 的间接 0.23.45 被新数据库拒绝；仅锁定为修复版 0.23.46，不更改 feature、GPUI 来源或审查规则。未把所有功能条件均描述为产品已触发的漏洞。

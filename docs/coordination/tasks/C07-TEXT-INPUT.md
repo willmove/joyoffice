@@ -14,7 +14,7 @@
 
 ## 边界裁决
 
-协调者批准 shell 增量 input 模块、DOCX 适配（保留 backing／只读限制）、app 输入与画布、命令和文案、相关测试／公共记录／CI；render 的请求门增加默认类型参数以支持排版前的显示修订键，保留原默认 API；文案检查器扫描全部 app Rust 模块。现有 model／OPC／字体／整形／PageScene API 不变；engine 保持已有 apply 行为，仅新增 apply_with_mapped_selection 入口，分开事务前选择与需要映射至提交后的选择，供正确 undo／redo；另增只读 history 预览用于在撤销提交前检验输入预算，不重复实现事务或撤销。使用锁文件已有精确 unicode-segmentation 1.13.3，无外部包新增／升级，GPUI 来源不变。
+协调者批准 shell 增量 input 模块、DOCX 适配（保留 backing／只读限制）、app 输入与画布、命令和文案、相关测试／公共记录／CI；render 的请求门增加默认类型参数以支持排版前的显示修订键，保留原默认 API；文案检查器扫描全部 app Rust 模块。现有 model／OPC／字体／整形／PageScene API 不变；engine 保持已有 apply 行为，仅新增 apply_with_mapped_selection 入口，分开事务前选择与需要映射至提交后的选择，供正确 undo／redo；另增只读 history 预览用于在撤销提交前检验输入预算，不重复实现事务或撤销。使用锁文件已有精确 unicode-segmentation 1.13.3，输入实现无外部包新增／升级，GPUI 来源不变。后续 CI 命中同日公布的 RUSTSEC-2026-0346–0349，协调者另批准仅将间接 rustls 0.23.45 精确更新为 0.23.46（锁文件版本／校验和），其他包和依赖边不变，不新增 advisory ignore。
 
 ## 验证
 

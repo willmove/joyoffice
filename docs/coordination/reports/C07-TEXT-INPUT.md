@@ -52,3 +52,9 @@ engine 保留既有 apply 行为，仅新增 apply_with_mapped_selection，把�
 本地提交和推送后交付真实 SHA；远程 CI 结果另行绑定本次源码，不沿用 C06 的成功运行。C06 修正 cb219b31c1d2ed4c8ba56b0df80be4815bc3ce09 已独立核验 [38559611373](https://github.com/willmove/joyoffice/actions/runs/38559611373) 8／8 成功，其最初 Windows 失败仍保留在 C06 报告。
 
 未完成：系统拼音／Fcitx 与候选框实际坐标、真实焦点切换／菜单／鼠标拖选／DPI、辅助技术、拖放／剪贴板、格式操作、增量重排与性能实测；Word/WPS 往返、文件打开／保存 UI、原件覆盖／锁文件／元数据、日志恢复及完整中文排版。接口就绪和自动通过均不改变这些人工／产品门槛。下一优先项为文件打开与受限导出副本的真实窗口流程，并继续保留 DOCX 安全边界。来源见 [PROVENANCE](../../joyword/PROVENANCE.md)。
+
+## 远程依赖审查发现与定点修正
+
+初次 C07 的 [38653532016](https://github.com/willmove/joyoffice/actions/runs/38653532016)（6238a3e9a6dc3ec367e3c28a79a38ceb578ab74b）及后续画布修正的 [38653714924](https://github.com/willmove/joyoffice/actions/runs/38653714924)（d518740e41efd15cad4734850a2f7a2c58bcf81d）均被 dependencies 作业拒绝。失败来自新公布的 RUSTSEC-2026-0346–0349，全部命中既有间接 Rustls 0.23.45，而非输入依赖或许可；其他作业的结果独立保留。
+
+核对 [Rustls 0.23.46 上游发布说明](https://github.com/rustls/rustls/releases/tag/v%2F0.23.46) 和本地 feature 路径后，仅更新 Cargo.lock 中该包的版本与 crates.io 校验和。Cargo 的定点 update 还意外改动 tempfile 的 getrandom 依赖边，该无关改动已撤回，最终 diff 没有其他包／边变化。现有 advisory ignore、许可、安全预算与 GPUI 固定版本均不改；不因当前 feature 条件而添加漏洞豁免。修正后重新执行应用测试／完整 clippy／开发构建及依赖审查，远程结果另行绑定。
