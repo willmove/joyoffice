@@ -1,0 +1,57 @@
+    Checking cfg-if v1.0.5
+    Checking typenum v1.20.1
+    Checking smallvec v1.16.3
+    Checking joyword-foundation v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-foundation)
+    Checking adler2 v2.0.1
+    Checking libc v0.2.186
+    Checking memchr v2.8.3
+    Checking simd-adler32 v0.3.10
+    Checking bitflags v2.13.2
+    Checking bytemuck v1.25.2
+    Checking crc32fast v1.5.2
+    Checking arrayvec v0.7.8
+    Checking miniz_oxide v0.9.1
+    Checking hashbrown v0.17.1
+    Checking equivalent v1.0.2
+    Checking log v0.4.34
+    Checking zerofrom v0.1.8
+    Checking num-traits v0.2.19
+    Checking font-types v0.11.3
+    Checking polycool v0.4.0
+    Checking arrayref v0.3.9
+    Checking ryu v1.0.23
+    Checking stable_deref_trait v1.2.1
+    Checking rustc-hash v2.1.3
+    Checking kurbo v0.13.1
+    Checking itoa v1.0.18
+    Checking strict-num v0.1.1
+    Checking flate2 v1.1.10
+    Checking cpufeatures v0.2.17
+    Checking yoke v0.8.3
+    Checking read-fonts v0.39.2
+    Checking pdf-writer v0.15.0
+    Checking quick-xml v0.41.0
+    Checking tiny-skia-path v0.12.0
+    Checking indexmap v2.14.2
+    Checking generic-array v0.14.7
+    Checking bumpalo v3.20.3
+    Checking float-cmp v0.9.0
+    Checking siphasher v1.0.4
+    Checking xmp-writer v0.3.3
+    Checking base64 v0.22.1
+    Checking joyoffice-opc v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyoffice-opc)
+    Checking block-buffer v0.10.4
+    Checking crypto-common v0.1.7
+    Checking digest v0.10.7
+    Checking sha2 v0.10.9
+    Checking joyword-corpus v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-corpus)
+    Checking joyword-model v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-model)
+    Checking joyword-docx v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-docx)
+    Checking harfrust v0.8.4
+    Checking skrifa v0.42.1
+    Checking write-fonts v0.48.1
+    Checking joyword-layout v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-layout)
+    Checking subsetter v0.2.6
+    Checking krilla v0.8.2
+    Checking joyword-pdf v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-pdf)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.75s
