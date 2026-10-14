@@ -43,9 +43,10 @@
       "branch": "codex/w04-reference-validation",
       "directory": "joyoffice-w04",
       "card": "docs/coordination/tasks/W04-VALIDATION.md",
-      "state": "in_progress_background_validation",
+      "state": "background_verified_waiting_gui_slot",
       "tested_revision": "2d4093b885eaf5928929f972ca25c48bd330082e",
-      "acceptance_complete": false
+      "acceptance_complete": false,
+      "result_commit": "a49d48ad6ad3ccbb713fc06ae7e78a8f815be235"
     }
   ],
   "integration_branch": "codex/wave01-integration"
