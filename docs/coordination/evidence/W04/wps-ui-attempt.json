@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-10-14T14:42:51.175617+08:00",
+  "application": "com.kingsoft.wpsoffice.mac",
+  "observed_window": "W03-LAYOUT.md",
+  "attempts": [
+    {
+      "operation": "getApp",
+      "result": "Computer Use server error -10005: timeoutReached"
+    },
+    {
+      "operation": "getState and getApp",
+      "result": "App running, AX state received"
+    },
+    {
+      "operation": "pressKey(super+o)",
+      "result": "The user changed '/Applications/wpsoffice.app'. Re-query the latest state with get_app_state before sending more actions."
+    },
+    {
+      "operation": "getAXState",
+      "result": "Refreshed current AX state"
+    },
+    {
+      "operation": "pressKey(super+o)",
+      "result": "The user changed '/Applications/wpsoffice.app'. Re-query the latest state with get_app_state before sending more actions."
+    }
+  ],
+  "sample_opened": false,
+  "reference_pdf_exported": false,
+  "outcome": "UI input blocked; stopped without alternate control path"
+}

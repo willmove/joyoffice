@@ -1,0 +1,77 @@
+{
+  "png": "artifacts/window-z200.png",
+  "png_size": [
+    1000,
+    792
+  ],
+  "calibration_blocks_found": 3,
+  "calibration_offset_spread_px": [
+    0,
+    0
+  ],
+  "red_square_found": false,
+  "canvas_origin": [
+    0,
+    93
+  ],
+  "ticks_expected": 82,
+  "ticks_out_of_view": 7,
+  "ticks_measured": 82,
+  "max_abs_dx_px": 0.48,
+  "max_abs_dy_px": 0.36,
+  "rows_sample": [
+    {
+      "line": 0,
+      "glyph": 0,
+      "expected_lx": 236.98,
+      "measured_lx": 237.0,
+      "dx": 0.02,
+      "expected_ly": 306.36,
+      "measured_ly": 306.0,
+      "dy": -0.36
+    },
+    {
+      "line": 0,
+      "glyph": 1,
+      "expected_lx": 247.63,
+      "measured_lx": 248.0,
+      "dx": 0.37,
+      "expected_ly": 306.36,
+      "measured_ly": 306.0,
+      "dy": -0.36
+    },
+    {
+      "line": 0,
+      "glyph": 2,
+      "expected_lx": 263.89,
+      "measured_lx": 264.0,
+      "dx": 0.11,
+      "expected_ly": 306.36,
+      "measured_ly": 306.0,
+      "dy": -0.36
+    },
+    {
+      "line": 0,
+      "glyph": 3,
+      "expected_lx": 277.39,
+      "measured_lx": 277.0,
+      "dx": -0.39,
+      "expected_ly": 306.36,
+      "measured_ly": 306.0,
+      "dy": -0.36
+    }
+  ],
+  "ink": [
+    {
+      "line": 0,
+      "ink_columns": 538,
+      "ink_pixels": 3389
+    },
+    {
+      "line": 1,
+      "ink_columns": 509,
+      "ink_pixels": 2991
+    }
+  ],
+  "within_1_5px": true
+}

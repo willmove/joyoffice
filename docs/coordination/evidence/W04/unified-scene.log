@@ -1,0 +1,64 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling version_check v0.9.5
+   Compiling generic-array v0.14.7
+   Compiling syn v3.0.9
+   Compiling smallvec v1.16.3
+   Compiling typenum v1.20.1
+   Compiling libc v0.2.186
+   Compiling synstructure v0.14.0
+   Compiling autocfg v1.5.1
+   Compiling arrayvec v0.7.8
+   Compiling bytemuck_derive v1.12.1
+   Compiling cfg-if v1.0.5
+   Compiling polycool v0.4.0
+   Compiling num-traits v0.2.19
+   Compiling bytemuck v1.25.2
+   Compiling bitflags v2.13.2
+   Compiling crc32fast v1.5.2
+   Compiling hashbrown v0.17.1
+   Compiling font-types v0.11.3
+   Compiling read-fonts v0.39.2
+   Compiling equivalent v1.0.2
+   Compiling indexmap v2.14.2
+   Compiling kurbo v0.13.1
+   Compiling zerofrom-derive v0.1.8
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling log v0.4.34
+   Compiling adler2 v2.0.1
+   Compiling simd-adler32 v0.3.10
+   Compiling miniz_oxide v0.9.1
+   Compiling skrifa v0.42.1
+   Compiling write-fonts v0.48.1
+   Compiling digest v0.10.7
+   Compiling zerofrom v0.1.8
+   Compiling cpufeatures v0.2.17
+   Compiling yoke-derive v0.8.4
+   Compiling memchr v2.8.3
+   Compiling ryu v1.0.23
+   Compiling stable_deref_trait v1.2.1
+   Compiling rustc-hash v2.1.3
+   Compiling arrayref v0.3.9
+   Compiling strict-num v0.1.1
+   Compiling itoa v1.0.18
+   Compiling pdf-writer v0.15.0
+   Compiling tiny-skia-path v0.12.0
+   Compiling subsetter v0.2.6
+   Compiling yoke v0.8.3
+   Compiling flate2 v1.1.10
+   Compiling sha2 v0.10.9
+   Compiling float-cmp v0.9.0
+   Compiling harfrust v0.8.4
+   Compiling bumpalo v3.20.3
+   Compiling joyword-foundation v0.0.1 (/Users/willm/.codex/worktrees/w04-validation/joyoffice/crates/joyword-foundation)
+   Compiling siphasher v1.0.4
+   Compiling xmp-writer v0.3.3
+   Compiling base64 v0.22.1
+   Compiling krilla v0.8.2
+   Compiling joyword-layout v0.0.1 (/Users/willm/.codex/worktrees/w04-validation/joyoffice/crates/joyword-layout)
+   Compiling joyword-pdf v0.0.1 (/Users/willm/.codex/worktrees/w04-validation/joyoffice/crates/joyword-pdf)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 18.27s
+     Running `target/debug/examples/unified_scene /System/Library/Fonts/Supplemental/Songti.ttc 0 docs/coordination/evidence/W04/unified`
+font /System/Library/Fonts/Supplemental/Songti.ttc face 0 sha256 dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777; 5 lines, 0 missing glyphs; PDF 22802 bytes

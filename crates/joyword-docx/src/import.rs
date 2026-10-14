@@ -1,0 +1,668 @@
+//! Import entry point and the parts around the body: main document
+//! discovery, relationships, styles and settings.
+
+use std::borrow::Cow;
+use std::sync::Arc;
+
+use joyoffice_opc::{Budget, ExternalKind, Package, Part, PartName, Target};
+use joyword_model::{
+    Document, DocumentSettings, PageSetup, Severity as ModelSeverity, SourceRef, Style, StyleKind,
+};
+
+use crate::backing::{Fragment, PackageBacking, PreservedReason};
+use crate::ns::{
+    self, MAIN_CONTENT_TYPES, MC, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
+    REL_STYLES, REL_VBA_PROJECT, STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
+};
+use crate::props::{self, Findings, on_off, val};
+use crate::result::{
+    Diagnostic, DiagnosticKind, Diagnostics, Editability, ImportError, ImportResult,
+    ReadOnlyReason, Severity,
+};
+use crate::xml::{Declaration, Element, XmlReader};
+
+/// Namespace context while walking a part.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct Scope {
+    pub namespaces: Vec<Declaration>,
+    /// Namespace URIs made ignorable by `mc:Ignorable` on an ancestor.
+    pub ignorable: Vec<Arc<str>>,
+}
+
+impl Scope {
+    /// The scope for `element`'s content; borrowed unless the element
+    /// declares namespaces or ignorable prefixes.
+    pub fn enter(&self, element: &Element) -> Cow<'_, Scope> {
+        let ignorable = element.prefixed_list(MC, "Ignorable", &self.namespaces);
+        if ignorable.is_empty() && element.declarations.is_empty() {
+            return Cow::Borrowed(self);
+        }
+        let mut inner = self.clone();
+        inner.ignorable.extend(ignorable);
+        inner
+            .namespaces
+            .extend(element.declarations.iter().cloned());
+        Cow::Owned(inner)
+    }
+}
+
+pub(crate) struct Importer<'a> {
+    pub budget: &'a Budget,
+    pub document: Document,
+    pub backing: PackageBacking,
+    pub diagnostics: Diagnostics,
+    pub editability: Editability,
+    /// Property elements preserved per part, reported as one summary each.
+    properties_preserved: Vec<(PartName, usize)>,
+    /// Layout and proofing hints skipped per part and element.
+    pub hints: Vec<(PartName, &'static str, usize)>,
+}
+
+impl<'a> Importer<'a> {
+    pub fn diagnose(
+        &mut self,
+        severity: Severity,
+        part: Option<&PartName>,
+        range: Option<std::ops::Range<usize>>,
+        kind: DiagnosticKind,
+    ) {
+        if let DiagnosticKind::ReadOnly(reason) = &kind {
+            self.editability.deny(reason.clone());
+        }
+        self.diagnostics.push(Diagnostic {
+            severity,
+            part: part.map(ToString::to_string),
+            range,
+            kind,
+        });
+    }
+
+    pub fn deny(&mut self, part: &PartName, element: &Element, reason: ReadOnlyReason) {
+        if self
+            .editability
+            .read_only_reasons()
+            .any(|known| *known == reason)
+        {
+            return;
+        }
+        self.diagnose(
+            Severity::Error,
+            Some(part),
+            Some(element.span.clone()),
+            DiagnosticKind::ReadOnly(reason),
+        );
+    }
+
+    pub fn source(part: &PartName, element: &Element) -> Arc<SourceRef> {
+        Arc::new(SourceRef {
+            part: part.as_str().into(),
+            locator: format!("@{}..{}", element.span.start, element.span.end).into(),
+        })
+    }
+
+    /// Keeps `element` in the backing and returns its handle. Property
+    /// fragments are summarised per part; everything else is reported.
+    pub fn preserve(
+        &mut self,
+        part: &PartName,
+        element: &Element,
+        scope: &Scope,
+        reason: PreservedReason,
+    ) -> joyword_model::PreservedId {
+        let id = self.document.ids().preserved();
+        self.backing.insert(
+            id,
+            Fragment {
+                part: part.clone(),
+                element: Arc::from(&*element.qname),
+                namespace: element.namespace.clone(),
+                range: element.span.clone(),
+                namespaces: scope.namespaces.clone(),
+                reason,
+            },
+        );
+        if reason == PreservedReason::Properties {
+            match self
+                .properties_preserved
+                .iter_mut()
+                .find(|(p, _)| p == part)
+            {
+                Some((_, count)) => *count += 1,
+                None => self.properties_preserved.push((part.clone(), 1)),
+            }
+        } else {
+            let severity = match reason {
+                PreservedReason::Revision => Severity::Error,
+                _ => Severity::Warning,
+            };
+            self.diagnose(
+                severity,
+                Some(part),
+                Some(element.span.clone()),
+                DiagnosticKind::Preserved {
+                    element: element.qname.to_string(),
+                    reason,
+                },
+            );
+        }
+        id
+    }
+
+    /// Reports invalid values and preserves `element` when its mapping was
+    /// incomplete.
+    pub fn settle(
+        &mut self,
+        part: &PartName,
+        element: &Element,
+        scope: &Scope,
+        findings: Findings,
+    ) -> Option<joyword_model::PreservedId> {
+        for invalid in findings.invalid {
+            self.diagnose(
+                Severity::Info,
+                Some(part),
+                Some(element.span.clone()),
+                DiagnosticKind::InvalidValue {
+                    element: invalid.element,
+                    attribute: invalid.attribute,
+                    value: invalid.value,
+                },
+            );
+        }
+        (!findings.complete)
+            .then(|| self.preserve(part, element, scope, PreservedReason::Properties))
+    }
+
+    /// Walks a subtree for constructs that make the whole document
+    /// read-only wherever they occur, including inside preserved content:
+    /// tracked changes and unsatisfied `mc:MustUnderstand`.
+    /// Recursion is bounded by the XML depth budget.
+    pub fn scan(&mut self, part: &PartName, element: &Element, scope: &Scope) {
+        if element.namespace.as_deref() == Some(W) && ns::is_revision(&element.local) {
+            self.deny(part, element, ReadOnlyReason::Revisions);
+        }
+        for namespace in element.prefixed_list(MC, "MustUnderstand", &scope.namespaces) {
+            if !UNDERSTOOD.contains(&&*namespace) {
+                self.deny(
+                    part,
+                    element,
+                    ReadOnlyReason::MustUnderstand {
+                        namespace: namespace.to_string(),
+                    },
+                );
+            }
+        }
+        let inner = scope.enter(element);
+        for child in element.elements() {
+            self.scan(part, child, &inner);
+        }
+    }
+
+    pub fn hint(&mut self, part: &PartName, element: &'static str) {
+        match self
+            .hints
+            .iter_mut()
+            .find(|(p, name, _)| p == part && *name == element)
+        {
+            Some((_, _, count)) => *count += 1,
+            None => self.hints.push((part.clone(), element, 1)),
+        }
+    }
+
+    fn finish_summaries(&mut self) {
+        for (part, count) in std::mem::take(&mut self.properties_preserved) {
+            self.diagnose(
+                Severity::Info,
+                Some(&part),
+                None,
+                DiagnosticKind::PropertiesPreserved { count },
+            );
+        }
+        for (part, element, count) in std::mem::take(&mut self.hints) {
+            self.diagnose(
+                Severity::Info,
+                Some(&part),
+                None,
+                DiagnosticKind::HintsSkipped {
+                    element: format!("w:{element}"),
+                    count,
+                },
+            );
+        }
+    }
+}
+
+pub(crate) fn xml_error(part: &PartName) -> impl Fn(joyoffice_opc::XmlError) -> ImportError + '_ {
+    move |error| ImportError::Xml {
+        part: part.to_string(),
+        error,
+    }
+}
+
+/// Finds the main document part through the package relationships
+/// (ECMA-376 Part 1 §11.3.10; Part 2 package relationships).
+fn main_part(package: &Package) -> Result<&Part, ImportError> {
+    let package_relationships = package.relationships(None);
+    if package_relationships
+        .iter()
+        .any(|relationship| &*relationship.kind == REL_OFFICE_DOCUMENT_STRICT)
+    {
+        return Err(ImportError::StrictUnsupported);
+    }
+    let mut main = package_relationships
+        .iter()
+        .filter(|relationship| &*relationship.kind == REL_OFFICE_DOCUMENT);
+    let relationship = main.next().ok_or(ImportError::MissingMainDocument)?;
+    if main.next().is_some() {
+        return Err(ImportError::AmbiguousMainDocument);
+    }
+    let name = match &relationship.target {
+        Target::Internal(name) => name,
+        Target::External { raw, .. } | Target::Unresolved(raw) => {
+            return Err(ImportError::InvalidMainDocumentTarget {
+                target: raw.to_string(),
+            });
+        }
+    };
+    let part = package
+        .part(name.as_str())
+        .ok_or_else(|| ImportError::MissingPart {
+            part: name.to_string(),
+        })?;
+    let content_type = part.content_type.as_deref();
+    if !content_type.is_some_and(|content_type| MAIN_CONTENT_TYPES.contains(&content_type)) {
+        return Err(ImportError::UnexpectedContentType {
+            part: name.to_string(),
+            content_type: content_type.map(ToOwned::to_owned),
+        });
+    }
+    Ok(part)
+}
+
+/// Imports a DOCX package read-only. See the crate documentation for what
+/// is mapped, preserved, restricted and refused.
+pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError> {
+    let package = Package::read(bytes, budget)?;
+    let main = main_part(&package)?.clone();
+    let mut importer = Importer {
+        budget,
+        document: Document::new(PageSetup::a4_zh_cn()),
+        backing: PackageBacking::new(Arc::from(bytes), package.clone(), main.name.clone()),
+        diagnostics: Diagnostics::default(),
+        editability: Editability::default(),
+        properties_preserved: Vec::new(),
+        hints: Vec::new(),
+    };
+    for diagnostic in package.diagnostics() {
+        importer.diagnose(
+            Severity::Warning,
+            None,
+            None,
+            DiagnosticKind::Package(diagnostic.clone()),
+        );
+    }
+    importer.external_targets(&package);
+
+    let mut styles = None;
+    let mut settings = None;
+    for relationship in package.relationships(Some(&main.name)) {
+        let Target::Internal(target) = &relationship.target else {
+            continue;
+        };
+        let kind = &*relationship.kind;
+        let Some(part) = package.part(target.as_str()) else {
+            importer.diagnose(
+                Severity::Warning,
+                Some(&main.name),
+                None,
+                DiagnosticKind::MissingPart {
+                    relationship: kind.to_owned(),
+                    part: target.to_string(),
+                },
+            );
+            continue;
+        };
+        if kind == REL_STYLES && styles.is_none() {
+            styles = Some(part.clone());
+        } else if kind == REL_SETTINGS && settings.is_none() {
+            settings = Some(part.clone());
+        } else if kind == REL_VBA_PROJECT {
+            importer.diagnose(
+                Severity::Warning,
+                Some(&part.name),
+                None,
+                DiagnosticKind::MacroProject,
+            );
+        } else {
+            let severity = if STORY_RELATIONSHIPS.contains(&kind) {
+                Severity::Warning
+            } else {
+                Severity::Info
+            };
+            importer.diagnose(
+                severity,
+                Some(&main.name),
+                None,
+                DiagnosticKind::NotImported {
+                    relationship: kind.to_owned(),
+                    part: target.to_string(),
+                },
+            );
+        }
+    }
+
+    if let Some(part) = &styles {
+        importer.styles(part)?;
+    }
+    if let Some(part) = &settings {
+        importer.settings(part)?;
+    }
+    importer.main_document(&main)?;
+    importer.finish_summaries();
+
+    let validation = importer.document.validate();
+    let mut invalid = false;
+    for item in validation.iter() {
+        let severity = match item.severity {
+            ModelSeverity::Error => {
+                invalid = true;
+                Severity::Error
+            }
+            ModelSeverity::Warning => Severity::Warning,
+        };
+        importer.diagnose(
+            severity,
+            None,
+            None,
+            DiagnosticKind::Model(item.issue.clone()),
+        );
+    }
+    if invalid || validation.truncated() {
+        importer.diagnose(
+            Severity::Error,
+            None,
+            None,
+            DiagnosticKind::ReadOnly(ReadOnlyReason::ModelInvalid),
+        );
+    }
+
+    Ok(ImportResult {
+        document: importer.document,
+        backing: importer.backing,
+        diagnostics: importer.diagnostics,
+        editability: importer.editability,
+    })
+}
+
+impl Importer<'_> {
+    /// Records every external relationship target in the package. None is
+    /// resolved or accessed (QUALITY-005).
+    fn external_targets(&mut self, package: &Package) {
+        let sources: Vec<Option<PartName>> = std::iter::once(None)
+            .chain(package.parts().map(|part| Some(part.name.clone())))
+            .collect();
+        for source in sources {
+            for relationship in package.relationships(source.as_ref()) {
+                let Target::External { raw, kind } = &relationship.target else {
+                    continue;
+                };
+                let severity = match kind {
+                    ExternalKind::Web | ExternalKind::Mail => Severity::Info,
+                    _ => Severity::Warning,
+                };
+                self.diagnose(
+                    severity,
+                    source.as_ref(),
+                    None,
+                    DiagnosticKind::ExternalTarget {
+                        source: source
+                            .as_ref()
+                            .map_or_else(|| "/".to_owned(), ToString::to_string),
+                        id: relationship.id.to_string(),
+                        relationship: relationship.kind.to_string(),
+                        target: raw.to_string(),
+                        kind: *kind,
+                    },
+                );
+            }
+        }
+    }
+
+    fn root(&mut self, part: &Part, local: &'static str) -> Result<(Element, Scope), ImportError> {
+        let element = XmlReader::new(part.name.as_str(), &part.data, self.budget)
+            .and_then(XmlReader::whole)
+            .map_err(xml_error(&part.name))?;
+        if element.namespace.as_deref() == Some(W_STRICT) {
+            return Err(ImportError::StrictUnsupported);
+        }
+        if !element.is(W, local) {
+            return Err(ImportError::UnexpectedElement {
+                part: part.name.to_string(),
+                expected: local,
+            });
+        }
+        self.backing.interpret(part.name.clone());
+        let scope = Scope::default();
+        self.scan(&part.name, &element, &scope);
+        let inner = scope.enter(&element);
+        Ok((element, inner.into_owned()))
+    }
+
+    /// Style definitions (ECMA-376 Part 1 §17.7). Built-in styles are
+    /// recognised later by `w:name`, never by `w:styleId`.
+    fn styles(&mut self, part: &Part) -> Result<(), ImportError> {
+        let name = &part.name;
+        let (root, scope) = self.root(part, "styles")?;
+        for child in root.elements() {
+            if child.is(W, "docDefaults") {
+                self.doc_defaults(name, child, &scope.enter(child));
+            } else if child.is(W, "style") {
+                self.style(name, child, &scope);
+            } else {
+                // latentStyles and anything else stays in the styles part.
+                self.preserve(name, child, &scope, PreservedReason::Properties);
+            }
+        }
+        Ok(())
+    }
+
+    fn doc_defaults(&mut self, part: &PartName, element: &Element, scope: &Scope) {
+        let mut complete = true;
+        for child in element.elements() {
+            let inner = scope.enter(child);
+            let props = child
+                .elements()
+                .next()
+                .filter(|_| child.elements().count() == 1);
+            match (child.namespace.as_deref() == Some(W), &*child.local, props) {
+                (true, "rPrDefault", Some(rpr)) if rpr.is(W, "rPr") => {
+                    let mut findings = Findings::default();
+                    let (mut run, _) = props::run(rpr, &mut findings);
+                    run.preserved = self.settle(part, rpr, &inner, findings);
+                    self.document.styles_mut().defaults.run = run;
+                }
+                (true, "pPrDefault", Some(ppr)) if ppr.is(W, "pPr") => {
+                    let mut findings = Findings::default();
+                    let para = props::para(ppr, &mut findings);
+                    if para.style.is_some() || para.mark.is_some() || para.section.is_some() {
+                        findings.complete = false;
+                    }
+                    let mut props = para.props;
+                    props.preserved = self.settle(part, ppr, &inner, findings);
+                    self.document.styles_mut().defaults.para = props;
+                }
+                _ => complete = false,
+            }
+        }
+        if !complete {
+            self.preserve(part, element, scope, PreservedReason::Properties);
+        }
+    }
+
+    fn style(&mut self, part: &PartName, element: &Element, scope: &Scope) {
+        let inner = scope.enter(element);
+        let id = element.attribute(Some(W), "styleId");
+        let duplicate = id.is_some_and(|id| {
+            self.document
+                .styles()
+                .get(&joyword_model::StyleId::new(id))
+                .is_some()
+        });
+        let kind = match element.attribute(Some(W), "type") {
+            // A style without w:type is a paragraph style.
+            None | Some("paragraph") => Some(StyleKind::Paragraph),
+            Some("character") => Some(StyleKind::Character),
+            Some("table") => Some(StyleKind::Table),
+            Some("numbering") => Some(StyleKind::Numbering),
+            Some(_) => None,
+        };
+        let (Some(id), Some(kind), false) = (id, kind, duplicate) else {
+            self.preserve(part, element, scope, PreservedReason::Properties);
+            self.diagnose(
+                Severity::Warning,
+                Some(part),
+                Some(element.span.clone()),
+                DiagnosticKind::StyleSkipped {
+                    id: id.map(ToOwned::to_owned),
+                },
+            );
+            return;
+        };
+        let name = element.child(W, "name").and_then(val);
+        let mut style = Style::new(id, kind, name);
+        let mut complete = true;
+        let flag = |attribute: &str, complete: &mut bool| {
+            let value = element.attribute(Some(W), attribute);
+            value
+                .map_or(Some(false), |value| on_off(Some(value)))
+                .unwrap_or_else(|| {
+                    *complete = false;
+                    false
+                })
+        };
+        style.is_default = flag("default", &mut complete);
+        style.custom = flag("customStyle", &mut complete);
+        for child in element.elements() {
+            let child_scope = inner.enter(child);
+            if child.namespace.as_deref() != Some(W) {
+                complete = false;
+                continue;
+            }
+            let reference = || val(child).map(joyword_model::StyleId::new);
+            match &*child.local {
+                "name" => {}
+                "basedOn" => style.based_on = reference(),
+                "next" => style.next = reference(),
+                "link" => style.link = reference(),
+                "pPr" => {
+                    let mut findings = Findings::default();
+                    let para = props::para(child, &mut findings);
+                    if para.style.is_some() || para.mark.is_some() || para.section.is_some() {
+                        findings.complete = false;
+                    }
+                    style.para = para.props;
+                    style.para.preserved = self.settle(part, child, &child_scope, findings);
+                }
+                "rPr" => {
+                    let mut findings = Findings::default();
+                    let (run, run_style) = props::run(child, &mut findings);
+                    if run_style.is_some() {
+                        findings.complete = false;
+                    }
+                    style.run = run;
+                    style.run.preserved = self.settle(part, child, &child_scope, findings);
+                }
+                // qFormat, uiPriority, table properties and the like.
+                _ => complete = false,
+            }
+        }
+        style.source = Some(Self::source(part, element));
+        if !complete {
+            style.preserved =
+                Some(self.preserve(part, element, scope, PreservedReason::Properties));
+        }
+        self.document
+            .styles_mut()
+            .insert(style)
+            .expect("duplicate ids were skipped");
+    }
+
+    /// Document settings (ECMA-376 Part 1 §17.15). The settings part is kept
+    /// whole; only compatibility mode, protection and revision tracking are
+    /// read.
+    fn settings(&mut self, part: &Part) -> Result<(), ImportError> {
+        let name = &part.name;
+        let (root, _) = self.root(part, "settings")?;
+        let mut settings = DocumentSettings::default();
+        for child in root
+            .elements()
+            .filter(|child| child.namespace.as_deref() == Some(W))
+        {
+            match &*child.local {
+                "compat" => {
+                    for setting in child.elements().filter(|setting| {
+                        setting.is(W, "compatSetting")
+                            && setting.attribute(Some(W), "name") == Some("compatibilityMode")
+                            && setting.attribute(Some(W), "uri") == Some(WORD_COMPAT_URI)
+                    }) {
+                        let value = val(setting).unwrap_or_default();
+                        match value.parse::<u32>() {
+                            Ok(mode) => settings.compatibility_mode = Some(mode),
+                            Err(_) => self.diagnose(
+                                Severity::Warning,
+                                Some(name),
+                                Some(setting.span.clone()),
+                                DiagnosticKind::InvalidValue {
+                                    element: setting.qname.to_string(),
+                                    attribute: "w:val".into(),
+                                    value: value.to_owned(),
+                                },
+                            ),
+                        }
+                    }
+                }
+                "trackRevisions" => {
+                    settings.track_revisions = on_off(val(child));
+                    if settings.track_revisions == Some(true) {
+                        self.deny(name, child, ReadOnlyReason::TrackRevisions);
+                    }
+                }
+                "evenAndOddHeaders" => settings.even_and_odd_headers = on_off(val(child)),
+                "documentProtection" => {
+                    // ECMA-376 treats an omitted w:enforcement as off, but
+                    // Word enforces it ([MS-OI29500] note on §17.15.1.29); the stricter
+                    // reading is used. Only an explicit "off" lifts it.
+                    let enforced = child
+                        .attribute(Some(W), "enforcement")
+                        .is_none_or(|value| on_off(Some(value)) != Some(false));
+                    let edit = child.attribute(Some(W), "edit");
+                    let formatting = child
+                        .attribute(Some(W), "formatting")
+                        .is_some_and(|value| on_off(Some(value)) != Some(false));
+                    if enforced && (edit.is_some_and(|edit| edit != "none") || formatting) {
+                        self.deny(
+                            name,
+                            child,
+                            ReadOnlyReason::DocumentProtection {
+                                edit: edit.map(ToOwned::to_owned),
+                            },
+                        );
+                    }
+                }
+                "writeProtection" => self.deny(name, child, ReadOnlyReason::WriteProtection),
+                _ => {}
+            }
+        }
+        settings.preserved =
+            Some(self.preserve(name, &root, &Scope::default(), PreservedReason::Properties));
+        *self.document.settings_mut() = settings;
+        Ok(())
+    }
+
+    fn main_document(&mut self, part: &Part) -> Result<(), ImportError> {
+        let name = part.name.clone();
+        let mut reader =
+            XmlReader::new(name.as_str(), &part.data, self.budget).map_err(xml_error(&name))?;
+        crate::body::read(self, &name, &mut reader)
+    }
+}

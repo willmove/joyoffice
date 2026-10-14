@@ -1,0 +1,77 @@
+{
+  "tested_revision": "2d4093b885eaf5928929f972ca25c48bd330082e",
+  "reader": "macOS textutil (not Word or WPS)",
+  "results": [
+    {
+      "case": "DOCX-MIN-001",
+      "source_sha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+      "command": [
+        "textutil",
+        "-convert",
+        "txt",
+        "-stdout",
+        "tests/fixtures/docx/DOCX-MIN-001.docx"
+      ],
+      "exit_code": 0,
+      "text": "合作协议：甲方与乙方于 2026 年签署。\n",
+      "stderr": ""
+    },
+    {
+      "case": "DOCX-MIN-002",
+      "source_sha256": "515c0d997dffd877f2cd3e1ab8b6b6768ea4a301c05fdb1b3ac39a321bdebc07",
+      "command": [
+        "textutil",
+        "-convert",
+        "txt",
+        "-stdout",
+        "tests/fixtures/docx/DOCX-MIN-002.docx"
+      ],
+      "exit_code": 0,
+      "text": "第一条 合作内容\n甲方委托乙方完成设计服务。\n",
+      "stderr": ""
+    },
+    {
+      "case": "DOCX-MIN-003",
+      "source_sha256": "d00d910c4d5af5f202498e013c995bddb47f687abd43e9f4d59dda2a087869d9",
+      "command": [
+        "textutil",
+        "-convert",
+        "txt",
+        "-stdout",
+        "tests/fixtures/docx/DOCX-MIN-003.docx"
+      ],
+      "exit_code": 0,
+      "text": "第一段：未知内容之前。\n第二段：未知内容之后。\n",
+      "stderr": ""
+    },
+    {
+      "case": "DOCX-MIN-004",
+      "source_sha256": "9f5a016623eb35253b12b11be5ec3ab90fa24a30fba9e2321d8011298574e470",
+      "command": [
+        "textutil",
+        "-convert",
+        "txt",
+        "-stdout",
+        "tests/fixtures/docx/DOCX-MIN-004.docx"
+      ],
+      "exit_code": 0,
+      "text": "项目说明\n模板与链接都指向本包之外。\n",
+      "stderr": ""
+    },
+    {
+      "case": "DOCX-MIN-005",
+      "source_sha256": "917b5dee4368c6e1c595728e0825a14b39e3f58756a4374c12f83c66a6abaa44",
+      "command": [
+        "textutil",
+        "-convert",
+        "txt",
+        "-stdout",
+        "tests/fixtures/docx/DOCX-MIN-005.docx"
+      ],
+      "exit_code": 0,
+      "text": "本文档要求修订跟踪并限制编辑。\n",
+      "stderr": ""
+    }
+  ],
+  "scope": "Independent text extraction smoke only; no visual, Office or network-isolation claim"
+}

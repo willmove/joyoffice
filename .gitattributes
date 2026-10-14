@@ -8,3 +8,6 @@ tests/fixtures/text/** -text
 *.doc binary
 *.wps binary
 *.pdf binary
+*.ttf binary
+# Preserve the pinned third-party license verbatim, including original spacing.
+tests/fixtures/fonts/OFL.txt -whitespace

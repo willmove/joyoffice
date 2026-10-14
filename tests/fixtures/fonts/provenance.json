@@ -1,0 +1,32 @@
+{
+  "source": "Noto Serif",
+  "upstream_commit": "8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5",
+  "source_url": "https://raw.githubusercontent.com/google/fonts/8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5/ofl/notoserif/NotoSerif%5Bwdth,wght%5D.ttf",
+  "source_sha256": "4d8e6761424656867019081a1a01336f3cb086982682698714054fc33f782713",
+  "license": "OFL-1.1",
+  "license_url": "https://raw.githubusercontent.com/google/fonts/8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5/ofl/notoserif/OFL.txt",
+  "license_sha256": "cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a",
+  "output": "joyoffice-test-serif.ttf",
+  "family": "JoyOffice Test Serif",
+  "output_sha256": "cbc12abc87271f04aa0cf107214a49bad3b865f2dd01a4dec80fed818c032ec3",
+  "output_bytes": 4164,
+  "fonttools": "4.60.1",
+  "axes": {
+    "wght": 400,
+    "wdth": 100
+  },
+  "subset_text": "AVfi ",
+  "name_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    13,
+    14,
+    16,
+    17
+  ]
+}

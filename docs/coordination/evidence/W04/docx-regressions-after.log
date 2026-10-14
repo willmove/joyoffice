@@ -1,0 +1,46 @@
+   Compiling joyword-docx v0.0.1 (/Users/willm/.codex/worktrees/agent-coordination/joyoffice/crates/joyword-docx)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running unittests src/lib.rs (target/debug/deps/joyword_docx-9597efb32e87c192)
+
+running 7 tests
+test props::tests::on_off_accepts_transitional_spellings ... ok
+test xml::tests::byte_order_mark_shifts_spans ... ok
+test xml::tests::resolves_namespaces_spans_and_references ... ok
+test xml::tests::depth_and_event_budgets_apply_while_reading ... ok
+test xml::tests::rejects_doctype_entities_encodings_and_bad_names ... ok
+test props::tests::run_subset_keeps_unset_off_and_flags_unmapped_content ... ok
+test props::tests::paragraph_subset_keeps_source_units ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/import.rs (target/debug/deps/import-c08d3510cafe1d59)
+
+running 20 tests
+test min_001_reads_body_text_and_defaults_compatibility_mode_to_12 ... ok
+test min_005_protection_and_forced_tracking_open_read_only ... ok
+test paragraph_section_breaks_split_sections ... ok
+test min_002_recognises_builtin_styles_by_name_and_keeps_mode_15 ... ok
+test min_003_preserves_ignorable_unknown_content_and_locks_it ... ok
+test min_004_records_external_targets_without_accessing_them ... ok
+test markup_compatibility_rules ... ok
+test rejects_unbound_markup_compatibility_prefixes ... ok
+test rejects_literal_xml_control_characters ... ok
+test run_and_paragraph_properties_map_and_unknown_children_are_preserved ... ok
+test reserved_object_marker_in_text_is_preserved_not_imported_as_text ... ok
+test text_is_kept_verbatim_with_tabs_and_breaks ... ok
+test unsupported_content_is_preserved_and_locks_its_container ... ok
+test tracked_changes_make_the_document_read_only ... ok
+test every_fixture_keeps_original_bytes_and_exact_fragments ... ok
+test refuses_packages_it_cannot_read_safely ... ok
+test settings_without_compatibility_mode_and_with_write_protection ... ok
+test xml_budgets_apply_to_document_parts ... ok
+test damaged_and_truncated_packages_are_refused ... ok
+test mutation_smoke ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+   Doc-tests joyword_docx
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
