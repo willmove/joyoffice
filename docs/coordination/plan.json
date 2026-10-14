@@ -24,7 +24,11 @@
       "branch": "codex/w02-gpui-font-probe",
       "directory": "joyoffice-w02",
       "card": "docs/coordination/tasks/W02-GPUI.md",
-      "state": "in_progress_user_reported"
+      "state": "reviewed_experiment",
+      "result_commit": "3a682a8be41d2933320600e4e66ad96dfeed6201",
+      "acceptance_complete": false,
+      "production_source_approved": false,
+      "review": "docs/coordination/reports/W02-REVIEW.md"
     },
     {
       "id": "W03",
@@ -43,10 +47,11 @@
       "branch": "codex/w04-reference-validation",
       "directory": "joyoffice-w04",
       "card": "docs/coordination/tasks/W04-VALIDATION.md",
-      "state": "background_verified_waiting_gui_slot",
+      "state": "background_verified_gui_input_blocked",
       "tested_revision": "2d4093b885eaf5928929f972ca25c48bd330082e",
       "acceptance_complete": false,
-      "result_commit": "a49d48ad6ad3ccbb713fc06ae7e78a8f815be235"
+      "result_commit": "a49d48ad6ad3ccbb713fc06ae7e78a8f815be235",
+      "gui_blocker": "WPS input guard rejected actions after refresh: user changed application; no sample opened"
     }
   ],
   "integration_branch": "codex/wave01-integration"

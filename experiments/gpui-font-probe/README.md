@@ -14,9 +14,9 @@
   - `src/lib.rs`：加载→抽取→改名→验证流程与场景构建。
   - `src/main.rs`：窗口模式（paint_glyph 绘制 + 标定/标尺 + 自捕获）。
   - `src/conflict.rs`：`--conflict-check` 同名字体冲突实验（无窗口）。
-  - `src/crosscheck.rs`：`--glyph-crosscheck` 字形交叉核对（无窗口）。
-  - `src/capture.rs`：按窗口 ID 捕获本进程窗口（证据采集；唯一局部
-    allow(unsafe_code)，理由见注释与报告）。
+  - `src/crosscheck.rs`：`--glyph-crosscheck` 字形交叉核对（会瞬时创建测量窗口）。
+  - `src/capture.rs`：按窗口 ID 捕获本进程窗口，使用 CoreGraphics 的
+    类型化安全封装；实验自有代码遵守 unsafe_code = forbid。
 - `tools/measure.py`：纯标准库几何测量（窗口/PDF/缩放三个子命令）。
 - `artifacts/`：证据输出（JSON/PDF/PNG；系统字体本体永不落盘于此）。
 
@@ -37,7 +37,7 @@ cargo test  --features runtime-shaders
 cargo run --features runtime-shaders -- --zoom 1.0 --evidence-out artifacts --quit-after-secs 8
 ```
 
-无窗口实验：
+冲突检查及字形交叉核对（后者会瞬时创建窗口，需安排桌面时段）：
 
 ```sh
 cargo run --features runtime-shaders -- --conflict-check     --evidence-out artifacts
@@ -63,6 +63,12 @@ Hiragino Sans GB.ttc` face 0，许可同上。正式集成建议用 OFL 字体
 （如思源黑体/Noto Sans CJK）复测。
 
 ## 已知边界
+
+- 本目录是 macOS 技术探针。0.2.2 + 可见性补丁尚不满足 ADR-010 的
+  Linux GL/CPU 要求，未批准作为正式跨平台来源；详见
+  [协调者审查](../../docs/coordination/reports/W02-REVIEW.md)。
+- 历史截图测量的是红色原点标尺与期望坐标，并辅以墨迹检查；缩放
+  JSON 比较是绘制计划的线性检查，不能代替 Retina 或逐字形像素保真。
 
 - macOS `add_fonts` 走 CGFont，TTC 只注册 face 0：探针先抽取目标
   face 为单字体文件再注册（表字节不变，测试覆盖）。

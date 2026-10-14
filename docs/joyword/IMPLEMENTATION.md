@@ -17,6 +17,7 @@
 
 - W01：新增 joyword-docx，按包关系定位正文；导入普通段落、基础属性、规范样式名、兼容模式和保护设置；原始包/部件与未知片段保留，保护/修订文档只读，含未知内容的节点锁定。未实现表格语义、编辑后写回、ExportPlan 与原子保存。局部锁尚未进入 engine；未来接入前需把任何锁定节点保守映射为整篇只读。
 - W03：在 joyword-layout 增量提供单字体、LTR、调用者给定合法断点的行拟合，候选行独立整形、EMU 几何、源 byte/scalar/cluster 映射及预算。未实现断点生成、完整中文禁则、混合样式、字体回退、分页和命中。
+- W02：独立 macOS 探针以 GPUI 0.2.2 的 GlyphId 可见性补丁、TTC face 抽取和唯一名称注册验证已有外部字形绘制路径；协调者复验 4 项测试和已有截图，恢复实验自有代码 unsafe_code = forbid。只接收实验结果，Linux GL/CPU、Retina、IME 与生产字体处理仍未验收，未据此裁决正式来源，详见[W02 审查](../coordination/reports/W02-REVIEW.md)。
 - 总协调者发现并修复 W01 的两个拒绝边界：MCE 前缀未声明时被静默忽略、文字/CDATA/属性中的非法 XML 控制字符未拒绝；两项回归先失败后通过。未修改公开 API 或依赖。
 - 源码校验点 2d4093b885eaf5928929f972ca25c48bd330082e：本机强制真实字体的默认成员测试 135 项通过、0 跳过字体标记；三个相关 crate 的 all-targets clippy、fmt、规格检查及 9 项 Python 工具测试通过。W01/W03 交付提交和详细范围见[集成审查](../coordination/reports/WAVE01-REVIEW.md)。这些结果不能替代新版三端 CI、Office 或 GUI 验收。
 
@@ -72,7 +73,7 @@
 - joyword-pdf：用 krilla 的定位字形接口逐字形写出场景位置，与整形使用同一字体字节；字体以子集嵌入并带 ToUnicode，文字可检索；关闭 krilla 自带整形。验证中发现并修复一处缺陷：krilla 按字号 1 询问字形度量，原实现直接返回磅值，导致 PDF 中每字多出 11 em 的间距；修复后同一行 TJ 微调最大 0.004／1000 em。
 - 本机证据（2026-10-14，macOS 系统字体 Songti.ttc face 0，sha256 dd2f0628…5a87777，仅本地使用）：原创合同种子 5 行无缺字；PDF 22.8 KB；macOS PDFKit 读回 5 行文字与场景一致；同一场景两次输出字节相同。
 - CI 证据：unified-pdf 作业在 Ubuntu 24.04 安装 fonts-noto-cjk（OFL）与 poppler-utils，强制要求测试字体，运行整形／PDF 测试和示例，并用 `pdftotext -bbox-layout` 比对每行文字、行首（容差 0.01 pt）与行尾（容差 0.05 pt），PDF 作为构件上传。运行 38486616823（提交 95affb0）：fonts-noto-cjk 1:20230817+repack1-3 的 NotoSansCJK-Regular.ttc face 2（sha256 b76b0433…690a）、poppler-utils 24.02.0-1ubuntu9.10；整形／PDF 7 项测试在强制要求字体下通过；5 行 0 缺字，PDF 17 KB；读回 5 行文字一致，行首与行尾最大偏差均为 0.0000 pt。
-- 尚未完成：GPUI 屏幕侧按字体字节取得 FontId 并绘制外部字形（0.2.2 不可能，取决于 ADR-010）；中文 IME 组合输入、撤销与多显示器 DPI；两个独立阅读器的人工检查。
+- 尚未完成：正式 GPUI 屏幕侧适配。未经补丁的 0.2.2 无法在外部构造 GlyphId；W02 的独立 macOS 探针已以最小可见性补丁和改名注册验证路径，但不能替代正式来源的 GL/CPU、字体身份、Retina 与供应链门槛。中文 IME、撤销、多显示器 DPI 与两个独立阅读器人工检查仍未完成。
 
 ### 语料与比较工具（T004，进行中）
 

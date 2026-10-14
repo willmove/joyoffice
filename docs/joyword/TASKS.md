@@ -63,7 +63,7 @@
 - 错误路径：字体映射不一致、缺字、surrogate 范围非法、组合取消和字形 API 缺口有明确记录。
 - 自动验证：同一字形场景几何比较；Unicode 范围和组合态测试；PDF 文本抽取。
 - 人工验收：系统拼音提交／取消、候选框、一次撤销、多显示器 DPI；PDF 独立阅读器检查。
-- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立阅读器读回文字与行坐标（本机 PDFKit；CI 用 Noto CJK 与 pdftotext）。屏幕侧仍受 GPUI 0.2.2 GlyphId 不可外部构造所限（ADR-010），IME、DPI 与人工阅读器检查未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；正式来源的 GL/CPU、字体身份、Retina、IME 与人工阅读器验收未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
 
 ### T004：原创语料与验证框架
 

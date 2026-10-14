@@ -7,7 +7,7 @@
 
 use std::path::Path;
 
-use core_foundation::base::{CFType, TCFType};
+use core_foundation::base::CFType;
 use core_foundation::dictionary::CFDictionary;
 use core_foundation::number::CFNumber;
 use core_foundation::string::CFString;
@@ -17,10 +17,6 @@ use core_graphics::window as cgwindow;
 /// 在屏幕上的本进程窗口里找逻辑尺寸 `logical (w, h)` 的那个，按窗口
 /// ID 捕获（IgnoreFraming 去掉阴影），写 PNG。返回错误说明原因（调用
 /// 方把它写进证据目录，不视为链路失败）。
-// unsafe 仅限把 CFArray 的 void* 项按 get 规则包成 CFDictionary：
-// core-foundation 0.10 没有带类型的数组项访问封装。数组在作用域内
-// 持有这些值，get 规则不做保留，无泄漏。
-#[allow(unsafe_code)]
 pub fn capture_own_window_png(
     logical_width: f64,
     logical_height: f64,
@@ -30,14 +26,17 @@ pub fn capture_own_window_png(
     // 即可（logical_width/height 仅作记录）。
     let _ = (logical_width, logical_height);
     let pid = i64::from(std::process::id());
-    let infos = cgwindow::copy_window_info(
+    let windows = cgwindow::create_window_list(
         cgwindow::kCGWindowListOptionOnScreenOnly,
         cgwindow::kCGNullWindowID,
     )
-    .ok_or("CGWindowListCopyWindowInfo returned nothing")?;
+    .ok_or("CGWindowListCreate returned nothing")?;
+    // The existing safe wrapper returns typed dictionary items, so no
+    // raw-pointer conversion or local unsafe exception is needed.
+    let infos = cgwindow::create_description_from_array(windows)
+        .ok_or("CGWindowListCreateDescriptionFromArray returned nothing")?;
     let mut found: Option<u32> = None;
-    for void in infos.get_all_values() {
-        let dict = unsafe { CFDictionary::<CFString, CFType>::wrap_under_get_rule(void as _) };
+    for dict in &infos {
         let Some(owner) = number_of(&dict, "kCGWindowOwnerPID") else {
             continue;
         };
