@@ -141,3 +141,60 @@ fn a_run_with_an_unknown_font_is_rejected() {
     let error = joyword_pdf::render(&[scene], &[]).unwrap_err();
     assert_eq!(error, joyword_pdf::PdfError::MissingFont(font.key()));
 }
+
+#[test]
+fn document_snapshot_pages_render_deterministically_without_mutation_or_reflow() {
+    use joyword_layout::{LayoutCancellation, LayoutLimits, SingleFontProfile, layout_document};
+    use joyword_model::{BlockSeq, Document, DumpOptions, Measure, PageSetup, Paragraph};
+    let Some(font) = test_font() else { return };
+    let mut setup = PageSetup::a4_zh_cn();
+    setup.width = Measure::Twips(4000);
+    setup.height = Measure::Twips(1800);
+    setup.top = Measure::Twips(240);
+    setup.bottom = setup.top;
+    setup.left = setup.top;
+    setup.right = setup.top;
+    let mut document = Document::new(setup);
+    let mut paragraphs = Vec::new();
+    for text in SEED.lines().cycle().take(10) {
+        let mut p = Paragraph::new(document.ids().node());
+        p.push_text(text, None, Arc::default()).unwrap();
+        paragraphs.push(p.into());
+    }
+    let story = document.body_id();
+    document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(paragraphs);
+    let before = document.canonical_dump(DumpOptions { node_ids: true });
+    let result = layout_document(
+        &document.snapshot(),
+        &font,
+        SingleFontProfile {
+            size: Emu::new(12 * Emu::PER_POINT),
+            leading: Emu::new(18 * Emu::PER_POINT),
+            baseline: Emu::new(14 * Emu::PER_POINT),
+            features: FeatureSet::default(),
+        },
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    assert!(result.pages().len() >= 4);
+    assert!(result.diagnostics().is_empty());
+    let scenes = result.pages().to_vec();
+    let first = joyword_pdf::render(result.pages(), std::slice::from_ref(&font)).unwrap();
+    let second = joyword_pdf::render(result.pages(), std::slice::from_ref(&font)).unwrap();
+    assert_eq!(first, second);
+    assert_eq!(result.pages(), scenes);
+    assert_eq!(
+        document.canonical_dump(DumpOptions { node_ids: true }),
+        before
+    );
+    assert_eq!(
+        result
+            .pages()
+            .iter()
+            .flat_map(|p| &p.runs)
+            .map(|r| r.text.as_str())
+            .collect::<String>(),
+        SEED.lines().cycle().take(10).collect::<String>()
+    );
+}

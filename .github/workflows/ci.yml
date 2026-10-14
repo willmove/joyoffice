@@ -115,6 +115,10 @@ jobs:
         run: cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
       - name: Independent read-back (pdftotext)
         run: python3 scripts/verify_unified_pdf.py target/unified
+      - name: Engine snapshot to paginated PDF and independent read-back (C05)
+        run: |
+          cargo run --locked -p joyword-pdf --example document_flow -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/document-flow
+          python3 scripts/verify_document_pdf.py target/document-flow
       - name: Line and page break comparison (T004)
         run: |
           cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified-split split-third-line
@@ -125,7 +129,9 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unified-scene-pdf
-          path: target/unified
+          path: |
+            target/unified
+            target/document-flow
 
   dependencies:
     runs-on: ubuntu-24.04
