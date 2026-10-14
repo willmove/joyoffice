@@ -1,0 +1,673 @@
+{
+  "probe": "gpui-font-probe",
+  "upstream": {
+    "gpui": "crates.io gpui 0.2.2 vendored + GlyphId(pub) visibility patch",
+    "gpui_registry_checksum": "979b45cfa6ec723b6f42330915a1b3769b930d02b2d505f9697f8ca602bee707",
+    "patch": "vendor/PATCH.md"
+  },
+  "font": {
+    "source_path": "/System/Library/Fonts/Supplemental/Songti.ttc",
+    "face_index": 6,
+    "original_sha256": "dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777",
+    "rewritten_sha256": "c350443100a2b9925f640c7476fd626efb0160604a85b8e2cdb208edacd201bc",
+    "original_family": "宋體-簡",
+    "rewritten_family": "JoyProbe dd2f0628d302 6",
+    "rewritten_postscript": "JoyProbe-dd2f0628d302-6",
+    "license_note": "macOS 系统内置字体（Apple 专有许可）。仅本机实验输入，不提交、不重分发。"
+  },
+  "text_lines": ["JoyOffice 屏幕与 PDF 同一链路：同一字体字节，同一字形，同一位置。", "External glyph probe Aa Bb 0123, kunquat 问卷 2026."],
+  "page": {
+    "width_emu": 7560000,
+    "height_emu": 10692000,
+    "origin_lx": 48,
+    "origin_ly": 64
+  },
+  "zoom": 1,
+  "scale_factor": 1,
+  "calibration_logical_px": [[24, 24], [956, 24], [24, 688], [956, 688]],
+  "runs": [
+{
+    "line": 0,
+    "origin_lx": 142.488,
+    "baseline_ly": 215.181,
+    "ruler_ly": 185.181,
+    "font_size_lpx": 16.000,
+    "glyph_count": 40,
+    "glyphs": [
+{
+      "i": 0,
+      "gid": 45,
+      "origin_lx": 142.488,
+      "origin_ly": 215.181,
+      "tick_px": [142.5, 185.2]
+    },
+{
+      "i": 1,
+      "gid": 82,
+      "origin_lx": 147.816,
+      "origin_ly": 215.181,
+      "tick_px": [147.8, 185.2]
+    },
+{
+      "i": 2,
+      "gid": 92,
+      "origin_lx": 155.944,
+      "origin_ly": 215.181,
+      "tick_px": [155.9, 185.2]
+    },
+{
+      "i": 3,
+      "gid": 50,
+      "origin_lx": 162.696,
+      "origin_ly": 215.181,
+      "tick_px": [162.7, 185.2]
+    },
+{
+      "i": 4,
+      "gid": 73,
+      "origin_lx": 175.176,
+      "origin_ly": 215.181,
+      "tick_px": [175.2, 185.2]
+    },
+{
+      "i": 5,
+      "gid": 73,
+      "origin_lx": 180.408,
+      "origin_ly": 215.181,
+      "tick_px": [180.4, 185.2]
+    },
+{
+      "i": 6,
+      "gid": 76,
+      "origin_lx": 185.640,
+      "origin_ly": 215.181,
+      "tick_px": [185.6, 185.2]
+    },
+{
+      "i": 7,
+      "gid": 70,
+      "origin_lx": 189.960,
+      "origin_ly": 215.181,
+      "tick_px": [190.0, 185.2]
+    },
+{
+      "i": 8,
+      "gid": 72,
+      "origin_lx": 196.552,
+      "origin_ly": 215.181,
+      "tick_px": [196.6, 185.2]
+    },
+{
+      "i": 9,
+      "gid": 3,
+      "origin_lx": 203.448,
+      "origin_ly": 215.181,
+      "tick_px": [203.4, 185.2]
+    },
+{
+      "i": 10,
+      "gid": 3668,
+      "origin_lx": 207.448,
+      "origin_ly": 215.181,
+      "tick_px": [207.4, 185.2]
+    },
+{
+      "i": 11,
+      "gid": 3063,
+      "origin_lx": 223.448,
+      "origin_ly": 215.181,
+      "tick_px": [223.4, 185.2]
+    },
+{
+      "i": 12,
+      "gid": 1281,
+      "origin_lx": 239.448,
+      "origin_ly": 215.181,
+      "tick_px": [239.4, 185.2]
+    },
+{
+      "i": 13,
+      "gid": 3,
+      "origin_lx": 255.448,
+      "origin_ly": 215.181,
+      "tick_px": [255.4, 185.2]
+    },
+{
+      "i": 14,
+      "gid": 51,
+      "origin_lx": 259.448,
+      "origin_ly": 215.181,
+      "tick_px": [259.4, 185.2]
+    },
+{
+      "i": 15,
+      "gid": 39,
+      "origin_lx": 268.504,
+      "origin_ly": 215.181,
+      "tick_px": [268.5, 185.2]
+    },
+{
+      "i": 16,
+      "gid": 41,
+      "origin_lx": 280.840,
+      "origin_ly": 215.181,
+      "tick_px": [280.8, 185.2]
+    },
+{
+      "i": 17,
+      "gid": 3,
+      "origin_lx": 289.896,
+      "origin_ly": 215.181,
+      "tick_px": [289.9, 185.2]
+    },
+{
+      "i": 18,
+      "gid": 1230,
+      "origin_lx": 293.896,
+      "origin_ly": 215.181,
+      "tick_px": [293.9, 185.2]
+    },
+{
+      "i": 19,
+      "gid": 995,
+      "origin_lx": 309.896,
+      "origin_ly": 215.181,
+      "tick_px": [309.9, 185.2]
+    },
+{
+      "i": 20,
+      "gid": 2968,
+      "origin_lx": 325.896,
+      "origin_ly": 215.181,
+      "tick_px": [325.9, 185.2]
+    },
+{
+      "i": 21,
+      "gid": 1378,
+      "origin_lx": 341.896,
+      "origin_ly": 215.181,
+      "tick_px": [341.9, 185.2]
+    },
+{
+      "i": 22,
+      "gid": 19053,
+      "origin_lx": 357.896,
+      "origin_ly": 215.181,
+      "tick_px": [357.9, 185.2]
+    },
+{
+      "i": 23,
+      "gid": 1230,
+      "origin_lx": 373.896,
+      "origin_ly": 215.181,
+      "tick_px": [373.9, 185.2]
+    },
+{
+      "i": 24,
+      "gid": 995,
+      "origin_lx": 389.896,
+      "origin_ly": 215.181,
+      "tick_px": [389.9, 185.2]
+    },
+{
+      "i": 25,
+      "gid": 1810,
+      "origin_lx": 405.896,
+      "origin_ly": 215.181,
+      "tick_px": [405.9, 185.2]
+    },
+{
+      "i": 26,
+      "gid": 1348,
+      "origin_lx": 421.896,
+      "origin_ly": 215.181,
+      "tick_px": [421.9, 185.2]
+    },
+{
+      "i": 27,
+      "gid": 1810,
+      "origin_lx": 437.896,
+      "origin_ly": 215.181,
+      "tick_px": [437.9, 185.2]
+    },
+{
+      "i": 28,
+      "gid": 1693,
+      "origin_lx": 453.896,
+      "origin_ly": 215.181,
+      "tick_px": [453.9, 185.2]
+    },
+{
+      "i": 29,
+      "gid": 19039,
+      "origin_lx": 469.896,
+      "origin_ly": 215.181,
+      "tick_px": [469.9, 185.2]
+    },
+{
+      "i": 30,
+      "gid": 1230,
+      "origin_lx": 485.896,
+      "origin_ly": 215.181,
+      "tick_px": [485.9, 185.2]
+    },
+{
+      "i": 31,
+      "gid": 995,
+      "origin_lx": 501.896,
+      "origin_ly": 215.181,
+      "tick_px": [501.9, 185.2]
+    },
+{
+      "i": 32,
+      "gid": 1810,
+      "origin_lx": 517.896,
+      "origin_ly": 215.181,
+      "tick_px": [517.9, 185.2]
+    },
+{
+      "i": 33,
+      "gid": 2255,
+      "origin_lx": 533.896,
+      "origin_ly": 215.181,
+      "tick_px": [533.9, 185.2]
+    },
+{
+      "i": 34,
+      "gid": 19039,
+      "origin_lx": 549.896,
+      "origin_ly": 215.181,
+      "tick_px": [549.9, 185.2]
+    },
+{
+      "i": 35,
+      "gid": 1230,
+      "origin_lx": 565.896,
+      "origin_ly": 215.181,
+      "tick_px": [565.9, 185.2]
+    },
+{
+      "i": 36,
+      "gid": 995,
+      "origin_lx": 581.896,
+      "origin_ly": 215.181,
+      "tick_px": [581.9, 185.2]
+    },
+{
+      "i": 37,
+      "gid": 1447,
+      "origin_lx": 597.896,
+      "origin_ly": 215.181,
+      "tick_px": [597.9, 185.2]
+    },
+{
+      "i": 38,
+      "gid": 2462,
+      "origin_lx": 613.896,
+      "origin_ly": 215.181,
+      "tick_px": [613.9, 185.2]
+    },
+{
+      "i": 39,
+      "gid": 18842,
+      "origin_lx": 629.896,
+      "origin_ly": 215.181,
+      "tick_px": [629.9, 185.2]
+    }
+    ]
+  },
+{
+    "line": 1,
+    "origin_lx": 142.488,
+    "baseline_ly": 271.874,
+    "ruler_ly": 241.874,
+    "font_size_lpx": 16.000,
+    "glyph_count": 49,
+    "glyphs": [
+{
+      "i": 0,
+      "gid": 40,
+      "origin_lx": 142.488,
+      "origin_ly": 271.874,
+      "tick_px": [142.5, 241.9]
+    },
+{
+      "i": 1,
+      "gid": 91,
+      "origin_lx": 153.016,
+      "origin_ly": 271.874,
+      "tick_px": [153.0, 241.9]
+    },
+{
+      "i": 2,
+      "gid": 87,
+      "origin_lx": 160.328,
+      "origin_ly": 271.874,
+      "tick_px": [160.3, 241.9]
+    },
+{
+      "i": 3,
+      "gid": 72,
+      "origin_lx": 165.496,
+      "origin_ly": 271.874,
+      "tick_px": [165.5, 241.9]
+    },
+{
+      "i": 4,
+      "gid": 85,
+      "origin_lx": 172.392,
+      "origin_ly": 271.874,
+      "tick_px": [172.4, 241.9]
+    },
+{
+      "i": 5,
+      "gid": 81,
+      "origin_lx": 178.184,
+      "origin_ly": 271.874,
+      "tick_px": [178.2, 241.9]
+    },
+{
+      "i": 6,
+      "gid": 68,
+      "origin_lx": 186.696,
+      "origin_ly": 271.874,
+      "tick_px": [186.7, 241.9]
+    },
+{
+      "i": 7,
+      "gid": 79,
+      "origin_lx": 194.760,
+      "origin_ly": 271.874,
+      "tick_px": [194.8, 241.9]
+    },
+{
+      "i": 8,
+      "gid": 3,
+      "origin_lx": 199.112,
+      "origin_ly": 271.874,
+      "tick_px": [199.1, 241.9]
+    },
+{
+      "i": 9,
+      "gid": 74,
+      "origin_lx": 203.112,
+      "origin_ly": 271.874,
+      "tick_px": [203.1, 241.9]
+    },
+{
+      "i": 10,
+      "gid": 79,
+      "origin_lx": 210.616,
+      "origin_ly": 271.874,
+      "tick_px": [210.6, 241.9]
+    },
+{
+      "i": 11,
+      "gid": 92,
+      "origin_lx": 214.968,
+      "origin_ly": 271.874,
+      "tick_px": [215.0, 241.9]
+    },
+{
+      "i": 12,
+      "gid": 83,
+      "origin_lx": 221.720,
+      "origin_ly": 271.874,
+      "tick_px": [221.7, 241.9]
+    },
+{
+      "i": 13,
+      "gid": 75,
+      "origin_lx": 230.120,
+      "origin_ly": 271.874,
+      "tick_px": [230.1, 241.9]
+    },
+{
+      "i": 14,
+      "gid": 3,
+      "origin_lx": 238.632,
+      "origin_ly": 271.874,
+      "tick_px": [238.6, 241.9]
+    },
+{
+      "i": 15,
+      "gid": 83,
+      "origin_lx": 242.632,
+      "origin_ly": 271.874,
+      "tick_px": [242.6, 241.9]
+    },
+{
+      "i": 16,
+      "gid": 85,
+      "origin_lx": 251.032,
+      "origin_ly": 271.874,
+      "tick_px": [251.0, 241.9]
+    },
+{
+      "i": 17,
+      "gid": 82,
+      "origin_lx": 256.824,
+      "origin_ly": 271.874,
+      "tick_px": [256.8, 241.9]
+    },
+{
+      "i": 18,
+      "gid": 69,
+      "origin_lx": 264.952,
+      "origin_ly": 271.874,
+      "tick_px": [265.0, 241.9]
+    },
+{
+      "i": 19,
+      "gid": 72,
+      "origin_lx": 273.288,
+      "origin_ly": 271.874,
+      "tick_px": [273.3, 241.9]
+    },
+{
+      "i": 20,
+      "gid": 3,
+      "origin_lx": 280.184,
+      "origin_ly": 271.874,
+      "tick_px": [280.2, 241.9]
+    },
+{
+      "i": 21,
+      "gid": 36,
+      "origin_lx": 284.184,
+      "origin_ly": 271.874,
+      "tick_px": [284.2, 241.9]
+    },
+{
+      "i": 22,
+      "gid": 68,
+      "origin_lx": 295.048,
+      "origin_ly": 271.874,
+      "tick_px": [295.0, 241.9]
+    },
+{
+      "i": 23,
+      "gid": 3,
+      "origin_lx": 303.112,
+      "origin_ly": 271.874,
+      "tick_px": [303.1, 241.9]
+    },
+{
+      "i": 24,
+      "gid": 37,
+      "origin_lx": 307.112,
+      "origin_ly": 271.874,
+      "tick_px": [307.1, 241.9]
+    },
+{
+      "i": 25,
+      "gid": 69,
+      "origin_lx": 317.000,
+      "origin_ly": 271.874,
+      "tick_px": [317.0, 241.9]
+    },
+{
+      "i": 26,
+      "gid": 3,
+      "origin_lx": 325.336,
+      "origin_ly": 271.874,
+      "tick_px": [325.3, 241.9]
+    },
+{
+      "i": 27,
+      "gid": 19,
+      "origin_lx": 329.336,
+      "origin_ly": 271.874,
+      "tick_px": [329.3, 241.9]
+    },
+{
+      "i": 28,
+      "gid": 20,
+      "origin_lx": 336.840,
+      "origin_ly": 271.874,
+      "tick_px": [336.8, 241.9]
+    },
+{
+      "i": 29,
+      "gid": 21,
+      "origin_lx": 344.344,
+      "origin_ly": 271.874,
+      "tick_px": [344.3, 241.9]
+    },
+{
+      "i": 30,
+      "gid": 22,
+      "origin_lx": 351.848,
+      "origin_ly": 271.874,
+      "tick_px": [351.8, 241.9]
+    },
+{
+      "i": 31,
+      "gid": 15,
+      "origin_lx": 359.352,
+      "origin_ly": 271.874,
+      "tick_px": [359.4, 241.9]
+    },
+{
+      "i": 32,
+      "gid": 3,
+      "origin_lx": 362.856,
+      "origin_ly": 271.874,
+      "tick_px": [362.9, 241.9]
+    },
+{
+      "i": 33,
+      "gid": 78,
+      "origin_lx": 366.856,
+      "origin_ly": 271.874,
+      "tick_px": [366.9, 241.9]
+    },
+{
+      "i": 34,
+      "gid": 88,
+      "origin_lx": 374.440,
+      "origin_ly": 271.874,
+      "tick_px": [374.4, 241.9]
+    },
+{
+      "i": 35,
+      "gid": 81,
+      "origin_lx": 382.728,
+      "origin_ly": 271.874,
+      "tick_px": [382.7, 241.9]
+    },
+{
+      "i": 36,
+      "gid": 84,
+      "origin_lx": 391.240,
+      "origin_ly": 271.874,
+      "tick_px": [391.2, 241.9]
+    },
+{
+      "i": 37,
+      "gid": 88,
+      "origin_lx": 399.608,
+      "origin_ly": 271.874,
+      "tick_px": [399.6, 241.9]
+    },
+{
+      "i": 38,
+      "gid": 68,
+      "origin_lx": 407.896,
+      "origin_ly": 271.874,
+      "tick_px": [407.9, 241.9]
+    },
+{
+      "i": 39,
+      "gid": 87,
+      "origin_lx": 415.960,
+      "origin_ly": 271.874,
+      "tick_px": [416.0, 241.9]
+    },
+{
+      "i": 40,
+      "gid": 3,
+      "origin_lx": 421.128,
+      "origin_ly": 271.874,
+      "tick_px": [421.1, 241.9]
+    },
+{
+      "i": 41,
+      "gid": 1372,
+      "origin_lx": 425.128,
+      "origin_ly": 271.874,
+      "tick_px": [425.1, 241.9]
+    },
+{
+      "i": 42,
+      "gid": 3509,
+      "origin_lx": 441.128,
+      "origin_ly": 271.874,
+      "tick_px": [441.1, 241.9]
+    },
+{
+      "i": 43,
+      "gid": 3,
+      "origin_lx": 457.128,
+      "origin_ly": 271.874,
+      "tick_px": [457.1, 241.9]
+    },
+{
+      "i": 44,
+      "gid": 21,
+      "origin_lx": 461.128,
+      "origin_ly": 271.874,
+      "tick_px": [461.1, 241.9]
+    },
+{
+      "i": 45,
+      "gid": 19,
+      "origin_lx": 468.632,
+      "origin_ly": 271.874,
+      "tick_px": [468.6, 241.9]
+    },
+{
+      "i": 46,
+      "gid": 21,
+      "origin_lx": 476.136,
+      "origin_ly": 271.874,
+      "tick_px": [476.1, 241.9]
+    },
+{
+      "i": 47,
+      "gid": 25,
+      "origin_lx": 483.640,
+      "origin_ly": 271.874,
+      "tick_px": [483.6, 241.9]
+    },
+{
+      "i": 48,
+      "gid": 17,
+      "origin_lx": 491.144,
+      "origin_ly": 271.874,
+      "tick_px": [491.1, 241.9]
+    }
+    ]
+  }
+  ]
+}

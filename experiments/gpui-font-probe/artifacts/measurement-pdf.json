@@ -1,0 +1,27 @@
+{
+  "png": "artifacts/probe.pdf.png",
+  "png_size": [
+    1131,
+    1600
+  ],
+  "lines": [
+    {
+      "line": 0,
+      "glyphs": 40,
+      "ink_first_x": 131,
+      "ink_last_x": 836,
+      "expected_first_x": 134.7,
+      "ink_clusters": 46,
+      "scale_pt_to_px": 1.9002
+    },
+    {
+      "line": 1,
+      "glyphs": 49,
+      "ink_first_x": 135,
+      "ink_last_x": 633,
+      "expected_first_x": 134.7,
+      "ink_clusters": 35,
+      "scale_pt_to_px": 1.9002
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "probe": "同名冲突实验：不同字节顶替系统家族名",
+  "measure": {
+    "char": "永",
+    "font_size_px": 32
+  },
+  "songti": {
+    "path": "/System/Library/Fonts/Supplemental/Songti.ttc",
+    "face": 6,
+    "family": "宋體-簡",
+    "sha256": "dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777",
+    "rewritten_sha256": "c350443100a2b9925f640c7476fd626efb0160604a85b8e2cdb208edacd201bc",
+    "rewritten_family": "JoyProbe dd2f0628d302 6"
+  },
+  "impostor": {
+    "path": "/System/Library/Fonts/Hiragino Sans GB.ttc",
+    "face": 0,
+    "sha256": "ca1e9bf621f13ddc4800bfb74d0124571dfc25a1678a28d6e7dbcf39fad2504a",
+    "rewritten_sha256": "72fa797f4103ca9bc179f0b5a90242b9b0edf5f5e244e5eb12bc9adb98f1956f",
+    "family": "Songti SC",
+    "postscript": "STSongti-SC-Regular",
+    "license_note": "macOS 系统内置字体（Apple 专有许可）。仅本机实验输入，不提交、不重分发。"
+  },
+  "results": {
+    "add_impostor_ok": true,
+    "add_probe_ok": true,
+    "font_id_before": 0,
+    "font_id_after": 0,
+    "font_id_probe": 4,
+    "font_id_hiragino": 5,
+    "same_font_id": true,
+    "same_bounds": true,
+    "probe_bounds_match_system": true,
+    "bounds_before": {
+      "origin_x": 0.960,
+      "origin_y": -5.312,
+      "width": 30.048,
+      "height": 29.728
+    },
+    "bounds_after": {
+      "origin_x": 0.960,
+      "origin_y": -5.312,
+      "width": 30.048,
+      "height": 29.728
+    },
+    "bounds_probe": {
+      "origin_x": 0.960,
+      "origin_y": -5.312,
+      "width": 30.048,
+      "height": 29.728
+    },
+    "bounds_hiragino": {
+      "origin_x": 1.216,
+      "origin_y": -1.824,
+      "width": 30.080,
+      "height": 28.608
+    }
+  },
+  "conclusion": "同名解析未漂移（注册字体在同名竞争中被忽略或去重）：按名解析仍无法证明指向哪份字节",
+  "note": "bounds 为 CoreText 在 32px 下 '永' 的包围盒（gpui typographic_bounds，CPU 度量）",
+}
