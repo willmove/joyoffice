@@ -64,7 +64,7 @@
 - joyword-layout：字体身份为字体文件 SHA-256 加 face index；HarfRust 整形时 kern、liga、clig、calt 逐项显式开关（默认全关，等文档属性驱动）；字形位置按累计笔位置从字体单位换算为 EMU，整行不累积舍入；缺字记录簇位置而不替换原文；页面场景以 EMU 记录字形 id、位置与簇映射。
 - joyword-pdf：用 krilla 的定位字形接口逐字形写出场景位置，与整形使用同一字体字节；字体以子集嵌入并带 ToUnicode，文字可检索；关闭 krilla 自带整形。验证中发现并修复一处缺陷：krilla 按字号 1 询问字形度量，原实现直接返回磅值，导致 PDF 中每字多出 11 em 的间距；修复后同一行 TJ 微调最大 0.004／1000 em。
 - 本机证据（2026-10-14，macOS 系统字体 Songti.ttc face 0，sha256 dd2f0628…5a87777，仅本地使用）：原创合同种子 5 行无缺字；PDF 22.8 KB；macOS PDFKit 读回 5 行文字与场景一致；同一场景两次输出字节相同。
-- CI 证据：unified-pdf 作业在 Ubuntu 24.04 安装 fonts-noto-cjk（OFL）与 poppler-utils，强制要求测试字体，运行整形／PDF 测试和示例，并用 `pdftotext -bbox-layout` 比对每行文字、行首（容差 0.01 pt）与行尾（容差 0.05 pt），PDF 作为构件上传。结果见验证记录。
+- CI 证据：unified-pdf 作业在 Ubuntu 24.04 安装 fonts-noto-cjk（OFL）与 poppler-utils，强制要求测试字体，运行整形／PDF 测试和示例，并用 `pdftotext -bbox-layout` 比对每行文字、行首（容差 0.01 pt）与行尾（容差 0.05 pt），PDF 作为构件上传。运行 38486616823（提交 95affb0）：fonts-noto-cjk 1:20230817+repack1-3 的 NotoSansCJK-Regular.ttc face 2（sha256 b76b0433…690a）、poppler-utils 24.02.0-1ubuntu9.10；整形／PDF 7 项测试在强制要求字体下通过；5 行 0 缺字，PDF 17 KB；读回 5 行文字一致，行首与行尾最大偏差均为 0.0000 pt。
 - 尚未完成：GPUI 屏幕侧按字体字节取得 FontId 并绘制外部字形（0.2.2 不可能，取决于 ADR-010）；中文 IME 组合输入、撤销与多显示器 DPI；两个独立阅读器的人工检查。
 
 ### 语料与比较工具（T004，进行中）
@@ -115,6 +115,7 @@
 | 三端 CI（修复前） | 运行 38419060698 与 38419419204（提交 97286e8）：macos-15 全部步骤通过，含不启用 dev-runtime-shaders 的预编译 Metal 构建；windows-2022 因检出时 LF→CRLF 使四个种子散列不符而失败（已加 .gitattributes）；ubuntu-24.04 在 clippy 编译 xattr 时失败（已锁 libc，并以 `cargo check -p xattr@0.2.3 --target x86_64-unknown-linux-gnu` 本机验证） |
 | 三端 CI（修复后） | 运行 38481758247（提交 ac40043，2026-10-13）全部通过：macos-15-arm64、windows-2022、ubuntu-24.04 各自完成文档检查、fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建；cargo-deny 作业通过。引擎测试在此之后加入，随下次推送进入 CI |
 | 多架构 CI | 运行 38484920106（提交 92cb8b0）：ubuntu-24.04-arm 原生构建通过（文档检查、fmt、核心测试、clippy 与完整 GPUI 应用构建）；x86 runner 上交叉编译 aarch64-unknown-linux-gnu 与 loongarch64-unknown-linux-gnu（Ubuntu 24.04 的 gcc 交叉工具链与 glibc 2.39 交叉库）并在 QEMU 用户态运行无界面测试，两个目标均通过。QEMU 结果只证明代码生成与新世界 LoongArch ABI，不等于国产 CPU 或发行版上的运行 |
+| T003／T004 CI | 运行 38486616823（95affb0）全部作业通过，unified-pdf 证据见“统一字形链路”；运行 38487093201（751e764）的 unified-pdf 另行验证比较工具：同一 PDF 自比通过、第三行提前换行的变体被检出，各平台构建作业运行工具逻辑测试 |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 与 proc-macro-error2 2.0.1 的 future-incompat 提示；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
@@ -122,6 +123,7 @@
 ## 未完成的 M0 门槛与下一步
 
 1. T001：三端 CI 已通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机安装完整 Xcode 并单独下载 Metal 工具链后验证普通构建。
+   ADR-010 线索（2026-10-14 只读核对，未实测）：Zed 主干 18787a9a080c 的 GPUI 已把 `GlyphId(pub u32)` 公开、`Window::paint_glyph` 为公开接口，但 `add_fonts` 仍不返回 FontId，只能按名称 `resolve_font`。候选做法是在注册前把字体 name 表的家族名改写为按散列生成的唯一名称再解析，使 FontId 必然指向同一份字节，从而无需分叉 GPUI；需在 T003 中实测屏幕与 PDF 的字形一致，并评估固定该提交的供应链与 Linux 渲染后端。
 2. T002：实际检查中英文窗口、切换、缩放和退出；不把编译或进程存在算成交互通过。
 3. T003：整形—场景—PDF 已贯通并有独立读回验证；剩余屏幕侧同一字形绘制（依赖 ADR-010 的 GPUI 来源或补丁，禁止用系统同名字体替代来宣称同一字形）、中文 IME 组合取消／提交／撤销、多显示器 DPI，以及两个阅读器的人工检查。
 4. T004：比较工具与可重复生成的最小样例已有；需要建立固定参考环境（Word 为 Office LTSC 2024，对照固定版本 WPS 与固定字体），在其中打开最小样例、导出参考 PDF 并记录，再按实测建立排版行为规则目录。
