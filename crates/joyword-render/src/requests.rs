@@ -9,22 +9,29 @@ pub struct RasterRequestKey {
     pub projection: Projection,
 }
 #[derive(Clone, Debug, PartialEq)]
-pub struct RasterTicket {
+pub struct RasterTicket<K = RasterRequestKey> {
     serial: u64,
-    key: RasterRequestKey,
+    key: K,
 }
-impl RasterTicket {
-    pub fn key(&self) -> &RasterRequestKey {
+impl<K> RasterTicket<K> {
+    pub fn key(&self) -> &K {
         &self.key
     }
 }
-#[derive(Default)]
-pub struct RasterRequestGate {
-    requested: Option<RasterTicket>,
+pub struct RasterRequestGate<K = RasterRequestKey> {
+    requested: Option<RasterTicket<K>>,
     serial: u64,
 }
-impl RasterRequestGate {
-    pub fn request(&mut self, key: RasterRequestKey) -> Option<RasterTicket> {
+impl<K> Default for RasterRequestGate<K> {
+    fn default() -> Self {
+        Self {
+            requested: None,
+            serial: 0,
+        }
+    }
+}
+impl<K: Clone + PartialEq> RasterRequestGate<K> {
+    pub fn request(&mut self, key: K) -> Option<RasterTicket<K>> {
         if self.requested.as_ref().is_some_and(|old| old.key == key) {
             return None;
         }
@@ -39,7 +46,7 @@ impl RasterRequestGate {
         self.requested = Some(ticket.clone());
         Some(ticket)
     }
-    pub fn accepts(&self, ticket: &RasterTicket, current: &RasterRequestKey) -> bool {
+    pub fn accepts(&self, ticket: &RasterTicket<K>, current: &K) -> bool {
         self.requested.as_ref() == Some(ticket) && &ticket.key == current
     }
 }

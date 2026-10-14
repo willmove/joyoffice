@@ -1,4 +1,4 @@
-//! Read-only engineering document: real engine snapshot, immutable layout and
+//! Editable in-memory engineering document: real engine snapshot, immutable layout and
 //! CPU scene output. Loading, layout and raster work run on background jobs.
 use gpui::RenderImage;
 use joyword_engine::{EditPolicy, Session};
@@ -73,7 +73,7 @@ fn load_font_spec(requested: Option<&str>) -> Result<LoadedFont, String> {
 pub fn load_source() -> Result<CanvasSource, String> {
     source_with_text(load_font()?, SEED)
 }
-fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSource, String> {
+pub(crate) fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSource, String> {
     let mut document = Document::new(PageSetup::a4_zh_cn());
     let mut blocks = Vec::new();
     for text in text.lines() {
@@ -86,7 +86,7 @@ fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSource, String
     document.story_mut(story).expect("body").blocks = BlockSeq::from_vec(blocks);
     let mut session = Session::new(document);
     session.set_policy(EditPolicy {
-        read_only: true,
+        read_only: false,
         agent_writes: false,
     });
     let profile = SingleFontProfile {
@@ -114,6 +114,7 @@ fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSource, String
     })
 }
 
+#[cfg(test)]
 pub fn raster_pages(
     source: &CanvasSource,
     projection: Projection,
@@ -158,7 +159,7 @@ pub fn image(page: RasterPage) -> Arc<RenderImage> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use joyword_engine::{Command, Transaction, TxError};
+    use joyword_engine::{Command, Transaction};
     use joyword_model::{Bias, Position, ScalarOffset};
     fn font() -> LoadedFont {
         LoadedFont::from_bytes(
@@ -178,19 +179,8 @@ mod tests {
         }
     }
     #[test]
-    fn real_engine_session_is_read_only_and_layout_matches_source() {
+    fn real_engine_session_is_editable_and_layout_matches_source() {
         let mut source = source_with_text(font(), "AV\nfi").unwrap();
-        let at = start(&source);
-        assert_eq!(
-            source.session.apply(Transaction::new(
-                source.session.version(),
-                vec![Command::InsertText {
-                    at,
-                    text: "A".into()
-                }]
-            )),
-            Err(TxError::ReadOnly)
-        );
         source
             .layout
             .ensure_current(&source.session.snapshot(), &source.font, source.profile)
@@ -203,6 +193,20 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["AV", "fi"]
         );
+        let at = start(&source);
+        assert!(
+            source
+                .session
+                .apply(Transaction::new(
+                    source.session.version(),
+                    vec![Command::InsertText {
+                        at,
+                        text: "A".into()
+                    }]
+                ))
+                .is_ok()
+        );
+        assert!(!source.session.policy().agent_writes);
     }
     #[test]
     fn page_image_conversion_and_device_projection_need_no_window() {
@@ -260,5 +264,212 @@ mod tests {
             )
             .is_err()
         );
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct CanvasRequestKey {
+    pub revision: u64,
+    pub font: joyword_layout::FontKey,
+    pub profile: SingleFontProfile,
+    pub projection: Projection,
+}
+#[derive(Clone, Default)]
+pub struct CanvasCancellation {
+    pub layout: LayoutCancellation,
+    pub raster: RasterCancellation,
+}
+impl CanvasCancellation {
+    pub fn cancel(&self) {
+        self.layout.cancel();
+        self.raster.cancel();
+    }
+}
+pub struct CanvasFrame {
+    pub key: CanvasRequestKey,
+    pub layout: LayoutSnapshot,
+    pub images: Vec<Arc<RenderImage>>,
+}
+pub fn render_view(
+    view: &joyword_shell::input::InputView,
+    font: &LoadedFont,
+    profile: SingleFontProfile,
+    projection: Projection,
+    cancellation: &CanvasCancellation,
+) -> Result<CanvasFrame, String> {
+    let layout = layout_document(
+        view.snapshot(),
+        font,
+        profile,
+        LayoutLimits::default(),
+        &cancellation.layout,
+    )
+    .map_err(|e| e.to_string())?;
+    let mut remaining = MAX_CACHE_PIXELS;
+    let mut images = Vec::new();
+    for scene in layout.pages() {
+        let page = rasterize(
+            scene,
+            std::slice::from_ref(font),
+            projection,
+            RasterLimits {
+                max_pixels: remaining,
+                ..RasterLimits::default()
+            },
+            &cancellation.raster,
+        )
+        .map_err(|e| e.to_string())?;
+        remaining -= u64::from(page.width()) * u64::from(page.height());
+        images.push(image(page));
+    }
+    Ok(CanvasFrame {
+        key: CanvasRequestKey {
+            revision: view.revision(),
+            font: font.key(),
+            profile,
+            projection,
+        },
+        layout,
+        images,
+    })
+}
+
+#[cfg(test)]
+mod input_pipeline_tests {
+    use super::*;
+    use joyword_render::requests::RasterRequestGate;
+    use joyword_shell::input::{InputLimits, TextInput};
+    fn source() -> CanvasSource {
+        let font = LoadedFont::from_bytes(
+            Arc::from(
+                include_bytes!("../../../tests/fixtures/fonts/joyoffice-test-serif.ttf").as_slice(),
+            ),
+            0,
+        )
+        .unwrap();
+        source_with_text(font, "AV\nfi").unwrap()
+    }
+    fn frame(input: &TextInput, source: &CanvasSource) -> CanvasFrame {
+        render_view(
+            input.view(),
+            &source.font,
+            source.profile,
+            Projection::new(96.0, 0.8).unwrap(),
+            &CanvasCancellation::default(),
+        )
+        .unwrap()
+    }
+    #[test]
+    fn composition_layout_pixels_and_commit_share_source_without_mutating_history() {
+        let source = source();
+        let mut input = TextInput::new(
+            Session::new(source.session.document().clone()),
+            InputLimits::default(),
+        )
+        .unwrap();
+        let original = frame(&input, &source);
+        input.select(1..4, false).unwrap();
+        input.mark(None, "fi\nAV", None).unwrap();
+        let preview = frame(&input, &source);
+        assert!(!input.backend().can_undo());
+        assert_eq!(input.backend().version(), source.session.version());
+        assert!(
+            original
+                .layout
+                .ensure_current(input.view().snapshot(), &source.font, source.profile)
+                .is_err()
+        );
+        let (range, _) = input.view().selected_range();
+        let at = input
+            .view()
+            .index()
+            .position(range.start, joyword_model::Bias::After)
+            .unwrap();
+        let caret = preview.layout.caret(at).unwrap();
+        assert_eq!(
+            preview
+                .layout
+                .hit_test(caret.page, caret.x, caret.top)
+                .unwrap()
+                .offset,
+            at.offset
+        );
+        input.unmark().unwrap();
+        preview
+            .layout
+            .ensure_current(input.view().snapshot(), &source.font, source.profile)
+            .unwrap();
+        let committed = frame(&input, &source);
+        assert_eq!(preview.layout.key(), committed.layout.key());
+        assert_ne!(preview.key, committed.key);
+        assert_eq!(
+            preview.images[0].as_bytes(0),
+            committed.images[0].as_bytes(0)
+        );
+        input.undo().unwrap();
+        let undone = frame(&input, &source);
+        assert_eq!(original.images[0].as_bytes(0), undone.images[0].as_bytes(0));
+        assert!(!input.backend().can_undo());
+        assert_ne!(original.layout.key(), undone.layout.key());
+    }
+    #[test]
+    fn equal_preview_versions_and_cancelled_jobs_cannot_install_old_frames() {
+        let source = source();
+        let mut input = TextInput::new(
+            Session::new(source.session.document().clone()),
+            InputLimits::default(),
+        )
+        .unwrap();
+        input.mark(None, "AV", None).unwrap();
+        let a = frame(&input, &source);
+        input.mark(None, "fi", None).unwrap();
+        let b = frame(&input, &source);
+        assert_eq!(a.layout.key().version, b.layout.key().version);
+        assert_ne!(a.key, b.key);
+        assert_ne!(a.layout.key().content_hash(), b.layout.key().content_hash());
+        let mut gate = RasterRequestGate::default();
+        let old = gate.request(a.key.clone()).unwrap();
+        let current = gate.request(b.key.clone()).unwrap();
+        assert!(!gate.accepts(&old, &b.key));
+        assert!(gate.accepts(&current, &b.key));
+        input.cancel_composition().unwrap();
+        input.mark(None, "AV", None).unwrap();
+        let again = frame(&input, &source);
+        let new = gate.request(again.key.clone()).unwrap();
+        assert!(!gate.accepts(&old, &again.key));
+        assert!(gate.accepts(&new, &again.key));
+        let cancelled = CanvasCancellation::default();
+        cancelled.cancel();
+        assert!(
+            render_view(
+                input.view(),
+                &source.font,
+                source.profile,
+                again.key.projection,
+                &cancelled
+            )
+            .is_err()
+        );
+    }
+    #[test]
+    fn missing_font_glyph_keeps_typed_unicode_and_emits_diagnostics() {
+        let source = source();
+        let mut input = TextInput::new(
+            Session::new(source.session.document().clone()),
+            InputLimits::default(),
+        )
+        .unwrap();
+        input.replace(None, "🙂").unwrap();
+        let rendered = frame(&input, &source);
+        assert!(input.view().index().text().starts_with("🙂"));
+        assert!(!rendered.layout.diagnostics().is_empty());
+        assert!(
+            rendered.layout.pages()[0]
+                .runs
+                .iter()
+                .any(|run| run.text.contains("🙂"))
+        );
+        input.undo().unwrap();
+        assert_eq!(input.view().index().text(), "AV\nfi");
     }
 }

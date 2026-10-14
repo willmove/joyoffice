@@ -43,6 +43,7 @@ impl Platform {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MenuKind {
     App,
+    Edit,
     View,
 }
 
@@ -50,6 +51,7 @@ impl MenuKind {
     pub fn label_key(self) -> &'static str {
         match self {
             MenuKind::App => "menu.app",
+            MenuKind::Edit => "menu.edit",
             MenuKind::View => "menu.view",
         }
     }
@@ -152,6 +154,26 @@ pub const ZOOM_OUT: CommandId = CommandId("view.zoom_out");
 pub const ZOOM_RESET: CommandId = CommandId("view.zoom_reset");
 pub const SWITCH_LANGUAGE: CommandId = CommandId("view.switch_language");
 
+pub const EDIT_UNDO: CommandId = CommandId("edit.undo");
+pub const EDIT_REDO: CommandId = CommandId("edit.redo");
+pub const EDIT_SELECT_ALL: CommandId = CommandId("edit.select_all");
+pub const EDIT_BACKSPACE: CommandId = CommandId("edit.backspace");
+pub const EDIT_DELETE: CommandId = CommandId("edit.delete");
+pub const EDIT_ENTER: CommandId = CommandId("edit.new_paragraph");
+pub const EDIT_LEFT: CommandId = CommandId("edit.left");
+pub const EDIT_RIGHT: CommandId = CommandId("edit.right");
+pub const EDIT_EXTEND_LEFT: CommandId = CommandId("edit.extend_left");
+pub const EDIT_EXTEND_RIGHT: CommandId = CommandId("edit.extend_right");
+pub const EDIT_UP: CommandId = CommandId("edit.up");
+pub const EDIT_DOWN: CommandId = CommandId("edit.down");
+pub const EDIT_EXTEND_UP: CommandId = CommandId("edit.extend_up");
+pub const EDIT_EXTEND_DOWN: CommandId = CommandId("edit.extend_down");
+pub const EDIT_HOME: CommandId = CommandId("edit.line_start");
+pub const EDIT_END: CommandId = CommandId("edit.line_end");
+pub const EDIT_EXTEND_HOME: CommandId = CommandId("edit.extend_line_start");
+pub const EDIT_EXTEND_END: CommandId = CommandId("edit.extend_line_end");
+pub const EDIT_CANCEL: CommandId = CommandId("edit.cancel_composition");
+
 #[derive(Clone, Debug)]
 pub struct Registry {
     commands: Vec<CommandSpec>,
@@ -205,6 +227,129 @@ impl Registry {
                 label: "command.view.switch_language",
                 menu: view(1),
                 shortcut: Shortcut::NONE,
+            },
+            CommandSpec {
+                id: EDIT_UNDO,
+                label: "command.edit.undo",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 0,
+                }),
+                shortcut: Shortcut::primary("cmd-z", "ctrl-z"),
+            },
+            CommandSpec {
+                id: EDIT_REDO,
+                label: "command.edit.redo",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 0,
+                }),
+                shortcut: Shortcut::primary("cmd-shift-z", "ctrl-y"),
+            },
+            CommandSpec {
+                id: EDIT_SELECT_ALL,
+                label: "command.edit.select_all",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 1,
+                }),
+                shortcut: Shortcut::primary("cmd-a", "ctrl-a"),
+            },
+            CommandSpec {
+                id: EDIT_BACKSPACE,
+                label: "command.edit.backspace",
+                menu: None,
+                shortcut: Shortcut::primary("backspace", "backspace"),
+            },
+            CommandSpec {
+                id: EDIT_DELETE,
+                label: "command.edit.delete",
+                menu: None,
+                shortcut: Shortcut::primary("delete", "delete"),
+            },
+            CommandSpec {
+                id: EDIT_ENTER,
+                label: "command.edit.new_paragraph",
+                menu: None,
+                shortcut: Shortcut::primary("enter", "enter"),
+            },
+            CommandSpec {
+                id: EDIT_LEFT,
+                label: "command.edit.left",
+                menu: None,
+                shortcut: Shortcut::primary("left", "left"),
+            },
+            CommandSpec {
+                id: EDIT_RIGHT,
+                label: "command.edit.right",
+                menu: None,
+                shortcut: Shortcut::primary("right", "right"),
+            },
+            CommandSpec {
+                id: EDIT_EXTEND_LEFT,
+                label: "command.edit.extend_left",
+                menu: None,
+                shortcut: Shortcut::primary("shift-left", "shift-left"),
+            },
+            CommandSpec {
+                id: EDIT_EXTEND_RIGHT,
+                label: "command.edit.extend_right",
+                menu: None,
+                shortcut: Shortcut::primary("shift-right", "shift-right"),
+            },
+            CommandSpec {
+                id: EDIT_UP,
+                label: "command.edit.up",
+                menu: None,
+                shortcut: Shortcut::primary("up", "up"),
+            },
+            CommandSpec {
+                id: EDIT_DOWN,
+                label: "command.edit.down",
+                menu: None,
+                shortcut: Shortcut::primary("down", "down"),
+            },
+            CommandSpec {
+                id: EDIT_EXTEND_UP,
+                label: "command.edit.extend_up",
+                menu: None,
+                shortcut: Shortcut::primary("shift-up", "shift-up"),
+            },
+            CommandSpec {
+                id: EDIT_EXTEND_DOWN,
+                label: "command.edit.extend_down",
+                menu: None,
+                shortcut: Shortcut::primary("shift-down", "shift-down"),
+            },
+            CommandSpec {
+                id: EDIT_HOME,
+                label: "command.edit.line_start",
+                menu: None,
+                shortcut: Shortcut::primary("cmd-left", "home"),
+            },
+            CommandSpec {
+                id: EDIT_END,
+                label: "command.edit.line_end",
+                menu: None,
+                shortcut: Shortcut::primary("cmd-right", "end"),
+            },
+            CommandSpec {
+                id: EDIT_EXTEND_HOME,
+                label: "command.edit.extend_line_start",
+                menu: None,
+                shortcut: Shortcut::primary("cmd-shift-left", "shift-home"),
+            },
+            CommandSpec {
+                id: EDIT_EXTEND_END,
+                label: "command.edit.extend_line_end",
+                menu: None,
+                shortcut: Shortcut::primary("cmd-shift-right", "shift-end"),
+            },
+            CommandSpec {
+                id: EDIT_CANCEL,
+                label: "command.edit.cancel_composition",
+                menu: None,
+                shortcut: Shortcut::primary("escape", "escape"),
             },
         ])
     }

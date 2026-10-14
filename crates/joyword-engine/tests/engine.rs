@@ -1015,3 +1015,85 @@ fn inline_objects_and_formatting_round_trip_through_undo() {
     session.undo().unwrap();
     assert_eq!(session.document().canonical_dump(DUMP), original);
 }
+
+#[test]
+fn replacement_target_selection_is_separate_from_undo_selection() {
+    let mut s = Session::new(document(&["abcd"]));
+    let p = paragraph_ids(&s)[0];
+    let start = pos(&s, p, 1, Bias::After);
+    let end = pos(&s, p, 3, Bias::Before);
+    let original = Selection {
+        anchor: end,
+        head: start,
+    };
+    let mut tx = Transaction::new(
+        s.version(),
+        vec![
+            Command::DeleteRange { start, end },
+            Command::InsertText {
+                at: start,
+                text: "甲乙丙".into(),
+            },
+        ],
+    );
+    tx.selection = Some(original);
+    let Outcome::Applied(result) = s
+        .apply_with_mapped_selection(tx, Selection::caret(start))
+        .unwrap()
+    else {
+        panic!("edit must apply");
+    };
+    let after = Selection::caret(pos(&s, p, 4, Bias::After));
+    assert_eq!(result.selection, Some(after));
+    assert_eq!(texts(&s), ["a甲乙丙d"]);
+    let v = s.version();
+    for _ in 0..3 {
+        let (preview, selection) = s.preview_undo().unwrap();
+        assert_eq!(
+            preview
+                .body()
+                .blocks
+                .get(0)
+                .unwrap()
+                .as_paragraph()
+                .unwrap()
+                .plain_text(|_| unreachable!()),
+            "abcd"
+        );
+        assert_eq!(selection, Some(original));
+        assert_eq!(s.version(), v);
+        assert!(s.can_undo());
+        assert!(!s.can_redo());
+    }
+    assert_eq!(s.undo().unwrap().selection, Some(original));
+    let v2 = s.version();
+    assert!(v2 > v);
+    assert_eq!(s.preview_redo().unwrap().1, Some(after));
+    assert_eq!(s.version(), v2);
+    assert_eq!(s.redo().unwrap().selection, Some(after));
+    assert_eq!(texts(&s), ["a甲乙丙d"]);
+}
+
+#[test]
+fn history_preview_honors_read_only_and_empty_history_without_consuming_entries() {
+    let mut s = Session::new(document(&["a"]));
+    assert!(matches!(s.preview_undo(), Err(UndoError::Nothing)));
+    assert!(matches!(s.preview_redo(), Err(UndoError::Nothing)));
+    let p = paragraph_ids(&s)[0];
+    let at = pos(&s, p, 0, Bias::After);
+    s.exec(vec![Command::InsertText {
+        at,
+        text: "b".into(),
+    }])
+    .unwrap();
+    s.set_policy(EditPolicy {
+        read_only: true,
+        ..EditPolicy::default()
+    });
+    assert!(matches!(s.preview_undo(), Err(UndoError::ReadOnly)));
+    assert!(matches!(s.preview_redo(), Err(UndoError::ReadOnly)));
+    assert!(s.can_undo());
+    s.set_policy(EditPolicy::default());
+    s.undo().unwrap();
+    assert_eq!(texts(&s), ["a"]);
+}

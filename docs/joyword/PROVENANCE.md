@@ -34,6 +34,7 @@
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
 | unicode-linebreak 0.1.5 | layout 的默认 Unicode 候选断点（直接依赖） | [上游 API](https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/)，Apache-2.0（crate 元数据） | 精确复用锁文件版本，Unicode 15.0；不据此宣称 Word 中文规则或词典分词 |
+| unicode-segmentation 1.13.3 | shell 输入的默认扩展字素与词边界（直接依赖） | [上游 API](https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/)，MIT OR Apache-2.0（crate 元数据） | Unicode 17.0；复用已有锁文件包；不等同于中文词典分词或字体整形簇 |
 | tempfile 3.27.0 | shell 安全创建同目录私有临时文件（直接依赖） | [上游 API](https://docs.rs/tempfile/3.27.0/tempfile/struct.NamedTempFile.html)，MIT OR Apache-2.0（crate 元数据） | 复用原锁文件版本；不使用可覆盖 persist，发布采用 std::fs::hard_link；无新外部包或升级 |
 | krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出与定位字形（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）与 raster-images；只消费页面场景中的字形与位置 |
 
@@ -86,3 +87,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 20 段原创种子在 CPU 和 PDF 共用 PageScene，Poppler 是独立参考光栅器；同场景比较不是 Word 黑盒参考或原生窗口验收，具体结果见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。
 
 - C06 Windows 回归补充：依据微软公开 [EBDT](https://learn.microsoft.com/en-us/typography/opentype/spec/ebdt)／[EBLC](https://learn.microsoft.com/en-us/typography/opentype/spec/eblc)，传统单色／灰度 bitmap strike 可与可缩放轮廓共存。显式轮廓 profile 使用后者，彩色绘制和缺轮廓的纯 bitmap 字体仍不支持，见 C06 报告的失败与修正记录。
+
+### 纯文本输入与组合态（C07）
+
+- EDIT-002／EDIT-003／EDIT-004／EDIT-005／PLATFORM-004；采用 [Unicode 17.0 UAX #29 rev. 47](https://www.unicode.org/reports/tr29/tr29-47.html) §3 默认扩展字素、§4 默认词边界，精确复用 unicode-segmentation 1.13.3（本地 tables.rs 版本已核对）。字素适用于移动／删除，默认词边界不宣称中文词典分词；不做文本 Unicode 规范化。
+- 平台范围契约依据固定 GPUI 0.2.2 的公开 EntityInputHandler／InputHandler／UTF16Selection 与 AppKit [NSTextInputClient](https://developer.apple.com/documentation/appkit/nstextinputclient)、[unmarkText](https://developer.apple.com/documentation/appkit/nstextinputclient/unmarktext()) 说明。读取通用工具包公开 API 及平台事件路由核对接口，不读取／迁移 Zed 编辑器实现；平台说明不等于系统拼音已实际验收。
+- 组合态临时快照、原事务范围折叠、单事务确认、显示修订门、关闭提示版本检查与原创独立 String 随机模型为项目自行实现。无新外部包、无依赖升级。详细自动测试及未覆盖项见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。

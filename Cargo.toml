@@ -57,6 +57,7 @@ quick-xml = "=0.41.0"
 sha2 = "=0.10.9"
 tempfile = "=3.27.0"
 unicode-linebreak = "=0.1.5"
+unicode-segmentation = "=1.13.3"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

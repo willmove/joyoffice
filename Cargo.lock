@@ -2960,6 +2960,7 @@ dependencies = [
  "joyword-engine",
  "joyword-model",
  "tempfile",
+ "unicode-segmentation",
 ]
 
 [[package]]
