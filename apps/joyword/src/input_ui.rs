@@ -14,6 +14,17 @@ use std::ops::Range;
 pub const DOC_PAD: f32 = 32.0;
 pub const DOC_GAP: f32 = 32.0;
 
+/// The last geometry handed to the platform. Comparing this avoids an
+/// endless next-frame loop while refreshing IME coordinates after async layout
+/// and scrolling, including scrolls whose offscreen pages are not repainted.
+#[derive(Clone, PartialEq)]
+pub(crate) struct ImeGeometry {
+    key: CanvasRequestKey,
+    viewport: Bounds<Pixels>,
+    scroll: Point<Pixels>,
+    selection: Selection,
+}
+
 /// A prompt response applies only to the document version the user saw.
 #[derive(Debug, PartialEq, Eq)]
 enum CloseDecision {
@@ -361,6 +372,9 @@ impl JoyWord {
         {
             return self.label("input.missing_glyphs");
         }
+        if self.frame.is_some() && self.ready_frame().is_none() {
+            return self.label("input.layout_pending");
+        }
         if let Some(editor) = &self.editor {
             if editor.is_composing() {
                 return self.label("input.composing");
@@ -507,6 +521,22 @@ impl JoyWord {
         window.focus(&self.focus_handle);
         window.invalidate_character_coordinates();
     }
+    fn refresh_ime_geometry(&mut self, window: &mut Window) {
+        let geometry = self.ready_frame().and_then(|frame| {
+            Some(ImeGeometry {
+                key: frame.key.clone(),
+                viewport: self.viewport_bounds?,
+                scroll: self.scroll.offset(),
+                selection: self.editor.as_ref()?.view().selection(),
+            })
+        });
+        if geometry != self.ime_geometry {
+            self.ime_geometry = geometry;
+            if self.ime_geometry.is_some() {
+                window.invalidate_character_coordinates();
+            }
+        }
+    }
     fn paint_input(&self, bounds: Bounds<Pixels>, window: &mut Window) {
         let Some(editor) = &self.editor else {
             return;
@@ -610,7 +640,10 @@ impl JoyWord {
                             ElementInputHandler::new(bounds, entity.clone()),
                             cx,
                         );
-                        entity.read(cx).paint_input(bounds, window);
+                        entity.update(cx, |view, _| {
+                            view.refresh_ime_geometry(window);
+                            view.paint_input(bounds, window);
+                        });
                     },
                 )
                 .absolute()

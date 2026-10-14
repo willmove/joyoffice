@@ -190,6 +190,7 @@ struct JoyWord {
     viewport_bounds: Option<Bounds<gpui::Pixels>>,
     dragging: bool,
     reveal_pending: bool,
+    ime_geometry: Option<input_ui::ImeGeometry>,
     preferred_x: Option<joyword_foundation::Emu>,
     close_pending: bool,
     close_task: Option<gpui::Task<()>>,
@@ -359,7 +360,9 @@ impl JoyWord {
                 .child(Catalog::shipped(self.locale).format("canvas.error", &[("reason", error)]))
                 .into_any_element();
         }
-        if let Some(frame) = self.ready_frame() {
+        // Keep the last painted pages while a new request is pending, so the
+        // scroll container does not collapse. Hit testing still requires ready_frame.
+        if let Some(frame) = &self.frame {
             let scale =
                 ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
             return div()
@@ -620,6 +623,7 @@ fn main() {
                         viewport_bounds: None,
                         dragging: false,
                         reveal_pending: false,
+                        ime_geometry: None,
                         preferred_x: None,
                         close_pending: false,
                         close_task: None,
