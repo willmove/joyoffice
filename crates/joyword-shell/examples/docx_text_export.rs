@@ -1,6 +1,7 @@
-//! Headless text-export smoke example; binary DOCX goes to stdout.
+//! Headless text-export smoke example; optionally publish a new file.
 //! cargo run -p joyword-shell --example docx_text_export -- input.docx prefix > output.docx
-//! Use a disposable output path: shell redirection controls the output file.
+//! Or pass a NEW output path as a third argument, without shell redirection.
+//! The storage path never overwrites an existing destination.
 use std::error::Error;
 use std::io::Write;
 
@@ -8,11 +9,12 @@ use joyoffice_opc::Budget;
 use joyword_engine::{Command, Transaction};
 use joyword_model::{Bias, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
+use joyword_shell::storage::save_export_copy;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 3 {
-        return Err("usage: docx_text_export INPUT.docx PREFIX (binary DOCX on stdout)".into());
+    if !(3..=4).contains(&args.len()) {
+        return Err("usage: docx_text_export INPUT.docx PREFIX [NEW_OUTPUT.docx] (otherwise binary DOCX on stdout)".into());
     }
     let bytes = std::fs::read(&args[1])?;
     let mut session = DocxSession::open(&bytes, &Budget::default())?;
@@ -44,6 +46,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         plan.mode(),
         plan.warnings()
     );
-    std::io::stdout().lock().write_all(plan.bytes())?;
+    if let Some(output) = args.get(3) {
+        let receipt = save_export_copy(&plan, std::path::Path::new(output))?;
+        eprintln!(
+            "published {} ({} bytes, {}, {:?})",
+            receipt.path().display(),
+            receipt.bytes(),
+            receipt.version(),
+            receipt.durability()
+        );
+    } else {
+        std::io::stdout().lock().write_all(plan.bytes())?;
+    }
     Ok(())
 }

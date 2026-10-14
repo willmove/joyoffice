@@ -30,6 +30,7 @@
 | Fontique／Skrifa／ICU4X | 字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
+| tempfile 3.27.0 | shell 安全创建同目录私有临时文件（直接依赖） | [上游 API](https://docs.rs/tempfile/3.27.0/tempfile/struct.NamedTempFile.html)，MIT OR Apache-2.0（crate 元数据） | 复用原锁文件版本；不使用可覆盖 persist，发布采用 std::fs::hard_link；无新外部包或升级 |
 | krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出与定位字形（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）与 raster-images；只消费页面场景中的字形与位置 |
 
 MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib、CC0-1.0 和 NCSA 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 0.2.2 间接引入的“停止维护”公告逐条登记理由，待 ADR-010 选定来源时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
@@ -56,3 +57,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-002／FORMAT-003／QUALITY-005；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.3.1、§17.3.2、§17.3.3.23（tab）、§17.3.3.31（t）与 Part 2（OPC）。空白处理交叉核对微软公开 [TextType.Space API 规范说明](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.texttype.space?view=openxml-3.0.1)，未读取 SDK 实现源码。
 - 独立实现采用原始 XML 叶子范围补丁，写出 xml:space="preserve" 与 XML 预定义实体／字符引用；tab 使用独立元素。不能证明安全的节点修改拒绝。原 OPC writer 仅重建 ZIP 容器；其元数据变化在 ExportPlan 显式披露。
 - 原创测试覆盖中英／emoji／组合字符、XML 转义、tab、CDATA、空段落、属性／未知部件／外链保留、保护与签名拒绝、版本竞争、撤销重做和资源预算；未把自导入一致视为 Word/WPS 往返或排版证明。详细环境与命令见 [C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)。
+
+### 已验证导出副本落盘（C03）
+
+- FORMAT-004／QUALITY-004；依据 Rust 标准库 [hard_link](https://doc.rust-lang.org/std/fs/fn.hard_link.html) 的既有目标拒绝语义及 [File::sync_all](https://doc.rust-lang.org/std/fs/struct.File.html#method.sync_all)，使用固定 tempfile 3.27.0 的同目录私有临时文件 API。只复用通用文件库，不涉及 Office 实现。
+- 独立策略为写入→sync→分块回读→不覆盖发布→清理→目录 sync；发布后的失败携带已发布收据，不删除用户可能已读取或继续修改的输出。没有借用库 API 名称宣称所有平台、文件系统与断电场景均通过。
+- 原创故障注入、并发目标、符号链接和真实 DOCX 重开验证见 [C03 报告](../coordination/reports/C03-DOCX-COPY.md)。

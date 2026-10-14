@@ -51,3 +51,7 @@
 3. T105／T102：完整断点、中文规则、分页与命中后，接入画布编辑和 IME；T100/T101 不重复开发。
 4. M0：正式 GPUI 来源、GL／CPU 退路、字体身份、IME／DPI 和信创真机门槛仍待环境验证。未控制桌面；需要 GUI 验证时先与用户约定时段。
 5. Word LTSC 2024／固定 WPS 环境和完整人工验收未执行，不能将内部往返或 textutil 读回当作完整互操作证明。
+
+## 远程 CI 进度（源码 4dd3870）
+
+[运行 38548311954](https://github.com/willmove/joyoffice/actions/runs/38548311954) 绑定完整源码 SHA 4dd3870a609509ec225a7f85cb8509fbb602dfae。协调者检查时 7/8 作业 success：macOS、Linux x86_64／ARM64 应用构建，ARM64／LoongArch64 QEMU 无界面测试、依赖与统一 PDF；Windows 应用构建仍 in_progress，整体不能提前记作通过。这份状态不证明后续 C03 源码已通过。
