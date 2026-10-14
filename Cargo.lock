@@ -2909,6 +2909,7 @@ dependencies = [
  "joyword-foundation",
  "read-fonts 0.39.2",
  "sha2 0.10.9",
+ "unicode-linebreak",
 ]
 
 [[package]]

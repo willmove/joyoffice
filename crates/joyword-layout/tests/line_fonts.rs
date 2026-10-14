@@ -10,7 +10,7 @@ use std::sync::Arc;
 use joyword_foundation::Emu;
 use joyword_layout::{
     BreakError, FeatureSet, LineDiagnostic, LineError, LineLimit, LineLimits, LoadedFont,
-    OverflowKind, PageScene, ParagraphLines, layout_paragraph, shape,
+    OverflowKind, PageScene, ParagraphLines, layout_paragraph, layout_paragraph_auto, shape,
 };
 
 const SIZE: Emu = Emu::new(12 * Emu::PER_POINT);
@@ -417,4 +417,267 @@ fn kerning_at_a_line_end_differs_from_a_paragraph_glyph_slice() {
     assert_eq!(result.lines.len(), 2);
     assert_eq!(result.lines[0].run, first);
     check_integrity(&font, "AV", features, &result);
+}
+
+#[test]
+fn automatic_cjk_wrap_obeys_default_open_and_close_punctuation_rules() {
+    let Some(font) = font(false) else { return };
+    let text = "第一条：甲方（负责人）确认。第二条：乙方履行；双方协商！";
+    let width = Emu::new(SIZE.raw() * 3);
+    let result = layout_paragraph_auto(
+        &font,
+        text,
+        SIZE,
+        FeatureSet::default(),
+        width,
+        LineLimits::default(),
+    )
+    .unwrap();
+    assert!(result.lines.len() > 3);
+    for line in &result.lines {
+        assert!(!line.run.text.starts_with([
+            '，', '。', '！', '？', '；', '：', '、', '）', '】', '》', '」', '』'
+        ]));
+        assert!(!line.run.text.ends_with(['（', '【', '《', '「', '『']));
+    }
+    check_integrity(&font, text, FeatureSet::default(), &result);
+}
+
+#[test]
+fn automatic_nonbreaking_space_and_word_joiner_remain_indivisible() {
+    let Some(font) = font(false) else { return };
+    let text = "A\u{a0}V A\u{2060}V fi";
+    let result = layout_paragraph_auto(
+        &font,
+        text,
+        SIZE,
+        FeatureSet::default(),
+        Emu::new(1),
+        LineLimits::default(),
+    )
+    .unwrap();
+    assert_eq!(
+        result
+            .lines
+            .iter()
+            .map(|line| line.run.text.as_str())
+            .collect::<Vec<_>>(),
+        ["A\u{a0}V ", "A\u{2060}V ", "fi"]
+    );
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|d| matches!(d, LineDiagnostic::Overflow { .. }))
+    );
+    check_integrity(&font, text, FeatureSet::default(), &result);
+}
+
+#[test]
+fn automatic_wrap_keeps_combining_and_emoji_zwj_sequences_whole() {
+    let Some(font) = font(false) else { return };
+    let text = "甲e\u{301}乙👩‍💻丙";
+    let result = layout_paragraph_auto(
+        &font,
+        text,
+        SIZE,
+        FeatureSet::default(),
+        Emu::new(1),
+        LineLimits::default(),
+    )
+    .unwrap();
+    for unit in ["e\u{301}", "👩‍💻"] {
+        let start = text.find(unit).unwrap();
+        for line in &result.lines {
+            assert!(!(start < line.source.bytes.end && line.source.bytes.end < start + unit.len()));
+        }
+    }
+    check_integrity(&font, text, FeatureSet::default(), &result);
+}
+
+#[test]
+fn automatic_ligatures_preserve_clusters_and_reuse_exact_fitter_statistics() {
+    let font = font(true).unwrap();
+    let features = FeatureSet {
+        standard_ligatures: true,
+        kerning: true,
+        ..FeatureSet::default()
+    };
+    let text = "fi AV fi";
+    let width = shape(&font, "fi ", SIZE, features).width;
+    let automatic =
+        layout_paragraph_auto(&font, text, SIZE, features, width, LineLimits::default()).unwrap();
+    let explicit = layout_paragraph(
+        &font,
+        text,
+        SIZE,
+        features,
+        width,
+        &[3, 6],
+        LineLimits::default(),
+    )
+    .unwrap();
+    assert_eq!(automatic, explicit);
+    assert!(
+        automatic
+            .lines
+            .iter()
+            .filter(|line| line.run.text.contains("fi"))
+            .all(|line| line.run.glyphs.len() < line.run.text.chars().count())
+    );
+    check_integrity(&font, text, features, &automatic);
+}
+
+#[test]
+fn automatic_wrap_preserves_repeated_and_edge_whitespace_without_trimming() {
+    let font = font(true).unwrap();
+    let text = "  AV   fi  AV  ";
+    let width = shape(&font, "AV   ", SIZE, FeatureSet::default()).width;
+    let result = layout_paragraph_auto(
+        &font,
+        text,
+        SIZE,
+        FeatureSet::default(),
+        width,
+        LineLimits::default(),
+    )
+    .unwrap();
+    assert!(result.lines.len() > 1);
+    check_integrity(&font, text, FeatureSet::default(), &result);
+}
+
+#[test]
+fn automatic_wrap_charges_breakpoint_and_shaping_budgets_without_retry_reset() {
+    let font = font(true).unwrap();
+    let text = "AV fi AV fi";
+    let width = Emu::new(1);
+    for (limits, expected) in [
+        (
+            LineLimits {
+                max_text_bytes: 2,
+                ..LineLimits::default()
+            },
+            LineLimit::TextBytes,
+        ),
+        (
+            LineLimits {
+                max_breakpoints: 1,
+                ..LineLimits::default()
+            },
+            LineLimit::Breakpoints,
+        ),
+        (
+            LineLimits {
+                max_shape_calls: 1,
+                ..LineLimits::default()
+            },
+            LineLimit::ShapeCalls,
+        ),
+        (
+            LineLimits {
+                max_shaped_bytes: text.len(),
+                ..LineLimits::default()
+            },
+            LineLimit::ShapedBytes,
+        ),
+        (
+            LineLimits {
+                max_lines: 1,
+                ..LineLimits::default()
+            },
+            LineLimit::Lines,
+        ),
+    ] {
+        assert_eq!(
+            layout_paragraph_auto(&font, text, SIZE, FeatureSet::default(), width, limits),
+            Err(LineError::LimitExceeded(expected))
+        );
+    }
+    // No internal opportunity is required for a single word or empty text.
+    let zero_breaks = LineLimits {
+        max_breakpoints: 0,
+        ..LineLimits::default()
+    };
+    assert!(
+        layout_paragraph_auto(&font, "AV", SIZE, FeatureSet::default(), width, zero_breaks).is_ok()
+    );
+    assert!(
+        layout_paragraph_auto(&font, "", SIZE, FeatureSet::default(), width, zero_breaks).is_ok()
+    );
+}
+
+#[test]
+fn automatic_wrap_keeps_existing_unsupported_input_contract() {
+    let font = font(true).unwrap();
+    for text in [
+        "A\nV",
+        "A\tV",
+        "A\u{2028}V",
+        "A\u{2067}V",
+        "A\u{00ad}V",
+        "Aא",
+    ] {
+        assert!(matches!(
+            layout_paragraph_auto(
+                &font,
+                text,
+                SIZE,
+                FeatureSet::default(),
+                SIZE,
+                LineLimits::default()
+            ),
+            Err(LineError::UnsupportedText { .. })
+        ));
+    }
+    assert_eq!(
+        layout_paragraph_auto(
+            &font,
+            "AV",
+            SIZE,
+            FeatureSet::default(),
+            Emu::new(0),
+            LineLimits::default()
+        ),
+        Err(LineError::NonPositiveWidth)
+    );
+    assert_eq!(
+        layout_paragraph_auto(
+            &font,
+            "AV",
+            Emu::new(0),
+            FeatureSet::default(),
+            SIZE,
+            LineLimits::default()
+        ),
+        Err(LineError::InvalidSize)
+    );
+}
+
+#[test]
+fn automatic_wrap_is_deterministic_and_outputs_every_byte_across_widths() {
+    let Some(font) = font(false) else { return };
+    let text = "甲方（共同确认）与乙方，中文 English 与组合e\u{301}、emoji🙂。";
+    for points in [1, 12, 24, 36, 48, 72, 120, 300] {
+        let width = Emu::new(points * Emu::PER_POINT);
+        let first = layout_paragraph_auto(
+            &font,
+            text,
+            SIZE,
+            FeatureSet::default(),
+            width,
+            LineLimits::default(),
+        )
+        .unwrap();
+        let second = layout_paragraph_auto(
+            &font,
+            text,
+            SIZE,
+            FeatureSet::default(),
+            width,
+            LineLimits::default(),
+        )
+        .unwrap();
+        assert_eq!(first, second);
+        check_integrity(&font, text, FeatureSet::default(), &first);
+    }
 }

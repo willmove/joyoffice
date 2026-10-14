@@ -55,3 +55,9 @@ C02 提交前主工作目录曾被切回 main；协调者提交前漏查导致�
 2. 扩展 C02 的结构与格式安全导出；T103 的覆盖引导 fuzz 仍缺失。
 3. T105 分页、命中与 T102 输入随后接入界面；M0 的正式 GPUI 来源、GL／CPU、IME／DPI 与信创真机门槛保持未完成。
 4. 新源码远程 CI 需绑定其提交记录；不把 C02 运行结果当作本任务通过。
+
+## 后续独立验证与远程 CI
+
+在相同 shell 源码上完成 `cargo check -p joyword-shell --all-targets --target x86_64-pc-windows-msvc --locked`，passed；为既定 Rust 1.98.1 增加 Windows 标准库目标，没有安装或切换其他工具链。这是交叉检查，不是 Windows 人工运行。
+
+源码 574c44f3f9e4b9a93766ce7fa7f3dd8aa8ecb05e 的 [38549344307](https://github.com/willmove/joyoffice/actions/runs/38549344307) 最终 8/8 作业 success：macOS／Windows／Linux x86_64 与原生 ARM64 构建、ARM64／LoongArch64 QEMU、依赖和统一 PDF。C03 的新存储路径进入默认成员测试，Windows 的 Unix 专属权限／符号链接测试不编译，不能据此声称这些平台语义已全量验收。远程 CI 不替代真实断电、GUI 或 Office。

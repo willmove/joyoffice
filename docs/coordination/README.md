@@ -2,7 +2,7 @@
 
 日期：2026-10-14。总协调者为发出本轮任务的 Codex 聊天。由用户在各软件中启动执行者，并把最终交接转回本聊天。目前没有自动调度、自动跨软件发消息或后台监控。
 
-第一轮成果已由 PR #1 合入 main（2b9d58c2866703f4cd10b7f5e0fc56c961c23c57）。后续由协调者在 codex/coordination-docx-session 分支执行 [C01：DOCX 会话安全接入](tasks/C01-DOCX-SESSION.md)，交付见 [C01 报告](reports/C01-DOCX-SESSION.md)；W01–W04 不重复启动。C01 已合入 main；当前协调者根据用户继续推进项目的指令，在 codex/coordination-docx-export 执行 [C02：保守 DOCX 导出](tasks/C02-DOCX-EXPORT.md)，见 [C02 报告](reports/C02-DOCX-EXPORT.md)。后续独立 worktree 在 codex/coordination-docx-storage 执行 [C03：DOCX 新副本落盘](tasks/C03-DOCX-COPY.md)，见 [C03 报告](reports/C03-DOCX-COPY.md)。下文保留第一轮派工与交接记录。
+第一轮成果已由 PR #1 合入 main（2b9d58c2866703f4cd10b7f5e0fc56c961c23c57）。后续由协调者在 codex/coordination-docx-session 分支执行 [C01：DOCX 会话安全接入](tasks/C01-DOCX-SESSION.md)，交付见 [C01 报告](reports/C01-DOCX-SESSION.md)；W01–W04 不重复启动。C01 已合入 main；当前协调者根据用户继续推进项目的指令，在 codex/coordination-docx-export 执行 [C02：保守 DOCX 导出](tasks/C02-DOCX-EXPORT.md)，见 [C02 报告](reports/C02-DOCX-EXPORT.md)。后续独立 worktree 在 codex/coordination-docx-storage 执行 [C03：DOCX 新副本落盘](tasks/C03-DOCX-COPY.md)，见 [C03 报告](reports/C03-DOCX-COPY.md)。当前后台继续在 codex/coordination-unicode-wrap 推进 [C04：自动 Unicode 断点](tasks/C04-UNICODE-WRAP.md)，见 [C04 报告](reports/C04-UNICODE-WRAP.md)。下文保留第一轮派工与交接记录。
 
 ## 基线与分配
 

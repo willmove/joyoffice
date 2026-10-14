@@ -30,6 +30,7 @@
 | Fontique／Skrifa／ICU4X | 字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
+| unicode-linebreak 0.1.5 | layout 的默认 Unicode 候选断点（直接依赖） | [上游 API](https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/)，Apache-2.0（crate 元数据） | 精确复用锁文件版本，Unicode 15.0；不据此宣称 Word 中文规则或词典分词 |
 | tempfile 3.27.0 | shell 安全创建同目录私有临时文件（直接依赖） | [上游 API](https://docs.rs/tempfile/3.27.0/tempfile/struct.NamedTempFile.html)，MIT OR Apache-2.0（crate 元数据） | 复用原锁文件版本；不使用可覆盖 persist，发布采用 std::fs::hard_link；无新外部包或升级 |
 | krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出与定位字形（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）与 raster-images；只消费页面场景中的字形与位置 |
 
@@ -63,3 +64,8 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-004／QUALITY-004；依据 Rust 标准库 [hard_link](https://doc.rust-lang.org/std/fs/fn.hard_link.html) 的既有目标拒绝语义及 [File::sync_all](https://doc.rust-lang.org/std/fs/struct.File.html#method.sync_all)，使用固定 tempfile 3.27.0 的同目录私有临时文件 API。只复用通用文件库，不涉及 Office 实现。
 - 独立策略为写入→sync→分块回读→不覆盖发布→清理→目录 sync；发布后的失败携带已发布收据，不删除用户可能已读取或继续修改的输出。没有借用库 API 名称宣称所有平台、文件系统与断电场景均通过。
 - 原创故障注入、并发目标、符号链接和真实 DOCX 重开验证见 [C03 报告](../coordination/reports/C03-DOCX-COPY.md)。
+
+### 自动 Unicode 默认换行（C04）
+
+- LAYOUT-002／LAYOUT-003／LAYOUT-009；依据 [Unicode 15.0 UAX #14 rev. 49](https://www.unicode.org/reports/tr14/tr14-49.html) §1、§6、§8 及 unicode-linebreak 0.1.5 的公开 API。候选规则复用通用 Unicode 库，字体身份、簇安全、预算、行拟合与重整形仍使用项目既有独立实现。
+- 默认 Unicode 禁则不是固定 Word profile；需要词典的分词、语言定制、连字符生成、混合字体与分页不在此切片内。不能正确显示 discretionary soft hyphen 时明确拒绝，不静默遗漏可见字形。原创真实字体测试及环境见 [C04 报告](../coordination/reports/C04-UNICODE-WRAP.md)。

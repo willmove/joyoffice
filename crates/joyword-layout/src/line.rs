@@ -1,6 +1,7 @@
 //! Limited single-font, horizontal LTR line fitting. The caller supplies legal
-//! break opportunities as UTF-8 byte offsets; this module does not implement
-//! UAX #14, Chinese punctuation rules, bidi analysis or Word compatibility.
+//! break opportunities as UTF-8 byte offsets, or uses an incremental Unicode
+//! default UAX #14 entry point. Neither implements Word-specific Chinese
+//! compatibility rules or bidi analysis.
 //!
 //! Opportunities must also be whole-paragraph shaping cluster boundaries.
 //! Remaining-text cluster boundaries are checked again after each break.
@@ -156,7 +157,8 @@ pub enum LineError {
         reason: BreakError,
     },
     /// Controls, hard separators, bidi formatting controls, or a scalar
-    /// whose script HarfRust guesses as RTL. This is not full UAX #9.
+    /// whose script HarfRust guesses as RTL. The automatic entry also
+    /// rejects discretionary soft hyphens. This is not full UAX #9.
     UnsupportedText {
         offset: usize,
     },
@@ -188,8 +190,99 @@ pub fn layout_paragraph(
     breakpoints: &[usize],
     limits: LineLimits,
 ) -> Result<ParagraphLines, LineError> {
+    layout_with_breaks(
+        font,
+        text,
+        size,
+        features,
+        width,
+        BreakInput::Explicit(breakpoints),
+        limits,
+    )
+}
+
+/// Fit single-font LTR text with Unicode 15.0 default UAX #14 opportunities.
+/// Candidates inside whole-paragraph shaping clusters are removed; the usual
+/// remaining-text cluster checks and per-candidate re-shaping still apply.
+/// All scans, shaping and output use one request budget. Text and whitespace
+/// are never trimmed. Hard separators, tabs, bidi and discretionary soft
+/// hyphens remain unsupported; no invisible hyphen is silently laid out.
+///
+/// This is a Unicode default profile, not Word's language-specific Chinese
+/// compatibility rules, dictionary segmentation, or automatic hyphenation.
+/// Source: UAX #14 rev. 49 (Unicode 15.0), sections 1, 6 and 8.
+/// <https://www.unicode.org/reports/tr14/tr14-49.html>
+pub fn layout_paragraph_auto(
+    font: &LoadedFont,
+    text: &str,
+    size: Emu,
+    features: FeatureSet,
+    width: Emu,
+    limits: LineLimits,
+) -> Result<ParagraphLines, LineError> {
+    layout_with_breaks(
+        font,
+        text,
+        size,
+        features,
+        width,
+        BreakInput::Unicode,
+        limits,
+    )
+}
+
+#[derive(Clone, Copy)]
+enum BreakInput<'a> {
+    Explicit(&'a [usize]),
+    Unicode,
+}
+
+fn unicode_breaks(text: &str, limit: usize) -> Result<Vec<usize>, LineError> {
+    let mut points = Vec::new();
+    for (offset, _) in unicode_linebreak::linebreaks(text) {
+        // End is implicit in the fitter, and empty text has no breakpoint.
+        if offset == 0 || offset == text.len() {
+            continue;
+        }
+        if points.len() >= limit {
+            return Err(LineError::LimitExceeded(LineLimit::Breakpoints));
+        }
+        points.push(offset);
+    }
+    Ok(points)
+}
+
+fn layout_with_breaks(
+    font: &LoadedFont,
+    text: &str,
+    size: Emu,
+    features: FeatureSet,
+    width: Emu,
+    input: BreakInput<'_>,
+    limits: LineLimits,
+) -> Result<ParagraphLines, LineError> {
     let limits = limits.capped();
-    validate_input(text, size, width, breakpoints, limits)?;
+    let explicit = match input {
+        BreakInput::Explicit(points) => points,
+        BreakInput::Unicode => &[],
+    };
+    validate_input(text, size, width, explicit, limits)?;
+    if matches!(input, BreakInput::Unicode)
+        && let Some((offset, _)) = text.char_indices().find(|(_, ch)| *ch == '\u{00ad}')
+    {
+        // UAX #14 permits breaking after SHY, but rendering a discretionary
+        // hyphen requires an additional glyph/position policy not present in
+        // this slice. Reject rather than break without the visible hyphen.
+        return Err(LineError::UnsupportedText { offset });
+    }
+    let generated = match input {
+        BreakInput::Unicode => unicode_breaks(text, limits.max_breakpoints)?,
+        BreakInput::Explicit(_) => Vec::new(),
+    };
+    let breakpoints = match input {
+        BreakInput::Explicit(points) => points,
+        BreakInput::Unicode => &generated,
+    };
     let mut stats = LineStats::default();
     let mut measure = |part: &str| {
         charge_shape(&mut stats, limits, part.len())?;
@@ -200,6 +293,18 @@ pub fn layout_paragraph(
     let paragraph = measure(text)?;
     let mut cluster_starts: Vec<usize> = paragraph.glyphs.iter().map(|g| g.cluster).collect();
     cluster_starts.dedup();
+    let safe: Vec<_> = match input {
+        BreakInput::Unicode => breakpoints
+            .iter()
+            .copied()
+            .filter(|offset| cluster_starts.binary_search(offset).is_ok())
+            .collect(),
+        BreakInput::Explicit(_) => Vec::new(),
+    };
+    let breakpoints = match input {
+        BreakInput::Unicode => safe.as_slice(),
+        BreakInput::Explicit(_) => breakpoints,
+    };
     let ends = validate_breaks(text, breakpoints, &cluster_starts)?;
     let mut result = ParagraphLines {
         lines: Vec::new(),

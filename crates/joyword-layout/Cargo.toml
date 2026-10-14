@@ -13,6 +13,7 @@ harfrust.workspace = true
 joyword-foundation.workspace = true
 read-fonts.workspace = true
 sha2.workspace = true
+unicode-linebreak.workspace = true
 
 [lints]
 workspace = true
