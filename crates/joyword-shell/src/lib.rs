@@ -11,3 +11,5 @@ pub mod documents;
 pub mod docx;
 pub mod l10n;
 pub mod prefs;
+
+pub mod storage;

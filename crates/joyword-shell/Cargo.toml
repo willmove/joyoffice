@@ -13,6 +13,7 @@ joyoffice-opc.workspace = true
 joyword-docx.workspace = true
 joyword-engine.workspace = true
 joyword-model.workspace = true
+tempfile.workspace = true
 
 [lints]
 workspace = true
