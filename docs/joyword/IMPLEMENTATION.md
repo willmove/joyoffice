@@ -5,13 +5,13 @@
 ## 已落地的内容
 
 - 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.2：82 个需求、58 个任务），每项有输入、输出、依赖、错误路径和验收要求。
-- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword-layout 字体身份、整形与页面场景，joyword-pdf 由同一场景写出 PDF（T003）；joyword-corpus 确定性生成原创最小 DOCX 样例（T004）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
+- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword-layout 字体身份、整形与页面场景，joyword-pdf 由同一场景写出 PDF（T003）；joyword-render 由同一场景生成 CPU 页面图像；joyword-corpus 确定性生成原创最小 DOCX 样例（T004）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
 - 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
 - 中文／英文独立资源（支持插值与复数）；静态 A4 页面、语言切换和 50%–150% 缩放，均可从菜单、快捷键和界面按钮触发。
 - 原创 UTF-8 种子与 5 个原创最小 DOCX 样例、散列清单，以及需求覆盖／依赖／本地链接／语料（含参考结果状态）／语言资源／Actions 固定检查器；语义比较接口与 PDF 行／页断点比较工具。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
-已在第一轮协作中接入 DOCX 声明子集只读导入（W01）与单字体显式断点行拟合（W03），并保留既有统一场景实验 PDF。已增量提供现有段落和格式边界内的保守文字修改导出（C02）；另有 C03 的只创建新路径导出副本落盘；C04 已补齐单字体的 Unicode 默认自动断点；C05 已接通 DocumentSnapshot 的单节预览分页、版本快照、命中／光标／选区几何与多页 PDF；尚无原件覆盖保存、完整断行分页、IME 编辑、修订、批注、剪贴板或 AI 实现。模型与事务没有接入窗口；工程页面仍由 GPUI 直接显示样例文字，不是未来统一排版场景，也不构成 Word 保真证明。
+已在第一轮协作中接入 DOCX 声明子集只读导入（W01）与单字体显式断点行拟合（W03），并保留既有统一场景实验 PDF。已增量提供现有段落和格式边界内的保守文字修改导出（C02）；另有 C03 的只创建新路径导出副本落盘；C04 已补齐单字体的 Unicode 默认自动断点；C05 已接通 DocumentSnapshot 的单节预览分页、版本快照、命中／光标／选区几何与多页 PDF；尚无原件覆盖保存、完整断行分页、IME 编辑、修订、批注、剪贴板或 AI 实现。C06 已把只读 engine 会话／DocumentSnapshot／LayoutSnapshot／CPU 页面图像接入窗口；正文按场景字形绘制，不交给 GPUI 重新整形。输入、编辑事务与保存入口尚未接入；新画布尚无 GUI 验收，也不构成 Word 保真证明。
 
 ### 第一轮集成切片（2026-10-14）
 
@@ -95,6 +95,14 @@
 - 新增 19 项 layout 真实字体测试（含 64 轮 engine 编辑与重排）、1 项文档分页→PDF 不变性测试；全默认成员 200 项通过，4 项新增核对器逻辑测试通过。两页中文样例 28 行／551 字形，独立 Poppler 页／行／可见边框检查与 pdfplumber 全字符基线检查通过；两页渲染已检查。详情见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。
 - 不增加／升级外部包，锁文件仅 4 条内部边。未接 GPUI，未完成四槽字体／回退、Word 兼容规则、显式行内分页符、混合格式、增量重排或人工验收。用户选择后台开发，GUI／IME／Word-WPS 验证暂缓，T105 仍 in_progress，T102 尚待窗口接入。
 
+### CPU 页面与只读画布（C06，T003／T005／T105 增量）
+
+- joyword-render 用精确 Skrifa 0.42.1 读取同一 FontKey 字节／face 的未 hint 轮廓，tiny-skia 0.11.4 光栅为不透明 RGBA 页面。只消费 PageScene 的 glyph id、字号和定位，不重新整形或断行，不使用系统同名解析；PDF 继续输出原场景的可检索文字。
+- 字体／字节、页面维度／总像素、run／字形、唯一轮廓／命令、填充像素及缓存轮廓的重复边缘扫描均有硬预算；共享单调取消在预检、字形和轮廓命令间检查，失败不返回半幅图。彩色／bitmap／SVG 字体尚未实现，表存在即保守拒绝；空白字形合法但缺失轮廓明确失败。
+- 正式窗口后台加载实际字体与只读 engine 会话，布局与页面图像从真实快照生成；按实际设备倍率与 zoom 生成像素，GPUI 仅显示图像与 UI 标签。版本／内容／字体／profile／投影及请求序号校验阻止迟到结果。空闲、语言切换及同一失败请求不循环调度；新投影取消旧工作，关闭使用弱 view 句柄。
+- 20 项新增内核测试（含真实 CJK collection face）、4 项新增应用适配测试和 4 项独立像素核对器反例通过；全默认成员 220 项、相关 release 70 项通过。2 页 24 行原创中英文 CPU 图像与 Poppler 渲染的同场景 PDF 比较：逐行墨迹边框最大差 0 px，全部深色笔画像素在对方 1 px 内有实际抗锯齿墨迹；四幅图均已查看。详情见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。
+- 只重用原锁文件外部包，新增内部 render crate；GPUI 不改来源／代码，W02 实验未改。这是 CPU 页面消费者，不等于完整无 GPU 窗口、国产平台真机、GPUI FontId 原生字形通道或 ADR-010 正式裁决。输入／IME／可访问性／Word profile 及 GUI 实测仍待完成。
+
 ### joyword-shell（T106，进行中）
 
 | 部分 | 已实现 | 尚未实现 |
@@ -110,7 +118,7 @@
 - joyword-pdf：用 krilla 的定位字形接口逐字形写出场景位置，与整形使用同一字体字节；字体以子集嵌入并带 ToUnicode，文字可检索；关闭 krilla 自带整形。验证中发现并修复一处缺陷：krilla 按字号 1 询问字形度量，原实现直接返回磅值，导致 PDF 中每字多出 11 em 的间距；修复后同一行 TJ 微调最大 0.004／1000 em。
 - 本机证据（2026-10-14，macOS 系统字体 Songti.ttc face 0，sha256 dd2f0628…5a87777，仅本地使用）：原创合同种子 5 行无缺字；PDF 22.8 KB；macOS PDFKit 读回 5 行文字与场景一致；同一场景两次输出字节相同。
 - CI 证据：unified-pdf 作业在 Ubuntu 24.04 安装 fonts-noto-cjk（OFL）与 poppler-utils，强制要求测试字体，运行整形／PDF 测试和示例，并用 `pdftotext -bbox-layout` 比对每行文字、行首（容差 0.01 pt）与行尾（容差 0.05 pt），PDF 作为构件上传。运行 38486616823（提交 95affb0）：fonts-noto-cjk 1:20230817+repack1-3 的 NotoSansCJK-Regular.ttc face 2（sha256 b76b0433…690a）、poppler-utils 24.02.0-1ubuntu9.10；整形／PDF 7 项测试在强制要求字体下通过；5 行 0 缺字，PDF 17 KB；读回 5 行文字一致，行首与行尾最大偏差均为 0.0000 pt。
-- 尚未完成：正式 GPUI 屏幕侧适配。未经补丁的 0.2.2 无法在外部构造 GlyphId；W02 的独立 macOS 探针已以最小可见性补丁和改名注册验证路径，但不能替代正式来源的 GL/CPU、字体身份、Retina 与供应链门槛。中文 IME、撤销、多显示器 DPI 与两个独立阅读器人工检查仍未完成。
+- C06 已通过 CPU 页面消费者接入正式窗口，离线图像与 PDF 光栅对照通过；实际窗口呈现待 GUI 验收。尚未完成：GPUI 原生 FontId 字形侧适配。未经补丁的 0.2.2 无法在外部构造 GlyphId；W02 的独立 macOS 探针已以最小可见性补丁和改名注册验证路径，但不能替代正式来源的 GL/CPU、字体身份、Retina 与供应链门槛。中文 IME、撤销、多显示器 DPI 与两个独立阅读器人工检查仍未完成。
 
 ### 语料与比较工具（T004，进行中）
 

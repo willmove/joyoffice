@@ -27,7 +27,10 @@
 | Ropey 1.6.1 | 仅 T100 文本存储基准的 dev 依赖 | [上游](https://github.com/cessen/ropey)，MIT | 不进入产品构建；基准结论见 IMPLEMENTATION |
 | HarfRust 0.8.4 | joyword-layout 字体整形（直接依赖） | [上游](https://github.com/harfbuzz/harfrust)，MIT | 选此版本以与 krilla 共用 read-fonts 0.39；特性逐项显式开关；不根据库名称声称兼容 Word |
 | read-fonts 0.39.2 | joyword-layout 字体表读取（直接依赖） | MIT OR Apache-2.0（crate 元数据） | 与 HarfRust、krilla 的 skrifa 0.42.1 共用同一版本 |
-| Fontique／Skrifa／ICU4X | 字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
+| Fontique／ICU4X | 后续字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
+| Skrifa 0.42.1 | CPU 字形轮廓直接依赖 | [上游](https://github.com/googlefonts/fontations)，MIT OR Apache-2.0 | 与现有 PDF 共用 read-fonts 0.39.2；只重用原锁文件版本 |
+| tiny-skia 0.11.4 | CPU 单色轮廓光栅直接依赖 | [上游](https://github.com/RazrFalcon/tiny-skia)，BSD-3-Clause | 重用原锁文件，默认 SIMD／PNG 特性；保留许可通知 |
+| image 0.25.10 | app 的内存页面到 GPUI 图像适配 | [上游](https://github.com/image-rs/image)，MIT OR Apache-2.0 | 复用 GPUI 原锁文件依赖；未启用额外默认特性 |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
 | unicode-linebreak 0.1.5 | layout 的默认 Unicode 候选断点（直接依赖） | [上游 API](https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/)，Apache-2.0（crate 元数据） | 精确复用锁文件版本，Unicode 15.0；不据此宣称 Word 中文规则或词典分词 |
@@ -75,3 +78,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - LAYOUT-003／LAYOUT-009；页框与段前分页语义参考 ECMA-376 Part 1 §17.6 及微软公开规范说明 [PageSize](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagesize?view=openxml-3.0.1)、[PageBreakBefore](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagebreakbefore?view=openxml-3.0.1)。只读取规范／API 文档，未读取 Open XML SDK 实现，不由 Office 引擎承担内核。
 - 基于现有 model、engine、真实字体与 C04 断行独立实现固定行盒预览分页、源位置几何和内容键。累加段间距、固定基线和 cluster 边界命中为显式预览选择，不等同于 Word 的段间距折叠、页顶规则或字体布局 profile。
 - 原创连续文本与事务测试，PDF 原样消费 PageScene；Poppler／pdfplumber 为独立验证工具，不进入 Rust 产品依赖。证据与未覆盖项见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。
+
+### CPU 页面光栅与正式只读画布（C06）
+
+- LAYOUT-001／LAYOUT-009；依据既有 EMU 场景契约、微软公开 [OpenType glyf 说明](https://learn.microsoft.com/en-us/typography/opentype/spec/glyf)，以及固定 Skrifa 0.42.1 的 outline::DrawSettings／OutlinePen、tiny-skia 0.11.4 的 Pixmap／PathBuilder 公共 API。精确版本的 crate 本地 rustdoc 和源码已核对；浏览器未能访问相应 docs.rs 版本页，未以 latest API 代替固定版本。
+- 坐标变换、预算、请求版本、缓存复杂度计费与独立像素核对器为项目原创实现；轮廓解析和光栅算法复用通用字体／图形库。GPUI 的公开图像元素接收明确转换的 BGRA，不借用 Zed 编辑器实现，也不改字体元数据来迁就名字解析。
+- 20 段原创种子在 CPU 和 PDF 共用 PageScene，Poppler 是独立参考光栅器；同场景比较不是 Word 黑盒参考或原生窗口验收，具体结果见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。

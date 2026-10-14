@@ -62,3 +62,7 @@ PATH=/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/nativ
 用户随后明确选择“先继续后台开发”，已暂停 GUI。此前 macOS 屏幕捕获及辅助功能权限 false，WPS 12.1.29181（build 29181）只收到打开 C03 原创副本的请求，无法观察，不是 WPS 打开成功证据。未绕过权限，也未记录 JoyWord 中文输入、Word/WPS 往返或人工分页验收通过。
 
 规范与通用库来源见 [PROVENANCE](../../joyword/PROVENANCE.md)。下一优先项是选择正式 GPUI 字形路径并把真实模型／场景接入画布与 T102 输入；同时扩展字体／样式与分页规则。T103 原件覆盖保存、文件锁／元数据和 T104 恢复亦未完成，保留产品验收状态，不缩减原始目标。
+
+## 后续核验的远程 CI
+
+Actions [38554795497](https://github.com/willmove/joyoffice/actions/runs/38554795497) 绑定 C05 源码 2b29c84d6c51a8ecfffe14418d8b9325d7bb5dcc：8／8 作业成功（macOS、Windows、x86／ARM Linux 构建、ARM／LoongArch QEMU、统一与多页 PDF、依赖检查）。此结果不替代 GUI／Word-WPS／真机人工验收。

@@ -2,7 +2,7 @@
 
 JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字处理软件 **JoyWord**。JoySheet、JoyDeck 为后续方向。项目采用 MIT 许可证。
 
-**当前是规格基线、M0 工程样例与无界面的文档内核，还不是可编辑或保存 Word 文件的产品。** 窗口展示原创中英文文字、A4 页面、语言切换及缩放；模型与事务（T100/T101）尚未接入窗口。joyword-docx 已在 OPC 预算之上实现声明子集的只读导入与原始包保留（T103 首个切片）；joyword-layout 已有单字体、显式或 Unicode 默认自动断点的横向行拟合，以及显式单字体 profile 下的单节分页、版本快照和命中几何，统一场景可输出多页实验 PDF（T003/T105）。joyword-shell 的命令注册表已驱动窗口入口（T106）；无界面 DOCX 会话已支持现有段落／格式边界内的保守文字导出与往返校验（C02），超出范围明确拒绝，并可将已验证计划安全写为新路径的导出副本（C03）；尚无原件覆盖保存。完整 DOCX 编辑保存、Word 兼容中文规则与分页、IME、修订、批注及 AI 尚未接入；当前切片和人工验收边界见实施记录。
+**当前是规格基线、M0 工程样例与无界面的文档内核，还不是可编辑或保存 Word 文件的产品。** 窗口已接入真实只读文档会话、统一页面的 CPU 图像、语言切换及缩放；尚无编辑入口，新画布的 GUI 验收待执行。joyword-docx 已在 OPC 预算之上实现声明子集的只读导入与原始包保留（T103 首个切片）；joyword-layout 已有单字体、显式或 Unicode 默认自动断点的横向行拟合，以及显式单字体 profile 下的单节分页、版本快照和命中几何，统一场景可输出多页实验 PDF（T003/T105）。joyword-shell 的命令注册表已驱动窗口入口（T106）；无界面 DOCX 会话已支持现有段落／格式边界内的保守文字导出与往返校验（C02），超出范围明确拒绝，并可将已验证计划安全写为新路径的导出副本（C03）；尚无原件覆盖保存。完整 DOCX 编辑保存、Word 兼容中文规则与分页、IME、修订、批注及 AI 尚未接入；当前切片和人工验收边界见实施记录。
 
 ## 规格与任务
 
@@ -12,7 +12,7 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 - [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)
 - [多 Agent 分工与交付](docs/coordination/README.md) · [W01/W03 集成审查](docs/coordination/reports/WAVE01-REVIEW.md)
 
-## 运行 M0 样例
+## 运行技术预览
 
 工具链固定 Rust 1.98.1，GPUI 固定 0.2.2；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux x86_64 与原生 ARM64）已实际运行并通过，另在 QEMU 下运行 ARM64／LoongArch64 无界面测试；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
 
@@ -21,6 +21,8 @@ Mac 开发环境缺少 Metal 编译工具时，可使用 GPUI 的运行时着色
 ```sh
 cargo run -p joyword --features dev-runtime-shaders --locked
 ```
+
+正文需要实际 CJK 字体。自动检查 macOS 宋体 face 6、Linux Noto CJK face 2、Windows 宋体 face 0；也可设置 `JOYWORD_FONT=字体文件绝对路径:face序号`。缺失或无法完整显示样例时返回错误，不使用同名字体替代。系统字体不随仓库分发。
 
 需要本地 .app 包时，先构建，再生成开发包装：
 
@@ -64,6 +66,14 @@ python3 scripts/verify_document_pdf.py target/document-flow
 
 额外安装 pdfplumber 后，可加 `--glyph-baselines` 独立核对全部字符的绝对基线。
 
+C06 无 GPU 页面光栅与同场景 PDF 对照（Poppler 的字体抗锯齿可能不同；按行墨迹位置与双向笔画覆盖核对）：
+
+```sh
+cargo run -p joyword-render --example cpu_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/cpu-scene
+pdftoppm -r 144 -png target/cpu-scene/reference.pdf target/cpu-scene/pdf
+cargo run -p joyword-render --example compare_rasters -- target/cpu-scene/cpu-1.png target/cpu-scene/pdf-1.png
+```
+
 T100 文本存储基准：
 
 ```sh
@@ -76,7 +86,7 @@ Mac 开发路径静态检查：
 cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings
 ```
 
-默认 workspace 成员只含无界面的 crate（含基础库、模型、引擎、DOCX/OPC、排版/PDF、语料及外壳逻辑），使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
+默认 workspace 成员只含无界面的 crate（含基础库、模型、引擎、DOCX/OPC、排版/PDF/CPU 光栅、语料及外壳逻辑），使核心测试不依赖窗口和 GPU。显式使用 `-p joyword` 构建应用。语料种子与登记规则见 [tests/fixtures](tests/fixtures/README.md)；登记校验不代表格式兼容测试通过。
 
 ## 实施原则
 

@@ -1,16 +1,21 @@
-//! M0 window and physical-page projection spike, not a document editor.
+//! Read-only engineering document canvas backed by the unified scene.
 //! Menus, shortcuts and on-screen buttons come from the joyword-shell command
 //! registry and run through its single entry point (T106).
+mod document_canvas;
+
 use gpui::{
     Action, App, Application, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window,
-    WindowBounds, WindowOptions, actions, div, prelude::*, px, rgb, size,
+    WindowBounds, WindowOptions, actions, div, img, prelude::*, px, rgb, size,
 };
-use joyword_foundation::{PageSize, ScreenScale};
+use joyword_foundation::ScreenScale;
+use joyword_render::requests::{RasterRequestGate, RasterRequestKey};
+use joyword_render::{Projection, RasterCancellation};
 use joyword_shell::command::{
     Availability, CommandHost, CommandId, MenuEntry, Platform, QUIT, Registry, SWITCH_LANGUAGE,
     ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use joyword_shell::l10n::{Catalog, Locale};
+use std::sync::Arc;
 
 actions!(joyword, [Quit, ZoomIn, ZoomOut, ZoomReset, SwitchLanguage]);
 
@@ -99,6 +104,16 @@ struct JoyWord {
     locale: Locale,
     registry: Registry,
     focus_handle: FocusHandle,
+    source: Option<Arc<document_canvas::CanvasSource>>,
+    images: Vec<Arc<gpui::RenderImage>>,
+    image_key: Option<RasterRequestKey>,
+    gate: RasterRequestGate,
+    raster_cancel: RasterCancellation,
+    load_started: bool,
+    load_task: Option<gpui::Task<()>>,
+    raster_task: Option<gpui::Task<()>>,
+    device_scale: f32,
+    canvas_error: Option<String>,
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -137,7 +152,143 @@ impl CommandHost for ViewHost<'_, '_> {
     }
 }
 
+impl Drop for JoyWord {
+    fn drop(&mut self) {
+        self.raster_cancel.cancel();
+    }
+}
+
 impl JoyWord {
+    fn projection(&self) -> Projection {
+        Projection::new(
+            96.0 * f64::from(self.device_scale),
+            f64::from(self.zoom_percent) / 100.0,
+        )
+        .expect("validated view scales")
+    }
+    fn request_canvas(&mut self, cx: &mut Context<Self>) {
+        if !self.load_started {
+            self.load_started = true;
+            let job = cx
+                .background_executor()
+                .spawn(async { document_canvas::load_source() });
+            self.load_task = Some(cx.spawn(async move |view, cx| {
+                let result = job.await;
+                let _ = view.update(cx, |view, cx| {
+                    match result {
+                        Ok(source) => view.source = Some(Arc::new(source)),
+                        Err(error) => view.canvas_error = Some(error),
+                    }
+                    cx.notify();
+                });
+            }));
+        }
+        let Some(source) = self.source.clone() else {
+            return;
+        };
+        let projection = self.projection();
+        let key = RasterRequestKey {
+            layout: source.layout.key().clone(),
+            projection,
+        };
+        let Some(ticket) = self.gate.request(key) else {
+            return;
+        };
+        self.raster_cancel.cancel();
+        self.raster_cancel = RasterCancellation::default();
+        let cancellation = self.raster_cancel.clone();
+        self.canvas_error = None;
+        let job = cx.background_executor().spawn(async move {
+            document_canvas::raster_pages(&source, projection, &cancellation).map(|pages| {
+                pages
+                    .into_iter()
+                    .map(document_canvas::image)
+                    .collect::<Vec<_>>()
+            })
+        });
+        self.raster_task = Some(cx.spawn(async move |view, cx| {
+            let result = job.await;
+            let _ = view.update(cx, |view, cx| {
+                let Some(source) = &view.source else {
+                    return;
+                };
+                let current = RasterRequestKey {
+                    layout: source.layout.key().clone(),
+                    projection: view.projection(),
+                };
+                if !view.gate.accepts(&ticket, &current) {
+                    return;
+                }
+                if source
+                    .layout
+                    .ensure_current(
+                        &source.session.document().snapshot(),
+                        &source.font,
+                        source.profile,
+                    )
+                    .is_err()
+                {
+                    return;
+                }
+                // RenderImage IDs remain in GPUI's sprite atlas until
+                // explicitly dropped; repeated zoom must not accumulate them.
+                for image in view.images.drain(..) {
+                    cx.drop_image(image, None);
+                }
+                match result {
+                    Ok(images) => {
+                        view.images = images;
+                        view.image_key = Some(current);
+                    }
+                    Err(error) => {
+                        view.images.clear();
+                        view.image_key = None;
+                        view.canvas_error = Some(error);
+                    }
+                }
+                cx.notify();
+            });
+        }));
+    }
+    fn canvas(&self) -> gpui::AnyElement {
+        if let Some(error) = &self.canvas_error {
+            return div()
+                .p_6()
+                .bg(rgb(0xfff8e7))
+                .child(Catalog::shipped(self.locale).format("canvas.error", &[("reason", error)]))
+                .into_any_element();
+        }
+        if let Some(source) = &self.source {
+            let key = RasterRequestKey {
+                layout: source.layout.key().clone(),
+                projection: self.projection(),
+            };
+            if self.image_key.as_ref() == Some(&key) {
+                let scale =
+                    ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
+                return div()
+                    .flex()
+                    .flex_col()
+                    .gap_8()
+                    .children(source.layout.pages().iter().zip(&self.images).map(
+                        |(page, image)| {
+                            div()
+                                .w(px(scale.logical_pixels(page.width) as f32))
+                                .h(px(scale.logical_pixels(page.height) as f32))
+                                .flex_shrink_0()
+                                .bg(rgb(0xffffff))
+                                .shadow_md()
+                                .child(img(image.clone()).size_full())
+                        },
+                    ))
+                    .into_any_element();
+            }
+        }
+        div()
+            .p_6()
+            .child(self.label("canvas.loading"))
+            .into_any_element()
+    }
     fn label(&self, key: &str) -> String {
         Catalog::shipped(self.locale).text(key)
     }
@@ -151,13 +302,9 @@ impl JoyWord {
 }
 
 impl Render for JoyWord {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let scale = ScreenScale::new(f64::from(self.zoom_percent) / 100.0)
-            .expect("zoom is clamped to a valid range");
-        let page = PageSize::A4;
-        let width = scale.logical_pixels(page.width) as f32;
-        let height = scale.logical_pixels(page.height) as f32;
-        let zoom = f32::from(self.zoom_percent) / 100.0;
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.device_scale = window.scale_factor();
+        self.request_canvas(cx);
         let catalog = Catalog::shipped(self.locale);
 
         div()
@@ -204,27 +351,7 @@ impl Render for JoyWord {
                     .min_h_0()
                     .overflow_scroll()
                     .p_8()
-                    .child(
-                        div()
-                            .w(px(width))
-                            .h(px(height))
-                            .p(px(72.0 * zoom))
-                            .bg(rgb(0xffffff))
-                            .shadow_md()
-                            .flex()
-                            .flex_col()
-                            .gap(px(24.0 * zoom))
-                            .text_size(px(16.0 * zoom))
-                            .child(
-                                div()
-                                    .text_size(px(32.0 * zoom))
-                                    .child(self.label("welcome")),
-                            )
-                            .child(self.label("intro"))
-                            .child("Rust + GPUI · A4 210 × 297 mm")
-                            .child(self.label("projection"))
-                            .child(self.label("next")),
-                    ),
+                    .child(self.canvas()),
             )
             .child(
                 div()
@@ -294,6 +421,16 @@ fn main() {
                     locale,
                     registry: registry.clone(),
                     focus_handle: cx.focus_handle(),
+                    source: None,
+                    images: Vec::new(),
+                    image_key: None,
+                    gate: RasterRequestGate::default(),
+                    raster_cancel: RasterCancellation::default(),
+                    load_started: false,
+                    load_task: None,
+                    raster_task: None,
+                    device_scale: 1.0,
+                    canvas_error: None,
                 })
             },
         );

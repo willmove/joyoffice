@@ -9,6 +9,7 @@ members = [
     "crates/joyword-layout",
     "crates/joyword-model",
     "crates/joyword-pdf",
+    "crates/joyword-render",
     "crates/joyword-shell",
 ]
 default-members = [
@@ -20,6 +21,7 @@ default-members = [
     "crates/joyword-layout",
     "crates/joyword-model",
     "crates/joyword-pdf",
+    "crates/joyword-render",
     "crates/joyword-shell",
 ]
 resolver = "3"
@@ -41,11 +43,15 @@ joyword-engine = { path = "crates/joyword-engine" }
 joyword-layout = { path = "crates/joyword-layout" }
 joyword-model = { path = "crates/joyword-model" }
 joyword-pdf = { path = "crates/joyword-pdf" }
+joyword-render = { path = "crates/joyword-render" }
 joyword-shell = { path = "crates/joyword-shell" }
 crc32fast = "=1.5.2"
 harfrust = "=0.8.4"
 krilla = { version = "=0.8.2", default-features = false }
 read-fonts = "=0.39.2"
+skrifa = "=0.42.1"
+tiny-skia = "=0.11.4"
+image = { version = "=0.25.10", default-features = false }
 flate2 = { version = "=1.1.10", default-features = false, features = ["rust_backend"] }
 quick-xml = "=0.41.0"
 sha2 = "=0.10.9"
