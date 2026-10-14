@@ -22,3 +22,5 @@
 固定字体修正提交 100bf6b26ea80d37159a040a670a30b2beede279 的两次 CI [38525056320](https://github.com/willmove/joyoffice/actions/runs/38525056320) 与 [38525061210](https://github.com/willmove/joyoffice/actions/runs/38525061210) 均全部通过，包括 Windows 作业；PR #1 已合并，main 为 2b9d58c2866703f4cd10b7f5e0fc56c961c23c57。
 
 main 的后续运行 [38529091352](https://github.com/willmove/joyoffice/actions/runs/38529091352) 标记失败，但 8 个作业均未执行任何步骤。GitHub check-run 注释原文为：`The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings`。这是账户付款／消费额度阻塞；不能视为代码回归，也不能将该次 main CI 记录为通过。账户设置恢复后需重新执行。
+
+用户随后将仓库设为公开。协调者确认公开状态后，对 C01 源码提交 a67db293d3f397eaf76c7d1c429c9479c18ca0b3 重跑 [38531619157 第 2 次执行](https://github.com/willmove/joyoffice/actions/runs/38531619157/attempts/2)，8/8 作业全部通过，包含 Windows 核心测试、clippy 与应用构建。当前 CI 运行条件已恢复；main 的历史未启动记录和 C01 第 1 次失败记录保留，远程证据与限制见 [C01 报告](C01-DOCX-SESSION.md)。

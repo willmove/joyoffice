@@ -30,13 +30,21 @@ shell 新增 DocxSession，保留原包、所有未解释部件／片段、导�
 | python3 -m unittest discover -s scripts/tests -v | 9 passed，0 failed |
 | git diff --check | passed |
 
+## 公开仓库后的远程 CI（2026-10-14）
+
+用户将仓库设为公开后，协调者确认 visibility=PUBLIC，并对源码提交 a67db293d3f397eaf76c7d1c429c9479c18ca0b3 重跑 [38531619157 第 2 次执行](https://github.com/willmove/joyoffice/actions/runs/38531619157/attempts/2)。8/8 作业全部 success：macos-15、windows-2022、ubuntu-24.04 和 ubuntu-24.04-arm 各自通过文档／工具检查、fmt、核心测试、clippy 和预编译着色器应用构建；ARM64 与 LoongArch64 的 QEMU 无界面测试、cargo-deny、统一 PDF 作业通过。Linux 与 LoongArch64 日志分别确认 143 项测试通过，含全部 8 项新增 DOCX 会话测试。
+
+统一 PDF 使用 NotoSansCJK-Regular.ttc face 2，SHA-256 b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a；5 行、0 缺字，PDF 17,374 bytes。Poppler 独立读回的行首与行尾最大偏差均为 0.0000 pt；行／页断点比较作业同时通过。依赖检查结果仍按既有停止维护公告例外解释，不声明所有传递依赖无公告。
+
+之前因付款／消费额度而未启动的第 1 次执行保留为历史失败；第 2 次执行证明当前公开仓库可正常跑 CI。CI/QEMU 不替代 GUI、信创真机、IME 或 Word/WPS 人工验收，acceptance_complete 仍为 false。本段证据绑定上述源码 SHA；后续记录提交仅修改文档。
+
 新增测试分别覆盖：五个 fixture 原包逐字节保留和模型等价；独立保护、强制修订、写保护及关闭设置；各写入来源和撤销／重做拒绝；未知节点使其他可编辑段落也只读；内存编辑与全部撤销后拒绝陈旧原包；失败和空事务保持版本／原包；坏包及超预算拒绝。
 
 字体：Songti.ttc face 0，SHA-256 dd2f0628d302f322a2e9c3cf3253d5e73f418275e1f1421c84a7c65ce5a87777，仅本地使用；拉丁固定 OFL fixture joyoffice-test-serif.ttf face 0，SHA-256 cbc12abc87271f04aa0cf107214a49bad3b865f2dd01a4dec80fed818c032ec3。没有提交系统字体。
 
 ## 优先级与阻塞
 
-1. CI 运行条件优先恢复：合并前固定字体提交的两次 CI 均通过；main 运行 38529091352 因 GitHub 账户付款／消费额度问题全部未启动，详情见 [CI 报告](CI-WINDOWS-FONT.md)。需要账户所有者处理；不改源码绕过检查，不反复重试。
+1. CI 运行条件已恢复：公开仓库后，C01 源码提交的第 2 次执行 8/8 全通过，见上文。main 的历史运行 38529091352 仍记录为未启动失败，不能据 C01 重跑改写其结果；详情见 [CI 报告](CI-WINDOWS-FONT.md)。
 2. M0 的 T003/T005 与 ADR-010 继续作为阶段门槛：正式 GPUI 来源须支持 GL 或 CPU，实际字体身份、IME、DPI 和信创目标机仍待验证；本轮未控制桌面。
 3. T103 后续先实现保守 ExportPlan 与编辑后安全写回，再处理文件锁及保留元数据的原子保存和 fuzz。新的 DOCX 打开入口必须持有 DocxSession；通用 DocumentManager::open_file 尚未成为 DOCX 入口，不能只传模型绕过限制。
 4. T105 完整断点生成、分页与命中数据就绪后，再推进 T102 画布输入及 T106 多文档／打开保存界面。M0/M1 未整体通过，未修改任务为 done。
