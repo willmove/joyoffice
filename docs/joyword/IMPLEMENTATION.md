@@ -131,6 +131,7 @@
 | 三端 CI（修复后） | 运行 38481758247（提交 ac40043，2026-10-13）全部通过：macos-15-arm64、windows-2022、ubuntu-24.04 各自完成文档检查、fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建；cargo-deny 作业通过。引擎测试在此之后加入，随下次推送进入 CI |
 | 多架构 CI | 运行 38484920106（提交 92cb8b0）：ubuntu-24.04-arm 原生构建通过（文档检查、fmt、核心测试、clippy 与完整 GPUI 应用构建）；x86 runner 上交叉编译 aarch64-unknown-linux-gnu 与 loongarch64-unknown-linux-gnu（Ubuntu 24.04 的 gcc 交叉工具链与 glibc 2.39 交叉库）并在 QEMU 用户态运行无界面测试，两个目标均通过。QEMU 结果只证明代码生成与新世界 LoongArch ABI，不等于国产 CPU 或发行版上的运行 |
 | T003／T004 CI | 运行 38486616823（95affb0）全部作业通过，unified-pdf 证据见“统一字形链路”；运行 38487093201（751e764）的 unified-pdf 另行验证比较工具：同一 PDF 自比通过、第三行提前换行的变体被检出，各平台构建作业运行工具逻辑测试 |
+| C01 公开仓库 CI | 源码 a67db293d3f397eaf76c7d1c429c9479c18ca0b3 的 [38531619157 第 2 次执行](https://github.com/willmove/joyoffice/actions/runs/38531619157/attempts/2) 8/8 作业通过：macOS／Windows／Linux x86_64 与 ARM64 构建、ARM64／LoongArch64 QEMU 测试、依赖检查、统一 PDF。Linux 与 LoongArch64 日志确认全部 8 项新增 DOCX 会话测试通过；PDF 5 行无缺字，Poppler 行首／行尾最大偏差均为 0.0000 pt。公开仓库前的账户额度失败保留为历史，当前运行条件已恢复，见 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md) |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 与 proc-macro-error2 2.0.1 的 future-incompat 提示；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
