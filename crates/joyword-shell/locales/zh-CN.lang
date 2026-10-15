@@ -1,11 +1,11 @@
 # JoyWord 界面文字（简体中文）。格式见 crates/joyword-shell/src/l10n.rs。
 language = English
-stage = M0 工程验证 · 页面投影与窗口外壳；文档编辑、保存和 AI 尚未接入。
+stage = 技术预览 · 修改仅保存在本次会话，暂未提供保存。
 welcome = 你好，JoyWord
 intro = 面向中文办公与审阅的原生文字处理软件。
 projection = 这是一张工程验证页面。缩放只改变显示比例，不改变物理页面尺寸。
 next = 下一阶段：中文输入、编辑事务、DOCX 保存与重新打开。
-status = 工程样例 · AI 未加载
+status = 会话文档 · AI 未加载
 zoom.percent = {percent}%
 
 menu.app = JoyWord
@@ -26,3 +26,45 @@ prefs.corrupt = 偏好设置文件无法读取，已改用默认值；原文件�
 prefs.newer = 偏好设置由较新版本的 JoyWord 写入，本次只读使用，不会覆盖。
 zoom.max = 已是最大缩放比例
 zoom.min = 已是最小缩放比例
+
+canvas.loading = 正在准备文档页面…
+
+canvas.error = 无法显示文档：{reason}
+
+menu.edit = 编辑
+command.edit.undo = 撤销
+command.edit.redo = 重做
+command.edit.select_all = 全选
+command.edit.backspace = 删除前一字素
+command.edit.delete = 删除后一字素
+command.edit.new_paragraph = 换段
+command.edit.left = 向前移动
+command.edit.right = 向后移动
+command.edit.extend_left = 向前扩选
+command.edit.extend_right = 向后扩选
+command.edit.up = 向上移动
+command.edit.down = 向下移动
+command.edit.extend_up = 向上扩选
+command.edit.extend_down = 向下扩选
+command.edit.line_start = 移到行首
+command.edit.line_end = 移到行尾
+command.edit.extend_line_start = 扩选到行首
+command.edit.extend_line_end = 扩选到行尾
+command.edit.cancel_composition = 取消组合输入
+input.loading = 文档正在准备
+input.read_only = 文档为只读
+input.no_undo = 没有可撤销的修改
+input.no_redo = 没有可重做的修改
+input.composing = 正在组合输入
+input.no_composition = 没有组合输入
+input.layout_pending = 页面正在更新
+input.error = 输入未完成：{reason}
+input.dirty = 尚未保存 · AI 未加载
+input.missing_glyphs = 部分字符缺少字体，显示缺字标记。
+
+input.invalid_range = 输入位置已失效，请重新输入。
+input.unsupported_document = 此文档暂不支持正文输入。
+input.limit = 本次输入超过技术预览的处理限制。
+input.stale = 文档已变化，请重新开始输入。
+input.unsupported_text = 暂不支持本次输入中的控制字符。
+input.rejected = 本次编辑未能完成，文档保持原状。

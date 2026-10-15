@@ -2869,7 +2869,12 @@ name = "joyword"
 version = "0.0.1"
 dependencies = [
  "gpui",
+ "image",
+ "joyword-engine",
  "joyword-foundation",
+ "joyword-layout",
+ "joyword-model",
+ "joyword-render",
  "joyword-shell",
 ]
 
@@ -2906,9 +2911,12 @@ name = "joyword-layout"
 version = "0.0.1"
 dependencies = [
  "harfrust",
+ "joyword-engine",
  "joyword-foundation",
+ "joyword-model",
  "read-fonts 0.39.2",
  "sha2 0.10.9",
+ "unicode-linebreak",
 ]
 
 [[package]]
@@ -2924,9 +2932,23 @@ dependencies = [
 name = "joyword-pdf"
 version = "0.0.1"
 dependencies = [
+ "joyword-engine",
  "joyword-foundation",
  "joyword-layout",
+ "joyword-model",
  "krilla",
+]
+
+[[package]]
+name = "joyword-render"
+version = "0.0.1"
+dependencies = [
+ "joyword-foundation",
+ "joyword-layout",
+ "joyword-model",
+ "joyword-pdf",
+ "skrifa 0.42.1",
+ "tiny-skia",
 ]
 
 [[package]]
@@ -2938,6 +2960,7 @@ dependencies = [
  "joyword-engine",
  "joyword-model",
  "tempfile",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -4640,9 +4663,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "once_cell",
  "ring",

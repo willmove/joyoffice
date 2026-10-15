@@ -92,6 +92,16 @@ impl DocxSession {
         self.session.apply(transaction)
     }
 
+    /// Input handoff retains this adapter's read-only policy and package backing.
+    pub fn apply_with_mapped_selection(
+        &mut self,
+        transaction: Transaction,
+        target: joyword_engine::Selection,
+    ) -> Result<Outcome, TxError> {
+        self.session
+            .apply_with_mapped_selection(transaction, target)
+    }
+
     pub fn undo(&mut self) -> Result<UndoResult, UndoError> {
         self.session.undo()
     }

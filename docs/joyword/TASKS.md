@@ -63,7 +63,7 @@
 - 错误路径：字体映射不一致、缺字、surrogate 范围非法、组合取消和字形 API 缺口有明确记录。
 - 自动验证：同一字形场景几何比较；Unicode 范围和组合态测试；PDF 文本抽取。
 - 人工验收：系统拼音提交／取消、候选框、一次撤销、多显示器 DPI；PDF 独立阅读器检查。
-- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；正式来源的 GL/CPU、字体身份、Retina、IME 与人工阅读器验收未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
+- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；C06 已实现实际 FontKey 的 CPU 场景消费者并接入只读窗口，离线 PNG／PDF 光栅位置对照通过，见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。正式来源的 GL/CPU 窗口、Retina、IME 与人工阅读器验收未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
 
 ### T004：原创语料与验证框架
 
@@ -120,14 +120,14 @@
 ### T102：输入、选择与基础格式
 
 - 输入：文档会话、PositionMap、平台输入事件及布局命中数据。
-- 状态：`planned`
+- 状态：`in_progress`
 - 需求：`EDIT-001`、`EDIT-002`、`EDIT-003`、`STYLE-001`、`PLATFORM-004`
 - 前置：`T101`、`T105`、`T106`
 - 产物：GPUI 文档画布输入、选择、字符及段落基础格式、组合态 overlay。
 - 错误路径：IME 取消、焦点切换、非法 UTF-16 范围和渲染陈旧结果正确处理。
 - 自动验证：字素簇编辑、组合提交／取消、命中和 selection 映射测试。
 - 人工验收：输入中文／emoji／组合字符，鼠标与键盘选择后编辑并一次撤销。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：C07 已实现 engine 事务驱动的会话内纯文本编辑、UTF-16 投影、独立组合预编辑、字素移动／删除、选择／撤销及 GPUI EntityInputHandler；统一画布绘制光标／选择／标记并拒绝陈旧结果，关闭提供不保存／取消。新增输入性质、预算、只读 DOCX、真实排版／CPU 和几何测试，见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。字符／段落格式操作、剪贴板、系统 IME／GUI 人工验收尚未完成，T102 不标 done。
 
 ### T103：DOCX 最小语义与保留读写
 
@@ -163,7 +163,7 @@
 - 错误路径：缺字体、超长无断点文本、过高对象和陈旧快照有界诊断，不阻塞输入。
 - 自动验证：固定字体断行／分页样例、命中往返、快照键与版本、缩放不改变几何。
 - 人工验收：打开原创中英文样例，滚动、缩放并核对光标、选区与分页。
-- 完成证据：W03 已增量实现单字体 LTR、显式合法断点的行拟合切片，含候选行重整形、EMU 几何、源范围映射、预算及超宽诊断；7 项新单元测试和 8 项真实字体集成测试在集成复验中通过。完整断点/中文规则、混合样式、回退、分页、命中与人工验收未完成，见[集成审查](../coordination/reports/WAVE01-REVIEW.md)。
+- 完成证据：W03 已增量实现单字体 LTR、显式合法断点的行拟合切片，含候选行重整形、EMU 几何、源范围映射、预算及超宽诊断；7 项新单元测试和 8 项真实字体集成测试在集成复验中通过。C04 已增量接入 Unicode 15.0 默认自动断点，与整形簇求交并共享同一请求预算；新增 8 项真实字体测试通过。C06 已把只读文档快照和 CPU 场景图像接入窗口（新画布 GUI 尚待验收），见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。C05 已增量实现单节预览分页、版本／内容／字体／profile 快照键、命中／光标／跨页选区与多页 PDF 链路，19 项新增排版测试及 PDF 集成测试通过，见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。固定 Word 的完整中文规则、混合样式、回退、完整分页与人工验收未完成，见[集成审查](../coordination/reports/WAVE01-REVIEW.md)和 [C04 报告](../coordination/reports/C04-UNICODE-WRAP.md)。
 
 ### T106：应用外壳、命令注册表与偏好
 

@@ -1,11 +1,11 @@
 # JoyWord UI strings (English). Format: see crates/joyword-shell/src/l10n.rs.
 language = 简体中文
-stage = M0 engineering spike · Window and page projection only. Editing, saving and AI are not implemented.
+stage = Technical preview · Changes exist only in this session. Saving is not yet available.
 welcome = Hello, JoyWord
 intro = Native word processing for writing and document review.
 projection = This is an engineering test page. Zoom changes the view, not the physical page size.
 next = Next milestone: IME input, editing transactions and a DOCX save/reopen workflow.
-status = Engineering sample · AI not loaded
+status = Session document · AI not loaded
 zoom.percent = {percent}%
 
 menu.app = JoyWord
@@ -27,3 +27,45 @@ prefs.corrupt = The preferences file could not be read, so defaults are in use. 
 prefs.newer = The preferences were written by a newer JoyWord; they are used read-only and will not be overwritten.
 zoom.max = Already at the largest zoom
 zoom.min = Already at the smallest zoom
+
+canvas.loading = Preparing document pages…
+
+canvas.error = Cannot display the document: {reason}
+
+menu.edit = Edit
+command.edit.undo = Undo
+command.edit.redo = Redo
+command.edit.select_all = Select All
+command.edit.backspace = Delete Backward
+command.edit.delete = Delete Forward
+command.edit.new_paragraph = New Paragraph
+command.edit.left = Move Left
+command.edit.right = Move Right
+command.edit.extend_left = Extend Left
+command.edit.extend_right = Extend Right
+command.edit.up = Move Up
+command.edit.down = Move Down
+command.edit.extend_up = Extend Up
+command.edit.extend_down = Extend Down
+command.edit.line_start = Line Start
+command.edit.line_end = Line End
+command.edit.extend_line_start = Extend to Line Start
+command.edit.extend_line_end = Extend to Line End
+command.edit.cancel_composition = Cancel Composition
+input.loading = Document is loading
+input.read_only = Document is read-only
+input.no_undo = Nothing to undo
+input.no_redo = Nothing to redo
+input.composing = Composition is active
+input.no_composition = No composition
+input.layout_pending = Page layout is pending
+input.error = Input could not complete: {reason}
+input.dirty = Unsaved changes · AI not loaded
+input.missing_glyphs = Some characters have no font glyph; missing-glyph boxes are shown.
+
+input.invalid_range = The input position is no longer valid. Please try again.
+input.unsupported_document = Text input is not supported for this document yet.
+input.limit = This input exceeds the technical preview limits.
+input.stale = The document changed. Please start the input again.
+input.unsupported_text = This input contains an unsupported control character.
+input.rejected = The edit could not be completed. The document is unchanged.

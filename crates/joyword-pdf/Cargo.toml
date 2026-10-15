@@ -13,5 +13,9 @@ joyword-foundation.workspace = true
 joyword-layout.workspace = true
 krilla.workspace = true
 
+[dev-dependencies]
+joyword-model.workspace = true
+joyword-engine.workspace = true
+
 [lints]
 workspace = true

@@ -206,6 +206,26 @@ impl Session {
     }
 
     pub fn apply(&mut self, transaction: Transaction) -> Result<Outcome, TxError> {
+        self.apply_inner(transaction, None)
+    }
+
+    /// Keep `transaction.selection` for undo, while mapping a separate
+    /// pre-transaction target selection to the committed state for redo.
+    /// A text replacement can thus restore the original range on undo and
+    /// the insertion-end caret on redo. Existing `apply` behavior is unchanged.
+    pub fn apply_with_mapped_selection(
+        &mut self,
+        transaction: Transaction,
+        target: Selection,
+    ) -> Result<Outcome, TxError> {
+        self.apply_inner(transaction, Some(target))
+    }
+
+    fn apply_inner(
+        &mut self,
+        transaction: Transaction,
+        target: Option<Selection>,
+    ) -> Result<Outcome, TxError> {
         let current = self.document.version();
         if transaction.base_version != current {
             return Err(TxError::StaleVersion {
@@ -247,8 +267,8 @@ impl Session {
         }
 
         let version = candidate.advance_version();
-        let selection = transaction
-            .selection
+        let selection = target
+            .or(transaction.selection)
             .and_then(|selection| selection.map(&map));
         self.undo.push(UndoEntry {
             before: std::mem::replace(&mut self.document, candidate),
@@ -273,6 +293,36 @@ impl Session {
 
     pub fn redo(&mut self) -> Result<UndoResult, UndoError> {
         self.step_history(false)
+    }
+
+    /// Content and view selection that undo would restore, without consuming
+    /// history. The snapshot retains its stored version; a real undo still
+    /// publishes a new monotonic version. Consumers can preflight budgets.
+    pub fn preview_undo(&self) -> Result<(DocumentSnapshot, Option<Selection>), UndoError> {
+        self.preview_history(true)
+    }
+    /// Read-only counterpart of `preview_undo` for the redo stack.
+    pub fn preview_redo(&self) -> Result<(DocumentSnapshot, Option<Selection>), UndoError> {
+        self.preview_history(false)
+    }
+    fn preview_history(
+        &self,
+        backwards: bool,
+    ) -> Result<(DocumentSnapshot, Option<Selection>), UndoError> {
+        if self.policy.read_only {
+            return Err(UndoError::ReadOnly);
+        }
+        let entry = if backwards {
+            self.undo.last()
+        } else {
+            self.redo.last()
+        }
+        .ok_or(UndoError::Nothing)?;
+        Ok(if backwards {
+            (entry.before.snapshot(), entry.selection_before)
+        } else {
+            (entry.after.snapshot(), entry.selection_after)
+        })
     }
 
     fn step_history(&mut self, backwards: bool) -> Result<UndoResult, UndoError> {

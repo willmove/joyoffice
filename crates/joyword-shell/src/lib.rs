@@ -13,3 +13,5 @@ pub mod l10n;
 pub mod prefs;
 
 pub mod storage;
+
+pub mod input;
