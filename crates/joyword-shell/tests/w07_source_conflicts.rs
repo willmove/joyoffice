@@ -117,9 +117,13 @@ fn same_size_rewrite_with_restored_mtime_is_not_missed() {
     restore_modified(&path, mtime);
     assert_eq!(modified_of(&path), mtime);
     let error = check_source(&stamp).unwrap_err();
-    assert_eq!(
-        error.conflict(),
-        Some(ConflictDetail::TimesChanged).or(Some(ConflictDetail::ContentChanged))
+    assert!(
+        matches!(
+            error.conflict(),
+            Some(ConflictDetail::TimesChanged | ConflictDetail::ContentChanged)
+        ),
+        "{:?}",
+        error.conflict()
     );
 }
 
@@ -147,9 +151,15 @@ fn delete_and_recreate_with_identical_bytes_is_an_inode_change() {
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
     fs::remove_file(&path).unwrap();
     fs::write(&path, &bytes).unwrap();
-    assert_eq!(
-        check_source(&stamp).unwrap_err().conflict(),
-        Some(ConflictDetail::InodeChanged)
+    // ext4 and tmpfs may hand the freed inode number straight back; the new
+    // object then differs in its change time instead.
+    let conflict = check_source(&stamp).unwrap_err().conflict();
+    assert!(
+        matches!(
+            conflict,
+            Some(ConflictDetail::InodeChanged | ConflictDetail::TimesChanged)
+        ),
+        "{conflict:?}"
     );
 }
 

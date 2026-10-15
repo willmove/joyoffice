@@ -108,15 +108,28 @@ fn a_plan_from_another_document_cannot_overwrite_a_source() {
 fn save_original_reruns_the_full_conflict_verification_itself() {
     let dir = tempfile::tempdir().unwrap();
     let (path, bytes) = write_source(dir.path(), "report.docx", 1);
-    let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
-    fs::remove_file(&path).unwrap();
-    fs::write(&path, &bytes).unwrap();
-    let error = save_original(&edited_plan(1), &stamp).unwrap_err();
-    assert_eq!(
-        error.conflict(),
-        Some(joyword_shell::storage::ConflictDetail::InodeChanged)
-    );
-    assert_eq!(error.blockers(), None);
+    // Replacement by identical bytes is only observable where the stamp
+    // records the object (Unix); elsewhere identity is length and mtime.
+    #[cfg(unix)]
+    {
+        use joyword_shell::storage::ConflictDetail;
+        let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
+        fs::remove_file(&path).unwrap();
+        fs::write(&path, &bytes).unwrap();
+        let error = save_original(&edited_plan(1), &stamp).unwrap_err();
+        // ext4 and tmpfs may reuse the freed inode number at once.
+        assert!(
+            matches!(
+                error.conflict(),
+                Some(ConflictDetail::InodeChanged | ConflictDetail::TimesChanged)
+            ),
+            "{:?}",
+            error.conflict()
+        );
+        assert_eq!(error.blockers(), None);
+    }
+    #[cfg(not(unix))]
+    let _ = &bytes;
 
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
     fs::write(dir.path().join("~$report.docx"), b"owner").unwrap();
