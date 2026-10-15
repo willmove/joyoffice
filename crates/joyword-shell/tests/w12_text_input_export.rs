@@ -62,11 +62,13 @@ fn flat(saved: &ImportResult) -> String {
         .join("\n")
 }
 
-fn check(input: &TextInput<DocxSession>, expected: &str) -> Vec<u8> {
+fn check(input: &TextInput<DocxSession>, original: &[u8], expected: &str) -> Vec<u8> {
     assert_eq!(input.view().index().text(), expected);
     let plan = input.backend().export_plan().unwrap();
     assert_eq!(plan.mode(), ExportMode::TextPatch);
     assert_eq!(plan.version(), input.backend().session().version());
+    assert_eq!(plan.origin_bytes(), Some(original));
+    assert_ne!(plan.bytes(), original);
     let saved = import(plan.bytes(), &Budget::default()).unwrap();
     assert_eq!(flat(&saved), expected);
     assert!(!saved.document.validate().has_errors());
@@ -84,7 +86,7 @@ fn enter_and_backspace_keep_justification_and_bold() {
     let mut input = open(&bytes);
     caret(&mut input, 1);
     input.replace(None, "\n").unwrap();
-    let saved = check(&input, "甲\n乙丙\n丁戊");
+    let saved = check(&input, &bytes, "甲\n乙丙\n丁戊");
     let again = import(&saved, &Budget::default()).unwrap();
     let paragraphs: Vec<_> = again
         .document
@@ -106,7 +108,7 @@ fn enter_and_backspace_keep_justification_and_bold() {
     assert_eq!(paragraphs[2].runs()[0].props.italic, Some(true));
     caret(&mut input, 2);
     input.delete(Direction::Backward).unwrap();
-    let saved = check(&input, "甲乙丙\n丁戊");
+    let saved = check(&input, &bytes, "甲乙丙\n丁戊");
     let again = import(&saved, &Budget::default()).unwrap();
     let first = again.document.body().blocks.get(0).unwrap();
     let first = first.as_paragraph().unwrap();

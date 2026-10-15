@@ -183,6 +183,9 @@ fn content(document: &Document, backing: &PackageBacking) -> Vec<String> {
 fn verify(source: &ImportResult, model: &Document, plan: &ExportPlan) -> ImportResult {
     assert_eq!(plan.mode(), ExportMode::TextPatch);
     assert_eq!(plan.version(), model.version());
+    // W10: the plan stays bound to the caller's backing, not the patched archive.
+    assert_eq!(plan.origin_bytes(), Some(source.backing.original_bytes()));
+    assert_ne!(plan.bytes(), source.backing.original_bytes());
     let saved = open(plan.bytes());
     assert!(saved.editability.is_unrestricted());
     assert_eq!(texts(&saved.document), texts(model));
