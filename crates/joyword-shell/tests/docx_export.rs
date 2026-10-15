@@ -230,16 +230,17 @@ fn plans_are_bound_to_versions_and_survive_future_edits_undo_redo() {
     assert_eq!(session.export_plan().unwrap().bytes(), first.bytes());
 }
 
+// Plain paragraph splits and merges export since W05; their support and
+// refusal cases are in w05_text_input_export.rs and the docx W05 tests.
 #[test]
-fn structure_and_format_edits_refuse_without_changing_session() {
-    for kind in 0..3 {
+fn format_edits_refuse_without_changing_session() {
+    for kind in 0..2 {
         let bytes = fixture(1);
         let mut session = DocxSession::open(&bytes, &Budget::default()).unwrap();
         let at = pos(&session, 0, 0);
         let end = pos(&session, 0, 1);
         let command = match kind {
-            0 => Command::SplitParagraph { at },
-            1 => Command::FormatText {
+            0 => Command::FormatText {
                 start: at,
                 end,
                 change: RunChange::Bold(Some(true)),
