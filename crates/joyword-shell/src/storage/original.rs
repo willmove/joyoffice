@@ -7,15 +7,22 @@
 //! any write as well: the Unix replace steps below run only when that list is
 //! empty. `save_export_copy` stays the verified fallback.
 
-use std::fs::{self, File};
-use std::io::{self, Write};
+use std::io;
 use std::path::{Path, PathBuf};
+
+#[cfg(unix)]
+use std::fs::{self, File};
+#[cfg(unix)]
+use std::io::Write;
 
 use joyword_docx::{ExportPlan, ExportTarget};
 use joyword_model::DocumentVersion;
 
 use super::error::{MetadataItem, ReplacementBlocker, SaveOriginalError, SourceStage};
-use super::source::{SourceIdentity, SourceStamp, check_source};
+#[cfg(unix)]
+use super::source::SourceIdentity;
+use super::source::{SourceStamp, check_source};
+#[cfg(unix)]
 use super::{sync_directory, verify_bytes};
 
 /// Persistence state of a completed original replacement. Reused from the
@@ -206,6 +213,26 @@ fn save_original_inner(
 fn publish_original(
     plan: &ExportPlan,
     source: &SourceStamp,
+    before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
+) -> Result<SaveOriginalReceipt, SaveOriginalError> {
+    #[cfg(unix)]
+    {
+        publish_original_unix(plan, source, before)
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = (plan, before);
+        Err(SaveOriginalError::ReplacementUnavailable {
+            path: source.path().to_path_buf(),
+            blockers: vec![ReplacementBlocker::AtomicReplaceUnverified],
+        })
+    }
+}
+
+#[cfg(unix)]
+fn publish_original_unix(
+    plan: &ExportPlan,
+    source: &SourceStamp,
     mut before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
 ) -> Result<SaveOriginalReceipt, SaveOriginalError> {
     let target = source.path();
@@ -214,111 +241,97 @@ fn publish_original(
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."));
     let fail = |stage, error: io::Error| SaveOriginalError::io(stage, target, error);
+    before(SourceStage::CreateTemporary, parent)
+        .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
+    let mut temporary = tempfile::Builder::new()
+        .prefix(".joyword-replace-")
+        .tempfile_in(parent)
+        .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
+    before(SourceStage::Write, temporary.path()).map_err(|e| fail(SourceStage::Write, e))?;
+    temporary
+        .write_all(plan.bytes())
+        .map_err(|e| fail(SourceStage::Write, e))?;
+    before(SourceStage::SyncFile, temporary.path()).map_err(|e| fail(SourceStage::SyncFile, e))?;
+    temporary
+        .as_file()
+        .sync_all()
+        .map_err(|e| fail(SourceStage::SyncFile, e))?;
+    before(SourceStage::Verify, temporary.path()).map_err(|e| fail(SourceStage::Verify, e))?;
+    verify_bytes(temporary.as_file_mut(), plan.bytes())
+        .map_err(|e| fail(SourceStage::Verify, e))?;
+    before(SourceStage::RestorePermissions, temporary.path())
+        .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
+    restore_permissions(target, temporary.path())
+        .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
 
-    #[cfg(not(unix))]
-    {
-        let _ = (plan, source, before, parent, fail);
-        return Err(SaveOriginalError::ReplacementUnavailable {
-            path: target.to_path_buf(),
-            blockers: vec![ReplacementBlocker::AtomicReplaceUnverified],
-        });
+    before(SourceStage::Backup, target).map_err(|e| fail(SourceStage::Backup, e))?;
+    let current =
+        SourceIdentity::capture(&fs::metadata(target).map_err(|e| fail(SourceStage::Backup, e))?);
+    if let Some(detail) = source.identity().difference(&current) {
+        return Err(SaveOriginalError::conflict_error(target, detail));
     }
-    #[cfg(unix)]
-    {
-        before(SourceStage::CreateTemporary, parent)
-            .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
-        let mut temporary = tempfile::Builder::new()
-            .prefix(".joyword-replace-")
-            .tempfile_in(parent)
-            .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
-        before(SourceStage::Write, temporary.path()).map_err(|e| fail(SourceStage::Write, e))?;
-        temporary
-            .write_all(plan.bytes())
-            .map_err(|e| fail(SourceStage::Write, e))?;
-        before(SourceStage::SyncFile, temporary.path())
-            .map_err(|e| fail(SourceStage::SyncFile, e))?;
-        temporary
-            .as_file()
-            .sync_all()
-            .map_err(|e| fail(SourceStage::SyncFile, e))?;
-        before(SourceStage::Verify, temporary.path()).map_err(|e| fail(SourceStage::Verify, e))?;
-        verify_bytes(temporary.as_file_mut(), plan.bytes())
-            .map_err(|e| fail(SourceStage::Verify, e))?;
-        before(SourceStage::RestorePermissions, temporary.path())
-            .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
-        restore_permissions(target, temporary.path())
-            .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
-
-        before(SourceStage::Backup, target).map_err(|e| fail(SourceStage::Backup, e))?;
-        let current = SourceIdentity::capture(
-            &fs::metadata(target).map_err(|e| fail(SourceStage::Backup, e))?,
-        );
-        if let Some(detail) = source.identity().difference(&current) {
-            return Err(SaveOriginalError::conflict_error(target, detail));
-        }
-        let backup_path = reserve_backup_name(parent).map_err(|e| fail(SourceStage::Backup, e))?;
-        if let Err(error) = fs::hard_link(target, &backup_path) {
-            let _ = fs::remove_file(&backup_path);
-            return Err(fail(SourceStage::Backup, error));
-        }
-        let abort_backup = |error: SaveOriginalError| {
-            let _ = fs::remove_file(&backup_path);
-            error
-        };
-        if let Err(error) = before(SourceStage::VerifyBackup, &backup_path) {
-            return Err(abort_backup(fail(SourceStage::VerifyBackup, error)));
-        }
-        if let Err(error) = confirm_backup(&backup_path, source) {
-            return Err(abort_backup(error));
-        }
-
-        if let Err(error) = before(SourceStage::Publish, temporary.path()) {
-            return Err(abort_backup(fail(SourceStage::Publish, error)));
-        }
-        let kept = match temporary.keep() {
-            Ok(kept) => kept,
-            Err(error) => {
-                return Err(abort_backup(fail(SourceStage::Publish, error.error)));
-            }
-        };
-        let (file, tmp_path) = kept;
-        drop(file);
-        if let Err(error) = fs::rename(&tmp_path, target) {
-            let _ = fs::remove_file(&tmp_path);
-            return Err(abort_backup(fail(SourceStage::Publish, error)));
-        }
-        // The target name now refers to the new bytes. Later failures must
-        // carry the receipt; the backup still names the previous inode.
-        let receipt = SaveOriginalReceipt {
-            path: target.to_path_buf(),
-            version: plan.version(),
-            durability: super::CopyDurability::FileSynced,
-        };
-        if let Err(error) =
-            before(SourceStage::Cleanup, &backup_path).and_then(|_| fs::remove_file(&backup_path))
-        {
-            return Err(SaveOriginalError::io_published(
-                SourceStage::Cleanup,
-                target,
-                error,
-                receipt,
-            ));
-        }
-        if let Err(error) =
-            before(SourceStage::SyncDirectory, parent).and_then(|_| sync_directory(parent))
-        {
-            return Err(SaveOriginalError::io_published(
-                SourceStage::SyncDirectory,
-                target,
-                error,
-                receipt,
-            ));
-        }
-        Ok(SaveOriginalReceipt {
-            durability: super::CopyDurability::FileAndDirectorySynced,
-            ..receipt
-        })
+    let backup_path = reserve_backup_name(parent).map_err(|e| fail(SourceStage::Backup, e))?;
+    if let Err(error) = fs::hard_link(target, &backup_path) {
+        let _ = fs::remove_file(&backup_path);
+        return Err(fail(SourceStage::Backup, error));
     }
+    let abort_backup = |error: SaveOriginalError| {
+        let _ = fs::remove_file(&backup_path);
+        error
+    };
+    if let Err(error) = before(SourceStage::VerifyBackup, &backup_path) {
+        return Err(abort_backup(fail(SourceStage::VerifyBackup, error)));
+    }
+    if let Err(error) = confirm_backup(&backup_path, source) {
+        return Err(abort_backup(error));
+    }
+
+    if let Err(error) = before(SourceStage::Publish, temporary.path()) {
+        return Err(abort_backup(fail(SourceStage::Publish, error)));
+    }
+    let kept = match temporary.keep() {
+        Ok(kept) => kept,
+        Err(error) => {
+            return Err(abort_backup(fail(SourceStage::Publish, error.error)));
+        }
+    };
+    let (file, tmp_path) = kept;
+    drop(file);
+    if let Err(error) = fs::rename(&tmp_path, target) {
+        let _ = fs::remove_file(&tmp_path);
+        return Err(abort_backup(fail(SourceStage::Publish, error)));
+    }
+    // The target name now refers to the new bytes. Later failures must
+    // carry the receipt; the backup still names the previous inode.
+    let receipt = SaveOriginalReceipt {
+        path: target.to_path_buf(),
+        version: plan.version(),
+        durability: super::CopyDurability::FileSynced,
+    };
+    if let Err(error) =
+        before(SourceStage::Cleanup, &backup_path).and_then(|_| fs::remove_file(&backup_path))
+    {
+        return Err(SaveOriginalError::io_published(
+            SourceStage::Cleanup,
+            target,
+            error,
+            receipt,
+        ));
+    }
+    if let Err(error) =
+        before(SourceStage::SyncDirectory, parent).and_then(|_| sync_directory(parent))
+    {
+        return Err(SaveOriginalError::io_published(
+            SourceStage::SyncDirectory,
+            target,
+            error,
+            receipt,
+        ));
+    }
+    Ok(SaveOriginalReceipt {
+        durability: super::CopyDurability::FileAndDirectorySynced,
+        ..receipt
+    })
 }
 
 #[cfg(unix)]
@@ -476,7 +489,7 @@ mod tests {
         assert_eq!(plan.origin_bytes(), Some(bytes.as_slice()));
         assert_ne!(plan.bytes(), bytes.as_slice());
         let receipt = publish_original(&plan, &stamp, |_, _| Ok(())).unwrap();
-        assert_eq!(receipt.path(), path.as_path());
+        assert_eq!(receipt.path(), stamp.path());
         assert_eq!(receipt.version(), plan.version());
         assert_eq!(
             receipt.durability(),

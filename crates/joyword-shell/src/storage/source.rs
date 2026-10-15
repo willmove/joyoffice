@@ -102,17 +102,11 @@ impl SourceIdentity {
     }
 
     /// Same device and inode. Link count and timestamps are ignored: creating
-    /// the replacement backup changes both on purpose.
+    /// the replacement backup changes both on purpose. Unix only: non-Unix
+    /// replacement never reaches the backup check.
+    #[cfg(unix)]
     pub(crate) fn same_object(&self, other: &Self) -> bool {
-        #[cfg(unix)]
-        {
-            self.unix.dev == other.unix.dev && self.unix.ino == other.unix.ino
-        }
-        #[cfg(not(unix))]
-        {
-            let _ = other;
-            false
-        }
+        self.unix.dev == other.unix.dev && self.unix.ino == other.unix.ino
     }
 
     /// First observable difference against another identity, as a conflict.

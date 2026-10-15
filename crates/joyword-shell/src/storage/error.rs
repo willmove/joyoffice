@@ -402,6 +402,7 @@ impl SaveOriginalError {
             published: None,
         }
     }
+    #[cfg(unix)]
     pub(crate) fn io_published(
         stage: SourceStage,
         path: &std::path::Path,
