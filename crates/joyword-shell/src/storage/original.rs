@@ -5,7 +5,8 @@
 //! the stamped package bytes. A missing origin or a different package refuses
 //! before any write. Metadata this build cannot preserve still refuses before
 //! any write as well: the Unix replace steps below run only when that list is
-//! empty. `save_export_copy` stays the verified fallback.
+//! empty. `save_original_with_lock_token` can skip the caller's own JoyWord
+//! lock and then hits the same checks. `save_export_copy` stays the verified fallback.
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -21,7 +22,7 @@ use joyword_model::DocumentVersion;
 use super::error::{MetadataItem, ReplacementBlocker, SaveOriginalError, SourceStage};
 #[cfg(unix)]
 use super::source::SourceIdentity;
-use super::source::{SourceStamp, check_source};
+use super::source::{SourceStamp, check_source_with_lock_token};
 #[cfg(unix)]
 use super::{sync_directory, verify_bytes};
 
@@ -148,12 +149,27 @@ pub fn save_original(
     plan: &ExportPlan,
     source: &SourceStamp,
 ) -> Result<SaveOriginalReceipt, SaveOriginalError> {
-    save_original_inner(plan, source, |_, _| Ok(()))
+    save_original_with_lock_token(plan, source, None)
+}
+
+/// [`save_original`] for the session that created the JoyWord lock.
+///
+/// `owner_token` is compared with the lock file and then discarded. It does
+/// not change the origin check, the metadata blockers, or the file. Callers
+/// without a token use [`save_original`], which still treats every JoyWord
+/// lock as a conflict.
+pub fn save_original_with_lock_token(
+    plan: &ExportPlan,
+    source: &SourceStamp,
+    owner_token: Option<&str>,
+) -> Result<SaveOriginalReceipt, SaveOriginalError> {
+    save_original_inner(plan, source, owner_token, |_, _| Ok(()))
 }
 
 fn save_original_inner(
     plan: &ExportPlan,
     source: &SourceStamp,
+    owner_token: Option<&str>,
     before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
 ) -> Result<SaveOriginalReceipt, SaveOriginalError> {
     let path = source.path();
@@ -179,7 +195,7 @@ fn save_original_inner(
     }
     // Full re-verification inside this call; earlier check_source passes are
     // not treated as an atomic compare-and-swap against later races.
-    check_source(source)?;
+    check_source_with_lock_token(source, owner_token)?;
     match plan.origin_bytes() {
         None => {
             return Err(SaveOriginalError::ReplacementUnavailable {

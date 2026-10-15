@@ -77,3 +77,12 @@ W11 在实现 `save_original` 时必须放过**本会话自己创建的** JoyWor
 ## 交接
 
 分支 `codex/c09-open-source-session`。代码基线 `47747952f97d7a82fc0be7768bbea52ed909ec61`，协作包 `31dcedf3cc7756a23e2c9d921a82f06f04d7fbb0`，开工 main `a15d2401bd1b77b53b21ecbaa890745ac435bed8`。报告正文不写本提交 SHA。用户转交后续集成；本切片不合并。C09-C 仍等 W11。
+
+## 切片 2：按令牌放过自己的 JoyWord 锁
+
+- 分支：`codex/c09-own-lock-token`。基线是切片 1 的合并提交 `fedea4341b6e8769daec378cec7181c8bc59cef1`。
+- 状态：完成限定切片。`check_source_with_lock_token` 与 `save_original_with_lock_token` 在锁文件全文等于调用者令牌时跳过这一把 JoyWord 锁。不删除、不改写锁文件。
+- `open_source` 和没有令牌的 `check_source`／`save_original` 仍把任何 JoyWord 锁当成冲突。别的令牌、空令牌、目录形式的锁名、Office `~$` 仍是冲突。
+- 没有登记 `file.save`，应用外壳不调用 `save_original`。令牌豁免之后，当前平台仍因无法保留的元数据拒绝原件替换。
+- interface_ready：true，仅限这个锁豁免。原件保存成功和保存按钮仍为 false。
+- implementation_verified：true，仅限 `c09_own_lock` 与既有 W07／W11 锁测试。acceptance_complete：false。T106 不标 done。

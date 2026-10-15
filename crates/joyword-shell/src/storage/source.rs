@@ -284,7 +284,8 @@ fn open_source_inner(
     }
     before(SourceStage::LockScan, &canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::LockScan, &canonical_path, e))?;
-    locks::check_directories(&lock_directories, &file_name)?;
+    // Opening never exempts a lock, including one this process created.
+    locks::check_directories(&lock_directories, &file_name, None)?;
     before(SourceStage::Stat, &canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::Stat, &canonical_path, e))?;
     let before_metadata = fs::metadata(&canonical_path)
@@ -369,12 +370,25 @@ fn open_source_inner(
 /// is only a precheck: the world can change again immediately, so callers
 /// must not treat this plus a later write as an atomic compare-and-swap.
 pub fn check_source(source: &SourceStamp) -> Result<(), SaveOriginalError> {
+    check_source_with_lock_token(source, None)
+}
+
+/// [`check_source`] that skips one JoyWord lock.
+///
+/// `owner_token` matches only when the lock file is a regular file and its
+/// entire contents are that token. An empty token, a different token, a
+/// directory, and an Office `~$` file stay conflicts. The lock file is not
+/// deleted or rewritten. [`open_source`] does not call this.
+pub fn check_source_with_lock_token(
+    source: &SourceStamp,
+    owner_token: Option<&str>,
+) -> Result<(), SaveOriginalError> {
     let canonical_path = source.path();
     let file_name = canonical_path
         .file_name()
         .map(OsStr::to_owned)
         .unwrap_or_default();
-    locks::check_directories(&source.lock_directories, &file_name)?;
+    locks::check_directories(&source.lock_directories, &file_name, owner_token)?;
     let resolved = match fs::canonicalize(source.given_path()) {
         Ok(resolved) => resolved,
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
