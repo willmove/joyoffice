@@ -1,12 +1,13 @@
 //! Conservative edited export (ECMA-376 Part 1 §17.3.1, §17.3.3.31, Part 2).
 //!
-//! Text leaves change, and plain body paragraphs may be split, merged,
-//! inserted or removed (see `structure`). Paragraph/run/property markup,
-//! comments outside text leaves, relationships and every other part stay
-//! byte-for-byte intact. Moves, other structural edits, changed formatting
-//! boundaries, signed packages and any imported restriction are refused. The
-//! completed output is re-imported under the same budget and compared before
-//! a plan can be returned. This module performs no IO.
+//! Text leaves change, and body paragraphs may be split, merged, inserted or
+//! removed when their properties are either default or fully mapped (see
+//! `structure`). Unmapped property markup is refused rather than dropped.
+//! Comments outside text leaves, relationships and every other part stay
+//! byte-for-byte intact. Moves, other structural edits, signed packages and
+//! any imported restriction are refused. The completed output is re-imported
+//! under the same budget and compared before a plan can be returned. This
+//! module performs no IO.
 
 mod compare;
 mod structure;
@@ -83,7 +84,7 @@ pub enum ExportTarget {
 pub enum ExportMode {
     /// Original ZIP, including its metadata, copied exactly.
     OriginalPackage,
-    /// Text leaves and plain body paragraphs patched in place; ZIP container
+    /// Text leaves and safe body paragraphs patched in place; ZIP container
     /// metadata is regenerated.
     TextPatch,
 }
@@ -250,6 +251,7 @@ pub fn plan_export(
         body,
         &source.backing,
         original,
+        &[&root, body],
     );
     // Structural limits are reported before any text patch is attempted.
     let mut patches = Vec::new();
@@ -267,9 +269,9 @@ pub fn plan_export(
             after,
             &[&root, body],
             element,
-            &main.data,
             &mut patches,
             budget.max_part_bytes,
+            &xml,
         )?;
     }
     // New paragraphs are children of w:body.
@@ -279,7 +281,7 @@ pub fn plan_export(
         let at = xml.insertion_point(insertion.anchor)?;
         let mut markup = String::new();
         for &paragraph in &insertion.paragraphs {
-            let new = structure::new_paragraph(paragraph, &names, budget.max_part_bytes)?;
+            let new = structure::new_paragraph(paragraph, &names, budget.max_part_bytes, &xml)?;
             // Bound the accumulated new markup before building any more.
             inserted = inserted.saturating_add(new.len() as u64);
             markup.push_str(&new);
@@ -484,9 +486,9 @@ fn patch_paragraph(
     after: &Paragraph,
     scope: &[&Element],
     element: &Element,
-    xml: &[u8],
     patches: &mut Vec<(Range<usize>, Vec<u8>)>,
     limit: u64,
+    source: &structure::Source<'_>,
 ) -> Result<(), ExportError> {
     let error = |reason| unsupported(Some(before.id()), reason);
     if !same_paragraph_metadata(before, after)
@@ -499,16 +501,32 @@ fn patch_paragraph(
     }
     let before_groups = groups(before);
     let after_groups = groups(after);
-    if !before.is_empty()
-        && !after_groups.is_empty()
-        && (before_groups.len() != after_groups.len()
-            || !before_groups
-                .iter()
-                .zip(&after_groups)
-                .all(|(a, b)| a.style == b.style && a.props == b.props))
-    {
+    let same_bounds = before_groups.len() == after_groups.len()
+        && before_groups
+            .iter()
+            .zip(&after_groups)
+            .all(|(a, b)| a.style == b.style && a.props == b.props);
+    // A split keeps a prefix of the source run groups on the head. Emptying
+    // the runs that moved is the text-leaf patch; adding a group (a merge of
+    // differently formatted paragraphs) has to copy source rPr bytes.
+    let split_prefix = source.touched(before.id())
+        && after_groups.len() < before_groups.len()
+        && before_groups
+            .iter()
+            .zip(&after_groups)
+            .all(|(a, b)| a.style == b.style && a.props == b.props);
+    if !before.is_empty() && !after_groups.is_empty() && !same_bounds && !split_prefix {
+        if source.touched(before.id()) {
+            let mut scope = scope.to_vec();
+            scope.push(element);
+            let names = Names::in_scope(&scope);
+            let bytes = source.rebuild(before, after, element, &names, limit)?;
+            patches.push((element.span.clone(), bytes));
+            return Ok(());
+        }
         return Err(error("character formatting boundaries changed"));
     }
+    let xml = source.bytes();
     let slots = text_slots(element, xml).map_err(error)?;
     if slots.len() != before.runs().len() {
         return Err(error("source text tokens do not match imported runs"));
