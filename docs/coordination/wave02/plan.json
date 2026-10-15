@@ -8,19 +8,19 @@
   "require_explicit_start": true,
   "coordinator": "C08 / 01a13d2b-acba-7473-8662-8f183393fd46",
   "mode": "manual_dispatch_git_delivery",
-  "dispatch_status": "local_assigned_remote_reserved_not_started",
+  "dispatch_status": "delivered_and_integrated",
   "integration_branch": "codex/wave02-integration",
   "tasks": [
     {
       "id": "W05",
       "role": "DOCX 导出",
       "owner": {
-        "software": "Claude Desktop / Code",
-        "host": "当前主机",
-        "session": null
+        "software": "Claude Desktop / Code，后由 Codex Desktop 聊天接续",
+        "host": "当前主机（macOS arm64）",
+        "session": "Claude Code 59e73c05-cf72-4a28-a331-317c3b79ceed；接续聊天见 W05 报告"
       },
       "ownership_confirmed": true,
-      "state": "assigned_not_started",
+      "state": "delivered_integrated",
       "branch": "codex/w05-docx-export",
       "directory": "joyoffice-w05",
       "card": "docs/coordination/tasks/W05-DOCX-EXPORT.md",
@@ -33,18 +33,20 @@
         "crates/joyword-shell/tests/w05_*.rs",
         "docs/coordination/reports/W05.md"
       ],
-      "optional": false
+      "optional": false,
+      "result_sha": "3f34e53a2240ba18b5fbab99796a18be9ff0dbf8",
+      "acceptance_complete": false
     },
     {
       "id": "W06",
       "role": "排版",
       "owner": {
         "software": "Codex Desktop（独立执行聊天，非 C08）",
-        "host": "当前主机",
-        "session": null
+        "host": "当前主机（macOS arm64）",
+        "session": "见 W06 报告"
       },
       "ownership_confirmed": true,
-      "state": "assigned_not_started",
+      "state": "delivered_integrated",
       "branch": "codex/w06-layout",
       "directory": "joyoffice-w06",
       "card": "docs/coordination/tasks/W06-LAYOUT.md",
@@ -56,18 +58,20 @@
         "crates/joyword-layout/tests/w06_data/**",
         "docs/coordination/reports/W06.md"
       ],
-      "optional": false
+      "optional": false,
+      "result_sha": "28c947fa01f93b816e182f86d52d1e7a99eaa074",
+      "acceptance_complete": false
     },
     {
       "id": "W07",
       "role": "安全保存",
       "owner": {
         "software": "ZCode Desktop",
-        "host": "当前主机",
-        "session": null
+        "host": "当前主机（macOS arm64）",
+        "session": "见 W07 报告"
       },
       "ownership_confirmed": true,
-      "state": "assigned_not_started",
+      "state": "delivered_integrated",
       "branch": "codex/w07-safe-save",
       "directory": "joyoffice-w07",
       "card": "docs/coordination/tasks/W07-SAFE-SAVE.md",
@@ -79,18 +83,20 @@
         "crates/joyword-shell/tests/w07_data/**",
         "docs/coordination/reports/W07.md"
       ],
-      "optional": false
+      "optional": false,
+      "result_sha": "965a74d4339f9fffa9119a65a8d4ef53b0c7145a",
+      "acceptance_complete": false
     },
     {
       "id": "W08",
       "role": "恢复日志与崩溃重放",
       "owner": {
-        "software": "Claude Desktop / Code",
-        "host": "另一台主机（Windows 11 x64）",
-        "session": null
+        "software": "Codex Desktop",
+        "host": "当前主机（macOS arm64；原 Windows 11 预留未使用）",
+        "session": "见 W08 报告"
       },
       "ownership_confirmed": false,
-      "state": "reserved_optional_not_started",
+      "state": "delivered_integrated",
       "optional": true,
       "branch": "codex/w08-recovery-journal",
       "directory": "joyoffice-w08",
@@ -106,18 +112,20 @@
         "rust_target": "x86_64-pc-windows-msvc",
         "confirmed_by": "user",
         "native_validation": "not_run"
-      }
+      },
+      "result_sha": "1862bc5c95910878377dc7c3fbd5bad856455f24",
+      "acceptance_complete": false
     },
     {
       "id": "W09",
       "role": "DOCX 安全回归与 fuzz 工程",
       "owner": {
         "software": "Codex Desktop",
-        "host": "另一台主机（Windows 11 x64）",
-        "session": null
+        "host": "当前主机（macOS arm64；原 Windows 11 预留未使用）",
+        "session": "见 W09 报告"
       },
       "ownership_confirmed": false,
-      "state": "reserved_optional_not_started",
+      "state": "delivered_integrated",
       "optional": true,
       "branch": "codex/w09-docx-robustness",
       "directory": "joyoffice-w09",
@@ -134,8 +142,25 @@
         "rust_target": "x86_64-pc-windows-msvc",
         "confirmed_by": "user",
         "native_validation": "not_run"
-      }
+      },
+      "result_sha": "ddee5abe2a73692c1017eda2732a66dc7ed46194",
+      "acceptance_complete": false
     }
   ],
-  "assignment_note": "用户已指定当前主机 Codex／Claude／ZCode；C08 映射 W06／W05／W07。另一主机 Claude／Codex 预留 W08／W09；启动时登记唯一会话，不自动派发。 用户确认另一台主机为 Windows 11 x64；实际执行会话与验证仍未启动。"
+  "assignment_note": "用户已指定当前主机 Codex／Claude／ZCode；C08 映射 W06／W05／W07。另一主机 Claude／Codex 预留 W08／W09；启动时登记唯一会话，不自动派发。 用户确认另一台主机为 Windows 11 x64；实际执行会话与验证仍未启动。 2026-10-15 收尾：五项均已交付并合入 main ee4f57d；W08／W09 改在当前主机执行，Windows 原生未验证。",
+  "integration": {
+    "date": "2026-10-15",
+    "main": "ee4f57d3cd6361ff666170e3d40b1f68373b78d4",
+    "last_task_merge": "bcf435c16fcabf7bb6d1ec6a21edbd3470f8ece0",
+    "package": "a32f59ddd1e8c7c040e737ed6b08cbe6a690082c",
+    "merge_order": [
+      "package",
+      "W05",
+      "W07",
+      "W06",
+      "W08",
+      "W09"
+    ],
+    "note": "合并提交合入 main；集成修正 W08 重放断言与 W09 固定目标。任务分支、协作包分支、worktree 与控制 clone 已删除，integration_branch 未推送，本计划不再用于准备工作目录。main CI 的 W07 平台测试修正见 PR #9。"
+  }
 }

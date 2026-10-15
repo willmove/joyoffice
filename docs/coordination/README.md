@@ -1,8 +1,13 @@
 # 当前协作入口
 
-第二轮（2026-10-15）见 [第二轮协作包](wave02/README.md)：1 位协调者 C08＋本机三位执行者 W05／W06／W07，可选增加另一主机 W08／W09。代码候选基线为 C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；负责人确认、准备命令、启动提示与文件边界均在包内。本机分配为 Claude→W05、Codex→W06、ZCode→W07；另一主机 Claude→W08、Codex→W09 为可选预留，均未自动启动。第一轮 `plan.json` 保留为历史快照；第二轮准备必须显式传入 `--plan docs/coordination/wave02/plan.json` 和 `--start <协作包完整 SHA>`。
+第二轮（2026-10-15）已交付并合入 main，第三轮尚未派工。协作包、负责人核查、启动提示与文件边界见 [第二轮协作包](wave02/README.md)；交付与集成结果见包内“交付与集成结果”一节。
 
-下面是第一轮与 C01–C07 历史记录，其中“当前协调者”等称谓属于当时记录，不作为第二轮派工授权。
+- 实际执行：W05 由本机 Claude Code 交付，后由 Codex Desktop 聊天接续收紧属性检查；W06 由本机 Codex Desktop 执行聊天交付；W07 由 ZCode Desktop 交付；W08／W09 改由本机 Codex Desktop 执行，原 Windows 11 预留未使用。报告：[W05](reports/W05.md)、[W06](reports/W06.md)、[W07](reports/W07.md)、[W08](reports/W08.md)、[W09](reports/W09.md)。
+- 集成：协作包与五个任务分支按 协作包→W05→W07→W06→W08→W09 以合并提交合入 main，结果为 `ee4f57d3cd6361ff666170e3d40b1f68373b78d4`。集成时修正两处跨任务断言：W08 重放测试改为期望 W05 之后的默认格式拆段可以导出；W09 固定目标从 C07 改为集成合并 `bcf435c16fcabf7bb6d1ec6a21edbd3470f8ece0`。本机全默认成员 312 项通过（强制真实字体）。
+- main 的 CI 随后暴露 W07 冲突测试的平台假设：Linux 的 ext4／tmpfs 会立即复用 inode 号，Windows 上源身份只有长度与修改时间。仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 已通过全部 16 项 CI 检查；本记录撰写时尚未合并。
+- 第二轮任务分支、worktree 与两个控制 clone 已删除；`codex/wave02-integration` 未推送。重新准备第二轮工作目录不再适用。
+
+第一轮 `plan.json` 与第二轮 [plan.json](wave02/plan.json) 都保留为历史记录。下面是第一轮与 C01–C07 历史记录，其中“当前协调者”等称谓属于当时记录，不作为后续派工授权。
 
 # 第一轮协作：启动与交付
 

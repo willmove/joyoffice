@@ -4,7 +4,13 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 
 **当前是技术预览，尚未形成打开、编辑、保存 Word 文件的产品闭环。** 窗口已接入真实 engine 会话、统一场景的 CPU 页面和会话内纯文本编辑；原生输入接口、组合预编辑、选择、撤销及未保存关闭提示已实现，尚待系统 IME 和 GUI 人工验收。修改仅留在当前会话，窗口没有保存入口。
 
-joyword-docx 已有声明子集的导入与原始包保留；无界面 DOCX 会话支持现有段落／格式边界内的保守文字导出与往返校验（C02），并可安全写为新路径副本（C03）。结构／格式改动超出导出范围时明确拒绝，尚无原件覆盖保存。单字体 Unicode 默认断行、单节预览分页和命中几何已接通（C04–C07），屏幕 CPU 图像与实验 PDF 消费同一页面场景。完整中文排版、字体回退、文件打开／保存界面、修订、批注、剪贴板及 AI 尚未完成；范围及验证记录见 [C07 报告](docs/coordination/reports/C07-TEXT-INPUT.md)。
+joyword-docx 已有声明子集的导入与原始包保留。无界面 DOCX 会话支持：
+
+- 现有段落／格式边界内的保守文字导出与往返校验（C02）；
+- 默认格式纯文本段落的拆分、合并、插入与删除导出（W05）；
+- 安全写为新路径副本（C03）。
+
+格式改动或超出上述范围的结构改动明确拒绝。W07 已提供源身份、锁文件检测与冲突预检，但原件覆盖保存仍拒绝。单字体 Unicode 默认断行、单节预览分页（含 keep-next／keep-lines，W06）和命中几何已接通，屏幕 CPU 图像与实验 PDF 消费同一页面场景。恢复日志（W08）与 DOCX 健壮性 harness（W09）是 experiments 下的独立工程，尚未接入产品。完整中文排版、字体回退、文件打开／保存界面、修订、批注、剪贴板及 AI 尚未完成；范围及验证记录见 [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)。
 
 ## 规格与任务
 
@@ -12,7 +18,7 @@ joyword-docx 已有声明子集的导入与原始包保留；无界面 DOCX 会�
 - [架构与 ADR](docs/joyword/ARCHITECTURE.md) · [兼容矩阵](docs/joyword/COMPATIBILITY.md) · [质量门槛](docs/joyword/QUALITY.md)
 - [原生 Agent 设计](docs/joyword/AI.md) · [公开资料调研](docs/joyword/RESEARCH.md) · [独立实现与来源](docs/joyword/PROVENANCE.md)
 - [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)
-- [多 Agent 分工与交付](docs/coordination/README.md) · [W01/W03 集成审查](docs/coordination/reports/WAVE01-REVIEW.md)
+- [多 Agent 分工与交付](docs/coordination/README.md) · [W01/W03 集成审查](docs/coordination/reports/WAVE01-REVIEW.md) · [第二轮交付与集成](docs/coordination/wave02/README.md)
 
 ## 运行技术预览
 
