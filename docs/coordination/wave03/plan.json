@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-10-16",
+  "wave": "wave-03",
+  "code_base": "47747952f97d7a82fc0be7768bbea52ed909ec61",
+  "code_base_note": "Merge commit of PR #10 (docs ledger sync) on main.",
+  "docs_read_from": "526e6f85d90efa5e4b6034d5f1d6dec69fa72755",
+  "main_tip_at_draft": "5573997a75d9297b24429f90c727dad05b7f90c3",
+  "baseline_status": "verified_merge",
+  "coordination_ref": "refs/heads/codex/wave03-coordination",
+  "require_explicit_start": true,
+  "coordinator": "C09 / TBD session at dispatch",
+  "mode": "manual_dispatch_git_delivery",
+  "dispatch_status": "draft_not_dispatched",
+  "integration_branch": "codex/wave03-integration",
+  "prerequisites": [
+    {
+      "id": "PR10",
+      "title": "Merge docs/ledger sync PR #10",
+      "ref": "codex/wave02-ledger-sync",
+      "head_at_draft": "526e6f85d90efa5e4b6034d5f1d6dec69fa72755",
+      "wave_task": false,
+      "note": "Documentation-only; must land before Wave 03 package branch is cut from main."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "W10",
+      "role": "ExportPlan 来源绑定",
+      "owner": {
+        "software": "TBD（建议 Claude Desktop / Code 或 Codex Desktop）",
+        "host": "TBD",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "planned",
+      "branch": "codex/w10-export-origin",
+      "directory": "joyoffice-w10",
+      "card": "docs/coordination/tasks/W10-EXPORT-ORIGIN.md",
+      "report": "docs/coordination/reports/W10.md",
+      "allowed_paths": [
+        "crates/joyword-docx/src/export.rs",
+        "crates/joyword-docx/src/export/**",
+        "crates/joyword-docx/src/result.rs",
+        "crates/joyword-docx/src/lib.rs",
+        "crates/joyword-docx/src/backing.rs",
+        "crates/joyword-docx/tests/w10_*.rs",
+        "crates/joyword-docx/tests/w10_data/**",
+        "crates/joyword-shell/tests/w10_*.rs",
+        "docs/coordination/reports/W10.md"
+      ],
+      "depends_on": [],
+      "optional": false,
+      "acceptance_complete": false,
+      "note": "Implements W07 proposal #1: ExportPlan origin binding. lib.rs/backing.rs only for doc-comment sync if needed; no importer rewrite."
+    },
+    {
+      "id": "W11",
+      "role": "save_original 发布策略",
+      "owner": {
+        "software": "TBD（建议 ZCode Desktop，接续 W07）",
+        "host": "TBD",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "planned",
+      "branch": "codex/w11-save-original",
+      "directory": "joyoffice-w11",
+      "card": "docs/coordination/tasks/W11-SAVE-ORIGINAL.md",
+      "report": "docs/coordination/reports/W11.md",
+      "allowed_paths": [
+        "crates/joyword-shell/src/storage.rs",
+        "crates/joyword-shell/src/storage/**",
+        "crates/joyword-shell/tests/w11_*.rs",
+        "crates/joyword-shell/tests/w11_data/**",
+        "docs/coordination/reports/W11.md"
+      ],
+      "depends_on": ["W10"],
+      "optional": false,
+      "acceptance_complete": false,
+      "note": "Must not start write path until W10 origin_bytes is on the package start SHA. Uses W07 proposal #2 publish strategy."
+    },
+    {
+      "id": "W12",
+      "role": "带格式段落结构导出",
+      "owner": {
+        "software": "TBD（建议 Claude Desktop / Code 或 Codex Desktop）",
+        "host": "TBD",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "planned",
+      "branch": "codex/w12-formatted-structure",
+      "directory": "joyoffice-w12",
+      "card": "docs/coordination/tasks/W12-FORMATTED-STRUCTURE.md",
+      "report": "docs/coordination/reports/W12.md",
+      "allowed_paths": [
+        "crates/joyword-docx/src/export.rs",
+        "crates/joyword-docx/src/export/**",
+        "crates/joyword-docx/tests/w12_*.rs",
+        "crates/joyword-docx/tests/w12_data/**",
+        "crates/joyword-shell/tests/w12_*.rs",
+        "docs/coordination/reports/W12.md"
+      ],
+      "depends_on": [],
+      "optional": false,
+      "acceptance_complete": false,
+      "note": "W05 follow-on proposal 3(a). Independent of W10/W11. Integrate after W10 if both touch export.rs — prefer sequential merge W10 then W12, or C09 rebases."
+    },
+    {
+      "id": "W13",
+      "role": "W09 TARGET_SHA 重锚定",
+      "owner": {
+        "software": "TBD（建议 Codex Desktop）",
+        "host": "TBD",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "planned",
+      "branch": "codex/w13-w09-retarget",
+      "directory": "joyoffice-w13",
+      "card": "docs/coordination/tasks/W13-W09-RETARGET.md",
+      "report": "docs/coordination/reports/W13.md",
+      "allowed_paths": [
+        "experiments/docx-robustness/**",
+        "docs/coordination/evidence/W09/**",
+        "docs/coordination/reports/W13.md"
+      ],
+      "depends_on": [],
+      "optional": true,
+      "acceptance_complete": false,
+      "note": "Retarget harness to post-PR#9 / wave03 base SHA; no production code changes; not coverage-guided fuzz."
+    },
+    {
+      "id": "W14",
+      "role": "恢复日志生产接入设计（仅设计／提案）",
+      "owner": {
+        "software": "TBD",
+        "host": "TBD",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "deferred",
+      "branch": "codex/w14-recovery-design",
+      "directory": "joyoffice-w14",
+      "card": "docs/coordination/tasks/W14-RECOVERY-JOURNAL.md",
+      "report": "docs/coordination/reports/W14.md",
+      "allowed_paths": [
+        "docs/coordination/reports/W14.md",
+        "docs/adr/**"
+      ],
+      "depends_on": ["C09-open-save-design"],
+      "optional": true,
+      "acceptance_complete": false,
+      "note": "Do NOT implement production recovery until C09 open/Save As/dirty design is written. Prefer design-only report this wave; code stays in experiments/recovery-journal."
+    }
+  ],
+  "coordinator_slices": [
+    {
+      "id": "C09-A",
+      "title": "open_source → DocxSession 接线与 ExportPlan 来源贯通",
+      "depends_on": ["W10"],
+      "note": "C09 exclusive: shell docx/documents/lib, apps if needed for open path tests."
+    },
+    {
+      "id": "C09-B",
+      "title": "应用外壳：打开 + 另存为新副本 + dirty／关闭提示（经 save_export_copy）",
+      "depends_on": [],
+      "soft_depends_on": ["W10", "C09-A"],
+      "note": "May land Save As on existing save_export_copy before W11. MUST NOT wire a fake original-overwrite Save. Original Save gated on W11."
+    },
+    {
+      "id": "C09-C",
+      "title": "接入 save_original（仅当 W11 交付且能力矩阵允许）",
+      "depends_on": ["W10", "W11", "C09-A"]
+    }
+  ],
+  "deferred": [
+    "ADR-010 GPUI 来源选定与实测",
+    "信创真机 T005",
+    "完整 Word/WPS T004 参考环境",
+    "覆盖引导 fuzz（cargo-fuzz／nightly）",
+    "大 GUI／系统 IME 人工验收",
+    "T104 生产恢复日志实现（仅允许 W14 设计）"
+  ],
+  "assignment_note": "Owner software/hosts are suggestions only. User assigns before dispatch; ownership_confirmed stays false until then. W10 must complete (or its API be on package SHA) before W11 write-path work. W12 may develop in parallel with W10 but merge order should put W10 before W12 if both edit export.rs. W13/W14 optional.",
+  "suggested_merge_order": [
+    "package",
+    "W10",
+    "W12",
+    "W11",
+    "W13",
+    "C09-A",
+    "C09-B",
+    "C09-C"
+  ]
+}

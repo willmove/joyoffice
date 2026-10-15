@@ -1,13 +1,22 @@
 # 当前协作入口
 
-第二轮（2026-10-15）已交付并合入 main，第三轮尚未派工。协作包、负责人核查、启动提示与文件边界见 [第二轮协作包](wave02/README.md)；交付与集成结果见包内“交付与集成结果”一节。
+第三轮协作包见 [第三轮协作包](wave03/README.md)（草稿／派工状态以该包 `plan.json` 的 `dispatch_status` 为准）。第二轮（2026-10-15）已交付并合入 main；台账同步见 [PR #10](https://github.com/willmove/joyoffice/pull/10)。
 
-- 实际执行：W05 由本机 Claude Code 交付，后由 Codex Desktop 聊天接续收紧属性检查；W06 由本机 Codex Desktop 执行聊天交付；W07 由 ZCode Desktop 交付；W08／W09 改由本机 Codex Desktop 执行，原 Windows 11 预留未使用。报告：[W05](reports/W05.md)、[W06](reports/W06.md)、[W07](reports/W07.md)、[W08](reports/W08.md)、[W09](reports/W09.md)。
-- 集成：协作包与五个任务分支按 协作包→W05→W07→W06→W08→W09 以合并提交合入 main，结果为 `ee4f57d3cd6361ff666170e3d40b1f68373b78d4`。集成时修正两处跨任务断言：W08 重放测试改为期望 W05 之后的默认格式拆段可以导出；W09 固定目标从 C07 改为集成合并 `bcf435c16fcabf7bb6d1ec6a21edbd3470f8ece0`。本机全默认成员 312 项通过（强制真实字体）。
-- main 的 CI 随后暴露 W07 冲突测试的平台假设：Linux 的 ext4／tmpfs 会立即复用 inode 号，Windows 上源身份只有长度与修改时间。仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 全部 16 项 CI 检查通过后合入 main（`5573997a75d9297b24429f90c727dad05b7f90c3`）。
-- 第二轮任务分支、worktree 与两个控制 clone 已删除；`codex/wave02-integration` 未推送。重新准备第二轮工作目录不再适用。
+## 第二轮摘要（已完成集成）
 
-第一轮 `plan.json` 与第二轮 [plan.json](wave02/plan.json) 都保留为历史记录。下面是第一轮与 C01–C07 历史记录，其中“当前协调者”等称谓属于当时记录，不作为后续派工授权。
+- 实际执行与报告：见 [第二轮协作包](wave02/README.md)交付与集成结果。
+- 集成结果 main：`ee4f57d3cd6361ff666170e3d40b1f68373b78d4`；W07 平台测试修正 [PR #9](https://github.com/willmove/joyoffice/pull/9) → `5573997a75d9297b24429f90c727dad05b7f90c3`。
+- W05–W09：`delivered_integrated`，`acceptance_complete=false`。第三轮不重开这些任务 ID。
+
+## 第三轮（草案要点）
+
+- 前置：合并 PR #10。
+- 执行者任务：W10 来源绑定 →（并行）W12 带格式结构导出；W11 `save_original` 发布（依赖 W10）；可选 W13 重锚定 W09；可选／延后 W14 恢复设计。
+- 协调者 C09：`open_source`→`DocxSession`、打开＋另存为新副本（`save_export_copy`）＋dirty／关闭；原件保存仅在 W11 可用后接入。
+- 延后：ADR-010、信创真机 T005、完整 Word/WPS T004、覆盖引导 fuzz、大 GUI／IME 验收。
+
+第一轮 `plan.json` 与第二轮 [plan.json](wave02/plan.json) 保留为历史。下面是第一轮与 C01–C07 历史记录，其中当前协调者等称谓属于当时记录，不作为后续派工授权。
+
 
 # 第一轮协作：启动与交付
 
