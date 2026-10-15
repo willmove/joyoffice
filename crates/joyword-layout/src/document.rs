@@ -369,11 +369,11 @@ fn check_paragraph(document: &Document, p: &Paragraph) -> Result<(), LayoutError
     let mut props = (*p.props).clone();
     props.justification = None;
     props.page_break_before = None;
+    props.keep_next = None;
+    props.keep_lines = None;
     props.spacing.before = None;
     props.spacing.after = None;
     for toggle in [
-        &mut props.keep_next,
-        &mut props.keep_lines,
         &mut props.snap_to_grid,
         &mut props.spacing.before_auto,
         &mut props.spacing.after_auto,
@@ -476,9 +476,60 @@ fn preflight(
     Ok(geometry)
 }
 
+// Two bounded passes: fit each paragraph once under shared budgets, then
+// annotate only the start of each maximal keep-next chain. Placement consumes
+// the fitted lines (no reshaping, rollback, or quadratic suffix lookahead).
+struct PreparedParagraph<'a> {
+    paragraph: &'a Paragraph,
+    lines: Vec<crate::LayoutLine>,
+    before: Emu,
+    after: Emu,
+    // Before + all line boxes, excluding trailing after-spacing.
+    height: Emu,
+    group_height: Option<Emu>,
+}
+
+fn prepare_keep_groups(
+    paragraphs: &mut [PreparedParagraph<'_>],
+    cancellation: &LayoutCancellation,
+) -> Result<(), LayoutError> {
+    let mut start = 0;
+    while start < paragraphs.len() {
+        cancellation.check()?;
+        let mut end = start;
+        let mut height = paragraphs[start].height;
+        while end + 1 < paragraphs.len()
+            && paragraphs[end].paragraph.props.keep_next == Some(true)
+            && paragraphs[end + 1].paragraph.props.page_break_before != Some(true)
+        {
+            cancellation.check()?;
+            height = add(
+                add(height, paragraphs[end].after)?,
+                paragraphs[end + 1].height,
+            )?;
+            end += 1;
+        }
+        if end > start {
+            paragraphs[start].group_height = Some(height);
+        }
+        start = end + 1;
+    }
+    Ok(())
+}
+
 /// Lay out a complete supported document; any failure discards all candidate
 /// pages. Callers retain their previous snapshot and keep editing in engine.
 /// Single-font defaults are explicit, not guessed from a system font name.
+///
+/// Direct keep-next chains include the terminal paragraph and end at an
+/// explicit page break (which takes priority). A chain that fits is kept
+/// whole; an oversized chain starts on a fresh page and flows forward, still
+/// respecting each member's keep-lines. Oversized keep-lines paragraphs also
+/// start fresh and split. At page top neither rule inserts another empty page.
+/// A final keep-next without a successor does nothing. Spacing keeps the C05
+/// additive preview policy: before once, after between paragraphs, no reserved
+/// trailing after-space in a keep group. These bounded fallback rules are
+/// tested independently; they are not a claim of Word/WPS interoperability.
 pub fn layout_document(
     document: &DocumentSnapshot,
     font: &LoadedFont,
@@ -509,7 +560,8 @@ pub fn layout_document(
         limits,
     };
     result.new_page()?;
-    let mut top = geometry.top;
+    let mut prepared = Vec::new();
+    let mut total_lines = 0usize;
     for block in document.body().blocks.iter() {
         cancellation.check()?;
         let paragraph = block.as_paragraph().expect("preflight checked all blocks");
@@ -522,9 +574,7 @@ pub fn layout_document(
             max_shaped_bytes: defaults
                 .max_shaped_bytes
                 .min(limits.max_shaped_bytes - result.stats.shaped_bytes),
-            max_lines: defaults
-                .max_lines
-                .min(limits.max_lines - result.lines.len()),
+            max_lines: defaults.max_lines.min(limits.max_lines - total_lines),
             max_diagnostics: defaults.max_diagnostics.min(
                 limits
                     .max_diagnostics
@@ -585,15 +635,71 @@ pub fn layout_document(
                 "paragraph spacing taller than the page",
             ));
         }
-        if paragraph.props.page_break_before == Some(true)
-            && !result.pages.last().expect("one page").runs.is_empty()
-        {
+        if add(before, profile.leading)?.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
+            return Err(LayoutError::LineTooTall);
+        }
+        total_lines += fitted.lines.len();
+        for line in &fitted.lines {
+            cancellation.check()?;
+            if line.run.glyphs.len() > limits.max_glyphs - result.stats.glyphs {
+                return Err(LayoutError::LimitExceeded(LayoutLimit::Glyphs));
+            }
+            result.stats.glyphs += line.run.glyphs.len();
+        }
+        for diagnostic in fitted.diagnostics {
+            if result.diagnostics.len() < limits.max_diagnostics {
+                result.diagnostics.push(LayoutDiagnostic {
+                    paragraph: paragraph.id(),
+                    diagnostic,
+                });
+            } else {
+                result.omitted += 1;
+            }
+        }
+        result.omitted += fitted.omitted_diagnostics;
+        let height = profile
+            .leading
+            .raw()
+            .checked_mul(
+                i64::try_from(fitted.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?,
+            )
+            .and_then(|height| height.checked_add(before.raw()))
+            .ok_or(LayoutError::GeometryOverflow)?;
+        prepared.push(PreparedParagraph {
+            paragraph,
+            lines: fitted.lines,
+            before,
+            after,
+            height: Emu::new(height),
+            group_height: None,
+        });
+    }
+    prepare_keep_groups(&mut prepared, cancellation)?;
+    let mut top = geometry.top;
+    for prepared in prepared {
+        cancellation.check()?;
+        let PreparedParagraph {
+            paragraph,
+            lines,
+            before,
+            after,
+            height,
+            group_height,
+        } = prepared;
+        let remaining = geometry.bottom_edge().raw() - top.raw();
+        let needs_page = paragraph.props.page_break_before == Some(true)
+            || group_height.is_some_and(|height| height.raw() > remaining)
+            || (paragraph.props.keep_lines == Some(true) && height.raw() > remaining);
+        // An oversized group/paragraph starts on a fresh page once, then
+        // flows forward. Never retry an impossible constraint or emit an
+        // empty leading page. Empty paragraphs still have a scene run.
+        if needs_page && !result.pages.last().expect("one page").runs.is_empty() {
             result.new_page()?;
             top = geometry.top;
         }
         top = add(top, before)?;
         let first_line = result.lines.len();
-        for line in fitted.lines {
+        for line in lines {
             cancellation.check()?;
             if add(top, profile.leading)?.raw() > geometry.bottom_edge().raw() {
                 result.new_page()?;
@@ -606,10 +712,6 @@ pub fn layout_document(
                     return Err(LayoutError::LineTooTall);
                 }
             }
-            if line.run.glyphs.len() > limits.max_glyphs - result.stats.glyphs {
-                return Err(LayoutError::LimitExceeded(LayoutLimit::Glyphs));
-            }
-            result.stats.glyphs += line.run.glyphs.len();
             let slack = (geometry.content_width().raw() - line.run.width.raw()).max(0);
             let shift = match paragraph.props.justification {
                 Some(Justification::Center) => slack / 2,
@@ -661,17 +763,6 @@ pub fn layout_document(
             lines: first_line..result.lines.len(),
         });
         top = add(top, after)?;
-        for diagnostic in fitted.diagnostics {
-            if result.diagnostics.len() < limits.max_diagnostics {
-                result.diagnostics.push(LayoutDiagnostic {
-                    paragraph: paragraph.id(),
-                    diagnostic,
-                });
-            } else {
-                result.omitted += 1;
-            }
-        }
-        result.omitted += fitted.omitted_diagnostics;
     }
     cancellation.check()?;
     Ok(result)
