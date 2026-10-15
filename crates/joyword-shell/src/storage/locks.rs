@@ -4,6 +4,11 @@
 //! conflict, but finding none never grants exclusivity — another writer may
 //! hold the file through a mechanism we cannot see. Locks are never deleted,
 //! overwritten or "expired" by this code; the user resolves them.
+//!
+//! A caller that already holds the JoyWord lock may pass its token. Only a
+//! regular file whose entire contents equal that token is skipped. Every
+//! other JoyWord lock, every Office `~$` file, and an unreadable lock stay
+//! conflicts. `open_source` never passes a token.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -42,6 +47,7 @@ fn is_owner_candidate(owner: &[u8], file_name: &[u8]) -> bool {
 pub(crate) fn scan_directory(
     directory: &Path,
     file_name: &std::ffi::OsStr,
+    owner_token: Option<&str>,
 ) -> Result<Vec<LockFinding>, SaveOriginalError> {
     let Some(file_name) = file_name.to_str() else {
         return Err(SaveOriginalError::LockConflict {
@@ -87,7 +93,8 @@ pub(crate) fn scan_directory(
                 kind: LockKind::OfficeOwnerFile,
             });
         }
-        if name == joyword_lock_name(file_name) {
+        if name == joyword_lock_name(file_name) && !joyword_lock_is_own(&entry.path(), owner_token)
+        {
             findings.push(LockFinding {
                 path: entry.path(),
                 kind: LockKind::JoyWordLockFile,
@@ -101,9 +108,13 @@ pub(crate) fn scan_directory(
 pub(crate) fn check_directories(
     directories: &[PathBuf],
     file_name: &std::ffi::OsStr,
+    owner_token: Option<&str>,
 ) -> Result<(), SaveOriginalError> {
     for directory in directories {
-        if let Some(finding) = scan_directory(directory, file_name)?.into_iter().next() {
+        if let Some(finding) = scan_directory(directory, file_name, owner_token)?
+            .into_iter()
+            .next()
+        {
             return Err(SaveOriginalError::LockConflict {
                 lock_path: finding.path,
                 kind: finding.kind,
@@ -112,4 +123,19 @@ pub(crate) fn check_directories(
         }
     }
     Ok(())
+}
+
+/// True only when `path` is a regular file and its whole contents equal
+/// `owner_token`. An empty token never matches. The file is not modified.
+fn joyword_lock_is_own(path: &Path, owner_token: Option<&str>) -> bool {
+    let Some(token) = owner_token.filter(|token| !token.is_empty()) else {
+        return false;
+    };
+    let Ok(metadata) = fs::metadata(path) else {
+        return false;
+    };
+    if !metadata.is_file() || metadata.len() != token.len() as u64 {
+        return false;
+    }
+    fs::read_to_string(path).ok().as_deref() == Some(token)
 }

@@ -12,8 +12,10 @@
 //! read with an unforgeable [`SourceStamp`], [`check_source`] prechecks
 //! conflicts (locks, retargeting, identity, exact bytes), and
 //! [`save_original`] re-verifies conflicts, then requires
-//! `ExportPlan::origin_bytes` to equal the stamped package. Metadata that
-//! this build cannot preserve still refuses before any write. The Unix
+//! `ExportPlan::origin_bytes` to equal the stamped package.
+//! [`save_original_with_lock_token`] skips only the JoyWord lock whose
+//! contents equal the caller's token; it does not delete that file.
+//! Metadata that this build cannot preserve still refuses before any write. The Unix
 //! replace strategy itself (temporary file, sync, read-back, backup hard
 //! link, rename) lives behind that gate. `save_export_copy` remains the
 //! verified fallback when replacement is refused.
@@ -29,9 +31,11 @@ pub use error::{
 };
 pub use original::{
     MetadataCapability, OriginalDurability, OriginalReplacementCapabilities, SaveOriginalReceipt,
-    original_replacement_capabilities, save_original,
+    original_replacement_capabilities, save_original, save_original_with_lock_token,
 };
-pub use source::{OpenedSource, SourceStamp, check_source, open_source};
+pub use source::{
+    OpenedSource, SourceStamp, check_source, check_source_with_lock_token, open_source,
+};
 
 use std::fmt;
 use std::fs::{self, File};
