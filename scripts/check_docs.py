@@ -161,7 +161,7 @@ def validate():
             keys.add(re.sub(r"\[(one|other)\]$", "", key))
         locale_keys.append(keys)
     check(locale_keys[0] == locale_keys[1], "locales: Chinese and English key sets differ")
-    ui_sources = [ROOT / "apps/joyword/src/main.rs", *sorted((ROOT / "crates/joyword-shell/src").glob("*.rs"))]
+    ui_sources = [*sorted((ROOT / "apps/joyword/src").glob("*.rs")), *sorted((ROOT / "crates/joyword-shell/src").glob("*.rs"))]
     used_keys = set()
     for source in ui_sources:
         text = source.read_text(encoding="utf-8").split("#[cfg(test)]")[0]
