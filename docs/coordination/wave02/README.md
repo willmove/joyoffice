@@ -2,6 +2,31 @@
 
 日期：2026-10-15。此次只准备协作包，不启动执行 Agent、自动队列、后台监控或 GUI。开发 Agent 协作不涉及产品内 AI 功能。基本配置为 **C08 协调者＋W05 DOCX 导出＋W06 排版＋W07 安全保存**；按用户补充可扩为 **1＋5**，另一主机预留 W08 恢复日志与 W09 安全测试工程；旧 W01–W04 不重新启动。
 
+## 交付与集成结果
+
+本节为 2026-10-15 的收尾记录；本节之后的负责人核查与准备命令是派工时的快照，保留作历史。五项均按限定切片交付，acceptance_complete 全部为 false：没有 GUI、Office 往返或目标平台人工验收。
+
+| 任务 | 实际执行 | 交付分支最终提交 | 交付内容 |
+| --- | --- | --- | --- |
+| [W05](../reports/W05.md) | 本机 Claude Code 交付；Codex Desktop 聊天接续 | `3f34e53a2240ba18b5fbab99796a18be9ff0dbf8` | 默认格式纯文本正文段落的拆分、合并、插入与删除导出。经用户授权越界改了 docx_export.rs 的一项旧断言；接续提交收紧了受影响段落的属性与未映射内容检查 |
+| [W06](../reports/W06.md) | 本机 Codex Desktop 执行聊天（期间另一会话补入用例，用户确认其停止后接续） | `28c947fa01f93b816e182f86d52d1e7a99eaa074` | 单节、单字体 profile 下 keep-next 链与 keep-lines 的有界分页及几何 |
+| [W07](../reports/W07.md) | ZCode Desktop | `965a74d4339f9fffa9119a65a8d4ef53b0c7145a` | `storage` 下的 open_source／check_source 源身份与冲突预检、Office 与 JoyWord 锁文件检测，以及 save_original 的保守闸门；原件替换未实现 |
+| [W08](../reports/W08.md) | 本机 Codex Desktop（未用 Windows 预留） | `1862bc5c95910878377dc7c3fbd5bad856455f24` | experiments/recovery-journal：有界日志、经真实 engine 的重放、两代检查点与恢复 CLI；未接入生产 |
+| [W09](../reports/W09.md) | 本机 Codex Desktop（未用 Windows 预留） | `ddee5abe2a73692c1017eda2732a66dc7ed46194` | experiments/docx-robustness：三目标 harness、27 份原创种子、变异／最小化驱动与有界 campaign；未接入 CI |
+
+集成：协作包 `a32f59ddd1e8c7c040e737ed6b08cbe6a690082c` 与上述分支按 协作包→W05→W07→W06→W08→W09（建议顺序）以合并提交合入 main，均无冲突，最后一个任务合并为 `bcf435c16fcabf7bb6d1ec6a21edbd3470f8ece0`。随后 `ee4f57d3cd6361ff666170e3d40b1f68373b78d4` 修正两处跨任务断言：W08 重放测试原断言“C07 拒绝结构导出”，W05 合入后改为期望可以导出；W09 的 build.rs、driver.py 与 TARGET_SHA 从 C07 改为指向 `bcf435c`。
+
+本机复验（macOS arm64，未共用其他执行者的 target）结果如下：
+
+- 文档与工具检查、fmt 通过；
+- 强制真实字体的全默认成员 312 项通过、0 failed／ignored；
+- docx／shell／engine／layout 的 release 测试、带 dev-runtime-shaders 的全工作区 clippy 与开发应用构建通过；
+- W08 debug／release 各 15 项、W09 Rust 3 项与 Python 11 项通过，W09 冒烟矩阵 81 次中 43 ok、38 rejected，与 W09 报告一致。
+
+本机缺 Metal 工具链、Poppler 与 cargo-deny，相应检查只在 CI 执行。main 的 CI 中，macOS、统一 PDF 与依赖作业通过；Linux 与 Windows 只在 W07 测试上失败：ext4／tmpfs 复用 inode 号，Windows 源身份只有长度与修改时间。仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 全部 16 项检查通过后合入 main（`5573997a75d9297b24429f90c727dad05b7f90c3`）。
+
+收尾：五个任务分支与协作包分支已从远程删除，各自 worktree 与两个控制 clone 已移除，`codex/wave02-integration` 未推送。下文准备命令所依赖的协作包分支已不存在，第二轮不再重新准备。W09 固定的生产树在 PR #9 修改 crates 后已不一致，运行该 harness 前需重新指定并核准目标，见 [W09 报告](../reports/W09.md)。
+
 ## 基线与负责人核查
 
 代码候选基线：`a88217136a570a8f224d92b808bc0b8840ab26ca`，分支 `codex/coordination-text-input`。本地分支、原协调 worktree HEAD、`git ls-remote origin refs/heads/codex/coordination-text-input` 三者一致。当前常用目录 `/Users/willm/Coding/joyoffice` 仍在 C02 `4dd3870a609509ec225a7f85cb8509fbb602dfae`；main 为 `b48ca9b426b80c220f0b2518d1e0ad363e07afea`，都不能作为本轮起点。

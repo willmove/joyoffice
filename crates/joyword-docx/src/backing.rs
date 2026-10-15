@@ -7,7 +7,7 @@
 //! Raw backing is preservation, not an edited export. An unchanged document
 //! may copy [`PackageBacking::original_bytes`]. Edited output must use
 //! [`crate::plan_export`], which only permits proven text-leaf patches and
-//! rejects edits outside that boundary.
+//! plain paragraph structure changes, and rejects edits outside that boundary.
 
 use std::collections::BTreeMap;
 use std::ops::Range;
