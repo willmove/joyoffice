@@ -48,6 +48,8 @@ jobs:
         run: cargo test --locked
       - name: Lints
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Headless application adapter tests
+        run: cargo test --locked -p joyword
       - name: Native application build (precompiled shaders)
         run: cargo build -p joyword --locked
       # GPU windows, IME, accessibility, printing and Office round-trips require
@@ -110,7 +112,7 @@ jobs:
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal
       - name: Shaping and PDF tests with the required font
-        run: cargo test --locked -p joyword-layout -p joyword-pdf
+        run: cargo test --locked -p joyword-layout -p joyword-pdf -p joyword-render
       - name: Unified scene PDF
         run: cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified
       - name: Independent read-back (pdftotext)
@@ -119,6 +121,15 @@ jobs:
         run: |
           cargo run --locked -p joyword-pdf --example document_flow -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/document-flow
           python3 scripts/verify_document_pdf.py target/document-flow
+      - name: CPU scenes and independent PDF raster comparison (C06)
+        run: |
+          cargo test --locked -p joyword-render --example compare_rasters
+          cargo run --locked -p joyword-render --example cpu_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/cpu-scene
+          pdftoppm -r 144 -png target/cpu-scene/reference.pdf target/cpu-scene/pdf
+          for cpu in target/cpu-scene/cpu-*.png; do
+            page="${cpu##*/cpu-}"
+            cargo run --locked -p joyword-render --example compare_rasters -- "$cpu" "target/cpu-scene/pdf-$page"
+          done
       - name: Line and page break comparison (T004)
         run: |
           cargo run --locked -p joyword-pdf --example unified_scene -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/unified-split split-third-line
@@ -132,6 +143,7 @@ jobs:
           path: |
             target/unified
             target/document-flow
+            target/cpu-scene
 
   dependencies:
     runs-on: ubuntu-24.04

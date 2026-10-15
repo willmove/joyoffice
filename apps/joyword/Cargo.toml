@@ -16,6 +16,11 @@ dev-runtime-shaders = ["gpui/runtime_shaders"]
 [dependencies]
 gpui.workspace = true
 joyword-foundation.workspace = true
+joyword-engine.workspace = true
+joyword-model.workspace = true
+joyword-layout.workspace = true
+joyword-render.workspace = true
+image.workspace = true
 joyword-shell.workspace = true
 
 [lints]

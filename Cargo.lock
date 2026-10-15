@@ -2869,7 +2869,12 @@ name = "joyword"
 version = "0.0.1"
 dependencies = [
  "gpui",
+ "image",
+ "joyword-engine",
  "joyword-foundation",
+ "joyword-layout",
+ "joyword-model",
+ "joyword-render",
  "joyword-shell",
 ]
 
@@ -2932,6 +2937,18 @@ dependencies = [
  "joyword-layout",
  "joyword-model",
  "krilla",
+]
+
+[[package]]
+name = "joyword-render"
+version = "0.0.1"
+dependencies = [
+ "joyword-foundation",
+ "joyword-layout",
+ "joyword-model",
+ "joyword-pdf",
+ "skrifa 0.42.1",
+ "tiny-skia",
 ]
 
 [[package]]
