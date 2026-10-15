@@ -434,6 +434,10 @@ mod tests {
         path
     }
 
+    // Outside Unix the identity is length and modification time, so a
+    // same-length rewrite within one clock tick is invisible here; the
+    // byte comparison of every later check still sees changed content.
+    #[cfg(unix)]
     #[test]
     fn identity_change_between_stat_and_open_is_not_a_baseline() {
         let dir = tempfile::tempdir().unwrap();
@@ -463,6 +467,23 @@ mod tests {
         assert!(matches!(error, SaveOriginalError::UnstableRead { .. }));
     }
 
+    #[cfg(not(unix))]
+    #[test]
+    fn length_change_between_stat_and_open_is_not_a_baseline() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_source(dir.path(), "a.docx", b"0123456789");
+        let error = open_source_inner(&path, &Budget::default(), |stage, _| {
+            if stage == SourceStage::Open {
+                fs::write(&path, b"98765432100")?;
+            }
+            Ok(())
+        })
+        .unwrap_err();
+        assert!(matches!(error, SaveOriginalError::UnstableRead { .. }));
+    }
+
+    // Identical bytes under a new object: Unix sees the inode or ctime.
+    #[cfg(unix)]
     #[test]
     fn replacement_after_read_before_restat_is_not_a_baseline() {
         let dir = tempfile::tempdir().unwrap();
@@ -471,6 +492,22 @@ mod tests {
             if stage == SourceStage::Restat {
                 fs::remove_file(&path)?;
                 fs::write(&path, b"0123456789")?;
+            }
+            Ok(())
+        })
+        .unwrap_err();
+        assert!(matches!(error, SaveOriginalError::UnstableRead { .. }));
+    }
+
+    #[cfg(not(unix))]
+    #[test]
+    fn longer_replacement_after_read_before_restat_is_not_a_baseline() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_source(dir.path(), "a.docx", b"0123456789");
+        let error = open_source_inner(&path, &Budget::default(), |stage, _| {
+            if stage == SourceStage::Restat {
+                fs::remove_file(&path)?;
+                fs::write(&path, b"01234567890")?;
             }
             Ok(())
         })
