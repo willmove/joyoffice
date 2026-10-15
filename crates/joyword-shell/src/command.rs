@@ -38,10 +38,11 @@ impl Platform {
     }
 }
 
-/// Top-level menus in display order. Until the File menu exists (T103),
-/// Quit stays in the application menu on every platform.
+/// Top-level menus in display order. Quit stays on the application menu.
+/// File has Open and Save As only; there is no original-file Save command.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MenuKind {
+    File,
     App,
     Edit,
     View,
@@ -50,6 +51,7 @@ pub enum MenuKind {
 impl MenuKind {
     pub fn label_key(self) -> &'static str {
         match self {
+            MenuKind::File => "menu.file",
             MenuKind::App => "menu.app",
             MenuKind::Edit => "menu.edit",
             MenuKind::View => "menu.view",
@@ -149,6 +151,8 @@ pub enum RegistryIssue {
 }
 
 pub const QUIT: CommandId = CommandId("app.quit");
+pub const FILE_OPEN: CommandId = CommandId("file.open");
+pub const FILE_SAVE_COPY: CommandId = CommandId("file.save_copy");
 pub const ZOOM_IN: CommandId = CommandId("view.zoom_in");
 pub const ZOOM_OUT: CommandId = CommandId("view.zoom_out");
 pub const ZOOM_RESET: CommandId = CommandId("view.zoom_reset");
@@ -195,6 +199,24 @@ impl Registry {
             })
         };
         Self::new(vec![
+            CommandSpec {
+                id: FILE_OPEN,
+                label: "command.file.open",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 0,
+                }),
+                shortcut: Shortcut::primary("cmd-o", "ctrl-o"),
+            },
+            CommandSpec {
+                id: FILE_SAVE_COPY,
+                label: "command.file.save_copy",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 0,
+                }),
+                shortcut: Shortcut::primary("cmd-shift-s", "ctrl-shift-s"),
+            },
             CommandSpec {
                 id: QUIT,
                 label: "command.app.quit",

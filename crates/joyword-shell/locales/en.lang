@@ -1,6 +1,6 @@
 # JoyWord UI strings (English). Format: see crates/joyword-shell/src/l10n.rs.
 language = 简体中文
-stage = Technical preview · Changes exist only in this session. Saving is not yet available.
+stage = Technical preview · Save As writes a new copy and does not replace the open file.
 welcome = Hello, JoyWord
 intro = Native word processing for writing and document review.
 projection = This is an engineering test page. Zoom changes the view, not the physical page size.
@@ -8,8 +8,11 @@ next = Next milestone: IME input, editing transactions and a DOCX save/reopen wo
 status = Session document · AI not loaded
 zoom.percent = {percent}%
 
+menu.file = File
 menu.app = JoyWord
 menu.view = View
+command.file.open = Open…
+command.file.save_copy = Save As New Copy…
 command.app.quit = Quit JoyWord
 command.view.zoom_in = Zoom In
 command.view.zoom_out = Zoom Out
@@ -61,6 +64,10 @@ input.no_composition = No composition
 input.layout_pending = Page layout is pending
 input.error = Input could not complete: {reason}
 input.dirty = Unsaved changes · AI not loaded
+file.open.error = Could not open: {reason}
+file.copy.error = Could not save a copy: {reason}
+file.copy.saved = Wrote a new copy at {path}. The open file was not replaced.
+file.save_copy.unavailable = No opened file can be saved as a copy
 input.missing_glyphs = Some characters have no font glyph; missing-glyph boxes are shown.
 
 input.invalid_range = The input position is no longer valid. Please try again.
