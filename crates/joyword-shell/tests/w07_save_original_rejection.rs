@@ -70,7 +70,7 @@ fn replacement_is_refused_with_durable_blockers_and_zero_side_effects() {
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
     let error = save_original(&edited_plan(1), &stamp).unwrap_err();
     let blockers = error.blockers().expect("expected durable blockers");
-    assert!(blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
+    assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
         MetadataItem::ExtendedAttributes
@@ -100,7 +100,8 @@ fn a_plan_from_another_document_cannot_overwrite_a_source() {
         .export_plan()
         .unwrap();
     let error = save_original(&other, &stamp).unwrap_err();
-    assert!(error.blockers().is_some());
+    assert!(error.is_origin_mismatch());
+    assert!(error.blockers().is_none());
     assert_untouched(&path, &bytes, 1);
 }
 
