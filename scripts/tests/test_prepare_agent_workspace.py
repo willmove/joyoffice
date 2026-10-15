@@ -96,6 +96,64 @@ class WorkspacePreparationTests(unittest.TestCase):
         self.assertIn("already exists on origin", result.stderr)
         self.assertFalse((self.root / "task").exists())
 
+    def test_explicit_start_creates_the_reviewed_worktree(self):
+        result = self.invoke("--start", self.start)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.run_git("rev-parse", "HEAD", cwd=self.root / "task"), self.start)
+
+    def test_explicit_start_rejects_remote_branch_drift(self):
+        previous = self.start
+        (self.source / "baseline.txt").write_text("new revision\n", encoding="utf-8")
+        self.run_git("add", "baseline.txt", cwd=self.source)
+        self.run_git("commit", "-m", "advance", cwd=self.source)
+        self.run_git("push", "origin", REF, cwd=self.source)
+        result = self.invoke("--start", previous)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Coordination branch moved", result.stderr)
+        self.assertFalse((self.root / "task").exists())
+
+    def test_start_must_be_a_complete_commit(self):
+        result = self.invoke("--start", "HEAD", "--dry-run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("full lowercase", result.stderr)
+        self.assertFalse((self.root / "task").exists())
+
+    def test_changed_local_plan_is_rejected(self):
+        path = self.source / "docs/coordination/plan.json"
+        plan = json.loads(path.read_text())
+        plan["tasks"][0]["branch"] = "codex/another-owner"
+        path.write_text(json.dumps(plan), encoding="utf-8")
+        result = self.invoke("--start", self.start)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Local plan differs", result.stderr)
+        self.assertFalse((self.root / "task").exists())
+
+    def test_wave02_plan_requires_start_and_prepares_independent_clone(self):
+        path = self.source / "docs/coordination/plan.json"
+        plan = json.loads(path.read_text())
+        plan["require_explicit_start"] = True
+        second = self.source / "docs/coordination/wave02/plan.json"
+        second.parent.mkdir()
+        second.write_text(json.dumps(plan), encoding="utf-8")
+        self.run_git("add", "docs", cwd=self.source)
+        self.run_git("commit", "-m", "wave02 plan", cwd=self.source)
+        self.run_git("push", "origin", REF, cwd=self.source)
+        start = self.run_git("rev-parse", "HEAD", cwd=self.source)
+        args = ("--plan", "docs/coordination/wave02/plan.json")
+        refused = self.invoke(*args, "--dry-run")
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn("requires --start", refused.stderr)
+        result = self.invoke(*args, "--start", start, "--mode", "clone")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.run_git("rev-parse", "HEAD", cwd=self.root / "task"), start)
+        self.assertTrue((self.root / "task/.git").is_dir())
+
+    def test_plan_cannot_escape_checkout(self):
+        result = self.invoke("--plan", "../plan.json", "--dry-run")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Plan must remain inside", result.stderr)
+        self.assertFalse((self.root / "task").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
