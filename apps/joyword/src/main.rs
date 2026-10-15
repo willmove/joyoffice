@@ -44,7 +44,9 @@ actions!(
         LineEnd,
         ExtendLineStart,
         ExtendLineEnd,
-        CancelComposition
+        CancelComposition,
+        OpenFile,
+        SaveCopy
     ]
 );
 
@@ -80,6 +82,8 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_EXTEND_HOME => Box::new(ExtendLineStart),
         EDIT_EXTEND_END => Box::new(ExtendLineEnd),
         EDIT_CANCEL => Box::new(CancelComposition),
+        FILE_OPEN => Box::new(OpenFile),
+        FILE_SAVE_COPY => Box::new(SaveCopy),
         _ => return None,
     })
 }
@@ -159,6 +163,8 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                     KeyBinding::new(keys, ExtendLineEnd, Some("JoyWordInput && !composing"))
                 }
                 EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some("JoyWordInput")),
+                FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
+                FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
                 _ => return None,
             })
         })
@@ -174,7 +180,8 @@ struct JoyWord {
     locale: Locale,
     registry: Registry,
     focus_handle: FocusHandle,
-    editor: Option<TextInput>,
+    editor: Option<Box<dyn input_ui::DocEditor>>,
+    copy_note: Option<String>,
     font: Option<Arc<LoadedFont>>,
     profile: Option<SingleFontProfile>,
     frame: Option<CanvasFrame>,
@@ -228,6 +235,8 @@ impl CommandHost for ViewHost<'_, '_> {
                     .set_menus(menus(&view.registry, Catalog::shipped(view.locale)));
             }
             QUIT => view.request_close(true, self.window, self.cx),
+            FILE_OPEN => view.begin_open(self.window, self.cx),
+            FILE_SAVE_COPY => view.begin_save_copy(self.window, self.cx),
             other => return view.execute_input(other, self.window, self.cx),
         }
         self.cx.notify();
@@ -294,7 +303,7 @@ impl JoyWord {
                             }
                             match TextInput::new(session, InputLimits::default()) {
                                 Ok(editor) => {
-                                    view.editor = Some(editor);
+                                    view.editor = Some(Box::new(editor));
                                     view.font = Some(Arc::new(font));
                                     view.profile = Some(profile);
                                 }
@@ -418,14 +427,18 @@ impl Render for JoyWord {
         window.set_window_edited(
             self.editor
                 .as_ref()
-                .is_some_and(TextInput::has_unsaved_changes),
+                .is_some_and(|editor| editor.has_unsaved_changes()),
         );
         let catalog = Catalog::shipped(self.locale);
 
         div()
             .track_focus(&self.focus_handle)
             .key_context(
-                if self.editor.as_ref().is_some_and(TextInput::is_composing) {
+                if self
+                    .editor
+                    .as_ref()
+                    .is_some_and(|editor| editor.is_composing())
+                {
                     "JoyWordInput composing"
                 } else {
                     "JoyWordInput"
@@ -496,6 +509,12 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &CancelComposition, window, cx| {
                 this.run(EDIT_CANCEL, window, cx)
             }))
+            .on_action(
+                cx.listener(|this, _: &OpenFile, window, cx| this.run(FILE_OPEN, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &SaveCopy, window, cx| this.run(FILE_SAVE_COPY, window, cx)),
+            )
             .size_full()
             .flex()
             .flex_col()
@@ -608,6 +627,7 @@ fn main() {
                         registry: registry.clone(),
                         focus_handle: cx.focus_handle(),
                         editor: None,
+                        copy_note: None,
                         font: None,
                         profile: None,
                         frame: None,
