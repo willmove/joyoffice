@@ -1,0 +1,346 @@
+//! Shared error surface for opening, conflict-prechecking and saving an
+//! opened source document (W07). Every variant names the path it concerned;
+//! none of them silently downgrades a failure into success.
+
+use std::fmt;
+use std::io;
+use std::path::PathBuf;
+
+/// Observable step of the source pipeline. `Io` errors carry the step that
+/// failed; the same step set drives deterministic fault injection in tests.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SourceStage {
+    /// Path resolution (canonicalization) of the requested source.
+    Resolve,
+    /// Directory scan for owner/lock files.
+    LockScan,
+    /// stat of the resolved file.
+    Stat,
+    /// open of the resolved path for the bounded read.
+    Open,
+    /// The bounded read itself.
+    Read,
+    /// Re-stat after the read proving the captured baseline was stable.
+    Restat,
+    /// Argument validation inside save_original.
+    Validate,
+}
+
+impl fmt::Display for SourceStage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Resolve => "path resolution",
+            Self::LockScan => "lock scan",
+            Self::Stat => "stat",
+            Self::Open => "open",
+            Self::Read => "bounded read",
+            Self::Restat => "post-read stat",
+            Self::Validate => "validation",
+        })
+    }
+}
+
+/// What an Office owner file (`~$…`) or JoyWord lock file was found to be.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LockState {
+    /// The lock-named entry exists. Presence alone never grants exclusivity
+    /// and expired locks are never deleted by this code.
+    Present,
+    /// The scan could not decide (unreadable directory, undecodable name).
+    /// Treated as a conflict: the conservative direction.
+    Unknown,
+}
+
+/// The kind of lock-named entry that was found or could not be decided.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LockKind {
+    /// A `~$`-prefixed sibling matching the Word owner-file convention.
+    OfficeOwnerFile,
+    /// JoyWord's own lock file convention, `.<name>.joyword-lock`.
+    JoyWordLockFile,
+}
+
+/// How the on-disk state stopped matching the captured `SourceStamp`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ConflictDetail {
+    /// The resolved path no longer exists.
+    Missing,
+    /// The path now names something other than a regular file.
+    NotARegularFileAnymore,
+    /// Same path, different file-system object (delete/recreate, or a new
+    /// inode after replacement by another writer).
+    InodeChanged,
+    /// Length differs from the captured baseline.
+    SizeChanged,
+    /// Modification or (Unix) status-change time differs. Content may or may
+    /// not have changed; identical content with new times still conflicts.
+    TimesChanged,
+    /// Permission bits differ (Unix).
+    ModeChanged,
+    /// Hard-link count differs (Unix); alias links appeared or disappeared.
+    LinkCountChanged,
+    /// Bytes differ from the captured baseline. Caught by exact byte
+    /// comparison, including same-size/same-mtime rewrites.
+    ContentChanged,
+    /// The recorded request path now resolves elsewhere (symlink retargeted,
+    /// path moved), so the stamp no longer names the same object.
+    PathResolutionChanged,
+}
+
+impl ConflictDetail {
+    fn message(&self) -> &'static str {
+        match self {
+            Self::Missing => "source no longer exists",
+            Self::NotARegularFileAnymore => "source is no longer a regular file",
+            Self::InodeChanged => "source object identity changed",
+            Self::SizeChanged => "source length changed",
+            Self::TimesChanged => "source times changed",
+            Self::ModeChanged => "source permission bits changed",
+            Self::LinkCountChanged => "source hard-link count changed",
+            Self::ContentChanged => "source content changed",
+            Self::PathResolutionChanged => "request path resolves to a different object",
+        }
+    }
+}
+
+/// Why original-file replacement is unavailable. These are durable policy
+/// facts, not transient failures; retrying cannot fix them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReplacementBlocker {
+    /// The C07 `ExportPlan` carries no verifiable binding to the package it
+    /// was exported from. Equal version numbers never prove that a plan and a
+    /// source belong together, so no plan may overwrite any source yet.
+    OriginBindingUnproven,
+    /// The metadata item cannot even be observed with the approved
+    /// dependencies, so losing it could not be detected, let alone restored.
+    UnobservableMetadata(MetadataItem),
+    /// The metadata item is observable but no approved write path can restore
+    /// it on a replaced inode.
+    UnpreservableMetadata(MetadataItem),
+    /// The source has several hard links; replacing one path leaves the other
+    /// links on the old object. A product decision is required first.
+    LinkedSourceSemantics,
+}
+
+impl ReplacementBlocker {
+    fn message(&self) -> &'static str {
+        match self {
+            Self::OriginBindingUnproven => {
+                "the export plan cannot be proven to originate from this source package"
+            }
+            Self::UnobservableMetadata(_) => {
+                "metadata item cannot be observed with approved dependencies"
+            }
+            Self::UnpreservableMetadata(_) => {
+                "metadata item is observable but cannot be restored by an approved write path"
+            }
+            Self::LinkedSourceSemantics => {
+                "source is hard-linked; replacement semantics for other links are undecided"
+            }
+        }
+    }
+}
+
+/// One metadata aspect the architecture requires an atomic replacement to
+/// preserve (ARCHITECTURE §5: links, permissions/ACL, extended attributes,
+/// creation time, read-only attribute, provenance marks).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MetadataItem {
+    Permissions,
+    Ownership,
+    Acl,
+    ExtendedAttributes,
+    CreationTime,
+    Links,
+    /// Windows Mark of the Web, macOS quarantine flags.
+    ProvenanceMarks,
+}
+
+impl MetadataItem {
+    fn message(&self) -> &'static str {
+        match self {
+            Self::Permissions => "permission bits / read-only attribute",
+            Self::Ownership => "file ownership",
+            Self::Acl => "access control lists",
+            Self::ExtendedAttributes => "extended attributes",
+            Self::CreationTime => "creation time",
+            Self::Links => "symbolic and hard links",
+            Self::ProvenanceMarks => "provenance marks (MOTW, quarantine)",
+        }
+    }
+}
+
+/// Errors from opening a source, conflict prechecks and original replacement.
+#[derive(Debug)]
+pub enum SaveOriginalError {
+    /// File-system failure at the named stage.
+    Io {
+        stage: SourceStage,
+        path: PathBuf,
+        source: io::Error,
+    },
+    /// The resolved path names a directory, device or other non-regular file.
+    NotARegularFile { path: PathBuf },
+    /// The file exceeds the byte budget of the read. Never read unbounded.
+    SourceTooLarge { path: PathBuf, limit: u64 },
+    /// Identity observations around one bounded read disagreed, so the read
+    /// bytes are not a stable baseline and no stamp was produced.
+    UnstableRead { path: PathBuf },
+    /// An owner/lock file exists, or its state could not be determined.
+    /// Locks are never deleted or stolen.
+    LockConflict {
+        lock_path: PathBuf,
+        kind: LockKind,
+        state: LockState,
+    },
+    /// Current state stopped matching the stamp (`check_source`, and the
+    /// internal re-verification of `save_original`).
+    Conflict {
+        path: PathBuf,
+        detail: ConflictDetail,
+    },
+    /// Original replacement is refused before any write; each blocker names
+    /// a durable reason. The source file is untouched.
+    ReplacementUnavailable {
+        path: PathBuf,
+        blockers: Vec<ReplacementBlocker>,
+    },
+}
+
+impl SaveOriginalError {
+    /// The path the error is about: the source, the lock or the target.
+    pub fn path(&self) -> &std::path::Path {
+        match self {
+            Self::Io { path, .. }
+            | Self::NotARegularFile { path }
+            | Self::SourceTooLarge { path, .. }
+            | Self::UnstableRead { path }
+            | Self::Conflict { path, .. }
+            | Self::ReplacementUnavailable { path, .. } => path,
+            Self::LockConflict { lock_path, .. } => lock_path,
+        }
+    }
+    pub fn stage(&self) -> Option<SourceStage> {
+        match self {
+            Self::Io { stage, .. } => Some(*stage),
+            _ => None,
+        }
+    }
+    pub fn io_error(&self) -> Option<&io::Error> {
+        match self {
+            Self::Io { source, .. } => Some(source),
+            _ => None,
+        }
+    }
+    /// The conflict detail, when this is a `Conflict`.
+    pub fn conflict(&self) -> Option<ConflictDetail> {
+        match self {
+            Self::Conflict { detail, .. } => Some(*detail),
+            _ => None,
+        }
+    }
+    /// The lock kind/state, when this is a `LockConflict`.
+    pub fn lock(&self) -> Option<(LockKind, LockState)> {
+        match self {
+            Self::LockConflict { kind, state, .. } => Some((*kind, *state)),
+            _ => None,
+        }
+    }
+    /// The durable blockers, when replacement was refused.
+    pub fn blockers(&self) -> Option<&[ReplacementBlocker]> {
+        match self {
+            Self::ReplacementUnavailable { blockers, .. } => Some(blockers),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for SaveOriginalError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io {
+                stage,
+                path,
+                source,
+            } => {
+                write!(f, "source {} at {:?}: {}", stage, path.display(), source)
+            }
+            Self::NotARegularFile { path } => {
+                write!(f, "source {:?} is not a regular file", path.display())
+            }
+            Self::SourceTooLarge { path, limit } => {
+                write!(
+                    f,
+                    "source {:?} exceeds the read budget of {} bytes",
+                    path.display(),
+                    limit
+                )
+            }
+            Self::UnstableRead { path } => write!(
+                f,
+                "source {:?} changed identity during the bounded read; no baseline captured",
+                path.display()
+            ),
+            Self::LockConflict {
+                lock_path,
+                kind,
+                state,
+            } => write!(
+                f,
+                "{:?} at {:?}: {}",
+                kind,
+                lock_path.display(),
+                match state {
+                    LockState::Present => "lock entry exists",
+                    LockState::Unknown => "lock state could not be determined",
+                }
+            ),
+            Self::Conflict { path, detail } => {
+                write!(f, "source {:?}: {}", path.display(), detail.message())
+            }
+            Self::ReplacementUnavailable { path, blockers } => {
+                write!(
+                    f,
+                    "original replacement unavailable for {:?}",
+                    path.display()
+                )?;
+                for blocker in blockers {
+                    write!(f, "; {}", blocker.message())?;
+                    match blocker {
+                        ReplacementBlocker::UnobservableMetadata(item)
+                        | ReplacementBlocker::UnpreservableMetadata(item) => {
+                            write!(f, " ({})", item.message())?;
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(())
+            }
+        }
+    }
+}
+
+impl std::error::Error for SaveOriginalError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Io { source, .. } => Some(source),
+            _ => None,
+        }
+    }
+}
+
+impl SaveOriginalError {
+    pub(crate) fn io(stage: SourceStage, path: &std::path::Path, source: io::Error) -> Self {
+        Self::Io {
+            stage,
+            path: path.to_path_buf(),
+            source,
+        }
+    }
+    pub(crate) fn conflict_error(path: &std::path::Path, detail: ConflictDetail) -> Self {
+        Self::Conflict {
+            path: path.to_path_buf(),
+            detail,
+        }
+    }
+}

@@ -1,11 +1,35 @@
-//! Publish a verified export as a NEW file (T103/T106, C03).
+//! Document storage: verified export copies and the safe-save pipeline.
 //!
-//! This is an export-copy operation, not replacement of an opened file.
-//! Existing destinations (including dangling symlinks) are never overwritten.
-//! The chosen directory must support hard links. No fallback writes partial
-//! bytes to the destination. Session state and source metadata are untouched.
-//! A failure after publication carries the receipt; callers must not pretend
-//! nothing was written, blindly retry, or mark a newer session saved.
+//! [`save_export_copy`] (C03/T103, T106) publishes a verified export as a
+//! NEW file. Existing destinations (including dangling symlinks) are never
+//! overwritten. The chosen directory must support hard links. No fallback
+//! writes partial bytes to the destination. Session state and source
+//! metadata are untouched. A failure after publication carries the receipt;
+//! callers must not pretend nothing was written, blindly retry, or mark a
+//! newer session saved.
+//!
+//! W07 adds the original-file pipeline: [`open_source`] captures a bounded
+//! read with an unforgeable [`SourceStamp`], [`check_source`] prechecks
+//! conflicts (locks, retargeting, identity, exact bytes), and
+//! [`save_original`] re-verifies everything and conservatively refuses
+//! replacement while plan-to-source binding and metadata preservation
+//! cannot be proven. Original replacement is unimplemented/unverified this
+//! round; `save_export_copy` remains the verified fallback.
+
+mod error;
+mod locks;
+mod original;
+mod source;
+
+pub use error::{
+    ConflictDetail, LockKind, LockState, MetadataItem, ReplacementBlocker, SaveOriginalError,
+    SourceStage,
+};
+pub use original::{
+    MetadataCapability, OriginalDurability, OriginalReplacementCapabilities, SaveOriginalReceipt,
+    original_replacement_capabilities, save_original,
+};
+pub use source::{OpenedSource, SourceStamp, check_source, open_source};
 
 use std::fmt;
 use std::fs::{self, File};
