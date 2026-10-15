@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "elapsed_seconds": 0.006353083000000002,
+  "exit": 0,
+  "timed_out": false,
+  "reaped": true,
+  "stdout_bytes": 434,
+  "stderr_bytes": 0,
+  "stdout": "{\"schema\":1,\"target\":\"roundtrip\",\"case_id\":\"W09-replay\",\"seed\":0,\"target_sha\":\"a88217136a570a8f224d92b808bc0b8840ab26ca\",\"input_sha256\":\"ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa\",\"bytes\":1317,\"status\":\"ok\",\"reason\":\"\",\"checks\":9,\"budget\":{\"input_bytes\":1048576,\"entries\":128,\"part_bytes\":1048576,\"total_bytes\":4194304,\"ratio\":100,\"ratio_floor_bytes\":4096,\"xml_depth\":32,\"xml_nodes\":20000,\"relationships\":128}}\n",
+  "stderr": "",
+  "class": "ok",
+  "target": "roundtrip",
+  "case_id": "W09-replay",
+  "seed": 0,
+  "input_sha256": "ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa",
+  "target_sha": "a88217136a570a8f224d92b808bc0b8840ab26ca",
+  "reproduce": [
+    "/Users/willm/Coding/joyoffice-w09/experiments/docx-robustness/target/release/joyword-docx-robustness",
+    "roundtrip",
+    "W09-replay",
+    "0",
+    "INPUT_FILE"
+  ],
+  "harness_report": {
+    "schema": 1,
+    "target": "roundtrip",
+    "case_id": "W09-replay",
+    "seed": 0,
+    "target_sha": "a88217136a570a8f224d92b808bc0b8840ab26ca",
+    "input_sha256": "ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa",
+    "bytes": 1317,
+    "status": "ok",
+    "reason": "",
+    "checks": 9,
+    "budget": {
+      "input_bytes": 1048576,
+      "entries": 128,
+      "part_bytes": 1048576,
+      "total_bytes": 4194304,
+      "ratio": 100,
+      "ratio_floor_bytes": 4096,
+      "xml_depth": 32,
+      "xml_nodes": 20000,
+      "relationships": 128
+    }
+  }
+}

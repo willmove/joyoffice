@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "W09-minimal",
+      "file": "minimal.docx",
+      "sha256": "ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa",
+      "bytes": 1317,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-unknown-binary",
+      "file": "unknown-binary.docx",
+      "sha256": "2d3a307d4ad35885b40c8ce068069cf368125e6058150dba07ca1ed363ed9e2d",
+      "bytes": 1431,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-external-http",
+      "file": "external-http.docx",
+      "sha256": "289f012c0fc008b129dd91e42abe0cb56f40ba15c550ab6792428c17132ff2eb",
+      "bytes": 1723,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-external-file",
+      "file": "external-file.docx",
+      "sha256": "7edc492d902841bcaad3287e6a3b7ea5eafa22bf21955c5b45d573ae03aa0237",
+      "bytes": 1711,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-external-unc",
+      "file": "external-unc.docx",
+      "sha256": "c90aa005a9e390cf8974d231016529d871a7d90a1b5cdcc4f5ad387aa97e1794",
+      "bytes": 1709,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-relationship-cycle",
+      "file": "relationship-cycle.docx",
+      "sha256": "fdc0b729d146fabe9dd0def25d7de0061ce42b87275deb458b1600f8553aad10",
+      "bytes": 1708,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-protected",
+      "file": "protected.docx",
+      "sha256": "580ac278b2d0a245d87e843382021d4e941a6cf5e719d664f456b78890838388",
+      "bytes": 1967,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-tracked",
+      "file": "tracked.docx",
+      "sha256": "e25837d19d7ad864961c805922874f66a3a9034cc526d009bc05f421c4cdd6a1",
+      "bytes": 1927,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-revision",
+      "file": "revision.docx",
+      "sha256": "1735d93af95cfbdf04153fdfdd7528b09623d0b1331a9f175b03b2ed953e658e",
+      "bytes": 1289,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-signed",
+      "file": "signed.docx",
+      "sha256": "4c6021dc117877b64d0c1048688b62cd61f1a9208177427bd6eb67a3aa355162",
+      "bytes": 1451,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-unknown-namespace",
+      "file": "unknown-namespace.docx",
+      "sha256": "273bb0430e4dfcc67b354f0c40265f3b2aaaedbc0348924e5e916bcc50ba82f4",
+      "bytes": 1354,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-alternate-content",
+      "file": "alternate-content.docx",
+      "sha256": "f7ea9f6f8fdb306cf3e15780b63688935c2491811b5f3ac399a2937337192260",
+      "bytes": 1523,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-must-understand",
+      "file": "must-understand.docx",
+      "sha256": "7aac429a50353481639116e865301bbb470a247495579a2acb7e31e6ec12f07b",
+      "bytes": 1417,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-xml-entity",
+      "file": "xml-entity.docx",
+      "sha256": "399a1358c34f72e2b881aaa30485f01de27dc09d07caf9cb8ba3329d44621fa5",
+      "bytes": 1293,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-xml-depth",
+      "file": "xml-depth.docx",
+      "sha256": "9e9b196f4e557061e00c45380fbb122c1bbc8dc491a7bb8f5054e40b16f5b6b5",
+      "bytes": 2717,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-xml-nodes",
+      "file": "xml-nodes.docx",
+      "sha256": "b92f8c86fc693f964a05d5225338921585c86016836d043682d76a0a2c315ce7",
+      "bytes": 67224,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-duplicate-name",
+      "file": "duplicate-name.docx",
+      "sha256": "67f575298c326a10a20726604c0509a84c03bc99b321148bcba9bbc8c0fdd2a1",
+      "bytes": 1431,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-path-traversal",
+      "file": "path-traversal.docx",
+      "sha256": "66c2e3e50797bd4f7b76691b5d7b3fbce9f568741512cb76ac0bf152423d221a",
+      "bytes": 1420,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-case-duplicate",
+      "file": "case-duplicate.docx",
+      "sha256": "cf194127887ae5eb164702e4aec4143509fdd0640e2492bfcd5ef928b435db2a",
+      "bytes": 1431,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-compression-ratio",
+      "file": "compression-ratio.docx",
+      "sha256": "53d5c5c3938d30cca701823875236b489371b9002c35334b7b20cc3fc122691b",
+      "bytes": 1591,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-truncated",
+      "file": "truncated.docx",
+      "sha256": "938764982e793d99820a984dbd84cdb57b0ab3cf5448fbae542ac3e655154830",
+      "bytes": 1310,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-empty",
+      "file": "empty.docx",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-crc",
+      "file": "crc.docx",
+      "sha256": "25c672aebcf3ff7cbb042a9ae392c1b2b1e0093beebaf26f2ef0d4e19d3ec6bb",
+      "bytes": 1317,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-declared-size",
+      "file": "declared-size.docx",
+      "sha256": "1be3c47133542a33f37508d9342f4bff011c802f198223bfddb794864ca3b672",
+      "bytes": 1317,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-encrypted",
+      "file": "encrypted.docx",
+      "sha256": "b7144dcb28161ac90d5a9bdc2b6fe1d344dd050751ab55626e8990f7083b8992",
+      "bytes": 1317,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-unknown-compression",
+      "file": "unknown-compression.docx",
+      "sha256": "641ec8a347add5d618e2b55df7bb592817a10844b8caa51793e22319201ee128",
+      "bytes": 1317,
+      "source": "original inline ZIP/XML generator matrix.py"
+    },
+    {
+      "id": "W09-overlap",
+      "file": "overlap.docx",
+      "sha256": "30b90df1ace2a3181836a25c6c3e1539f200259d8b9cca8e47d34196eaa6d9b2",
+      "bytes": 1317,
+      "source": "original inline ZIP/XML generator matrix.py"
+    }
+  ]
+}

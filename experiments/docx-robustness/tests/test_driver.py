@@ -1,0 +1,72 @@
+import json
+import os
+from pathlib import Path
+import random
+import subprocess
+import sys
+import tempfile
+import unittest
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+import driver
+import matrix
+
+class DriverTests(unittest.TestCase):
+    def test_deterministic_byte_and_structural_mutations(self):
+        data=matrix.archive()
+        a=random.Random(42);b=random.Random(42)
+        first=[driver.mutate(data,a,i) for i in range(30)]
+        self.assertEqual(first,[driver.mutate(data,b,i) for i in range(30)])
+        self.assertTrue(all(len(data)<=driver.MAX_INPUT for data,_ in first))
+        self.assertTrue(any(method=='xml-depth' for _,method in first))
+    def test_matrix_regenerates_exact_manifest_hashes(self):
+        with tempfile.TemporaryDirectory() as d:
+            entries=matrix.generate(d)
+            self.assertEqual(len(entries),27)
+            for entry in entries:self.assertEqual(driver.sha((Path(d)/entry['file']).read_bytes()),entry['sha256'])
+    def test_minimization_preserves_exact_failure_class_and_budget(self):
+        classify=lambda b:'invariant' if b'BUG' in b else ('crash' if b'B' in b else 'ok')
+        small,runs=driver.minimize(b'paddingBUGpadding',classify,'invariant',100)
+        self.assertEqual(small,b'BUG');self.assertLessEqual(runs,100)
+        with self.assertRaises(ValueError):driver.minimize(b'normal',classify,'invariant')
+    def test_timeout_reaps_child_and_collects_output(self):
+        code='import sys,time;print("ready",flush=True);time.sleep(20)'
+        result=driver.run_process([sys.executable,'-c',code],b'',timeout=0.15)
+        self.assertTrue(result['timed_out']);self.assertTrue(result['reaped']);self.assertIn('ready',result['stdout'])
+        self.assertEqual(driver.classify(result),'timeout')
+    def test_nonzero_exit_protocol_and_binary_input(self):
+        result=driver.run_process([sys.executable,'-c','import sys;assert sys.stdin.buffer.read()==b"\\x00\\xff";sys.exit(17)'],b'\x00\xff')
+        self.assertEqual(result['exit'],17);self.assertEqual(driver.classify(result),'crash')
+        malformed=driver.run_process([sys.executable,'-c','print("not JSON")'],b'')
+        self.assertEqual(driver.classify(malformed),'protocol')
+    def test_unicode_space_paths_and_bounded_output(self):
+        with tempfile.TemporaryDirectory(prefix='中文 space ') as d:
+            script=Path(d)/'child 程序.py';script.write_text('print("x"*100000)')
+            result=driver.run_process([sys.executable,str(script)],b'')
+            self.assertEqual(driver.classify(result),'protocol');self.assertLessEqual(len(result['stdout']),driver.MAX_OUTPUT)
+    def test_result_schema_status_and_source_are_checked(self):
+        result={'timed_out':False,'exit':0,'stdout_bytes':1,'stderr_bytes':0,'stdout':json.dumps({'schema':1,'target_sha':driver.TARGET_SHA,'status':'ok'})}
+        self.assertEqual(driver.classify(result),'ok')
+        result['exit']=2;self.assertEqual(driver.classify(result),'protocol')
+    def test_resource_probe_reports_capability_without_assuming_platform(self):
+        capability=driver.memory_capability();self.assertIsInstance(capability['enforced'],bool);self.assertIn('reason',capability)
+    def test_size_limit_is_checked_before_starting_a_child(self):
+        with self.assertRaises(ValueError):driver.run_process(['does-not-exist'],b'0'*(driver.MAX_INPUT+1))
+
+
+class ProcessFailureTests(unittest.TestCase):
+    def test_minimize_a_real_crashing_subprocess(self):
+        code='import sys,json;data=sys.stdin.buffer.read();sys.exit(17) if b"BUG" in data else print(json.dumps({"schema":1,"target_sha":"'+driver.TARGET_SHA+'","status":"ok"}))'
+        evaluate=lambda data:driver.classify(driver.run_process([sys.executable,'-c',code],data,timeout=2))
+        small,runs=driver.minimize(b'prefixBUGsuffix',evaluate,'crash',64)
+        self.assertEqual(small,b'BUG');self.assertLessEqual(runs,64)
+    @unittest.skipUnless(os.name=='posix','POSIX process-group test; Windows requires native taskkill validation')
+    def test_timeout_kills_descendants_in_its_own_group(self):
+        import time
+        with tempfile.TemporaryDirectory() as directory:
+            marker=Path(directory)/'descendant_survived'
+            child='import time,pathlib;time.sleep(0.6);pathlib.Path('+repr(str(marker))+').write_text("alive")'
+            parent='import subprocess,sys,time;subprocess.Popen([sys.executable,"-c",'+repr(child)+']);time.sleep(20)'
+            result=driver.run_process([sys.executable,'-c',parent],b'',timeout=0.1)
+            self.assertEqual(driver.classify(result),'timeout');time.sleep(0.8);self.assertFalse(marker.exists())
+
+if __name__=='__main__':unittest.main()
