@@ -92,6 +92,12 @@ impl PackageBacking {
         &self.original
     }
 
+    /// Shared handle to the original bytes, so an export plan can record
+    /// its origin without copying the package.
+    pub(crate) fn shared_original(&self) -> Arc<[u8]> {
+        self.original.clone()
+    }
+
     /// Every part with its exact uncompressed bytes, content type and
     /// relationships, including parts the importer never interpreted.
     pub fn package(&self) -> &Package {

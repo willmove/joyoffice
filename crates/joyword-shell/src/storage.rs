@@ -11,19 +11,24 @@
 //! W07 adds the original-file pipeline: [`open_source`] captures a bounded
 //! read with an unforgeable [`SourceStamp`], [`check_source`] prechecks
 //! conflicts (locks, retargeting, identity, exact bytes), and
-//! [`save_original`] re-verifies everything and conservatively refuses
-//! replacement while plan-to-source binding and metadata preservation
-//! cannot be proven. Original replacement is unimplemented/unverified this
-//! round; `save_export_copy` remains the verified fallback.
+//! [`save_original`] re-verifies everything, requires the plan to originate
+//! byte-exactly from the stamp's package, and replaces the original only
+//! where every metadata item of that file is reproduced or provably absent
+//! (macOS in this build; other platforms refuse before writing). Refusals
+//! leave `save_export_copy` as the verified fallback.
 
 mod error;
 mod locks;
+#[cfg(target_os = "macos")]
+mod observe;
 mod original;
+#[cfg(unix)]
+mod publish;
 mod source;
 
 pub use error::{
-    ConflictDetail, LockKind, LockState, MetadataItem, ReplacementBlocker, SaveOriginalError,
-    SourceStage,
+    ConflictDetail, LockKind, LockState, MetadataItem, Publication, ReplaceStage,
+    ReplacementBlocker, SaveOriginalError, SourceStage,
 };
 pub use original::{
     MetadataCapability, OriginalDurability, OriginalReplacementCapabilities, SaveOriginalReceipt,

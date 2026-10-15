@@ -57,6 +57,23 @@ impl UnixIdentity {
     pub(crate) fn nlink(&self) -> u64 {
         self.nlink
     }
+    /// Device and inode: the file-system object, independent of its path.
+    pub(crate) fn object(&self) -> (u64, u64) {
+        (self.dev, self.ino)
+    }
+    pub(crate) fn mode(&self) -> u32 {
+        self.mode
+    }
+    pub(crate) fn uid(&self) -> u32 {
+        self.uid
+    }
+    pub(crate) fn gid(&self) -> u32 {
+        self.gid
+    }
+    #[cfg(test)]
+    pub(crate) fn mtime(&self) -> (i64, i64) {
+        (self.mtime_secs, self.mtime_nanos)
+    }
 }
 
 impl SourceIdentity {
@@ -88,6 +105,39 @@ impl SourceIdentity {
 
     pub(crate) fn len(&self) -> u64 {
         self.len
+    }
+
+    #[cfg(unix)]
+    pub(crate) fn unix(&self) -> &UnixIdentity {
+        &self.unix
+    }
+
+    /// First difference against the same object observed after one extra
+    /// hard link was added to it. Linking changes the status-change time, so
+    /// ctime is not compared; everything else must match, and the link count
+    /// must be exactly one higher.
+    #[cfg(unix)]
+    pub(crate) fn linked_difference(&self, linked: &Self) -> Option<ConflictDetail> {
+        let (a, b) = (&self.unix, &linked.unix);
+        if a.object() != b.object() {
+            return Some(ConflictDetail::InodeChanged);
+        }
+        if a.mode != b.mode {
+            return Some(ConflictDetail::ModeChanged);
+        }
+        if a.uid != b.uid || a.gid != b.gid {
+            return Some(ConflictDetail::OwnershipChanged);
+        }
+        if a.nlink.checked_add(1) != Some(b.nlink) {
+            return Some(ConflictDetail::LinkCountChanged);
+        }
+        if a.mtime_secs != b.mtime_secs || a.mtime_nanos != b.mtime_nanos {
+            return Some(ConflictDetail::TimesChanged);
+        }
+        if self.len != linked.len {
+            return Some(ConflictDetail::SizeChanged);
+        }
+        None
     }
 
     pub(crate) fn nlink(&self) -> u64 {
@@ -193,6 +243,10 @@ impl SourceStamp {
     }
     pub(crate) fn bytes(&self) -> &[u8] {
         &self.bytes
+    }
+    #[cfg(unix)]
+    pub(crate) fn lock_directories(&self) -> &[PathBuf] {
+        &self.lock_directories
     }
 }
 
@@ -422,6 +476,60 @@ pub(crate) fn verify_current(source: &SourceStamp) -> Result<(), SaveOriginalErr
         ));
     }
     Ok(())
+}
+
+/// Bounded, stable read-back of a just-published object at the stamp's
+/// resolved path, producing the refreshed stamp for it.
+///
+/// The object at the path must be `object` (device, inode), observations of
+/// it before, during and after the read must agree, and the bytes read must
+/// equal `expected`. The new stamp keeps the request path, lock directories
+/// and read cap of `source`, but its identity and bytes come only from this
+/// read of the actual file, never from the plan. The returned metadata is
+/// the handle's post-read observation, for the caller's metadata checks.
+#[cfg(unix)]
+pub(crate) fn confirm_published(
+    source: &SourceStamp,
+    object: (u64, u64),
+    expected: &[u8],
+) -> io::Result<(SourceStamp, fs::Metadata)> {
+    let mismatch = |what| Err(io::Error::new(io::ErrorKind::InvalidData, what));
+    let path = source.path();
+    let before = fs::symlink_metadata(path)?;
+    if !before.is_file() {
+        return mismatch("published path is not a regular file");
+    }
+    let identity = SourceIdentity::capture(&before);
+    if identity.unix().object() != object {
+        return mismatch("published path names another object");
+    }
+    let file = File::open(path)?;
+    if SourceIdentity::capture(&file.metadata()?) != identity {
+        return mismatch("published object changed while it was opened");
+    }
+    let mut bytes = Vec::with_capacity(identity.len() as usize);
+    (&file)
+        .take(source.budget_limit().saturating_add(1))
+        .read_to_end(&mut bytes)?;
+    let after = file.metadata()?;
+    if SourceIdentity::capture(&after) != identity
+        || SourceIdentity::capture(&fs::symlink_metadata(path)?) != identity
+        || bytes.len() as u64 != identity.len()
+    {
+        return mismatch("published object changed during read-back");
+    }
+    if bytes != expected {
+        return mismatch("published bytes differ from the plan");
+    }
+    let stamp = SourceStamp {
+        given_path: source.given_path.clone(),
+        canonical_path: path.to_path_buf(),
+        lock_directories: source.lock_directories.clone(),
+        identity,
+        budget_limit: source.budget_limit,
+        bytes: bytes.into(),
+    };
+    Ok((stamp, after))
 }
 
 #[cfg(test)]

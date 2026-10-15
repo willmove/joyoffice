@@ -106,6 +106,9 @@ pub struct ExportPlan {
     changed: Vec<PartName>,
     preserved: Vec<PartName>,
     warnings: Vec<ExportWarning>,
+    /// Original file bytes of the backing the plan was built from (shared
+    /// with that backing, not copied). Private: only `plan_export` sets it.
+    origin: Arc<[u8]>,
 }
 
 impl ExportPlan {
@@ -131,6 +134,13 @@ impl ExportPlan {
     }
     pub fn warnings(&self) -> &[ExportWarning] {
         &self.warnings
+    }
+    /// Whether this plan was built from exactly `package`: the original file
+    /// bytes of the backing given to [`plan_export`]. The comparison is
+    /// byte-exact. Equal versions, equal targets or equal output bytes never
+    /// stand in for it, because two documents can share all of those.
+    pub fn originates_from(&self, package: &[u8]) -> bool {
+        *self.origin == *package
     }
     pub fn target_content_type(&self) -> &'static str {
         match self.target {
@@ -196,6 +206,7 @@ pub fn plan_export(
         changed: Vec::new(),
         warnings: Vec::new(),
         preserved: package.parts().map(|part| part.name.clone()).collect(),
+        origin: backing.shared_original(),
     };
     if alignment.is_unchanged() {
         return Ok(plan);

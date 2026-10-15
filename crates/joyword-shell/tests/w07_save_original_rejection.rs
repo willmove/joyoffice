@@ -1,8 +1,9 @@
-//! W07 integration: `save_original` is a real conservative gate. It re-runs
-//! conflict verification itself, validates plan/source consistency, and
-//! while replacement blockers stand it must write nothing — no bytes, no
-//! metadata change, no temporary files, no locks — and never let a plan
-//! from one document overwrite another document's file.
+//! W07 integration: `save_original` is a real gate. It re-runs conflict
+//! verification itself, validates plan/source consistency, requires the plan
+//! to originate byte-exactly from the stamped package, and while any
+//! replacement blocker stands it writes nothing — no bytes, no metadata
+//! change, no temporary files, no locks — and never lets a plan from one
+//! document (or one version) overwrite another file.
 
 use std::fs;
 use std::path::PathBuf;
@@ -25,6 +26,10 @@ fn fixture(id: u8) -> Vec<u8> {
 }
 
 fn edited_plan(id: u8) -> ExportPlan {
+    edited_plan_with(id, "安全保存🙂 ")
+}
+
+fn edited_plan_with(id: u8, text: &str) -> ExportPlan {
     let mut session = DocxSession::open(&fixture(id), &Budget::default()).unwrap();
     let document = session.session().document();
     let at = Position {
@@ -38,7 +43,7 @@ fn edited_plan(id: u8) -> ExportPlan {
             session.session().version(),
             vec![Command::InsertText {
                 at,
-                text: "安全保存🙂 ".into(),
+                text: text.into(),
             }],
         ))
         .unwrap();
@@ -62,15 +67,18 @@ fn assert_untouched(path: &std::path::Path, bytes: &[u8], entries: usize) {
     );
 }
 
+/// Platforms without a vetted way to see every metadata item refuse even a
+/// correctly bound plan, before writing anything.
+#[cfg(not(target_os = "macos"))]
 #[test]
-fn replacement_is_refused_with_durable_blockers_and_zero_side_effects() {
+fn a_bound_plan_is_refused_where_metadata_cannot_be_vouched_for() {
     let dir = tempfile::tempdir().unwrap();
     let (path, bytes) = write_source(dir.path(), "report.docx", 1);
     let before = fs::metadata(&path).unwrap();
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
     let error = save_original(&edited_plan(1), &stamp).unwrap_err();
     let blockers = error.blockers().expect("expected durable blockers");
-    assert!(blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
+    assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
         MetadataItem::ExtendedAttributes
@@ -78,11 +86,8 @@ fn replacement_is_refused_with_durable_blockers_and_zero_side_effects() {
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
         MetadataItem::ProvenanceMarks
     )));
-    assert!(
-        blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
-            MetadataItem::CreationTime
-        ))
-    );
+    #[cfg(not(unix))]
+    assert!(blockers.contains(&ReplacementBlocker::UnsupportedPlatform));
     let after = fs::metadata(&path).unwrap();
     assert_eq!(before.modified().unwrap(), after.modified().unwrap());
     assert_untouched(&path, &bytes, 1);
@@ -95,13 +100,145 @@ fn a_plan_from_another_document_cannot_overwrite_a_source() {
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
     // Both plans are first-version exports of unedited sessions: equal
     // version numbers must not suggest they belong to this source.
+    let own = DocxSession::open(&fixture(2), &Budget::default()).unwrap();
     let other = DocxSession::open(&fixture(1), &Budget::default())
         .unwrap()
         .export_plan()
         .unwrap();
-    let error = save_original(&other, &stamp).unwrap_err();
-    assert!(error.blockers().is_some());
+    assert_eq!(own.session().version(), other.version());
+    for plan in [other, edited_plan(1)] {
+        let error = save_original(&plan, &stamp).unwrap_err();
+        let blockers = error.blockers().expect("expected durable blockers");
+        assert!(blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
+        assert_untouched(&path, &bytes, 1);
+    }
+}
+
+#[test]
+fn a_plan_from_an_older_version_of_the_same_file_is_refused() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+    let old = open_source(&path, &Budget::default()).unwrap();
+    let plan = edited_plan(1);
+    assert!(plan.originates_from(old.bytes()));
+    // Another application saves a new version of the file.
+    let other_save = edited_plan_with(1, "another editor ").bytes().to_vec();
+    assert_ne!(other_save, bytes);
+    fs::write(&path, &other_save).unwrap();
+    // The old stamp sees the change; a fresh stamp sees a different package.
+    assert!(
+        save_original(&plan, old.stamp())
+            .unwrap_err()
+            .conflict()
+            .is_some()
+    );
+    let fresh = open_source(&path, &Budget::default()).unwrap().into_stamp();
+    let error = save_original(&plan, &fresh).unwrap_err();
+    assert!(
+        error
+            .blockers()
+            .unwrap()
+            .contains(&ReplacementBlocker::OriginBindingUnproven)
+    );
+    assert_untouched(&path, &other_save, 1);
+}
+
+#[test]
+fn a_read_only_source_is_not_replaced() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+    let writable = fs::metadata(&path).unwrap().permissions();
+    let mut permissions = writable.clone();
+    permissions.set_readonly(true);
+    fs::set_permissions(&path, permissions).unwrap();
+    let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
+    let error = save_original(&edited_plan(1), &stamp).unwrap_err();
+    assert!(
+        error
+            .blockers()
+            .unwrap()
+            .contains(&ReplacementBlocker::ReadOnlySource)
+    );
     assert_untouched(&path, &bytes, 1);
+    // Let the temporary directory be removed everywhere.
+    fs::set_permissions(&path, writable).unwrap();
+}
+
+#[test]
+fn a_plan_larger_than_the_stamp_read_budget_is_refused_before_writing() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+    let plan = edited_plan(1);
+    assert!(plan.bytes().len() > bytes.len());
+    let tight = Budget {
+        max_total_bytes: bytes.len() as u64,
+        ..Budget::default()
+    };
+    let stamp = open_source(&path, &tight).unwrap().into_stamp();
+    let error = save_original(&plan, &stamp).unwrap_err();
+    assert_eq!(error.stage(), Some(SourceStage::Validate));
+    assert_eq!(
+        error.io_error().map(|e| e.kind()),
+        Some(std::io::ErrorKind::FileTooLarge)
+    );
+    assert_untouched(&path, &bytes, 1);
+}
+
+/// macOS observes extended attributes, ACLs, provenance marks and file
+/// flags; a source carrying any of them is refused before writing.
+#[cfg(target_os = "macos")]
+#[test]
+fn present_metadata_that_cannot_be_reproduced_is_refused() {
+    use std::process::Command;
+    let cases: [(&str, &[&str], MetadataItem); 4] = [
+        (
+            "/usr/bin/xattr",
+            &["-w", "com.example.joyword", "1"],
+            MetadataItem::ExtendedAttributes,
+        ),
+        (
+            "/usr/bin/xattr",
+            &["-w", "com.apple.quarantine", "0081;65f00000;Safari;"],
+            MetadataItem::ProvenanceMarks,
+        ),
+        (
+            "/bin/chmod",
+            &["+a", "group:everyone deny delete"],
+            MetadataItem::Acl,
+        ),
+        ("/usr/bin/chflags", &["hidden"], MetadataItem::FileFlags),
+    ];
+    for (tool, args, item) in cases {
+        let dir = tempfile::tempdir().unwrap();
+        let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+        assert!(
+            Command::new(tool)
+                .args(args)
+                .arg(&path)
+                .status()
+                .unwrap()
+                .success()
+        );
+        let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
+        let error = save_original(&edited_plan(1), &stamp).unwrap_err();
+        assert_eq!(
+            error.blockers(),
+            Some(&[ReplacementBlocker::UnpreservableMetadata(item)][..]),
+            "{tool} {args:?}"
+        );
+        assert_untouched(&path, &bytes, 1);
+        if item == MetadataItem::Acl {
+            // Let the temporary directory be removed.
+            assert!(
+                Command::new("/bin/chmod")
+                    .args(["-N"])
+                    .arg(&path)
+                    .status()
+                    .unwrap()
+                    .success()
+            );
+        }
+    }
 }
 
 #[test]
