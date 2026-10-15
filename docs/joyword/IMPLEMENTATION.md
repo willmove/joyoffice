@@ -117,9 +117,9 @@
 
 - W05（T103）：plan_export 以 engine 身份对齐编辑后的正文。默认格式纯文本正文段落可以拆分、合并、插入和删除：删除的源段落精确移除其元素字节，新段落写在前一个存续源块之后，并沿用作用域内已绑定 WordprocessingML 的前缀。受影响段落有非默认格式、内联对象、保留片段、注释／处理指令、未知属性或节结束时拒绝；移动和冒用来源同样拒绝。写出后另行校验节边界位置与全部保留片段字节，保留句柄按片段内容规范化后比较语义。XML 无法表示的字符在写出前拒绝。接续提交把受影响段落的属性改为明确名称清单，拒绝 run／属性容器上的未知属性与未映射内容。shell 的 docx_export.rs 中“拆段必须拒绝”的旧断言经用户授权删去。macOS textutil 独立读回 3 份导出逐字一致，见 [W05 报告](../coordination/reports/W05.md)。
 - W06（T105）：layout_document 接受 keep_next／keep_lines 直接段落属性，按单次放置做有界分页：链首标注组高，过高的链有界退化。公共签名、PageScene、ensure_current 与几何接口不变，新增 12 项测试。未实现 widowControl、混合格式与 Word 规则对照，见 [W06 报告](../coordination/reports/W06.md)。
-- W07（T103／T106）：shell::storage 新增 open_source／check_source。前者在 stat→open→fstat→有界读取→复查的窗口内锁定源身份（Unix 为设备、inode、时间、权限与链接数，非 Unix 为长度与修改时间）。另检测 Office `~$` 与 JoyWord 锁文件，状态不明即拒绝。save_original 自行重跑冲突验证，但因 ExportPlan 缺少来源绑定，原件替换一律拒绝，不写任何字节；来源绑定与发布策略的提案见 [W07 报告](../coordination/reports/W07.md)。Linux 的 inode 复用与 Windows 的弱源身份暴露于集成后的 CI，测试修正见 PR #9。
+- W07（T103／T106）：shell::storage 新增 open_source／check_source。前者在 stat→open→fstat→有界读取→复查的窗口内锁定源身份（Unix 为设备、inode、时间、权限与链接数，非 Unix 为长度与修改时间）。另检测 Office `~$` 与 JoyWord 锁文件，状态不明即拒绝。save_original 自行重跑冲突验证，但因 ExportPlan 缺少来源绑定，原件替换一律拒绝，不写任何字节；来源绑定与发布策略的提案见 [W07 报告](../coordination/reports/W07.md)。集成后的 CI 暴露 Linux inode 复用与 Windows 弱源身份两类问题，仅修正测试的 PR #9 已合入 main。
 - W08（T104 实验）：experiments/recovery-journal 独立 workspace，提供有界追加日志、经真实 engine 的逻辑编辑重放、两代检查点轮转与 inspect／recover CLI。未接入应用会话；Windows 原生与断电未验证，见 [W08 报告](../coordination/reports/W08.md)。
-- W09（T103 健壮性实验）：experiments/docx-robustness 独立 workspace，提供 opc／import／roundtrip 三目标 harness、27 份原创种子、固定种子变异、最小化与有界 campaign 驱动。未发现生产缺陷；不是覆盖引导 fuzz，也未接入 CI。固定的生产目标随集成改为 bcf435c，见 [W09 报告](../coordination/reports/W09.md)。
+- W09（T103 健壮性实验）：experiments/docx-robustness 独立 workspace，提供 opc／import／roundtrip 三目标 harness、27 份原创种子、固定种子变异、最小化与有界 campaign 驱动。未发现生产缺陷；不是覆盖引导 fuzz，也未接入 CI。固定的生产目标随集成改为 bcf435c；PR #9 修改 crates 后需重新指定，见 [W09 报告](../coordination/reports/W09.md)。
 - 集成：按 协作包→W05→W07→W06→W08→W09 以合并提交合入 main（ee4f57d），并修正 W08／W09 两处依赖 C07 行为的断言。本机强制真实字体的全默认成员 312 项通过，结果与范围见 [第二轮协作包](../coordination/wave02/README.md)。
 
 ### joyword-shell（T106，进行中）
@@ -189,7 +189,7 @@
 | 多架构 CI | 运行 38484920106（提交 92cb8b0）：ubuntu-24.04-arm 原生构建通过（文档检查、fmt、核心测试、clippy 与完整 GPUI 应用构建）；x86 runner 上交叉编译 aarch64-unknown-linux-gnu 与 loongarch64-unknown-linux-gnu（Ubuntu 24.04 的 gcc 交叉工具链与 glibc 2.39 交叉库）并在 QEMU 用户态运行无界面测试，两个目标均通过。QEMU 结果只证明代码生成与新世界 LoongArch ABI，不等于国产 CPU 或发行版上的运行 |
 | T003／T004 CI | 运行 38486616823（95affb0）全部作业通过，unified-pdf 证据见“统一字形链路”；运行 38487093201（751e764）的 unified-pdf 另行验证比较工具：同一 PDF 自比通过、第三行提前换行的变体被检出，各平台构建作业运行工具逻辑测试 |
 | C01 公开仓库 CI | 源码 a67db293d3f397eaf76c7d1c429c9479c18ca0b3 的 [38531619157 第 2 次执行](https://github.com/willmove/joyoffice/actions/runs/38531619157/attempts/2) 8/8 作业通过：macOS／Windows／Linux x86_64 与 ARM64 构建、ARM64／LoongArch64 QEMU 测试、依赖检查、统一 PDF。Linux 与 LoongArch64 日志确认全部 8 项新增 DOCX 会话测试通过；PDF 5 行无缺字，Poppler 行首／行尾最大偏差均为 0.0000 pt。公开仓库前的账户额度失败保留为历史，当前运行条件已恢复，见 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md) |
-| 第二轮集成 | 2026-10-15，ee4f57d：本机 fmt、强制宋体的全默认成员 312 项、docx／shell／engine／layout release、全工作区 clippy（dev-runtime-shaders）、开发应用构建、W08 15 项、W09 3＋11 项与 81 次冒烟矩阵通过。main CI 在 macOS、统一 PDF、依赖作业通过；Linux 与 Windows 的 W07 测试因平台假设失败，仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 16/16 通过 |
+| 第二轮集成 | 2026-10-15，ee4f57d：本机 fmt、强制宋体的全默认成员 312 项、docx／shell／engine／layout release、全工作区 clippy（dev-runtime-shaders）、开发应用构建、W08 15 项、W09 3＋11 项与 81 次冒烟矩阵通过。main CI 在 macOS、统一 PDF、依赖作业通过；Linux 与 Windows 的 W07 测试因平台假设失败，仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 16/16 通过后合入（`5573997a75d9297b24429f90c727dad05b7f90c3`） |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 与 proc-macro-error2 2.0.1 的 future-incompat 提示；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。

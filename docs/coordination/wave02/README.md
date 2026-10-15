@@ -23,9 +23,9 @@
 - docx／shell／engine／layout 的 release 测试、带 dev-runtime-shaders 的全工作区 clippy 与开发应用构建通过；
 - W08 debug／release 各 15 项、W09 Rust 3 项与 Python 11 项通过，W09 冒烟矩阵 81 次中 43 ok、38 rejected，与 W09 报告一致。
 
-本机缺 Metal 工具链、Poppler 与 cargo-deny，相应检查只在 CI 执行。main 的 CI 中，macOS、统一 PDF 与依赖作业通过；Linux 与 Windows 只在 W07 测试上失败：ext4／tmpfs 复用 inode 号，Windows 源身份只有长度与修改时间。仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 已通过全部 16 项检查。
+本机缺 Metal 工具链、Poppler 与 cargo-deny，相应检查只在 CI 执行。main 的 CI 中，macOS、统一 PDF 与依赖作业通过；Linux 与 Windows 只在 W07 测试上失败：ext4／tmpfs 复用 inode 号，Windows 源身份只有长度与修改时间。仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 全部 16 项检查通过后合入 main（`5573997a75d9297b24429f90c727dad05b7f90c3`）。
 
-收尾：五个任务分支与协作包分支已从远程删除，各自 worktree 与两个控制 clone 已移除，`codex/wave02-integration` 未推送。下文准备命令所依赖的协作包分支已不存在，第二轮不再重新准备。W09 固定的生产树一旦 crates 变化（包括 PR #9）就需要重新指定目标，见 [W09 报告](../reports/W09.md)。
+收尾：五个任务分支与协作包分支已从远程删除，各自 worktree 与两个控制 clone 已移除，`codex/wave02-integration` 未推送。下文准备命令所依赖的协作包分支已不存在，第二轮不再重新准备。W09 固定的生产树在 PR #9 修改 crates 后已不一致，运行该 harness 前需重新指定并核准目标，见 [W09 报告](../reports/W09.md)。
 
 ## 基线与负责人核查
 

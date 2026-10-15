@@ -161,6 +161,6 @@
       "W08",
       "W09"
     ],
-    "note": "合并提交合入 main；集成修正 W08 重放断言与 W09 固定目标。任务分支、协作包分支、worktree 与控制 clone 已删除，integration_branch 未推送，本计划不再用于准备工作目录。main CI 的 W07 平台测试修正见 PR #9。"
+    "note": "合并提交合入 main；集成修正 W08 重放断言与 W09 固定目标。任务分支、协作包分支、worktree 与控制 clone 已删除，integration_branch 未推送，本计划不再用于准备工作目录。main CI 的 W07 平台测试修正为 PR #9，已合入 5573997a75d9297b24429f90c727dad05b7f90c3。"
   }
 }
