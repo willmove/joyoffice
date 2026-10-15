@@ -5,7 +5,7 @@ fn main() {
         .args([
             "diff",
             "--quiet",
-            "a88217136a570a8f224d92b808bc0b8840ab26ca",
+            "bcf435c16fcabf7bb6d1ec6a21edbd3470f8ece0",
             "--",
             "crates",
         ])
@@ -14,7 +14,7 @@ fn main() {
         .expect("verify production baseline");
     assert!(
         result.success(),
-        "Production crates differ from the fixed W09 C07 target; obtain C08-approved integration SHA before retargeting"
+        "Production crates differ from the fixed W09 target; obtain an approved integration SHA before retargeting"
     );
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=../../crates");

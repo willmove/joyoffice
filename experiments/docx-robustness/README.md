@@ -1,8 +1,8 @@
 # W09 bounded DOCX robustness laboratory
 
-Independent Rust 1.98.1 workspace, MIT, unsafe forbidden. Targets: `opc`, `import`, `roundtrip`. The production target is fixed at C07 a88217136a570a8f224d92b808bc0b8840ab26ca; build.rs refuses a differing crates tree. No W05/W07 moving-branch integration is assumed. Inputs are capped before parsing. Each target reports schema-1 JSON: case, seed, input hash, exact production SHA, budget, outcome and invariant count. Exit 0 means checks passed, 2 means input was rejected under the declared subset/budget, 3 means invariant failure; unexpected panics crash the child process.
+Independent Rust 1.98.1 workspace, MIT, unsafe forbidden. Targets: `opc`, `import`, `roundtrip`. The production target is fixed at the wave 02 integration bcf435c16fcabf7bb6d1ec6a21edbd3470f8ece0 (W05–W09 merged on C07); build.rs and driver.py refuse a differing crates tree. The original W09 evidence was bound to C07 a88217136a570a8f224d92b808bc0b8840ab26ca. Inputs are capped before parsing. Each target reports schema-1 JSON: case, seed, input hash, exact production SHA, budget, outcome and invariant count. Exit 0 means checks passed, 2 means input was rejected under the declared subset/budget, 3 means invariant failure; unexpected panics crash the child process.
 
-`roundtrip` checks unchanged package identity, real engine text transactions, failed-edit atomicity/protection, verified export and determinism, reimported text/format groups (ignoring nonsemantic run tokenization and resolving preserved handles to bytes), unknown parts/relationships, undo/redo. No external relationships are fetched. Structural text edits are not enabled in the C07 exporter.
+`roundtrip` checks unchanged package identity, real engine text transactions, failed-edit atomicity/protection, verified export and determinism, reimported text/format groups (ignoring nonsemantic run tokenization and resolving preserved handles to bytes), unknown parts/relationships, undo/redo. No external relationships are fetched. The harness does not generate paragraph splits or merges; W05 enables only plain-paragraph structure export.
 
 Build and invoke:
 

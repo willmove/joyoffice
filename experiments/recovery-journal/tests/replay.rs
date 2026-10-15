@@ -47,9 +47,10 @@ fn real_engine_unicode_split_delete_undo_redo_and_receipts() {
         }],
     );
     commit(&mut r, &mut l, vec![Action::Split(at(0, 6))]);
+    // Since W05, a split of a plain default-formatted paragraph exports.
     assert!(
-        r.docx().export_plan().is_err(),
-        "C07 must still refuse structural export"
+        r.docx().export_plan().is_ok(),
+        "W05 exports plain paragraph splits"
     );
     commit(
         &mut r,
