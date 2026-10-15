@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "created_date": "2026-10-15",
+  "wave": "wave-02",
+  "code_base": "a88217136a570a8f224d92b808bc0b8840ab26ca",
+  "baseline_status": "candidate_verified_refs_and_ci",
+  "coordination_ref": "refs/heads/codex/wave02-coordination",
+  "require_explicit_start": true,
+  "coordinator": "C08 / 01a13d2b-acba-7473-8662-8f183393fd46",
+  "mode": "manual_dispatch_git_delivery",
+  "dispatch_status": "awaiting_owner_confirmation",
+  "integration_branch": "codex/wave02-integration",
+  "tasks": [
+    {
+      "id": "W05",
+      "role": "DOCX 导出",
+      "owner": null,
+      "ownership_confirmed": false,
+      "state": "awaiting_manual_assignment",
+      "branch": "codex/w05-docx-export",
+      "directory": "joyoffice-w05",
+      "card": "docs/coordination/tasks/W05-DOCX-EXPORT.md",
+      "report": "docs/coordination/reports/W05.md",
+      "allowed_paths": [
+        "crates/joyword-docx/src/export.rs",
+        "crates/joyword-docx/src/export/**",
+        "crates/joyword-docx/tests/w05_*.rs",
+        "crates/joyword-docx/tests/w05_data/**",
+        "crates/joyword-shell/tests/w05_*.rs",
+        "docs/coordination/reports/W05.md"
+      ]
+    },
+    {
+      "id": "W06",
+      "role": "排版",
+      "owner": null,
+      "ownership_confirmed": false,
+      "state": "awaiting_manual_assignment",
+      "branch": "codex/w06-layout",
+      "directory": "joyoffice-w06",
+      "card": "docs/coordination/tasks/W06-LAYOUT.md",
+      "report": "docs/coordination/reports/W06.md",
+      "allowed_paths": [
+        "crates/joyword-layout/src/document.rs",
+        "crates/joyword-layout/src/document/**",
+        "crates/joyword-layout/tests/w06_*.rs",
+        "crates/joyword-layout/tests/w06_data/**",
+        "docs/coordination/reports/W06.md"
+      ]
+    },
+    {
+      "id": "W07",
+      "role": "安全保存",
+      "owner": null,
+      "ownership_confirmed": false,
+      "state": "awaiting_manual_assignment",
+      "branch": "codex/w07-safe-save",
+      "directory": "joyoffice-w07",
+      "card": "docs/coordination/tasks/W07-SAFE-SAVE.md",
+      "report": "docs/coordination/reports/W07.md",
+      "allowed_paths": [
+        "crates/joyword-shell/src/storage.rs",
+        "crates/joyword-shell/src/storage/**",
+        "crates/joyword-shell/tests/w07_*.rs",
+        "crates/joyword-shell/tests/w07_data/**",
+        "docs/coordination/reports/W07.md"
+      ]
+    }
+  ]
+}

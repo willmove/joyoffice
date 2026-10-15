@@ -4,6 +4,7 @@
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import shlex
 import subprocess
@@ -37,7 +38,14 @@ def display(command):
 
 
 def prepare(args):
-    plan = json.loads((ROOT / "docs/coordination/plan.json").read_text(encoding="utf-8"))
+    plan_path = (ROOT / args.plan).resolve()
+    if not plan_path.is_relative_to(ROOT):
+        raise ValueError("Plan must remain inside the source checkout")
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    if plan.get("require_explicit_start") and not args.start:
+        raise ValueError("This wave requires --start with the coordinator's full package commit SHA")
+    if args.start and not re.fullmatch(r"[0-9a-f]{40}", args.start):
+        raise ValueError("--start must be a full lowercase 40-character commit SHA")
     tasks = {task["id"]: task for task in plan["tasks"]}
     if args.task not in tasks:
         raise ValueError("Unknown task; choose " + ", ".join(sorted(tasks)))
@@ -62,6 +70,7 @@ def prepare(args):
     print("Branch:", task["branch"])
     print("Mode:", args.mode)
     print("Code baseline:", plan["code_base"])
+    print("Expected package commit:", args.start or "remote coordination branch tip")
     if args.dry_run:
         print("Dry run: no fetch, branch, clone or directory creation performed.")
         print(display(["git", "fetch", "--no-tags", "origin", ref]))
@@ -79,6 +88,11 @@ def prepare(args):
 
     git("fetch", "--no-tags", "origin", ref, cwd=source)
     start = git("rev-parse", "FETCH_HEAD", cwd=source)
+    if args.start and start != args.start:
+        raise ValueError("Coordination branch moved; preserve work and obtain the current package SHA")
+    remote_plan = json.loads(git("show", start + ":" + plan_path.relative_to(ROOT).as_posix(), cwd=source))
+    if remote_plan != plan:
+        raise ValueError("Local plan differs from the fetched package; use the reviewed package checkout")
     git("merge-base", "--is-ancestor", plan["code_base"], start, cwd=source)
     card = Path(task["card"])
     if card.is_absolute() or ".." in card.parts:
@@ -103,6 +117,9 @@ def prepare(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--plan", default="docs/coordination/plan.json",
+                        help="Repository-relative plan; default preserves wave-01 behavior")
+    parser.add_argument("--start", help="Expected full coordination package SHA; refuse branch drift")
     parser.add_argument("--task", required=True, help="Assigned task ID, e.g. W01")
     parser.add_argument("--mode", choices=("worktree", "clone"), default="worktree")
     parser.add_argument("--destination", help="New task directory, default: sibling joyoffice-wXX")
