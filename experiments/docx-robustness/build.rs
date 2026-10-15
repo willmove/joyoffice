@@ -17,4 +17,5 @@ fn main() {
         "Production crates differ from the fixed W09 C07 target; obtain C08-approved integration SHA before retargeting"
     );
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=../../crates");
 }

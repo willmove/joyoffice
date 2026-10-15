@@ -128,6 +128,7 @@ def invoke(binary, target, case, seed, data, timeout, memory_mib):
     # A valid-looking result for a different input/target must not pass.
     if result['class'] in ('ok', 'rejected', 'invariant'):
         value = json.loads(result['stdout'])
+        result['harness_report'] = value
         if (value.get('input_sha256'), value.get('target'), value.get('case_id'), value.get('seed')) != (sha(data), target, case, seed):
             result['class'] = 'protocol'
     return result
@@ -214,7 +215,7 @@ def environment(binary, memory):
     if subprocess.run(['git', 'diff', '--quiet', TARGET_SHA, '--', 'crates'], cwd=str(REPO)).returncode:
         raise ValueError('production target tree changed; C08 must approve a fixed new revision')
     return {'schema': 1, 'target_sha': TARGET_SHA, 'harness_git_sha': git('rev-parse', 'HEAD'),
-            'harness_binary_sha256': sha(Path(binary).read_bytes()), 'os': platform.platform(),
+            'harness_binary_sha256': sha(Path(binary).read_bytes()), 'harness_worktree_dirty': bool(git('status','--porcelain','--','experiments/docx-robustness')), 'os': platform.platform(),
             'python': platform.python_version(), 'memory_limit': memory,
             'process_tree_timeout_kill': 'process group' if os.name == 'posix' else ('taskkill /T' if shutil.which('taskkill') else 'direct child only'),
             'coverage_feedback': False}
@@ -243,13 +244,14 @@ def campaign(args, smoke=False):
             result = invoke(args.binary, target, case, event_seed, data, min(args.timeout, remaining), cap)
             result['mutation'] = method; result['campaign_seed'] = args.seed
             counts[result['class']] += 1
-            log.write(json.dumps(result, ensure_ascii=False)+'\n'); log.flush()
             if result['class'] in FAILURES:
                 anomalies += 1
                 path=out/('failure-{}.docx'.format(i)); path.write_bytes(data)
+                result['reproduce'][-1] = str(path)
                 (out/('failure-{}.json'.format(i))).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-                if anomalies >= 8:
-                    break
+            log.write(json.dumps(result, ensure_ascii=False)+'\n'); log.flush()
+            if anomalies >= 8:
+                break
     peak = None
     if resource is not None:
         peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * (1 if sys.platform == 'darwin' else 1024)

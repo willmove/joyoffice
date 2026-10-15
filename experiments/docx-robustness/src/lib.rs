@@ -169,6 +169,57 @@ fn roundtrip(bytes: &[u8], seed: u64) -> Report {
         }
         return ok(4);
     }
+    let original_text = before
+        .body()
+        .blocks
+        .iter()
+        .filter_map(|b| b.as_paragraph())
+        .find(|p| p.id() == start.paragraph)
+        .unwrap()
+        .plain_text(|_| "\u{FFFC}".into());
+    let mut reference = original_text.chars().collect::<Vec<_>>();
+    reference.splice(0..0, text.chars());
+    for step in 0..(seed % 4) {
+        let command = if step % 2 == 0 {
+            reference.splice(0..0, "丙e\u{301}".chars());
+            Command::InsertText {
+                at: start,
+                text: "丙e\u{301}".into(),
+            }
+        } else {
+            if reference.is_empty() {
+                continue;
+            }
+            reference.remove(0);
+            Command::DeleteRange {
+                start,
+                end: Position {
+                    offset: ScalarOffset(1),
+                    ..start
+                },
+            }
+        };
+        if session
+            .apply(Transaction::new(session.session().version(), vec![command]))
+            .is_err()
+        {
+            return fail("generated legal text sequence rejected");
+        }
+        let actual = session
+            .session()
+            .document()
+            .body()
+            .blocks
+            .iter()
+            .filter_map(|b| b.as_paragraph())
+            .find(|p| p.id() == start.paragraph)
+            .unwrap()
+            .plain_text(|_| "\u{FFFC}".into());
+        if actual != reference.iter().collect::<String>() {
+            return fail("independent edit sequence text model");
+        }
+    }
+    let history_steps = (session.session().version().get() - initial_version.get()) as usize;
     let edited = session.session().document().snapshot();
     if session.backing().original_bytes() != backing {
         return fail("editing mutated backing");
@@ -176,7 +227,10 @@ fn roundtrip(bytes: &[u8], seed: u64) -> Report {
     let plan = match session.export_plan() {
         Ok(p) => p,
         Err(
-            ExportError::Unsupported { .. } | ExportError::Restricted | ExportError::SignedPackage,
+            ExportError::Unsupported { .. }
+            | ExportError::Restricted
+            | ExportError::SignedPackage
+            | ExportError::Budget { .. },
         ) => {
             if session
                 .session()
@@ -225,25 +279,31 @@ fn roundtrip(bytes: &[u8], seed: u64) -> Report {
             return fail("unknown part/relationship byte preservation");
         }
     }
-    if session.session().version() != initial_version {
-        if session.undo().is_err()
-            || session
-                .session()
-                .document()
-                .semantic_difference(&before)
-                .is_some()
-        {
-            return fail("undo semantics");
+    for _ in 0..history_steps {
+        if session.undo().is_err() {
+            return fail("undo sequence failed");
         }
-        if session.redo().is_err()
-            || session
-                .session()
-                .document()
-                .semantic_difference(&edited)
-                .is_some()
-        {
-            return fail("redo semantics");
+    }
+    if session
+        .session()
+        .document()
+        .semantic_difference(&before)
+        .is_some()
+    {
+        return fail("undo semantics");
+    }
+    for _ in 0..history_steps {
+        if session.redo().is_err() {
+            return fail("redo sequence failed");
         }
+    }
+    if session
+        .session()
+        .document()
+        .semantic_difference(&edited)
+        .is_some()
+    {
+        return fail("redo semantics");
     }
     ok(9)
 }
