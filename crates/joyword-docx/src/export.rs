@@ -1,10 +1,15 @@
-//! Conservative edited export (ECMA-376 Part 1 §17.3.3.31, Part 2).
+//! Conservative edited export (ECMA-376 Part 1 §17.3.1, §17.3.3.31, Part 2).
 //!
-//! Only text leaves change. Paragraph/run/property markup, comments outside
-//! text leaves, relationships and every other part stay byte-for-byte intact.
-//! Structural edits, changed formatting boundaries, signed packages and any
-//! imported restriction are refused. The completed output is re-imported under
-//! the same budget before a plan can be returned. This module performs no IO.
+//! Text leaves change, and plain body paragraphs may be split, merged,
+//! inserted or removed (see `structure`). Paragraph/run/property markup,
+//! comments outside text leaves, relationships and every other part stay
+//! byte-for-byte intact. Moves, other structural edits, changed formatting
+//! boundaries, signed packages and any imported restriction are refused. The
+//! completed output is re-imported under the same budget and compared before
+//! a plan can be returned. This module performs no IO.
+
+mod compare;
+mod structure;
 
 use std::fmt;
 use std::ops::Range;
@@ -78,7 +83,8 @@ pub enum ExportTarget {
 pub enum ExportMode {
     /// Original ZIP, including its metadata, copied exactly.
     OriginalPackage,
-    /// Only text leaves patched; ZIP container metadata is regenerated.
+    /// Text leaves and plain body paragraphs patched in place; ZIP container
+    /// metadata is regenerated.
     TextPatch,
 }
 
@@ -169,31 +175,7 @@ pub fn plan_export(
             limit: budget.max_part_bytes,
         });
     }
-    let mut edited = Vec::new();
-    for (before, after) in original
-        .body()
-        .blocks
-        .iter()
-        .zip(current.body().blocks.iter())
-    {
-        match (before, after) {
-            (Block::Paragraph(before), Block::Paragraph(after)) if before.id() == after.id() => {
-                if before.as_ref() != after.as_ref() {
-                    edited.push((before.as_ref(), after.as_ref()));
-                }
-            }
-            (Block::Opaque(before), Block::Opaque(after))
-                if before.id == after.id
-                    && before.preserved == after.preserved
-                    && before.source == after.source => {}
-            _ => {
-                return Err(unsupported(
-                    Some(after.id()),
-                    "body structure or order changed",
-                ));
-            }
-        }
-    }
+    let alignment = structure::align(original, current)?;
     let package = source.backing.package();
     let main_name = source.backing.main_part();
     let main = package
@@ -215,7 +197,7 @@ pub fn plan_export(
         warnings: Vec::new(),
         preserved: package.parts().map(|part| part.name.clone()).collect(),
     };
-    if edited.is_empty() {
+    if alignment.is_unchanged() {
         return Ok(plan);
     }
     if !source.editability.is_unrestricted() {
@@ -243,33 +225,57 @@ pub fn plan_export(
     let body = root
         .child(W, "body")
         .ok_or_else(|| unsupported(None, "missing source body"))?;
+    let xml = structure::Source::new(
+        main_name.as_str(),
+        &main.data,
+        body,
+        &source.backing,
+        original,
+    );
+    // Structural limits are reported before any text patch is attempted.
     let mut patches = Vec::new();
-    for (before, after) in edited {
-        let source_ref = before
-            .source
-            .as_ref()
-            .ok_or_else(|| unsupported(Some(before.id()), "paragraph has no original XML"))?;
-        let element = body
-            .elements()
-            .find(|element| {
-                element.is(W, "p")
-                    && source_ref.part.as_ref() == main_name.as_str()
-                    && source_ref.locator.as_ref()
-                        == format!("@{}..{}", element.span.start, element.span.end)
-            })
-            .ok_or_else(|| {
-                unsupported(Some(before.id()), "paragraph source does not match backing")
-            })?;
+    for &paragraph in &alignment.involved {
+        xml.plain(paragraph)?;
+    }
+    for &paragraph in &alignment.removed {
+        let element = xml.plain(paragraph)?;
+        patches.push((element.span.clone(), Vec::new()));
+    }
+    for &(before, after) in &alignment.edited {
+        let element = xml.paragraph(before)?;
         patch_paragraph(
             before,
             after,
+            &[&root, body],
             element,
             &main.data,
             &mut patches,
             budget.max_part_bytes,
         )?;
     }
-    patches.sort_by_key(|(range, _)| range.start);
+    // New paragraphs are children of w:body.
+    let names = Names::in_scope(&[&root, body]);
+    let mut inserted = 0u64;
+    for insertion in &alignment.inserted {
+        let at = xml.insertion_point(insertion.anchor)?;
+        let mut markup = String::new();
+        for &paragraph in &insertion.paragraphs {
+            let new = structure::new_paragraph(paragraph, &names, budget.max_part_bytes)?;
+            // Bound the accumulated new markup before building any more.
+            inserted = inserted.saturating_add(new.len() as u64);
+            markup.push_str(&new);
+            if inserted > budget.max_part_bytes {
+                return Err(ExportError::Budget {
+                    part: main_name.to_string(),
+                    limit: budget.max_part_bytes,
+                });
+            }
+        }
+        patches.push((at..at, markup.into_bytes()));
+    }
+    // An insertion sorts before a removal or replacement starting at the
+    // same byte, so neither is treated as overlapping.
+    patches.sort_by_key(|(range, _)| (range.start, range.end));
     let mut output_len = main.data.len() as u64;
     let mut end = 0;
     for (range, bytes) in &patches {
@@ -333,7 +339,14 @@ pub fn plan_export(
     let bytes = write_archive(&items).map_err(|error| ExportError::Write(error.to_string()))?;
     let verified = import(&bytes, budget)?;
     if !verified.editability.is_unrestricted()
-        || !equivalent_text_document(current, &verified.document)
+        || !compare::equivalent(
+            current,
+            &source.backing,
+            &verified.document,
+            &verified.backing,
+        )
+        || !compare::same_sections(current, &verified.document)
+        || !compare::same_preserved(&source.backing, &verified.backing)
     {
         return Err(ExportError::RoundTripMismatch);
     }
@@ -383,10 +396,10 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
                     && a.footers == b.footers
                     && a.preserved == b.preserved
             });
+    // Body blocks are aligned separately; their count may change.
     if before.body_id() != after.body_id()
         || before.stories().count() != after.stories().count()
         || before.stories().count() != 1
-        || before.body().blocks.len() != after.body().blocks.len()
         || before.body().kind != after.body().kind
         || !sections_equal
         || before.settings() != after.settings()
@@ -447,48 +460,10 @@ fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
         && a.source == b.source
 }
 
-fn equivalent_text_document(before: &Document, after: &Document) -> bool {
-    // Reimport changes byte locators, and text-token partitioning is not
-    // semantic. All other metadata is checked before applying any patches;
-    // exact preserved markup and non-main part bytes are never rewritten.
-    before.semantic_difference(after).is_none() || {
-        let mut normalized = before.clone();
-        let mut actual = after.clone();
-        for document in [&mut normalized, &mut actual] {
-            let body = document.body_id();
-            let blocks: Vec<_> = document
-                .body()
-                .blocks
-                .iter()
-                .map(|block| {
-                    let Block::Paragraph(p) = block else {
-                        return block.clone();
-                    };
-                    if !p.inlines().is_empty() {
-                        return block.clone();
-                    }
-                    let mut n = Paragraph::new(p.id());
-                    n.style = p.style.clone();
-                    n.props = p.props.clone();
-                    n.mark_props = p.mark_props.clone();
-                    for group in groups(p) {
-                        if n.push_text(&group.text, group.style, group.props).is_err() {
-                            return block.clone();
-                        }
-                    }
-                    Block::from(n)
-                })
-                .collect();
-            document.story_mut(body).expect("body").blocks =
-                joyword_model::BlockSeq::from_vec(blocks);
-        }
-        normalized.semantic_difference(&actual).is_none()
-    }
-}
-
 fn patch_paragraph(
     before: &Paragraph,
     after: &Paragraph,
+    scope: &[&Element],
     element: &Element,
     xml: &[u8],
     patches: &mut Vec<(Range<usize>, Vec<u8>)>,
@@ -515,53 +490,7 @@ fn patch_paragraph(
     {
         return Err(error("character formatting boundaries changed"));
     }
-    // One source leaf corresponds to each import push_text call. Empty text
-    // leaves do not create runs. No unknown element is reconstructed.
-    let mut slots = Vec::new();
-    for run in element.elements() {
-        if run.is(W, "pPr") || run.is(W, "proofErr") {
-            continue;
-        }
-        if !run.is(W, "r") {
-            return Err(error("unsupported paragraph markup"));
-        }
-        for leaf in run.elements() {
-            if leaf.is(W, "rPr") || leaf.is(W, "lastRenderedPageBreak") {
-                continue;
-            }
-            if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {
-                return Err(error("unsupported run content"));
-            }
-            if leaf.attributes.iter().any(|attr| {
-                !(attr.namespace.as_deref() == Some(XML_NAMESPACE)
-                    && attr.local.as_ref() == "space"
-                    && matches!(attr.value.as_str(), "default" | "preserve"))
-            }) {
-                return Err(error("text leaf has unknown attributes"));
-            }
-            if leaf
-                .declarations
-                .iter()
-                .any(|(_, uri)| uri.as_ref() != W && uri.as_ref() != XML_NAMESPACE)
-            {
-                return Err(error("text leaf declares an unknown namespace"));
-            }
-            let raw = &xml[leaf.span.clone()];
-            if raw.windows(4).any(|w| w == b"<!--") || raw.windows(2).any(|w| w == b"<?") {
-                return Err(error(
-                    "text leaf contains comments or processing instructions",
-                ));
-            }
-            let text = if leaf.is(W, "tab") {
-                "\t".to_owned()
-            } else {
-                leaf.text()
-            };
-            if !text.is_empty() {
-                slots.push((leaf, text));
-            }
-        }
-    }
+    let slots = text_slots(element, xml).map_err(error)?;
     if slots.len() != before.runs().len() {
         return Err(error("source text tokens do not match imported runs"));
     }
@@ -574,8 +503,11 @@ fn patch_paragraph(
                 "new text in an empty paragraph requires default character properties",
             ));
         }
-        let text = bounded_text_xml(&after_groups[0].text, limit)?;
-        let run = format!(r#"<jwe:r xmlns:jwe="{W}">{text}</jwe:r>"#);
+        let mut scope = scope.to_vec();
+        scope.push(element);
+        let names = Names::in_scope(&scope);
+        let text = bounded_text_xml(&names, &after_groups[0].text, limit)?;
+        let run = format!("{}>{text}{}", names.start("r"), names.end("r"));
         let raw = &xml[element.span.clone()];
         if raw.ends_with(b"/>") {
             // Replace only '/>'; every original attribute/declaration stays.
@@ -614,28 +546,158 @@ fn patch_paragraph(
         } else {
             ""
         };
+        // A replacement leaf may hold tabs as sibling elements, so it names
+        // itself rather than relying on prefixes declared on the old leaf.
         patches.push((
             leaf.span.clone(),
-            bounded_text_xml(replacement, limit)?.into_bytes(),
+            bounded_text_xml(&Names::Declared, replacement, limit)?.into_bytes(),
         ));
         previous = Some(run);
     }
     Ok(())
 }
 
-fn bounded_text_xml(text: &str, limit: u64) -> Result<String, ExportError> {
+/// Source text leaves of a paragraph with their text, one per imported text
+/// run. Only the plain subset is accepted; no unknown element is
+/// reconstructed.
+fn text_slots<'e>(
+    element: &'e Element,
+    xml: &[u8],
+) -> Result<Vec<(&'e Element, String)>, &'static str> {
+    // One source leaf corresponds to each import push_text call. Empty text
+    // leaves do not create runs.
+    let mut slots = Vec::new();
+    for run in element.elements() {
+        if run.is(W, "pPr") || run.is(W, "proofErr") {
+            continue;
+        }
+        if !run.is(W, "r") {
+            return Err("unsupported paragraph markup");
+        }
+        for leaf in run.elements() {
+            if leaf.is(W, "rPr") || leaf.is(W, "lastRenderedPageBreak") {
+                continue;
+            }
+            if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {
+                return Err("unsupported run content");
+            }
+            if leaf.attributes.iter().any(|attr| {
+                !(attr.namespace.as_deref() == Some(XML_NAMESPACE)
+                    && attr.local.as_ref() == "space"
+                    && matches!(attr.value.as_str(), "default" | "preserve"))
+            }) {
+                return Err("text leaf has unknown attributes");
+            }
+            if leaf
+                .declarations
+                .iter()
+                .any(|(_, uri)| uri.as_ref() != W && uri.as_ref() != XML_NAMESPACE)
+            {
+                return Err("text leaf declares an unknown namespace");
+            }
+            let raw = &xml[leaf.span.clone()];
+            if raw.windows(4).any(|w| w == b"<!--") || raw.windows(2).any(|w| w == b"<?") {
+                return Err("text leaf contains comments or processing instructions");
+            }
+            let text = if leaf.is(W, "tab") {
+                "\t".to_owned()
+            } else {
+                leaf.text()
+            };
+            if !text.is_empty() {
+                slots.push((leaf, text));
+            }
+        }
+    }
+    Ok(slots)
+}
+
+/// How new WordprocessingML elements are named where they are written.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum Names {
+    /// A prefix already bound to WordprocessingML there, such as `w`.
+    Bound(Box<str>),
+    /// WordprocessingML is the default namespace there.
+    Default,
+    /// Nothing usable is in scope; every element declares a private prefix.
+    Declared,
+}
+
+impl Names {
+    /// Names for content of the innermost element of `scope` (outermost
+    /// first). What Word itself writes is preferred: some readers match the
+    /// `w:` prefix literally instead of resolving namespaces.
+    fn in_scope(scope: &[&Element]) -> Self {
+        let mut bound: Vec<(&str, &str)> = Vec::new();
+        for element in scope {
+            for (prefix, uri) in &element.declarations {
+                bound.retain(|(declared, _)| *declared != &**prefix);
+                bound.push((prefix, uri));
+            }
+        }
+        let is_w = |prefix: &str| bound.contains(&(prefix, W));
+        if is_w("w") {
+            return Self::Bound("w".into());
+        }
+        if let Some((prefix, _)) = bound
+            .iter()
+            .rev()
+            .find(|(prefix, uri)| !prefix.is_empty() && *uri == W)
+        {
+            return Self::Bound((*prefix).into());
+        }
+        if is_w("") {
+            return Self::Default;
+        }
+        Self::Declared
+    }
+
+    /// Start tag up to, but excluding, the closing `>` or `/>`.
+    fn start(&self, local: &str) -> String {
+        match self {
+            Self::Bound(prefix) => format!("<{prefix}:{local}"),
+            Self::Default => format!("<{local}"),
+            Self::Declared => format!(r#"<jwe:{local} xmlns:jwe="{W}""#),
+        }
+    }
+
+    fn end(&self, local: &str) -> String {
+        match self {
+            Self::Bound(prefix) => format!("</{prefix}:{local}>"),
+            Self::Default => format!("</{local}>"),
+            Self::Declared => format!("</jwe:{local}>"),
+        }
+    }
+}
+
+const PRESERVE: &str = r#" xml:space="preserve">"#;
+
+fn bounded_text_xml(names: &Names, text: &str, limit: u64) -> Result<String, ExportError> {
+    // XML 1.0 §2.2 Char; a tab becomes markup and a carriage return a
+    // character reference. Nothing else can stand for the rest.
+    if let Some(ch) = text.chars().find(|&ch| {
+        !matches!(ch, '\t' | '\n' | '\r' | '\u{20}'..='\u{D7FF}' | '\u{E000}'..='\u{FFFD}' | '\u{10000}'..)
+    }) {
+        return Err(unsupported(
+            None,
+            match ch {
+                '\u{FFFE}' | '\u{FFFF}' => "text contains a noncharacter XML cannot represent",
+                _ => "text contains a control character XML cannot represent",
+            },
+        ));
+    }
     // Count the exact escaped output before allocating, including tab markup.
+    let tab = names.start("tab").len() as u64 + 2;
+    let leaf = (names.start("t").len() + PRESERVE.len() + names.end("t").len()) as u64;
     let mut size = 0u64;
     for (index, part) in text.split('\t').enumerate() {
         if index > 0 {
-            size = size.saturating_add(format!(r#"<jwe:tab xmlns:jwe="{W}"/>"#).len() as u64);
+            size = size.saturating_add(tab);
         }
         if part.is_empty() {
             continue;
         }
-        size = size.saturating_add(
-            format!(r#"<jwe:t xmlns:jwe="{W}" xml:space="preserve"></jwe:t>"#).len() as u64,
-        );
+        size = size.saturating_add(leaf);
         for ch in part.chars() {
             size = size.saturating_add(match ch {
                 '&' => 5,
@@ -657,19 +719,21 @@ fn bounded_text_xml(text: &str, limit: u64) -> Result<String, ExportError> {
             limit,
         });
     }
-    Ok(text_xml(text))
+    Ok(text_xml(names, text))
 }
 
-fn text_xml(text: &str) -> String {
+fn text_xml(names: &Names, text: &str) -> String {
     let mut xml = String::new();
     for (index, part) in text.split('\t').enumerate() {
         if index > 0 {
-            xml.push_str(&format!(r#"<jwe:tab xmlns:jwe="{W}"/>"#));
+            xml.push_str(&names.start("tab"));
+            xml.push_str("/>");
         }
         if part.is_empty() {
             continue;
         }
-        xml.push_str(&format!(r#"<jwe:t xmlns:jwe="{W}" xml:space="preserve">"#));
+        xml.push_str(&names.start("t"));
+        xml.push_str(PRESERVE);
         for ch in part.chars() {
             match ch {
                 '&' => xml.push_str("&amp;"),
@@ -679,7 +743,7 @@ fn text_xml(text: &str) -> String {
                 _ => xml.push(ch),
             }
         }
-        xml.push_str("</jwe:t>");
+        xml.push_str(&names.end("t"));
     }
     xml
 }
