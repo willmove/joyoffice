@@ -1,6 +1,6 @@
 # W05：保守正文段落拆分／合并导出
 
-- 负责人：待用户指定唯一软件／主机／会话；确认前不启动。协调入口 C08。
+- 负责人：当前主机的 Claude Desktop / Code；已分配、未启动。启动时登记唯一会话；协调入口 C08。
 - 代码基线：C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；实际启动 HEAD 为 C08 交付的协作包完整 SHA，二者分别记录。
 - 分支／目录：`codex/w05-docx-export`／`joyoffice-w05`。
 - 对应：T103、FORMAT-001／002／003。先读 AGENTS.md、[第二轮包](../wave02/README.md)、[接口](../wave02/INTERFACES.md)、SPEC、ARCHITECTURE §5、QUALITY 与 C02/C07 报告。

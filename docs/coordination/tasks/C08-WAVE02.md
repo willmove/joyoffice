@@ -4,9 +4,9 @@
 
 ## 责任
 
-1. 核对旧负责人和软件／主机、实际 cwd／分支／完整 SHA；保留 C07 原目录。核实到的历史交付与仍待用户确认的外部 Agent 状态分开记录。W05–W07 每项最多一个活跃负责人；先确认再派工，旧 W01–W04 不重启。
+1. 核对旧负责人和软件／主机、实际 cwd／分支／完整 SHA；保留 C07 原目录。核实到的历史交付与仍待用户确认的外部 Agent 状态分开记录。W05–W09 每项最多一个活跃负责人；先确认再派工，旧 W01–W04 不重启。
 2. 固定代码 SHA 与协作包 SHA，维护 [本轮台账](../wave02/plan.json)、任务卡、接口、启动提示。新增依赖／公共 API 由 C08 裁决；执行者仅提交自己的报告。
-3. 准备包文件范围：`docs/coordination/README.md`、`docs/coordination/wave02/**`、本任务卡与 W05/W06/W07 卡、`docs/coordination/reports/C08-WAVE02.md`、`scripts/prepare_agent_workspace.py` 和对应 Python 测试。保留第一轮 plan.json 与报告，不改产品状态以暗示开发已完成。
+3. 准备包文件范围：`docs/coordination/README.md`、`docs/coordination/wave02/**`、本任务卡与 W05/W06/W07/W08/W09 卡、`docs/coordination/reports/C08-WAVE02.md`、`scripts/prepare_agent_workspace.py` 和对应 Python 测试。保留第一轮 plan.json 与报告，不改产品状态以暗示开发已完成。
 4. 后续集成时 C08 独占 `apps/joyword/**`、shell 的 `lib.rs/docx.rs/documents.rs/input.rs/command.rs/locales/**`、公共 TASKS／IMPLEMENTATION／PROVENANCE／README／ADR／CI／Cargo 文件与集成专用测试。model／engine／OPC／字体／整形／PageScene 仍冻结，新增接口先评估，不借协调权限重写。执行者可写清单内文件在交付前不同时修改。
 
 ## 集成次序与检查
@@ -19,10 +19,14 @@
 
 ## 验证与交付
 
-本次准备包只运行文档／工具检查、独立本地 Git remote 的准备脚本测试、三项 dry-run 和 diff 检查；不把 C07 Rust 成绩当作本轮重测。
+本次准备包只运行文档／工具检查、独立本地 Git remote 的准备脚本测试、所有已登记项的 dry-run 和 diff 检查；不把 C07 Rust 成绩当作本轮重测。
 
 业务集成阶段运行相关 crate／release、全默认成员、应用无窗口测试与开发构建、fmt、完整 clippy、文档与 Python 工具检查，明确字体环境。端到端验证 importer→engine/C07 输入→export→storage→reopen；同 snapshot 的布局／CPU／PDF 不变量；失败原文件／会话保留。至少覆盖原件冲突、保存期间编辑／关闭、导出拒绝和已发布后错误。远程 CI 必须绑定集成 SHA。
 
 GUI 与用户另约时段；Office/IME/跨系统/元数据/真实掉电证据独立记录。T002 已人工验收；T100/T101 不重复实现；未完成完整验收的任务不标 done。
 
 交付本轮包分支、完整提交 SHA、测试和待确认负责人；自身报告 [C08-WAVE02](../reports/C08-WAVE02.md) 不自引用结果 SHA。完成后等待用户手动派工／交接，无自动跟踪服务。
+
+## 扩容裁决（本轮补充）
+
+当前主机 Claude→W05、独立 Codex 执行聊天→W06、ZCode→W07；另一主机 Claude→W08、Codex→W09 可选。软件／主机分配与会话启动分开记账。本协调聊天不同时作为 W06 执行者。远端两项范围仅为独立工程；允许其自身 manifest／锁文件及卡内列明的现有精确依赖，不授权改根 workspace。W08/W09 分三批连续交付，不是只写方案；生产接入与新增 fuzz 工具链仍由 C08 审核。任务文件边界覆盖全部五位执行者，禁止另建后台服务自动派工。

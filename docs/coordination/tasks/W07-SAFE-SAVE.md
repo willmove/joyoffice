@@ -1,6 +1,6 @@
 # W07：源文件冲突检测与安全保存
 
-- 负责人：待用户指定唯一软件／主机／会话；确认前不启动。协调入口 C08。
+- 负责人：当前主机的 ZCode Desktop；已分配、未启动。启动时登记唯一会话；协调入口 C08。
 - 代码基线：C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；另记录 C08 协作包起始完整 SHA。
 - 分支／目录：`codex/w07-safe-save`／`joyoffice-w07`。
 - 对应：T103／T106、FORMAT-004、QUALITY 的保存失败不变量；T104 日志恢复另派。先读 AGENTS.md、第二轮 README／[接口](../wave02/INTERFACES.md)、SPEC、ARCHITECTURE §5、QUALITY 及 C03/C07 报告。

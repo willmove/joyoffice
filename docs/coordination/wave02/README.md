@@ -1,6 +1,6 @@
 # 第二轮：手动派工、Git 交付
 
-日期：2026-10-15。此次只准备协作包，不启动执行 Agent、自动队列、后台监控或 GUI。开发 Agent 协作不涉及产品内 AI 功能。人数固定为 **C08 协调者＋W05 DOCX 导出＋W06 排版＋W07 安全保存**；旧 W01–W04 不重新启动。
+日期：2026-10-15。此次只准备协作包，不启动执行 Agent、自动队列、后台监控或 GUI。开发 Agent 协作不涉及产品内 AI 功能。基本配置为 **C08 协调者＋W05 DOCX 导出＋W06 排版＋W07 安全保存**；按用户补充可扩为 **1＋5**，另一主机预留 W08 恢复日志与 W09 安全测试工程；旧 W01–W04 不重新启动。
 
 ## 基线与负责人核查
 
@@ -16,11 +16,15 @@ C07 已提交 [草稿 PR #7](https://github.com/willmove/joyoffice/pull/7)。本
 | W03 | 最初分配 DSH，实际交付为 Codex Desktop；第一轮报告 | 已评审交付，不按最初软件名重复启动 |
 | W04 | 第一轮协调者接手；报告 | 背景验证已交付，GUI 输入受阻；不是等待重新派开发工作的空白任务 |
 | C08 | 本聊天 `01a13d2b-acba-7473-8662-8f183393fd46` | 负责本轮包准备；后续集成沿用这一协调入口，由用户转交结果 |
-| W05／W06／W07 | 尚未指定软件、主机、唯一会话 | **待派工**；不把历史软件映射自动当成第二轮负责人 |
+| W05 | 当前主机 Claude Desktop Code | 已分配、未启动；启动时登记唯一会话 |
+| W06 | 当前主机 Codex Desktop 的独立执行聊天 | 已分配、未启动；与本 C08 协调聊天分开 |
+| W07 | 当前主机 ZCode Desktop | 已分配、未启动；启动时登记唯一会话 |
+| W08 | 另一台主机 Claude Desktop Code | 可选预留：恢复日志与崩溃重放；待主机环境与启用登记 |
+| W09 | 另一台主机 Codex Desktop | 可选预留：DOCX 安全回归与 fuzz 工程；待主机环境与启用登记 |
 
-以上是 2026-10-15 的观察快照。已向用户请求核实其他软件的在途任务和新负责人；未收到回复时保留待派工状态。可继续准备目录，但不能把“未发现运行中”写成“所有负责人均已确认”。
+以上核查为 2026-10-15 的观察快照。用户随后先回复“未分配”，再指定当前主机 Codex／Claude／ZCode，并允许增加另一台主机的 Claude／Codex。C08 据此登记本地三项分配与远端两项预留；角色映射是本轮安排，不是各软件能力排名。另一台主机系统／架构已询问，未收到前不推定平台覆盖。
 
-用户派工前，将每项的 `owner`（软件／主机／唯一会话标识）和 `ownership_confirmed` 转交 C08，由 C08 更新 [plan.json](plan.json) 并交付新的包 SHA；确认原 C07 负责人不再同时开发本轮三个范围及 app 接入。负责人未确认的项不发启动提示。离线／掉线交接先确认原执行停止并保存工作，再安排接手。该 JSON 是人工台账，不是原子认领服务。
+本聊天只协调；本机 W06 应在其独立任务目录的执行聊天完成。用户把启动提示交给对应软件时登记唯一会话，并检查是否已存在同任务分支／进程；不要重新启动原 C07 聊天同时承担这些范围。`ownership_confirmed=true` 表示软件／主机分配已确定，不表示执行进程已启动或外部软件已检查。远端两项由用户启用后登记主机／会话，不需要重新规划任务；若暂不启用，不阻塞 W05–W07。该 JSON 仍是人工台账，不是原子认领服务。离线接手先确认原执行停止并保存工作。
 
 ## 任务与边界
 
@@ -30,10 +34,12 @@ C07 已提交 [草稿 PR #7](https://github.com/willmove/joyoffice/pull/7)。本
 | [W05 DOCX](../tasks/W05-DOCX-EXPORT.md) | 保守正文段落拆分／合并导出与拒绝回归 | `codex/w05-docx-export` | `joyoffice-w05` |
 | [W06 排版](../tasks/W06-LAYOUT.md) | 单节单字体 keep-next／keep-lines 分页约束与几何 | `codex/w06-layout` | `joyoffice-w06` |
 | [W07 安全保存](../tasks/W07-SAFE-SAVE.md) | 打开源身份、冲突检测与受控原件保存切片 | `codex/w07-safe-save` | `joyoffice-w07` |
+| [W08 恢复内核](../tasks/W08-RECOVERY.md) | 日志／真实事务重放／检查点与崩溃恢复工具，分三批 | `codex/w08-recovery-journal` | `joyoffice-w08` |
+| [W09 安全测试](../tasks/W09-DOCX-ROBUSTNESS.md) | harness／结构化变异与最小化／往返证据，分三批 | `codex/w09-docx-robustness` | `joyoffice-w09` |
 
-精确可写路径在各卡及 plan.json 的 `allowed_paths`。W05 不写 shell，W06 不写字体／整形／PageScene，W07 不写 DOCX 会话或 app。C08 独占公共导出入口、app、命令／文案、会话保存版本、根依赖、CI、公共台账；不在执行者在途时改动其独占文件。所有 Cargo.toml/Cargo.lock 均由 C08 裁决，本轮执行者无新增／升级依赖授权。
+精确可写路径在各卡及 plan.json 的 `allowed_paths`。W05 不写 shell，W06 不写字体／整形／PageScene，W07 不写 DOCX 会话或 app。C08 独占公共导出入口、app、命令／文案、会话保存版本、根依赖、CI、公共台账；不在执行者在途时改动其独占文件。根及生产 crate 的 Cargo.toml/Cargo.lock 均由 C08 裁决。W08/W09 仅在各自实验目录获准创建独立 manifest／锁文件，按任务卡使用已列精确版本；其他新增／升级依赖先提案。
 
-W05/W07 可用现有 ExportPlan 和 save_export_copy 独立开发，W06 使用现有 snapshot／PageScene；不互相等待未交付的新 API。接口约定见 [接口与集成](INTERFACES.md)。每人只更新自己的 Wxx 报告；首次创建报告按 [第二轮报告模板](REPORT-TEMPLATE.md)。
+W05/W07 可用现有 ExportPlan 和 save_export_copy 独立开发，W06 使用现有 snapshot／PageScene；不互相等待未交付的新 API。接口约定见 [接口与集成](INTERFACES.md)。W08/W09 只写各自独立实验目录及报告／证据，生产接口只读，互不修改对方代码；不依赖 W05/W07 的在途分支。每人只更新自己的 Wxx 报告；首次创建报告按 [第二轮报告模板](REPORT-TEMPLATE.md)。
 
 ## 准备命令
 
@@ -46,6 +52,8 @@ git status --short
 git branch --show-current
 git rev-parse HEAD
 ```
+
+已有本人维护、干净且位于 `codex/wave02-coordination` 的控制 clone，可先 `git pull --ff-only origin codex/wave02-coordination` 更新协作包，再核对新版完整 SHA。不要在执行者的任务 checkout 运行此更新步骤，也不覆盖未提交修改。
 
 无 SSH 权限时将 URL 换成 `https://github.com/willmove/joyoffice.git`。包分支须已推送；无远程权限时由协调者转交 Git bundle 并另给导入命令，不假设远程已发布。
 
@@ -69,6 +77,15 @@ python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.
 python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start "$JOYOFFICE_WAVE02_PACKAGE_SHA" --task W07
 ```
 
+另一台主机启用后，在该机自己的控制 clone 中运行（不要在本机为远端任务重复开执行者）：
+
+```sh
+python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start "$JOYOFFICE_WAVE02_PACKAGE_SHA" --task W08 --mode clone
+python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start "$JOYOFFICE_WAVE02_PACKAGE_SHA" --task W09 --mode clone
+```
+
+本机三个编译任务可设置各自 `CARGO_BUILD_JOBS=2` 作为初始资源上限，并交错执行 release／全量 clippy；视实际内存再调整，不宣称未经测量的吞吐。GUI 仍一次只有一位执行者。远端长 campaign 必须有结束条件，不常驻监控。
+
 预览加 `--dry-run`（不访问远程，不表示负责人已确认或所有前置已通过）。软件不支持 worktree 时加 `--mode clone`，创建独立 Git 元数据的完整任务 clone。可用 `--destination /绝对/新目录` 改位置。不要在另一机器用同一个任务 ID 同时开第二份。
 
 打开准备器输出的绝对目录，再复制 [对应启动提示](START-PROMPTS.md)。如软件另建 worktree，核对实际 cwd／分支／完整 HEAD，错误时回到已准备目录；不要重复创建任务。Rust 编译缓存按任务独立，未协调前不共用 CARGO_TARGET_DIR。
@@ -80,3 +97,5 @@ python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.
 最终交接必须有：任务 ID、软件／主机、分支、C07 代码基线、协作包起始 SHA、结果完整 SHA、测试命令和真实结果、未覆盖项、阻塞与接口提案。报告正文不自引用最终提交 SHA。用户复制交接回 C08，不由 Agent 跨聊天／软件代发。
 
 C08 先检查路径与冻结 API，再逐个集成到 `codex/wave02-integration`。建议顺序 W05→W07→W06；这只是集成顺序，三项开发可并行。最后才接入 app、保存版本／关闭提示并复验真实 importer→engine→export→storage→reopen 及布局链路。T100/T101 不重写，T002 保留人工验收；T103/T105/T106/T107 不因接口就绪或本轮测试通过直接标 done。GUI 使用时段另约；系统 IME、固定 Word/WPS、平台原子性与元数据实测不能由无窗口测试替代。
+
+W08/W09 分批交付真实代码／测试，先审查独立工程再安排生产接入。W09 发现 bug 由 C08 分回生产文件负责人，不越界修补；W08 正式日志接入与 W07 文件保存职责分开。二者不会自动使 T104／T107 变为 done。

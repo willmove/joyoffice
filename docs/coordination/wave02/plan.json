@@ -8,15 +8,19 @@
   "require_explicit_start": true,
   "coordinator": "C08 / 01a13d2b-acba-7473-8662-8f183393fd46",
   "mode": "manual_dispatch_git_delivery",
-  "dispatch_status": "awaiting_owner_confirmation",
+  "dispatch_status": "local_assigned_remote_reserved_not_started",
   "integration_branch": "codex/wave02-integration",
   "tasks": [
     {
       "id": "W05",
       "role": "DOCX 导出",
-      "owner": null,
-      "ownership_confirmed": false,
-      "state": "awaiting_manual_assignment",
+      "owner": {
+        "software": "Claude Desktop / Code",
+        "host": "当前主机",
+        "session": null
+      },
+      "ownership_confirmed": true,
+      "state": "assigned_not_started",
       "branch": "codex/w05-docx-export",
       "directory": "joyoffice-w05",
       "card": "docs/coordination/tasks/W05-DOCX-EXPORT.md",
@@ -28,14 +32,19 @@
         "crates/joyword-docx/tests/w05_data/**",
         "crates/joyword-shell/tests/w05_*.rs",
         "docs/coordination/reports/W05.md"
-      ]
+      ],
+      "optional": false
     },
     {
       "id": "W06",
       "role": "排版",
-      "owner": null,
-      "ownership_confirmed": false,
-      "state": "awaiting_manual_assignment",
+      "owner": {
+        "software": "Codex Desktop（独立执行聊天，非 C08）",
+        "host": "当前主机",
+        "session": null
+      },
+      "ownership_confirmed": true,
+      "state": "assigned_not_started",
       "branch": "codex/w06-layout",
       "directory": "joyoffice-w06",
       "card": "docs/coordination/tasks/W06-LAYOUT.md",
@@ -46,14 +55,19 @@
         "crates/joyword-layout/tests/w06_*.rs",
         "crates/joyword-layout/tests/w06_data/**",
         "docs/coordination/reports/W06.md"
-      ]
+      ],
+      "optional": false
     },
     {
       "id": "W07",
       "role": "安全保存",
-      "owner": null,
-      "ownership_confirmed": false,
-      "state": "awaiting_manual_assignment",
+      "owner": {
+        "software": "ZCode Desktop",
+        "host": "当前主机",
+        "session": null
+      },
+      "ownership_confirmed": true,
+      "state": "assigned_not_started",
       "branch": "codex/w07-safe-save",
       "directory": "joyoffice-w07",
       "card": "docs/coordination/tasks/W07-SAFE-SAVE.md",
@@ -64,7 +78,50 @@
         "crates/joyword-shell/tests/w07_*.rs",
         "crates/joyword-shell/tests/w07_data/**",
         "docs/coordination/reports/W07.md"
+      ],
+      "optional": false
+    },
+    {
+      "id": "W08",
+      "role": "恢复日志与崩溃重放",
+      "owner": {
+        "software": "Claude Desktop / Code",
+        "host": "另一台主机（系统／架构待确认）",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "reserved_optional_not_started",
+      "optional": true,
+      "branch": "codex/w08-recovery-journal",
+      "directory": "joyoffice-w08",
+      "card": "docs/coordination/tasks/W08-RECOVERY.md",
+      "report": "docs/coordination/reports/W08.md",
+      "allowed_paths": [
+        "experiments/recovery-journal/**",
+        "docs/coordination/reports/W08.md"
+      ]
+    },
+    {
+      "id": "W09",
+      "role": "DOCX 安全回归与 fuzz 工程",
+      "owner": {
+        "software": "Codex Desktop",
+        "host": "另一台主机（系统／架构待确认）",
+        "session": null
+      },
+      "ownership_confirmed": false,
+      "state": "reserved_optional_not_started",
+      "optional": true,
+      "branch": "codex/w09-docx-robustness",
+      "directory": "joyoffice-w09",
+      "card": "docs/coordination/tasks/W09-DOCX-ROBUSTNESS.md",
+      "report": "docs/coordination/reports/W09.md",
+      "allowed_paths": [
+        "experiments/docx-robustness/**",
+        "docs/coordination/evidence/W09/**",
+        "docs/coordination/reports/W09.md"
       ]
     }
-  ]
+  ],
+  "assignment_note": "用户已指定当前主机 Codex／Claude／ZCode；C08 映射 W06／W05／W07。另一主机 Claude／Codex 预留 W08／W09；启动时登记唯一会话，不自动派发。"
 }

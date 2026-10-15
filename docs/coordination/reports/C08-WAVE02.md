@@ -7,13 +7,13 @@
 - 交付范围：协作包和准备工具。业务实现、人工验收与派工状态不混用；W05／W06／W07 尚未启动。
 - interface_ready：true，任务文件边界、现有接口及拟新增存储契约已写入包；不代表新增业务 API 已实现。
 - implementation_verified：true，仅指本次准备工具与文档检查。
-- acceptance_complete：false；负责人仍待用户确认，产品验收未执行。
+- acceptance_complete：false；本机负责人已分配、远端可选预留，产品验收未执行。
 
 ## 核查结论
 
 检查主目录为干净的 `codex/coordination-docx-export`／`4dd3870a609509ec225a7f85cb8509fbb602dfae`。原独立目录 C07 干净，实际 HEAD、本地分支与远程 ls-remote 一致为上述代码基线；C07 原负责人已交付 [PR #7](https://github.com/willmove/joyoffice/pull/7)，聊天查询时 idle。GitHub CLI 查询到 [38654508321](https://github.com/willmove/joyoffice/actions/runs/38654508321)／[38654515174](https://github.com/willmove/joyoffice/actions/runs/38654515174) 均 completed/success 且绑定同一 SHA；本轮未重跑 C07 Rust 测试。
 
-W01–W04 历史交付和负责人已从原 plan／报告核对，W03 按实际 Codex 交付记录，W04 为原协调者接手。未将“未加载／空闲”当作所有外部软件已停止的证明。已询问用户在途负责人和三位新执行者，当前无确认记录，plan 保持 owner=null、ownership_confirmed=false、awaiting_manual_assignment。包可交付，实际启动要先完成负责人确认。
+W01–W04 历史交付和负责人已从原 plan／报告核对，W03 按实际 Codex 交付记录，W04 为原协调者接手。未将“未加载／空闲”当作所有外部软件已停止的证明。初次包发布时已询问负责人，plan 当时保持 owner=null、ownership_confirmed=false、awaiting_manual_assignment。用户随后回复“未分配”，再指定本机三种软件与可选远端资源，当前分配见下文补充与新版 plan。
 
 ## 文件与选择
 
@@ -32,4 +32,14 @@ W01–W04 历史交付和负责人已从原 plan／报告核对，W03 按实际 
 | 本轮协调文档本地链接与 plan/card 路径交叉核对（Python 只读检查） | passed；10 份 Markdown、3 个唯一任务／分支／目录、所有允许路径与卡片一致 |
 | git diff --check | passed |
 
-包分支及结果完整 SHA 在提交后的最终交接提供，报告不自引用自身提交。未创建执行者工作目录、未更新执行者报告、未操作桌面；三位负责人、原 C07 后续职责接力仍由用户手动确认。
+包分支及结果完整 SHA 在提交后的最终交接提供，报告不自引用自身提交。未创建执行者工作目录、未更新执行者报告、未操作桌面；唯一执行会话在用户手动启动时登记，不自动续启原 C07 聊天。
+
+## 用户补充后的任务分配与扩容
+
+用户指定当前主机 Codex、Claude 桌面版、ZCode，并允许增加另一主机 Claude／Codex，希望较大的任务。C08 安排本机 Claude→W05 DOCX 导出、Codex 独立执行聊天→W06 排版、ZCode→W07 安全保存；标 assigned_not_started。C08 本聊天继续协调，不兼任 W06。另一主机 Claude→W08 恢复日志与崩溃重放，Codex→W09 DOCX 安全回归与 fuzz 工程，标 reserved_optional_not_started；已询问主机系统／架构，未知时不宣称平台能力。
+
+新增两张任务卡及各自目录／分支命令、完整启动提示、接口接力；每项分三批实际代码与测试交付，首批后继续后续已授权工作。实验目录互相独立，不与本机三项或 app 写边界重叠。独立 manifest／锁文件和卡内现有精确依赖获得协调者授权，根 Cargo／生产代码保持冻结。无实际执行会话或任务目录被自动创建，无后台服务。
+
+本次仅修改协作文档与配置，准备工具代码不变；旧包 SHA 不再用于新的派工，已开工任务如存在则保护其工作并先交接。产品实现与 T104/T107 状态未改。
+
+扩容后重新检查：python3 scripts/check_docs.py 通过，19 项 Python 工具测试通过；12 份协调 Markdown 的本地链接、5 项唯一分支／目录／报告、全部任务卡与 plan 允许路径一致且各执行者边界不重叠；git diff --check 通过。无 Rust 实现变更，未重跑产品 Rust 测试。

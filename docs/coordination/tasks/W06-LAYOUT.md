@@ -1,6 +1,6 @@
 # W06：有界分页约束与命中几何
 
-- 负责人：待用户指定唯一软件／主机／会话；确认前不启动。协调入口 C08。
+- 负责人：当前主机的 Codex Desktop（独立执行聊天，非 C08）；已分配、未启动。启动时登记唯一会话；协调入口 C08。
 - 代码基线：C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；另记录 C08 协作包起始完整 SHA。
 - 分支／目录：`codex/w06-layout`／`joyoffice-w06`。
 - 对应：T105／T207 的限定切片，LAYOUT-003／012；不等于完整中文排版验收。先读 AGENTS.md、第二轮 README／INTERFACES、SPEC、ARCHITECTURE §6、QUALITY、C04/C05/C07 报告。
