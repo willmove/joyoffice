@@ -9,3 +9,7 @@ The append sink performs write_all, flush, sync_all. Partial write/flush/sync er
 Sources: Rust std::io::Write (write_all/flush), std::fs::File::sync_all documentation; independently defined experimental binary format. No external editor implementation.
 
 Run `cargo test --manifest-path experiments/recovery-journal/Cargo.toml --locked` and the corresponding `--release`, `cargo fmt ... --all -- --check`, `cargo clippy ... --all-targets --locked -- -D warnings`.
+
+Batch 2 replay uses a restricted default-property plain-text body. Paragraph ordinals + Unicode scalar offsets resolve against the actual engine state, never serialized NodeIds. Each event binds source/text pre/post SHA-256, before/after monotonic engine versions, and actions. Mixed action transactions go through one engine transaction; undo/redo uses engine history. Overlay/preedit is absent from this committed-event API. Saved-version receipts are bookkeeping only, not disk saves. A closed session rejects late operations. Each commit rebuilds a candidate from the source and prior events, validates it, writes/syncs the event, then publishes. This bounded O(history) experiment does not claim interactive performance.
+
+Replay limits additionally cap actions at 128/event, events at 4095, text at 4 MiB, paragraph text at 64 KiB and paragraphs at 4096. Import budgets are explicitly lower than production defaults. All arbitrary object/format bodies are refused; imported protection is never cleared. C07 structural exports may still fail while the recovery session correctly holds split paragraphs.

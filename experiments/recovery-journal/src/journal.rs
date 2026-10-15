@@ -3,6 +3,7 @@
 //! payload length u32, CRC32 u32 over header[0..40] plus payload.
 //! A torn/corrupt record ends the prefix; no resynchronization is attempted.
 use crate::{Error, io as at};
+use sha2::{Digest, Sha256};
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
@@ -160,6 +161,7 @@ pub struct AppendLog<W> {
     bytes: usize,
     limits: Limits,
     poisoned: bool,
+    baseline_source: Option<[u8; 32]>,
 }
 impl AppendLog<File> {
     pub fn create(path: &Path, session: [u8; 16], limits: Limits) -> Result<Self, Error> {
@@ -180,6 +182,7 @@ impl<W: DurableWrite> AppendLog<W> {
             bytes: 0,
             limits: limits.capped(),
             poisoned: false,
+            baseline_source: None,
         }
     }
     pub fn append(&mut self, payload: &[u8]) -> Result<(), Error> {
@@ -223,12 +226,24 @@ impl<W: DurableWrite> AppendLog<W> {
             self.poisoned = true;
             return Err(error);
         }
+        if self.next == 0 && payload.len() >= 32 {
+            let source: [u8; 32] = Sha256::digest(&payload[32..]).into();
+            if payload[..32] == source {
+                self.baseline_source = Some(source);
+            }
+        }
         self.next += 1;
         self.bytes = total;
         Ok(())
     }
     pub fn into_inner(self) -> W {
         self.sink
+    }
+    pub fn records_written(&self) -> u64 {
+        self.next
+    }
+    pub fn baseline_source(&self) -> Option<[u8; 32]> {
+        self.baseline_source
     }
     pub fn session(&self) -> [u8; 16] {
         self.session

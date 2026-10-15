@@ -1,5 +1,6 @@
 //! Experimental recovery chain. CRC detects corruption, not malicious forgery.
 pub mod journal;
+pub mod replay;
 
 use std::fmt;
 use std::io;
