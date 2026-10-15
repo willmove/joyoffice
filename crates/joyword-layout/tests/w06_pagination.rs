@@ -464,3 +464,110 @@ fn changed_keep_properties_invalidate_same_version_and_engine_edits_use_new_geom
         assert_eq!(layout(session.document()).pages(), current.pages());
     }
 }
+
+#[test]
+fn unicode_clusters_missing_glyphs_and_diagnostics_survive_keep_pagination() {
+    let mut doc = document(&[1, 1], 2);
+    let text = "e\u{301} 👩‍💻 甲乙 <&>";
+    change(&mut doc, 1, |p| {
+        p.remove(ScalarOffset(0)..ScalarOffset(p.len())).unwrap();
+        p.insert_text(ScalarOffset(0), text).unwrap();
+    });
+    let unkept = layout(&doc);
+    keep(&mut doc, 1, false, true);
+    let kept = layout(&doc);
+    assert_eq!(kept.lines()[1].page, 1);
+    let paragraph = doc.body().blocks.get(1).unwrap().id();
+    let source = |snapshot: &LayoutSnapshot| {
+        snapshot
+            .lines()
+            .iter()
+            .filter(|l| l.paragraph == paragraph)
+            .map(|l| l.source.clone())
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(source(&kept), source(&unkept));
+    assert_eq!(kept.diagnostics(), unkept.diagnostics());
+    // This fixture has no CJK glyphs; pagination must retain source and the
+    // actual missing-glyph diagnostics rather than treating blank ink as text.
+    assert!(!kept.diagnostics().is_empty());
+    verify_source_and_geometry(&doc, &kept);
+    for inside in [1, 4, 5] {
+        assert!(matches!(
+            kept.caret(position(&doc, 1, inside, Bias::After)),
+            Err(LayoutError::InsideCluster(_))
+        ));
+    }
+    let capped = run(
+        &doc,
+        LayoutLimits {
+            max_diagnostics: 1,
+            max_selection_rects: 1,
+            ..LayoutLimits::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(capped.diagnostics().len(), 1);
+    assert_eq!(
+        capped.diagnostics().len() + capped.omitted_diagnostics(),
+        kept.diagnostics().len() + kept.omitted_diagnostics()
+    );
+    assert_eq!(
+        capped.selection_rects(
+            position(&doc, 0, 0, Bias::After),
+            position(&doc, 1, text.chars().count(), Bias::Before)
+        ),
+        Err(LayoutError::LimitExceeded(LayoutLimit::SelectionRects))
+    );
+    // Same engine version, different preview content: reject the old identity.
+    change(&mut doc, 1, |p| {
+        p.insert_text(ScalarOffset(0), "AV ").unwrap()
+    });
+    assert_eq!(
+        kept.ensure_current(&doc.snapshot(), &font(), profile()),
+        Err(LayoutError::StaleSnapshot(StaleReason::Content))
+    );
+}
+
+#[test]
+fn paragraph_and_keep_chain_height_overflow_fail_without_mutating_the_model() {
+    // Physically unrealistic but representable page/line boxes exercise the
+    // newly introduced height multiplication and chain sum independently.
+    for counts in [&[3][..], &[1, 1, 1][..]] {
+        let mut doc = document(counts, 3);
+        let page = &mut doc.sections_mut()[0].page;
+        page.height = Measure::Emu(i64::MAX - 1);
+        page.top = Measure::Emu(0);
+        page.bottom = Measure::Emu(0);
+        for i in 0..counts.len() {
+            keep(&mut doc, i, true, true);
+        }
+        let before = doc.canonical_dump(DumpOptions { node_ids: true });
+        let extreme = SingleFontProfile {
+            leading: Emu::new(i64::MAX / 2),
+            baseline: Emu::new(0),
+            ..profile()
+        };
+        assert_eq!(
+            layout_document(
+                &doc.snapshot(),
+                &font(),
+                extreme,
+                LayoutLimits::default(),
+                &LayoutCancellation::default()
+            )
+            .unwrap_err(),
+            LayoutError::GeometryOverflow
+        );
+        assert_eq!(doc.canonical_dump(DumpOptions { node_ids: true }), before);
+    }
+    let mut doc = document(&[1], 1);
+    keep(&mut doc, 0, false, true);
+    change(&mut doc, 0, |p| {
+        Arc::make_mut(&mut p.props).spacing.before = Some(Measure::Emu(1))
+    });
+    assert_eq!(
+        run(&doc, LayoutLimits::default()).unwrap_err(),
+        LayoutError::LineTooTall
+    );
+}
