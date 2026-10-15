@@ -8,6 +8,8 @@
 //! may copy [`PackageBacking::original_bytes`]. Edited output must use
 //! [`crate::plan_export`], which only permits proven text-leaf patches and
 //! plain paragraph structure changes, and rejects edits outside that boundary.
+//! That planner shares this backing's original bytes as the plan's private
+//! origin; callers cannot supply a different binding.
 
 use std::collections::BTreeMap;
 use std::ops::Range;
@@ -90,6 +92,16 @@ impl PackageBacking {
     /// not been edited.
     pub fn original_bytes(&self) -> &[u8] {
         &self.original
+    }
+
+    /// Shared allocation behind [`Self::original_bytes`].
+    ///
+    /// [`crate::plan_export`] clones this `Arc` into the plan. It is not a
+    /// public setter: code outside this crate cannot place these bytes, or
+    /// any other bytes, into an export plan except by passing this backing
+    /// to `plan_export`.
+    pub(crate) fn original_arc(&self) -> Arc<[u8]> {
+        Arc::clone(&self.original)
     }
 
     /// Every part with its exact uncompressed bytes, content type and
