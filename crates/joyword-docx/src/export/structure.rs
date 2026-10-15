@@ -20,8 +20,7 @@ use std::ops::Range;
 use joyword_model::{Block, Document, NodeId, ParaProps, Paragraph, SourceRef};
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
-use crate::ns::KNOWN_OFFICE;
-use crate::xml::Element;
+use crate::xml::{Element, Node};
 use crate::{PackageBacking, W};
 
 /// Where a group of new paragraphs is written.
@@ -260,16 +259,7 @@ impl<'a> Source<'a> {
         if self.holds_fragment(&element.span) {
             return Err(error("paragraph holds preserved markup"));
         }
-        // rsid and w14 identifiers may go with a removed paragraph; anything
-        // else might carry meaning this layer cannot see.
-        if element.attributes.iter().any(|attribute| {
-            !attribute
-                .namespace
-                .as_deref()
-                .is_some_and(|ns| ns == W || KNOWN_OFFICE.contains(&ns))
-        }) {
-            return Err(error("paragraph has unknown attributes"));
-        }
+        plain_markup(element).map_err(error)?;
         text_slots(element, self.xml).map_err(error)?;
         Ok(element)
     }
@@ -284,6 +274,63 @@ impl<'a> Source<'a> {
             .get(first)
             .is_some_and(|range| range.start < span.end)
     }
+}
+
+/// Recognizing a namespace does not mean every attribute in it is mapped.
+/// Only these session/paragraph identifiers have a defined removal policy;
+/// unknown attributes on every container of a touched paragraph must survive
+/// via the original bytes or make the structural edit fail.
+fn plain_markup(element: &Element) -> Result<(), &'static str> {
+    const W14: &str = "http://schemas.microsoft.com/office/word/2010/wordml";
+    let is_identifier = |paragraph: bool, namespace: Option<&str>, local: &str| {
+        (namespace == Some(W)
+            && (matches!(local, "rsidDel" | "rsidR" | "rsidRPr")
+                || (paragraph && matches!(local, "rsidP" | "rsidRDefault"))))
+            || (paragraph && namespace == Some(W14) && matches!(local, "paraId" | "textId"))
+    };
+    let attributes_known = match &*element.local {
+        "p" | "r" => element.attributes.iter().all(|a| {
+            is_identifier(
+                element.local.as_ref() == "p",
+                a.namespace.as_deref(),
+                &a.local,
+            )
+        }),
+        "pPr" | "rPr" | "lastRenderedPageBreak" => element.attributes.is_empty(),
+        "proofErr" => {
+            element.attributes.len() == 1
+                && element.attributes.iter().all(|a| {
+                    a.namespace.as_deref() == Some(W)
+                        && a.local.as_ref() == "type"
+                        && matches!(
+                            a.value.as_str(),
+                            "spellStart" | "spellEnd" | "gramStart" | "gramEnd"
+                        )
+                })
+        }
+        // The existing text-slot validator checks these leaves, including
+        // xml:space and their local namespace declarations.
+        "t" | "tab" => return Ok(()),
+        _ => return Err("unmapped structural paragraph content"),
+    };
+    if !attributes_known {
+        return Err(if element.local.as_ref() == "p" {
+            "paragraph has unknown attributes"
+        } else {
+            "structural paragraph markup has unknown attributes"
+        });
+    }
+    let empty = matches!(element.local.as_ref(), "proofErr" | "lastRenderedPageBreak");
+    for node in &element.children {
+        match node {
+            Node::Text(text) if text.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n')) => {}
+            Node::Element(child) if !empty && child.namespace.as_deref() == Some(W) => {
+                plain_markup(child)?
+            }
+            _ => return Err("unmapped structural paragraph content"),
+        }
+    }
+    Ok(())
 }
 
 fn block_source(block: &Block) -> Option<&SourceRef> {

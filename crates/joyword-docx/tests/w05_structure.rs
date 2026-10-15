@@ -799,3 +799,87 @@ fn new_markup_names_wordprocessingml_as_the_document_does() {
         assert!(!xml.contains("jwe:p") && !xml.contains("jwe:r"), "{xml}");
     }
 }
+
+#[test]
+fn structure_edits_refuse_unmapped_attributes_even_in_recognized_namespaces() {
+    let cases = [
+        r#"<w:p w:futureSemantic="keep"><w:r><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p w14:futureSemantic="keep"><w:r><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:r w14:futureSemantic="keep"><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:pPr w:futureSemantic="keep"/><w:r><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:r><w:rPr w14:futureSemantic="keep"/><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:proofErr w:type="spellStart" w:futureSemantic="keep"/><w:r><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:r><w:lastRenderedPageBreak w:futureSemantic="keep"/><w:t>AB</w:t></w:r></w:p>"#,
+    ];
+    for paragraph in cases {
+        let bytes = package(&format!("{paragraph}{}", p("tail")));
+        let source = open(&bytes);
+        assert!(source.editability.is_unrestricted());
+        for operation in 0..3 {
+            let mut model = source.document.clone();
+            match operation {
+                0 => split(&mut model, 0, 1),
+                1 => merge(&mut model, 0),
+                _ => remove(&mut model, 0),
+            }
+            assert!(
+                matches!(
+                    export(&source, &model),
+                    Err(ExportError::Unsupported { .. })
+                ),
+                "accepted unknown attributes: {paragraph}, operation {operation}"
+            );
+        }
+        // A text-only edit keeps the opaque attribute bytes in their original
+        // element and must remain supported by the old conservative path.
+        let mut model = source.document.clone();
+        insert(&mut model, 0, 1, "!");
+        let plan = export(&source, &model).unwrap();
+        assert!(main_xml(plan.bytes()).contains("futureSemantic=\"keep\""));
+        verify(&source, &model, &plan);
+        assert_eq!(source.backing.original_bytes(), bytes);
+    }
+}
+
+#[test]
+fn structural_removal_refuses_ignored_nontext_content() {
+    for paragraph in [
+        r#"<w:p>unmapped<w:r><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:r>unmapped<w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:proofErr w:type="spellStart"><w:future/></w:proofErr><w:r><w:t>AB</w:t></w:r></w:p>"#,
+        r#"<w:p><w:r><w:lastRenderedPageBreak><w:future/></w:lastRenderedPageBreak><w:t>AB</w:t></w:r></w:p>"#,
+    ] {
+        let bytes = package(&format!("{paragraph}{}", p("tail")));
+        let source = open(&bytes);
+        let mut model = source.document.clone();
+        remove(&mut model, 0);
+        assert!(
+            matches!(
+                export(&source, &model),
+                Err(ExportError::Unsupported { .. })
+            ),
+            "removed unmapped content: {paragraph}"
+        );
+        assert_eq!(source.backing.original_bytes(), bytes);
+    }
+}
+
+#[test]
+fn known_identifiers_and_empty_property_containers_keep_structural_support() {
+    let paragraph = r#"<w:p w:rsidDel="00000001" w:rsidP="00000002" w:rsidR="00000003" w:rsidRDefault="00000004" w:rsidRPr="00000005" w14:paraId="00000006" w14:textId="00000007"><w:pPr><w:rPr/></w:pPr><w:proofErr w:type="gramStart"/><w:r w:rsidDel="00000008" w:rsidR="00000009" w:rsidRPr="0000000A"><w:rPr/><w:t>AB</w:t><w:lastRenderedPageBreak/></w:r><w:proofErr w:type="gramEnd"/></w:p>"#;
+    let source = open(&package(&format!("{paragraph}{}", p("tail"))));
+    for operation in 0..3 {
+        let mut model = source.document.clone();
+        match operation {
+            0 => split(&mut model, 0, 1),
+            1 => merge(&mut model, 0),
+            _ => remove(&mut model, 0),
+        }
+        let plan = export(&source, &model).unwrap();
+        verify(&source, &model, &plan);
+        assert_eq!(
+            main_xml(plan.bytes()).matches("w14:paraId=").count(),
+            usize::from(operation != 2)
+        );
+    }
+}
