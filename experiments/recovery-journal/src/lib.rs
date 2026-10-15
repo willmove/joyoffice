@@ -1,4 +1,5 @@
 //! Experimental recovery chain. CRC detects corruption, not malicious forgery.
+pub mod checkpoint;
 pub mod journal;
 pub mod replay;
 
@@ -16,6 +17,10 @@ pub enum Error {
     Invalid(&'static str),
     Engine(String),
     Poisoned,
+    Published {
+        path: std::path::PathBuf,
+        cause: String,
+    },
     Cancelled,
 }
 impl fmt::Display for Error {

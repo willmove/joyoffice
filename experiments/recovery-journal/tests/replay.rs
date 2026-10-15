@@ -259,3 +259,93 @@ fn every_event_byte_truncation_and_unknown_action_are_refused() {
     unknown[84] = 99;
     assert!(decode(&unknown).is_err());
 }
+
+#[test]
+fn uncertain_durable_append_does_not_publish_the_candidate() {
+    struct Failing {
+        bytes: Vec<u8>,
+        syncs: usize,
+    }
+    impl Write for Failing {
+        fn write(&mut self, b: &[u8]) -> io::Result<usize> {
+            self.bytes.extend_from_slice(b);
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+    impl DurableWrite for Failing {
+        fn sync(&mut self) -> io::Result<()> {
+            self.syncs += 1;
+            if self.syncs == 2 {
+                Err(io::Error::new(
+                    io::ErrorKind::StorageFull,
+                    "injected final sync",
+                ))
+            } else {
+                Ok(())
+            }
+        }
+    }
+    let mut recovery = Recovery::open(SOURCE, [5; 16]).unwrap();
+    let mut log = AppendLog::fresh(
+        Failing {
+            bytes: Vec::new(),
+            syncs: 0,
+        },
+        [5; 16],
+        Limits::default(),
+    );
+    log.append(&recovery.baseline_payload()).unwrap();
+    let before = recovery.texts();
+    assert!(
+        recovery
+            .commit(
+                &mut log,
+                0,
+                vec![Action::Insert {
+                    at: at(0, 0),
+                    text: "uncertain".into()
+                }],
+                &AtomicBool::new(false)
+            )
+            .is_err()
+    );
+    assert_eq!(recovery.version(), 0);
+    assert_eq!(recovery.texts(), before);
+    assert!(matches!(log.append(b"retry"), Err(Error::Poisoned)));
+    // The failed sync does not prove bytes are absent: acknowledge this exact
+    // uncertainty; a later scan may see the complete candidate record.
+    assert_eq!(
+        scan(&log.into_inner().bytes, Limits::default())
+            .unwrap()
+            .records
+            .len(),
+        2
+    );
+}
+
+#[test]
+fn cancellation_is_observed_between_replayed_events() {
+    let (mut r, mut log) = setup();
+    commit(&mut r, &mut log, vec![Action::Saved(0)]);
+    let records = scan(&log.into_inner().0, Limits::default())
+        .unwrap()
+        .records;
+    let mut long = vec![records[0].clone()];
+    for i in 1..=MAX_EVENTS {
+        let mut event = records[1].clone();
+        event.sequence = i as u64;
+        long.push(event);
+    }
+    let cancelled = std::sync::Arc::new(AtomicBool::new(false));
+    let signal = cancelled.clone();
+    let worker = std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(1));
+        signal.store(true, std::sync::atomic::Ordering::Release);
+    });
+    let result = recover(&long, [3; 16], source_hash(SOURCE), &cancelled);
+    worker.join().unwrap();
+    assert!(matches!(result, Err(Error::Cancelled)));
+}
