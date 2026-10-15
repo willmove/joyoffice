@@ -1,0 +1,21 @@
+[package]
+name = "joyword-docx-robustness"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+
+[workspace]
+
+[dependencies]
+joyoffice-opc = { path = "../../crates/joyoffice-opc" }
+joyword-docx = { path = "../../crates/joyword-docx" }
+joyword-engine = { path = "../../crates/joyword-engine" }
+joyword-model = { path = "../../crates/joyword-model" }
+joyword-shell = { path = "../../crates/joyword-shell" }
+sha2 = "=0.10.9"
+
+[lints.rust]
+unsafe_code = "forbid"
+[lints.clippy]
+all = "warn"
