@@ -6,6 +6,8 @@ use std::fmt;
 use std::io;
 use std::path::PathBuf;
 
+use super::original::SaveOriginalReceipt;
+
 /// Observable step of the source pipeline. `Io` errors carry the step that
 /// failed; the same step set drives deterministic fault injection in tests.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -24,6 +26,26 @@ pub enum SourceStage {
     Restat,
     /// Argument validation inside save_original.
     Validate,
+    /// Create the same-directory temporary file for original replacement.
+    CreateTemporary,
+    /// Write the verified plan bytes into that temporary file.
+    Write,
+    /// Sync the temporary file before it may be published.
+    SyncFile,
+    /// Read the temporary file back and compare it to the plan.
+    Verify,
+    /// Copy the source permission bits onto the temporary file.
+    RestorePermissions,
+    /// Hard-link the current target under a private backup name.
+    Backup,
+    /// Read the backup back and compare it to the stamped bytes.
+    VerifyBackup,
+    /// Rename the temporary file onto the target.
+    Publish,
+    /// Remove the private backup after the new file is in place.
+    Cleanup,
+    /// Sync the parent directory after publication.
+    SyncDirectory,
 }
 
 impl fmt::Display for SourceStage {
@@ -36,6 +58,16 @@ impl fmt::Display for SourceStage {
             Self::Read => "bounded read",
             Self::Restat => "post-read stat",
             Self::Validate => "validation",
+            Self::CreateTemporary => "temporary file creation",
+            Self::Write => "write",
+            Self::SyncFile => "file sync",
+            Self::Verify => "read-back verification",
+            Self::RestorePermissions => "permission restore",
+            Self::Backup => "backup hard link",
+            Self::VerifyBackup => "backup verification",
+            Self::Publish => "atomic replace",
+            Self::Cleanup => "backup cleanup",
+            Self::SyncDirectory => "directory sync",
         })
     }
 }
@@ -107,10 +139,12 @@ impl ConflictDetail {
 /// facts, not transient failures; retrying cannot fix them.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReplacementBlocker {
-    /// The C07 `ExportPlan` carries no verifiable binding to the package it
-    /// was exported from. Equal version numbers never prove that a plan and a
-    /// source belong together, so no plan may overwrite any source yet.
+    /// `ExportPlan::origin_bytes()` is `None`, so the plan cannot prove which
+    /// package it came from. Equal version numbers are not a substitute.
     OriginBindingUnproven,
+    /// This build has not verified an atomic replace (non-Unix `rename` does
+    /// not replace an existing file). Metadata blockers refuse first today.
+    AtomicReplaceUnverified,
     /// The metadata item cannot even be observed with the approved
     /// dependencies, so losing it could not be detected, let alone restored.
     UnobservableMetadata(MetadataItem),
@@ -127,6 +161,9 @@ impl ReplacementBlocker {
         match self {
             Self::OriginBindingUnproven => {
                 "the export plan cannot be proven to originate from this source package"
+            }
+            Self::AtomicReplaceUnverified => {
+                "atomic replacement of an existing file is not verified on this platform"
             }
             Self::UnobservableMetadata(_) => {
                 "metadata item cannot be observed with approved dependencies"
@@ -173,12 +210,17 @@ impl MetadataItem {
 /// Errors from opening a source, conflict prechecks and original replacement.
 #[derive(Debug)]
 pub enum SaveOriginalError {
-    /// File-system failure at the named stage.
+    /// File-system failure at the named stage. `published` is set only after
+    /// the target name already points at the new bytes.
     Io {
         stage: SourceStage,
         path: PathBuf,
         source: io::Error,
+        published: Option<SaveOriginalReceipt>,
     },
+    /// The plan's origin bytes are present and are not the stamped package.
+    /// No write was attempted. Version equality is irrelevant.
+    OriginMismatch { path: PathBuf },
     /// The resolved path names a directory, device or other non-regular file.
     NotARegularFile { path: PathBuf },
     /// The file exceeds the byte budget of the read. Never read unbounded.
@@ -216,6 +258,7 @@ impl SaveOriginalError {
             | Self::SourceTooLarge { path, .. }
             | Self::UnstableRead { path }
             | Self::Conflict { path, .. }
+            | Self::OriginMismatch { path }
             | Self::ReplacementUnavailable { path, .. } => path,
             Self::LockConflict { lock_path, .. } => lock_path,
         }
@@ -253,6 +296,17 @@ impl SaveOriginalError {
             _ => None,
         }
     }
+    /// The plan had origin bytes and they were not the stamped package.
+    pub fn is_origin_mismatch(&self) -> bool {
+        matches!(self, Self::OriginMismatch { .. })
+    }
+    /// Set only when the target name already points at the replacement.
+    pub fn published(&self) -> Option<&SaveOriginalReceipt> {
+        match self {
+            Self::Io { published, .. } => published.as_ref(),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for SaveOriginalError {
@@ -262,9 +316,19 @@ impl fmt::Display for SaveOriginalError {
                 stage,
                 path,
                 source,
+                published,
             } => {
-                write!(f, "source {} at {:?}: {}", stage, path.display(), source)
+                write!(f, "source {} at {:?}: {}", stage, path.display(), source)?;
+                if published.is_some() {
+                    f.write_str(" (replacement already published)")?;
+                }
+                Ok(())
             }
+            Self::OriginMismatch { path } => write!(
+                f,
+                "export plan origin does not match source {:?}",
+                path.display()
+            ),
             Self::NotARegularFile { path } => {
                 write!(f, "source {:?} is not a regular file", path.display())
             }
@@ -335,6 +399,20 @@ impl SaveOriginalError {
             stage,
             path: path.to_path_buf(),
             source,
+            published: None,
+        }
+    }
+    pub(crate) fn io_published(
+        stage: SourceStage,
+        path: &std::path::Path,
+        source: io::Error,
+        receipt: SaveOriginalReceipt,
+    ) -> Self {
+        Self::Io {
+            stage,
+            path: path.to_path_buf(),
+            source,
+            published: Some(receipt),
         }
     }
     pub(crate) fn conflict_error(path: &std::path::Path, detail: ConflictDetail) -> Self {
