@@ -49,7 +49,7 @@ fn main() {
         json(&digest(&bytes)),
         bytes.len(),
         json(kind),
-        json(&report.reason),
+        json(&report.reason.chars().take(4096).collect::<String>()),
         report.checks,
         MAX_INPUT,
         b.max_entries,
