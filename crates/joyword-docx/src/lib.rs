@@ -25,10 +25,15 @@
 //! and classified, never resolved or accessed. Strict documents are refused.
 //!
 //! [`plan_export`] supports text changes within existing paragraphs and
-//! character formatting boundaries. Unknown markup and parts stay intact;
-//! unsupported edits are refused. The plan is versioned and re-imported under
-//! the same budget. Exact copies retain the original container; edited output
-//! explicitly reports regenerated ZIP metadata. No file-system save is done.
+//! character formatting boundaries, and splitting, merging, inserting and
+//! removing plain body paragraphs with default formatting. Unknown markup and
+//! parts stay intact; unsupported edits are refused. The plan is versioned and
+//! re-imported under the same budget. Exact copies retain the original
+//! container; edited output explicitly reports regenerated ZIP metadata. Each
+//! successful plan also keeps the backing's original package bytes as a
+//! private origin ([`ExportPlan::origin_bytes`]). That binding is those
+//! bytes, not a document version and not a caller-supplied substitute. No
+//! file-system save is done.
 //! Tables, content controls, headers/footers, notes, comments, numbering
 //! definitions, bookmarks/fields as annotations and images remain unmapped.
 //!

@@ -120,7 +120,7 @@ fn a_plan_from_an_older_version_of_the_same_file_is_refused() {
     let (path, bytes) = write_source(dir.path(), "report.docx", 1);
     let old = open_source(&path, &Budget::default()).unwrap();
     let plan = edited_plan(1);
-    assert!(plan.originates_from(old.bytes()));
+    assert_eq!(plan.origin_bytes(), Some(old.bytes()));
     // Another application saves a new version of the file.
     let other_save = edited_plan_with(1, "another editor ").bytes().to_vec();
     assert_ne!(other_save, bytes);

@@ -97,6 +97,9 @@ pub enum ExportWarning {
 
 /// An immutable, verified output for one document version. Creating a plan
 /// does not write a file, change the backing, or mark a session saved.
+///
+/// `origin` is the package the plan was derived from. Text patches replace
+/// `bytes` and leave `origin` alone.
 #[derive(Clone, Debug)]
 pub struct ExportPlan {
     version: DocumentVersion,
@@ -106,9 +109,7 @@ pub struct ExportPlan {
     changed: Vec<PartName>,
     preserved: Vec<PartName>,
     warnings: Vec<ExportWarning>,
-    /// Original file bytes of the backing the plan was built from (shared
-    /// with that backing, not copied). Private: only `plan_export` sets it.
-    origin: Arc<[u8]>,
+    origin: Option<Arc<[u8]>>,
 }
 
 impl ExportPlan {
@@ -135,12 +136,17 @@ impl ExportPlan {
     pub fn warnings(&self) -> &[ExportWarning] {
         &self.warnings
     }
-    /// Whether this plan was built from exactly `package`: the original file
-    /// bytes of the backing given to [`plan_export`]. The comparison is
-    /// byte-exact. Equal versions, equal targets or equal output bytes never
-    /// stand in for it, because two documents can share all of those.
-    pub fn originates_from(&self, package: &[u8]) -> bool {
-        *self.origin == *package
+    /// Exact package bytes of the [`PackageBacking`] passed to [`plan_export`].
+    ///
+    /// `Some` shares that backing's allocation and compares equal to its
+    /// [`PackageBacking::original_bytes`], including after an edit rewrites
+    /// [`Self::bytes`]. `None` means this plan cannot prove an origin;
+    /// `save_original` must refuse it. Every successful `plan_export` returns
+    /// `Some`. There is no public constructor or setter, so a caller cannot
+    /// install different bytes or clear the binding. An equal
+    /// [`DocumentVersion`] is not evidence that two origins match.
+    pub fn origin_bytes(&self) -> Option<&[u8]> {
+        self.origin.as_deref()
     }
     pub fn target_content_type(&self) -> &'static str {
         match self.target {
@@ -206,7 +212,9 @@ pub fn plan_export(
         changed: Vec::new(),
         warnings: Vec::new(),
         preserved: package.parts().map(|part| part.name.clone()).collect(),
-        origin: backing.shared_original(),
+        // The caller's backing, not the re-imported copy and not the patched
+        // archive later stored in `bytes`.
+        origin: Some(backing.original_arc()),
     };
     if alignment.is_unchanged() {
         return Ok(plan);
@@ -757,4 +765,40 @@ fn text_xml(names: &Names, text: &str) -> String {
         xml.push_str(&names.end("t"));
     }
     xml
+}
+
+#[cfg(test)]
+mod origin_binding {
+    use std::path::PathBuf;
+    use std::sync::Arc;
+
+    use joyoffice_opc::Budget;
+
+    use super::plan_export;
+    use crate::import;
+
+    fn fixture(id: u8) -> Vec<u8> {
+        std::fs::read(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join(format!("../../tests/fixtures/docx/DOCX-MIN-{id:03}.docx")),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn origin_shares_the_backing_allocation_and_clone_keeps_it() {
+        let bytes = fixture(1);
+        let imported = import(&bytes, &Budget::default()).unwrap();
+        let plan = plan_export(
+            &imported.backing,
+            &imported.document.snapshot(),
+            &Budget::default(),
+        )
+        .unwrap();
+        let origin = plan.origin.as_ref().expect("proven origin");
+        assert!(Arc::ptr_eq(origin, &imported.backing.original_arc()));
+        assert_eq!(&origin[..], bytes.as_slice());
+        let cloned = plan.clone();
+        assert!(Arc::ptr_eq(origin, cloned.origin.as_ref().unwrap()));
+    }
 }

@@ -561,7 +561,7 @@ mod tests {
                     assert!(stage >= ReplaceStage::VerifyBackup, "{stage:?}: {e}");
                     assert_eq!(e.conflict(), Some(ConflictDetail::TimesChanged));
                     let reopened = open_source(&fixture.path, &Budget::default()).unwrap();
-                    assert!(fixture.plan.originates_from(reopened.bytes()));
+                    assert_eq!(fixture.plan.origin_bytes(), Some(reopened.bytes()));
                 }
             }
         }

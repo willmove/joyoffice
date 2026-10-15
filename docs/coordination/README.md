@@ -1,8 +1,22 @@
 # 当前协作入口
 
-第二轮（2026-10-15）见 [第二轮协作包](wave02/README.md)：1 位协调者 C08＋本机三位执行者 W05／W06／W07，可选增加另一主机 W08／W09。代码候选基线为 C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；负责人确认、准备命令、启动提示与文件边界均在包内。本机分配为 Claude→W05、Codex→W06、ZCode→W07；另一主机 Claude→W08、Codex→W09 为可选预留，均未自动启动。第一轮 `plan.json` 保留为历史快照；第二轮准备必须显式传入 `--plan docs/coordination/wave02/plan.json` 和 `--start <协作包完整 SHA>`。
+第三轮协作包见 [第三轮协作包](wave03/README.md)（草稿／派工状态以该包 `plan.json` 的 `dispatch_status` 为准）。第二轮（2026-10-15）已交付并合入 main；台账同步见 [PR #10](https://github.com/willmove/joyoffice/pull/10)。
 
-下面是第一轮与 C01–C07 历史记录，其中“当前协调者”等称谓属于当时记录，不作为第二轮派工授权。
+## 第二轮摘要（已完成集成）
+
+- 实际执行与报告：见 [第二轮协作包](wave02/README.md)交付与集成结果。
+- 集成结果 main：`ee4f57d3cd6361ff666170e3d40b1f68373b78d4`；W07 平台测试修正 [PR #9](https://github.com/willmove/joyoffice/pull/9) → `5573997a75d9297b24429f90c727dad05b7f90c3`。
+- W05–W09：`delivered_integrated`，`acceptance_complete=false`。第三轮不重开这些任务 ID。
+
+## 第三轮（草案要点）
+
+- 前置：合并 PR #10。
+- 执行者任务：W10 来源绑定 →（并行）W12 带格式结构导出；W11 `save_original` 发布（依赖 W10）；可选 W13 重锚定 W09；可选／延后 W14 恢复设计。
+- 协调者 C09：`open_source`→`DocxSession`、打开＋另存为新副本（`save_export_copy`）＋dirty／关闭；原件保存仅在 W11 可用后接入。
+- 延后：ADR-010、信创真机 T005、完整 Word/WPS T004、覆盖引导 fuzz、大 GUI／IME 验收。
+
+第一轮 `plan.json` 与第二轮 [plan.json](wave02/plan.json) 保留为历史。下面是第一轮与 C01–C07 历史记录，其中当前协调者等称谓属于当时记录，不作为后续派工授权。
+
 
 # 第一轮协作：启动与交付
 

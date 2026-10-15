@@ -213,7 +213,9 @@ fn replacement_blockers(
 ) -> Vec<ReplacementBlocker> {
     let caps = original_replacement_capabilities();
     let mut blockers = Vec::new();
-    if !plan.originates_from(source.bytes()) {
+    // W10 binding: the backing bytes the plan was built from. A plan with
+    // no proven origin (`None`) is refused like a mismatched one.
+    if plan.origin_bytes() != Some(source.bytes()) {
         blockers.push(ReplacementBlocker::OriginBindingUnproven);
     }
     if !caps.write_path {
