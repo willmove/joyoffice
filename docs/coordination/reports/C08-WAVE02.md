@@ -43,3 +43,9 @@ W01–W04 历史交付和负责人已从原 plan／报告核对，W03 按实际 
 本次仅修改协作文档与配置，准备工具代码不变；旧包 SHA 不再用于新的派工，已开工任务如存在则保护其工作并先交接。产品实现与 T104/T107 状态未改。
 
 扩容后重新检查：python3 scripts/check_docs.py 通过，19 项 Python 工具测试通过；12 份协调 Markdown 的本地链接、5 项唯一分支／目录／报告、全部任务卡与 plan 允许路径一致且各执行者边界不重叠；git diff --check 通过。无 Rust 实现变更，未重跑产品 Rust 测试。
+
+## 远端主机环境确认
+
+用户确认另一主机为 Windows 11 x64。已同步 W08／W09 任务卡、plan 与启动提示；仍为可选预留、未启动。新增原生 PowerShell 的完整 SHA 校验与双独立 clone 准备步骤，明确 MSVC／Rust 1.98.1、实际文件系统和工具版本记录、句柄／轮转故障、子进程超时／回收及 WSL 证据分离。此轮未连接或运行 Windows 主机，不宣称工具已安装、命令已实测或平台验收通过。
+
+本次文档／配置更新验证：python3 scripts/check_docs.py、Windows 环境字段／任务卡一致性及本地链接检查、git diff --check 均通过。未改准备器或业务代码，未重复运行 Rust／Python 单元测试；PowerShell 步骤尚待远端实测。

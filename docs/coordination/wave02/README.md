@@ -19,10 +19,10 @@ C07 已提交 [草稿 PR #7](https://github.com/willmove/joyoffice/pull/7)。本
 | W05 | 当前主机 Claude Desktop Code | 已分配、未启动；启动时登记唯一会话 |
 | W06 | 当前主机 Codex Desktop 的独立执行聊天 | 已分配、未启动；与本 C08 协调聊天分开 |
 | W07 | 当前主机 ZCode Desktop | 已分配、未启动；启动时登记唯一会话 |
-| W08 | 另一台主机 Claude Desktop Code | 可选预留：恢复日志与崩溃重放；待主机环境与启用登记 |
-| W09 | 另一台主机 Codex Desktop | 可选预留：DOCX 安全回归与 fuzz 工程；待主机环境与启用登记 |
+| W08 | Windows 11 x64 主机 Claude Desktop Code | 可选预留：恢复日志与崩溃重放；环境已确认，待启用与唯一会话登记 |
+| W09 | Windows 11 x64 主机 Codex Desktop | 可选预留：DOCX 安全回归与 fuzz 工程；环境已确认，待启用与唯一会话登记 |
 
-以上核查为 2026-10-15 的观察快照。用户随后先回复“未分配”，再指定当前主机 Codex／Claude／ZCode，并允许增加另一台主机的 Claude／Codex。C08 据此登记本地三项分配与远端两项预留；角色映射是本轮安排，不是各软件能力排名。另一台主机系统／架构已询问，未收到前不推定平台覆盖。
+以上核查为 2026-10-15 的观察快照。用户随后先回复“未分配”，再指定当前主机 Codex／Claude／ZCode，并允许增加另一台主机的 Claude／Codex。C08 据此登记本地三项分配与远端两项预留；角色映射是本轮安排，不是各软件能力排名。用户已确认另一台主机为 Windows 11 x64；环境确认不等于该平台的测试已通过。
 
 本聊天只协调；本机 W06 应在其独立任务目录的执行聊天完成。用户把启动提示交给对应软件时登记唯一会话，并检查是否已存在同任务分支／进程；不要重新启动原 C07 聊天同时承担这些范围。`ownership_confirmed=true` 表示软件／主机分配已确定，不表示执行进程已启动或外部软件已检查。远端两项由用户启用后登记主机／会话，不需要重新规划任务；若暂不启用，不阻塞 W05–W07。该 JSON 仍是人工台账，不是原子认领服务。离线接手先确认原执行停止并保存工作。
 
@@ -83,6 +83,36 @@ python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.
 python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start "$JOYOFFICE_WAVE02_PACKAGE_SHA" --task W08 --mode clone
 python3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start "$JOYOFFICE_WAVE02_PACKAGE_SHA" --task W09 --mode clone
 ```
+
+### Windows 11 x64 的原生 PowerShell 准备
+
+W08／W09 优先在原生 Windows 的 MSVC Rust 环境运行，以取得该目标的真实文件系统与进程证据；若使用 WSL，报告必须单列为 Linux 环境。先确认 Git、Python 3（`py -3 --version`）和固定 Rust（`rustc -vV`，1.98.1／x86_64-pc-windows-msvc）；缺少工具时记录阻塞，不把环境确认当作已安装。目录路径可带空格，以下命令保留引号。
+
+在计划存放仓库的父目录中执行；新控制 clone 目录必须不存在。填入本轮最新交接的包 SHA，执行失败即停止：
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$JoyofficeWave02PackageSha = '替换为协调者交接的40位协作包SHA'
+if ($JoyofficeWave02PackageSha -cnotmatch '^[0-9a-f]{40}$') { throw '请填写完整协作包 SHA' }
+function Invoke-JoyGit {
+    & git @args
+    if ($LASTEXITCODE -ne 0) { throw 'Git 命令失败，保留现场后核对' }
+}
+Invoke-JoyGit clone --single-branch --branch codex/wave02-coordination 'https://github.com/willmove/joyoffice.git' 'joyoffice-wave02-control'
+Set-Location -LiteralPath 'joyoffice-wave02-control' -ErrorAction Stop
+Invoke-JoyGit status --short
+Invoke-JoyGit fetch --no-tags origin codex/wave02-coordination
+$JoyofficeLocalHead = Invoke-JoyGit rev-parse HEAD
+$JoyofficeRemoteHead = Invoke-JoyGit rev-parse FETCH_HEAD
+if ($JoyofficeLocalHead -cne $JoyofficeWave02PackageSha -or $JoyofficeRemoteHead -cne $JoyofficeWave02PackageSha) { throw '协作包 SHA 不一致，停止准备' }
+Invoke-JoyGit merge-base --is-ancestor a88217136a570a8f224d92b808bc0b8840ab26ca $JoyofficeWave02PackageSha
+py -3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start $JoyofficeWave02PackageSha --task W08 --mode clone
+if ($LASTEXITCODE -ne 0) { throw 'W08 准备失败，不重建已有目录' }
+py -3 scripts/prepare_agent_workspace.py --plan docs/coordination/wave02/plan.json --start $JoyofficeWave02PackageSha --task W09 --mode clone
+if ($LASTEXITCODE -ne 0) { throw 'W09 准备失败，不重建已有目录' }
+```
+
+只启用一项时仅执行相应准备命令。控制 clone 若已存在，使用上文的干净目录更新流程后，从 status／fetch／SHA 核对开始，跳过 clone／Set-Location。准备器会输出两个独立绝对目录；Claude 打开 W08，Codex 打开 W09。这些 PowerShell 命令是待远端实测的操作步骤，本机 macOS 文档检查不能证明 Windows 执行成功。
 
 本机三个编译任务可设置各自 `CARGO_BUILD_JOBS=2` 作为初始资源上限，并交错执行 release／全量 clippy；视实际内存再调整，不宣称未经测量的吞吐。GUI 仍一次只有一位执行者。远端长 campaign 必须有结束条件，不常驻监控。
 

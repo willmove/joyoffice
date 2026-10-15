@@ -1,6 +1,6 @@
 # W09：DOCX 安全回归、变异测试与 fuzz 工程
 
-- 预留负责人：另一台主机的 Codex；系统／架构待确认，尚未启动。
+- 预留负责人：Windows 11 x64 主机的 Codex；环境已确认，尚未启动。
 - 分支／目录：`codex/w09-docx-robustness`／`joyoffice-w09`。
 - 代码基线：C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；另记录新版协作包完整 SHA。
 - 对应：T103／T107 的不可信输入与往返验证；先读 AGENTS.md、第二轮 README／INTERFACES、SPEC FORMAT-001–004、ARCHITECTURE §5、QUALITY §2／3／6、C01/C02/C03/C07 报告。
@@ -35,3 +35,7 @@ git diff --check
 ```
 
 README 必须提供实际可执行的 smoke／campaign／replay／minimize 命令；测试驱动本身的超时、错误分类、固定种子、最小化与日志 schema。报告运行次数、时长、成功／拒绝／异常数、未执行目标、全部故障及其回放；无崩溃不等于安全证明。性能或内存指标无法取得时写未测，不从输入长度推算实测峰值。每批真实提交与结果经用户交给 C08；不宣称 Word/WPS／GUI／M1 完整验收完成。
+
+## Windows 11 x64 验证补充
+
+先用原生 MSVC／Rust 1.98.1 跑 harness、变异／回放／最小化与进程故障测试；文档检查用 `py -3 scripts/check_docs.py`。Python 驱动使用参数列表、二进制 stdin 和明确超时，测试含空格／中文路径、非零退出与进程结束后的输出收集。不要依赖 Unix signal、resource/rlimit 或 shell 命令在 Windows 上可用；超时后确认自己创建的子进程树已退出，无法控制内存限额时单列能力缺口，不能宣称有 OS 级硬内存隔离。实际覆盖引导驱动的 Windows 支持／工具链约束先实测；WSL campaign 单列 Linux 证据，不替代原生 Windows。只操作本任务测试进程，不关闭其他 Agent 或桌面程序。

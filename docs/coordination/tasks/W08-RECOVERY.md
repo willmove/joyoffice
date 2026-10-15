@@ -1,6 +1,6 @@
 # W08：恢复日志、检查点与崩溃重放内核
 
-- 预留负责人：另一台主机的 Claude Desktop Code；主机系统／架构待确认，尚未启动。
+- 预留负责人：Windows 11 x64 主机的 Claude Desktop Code；环境已确认，尚未启动。
 - 分支／目录：`codex/w08-recovery-journal`／`joyoffice-w08`。
 - 代码基线：C07 `a88217136a570a8f224d92b808bc0b8840ab26ca`；另记录新版协作包完整 SHA。
 - 对应：T104、EDIT-005／FORMAT-004／QUALITY-004；先读 AGENTS.md、第二轮 README／INTERFACES、TASKS T104、ARCHITECTURE §4、QUALITY 保存恢复要求。
@@ -34,3 +34,7 @@ git diff --check
 ```
 
 报告另列实际 CLI 命令、故障种子、子进程退出方式、文件系统／OS、有效前缀长度和恢复语义比较。杀进程不等于断电；独立内核不等于 T104 产品接入完成。只提交上述文件并推送自己的分支，按第二轮模板交接。三批分别给真实 commit／测试，不把工具缺失写通过，不因第一批通过就停止后续已授权工作。
+
+## Windows 11 x64 验证补充
+
+原生 MSVC／Rust 1.98.1 为本任务首个目标；报告记录 Windows build、实际文件系统、工具版本和路径，不能预先假设为 NTFS。Python 文档检查用 `py -3 scripts/check_docs.py`。测试覆盖文件仍被打开时的检查点轮转／重命名失败、权限拒绝、包含空格／中文的路径、子进程终止后的句柄释放与日志重新打开；没有可靠目录持久化证据时不能承诺掉电安全。子进程只终止本任务创建的测试进程，不操作桌面应用。macOS／Linux 未运行则列未验证，WSL 单列。
