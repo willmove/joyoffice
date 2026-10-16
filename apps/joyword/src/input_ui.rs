@@ -432,7 +432,7 @@ impl JoyWord {
                 };
                 match close_decision(answer, expected, editor.version()) {
                     CloseDecision::Cancel => {
-                        window.focus(&view.focus_handle);
+                        window.focus(&view.focus_handle, cx);
                         cx.notify();
                     }
                     CloseDecision::AskAgain => view.confirm_if_dirty(then, window, cx),
@@ -867,7 +867,7 @@ impl JoyWord {
                 editor.select_positions(Selection { anchor, head })
             }
         });
-        window.focus(&self.focus_handle);
+        window.focus(&self.focus_handle, cx);
         window.invalidate_character_coordinates();
     }
     fn refresh_ime_geometry(&mut self, window: &mut Window) {

@@ -6,8 +6,8 @@ mod input_ui;
 
 use document_canvas::{CanvasCancellation, CanvasFrame, CanvasRequestKey};
 use gpui::{
-    Action, App, Application, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window,
-    WindowBounds, WindowOptions, actions, div, img, prelude::*, px, rgb, size,
+    Action, App, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window, WindowBounds,
+    WindowOptions, actions, div, img, prelude::*, px, rgb, size,
 };
 use joyword_foundation::ScreenScale;
 use joyword_layout::{LoadedFont, SingleFontProfile};
@@ -105,10 +105,13 @@ fn menus(registry: &Registry, catalog: &Catalog) -> Vec<Menu> {
                             name: catalog.text(spec.label).into(),
                             action: action_for(id)?,
                             os_action: None,
+                            checked: false,
+                            disabled: false,
                         })
                     }
                 })
                 .collect(),
+            disabled: false,
         })
         .collect()
 }
@@ -594,7 +597,7 @@ impl Render for JoyWord {
 }
 
 fn main() {
-    Application::new().run(|cx: &mut App| {
+    gpui_platform::application().run(|cx: &mut App| {
         let registry = Registry::builtin();
         let locale = Locale::ZhCn;
         cx.on_action(|_: &Quit, cx| {
@@ -658,7 +661,7 @@ fn main() {
             Ok(window) => {
                 cx.set_global(MainWindow(window));
                 let _ = window.update(cx, |view, window, cx| {
-                    window.focus(&view.focus_handle);
+                    window.focus(&view.focus_handle, cx);
                     cx.activate(true);
                 });
             }

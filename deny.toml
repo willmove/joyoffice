@@ -7,17 +7,15 @@ all-features = true
 [advisories]
 # Every RustSec advisory, including unmaintained and unsound crates, fails the
 # check unless it is listed here with a reason and a revisit condition.
-# 2026-10-13: the entries below are "unmaintained" notices (no vulnerability)
-# reached only through gpui 0.2.2. Revisit all of them when ADR-010 selects the
-# long-term GPUI source; none may be added for JoyWord's own direct dependencies.
+# 2026-10-16: the entries below are "unmaintained" notices (no vulnerability)
+# reached only through the gpui-pre 0.3.9 dependency tree. The four entries for
+# gpui 0.2.2 (async-std, instant, proc-macro-error2, rustls-pemfile) no longer
+# match and were removed. Revisit these on every GPUI snapshot upgrade; none may
+# be added for JoyWord's own direct dependencies.
 ignore = [
-    { id = "RUSTSEC-2025-0052", reason = "async-std via gpui_http_client 0.2.2; ADR-010" },
-    { id = "RUSTSEC-2024-0384", reason = "instant via gpui_util 0.2.2 (futures-lite 1); ADR-010" },
-    { id = "RUSTSEC-2024-0436", reason = "paste via metal/image under gpui 0.2.2; ADR-010" },
-    { id = "RUSTSEC-2026-0173", reason = "proc-macro-error2 via gpui 0.2.2 stacksafe; ADR-010" },
-    { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile via gpui_http_client 0.2.2; ADR-010" },
-    { id = "RUSTSEC-2026-0206", reason = "rustybuzz via gpui 0.2.2 text stack; ADR-010" },
-    { id = "RUSTSEC-2026-0192", reason = "ttf-parser via gpui 0.2.2 text stack; ADR-010" },
+    { id = "RUSTSEC-2024-0436", reason = "paste via metal (gpui-pre-apple) and exr/pulp (image features enabled by gpui-pre); ADR-010" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz via usvg under gpui-pre; ADR-010" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser via usvg/fontdb (gpui-pre, cosmic-text in gpui-pre-wgpu); ADR-010" },
 ]
 
 [licenses]
@@ -33,7 +31,6 @@ allow = [
     "ISC",
     "MIT",
     "MPL-2.0",
-    "NCSA",
     "Unicode-3.0",
     "Zlib",
 ]

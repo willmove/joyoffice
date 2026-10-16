@@ -11,10 +11,11 @@ publish = false
 default = []
 # Development-only escape hatch for macOS machines without the Metal compiler.
 # Release validation must also build without this feature using full Xcode.
-dev-runtime-shaders = ["gpui/runtime_shaders"]
+dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
 
 [dependencies]
 gpui.workspace = true
+gpui_platform.workspace = true
 joyword-foundation.workspace = true
 joyword-engine.workspace = true
 joyword-model.workspace = true
