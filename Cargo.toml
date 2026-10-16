@@ -34,7 +34,12 @@ license = "MIT"
 repository = "https://github.com/willmove/joyoffice"
 
 [workspace.dependencies]
-gpui = "=0.2.2"
+# ADR-010: gpui-pre snapshot line (zed@93d745668805029476e6d7fbb19652116fed51de),
+# renamed so application code keeps the `gpui` / `gpui_platform` crate names.
+gpui = { package = "gpui-pre", version = "=0.3.9" }
+# The macOS text system is only compiled with `font-kit`; Linux windowing needs
+# at least one of `x11` / `wayland`. None of these are platform-crate defaults.
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["font-kit", "wayland", "x11"] }
 joyword-foundation = { path = "crates/joyword-foundation" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }
