@@ -34,7 +34,8 @@ pub enum SourceStage {
     SyncFile,
     /// Read the temporary file back and compare it to the plan.
     Verify,
-    /// Copy the source permission bits onto the temporary file.
+    /// Copy the source permission bits, owner and group (Unix) and creation
+    /// time (macOS) onto the temporary file, before it is synced.
     RestorePermissions,
     /// Hard-link the current target under a private backup name.
     Backup,
@@ -42,6 +43,10 @@ pub enum SourceStage {
     VerifyBackup,
     /// Rename the temporary file onto the target.
     Publish,
+    /// Read the published target back: it must be the renamed object with
+    /// the plan's exact bytes. Only this read yields the receipt and its
+    /// refreshed stamp.
+    Confirm,
     /// Remove the private backup after the new file is in place.
     Cleanup,
     /// Sync the parent directory after publication.
@@ -62,10 +67,11 @@ impl fmt::Display for SourceStage {
             Self::Write => "write",
             Self::SyncFile => "file sync",
             Self::Verify => "read-back verification",
-            Self::RestorePermissions => "permission restore",
+            Self::RestorePermissions => "metadata restore",
             Self::Backup => "backup hard link",
             Self::VerifyBackup => "backup verification",
             Self::Publish => "atomic replace",
+            Self::Confirm => "published read-back",
             Self::Cleanup => "backup cleanup",
             Self::SyncDirectory => "directory sync",
         })
@@ -154,6 +160,9 @@ pub enum ReplacementBlocker {
     /// The source has several hard links; replacing one path leaves the other
     /// links on the old object. A product decision is required first.
     LinkedSourceSemantics,
+    /// No write permission bit is set on the source. Replacing it through
+    /// the directory would bypass that read-only intent.
+    ReadOnlySource,
 }
 
 impl ReplacementBlocker {
@@ -169,11 +178,12 @@ impl ReplacementBlocker {
                 "metadata item cannot be observed with approved dependencies"
             }
             Self::UnpreservableMetadata(_) => {
-                "metadata item is observable but cannot be restored by an approved write path"
+                "metadata item is observable but cannot be reproduced on the replacement"
             }
             Self::LinkedSourceSemantics => {
                 "source is hard-linked; replacement semantics for other links are undecided"
             }
+            Self::ReadOnlySource => "source is read-only",
         }
     }
 }
@@ -247,6 +257,15 @@ pub enum SaveOriginalError {
         path: PathBuf,
         blockers: Vec<ReplacementBlocker>,
     },
+    /// The rename onto `path` happened, but reading it back did not show the
+    /// renamed object with the plan's exact bytes, so no receipt or stamp is
+    /// issued. The verified original's bytes stay under `backup`, which is
+    /// never deleted automatically; nothing is retried.
+    PublishedUnconfirmed {
+        path: PathBuf,
+        source: io::Error,
+        backup: PathBuf,
+    },
 }
 
 impl SaveOriginalError {
@@ -259,19 +278,29 @@ impl SaveOriginalError {
             | Self::UnstableRead { path }
             | Self::Conflict { path, .. }
             | Self::OriginMismatch { path }
-            | Self::ReplacementUnavailable { path, .. } => path,
+            | Self::ReplacementUnavailable { path, .. }
+            | Self::PublishedUnconfirmed { path, .. } => path,
             Self::LockConflict { lock_path, .. } => lock_path,
         }
     }
     pub fn stage(&self) -> Option<SourceStage> {
         match self {
             Self::Io { stage, .. } => Some(*stage),
+            Self::PublishedUnconfirmed { .. } => Some(SourceStage::Confirm),
             _ => None,
         }
     }
     pub fn io_error(&self) -> Option<&io::Error> {
         match self {
-            Self::Io { source, .. } => Some(source),
+            Self::Io { source, .. } | Self::PublishedUnconfirmed { source, .. } => Some(source),
+            _ => None,
+        }
+    }
+    /// Where the verified original's bytes were kept after an unconfirmed
+    /// publication.
+    pub fn retained_backup(&self) -> Option<&std::path::Path> {
+        match self {
+            Self::PublishedUnconfirmed { backup, .. } => Some(backup),
             _ => None,
         }
     }
@@ -380,6 +409,17 @@ impl fmt::Display for SaveOriginalError {
                 }
                 Ok(())
             }
+            Self::PublishedUnconfirmed {
+                path,
+                source,
+                backup,
+            } => write!(
+                f,
+                "replacement of {:?} was renamed into place but not confirmed: {}; original kept at {:?}",
+                path.display(),
+                source,
+                backup.display()
+            ),
         }
     }
 }
@@ -387,7 +427,7 @@ impl fmt::Display for SaveOriginalError {
 impl std::error::Error for SaveOriginalError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::Io { source, .. } => Some(source),
+            Self::Io { source, .. } | Self::PublishedUnconfirmed { source, .. } => Some(source),
             _ => None,
         }
     }

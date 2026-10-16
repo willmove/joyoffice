@@ -57,6 +57,15 @@ impl UnixIdentity {
     pub(crate) fn nlink(&self) -> u64 {
         self.nlink
     }
+    pub(crate) fn mode(&self) -> u32 {
+        self.mode
+    }
+    pub(crate) fn uid(&self) -> u32 {
+        self.uid
+    }
+    pub(crate) fn gid(&self) -> u32 {
+        self.gid
+    }
 }
 
 impl SourceIdentity {
@@ -88,6 +97,11 @@ impl SourceIdentity {
 
     pub(crate) fn len(&self) -> u64 {
         self.len
+    }
+
+    #[cfg(unix)]
+    pub(crate) fn unix(&self) -> &UnixIdentity {
+        &self.unix
     }
 
     pub(crate) fn nlink(&self) -> u64 {
@@ -145,9 +159,10 @@ impl SourceIdentity {
 }
 
 /// Private, unforgeable identity of one verified source read. Only
-/// `open_source` constructs stamps; callers can read the bound path and
-/// length but never synthesize a stamp from raw values.
-#[derive(Clone)]
+/// `open_source` and the read-back of a confirmed original replacement
+/// construct stamps; callers can read the bound path and length but never
+/// synthesize a stamp from raw values.
+#[derive(Clone, PartialEq, Eq)]
 pub struct SourceStamp {
     /// The path exactly as requested, for re-resolution on later checks.
     given_path: PathBuf,
@@ -201,6 +216,10 @@ impl SourceStamp {
     }
     pub(crate) fn bytes(&self) -> &[u8] {
         &self.bytes
+    }
+    #[cfg(unix)]
+    pub(crate) fn lock_directories(&self) -> &[PathBuf] {
+        &self.lock_directories
     }
 }
 
@@ -412,6 +431,60 @@ pub fn check_source_with_lock_token(
         ));
     }
     verify_current(source)
+}
+
+/// Bounded, stable read-back of a just-renamed replacement at the stamp's
+/// resolved path, producing the refreshed stamp for it.
+///
+/// The path must name `object` (the renamed temporary file, by device and
+/// inode), observations before, during and after the read must agree, and
+/// the bytes must equal `expected`. The new stamp keeps the request path,
+/// lock directories and read cap of `source`; its identity and bytes come
+/// only from this read of the file on disk, never from the plan. The
+/// returned metadata is the handle's post-read observation.
+#[cfg(unix)]
+pub(crate) fn confirm_published(
+    source: &SourceStamp,
+    object: &SourceIdentity,
+    expected: &[u8],
+) -> io::Result<(SourceStamp, fs::Metadata)> {
+    let mismatch = |what| Err(io::Error::new(io::ErrorKind::InvalidData, what));
+    let path = source.path();
+    let before = fs::symlink_metadata(path)?;
+    if !before.is_file() {
+        return mismatch("published path is not a regular file");
+    }
+    let identity = SourceIdentity::capture(&before);
+    if !identity.same_object(object) {
+        return mismatch("published path names another object");
+    }
+    let file = File::open(path)?;
+    if SourceIdentity::capture(&file.metadata()?) != identity {
+        return mismatch("published object changed while it was opened");
+    }
+    let mut bytes = Vec::with_capacity(identity.len() as usize);
+    (&file)
+        .take(source.budget_limit().saturating_add(1))
+        .read_to_end(&mut bytes)?;
+    let after = file.metadata()?;
+    if SourceIdentity::capture(&after) != identity
+        || SourceIdentity::capture(&fs::symlink_metadata(path)?) != identity
+        || bytes.len() as u64 != identity.len()
+    {
+        return mismatch("published object changed during read-back");
+    }
+    if bytes != expected {
+        return mismatch("published bytes differ from the plan");
+    }
+    let stamp = SourceStamp {
+        given_path: source.given_path.clone(),
+        canonical_path: path.to_path_buf(),
+        lock_directories: source.lock_directories.clone(),
+        identity,
+        budget_limit: source.budget_limit,
+        bytes: bytes.into(),
+    };
+    Ok((stamp, after))
 }
 
 /// Full state verification against the current file system. Used by
