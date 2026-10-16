@@ -1,0 +1,14 @@
+{
+  "smoke": {
+    "path": "experiments/docx-robustness/target/main-integration-20261016-smoke/results.jsonl",
+    "sha256": "5fc9add6c1f804797bffb5a210898f6e863152308a9952d4ea437da2e3e41ddd",
+    "bytes": 131208,
+    "records": 81
+  },
+  "campaign": {
+    "path": "experiments/docx-robustness/target/main-integration-20261016-campaign/results.jsonl",
+    "sha256": "f2f24432c7c107574ed68737eb911d49eaef7c1a7d05fece1221b7b66a0bea44",
+    "bytes": 1021908,
+    "records": 600
+  }
+}
