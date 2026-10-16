@@ -22,7 +22,7 @@
 
 | 依赖 | 定位 | 许可／来源依据 | 注意事项 |
 | --- | --- | --- | --- |
-| GPUI | UI 框架 | [上游许可](https://zed.dev/software-overview)，Apache-2.0 | 编辑器主体许可不同；仅依赖框架；记录传递依赖；来源按 ADR-010，第三方发布需审查发布者与构建来源 |
+| GPUI：crates.io gpui-pre =0.3.9（19 个 gpui-pre* 包） | UI 框架 | [上游许可](https://zed.dev/software-overview)，Apache-2.0；Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照，crates.io 所有者为个人（huacnlee），发布包无 .cargo_vcs_info.json | 编辑器主体许可不同；仅依赖框架；记录传递依赖；来源按 ADR-010，CI 逐文件比对 Zed 提交，见下文“gpui-pre 来源逐文件校验” |
 | sha2 0.10.9 | joyword-model 资源内容散列（直接依赖） | RustCrypto，MIT OR Apache-2.0（crate 元数据） | 与 GPUI 间接锁定的版本相同；只用于身份散列，不用于密码学保护 |
 | Ropey 1.6.1 | 仅 T100 文本存储基准的 dev 依赖 | [上游](https://github.com/cessen/ropey)，MIT | 不进入产品构建；基准结论见 IMPLEMENTATION |
 | HarfRust 0.8.4 | joyword-layout 字体整形（直接依赖） | [上游](https://github.com/harfbuzz/harfrust)，MIT | 选此版本以与 krilla 共用 read-fonts 0.39；特性逐项显式开关；不根据库名称声称兼容 Word |
@@ -38,7 +38,7 @@
 | tempfile 3.27.0 | shell 安全创建同目录私有临时文件（直接依赖） | [上游 API](https://docs.rs/tempfile/3.27.0/tempfile/struct.NamedTempFile.html)，MIT OR Apache-2.0（crate 元数据） | 复用原锁文件版本；不使用可覆盖 persist，发布采用 std::fs::hard_link；无新外部包或升级 |
 | krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出与定位字形（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）与 raster-images；只消费页面场景中的字形与位置 |
 
-MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib、CC0-1.0 和 NCSA 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 0.2.2 间接引入的“停止维护”公告逐条登记理由，待 ADR-010 选定来源时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
+MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib 和 CC0-1.0 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 间接引入的“停止维护”公告逐条登记理由，迁到 gpui-pre 0.3.9 后由 7 条减为 3 条（paste、rustybuzz、ttf-parser），每次升级 GPUI 快照时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
 
 ## 4. 字体、图标、模板与样例
 
@@ -95,3 +95,10 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 组合态临时快照、原事务范围折叠、单事务确认、显示修订门、关闭提示版本检查与原创独立 String 随机模型为项目自行实现。输入实现无新外部包；后续 CI 检出新公告后单独升级间接 Rustls，见下述安全修正。详细自动测试及未覆盖项见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。
 
 - C07 依赖审查补充（2026-10-15）：[Rustls 0.23.46 上游发布说明](https://github.com/rustls/rustls/releases/tag/v%2F0.23.46) 列出四项安全修正，对应 RustSec RUSTSEC-2026-0346、0347、0348、0349。现有 GPUI→gpui_http_client→zed-reqwest 的间接 0.23.45 被新数据库拒绝；仅锁定为修复版 0.23.46，不更改 feature、GPUI 来源或审查规则。未把所有功能条件均描述为产品已触发的漏洞。
+
+### gpui-pre 来源逐文件校验（ADR-010 补偿措施）
+
+- 依据 ADR-010 对第三方发布的供应链审查要求。gpui-pre 系列由个人发布，发布包没有 .cargo_vcs_info.json，只在 `[package.metadata.gpui-pre]` 中声明 zed-crate 与 zed-rev。
+- 方法：scripts/verify_gpui_pre_provenance.py 先用 Cargo.lock 校验和验证 .crate，再要求声明的提交在 zed-industries/zed 的 main 历史中，在 Zed 工作区成员中定位 crate 目录，按 git blob ID 逐文件比较。只允许 cargo 打包生成的文件差异、符号链接解析和嵌套包排除。CI 的 provenance 作业用 `--expected-zed-rev` 固定提交，并带审查偏差文件运行。
+- 结果（2026-10-16）：19 个包中 16 个与 Zed 93d7456 逐文件一致。gpui-pre、gpui-pre-apple、gpui-pre-macros 共有 9 处发布适配：`actions!` 宏改用 `$crate::Action`；构建脚本改读 vendor/gpui，并附带 5 个与 Zed 逐字节相同的副本；新增 gpui-kit 门面改写器及其 proc-macro-crate 依赖。这些改动经项目负责人接受，按内容钉死在 scripts/gpui_pre_reviewed_deviations.json。JoyWord 不依赖 gpui-kit，门面改写器实际为空操作。
+- 边界：Cargo.toml 的内容（依赖、features）不在逐文件比对范围内，由 Cargo.lock 校验和与 cargo-deny 覆盖；本校验不评价 Zed 代码本身。升级快照时须先不带偏差文件运行，并重新审查。详见[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)。

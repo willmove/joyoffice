@@ -172,3 +172,20 @@ jobs:
       # Licenses, RustSec advisories, banned crates and registry sources (deny.toml).
       - name: Dependency licenses and advisories
         run: cargo deny --locked --all-features check
+
+  # ADR-010 supply-chain check for the individually published gpui-pre crates:
+  # every file must equal the recorded Zed main-branch commit, except the
+  # reviewed deviations pinned by content. Needs github.com and static.crates.io.
+  provenance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: gpui-pre source provenance
+        run: >-
+          python scripts/verify_gpui_pre_provenance.py
+          --expected-zed-rev 93d745668805029476e6d7fbb19652116fed51de
+          --reviewed-deviations scripts/gpui_pre_reviewed_deviations.json

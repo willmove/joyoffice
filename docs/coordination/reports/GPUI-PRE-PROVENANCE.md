@@ -6,9 +6,9 @@
 - 代码基线：`claude/gpui-pre-migration` @ `937a1cbb1726b15163745ed87b0dc5aee340777b`（main `0dcc0f0` 加迁移提交）。
 - 分支：`claude/gpui-pre-provenance`（独立 worktree `.claude/worktrees/nostalgic-wright-945d4b`）。
 - 状态：完成本轮切片。
-- interface_ready：true。命令行、退出码与偏差文件格式见下文；CI 接入由协调者决定。
-- implementation_verified：true（本机）。43 项离线单测通过（新增 24 项）；真实联网比对两种模式均符合预期（严格模式 exit 1，带审查偏差文件 exit 0）。Python ≥ 3.11 的 `tomllib` 路径、Linux 与 Windows 未在本机运行，由 CI 矩阵的单测覆盖。
-- acceptance_complete：false。3 个包含发布者改动，是否接受需协调者按 ADR-010 裁决；CI 未接入。
+- interface_ready：true。命令行、退出码与偏差文件格式见下文；CI 已加入 `provenance` 作业。
+- implementation_verified：true（本机）。43 项离线单测在 Python 3.9.6（内置 TOML 解析器）和 3.15.0（`tomllib`）下均通过（新增 24 项）；真实联网比对两种模式均符合预期（严格模式 exit 1，带审查偏差文件 exit 0）。Linux、Windows 由 CI 矩阵的单测覆盖。
+- acceptance_complete：false。9 处偏差已由项目负责人于 2026-10-16 接受，CI 作业以及 ADR-010、PROVENANCE 的记录已加入本分支；本分支尚未合入 main。
 
 ## 结论
 
@@ -16,6 +16,17 @@
 - **16 个包与 Zed 对应 crate 目录逐文件一致。**
 - **3 个包不一致，共 9 处**：gpui-pre（改 1）、gpui-pre-apple（改 1、增 5，增加的 5 个文件与 Zed `crates/gpui/src/` 同名文件逐字节相同）、gpui-pre-macros（改 1、增 1）。改动文件首行都有 “Modified for gpui-pre” 注释，属于重新发布的路径适配和 gpui-kit 门面注入；按 JoyWord 当前用法没有行为差异（逐处分析见下）。脚本默认对其判失败。
 - 共 313 个文件一致；另有每包 3 个打包生成文件（`Cargo.toml`、`Cargo.toml.orig`、`Cargo.lock`）不比对，理由见“允许的差异”。
+
+## 裁决与接入（2026-10-16）
+
+用户（项目负责人）在本会话中作出以下裁决，本分支第二个提交据此落实：
+
+1. 接受 9 处偏差（按 ADR-010）。`scripts/gpui_pre_reviewed_deviations.json` 的说明改为“已接受”，各条目内容不变。
+2. 按本报告的配置加入 CI。`.github/workflows/ci.yml` 新增 `provenance` 作业：ubuntu-24.04，Python 3.12（与其他作业一致），actions 沿用已按 SHA 固定的版本。
+3. ADR-010 与 PROVENANCE 如何记录由执行者决定。本分支已更新：
+   - ARCHITECTURE §8 ADR-010：补记选用 gpui-pre =0.3.9（Zed 93d7456）及平台特性、wgpu GL 后端仍待 T005 验证，以及供应链补偿措施和本次结果。
+   - PROVENANCE §3 GPUI 行：补记版本、Zed 提交、crates.io 所有者（huacnlee，已经 crates.io API 核实）和校验方式。同节许可段删去锁文件中已不存在的 NCSA，停止维护公告改为 gpui-pre 下的 3 条，与 deny.toml 一致。§5 新增“gpui-pre 来源逐文件校验”记录。
+   - 迁移报告提案 2–4 涉及的其余文档（README 第 25 行、ARCHITECTURE §6.1／§7 关于 0.2.2 的描述、IMPLEMENTATION 依赖表）不在本次指令范围内，未修改。
 
 ## 实际变更与支持范围
 
@@ -26,7 +37,7 @@
 | `scripts/gpui_pre_reviewed_deviations.json` | 新增。执行者对 9 处差异的审查提案，逐条按内容钉死；只有显式传入 `--reviewed-deviations` 时生效 |
 | `docs/coordination/reports/GPUI-PRE-PROVENANCE.md` | 本报告 |
 
-未修改 `.github/workflows`、根 Cargo 文件、ADR 及其他公共文档。
+首次交付未修改 `.github/workflows`、根 Cargo 文件、ADR 及其他公共文档；裁决后的改动见上节。两次提交都没有改动根 Cargo 文件。
 
 ### 校验方法
 
@@ -98,7 +109,7 @@
 8. gpui-pre-macros `src/gpui_macros.rs`（改，只增不删）：增加 `mod gpui_pre_facade_paths;` 和注释；19 个过程宏入口都改为 `gpui_pre_facade_paths::rewrite(__gpui_pre_<名称>(…))`，原函数体移入同名私有函数，原逻辑未改。
 9. gpui-pre-macros `src/gpui_pre_facade_paths.rs`（增，3481 字节）：头注释说明它由 gpui-kit 的 `script/bump-gpui.ts` 注入。它用 `proc_macro_crate::crate_name("gpui-kit")` 判断正在编译的 crate 是否依赖 gpui-kit：依赖时，把宏输出中的 `gpui::`、`gpui_platform::` 路径头以及含 `::gpui::` 的字面量改写到 gpui-kit 门面；不依赖时原样返回（只以相同定界符和 span 重建分组）。JoyWord 不依赖 gpui-kit，因此这是空操作。副作用只有编译期读取使用方清单，没有网络访问或进程调用。对应清单新增依赖 `proc-macro-crate = "3"`，已在 Cargo.lock 中并受 cargo-deny 检查。
 
-审查意见：9 处都是重新发布所需的路径适配或门面注入，未发现对运行时 GPUI 逻辑的修改。建议协调者接受，并用 `scripts/gpui_pre_reviewed_deviations.json` 钉死：每条锁定内容 sha256；“改”类同时锁定 Zed 基准 blob；“复制”类直接要求等于 Zed 指定文件。任何字节变化或新增差异仍会失败。如果不接受，可选做法是请发布者撤除改动，或改为直接依赖 Zed git 源；后者会引入 git 来源，需同时调整 deny.toml 的 sources 策略，并拉取较大的 Zed 仓库。
+审查意见：9 处都是重新发布所需的路径适配或门面注入，未发现对运行时 GPUI 逻辑的修改。建议接受（项目负责人已于 2026-10-16 接受），并用 `scripts/gpui_pre_reviewed_deviations.json` 钉死：每条锁定内容 sha256；“改”类同时锁定 Zed 基准 blob；“复制”类直接要求等于 Zed 指定文件。任何字节变化或新增差异仍会失败。如果不接受，可选做法是请发布者撤除改动，或改为直接依赖 Zed git 源；后者会引入 git 来源，需同时调整 deny.toml 的 sources 策略，并拉取较大的 Zed 仓库。
 
 ### 带偏差文件的 CI 模拟
 
@@ -120,16 +131,19 @@
 | `python3 scripts/verify_gpui_pre_provenance.py --cargo-home <空目录> --reviewed-deviations scripts/gpui_pre_reviewed_deviations.json --expected-zed-rev 93d745668805029476e6d7fbb19652116fed51de` | passed（exit 0）：16 identical / 3 accepted / 0 failed；248.4 s（packages 212.4 s，Zed 35.8 s） | 冷缓存，下载 19 个 `.crate`，共 6.2 MiB；本机国际链路约 30 KB/s，用时主要花在下载 |
 | `python3 -m unittest discover -s scripts/tests` | passed，43 项（新增 24 项） | Python 3.9.6，走内置 TOML 解析器 |
 | `python3 scripts/check_docs.py` | passed | — |
-| `tomllib` 路径（Python ≥ 3.11） | skipped | 本机没有该版本；CI 使用 3.12，单测会把 TOML 样例的解析结果与 `tomllib` 逐项比较 |
+| `/opt/homebrew/bin/python3 -W error::DeprecationWarning -m unittest discover -s scripts/tests` | passed，43 项 | Python 3.15.0，走 `tomllib`；TOML 样例与 `tomllib` 结果逐项一致；弃用告警视为错误 |
+| `/opt/homebrew/bin/python3 scripts/verify_gpui_pre_provenance.py --expected-zed-rev 93d745668805029476e6d7fbb19652116fed51de --reviewed-deviations scripts/gpui_pre_reviewed_deviations.json`（与 CI 作业参数相同） | passed（exit 0）：16 identical / 3 accepted / 0 failed；23.2 s | Python 3.15.0，暖缓存 |
+| `/opt/homebrew/bin/python3 scripts/verify_gpui_pre_provenance.py` | failed（符合预期，exit 1）：16 identical / 3 failed；11.3 s | Python 3.15.0，严格模式 |
+| `python3 scripts/check_docs.py`（改动 CI 与文档之后） | passed：9 个 workflow action 均按 SHA 固定 | 链接检查覆盖 ARCHITECTURE 与 PROVENANCE 的新链接 |
 | Linux、Windows 上运行单测（含 git 端到端用例） | not run | 本机无对应环境；CI build 矩阵会运行；端到端用例不依赖文件系统符号链接 |
 
 离线测试覆盖：一致；内容不同；`LICENSE` 与符号链接目标不同；多余文件；缺失文件；嵌套包文件混入发布包；缺 metadata；缩写提交号；构建目标指向不比对的文件；审查偏差的接受、拒绝、未使用和字段错误；`.crate` 越界路径与符号链接条目；锁文件筛选；TOML 子集解析与拒绝。端到端（本地 `file://` 仓库）：部分克隆全流程通过；内容被改则失败；fork 提交（不在 `main` 中）失败；校验和不符失败；提交不存在时 exit 2。
 
 ## 接口或依赖提案
 
-供协调者裁决：
+第 1–3 条已于 2026-10-16 按用户裁决落实（见“裁决与接入”），原提案文本保留备查：
 
-1. **CI 新增作业**（建议放入 `ci.yml`，与 `dependencies` 作业并列）：
+1. **CI 新增作业**（已放入 `ci.yml`，与 `dependencies` 作业并列）：
 
    ```yaml
    provenance:
@@ -160,5 +174,5 @@
 
 ## 阻塞与下一步
 
-- 无技术阻塞。待协调者处理：裁决 9 处偏差；按上节接入 CI；更新 ADR-010 与 PROVENANCE。
+- 无技术阻塞。待办：本分支推送后 CI 中 `provenance` 作业的实际运行结果；是否合入 main 由用户／协调者决定；迁移报告提案 2–4 中其余文档的更新。
 - 可选后续：把清单依赖键比对（上文一次性结果）纳入脚本；向发布者反馈，请其在发布包中保留 `.cargo_vcs_info.json`，或公开改写脚本（gpui-kit `script/bump-gpui.ts`）。

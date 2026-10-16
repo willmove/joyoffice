@@ -1,5 +1,5 @@
 {
-  "note": "Executor review of the gpui-pre 0.3.9 differences from zed@93d745668805029476e6d7fbb19652116fed51de (docs/coordination/reports/GPUI-PRE-PROVENANCE.md). Proposed, not accepted: pass --reviewed-deviations only after the coordinator accepts them under ADR-010. Each entry is pinned to exact content; any other change still fails.",
+  "note": "gpui-pre 0.3.9 differences from zed@93d745668805029476e6d7fbb19652116fed51de, reviewed in docs/coordination/reports/GPUI-PRE-PROVENANCE.md and accepted by the project owner on 2026-10-16 under ADR-010; CI passes this file with --reviewed-deviations. Each entry is pinned to exact content, so any other change still fails. A gpui-pre upgrade needs a new review: run without this file, then pin the new differences.",
   "deviations": [
     {
       "package": "gpui-pre",

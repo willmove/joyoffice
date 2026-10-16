@@ -140,6 +140,6 @@ GPUI 不提供打印接口，0.2.2 的剪贴板只有文本和图片，两者均
 | ADR-007 | AI 权限与事务层集成，默认关闭 | 所有入口服从总开关；网络 Provider 与核心解耦 |
 | ADR-008 | 单用户内核先成熟，协作另立规格 | 稳定标识与操作边界不预设 CRDT；不背负未定义云协议 |
 | ADR-009 | 工具链和依赖固定，升级以语料回归为门槛 | GPUI 与文本生态演进快；不使用浮动 git main 或通配版本 |
-| ADR-010 | GPUI 不以 crates.io 0.2.2 为长期来源；T001 依据 T003、T005 的实测，在固定 Zed commit、gpui-pre 与自维护补丁分支中选定并精确固定；所选来源必须支持 GL 或 CPU 渲染 | 0.2.2 为最后官方版本（2025-10），缺外部 GlyphId、AccessKit 与 Linux 非 Vulkan 渲染；第三方发布需供应链审查；打印与富剪贴板无论哪种来源都需自建 |
+| ADR-010 | GPUI 不以 crates.io 0.2.2 为长期来源；T001 依据 T003、T005 的实测，在固定 Zed commit、gpui-pre 与自维护补丁分支中选定并精确固定；所选来源必须支持 GL 或 CPU 渲染。2026-10-16 选用 crates.io gpui-pre =0.3.9（Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照），平台 crate gpui-pre-platform =0.3.9 开 font-kit、wayland、x11（[迁移报告](../coordination/reports/GPUI-PRE-MIGRATION.md)）；其 wgpu GL 后端仍待 T005 信创真机验证 | 0.2.2 为最后官方版本（2025-10），缺外部 GlyphId、AccessKit 与 Linux 非 Vulkan 渲染；第三方发布需供应链审查；打印与富剪贴板无论哪种来源都需自建。gpui-pre 由个人发布且发布包无 .cargo_vcs_info.json，补偿措施为 CI provenance 作业：19 个包按 Cargo.lock 校验和取包，要求声明提交在 Zed main 历史中，并逐文件对照 Zed 源码；16 个一致，3 个包共 9 处发布适配经 2026-10-16 审查接受，按内容钉死于 scripts/gpui_pre_reviewed_deviations.json。升级快照须同步更新 CI 的提交号并重新审查（[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)） |
 | ADR-011 | 标准层面跨应用共享的格式层（OPC、DrawingML、OMML、文档属性、CFB／加密）首次引入即格式中立 | 避免 Word 假设渗入共享层，JoySheet／JoyDeck 可复用；需更早约束其接口 |
 
