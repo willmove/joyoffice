@@ -22,7 +22,7 @@ joyword-docx 已有声明子集的导入与原始包保留。无界面 DOCX 会�
 
 ## 运行技术预览
 
-工具链固定 Rust 1.98.1，GPUI 固定 0.2.2；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux x86_64 与原生 ARM64）已实际运行并通过，另在 QEMU 下运行 ARM64／LoongArch64 无界面测试；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
+工具链固定 Rust 1.98.1，GPUI 固定 crates.io gpui-pre 0.3.9（Zed 主干 93d7456 的快照，CI 逐文件核对其来源，见 ADR-010）；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux x86_64 与原生 ARM64）已实际运行并通过，另在 QEMU 下运行 ARM64／LoongArch64 无界面测试；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
 
 Mac 开发环境缺少 Metal 编译工具时，可使用 GPUI 的运行时着色器选项：
 

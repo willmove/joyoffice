@@ -1,0 +1,80 @@
+{
+  "note": "gpui-pre 0.3.9 differences from zed@93d745668805029476e6d7fbb19652116fed51de, reviewed in docs/coordination/reports/GPUI-PRE-PROVENANCE.md and accepted by the project owner on 2026-10-16 under ADR-010; CI passes this file with --reviewed-deviations. Each entry is pinned to exact content, so any other change still fails. A gpui-pre upgrade needs a new review: run without this file, then pin the new differences.",
+  "deviations": [
+    {
+      "package": "gpui-pre",
+      "version": "0.3.9",
+      "path": "src/action.rs",
+      "kind": "modified",
+      "sha256": "90ea76a0f518791e51e0e0d3fcaf6415c5fcd0abeb4fd618881c82a3a30f5cc9",
+      "zed_blob": "07c47fc2e4ade97b1398eae3f2eaae003fab782c",
+      "reason": "actions! derives $crate::Action instead of gpui::Action so it works under the renamed package; plus one provenance comment line"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.9",
+      "path": "build.rs",
+      "kind": "modified",
+      "sha256": "e26de91ac70c1c7516a931d84445cceeb70352d873d17bfd09d9b2370ff032f3",
+      "zed_blob": "530959482d175879cfdbc9d97f780ff342a0a013",
+      "reason": "find_gpui_crate_dir reads vendor/gpui instead of the sibling ../gpui of a Zed checkout; plus one provenance comment line"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.9",
+      "path": "vendor/gpui/src/color.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/color.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.9",
+      "path": "vendor/gpui/src/geometry.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/geometry.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.9",
+      "path": "vendor/gpui/src/platform.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/platform.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.9",
+      "path": "vendor/gpui/src/scene.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/scene.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.9",
+      "path": "vendor/gpui/src/window.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/window.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-macros",
+      "version": "0.3.9",
+      "path": "src/gpui_macros.rs",
+      "kind": "modified",
+      "sha256": "dadc3eefef76d1636ec2a8a5ec5a4c069c5b07be03ed45b031007a154f93095e",
+      "zed_blob": "501a9911d2a6fcaa874ece8ed26accaa9c636527",
+      "reason": "every proc-macro entry point passes its output through gpui_pre_facade_paths::rewrite; only lines added (mod declaration, comment, wrappers), none removed"
+    },
+    {
+      "package": "gpui-pre-macros",
+      "version": "0.3.9",
+      "path": "src/gpui_pre_facade_paths.rs",
+      "kind": "added",
+      "sha256": "0abb9b8181e3acd229860ccb79b1a966211538538847a7d464f49f87e03bc821",
+      "reason": "gpui-kit facade rewriter: maps gpui:: and gpui_platform:: paths to the gpui-kit crate when the consumer depends on gpui-kit (found with the added proc-macro-crate dependency); returns the tokens unchanged otherwise, as for JoyWord"
+    }
+  ]
+}
