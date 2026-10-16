@@ -458,6 +458,14 @@ pub(crate) fn confirm_published(
     if !identity.same_object(object) {
         return mismatch("published path names another object");
     }
+    // Another writer can grow this same inode before confirmation. Apply
+    // the read cap before trusting its length as an allocation request.
+    if identity.len() > source.budget_limit() || expected.len() as u64 > source.budget_limit() {
+        return Err(io::Error::new(
+            io::ErrorKind::FileTooLarge,
+            "published file exceeds the source read budget",
+        ));
+    }
     let file = File::open(path)?;
     if SourceIdentity::capture(&file.metadata()?) != identity {
         return mismatch("published object changed while it was opened");
@@ -466,6 +474,12 @@ pub(crate) fn confirm_published(
     (&file)
         .take(source.budget_limit().saturating_add(1))
         .read_to_end(&mut bytes)?;
+    if bytes.len() as u64 > source.budget_limit() {
+        return Err(io::Error::new(
+            io::ErrorKind::FileTooLarge,
+            "published file grew beyond the source read budget",
+        ));
+    }
     let after = file.metadata()?;
     if SourceIdentity::capture(&after) != identity
         || SourceIdentity::capture(&fs::symlink_metadata(path)?) != identity
@@ -623,6 +637,27 @@ mod tests {
             SaveOriginalError::SourceTooLarge { limit, .. } => assert_eq!(limit, 8),
             other => panic!("unexpected error: {other:?}"),
         }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn published_read_back_checks_the_budget_before_allocating_for_a_grown_inode() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_source(dir.path(), "a.docx", b"1234");
+        let budget = Budget {
+            max_total_bytes: 8,
+            ..Budget::default()
+        };
+        let stamp = open_source(&path, &budget).unwrap().into_stamp();
+        File::options()
+            .write(true)
+            .open(&path)
+            .unwrap()
+            .set_len(9)
+            .unwrap();
+        let error = confirm_published(&stamp, stamp.identity(), b"1234").unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::FileTooLarge);
+        assert_eq!(fs::metadata(path).unwrap().len(), 9);
     }
 
     #[test]
