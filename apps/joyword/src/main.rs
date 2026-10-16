@@ -4,7 +4,7 @@
 mod document_canvas;
 mod input_ui;
 
-use document_canvas::{CanvasCancellation, CanvasFrame, CanvasRequestKey};
+use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey};
 use gpui::{
     Action, App, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window, WindowBounds,
     WindowOptions, actions, div, img, prelude::*, px, rgb, size,
@@ -12,7 +12,7 @@ use gpui::{
 use joyword_foundation::ScreenScale;
 use joyword_layout::{LoadedFont, SingleFontProfile};
 use joyword_render::Projection;
-use joyword_render::requests::RasterRequestGate;
+use joyword_render::requests::RasterTicket;
 use joyword_shell::command::*;
 use joyword_shell::input::{InputLimits, TextInput};
 use joyword_shell::l10n::{Catalog, Locale};
@@ -187,11 +187,10 @@ struct JoyWord {
     copy_note: Option<String>,
     font: Option<Arc<LoadedFont>>,
     profile: Option<SingleFontProfile>,
-    frame: Option<CanvasFrame>,
-    gate: RasterRequestGate<CanvasRequestKey>,
-    canvas_cancel: CanvasCancellation,
+    canvas: CanvasPipeline,
     load_started: bool,
     load_task: Option<gpui::Task<()>>,
+    layout_task: Option<gpui::Task<()>>,
     raster_task: Option<gpui::Task<()>>,
     device_scale: f32,
     canvas_error: Option<String>,
@@ -250,7 +249,7 @@ impl CommandHost for ViewHost<'_, '_> {
 
 impl Drop for JoyWord {
     fn drop(&mut self) {
-        self.canvas_cancel.cancel();
+        self.canvas.cancel();
     }
 }
 
@@ -262,23 +261,24 @@ impl JoyWord {
         )
         .expect("validated view scales")
     }
-    fn current_key(&self) -> Option<CanvasRequestKey> {
-        Some(CanvasRequestKey {
-            revision: self.editor.as_ref()?.view().revision(),
-            font: self.font.as_ref()?.key(),
-            profile: self.profile?,
-            projection: self.projection(),
-        })
+    fn layout_key(&self) -> Option<LayoutRequestKey> {
+        Some(self.canvas.key(
+            self.editor.as_ref()?.view(),
+            self.font.as_ref()?,
+            self.profile?,
+        ))
     }
-    fn ready_frame(&self) -> Option<&CanvasFrame> {
-        let key = self.current_key()?;
-        self.frame.as_ref().filter(|f| f.key == key)
+    /// The layout of the current revision: geometry for hit testing, IME,
+    /// reveal and overlays, whether or not its pixels have landed.
+    fn ready_layout(&self) -> Option<&LayoutFrame> {
+        if self.canvas_error.is_some() {
+            return None;
+        }
+        self.canvas.ready_layout(&self.layout_key()?)
     }
-    fn drop_frame(&mut self, cx: &mut Context<Self>) {
-        if let Some(frame) = self.frame.take() {
-            for image in frame.images {
-                cx.drop_image(image, None);
-            }
+    fn clear_canvas(&mut self, cx: &mut Context<Self>) {
+        for image in self.canvas.clear() {
+            cx.drop_image(image, None);
         }
     }
     fn request_canvas(&mut self, cx: &mut Context<Self>) {
@@ -320,50 +320,82 @@ impl JoyWord {
                 });
             }));
         }
-        let Some(key) = self.current_key() else {
+        let (Some(key), Some(font), Some(editor)) =
+            (self.layout_key(), self.font.clone(), self.editor.as_ref())
+        else {
             return;
         };
-        if self.ready_frame().is_some() {
-            return;
-        }
-        let Some(ticket) = self.gate.request(key.clone()) else {
-            return;
-        };
-        self.canvas_cancel.cancel();
-        self.canvas_cancel = CanvasCancellation::default();
-        let cancellation = self.canvas_cancel.clone();
-        let font = self.font.clone().expect("current key requires font");
-        let input = self
-            .editor
-            .as_ref()
-            .expect("current key requires editor")
-            .view()
-            .clone();
-        self.canvas_error = None;
-        let job = cx.background_executor().spawn(async move {
-            document_canvas::render_view(&input, &font, key.profile, key.projection, &cancellation)
-        });
-        self.raster_task = Some(cx.spawn(async move |view, cx| {
-            let result = job.await;
-            let _ = view.update(cx, |view, cx| {
-                let Some(current) = view.current_key() else {
-                    return;
-                };
-                if !view.gate.accepts(&ticket, &current) {
-                    return;
-                }
-                view.drop_frame(cx);
-                match result {
-                    Ok(frame) if frame.key == current => {
-                        view.frame = Some(frame);
-                        view.reveal_caret();
-                    }
-                    Ok(_) => return,
-                    Err(error) => view.canvas_error = Some(error),
-                }
-                cx.notify();
+        if let Some(job) = self.canvas.request_layout(key.clone()) {
+            self.canvas_error = None;
+            let input = editor.view().clone();
+            let font = font.clone();
+            let profile = key.profile;
+            let cancellation = job.cancellation;
+            let work = cx.background_executor().spawn(async move {
+                document_canvas::layout_view(&input, &font, profile, &cancellation)
             });
-        }));
+            let ticket = job.ticket;
+            self.layout_task = Some(cx.spawn(async move |view, cx| {
+                let result = work.await;
+                let _ = view.update(cx, |view, cx| view.layout_landed(&ticket, result, cx));
+            }));
+        }
+        // Pixels follow only a current layout; zoom alone needs no new layout.
+        if let Some(job) = self.canvas.request_raster(&key, self.projection()) {
+            self.canvas_error = None;
+            let projection = job.ticket.key().projection;
+            let (layout, cancellation) = (job.layout, job.cancellation);
+            let work = cx.background_executor().spawn(async move {
+                document_canvas::raster_layout(&layout, &font, projection, &cancellation)
+            });
+            let ticket = job.ticket;
+            self.raster_task = Some(cx.spawn(async move |view, cx| {
+                let result = work.await;
+                let _ = view.update(cx, |view, cx| view.raster_landed(&ticket, result, cx));
+            }));
+        }
+    }
+    fn layout_landed(
+        &mut self,
+        ticket: &RasterTicket<LayoutRequestKey>,
+        result: Result<joyword_layout::LayoutSnapshot, String>,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(current) = self.layout_key() else {
+            return;
+        };
+        match self.canvas.install_layout(ticket, &current, result) {
+            Landed::Stale => return,
+            Landed::Installed(_) => {
+                // Exact geometry now: the origin AppKit asks for next and the
+                // caret no longer wait for pixels.
+                self.capture_ime_anchor();
+                self.reveal_caret();
+                self.request_canvas(cx);
+            }
+            Landed::Failed(error) => self.canvas_error = Some(error),
+        }
+        cx.notify();
+    }
+    fn raster_landed(
+        &mut self,
+        ticket: &RasterTicket<document_canvas::RasterKey>,
+        result: Result<Vec<Arc<gpui::RenderImage>>, String>,
+        cx: &mut Context<Self>,
+    ) {
+        match self
+            .canvas
+            .install_raster(ticket, self.projection(), result)
+        {
+            Landed::Stale => return,
+            Landed::Installed(replaced) => {
+                for image in replaced {
+                    cx.drop_image(image, None);
+                }
+            }
+            Landed::Failed(error) => self.canvas_error = Some(error),
+        }
+        cx.notify();
     }
     fn canvas(&self) -> gpui::AnyElement {
         if let Some(error) = &self.canvas_error {
@@ -373,31 +405,29 @@ impl JoyWord {
                 .child(Catalog::shipped(self.locale).format("canvas.error", &[("reason", error)]))
                 .into_any_element();
         }
-        // Keep the last painted pages while a new request is pending, so the
-        // scroll container does not collapse. Hit testing still requires ready_frame.
-        if let Some(frame) = &self.frame {
+        // Page boxes come from the installed layout, current or not, so the
+        // scroll extent matches the geometry. Pixels are the last raster and may
+        // lag that layout until its own raster lands; they never map positions.
+        if let Some(frame) = self.canvas.layout() {
             let scale =
                 ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
+            let images = self
+                .canvas
+                .raster()
+                .map_or(&[][..], |raster| raster.images.as_slice());
             return div()
                 .flex()
                 .flex_col()
                 .gap(px(input_ui::DOC_GAP))
-                .children(
-                    frame
-                        .layout
-                        .pages()
-                        .iter()
-                        .zip(&frame.images)
-                        .map(|(page, image)| {
-                            div()
-                                .w(px(scale.logical_pixels(page.width) as f32))
-                                .h(px(scale.logical_pixels(page.height) as f32))
-                                .flex_shrink_0()
-                                .bg(rgb(0xffffff))
-                                .shadow_md()
-                                .child(img(image.clone()).size_full())
-                        }),
-                )
+                .children(frame.layout.pages().iter().enumerate().map(|(i, page)| {
+                    div()
+                        .w(px(scale.logical_pixels(page.width) as f32))
+                        .h(px(scale.logical_pixels(page.height) as f32))
+                        .flex_shrink_0()
+                        .bg(rgb(0xffffff))
+                        .shadow_md()
+                        .children(images.get(i).map(|image| img(image.clone()).size_full()))
+                }))
                 .into_any_element();
         }
         div()
@@ -634,11 +664,10 @@ fn main() {
                         copy_note: None,
                         font: None,
                         profile: None,
-                        frame: None,
-                        gate: RasterRequestGate::default(),
-                        canvas_cancel: CanvasCancellation::default(),
+                        canvas: CanvasPipeline::default(),
                         load_started: false,
                         load_task: None,
+                        layout_task: None,
                         raster_task: None,
                         device_scale: 1.0,
                         canvas_error: None,
