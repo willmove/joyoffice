@@ -6,10 +6,10 @@
 - 代码基线：`claude/gpui-pre-migration` @ `616441f5194c756a10b1ad08da2e40a0c3d9cd32`（开工时尚未合入 main；main 为 `0dcc0f0`）
 - 启动时实际 HEAD：同上
 - 分支：`claude/macos-menu-order`（独立 worktree `.claude/worktrees/focused-kowalevski-8b9860`）
-- 状态：完成本轮切片（代码、单元测试、lint）；macOS GUI 读菜单栏待与用户约定时段
+- 状态：完成本轮切片（代码、单元测试、lint、macOS GUI 读菜单栏）
 - interface_ready：true。`Registry::menus(platform)` 签名不变，新增 `MenuKind::display_order`、`MenuKind::on_platform` 两个公开函数（增量）。
-- implementation_verified：true（无窗口），依据见“验证”。
-- acceptance_complete：false。Windows、Linux 菜单只有单元测试，无人工运行。
+- implementation_verified：true。无窗口测试与 macOS 开发构建的菜单栏读取均通过，见“验证”与“GUI 读菜单栏（macOS）”。
+- acceptance_complete：false。macOS 菜单栏已人工读取确认；Windows、Linux 菜单只有单元测试，没有人工运行。
 
 ## 问题与原因
 
@@ -45,7 +45,25 @@ macOS 菜单栏原为：粗体应用菜单（内容却是“打开…”“另�
 | `cargo test -p joyword --features dev-runtime-shaders --locked` | passed，11 passed | 无窗口 |
 | `cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings` | passed | 仅有迁移报告已记录的 `block 0.1.6` future-incompat 提示 |
 | `python3 scripts/check_docs.py` | passed | — |
-| macOS GUI 读菜单栏 | pending | 需先与用户约定桌面时段；步骤：`cargo build -p joyword --features dev-runtime-shaders --locked`、`python3 scripts/package_macos_dev.py`、`open target/dev/JoyWord.app`，经 System Events 只读取菜单栏与各菜单项名称 |
+| macOS GUI 读菜单栏（见下节） | passed | 2026-10-16 经用户同意占用桌面；构建对应提交 `d861e94` |
+
+## GUI 读菜单栏（macOS）
+
+环境：同上主机；`cargo build -p joyword --features dev-runtime-shaders --locked`（对应提交 `d861e94`，复跑无重新编译）后 `python3 scripts/package_macos_dev.py` 包装为 `target/dev/JoyWord.app`，`open` 启动；系统语言为简体中文，应用界面为中文。启动前确认没有其他 JoyWord 进程。经 System Events 辅助功能接口只读取菜单栏和菜单项，另截取屏幕顶部菜单栏区域核对粗体应用菜单。
+
+| 检查项 | 结果 |
+| --- | --- |
+| 应用激活 | `frontmost=true`，菜单栏属于 JoyWord |
+| 菜单栏顺序 | Apple 菜单 → **JoyWord**（粗体应用菜单）→ 文件 → 编辑 → 视图 |
+| JoyWord（应用菜单） | 退出 JoyWord（⌘Q） |
+| 文件 | 打开…（⌘O）、另存为新副本…（⌘⇧S） |
+| 编辑 | 撤销（⌘Z）、重做（⌘⇧Z）、分隔线、全选（⌘A） |
+| 视图 | 放大（⌘=）、缩小（⌘-）、实际大小（⌘0）、分隔线、界面语言切换为 English |
+| 应用菜单“退出 JoyWord” | 经辅助功能点击后进程退出（文档未修改，无确认框） |
+
+快捷键一列：按键字符经 `AXMenuItemCmdChar` 实际读取（Q、O、S、Z、Z、A、=、-、0）；修饰键未逐项读取，按注册表标注。
+
+与 gpui-pre 迁移冒烟记录对照：原先粗体应用菜单里是“打开…”“另存为新副本…”，“退出 JoyWord”在第二个菜单；现在应用菜单只有退出，“文件”排在第二位。快捷键字符与注册表一致。未检查英文界面下的菜单栏，也未检查语言切换后重建菜单时的顺序；两者都经同一个 `Registry::menus(Platform::MacOs)`，单元测试已覆盖其顺序。
 
 ## 接口或依赖提案
 
@@ -54,6 +72,7 @@ macOS 菜单栏原为：粗体应用菜单（内容却是“打开…”“另�
 ## 阻塞与下一步
 
 - Windows/Linux：菜单顺序只由单元测试覆盖，未在真机运行；CI 三端构建不等于人工验收。
+- macOS：只读取了中文界面启动时的菜单栏；英文界面及切换语言后的菜单栏没有人工核对。
 - 退出项的文字在三端都用 `command.app.quit`（“退出 JoyWord”/“Quit JoyWord”）。Windows 惯例是“退出”/“Exit”。本任务不改本地化键；是否增加按平台的标签键由协调者决定。
 - macOS 应用菜单目前只有“退出”，缺少“关于”“隐藏”“服务”等系统惯例项；这些需要对应命令与实现，不在本任务范围。
 - 公共文档（IMPLEMENTATION/TASKS 中 T106 的菜单描述）如需更新，由协调者处理。
