@@ -105,7 +105,7 @@ OPC 层（joyoffice-opc，ADR-011）使用自写的严格 ZIP 读取器：只接
 
 字体身份至少包含字体字节散列、collection face index、variation axes、特性及语言／方向参数。Fontique 枚举和回退，HarfRust 整形，Skrifa 提供字形与度量，ICU4X 提供分析；这些库与 Parley 系列须对齐到同一组版本，避免同一字体经两套解析栈处理。当前选定（T003）：HarfRust 0.8.4、read-fonts 0.39.2 与 krilla 0.8.2（经 skrifa 0.42.1）共用一套 read-fonts；HarfRust 0.14 需要 read-fonts 0.45，待 krilla 跟进后整体升级。GPUI 自带的另一套字体栈只用于界面文字。整形特性完全由文档属性驱动：kern、liga 等不沿用 HarfRust 默认值，而按 `w:kern` 阈值、`w14:ligatures` 等显式设置启用。JoyWord 决定段落断行、中文兼容规则和分页。UI 标签可以使用 GPUI 默认文字系统，文档正文必须使用统一字体身份和定位结果。
 
-采用 GPUI 原生字形通道时，FontId 与文档 FontKey 的映射必须通过 M0 测试验证；不能假设同名字体或同一 glyph ID 必然属于同一 face。GPUI 0.2.2 的 GlyphId 不可在外部构造，按字节加载字体也不返回 FontId，按名称解析会与系统同名字体冲突；来源与补丁策略见 ADR-010。若公共 API 不足，使用独立适配补丁并记录来源，不能修改排版结果凑合显示。krilla 使用定位字形接口消费相同场景，不再自行整形文本。
+采用 GPUI 原生字形通道时，FontId 与文档 FontKey 的映射必须通过 M0 测试验证；不能假设同名字体或同一 glyph ID 必然属于同一 face。GPUI 0.2.2 的 GlyphId 不可在外部构造（历史情况）。现用 gpui-pre 0.3.9 已公开 `GlyphId(pub u32)` 与 `Window::paint_glyph`，但按字节加载字体的 `add_fonts` 仍不返回 FontId，按名称解析会与系统同名字体冲突；屏幕侧同一字形绘制仍待 T003 实测，来源见 ADR-010。若公共 API 不足，使用独立适配补丁并记录来源，不能修改排版结果凑合显示。krilla 使用定位字形接口消费相同场景，不再自行整形文本。
 
 ### 6.2 排版数据流
 
@@ -125,7 +125,7 @@ UI 线程只处理输入、状态提交和绘制；IO、解析、整形大任务
 
 平台差异集中在 IME、剪贴板、菜单、文件对话框、文件替换、打印、凭据、无障碍及安装器。Linux 同时记录 Wayland 和 X11 覆盖；三端构建与三端人工运行是不同证据。可访问树表达文档结构和选择状态，而非仅把画布声明成一张图片。
 
-GPUI 不提供打印接口，0.2.2 的剪贴板只有文本和图片，两者均由 JoyWord platform 层实现；Linux 上 0.2.2 只支持 Vulkan 渲染；信创平台在 1.0 范围内，国产 GPU 多只提供 OpenGL，因此 GL 或 CPU 渲染退路是硬性要求（ADR-010，T005 实测）。Linux 平台层同时覆盖信创发行版（统信 UOS、银河麒麟）与 x86_64／ARM64／LoongArch64 架构。一个文档会话可有多个视图（新窗口、拆分），各视图独立持有选择、滚动位置和视图选项。
+GPUI 不提供打印接口；剪贴板在 0.2.2 中只有文本和图片，现用 gpui-pre 0.3.9 增加了文件路径条目，但仍没有富文本，因此打印与富剪贴板均由 JoyWord platform 层实现。Linux 上 0.2.2 只支持 Vulkan 渲染（历史情况）；gpui-pre 0.3.9 的 Linux 渲染器为 wgpu，按 Vulkan 与 GL 后端枚举适配器，但 GL 路径尚未在信创真机上验证。信创平台在 1.0 范围内，国产 GPU 多只提供 OpenGL，因此 GL 或 CPU 渲染退路是硬性要求（ADR-010，T005 实测）。Linux 平台层同时覆盖信创发行版（统信 UOS、银河麒麟）与 x86_64／ARM64／LoongArch64 架构。一个文档会话可有多个视图（新窗口、拆分），各视图独立持有选择、滚动位置和视图选项。
 
 ## 8. ADR 决策记录
 

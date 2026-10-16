@@ -165,14 +165,14 @@
 | --- | --- |
 | 本机 | Apple M4，24 GiB，macOS 27.0.1，arm64 |
 | Rust／Cargo | 1.98.1／1.98.1；工具链文件精确固定；为交叉检查额外安装 x86_64、aarch64 与 loongarch64 的 linux-gnu 标准库目标 |
-| GPUI | crates.io 0.2.2（最后官方版本，已停更），长期来源待 ADR-010 选定；cargo-deny 报告其间接依赖中 7 条“停止维护”公告（async-std、instant、paste、proc-macro-error2、rustls-pemfile、rustybuzz、ttf-parser），无漏洞公告 |
-| 依赖锁 | libc 锁定为 0.2.186：0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 GPUI 间接引入的 xattr 0.2.3 无法编译 |
+| GPUI | crates.io gpui-pre =0.3.9 与 gpui-pre-platform =0.3.9（开 font-kit、wayland、x11），即 Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照，共 19 个 gpui-pre* 包，crates.io 所有者为个人（huacnlee）；按 ADR-010 选定，迁移过程见[迁移报告](../coordination/reports/GPUI-PRE-MIGRATION.md)。CI 的 provenance 作业逐文件对照 Zed：16 个包一致，3 个包共 9 处偏差已审查接受（[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)）。cargo-deny 的“停止维护”公告由 0.2.2 时的 7 条减为 3 条（paste、rustybuzz、ttf-parser），无漏洞公告；许可白名单去掉了不再使用的 NCSA。此前使用 crates.io 0.2.2（最后官方版本，已停更） |
+| 依赖锁 | libc 仍锁定为 0.2.186。当初的原因是 0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 gpui 0.2.2 间接引入的 xattr 0.2.3 无法编译；迁到 gpui-pre 后锁文件中已无 xattr，此限制可在下次依赖升级时解除（本次未升级） |
 | Xcode／Metal | 本机只有 Command Line Tools，`xcrun --find metal` 失败；CI 的 macos-15 镜像（Xcode 16.4）具备 metal |
 | 开发构建 | dev-runtime-shaders 使用 GPUI 官方运行时着色器选项，本机已编译成功 |
 | 对照软件 | 发现已安装 WPS、Pages；本次未做 Office 运行或往返测试 |
 | Windows／Linux | GitHub Actions 已实际执行并通过，见下表；尚无真实机器人工运行 |
 
-当前直接依赖：GPUI、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast、joyword-layout 的 HarfRust 0.8.4 与 read-fonts 0.39.2、joyword-pdf 的 krilla 0.8.2；Ropey 仅为基准 dev 依赖。Fontique、ICU4X 仍是选型，尚未接入。
+当前直接依赖：GPUI（gpui-pre 与 gpui-pre-platform，代码中仍以 gpui、gpui_platform 名称引用）、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast、joyword-layout 的 HarfRust 0.8.4 与 read-fonts 0.39.2、joyword-pdf 的 krilla 0.8.2；Ropey 仅为基准 dev 依赖。Fontique、ICU4X 仍是选型，尚未接入。
 
 ## 验证记录
 
@@ -190,9 +190,10 @@
 | T003／T004 CI | 运行 38486616823（95affb0）全部作业通过，unified-pdf 证据见“统一字形链路”；运行 38487093201（751e764）的 unified-pdf 另行验证比较工具：同一 PDF 自比通过、第三行提前换行的变体被检出，各平台构建作业运行工具逻辑测试 |
 | C01 公开仓库 CI | 源码 a67db293d3f397eaf76c7d1c429c9479c18ca0b3 的 [38531619157 第 2 次执行](https://github.com/willmove/joyoffice/actions/runs/38531619157/attempts/2) 8/8 作业通过：macOS／Windows／Linux x86_64 与 ARM64 构建、ARM64／LoongArch64 QEMU 测试、依赖检查、统一 PDF。Linux 与 LoongArch64 日志确认全部 8 项新增 DOCX 会话测试通过；PDF 5 行无缺字，Poppler 行首／行尾最大偏差均为 0.0000 pt。公开仓库前的账户额度失败保留为历史，当前运行条件已恢复，见 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md) |
 | 第二轮集成 | 2026-10-15，ee4f57d：本机 fmt、强制宋体的全默认成员 312 项、docx／shell／engine／layout release、全工作区 clippy（dev-runtime-shaders）、开发应用构建、W08 15 项、W09 3＋11 项与 81 次冒烟矩阵通过。main CI 在 macOS、统一 PDF、依赖作业通过；Linux 与 Windows 的 W07 测试因平台假设失败，仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 16/16 通过后合入（`5573997a75d9297b24429f90c727dad05b7f90c3`） |
+| GPUI 迁移后 CI | 提交 6ee61e9（分支 claude/gpui-pre-provenance，含 gpui-pre 迁移）的 [38889115731](https://github.com/willmove/joyoffice/actions/runs/38889115731) 全部 9 个作业通过：macos-15（含预编译 Metal 构建）、windows-2022、ubuntu-24.04 与 ubuntu-24.04-arm 构建，ARM64／LoongArch64 QEMU 无界面测试，unified-pdf、dependencies（cargo-deny）与 provenance（gpui-pre 来源逐文件校验） |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
-构建出现上游 block 0.1.6 与 proc-macro-error2 2.0.1 的 future-incompat 提示；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
+构建出现上游 block 0.1.6 的 future-incompat 提示（proc-macro-error2 2.0.1 的提示随 gpui 0.2.2 一并移除）；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
 
 ## 未完成的 M0 门槛与下一步
 

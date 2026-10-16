@@ -26,7 +26,11 @@
 3. ADR-010 与 PROVENANCE 如何记录由执行者决定。本分支已更新：
    - ARCHITECTURE §8 ADR-010：补记选用 gpui-pre =0.3.9（Zed 93d7456）及平台特性、wgpu GL 后端仍待 T005 验证，以及供应链补偿措施和本次结果。
    - PROVENANCE §3 GPUI 行：补记版本、Zed 提交、crates.io 所有者（huacnlee，已经 crates.io API 核实）和校验方式。同节许可段删去锁文件中已不存在的 NCSA，停止维护公告改为 gpui-pre 下的 3 条，与 deny.toml 一致。§5 新增“gpui-pre 来源逐文件校验”记录。
-   - 迁移报告提案 2–4 涉及的其余文档（README 第 25 行、ARCHITECTURE §6.1／§7 关于 0.2.2 的描述、IMPLEMENTATION 依赖表）不在本次指令范围内，未修改。
+4. 随后用户要求按迁移报告提案 2–4 更新其余文档，已在同一分支完成，相关事实均对照 gpui-pre 0.3.9 源码和 Cargo.lock 核实：
+   - README 第 25 行：GPUI 固定为 gpui-pre 0.3.9（Zed 93d7456 快照，CI 核对来源）。
+   - ARCHITECTURE §6.1：0.2.2 的 GlyphId 限制改记为历史情况。gpui-pre 已公开 `GlyphId(pub u32)`（text_system.rs:1255）与 `Window::paint_glyph`（window.rs:4821），但 `add_fonts` 仍返回 `Result<()>`、不返回 FontId，屏幕侧同一字形仍待 T003。
+   - ARCHITECTURE §7：剪贴板条目为 String、Image、ExternalPaths，没有富文本，所以打印与富剪贴板仍需自建；Linux 渲染器为 wgpu，按 Vulkan 与 GL 枚举适配器，GL 路径待 T005 验证。
+   - IMPLEMENTATION：GPUI 行改为 gpui-pre 0.3.9（含平台特性、发布者、来源校验结果、cargo-deny 由 7 条减为 3 条、去掉 NCSA）；libc 行注明锁文件中已无 xattr，原限制可在下次升级时解除（本次未升级）；“当前直接依赖”补记两个包名；验证记录新增 CI 运行 38889115731；future-incompat 说明删去已不在锁文件中的 proc-macro-error2。
 
 ## 实际变更与支持范围
 
@@ -175,5 +179,5 @@
 
 ## 阻塞与下一步
 
-- 无技术阻塞；CI `provenance` 作业已在 GitHub runner 上通过。待办：是否合入 main 由用户／协调者决定；迁移报告提案 2–4 中其余文档的更新。
+- 无技术阻塞；CI `provenance` 作业已在 GitHub runner 上通过，同一运行（38889115731）的 9 个作业全部通过。待办：是否合入 main 由用户／协调者决定。IMPLEMENTATION 第 199–202 行“下一步”中关于 ADR-010 待选定来源的表述属于任务进度叙述，未在本次修改。
 - 可选后续：把清单依赖键比对（上文一次性结果）纳入脚本；向发布者反馈，请其在发布包中保留 `.cargo_vcs_info.json`，或公开改写脚本（gpui-kit `script/bump-gpui.ts`）。
