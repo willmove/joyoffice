@@ -394,6 +394,37 @@ fn ime_bounds(
         })
         .map(|b| placement.project(b))
 }
+/// What to scroll into view after input: the caret of the current layout, or,
+/// while a preedit's layout is pending, its origin from the anchor, so the box
+/// AppKit asks for next is already on screen. The flag means the exact reveal
+/// is still owed once the layout lands.
+fn reveal_target(
+    view: &InputView,
+    version: u64,
+    layout: Option<&joyword_layout::LayoutSnapshot>,
+    anchor: Option<&ImeAnchor>,
+) -> Option<(SceneBox, bool)> {
+    if let Some(layout) = layout {
+        return SceneBox::caret(layout, view.selection().head).map(|caret| (caret, false));
+    }
+    let origin = ime_origin(view);
+    anchor
+        .filter(|a| a.covers(view, version, &(origin..origin)))
+        .map(|a| (a.caret, true))
+}
+fn content_size(layout: &joyword_layout::LayoutSnapshot, scale: ScreenScale) -> gpui::Size<Pixels> {
+    let pages = layout.pages();
+    let width = pages
+        .iter()
+        .map(|p| scale.logical_pixels(p.width) as f32)
+        .fold(0.0f32, f32::max);
+    let height = pages
+        .iter()
+        .map(|p| scale.logical_pixels(p.height) as f32)
+        .sum::<f32>()
+        + pages.len().saturating_sub(1) as f32 * DOC_GAP;
+    size(px(width + 2.0 * DOC_PAD), px(height + 2.0 * DOC_PAD))
+}
 fn local_emu(point: Point<Pixels>, page: Bounds<Pixels>, zoom: u16) -> (Emu, Emu) {
     let emu_per_px = Emu::PER_INCH as f64 / 96.0 / (f64::from(zoom) / 100.0);
     (
@@ -896,45 +927,29 @@ impl JoyWord {
         if !self.reveal_pending {
             return;
         }
-        let Some(viewport) = self.viewport_bounds else {
+        let (Some(editor), Some(placement)) = (&self.editor, self.placement()) else {
             return;
         };
-        let Some(editor) = &self.editor else {
+        // The scroll content is the painted frame, current or not.
+        let Some(painted) = &self.frame else {
             return;
         };
-        let Some(frame) = self.ready_frame() else {
+        let Some((caret, owed)) = reveal_target(
+            editor.view(),
+            editor.version(),
+            self.ready_frame().map(|frame| &frame.layout),
+            self.ime_anchor.as_ref(),
+        ) else {
             return;
         };
-        let Ok(c) = frame.layout.caret(editor.view().selection().head) else {
-            return;
-        };
-        let Some(rect) = self.scene_rect(c.page, c.x, c.top, Emu::new(1), c.height) else {
-            return;
-        };
-        let scale = self.scale();
-        let width = frame
-            .layout
-            .pages()
-            .iter()
-            .map(|p| scale.logical_pixels(p.width) as f32)
-            .fold(0.0f32, f32::max)
-            + 2.0 * DOC_PAD;
-        let height = frame
-            .layout
-            .pages()
-            .iter()
-            .map(|p| scale.logical_pixels(p.height) as f32)
-            .sum::<f32>()
-            + frame.layout.pages().len().saturating_sub(1) as f32 * DOC_GAP
-            + 2.0 * DOC_PAD;
         let offset = reveal_offset(
-            viewport,
-            rect,
-            self.scroll.offset(),
-            size(px(width), px(height)),
+            placement.viewport,
+            placement.project(caret),
+            placement.offset,
+            content_size(&painted.layout, placement.scale),
         );
         self.scroll.set_offset(offset);
-        self.reveal_pending = false;
+        self.reveal_pending = owed;
     }
     fn scene_rect(
         &self,
@@ -1420,6 +1435,35 @@ mod tests {
         let caret = current(o + 2..o + 2).unwrap();
         assert!(caret.origin.x > idle_100.origin.x);
         assert_eq!(caret.origin.y, idle_100.origin.y);
+    }
+    #[test]
+    fn pending_preedit_reveals_its_origin_before_appkit_asks() {
+        let source = pages_source();
+        let mut input = editor(&source);
+        let idle = layout_of(input.view(), &source);
+        let o = second_page_start(input.view(), &idle);
+        input.select(o..o, false).unwrap();
+        let version = input.version();
+        let anchor = ImeAnchor::capture(input.view(), version, &idle).unwrap();
+        // Scrolled to the top, so the origin on page 2 is below the viewport.
+        let away = placement(100, point(px(0.0), px(0.0)));
+        input.mark(None, "AV", None).unwrap();
+        let view = input.view();
+        let asked = |at| ime_bounds(view, version, None, Some(&anchor), at, o + 1..o + 2);
+        assert!(asked(away).unwrap().top() > away.viewport.bottom());
+        assert_eq!(reveal_target(view, version, None, None), None);
+        let (origin, owed) = reveal_target(view, version, None, Some(&anchor)).unwrap();
+        assert_eq!((origin, owed), (anchor.caret, true));
+        let content = content_size(&idle, away.scale);
+        let offset = reveal_offset(away.viewport, away.project(origin), away.offset, content);
+        let shown = Placement { offset, ..away };
+        let b = asked(shown).unwrap();
+        assert!(shown.viewport.top() <= b.top() && b.bottom() <= shown.viewport.bottom());
+        // The exact reveal of the head follows once the preedit's layout lands.
+        let preedit = layout_of(view, &source);
+        let head = SceneBox::caret(&preedit, view.selection().head).unwrap();
+        let exact = reveal_target(view, version, Some(&preedit), Some(&anchor));
+        assert_eq!(exact, Some((head, false)));
     }
     #[test]
     fn origin_anchor_is_dropped_for_other_versions_or_origins_and_queries_clamp_to_end() {
