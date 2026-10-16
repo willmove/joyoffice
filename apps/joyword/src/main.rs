@@ -88,6 +88,8 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
     })
 }
 
+/// Converts the registry's menus; order and per-platform placement (App menu
+/// first on macOS) are decided by `Registry::menus`.
 fn menus(registry: &Registry, catalog: &Catalog) -> Vec<Menu> {
     registry
         .menus(Platform::current())

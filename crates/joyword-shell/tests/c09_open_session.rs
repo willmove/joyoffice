@@ -265,16 +265,15 @@ fn file_menu_offers_open_and_save_copy_but_not_save() {
         .iter()
         .find(|menu| menu.kind == MenuKind::File)
         .unwrap();
+    // Outside macOS there is no application menu; Quit ends File.
     assert_eq!(
         file.entries,
         vec![
             MenuEntry::Command(FILE_OPEN),
             MenuEntry::Command(FILE_SAVE_COPY),
+            MenuEntry::Separator,
+            MenuEntry::Command(QUIT),
         ]
     );
-    let app = menus
-        .iter()
-        .find(|menu| menu.kind == MenuKind::App)
-        .unwrap();
-    assert!(app.entries.contains(&MenuEntry::Command(QUIT)));
+    assert!(menus.iter().all(|menu| menu.kind != MenuKind::App));
 }
