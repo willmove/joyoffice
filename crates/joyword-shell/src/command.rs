@@ -38,12 +38,14 @@ impl Platform {
     }
 }
 
-/// Top-level menus in display order. Quit stays on the application menu.
-/// File has Open and Save As only; there is no original-file Save command.
+/// Top-level menus. Application-wide commands such as Quit are placed on
+/// App; [`MenuKind::display_order`] decides where each menu appears per
+/// platform. File has Open and Save As only; there is no original-file Save
+/// command.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MenuKind {
-    File,
     App,
+    File,
     Edit,
     View,
 }
@@ -51,10 +53,38 @@ pub enum MenuKind {
 impl MenuKind {
     pub fn label_key(self) -> &'static str {
         match self {
-            MenuKind::File => "menu.file",
             MenuKind::App => "menu.app",
+            MenuKind::File => "menu.file",
             MenuKind::Edit => "menu.edit",
             MenuKind::View => "menu.view",
+        }
+    }
+
+    /// Top-level menus in display order. macOS treats the first menu as the
+    /// application menu, so App leads there. Windows and Linux have no
+    /// application menu; App commands are folded into File (see
+    /// [`MenuKind::on_platform`]).
+    pub fn display_order(platform: Platform) -> &'static [MenuKind] {
+        match platform {
+            Platform::MacOs => &[
+                MenuKind::App,
+                MenuKind::File,
+                MenuKind::Edit,
+                MenuKind::View,
+            ],
+            Platform::Windows | Platform::Linux => {
+                &[MenuKind::File, MenuKind::Edit, MenuKind::View]
+            }
+        }
+    }
+
+    /// The menu that shows this menu's commands on `platform`, and whether
+    /// they were folded in from another menu. Folded groups follow the
+    /// target menu's own groups, which puts Quit last in File.
+    pub fn on_platform(self, platform: Platform) -> (MenuKind, bool) {
+        match (self, platform) {
+            (MenuKind::App, Platform::Windows | Platform::Linux) => (MenuKind::File, true),
+            (kind, _) => (kind, false),
         }
     }
 }
@@ -400,24 +430,32 @@ impl Registry {
         }
     }
 
-    /// Menus in display order, groups separated. The platform is a
-    /// parameter so platform-specific placement (Quit moves to File outside
-    /// macOS once File exists) stays testable here.
-    pub fn menus(&self, _platform: Platform) -> Vec<MenuModel> {
-        let mut grouped: BTreeMap<MenuKind, BTreeMap<u8, Vec<CommandId>>> = BTreeMap::new();
+    /// Menus in display order, groups separated. Platform-specific placement
+    /// lives here so hosts only convert the result: on macOS the App menu is
+    /// always first, even when empty, because the system takes the first
+    /// menu as the application menu; on Windows and Linux Quit ends File.
+    pub fn menus(&self, platform: Platform) -> Vec<MenuModel> {
+        // Keyed by (folded, group) so folded-in groups follow native ones.
+        let mut grouped: BTreeMap<MenuKind, BTreeMap<(bool, u8), Vec<CommandId>>> = BTreeMap::new();
         for command in &self.commands {
             if let Some(placement) = command.menu {
+                let (menu, folded) = placement.menu.on_platform(platform);
                 grouped
-                    .entry(placement.menu)
+                    .entry(menu)
                     .or_default()
-                    .entry(placement.group)
+                    .entry((folded, placement.group))
                     .or_default()
                     .push(command.id);
             }
         }
-        grouped
-            .into_iter()
-            .map(|(kind, groups)| {
+        MenuKind::display_order(platform)
+            .iter()
+            .filter_map(|&kind| {
+                let groups = match grouped.remove(&kind) {
+                    Some(groups) => groups,
+                    None if kind == MenuKind::App && platform == Platform::MacOs => BTreeMap::new(),
+                    None => return None,
+                };
                 let mut entries = Vec::new();
                 for (index, (_, ids)) in groups.into_iter().enumerate() {
                     if index > 0 {
@@ -425,7 +463,7 @@ impl Registry {
                     }
                     entries.extend(ids.into_iter().map(MenuEntry::Command));
                 }
-                MenuModel { kind, entries }
+                Some(MenuModel { kind, entries })
             })
             .collect()
     }
@@ -542,6 +580,132 @@ mod tests {
             registry.invoke(&mut host, CommandId("file.save")),
             Err(InvokeError::Unknown("file.save".into()))
         );
+    }
+
+    const PLATFORMS: [Platform; 3] = [Platform::MacOs, Platform::Windows, Platform::Linux];
+
+    fn kinds(menus: &[MenuModel]) -> Vec<MenuKind> {
+        menus.iter().map(|menu| menu.kind).collect()
+    }
+
+    fn entries(menus: &[MenuModel], kind: MenuKind) -> Vec<MenuEntry> {
+        menus
+            .iter()
+            .find(|menu| menu.kind == kind)
+            .unwrap()
+            .entries
+            .clone()
+    }
+
+    #[test]
+    fn macos_leads_with_the_application_menu() {
+        let menus = Registry::builtin().menus(Platform::MacOs);
+        assert_eq!(
+            kinds(&menus),
+            vec![
+                MenuKind::App,
+                MenuKind::File,
+                MenuKind::Edit,
+                MenuKind::View
+            ]
+        );
+        assert_eq!(
+            entries(&menus, MenuKind::App),
+            vec![MenuEntry::Command(QUIT)]
+        );
+        assert_eq!(
+            entries(&menus, MenuKind::File),
+            vec![
+                MenuEntry::Command(FILE_OPEN),
+                MenuEntry::Command(FILE_SAVE_COPY),
+            ]
+        );
+    }
+
+    #[test]
+    fn windows_and_linux_lead_with_file_and_end_it_with_quit() {
+        for platform in [Platform::Windows, Platform::Linux] {
+            let menus = Registry::builtin().menus(platform);
+            assert_eq!(
+                kinds(&menus),
+                vec![MenuKind::File, MenuKind::Edit, MenuKind::View],
+                "{platform:?}"
+            );
+            assert_eq!(
+                entries(&menus, MenuKind::File),
+                vec![
+                    MenuEntry::Command(FILE_OPEN),
+                    MenuEntry::Command(FILE_SAVE_COPY),
+                    MenuEntry::Separator,
+                    MenuEntry::Command(QUIT),
+                ],
+                "{platform:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn every_menu_command_appears_exactly_once_on_each_platform() {
+        let registry = Registry::builtin();
+        let mut expected: Vec<CommandId> = registry
+            .commands()
+            .iter()
+            .filter(|command| command.menu.is_some())
+            .map(|command| command.id)
+            .collect();
+        expected.sort();
+        for platform in PLATFORMS {
+            let menus = registry.menus(platform);
+            let mut shown = Vec::new();
+            for menu in &menus {
+                assert!(!menu.entries.is_empty(), "{platform:?} {:?}", menu.kind);
+                assert_ne!(menu.entries.first(), Some(&MenuEntry::Separator));
+                assert_ne!(menu.entries.last(), Some(&MenuEntry::Separator));
+                for pair in menu.entries.windows(2) {
+                    assert_ne!(pair, [MenuEntry::Separator, MenuEntry::Separator]);
+                }
+                shown.extend(menu.entries.iter().filter_map(|entry| match entry {
+                    MenuEntry::Command(id) => Some(*id),
+                    MenuEntry::Separator => None,
+                }));
+            }
+            shown.sort();
+            assert_eq!(shown, expected, "{platform:?}");
+            let mut unique = kinds(&menus);
+            unique.dedup();
+            assert_eq!(unique.len(), menus.len(), "{platform:?}");
+        }
+    }
+
+    #[test]
+    fn folded_app_groups_follow_file_groups_and_macos_keeps_an_app_slot() {
+        let spec = |id, menu, group| CommandSpec {
+            id,
+            label: "unused",
+            menu: Some(MenuPlacement { menu, group }),
+            shortcut: Shortcut::NONE,
+        };
+        // App group 0 still lands after File group 5 when folded into File.
+        let registry = Registry::new(vec![
+            spec(QUIT, MenuKind::App, 0),
+            spec(FILE_OPEN, MenuKind::File, 5),
+        ]);
+        assert_eq!(
+            registry.menus(Platform::Windows),
+            vec![MenuModel {
+                kind: MenuKind::File,
+                entries: vec![
+                    MenuEntry::Command(FILE_OPEN),
+                    MenuEntry::Separator,
+                    MenuEntry::Command(QUIT),
+                ],
+            }]
+        );
+        // Without App commands macOS still reserves the first slot, so File
+        // is never mistaken for the application menu.
+        let menus = Registry::new(vec![spec(FILE_OPEN, MenuKind::File, 0)]).menus(Platform::MacOs);
+        assert_eq!(kinds(&menus), vec![MenuKind::App, MenuKind::File]);
+        assert_eq!(entries(&menus, MenuKind::App), vec![]);
     }
 
     #[test]
