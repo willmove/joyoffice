@@ -1,0 +1,18 @@
+[package]
+name = "joyword-migrate-pre"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+gpui = { package = "gpui-pre", version = "=0.3.9" }
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["runtime_shaders"] }
+joyword-foundation = { path = "/Users/willm/Coding/joyoffice/crates/joyword-foundation" }
+joyword-engine = { path = "/Users/willm/Coding/joyoffice/crates/joyword-engine" }
+joyword-model = { path = "/Users/willm/Coding/joyoffice/crates/joyword-model" }
+joyword-layout = { path = "/Users/willm/Coding/joyoffice/crates/joyword-layout" }
+joyword-render = { path = "/Users/willm/Coding/joyoffice/crates/joyword-render" }
+joyword-shell = { path = "/Users/willm/Coding/joyoffice/crates/joyword-shell" }
+image = { version = "=0.25.10", default-features = false }

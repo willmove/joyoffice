@@ -1,0 +1,27 @@
+[package]
+name = "bench-vpre"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "bench"
+path = "../src/main.rs"
+
+[workspace]
+
+[features]
+default = ["split"]
+split = []
+fast = []
+kit = []
+
+[dependencies]
+cpu-time = "=1.0.0"
+gpui = { package = "gpui-pre", version = "=0.3.9" }
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["runtime_shaders"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

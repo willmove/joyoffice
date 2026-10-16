@@ -1,0 +1,27 @@
+[package]
+name = "bench-vfast"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "bench"
+path = "../src/main.rs"
+
+[workspace]
+
+[features]
+default = ["split", "fast"]
+split = []
+fast = []
+kit = []
+
+[dependencies]
+cpu-time = "=1.0.0"
+gpui = { package = "gpui-fast", version = "=0.1.8" }
+gpui_platform = { package = "gpui-fast-platform", version = "=0.1.8", features = ["runtime_shaders"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

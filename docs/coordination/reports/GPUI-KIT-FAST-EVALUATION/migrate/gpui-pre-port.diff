@@ -1,0 +1,67 @@
+diff -ru src.orig/input_ui.rs src/input_ui.rs
+--- src.orig/input_ui.rs	2026-10-16 09:03:58
++++ src/input_ui.rs	2026-10-16 09:03:58
+@@ -432,7 +432,7 @@
+                 };
+                 match close_decision(answer, expected, editor.version()) {
+                     CloseDecision::Cancel => {
+-                        window.focus(&view.focus_handle);
++                        window.focus(&view.focus_handle, cx);
+                         cx.notify();
+                     }
+                     CloseDecision::AskAgain => view.confirm_if_dirty(then, window, cx),
+@@ -867,7 +867,7 @@
+                 editor.select_positions(Selection { anchor, head })
+             }
+         });
+-        window.focus(&self.focus_handle);
++        window.focus(&self.focus_handle, cx);
+         window.invalidate_character_coordinates();
+     }
+     fn refresh_ime_geometry(&mut self, window: &mut Window) {
+diff -ru src.orig/main.rs src/main.rs
+--- src.orig/main.rs	2026-10-16 09:03:58
++++ src/main.rs	2026-10-16 09:03:58
+@@ -6,7 +6,7 @@
+ 
+ use document_canvas::{CanvasCancellation, CanvasFrame, CanvasRequestKey};
+ use gpui::{
+-    Action, App, Application, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window,
++    Action, App, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window,
+     WindowBounds, WindowOptions, actions, div, img, prelude::*, px, rgb, size,
+ };
+ use joyword_foundation::ScreenScale;
+@@ -105,10 +105,13 @@
+                             name: catalog.text(spec.label).into(),
+                             action: action_for(id)?,
+                             os_action: None,
++                            checked: false,
++                            disabled: false,
+                         })
+                     }
+                 })
+                 .collect(),
++            disabled: false,
+         })
+         .collect()
+ }
+@@ -658,7 +661,7 @@
+             Ok(window) => {
+                 cx.set_global(MainWindow(window));
+                 let _ = window.update(cx, |view, window, cx| {
+-                    window.focus(&view.focus_handle);
++                    window.focus(&view.focus_handle, cx);
+                     cx.activate(true);
+                 });
+             }
+--- apps/joyword/src/main.rs (main@0dcc0f0)
++++ src.orig/main.rs	2026-10-16 09:03:58
+@@ -594,7 +594,7 @@
+ }
+ 
+ fn main() {
+-    Application::new().run(|cx: &mut App| {
++    gpui_platform::application().run(|cx: &mut App| {
+         let registry = Registry::builtin();
+         let locale = Locale::ZhCn;
+         cx.on_action(|_: &Quit, cx| {

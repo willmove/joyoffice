@@ -1,0 +1,9 @@
+== v022: packages=710 not_allowed=0 no_license_field=0
+== vpre: packages=578 not_allowed=0 no_license_field=0
+== vfast: packages=578 not_allowed=0 no_license_field=0
+== vkit: packages=800 not_allowed=2 no_license_field=0
+   DENY? enum-iterator 2.3.0: 0BSD
+   DENY? enum-iterator-derive 1.5.0: 0BSD
+== vkitfast: packages=810 not_allowed=2 no_license_field=0
+   DENY? enum-iterator 2.3.0: 0BSD
+   DENY? enum-iterator-derive 1.5.0: 0BSD
