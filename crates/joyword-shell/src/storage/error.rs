@@ -6,6 +6,8 @@ use std::fmt;
 use std::io;
 use std::path::PathBuf;
 
+use super::original::SaveOriginalReceipt;
+
 /// Observable step of the source pipeline. `Io` errors carry the step that
 /// failed; the same step set drives deterministic fault injection in tests.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -24,6 +26,26 @@ pub enum SourceStage {
     Restat,
     /// Argument validation inside save_original.
     Validate,
+    /// Create the same-directory temporary file for original replacement.
+    CreateTemporary,
+    /// Write the verified plan bytes into that temporary file.
+    Write,
+    /// Sync the temporary file before it may be published.
+    SyncFile,
+    /// Read the temporary file back and compare it to the plan.
+    Verify,
+    /// Copy the source permission bits onto the temporary file.
+    RestorePermissions,
+    /// Hard-link the current target under a private backup name.
+    Backup,
+    /// Read the backup back and compare it to the stamped bytes.
+    VerifyBackup,
+    /// Rename the temporary file onto the target.
+    Publish,
+    /// Remove the private backup after the new file is in place.
+    Cleanup,
+    /// Sync the parent directory after publication.
+    SyncDirectory,
 }
 
 impl fmt::Display for SourceStage {
@@ -36,6 +58,16 @@ impl fmt::Display for SourceStage {
             Self::Read => "bounded read",
             Self::Restat => "post-read stat",
             Self::Validate => "validation",
+            Self::CreateTemporary => "temporary file creation",
+            Self::Write => "write",
+            Self::SyncFile => "file sync",
+            Self::Verify => "read-back verification",
+            Self::RestorePermissions => "permission restore",
+            Self::Backup => "backup hard link",
+            Self::VerifyBackup => "backup verification",
+            Self::Publish => "atomic replace",
+            Self::Cleanup => "backup cleanup",
+            Self::SyncDirectory => "directory sync",
         })
     }
 }
@@ -77,9 +109,6 @@ pub enum ConflictDetail {
     TimesChanged,
     /// Permission bits differ (Unix).
     ModeChanged,
-    /// Owner or group differs (Unix). Only reported where status-change
-    /// time cannot be compared, such as the replacement's backup link.
-    OwnershipChanged,
     /// Hard-link count differs (Unix); alias links appeared or disappeared.
     LinkCountChanged,
     /// Bytes differ from the captured baseline. Caught by exact byte
@@ -99,7 +128,6 @@ impl ConflictDetail {
             Self::SizeChanged => "source length changed",
             Self::TimesChanged => "source times changed",
             Self::ModeChanged => "source permission bits changed",
-            Self::OwnershipChanged => "source owner or group changed",
             Self::LinkCountChanged => "source hard-link count changed",
             Self::ContentChanged => "source content changed",
             Self::PathResolutionChanged => "request path resolves to a different object",
@@ -107,31 +135,25 @@ impl ConflictDetail {
     }
 }
 
-/// Why original-file replacement is unavailable for this plan and source.
-/// These are durable facts, not transient failures; retrying the same call
-/// cannot fix them. Nothing was written to the source when one is reported.
+/// Why original-file replacement is unavailable. These are durable policy
+/// facts, not transient failures; retrying cannot fix them.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReplacementBlocker {
-    /// The plan was not built from exactly the package bytes the stamp read:
-    /// another document, an older or newer version of this file, or a
-    /// session that has not been re-based after an earlier save. Equal
-    /// version numbers never prove that a plan and a source belong together.
+    /// `ExportPlan::origin_bytes()` is `None`, so the plan cannot prove which
+    /// package it came from. Equal version numbers are not a substitute.
     OriginBindingUnproven,
+    /// This build has not verified an atomic replace (non-Unix `rename` does
+    /// not replace an existing file). Metadata blockers refuse first today.
+    AtomicReplaceUnverified,
     /// The metadata item cannot even be observed with the approved
     /// dependencies, so losing it could not be detected, let alone restored.
     UnobservableMetadata(MetadataItem),
-    /// The source carries a value of this item that the replacement cannot
-    /// reproduce on the new object (or the new object could not be made to
-    /// carry it), so replacing would lose or change it.
+    /// The metadata item is observable but no approved write path can restore
+    /// it on a replaced inode.
     UnpreservableMetadata(MetadataItem),
     /// The source has several hard links; replacing one path leaves the other
     /// links on the old object. A product decision is required first.
     LinkedSourceSemantics,
-    /// No write permission bit is set on the source. Replacing it through
-    /// the directory would bypass that read-only intent.
-    ReadOnlySource,
-    /// This platform has no original-replacement write path in this build.
-    UnsupportedPlatform,
 }
 
 impl ReplacementBlocker {
@@ -140,64 +162,20 @@ impl ReplacementBlocker {
             Self::OriginBindingUnproven => {
                 "the export plan cannot be proven to originate from this source package"
             }
+            Self::AtomicReplaceUnverified => {
+                "atomic replacement of an existing file is not verified on this platform"
+            }
             Self::UnobservableMetadata(_) => {
                 "metadata item cannot be observed with approved dependencies"
             }
             Self::UnpreservableMetadata(_) => {
-                "metadata item is present but cannot be reproduced on the replacement"
+                "metadata item is observable but cannot be restored by an approved write path"
             }
             Self::LinkedSourceSemantics => {
                 "source is hard-linked; replacement semantics for other links are undecided"
             }
-            Self::ReadOnlySource => "source is read-only",
-            Self::UnsupportedPlatform => "original replacement is not implemented on this platform",
         }
     }
-}
-
-/// Step of the original-replacement write path. `Replace` errors carry the
-/// step that failed; the same steps drive deterministic fault injection.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ReplaceStage {
-    /// Private temporary file in the source's directory.
-    CreateTemporary,
-    /// Writing the plan bytes into the temporary file.
-    Write,
-    /// Restoring owner, group, permission bits and (macOS) creation time.
-    RestoreMetadata,
-    /// Sync of the temporary file.
-    SyncFile,
-    /// Byte-for-byte and metadata read-back of the temporary file.
-    VerifyTemporary,
-    /// Full conflict re-verification of the source just before the backup.
-    Recheck,
-    /// Hard link of the current source object under a private backup name.
-    Backup,
-    /// Proof that the backup names the verified object with its exact bytes.
-    VerifyBackup,
-    /// Atomic rename of the temporary file over the source path.
-    Publish,
-    /// Bounded read-back of the published path; yields receipt and stamp.
-    Confirm,
-    /// Removal of the backup link after confirmation.
-    RemoveBackup,
-    /// Sync of the containing directory.
-    SyncDirectory,
-}
-
-/// What a failed replacement left at the source path. Nothing is rolled
-/// back or retried automatically once the rename has happened.
-#[derive(Clone, Debug)]
-pub enum Publication {
-    /// No rename happened: the source path still names the verified original
-    /// object with its bytes, mode and modification time.
-    NotPublished,
-    /// The rename happened but read-back could not confirm the published
-    /// object. The original's exact bytes are kept under the retained backup.
-    Unconfirmed,
-    /// Read-back confirmed the published plan; a later cleanup or sync step
-    /// failed. The receipt and its refreshed stamp are valid.
-    Confirmed(Box<super::original::SaveOriginalReceipt>),
 }
 
 /// One metadata aspect the architecture requires an atomic replacement to
@@ -213,8 +191,6 @@ pub enum MetadataItem {
     Links,
     /// Windows Mark of the Web, macOS quarantine flags.
     ProvenanceMarks,
-    /// BSD file flags (macOS `chflags`: hidden, immutable, append-only…).
-    FileFlags,
 }
 
 impl MetadataItem {
@@ -227,7 +203,6 @@ impl MetadataItem {
             Self::CreationTime => "creation time",
             Self::Links => "symbolic and hard links",
             Self::ProvenanceMarks => "provenance marks (MOTW, quarantine)",
-            Self::FileFlags => "file flags",
         }
     }
 }
@@ -235,12 +210,17 @@ impl MetadataItem {
 /// Errors from opening a source, conflict prechecks and original replacement.
 #[derive(Debug)]
 pub enum SaveOriginalError {
-    /// File-system failure at the named stage.
+    /// File-system failure at the named stage. `published` is set only after
+    /// the target name already points at the new bytes.
     Io {
         stage: SourceStage,
         path: PathBuf,
         source: io::Error,
+        published: Option<SaveOriginalReceipt>,
     },
+    /// The plan's origin bytes are present and are not the stamped package.
+    /// No write was attempted. Version equality is irrelevant.
+    OriginMismatch { path: PathBuf },
     /// The resolved path names a directory, device or other non-regular file.
     NotARegularFile { path: PathBuf },
     /// The file exceeds the byte budget of the read. Never read unbounded.
@@ -261,24 +241,11 @@ pub enum SaveOriginalError {
         path: PathBuf,
         detail: ConflictDetail,
     },
-    /// Original replacement is refused before the source is rewritten; each
-    /// blocker names a durable reason. The source file is untouched and no
-    /// temporary or backup file is left behind.
+    /// Original replacement is refused before any write; each blocker names
+    /// a durable reason. The source file is untouched.
     ReplacementUnavailable {
         path: PathBuf,
         blockers: Vec<ReplacementBlocker>,
-    },
-    /// The replacement write path failed at `stage`. `publication` states
-    /// what the source path holds now. `retained_backup` names a private hard
-    /// link to the verified original that was kept on purpose (publication
-    /// not confirmed) or could not be removed; it is never deleted
-    /// automatically once a rename has happened.
-    Replace {
-        stage: ReplaceStage,
-        path: PathBuf,
-        source: io::Error,
-        publication: Publication,
-        retained_backup: Option<PathBuf>,
     },
 }
 
@@ -291,8 +258,8 @@ impl SaveOriginalError {
             | Self::SourceTooLarge { path, .. }
             | Self::UnstableRead { path }
             | Self::Conflict { path, .. }
-            | Self::ReplacementUnavailable { path, .. }
-            | Self::Replace { path, .. } => path,
+            | Self::OriginMismatch { path }
+            | Self::ReplacementUnavailable { path, .. } => path,
             Self::LockConflict { lock_path, .. } => lock_path,
         }
     }
@@ -304,38 +271,7 @@ impl SaveOriginalError {
     }
     pub fn io_error(&self) -> Option<&io::Error> {
         match self {
-            Self::Io { source, .. } | Self::Replace { source, .. } => Some(source),
-            _ => None,
-        }
-    }
-    /// The replacement step that failed, when this is a `Replace` error.
-    pub fn replace_stage(&self) -> Option<ReplaceStage> {
-        match self {
-            Self::Replace { stage, .. } => Some(*stage),
-            _ => None,
-        }
-    }
-    /// What the source path holds after a failed replacement.
-    pub fn publication(&self) -> Option<&Publication> {
-        match self {
-            Self::Replace { publication, .. } => Some(publication),
-            _ => None,
-        }
-    }
-    /// The confirmed receipt, when the plan was published and read back
-    /// before a later step failed.
-    pub fn published(&self) -> Option<&super::original::SaveOriginalReceipt> {
-        match self.publication() {
-            Some(Publication::Confirmed(receipt)) => Some(receipt),
-            _ => None,
-        }
-    }
-    /// A backup link to the verified original left on disk.
-    pub fn retained_backup(&self) -> Option<&std::path::Path> {
-        match self {
-            Self::Replace {
-                retained_backup, ..
-            } => retained_backup.as_deref(),
+            Self::Io { source, .. } => Some(source),
             _ => None,
         }
     }
@@ -360,6 +296,17 @@ impl SaveOriginalError {
             _ => None,
         }
     }
+    /// The plan had origin bytes and they were not the stamped package.
+    pub fn is_origin_mismatch(&self) -> bool {
+        matches!(self, Self::OriginMismatch { .. })
+    }
+    /// Set only when the target name already points at the replacement.
+    pub fn published(&self) -> Option<&SaveOriginalReceipt> {
+        match self {
+            Self::Io { published, .. } => published.as_ref(),
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for SaveOriginalError {
@@ -369,9 +316,19 @@ impl fmt::Display for SaveOriginalError {
                 stage,
                 path,
                 source,
+                published,
             } => {
-                write!(f, "source {} at {:?}: {}", stage, path.display(), source)
+                write!(f, "source {} at {:?}: {}", stage, path.display(), source)?;
+                if published.is_some() {
+                    f.write_str(" (replacement already published)")?;
+                }
+                Ok(())
             }
+            Self::OriginMismatch { path } => write!(
+                f,
+                "export plan origin does not match source {:?}",
+                path.display()
+            ),
             Self::NotARegularFile { path } => {
                 write!(f, "source {:?} is not a regular file", path.display())
             }
@@ -423,30 +380,6 @@ impl fmt::Display for SaveOriginalError {
                 }
                 Ok(())
             }
-            Self::Replace {
-                stage,
-                path,
-                source,
-                publication,
-                retained_backup,
-            } => {
-                write!(
-                    f,
-                    "original replacement of {:?} at {:?}: {}",
-                    path.display(),
-                    stage,
-                    source
-                )?;
-                f.write_str(match publication {
-                    Publication::NotPublished => " (original kept)",
-                    Publication::Unconfirmed => " (published but not confirmed)",
-                    Publication::Confirmed(_) => " (plan already published and confirmed)",
-                })?;
-                if let Some(backup) = retained_backup {
-                    write!(f, "; original retained at {:?}", backup.display())?;
-                }
-                Ok(())
-            }
         }
     }
 }
@@ -454,7 +387,7 @@ impl fmt::Display for SaveOriginalError {
 impl std::error::Error for SaveOriginalError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::Io { source, .. } | Self::Replace { source, .. } => Some(source),
+            Self::Io { source, .. } => Some(source),
             _ => None,
         }
     }
@@ -466,6 +399,21 @@ impl SaveOriginalError {
             stage,
             path: path.to_path_buf(),
             source,
+            published: None,
+        }
+    }
+    #[cfg(unix)]
+    pub(crate) fn io_published(
+        stage: SourceStage,
+        path: &std::path::Path,
+        source: io::Error,
+        receipt: SaveOriginalReceipt,
+    ) -> Self {
+        Self::Io {
+            stage,
+            path: path.to_path_buf(),
+            source,
+            published: Some(receipt),
         }
     }
     pub(crate) fn conflict_error(path: &std::path::Path, detail: ConflictDetail) -> Self {

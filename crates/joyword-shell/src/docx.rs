@@ -4,10 +4,21 @@
 //! engine supports local locks, any locked node makes the whole session
 //! read-only. The mutable engine is private so callers cannot clear that
 //! policy or substitute a document while retaining an unrelated backing.
-//! This adapter performs no IO, save, network access or implicit budget lift.
+//! [`DocxSession`] performs no IO. [`BoundDocx`] is the open path: `open_source`
+//! then [`DocxSession::open`], and only then a sibling JoyWord lock. A failed
+//! open installs nothing and creates no lock. Save As calls [`save_export_copy`]
+//! and leaves the bound path, stamp, backing and dirty version untouched.
+//! `save_original` is not called.
 
 use std::fmt;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
+use crate::storage::{
+    SaveCopyError, SaveCopyReceipt, SaveOriginalError, SourceStamp, open_source, save_export_copy,
+};
 use joyoffice_opc::Budget;
 use joyword_docx::{
     Diagnostics, Editability, ExportError, ExportPlan, ImportError, PackageBacking, import,
@@ -135,4 +146,164 @@ impl DocxSession {
         }
         Ok(self.backing.original_bytes())
     }
+}
+
+static LOCK_SEQ: AtomicU64 = AtomicU64::new(1);
+
+/// A document opened from a real path. The stamp and path stay on the file
+/// that was opened. Save As writes a different path and does not clear dirty,
+/// because this type does not track a saved version at all.
+pub struct BoundDocx {
+    inner: DocxSession,
+    stamp: SourceStamp,
+    lock_path: PathBuf,
+    lock_token: String,
+}
+
+/// Why `open_source` never became an installed session.
+#[derive(Debug)]
+pub enum BoundOpenError {
+    Source(SaveOriginalError),
+    Import(ImportError),
+    Export(ExportError),
+    /// The plan's origin bytes are not the opened package.
+    OriginMismatch,
+    /// The file name cannot be turned into the JoyWord lock sibling.
+    LockName,
+    Lock(std::io::Error),
+}
+
+impl fmt::Display for BoundOpenError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Source(error) => write!(f, "{error}"),
+            Self::Import(error) => write!(f, "{error}"),
+            Self::Export(error) => write!(f, "{error}"),
+            Self::OriginMismatch => f.write_str("opened package is not the export plan origin"),
+            Self::LockName => f.write_str("source file name cannot own a JoyWord lock"),
+            Self::Lock(error) => write!(f, "JoyWord lock: {error}"),
+        }
+    }
+}
+
+impl std::error::Error for BoundOpenError {}
+
+/// Save As failed before any session field changed.
+#[derive(Debug)]
+pub enum BoundSaveError {
+    Export(ExportError),
+    Copy(SaveCopyError),
+}
+
+impl fmt::Display for BoundSaveError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Export(error) => write!(f, "{error}"),
+            Self::Copy(error) => write!(f, "{error}"),
+        }
+    }
+}
+
+impl std::error::Error for BoundSaveError {}
+
+impl BoundDocx {
+    /// `open_source`, then [`DocxSession::open`], then the sibling lock
+    /// `.<file name>.joyword-lock`. Any error leaves the directory without
+    /// that lock and returns no session.
+    pub fn open(path: &Path, budget: &Budget) -> Result<Self, BoundOpenError> {
+        let opened = open_source(path, budget).map_err(BoundOpenError::Source)?;
+        let session = DocxSession::open(opened.bytes(), budget).map_err(BoundOpenError::Import)?;
+        let plan = session.export_plan().map_err(BoundOpenError::Export)?;
+        if plan.origin_bytes() != Some(opened.bytes()) {
+            return Err(BoundOpenError::OriginMismatch);
+        }
+        let stamp = opened.into_stamp();
+        let lock_path = joyword_lock_path(stamp.path()).ok_or(BoundOpenError::LockName)?;
+        let lock_token = lock_token(stamp.path());
+        write_lock(&lock_path, &lock_token)?;
+        Ok(Self {
+            inner: session,
+            stamp,
+            lock_path,
+            lock_token,
+        })
+    }
+
+    /// [`Self::open`] with [`Budget::default`]. The app shell calls this so it
+    /// does not take a dependency on the OPC crate.
+    pub fn open_default(path: &Path) -> Result<Self, BoundOpenError> {
+        Self::open(path, &Budget::default())
+    }
+
+    pub fn session(&self) -> &DocxSession {
+        &self.inner
+    }
+
+    pub fn session_mut(&mut self) -> &mut DocxSession {
+        &mut self.inner
+    }
+
+    /// Canonical path of the opened file. Save As does not change it.
+    pub fn source_path(&self) -> &Path {
+        self.stamp.path()
+    }
+
+    pub fn stamp(&self) -> &SourceStamp {
+        &self.stamp
+    }
+
+    /// The lock file this session created. Other opens of the same file see it.
+    pub fn lock_path(&self) -> &Path {
+        &self.lock_path
+    }
+
+    /// Write `destination` as a new copy of the current verified plan.
+    /// The bound path, stamp and engine version are not modified.
+    pub fn save_copy(&self, destination: &Path) -> Result<SaveCopyReceipt, BoundSaveError> {
+        let plan = self.inner.export_plan().map_err(BoundSaveError::Export)?;
+        save_export_copy(&plan, destination).map_err(BoundSaveError::Copy)
+    }
+}
+
+impl Drop for BoundDocx {
+    fn drop(&mut self) {
+        // Only the token this session wrote. A replaced lock is left alone,
+        // and a crash before drop leaves the file for the user to resolve.
+        if fs::read_to_string(&self.lock_path).ok().as_deref() == Some(self.lock_token.as_str()) {
+            let _ = fs::remove_file(&self.lock_path);
+        }
+    }
+}
+
+/// Same spelling W07 detects: `.<file name>.joyword-lock` beside the file.
+fn joyword_lock_path(canonical: &Path) -> Option<PathBuf> {
+    let name = canonical.file_name()?.to_str()?;
+    let parent = canonical.parent()?;
+    Some(parent.join(format!(".{name}.joyword-lock")))
+}
+
+fn lock_token(canonical: &Path) -> String {
+    let seq = LOCK_SEQ.fetch_add(1, Ordering::Relaxed);
+    format!(
+        "joyword-lock 1\npid {}\nseq {seq}\npath {}\n",
+        std::process::id(),
+        canonical.display()
+    )
+}
+
+fn write_lock(path: &Path, token: &str) -> Result<(), BoundOpenError> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(BoundOpenError::Lock)?;
+    if let Err(error) = file
+        .write_all(token.as_bytes())
+        .and_then(|_| file.sync_all())
+    {
+        drop(file);
+        let _ = fs::remove_file(path);
+        return Err(BoundOpenError::Lock(error));
+    }
+    Ok(())
 }

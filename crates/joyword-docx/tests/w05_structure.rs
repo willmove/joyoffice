@@ -487,26 +487,12 @@ fn section_boundaries_stay_on_their_paragraphs() {
 
 #[test]
 fn structure_edits_refuse_formatting_objects_markup_and_unknown_attributes() {
+    // Fully mapped jc / pStyle / rPr now export (W12). What remains here is
+    // markup the model does not represent, plus inline breaks.
     let cases = [
         (
-            r#"<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>AB</w:t></w:r></w:p>"#,
-            "properties",
-        ),
-        (
-            r#"<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>AB</w:t></w:r></w:p>"#,
-            "properties",
-        ),
-        (
-            r#"<w:p><w:pPr><w:rPr><w:b/></w:rPr></w:pPr><w:r><w:t>AB</w:t></w:r></w:p>"#,
-            "properties",
-        ),
-        (
-            r#"<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>AB</w:t></w:r></w:p>"#,
-            "properties",
-        ),
-        (
             r#"<w:p><w:r><w:rPr><w:highlight w:val="yellow"/></w:rPr><w:t>AB</w:t></w:r></w:p>"#,
-            "properties",
+            "paragraph holds preserved markup",
         ),
         (
             r#"<w:p><w:r><w:t>A</w:t><w:br/><w:t>B</w:t></w:r></w:p>"#,

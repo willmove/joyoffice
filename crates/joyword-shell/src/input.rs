@@ -42,6 +42,20 @@ impl InputBackend for Session {
         Session::redo(self)
     }
 }
+impl InputBackend for crate::docx::BoundDocx {
+    fn session(&self) -> &Session {
+        crate::docx::BoundDocx::session(self).session()
+    }
+    fn apply_mapped(&mut self, t: Transaction, s: Selection) -> Result<Outcome, TxError> {
+        self.session_mut().apply_with_mapped_selection(t, s)
+    }
+    fn undo(&mut self) -> Result<UndoResult, UndoError> {
+        self.session_mut().undo()
+    }
+    fn redo(&mut self) -> Result<UndoResult, UndoError> {
+        self.session_mut().redo()
+    }
+}
 impl InputBackend for DocxSession {
     fn session(&self) -> &Session {
         DocxSession::session(self)

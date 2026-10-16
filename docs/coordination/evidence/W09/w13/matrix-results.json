@@ -1,0 +1,650 @@
+[
+  {
+    "case_id": "W09-alternate-content-0",
+    "target": "opc",
+    "seed": 0,
+    "input_sha256": "f7ea9f6f8fdb306cf3e15780b63688935c2491811b5f3ac399a2937337192260",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-alternate-content-1",
+    "target": "import",
+    "seed": 0,
+    "input_sha256": "f7ea9f6f8fdb306cf3e15780b63688935c2491811b5f3ac399a2937337192260",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-alternate-content-2",
+    "target": "roundtrip",
+    "seed": 0,
+    "input_sha256": "f7ea9f6f8fdb306cf3e15780b63688935c2491811b5f3ac399a2937337192260",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-case-duplicate-3",
+    "target": "opc",
+    "seed": 1,
+    "input_sha256": "cf194127887ae5eb164702e4aec4143509fdd0640e2492bfcd5ef928b435db2a",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-case-duplicate-4",
+    "target": "import",
+    "seed": 1,
+    "input_sha256": "cf194127887ae5eb164702e4aec4143509fdd0640e2492bfcd5ef928b435db2a",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-case-duplicate-5",
+    "target": "roundtrip",
+    "seed": 1,
+    "input_sha256": "cf194127887ae5eb164702e4aec4143509fdd0640e2492bfcd5ef928b435db2a",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-compression-ratio-6",
+    "target": "opc",
+    "seed": 2,
+    "input_sha256": "53d5c5c3938d30cca701823875236b489371b9002c35334b7b20cc3fc122691b",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-compression-ratio-7",
+    "target": "import",
+    "seed": 2,
+    "input_sha256": "53d5c5c3938d30cca701823875236b489371b9002c35334b7b20cc3fc122691b",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-compression-ratio-8",
+    "target": "roundtrip",
+    "seed": 2,
+    "input_sha256": "53d5c5c3938d30cca701823875236b489371b9002c35334b7b20cc3fc122691b",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-crc-9",
+    "target": "opc",
+    "seed": 3,
+    "input_sha256": "25c672aebcf3ff7cbb042a9ae392c1b2b1e0093beebaf26f2ef0d4e19d3ec6bb",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-crc-10",
+    "target": "import",
+    "seed": 3,
+    "input_sha256": "25c672aebcf3ff7cbb042a9ae392c1b2b1e0093beebaf26f2ef0d4e19d3ec6bb",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-crc-11",
+    "target": "roundtrip",
+    "seed": 3,
+    "input_sha256": "25c672aebcf3ff7cbb042a9ae392c1b2b1e0093beebaf26f2ef0d4e19d3ec6bb",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-declared-size-12",
+    "target": "opc",
+    "seed": 4,
+    "input_sha256": "1be3c47133542a33f37508d9342f4bff011c802f198223bfddb794864ca3b672",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-declared-size-13",
+    "target": "import",
+    "seed": 4,
+    "input_sha256": "1be3c47133542a33f37508d9342f4bff011c802f198223bfddb794864ca3b672",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-declared-size-14",
+    "target": "roundtrip",
+    "seed": 4,
+    "input_sha256": "1be3c47133542a33f37508d9342f4bff011c802f198223bfddb794864ca3b672",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-duplicate-name-15",
+    "target": "opc",
+    "seed": 5,
+    "input_sha256": "67f575298c326a10a20726604c0509a84c03bc99b321148bcba9bbc8c0fdd2a1",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-duplicate-name-16",
+    "target": "import",
+    "seed": 5,
+    "input_sha256": "67f575298c326a10a20726604c0509a84c03bc99b321148bcba9bbc8c0fdd2a1",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-duplicate-name-17",
+    "target": "roundtrip",
+    "seed": 5,
+    "input_sha256": "67f575298c326a10a20726604c0509a84c03bc99b321148bcba9bbc8c0fdd2a1",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-empty-18",
+    "target": "opc",
+    "seed": 6,
+    "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-empty-19",
+    "target": "import",
+    "seed": 6,
+    "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-empty-20",
+    "target": "roundtrip",
+    "seed": 6,
+    "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-encrypted-21",
+    "target": "opc",
+    "seed": 7,
+    "input_sha256": "b7144dcb28161ac90d5a9bdc2b6fe1d344dd050751ab55626e8990f7083b8992",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-encrypted-22",
+    "target": "import",
+    "seed": 7,
+    "input_sha256": "b7144dcb28161ac90d5a9bdc2b6fe1d344dd050751ab55626e8990f7083b8992",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-encrypted-23",
+    "target": "roundtrip",
+    "seed": 7,
+    "input_sha256": "b7144dcb28161ac90d5a9bdc2b6fe1d344dd050751ab55626e8990f7083b8992",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-external-file-24",
+    "target": "opc",
+    "seed": 8,
+    "input_sha256": "7edc492d902841bcaad3287e6a3b7ea5eafa22bf21955c5b45d573ae03aa0237",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-file-25",
+    "target": "import",
+    "seed": 8,
+    "input_sha256": "7edc492d902841bcaad3287e6a3b7ea5eafa22bf21955c5b45d573ae03aa0237",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-file-26",
+    "target": "roundtrip",
+    "seed": 8,
+    "input_sha256": "7edc492d902841bcaad3287e6a3b7ea5eafa22bf21955c5b45d573ae03aa0237",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-http-27",
+    "target": "opc",
+    "seed": 9,
+    "input_sha256": "289f012c0fc008b129dd91e42abe0cb56f40ba15c550ab6792428c17132ff2eb",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-http-28",
+    "target": "import",
+    "seed": 9,
+    "input_sha256": "289f012c0fc008b129dd91e42abe0cb56f40ba15c550ab6792428c17132ff2eb",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-http-29",
+    "target": "roundtrip",
+    "seed": 9,
+    "input_sha256": "289f012c0fc008b129dd91e42abe0cb56f40ba15c550ab6792428c17132ff2eb",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-unc-30",
+    "target": "opc",
+    "seed": 10,
+    "input_sha256": "c90aa005a9e390cf8974d231016529d871a7d90a1b5cdcc4f5ad387aa97e1794",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-unc-31",
+    "target": "import",
+    "seed": 10,
+    "input_sha256": "c90aa005a9e390cf8974d231016529d871a7d90a1b5cdcc4f5ad387aa97e1794",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-external-unc-32",
+    "target": "roundtrip",
+    "seed": 10,
+    "input_sha256": "c90aa005a9e390cf8974d231016529d871a7d90a1b5cdcc4f5ad387aa97e1794",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-minimal-33",
+    "target": "opc",
+    "seed": 11,
+    "input_sha256": "ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-minimal-34",
+    "target": "import",
+    "seed": 11,
+    "input_sha256": "ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-minimal-35",
+    "target": "roundtrip",
+    "seed": 11,
+    "input_sha256": "ad77cd975c42ab239b351d1cdcb5ccb85d052377f584700f8f06d540398823aa",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-must-understand-36",
+    "target": "opc",
+    "seed": 12,
+    "input_sha256": "7aac429a50353481639116e865301bbb470a247495579a2acb7e31e6ec12f07b",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-must-understand-37",
+    "target": "import",
+    "seed": 12,
+    "input_sha256": "7aac429a50353481639116e865301bbb470a247495579a2acb7e31e6ec12f07b",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-must-understand-38",
+    "target": "roundtrip",
+    "seed": 12,
+    "input_sha256": "7aac429a50353481639116e865301bbb470a247495579a2acb7e31e6ec12f07b",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-overlap-39",
+    "target": "opc",
+    "seed": 13,
+    "input_sha256": "30b90df1ace2a3181836a25c6c3e1539f200259d8b9cca8e47d34196eaa6d9b2",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-overlap-40",
+    "target": "import",
+    "seed": 13,
+    "input_sha256": "30b90df1ace2a3181836a25c6c3e1539f200259d8b9cca8e47d34196eaa6d9b2",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-overlap-41",
+    "target": "roundtrip",
+    "seed": 13,
+    "input_sha256": "30b90df1ace2a3181836a25c6c3e1539f200259d8b9cca8e47d34196eaa6d9b2",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-path-traversal-42",
+    "target": "opc",
+    "seed": 14,
+    "input_sha256": "66c2e3e50797bd4f7b76691b5d7b3fbce9f568741512cb76ac0bf152423d221a",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-path-traversal-43",
+    "target": "import",
+    "seed": 14,
+    "input_sha256": "66c2e3e50797bd4f7b76691b5d7b3fbce9f568741512cb76ac0bf152423d221a",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-path-traversal-44",
+    "target": "roundtrip",
+    "seed": 14,
+    "input_sha256": "66c2e3e50797bd4f7b76691b5d7b3fbce9f568741512cb76ac0bf152423d221a",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-protected-45",
+    "target": "opc",
+    "seed": 15,
+    "input_sha256": "580ac278b2d0a245d87e843382021d4e941a6cf5e719d664f456b78890838388",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-protected-46",
+    "target": "import",
+    "seed": 15,
+    "input_sha256": "580ac278b2d0a245d87e843382021d4e941a6cf5e719d664f456b78890838388",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-protected-47",
+    "target": "roundtrip",
+    "seed": 15,
+    "input_sha256": "580ac278b2d0a245d87e843382021d4e941a6cf5e719d664f456b78890838388",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-relationship-cycle-48",
+    "target": "opc",
+    "seed": 16,
+    "input_sha256": "fdc0b729d146fabe9dd0def25d7de0061ce42b87275deb458b1600f8553aad10",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-relationship-cycle-49",
+    "target": "import",
+    "seed": 16,
+    "input_sha256": "fdc0b729d146fabe9dd0def25d7de0061ce42b87275deb458b1600f8553aad10",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-relationship-cycle-50",
+    "target": "roundtrip",
+    "seed": 16,
+    "input_sha256": "fdc0b729d146fabe9dd0def25d7de0061ce42b87275deb458b1600f8553aad10",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-revision-51",
+    "target": "opc",
+    "seed": 17,
+    "input_sha256": "1735d93af95cfbdf04153fdfdd7528b09623d0b1331a9f175b03b2ed953e658e",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-revision-52",
+    "target": "import",
+    "seed": 17,
+    "input_sha256": "1735d93af95cfbdf04153fdfdd7528b09623d0b1331a9f175b03b2ed953e658e",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-revision-53",
+    "target": "roundtrip",
+    "seed": 17,
+    "input_sha256": "1735d93af95cfbdf04153fdfdd7528b09623d0b1331a9f175b03b2ed953e658e",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-signed-54",
+    "target": "opc",
+    "seed": 18,
+    "input_sha256": "4c6021dc117877b64d0c1048688b62cd61f1a9208177427bd6eb67a3aa355162",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-signed-55",
+    "target": "import",
+    "seed": 18,
+    "input_sha256": "4c6021dc117877b64d0c1048688b62cd61f1a9208177427bd6eb67a3aa355162",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-signed-56",
+    "target": "roundtrip",
+    "seed": 18,
+    "input_sha256": "4c6021dc117877b64d0c1048688b62cd61f1a9208177427bd6eb67a3aa355162",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-tracked-57",
+    "target": "opc",
+    "seed": 19,
+    "input_sha256": "e25837d19d7ad864961c805922874f66a3a9034cc526d009bc05f421c4cdd6a1",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-tracked-58",
+    "target": "import",
+    "seed": 19,
+    "input_sha256": "e25837d19d7ad864961c805922874f66a3a9034cc526d009bc05f421c4cdd6a1",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-tracked-59",
+    "target": "roundtrip",
+    "seed": 19,
+    "input_sha256": "e25837d19d7ad864961c805922874f66a3a9034cc526d009bc05f421c4cdd6a1",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-truncated-60",
+    "target": "opc",
+    "seed": 20,
+    "input_sha256": "938764982e793d99820a984dbd84cdb57b0ab3cf5448fbae542ac3e655154830",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-truncated-61",
+    "target": "import",
+    "seed": 20,
+    "input_sha256": "938764982e793d99820a984dbd84cdb57b0ab3cf5448fbae542ac3e655154830",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-truncated-62",
+    "target": "roundtrip",
+    "seed": 20,
+    "input_sha256": "938764982e793d99820a984dbd84cdb57b0ab3cf5448fbae542ac3e655154830",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-unknown-binary-63",
+    "target": "opc",
+    "seed": 21,
+    "input_sha256": "2d3a307d4ad35885b40c8ce068069cf368125e6058150dba07ca1ed363ed9e2d",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-unknown-binary-64",
+    "target": "import",
+    "seed": 21,
+    "input_sha256": "2d3a307d4ad35885b40c8ce068069cf368125e6058150dba07ca1ed363ed9e2d",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-unknown-binary-65",
+    "target": "roundtrip",
+    "seed": 21,
+    "input_sha256": "2d3a307d4ad35885b40c8ce068069cf368125e6058150dba07ca1ed363ed9e2d",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-unknown-compression-66",
+    "target": "opc",
+    "seed": 22,
+    "input_sha256": "641ec8a347add5d618e2b55df7bb592817a10844b8caa51793e22319201ee128",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-unknown-compression-67",
+    "target": "import",
+    "seed": 22,
+    "input_sha256": "641ec8a347add5d618e2b55df7bb592817a10844b8caa51793e22319201ee128",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-unknown-compression-68",
+    "target": "roundtrip",
+    "seed": 22,
+    "input_sha256": "641ec8a347add5d618e2b55df7bb592817a10844b8caa51793e22319201ee128",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-unknown-namespace-69",
+    "target": "opc",
+    "seed": 23,
+    "input_sha256": "273bb0430e4dfcc67b354f0c40265f3b2aaaedbc0348924e5e916bcc50ba82f4",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-unknown-namespace-70",
+    "target": "import",
+    "seed": 23,
+    "input_sha256": "273bb0430e4dfcc67b354f0c40265f3b2aaaedbc0348924e5e916bcc50ba82f4",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-unknown-namespace-71",
+    "target": "roundtrip",
+    "seed": 23,
+    "input_sha256": "273bb0430e4dfcc67b354f0c40265f3b2aaaedbc0348924e5e916bcc50ba82f4",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-xml-depth-72",
+    "target": "opc",
+    "seed": 24,
+    "input_sha256": "9e9b196f4e557061e00c45380fbb122c1bbc8dc491a7bb8f5054e40b16f5b6b5",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-xml-depth-73",
+    "target": "import",
+    "seed": 24,
+    "input_sha256": "9e9b196f4e557061e00c45380fbb122c1bbc8dc491a7bb8f5054e40b16f5b6b5",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-xml-depth-74",
+    "target": "roundtrip",
+    "seed": 24,
+    "input_sha256": "9e9b196f4e557061e00c45380fbb122c1bbc8dc491a7bb8f5054e40b16f5b6b5",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-xml-entity-75",
+    "target": "opc",
+    "seed": 25,
+    "input_sha256": "399a1358c34f72e2b881aaa30485f01de27dc09d07caf9cb8ba3329d44621fa5",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-xml-entity-76",
+    "target": "import",
+    "seed": 25,
+    "input_sha256": "399a1358c34f72e2b881aaa30485f01de27dc09d07caf9cb8ba3329d44621fa5",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-xml-entity-77",
+    "target": "roundtrip",
+    "seed": 25,
+    "input_sha256": "399a1358c34f72e2b881aaa30485f01de27dc09d07caf9cb8ba3329d44621fa5",
+    "class": "rejected",
+    "exit": 2
+  },
+  {
+    "case_id": "W09-xml-nodes-78",
+    "target": "opc",
+    "seed": 26,
+    "input_sha256": "b92f8c86fc693f964a05d5225338921585c86016836d043682d76a0a2c315ce7",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-xml-nodes-79",
+    "target": "import",
+    "seed": 26,
+    "input_sha256": "b92f8c86fc693f964a05d5225338921585c86016836d043682d76a0a2c315ce7",
+    "class": "ok",
+    "exit": 0
+  },
+  {
+    "case_id": "W09-xml-nodes-80",
+    "target": "roundtrip",
+    "seed": 26,
+    "input_sha256": "b92f8c86fc693f964a05d5225338921585c86016836d043682d76a0a2c315ce7",
+    "class": "ok",
+    "exit": 0
+  }
+]

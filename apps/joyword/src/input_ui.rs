@@ -8,7 +8,9 @@ use gpui::{
 use joyword_engine::Selection;
 use joyword_foundation::Emu;
 use joyword_model::{Bias, Position};
-use joyword_shell::input::{Direction, InputError};
+use joyword_shell::docx::BoundDocx;
+use joyword_shell::input::{Direction, InputError, TextInput};
+use joyword_shell::storage::SaveCopyReceipt;
 use std::ops::Range;
 
 pub const DOC_PAD: f32 = 32.0;
@@ -32,6 +34,186 @@ enum CloseDecision {
     Discard,
     AskAgain,
 }
+pub(crate) trait DocEditor {
+    fn has_unsaved_changes(&self) -> bool;
+    fn is_composing(&self) -> bool;
+    fn version(&self) -> u64;
+    fn view(&self) -> &joyword_shell::input::InputView;
+    fn can_undo(&self) -> bool;
+    fn can_redo(&self) -> bool;
+    fn read_only(&self) -> bool;
+    fn undo(&mut self) -> Result<(), InputError>;
+    fn redo(&mut self) -> Result<(), InputError>;
+    fn select_all(&mut self) -> Result<(), InputError>;
+    fn delete(&mut self, direction: Direction) -> Result<bool, InputError>;
+    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError>;
+    fn mark(
+        &mut self,
+        range: Option<Range<usize>>,
+        text: &str,
+        selected: Option<Range<usize>>,
+    ) -> Result<(), InputError>;
+    fn cancel_composition(&mut self) -> Result<bool, InputError>;
+    fn unmark(&mut self) -> Result<bool, InputError>;
+    fn move_grapheme(&mut self, direction: Direction, extend: bool) -> Result<(), InputError>;
+    fn select_positions(&mut self, selection: Selection) -> Result<(), InputError>;
+    fn select_word_at(&mut self, offset: usize) -> Result<(), InputError>;
+    fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError>;
+    fn source_path(&self) -> Option<&std::path::Path>;
+    fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String>;
+}
+
+impl DocEditor for TextInput<joyword_engine::Session> {
+    fn has_unsaved_changes(&self) -> bool {
+        TextInput::has_unsaved_changes(self)
+    }
+    fn is_composing(&self) -> bool {
+        TextInput::is_composing(self)
+    }
+    fn version(&self) -> u64 {
+        self.backend().version().get()
+    }
+    fn view(&self) -> &joyword_shell::input::InputView {
+        TextInput::view(self)
+    }
+    fn can_undo(&self) -> bool {
+        TextInput::can_undo(self)
+    }
+    fn can_redo(&self) -> bool {
+        TextInput::can_redo(self)
+    }
+    fn read_only(&self) -> bool {
+        TextInput::read_only(self)
+    }
+    fn undo(&mut self) -> Result<(), InputError> {
+        TextInput::undo(self)
+    }
+    fn redo(&mut self) -> Result<(), InputError> {
+        TextInput::redo(self)
+    }
+    fn select_all(&mut self) -> Result<(), InputError> {
+        TextInput::select_all(self)
+    }
+    fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
+        TextInput::delete(self, direction)
+    }
+    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
+        TextInput::replace(self, range, text)
+    }
+    fn mark(
+        &mut self,
+        range: Option<Range<usize>>,
+        text: &str,
+        selected: Option<Range<usize>>,
+    ) -> Result<(), InputError> {
+        TextInput::mark(self, range, text, selected)
+    }
+    fn cancel_composition(&mut self) -> Result<bool, InputError> {
+        TextInput::cancel_composition(self)
+    }
+    fn unmark(&mut self) -> Result<bool, InputError> {
+        TextInput::unmark(self)
+    }
+    fn move_grapheme(&mut self, direction: Direction, extend: bool) -> Result<(), InputError> {
+        TextInput::move_grapheme(self, direction, extend)
+    }
+    fn select_positions(&mut self, selection: Selection) -> Result<(), InputError> {
+        TextInput::select_positions(self, selection)
+    }
+    fn select_word_at(&mut self, offset: usize) -> Result<(), InputError> {
+        TextInput::select_word_at(self, offset)
+    }
+    fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError> {
+        TextInput::select_paragraph_at(self, offset)
+    }
+    fn source_path(&self) -> Option<&std::path::Path> {
+        None
+    }
+    fn save_copy(&self, _destination: &std::path::Path) -> Result<SaveCopyReceipt, String> {
+        Err("file.save_copy.unavailable".into())
+    }
+}
+
+impl DocEditor for TextInput<BoundDocx> {
+    fn has_unsaved_changes(&self) -> bool {
+        TextInput::has_unsaved_changes(self)
+    }
+    fn is_composing(&self) -> bool {
+        TextInput::is_composing(self)
+    }
+    fn version(&self) -> u64 {
+        self.backend().session().session().version().get()
+    }
+    fn view(&self) -> &joyword_shell::input::InputView {
+        TextInput::view(self)
+    }
+    fn can_undo(&self) -> bool {
+        TextInput::can_undo(self)
+    }
+    fn can_redo(&self) -> bool {
+        TextInput::can_redo(self)
+    }
+    fn read_only(&self) -> bool {
+        TextInput::read_only(self)
+    }
+    fn undo(&mut self) -> Result<(), InputError> {
+        TextInput::undo(self)
+    }
+    fn redo(&mut self) -> Result<(), InputError> {
+        TextInput::redo(self)
+    }
+    fn select_all(&mut self) -> Result<(), InputError> {
+        TextInput::select_all(self)
+    }
+    fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
+        TextInput::delete(self, direction)
+    }
+    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
+        TextInput::replace(self, range, text)
+    }
+    fn mark(
+        &mut self,
+        range: Option<Range<usize>>,
+        text: &str,
+        selected: Option<Range<usize>>,
+    ) -> Result<(), InputError> {
+        TextInput::mark(self, range, text, selected)
+    }
+    fn cancel_composition(&mut self) -> Result<bool, InputError> {
+        TextInput::cancel_composition(self)
+    }
+    fn unmark(&mut self) -> Result<bool, InputError> {
+        TextInput::unmark(self)
+    }
+    fn move_grapheme(&mut self, direction: Direction, extend: bool) -> Result<(), InputError> {
+        TextInput::move_grapheme(self, direction, extend)
+    }
+    fn select_positions(&mut self, selection: Selection) -> Result<(), InputError> {
+        TextInput::select_positions(self, selection)
+    }
+    fn select_word_at(&mut self, offset: usize) -> Result<(), InputError> {
+        TextInput::select_word_at(self, offset)
+    }
+    fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError> {
+        TextInput::select_paragraph_at(self, offset)
+    }
+    fn source_path(&self) -> Option<&std::path::Path> {
+        Some(self.backend().source_path())
+    }
+    fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String> {
+        self.backend()
+            .save_copy(destination)
+            .map_err(|error| error.to_string())
+    }
+}
+
+/// What to do after the user discards unsaved edits. Cancel keeps the session.
+#[derive(Clone, Copy)]
+enum AfterDiscard {
+    Close { quit: bool },
+    PickOpen,
+}
+
 fn close_decision(answer: Option<usize>, expected: u64, current: u64) -> CloseDecision {
     if answer != Some(1) {
         CloseDecision::Cancel
@@ -125,7 +307,7 @@ impl JoyWord {
                 if !view
                     .editor
                     .as_ref()
-                    .is_some_and(TextInput::has_unsaved_changes)
+                    .is_some_and(|editor| editor.has_unsaved_changes())
                 {
                     return true;
                 }
@@ -150,19 +332,84 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        self.confirm_if_dirty(AfterDiscard::Close { quit }, window, cx);
+    }
+    pub(crate) fn begin_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.confirm_if_dirty(AfterDiscard::PickOpen, window, cx);
+    }
+    pub(crate) fn begin_save_copy(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self
+            .editor
+            .as_ref()
+            .is_none_or(|editor| editor.source_path().is_none())
+        {
+            return;
+        }
+        let suggested = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.source_path())
+            .and_then(|path| path.file_name())
+            .and_then(|name| name.to_str())
+            .map(|name| format!("copy-{name}"));
+        let directory = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.source_path())
+            .and_then(|path| path.parent())
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_else(|| std::path::PathBuf::from("."));
+        let receiver = cx.prompt_for_new_path(&directory, suggested.as_deref());
+        self.close_task = Some(cx.spawn_in(window, async move |view, cx| {
+            let picked = receiver.await.ok().and_then(Result::ok).flatten();
+            let Some(path) = picked else {
+                return;
+            };
+            let _ = view.update(cx, |view, cx| {
+                let saved = view.editor.as_ref().and_then(|editor| {
+                    editor
+                        .source_path()
+                        .is_some()
+                        .then(|| editor.save_copy(&path))
+                });
+                let Some(saved) = saved else {
+                    return;
+                };
+                match saved {
+                    Ok(receipt) => {
+                        let shown = receipt.path().display().to_string();
+                        view.copy_note = Some(
+                            Catalog::shipped(view.locale)
+                                .format("file.copy.saved", &[("path", &shown)]),
+                        );
+                        view.input_error = None;
+                    }
+                    Err(error) => {
+                        view.input_error = Some(
+                            Catalog::shipped(view.locale)
+                                .format("file.copy.error", &[("reason", &error)]),
+                        );
+                    }
+                }
+                cx.notify();
+            });
+        }));
+    }
+    fn confirm_if_dirty(
+        &mut self,
+        then: AfterDiscard,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if self.close_pending {
             return;
         }
         self.cancel_preedit(cx);
         let Some(editor) = self.editor.as_ref().filter(|e| e.has_unsaved_changes()) else {
-            if quit {
-                cx.quit();
-            } else {
-                window.remove_window();
-            }
+            self.finish_discard(then, window, cx);
             return;
         };
-        let expected = editor.backend().version().get();
+        let expected = editor.version();
         self.close_pending = true;
         let catalog = Catalog::shipped(self.locale);
         let message = catalog.format("close.unsaved", &[("title", "JoyWord")]);
@@ -183,32 +430,100 @@ impl JoyWord {
                 let Some(editor) = &view.editor else {
                     return;
                 };
-                match close_decision(answer, expected, editor.backend().version().get()) {
+                match close_decision(answer, expected, editor.version()) {
                     CloseDecision::Cancel => {
                         window.focus(&view.focus_handle);
                         cx.notify();
                     }
-                    CloseDecision::AskAgain => view.request_close(quit, window, cx),
-                    CloseDecision::Discard => {
-                        if quit {
-                            cx.quit();
-                        } else {
-                            window.remove_window();
-                        }
-                    }
+                    CloseDecision::AskAgain => view.confirm_if_dirty(then, window, cx),
+                    CloseDecision::Discard => view.finish_discard(then, window, cx),
                 }
             });
         }));
     }
-    fn apply_input<R>(
+    fn finish_discard(&mut self, then: AfterDiscard, window: &mut Window, cx: &mut Context<Self>) {
+        match then {
+            AfterDiscard::Close { quit } => {
+                if quit {
+                    cx.quit();
+                } else {
+                    window.remove_window();
+                }
+            }
+            AfterDiscard::PickOpen => self.pick_open(cx),
+        }
+    }
+    fn pick_open(&mut self, cx: &mut Context<Self>) {
+        let receiver = cx.prompt_for_paths(gpui::PathPromptOptions {
+            files: true,
+            directories: false,
+            multiple: false,
+            prompt: None,
+        });
+        self.close_task = Some(cx.spawn(async move |view, cx| {
+            let picked = receiver
+                .await
+                .ok()
+                .and_then(Result::ok)
+                .flatten()
+                .and_then(|mut paths| paths.pop());
+            let Some(path) = picked else {
+                return;
+            };
+            let current = view
+                .update(cx, |view, _cx| {
+                    view.editor
+                        .as_ref()
+                        .and_then(|editor| editor.source_path().map(std::path::Path::to_path_buf))
+                })
+                .ok()
+                .flatten();
+            if let Some(current) = current.as_deref()
+                && path.canonicalize().ok().as_deref() == Some(current)
+            {
+                return;
+            }
+            let opened = cx
+                .background_spawn(async move { BoundDocx::open_default(&path) })
+                .await;
+            let _ = view.update(cx, |view, cx| {
+                match opened {
+                    Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
+                        Ok(input) => {
+                            view.drop_frame(cx);
+                            view.editor = Some(Box::new(input));
+                            view.copy_note = None;
+                            view.input_error = None;
+                            view.preferred_x = None;
+                            view.reveal_pending = true;
+                        }
+                        Err(error) => {
+                            view.input_error = Some(view.label(input_error_label(&error)));
+                        }
+                    },
+                    Err(error) => {
+                        view.input_error = Some(
+                            Catalog::shipped(view.locale)
+                                .format("file.open.error", &[("reason", &error.to_string())]),
+                        );
+                    }
+                }
+                cx.notify();
+            });
+        }));
+    }
+    fn apply_input(
         &mut self,
         cx: &mut Context<Self>,
-        f: impl FnOnce(&mut TextInput) -> Result<R, InputError>,
+        f: impl FnOnce(&mut dyn DocEditor) -> Result<(), InputError>,
     ) {
         let Some(editor) = &mut self.editor else {
             return;
         };
-        let result = f(editor);
+        let result = f(editor.as_mut());
+        if result.is_ok() {
+            self.copy_note = None;
+        }
         self.input_error = result
             .err()
             .map(|error| self.label(input_error_label(&error)));
@@ -230,11 +545,26 @@ impl JoyWord {
     }
     fn cancel_preedit(&mut self, cx: &mut Context<Self>) {
         self.dragging = false;
-        if self.editor.as_ref().is_some_and(TextInput::is_composing) {
-            self.apply_input(cx, TextInput::cancel_composition);
+        if self
+            .editor
+            .as_ref()
+            .is_some_and(|editor| editor.is_composing())
+        {
+            self.apply_input(cx, |editor| editor.cancel_composition().map(|_| ()));
         }
     }
     pub(crate) fn input_availability(&self, id: CommandId) -> Availability {
+        if id == FILE_SAVE_COPY {
+            return if self
+                .editor
+                .as_ref()
+                .is_some_and(|editor| editor.source_path().is_some())
+            {
+                Availability::Enabled
+            } else {
+                Availability::Disabled("file.save_copy.unavailable")
+            };
+        }
         if !id.0.starts_with("edit.") {
             return Availability::Enabled;
         }
@@ -270,13 +600,17 @@ impl JoyWord {
     ) -> Result<(), String> {
         self.input_error = None;
         match id {
-            EDIT_UNDO => self.apply_input(cx, TextInput::undo),
-            EDIT_REDO => self.apply_input(cx, TextInput::redo),
-            EDIT_SELECT_ALL => self.apply_input(cx, TextInput::select_all),
-            EDIT_BACKSPACE => self.apply_input(cx, |e| e.delete(Direction::Backward)),
-            EDIT_DELETE => self.apply_input(cx, |e| e.delete(Direction::Forward)),
-            EDIT_ENTER => self.apply_input(cx, |e| e.replace(None, "\n")),
-            EDIT_CANCEL => self.apply_input(cx, TextInput::cancel_composition),
+            EDIT_UNDO => self.apply_input(cx, |editor| editor.undo()),
+            EDIT_REDO => self.apply_input(cx, |editor| editor.redo()),
+            EDIT_SELECT_ALL => self.apply_input(cx, |editor| editor.select_all()),
+            EDIT_BACKSPACE => {
+                self.apply_input(cx, |editor| editor.delete(Direction::Backward).map(|_| ()))
+            }
+            EDIT_DELETE => {
+                self.apply_input(cx, |editor| editor.delete(Direction::Forward).map(|_| ()))
+            }
+            EDIT_ENTER => self.apply_input(cx, |editor| editor.replace(None, "\n").map(|_| ())),
+            EDIT_CANCEL => self.apply_input(cx, |editor| editor.cancel_composition().map(|_| ())),
             EDIT_LEFT | EDIT_RIGHT | EDIT_EXTEND_LEFT | EDIT_EXTEND_RIGHT => {
                 let direction = if id == EDIT_LEFT || id == EDIT_EXTEND_LEFT {
                     Direction::Backward
@@ -297,7 +631,11 @@ impl JoyWord {
         }
     }
     fn move_visual(&mut self, id: CommandId, cx: &mut Context<Self>) {
-        if self.editor.as_ref().is_some_and(TextInput::is_composing) {
+        if self
+            .editor
+            .as_ref()
+            .is_some_and(|editor| editor.is_composing())
+        {
             return;
         }
         let Some(editor) = &self.editor else {
@@ -378,6 +716,9 @@ impl JoyWord {
         }
         if self.frame.is_some() && self.ready_frame().is_none() {
             return self.label("input.layout_pending");
+        }
+        if let Some(note) = &self.copy_note {
+            return note.clone();
         }
         if let Some(editor) = &self.editor {
             if editor.is_composing() {
@@ -498,8 +839,12 @@ impl JoyWord {
         if self.hit(point, extend).is_none() {
             return;
         }
-        if self.editor.as_ref().is_some_and(TextInput::is_composing) {
-            self.apply_input(cx, TextInput::unmark);
+        if self
+            .editor
+            .as_ref()
+            .is_some_and(|editor| editor.is_composing())
+        {
+            self.apply_input(cx, |editor| editor.unmark().map(|_| ()));
         }
         let Some(head) = self.hit(point, extend) else {
             return;
@@ -695,7 +1040,7 @@ impl EntityInputHandler for JoyWord {
         self.editor.as_ref()?.view().marked_range()
     }
     fn unmark_text(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        self.apply_input(cx, TextInput::unmark);
+        self.apply_input(cx, |editor| editor.unmark().map(|_| ()));
         window.invalidate_character_coordinates();
     }
     fn replace_text_in_range(
@@ -705,7 +1050,7 @@ impl EntityInputHandler for JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        self.apply_input(cx, |e| e.replace(range, text));
+        self.apply_input(cx, |e| e.replace(range, text).map(|_| ()));
         window.invalidate_character_coordinates();
     }
     fn replace_and_mark_text_in_range(

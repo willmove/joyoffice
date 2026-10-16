@@ -11,30 +11,31 @@
 //! W07 adds the original-file pipeline: [`open_source`] captures a bounded
 //! read with an unforgeable [`SourceStamp`], [`check_source`] prechecks
 //! conflicts (locks, retargeting, identity, exact bytes), and
-//! [`save_original`] re-verifies everything, requires the plan to originate
-//! byte-exactly from the stamp's package, and replaces the original only
-//! where every metadata item of that file is reproduced or provably absent
-//! (macOS in this build; other platforms refuse before writing). Refusals
-//! leave `save_export_copy` as the verified fallback.
+//! [`save_original`] re-verifies conflicts, then requires
+//! `ExportPlan::origin_bytes` to equal the stamped package.
+//! [`save_original_with_lock_token`] skips only the JoyWord lock whose
+//! contents equal the caller's token; it does not delete that file.
+//! Metadata that this build cannot preserve still refuses before any write. The Unix
+//! replace strategy itself (temporary file, sync, read-back, backup hard
+//! link, rename) lives behind that gate. `save_export_copy` remains the
+//! verified fallback when replacement is refused.
 
 mod error;
 mod locks;
-#[cfg(target_os = "macos")]
-mod observe;
 mod original;
-#[cfg(unix)]
-mod publish;
 mod source;
 
 pub use error::{
-    ConflictDetail, LockKind, LockState, MetadataItem, Publication, ReplaceStage,
-    ReplacementBlocker, SaveOriginalError, SourceStage,
+    ConflictDetail, LockKind, LockState, MetadataItem, ReplacementBlocker, SaveOriginalError,
+    SourceStage,
 };
 pub use original::{
     MetadataCapability, OriginalDurability, OriginalReplacementCapabilities, SaveOriginalReceipt,
-    original_replacement_capabilities, save_original,
+    original_replacement_capabilities, save_original, save_original_with_lock_token,
 };
-pub use source::{OpenedSource, SourceStamp, check_source, open_source};
+pub use source::{
+    OpenedSource, SourceStamp, check_source, check_source_with_lock_token, open_source,
+};
 
 use std::fmt;
 use std::fs::{self, File};
@@ -216,7 +217,7 @@ fn save_copy_inner(
         .and_then(|_| temporary.as_file().sync_all())
         .map_err(|e| fail(SaveCopyStage::SyncFile, e, None))?;
     before(SaveCopyStage::Verify, temporary.path())
-        .and_then(|_| verify(temporary.as_file_mut(), plan.bytes()))
+        .and_then(|_| verify_bytes(temporary.as_file_mut(), plan.bytes()))
         .map_err(|e| fail(SaveCopyStage::Verify, e, None))?;
     // The OS operation itself refuses an existing target, including one
     // created after the initial check. No check-then-truncate race.
@@ -245,7 +246,7 @@ fn save_copy_inner(
     })
 }
 
-fn verify(file: &mut File, expected: &[u8]) -> io::Result<()> {
+pub(crate) fn verify_bytes(file: &mut File, expected: &[u8]) -> io::Result<()> {
     if file.metadata()?.len() != expected.len() as u64 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -275,11 +276,11 @@ fn verify(file: &mut File, expected: &[u8]) -> io::Result<()> {
 }
 
 #[cfg(unix)]
-fn sync_directory(parent: &Path) -> io::Result<()> {
+pub(crate) fn sync_directory(parent: &Path) -> io::Result<()> {
     File::open(parent)?.sync_all()
 }
 #[cfg(not(unix))]
-fn sync_directory(_: &Path) -> io::Result<()> {
+pub(crate) fn sync_directory(_: &Path) -> io::Result<()> {
     Ok(())
 }
 

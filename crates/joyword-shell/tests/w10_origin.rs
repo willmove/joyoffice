@@ -1,8 +1,6 @@
 //! W10: a real open → edit → `export_plan` chain exposes the backing bytes
 //! through `origin_bytes`. `save_export_copy` still publishes the plan output.
-//! A bound plan is no longer refused for its origin by `save_original`; where
-//! replacement is implemented (macOS) it is published, elsewhere metadata
-//! blockers still refuse it before writing.
+//! `save_original` still refuses; this task does not implement replacement.
 
 use std::fs;
 use std::path::PathBuf;
@@ -125,7 +123,7 @@ fn open_source_bytes_round_trip_into_the_plan_origin() {
 }
 
 #[test]
-fn save_export_copy_writes_output_and_origin_no_longer_blocks_save_original() {
+fn save_export_copy_writes_output_and_save_original_still_refuses() {
     let bytes = package("副本");
     let dir = tempfile::tempdir().unwrap();
     let source = dir.path().join("source.docx");
@@ -144,32 +142,16 @@ fn save_export_copy_writes_output_and_origin_no_longer_blocks_save_original() {
     assert_eq!(plan.origin_bytes(), Some(bytes.as_slice()));
 
     let stamp = opened.into_stamp();
-    let result = save_original(&plan, &stamp);
-    if cfg!(target_os = "macos") {
-        result.expect("a bound plan replaces a plain macOS source");
-        assert_eq!(fs::read(&source).unwrap(), plan.bytes());
-    } else {
-        let error = result.unwrap_err();
-        let blockers = error.blockers().expect("metadata still blocks here");
-        assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
-        assert_eq!(fs::read(&source).unwrap(), bytes);
-    }
+    let error = save_original(&plan, &stamp).unwrap_err();
+    let blockers = error.blockers().expect("replacement still blocked");
+    assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
+    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+        joyword_shell::storage::MetadataItem::Acl
+    )));
+    assert_eq!(fs::read(&source).unwrap(), bytes);
     assert_eq!(
         fs::read_dir(dir.path()).unwrap().count(),
         2,
-        "no temporary or backup file may remain beside source and copy"
-    );
-
-    // A plan from another package is still refused for its origin.
-    let other = edited_session(&package("别处")).export_plan().unwrap();
-    let current = open_source(&source, &Budget::default())
-        .unwrap()
-        .into_stamp();
-    let error = save_original(&other, &current).unwrap_err();
-    assert!(
-        error
-            .blockers()
-            .unwrap()
-            .contains(&ReplacementBlocker::OriginBindingUnproven)
+        "refusal must not leave a temporary file beside source and copy"
     );
 }

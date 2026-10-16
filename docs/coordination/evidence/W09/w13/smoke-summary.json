@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "target_sha": "01604919f89e84e9bf5e1039ac5a4290fbcbef05",
+  "harness_git_sha": "0e22a294767b3665c08b905997c0477aae75007f",
+  "harness_binary_sha256": "d36ad50f42e6eaa4ec5b23dd7e086cee05bb8fff5dfcc999f6eba1186ea8d649",
+  "harness_worktree_dirty": false,
+  "os": "Linux-6.12.94+-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "memory_limit": {
+    "enforced": true,
+    "probe_exit": 0,
+    "reason": "64 MiB address-space probe; virtual space, not RSS"
+  },
+  "process_tree_timeout_kill": "process group",
+  "coverage_feedback": false,
+  "campaign_seed": 20261015,
+  "requested_runs": 81,
+  "requested_seconds": 120,
+  "executed": 81,
+  "counts": {
+    "ok": 43,
+    "rejected": 38
+  },
+  "elapsed_seconds": 0.5058388540001033,
+  "timeout_seconds": 3,
+  "effective_address_space_mib": 512,
+  "aggregate_children_peak_rss_bytes": 45768704,
+  "peak_scope": "OS cumulative maximum across child processes; includes capability probe, not per-case"
+}

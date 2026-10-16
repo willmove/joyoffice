@@ -213,9 +213,10 @@ fn refused_structure_edits_leave_session_and_backing_untouched() {
     );
     for (body, offset, expected) in [
         (
-            r#"<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>粗体</w:t></w:r></w:p>"#.to_owned(),
+            r#"<w:p><w:r><w:rPr><w:highlight w:val="yellow"/></w:rPr><w:t>高亮</w:t></w:r></w:p>"#
+                .to_owned(),
             1,
-            "paragraph structure edits require default paragraph and character properties",
+            "paragraph holds preserved markup",
         ),
         (section, 2, "paragraph ends a section"),
         (
@@ -255,7 +256,8 @@ fn corpus_fixtures_split_only_where_supported() {
     caret(&mut input, 4);
     input.replace(None, "\n").unwrap();
     check(&input, "合作协议\n：甲方与乙方于 2026 年签署。");
-    // DOCX-MIN-002: a styled heading and a plain paragraph.
+    // DOCX-MIN-002: the heading's only property is a mapped pStyle, so W12
+    // copies it onto the new paragraph. The following plain paragraph splits too.
     let mut input = open(&fixture(2));
     let heading = utf16("第一条 合作内容");
     caret(&mut input, heading + 3);
@@ -263,7 +265,7 @@ fn corpus_fixtures_split_only_where_supported() {
     check(&input, "第一条 合作内容\n甲方\n委托乙方完成设计服务。");
     caret(&mut input, 2);
     input.replace(None, "\n").unwrap();
-    assert!(matches!(plan(&input), Err(ExportError::Unsupported { .. })));
+    check(&input, "第一\n条 合作内容\n甲方\n委托乙方完成设计服务。");
     // DOCX-MIN-003/004/005 hold unknown, linked or protected content and
     // open read-only; nothing can be split.
     for id in [3, 4, 5] {
