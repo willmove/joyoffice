@@ -25,6 +25,10 @@ fn fixture(id: u8) -> Vec<u8> {
 }
 
 fn edited_plan(id: u8) -> ExportPlan {
+    edited_plan_with(id, "安全保存🙂 ")
+}
+
+fn edited_plan_with(id: u8, text: &str) -> ExportPlan {
     let mut session = DocxSession::open(&fixture(id), &Budget::default()).unwrap();
     let document = session.session().document();
     let at = Position {
@@ -38,7 +42,7 @@ fn edited_plan(id: u8) -> ExportPlan {
             session.session().version(),
             vec![Command::InsertText {
                 at,
-                text: "安全保存🙂 ".into(),
+                text: text.into(),
             }],
         ))
         .unwrap();
@@ -78,10 +82,12 @@ fn replacement_is_refused_with_durable_blockers_and_zero_side_effects() {
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
         MetadataItem::ProvenanceMarks
     )));
-    assert!(
+    // macOS restores and verifies the creation time; elsewhere it blocks.
+    assert_eq!(
         blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::CreationTime
-        ))
+        )),
+        !cfg!(target_os = "macos")
     );
     let after = fs::metadata(&path).unwrap();
     assert_eq!(before.modified().unwrap(), after.modified().unwrap());
@@ -176,4 +182,72 @@ fn stamp_bytes_reopen_as_a_real_docx_session() {
     let opened = open_source(&path, &Budget::default()).unwrap();
     let session = DocxSession::open(opened.bytes(), &Budget::default()).unwrap();
     assert_eq!(session.backing().original_bytes(), bytes.as_slice());
+}
+
+#[test]
+fn a_plan_from_an_older_version_of_the_same_file_is_refused() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+    let old = open_source(&path, &Budget::default()).unwrap();
+    let plan = edited_plan(1);
+    assert_eq!(plan.origin_bytes(), Some(old.bytes()));
+    // Another application saves a new version of the file.
+    let other_save = edited_plan_with(1, "another editor ").bytes().to_vec();
+    assert_ne!(other_save, bytes);
+    fs::write(&path, &other_save).unwrap();
+    // The old stamp sees the change; a fresh stamp sees another package.
+    assert!(
+        save_original(&plan, old.stamp())
+            .unwrap_err()
+            .conflict()
+            .is_some()
+    );
+    let fresh = open_source(&path, &Budget::default()).unwrap().into_stamp();
+    assert!(
+        save_original(&plan, &fresh)
+            .unwrap_err()
+            .is_origin_mismatch()
+    );
+    assert_untouched(&path, &other_save, 1);
+}
+
+#[test]
+fn a_read_only_source_is_not_replaced() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+    let writable = fs::metadata(&path).unwrap().permissions();
+    let mut permissions = writable.clone();
+    permissions.set_readonly(true);
+    fs::set_permissions(&path, permissions).unwrap();
+    let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
+    let error = save_original(&edited_plan(1), &stamp).unwrap_err();
+    assert!(
+        error
+            .blockers()
+            .unwrap()
+            .contains(&ReplacementBlocker::ReadOnlySource)
+    );
+    assert_untouched(&path, &bytes, 1);
+    // Let the temporary directory be removed everywhere.
+    fs::set_permissions(&path, writable).unwrap();
+}
+
+#[test]
+fn a_plan_larger_than_the_stamp_read_budget_is_refused_before_writing() {
+    let dir = tempfile::tempdir().unwrap();
+    let (path, bytes) = write_source(dir.path(), "report.docx", 1);
+    let plan = edited_plan(1);
+    assert!(plan.bytes().len() > bytes.len());
+    let tight = Budget {
+        max_total_bytes: bytes.len() as u64,
+        ..Budget::default()
+    };
+    let stamp = open_source(&path, &tight).unwrap().into_stamp();
+    let error = save_original(&plan, &stamp).unwrap_err();
+    assert_eq!(error.stage(), Some(SourceStage::Validate));
+    assert_eq!(
+        error.io_error().map(|e| e.kind()),
+        Some(std::io::ErrorKind::FileTooLarge)
+    );
+    assert_untouched(&path, &bytes, 1);
 }

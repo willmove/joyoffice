@@ -88,17 +88,19 @@ fn matching_origin_still_refuses_unpreservable_metadata_before_any_write() {
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
         MetadataItem::ProvenanceMarks
     )));
-    assert!(
+    // macOS restores and verifies the creation time, Unix the owner and
+    // group; the unobservable items above still block everywhere.
+    assert_eq!(
         blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::CreationTime
-        ))
+        )),
+        !cfg!(target_os = "macos")
     );
-    assert!(
-        blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
+    assert_eq!(
+        blockers.contains(&ReplacementBlocker::UnobservableMetadata(
             MetadataItem::Ownership
-        )) || blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-            MetadataItem::Ownership
-        ))
+        )),
+        !cfg!(unix)
     );
     assert!(error.published().is_none());
     assert_eq!(fs::read(&path).unwrap(), bytes);

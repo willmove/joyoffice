@@ -5,8 +5,10 @@
 //! the stamped package bytes. A missing origin or a different package refuses
 //! before any write. Metadata this build cannot preserve still refuses before
 //! any write as well: the Unix replace steps below run only when that list is
-//! empty. `save_original_with_lock_token` can skip the caller's own JoyWord
-//! lock and then hits the same checks. `save_export_copy` stays the verified fallback.
+//! empty. Those steps end by reading the renamed file back; only that read
+//! produces the receipt and its refreshed stamp. `save_original_with_lock_token`
+//! can skip the caller's own JoyWord lock and then hits the same checks.
+//! `save_export_copy` stays the verified fallback.
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -21,10 +23,10 @@ use joyword_model::DocumentVersion;
 
 use super::error::{MetadataItem, ReplacementBlocker, SaveOriginalError, SourceStage};
 #[cfg(unix)]
-use super::source::SourceIdentity;
+use super::source::{SourceIdentity, confirm_published};
 use super::source::{SourceStamp, check_source_with_lock_token};
 #[cfg(unix)]
-use super::{sync_directory, verify_bytes};
+use super::{locks, sync_directory, verify_bytes};
 
 /// Persistence state of a completed original replacement. Reused from the
 /// C03 copy path: `FileSynced` means the published file accepted a sync;
@@ -33,14 +35,17 @@ use super::{sync_directory, verify_bytes};
 pub type OriginalDurability = super::CopyDurability;
 
 /// Receipt for a completed original replacement. It can only be produced by
-/// the real replacement write path; while that path is unavailable
-/// `save_original` never constructs one, and an error after publication must
-/// carry the receipt instead of pretending nothing was written.
+/// the real replacement write path after reading the renamed file back: its
+/// stamp holds the identity and bytes of that read, never values copied from
+/// the plan. An error after publication must carry the receipt instead of
+/// pretending nothing was written.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SaveOriginalReceipt {
     path: PathBuf,
     version: DocumentVersion,
     durability: OriginalDurability,
+    // Boxed so errors that carry a receipt stay small.
+    stamp: Box<SourceStamp>,
 }
 
 impl SaveOriginalReceipt {
@@ -53,17 +58,32 @@ impl SaveOriginalReceipt {
     pub fn durability(&self) -> OriginalDurability {
         self.durability
     }
+    /// Length of the published file as read back.
+    pub fn bytes(&self) -> u64 {
+        self.stamp.len()
+    }
+    /// Stamp of the published file, from its read-back. Later checks and
+    /// saves of this file must use it: the stamp passed to `save_original`
+    /// now describes the replaced object.
+    pub fn stamp(&self) -> &SourceStamp {
+        &self.stamp
+    }
+    pub fn into_stamp(self) -> SourceStamp {
+        *self.stamp
+    }
 }
 
 /// What this build can do with one metadata aspect of a source file.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MetadataCapability {
-    /// Observable, and an approved write path (`std::fs::set_permissions`
-    /// or the platform read-only attribute) can restore it on a new inode.
-    /// This is a statement about capability, not an executed replacement.
+    /// Observable, and an approved `std` write path restores it on the new
+    /// inode, where the replace steps verify it before and after the rename.
+    /// A value the process may not apply (an owner it cannot give a file to)
+    /// is refused before publication. This is a statement about capability,
+    /// not an executed replacement.
     Preservable,
-    /// Observable, but no approved dependency can restore it (ownership,
-    /// creation time); replacement is refused.
+    /// Observable, but no approved dependency can restore it; replacement is
+    /// refused.
     ObservableNotPreservable,
     /// Not even observable with approved dependencies (ACLs, extended
     /// attributes, provenance marks), so silent loss could not be detected;
@@ -86,19 +106,26 @@ pub struct OriginalReplacementCapabilities {
 }
 
 /// The capability matrix of this build. `std`-only, safe Rust, no new
-/// dependencies: permission bits are the only preservable item; ACLs,
-/// extended attributes and provenance marks are not even observable, which
-/// is why original replacement refuses rather than risking silent loss.
+/// dependencies: permission bits and, on Unix, owner and group (`fchown`)
+/// are preservable, as is the creation time on macOS
+/// (`FileTimesExt::set_created`). ACLs, extended attributes and provenance
+/// marks are not even observable, which is why original replacement refuses
+/// rather than risking silent loss. `std::fs::copy` is not a way around
+/// that: on macOS its clone path dropped an ACL and its copyfile path
+/// rewrote the quarantine value and creation time (W07 follow-up report).
 /// Windows entries describe the compiled target, not a tested one.
 pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
     OriginalReplacementCapabilities {
         permissions: MetadataCapability::Preservable,
         #[cfg(unix)]
-        ownership: MetadataCapability::ObservableNotPreservable,
+        ownership: MetadataCapability::Preservable,
         #[cfg(not(unix))]
         ownership: MetadataCapability::Unobservable,
         acl: MetadataCapability::Unobservable,
         extended_attributes: MetadataCapability::Unobservable,
+        #[cfg(target_os = "macos")]
+        creation_time: MetadataCapability::Preservable,
+        #[cfg(not(target_os = "macos"))]
         creation_time: MetadataCapability::ObservableNotPreservable,
         links: MetadataCapability::ObservableNotPreservable,
         provenance_marks: MetadataCapability::Unobservable,
@@ -107,9 +134,12 @@ pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
 
 /// Metadata blockers for this source. Origin binding is not one of them:
 /// `save_original` compares `origin_bytes()` with the stamp separately.
-fn replacement_blockers(source: &SourceStamp) -> Vec<ReplacementBlocker> {
+fn replacement_blockers(source: &SourceStamp, read_only: bool) -> Vec<ReplacementBlocker> {
     let caps = original_replacement_capabilities();
     let mut blockers = Vec::new();
+    if read_only {
+        blockers.push(ReplacementBlocker::ReadOnlySource);
+    }
     for (item, capability) in [
         (MetadataItem::Permissions, caps.permissions),
         (MetadataItem::Ownership, caps.ownership),
@@ -193,6 +223,17 @@ fn save_original_inner(
             ),
         ));
     }
+    // The published file is read back under the stamp's cap.
+    if plan.bytes().len() as u64 > source.budget_limit() {
+        return Err(SaveOriginalError::io(
+            SourceStage::Validate,
+            path,
+            io::Error::new(
+                io::ErrorKind::FileTooLarge,
+                "export plan exceeds the source read budget",
+            ),
+        ));
+    }
     // Full re-verification inside this call; earlier check_source passes are
     // not treated as an atomic compare-and-swap against later races.
     check_source_with_lock_token(source, owner_token)?;
@@ -210,7 +251,11 @@ fn save_original_inner(
         }
         Some(_) => {}
     }
-    let blockers = replacement_blockers(source);
+    let read_only = std::fs::metadata(path)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Stat, path, e))?
+        .permissions()
+        .readonly();
+    let blockers = replacement_blockers(source, read_only);
     if !blockers.is_empty() {
         return Err(SaveOriginalError::ReplacementUnavailable {
             path: path.to_path_buf(),
@@ -220,7 +265,7 @@ fn save_original_inner(
     // Metadata blockers are non-empty on every current target, so this call
     // is the reviewed strategy for a later matrix that can actually clear
     // them. It is not a successful save today.
-    publish_original(plan, source, before)
+    publish_original(plan, source, owner_token, before)
 }
 
 /// Same-directory replace. Callers must already have proved origin equality
@@ -229,15 +274,16 @@ fn save_original_inner(
 fn publish_original(
     plan: &ExportPlan,
     source: &SourceStamp,
+    owner_token: Option<&str>,
     before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
 ) -> Result<SaveOriginalReceipt, SaveOriginalError> {
     #[cfg(unix)]
     {
-        publish_original_unix(plan, source, before)
+        publish_original_unix(plan, source, owner_token, before)
     }
     #[cfg(not(unix))]
     {
-        let _ = (plan, before);
+        let _ = (plan, owner_token, before);
         Err(SaveOriginalError::ReplacementUnavailable {
             path: source.path().to_path_buf(),
             blockers: vec![ReplacementBlocker::AtomicReplaceUnverified],
@@ -245,10 +291,91 @@ fn publish_original(
     }
 }
 
+/// Metadata the replacement must carry, from the verified source.
+#[cfg(unix)]
+struct Expected {
+    mode: u32,
+    uid: u32,
+    gid: u32,
+    #[cfg(target_os = "macos")]
+    created: Option<std::time::SystemTime>,
+}
+
+#[cfg(unix)]
+impl Expected {
+    /// Mode, owner and group from the stamp, which `check_source` just
+    /// matched against the disk; the creation time from the same file now.
+    /// Later changes to any of them move the status-change time, which the
+    /// check before the backup compares against the stamp.
+    fn of(source: &SourceStamp) -> io::Result<Self> {
+        let unix = source.identity().unix();
+        #[cfg(target_os = "macos")]
+        let created = fs::metadata(source.path())?.created().ok();
+        Ok(Self {
+            mode: unix.mode() & 0o777,
+            uid: unix.uid(),
+            gid: unix.gid(),
+            #[cfg(target_os = "macos")]
+            created,
+        })
+    }
+
+    /// First item `metadata` does not carry as expected.
+    fn mismatch(&self, metadata: &fs::Metadata) -> Option<MetadataItem> {
+        use std::os::unix::fs::MetadataExt;
+        if metadata.uid() != self.uid || metadata.gid() != self.gid {
+            return Some(MetadataItem::Ownership);
+        }
+        if metadata.mode() & 0o777 != self.mode {
+            return Some(MetadataItem::Permissions);
+        }
+        if metadata.nlink() != 1 {
+            return Some(MetadataItem::Links);
+        }
+        #[cfg(target_os = "macos")]
+        if self.created.is_some() && metadata.created().ok() != self.created {
+            return Some(MetadataItem::CreationTime);
+        }
+        None
+    }
+
+    /// Apply owner and group (only when they differ), then permission bits
+    /// (an owner change may clear them), then the creation time. An owner
+    /// the process may not give the file to is a refusal, not an IO error.
+    fn restore(&self, file: &File, target: &Path) -> Result<(), SaveOriginalError> {
+        use std::os::unix::fs::{MetadataExt, PermissionsExt};
+        let fail = |e| SaveOriginalError::io(SourceStage::RestorePermissions, target, e);
+        let current = file.metadata().map_err(fail)?;
+        if (current.uid(), current.gid()) != (self.uid, self.gid) {
+            std::os::unix::fs::fchown(file, Some(self.uid), Some(self.gid))
+                .map_err(|_| refuse(target, MetadataItem::Ownership))?;
+        }
+        file.set_permissions(fs::Permissions::from_mode(self.mode))
+            .map_err(fail)?;
+        #[cfg(target_os = "macos")]
+        if let Some(created) = self.created {
+            use std::os::darwin::fs::FileTimesExt as _;
+            file.set_times(fs::FileTimes::new().set_created(created))
+                .map_err(fail)?;
+        }
+        Ok(())
+    }
+}
+
+/// A single metadata item that cannot be reproduced on the replacement.
+#[cfg(unix)]
+fn refuse(target: &Path, item: MetadataItem) -> SaveOriginalError {
+    SaveOriginalError::ReplacementUnavailable {
+        path: target.to_path_buf(),
+        blockers: vec![ReplacementBlocker::UnpreservableMetadata(item)],
+    }
+}
+
 #[cfg(unix)]
 fn publish_original_unix(
     plan: &ExportPlan,
     source: &SourceStamp,
+    owner_token: Option<&str>,
     mut before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
 ) -> Result<SaveOriginalReceipt, SaveOriginalError> {
     let target = source.path();
@@ -257,6 +384,7 @@ fn publish_original_unix(
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."));
     let fail = |stage, error: io::Error| SaveOriginalError::io(stage, target, error);
+    let expected = Expected::of(source).map_err(|e| fail(SourceStage::Stat, e))?;
     before(SourceStage::CreateTemporary, parent)
         .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
     let mut temporary = tempfile::Builder::new()
@@ -267,6 +395,10 @@ fn publish_original_unix(
     temporary
         .write_all(plan.bytes())
         .map_err(|e| fail(SourceStage::Write, e))?;
+    // Metadata goes on before the sync, so the sync covers it too.
+    before(SourceStage::RestorePermissions, temporary.path())
+        .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
+    expected.restore(temporary.as_file(), target)?;
     before(SourceStage::SyncFile, temporary.path()).map_err(|e| fail(SourceStage::SyncFile, e))?;
     temporary
         .as_file()
@@ -275,10 +407,14 @@ fn publish_original_unix(
     before(SourceStage::Verify, temporary.path()).map_err(|e| fail(SourceStage::Verify, e))?;
     verify_bytes(temporary.as_file_mut(), plan.bytes())
         .map_err(|e| fail(SourceStage::Verify, e))?;
-    before(SourceStage::RestorePermissions, temporary.path())
-        .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
-    restore_permissions(target, temporary.path())
-        .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
+    let written = temporary
+        .as_file()
+        .metadata()
+        .map_err(|e| fail(SourceStage::Verify, e))?;
+    if let Some(item) = expected.mismatch(&written) {
+        return Err(refuse(target, item));
+    }
+    let written = SourceIdentity::capture(&written);
 
     before(SourceStage::Backup, target).map_err(|e| fail(SourceStage::Backup, e))?;
     let current =
@@ -298,12 +434,35 @@ fn publish_original_unix(
     if let Err(error) = before(SourceStage::VerifyBackup, &backup_path) {
         return Err(abort_backup(fail(SourceStage::VerifyBackup, error)));
     }
+    // A lock that appeared while the replacement was prepared still wins.
+    let file_name = target.file_name().unwrap_or_default();
+    if let Err(error) = locks::check_directories(source.lock_directories(), file_name, owner_token)
+    {
+        return Err(abort_backup(error));
+    }
     if let Err(error) = confirm_backup(&backup_path, source) {
         return Err(abort_backup(error));
     }
 
     if let Err(error) = before(SourceStage::Publish, temporary.path()) {
         return Err(abort_backup(fail(SourceStage::Publish, error)));
+    }
+    // Last object check before the rename. Another writer replacing the
+    // target between this check and rename(2) itself is still overwritten
+    // (the backup keeps the verified original); closing that window needs
+    // renamex_np(RENAME_SWAP) or renameat2(RENAME_EXCHANGE), not in std.
+    match fs::symlink_metadata(target) {
+        Ok(live)
+            if source
+                .identity()
+                .same_object(&SourceIdentity::capture(&live)) => {}
+        Ok(_) => {
+            return Err(abort_backup(SaveOriginalError::conflict_error(
+                target,
+                super::error::ConflictDetail::InodeChanged,
+            )));
+        }
+        Err(error) => return Err(abort_backup(fail(SourceStage::Publish, error))),
     }
     let kept = match temporary.keep() {
         Ok(kept) => kept,
@@ -317,12 +476,33 @@ fn publish_original_unix(
         let _ = fs::remove_file(&tmp_path);
         return Err(abort_backup(fail(SourceStage::Publish, error)));
     }
-    // The target name now refers to the new bytes. Later failures must
-    // carry the receipt; the backup still names the previous inode.
+
+    // The target name now refers to the new bytes. Until the read-back below
+    // confirms them, the backup (the previous inode) is kept.
+    let confirmed = before(SourceStage::Confirm, target)
+        .and_then(|_| confirm_published(source, &written, plan.bytes()))
+        .and_then(|(stamp, metadata)| match expected.mismatch(&metadata) {
+            None => Ok(stamp),
+            Some(item) => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("published file does not carry the expected {item:?}"),
+            )),
+        });
+    let stamp = match confirmed {
+        Ok(stamp) => stamp,
+        Err(error) => {
+            return Err(SaveOriginalError::PublishedUnconfirmed {
+                path: target.to_path_buf(),
+                source: error,
+                backup: backup_path,
+            });
+        }
+    };
     let receipt = SaveOriginalReceipt {
         path: target.to_path_buf(),
         version: plan.version(),
         durability: super::CopyDurability::FileSynced,
+        stamp: Box::new(stamp),
     };
     if let Err(error) =
         before(SourceStage::Cleanup, &backup_path).and_then(|_| fs::remove_file(&backup_path))
@@ -348,15 +528,6 @@ fn publish_original_unix(
         durability: super::CopyDurability::FileAndDirectorySynced,
         ..receipt
     })
-}
-
-#[cfg(unix)]
-fn restore_permissions(source: &Path, dest: &Path) -> io::Result<()> {
-    use std::os::unix::fs::{MetadataExt, PermissionsExt};
-    let mode = fs::metadata(source)?.mode() & 0o777;
-    let mut permissions = fs::metadata(dest)?.permissions();
-    permissions.set_mode(mode);
-    fs::set_permissions(dest, permissions)
 }
 
 #[cfg(unix)]
@@ -424,12 +595,16 @@ mod tests {
     fn unix_matrix_is_honest_about_std_only_capabilities() {
         let caps = original_replacement_capabilities();
         assert_eq!(caps.permissions, MetadataCapability::Preservable);
-        assert_eq!(caps.ownership, MetadataCapability::ObservableNotPreservable);
+        assert_eq!(caps.ownership, MetadataCapability::Preservable);
         assert_eq!(caps.acl, MetadataCapability::Unobservable);
         assert_eq!(caps.extended_attributes, MetadataCapability::Unobservable);
         assert_eq!(
             caps.creation_time,
-            MetadataCapability::ObservableNotPreservable
+            if cfg!(target_os = "macos") {
+                MetadataCapability::Preservable
+            } else {
+                MetadataCapability::ObservableNotPreservable
+            }
         );
         assert_eq!(caps.links, MetadataCapability::ObservableNotPreservable);
         assert_eq!(caps.provenance_marks, MetadataCapability::Unobservable);
@@ -443,8 +618,10 @@ mod tests {
         let source = super::super::open_source(&path, &joyoffice_opc::Budget::default())
             .unwrap()
             .into_stamp();
-        let blockers = replacement_blockers(&source);
+        let blockers = replacement_blockers(&source, false);
         assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
+        assert!(!blockers.contains(&ReplacementBlocker::ReadOnlySource));
+        assert!(replacement_blockers(&source, true).contains(&ReplacementBlocker::ReadOnlySource));
         assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
         assert!(blockers.len() > 1);
     }
@@ -504,7 +681,8 @@ mod tests {
         let plan = edited_plan(&bytes);
         assert_eq!(plan.origin_bytes(), Some(bytes.as_slice()));
         assert_ne!(plan.bytes(), bytes.as_slice());
-        let receipt = publish_original(&plan, &stamp, |_, _| Ok(())).unwrap();
+        let before = std::fs::metadata(&path).unwrap();
+        let receipt = publish_original(&plan, &stamp, None, |_, _| Ok(())).unwrap();
         assert_eq!(receipt.path(), stamp.path());
         assert_eq!(receipt.version(), plan.version());
         assert_eq!(
@@ -512,8 +690,17 @@ mod tests {
             super::super::CopyDurability::FileAndDirectorySynced
         );
         assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
-        assert_eq!(std::fs::metadata(&path).unwrap().mode() & 0o777, 0o640);
+        let after = std::fs::metadata(&path).unwrap();
+        assert_eq!(after.mode() & 0o777, 0o640);
+        assert_eq!((after.uid(), after.gid()), (before.uid(), before.gid()));
+        assert_ne!(after.ino(), before.ino());
+        #[cfg(target_os = "macos")]
+        assert_eq!(after.created().unwrap(), before.created().unwrap());
         assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+        // The receipt's stamp is the read-back of the new file.
+        assert_eq!(receipt.bytes(), plan.bytes().len() as u64);
+        assert_eq!(receipt.stamp().path(), stamp.path());
+        super::super::check_source(receipt.stamp()).unwrap();
         let reopened =
             crate::docx::DocxSession::open(&std::fs::read(&path).unwrap(), &Budget::default())
                 .unwrap();
@@ -544,7 +731,7 @@ mod tests {
             let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
                 .unwrap()
                 .into_stamp();
-            let error = publish_original(&plan, &stamp, |at, file| {
+            let error = publish_original(&plan, &stamp, None, |at, file| {
                 if at != stage {
                     return Ok(());
                 }
@@ -579,7 +766,7 @@ mod tests {
             let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
                 .unwrap()
                 .into_stamp();
-            let error = publish_original(&plan, &stamp, |at, _| {
+            let error = publish_original(&plan, &stamp, None, |at, _| {
                 if at == stage {
                     Err(std::io::Error::new(
                         std::io::ErrorKind::PermissionDenied,
@@ -598,6 +785,252 @@ mod tests {
                 super::super::CopyDurability::FileSynced
             );
             assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+            super::super::check_source(receipt.stamp()).unwrap();
         }
+    }
+
+    /// One fresh source and a bound edited plan for the race and read-back
+    /// tests below.
+    #[cfg(unix)]
+    struct Case {
+        dir: tempfile::TempDir,
+        path: PathBuf,
+        bytes: Vec<u8>,
+        stamp: SourceStamp,
+        plan: ExportPlan,
+    }
+
+    #[cfg(unix)]
+    impl Case {
+        fn new() -> Self {
+            let bytes = fixture();
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("report.docx");
+            std::fs::write(&path, &bytes).unwrap();
+            let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
+                .unwrap()
+                .into_stamp();
+            let plan = edited_plan(&bytes);
+            Self {
+                dir,
+                path,
+                bytes,
+                stamp,
+                plan,
+            }
+        }
+
+        fn publish(
+            &self,
+            before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
+        ) -> Result<SaveOriginalReceipt, SaveOriginalError> {
+            publish_original(&self.plan, &self.stamp, None, before)
+        }
+
+        fn entries(&self) -> Vec<String> {
+            let mut names: Vec<String> = std::fs::read_dir(self.dir.path())
+                .unwrap()
+                .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+                .collect();
+            names.sort();
+            names
+        }
+    }
+
+    /// Another writer's file renamed over `path`: a different object.
+    #[cfg(unix)]
+    fn replace_with_other(path: &Path, bytes: &[u8]) -> io::Result<()> {
+        let other = path.with_file_name("other-writer.tmp");
+        std::fs::write(&other, bytes)?;
+        std::fs::rename(other, path)
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_replacement_after_the_backup_link_is_caught() {
+        let case = Case::new();
+        let error = case
+            .publish(|at, _| {
+                if at == SourceStage::VerifyBackup {
+                    // Identical bytes, different object.
+                    replace_with_other(&case.path, &case.bytes)?;
+                }
+                Ok(())
+            })
+            .unwrap_err();
+        assert_eq!(
+            error.conflict(),
+            Some(super::super::ConflictDetail::InodeChanged)
+        );
+        assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+        assert_eq!(case.entries(), ["report.docx"]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_append_after_the_backup_link_is_caught() {
+        let case = Case::new();
+        let error = case
+            .publish(|at, _| {
+                if at == SourceStage::VerifyBackup {
+                    let mut file = File::options().append(true).open(&case.path)?;
+                    file.write_all(b"appended")?;
+                }
+                Ok(())
+            })
+            .unwrap_err();
+        assert!(error.conflict().is_some(), "{error}");
+        assert!(std::fs::read(&case.path).unwrap().ends_with(b"appended"));
+        assert_eq!(case.entries(), ["report.docx"]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_replacement_just_before_the_rename_is_caught() {
+        let case = Case::new();
+        let error = case
+            .publish(|at, _| {
+                if at == SourceStage::Publish {
+                    replace_with_other(&case.path, b"another writer")?;
+                }
+                Ok(())
+            })
+            .unwrap_err();
+        assert_eq!(
+            error.conflict(),
+            Some(super::super::ConflictDetail::InodeChanged)
+        );
+        assert_eq!(std::fs::read(&case.path).unwrap(), b"another writer");
+        assert_eq!(case.entries(), ["report.docx"]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_lock_appearing_during_the_save_blocks_publication_and_stays() {
+        for lock in ["~$report.docx", ".report.docx.joyword-lock"] {
+            let case = Case::new();
+            let lock_path = case.path.with_file_name(lock);
+            let error = case
+                .publish(|at, _| {
+                    if at == SourceStage::VerifyBackup {
+                        std::fs::write(&lock_path, b"owner")?;
+                    }
+                    Ok(())
+                })
+                .unwrap_err();
+            assert!(error.lock().is_some(), "{lock}: {error}");
+            assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+            assert_eq!(std::fs::read(&lock_path).unwrap(), b"owner");
+            assert_eq!(case.entries().len(), 2);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn metadata_drift_on_the_temporary_is_refused_before_publication() {
+        use std::os::unix::fs::PermissionsExt;
+        let case = Case::new();
+        let error = case
+            .publish(|at, path| {
+                if at == SourceStage::Verify {
+                    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o666))?;
+                }
+                Ok(())
+            })
+            .unwrap_err();
+        assert_eq!(
+            error.blockers(),
+            Some(
+                &[ReplacementBlocker::UnpreservableMetadata(
+                    MetadataItem::Permissions
+                )][..]
+            )
+        );
+        assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+        assert_eq!(case.entries(), ["report.docx"]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_owner_the_process_cannot_give_is_refused() {
+        use std::os::unix::fs::MetadataExt;
+        let case = Case::new();
+        if std::fs::metadata(&case.path).unwrap().uid() == 0 {
+            // Root may give files away, so the refusal cannot be provoked.
+            return;
+        }
+        let mut expected = Expected::of(&case.stamp).unwrap();
+        expected.uid = expected.uid.wrapping_add(1);
+        let temporary = tempfile::NamedTempFile::new_in(case.dir.path()).unwrap();
+        let error = expected
+            .restore(temporary.as_file(), &case.path)
+            .unwrap_err();
+        assert_eq!(
+            error.blockers(),
+            Some(
+                &[ReplacementBlocker::UnpreservableMetadata(
+                    MetadataItem::Ownership
+                )][..]
+            )
+        );
+        assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unconfirmed_publication_keeps_the_backup_and_issues_no_receipt() {
+        let case = Case::new();
+        let error = case
+            .publish(|at, _| {
+                if at == SourceStage::Confirm {
+                    Err(io::Error::new(io::ErrorKind::StorageFull, "injected"))
+                } else {
+                    Ok(())
+                }
+            })
+            .unwrap_err();
+        assert_eq!(error.stage(), Some(SourceStage::Confirm));
+        assert!(error.published().is_none());
+        let backup = error.retained_backup().expect("backup kept");
+        assert_eq!(std::fs::read(backup).unwrap(), case.bytes);
+        assert_eq!(std::fs::read(&case.path).unwrap(), case.plan.bytes());
+        assert_eq!(case.entries().len(), 2);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn receipt_and_stamp_come_only_from_the_published_object() {
+        // Same object, other bytes: not confirmed.
+        let case = Case::new();
+        let error = case
+            .publish(|at, path| {
+                if at == SourceStage::Confirm {
+                    let mut bytes = std::fs::read(path)?;
+                    bytes[3] ^= 1;
+                    File::options().write(true).open(path)?.write_all(&bytes)?;
+                }
+                Ok(())
+            })
+            .unwrap_err();
+        assert!(error.published().is_none());
+        assert_eq!(
+            std::fs::read(error.retained_backup().unwrap()).unwrap(),
+            case.bytes
+        );
+
+        // The plan's exact bytes under another object: not confirmed either.
+        let case = Case::new();
+        let plan = case.plan.bytes().to_vec();
+        let error = case
+            .publish(|at, path| {
+                if at == SourceStage::Confirm {
+                    replace_with_other(path, &plan)?;
+                }
+                Ok(())
+            })
+            .unwrap_err();
+        assert!(error.published().is_none());
+        assert!(error.retained_backup().is_some());
+        assert_eq!(std::fs::read(&case.path).unwrap(), plan);
     }
 }
