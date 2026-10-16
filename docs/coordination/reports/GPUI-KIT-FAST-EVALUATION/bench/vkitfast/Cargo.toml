@@ -1,0 +1,26 @@
+[package]
+name = "bench-vkitfast"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "bench"
+path = "../src/main.rs"
+
+[workspace]
+
+[features]
+default = ["split", "kit", "fast"]
+split = []
+fast = []
+kit = []
+
+[dependencies]
+cpu-time = "=1.0.0"
+gpui-kit = { version = "=0.7.3", features = ["gpui-fast"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

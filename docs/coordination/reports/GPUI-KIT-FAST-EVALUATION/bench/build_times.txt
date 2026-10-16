@@ -1,0 +1,6 @@
+v022 status=0 secs=77.1 compiled_units=455 bin_bytes=4765584
+vpre status=0 secs=59.7 compiled_units=303 bin_bytes=7059456
+vfast status=0 secs=67.1 compiled_units=301 bin_bytes=7746368
+vkit status=0 secs=96.6 compiled_units=415 bin_bytes=16068800
+vkitfast status=0 secs=120.3 compiled_units=421 bin_bytes=17436912
+DONE

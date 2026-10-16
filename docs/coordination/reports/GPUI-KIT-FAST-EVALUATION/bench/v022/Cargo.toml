@@ -1,0 +1,26 @@
+[package]
+name = "bench-v022"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "bench"
+path = "../src/main.rs"
+
+[workspace]
+
+[features]
+default = []
+split = []
+fast = []
+kit = []
+
+[dependencies]
+cpu-time = "=1.0.0"
+gpui = { version = "=0.2.2", features = ["runtime_shaders"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

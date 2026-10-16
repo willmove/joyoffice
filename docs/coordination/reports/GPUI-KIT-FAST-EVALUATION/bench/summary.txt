@@ -1,0 +1,79 @@
+## frame matrix: draw_cpu_mean_ms (median of reps [min-max], n)
+| variant | Blink | Type | Scroll | Refresh |
+|---|---|---|---|---|
+| v022 | 1.821 (p95 1.889; 1.814-1.828; n=5; glyphs 1672) | 1.833 (p95 1.895; 1.828-1.837; n=5; glyphs 1679) | 1.841 (p95 2.088; 1.840-1.847; n=5; glyphs 1678) | 1.825 (p95 1.891; 1.811-1.855; n=5; glyphs 1672) |
+| v022 --cached | 1.408 (p95 1.461; 1.403-1.422; n=5; glyphs 1962) | 1.420 (p95 1.476; 1.415-1.447; n=5; glyphs 1969) | 1.456 (p95 1.540; 1.451-1.461; n=5; glyphs 1944) | 1.848 (p95 1.961; 1.825-1.906; n=5; glyphs 1962) |
+| vpre | 0.678 (p95 0.710; 0.675-0.681; n=5; glyphs 1672) | 0.681 (p95 0.715; 0.680-0.687; n=5; glyphs 1679) | 0.679 (p95 0.711; 0.675-0.682; n=5; glyphs 1681) | 0.677 (p95 0.708; 0.675-0.696; n=5; glyphs 1672) |
+| vpre --cached | 0.141 (p95 0.150; 0.140-0.141; n=5; glyphs 1962) | 0.142 (p95 0.152; 0.140-0.143; n=5; glyphs 1969) | 0.141 (p95 0.151; 0.140-0.141; n=5; glyphs 1944) | 0.488 (p95 0.513; 0.485-0.501; n=5; glyphs 1962) |
+| vpre --ime | - | - | 0.678 (p95 0.708; 0.667-0.693; n=5; glyphs 1681) | - |
+| vfast | 0.028 (p95 0.031; 0.028-0.028; n=5; glyphs 0) | 0.058 (p95 0.064; 0.058-0.059; n=5; glyphs 1679) | 0.034 (p95 0.037; 0.034-0.034; n=5; glyphs 54) | 0.202 (p95 0.215; 0.201-0.208; n=5; glyphs 1672) |
+| vfast --ime | 0.028 (p95 0.031; 0.028-0.029; n=5; glyphs 0) | 0.059 (p95 0.064; 0.059-0.060; n=5; glyphs 1679) | 0.073 (p95 0.171; 0.073-0.074; n=5; glyphs 2385) | - |
+| vfast GPUI_SCROLL_LAYERS=0 | - | - | 0.060 (p95 0.067; 0.060-0.061; n=5; glyphs 1681) | - |
+| vfast GPUI_VIEW_RETENTION=0 | 0.196 (p95 0.208; 0.195-0.197; n=5; glyphs 1672) | 0.196 (p95 0.210; 0.196-0.199; n=5; glyphs 1679) | 0.197 (p95 0.210; 0.197-0.198; n=5; glyphs 1681) | 0.196 (p95 0.209; 0.195-0.199; n=5; glyphs 1672) |
+| vkit | 1.603 (p95 1.667; 1.596-1.608; n=5; glyphs 1672) | 1.620 (p95 1.687; 1.613-1.636; n=5; glyphs 1679) | 1.656 (p95 1.785; 1.644-1.666; n=5; glyphs 1706) | 1.604 (p95 1.686; 1.594-1.654; n=5; glyphs 1672) |
+| vkitfast | 0.177 (p95 0.189; 0.176-0.183; n=5; glyphs 0) | 0.397 (p95 0.424; 0.394-0.398; n=5; glyphs 1679) | 0.153 (p95 0.125; 0.152-0.155; n=5; glyphs 55) | 0.633 (p95 0.671; 0.631-0.662; n=5; glyphs 1672) |
+
+max RSS MB (median): {'v022/Blink': 84.1, 'v022 --cached/Blink': 84.5, 'vpre/Blink': 78.5, 'vpre --cached/Blink': 78.4, 'vfast/Blink': 79.2, 'vfast GPUI_VIEW_RETENTION=0/Blink': 79.3, 'vkit/Blink': 91.9, 'vkitfast/Blink': 92.8, 'vfast --ime/Blink': 79.3}
+
+## scaling: draw_cpu_mean_ms median by pages
+| v022 --scenario blink --frames 300 --warmup 60 | Blink | 1.826 | 1.931 | x1.1 |
+| v022 --scenario blink --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| v022 --scenario blink --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| v022 --scenario scroll --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| v022 --scenario scroll --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| v022 --scenario scroll --frames 300 --warmup 60 | Scroll | 1.825 | 1.921 | x1.1 |
+| v022 --scenario type --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| v022 --scenario type --frames 300 --warmup 60 | Type | 1.854 | 1.952 | x1.1 |
+| v022 --scenario type --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vfast --scenario blink --frames 300 --warmup 60 | Blink | 0.028 | 0.030 | x1.1 |
+| vfast --scenario blink --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vfast --scenario blink --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vfast --scenario scroll --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vfast --scenario scroll --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vfast --scenario scroll --frames 300 --warmup 60 | Scroll | 0.034 | 0.061 | x1.8 |
+| vfast --scenario type --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vfast --scenario type --frames 300 --warmup 60 | Type | 0.058 | 0.104 | x1.8 |
+| vfast --scenario type --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vkit --scenario blink --frames 300 --warmup 60 | Blink | 1.630 | 1.715 | x1.1 |
+| vkit --scenario blink --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vkit --scenario blink --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vkit --scenario scroll --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vkit --scenario scroll --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vkit --scenario scroll --frames 300 --warmup 60 | Scroll | 1.663 | 1.760 | x1.1 |
+| vkit --scenario type --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vkit --scenario type --frames 300 --warmup 60 | Type | 1.654 | 1.739 | x1.1 |
+| vkit --scenario type --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vkitfast --scenario blink --frames 300 --warmup 60 | Blink | 0.169 | 0.171 | x1.0 |
+| vkitfast --scenario blink --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vkitfast --scenario blink --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vkitfast --scenario scroll --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vkitfast --scenario scroll --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vkitfast --scenario scroll --frames 300 --warmup 60 | Scroll | 0.153 | 0.181 | x1.2 |
+| vkitfast --scenario type --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vkitfast --scenario type --frames 300 --warmup 60 | Type | 0.399 | 0.446 | x1.1 |
+| vkitfast --scenario type --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vpre --scenario blink --frames 300 --warmup 60 | Blink | 0.679 | 0.776 | x1.1 |
+| vpre --scenario blink --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vpre --scenario blink --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vpre --scenario blink --frames 300 --warmup 60 --cached | Blink | 0.142 | 0.211 | x1.5 |
+| vpre --scenario blink --frames 300 --warmup 60 --cached | Type | nan | nan | xnan |
+| vpre --scenario blink --frames 300 --warmup 60 --cached | Scroll | nan | nan | xnan |
+| vpre --scenario scroll --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vpre --scenario scroll --frames 300 --warmup 60 | Type | nan | nan | xnan |
+| vpre --scenario scroll --frames 300 --warmup 60 | Scroll | 0.681 | 0.771 | x1.1 |
+| vpre --scenario scroll --frames 300 --warmup 60 --cached | Blink | nan | nan | xnan |
+| vpre --scenario scroll --frames 300 --warmup 60 --cached | Type | nan | nan | xnan |
+| vpre --scenario scroll --frames 300 --warmup 60 --cached | Scroll | 0.140 | 0.212 | x1.5 |
+| vpre --scenario type --frames 300 --warmup 60 | Blink | nan | nan | xnan |
+| vpre --scenario type --frames 300 --warmup 60 | Type | 0.680 | 0.773 | x1.1 |
+| vpre --scenario type --frames 300 --warmup 60 | Scroll | nan | nan | xnan |
+| vpre --scenario type --frames 300 --warmup 60 --cached | Blink | nan | nan | xnan |
+| vpre --scenario type --frames 300 --warmup 60 --cached | Type | 0.142 | 0.211 | x1.5 |
+| vpre --scenario type --frames 300 --warmup 60 --cached | Scroll | nan | nan | xnan |
+
+## startup (median of reps): process wall s, first draw cpu ms, max RSS MB
+| v022 | 0.132 | 2.43 | 83.8 | n=8 |
+| vpre | 0.120 | 0.96 | 78.2 | n=8 |
+| vfast | 0.116 | 0.23 | 79.0 | n=8 |
+| vkit | 0.185 | 2.02 | 91.7 | n=8 |
+| vkitfast | 0.181 | 0.29 | 92.8 | n=8 |
