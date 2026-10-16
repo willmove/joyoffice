@@ -9,7 +9,7 @@ use joyword_engine::Selection;
 use joyword_foundation::Emu;
 use joyword_model::{Bias, Position};
 use joyword_shell::docx::BoundDocx;
-use joyword_shell::input::{Direction, InputError, TextInput};
+use joyword_shell::input::{Direction, InputError, InputView, TextInput};
 use joyword_shell::storage::SaveCopyReceipt;
 use std::ops::Range;
 
@@ -224,28 +224,175 @@ fn close_decision(answer: Option<usize>, expected: u64, current: u64) -> CloseDe
     }
 }
 
-fn project_page(
-    layout: &joyword_layout::LayoutSnapshot,
+/// How the scroll content is shown: the overlay viewport in window logical
+/// pixels, the live scroll offset and the zoom. Device pixels never enter, as
+/// GPUI and AppKit both convert window logical pixels themselves.
+#[derive(Clone, Copy)]
+struct Placement {
     viewport: Bounds<Pixels>,
     offset: Point<Pixels>,
     scale: ScreenScale,
+}
+impl Placement {
+    fn page_origin(&self, page: usize, above: Emu) -> Point<Pixels> {
+        point(
+            self.viewport.origin.x + px(DOC_PAD) + self.offset.x,
+            self.viewport.origin.y
+                + px(DOC_PAD + self.scale.logical_pixels(above) as f32 + page as f32 * DOC_GAP)
+                + self.offset.y,
+        )
+    }
+    fn project(&self, b: SceneBox) -> Bounds<Pixels> {
+        let page = self.page_origin(b.page, b.above);
+        Bounds::new(
+            point(
+                page.x + px(self.scale.logical_pixels(b.x) as f32),
+                page.y + px(self.scale.logical_pixels(b.top) as f32),
+            ),
+            size(
+                px((self.scale.logical_pixels(b.width) as f32).max(1.0)),
+                px(self.scale.logical_pixels(b.height) as f32),
+            ),
+        )
+    }
+}
+/// A zoom-independent box on one page, with the total height of the pages
+/// above it, so it can be placed without the layout that produced it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct SceneBox {
+    page: usize,
+    above: Emu,
+    x: Emu,
+    top: Emu,
+    width: Emu,
+    height: Emu,
+}
+impl SceneBox {
+    fn on(
+        layout: &joyword_layout::LayoutSnapshot,
+        page: usize,
+        x: Emu,
+        top: Emu,
+        width: Emu,
+        height: Emu,
+    ) -> Option<Self> {
+        Some(Self {
+            page,
+            above: pages_above(layout, page)?,
+            x,
+            top,
+            width,
+            height,
+        })
+    }
+    fn caret(layout: &joyword_layout::LayoutSnapshot, at: Position) -> Option<Self> {
+        let c = layout.caret(at).ok()?;
+        Self::on(layout, c.page, c.x, c.top, Emu::new(1), c.height)
+    }
+}
+fn pages_above(layout: &joyword_layout::LayoutSnapshot, page: usize) -> Option<Emu> {
+    let above = layout.pages().get(..page)?.iter().map(|p| p.height.raw());
+    Some(Emu::new(above.sum()))
+}
+fn project_page(
+    layout: &joyword_layout::LayoutSnapshot,
+    placement: Placement,
     page: usize,
 ) -> Option<Bounds<Pixels>> {
     let scene = layout.pages().get(page)?;
-    let before = layout.pages()[..page]
-        .iter()
-        .map(|p| scale.logical_pixels(p.height) as f32 + DOC_GAP)
-        .sum::<f32>();
     Some(Bounds::new(
-        point(
-            viewport.origin.x + px(DOC_PAD) + offset.x,
-            viewport.origin.y + px(DOC_PAD + before) + offset.y,
-        ),
+        placement.page_origin(page, pages_above(layout, page)?),
         size(
-            px(scale.logical_pixels(scene.width) as f32),
-            px(scale.logical_pixels(scene.height) as f32),
+            px(placement.scale.logical_pixels(scene.width) as f32),
+            px(placement.scale.logical_pixels(scene.height) as f32),
         ),
     ))
+}
+/// UTF-16 offset where the composition starts, or where the next one would
+/// replace the selection.
+fn ime_origin(view: &InputView) -> usize {
+    view.marked_range()
+        .map_or_else(|| view.selected_range().0.start, |marked| marked.start)
+}
+/// Caret box at the IME origin, taken from the last current layout of a
+/// committed document version. AppKit asks for the candidate position right
+/// after each preedit change, before that preedit's background layout exists;
+/// the origin of the composition does not move while the committed version is
+/// unchanged, so this answers until the exact layout arrives.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct ImeAnchor {
+    version: u64,
+    origin: usize,
+    caret: SceneBox,
+}
+impl ImeAnchor {
+    fn capture(
+        view: &InputView,
+        version: u64,
+        layout: &joyword_layout::LayoutSnapshot,
+    ) -> Option<Self> {
+        let origin = ime_origin(view);
+        let at = view.index().position(origin, Bias::After).ok()?;
+        Some(Self {
+            version,
+            origin,
+            caret: SceneBox::caret(layout, at)?,
+        })
+    }
+    /// Only ranges inside the current composition, or the selection it will
+    /// replace, of the same committed version with the same origin.
+    fn covers(&self, view: &InputView, version: u64, range: &Range<usize>) -> bool {
+        let span = view
+            .marked_range()
+            .unwrap_or_else(|| view.selected_range().0);
+        self.version == version
+            && self.origin == ime_origin(view)
+            && span.start <= range.start
+            && range.end <= span.end
+    }
+}
+/// Window logical-pixel box for an IME range. The current layout answers
+/// exactly; without one only a matching origin anchor may answer. Ranges past
+/// the end are clamped, as AppKit may ask for the character after the caret.
+fn ime_bounds(
+    view: &InputView,
+    version: u64,
+    layout: Option<&joyword_layout::LayoutSnapshot>,
+    anchor: Option<&ImeAnchor>,
+    placement: Placement,
+    range: Range<usize>,
+) -> Option<Bounds<Pixels>> {
+    let index = view.index();
+    let range = range.start.min(index.len_utf16())..range.end.min(index.len_utf16());
+    let exact = |layout: &joyword_layout::LayoutSnapshot| {
+        index.text_for_range(range.clone()).ok()?;
+        let head = view.selection().head;
+        if range.is_empty() {
+            let at = if index.offset(head).ok() == Some(range.start) {
+                head
+            } else {
+                index.position(range.start, Bias::After).ok()?
+            };
+            SceneBox::caret(layout, at)
+        } else {
+            let start = index.position(range.start, Bias::After).ok()?;
+            let end = index.position(range.end, Bias::Before).ok()?;
+            let r = layout
+                .selection_rects(start, end)
+                .ok()?
+                .into_iter()
+                .next()?;
+            SceneBox::on(layout, r.page, r.x, r.top, r.width, r.height)
+        }
+    };
+    layout
+        .and_then(exact)
+        .or_else(|| {
+            anchor
+                .filter(|a| a.covers(view, version, &range))
+                .map(|a| a.caret)
+        })
+        .map(|b| placement.project(b))
 }
 fn local_emu(point: Point<Pixels>, page: Bounds<Pixels>, zoom: u16) -> (Emu, Emu) {
     let emu_per_px = Emu::PER_INCH as f64 / 96.0 / (f64::from(zoom) / 100.0);
@@ -492,6 +639,8 @@ impl JoyWord {
                         Ok(input) => {
                             view.drop_frame(cx);
                             view.editor = Some(Box::new(input));
+                            // Versions are per document; an old anchor could match by number.
+                            view.ime_anchor = None;
                             view.copy_note = None;
                             view.input_error = None;
                             view.preferred_x = None;
@@ -733,14 +882,15 @@ impl JoyWord {
     fn scale(&self) -> ScreenScale {
         ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom")
     }
+    fn placement(&self) -> Option<Placement> {
+        Some(Placement {
+            viewport: self.viewport_bounds?,
+            offset: self.scroll.offset(),
+            scale: self.scale(),
+        })
+    }
     fn page_bounds(&self, page: usize) -> Option<Bounds<Pixels>> {
-        project_page(
-            &self.ready_frame()?.layout,
-            self.viewport_bounds?,
-            self.scroll.offset(),
-            self.scale(),
-            page,
-        )
+        project_page(&self.ready_frame()?.layout, self.placement()?, page)
     }
     pub(crate) fn reveal_caret(&mut self) {
         if !self.reveal_pending {
@@ -794,18 +944,9 @@ impl JoyWord {
         width: Emu,
         height: Emu,
     ) -> Option<Bounds<Pixels>> {
-        let bounds = self.page_bounds(page)?;
-        let scale = self.scale();
-        Some(Bounds::new(
-            point(
-                bounds.origin.x + px(scale.logical_pixels(x) as f32),
-                bounds.origin.y + px(scale.logical_pixels(top) as f32),
-            ),
-            size(
-                px((scale.logical_pixels(width) as f32).max(1.0)),
-                px(scale.logical_pixels(height) as f32),
-            ),
-        ))
+        let layout = &self.ready_frame()?.layout;
+        let b = SceneBox::on(layout, page, x, top, width, height)?;
+        Some(self.placement()?.project(b))
     }
     fn hit(&self, point: Point<Pixels>, clamp: bool) -> Option<Position> {
         let frame = self.ready_frame()?;
@@ -882,6 +1023,13 @@ impl JoyWord {
         if geometry != self.ime_geometry {
             self.ime_geometry = geometry;
             if self.ime_geometry.is_some() {
+                // A pending layout keeps the previous anchor; only a current one replaces it.
+                self.ime_anchor =
+                    self.ready_frame()
+                        .zip(self.editor.as_ref())
+                        .and_then(|(frame, editor)| {
+                            ImeAnchor::capture(editor.view(), editor.version(), &frame.layout)
+                        });
                 window.invalidate_character_coordinates();
             }
         }
@@ -1071,28 +1219,15 @@ impl EntityInputHandler for JoyWord {
         _: &mut Window,
         _: &mut Context<Self>,
     ) -> Option<Bounds<Pixels>> {
-        let index = self.editor.as_ref()?.view().index();
-        index.text_for_range(range.clone()).ok()?;
-        let frame = self.ready_frame()?;
-        let head = self.editor.as_ref()?.view().selection().head;
-        let start = if range.is_empty() && index.offset(head).ok() == Some(range.start) {
-            head
-        } else {
-            index.position(range.start, Bias::After).ok()?
-        };
-        let end = index.position(range.end, Bias::Before).ok()?;
-        if range.is_empty() {
-            let c = frame.layout.caret(start).ok()?;
-            self.scene_rect(c.page, c.x, c.top, Emu::new(1), c.height)
-        } else {
-            let r = frame
-                .layout
-                .selection_rects(start, end)
-                .ok()?
-                .into_iter()
-                .next()?;
-            self.scene_rect(r.page, r.x, r.top, r.width, r.height)
-        }
+        let editor = self.editor.as_ref()?;
+        ime_bounds(
+            editor.view(),
+            editor.version(),
+            self.ready_frame().map(|frame| &frame.layout),
+            self.ime_anchor.as_ref(),
+            self.placement()?,
+            range,
+        )
     }
     fn character_index_for_point(
         &mut self,
@@ -1108,8 +1243,10 @@ impl EntityInputHandler for JoyWord {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn page_geometry_round_trips_at_zoom_with_live_scroll_on_multiple_pages() {
+    use joyword_engine::Session;
+    use joyword_layout::LayoutSnapshot;
+    use joyword_model::ScalarOffset;
+    fn pages_source() -> document_canvas::CanvasSource {
         let font = LoadedFont::from_bytes(
             Arc::from(
                 include_bytes!("../../../tests/fixtures/fonts/joyoffice-test-serif.ttf").as_slice(),
@@ -1117,16 +1254,59 @@ mod tests {
             0,
         )
         .unwrap();
-        let source =
-            document_canvas::source_with_text(font, &vec!["AV fi"; 100].join("\n")).unwrap();
+        document_canvas::source_with_text(font, &vec!["AV fi"; 100].join("\n")).unwrap()
+    }
+    fn editor(source: &document_canvas::CanvasSource) -> TextInput<Session> {
+        let session = Session::new(source.session.document().clone());
+        TextInput::new(session, InputLimits::default()).unwrap()
+    }
+    fn layout_of(view: &InputView, source: &document_canvas::CanvasSource) -> LayoutSnapshot {
+        joyword_layout::layout_document(
+            view.snapshot(),
+            &source.font,
+            source.profile,
+            Default::default(),
+            &Default::default(),
+        )
+        .unwrap()
+    }
+    fn placement(zoom: u16, scroll: Point<Pixels>) -> Placement {
+        Placement {
+            viewport: Bounds::new(point(px(17.0), px(60.0)), size(px(800.0), px(500.0))),
+            offset: scroll,
+            scale: ScreenScale::new(f64::from(zoom) / 100.0).unwrap(),
+        }
+    }
+    /// UTF-16 offset of the first line placed on the second page.
+    fn second_page_start(view: &InputView, layout: &LayoutSnapshot) -> usize {
+        let line = layout.lines().iter().find(|line| line.page == 1).unwrap();
+        let at = Position {
+            story: view.snapshot().body_id(),
+            paragraph: line.paragraph,
+            offset: ScalarOffset(0),
+            bias: Bias::After,
+        };
+        view.index().offset(at).unwrap()
+    }
+    fn edges(b: Bounds<Pixels>) -> [f32; 4] {
+        [b.origin.x, b.origin.y, b.size.width, b.size.height].map(f32::from)
+    }
+    fn assert_near(actual: Bounds<Pixels>, expected: [f32; 4]) {
+        let actual = edges(actual);
+        for (a, e) in actual.iter().zip(expected) {
+            assert!((a - e).abs() < 0.01, "{actual:?} != {expected:?}");
+        }
+    }
+    #[test]
+    fn page_geometry_round_trips_at_zoom_with_live_scroll_on_multiple_pages() {
+        let source = pages_source();
         assert!(source.layout.pages().len() > 1);
-        let viewport = Bounds::new(point(px(17.0), px(60.0)), size(px(800.0), px(500.0)));
         for zoom in [50, 80, 100, 150] {
-            let scale = ScreenScale::new(f64::from(zoom) / 100.0).unwrap();
             for offset in [point(px(0.0), px(0.0)), point(px(-50.0), px(-1400.0))] {
+                let scale = ScreenScale::new(f64::from(zoom) / 100.0).unwrap();
                 for line in source.layout.lines() {
                     let page =
-                        project_page(&source.layout, viewport, offset, scale, line.page).unwrap();
+                        project_page(&source.layout, placement(zoom, offset), line.page).unwrap();
                     let stop = line.carets.first().unwrap();
                     let physical = point(
                         page.origin.x + px(scale.logical_pixels(stop.x) as f32),
@@ -1145,6 +1325,140 @@ mod tests {
                 }
             }
         }
+    }
+    #[test]
+    fn ime_bounds_are_window_logical_pixels_at_zoom_and_live_scroll() {
+        let source = pages_source();
+        let mut input = editor(&source);
+        let layout = layout_of(input.view(), &source);
+        // A4 portrait, 90 pt side margins: page and caret positions below are exact.
+        let a4 = &layout.pages()[0];
+        assert_eq!(
+            (a4.width.raw(), a4.height.raw()),
+            (11_906 * 635, 16_838 * 635)
+        );
+        let o = second_page_start(input.view(), &layout);
+        input.select(o..o, false).unwrap();
+        let line = layout.lines().iter().find(|line| line.page == 1).unwrap();
+        assert_eq!(line.carets[0].x, Emu::new(1_800 * 635));
+        let version = input.version();
+        // Pads and gaps stay 32 px; page height (841.9 pt) and margins follow zoom.
+        // The live scroll offset moves the box; device pixels never enter.
+        for (zoom, scroll, x, page_y) in [
+            (100, point(px(0.0), px(0.0)), 169.0, 1246.5333),
+            (80, point(px(0.0), px(0.0)), 145.0, 1022.0267),
+            (100, point(px(-50.0), px(-1400.0)), 119.0, -153.4667),
+            (80, point(px(-50.0), px(-1400.0)), 95.0, -377.9733),
+        ] {
+            let placement = placement(zoom, scroll);
+            let px_per_pt = (f64::from(zoom) / 100.0 * 96.0 / 72.0) as f32;
+            let page = project_page(&layout, placement, 1).unwrap();
+            assert_near(
+                page,
+                [
+                    x - 90.0 * px_per_pt,
+                    page_y,
+                    595.3 * px_per_pt,
+                    841.9 * px_per_pt,
+                ],
+            );
+            let b =
+                ime_bounds(input.view(), version, Some(&layout), None, placement, o..o).unwrap();
+            let top = page_y + line.top.points() as f32 * px_per_pt;
+            assert_near(b, [x, top, 1.0, line.height.points() as f32 * px_per_pt]);
+            // Same space as mouse hit testing: the box maps back to its position.
+            let (ex, ey) = local_emu(b.center(), page, zoom);
+            let hit = layout.hit_test(1, ex, ey).unwrap();
+            assert_eq!(input.view().index().offset(hit).unwrap(), o);
+        }
+    }
+    #[test]
+    fn pending_preedit_layout_answers_from_the_origin_anchor() {
+        let source = pages_source();
+        let mut input = editor(&source);
+        let idle = layout_of(input.view(), &source);
+        // Insert at a paragraph start: kerning cannot move the origin caret.
+        let o = second_page_start(input.view(), &idle);
+        input.select(o..o, false).unwrap();
+        let version = input.version();
+        let anchor = ImeAnchor::capture(input.view(), version, &idle).unwrap();
+        let scroll = point(px(-50.0), px(-1400.0));
+        let query = |view: &InputView, layout, anchor, zoom, scroll, range| {
+            ime_bounds(
+                view,
+                version,
+                layout,
+                anchor,
+                placement(zoom, scroll),
+                range,
+            )
+        };
+        let idle_100 = query(input.view(), Some(&idle), None, 100, scroll, o..o).unwrap();
+        let idle_80 = query(input.view(), Some(&idle), None, 80, scroll, o..o).unwrap();
+        input.mark(None, "AV", None).unwrap();
+        let view = input.view();
+        assert_eq!(view.marked_range(), Some(o..o + 2));
+        // Without the anchor the pending preedit had no box: AppKit then used the screen origin.
+        assert_eq!(query(view, None, None, 100, scroll, o..o), None);
+        let pending = |zoom, scroll, range| query(view, None, Some(&anchor), zoom, scroll, range);
+        for range in [o..o, o..o + 2, o + 1..o + 2, o + 2..o + 2] {
+            assert_eq!(pending(100, scroll, range), Some(idle_100));
+        }
+        assert_eq!(pending(80, scroll, o..o), Some(idle_80));
+        let scrolled = pending(100, point(px(-50.0), px(-1430.0)), o..o).unwrap();
+        let mut moved = idle_100;
+        moved.origin.y -= px(30.0);
+        assert_near(scrolled, edges(moved));
+        for outside in [o - 1..o - 1, o + 3..o + 3, o..o + 3] {
+            assert_eq!(pending(100, scroll, outside), None);
+        }
+        // Once the preedit's own layout lands, it answers exactly and agrees with the anchor.
+        let preedit = layout_of(view, &source);
+        let current = |range| query(view, Some(&preedit), Some(&anchor), 100, scroll, range);
+        assert_eq!(current(o..o), Some(idle_100));
+        assert_eq!(ImeAnchor::capture(view, version, &preedit), Some(anchor));
+        let caret = current(o + 2..o + 2).unwrap();
+        assert!(caret.origin.x > idle_100.origin.x);
+        assert_eq!(caret.origin.y, idle_100.origin.y);
+    }
+    #[test]
+    fn origin_anchor_is_dropped_for_other_versions_or_origins_and_queries_clamp_to_end() {
+        let source = pages_source();
+        let mut input = editor(&source);
+        let idle = layout_of(input.view(), &source);
+        let at = placement(100, point(px(0.0), px(0.0)));
+        let version = input.version();
+        let anchor = ImeAnchor::capture(input.view(), version, &idle).unwrap();
+        input.mark(None, "fi", None).unwrap();
+        assert!(ime_bounds(input.view(), version, None, Some(&anchor), at, 0..0).is_some());
+        assert_eq!(
+            ime_bounds(input.view(), version + 1, None, Some(&anchor), at, 0..0),
+            None
+        );
+        input.unmark().unwrap();
+        let committed = input.version();
+        assert_ne!(committed, version);
+        assert_eq!(
+            ime_bounds(input.view(), committed, None, Some(&anchor), at, 2..2),
+            None
+        );
+        // Same version number, moved origin: a new composition after the commit.
+        let moved = ImeAnchor {
+            version: committed,
+            ..anchor
+        };
+        input.mark(None, "AV", None).unwrap();
+        assert_eq!(
+            ime_bounds(input.view(), committed, None, Some(&moved), at, 2..2),
+            None
+        );
+        input.cancel_composition().unwrap();
+        let current = layout_of(input.view(), &source);
+        let len = input.view().index().len_utf16();
+        let query = |range| ime_bounds(input.view(), committed, Some(&current), None, at, range);
+        let end = query(len..len).unwrap();
+        assert_eq!(query(len..len + 1), Some(end));
+        assert_eq!(query(len + 4..len + 9), Some(end));
     }
     #[test]
     fn caret_reveal_scrolls_minimally_and_clamps_at_content_edges() {
