@@ -1,5 +1,6 @@
 //! GPUI adapter for the platform-neutral input state. Geometry is derived
-//! only from the current frame and the live scroll offset, never an old scene.
+//! only from the current layout and the live scroll offset, never an old
+//! scene; it does not wait for that layout's pixels.
 use crate::*;
 use gpui::{
     ElementInputHandler, EntityInputHandler, MouseButton, Pixels, Point, UTF16Selection, canvas,
@@ -21,7 +22,8 @@ pub const DOC_GAP: f32 = 32.0;
 /// and scrolling, including scrolls whose offscreen pages are not repainted.
 #[derive(Clone, PartialEq)]
 pub(crate) struct ImeGeometry {
-    key: CanvasRequestKey,
+    key: LayoutRequestKey,
+    zoom: u16,
     viewport: Bounds<Pixels>,
     scroll: Point<Pixels>,
     selection: Selection,
@@ -425,6 +427,30 @@ fn content_size(layout: &joyword_layout::LayoutSnapshot, scale: ScreenScale) -> 
         + pages.len().saturating_sub(1) as f32 * DOC_GAP;
     size(px(width + 2.0 * DOC_PAD), px(height + 2.0 * DOC_PAD))
 }
+/// Document position under a window point. `clamp` picks the nearest page
+/// for drags that leave the pages or the viewport.
+fn hit_at(
+    layout: &joyword_layout::LayoutSnapshot,
+    placement: Placement,
+    zoom: u16,
+    point: Point<Pixels>,
+    clamp: bool,
+) -> Option<Position> {
+    if !clamp && !placement.viewport.contains(&point) {
+        return None;
+    }
+    let (page, bounds) = (0..layout.pages().len())
+        .filter_map(|i| project_page(layout, placement, i).map(|b| (i, b)))
+        .filter(|(_, b)| clamp || b.contains(&point))
+        .min_by(|(_, a), (_, b)| {
+            let distance = |r: &Bounds<Pixels>| {
+                (f32::from(point.y - r.origin.y) - f32::from(r.size.height) / 2.0).abs()
+            };
+            distance(a).total_cmp(&distance(b))
+        })?;
+    let (x, y) = local_emu(point, bounds, zoom);
+    layout.hit_test(page, x, y).ok()
+}
 fn local_emu(point: Point<Pixels>, page: Bounds<Pixels>, zoom: u16) -> (Emu, Emu) {
     let emu_per_px = Emu::PER_INCH as f64 / 96.0 / (f64::from(zoom) / 100.0);
     (
@@ -668,7 +694,7 @@ impl JoyWord {
                 match opened {
                     Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
                         Ok(input) => {
-                            view.drop_frame(cx);
+                            view.clear_canvas(cx);
                             view.editor = Some(Box::new(input));
                             // Versions are per document; an old anchor could match by number.
                             view.ime_anchor = None;
@@ -709,16 +735,13 @@ impl JoyWord {
             .map(|error| self.label(input_error_label(&error)));
         self.preferred_x = None;
         // Committing a preview can publish exactly the same snapshot. Its
-        // source IDs, version and content must all match before reusing pixels.
-        if let (Some(frame), Some(font), Some(profile), Some(editor)) =
-            (&mut self.frame, &self.font, self.profile, &self.editor)
-            && frame
-                .layout
-                .ensure_current(editor.view().snapshot(), font, profile)
-                .is_ok()
+        // source IDs, version and content must all match before reusing the
+        // layout and its pixels.
+        if let (Some(font), Some(profile), Some(editor)) = (&self.font, self.profile, &self.editor)
         {
-            frame.key.revision = editor.view().revision();
+            self.canvas.reuse(editor.view(), font, profile);
         }
+        self.capture_ime_anchor();
         self.reveal_pending = true;
         self.reveal_caret();
         cx.notify();
@@ -765,7 +788,7 @@ impl JoyWord {
             }
             EDIT_UP | EDIT_DOWN | EDIT_EXTEND_UP | EDIT_EXTEND_DOWN | EDIT_HOME | EDIT_END
             | EDIT_EXTEND_HOME | EDIT_EXTEND_END
-                if self.ready_frame().is_none() =>
+                if self.ready_layout().is_none() =>
             {
                 Availability::Disabled("input.layout_pending")
             }
@@ -821,7 +844,7 @@ impl JoyWord {
         let Some(editor) = &self.editor else {
             return;
         };
-        let Some(frame) = self.ready_frame() else {
+        let Some(frame) = self.ready_layout() else {
             return;
         };
         let selection = editor.view().selection();
@@ -889,12 +912,15 @@ impl JoyWord {
         if let Some(reason) = &self.input_error {
             return Catalog::shipped(self.locale).format("input.error", &[("reason", reason)]);
         }
-        if let Some(frame) = self.ready_frame()
+        if let Some(frame) = self.ready_layout()
             && !frame.layout.diagnostics().is_empty()
         {
             return self.label("input.missing_glyphs");
         }
-        if self.frame.is_some() && self.ready_frame().is_none() {
+        if self.canvas_error.is_none()
+            && self.canvas.layout().is_some()
+            && self.ready_layout().is_none()
+        {
             return self.label("input.layout_pending");
         }
         if let Some(note) = &self.copy_note {
@@ -920,9 +946,6 @@ impl JoyWord {
             scale: self.scale(),
         })
     }
-    fn page_bounds(&self, page: usize) -> Option<Bounds<Pixels>> {
-        project_page(&self.ready_frame()?.layout, self.placement()?, page)
-    }
     pub(crate) fn reveal_caret(&mut self) {
         if !self.reveal_pending {
             return;
@@ -930,14 +953,14 @@ impl JoyWord {
         let (Some(editor), Some(placement)) = (&self.editor, self.placement()) else {
             return;
         };
-        // The scroll content is the painted frame, current or not.
-        let Some(painted) = &self.frame else {
+        // The scroll content is the installed layout, current or not.
+        let Some(painted) = self.canvas.layout() else {
             return;
         };
         let Some((caret, owed)) = reveal_target(
             editor.view(),
             editor.version(),
-            self.ready_frame().map(|frame| &frame.layout),
+            self.ready_layout().map(|frame| frame.layout.as_ref()),
             self.ime_anchor.as_ref(),
         ) else {
             return;
@@ -959,29 +982,18 @@ impl JoyWord {
         width: Emu,
         height: Emu,
     ) -> Option<Bounds<Pixels>> {
-        let layout = &self.ready_frame()?.layout;
+        let layout = &self.ready_layout()?.layout;
         let b = SceneBox::on(layout, page, x, top, width, height)?;
         Some(self.placement()?.project(b))
     }
     fn hit(&self, point: Point<Pixels>, clamp: bool) -> Option<Position> {
-        let frame = self.ready_frame()?;
-        let viewport = self.viewport_bounds?;
-        if !clamp && !viewport.contains(&point) {
-            return None;
-        }
-        let page = (0..frame.layout.pages().len())
-            .filter_map(|i| self.page_bounds(i).map(|b| (i, b)))
-            .filter(|(_, b)| clamp || b.contains(&point))
-            .min_by(|(_, a), (_, b)| {
-                let distance = |r: &Bounds<Pixels>| {
-                    (f32::from(point.y - r.origin.y) - f32::from(r.size.height) / 2.0).abs()
-                };
-                distance(a).total_cmp(&distance(b))
-            })?
-            .0;
-        let bounds = self.page_bounds(page)?;
-        let (x, y) = local_emu(point, bounds, self.zoom_percent);
-        frame.layout.hit_test(page, x, y).ok()
+        hit_at(
+            &self.ready_layout()?.layout,
+            self.placement()?,
+            self.zoom_percent,
+            point,
+            clamp,
+        )
     }
     fn mouse_select(
         &mut self,
@@ -1026,10 +1038,25 @@ impl JoyWord {
         window.focus(&self.focus_handle, cx);
         window.invalidate_character_coordinates();
     }
+    /// A pending layout keeps the previous anchor; only a current one
+    /// replaces it. Called when a layout lands or is reused, not only on
+    /// paint: AppKit may ask for the next composition before a frame is drawn.
+    pub(crate) fn capture_ime_anchor(&mut self) {
+        let anchor = self
+            .ready_layout()
+            .zip(self.editor.as_ref())
+            .map(|(frame, editor)| {
+                ImeAnchor::capture(editor.view(), editor.version(), &frame.layout)
+            });
+        if let Some(anchor) = anchor {
+            self.ime_anchor = anchor;
+        }
+    }
     fn refresh_ime_geometry(&mut self, window: &mut Window) {
-        let geometry = self.ready_frame().and_then(|frame| {
+        let geometry = self.ready_layout().and_then(|frame| {
             Some(ImeGeometry {
                 key: frame.key.clone(),
+                zoom: self.zoom_percent,
                 viewport: self.viewport_bounds?,
                 scroll: self.scroll.offset(),
                 selection: self.editor.as_ref()?.view().selection(),
@@ -1038,13 +1065,7 @@ impl JoyWord {
         if geometry != self.ime_geometry {
             self.ime_geometry = geometry;
             if self.ime_geometry.is_some() {
-                // A pending layout keeps the previous anchor; only a current one replaces it.
-                self.ime_anchor =
-                    self.ready_frame()
-                        .zip(self.editor.as_ref())
-                        .and_then(|(frame, editor)| {
-                            ImeAnchor::capture(editor.view(), editor.version(), &frame.layout)
-                        });
+                self.capture_ime_anchor();
                 window.invalidate_character_coordinates();
             }
         }
@@ -1053,7 +1074,7 @@ impl JoyWord {
         let Some(editor) = &self.editor else {
             return;
         };
-        let Some(frame) = self.ready_frame() else {
+        let Some(frame) = self.ready_layout() else {
             return;
         };
         let selection = editor.view().selection();
@@ -1238,7 +1259,7 @@ impl EntityInputHandler for JoyWord {
         ime_bounds(
             editor.view(),
             editor.version(),
-            self.ready_frame().map(|frame| &frame.layout),
+            self.ready_layout().map(|frame| frame.layout.as_ref()),
             self.ime_anchor.as_ref(),
             self.placement()?,
             range,
@@ -1258,6 +1279,7 @@ impl EntityInputHandler for JoyWord {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use document_canvas::CanvasPipeline;
     use joyword_engine::Session;
     use joyword_layout::LayoutSnapshot;
     use joyword_model::ScalarOffset;
@@ -1464,6 +1486,108 @@ mod tests {
         let head = SceneBox::caret(&preedit, view.selection().head).unwrap();
         let exact = reveal_target(view, version, Some(&preedit), Some(&anchor));
         assert_eq!(exact, Some((head, false)));
+    }
+    /// Only the layout stage lands; no raster job runs.
+    fn layout_only(
+        pipeline: &mut CanvasPipeline,
+        view: &InputView,
+        source: &document_canvas::CanvasSource,
+    ) -> Arc<LayoutSnapshot> {
+        let key = pipeline.key(view, &source.font, source.profile);
+        let job = pipeline.request_layout(key.clone()).unwrap();
+        let result =
+            document_canvas::layout_view(view, &source.font, source.profile, &job.cancellation);
+        assert!(matches!(
+            pipeline.install_layout(&job.ticket, &key, result),
+            Landed::Installed(_)
+        ));
+        pipeline.ready_layout(&key).unwrap().layout.clone()
+    }
+    #[test]
+    fn a_layout_without_pixels_answers_ime_hit_testing_and_reveal_exactly() {
+        let source = pages_source();
+        let mut input = editor(&source);
+        let mut pipeline = CanvasPipeline::default();
+        let idle = layout_only(&mut pipeline, input.view(), &source);
+        let o = second_page_start(input.view(), &idle);
+        input.select(o..o, false).unwrap();
+        assert!(pipeline.reuse(input.view(), &source.font, source.profile));
+        input.mark(None, "AV", None).unwrap();
+        let version = input.version();
+        let view = input.view();
+        let key = pipeline.key(view, &source.font, source.profile);
+        // Positions wait while the preedit's layout is pending; the old layout
+        // still gives page boxes but maps nothing.
+        assert!(pipeline.ready_layout(&key).is_none());
+        assert!(pipeline.layout().is_some());
+        let ready = layout_only(&mut pipeline, view, &source);
+        let at_80 = joyword_render::Projection::new(96.0, 0.8).unwrap();
+        assert!(pipeline.ready_raster(&key, at_80).is_none());
+        assert!(pipeline.raster().is_none());
+        // Exactly what a directly computed layout of this view answers.
+        let direct = layout_of(view, &source);
+        // Scrolled so the composition is inside the viewport.
+        let at = placement(80, point(px(-50.0), px(-1000.0)));
+        let query = |layout, range| ime_bounds(view, version, Some(layout), None, at, range);
+        for range in [o..o, o..o + 2, o + 1..o + 2, o + 2..o + 2] {
+            let b = query(&ready, range.clone());
+            assert!(b.is_some());
+            assert_eq!(b, query(&direct, range));
+        }
+        // The box now follows the preedit end, not only the origin anchor.
+        let origin = query(&ready, o..o).unwrap();
+        let end = query(&ready, o + 2..o + 2).unwrap();
+        assert!(end.origin.x > origin.origin.x);
+        assert_eq!(end.origin.y, origin.origin.y);
+        // Hit testing and character_index_for_point map through it too.
+        for (b, offset) in [(origin, o), (end, o + 2)] {
+            let hit = hit_at(&ready, at, 80, b.center(), false).unwrap();
+            assert_eq!(view.index().offset(hit).unwrap(), offset);
+        }
+        assert_eq!(hit_at(&ready, at, 80, point(px(0.0), px(0.0)), false), None);
+        // Reveal is exact at once; nothing is owed to a later frame.
+        let head = SceneBox::caret(&ready, view.selection().head).unwrap();
+        assert_eq!(
+            reveal_target(view, version, Some(&ready), None),
+            Some((head, false))
+        );
+    }
+    #[test]
+    fn commit_then_type_answers_from_the_committed_layout_before_its_pixels() {
+        let source = pages_source();
+        let mut input = editor(&source);
+        let mut pipeline = CanvasPipeline::default();
+        let idle = layout_only(&mut pipeline, input.view(), &source);
+        let o = second_page_start(input.view(), &idle);
+        input.select(o..o, false).unwrap();
+        assert!(pipeline.reuse(input.view(), &source.font, source.profile));
+        input.mark(None, "fi", None).unwrap();
+        let before = input.version();
+        let preview = layout_only(&mut pipeline, input.view(), &source);
+        let previous = ImeAnchor::capture(input.view(), before, &preview).unwrap();
+        // The commit differs from the preedit, as hanzi differ from pinyin.
+        input.replace(None, "AV\n").unwrap();
+        let committed = input.version();
+        assert_ne!(committed, before);
+        assert!(!pipeline.reuse(input.view(), &source.font, source.profile));
+        // Its layout lands, without pixels, before the next syllable.
+        let landed = layout_only(&mut pipeline, input.view(), &source);
+        let anchor = ImeAnchor::capture(input.view(), committed, &landed).unwrap();
+        input.mark(None, "fi", None).unwrap();
+        let view = input.view();
+        let origin = o + 3;
+        assert_eq!(view.marked_range(), Some(origin..origin + 2));
+        let at = placement(100, point(px(-50.0), px(-1400.0)));
+        let asked = origin + 1..origin + 2;
+        // The previous composition's anchor no longer answers.
+        let pending = |anchor| ime_bounds(view, committed, None, Some(anchor), at, asked.clone());
+        assert_eq!(pending(&previous), None);
+        // The committed layout puts the bar at the new origin, a line lower.
+        let answered = pending(&anchor).unwrap();
+        assert!(answered.origin.y > at.project(previous.caret).origin.y);
+        let exact = layout_of(view, &source);
+        let start = ime_bounds(view, committed, Some(&exact), None, at, origin..origin);
+        assert_eq!(Some(answered), start);
     }
     #[test]
     fn origin_anchor_is_dropped_for_other_versions_or_origins_and_queries_clamp_to_end() {
