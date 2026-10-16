@@ -39,3 +39,15 @@ W09 在实验源码干净的 `ede89a1820fe1a760f7943b1af730ec5f0d3d9f2` 上运�
 最终 main 推送后以该提交的 GitHub Actions 状态核验跨平台门禁；CI 是自动化构建／无窗口测试证据，不能替代 Windows 11、信创真机、Office 往返或 GUI／IME 人工验收。本次未将产品 TASKS 标成 done；W08 仍为恢复实验，W14 仍为生产恢复设计，原件保存仍受 W11 安全门禁限制。
 
 仅删除当前 main 可达、无未提交／未跟踪源码的任务 worktree 与分支；重新检查实际 HEAD，避免删除协调期间的新提交。候选删除目录为 `joyoffice-cifix`、`joyoffice-ledger`、`.claude/worktrees/modest-mclean-eb3020`，忽略文件仅为可重建 target 产物。主工作区、历史交付报告和 Git 提交历史保留。最终执行结果以 main、远程引用、worktree 列表及交接消息为准。
+
+## 复验期间追加：PR #20
+
+首次 main 集成到 `fea6358b6d92c1ef23bf354f8f4a4779534c3636` 后，清理复查发现 Claude worktree 新增未提交修改，因此暂缓删除。该执行者随后在 `claude/w11-confirmed-publish` 提交 `5dec164f75417e00e5532d187fcea722134cd266` 并发布 [PR #20](https://github.com/willmove/joyoffice/pull/20)。按用户汇总全部交付的授权，本协调分支审查后纳入这份已提交增量，没有接管其未提交文件。
+
+协调裁决：批准[增量报告](W07-REPLACE-INCREMENT.md)提出的读回阶段、未确认发布错误、只读阻塞与回执来源 stamp 接口；保留 W11 的来源绑定、锁令牌与全部尚未消除的元数据阻塞。Unix owner／组和 macOS 创建时间改为可恢复，元数据恢复先于文件 sync，发布前后均核对；公开原件保存仍在所有平台改写前拒绝。不存在“原件覆盖验收通过”的结论。
+
+审查发现 `confirm_published` 在确认读取预算前按外部可变的文件长度分配容量。若同一 inode 在确认前被扩展，这会绕过读取预算对内存分配的约束。本协调者增加分配前长度／预算核验和读取后上限核验，并以 8 字节预算下同一文件扩展至 9 字节的回归测试验证 `FileTooLarge` 拒绝，文件不被改写。
+
+修复后的生产基线为 `23b3901c54598ccf7c2195bcf6eda2a3df02043d`；W09 再次重锚定到该固定提交，而非移除守卫。前述首次验证证据保留，追加复验独立记录。清理仍以最终检查时 main 祖先关系和 worktree 实际状态为准；新在途修改不得删除。
+
+追加复验全部通过：默认成员 debug／release 各 364 项，应用 11 项；W08 各 15 项，W09 各 3 项与 Python 11 项；root／独立 workspace 的 fmt、clippy、应用开发构建、文档及 diff 检查通过。W09 在新基线上重跑 81＋600 次，分类与首次相同且无异常；详见[追加验证汇总](../evidence/MAIN-20261016/pr20-validation.json)、[冒烟摘要](../evidence/MAIN-20261016/pr20-w09-smoke-summary.json)与[变异摘要](../evidence/MAIN-20261016/pr20-w09-campaign-summary.json)。首次 main 的[八项 CI 门禁](https://github.com/willmove/joyoffice/actions/runs/38831307604)已全绿；追加提交仍以其自身的 main CI 作为最终远程验证。

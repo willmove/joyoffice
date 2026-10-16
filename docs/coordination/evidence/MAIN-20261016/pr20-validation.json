@@ -1,0 +1,98 @@
+{
+  "production_baseline": "23b3901c54598ccf7c2195bcf6eda2a3df02043d",
+  "tested_integration_history": "0aada92b0f0bf82caf2cc0006cd0763d11366b85",
+  "production_tree_matches_baseline": true,
+  "host": "Apple M4 / macOS 27.0.1 arm64 / Rust 1.98.1 / Python 3.9.6",
+  "logs": {
+    "debug": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-debug.log",
+      "log_sha256": "9eea0a89721444a1e6cf2db586c88f1a805125a8573982d431b6ed408562a9a7",
+      "passed": 364,
+      "failed": 0,
+      "ignored": 0
+    },
+    "release": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-release.log",
+      "log_sha256": "ae86d2453548ba0511169feb0fb45f2d31e6179dccb3a67fe4375087577fc2d3",
+      "passed": 364,
+      "failed": 0,
+      "ignored": 0
+    },
+    "app": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-app.log",
+      "log_sha256": "3fbab2d6a5a76a13a8d1579c11dc9e363041866b4da745924ebd0aa7c28179a6",
+      "passed": 11,
+      "failed": 0,
+      "ignored": 0
+    },
+    "clippy": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-clippy.log",
+      "log_sha256": "83b13548dccac1d76b2c1a32464ed01fa2852f64b939533d039b51d28f676e60"
+    },
+    "build": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-build.log",
+      "log_sha256": "000e963d368153b058ed79f3ffae91be81fb2969cf8c69fcb6d15b57f71fef22"
+    },
+    "w08-debug": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w08-debug.log",
+      "log_sha256": "79f4d283ba4e97eadc459d59e24bc34c6ec784ccf0cb0c9a6b03cfa8f8ab5f2e",
+      "passed": 15,
+      "failed": 0,
+      "ignored": 0
+    },
+    "w08-release": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w08-release.log",
+      "log_sha256": "b9268034bd530d12fc8194231ad5ab53bc16b7190e201e53f87a13fa7f7bd986",
+      "passed": 15,
+      "failed": 0,
+      "ignored": 0
+    },
+    "w08-clippy": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w08-clippy.log",
+      "log_sha256": "748b535317fa42a7d9f776ff1833d2a7eb73e72166c349349941bf0e318c6b5d"
+    },
+    "w09-debug": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w09-debug.log",
+      "log_sha256": "8d5f868f0b3552dc33d4190278c3f9debe000d0019220a4c9a9a85fcfb782e67",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    "w09-release": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w09-release.log",
+      "log_sha256": "0031b1fb21352be147550a320318ebfc7421eb07ecc2f00675b64e1040d3bf1a",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    "w09-clippy": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w09-clippy.log",
+      "log_sha256": "a4094173c37d04be5e039e3238ec085c44657eec1ee017697351f3fe48b7bdd0"
+    },
+    "w09-python": {
+      "exit_code": 0,
+      "log_path": "/tmp/joyoffice-integration-20261016-final-w09-python.log",
+      "log_sha256": "e371024ba81b61dbaf63b88246dae41539aae21fa1c0a460188e903a87be225c",
+      "python_tests": 11,
+      "python_result": "OK"
+    }
+  },
+  "checks": [
+    "root and both experiments fmt",
+    "docs checker",
+    "diff check"
+  ],
+  "first_main_ci": "https://github.com/willmove/joyoffice/actions/runs/38831307604",
+  "first_main_ci_result": "success"
+}
