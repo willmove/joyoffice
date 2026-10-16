@@ -135,6 +135,7 @@
 | `/opt/homebrew/bin/python3 scripts/verify_gpui_pre_provenance.py --expected-zed-rev 93d745668805029476e6d7fbb19652116fed51de --reviewed-deviations scripts/gpui_pre_reviewed_deviations.json`（与 CI 作业参数相同） | passed（exit 0）：16 identical / 3 accepted / 0 failed；23.2 s | Python 3.15.0，暖缓存 |
 | `/opt/homebrew/bin/python3 scripts/verify_gpui_pre_provenance.py` | failed（符合预期，exit 1）：16 identical / 3 failed；11.3 s | Python 3.15.0，严格模式 |
 | `python3 scripts/check_docs.py`（改动 CI 与文档之后） | passed：9 个 workflow action 均按 SHA 固定 | 链接检查覆盖 ARCHITECTURE 与 PROVENANCE 的新链接 |
+| CI `provenance` 作业（提交 `6ee61e9`，Actions 运行 38889115731，作业 116934022411） | passed：Result: OK，16 identical / 3 accepted / 0 failed；脚本用时 packages 0.3 s、Zed 0.9 s，整个作业约 4 s | ubuntu-24.04，CPython 3.12.15，冷缓存下载 19 个 `.crate`；同一运行中的 `dependencies` 与 `unified-pdf` 作业也通过 |
 | Linux、Windows 上运行单测（含 git 端到端用例） | not run | 本机无对应环境；CI build 矩阵会运行；端到端用例不依赖文件系统符号链接 |
 
 离线测试覆盖：一致；内容不同；`LICENSE` 与符号链接目标不同；多余文件；缺失文件；嵌套包文件混入发布包；缺 metadata；缩写提交号；构建目标指向不比对的文件；审查偏差的接受、拒绝、未使用和字段错误；`.crate` 越界路径与符号链接条目；锁文件筛选；TOML 子集解析与拒绝。端到端（本地 `file://` 仓库）：部分克隆全流程通过；内容被改则失败；fork 提交（不在 `main` 中）失败；校验和不符失败；提交不存在时 exit 2。
@@ -165,7 +166,7 @@
    - 前提：先裁决 9 处偏差。如果不接受，去掉 `--reviewed-deviations` 后作业当前必然失败，这是有意的设计。
    - 依赖：不需要 Rust 工具链、`cargo fetch` 或 GitHub token；只需 Python 3.9+（3.11+ 用 `tomllib`）和 runner 自带的 git。
    - 网络：HTTPS 访问 github.com（git smart HTTP：提交加树约 200 KiB，`main` 近期提交约 0.5 MiB，另批量取约 20 个 blob）和 static.crates.io（19 个 `.crate` 共 6.2 MiB，runner 冷缓存需要全部下载）。不调用 GitHub API，没有速率限制问题。
-   - 时长：Zed 侧本机实测 27–36 s（提交与树约 10 s，`main` 历史约 15–20 s，批量 blob 约 2 s），暖缓存时几乎就是全部用时。GitHub runner 下载 6.2 MiB 预计只需数秒，整体预计不到 1 分钟；本机冷缓存因国际带宽慢共用 248 s，其中下载 212 s。超时设 10 分钟足够。
+   - 时长：Zed 侧本机实测 27–36 s（提交与树约 10 s，`main` 历史约 15–20 s，批量 blob 约 2 s），暖缓存时几乎就是全部用时。GitHub runner 上实测脚本只用 1.2 s，整个作业约 4 s；本机冷缓存因国际带宽慢共用 248 s，其中下载 212 s。超时设 10 分钟足够。
    - 退出码：1 表示校验失败，应阻断合并；2 表示无法运行（网络或 git），可重跑。
    - 触发：对固定的 Cargo.lock 结果是确定的（`.crate` 与 Zed 提交均不可变），可以每次 push 都跑（成本低），也可以只在 Cargo.lock、该脚本或偏差文件变化时跑。
 2. **ADR-010**：记录本校验是 gpui-pre 的供应链补偿措施，并记录对 9 处偏差的裁决。升级 gpui-pre 时，同步更新 ADR 中的 zed-rev 和 CI 的 `--expected-zed-rev`，按以下流程复审：先不带偏差文件运行，再审查新差异，最后依据失败行给出的 sha256 和 zed_blob 更新偏差文件。
@@ -174,5 +175,5 @@
 
 ## 阻塞与下一步
 
-- 无技术阻塞。待办：本分支推送后 CI 中 `provenance` 作业的实际运行结果；是否合入 main 由用户／协调者决定；迁移报告提案 2–4 中其余文档的更新。
+- 无技术阻塞；CI `provenance` 作业已在 GitHub runner 上通过。待办：是否合入 main 由用户／协调者决定；迁移报告提案 2–4 中其余文档的更新。
 - 可选后续：把清单依赖键比对（上文一次性结果）纳入脚本；向发布者反馈，请其在发布包中保留 `.cargo_vcs_info.json`，或公开改写脚本（gpui-kit `script/bump-gpui.ts`）。
