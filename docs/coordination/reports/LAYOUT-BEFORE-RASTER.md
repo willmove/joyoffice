@@ -5,10 +5,10 @@
 - 主机：Apple M4 / arm64 / macOS 27.0.1（26A434）/ Rust 1.98.1（48a229cea 2026-09-01）；内置显示器 1920×1080 点，缩放系数 1。
 - 代码基线：`claude/ime-candidate-position` @ `6723b9394da8b94fe70a3b45b75148e37e2f6663`，含 ImeAnchor 与 gpui-pre 0.3.9，尚未合入 main。启动时 main 为 `0dcc0f0e4f0efa5d7845b697ed7d60bcc2136ff2`。
 - 分支：`claude/layout-before-raster`（独立 worktree `.claude/worktrees/elastic-shtern-26234a`）。
-- 状态：有限交付。代码、无窗口测试、变异检查和 lint 均已完成；GUI 验证未完成，原因见“GUI 验证”。
+- 状态：完成本轮切片。代码、无窗口测试、变异检查、lint 和两项约定的 macOS GUI 场景（80%）均已完成。第一次 GUI 尝试曾把按键误输入到 Xcode，已恢复，见“GUI 验证”。
 - interface_ready：true。只改 JoyWord 应用内部的画布状态、几何入口和绘制，不改 engine、layout、render、shell 公共接口，也不改依赖与锁文件。
-- implementation_verified：仅无窗口部分为 true。应用测试 21 项（原 15 项）、workspace clippy 和 7 项变异检查通过；两项 GUI 场景未实测。
-- acceptance_complete：false。两项约定的 GUI 场景未完成，Retina、多显示器、Windows、Linux 也未覆盖。
+- implementation_verified：true。应用测试 21 项（原 15 项）、workspace clippy 和 7 项变异检查通过。系统拼音在 80% 下实测了两个场景：快速提交后输入时候选条落在新组合起点；光标滚出视口后输入时页面先滚回、候选条紧贴组合文本。
+- acceptance_complete：false。100% 下未重测这两个场景；Retina、多显示器、Windows、Linux 未覆盖；也未用追踪构建确认提交后的首次查询是否已得到精确答案（见“GUI 验证”）。
 
 ## 背景与实测时延
 
@@ -81,7 +81,7 @@
 | `python3 scripts/check_docs.py` | passed | — |
 | `git diff --check` | passed | — |
 | 排版／光栅时延测量 | 见“背景与实测时延” | 调试测试构建，临时测试未提交 |
-| GUI：快速提交后输入、光标滚出视口 | **未完成** | 见“GUI 验证” |
+| GUI：快速提交后输入、光标滚出视口 | 第一次（17:36）中止；第二次（18:09–18:13）两项均 passed | 80%，系统简体拼音；见“GUI 验证” |
 
 变异检查的 7 种破坏与失败的测试：
 
@@ -112,21 +112,39 @@
 
 ## GUI 验证
 
-时间与方式：2026-10-16 17:36，经用户同意占用桌面。
+两次尝试都在 2026-10-16，均经用户同意占用桌面。被测构建为提交 `70c13e2`：先 `cargo build -p joyword --features dev-runtime-shaders --locked`，再用 `python3 scripts/package_macos_dev.py` 包装成 `target/dev/JoyWord.app`，以 `open -n` 启动。显示器缩放系数 1，输入法为系统简体拼音（`com.apple.inputmethod.SCIM.ITABC`），按键经 System Events 发送。截图与测量脚本未提交，放在本组会话的共享笔记目录（仓库外）。
 
-1. `cargo build -p joyword --features dev-runtime-shaders --locked`，然后用 `python3 scripts/package_macos_dev.py` 包装提交 `70c13e2`，再以 `open -n target/dev/JoyWord.app` 启动。窗口 1100×883，位于屏幕 (410,88)，缩放 80%。启动截图中 JoyWord 在最前。
-2. 经 System Events 把 JoyWord 进程置前，按 Ctrl+Space 切到简体拼音（已确认 `com.apple.inputmethod.SCIM.ITABC`），输入 `nihao`；随后同一脚本内按空格并立即输入 `shijie`。
-3. 结果：按键没有到达 JoyWord。截图显示最前应用已变为 Xcode，它正在编辑主 checkout 的 `AGENTS.md`；拼音文本被插入 `/Users/willm/Coding/joyoffice/AGENTS.md` 第 3 行，并被 Xcode 自动保存。
-   - JoyWord 进程仍在运行，没有崩溃报告。
-   - 焦点为何转移未查明。
+### 第一次（17:36，中止）
+
+1. 窗口 1100×883，位于屏幕 (410,88)，缩放 80%。启动截图中 JoyWord 在最前。
+2. 经 System Events 把 JoyWord 进程置前，按 Ctrl+Space 切到简体拼音，输入 `nihao`；随后同一脚本内按空格并立即输入 `shijie`。脚本没有在按键前确认最前应用。
+3. 结果：按键没有到达 JoyWord。最前应用已变为 Xcode，它正在编辑主 checkout 的 `AGENTS.md`；拼音文本被插入 `/Users/willm/Coding/joyoffice/AGENTS.md` 第 3 行，并被 Xcode 自动保存。JoyWord 进程仍在运行，没有崩溃报告。
 4. 处理：
-   - 把被改动的文件和 diff 保存到本组会话的共享笔记目录（仓库外）。
-   - 用 `git restore -- AGENTS.md` 恢复主 checkout。主 checkout 的 diff 只有这一行，且文件修改时间与按键时刻一致；恢复后 `git status` 干净，数秒后复查仍干净。
-5. 为避免再次误输入，本会话的自动权限检查拒绝了后续发送按键的命令，GUI 验证就此停止。
-   - 两个约定场景均**未验证**：快速提交后输入时候选条落在新组合起点；光标滚出视口后输入。
-   - 输入源停留在简体拼音；JoyWord 开发实例仍在运行，没有文本输入。
+   - 把被改动的文件和 diff 保存到共享笔记目录。
+   - 用 `git restore -- AGENTS.md` 恢复主 checkout。主 checkout 的 diff 只有这一行，且文件修改时间与按键时刻一致；恢复后 `git status` 干净，此后多次复查仍干净。
+   - 本会话的自动权限检查随即拒绝继续发送按键，GUI 验证停止。
 
-截图未提交，与此前报告一致。
+### 第二次（18:09–18:13，通过）
+
+用户关闭了 Xcode 等打开仓库文件的编辑器，并要求每批按键前确认 JoyWord 在最前。
+
+- **防护脚本**：每批按键前用 `tell application id "dev.joyoffice.joyword" to activate` 置前，等 0.8 s 后比较最前进程的 PID，不是 JoyWord 就中止且不发任何键；按键后再报告一次最前 PID。按 PID 置前（`set frontmost`）不可靠，所以改用 bundle id。
+- **开始前的干扰**：
+  - 第一批 `nihao` 被防护中止，没有发出任何按键。
+  - 采样发现最前应用先后变为 Terminal 和刚启动的 ZCode；JoyWord 窗口先是最小化，后被关闭。经用户确认桌面空闲后，结束旧实例，重新启动（PID 97514，窗口 1100×882，位于 (410,85)，80%）。
+  - 之后每批按键前后，最前 PID 均为 JoyWord。
+- **滚动工具**：滚动用共享笔记目录中的 Swift 小工具（`CGEvent` 像素滚轮，未提交），在 JoyWord 页面区域内发送。
+
+测量方法：在截图中定位候选条首个候选的蓝色高亮块，与组合下划线（`0x1f5b9b`）比较；单位为屏幕点。
+
+| 场景 | 结果 |
+| --- | --- |
+| 文首输入 `nihao` | 候选条紧贴组合文本下方。下划线左端 x=538，候选块左端 x=524 |
+| **快速提交后输入**：空格提交“你好”后在同一脚本内立即输入 `shijie`，间隔为毫秒级 | 候选条随新组合右移。下划线左端 x=564，候选块左端 x=549，即右移 25 点，等于 80% 下“你好”两个字宽；与组合起点的相对位置与上一行相同（相差 1 点）。IME-CANDIDATE-POSITION 报告记录的旧行为是：同样操作下候选条停在上一组起点 |
+| **光标滚出视口**：Esc 取消组合，滚轮下移 1200 像素到页面底部（截图确认首行已在视口外），再输入 `nihao` | 页面立即滚回，组合行位于视口顶部内侧。下划线 y=240，候选块 y=249–272、左端 x=549，候选条紧贴组合文本下方 |
+| 收尾 | Esc 取消组合，Ctrl+Space 切回 ABC，结束 JoyWord 开发实例（示例文档仅在内存中）。主 checkout 仍干净 |
+
+证据边界：系统拼音在每次 `setMarkedText` 后都会查询，最终截图只说明输入 `shijie` 的过程中，至少有一次查询得到了新起点；无法区分是首个按键 `s` 已经拿到答案，还是之后的按键才拿到。本次没有使用 IME-CANDIDATE-POSITION 那样的追踪补丁构建。
 
 ## 已知边界
 
@@ -141,11 +159,10 @@
 
 ## 阻塞与下一步
 
-- **GUI 验证需要重新约定时段。** 下次开始前：
-  - 关闭或隐藏打开着仓库文件的编辑器（本次是 Xcode）。
-  - 每批按键前在脚本里确认最前进程是 JoyWord，不是就中止；或由用户手动输入。
-- **两个待验场景**：
-  - 系统拼音输入 `nihao`，空格提交后立即输入 `shijie`：候选条应落在新组合起点，即“你好”之后。
-  - 滚到页面底部、光标滚出视口后输入：页面应先滚回，候选条紧贴组合文本下方。
+- 无阻塞。
+- **下次 GUI 验证前**：先关闭打开着仓库文件的编辑器，并沿用“按 bundle id 置前、核对最前 PID 后才发键”的防护。
+- **可选补充**：
+  - 用追踪构建确认提交后首个按键的查询结果。
+  - 100% 下重测上述两个场景。
 - **合入顺序**：先 `claude/gpui-pre-migration`，再 `claude/ime-candidate-position`，最后本分支。
 - **未覆盖**：Retina、外接／多显示器、Windows、Linux 输入法、发布构建（预编译 Metal）下的时序。
