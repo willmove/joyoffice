@@ -6,10 +6,10 @@
 - 代码基线：`main` @ `0dcc0f0e4f0efa5d7845b697ed7d60bcc2136ff2`（启动时实际 HEAD 与 origin/main 一致）。
 - 分支：`claude/gpui-pre-migration`（独立 worktree `.claude/worktrees/gpui-pre-migration`）。
 - 依据：[GPUI Kit / GPUI Fast 选型调研](https://github.com/willmove/joyoffice/blob/claude/gpui-kit-fast-evaluation/docs/coordination/reports/GPUI-KIT-FAST-EVALUATION.md)（分支 `claude/gpui-kit-fast-evaluation`，尚未合入 main）第 7–8 节的建议与其隔离迁移 diff；本次在仓库内正式落地，并修正了该隔离清单遗漏的平台特性（见下文“平台特性”）。
-- 状态：完成本轮切片（编译、无窗口测试、lint、依赖策略）；GUI 运行与非 macOS 平台未验证。
+- 状态：完成本轮切片（编译、无窗口测试、lint、依赖策略、macOS GUI 冒烟）；非 macOS 平台与预编译 Metal 构建未验证。
 - interface_ready：true。应用代码继续以 `gpui` / `gpui_platform` 名称引用（Cargo 包重命名），对外部 crate 无影响；`GlyphId(pub u32)` 与公开的 `Window::paint_glyph` 已在依赖中可用。
 - implementation_verified：部分。macOS 上 dev-runtime-shaders 构建、clippy、应用 11 项测试、默认成员 364 项测试与 cargo-deny 通过；不启用 runtime shaders 的预编译 Metal 构建、Linux、Windows 在本机受环境阻塞，未验证。
-- acceptance_complete：false。未启动窗口；菜单、IME、焦点、多显示器、Linux GL 退路均未人工验收。
+- acceptance_complete：false。macOS 开发构建的 GUI 冒烟已通过（见“GUI 冒烟”），并与 gpui 0.2.2 基线逐项对照；多显示器、Retina 以外的 DPI、Windows、Linux（含 GL 退路）均未人工验收。
 
 ## 实际变更与支持范围
 
@@ -59,7 +59,31 @@
 | `cargo build -p joyword --locked`（不启用 runtime shaders，预编译 Metal） | blocked | `gpui-pre-apple` 构建脚本：`cannot execute tool 'metal' due to missing Metal Toolchain; use: xcodebuild -downloadComponent MetalToolchain`。本机 Xcode 27.1 未下载该组件；CI macos-15 覆盖 |
 | `cargo check -p joyword --locked --target x86_64-pc-windows-msvc` | blocked | `gpui-pre` 构建脚本嵌入 Windows manifest 需要 rc 工具，macOS 主机没有；CI windows-2022 覆盖 |
 | `cargo check -p joyword --locked --target x86_64-unknown-linux-gnu` | blocked | `wayland-backend` 构建脚本需要目标 sysroot 的 pkg-config；CI ubuntu-24.04 / 24.04-arm 覆盖 |
-| GUI 启动、菜单、快捷键、IME、关闭确认、文件对话框 | skipped | 按 AGENTS.md，GUI 验证需先与用户约定时段 |
+| GUI 冒烟（见下节） | passed | 2026-10-16 经用户同意占用桌面；macOS 开发构建，经 `scripts/package_macos_dev.py` 包装后用 `open` 启动 |
+
+## GUI 冒烟（macOS）
+
+环境：同上主机，内置显示器 1920×1080 点；dev-runtime-shaders 构建；`python3 scripts/package_macos_dev.py` 包装为 `target/dev/JoyWord.app` 后 `open` 启动；输入法为系统简体拼音；默认字体路径（未设 `JOYWORD_FONT`）。操作经 System Events 辅助功能接口（用户自行授予权限）驱动，截取 JoyWord 窗口核对。对照基线为同一主机上 `main@0dcc0f0`（gpui 0.2.2）以相同方式构建、包装、启动。
+
+| 检查项 | gpui-pre 0.3.9 结果 | 与 0.2.2 基线对照 |
+| --- | --- | --- |
+| 启动与窗口 | 1100×883 窗口，标题“JoyWord · Preview”，激活后光标位于正文开头 | 一致 |
+| GPUI 界面文字（`font-kit`） | 顶栏、技术预览横幅、状态栏、缩放比例均正常渲染 | 一致 |
+| 页面画布 | 中文样例五段正文正常显示，缩放 80/90/100% 重绘正确 | 一致 |
+| 菜单结构 | 菜单栏为：粗体应用菜单（内容为“打开…”“另存为新副本…”）、“JoyWord”（退出）、编辑、视图；快捷键标注齐全 | **与基线相同**。原因是 `MenuKind::File` 排在 `App` 前，macOS 把第一个菜单当应用菜单。属既有问题，非迁移引入 |
+| 菜单可用性 | 应用激活时各项可用；应用未激活时只有“退出”可用（按动作可达性校验） | 基线在任何状态下都报告全部可用。gpui-pre 的行为更准确 |
+| 视图 → 放大 / Cmd+= / Cmd+0 | 80→90→100%，实际大小回到 100% | 一致 |
+| 视图 → 界面语言切换 | 中→英→中，界面文字与菜单栏同步切换 | — |
+| 拼音组合与提交 | 预编辑文本带下划线，状态栏“正在组合输入”；空格提交“你好啊”；Esc 取消组合 | 一致 |
+| 候选窗位置 | 候选条出现在屏幕左下角，而非光标附近 | **与基线相同**（既有问题：输入法未拿到正确的字符坐标），非迁移引入 |
+| 撤销 / 全选 | Cmd+Z 撤销刚提交的文字；Cmd+A 高亮全部正文 | — |
+| 未保存时关闭窗口 | 弹出“‘JoyWord’有尚未保存的更改。”（取消/不保存）；“取消”后焦点回到文档（经迁移后的 `window.focus(&h, cx)`），可继续输入；“不保存”后窗口移除、应用按 macOS 惯例保持运行 | — |
+| 未保存时 Cmd+O | 先弹未保存确认；“不保存”后出现系统打开面板（仅取消，未读取任何文件） | — |
+| 退出 | 未修改时菜单“退出 JoyWord”与 Cmd+Q 直接退出（退出码 0）；有修改时先确认，“不保存”后退出 | — |
+
+测试工具现象（不计为缺陷）：先用 System Events 打开“文件”菜单、按 Esc、再打开“视图”菜单、按 Esc，然后对“放大”执行辅助功能点击，菜单会残留在屏幕上且动作不触发；快捷键仍然有效。同一脚本在 0.2.2 基线上表现完全相同，直接打开菜单再点击则两版都正常，判断为模拟输入的问题。
+
+另：从后台 shell 直接运行未包装的 `target/debug/joyword` 时，窗口未被系统激活（菜单栏仍属前一个应用），因此本次改用 README 推荐的 .app 包装方式。未对基线做同样的未包装对照。
 
 ## 接口或依赖提案
 
@@ -76,5 +100,6 @@
 
 - 预编译 Metal 构建：本机执行 `xcodebuild -downloadComponent MetalToolchain` 后复跑 `cargo build -p joyword --locked`，或以 CI macos-15 结果为准。
 - 三端 CI：推送分支后看 build 矩阵（macOS 预编译 Metal、Windows、Linux x86_64/ARM64）与 dependencies 作业。
-- GUI 冒烟（需约定时段）：`cargo run -p joyword --features dev-runtime-shaders --locked`，核对窗口与界面文字渲染、菜单与快捷键、页面画布、IME 组合与候选窗位置、未保存关闭确认、打开/另存对话框。
+- 既有问题（非迁移引入，建议另立任务）：macOS 下“文件”菜单占用应用菜单位置；拼音候选窗不跟随光标。
+- 未做的 GUI 项：另存为新副本的实际写出、打开真实 DOCX、多显示器与外接显示器 DPI、VoiceOver/AccessKit 树。
 - 后续可选：按调研第 8 节给工具栏/侧栏等稳定视图加 `.cached()`；gpui-fast 作为 CI 编译矩阵中的可选后端。
