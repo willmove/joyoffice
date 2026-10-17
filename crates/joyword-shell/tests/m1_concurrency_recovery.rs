@@ -85,7 +85,31 @@ fn killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied() {
         std::process::abort();
     }
     let dir = tempfile::tempdir().unwrap();
-    let mut child = Command::new(std::env::current_exe().unwrap());
+    let exe = std::env::current_exe().unwrap();
+    let mut child = if exe
+        .file_name()
+        .is_some_and(|name| name.to_string_lossy().starts_with("qemu"))
+    {
+        // QEMU user mode without the binfmt fix-binary flag reports the
+        // emulator as /proc/self/exe, and the guest test binary cannot exec
+        // directly. Respawn through the runner cargo used; argv[0] still
+        // carries the guest binary path.
+        let runner_env = if cfg!(target_arch = "aarch64") {
+            "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER"
+        } else if cfg!(target_arch = "loongarch64") {
+            "CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_RUNNER"
+        } else {
+            panic!("unexpected QEMU runner on this architecture")
+        };
+        let runner = std::env::var(runner_env).expect("QEMU runner env var from CI");
+        let mut words = runner.split_whitespace();
+        let program = words.next().expect("runner program");
+        let mut command = Command::new(program);
+        command.args(words).arg(std::env::args().next().unwrap());
+        command
+    } else {
+        Command::new(exe)
+    };
     child
         .env("JOYWORD_RECOVERY_CHILD", "1")
         .env("JOYWORD_RECOVERY_DIR", dir.path())
