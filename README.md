@@ -18,7 +18,7 @@ joyword-docx 已有声明子集的导入与原始包保留。无界面 DOCX 会�
 - [架构与 ADR](docs/joyword/ARCHITECTURE.md) · [兼容矩阵](docs/joyword/COMPATIBILITY.md) · [质量门槛](docs/joyword/QUALITY.md)
 - [原生 Agent 设计](docs/joyword/AI.md) · [公开资料调研](docs/joyword/RESEARCH.md) · [独立实现与来源](docs/joyword/PROVENANCE.md)
 - [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)
-- [多 Agent 分工与交付](docs/coordination/README.md) · [W01/W03 集成审查](docs/coordination/reports/WAVE01-REVIEW.md) · [第二轮交付与集成](docs/coordination/wave02/README.md)
+- [开发约定](AGENTS.md) · [历史协作归档（已停用）](docs/coordination/README.md)
 
 ## 运行技术预览
 
