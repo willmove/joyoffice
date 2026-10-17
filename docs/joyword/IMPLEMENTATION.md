@@ -251,6 +251,7 @@
 | 文档检查（v0.3） | 2026-10-17 `python3 scripts/check_docs.py` 通过：84 个需求、66 个任务，阶段一致，M0–M7 均在 T704 前置闭包内 |
 | 视口光栅缓存 | 2026-10-17，分支 `claude/distracted-ishizaka-1b0abb` 提交，已 rebase 到 main `4e723ae` 并整合 M1 的插入符号覆盖层（随所在页光栅生成、只在该页显示）：`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings`、`cargo test -p joyword --features dev-runtime-shaders --locked`（32 项）、`cargo test -p joyword-render -p joyword-shell --locked`（182 项）与默认成员 `cargo test --locked`（390 项）通过；新增复现测试先以 `LimitExceeded(Pixels)` 失败后通过。GUI 未验收 |
 | Office 往返、性能 | 未执行，不能计为通过 |
+| M0/M1 收口批 CI | 2026-10-18，f75d2cd：[39080511079](https://github.com/willmove/joyoffice/actions/runs/39080511079) 全部 9 个作业通过：windows-2022、macos-15、ubuntu-24.04、ubuntu-24.04-arm 构建，aarch64／loongarch64 QEMU 无界面测试（含恢复测试经 QEMU runner 重派生修复），unified-pdf、dependencies（cargo-deny，含 zbus 家族 unmaintained 豁免）、provenance；W09 harness 重锚定至 c7abd1c 且冒烟 81 次通过 |
 
 构建出现上游 block 0.1.6 的 future-incompat 提示（proc-macro-error2 2.0.1 的提示随 gpui 0.2.2 一并移除）；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
 
