@@ -8,6 +8,7 @@
 - 开始前检查工作目录、git status、分支和 HEAD；按用户指定分支工作，未指定时沿用当前分支，不强制创建 worktree。
 - 按需阅读 docs/joyword/ 下的 SPEC.md、ARCHITECTURE.md、QUALITY.md、TASKS.md 和 IMPLEMENTATION.md；docs/coordination/ 仅供历史查证，其任务分配与文件独占规则不再生效。
 - 只修改任务相关内容，保留已有未提交修改；必要时直接同步相关文档。提交、推送按用户要求执行，不强推。
+- 提交信息一律用英文书写（2026-10-18 用户明确）。
 
 ## 工程要求
 
