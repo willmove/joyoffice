@@ -229,6 +229,22 @@ fn external_references() -> Vec<(&'static str, String)> {
     ]
 }
 
+/// The document the app window shows at startup: the CJK contract seed as a
+/// real package, so the sample can be edited and saved like any opened DOCX.
+/// Paragraph texts match `tests/fixtures/text/cjk-contract.txt` line by line.
+fn startup_sample() -> Vec<(&'static str, String)> {
+    let seed = include_str!("../../../tests/fixtures/text/cjk-contract.txt");
+    let body = seed.lines().map(paragraph).collect::<String>();
+    vec![
+        (
+            "[Content_Types].xml",
+            content_types(&[("/word/document.xml", CT_MAIN)]),
+        ),
+        ("_rels/.rels", package_rels()),
+        ("word/document.xml", document("", &body)),
+    ]
+}
+
 fn protected_tracked() -> Vec<(&'static str, String)> {
     vec![
         (
@@ -300,6 +316,16 @@ pub fn cases() -> Vec<FormatCase> {
                 "外部目标在诊断中按网页与网络共享分类可见",
             ],
             parts: external_references,
+        },
+        FormatCase {
+            id: "DOCX-SAMPLE-001",
+            file: "DOCX-SAMPLE-001.docx",
+            requirements: &["FORMAT-001", "FORMAT-002", "LAYOUT-002"],
+            expected: &[
+                "正文与 text/cjk-contract.txt 逐行一致",
+                "作为应用启动示例打开后可编辑、可另存，另存重开文字不变",
+            ],
+            parts: startup_sample,
         },
         FormatCase {
             id: "DOCX-MIN-005",

@@ -182,6 +182,32 @@
       "evidence": []
     },
     {
+      "id": "DOCX-SAMPLE-001",
+      "kind": "format_case",
+      "path": "docx/DOCX-SAMPLE-001.docx",
+      "document": "docx/DOCX-SAMPLE-001.docx",
+      "sha256": "a767d121341c12a26721ded803f4401f77ff54bc411383328ccc5fd1db91cd2d",
+      "origin": "JoyWord 原创启动示例文档，由 crates/joyword-corpus 确定性生成，正文逐行取自 text/cjk-contract.txt，2026-10-17",
+      "license": "MIT",
+      "requirements": [
+        "FORMAT-001",
+        "FORMAT-002",
+        "LAYOUT-002"
+      ],
+      "expected": [
+        "正文与 text/cjk-contract.txt 逐行一致",
+        "作为应用启动示例打开后可编辑、可另存，另存重开文字不变"
+      ],
+      "reference_profile": {
+        "word": "Office LTSC 2024：参考结果未建立",
+        "wps": "固定版本 WPS：参考结果未建立",
+        "fonts": "未指定",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
       "id": "DOCX-MIN-005",
       "kind": "format_case",
       "path": "docx/DOCX-MIN-005.docx",

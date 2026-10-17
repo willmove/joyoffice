@@ -83,6 +83,21 @@ impl DocxSession {
         })
     }
 
+    /// [`Self::open`] with the default untrusted-input budget.
+    pub fn open_default(bytes: &[u8]) -> Result<Self, ImportError> {
+        Self::open(bytes, &Budget::default())
+    }
+
+    /// A detached Save As copy of the current committed version, for sessions
+    /// without a bound path. Same guarantees as [`BoundDocx::save_copy_job`].
+    pub fn save_copy_job(&self) -> SaveCopyJob {
+        SaveCopyJob {
+            backing: Arc::clone(&self.backing),
+            snapshot: self.session.document().snapshot(),
+            budget: self.budget.clone(),
+        }
+    }
+
     /// Read-only engine access for document snapshots, versions, selection
     /// and command availability. Mutations must use this adapter's methods.
     pub fn session(&self) -> &Session {

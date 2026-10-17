@@ -371,21 +371,23 @@ impl JoyWord {
             self.load_started = true;
             let job = cx
                 .background_executor()
-                .spawn(async { document_canvas::load_source() });
+                .spawn(async { document_canvas::load_app_source() });
             self.load_task = Some(cx.spawn(async move |view, cx| {
                 let result = job.await;
                 let _ = view.update(cx, |view, cx| {
                     match result {
                         Ok(source) => {
-                            let document_canvas::CanvasSource {
+                            let document_canvas::AppSource {
                                 session,
                                 layout,
                                 font,
                                 profile,
                             } = source;
-                            if let Err(error) =
-                                layout.ensure_current(&session.snapshot(), &font, profile)
-                            {
+                            if let Err(error) = layout.ensure_current(
+                                &session.session().document().snapshot(),
+                                &font,
+                                profile,
+                            ) {
                                 view.canvas_error = Some(error.to_string());
                                 cx.notify();
                                 return;
@@ -584,8 +586,8 @@ impl JoyWord {
         Catalog::shipped(self.locale).text(key)
     }
 
-    /// Single entry for menus, shortcuts and on-screen controls. Disabled
-    /// commands (zoom limits) do nothing.
+    /// Single entry for menus, shortcuts and on-screen controls. Disabled and
+    /// failed commands surface their reason instead of doing nothing silently.
     fn run(&mut self, id: CommandId, window: &mut Window, cx: &mut Context<Self>) {
         let registry = self.registry.clone();
         match registry.invoke(
@@ -604,6 +606,14 @@ impl JoyWord {
             }
             Err(InvokeError::PendingInput { .. }) if id == FILE_CLOSE => {
                 self.request_close(false, window, cx);
+            }
+            Err(InvokeError::Disabled(reason)) => {
+                self.input_error = Some(self.label(reason));
+                cx.notify();
+            }
+            Err(InvokeError::Failed(message)) | Err(InvokeError::Unknown(message)) => {
+                self.input_error = Some(message);
+                cx.notify();
             }
             _ => {}
         }

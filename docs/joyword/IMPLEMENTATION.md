@@ -189,7 +189,7 @@
 
 ### 语料与比较工具（T004，进行中）
 
-- 清单：4 个文本种子与 5 个格式用例（DOCX-MIN-001…005，分别覆盖最小正文与默认兼容模式、中文样式 ID、未知内容保留、外部引用、限制编辑与强制修订），全部 `planned`；格式用例的参考结果状态为 `unverified`，检查器禁止在未建立参考结果时标记通过。
+- 清单：4 个文本种子与 6 个格式用例（DOCX-MIN-001…005 分别覆盖最小正文与默认兼容模式、中文样式 ID、未知内容保留、外部引用、限制编辑与强制修订；DOCX-SAMPLE-001 为应用启动示例，正文逐行取自 cjk-contract.txt），全部 `planned`；格式用例的参考结果状态为 `unverified`，检查器禁止在未建立参考结果时标记通过。
 - 可重复生成：`joyword-corpus` 以固定条目顺序与时间戳生成样例，测试逐字节核对仓库文件，并确认每个样例是无诊断的 OPC 包、外部目标只被分类。2026-10-14 用 macOS `textutil` 独立读取 5 个样例，均读出预期正文；尚未用 Word 或 WPS 打开。
 - 语义比较：`Document::semantic_difference` 比较不含 ID 的模型转储，返回第一处差异行。
 - 几何比较：`scripts/compare_pdf_lines.py` 对参考与候选 PDF 使用同一抽取器，比较页数、每页行数、逐行文字（忽略阅读器推断的空格）与行起点／行底偏差（默认 0.5 pt）；`--dump` 输出行与词框 JSON。CI 端到端：同一 PDF 自比通过，把第三行提前换行的变体被检出。精度是行／词框级，不是逐字形原点。
@@ -268,6 +268,7 @@
 - 打开在版本接受前只读，期间输入保留；保存结果按会话版本应用，过期结果不清 dirty。恢复日志写入原包基线；子进程中止后能读回最后一次提交。窗口使用 `JOYWORD_RECOVERY_DIR` 或偏好目录下的 `recovery`，启动时若日志可读则先恢复再加载示例。加密包不写明文副本。
 - 另存副本：`BoundDocx::save_copy_job` 取走一个已提交版本，计划、校验和写入可以在另一线程进行，保存期间继续输入的内容不进入副本，也不清未保存状态。窗口在选好路径后后台执行该作业；结果只作用于同一编辑世代，世代已变则丢弃，同世代但版本已变则提示副本不含开始保存后的修改。worktree `claude/nice-swartz-b742a2` 里“打开期间拒绝一切编辑”的方案没有并入：当前 `main` 已在版本门闩期间保留输入。
 - `scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例。engine 事务有 panic 守卫。
+- 启动示例文档改为语料用例 DOCX-SAMPLE-001（`joyword-corpus` 确定性生成，正文逐行取自 cjk-contract.txt），以 `DocxSession` 导入而非裸内存文档：启动即可编辑、写恢复日志并另存。`DocxSession` 新增 `open_default` 与 `save_copy_job`；另存可用性改按能否导出判断，无源文档不再静默禁用。命令被禁用或失败时窗口显示原因（本地化键或错误文本），不再无反应。
 - 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Office LTSC 2024 与 Microsoft Word.app 未安装，语料参考结果保持 `unverified`。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回，Word 对照没有执行。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。M2 及以后保持 `planned`。
 
 M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2–M9 未实施。

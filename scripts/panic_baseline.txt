@@ -503,3 +503,11 @@ apps/joyword/src/document_canvas.rs:0:let x_raster = pipeline.request_raster(&x_
 apps/joyword/src/document_canvas.rs:0:pipeline.request_raster(&current, at_120, 0..1).unwrap()
 apps/joyword/src/document_canvas.rs:0:source_with_text(font(), &vec!["AV fi"; lines].join("\n")).unwrap()
 apps/joyword/src/input_ui.rs:0:let b = project_page(&source.layout, at, page).unwrap();
+apps/joyword/src/document_canvas.rs:0:let session = joyword_shell::docx::DocxSession::open_default(SAMPLE_DOCX).unwrap();
+apps/joyword/src/document_canvas.rs:0:let mut input = TextInput::new(session, InputLimits::default()).unwrap();
+apps/joyword/src/document_canvas.rs:0:assert!(DocEditor::replace(&mut input, None, "校验").unwrap());
+apps/joyword/src/document_canvas.rs:0:std::fs::create_dir_all(&dir).unwrap();
+apps/joyword/src/document_canvas.rs:0:let receipt = DocEditor::save_copy(&input, &destination).unwrap();
+apps/joyword/src/document_canvas.rs:0:joyword_shell::docx::DocxSession::open_default(&std::fs::read(receipt.path()).unwrap())
+apps/joyword/src/document_canvas.rs:0:let source = source_with_text(font, "AV").unwrap();
+apps/joyword/src/document_canvas.rs:0:let input = TextInput::new(source.session, InputLimits::default()).unwrap();

@@ -3,12 +3,14 @@
 //! layout is usable for geometry before its pages are rasterized, and pages are
 //! rasterized one at a time around the viewport.
 use gpui::RenderImage;
+#[cfg(test)]
 use joyword_engine::{EditPolicy, Session};
 use joyword_foundation::Emu;
 use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutKey, LayoutLimits, LayoutSnapshot, LoadedFont,
     SingleFontProfile, layout_document,
 };
+#[cfg(test)]
 use joyword_model::{BlockSeq, Document, PageSetup, Paragraph};
 #[cfg(test)]
 use joyword_render::RasterPage;
@@ -22,7 +24,11 @@ use std::ops::Range;
 use std::path::Path;
 use std::sync::Arc;
 
+#[cfg(test)]
 const SEED: &str = include_str!("../../../tests/fixtures/text/cjk-contract.txt");
+/// Startup document package (DOCX-SAMPLE-001): the seed text as a real DOCX,
+/// so the sample edits, journals and saves like any opened file.
+const SAMPLE_DOCX: &[u8] = include_bytes!("../../../tests/fixtures/docx/DOCX-SAMPLE-001.docx");
 /// Resident pixel ceiling of the page cache. It bounds memory, not the
 /// document: the pages farthest from the viewport are evicted to stay within
 /// it, and only a page too large for it on its own cannot be shown.
@@ -32,8 +38,19 @@ const PREFETCH_PAGES: usize = 2;
 /// Failed pages remembered so they are not requested again.
 const MAX_FAILED_PAGES: usize = 64;
 
+#[cfg(test)]
 pub struct CanvasSource {
     pub session: Session,
+    pub layout: LayoutSnapshot,
+    pub font: LoadedFont,
+    pub profile: SingleFontProfile,
+}
+
+/// The window's startup document: DOCX-SAMPLE-001 imported as a real package
+/// session, so Save As, recovery journaling and undo behave exactly as they
+/// do for a file the user opened.
+pub struct AppSource {
+    pub session: joyword_shell::docx::DocxSession,
     pub layout: LayoutSnapshot,
     pub font: LoadedFont,
     pub profile: SingleFontProfile,
@@ -86,9 +103,52 @@ fn load_font_spec(requested: Option<&str>) -> Result<LoadedFont, String> {
     Err("CJK font unavailable; set JOYWORD_FONT=path:face".into())
 }
 
-pub fn load_source() -> Result<CanvasSource, String> {
-    source_with_text(load_font()?, SEED)
+fn sample_profile() -> SingleFontProfile {
+    SingleFontProfile {
+        size: Emu::new(12 * Emu::PER_POINT),
+        leading: Emu::new(18 * Emu::PER_POINT),
+        baseline: Emu::new(14 * Emu::PER_POINT),
+        features: FeatureSet::default(),
+    }
 }
+
+fn lay_out_snapshot(
+    snapshot: &joyword_model::DocumentSnapshot,
+    font: &LoadedFont,
+    profile: SingleFontProfile,
+) -> Result<LayoutSnapshot, String> {
+    let layout = layout_document(
+        snapshot,
+        FaceSet::uniform(font),
+        profile,
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .map_err(|e| e.to_string())?;
+    if !layout.diagnostics().is_empty() || layout.omitted_diagnostics() != 0 {
+        return Err("selected font cannot display the complete sample".into());
+    }
+    Ok(layout)
+}
+
+pub fn load_app_source() -> Result<AppSource, String> {
+    app_source_with_font(load_font()?)
+}
+
+pub(crate) fn app_source_with_font(font: LoadedFont) -> Result<AppSource, String> {
+    let session =
+        joyword_shell::docx::DocxSession::open_default(SAMPLE_DOCX).map_err(|e| e.to_string())?;
+    let profile = sample_profile();
+    let layout = lay_out_snapshot(&session.session().document().snapshot(), &font, profile)?;
+    Ok(AppSource {
+        session,
+        layout,
+        font,
+        profile,
+    })
+}
+
+#[cfg(test)]
 pub(crate) fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSource, String> {
     let mut document = Document::new(PageSetup::a4_zh_cn());
     let mut blocks = Vec::new();
@@ -105,23 +165,8 @@ pub(crate) fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSou
         read_only: false,
         agent_writes: false,
     });
-    let profile = SingleFontProfile {
-        size: Emu::new(12 * Emu::PER_POINT),
-        leading: Emu::new(18 * Emu::PER_POINT),
-        baseline: Emu::new(14 * Emu::PER_POINT),
-        features: FeatureSet::default(),
-    };
-    let layout = layout_document(
-        &session.document().snapshot(),
-        FaceSet::uniform(&font),
-        profile,
-        LayoutLimits::default(),
-        &LayoutCancellation::default(),
-    )
-    .map_err(|e| e.to_string())?;
-    if !layout.diagnostics().is_empty() || layout.omitted_diagnostics() != 0 {
-        return Err("selected font cannot display the complete sample".into());
-    }
+    let profile = sample_profile();
+    let layout = lay_out_snapshot(&session.document().snapshot(), &font, profile)?;
     Ok(CanvasSource {
         session,
         layout,
@@ -1695,5 +1740,70 @@ mod input_pipeline_tests {
         let image = cache.cached(1, retina, 0).unwrap();
         let pixels = u64::from(image.width()) * u64::from(image.height());
         assert!(pixels <= MAX_CACHE_PIXELS);
+    }
+}
+
+#[cfg(test)]
+mod startup_sample_tests {
+    use super::*;
+    use crate::input_ui::DocEditor;
+    use joyword_shell::input::{InputLimits, TextInput};
+
+    fn paragraphs(session: &joyword_shell::docx::DocxSession) -> Vec<String> {
+        session
+            .session()
+            .document()
+            .body()
+            .blocks
+            .iter()
+            .filter_map(|block| block.as_paragraph())
+            .map(|paragraph| paragraph.plain_text(|_| String::new()))
+            .collect()
+    }
+
+    /// The window's startup document is DOCX-SAMPLE-001: seed text, clean
+    /// state, and a real package backing so Save As works before any open.
+    /// Layout is not exercised here: the bundled test font does not cover the
+    /// full seed, which the runtime font check rejects by design.
+    #[test]
+    fn startup_sample_matches_seed_and_saves_a_copy() {
+        let session = joyword_shell::docx::DocxSession::open_default(SAMPLE_DOCX).unwrap();
+        assert_eq!(
+            paragraphs(&session),
+            SEED.lines().map(str::to_owned).collect::<Vec<_>>()
+        );
+        let mut input = TextInput::new(session, InputLimits::default()).unwrap();
+        assert!(DocEditor::can_save_copy(&input));
+        assert!(!DocEditor::has_unsaved_changes(&input));
+        assert!(DocEditor::replace(&mut input, None, "校验").unwrap());
+
+        let dir = std::env::temp_dir().join(format!("joyword-sample-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let destination = dir.join("sample-copy.docx");
+        let receipt = DocEditor::save_copy(&input, &destination).unwrap();
+        let reopened =
+            joyword_shell::docx::DocxSession::open_default(&std::fs::read(receipt.path()).unwrap())
+                .unwrap();
+        let text = paragraphs(&reopened).join("\n");
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(text.contains("校验"), "{text}");
+        for line in SEED.lines() {
+            assert!(text.contains(line), "{text}");
+        }
+    }
+
+    /// A bare in-memory session still cannot save: no package backing, no copy.
+    #[test]
+    fn in_memory_session_cannot_save_a_copy() {
+        let font = LoadedFont::from_bytes(
+            Arc::from(
+                include_bytes!("../../../tests/fixtures/fonts/joyoffice-test-serif.ttf").as_slice(),
+            ),
+            0,
+        )
+        .unwrap();
+        let source = source_with_text(font, "AV").unwrap();
+        let input = TextInput::new(source.session, InputLimits::default()).unwrap();
+        assert!(!DocEditor::can_save_copy(&input));
     }
 }

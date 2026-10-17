@@ -62,6 +62,11 @@ pub(crate) trait DocEditor {
     fn select_word_at(&mut self, offset: usize) -> Result<(), InputError>;
     fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError>;
     fn source_path(&self) -> Option<&std::path::Path>;
+    /// Save As is possible whenever the editor can produce a verified export,
+    /// including package sessions never bound to a path.
+    fn can_save_copy(&self) -> bool {
+        self.source_path().is_some()
+    }
     fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String>;
     fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
         None
@@ -254,6 +259,103 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
         Some(*self)
+    }
+}
+
+/// A package session without a bound path (the startup sample): fully editable
+/// and exportable, but it has no source file to suggest or return to.
+impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
+    fn has_unsaved_changes(&self) -> bool {
+        TextInput::has_unsaved_changes(self)
+    }
+    fn is_composing(&self) -> bool {
+        TextInput::is_composing(self)
+    }
+    fn version(&self) -> u64 {
+        self.backend().session().version().get()
+    }
+    fn view(&self) -> &joyword_shell::input::InputView {
+        TextInput::view(self)
+    }
+    fn can_undo(&self) -> bool {
+        TextInput::can_undo(self)
+    }
+    fn can_redo(&self) -> bool {
+        TextInput::can_redo(self)
+    }
+    fn read_only(&self) -> bool {
+        TextInput::read_only(self)
+    }
+    fn undo(&mut self) -> Result<(), InputError> {
+        TextInput::undo(self)
+    }
+    fn redo(&mut self) -> Result<(), InputError> {
+        TextInput::redo(self)
+    }
+    fn select_all(&mut self) -> Result<(), InputError> {
+        TextInput::select_all(self)
+    }
+    fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
+        TextInput::delete(self, direction)
+    }
+    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
+        TextInput::replace(self, range, text)
+    }
+    fn mark(
+        &mut self,
+        range: Option<Range<usize>>,
+        text: &str,
+        selected: Option<Range<usize>>,
+    ) -> Result<(), InputError> {
+        TextInput::mark(self, range, text, selected)
+    }
+    fn cancel_composition(&mut self) -> Result<bool, InputError> {
+        TextInput::cancel_composition(self)
+    }
+    fn unmark(&mut self) -> Result<bool, InputError> {
+        TextInput::unmark(self)
+    }
+    fn move_grapheme(&mut self, direction: Direction, extend: bool) -> Result<(), InputError> {
+        TextInput::move_grapheme(self, direction, extend)
+    }
+    fn select_positions(&mut self, selection: Selection) -> Result<(), InputError> {
+        TextInput::select_positions(self, selection)
+    }
+    fn select_word_at(&mut self, offset: usize) -> Result<(), InputError> {
+        TextInput::select_word_at(self, offset)
+    }
+    fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError> {
+        TextInput::select_paragraph_at(self, offset)
+    }
+    fn source_path(&self) -> Option<&std::path::Path> {
+        None
+    }
+    fn can_save_copy(&self) -> bool {
+        true
+    }
+    fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String> {
+        self.backend()
+            .save_copy_job()
+            .run(destination)
+            .map_err(|error| error.to_string())
+    }
+    fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
+        Some(self.backend().save_copy_job())
+    }
+    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
+        TextInput::format_runs(self, change)
+    }
+    fn format_paragraph(
+        &mut self,
+        change: joyword_engine::ParagraphChange,
+    ) -> Result<bool, InputError> {
+        TextInput::format_paragraph(self, change)
+    }
+    fn selected_text(&self) -> Result<String, InputError> {
+        TextInput::selected_text(self)
+    }
+    fn recovery_baseline(&self) -> Option<&[u8]> {
+        Some(self.backend().backing().original_bytes())
     }
 }
 
@@ -666,7 +768,7 @@ impl JoyWord {
             || self
                 .editor
                 .as_ref()
-                .is_none_or(|editor| editor.source_path().is_none())
+                .is_none_or(|editor| !editor.can_save_copy())
         {
             return;
         }
@@ -676,7 +778,8 @@ impl JoyWord {
             .and_then(|editor| editor.source_path())
             .and_then(|path| path.file_name())
             .and_then(|name| name.to_str())
-            .map(|name| format!("copy-{name}"));
+            .map(|name| format!("copy-{name}"))
+            .or_else(|| Some("copy-untitled.docx".to_owned()));
         let directory = self
             .editor
             .as_ref()
@@ -969,7 +1072,7 @@ impl JoyWord {
             return if self
                 .editor
                 .as_ref()
-                .is_some_and(|editor| editor.source_path().is_some())
+                .is_some_and(|editor| editor.can_save_copy())
             {
                 Availability::Enabled
             } else {

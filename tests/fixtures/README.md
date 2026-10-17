@@ -25,5 +25,6 @@
 | DOCX-MIN-003 | mc:Ignorable 未知元素与 customXml 部件的保留 |
 | DOCX-MIN-004 | 外部超链接与 file:// 主机附加模板：只记录不访问 |
 | DOCX-MIN-005 | 限制编辑与强制修订：实现前只读或提示 |
+| DOCX-SAMPLE-001 | 应用启动示例文档：正文逐行取自 `text/cjk-contract.txt`，可编辑、可另存 |
 
 joyword-model 的集成测试读取这些种子，检查逐码点保留与偏移换算；这属于模型测试，不改变种子的 planned 状态。比较工具：模型层的 `Document::semantic_difference` 以不含 ID 的转储比较语义；`scripts/compare_pdf_lines.py` 用同一抽取器（poppler）比较参考 PDF 与 JoyWord PDF 的页数、每页行数、逐行文字和行位置（默认 0.5 pt），`--dump` 输出可附在证据中的行几何。T004 仍缺固定 Word／WPS 参考环境与排版规则目录，不能以此清单宣称完成。
