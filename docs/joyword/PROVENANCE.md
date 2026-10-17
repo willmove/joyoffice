@@ -6,7 +6,7 @@
 
 允许：公开格式规范、Unicode／字体标准、产品使用说明、公开 API 文档、经授权的黑盒操作和原创样例。规范中的元素名称与行为可用于实现；代码注释需标规范版本和条款。微软 Open Specification Promise 覆盖 ECMA-376、MS-DOCX、MS-OI29500、MS-DOC、MS-OFFCRYPTO、MS-CFB 等规范的必要专利主张，各规范另附实现用版权许可；这不涉及商标、字体或产品资产。
 
-禁止：读取、复制或翻译微软 Office 与其他 Office 产品实现源码；将 Open XML SDK、LibreOffice、ONLYOFFICE、Pandoc、Typst 或 Word 自动化作为产品内核；把公开产品截图、商标、图标和模板直接打包为 JoyWord 资产。
+禁止：读取、复制或翻译微软 Office 与其他 Office 产品实现源码；禁止：读取、复制或翻译微软 Office 与其他 Office 产品实现源码；将 Open XML SDK、LibreOffice、ONLYOFFICE、Pandoc、Typst 或 Word 自动化作为产品内核；把公开产品截图、商标、图标和模板直接打包为 JoyWord 资产。2026-10-17 经用户明确授权，对一款开源 Word 复刻工程做了一次性只读源码分析与黑盒实测以提炼设计思路：未引用其代码、文档原文、资源或测试样例，落地一律从公开规范与自有观测独立推导；该授权不构成对上述禁止的常态豁免。
 
 通用基础库可以复用、阅读和必要时修补；这包括 Rust UI、字体、Unicode、容器、图片和密码算法库。阅读 GPUI 的构建脚本及输入 API 不属于阅读 Office 实现。平台公开 API 和通用绑定不属于排除的 Office 实现。
 

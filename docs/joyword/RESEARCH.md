@@ -33,7 +33,7 @@
 
 | 项目 | 定位与公开声明 | 取舍 |
 | --- | --- | --- |
-| [WordCraft](https://github.com/storytold/wordcraft) | 2026-10-07 创建的 Rust Word 风格应用，egui＋vello_cpu 渲染、krilla 输出 PDF，README 自评 alpha、约 60% | 产品级对照；只读 README，不验证其覆盖比例或性能，不阅读或移植实现 |
+| [开源 Rust Word 复刻工程](https://github.com/storytold/wordcraft) | 2026-10 新起的 MIT／Apache-2.0 文字处理器，egui＋vello_cpu 渲染、krilla 输出 PDF，自评 alpha、约 60% | 产品级对照；2026-10-17 经用户授权只读审阅其源码并用原创样例做黑盒实测，可借鉴点与不应采纳清单已落入 SPEC、ARCHITECTURE 与 TASKS 的对应条款（分析报告留存本机工作区，不纳入仓库）；借鉴仅限设计思路，不移植实现、资源或测试样例 |
 | [docx-rs](https://github.com/bokuweb/docx-rs) | Rust DOCX 读写，公开列出多种元素，并说明 OOXML 支持不穷尽 | 作为功能边界研究；不作为 JoyWord 自研格式内核 |
 | [Shiva](https://github.com/igumnoff/shiva) | 共用文档模型和多格式解析／生成；矩阵列出具体元素缺口 | 广泛格式覆盖不能推导逐项无损；不作为中间语义模型 |
 | [Stemma](https://github.com/stemma-sh/stemma) | 面向 Agent 和自动化的 DOCX 原生修订工具 | 对照安全修订、歧义拒绝及 Word 交换工作流；不作为编辑内核 |

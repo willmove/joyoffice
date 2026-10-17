@@ -25,3 +25,6 @@ rustc-ice-*.txt
 
 # macOS Finder metadata
 .DS_Store
+
+# 本机留存的对照分析工作稿，不纳入仓库
+docs/joyword/research/EDITOR-COMPARATIVE-ANALYSIS.md

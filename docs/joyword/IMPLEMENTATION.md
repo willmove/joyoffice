@@ -1,17 +1,17 @@
 # JoyWord 当前实施与验证记录
 
-记录日期：2026-10-14，2026-10-15 第二轮集成后更新。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.2，工程版本为 0.0.1。
+记录日期：2026-10-17（第三轮集成、gpui-pre 迁移与开源编辑器对照分析后更新）。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.3，工程版本为 0.0.1。
 
 ## 已落地的内容
 
-- 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.2：82 个需求、58 个任务），每项有输入、输出、依赖、错误路径和验收要求。
+- 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.3：84 个需求、66 个任务），每项有输入、输出、依赖、错误路径和验收要求。
 - Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword-layout 字体身份、整形与页面场景，joyword-pdf 由同一场景写出 PDF（T003）；joyword-render 由同一场景生成 CPU 页面图像；joyword-corpus 确定性生成原创最小 DOCX 样例（T004）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
 - 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
 - 中文／英文独立资源（支持插值与复数）；静态 A4 页面、语言切换和 50%–150% 缩放，均可从菜单、快捷键和界面按钮触发。
 - 原创 UTF-8 种子与 5 个原创最小 DOCX 样例、散列清单，以及需求覆盖／依赖／本地链接／语料（含参考结果状态）／语言资源／Actions 固定检查器；语义比较接口与 PDF 行／页断点比较工具。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
-已在第一轮协作中接入 DOCX 声明子集只读导入（W01）与单字体行拟合（W03），后续完成保守文字导出（C02）、新路径副本落盘（C03）、Unicode 默认断行（C04）、单节预览分页与命中几何（C05）、CPU 统一场景与窗口接入（C06）。C07 已接入会话内纯文本编辑、原生输入接口、组合预编辑、选择／撤销与未保存关闭保护；正文仍按布局场景字形绘制，不交由 GPUI 重新整形。应用暂不提供文件打开或保存，GUI／系统 IME 人工验收待执行。第二轮（W05–W09）已合入：默认格式纯文本段落的拆分／合并导出、keep-next／keep-lines 分页、源身份与冲突预检，以及恢复日志和 DOCX 健壮性两个独立实验工程。格式导出、带格式段落的结构导出、原件保存、Word 兼容排版、字体回退、修订、批注、剪贴板和 AI 未完成。
+已在第一轮协作中接入 DOCX 声明子集只读导入（W01）与单字体行拟合（W03），后续完成保守文字导出（C02）、新路径副本落盘（C03）、Unicode 默认断行（C04）、单节预览分页与命中几何（C05）、CPU 统一场景与窗口接入（C06）。C07 已接入会话内纯文本编辑、原生输入接口、组合预编辑、选择／撤销与未保存关闭保护；正文仍按布局场景字形绘制，不交由 GPUI 重新整形。第二轮（W05–W09）已合入：默认格式纯文本段落的拆分／合并导出、keep-next／keep-lines 分页、源身份与冲突预检，以及恢复日志和 DOCX 健壮性两个独立实验工程。第三轮（W10–W14、C09 与原件替换增量）已合入：ExportPlan 来源字节绑定、原件保存的来源比对与平台能力矩阵（公开 save_original 在所有平台仍于写入前拒绝）、pPr／rPr 可证明完全映射段落的结构导出、W09 harness 重锚定、恢复日志接入设计（W14，未实现），以及应用外壳的绑定打开与另存副本（C09，`open_source` 成为绑定会话，绑定路径与 dirty 状态跟随已打开文件）。此后完成 gpui-pre 0.3.9 迁移与来源逐文件校验、macOS 应用菜单顺序修正、IME 候选窗位置修正（组合期间按排版几何应答）、画布“排版先于光栅”拆分（排版就绪即提供几何，光栅随后到达），并把健壮性 harness 绑定到菜单顺序增量（1367f54）。格式导出的进一步扩展、原件保存的用户选择路径、Word 兼容排版、字体回退、修订、批注、剪贴板和 AI 未完成；GUI／系统 IME 人工验收已执行菜单与 IME 候选位置两项，其余待执行。
 
 ### 第一轮集成切片（2026-10-14）
 
@@ -122,6 +122,22 @@
 - W09（T103 健壮性实验）：experiments/docx-robustness 独立 workspace，提供 opc／import／roundtrip 三目标 harness、27 份原创种子、固定种子变异、最小化与有界 campaign 驱动。未发现生产缺陷；不是覆盖引导 fuzz，也未接入 CI。固定的生产目标随集成改为 bcf435c；PR #9 修改 crates 后需重新指定，见 [W09 报告](../coordination/reports/W09.md)。
 - 集成：按 协作包→W05→W07→W06→W08→W09 以合并提交合入 main（ee4f57d），并修正 W08／W09 两处依赖 C07 行为的断言。本机强制真实字体的全默认成员 312 项通过，结果与范围见 [第二轮协作包](../coordination/wave02/README.md)。
 
+### 第三轮集成与后续切片（2026-10-16 集成，其后增量见各报告）
+
+- W10（T103）：`ExportPlan` 增加来源字节绑定 `origin_bytes()`，私有字段不可伪造；`save_original` 仍拒绝，见 [W10 报告](../coordination/reports/W10.md)。
+- W11（T103）：`save_original` 写入前重跑冲突复查、比对来源（OriginMismatch），并按平台能力矩阵放行；Unix 发布步骤存在但公开函数在所有平台仍返回 ReplacementUnavailable，见 [W11 报告](../coordination/reports/W11.md)。
+- W12（T103）：受影响段落的 pPr／rPr 可证明完全映射时，结构导出原样复制源属性元素字节，不能证明即拒绝；见 [W12 报告](../coordination/reports/W12.md)。
+- W13：W09 harness 重锚定生产基线并复跑冒烟与变异，无异常，见 [W13 报告](../coordination/reports/W13.md)。
+- W14（T104）：恢复日志接入生产的设计文档（快照含原包基线、dirty 对齐已保存版本等），未实现，见 [W14 报告](../coordination/reports/W14.md)。
+- C09（T103／T106）：应用外壳接入绑定打开与另存副本；JoyWord 锁文件的创建／释放归会话生命周期。
+- 原件替换增量（PR #20）：读回确认、未确认发布保留备份、Unix 所有权与 macOS 创建时间恢复并核对、ReadOnlySource 与 FileTooLarge 写前拒绝；协调审查修复了确认读取的长度预算绕过。公开原件保存仍在所有平台改写前拒绝，见 [W07 替换增量](../coordination/reports/W07-REPLACE-INCREMENT.md)。
+- 集成与清理按用户授权快进 main 并删除已合并 worktree；本机默认成员 debug／release 各 364 项、应用 11 项通过，W08／W09 独立 workspace 测试通过，八项 CI 门禁全绿，见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md)。
+- 集成之后：gpui-pre 0.3.9 迁移与 CI 来源逐文件校验（见“当前环境”与 ADR-010）；macOS 应用菜单顺序修正、IME 候选窗位置修正（GUI 已实测约定场景）、画布“排版先于光栅”拆分（每次按键的几何空窗从约 30–40 ms 缩到约 2.4 ms，见 [画布拆分报告](../coordination/reports/LAYOUT-BEFORE-RASTER.md)）；GPUI Kit／Fast 评估结论存档；健壮性 harness 绑定到最新增量（1367f54）。
+
+### 对照分析复核（2026-10-17）
+
+对一款开源 Word 复刻工程的只读源码审阅与黑盒实测（授权与边界见 [PROVENANCE](PROVENANCE.md)，报告留存本机不入库）同时复核了本仓库源码，确认：画布仍把全部页面放进共享像素预算（2 倍屏约第 5 页起整体失败）、打开期间输入竞争与保存副本同步执行、原件保存恒定拒绝（实现严于 SPEC）、排版无段落缓存、整形器数据未缓存、行高度量未经固定 Word 实测、撤销无合并、无 no-panic lint 与分层自动检查、无日志与 panic hook。这些项已转化为 SPEC／ARCHITECTURE v0.3 条款与 T108–T111、T208–T211 任务；报告同时列出了不应采纳的做法清单（整包重生成当无损、宽容解析后照常编辑、以命令注册数量计兼容度等），与现有契约一致，无需变更。
+
 ### joyword-shell（T106，进行中）
 
 | 部分 | 已实现 | 尚未实现 |
@@ -191,6 +207,8 @@
 | C01 公开仓库 CI | 源码 a67db293d3f397eaf76c7d1c429c9479c18ca0b3 的 [38531619157 第 2 次执行](https://github.com/willmove/joyoffice/actions/runs/38531619157/attempts/2) 8/8 作业通过：macOS／Windows／Linux x86_64 与 ARM64 构建、ARM64／LoongArch64 QEMU 测试、依赖检查、统一 PDF。Linux 与 LoongArch64 日志确认全部 8 项新增 DOCX 会话测试通过；PDF 5 行无缺字，Poppler 行首／行尾最大偏差均为 0.0000 pt。公开仓库前的账户额度失败保留为历史，当前运行条件已恢复，见 [C01 报告](../coordination/reports/C01-DOCX-SESSION.md) |
 | 第二轮集成 | 2026-10-15，ee4f57d：本机 fmt、强制宋体的全默认成员 312 项、docx／shell／engine／layout release、全工作区 clippy（dev-runtime-shaders）、开发应用构建、W08 15 项、W09 3＋11 项与 81 次冒烟矩阵通过。main CI 在 macOS、统一 PDF、依赖作业通过；Linux 与 Windows 的 W07 测试因平台假设失败，仅修正测试的 [PR #9](https://github.com/willmove/joyoffice/pull/9) 16/16 通过后合入（`5573997a75d9297b24429f90c727dad05b7f90c3`） |
 | GPUI 迁移后 CI | 提交 6ee61e9（分支 claude/gpui-pre-provenance，含 gpui-pre 迁移）的 [38889115731](https://github.com/willmove/joyoffice/actions/runs/38889115731) 全部 9 个作业通过：macos-15（含预编译 Metal 构建）、windows-2022、ubuntu-24.04 与 ubuntu-24.04-arm 构建，ARM64／LoongArch64 QEMU 无界面测试，unified-pdf、dependencies（cargo-deny）与 provenance（gpui-pre 来源逐文件校验） |
+| 第三轮集成复验 | 2026-10-16：本机默认成员 debug／release 各 364 项、应用 11 项通过；W08 debug／release 各 15 项，W09 各 3 项与 Python 11 项通过；首次 main 的八项 CI 门禁全绿（运行 38831307604），详见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md) |
+| 文档检查（v0.3） | 2026-10-17 `python3 scripts/check_docs.py` 通过：84 个需求、66 个任务，阶段一致，M0–M7 均在 T704 前置闭包内 |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 的 future-incompat 提示（proc-macro-error2 2.0.1 的提示随 gpui 0.2.2 一并移除）；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。
@@ -204,8 +222,9 @@
 4. T004：比较工具与可重复生成的最小样例已有；需要建立固定参考环境（Word 为 Office LTSC 2024，对照固定版本 WPS 与固定字体），在其中打开最小样例、导出参考 PDF 并记录，再按实测建立排版行为规则目录。
 5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
 6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。C07 已把 T102 输入与 T105 几何接入窗口；基础格式、剪贴板和输入／选择的人工验收仍未完成。T105 另有 W06 的 keep 约束分页；字体回退、四槽字体、混合格式、widowControl 与中文规则未做。
-7. T103：只读导入与 PackageBacking 已有首个切片；shell 的 DocxSession 已将全篇只读和局部 locked 的保守限制接入 engine，持有原包与诊断，并拒绝把任何已提交编辑的会话作为原包复制（包括撤销后的会话）。后续 DOCX 打开入口需持有该适配器。C02 已提供保守文字导出计划与往返验证；C03 已提供不覆盖目标的新副本落盘；W05 已支持默认格式纯文本段落的拆分／合并导出；W07 已提供源身份、锁文件检测与冲突预检，但原件替换仍因 ExportPlan 缺少来源绑定而拒绝。下一步按 W07 提案实现来源绑定与发布策略，再扩展格式及带格式段落的结构导出、覆盖引导 fuzz 目标，见 [C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)、[C03 报告](../coordination/reports/C03-DOCX-COPY.md)。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
-8. T106：在 T103 提供打开／保存后接入文件对话框、最近文件菜单、多窗口与未保存提示界面；作者名修改后重启核对属于人工验收。
-9. T104：W08 的恢复日志仅为独立实验；由协调者决定会话生命周期、持久化时机与恢复界面后再接入生产，并补 Windows 原生与断电验证。
+7. T103：只读导入与 PackageBacking 已有首个切片；shell 的 DocxSession 已将全篇只读和局部 locked 的保守限制接入 engine，持有原包与诊断，并拒绝把任何已提交编辑的会话作为原包复制（包括撤销后的会话）。C02 已提供保守文字导出计划与往返验证；C03 已提供不覆盖目标的新副本落盘；W05 已支持默认格式纯文本段落的拆分／合并导出；W10／W11 已实现来源绑定与平台能力矩阵，替换增量补上读回确认与部分元数据恢复，但公开原件保存仍因 ACL／扩展属性／来源标记不可观测而在所有平台写入前拒绝。下一步是 T110 的元数据观测与 SPEC §5 用户选择路径，再扩展格式导出范围与覆盖引导 fuzz 目标，见 [C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)、[C03 报告](../coordination/reports/C03-DOCX-COPY.md)。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
+8. T106：C09 已接入绑定打开与另存副本；剩余命令元数据扩展（只读／修改标记与参数说明）、文件对话框细节、最近文件菜单、多窗口与未保存提示界面；作者名修改后重启核对属于人工验收。
+9. T104：W08 的恢复日志仅为独立实验，W14 为接入设计；由用户决定会话生命周期、持久化时机与恢复界面后再接入生产，并补 Windows 原生与断电验证。
+10. v0.3 新增 T108–T111（M1）与 T208–T211（M2），分别承接对照分析发现的画布光栅预算、打开／保存并发安全、原件保存用户选择路径、工程门禁、增量排版、撤销组、无头读回与日志问题，范围与验收见 [TASKS](TASKS.md)。
 
 M0 整体尚未通过；M1 已有无界面切片，尚未通过编辑保存闭环门槛，M2–M9 未实施。后续完成任务时须更新本记录、TASKS 状态与对应测试报告。
