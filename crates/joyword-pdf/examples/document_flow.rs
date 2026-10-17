@@ -8,8 +8,8 @@ use std::sync::Arc;
 use joyword_engine::{Command, Session, Transaction};
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile, layout_document,
-    to_points,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile,
+    layout_document, to_points,
 };
 use joyword_model::{
     Bias, BlockSeq, Document, Measure, PageSetup, Paragraph, Position, ScalarOffset,
@@ -78,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let result = layout_document(
         &session.document().snapshot(),
-        &font,
+        FaceSet::uniform(&font),
         profile,
         LayoutLimits::default(),
         &LayoutCancellation::default(),

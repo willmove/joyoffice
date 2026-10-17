@@ -281,7 +281,15 @@ fn unicode_breaks(text: &str, limit: usize) -> Result<Vec<usize>, LineError> {
         if points.len() >= limit {
             return Err(LineError::LimitExceeded(LineLimit::Breakpoints));
         }
-        points.push(offset);
+        let adjusted = crate::slots::adjust_cjk_break(text, offset);
+        let chosen = if adjusted > 0 && adjusted < text.len() {
+            adjusted
+        } else {
+            offset
+        };
+        if !points.contains(&chosen) {
+            points.push(chosen);
+        }
     }
     Ok(points)
 }

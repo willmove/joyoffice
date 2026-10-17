@@ -3,8 +3,8 @@ use std::sync::Arc;
 use joyword_engine::{Command, Session, Transaction};
 use joyword_foundation::{Emu, ScreenScale};
 use joyword_layout::{
-    FeatureSet, LayoutCancellation, LayoutError, LayoutLimit, LayoutLimits, LayoutSnapshot,
-    LoadedFont, SingleFontProfile, StaleReason, layout_document, shape,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutLimit, LayoutLimits,
+    LayoutSnapshot, LoadedFont, SingleFontProfile, StaleReason, layout_document, shape, wrap_mixed,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, Document, DumpOptions, Justification, Measure, PageSetup, Paragraph,
@@ -58,7 +58,7 @@ fn make_document(texts: &[&str], lines_per_page: i64) -> Document {
 fn layout(document: &Document) -> LayoutSnapshot {
     layout_document(
         &document.snapshot(),
-        &font(),
+        FaceSet::uniform(&font()),
         profile(),
         LayoutLimits::default(),
         &LayoutCancellation::default(),
@@ -402,7 +402,7 @@ fn layout_budget_failures_do_not_mutate_the_document_or_existing_snapshot() {
         assert!(
             layout_document(
                 &document.snapshot(),
-                &font(),
+                FaceSet::uniform(&font()),
                 profile(),
                 limits,
                 &LayoutCancellation::default()
@@ -449,7 +449,7 @@ fn paragraph_requests_do_not_reset_global_work_budgets() {
         ),
     ] {
         assert!(
-            matches!(layout_document(&document.snapshot(), &font(), profile(), limits, &LayoutCancellation::default()), Err(LayoutError::LimitExceeded(actual)) if actual == expected)
+            matches!(layout_document(&document.snapshot(),FaceSet::uniform(&font()), profile(), limits, &LayoutCancellation::default()), Err(LayoutError::LimitExceeded(actual)) if actual == expected)
         );
     }
 }
@@ -459,7 +459,7 @@ fn selection_output_and_diagnostics_are_bounded() {
     let document = make_document(&["甲乙", "fi"], 2);
     let result = layout_document(
         &document.snapshot(),
-        &font(),
+        FaceSet::uniform(&font()),
         profile(),
         LayoutLimits {
             max_selection_rects: 1,
@@ -495,7 +495,7 @@ fn unsupported_content_and_active_styles_are_not_silently_laid_out_as_plain_text
     assert!(matches!(
         layout_document(
             &document.snapshot(),
-            &font(),
+            FaceSet::uniform(&font()),
             profile(),
             LayoutLimits::default(),
             &LayoutCancellation::default()
@@ -509,7 +509,7 @@ fn unsupported_content_and_active_styles_are_not_silently_laid_out_as_plain_text
     assert!(matches!(
         layout_document(
             &document.snapshot(),
-            &font(),
+            FaceSet::uniform(&font()),
             profile(),
             LayoutLimits::default(),
             &LayoutCancellation::default()
@@ -533,7 +533,7 @@ fn invalid_geometry_and_oversized_line_fail_without_overflow_or_partial_pages() 
         assert!(
             layout_document(
                 &document.snapshot(),
-                &font(),
+                FaceSet::uniform(&font()),
                 profile(),
                 LayoutLimits::default(),
                 &LayoutCancellation::default()
@@ -549,7 +549,7 @@ fn invalid_geometry_and_oversized_line_fail_without_overflow_or_partial_pages() 
     assert!(matches!(
         layout_document(
             &document.snapshot(),
-            &font(),
+            FaceSet::uniform(&font()),
             profile,
             LayoutLimits::default(),
             &LayoutCancellation::default()
@@ -568,7 +568,7 @@ fn cancellation_is_monotonic_and_does_not_publish_a_candidate() {
     assert!(matches!(
         layout_document(
             &document.snapshot(),
-            &font(),
+            FaceSet::uniform(&font()),
             profile(),
             LayoutLimits::default(),
             &token
@@ -649,7 +649,7 @@ fn unsupported_stories_sections_objects_and_field_projection_are_explicit() {
             matches!(
                 layout_document(
                     &doc.snapshot(),
-                    &font(),
+                    FaceSet::uniform(&font()),
                     profile(),
                     LayoutLimits::default(),
                     &LayoutCancellation::default()
@@ -672,7 +672,7 @@ fn repeated_engine_edits_keep_pages_source_ranges_and_hits_consistent() {
     for step in 0..64 {
         let original = layout_document(
             &session.document().snapshot(),
-            &font,
+            FaceSet::uniform(&font),
             profile(),
             LayoutLimits::default(),
             &LayoutCancellation::default(),
@@ -738,5 +738,128 @@ fn repeated_engine_edits_keep_pages_source_ranges_and_hits_consistent() {
         if step % 5 == 0 {
             session.undo().unwrap();
         }
+    }
+}
+
+#[test]
+fn cjk_slots_move_a_prohibited_break_in_the_page_scene() {
+    let mut page = PageSetup::a4_zh_cn();
+    page.width = Measure::Emu(pt(24).raw());
+    page.height = Measure::Emu(pt(120).raw());
+    page.left = Measure::Emu(pt(2).raw());
+    page.right = page.left;
+    page.top = page.left;
+    page.bottom = page.left;
+    page.gutter = Measure::Emu(0);
+    let mut document = Document::new(page);
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph
+        .push_text("甲乙。丙", None, Arc::default())
+        .unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let result = layout(&document);
+    assert!(result.lines().len() > 1, "the narrow measure must wrap");
+    for line in result.lines() {
+        let text = &result.pages()[line.page].runs[line.run].text;
+        assert!(
+            !text.starts_with('。'),
+            "closing punctuation started a laid-out line: {text}"
+        );
+    }
+    assert!(
+        result
+            .pages()
+            .iter()
+            .flat_map(|page| &page.runs)
+            .any(|run| run.text.contains('。'))
+    );
+}
+
+#[test]
+fn mixed_slot_faces_change_the_page_scene() {
+    let latin = font();
+    let cjk_path = "/System/Library/Fonts/Supplemental/Songti.ttc";
+    let Some(cjk) = std::fs::read(cjk_path)
+        .ok()
+        .and_then(|bytes| LoadedFont::from_bytes(Arc::from(bytes), 0).ok())
+    else {
+        return;
+    };
+    let mut page = PageSetup::a4_zh_cn();
+    page.width = Measure::Emu(pt(72).raw());
+    page.height = Measure::Emu(pt(200).raw());
+    page.left = Measure::Emu(pt(6).raw());
+    page.right = page.left;
+    page.top = page.left;
+    page.bottom = page.left;
+    page.gutter = Measure::Emu(0);
+    let mut document = Document::new(page);
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph
+        .push_text("AAAA甲甲甲甲。BBBB", None, Arc::default())
+        .unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let uniform = FaceSet::uniform(&latin);
+    let mixed = FaceSet {
+        east_asia: &cjk,
+        fallback: &cjk,
+        ..uniform
+    };
+    let plain = layout_document(
+        &document.snapshot(),
+        uniform,
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let shaped = layout_document(
+        &document.snapshot(),
+        mixed,
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let line_text = |snapshot: &LayoutSnapshot| {
+        snapshot
+            .lines()
+            .iter()
+            .map(|line| snapshot.pages()[line.page].runs[line.run].text.clone())
+            .collect::<Vec<_>>()
+    };
+    let plain_lines = line_text(&plain);
+    let shaped_lines = line_text(&shaped);
+    assert_ne!(plain_lines, shaped_lines);
+    let width = Emu::new(
+        shaped.geometry().width.raw()
+            - shaped.geometry().left.raw()
+            - shaped.geometry().right.raw(),
+    );
+    let expected = wrap_mixed(mixed, "AAAA甲甲甲甲。BBBB", profile().size, width, None);
+    assert_eq!(
+        shaped_lines,
+        expected
+            .lines
+            .iter()
+            .map(|line| line.text.clone())
+            .collect::<Vec<_>>()
+    );
+    assert!(
+        shaped
+            .pages()
+            .iter()
+            .any(|page| { page.runs.iter().any(|run| run.font == cjk.key()) })
+    );
+    assert!(
+        plain
+            .pages()
+            .iter()
+            .all(|page| { page.runs.iter().all(|run| run.font == latin.key()) })
+    );
+    for text in &shaped_lines {
+        assert!(!text.starts_with('。'), "{text}");
     }
 }

@@ -63,6 +63,18 @@ pub(crate) trait DocEditor {
     fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError>;
     fn source_path(&self) -> Option<&std::path::Path>;
     fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String>;
+    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError>;
+    fn format_paragraph(
+        &mut self,
+        change: joyword_engine::ParagraphChange,
+    ) -> Result<bool, InputError>;
+    fn selected_text(&self) -> Result<String, InputError>;
+    fn recovery_baseline(&self) -> Option<&[u8]> {
+        None
+    }
+    fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
+        None
+    }
 }
 
 impl DocEditor for TextInput<joyword_engine::Session> {
@@ -133,6 +145,18 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn save_copy(&self, _destination: &std::path::Path) -> Result<SaveCopyReceipt, String> {
         Err("file.save_copy.unavailable".into())
+    }
+    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
+        TextInput::format_runs(self, change)
+    }
+    fn format_paragraph(
+        &mut self,
+        change: joyword_engine::ParagraphChange,
+    ) -> Result<bool, InputError> {
+        TextInput::format_paragraph(self, change)
+    }
+    fn selected_text(&self) -> Result<String, InputError> {
+        TextInput::selected_text(self)
     }
 }
 
@@ -206,6 +230,24 @@ impl DocEditor for TextInput<BoundDocx> {
         self.backend()
             .save_copy(destination)
             .map_err(|error| error.to_string())
+    }
+    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
+        TextInput::format_runs(self, change)
+    }
+    fn format_paragraph(
+        &mut self,
+        change: joyword_engine::ParagraphChange,
+    ) -> Result<bool, InputError> {
+        TextInput::format_paragraph(self, change)
+    }
+    fn selected_text(&self) -> Result<String, InputError> {
+        TextInput::selected_text(self)
+    }
+    fn recovery_baseline(&self) -> Option<&[u8]> {
+        Some(self.backend().session().backing().original_bytes())
+    }
+    fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
+        Some(*self)
     }
 }
 
@@ -687,21 +729,52 @@ impl JoyWord {
             {
                 return;
             }
+            let Some(generation) = view
+                .update(cx, |view, _cx| {
+                    let generation = view.session.begin_open();
+                    view.open_gate = Some(generation);
+                    generation
+                })
+                .ok()
+            else {
+                return;
+            };
             let opened = cx
                 .background_spawn(async move { BoundDocx::open_default(&path) })
                 .await;
             let _ = view.update(cx, |view, cx| {
+                if view.open_gate != Some(generation) {
+                    view.open_gate = None;
+                    let _ = view.session.finish_open(generation);
+                    cx.notify();
+                    return;
+                }
+                let buffered = match view.session.finish_open(generation) {
+                    Ok(text) => text,
+                    Err(error) => {
+                        view.open_gate = None;
+                        view.input_error = Some(
+                            Catalog::shipped(view.locale)
+                                .format("file.open.error", &[("reason", &error.to_string())]),
+                        );
+                        cx.notify();
+                        return;
+                    }
+                };
+                view.open_gate = None;
                 match opened {
                     Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
-                        Ok(input) => {
-                            view.clear_canvas(cx);
-                            view.editor = Some(Box::new(input));
-                            // Versions are per document; an old anchor could match by number.
-                            view.ime_anchor = None;
-                            view.copy_note = None;
-                            view.input_error = None;
-                            view.preferred_x = None;
-                            view.reveal_pending = true;
+                        Ok(mut input) => {
+                            if !buffered.is_empty()
+                                && let Err(error) = input.replace(None, &buffered)
+                            {
+                                view.input_error = Some(view.label(input_error_label(&error)));
+                                cx.notify();
+                                return;
+                            }
+                            view.return_held_document();
+                            let _ = view.session.attach(input);
+                            view.show_active_document(cx);
                         }
                         Err(error) => {
                             view.input_error = Some(view.label(input_error_label(&error)));
@@ -729,6 +802,7 @@ impl JoyWord {
         let result = f(editor.as_mut());
         if result.is_ok() {
             self.copy_note = None;
+            self.journal_edit();
         }
         self.input_error = result
             .err()
@@ -745,6 +819,19 @@ impl JoyWord {
         self.reveal_pending = true;
         self.reveal_caret();
         cx.notify();
+    }
+    fn journal_edit(&self) {
+        let Some(directory) = &self.recovery_dir else {
+            return;
+        };
+        let Some(editor) = &self.editor else {
+            return;
+        };
+        let Some(baseline) = editor.recovery_baseline() else {
+            return;
+        };
+        let text = editor.view().index().text();
+        let _ = joyword_shell::storage::commit_recovery(directory, baseline, text);
     }
     fn cancel_preedit(&mut self, cx: &mut Context<Self>) {
         self.dragging = false;
@@ -771,6 +858,9 @@ impl JoyWord {
         if !id.0.starts_with("edit.") {
             return Availability::Enabled;
         }
+        if self.open_gate.is_some() {
+            return Availability::Disabled("input.read_only");
+        }
         let Some(editor) = &self.editor else {
             return Availability::Disabled("input.loading");
         };
@@ -781,7 +871,8 @@ impl JoyWord {
             EDIT_REDO if !editor.can_redo() => Availability::Disabled("input.no_redo"),
             EDIT_REDO if editor.is_composing() => Availability::Disabled("input.composing"),
             EDIT_CANCEL if !editor.is_composing() => Availability::Disabled("input.no_composition"),
-            EDIT_UNDO | EDIT_REDO | EDIT_BACKSPACE | EDIT_DELETE | EDIT_ENTER
+            EDIT_UNDO | EDIT_REDO | EDIT_BACKSPACE | EDIT_DELETE | EDIT_ENTER | EDIT_BOLD
+            | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE | EDIT_INSERT
                 if editor.read_only() =>
             {
                 Availability::Disabled("input.read_only")
@@ -795,13 +886,77 @@ impl JoyWord {
             _ => Availability::Enabled,
         }
     }
+    pub(crate) fn return_held_document(&mut self) {
+        let Some(id) = self.held_document.take() else {
+            return;
+        };
+        let Some(editor) = self.editor.take() else {
+            return;
+        };
+        if let Some(input) = editor.into_bound() {
+            let _ = self.session.restore(id, input);
+        }
+    }
+    pub(crate) fn show_active_document(&mut self, cx: &mut Context<Self>) {
+        let Some(input) = self.session.hold_active() else {
+            return;
+        };
+        self.held_document = self.session.active_id();
+        self.clear_canvas(cx);
+        self.editor = Some(Box::new(input));
+        self.ime_anchor = None;
+        self.copy_note = None;
+        self.input_error = None;
+        self.preferred_x = None;
+        self.reveal_pending = true;
+        cx.notify();
+    }
+    pub(crate) fn open_path_sync(
+        &mut self,
+        path: &std::path::Path,
+        cx: &mut Context<Self>,
+    ) -> Result<(), String> {
+        self.return_held_document();
+        let generation = self.session.begin_open();
+        self.open_gate = Some(generation);
+        let opened = self.session.accept_open(generation, path);
+        self.open_gate = None;
+        opened.map_err(|error| error.to_string())?;
+        self.show_active_document(cx);
+        Ok(())
+    }
+    pub(crate) fn save_to(&mut self, path: &std::path::Path) -> Result<(), String> {
+        let saved = self
+            .editor
+            .as_ref()
+            .ok_or_else(|| "file.save_copy.unavailable".to_string())?
+            .save_copy(path)
+            .map_err(|error| error.to_string())?;
+        let shown = saved.path().display().to_string();
+        self.copy_note =
+            Some(Catalog::shipped(self.locale).format("file.copy.saved", &[("path", &shown)]));
+        self.input_error = None;
+        Ok(())
+    }
     pub(crate) fn execute_input(
         &mut self,
         id: CommandId,
+        args: &std::collections::BTreeMap<&'static str, joyword_shell::command::ArgValue>,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Result<(), String> {
         self.input_error = None;
+        if self.open_gate.is_some() {
+            if let EDIT_INSERT = id
+                && let Some(joyword_shell::command::ArgValue::Text(text)) = args.get("text")
+            {
+                self.session
+                    .type_during_open(text)
+                    .map_err(|error| error.to_string())?;
+                return Ok(());
+            }
+            return Err("input.read_only".into());
+        }
         match id {
             EDIT_UNDO => self.apply_input(cx, |editor| editor.undo()),
             EDIT_REDO => self.apply_input(cx, |editor| editor.redo()),
@@ -814,6 +969,45 @@ impl JoyWord {
             }
             EDIT_ENTER => self.apply_input(cx, |editor| editor.replace(None, "\n").map(|_| ())),
             EDIT_CANCEL => self.apply_input(cx, |editor| editor.cancel_composition().map(|_| ())),
+            EDIT_BOLD => self.apply_input(cx, |editor| {
+                editor
+                    .format_runs(joyword_engine::RunChange::Bold(Some(true)))
+                    .map(|_| ())
+            }),
+            EDIT_ITALIC => self.apply_input(cx, |editor| {
+                editor
+                    .format_runs(joyword_engine::RunChange::Italic(Some(true)))
+                    .map(|_| ())
+            }),
+            EDIT_ALIGN_CENTER => self.apply_input(cx, |editor| {
+                editor
+                    .format_paragraph(joyword_engine::ParagraphChange::Justification(Some(
+                        joyword_model::Justification::Center,
+                    )))
+                    .map(|_| ())
+            }),
+            EDIT_COPY => {
+                if let Some(editor) = self.editor.as_ref() {
+                    match editor.selected_text() {
+                        Ok(text) => self.clipboard = text,
+                        Err(error) => self.input_error = Some(error.to_string()),
+                    }
+                } else {
+                    self.input_error = Some("input.loading".into());
+                }
+            }
+            EDIT_INSERT => {
+                let Some(joyword_shell::command::ArgValue::Text(text)) = args.get("text") else {
+                    self.input_error = Some("text".into());
+                    return Err("text".into());
+                };
+                let text = text.clone();
+                self.apply_input(cx, |editor| editor.replace(None, &text).map(|_| ()))
+            }
+            EDIT_PASTE => {
+                let text = self.clipboard.clone();
+                self.apply_input(cx, |editor| editor.replace(None, &text).map(|_| ()))
+            }
             EDIT_LEFT | EDIT_RIGHT | EDIT_EXTEND_LEFT | EDIT_EXTEND_RIGHT => {
                 let direction = if id == EDIT_LEFT || id == EDIT_EXTEND_LEFT {
                     Direction::Backward
@@ -935,6 +1129,26 @@ impl JoyWord {
             }
         }
         self.label("status")
+    }
+    pub(crate) fn viewport_page(&self) -> usize {
+        let Some(frame) = self.canvas.layout() else {
+            return 0;
+        };
+        let pages = frame.layout.pages();
+        if pages.is_empty() {
+            return 0;
+        }
+        let scale = self.scale();
+        let scrolled = (-self.scroll.offset().y.as_f32()).max(0.0) as f64;
+        let mut top = f64::from(DOC_PAD);
+        for (index, page) in pages.iter().enumerate() {
+            let height = scale.logical_pixels(page.height);
+            if scrolled < top + height {
+                return index;
+            }
+            top += height + f64::from(DOC_GAP);
+        }
+        pages.len() - 1
     }
     fn scale(&self) -> ScreenScale {
         ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom")
@@ -1281,7 +1495,7 @@ mod tests {
     use super::*;
     use document_canvas::CanvasPipeline;
     use joyword_engine::Session;
-    use joyword_layout::LayoutSnapshot;
+    use joyword_layout::{FaceSet, LayoutSnapshot};
     use joyword_model::ScalarOffset;
     fn pages_source() -> document_canvas::CanvasSource {
         let font = LoadedFont::from_bytes(
@@ -1300,7 +1514,7 @@ mod tests {
     fn layout_of(view: &InputView, source: &document_canvas::CanvasSource) -> LayoutSnapshot {
         joyword_layout::layout_document(
             view.snapshot(),
-            &source.font,
+            FaceSet::uniform(&source.font),
             source.profile,
             Default::default(),
             &Default::default(),

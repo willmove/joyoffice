@@ -5,18 +5,19 @@ use gpui::RenderImage;
 use joyword_engine::{EditPolicy, Session};
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FeatureSet, LayoutCancellation, LayoutLimits, LayoutSnapshot, LoadedFont, SingleFontProfile,
-    layout_document,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LayoutSnapshot, LoadedFont,
+    SingleFontProfile, layout_document,
 };
 use joyword_model::{BlockSeq, Document, PageSetup, Paragraph};
 use joyword_render::requests::{RasterRequestGate, RasterTicket};
-use joyword_render::{Projection, RasterCancellation, RasterLimits, RasterPage, rasterize};
+use joyword_render::{Projection, RasterCancellation, RasterPage};
 use joyword_shell::input::InputView;
 use std::path::Path;
 use std::sync::Arc;
 
 const SEED: &str = include_str!("../../../tests/fixtures/text/cjk-contract.txt");
 /// Total UI cache ceiling across pages, in addition to each renderer budget.
+#[cfg(test)]
 const MAX_CACHE_PIXELS: u64 = 16_777_216;
 
 pub struct CanvasSource {
@@ -100,7 +101,7 @@ pub(crate) fn source_with_text(font: LoadedFont, text: &str) -> Result<CanvasSou
     };
     let layout = layout_document(
         &session.document().snapshot(),
-        &font,
+        FaceSet::uniform(&font),
         profile,
         LayoutLimits::default(),
         &LayoutCancellation::default(),
@@ -131,35 +132,32 @@ pub fn raster_pages(
             source.profile,
         )
         .map_err(|e| e.to_string())?;
-    raster_budgeted(&source.layout, &source.font, projection, cancellation)
-}
-
-/// Every page of one layout, all together within the UI cache budget.
-fn raster_budgeted(
-    layout: &LayoutSnapshot,
-    font: &LoadedFont,
-    projection: Projection,
-    cancellation: &RasterCancellation,
-) -> Result<Vec<RasterPage>, String> {
-    let mut pages = Vec::new();
-    let mut remaining = MAX_CACHE_PIXELS;
-    for scene in layout.pages() {
-        let limits = RasterLimits {
-            max_pixels: remaining,
-            ..RasterLimits::default()
-        };
-        let page = rasterize(
-            scene,
-            std::slice::from_ref(font),
+    let scenes = source.layout.pages();
+    let mut cache = joyword_render::NeighborhoodCache::new(scenes.len().max(1));
+    let painted = cache
+        .raster_neighborhood(joyword_render::NeighborhoodRequest {
+            identity: 0,
+            scenes,
+            fonts: std::slice::from_ref(&source.font),
             projection,
-            limits,
+            focus: 0,
+            radius: scenes.len().saturating_sub(1),
             cancellation,
-        )
-        .map_err(|e| e.to_string())?;
-        remaining -= u64::from(page.width()) * u64::from(page.height());
-        pages.push(page);
+        })
+        .map_err(|error| error.to_string())?;
+    let mut pages = Vec::with_capacity(painted.len());
+    for page in painted {
+        let Some(image) = cache.cached(0, projection, page).cloned() else {
+            return Err("neighborhood page missing".into());
+        };
+        pages.push(image);
     }
     Ok(pages)
+}
+
+pub fn image_from_bgra(width: u32, height: u32, bgra: &[u8]) -> Option<Arc<RenderImage>> {
+    let buffer = image::RgbaImage::from_raw(width, height, bgra.to_vec())?;
+    Some(Arc::new(RenderImage::new(vec![image::Frame::new(buffer)])))
 }
 
 pub fn image(page: RasterPage) -> Arc<RenderImage> {
@@ -307,7 +305,25 @@ pub struct LayoutFrame {
 /// until the raster of a later layout or projection replaces them.
 pub struct RasterFrame {
     pub key: RasterKey,
+    /// Page index of `images[0]`. Later entries are the following painted pages.
+    pub origin: usize,
     pub images: Vec<Arc<RenderImage>>,
+    pub caret_overlay: Option<CaretOverlay>,
+}
+
+#[derive(Clone)]
+pub struct RasterOutput {
+    pub origin: usize,
+    pub images: Vec<Arc<RenderImage>>,
+    /// Caret pixels copied from the focused page. `None` when no caret was supplied.
+    pub caret_overlay: Option<CaretOverlay>,
+}
+
+#[derive(Clone)]
+pub struct CaretOverlay {
+    pub width: u32,
+    pub height: u32,
+    pub bgra: Vec<u8>,
 }
 pub struct LayoutJob {
     pub ticket: RasterTicket<LayoutRequestKey>,
@@ -453,7 +469,7 @@ impl CanvasPipeline {
         &mut self,
         ticket: &RasterTicket<RasterKey>,
         projection: Projection,
-        result: Result<Vec<Arc<RenderImage>>, String>,
+        result: Result<RasterOutput, String>,
     ) -> Landed {
         let Some(frame) = &self.layout else {
             return Landed::Stale;
@@ -466,10 +482,12 @@ impl CanvasPipeline {
             return Landed::Stale;
         }
         match result {
-            Ok(images) => {
+            Ok(output) => {
                 let replaced = self.raster.replace(RasterFrame {
                     key: current,
-                    images,
+                    origin: output.origin,
+                    images: output.images,
+                    caret_overlay: output.caret_overlay,
                 });
                 Landed::Installed(replaced.map(|frame| frame.images).unwrap_or_default())
             }
@@ -527,7 +545,7 @@ pub fn layout_view(
 ) -> Result<LayoutSnapshot, String> {
     layout_document(
         view.snapshot(),
-        font,
+        FaceSet::uniform(font),
         profile,
         LayoutLimits::default(),
         cancellation,
@@ -535,16 +553,70 @@ pub fn layout_view(
     .map_err(|e| e.to_string())
 }
 /// Background raster stage for one installed layout.
+///
+/// Pages outside `focus ± radius` are not painted. The app passes the
+/// viewport page and a radius of one; tests that need every page pass a
+/// radius that covers the document.
 pub fn raster_layout(
     layout: &LayoutSnapshot,
     font: &LoadedFont,
     projection: Projection,
     cancellation: &RasterCancellation,
-) -> Result<Vec<Arc<RenderImage>>, String> {
-    Ok(raster_budgeted(layout, font, projection, cancellation)?
-        .into_iter()
-        .map(image)
-        .collect())
+    focus: usize,
+    radius: usize,
+    caret: Option<(
+        joyword_foundation::Emu,
+        joyword_foundation::Emu,
+        joyword_foundation::Emu,
+    )>,
+) -> Result<RasterOutput, String> {
+    if layout.pages().is_empty() {
+        return Ok(RasterOutput {
+            origin: 0,
+            images: Vec::new(),
+            caret_overlay: None,
+        });
+    }
+    let mut cache = joyword_render::NeighborhoodCache::new(radius.saturating_mul(2).max(1) + 1);
+    let identity = layout.key().version.get();
+    let painted = cache
+        .raster_neighborhood(joyword_render::NeighborhoodRequest {
+            identity,
+            scenes: layout.pages(),
+            fonts: std::slice::from_ref(font),
+            projection,
+            focus,
+            radius,
+            cancellation,
+        })
+        .map_err(|error| error.to_string())?;
+    let origin = painted.first().copied().unwrap_or(0);
+    let mut images = Vec::with_capacity(painted.len());
+    for page in painted {
+        let Some(raster) = cache.cached(identity, projection, page).cloned() else {
+            return Err("neighborhood page missing".into());
+        };
+        images.push(image(raster));
+    }
+    let caret_overlay = caret.and_then(|(x, top, height)| {
+        let page = images.first()?;
+        let bytes = page.as_bytes(0)?;
+        let scene = layout.pages().get(origin)?;
+        let width = projection.pixels(scene.width).ceil() as u32;
+        let height_px = projection.pixels(scene.height).ceil() as u32;
+        Some(CaretOverlay {
+            width,
+            height: height_px,
+            bgra: joyword_render::paint_caret_overlay(
+                bytes, width, height_px, projection, x, top, height,
+            ),
+        })
+    });
+    Ok(RasterOutput {
+        origin,
+        images,
+        caret_overlay,
+    })
 }
 
 #[cfg(test)]
@@ -591,7 +663,15 @@ mod input_pipeline_tests {
         let job = pipeline
             .request_raster(&key, projection)
             .expect("raster job");
-        let result = raster_layout(&job.layout, &source.font, projection, &job.cancellation);
+        let result = raster_layout(
+            &job.layout,
+            &source.font,
+            projection,
+            &job.cancellation,
+            0,
+            job.layout.pages().len().saturating_sub(1),
+            None,
+        );
         pipeline.install_raster(&job.ticket, projection, result)
     }
     fn settle(
@@ -756,7 +836,15 @@ mod input_pipeline_tests {
         let pending = pipeline.key(input.view(), &source.font, source.profile);
         let layout_job = pipeline.request_layout(pending.clone()).unwrap();
         assert!(!running.cancellation.is_cancelled());
-        let result = raster_layout(&running.layout, &source.font, at_100, &running.cancellation);
+        let result = raster_layout(
+            &running.layout,
+            &source.font,
+            at_100,
+            &running.cancellation,
+            0,
+            running.layout.pages().len().saturating_sub(1),
+            None,
+        );
         assert!(matches!(
             pipeline.install_raster(&running.ticket, at_100, result),
             Landed::Installed(_)
@@ -770,7 +858,15 @@ mod input_pipeline_tests {
             let current = pipeline.key(input.view(), &source.font, source.profile);
             pipeline.request_raster(&current, at_120).unwrap()
         };
-        let late_pixels = raster_layout(&late.layout, &source.font, at_120, &Default::default());
+        let late_pixels = raster_layout(
+            &late.layout,
+            &source.font,
+            at_120,
+            &Default::default(),
+            0,
+            late.layout.pages().len().saturating_sub(1),
+            None,
+        );
         input.mark(None, "AV", None).unwrap();
         let mark_key = pipeline.key(input.view(), &source.font, source.profile);
         assert!(matches!(
@@ -798,18 +894,44 @@ mod input_pipeline_tests {
         // Pixels for another projection, or from a superseded ticket, are stale.
         let first = pipeline.request_raster(&mark_key, at_100).unwrap();
         assert!(late.cancellation.is_cancelled());
-        let first_pixels = raster_layout(&first.layout, &source.font, at_100, &Default::default());
+        let first_pixels = raster_layout(
+            &first.layout,
+            &source.font,
+            at_100,
+            &Default::default(),
+            0,
+            first.layout.pages().len().saturating_sub(1),
+            None,
+        );
         let second = pipeline.request_raster(&mark_key, at_80).unwrap();
         assert!(first.cancellation.is_cancelled());
-        assert!(raster_layout(&first.layout, &source.font, at_100, &first.cancellation).is_err());
+        assert!(
+            raster_layout(
+                &first.layout,
+                &source.font,
+                at_100,
+                &first.cancellation,
+                0,
+                first.layout.pages().len().saturating_sub(1),
+                None,
+            )
+            .is_err()
+        );
         for projection in [at_80, at_100] {
             assert!(matches!(
                 pipeline.install_raster(&first.ticket, projection, first_pixels.clone()),
                 Landed::Stale
             ));
         }
-        let second_pixels =
-            raster_layout(&second.layout, &source.font, at_80, &second.cancellation);
+        let second_pixels = raster_layout(
+            &second.layout,
+            &source.font,
+            at_80,
+            &second.cancellation,
+            0,
+            second.layout.pages().len().saturating_sub(1),
+            None,
+        );
         assert!(matches!(
             pipeline.install_raster(&second.ticket, at_100, second_pixels.clone()),
             Landed::Stale
@@ -889,7 +1011,15 @@ mod input_pipeline_tests {
         assert!(x_raster.cancellation.is_cancelled());
         assert!(pipeline.layout().is_none() && pipeline.raster().is_none());
         assert!(matches!(
-            pipeline.install_raster(&x_raster.ticket, zoom(1.0), Ok(Vec::new())),
+            pipeline.install_raster(
+                &x_raster.ticket,
+                zoom(1.0),
+                Ok(RasterOutput {
+                    origin: 0,
+                    images: Vec::new(),
+                    caret_overlay: None,
+                }),
+            ),
             Landed::Stale
         ));
         // A layout still running when the next document opens at the same input
@@ -919,22 +1049,27 @@ mod input_pipeline_tests {
         let source = source_with_text(font(), &vec!["AV fi"; 100].join("\n")).unwrap();
         let pages = source.layout.pages();
         assert!(pages.len() >= 3);
-        // 150% on a 2x display: each page fits alone, three do not.
+        // 150% on a 2x display: each page fits alone, three do not share one budget.
         let retina = Projection::new(192.0, 1.5).unwrap();
         let page = retina.pixels(pages[0].width).ceil() * retina.pixels(pages[0].height).ceil();
         assert!(page < MAX_CACHE_PIXELS as f64 && 3.0 * page > MAX_CACHE_PIXELS as f64);
-        let over = raster_layout(&source.layout, &source.font, retina, &Default::default());
-        let budget =
-            joyword_render::RasterError::LimitExceeded(joyword_render::RasterLimit::Pixels);
-        assert_eq!(over.err(), Some(budget.to_string()));
-        let painted =
-            raster_budgeted(&source.layout, &source.font, zoom(0.8), &Default::default()).unwrap();
-        assert_eq!(painted.len(), pages.len());
-        let total: u64 = painted
-            .iter()
-            .map(|p| u64::from(p.width()) * u64::from(p.height()))
-            .sum();
-        assert!(total <= MAX_CACHE_PIXELS);
+        let mut cache = joyword_render::NeighborhoodCache::new(1);
+        let painted = cache
+            .raster_neighborhood(joyword_render::NeighborhoodRequest {
+                identity: 1,
+                scenes: pages,
+                fonts: std::slice::from_ref(&source.font),
+                projection: retina,
+                focus: 0,
+                radius: 0,
+                cancellation: &Default::default(),
+            })
+            .unwrap();
+        assert_eq!(painted, vec![0]);
+        assert!(cache.cached(1, retina, 1).is_none());
+        let image = cache.cached(1, retina, 0).unwrap();
+        let pixels = u64::from(image.width()) * u64::from(image.height());
+        assert!(pixels <= MAX_CACHE_PIXELS);
     }
     #[test]
     fn missing_font_glyph_keeps_typed_unicode_and_emits_diagnostics() {
@@ -958,5 +1093,39 @@ mod input_pipeline_tests {
         );
         input.undo().unwrap();
         assert_eq!(input.view().index().text(), "AV\nfi");
+    }
+    #[test]
+    fn viewport_raster_paints_the_neighborhood_and_the_caret_overlay_is_separate()
+    -> Result<(), String> {
+        let source = source_with_text(font(), &vec!["AV fi"; 80].join("\n"))?;
+        assert!(source.layout.pages().len() > 1);
+        let projection = zoom(2.0);
+        let line = &source.layout.lines()[0];
+        let output = raster_layout(
+            &source.layout,
+            &source.font,
+            projection,
+            &Default::default(),
+            0,
+            0,
+            Some((line.carets[0].x, line.top, line.height)),
+        )
+        .unwrap();
+        assert_eq!(output.origin, 0);
+        assert_eq!(output.images.len(), 1);
+        let page = &output.images[0];
+        let before = page
+            .as_bytes(0)
+            .ok_or_else(|| "page bytes".to_string())?
+            .to_vec();
+        let overlay = output
+            .caret_overlay
+            .as_ref()
+            .map(|overlay| overlay.bgra.clone())
+            .unwrap_or_default();
+        assert!(!overlay.is_empty());
+        assert_ne!(overlay, before);
+        assert_eq!(page.as_bytes(0), Some(before.as_slice()));
+        Ok(())
     }
 }

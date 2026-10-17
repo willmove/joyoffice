@@ -35,6 +35,15 @@ canvas.loading = 正在准备文档页面…
 canvas.error = 无法显示文档：{reason}
 
 menu.edit = 编辑
+command.edit.bold = 加粗
+command.edit.italic = 斜体
+command.edit.align_center = 居中
+command.edit.copy = 复制
+command.edit.paste = 粘贴
+command.edit.insert = 插入文字
+command.file.open_recent = 打开最近文件
+command.file.close = 关闭
+command.document.switch = 切换文档
 command.edit.undo = 撤销
 command.edit.redo = 重做
 command.edit.select_all = 全选

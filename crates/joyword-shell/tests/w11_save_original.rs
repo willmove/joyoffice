@@ -79,29 +79,37 @@ fn matching_origin_still_refuses_unpreservable_metadata_before_any_write() {
     assert_eq!(plan.origin_bytes(), Some(bytes.as_slice()));
     assert_ne!(plan.bytes(), bytes.as_slice());
     let error = save_original(&plan, &stamp).unwrap_err();
-    let blockers = error.blockers().expect("metadata still blocks replacement");
+    let blockers = error
+        .blockers()
+        .expect("unconfirmed replacement is refused");
     assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
-    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
-    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-        MetadataItem::ExtendedAttributes
-    )));
-    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-        MetadataItem::ProvenanceMarks
-    )));
-    // macOS restores and verifies the creation time, Unix the owner and
-    // group; the unobservable items above still block everywhere.
-    assert_eq!(
+    assert!(blockers.contains(&ReplacementBlocker::ConfirmationRequired));
+    #[cfg(unix)]
+    {
+        assert!(!blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
+        assert!(
+            !blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+                MetadataItem::ExtendedAttributes
+            ))
+        );
+        assert!(
+            !blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+                MetadataItem::ProvenanceMarks
+            ))
+        );
+    }
+    #[cfg(not(target_os = "macos"))]
+    assert!(
         blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::CreationTime
-        )),
-        !cfg!(target_os = "macos")
+        )) || blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+            MetadataItem::CreationTime
+        ))
     );
-    assert_eq!(
-        blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-            MetadataItem::Ownership
-        )),
-        !cfg!(unix)
-    );
+    #[cfg(not(unix))]
+    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+        MetadataItem::Ownership
+    )));
     assert!(error.published().is_none());
     assert_eq!(fs::read(&path).unwrap(), bytes);
     assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);

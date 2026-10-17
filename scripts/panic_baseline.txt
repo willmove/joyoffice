@@ -1,0 +1,477 @@
+crates/joyword-model/examples/text_storage.rs:56:ParagraphText::from_text(text).expect("benchmark text has no reserved marker")
+crates/joyword-model/examples/text_storage.rs:61:.expect("offset in range");
+crates/joyword-model/examples/text_storage.rs:66:.expect("offset in range")
+crates/joyword-model/examples/text_storage.rs:91:.expect("ps is available on macOS and Linux");
+crates/joyword-model/examples/text_storage.rs:95:.expect("ps prints RSS in KiB")
+crates/joyword-model/examples/text_storage.rs:156:let output = Command::new(std::env::current_exe().expect("current executable"))
+crates/joyword-model/examples/text_storage.rs:159:.expect("benchmark child process");
+crates/joyword-model/src/resource.rs:144:let hash = table.get(a).unwrap().hash();
+crates/joyword-model/src/resource.rs:145:assert_eq!(hash, table.get(b).unwrap().hash());
+crates/joyword-model/src/resource.rs:150:assert_ne!(table.get(edited).unwrap().hash(), hash);
+crates/joyword-model/src/resource.rs:151:assert_eq!(table.get(b).unwrap().data(), b"\x89PNG original");
+crates/joyword-model/src/id.rs:68:self.next = id.checked_add(1).expect("identifier space exhausted");
+crates/joyword-model/src/style.rs:309:sheet.insert(based("a", Some("Normal"), None)).unwrap();
+crates/joyword-model/src/style.rs:312:.unwrap();
+crates/joyword-model/src/style.rs:315:.unwrap();
+crates/joyword-model/src/style.rs:318:.unwrap();
+crates/joyword-model/src/style.rs:320:sheet.builtin(BuiltinStyle::Normal).unwrap().id.as_str(),
+crates/joyword-model/src/style.rs:324:sheet.builtin(BuiltinStyle::Heading(1)).unwrap().id.as_str(),
+crates/joyword-model/src/style.rs:328:sheet.builtin(BuiltinStyle::Heading(2)).unwrap().id.as_str(),
+crates/joyword-model/src/style.rs:349:sheet.insert(based("a", None, None)).unwrap();
+crates/joyword-model/src/style.rs:359:sheet.insert(based("x", None, Some("y"))).unwrap();
+crates/joyword-model/src/style.rs:360:sheet.insert(based("y", None, Some("x"))).unwrap();
+crates/joyword-model/src/style.rs:361:sheet.insert(based("orphan", None, Some("gone"))).unwrap();
+crates/joyword-model/src/style.rs:376:.unwrap();
+crates/joyword-model/src/style.rs:386:sheet.insert(based("p", None, None)).unwrap();
+crates/joyword-model/src/style.rs:389:sheet.insert(character).unwrap();
+crates/joyword-model/src/tree.rs:118:unreachable!("index {index} is outside a node of length {offset}")
+crates/joyword-model/src/tree.rs:131:unreachable!("internal nodes always have children")
+crates/joyword-model/src/tree.rs:218:b.insert(0, a.pop().expect("sibling above minimum"));
+crates/joyword-model/src/tree.rs:221:b.insert(0, a.pop().expect("sibling above minimum"));
+crates/joyword-model/src/tree.rs:223:_ => unreachable!("siblings are on the same level"),
+crates/joyword-model/src/tree.rs:236:_ => unreachable!("siblings are on the same level"),
+crates/joyword-model/src/tree.rs:253:_ => unreachable!("siblings are on the same level"),
+crates/joyword-model/src/tree.rs:376:let left = self.root.take().expect("root exists");
+crates/joyword-model/src/tree.rs:384:let root = self.root.as_mut().expect("non-empty tree has a root");
+crates/joyword-model/src/tree.rs:406:let root = self.root.as_mut().expect("non-empty tree has a root");
+crates/joyword-model/src/tree.rs:436:unreachable!("leaves are never empty");
+crates/joyword-model/src/tree.rs:751:let (index, prefix) = tree.locate(target, |t| t.weight).unwrap();
+crates/joyword-model/src/tree.rs:770:edited.get_mut(7_777).unwrap().0 = 0;
+crates/joyword-model/src/block.rs:159:.expect("end offset is valid");
+crates/joyword-model/src/block.rs:282:offset => self.run_at(offset - 1).expect("offset within runs").0,
+crates/joyword-model/src/block.rs:552:paragraph.push_text("甲方", None, Arc::default()).unwrap();
+crates/joyword-model/src/block.rs:553:paragraph.push_text("签字", None, bold()).unwrap();
+crates/joyword-model/src/block.rs:563:paragraph.push_text("日期", None, Arc::default()).unwrap();
+crates/joyword-model/src/block.rs:589:paragraph.insert_text(ScalarOffset(4), "人").unwrap();
+crates/joyword-model/src/block.rs:591:paragraph.insert_text(ScalarOffset(0), "（").unwrap();
+crates/joyword-model/src/block.rs:596:empty.insert_text(ScalarOffset(0), "标题").unwrap();
+crates/joyword-model/src/block.rs:604:let removed = paragraph.remove(ScalarOffset(3)..ScalarOffset(6)).unwrap();
+crates/joyword-model/src/block.rs:626:.unwrap();
+crates/joyword-model/src/block.rs:642:.unwrap();
+crates/joyword-model/src/block.rs:648:.unwrap();
+crates/joyword-model/src/block.rs:670:let tail = head.split_off(ScalarOffset(3), ids.node()).unwrap();
+crates/joyword-model/src/props.rs:243:assert_eq!(Measure::HalfPoints(21).absolute().unwrap().points(), 10.5);
+crates/joyword-model/src/props.rs:244:assert_eq!(Measure::EighthPoints(4).absolute().unwrap().points(), 0.5);
+crates/joyword-model/src/document.rs:210:.expect("empty style sheet");
+crates/joyword-model/src/document.rs:221:self.version = DocumentVersion(self.version.0.checked_add(1).expect("version overflow"));
+crates/joyword-model/src/document.rs:255:self.story(self.body).expect("body story exists")
+crates/joyword-model/src/text.rs:291:let chunk = self.chunks.get(index).expect("located chunk exists");
+crates/joyword-model/src/text.rs:299:.replace(index, pieces.next().expect("joined text is non-empty"));
+crates/joyword-model/src/text.rs:312:let (first, _, start_within) = self.locate_scalar(range.start).expect("non-empty text");
+crates/joyword-model/src/text.rs:313:let (last, _, end_within) = self.locate_scalar(range.end).expect("non-empty text");
+crates/joyword-model/src/text.rs:317:.expect("located chunk exists")
+crates/joyword-model/src/text.rs:319:let last_chunk = self.chunks.get(last).expect("located chunk exists").clone();
+crates/joyword-model/src/text.rs:329:removed.push_str(&self.chunks.get(index).expect("chunk in range").text);
+crates/joyword-model/src/text.rs:374:let chunk = self.chunks.get(index).expect("located chunk exists");
+crates/joyword-model/src/text.rs:390:let chunk = self.chunks.get(index).expect("located chunk exists");
+crates/joyword-model/src/text.rs:411:let chunk = self.chunks.get(index).expect("located chunk exists");
+crates/joyword-model/src/text.rs:426:let chunk = self.chunks.get(index).expect("located chunk exists");
+crates/joyword-model/src/text.rs:443:let chunk = self.chunks.get(index).expect("located chunk exists");
+crates/joyword-model/src/text.rs:462:let text = ParagraphText::from_text(SAMPLE).unwrap();
+crates/joyword-model/src/text.rs:473:let text = ParagraphText::from_text(SAMPLE).unwrap();
+crates/joyword-model/src/text.rs:530:let mut text = ParagraphText::from_text("ab").unwrap();
+crates/joyword-model/src/text.rs:539:let mut text = ParagraphText::from_text(&base).unwrap();
+crates/joyword-model/src/text.rs:551:text.insert_str(ScalarOffset(at), insert).unwrap();
+crates/joyword-model/src/text.rs:558:.unwrap();
+crates/joyword-model/src/text.rs:570:let mut text = ParagraphText::from_text(SAMPLE).unwrap();
+crates/joyword-model/src/text.rs:571:let tail = text.split_off(ScalarOffset(4)).unwrap();
+crates/joyword-model/src/text.rs:576:assert_eq!(empty.split_off(ScalarOffset(0)).unwrap().len_scalars(), 0);
+crates/joyword-model/src/text.rs:585:let base = ParagraphText::from_text(&"段落".repeat(200_000)).unwrap();
+crates/joyword-model/src/text.rs:587:edited.insert_str(ScalarOffset(200_000), "改").unwrap();
+crates/joyoffice-opc/src/part.rs:116:let end = self.0.rfind('/').expect("absolute name") + 1;
+crates/joyoffice-opc/src/part.rs:232:let document = PartName::new("/word/document.xml").unwrap();
+crates/joyoffice-opc/src/part.rs:236:let package = PartName::new("/_rels/.rels").unwrap();
+crates/joyoffice-opc/src/part.rs:240:.unwrap()
+crates/joyoffice-opc/src/part.rs:246:.unwrap()
+crates/joyoffice-opc/src/part.rs:251:PartName::new("/_rels/图图").unwrap().relationships_source(),
+crates/joyoffice-opc/src/part.rs:255:PartName::new("/Word/Document.XML").unwrap().key(),
+crates/joyoffice-opc/src/part.rs:260:.unwrap()
+crates/joyoffice-opc/src/zip.rs:101:self.take(2)?.try_into().expect("two bytes"),
+crates/joyoffice-opc/src/zip.rs:107:self.take(4)?.try_into().expect("four bytes"),
+crates/joyoffice-opc/src/zip.rs:113:self.take(8)?.try_into().expect("eight bytes"),
+crates/joyoffice-opc/src/zip.rs:153:let mut cursor = Cursor::new(bytes, locator.expect("checked") + 4, "ZIP64 locator");
+crates/joyword-render/examples/compare_rasters.rs:6:p.pixel(x, y).unwrap().red() < 150
+crates/joyword-render/examples/compare_rasters.rs:36:.any(|nx| b.pixel(nx, ny).unwrap().red() < 250)
+crates/joyword-render/examples/compare_rasters.rs:89:let mut p = Pixmap::new(50, 40).unwrap();
+crates/joyword-render/examples/compare_rasters.rs:98:tiny_skia::PremultipliedColorU8::from_rgba(0, 0, 0, 255).unwrap();
+crates/joyword-render/examples/cpu_scene.rs:38:doc.story_mut(story).unwrap().blocks = BlockSeq::from_vec(blocks);
+crates/joyword-render/src/cache.rs:155:let projection = Projection::new(96.0, 2.0).unwrap();
+crates/joyword-render/src/cache.rs:168:.unwrap();
+crates/joyword-render/src/cache.rs:182:.unwrap();
+crates/joyword-render/src/cache.rs:185:let page = cache.cached(1, projection, 99).unwrap().clone();
+crates/joyword-render/src/cache.rs:200:.unwrap();
+crates/joyword-render/src/cache.rs:202:let again = cache.cached(1, projection, 99).unwrap().clone().into_bgra();
+crates/joyword-render/src/cache.rs:208:cache.cached(1, projection, 99).unwrap().clone().into_bgra(),
+crates/joyword-render/src/requests.rs:41:.expect("render request generation exhausted");
+crates/joyword-pdf/examples/document_flow.rs:58:document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(blocks);
+crates/joyword-pdf/examples/document_flow.rs:61:paragraph: document.body().blocks.get(0).unwrap().id(),
+crates/joyword-docx/src/xml.rs:411:let parent = stack.last_mut().expect("open element");
+crates/joyword-docx/src/xml.rs:419:let mut done = stack.pop().expect("open element");
+crates/joyword-docx/src/xml.rs:451:stack.last_mut().expect("open element").children.push(node);
+crates/joyword-docx/src/xml.rs:482:let root = read(xml).unwrap();
+crates/joyword-docx/src/xml.rs:485:let b = root.child("urn:d", "b").unwrap();
+crates/joyword-docx/src/xml.rs:493:let c = root.elements().nth(1).unwrap();
+crates/joyword-docx/src/xml.rs:530:.unwrap()
+crates/joyword-docx/src/xml.rs:534:.unwrap()
+crates/joyword-docx/src/xml.rs:545:.unwrap()
+crates/joyword-docx/src/xml.rs:557:.unwrap()
+crates/joyword-docx/src/xml.rs:559:.unwrap();
+crates/joyword-docx/src/xml.rs:560:let b = root.elements().next().unwrap();
+crates/joyword-docx/src/export.rs:200:.expect("imported main part");
+crates/joyword-docx/src/export.rs:847:.unwrap()
+crates/joyword-docx/src/export.rs:853:let imported = import(&bytes, &Budget::default()).unwrap();
+crates/joyword-docx/src/export.rs:859:.unwrap();
+crates/joyword-docx/src/export.rs:860:let origin = plan.origin.as_ref().expect("proven origin");
+crates/joyword-docx/src/export.rs:864:assert!(Arc::ptr_eq(origin, cloned.origin.as_ref().unwrap()));
+crates/joyword-docx/src/body.rs:240:.expect("body story")
+crates/joyword-docx/src/body.rs:454:.expect("text without the object marker");
+crates/joyword-docx/src/body.rs:460:.expect("tab is ordinary text");
+crates/joyword-docx/src/import.rs:587:.expect("duplicate ids were skipped");
+crates/joyword-docx/src/props.rs:445:.unwrap()
+crates/joyword-docx/src/props.rs:447:.unwrap();
+crates/joyword-docx/src/props.rs:448:root.elements().next().unwrap().clone()
+crates/joyword-docx/src/export/compare.rs:136:normalized.story_mut(body).expect("body").blocks = BlockSeq::from_vec(blocks);
+crates/joyword-docx/src/export/compare.rs:278:import(&write_archive(&items).unwrap(), &Budget::default()).unwrap()
+crates/joyword-docx/src/export/compare.rs:287:.unwrap()
+crates/joyword-docx/src/export/compare.rs:297:.unwrap()
+crates/joyword-docx/src/export/compare.rs:299:.unwrap()
+crates/joyword-docx/src/export/compare.rs:308:lead.push_text("X", None, Arc::default()).unwrap();
+crates/joyword-docx/src/export/compare.rs:312:.unwrap()
+crates/joyword-docx/src/export/compare.rs:350:.unwrap();
+crates/joyword-docx/src/export/compare.rs:364:.unwrap();
+crates/joyword-docx/src/export/compare.rs:380:let second = moved.body().blocks.get(1).unwrap().id();
+crates/joyword-docx/src/export/structure.rs:101:let group = alignment.inserted.last_mut().expect("open group");
+crates/joyword-docx/src/export/structure.rs:536:props: stored.expect("run stored"),
+crates/joyword-corpus/src/lib.rs:58:write_archive(&entries).expect("small in-memory archive")
+crates/joyword-layout/src/scene.rs:80:let scale = ScreenScale::new(zoom).unwrap();
+crates/joyword-layout/src/font.rs:98:FontRef::from_index(&self.data, self.key.index).expect("validated when loaded")
+crates/joyword-layout/src/line.rs:670:.unwrap();
+crates/joyword-layout/src/line.rs:693:.unwrap_or_else(|| *ends.iter().find(|&&end| end > start).unwrap());
+crates/joyword-layout/src/line.rs:698:.unwrap();
+crates/joyword-layout/src/line.rs:713:select_line(0, &[5, 10], Emu::new(1), |end| Ok((Emu::new(100), end))).unwrap(),
+crates/joyword-layout/src/slots.rs:235:let slot = slot_for(rest.chars().next().unwrap(), hint);
+crates/joyword-layout/src/slots.rs:320:let naive = text.find('。').unwrap();
+crates/joyword-layout/src/slots.rs:335:.unwrap();
+crates/joyword-layout/src/document.rs:314:let paragraph = block.as_paragraph().expect("preflight paragraphs");
+crates/joyword-layout/src/document.rs:315:let text = paragraph.plain_text(|_| unreachable!("preflight objects"));
+crates/joyword-layout/src/document.rs:567:let paragraph = block.as_paragraph().expect("preflight checked all blocks");
+crates/joyword-layout/src/document.rs:596:let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
+crates/joyword-layout/src/document.rs:696:if needs_page && !result.pages.last().expect("one page").runs.is_empty() {
+crates/joyword-layout/src/document.rs:744:let page = result.pages.last_mut().expect("one page");
+crates/joyword-layout/src/document.rs:908:.expect("every line has a caret");
+crates/joyword-layout/src/document.rs:969:*line.carets.last().map(|c| &c.x).expect("caret"),
+crates/joyword-layout/src/shape.rs:29:.expect("static feature syntax")
+crates/joyword-foundation/src/lib.rs:73:let inch = Emu::from_twips(1440).unwrap();
+crates/joyword-foundation/src/lib.rs:76:assert_eq!(ScreenScale::new(1.0).unwrap().logical_pixels(inch), 96.0);
+crates/joyword-foundation/src/lib.rs:82:let one = ScreenScale::new(1.0).unwrap().logical_pixels(page.width);
+crates/joyword-foundation/src/lib.rs:83:let two = ScreenScale::new(2.0).unwrap().logical_pixels(page.width);
+crates/joyword-shell/src/documents.rs:218:let paragraph = doc.body().blocks.first().map(Block::id).unwrap();
+crates/joyword-shell/src/documents.rs:247:assert_eq!(manager.get(second).unwrap().title(zh), "未命名 2");
+crates/joyword-shell/src/documents.rs:248:assert_eq!(manager.get(third).unwrap().title(en), "Untitled 3");
+crates/joyword-shell/src/documents.rs:256:type_text(manager.get_mut(id).unwrap(), "甲方");
+crates/joyword-shell/src/documents.rs:257:let version = manager.get(id).unwrap().session.version();
+crates/joyword-shell/src/documents.rs:269:assert_eq!(manager.get(id).unwrap().session.version(), version);
+crates/joyword-shell/src/documents.rs:289:type_text(manager.get_mut(id).unwrap(), "一");
+crates/joyword-shell/src/documents.rs:290:let saving = manager.get(id).unwrap().session.version();
+crates/joyword-shell/src/documents.rs:292:type_text(manager.get_mut(id).unwrap(), "二");
+crates/joyword-shell/src/documents.rs:294:assert!(manager.get(id).unwrap().is_dirty());
+crates/joyword-shell/src/documents.rs:299:let latest = manager.get(id).unwrap().session.version();
+crates/joyword-shell/src/documents.rs:301:assert!(!manager.get(id).unwrap().is_dirty());
+crates/joyword-shell/src/command.rs:848:.unwrap();
+crates/joyword-shell/src/command.rs:853:.unwrap()
+crates/joyword-shell/src/command.rs:855:let from_name = registry.find("view.zoom_in").unwrap().id;
+crates/joyword-shell/src/command.rs:857:registry.invoke(&mut host, id).unwrap();
+crates/joyword-shell/src/command.rs:882:.unwrap()
+crates/joyword-shell/src/command.rs:1011:.unwrap();
+crates/joyword-shell/src/l10n.rs:317:panic!("invalid {} resource: {issues:?}", locale.tag())
+crates/joyword-shell/src/l10n.rs:325:.expect("shipped locale")]
+crates/joyword-shell/src/l10n.rs:434:.unwrap();
+crates/joyword-shell/src/l10n.rs:439:.unwrap();
+crates/joyword-shell/src/l10n.rs:491:let en = Catalog::parse(Locale::En, "k = {name} saved\nonly = x").unwrap();
+crates/joyword-shell/src/l10n.rs:492:let zh = Catalog::parse(Locale::ZhCn, "k = 已保存").unwrap();
+crates/joyword-shell/src/storage.rs:260:let target = parent.join(destination.file_name().expect("checked file name"));
+crates/joyword-shell/src/storage.rs:361:.unwrap()
+crates/joyword-shell/src/storage.rs:363:.unwrap()
+crates/joyword-shell/src/storage.rs:376:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage.rs:395:assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
+crates/joyword-shell/src/storage.rs:403:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage.rs:426:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage.rs:438:assert_eq!(fs::read(&target).unwrap(), b"other writer");
+crates/joyword-shell/src/storage.rs:439:assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1);
+crates/joyword-shell/src/storage.rs:446:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage.rs:460:let receipt = error.published().unwrap();
+crates/joyword-shell/src/storage.rs:464:assert_eq!(fs::read(receipt.path()).unwrap(), plan.bytes());
+crates/joyword-shell/src/input.rs:207:let content = p.plain_text(|_| unreachable!("objects rejected"));
+crates/joyword-shell/src/input.rs:262:.expect("indexed paragraph");
+crates/joyword-shell/src/input.rs:292:.expect("indexed paragraph");
+crates/joyword-shell/src/input.rs:308:.expect("indexed paragraph");
+crates/joyword-shell/src/input.rs:372:.expect("validated selection")
+crates/joyword-shell/src/input.rs:519:Outcome::Applied(a) => a.selection.expect("valid target survived"),
+crates/joyword-shell/src/input.rs:570:Outcome::Applied(a) => a.selection.expect("validated target"),
+crates/joyword-shell/src/input.rs:714:Outcome::Applied(a) => a.selection.expect("validated target"),
+crates/joyword-shell/src/input.rs:881:.unwrap_or_else(|| Selection::caret(candidate.position(0, Bias::After).expect("body")));
+crates/joyword-shell/src/input.rs:907:.unwrap_or_else(|| Selection::caret(candidate.position(0, Bias::After).expect("body")));
+crates/joyword-shell/src/input.rs:955:TextInput::new(Session::new(Document::new_blank()), InputLimits::default()).unwrap()
+crates/joyword-shell/src/input.rs:960:input.mark(None, "ni", None).unwrap();
+crates/joyword-shell/src/input.rs:984:input.mark(None, "ni", None).unwrap();
+crates/joyword-shell/src/input.rs:985:let at = input.base.position(0, Bias::After).unwrap();
+crates/joyword-shell/src/input.rs:995:.unwrap();
+crates/joyword-shell/src/prefs.rs:353:.expect("an unused backup name exists")
+crates/joyword-shell/src/prefs.rs:387:fs::create_dir_all(&dir).unwrap();
+crates/joyword-shell/src/prefs.rs:407:store.save(&loaded).unwrap();
+crates/joyword-shell/src/prefs.rs:420:fs::write(store.path(), b"\xff\xfe not utf-8").unwrap();
+crates/joyword-shell/src/prefs.rs:424:panic!("expected a corrupt notice")
+crates/joyword-shell/src/prefs.rs:426:assert_eq!(fs::read(backup).unwrap(), b"\xff\xfe not utf-8");
+crates/joyword-shell/src/prefs.rs:428:fs::write(store.path(), "schema=1\nno separator line\n").unwrap();
+crates/joyword-shell/src/prefs.rs:433:fs::write(store.path(), "schema=1\nbad=\\q\n").unwrap();
+crates/joyword-shell/src/prefs.rs:449:.unwrap();
+crates/joyword-shell/src/prefs.rs:456:fs::write(store.path(), "schema=7\nauthor.name=Future\n").unwrap();
+crates/joyword-shell/src/prefs.rs:462:fs::read_to_string(store.path()).unwrap(),
+crates/joyword-shell/src/prefs.rs:466:fs::write(store.path(), "author=Legacy Name\nunit=in\n").unwrap();
+crates/joyword-shell/src/prefs.rs:476:store.save(&migrated).unwrap();
+crates/joyword-shell/src/prefs.rs:479:.unwrap()
+crates/joyword-shell/src/storage/source.rs:542:fs::write(&path, bytes).unwrap();
+crates/joyword-shell/src/storage/source.rs:552:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:566:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:582:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:598:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:614:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:629:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:638:other => panic!("unexpected error: {other:?}"),
+crates/joyword-shell/src/storage/source.rs:645:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:651:let stamp = open_source(&path, &budget).unwrap().into_stamp();
+crates/joyword-shell/src/storage/source.rs:655:.unwrap()
+crates/joyword-shell/src/storage/source.rs:657:.unwrap();
+crates/joyword-shell/src/storage/source.rs:660:assert_eq!(fs::metadata(path).unwrap().len(), 9);
+crates/joyword-shell/src/storage/source.rs:665:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:649:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:651:std::fs::write(&path, b"0123456789").unwrap();
+crates/joyword-shell/src/storage/original.rs:653:.unwrap()
+crates/joyword-shell/src/storage/original.rs:678:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:680:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:682:.unwrap()
+crates/joyword-shell/src/storage/original.rs:699:assert_eq!(std::fs::read(&path).unwrap(), bytes);
+crates/joyword-shell/src/storage/original.rs:700:assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+crates/joyword-shell/src/storage/original.rs:707:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:709:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:715:xattr::set(&path, name, b"kept").unwrap();
+crates/joyword-shell/src/storage/original.rs:717:.unwrap()
+crates/joyword-shell/src/storage/original.rs:720:save_original_with_choice(&plan, &stamp, None, OriginalChoice::Confirm).unwrap();
+crates/joyword-shell/src/storage/original.rs:721:assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+crates/joyword-shell/src/storage/original.rs:723:xattr::get(&path, name).unwrap().as_deref(),
+crates/joyword-shell/src/storage/original.rs:734:.unwrap()
+crates/joyword-shell/src/storage/original.rs:743:let mut session = crate::docx::DocxSession::open(bytes, &Budget::default()).unwrap();
+crates/joyword-shell/src/storage/original.rs:747:paragraph: document.body().blocks.get(0).unwrap().id(),
+crates/joyword-shell/src/storage/original.rs:759:.unwrap();
+crates/joyword-shell/src/storage/original.rs:760:session.export_plan().unwrap()
+crates/joyword-shell/src/storage/original.rs:771:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:773:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:774:let mut permissions = std::fs::metadata(&path).unwrap().permissions();
+crates/joyword-shell/src/storage/original.rs:776:std::fs::set_permissions(&path, permissions).unwrap();
+crates/joyword-shell/src/storage/original.rs:778:.unwrap()
+crates/joyword-shell/src/storage/original.rs:783:let before = std::fs::metadata(&path).unwrap();
+crates/joyword-shell/src/storage/original.rs:784:let receipt = publish_original(&plan, &stamp, None, &[], |_, _| Ok(())).unwrap();
+crates/joyword-shell/src/storage/original.rs:791:assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+crates/joyword-shell/src/storage/original.rs:792:let after = std::fs::metadata(&path).unwrap();
+crates/joyword-shell/src/storage/original.rs:797:assert_eq!(after.created().unwrap(), before.created().unwrap());
+crates/joyword-shell/src/storage/original.rs:798:assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+crates/joyword-shell/src/storage/original.rs:802:super::super::check_source(receipt.stamp()).unwrap();
+crates/joyword-shell/src/storage/original.rs:804:crate::docx::DocxSession::open(&std::fs::read(&path).unwrap(), &Budget::default())
+crates/joyword-shell/src/storage/original.rs:805:.unwrap();
+crates/joyword-shell/src/storage/original.rs:807:let fresh = super::super::open_source(&path, &Budget::default()).unwrap();
+crates/joyword-shell/src/storage/original.rs:827:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:829:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:831:.unwrap()
+crates/joyword-shell/src/storage/original.rs:851:assert_eq!(std::fs::read(&path).unwrap(), bytes);
+crates/joyword-shell/src/storage/original.rs:852:assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1, "{stage}");
+crates/joyword-shell/src/storage/original.rs:862:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:864:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:866:.unwrap()
+crates/joyword-shell/src/storage/original.rs:880:let receipt = error.published().expect("published");
+crates/joyword-shell/src/storage/original.rs:886:assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+crates/joyword-shell/src/storage/original.rs:887:super::super::check_source(receipt.stamp()).unwrap();
+crates/joyword-shell/src/storage/original.rs:906:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:908:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:910:.unwrap()
+crates/joyword-shell/src/storage/original.rs:931:.unwrap()
+crates/joyword-shell/src/storage/original.rs:932:.map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+crates/joyword-shell/src/storage/original.rs:964:assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+crates/joyword-shell/src/storage/original.rs:982:assert!(std::fs::read(&case.path).unwrap().ends_with(b"appended"));
+crates/joyword-shell/src/storage/original.rs:1002:assert_eq!(std::fs::read(&case.path).unwrap(), b"another writer");
+crates/joyword-shell/src/storage/original.rs:1021:assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+crates/joyword-shell/src/storage/original.rs:1022:assert_eq!(std::fs::read(&lock_path).unwrap(), b"owner");
+crates/joyword-shell/src/storage/original.rs:1048:assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+crates/joyword-shell/src/storage/original.rs:1057:if std::fs::metadata(&case.path).unwrap().uid() == 0 {
+crates/joyword-shell/src/storage/original.rs:1061:let mut expected = Expected::of(&case.stamp).unwrap();
+crates/joyword-shell/src/storage/original.rs:1063:let temporary = tempfile::NamedTempFile::new_in(case.dir.path()).unwrap();
+crates/joyword-shell/src/storage/original.rs:1075:assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+crates/joyword-shell/src/storage/original.rs:1093:let backup = error.retained_backup().expect("backup kept");
+crates/joyword-shell/src/storage/original.rs:1094:assert_eq!(std::fs::read(backup).unwrap(), case.bytes);
+crates/joyword-shell/src/storage/original.rs:1095:assert_eq!(std::fs::read(&case.path).unwrap(), case.plan.bytes());
+crates/joyword-shell/src/storage/original.rs:1116:std::fs::read(error.retained_backup().unwrap()).unwrap(),
+crates/joyword-shell/src/storage/original.rs:1133:assert_eq!(std::fs::read(&case.path).unwrap(), plan);
+crates/joyword-engine/src/session.rs:265:panic!("injected transaction panic");
+crates/joyword-engine/src/session.rs:452:.expect("located paragraph")
+crates/joyword-engine/src/session.rs:513:let paragraph = locate::paragraph_mut(document, &location).expect("located paragraph");
+crates/joyword-engine/src/session.rs:543:let paragraph = locate::paragraph_mut(document, &location).expect("located paragraph");
+crates/joyword-engine/src/session.rs:599:let paragraph = locate::paragraph_mut(document, &first).expect("located paragraph");
+crates/joyword-engine/src/session.rs:612:let seq = locate::container(document, story, &first.containers).expect("located container");
+crates/joyword-engine/src/session.rs:616:let block = seq.get(index).expect("index between located blocks");
+crates/joyword-engine/src/session.rs:626:.expect("located paragraph")
+crates/joyword-engine/src/session.rs:629:let seq = locate::container_mut(document, story, &first.containers).expect("located container");
+crates/joyword-engine/src/session.rs:631:unreachable!("located paragraph");
+crates/joyword-engine/src/session.rs:639:unreachable!("located paragraph");
+crates/joyword-engine/src/session.rs:676:locate::container_mut(document, at.story, &location.containers).expect("located container");
+crates/joyword-engine/src/session.rs:678:unreachable!("located paragraph");
+crates/joyword-engine/src/session.rs:705:let seq = locate::container_mut(document, story, &first.containers).expect("located container");
+crates/joyword-engine/src/session.rs:756:let target = locate::paragraph_mut(document, &location).expect("located paragraph");
+crates/joyword-engine/src/session.rs:769:ParagraphChange::Style(_) => unreachable!("handled above"),
+crates/joyword-engine/src/session.rs:805:.expect("located container")
+crates/joyword-engine/src/session.rs:812:locate::container_mut(document, story, &location.containers).expect("located container");
+crates/joyword-engine/src/session.rs:836:let seq = locate::container(document, story, &location.containers).expect("located container");
+crates/joyword-engine/src/session.rs:840:let removed = seq.get(location.index).expect("located block");
+crates/joyword-engine/src/session.rs:860:.expect("located container")
+crates/joyword-engine/src/session.rs:917:let annotation = document.annotation_mut(id).expect("annotation exists");
+crates/joyword-engine/src/session.rs:984:paragraph.push_text("甲", None, Arc::default()).unwrap();
+crates/joyword-engine/src/session.rs:986:document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+crates/joyword-engine/src/session.rs:990:let paragraph = session.document().body().blocks.get(0).unwrap().id();
+crates/joyword-engine/src/session.rs:1014:.unwrap()
+crates/joyword-engine/src/session.rs:1016:.unwrap()
+crates/joyword-engine/src/locate.rs:259:let block = cell.blocks.get_mut(inner).expect("index in range");
+crates/joyword-engine/src/locate.rs:270:let block = sdt.blocks.get_mut(inner).expect("index in range");
+apps/joyword/src/main.rs:303:.expect("validated view scales")
+apps/joyword/src/main.rs:454:ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
+apps/joyword/src/main.rs:880:let language = action_for(SWITCH_LANGUAGE).unwrap().name();
+apps/joyword/src/main.rs:882:let action = action_for(id).unwrap();
+apps/joyword/src/input_ui.rs:1033:ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom")
+apps/joyword/src/input_ui.rs:1386:.unwrap();
+apps/joyword/src/input_ui.rs:1387:document_canvas::source_with_text(font, &vec!["AV fi"; 100].join("\n")).unwrap()
+apps/joyword/src/input_ui.rs:1391:TextInput::new(session, InputLimits::default()).unwrap()
+apps/joyword/src/input_ui.rs:1401:.unwrap()
+apps/joyword/src/input_ui.rs:1407:scale: ScreenScale::new(f64::from(zoom) / 100.0).unwrap(),
+apps/joyword/src/input_ui.rs:1412:let line = layout.lines().iter().find(|line| line.page == 1).unwrap();
+apps/joyword/src/input_ui.rs:1419:view.index().offset(at).unwrap()
+apps/joyword/src/input_ui.rs:1436:let scale = ScreenScale::new(f64::from(zoom) / 100.0).unwrap();
+apps/joyword/src/input_ui.rs:1439:project_page(&source.layout, placement(zoom, offset), line.page).unwrap();
+apps/joyword/src/input_ui.rs:1440:let stop = line.carets.first().unwrap();
+apps/joyword/src/input_ui.rs:1452:.unwrap();
+apps/joyword/src/input_ui.rs:1471:input.select(o..o, false).unwrap();
+apps/joyword/src/input_ui.rs:1472:let line = layout.lines().iter().find(|line| line.page == 1).unwrap();
+apps/joyword/src/input_ui.rs:1485:let page = project_page(&layout, placement, 1).unwrap();
+apps/joyword/src/input_ui.rs:1496:ime_bounds(input.view(), version, Some(&layout), None, placement, o..o).unwrap();
+apps/joyword/src/input_ui.rs:1501:let hit = layout.hit_test(1, ex, ey).unwrap();
+apps/joyword/src/input_ui.rs:1502:assert_eq!(input.view().index().offset(hit).unwrap(), o);
+apps/joyword/src/input_ui.rs:1512:input.select(o..o, false).unwrap();
+apps/joyword/src/input_ui.rs:1514:let anchor = ImeAnchor::capture(input.view(), version, &idle).unwrap();
+apps/joyword/src/input_ui.rs:1526:let idle_100 = query(input.view(), Some(&idle), None, 100, scroll, o..o).unwrap();
+apps/joyword/src/input_ui.rs:1527:let idle_80 = query(input.view(), Some(&idle), None, 80, scroll, o..o).unwrap();
+apps/joyword/src/input_ui.rs:1528:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/input_ui.rs:1538:let scrolled = pending(100, point(px(-50.0), px(-1430.0)), o..o).unwrap();
+apps/joyword/src/input_ui.rs:1550:let caret = current(o + 2..o + 2).unwrap();
+apps/joyword/src/input_ui.rs:1560:input.select(o..o, false).unwrap();
+apps/joyword/src/input_ui.rs:1562:let anchor = ImeAnchor::capture(input.view(), version, &idle).unwrap();
+apps/joyword/src/input_ui.rs:1565:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/input_ui.rs:1568:assert!(asked(away).unwrap().top() > away.viewport.bottom());
+apps/joyword/src/input_ui.rs:1570:let (origin, owed) = reveal_target(view, version, None, Some(&anchor)).unwrap();
+apps/joyword/src/input_ui.rs:1575:let b = asked(shown).unwrap();
+apps/joyword/src/input_ui.rs:1579:let head = SceneBox::caret(&preedit, view.selection().head).unwrap();
+apps/joyword/src/input_ui.rs:1590:let job = pipeline.request_layout(key.clone()).unwrap();
+apps/joyword/src/input_ui.rs:1597:pipeline.ready_layout(&key).unwrap().layout.clone()
+apps/joyword/src/input_ui.rs:1606:input.select(o..o, false).unwrap();
+apps/joyword/src/input_ui.rs:1608:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/input_ui.rs:1617:let at_80 = joyword_render::Projection::new(96.0, 0.8).unwrap();
+apps/joyword/src/input_ui.rs:1631:let origin = query(&ready, o..o).unwrap();
+apps/joyword/src/input_ui.rs:1632:let end = query(&ready, o + 2..o + 2).unwrap();
+apps/joyword/src/input_ui.rs:1637:let hit = hit_at(&ready, at, 80, b.center(), false).unwrap();
+apps/joyword/src/input_ui.rs:1638:assert_eq!(view.index().offset(hit).unwrap(), offset);
+apps/joyword/src/input_ui.rs:1642:let head = SceneBox::caret(&ready, view.selection().head).unwrap();
+apps/joyword/src/input_ui.rs:1655:input.select(o..o, false).unwrap();
+apps/joyword/src/input_ui.rs:1657:input.mark(None, "fi", None).unwrap();
+apps/joyword/src/input_ui.rs:1660:let previous = ImeAnchor::capture(input.view(), before, &preview).unwrap();
+apps/joyword/src/input_ui.rs:1662:input.replace(None, "AV\n").unwrap();
+apps/joyword/src/input_ui.rs:1668:let anchor = ImeAnchor::capture(input.view(), committed, &landed).unwrap();
+apps/joyword/src/input_ui.rs:1669:input.mark(None, "fi", None).unwrap();
+apps/joyword/src/input_ui.rs:1679:let answered = pending(&anchor).unwrap();
+apps/joyword/src/input_ui.rs:1692:let anchor = ImeAnchor::capture(input.view(), version, &idle).unwrap();
+apps/joyword/src/input_ui.rs:1693:input.mark(None, "fi", None).unwrap();
+apps/joyword/src/input_ui.rs:1699:input.unmark().unwrap();
+apps/joyword/src/input_ui.rs:1711:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/input_ui.rs:1716:input.cancel_composition().unwrap();
+apps/joyword/src/input_ui.rs:1720:let end = query(len..len).unwrap();
+apps/joyword/src/document_canvas.rs:90:document.story_mut(story).expect("body").blocks = BlockSeq::from_vec(blocks);
+apps/joyword/src/document_canvas.rs:165:image::RgbaImage::from_raw(w, h, page.into_bgra()).expect("validated raster dimensions");
+apps/joyword/src/document_canvas.rs:181:.unwrap()
+apps/joyword/src/document_canvas.rs:186:paragraph: source.session.document().body().blocks.get(0).unwrap().id(),
+apps/joyword/src/document_canvas.rs:193:let mut source = source_with_text(font(), "AV\nfi").unwrap();
+apps/joyword/src/document_canvas.rs:197:.unwrap();
+apps/joyword/src/document_canvas.rs:223:let source = source_with_text(font(), "AV\nfi").unwrap();
+apps/joyword/src/document_canvas.rs:226:Projection::new(96.0, 0.8).unwrap(),
+apps/joyword/src/document_canvas.rs:229:.unwrap();
+apps/joyword/src/document_canvas.rs:233:assert_eq!(image.as_bytes(0).unwrap(), expected);
+apps/joyword/src/document_canvas.rs:237:Projection::new(192.0, 0.8).unwrap(),
+apps/joyword/src/document_canvas.rs:240:.unwrap();
+apps/joyword/src/document_canvas.rs:253:let mut source = source_with_text(font(), "AV\nfi").unwrap();
+apps/joyword/src/document_canvas.rs:256:assert!(raster_pages(&source, Projection::new(96.0, 1.0).unwrap(), &cancel).is_err());
+apps/joyword/src/document_canvas.rs:268:.unwrap();
+apps/joyword/src/document_canvas.rs:272:Projection::new(96.0, 1.0).unwrap(),
+apps/joyword/src/document_canvas.rs:411:.expect("layout generation exhausted");
+apps/joyword/src/document_canvas.rs:505:.expect("document number exhausted");
+apps/joyword/src/document_canvas.rs:559:.unwrap()
+apps/joyword/src/document_canvas.rs:562:source_with_text(font(), "AV\nfi").unwrap()
+apps/joyword/src/document_canvas.rs:569:.unwrap()
+apps/joyword/src/document_canvas.rs:572:Projection::new(96.0, zoom).unwrap()
+apps/joyword/src/document_canvas.rs:577:let job = pipeline.request_layout(key.clone()).expect("layout job");
+apps/joyword/src/document_canvas.rs:590:.expect("raster job");
+apps/joyword/src/document_canvas.rs:610:pipeline.raster().unwrap().images[0]
+apps/joyword/src/document_canvas.rs:612:.unwrap()
+apps/joyword/src/document_canvas.rs:625:let painted = pipeline.raster().unwrap().images.clone();
+apps/joyword/src/document_canvas.rs:626:input.mark(None, "fi", None).unwrap();
+apps/joyword/src/document_canvas.rs:629:let job = pipeline.request_layout(key.clone()).unwrap();
+apps/joyword/src/document_canvas.rs:644:let ready = pipeline.ready_layout(&key).unwrap();
+apps/joyword/src/document_canvas.rs:648:.unwrap();
+apps/joyword/src/document_canvas.rs:649:let end = input.view().index().position(2, Bias::After).unwrap();
+apps/joyword/src/document_canvas.rs:650:let caret = ready.layout.caret(end).unwrap();
+apps/joyword/src/document_canvas.rs:655:.unwrap()
+apps/joyword/src/document_canvas.rs:661:let shown = pipeline.raster().unwrap();
+apps/joyword/src/document_canvas.rs:665:panic!("raster of the current layout must install");
+apps/joyword/src/document_canvas.rs:685:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/document_canvas.rs:688:let a = pipeline.request_layout(a_key.clone()).unwrap();
+apps/joyword/src/document_canvas.rs:691:input.mark(None, "fi", None).unwrap();
+apps/joyword/src/document_canvas.rs:694:let b = pipeline.request_layout(b_key.clone()).unwrap();
+apps/joyword/src/document_canvas.rs:699:let (la, lb) = (a_result().unwrap(), b_result().unwrap());
+apps/joyword/src/document_canvas.rs:710:input.cancel_composition().unwrap();
+apps/joyword/src/document_canvas.rs:711:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/document_canvas.rs:713:let again = pipeline.request_layout(again_key.clone()).unwrap();
+apps/joyword/src/document_canvas.rs:737:pipeline.ready_layout(&again_key).unwrap().layout.key(),
+apps/joyword/src/document_canvas.rs:751:let running = pipeline.request_raster(&base, at_100).unwrap();
+apps/joyword/src/document_canvas.rs:752:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/document_canvas.rs:754:let layout_job = pipeline.request_layout(pending.clone()).unwrap();
+apps/joyword/src/document_canvas.rs:765:input.cancel_composition().unwrap();
+apps/joyword/src/document_canvas.rs:768:pipeline.request_raster(&current, at_120).unwrap()
+apps/joyword/src/document_canvas.rs:771:input.mark(None, "AV", None).unwrap();
+apps/joyword/src/document_canvas.rs:796:let first = pipeline.request_raster(&mark_key, at_100).unwrap();
+apps/joyword/src/document_canvas.rs:799:let second = pipeline.request_raster(&mark_key, at_80).unwrap();
+apps/joyword/src/document_canvas.rs:828:let original_key = pipeline.layout().unwrap().layout.key().clone();
+apps/joyword/src/document_canvas.rs:830:input.select(1..4, false).unwrap();
+apps/joyword/src/document_canvas.rs:834:input.mark(None, "fi\nAV", None).unwrap();
+apps/joyword/src/document_canvas.rs:839:let preview = pipeline.layout().unwrap().layout.clone();
+apps/joyword/src/document_canvas.rs:840:let preview_pixels = pipeline.raster().unwrap().images.clone();
+apps/joyword/src/document_canvas.rs:846:.unwrap();
+apps/joyword/src/document_canvas.rs:847:let caret = preview.caret(at).unwrap();
+apps/joyword/src/document_canvas.rs:851:.unwrap()
+apps/joyword/src/document_canvas.rs:855:input.unmark().unwrap();
+apps/joyword/src/document_canvas.rs:861:let reused = pipeline.ready_raster(&committed, at_80).unwrap();
+apps/joyword/src/document_canvas.rs:866:assert_eq!(fresh.layout().unwrap().layout.key(), preview.key());
+apps/joyword/src/document_canvas.rs:868:input.undo().unwrap();
+apps/joyword/src/document_canvas.rs:873:assert_ne!(pipeline.layout().unwrap().layout.key(), &original_key);
+apps/joyword/src/document_canvas.rs:882:let painted = pipeline.raster().unwrap().images.clone();
+apps/joyword/src/document_canvas.rs:884:let x_raster = pipeline.request_raster(&x_key, zoom(1.0)).unwrap();
+apps/joyword/src/document_canvas.rs:895:let x_layout = pipeline.request_layout(x_pending.clone()).unwrap();
+apps/joyword/src/document_canvas.rs:898:let y_source = source_with_text(font(), "fi").unwrap();
+apps/joyword/src/document_canvas.rs:916:let source = source_with_text(font(), &vec!["AV fi"; 100].join("\n")).unwrap();
+apps/joyword/src/document_canvas.rs:920:let retina = Projection::new(192.0, 1.5).unwrap();
+apps/joyword/src/document_canvas.rs:934:.unwrap();
+apps/joyword/src/document_canvas.rs:937:let image = cache.cached(1, retina, 0).unwrap();
+apps/joyword/src/document_canvas.rs:945:input.replace(None, "🙂").unwrap();
+apps/joyword/src/document_canvas.rs:952:.unwrap();
+apps/joyword/src/document_canvas.rs:961:input.undo().unwrap();

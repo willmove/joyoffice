@@ -75,19 +75,30 @@ fn replacement_is_refused_with_durable_blockers_and_zero_side_effects() {
     let error = save_original(&edited_plan(1), &stamp).unwrap_err();
     let blockers = error.blockers().expect("expected durable blockers");
     assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
+    assert!(blockers.contains(&ReplacementBlocker::ConfirmationRequired));
+    #[cfg(unix)]
+    {
+        assert!(!blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
+        assert!(
+            !blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+                MetadataItem::ExtendedAttributes
+            ))
+        );
+        assert!(
+            !blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+                MetadataItem::ProvenanceMarks
+            ))
+        );
+    }
+    #[cfg(not(unix))]
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
-    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-        MetadataItem::ExtendedAttributes
-    )));
-    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-        MetadataItem::ProvenanceMarks
-    )));
-    // macOS restores and verifies the creation time; elsewhere it blocks.
-    assert_eq!(
+    #[cfg(not(target_os = "macos"))]
+    assert!(
         blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::CreationTime
-        )),
-        !cfg!(target_os = "macos")
+        )) || blockers.contains(&ReplacementBlocker::UnobservableMetadata(
+            MetadataItem::CreationTime
+        ))
     );
     let after = fs::metadata(&path).unwrap();
     assert_eq!(before.modified().unwrap(), after.modified().unwrap());

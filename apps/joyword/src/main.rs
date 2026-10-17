@@ -46,7 +46,16 @@ actions!(
         ExtendLineEnd,
         CancelComposition,
         OpenFile,
-        SaveCopy
+        OpenRecent,
+        SwitchDocument,
+        InsertText,
+        SaveCopy,
+        Bold,
+        Italic,
+        AlignCenter,
+        CopyText,
+        PasteText,
+        CloseDocument
     ]
 );
 
@@ -83,7 +92,16 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_EXTEND_END => Box::new(ExtendLineEnd),
         EDIT_CANCEL => Box::new(CancelComposition),
         FILE_OPEN => Box::new(OpenFile),
+        FILE_OPEN_RECENT => Box::new(OpenRecent),
+        DOCUMENT_SWITCH => Box::new(SwitchDocument),
         FILE_SAVE_COPY => Box::new(SaveCopy),
+        EDIT_BOLD => Box::new(Bold),
+        EDIT_ITALIC => Box::new(Italic),
+        EDIT_ALIGN_CENTER => Box::new(AlignCenter),
+        EDIT_COPY => Box::new(CopyText),
+        EDIT_PASTE => Box::new(PasteText),
+        EDIT_INSERT => Box::new(InsertText),
+        FILE_CLOSE => Box::new(CloseDocument),
         _ => return None,
     })
 }
@@ -170,6 +188,11 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some("JoyWordInput")),
                 FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
                 FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
+                EDIT_BOLD => KeyBinding::new(keys, Bold, Some("JoyWordInput && !composing")),
+                EDIT_ITALIC => KeyBinding::new(keys, Italic, Some("JoyWordInput && !composing")),
+                EDIT_COPY => KeyBinding::new(keys, CopyText, Some("JoyWordInput")),
+                EDIT_PASTE => KeyBinding::new(keys, PasteText, Some("JoyWordInput && !composing")),
+                FILE_CLOSE => KeyBinding::new(keys, CloseDocument, None),
                 _ => return None,
             })
         })
@@ -207,6 +230,11 @@ struct JoyWord {
     close_pending: bool,
     close_task: Option<gpui::Task<()>>,
     subscriptions: Vec<gpui::Subscription>,
+    clipboard: String,
+    session: joyword_shell::host::Office,
+    open_gate: Option<u64>,
+    recovery_dir: Option<std::path::PathBuf>,
+    held_document: Option<joyword_shell::host::DocumentId>,
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -225,7 +253,11 @@ impl CommandHost for ViewHost<'_, '_> {
         }
     }
 
-    fn execute(&mut self, id: CommandId) -> Result<(), String> {
+    fn execute(
+        &mut self,
+        id: CommandId,
+        args: &std::collections::BTreeMap<&'static str, ArgValue>,
+    ) -> Result<(), ExecuteError> {
         let view = &mut *self.view;
         match id {
             ZOOM_IN => view.zoom_percent = (view.zoom_percent + 10).min(ZOOM_MAX),
@@ -240,9 +272,57 @@ impl CommandHost for ViewHost<'_, '_> {
                     .set_menus(menus(&view.registry, Catalog::shipped(view.locale)));
             }
             QUIT => view.request_close(true, self.window, self.cx),
-            FILE_OPEN => view.begin_open(self.window, self.cx),
-            FILE_SAVE_COPY => view.begin_save_copy(self.window, self.cx),
-            other => return view.execute_input(other, self.window, self.cx),
+            FILE_OPEN | FILE_OPEN_RECENT => {
+                let Some(ArgValue::Path(path)) = args.get("path") else {
+                    return Err(ExecuteError::Pending(vec!["path"]));
+                };
+                if id == FILE_OPEN_RECENT
+                    && !view.session.recent().iter().any(|recent| recent == path)
+                {
+                    return Err(ExecuteError::Failed("path is not in recent files".into()));
+                }
+                view.open_path_sync(path, self.cx)
+                    .map_err(ExecuteError::Failed)?;
+            }
+            DOCUMENT_SWITCH => {
+                let Some(ArgValue::Id(id)) = args.get("id") else {
+                    return Err(ExecuteError::Pending(vec!["id"]));
+                };
+                view.session
+                    .invoke(DOCUMENT_SWITCH, &[("id", ArgValue::Id(*id))])
+                    .map_err(|error| match error {
+                        InvokeError::PendingInput { missing } => ExecuteError::Pending(missing),
+                        InvokeError::Failed(message) | InvokeError::Unknown(message) => {
+                            ExecuteError::Failed(message)
+                        }
+                        InvokeError::Disabled(message) => ExecuteError::Failed(message.to_string()),
+                    })?;
+            }
+            FILE_SAVE_COPY => {
+                let Some(ArgValue::Path(path)) = args.get("destination") else {
+                    return Err(ExecuteError::Pending(vec!["destination"]));
+                };
+                view.save_to(path).map_err(ExecuteError::Failed)?;
+            }
+            FILE_CLOSE => {
+                if matches!(args.get("choice"), Some(ArgValue::Text(choice)) if choice == "cancel")
+                {
+                    return Ok(());
+                }
+                let dirty = view
+                    .editor
+                    .as_ref()
+                    .is_some_and(|editor| editor.has_unsaved_changes());
+                if dirty && args.get("choice").is_none() {
+                    return Err(ExecuteError::Pending(vec!["choice"]));
+                }
+                view.request_close(false, self.window, self.cx);
+            }
+            other => {
+                return view
+                    .execute_input(other, args, self.window, self.cx)
+                    .map_err(ExecuteError::Failed);
+            }
         }
         self.cx.notify();
         Ok(())
@@ -347,8 +427,22 @@ impl JoyWord {
             self.canvas_error = None;
             let projection = job.ticket.key().projection;
             let (layout, cancellation) = (job.layout, job.cancellation);
+            let view_focus = self.viewport_page();
+            let caret = self.editor.as_ref().and_then(|editor| {
+                let frame = self.canvas.layout()?;
+                let geometry = frame.layout.caret(editor.view().selection().head).ok()?;
+                Some((geometry.x, geometry.top, geometry.height))
+            });
             let work = cx.background_executor().spawn(async move {
-                document_canvas::raster_layout(&layout, &font, projection, &cancellation)
+                document_canvas::raster_layout(
+                    &layout,
+                    &font,
+                    projection,
+                    &cancellation,
+                    view_focus,
+                    1,
+                    caret,
+                )
             });
             let ticket = job.ticket;
             self.raster_task = Some(cx.spawn(async move |view, cx| {
@@ -382,7 +476,7 @@ impl JoyWord {
     fn raster_landed(
         &mut self,
         ticket: &RasterTicket<document_canvas::RasterKey>,
-        result: Result<Vec<Arc<gpui::RenderImage>>, String>,
+        result: Result<document_canvas::RasterOutput, String>,
         cx: &mut Context<Self>,
     ) {
         match self
@@ -413,22 +507,36 @@ impl JoyWord {
         if let Some(frame) = self.canvas.layout() {
             let scale =
                 ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
-            let images = self
-                .canvas
-                .raster()
-                .map_or(&[][..], |raster| raster.images.as_slice());
+            let raster = self.canvas.raster();
+            let origin = raster.map(|raster| raster.origin).unwrap_or(0);
+            let images = raster.map_or(&[][..], |raster| raster.images.as_slice());
             return div()
                 .flex()
                 .flex_col()
                 .gap(px(input_ui::DOC_GAP))
                 .children(frame.layout.pages().iter().enumerate().map(|(i, page)| {
+                    let painted = i
+                        .checked_sub(origin)
+                        .and_then(|index| images.get(index))
+                        .cloned();
+                    let shown = raster
+                        .and_then(|frame| frame.caret_overlay.as_ref())
+                        .filter(|_| i == origin)
+                        .and_then(|overlay| {
+                            document_canvas::image_from_bgra(
+                                overlay.width,
+                                overlay.height,
+                                &overlay.bgra,
+                            )
+                        })
+                        .or(painted);
                     div()
                         .w(px(scale.logical_pixels(page.width) as f32))
                         .h(px(scale.logical_pixels(page.height) as f32))
                         .flex_shrink_0()
                         .bg(rgb(0xffffff))
                         .shadow_md()
-                        .children(images.get(i).map(|image| img(image.clone()).size_full()))
+                        .children(shown.map(|image| img(image).size_full()))
                 }))
                 .into_any_element();
         }
@@ -445,14 +553,25 @@ impl JoyWord {
     /// commands (zoom limits) do nothing.
     fn run(&mut self, id: CommandId, window: &mut Window, cx: &mut Context<Self>) {
         let registry = self.registry.clone();
-        let _ = registry.invoke(
+        match registry.invoke(
             &mut ViewHost {
                 view: self,
                 window,
                 cx,
             },
             id,
-        );
+        ) {
+            Err(InvokeError::PendingInput { .. }) if id == FILE_OPEN => {
+                self.begin_open(window, cx);
+            }
+            Err(InvokeError::PendingInput { .. }) if id == FILE_SAVE_COPY => {
+                self.begin_save_copy(window, cx);
+            }
+            Err(InvokeError::PendingInput { .. }) if id == FILE_CLOSE => {
+                self.request_close(false, window, cx);
+            }
+            _ => {}
+        }
     }
 }
 
@@ -550,6 +669,31 @@ impl Render for JoyWord {
             )
             .on_action(
                 cx.listener(|this, _: &SaveCopy, window, cx| this.run(FILE_SAVE_COPY, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &Bold, window, cx| this.run(EDIT_BOLD, window, cx)))
+            .on_action(
+                cx.listener(|this, _: &Italic, window, cx| this.run(EDIT_ITALIC, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &AlignCenter, window, cx| {
+                this.run(EDIT_ALIGN_CENTER, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &CopyText, window, cx| this.run(EDIT_COPY, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &PasteText, window, cx| this.run(EDIT_PASTE, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &CloseDocument, window, cx| this.run(FILE_CLOSE, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &OpenRecent, window, cx| {
+                this.run(FILE_OPEN_RECENT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &SwitchDocument, window, cx| {
+                this.run(DOCUMENT_SWITCH, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &InsertText, window, cx| this.run(EDIT_INSERT, window, cx)),
             )
             .size_full()
             .flex()
@@ -684,6 +828,11 @@ fn main() {
                         close_pending: false,
                         close_task: None,
                         subscriptions: Vec::new(),
+                        clipboard: String::new(),
+                        session: joyword_shell::host::Office::new(),
+                        open_gate: None,
+                        recovery_dir: None,
+                        held_document: None,
                     };
                     view.install_input_lifecycle(window, cx);
                     view
@@ -726,5 +875,14 @@ mod tests {
             .filter(|spec| spec.shortcut.for_platform(Platform::current()).is_some())
             .count();
         assert_eq!(key_bindings(&registry).len(), with_keys);
+    }
+
+    #[test]
+    fn file_and_insert_commands_are_not_the_language_switch() {
+        let language = action_for(SWITCH_LANGUAGE).unwrap().name();
+        for id in [EDIT_INSERT, FILE_OPEN_RECENT, DOCUMENT_SWITCH, FILE_CLOSE] {
+            let action = action_for(id).unwrap();
+            assert_ne!(action.name(), language, "{}", id);
+        }
     }
 }

@@ -144,7 +144,9 @@ fn a_run_with_an_unknown_font_is_rejected() {
 
 #[test]
 fn document_snapshot_pages_render_deterministically_without_mutation_or_reflow() {
-    use joyword_layout::{LayoutCancellation, LayoutLimits, SingleFontProfile, layout_document};
+    use joyword_layout::{
+        FaceSet, LayoutCancellation, LayoutLimits, SingleFontProfile, layout_document,
+    };
     use joyword_model::{BlockSeq, Document, DumpOptions, Measure, PageSetup, Paragraph};
     let Some(font) = test_font() else { return };
     let mut setup = PageSetup::a4_zh_cn();
@@ -166,7 +168,7 @@ fn document_snapshot_pages_render_deterministically_without_mutation_or_reflow()
     let before = document.canonical_dump(DumpOptions { node_ids: true });
     let result = layout_document(
         &document.snapshot(),
-        &font,
+        FaceSet::uniform(&font),
         SingleFontProfile {
             size: Emu::new(12 * Emu::PER_POINT),
             leading: Emu::new(18 * Emu::PER_POINT),

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use joyoffice_opc::Budget;
 use joyword_model::Document;
 use joyword_shell::command::{
-    FILE_OPEN, FILE_SAVE_COPY, MenuEntry, MenuKind, Platform, QUIT, Registry,
+    FILE_CLOSE, FILE_OPEN, FILE_SAVE_COPY, MenuEntry, MenuKind, Platform, QUIT, Registry,
 };
 use joyword_shell::docx::{BoundDocx, BoundOpenError, BoundSaveError, DocxSession};
 use joyword_shell::input::{InputLimits, TextInput};
@@ -271,6 +271,8 @@ fn file_menu_offers_open_and_save_copy_but_not_save() {
         vec![
             MenuEntry::Command(FILE_OPEN),
             MenuEntry::Command(FILE_SAVE_COPY),
+            MenuEntry::Separator,
+            MenuEntry::Command(FILE_CLOSE),
             MenuEntry::Separator,
             MenuEntry::Command(QUIT),
         ]

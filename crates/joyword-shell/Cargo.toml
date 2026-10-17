@@ -9,12 +9,15 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+crc32fast.workspace = true
 joyoffice-opc.workspace = true
 joyword-docx.workspace = true
 joyword-engine.workspace = true
 joyword-model.workspace = true
+rustix.workspace = true
 tempfile.workspace = true
 unicode-segmentation.workspace = true
+xattr.workspace = true
 
 [lints]
 workspace = true

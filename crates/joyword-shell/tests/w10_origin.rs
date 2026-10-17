@@ -145,9 +145,7 @@ fn save_export_copy_writes_output_and_save_original_still_refuses() {
     let error = save_original(&plan, &stamp).unwrap_err();
     let blockers = error.blockers().expect("replacement still blocked");
     assert!(!blockers.contains(&ReplacementBlocker::OriginBindingUnproven));
-    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(
-        joyword_shell::storage::MetadataItem::Acl
-    )));
+    assert!(blockers.contains(&ReplacementBlocker::ConfirmationRequired));
     assert_eq!(fs::read(&source).unwrap(), bytes);
     assert_eq!(
         fs::read_dir(dir.path()).unwrap().count(),

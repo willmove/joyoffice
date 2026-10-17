@@ -257,10 +257,12 @@ fn format_edits_refuse_without_changing_session() {
             .document()
             .canonical_dump(joyword_model::DumpOptions { node_ids: true });
         let version = session.session().version();
-        assert!(matches!(
-            session.export_plan(),
-            Err(ExportError::Unsupported { .. })
-        ));
+        let plan = session.export_plan().expect("direct formatting exports");
+        let xml = String::from_utf8_lossy(plan.bytes());
+        match kind {
+            0 => assert!(xml.contains("w:b"), "{xml}"),
+            _ => assert!(xml.contains("center") || xml.contains("w:jc"), "{xml}"),
+        }
         assert_eq!(session.session().version(), version);
         assert_eq!(
             session

@@ -6,6 +6,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
+use std::path::PathBuf;
 
 use crate::l10n::Catalog;
 
@@ -125,13 +126,84 @@ impl Shortcut {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ParamKind {
+    Path,
+    Text,
+    Bool,
+    Id,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ParamSpec {
+    pub name: &'static str,
+    pub kind: ParamKind,
+    pub required: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ArgValue {
+    Path(PathBuf),
+    Text(String),
+    Bool(bool),
+    Id(u64),
+}
+
+impl ArgValue {
+    fn matches(&self, kind: ParamKind) -> bool {
+        matches!(
+            (self, kind),
+            (Self::Path(_), ParamKind::Path)
+                | (Self::Text(_), ParamKind::Text)
+                | (Self::Bool(_), ParamKind::Bool)
+                | (Self::Id(_), ParamKind::Id)
+        )
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CommandSpec {
     pub id: CommandId,
     /// Localization key of the menu and command-search label.
     pub label: &'static str,
     pub menu: Option<MenuPlacement>,
     pub shortcut: Shortcut,
+    /// True when a successful invocation changes document content.
+    pub modifies_document: bool,
+    pub parameters: &'static [ParamSpec],
 }
+
+const PATH_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "path",
+    kind: ParamKind::Path,
+    required: true,
+}];
+const DESTINATION_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "destination",
+    kind: ParamKind::Path,
+    required: true,
+}];
+const ID_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "id",
+    kind: ParamKind::Id,
+    required: true,
+}];
+const CLOSE_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "id",
+        kind: ParamKind::Id,
+        required: true,
+    },
+    ParamSpec {
+        name: "choice",
+        kind: ParamKind::Text,
+        required: false,
+    },
+];
+const TEXT_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "text",
+    kind: ParamKind::Text,
+    required: true,
+}];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Availability {
@@ -145,12 +217,36 @@ pub enum InvokeError {
     Unknown(String),
     Disabled(&'static str),
     Failed(String),
+    /// Required parameters were not supplied. Callers ask the user; they do
+    /// not open a dialog on this path.
+    PendingInput {
+        missing: Vec<&'static str>,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ExecuteError {
+    Failed(String),
+    Pending(Vec<&'static str>),
+}
+
+impl std::fmt::Display for ExecuteError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Failed(message) => f.write_str(message),
+            Self::Pending(missing) => write!(f, "pending {}", missing.join(",")),
+        }
+    }
 }
 
 /// The application side of a command: availability and execution.
 pub trait CommandHost {
     fn availability(&self, id: CommandId) -> Availability;
-    fn execute(&mut self, id: CommandId) -> Result<(), String>;
+    fn execute(
+        &mut self,
+        id: CommandId,
+        args: &BTreeMap<&'static str, ArgValue>,
+    ) -> Result<(), ExecuteError>;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -207,6 +303,15 @@ pub const EDIT_END: CommandId = CommandId("edit.line_end");
 pub const EDIT_EXTEND_HOME: CommandId = CommandId("edit.extend_line_start");
 pub const EDIT_EXTEND_END: CommandId = CommandId("edit.extend_line_end");
 pub const EDIT_CANCEL: CommandId = CommandId("edit.cancel_composition");
+pub const EDIT_BOLD: CommandId = CommandId("edit.bold");
+pub const EDIT_ITALIC: CommandId = CommandId("edit.italic");
+pub const EDIT_ALIGN_CENTER: CommandId = CommandId("edit.align_center");
+pub const EDIT_COPY: CommandId = CommandId("edit.copy");
+pub const EDIT_PASTE: CommandId = CommandId("edit.paste");
+pub const EDIT_INSERT: CommandId = CommandId("edit.insert");
+pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
+pub const FILE_CLOSE: CommandId = CommandId("file.close");
+pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
 
 #[derive(Clone, Debug)]
 pub struct Registry {
@@ -237,6 +342,8 @@ impl Registry {
                     group: 0,
                 }),
                 shortcut: Shortcut::primary("cmd-o", "ctrl-o"),
+                modifies_document: false,
+                parameters: PATH_PARAM,
             },
             CommandSpec {
                 id: FILE_SAVE_COPY,
@@ -246,6 +353,8 @@ impl Registry {
                     group: 0,
                 }),
                 shortcut: Shortcut::primary("cmd-shift-s", "ctrl-shift-s"),
+                modifies_document: false,
+                parameters: DESTINATION_PARAM,
             },
             CommandSpec {
                 id: QUIT,
@@ -255,30 +364,40 @@ impl Registry {
                     group: 9,
                 }),
                 shortcut: Shortcut::primary("cmd-q", "ctrl-q"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: ZOOM_IN,
                 label: "command.view.zoom_in",
                 menu: view(0),
                 shortcut: Shortcut::primary("cmd-=", "ctrl-="),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: ZOOM_OUT,
                 label: "command.view.zoom_out",
                 menu: view(0),
                 shortcut: Shortcut::primary("cmd--", "ctrl--"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: ZOOM_RESET,
                 label: "command.view.zoom_reset",
                 menu: view(0),
                 shortcut: Shortcut::primary("cmd-0", "ctrl-0"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: SWITCH_LANGUAGE,
                 label: "command.view.switch_language",
                 menu: view(1),
                 shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_UNDO,
@@ -288,6 +407,8 @@ impl Registry {
                     group: 0,
                 }),
                 shortcut: Shortcut::primary("cmd-z", "ctrl-z"),
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_REDO,
@@ -297,6 +418,8 @@ impl Registry {
                     group: 0,
                 }),
                 shortcut: Shortcut::primary("cmd-shift-z", "ctrl-y"),
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_SELECT_ALL,
@@ -306,102 +429,226 @@ impl Registry {
                     group: 1,
                 }),
                 shortcut: Shortcut::primary("cmd-a", "ctrl-a"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_BACKSPACE,
                 label: "command.edit.backspace",
                 menu: None,
                 shortcut: Shortcut::primary("backspace", "backspace"),
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_DELETE,
                 label: "command.edit.delete",
                 menu: None,
                 shortcut: Shortcut::primary("delete", "delete"),
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_ENTER,
                 label: "command.edit.new_paragraph",
                 menu: None,
                 shortcut: Shortcut::primary("enter", "enter"),
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_LEFT,
                 label: "command.edit.left",
                 menu: None,
                 shortcut: Shortcut::primary("left", "left"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_RIGHT,
                 label: "command.edit.right",
                 menu: None,
                 shortcut: Shortcut::primary("right", "right"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_EXTEND_LEFT,
                 label: "command.edit.extend_left",
                 menu: None,
                 shortcut: Shortcut::primary("shift-left", "shift-left"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_EXTEND_RIGHT,
                 label: "command.edit.extend_right",
                 menu: None,
                 shortcut: Shortcut::primary("shift-right", "shift-right"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_UP,
                 label: "command.edit.up",
                 menu: None,
                 shortcut: Shortcut::primary("up", "up"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_DOWN,
                 label: "command.edit.down",
                 menu: None,
                 shortcut: Shortcut::primary("down", "down"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_EXTEND_UP,
                 label: "command.edit.extend_up",
                 menu: None,
                 shortcut: Shortcut::primary("shift-up", "shift-up"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_EXTEND_DOWN,
                 label: "command.edit.extend_down",
                 menu: None,
                 shortcut: Shortcut::primary("shift-down", "shift-down"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_HOME,
                 label: "command.edit.line_start",
                 menu: None,
                 shortcut: Shortcut::primary("cmd-left", "home"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_END,
                 label: "command.edit.line_end",
                 menu: None,
                 shortcut: Shortcut::primary("cmd-right", "end"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_EXTEND_HOME,
                 label: "command.edit.extend_line_start",
                 menu: None,
                 shortcut: Shortcut::primary("cmd-shift-left", "shift-home"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_EXTEND_END,
                 label: "command.edit.extend_line_end",
                 menu: None,
                 shortcut: Shortcut::primary("cmd-shift-right", "shift-end"),
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: EDIT_CANCEL,
                 label: "command.edit.cancel_composition",
                 menu: None,
                 shortcut: Shortcut::primary("escape", "escape"),
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_BOLD,
+                label: "command.edit.bold",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 2,
+                }),
+                shortcut: Shortcut::primary("cmd-b", "ctrl-b"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_ITALIC,
+                label: "command.edit.italic",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 2,
+                }),
+                shortcut: Shortcut::primary("cmd-i", "ctrl-i"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_ALIGN_CENTER,
+                label: "command.edit.align_center",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_COPY,
+                label: "command.edit.copy",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 1,
+                }),
+                shortcut: Shortcut::primary("cmd-c", "ctrl-c"),
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_PASTE,
+                label: "command.edit.paste",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 1,
+                }),
+                shortcut: Shortcut::primary("cmd-v", "ctrl-v"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_INSERT,
+                label: "command.edit.insert",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: TEXT_PARAM,
+            },
+            CommandSpec {
+                id: FILE_OPEN_RECENT,
+                label: "command.file.open_recent",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: PATH_PARAM,
+            },
+            CommandSpec {
+                id: FILE_CLOSE,
+                label: "command.file.close",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 2,
+                }),
+                shortcut: Shortcut::primary("cmd-w", "ctrl-w"),
+                modifies_document: false,
+                parameters: CLOSE_PARAMS,
+            },
+            CommandSpec {
+                id: DOCUMENT_SWITCH,
+                label: "command.document.switch",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: ID_PARAM,
             },
         ])
     }
@@ -420,12 +667,48 @@ impl Registry {
     }
 
     /// The single entry point for menus, shortcuts and the command line.
+    /// Commands with required parameters return [`InvokeError::PendingInput`]
+    /// until those parameters are supplied to [`Self::invoke_with`].
     pub fn invoke(&self, host: &mut dyn CommandHost, id: CommandId) -> Result<(), InvokeError> {
-        if self.get(id).is_none() {
+        self.invoke_with(host, id, &[])
+    }
+
+    pub fn invoke_with(
+        &self,
+        host: &mut dyn CommandHost,
+        id: CommandId,
+        args: &[(&'static str, ArgValue)],
+    ) -> Result<(), InvokeError> {
+        let Some(spec) = self.get(id) else {
             return Err(InvokeError::Unknown(id.0.to_owned()));
+        };
+        let mut provided = BTreeMap::new();
+        for (name, value) in args {
+            let Some(param) = spec.parameters.iter().find(|param| param.name == *name) else {
+                return Err(InvokeError::Failed(format!("unknown parameter {name}")));
+            };
+            if !value.matches(param.kind) {
+                return Err(InvokeError::Failed(format!(
+                    "parameter {name} has the wrong type"
+                )));
+            }
+            provided.insert(*name, value.clone());
+        }
+        let missing: Vec<&'static str> = spec
+            .parameters
+            .iter()
+            .filter(|param| param.required && !provided.contains_key(param.name))
+            .map(|param| param.name)
+            .collect();
+        if !missing.is_empty() {
+            return Err(InvokeError::PendingInput { missing });
         }
         match host.availability(id) {
-            Availability::Enabled => host.execute(id).map_err(InvokeError::Failed),
+            Availability::Enabled => match host.execute(id, &provided) {
+                Ok(()) => Ok(()),
+                Err(ExecuteError::Failed(message)) => Err(InvokeError::Failed(message)),
+                Err(ExecuteError::Pending(missing)) => Err(InvokeError::PendingInput { missing }),
+            },
             Availability::Disabled(reason) => Err(InvokeError::Disabled(reason)),
         }
     }
@@ -527,7 +810,11 @@ mod tests {
             }
         }
 
-        fn execute(&mut self, id: CommandId) -> Result<(), String> {
+        fn execute(
+            &mut self,
+            id: CommandId,
+            _args: &BTreeMap<&'static str, ArgValue>,
+        ) -> Result<(), ExecuteError> {
             if id == ZOOM_IN {
                 self.zoom += 10;
             }
@@ -618,6 +905,8 @@ mod tests {
             vec![
                 MenuEntry::Command(FILE_OPEN),
                 MenuEntry::Command(FILE_SAVE_COPY),
+                MenuEntry::Separator,
+                MenuEntry::Command(FILE_CLOSE),
             ]
         );
     }
@@ -636,6 +925,8 @@ mod tests {
                 vec![
                     MenuEntry::Command(FILE_OPEN),
                     MenuEntry::Command(FILE_SAVE_COPY),
+                    MenuEntry::Separator,
+                    MenuEntry::Command(FILE_CLOSE),
                     MenuEntry::Separator,
                     MenuEntry::Command(QUIT),
                 ],
@@ -684,6 +975,8 @@ mod tests {
             label: "unused",
             menu: Some(MenuPlacement { menu, group }),
             shortcut: Shortcut::NONE,
+            modifies_document: false,
+            parameters: &[],
         };
         // App group 0 still lands after File group 5 when folded into File.
         let registry = Registry::new(vec![
@@ -732,6 +1025,8 @@ mod tests {
             label: "missing.label",
             menu: None,
             shortcut: Shortcut::primary("cmd-q", "ctrl-0"),
+            modifies_document: false,
+            parameters: &[],
         });
         let catalog = Catalog::shipped(Locale::En);
         let issues = Registry::new(commands).validate(&[catalog]);

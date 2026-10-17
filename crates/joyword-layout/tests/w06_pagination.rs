@@ -4,8 +4,8 @@ use std::sync::Arc;
 use joyword_engine::{Command, Session, Transaction};
 use joyword_foundation::{Emu, ScreenScale};
 use joyword_layout::{
-    FeatureSet, LayoutCancellation, LayoutError, LayoutLimit, LayoutLimits, LayoutSnapshot,
-    LoadedFont, SingleFontProfile, StaleReason, layout_document, shape,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutLimit, LayoutLimits,
+    LayoutSnapshot, LoadedFont, SingleFontProfile, StaleReason, layout_document, shape,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, Document, DumpOptions, Justification, Measure, PageSetup, Paragraph,
@@ -77,7 +77,7 @@ fn keep(doc: &mut Document, index: usize, next: bool, lines: bool) {
 fn run(doc: &Document, limits: LayoutLimits) -> Result<LayoutSnapshot, LayoutError> {
     layout_document(
         &doc.snapshot(),
-        &font(),
+        FaceSet::uniform(&font()),
         profile(),
         limits,
         &LayoutCancellation::default(),
@@ -390,7 +390,7 @@ fn keeps_do_not_reset_work_budgets_or_publish_partial_results() {
     assert_eq!(
         layout_document(
             &doc.snapshot(),
-            &font(),
+            FaceSet::uniform(&font()),
             profile(),
             LayoutLimits::default(),
             &cancel
@@ -551,7 +551,7 @@ fn paragraph_and_keep_chain_height_overflow_fail_without_mutating_the_model() {
         assert_eq!(
             layout_document(
                 &doc.snapshot(),
-                &font(),
+                FaceSet::uniform(&font()),
                 extreme,
                 LayoutLimits::default(),
                 &LayoutCancellation::default()

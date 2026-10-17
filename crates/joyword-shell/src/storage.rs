@@ -17,12 +17,14 @@
 //! contents equal the caller's token; it does not delete that file.
 //! Metadata that this build cannot preserve still refuses before any write. The Unix
 //! replace strategy itself (temporary file, sync, read-back, backup hard
-//! link, rename) lives behind that gate. `save_export_copy` remains the
+//! link, exchange rename) lives behind that gate. `save_export_copy` remains the
 //! verified fallback when replacement is refused.
 
 mod error;
 mod locks;
+mod metadata;
 mod original;
+mod recovery;
 mod source;
 
 pub use error::{
@@ -30,9 +32,11 @@ pub use error::{
     SourceStage,
 };
 pub use original::{
-    MetadataCapability, OriginalDurability, OriginalReplacementCapabilities, SaveOriginalReceipt,
-    original_replacement_capabilities, save_original, save_original_with_lock_token,
+    MetadataCapability, OriginalChoice, OriginalDurability, OriginalReplacementCapabilities,
+    SaveOriginalReceipt, original_replacement_capabilities, save_original,
+    save_original_with_choice, save_original_with_lock_token,
 };
+pub use recovery::{Recovered, commit as commit_recovery, package_is_encrypted, recover};
 pub use source::{
     OpenedSource, SourceStamp, check_source, check_source_with_lock_token, open_source,
 };
@@ -133,6 +137,67 @@ impl std::error::Error for SaveCopyError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         Some(&self.source)
     }
+}
+
+/// A new copy written because original replacement was not confirmed, plus
+/// the metadata losses that confirmation would have accepted or refused.
+#[derive(Debug)]
+pub struct DefaultCopy {
+    pub receipt: SaveCopyReceipt,
+    pub losses: Vec<ReplacementBlocker>,
+}
+
+#[derive(Debug)]
+pub enum DefaultSaveError {
+    Copy(SaveCopyError),
+}
+
+impl fmt::Display for DefaultSaveError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Copy(error) => write!(f, "{error}"),
+        }
+    }
+}
+
+impl std::error::Error for DefaultSaveError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Copy(error) => Some(error),
+        }
+    }
+}
+
+/// Default save path: write `destination` as a new file and leave the opened
+/// source bytes unchanged. Metadata that cannot be preserved or observed is
+/// reported on the receipt. An observation failure still writes the copy and
+/// lists every metadata item as unobservable; it does not replace the source.
+pub fn save_default_copy(
+    plan: &ExportPlan,
+    source: &SourceStamp,
+    destination: &Path,
+) -> Result<DefaultCopy, DefaultSaveError> {
+    let losses = match metadata::observe(source.path()) {
+        Ok(observed) => observed.losses,
+        Err(_) => vec![
+            ReplacementBlocker::UnobservableMetadata(error::MetadataItem::Ownership),
+            ReplacementBlocker::UnobservableMetadata(error::MetadataItem::Acl),
+            ReplacementBlocker::UnobservableMetadata(error::MetadataItem::ExtendedAttributes),
+            ReplacementBlocker::UnobservableMetadata(error::MetadataItem::CreationTime),
+            ReplacementBlocker::UnobservableMetadata(error::MetadataItem::Links),
+            ReplacementBlocker::UnobservableMetadata(error::MetadataItem::ProvenanceMarks),
+        ],
+    };
+    let before = fs::read(source.path()).ok();
+    let receipt = save_export_copy(plan, destination).map_err(DefaultSaveError::Copy)?;
+    if let Some(before) = before {
+        // The copy path must not have been implemented as an in-place rewrite.
+        debug_assert_eq!(
+            fs::read(source.path()).ok().as_deref(),
+            Some(before.as_slice())
+        );
+    }
+    Ok(DefaultCopy { receipt, losses })
 }
 
 /// Write/sync/verify a private temporary file in the destination directory,

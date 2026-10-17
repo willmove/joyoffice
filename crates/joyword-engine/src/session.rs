@@ -7,8 +7,10 @@
 //! shared before/after states, which restores content, formatting and anchors
 //! exactly; restoring publishes a new version and never reuses an old one.
 
+use std::cell::Cell;
 use std::collections::BTreeSet;
 use std::fmt;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
 
 use joyword_model::{
@@ -16,6 +18,16 @@ use joyword_model::{
     InlineKind, InlineObject, Issue, MAX_NESTING, NodeId, ParaProps, Paragraph, Position, RunProps,
     ScalarOffset, StoryId, TextError,
 };
+
+thread_local! {
+    static FAIL_NEXT_APPLY: Cell<bool> = const { Cell::new(false) };
+}
+
+/// Test hook: the next [`Session::apply`] panics inside the transaction guard.
+#[cfg(test)]
+fn fail_next_apply() {
+    FAIL_NEXT_APPLY.with(|flag| flag.set(true));
+}
 
 use crate::command::{Command, CommandError, ParagraphChange, Precondition, check_text};
 use crate::locate::{self, Location};
@@ -116,6 +128,8 @@ pub enum TxError {
     },
     /// The candidate broke a model invariant; nothing was committed.
     Invariant(Vec<Issue>),
+    /// A panic was caught inside the transaction guard. The session is unchanged.
+    Interrupted,
 }
 
 impl fmt::Display for TxError {
@@ -129,6 +143,7 @@ impl fmt::Display for TxError {
             TxError::PreconditionFailed { index } => write!(f, "precondition {index} failed"),
             TxError::Command { index, error } => write!(f, "command {index}: {error}"),
             TxError::Invariant(issues) => write!(f, "invariant violated: {issues:?}"),
+            TxError::Interrupted => f.write_str("transaction was interrupted and discarded"),
         }
     }
 }
@@ -206,7 +221,7 @@ impl Session {
     }
 
     pub fn apply(&mut self, transaction: Transaction) -> Result<Outcome, TxError> {
-        self.apply_inner(transaction, None)
+        self.guard(|session| session.apply_inner(transaction, None))
     }
 
     /// Keep `transaction.selection` for undo, while mapping a separate
@@ -218,7 +233,27 @@ impl Session {
         transaction: Transaction,
         target: Selection,
     ) -> Result<Outcome, TxError> {
-        self.apply_inner(transaction, Some(target))
+        self.guard(|session| session.apply_inner(transaction, Some(target)))
+    }
+
+    fn guard(
+        &mut self,
+        body: impl FnOnce(&mut Self) -> Result<Outcome, TxError>,
+    ) -> Result<Outcome, TxError> {
+        let document = self.document.clone();
+        let policy = self.policy.clone();
+        let undo = self.undo.clone();
+        let redo = self.redo.clone();
+        match catch_unwind(AssertUnwindSafe(|| body(self))) {
+            Ok(result) => result,
+            Err(_) => {
+                self.document = document;
+                self.policy = policy;
+                self.undo = undo;
+                self.redo = redo;
+                Err(TxError::Interrupted)
+            }
+        }
     }
 
     fn apply_inner(
@@ -226,6 +261,9 @@ impl Session {
         transaction: Transaction,
         target: Option<Selection>,
     ) -> Result<Outcome, TxError> {
+        if FAIL_NEXT_APPLY.with(|flag| flag.replace(false)) {
+            panic!("injected transaction panic");
+        }
         let current = self.document.version();
         if transaction.base_version != current {
             return Err(TxError::StaleVersion {
@@ -931,4 +969,54 @@ fn touched_issues(document: &Document, changes: &ChangeSet) -> Vec<Issue> {
         }
     }
     issues
+}
+
+#[cfg(test)]
+mod panic_guard {
+    use super::*;
+    use joyword_model::{BlockSeq, PageSetup};
+    use std::sync::Arc;
+
+    #[test]
+    fn a_panic_inside_apply_discards_the_candidate() {
+        let mut document = Document::new(PageSetup::a4_zh_cn());
+        let mut paragraph = Paragraph::new(document.ids().node());
+        paragraph.push_text("甲", None, Arc::default()).unwrap();
+        let body = document.body_id();
+        document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+        let mut session = Session::new(document);
+        let version = session.version();
+        let at = {
+            let paragraph = session.document().body().blocks.get(0).unwrap().id();
+            Position {
+                story: session.document().body_id(),
+                paragraph,
+                offset: ScalarOffset(0),
+                bias: Bias::After,
+            }
+        };
+        fail_next_apply();
+        let error = session
+            .apply(Transaction::new(
+                version,
+                vec![Command::InsertText {
+                    at,
+                    text: "乙".into(),
+                }],
+            ))
+            .unwrap_err();
+        assert!(matches!(error, TxError::Interrupted));
+        let text = session
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .plain_text(|_| String::new());
+        assert_eq!(text, "甲");
+        assert_eq!(session.version(), version);
+        assert!(!session.can_undo());
+    }
 }

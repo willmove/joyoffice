@@ -26,6 +26,9 @@ pub enum SourceStage {
     Restat,
     /// Argument validation inside save_original.
     Validate,
+    /// Read ACLs, extended attributes, provenance marks and creation time.
+    /// A failure here refuses replacement and does not write.
+    ObserveMetadata,
     /// Create the same-directory temporary file for original replacement.
     CreateTemporary,
     /// Write the verified plan bytes into that temporary file.
@@ -41,7 +44,8 @@ pub enum SourceStage {
     Backup,
     /// Read the backup back and compare it to the stamped bytes.
     VerifyBackup,
-    /// Rename the temporary file onto the target.
+    /// Exchange the temporary file with the target (macOS `RENAME_SWAP`,
+    /// Linux `RENAME_EXCHANGE`). The displaced inode is the previous target.
     Publish,
     /// Read the published target back: it must be the renamed object with
     /// the plan's exact bytes. Only this read yields the receipt and its
@@ -63,6 +67,7 @@ impl fmt::Display for SourceStage {
             Self::Read => "bounded read",
             Self::Restat => "post-read stat",
             Self::Validate => "validation",
+            Self::ObserveMetadata => "metadata observation",
             Self::CreateTemporary => "temporary file creation",
             Self::Write => "write",
             Self::SyncFile => "file sync",
@@ -163,6 +168,9 @@ pub enum ReplacementBlocker {
     /// No write permission bit is set on the source. Replacing it through
     /// the directory would bypass that read-only intent.
     ReadOnlySource,
+    /// The caller did not explicitly confirm replacement. The default is to
+    /// leave the source untouched (and write a new copy elsewhere).
+    ConfirmationRequired,
 }
 
 impl ReplacementBlocker {
@@ -184,6 +192,9 @@ impl ReplacementBlocker {
                 "source is hard-linked; replacement semantics for other links are undecided"
             }
             Self::ReadOnlySource => "source is read-only",
+            Self::ConfirmationRequired => {
+                "replacement requires explicit confirmation; the default is a new copy"
+            }
         }
     }
 }
@@ -266,6 +277,9 @@ pub enum SaveOriginalError {
         source: io::Error,
         backup: PathBuf,
     },
+    /// Metadata could not be observed. Replacement is refused even when the
+    /// caller asked to confirm, because the loss list would be incomplete.
+    ObservationFailed { path: PathBuf, source: io::Error },
 }
 
 impl SaveOriginalError {
@@ -279,7 +293,8 @@ impl SaveOriginalError {
             | Self::Conflict { path, .. }
             | Self::OriginMismatch { path }
             | Self::ReplacementUnavailable { path, .. }
-            | Self::PublishedUnconfirmed { path, .. } => path,
+            | Self::PublishedUnconfirmed { path, .. }
+            | Self::ObservationFailed { path, .. } => path,
             Self::LockConflict { lock_path, .. } => lock_path,
         }
     }
@@ -287,12 +302,15 @@ impl SaveOriginalError {
         match self {
             Self::Io { stage, .. } => Some(*stage),
             Self::PublishedUnconfirmed { .. } => Some(SourceStage::Confirm),
+            Self::ObservationFailed { .. } => Some(SourceStage::ObserveMetadata),
             _ => None,
         }
     }
     pub fn io_error(&self) -> Option<&io::Error> {
         match self {
-            Self::Io { source, .. } | Self::PublishedUnconfirmed { source, .. } => Some(source),
+            Self::Io { source, .. }
+            | Self::PublishedUnconfirmed { source, .. }
+            | Self::ObservationFailed { source, .. } => Some(source),
             _ => None,
         }
     }
@@ -420,6 +438,11 @@ impl fmt::Display for SaveOriginalError {
                 source,
                 backup.display()
             ),
+            Self::ObservationFailed { path, source } => write!(
+                f,
+                "metadata observation failed for {:?}: {source}",
+                path.display()
+            ),
         }
     }
 }
@@ -427,13 +450,24 @@ impl fmt::Display for SaveOriginalError {
 impl std::error::Error for SaveOriginalError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::Io { source, .. } | Self::PublishedUnconfirmed { source, .. } => Some(source),
+            Self::Io { source, .. }
+            | Self::PublishedUnconfirmed { source, .. }
+            | Self::ObservationFailed { source, .. } => Some(source),
             _ => None,
         }
     }
 }
 
 impl SaveOriginalError {
+    pub(crate) fn observation(path: &std::path::Path, source: io::Error) -> Self {
+        Self::ObservationFailed {
+            path: path.to_path_buf(),
+            source,
+        }
+    }
+    pub fn is_observation_failure(&self) -> bool {
+        matches!(self, Self::ObservationFailed { .. })
+    }
     pub(crate) fn io(stage: SourceStage, path: &std::path::Path, source: io::Error) -> Self {
         Self::Io {
             stage,

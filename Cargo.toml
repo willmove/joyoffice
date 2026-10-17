@@ -63,6 +63,10 @@ sha2 = "=0.10.9"
 tempfile = "=3.27.0"
 unicode-linebreak = "=0.1.5"
 unicode-segmentation = "=1.13.3"
+xattr = "=1.6.1"
+# Already in the lock via tempfile. Direct use is the safe renameat2 /
+# renamex_np wrapper (RENAME_EXCHANGE / RENAME_SWAP). No other features.
+rustix = { version = "=1.1.5", features = ["std", "fs"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

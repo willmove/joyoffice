@@ -24,7 +24,10 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 use std::sync::Arc;
 
-use joyword_model::{Block, Document, NodeId, ParaProps, Paragraph, RunProps, SourceRef, StyleId};
+use joyword_model::{
+    Block, Color, Document, FontRef, Indent, Justification, Measure, NodeId, ParaProps, Paragraph,
+    RunProps, SourceRef, Spacing, StyleId, Underline,
+};
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
 use crate::props::{self, Findings};
@@ -647,7 +650,14 @@ impl<'a> Source<'a> {
     ) -> Result<String, ExportError> {
         let mut body = String::new();
         for (style, props, text) in run_groups(paragraph) {
-            let rpr = self.run_bytes(&style, &props)?;
+            let rpr = match self.run_bytes(&style, &props) {
+                Ok(markup) => markup,
+                Err(error) if style.is_none() => match synthesize_rpr(names, &props) {
+                    Ok(markup) => markup,
+                    Err(_) => return Err(error),
+                },
+                Err(error) => return Err(error),
+            };
             let text = bounded_text_xml(names, &text, limit)?;
             if rpr.is_none() && text.is_empty() {
                 continue;
@@ -798,6 +808,214 @@ fn default_format(paragraph: &Paragraph) -> bool {
             .runs()
             .iter()
             .all(|run| run.style.is_none() && run.props.is_empty())
+}
+
+/// A paragraph whose direct formatting is the M1 subset: justification and
+/// character toggles, size, color, named font slots and underline. No style,
+/// numbering, spacing, indent, preserved markup or theme font.
+pub(super) fn direct_m1(paragraph: &Paragraph) -> bool {
+    let props = &paragraph.props;
+    paragraph.style.is_none()
+        && props.preserved.is_none()
+        && props.numbering.is_none()
+        && props.indent == Indent::default()
+        && props.spacing == Spacing::default()
+        && props.keep_next.is_none()
+        && props.keep_lines.is_none()
+        && props.widow_control.is_none()
+        && props.page_break_before.is_none()
+        && props.snap_to_grid.is_none()
+        && props.outline_level.is_none()
+        && paragraph.mark_props.is_empty()
+        && paragraph.inlines().is_empty()
+        && paragraph
+            .runs()
+            .iter()
+            .all(|run| run.style.is_none() && run_supported(&run.props).is_ok())
+}
+
+pub(super) fn rewrite_direct_paragraph(
+    xml: &[u8],
+    element: &Element,
+    paragraph: &Paragraph,
+    names: &Names,
+    limit: u64,
+) -> Result<Vec<u8>, ExportError> {
+    let open =
+        opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
+    let mut inner = String::new();
+    if let Some(justification) = paragraph.props.justification {
+        inner.push_str(&names.start("pPr"));
+        inner.push('>');
+        inner.push_str(&names.start("jc"));
+        inner.push_str(&qattr(names, "val", justification_value(justification)));
+        inner.push_str("/>");
+        inner.push_str(&names.end("pPr"));
+    }
+    for (style, props, text) in run_groups(paragraph) {
+        if style.is_some() {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "character style is outside the direct formatting subset",
+            ));
+        }
+        let rpr = synthesize_rpr(names, &props)
+            .map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
+        let text = bounded_text_xml(names, &text, limit)?;
+        if rpr.is_none() && text.is_empty() {
+            continue;
+        }
+        inner.push_str(&names.start("r"));
+        inner.push('>');
+        if let Some(rpr) = rpr {
+            inner.push_str(&rpr);
+        }
+        inner.push_str(&text);
+        inner.push_str(&names.end("r"));
+    }
+    let mut out = open;
+    out.extend_from_slice(inner.as_bytes());
+    out.extend_from_slice(names.end("p").as_bytes());
+    if out.len() as u64 > limit {
+        return Err(ExportError::Budget {
+            part: "paragraph".into(),
+            limit,
+        });
+    }
+    Ok(out)
+}
+
+fn run_supported(props: &RunProps) -> Result<(), &'static str> {
+    if props.hidden.is_some()
+        || props.preserved.is_some()
+        || props.languages != joyword_model::Languages::default()
+    {
+        return Err("character formatting is outside the direct subset");
+    }
+    for font in [
+        &props.fonts.ascii,
+        &props.fonts.h_ansi,
+        &props.fonts.east_asia,
+        &props.fonts.complex_script,
+    ] {
+        if matches!(font, Some(FontRef::Theme(_))) {
+            return Err("theme fonts are outside the direct subset");
+        }
+    }
+    if props
+        .size
+        .is_some_and(|size| !matches!(size, Measure::HalfPoints(value) if value >= 0))
+    {
+        return Err("only half-point font sizes can be written directly");
+    }
+    Ok(())
+}
+
+fn synthesize_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'static str> {
+    run_supported(props)?;
+    if props.is_empty() && props.fonts.hint.is_none() {
+        return Ok(None);
+    }
+    let mut body = String::new();
+    body.push_str(&toggle(names, "b", props.bold));
+    body.push_str(&toggle(names, "i", props.italic));
+    body.push_str(&toggle(names, "strike", props.strike));
+    if let Some(underline) = props.underline {
+        body.push_str(&names.start("u"));
+        body.push_str(&qattr(names, "val", underline_value(underline)));
+        body.push_str("/>");
+    }
+    if let Some(Measure::HalfPoints(size)) = props.size {
+        body.push_str(&names.start("sz"));
+        body.push_str(&qattr(names, "val", &size.to_string()));
+        body.push_str("/>");
+    }
+    if let Some(color) = props.color {
+        let value = match color {
+            Color::Auto => "auto".to_owned(),
+            Color::Rgb(red, green, blue) => format!("{red:02X}{green:02X}{blue:02X}"),
+        };
+        body.push_str(&names.start("color"));
+        body.push_str(&qattr(names, "val", &value));
+        body.push_str("/>");
+    }
+    let fonts = font_attributes(names, &props.fonts);
+    if !fonts.is_empty() || props.fonts.hint.is_some() {
+        body.push_str(&names.start("rFonts"));
+        body.push_str(&fonts);
+        if let Some(hint) = props.fonts.hint {
+            let value = match hint {
+                joyword_model::FontHint::Default => "default",
+                joyword_model::FontHint::EastAsia => "eastAsia",
+                joyword_model::FontHint::ComplexScript => "cs",
+            };
+            body.push_str(&qattr(names, "hint", value));
+        }
+        body.push_str("/>");
+    }
+    if body.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(format!(
+        "{}>{body}{}",
+        names.start("rPr"),
+        names.end("rPr")
+    )))
+}
+
+fn toggle(names: &Names, local: &str, value: Option<bool>) -> String {
+    match value {
+        None => String::new(),
+        Some(true) => format!("{}/>", names.start(local)),
+        Some(false) => format!("{}{}/>", names.start(local), qattr(names, "val", "0")),
+    }
+}
+
+fn font_attributes(names: &Names, fonts: &joyword_model::FontSlots) -> String {
+    let mut out = String::new();
+    for (local, font) in [
+        ("ascii", &fonts.ascii),
+        ("hAnsi", &fonts.h_ansi),
+        ("eastAsia", &fonts.east_asia),
+        ("cs", &fonts.complex_script),
+    ] {
+        if let Some(FontRef::Named(name)) = font {
+            out.push_str(&qattr(names, local, name));
+        }
+    }
+    out
+}
+
+fn qattr(names: &Names, local: &str, value: &str) -> String {
+    let prefix = match names {
+        Names::Bound(prefix) => format!("{prefix}:"),
+        Names::Default => String::new(),
+        Names::Declared => "jwe:".to_owned(),
+    };
+    format!(r#" {prefix}{local}="{value}""#)
+}
+
+fn justification_value(value: Justification) -> &'static str {
+    match value {
+        Justification::Start => "start",
+        Justification::Center => "center",
+        Justification::End => "end",
+        Justification::Both => "both",
+        Justification::Distribute => "distribute",
+    }
+}
+
+fn underline_value(value: Underline) -> &'static str {
+    match value {
+        Underline::None => "none",
+        Underline::Single => "single",
+        Underline::Double => "double",
+        Underline::Thick => "thick",
+        Underline::Dotted => "dotted",
+        Underline::Dash => "dash",
+        Underline::Wave => "wave",
+        Underline::Words => "words",
+    }
 }
 
 /// Markup of a new paragraph, named as `names` says for content of `w:body`.

@@ -19,7 +19,8 @@ use joyword_model::{
 use sha2::{Digest, Sha256};
 
 use crate::{
-    FeatureSet, FontKey, LineDiagnostic, LineError, LineLimits, LoadedFont, PageScene, SourceRange,
+    FaceSet, FeatureSet, FontKey, FontSlot, LineDiagnostic, LineError, LineLimits, LoadedFont,
+    PageScene, SourceRange, adjust_cjk_break, layout_paragraph, slot_for, wrap_mixed,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -532,7 +533,7 @@ fn prepare_keep_groups(
 /// tested independently; they are not a claim of Word/WPS interoperability.
 pub fn layout_document(
     document: &DocumentSnapshot,
-    font: &LoadedFont,
+    faces: FaceSet<'_>,
     profile: SingleFontProfile,
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
@@ -544,7 +545,7 @@ pub fn layout_document(
     let mut result = LayoutSnapshot {
         key: LayoutKey {
             version: document.version(),
-            font: font.key(),
+            font: faces.ascii.key(),
             profile,
             content: fingerprint(document),
         },
@@ -594,16 +595,7 @@ pub fn layout_document(
             return Err(LayoutError::LimitExceeded(LayoutLimit::Lines));
         }
         let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
-        let fitted = crate::line::layout_paragraph_auto_cancellable(
-            font,
-            &text,
-            profile.size,
-            profile.features,
-            geometry.content_width(),
-            request_limits,
-            &cancellation.0,
-        )
-        .map_err(|error| {
+        let map_line = |error: LineError| {
             if error == LineError::Cancelled {
                 LayoutError::Cancelled
             } else {
@@ -612,7 +604,72 @@ pub fn layout_document(
                     error,
                 }
             }
-        })?;
+        };
+        // Four-slot classification, fallback wrapping and CJK prohibitions
+        // decide the breaks this page scene stores. Screen and PDF read that
+        // scene; they do not break lines again. The shaping face is the slot
+        // that owns the paragraph, so a CJK run is not drawn with the Latin face.
+        let mut chosen = FontSlot::Ascii;
+        for ch in text.chars() {
+            match slot_for(ch, None) {
+                FontSlot::EastAsia => chosen = FontSlot::EastAsia,
+                FontSlot::Complex if chosen != FontSlot::EastAsia => chosen = FontSlot::Complex,
+                FontSlot::HAnsi if !matches!(chosen, FontSlot::EastAsia | FontSlot::Complex) => {
+                    chosen = FontSlot::HAnsi;
+                }
+                _ => {}
+            }
+        }
+        let shape_font = faces.face(chosen);
+        let needs_slots = chosen != FontSlot::Ascii;
+        let fitted = if needs_slots {
+            let mixed = wrap_mixed(faces, &text, profile.size, geometry.content_width(), None);
+            let mut breaks = Vec::new();
+            let mut at = 0usize;
+            for line in &mixed.lines {
+                at += line.text.len();
+                if at == 0 || at >= text.len() {
+                    continue;
+                }
+                let adjusted = adjust_cjk_break(&text, at);
+                if adjusted > 0 && adjusted < text.len() && !breaks.contains(&adjusted) {
+                    breaks.push(adjusted);
+                }
+            }
+            breaks.sort_unstable();
+            match layout_paragraph(
+                shape_font,
+                &text,
+                profile.size,
+                profile.features,
+                geometry.content_width(),
+                &breaks,
+                request_limits,
+            ) {
+                Ok(fitted) => fitted,
+                Err(_) => crate::line::layout_paragraph_auto_cancellable(
+                    shape_font,
+                    &text,
+                    profile.size,
+                    profile.features,
+                    geometry.content_width(),
+                    request_limits,
+                    &cancellation.0,
+                )
+                .map_err(map_line)?,
+            }
+        } else {
+            crate::line::layout_paragraph_auto_cancellable(
+                shape_font,
+                &text,
+                profile.size,
+                profile.features,
+                geometry.content_width(),
+                request_limits,
+                &cancellation.0,
+            )
+            .map_err(map_line)?
+        };
         result.stats.shape_calls += fitted.stats.shape_calls;
         result.stats.shaped_bytes += fitted.stats.shaped_bytes;
         let before = paragraph

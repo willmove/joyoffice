@@ -2,7 +2,8 @@
 //! Usage: cpu_scene <font-file> <face-index> <out-dir>
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile, layout_document,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile,
+    layout_document,
 };
 use joyword_model::{BlockSeq, Document, Measure, PageSetup, Paragraph};
 use joyword_render::{Projection, RasterCancellation, RasterLimits, rasterize};
@@ -38,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     doc.story_mut(story).unwrap().blocks = BlockSeq::from_vec(blocks);
     let result = layout_document(
         &doc.snapshot(),
-        &font,
+        FaceSet::uniform(&font),
         SingleFontProfile {
             size: Emu::new(12 * Emu::PER_POINT),
             leading: Emu::new(18 * Emu::PER_POINT),

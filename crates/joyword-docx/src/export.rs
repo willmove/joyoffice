@@ -495,6 +495,28 @@ fn patch_paragraph(
         || !before.inlines().is_empty()
         || !after.inlines().is_empty()
     {
+        let before_plain = before.props.is_empty()
+            && before.mark_props.is_empty()
+            && before
+                .runs()
+                .iter()
+                .all(|run| run.style.is_none() && run.props.is_empty());
+        if before_plain
+            && before.inlines().is_empty()
+            && after.inlines().is_empty()
+            && structure::direct_m1(before)
+            && structure::direct_m1(after)
+            && before.style == after.style
+            && before.source == after.source
+        {
+            let mut scope = scope.to_vec();
+            scope.push(element);
+            let names = Names::in_scope(&scope);
+            let bytes =
+                structure::rewrite_direct_paragraph(source.bytes(), element, after, &names, limit)?;
+            patches.push((element.span.clone(), bytes));
+            return Ok(());
+        }
         return Err(error(
             "paragraph formatting, source or inline objects changed",
         ));
@@ -516,6 +538,28 @@ fn patch_paragraph(
             .zip(&after_groups)
             .all(|(a, b)| a.style == b.style && a.props == b.props);
     if !before.is_empty() && !after_groups.is_empty() && !same_bounds && !split_prefix {
+        let before_plain = before.props.is_empty()
+            && before.mark_props.is_empty()
+            && before
+                .runs()
+                .iter()
+                .all(|run| run.style.is_none() && run.props.is_empty());
+        if before_plain
+            && before.inlines().is_empty()
+            && after.inlines().is_empty()
+            && structure::direct_m1(before)
+            && structure::direct_m1(after)
+            && before.source == after.source
+            && text_slots(element, source.bytes()).is_ok()
+        {
+            let mut scope = scope.to_vec();
+            scope.push(element);
+            let names = Names::in_scope(&scope);
+            let bytes =
+                structure::rewrite_direct_paragraph(source.bytes(), element, after, &names, limit)?;
+            patches.push((element.span.clone(), bytes));
+            return Ok(());
+        }
         if source.touched(before.id()) {
             let mut scope = scope.to_vec();
             scope.push(element);

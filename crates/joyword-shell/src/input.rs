@@ -3,7 +3,8 @@
 //! an immutable preview session and never modifies the committed undo stack.
 use crate::docx::DocxSession;
 use joyword_engine::{
-    Command, Outcome, Selection, Session, Transaction, TxError, UndoError, UndoResult,
+    Command, Outcome, ParagraphChange, RunChange, Selection, Session, Transaction, TxError,
+    UndoError, UndoResult,
 };
 use joyword_model::{Bias, DocumentSnapshot, DocumentVersion, NodeId, Position, Utf16Offset};
 use std::collections::BTreeMap;
@@ -583,6 +584,79 @@ impl<B: InputBackend> TextInput<B> {
         };
         Ok(changed)
     }
+
+    /// Selected body text. An empty selection yields an empty string.
+    pub fn selected_text(&self) -> Result<String, InputError> {
+        let (range, _) = self.view.selected_range();
+        self.view.index.text_for_range(range)
+    }
+
+    /// Apply character formatting to the current selection. An empty selection
+    /// changes nothing.
+    pub fn format_runs(&mut self, change: RunChange) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (range, _) = self.view.selected_range();
+        if range.is_empty() {
+            return Ok(false);
+        }
+        let start = self.view.index.position(range.start, Bias::After)?;
+        let end = self.view.index.position(range.end, Bias::Before)?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::FormatText { start, end, change }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Apply paragraph formatting to the paragraph that holds the caret.
+    pub fn format_paragraph(&mut self, change: ParagraphChange) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let at = self.selection.head;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::FormatParagraph {
+                story: at.story,
+                paragraph: at.paragraph,
+                change,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    fn require_editable(&self) -> Result<(), InputError> {
+        if self.read_only() {
+            return Err(InputError::ReadOnly);
+        }
+        if self.composition.is_some() {
+            return Err(InputError::StaleComposition);
+        }
+        Ok(())
+    }
+
+    fn commit(&mut self, transaction: Transaction) -> Result<bool, InputError> {
+        let revision = self.next_revision()?;
+        let fallback = self.selection;
+        let outcome = self.backend.apply_mapped(transaction, fallback)?;
+        let changed = matches!(outcome, Outcome::Applied(_));
+        let selection = match outcome {
+            Outcome::Applied(applied) => applied.selection.unwrap_or(fallback),
+            Outcome::NoOp(_) => fallback,
+        };
+        self.base = Arc::new(TextIndex::new(
+            self.backend.session().snapshot(),
+            self.limits,
+        )?);
+        self.selection = selection;
+        self.composition = None;
+        self.view = InputView {
+            index: self.base.clone(),
+            selection,
+            marked: None,
+            revision,
+        };
+        Ok(changed)
+    }
+
     pub fn mark(
         &mut self,
         range: Option<Range<usize>>,

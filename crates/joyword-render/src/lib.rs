@@ -1,6 +1,7 @@
 //! CPU consumer of the same immutable EMU scenes as PDF (ARCHITECTURE §6.2).
 //! No shaping, line breaking, system font lookup or document mutation occurs
 //! here. Monochrome, unhinted outlines use the exact supplied font bytes/face.
+pub mod cache;
 pub mod requests;
 
 use std::collections::BTreeMap;
@@ -10,6 +11,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use joyword_foundation::Emu;
 use joyword_layout::{FontKey, LoadedFont, PageScene};
+
+pub use cache::{NeighborhoodCache, NeighborhoodRequest};
 use skrifa::instance::{LocationRef, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
 use skrifa::raw::TableProvider;
@@ -41,6 +44,47 @@ impl Projection {
     pub fn pixels(self, emu: Emu) -> f64 {
         emu.raw() as f64 / Emu::PER_INCH as f64 * self.dpi * self.zoom
     }
+}
+
+/// Caret pixels painted into a copy of one cached page. The returned buffer is
+/// the overlay; `page_bgra` is not modified, so a cache hit stays valid.
+pub fn paint_caret_overlay(
+    page_bgra: &[u8],
+    width: u32,
+    height: u32,
+    projection: Projection,
+    caret_x: Emu,
+    caret_top: Emu,
+    caret_height: Emu,
+) -> Vec<u8> {
+    let width = width as usize;
+    let height = height as usize;
+    let mut overlay = page_bgra.to_vec();
+    if width == 0 || height == 0 {
+        return overlay;
+    }
+    let x = projection
+        .pixels(caret_x)
+        .round()
+        .clamp(0.0, (width - 1) as f64) as usize;
+    let y0 = projection
+        .pixels(caret_top)
+        .round()
+        .clamp(0.0, (height - 1) as f64) as usize;
+    let y1 = projection
+        .pixels(Emu::new(caret_top.raw().saturating_add(caret_height.raw())))
+        .round()
+        .clamp(y0 as f64, height as f64) as usize;
+    for y in y0..y1.max(y0 + 1).min(height) {
+        let index = (y * width + x) * 4;
+        if index + 3 < overlay.len() {
+            overlay[index] = 0x20;
+            overlay[index + 1] = 0x40;
+            overlay[index + 2] = 0xe0;
+            overlay[index + 3] = 0xff;
+        }
+    }
+    overlay
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RasterLimit {

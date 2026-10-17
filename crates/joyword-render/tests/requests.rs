@@ -1,6 +1,7 @@
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile, layout_document,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile,
+    layout_document,
 };
 use joyword_model::{Document, PageSetup};
 use joyword_render::Projection;
@@ -18,7 +19,7 @@ fn key(zoom: f64) -> RasterRequestKey {
     let document = Document::new(PageSetup::a4_zh_cn());
     let snapshot = layout_document(
         &document.snapshot(),
-        &font,
+        FaceSet::uniform(&font),
         SingleFontProfile {
             size: Emu::new(12 * Emu::PER_POINT),
             leading: Emu::new(18 * Emu::PER_POINT),

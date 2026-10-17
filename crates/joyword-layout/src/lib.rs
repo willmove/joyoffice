@@ -13,6 +13,7 @@ pub mod font;
 pub mod line;
 pub mod scene;
 pub mod shape;
+pub mod slots;
 
 pub use font::{FontError, FontKey, LoadedFont};
 pub use line::{
@@ -21,6 +22,10 @@ pub use line::{
 };
 pub use scene::{GlyphRun, PageScene, to_points, to_screen};
 pub use shape::{FeatureSet, ShapedGlyph, ShapedRun, shape};
+pub use slots::{
+    FaceSet, FontSlot, MixedLine, MixedParagraph, adjust_cjk_break, prohibited_line_edge, slot_for,
+    wrap_mixed,
+};
 
 pub use document::{
     CaretGeometry, CaretStop, LayoutCancellation, LayoutDiagnostic, LayoutError, LayoutKey,

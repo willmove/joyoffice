@@ -43,6 +43,10 @@ jobs:
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
       - name: Specifications, corpus registry and locale resources
         run: python scripts/check_docs.py
+      - name: No-panic, layer and filesystem gates
+        run: |
+          python scripts/check_gates.py
+          python scripts/check_gates.py --counterexample scripts/tests/fixtures/gate_counterexample.rs
       - name: Tool logic tests
         run: python -m unittest discover -s scripts/tests
       - name: Rust format

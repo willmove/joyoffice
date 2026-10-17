@@ -9,6 +9,7 @@
 pub mod command;
 pub mod documents;
 pub mod docx;
+pub mod host;
 pub mod l10n;
 pub mod prefs;
 

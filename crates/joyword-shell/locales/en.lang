@@ -36,6 +36,15 @@ canvas.loading = Preparing document pages…
 canvas.error = Cannot display the document: {reason}
 
 menu.edit = Edit
+command.edit.bold = Bold
+command.edit.italic = Italic
+command.edit.align_center = Center
+command.edit.copy = Copy
+command.edit.paste = Paste
+command.edit.insert = Insert Text
+command.file.open_recent = Open Recent
+command.file.close = Close
+command.document.switch = Switch Document
 command.edit.undo = Undo
 command.edit.redo = Redo
 command.edit.select_all = Select All
