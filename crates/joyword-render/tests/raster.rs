@@ -1,7 +1,7 @@
 use joyword_foundation::Emu;
 use joyword_layout::{FeatureSet, GlyphRun, LoadedFont, PageScene, shape};
 use joyword_render::{
-    Projection, RasterCancellation, RasterError, RasterLimit, RasterLimits, rasterize,
+    Projection, RasterCancellation, RasterError, RasterLimit, RasterLimits, raster_size, rasterize,
 };
 use std::sync::Arc;
 
@@ -363,6 +363,54 @@ fn hard_pixel_ceiling_cannot_be_raised() {
             &RasterCancellation::default()
         ),
         Err(RasterError::LimitExceeded(RasterLimit::Pixels))
+    );
+}
+#[test]
+fn raster_size_answers_exactly_what_rasterize_gives_or_refuses() {
+    let font = font();
+    let fonts = std::slice::from_ref(&font);
+    let at = |dpi, zoom| Projection::new(dpi, zoom).unwrap();
+    let tight = |max_dimension, max_pixels| RasterLimits {
+        max_dimension,
+        max_pixels,
+        ..RasterLimits::default()
+    };
+    let raised = tight(u32::MAX, u64::MAX);
+    let mut cases = Vec::new();
+    for (dpi, zoom) in [(72.0, 1.0), (96.0, 0.8), (192.0, 1.5), (144.0, 0.37)] {
+        cases.push((
+            scene(&font, "AV fi"),
+            at(dpi, zoom),
+            RasterLimits::default(),
+        ));
+    }
+    // 100 x 60 pt at 72 dpi: exactly at, then just over, each ceiling.
+    for limits in [tight(100, 6000), tight(99, 6000), tight(100, 5999)] {
+        cases.push((scene(&font, "A"), at(72.0, 1.0), limits));
+    }
+    let mut big = scene(&font, "A");
+    (big.width, big.height) = (pt(5000), pt(5000));
+    cases.push((big, at(72.0, 1.0), raised));
+    let mut empty = scene(&font, "A");
+    empty.height = pt(0);
+    cases.push((empty, at(72.0, 1.0), RasterLimits::default()));
+    let mut seen = Vec::new();
+    for (s, projection, limits) in &cases {
+        let size = raster_size(s, *projection, *limits);
+        let page = rasterize(s, fonts, *projection, *limits, &Default::default());
+        assert_eq!(size, page.map(|p| (p.width(), p.height())));
+        seen.push(size.err());
+    }
+    for expected in [
+        RasterError::LimitExceeded(RasterLimit::Dimensions),
+        RasterError::LimitExceeded(RasterLimit::Pixels),
+        RasterError::InvalidPage,
+    ] {
+        assert!(seen.contains(&Some(expected.clone())), "{expected:?}");
+    }
+    assert_eq!(
+        raster_size(&cases[0].0, at(72.0, 1.0), RasterLimits::default()),
+        Ok((100, 60))
     );
 }
 #[test]

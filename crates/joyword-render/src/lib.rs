@@ -306,16 +306,14 @@ fn checked_position(a: Emu, b: Emu, projection: Projection) -> Result<f32, Raste
     Ok(px as f32)
 }
 
-/// All work is private until success. An error or cancellation never yields a
-/// partial page. Request budgets can only lower the fixed hard ceilings.
-pub fn rasterize(
+/// Pixel size `rasterize` gives `scene` at `projection`, refused for page
+/// geometry, dimensions and total pixels exactly as `rasterize` refuses it.
+/// Nothing is allocated or drawn, so callers can budget pages up front.
+pub fn raster_size(
     scene: &PageScene,
-    fonts: &[LoadedFont],
     projection: Projection,
     limits: RasterLimits,
-    cancellation: &RasterCancellation,
-) -> Result<RasterPage, RasterError> {
-    cancellation.check()?;
+) -> Result<(u32, u32), RasterError> {
     let limits = limits.capped();
     if scene.width.raw() <= 0 || scene.height.raw() <= 0 {
         return Err(RasterError::InvalidPage);
@@ -334,6 +332,21 @@ pub fn rasterize(
         u64::from(width) * u64::from(height) > limits.max_pixels,
         RasterLimit::Pixels,
     )?;
+    Ok((width, height))
+}
+
+/// All work is private until success. An error or cancellation never yields a
+/// partial page. Request budgets can only lower the fixed hard ceilings.
+pub fn rasterize(
+    scene: &PageScene,
+    fonts: &[LoadedFont],
+    projection: Projection,
+    limits: RasterLimits,
+    cancellation: &RasterCancellation,
+) -> Result<RasterPage, RasterError> {
+    cancellation.check()?;
+    let limits = limits.capped();
+    let (width, height) = raster_size(scene, projection, limits)?;
     limit(fonts.len() > limits.max_fonts, RasterLimit::Fonts)?;
     limit(scene.runs.len() > limits.max_runs, RasterLimit::Runs)?;
     let mut by_key = BTreeMap::new();

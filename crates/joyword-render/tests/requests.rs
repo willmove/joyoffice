@@ -46,6 +46,22 @@ fn idle_or_failed_requests_are_not_rescheduled_without_new_input() {
     assert!(gate.accepts(&ticket, &key));
 }
 #[test]
+fn renewed_requests_issue_a_new_ticket_and_retire_the_old_one() {
+    let mut gate = RasterRequestGate::default();
+    let (at_100, at_150) = (key(1.0), key(1.5));
+    let first = gate.request(at_100.clone()).unwrap();
+    assert!(gate.request(at_100.clone()).is_none());
+    let again = gate.renew(at_100.clone());
+    assert_ne!(again, first);
+    assert!(!gate.accepts(&first, &at_100));
+    assert!(gate.accepts(&again, &at_100));
+    // Renewal leaves ordinary deduplication and ordering unchanged.
+    assert!(gate.request(at_100.clone()).is_none());
+    let other = gate.renew(at_150.clone());
+    assert!(!gate.accepts(&again, &at_100));
+    assert!(gate.accepts(&other, &at_150));
+}
+#[test]
 fn late_results_from_prior_zoom_are_rejected_even_after_returning_to_it() {
     let mut gate = RasterRequestGate::default();
     let first = key(1.0);

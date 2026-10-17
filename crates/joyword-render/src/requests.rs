@@ -35,6 +35,13 @@ impl<K: Clone + PartialEq> RasterRequestGate<K> {
         if self.requested.as_ref().is_some_and(|old| old.key == key) {
             return None;
         }
+        Some(self.renew(key))
+    }
+    /// A new ticket even when `key` is the latest request, for callers that
+    /// track completion themselves and no longer hold that request's result
+    /// (it landed stale, or its pixels were evicted). Every earlier ticket,
+    /// including the previous one for `key`, stops being accepted.
+    pub fn renew(&mut self, key: K) -> RasterTicket<K> {
         self.serial = self
             .serial
             .checked_add(1)
@@ -44,7 +51,7 @@ impl<K: Clone + PartialEq> RasterRequestGate<K> {
             key,
         };
         self.requested = Some(ticket.clone());
-        Some(ticket)
+        ticket
     }
     pub fn accepts(&self, ticket: &RasterTicket<K>, current: &K) -> bool {
         self.requested.as_ref() == Some(ticket) && &ticket.key == current

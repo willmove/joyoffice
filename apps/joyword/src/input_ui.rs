@@ -352,6 +352,26 @@ fn project_page(
         ),
     ))
 }
+/// Pages whose boxes meet the viewport at the live scroll offset. Never
+/// empty while there are pages: with no page in view (a tiny viewport, a gap
+/// between pages) the nearest page above the viewport's bottom stands in.
+fn visible_pages(layout: &joyword_layout::LayoutSnapshot, placement: Placement) -> Range<usize> {
+    let viewport = placement.viewport;
+    let (mut above, mut started, mut shown) = (Emu::new(0), 0, None::<Range<usize>>);
+    for (i, page) in layout.pages().iter().enumerate() {
+        let top = placement.page_origin(i, above).y;
+        if top > viewport.bottom() {
+            break;
+        }
+        started = i;
+        let bottom = top + px(placement.scale.logical_pixels(page.height) as f32);
+        if bottom >= viewport.top() {
+            shown = Some(shown.map_or(i..i + 1, |run| run.start..i + 1));
+        }
+        above = Emu::new(above.raw() + page.height.raw());
+    }
+    shown.unwrap_or(started..(started + 1).min(layout.pages().len()))
+}
 /// UTF-16 offset where the composition starts, or where the next one would
 /// replace the selection.
 fn ime_origin(view: &InputView) -> usize {
@@ -1130,26 +1150,6 @@ impl JoyWord {
         }
         self.label("status")
     }
-    pub(crate) fn viewport_page(&self) -> usize {
-        let Some(frame) = self.canvas.layout() else {
-            return 0;
-        };
-        let pages = frame.layout.pages();
-        if pages.is_empty() {
-            return 0;
-        }
-        let scale = self.scale();
-        let scrolled = (-self.scroll.offset().y.as_f32()).max(0.0) as f64;
-        let mut top = f64::from(DOC_PAD);
-        for (index, page) in pages.iter().enumerate() {
-            let height = scale.logical_pixels(page.height);
-            if scrolled < top + height {
-                return index;
-            }
-            top += height + f64::from(DOC_GAP);
-        }
-        pages.len() - 1
-    }
     fn scale(&self) -> ScreenScale {
         ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom")
     }
@@ -1159,6 +1159,19 @@ impl JoyWord {
             offset: self.scroll.offset(),
             scale: self.scale(),
         })
+    }
+    /// Pages of the installed layout in view now; before the viewport is
+    /// first laid out, the first page.
+    pub(crate) fn visible_pages(&self) -> Range<usize> {
+        let Some(frame) = self.canvas.layout() else {
+            return 0..0;
+        };
+        let placement = self.placement().unwrap_or(Placement {
+            viewport: Bounds::default(),
+            offset: Point::default(),
+            scale: self.scale(),
+        });
+        visible_pages(&frame.layout, placement)
     }
     pub(crate) fn reveal_caret(&mut self) {
         if !self.reveal_pending {
@@ -1376,8 +1389,12 @@ impl JoyWord {
             .child(
                 canvas(
                     move |bounds, _, cx| {
-                        prepaint_entity.update(cx, |view, _| {
-                            view.viewport_bounds = Some(bounds);
+                        prepaint_entity.update(cx, |view, cx| {
+                            // Render ran with the previous size; a resized
+                            // viewport may show pages with no pixels yet.
+                            if view.viewport_bounds.replace(bounds) != Some(bounds) {
+                                view.request_canvas(cx);
+                            }
                         });
                     },
                     move |bounds, (), window, cx| {
@@ -1578,6 +1595,36 @@ mod tests {
         }
     }
     #[test]
+    fn visible_pages_follow_live_scroll_zoom_and_viewport() {
+        let source = pages_source();
+        let pages = source.layout.pages().len();
+        assert!(pages >= 3);
+        let shown =
+            |zoom, y: f32| visible_pages(&source.layout, placement(zoom, point(px(0.0), px(y))));
+        // At 100% an A4 page is 1122.5 px tall: page 0 spans 32–1154.5 of the
+        // content, page 1 starts after the 32 px gap at 1186.5. The viewport
+        // is 500 px tall.
+        assert_eq!(shown(100, 0.0), 0..1);
+        assert_eq!(shown(100, -1000.0), 0..2);
+        assert_eq!(shown(100, -1160.0), 1..2);
+        assert_eq!(shown(50, -1000.0), 1..3);
+        assert_eq!(shown(100, -1.0e6), pages - 1..pages);
+        // A viewport inside the gap shows no page; the one above stands in.
+        let mut gap = placement(100, point(px(0.0), px(-1160.0)));
+        gap.viewport.size.height = px(10.0);
+        assert_eq!(visible_pages(&source.layout, gap), 0..1);
+        // Every page reported meets the viewport, and no other does.
+        for y in [0.0, -700.0, -1500.0, -2600.0] {
+            let at = placement(80, point(px(0.0), px(y)));
+            let range = visible_pages(&source.layout, at);
+            for page in 0..pages {
+                let b = project_page(&source.layout, at, page).unwrap();
+                let meets = b.bottom() >= at.viewport.top() && b.top() <= at.viewport.bottom();
+                assert_eq!(range.contains(&page), meets, "page {page} at {y}");
+            }
+        }
+    }
+    #[test]
     fn ime_bounds_are_window_logical_pixels_at_zoom_and_live_scroll() {
         let source = pages_source();
         let mut input = editor(&source);
@@ -1736,8 +1783,8 @@ mod tests {
         assert!(pipeline.layout().is_some());
         let ready = layout_only(&mut pipeline, view, &source);
         let at_80 = joyword_render::Projection::new(96.0, 0.8).unwrap();
-        assert!(pipeline.ready_raster(&key, at_80).is_none());
-        assert!(pipeline.raster().is_none());
+        assert!(pipeline.ready_page(&key, 0, at_80).is_none());
+        assert_eq!(pipeline.resident_pixels(), 0);
         // Exactly what a directly computed layout of this view answers.
         let direct = layout_of(view, &source);
         // Scrolled so the composition is inside the viewport.

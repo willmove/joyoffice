@@ -138,6 +138,38 @@
 
 对一款开源 Word 复刻工程的只读源码审阅与黑盒实测（授权与边界见 [PROVENANCE](PROVENANCE.md)，报告留存本机不入库）同时复核了本仓库源码，确认：画布仍把全部页面放进共享像素预算（2 倍屏约第 5 页起整体失败）、打开期间输入竞争与保存副本同步执行、原件保存恒定拒绝（实现严于 SPEC）、排版无段落缓存、整形器数据未缓存、行高度量未经固定 Word 实测、撤销无合并、无 no-panic lint 与分层自动检查、无日志与 panic hook。这些项已转化为 SPEC／ARCHITECTURE v0.3 条款与 T108–T111、T208–T211 任务；报告同时列出了不应采纳的做法清单（整包重生成当无损、宽容解析后照常编辑、以命令注册数量计兼容度等），与现有契约一致，无需变更。
 
+### 视口附近页面的后台光栅缓存（2026-10-17，T003／T105 增量）
+
+来源：对照调研 §6.5 J1 与 §9 P0-1。初版基线 main `1367f54`，在独立 worktree 分支 `claude/distracted-ishizaka-1b0abb` 上完成（`feat: cache background rasters for pages near the viewport`），随后 rebase 到 main `4e723ae`（M1 编辑－保存闭环）并整合其画布改动。
+
+- 问题：原 `raster_budgeted` 一次光栅全部页面，并让所有页面共用 16,777,216 px 的预算，超出就整次失败，画布显示“无法显示文档”。投影以 96 DPI 乘设备倍率计算，2 倍屏 100% 下每页 A4 约 357 万像素，到第 5 页就会超限。新增测试 `long_document_on_a_2x_display_paints_the_visible_pages`（1000 段、20 页以上、`Projection::new(192.0, 1.0)`）在旧实现上以 `page raster: LimitExceeded(Pixels)` 失败，改动后通过。这是源码推断加无窗口测试的结论，没有在 GUI 中复现。
+- 调度：只请求视口内的页及其前后各 2 页（`PREFETCH_PAGES`）。顺序是先可见页，再交替取下一页、上一页。后台同一时间只有一个作业，每个作业一页。滚动、缩放和视口尺寸变化都只调度缺失的页。在途页仍在需要范围内时继续运行，否则由新请求取消。视口内的页由 `input_ui::visible_pages` 计算，与命中测试共用 `Placement`。每次渲染时调度一次；视口尺寸变化时，prepaint 再补调一次。
+- 缓存键：`PageKey { document, layout: LayoutKey, page, projection }`，其中 `LayoutKey` 包含版本、内容指纹、FontKey 和 profile。复用同一排版的修订沿用已有像素。某页新排版或新投影的像素落地后，替换该页的旧像素。
+- 常驻上限：`MAX_CACHE_PIXELS` 只约束缓存中常驻的像素，不再限制文档页数。超出时先淘汰其他排版或投影的像素，再淘汰离视口最远的页。需要光栅的页集合按上限截断，避免这些页互相淘汰、反复重绘。被替换或淘汰的图像交给 `cx.drop_image` 释放纹理。
+- 几何先于像素（保持不变）：排版一落地就安装，命中测试、IME、光标与覆盖层不等像素。某页的新像素落地前，该页继续显示最近一次的像素（可能来自旧排版或旧缩放）；从未有过像素的页显示空白页作为占位。
+- 插入符号覆盖层（rebase 时整合自 M1）：光标所在页的光栅作业携带光标几何，输出另含一份从该页新像素复制的覆盖层位图；页面图像本身不含光标。覆盖层只在其来源页显示，键随该页像素，缓存中的页面被替换或淘汰后即不再显示。M1 原实现中随整篇邻域光栅产生的覆盖层与 `viewport_page` 焦点随之移除，视口焦点由按页调度中的 `visible_pages` 取代。
+- 单页提示：
+  - 某页在当前投影下超出像素上限，或超出渲染器 8192 px 的维度上限时，不为它发起作业，只在该页的页框内提示“第 N 页在当前缩放下超出单页像素上限，请缩小显示比例后查看”。即使有旧像素，也显示提示而不拉伸旧图。
+  - 单页光栅失败只在该页显示“无法绘制第 N 页：原因”，不会重复请求；失败记录按 `PageKey` 保存，最多 64 条。
+  - 光栅失败不再触发整张画布错误；排版失败仍显示画布错误。
+- 陈旧结果：沿用 `RasterRequestGate`、取消令牌与后台任务，只接受最新票据，且键须等于“已安装排版＋当前投影＋该页”。打开其他文档或视图销毁时取消作业。
+- 闸门 `renew`：画布已自行跟踪哪些页在途、已缓存或已失败，因此 `RasterRequestGate` 增量新增 `renew`：即使键相同也重新发票，并作废所有旧票。它修复了一个窄缝：缩放 A→B→A 期间某页任务在途，落地时被判陈旧；回到 B 时，原 `request` 因“与最近请求同键”而去重，该页再也不会被请求。测试 `zooming_back_while_a_page_is_in_flight_still_paints_it_later` 在原 `request` 下失败，改用 `renew` 后通过。
+- 渲染接口：joyword-render 增量新增 `raster_size`，它与 `rasterize` 按相同规则拒绝无效页面、超维度和超总像素，但不分配内存；`rasterize` 改为调用它，行为不变。M1 的 `NeighborhoodCache` 邻域光栅保留在 joyword-render 中供整篇场景（如导出对照）使用，画布不再经由它取像素。PDF 与导出仍消费完整、稳定的 `PageScene`，未改动。
+- 本地化：joyword-shell 的中英文资源各新增 `canvas.page_too_large`、`canvas.page_error` 两个键。
+- 测试：
+  - 应用无窗口测试 29 项（原 21 项）。删去整篇预算测试，新增 9 项：2 倍屏长文档、常驻上限、最远页与其他投影优先淘汰、只调度缺失页、单页超限提示、单页失败隔离、缩放往返、重开相同内容的文档、视口页范围。原有的几何先于像素、A→B→A、陈旧光栅、提交复用、切换文档等测试改用按页接口，断言意图不变。rebase 后另有 M1 的邻域预算测试保留、覆盖层测试改写为按页接口（覆盖层只在携带光标的页产生），测试总数以验证记录为准。
+  - joyword-render 新增 `raster_size` 与 `renew` 各 1 项测试。
+  - 10 种单点变异均至少被 1 项测试捕获：淘汰远近颠倒、先淘汰当前投影、不替换同页旧像素、取消仍需要的在途作业、重试失败页、旧像素压过超限提示、不按上限截断需要集合、不预取前页、视口上沿判断错误、闸门同键去重。
+  - `cargo fmt --all -- --check`、带 dev-runtime-shaders 的 workspace clippy（`-D warnings`）、默认成员 `cargo test --locked` 均通过；各项数量见验证记录。
+- 未覆盖：
+  - GUI 人工验收待与用户约定时段，内容包括 2 倍屏长文档的滚动、缩放、窗口尺寸变化，以及单页提示的实际呈现。
+  - 光栅作业串行，未并行处理多页；预取距离与淘汰策略未做性能测量。
+  - 占位页为空白，没有进度文字。
+  - 视口内的页合计超出常驻上限时（极高的窗口加高倍缩放），超出部分保持占位。
+  - 远处页面的旧像素会一直保留到被淘汰或重新光栅；滚动到这些页时，新像素落地前会短暂显示旧内容（与此前“最近一次像素”的语义相同）。
+  - 光标移动本身不触发所在页重新光栅；覆盖层随下一次该页光栅更新，与 M1 原实现的更新时机相同。
+
+
 ### joyword-shell（T106，进行中）
 
 | 部分 | 已实现 | 尚未实现 |
@@ -209,6 +241,7 @@
 | GPUI 迁移后 CI | 提交 6ee61e9（分支 claude/gpui-pre-provenance，含 gpui-pre 迁移）的 [38889115731](https://github.com/willmove/joyoffice/actions/runs/38889115731) 全部 9 个作业通过：macos-15（含预编译 Metal 构建）、windows-2022、ubuntu-24.04 与 ubuntu-24.04-arm 构建，ARM64／LoongArch64 QEMU 无界面测试，unified-pdf、dependencies（cargo-deny）与 provenance（gpui-pre 来源逐文件校验） |
 | 第三轮集成复验 | 2026-10-16：本机默认成员 debug／release 各 364 项、应用 11 项通过；W08 debug／release 各 15 项，W09 各 3 项与 Python 11 项通过；首次 main 的八项 CI 门禁全绿（运行 38831307604），详见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md) |
 | 文档检查（v0.3） | 2026-10-17 `python3 scripts/check_docs.py` 通过：84 个需求、66 个任务，阶段一致，M0–M7 均在 T704 前置闭包内 |
+| 视口光栅缓存 | 2026-10-17，分支 `claude/distracted-ishizaka-1b0abb` 提交，已 rebase 到 main `4e723ae` 并整合 M1 的插入符号覆盖层（随所在页光栅生成、只在该页显示）：`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings`、`cargo test -p joyword --features dev-runtime-shaders --locked`（32 项）、`cargo test -p joyword-render -p joyword-shell --locked`（182 项）与默认成员 `cargo test --locked`（390 项）通过；新增复现测试先以 `LimitExceeded(Pixels)` 失败后通过。GUI 未验收 |
 | Office 往返、性能 | 未执行，不能计为通过 |
 
 构建出现上游 block 0.1.6 的 future-incompat 提示（proc-macro-error2 2.0.1 的提示随 gpui 0.2.2 一并移除）；目前不阻断固定工具链的开发构建，但依赖升级前需处理。依赖图含 GPUI 间接带入的 rustybuzz；独立排版的 HarfRust 选型不代表已经消除全部传递依赖。

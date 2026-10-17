@@ -4,7 +4,7 @@
 mod document_canvas;
 mod input_ui;
 
-use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey};
+use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
 use gpui::{
     Action, App, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window, WindowBounds,
     WindowOptions, actions, div, img, prelude::*, px, rgb, size,
@@ -422,26 +422,31 @@ impl JoyWord {
                 let _ = view.update(cx, |view, cx| view.layout_landed(&ticket, result, cx));
             }));
         }
-        // Pixels follow only a current layout; zoom alone needs no new layout.
-        if let Some(job) = self.canvas.request_raster(&key, self.projection()) {
+        // Pixels follow only a current layout, one page at a time around the
+        // viewport; zoom alone needs no new layout.
+        let visible = self.visible_pages();
+        if let Some(job) = self.canvas.request_raster(&key, self.projection(), visible) {
             self.canvas_error = None;
-            let projection = job.ticket.key().projection;
-            let (layout, cancellation) = (job.layout, job.cancellation);
-            let view_focus = self.viewport_page();
+            let PageKey {
+                page, projection, ..
+            } = *job.ticket.key();
+            let (layout, limits, cancellation) = (job.layout, job.limits, job.cancellation);
+            // The caret rides along only when it is on this page, so its
+            // overlay only ever shows there.
             let caret = self.editor.as_ref().and_then(|editor| {
                 let frame = self.canvas.layout()?;
                 let geometry = frame.layout.caret(editor.view().selection().head).ok()?;
-                Some((geometry.x, geometry.top, geometry.height))
+                (geometry.page == page).then_some((geometry.x, geometry.top, geometry.height))
             });
             let work = cx.background_executor().spawn(async move {
-                document_canvas::raster_layout(
+                document_canvas::raster_page(
                     &layout,
+                    page,
                     &font,
                     projection,
-                    &cancellation,
-                    view_focus,
-                    1,
+                    limits,
                     caret,
+                    &cancellation,
                 )
             });
             let ticket = job.ticket;
@@ -475,7 +480,7 @@ impl JoyWord {
     }
     fn raster_landed(
         &mut self,
-        ticket: &RasterTicket<document_canvas::RasterKey>,
+        ticket: &RasterTicket<PageKey>,
         result: Result<document_canvas::RasterOutput, String>,
         cx: &mut Context<Self>,
     ) {
@@ -483,13 +488,18 @@ impl JoyWord {
             .canvas
             .install_raster(ticket, self.projection(), result)
         {
-            Landed::Stale => return,
-            Landed::Installed(replaced) => {
-                for image in replaced {
+            // Nothing to show; the next missing page, if any, still follows.
+            Landed::Stale => {
+                self.request_canvas(cx);
+                return;
+            }
+            Landed::Installed(released) => {
+                for image in released {
                     cx.drop_image(image, None);
                 }
             }
-            Landed::Failed(error) => self.canvas_error = Some(error),
+            // The page shows its own failure; the canvas and other pages stay.
+            Landed::Failed(_) => {}
         }
         cx.notify();
     }
@@ -502,41 +512,60 @@ impl JoyWord {
                 .into_any_element();
         }
         // Page boxes come from the installed layout, current or not, so the
-        // scroll extent matches the geometry. Pixels are the last raster and may
-        // lag that layout until its own raster lands; they never map positions.
+        // scroll extent matches the geometry. Each page shows its own pixels,
+        // or its last ones until those land; they never map positions. A page
+        // without pixels is a blank placeholder, and a page that cannot be
+        // rasterized says so in its own box. The caret overlay shows only on
+        // the page whose raster carried the caret.
         if let Some(frame) = self.canvas.layout() {
             let scale =
                 ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
-            let raster = self.canvas.raster();
-            let origin = raster.map(|raster| raster.origin).unwrap_or(0);
-            let images = raster.map_or(&[][..], |raster| raster.images.as_slice());
+            let projection = self.projection();
+            let catalog = Catalog::shipped(self.locale);
             return div()
                 .flex()
                 .flex_col()
                 .gap(px(input_ui::DOC_GAP))
                 .children(frame.layout.pages().iter().enumerate().map(|(i, page)| {
-                    let painted = i
-                        .checked_sub(origin)
-                        .and_then(|index| images.get(index))
-                        .cloned();
-                    let shown = raster
-                        .and_then(|frame| frame.caret_overlay.as_ref())
-                        .filter(|_| i == origin)
-                        .and_then(|overlay| {
-                            document_canvas::image_from_bgra(
-                                overlay.width,
-                                overlay.height,
-                                &overlay.bgra,
-                            )
-                        })
-                        .or(painted);
-                    div()
+                    let sheet = div()
                         .w(px(scale.logical_pixels(page.width) as f32))
                         .h(px(scale.logical_pixels(page.height) as f32))
                         .flex_shrink_0()
                         .bg(rgb(0xffffff))
-                        .shadow_md()
-                        .children(shown.map(|image| img(image).size_full()))
+                        .shadow_md();
+                    let number = (i + 1).to_string();
+                    let notice = match self.canvas.page_image(i, projection) {
+                        PageImage::Ready(image) => {
+                            let shown = self
+                                .canvas
+                                .caret_overlay(i, projection)
+                                .and_then(|overlay| {
+                                    document_canvas::image_from_bgra(
+                                        overlay.width,
+                                        overlay.height,
+                                        &overlay.bgra,
+                                    )
+                                })
+                                .unwrap_or(image);
+                            return sheet.child(img(shown).size_full());
+                        }
+                        PageImage::Stale(image) => {
+                            return sheet.child(img(image).size_full());
+                        }
+                        PageImage::Pending => return sheet,
+                        PageImage::TooLarge => {
+                            catalog.format("canvas.page_too_large", &[("page", &number)])
+                        }
+                        PageImage::Failed(reason) => catalog.format(
+                            "canvas.page_error",
+                            &[("page", &number), ("reason", &reason)],
+                        ),
+                    };
+                    sheet
+                        .p_6()
+                        .text_sm()
+                        .text_color(rgb(0x8a5a00))
+                        .child(notice)
                 }))
                 .into_any_element();
         }

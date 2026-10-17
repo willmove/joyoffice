@@ -34,6 +34,8 @@ zoom.min = Already at the smallest zoom
 canvas.loading = Preparing document pages…
 
 canvas.error = Cannot display the document: {reason}
+canvas.page_too_large = Page {page} exceeds the per-page pixel limit at this zoom. Zoom out to view it.
+canvas.page_error = Cannot draw page {page}: {reason}
 
 menu.edit = Edit
 command.edit.bold = Bold
