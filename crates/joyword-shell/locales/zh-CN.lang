@@ -77,6 +77,8 @@ input.dirty = 尚未保存 · AI 未加载
 file.open.error = 无法打开：{reason}
 file.copy.error = 无法另存为：{reason}
 file.copy.saved = 已写入新副本 {path}。当前打开的文件没有被替换。
+file.copy.saved_earlier = 已写入新副本 {path}，不含开始保存后的修改；这些修改仍未保存。
+file.copy.saving = 正在后台写入新副本…
 file.save_copy.unavailable = 没有已打开的文件可另存
 input.missing_glyphs = 部分字符缺少字体，显示缺字标记。
 

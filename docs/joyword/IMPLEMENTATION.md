@@ -266,6 +266,7 @@
 - 命令注册表是打开、另存、最近文件、切换文档和关闭的执行入口。字符加粗、段落居中和文本剪贴板走同一入口。`m1_edit_save` 从 `BoundDocx` 打开最小 DOCX，编辑中文、格式和剪贴板，另存后重开，未知部件字节保持。受保护文档拒绝编辑。失败的另存不改源字节。
 - 排版增加四槽选择、缺字回退和基本中文标点断行调整。窗口按可见页及前后预取页调用 `raster_page`，100 页在 2 倍缩放下按页出图；光标叠加不改该页像素。同一次排版的页面几何不随缩放改变。屏幕与 PDF 使用同一份字体字节，PDF 内容流中的文本矩阵与场景字形原点不超过 0.01 pt。
 - 打开在版本接受前只读，期间输入保留；保存结果按会话版本应用，过期结果不清 dirty。恢复日志写入原包基线；子进程中止后能读回最后一次提交。窗口使用 `JOYWORD_RECOVERY_DIR` 或偏好目录下的 `recovery`，启动时若日志可读则先恢复再加载示例。加密包不写明文副本。
+- 另存副本：`BoundDocx::save_copy_job` 取走一个已提交版本，计划、校验和写入可以在另一线程进行，保存期间继续输入的内容不进入副本，也不清未保存状态。窗口在选好路径后后台执行该作业；结果只作用于同一编辑世代，世代已变则丢弃，同世代但版本已变则提示副本不含开始保存后的修改。worktree `claude/nice-swartz-b742a2` 里“打开期间拒绝一切编辑”的方案没有并入：当前 `main` 已在版本门闩期间保留输入。
 - `scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例。engine 事务有 panic 守卫。
 - 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Office LTSC 2024 与 Microsoft Word.app 未安装，语料参考结果保持 `unverified`。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回，Word 对照没有执行。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。M2 及以后保持 `planned`。
 

@@ -78,6 +78,8 @@ input.dirty = Unsaved changes · AI not loaded
 file.open.error = Could not open: {reason}
 file.copy.error = Could not save a copy: {reason}
 file.copy.saved = Wrote a new copy at {path}. The open file was not replaced.
+file.copy.saved_earlier = Wrote a new copy at {path} without the edits made after saving began; those edits are still unsaved.
+file.copy.saving = Writing a new copy in the background…
 file.save_copy.unavailable = No opened file can be saved as a copy
 input.missing_glyphs = Some characters have no font glyph; missing-glyph boxes are shown.
 

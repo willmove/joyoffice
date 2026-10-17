@@ -235,6 +235,9 @@ struct JoyWord {
     open_gate: Option<u64>,
     recovery_dir: Option<std::path::PathBuf>,
     held_document: Option<joyword_shell::host::DocumentId>,
+    /// Bumped by [`input_ui`] each time a different editor is installed.
+    copy_epoch: u64,
+    copy: Option<input_ui::CopyPhase>,
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -391,7 +394,7 @@ impl JoyWord {
                                 Ok(editor) => {
                                     // A journal restored at startup already owns the editor.
                                     if view.editor.is_none() {
-                                        view.editor = Some(Box::new(editor));
+                                        view.install_editor(Box::new(editor));
                                     }
                                     view.font = Some(Arc::new(font));
                                     view.profile = Some(profile);
@@ -895,6 +898,8 @@ fn main() {
                         open_gate: None,
                         recovery_dir,
                         held_document,
+                        copy_epoch: 0,
+                        copy: None,
                     };
                     view.install_input_lifecycle(window, cx);
                     view

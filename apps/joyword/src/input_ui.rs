@@ -63,6 +63,9 @@ pub(crate) trait DocEditor {
     fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError>;
     fn source_path(&self) -> Option<&std::path::Path>;
     fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String>;
+    fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
+        None
+    }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError>;
     fn format_paragraph(
         &mut self,
@@ -231,6 +234,9 @@ impl DocEditor for TextInput<BoundDocx> {
             .save_copy(destination)
             .map_err(|error| error.to_string())
     }
+    fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
+        Some(self.backend().save_copy_job())
+    }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
         TextInput::format_runs(self, change)
     }
@@ -248,6 +254,52 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
         Some(*self)
+    }
+}
+
+/// A Save As copy in flight: the editor epoch it was taken from and the
+/// committed version it writes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct CopyRequest {
+    epoch: u64,
+    version: u64,
+}
+
+/// One Save As copy per editor at a time: choosing the path, then writing.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum CopyPhase {
+    Picking(u64),
+    Writing(CopyRequest),
+}
+
+impl CopyPhase {
+    fn epoch(self) -> u64 {
+        match self {
+            Self::Picking(epoch) => epoch,
+            Self::Writing(request) => request.epoch,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum CopyLanding {
+    /// Another document is installed, or none: nothing of it changes.
+    Stale,
+    Current,
+    /// Edits made after the request are not in the copy and stay unsaved.
+    Earlier,
+}
+
+fn copy_landing(request: CopyRequest, current: Option<(u64, u64)>) -> CopyLanding {
+    match current {
+        Some((epoch, version)) if epoch == request.epoch => {
+            if version == request.version {
+                CopyLanding::Current
+            } else {
+                CopyLanding::Earlier
+            }
+        }
+        _ => CopyLanding::Stale,
     }
 }
 
@@ -603,11 +655,18 @@ impl JoyWord {
     pub(crate) fn begin_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.confirm_if_dirty(AfterDiscard::PickOpen, window, cx);
     }
+    pub(crate) fn install_editor(&mut self, editor: Box<dyn DocEditor>) {
+        self.editor = Some(editor);
+        self.copy_epoch = self.copy_epoch.wrapping_add(1);
+    }
     pub(crate) fn begin_save_copy(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if self
-            .editor
-            .as_ref()
-            .is_none_or(|editor| editor.source_path().is_none())
+            .copy
+            .is_some_and(|phase| phase.epoch() == self.copy_epoch)
+            || self
+                .editor
+                .as_ref()
+                .is_none_or(|editor| editor.source_path().is_none())
         {
             return;
         }
@@ -625,41 +684,83 @@ impl JoyWord {
             .and_then(|path| path.parent())
             .map(std::path::Path::to_path_buf)
             .unwrap_or_else(|| std::path::PathBuf::from("."));
+        let epoch = self.copy_epoch;
+        self.copy = Some(CopyPhase::Picking(epoch));
         let receiver = cx.prompt_for_new_path(&directory, suggested.as_deref());
-        self.close_task = Some(cx.spawn_in(window, async move |view, cx| {
+        // Detached from the view: a write that has started finishes even if
+        // the window goes away, and its result then has nowhere to land.
+        cx.spawn_in(window, async move |view, cx| {
             let picked = receiver.await.ok().and_then(Result::ok).flatten();
-            let Some(path) = picked else {
+            let started = view.update(cx, |view, cx| view.start_copy(epoch, picked, cx));
+            let Ok(Some((request, job, path))) = started else {
                 return;
             };
-            let _ = view.update(cx, |view, cx| {
-                let saved = view.editor.as_ref().and_then(|editor| {
-                    editor
-                        .source_path()
-                        .is_some()
-                        .then(|| editor.save_copy(&path))
-                });
-                let Some(saved) = saved else {
-                    return;
-                };
-                match saved {
-                    Ok(receipt) => {
-                        let shown = receipt.path().display().to_string();
-                        view.copy_note = Some(
-                            Catalog::shipped(view.locale)
-                                .format("file.copy.saved", &[("path", &shown)]),
-                        );
-                        view.input_error = None;
-                    }
-                    Err(error) => {
-                        view.input_error = Some(
-                            Catalog::shipped(view.locale)
-                                .format("file.copy.error", &[("reason", &error)]),
-                        );
-                    }
-                }
-                cx.notify();
-            });
-        }));
+            let result = cx
+                .background_spawn(async move { job.run(&path).map_err(|error| error.to_string()) })
+                .await;
+            let _ = view.update(cx, |view, cx| view.copy_landed(request, result, cx));
+        })
+        .detach();
+    }
+    /// The path is chosen. Take the committed version now; planning and IO
+    /// run in the background. Typing may continue and stays unsaved.
+    fn start_copy(
+        &mut self,
+        epoch: u64,
+        picked: Option<std::path::PathBuf>,
+        cx: &mut Context<Self>,
+    ) -> Option<(
+        CopyRequest,
+        joyword_shell::docx::SaveCopyJob,
+        std::path::PathBuf,
+    )> {
+        if self.copy == Some(CopyPhase::Picking(epoch)) {
+            self.copy = None;
+        }
+        cx.notify();
+        let path = picked?;
+        if self.copy_epoch != epoch {
+            return None;
+        }
+        let job = self.editor.as_ref()?.save_copy_job()?;
+        let request = CopyRequest {
+            epoch,
+            version: job.version().get(),
+        };
+        self.copy = Some(CopyPhase::Writing(request));
+        self.copy_note = None;
+        Some((request, job, path))
+    }
+    fn copy_landed(
+        &mut self,
+        request: CopyRequest,
+        result: Result<SaveCopyReceipt, String>,
+        cx: &mut Context<Self>,
+    ) {
+        if self.copy == Some(CopyPhase::Writing(request)) {
+            self.copy = None;
+        }
+        cx.notify();
+        let current = self
+            .editor
+            .as_ref()
+            .map(|editor| (self.copy_epoch, editor.version()));
+        let saved = match copy_landing(request, current) {
+            CopyLanding::Stale => return,
+            CopyLanding::Current => "file.copy.saved",
+            CopyLanding::Earlier => "file.copy.saved_earlier",
+        };
+        let catalog = Catalog::shipped(self.locale);
+        match result {
+            Ok(receipt) => {
+                let shown = receipt.path().display().to_string();
+                self.copy_note = Some(catalog.format(saved, &[("path", &shown)]));
+                self.input_error = None;
+            }
+            Err(error) => {
+                self.input_error = Some(catalog.format("file.copy.error", &[("reason", &error)]));
+            }
+        }
     }
     fn confirm_if_dirty(
         &mut self,
@@ -923,7 +1024,7 @@ impl JoyWord {
         };
         self.held_document = self.session.active_id();
         self.clear_canvas(cx);
-        self.editor = Some(Box::new(input));
+        self.install_editor(Box::new(input));
         self.ime_anchor = None;
         self.copy_note = None;
         self.input_error = None;
@@ -1125,6 +1226,10 @@ impl JoyWord {
     pub(crate) fn input_status(&self) -> String {
         if let Some(reason) = &self.input_error {
             return Catalog::shipped(self.locale).format("input.error", &[("reason", reason)]);
+        }
+        if matches!(self.copy, Some(CopyPhase::Writing(request)) if request.epoch == self.copy_epoch)
+        {
+            return self.label("file.copy.saving");
         }
         if let Some(frame) = self.ready_layout()
             && !frame.layout.diagnostics().is_empty()
@@ -1510,6 +1615,19 @@ impl EntityInputHandler for JoyWord {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_late_copy_applies_only_to_its_session_and_version() {
+        let request = CopyRequest {
+            epoch: 1,
+            version: 3,
+        };
+        assert_eq!(copy_landing(request, None), CopyLanding::Stale);
+        assert_eq!(copy_landing(request, Some((2, 3))), CopyLanding::Stale);
+        assert_eq!(copy_landing(request, Some((1, 4))), CopyLanding::Earlier);
+        assert_eq!(copy_landing(request, Some((1, 3))), CopyLanding::Current);
+    }
+
     use document_canvas::CanvasPipeline;
     use joyword_engine::Session;
     use joyword_layout::{FaceSet, LayoutSnapshot};

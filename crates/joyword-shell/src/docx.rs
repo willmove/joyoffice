@@ -8,12 +8,15 @@
 //! then [`DocxSession::open`], and only then a sibling JoyWord lock. A failed
 //! open installs nothing and creates no lock. Save As calls [`save_export_copy`]
 //! and leaves the bound path, stamp, backing and dirty version untouched.
-//! `save_original` is not called.
+//! [`BoundDocx::save_copy_job`] detaches that copy of one committed version so
+//! planning, verification and IO can run on another thread while editing
+//! continues. `save_original` is not called.
 
 use std::fmt;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::storage::{
@@ -25,7 +28,7 @@ use joyword_docx::{
     plan_export,
 };
 use joyword_engine::{EditPolicy, Outcome, Session, Transaction, TxError, UndoError, UndoResult};
-use joyword_model::DocumentVersion;
+use joyword_model::{DocumentSnapshot, DocumentVersion};
 
 /// An original package cannot represent a session that has been edited.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -51,7 +54,8 @@ impl std::error::Error for EditedPackage {}
 /// and saved-version tracking belong to a separate storage boundary.
 pub struct DocxSession {
     session: Session,
-    backing: PackageBacking,
+    // Shared with detached copy jobs. Import never mutates it afterwards.
+    backing: Arc<PackageBacking>,
     diagnostics: Diagnostics,
     editability: Editability,
     imported_version: DocumentVersion,
@@ -71,7 +75,7 @@ impl DocxSession {
         let imported_version = session.version();
         Ok(Self {
             session,
-            backing: result.backing,
+            backing: Arc::new(result.backing),
             diagnostics: result.diagnostics,
             editability: result.editability,
             imported_version,
@@ -260,7 +264,41 @@ impl BoundDocx {
     /// Write `destination` as a new copy of the current verified plan.
     /// The bound path, stamp and engine version are not modified.
     pub fn save_copy(&self, destination: &Path) -> Result<SaveCopyReceipt, BoundSaveError> {
-        let plan = self.inner.export_plan().map_err(BoundSaveError::Export)?;
+        self.save_copy_job().run(destination)
+    }
+
+    /// [`Self::save_copy`] of the current committed version, detached from
+    /// this session. Taking it shares the immutable snapshot and backing and
+    /// does no export work and no IO. Edits made afterwards are not in it.
+    pub fn save_copy_job(&self) -> SaveCopyJob {
+        SaveCopyJob {
+            backing: Arc::clone(&self.inner.backing),
+            snapshot: self.inner.session().snapshot(),
+            budget: self.inner.budget.clone(),
+        }
+    }
+}
+
+/// A Save As copy of one committed version. It owns everything [`SaveCopyJob::run`]
+/// needs, so another thread can plan and write it while the session changes.
+/// The session path, stamp, lock and saved version stay untouched.
+#[derive(Clone)]
+pub struct SaveCopyJob {
+    backing: Arc<PackageBacking>,
+    snapshot: DocumentSnapshot,
+    budget: Budget,
+}
+
+impl SaveCopyJob {
+    /// The committed version this job writes.
+    pub fn version(&self) -> DocumentVersion {
+        self.snapshot.version()
+    }
+
+    /// Same plan and copy as [`BoundDocx::save_copy`] at [`Self::version`].
+    pub fn run(&self, destination: &Path) -> Result<SaveCopyReceipt, BoundSaveError> {
+        let plan = plan_export(&self.backing, &self.snapshot, &self.budget)
+            .map_err(BoundSaveError::Export)?;
         save_export_copy(&plan, destination).map_err(BoundSaveError::Copy)
     }
 }
