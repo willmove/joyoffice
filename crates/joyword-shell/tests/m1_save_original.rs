@@ -11,9 +11,10 @@ use joyword_engine::{Command, Transaction};
 use joyword_model::{Bias, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
 use joyword_shell::storage::{
-    MetadataItem, OriginalChoice, ReplacementBlocker, open_source, save_default_copy,
-    save_original, save_original_with_choice,
+    MetadataItem, ReplacementBlocker, open_source, save_default_copy, save_original,
 };
+#[cfg(unix)]
+use joyword_shell::storage::{OriginalChoice, save_original_with_choice};
 
 fn fixture() -> Vec<u8> {
     fs::read(
@@ -83,6 +84,34 @@ fn declining_replacement_lists_metadata_and_keeps_the_source() {
     );
     assert!(error.published().is_none());
     assert_eq!(fs::read(&path).unwrap(), bytes);
+}
+
+#[cfg(windows)]
+#[test]
+fn declining_on_windows_lists_a_zone_identifier_and_keeps_everything() {
+    let bytes = fixture();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("report.docx");
+    fs::write(&path, &bytes).unwrap();
+    let stream = format!("{}:Zone.Identifier", path.display());
+    fs::write(&stream, b"[ZoneTransfer]\r\nZoneId=3\r\n").unwrap();
+    let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
+    let plan = edited_plan(&bytes);
+    let error = save_original(&plan, &stamp).unwrap_err();
+    let blockers = error.blockers().expect("losses");
+    assert!(blockers.contains(&ReplacementBlocker::ConfirmationRequired));
+    assert!(
+        blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
+            MetadataItem::ProvenanceMarks
+        ))
+    );
+    assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
+    assert!(error.published().is_none());
+    assert_eq!(fs::read(&path).unwrap(), bytes);
+    assert_eq!(
+        fs::read(&stream).unwrap(),
+        b"[ZoneTransfer]\r\nZoneId=3\r\n"
+    );
 }
 
 #[cfg(unix)]

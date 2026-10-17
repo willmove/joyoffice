@@ -17,6 +17,8 @@ joyword-model.workspace = true
 rustix.workspace = true
 tempfile.workspace = true
 unicode-segmentation.workspace = true
+
+[target.'cfg(unix)'.dependencies]
 xattr.workspace = true
 
 [lints]

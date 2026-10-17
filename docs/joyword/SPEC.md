@@ -10,7 +10,7 @@ JoyWord 是 JoyOffice 的桌面文字处理应用，面向长期完整的 Office
 | --- | --- |
 | 平台 | 三端架构；macOS 先跑通；Windows、Linux 从 M0 进入构建验证，M7 必须真实运行验收；Linux 含信创发行版（统信 UOS、银河麒麟）及 x86_64／ARM64／LoongArch64，国产 GPU 与无 GPU 环境须可用 |
 | 1.0 范围 | 以 DOCX 为中心的编辑、审阅交换、PDF／打印与恢复，含 DOC 与 WPS 文字（.wps）导入、RTF／HTML／Markdown／TXT 转换、加密与限制编辑、公文版式和信创平台；ODT、EPUB、归档 PDF、邮件合并、纵排与双向文本、DOC 写出、数字签名验证与创建在 M8（1.x） |
-| 操作基准 | 固定版本的 Windows Word 桌面版（Office LTSC 2024）；中文文档互操作以固定版本 WPS 为并列对照；Mac 菜单、快捷键和窗口遵循 macOS 习惯 |
+| 操作基准 | 固定版本的 Windows Word 桌面版（Word 2024 永久版：LTSC 或零售永久版，观测记录绑定确切 build）；中文文档互操作以固定版本 WPS 为并列对照；Mac 菜单、快捷键和窗口遵循 macOS 习惯 |
 | 工作格式 | 新文档默认 Transitional DOCX；Strict 独立配置；逐步扩展其他格式 |
 | 实现边界 | 核心独立实现；允许 ZIP、XML、Unicode、字体、图片、密码算法及底层 PDF 库 |
 | AI | 默认关闭；用户配置本地或云服务；关闭是运行权限边界，不只是隐藏按钮 |

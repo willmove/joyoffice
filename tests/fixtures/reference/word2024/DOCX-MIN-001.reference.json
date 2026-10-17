@@ -1,0 +1,30 @@
+{
+  "case": "DOCX-MIN-001",
+  "reference": {
+    "software": "Word 2024 永久版（Office 家庭版 2024）",
+    "build": "16.0.20430.20182",
+    "os": "Windows 11 x86_64",
+    "date": "2026-10-18",
+    "export": "ExportAsFixedFormat PDF, bitmap-font substitution off",
+    "pdf": "DOCX-MIN-001.pdf",
+    "pdf_sha256": "b8a7ec777ce91cfdc58e02a566586d85722a876e3f5fe177baeb2f11ca2724c0"
+  },
+  "fonts": [
+    "BCDEEE+DengXian",
+    "BCDFEE+DengXian"
+  ],
+  "pages": [
+    {
+      "width": 595.32,
+      "height": 841.92,
+      "lines": [
+        {
+          "text": "合作协议：甲方与乙方于2026年签署。",
+          "x_min": 90.02,
+          "x_max": 284.33,
+          "y_bottom": 85.24
+        }
+      ]
+    }
+  ]
+}

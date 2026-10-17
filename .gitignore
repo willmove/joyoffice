@@ -29,3 +29,4 @@ rustc-ice-*.txt
 
 # 本机留存的对照分析工作稿，不纳入仓库
 docs/joyword/research/EDITOR-COMPARATIVE-ANALYSIS.md
+__pycache__/

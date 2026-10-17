@@ -26,7 +26,7 @@
 
 ## 状态规则
 
-任务使用 `planned`、`in_progress`、`blocked`、`done`。`done` 必须有可复核证据；环境检查失败只能证明阻塞，不能证明功能不可实现。兼容矩阵另外记录 `unverified`，避免将“未验证”和“已明确拒绝”混为一谈。
+任务使用 `planned`、`in_progress`、`blocked`、`done`。TASKS 中状态前的复选框与状态绑定：只有 `done` 打勾；`in_progress` 即使已有部分实现也不打勾，`planned` 与 `blocked` 同样保持未勾选。`done` 必须有可复核证据；环境检查失败只能证明阻塞，不能证明功能不可实现。兼容矩阵另外记录 `unverified`，避免将“未验证”和“已明确拒绝”混为一谈。
 
 M0–M7 构成 1.0，M8 是 1.0 之后的扩展，均属当前路线图；M9 是后续独立规格的入口。完整 Office 套件、实时协作和 VBA／ActiveX 执行不属于当前 JoyWord 核心实现的验收范围。
 

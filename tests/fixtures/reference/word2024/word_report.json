@@ -1,0 +1,68 @@
+[
+  {
+    "file": "DOCX-MIN-001.docx",
+    "opened": true,
+    "protection_type": -1,
+    "track_revisions": false,
+    "pages": 1,
+    "words": 16,
+    "text_chars": 22,
+    "pdf": "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\reference\\word2024\\DOCX-MIN-001.pdf",
+    "pdf_bytes": 22219
+  },
+  {
+    "file": "DOCX-MIN-002.docx",
+    "opened": true,
+    "protection_type": -1,
+    "track_revisions": false,
+    "pages": 1,
+    "words": 20,
+    "text_chars": 23,
+    "pdf": "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\reference\\word2024\\DOCX-MIN-002.pdf",
+    "pdf_bytes": 63337
+  },
+  {
+    "file": "DOCX-MIN-003.docx",
+    "opened": true,
+    "protection_type": -1,
+    "track_revisions": false,
+    "pages": 1,
+    "words": 22,
+    "text_chars": 24,
+    "pdf": "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\reference\\word2024\\DOCX-MIN-003.pdf",
+    "pdf_bytes": 21547
+  },
+  {
+    "file": "DOCX-MIN-004.docx",
+    "opened": true,
+    "protection_type": -1,
+    "track_revisions": false,
+    "pages": 1,
+    "words": 17,
+    "text_chars": 19,
+    "pdf": "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\reference\\word2024\\DOCX-MIN-004.pdf",
+    "pdf_bytes": 23720
+  },
+  {
+    "file": "DOCX-MIN-005.docx",
+    "opened": true,
+    "protection_type": 3,
+    "track_revisions": true,
+    "pages": 1,
+    "words": 15,
+    "text_chars": 16,
+    "pdf": "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\reference\\word2024\\DOCX-MIN-005.pdf",
+    "pdf_bytes": 23118
+  },
+  {
+    "file": "DOCX-SAMPLE-001.docx",
+    "opened": true,
+    "protection_type": -1,
+    "track_revisions": false,
+    "pages": 1,
+    "words": 102,
+    "text_chars": 142,
+    "pdf": "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\reference\\word2024\\DOCX-SAMPLE-001.pdf",
+    "pdf_bytes": 40314
+  }
+]

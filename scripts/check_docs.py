@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate specification traceability and fixture metadata, not product compatibility."""
+import datetime
 import hashlib
 import json
 import re
@@ -28,6 +29,91 @@ def local_file(base, value, context):
     return path
 
 
+ISO_DATE = r"\d{4}-\d{2}-\d{2}"
+HASH64 = r"[0-9a-f]{64}"
+
+
+def _valid_date(value):
+    try:
+        datetime.date.fromisoformat(value)
+        return True
+    except ValueError:
+        return False
+
+
+def rust_function_names(roots):
+    """Every Rust function name in the given trees (test names included)."""
+    names = set()
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for source in root.rglob("*.rs"):
+            text = source.read_text(encoding="utf-8", errors="replace")
+            names.update(re.findall(r"\bfn\s+([A-Za-z_][A-Za-z0-9_]*)\s*[<(]", text))
+    return names
+
+
+def validate_behavior_registry(path, test_names):
+    """T004 editing-behavior registry: schema, hypothesis/rule discipline,
+    and every referenced test name must exist in the workspace."""
+    problems = []
+    if not path.is_file():
+        return [f"behavior registry missing: {path}"], 0
+    try:
+        registry = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        return [f"behavior registry is not valid JSON: {error}"], 0
+    if not isinstance(registry, dict) or registry.get("schema") != 1:
+        return ["behavior registry: unsupported schema"], 0
+    entries = registry.get("registry")
+    if not isinstance(entries, list) or not entries:
+        return ["behavior registry: empty or missing entries"], 0
+    seen = set()
+    count = 0
+    for index, entry in enumerate(entries, 1):
+        label = f"behavior registry entry {index}"
+        if not isinstance(entry, dict):
+            problems.append(f"{label}: not an object")
+            continue
+        count += 1
+        entry_id = entry.get("id")
+        if not isinstance(entry_id, str) or not re.fullmatch(r"[A-Z0-9-]+", entry_id):
+            problems.append(f"{label}: invalid id")
+        elif entry_id in seen:
+            problems.append(f"{label}: duplicate id {entry_id}")
+        else:
+            seen.add(entry_id)
+        for field in ("operation", "expectation", "test"):
+            if not isinstance(entry.get(field), str) or not entry[field].strip():
+                problems.append(f"{label}: missing {field}")
+        source = entry.get("source")
+        if source not in ("hypothesis", "word"):
+            problems.append(f"{label}: source must be hypothesis or word")
+            continue
+        observation = entry.get("word_observation")
+        if source == "hypothesis":
+            if observation is not None:
+                problems.append(f"{label}: a hypothesis must not claim a Word observation")
+        else:
+            if not isinstance(observation, dict):
+                problems.append(f"{label}: a Word rule needs word_observation")
+            else:
+                for field in ("version", "sample_id"):
+                    if not isinstance(observation.get(field), str) or not observation[field].strip():
+                        problems.append(f"{label}: word_observation missing {field}")
+                if not isinstance(observation.get("date"), str) \
+                        or not re.fullmatch(ISO_DATE, observation["date"]) \
+                        or not _valid_date(observation["date"]):
+                    problems.append(f"{label}: word_observation date must be YYYY-MM-DD")
+                digest = observation.get("screenshot_sha256")
+                if not isinstance(digest, str) or not re.fullmatch(HASH64, digest):
+                    problems.append(f"{label}: word_observation needs a 64-hex screenshot SHA-256")
+        test = entry.get("test")
+        if isinstance(test, str) and test and test not in test_names:
+            problems.append(f"{label}: test {test} not found in the workspace")
+    return problems, count
+
+
 def validate():
     spec = (DOCS / "SPEC.md").read_text(encoding="utf-8")
     req_list = re.findall(rf"^\| ({REQUIREMENT}) \|", spec, re.M)
@@ -40,19 +126,29 @@ def validate():
     task_text = (DOCS / "TASKS.md").read_text(encoding="utf-8")
     blocks = re.split(r"^### (T\d{3})：[^\n]+\n", task_text, flags=re.M)
     tasks = {}
+    task_statuses = {}
     covered = set()
     req_tasks = {}
+    status_names = ["done", "in_progress", "planned", "blocked"]
     fields = ["状态", "需求", "前置", "输入", "产物", "错误路径", "自动验证", "人工验收", "完成证据"]
     for index in range(1, len(blocks), 2):
         task_id, body = blocks[index:index + 2]
         check(task_id not in tasks, f"TASKS: duplicate ID {task_id}")
         values = {}
         for field in fields:
-            matches = re.findall(rf"^- {field}：(.+)$", body, re.M)
-            check(len(matches) == 1, f"{task_id}: missing or duplicate field {field}")
-            values[field] = matches[0] if matches else ""
-        check(values["状态"] in [f"`{s}`" for s in ["planned", "in_progress", "blocked", "done"]],
+            if field == "状态":
+                matches = re.findall(r"^- \[([ x])\] 状态：(.+)$", body, re.M)
+                check(len(matches) == 1, f"{task_id}: missing or duplicate field {field}")
+                checkbox, values[field] = matches[0] if matches else ("", "")
+                check((values[field] == "`done`") == (checkbox == "x"),
+                      f"{task_id}: checkbox must be [x] only for done")
+            else:
+                matches = re.findall(rf"^- {field}：(.+)$", body, re.M)
+                check(len(matches) == 1, f"{task_id}: missing or duplicate field {field}")
+                values[field] = matches[0] if matches else ""
+        check(values["状态"] in [f"`{s}`" for s in status_names],
               f"{task_id}: invalid status")
+        task_statuses[task_id] = values["状态"].strip("`")
         if values["状态"] == "`done`":
             check(bool(re.search(r"\[[^]]+\]\([^)]+\)", values["完成证据"])),
                   f"{task_id}: done requires a linked evidence record")
@@ -66,6 +162,24 @@ def validate():
         check(len(deps) == len(set(deps)), f"{task_id}: duplicate dependencies")
         tasks[task_id] = deps
     check(bool(tasks), "TASKS: no tasks found")
+
+    summary_rows = re.findall(
+        r"^\| (M\d) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|$", task_text, re.M)
+    summary = {stage: tuple(map(int, counts)) for stage, *counts in summary_rows}
+    check(len(summary) == len(summary_rows), "TASKS: duplicate progress summary row")
+    for stage_number in range(10):
+        stage = f"M{stage_number}"
+        statuses = [status for task, status in task_statuses.items() if int(task[1]) == stage_number]
+        expected = tuple(statuses.count(status) for status in status_names) + (len(statuses),)
+        check(summary.get(stage) == expected,
+              f"TASKS: progress summary mismatch for {stage}; expected {expected}")
+    total_rows = re.findall(r"^\| 总计 \| (\d+) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|$",
+                            task_text, re.M)
+    statuses = list(task_statuses.values())
+    expected_total = tuple(statuses.count(status) for status in status_names) + (len(statuses),)
+    check(len(total_rows) == 1 and tuple(map(int, total_rows[0])) == expected_total,
+          f"TASKS: progress total mismatch; expected {expected_total}")
+
     check(covered == requirements, f"TASKS: unmapped requirements {sorted(requirements - covered)}")
     for req, stage in stages.items():
         milestones = [int(task_id[1]) for task_id in req_tasks.get(req, [])]
@@ -179,6 +293,11 @@ def validate():
             check(ref.startswith("./") or bool(re.fullmatch(r"[\w.-]+/[\w./-]+@[0-9a-f]{40}", ref)),
                   f"{workflow.relative_to(ROOT)}: action not pinned to a full commit SHA: {ref}")
 
+    test_names = rust_function_names([ROOT / "crates", ROOT / "apps"])
+    registry_problems, behavior_count = validate_behavior_registry(
+        DOCS / "behavior_registry.json", test_names)
+    errors.extend(registry_problems)
+
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
@@ -186,7 +305,8 @@ def validate():
     print(f"OK: {len(requirements)} requirements; {len(tasks)} tasks; acyclic dependencies; "
           f"stage-consistent; M0–M7 required by {RELEASE_GATE}; "
           f"{len(markdown)} Markdown files; {len(case_ids)} registered cases; locale parity; "
-          f"{actions} workflow actions pinned by SHA.")
+          f"{actions} workflow actions pinned by SHA; "
+          f"{behavior_count} behavior registry entries.")
     print("Metadata validation only; Office compatibility and GUI behavior are not tested here.")
     return 0
 

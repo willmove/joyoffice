@@ -5,11 +5,33 @@
 ## 任务规则
 
 - 状态仅为 planned、in_progress、blocked、done。没有验证证据不能标 done。
+- 状态前的复选框由检查器与状态绑定：只有 `done` 使用 `[x]`，其余状态一律使用 `[ ]`。
 - 需求编号、前置依赖、输入、产物（输出）、错误路径、自动验证、人工验收与完成证据是必填字段。
 - 任务的程序性前置与阶段发布门槛分别检查；可提前开展独立任务，但不能提前宣称阶段通过。
 - 状态只陈述本仓库实际工作；后续路线图不等于本次全部实施完成。
 - M0→M1→M2→M3 为主线；M4／M5 可在依赖满足后分别推进；M6 汇合到 M7。M8 是 1.0 之后的扩展，M9 仅为下一轮规格入口。
 - 前置只写技术依赖；阶段发布顺序由门槛任务（T107、T206、T304、T403、T704）串联，M0–M7 的工作任务不以其他阶段的门槛任务为前置；M8、M9 任务以 T704 为前置，表示在 1.0 之后开展。M0–M7 的任务都必须在 T704 的前置闭包内（检查器校验）。
+
+## 进度总览
+
+- [x] **已完成（`done`）**：任务要求的实现、自动验证和人工验收均已有证据。
+- [ ] **未完成（`in_progress`／`planned`／`blocked`）**：即使已有部分代码或测试，只要整个任务尚未完成就不打勾；已完成部分与剩余项见各任务的“完成证据”。
+
+| 阶段 | 已完成 | 进行中 | 未开始 | 阻塞 | 合计 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| M0 | 2 | 3 | 0 | 1 | 6 |
+| M1 | 3 | 8 | 1 | 0 | 12 |
+| M2 | 0 | 0 | 12 | 0 | 12 |
+| M3 | 0 | 0 | 5 | 0 | 5 |
+| M4 | 0 | 0 | 4 | 0 | 4 |
+| M5 | 0 | 0 | 5 | 0 | 5 |
+| M6 | 0 | 0 | 6 | 0 | 6 |
+| M7 | 0 | 0 | 5 | 0 | 5 |
+| M8 | 0 | 0 | 9 | 0 | 9 |
+| M9 | 0 | 0 | 2 | 0 | 2 |
+| 总计 | 5 | 11 | 49 | 1 | 66 |
+
+**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002（M0）与 T100、T101、T111（M1）已完成；M1 的中文编辑、基础格式、文本剪贴板、另存与重开等路径已有自动测试，并在 Windows 参考环境原生复验通过；但 M0 的真机／参考环境验证（GPUI 来源屏幕核对、固定 Word 参考环境、信创真机）和 M1 的系统 IME／GUI、Word／WPS 人工验收尚未完成；M2–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
 
 ## 阶段与任务
 
@@ -20,19 +42,19 @@
 ### T000：规格落盘与追踪
 
 - 输入：用户批准的 JoyWord 计划、仓库 MIT 许可与已核对的公开资料。
-- 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`QUALITY-001`、`QUALITY-002`、`QUALITY-008`
 - 前置：无
 - 产物：八份专题文档、入口、状态和需求—任务映射。
 - 错误路径：来源失效、文档冲突、漏映射必须显式诊断。
 - 自动验证：文档检查器验证 ID、依赖图、本地链接、需求覆盖和任务字段。
 - 人工验收：按 README 阅读一遍主工作流，检查已确认决策均保留。
-- 完成证据：待最终文档检查通过后更新。
+- 完成证据：2026-10-17 文档检查器通过（84 个需求、66 个任务、依赖无环、阶段一致、M0–M7 均在 T704 前置闭包内、12 份 Markdown、10 个登记用例、本地化键一致、9 个 Actions 按 commit SHA 固定）；人工验收已执行——按 [README](README.md) 复核阅读顺序、解释优先级、状态规则与 v0.3／v0.2 变更记录中的已确认决策（信创进入 1.0、DOC 导入属 1.0、WPS 原生格式导入、M8／M9 以 T704 为前置、PROVENANCE 禁止条款恢复），逐条核对无丢失。审查与验证细节见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T001：工具链、依赖锁与三端 CI
 
 - 输入：架构依赖边界、宿主环境清单、Rust／GPUI 版本及各平台构建要求。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`PLATFORM-001`、`QUALITY-002`
 - 前置：`T000`
 - 产物：固定 Rust 工具链和按 ADR-010 选定的 GPUI 来源；Cargo.lock；三端构建工作流（Actions 按 commit SHA 固定）；依赖许可与安全公告检查；环境检查记录。
@@ -44,7 +66,7 @@
 ### T002：GPUI 原生窗口与页面投影
 
 - 输入：固定 GPUI API、物理单位约定和中英文工程样例文字。
-- 状态：`done`
+- [x] 状态：`done`
 - 需求：`PLATFORM-001`、`PLATFORM-003`、`LAYOUT-001`
 - 前置：`T000`
 - 产物：JoyWord 工程验证窗口、A4 页面、缩放、中英文资源和正常退出。
@@ -56,31 +78,31 @@
 ### T003：字体、IME 与统一 PDF 技术验证
 
 - 输入：按 ADR-010 选定来源的 GPUI 输入／字形 API、许可明确的固定字体（OFL，如思源宋体或 Noto CJK 与 Carlito）、原创中英混排及组合输入样例。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-001`、`LAYOUT-002`、`LAYOUT-009`、`PLATFORM-004`、`EDIT-002`
 - 前置：`T001`、`T002`
 - 产物：固定字体字节／face 的整形、屏幕与 PDF 定位验证，按字体字节取得 FontId 的验证或补丁，以及 IME 验证程序。
 - 错误路径：字体映射不一致、缺字、surrogate 范围非法、组合取消和字形 API 缺口有明确记录。
 - 自动验证：同一字形场景几何比较；Unicode 范围和组合态测试；PDF 文本抽取。
 - 人工验收：系统拼音提交／取消、候选框、一次撤销、多显示器 DPI；PDF 独立阅读器检查。
-- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；C06 已实现实际 FontKey 的 CPU 场景消费者并接入只读窗口，离线 PNG／PDF 光栅位置对照通过，见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。正式来源的 GL/CPU 窗口、Retina、IME 与人工阅读器验收未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
+- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；C06 已实现实际 FontKey 的 CPU 场景消费者并接入只读窗口，离线 PNG／PDF 光栅位置对照通过，见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。2026-10-17 PDF 独立阅读器检查已在 Windows 参考环境执行：`document_flow` 场景 PDF（2 页 32 行，Noto Serif SC VF）经 xpdf `pdftotext` 与 pdfplumber（pdfminer.six，独立实现）双阅读器逐页文字一致、pdfplumber 行首偏差 0.000 pt，两阅读器与场景互相一致，见 [IMPLEMENTATION](IMPLEMENTATION.md)。正式来源的 GL/CPU 窗口、Retina、IME 人工验收未完成，T003 保持 `in_progress`，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
 
 ### T004：原创语料与验证框架
 
-- 输入：需求清单、规范元素列表、原创文本，以及固定参考环境（Word 为 Office LTSC 2024，中文互操作对照固定版本 WPS）和字体。
-- 状态：`in_progress`
+- 输入：需求清单、规范元素列表、原创文本，以及固定参考环境（Word 为 Word 2024 永久版，观测记录绑定确切 build；中文互操作对照固定版本 WPS）和字体。
+- [ ] 状态：`in_progress`
 - 需求：`QUALITY-001`、`QUALITY-003`
 - 前置：`T000`
 - 产物：case registry、原创文本、来源信息、预期行为、语义／几何比较接口，以及固定 Word 导出 PDF 的字形坐标抽取与行／页断点比较工具；排版行为规则目录随实测建立。编辑行为登记表把每条规定行为写成“操作 → 固定 Word 观测记录（版本、样例 ID、日期、截图散列）→ 测试名”；外部项目的已固定规则只作待验证假设登记，不直接当作规则。
 - 错误路径：缺失字体／参考结果必须标未验证；非法清单和未知需求 ID 拒绝。
 - 自动验证：清单格式、文件散列、ID 唯一性和需求引用检查；最小样例可重复生成；检查器校验行为登记表引用的测试名存在。
 - 人工验收：审查样例无敏感内容；确认原始文字与正式 DOCX 夹具区别。
-- 完成证据：清单与检查器、模型语义比较、PDF 行／页断点比较工具（CI 端到端：相同排版通过、改变换行被检出）、5 个确定性生成的原创最小 DOCX 样例已落地；固定 Word／WPS 参考环境、Word 导出 PDF 的实测抽取与排版规则目录未建立，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：清单与检查器、模型语义比较、PDF 行／页断点比较工具（CI 端到端：相同排版通过、改变换行被检出）、5 个确定性生成的原创最小 DOCX 样例已落地；2026-10-17 编辑行为登记表落地：[behavior_registry.json](behavior_registry.json)（schema 1，7 条假设条目均绑定现有测试名），`check_docs.py` 校验唯一 ID、假设不携带观测／规则必须带完整 Word 观测字段、引用的测试名在工作区真实存在，并有 10 项单元测试（`scripts/tests/test_behavior_registry.py`）。2026-10-18 固定 Word 参考结果已建立：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182，Windows 11 x86_64）COM 只读打开 6 个格式样例并导出 PDF（禁链接更新与宏、位图字体替代关闭），逐样例保存 PDF、文本读回与 pdfplumber 几何抽取记录于 `tests/fixtures/reference/word2024/`，清单的参考档案置为 established；Word 实测字体：默认中文为等线（DengXian），DOCX-MIN-002 的显式样式解析为宋体＋Times New Roman；DOCX-MIN-005 报保护类型 3（只读限制）且强制修订开启。2026-10-18 排版规则目录建立首批实测条目（[layout_rules.md](layout_rules.md) R1–R9）：同页框同度量下 Word 与 JoyWord 断行逐行一致（两处对照，行位偏差 ≤1 pt）。2026-10-18 人工验收已执行：逐份审查 4 个文本种子与 6 个 DOCX 夹具，均为原创虚构内容（无个人信息、凭据或真实地址；注入测试样例明确标注为测试数据），原始 UTF-8 种子与 joyword-corpus 确定性生成的正式 DOCX 夹具角色区分明确。WPS 参考环境未建立，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T005：信创平台技术验证
 
 - 输入：统信 UOS 与银河麒麟桌面版（x86_64、ARM64、LoongArch64）测试机或镜像、Rust 目标支持说明及 GPUI 渲染后端候选。
-- 状态：`blocked`
+- [ ] 状态：`blocked`
 - 需求：`PLATFORM-009`、`PLATFORM-001`
 - 前置：`T001`、`T002`
 - 产物：ARM64 与 LoongArch64 构建记录、目标系统 glibc／ABI 核对、GL 与 CPU 渲染启动结果、Fcitx 中文输入与系统字体清单，以及供 ADR-010 选型的结论。
@@ -96,31 +118,31 @@
 ### T100：类型化文档模型
 
 - 输入：架构数据契约、故事区域列表、Unicode 与原始包保留要求。
-- 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`EDIT-001`、`STYLE-001`、`FORMAT-002`、`REVIEW-006`
 - 前置：`T000`
 - 产物：story、block（含 SDT 透明容器）、稳定标识、经基准选定的文本存储、样式（按规范名称识别内置样式）、资源，以及跨段域、书签和批注共用的标注范围与原始单位保留。
 - 错误路径：无效树、重复 ID、样式环和不合法范围返回有界错误。
 - 自动验证：模型不变量、Unicode 边界、结构序列化、原始保留信息与快照结构共享开销测试。
 - 人工验收：加载原创正文／表格结构样例，检查不支持节点被保留而非忽略。
-- 完成证据：joyword-model 与文本存储基准已落地，自动验证项均有测试并在三端 CI 通过；剩余人工验收（加载原创正文／表格样例并确认不支持节点被保留），见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：joyword-model 与文本存储基准已落地，自动验证项均有测试并在三端 CI 通过。2026-10-17 人工验收已执行：模型层 `contract_structure_preserves_unsupported_nodes` 加载原创合同结构（表格网格／横向纵向合并、锁定 SDT、`m:oMathPara` 不透明块、`w:object` 行内保留对象）验证不支持节点经结构与快照往返后保留而非忽略（13 项模型测试通过）；DOCX 导入层 `joyword-docx/tests/import.rs` 验证真实包中 `w:tbl` 等未知元素导入为带保留句柄的不透明块（20 项通过）；会话层 DOCX-MIN-003 验证未知内容保留、locked 非空且 engine 整篇只读、原包字节不变（8 项通过）。三处均在本机复验，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T101：事务与位置映射
 
 - 输入：合法文档快照、带版本的 Command、选区和范围标注。
-- 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`EDIT-004`、`EDIT-005`、`REVIEW-006`
 - 前置：`T100`
 - 产物：原子 apply、单调版本、ChangeSet、PositionMap 和权限入口。
 - 错误路径：过期版本、跨范围、无效命令不能提交半次修改。
 - 自动验证：失败原子性、位置映射组合、分裂／合并／移动及撤销性质测试。
 - 人工验收：跨段编辑后检查选择、书签、批注锚点和撤销结果。
-- 完成证据：joyword-engine 已实现原子事务、单调版本、ChangeSet、PositionMap、权限入口与快照撤销，16 项测试含参考模型随机对照；人工验收需界面（T102／T106），见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：joyword-engine 已实现原子事务、单调版本、ChangeSet、PositionMap、权限入口与快照撤销，16 项测试含参考模型随机对照。2026-10-17 人工验收已执行：以生产会话与输入组件（文档画布所绑定的同一 `Session`／`TextInput` 代码路径，非 GUI 壳层）复核跨段编辑后的选择、书签与批注锚点及撤销——`bookmarks_and_comments_follow_cross_paragraph_edits_and_undo`、`selection_is_mapped_and_restored_by_undo`、`undo_and_redo_restore_exact_states_with_monotonic_versions`、`inline_objects_and_formatting_round_trip_through_undo` 及输入层选择恢复测试全部通过（本机复验：engine 39 项、text_input 8 项），见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T102：输入、选择与基础格式
 
 - 输入：文档会话、PositionMap、平台输入事件及布局命中数据。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`EDIT-001`、`EDIT-002`、`EDIT-003`、`STYLE-001`、`PLATFORM-004`
 - 前置：`T101`、`T105`、`T106`
 - 产物：GPUI 文档画布输入、选择、字符及段落基础格式、组合态 overlay。
@@ -132,55 +154,55 @@
 ### T103：DOCX 最小语义与保留读写
 
 - 输入：ECMA／微软公开规范、原创 OPC 样例、文档模型和资源预算。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`FORMAT-001`、`FORMAT-002`、`FORMAT-003`、`FORMAT-004`、`QUALITY-005`
 - 前置：`T100`、`T004`
 - 产物：OPC、关系图、正文段落和基础格式；兼容模式写入与保留；ImportResult、ExportPlan、未知保留；解析资源预算与 fuzz 目标；锁文件检测与保留元数据的原子保存。
 - 错误路径：损坏包、未知嵌套、失效关系、超预算和不安全编辑只读／拒绝，原件保持；受保护或强制修订的文档在对应能力实现前只读打开或明确提示。
 - 自动验证：规范最小文件、无编辑复制、编辑往返、未知部件散列、失败保存、元数据保留和 fuzz 冒烟测试。
 - 人工验收：打开自建与固定 Word／WPS 样例，编辑支持区域、保存、重新打开。
-- 完成证据：已有格式中立 OPC 与 joyword-docx 声明子集只读导入（普通段落、基础属性、规范样式、兼容模式、保护与未知内容保留），W01 切片经集成复验及两项拒绝边界修正。C01 增量接入 shell 的 DOCX 会话：只读或 locked 非空时由 engine 整篇拒绝编辑，原包和诊断随会话保留；编辑／撤销后拒绝作为未编辑原包复制。C02 已增量实现版本绑定的保守 ExportPlan 与现有段落、现有格式边界内文字修改的字节导出，并在原预算下重新导入验证；结构／格式／对象改动、受限与签名包编辑明确拒绝。C03 进一步提供已验证计划到新文件的同目录临时写入／sync／回读／不覆盖发布及版本收据，故障与并发测试通过。第二轮 W05 增量支持默认格式纯文本正文段落的拆分、合并、插入与删除导出，并按身份对齐、节边界与保留片段字节复核，见 [W05 报告](../coordination/reports/W05.md)。W07 提供源身份、Office／JoyWord 锁文件检测与冲突预检；save_original 因 ExportPlan 缺少来源绑定仍拒绝原件替换，见 [W07 报告](../coordination/reports/W07.md)。W09 独立健壮性 harness 与固定种子变异未发现生产缺陷，但不是覆盖引导 fuzz，也未接入 CI，见 [W09 报告](../coordination/reports/W09.md)。第三轮：W10 为 ExportPlan 增加来源字节绑定（`origin_bytes()`，私有字段不可伪造）；W11 实现写入前的来源比对与平台能力矩阵，公开 `save_original` 在所有平台仍于写入前返回 ReplacementUnavailable；W12 支持 pPr／rPr 可证明完全映射段落的结构导出（原样复制源属性元素字节，不能证明即拒绝），见 [W10](../coordination/reports/W10.md)、[W11](../coordination/reports/W11.md)、[W12](../coordination/reports/W12.md) 报告。其后的替换增量补上读回确认、未确认发布保留备份与元数据恢复核对，Unix 所有权与 macOS 创建时间转为可保留，见 [W07 替换增量](../coordination/reports/W07-REPLACE-INCREMENT.md)。原件覆盖保存的用户选择路径（T110）、其余元数据平台观测、格式之外的带格式导出扩展、完整语义与 fuzz 目标未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)、[集成审查](../coordination/reports/WAVE01-REVIEW.md)、[C01 报告](../coordination/reports/C01-DOCX-SESSION.md)、[C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)和 [C03 报告](../coordination/reports/C03-DOCX-COPY.md)。
+- 完成证据：已有格式中立 OPC 与 joyword-docx 声明子集只读导入（普通段落、基础属性、规范样式、兼容模式、保护与未知内容保留），W01 切片经集成复验及两项拒绝边界修正。C01 增量接入 shell 的 DOCX 会话：只读或 locked 非空时由 engine 整篇拒绝编辑，原包和诊断随会话保留；编辑／撤销后拒绝作为未编辑原包复制。C02 已增量实现版本绑定的保守 ExportPlan 与现有段落、现有格式边界内文字修改的字节导出，并在原预算下重新导入验证；结构／格式／对象改动、受限与签名包编辑明确拒绝。C03 进一步提供已验证计划到新文件的同目录临时写入／sync／回读／不覆盖发布及版本收据，故障与并发测试通过。第二轮 W05 增量支持默认格式纯文本正文段落的拆分、合并、插入与删除导出，并按身份对齐、节边界与保留片段字节复核，见 [W05 报告](../coordination/reports/W05.md)。W07 提供源身份、Office／JoyWord 锁文件检测与冲突预检；save_original 因 ExportPlan 缺少来源绑定仍拒绝原件替换，见 [W07 报告](../coordination/reports/W07.md)。W09 独立健壮性 harness 与固定种子变异未发现生产缺陷，但不是覆盖引导 fuzz，也未接入 CI，见 [W09 报告](../coordination/reports/W09.md)。第三轮：W10 为 ExportPlan 增加来源字节绑定（`origin_bytes()`，私有字段不可伪造）；W11 实现写入前的来源比对与平台能力矩阵，公开 `save_original` 在所有平台仍于写入前返回 ReplacementUnavailable；W12 支持 pPr／rPr 可证明完全映射段落的结构导出（原样复制源属性元素字节，不能证明即拒绝），见 [W10](../coordination/reports/W10.md)、[W11](../coordination/reports/W11.md)、[W12](../coordination/reports/W12.md) 报告。其后的替换增量补上读回确认、未确认发布保留备份与元数据恢复核对，Unix 所有权与 macOS 创建时间转为可保留，见 [W07 替换增量](../coordination/reports/W07-REPLACE-INCREMENT.md)。2026-10-18 Word 人工验收的 Word 一侧已执行：Word 2024（build 16.0.20430.20182）打开 JoyWord 导出副本并追加一段另存，JoyWord 重新导入 Word 写出的文件——正文逐段一致、可编辑（unrestricted，无 locked）、Word 新增部件（theme/fontTable/webSettings）与未知属性按保留诊断记录不丢弃，`export_plan` 对该 Word 文件成功（0 警告），产物在 `tests/fixtures/reference/word2024/interop/`。同日补充 Word 生成文件导入矩阵：6 个格式样例经 Word 重存（完整原生部件）后逐一导入——正文逐段一致，MIN-001/002/003/SAMPLE-001 可编辑（unrestricted），MIN-004 外部超链接按 locked 保留，MIN-005 保护设置保留为整篇只读，`export_plan` 对全部 6 个 Word 文件成功；Word 写出的 theme/fontTable/webSettings/customXml 部件按 NotImported 保留诊断记录。WPS 一侧、覆盖引导 fuzz 未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)、[集成审查](../coordination/reports/WAVE01-REVIEW.md)、[C01 报告](../coordination/reports/C01-DOCX-SESSION.md)、[C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)和 [C03 报告](../coordination/reports/C03-DOCX-COPY.md)。
 
 ### T104：撤销、本地日志与恢复
 
 - 输入：已提交事务、文档快照、正式保存版本与可注入失败的存储适配。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`EDIT-005`、`FORMAT-004`、`QUALITY-004`
 - 前置：`T101`、`T103`
 - 产物：独立撤销栈、日志校验、周期快照、dirty 版本与恢复选择。周期快照必须包含 PackageBacking 与原包基线所需信息，不能只含模型；加密文档不落明文副本；快照写入经临时文件、校验与原子改名，并保留上一代有效副本。
 - 错误路径：磁盘满、截断、外部修改、保存期间继续编辑和日志迁移失败不丢原件。
 - 自动验证：故障注入、有效前缀恢复、保存版本竞争、undo／redo 属性测试。
 - 人工验收：强制结束测试进程后恢复，比较最后完整事务和正式保存文件。
-- 完成证据：生产恢复日志在 `joyword-shell` 的 `storage::recovery`：提交写入原包基线与已提交文本，校验后原子改名；加密包拒绝且不写明文。`Office` 在编辑提交后写恢复日志。子进程经 `FILE_OPEN` 与 `EDIT_INSERT` 提交后被终止，父进程用 `Office::recover_from` 把该提交放回会话。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则恢复进会话，示例文档不会盖掉它。W08／W14 仍是先前实验与设计。Windows 原生、断电和图形界面强制结束未验证，不标 done。
+- 完成证据：生产恢复日志在 `joyword-shell` 的 `storage::recovery`：提交写入原包基线与已提交文本，校验后原子改名；加密包拒绝且不写明文。`Office` 在编辑提交后写恢复日志。子进程经 `FILE_OPEN` 与 `EDIT_INSERT` 提交后被终止，父进程用 `Office::recover_from` 把该提交放回会话。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则恢复进会话，示例文档不会盖掉它。2026-10-17 起 `m1_concurrency_recovery` 已在 Windows 参考环境原生通过（3 项，含子进程终止后的恢复与加密包拒绝），macOS 复验见 [IMPLEMENTATION](IMPLEMENTATION.md)。断电与图形界面强制结束未验证，不标 done。
 
 ### T105：基础排版引擎
 
 - 输入：文档快照、T003 验证的字体身份与整形链路、页面设置和 Unicode 分析。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-002`、`LAYOUT-003`、`LAYOUT-009`
 - 前置：`T100`、`T003`
 - 产物：四槽字体选择与整形、段落断行（含基础禁则）、单节分页、命中测试、光标与选区几何、LayoutSnapshot 与屏幕 PageScene。
 - 错误路径：缺字体、超长无断点文本、过高对象和陈旧快照有界诊断，不阻塞输入。
 - 自动验证：固定字体断行／分页样例、命中往返、快照键与版本、缩放不改变几何。
 - 人工验收：打开原创中英文样例，滚动、缩放并核对光标、选区与分页。
-- 完成证据：W03 已增量实现单字体 LTR、显式合法断点的行拟合切片，含候选行重整形、EMU 几何、源范围映射、预算及超宽诊断；7 项新单元测试和 8 项真实字体集成测试在集成复验中通过。C04 已增量接入 Unicode 15.0 默认自动断点，与整形簇求交并共享同一请求预算；新增 8 项真实字体测试通过。C06 已把只读文档快照和 CPU 场景图像接入窗口（新画布 GUI 尚待验收），见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。C05 已增量实现单节预览分页、版本／内容／字体／profile 快照键、命中／光标／跨页选区与多页 PDF 链路，19 项新增排版测试及 PDF 集成测试通过，见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。第二轮 W06 增量接受 keep_next／keep_lines 并做有界分页，原有几何接口不变，新增 12 项测试，见 [W06 报告](../coordination/reports/W06.md)。`wrap_mixed` 按四槽选字体，缺字改用 fallback，并用 `adjust_cjk_break` 挪开会把收尾标点放到行首的断点；本机宋体对照见 layout 测试。2026-10-17：`m1_scene_pdf` 对同一次 `layout_document` 的两次结果比较页面、行、光标与选区，缩放只走屏幕投影，字形、光标和选区换算回点后不超过 0.01 pt；`joyword_pdf::render` 用同一份字体字节，PDF 内容流里的文本矩阵与场景字形原点不超过 0.01 pt。`layout_document` 对含东亚或复杂文字的段落调用 `wrap_mixed`、`slot_for` 和 `adjust_cjk_break`，窄页上的句号不会被排到行首。固定 Word 的完整中文规则、widowControl 与界面滚动缩放验收未完成，T105 不标 done。
+- 完成证据：W03 已增量实现单字体 LTR、显式合法断点的行拟合切片，含候选行重整形、EMU 几何、源范围映射、预算及超宽诊断；7 项新单元测试和 8 项真实字体集成测试在集成复验中通过。C04 已增量接入 Unicode 15.0 默认自动断点，与整形簇求交并共享同一请求预算；新增 8 项真实字体测试通过。C06 已把只读文档快照和 CPU 场景图像接入窗口（新画布 GUI 尚待验收），见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。C05 已增量实现单节预览分页、版本／内容／字体／profile 快照键、命中／光标／跨页选区与多页 PDF 链路，19 项新增排版测试及 PDF 集成测试通过，见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。第二轮 W06 增量接受 keep_next／keep_lines 并做有界分页，原有几何接口不变，新增 12 项测试，见 [W06 报告](../coordination/reports/W06.md)。`wrap_mixed` 按四槽选字体，缺字改用 fallback，并用 `adjust_cjk_break` 挪开会把收尾标点放到行首的断点；本机宋体对照见 layout 测试。2026-10-17：`m1_scene_pdf` 对同一次 `layout_document` 的两次结果比较页面、行、光标与选区，缩放只走屏幕投影，字形、光标和选区换算回点后不超过 0.01 pt；`joyword_pdf::render` 用同一份字体字节，PDF 内容流里的文本矩阵与场景字形原点不超过 0.01 pt。`layout_document` 对含东亚或复杂文字的段落调用 `wrap_mixed`、`slot_for` 和 `adjust_cjk_break`，窄页上的句号不会被排到行首。2026-10-18 固定 Word 2024 实测对照：同字体（等线）同字号同固定行距同页框下，合同样例（2 页 24 行）与标点压力样例（2 页 27 行）的断行与 JoyWord 逐行一致、行位偏差 ≤1 pt（[规则目录 R2](layout_rules.md)，产物在 `tests/fixtures/reference/word2024/breaks/`）；同日实测登记 R3（两端对齐余量分配到字间、段末行不拉伸）、R4（单倍行距机制破解：自然行高 ≈1.3×win 跨度×字号，行距吸附到 312 twips 行网格整数倍）、R5（孤行控制强制拆分负结果，已核实写入 XML）、R6（keepNext 正对照）；标点压缩分类规则已实测（R7：引号 0.36em、连排半宽、孤立全宽）、keepLines 负结果（R8）、悬挂标点观测（R9）；混合格式尚未实测，widowControl 未实现，界面滚动缩放验收未完成，T105 不标 done。
 
 ### T106：应用外壳、命令注册表与偏好
 
 - 输入：GPUI 窗口、事务入口、平台菜单与文件对话框接口及本地化资源。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`EDIT-001`、`PLATFORM-002`、`PLATFORM-008`
 - 前置：`T002`、`T101`
 - 产物：命令注册表（名称、可用状态、快捷键、执行入口；元数据含是否修改文档与类型化参数说明，程序化调用参数齐全时直接执行、缺参数时返回待输入结果而非弹框）、菜单、快捷键、文件对话框、最近文件、多文档会话与未保存提示、偏好设置，以及支持插值和复数的本地化资源。
 - 错误路径：未实现命令不出现；取消关闭保留会话；偏好损坏时回退默认值并提示。
 - 自动验证：菜单、快捷键与 CLI 指向同一命令；关闭流程、偏好迁移和本地化键一致。
 - 人工验收：在 Mac 上用菜单和快捷键新建、打开、切换、关闭多个文档，修改作者名后重启核对。
-- 完成证据：joyword-shell 已实现命令注册表（唯一执行入口、可用状态、平台快捷键、菜单分组与冲突校验）、带插值与 CLDR 复数的本地化、偏好设置（迁移、损坏回退与备份、新版本只读、原子写入）和多文档未保存／关闭流程；应用的菜单、快捷键与按钮已改由注册表驱动。第三轮 C09 已把绑定打开接入应用外壳：`open_source` 成为持有 DocxSession 的绑定会话，另存只走 `save_export_copy`，绑定路径与 dirty 状态跟随已打开文件，锁文件创建／释放归会话生命周期，见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md)。文件对话框、最近文件界面与多窗口随 T103 的打开／保存接入。第二轮 W07 的 shell::storage 源身份与冲突预检接口已就绪，但尚未接入文件命令与保存版本跟踪。命令已带 `modifies_document` 与类型化参数；缺参数返回 `PendingInput`，参数齐全则执行。`Office` 覆盖最近文件、多文档切换和未保存关闭的取消。无头读回命令仍属 T210，不在本任务。`file.open_recent` 与 `document.switch` 有命令测试。窗口持有 `Office`，关闭时 `choice=cancel` 保留会话。文件对话框的图形人工验收未完成，T106 不标 done。2026-10-17：启动示例改为真实 DOCX 包会话（DOCX-SAMPLE-001，正文逐行取自 cjk-contract.txt），未打开文件时另存同样可用；另存在保存期间继续编辑走后台 `SaveCopyJob`，结果按会话纪元与版本落地。命令被禁用或失败时在窗口显示原因，不再静默。
+- 完成证据：joyword-shell 已实现命令注册表（唯一执行入口、可用状态、平台快捷键、菜单分组与冲突校验）、带插值与 CLDR 复数的本地化、偏好设置（迁移、损坏回退与备份、新版本只读、原子写入）和多文档未保存／关闭流程；应用的菜单、快捷键与按钮已改由注册表驱动。第三轮 C09 已把绑定打开接入应用外壳：`open_source` 成为持有 DocxSession 的绑定会话，另存只走 `save_export_copy`，绑定路径与 dirty 状态跟随已打开文件，锁文件创建／释放归会话生命周期，见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md)。文件对话框、最近文件界面与多窗口随 T103 的打开／保存接入。W07 的源身份与冲突预检已随 C09 接入文件命令：`open_path` 经 `BoundDocx::open_default`（内含 `open_source` 的身份核对与锁冲突预检），保存版本跟踪由 `start_save`／`finish_save` 票据实现（会话版本不符不写文件、不清 dirty；2026-10-17 Windows 原生复验）。命令已带 `modifies_document` 与类型化参数；缺参数返回 `PendingInput`，参数齐全则执行。`Office` 覆盖最近文件、多文档切换和未保存关闭的取消。无头读回命令仍属 T210，不在本任务。`file.open_recent` 与 `document.switch` 有命令测试。窗口持有 `Office`，关闭时 `choice=cancel` 保留会话。文件对话框的图形人工验收未完成，T106 不标 done。2026-10-17：启动示例改为真实 DOCX 包会话（DOCX-SAMPLE-001，正文逐行取自 cjk-contract.txt），未打开文件时另存同样可用；另存在保存期间继续编辑走后台 `SaveCopyJob`，结果按会话纪元与版本落地。命令被禁用或失败时在窗口显示原因，不再静默。
 
 ### T108：画布可见页光栅与缓存
 
 - 输入：现有 CanvasPipeline 排版／光栅两段流水线、页面场景与投影约定、当前全部页面共用像素预算的实现。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-015`
 - 前置：`T105`
 - 产物：光栅阶段改为视口±N 页的增量作业；缓存键为布局键＋页序号＋投影；每帧光栅预算与远离视口淘汰；超高页按固定网格分块；像素上限只约束缓存规模，不限制文档页数；选区、光标与查找高亮作为叠加层，不触发重新光栅。
@@ -192,7 +214,7 @@
 ### T109：打开与保存的并发安全
 
 - 输入：C09 绑定打开会话、W07 冲突预检、engine 版本与脏版本绑定机制。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`EDIT-001`、`EDIT-004`
 - 前置：`T102`、`T103`
 - 产物：打开读取期间编辑器处于只读“打开中”状态，新文档就绪按版本复核后才替换当前会话；保存副本与原件保存作为携带会话身份与版本的后台任务，计划、校验与 IO 在后台完成，结果按身份与版本应用。
@@ -204,38 +226,38 @@
 ### T110：原件保存的元数据观测与用户选择路径
 
 - 输入：W10 来源绑定、W11 能力矩阵与 Unix 发布步骤、替换增量的读回确认、SPEC §5 的用户选择路径。
-- 状态：`in_progress`
+- [ ] 状态：`in_progress`
 - 需求：`FORMAT-004`
 - 前置：`T103`
 - 产物：各平台 ACL、扩展属性、来源标记与创建时间的观测实现（经审计的平台接口或按 ADR-009 精确固定的依赖）；不可保留或不可观测项在替换前列出，默认另存副本，用户显式确认才替换原件；以平台交换语义（如 RENAME_SWAP／RENAME_EXCHANGE）消除最后检查与改名之间的竞争窗口。
 - 错误路径：观测失败默认拒绝替换；确认与拒绝都留下诊断；新增依赖须经 cargo-deny 并记录来源。
 - 自动验证：逐项元数据的保留与拒绝测试、锁与外部修改检测、确认替换与另存副本两条路径。
 - 人工验收：普通本地文档保存原件并重开；含 ACL 或隔离标记的文档在替换前列出损失项且默认仍为另存。
-- 完成证据：`save_original` 在未确认时不改源字节并列出不能保留或不能观测的元数据；`save_original_with_choice(Confirm)` 在观测成功时替换并核对权限、所有者、macOS 创建时间与扩展属性；`save_default_copy` 写新副本。观测失败拒绝替换。依赖精确固定的 `xattr` 1.6.1。macOS 与 Linux 的确认替换使用 rustix 1.1.5 的 `renameat_with(RenameFlags::EXCHANGE)`（Apple 上为 `RENAME_SWAP`）：交换之后若临时名上的 inode 不是已核对的源文件，再交换回来并拒绝替换。见 `m1_save_original` 与 `exchange_restores_a_file_replaced_after_the_identity_check`。人工含隔离标记的文档未做，不标 done。
+- 完成证据：`save_original` 在未确认时不改源字节并列出不能保留或不能观测的元数据；`save_original_with_choice(Confirm)` 在观测成功时替换并核对权限、所有者、macOS 创建时间与扩展属性；`save_default_copy` 写新副本。观测失败拒绝替换。依赖精确固定的 `xattr` 1.6.1。macOS 与 Linux 的确认替换使用 rustix 1.1.5 的 `renameat_with(RenameFlags::EXCHANGE)`（Apple 上为 `RENAME_SWAP`）：交换之后若临时名上的 inode 不是已核对的源文件，再交换回来并拒绝替换。见 `m1_save_original` 与 `exchange_restores_a_file_replaced_after_the_identity_check`。2026-10-17 起 Windows 观测落地（stable std）：`Metadata::created()` 观测创建时间（不可恢复则列为损失）、`path:Zone.Identifier` ADS 经长度上限读取（缺失无损失、存在列为不可保留、读取失败即观测拒绝）、所有权／ACL／链接数／其余 ADS 报告不可观测；能力矩阵同步更新并有 Windows 矩阵测试与观测单元测试、公共路径集成测试（含 ADS 的拒绝清单不改源字节与流）。公开原件保存在 Windows 仍在写入前拒绝，恢复路径仅 Unix 接线。人工含隔离标记的文档未做，不标 done。
 
 ### T111：工程门禁自动化
 
 - 输入：ARCHITECTURE §1 的层表与禁止依赖、AI 专题的核心 crate 边界、现有 clippy 与 CI 门禁。
-- 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`QUALITY-010`
 - 前置：`T001`
 - 产物：逐 crate 启用 no-panic deny lint（现存 unwrap／expect／panic 清理为返回错误或带注释的局部豁免）；engine 事务外层 panic 守卫覆盖命令执行、不变量检查与 ChangeSet 生成；全命令与全事务恶意输入测试（panic 计数断言为零，覆盖守卫内路径）；依赖方向与未登记 crate 自动检查；文件系统访问白名单源码扫描；以上全部进入 CI。
 - 错误路径：lint 违规、守卫外 panic、未登记依赖、白名单外的文件系统调用均使 CI 失败。
 - 自动验证：注入 panic 的恶意输入测试先失败后通过；分层与白名单检查各有反例测试。
 - 人工验收：逐条审查 lint 豁免清单与门禁配置。
-- 完成证据：`scripts/check_gates.py` 已进入 CI：分层依赖、文件系统白名单、panic 基线（`scripts/panic_baseline.txt`）与反例。engine `apply` 有 panic 守卫，注入 panic 后文档不变。2026-10-17 视口缓存测试新增的 `unwrap`／`expect`／`panic!` 已记入基线；`raster_page` 在像素缓冲无法组成图像时返回错误。全量豁免逐条人工审查未完成，不标 done。
+- 完成证据：`scripts/check_gates.py` 已进入 CI（`.github/workflows/ci.yml`）：分层依赖、文件系统白名单、panic 基线（`scripts/panic_baseline.txt`）与反例；engine `apply` 有 panic 守卫（`catch_unwind` 恢复文档／策略／撤销栈并返回 `TxError::Interrupted`），注入 panic 后文档与版本不变。2026-10-17 人工验收已执行：基线 513 条逐条归类审查（测试／示例代码；生产代码均为“先校验后使用”的内部不变量、资源耗尽防护、静态输入或启动装配错误、测试注入钩子四类之一），门禁配置（LAYERS、FS_ALLOW、扫描规则、CI 接入）逐项核对，本机 gates 与 counterexample 全部通过；审查中发现 `check_gates.py` 在 GBK 默认编码的 Windows 上读取基线失败，已改为显式 UTF-8（CI 行为不变）。详见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T107：M1 发布门槛
 
 - 输入：T102–T106 与 T108–T111 的产物、原创中文样例，以及固定 Word 与 WPS 生成的 DOCX 样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`EDIT-001`、`EDIT-004`、`FORMAT-004`、`QUALITY-004`、`QUALITY-005`、`QUALITY-006`
 - 前置：`T102`、`T103`、`T104`、`T105`、`T106`、`T108`、`T109`、`T110`、`T111`
 - 产物：中文输入—编辑—保存 DOCX—退出—重开的端到端报告、不可信文件预算与 fuzz 冒烟报告、首个性能冒烟基线。
 - 错误路径：任何静默数据丢失、绕过文档保护或无界资源消耗阻断阶段；参考样例缺失不按通过计。
 - 自动验证：端到端脚本、保存故障注入、fuzz 冒烟及 20 页样例的打开与输入延迟。
 - 人工验收：在 Mac 上完成 M1 工作流，并用 Word 与 WPS 打开保存结果。
-- 完成证据：2026-10-17 自动部分已跑：`m1_edit_save` 连续两次通过，覆盖中文编辑、加粗、居中、剪贴板、另存重开和未知部件，受保护文档拒绝编辑，失败的另存不改源字节。`m1_concurrency_recovery` 通过：打开期间的输入保留，过期保存不清 dirty，子进程终止后恢复最后一次提交和原包基线，加密包不写明文副本。不启用 `dev-runtime-shaders` 的 `joyword` 构建连续两次成功。WPS 被要求打开这次另存的 DOCX，`open` 退出码为 0 且进程在运行，没有读回正文。本机没有 Microsoft Word.app，也没有 Office LTSC 2024。用 Word 与 WPS 核对正文的人工验收未完成，T107 保持 `planned`。
+- 完成证据：2026-10-17 自动部分已跑：`m1_edit_save` 连续两次通过，覆盖中文编辑、加粗、居中、剪贴板、另存重开和未知部件，受保护文档拒绝编辑，失败的另存不改源字节。`m1_concurrency_recovery` 通过：打开期间的输入保留，过期保存不清 dirty，子进程终止后恢复最后一次提交和原包基线，加密包不写明文副本。不启用 `dev-runtime-shaders` 的 `joyword` 构建连续两次成功。首个性能冒烟基线已建立：无头可复现基准 `apps/joyword/examples/perf_smoke.rs`（release），Windows 参考环境实测——打开启动样例中位 0.099 ms（5 行小文件）、20 页样例首次整篇排版 15.997 ms、输入路径（提交＋整篇重排）中位 0.015＋16.463 ms，远低于 50 ms 输入预算；详见 [IMPLEMENTATION](IMPLEMENTATION.md)。2026-10-18 Word 正文核对已在 Windows 参考机完成；同日端到端报告组装完成（[e2e_report.md](../../tests/fixtures/reference/word2024/e2e_report.md)：打开—中文编辑—保存—退出—重开—Word 核对逐字一致，含关联恢复与性能证据）：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182）COM 只读打开 JoyWord 导出的编辑副本（DOCX-SAMPLE-001 ＋段首插入"校验"），读回正文与包内段落逐段逐字一致（144 字符、1 页），`protection_type` 无保护。WPS 一侧在 Mac 上被要求打开过另存 DOCX（进程运行，无读回）；本 Windows 环境未装 WPS。在 Mac 上完成 M1 工作流并用 WPS 核对的人工验收未完成，T107 保持 `planned`。
 
 ## M2：日常办公
 
@@ -244,7 +266,7 @@
 ### T200：样式、编号与编辑便利
 
 - 输入：段落及字符属性、样式继承图、多级编号和用户查找条件。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`STYLE-002`、`STYLE-003`、`STYLE-004`、`STYLE-005`、`EDIT-006`、`EDIT-007`
 - 前置：`T102`、`T103`
 - 产物：样式面板、继承、主题、多级编号、制表位、查找替换与格式刷。
@@ -256,7 +278,7 @@
 ### T201：基础表格编辑
 
 - 输入：合法段落模型、表格网格定义、行列选择和 DOCX 表格规范样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-005`、`STYLE-004`
 - 前置：`T200`
 - 产物：真实网格、行列增删、基础合并拆分、边框／底纹及表格内选择。
@@ -268,7 +290,7 @@
 ### T202：页面与页眉页脚
 
 - 输入：段落分页属性、物理页面设置、分节及页眉页脚 story。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-004`、`LAYOUT-012`
 - 前置：`T102`、`T103`
 - 产物：分页符、页面设置、页眉页脚（首页不同、奇偶页不同、链接到前一节）、页码域、基础分节及孤行等段落分页约束。
@@ -280,7 +302,7 @@
 ### T203：图片与富文本剪贴板
 
 - 输入：系统剪贴板多种 MIME／平台格式、图片资源及用户粘贴策略。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-006`、`CLIP-001`、`CLIP-002`、`CLIP-003`、`EDIT-003`、`EDIT-010`
 - 前置：`T101`、`T200`
 - 产物：行内图片、超链接插入编辑与确认后打开、拖放、纯文本／HTML／RTF／内部片段及粘贴策略；富剪贴板格式由 platform 层实现（GPUI 仅提供文本与图片）。
@@ -292,7 +314,7 @@
 ### T204：统一 PDF 与平台打印
 
 - 输入：稳定 PageScene、字体嵌入许可、链接书签及平台打印设置。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-009`、`FORMAT-008`、`PLATFORM-007`
 - 前置：`T003`、`T201`、`T202`
 - 产物：PageScene 完整页面输出、可选文本 PDF、平台打印层（GPUI 无打印接口）与预览，以及 PageScene 的 CPU 光栅后端。
@@ -304,7 +326,7 @@
 ### T205：功能区、标尺与状态栏
 
 - 输入：命令注册表、样式与段落属性、视图选项和本地化资源。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`PLATFORM-003`、`EDIT-009`
 - 前置：`T106`、`T200`
 - 产物：开始、插入、布局、视图等功能区中的已实现命令，字体与段落对话框（含中文字号），标尺（缩进、制表位），状态栏（页码、字数），编辑标记／隐藏文字／域代码显示切换；功能区图标以代码绘制并纳入资产署名门禁；功能目录逐项绑定需求 ID 与证据等级（存在／单元测试／语料／参考对照），只统计有证据的项。
@@ -316,7 +338,7 @@
 ### T206：M2 发布门槛
 
 - 输入：M2 任务产物、原创报告语料和固定 Word／WPS 参考环境。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-004`、`LAYOUT-008`、`LAYOUT-009`、`CLIP-001`、`QUALITY-006`
 - 前置：`T107`、`T201`、`T203`、`T204`、`T205`、`T207`、`T208`、`T209`、`T210`、`T211`
 - 产物：含样式、编号、表格、图片、页眉页脚和页码的报告往返与 PDF／打印报告，以及中文基础排版对照结果。
@@ -328,7 +350,7 @@
 ### T207：中文基础排版
 
 - 输入：ECMA-376 与 MS-OI29500 的网格条款、中文 Word／WPS 默认文档、固定字体与 Word 参考结果。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-008`、`LAYOUT-002`
 - 前置：`T105`、`T004`
 - 产物：文档网格（行／字符）吸附、字符与行单位的缩进和间距、禁则字符表、中西文自动间距、标点压缩、adjustRightInd 及相关兼容标志的支持子集；两端对齐在纯中文行字间分配余量；四槽字体与主题东亚字体（a:ea）落地；CJK 字体替代表（宋体、仿宋、楷体、黑体、等线、微软雅黑到各平台实际字体）与替代／缺字诊断；行高在 hhea／OS/2 typo／win 三套度量间的选择以固定 Word 实测为准。
@@ -340,7 +362,7 @@
 ### T208：段落缓存与增量重排
 
 - 输入：engine 的 ChangeSet、现有全量排版入口、ARCHITECTURE §6.2 的缓存键约定。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-010`
 - 前置：`T101`、`T105`
 - 产物：段落布局缓存（内容指纹＋解析样式＋可用宽度＋FontKey＋profile 基础键，页码／脚注编号／绕排区等外部依赖只在段落确实依赖时入键）、ChangeSet 驱动的失效、样式变更按受影响样式闭包失效、分页传播的稳定停止条件、整形器数据按 FontKey 缓存。
@@ -352,7 +374,7 @@
 ### T209：撤销组与输入来源区分
 
 - 输入：现有快照撤销、SPEC §6 的撤销组约束、组合输入与拖动手势路径。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`EDIT-005`
 - 前置：`T102`
 - 产物：事务层撤销组（连续打字合并为一步，组合输入一次提交、拖动手势、自动更正各自成一步，边界不跨作者、审阅模式与版本冲突）；输入层区分键入与粘贴两类来源，粘贴文本中的段落分隔不触发按键语义；行为登记表中的撤销条目逐条有测试。
@@ -364,7 +386,7 @@
 ### T210：无头读回与转换 CLI
 
 - 输入：ARCHITECTURE §3 的 CLI 契约、DocxSession 与 PageScene 的只读接口。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`QUALITY-003`
 - 前置：`T103`、`T105`
 - 产物：inspect（带 schema 版本的 JSON、显式读取投影声明与截断标志）、text、render（CPU 光栅页面 PNG）、convert（仅已支持子集）子命令；输出确定可复现。
@@ -376,7 +398,7 @@
 ### T211：应用日志与崩溃诊断
 
 - 输入：应用与 shell 的现有错误路径、QUALITY-007 的隐私约束。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`QUALITY-007`
 - 前置：`T106`
 - 产物：按启动轮转、单文件封顶的应用日志；panic hook 记录位置与回溯并对可能的正文内容脱敏；隔离偏好与日志目录的测试 profile 开关。
@@ -392,7 +414,7 @@
 ### T300：文字与移动修订
 
 - 输入：编辑事务、原始和目标内容、审阅作者及当前修订集合。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`REVIEW-001`、`REVIEW-003`、`REVIEW-004`
 - 前置：`T101`、`T103`
 - 产物：插入／删除／移动、作者时间、分组、四种视图（排版随投影变化）和局部处理。
@@ -404,7 +426,7 @@
 ### T301：格式与表格结构修订
 
 - 输入：格式属性前后值、表格结构差异与支持区域的既有修订。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`REVIEW-002`、`REVIEW-004`、`REVIEW-008`
 - 前置：`T300`、`T201`
 - 产物：属性前值、段落标记、编号、节属性和表格网格结构修订，覆盖支持的 story。
@@ -416,7 +438,7 @@
 ### T302：批注线程与现代扩展
 
 - 输入：批注范围、正文、作者、回复及传统／现代批注规范样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`REVIEW-005`、`REVIEW-006`、`REVIEW-008`
 - 前置：`T100`、`T101`、`T103`
 - 产物：范围批注、回复、解决、重开、作者信息及现代扩展映射。
@@ -428,7 +450,7 @@
 ### T303：比较与合并
 
 - 输入：原稿与目标稿的明确投影、语义差异及已有修订集合。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`REVIEW-007`、`EDIT-011`
 - 前置：`T300`、`T301`、`T302`
 - 产物：语义比较、目标投影选择、可接受／拒绝的修订结果与合并冲突；本地版本历史的保留、浏览、比较与另存恢复。
@@ -440,7 +462,7 @@
 ### T304：审阅交换发布门槛
 
 - 输入：已实现审阅能力、原创合同语料和固定版本的对照软件环境。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`REVIEW-001`、`REVIEW-002`、`REVIEW-003`、`REVIEW-004`、`REVIEW-005`、`REVIEW-006`、`REVIEW-007`、`REVIEW-008`、`CLIP-003`、`QUALITY-003`
 - 前置：`T301`、`T302`、`T303`、`T206`
 - 产物：固定 Word／WPS／LibreOffice 审阅语料和往返报告。
@@ -456,7 +478,7 @@
 ### T400：Provider 与关闭基础
 
 - 输入：AI 专题权限约束、生成内容标识的法律评估结论、本地／云 Provider 配置和可记录假服务。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`AI-001`、`AI-005`、`QUALITY-007`
 - 前置：`T101`
 - 产物：独立 Provider、配置、系统凭据、默认关闭、管理员策略（强制关闭、Provider 白名单）及 generation 权限门。
@@ -468,7 +490,7 @@
 ### T401：受限工具与授权
 
 - 输入：用户授予的选区能力、带版本快照、工具模式和恶意文本样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`AI-002`、`AI-004`
 - 前置：`T400`、`T100`
 - 产物：选区授权、结构读取、受限检索、定位引用及工具白名单。
@@ -480,7 +502,7 @@
 ### T402：修改预览与 AI 修订
 
 - 输入：可验证 ChangeProposal、目标指纹、授权范围及审阅事务。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`AI-003`、`AI-004`
 - 前置：`T401`、`T300`
 - 产物：结构化 ChangeProposal、差异预览、AI 作者与单事务提交。
@@ -492,7 +514,7 @@
 ### T403：取消、竞争与离线门槛
 
 - 输入：在途流式请求、关闭 generation、过期响应与故障 Provider。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`AI-001`、`AI-002`、`AI-003`、`AI-004`、`AI-005`、`QUALITY-007`
 - 前置：`T402`、`T304`
 - 产物：任务取消、连接释放、自有进程结束、迟到结果丢弃和关闭验证报告。
@@ -508,7 +530,7 @@
 ### T500：复杂分页与长文档
 
 - 输入：分页约束图、复杂分节／对象／表格语料及稳定布局缓存。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-012`、`LAYOUT-013`、`LAYOUT-005`、`LAYOUT-006`、`LAYOUT-010`
 - 前置：`T204`
 - 产物：多栏、连续及奇偶分节、跨页／嵌套表格、浮动绕排与增量分页。
@@ -520,7 +542,7 @@
 ### T501：注释、域与引用体系
 
 - 输入：域代码、字段缓存、引用目标、脚注 story 和页码布局结果。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-007`、`STYLE-002`
 - 前置：`T500`
 - 产物：脚注尾注、目录、题注、交叉引用、文献、索引与域代码／缓存。
@@ -532,7 +554,7 @@
 ### T502：公式、形状和表单内容
 
 - 输入：公开公式／DrawingML／控件规范、对象语义和保留资源。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-006`、`LAYOUT-007`、`FORMAT-011`、`FORMAT-010`
 - 前置：`T500`
 - 产物：公式结构、常见形状／文本框、内容控件和模板编辑。
@@ -544,7 +566,7 @@
 ### T503：语言工具与视图
 
 - 输入：许可明确的词典与语言数据及视图投影。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`EDIT-008`、`PLATFORM-003`
 - 前置：`T200`、`T501`
 - 产物：离线拼写与语言工具、草稿／大纲／阅读视图。
@@ -556,7 +578,7 @@
 ### T504：中文高级版式与公文
 
 - 输入：中文排版规范、GB/T 9704、固定字体和中文样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-002`、`LAYOUT-011`、`PLATFORM-004`
 - 前置：`T500`、`T501`、`T207`
 - 产物：拼音指南、双行合一、合并字符、带圈字符、稿纸与 GB/T 9704 公文版式样例；双向与复杂文字保真保留并提示排版受限。
@@ -572,7 +594,7 @@
 ### T600：RTF 与 Strict OOXML 交换
 
 - 输入：RTF／Strict OOXML 公开规范、文档模型、审阅子集和 ExportPlan。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-006`、`FORMAT-003`、`FORMAT-011`
 - 前置：`T301`、`T302`、`T501`
 - 产物：RTF 文件读写、Strict profile 独立读写和元素级损失分析。
@@ -584,7 +606,7 @@
 ### T601：HTML、Markdown 与文本
 
 - 输入：HTML／Markdown／TXT 明确方言、编码、导入资源与目标损失策略。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-006`、`FORMAT-003`、`CLIP-001`
 - 前置：`T203`、`T501`
 - 产物：受控 HTML／Markdown／TXT 文件双向转换和编码诊断。
@@ -596,7 +618,7 @@
 ### T602：旧版 DOC 导入
 
 - 输入：MS-DOC／CFB 规范、合法原创二进制样例及资源预算。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-007`、`FORMAT-002`、`QUALITY-005`、`QUALITY-009`
 - 前置：`T103`、`T501`
 - 产物：依据 MS-DOC／CFB 自研导入（CFB 读取供 T604 加密 OOXML 复用）、原始结构保留及支持变体矩阵。
@@ -608,7 +630,7 @@
 ### T603：PDF 导航、标签与页面图片
 
 - 输入：稳定页面场景、文档导航结构和图片目标配置。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-008`、`LAYOUT-009`
 - 前置：`T204`、`T501`
 - 产物：PDF 书签、链接与结构标签，页面图片输出。
@@ -620,7 +642,7 @@
 ### T604：加密、保护与活动内容
 
 - 输入：加密／签名／保护规范、测试密钥、宏容器与不可信文件语料。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-009`、`QUALITY-009`、`FORMAT-003`
 - 前置：`T103`、`T300`、`T602`
 - 产物：加解密、编辑限制、签名识别与修改即失效提示、宏容器保留、受限解析和来源标记。
@@ -632,7 +654,7 @@
 ### T605：WPS 文字原生格式导入
 
 - 输入：MS-DOC／CFB 规范、T602 的 DOC 导入、固定版本 WPS 生成的原创 .wps／.wpt 样例及资源预算。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-014`、`FORMAT-002`、`QUALITY-009`
 - 前置：`T602`
 - 产物：.wps／.wpt 类型识别、DOC 兼容内容导入、WPS 私有流原样保留、模板新建、另存为 DOCX 的损失计划及支持变体矩阵。
@@ -648,7 +670,7 @@
 ### T700：三端及信创产品验收
 
 - 输入：全部 1.0 承诺范围、兼容矩阵、三端及信创原生测试环境和发布候选。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`PLATFORM-001`、`PLATFORM-002`、`PLATFORM-009`、`CLIP-004`、`QUALITY-003`、`QUALITY-008`
 - 前置：`T005`、`T403`、`T502`、`T503`、`T504`、`T600`、`T601`、`T602`、`T603`、`T604`、`T605`
 - 产物：Mac／Windows／Linux 的全流程对照报告，Wayland／X11 分列，统信 UOS 与银河麒麟按 x86_64／ARM64／LoongArch64 分列。
@@ -660,7 +682,7 @@
 ### T701：输入法与可访问性
 
 - 输入：命令注册表、输入及可访问适配、系统 IME 与屏幕阅读器。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`PLATFORM-004`、`PLATFORM-005`
 - 前置：`T700`
 - 产物：结构化可访问树、焦点导航、高对比度、IME 与多显示器专项。
@@ -672,7 +694,7 @@
 ### T702：性能、故障和恢复
 
 - 输入：固定 10／100／1000 页语料、性能基准环境和故障注入方案。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-010`、`QUALITY-004`、`QUALITY-005`、`QUALITY-006`
 - 前置：`T700`
 - 产物：固定三级语料、分位数／RSS／峰值／体积报告、故障回归。
@@ -684,7 +706,7 @@
 ### T703：安装、签名和升级
 
 - 输入：发布候选、签名凭据引用、安装元数据、迁移及回退版本。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`PLATFORM-006`、`PLATFORM-009`、`QUALITY-002`
 - 前置：`T700`
 - 产物：三端安装器与信创 deb 软件包、文件关联、代码签名与统信／麒麟软件包签名、卸载、更新回退与日志迁移。
@@ -696,7 +718,7 @@
 ### T704：1.0 发布门槛与公开矩阵
 
 - 输入：通过的阶段证据、已知限制、来源记录和真实兼容矩阵。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`QUALITY-001`、`QUALITY-002`、`QUALITY-003`、`QUALITY-007`、`QUALITY-008`
 - 前置：`T701`、`T702`、`T703`
 - 产物：兼容矩阵、限制、证据、发布说明、SBOM 和隐私默认值。
@@ -712,7 +734,7 @@
 ### T800：DOC 写出
 
 - 输入：MS-DOC 写出规范、导入语义、真实参考环境与损失分析。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-013`、`FORMAT-003`
 - 前置：`T602`、`T704`
 - 产物：MS-DOC 指定变体写出和逐元素损失计划。
@@ -724,7 +746,7 @@
 ### T801：图表与 SmartArt 原生编辑
 
 - 输入：公开图表／SmartArt 格式规范、数据模型、对象布局及保留样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-010`、`LAYOUT-006`
 - 前置：`T502`、`T704`
 - 产物：按类型逐项实现图表／SmartArt 模型、编辑与资源交换。
@@ -736,7 +758,7 @@
 ### T802：稀有域与嵌入对象
 
 - 输入：用户需求优先级、稀有域／对象规范、保留数据与最小样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-010`、`FORMAT-002`
 - 前置：`T501`、`T604`、`T704`
 - 产物：扩展域和复杂对象的安全预览、保留和已声明的编辑子集。
@@ -748,7 +770,7 @@
 ### T803：高级签名与复杂模板
 
 - 输入：高级签名／模板规范、用户证书和受保护模板测试环境。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-010`、`FORMAT-009`
 - 前置：`T503`、`T604`、`T704`
 - 产物：指定标准的签名创建／验证、证书选择和复杂模板能力。
@@ -760,7 +782,7 @@
 ### T804：PDF 重建与 OCR
 
 - 输入：合法 PDF／扫描样例、OCR 模型来源、可见重建误差标准。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-010`、`FORMAT-003`
 - 前置：`T603`、`T704`
 - 产物：近似文档重建、OCR 置信度、阅读顺序及可定位误差说明。
@@ -772,7 +794,7 @@
 ### T805：ODT 文件交换
 
 - 输入：ODF 1.3／1.4 公开规范、文档模型、审阅子集和 ExportPlan。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-005`、`FORMAT-003`
 - 前置：`T600`、`T704`
 - 产物：ODF 1.3 双向、1.4 扩展和元素级损失分析。
@@ -784,7 +806,7 @@
 ### T806：EPUB 与归档 PDF
 
 - 输入：稳定页面场景、文档导航结构、EPUB 与 PDF/A 目标配置。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`FORMAT-012`
 - 前置：`T603`、`T704`
 - 产物：EPUB 导出和声明范围的 PDF/A 归档输出。
@@ -796,7 +818,7 @@
 ### T807：邮件合并
 
 - 输入：用户选择的本地数据源、模板、字段映射及输出目标。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`EDIT-012`
 - 前置：`T501`、`T502`、`T704`
 - 产物：数据源读取、字段映射、合并预览与批量输出。
@@ -808,7 +830,7 @@
 ### T808：纵排、双向与复杂文字
 
 - 输入：UAX #9／#50、固定字体、纵排、双向与复杂脚本样例。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`LAYOUT-014`、`PLATFORM-004`
 - 前置：`T504`、`T704`
 - 产物：纵排、双向文本与复杂脚本的排版、光标移动和编辑。
@@ -824,7 +846,7 @@
 ### T900：实时协作规格入口
 
 - 输入：稳定事务／标识／历史契约、离线边界和新的协作需求。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`COLLAB-001`
 - 前置：`T704`
 - 产物：另立协作规格：账户、同步、权限、冲突、离线恢复与服务运维。
@@ -836,7 +858,7 @@
 ### T901：套件共享边界规格入口
 
 - 输入：JoyWord 实际模块边界、JoySheet／JoyDeck 新需求与共享基础设施经验。
-- 状态：`planned`
+- [ ] 状态：`planned`
 - 需求：`SUITE-001`
 - 前置：`T704`
 - 产物：JoySheet／JoyDeck 独立模型与可复用资源、主题、平台基础设施方案。

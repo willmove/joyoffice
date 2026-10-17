@@ -1,0 +1,3 @@
+word: 2 pages (27 lines); joyword: 2 pages (27 lines)
+page size: word same
+OK: every line break and position agrees within 1 pt

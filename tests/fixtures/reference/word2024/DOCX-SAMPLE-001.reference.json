@@ -1,0 +1,54 @@
+{
+  "case": "DOCX-SAMPLE-001",
+  "reference": {
+    "software": "Word 2024 永久版（Office 家庭版 2024）",
+    "build": "16.0.20430.20182",
+    "os": "Windows 11 x86_64",
+    "date": "2026-10-18",
+    "export": "ExportAsFixedFormat PDF, bitmap-font substitution off",
+    "pdf": "DOCX-SAMPLE-001.pdf",
+    "pdf_sha256": "ea6654940d642a9d4531e1c9e312383da235c060e7a2a927701910bfe2c8a554"
+  },
+  "fonts": [
+    "BCDEEE+DengXian",
+    "BCDFEE+DengXian"
+  ],
+  "pages": [
+    {
+      "width": 595.32,
+      "height": 841.92,
+      "lines": [
+        {
+          "text": "合作协议（原创测试文本）",
+          "x_min": 90.02,
+          "x_max": 222.02,
+          "y_bottom": 85.24
+        },
+        {
+          "text": "甲方：青禾工作室；乙方：远山设计室。",
+          "x_min": 90.02,
+          "x_max": 288.14,
+          "y_bottom": 110.46
+        },
+        {
+          "text": "双方约定于2026年10月13日提交报告，金额为人民币12,345.67元。",
+          "x_min": 90.02,
+          "x_max": 437.11,
+          "y_bottom": 135.78
+        },
+        {
+          "text": "交付内容包括：正文、表格、图片以及Englishsummary。",
+          "x_min": 90.02,
+          "x_max": 370.87,
+          "y_bottom": 160.98
+        },
+        {
+          "text": "“完成”应以书面验收为准；未经确认，不得视为自动接受。",
+          "x_min": 90.02,
+          "x_max": 372.97,
+          "y_bottom": 186.3
+        }
+      ]
+    }
+  ]
+}

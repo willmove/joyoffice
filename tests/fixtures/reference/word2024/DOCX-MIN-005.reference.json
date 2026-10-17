@@ -1,0 +1,30 @@
+{
+  "case": "DOCX-MIN-005",
+  "reference": {
+    "software": "Word 2024 永久版（Office 家庭版 2024）",
+    "build": "16.0.20430.20182",
+    "os": "Windows 11 x86_64",
+    "date": "2026-10-18",
+    "export": "ExportAsFixedFormat PDF, bitmap-font substitution off",
+    "pdf": "DOCX-MIN-005.pdf",
+    "pdf_sha256": "c941d49939c15ebf3778286a109eaf9c9aa18559e573926cd8e0f183097217de"
+  },
+  "fonts": [
+    "BCDEEE+DengXian",
+    "BCDFEE+DengXian"
+  ],
+  "pages": [
+    {
+      "width": 595.32,
+      "height": 841.92,
+      "lines": [
+        {
+          "text": "本文档要求修订跟踪并限制编辑。",
+          "x_min": 90.02,
+          "x_max": 255.14,
+          "y_bottom": 85.24
+        }
+      ]
+    }
+  ]
+}

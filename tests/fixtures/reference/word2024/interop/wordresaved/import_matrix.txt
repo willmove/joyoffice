@@ -1,0 +1,71 @@
+== DOCX-MIN-001.docx
+editability: read_only=false unrestricted=true locked=0 diagnostics=6
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[3]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[4]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["合作协议：甲方与乙方于 2026 年签署。"]
+export_plan: ok, Docx target, 0 warnings
+
+== DOCX-MIN-002.docx
+editability: read_only=false unrestricted=true locked=0 diagnostics=6
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[3]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[4]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["第一条 合作内容", "甲方委托乙方完成设计服务。"]
+export_plan: ok, Docx target, 0 warnings
+
+== DOCX-MIN-003.docx
+editability: read_only=false unrestricted=true locked=0 diagnostics=7
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", part: "/customXml/item1.xml" } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[3]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[4]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[6]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["第一段：未知内容之前。", "第二段：未知内容之后。"]
+export_plan: ok, Docx target, 0 warnings
+
+== DOCX-MIN-004.docx
+editability: read_only=false unrestricted=false locked=1 diagnostics=8
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: ExternalTarget { source: "/word/document.xml", id: "rId4", relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", target: "https://example.invalid/joyword", kind: Web } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[3]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[4]: Diagnostic { severity: Warning, part: Some("/word/document.xml"), range: Some(2739..2812), kind: Preserved { element: "w:hyperlink", reason: Unsupported } }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[6]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[7]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["项目说明", "模板与链接都指向本包之外。"]
+export_plan: ok, Docx target, 0 warnings
+
+== DOCX-MIN-005.docx
+editability: read_only=true unrestricted=false locked=0 diagnostics=8
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[3]: Diagnostic { severity: Error, part: Some("/word/settings.xml"), range: Some(1379..1398), kind: ReadOnly(TrackRevisions) }
+diagnostic[4]: Diagnostic { severity: Error, part: Some("/word/settings.xml"), range: Some(1398..1457), kind: ReadOnly(DocumentProtection { edit: Some("readOnly") }) }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[6]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[7]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["本文档要求修订跟踪并限制编辑。"]
+export_plan: ok, Docx target, 0 warnings
+
+== DOCX-SAMPLE-001.docx
+editability: read_only=false unrestricted=true locked=0 diagnostics=6
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[3]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[4]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["合作协议（原创测试文本）", "甲方：青禾工作室；乙方：远山设计室。", "双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。", "交付内容包括：正文、表格、图片以及 English summary。", "“完成”应以书面验收为准；未经确认，不得视为自动接受。"]
+export_plan: ok, Docx target, 0 warnings
+

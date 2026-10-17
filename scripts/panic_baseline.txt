@@ -511,3 +511,12 @@ apps/joyword/src/document_canvas.rs:0:let receipt = DocEditor::save_copy(&input,
 apps/joyword/src/document_canvas.rs:0:joyword_shell::docx::DocxSession::open_default(&std::fs::read(receipt.path()).unwrap())
 apps/joyword/src/document_canvas.rs:0:let source = source_with_text(font, "AV").unwrap();
 apps/joyword/src/document_canvas.rs:0:let input = TextInput::new(source.session, InputLimits::default()).unwrap();
+crates/joyword-shell/src/storage/metadata.rs:273:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/metadata.rs:275:std::fs::write(&path, b"0123456789").unwrap();
+crates/joyword-shell/src/storage/metadata.rs:276:let observed = observe(&path).unwrap();
+crates/joyword-shell/src/storage/metadata.rs:312:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/metadata.rs:314:std::fs::write(&path, b"0123456789").unwrap();
+crates/joyword-shell/src/storage/metadata.rs:316:std::fs::write(&stream, b"[ZoneTransfer]\r\nZoneId=3\r\n").unwrap();
+crates/joyword-shell/src/storage/metadata.rs:317:let observed = observe(&path).unwrap();
+crates/joyword-shell/src/storage/metadata.rs:325:std::fs::remove_file(&stream).unwrap();
+crates/joyword-shell/src/storage/metadata.rs:326:let observed = observe(&path).unwrap();

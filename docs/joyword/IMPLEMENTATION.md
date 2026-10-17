@@ -1,6 +1,14 @@
 # JoyWord 当前实施与验证记录
 
-记录日期：2026-10-17（第三轮集成、gpui-pre 迁移与开源编辑器对照分析后更新）。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.3，工程版本为 0.0.1。
+记录日期：2026-10-18（Word 参考环境落地后更新）。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.3，工程版本为 0.0.1。
+
+## 进度速览
+
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、统一排版场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志。
+- **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、完整中文排版，以及 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+
+下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
 ## 已落地的内容
 
@@ -11,7 +19,7 @@
 - 原创 UTF-8 种子与 5 个原创最小 DOCX 样例、散列清单，以及需求覆盖／依赖／本地链接／语料（含参考结果状态）／语言资源／Actions 固定检查器；语义比较接口与 PDF 行／页断点比较工具。
 - 未签名 macOS 开发包装脚本。没有修改系统工具链或安装 Xcode。
 
-已在第一轮协作中接入 DOCX 声明子集只读导入（W01）与单字体行拟合（W03），后续完成保守文字导出（C02）、新路径副本落盘（C03）、Unicode 默认断行（C04）、单节预览分页与命中几何（C05）、CPU 统一场景与窗口接入（C06）。C07 已接入会话内纯文本编辑、原生输入接口、组合预编辑、选择／撤销与未保存关闭保护；正文仍按布局场景字形绘制，不交由 GPUI 重新整形。第二轮（W05–W09）已合入：默认格式纯文本段落的拆分／合并导出、keep-next／keep-lines 分页、源身份与冲突预检，以及恢复日志和 DOCX 健壮性两个独立实验工程。第三轮（W10–W14、C09 与原件替换增量）已合入：ExportPlan 来源字节绑定、原件保存的来源比对与平台能力矩阵（公开 save_original 在所有平台仍于写入前拒绝）、pPr／rPr 可证明完全映射段落的结构导出、W09 harness 重锚定、恢复日志接入设计（W14，未实现），以及应用外壳的绑定打开与另存副本（C09，`open_source` 成为绑定会话，绑定路径与 dirty 状态跟随已打开文件）。此后完成 gpui-pre 0.3.9 迁移与来源逐文件校验、macOS 应用菜单顺序修正、IME 候选窗位置修正（组合期间按排版几何应答）、画布“排版先于光栅”拆分（排版就绪即提供几何，光栅随后到达），并把健壮性 harness 绑定到菜单顺序增量（1367f54）。格式导出的进一步扩展、原件保存的用户选择路径、Word 兼容排版、字体回退、修订、批注、剪贴板和 AI 未完成；GUI／系统 IME 人工验收已执行菜单与 IME 候选位置两项，其余待执行。
+第一轮至第三轮及后续增量已接入 DOCX 声明子集导入、保守导出、绑定打开与另存、Unicode 断行、分页命中、CPU 统一场景、会话编辑、恢复日志、原件保存确认路径及可见页光栅缓存。gpui-pre 0.3.9 迁移与来源校验、macOS 菜单和 IME 候选位置修正也已完成。完整 Word 兼容排版、更多格式导出、修订、批注、富文本剪贴板与 AI 未完成；菜单和 IME 候选位置已做约定场景人工检查，其余 GUI／系统 IME 验收待执行。各轮原始记录保留在下文。
 
 ### 第一轮集成切片（2026-10-14）
 
@@ -22,7 +30,7 @@
 - 源码校验点 2d4093b885eaf5928929f972ca25c48bd330082e：本机强制真实字体的默认成员测试 135 项通过、0 跳过字体标记；三个相关 crate 的 all-targets clippy、fmt、规格检查及 9 项 Python 工具测试通过。W01/W03 交付提交和详细范围见[集成审查](../coordination/reports/WAVE01-REVIEW.md)。这些结果不能替代新版三端 CI、Office 或 GUI 验收。
 - 后续 Windows CI 暴露 W03 的 Segoe UI 连字前提不成立，已以 4,164 bytes 的固定 OFL 测试子集替代系统拉丁字体，保留 fi/AV 断言，本机 135 项重新通过；远程修正后运行待确认，见[CI 记录](../coordination/reports/CI-WINDOWS-FONT.md)。
 
-### joyword-model（T100，进行中：仅剩人工验收）
+### joyword-model（T100，已完成：2026-10-17 人工验收执行并记录）
 
 | 部分 | 已实现 | 尚未实现 |
 | --- | --- | --- |
@@ -34,7 +42,7 @@
 | 标注与资源 | 书签、批注锚点、跨段复杂域（含 separate）、权限、行内 SDT 共用 Position（story、段落、标量偏移、偏向）；失锚状态可见；资源按 SHA-256 与来源区分，不自动去重 | — |
 | 校验与序列化 | 重复／未分配 ID、run 覆盖、对象位置、空单元格、网格、纵向合并、分节边界、页眉页脚类型、标注范围等诊断；嵌套 ≤64 层、诊断 ≤256 条；确定性模型转储，可忽略 ID 用于语义比较 | 与 T004 比较器的对接 |
 
-### joyword-engine（T101，进行中：仅剩人工验收）
+### joyword-engine（T101，已完成：2026-10-17 人工验收执行并记录）
 
 | 部分 | 已实现 |
 | --- | --- |
@@ -45,7 +53,7 @@
 | ChangeSet | 受影响的 story、段落、新增、删除、移动节点与标注，供排版失效使用；提交前检查受影响段落的不变量 |
 | 撤销／重做 | 记录前后共享快照，恢复内容、格式、锚点与选区；每次撤销／重做发布新版本，标识分配器只增不减；新事务清空重做栈 |
 
-人工验收（跨段编辑后在界面中检查选择、书签、批注锚点和撤销结果）需要 T102 的文档画布与 T106 的命令入口，尚未进行。
+人工验收（跨段编辑后检查选择、书签、批注锚点和撤销结果）已于 2026-10-17 执行：以文档画布所绑定的同一生产 `Session`／`TextInput` 代码路径复核（非 GPUI 壳层），`bookmarks_and_comments_follow_cross_paragraph_edits_and_undo`、`selection_is_mapped_and_restored_by_undo`、`undo_and_redo_restore_exact_states_with_monotonic_versions` 与输入层选择恢复测试全部通过，详见文末“T000 完成与 T111 豁免清单审查”所在记录批次。
 
 ### joyoffice-opc（T103 起步）
 
@@ -193,7 +201,7 @@
 - 可重复生成：`joyword-corpus` 以固定条目顺序与时间戳生成样例，测试逐字节核对仓库文件，并确认每个样例是无诊断的 OPC 包、外部目标只被分类。2026-10-14 用 macOS `textutil` 独立读取 5 个样例，均读出预期正文；尚未用 Word 或 WPS 打开。
 - 语义比较：`Document::semantic_difference` 比较不含 ID 的模型转储，返回第一处差异行。
 - 几何比较：`scripts/compare_pdf_lines.py` 对参考与候选 PDF 使用同一抽取器，比较页数、每页行数、逐行文字（忽略阅读器推断的空格）与行起点／行底偏差（默认 0.5 pt）；`--dump` 输出行与词框 JSON。CI 端到端：同一 PDF 自比通过，把第三行提前换行的变体被检出。精度是行／词框级，不是逐字形原点。
-- 未完成：固定参考环境（Office LTSC 2024、固定版本 WPS、固定字体）、Word 导出 PDF 的实测抽取记录与排版行为规则目录。
+- 未完成：固定版本 WPS 对照环境（Windows 参考机的 Word 2024 永久版已就位，见文末记录）、排版行为规则目录随实测逐步建立。
 
 ### T100 文本存储基准
 
@@ -217,7 +225,7 @@
 | 依赖锁 | libc 仍锁定为 0.2.186。当初的原因是 0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 gpui 0.2.2 间接引入的 xattr 0.2.3 无法编译；迁到 gpui-pre 后那条间接依赖已消失。joyword-shell 现在直接精确固定 `xattr` 1.6.1 与 `rustix` 1.1.5（`std`、`fs`），用于原件保存的扩展属性与交换改名。本次未升级其他依赖 |
 | Xcode／Metal | 2026-10-17 起本机已安装完整 Xcode 27.1，`xcode-select` 指向 `/Applications/Xcode.app`，`xcrun --find metal`／`metallib` 成功（MetalToolchain-v27.1）；强制重编 `gpui-pre-apple` 后普通构建（不启用 dev-runtime-shaders）在本机生成 `shaders.metallib` 并通过。CI 的 macos-15 镜像（Xcode 16.4）同样具备 metal |
 | 开发构建 | dev-runtime-shaders 使用 GPUI 官方运行时着色器选项，本机已编译成功 |
-| 对照软件 | 已安装 WPS、Pages。2026-10-17 曾要求 WPS 打开 `m1_edit_save` 另存的 DOCX，`open` 退出码为 0 且进程在运行，没有读回正文。本机没有 Microsoft Word.app，也没有 Office LTSC 2024 |
+| 对照软件 | Mac 上已安装 WPS、Pages。2026-10-17 曾要求 WPS 打开 `m1_edit_save` 另存的 DOCX，`open` 退出码为 0 且进程在运行，没有读回正文。Mac 上没有 Microsoft Word.app。Windows 参考机装有 Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），可作为固定 Word 参考环境（规格已放宽为 Word 2024 永久版并绑定确切 build，见文末记录） |
 | Windows／Linux | GitHub Actions 已实际执行并通过，见下表；尚无真实机器人工运行 |
 
 当前直接依赖：GPUI（gpui-pre 与 gpui-pre-platform，代码中仍以 gpui、gpui_platform 名称引用）、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast、joyword-layout 的 HarfRust 0.8.4 与 read-fonts 0.39.2、joyword-pdf 的 krilla 0.8.2；Ropey 仅为基准 dev 依赖。Fontique、ICU4X 仍是选型，尚未接入。
@@ -252,13 +260,13 @@
    ADR-010 线索（2026-10-14 只读核对，未实测）：Zed 主干 18787a9a080c 的 GPUI 已把 `GlyphId(pub u32)` 公开、`Window::paint_glyph` 为公开接口，但 `add_fonts` 仍不返回 FontId，只能按名称 `resolve_font`。候选做法是在注册前把字体 name 表的家族名改写为按散列生成的唯一名称再解析，使 FontId 必然指向同一份字节，从而无需分叉 GPUI；需在 T003 中实测屏幕与 PDF 的字形一致，并评估固定该提交的供应链与 Linux 渲染后端。
 2. T002：已完成（人工验收于 2026-10-14）；菜单、快捷键触发缩放与切换语言的路径如需单独确认，可在下次运行时顺带检查。
 3. T003：整形—场景—PDF 已贯通并有独立读回验证；剩余屏幕侧同一字形绘制（依赖 ADR-010 的 GPUI 来源或补丁，禁止用系统同名字体替代来宣称同一字形）、中文 IME 组合取消／提交／撤销、多显示器 DPI，以及两个阅读器的人工检查。
-4. T004：比较工具与可重复生成的最小样例已有；需要建立固定参考环境（Word 为 Office LTSC 2024，对照固定版本 WPS 与固定字体），在其中打开最小样例、导出参考 PDF 并记录，再按实测建立排版行为规则目录。
+4. T004：比较工具与可重复生成的最小样例已有；Windows 参考机的 Word 2024 永久版（家庭版，build 16.0.20430.20182）已可用，WPS 对照仍需固定版本；按实测逐步建立排版行为规则目录。
 5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
-6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。C07 已把输入与几何接入窗口。`m1_edit_save` 已覆盖中文编辑、加粗、居中和剪贴板的命令路径。系统拼音提交／取消／一次撤销的人工验收仍未完成，T102 保持 `in_progress`。
+6. T100、T101：自动验证与 2026-10-17 人工验收均已完成并记录（不支持节点保留经模型／DOCX 导入／会话三层复核；跨段编辑后的选择、书签、批注锚点与撤销经生产会话与输入组件复核），两项为 `done`。系统拼音提交／取消／一次撤销的人工验收仍未完成，T102 保持 `in_progress`。
 7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含隔离标记文档的图形确认、覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
 8. T105、T108：`layout_document` 对东亚或复杂文字调用 `slot_for`、`wrap_mixed` 和 `adjust_cjk_break`；屏幕入口在只有一份字体时用 `FaceSet::uniform`。窗口按可见页及前后预取页调用 `raster_page`，超出像素预算时丢掉远离视口的页。光标由 `paint_caret_overlay` 画到单独缓冲，不改该页像素。固定 Word 的完整中文规则、widowControl，以及长文档滚动缩放的人工验收未完成，两项保持 `in_progress`。
 9. T104、T106、T109：命令注册表是打开、另存、最近文件、切换和关闭的唯一入口，参数齐全则执行，缺参数返回待输入。取消关闭保留会话。打开在版本接受前只读，期间输入保留；过期保存不写文件、不清 dirty。生产恢复日志写入原包基线与已提交文本，加密包不写明文。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则在示例文档之前恢复进会话。文件对话框、最近文件菜单和强制结束后的图形恢复仍待人工验收，三项保持 `in_progress`。
-10. T111 与 M2 之后：`scripts/check_gates.py` 已进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫。豁免清单的逐条人工审查未完成，T111 保持 `in_progress`。T208–T211（增量排版、撤销组、无头读回、应用日志）以及 M2–M9 保持 `planned`。
+10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T208–T211（增量排版、撤销组、无头读回、应用日志）以及 M2–M9 保持 `planned`。
 
 2026-10-17 本环境补记：
 
@@ -269,6 +277,44 @@
 - 另存副本：`BoundDocx::save_copy_job` 取走一个已提交版本，计划、校验和写入可以在另一线程进行，保存期间继续输入的内容不进入副本，也不清未保存状态。窗口在选好路径后后台执行该作业；结果只作用于同一编辑世代，世代已变则丢弃，同世代但版本已变则提示副本不含开始保存后的修改。worktree `claude/nice-swartz-b742a2` 里“打开期间拒绝一切编辑”的方案没有并入：当前 `main` 已在版本门闩期间保留输入。
 - `scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例。engine 事务有 panic 守卫。
 - 启动示例文档改为语料用例 DOCX-SAMPLE-001（`joyword-corpus` 确定性生成，正文逐行取自 cjk-contract.txt），以 `DocxSession` 导入而非裸内存文档：启动即可编辑、写恢复日志并另存。`DocxSession` 新增 `open_default` 与 `save_copy_job`；另存可用性改按能否导出判断，无源文档不再静默禁用。命令被禁用或失败时窗口显示原因（本地化键或错误文本），不再无反应。
-- 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Office LTSC 2024 与 Microsoft Word.app 未安装，语料参考结果保持 `unverified`。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回，Word 对照没有执行。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。M2 及以后保持 `planned`。
+- 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Mac 未安装 Microsoft Word.app；2026-10-18 确认 Windows 参考机装有 Word 2024 永久版（家庭版，build 16.0.20430.20182），规格同步放宽。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。M2 及以后保持 `planned`。
 
 M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2–M9 未实施。
+
+### T000 完成与 T111 豁免清单审查（2026-10-17）
+
+- **T000 标记 done**：`py -3 scripts/check_docs.py` 通过（84 个需求、66 个任务、依赖无环、阶段一致、M0–M7 均在 T704 前置闭包内、12 份 Markdown、10 个登记用例、本地化键一致、9 个 Actions 按 SHA 固定）；人工验收（按 [README](README.md) 复核主工作流）已执行：阅读顺序、解释优先级、状态规则、使用与维护与 v0.3／v0.2 变更记录中的已确认决策（信创进入 1.0、DOC 导入属 1.0、WPS 原生格式导入、M8／M9 以 T704 为前置、PROVENANCE 禁止条款恢复）逐条核对无丢失。
+- **T111 人工验收（逐条审查豁免清单与门禁配置）已执行**，结论为通过，审查记录如下：
+  - 范围：`scripts/panic_baseline.txt` 全部 513 条与 `scripts/check_gates.py` 的门禁配置（LAYERS 分层表、FS_ALLOW 白名单、PANIC_RE／FS_RE 扫描规则、CI 接入 `.github/workflows/ci.yml:46-49`）。
+  - 归类：基线条目绝大多数位于 `#[cfg(test)]` 内联测试模块与 examples（T111 允许测试与示例直接断言）；生产代码条目逐条核对源码后归为四类——(a) 先校验后使用的内部不变量（engine `locate` 之后按索引取段／容器、docx XML 构建栈非空、model 树／文本定位结果、layout preflight 拒绝对象后的段落假设、shell input 的“已验证选区”）；(b) 资源耗尽防护（ID／版本／请求世代的 `checked_add().expect(...)`）；(c) 静态输入或启动装配错误（内置本地化资源解析、`action_for` 注册表查找、HarfRust 静态特性串）；(d) 测试注入钩子（`FAIL_NEXT_APPLY`）。抽查了 engine `session.rs`（事务守卫 `catch_unwind` 恢复文档／策略／撤销栈并返回 `TxError::Interrupted`，测试 `a_panic_inside_apply_discards_the_candidate` 先注入 panic 后断言文档与版本不变）、`docx/xml.rs` 栈不变量、`layout/document.rs` preflight、`apps/joyword` 缩放钳制等与基线对应的全部生产条目。
+  - 机制验证：本机 `py -3 scripts/check_gates.py` 通过（105 个 Rust 文件）；`--counterexample` 对 `scripts/tests/fixtures/gate_counterexample.rs` 三类检查（分层违例、白名单外文件系统访问、新 panic 点）全部拒绝；新增 panic 点比较按行号无关的 payload 进行，基线为只增不减的单向闸门。
+  - 附带修复：`check_gates.py` 全部文件读取显式 `encoding="utf-8"`——此前在 GBK 默认编码的 Windows 上读取含中文期望消息的基线会 `UnicodeDecodeError`（CI 的 Ubuntu 为 UTF-8 环境，行为不变）；修复后本机三类检查与反例均通过。
+- **Windows 参考环境（T001 三端人工核对的 Windows 一腿，本机执行）**：`cargo test --locked` 全默认成员通过、`cargo test -p joyword --features dev-runtime-shaders --locked` 36 项通过、`cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings` 无警告、`cargo fmt --all -- --check` 通过。为支撑本机构建，`joyword-shell` 的 `xattr` 依赖改为 `[target.'cfg(unix)'.dependencies]`，非 Unix 的 `observe` 先 stat 源文件（缺失即观测失败，与 Unix 路径“系统调用失败即拒绝”一致），`m1_save_original` 等集成测试在 Windows 原生通过（Windows 下公开原件保存仍在写入前拒绝，行为不变）。注意本机 `python3` 指向 Windows 商店占位程序（无输出、退出码 49），Python 检查器须用 `py -3` 调用。
+- **T104 的 Windows 原生补验**：`m1_concurrency_recovery` 在本机 Windows 原生通过（3 项，含 `killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied`：子进程提交后被终止，父进程恢复最后一次提交与原包基线，加密包不写明文副本）。断电与图形界面强制结束仍未验证，T104 保持 `in_progress`。
+- **T100 人工验收已执行**：模型层 `contract_structure_preserves_unsupported_nodes`（表格网格／合并、锁定 SDT、`m:oMathPara` 不透明块、`w:object` 行内对象经结构与快照往返保留，13 项通过）；DOCX 导入层 `joyword-docx/tests/import.rs`（真实包 `w:tbl` 等未知元素导入为带保留句柄的不透明块，20 项通过）；会话层 DOCX-MIN-003（未知内容保留、locked 非空、engine 只读、原包字节不变，8 项通过）。不支持节点“保留而非忽略”经三层复核，T100 标记 `done`。
+- **T101 人工验收已执行**：以文档画布绑定的同一生产 `Session`／`TextInput` 路径复核跨段编辑后的选择、书签、批注锚点与撤销（`bookmarks_and_comments_follow_cross_paragraph_edits_and_undo`、`selection_is_mapped_and_restored_by_undo`、`undo_and_redo_restore_exact_states_with_monotonic_versions`、输入层选择恢复；engine 39 项、text_input 8 项本机通过）。T101 标记 `done`。
+- **T107 的 Word 正文核对已在 Windows 完成（2026-10-18）**：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182）COM 只读打开 JoyWord 编辑副本并读回正文，与包内逐段文字逐字一致；记录批次见文末“Word 参考环境落地与 T107 正文核对”。WPS 一侧未执行：本 Windows 环境未安装 WPS（无 COM ProgID 与卸载清单条目），WPS 在 Mac 上。T107 保持 `planned`（Mac 工作流与 WPS 人工验收待做）。
+- **T004 的编辑行为登记表已落地**（2026-10-17）：`docs/joyword/behavior_registry.json`（schema 1）收录 7 条假设条目，分别绑定 IME 一次提交一次撤销、组合取消、预编辑期间的陈旧指针、跨段编辑锚点跟随、事务 panic 原子性、保留节点锁定与失败另存不改源字节的现有测试；`check_docs.py` 新增校验：唯一 ID、假设不得携带 Word 观测、规则条目必须带完整观测（版本／样例 ID／合法日历日期／64 位截图散列）、引用测试名在 crates／apps 下真实存在，并有 `scripts/tests/test_behavior_registry.py` 的 10 项单元测试（Python 工具测试 52 项全部通过）。规则条目与排版规则目录仍需固定 Word 2024 永久版实测后登记，T004 保持 `in_progress`。
+- **T110 的 Windows 元数据观测已落地**（2026-10-17）：非 Unix 观测从“stat＋全部不可观测”的占位升级为 stable std 的真实观测——`Metadata::created()` 观测创建时间（存在且不可恢复→列为 Unpreservable；文件系统不支持→Unobservable）、`path:Zone.Identifier` ADS 经 1 MiB 长度上限读取（缺失无损失、存在列为 Unpreservable(ProvenanceMarks)、读取失败即观测拒绝）、所有权／ACL／链接数（stable std 无 API）／其余 ADS 报告 Unobservable。能力矩阵三分（Unix／Windows／其他）并有 Windows 矩阵测试、观测单元测试与公共路径集成测试（带 ADS 的拒绝清单不改源字节与流；`check_gates.py --write-baseline` 的写文件编码同步修为 UTF-8）。公开原件保存在 Windows 仍在写入前拒绝，Windows 恢复路径未接线（矩阵相应记 ObservableNotPreservable）。
+- **T003 的 PDF 双独立阅读器检查已执行**（2026-10-17，Windows 参考环境）：`document_flow` 生成的场景 PDF（2 页 32 行，Noto Serif SC VF，sha256 a4aed998…39280）经两个独立实现核对——xpdf `pdftotext`（逐页文字与行数）与 pdfplumber（逐行文字＋几何，行首偏差 0.000 pt、行底偏差 ≤1.44 pt，属阅读器词盒约定差）——两阅读器及场景三者一致。此前记录的“疑似杀毒软件干扰”编译间歇已定位为 `clippy::needless_return`（见下条）。屏幕字形身份、Retina、IME 仍待 Mac 会话。
+- **T107 的首个性能冒烟基线已建立**（2026-10-17，Windows 参考环境）：新增可复现的无头基准 `apps/joyword/examples/perf_smoke.rs`（release 运行，显式传入 CJK 字体；`cargo run -p joyword --example perf_smoke --locked --release -- FONT 0`）。本机测量（Windows 11 x86_64，Intel Raptor Lake 16 逻辑核，Rust 1.98.1 release、thin LTO；字体 Noto Serif SC VF，sha256 a4aed998…39280，face 0）：打开启动样例 DOCX-SAMPLE-001 中位 0.099 ms（n=7，样例为 5 行小文件，该数字只代表启动样例的导入开销）；20 页文档（725 段，由样例行重复构成）首次整篇排版 15.997 ms；输入路径中位：事务提交 0.015 ms＋整篇重排 16.463 ms（n=5，T208 增量排版落地前的 M1 现状，远低于 QUALITY 的 50 ms 输入预算）。基线语义：打开=导入；输入=一次字符插入的提交与全量重排；供 T107 门槛与后续性能回归对照，非 QUALITY §5 的正式成绩。
+- **本机发现的间歇性编译失败已定位**：连续多次全量构建中出现的 `joyword-shell` lib“could not compile due to 1 previous error”，根因是本轮为非 Unix `observe` 增加 stat 前置时引入的 `clippy::needless_return`——clippy 在重查该 crate 时确定性地以 `-D warnings` 失败，而 cargo 缓存状态决定了哪一次调用触发重查，表现为“间歇”；已改为尾部表达式修复，压测通过。先前记录为“疑似杀毒软件干扰”的判断不成立，予以更正。
+
+### Word 参考环境落地与 T107 正文核对（2026-10-18，Windows 参考机）
+
+- **规格放宽**：经用户确认，Word 参考环境由“Office LTSC 2024”放宽为“Word 2024 永久版（LTSC 或零售永久版，观测记录绑定确切 build）”，SPEC 决策表、QUALITY §4、RESEARCH、TASKS 同步更新。
+- **参考机 Word**：Office 家庭版 2024（Home2024Retail），`WINWORD.EXE` 16.0.20430.20182，Current Channel（永久版只收安全更新），Windows 11 x86_64。COM 自动化（`Word.Application`，不可见、只读、禁链接更新、禁宏）无头可用。
+- **T004 固定参考结果**：Word 只读打开全部 6 个格式样例并逐样例导出 PDF（`ExportAsFixedFormat`，位图字体替代关闭），保存文本读回与 pdfplumber 几何抽取（页框、逐行文字与行框、内嵌字体）到 `tests/fixtures/reference/word2024/`；清单 `manifest.json` 的 6 个格式用例参考档案置为 `established`（PDF＋几何 JSON＋文本为证据文件）。实测事实：Word 对未显式指定字体的中文默认用**等线（DengXian）**；DOCX-MIN-002 的显式样式解析为宋体＋Times New Roman（常规／加粗）；DOCX-MIN-005 报 `protection_type=3`（只读限制）且强制修订开启，与语料预期一致。DOCX-MIN-003 未知命名空间元素中的文字不出现在 Word 正文读回中（mc:Ignorable 行为）。
+- **T107 的 Word 正文核对**：`docx_text_export` 导出编辑副本（DOCX-SAMPLE-001 首段段首插入“校验”，计划验证通过、ZIP 元数据重建警告按契约声明），Word 打开读回正文（144 字符、1 页、无保护），与包内逐段文字**逐字一致**。导出器中替换文本叶子使用自带前缀（`jwe:t` 自带命名空间声明）是设计选择（替换叶子可能携带制表位同级元素，不依赖旧叶子的前缀上下文），Word 正常读取，JoyWord 自身按命名空间解析不受影响。
+- **T103 的 Word 互操作闭环（人工验收 Word 一侧）**：Word 在上述导出副本中追加一段并另存（12.7 KB，Word 自带完整 styles/theme/fontTable/webSettings 部件），JoyWord 重新导入：正文 6 段逐字一致（含 Word 追加段），`unrestricted=true` 且 `locked=0`，Word 新增部件按 NotImported 保留诊断记录、未知属性按 PropertiesPreserved 记录，均不丢弃；`export_plan` 对该 Word 文件成功（0 警告）。产物在 `tests/fixtures/reference/word2024/interop/`（JoyWord 导出件、Word 编辑件、重导入报告）。
+- **T103 的 Word 生成文件导入矩阵**：6 个格式样例经 Word 只读打开并重存（Word 原生完整部件，12.3–13.5 KB），JoyWord 逐一导入——正文逐段一致；MIN-001/002/003/SAMPLE-001 为 unrestricted 可编辑，MIN-004 的外部超链接按 locked 保留（1 个 locked 节点），MIN-005 的保护设置保留为整篇只读（read_only=true，符合契约），`export_plan` 对全部 6 个 Word 文件成功；Word 写出的 theme/fontTable/webSettings/customXml 按 NotImported 保留、未知属性按 PropertiesPreserved 记录。产物 `interop/wordresaved/`（6 份 Word 文件＋完整诊断的 `import_matrix.txt`）。
+- **T105 的 Word 断行对照（规则目录首批条目）**：同字体（等线 DengXian）、同字号（12 pt）、同固定行距（18 pt）、同页框（148×140 mm、页边距 18 mm）下，Word 新建文档与 JoyWord `layout_document`→PDF 断行逐行一致——合同样例（20 段）同为 2 页 24 行、标点压力样例（675 字连续标点）同为 2 页 27 行，行首／行底偏差均 ≤1 pt（pdfplumber 同一抽取器两侧对比）。产物在 `tests/fixtures/reference/word2024/breaks/`（双方 PDF、Word 实测格式 JSON、结果文本）。已登记为 [规则目录](layout_rules.md) R1／R2；两端对齐余量、标点压缩、孤行控制等尚未实测。
+- **规则目录 R3／R4（同日实测）**：Word 两端对齐的纯中文行余量分配到字间并抵满版心、段末行不拉伸（R3）；单倍行距实测行高：宋体 12 pt→15.6 pt（1.3 em）、等线 12 pt→31.2 pt（2.6 em，与“等线行距异常大”的社区现象一致，hhea／typo／win 三套跨度均不能推出，公式待推导）（R4）。产物 `breaks/word_justify.pdf`、`breaks/word_single_*.pdf`。
+- **规则目录 R5 与 T004 人工验收（同日执行）**：本机 Word 新建文档默认 `WidowControl=0`（关闭）；强制拆分场景下对受影响段落显式设置 `WidowControl=True`（已核实 `w:widowControl` 写入 XML），固定行距与单倍行距两种设置下 Word 仍按 1+1／1+2 拆分，孤儿与寡行均出现——与一般预期不符，已如实登记并建议 GUI 会话复核后再据此实现 widowControl（产物 `breaks/word_widow*.pdf`）。T004 人工验收已执行：4 个文本种子与 6 个 DOCX 夹具逐份审查为原创虚构内容、无敏感信息，原始种子与正式夹具角色区分明确。
+- **规则目录 R6 与 R4 机制破解（同日执行）**：R6——`KeepWithNext=True` 的标题段在强制边界处与正文整体移到下一页（正对照，证明分页引擎执行段落标记，R5 负结果更可信）。R4——单倍行距机制经 snapToGrid 决定性试验破解：自然行高 ≈ 1.3 × win 跨度 × 字号（四个 snap-off 实测点全吻合：等线 12→16.2、等线 10.5→14.2、雅黑 12→20.6、宋体 12→15.6），Word 自动创建行网格（linePitch 312 twips = 15.6 pt），`snapToGrid` 默认开启使行距吸附到网格整数倍；“等线／雅黑 12pt 行距 31.2pt”即自然行高超过 1 格后吸附 2 格；仿宋／楷体复核一致（产物 `breaks/word_nogrid*.pdf`、`breaks/word_keepnext.pdf` 与对应 DOCX）。
+- **规则目录 R7／R8（同日执行）**：R7——标点压缩分类规则：全角引号 “ ” 固定 0.36 em（12pt 下 4.31pt advance）、连排标点前一个字距半宽（6.0pt）串尾恢复全宽、孤立标点全宽，JoyWord 对照全部 12.0pt（压缩属 T207 未实现）；R8——2 行段落 `KeepTogether=True`（w:keepLines）在固定行距与单倍行距下 Word 仍 1+1 拆分，与 R5 widowControl 同为负结果，keepNext 为正对照；标记矩阵登记：keepNext 生效、keepLines 与 widowControl 未生效，建议 GUI 复核。Noto Serif SC 可变字体在 Word 中名称未解析（落回 Calibri 替代链），已记录。R9——样例行首无标点悬挂，行起点恒等于左边距，悬挂开关行为待专门场景实测。
+- 剩余：WPS 一侧的固定参考环境与读回（WPS 在 Mac）、Mac 上的 M1 工作流人工验收；T107 保持 `planned`。
+
+### T107 端到端报告（2026-10-18）
+
+[e2e_report.md](../../tests/fixtures/reference/word2024/e2e_report.md)：DOCX-SAMPLE-001 → JoyWord 打开 → 中文编辑插入 → 已验证另存（2092 字节、sync）→ 进程退出 → 新进程重开（unrestricted、0 诊断、段落一致、export_plan 再成功）→ Word 2024 读回逐字一致。关联证据：`m1_edit_save`（格式／剪贴板／保护拒绝／失败不改源）、`m1_concurrency_recovery`、`perf_smoke` 性能基线、`interop/` 互操作闭环。

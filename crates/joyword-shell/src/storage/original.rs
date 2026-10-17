@@ -21,7 +21,9 @@ use std::io::Write;
 use joyword_docx::{ExportPlan, ExportTarget};
 use joyword_model::DocumentVersion;
 
-use super::error::{MetadataItem, ReplacementBlocker, SaveOriginalError, SourceStage};
+#[cfg(unix)]
+use super::error::MetadataItem;
+use super::error::{ReplacementBlocker, SaveOriginalError, SourceStage};
 #[cfg(unix)]
 use super::source::{SourceIdentity, confirm_published};
 use super::source::{SourceStamp, check_source_with_lock_token};
@@ -109,7 +111,9 @@ pub struct OriginalReplacementCapabilities {
 /// as is the creation time on macOS (`FileTimesExt::set_created`). Extended
 /// attributes and provenance marks are copied with the pinned `xattr` crate
 /// when they fit the size cap. ACLs are observed and not rewritten. Windows
-/// entries describe the compiled target, not a tested one.
+/// entries are grounded in stable-std observation (`Metadata::created`, the
+/// `Zone.Identifier` stream); no Windows restore path is wired yet, so
+/// observed values that cannot be restored stay `ObservableNotPreservable`.
 pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
     OriginalReplacementCapabilities {
         permissions: MetadataCapability::Preservable,
@@ -129,10 +133,15 @@ pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
         creation_time: MetadataCapability::Preservable,
         #[cfg(not(target_os = "macos"))]
         creation_time: MetadataCapability::ObservableNotPreservable,
+        #[cfg(unix)]
         links: MetadataCapability::ObservableNotPreservable,
+        #[cfg(not(unix))]
+        links: MetadataCapability::Unobservable,
         #[cfg(unix)]
         provenance_marks: MetadataCapability::Preservable,
-        #[cfg(not(unix))]
+        #[cfg(windows)]
+        provenance_marks: MetadataCapability::ObservableNotPreservable,
+        #[cfg(all(not(unix), not(windows)))]
         provenance_marks: MetadataCapability::Unobservable,
     }
 }
@@ -770,6 +779,25 @@ mod tests {
         );
         assert_eq!(caps.links, MetadataCapability::ObservableNotPreservable);
         assert_eq!(caps.provenance_marks, MetadataCapability::Preservable);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_matrix_is_honest_about_std_observation() {
+        let caps = original_replacement_capabilities();
+        assert_eq!(caps.permissions, MetadataCapability::Preservable);
+        assert_eq!(caps.ownership, MetadataCapability::Unobservable);
+        assert_eq!(caps.acl, MetadataCapability::Unobservable);
+        assert_eq!(caps.extended_attributes, MetadataCapability::Unobservable);
+        assert_eq!(
+            caps.creation_time,
+            MetadataCapability::ObservableNotPreservable
+        );
+        assert_eq!(caps.links, MetadataCapability::Unobservable);
+        assert_eq!(
+            caps.provenance_marks,
+            MetadataCapability::ObservableNotPreservable
+        );
     }
 
     #[test]

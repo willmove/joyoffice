@@ -67,13 +67,13 @@ DEP_RE = re.compile(r"^([A-Za-z0-9_-]+)\s*=")
 
 
 def crate_name(path: Path) -> str | None:
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     match = re.search(r'(?m)^name\s*=\s*"([^"]+)"', text)
     return match.group(1) if match else None
 
 
 def dependencies(manifest: Path) -> set[str]:
-    text = manifest.read_text()
+    text = manifest.read_text(encoding="utf-8")
     deps: set[str] = set()
     section = None
     for line in text.splitlines():
@@ -127,7 +127,7 @@ def check_filesystem(crates: Path = CRATES, apps: Path = APPS, root: Path = ROOT
         shown = rel(path, root)
         if "tests/" in shown or "/tests/" in f"/{shown}":
             continue
-        text = path.read_text(errors="replace")
+        text = path.read_text(encoding="utf-8", errors="replace")
         text = text.split("#[cfg(test)]", 1)[0]
         if "/examples/" in f"/{shown}" or "/src/bin/" in f"/{shown}":
             continue
@@ -138,7 +138,9 @@ def check_filesystem(crates: Path = CRATES, apps: Path = APPS, root: Path = ROOT
 
 def panic_sites(path: Path, root: Path = ROOT) -> list[str]:
     sites = []
-    for number, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
+    for number, line in enumerate(
+        path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+    ):
         if PANIC_RE.search(line) and "allow" not in line:
             sites.append(f"{rel(path, root)}:{number}:{line.strip()}")
     return sites
@@ -155,7 +157,7 @@ def check_panic(
         current.extend(panic_sites(path, root))
     expected = [
         line
-        for line in baseline.read_text().splitlines()
+        for line in baseline.read_text(encoding="utf-8").splitlines()
         if line and not line.startswith("#")
     ]
     errors = []
@@ -222,7 +224,7 @@ def counterexample(path: Path) -> list[str]:
     import tempfile
 
     path = path if path.is_absolute() else (ROOT / path)
-    source = path.read_text(errors="replace")
+    source = path.read_text(encoding="utf-8", errors="replace")
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         crates = root / "crates"
@@ -253,7 +255,7 @@ def main() -> int:
                 continue
             sites.extend(panic_sites(path))
         baseline = ROOT / "scripts" / "panic_baseline.txt"
-        baseline.write_text("\n".join(sites) + "\n")
+        baseline.write_text("\n".join(sites) + "\n", encoding="utf-8")
         print(f"wrote {len(sites)} sites")
         return 0
     if len(sys.argv) > 1 and sys.argv[1] == "--counterexample":

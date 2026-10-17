@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "registry": [
+    {
+      "id": "EDIT-IME-COMMIT-UNDO",
+      "operation": "系统 IME 组合经一次确认提交为多段替换",
+      "expectation": "一次撤销回退整次提交并恢复原选区",
+      "source": "hypothesis",
+      "test": "committed_multiline_replacement_uses_one_undo_and_restores_selections",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-IME-CANCEL",
+      "operation": "取消组合或提交空预编辑",
+      "expectation": "恢复原范围且不产生脏状态",
+      "source": "hypothesis",
+      "test": "cancellation_and_empty_mark_restore_original_range_without_dirtying",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-POINTER-DURING-PREEDIT",
+      "operation": "组合期间指针落在非法或陈旧偏移上",
+      "expectation": "不取消预编辑，组合态不变",
+      "source": "hypothesis",
+      "test": "pointer_selection_cannot_cancel_a_preedit_on_an_invalid_or_stale_offset",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-ANCHOR-CROSS-PARA",
+      "operation": "跨段编辑（含跨段删除合并）",
+      "expectation": "书签与批注锚点随内容移动，撤销恢复原状态",
+      "source": "hypothesis",
+      "test": "bookmarks_and_comments_follow_cross_paragraph_edits_and_undo",
+      "word_observation": null
+    },
+    {
+      "id": "TX-PANIC-ATOMIC",
+      "operation": "事务执行过程中发生 panic",
+      "expectation": "不提交任何修改，文档、版本与撤销栈不变",
+      "source": "hypothesis",
+      "test": "a_panic_inside_apply_discards_the_candidate",
+      "word_observation": null
+    },
+    {
+      "id": "DOCX-LOCKED-PRESERVED",
+      "operation": "打开含未知保留内容的 DOCX 并尝试编辑",
+      "expectation": "整篇只读、保留节点不被忽略、原包字节不变",
+      "source": "hypothesis",
+      "test": "any_preserved_node_locks_even_an_otherwise_editable_paragraph",
+      "word_observation": null
+    },
+    {
+      "id": "SAVE-FAILURE-SOURCE-INTACT",
+      "operation": "对受保护文档编辑、或另存在写入中失败",
+      "expectation": "编辑被拒绝，失败的另存不改变源字节",
+      "source": "hypothesis",
+      "test": "protected_documents_refuse_edits_and_a_failed_save_keeps_bytes",
+      "word_observation": null
+    }
+  ]
+}

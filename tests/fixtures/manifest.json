@@ -97,13 +97,17 @@
         "无编辑保存保留原包的部件与关系"
       ],
       "reference_profile": {
-        "word": "Office LTSC 2024：参考结果未建立",
-        "wps": "固定版本 WPS：参考结果未建立",
-        "fonts": "未指定",
-        "status": "unverified"
+        "word": "Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），2026-10-18，Windows 11 x86_64：COM 只读打开、禁更新链接与宏、ExportAsFixedFormat 导出 PDF",
+        "wps": "固定版本 WPS，参考结果未建立",
+        "fonts": "Word PDF 内嵌字体：等线（文档默认 CJK）；DOCX-MIN-002 另有宋体、Times New Roman 常规/加粗",
+        "status": "established"
       },
       "status": "planned",
-      "evidence": []
+      "evidence": [
+        "reference/word2024/DOCX-MIN-001.pdf",
+        "reference/word2024/DOCX-MIN-001.reference.json",
+        "reference/word2024/DOCX-MIN-001.txt"
+      ]
     },
     {
       "id": "DOCX-MIN-002",
@@ -123,13 +127,17 @@
         "兼容模式 15 原样保留"
       ],
       "reference_profile": {
-        "word": "Office LTSC 2024：参考结果未建立",
-        "wps": "固定版本 WPS：参考结果未建立",
-        "fonts": "未指定",
-        "status": "unverified"
+        "word": "Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），2026-10-18，Windows 11 x86_64：COM 只读打开、禁更新链接与宏、ExportAsFixedFormat 导出 PDF",
+        "wps": "固定版本 WPS，参考结果未建立",
+        "fonts": "Word PDF 内嵌字体：等线（文档默认 CJK）；DOCX-MIN-002 另有宋体、Times New Roman 常规/加粗",
+        "status": "established"
       },
       "status": "planned",
-      "evidence": []
+      "evidence": [
+        "reference/word2024/DOCX-MIN-002.pdf",
+        "reference/word2024/DOCX-MIN-002.reference.json",
+        "reference/word2024/DOCX-MIN-002.txt"
+      ]
     },
     {
       "id": "DOCX-MIN-003",
@@ -148,13 +156,17 @@
         "编辑相邻段落不丢弃未知内容；无法保证时阻止或提示另存"
       ],
       "reference_profile": {
-        "word": "Office LTSC 2024：参考结果未建立",
-        "wps": "固定版本 WPS：参考结果未建立",
-        "fonts": "未指定",
-        "status": "unverified"
+        "word": "Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），2026-10-18，Windows 11 x86_64：COM 只读打开、禁更新链接与宏、ExportAsFixedFormat 导出 PDF",
+        "wps": "固定版本 WPS，参考结果未建立",
+        "fonts": "Word PDF 内嵌字体：等线（文档默认 CJK）；DOCX-MIN-002 另有宋体、Times New Roman 常规/加粗",
+        "status": "established"
       },
       "status": "planned",
-      "evidence": []
+      "evidence": [
+        "reference/word2024/DOCX-MIN-003.pdf",
+        "reference/word2024/DOCX-MIN-003.reference.json",
+        "reference/word2024/DOCX-MIN-003.txt"
+      ]
     },
     {
       "id": "DOCX-MIN-004",
@@ -173,13 +185,17 @@
         "外部目标在诊断中按网页与网络共享分类可见"
       ],
       "reference_profile": {
-        "word": "Office LTSC 2024：参考结果未建立",
-        "wps": "固定版本 WPS：参考结果未建立",
-        "fonts": "未指定",
-        "status": "unverified"
+        "word": "Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），2026-10-18，Windows 11 x86_64：COM 只读打开、禁更新链接与宏、ExportAsFixedFormat 导出 PDF",
+        "wps": "固定版本 WPS，参考结果未建立",
+        "fonts": "Word PDF 内嵌字体：等线（文档默认 CJK）；DOCX-MIN-002 另有宋体、Times New Roman 常规/加粗",
+        "status": "established"
       },
       "status": "planned",
-      "evidence": []
+      "evidence": [
+        "reference/word2024/DOCX-MIN-004.pdf",
+        "reference/word2024/DOCX-MIN-004.reference.json",
+        "reference/word2024/DOCX-MIN-004.txt"
+      ]
     },
     {
       "id": "DOCX-SAMPLE-001",
@@ -199,13 +215,17 @@
         "作为应用启动示例打开后可编辑、可另存，另存重开文字不变"
       ],
       "reference_profile": {
-        "word": "Office LTSC 2024：参考结果未建立",
-        "wps": "固定版本 WPS：参考结果未建立",
-        "fonts": "未指定",
-        "status": "unverified"
+        "word": "Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），2026-10-18，Windows 11 x86_64：COM 只读打开、禁更新链接与宏、ExportAsFixedFormat 导出 PDF",
+        "wps": "固定版本 WPS，参考结果未建立",
+        "fonts": "Word PDF 内嵌字体：等线（文档默认 CJK）；DOCX-MIN-002 另有宋体、Times New Roman 常规/加粗",
+        "status": "established"
       },
       "status": "planned",
-      "evidence": []
+      "evidence": [
+        "reference/word2024/DOCX-SAMPLE-001.pdf",
+        "reference/word2024/DOCX-SAMPLE-001.reference.json",
+        "reference/word2024/DOCX-SAMPLE-001.txt"
+      ]
     },
     {
       "id": "DOCX-MIN-005",
@@ -223,13 +243,17 @@
         "限制编辑与强制修订在对应能力实现前以只读打开或明确提示，不得绕过"
       ],
       "reference_profile": {
-        "word": "Office LTSC 2024：参考结果未建立",
-        "wps": "固定版本 WPS：参考结果未建立",
-        "fonts": "未指定",
-        "status": "unverified"
+        "word": "Word 2024 永久版（Office 家庭版 2024，build 16.0.20430.20182），2026-10-18，Windows 11 x86_64：COM 只读打开、禁更新链接与宏、ExportAsFixedFormat 导出 PDF",
+        "wps": "固定版本 WPS，参考结果未建立",
+        "fonts": "Word PDF 内嵌字体：等线（文档默认 CJK）；DOCX-MIN-002 另有宋体、Times New Roman 常规/加粗",
+        "status": "established"
       },
       "status": "planned",
-      "evidence": []
+      "evidence": [
+        "reference/word2024/DOCX-MIN-005.pdf",
+        "reference/word2024/DOCX-MIN-005.reference.json",
+        "reference/word2024/DOCX-MIN-005.txt"
+      ]
     }
   ]
 }

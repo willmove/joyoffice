@@ -15,7 +15,7 @@
 
 | 产品 | 已查阅的公开能力 | JoyWord 对照重点与限制 | 来源 |
 | --- | --- | --- | --- |
-| Microsoft Word 桌面版 | 高级排版、比较合并、引用、修订和批注；与 Web 功能存在差异 | 主要交互与行为基准，参考版本为 Office LTSC 2024；冻结版本、系统和字体，网页版不能替代桌面验证 | [功能比较](https://support.microsoft.com/en-au/word/word-features-comparison-word-for-the-web-vs-desktop)、[审阅](https://support.microsoft.com/en-us/word/give-and-receive-feedback-in-word) |
+| Microsoft Word 桌面版 | 高级排版、比较合并、引用、修订和批注；与 Web 功能存在差异 | 主要交互与行为基准，参考版本为 Word 2024 永久版（LTSC 或零售永久版，观测绑定确切 build）；冻结版本、系统和字体，网页版不能替代桌面验证 | [功能比较](https://support.microsoft.com/en-au/word/word-features-comparison-word-for-the-web-vs-desktop)、[审阅](https://support.microsoft.com/en-us/word/give-and-receive-feedback-in-word) |
 | WPS Writer | DOC／DOCX／RTF 处理、模板、PDF 转换及文档 AI | 中文文档互操作的并列基准；其 DOCX 含 wpsCustomData 命名空间、customXml 和数字样式 ID；原生 .wps 为附加 WpsCustomData 流的 DOC 式复合文件，无公开规范，只能按 MS-DOC 与固定版本 WPS 的黑盒样例实现；“兼容”声明需样本验证 | [Writer](https://www.wps.com/office/writer/) |
 | Google Docs | 建议、批注及 Office 修订互转 | 协作和审阅操作；不作为 Word 分页的主要标准 | [建议模式](https://support.google.com/docs/answer/6033474) |
 | Apple Pages | 修订跟踪、接受／拒绝和多种标记显示 | Mac 原生体验；不能据此推断全部 Word 审阅元素往返无损 | [Mac 修订](https://support.apple.com/guide/pages/track-changes-tan2685b84ff/mac) |

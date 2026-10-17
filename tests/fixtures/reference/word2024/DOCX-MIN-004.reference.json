@@ -1,0 +1,36 @@
+{
+  "case": "DOCX-MIN-004",
+  "reference": {
+    "software": "Word 2024 永久版（Office 家庭版 2024）",
+    "build": "16.0.20430.20182",
+    "os": "Windows 11 x86_64",
+    "date": "2026-10-18",
+    "export": "ExportAsFixedFormat PDF, bitmap-font substitution off",
+    "pdf": "DOCX-MIN-004.pdf",
+    "pdf_sha256": "f15c99050cebd79430dcf0ba0d03ba1d65473b91cc6afd433c61149ef2be1884"
+  },
+  "fonts": [
+    "BCDEEE+DengXian",
+    "BCDFEE+DengXian"
+  ],
+  "pages": [
+    {
+      "width": 595.32,
+      "height": 841.92,
+      "lines": [
+        {
+          "text": "项目说明",
+          "x_min": 90.02,
+          "x_max": 134.18,
+          "y_bottom": 85.24
+        },
+        {
+          "text": "模板与链接都指向本包之外。",
+          "x_min": 90.02,
+          "x_max": 233.06,
+          "y_bottom": 110.46
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+editability: read_only=false unrestricted=true locked=0 diagnostics=6
+diagnostic[0]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/webSettings", part: "/word/webSettings.xml" } }
+diagnostic[1]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme", part: "/word/theme/theme1.xml" } }
+diagnostic[2]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: NotImported { relationship: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable", part: "/word/fontTable.xml" } }
+diagnostic[3]: Diagnostic { severity: Info, part: Some("/word/styles.xml"), range: None, kind: PropertiesPreserved { count: 6 } }
+diagnostic[4]: Diagnostic { severity: Info, part: Some("/word/settings.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+diagnostic[5]: Diagnostic { severity: Info, part: Some("/word/document.xml"), range: None, kind: PropertiesPreserved { count: 1 } }
+paragraphs: ["校验合作协议（原创测试文本）", "甲方：青禾工作室；乙方：远山设计室。", "双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。", "交付内容包括：正文、表格、图片以及 English summary。", "“完成”应以书面验收为准；未经确认，不得视为自动接受。", "本段由 Word 2024 追加：已完成核对。"]
+export_plan: ok, Docx target, 0 warnings
