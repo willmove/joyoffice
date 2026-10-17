@@ -115,8 +115,19 @@ fn killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied() {
         .env("JOYWORD_RECOVERY_DIR", dir.path())
         .arg("killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied");
     let output = child.output().unwrap();
-    assert!(!output.status.success());
-    let restored = Office::recover_from(dir.path()).unwrap();
+    assert!(
+        !output.status.success(),
+        "child unexpectedly succeeded: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let restored = Office::recover_from(dir.path()).unwrap_or_else(|error| {
+        panic!(
+            "recover failed: {error}; child status: {:?}; child stdout: {}; child stderr: {}",
+            output.status,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        )
+    });
     let text = restored.active().unwrap().view().index().text();
     assert!(text.contains("已提交"), "{text}");
     let baseline = restored
