@@ -39,7 +39,7 @@
 - 错误路径：缺少 Xcode／Metal 工具链（Xcode 26 起需单独下载）、Linux 系统库、Windows SDK 时显示对应原因，不假称平台不支持。
 - 自动验证：三端执行 locked build、fmt、clippy、核心测试和 cargo-deny；开发 shader 与发行路径分开。
 - 人工验收：在三台参考环境核对工具链及可启动产物；CI 配置不算成功运行证据。
-- 完成证据：三端 CI 运行 38481758247（提交 ac40043）全部通过：三端 fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建，以及 cargo-deny；Actions 按 SHA 固定。GPUI 来源（ADR-010）、本机 Metal 构建与三台参考环境人工核对未完成，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：三端 CI 运行 38481758247（提交 ac40043）全部通过：三端 fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建，以及 cargo-deny；Actions 按 SHA 固定。2026-10-17 本机 Xcode 27.1 下不启用 `dev-runtime-shaders` 的普通构建已通过。GPUI 来源（ADR-010）的屏幕字形核对与三台参考环境人工核对未完成，T001 保持 `in_progress`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T002：GPUI 原生窗口与页面投影
 
@@ -151,7 +151,7 @@
 - 错误路径：磁盘满、截断、外部修改、保存期间继续编辑和日志迁移失败不丢原件。
 - 自动验证：故障注入、有效前缀恢复、保存版本竞争、undo／redo 属性测试。
 - 人工验收：强制结束测试进程后恢复，比较最后完整事务和正式保存文件。
-- 完成证据：生产恢复日志在 `joyword-shell` 的 `storage::recovery`：提交写入原包基线与已提交文本，校验后原子改名；加密包拒绝且不写明文。`Office` 在编辑提交后写恢复日志。子进程经 `FILE_OPEN` 与 `EDIT_INSERT` 提交后被终止，父进程用 `Office::recover_from` 把该提交放回会话。加密包仍拒绝且不写明文。W08／W14 仍是先前实验与设计。Windows 原生与断电未验证，不标 done。
+- 完成证据：生产恢复日志在 `joyword-shell` 的 `storage::recovery`：提交写入原包基线与已提交文本，校验后原子改名；加密包拒绝且不写明文。`Office` 在编辑提交后写恢复日志。子进程经 `FILE_OPEN` 与 `EDIT_INSERT` 提交后被终止，父进程用 `Office::recover_from` 把该提交放回会话。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则恢复进会话，示例文档不会盖掉它。W08／W14 仍是先前实验与设计。Windows 原生、断电和图形界面强制结束未验证，不标 done。
 
 ### T105：基础排版引擎
 
@@ -187,7 +187,7 @@
 - 错误路径：缓存键遗漏依赖导致陈旧像素必须有反例测试；预算超限排队而非整次失败；导出与打印不读屏幕缓存。
 - 自动验证：2 倍屏 100%／200% 缩放下 100 页文档逐页可显示；滚动只光栅进入视口的页；淘汰后重建像素一致。
 - 人工验收：长文档中交替滚动、缩放与编辑，无画布错误且响应正常。
-- 完成证据：`joyword-render::NeighborhoodCache` 按视口邻域光栅，每页使用自身像素预算；100 页、2 倍缩放下远页可出图，滚动不重复光栅已缓存页。应用的 `raster_layout` 经 `NeighborhoodCache` 只画视口邻域。光标叠加由 `raster_layout` 经 `joyword_render::paint_caret_overlay` 画到单独缓冲，不改缓存页像素。人工长文档滚动未做，不标 done。
+- 完成证据：`joyword-render::NeighborhoodCache` 按视口邻域光栅，每页使用自身像素预算；100 页、2 倍缩放下远页可出图。应用侧 `CanvasPipeline` 按可见页及前后预取页排队，`raster_page` 一次画一页，超出像素预算时先丢掉远离视口的页。光标叠加由 `raster_page` 经 `joyword_render::paint_caret_overlay` 画到单独缓冲，不改该页像素，其他页不带光标。人工长文档滚动未做，不标 done。
 
 ### T109：打开与保存的并发安全
 
@@ -223,7 +223,7 @@
 - 错误路径：lint 违规、守卫外 panic、未登记依赖、白名单外的文件系统调用均使 CI 失败。
 - 自动验证：注入 panic 的恶意输入测试先失败后通过；分层与白名单检查各有反例测试。
 - 人工验收：逐条审查 lint 豁免清单与门禁配置。
-- 完成证据：`scripts/check_gates.py` 已进入 CI：分层依赖、文件系统白名单、panic 基线（`scripts/panic_baseline.txt`）与反例。engine `apply` 有 panic 守卫，注入 panic 后文档不变。全量 unwrap 清理与豁免逐条人工审查未完成，不标 done。
+- 完成证据：`scripts/check_gates.py` 已进入 CI：分层依赖、文件系统白名单、panic 基线（`scripts/panic_baseline.txt`）与反例。engine `apply` 有 panic 守卫，注入 panic 后文档不变。2026-10-17 视口缓存测试新增的 `unwrap`／`expect`／`panic!` 已记入基线；`raster_page` 在像素缓冲无法组成图像时返回错误。全量豁免逐条人工审查未完成，不标 done。
 
 ### T107：M1 发布门槛
 

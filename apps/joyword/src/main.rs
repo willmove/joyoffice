@@ -389,7 +389,10 @@ impl JoyWord {
                             }
                             match TextInput::new(session, InputLimits::default()) {
                                 Ok(editor) => {
-                                    view.editor = Some(Box::new(editor));
+                                    // A journal restored at startup already owns the editor.
+                                    if view.editor.is_none() {
+                                        view.editor = Some(Box::new(editor));
+                                    }
                                     view.font = Some(Arc::new(font));
                                     view.profile = Some(profile);
                                 }
@@ -802,6 +805,22 @@ impl Render for JoyWord {
     }
 }
 
+/// Open a journaled package into a session the window can show. A missing or
+/// unreadable journal returns `None` and the caller keeps the sample document.
+fn take_recovered(
+    directory: &std::path::Path,
+) -> Option<(
+    joyword_shell::host::Office,
+    Box<dyn input_ui::DocEditor>,
+    joyword_shell::host::DocumentId,
+)> {
+    let mut office = joyword_shell::host::Office::recover_from(directory).ok()?;
+    office.set_recovery_directory(directory.to_path_buf());
+    let id = office.active_id()?;
+    let input = office.hold_active()?;
+    Some((office, Box::new(input), id))
+}
+
 fn main() {
     gpui_platform::application().run(|cx: &mut App| {
         let registry = Registry::builtin();
@@ -830,12 +849,26 @@ fn main() {
             },
             |window, cx| {
                 cx.new(|cx| {
+                    let recovery_dir = joyword_shell::storage::recovery_directory();
+                    let mut session = joyword_shell::host::Office::new();
+                    if let Some(dir) = &recovery_dir {
+                        session.set_recovery_directory(dir.clone());
+                    }
+                    let mut editor = None;
+                    let mut held_document = None;
+                    if let Some(dir) = &recovery_dir
+                        && let Some((recovered, input, id)) = take_recovered(dir)
+                    {
+                        session = recovered;
+                        editor = Some(input);
+                        held_document = Some(id);
+                    }
                     let mut view = JoyWord {
                         zoom_percent: ZOOM_DEFAULT,
                         locale,
                         registry: registry.clone(),
                         focus_handle: cx.focus_handle(),
-                        editor: None,
+                        editor,
                         copy_note: None,
                         font: None,
                         profile: None,
@@ -858,10 +891,10 @@ fn main() {
                         close_task: None,
                         subscriptions: Vec::new(),
                         clipboard: String::new(),
-                        session: joyword_shell::host::Office::new(),
+                        session,
                         open_gate: None,
-                        recovery_dir: None,
-                        held_document: None,
+                        recovery_dir,
+                        held_document,
                     };
                     view.install_input_lifecycle(window, cx);
                     view
@@ -904,6 +937,33 @@ mod tests {
             .filter(|spec| spec.shortcut.for_platform(Platform::current()).is_some())
             .count();
         assert_eq!(key_bindings(&registry).len(), with_keys);
+    }
+
+    #[test]
+    fn a_committed_journal_opens_back_into_a_session() -> Result<(), String> {
+        let dir = std::env::temp_dir().join(format!(
+            "joyword-recovery-{}-{}",
+            std::process::id(),
+            line!()
+        ));
+        std::fs::create_dir_all(&dir).map_err(|error| error.to_string())?;
+        let outcome = (|| {
+            let baseline = include_bytes!("../../../tests/fixtures/docx/DOCX-MIN-001.docx");
+            joyword_shell::storage::commit_recovery(&dir, baseline, "已提交")
+                .map_err(|error| error.to_string())?;
+            let (_office, editor, id) =
+                super::take_recovered(&dir).ok_or_else(|| "journal did not restore".to_string())?;
+            if id.0 == 0 {
+                return Err("recovered document has no id".into());
+            }
+            let text = editor.view().index().text();
+            if !text.contains("已提交") {
+                return Err(format!("restored text was {text}"));
+            }
+            Ok(())
+        })();
+        let _ = std::fs::remove_dir_all(&dir);
+        outcome
     }
 
     #[test]

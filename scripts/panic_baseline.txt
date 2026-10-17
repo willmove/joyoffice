@@ -475,3 +475,31 @@ apps/joyword/src/document_canvas.rs:937:let image = cache.cached(1, retina, 0).u
 apps/joyword/src/document_canvas.rs:945:input.replace(None, "🙂").unwrap();
 apps/joyword/src/document_canvas.rs:952:.unwrap();
 apps/joyword/src/document_canvas.rs:961:input.undo().unwrap();
+# Viewport-cache tests in apps/joyword/src (2026-10-17). Test modules only; production raster_page returns an error instead of expect.
+apps/joyword/src/document_canvas.rs:0:.expect("a page whose result was dropped is requested again");
+apps/joyword/src/document_canvas.rs:0:.map(|&page| pipeline.ready_page(&key, page, at_100).unwrap().clone())
+apps/joyword/src/document_canvas.rs:0:Landed::Failed(error) => panic!("raster failed: {error}"),
+apps/joyword/src/document_canvas.rs:0:Landed::Stale => panic!("raster of the current layout must install"),
+apps/joyword/src/document_canvas.rs:0:image.as_bytes(0).unwrap().to_vec()
+apps/joyword/src/document_canvas.rs:0:image.expect("visible page has pixels").clone()
+apps/joyword/src/document_canvas.rs:0:let first = pipeline.request_raster(&mark_key, at_100, 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:let huge = Projection::new(1200.0, 1.0).unwrap();
+apps/joyword/src/document_canvas.rs:0:let image = pipeline.ready_page(key, 0, projection).unwrap();
+apps/joyword/src/document_canvas.rs:0:let job = pipeline.request_raster(&key, at_100, 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:let job = pipeline.request_raster(&key, at_80, 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:let job = pipeline.request_raster(&key, at_80, 5..6).unwrap();
+apps/joyword/src/document_canvas.rs:0:let landed = pipeline.ready_page(&key, 0, at_80).unwrap().clone();
+apps/joyword/src/document_canvas.rs:0:let next = pipeline.request_raster(&key, at_100, 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:let pages = pipeline.layout().unwrap().layout.pages().len();
+apps/joyword/src/document_canvas.rs:0:let painted = pipeline.ready_page(&base, 0, at_80).unwrap().clone();
+apps/joyword/src/document_canvas.rs:0:let painted = pipeline.ready_page(&x_key, 0, at_80).unwrap().clone();
+apps/joyword/src/document_canvas.rs:0:let preview_pixels = pipeline.ready_page(&marked, 0, at_80).unwrap().clone();
+apps/joyword/src/document_canvas.rs:0:let retina = Projection::new(192.0, 1.0).unwrap();
+apps/joyword/src/document_canvas.rs:0:let reused = pipeline.ready_page(&committed, 0, at_80).unwrap();
+apps/joyword/src/document_canvas.rs:0:let running = pipeline.request_raster(&base, at_100, 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:let second = pipeline.request_raster(&mark_key, at_80, 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:let source = source_with_text(font(), &vec!["AV fi"; 1000].join("\n")).unwrap();
+apps/joyword/src/document_canvas.rs:0:let x_raster = pipeline.request_raster(&x_key, zoom(1.0), 0..1).unwrap();
+apps/joyword/src/document_canvas.rs:0:pipeline.request_raster(&current, at_120, 0..1).unwrap()
+apps/joyword/src/document_canvas.rs:0:source_with_text(font(), &vec!["AV fi"; lines].join("\n")).unwrap()
+apps/joyword/src/input_ui.rs:0:let b = project_page(&source.layout, at, page).unwrap();

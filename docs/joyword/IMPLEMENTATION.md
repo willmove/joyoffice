@@ -214,10 +214,10 @@
 | 本机 | Apple M4，24 GiB，macOS 27.0.1，arm64 |
 | Rust／Cargo | 1.98.1／1.98.1；工具链文件精确固定；为交叉检查额外安装 x86_64、aarch64 与 loongarch64 的 linux-gnu 标准库目标 |
 | GPUI | crates.io gpui-pre =0.3.9 与 gpui-pre-platform =0.3.9（开 font-kit、wayland、x11），即 Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照，共 19 个 gpui-pre* 包，crates.io 所有者为个人（huacnlee）；按 ADR-010 选定，迁移过程见[迁移报告](../coordination/reports/GPUI-PRE-MIGRATION.md)。CI 的 provenance 作业逐文件对照 Zed：16 个包一致，3 个包共 9 处偏差已审查接受（[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)）。cargo-deny 的“停止维护”公告由 0.2.2 时的 7 条减为 3 条（paste、rustybuzz、ttf-parser），无漏洞公告；许可白名单去掉了不再使用的 NCSA。此前使用 crates.io 0.2.2（最后官方版本，已停更） |
-| 依赖锁 | libc 仍锁定为 0.2.186。当初的原因是 0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 gpui 0.2.2 间接引入的 xattr 0.2.3 无法编译；迁到 gpui-pre 后锁文件中已无 xattr，此限制可在下次依赖升级时解除（本次未升级） |
-| Xcode／Metal | 本机只有 Command Line Tools，`xcrun --find metal` 失败；CI 的 macos-15 镜像（Xcode 16.4）具备 metal |
+| 依赖锁 | libc 仍锁定为 0.2.186。当初的原因是 0.2.190 删除了 Linux 上已弃用的 ENOATTR，使 gpui 0.2.2 间接引入的 xattr 0.2.3 无法编译；迁到 gpui-pre 后那条间接依赖已消失。joyword-shell 现在直接精确固定 `xattr` 1.6.1 与 `rustix` 1.1.5（`std`、`fs`），用于原件保存的扩展属性与交换改名。本次未升级其他依赖 |
+| Xcode／Metal | 2026-10-17 起本机已安装完整 Xcode 27.1，`xcode-select` 指向 `/Applications/Xcode.app`，`xcrun --find metal`／`metallib` 成功（MetalToolchain-v27.1）；强制重编 `gpui-pre-apple` 后普通构建（不启用 dev-runtime-shaders）在本机生成 `shaders.metallib` 并通过。CI 的 macos-15 镜像（Xcode 16.4）同样具备 metal |
 | 开发构建 | dev-runtime-shaders 使用 GPUI 官方运行时着色器选项，本机已编译成功 |
-| 对照软件 | 发现已安装 WPS、Pages；本次未做 Office 运行或往返测试 |
+| 对照软件 | 已安装 WPS、Pages。2026-10-17 曾要求 WPS 打开 `m1_edit_save` 另存的 DOCX，`open` 退出码为 0 且进程在运行，没有读回正文。本机没有 Microsoft Word.app，也没有 Office LTSC 2024 |
 | Windows／Linux | GitHub Actions 已实际执行并通过，见下表；尚无真实机器人工运行 |
 
 当前直接依赖：GPUI（gpui-pre 与 gpui-pre-platform，代码中仍以 gpui、gpui_platform 名称引用）、本地 crate、joyword-model 的 sha2（资源散列）、joyoffice-opc 的 quick-xml、flate2（纯 Rust 后端）与 crc32fast、joyword-layout 的 HarfRust 0.8.4 与 read-fonts 0.39.2、joyword-pdf 的 krilla 0.8.2；Ropey 仅为基准 dev 依赖。Fontique、ICU4X 仍是选型，尚未接入。
@@ -226,10 +226,10 @@
 
 | 项目 | 结果与范围 |
 | --- | --- |
-| 开发构建 | `cargo build -p joyword --features dev-runtime-shaders --locked` 成功 |
+| 开发构建 | `cargo build -p joyword --features dev-runtime-shaders --locked` 成功；2026-10-17 起本机（Xcode 27.1）`cargo build -p joyword --locked` 预编译 Metal 路径亦成功 |
 | 真实窗口 | 2026-10-14 用户在 macOS 上人工确认：窗口可启动，中英文切换、缩放和正常关闭均正常（T002 据此完成）。此前的启动冒烟：CGWindowList 中出现窗口，4 秒内未崩溃；按窗口截图因缺少屏幕录制授权失败。菜单与快捷键的人工确认、IME 输入不在此范围 |
-| 文档／语料／资源检查 | `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内，4 处 Actions 引用均按 SHA 固定 |
-| 核心测试 | `cargo test --locked` 通过 93 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟）；外壳 12 项单元测试（发布资源有效且一致、插值与复数、资源错误诊断、注册表与资源一致、菜单／快捷键／名称执行同一命令与禁用状态、分组与冲突校验、偏好往返／损坏回退与备份／新版本只读／迁移、未命名编号、关闭确认与取消、保存版本绑定）；应用 1 项（每个注册命令都有 GPUI 动作与快捷键绑定）；排版 3 项与 PDF 4 项（累计笔位置换算无漂移、特性显式、屏幕／PDF 单位换算误差 ≤0.01 pt；有 CJK 字体时：每簇有字形且位置单调、宽度等于前进量之和、缺字报告不改原文、PDF 确定性／子集嵌入／ToUnicode、未知字体被拒绝）；模型语义比较 1 项；语料 3 项（逐字节可重复、无诊断 OPC 包、外部目标只分类）。另有 `python3 -m unittest discover -s scripts/tests` 的 4 项比较工具逻辑测试 |
+| 文档／语料／资源检查（早期） | `python3 scripts/check_docs.py` 通过：82 个需求、58 个任务，阶段一致，M0–M7 均在 T704 前置闭包内，4 处 Actions 引用均按 SHA 固定。v0.3 之后的计数见下方「文档检查（v0.3）」 |
+| 核心测试（早期，引擎测试加入之前） | `cargo test --locked` 通过 93 项：基础库 3 项；模型 27 项单元与 12 项集成测试（随机编辑对照 Vec／String 模型、四个原创种子逐码点保留与 UTF-16 往返、表格／SDT／不透明内容保留、非法树有界诊断、1 万段文档单段编辑只复制不超过 5 个块树节点）；引擎 5 项单元与 11 项集成测试（40 个种子×120 步随机编辑与独立“字符＋标记”参考模型逐步对照文字、位置与收缩状态，失败原子性、过期版本、空操作、只读与 Agent 开关、前置条件、跨段编辑后的书签／域／批注锚点、锁定 SDT、选区映射与撤销恢复、随机序列的撤销／重做逐状态还原与版本单调）；OPC 3 项单元与 9 项集成测试（最小包与原始字节保留、相对与外部目标、部件名攻击、DOCTYPE／实体／深层 XML、64 MiB 零字节压缩炸弹在解压前拒绝、条目数与部件大小预算、声明大小造假、CRC、加密标志、未知压缩方法、重叠条目、截断，以及变异冒烟）；外壳 12 项单元测试（发布资源有效且一致、插值与复数、资源错误诊断、注册表与资源一致、菜单／快捷键／名称执行同一命令与禁用状态、分组与冲突校验、偏好往返／损坏回退与备份／新版本只读／迁移、未命名编号、关闭确认与取消、保存版本绑定）；应用 1 项（每个注册命令都有 GPUI 动作与快捷键绑定）；排版 3 项与 PDF 4 项（累计笔位置换算无漂移、特性显式、屏幕／PDF 单位换算误差 ≤0.01 pt；有 CJK 字体时：每簇有字形且位置单调、宽度等于前进量之和、缺字报告不改原文、PDF 确定性／子集嵌入／ToUnicode、未知字体被拒绝）；模型语义比较 1 项；语料 3 项（逐字节可重复、无诊断 OPC 包、外部目标只分类）。另有 `python3 -m unittest discover -s scripts/tests` 的 4 项比较工具逻辑测试 |
 | rustfmt／clippy | `cargo fmt --all -- --check` 通过；含 GPUI 的 `cargo clippy --workspace --all-targets --features dev-runtime-shaders -- -D warnings` 无警告 |
 | 依赖检查 | 本机 cargo-deny 0.20.2（安装在临时目录，未加入 PATH）：advisories、bans、licenses、sources 全部 ok |
 | 三端 CI（修复前） | 运行 38419060698 与 38419419204（提交 97286e8）：macos-15 全部步骤通过，含不启用 dev-runtime-shaders 的预编译 Metal 构建；windows-2022 因检出时 LF→CRLF 使四个种子散列不符而失败（已加 .gitattributes）；ubuntu-24.04 在 clippy 编译 xattr 时失败（已锁 libc，并以 `cargo check -p xattr@0.2.3 --target x86_64-unknown-linux-gnu` 本机验证） |
@@ -248,24 +248,24 @@
 
 ## 未完成的 M0 门槛与下一步
 
-1. T001：三端 CI 已通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机安装完整 Xcode 并单独下载 Metal 工具链后验证普通构建。
+1. T001：三端 CI 已通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机完整 Xcode 与 Metal 工具链已于 2026-10-17 装好并验证普通构建（Xcode 27.1，见"当前环境"）。
    ADR-010 线索（2026-10-14 只读核对，未实测）：Zed 主干 18787a9a080c 的 GPUI 已把 `GlyphId(pub u32)` 公开、`Window::paint_glyph` 为公开接口，但 `add_fonts` 仍不返回 FontId，只能按名称 `resolve_font`。候选做法是在注册前把字体 name 表的家族名改写为按散列生成的唯一名称再解析，使 FontId 必然指向同一份字节，从而无需分叉 GPUI；需在 T003 中实测屏幕与 PDF 的字形一致，并评估固定该提交的供应链与 Linux 渲染后端。
 2. T002：已完成（人工验收于 2026-10-14）；菜单、快捷键触发缩放与切换语言的路径如需单独确认，可在下次运行时顺带检查。
 3. T003：整形—场景—PDF 已贯通并有独立读回验证；剩余屏幕侧同一字形绘制（依赖 ADR-010 的 GPUI 来源或补丁，禁止用系统同名字体替代来宣称同一字形）、中文 IME 组合取消／提交／撤销、多显示器 DPI，以及两个阅读器的人工检查。
 4. T004：比较工具与可重复生成的最小样例已有；需要建立固定参考环境（Word 为 Office LTSC 2024，对照固定版本 WPS 与固定字体），在其中打开最小样例、导出参考 PDF 并记录，再按实测建立排版行为规则目录。
 5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
-6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。C07 已把 T102 输入与 T105 几何接入窗口；基础格式、剪贴板和输入／选择的人工验收仍未完成。T105 另有 W06 的 keep 约束分页；字体回退、四槽字体、混合格式、widowControl 与中文规则未做。
-7. T103：只读导入与 PackageBacking 已有首个切片；shell 的 DocxSession 已将全篇只读和局部 locked 的保守限制接入 engine，持有原包与诊断，并拒绝把任何已提交编辑的会话作为原包复制（包括撤销后的会话）。C02 已提供保守文字导出计划与往返验证；C03 已提供不覆盖目标的新副本落盘；W05 已支持默认格式纯文本段落的拆分／合并导出；W10／W11 已实现来源绑定与平台能力矩阵，替换增量补上读回确认与部分元数据恢复，但公开原件保存仍因 ACL／扩展属性／来源标记不可观测而在所有平台写入前拒绝。下一步是 T110 的元数据观测与 SPEC §5 用户选择路径，再扩展格式导出范围与覆盖引导 fuzz 目标，见 [C02 报告](../coordination/reports/C02-DOCX-EXPORT.md)、[C03 报告](../coordination/reports/C03-DOCX-COPY.md)。在 M1 门槛 T107 通过前不提供真实用户文档的编辑保存承诺。
-8. T106：C09 已接入绑定打开与另存副本；剩余命令元数据扩展（只读／修改标记与参数说明）、文件对话框细节、最近文件菜单、多窗口与未保存提示界面；作者名修改后重启核对属于人工验收。
-9. T104：W08 的恢复日志仅为独立实验，W14 为接入设计；由用户决定会话生命周期、持久化时机与恢复界面后再接入生产，并补 Windows 原生与断电验证。
-10. v0.3 新增 T108–T111（M1）与 T208–T211（M2），分别承接对照分析发现的画布光栅预算、打开／保存并发安全、原件保存用户选择路径、工程门禁、增量排版、撤销组、无头读回与日志问题，范围与验收见 [TASKS](TASKS.md)。
+6. T100、T101：自动验证项已完成，各自剩余人工验收；T101 的人工验收依赖 T102／T106 的界面。C07 已把输入与几何接入窗口。`m1_edit_save` 已覆盖中文编辑、加粗、居中和剪贴板的命令路径。系统拼音提交／取消／一次撤销的人工验收仍未完成，T102 保持 `in_progress`。
+7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含隔离标记文档的图形确认、覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
+8. T105、T108：`layout_document` 对东亚或复杂文字调用 `slot_for`、`wrap_mixed` 和 `adjust_cjk_break`；屏幕入口在只有一份字体时用 `FaceSet::uniform`。窗口按可见页及前后预取页调用 `raster_page`，超出像素预算时丢掉远离视口的页。光标由 `paint_caret_overlay` 画到单独缓冲，不改该页像素。固定 Word 的完整中文规则、widowControl，以及长文档滚动缩放的人工验收未完成，两项保持 `in_progress`。
+9. T104、T106、T109：命令注册表是打开、另存、最近文件、切换和关闭的唯一入口，参数齐全则执行，缺参数返回待输入。取消关闭保留会话。打开在版本接受前只读，期间输入保留；过期保存不写文件、不清 dirty。生产恢复日志写入原包基线与已提交文本，加密包不写明文。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则在示例文档之前恢复进会话。文件对话框、最近文件菜单和强制结束后的图形恢复仍待人工验收，三项保持 `in_progress`。
+10. T111 与 M2 之后：`scripts/check_gates.py` 已进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫。豁免清单的逐条人工审查未完成，T111 保持 `in_progress`。T208–T211（增量排版、撤销组、无头读回、应用日志）以及 M2–M9 保持 `planned`。
 
 2026-10-17 本环境补记：
 
 - 原件保存：未确认时列出不能保留或不能观测的元数据且不改源文件；显式确认且观测成功才替换，并保留权限、所有者、macOS 创建时间与可复制的扩展属性。默认路径是 `save_default_copy`。观测失败拒绝替换。新增精确依赖 `xattr` 1.6.1。确认替换在 macOS 与 Linux 上用 rustix 1.1.5 的 `RenameFlags::EXCHANGE` 交换临时文件与目标；被换下的 inode 若不是已核对的源文件，则交换回去并拒绝。
 - 命令注册表是打开、另存、最近文件、切换文档和关闭的执行入口。字符加粗、段落居中和文本剪贴板走同一入口。`m1_edit_save` 从 `BoundDocx` 打开最小 DOCX，编辑中文、格式和剪贴板，另存后重开，未知部件字节保持。受保护文档拒绝编辑。失败的另存不改源字节。
-- 排版增加四槽选择、缺字回退和基本中文标点断行调整。屏幕光栅改为视口邻域缓存，100 页在 2 倍缩放下按页出图；再次光栅已缓存页不增加绘制，光标叠加不改页面像素。同一次排版的页面几何不随缩放改变。屏幕与 PDF 使用同一份字体字节，PDF 内容流中的文本矩阵与场景字形原点不超过 0.01 pt。
-- 打开在版本接受前只读，期间输入保留；保存结果按会话版本应用，过期结果不清 dirty。恢复日志写入原包基线；子进程中止后能读回最后一次提交。加密包不写明文副本。
+- 排版增加四槽选择、缺字回退和基本中文标点断行调整。窗口按可见页及前后预取页调用 `raster_page`，100 页在 2 倍缩放下按页出图；光标叠加不改该页像素。同一次排版的页面几何不随缩放改变。屏幕与 PDF 使用同一份字体字节，PDF 内容流中的文本矩阵与场景字形原点不超过 0.01 pt。
+- 打开在版本接受前只读，期间输入保留；保存结果按会话版本应用，过期结果不清 dirty。恢复日志写入原包基线；子进程中止后能读回最后一次提交。窗口使用 `JOYWORD_RECOVERY_DIR` 或偏好目录下的 `recovery`，启动时若日志可读则先恢复再加载示例。加密包不写明文副本。
 - `scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例。engine 事务有 panic 守卫。
 - 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Office LTSC 2024 与 Microsoft Word.app 未安装，语料参考结果保持 `unverified`。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回，Word 对照没有执行。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。M2 及以后保持 `planned`。
 

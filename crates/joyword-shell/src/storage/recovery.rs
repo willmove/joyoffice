@@ -80,6 +80,25 @@ pub fn recover(directory: &Path) -> io::Result<Recovered> {
     Ok(Recovered { baseline, text })
 }
 
+/// Where a running editor journals a commit. An explicit directory wins.
+/// Otherwise the journal lives under the per-user configuration directory.
+pub fn directory_from(explicit: Option<&Path>, config_dir: Option<&Path>) -> Option<PathBuf> {
+    if let Some(path) = explicit.filter(|path| !path.as_os_str().is_empty()) {
+        return Some(path.to_path_buf());
+    }
+    config_dir.map(|dir| dir.join("recovery"))
+}
+
+/// `JOYWORD_RECOVERY_DIR` when it is set, otherwise [`directory_from`] with
+/// the preferences directory.
+pub fn directory() -> Option<PathBuf> {
+    let explicit = std::env::var_os("JOYWORD_RECOVERY_DIR").map(PathBuf::from);
+    directory_from(
+        explicit.as_deref(),
+        crate::prefs::default_config_dir().as_deref(),
+    )
+}
+
 fn write_blob(out: &mut Vec<u8>, bytes: &[u8]) {
     out.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
     out.extend_from_slice(bytes);
@@ -99,4 +118,25 @@ fn read_blob(input: &mut &[u8]) -> io::Result<Vec<u8>> {
     let blob = input[..len].to_vec();
     *input = &input[len..];
     Ok(blob)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_explicit_directory_wins_over_the_config_dir() {
+        let chosen = directory_from(
+            Some(Path::new("/var/joyword-recovery")),
+            Some(Path::new("/cfg")),
+        );
+        assert_eq!(chosen, Some(PathBuf::from("/var/joyword-recovery")));
+    }
+
+    #[test]
+    fn the_config_dir_is_used_when_no_directory_is_explicit() {
+        let chosen = directory_from(Some(Path::new("")), Some(Path::new("/cfg")));
+        assert_eq!(chosen, Some(PathBuf::from("/cfg/recovery")));
+        assert_eq!(directory_from(None, None), None);
+    }
 }

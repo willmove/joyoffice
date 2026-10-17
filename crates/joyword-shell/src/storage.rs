@@ -36,7 +36,10 @@ pub use original::{
     SaveOriginalReceipt, original_replacement_capabilities, save_original,
     save_original_with_choice, save_original_with_lock_token,
 };
-pub use recovery::{Recovered, commit as commit_recovery, package_is_encrypted, recover};
+pub use recovery::{
+    Recovered, commit as commit_recovery, directory as recovery_directory, package_is_encrypted,
+    recover,
+};
 pub use source::{
     OpenedSource, SourceStamp, check_source, check_source_with_lock_token, open_source,
 };

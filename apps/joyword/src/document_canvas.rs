@@ -449,7 +449,9 @@ impl PageCache {
             u64::from(size.width.0.unsigned_abs()) * u64::from(size.height.0.unsigned_abs());
         self.entries.push(CachedPage { key, image, pixels });
         while self.resident() > self.budget {
-            let (newest, older) = self.entries.split_last().expect("just installed");
+            let Some((newest, older)) = self.entries.split_last() else {
+                break;
+            };
             let Some(victim) = older
                 .iter()
                 .enumerate()
@@ -844,7 +846,9 @@ pub fn raster_page(
             &bgra, width, height, projection, x, top, height_emu,
         ),
     });
-    let image = image_from_bgra(width, height, &bgra).expect("validated raster dimensions");
+    let Some(image) = image_from_bgra(width, height, &bgra) else {
+        return Err("raster image".into());
+    };
     Ok(RasterOutput {
         image,
         caret_overlay,
