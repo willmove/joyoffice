@@ -85,30 +85,36 @@ fn killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied() {
         std::process::abort();
     }
     let dir = tempfile::tempdir().unwrap();
-    let exe = std::env::current_exe().unwrap();
-    let mut child = if exe
-        .file_name()
-        .is_some_and(|name| name.to_string_lossy().starts_with("qemu"))
-    {
-        // QEMU user mode without the binfmt fix-binary flag reports the
-        // emulator as /proc/self/exe, and the guest test binary cannot exec
-        // directly. Respawn through the runner cargo used; argv[0] still
-        // carries the guest binary path.
+    let mut child = {
+        // QEMU user mode: the guest test binary cannot exec directly (binfmt
+        // without the library prefix cannot find the loader; /proc/self/exe
+        // may also point at the emulator). Respawn through the same runner
+        // cargo used (CI sets CARGO_TARGET_<TRIPLE>_RUNNER); argv[0] carries
+        // the guest binary path.
         let runner_env = if cfg!(target_arch = "aarch64") {
-            "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER"
+            Some("CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER")
         } else if cfg!(target_arch = "loongarch64") {
-            "CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_RUNNER"
+            Some("CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_RUNNER")
         } else {
-            panic!("unexpected QEMU runner on this architecture")
+            None
         };
-        let runner = std::env::var(runner_env).expect("QEMU runner env var from CI");
-        let mut words = runner.split_whitespace();
-        let program = words.next().expect("runner program");
-        let mut command = Command::new(program);
-        command.args(words).arg(std::env::args().next().unwrap());
-        command
-    } else {
-        Command::new(exe)
+        let runner = runner_env
+            .and_then(|name| std::env::var(name).ok())
+            .filter(|runner| !runner.is_empty());
+        match runner {
+            Some(runner) => {
+                let mut words = runner.split_whitespace();
+                let program = words.next().expect("runner program");
+                let mut command = Command::new(program);
+                command.args(words).arg(
+                    std::env::args()
+                        .next()
+                        .expect("argv[0] is the guest binary"),
+                );
+                command
+            }
+            None => Command::new(std::env::current_exe().unwrap()),
+        }
     };
     child
         .env("JOYWORD_RECOVERY_CHILD", "1")
