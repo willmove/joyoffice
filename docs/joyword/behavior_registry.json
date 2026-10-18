@@ -216,6 +216,30 @@
       "source": "hypothesis",
       "test": "inserting_and_deleting_a_column_is_one_undoable_transaction",
       "word_observation": null
+    },
+    {
+      "id": "IMAGE-INSERT-UNDO",
+      "operation": "在插入点插入一张已接纳的图片",
+      "expectation": "一次撤销去掉该图片和它的资源，再重做恢复",
+      "source": "hypothesis",
+      "test": "inserting_an_image_is_one_undo",
+      "word_observation": null
+    },
+    {
+      "id": "IMAGE-PASTE-REFUSE",
+      "operation": "粘贴被拒绝的图片字节，同一事务里先删除文字",
+      "expectation": "删除与插入一起丢弃，文档与版本不变，也不回退成纯文本",
+      "source": "hypothesis",
+      "test": "a_refused_image_inside_a_transaction_discards_the_delete",
+      "word_observation": null
+    },
+    {
+      "id": "IMAGE-DEDUP",
+      "operation": "两次插入相同的图片字节",
+      "expectation": "两处内嵌图片共用同一个资源",
+      "source": "hypothesis",
+      "test": "two_equal_inserts_share_one_resource",
+      "word_observation": null
     }
   ]
 }

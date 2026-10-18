@@ -77,12 +77,26 @@ pub struct SceneRect {
     pub blue: u8,
 }
 
+/// A still image painted in the same page coordinates as [`GlyphRun`].
+/// Bytes are the admitted raster; outputs decode them and do not fetch.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SceneImage {
+    pub media_type: Arc<str>,
+    pub bytes: Arc<[u8]>,
+    /// Top-left of the image on the page.
+    pub x: Emu,
+    pub y: Emu,
+    pub width: Emu,
+    pub height: Emu,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageScene {
     pub width: Emu,
     pub height: Emu,
     pub runs: Vec<GlyphRun>,
     pub rects: Vec<SceneRect>,
+    pub images: Vec<SceneImage>,
 }
 
 /// Points as PDF and print coordinates use them.

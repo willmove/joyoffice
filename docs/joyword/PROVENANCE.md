@@ -30,14 +30,14 @@
 | Fontique／ICU4X | 后续字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
 | Skrifa 0.42.1 | CPU 字形轮廓直接依赖 | [上游](https://github.com/googlefonts/fontations)，MIT OR Apache-2.0 | 与现有 PDF 共用 read-fonts 0.39.2；只重用原锁文件版本 |
 | tiny-skia 0.11.4 | CPU 单色轮廓光栅直接依赖 | [上游](https://github.com/RazrFalcon/tiny-skia)，BSD-3-Clause | 重用原锁文件，默认 SIMD／PNG 特性；保留许可通知 |
-| image 0.25.10 | app 的内存页面到 GPUI 图像适配 | [上游](https://github.com/image-rs/image)，MIT OR Apache-2.0 | 复用 GPUI 原锁文件依赖；未启用额外默认特性 |
+| image 0.25.10 | app 的内存页面到 GPUI 图像适配；joyword-model 对 PNG／JPEG／GIF／BMP／TIFF 的预算内接纳与解码 | [上游](https://github.com/image-rs/image)，MIT OR Apache-2.0 | 复用原锁文件 0.25.10；默认特性关闭。模型只打开 png、jpeg、gif、bmp、tiff |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
 | unicode-linebreak 0.1.5 | layout 的默认 Unicode 候选断点（直接依赖） | [上游 API](https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/)，Apache-2.0（crate 元数据） | 精确复用锁文件版本，Unicode 15.0；不据此宣称 Word 中文规则或词典分词 |
 | unicode-segmentation 1.13.3 | shell 输入的默认扩展字素与词边界，以及引擎查找的字素对齐匹配（直接依赖） | [上游 API](https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/)，MIT OR Apache-2.0（crate 元数据） | Unicode 17.0；复用已有锁文件包，引擎与 shell 共用同一钉扎，无新版本；不等同于中文词典分词或字体整形簇 |
 | tempfile 3.27.0 | shell 安全创建同目录私有临时文件（直接依赖） | [上游 API](https://docs.rs/tempfile/3.27.0/tempfile/struct.NamedTempFile.html)，MIT OR Apache-2.0（crate 元数据） | 复用原锁文件版本；不使用可覆盖 persist，发布采用 std::fs::hard_link；无新外部包或升级 |
 | winsafe 0.0.19（kernel，仅 Windows） | shell 的 Win32 文件身份观测与 `ReplaceFileW` 原件替换（直接依赖） | [上游](https://github.com/rodrigocfd/winsafe)，MIT；[ReplaceFileW 公开文档](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilew) | 安全通用绑定，不在仓库写 unsafe；不使用 IGNORE_MERGE／ACL 标志，不把 Win32 成功码代替读回验证 |
-| krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出与定位字形（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）与 raster-images；只消费页面场景中的字形与位置 |
+| krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出、定位字形和场景图片（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）。joyword-pdf 打开 raster-images，把已接纳的场景图片画进 PDF；版本仍是 0.8.2。传递依赖仍含 pdf-writer、subsetter、xmp-writer 与 tiny-skia-path |
 
 MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib 和 CC0-1.0 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 间接引入的“停止维护”公告逐条登记理由，迁到 gpui-pre 0.3.9 后由 7 条减为 3 条（paste、rustybuzz、ttf-parser），每次升级 GPUI 快照时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
 

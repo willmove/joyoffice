@@ -22,7 +22,7 @@
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M0 | 3 | 3 | 0 | 0 | 6 |
 | M1 | 7 | 4 | 1 | 0 | 12 |
-| M2 | 0 | 9 | 3 | 0 | 12 |
+| M2 | 0 | 10 | 2 | 0 | 12 |
 | M3 | 0 | 0 | 5 | 0 | 5 |
 | M4 | 0 | 0 | 4 | 0 | 4 |
 | M5 | 0 | 0 | 5 | 0 | 5 |
@@ -30,9 +30,9 @@
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 10 | 16 | 40 | 0 | 66 |
+| 总计 | 10 | 17 | 39 | 0 | 66 |
 
-**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 Windows 原生 GUI 确认保存人工验收，以及 T103 的覆盖引导 fuzz；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；主题 tint／shade、按字体名换面、表格样式、边框底纹、超出本切片的编号格式与前导符、编号级别字符格式、编号部件改写、正则查找、全角半角折叠和人工验收未做）、T201（基础表格第一切片：类型化网格、行列增删、单元格选择和页面场景；合并与拆分编辑未做）、T202（页面几何、显式分页符、主页眉页脚、首页不同与奇偶页不同及其链接到前一节已绘制，人工验收未做）、T205（功能区、状态栏、字体与段落对话框、标尺缩进与制表位拖拽已落地；编辑标记／隐藏文字／域代码开关因排版没有对应选项而禁用并给出原因；Word 字数对话框对照、视图选项进入布局快照键，以及下划线和非自动颜色的绘制未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（人工验收未做）、T210（全部子命令已实现、人工验收未做）与 T211（应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做）进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
+**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 Windows 原生 GUI 确认保存人工验收，以及 T103 的覆盖引导 fuzz；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；主题 tint／shade、按字体名换面、表格样式、边框底纹、超出本切片的编号格式与前导符、编号级别字符格式、编号部件改写、正则查找、全角半角折叠和人工验收未做）、T201（基础表格第一切片：类型化网格、行列增删、单元格选择和页面场景；合并与拆分编辑未做）、T202（页面几何、显式分页符、主页眉页脚、首页不同与奇偶页不同及其链接到前一节已绘制，人工验收未做）、T203（行内图片导入、可撤销插入、页面场景与纯文本／图片粘贴策略已落地；超链接、HTML／RTF、拖放和人工对照未做）、T205（功能区、状态栏、字体与段落对话框、标尺缩进与制表位拖拽已落地；编辑标记／隐藏文字／域代码开关因排版没有对应选项而禁用并给出原因；Word 字数对话框对照、视图选项进入布局快照键，以及下划线和非自动颜色的绘制未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（人工验收未做）、T210（全部子命令已实现、人工验收未做）与 T211（应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做）进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
 
 ## 阶段与任务
 
@@ -303,14 +303,14 @@
 ### T203：图片与富文本剪贴板
 
 - 输入：系统剪贴板多种 MIME／平台格式、图片资源及用户粘贴策略。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-006`、`CLIP-001`、`CLIP-002`、`CLIP-003`、`EDIT-003`、`EDIT-010`
 - 前置：`T101`、`T200`
 - 产物：行内图片、超链接插入编辑与确认后打开、拖放、纯文本／HTML／RTF／内部片段及粘贴策略；富剪贴板格式由 platform 层实现（GPUI 仅提供文本与图片）。
 - 错误路径：畸形富文本、远程资源、过大图片和 ID 冲突不执行活动内容。
 - 自动验证：清理、资源去重、样式编号映射、单次撤销与剪切失败原子性。
 - 人工验收：Word／WPS／浏览器双向复制列表、表格、图片，比较粘贴选项。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-18 第一切片已落地，任务保持 `in_progress`。已覆盖：`w:drawing`／`wp:inline` 的单个内部光栅 blip（以及 `w:pict` 的 `v:imagedata`）在字节、边长和像素预算内成为图片资源；`r:link`、外部目标和 OLE／SVG／EMF／WMF 不取回、不执行，诊断不回显 URL；超宽 PNG 在解码像素前拒绝并锁定段落。编辑插入按内容哈希与媒体类型去重（导入仍按部件保持独立）。`InsertImage` 与 `edit.insert_image` 是一次可撤销事务；系统剪贴板优先接纳图片字节，图片全部被拒时不回退成文字，文件路径不打开。行内图片进入屏幕与 PDF 共用的 `PageScene`，PDF 写出图像 XObject，CPU 光栅绘制同一矩形。未改动的图片段落保持原 XML；新增资源或改写图片段落显式拒绝，不改写媒体部件。行为登记 `IMAGE-INSERT-UNDO`、`IMAGE-PASTE-REFUSE`、`IMAGE-DEDUP`（来源是假设，没有 Word 观察）。证据：`an_inline_drawing_imports_the_raster_and_round_trips_beside_a_text_edit`、`a_remote_link_is_not_fetched_and_an_oversize_header_is_kept`、`a_new_image_resource_is_an_explicit_export_refusal`、`inserting_an_image_is_one_undo`、`two_equal_inserts_share_one_resource`、`a_refused_image_inside_a_transaction_discards_the_delete`、`an_inline_image_is_placed_in_the_page_scene`、`a_scene_image_is_embedded_and_not_omitted`、`a_red_image_paints_a_non_white_pixel`、`choose_paste_prefers_an_admitted_image_over_text`、`a_refused_image_paste_does_not_change_the_document`、`clipboard_file_paths_are_not_opened`、`inserting_an_image_file_is_one_undo_and_remote_paths_are_refused`。未覆盖：超链接、HTML／RTF、拖放、浮动 `wp:anchor`、把选中图片复制回系统剪贴板、页眉页脚图片绘制、图片段落后的同行文字、表格内图片作为产品功能的完整验收，以及 Word／WPS／浏览器双向粘贴的人工对照。没有启动图形界面。详见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T204：统一 PDF 与平台打印
 

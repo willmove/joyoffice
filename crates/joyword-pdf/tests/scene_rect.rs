@@ -19,6 +19,7 @@ fn a_scene_rect_changes_the_pdf_bytes() {
             green: 0,
             blue: 0,
         }],
+        images: Vec::new(),
     };
     let painted = render(std::slice::from_ref(&page), &[]).unwrap();
     let mut blank = page;

@@ -19,6 +19,10 @@ impl ContentHash {
     pub fn of(data: &[u8]) -> Self {
         Self(Sha256::digest(data).into())
     }
+
+    pub fn as_bytes(self) -> [u8; 32] {
+        self.0
+    }
 }
 
 impl fmt::Display for ContentHash {
@@ -97,6 +101,23 @@ impl ResourceTable {
         self.resources
             .values()
             .filter(move |resource| resource.hash == hash)
+    }
+
+    /// An existing resource with the same media type and bytes.
+    ///
+    /// Import keeps one resource per package part, even when the bytes match,
+    /// because each part has its own source. Editor insertion uses this to
+    /// avoid storing a second copy of the same image.
+    pub fn find_same(&self, media_type: &str, data: &[u8]) -> Option<ResourceId> {
+        let hash = ContentHash::of(data);
+        self.resources
+            .values()
+            .find(|resource| {
+                resource.hash == hash
+                    && resource.media_type.as_ref() == media_type
+                    && resource.data.as_ref() == data
+            })
+            .map(|resource| resource.id)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &Arc<Resource>> {

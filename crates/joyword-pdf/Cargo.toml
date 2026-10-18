@@ -11,7 +11,8 @@ publish = false
 [dependencies]
 joyword-foundation.workspace = true
 joyword-layout.workspace = true
-krilla.workspace = true
+joyword-model.workspace = true
+krilla = { workspace = true, features = ["raster-images"] }
 
 [dev-dependencies]
 joyword-model.workspace = true

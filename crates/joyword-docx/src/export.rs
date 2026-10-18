@@ -458,6 +458,23 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
                     && a.footers == b.footers
                     && a.preserved == b.preserved
             });
+    let resources_equal = before.resources().len() == after.resources().len()
+        && before
+            .resources()
+            .iter()
+            .zip(after.resources().iter())
+            .all(|(a, b)| {
+                a.id() == b.id()
+                    && a.media_type() == b.media_type()
+                    && a.data() == b.data()
+                    && a.source() == b.source()
+            });
+    if !resources_equal {
+        return Err(unsupported(
+            None,
+            "image resources changed and media parts are not rewritten",
+        ));
+    }
     // Body blocks are aligned separately; their count may change.
     if before.body_id() != after.body_id()
         || !auxiliary_stories_match(before, after)
@@ -469,17 +486,6 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
         || before.styles().theme() != after.styles().theme()
         || !before.styles().iter().eq(after.styles().iter())
         || !before.annotations().eq(after.annotations())
-        || before.resources().len() != after.resources().len()
-        || !before
-            .resources()
-            .iter()
-            .zip(after.resources().iter())
-            .all(|(a, b)| {
-                a.id() == b.id()
-                    && a.media_type() == b.media_type()
-                    && a.data() == b.data()
-                    && a.source() == b.source()
-            })
     {
         return Err(unsupported(None, "non-text document content changed"));
     }
@@ -674,6 +680,14 @@ fn patch_paragraph(
             )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
+        }
+        if before
+            .inlines()
+            .iter()
+            .chain(after.inlines())
+            .any(|inline| matches!(inline.kind, joyword_model::InlineKind::Image { .. }))
+        {
+            return Err(error("inline image paragraphs are not rewritten"));
         }
         return Err(error(
             "paragraph formatting, source or inline objects changed",

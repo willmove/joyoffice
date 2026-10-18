@@ -14,13 +14,13 @@ use crate::diag::{AppLog, Event, Level};
 
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
-    EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
-    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE,
-    FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH,
-    InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION,
-    PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT,
-    TABLE_INSERT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, VIEW_FIELD_CODES,
-    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    EDIT_COPY, EDIT_INSERT, EDIT_INSERT_IMAGE, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL,
+    ExecuteError, FILE_CLOSE, FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT,
+    FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_FONT,
+    FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
+    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST,
+    TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_ROW_DELETE, TABLE_ROW_INSERT,
+    TABLE_SELECT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use crate::dialogs::{
     disabled_view_toggle, font_draft_from_decision, paragraph_draft_from_decision,
@@ -529,6 +529,7 @@ fn diagnostic_kind_name(kind: &DiagnosticKind) -> &'static str {
         DiagnosticKind::UnpreservedWhitespace => "unpreserved_whitespace",
         DiagnosticKind::EmptyBody => "empty_body",
         DiagnosticKind::MacroProject => "macro_project",
+        DiagnosticKind::Image { .. } => "image",
         DiagnosticKind::Model(_) => "model",
     }
 }
@@ -645,6 +646,7 @@ impl CommandHost for Office {
         if (matches!(
             id,
             EDIT_INSERT
+                | EDIT_INSERT_IMAGE
                 | EDIT_BOLD
                 | EDIT_ITALIC
                 | EDIT_ALIGN_CENTER
@@ -784,6 +786,17 @@ impl Office {
                 };
                 self.require_active()?
                     .replace_from(InputSource::Command, None, text)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            EDIT_INSERT_IMAGE => {
+                let Some(ArgValue::Path(path)) = args.get("path") else {
+                    return Err(ExecuteError::Failed("path".into()));
+                };
+                self.require_active()?
+                    .insert_image_file(path)
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;

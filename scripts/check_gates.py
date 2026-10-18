@@ -32,8 +32,8 @@ LAYERS = {
     "joyoffice-opc": set(),
     "joyword-docx": {"joyoffice-opc", "joyword-model", "joyword-foundation"},
     "joyword-layout": {"joyword-foundation", "joyword-model"},
-    "joyword-render": {"joyword-foundation", "joyword-layout"},
-    "joyword-pdf": {"joyword-foundation", "joyword-layout"},
+    "joyword-render": {"joyword-foundation", "joyword-layout", "joyword-model"},
+    "joyword-pdf": {"joyword-foundation", "joyword-layout", "joyword-model"},
     "joyword-corpus": {"joyoffice-opc"},
     "joyword-shell": {
         "joyoffice-opc",
@@ -66,6 +66,7 @@ FS_ALLOW = {
     "crates/joyword-shell/src/diag.rs",
     "crates/joyword-shell/src/docx.rs",
     "crates/joyword-shell/src/host.rs",
+    "crates/joyword-shell/src/input.rs",
     "apps/joyword/src/main.rs",
     "apps/joyword/src/document_canvas.rs",
     "apps/joyword/src/input_ui.rs",

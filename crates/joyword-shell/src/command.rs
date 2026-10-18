@@ -430,6 +430,7 @@ pub const EDIT_ALIGN_CENTER: CommandId = CommandId("edit.align_center");
 pub const EDIT_COPY: CommandId = CommandId("edit.copy");
 pub const EDIT_PASTE: CommandId = CommandId("edit.paste");
 pub const EDIT_INSERT: CommandId = CommandId("edit.insert");
+pub const EDIT_INSERT_IMAGE: CommandId = CommandId("edit.insert_image");
 pub const STYLE_LIST: CommandId = CommandId("style.list");
 pub const STYLE_APPLY: CommandId = CommandId("style.apply");
 pub const LIST_APPLY: CommandId = CommandId("list.apply");
@@ -776,6 +777,14 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: TEXT_PARAM,
+            },
+            CommandSpec {
+                id: EDIT_INSERT_IMAGE,
+                label: "command.edit.insert_image",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: PATH_PARAM,
             },
             CommandSpec {
                 id: STYLE_LIST,
