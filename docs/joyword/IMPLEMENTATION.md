@@ -389,7 +389,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 
 未覆盖：真实等线／宋体／雅黑字节上的断行与行高、`tests/fixtures/reference/word2024/breaks/` 的 Word PDF 未在本环境重抽、Word／WPS 人工版式对照、字符网格与 `w:docGrid` 的其他间距、中西文间距、adjustRightInd、字体替代与缺字诊断链。T207 保持 `in_progress`。
 
-`crates/` 相对上一绑定有差异，W09 harness 按原契约重锚到 `f2f0a1ece07805fbe3247f18eead8f63e046a2a8`（只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol。这仍不是覆盖引导 fuzz，也不证明中文排版。
+`crates/` 相对上一绑定有差异，W09 harness 按原契约重锚到 `f2f0a1ece07805fbe3247f18eead8f63e046a2a8`（只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol。这仍不是覆盖引导 fuzz，也不证明中文排版。合入 main 的 T209 与 Windows 原件保存再次改变 `crates/`，锚点改到合并提交 `a8d2c4e9f7a0f8dfed23e3be3843430bd1606970`。独立锁只补上生产锁已有的 `winsafe` 0.0.19，未升级其他包。重跑 smoke 仍为 81／81，43 ok、38 rejected。
 
 ### T209 撤销组与输入来源切片（2026-10-18）
 
