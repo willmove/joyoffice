@@ -5,7 +5,7 @@ fn main() {
         .args([
             "diff",
             "--quiet",
-            "b2b807ae25d19db5cb5a525d67a7bce457c45d0c",
+            "58461396a4c22e8346da6010136960c3c5984559",
             "--",
             "crates",
         ])
