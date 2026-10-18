@@ -17,6 +17,7 @@ use std::sync::Arc;
 use joyword_foundation::Emu;
 
 use crate::id::PreservedId;
+use crate::theme::ThemeColorSlot;
 
 /// A length or size in its source unit.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -81,6 +82,9 @@ pub type Toggle = Option<bool>;
 pub enum Color {
     Auto,
     Rgb(u8, u8, u8),
+    /// `w:themeColor` without tint or shade. Resolution substitutes the
+    /// scheme colour; a missing scheme entry stays here.
+    Theme(ThemeColorSlot),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

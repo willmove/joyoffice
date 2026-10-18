@@ -55,6 +55,8 @@ actions!(
         SaveCopy,
         Bold,
         Italic,
+        ListStyles,
+        ApplyStyle,
         AlignCenter,
         CopyText,
         PasteText,
@@ -101,6 +103,8 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FILE_SAVE_COPY => Box::new(SaveCopy),
         EDIT_BOLD => Box::new(Bold),
         EDIT_ITALIC => Box::new(Italic),
+        STYLE_LIST => Box::new(ListStyles),
+        STYLE_APPLY => Box::new(ApplyStyle),
         EDIT_ALIGN_CENTER => Box::new(AlignCenter),
         EDIT_COPY => Box::new(CopyText),
         EDIT_PASTE => Box::new(PasteText),
@@ -761,6 +765,12 @@ impl Render for JoyWord {
                 cx.listener(|this, _: &SaveCopy, window, cx| this.run(FILE_SAVE_COPY, window, cx)),
             )
             .on_action(cx.listener(|this, _: &Bold, window, cx| this.run(EDIT_BOLD, window, cx)))
+            .on_action(
+                cx.listener(|this, _: &ListStyles, window, cx| this.run(STYLE_LIST, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &ApplyStyle, window, cx| this.run(STYLE_APPLY, window, cx)),
+            )
             .on_action(
                 cx.listener(|this, _: &Italic, window, cx| this.run(EDIT_ITALIC, window, cx)),
             )

@@ -209,6 +209,11 @@ const TEXT_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Text,
     required: true,
 }];
+const STYLE_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "style",
+    kind: ParamKind::Text,
+    required: true,
+}];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Availability {
@@ -315,6 +320,8 @@ pub const EDIT_ALIGN_CENTER: CommandId = CommandId("edit.align_center");
 pub const EDIT_COPY: CommandId = CommandId("edit.copy");
 pub const EDIT_PASTE: CommandId = CommandId("edit.paste");
 pub const EDIT_INSERT: CommandId = CommandId("edit.insert");
+pub const STYLE_LIST: CommandId = CommandId("style.list");
+pub const STYLE_APPLY: CommandId = CommandId("style.apply");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
@@ -639,6 +646,25 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: TEXT_PARAM,
+            },
+            CommandSpec {
+                id: STYLE_LIST,
+                label: "command.style.list",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: STYLE_APPLY,
+                label: "command.style.apply",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: STYLE_PARAM,
             },
             CommandSpec {
                 id: FILE_OPEN_RECENT,

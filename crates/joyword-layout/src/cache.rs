@@ -23,6 +23,7 @@ use crate::document::{
     FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, WorkSpent, assemble,
     dominant_slot, fit_paragraph, open_snapshot, preflight, record_fit,
 };
+use crate::style_paint;
 use crate::{
     FaceSet, FontKey, FontSlot, LayoutCancellation, LayoutError, LayoutLimits, SingleFontProfile,
 };
@@ -521,11 +522,8 @@ fn remember_flow(
                 line,
                 page: snapshot.lines()[line].page,
                 top: snapshot.lines()[line].top.raw()
-                    - paragraph
-                        .props
-                        .spacing
-                        .before
-                        .and_then(joyword_model::Measure::absolute)
+                    - style_paint::flow(document, paragraph)
+                        .map(|flow| flow.before)
                         .unwrap_or(Emu::new(0))
                         .raw(),
             });
@@ -651,9 +649,10 @@ fn layout_pass(
                 ));
             }
             result.stats_mut().cache_hits += 1;
-            adopt(hit, paragraph)
+            adopt(hit, document, paragraph)?
         } else {
             let fitted = fit_paragraph(
+                document,
                 paragraph,
                 faces,
                 profile,
@@ -694,34 +693,27 @@ fn layout_pass(
         }
         _ => None,
     };
-    let snapshot = assemble(result, prepared, profile, cancellation, stop)?;
+    let snapshot = assemble(result, prepared, cancellation, stop)?;
     let produced = produced_contexts(document, &snapshot, &deps);
     Ok((snapshot, produced))
 }
 
-fn adopt(mut hit: FittedParagraph, paragraph: &Paragraph) -> FittedParagraph {
-    let before = paragraph
-        .props
-        .spacing
-        .before
-        .and_then(joyword_model::Measure::absolute)
-        .unwrap_or(Emu::new(0));
-    let after = paragraph
-        .props
-        .spacing
-        .after
-        .and_then(joyword_model::Measure::absolute)
-        .unwrap_or(Emu::new(0));
+fn adopt(
+    mut hit: FittedParagraph,
+    document: &Document,
+    paragraph: &Paragraph,
+) -> Result<FittedParagraph, LayoutError> {
+    let flow = style_paint::flow(document, paragraph)?;
     hit.id = paragraph.id();
     hit.len = paragraph.len();
-    hit.before = before;
-    hit.after = after;
+    hit.before = flow.before;
+    hit.after = flow.after;
     hit.group_height = None;
-    hit.keep_next = paragraph.props.keep_next == Some(true);
-    hit.keep_lines = paragraph.props.keep_lines == Some(true);
-    hit.page_break_before = paragraph.props.page_break_before == Some(true);
-    hit.justification = paragraph.props.justification;
-    hit
+    hit.keep_next = flow.keep_next;
+    hit.keep_lines = flow.keep_lines;
+    hit.page_break_before = flow.page_break_before;
+    hit.justification = flow.justification;
+    Ok(hit)
 }
 
 fn limit_for_hit(shapes: bool, bytes: bool, lines: bool) -> LayoutError {
@@ -769,10 +761,11 @@ fn walk_back_keep_next(document: &Document, same: &mut [bool]) {
     let mut index = same.iter().position(|flag| !flag).unwrap_or(same.len());
     while index > 0 && index <= paragraphs.len() {
         let previous = paragraphs[index - 1];
-        let here_breaks = paragraphs
-            .get(index)
-            .is_some_and(|paragraph| paragraph.props.page_break_before == Some(true));
-        if previous.props.keep_next == Some(true) && !here_breaks {
+        let here_breaks = paragraphs.get(index).is_some_and(|paragraph| {
+            style_paint::flow(document, paragraph).is_ok_and(|flow| flow.page_break_before)
+        });
+        let previous_keeps = style_paint::flow(document, previous).is_ok_and(|flow| flow.keep_next);
+        if previous_keeps && !here_breaks {
             same[index - 1] = false;
             index -= 1;
         } else {
@@ -812,30 +805,46 @@ fn paragraph_key(
             kerning: profile.features.kerning,
             liga: profile.features.standard_ligatures,
             calt: profile.features.contextual_alternates,
-            leading: uses_profile_leading(paragraph).then_some(profile.leading.raw()),
+            leading: uses_profile_leading(document, paragraph).then_some(profile.leading.raw()),
         },
         external: external_key(flags, context),
     }
 }
 
-fn uses_profile_leading(paragraph: &Paragraph) -> bool {
-    !matches!(paragraph.props.spacing.line, Some(LineSpacing::Auto(240)))
+fn uses_profile_leading(document: &Document, paragraph: &Paragraph) -> bool {
+    match style_paint::flow(document, paragraph) {
+        Ok(flow) => !matches!(flow.line, Some(LineSpacing::Auto(240))),
+        Err(_) => true,
+    }
 }
 
 fn resolved_style(document: &Document, paragraph: &Paragraph) -> [u8; 32] {
     let mut hash = Sha256::new();
+    let styles = document.styles();
     hash.update(format!("{:?}", paragraph.props).as_bytes());
-    if let Some(id) = &paragraph.style {
-        hash_chain(&mut hash, document.styles(), id);
-    }
-    hash.update(format!("{:?}", document.styles().defaults.para).as_bytes());
-    hash.update(format!("{:?}", document.styles().defaults.run).as_bytes());
+    hash.update(format!("{:?}", paragraph.mark_props).as_bytes());
+    hash_used(
+        &mut hash,
+        styles,
+        paragraph.style.as_ref(),
+        StyleKind::Paragraph,
+    );
+    hash.update(format!("{:?}", styles.defaults.para).as_bytes());
+    hash.update(format!("{:?}", styles.defaults.run).as_bytes());
+    hash.update(format!("{:?}", styles.theme()).as_bytes());
     for run in paragraph.runs() {
-        if let Some(id) = &run.style {
-            hash_chain(&mut hash, document.styles(), id);
-        }
+        hash.update(format!("{:?}", run.props).as_bytes());
+        hash_used(&mut hash, styles, run.style.as_ref(), StyleKind::Character);
     }
     hash.finalize().into()
+}
+
+fn hash_used(hash: &mut Sha256, sheet: &StyleSheet, id: Option<&StyleId>, kind: StyleKind) {
+    if let Some(id) = id {
+        hash_chain(hash, sheet, id);
+    } else if let Some(style) = sheet.default_of(kind) {
+        hash_chain(hash, sheet, &style.id);
+    }
 }
 
 fn hash_chain(hash: &mut Sha256, sheet: &StyleSheet, id: &StyleId) {
@@ -885,6 +894,7 @@ mod tests {
             keep_lines: false,
             page_break_before: false,
             justification: None,
+            baseline: Emu::new(0),
         }
     }
 

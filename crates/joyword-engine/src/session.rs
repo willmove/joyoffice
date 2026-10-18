@@ -16,7 +16,7 @@ use std::sync::Arc;
 use joyword_model::{
     Anchor, AnnotationId, AnnotationKind, Bias, Block, Document, DocumentSnapshot, DocumentVersion,
     InlineKind, InlineObject, Issue, MAX_NESTING, NodeId, ParaProps, Paragraph, Position, RunProps,
-    ScalarOffset, StoryId, StyleId, TextError,
+    ScalarOffset, StoryId, StyleId, StyleKind, StyleProblem, TextError,
 };
 
 thread_local! {
@@ -604,6 +604,9 @@ fn execute(
         Command::RemoveBlock { story, block } => {
             remove_block(document, *story, *block, map, changes)
         }
+        Command::ApplyStyle { start, end, style } => {
+            apply_style(document, start, end, style, changes)
+        }
     }
 }
 
@@ -847,6 +850,145 @@ fn format_text(
         changes.paragraphs.extend(touched);
     }
     Ok(())
+}
+
+fn apply_style(
+    document: &mut Document,
+    start: &Position,
+    end: &Position,
+    style: &StyleId,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let (first, last) = locate_range(document, start, end)?;
+    let found = document
+        .styles()
+        .get(style)
+        .cloned()
+        .ok_or_else(|| CommandError::UnknownStyle(style.clone()))?;
+    if matches!(found.kind, StyleKind::Table | StyleKind::Numbering) {
+        return Err(CommandError::UnresolvedStyle(style.clone()));
+    }
+    let chain = document.styles().chain(style);
+    if matches!(
+        chain.problem,
+        Some(StyleProblem::Cycle(_) | StyleProblem::TooDeep | StyleProblem::KindMismatch { .. })
+    ) {
+        return Err(CommandError::StyleChain(style.clone()));
+    }
+    let coverage = selection_coverage(document, start, end, &last)?;
+    let (paragraph_style, character_style) = match (found.kind, coverage) {
+        (StyleKind::Paragraph, Coverage::Caret | Coverage::Whole) => (Some(style.clone()), None),
+        (StyleKind::Paragraph, Coverage::Partial) => {
+            let linked = linked_character(document, &found)?;
+            (None, Some(linked))
+        }
+        (StyleKind::Character, Coverage::Caret) => return Ok(()),
+        (StyleKind::Character, Coverage::Whole) => {
+            if let Some(linked) = &found.link {
+                let target = document
+                    .styles()
+                    .get(linked)
+                    .ok_or_else(|| CommandError::UnknownStyle(linked.clone()))?;
+                if target.kind != StyleKind::Paragraph {
+                    return Err(CommandError::StyleTarget(style.clone()));
+                }
+                (Some(linked.clone()), None)
+            } else {
+                (None, Some(style.clone()))
+            }
+        }
+        (StyleKind::Character, Coverage::Partial) => (None, Some(style.clone())),
+        (StyleKind::Table | StyleKind::Numbering, _) => {
+            return Err(CommandError::UnresolvedStyle(style.clone()));
+        }
+    };
+    let story = start.story;
+    let Some(seq) = locate::container_mut(document, story, &first.containers) else {
+        return Err(CommandError::UnknownNode(start.paragraph));
+    };
+    let mut touched = Vec::new();
+    for index in first.index..=last.index {
+        locate::for_each_paragraph_mut(seq, index, &mut |paragraph, locked| {
+            let id = paragraph.id();
+            if locked {
+                return Err(CommandError::Locked(id));
+            }
+            let mut changed = false;
+            if let Some(style) = &paragraph_style
+                && paragraph.style.as_ref() != Some(style)
+            {
+                paragraph.style = Some(style.clone());
+                changed = true;
+            }
+            if let Some(style) = &character_style {
+                let from = if id == start.paragraph {
+                    start.offset
+                } else {
+                    ScalarOffset(0)
+                };
+                let to = if id == end.paragraph {
+                    end.offset
+                } else {
+                    ScalarOffset(paragraph.len())
+                };
+                if from != to && paragraph.restyle_runs(from..to, Some(style.clone()))? {
+                    changed = true;
+                }
+            }
+            if changed {
+                touched.push(id);
+            }
+            Ok(())
+        })?;
+    }
+    if !touched.is_empty() {
+        changes.stories.insert(story);
+        changes.paragraphs.extend(touched);
+    }
+    Ok(())
+}
+
+fn linked_character(
+    document: &Document,
+    style: &joyword_model::Style,
+) -> Result<StyleId, CommandError> {
+    let Some(link) = style.link.clone() else {
+        return Err(CommandError::StyleTarget(style.id.clone()));
+    };
+    let target = document
+        .styles()
+        .get(&link)
+        .ok_or_else(|| CommandError::UnknownStyle(link.clone()))?;
+    if target.kind != StyleKind::Character {
+        return Err(CommandError::StyleTarget(style.id.clone()));
+    }
+    Ok(link)
+}
+
+enum Coverage {
+    /// An empty selection. A paragraph style still applies to that paragraph.
+    Caret,
+    /// Every paragraph in the span is covered from its first position through
+    /// its last.
+    Whole,
+    Partial,
+}
+
+fn selection_coverage(
+    document: &Document,
+    start: &Position,
+    end: &Position,
+    last: &locate::Location,
+) -> Result<Coverage, CommandError> {
+    if start.offset == end.offset && start.paragraph == end.paragraph {
+        return Ok(Coverage::Caret);
+    }
+    let end_len = check_offset(document, last, end)?;
+    if start.offset.0 == 0 && end.offset.0 == end_len {
+        Ok(Coverage::Whole)
+    } else {
+        Ok(Coverage::Partial)
+    }
 }
 
 fn format_paragraph(

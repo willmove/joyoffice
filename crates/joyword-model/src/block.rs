@@ -261,6 +261,43 @@ impl Paragraph {
         Ok(changed)
     }
 
+    /// Sets the character style of every run overlapping `range`. Direct
+    /// formatting on those runs is left as stored.
+    pub fn restyle_runs(
+        &mut self,
+        range: std::ops::Range<ScalarOffset>,
+        style: Option<StyleId>,
+    ) -> Result<bool, TextError> {
+        if range.start > range.end {
+            return Err(TextError::InvalidRange {
+                start: range.start.0,
+                end: range.end.0,
+            });
+        }
+        if range.end.0 > self.len() {
+            return Err(TextError::OutOfBounds {
+                offset: range.end.0,
+                len: self.len(),
+            });
+        }
+        if range.start == range.end {
+            return Ok(false);
+        }
+        let first = self.split_run_at(range.start.0);
+        let last = self.split_run_at(range.end.0);
+        let mut changed = false;
+        for run in &mut self.runs[first..last] {
+            if run.style != style {
+                run.style.clone_from(&style);
+                changed = true;
+            }
+        }
+        for boundary in (first..=last).rev() {
+            self.join_runs_at(boundary);
+        }
+        Ok(changed)
+    }
+
     /// Inserts ordinary text. It joins the run of the preceding character, or
     /// the first run at the paragraph start, or the paragraph mark formatting
     /// in an empty paragraph.

@@ -50,6 +50,14 @@ pub enum Command {
         story: StoryId,
         block: NodeId,
     },
+    /// Applies a paragraph or character style. A linked style follows
+    /// ECMA-376 Part 1 §17.7.4.6: a whole-paragraph span uses the paragraph
+    /// style, and a partial span uses the linked character style.
+    ApplyStyle {
+        start: Position,
+        end: Position,
+        style: StyleId,
+    },
 }
 
 /// Character formatting changes of the M1 subset.
@@ -124,6 +132,14 @@ pub enum CommandError {
     /// A container would be left without blocks.
     LastBlock(NodeId),
     Text(TextError),
+    /// No style with this `w:styleId`.
+    UnknownStyle(StyleId),
+    /// Table and numbering styles are stored but cannot be applied to text.
+    UnresolvedStyle(StyleId),
+    /// The `basedOn` chain cycles, is too deep, or mixes kinds.
+    StyleChain(StyleId),
+    /// The selection does not match the style kind and there is no usable link.
+    StyleTarget(StyleId),
 }
 
 impl From<TextError> for CommandError {
@@ -145,6 +161,19 @@ impl fmt::Display for CommandError {
             CommandError::MissingResource => f.write_str("image resource does not exist"),
             CommandError::LastBlock(node) => write!(f, "{node} is the last block of its container"),
             CommandError::Text(error) => write!(f, "{error}"),
+            CommandError::UnknownStyle(style) => write!(f, "unknown style {style}"),
+            CommandError::UnresolvedStyle(style) => {
+                write!(f, "style {style} is not a paragraph or character style")
+            }
+            CommandError::StyleChain(style) => {
+                write!(
+                    f,
+                    "style {style} has a cycle, a kind mismatch, or is too deep"
+                )
+            }
+            CommandError::StyleTarget(style) => {
+                write!(f, "style {style} does not apply to this selection")
+            }
         }
     }
 }

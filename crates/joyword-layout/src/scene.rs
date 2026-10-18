@@ -3,6 +3,8 @@
 //! EMU from the page's top-left corner; outputs only convert units and never
 //! re-shape or re-break text.
 
+use std::sync::Arc;
+
 use joyword_foundation::{Emu, ScreenScale};
 
 use crate::font::FontKey;
@@ -18,6 +20,12 @@ pub struct GlyphRun {
     /// Source text; glyph clusters are byte offsets into it.
     pub text: String,
     pub glyphs: Vec<ShapedGlyph>,
+    /// Resolved weight, posture and requested family names. Outputs paint
+    /// weight and posture; the shaping face stays `font`.
+    pub bold: bool,
+    pub italic: bool,
+    pub latin_family: Option<Arc<str>>,
+    pub east_asia_family: Option<Arc<str>>,
 }
 
 impl GlyphRun {
@@ -29,6 +37,10 @@ impl GlyphRun {
             baseline_y,
             text: run.text.clone(),
             glyphs: run.glyphs.clone(),
+            bold: run.bold,
+            italic: run.italic,
+            latin_family: run.latin_family.clone(),
+            east_asia_family: run.east_asia_family.clone(),
         }
     }
 

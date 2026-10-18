@@ -14,7 +14,7 @@ use joyword_engine::{
 use joyword_model::{
     Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, Document, DumpOptions,
     InlineKind, Justification, Measure, NodeId, Paragraph, Position, Row, ScalarOffset, Sdt,
-    SdtLock, SdtProps, StoryKind, Table, VerticalMerge,
+    SdtLock, SdtProps, StoryKind, Style, StyleId, StyleKind, Table, VerticalMerge,
 };
 
 const DUMP: DumpOptions = DumpOptions { node_ids: true };
@@ -1096,4 +1096,243 @@ fn history_preview_honors_read_only_and_empty_history_without_consuming_entries(
     s.set_policy(EditPolicy::default());
     s.undo().unwrap();
     assert_eq!(texts(&s), ["a"]);
+}
+
+fn style(session: &mut Session, id: &str, kind: StyleKind) -> Style {
+    let mut style = Style::new(id, kind, Some(id));
+    if kind == StyleKind::Paragraph {
+        style.is_default = id == "Normal";
+    }
+    session.document_mut_styles(|sheet| sheet.insert(style.clone()).unwrap());
+    style
+}
+
+trait Styles {
+    fn document_mut_styles(&mut self, change: impl FnOnce(&mut joyword_model::StyleSheet));
+}
+
+impl Styles for Session {
+    fn document_mut_styles(&mut self, change: impl FnOnce(&mut joyword_model::StyleSheet)) {
+        let mut document = self.document().clone();
+        change(document.styles_mut());
+        *self = Session::new(document);
+    }
+}
+
+fn command_error(error: TxError) -> CommandError {
+    match error {
+        TxError::Command { error, .. } => error,
+        other => panic!("expected a command error, got {other:?}"),
+    }
+}
+
+#[test]
+fn applying_a_paragraph_style_is_one_undoable_transaction() {
+    let mut session = Session::new(document(&["标题", "正文"]));
+    style(&mut session, "Heading", StyleKind::Paragraph);
+    let ids = paragraph_ids(&session);
+    let start = pos(&session, ids[0], 0, Bias::After);
+    let end = pos(&session, ids[0], 2, Bias::Before);
+    session
+        .exec(vec![Command::ApplyStyle {
+            start,
+            end,
+            style: StyleId::new("Heading"),
+        }])
+        .unwrap();
+    assert_eq!(
+        session
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .style,
+        Some(StyleId::new("Heading"))
+    );
+    assert!(
+        session
+            .document()
+            .body()
+            .blocks
+            .get(1)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .style
+            .is_none()
+    );
+    session.undo().unwrap();
+    assert!(
+        session
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .style
+            .is_none()
+    );
+}
+
+#[test]
+fn a_character_style_on_a_partial_range_is_undoable() {
+    let mut session = Session::new(document(&["甲乙丙"]));
+    style(&mut session, "Emph", StyleKind::Character);
+    let id = paragraph_ids(&session)[0];
+    let start = pos(&session, id, 1, Bias::After);
+    let end = pos(&session, id, 2, Bias::Before);
+    session
+        .exec(vec![Command::ApplyStyle {
+            start,
+            end,
+            style: StyleId::new("Emph"),
+        }])
+        .unwrap();
+    let runs = session
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .runs();
+    assert!(
+        runs.iter()
+            .any(|run| run.style.as_ref().is_some_and(|id| id.as_str() == "Emph"))
+    );
+    session.undo().unwrap();
+    assert!(
+        session
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .runs()
+            .iter()
+            .all(|run| run.style.is_none())
+    );
+}
+
+#[test]
+fn a_partial_paragraph_style_applies_its_linked_character_style() {
+    let mut session = Session::new(document(&["甲乙丙"]));
+    let mut paragraph = Style::new("Heading", StyleKind::Paragraph, Some("heading 1"));
+    paragraph.link = Some(StyleId::new("HeadingChar"));
+    let mut character = Style::new("HeadingChar", StyleKind::Character, Some("heading 1 Char"));
+    character.link = Some(StyleId::new("Heading"));
+    session.document_mut_styles(|sheet| {
+        sheet.insert(paragraph).unwrap();
+        sheet.insert(character).unwrap();
+    });
+    let id = paragraph_ids(&session)[0];
+    session
+        .exec(vec![Command::ApplyStyle {
+            start: pos(&session, id, 1, Bias::After),
+            end: pos(&session, id, 2, Bias::Before),
+            style: StyleId::new("Heading"),
+        }])
+        .unwrap();
+    let paragraph = session
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    assert!(paragraph.style.is_none());
+    assert!(paragraph.runs().iter().any(|run| {
+        run.style
+            .as_ref()
+            .is_some_and(|id| id.as_str() == "HeadingChar")
+    }));
+}
+
+#[test]
+fn a_whole_paragraph_character_style_applies_the_linked_paragraph_style() {
+    let mut session = Session::new(document(&["甲乙"]));
+    let mut paragraph = Style::new("Heading", StyleKind::Paragraph, Some("heading 1"));
+    paragraph.link = Some(StyleId::new("HeadingChar"));
+    let mut character = Style::new("HeadingChar", StyleKind::Character, Some("heading 1 Char"));
+    character.link = Some(StyleId::new("Heading"));
+    session.document_mut_styles(|sheet| {
+        sheet.insert(paragraph).unwrap();
+        sheet.insert(character).unwrap();
+    });
+    let id = paragraph_ids(&session)[0];
+    session
+        .exec(vec![Command::ApplyStyle {
+            start: pos(&session, id, 0, Bias::After),
+            end: pos(&session, id, 2, Bias::Before),
+            style: StyleId::new("HeadingChar"),
+        }])
+        .unwrap();
+    assert_eq!(
+        session
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .style,
+        Some(StyleId::new("Heading"))
+    );
+}
+
+#[test]
+fn style_commands_reject_unknown_table_and_cycle_targets() {
+    let mut session = Session::new(document(&["甲"]));
+    let id = paragraph_ids(&session)[0];
+    let at = pos(&session, id, 0, Bias::After);
+    let missing = session.exec(vec![Command::ApplyStyle {
+        start: at,
+        end: at,
+        style: StyleId::new("missing"),
+    }]);
+    assert!(matches!(
+        command_error(missing.unwrap_err()),
+        CommandError::UnknownStyle(_)
+    ));
+    style(&mut session, "TableGrid", StyleKind::Table);
+    let id = paragraph_ids(&session)[0];
+    let at = pos(&session, id, 0, Bias::After);
+    let table = session.exec(vec![Command::ApplyStyle {
+        start: at,
+        end: at,
+        style: StyleId::new("TableGrid"),
+    }]);
+    assert!(matches!(
+        command_error(table.unwrap_err()),
+        CommandError::UnresolvedStyle(_)
+    ));
+    session.document_mut_styles(|sheet| {
+        let mut left = Style::new("left", StyleKind::Paragraph, None);
+        left.based_on = Some(StyleId::new("right"));
+        let mut right = Style::new("right", StyleKind::Paragraph, None);
+        right.based_on = Some(StyleId::new("left"));
+        sheet.insert(left).unwrap();
+        sheet.insert(right).unwrap();
+    });
+    let id = paragraph_ids(&session)[0];
+    let at = pos(&session, id, 0, Bias::After);
+    let cycle = session.exec(vec![Command::ApplyStyle {
+        start: at,
+        end: at,
+        style: StyleId::new("left"),
+    }]);
+    assert!(matches!(
+        command_error(cycle.unwrap_err()),
+        CommandError::StyleChain(_)
+    ));
 }

@@ -39,6 +39,8 @@ canvas.page_error = 无法绘制第 {page} 页：{reason}
 
 menu.edit = 编辑
 command.edit.bold = 加粗
+command.style.list = 样式
+command.style.apply = 应用样式
 command.edit.italic = 斜体
 command.edit.align_center = 居中
 command.edit.copy = 复制

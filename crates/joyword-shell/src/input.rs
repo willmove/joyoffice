@@ -6,7 +6,9 @@ use joyword_engine::{
     ChangeSet, Command, Outcome, ParagraphChange, RunChange, Selection, Session, Transaction,
     TxError, UndoError, UndoGroup, UndoResult,
 };
-use joyword_model::{Bias, DocumentSnapshot, DocumentVersion, NodeId, Position, Utf16Offset};
+use joyword_model::{
+    Bias, DocumentSnapshot, DocumentVersion, NodeId, Position, StyleId, Utf16Offset,
+};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::Range;
@@ -716,6 +718,43 @@ impl<B: InputBackend> TextInput<B> {
         let transaction = Transaction::new(
             self.backend.session().version(),
             vec![Command::FormatText { start, end, change }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Styles on the sheet, one line per style: id, kind, canonical name.
+    pub fn list_styles(&self) -> Vec<String> {
+        self.backend
+            .session()
+            .document()
+            .styles()
+            .iter()
+            .map(|style| {
+                let name = style.name.as_deref().unwrap_or(style.id.as_str());
+                format!("{} {} {name}", style.id, style.kind)
+            })
+            .collect()
+    }
+
+    /// Apply a paragraph or character style to the selection. A caret takes
+    /// a paragraph style; a character style on a caret changes nothing.
+    pub fn apply_style(&mut self, id: &str) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (range, _) = self.view.selected_range();
+        let (start, end) = if range.is_empty() {
+            (self.selection.head, self.selection.head)
+        } else {
+            let start = self.view.index.position(range.start, Bias::After)?;
+            let end = self.view.index.position(range.end, Bias::Before)?;
+            (start, end)
+        };
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::ApplyStyle {
+                start,
+                end,
+                style: StyleId::new(id),
+            }],
         );
         self.commit(transaction)
     }

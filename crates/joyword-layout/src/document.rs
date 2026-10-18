@@ -13,14 +13,15 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    Bias, Document, DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId,
-    Paragraph, Position, RunProps, ScalarOffset, StoryId, StyleId, StyleKind,
+    Bias, DocDefaults, Document, DocumentSnapshot, DocumentVersion, Justification, LineSpacing,
+    Measure, NodeId, Paragraph, Position, ScalarOffset, StoryId,
 };
 use sha2::{Digest, Sha256};
 
 use crate::cjk::{self, CjkIssue};
 use crate::line::{LineFit, layout_paragraph_adjusted, layout_paragraph_auto_cancellable_adjusted};
 use crate::shape::ShapedRun;
+use crate::style_paint;
 use crate::{
     FaceSet, FeatureSet, FontKey, FontSlot, LayoutLine, LineDiagnostic, LineError, LineLimits,
     LoadedFont, PageScene, SourceRange, adjust_cjk_break, slot_for, wrap_mixed,
@@ -334,95 +335,85 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
         hash.update(text.as_bytes());
         hash.update(format!("{:?}", paragraph.props).as_bytes());
     }
+    // An empty sheet keeps the historical fingerprint. A style, a default or
+    // a theme changes what the scene paints, so it joins the hash.
+    if stylesheet_is_layout_input(document) {
+        let styles = document.styles();
+        hash.update(b"styles");
+        hash.update(format!("{:?}", styles.defaults).as_bytes());
+        hash.update(format!("{:?}", styles.theme()).as_bytes());
+        for style in styles.iter() {
+            hash.update(style.id.as_str().as_bytes());
+            hash.update(format!("{:?}", style.kind).as_bytes());
+            hash.update(
+                style
+                    .based_on
+                    .as_ref()
+                    .map(|id| id.as_str())
+                    .unwrap_or("")
+                    .as_bytes(),
+            );
+            hash.update(
+                style
+                    .link
+                    .as_ref()
+                    .map(|id| id.as_str())
+                    .unwrap_or("")
+                    .as_bytes(),
+            );
+            hash.update([u8::from(style.is_default)]);
+            hash.update(format!("{:?}", style.para).as_bytes());
+            hash.update(format!("{:?}", style.run).as_bytes());
+        }
+        for block in document.body().blocks.iter() {
+            let paragraph = block.as_paragraph().expect("preflight paragraphs");
+            hash.update(
+                paragraph
+                    .style
+                    .as_ref()
+                    .map(|id| id.as_str())
+                    .unwrap_or("")
+                    .as_bytes(),
+            );
+            for run in paragraph.runs() {
+                hash.update(
+                    run.style
+                        .as_ref()
+                        .map(|id| id.as_str())
+                        .unwrap_or("")
+                        .as_bytes(),
+                );
+                hash.update(format!("{:?}", run.props).as_bytes());
+            }
+        }
+    }
     hash.finalize().into()
 }
 
-fn plain_run(props: &RunProps) -> bool {
-    let mut props = props.clone();
-    for toggle in [
-        &mut props.bold,
-        &mut props.italic,
-        &mut props.strike,
-        &mut props.hidden,
-    ] {
-        if *toggle == Some(false) {
-            *toggle = None;
-        }
-    }
-    if props.underline == Some(joyword_model::Underline::None) {
-        props.underline = None;
-    }
-    props.is_empty()
-}
-fn plain_style(document: &Document, id: &StyleId, kind: StyleKind) -> bool {
-    let chain = document.styles().chain(id);
-    chain.problem.is_none()
-        && chain.styles.iter().all(|s| {
-            s.kind == kind && plain_run(&s.run) && s.para.is_empty() && s.preserved.is_none()
+fn stylesheet_is_layout_input(document: &Document) -> bool {
+    let styles = document.styles();
+    !styles.is_empty()
+        || styles.defaults != DocDefaults::default()
+        || !styles.theme().is_empty()
+        || document.body().blocks.iter().any(|block| {
+            block.as_paragraph().is_some_and(|paragraph| {
+                paragraph.style.is_some() || paragraph.runs().iter().any(|run| run.style.is_some())
+            })
         })
 }
-fn check_paragraph(document: &Document, p: &Paragraph) -> Result<(), LayoutError> {
-    let error = |feature| unsupported(Some(p.id()), feature);
-    if !p.inlines().is_empty() {
-        return Err(error("inline objects or breaks"));
+
+fn check_paragraph(
+    document: &Document,
+    paragraph: &Paragraph,
+    profile: SingleFontProfile,
+) -> Result<(), LayoutError> {
+    if !paragraph.inlines().is_empty() {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "inline objects or breaks",
+        ));
     }
-    if !plain_run(&p.mark_props)
-        || p.runs().iter().any(|r| {
-            !plain_run(&r.props)
-                || r.style
-                    .as_ref()
-                    .is_some_and(|id| !plain_style(document, id, StyleKind::Character))
-        })
-    {
-        return Err(error("character formatting or font resolution"));
-    }
-    if p.style
-        .as_ref()
-        .is_some_and(|id| !plain_style(document, id, StyleKind::Paragraph))
-    {
-        return Err(error("paragraph style resolution"));
-    }
-    let mut props = (*p.props).clone();
-    let justification = props.justification;
-    let line = props.spacing.line;
-    props.justification = None;
-    props.page_break_before = None;
-    props.keep_next = None;
-    props.keep_lines = None;
-    props.spacing.before = None;
-    props.spacing.after = None;
-    props.spacing.line = None;
-    let single = matches!(line, Some(LineSpacing::Auto(240)));
-    if props.snap_to_grid == Some(false) || (single && props.snap_to_grid == Some(true)) {
-        props.snap_to_grid = None;
-    }
-    for toggle in [
-        &mut props.snap_to_grid,
-        &mut props.spacing.before_auto,
-        &mut props.spacing.after_auto,
-    ] {
-        if *toggle == Some(false) {
-            *toggle = None;
-        }
-    }
-    // Both is accepted and resolved after fitting. Distribute, non-single
-    // line rules, and snap-to-grid without single spacing stay unsupported.
-    if matches!(justification, Some(Justification::Distribute))
-        || !matches!(line, None | Some(LineSpacing::Auto(240)))
-        || props.snap_to_grid == Some(true)
-        || !props.is_empty()
-    {
-        return Err(error("paragraph layout properties"));
-    }
-    for amount in [p.props.spacing.before, p.props.spacing.after]
-        .into_iter()
-        .flatten()
-    {
-        if amount.absolute().is_none_or(|n| n.raw() < 0) {
-            return Err(error("relative or negative paragraph spacing"));
-        }
-    }
-    Ok(())
+    style_paint::paint(document, paragraph, profile).map(|_| ())
 }
 
 pub(crate) fn preflight(
@@ -475,23 +466,10 @@ pub(crate) fn preflight(
         if runs > limits.max_runs {
             return Err(LayoutError::LimitExceeded(LayoutLimit::Runs));
         }
-        check_paragraph(document, p)?;
+        check_paragraph(document, p, profile)?;
     }
     if document.validate().has_errors() {
         return Err(LayoutError::InvalidDocument);
-    }
-    if !plain_run(&document.styles().defaults.run)
-        || !document.styles().defaults.para.is_empty()
-        || [StyleKind::Paragraph, StyleKind::Character]
-            .iter()
-            .any(|&kind| {
-                document
-                    .styles()
-                    .default_of(kind)
-                    .is_some_and(|style| !plain_style(document, &style.id, kind))
-            })
-    {
-        return Err(unsupported(None, "document default style resolution"));
     }
     let geometry = PageGeometry::read(document)?;
     if profile.leading.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
@@ -523,6 +501,8 @@ pub(crate) struct FittedParagraph {
     pub keep_lines: bool,
     pub page_break_before: bool,
     pub justification: Option<Justification>,
+    /// Baseline offset inside the line box, after style size scaling.
+    pub baseline: Emu,
 }
 
 /// Where a paragraph began in a previous snapshot. `top` is the y before
@@ -574,34 +554,34 @@ fn prepare_keep_groups(
 }
 
 fn line_box_for(
-    paragraph: &Paragraph,
+    paragraph: NodeId,
     font: &LoadedFont,
     profile: SingleFontProfile,
+    line: Option<LineSpacing>,
+    snap_to_grid: Option<bool>,
 ) -> Result<Emu, LayoutError> {
-    match paragraph.props.spacing.line {
+    match line {
         None => Ok(profile.leading),
         Some(LineSpacing::Auto(240)) => {
             if cjk::face_cjk_family(font).is_none_or(|family| !cjk::measured_line_family(family)) {
                 return Err(unsupported(
-                    Some(paragraph.id()),
+                    Some(paragraph),
                     "single spacing for an unmeasured font",
                 ));
             }
             let metrics = cjk::metric_set(font)
-                .map_err(|_| unsupported(Some(paragraph.id()), "single-spacing font metrics"))?;
-            let snap = paragraph.props.snap_to_grid != Some(false);
+                .map_err(|_| unsupported(Some(paragraph), "single-spacing font metrics"))?;
+            let snap = snap_to_grid != Some(false);
             let grid = cjk::measured_line_grid(snap).map_err(|_| LayoutError::GeometryOverflow)?;
             let resolved =
                 cjk::single_line_height(profile.size, cjk::word_line_span(&metrics), grid)
-                    .map_err(|_| {
-                        unsupported(Some(paragraph.id()), "single-spacing font metrics")
-                    })?;
+                    .map_err(|_| unsupported(Some(paragraph), "single-spacing font metrics"))?;
             if resolved.length.raw() <= 0 || profile.baseline.raw() > resolved.length.raw() {
                 return Err(LayoutError::LineTooTall);
             }
             Ok(resolved.length)
         }
-        Some(_) => Err(unsupported(Some(paragraph.id()), "paragraph line spacing")),
+        Some(_) => Err(unsupported(Some(paragraph), "paragraph line spacing")),
     }
 }
 
@@ -721,6 +701,7 @@ pub fn layout_document(
         cancellation.check()?;
         let paragraph = block.as_paragraph().expect("preflight checked all blocks");
         let fitted = fit_paragraph(
+            document,
             paragraph,
             faces,
             profile,
@@ -744,7 +725,7 @@ pub fn layout_document(
         result.stats.glyphs += fitted.glyphs;
         prepared.push(fitted);
     }
-    assemble(result, prepared, profile, cancellation, None)
+    assemble(result, prepared, cancellation, None)
 }
 
 pub(crate) fn open_snapshot(
@@ -815,7 +796,9 @@ pub(crate) struct WorkSpent {
 /// Fit one paragraph. The line fitter keeps its own diagnostic ceiling;
 /// [`record_fit`] applies the document cap, so a cached fit does not depend
 /// on how many diagnostics an earlier paragraph emitted.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn fit_paragraph(
+    document: &Document,
     paragraph: &Paragraph,
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
@@ -851,6 +834,13 @@ pub(crate) fn fit_paragraph(
     if request_limits.max_lines == 0 {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Lines));
     }
+    let painted = style_paint::paint(document, paragraph, profile)?;
+    let shaping = SingleFontProfile {
+        size: painted.size,
+        leading: painted.leading,
+        baseline: painted.baseline,
+        features: profile.features,
+    };
     let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
     let map_line = |error: LineError| {
         if error == LineError::Cancelled {
@@ -868,7 +858,13 @@ pub(crate) fn fit_paragraph(
     // that owns the paragraph, so a CJK run is not drawn with the Latin face.
     let chosen = dominant_slot(&text);
     let shape_font = faces.face(chosen);
-    let line_box = line_box_for(paragraph, shape_font, profile)?;
+    let line_box = line_box_for(
+        paragraph.id(),
+        shape_font,
+        shaping,
+        painted.flow.line,
+        painted.flow.snap_to_grid,
+    )?;
     let family = cjk::face_cjk_family(shape_font);
     let source = text.clone();
     let mut adjust = move |at: usize, run: &mut ShapedRun| {
@@ -877,7 +873,7 @@ pub(crate) fn fit_paragraph(
     let needs_slots = chosen != FontSlot::Ascii;
     let width = geometry.content_width();
     let mut fitted = if needs_slots {
-        let mixed = wrap_mixed(faces, &text, profile.size, width, None);
+        let mixed = wrap_mixed(faces, &text, painted.size, width, None);
         let mut breaks = Vec::new();
         let mut at = 0usize;
         for line in &mixed.lines {
@@ -894,7 +890,7 @@ pub(crate) fn fit_paragraph(
         match layout_paragraph_adjusted(
             shape_font,
             &text,
-            profile.size,
+            painted.size,
             profile.features,
             width,
             &breaks,
@@ -907,7 +903,7 @@ pub(crate) fn fit_paragraph(
             Err(_) => layout_paragraph_auto_cancellable_adjusted(
                 shape_font,
                 &text,
-                profile.size,
+                painted.size,
                 profile.features,
                 width,
                 &cancellation.0,
@@ -922,7 +918,7 @@ pub(crate) fn fit_paragraph(
         layout_paragraph_auto_cancellable_adjusted(
             shape_font,
             &text,
-            profile.size,
+            painted.size,
             profile.features,
             width,
             &cancellation.0,
@@ -933,21 +929,17 @@ pub(crate) fn fit_paragraph(
         )
         .map_err(map_line)?
     };
-    if paragraph.props.justification == Some(Justification::Both) {
+    if painted.flow.justification == Some(Justification::Both) {
         justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
     }
-    let before = paragraph
-        .props
-        .spacing
-        .before
-        .and_then(Measure::absolute)
-        .unwrap_or(Emu::new(0));
-    let after = paragraph
-        .props
-        .spacing
-        .after
-        .and_then(Measure::absolute)
-        .unwrap_or(Emu::new(0));
+    for line in &mut fitted.lines {
+        line.run.bold = painted.bold;
+        line.run.italic = painted.italic;
+        line.run.latin_family.clone_from(&painted.latin);
+        line.run.east_asia_family.clone_from(&painted.east_asia);
+    }
+    let before = painted.flow.before;
+    let after = painted.flow.after;
     if before.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
         || after.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
     {
@@ -986,17 +978,17 @@ pub(crate) fn fit_paragraph(
         line_box,
         height: Emu::new(height),
         group_height: None,
-        keep_next: paragraph.props.keep_next == Some(true),
-        keep_lines: paragraph.props.keep_lines == Some(true),
-        page_break_before: paragraph.props.page_break_before == Some(true),
-        justification: paragraph.props.justification,
+        keep_next: painted.flow.keep_next,
+        keep_lines: painted.flow.keep_lines,
+        page_break_before: painted.flow.page_break_before,
+        justification: painted.flow.justification,
+        baseline: painted.baseline,
     })
 }
 
 pub(crate) fn assemble(
     mut result: LayoutSnapshot,
     mut prepared: Vec<FittedParagraph>,
-    profile: SingleFontProfile,
     cancellation: &LayoutCancellation,
     stop: Option<PlaceStop<'_>>,
 ) -> Result<LayoutSnapshot, LayoutError> {
@@ -1019,13 +1011,7 @@ pub(crate) fn assemble(
                 return Ok(result);
             }
         }
-        place_one(
-            &mut result,
-            &mut top,
-            &mut prepared[index],
-            profile,
-            cancellation,
-        )?;
+        place_one(&mut result, &mut top, &mut prepared[index], cancellation)?;
         index += 1;
     }
     cancellation.check()?;
@@ -1132,7 +1118,6 @@ fn place_one(
     result: &mut LayoutSnapshot,
     top: &mut Emu,
     prepared: &mut FittedParagraph,
-    profile: SingleFontProfile,
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
     let geometry = result.geometry;
@@ -1147,6 +1132,7 @@ fn place_one(
     let keep_lines = prepared.keep_lines;
     let page_break_before = prepared.page_break_before;
     let justification = prepared.justification;
+    let baseline_offset = prepared.baseline;
     let remaining = geometry.bottom_edge().raw() - top.raw();
     let needs_page = page_break_before
         || group_height.is_some_and(|height| height.raw() > remaining)
@@ -1184,7 +1170,7 @@ fn place_one(
             _ => 0,
         };
         let x = add(geometry.left, Emu::new(shift))?;
-        let baseline = add(*top, profile.baseline)?;
+        let baseline = add(*top, baseline_offset)?;
         let mut carets = vec![CaretStop {
             offset: ScalarOffset(line.source.scalars.start),
             x,

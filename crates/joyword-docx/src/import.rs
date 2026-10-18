@@ -7,12 +7,14 @@ use std::sync::Arc;
 use joyoffice_opc::{Budget, ExternalKind, Package, Part, PartName, Target};
 use joyword_model::{
     Document, DocumentSettings, PageSetup, Severity as ModelSeverity, SourceRef, Style, StyleKind,
+    ThemeColorSlot, ThemeScheme,
 };
 
 use crate::backing::{Fragment, PackageBacking, PreservedReason};
 use crate::ns::{
-    self, MAIN_CONTENT_TYPES, MC, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
-    REL_STYLES, REL_VBA_PROJECT, STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
+    self, A, MAIN_CONTENT_TYPES, MC, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
+    REL_STYLES, REL_THEME, REL_VBA_PROJECT, STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT,
+    WORD_COMPAT_URI,
 };
 use crate::props::{self, Findings, on_off, val};
 use crate::result::{
@@ -324,6 +326,8 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         };
         if kind == REL_STYLES && styles.is_none() {
             styles = Some(part.clone());
+        } else if kind == REL_THEME {
+            importer.theme(part);
         } else if kind == REL_SETTINGS && settings.is_none() {
             settings = Some(part.clone());
         } else if kind == REL_VBA_PROJECT {
@@ -446,6 +450,71 @@ impl Importer<'_> {
         self.scan(&part.name, &element, &scope);
         let inner = scope.enter(&element);
         Ok((element, inner.into_owned()))
+    }
+
+    /// Theme font and colour scheme (ECMA-376 Part 1 §14.2.7, §20.1.4).
+    /// The part stays in the package. A scheme this slice cannot read leaves
+    /// the model theme empty and does not drop the part.
+    fn theme(&mut self, part: &Part) {
+        let parsed =
+            XmlReader::new(part.name.as_str(), &part.data, self.budget).and_then(XmlReader::whole);
+        let element = match parsed {
+            Ok(element) => element,
+            Err(_) => {
+                self.diagnose(
+                    Severity::Warning,
+                    Some(&part.name),
+                    None,
+                    DiagnosticKind::InvalidValue {
+                        element: "theme".into(),
+                        attribute: "part".into(),
+                        value: part.name.to_string(),
+                    },
+                );
+                return;
+            }
+        };
+        if !element.is(A, "theme") {
+            self.diagnose(
+                Severity::Warning,
+                Some(&part.name),
+                Some(element.span.clone()),
+                DiagnosticKind::InvalidValue {
+                    element: element.qname.to_string(),
+                    attribute: "root".into(),
+                    value: element.local.to_string(),
+                },
+            );
+            return;
+        }
+        self.backing.interpret(part.name.clone());
+        let Some(elements) = element.child(A, "themeElements") else {
+            return;
+        };
+        let mut theme = ThemeScheme::default();
+        if let Some(scheme) = elements.child(A, "fontScheme") {
+            if let Some(major) = scheme.child(A, "majorFont") {
+                theme.fonts.major_latin = typeface(major, "latin");
+                theme.fonts.major_east_asia = typeface(major, "ea");
+                theme.fonts.major_complex = typeface(major, "cs");
+            }
+            if let Some(minor) = scheme.child(A, "minorFont") {
+                theme.fonts.minor_latin = typeface(minor, "latin");
+                theme.fonts.minor_east_asia = typeface(minor, "ea");
+                theme.fonts.minor_complex = typeface(minor, "cs");
+            }
+        }
+        if let Some(colors) = elements.child(A, "clrScheme") {
+            for child in colors.elements() {
+                let Some(slot) = ThemeColorSlot::from_scheme_name(&child.local) else {
+                    continue;
+                };
+                if let Some(rgb) = scheme_rgb(child) {
+                    theme.colors.insert(slot, rgb);
+                }
+            }
+        }
+        self.document.styles_mut().set_theme(theme);
     }
 
     /// Style definitions (ECMA-376 Part 1 §17.7). Built-in styles are
@@ -665,4 +734,28 @@ impl Importer<'_> {
             XmlReader::new(name.as_str(), &part.data, self.budget).map_err(xml_error(&name))?;
         crate::body::read(self, &name, &mut reader)
     }
+}
+
+fn typeface(parent: &Element, local: &str) -> Option<std::sync::Arc<str>> {
+    let face = parent.child(A, local)?.attribute(None, "typeface")?;
+    if face.is_empty() {
+        None
+    } else {
+        Some(std::sync::Arc::from(face))
+    }
+}
+
+fn scheme_rgb(slot: &Element) -> Option<(u8, u8, u8)> {
+    let value = slot
+        .child(A, "srgbClr")
+        .and_then(|color| color.attribute(None, "val"))
+        .or_else(|| {
+            slot.child(A, "sysClr")
+                .and_then(|color| color.attribute(None, "lastClr"))
+        })?;
+    if value.len() != 6 {
+        return None;
+    }
+    let channel = |range: std::ops::Range<usize>| u8::from_str_radix(value.get(range)?, 16).ok();
+    Some((channel(0..2)?, channel(2..4)?, channel(4..6)?))
 }

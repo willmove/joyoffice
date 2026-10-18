@@ -77,6 +77,7 @@ fn run_props(props: &RunProps) -> String {
     match props.color {
         Some(Color::Auto) => out.push("color=auto".into()),
         Some(Color::Rgb(r, g, b)) => out.push(format!("color={r:02X}{g:02X}{b:02X}")),
+        Some(Color::Theme(slot)) => out.push(format!("color=theme:{}", slot.word_name())),
         None => {}
     }
     languages(&mut out, &props.languages);

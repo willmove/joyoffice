@@ -7,8 +7,8 @@ use joyword_layout::{
     LayoutSnapshot, LoadedFont, SingleFontProfile, StaleReason, layout_document, shape, wrap_mixed,
 };
 use joyword_model::{
-    Bias, Block, BlockSeq, Document, DumpOptions, Justification, Measure, PageSetup, Paragraph,
-    Position, ScalarOffset, Style, StyleKind,
+    Bias, Block, BlockSeq, Document, DumpOptions, FontRef, Justification, Measure, PageSetup,
+    Paragraph, Position, ScalarOffset, Style, StyleId, StyleKind,
 };
 
 fn pt(value: i64) -> Emu {
@@ -492,16 +492,12 @@ fn unsupported_content_and_active_styles_are_not_silently_laid_out_as_plain_text
     bold.run.bold = Some(true);
     bold.is_default = true;
     document.styles_mut().insert(bold).unwrap();
-    assert!(matches!(
-        layout_document(
-            &document.snapshot(),
-            FaceSet::uniform(&font()),
-            profile(),
-            LayoutLimits::default(),
-            &LayoutCancellation::default()
-        ),
-        Err(LayoutError::Unsupported { .. })
-    ));
+    let laid = layout(&document);
+    assert!(
+        laid.pages()
+            .iter()
+            .all(|page| page.runs.iter().all(|run| run.bold))
+    );
     let mut document = make_document(&["AV"], 2);
     change_paragraph(&mut document, 0, |p| {
         Arc::make_mut(&mut p.props).justification = Some(Justification::Both)
@@ -862,4 +858,43 @@ fn mixed_slot_faces_change_the_page_scene() {
     for text in &shaped_lines {
         assert!(!text.starts_with('。'), "{text}");
     }
+}
+
+#[test]
+fn resolved_styles_set_size_weight_and_requested_families() {
+    let mut document = make_document(&["第一条 合作内容", "甲方委托乙方完成设计服务。"], 8);
+    document.styles_mut().defaults.run.fonts.ascii = Some(FontRef::Named("Times New Roman".into()));
+    document.styles_mut().defaults.run.fonts.h_ansi =
+        Some(FontRef::Named("Times New Roman".into()));
+    document.styles_mut().defaults.run.fonts.east_asia = Some(FontRef::Named("宋体".into()));
+    document.styles_mut().defaults.run.size = Some(Measure::HalfPoints(21));
+    let mut normal = Style::new("a", StyleKind::Paragraph, Some("Normal"));
+    normal.is_default = true;
+    let mut heading = Style::new("1", StyleKind::Paragraph, Some("heading 1"));
+    heading.based_on = Some(StyleId::new("a"));
+    heading.run.bold = Some(true);
+    heading.run.size = Some(Measure::HalfPoints(32));
+    heading.para.outline_level = Some(0);
+    document.styles_mut().insert(normal).unwrap();
+    document.styles_mut().insert(heading).unwrap();
+    change_paragraph(&mut document, 0, |paragraph| {
+        paragraph.style = Some(StyleId::new("1"));
+    });
+    let laid = layout(&document);
+    let runs: Vec<_> = laid
+        .pages()
+        .iter()
+        .flat_map(|page| page.runs.iter())
+        .collect();
+    assert!(runs.len() >= 2);
+    let heading = runs.iter().find(|run| run.text.contains('第')).unwrap();
+    assert!(heading.bold);
+    assert!(!heading.italic);
+    assert_eq!(heading.size, Emu::new(16 * Emu::PER_POINT));
+    assert_eq!(heading.latin_family.as_deref(), Some("Times New Roman"));
+    assert_eq!(heading.east_asia_family.as_deref(), Some("宋体"));
+    let body = runs.iter().find(|run| run.text.contains('甲')).unwrap();
+    assert!(!body.bold);
+    assert_eq!(body.size, Emu::new(Emu::PER_POINT * 21 / 2));
+    assert_eq!(body.east_asia_family.as_deref(), Some("宋体"));
 }

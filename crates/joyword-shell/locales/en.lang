@@ -40,6 +40,8 @@ canvas.page_error = Cannot draw page {page}: {reason}
 
 menu.edit = Edit
 command.edit.bold = Bold
+command.style.list = Styles
+command.style.apply = Apply Style
 command.edit.italic = Italic
 command.edit.align_center = Center
 command.edit.copy = Copy

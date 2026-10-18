@@ -5,12 +5,14 @@ use std::path::PathBuf;
 
 use joyoffice_opc::{Budget, BudgetError, ExternalKind, Method, OpcError, XmlError, write_archive};
 use joyword_docx::{
-    DiagnosticKind, ImportError, ImportResult, PreservedReason, ReadOnlyReason, Severity, import,
+    DiagnosticKind, ExportError, ImportError, ImportResult, PreservedReason, ReadOnlyReason,
+    Severity, import, plan_export,
 };
 use joyword_model::{
     Block, BreakKind, BuiltinStyle, DEFAULT_COMPATIBILITY_MODE, FontRef, InlineKind, Measure,
-    Orientation, Paragraph, Segment, StyleId,
+    Orientation, Paragraph, Segment, Style, StyleId, StyleKind,
 };
+use std::sync::Arc;
 
 const W: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const R: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -234,6 +236,32 @@ fn min_002_recognises_builtin_styles_by_name_and_keeps_mode_15() {
     assert!(result.editability.is_unrestricted());
     assert_eq!(result.backing.interpreted_parts().len(), 3);
     assert_model_valid(&result);
+
+    let heading_resolved = styles.resolve_paragraph(Some(&StyleId::new("1")), &body[0].props);
+    assert!(heading_resolved.problems.is_empty());
+    assert_eq!(heading_resolved.run.bold, Some(true));
+    assert_eq!(heading_resolved.run.size, Some(Measure::HalfPoints(32)));
+    assert_eq!(heading_resolved.props.outline_level, Some(0));
+    assert_eq!(
+        heading_resolved.run.fonts.east_asia,
+        Some(FontRef::Named("宋体".into()))
+    );
+    assert_eq!(
+        heading_resolved.run.fonts.ascii,
+        Some(FontRef::Named("Times New Roman".into()))
+    );
+    let body_resolved = styles.resolve_run(body[1].style.as_ref(), None, &body[1].runs()[0].props);
+    assert!(body_resolved.problems.is_empty());
+    assert_eq!(body_resolved.props.bold, None);
+    assert_eq!(body_resolved.props.size, Some(Measure::HalfPoints(21)));
+    assert_eq!(
+        body_resolved.props.fonts.east_asia,
+        Some(FontRef::Named("宋体".into()))
+    );
+    assert_eq!(
+        body_resolved.props.fonts.ascii,
+        Some(FontRef::Named("Times New Roman".into()))
+    );
 }
 
 #[test]
@@ -807,4 +835,96 @@ fn mutation_smoke() {
             assert_model_valid(&result);
         }
     }
+}
+
+fn set_paragraph_style(model: &mut joyword_model::Document, index: usize, style: Option<StyleId>) {
+    let body = model.body_id();
+    model
+        .story_mut(body)
+        .unwrap()
+        .blocks
+        .update(index, |block| {
+            let Block::Paragraph(paragraph) = block else {
+                panic!("paragraph");
+            };
+            Arc::make_mut(paragraph).style = style;
+        });
+}
+
+#[test]
+fn style_assignments_export_and_unknown_styles_are_rejected() {
+    let source = open(&fixture("DOCX-MIN-002"));
+    let mut model = source.document.clone();
+    set_paragraph_style(&mut model, 1, Some(StyleId::new("1")));
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let saved = open(plan.bytes());
+    assert_eq!(
+        paragraphs(&saved)[1].style.as_ref().map(StyleId::as_str),
+        Some("1")
+    );
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    let xml = String::from_utf8(package.part("/word/document.xml").unwrap().data.to_vec()).unwrap();
+    assert!(xml.contains(r#"w:val="1""#), "{xml}");
+    assert_eq!(
+        package.part("/word/styles.xml").unwrap().data,
+        source
+            .backing
+            .package()
+            .part("/word/styles.xml")
+            .unwrap()
+            .data,
+        "the styles part stays untouched"
+    );
+
+    let mut model = source.document.clone();
+    set_paragraph_style(&mut model, 1, Some(StyleId::new("missing")));
+    assert!(matches!(
+        plan_export(&source.backing, &model.snapshot(), &Budget::default()),
+        Err(ExportError::Unsupported { .. })
+    ));
+
+    let mut model = source.document.clone();
+    model
+        .styles_mut()
+        .insert(Style::new(
+            "TableGrid",
+            StyleKind::Table,
+            Some("Table Grid"),
+        ))
+        .unwrap();
+    set_paragraph_style(&mut model, 1, Some(StyleId::new("TableGrid")));
+    assert!(matches!(
+        plan_export(&source.backing, &model.snapshot(), &Budget::default()),
+        Err(ExportError::Unsupported { .. })
+    ));
+}
+
+#[test]
+fn a_theme_part_supplies_font_and_colour_schemes() {
+    let theme = r#"<?xml version="1.0" encoding="UTF-8"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:themeElements><a:clrScheme name="Office"><a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:accent1><a:srgbClr val="2E75B6"/></a:accent1></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/><a:ea typeface="宋体"/><a:cs typeface=""/></a:minorFont></a:fontScheme></a:themeElements></a:theme>"#;
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/></Types>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/></Relationships>"#;
+    let document = document_xml("", "<w:p><w:r><w:t>甲</w:t></w:r></w:p>");
+    let bytes = archive(&[
+        ("[Content_Types].xml", types),
+        ("_rels/.rels", PACKAGE_RELS),
+        ("word/document.xml", &document),
+        ("word/_rels/document.xml.rels", rels),
+        ("word/theme/theme1.xml", theme),
+    ]);
+    let result = open(&bytes);
+    let fonts = &result.document.styles().theme().fonts;
+    assert_eq!(fonts.minor_east_asia.as_deref(), Some("宋体"));
+    assert_eq!(fonts.minor_latin.as_deref(), Some("Calibri"));
+    assert_eq!(fonts.major_latin.as_deref(), Some("Calibri Light"));
+    assert!(fonts.major_east_asia.is_none());
+    assert_eq!(
+        result
+            .document
+            .styles()
+            .theme()
+            .colors
+            .get(&joyword_model::ThemeColorSlot::Accent1),
+        Some(&(0x2E, 0x75, 0xB6))
+    );
 }

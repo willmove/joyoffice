@@ -26,7 +26,7 @@ use std::sync::Arc;
 
 use joyword_model::{
     Block, Color, Document, FontRef, Indent, Justification, Measure, NodeId, ParaProps, Paragraph,
-    RunProps, SourceRef, Spacing, StyleId, Underline,
+    RunProps, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Underline,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -834,6 +834,159 @@ pub(super) fn direct_m1(paragraph: &Paragraph) -> bool {
             .all(|run| run.style.is_none() && run_supported(&run.props).is_ok())
 }
 
+/// Paragraph and character style ids that can be written back as `w:pStyle`
+/// and `w:rStyle` without rewriting the styles part. Table and numbering
+/// styles, unknown ids, broken chains and direct formatting outside the M1
+/// subset are refused.
+pub(super) fn style_assignment_ok(
+    sheet: &StyleSheet,
+    paragraph: &Paragraph,
+) -> Result<(), &'static str> {
+    let props = &paragraph.props;
+    if props.preserved.is_some()
+        || props.numbering.is_some()
+        || props.indent != Indent::default()
+        || props.spacing != Spacing::default()
+        || props.keep_next.is_some()
+        || props.keep_lines.is_some()
+        || props.widow_control.is_some()
+        || props.page_break_before.is_some()
+        || props.snap_to_grid.is_some()
+        || props.outline_level.is_some()
+    {
+        return Err("paragraph formatting is outside the style assignment subset");
+    }
+    if let Some(id) = &paragraph.style {
+        require_style(sheet, id, StyleKind::Paragraph)?;
+    }
+    if !paragraph.mark_props.is_empty() || !paragraph.inlines().is_empty() {
+        return Err("paragraph mark formatting is outside the style assignment subset");
+    }
+    for run in paragraph.runs() {
+        run_supported(&run.props)?;
+        if let Some(id) = &run.style {
+            require_style(sheet, id, StyleKind::Character)?;
+        }
+    }
+    Ok(())
+}
+
+fn require_style(sheet: &StyleSheet, id: &StyleId, kind: StyleKind) -> Result<(), &'static str> {
+    if !writable_style_id(id.as_str()) {
+        return Err("style id cannot be written");
+    }
+    let Some(style) = sheet.get(id) else {
+        return Err("unknown style");
+    };
+    if style.kind != kind {
+        return Err("style kind does not match the assignment");
+    }
+    if sheet.chain(id).problem.is_some() {
+        return Err("style chain cannot be exported");
+    }
+    Ok(())
+}
+
+fn writable_style_id(id: &str) -> bool {
+    !id.is_empty() && !id.chars().any(char::is_control)
+}
+
+fn xml_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+pub(super) fn rewrite_styled_paragraph(
+    xml: &[u8],
+    element: &Element,
+    paragraph: &Paragraph,
+    names: &Names,
+    limit: u64,
+) -> Result<Vec<u8>, ExportError> {
+    let open =
+        opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
+    let mut inner = String::new();
+    if paragraph.style.is_some() || paragraph.props.justification.is_some() {
+        inner.push_str(&names.start("pPr"));
+        inner.push('>');
+        if let Some(style) = &paragraph.style {
+            inner.push_str(&names.start("pStyle"));
+            inner.push_str(&qattr(names, "val", &xml_escape(style.as_str())));
+            inner.push_str("/>");
+        }
+        if let Some(justification) = paragraph.props.justification {
+            inner.push_str(&names.start("jc"));
+            inner.push_str(&qattr(names, "val", justification_value(justification)));
+            inner.push_str("/>");
+        }
+        inner.push_str(&names.end("pPr"));
+    }
+    for (style, props, text) in run_groups(paragraph) {
+        let rpr = styled_rpr(names, style.as_ref(), &props)
+            .map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
+        let text = bounded_text_xml(names, &text, limit)?;
+        if rpr.is_none() && text.is_empty() {
+            continue;
+        }
+        inner.push_str(&names.start("r"));
+        inner.push('>');
+        if let Some(rpr) = rpr {
+            inner.push_str(&rpr);
+        }
+        inner.push_str(&text);
+        inner.push_str(&names.end("r"));
+    }
+    let mut out = open;
+    out.extend_from_slice(inner.as_bytes());
+    out.extend_from_slice(names.end("p").as_bytes());
+    if out.len() as u64 > limit {
+        return Err(ExportError::Budget {
+            part: "paragraph".into(),
+            limit,
+        });
+    }
+    Ok(out)
+}
+
+fn styled_rpr(
+    names: &Names,
+    style: Option<&StyleId>,
+    props: &RunProps,
+) -> Result<Option<String>, &'static str> {
+    let rpr = synthesize_rpr(names, props)?;
+    let Some(style) = style else {
+        return Ok(rpr);
+    };
+    let tag = format!(
+        "{}{}/>",
+        names.start("rStyle"),
+        qattr(names, "val", &xml_escape(style.as_str()))
+    );
+    match rpr {
+        None => Ok(Some(format!(
+            "{}>{tag}{}",
+            names.start("rPr"),
+            names.end("rPr")
+        ))),
+        Some(existing) => {
+            let open = format!("{}>", names.start("rPr"));
+            let Some(rest) = existing.strip_prefix(&open) else {
+                return Err("character style is outside the direct formatting subset");
+            };
+            Ok(Some(format!("{open}{tag}{rest}")))
+        }
+    }
+}
+
 pub(super) fn rewrite_direct_paragraph(
     xml: &[u8],
     element: &Element,
@@ -934,6 +1087,9 @@ fn synthesize_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'s
         let value = match color {
             Color::Auto => "auto".to_owned(),
             Color::Rgb(red, green, blue) => format!("{red:02X}{green:02X}{blue:02X}"),
+            Color::Theme(_) => {
+                return Err("theme colours are outside the direct subset");
+            }
         };
         body.push_str(&names.start("color"));
         body.push_str(&qattr(names, "val", &value));

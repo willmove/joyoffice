@@ -8,7 +8,7 @@ use joyword_engine::RunChange;
 use joyword_model::Justification;
 use joyword_shell::command::{
     ArgValue, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_INSERT, EDIT_PASTE, EDIT_SELECT_ALL,
-    FILE_OPEN, FILE_SAVE_COPY, InvokeError,
+    FILE_OPEN, FILE_SAVE_COPY, InvokeError, STYLE_APPLY, STYLE_LIST,
 };
 use joyword_shell::host::Office;
 
@@ -170,4 +170,55 @@ fn protected_documents_refuse_edits_and_a_failed_save_keeps_bytes() {
     assert!(matches!(error, InvokeError::Failed(_)));
     assert_eq!(fs::read(&open).unwrap(), editable);
     assert_eq!(fs::read(&blocked).unwrap(), b"already");
+}
+
+#[test]
+fn style_list_and_apply_go_through_the_command_registry() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("styled.docx");
+    fs::write(&source, fixture(2)).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    office.invoke(STYLE_LIST, &[]).unwrap();
+    let listed = office.listed_styles().join("\n");
+    assert!(listed.contains("heading 1"), "{listed}");
+    assert!(listed.contains("Normal"), "{listed}");
+    office
+        .invoke(STYLE_APPLY, &[("style", ArgValue::Text("a".into()))])
+        .unwrap();
+    let style = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .style
+        .clone();
+    assert_eq!(style.unwrap().as_str(), "a");
+    office.active_mut().unwrap().undo().unwrap();
+    let restored = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .style
+        .clone();
+    assert_eq!(restored.unwrap().as_str(), "1");
 }

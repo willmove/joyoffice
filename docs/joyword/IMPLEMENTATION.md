@@ -4,9 +4,9 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础切片已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的样式面板／多级编号／制表位／查找替换／格式刷、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 
@@ -39,8 +39,8 @@
 | 结构共享 | 持久化 B 树 SeqTree（扇出 16，路径复制、缓存摘要、按维度定位）；Document 各字段共享，快照 O(1) | 文档级块索引（随增量排版 LAYOUT-010 加入；当前按 ID 线性查找） |
 | 文本 | 段落文本按 ≤1 KiB UTF-8 块存储；UTF-8／标量／UTF-16 偏移互转并拒绝字符内与代理对内位置；不做 Unicode 规范化 | 输入层已采用 Unicode 17.0 默认扩展字素边界（C07）；布局层仍按实际整形簇限制几何 |
 | 结构 | story（正文、页眉页脚、脚注尾注、批注、文本框）；段落、表格（网格、gridBefore／After、横向与纵向合并）、块级 SDT、不透明块；行内对象以 U+FDD0 占原子位置并经类型化片段读取 | 编号定义（T200）、修订对象（T300）、批注线程（T302），属后续任务的产物 |
-| 属性 | 原始单位 Measure（twip、半磅、八分之一磅、EMU、百分之一字符／行、pct、auto）；toggle 区分未设置与显式关闭；四槽字体、hint、主题字体与语言 | 样式层级的 toggle 解析与直接格式合并（T200） |
-| 样式 | 按规范名称识别内置样式（中文 Word 的 `a`／`1`、WPS 数字 ID）；basedOn 链有环、缺失、深度与类型诊断及有界回退 | 主题、表格条件格式与潜在样式 |
+| 属性 | 原始单位 Measure（twip、半磅、八分之一磅、EMU、百分之一字符／行、pct、auto）；toggle 区分未设置与显式关闭；四槽字体、hint、主题字体与语言；样式层级按文档默认、`basedOn`（根到叶）再直接格式合并，字符 toggle 显式关闭或翻转，段落开关取最近指定值 | 主题色 tint／shade、非自动颜色绘制、按字体名加载面 |
+| 样式 | 按规范名称识别内置样式（中文 Word 的 `a`／`1`、WPS 数字 ID）；basedOn 链有环、缺失、深度与类型诊断及有界回退；段落／字符样式解析（`w:link` 只配对应用，不叠第二层属性）；主题 fontScheme／clrScheme 的具体字体名与 sRGB | 表格样式与编号样式只保存不解析；表格条件格式与潜在样式；样式部件本身的导出改写 |
 | 标注与资源 | 书签、批注锚点、跨段复杂域（含 separate）、权限、行内 SDT 共用 Position（story、段落、标量偏移、偏向）；失锚状态可见；资源按 SHA-256 与来源区分，不自动去重 | — |
 | 校验与序列化 | 重复／未分配 ID、run 覆盖、对象位置、空单元格、网格、纵向合并、分节边界、页眉页脚类型、标注范围等诊断；嵌套 ≤64 层、诊断 ≤256 条；确定性模型转储，可忽略 ID 用于语义比较 | 与 T004 比较器的对接 |
 
@@ -49,7 +49,7 @@
 | 部分 | 已实现 |
 | --- | --- |
 | 事务 | Session 持有工作文档；Transaction 携带基准版本、来源（用户／Agent／系统）、前置条件、命令与事务前选区；在 O(1) 候选副本上执行，任一失败即丢弃，文档、版本与撤销栈不变；空操作返回 NoOp 且不增版本 |
-| 命令 | 插入文字（拒绝换行、段落分隔与控制字符）、插入行内对象（图片须有资源）、同容器删除（跨段合并、中间块整体删除）、拆分段落、字符格式、段落格式、同容器移动块、移除块（容器至少保留一个块） |
+| 命令 | 插入文字（拒绝换行、段落分隔与控制字符）、插入行内对象（图片须有资源）、同容器删除（跨段合并、中间块整体删除）、拆分段落、字符格式、段落格式、应用段落／字符样式（一次可撤销事务）、同容器移动块、移除块（容器至少保留一个块） |
 | 权限入口 | 只读策略、Agent 写入开关（默认关闭）、内容锁定 SDT 拒绝编辑、删除锁定 SDT 拒绝、跨 story／单元格／SDT 范围拒绝；前置条件校验目标文字未变 |
 | 位置映射 | 插入、段内删除、跨段删除、拆分、移除五种步骤；结果为保持、收缩到删除边界或丢失；组合即顺序拼接；书签、域（含 separate）、权限和批注锚点在事务内映射，批注锚点被整体删除时转为失锚 |
 | ChangeSet | 受影响的 story、段落、新增、删除、移动节点与标注，供排版失效使用；提交前检查受影响段落的不变量 |
@@ -432,4 +432,18 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **正确性**：`joyword-layout` 的 `incremental` 测试用改名为“等线”的测试字体（轮廓仍是拉丁测试字面，与 T207 相同）比较随机编辑序列的增量结果与 `layout_document`：页、行、诊断和字形数一致。序列包含引号、`both` 两端对齐、单倍行距和 keep-next。另有末段编辑的整形次数远小于全量（24 段时增量只整形被改的段）、首段加长后分页仍与全量一致、遗漏页码依赖会命中另一页的拟合、反馈振荡返回未稳定、超预算淘汰，以及样式闭包。既有 `document`、`cjk_layout`、`w06_pagination`、`line_fonts` 与应用画布测试未改断言并通过。
 - **性能（本环境实测，不是 QUALITY 的百页 p95）**：`cargo run -p joyword --example perf_smoke --locked --release -- /usr/share/fonts/truetype/wqy/wqy-microhei.ttc 0`。Linux 6.12.94+ x86_64，4 个 Intel Xeon 逻辑核，Rust 1.98.1 release、thin LTO。字体文泉驿微米黑，sha256 `2420e8078af796b19a3f6ef13de527a1a91c1e7171eea115926c614ced1009b3`，face 0。Droid Sans Fallback 对样例报缺字诊断，未采用其数字。20 页、725 段：打开中位 0.049 ms（n=7，最小 0.040 ms）；首次全量排版 15.214 ms；输入路径中位为提交 0.023 ms 加全量重排 15.230 ms（n=5）。同一进程里缓存预热 5.900 ms 后，在末段连续插入 5 个不同汉字的增量排版中位 6.089 ms，每步 `shape_calls` 为 1；改首段一次 6.484 ms，`shape_calls` 为 1，同文档全量 `shape_calls` 为 725。增量结果与当次全量的页和行一致。这是 20 页冒烟，不是 100 页输入到呈现的 p95，也不能替代 Windows 上 Noto Serif SC 的旧基线。
 - **未覆盖**：没有在图形界面打开百页文档分别编辑首段和末段。没有测量 QUALITY 的 100 页 p95 ≤ 50 ms。信创与 macOS／Windows 本轮未复跑。字段投影仍被预检拒绝，页码依赖只在键和反例测试里，不在真实字段排版里。T208 保持 `in_progress`。W09 harness 重锚到 `f1bfc58d2ce8e80693953692dc34a5dd58e2db85`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。
+
+### T200 样式基础（2026-10-18）
+
+这一刀只做样式继承、主题字体／颜色、可撤销的样式应用、命令注册表入口、样式指定的保守导出，以及排版和 T208 段落缓存对解析结果的消费。样式面板、多级编号、制表位、查找替换和格式刷留在同一任务的后续切片。T200 保持 `in_progress`。
+
+- **解析**：`StyleSheet::resolve_paragraph`／`resolve_run` 按 ECMA-376 Part 1 §17.7.2 叠加文档默认、`basedOn` 链（根到叶）和直接格式。字符 toggle（粗体、斜体、删除线、隐藏）按 §17.7.3：未设置则继承，显式关闭强制关闭，显式打开翻转已继承的值，因此第一层打开使属性为开。段落开关（keepNext 等）取最近指定值，不做异或。缺省段落样式用于未指定 `w:pStyle` 的段。`w:link`（§17.7.4.6）只在应用时配对段落样式与字符样式，解析时不作为第二层属性。环、过深和类型不符记为 `StyleProblem`。表格样式与编号样式留在样式表中，解析报告 `UnresolvedKind`，不套用其属性。主题来自 DrawingML `a:fontScheme`／`a:clrScheme`（§14.2.7、§20.1.4）：latin 对应 ascii 与 hAnsi，ea 对应 eastAsia，cs 对应 bidi；`w:themeColor` 用 ST_ThemeColor 长名解析为 sRGB。空 typeface、未知槽、以及带 themeTint／themeShade 的颜色不假装已解析。
+- **编辑**：`Command::ApplyStyle` 在一次事务里改段落或字符的样式 id。插入点应用段落样式写 `w:pStyle`；对插入点应用字符样式是空操作。整段选区应用带 link 的字符样式时改成配对的段落样式；段落样式只覆盖部分选区时，改用其 link 的字符样式。未知 id、表格／编号样式、断裂链和锁定文档显式拒绝。一次撤销恢复指定前的样式。行为登记 `STYLE-APPLY-UNDO`，来源是假设，没有 Word 观察。
+- **命令**：`style.list` 列出 id、类型和规范名，挂在编辑菜单，不改文档。`style.apply` 必填样式 id，经同一注册表提交 `ApplyStyle`。GUI 为两条命令各有动作；`style.list` 的结果写在现有状态说明里。这不是样式面板。
+- **导出**：样式指定发生变化时，段落须通过 `style_assignment_ok` 才重写 `w:pStyle` 和 `w:rStyle`。样式 id 须非空、无控制字符，且样式存在、类型匹配、链完整。编号、缩进、间距、分页开关、大纲级别、保留属性、段落标记格式、主题字体、主题色和 M1 直接格式以外的属性拒绝。样式部件字节不改写。新建带样式的段落仍拒绝。
+- **排版**：屏幕与 PDF 仍共用页面场景。`style_paint` 把解析后的字号、粗体、斜体、对齐、段前后和分页开关交给既有行拟合。拉丁名取 ascii，否则 hAnsi；东亚名单独记录。整形仍用调用者提供的 face，不按名称换面。未解析的主题字体、非自动颜色、混排字号或粗斜体、编号、缩进和保留的属性子节点拒绝。样式元素上的 `qFormat` 等保留标记不拒绝。光栅对粗体做第二次偏移填充，对斜体做剪切；PDF 的第二次粗体绘制使用空簇范围，使可搜索文本只出现一次。PDF 斜体剪切未做。
+- **缓存**：段落缓存键包含解析后的样式链、文档默认、主题和直接字符属性。`adopt` 按当前解析重算段间距和对齐，避免命中后用直接属性覆盖样式间距。样式定义变化经既有 `basedOn`／`link` 闭包失效。`a_style_definition_change_refits_dependents_and_reuses_the_rest` 证明：改一个样式的字号后，使用它的段与全量排版一致，未使用它的段命中缓存。
+- **语料**：DOCX-MIN-002 无主题部件。文档默认 ascii／hAnsi／cs 为 Times New Roman，eastAsia 为宋体，字号 21 半磅。标题 1（styleId `1`，basedOn `a`）为粗体 32 半磅。`min_002_recognises_builtin_styles_by_name_and_keeps_mode_15` 断言解析结果；Word 2024 参考里的 SimSun 与 TimesNewRomanPSMT 是版式测量，本切片不把调用者 face 换成这些字体。内存中的等价文档由 `resolved_styles_set_size_weight_and_requested_families` 排成 16 pt 粗体与 10.5 pt 正文，并记下请求的字体名。
+- **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt --all`；`cargo clippy --locked -p joyword-model -p joyword-docx -p joyword-engine -p joyword-layout -p joyword-pdf -p joyword-render -p joyword-shell -p joyword --all-targets -- -D warnings`；上述包的 `cargo test --locked`。model、docx、engine、layout、pdf、render 与 `joyword` 库测试通过。`joyword-shell` 的集成测试通过；库测试里 `identity_change_between_stat_and_open_is_not_a_baseline`，以及 `w07_save_original_rejection::save_original_reruns_the_full_conflict_verification_itself`、`w07_source_conflicts` 的同长度重建与硬链接别名两项，在本机文件系统上仍失败。这四项与 T211 记录相同，相关源文件未改。`python3 scripts/check_docs.py` 通过（84 个需求、66 个任务、18 条行为登记）。`python3 scripts/check_gates.py` 通过（124 个 Rust 文件）。
+- **未覆盖**：样式面板与预览、多级编号、制表位、边框底纹、查找替换、格式刷与自动更正、主题 tint／shade、按字体名加载面、表格样式解析、非自动颜色绘制、PDF 斜体、样式部件改写，以及人工制作多级标题的验收。没有新增依赖。没有启动图形界面。W09 harness 重锚到 `3787156203787884c81a5f36786d204e5a1785d9`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
 
