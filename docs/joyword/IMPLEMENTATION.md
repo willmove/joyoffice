@@ -420,3 +420,16 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt --all -- --check`；`cargo clippy --workspace --all-targets --locked -- -D warnings`；`cargo test -p joyword --locked --offline`（37 项）；`joyword-shell` 的 `diagnostics` 集成测试 7 项（样例正文、修订、批注、凭据不出现；轮转后上一份字节不变；保留 5 份；封顶；脱敏；测试 profile 与偏好目录隔离；`catch_unwind` 触发的真实 hook 含位置且不含 payload）。同包其余测试除下列四项外通过。`python3 scripts/check_docs.py` 通过（84 个需求、66 个任务）。`python3 scripts/check_gates.py` 通过（120 个 Rust 文件）。反例 `scripts/tests/fixtures/gate_counterexample.rs` 被门禁拒绝。
 - **本环境未通过、且不是 T211 改动的测试**：`storage::source::tests::identity_change_between_stat_and_open_is_not_a_baseline`、`w07_save_original_rejection::save_original_reruns_the_full_conflict_verification_itself`、`w07_source_conflicts::delete_and_recreate_with_identical_bytes_is_an_inode_change`、`w07_source_conflicts::hard_link_alias_writes_are_detected_through_the_stamped_path`。这四项都依赖 Unix 上删除重建或同长度重写会改变 inode 或时间；本机文件系统上这些操作之后身份检查返回成功。相关源文件未改。不把它们记成产品缺陷修复，也不放宽断言。
 - **未覆盖**：没有启动 GUI、制造崩溃、再打开日志核对无正文泄漏。人工验收未做，T211 保持 `in_progress`。未在 macOS／Windows 上复跑。没有把文件 sync 说成断电后目录项一定可见。W09 harness 按原契约重锚到 `a3cec13b3cea9fb4f6e98f6158cdeae01fbe2688`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+
+### T208 段落缓存与增量重排（2026-10-18）
+
+屏幕和 PDF 仍读同一页面场景。`layout_document` 仍是从零排版的参照；增量入口 `layout_incremental` 复用同一套段落拟合和分页。应用画布的后台布局（`main.rs` 与输入测试的 layout 阶段）走增量入口，并带上自上次安装布局以来的 engine `ChangeSet`。
+
+- **缓存键**：段落正文指纹、解析后的段落／字符样式链与文档默认、版心宽度、实际整形的 FontKey（混合脚本时带上四槽与回退面）、字号和显式特性。profile 行距只在行框来自 profile 时入键；单倍行距（auto 240）不把行距当键。页码、脚注编号、绕排区只在段落里的字段指令含 PAGE／NUMPAGES 或 FOOTNOTE／NOTEREF 时入键。当前预检仍拒绝批注，成功排版的文档没有这些依赖；键把依赖留在字段被接受之后。节点 id 不入键，命中后改写成当前段落。
+- **失效**：直接改动的段落、插入、删除和移动来自 ChangeSet。样式 id 按 basedOn 与 link 闭包扩到使用这些样式的段落，以及在默认样式受影响时未指定样式的段落。`defaults_changed` 使每一段失效。闭包失效不调用 `clear()`。组高不入库，分页前按当前邻段重算。
+- **停止与不收敛**：先用缓存拟合每一段，再从文首放置。某一段及其后的键与上一快照相同，且页码、段前纵坐标和行下标都对齐时，拷贝上一快照的页尾。对不齐就继续放置。页码／脚注／绕排反馈最多 8 遍；状态重复或用尽遍数返回 `LayoutError::Unstable`（显示“布局未稳定”），不把该遍页面当作快照，也不更新流量记录。
+- **内存**：段落缓存默认 32 MiB。单条大于预算的拟合不入库。超出预算时按最近使用淘汰。整形器数据另有进程内上限 8 个 FontKey。
+- **正确性**：`joyword-layout` 的 `incremental` 测试用改名为“等线”的测试字体（轮廓仍是拉丁测试字面，与 T207 相同）比较随机编辑序列的增量结果与 `layout_document`：页、行、诊断和字形数一致。序列包含引号、`both` 两端对齐、单倍行距和 keep-next。另有末段编辑的整形次数远小于全量（24 段时增量只整形被改的段）、首段加长后分页仍与全量一致、遗漏页码依赖会命中另一页的拟合、反馈振荡返回未稳定、超预算淘汰，以及样式闭包。既有 `document`、`cjk_layout`、`w06_pagination`、`line_fonts` 与应用画布测试未改断言并通过。
+- **性能（本环境实测，不是 QUALITY 的百页 p95）**：`cargo run -p joyword --example perf_smoke --locked --release -- /usr/share/fonts/truetype/wqy/wqy-microhei.ttc 0`。Linux 6.12.94+ x86_64，4 个 Intel Xeon 逻辑核，Rust 1.98.1 release、thin LTO。字体文泉驿微米黑，sha256 `2420e8078af796b19a3f6ef13de527a1a91c1e7171eea115926c614ced1009b3`，face 0。Droid Sans Fallback 对样例报缺字诊断，未采用其数字。20 页、725 段：打开中位 0.049 ms（n=7，最小 0.040 ms）；首次全量排版 15.214 ms；输入路径中位为提交 0.023 ms 加全量重排 15.230 ms（n=5）。同一进程里缓存预热 5.900 ms 后，在末段连续插入 5 个不同汉字的增量排版中位 6.089 ms，每步 `shape_calls` 为 1；改首段一次 6.484 ms，`shape_calls` 为 1，同文档全量 `shape_calls` 为 725。增量结果与当次全量的页和行一致。这是 20 页冒烟，不是 100 页输入到呈现的 p95，也不能替代 Windows 上 Noto Serif SC 的旧基线。
+- **未覆盖**：没有在图形界面打开百页文档分别编辑首段和末段。没有测量 QUALITY 的 100 页 p95 ≤ 50 ms。信创与 macOS／Windows 本轮未复跑。字段投影仍被预检拒绝，页码依赖只在键和反例测试里，不在真实字段排版里。T208 保持 `in_progress`。
+

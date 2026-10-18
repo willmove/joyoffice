@@ -16,7 +16,7 @@ use std::sync::Arc;
 use joyword_model::{
     Anchor, AnnotationId, AnnotationKind, Bias, Block, Document, DocumentSnapshot, DocumentVersion,
     InlineKind, InlineObject, Issue, MAX_NESTING, NodeId, ParaProps, Paragraph, Position, RunProps,
-    ScalarOffset, StoryId, TextError,
+    ScalarOffset, StoryId, StyleId, TextError,
 };
 
 thread_local! {
@@ -109,6 +109,11 @@ pub struct ChangeSet {
     pub removed: BTreeSet<NodeId>,
     pub moved: BTreeSet<NodeId>,
     pub annotations: BTreeSet<AnnotationId>,
+    /// Style definitions whose resolved properties changed. Layout invalidates
+    /// the basedOn/link closure; it does not clear every fitted paragraph.
+    pub styles: BTreeSet<StyleId>,
+    /// `w:docDefaults` changed, so every paragraph's resolved style is stale.
+    pub defaults_changed: bool,
 }
 
 impl ChangeSet {
@@ -118,6 +123,8 @@ impl ChangeSet {
             && self.removed.is_empty()
             && self.moved.is_empty()
             && self.annotations.is_empty()
+            && self.styles.is_empty()
+            && !self.defaults_changed
     }
 }
 
@@ -207,13 +214,17 @@ struct UndoEntry {
 }
 
 impl ChangeSet {
-    fn absorb(&mut self, other: ChangeSet) {
+    /// Union `other` into this set. Undo coalescing and the input layer both
+    /// fold several transactions into the invalidation the next layout sees.
+    pub fn absorb(&mut self, other: ChangeSet) {
         self.stories.extend(other.stories);
         self.paragraphs.extend(other.paragraphs);
         self.inserted.extend(other.inserted);
         self.removed.extend(other.removed);
         self.moved.extend(other.moved);
         self.annotations.extend(other.annotations);
+        self.styles.extend(other.styles);
+        self.defaults_changed |= other.defaults_changed;
     }
 }
 

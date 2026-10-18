@@ -3,8 +3,8 @@
 //! an immutable preview session and never modifies the committed undo stack.
 use crate::docx::DocxSession;
 use joyword_engine::{
-    Command, Outcome, ParagraphChange, RunChange, Selection, Session, Transaction, TxError,
-    UndoError, UndoGroup, UndoResult,
+    ChangeSet, Command, Outcome, ParagraphChange, RunChange, Selection, Session, Transaction,
+    TxError, UndoError, UndoGroup, UndoResult,
 };
 use joyword_model::{Bias, DocumentSnapshot, DocumentVersion, NodeId, Position, Utf16Offset};
 use std::collections::BTreeMap;
@@ -374,6 +374,8 @@ pub struct InputView {
     selection: Selection,
     marked: Option<Range<usize>>,
     revision: u64,
+    /// Engine changes since the layout that was acknowledged for this version.
+    changes: ChangeSet,
 }
 impl InputView {
     pub fn index(&self) -> &TextIndex {
@@ -390,6 +392,11 @@ impl InputView {
     }
     pub fn revision(&self) -> u64 {
         self.revision
+    }
+    /// Changes the next layout should treat as dirty. A missing entry still
+    /// misses the paragraph cache when the content key changed.
+    pub fn layout_changes(&self) -> &ChangeSet {
+        &self.changes
     }
     pub fn selected_range(&self) -> (Range<usize>, bool) {
         self.index
@@ -423,6 +430,8 @@ pub struct TextInput<B = Session> {
     view: InputView,
     limits: InputLimits,
     saved_version: DocumentVersion,
+    /// Union of committed changes not yet covered by an installed layout.
+    pending: ChangeSet,
 }
 impl<B: InputBackend> TextInput<B> {
     pub fn new(backend: B, limits: InputLimits) -> Result<Self, InputError> {
@@ -435,6 +444,7 @@ impl<B: InputBackend> TextInput<B> {
             selection,
             marked: None,
             revision: 0,
+            changes: ChangeSet::default(),
         };
         Ok(Self {
             backend,
@@ -444,6 +454,7 @@ impl<B: InputBackend> TextInput<B> {
             view,
             limits,
             saved_version,
+            pending: ChangeSet::default(),
         })
     }
     pub fn backend(&self) -> &B {
@@ -451,6 +462,33 @@ impl<B: InputBackend> TextInput<B> {
     }
     pub fn view(&self) -> &InputView {
         &self.view
+    }
+    fn note(&mut self, changes: ChangeSet) {
+        self.pending.absorb(changes);
+    }
+    fn publish(
+        &mut self,
+        index: Arc<TextIndex>,
+        selection: Selection,
+        marked: Option<Range<usize>>,
+        revision: u64,
+    ) {
+        self.view = InputView {
+            index,
+            selection,
+            marked,
+            revision,
+            changes: self.pending.clone(),
+        };
+    }
+    /// Drop pending invalidation once a layout of this committed version is
+    /// installed. A newer edit, or an open composition preview, keeps it.
+    pub fn acknowledge_layout(&mut self, version: u64) {
+        if self.is_composing() || self.backend.session().version().get() != version {
+            return;
+        }
+        self.pending = ChangeSet::default();
+        self.view.changes = ChangeSet::default();
     }
     pub fn is_composing(&self) -> bool {
         self.composition.is_some()
@@ -642,6 +680,9 @@ impl<B: InputBackend> TextInput<B> {
             .backend
             .apply_mapped(prepared.transaction, prepared.target)?;
         let changed = matches!(outcome, Outcome::Applied(_));
+        if let Outcome::Applied(applied) = &outcome {
+            self.note(applied.changes.clone());
+        }
         let selection = match outcome {
             Outcome::Applied(a) => a.selection.expect("validated target"),
             Outcome::NoOp(_) => prepared.selection,
@@ -652,12 +693,7 @@ impl<B: InputBackend> TextInput<B> {
         });
         self.selection = selection;
         self.composition = None;
-        self.view = InputView {
-            index: self.base.clone(),
-            selection,
-            marked: None,
-            revision,
-        };
+        self.publish(self.base.clone(), selection, None, revision);
         Ok(changed)
     }
 
@@ -714,6 +750,9 @@ impl<B: InputBackend> TextInput<B> {
         let fallback = self.selection;
         let outcome = self.backend.apply_mapped(transaction, fallback)?;
         let changed = matches!(outcome, Outcome::Applied(_));
+        if let Outcome::Applied(applied) = &outcome {
+            self.note(applied.changes.clone());
+        }
         let selection = match outcome {
             Outcome::Applied(applied) => applied.selection.unwrap_or(fallback),
             Outcome::NoOp(_) => fallback,
@@ -724,12 +763,7 @@ impl<B: InputBackend> TextInput<B> {
         )?);
         self.selection = selection;
         self.composition = None;
-        self.view = InputView {
-            index: self.base.clone(),
-            selection,
-            marked: None,
-            revision,
-        };
+        self.publish(self.base.clone(), selection, None, revision);
         Ok(changed)
     }
 
@@ -767,12 +801,7 @@ impl<B: InputBackend> TextInput<B> {
             text: overlay,
             marked: marked.clone(),
         });
-        self.view = InputView {
-            index: prepared.index,
-            selection,
-            marked: Some(marked),
-            revision,
-        };
+        self.publish(prepared.index, selection, Some(marked), revision);
         Ok(())
     }
     /// AppKit unmark preserves the marked text; commit that preview once.
@@ -787,6 +816,9 @@ impl<B: InputBackend> TextInput<B> {
         let outcome = self
             .backend
             .apply_mapped(prepared.transaction, prepared.target)?;
+        if let Outcome::Applied(applied) = &outcome {
+            self.note(applied.changes.clone());
+        }
         let selection = match outcome {
             Outcome::Applied(a) => a.selection.expect("validated target"),
             Outcome::NoOp(_) => prepared.selection,
@@ -797,12 +829,7 @@ impl<B: InputBackend> TextInput<B> {
         });
         self.selection = selection;
         self.composition = None;
-        self.view = InputView {
-            index: self.base.clone(),
-            selection,
-            marked: None,
-            revision,
-        };
+        self.publish(self.base.clone(), selection, None, revision);
         Ok(true)
     }
     pub fn cancel_composition(&mut self) -> Result<bool, InputError> {
@@ -811,12 +838,7 @@ impl<B: InputBackend> TextInput<B> {
         }
         let revision = self.next_revision()?;
         self.composition = None;
-        self.view = InputView {
-            index: self.base.clone(),
-            selection: self.selection,
-            marked: None,
-            revision,
-        };
+        self.publish(self.base.clone(), self.selection, None, revision);
         Ok(true)
     }
     pub fn select(&mut self, range: Range<usize>, reversed: bool) -> Result<(), InputError> {
@@ -964,19 +986,15 @@ impl<B: InputBackend> TextInput<B> {
         let selection = selection
             .unwrap_or_else(|| Selection::caret(candidate.position(0, Bias::After).expect("body")));
         candidate.selection_range(selection)?;
-        self.backend.undo()?;
+        let undone = self.backend.undo()?;
+        self.note(undone.changes);
         let base = Arc::new(TextIndex {
             snapshot: self.backend.session().snapshot(),
             ..candidate
         });
         self.base = base;
         self.selection = selection;
-        self.view = InputView {
-            index: self.base.clone(),
-            selection,
-            marked: None,
-            revision,
-        };
+        self.publish(self.base.clone(), selection, None, revision);
         Ok(())
     }
     pub fn redo(&mut self) -> Result<(), InputError> {
@@ -990,19 +1008,15 @@ impl<B: InputBackend> TextInput<B> {
         let selection = selection
             .unwrap_or_else(|| Selection::caret(candidate.position(0, Bias::After).expect("body")));
         candidate.selection_range(selection)?;
-        self.backend.redo()?;
+        let redone = self.backend.redo()?;
+        self.note(redone.changes);
         let base = Arc::new(TextIndex {
             snapshot: self.backend.session().snapshot(),
             ..candidate
         });
         self.base = base;
         self.selection = selection;
-        self.view = InputView {
-            index: self.base.clone(),
-            selection,
-            marked: None,
-            revision,
-        };
+        self.publish(self.base.clone(), selection, None, revision);
         Ok(())
     }
 }

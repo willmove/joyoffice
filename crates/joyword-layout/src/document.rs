@@ -94,7 +94,7 @@ impl Default for LayoutLimits {
     }
 }
 impl LayoutLimits {
-    fn capped(self) -> Self {
+    pub(crate) fn capped(self) -> Self {
         let h = Self::default();
         Self {
             max_paragraphs: self.max_paragraphs.min(h.max_paragraphs),
@@ -121,7 +121,7 @@ impl LayoutCancellation {
     pub fn is_cancelled(&self) -> bool {
         self.0.load(Ordering::Acquire)
     }
-    fn check(&self) -> Result<(), LayoutError> {
+    pub(crate) fn check(&self) -> Result<(), LayoutError> {
         if self.is_cancelled() {
             Err(LayoutError::Cancelled)
         } else {
@@ -160,10 +160,17 @@ pub enum LayoutError {
     UnknownPosition(Position),
     InsideCluster(Position),
     ReversedSelection,
+    /// Pagination feedback (page numbers, footnotes, wrap) repeated a state
+    /// or exhausted its pass budget. The temporary pages are not a snapshot.
+    Unstable,
 }
 impl fmt::Display for LayoutError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "document layout: {self:?}")
+        match self {
+            // Feedback did not settle. Callers keep the previous snapshot.
+            LayoutError::Unstable => f.write_str("布局未稳定"),
+            other => write!(f, "document layout: {other:?}"),
+        }
     }
 }
 impl std::error::Error for LayoutError {}
@@ -225,10 +232,10 @@ impl PageGeometry {
         }
         Ok(geometry)
     }
-    fn content_width(self) -> Emu {
+    pub(crate) fn content_width(self) -> Emu {
         Emu::new(self.width.raw() - self.left.raw() - self.right.raw())
     }
-    fn bottom_edge(self) -> Emu {
+    pub(crate) fn bottom_edge(self) -> Emu {
         Emu::new(self.height.raw() - self.bottom.raw())
     }
 }
@@ -277,15 +284,20 @@ pub struct LayoutStats {
     pub shape_calls: usize,
     pub shaped_bytes: usize,
     pub glyphs: usize,
+    /// Fitted paragraphs reused from the paragraph cache (T208).
+    pub cache_hits: usize,
+    /// Paragraph index whose placement, and everything after it, was copied
+    /// because the page boundary matched the previous snapshot.
+    pub stable_boundary: Option<usize>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct ParagraphMap {
     len: usize,
     lines: Range<usize>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LayoutSnapshot {
     key: LayoutKey,
     story: StoryId,
@@ -309,7 +321,7 @@ fn add(a: Emu, b: Emu) -> Result<Emu, LayoutError> {
 // Hash rendered source incrementally, not a potentially huge formatted model
 // dump. Preflight checks active styles before this; unused metadata is not a
 // layout input. Lengths delimit text even when it contains debug-like syntax.
-fn fingerprint(document: &Document) -> [u8; 32] {
+pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
     let mut hash = Sha256::new();
     hash.update(document.body_id().get().to_le_bytes());
     hash.update(format!("{:?}", document.sections()[0].page).as_bytes());
@@ -413,7 +425,7 @@ fn check_paragraph(document: &Document, p: &Paragraph) -> Result<(), LayoutError
     Ok(())
 }
 
-fn preflight(
+pub(crate) fn preflight(
     document: &Document,
     profile: SingleFontProfile,
     limits: LayoutLimits,
@@ -491,19 +503,50 @@ fn preflight(
 // Two bounded passes: fit each paragraph once under shared budgets, then
 // annotate only the start of each maximal keep-next chain. Placement consumes
 // the fitted lines (no reshaping, rollback, or quadratic suffix lookahead).
-struct PreparedParagraph<'a> {
-    paragraph: &'a Paragraph,
-    lines: Vec<LayoutLine>,
-    before: Emu,
-    after: Emu,
-    line_box: Emu,
-    // Before + all line boxes, excluding trailing after-spacing.
-    height: Emu,
-    group_height: Option<Emu>,
+#[derive(Clone, Debug)]
+pub(crate) struct FittedParagraph {
+    pub id: NodeId,
+    pub len: usize,
+    pub lines: Vec<LayoutLine>,
+    pub diagnostics: Vec<LineDiagnostic>,
+    pub omitted: usize,
+    pub shape_calls: usize,
+    pub shaped_bytes: usize,
+    pub glyphs: usize,
+    pub before: Emu,
+    pub after: Emu,
+    pub line_box: Emu,
+    /// Before + all line boxes, excluding trailing after-spacing.
+    pub height: Emu,
+    pub group_height: Option<Emu>,
+    pub keep_next: bool,
+    pub keep_lines: bool,
+    pub page_break_before: bool,
+    pub justification: Option<Justification>,
+}
+
+/// Where a paragraph began in a previous snapshot. `top` is the y before
+/// that paragraph's spacing-before is applied.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct ParagraphAnchor {
+    pub line: usize,
+    pub page: usize,
+    pub top: i64,
+}
+
+/// Suffix/prefix of a previous snapshot that incremental placement may copy
+/// once a page boundary matches.
+pub(crate) struct PlaceStop<'a> {
+    pub previous: &'a LayoutSnapshot,
+    pub starts: &'a [ParagraphAnchor],
+    /// `same[i]` is true when paragraph i has the same identity and fit key
+    /// as the previous snapshot, and was not invalidated.
+    pub same: &'a [bool],
+    pub place_from: usize,
 }
 
 fn prepare_keep_groups(
-    paragraphs: &mut [PreparedParagraph<'_>],
+    paragraphs: &mut [FittedParagraph],
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
     let mut start = 0;
@@ -512,8 +555,8 @@ fn prepare_keep_groups(
         let mut end = start;
         let mut height = paragraphs[start].height;
         while end + 1 < paragraphs.len()
-            && paragraphs[end].paragraph.props.keep_next == Some(true)
-            && paragraphs[end + 1].paragraph.props.page_break_before != Some(true)
+            && paragraphs[end].keep_next
+            && !paragraphs[end + 1].page_break_before
         {
             cancellation.check()?;
             height = add(
@@ -668,6 +711,49 @@ pub fn layout_document(
     profile.validate()?;
     let limits = limits.capped();
     let geometry = preflight(document, profile, limits, cancellation)?;
+    let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
+    let mut prepared = Vec::new();
+    let mut total_lines = 0usize;
+    let mut charged_shapes = 0usize;
+    let mut charged_bytes = 0usize;
+    let mut charged_glyphs = 0usize;
+    for block in document.body().blocks.iter() {
+        cancellation.check()?;
+        let paragraph = block.as_paragraph().expect("preflight checked all blocks");
+        let fitted = fit_paragraph(
+            paragraph,
+            faces,
+            profile,
+            geometry,
+            limits,
+            WorkSpent {
+                shapes: charged_shapes,
+                bytes: charged_bytes,
+                glyphs: charged_glyphs,
+                lines: total_lines,
+            },
+            cancellation,
+        )?;
+        record_fit(&mut result, &fitted);
+        charged_shapes += fitted.shape_calls;
+        charged_bytes += fitted.shaped_bytes;
+        charged_glyphs += fitted.glyphs;
+        total_lines += fitted.lines.len();
+        result.stats.shape_calls += fitted.shape_calls;
+        result.stats.shaped_bytes += fitted.shaped_bytes;
+        result.stats.glyphs += fitted.glyphs;
+        prepared.push(fitted);
+    }
+    assemble(result, prepared, profile, cancellation, None)
+}
+
+pub(crate) fn open_snapshot(
+    document: &Document,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    geometry: PageGeometry,
+) -> Result<LayoutSnapshot, LayoutError> {
     let mut result = LayoutSnapshot {
         key: LayoutKey {
             version: document.version(),
@@ -687,290 +773,466 @@ pub fn layout_document(
         limits,
     };
     result.new_page()?;
-    let mut prepared = Vec::new();
-    let mut total_lines = 0usize;
-    for block in document.body().blocks.iter() {
-        cancellation.check()?;
-        let paragraph = block.as_paragraph().expect("preflight checked all blocks");
-        let defaults = LineLimits::default();
-        let request_limits = LineLimits {
-            max_text_bytes: defaults.max_text_bytes.min(limits.max_text_bytes),
-            max_shape_calls: defaults
-                .max_shape_calls
-                .min(limits.max_shape_calls - result.stats.shape_calls),
-            max_shaped_bytes: defaults
-                .max_shaped_bytes
-                .min(limits.max_shaped_bytes - result.stats.shaped_bytes),
-            max_lines: defaults.max_lines.min(limits.max_lines - total_lines),
-            max_diagnostics: defaults.max_diagnostics.min(
-                limits
-                    .max_diagnostics
-                    .saturating_sub(result.diagnostics.len()),
-            ),
-            ..defaults
-        };
-        // Global limits are charged before each paragraph's work, not after
-        // an unbounded collection of independent paragraph requests.
-        if request_limits.max_shape_calls == 0 {
-            return Err(LayoutError::LimitExceeded(LayoutLimit::ShapeCalls));
-        }
-        if request_limits.max_shaped_bytes == 0 && !paragraph.is_empty() {
-            return Err(LayoutError::LimitExceeded(LayoutLimit::ShapedBytes));
-        }
-        if request_limits.max_lines == 0 {
-            return Err(LayoutError::LimitExceeded(LayoutLimit::Lines));
-        }
-        let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
-        let map_line = |error: LineError| {
-            if error == LineError::Cancelled {
-                LayoutError::Cancelled
-            } else {
-                LayoutError::Line {
-                    paragraph: paragraph.id(),
-                    error,
-                }
+    Ok(result)
+}
+
+pub(crate) fn dominant_slot(text: &str) -> FontSlot {
+    let mut chosen = FontSlot::Ascii;
+    for ch in text.chars() {
+        match slot_for(ch, None) {
+            FontSlot::EastAsia => chosen = FontSlot::EastAsia,
+            FontSlot::Complex if chosen != FontSlot::EastAsia => chosen = FontSlot::Complex,
+            FontSlot::HAnsi if !matches!(chosen, FontSlot::EastAsia | FontSlot::Complex) => {
+                chosen = FontSlot::HAnsi;
             }
-        };
-        // Four-slot classification, fallback wrapping and CJK prohibitions
-        // decide the breaks this page scene stores. Screen and PDF read that
-        // scene; they do not break lines again. The shaping face is the slot
-        // that owns the paragraph, so a CJK run is not drawn with the Latin face.
-        let mut chosen = FontSlot::Ascii;
-        for ch in text.chars() {
-            match slot_for(ch, None) {
-                FontSlot::EastAsia => chosen = FontSlot::EastAsia,
-                FontSlot::Complex if chosen != FontSlot::EastAsia => chosen = FontSlot::Complex,
-                FontSlot::HAnsi if !matches!(chosen, FontSlot::EastAsia | FontSlot::Complex) => {
-                    chosen = FontSlot::HAnsi;
-                }
-                _ => {}
-            }
+            _ => {}
         }
-        let shape_font = faces.face(chosen);
-        let line_box = line_box_for(paragraph, shape_font, profile)?;
-        let family = cjk::face_cjk_family(shape_font);
-        let source = text.clone();
-        let mut adjust = move |at: usize, run: &mut ShapedRun| {
-            cjk::compress_shaped_run(&source, at, run, family)
-                .map_err(|_| LineError::InvalidShaping)
-        };
-        let needs_slots = chosen != FontSlot::Ascii;
-        let mut fitted = if needs_slots {
-            let mixed = wrap_mixed(faces, &text, profile.size, geometry.content_width(), None);
-            let mut breaks = Vec::new();
-            let mut at = 0usize;
-            for line in &mixed.lines {
-                at += line.text.len();
-                if at == 0 || at >= text.len() {
-                    continue;
-                }
-                let adjusted = adjust_cjk_break(&text, at);
-                if adjusted > 0 && adjusted < text.len() && !breaks.contains(&adjusted) {
-                    breaks.push(adjusted);
-                }
-            }
-            breaks.sort_unstable();
-            match layout_paragraph_adjusted(
-                shape_font,
-                &text,
-                profile.size,
-                profile.features,
-                geometry.content_width(),
-                &breaks,
-                LineFit {
-                    limits: request_limits,
-                    adjust: &mut adjust,
-                },
-            ) {
-                Ok(fitted) => fitted,
-                Err(_) => layout_paragraph_auto_cancellable_adjusted(
-                    shape_font,
-                    &text,
-                    profile.size,
-                    profile.features,
-                    geometry.content_width(),
-                    &cancellation.0,
-                    LineFit {
-                        limits: request_limits,
-                        adjust: &mut adjust,
-                    },
-                )
-                .map_err(map_line)?,
-            }
+    }
+    chosen
+}
+
+pub(crate) fn record_fit(result: &mut LayoutSnapshot, fitted: &FittedParagraph) {
+    for diagnostic in &fitted.diagnostics {
+        if result.diagnostics.len() < result.limits.max_diagnostics {
+            result.diagnostics.push(LayoutDiagnostic {
+                paragraph: fitted.id,
+                diagnostic: diagnostic.clone(),
+            });
         } else {
-            layout_paragraph_auto_cancellable_adjusted(
+            result.omitted += 1;
+        }
+    }
+    result.omitted += fitted.omitted;
+}
+
+pub(crate) struct WorkSpent {
+    pub shapes: usize,
+    pub bytes: usize,
+    pub glyphs: usize,
+    pub lines: usize,
+}
+
+/// Fit one paragraph. The line fitter keeps its own diagnostic ceiling;
+/// [`record_fit`] applies the document cap, so a cached fit does not depend
+/// on how many diagnostics an earlier paragraph emitted.
+pub(crate) fn fit_paragraph(
+    paragraph: &Paragraph,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    geometry: PageGeometry,
+    limits: LayoutLimits,
+    spent: WorkSpent,
+    cancellation: &LayoutCancellation,
+) -> Result<FittedParagraph, LayoutError> {
+    cancellation.check()?;
+    let defaults = LineLimits::default();
+    let request_limits = LineLimits {
+        max_text_bytes: defaults.max_text_bytes.min(limits.max_text_bytes),
+        max_shape_calls: defaults
+            .max_shape_calls
+            .min(limits.max_shape_calls.saturating_sub(spent.shapes)),
+        max_shaped_bytes: defaults
+            .max_shaped_bytes
+            .min(limits.max_shaped_bytes.saturating_sub(spent.bytes)),
+        max_lines: defaults
+            .max_lines
+            .min(limits.max_lines.saturating_sub(spent.lines)),
+        max_diagnostics: defaults.max_diagnostics,
+        ..defaults
+    };
+    // Global limits are charged before each paragraph's work, not after
+    // an unbounded collection of independent paragraph requests.
+    if request_limits.max_shape_calls == 0 {
+        return Err(LayoutError::LimitExceeded(LayoutLimit::ShapeCalls));
+    }
+    if request_limits.max_shaped_bytes == 0 && !paragraph.is_empty() {
+        return Err(LayoutError::LimitExceeded(LayoutLimit::ShapedBytes));
+    }
+    if request_limits.max_lines == 0 {
+        return Err(LayoutError::LimitExceeded(LayoutLimit::Lines));
+    }
+    let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
+    let map_line = |error: LineError| {
+        if error == LineError::Cancelled {
+            LayoutError::Cancelled
+        } else {
+            LayoutError::Line {
+                paragraph: paragraph.id(),
+                error,
+            }
+        }
+    };
+    // Four-slot classification, fallback wrapping and CJK prohibitions
+    // decide the breaks this page scene stores. Screen and PDF read that
+    // scene; they do not break lines again. The shaping face is the slot
+    // that owns the paragraph, so a CJK run is not drawn with the Latin face.
+    let chosen = dominant_slot(&text);
+    let shape_font = faces.face(chosen);
+    let line_box = line_box_for(paragraph, shape_font, profile)?;
+    let family = cjk::face_cjk_family(shape_font);
+    let source = text.clone();
+    let mut adjust = move |at: usize, run: &mut ShapedRun| {
+        cjk::compress_shaped_run(&source, at, run, family).map_err(|_| LineError::InvalidShaping)
+    };
+    let needs_slots = chosen != FontSlot::Ascii;
+    let width = geometry.content_width();
+    let mut fitted = if needs_slots {
+        let mixed = wrap_mixed(faces, &text, profile.size, width, None);
+        let mut breaks = Vec::new();
+        let mut at = 0usize;
+        for line in &mixed.lines {
+            at += line.text.len();
+            if at == 0 || at >= text.len() {
+                continue;
+            }
+            let adjusted = adjust_cjk_break(&text, at);
+            if adjusted > 0 && adjusted < text.len() && !breaks.contains(&adjusted) {
+                breaks.push(adjusted);
+            }
+        }
+        breaks.sort_unstable();
+        match layout_paragraph_adjusted(
+            shape_font,
+            &text,
+            profile.size,
+            profile.features,
+            width,
+            &breaks,
+            LineFit {
+                limits: request_limits,
+                adjust: &mut adjust,
+            },
+        ) {
+            Ok(fitted) => fitted,
+            Err(_) => layout_paragraph_auto_cancellable_adjusted(
                 shape_font,
                 &text,
                 profile.size,
                 profile.features,
-                geometry.content_width(),
+                width,
                 &cancellation.0,
                 LineFit {
                     limits: request_limits,
                     adjust: &mut adjust,
                 },
             )
-            .map_err(map_line)?
-        };
-        if paragraph.props.justification == Some(Justification::Both) {
-            justify_pure_chinese(&mut fitted.lines, geometry.content_width(), paragraph.id())?;
+            .map_err(map_line)?,
         }
-        result.stats.shape_calls += fitted.stats.shape_calls;
-        result.stats.shaped_bytes += fitted.stats.shaped_bytes;
-        let before = paragraph
-            .props
-            .spacing
-            .before
-            .and_then(Measure::absolute)
-            .unwrap_or(Emu::new(0));
-        let after = paragraph
-            .props
-            .spacing
-            .after
-            .and_then(Measure::absolute)
-            .unwrap_or(Emu::new(0));
-        if before.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
-            || after.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
-        {
-            return Err(unsupported(
-                Some(paragraph.id()),
-                "paragraph spacing taller than the page",
-            ));
-        }
-        if add(before, line_box)?.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
-            return Err(LayoutError::LineTooTall);
-        }
-        total_lines += fitted.lines.len();
-        for line in &fitted.lines {
-            cancellation.check()?;
-            if line.run.glyphs.len() > limits.max_glyphs - result.stats.glyphs {
-                return Err(LayoutError::LimitExceeded(LayoutLimit::Glyphs));
-            }
-            result.stats.glyphs += line.run.glyphs.len();
-        }
-        for diagnostic in fitted.diagnostics {
-            if result.diagnostics.len() < limits.max_diagnostics {
-                result.diagnostics.push(LayoutDiagnostic {
-                    paragraph: paragraph.id(),
-                    diagnostic,
-                });
-            } else {
-                result.omitted += 1;
-            }
-        }
-        result.omitted += fitted.omitted_diagnostics;
-        let height = line_box
-            .raw()
-            .checked_mul(
-                i64::try_from(fitted.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?,
-            )
-            .and_then(|height| height.checked_add(before.raw()))
-            .ok_or(LayoutError::GeometryOverflow)?;
-        prepared.push(PreparedParagraph {
-            paragraph,
-            lines: fitted.lines,
-            before,
-            after,
-            line_box,
-            height: Emu::new(height),
-            group_height: None,
-        });
+    } else {
+        layout_paragraph_auto_cancellable_adjusted(
+            shape_font,
+            &text,
+            profile.size,
+            profile.features,
+            width,
+            &cancellation.0,
+            LineFit {
+                limits: request_limits,
+                adjust: &mut adjust,
+            },
+        )
+        .map_err(map_line)?
+    };
+    if paragraph.props.justification == Some(Justification::Both) {
+        justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
     }
-    prepare_keep_groups(&mut prepared, cancellation)?;
-    let mut top = geometry.top;
-    for prepared in prepared {
+    let before = paragraph
+        .props
+        .spacing
+        .before
+        .and_then(Measure::absolute)
+        .unwrap_or(Emu::new(0));
+    let after = paragraph
+        .props
+        .spacing
+        .after
+        .and_then(Measure::absolute)
+        .unwrap_or(Emu::new(0));
+    if before.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
+        || after.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
+    {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "paragraph spacing taller than the page",
+        ));
+    }
+    if add(before, line_box)?.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
+        return Err(LayoutError::LineTooTall);
+    }
+    let mut glyphs = 0usize;
+    for line in &fitted.lines {
         cancellation.check()?;
-        let PreparedParagraph {
-            paragraph,
-            lines,
-            before,
-            after,
-            line_box,
-            height,
-            group_height,
-        } = prepared;
-        let remaining = geometry.bottom_edge().raw() - top.raw();
-        let needs_page = paragraph.props.page_break_before == Some(true)
-            || group_height.is_some_and(|height| height.raw() > remaining)
-            || (paragraph.props.keep_lines == Some(true) && height.raw() > remaining);
-        // An oversized group/paragraph starts on a fresh page once, then
-        // flows forward. Never retry an impossible constraint or emit an
-        // empty leading page. Empty paragraphs still have a scene run.
-        if needs_page && !result.pages.last().expect("one page").runs.is_empty() {
-            result.new_page()?;
-            top = geometry.top;
+        if line.run.glyphs.len() > limits.max_glyphs - spent.glyphs - glyphs {
+            return Err(LayoutError::LimitExceeded(LayoutLimit::Glyphs));
         }
-        top = add(top, before)?;
-        let first_line = result.lines.len();
-        for line in lines {
-            cancellation.check()?;
-            if add(top, line_box)?.raw() > geometry.bottom_edge().raw() {
-                result.new_page()?;
-                top = if result.lines.len() == first_line {
-                    add(geometry.top, before)?
-                } else {
-                    geometry.top
-                };
-                if add(top, line_box)?.raw() > geometry.bottom_edge().raw() {
-                    return Err(LayoutError::LineTooTall);
-                }
+        glyphs += line.run.glyphs.len();
+    }
+    let height = line_box
+        .raw()
+        .checked_mul(i64::try_from(fitted.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?)
+        .and_then(|height| height.checked_add(before.raw()))
+        .ok_or(LayoutError::GeometryOverflow)?;
+    Ok(FittedParagraph {
+        id: paragraph.id(),
+        len: paragraph.len(),
+        lines: fitted.lines,
+        diagnostics: fitted.diagnostics,
+        omitted: fitted.omitted_diagnostics,
+        shape_calls: fitted.stats.shape_calls,
+        shaped_bytes: fitted.stats.shaped_bytes,
+        glyphs,
+        before,
+        after,
+        line_box,
+        height: Emu::new(height),
+        group_height: None,
+        keep_next: paragraph.props.keep_next == Some(true),
+        keep_lines: paragraph.props.keep_lines == Some(true),
+        page_break_before: paragraph.props.page_break_before == Some(true),
+        justification: paragraph.props.justification,
+    })
+}
+
+pub(crate) fn assemble(
+    mut result: LayoutSnapshot,
+    mut prepared: Vec<FittedParagraph>,
+    profile: SingleFontProfile,
+    cancellation: &LayoutCancellation,
+    stop: Option<PlaceStop<'_>>,
+) -> Result<LayoutSnapshot, LayoutError> {
+    prepare_keep_groups(&mut prepared, cancellation)?;
+    let geometry = result.geometry;
+    let mut top = geometry.top;
+    let mut index = 0usize;
+    while index < prepared.len() {
+        cancellation.check()?;
+        let boundary_matches = stop
+            .as_ref()
+            .is_some_and(|stop| suffix_stable(index, top, &result, stop));
+        if boundary_matches {
+            let copied = stop
+                .as_ref()
+                .is_some_and(|stop| suffix_copies(&mut result, &prepared[index..], stop));
+            if copied {
+                result.stats.stable_boundary = Some(index);
+                cancellation.check()?;
+                return Ok(result);
             }
-            let slack = (geometry.content_width().raw() - line.run.width.raw()).max(0);
-            let shift = match paragraph.props.justification {
-                Some(Justification::Center) => slack / 2,
-                Some(Justification::End) => slack,
-                _ => 0,
-            };
-            let x = add(geometry.left, Emu::new(shift))?;
-            let baseline = add(top, profile.baseline)?;
-            let mut carets = vec![CaretStop {
-                offset: ScalarOffset(line.source.scalars.start),
-                x,
-            }];
-            for cluster in &line.clusters {
-                let glyph = &line.run.glyphs[cluster.glyphs.end - 1];
-                let right = add(x, add(glyph.x, glyph.advance)?)?;
-                carets.push(CaretStop {
-                    offset: ScalarOffset(cluster.source.scalars.end),
-                    x: right,
-                });
-            }
-            // Validate every coordinate consumed by screen/PDF before placing.
-            for glyph in &line.run.glyphs {
-                add(x, add(glyph.x, glyph.x_offset)?)?;
-                baseline
-                    .raw()
-                    .checked_sub(glyph.y_offset.raw())
-                    .ok_or(LayoutError::GeometryOverflow)?;
-            }
-            let page_index = result.pages.len() - 1;
-            let page = result.pages.last_mut().expect("one page");
-            let run = page.runs.len();
-            page.runs.push(line.to_glyph_run(x, baseline));
-            result.lines.push(PlacedLine {
-                paragraph: paragraph.id(),
-                source: line.source,
-                page: page_index,
-                run,
-                top,
-                baseline,
-                height: line_box,
-                carets,
-            });
-            top = add(top, line_box)?;
         }
-        let index = result.paragraphs.len();
-        result.by_id.insert(paragraph.id(), index);
-        result.paragraphs.push(ParagraphMap {
-            len: paragraph.len(),
-            lines: first_line..result.lines.len(),
-        });
-        top = add(top, after)?;
+        place_one(
+            &mut result,
+            &mut top,
+            &mut prepared[index],
+            profile,
+            cancellation,
+        )?;
+        index += 1;
     }
     cancellation.check()?;
     Ok(result)
 }
 
+fn suffix_stable(index: usize, top: Emu, result: &LayoutSnapshot, stop: &PlaceStop<'_>) -> bool {
+    if index < stop.place_from
+        || index >= stop.same.len()
+        || stop.same[index..].iter().any(|same| !same)
+    {
+        return false;
+    }
+    let Some(anchor) = stop.starts.get(index) else {
+        return false;
+    };
+    let page = result.pages.len().saturating_sub(1);
+    page == anchor.page && top.raw() == anchor.top && result.lines.len() == anchor.line
+}
+
+/// Copy the previous snapshot from `prepared`'s first paragraph to the end.
+/// Returns false, without observing a partial copy, when the run indices do
+/// not line up — the caller then places those paragraphs itself.
+fn suffix_copies(
+    result: &mut LayoutSnapshot,
+    prepared: &[FittedParagraph],
+    stop: &PlaceStop<'_>,
+) -> bool {
+    let Some(first) = prepared.first() else {
+        return true;
+    };
+    let anchor_line = result.lines.len();
+    let source_lines = match stop.previous.lines.get(anchor_line..) {
+        Some(lines) => lines,
+        None => return false,
+    };
+    if source_lines
+        .first()
+        .is_none_or(|line| line.paragraph != first.id)
+        && !prepared.is_empty()
+    {
+        // An empty tail (no lines left) is stable only when prepared is empty.
+        if source_lines.is_empty() {
+            return prepared.is_empty();
+        }
+        return false;
+    }
+    let mut pages = result.pages.clone();
+    let mut lines = result.lines.clone();
+    let mut paragraphs = result.paragraphs.clone();
+    let mut by_id = result.by_id.clone();
+    let mut cursor = 0usize;
+    for fitted in prepared {
+        let first_line = lines.len();
+        let mut taken = 0usize;
+        while cursor < source_lines.len() && source_lines[cursor].paragraph == fitted.id {
+            let line = &source_lines[cursor];
+            if line.page >= stop.previous.pages.len()
+                || line.run >= stop.previous.pages[line.page].runs.len()
+            {
+                return false;
+            }
+            while pages.len() <= line.page {
+                if pages.len() >= result.limits.max_pages {
+                    return false;
+                }
+                pages.push(PageScene {
+                    width: result.geometry.width,
+                    height: result.geometry.height,
+                    runs: Vec::new(),
+                });
+            }
+            if pages[line.page].runs.len() != line.run {
+                return false;
+            }
+            pages[line.page]
+                .runs
+                .push(stop.previous.pages[line.page].runs[line.run].clone());
+            lines.push(line.clone());
+            cursor += 1;
+            taken += 1;
+        }
+        if taken != fitted.lines.len() {
+            return false;
+        }
+        let index = paragraphs.len();
+        by_id.insert(fitted.id, index);
+        paragraphs.push(ParagraphMap {
+            len: fitted.len,
+            lines: first_line..lines.len(),
+        });
+    }
+    if cursor != source_lines.len() {
+        return false;
+    }
+    result.pages = pages;
+    result.lines = lines;
+    result.paragraphs = paragraphs;
+    result.by_id = by_id;
+    true
+}
+
+fn place_one(
+    result: &mut LayoutSnapshot,
+    top: &mut Emu,
+    prepared: &mut FittedParagraph,
+    profile: SingleFontProfile,
+    cancellation: &LayoutCancellation,
+) -> Result<(), LayoutError> {
+    let geometry = result.geometry;
+    let lines = std::mem::take(&mut prepared.lines);
+    let id = prepared.id;
+    let len = prepared.len;
+    let before = prepared.before;
+    let after = prepared.after;
+    let line_box = prepared.line_box;
+    let height = prepared.height;
+    let group_height = prepared.group_height;
+    let keep_lines = prepared.keep_lines;
+    let page_break_before = prepared.page_break_before;
+    let justification = prepared.justification;
+    let remaining = geometry.bottom_edge().raw() - top.raw();
+    let needs_page = page_break_before
+        || group_height.is_some_and(|height| height.raw() > remaining)
+        || (keep_lines && height.raw() > remaining);
+    // An oversized group/paragraph starts on a fresh page once, then
+    // flows forward. Never retry an impossible constraint or emit an
+    // empty leading page. Empty paragraphs still have a scene run.
+    let page_has_runs = result
+        .pages
+        .last()
+        .is_some_and(|page| !page.runs.is_empty());
+    if needs_page && page_has_runs {
+        result.new_page()?;
+        *top = geometry.top;
+    }
+    *top = add(*top, before)?;
+    let first_line = result.lines.len();
+    for line in lines {
+        cancellation.check()?;
+        if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
+            result.new_page()?;
+            *top = if result.lines.len() == first_line {
+                add(geometry.top, before)?
+            } else {
+                geometry.top
+            };
+            if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
+                return Err(LayoutError::LineTooTall);
+            }
+        }
+        let slack = (geometry.content_width().raw() - line.run.width.raw()).max(0);
+        let shift = match justification {
+            Some(Justification::Center) => slack / 2,
+            Some(Justification::End) => slack,
+            _ => 0,
+        };
+        let x = add(geometry.left, Emu::new(shift))?;
+        let baseline = add(*top, profile.baseline)?;
+        let mut carets = vec![CaretStop {
+            offset: ScalarOffset(line.source.scalars.start),
+            x,
+        }];
+        for cluster in &line.clusters {
+            let glyph = &line.run.glyphs[cluster.glyphs.end - 1];
+            let right = add(x, add(glyph.x, glyph.advance)?)?;
+            carets.push(CaretStop {
+                offset: ScalarOffset(cluster.source.scalars.end),
+                x: right,
+            });
+        }
+        // Validate every coordinate consumed by screen/PDF before placing.
+        for glyph in &line.run.glyphs {
+            add(x, add(glyph.x, glyph.x_offset)?)?;
+            baseline
+                .raw()
+                .checked_sub(glyph.y_offset.raw())
+                .ok_or(LayoutError::GeometryOverflow)?;
+        }
+        let page_index = result.pages.len() - 1;
+        let page = match result.pages.last_mut() {
+            Some(page) => page,
+            None => return Err(LayoutError::GeometryOverflow),
+        };
+        let run = page.runs.len();
+        page.runs.push(line.to_glyph_run(x, baseline));
+        result.lines.push(PlacedLine {
+            paragraph: id,
+            source: line.source,
+            page: page_index,
+            run,
+            top: *top,
+            baseline,
+            height: line_box,
+            carets,
+        });
+        *top = add(*top, line_box)?;
+    }
+    let map_index = result.paragraphs.len();
+    result.by_id.insert(id, map_index);
+    result.paragraphs.push(ParagraphMap {
+        len,
+        lines: first_line..result.lines.len(),
+    });
+    *top = add(*top, after)?;
+    Ok(())
+}
 impl LayoutSnapshot {
     fn new_page(&mut self) -> Result<(), LayoutError> {
         if self.pages.len() >= self.limits.max_pages {
@@ -1003,6 +1265,9 @@ impl LayoutSnapshot {
     }
     pub fn stats(&self) -> LayoutStats {
         self.stats
+    }
+    pub(crate) fn stats_mut(&mut self) -> &mut LayoutStats {
+        &mut self.stats
     }
 
     /// Check at a background-result handoff boundary. This also fingerprints

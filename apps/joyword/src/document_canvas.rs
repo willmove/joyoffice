@@ -7,8 +7,9 @@ use gpui::RenderImage;
 use joyword_engine::{EditPolicy, Session};
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FaceSet, FeatureSet, LayoutCancellation, LayoutKey, LayoutLimits, LayoutSnapshot, LoadedFont,
-    SingleFontProfile, layout_document,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutInvalidation, LayoutKey, LayoutLimits,
+    LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile,
+    layout_document, layout_incremental,
 };
 #[cfg(test)]
 use joyword_model::{BlockSeq, Document, PageSetup, Paragraph};
@@ -22,7 +23,7 @@ use joyword_shell::input::InputView;
 use std::collections::VecDeque;
 use std::ops::Range;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 #[cfg(test)]
 const SEED: &str = include_str!("../../../tests/fixtures/text/cjk-contract.txt");
@@ -585,6 +586,9 @@ pub struct CanvasPipeline {
     raster_gate: RasterRequestGate<PageKey>,
     layout_cancel: LayoutCancellation,
     raster_cancel: RasterCancellation,
+    /// Fitted paragraphs reused across commits. The layout job holds the
+    /// mutex for the whole pass, so a clear waits until that pass finishes.
+    paragraph_cache: Arc<Mutex<ParagraphLayoutCache>>,
 }
 impl Default for CanvasPipeline {
     fn default() -> Self {
@@ -604,6 +608,7 @@ impl CanvasPipeline {
             raster_gate: RasterRequestGate::default(),
             layout_cancel: LayoutCancellation::default(),
             raster_cancel: RasterCancellation::default(),
+            paragraph_cache: Arc::new(Mutex::new(ParagraphLayoutCache::default())),
         }
     }
     pub fn key(
@@ -834,15 +839,36 @@ impl CanvasPipeline {
         self.caret_overlay = None;
         self.running = None;
         self.visible = 0..0;
+        self.paragraph_cache
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .clear();
         self.pages.clear()
     }
     pub fn cancel(&self) {
         self.layout_cancel.cancel();
         self.raster_cancel.cancel();
     }
+    pub(crate) fn paragraph_cache(&self) -> Arc<Mutex<ParagraphLayoutCache>> {
+        Arc::clone(&self.paragraph_cache)
+    }
+    /// Installed layout for the same face and profile, used as the incremental
+    /// previous snapshot. A font or profile change starts from an empty tail.
+    pub(crate) fn previous_layout(
+        &self,
+        font: &joyword_layout::FontKey,
+        profile: SingleFontProfile,
+    ) -> Option<Arc<LayoutSnapshot>> {
+        self.layout.as_ref().and_then(|frame| {
+            (frame.layout.key().font == *font && frame.layout.key().profile == profile)
+                .then(|| Arc::clone(&frame.layout))
+        })
+    }
 }
 
-/// Background layout stage.
+/// Full layout of one view. Canvas tests compare this with the incremental
+/// editor path; the application itself calls [`layout_view_incremental`].
+#[allow(dead_code)]
 pub fn layout_view(
     view: &InputView,
     font: &LoadedFont,
@@ -858,6 +884,47 @@ pub fn layout_view(
     )
     .map_err(|e| e.to_string())
 }
+
+fn invalidation_of(changes: &joyword_engine::ChangeSet) -> LayoutInvalidation {
+    LayoutInvalidation {
+        paragraphs: changes.paragraphs.clone(),
+        inserted: changes.inserted.clone(),
+        removed: changes.removed.clone(),
+        moved: changes.moved.clone(),
+        styles: changes.styles.clone(),
+        defaults_changed: changes.defaults_changed,
+    }
+}
+
+/// Layout used by the editor. Unchanged paragraphs are reused from `cache`;
+/// the geometry matches [`layout_document`] for the same snapshot.
+pub fn layout_view_incremental(
+    view: &InputView,
+    font: &LoadedFont,
+    profile: SingleFontProfile,
+    cancellation: &LayoutCancellation,
+    cache: &Mutex<ParagraphLayoutCache>,
+    previous: Option<&LayoutSnapshot>,
+) -> Result<LayoutSnapshot, String> {
+    let mut cache = cache
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    let invalidation = invalidation_of(view.layout_changes());
+    layout_incremental(
+        view.snapshot(),
+        FaceSet::uniform(font),
+        profile,
+        LayoutLimits::default(),
+        cancellation,
+        LayoutReuse {
+            cache: &mut cache,
+            previous,
+            invalidation: &invalidation,
+        },
+    )
+    .map_err(|e| e.to_string())
+}
+
 /// Background raster stage: one page of an installed layout. When `caret`
 /// (x, top and height) is on this page, its output also carries caret pixels
 /// copied from the fresh page; the page image itself keeps no caret.

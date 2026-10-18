@@ -94,6 +94,7 @@ pub(crate) trait DocEditor {
         &mut self,
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError>;
+    fn acknowledge_layout(&mut self, version: u64);
     fn selected_text(&self) -> Result<String, InputError>;
     fn recovery_baseline(&self) -> Option<&[u8]> {
         None
@@ -185,6 +186,9 @@ impl DocEditor for TextInput<joyword_engine::Session> {
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn acknowledge_layout(&mut self, version: u64) {
+        TextInput::acknowledge_layout(self, version);
     }
     fn selected_text(&self) -> Result<String, InputError> {
         TextInput::selected_text(self)
@@ -287,6 +291,9 @@ impl DocEditor for TextInput<BoundDocx> {
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn acknowledge_layout(&mut self, version: u64) {
+        TextInput::acknowledge_layout(self, version);
     }
     fn selected_text(&self) -> Result<String, InputError> {
         TextInput::selected_text(self)
@@ -392,6 +399,9 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn acknowledge_layout(&mut self, version: u64) {
+        TextInput::acknowledge_layout(self, version);
     }
     fn selected_text(&self) -> Result<String, InputError> {
         TextInput::selected_text(self)
@@ -2357,8 +2367,15 @@ mod tests {
     ) -> Arc<LayoutSnapshot> {
         let key = pipeline.key(view, &source.font, source.profile);
         let job = pipeline.request_layout(key.clone()).unwrap();
-        let result =
-            document_canvas::layout_view(view, &source.font, source.profile, &job.cancellation);
+        let previous = pipeline.previous_layout(&source.font.key(), source.profile);
+        let result = document_canvas::layout_view_incremental(
+            view,
+            &source.font,
+            source.profile,
+            &job.cancellation,
+            &pipeline.paragraph_cache(),
+            previous.as_deref(),
+        );
         assert!(matches!(
             pipeline.install_layout(&job.ticket, &key, result),
             Landed::Installed(_)
