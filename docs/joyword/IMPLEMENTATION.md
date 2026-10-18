@@ -4,11 +4,11 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数与 T210 inspect／text 切片已开始；T207 尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T210 inspect／text 切片已开始。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、统一排版场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、把 T207 接入排版入口后的完整中文排版，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+- **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
-- **T207（进行中，2026-10-18）**：保留并审核 `joyword-layout::cjk` 的默认东亚家族查询、字间余量、行高公式／网格、有限标点配对与禁则表。R3／R4 算法标 Inferred；R7 区分等线 12 pt 已测配对、字号缩放和汉字类别外推，未知跟随返回未验证。未确认单位的字符／行换算及中西文间距宽度、`adjustRightInd` 返回未验证。单次对齐最多 65,536 个 advance，并检查算术溢出。`layout_document`／`wrap_mixed` 尚未调用计算函数（禁则仅复用既有集合），不声明完成中文排版。验证结果与范围见文末本轮记录；人工 Word／WPS 版式对照未做。
+- **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 
 下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
@@ -373,3 +373,18 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **T001 Mac 腿**：Rust/Cargo 1.98.1、Xcode 27.1（MetalToolchain-v27.1）、macOS 27.0.1（26A434）arm64（M4）；`target/debug/joyword` 构建并在本会话多次启动（含 kill -9 重启恢复）。Linux 真机腿未核对。
 - **W09 锁核查（同日）**：并行集成后 `experiments/docx-robustness/Cargo.lock` 无未提交变更、`--locked` 构建通过、与生产锁共有外部包零版本漂移、独立锁无生产锁之外的外部版本（README 不变量成立），无需同步提交。
 - 未覆盖：Retina/多显示器 DPI、断电恢复、T110 GUI 替换路径、T109 长只读窗口、WPS 参考 PDF（本机通道故障）、信创真机（非阻塞待补验）、覆盖引导 fuzz。
+
+### T207 排版入口接入（2026-10-18）
+
+`layout_document` 与 `wrap_mixed` 开始调用 `joyword-layout::cjk` 的测量函数。屏幕与 PDF 仍只读同一份 `PageScene`：压缩后的 advance 与两端对齐间隙写进字形的 `x`／`advance`，PDF 内容流沿用相邻字形 `x` 之差。布局仍不改文档。
+
+接入范围按已记录的证据等级收紧：
+
+- **R7**：名称表（name ID 16，否则 ID 1）解析为等线时，仅当 `punctuation_advance` 成功且结果窄于整形 advance 时替换该一字一字形簇。Measured、Scaled、Inferred 都沿用函数自己的标记。全宽结果不改写整形宽度，因此 R2 压力样例里跟汉字的孤立标点保持原断行。未验证配对（含行尾无跟随标点、ASCII 标点）和其他字体保持整形宽度。
+- **R3**：`w:jc` = both 且全文为汉字加非 ASCII 禁则／引号时，调用 `justify_intercharacter`。非末行余量等分到字间并抵满版心；段末行间隙为 0。单字行函数返回未验证，不加边缘间隙。拉丁字母、ASCII 标点、不能一字一字形对齐的行，以及 `distribute`，返回不支持，不把左对齐当成两端对齐成功。证据仍是 Inferred。
+- **R4**：段落单倍行距（auto 240）且字体名称为宋体、仿宋、楷体、等线或微软雅黑时，行框为 `single_line_height`（1.3×该脸的 win 跨度×字号，Inferred）。`snapToGrid` 不是显式 false 时吸附到实测 312 twips；显式 false 只用自然行高。黑体不在拟合集合内。其他字体、其他行距、未设置行距时继续用 `SingleFontProfile.leading`。模型没有 `w:docGrid`，不读取其他 `linePitch`。
+- 未接入：中西文自动间距宽度、`adjustRightInd`、字符／行单位的缩进（函数仍只做调用方单位的百分之一换算）、字符网格、CJK 字体替代链。禁则仍是既有字符集。
+
+自动验证（Rust 1.98.1，本环境 Linux x86_64）：`cargo fmt --all -- --check`、`cargo clippy -p joyword-layout --all-targets --locked -- -D warnings`、`cargo test -p joyword-layout --locked`（79 项，含新增 `cjk_layout` 9 项：引号压缩、连排半宽、行尾不压缩、未验证标点保持整形宽度、压力样例在等线名称门开关下断行不变、纯中文两端对齐抵满版心且末行不拉伸、单字行不加边缘间隙、拉丁／distribute 仍拒绝、单倍行距吸附与关闭吸附、未测字体的单倍行距拒绝）。`cargo test -p joyword-pdf -p joyword-render --locked` 通过（PDF 5 项、render 25 项）。名称门测试把拉丁夹具的 Windows 家族名改成 DengXian，只证明调用条件；期望宽度是纯函数的 em 分数和该脸自己的 win 跨度，不是等线字节的新测量，也不是 Word 2024 的重新导出。
+
+未覆盖：真实等线／宋体／雅黑字节上的断行与行高、`tests/fixtures/reference/word2024/breaks/` 的 Word PDF 未在本环境重抽、Word／WPS 人工版式对照、字符网格与 `w:docGrid` 的其他间距、中西文间距、adjustRightInd、字体替代与缺字诊断链。T207 保持 `in_progress`。

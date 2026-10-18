@@ -1,9 +1,11 @@
 //! Evidence-scoped Chinese layout calculations (T207, LAYOUT-008).
 //!
-//! These functions do not paginate. [`crate::layout_document`] and
-//! [`crate::wrap_mixed`] keep the T105 break path until a later change wires
-//! a result in. Unsupported pairs return [`CjkIssue`]; rule extrapolations
-//! carry explicit inferred evidence instead of claiming a measured point.
+//! Pure functions return [`CjkIssue`] for unsupported pairs and label
+//! extrapolations as inferred. [`compress_shaped_run`] is the only adapter
+//! that rewrites a shaped run: [`crate::layout_document`] and
+//! [`crate::wrap_mixed`] call it so the shared page scene uses a measured
+//! width only when the face name is DengXian and the width is narrower than
+//! the shaper. Other faces and unverified pairs keep the shaped advance.
 //!
 //! Sources: `docs/joyword/layout_rules.md` R1, R3, R4, R7 and R9 (Word 2024
 //! build 16.0.20430.20182, 2026-10-18), and ECMA-376 Part 1 5th edition
@@ -16,6 +18,7 @@ use joyword_foundation::Emu;
 use joyword_model::ThemeFont;
 use read_fonts::TableProvider;
 
+use crate::shape::ShapedRun;
 use crate::{FontError, FontKey, LoadedFont};
 
 /// Word 2024 default line grid on the measured pages, in twips (15.6 pt).
@@ -517,6 +520,126 @@ impl CjkFamily {
 /// East Asian family Word 2024 used when the document named none (R1).
 pub fn default_east_asia_family() -> CjkFamily {
     CjkFamily::DengXian
+}
+
+/// Families whose single-spacing height was fitted in R4.
+///
+/// 宋体、仿宋、楷体、等线 and 微软雅黑 are in the measured set. 黑体 is not,
+/// and neither is a face whose name does not resolve to one of these.
+pub fn measured_line_family(family: CjkFamily) -> bool {
+    matches!(
+        family,
+        CjkFamily::SimSun
+            | CjkFamily::FangSong
+            | CjkFamily::KaiTi
+            | CjkFamily::DengXian
+            | CjkFamily::MicrosoftYaHei
+    )
+}
+
+/// Family of `font` from name IDs 16 then 1. A name that is not one of the
+/// six CJK families returns `None`; this does not load or substitute a face.
+pub fn face_cjk_family(font: &LoadedFont) -> Option<CjkFamily> {
+    use read_fonts::types::NameId;
+    let table = font.font_ref().name().ok()?;
+    let data = table.string_data();
+    let mut typographic = None;
+    let mut family = None;
+    for record in table.name_record() {
+        let id = record.name_id();
+        if id != NameId::TYPOGRAPHIC_FAMILY_NAME && id != NameId::FAMILY_NAME {
+            continue;
+        }
+        let Ok(value) = record.string(data) else {
+            continue;
+        };
+        let parsed = parse_cjk_family(value.to_string().trim());
+        if id == NameId::TYPOGRAPHIC_FAMILY_NAME {
+            if typographic.is_none() {
+                typographic = parsed;
+            }
+        } else if family.is_none() {
+            family = parsed;
+        }
+    }
+    typographic.or(family)
+}
+
+/// Replace a DengXian cluster advance when R7's width is narrower than the
+/// shaper. Full-width and unverified results keep `shaped`, so a line that
+/// already matched Word at the font's own full width does not move.
+pub(crate) fn compressed_cluster_advance(
+    ch: char,
+    next: Option<char>,
+    shaped: Emu,
+    size: Emu,
+    family: Option<CjkFamily>,
+) -> Emu {
+    if family != Some(CjkFamily::DengXian) {
+        return shaped;
+    }
+    match punctuation_advance(ch, next, size) {
+        Ok(resolved) if resolved.length.raw() < shaped.raw() => resolved.length,
+        _ => shaped,
+    }
+}
+
+/// Apply [`compressed_cluster_advance`] to one-glyph clusters in `run`.
+///
+/// `paragraph[slice_at..]` is `run.text`. The follower is the next scalar in
+/// the paragraph, including one that will sit on the next line. A cluster
+/// that is not one glyph for one scalar is left unchanged.
+pub(crate) fn compress_shaped_run(
+    paragraph: &str,
+    slice_at: usize,
+    run: &mut ShapedRun,
+    family: Option<CjkFamily>,
+) -> Result<(), CjkIssue> {
+    if family != Some(CjkFamily::DengXian) || run.glyphs.is_empty() {
+        return Ok(());
+    }
+    let slice_end = slice_at
+        .checked_add(run.text.len())
+        .ok_or(CjkIssue::Overflow)?;
+    if paragraph.get(slice_at..slice_end) != Some(run.text.as_str()) {
+        return Ok(());
+    }
+    let mut replacements = Vec::new();
+    let mut glyph_index = 0;
+    for (byte, ch) in run.text.char_indices() {
+        while glyph_index < run.glyphs.len() && run.glyphs[glyph_index].cluster < byte {
+            glyph_index += 1;
+        }
+        let start = glyph_index;
+        while glyph_index < run.glyphs.len() && run.glyphs[glyph_index].cluster == byte {
+            glyph_index += 1;
+        }
+        if glyph_index != start + 1 {
+            continue;
+        }
+        let next_at = slice_at + byte + ch.len_utf8();
+        let next = paragraph[next_at..].chars().next();
+        let shaped = run.glyphs[start].advance;
+        let advance = compressed_cluster_advance(ch, next, shaped, run.size, family);
+        if advance != shaped {
+            replacements.push((start, advance));
+        }
+    }
+    if replacements.is_empty() {
+        return Ok(());
+    }
+    for (index, advance) in replacements {
+        run.glyphs[index].advance = advance;
+    }
+    let mut pen = 0i64;
+    for glyph in &mut run.glyphs {
+        glyph.x = Emu::new(pen);
+        pen = pen
+            .checked_add(glyph.advance.raw())
+            .ok_or(CjkIssue::Overflow)?;
+    }
+    run.width = Emu::new(pen);
+    Ok(())
 }
 
 pub fn parse_cjk_family(name: &str) -> Option<CjkFamily> {

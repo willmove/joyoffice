@@ -6,8 +6,9 @@
 //! one font-parsing stack (read-fonts 0.39). T105 currently offers bounded
 //! single-font LTR line fitting with explicit or Unicode default breaks and
 //! versioned single-section pagination/hit geometry under an explicit preview
-//! profile. [`cjk`] holds the measured T207 calculations. Pagination does not
-//! call them yet, so line breaks stay on the T105 path.
+//! profile. [`cjk`] holds the measured T207 calculations. Pagination applies
+//! a result only when that result's evidence and face match; unverified
+//! pairs and other faces keep the T105 advance and line box.
 
 pub mod cjk;
 pub mod document;
