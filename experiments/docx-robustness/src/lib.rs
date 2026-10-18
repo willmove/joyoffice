@@ -5,7 +5,7 @@ use joyword_engine::{Command, Transaction};
 use joyword_model::{Bias, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
 use sha2::{Digest, Sha256};
-pub const TARGET_SHA: &str = "16780940111387c848aa1553fd309a9d3c72f0d7";
+pub const TARGET_SHA: &str = "81149b349040c8347bfaa3bdd0e430f43ae76d74";
 pub const MAX_INPUT: usize = 1 << 20;
 pub fn budget() -> Budget {
     Budget {
