@@ -8,12 +8,19 @@
 //! inside the transaction. No UI, file format or AI provider code lives here.
 
 mod command;
+mod find;
 mod locate;
 mod map;
+mod paint;
 mod session;
 
 pub use command::{Command, CommandError, ParagraphChange, Precondition, RunChange};
+pub use find::{
+    FindError, FindHit, FindQuery, FindReport, MAX_HITS, MAX_QUERY_SCALARS,
+    MAX_REPLACEMENT_SCALARS, ReplacePlan, paragraph_order, replace_commands, search,
+};
 pub use map::{MapStep, Mapped, PositionMap, Selection};
+pub use paint::{FormatBrush, PaintError, capture, paint_commands};
 pub use session::{
     ApplyResult, ChangeSet, EditPolicy, MAX_UNDO_GROUP_STEPS, Origin, Outcome, Session,
     Transaction, TxError, UndoError, UndoGroup, UndoResult,
