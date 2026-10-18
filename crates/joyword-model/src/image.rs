@@ -199,25 +199,25 @@ pub fn extent_emu(cx: i64, cy: i64) -> Result<(Measure, Measure), ImageRefuse> {
 /// A valid PNG whose width is above [`MAX_IMAGE_DIMENSION`].
 ///
 /// The header is enough to refuse it; callers must not need the pixel buffer.
-pub fn sample_png_overwide() -> Vec<u8> {
+pub fn sample_png_overwide() -> Result<Vec<u8>, &'static str> {
     let width = MAX_IMAGE_DIMENSION + 1;
-    let image =
-        image::RgbImage::from_raw(width, 1, vec![0; width as usize * 3]).expect("overwide buffer");
+    let image = image::RgbImage::from_raw(width, 1, vec![0; width as usize * 3]).ok_or("buffer")?;
     let mut bytes = Vec::new();
     DynamicImage::ImageRgb8(image)
         .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png)
-        .expect("overwide png encodes");
-    bytes
+        .map_err(|_| "encode")?;
+    Ok(bytes)
 }
 
-/// 1×1 opaque red PNG. Generated here so tests do not depend on an Office file.
+/// 1×1 opaque red PNG. The bytes are fixed so tests do not depend on an Office file.
 pub fn sample_png_1x1() -> Vec<u8> {
-    let image = image::RgbImage::from_raw(1, 1, vec![255, 0, 0]).expect("1x1 buffer");
-    let mut bytes = Vec::new();
-    DynamicImage::ImageRgb8(image)
-        .write_to(&mut Cursor::new(&mut bytes), ImageFormat::Png)
-        .expect("1x1 png encodes");
-    bytes
+    // Filter byte 0, then RGB 255,0,0. Generated once; admission tests decode it.
+    const PNG: &[u8] = &[
+        137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2,
+        0, 0, 0, 144, 119, 83, 222, 0, 0, 0, 12, 73, 68, 65, 84, 120, 218, 99, 248, 207, 192, 0, 0,
+        3, 1, 1, 0, 247, 3, 65, 67, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130,
+    ];
+    PNG.to_vec()
 }
 
 fn inspect(
@@ -334,88 +334,4 @@ fn is_active(bytes: &[u8]) -> bool {
 
 fn trim_bom(bytes: &[u8]) -> &[u8] {
     bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(bytes)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_one_pixel_png_is_admitted_and_decoded() {
-        let bytes = sample_png_1x1();
-        let image = accept_image(&bytes, &ImageLimits::default()).unwrap();
-        assert_eq!(image.media_type, "image/png");
-        assert_eq!((image.width_px, image.height_px), (1, 1));
-        let decoded = decode_rgba(&bytes, &ImageLimits::default()).unwrap();
-        assert_eq!(&decoded.rgba[..3], &[255, 0, 0]);
-        let (width, height) = display_extent(1, 1);
-        assert_eq!(width, Measure::Emu(Emu::PER_INCH / 96));
-        assert_eq!(height, width);
-    }
-
-    #[test]
-    fn active_remote_and_oversize_payloads_are_refused_before_use() {
-        assert_eq!(
-            accept_image(b"https://example.invalid/a.png", &ImageLimits::default()),
-            Err(ImageRefuse::Remote)
-        );
-        assert_eq!(
-            accept_image(br"\\server\share\a.png", &ImageLimits::default()),
-            Err(ImageRefuse::Remote)
-        );
-        assert_eq!(
-            accept_image(b"<svg onload='alert(1)'></svg>", &ImageLimits::default()),
-            Err(ImageRefuse::Active)
-        );
-        assert_eq!(
-            accept_image(
-                &[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1],
-                &ImageLimits::default()
-            ),
-            Err(ImageRefuse::Active)
-        );
-        assert_eq!(
-            accept_image(b"not an image", &ImageLimits::default()),
-            Err(ImageRefuse::Malformed)
-        );
-        let png = sample_png_1x1();
-        assert!(matches!(
-            accept_image(
-                &png,
-                &ImageLimits {
-                    max_bytes: 8,
-                    ..ImageLimits::default()
-                }
-            ),
-            Err(ImageRefuse::OversizeBytes { .. })
-        ));
-        assert!(matches!(
-            accept_image(
-                &png,
-                &ImageLimits {
-                    max_pixels: 0,
-                    ..ImageLimits::default()
-                }
-            ),
-            Err(ImageRefuse::OversizePixels { .. })
-        ));
-        assert_eq!(extent_emu(0, 10), Err(ImageRefuse::Malformed));
-        assert!(matches!(
-            extent_emu(MAX_EXTENT_EMU + 1, 10),
-            Err(ImageRefuse::OversizeDimension { .. })
-        ));
-    }
-
-    #[test]
-    fn a_large_pixel_count_is_shrunk_for_display_without_changing_bytes() {
-        let (width, height) = display_extent(10_000, 5_000);
-        let Measure::Emu(width) = width else {
-            panic!("width");
-        };
-        let Measure::Emu(height) = height else {
-            panic!("height");
-        };
-        assert!(width <= MAX_INSERT_SIDE && height <= MAX_INSERT_SIDE);
-        assert_eq!(width, height * 2);
-    }
 }

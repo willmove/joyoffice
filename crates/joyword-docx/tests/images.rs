@@ -149,7 +149,7 @@ fn a_remote_link_is_not_fetched_and_an_oversize_header_is_kept() {
         } if !relationship.contains("example.invalid") && !relationship.contains("http")
     )));
 
-    let oversize = sample_png_overwide();
+    let oversize = sample_png_overwide().expect("overwide png encodes");
     let bytes = package(
         &drawing(r#"r:embed="rId1""#),
         &image_rel("media/pixel.png", false),
