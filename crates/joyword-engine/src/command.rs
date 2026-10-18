@@ -4,6 +4,7 @@
 //! commands of the same transaction.
 
 use std::fmt;
+use std::sync::Arc;
 
 use joyword_model::{
     Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, PageSetup,
@@ -20,6 +21,12 @@ pub enum Command {
     InsertInline {
         at: Position,
         kind: InlineKind,
+    },
+    /// Admits still-image bytes and inserts one inline image.
+    /// Identical bytes and media type reuse the existing resource.
+    InsertImage {
+        at: Position,
+        data: Arc<[u8]>,
     },
     /// Deletes between two positions in the same container, merging the
     /// paragraphs at both ends when they differ.
@@ -207,6 +214,8 @@ pub enum CommandError {
     /// ordinary text.
     InvalidText(char),
     MissingResource,
+    /// Still-image bytes were refused. The text does not include the payload.
+    ImageRefused(&'static str),
     /// A container would be left without blocks.
     LastBlock(NodeId),
     Text(TextError),
@@ -276,6 +285,7 @@ impl fmt::Display for CommandError {
             CommandError::Locked(node) => write!(f, "content control {node} is locked"),
             CommandError::InvalidText(ch) => write!(f, "U+{:04X} is not ordinary text", *ch as u32),
             CommandError::MissingResource => f.write_str("image resource does not exist"),
+            CommandError::ImageRefused(reason) => write!(f, "{reason}"),
             CommandError::LastBlock(node) => write!(f, "{node} is the last block of its container"),
             CommandError::Text(error) => write!(f, "{error}"),
             CommandError::UnknownStyle(style) => write!(f, "unknown style {style}"),

@@ -223,8 +223,25 @@ pub enum DiagnosticKind {
     EmptyBody,
     /// A VBA project is present; it is kept and never executed.
     MacroProject,
+    /// An inline picture and how this slice treated it. The relationship id
+    /// is kept; a URL or UNC target is not copied into the diagnostic.
+    Image {
+        relationship: String,
+        outcome: ImageOutcome,
+    },
     /// Validation finding of the imported model.
     Model(Issue),
+}
+
+/// What happened to one inline picture. Remote and active payloads are not
+/// fetched or executed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ImageOutcome {
+    Imported,
+    Remote,
+    Active,
+    Malformed,
+    Oversize,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

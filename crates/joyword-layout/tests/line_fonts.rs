@@ -171,6 +171,7 @@ fn cjk_breaks_fit_exact_emu_width_and_convert_to_page_scene() {
         width: Emu::new(210 * Emu::PER_MM),
         height: Emu::new(297 * Emu::PER_MM),
         rects: Vec::new(),
+        images: Vec::new(),
         runs: result
             .lines
             .iter()

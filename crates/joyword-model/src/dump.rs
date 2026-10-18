@@ -290,7 +290,19 @@ impl Dumper<'_> {
                                     resource,
                                     width,
                                     height,
-                                } => format!("image:{resource}:{width}x{height}"),
+                                } => {
+                                    if self.options.node_ids {
+                                        format!("image:{resource}:{width}x{height}")
+                                    } else {
+                                        let hash = self
+                                            .document
+                                            .resources()
+                                            .get(*resource)
+                                            .map(|item| item.hash().to_string())
+                                            .unwrap_or_else(|| "missing".into());
+                                        format!("image:{hash}:{width}x{height}")
+                                    }
+                                }
                                 InlineKind::Preserved(value) => {
                                     format!("preserved:{}", preserved(value))
                                 }

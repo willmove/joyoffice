@@ -834,7 +834,7 @@ fn paragraph_key(
     context: ExternalContext,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
 ) -> ParagraphCacheKey {
-    let marked = crate::pages::marked_text(paragraph);
+    let marked = crate::pages::marked_text(document, paragraph);
     let text = paragraph.plain_text(|_| String::new());
     let slot = dominant_slot(&text);
     let mixed = slot != FontSlot::Ascii;

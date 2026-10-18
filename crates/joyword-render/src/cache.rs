@@ -147,6 +147,7 @@ mod tests {
             height: Emu::new(8 * Emu::PER_INCH),
             runs: Vec::new(),
             rects: Vec::new(),
+            images: Vec::new(),
         }
     }
 

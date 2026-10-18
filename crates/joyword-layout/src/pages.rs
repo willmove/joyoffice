@@ -148,6 +148,7 @@ pub(crate) fn accept_body_inlines(
     paragraph: &Paragraph,
 ) -> Result<(), LayoutError> {
     let mut page_break = false;
+    let mut image = false;
     for inline in paragraph.inlines() {
         match &inline.kind {
             InlineKind::Break(BreakKind::Page) => page_break = true,
@@ -160,12 +161,30 @@ pub(crate) fn accept_body_inlines(
                     "page field outside header or footer",
                 ));
             }
-            _ => {
+            InlineKind::Image { .. } => image = true,
+            InlineKind::Preserved(_) => {
                 return Err(unsupported(
                     Some(paragraph.id()),
                     "inline objects or breaks",
                 ));
             }
+        }
+    }
+    if image {
+        let props = joyword_model::displayed_paragraph(document, paragraph);
+        let text = paragraph.plain_text(|_| String::new());
+        let tabs = props.tabs.as_ref().is_some_and(|stops| {
+            stops
+                .iter()
+                .any(|stop| stop.align != joyword_model::TabAlign::Clear)
+        });
+        let indent =
+            joyword_model::indent_edges(&props.indent).is_some_and(|edges| edges.moves_text());
+        if page_break || props.numbering.is_some() || tabs || indent || text.contains('\t') {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "inline image with numbering, tabs or a page break",
+            ));
         }
     }
     if page_break {
@@ -190,12 +209,24 @@ pub(crate) fn accept_body_inlines(
 
 /// Text plus markers so a page break or a page field cannot share a cache
 /// key with the same visible characters.
-pub(crate) fn marked_text(paragraph: &Paragraph) -> String {
+pub(crate) fn marked_text(document: &Document, paragraph: &Paragraph) -> String {
     paragraph.plain_text(|object| match &object.kind {
         InlineKind::Break(BreakKind::Page) => format!("{OBJECT_MARKER}page"),
         InlineKind::Break(kind) => format!("{OBJECT_MARKER}{kind:?}"),
         InlineKind::PageField(kind) => format!("{OBJECT_MARKER}{kind:?}"),
-        _ => OBJECT_MARKER.to_string(),
+        InlineKind::Image {
+            resource,
+            width,
+            height,
+        } => {
+            let hash = document
+                .resources()
+                .get(*resource)
+                .map(|item| item.hash().to_string())
+                .unwrap_or_else(|| "missing".into());
+            format!("{OBJECT_MARKER}image:{hash}:{width}x{height}")
+        }
+        InlineKind::Preserved(_) => OBJECT_MARKER.to_string(),
     })
 }
 

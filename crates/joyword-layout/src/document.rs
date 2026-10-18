@@ -26,8 +26,8 @@ use crate::shape::ShapedRun;
 use crate::style_paint;
 use crate::{
     FaceSet, FeatureSet, FontKey, FontSlot, GlyphRun, LayoutLine, LineDiagnostic, LineError,
-    LineLimits, LoadedFont, PageScene, SceneRect, SourceRange, adjust_cjk_break, slot_for,
-    wrap_mixed,
+    LineLimits, LoadedFont, PageScene, SceneImage, SceneRect, SourceRange, adjust_cjk_break,
+    slot_for, wrap_mixed,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -286,6 +286,8 @@ pub struct PlacedLine {
     pub baseline: Emu,
     pub height: Emu,
     pub carets: Vec<CaretStop>,
+    /// Images this line painted into `pages[page].images`.
+    pub images: Range<usize>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -388,7 +390,7 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
             let Some(paragraph) = block.as_paragraph() else {
                 continue;
             };
-            let text = crate::pages::marked_text(paragraph);
+            let text = crate::pages::marked_text(document, paragraph);
             hash.update((text.len() as u64).to_le_bytes());
             hash.update(text.as_bytes());
         }
@@ -396,8 +398,8 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
     hash.update((document.body().blocks.len() as u64).to_le_bytes());
     for block in document.body().blocks.iter() {
         match block {
-            Block::Paragraph(paragraph) => hash_body_paragraph(&mut hash, paragraph),
-            Block::Table(table) => hash_table(&mut hash, table),
+            Block::Paragraph(paragraph) => hash_body_paragraph(&mut hash, document, paragraph),
+            Block::Table(table) => hash_table(&mut hash, document, table),
             Block::Sdt(_) | Block::Opaque(_) => {}
         }
     }
@@ -473,15 +475,15 @@ fn stylesheet_is_layout_input(document: &Document) -> bool {
         })
 }
 
-fn hash_body_paragraph(hash: &mut Sha256, paragraph: &Paragraph) {
-    let text = crate::pages::marked_text(paragraph);
+fn hash_body_paragraph(hash: &mut Sha256, document: &Document, paragraph: &Paragraph) {
+    let text = crate::pages::marked_text(document, paragraph);
     hash.update(paragraph.id().get().to_le_bytes());
     hash.update((text.len() as u64).to_le_bytes());
     hash.update(text.as_bytes());
     hash.update(format!("{:?}", paragraph.props).as_bytes());
 }
 
-fn hash_table(hash: &mut Sha256, table: &Table) {
+fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
     hash.update(b"table");
     hash.update(table.id.get().to_le_bytes());
     hash.update((table.grid.len() as u64).to_le_bytes());
@@ -502,7 +504,7 @@ fn hash_table(hash: &mut Sha256, table: &Table) {
             hash.update(format!("{:?}", cell.shading).as_bytes());
             for block in cell.blocks.iter() {
                 if let Some(paragraph) = block.as_paragraph() {
-                    hash_body_paragraph(hash, paragraph);
+                    hash_body_paragraph(hash, document, paragraph);
                     for run in paragraph.runs() {
                         hash.update(format!("{:?}", run.props).as_bytes());
                     }
@@ -1123,6 +1125,7 @@ struct HeaderStamp {
     height: i64,
     rects: Vec<SceneRect>,
     runs: Vec<GlyphRun>,
+    images: Vec<SceneImage>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1156,10 +1159,7 @@ fn place_table(
     )?;
     assign_row_heights(&mut rows)?;
     let tops = row_tops(&rows);
-    let page_has_ink = result
-        .pages
-        .last()
-        .is_some_and(|page| !page.runs.is_empty() || !page.rects.is_empty());
+    let page_has_ink = result.pages.last().is_some_and(scene_has_ink);
     if !page_has_ink {
         result.retarget_open_page(geometry, section);
         *top = geometry.top;
@@ -1176,6 +1176,7 @@ fn place_table(
         height: 0,
         rects: Vec::new(),
         runs: Vec::new(),
+        images: Vec::new(),
     };
     let mut repeats = Vec::new();
     flow_rows(
@@ -1919,19 +1920,20 @@ fn flush_jobs(
     ordered.sort_by_key(|job| (job.row, job.cell, job.paragraph, job.line));
     let header_end = ordered.iter().position(|job| !rows[job.row].header);
     let header_jobs = header_end.unwrap_or(ordered.len());
-    let run_before = if stamp.valid {
+    let (run_before, image_before) = if stamp.valid {
         result
             .pages
             .get(stamp.page)
-            .map(|page| page.runs.len())
-            .unwrap_or(0)
+            .map(|page| (page.runs.len(), page.images.len()))
+            .unwrap_or((0, 0))
     } else {
-        0
+        (0, 0)
     };
     place_jobs(result, rows, &ordered[..header_jobs])?;
     if stamp.valid {
         if let Some(page) = result.pages.get(stamp.page) {
             stamp.runs = page.runs[run_before.min(page.runs.len())..].to_vec();
+            stamp.images = page.images[image_before.min(page.images.len())..].to_vec();
         }
         for &(page_index, origin) in repeats {
             let delta = origin - stamp.origin_y;
@@ -1944,8 +1946,18 @@ fn flush_jobs(
                     copy
                 })
                 .collect();
+            let image_copies: Vec<SceneImage> = stamp
+                .images
+                .iter()
+                .map(|image| {
+                    let mut copy = image.clone();
+                    copy.y = Emu::new(copy.y.raw().saturating_add(delta));
+                    copy
+                })
+                .collect();
             if let Some(page) = result.pages.get_mut(page_index) {
                 page.runs.extend(copies);
+                page.images.extend(image_copies);
             }
         }
     }
@@ -2277,86 +2289,109 @@ pub(crate) fn fit_paragraph(
         Some(Err(problem)) => Some(problem.to_string()),
         _ => None,
     };
-    let split = crate::pages::split_page_breaks(paragraph);
-    let explicit =
-        split.trailing_breaks > 0 || split.pieces.iter().any(|piece| piece.breaks_before > 0);
-    if explicit && crate::list_layout::needs_list_layout(&props, &text, label) {
-        return Err(unsupported(
-            Some(paragraph.id()),
-            "page break with numbering or tabs",
-        ));
-    }
+    let has_image = paragraph
+        .inlines()
+        .iter()
+        .any(|inline| matches!(inline.kind, joyword_model::InlineKind::Image { .. }));
     let mut piece_breaks = Vec::new();
     let mut piece_lines = Vec::new();
     let trailing_breaks;
-    let mut fitted = if explicit && split.pieces.is_empty() {
-        let count = split.trailing_breaks;
-        let mut fitted = fit_slice("", width)?;
-        let markers = count as usize;
-        let marker_bytes = markers.saturating_mul(joyword_model::OBJECT_MARKER.len_utf8());
-        if let Some(line) = fitted.lines.first_mut() {
-            line.source.scalars = 0..markers;
-            line.source.bytes = 0..marker_bytes;
-            line.clusters.clear();
-        }
-        piece_breaks.push(count);
-        piece_lines.push(fitted.lines.len());
+    let mut fitted = if has_image {
+        let available = Emu::new(
+            (geometry.bottom_edge().raw() - geometry.top.raw() - painted.flow.before.raw()).max(1),
+        );
+        let descent = Emu::new((line_box.raw() - painted.baseline.raw()).max(0));
         trailing_breaks = 0;
-        fitted
-    } else if explicit {
-        let mut fitted = crate::ParagraphLines {
-            lines: Vec::new(),
-            diagnostics: Vec::new(),
-            omitted_diagnostics: 0,
-            stats: crate::LineStats::default(),
-        };
-        for piece in &split.pieces {
-            let mut part = fit_slice(&piece.text, width)?;
-            if painted.flow.justification == Some(Justification::Both) {
-                justify_pure_chinese(&mut part.lines, width, paragraph.id())?;
-            }
-            crate::pages::shift_piece(&mut part.lines, piece);
-            piece_breaks.push(piece.breaks_before);
-            piece_lines.push(part.lines.len());
-            fitted.lines.append(&mut part.lines);
-            fitted.diagnostics.append(&mut part.diagnostics);
-            fitted.omitted_diagnostics += part.omitted_diagnostics;
-            fitted.stats.shape_calls += part.stats.shape_calls;
-            fitted.stats.shaped_bytes += part.stats.shaped_bytes;
-        }
-        crate::pages::extend_trailing(&mut fitted.lines, split.trailing_breaks);
-        trailing_breaks = split.trailing_breaks;
-        fitted
-    } else if crate::list_layout::needs_list_layout(&props, &text, label) {
-        if matches!(
-            painted.flow.justification,
-            Some(Justification::Center | Justification::End | Justification::Both)
-        ) {
-            return Err(unsupported(
-                Some(paragraph.id()),
-                "justification with indent, numbering or tabs",
-            ));
-        }
-        let interval = default_tab_interval(document)?;
-        trailing_breaks = 0;
-        crate::list_layout::layout_marked(
-            &text,
-            &props,
-            label,
-            width,
-            interval,
+        crate::images::fit_inline_images(
+            document,
+            paragraph,
             shape_font,
             painted.size,
-            profile.features,
+            width,
+            available,
+            line_box,
+            descent,
             &mut fit_slice,
         )?
     } else {
-        let mut fitted = fit_slice(&text, width)?;
-        if painted.flow.justification == Some(Justification::Both) {
-            justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
+        let split = crate::pages::split_page_breaks(paragraph);
+        let explicit =
+            split.trailing_breaks > 0 || split.pieces.iter().any(|piece| piece.breaks_before > 0);
+        if explicit && crate::list_layout::needs_list_layout(&props, &text, label) {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "page break with numbering or tabs",
+            ));
         }
-        trailing_breaks = 0;
-        fitted
+        if explicit && split.pieces.is_empty() {
+            let count = split.trailing_breaks;
+            let mut fitted = fit_slice("", width)?;
+            let markers = count as usize;
+            let marker_bytes = markers.saturating_mul(joyword_model::OBJECT_MARKER.len_utf8());
+            if let Some(line) = fitted.lines.first_mut() {
+                line.source.scalars = 0..markers;
+                line.source.bytes = 0..marker_bytes;
+                line.clusters.clear();
+            }
+            piece_breaks.push(count);
+            piece_lines.push(fitted.lines.len());
+            trailing_breaks = 0;
+            fitted
+        } else if explicit {
+            let mut fitted = crate::ParagraphLines {
+                lines: Vec::new(),
+                diagnostics: Vec::new(),
+                omitted_diagnostics: 0,
+                stats: crate::LineStats::default(),
+            };
+            for piece in &split.pieces {
+                let mut part = fit_slice(&piece.text, width)?;
+                if painted.flow.justification == Some(Justification::Both) {
+                    justify_pure_chinese(&mut part.lines, width, paragraph.id())?;
+                }
+                crate::pages::shift_piece(&mut part.lines, piece);
+                piece_breaks.push(piece.breaks_before);
+                piece_lines.push(part.lines.len());
+                fitted.lines.append(&mut part.lines);
+                fitted.diagnostics.append(&mut part.diagnostics);
+                fitted.omitted_diagnostics += part.omitted_diagnostics;
+                fitted.stats.shape_calls += part.stats.shape_calls;
+                fitted.stats.shaped_bytes += part.stats.shaped_bytes;
+            }
+            crate::pages::extend_trailing(&mut fitted.lines, split.trailing_breaks);
+            trailing_breaks = split.trailing_breaks;
+            fitted
+        } else if crate::list_layout::needs_list_layout(&props, &text, label) {
+            if matches!(
+                painted.flow.justification,
+                Some(Justification::Center | Justification::End | Justification::Both)
+            ) {
+                return Err(unsupported(
+                    Some(paragraph.id()),
+                    "justification with indent, numbering or tabs",
+                ));
+            }
+            let interval = default_tab_interval(document)?;
+            trailing_breaks = 0;
+            crate::list_layout::layout_marked(
+                &text,
+                &props,
+                label,
+                width,
+                interval,
+                shape_font,
+                painted.size,
+                profile.features,
+                &mut fit_slice,
+            )?
+        } else {
+            let mut fitted = fit_slice(&text, width)?;
+            if painted.flow.justification == Some(Justification::Both) {
+                justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
+            }
+            trailing_breaks = 0;
+            fitted
+        }
     };
     if let Some(detail) = numbering_detail {
         fitted
@@ -2379,7 +2414,15 @@ pub(crate) fn fit_paragraph(
             "paragraph spacing taller than the page",
         ));
     }
-    if add(before, line_box)?.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
+    let tallest = fitted.lines.iter().fold(line_box.raw(), |max, line| {
+        let step = if line.box_height.raw() > 0 {
+            line.box_height.raw()
+        } else {
+            line_box.raw()
+        };
+        max.max(step)
+    });
+    if add(before, Emu::new(tallest))?.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
         return Err(LayoutError::LineTooTall);
     }
     let mut glyphs = 0usize;
@@ -2390,11 +2433,17 @@ pub(crate) fn fit_paragraph(
         }
         glyphs += line.run.glyphs.len();
     }
-    let height = line_box
-        .raw()
-        .checked_mul(i64::try_from(fitted.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?)
-        .and_then(|height| height.checked_add(before.raw()))
-        .ok_or(LayoutError::GeometryOverflow)?;
+    let mut height = before.raw();
+    for line in &fitted.lines {
+        let step = if line.box_height.raw() > 0 {
+            line.box_height.raw()
+        } else {
+            line_box.raw()
+        };
+        height = height
+            .checked_add(step)
+            .ok_or(LayoutError::GeometryOverflow)?;
+    }
     Ok(FittedParagraph {
         id: paragraph.id(),
         len: paragraph.len(),
@@ -2537,6 +2586,7 @@ fn suffix_copies(
                     height: geometry.height,
                     runs: Vec::new(),
                     rects: Vec::new(),
+                    images: Vec::new(),
                 });
                 page_geometry.push(geometry);
                 page_section.push(section);
@@ -2547,7 +2597,17 @@ fn suffix_copies(
             pages[line.page]
                 .runs
                 .push(stop.previous.pages[line.page].runs[line.run].clone());
-            lines.push(line.clone());
+            let source_images = &stop.previous.pages[line.page].images;
+            if line.images.start > line.images.end || line.images.end > source_images.len() {
+                return false;
+            }
+            let mut copied = line.clone();
+            let dest_start = pages[line.page].images.len();
+            pages[line.page]
+                .images
+                .extend(source_images[line.images.clone()].iter().cloned());
+            copied.images = dest_start..pages[line.page].images.len();
+            lines.push(copied);
             cursor += 1;
             taken += 1;
         }
@@ -2585,6 +2645,7 @@ fn suffix_copies(
             height: geometry.height,
             runs: Vec::new(),
             rects: Vec::new(),
+            images: Vec::new(),
         });
         page_geometry.push(geometry);
         page_section.push(section);
@@ -2634,11 +2695,8 @@ fn place_one(
     // An oversized group starts on a fresh page once, then flows. A page
     // that a previous break already opened empty is resized instead of
     // gaining another blank page.
-    let page_has_runs = result
-        .pages
-        .last()
-        .is_some_and(|page| !page.runs.is_empty());
-    if !pinned && !page_has_runs {
+    let page_has_ink = result.pages.last().is_some_and(scene_has_ink);
+    if !pinned && !page_has_ink {
         result.retarget_open_page(geometry, section);
         *top = geometry.top;
     }
@@ -2647,12 +2705,7 @@ fn place_one(
         || section_break_before
         || group_height.is_some_and(|height| height.raw() > remaining)
         || (keep_lines && height.raw() > remaining);
-    if needs_page
-        && result
-            .pages
-            .last()
-            .is_some_and(|page| !page.runs.is_empty())
-    {
+    if needs_page && result.pages.last().is_some_and(scene_has_ink) {
         result.new_page(geometry, section)?;
         *top = geometry.top;
     }
@@ -2676,7 +2729,8 @@ fn place_one(
                 *top = add(*top, before)?;
                 before_applied = true;
             }
-            if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
+            let step = line_step(line, line_box);
+            if add(*top, step)?.raw() > geometry.bottom_edge().raw() {
                 if pinned {
                     return Err(LayoutError::LineTooTall);
                 }
@@ -2686,7 +2740,7 @@ fn place_one(
                 } else {
                     geometry.top
                 };
-                if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
+                if add(*top, step)?.raw() > geometry.bottom_edge().raw() {
                     return Err(LayoutError::LineTooTall);
                 }
             }
@@ -2765,7 +2819,18 @@ fn place_line_on(
         _ => 0,
     };
     let x = add(frame_x, Emu::new(shift))?;
-    let baseline = add(*top, baseline_offset)?;
+    let step = line_step(line, line_box);
+    let image_height = line
+        .images
+        .iter()
+        .map(|image| image.height.raw())
+        .max()
+        .unwrap_or(0);
+    let baseline = if image_height > baseline_offset.raw() {
+        add(*top, Emu::new(image_height))?
+    } else {
+        add(*top, baseline_offset)?
+    };
     let carets = line_carets(line, x)?;
     for glyph in &line.run.glyphs {
         add(x, add(glyph.x, glyph.x_offset)?)?;
@@ -2774,12 +2839,30 @@ fn place_line_on(
             .checked_sub(glyph.y_offset.raw())
             .ok_or(LayoutError::GeometryOverflow)?;
     }
-    let page = result
-        .pages
-        .get_mut(page_index)
-        .ok_or(LayoutError::GeometryOverflow)?;
-    let run = page.runs.len();
-    page.runs.push(line.to_glyph_run(x, baseline));
+    let (run, images) = {
+        let page = result
+            .pages
+            .get_mut(page_index)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        let run = page.runs.len();
+        page.runs.push(line.to_glyph_run(x, baseline));
+        let image_start = page.images.len();
+        for image in &line.images {
+            let y = baseline
+                .raw()
+                .checked_sub(image.height.raw())
+                .ok_or(LayoutError::GeometryOverflow)?;
+            page.images.push(SceneImage {
+                media_type: image.media_type.clone(),
+                bytes: image.bytes.clone(),
+                x: add(x, image.x)?,
+                y: Emu::new(y),
+                width: image.width,
+                height: image.height,
+            });
+        }
+        (run, image_start..page.images.len())
+    };
     result.lines.push(PlacedLine {
         paragraph: id,
         source: line.source.clone(),
@@ -2787,11 +2870,24 @@ fn place_line_on(
         run,
         top: *top,
         baseline,
-        height: line_box,
+        height: step,
         carets,
+        images,
     });
-    *top = add(*top, line_box)?;
+    *top = add(*top, step)?;
     Ok(())
+}
+
+fn line_step(line: &LayoutLine, line_box: Emu) -> Emu {
+    if line.box_height.raw() > 0 {
+        line.box_height
+    } else {
+        line_box
+    }
+}
+
+fn scene_has_ink(page: &PageScene) -> bool {
+    !page.runs.is_empty() || !page.rects.is_empty() || !page.images.is_empty()
 }
 
 fn line_carets(line: &LayoutLine, x: Emu) -> Result<Vec<CaretStop>, LayoutError> {
@@ -2859,6 +2955,7 @@ impl LayoutSnapshot {
             height: geometry.height,
             runs: Vec::new(),
             rects: Vec::new(),
+            images: Vec::new(),
         });
         self.page_geometry.push(geometry);
         self.page_section.push(section);
@@ -2869,7 +2966,7 @@ impl LayoutSnapshot {
         let Some(page) = self.pages.last_mut() else {
             return;
         };
-        if !page.runs.is_empty() {
+        if scene_has_ink(page) {
             return;
         }
         page.width = geometry.width;

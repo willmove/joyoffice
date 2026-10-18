@@ -69,6 +69,7 @@ actions!(
         PageOrientation,
         CopyText,
         PasteText,
+        InsertImage,
         CloseDocument,
         FindNext,
         FindPrevious,
@@ -141,6 +142,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_COPY => Box::new(CopyText),
         EDIT_PASTE => Box::new(PasteText),
         EDIT_INSERT => Box::new(InsertText),
+        EDIT_INSERT_IMAGE => Box::new(InsertImage),
         FILE_CLOSE => Box::new(CloseDocument),
         FIND_NEXT => Box::new(FindNext),
         FIND_PREVIOUS => Box::new(FindPrevious),
@@ -1255,6 +1257,9 @@ impl Render for JoyWord {
             .on_action(
                 cx.listener(|this, _: &InsertText, window, cx| this.run(EDIT_INSERT, window, cx)),
             )
+            .on_action(cx.listener(|this, _: &InsertImage, window, cx| {
+                this.run(EDIT_INSERT_IMAGE, window, cx)
+            }))
             .on_action(
                 cx.listener(|this, _: &FindNext, window, cx| this.run(FIND_NEXT, window, cx)),
             )
@@ -1695,7 +1700,13 @@ mod tests {
     #[test]
     fn file_and_insert_commands_are_not_the_language_switch() {
         let language = action_for(SWITCH_LANGUAGE).unwrap().name();
-        for id in [EDIT_INSERT, FILE_OPEN_RECENT, DOCUMENT_SWITCH, FILE_CLOSE] {
+        for id in [
+            EDIT_INSERT,
+            EDIT_INSERT_IMAGE,
+            FILE_OPEN_RECENT,
+            DOCUMENT_SWITCH,
+            FILE_CLOSE,
+        ] {
             let action = action_for(id).unwrap();
             assert_ne!(action.name(), language, "{}", id);
         }

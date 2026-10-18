@@ -81,6 +81,7 @@ command.edit.align_center = 居中
 command.edit.copy = 复制
 command.edit.paste = 粘贴
 command.edit.insert = 插入文字
+command.edit.insert_image = 插入图片
 command.file.open_recent = 打开最近文件
 command.file.close = 关闭
 command.document.switch = 切换文档
@@ -126,6 +127,7 @@ input.limit = 本次输入超过技术预览的处理限制。
 input.stale = 文档已变化，请重新开始输入。
 input.unsupported_text = 暂不支持本次输入中的控制字符。
 input.rejected = 本次编辑未能完成，文档保持原状。
+input.image = 图片被拒绝，文档保持原状。
 
 file.save_original.unavailable = 当前文档没有可保存的原件
 file.original.unexpected = 原件预检返回了无法识别的结果

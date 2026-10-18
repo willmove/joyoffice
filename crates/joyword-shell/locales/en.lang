@@ -82,6 +82,7 @@ command.edit.align_center = Center
 command.edit.copy = Copy
 command.edit.paste = Paste
 command.edit.insert = Insert Text
+command.edit.insert_image = Insert Image
 command.file.open_recent = Open Recent
 command.file.close = Close
 command.document.switch = Switch Document
@@ -127,6 +128,7 @@ input.limit = This input exceeds the technical preview limits.
 input.stale = The document changed. Please start the input again.
 input.unsupported_text = This input contains an unsupported control character.
 input.rejected = The edit could not be completed. The document is unchanged.
+input.image = The image was refused. The document is unchanged.
 
 file.save_original.unavailable = The current document has no original file to save
 file.original.unexpected = The original-save precheck returned an unexpected result
