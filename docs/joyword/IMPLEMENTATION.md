@@ -4,7 +4,7 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数已开始，尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数与 T210 inspect／text 切片已开始；T207 尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、统一排版场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志。
 - **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、把 T207 接入排版入口后的完整中文排版，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
 - **T207（进行中，2026-10-18）**：保留并审核 `joyword-layout::cjk` 的默认东亚家族查询、字间余量、行高公式／网格、有限标点配对与禁则表。R3／R4 算法标 Inferred；R7 区分等线 12 pt 已测配对、字号缩放和汉字类别外推，未知跟随返回未验证。未确认单位的字符／行换算及中西文间距宽度、`adjustRightInd` 返回未验证。单次对齐最多 65,536 个 advance，并检查算术溢出。`layout_document`／`wrap_mixed` 尚未调用计算函数（禁则仅复用既有集合），不声明完成中文排版。验证结果与范围见文末本轮记录；人工 Word／WPS 版式对照未做。
@@ -268,7 +268,7 @@
 7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含隔离标记文档的图形确认、覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
 8. T105、T108：`layout_document` 对东亚或复杂文字调用 `slot_for`、`wrap_mixed` 和 `adjust_cjk_break`；屏幕入口在只有一份字体时用 `FaceSet::uniform`。窗口按可见页及前后预取页调用 `raster_page`，超出像素预算时丢掉远离视口的页。光标由 `paint_caret_overlay` 画到单独缓冲，不改该页像素。固定 Word 的完整中文规则、widowControl，以及长文档滚动缩放的人工验收未完成，两项保持 `in_progress`。
 9. T104、T106、T109：命令注册表是打开、另存、最近文件、切换和关闭的唯一入口，参数齐全则执行，缺参数返回待输入。取消关闭保留会话。打开在版本接受前只读，期间输入保留；过期保存不写文件、不清 dirty。生产恢复日志写入原包基线与已提交文本，加密包不写明文。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则在示例文档之前恢复进会话。文件对话框、最近文件菜单和强制结束后的图形恢复仍待人工验收，三项保持 `in_progress`。
-10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T207 已开始但只限纯函数，尚未接入排版入口；T208–T211 与其余 M2 任务以及 M3–M9 保持 `planned`。
+10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T207 已开始但只限纯函数，尚未接入排版入口；T210 的 inspect／text 切片已开始；T208、T209、T211 与其余 M2 任务以及 M3–M9 保持 `planned`。
 
 2026-10-17 本环境补记：
 
@@ -328,3 +328,14 @@ M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍�
 - 来源：仓库 [排版规则目录](layout_rules.md) 与 `tests/fixtures/reference/word2024/breaks/word_punct_table.txt`、`word_punct2_table.txt`；百分之一行单位参考 Microsoft 的 [BeforeLines 文档](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.spacingbetweenlines.beforelines?view=openxml-3.0.1)。单位助手只做算术，不决定 Word 的字符／行单位基准或属性优先级。
 - 自动验证：Rust 1.98.1 下 `cargo test -p joyword-layout --locked` 通过 70 项（其中新增 CJK 集成测试 8 项），覆盖规则目录带宽、证据分类、未知配对、非法参数、算术溢出与对齐预算边界；`cargo fmt --all -- --check`、`cargo clippy -p joyword-layout --all-targets --locked -- -D warnings`、`python3 scripts/check_docs.py`、`python3 scripts/check_gates.py` 通过。单测不等于真实文档版式验收。
 - 未覆盖：排版入口接入、真实字体选择与替代链、字符网格、完整 OOXML 属性组合、中西文间距和 adjustRightInd 实测。未进行 GUI／Word／WPS 人工验收，T207 保持 `in_progress`。
+### T210 inspect／text 切片（2026-10-18）
+
+新增 `apps/joyword-cli`，纳入 workspace 与 default-members，不依赖 GPUI、窗口、字体或 GPU。使用既有 `joyword_docx::import` 与模型只读接口，不修改 DOCX／layout 核心，不触碰输入文件、不获取会话写锁。语义沿用既有基于 ECMA-376 的导入实现；CLI 序列化与原创测试独立编写，无其他编辑器实现来源。
+
+使用 `cargo run -p joyword-cli --locked -- inspect FILE.docx` 输出单行 schema 1 JSON，或 `cargo run -p joyword-cli --locked -- text FILE.docx` 将纯 UTF-8 文字写 stdout，并将同样的投影与完整性元数据 JSON 写 stderr。`--max-text-bytes N` 跟在文件之后，取值 0..1048576，默认 1 MiB，按 UTF-8 字节的完整字符前缀截断；不会跳过超预算字符再追加后续较短字符。正常退出 0，使用／读取／格式／预算错误退出 2（stdout 无成功结果），发生文字截断退出 3（inspect 仍输出可解析 JSON，text 仍输出前缀及 stderr 标志）。写出或 flush 失败返回错误。
+
+投影固定为 `imported-main-body`，**包含隐藏文字**，包含插入修订及 moveTo 的导入文字，不含已删除修订、moveFrom、批注、页眉页脚和其他 story；这不是 Word 的最终审阅视图。未知 XML 和当前导入器尚未表示的表格、图片等内容保留在原包，但不从原始 XML 猜测提取。行内对象不输出 U+FDD0 内部占位符；已导入的超链接文字照常读出；软换行为 LF，分页／分栏为 FF，段落及模型单元格段落按 LF 分隔。`projection` 声明上述边界；`partial` 是保守标志：有保留片段、任何导入诊断或省略对象即为 true（包含仅属性或信息级诊断的情况），并独立报告 `preserved_fragments`、诊断数量和 `omitted_objects`；`truncated` 仅指文字字节预算，绝不以它冒充语义完整性。输出无随机节点 ID、绝对路径、时间戳或原始诊断文字，因此同一输入与预算逐字节稳定；错误消息固定且不回显不可信 XML／路径。
+
+输入仅接受普通文件，压缩输入最多 32 MiB（有界读取再次确认实际大小）；OPC 预算为 1024 条目、每部件 16 MiB、总解压 64 MiB、XML 深度 128／每部件 100 万事件、4096 关系，压缩比继续使用 OPC 默认限制。输出文本最多 1 MiB，JSON 转义另有固定倍数上界；导入与模型读取成本受上述输入预算约束，尚未进行性能测量。`render`／`convert` 和其他未实现子命令明确拒绝。
+
+自动验证：`cargo test -p joyword-cli --locked` 的真实 CLI 进程测试覆盖 DOCX-MIN-001..004 与 DOCX-SAMPLE-001 五份原创包的预期文字、重复 inspect 逐字节相同、text 与 inspect 一致、源字节不变；另覆盖隐藏／插入／删除／移入／移出／未知内容投影、对象占位符、UTF-8 边界与零额度、stderr 元数据、错误包／目录／缺失文件／超大文件／XML 深度与部件解压预算／非法参数／未实现命令。`cargo test -p joyword-docx -p joyoffice-opc -p joyword-model -p joyword-corpus --locked` 也全部通过。跨架构测试子进程会使用 CI 设置的 `CARGO_TARGET_*_RUNNER`，仍需远程 CI 运行证据。`cargo fmt --all -- --check`、`cargo clippy -p joyword-cli --all-targets --locked -- -D warnings`、文档与架构门禁在本机全部通过（5 项 CLI 进程测试、84 个需求／66 个任务、108 个 Rust 文件门禁）。未执行 GUI 或人工投影验收，尚无 PNG／render／convert 验证，整个 T210 保持 `in_progress`。

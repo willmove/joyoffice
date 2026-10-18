@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "apps/joyword-cli",
     "apps/joyword",
     "crates/joyoffice-opc",
     "crates/joyword-corpus",
@@ -13,6 +14,7 @@ members = [
     "crates/joyword-shell",
 ]
 default-members = [
+    "apps/joyword-cli",
     "crates/joyoffice-opc",
     "crates/joyword-corpus",
     "crates/joyword-docx",

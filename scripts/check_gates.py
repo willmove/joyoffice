@@ -17,6 +17,7 @@ APPS = ROOT / "apps"
 
 # Direct dependencies that match ARCHITECTURE §1. Paths are crate directories.
 LAYERS = {
+    "joyword-cli": {"joyoffice-opc", "joyword-docx", "joyword-model"},
     "joyword-foundation": set(),
     "joyword-model": {"joyword-foundation"},
     "joyword-engine": {"joyword-model", "joyword-foundation"},
@@ -43,6 +44,7 @@ LAYERS = {
 }
 
 FS_ALLOW = {
+    "apps/joyword-cli/src/main.rs",
     "crates/joyoffice-opc/src/zip.rs",
     "crates/joyoffice-opc/src/package.rs",
     "crates/joyword-shell/src/storage.rs",

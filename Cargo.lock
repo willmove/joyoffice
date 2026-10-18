@@ -2704,6 +2704,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-cli"
+version = "0.0.1"
+dependencies = [
+ "joyoffice-opc",
+ "joyword-corpus",
+ "joyword-docx",
+ "joyword-model",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "joyword-corpus"
 version = "0.0.1"
 dependencies = [
