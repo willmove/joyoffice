@@ -1,9 +1,8 @@
 //! W11: `save_original` compares `origin_bytes()` with the stamped package
 //! after its own conflict check. A different package is refused with no
-//! write. A matching origin still refuses on this build because ACL, extended
-//! attributes, provenance marks, ownership and creation time cannot be
-//! preserved with the approved dependencies. The Unix replace steps are
-//! covered by the storage unit tests, which call the publisher directly.
+//! write. A matching origin still requires explicit confirmation and a review
+//! of the platform's metadata losses. Platform publish paths and race handling
+//! are covered by the storage unit and integration tests.
 
 use std::fs;
 use std::path::PathBuf;
@@ -69,7 +68,7 @@ fn same_version_different_packages_are_refused_with_no_write() {
 }
 
 #[test]
-fn matching_origin_still_refuses_unpreservable_metadata_before_any_write() {
+fn matching_origin_requires_confirmation_before_any_write() {
     let dir = tempfile::tempdir().unwrap();
     let bytes = fixture(1);
     let path = dir.path().join("report.docx");
@@ -98,7 +97,7 @@ fn matching_origin_still_refuses_unpreservable_metadata_before_any_write() {
             ))
         );
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(all(not(target_os = "macos"), not(windows)))]
     assert!(
         blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::CreationTime

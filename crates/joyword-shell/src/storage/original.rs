@@ -3,19 +3,19 @@
 //! `save_original` re-runs conflict verification, then requires
 //! [`ExportPlan::origin_bytes`](joyword_docx::ExportPlan::origin_bytes) to be
 //! the stamped package bytes. A missing origin or a different package refuses
-//! before any write. Metadata this build cannot preserve still refuses before
-//! any write as well: the Unix replace steps below run only when that list is
-//! empty. Those steps end by reading the exchanged file back; only that read
-//! produces the receipt and its refreshed stamp. `save_original_with_lock_token`
+//! before any write. Unobservable or unpreservable metadata is listed before
+//! the caller chooses a copy or explicitly accepts replacement. Every publish
+//! path ends by reading the replaced file back; only that read produces the
+//! receipt and its refreshed stamp. `save_original_with_lock_token`
 //! can skip the caller's own JoyWord lock and then hits the same checks.
 //! `save_export_copy` stays the verified fallback.
 
 use std::io;
 use std::path::{Path, PathBuf};
 
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 use std::fs::{self, File};
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 use std::io::Write;
 
 use joyword_docx::{ExportPlan, ExportTarget};
@@ -24,10 +24,10 @@ use joyword_model::DocumentVersion;
 #[cfg(unix)]
 use super::error::MetadataItem;
 use super::error::{ReplacementBlocker, SaveOriginalError, SourceStage};
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 use super::source::{SourceIdentity, confirm_published};
 use super::source::{SourceStamp, check_source_with_lock_token};
-#[cfg(unix)]
+#[cfg(any(unix, windows))]
 use super::{locks, sync_directory, verify_bytes};
 
 /// Persistence state of a completed original replacement. Reused from the
@@ -110,10 +110,10 @@ pub struct OriginalReplacementCapabilities {
 /// Permission bits and, on Unix, owner and group (`fchown`) are preservable,
 /// as is the creation time on macOS (`FileTimesExt::set_created`). Extended
 /// attributes and provenance marks are copied with the pinned `xattr` crate
-/// when they fit the size cap. ACLs are observed and not rewritten. Windows
-/// entries are grounded in stable-std observation (`Metadata::created`, the
-/// `Zone.Identifier` stream); no Windows restore path is wired yet, so
-/// observed values that cannot be restored stay `ObservableNotPreservable`.
+/// when they fit the size cap. Windows `ReplaceFileW` preserves creation time,
+/// DACLs and named streams without asking us to ignore merge failures. Only
+/// the creation time, link count and provenance stream that this build actually
+/// observes are marked accordingly; unobserved metadata remains in the prompt.
 pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
     OriginalReplacementCapabilities {
         permissions: MetadataCapability::Preservable,
@@ -129,18 +129,18 @@ pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
         extended_attributes: MetadataCapability::Preservable,
         #[cfg(not(unix))]
         extended_attributes: MetadataCapability::Unobservable,
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "macos", windows))]
         creation_time: MetadataCapability::Preservable,
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "macos", windows)))]
         creation_time: MetadataCapability::ObservableNotPreservable,
         #[cfg(unix)]
         links: MetadataCapability::ObservableNotPreservable,
-        #[cfg(not(unix))]
-        links: MetadataCapability::Unobservable,
-        #[cfg(unix)]
-        provenance_marks: MetadataCapability::Preservable,
         #[cfg(windows)]
-        provenance_marks: MetadataCapability::ObservableNotPreservable,
+        links: MetadataCapability::ObservableNotPreservable,
+        #[cfg(all(not(unix), not(windows)))]
+        links: MetadataCapability::Unobservable,
+        #[cfg(any(unix, windows))]
+        provenance_marks: MetadataCapability::Preservable,
         #[cfg(all(not(unix), not(windows)))]
         provenance_marks: MetadataCapability::Unobservable,
     }
@@ -315,7 +315,11 @@ fn publish_original(
     {
         publish_original_unix(plan, source, owner_token, xattrs, before)
     }
-    #[cfg(not(unix))]
+    #[cfg(windows)]
+    {
+        publish_original_windows(plan, source, owner_token, xattrs, before)
+    }
+    #[cfg(all(not(unix), not(windows)))]
     {
         let _ = (plan, owner_token, xattrs, before);
         Err(SaveOriginalError::ReplacementUnavailable {
@@ -323,6 +327,306 @@ fn publish_original(
             blockers: vec![ReplacementBlocker::AtomicReplaceUnverified],
         })
     }
+}
+
+#[cfg(windows)]
+fn win32_error(error: winsafe::co::ERROR) -> io::Error {
+    io::Error::from_raw_os_error(error.raw() as i32)
+}
+
+#[cfg(windows)]
+fn win32_path(path: &Path) -> io::Result<&str> {
+    path.to_str().ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Win32 path is not valid Unicode",
+        )
+    })
+}
+
+#[cfg(windows)]
+fn replace_file(target: &Path, replacement: &Path, backup: &Path) -> io::Result<()> {
+    winsafe::ReplaceFile(
+        win32_path(target)?,
+        win32_path(replacement)?,
+        Some(win32_path(backup)?),
+        winsafe::co::REPLACEFILE::default(),
+    )
+    .map_err(win32_error)
+}
+
+#[cfg(windows)]
+type PreReplace = fn(&Path) -> io::Result<()>;
+
+#[cfg(windows)]
+thread_local! {
+    static PRE_REPLACE: std::cell::Cell<Option<PreReplace>> = const { std::cell::Cell::new(None) };
+}
+
+#[cfg(windows)]
+fn pre_replace_hook(target: &Path) -> io::Result<()> {
+    PRE_REPLACE.with(|cell| {
+        if let Some(hook) = cell.take() {
+            hook(target)
+        } else {
+            Ok(())
+        }
+    })
+}
+
+#[cfg(windows)]
+struct RemoveFileOnDrop {
+    path: PathBuf,
+    armed: bool,
+}
+
+#[cfg(windows)]
+impl RemoveFileOnDrop {
+    fn new(path: PathBuf) -> Self {
+        Self { path, armed: true }
+    }
+
+    fn disarm(&mut self) {
+        self.armed = false;
+    }
+}
+
+#[cfg(windows)]
+impl Drop for RemoveFileOnDrop {
+    fn drop(&mut self) {
+        if self.armed {
+            let _ = fs::remove_file(&self.path);
+        }
+    }
+}
+
+#[cfg(windows)]
+fn reserve_windows_name(parent: &Path, prefix: &str) -> io::Result<PathBuf> {
+    let slot = tempfile::Builder::new()
+        .prefix(prefix)
+        .tempfile_in(parent)?;
+    let path = slot.path().to_path_buf();
+    slot.close()?;
+    Ok(path)
+}
+
+#[cfg(windows)]
+fn confirm_windows_backup(backup: &Path, source: &SourceStamp) -> Result<(), SaveOriginalError> {
+    let target = source.path();
+    let identity = SourceIdentity::capture_path(backup)
+        .map_err(|e| SaveOriginalError::io(SourceStage::VerifyBackup, target, e))?;
+    if !source.identity().same_object(&identity) {
+        return Err(SaveOriginalError::conflict_error(
+            target,
+            super::error::ConflictDetail::InodeChanged,
+        ));
+    }
+    let mut file = File::open(backup)
+        .map_err(|e| SaveOriginalError::io(SourceStage::VerifyBackup, target, e))?;
+    match verify_bytes(&mut file, source.bytes()) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == io::ErrorKind::InvalidData => Err(
+            SaveOriginalError::conflict_error(target, super::error::ConflictDetail::ContentChanged),
+        ),
+        Err(error) => Err(SaveOriginalError::io(
+            SourceStage::VerifyBackup,
+            target,
+            error,
+        )),
+    }
+}
+
+#[cfg(windows)]
+fn verify_windows_metadata(
+    source: &SourceStamp,
+    published: &SourceStamp,
+    xattrs: &[(std::ffi::OsString, Vec<u8>)],
+) -> io::Result<()> {
+    use std::io::Read;
+
+    if source.identity().creation_time() != published.identity().creation_time() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "published file creation time differs from the source",
+        ));
+    }
+    for (name, expected) in xattrs {
+        if name != "Zone.Identifier" {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "unexpected Windows metadata stream",
+            ));
+        }
+        let stream = format!("{}:Zone.Identifier", source.path().display());
+        let mut bytes = Vec::new();
+        File::open(stream)?
+            .take(expected.len() as u64 + 1)
+            .read_to_end(&mut bytes)?;
+        if bytes != *expected {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "published Zone.Identifier differs from the source",
+            ));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn publish_original_windows(
+    plan: &ExportPlan,
+    source: &SourceStamp,
+    owner_token: Option<&str>,
+    xattrs: &[(std::ffi::OsString, Vec<u8>)],
+    mut before: impl FnMut(SourceStage, &Path) -> io::Result<()>,
+) -> Result<SaveOriginalReceipt, SaveOriginalError> {
+    let target = source.path();
+    let parent = target
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    let fail = |stage, error: io::Error| SaveOriginalError::io(stage, target, error);
+    before(SourceStage::CreateTemporary, parent)
+        .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
+    let mut temporary = tempfile::Builder::new()
+        .prefix(".joyword-replace-")
+        .tempfile_in(parent)
+        .map_err(|e| fail(SourceStage::CreateTemporary, e))?;
+    before(SourceStage::Write, temporary.path())
+        .and_then(|_| temporary.write_all(plan.bytes()))
+        .map_err(|e| fail(SourceStage::Write, e))?;
+    before(SourceStage::RestorePermissions, temporary.path())
+        .map_err(|e| fail(SourceStage::RestorePermissions, e))?;
+    before(SourceStage::SyncFile, temporary.path())
+        .and_then(|_| temporary.as_file().sync_all())
+        .map_err(|e| fail(SourceStage::SyncFile, e))?;
+    before(SourceStage::Verify, temporary.path())
+        .and_then(|_| verify_bytes(temporary.as_file_mut(), plan.bytes()))
+        .map_err(|e| fail(SourceStage::Verify, e))?;
+    let written =
+        SourceIdentity::capture_path(temporary.path()).map_err(|e| fail(SourceStage::Verify, e))?;
+
+    before(SourceStage::Backup, target).map_err(|e| fail(SourceStage::Backup, e))?;
+    check_source_with_lock_token(source, owner_token)?;
+    let backup_path = reserve_windows_name(parent, ".joyword-replace-bak-")
+        .map_err(|e| fail(SourceStage::Backup, e))?;
+    fs::hard_link(target, &backup_path).map_err(|e| fail(SourceStage::Backup, e))?;
+    let mut backup = RemoveFileOnDrop::new(backup_path.clone());
+    let displaced_path = reserve_windows_name(parent, ".joyword-replace-old-")
+        .map_err(|e| fail(SourceStage::Backup, e))?;
+    let mut displaced = RemoveFileOnDrop::new(displaced_path.clone());
+    before(SourceStage::VerifyBackup, &backup_path)
+        .map_err(|e| fail(SourceStage::VerifyBackup, e))?;
+    confirm_windows_backup(&backup_path, source)?;
+    let file_name = target.file_name().unwrap_or_default();
+    locks::check_directories(source.lock_directories(), file_name, owner_token)?;
+
+    before(SourceStage::Publish, temporary.path()).map_err(|e| fail(SourceStage::Publish, e))?;
+    let live = SourceIdentity::capture_path(target).map_err(|e| fail(SourceStage::Publish, e))?;
+    if !source.identity().same_object(&live) {
+        return Err(SaveOriginalError::conflict_error(
+            target,
+            super::error::ConflictDetail::InodeChanged,
+        ));
+    }
+    confirm_windows_backup(&backup_path, source)?;
+    let (file, temporary_path) = temporary
+        .keep()
+        .map_err(|error| fail(SourceStage::Publish, error.error))?;
+    drop(file);
+    let mut temporary_cleanup = RemoveFileOnDrop::new(temporary_path.clone());
+    pre_replace_hook(target).map_err(|e| fail(SourceStage::Publish, e))?;
+    if let Err(error) = replace_file(target, &temporary_path, &displaced_path) {
+        let unchanged = SourceIdentity::capture_path(target)
+            .ok()
+            .is_some_and(|identity| source.identity().same_object(&identity))
+            && fs::read(target).ok().as_deref() == Some(source.bytes());
+        if unchanged {
+            return Err(fail(SourceStage::Publish, error));
+        }
+        backup.disarm();
+        displaced.disarm();
+        temporary_cleanup.disarm();
+        return Err(SaveOriginalError::PublishedUnconfirmed {
+            path: target.to_path_buf(),
+            source: error,
+            backup: backup_path,
+        });
+    }
+    temporary_cleanup.disarm();
+
+    let displaced_matches = SourceIdentity::capture_path(&displaced_path)
+        .ok()
+        .is_some_and(|identity| source.identity().same_object(&identity))
+        && fs::read(&displaced_path).ok().as_deref() == Some(source.bytes());
+    if !displaced_matches {
+        let restore_backup = reserve_windows_name(parent, ".joyword-restore-new-")
+            .map_err(|e| fail(SourceStage::Publish, e))?;
+        match replace_file(target, &displaced_path, &restore_backup) {
+            Ok(()) => {
+                let _ = fs::remove_file(restore_backup);
+                return Err(SaveOriginalError::conflict_error(
+                    target,
+                    super::error::ConflictDetail::InodeChanged,
+                ));
+            }
+            Err(error) => {
+                backup.disarm();
+                displaced.disarm();
+                let _ = fs::remove_file(restore_backup);
+                return Err(SaveOriginalError::PublishedUnconfirmed {
+                    path: target.to_path_buf(),
+                    source: error,
+                    backup: backup_path,
+                });
+            }
+        }
+    }
+
+    let confirmed = before(SourceStage::Confirm, target)
+        .and_then(|_| confirm_published(source, &written, plan.bytes()))
+        .and_then(|(stamp, _metadata)| {
+            verify_windows_metadata(source, &stamp, xattrs).map(|()| stamp)
+        });
+    let stamp = match confirmed {
+        Ok(stamp) => stamp,
+        Err(error) => {
+            backup.disarm();
+            displaced.disarm();
+            return Err(SaveOriginalError::PublishedUnconfirmed {
+                path: target.to_path_buf(),
+                source: error,
+                backup: backup_path,
+            });
+        }
+    };
+    let receipt = SaveOriginalReceipt {
+        path: target.to_path_buf(),
+        version: plan.version(),
+        durability: super::CopyDurability::FileSynced,
+        stamp: Box::new(stamp),
+    };
+    before(SourceStage::Cleanup, &backup_path)
+        .and_then(|_| fs::remove_file(&backup_path))
+        .and_then(|_| fs::remove_file(&displaced_path))
+        .map_err(|error| {
+            backup.disarm();
+            displaced.disarm();
+            SaveOriginalError::io_published(SourceStage::Cleanup, target, error, receipt.clone())
+        })?;
+    backup.disarm();
+    displaced.disarm();
+    before(SourceStage::SyncDirectory, parent)
+        .and_then(|_| sync_directory(parent))
+        .map_err(|error| {
+            SaveOriginalError::io_published(
+                SourceStage::SyncDirectory,
+                target,
+                error,
+                receipt.clone(),
+            )
+        })?;
+    Ok(receipt)
 }
 
 /// Metadata the replacement must carry, from the verified source.
@@ -783,21 +1087,15 @@ mod tests {
 
     #[cfg(windows)]
     #[test]
-    fn windows_matrix_is_honest_about_std_observation() {
+    fn windows_matrix_reflects_replace_file_capabilities() {
         let caps = original_replacement_capabilities();
         assert_eq!(caps.permissions, MetadataCapability::Preservable);
         assert_eq!(caps.ownership, MetadataCapability::Unobservable);
         assert_eq!(caps.acl, MetadataCapability::Unobservable);
         assert_eq!(caps.extended_attributes, MetadataCapability::Unobservable);
-        assert_eq!(
-            caps.creation_time,
-            MetadataCapability::ObservableNotPreservable
-        );
-        assert_eq!(caps.links, MetadataCapability::Unobservable);
-        assert_eq!(
-            caps.provenance_marks,
-            MetadataCapability::ObservableNotPreservable
-        );
+        assert_eq!(caps.creation_time, MetadataCapability::Preservable);
+        assert_eq!(caps.links, MetadataCapability::ObservableNotPreservable);
+        assert_eq!(caps.provenance_marks, MetadataCapability::Preservable);
     }
 
     #[test]
@@ -879,6 +1177,144 @@ mod tests {
             xattr::get(&path, name).unwrap().as_deref(),
             Some(&b"kept"[..])
         );
+    }
+
+    #[cfg(windows)]
+    fn windows_fixture() -> Vec<u8> {
+        std::fs::read(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../tests/fixtures/docx/DOCX-MIN-001.docx"),
+        )
+        .unwrap()
+    }
+
+    #[cfg(windows)]
+    fn windows_plan(bytes: &[u8]) -> joyword_docx::ExportPlan {
+        use joyoffice_opc::Budget;
+        use joyword_engine::{Command, Transaction};
+        use joyword_model::{Bias, Position, ScalarOffset};
+
+        let mut session = crate::docx::DocxSession::open(bytes, &Budget::default()).unwrap();
+        let document = session.session().document();
+        let at = Position {
+            story: document.body_id(),
+            paragraph: document.body().blocks.get(0).unwrap().id(),
+            offset: ScalarOffset(0),
+            bias: Bias::After,
+        };
+        session
+            .apply(Transaction::new(
+                session.session().version(),
+                vec![Command::InsertText {
+                    at,
+                    text: "发布".into(),
+                }],
+            ))
+            .unwrap();
+        session.export_plan().unwrap()
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_failures_before_replace_keep_the_source_and_remove_backups() {
+        let bytes = windows_fixture();
+        let plan = windows_plan(&bytes);
+        for stage in [
+            SourceStage::CreateTemporary,
+            SourceStage::Write,
+            SourceStage::RestorePermissions,
+            SourceStage::SyncFile,
+            SourceStage::Verify,
+            SourceStage::Backup,
+            SourceStage::VerifyBackup,
+            SourceStage::Publish,
+        ] {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join("report.docx");
+            std::fs::write(&path, &bytes).unwrap();
+            let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
+                .unwrap()
+                .into_stamp();
+            let error =
+                save_original_inner(&plan, &stamp, None, OriginalChoice::Confirm, |at, _| {
+                    if at == stage {
+                        Err(io::Error::new(io::ErrorKind::StorageFull, "injected"))
+                    } else {
+                        Ok(())
+                    }
+                })
+                .unwrap_err();
+            assert_eq!(error.stage(), Some(stage), "{stage}");
+            assert!(error.published().is_none());
+            assert_eq!(std::fs::read(&path).unwrap(), bytes);
+            assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1, "{stage}");
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_replace_restores_a_writer_raced_after_the_final_identity_check() {
+        fn race(path: &Path) -> io::Result<()> {
+            let other = path.with_file_name("other-writer.tmp");
+            std::fs::write(&other, b"raced-writer")?;
+            std::fs::rename(other, path)
+        }
+        struct ClearHook;
+        impl Drop for ClearHook {
+            fn drop(&mut self) {
+                super::PRE_REPLACE.with(|cell| cell.set(None));
+            }
+        }
+        let _clear = ClearHook;
+        super::PRE_REPLACE.with(|cell| cell.set(Some(race)));
+
+        let bytes = windows_fixture();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("report.docx");
+        std::fs::write(&path, &bytes).unwrap();
+        let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
+            .unwrap()
+            .into_stamp();
+        let plan = windows_plan(&bytes);
+        let error =
+            save_original_inner(&plan, &stamp, None, OriginalChoice::Confirm, |_, _| Ok(()))
+                .unwrap_err();
+        assert_eq!(
+            error.conflict(),
+            Some(super::super::ConflictDetail::InodeChanged)
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), b"raced-writer");
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_unconfirmed_publication_keeps_the_original_backup() {
+        let bytes = windows_fixture();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("report.docx");
+        std::fs::write(&path, &bytes).unwrap();
+        let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
+            .unwrap()
+            .into_stamp();
+        let plan = windows_plan(&bytes);
+        let error =
+            save_original_inner(&plan, &stamp, None, OriginalChoice::Confirm, |stage, _| {
+                if stage == SourceStage::Confirm {
+                    Err(io::Error::new(io::ErrorKind::StorageFull, "injected"))
+                } else {
+                    Ok(())
+                }
+            })
+            .unwrap_err();
+        assert_eq!(error.stage(), Some(SourceStage::Confirm));
+        assert!(error.published().is_none());
+        assert_eq!(
+            std::fs::read(error.retained_backup().unwrap()).unwrap(),
+            bytes
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
     }
 
     #[cfg(unix)]

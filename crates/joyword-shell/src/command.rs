@@ -41,8 +41,8 @@ impl Platform {
 
 /// Top-level menus. Application-wide commands such as Quit are placed on
 /// App; [`MenuKind::display_order`] decides where each menu appears per
-/// platform. File has Open and Save As only; there is no original-file Save
-/// command.
+/// platform. File contains only commands with real open, original-save and
+/// save-copy implementations.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MenuKind {
     App,
@@ -199,6 +199,11 @@ const CLOSE_PARAMS: &[ParamSpec] = &[
         required: false,
     },
 ];
+const ORIGINAL_SAVE_PARAMS: &[ParamSpec] = &[ParamSpec {
+    name: "choice",
+    kind: ParamKind::Text,
+    required: false,
+}];
 const TEXT_PARAM: &[ParamSpec] = &[ParamSpec {
     name: "text",
     kind: ParamKind::Text,
@@ -278,6 +283,7 @@ pub enum RegistryIssue {
 
 pub const QUIT: CommandId = CommandId("app.quit");
 pub const FILE_OPEN: CommandId = CommandId("file.open");
+pub const FILE_SAVE: CommandId = CommandId("file.save");
 pub const FILE_SAVE_COPY: CommandId = CommandId("file.save_copy");
 pub const ZOOM_IN: CommandId = CommandId("view.zoom_in");
 pub const ZOOM_OUT: CommandId = CommandId("view.zoom_out");
@@ -344,6 +350,17 @@ impl Registry {
                 shortcut: Shortcut::primary("cmd-o", "ctrl-o"),
                 modifies_document: false,
                 parameters: PATH_PARAM,
+            },
+            CommandSpec {
+                id: FILE_SAVE,
+                label: "command.file.save",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 0,
+                }),
+                shortcut: Shortcut::primary("cmd-s", "ctrl-s"),
+                modifies_document: false,
+                parameters: ORIGINAL_SAVE_PARAMS,
             },
             CommandSpec {
                 id: FILE_SAVE_COPY,
@@ -864,8 +881,8 @@ mod tests {
             Err(InvokeError::Disabled("zoom.max"))
         );
         assert_eq!(
-            registry.invoke(&mut host, CommandId("file.save")),
-            Err(InvokeError::Unknown("file.save".into()))
+            registry.invoke(&mut host, CommandId("file.print")),
+            Err(InvokeError::Unknown("file.print".into()))
         );
     }
 
@@ -904,6 +921,7 @@ mod tests {
             entries(&menus, MenuKind::File),
             vec![
                 MenuEntry::Command(FILE_OPEN),
+                MenuEntry::Command(FILE_SAVE),
                 MenuEntry::Command(FILE_SAVE_COPY),
                 MenuEntry::Separator,
                 MenuEntry::Command(FILE_CLOSE),
@@ -924,6 +942,7 @@ mod tests {
                 entries(&menus, MenuKind::File),
                 vec![
                     MenuEntry::Command(FILE_OPEN),
+                    MenuEntry::Command(FILE_SAVE),
                     MenuEntry::Command(FILE_SAVE_COPY),
                     MenuEntry::Separator,
                     MenuEntry::Command(FILE_CLOSE),

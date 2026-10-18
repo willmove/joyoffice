@@ -15,6 +15,6 @@ mod session;
 pub use command::{Command, CommandError, ParagraphChange, Precondition, RunChange};
 pub use map::{MapStep, Mapped, PositionMap, Selection};
 pub use session::{
-    ApplyResult, ChangeSet, EditPolicy, Origin, Outcome, Session, Transaction, TxError, UndoError,
-    UndoResult,
+    ApplyResult, ChangeSet, EditPolicy, MAX_UNDO_GROUP_STEPS, Origin, Outcome, Session,
+    Transaction, TxError, UndoError, UndoGroup, UndoResult,
 };

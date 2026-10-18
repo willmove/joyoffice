@@ -51,6 +51,29 @@ pub struct EditPolicy {
     pub agent_writes: bool,
 }
 
+/// How a committed transaction joins the undo history (T209, SPEC §6).
+///
+/// Only `Typing` and `Deleting` may coalesce, and only with the immediately
+/// preceding history entry of the same kind and origin whose resulting
+/// selection equals this transaction's starting selection. Undo, redo,
+/// [`Session::seal_undo_group`] and any standalone commit close the group.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum UndoGroup {
+    /// Its own undo step: composition commits, pastes, drag gestures,
+    /// autocorrect, formatting, structural edits and every Agent change.
+    #[default]
+    Standalone,
+    /// Consecutive keyboard typing.
+    Typing,
+    /// Consecutive keyboard deletion (backspace / forward delete).
+    Deleting,
+}
+
+/// Upper bound of transactions coalesced into one undo step, so a long
+/// typing burst still undoes in bounded chunks. The exact Word grouping
+/// granularity is unobserved (behavior registry `EDIT-UNDO-TYPING-CAP`).
+pub const MAX_UNDO_GROUP_STEPS: usize = 100;
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Transaction {
     pub base_version: DocumentVersion,
@@ -59,6 +82,8 @@ pub struct Transaction {
     pub commands: Vec<Command>,
     /// Selection before the change, restored by undo.
     pub selection: Option<Selection>,
+    /// Undo coalescing class; `Standalone` unless the input layer says otherwise.
+    pub undo_group: UndoGroup,
 }
 
 impl Transaction {
@@ -69,6 +94,7 @@ impl Transaction {
             preconditions: Vec::new(),
             commands,
             selection: None,
+            undo_group: UndoGroup::Standalone,
         }
     }
 }
@@ -172,7 +198,23 @@ struct UndoEntry {
     version: DocumentVersion,
     selection_before: Option<Selection>,
     selection_after: Option<Selection>,
+    /// Union of every coalesced transaction's changes.
     changes: ChangeSet,
+    group: UndoGroup,
+    origin: Origin,
+    /// Transactions folded into this entry (1 for an ungrouped step).
+    steps: usize,
+}
+
+impl ChangeSet {
+    fn absorb(&mut self, other: ChangeSet) {
+        self.stories.extend(other.stories);
+        self.paragraphs.extend(other.paragraphs);
+        self.inserted.extend(other.inserted);
+        self.removed.extend(other.removed);
+        self.moved.extend(other.moved);
+        self.annotations.extend(other.annotations);
+    }
 }
 
 pub struct Session {
@@ -180,6 +222,8 @@ pub struct Session {
     policy: EditPolicy,
     undo: Vec<UndoEntry>,
     redo: Vec<UndoEntry>,
+    /// Whether the top undo entry may still absorb a coalescing transaction.
+    group_open: bool,
 }
 
 impl Session {
@@ -189,7 +233,25 @@ impl Session {
             policy: EditPolicy::default(),
             undo: Vec::new(),
             redo: Vec::new(),
+            group_open: false,
         }
+    }
+
+    /// Close the current typing/deleting group: the next transaction starts
+    /// a new undo step. Callers use this at explicit operation boundaries
+    /// such as caret moves, review-mode switches or author changes.
+    pub fn seal_undo_group(&mut self) {
+        self.group_open = false;
+    }
+
+    /// Number of undo steps (coalesced groups count once).
+    pub fn undo_depth(&self) -> usize {
+        self.undo.len()
+    }
+
+    /// Number of redo steps.
+    pub fn redo_depth(&self) -> usize {
+        self.redo.len()
     }
 
     pub fn document(&self) -> &Document {
@@ -244,6 +306,7 @@ impl Session {
         let policy = self.policy.clone();
         let undo = self.undo.clone();
         let redo = self.redo.clone();
+        let group_open = self.group_open;
         match catch_unwind(AssertUnwindSafe(|| body(self))) {
             Ok(result) => result,
             Err(_) => {
@@ -251,6 +314,7 @@ impl Session {
                 self.policy = policy;
                 self.undo = undo;
                 self.redo = redo;
+                self.group_open = group_open;
                 Err(TxError::Interrupted)
             }
         }
@@ -308,14 +372,32 @@ impl Session {
         let selection = target
             .or(transaction.selection)
             .and_then(|selection| selection.map(&map));
-        self.undo.push(UndoEntry {
-            before: std::mem::replace(&mut self.document, candidate),
-            after: Document::clone(&self.document),
-            version,
-            selection_before: transaction.selection,
-            selection_after: selection,
-            changes: changes.clone(),
-        });
+        let merges = self.coalesces_with_top(&transaction);
+        let before = std::mem::replace(&mut self.document, candidate);
+        let after = Document::clone(&self.document);
+        match self.undo.last_mut() {
+            Some(top) if merges => {
+                // The group keeps its first `before` state and selection; it
+                // now ends at this transaction's result.
+                top.after = after;
+                top.version = version;
+                top.selection_after = selection;
+                top.changes.absorb(changes.clone());
+                top.steps += 1;
+            }
+            _ => self.undo.push(UndoEntry {
+                before,
+                after,
+                version,
+                selection_before: transaction.selection,
+                selection_after: selection,
+                changes: changes.clone(),
+                group: transaction.undo_group,
+                origin: transaction.origin,
+                steps: 1,
+            }),
+        }
+        self.group_open = transaction.undo_group != UndoGroup::Standalone;
         self.redo.clear();
         Ok(Outcome::Applied(Box::new(ApplyResult {
             version,
@@ -323,6 +405,23 @@ impl Session {
             map,
             selection,
         })))
+    }
+
+    /// Coalescing never crosses an undo/redo, a seal, a standalone commit,
+    /// another kind or origin, a discontinuous selection, or the step cap.
+    /// Only user input coalesces; Agent and system changes stay separate.
+    fn coalesces_with_top(&self, transaction: &Transaction) -> bool {
+        let Some(top) = self.undo.last() else {
+            return false;
+        };
+        self.group_open
+            && transaction.undo_group != UndoGroup::Standalone
+            && transaction.origin == Origin::User
+            && top.group == transaction.undo_group
+            && top.origin == transaction.origin
+            && top.steps < MAX_UNDO_GROUP_STEPS
+            && transaction.selection.is_some()
+            && transaction.selection == top.selection_after
     }
 
     pub fn undo(&mut self) -> Result<UndoResult, UndoError> {
@@ -373,6 +472,9 @@ impl Session {
             (&mut self.redo, &mut self.undo)
         };
         let mut entry = from.pop().ok_or(UndoError::Nothing)?;
+        // History navigation is an explicit boundary: typing afterwards
+        // never folds into an entry that was undone or redone.
+        self.group_open = false;
         debug_assert_eq!(
             entry.version,
             self.document.version(),

@@ -10,7 +10,9 @@
 //! and leaves the bound path, stamp, backing and dirty version untouched.
 //! [`BoundDocx::save_copy_job`] detaches that copy of one committed version so
 //! planning, verification and IO can run on another thread while editing
-//! continues. `save_original` is not called.
+//! continues. `SaveOriginalJob` additionally binds the opened source and lock;
+//! a published result installs a verified `ExportBinding` without resetting
+//! the live engine document or its undo history.
 
 use std::fmt;
 use std::fs::{self, OpenOptions};
@@ -20,12 +22,13 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::storage::{
-    SaveCopyError, SaveCopyReceipt, SaveOriginalError, SourceStamp, open_source, save_export_copy,
+    OriginalChoice, SaveCopyError, SaveCopyReceipt, SaveOriginalError, SaveOriginalReceipt,
+    SourceStamp, open_source, save_export_copy, save_original_with_choice,
 };
 use joyoffice_opc::Budget;
 use joyword_docx::{
-    Diagnostics, Editability, ExportError, ExportPlan, ImportError, PackageBacking, import,
-    plan_export,
+    Diagnostics, Editability, ExportBinding, ExportError, ExportPlan, ImportError, PackageBacking,
+    import, plan_export,
 };
 use joyword_engine::{EditPolicy, Outcome, Session, Transaction, TxError, UndoError, UndoResult};
 use joyword_model::{DocumentSnapshot, DocumentVersion};
@@ -60,6 +63,7 @@ pub struct DocxSession {
     editability: Editability,
     imported_version: DocumentVersion,
     budget: Budget,
+    rebound: Option<ExportBinding>,
 }
 
 impl DocxSession {
@@ -80,6 +84,7 @@ impl DocxSession {
             editability: result.editability,
             imported_version,
             budget: budget.clone(),
+            rebound: None,
         })
     }
 
@@ -95,6 +100,7 @@ impl DocxSession {
             backing: Arc::clone(&self.backing),
             snapshot: self.session.document().snapshot(),
             budget: self.budget.clone(),
+            rebound: self.rebound.clone(),
         }
     }
 
@@ -116,6 +122,17 @@ impl DocxSession {
     /// constitute an export of the current edited document.
     pub fn backing(&self) -> &PackageBacking {
         &self.backing
+    }
+
+    fn rebind(&mut self, rebound: ReboundPackage) {
+        self.backing = rebound.backing;
+        self.rebound = Some(rebound.binding);
+        self.diagnostics = rebound.diagnostics;
+        self.editability = rebound.editability;
+        self.session.set_policy(EditPolicy {
+            read_only: !self.editability.is_unrestricted(),
+            agent_writes: false,
+        });
     }
 
     pub fn apply(&mut self, transaction: Transaction) -> Result<Outcome, TxError> {
@@ -140,14 +157,20 @@ impl DocxSession {
         self.session.redo()
     }
 
+    /// Close the open typing/deleting undo group (see
+    /// [`Session::seal_undo_group`]).
+    pub fn seal_undo_group(&mut self) {
+        self.session.seal_undo_group();
+    }
+
     /// Build a verified export for the current immutable version, using the
     /// original import budget. This does not save or change session state.
     pub fn export_plan(&self) -> Result<ExportPlan, ExportError> {
-        plan_export(
-            &self.backing,
-            &self.session.document().snapshot(),
-            &self.budget,
-        )
+        let snapshot = self.session.document().snapshot();
+        match &self.rebound {
+            Some(binding) => binding.plan(&snapshot, &self.budget),
+            None => plan_export(&self.backing, &snapshot, &self.budget),
+        }
     }
 
     /// Return the exact source package only if no edit was ever committed.
@@ -225,6 +248,76 @@ impl fmt::Display for BoundSaveError {
 
 impl std::error::Error for BoundSaveError {}
 
+/// Original-save preparation or publication failed. Preparation always runs
+/// before any write, including import of the backing that a published receipt
+/// will install without disturbing the live engine history.
+#[derive(Debug)]
+pub enum BoundOriginalSaveError {
+    Export(ExportError),
+    Import(ImportError),
+    Storage(SaveOriginalError),
+    RebindMismatch,
+}
+
+impl fmt::Display for BoundOriginalSaveError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Export(error) => write!(f, "{error}"),
+            Self::Import(error) => write!(f, "{error}"),
+            Self::Storage(error) => write!(f, "{error}"),
+            Self::RebindMismatch => {
+                f.write_str("published package cannot be rebound to the live document")
+            }
+        }
+    }
+}
+
+impl std::error::Error for BoundOriginalSaveError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Export(error) => Some(error),
+            Self::Import(error) => Some(error),
+            Self::Storage(error) => Some(error),
+            Self::RebindMismatch => None,
+        }
+    }
+}
+
+struct ReboundPackage {
+    backing: Arc<PackageBacking>,
+    binding: ExportBinding,
+    diagnostics: Diagnostics,
+    editability: Editability,
+}
+
+/// Result of a detached original-save job. The prepared backing is private and
+/// can only be installed by [`BoundDocx::apply_original_save`].
+pub struct SaveOriginalJobOutput {
+    result: Result<SaveOriginalReceipt, BoundOriginalSaveError>,
+    rebound: Option<ReboundPackage>,
+}
+
+impl SaveOriginalJobOutput {
+    pub fn result(&self) -> Result<&SaveOriginalReceipt, &BoundOriginalSaveError> {
+        self.result.as_ref()
+    }
+
+    pub fn storage_error(&self) -> Option<&SaveOriginalError> {
+        match &self.result {
+            Err(BoundOriginalSaveError::Storage(error)) => Some(error),
+            _ => None,
+        }
+    }
+
+    pub fn published_receipt(&self) -> Option<&SaveOriginalReceipt> {
+        match &self.result {
+            Ok(receipt) => Some(receipt),
+            Err(BoundOriginalSaveError::Storage(error)) => error.published(),
+            _ => None,
+        }
+    }
+}
+
 impl BoundDocx {
     /// `open_source`, then [`DocxSession::open`], then the sibling lock
     /// `.<file name>.joyword-lock`. Any error leaves the directory without
@@ -290,7 +383,50 @@ impl BoundDocx {
             backing: Arc::clone(&self.inner.backing),
             snapshot: self.inner.session().snapshot(),
             budget: self.inner.budget.clone(),
+            rebound: self.inner.rebound.clone(),
         }
+    }
+
+    /// Detach one committed version for an original-save precheck or write.
+    /// Taking the job performs no export or IO and does not freeze later edits.
+    pub fn save_original_job(&self) -> SaveOriginalJob {
+        SaveOriginalJob {
+            backing: Arc::clone(&self.inner.backing),
+            snapshot: self.inner.session().snapshot(),
+            budget: self.inner.budget.clone(),
+            rebound: self.inner.rebound.clone(),
+            stamp: self.stamp.clone(),
+            lock_token: self.lock_token.clone(),
+        }
+    }
+
+    /// Apply a detached result to the session that created it. Any published
+    /// receipt, including one carried by a cleanup error, refreshes both the
+    /// backing and source stamp. The live engine document and undo history are
+    /// deliberately left alone, so later edits and late completions cannot be
+    /// rolled back or attributed to another document.
+    pub fn apply_original_save(
+        &mut self,
+        output: SaveOriginalJobOutput,
+    ) -> Result<SaveOriginalReceipt, BoundOriginalSaveError> {
+        let published = output.published_receipt().cloned();
+        let SaveOriginalJobOutput { result, rebound } = output;
+        if let Some(receipt) = published {
+            let Some(rebound) = rebound else {
+                return Err(BoundOriginalSaveError::RebindMismatch);
+            };
+            self.inner.rebind(rebound);
+            self.stamp = receipt.stamp().clone();
+        }
+        result
+    }
+
+    pub fn save_original(
+        &mut self,
+        choice: OriginalChoice,
+    ) -> Result<SaveOriginalReceipt, BoundOriginalSaveError> {
+        let output = self.save_original_job().run(choice);
+        self.apply_original_save(output)
     }
 }
 
@@ -302,6 +438,7 @@ pub struct SaveCopyJob {
     backing: Arc<PackageBacking>,
     snapshot: DocumentSnapshot,
     budget: Budget,
+    rebound: Option<ExportBinding>,
 }
 
 impl SaveCopyJob {
@@ -312,9 +449,70 @@ impl SaveCopyJob {
 
     /// Same plan and copy as [`BoundDocx::save_copy`] at [`Self::version`].
     pub fn run(&self, destination: &Path) -> Result<SaveCopyReceipt, BoundSaveError> {
-        let plan = plan_export(&self.backing, &self.snapshot, &self.budget)
-            .map_err(BoundSaveError::Export)?;
+        let plan = match &self.rebound {
+            Some(binding) => binding.plan(&self.snapshot, &self.budget),
+            None => plan_export(&self.backing, &self.snapshot, &self.budget),
+        }
+        .map_err(BoundSaveError::Export)?;
         save_export_copy(&plan, destination).map_err(BoundSaveError::Copy)
+    }
+}
+
+/// One committed version bound to the opened source and its own JoyWord lock.
+/// Export, reimport preparation and storage can all run away from the UI thread.
+#[derive(Clone)]
+pub struct SaveOriginalJob {
+    backing: Arc<PackageBacking>,
+    snapshot: DocumentSnapshot,
+    budget: Budget,
+    rebound: Option<ExportBinding>,
+    stamp: SourceStamp,
+    lock_token: String,
+}
+
+impl SaveOriginalJob {
+    pub fn version(&self) -> DocumentVersion {
+        self.snapshot.version()
+    }
+
+    fn prepare(&self) -> Result<(ExportPlan, ReboundPackage), BoundOriginalSaveError> {
+        let plan = match &self.rebound {
+            Some(binding) => binding.plan(&self.snapshot, &self.budget),
+            None => plan_export(&self.backing, &self.snapshot, &self.budget),
+        }
+        .map_err(BoundOriginalSaveError::Export)?;
+        let imported =
+            import(plan.bytes(), &self.budget).map_err(BoundOriginalSaveError::Import)?;
+        let binding = ExportBinding::rebind(imported.backing, &self.snapshot, &self.budget)
+            .map_err(BoundOriginalSaveError::Export)?;
+        let backing = Arc::new(binding.backing().clone());
+        Ok((
+            plan,
+            ReboundPackage {
+                backing,
+                binding,
+                diagnostics: imported.diagnostics,
+                editability: imported.editability,
+            },
+        ))
+    }
+
+    pub fn run(&self, choice: OriginalChoice) -> SaveOriginalJobOutput {
+        let (plan, rebound) = match self.prepare() {
+            Ok(prepared) => prepared,
+            Err(error) => {
+                return SaveOriginalJobOutput {
+                    result: Err(error),
+                    rebound: None,
+                };
+            }
+        };
+        let result = save_original_with_choice(&plan, &self.stamp, Some(&self.lock_token), choice)
+            .map_err(BoundOriginalSaveError::Storage);
+        SaveOriginalJobOutput {
+            result,
+            rebound: Some(rebound),
+        }
     }
 }
 

@@ -10,9 +10,30 @@ use serde_json::json;
 
 const MAX_INPUT: u64 = 32 << 20;
 const MAX_TEXT: usize = 1 << 20;
-const HELP: &str = "joyword-cli inspect|text [--max-text-bytes N] [--] FILE\nOptions may also follow FILE; -- ends option parsing.\nUse joyword-cli inspect|text --help for this help.\nRead-only DOCX; N is UTF-8 text bytes (0..1048576), default 1048576.\nProjection: imported main body, INCLUDING hidden text; deleted revisions,\ncomments and other stories excluded; inserted/moveTo text included.\nUnsupported XML is preserved by import\nbut omitted from text. This is not a complete final/revision view.\ninspect: schema 1 JSON, partial and truncated are independent.\ntext: UTF-8 stdout; projection/partial/truncated JSON on stderr.\nExit: 0 complete within projection; 2 error; 3 text truncated.\nrender and convert are not implemented and are refused.\n";
+const HELP: &str = concat!(
+    "joyword-cli inspect|text [--max-text-bytes N] [--] FILE\n",
+    "joyword-cli render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]\n",
+    "joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf\n",
+    "Options may also follow FILE; -- ends option parsing.\n",
+    "Read-only DOCX; N is UTF-8 text bytes (0..1048576), default 1048576.\n",
+    "Projection: imported main body, INCLUDING hidden text; deleted revisions,\n",
+    "comments and other stories excluded; inserted/moveTo text included.\n",
+    "Unsupported XML is preserved by import but omitted from text.\n",
+    "inspect: schema 1 JSON, partial and truncated are independent.\n",
+    "text: UTF-8 stdout; projection/partial/truncated JSON on stderr.\n",
+    "render: deterministic CPU PNG pages from the unified PageScene.\n",
+    "convert: searchable PDF from that same scene; other targets are refused.\n",
+    "Exit: 0 complete within projection; 2 error; 3 text truncated.\n",
+);
 
-struct Options {
+mod visual;
+
+enum Options {
+    Text(TextOptions),
+    Visual(visual::Options),
+}
+
+struct TextOptions {
     inspect: bool,
     path: OsString,
     limit: usize,
@@ -30,12 +51,22 @@ fn options() -> Result<Option<Options>, &'static str> {
             Err("unexpected arguments")
         };
     }
+    let visual = if command == "render" {
+        Some(visual::Command::Render)
+    } else if command == "convert" {
+        Some(visual::Command::Convert)
+    } else {
+        None
+    };
+    if let Some(command) = visual {
+        return visual::options(command, args).map(|options| options.map(Options::Visual));
+    }
     let inspect = if command == "inspect" {
         true
     } else if command == "text" {
         false
     } else {
-        return Err("unsupported command; use inspect or text (render/convert unavailable)");
+        return Err("unsupported command; use inspect, text, render or convert");
     };
     let mut path = None;
     let mut limit = MAX_TEXT;
@@ -67,11 +98,11 @@ fn options() -> Result<Option<Options>, &'static str> {
         }
     }
     let path = path.ok_or("missing DOCX path")?;
-    Ok(Some(Options {
+    Ok(Some(Options::Text(TextOptions {
         inspect,
         path,
         limit,
-    }))
+    })))
 }
 
 struct Text {
@@ -129,7 +160,7 @@ impl Text {
     }
 }
 
-fn execute(options: Options) -> Result<u8, &'static str> {
+fn execute_text(options: TextOptions) -> Result<u8, &'static str> {
     if !std::fs::metadata(&options.path)
         .map_err(|_| "cannot inspect input")?
         .is_file()
@@ -221,7 +252,8 @@ fn execute(options: Options) -> Result<u8, &'static str> {
 
 fn main() -> ExitCode {
     let result = match options() {
-        Ok(Some(options)) => execute(options),
+        Ok(Some(Options::Text(options))) => execute_text(options),
+        Ok(Some(Options::Visual(options))) => visual::execute(options),
         Ok(None) => std::io::stdout()
             .write_all(HELP.as_bytes())
             .map(|()| 0)

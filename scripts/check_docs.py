@@ -12,6 +12,19 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs/joyword"
 REQUIREMENT = r"(?:EDIT|STYLE|LAYOUT|REVIEW|FORMAT|CLIP|AI|PLATFORM|QUALITY|COLLAB|SUITE)-\d{3}"
 RELEASE_GATE = "T704"  # Every M0–M7 task must be a prerequisite of the 1.0 gate.
+# T209: undo-group rules (SPEC §6) that must stay registered with a test.
+REQUIRED_BEHAVIORS = (
+    "EDIT-UNDO-TYPING",
+    "EDIT-UNDO-DELETING",
+    "EDIT-UNDO-SOURCE-BOUNDARY",
+    "EDIT-UNDO-CARET-BOUNDARY",
+    "EDIT-UNDO-REPLACE-ELSEWHERE",
+    "EDIT-UNDO-FORMAT-BOUNDARY",
+    "EDIT-UNDO-AFTER-HISTORY",
+    "EDIT-UNDO-ORIGIN",
+    "EDIT-UNDO-TYPING-CAP",
+    "EDIT-UNDO-FAILED-INPUT",
+)
 errors = []
 
 
@@ -53,9 +66,10 @@ def rust_function_names(roots):
     return names
 
 
-def validate_behavior_registry(path, test_names):
+def validate_behavior_registry(path, test_names, required=()):
     """T004 editing-behavior registry: schema, hypothesis/rule discipline,
-    and every referenced test name must exist in the workspace."""
+    and every referenced test name must exist in the workspace. Each ID in
+    `required` must be registered (T209 undo-group rules)."""
     problems = []
     if not path.is_file():
         return [f"behavior registry missing: {path}"], 0
@@ -111,6 +125,9 @@ def validate_behavior_registry(path, test_names):
         test = entry.get("test")
         if isinstance(test, str) and test and test not in test_names:
             problems.append(f"{label}: test {test} not found in the workspace")
+    for entry_id in required:
+        if entry_id not in seen:
+            problems.append(f"behavior registry: required entry {entry_id} missing")
     return problems, count
 
 
@@ -295,7 +312,7 @@ def validate():
 
     test_names = rust_function_names([ROOT / "crates", ROOT / "apps"])
     registry_problems, behavior_count = validate_behavior_registry(
-        DOCS / "behavior_registry.json", test_names)
+        DOCS / "behavior_registry.json", test_names, REQUIRED_BEHAVIORS)
     errors.extend(registry_problems)
 
     if errors:

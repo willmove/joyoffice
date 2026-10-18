@@ -92,7 +92,7 @@ fn replacement_is_refused_with_durable_blockers_and_zero_side_effects() {
     }
     #[cfg(not(unix))]
     assert!(blockers.contains(&ReplacementBlocker::UnobservableMetadata(MetadataItem::Acl)));
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(all(not(target_os = "macos"), not(windows)))]
     assert!(
         blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::CreationTime

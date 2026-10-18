@@ -43,6 +43,7 @@
 //! the clause list.
 
 mod backing;
+mod binding;
 mod body;
 mod export;
 mod import;
@@ -52,6 +53,7 @@ mod result;
 mod xml;
 
 pub use backing::{Fragment, PackageBacking, PreservedReason};
+pub use binding::ExportBinding;
 pub use export::{ExportError, ExportMode, ExportPlan, ExportTarget, ExportWarning, plan_export};
 pub use import::import;
 pub use ns::{

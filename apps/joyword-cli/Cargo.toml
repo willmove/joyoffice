@@ -1,6 +1,6 @@
 [package]
 name = "joyword-cli"
-description = "Bounded headless DOCX inspection and text projection (T210 slice)"
+description = "Bounded headless DOCX inspection, text, page raster and PDF output"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,8 +10,13 @@ publish = false
 [dependencies]
 joyoffice-opc.workspace = true
 joyword-docx.workspace = true
+joyword-foundation.workspace = true
+joyword-layout.workspace = true
 joyword-model.workspace = true
+joyword-pdf.workspace = true
+joyword-render.workspace = true
 serde_json = "=1.0.154"
+tempfile.workspace = true
 
 [dev-dependencies]
 joyword-corpus.workspace = true

@@ -1,6 +1,7 @@
 //! W10: a real open → edit → `export_plan` chain exposes the backing bytes
 //! through `origin_bytes`. `save_export_copy` still publishes the plan output.
-//! `save_original` still refuses; this task does not implement replacement.
+//! Unconfirmed `save_original` leaves the source untouched and reports the
+//! required choice; confirmed replacement is covered by dedicated save tests.
 
 use std::fs;
 use std::path::PathBuf;
@@ -123,7 +124,7 @@ fn open_source_bytes_round_trip_into_the_plan_origin() {
 }
 
 #[test]
-fn save_export_copy_writes_output_and_save_original_still_refuses() {
+fn save_export_copy_writes_output_and_unconfirmed_original_stays_put() {
     let bytes = package("副本");
     let dir = tempfile::tempdir().unwrap();
     let source = dir.path().join("source.docx");
