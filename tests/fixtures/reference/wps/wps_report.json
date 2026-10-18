@@ -1,0 +1,21 @@
+{
+  "software": "WPS Office for Mac",
+  "version": "12.1.29181",
+  "bundle_version": "29181",
+  "os": "macOS 27.0.1 (26A434) arm64, Apple M4",
+  "date": "2026-10-18",
+  "method_readback": "open -a wpsoffice 打开；Cmd+A 全选 Cmd+C 复制，pbpaste 读回正文；比较基线为 DOCX 包内 document.xml 的 w:t 串接（独立解析），WPS 复制在中西文边界插入半角空格，按去空格归一",
+  "readback": "当日两轮独立执行：首轮 7/7 逐段一致（6 夹具+e2e_saved.docx，首轮产物后被并行会话清理丢失）；复验轮环境恶化后完成 DOCX-MIN-001/002 读回（现存 .txt），与基线一致",
+  "pdf_export": "不可得：系统打印面板“存储为PDF”（含默认 Downloads 与 Cmd+Shift+G 指定目录）、“打开PDF于预览”、WPS 自绘“输出为PDF”对话框（冷启动+默认目录+默认文件名）当日下午全部静默无产物；无排队打印作业、无 TCC 弹窗痕迹、无替代落盘位置；同日上午该通道曾成功（7 份 PDF，后被清理丢失）。诱因不明（疑似打印/PDF 服务会话损坏，无 sudo 无法修复），参考 PDF 待环境修复后补建",
+  "protection_note": "DOCX-MIN-005（限制编辑＋强制修订）WPS 可正常打开并读回正文；未在 WPS 侧尝试编辑，保护行为未测",
+  "readback_files": {
+    "DOCX-MIN-001.txt": {
+      "bytes": 51,
+      "match": true
+    },
+    "DOCX-MIN-002.txt": {
+      "bytes": 63,
+      "match": true
+    }
+  }
+}
