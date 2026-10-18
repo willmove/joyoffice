@@ -255,14 +255,16 @@ def campaign(args, smoke=False):
     peak = None
     if resource is not None:
         peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * (1 if sys.platform == 'darwin' else 1024)
+    matrix_complete = None if items is None else sum(counts.values()) == len(items)
     summary = dict(info, campaign_seed=args.seed, requested_runs=args.iterations if items is None else len(items),
                    requested_seconds=args.seconds, executed=sum(counts.values()), counts=dict(counts),
+                   matrix_complete=matrix_complete,
                    elapsed_seconds=time.monotonic()-started, timeout_seconds=args.timeout,
                    effective_address_space_mib=cap, aggregate_children_peak_rss_bytes=peak,
                    peak_scope='OS cumulative maximum across child processes; includes capability probe, not per-case')
     (out/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps(summary,ensure_ascii=False))
-    return 1 if anomalies else 0
+    return 1 if anomalies or matrix_complete is False else 0
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__); sub=parser.add_subparsers(dest='command',required=True)

@@ -68,6 +68,11 @@ jobs:
           cargo fmt --manifest-path experiments/docx-robustness/Cargo.toml --all -- --check
           cargo clippy --manifest-path experiments/docx-robustness/Cargo.toml --all-targets --locked -- -D warnings
           python -m unittest discover -s experiments/docx-robustness/tests -p "test_*.py" -v
+          cargo build --manifest-path experiments/docx-robustness/Cargo.toml --locked
+          python experiments/docx-robustness/driver.py smoke --binary experiments/docx-robustness/target/debug/joyword-docx-robustness${{ runner.os == 'Windows' && '.exe' || '' }} --out experiments/docx-robustness/target/ci-smoke
+      # The smoke line above is W09's bounded fixed-matrix mutation run (exit 1
+      # on crash/timeout/invariant/protocol or an incomplete matrix); it is not
+      # coverage-guided fuzz.
       - name: Native application build (precompiled shaders)
         run: cargo build -p joyword --locked
       # GPU windows, IME, accessibility, printing and Office round-trips require

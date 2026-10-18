@@ -5,7 +5,9 @@ import random
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest import mock
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import driver
 import matrix
@@ -51,6 +53,22 @@ class DriverTests(unittest.TestCase):
         capability=driver.memory_capability();self.assertIsInstance(capability['enforced'],bool);self.assertIn('reason',capability)
     def test_size_limit_is_checked_before_starting_a_child(self):
         with self.assertRaises(ValueError):driver.run_process(['does-not-exist'],b'0'*(driver.MAX_INPUT+1))
+    def test_smoke_requires_complete_matrix_within_total_time_budget(self):
+        for smoke, expired, expected_exit, complete in [(True, True, 1, False), (True, False, 0, True), (False, True, 0, None)]:
+            with self.subTest(smoke=smoke, expired=expired), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory); (root/'seed.docx').write_bytes(matrix.archive())
+                args = SimpleNamespace(iterations=1, seconds=120, timeout=3, memory_mib=512,
+                                       binary=Path('unused'), out=root/'out', seeds=root, seed=42)
+                times = [0, 121, 121] if expired else [0, 0, 0, 0, 0]
+                with mock.patch.object(driver, 'memory_capability', return_value={'enforced': False}), \
+                     mock.patch.object(driver, 'environment', return_value={}), \
+                     mock.patch.object(driver, 'invoke', return_value={'class': 'ok'}), \
+                     mock.patch.object(driver.time, 'monotonic', side_effect=times), \
+                     mock.patch('builtins.print'):
+                    self.assertEqual(driver.campaign(args, smoke), expected_exit)
+                summary = json.loads((root/'out'/'summary.json').read_text())
+                self.assertEqual(summary['matrix_complete'], complete)
+                self.assertEqual(summary['executed'], 0 if expired else 3)
 
 
 class ProcessFailureTests(unittest.TestCase):
