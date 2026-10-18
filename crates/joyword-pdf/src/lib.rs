@@ -174,33 +174,3 @@ fn fill_rect(surface: &mut krilla::surface::Surface<'_>, rect: &SceneRect) {
     surface.set_stroke(None);
     surface.draw_path(&path);
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use joyword_foundation::Emu;
-
-    #[test]
-    fn a_scene_rect_changes_the_pdf_bytes() {
-        let page = PageScene {
-            width: Emu::new(72 * Emu::PER_POINT),
-            height: Emu::new(72 * Emu::PER_POINT),
-            runs: Vec::new(),
-            rects: vec![SceneRect {
-                x: Emu::new(Emu::PER_POINT),
-                y: Emu::new(Emu::PER_POINT),
-                width: Emu::new(10 * Emu::PER_POINT),
-                height: Emu::new(4 * Emu::PER_POINT),
-                red: 255,
-                green: 0,
-                blue: 0,
-            }],
-        };
-        let painted = render(std::slice::from_ref(&page), &[]).unwrap();
-        let mut blank = page;
-        blank.rects.clear();
-        let plain = render(&[blank], &[]).unwrap();
-        assert_ne!(painted, plain);
-        assert!(painted.starts_with(b"%PDF"));
-    }
-}

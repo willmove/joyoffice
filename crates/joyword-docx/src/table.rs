@@ -13,8 +13,9 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, Color, Indent, Measure, ParaProps,
-    Paragraph, Row, RunProps, Shading, Spacing, StyleId, Table, TableWidth, VerticalMerge,
+    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, Color, Indent, Measure, OBJECT_MARKER,
+    ParaProps, Paragraph, Row, RunProps, Shading, Spacing, StyleId, Table, TableWidth,
+    VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -69,7 +70,7 @@ pub(crate) fn import_table(
     element: &Element,
 ) -> Option<Table> {
     let draft = parse_table(element)?;
-    Some(build(importer, part, element, draft))
+    build(importer, part, element, draft)
 }
 
 fn build(
@@ -77,14 +78,14 @@ fn build(
     part: &PartName,
     element: &Element,
     draft: DraftTable,
-) -> Table {
+) -> Option<Table> {
     let mut rows = Vec::new();
     for row in draft.rows {
         let mut cells = Vec::new();
         for cell in row.cells {
             let mut blocks = Vec::new();
             for paragraph in cell.paragraphs {
-                blocks.push(build_paragraph(importer, part, element, paragraph).into());
+                blocks.push(build_paragraph(importer, part, element, paragraph)?.into());
             }
             cells.push(Cell {
                 id: importer.document.ids().node(),
@@ -106,7 +107,7 @@ fn build(
             preserved: None,
         });
     }
-    Table {
+    Some(Table {
         id: importer.document.ids().node(),
         grid: draft.grid,
         rows,
@@ -114,7 +115,7 @@ fn build(
         width: draft.width,
         preserved: None,
         source: Some(Importer::source(part, element)),
-    }
+    })
 }
 
 fn build_paragraph(
@@ -122,7 +123,7 @@ fn build_paragraph(
     part: &PartName,
     table: &Element,
     draft: DraftParagraph,
-) -> Paragraph {
+) -> Option<Paragraph> {
     let mut paragraph = Paragraph::new(importer.document.ids().node());
     paragraph.style = draft.style;
     paragraph.props = Arc::new(draft.props);
@@ -130,11 +131,9 @@ fn build_paragraph(
         paragraph.source = Some(Importer::source(part, element));
     }
     for (text, props) in draft.runs {
-        paragraph
-            .push_text(&text, None, Arc::new(props))
-            .expect("table text has no object marker");
+        paragraph.push_text(&text, None, Arc::new(props)).ok()?;
     }
-    paragraph
+    Some(paragraph)
 }
 
 fn parse_table(element: &Element) -> Option<DraftTable> {
@@ -517,7 +516,7 @@ fn parse_run(element: &Element) -> Option<(String, RunProps)> {
             props = parse_rpr(child)?;
         } else if child.is(W, "t") && child.elements().next().is_none() && t_attributes_ok(child) {
             let piece = child.text();
-            if piece.contains('\u{FFFC}') {
+            if piece.contains('\u{FFFC}') || piece.contains(OBJECT_MARKER) {
                 return None;
             }
             text.push_str(&piece);

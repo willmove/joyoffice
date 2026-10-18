@@ -126,12 +126,8 @@ pub(super) fn align<'a>(
                 _ => return Err(unsupported(Some(after.id()), "new non-paragraph block")),
             };
             if previous_new {
-                alignment
-                    .inserted
-                    .last_mut()
-                    .expect("open group")
-                    .blocks
-                    .push(new_block);
+                let group = alignment.inserted.last_mut().expect("open group");
+                group.blocks.push(new_block);
             } else {
                 if let Some(i) = previous {
                     involved[i] = true;

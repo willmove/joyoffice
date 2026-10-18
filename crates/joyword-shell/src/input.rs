@@ -320,7 +320,7 @@ impl TextIndex {
         if relative > p.len_utf16 {
             return Err(InputError::InvalidRange);
         }
-        let paragraph = paragraph_by_id(&self.snapshot, p.id).expect("indexed paragraph");
+        let paragraph = paragraph_by_id(&self.snapshot, p.id).ok_or(InputError::InvalidDocument)?;
         let scalar = paragraph
             .text()
             .utf16_to_scalar(Utf16Offset(relative))
@@ -344,7 +344,8 @@ impl TextIndex {
         if position.offset.0 > p.len_scalar {
             return Err(InputError::UnknownPosition(position));
         }
-        let paragraph = paragraph_by_id(&self.snapshot, p.id).expect("indexed paragraph");
+        let paragraph =
+            paragraph_by_id(&self.snapshot, p.id).ok_or(InputError::UnknownPosition(position))?;
         let n = paragraph
             .text()
             .scalar_to_utf16(position.offset)
@@ -354,7 +355,8 @@ impl TextIndex {
     fn byte(&self, offset: usize) -> Result<usize, InputError> {
         let position = self.position(offset, Bias::After)?;
         let i = self.by_id[&position.paragraph];
-        let p = paragraph_by_id(&self.snapshot, position.paragraph).expect("indexed paragraph");
+        let p = paragraph_by_id(&self.snapshot, position.paragraph)
+            .ok_or(InputError::InvalidDocument)?;
         let byte = p
             .text()
             .scalar_to_utf8(position.offset)

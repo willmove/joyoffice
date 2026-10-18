@@ -61,7 +61,9 @@ pub fn cell_selection(
     let first = *paragraphs
         .first()
         .ok_or(CommandError::NotATable(address.table))?;
-    let last = *paragraphs.last().expect("non-empty");
+    let last = *paragraphs
+        .last()
+        .ok_or(CommandError::NotATable(address.table))?;
     let len = paragraph_len(document, address, last)?;
     Ok(Selection {
         anchor: Position {
@@ -129,7 +131,7 @@ pub(crate) fn insert_table(
     };
     document
         .story_mut(at.story)
-        .expect("located story")
+        .ok_or(CommandError::UnknownStory(at.story))?
         .blocks
         .insert(index, table.into());
     note_table(changes, at.story, table_id, &paragraphs, &[]);
