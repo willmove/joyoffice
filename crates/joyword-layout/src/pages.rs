@@ -1,11 +1,14 @@
-//! Section geometry, explicit page breaks, and the primary header and footer.
+//! Section geometry, explicit page breaks, and header and footer stories.
 //!
 //! Page size is `w:pgSz/@w` and `@h` (ECMA-376 §17.6.13). `orient` is stored
-//! with them and does not swap the axes. A missing Default header or footer
-//! reference inherits the previous section's Default story. An explicit story,
-//! including an empty one, does not inherit. `titlePg`, even and odd headers,
-//! and First or Even stories are stored and reported; every page still paints
-//! the Default story.
+//! with them and does not swap the axes. `titlePg` paints the First story on
+//! the first page of that section. `evenAndOddHeaders` paints the Even story
+//! on even page numbers and the Default story on odd ones; the section's
+//! first page still counts, and `titlePg` wins there. An omitted reference
+//! inherits the nearest earlier story of that same kind. An explicit story,
+//! including an empty one, does not inherit and is not replaced by another
+//! kind. Page numbers are the same 1-based index as `PAGE`. `pgNumType` is
+//! not applied.
 
 use joyword_foundation::Emu;
 use joyword_model::{
@@ -292,8 +295,8 @@ fn shift_range(range: &mut SourceRange, scalars: usize, bytes: usize) {
     range.bytes.end = range.bytes.end.saturating_add(bytes);
 }
 
-/// Paint Default headers and footers after the body page count has settled.
-/// Painting does not add pages. A change in the page count is unstable.
+/// Paint the header and footer for each page after the body page count has
+/// settled. Painting does not add pages. A change in the page count is unstable.
 pub(crate) fn paint_stories(
     snapshot: &mut LayoutSnapshot,
     document: &Document,
@@ -303,14 +306,24 @@ pub(crate) fn paint_stories(
 ) -> Result<(), LayoutError> {
     cancellation.check()?;
     let page_count = snapshot.page_count();
-    note_variants(snapshot, document);
+    let even_and_odd = document.settings().even_and_odd_headers == Some(true);
     let mut exceeded = std::collections::BTreeSet::new();
     for page_index in 0..page_count {
         cancellation.check()?;
         let Some((geometry, section)) = snapshot.page_box(page_index) else {
             return Err(LayoutError::GeometryOverflow);
         };
-        if let Some(story) = linked_story(document, section, true) {
+        if section >= document.sections().len() {
+            return Err(LayoutError::InvalidDocument);
+        }
+        let kind = story_kind(
+            document,
+            section,
+            opens_section(snapshot, page_index, section),
+            page_index + 1,
+            even_and_odd,
+        );
+        if let Some(story) = linked_story(document, section, true, kind) {
             paint_header(
                 snapshot,
                 document,
@@ -324,7 +337,7 @@ pub(crate) fn paint_stories(
                 &mut exceeded,
             )?;
         }
-        if let Some(story) = linked_story(document, section, false) {
+        if let Some(story) = linked_story(document, section, false, kind) {
             paint_footer(
                 snapshot,
                 document,
@@ -345,36 +358,44 @@ pub(crate) fn paint_stories(
     Ok(())
 }
 
-fn note_variants(snapshot: &mut LayoutSnapshot, document: &Document) {
-    if document
+/// First page of a section uses First when `titlePg` is on. Otherwise an even
+/// page number uses Even when odd and even headers are on. Every other page
+/// uses Default. A missing flag is off, matching an omitted on/off element.
+fn story_kind(
+    document: &Document,
+    section_index: usize,
+    first_of_section: bool,
+    page_number: usize,
+    even_and_odd: bool,
+) -> HeaderFooterKind {
+    let title_page = document
         .sections()
-        .iter()
-        .any(|section| section.title_page == Some(true))
-    {
-        snapshot.note(LayoutNote::HeaderVariantNotApplied {
-            detail: "different first page",
-        });
-    }
-    if document.settings().even_and_odd_headers == Some(true) {
-        snapshot.note(LayoutNote::HeaderVariantNotApplied {
-            detail: "odd and even pages",
-        });
-    }
-    let variant = document.sections().iter().any(|section| {
-        section
-            .headers
-            .iter()
-            .chain(section.footers.iter())
-            .any(|(kind, _)| *kind != HeaderFooterKind::Default)
-    });
-    if variant {
-        snapshot.note(LayoutNote::HeaderVariantNotApplied {
-            detail: "first or even header or footer",
-        });
+        .get(section_index)
+        .is_some_and(|section| section.title_page == Some(true));
+    if first_of_section && title_page {
+        HeaderFooterKind::First
+    } else if even_and_odd && page_number.is_multiple_of(2) {
+        HeaderFooterKind::Even
+    } else {
+        HeaderFooterKind::Default
     }
 }
 
-fn linked_story(document: &Document, section_index: usize, header: bool) -> Option<StoryId> {
+fn opens_section(snapshot: &LayoutSnapshot, page_index: usize, section: usize) -> bool {
+    page_index == 0
+        || snapshot
+            .page_box(page_index - 1)
+            .is_none_or(|(_, previous)| previous != section)
+}
+
+/// Nearest explicit reference of `kind` at or before this section. A later
+/// empty story replaces an earlier one; it does not fall through.
+fn linked_story(
+    document: &Document,
+    section_index: usize,
+    header: bool,
+    kind: HeaderFooterKind,
+) -> Option<StoryId> {
     let mut found = None;
     for section in document.sections().iter().take(section_index + 1) {
         let refs = if header {
@@ -382,10 +403,7 @@ fn linked_story(document: &Document, section_index: usize, header: bool) -> Opti
         } else {
             &section.footers
         };
-        if let Some((_, id)) = refs
-            .iter()
-            .find(|(kind, _)| *kind == HeaderFooterKind::Default)
-        {
+        if let Some((_, id)) = refs.iter().find(|(existing, _)| *existing == kind) {
             found = Some(*id);
         }
     }

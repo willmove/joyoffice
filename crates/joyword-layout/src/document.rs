@@ -211,9 +211,6 @@ pub enum LayoutNote {
     /// A keep-next chain or keep-lines paragraph is taller than the page.
     /// It starts on a fresh page and then flows; placement does not retry.
     KeepTallerThanPage { paragraph: NodeId },
-    /// `titlePg`, even/odd headers, or a first/even story is stored and not
-    /// painted. The primary header and footer are used on every page.
-    HeaderVariantNotApplied { detail: &'static str },
     /// A header or footer paragraph was not painted. Its cached field result
     /// is not shown as a live page number.
     StoryContentSkipped { paragraph: NodeId },

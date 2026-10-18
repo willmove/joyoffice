@@ -134,26 +134,67 @@ fn header(
     text: &str,
     field: Option<PageFieldKind>,
 ) -> joyword_model::StoryId {
+    attach(document, 0, true, HeaderFooterKind::Default, text, field)
+}
+
+fn fit_one_line(document: &mut Document) {
+    let height = page_for(1).height;
+    for section in document.sections_mut() {
+        section.page.height = height;
+    }
+}
+
+fn attach(
+    document: &mut Document,
+    section: usize,
+    header: bool,
+    kind: HeaderFooterKind,
+    text: &str,
+    field: Option<PageFieldKind>,
+) -> joyword_model::StoryId {
     let mut paragraph = Paragraph::new(document.ids().node());
     if !text.is_empty() {
         paragraph.push_text(text, None, Arc::default()).unwrap();
     }
-    if let Some(kind) = field {
+    if let Some(field) = field {
         paragraph.push_inline(
             InlineObject {
                 id: document.ids().node(),
-                kind: InlineKind::PageField(kind),
+                kind: InlineKind::PageField(field),
                 source: None,
             },
             None,
             Arc::default(),
         );
     }
-    let id = document.insert_story(StoryKind::Header, vec![paragraph.into()]);
-    document.sections_mut()[0]
-        .headers
-        .push((HeaderFooterKind::Default, id));
+    let id = document.insert_story(
+        if header {
+            StoryKind::Header
+        } else {
+            StoryKind::Footer
+        },
+        vec![paragraph.into()],
+    );
+    let refs = if header {
+        &mut document.sections_mut()[section].headers
+    } else {
+        &mut document.sections_mut()[section].footers
+    };
+    refs.push((kind, id));
     id
+}
+
+fn close_section(document: &mut Document, last_block: usize) {
+    let boundary = document.body().blocks.get(last_block).unwrap().id();
+    let mut next = document.sections().last().unwrap().clone();
+    next.id = document.ids().node();
+    next.last_block = None;
+    next.title_page = None;
+    next.headers.clear();
+    next.footers.clear();
+    let closed = document.sections().len() - 1;
+    document.sections_mut()[closed].last_block = Some(boundary);
+    document.sections_mut().push(next);
 }
 
 #[test]
@@ -292,30 +333,240 @@ fn page_text_of(page: &joyword_layout::PageScene) -> String {
 }
 
 #[test]
-fn first_page_and_even_headers_are_noted_and_the_default_story_still_paints() {
-    let mut document = document_with(&["A"]);
-    header(&mut document, "DEF", None);
-    let mut first = Paragraph::new(document.ids().node());
-    first.push_text("FIRST", None, Arc::default()).unwrap();
-    let first_id = document.insert_story(StoryKind::Header, vec![first.into()]);
-    document.sections_mut()[0]
-        .headers
-        .push((HeaderFooterKind::First, first_id));
+fn first_even_and_default_headers_and_footers_paint_on_their_pages() {
+    let mut document = document_with(&["A", "B", "C"]);
+    fit_one_line(&mut document);
     document.sections_mut()[0].title_page = Some(true);
     document.settings_mut().even_and_odd_headers = Some(true);
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::First,
+        "H1",
+        Some(PageFieldKind::NumPages),
+    );
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Even,
+        "H2",
+        Some(PageFieldKind::Page),
+    );
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Default,
+        "H0",
+        None,
+    );
+    attach(&mut document, 0, false, HeaderFooterKind::First, "F1", None);
+    attach(&mut document, 0, false, HeaderFooterKind::Even, "F2", None);
+    attach(
+        &mut document,
+        0,
+        false,
+        HeaderFooterKind::Default,
+        "F0",
+        None,
+    );
     let snapshot = layout(&document);
-    let details: Vec<_> = snapshot
-        .notes()
-        .iter()
-        .filter_map(|note| match note {
-            LayoutNote::HeaderVariantNotApplied { detail } => Some(*detail),
-            _ => None,
-        })
-        .collect();
-    assert!(details.iter().any(|detail| detail.contains("first")));
-    assert!(details.iter().any(|detail| detail.contains("odd")));
-    assert!(page_text(&snapshot, 0).contains("DEF"));
-    assert!(!page_text(&snapshot, 0).contains("FIRST"));
+    assert_eq!(snapshot.pages().len(), 3);
+    let page0 = page_text(&snapshot, 0);
+    assert!(page0.contains("H1"));
+    assert!(page0.contains('3'));
+    assert!(page0.contains("F1"));
+    assert!(!page0.contains("H0"));
+    assert!(!page0.contains("H2"));
+    assert!(!page0.contains("F0"));
+    assert!(!page0.contains("F2"));
+    let page1 = page_text(&snapshot, 1);
+    assert!(page1.contains("H2"));
+    assert!(page1.contains('2'));
+    assert!(page1.contains("F2"));
+    assert!(!page1.contains("H1"));
+    assert!(!page1.contains("H0"));
+    assert!(!page1.contains("F1"));
+    assert!(!page1.contains("F0"));
+    let page2 = page_text(&snapshot, 2);
+    assert!(page2.contains("H0"));
+    assert!(page2.contains("F0"));
+    assert!(!page2.contains("H1"));
+    assert!(!page2.contains("H2"));
+    assert!(!page2.contains("F1"));
+    assert!(!page2.contains("F2"));
+}
+
+#[test]
+fn title_page_and_even_odd_off_keep_the_default_story() {
+    let mut document = document_with(&["A", "B", "C"]);
+    fit_one_line(&mut document);
+    attach(&mut document, 0, true, HeaderFooterKind::First, "H1", None);
+    attach(&mut document, 0, true, HeaderFooterKind::Even, "H2", None);
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Default,
+        "H0",
+        None,
+    );
+    let omitted = layout(&document);
+    assert_eq!(omitted.pages().len(), 3);
+    for page in 0..3 {
+        let text = page_text(&omitted, page);
+        assert!(text.contains("H0"), "{text}");
+        assert!(!text.contains("H1"), "{text}");
+        assert!(!text.contains("H2"), "{text}");
+    }
+
+    document.sections_mut()[0].title_page = Some(false);
+    document.settings_mut().even_and_odd_headers = Some(false);
+    let explicit = layout(&document);
+    for page in 0..3 {
+        let text = page_text(&explicit, page);
+        assert!(text.contains("H0"), "{text}");
+        assert!(!text.contains("H1"), "{text}");
+        assert!(!text.contains("H2"), "{text}");
+    }
+
+    document.settings_mut().even_and_odd_headers = Some(true);
+    let even_only = layout(&document);
+    assert!(page_text(&even_only, 0).contains("H0"));
+    assert!(!page_text(&even_only, 0).contains("H1"));
+    assert!(page_text(&even_only, 1).contains("H2"));
+    assert!(!page_text(&even_only, 1).contains("H0"));
+    assert!(page_text(&even_only, 2).contains("H0"));
+}
+
+#[test]
+fn an_omitted_first_or_even_story_does_not_fall_back_to_default() {
+    let mut document = document_with(&["A", "B", "C"]);
+    fit_one_line(&mut document);
+    document.sections_mut()[0].title_page = Some(true);
+    document.settings_mut().even_and_odd_headers = Some(true);
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Default,
+        "H0",
+        None,
+    );
+    attach(
+        &mut document,
+        0,
+        false,
+        HeaderFooterKind::Default,
+        "F0",
+        None,
+    );
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.pages().len(), 3);
+    assert!(!page_text(&snapshot, 0).contains("H0"));
+    assert!(!page_text(&snapshot, 0).contains("F0"));
+    assert!(!page_text(&snapshot, 1).contains("H0"));
+    assert!(!page_text(&snapshot, 1).contains("F0"));
+    assert!(page_text(&snapshot, 2).contains("H0"));
+    assert!(page_text(&snapshot, 2).contains("F0"));
+}
+
+#[test]
+fn omitted_first_and_even_stories_inherit_until_an_empty_story() {
+    let mut document = document_with(&["A", "B", "C", "D", "E"]);
+    fit_one_line(&mut document);
+    document.sections_mut()[0].title_page = Some(true);
+    document.settings_mut().even_and_odd_headers = Some(true);
+    attach(&mut document, 0, true, HeaderFooterKind::First, "H1", None);
+    attach(&mut document, 0, true, HeaderFooterKind::Even, "H2", None);
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Default,
+        "H0",
+        None,
+    );
+    attach(&mut document, 0, false, HeaderFooterKind::First, "F1", None);
+    attach(&mut document, 0, false, HeaderFooterKind::Even, "F2", None);
+    attach(
+        &mut document,
+        0,
+        false,
+        HeaderFooterKind::Default,
+        "F0",
+        None,
+    );
+    close_section(&mut document, 1);
+    document.sections_mut()[1].title_page = Some(true);
+    let inherited = layout(&document);
+    assert_eq!(inherited.pages().len(), 5);
+    assert!(page_text(&inherited, 0).contains("H1"));
+    assert!(page_text(&inherited, 0).contains("F1"));
+    assert!(page_text(&inherited, 1).contains("H2"));
+    assert!(page_text(&inherited, 1).contains("F2"));
+    assert!(!page_text(&inherited, 1).contains("H0"));
+    assert!(page_text(&inherited, 2).contains("H1"));
+    assert!(page_text(&inherited, 2).contains("F1"));
+    assert!(!page_text(&inherited, 2).contains("H2"));
+    assert!(page_text(&inherited, 3).contains("H2"));
+    assert!(page_text(&inherited, 3).contains("F2"));
+    assert!(page_text(&inherited, 4).contains("H0"));
+    assert!(page_text(&inherited, 4).contains("F0"));
+    assert!(!page_text(&inherited, 4).contains("H2"));
+
+    let empty = Paragraph::new(document.ids().node());
+    let empty_id = document.insert_story(StoryKind::Header, vec![empty.into()]);
+    document.sections_mut()[1]
+        .headers
+        .push((HeaderFooterKind::First, empty_id));
+    let blocked = layout(&document);
+    assert!(page_text(&blocked, 0).contains("H1"));
+    assert!(!page_text(&blocked, 2).contains("H1"));
+    assert!(page_text(&blocked, 2).contains("F1"));
+    assert!(page_text(&blocked, 3).contains("H2"));
+    assert!(page_text(&blocked, 4).contains("H0"));
+
+    let empty_footer = Paragraph::new(document.ids().node());
+    let empty_footer_id = document.insert_story(StoryKind::Footer, vec![empty_footer.into()]);
+    document.sections_mut()[1]
+        .footers
+        .push((HeaderFooterKind::Even, empty_footer_id));
+    let stopped = layout(&document);
+    assert!(page_text(&stopped, 1).contains("F2"));
+    assert!(!page_text(&stopped, 3).contains("F2"));
+    assert!(page_text(&stopped, 3).contains("H2"));
+    assert!(page_text(&stopped, 4).contains("F0"));
+}
+
+#[test]
+fn a_later_section_first_page_uses_its_own_story_on_an_even_page() {
+    let mut document = document_with(&["A", "B", "C"]);
+    fit_one_line(&mut document);
+    document.settings_mut().even_and_odd_headers = Some(true);
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Default,
+        "H0",
+        None,
+    );
+    attach(&mut document, 0, true, HeaderFooterKind::Even, "H2", None);
+    close_section(&mut document, 0);
+    document.sections_mut()[1].title_page = Some(true);
+    attach(&mut document, 1, true, HeaderFooterKind::First, "H1", None);
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.pages().len(), 3);
+    assert!(page_text(&snapshot, 0).contains("H0"));
+    assert!(!page_text(&snapshot, 0).contains("H1"));
+    assert!(page_text(&snapshot, 1).contains("H1"));
+    assert!(!page_text(&snapshot, 1).contains("H2"));
+    assert!(!page_text(&snapshot, 1).contains("H0"));
+    assert!(page_text(&snapshot, 2).contains("H0"));
+    assert!(!page_text(&snapshot, 2).contains("H1"));
 }
 
 #[test]
@@ -497,4 +748,55 @@ fn incremental_layout_matches_the_full_scene_including_headers() {
         assert_eq!(left_text, right_text);
     }
     assert_eq!(full.notes(), incremental.notes());
+}
+
+#[test]
+fn incremental_layout_matches_first_and_even_headers() {
+    let mut document = document_with(&["A", "B", "C"]);
+    fit_one_line(&mut document);
+    document.sections_mut()[0].title_page = Some(true);
+    document.settings_mut().even_and_odd_headers = Some(true);
+    attach(&mut document, 0, true, HeaderFooterKind::First, "H1", None);
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Even,
+        "H2",
+        Some(PageFieldKind::Page),
+    );
+    attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::Default,
+        "H0",
+        None,
+    );
+    close_section(&mut document, 0);
+    let full = layout(&document);
+    let mut cache = ParagraphLayoutCache::with_budget(1 << 20);
+    let incremental = layout_incremental(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+    )
+    .unwrap();
+    assert_eq!(full.pages().len(), incremental.pages().len());
+    for (left, right) in full.pages().iter().zip(incremental.pages()) {
+        let left_text: Vec<_> = left.runs.iter().map(|run| run.text.as_str()).collect();
+        let right_text: Vec<_> = right.runs.iter().map(|run| run.text.as_str()).collect();
+        assert_eq!(left_text, right_text);
+    }
+    assert_eq!(full.notes(), incremental.notes());
+    assert!(page_text(&full, 0).contains("H1"));
+    assert!(page_text(&full, 1).contains("H2"));
+    assert!(page_text(&full, 2).contains("H0"));
 }
