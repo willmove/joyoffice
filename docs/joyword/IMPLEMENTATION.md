@@ -388,3 +388,5 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 自动验证（Rust 1.98.1，本环境 Linux x86_64）：`cargo fmt --all -- --check`、`cargo clippy -p joyword-layout --all-targets --locked -- -D warnings`、`cargo test -p joyword-layout --locked`（79 项，含新增 `cjk_layout` 9 项：引号压缩、连排半宽、行尾不压缩、未验证标点保持整形宽度、压力样例在等线名称门开关下断行不变、纯中文两端对齐抵满版心且末行不拉伸、单字行不加边缘间隙、拉丁／distribute 仍拒绝、单倍行距吸附与关闭吸附、未测字体的单倍行距拒绝）。`cargo test -p joyword-pdf -p joyword-render --locked` 通过（PDF 5 项、render 25 项）。名称门测试把拉丁夹具的 Windows 家族名改成 DengXian，只证明调用条件；期望宽度是纯函数的 em 分数和该脸自己的 win 跨度，不是等线字节的新测量，也不是 Word 2024 的重新导出。
 
 未覆盖：真实等线／宋体／雅黑字节上的断行与行高、`tests/fixtures/reference/word2024/breaks/` 的 Word PDF 未在本环境重抽、Word／WPS 人工版式对照、字符网格与 `w:docGrid` 的其他间距、中西文间距、adjustRightInd、字体替代与缺字诊断链。T207 保持 `in_progress`。
+
+`crates/` 相对上一绑定有差异，W09 harness 按原契约重锚到 `f2f0a1ece07805fbe3247f18eead8f63e046a2a8`（只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol。这仍不是覆盖引导 fuzz，也不证明中文排版。
