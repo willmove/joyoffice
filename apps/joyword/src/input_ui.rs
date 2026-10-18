@@ -1213,7 +1213,10 @@ impl JoyWord {
             EDIT_COPY => {
                 if let Some(editor) = self.editor.as_ref() {
                     match editor.selected_text() {
-                        Ok(text) => self.clipboard = text,
+                        Ok(text) => {
+                            cx.write_to_clipboard(gpui::ClipboardItem::new_string(text.clone()));
+                            self.clipboard = text;
+                        }
                         Err(error) => self.input_error = Some(error.to_string()),
                     }
                 } else {
@@ -1229,7 +1232,12 @@ impl JoyWord {
                 self.apply_input(cx, |editor| editor.replace(None, &text).map(|_| ()))
             }
             EDIT_PASTE => {
-                let text = self.clipboard.clone();
+                // The system pasteboard is the source of truth; the in-app
+                // string only backs paste where no system clipboard exists.
+                let text = cx
+                    .read_from_clipboard()
+                    .and_then(|item| item.text())
+                    .unwrap_or_else(|| self.clipboard.clone());
                 self.apply_input(cx, |editor| editor.replace(None, &text).map(|_| ()))
             }
             EDIT_LEFT | EDIT_RIGHT | EDIT_EXTEND_LEFT | EDIT_EXTEND_RIGHT => {
