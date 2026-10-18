@@ -125,6 +125,12 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - LAYOUT-004／LAYOUT-012；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.6.11（`pgMar`：页边距、页眉页脚距离、装订线）、§17.6.13（`pgSz`：`w`／`h` 为页面实际尺寸，`orient` 为方向标记）、§17.6.17（`sectPr`）、§17.3.3.1（`br` 的 `type="page"`）、§17.10.2（页眉页脚引用；省略 `headerReference` 时沿用前一节，即链接到前一节）、§17.16.1（`PAGE`、`NUMPAGES` 简单域）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的分页实现。
 - 排版不因 `orient` 交换宽高。页眉页脚画在边距内，不重排正文。首页不同与奇偶页不同只保存并给出诊断，不猜测另一套内容。widowControl 不实现，依据仓库内 layout_rules R5／R8 对 Word 2024 的负结果。没有新增外部 crate。
 
+### 功能区图标、标尺与字数（T205 第一切片）
+
+- PLATFORM-003／EDIT-009。功能区图标是 `crates/joyword-shell/src/chrome.rs` 中的 16×16 原创格子图，许可 MIT，逐项登记在 [feature_catalog.json](feature_catalog.json)（`origin` 为 `drawn-in-code`）。不打包 Office、WPS 或其他产品的图标、截图或图标字体。检查器拒绝 `apps/joyword` 与 `crates/joyword-shell` 下未登记的 png、svg、ico 等二进制资产。
+- 标尺读取当前段经样式解析后的 `w:ind`（ECMA-376 Part 1 §17.3.1.12）和 `w:tabs`（§17.3.1.37–38）。默认制表位在设置省略时为 720 twips（§17.15.1.25）。字符单位与行单位不折算，标尺标为不能换算。本切片只显示，不拖拽。
+- 字数按 EDIT-009 自行分类：汉字（含扩展与兼容表意文字）、假名和谚文各计一字，连续西文字母计一词，连续十进制数字计一词，标点和空格分开计数，分页符对象标记不计入。这不是 Word 字数对话框的对照结果。没有新增外部 crate。
+
 ### 首页不同与奇偶页页眉页脚（T202 第二切片）
 
 - LAYOUT-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.10.1（`evenAndOddHeaders`：按节的页码起点区分奇偶，省略的类型继承前一节，不用另一种代替）、§17.10.5（`headerReference`：省略的首页／偶数页／奇数页引用分别继承前一节的同类型，否则空白）、§17.10.2（`footerReference`，规则与页眉相同）、§17.10.6（`titlePg`：节的首页用 First；关闭时按页码用奇或偶，并忽略已保存的 First）。条款文字对照 [ECMA-376 中文摘录](https://hellowac.github.io/ecma-376-zh-cn/ecma-part1/chapter17/10headeres/)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的页眉实现。

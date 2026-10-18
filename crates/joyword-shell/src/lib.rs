@@ -7,6 +7,7 @@
 //! redacting panic hook; the document manager tracks unsaved changes and the
 //! close and quit flows. The GPUI app renders these; tests run headless.
 
+pub mod chrome;
 pub mod command;
 pub mod diag;
 pub mod documents;
