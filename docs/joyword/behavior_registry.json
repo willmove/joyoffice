@@ -176,6 +176,22 @@
       "source": "hypothesis",
       "test": "page_setup_and_break_go_through_the_command_registry",
       "word_observation": null
+    },
+    {
+      "id": "FIND-REPLACE-UNDO",
+      "operation": "全部替换可见命中，并跳过锁定与保留内容",
+      "expectation": "一次撤销恢复全部替换前的文字；锁定与保留内容未被改写",
+      "source": "hypothesis",
+      "test": "replace_all_is_one_undo_and_skips_locked_and_preserved",
+      "word_observation": null
+    },
+    {
+      "id": "FORMAT-PAINT-UNDO",
+      "operation": "把已复制的段落样式、对齐和直接字符格式刷到选区",
+      "expectation": "一次撤销恢复刷入前的样式与直接格式",
+      "source": "hypothesis",
+      "test": "painting_a_format_is_one_undoable_transaction",
+      "word_observation": null
     }
   ]
 }

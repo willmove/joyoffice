@@ -3,12 +3,14 @@
 //! an immutable preview session and never modifies the committed undo stack.
 use crate::docx::DocxSession;
 use joyword_engine::{
-    ChangeSet, Command, Outcome, ParagraphChange, RunChange, Selection, Session, Transaction,
-    TxError, UndoError, UndoGroup, UndoResult,
+    ChangeSet, Command, FindError, FindHit, FindQuery, FormatBrush, Outcome, PaintError,
+    ParagraphChange, RunChange, Selection, Session, Transaction, TxError, UndoError, UndoGroup,
+    UndoResult, capture, paint_commands, paragraph_order, replace_commands, search,
 };
 use joyword_model::{
-    Bias, BreakKind, Document, DocumentSnapshot, DocumentVersion, InlineKind, Measure, NodeId,
-    NumberingRef, OBJECT_MARKER, Orientation, PageSetup, Position, StoryKind, StyleId, Utf16Offset,
+    Bias, Block, BlockSeq, BreakKind, Color, Document, DocumentSnapshot, DocumentVersion, FontRef,
+    InlineKind, MAX_NESTING, Measure, NodeId, NumberingRef, OBJECT_MARKER, Orientation, PageSetup,
+    Paragraph, Position, RunProps, ScalarOffset, StoryKind, StyleId, StyleKind, Utf16Offset,
 };
 use std::collections::BTreeMap;
 use std::fmt;
@@ -147,6 +149,8 @@ pub enum InputError {
     InsideSurrogate,
     UnknownPosition(Position),
     InvalidText(char),
+    /// A find or format-painter request the editor will not apply.
+    Rejected(&'static str),
     Budget(&'static str),
     ReadOnly,
     StaleComposition,
@@ -449,6 +453,50 @@ pub struct TextInput<B = Session> {
     saved_version: DocumentVersion,
     /// Union of committed changes not yet covered by an installed layout.
     pending: ChangeSet,
+    brush: Option<FormatBrush>,
+    brush_repeat: bool,
+}
+
+/// One row of the style panel: identity plus the resolved preview.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StyleRow {
+    pub id: String,
+    pub kind: String,
+    pub name: String,
+    pub preview: String,
+}
+
+/// Result of a find or format-painter command.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct EditReport {
+    pub matches: usize,
+    pub skipped: u32,
+    pub truncated: bool,
+    pub replaced: usize,
+    pub armed: bool,
+}
+
+/// Find, replace and format-painter requests shared by the shell and the GUI.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum EditRequest {
+    Find {
+        query: String,
+        case_sensitive: bool,
+        whole_word: bool,
+        forward: bool,
+    },
+    Replace {
+        query: String,
+        replacement: String,
+        case_sensitive: bool,
+        whole_word: bool,
+        all: bool,
+    },
+    CopyFormat {
+        repeat: bool,
+    },
+    PaintFormat,
+    CancelFormat,
 }
 impl<B: InputBackend> TextInput<B> {
     pub fn new(backend: B, limits: InputLimits) -> Result<Self, InputError> {
@@ -472,6 +520,8 @@ impl<B: InputBackend> TextInput<B> {
             limits,
             saved_version,
             pending: ChangeSet::default(),
+            brush: None,
+            brush_repeat: false,
         })
     }
     pub fn backend(&self) -> &B {
@@ -814,6 +864,284 @@ impl<B: InputBackend> TextInput<B> {
             }],
         );
         self.commit(transaction)
+    }
+
+    /// Styles with the resolved preview the panel shows.
+    pub fn style_rows(&self) -> Vec<StyleRow> {
+        let sheet = self.backend.session().document().styles();
+        sheet
+            .iter()
+            .map(|style| {
+                let preview = match style.kind {
+                    StyleKind::Paragraph => describe_run(
+                        &sheet
+                            .resolve_paragraph(
+                                Some(&style.id),
+                                &joyword_model::ParaProps::default(),
+                            )
+                            .run,
+                    ),
+                    StyleKind::Character => describe_run(
+                        &sheet
+                            .resolve_run(None, Some(&style.id), &RunProps::default())
+                            .props,
+                    ),
+                    other => other.to_string(),
+                };
+                StyleRow {
+                    id: style.id.to_string(),
+                    kind: style.kind.to_string(),
+                    name: style
+                        .name
+                        .as_deref()
+                        .unwrap_or(style.id.as_str())
+                        .to_owned(),
+                    preview,
+                }
+            })
+            .collect()
+    }
+
+    /// Paragraph style and character style at the caret.
+    pub fn caret_styles(&self) -> (Option<String>, Option<String>) {
+        let head = self.selection.head;
+        let Some(paragraph) = paragraph_by_id(self.backend.session().document(), head.paragraph)
+        else {
+            return (None, None);
+        };
+        let (character, _) = paragraph.format_at(head.offset);
+        (
+            paragraph.style.as_ref().map(ToString::to_string),
+            character.map(|style| style.to_string()),
+        )
+    }
+
+    pub fn format_armed(&self) -> bool {
+        self.brush.is_some()
+    }
+
+    /// Find, replace and the format painter. Find does not modify the document.
+    /// Replace and paint each commit one transaction.
+    pub fn editing(&mut self, request: EditRequest) -> Result<EditReport, InputError> {
+        if !matches!(request, EditRequest::CancelFormat) && self.composition.is_some() {
+            return Err(InputError::StaleComposition);
+        }
+        match request {
+            EditRequest::Find {
+                query,
+                case_sensitive,
+                whole_word,
+                forward,
+            } => self.find_move(&query, case_sensitive, whole_word, forward),
+            EditRequest::Replace {
+                query,
+                replacement,
+                case_sensitive,
+                whole_word,
+                all,
+            } => {
+                self.require_editable()?;
+                self.replace_query(&query, &replacement, case_sensitive, whole_word, all)
+            }
+            EditRequest::CopyFormat { repeat } => {
+                let (start, end) = self.selection_positions()?;
+                let brush = capture(self.backend.session().document(), start, end)
+                    .map_err(paint_input_error)?;
+                self.brush = Some(brush);
+                self.brush_repeat = repeat;
+                Ok(EditReport {
+                    matches: 0,
+                    skipped: 0,
+                    truncated: false,
+                    replaced: 0,
+                    armed: true,
+                })
+            }
+            EditRequest::PaintFormat => {
+                self.require_editable()?;
+                let Some(brush) = self.brush.clone() else {
+                    return Err(InputError::Rejected("no format copied"));
+                };
+                let (start, end) = self.selection_positions()?;
+                let commands =
+                    paint_commands(self.backend.session().document(), start, end, &brush)
+                        .map_err(paint_input_error)?;
+                let mut transaction = Transaction::new(self.backend.session().version(), commands);
+                transaction.selection = Some(self.selection);
+                self.commit(transaction)?;
+                if !self.brush_repeat {
+                    self.brush = None;
+                }
+                Ok(EditReport {
+                    matches: 0,
+                    skipped: 0,
+                    truncated: false,
+                    replaced: 0,
+                    armed: self.brush.is_some(),
+                })
+            }
+            EditRequest::CancelFormat => {
+                self.brush = None;
+                self.brush_repeat = false;
+                Ok(EditReport {
+                    matches: 0,
+                    skipped: 0,
+                    truncated: false,
+                    replaced: 0,
+                    armed: false,
+                })
+            }
+        }
+    }
+
+    fn find_move(
+        &mut self,
+        query: &str,
+        case_sensitive: bool,
+        whole_word: bool,
+        forward: bool,
+    ) -> Result<EditReport, InputError> {
+        let report = self.searched(query, case_sensitive, whole_word)?;
+        let outcome = self.report_of(&report, 0);
+        if report.hits.is_empty() {
+            return Ok(outcome);
+        }
+        let (start, end) = self.selection_positions()?;
+        let cursor = if forward { end } else { start };
+        let order = paragraph_order(
+            self.backend.session().document(),
+            cursor.story,
+            cursor.paragraph,
+        )
+        .unwrap_or(0);
+        let chosen = if forward {
+            report
+                .hits
+                .iter()
+                .find(|hit| {
+                    hit.order > order || (hit.order == order && hit.start.0 >= cursor.offset.0)
+                })
+                .or(report.hits.first())
+        } else {
+            report
+                .hits
+                .iter()
+                .rev()
+                .find(|hit| {
+                    hit.order < order || (hit.order == order && hit.end.0 <= cursor.offset.0)
+                })
+                .or(report.hits.last())
+        };
+        if let Some(hit) = chosen {
+            self.select_hit(hit)?;
+        }
+        Ok(outcome)
+    }
+
+    fn replace_query(
+        &mut self,
+        query: &str,
+        replacement: &str,
+        case_sensitive: bool,
+        whole_word: bool,
+        all: bool,
+    ) -> Result<EditReport, InputError> {
+        let report = self.searched(query, case_sensitive, whole_word)?;
+        let hits = if all {
+            report.hits.clone()
+        } else {
+            let (start, end) = self.selection_positions()?;
+            let current = report.hits.iter().find(|hit| {
+                hit.story == start.story
+                    && hit.paragraph == start.paragraph
+                    && hit.start == start.offset
+                    && hit.end == end.offset
+            });
+            let order =
+                paragraph_order(self.backend.session().document(), end.story, end.paragraph)
+                    .unwrap_or(0);
+            let next = report.hits.iter().find(|hit| {
+                hit.order > order || (hit.order == order && hit.start.0 >= end.offset.0)
+            });
+            match current.or(next).or(report.hits.first()) {
+                Some(hit) => vec![hit.clone()],
+                None => Vec::new(),
+            }
+        };
+        if hits.is_empty() {
+            return Ok(self.report_of(&report, 0));
+        }
+        let chosen = hits[0].clone();
+        let plan = replace_commands(self.backend.session().document(), &hits, replacement)
+            .map_err(find_input_error)?;
+        if plan.commands.is_empty() {
+            return Ok(self.report_of(&report, 0));
+        }
+        let mut transaction = Transaction::new(self.backend.session().version(), plan.commands);
+        transaction.selection = Some(self.selection);
+        self.commit(transaction)?;
+        if !all {
+            let end = chosen.start.0 + replacement.chars().count();
+            self.select_positions(Selection {
+                anchor: Position {
+                    story: chosen.story,
+                    paragraph: chosen.paragraph,
+                    offset: chosen.start,
+                    bias: Bias::After,
+                },
+                head: Position {
+                    story: chosen.story,
+                    paragraph: chosen.paragraph,
+                    offset: ScalarOffset(end),
+                    bias: Bias::Before,
+                },
+            })?;
+        }
+        Ok(self.report_of(&report, plan.replaced))
+    }
+
+    fn searched(
+        &self,
+        query: &str,
+        case_sensitive: bool,
+        whole_word: bool,
+    ) -> Result<joyword_engine::FindReport, InputError> {
+        search(
+            self.backend.session().document(),
+            &FindQuery {
+                text: query.to_owned(),
+                case_sensitive,
+                whole_word,
+            },
+        )
+        .map_err(find_input_error)
+    }
+
+    fn report_of(&self, report: &joyword_engine::FindReport, replaced: usize) -> EditReport {
+        EditReport {
+            matches: report.hits.len(),
+            skipped: report.skipped,
+            truncated: report.truncated,
+            replaced,
+            armed: self.brush.is_some(),
+        }
+    }
+
+    fn select_hit(&mut self, hit: &FindHit) -> Result<(), InputError> {
+        self.select_positions(Selection {
+            anchor: Position {
+                story: hit.story,
+                paragraph: hit.paragraph,
+                offset: hit.start,
+                bias: Bias::After,
+            },
+            head: Position {
+                story: hit.story,
+                paragraph: hit.paragraph,
+                offset: hit.end,
+                bias: Bias::Before,
+            },
+        })
     }
 
     fn selection_positions(&self) -> Result<(Position, Position), InputError> {
@@ -1232,6 +1560,92 @@ impl TextInput<crate::docx::BoundDocx> {
         let output = self.save_original_job().run(choice);
         self.apply_original_save(output)
     }
+}
+
+fn find_input_error(error: FindError) -> InputError {
+    match error {
+        FindError::Empty => InputError::Rejected("empty query"),
+        FindError::TooLong => InputError::Budget("query"),
+        FindError::InvalidReplacement(ch) => InputError::InvalidText(ch),
+    }
+}
+
+fn paint_input_error(error: PaintError) -> InputError {
+    match error {
+        PaintError::Unexportable(reason) => InputError::Rejected(reason),
+        PaintError::Locked => InputError::Rejected("locked content"),
+        PaintError::CrossContainer => InputError::Rejected("range crosses a container"),
+        PaintError::Missing => InputError::InvalidRange,
+        PaintError::Nothing => InputError::Rejected("nothing to paint"),
+    }
+}
+
+fn describe_run(props: &RunProps) -> String {
+    let mut parts = Vec::new();
+    if props.bold == Some(true) {
+        parts.push("bold".to_owned());
+    }
+    if props.italic == Some(true) {
+        parts.push("italic".to_owned());
+    }
+    if let Some(Measure::HalfPoints(size)) = props.size {
+        parts.push(format!("{size}hp"));
+    }
+    match props.color {
+        Some(Color::Auto) => parts.push("auto".to_owned()),
+        Some(Color::Rgb(red, green, blue)) => {
+            parts.push(format!("#{red:02X}{green:02X}{blue:02X}"));
+        }
+        Some(Color::Theme(_)) => parts.push("theme".to_owned()),
+        None => {}
+    }
+    if let Some(name) = named_font(&props.fonts.east_asia) {
+        parts.push(name);
+    }
+    if let Some(name) = named_font(&props.fonts.ascii) {
+        parts.push(name);
+    }
+    parts.join(" ")
+}
+
+fn named_font(font: &Option<FontRef>) -> Option<String> {
+    match font {
+        Some(FontRef::Named(name)) => Some(name.to_string()),
+        Some(FontRef::Theme(_)) | None => None,
+    }
+}
+
+fn paragraph_by_id(document: &Document, id: NodeId) -> Option<&Paragraph> {
+    fn walk(blocks: &BlockSeq, id: NodeId, depth: usize) -> Option<&Paragraph> {
+        if depth > MAX_NESTING {
+            return None;
+        }
+        for block in blocks.iter() {
+            match block {
+                Block::Paragraph(paragraph) if paragraph.id() == id => return Some(paragraph),
+                Block::Table(table) => {
+                    for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
+                        if let Some(found) = walk(&cell.blocks, id, depth + 1) {
+                            return Some(found);
+                        }
+                    }
+                }
+                Block::Sdt(sdt) => {
+                    if let Some(found) = walk(&sdt.blocks, id, depth + 1) {
+                        return Some(found);
+                    }
+                }
+                Block::Paragraph(_) | Block::Opaque(_) => {}
+            }
+        }
+        None
+    }
+    for story in document.stories() {
+        if let Some(found) = walk(&story.blocks, id, 0) {
+            return Some(found);
+        }
+    }
+    None
 }
 
 fn utf16_bytes(text: &str, range: Range<usize>) -> Result<Range<usize>, InputError> {

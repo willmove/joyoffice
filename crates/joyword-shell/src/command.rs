@@ -263,6 +263,50 @@ const PAGE_ORIENTATION_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Text,
     required: true,
 }];
+const FIND_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "query",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "case",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+    ParamSpec {
+        name: "word",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+];
+const REPLACE_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "query",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "replacement",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "case",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+    ParamSpec {
+        name: "word",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+];
+const FORMAT_COPY_PARAMS: &[ParamSpec] = &[ParamSpec {
+    name: "repeat",
+    kind: ParamKind::Bool,
+    required: false,
+}];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Availability {
@@ -378,6 +422,13 @@ pub const PAGE_BREAK: CommandId = CommandId("page.break");
 pub const PAGE_SIZE: CommandId = CommandId("page.size");
 pub const PAGE_MARGINS: CommandId = CommandId("page.margins");
 pub const PAGE_ORIENTATION: CommandId = CommandId("page.orientation");
+pub const FIND_NEXT: CommandId = CommandId("find.next");
+pub const FIND_PREVIOUS: CommandId = CommandId("find.previous");
+pub const FIND_REPLACE: CommandId = CommandId("find.replace");
+pub const FIND_REPLACE_ALL: CommandId = CommandId("find.replace_all");
+pub const FORMAT_COPY: CommandId = CommandId("format.copy");
+pub const FORMAT_PAINT: CommandId = CommandId("format.paint");
+pub const FORMAT_CANCEL: CommandId = CommandId("format.cancel");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
@@ -786,6 +837,74 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: PAGE_ORIENTATION_PARAM,
+            },
+            CommandSpec {
+                id: FIND_NEXT,
+                label: "command.find.next",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 3,
+                }),
+                shortcut: Shortcut::primary("cmd-f", "ctrl-f"),
+                modifies_document: false,
+                parameters: FIND_PARAMS,
+            },
+            CommandSpec {
+                id: FIND_PREVIOUS,
+                label: "command.find.previous",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: FIND_PARAMS,
+            },
+            CommandSpec {
+                id: FIND_REPLACE,
+                label: "command.find.replace",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 3,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: REPLACE_PARAMS,
+            },
+            CommandSpec {
+                id: FIND_REPLACE_ALL,
+                label: "command.find.replace_all",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 3,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: REPLACE_PARAMS,
+            },
+            CommandSpec {
+                id: FORMAT_COPY,
+                label: "command.format.copy",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 3,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: FORMAT_COPY_PARAMS,
+            },
+            CommandSpec {
+                id: FORMAT_PAINT,
+                label: "command.format.paint",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: FORMAT_CANCEL,
+                label: "command.format.cancel",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: FILE_OPEN_RECENT,
