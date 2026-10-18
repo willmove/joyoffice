@@ -279,9 +279,9 @@
 - 另存副本：`BoundDocx::save_copy_job` 取走一个已提交版本，计划、校验和写入可以在另一线程进行，保存期间继续输入的内容不进入副本，也不清未保存状态。窗口在选好路径后后台执行该作业；结果只作用于同一编辑世代，世代已变则丢弃，同世代但版本已变则提示副本不含开始保存后的修改。worktree `claude/nice-swartz-b742a2` 里“打开期间拒绝一切编辑”的方案没有并入：当前 `main` 已在版本门闩期间保留输入。
 - `scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例。engine 事务有 panic 守卫。
 - 启动示例文档改为语料用例 DOCX-SAMPLE-001（`joyword-corpus` 确定性生成，正文逐行取自 cjk-contract.txt），以 `DocxSession` 导入而非裸内存文档：启动即可编辑、写恢复日志并另存。`DocxSession` 新增 `open_default` 与 `save_copy_job`；另存可用性改按能否导出判断，无源文档不再静默禁用。命令被禁用或失败时窗口显示原因（本地化键或错误文本），不再无反应。
-- 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Mac 未安装 Microsoft Word.app；2026-10-18 确认 Windows 参考机装有 Word 2024 永久版（家庭版，build 16.0.20430.20182），规格同步放宽。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。T207 纯函数除外（见进度速览），其余 M2 及以后保持 `planned`。
+- 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Mac 未安装 Microsoft Word.app；2026-10-18 确认 Windows 参考机装有 Word 2024 永久版（家庭版，build 16.0.20430.20182），规格同步放宽。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。T207 纯函数与 T210 inspect／text 切片除外（见进度速览），其余 M2 及以后保持 `planned`。
 
-M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2 只有 T207 的纯函数落地，排版入口未接；M3–M9 未实施。
+M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2 的 T207 纯函数与 T210 inspect／text 切片落地，T207 排版入口未接；M3–M9 未实施。
 
 ### T000 完成与 T111 豁免清单审查（2026-10-17）
 
@@ -339,3 +339,13 @@ M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍�
 输入仅接受普通文件，压缩输入最多 32 MiB（有界读取再次确认实际大小）；OPC 预算为 1024 条目、每部件 16 MiB、总解压 64 MiB、XML 深度 128／每部件 100 万事件、4096 关系，压缩比继续使用 OPC 默认限制。输出文本最多 1 MiB，JSON 转义另有固定倍数上界；导入与模型读取成本受上述输入预算约束，尚未进行性能测量。`render`／`convert` 和其他未实现子命令明确拒绝。
 
 自动验证：`cargo test -p joyword-cli --locked` 的真实 CLI 进程测试覆盖 DOCX-MIN-001..004 与 DOCX-SAMPLE-001 五份原创包的预期文字、重复 inspect 逐字节相同、text 与 inspect 一致、源字节不变；另覆盖隐藏／插入／删除／移入／移出／未知内容投影、对象占位符、UTF-8 边界与零额度、stderr 元数据、错误包／目录／缺失文件／超大文件／XML 深度与部件解压预算／非法参数／未实现命令。`cargo test -p joyword-docx -p joyoffice-opc -p joyword-model -p joyword-corpus --locked` 也全部通过。跨架构测试子进程会使用 CI 设置的 `CARGO_TARGET_*_RUNNER`，仍需远程 CI 运行证据。`cargo fmt --all -- --check`、`cargo clippy -p joyword-cli --all-targets --locked -- -D warnings`、文档与架构门禁在本机全部通过（5 项 CLI 进程测试、84 个需求／66 个任务、108 个 Rust 文件门禁）。未执行 GUI 或人工投影验收，尚无 PNG／render／convert 验证，整个 T210 保持 `in_progress`。
+
+
+### 本轮 main 集成验证（2026-10-18）
+
+- 开始状态：主目录 `main@b097f55` 有 5 个 CI／鲁棒性未提交文件；`joyoffice-m2-t207` 的 `m2/t207-cjk-measures@b097f55` 有 5 个已跟踪修改和未跟踪 `cjk.rs`。工具未发现可联络的原执行会话，因此保留现场后分别续接审核；CI 补丁先完整备份并复制到 `joyoffice-ci`／`codex/ci-robustness`，T207 沿用原独立目录，新增 T210 使用 `joyoffice-t210`／`codex/t210-inspect-text`。三个执行者仅提交各自任务分支，main 由本集成会话操作。
+- 任务提交：CI／鲁棒性 `8a216f034761b618a02f347eb7594d2ba832f50e`、T207 `71723be160324144edb43d91859af36d339643df`、T210 `80754ce746a585b82903004965c16117a9c6b963`。CI 原补丁与主目录逐字比对一致后才从主目录移除并集成其已提交成果；三个任务分支和独立目录均保留。TASKS／IMPLEMENTATION 的交叉修改已合并，M2 为 2 项进行中、10 项未开始，未增加 done 数量。
+- CI 将 W09 固定 27 个种子 × 3 个目标的 bounded smoke 纳入四平台作业；Windows 使用显式 `.exe` 路径以便读取二进制哈希。smoke 未完成完整矩阵即失败，不再将总时间预算耗尽视为成功；campaign 的有界停止契约保持原样。新增回归同时覆盖完整、提前停止和 campaign 情况。该 smoke 不等于覆盖引导 fuzz。
+- W09 严格绑定已提交的集成生产版本（rebase 前为 `b57544e9e81c1650d218d09d518125878298033e`，随远端 c7abd1c 收口提交 rebase 后为 `a7aaaf19cdb8f78468bd1de1fe1ebf2efe615c1a`），同步更新 build.rs、driver.py、lib.rs 与 README，未放宽 `git diff <SHA> -- crates` 校验。集成时还纠正 CLI 测试和说明中的内部占位符为模型实际的 U+FDD0。
+- 自动验证：Rust 1.98.1、macOS arm64 上 `cargo test --workspace --locked` 共 443 项通过（含应用 36 项、T207 新增 8 项、CLI 5 项），零失败／忽略；workspace fmt、全部 target 的 clippy `-D warnings` 和普通应用构建通过。W08 恢复实验 15 项、W09 Rust 3 项及两实验 fmt／clippy 通过；W09 Python 12 项、工具脚本 52 项、check_docs、check_gates 与反例拒绝检查通过。重绑后 W09 smoke 执行 81／81，43 ok、38 合约内 rejected，无 crash／timeout／invariant／protocol 异常。
+- 验证边界：本轮只做本机自动验证；远程 CI、Windows／Linux／QEMU 未重跑，未推送远程。W09 本机地址空间限制探测失败，记录 `enforced=false`，没有将其宣称为内存隔离通过。现有传递依赖 `block 0.1.6` 的 future-incompat 提示仍存在，本轮未升级依赖。GUI／IME／Word／WPS／信创真机验收未执行；T207 尚未接入分页计算入口，T210 render／convert／PNG 仍未实现，两任务继续 `in_progress`。本轮无需要用户决定的方向冲突或未解决实现阻塞。
