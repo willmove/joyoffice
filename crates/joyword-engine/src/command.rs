@@ -7,7 +7,8 @@ use std::fmt;
 
 use joyword_model::{
     Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, PageSetup,
-    Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
+    Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TabStop, TextError, Toggle,
+    Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -138,6 +139,8 @@ pub enum ParagraphChange {
     Justification(Option<Justification>),
     Indent(Indent),
     Spacing(Spacing),
+    /// Replaces the paragraph's direct tab list. `None` restores inheritance.
+    Tabs(Option<Vec<TabStop>>),
 }
 
 /// Condition checked against the document before any command runs, so a

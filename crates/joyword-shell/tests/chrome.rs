@@ -14,8 +14,9 @@ use joyword_shell::chrome::{
 };
 use joyword_shell::command::{
     ArgValue, Availability, CommandHost, CommandId, EDIT_BOLD, ExecuteError, InvokeError, Registry,
-    ZOOM_IN,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN,
 };
+use joyword_shell::host::Office;
 use joyword_shell::l10n::{Catalog, Locale};
 
 struct LogHost {
@@ -250,6 +251,23 @@ fn view_ribbon_commands_do_not_modify_the_document() {
 }
 
 #[test]
+fn view_toggles_stay_disabled_with_no_document() {
+    let host = Office::new();
+    for (id, reason) in [
+        (VIEW_FORMATTING_MARKS, "view.formatting_marks.unsupported"),
+        (VIEW_HIDDEN_TEXT, "view.hidden_text.unsupported"),
+        (VIEW_FIELD_CODES, "view.field_codes.unsupported"),
+    ] {
+        assert_eq!(
+            CommandHost::availability(&host, id),
+            Availability::Disabled(reason),
+            "{}",
+            id
+        );
+    }
+}
+
+#[test]
 fn ribbon_bindings_invoke_the_registered_command() {
     let registry = Registry::builtin();
     let input = RibbonInput {
@@ -265,6 +283,17 @@ fn ribbon_bindings_invoke_the_registered_command() {
     };
     for control in visible_controls(&registry, RIBBON) {
         let call = control.bind(input);
+        if control.args == RibbonArgs::Dialog {
+            let error = registry
+                .invoke_with(&mut host, call.command, &call.args)
+                .unwrap_err();
+            assert!(
+                matches!(error, InvokeError::PendingInput { .. }),
+                "{}",
+                control.id
+            );
+            continue;
+        }
         registry
             .invoke_with(&mut host, call.command, &call.args)
             .unwrap_or_else(|error| panic!("{}: {error:?}", control.id));
@@ -286,6 +315,7 @@ fn ribbon_bindings_invoke_the_registered_command() {
                 assert_eq!(args.get("repeat"), Some(&ArgValue::Bool(true)));
             }
             RibbonArgs::None => assert!(args.is_empty(), "{}", control.id),
+            RibbonArgs::Dialog => unreachable!("dialog controls return before this match"),
         }
     }
 }

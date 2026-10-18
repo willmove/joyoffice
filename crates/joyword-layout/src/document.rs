@@ -757,12 +757,51 @@ fn line_box_for(
             let resolved =
                 cjk::single_line_height(profile.size, cjk::word_line_span(&metrics), grid)
                     .map_err(|_| unsupported(Some(paragraph), "single-spacing font metrics"))?;
-            if resolved.length.raw() <= 0 || profile.baseline.raw() > resolved.length.raw() {
-                return Err(LayoutError::LineTooTall);
-            }
-            Ok(resolved.length)
+            fit_line_box(profile.baseline, resolved.length)
+        }
+        // Other multiples scale this profile's leading by n/240 with integer
+        // division. That is not a measured Word line grid.
+        Some(LineSpacing::Auto(multiple)) if multiple > 0 => {
+            let length = scale_leading(profile.leading.raw(), multiple, 240)?;
+            fit_line_box(profile.baseline, Emu::new(length))
+        }
+        Some(LineSpacing::Exact(measure)) => {
+            let length = absolute_line(paragraph, measure)?;
+            fit_line_box(profile.baseline, length)
+        }
+        Some(LineSpacing::AtLeast(measure)) => {
+            let floor = absolute_line(paragraph, measure)?;
+            let length = if floor.raw() > profile.leading.raw() {
+                floor
+            } else {
+                profile.leading
+            };
+            fit_line_box(profile.baseline, length)
         }
         Some(_) => Err(unsupported(Some(paragraph), "paragraph line spacing")),
+    }
+}
+
+fn fit_line_box(baseline: Emu, length: Emu) -> Result<Emu, LayoutError> {
+    if length.raw() <= 0 || baseline.raw() > length.raw() {
+        Err(LayoutError::LineTooTall)
+    } else {
+        Ok(length)
+    }
+}
+
+fn scale_leading(leading: i64, multiple: i64, unit: i64) -> Result<i64, LayoutError> {
+    let product = i128::from(leading)
+        .checked_mul(i128::from(multiple))
+        .ok_or(LayoutError::GeometryOverflow)?;
+    let value = product / i128::from(unit);
+    i64::try_from(value).map_err(|_| LayoutError::GeometryOverflow)
+}
+
+fn absolute_line(paragraph: NodeId, measure: Measure) -> Result<Emu, LayoutError> {
+    match measure.absolute() {
+        Some(length) if length.raw() >= 0 => Ok(length),
+        _ => Err(unsupported(Some(paragraph), "paragraph line spacing")),
     }
 }
 

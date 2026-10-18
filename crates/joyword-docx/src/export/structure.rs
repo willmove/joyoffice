@@ -26,9 +26,9 @@ use std::sync::Arc;
 
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, Color, Document, FontRef, FontSlots, Indent,
-    Justification, Languages, Measure, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph,
-    RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Table, TableWidth,
-    Underline, VerticalMerge,
+    Justification, Languages, LineSpacing, Measure, NodeId, NumberingRef, NumberingStore,
+    ParaProps, Paragraph, RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet,
+    TabAlign, TabLeader, TabStop, Table, TableWidth, Underline, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -491,6 +491,7 @@ impl<'a> Source<'a> {
                         "sectPr" => return Err("paragraph ends a section"),
                         other if property_leaf(other).is_some() => known_leaf(child)?,
                         "numPr" => known_num_pr(child)?,
+                        "tabs" => known_tabs(child)?,
                         _ => return Err("unmapped structural paragraph content"),
                     }
                 }
@@ -870,17 +871,16 @@ fn default_format(paragraph: &Paragraph) -> bool {
             .all(|run| run.style.is_none() && run.props.is_empty())
 }
 
-/// A paragraph whose direct formatting is the M1 subset: justification and
-/// character toggles, size, color, named font slots and underline. No style,
-/// numbering, spacing, indent, preserved markup or theme font.
+/// A paragraph whose direct formatting is the M1 subset: justification,
+/// writable twip indent, spacing and tabs, plus character toggles, size,
+/// color, named font slots and underline. No style, numbering, preserved
+/// markup or theme font.
 pub(super) fn direct_m1(paragraph: &Paragraph) -> bool {
     let props = &paragraph.props;
     paragraph.style.is_none()
         && props.preserved.is_none()
         && props.numbering.is_none()
-        && props.tabs.is_none()
-        && props.indent == Indent::default()
-        && props.spacing == Spacing::default()
+        && geometry_supported(props).is_ok()
         && props.keep_next.is_none()
         && props.keep_lines.is_none()
         && props.widow_control.is_none()
@@ -905,9 +905,7 @@ pub(super) fn style_assignment_ok(
 ) -> Result<(), &'static str> {
     let props = &paragraph.props;
     if props.preserved.is_some()
-        || props.tabs.is_some()
-        || props.indent != Indent::default()
-        || props.spacing != Spacing::default()
+        || geometry_supported(props).is_err()
         || props.keep_next.is_some()
         || props.keep_lines.is_some()
         || props.widow_control.is_some()
@@ -984,6 +982,185 @@ fn xml_escape(value: &str) -> String {
     out
 }
 
+/// Twenty-two inches. Direct indent, spacing and tabs outside this stay in
+/// the source bytes; they are not rewritten as a shorter number.
+const MAX_GEOMETRY_TWIPS: i64 = 22 * 1_440;
+const MAX_EXPORT_TABS: usize = 48;
+
+/// Indent, spacing and tabs the paragraph rewriter can emit without dropping
+/// a unit the importer would not read back. Character units, both first-line
+/// and hanging, bar and clear stops, and heavy leaders are refused.
+pub(super) fn geometry_supported(props: &ParaProps) -> Result<(), &'static str> {
+    let indent = &props.indent;
+    if !twip_slot(indent.start, true)
+        || !twip_slot(indent.end, true)
+        || !twip_slot(indent.first_line, false)
+        || !twip_slot(indent.hanging, false)
+        || (indent.first_line.is_some() && indent.hanging.is_some())
+    {
+        return Err("paragraph indent is outside the direct subset");
+    }
+    let spacing = &props.spacing;
+    if !twip_slot(spacing.before, false)
+        || !twip_slot(spacing.after, false)
+        || spacing.before_auto.is_some()
+        || spacing.after_auto.is_some()
+    {
+        return Err("paragraph spacing is outside the direct subset");
+    }
+    let line_ok = match spacing.line {
+        None => true,
+        Some(LineSpacing::Auto(value)) => (1..=MAX_GEOMETRY_TWIPS).contains(&value),
+        Some(LineSpacing::Exact(Measure::Twips(value))) => {
+            (1..=MAX_GEOMETRY_TWIPS).contains(&value)
+        }
+        Some(LineSpacing::AtLeast(Measure::Twips(value))) => {
+            (0..=MAX_GEOMETRY_TWIPS).contains(&value)
+        }
+        Some(_) => false,
+    };
+    if !line_ok {
+        return Err("paragraph line spacing is outside the direct subset");
+    }
+    if let Some(tabs) = &props.tabs
+        && (tabs.len() > MAX_EXPORT_TABS || tabs.iter().any(|stop| !tab_exportable(stop)))
+    {
+        return Err("paragraph tabs are outside the direct subset");
+    }
+    Ok(())
+}
+
+fn twip_slot(measure: Option<Measure>, negative: bool) -> bool {
+    match measure {
+        None => true,
+        Some(Measure::Twips(value)) => {
+            if negative {
+                (-MAX_GEOMETRY_TWIPS..=MAX_GEOMETRY_TWIPS).contains(&value)
+            } else {
+                (0..=MAX_GEOMETRY_TWIPS).contains(&value)
+            }
+        }
+        Some(_) => false,
+    }
+}
+
+fn tab_exportable(stop: &TabStop) -> bool {
+    matches!(stop.position, Measure::Twips(value) if (0..=MAX_GEOMETRY_TWIPS).contains(&value))
+        && !matches!(stop.align, TabAlign::Bar | TabAlign::Clear)
+        && !matches!(stop.leader, TabLeader::MiddleDot | TabLeader::Heavy)
+}
+
+/// `w:ind`, `w:spacing` and `w:tabs` for a paragraph the caller already
+/// checked with [`geometry_supported`].
+fn geometry_markup(names: &Names, props: &ParaProps) -> Result<String, &'static str> {
+    geometry_supported(props)?;
+    let mut out = String::new();
+    if let Some(markup) = indent_markup(names, &props.indent) {
+        out.push_str(&markup);
+    }
+    if let Some(markup) = spacing_markup(names, &props.spacing)? {
+        out.push_str(&markup);
+    }
+    if let Some(tabs) = &props.tabs {
+        out.push_str(&tabs_markup(names, tabs)?);
+    }
+    Ok(out)
+}
+
+fn indent_markup(names: &Names, indent: &Indent) -> Option<String> {
+    let mut body = String::new();
+    write_twip(&mut body, names, "start", indent.start);
+    write_twip(&mut body, names, "end", indent.end);
+    write_twip(&mut body, names, "firstLine", indent.first_line);
+    write_twip(&mut body, names, "hanging", indent.hanging);
+    if body.is_empty() {
+        None
+    } else {
+        Some(format!("{}{body}/>", names.start("ind")))
+    }
+}
+
+fn write_twip(body: &mut String, names: &Names, local: &str, measure: Option<Measure>) {
+    if let Some(Measure::Twips(value)) = measure {
+        body.push_str(&qattr(names, local, &value.to_string()));
+    }
+}
+
+fn spacing_markup(names: &Names, spacing: &Spacing) -> Result<Option<String>, &'static str> {
+    let mut body = String::new();
+    write_twip(&mut body, names, "before", spacing.before);
+    write_twip(&mut body, names, "after", spacing.after);
+    if let Some(line) = spacing.line {
+        let (value, rule) = match line {
+            LineSpacing::Auto(value) => (value, "auto"),
+            LineSpacing::Exact(Measure::Twips(value)) => (value, "exact"),
+            LineSpacing::AtLeast(Measure::Twips(value)) => (value, "atLeast"),
+            _ => return Err("paragraph line spacing is outside the direct subset"),
+        };
+        body.push_str(&qattr(names, "line", &value.to_string()));
+        body.push_str(&qattr(names, "lineRule", rule));
+    }
+    if body.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(format!("{}{body}/>", names.start("spacing"))))
+    }
+}
+
+fn tabs_markup(names: &Names, tabs: &[TabStop]) -> Result<String, &'static str> {
+    let mut body = String::new();
+    for stop in tabs {
+        let align = match stop.align {
+            TabAlign::Left => "left",
+            TabAlign::Center => "center",
+            TabAlign::Right => "right",
+            TabAlign::Decimal => "decimal",
+            TabAlign::Num => "num",
+            TabAlign::Bar | TabAlign::Clear => {
+                return Err("paragraph tabs are outside the direct subset");
+            }
+        };
+        let Measure::Twips(position) = stop.position else {
+            return Err("paragraph tabs are outside the direct subset");
+        };
+        let leader = match stop.leader {
+            TabLeader::None => None,
+            TabLeader::Dot => Some("dot"),
+            TabLeader::Hyphen => Some("hyphen"),
+            TabLeader::Underscore => Some("underscore"),
+            TabLeader::MiddleDot | TabLeader::Heavy => {
+                return Err("paragraph tabs are outside the direct subset");
+            }
+        };
+        body.push_str(&names.start("tab"));
+        body.push_str(&qattr(names, "val", align));
+        body.push_str(&qattr(names, "pos", &position.to_string()));
+        if let Some(leader) = leader {
+            body.push_str(&qattr(names, "leader", leader));
+        }
+        body.push_str("/>");
+    }
+    Ok(format!(
+        "{}>{body}{}",
+        names.start("tabs"),
+        names.end("tabs")
+    ))
+}
+
+pub(super) fn rewrite_represented_paragraph(
+    xml: &[u8],
+    element: &Element,
+    paragraph: &Paragraph,
+    names: &Names,
+    limit: u64,
+) -> Result<Vec<u8>, ExportError> {
+    if paragraph.style.is_some() || paragraph.props.numbering.is_some() {
+        rewrite_styled_paragraph(xml, element, paragraph, names, limit)
+    } else {
+        rewrite_direct_paragraph(xml, element, paragraph, names, limit)
+    }
+}
+
 pub(super) fn rewrite_styled_paragraph(
     xml: &[u8],
     element: &Element,
@@ -994,9 +1171,12 @@ pub(super) fn rewrite_styled_paragraph(
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
     let mut inner = String::new();
+    let geometry = geometry_markup(names, &paragraph.props)
+        .map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
     if paragraph.style.is_some()
         || paragraph.props.justification.is_some()
         || paragraph.props.numbering.is_some()
+        || !geometry.is_empty()
     {
         inner.push_str(&names.start("pPr"));
         inner.push('>');
@@ -1010,6 +1190,7 @@ pub(super) fn rewrite_styled_paragraph(
             inner.push_str(&qattr(names, "val", justification_value(justification)));
             inner.push_str("/>");
         }
+        inner.push_str(&geometry);
         if let Some(numbering) = paragraph.props.numbering {
             inner.push_str(&num_pr(names, numbering));
         }
@@ -1094,12 +1275,17 @@ pub(super) fn rewrite_direct_paragraph(
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
     let mut inner = String::new();
-    if let Some(justification) = paragraph.props.justification {
+    let geometry = geometry_markup(names, &paragraph.props)
+        .map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
+    if paragraph.props.justification.is_some() || !geometry.is_empty() {
         inner.push_str(&names.start("pPr"));
         inner.push('>');
-        inner.push_str(&names.start("jc"));
-        inner.push_str(&qattr(names, "val", justification_value(justification)));
-        inner.push_str("/>");
+        if let Some(justification) = paragraph.props.justification {
+            inner.push_str(&names.start("jc"));
+            inner.push_str(&qattr(names, "val", justification_value(justification)));
+            inner.push_str("/>");
+        }
+        inner.push_str(&geometry);
         inner.push_str(&names.end("pPr"));
     }
     for (style, props, text) in run_groups(paragraph) {
@@ -1783,6 +1969,30 @@ fn known_proof(element: &Element) -> Result<(), &'static str> {
     } else {
         Err("structural paragraph markup has unknown attributes")
     }
+}
+
+fn known_tabs(element: &Element) -> Result<(), &'static str> {
+    if !element.attributes.is_empty() {
+        return Err("structural paragraph markup has unknown attributes");
+    }
+    for node in &element.children {
+        match node {
+            Node::Text(text) if is_space(text) => {}
+            Node::Element(child) if child.is(W, "tab") => {
+                if !child.attributes.iter().all(|attribute| {
+                    attribute.namespace.as_deref() == Some(W)
+                        && matches!(attribute.local.as_ref(), "val" | "pos" | "leader")
+                }) {
+                    return Err("structural paragraph markup has unknown attributes");
+                }
+                if child.elements().next().is_some() {
+                    return Err("unmapped structural paragraph content");
+                }
+            }
+            _ => return Err("unmapped structural paragraph content"),
+        }
+    }
+    Ok(())
 }
 
 fn known_num_pr(element: &Element) -> Result<(), &'static str> {
