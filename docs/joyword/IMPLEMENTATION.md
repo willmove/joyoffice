@@ -332,7 +332,7 @@ M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍�
 
 新增 `apps/joyword-cli`，纳入 workspace 与 default-members，不依赖 GPUI、窗口、字体或 GPU。使用既有 `joyword_docx::import` 与模型只读接口，不修改 DOCX／layout 核心，不触碰输入文件、不获取会话写锁。语义沿用既有基于 ECMA-376 的导入实现；CLI 序列化与原创测试独立编写，无其他编辑器实现来源。
 
-使用 `cargo run -p joyword-cli --locked -- inspect FILE.docx` 输出单行 schema 1 JSON，或 `cargo run -p joyword-cli --locked -- text FILE.docx` 将纯 UTF-8 文字写 stdout，并将同样的投影与完整性元数据 JSON 写 stderr。`--max-text-bytes N` 跟在文件之后，取值 0..1048576，默认 1 MiB，按 UTF-8 字节的完整字符前缀截断；不会跳过超预算字符再追加后续较短字符。正常退出 0，使用／读取／格式／预算错误退出 2（stdout 无成功结果），发生文字截断退出 3（inspect 仍输出可解析 JSON，text 仍输出前缀及 stderr 标志）。写出或 flush 失败返回错误。
+使用 `cargo run -p joyword-cli --locked -- inspect FILE.docx` 输出单行 schema 1 JSON，或 `cargo run -p joyword-cli --locked -- text FILE.docx` 将纯 UTF-8 文字写 stdout，并将同样的投影与完整性元数据 JSON 写 stderr。`--max-text-bytes N` 可位于文件之前或之后，取值 0..1048576，默认 1 MiB，按 UTF-8 字节的完整字符前缀截断；不会跳过超预算字符再追加后续较短字符。正常退出 0，使用／读取／格式／预算错误退出 2（stdout 无成功结果），发生文字截断退出 3（inspect 仍输出可解析 JSON，text 仍输出前缀及 stderr 标志）。写出或 flush 失败返回错误。
 
 投影固定为 `imported-main-body`，**包含隐藏文字**，包含插入修订及 moveTo 的导入文字，不含已删除修订、moveFrom、批注、页眉页脚和其他 story；这不是 Word 的最终审阅视图。未知 XML 和当前导入器尚未表示的表格、图片等内容保留在原包，但不从原始 XML 猜测提取。行内对象不输出 U+FDD0 内部占位符；已导入的超链接文字照常读出；软换行为 LF，分页／分栏为 FF，段落及模型单元格段落按 LF 分隔。`projection` 声明上述边界；`partial` 是保守标志：有保留片段、任何导入诊断或省略对象即为 true（包含仅属性或信息级诊断的情况），并独立报告 `preserved_fragments`、诊断数量和 `omitted_objects`；`truncated` 仅指文字字节预算，绝不以它冒充语义完整性。输出无随机节点 ID、绝对路径、时间戳或原始诊断文字，因此同一输入与预算逐字节稳定；错误消息固定且不回显不可信 XML／路径。
 
@@ -340,6 +340,12 @@ M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍�
 
 自动验证：`cargo test -p joyword-cli --locked` 的真实 CLI 进程测试覆盖 DOCX-MIN-001..004 与 DOCX-SAMPLE-001 五份原创包的预期文字、重复 inspect 逐字节相同、text 与 inspect 一致、源字节不变；另覆盖隐藏／插入／删除／移入／移出／未知内容投影、对象占位符、UTF-8 边界与零额度、stderr 元数据、错误包／目录／缺失文件／超大文件／XML 深度与部件解压预算／非法参数／未实现命令。`cargo test -p joyword-docx -p joyoffice-opc -p joyword-model -p joyword-corpus --locked` 也全部通过。跨架构测试子进程会使用 CI 设置的 `CARGO_TARGET_*_RUNNER`，仍需远程 CI 运行证据。`cargo fmt --all -- --check`、`cargo clippy -p joyword-cli --all-targets --locked -- -D warnings`、文档与架构门禁在本机全部通过（5 项 CLI 进程测试、84 个需求／66 个任务、108 个 Rust 文件门禁）。未执行 GUI 或人工投影验收，尚无 PNG／render／convert 验证，整个 T210 保持 `in_progress`。
 
+
+### T210 CLI 使用与输出边界补齐（2026-10-18）
+
+基于 `c049ce0` 中已集成的 inspect／text 实现，在独立 worktree 的 `codex/t210-cli-followup` 分支补齐参数契约：`inspect --help`／`text --help`（也支持 `-h`）成功输出帮助；预算选项可放在文件前后，重复预算明确拒绝；`--` 后只解析文件名，因此 `text --max-text-bytes 3 -- --help` 可读取当前目录名为 `--help` 的文件。没有 `--` 时，短横线开头的参数按选项处理，未知选项拒绝。text 在输出正文前显式 flush stderr 元数据，写出失败退出 2。
+
+Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` 的 8 项进程测试通过，覆盖原有五份原创样例、子命令帮助、选项位置／重复／缺参数、短横线文件名、空正文（导入器规范化成一个空段落）、空段落分隔符的零额度与精确边界、两种命令的完整元数据一致性及源字节不变。Unix 平台通过断开的本地 socket 分别注入 stdout／stderr 写出失败，断言退出 2，元数据失败时正文为空；该项测试在 Windows 上不编译，Windows 写出失败路径仍需验证。CLI clippy（全部 target，`-D warnings`）、workspace fmt、文档与架构门禁通过。未执行 GUI／人工验收，未运行远程 CI；render／convert／PNG 仍未实现，T210 保持 `in_progress`。
 
 ### 本轮 main 集成验证（2026-10-18）
 

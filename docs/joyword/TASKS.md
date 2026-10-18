@@ -393,7 +393,7 @@
 - 错误路径：未支持的转换明确拒绝，不提供假成功入口；截断必须带标志，不静默省略。
 - 自动验证：对 5 个原创样例输出稳定 JSON 与 PNG，同一输入两次运行逐字节相同。
 - 人工验收：检查 inspect 的投影与截断行为符合声明，render 输出与窗口显示一致。
-- 完成证据：2026-10-18 inspect／text 切片已实现：apps/joyword-cli 直接只读导入真实 DOCX，schema 1 固定 imported-main-body 投影（包含隐藏文字、插入修订和 moveTo，不含删除修订、moveFrom、批注及其他 story）；未知内容省略和输出截断分别声明，text 元数据写 stderr，截断退出 3，错误退出 2。5 个原创样例真实命令重复输出逐字节一致，投影／UTF-8 预算／无占位符／错误路径测试通过；render／convert 明确拒绝，PNG 稳定性与人工验收未完成，不标 done。命令及预算见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：2026-10-18 inspect／text 切片已实现：apps/joyword-cli 直接只读导入真实 DOCX，schema 1 固定 imported-main-body 投影（包含隐藏文字、插入修订和 moveTo，不含删除修订、moveFrom、批注及其他 story）；未知内容省略和输出截断分别声明，text 元数据写 stderr，截断退出 3，错误退出 2。5 个原创样例真实命令重复输出逐字节一致，投影／UTF-8 预算／无占位符／错误路径测试通过；render／convert 明确拒绝，PNG 稳定性与人工验收未完成，不标 done。后续补齐子命令帮助、预算选项位置与 `--` 文件名语义，并扩展到 8 项本机进程测试，含段落分隔符预算与 Unix 输出失败注入。命令及预算见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T211：应用日志与崩溃诊断
 

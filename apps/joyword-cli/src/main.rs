@@ -10,7 +10,7 @@ use serde_json::json;
 
 const MAX_INPUT: u64 = 32 << 20;
 const MAX_TEXT: usize = 1 << 20;
-const HELP: &str = "joyword-cli inspect|text FILE [--max-text-bytes N]\nRead-only DOCX; N is UTF-8 text bytes (0..1048576), default 1048576.\nProjection: imported main body, INCLUDING hidden text; deleted revisions,\ncomments and other stories excluded; inserted/moveTo text included.\nUnsupported XML is preserved by import\nbut omitted from text. This is not a complete final/revision view.\ninspect: schema 1 JSON, partial and truncated are independent.\ntext: UTF-8 stdout; projection/partial/truncated JSON on stderr.\nExit: 0 complete within projection; 2 error; 3 text truncated.\nrender and convert are not implemented and are refused.\n";
+const HELP: &str = "joyword-cli inspect|text [--max-text-bytes N] [--] FILE\nOptions may also follow FILE; -- ends option parsing.\nUse joyword-cli inspect|text --help for this help.\nRead-only DOCX; N is UTF-8 text bytes (0..1048576), default 1048576.\nProjection: imported main body, INCLUDING hidden text; deleted revisions,\ncomments and other stories excluded; inserted/moveTo text included.\nUnsupported XML is preserved by import\nbut omitted from text. This is not a complete final/revision view.\ninspect: schema 1 JSON, partial and truncated are independent.\ntext: UTF-8 stdout; projection/partial/truncated JSON on stderr.\nExit: 0 complete within projection; 2 error; 3 text truncated.\nrender and convert are not implemented and are refused.\n";
 
 struct Options {
     inspect: bool,
@@ -37,21 +37,36 @@ fn options() -> Result<Option<Options>, &'static str> {
     } else {
         return Err("unsupported command; use inspect or text (render/convert unavailable)");
     };
-    let path = args.next().ok_or("missing DOCX path")?;
+    let mut path = None;
     let mut limit = MAX_TEXT;
-    if let Some(flag) = args.next() {
-        if flag != "--max-text-bytes" {
-            return Err("unknown option");
+    let mut budget_seen = false;
+    let mut positional_only = false;
+    while let Some(arg) = args.next() {
+        if !positional_only && arg == "--" {
+            positional_only = true;
+        } else if !positional_only && (arg == "--help" || arg == "-h") {
+            return if path.is_none() && !budget_seen && args.next().is_none() {
+                Ok(None)
+            } else {
+                Err("unexpected arguments")
+            };
+        } else if !positional_only && arg == "--max-text-bytes" {
+            if budget_seen {
+                return Err("duplicate text budget");
+            }
+            budget_seen = true;
+            limit = args
+                .next()
+                .and_then(|value| value.to_str().and_then(|s| s.parse().ok()))
+                .filter(|value| *value <= MAX_TEXT)
+                .ok_or("invalid text budget (0..1048576)")?;
+        } else if !positional_only && arg.as_encoded_bytes().starts_with(b"-") {
+            return Err("unknown option; use -- before a path starting with '-'");
+        } else if path.replace(arg).is_some() {
+            return Err("unexpected arguments");
         }
-        limit = args
-            .next()
-            .and_then(|value| value.to_str().and_then(|s| s.parse().ok()))
-            .filter(|value| *value <= MAX_TEXT)
-            .ok_or("invalid text budget (0..1048576)")?;
     }
-    if args.next().is_some() {
-        return Err("unexpected arguments");
-    }
+    let path = path.ok_or("missing DOCX path")?;
     Ok(Some(Options {
         inspect,
         path,
@@ -195,6 +210,7 @@ fn execute(options: Options) -> Result<u8, &'static str> {
         serde_json::to_writer(&mut stderr, &report)
             .map_err(|_| "cannot write projection metadata")?;
         stderr.write_all(b"\n").map_err(|_| "cannot write stderr")?;
+        stderr.flush().map_err(|_| "cannot flush stderr")?;
         stdout
             .write_all(text.value.as_bytes())
             .map_err(|_| "cannot write stdout")?;

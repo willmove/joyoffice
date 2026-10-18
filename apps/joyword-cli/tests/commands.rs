@@ -4,7 +4,7 @@ use std::process::{Command, Output};
 use joyoffice_opc::{Method, write_archive};
 use serde_json::Value;
 
-fn run(command: &str, path: &Path, args: &[&str]) -> Output {
+fn cli() -> Command {
     // Cargo's runner wraps the test harness, not processes spawned by it.
     // Mirror the existing CI QEMU runner for the real CLI process tests.
     let key = format!(
@@ -13,14 +13,17 @@ fn run(command: &str, path: &Path, args: &[&str]) -> Output {
     );
     let runner = std::env::var(key).ok();
     let mut parts = runner.as_deref().unwrap_or("").split_whitespace();
-    let mut process = if let Some(program) = parts.next() {
+    if let Some(program) = parts.next() {
         let mut process = Command::new(program);
         process.args(parts).arg(env!("CARGO_BIN_EXE_joyword-cli"));
         process
     } else {
         Command::new(env!("CARGO_BIN_EXE_joyword-cli"))
-    };
-    process.arg(command).arg(path).args(args).output().unwrap()
+    }
+}
+
+fn run(command: &str, path: &Path, args: &[&str]) -> Output {
+    cli().arg(command).arg(path).args(args).output().unwrap()
 }
 
 fn package(body: &str) -> Vec<u8> {
@@ -171,4 +174,130 @@ fn xml_and_expanded_part_budgets_are_enforced() {
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stdout.is_empty());
     assert!(output.stderr.len() < 256);
+}
+
+#[test]
+fn help_options_and_literal_paths_are_unambiguous() {
+    let dir = tempfile::tempdir().unwrap();
+    let name = "--max-text-bytes";
+    let path = dir.path().join(name);
+    let bytes = package("<w:p><w:r><w:t>甲乙</w:t></w:r></w:p>");
+    std::fs::write(&path, &bytes).unwrap();
+    for command in ["inspect", "text"] {
+        let help = cli().args([command, "--help"]).output().unwrap();
+        assert_eq!(help.status.code(), Some(0));
+        assert!(help.stderr.is_empty());
+        assert!(
+            String::from_utf8(help.stdout)
+                .unwrap()
+                .contains("--max-text-bytes")
+        );
+        let before = cli()
+            .args([command, "--max-text-bytes", "3"])
+            .arg(&path)
+            .output()
+            .unwrap();
+        let after = run(command, &path, &["--max-text-bytes", "3"]);
+        assert_eq!(before.status.code(), Some(3));
+        assert_eq!(before.stdout, after.stdout);
+        assert_eq!(before.stderr, after.stderr);
+        let literal = cli()
+            .current_dir(dir.path())
+            .args([command, "--max-text-bytes", "3", "--", name])
+            .output()
+            .unwrap();
+        assert_eq!(literal.status.code(), Some(3));
+        assert_eq!(literal.stdout, before.stdout);
+        assert_eq!(literal.stderr, before.stderr);
+    }
+    for args in [
+        vec!["inspect"],
+        vec!["text", "--"],
+        vec!["inspect", "--unknown"],
+        vec!["inspect", "--max-text-bytes"],
+        vec!["inspect", "--help", "extra"],
+        vec!["inspect", "--max-text-bytes", "3", "--max-text-bytes", "3"],
+    ] {
+        let output = cli().args(args).output().unwrap();
+        assert_eq!(output.status.code(), Some(2));
+        assert!(output.stdout.is_empty());
+    }
+    assert_eq!(std::fs::read(path).unwrap(), bytes);
+}
+
+#[test]
+fn empty_body_and_paragraph_separators_obey_exact_text_budget() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("boundaries.docx");
+    for (body, limit, expected, truncated, paragraphs) in [
+        ("", 0, "", false, 1),
+        ("<w:p/>", 0, "", false, 1),
+        ("<w:p/><w:p/>", 0, "", true, 2),
+        ("<w:p/><w:p/>", 1, "\n", false, 2),
+        ("<w:p><w:r><w:t>A</w:t></w:r></w:p><w:p/>", 1, "A", true, 2),
+        (
+            "<w:p><w:r><w:t>A</w:t></w:r></w:p><w:p/>",
+            2,
+            "A\n",
+            false,
+            2,
+        ),
+    ] {
+        let bytes = package(body);
+        std::fs::write(&path, &bytes).unwrap();
+        let args = ["--max-text-bytes", &limit.to_string()];
+        let inspect = run("inspect", &path, &args);
+        assert_eq!(inspect.status.code(), Some(if truncated { 3 } else { 0 }));
+        let mut metadata: Value = serde_json::from_slice(&inspect.stdout).unwrap();
+        assert_eq!(metadata["text"], expected);
+        assert_eq!(metadata["text_bytes"], expected.len());
+        assert_eq!(metadata["paragraphs"], paragraphs);
+        assert_eq!(metadata["truncated"], truncated);
+        metadata.as_object_mut().unwrap().remove("text");
+        let text = run("text", &path, &args);
+        assert_eq!(text.status.code(), inspect.status.code());
+        assert_eq!(text.stdout, expected.as_bytes());
+        assert_eq!(
+            serde_json::from_slice::<Value>(&text.stderr).unwrap(),
+            metadata
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn broken_output_streams_never_report_success() {
+    use std::os::fd::OwnedFd;
+    use std::os::unix::net::UnixStream;
+    use std::process::Stdio;
+
+    fn broken_stream() -> Stdio {
+        let (writer, reader) = UnixStream::pair().unwrap();
+        drop(reader);
+        Stdio::from(OwnedFd::from(writer))
+    }
+
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("output.docx");
+    let bytes = package("<w:p><w:r><w:t>正文</w:t></w:r></w:p>");
+    std::fs::write(&path, &bytes).unwrap();
+    for command in ["inspect", "text"] {
+        let output = cli()
+            .arg(command)
+            .arg(&path)
+            .stdout(broken_stream())
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2));
+    }
+    let output = cli()
+        .arg("text")
+        .arg(&path)
+        .stderr(broken_stream())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert_eq!(std::fs::read(path).unwrap(), bytes);
 }
