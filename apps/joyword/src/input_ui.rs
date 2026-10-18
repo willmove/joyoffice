@@ -908,17 +908,18 @@ impl JoyWord {
             return;
         }
         let Some(error) = output.storage_error() else {
-            self.input_error = Some(match output.result() {
+            let message = match output.result() {
                 Err(error) => error.to_string(),
                 Ok(_) => self.label("file.original.unexpected"),
-            });
+            };
+            self.report_input_error(message);
             cx.notify();
             return;
         };
         let Some(blockers) = error.blockers().filter(|blockers| {
             blockers.contains(&joyword_shell::storage::ReplacementBlocker::ConfirmationRequired)
         }) else {
-            self.input_error = Some(error.to_string());
+            self.report_input_error(error.to_string());
             cx.notify();
             return;
         };
@@ -1005,7 +1006,7 @@ impl JoyWord {
             .as_ref()
             .and_then(|editor| editor.save_original_job())
         else {
-            self.input_error = Some(self.label("file.save_original.unavailable"));
+            self.report_input_error(self.label("file.save_original.unavailable"));
             cx.notify();
             return;
         };
@@ -1068,8 +1069,9 @@ impl JoyWord {
                     self.input_error = None;
                 }
                 Some(Err(error)) => {
-                    self.input_error =
-                        Some(catalog.format("file.original.error", &[("reason", &error)]));
+                    self.report_input_error(
+                        catalog.format("file.original.error", &[("reason", &error)]),
+                    );
                     if let Some(receipt) = published {
                         let key = if landing == CopyLanding::Current {
                             "file.original.saved"
@@ -1095,8 +1097,9 @@ impl JoyWord {
                 }
                 Some(Err(error)) => {
                     let reason = error.to_string();
-                    self.input_error =
-                        Some(catalog.format("file.original.error", &[("reason", &reason)]));
+                    self.report_input_error(
+                        catalog.format("file.original.error", &[("reason", &reason)]),
+                    );
                 }
                 None => {
                     if let Some(receipt) = published {
@@ -1211,7 +1214,7 @@ impl JoyWord {
                 self.input_error = None;
             }
             Err(error) => {
-                self.input_error = Some(catalog.format("file.copy.error", &[("reason", &error)]));
+                self.report_input_error(catalog.format("file.copy.error", &[("reason", &error)]));
             }
         }
     }
@@ -1327,7 +1330,7 @@ impl JoyWord {
                     Ok(text) => text,
                     Err(error) => {
                         view.open_gate = None;
-                        view.input_error = Some(
+                        view.report_input_error(
                             Catalog::shipped(view.locale)
                                 .format("file.open.error", &[("reason", &error.to_string())]),
                         );
@@ -1343,7 +1346,7 @@ impl JoyWord {
                                 && let Err(error) =
                                     input.replace_from(InputSource::Command, None, &buffered)
                             {
-                                view.input_error = Some(view.label(input_error_label(&error)));
+                                view.report_input_error(view.label(input_error_label(&error)));
                                 cx.notify();
                                 return;
                             }
@@ -1352,11 +1355,11 @@ impl JoyWord {
                             view.show_active_document(cx);
                         }
                         Err(error) => {
-                            view.input_error = Some(view.label(input_error_label(&error)));
+                            view.report_input_error(view.label(input_error_label(&error)));
                         }
                     },
                     Err(error) => {
-                        view.input_error = Some(
+                        view.report_input_error(
                             Catalog::shipped(view.locale)
                                 .format("file.open.error", &[("reason", &error.to_string())]),
                         );

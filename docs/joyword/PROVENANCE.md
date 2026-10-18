@@ -103,3 +103,8 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 方法：scripts/verify_gpui_pre_provenance.py 先用 Cargo.lock 校验和验证 .crate，再要求声明的提交在 zed-industries/zed 的 main 历史中，在 Zed 工作区成员中定位 crate 目录，按 git blob ID 逐文件比较。只允许 cargo 打包生成的文件差异、符号链接解析和嵌套包排除。CI 的 provenance 作业用 `--expected-zed-rev` 固定提交，并带审查偏差文件运行。
 - 结果（2026-10-16）：19 个包中 16 个与 Zed 93d7456 逐文件一致。gpui-pre、gpui-pre-apple、gpui-pre-macros 共有 9 处发布适配：`actions!` 宏改用 `$crate::Action`；构建脚本改读 vendor/gpui，并附带 5 个与 Zed 逐字节相同的副本；新增 gpui-kit 门面改写器及其 proc-macro-crate 依赖。这些改动经项目负责人接受，按内容钉死在 scripts/gpui_pre_reviewed_deviations.json。JoyWord 不依赖 gpui-kit，门面改写器实际为空操作。
 - 边界：Cargo.toml 的内容（依赖、features）不在逐文件比对范围内，由 Cargo.lock 校验和与 cargo-deny 覆盖；本校验不评价 Zed 代码本身。升级快照时须先不带偏差文件运行，并重新审查。详见[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)。
+
+### 应用日志与崩溃诊断（T211）
+
+- QUALITY-007。不新增外部 crate，不复制 Word、WPS、Zed 或 WordCraft 的日志实现。日志文件、轮转、脱敏和 panic hook 为项目自行实现。
+- 依据 Rust 标准库文档：[std::panic::set_hook](https://doc.rust-lang.org/std/panic/fn.set_hook.html)、[PanicHookInfo](https://doc.rust-lang.org/std/panic/struct.PanicHookInfo.html)、[Backtrace::force_capture](https://doc.rust-lang.org/std/backtrace/struct.Backtrace.html#method.force_capture)、[File::create_new](https://doc.rust-lang.org/std/fs/struct.File.html#method.create_new)、[File::sync_all](https://doc.rust-lang.org/std/fs/struct.File.html#method.sync_all)。只使用这些公开 API 的语义：新建文件不截断已有文件，hook 替换默认 hook，回溯在捕获时生成。目录项本身不做目录 sync，不把文件 sync 说成断电后目录项一定可见。

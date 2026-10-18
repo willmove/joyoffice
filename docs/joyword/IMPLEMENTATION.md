@@ -4,9 +4,9 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 
@@ -407,3 +407,16 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **无头视觉输出（T210）**：`joyword-cli` 在保留 inspect／text 契约的同时新增 `render` 与 `convert --to pdf`。同一 DOCX 导入和 `layout_document` PageScene 分别进入 CPU PNG 光栅与可检索 PDF writer；字体、DPI、页码、输入、页数和输出大小均有硬预算。输出经临时文件写入、sync、回读和不覆盖发布；其他转换目标明确拒绝。
 - **自动验证（Windows x64，Rust 1.98.1）**：`cargo test --workspace --locked` 全部通过、零失败；`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`check_docs.py`、`check_gates.py` 及反例、53 项 Python 测试全部通过。`windows_save_original`、`original_save_job` 覆盖连续保存、元数据、竞争与故障；宋体真实 CLI 进程测试覆盖 PNG／PDF 两次输出逐字节一致和输入不变；`pdftotext -enc UTF-8` 独立读回全部中英文（本机默认输出编码会丢中文，不能省略该选项）。`cargo build -p joyword --locked` 成功后，以 `JOYWORD_FONT=C:/Windows/Fonts/simsun.ttc:0` 做进程级启动冒烟，进程保持运行且 stdout／stderr 无启动诊断。
 - **验证边界**：未做 Windows 原生 GUI 确认保存、真实 ACL 文档、断电、非 NTFS／网络盘、5 个样例完整 PNG 矩阵和 render 与窗口的人工一致性验收；T109／T110／T210 均不标 done。cargo-deny 不在本机 PATH，本轮未运行依赖公告检查；winsafe 的精确版本、MIT 许可和公开 Win32 文档已在 PROVENANCE 登记。
+
+### T211 应用日志与崩溃诊断（2026-10-18）
+
+`joyword-shell::diag` 在应用启动时打开日志，并接到现有错误路径。无头 `Office` 与 GPUI 应用共用同一实现。没有新增依赖，也没有第三方日志 crate。
+
+- **日志**：配置目录下 `logs/joyword-{序号}.log`。每次启动用 `File::create_new` 新建一份，不截断已有文件。默认单文件上限 256 KiB（含文件头）；超限的整条记录拒绝，并在还能放下时写一条 `log.capped`。目录内匹配名超过 256 个时打开失败，不随意删除。序号到 999999 后不再回绕。新文件头 `sync_all` 之后，才把保留份数（5）以外的更早文件删掉。崩溃发生在新文件建立之前时，上一份仍在。只 sync 文件，不同步目录项。
+- **脱敏**：不可信字符串先截到 8 KiB，再处理调用方登记的精确串（8–256 字节，最多 32 条，不写入文件）、凭据键、URL userinfo、引号内容和连续正文。非 ASCII（含中文正文）整段替换。事件名和种类码必须是短代码；非法代码拒绝且不回写原文。界面仍显示原始错误，只有日志脱敏。
+- **panic hook**：`set_hook` 替换默认 hook，不链接原 hook，因此 stderr 不再打印 panic payload，只写固定句 `JoyWord panic; see the application log`。日志记录源文件、行、列，以及按行脱敏的回溯（最多 48 行）。第二次安装返回 `AlreadyInstalled`。
+- **测试 profile**：`JOYWORD_PROFILE=test` 使用 `JOYWORD_PROFILE_DIR`，未设置时用临时目录下按 pid 区分的根。该根等于用户配置目录时拒绝。未知 profile 在进入 GPUI 前以退出码 2 结束。用户目录不可用时诊断关闭，进程继续。恢复日志目录改为当前 profile 的配置目录；`JOYWORD_RECOVERY_DIR` 仍优先。
+- **接入**：`boot_diagnostics` 在 `gpui` 运行前加载该 profile 的偏好（缺省 `ZhCn`，尊重已存 `ui_locale`），记录 `startup` 和偏好通知的种类名（不记录作者、最近路径或备份路径）。`Office::set_diagnostics` 后，命令失败记命令 id（`file.open`、`edit.insert` 等），不记命令参数。导入诊断只记种类名和计数，不记外部目标、属性值、命名空间或批注／修订载荷。输入错误、画布失败、光栅失败和窗口打开失败走同一日志。恢复只在 `recovery.jwr` 存在且失败时记 `recovery.failed`；成功时记文档 id，不记日志正文。
+- **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt --all -- --check`；`cargo clippy --workspace --all-targets --locked -- -D warnings`；`cargo test -p joyword --locked --offline`（37 项）；`joyword-shell` 的 `diagnostics` 集成测试 7 项（样例正文、修订、批注、凭据不出现；轮转后上一份字节不变；保留 5 份；封顶；脱敏；测试 profile 与偏好目录隔离；`catch_unwind` 触发的真实 hook 含位置且不含 payload）。同包其余测试除下列四项外通过。`python3 scripts/check_docs.py` 通过（84 个需求、66 个任务）。`python3 scripts/check_gates.py` 通过（120 个 Rust 文件）。反例 `scripts/tests/fixtures/gate_counterexample.rs` 被门禁拒绝。
+- **本环境未通过、且不是 T211 改动的测试**：`storage::source::tests::identity_change_between_stat_and_open_is_not_a_baseline`、`w07_save_original_rejection::save_original_reruns_the_full_conflict_verification_itself`、`w07_source_conflicts::delete_and_recreate_with_identical_bytes_is_an_inode_change`、`w07_source_conflicts::hard_link_alias_writes_are_detected_through_the_stamped_path`。这四项都依赖 Unix 上删除重建或同长度重写会改变 inode 或时间；本机文件系统上这些操作之后身份检查返回成功。相关源文件未改。不把它们记成产品缺陷修复，也不放宽断言。
+- **未覆盖**：没有启动 GUI、制造崩溃、再打开日志核对无正文泄漏。人工验收未做，T211 保持 `in_progress`。未在 macOS／Windows 上复跑。没有把文件 sync 说成断电后目录项一定可见。W09 harness 因 `crates/` 变化需要在随后的提交重锚，本段先不写新的生产 SHA。
