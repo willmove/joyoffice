@@ -6,8 +6,10 @@
 //! one font-parsing stack (read-fonts 0.39). T105 currently offers bounded
 //! single-font LTR line fitting with explicit or Unicode default breaks and
 //! versioned single-section pagination/hit geometry under an explicit preview
-//! profile. Full Word-compatible layout is still pending.
+//! profile. [`cjk`] holds the measured T207 calculations. Pagination does not
+//! call them yet, so line breaks stay on the T105 path.
 
+pub mod cjk;
 pub mod document;
 pub mod font;
 pub mod line;

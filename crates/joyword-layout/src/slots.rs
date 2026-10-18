@@ -56,31 +56,11 @@ pub fn prohibited_line_edge(text: &str) -> bool {
 }
 
 fn is_closing(ch: char) -> bool {
-    matches!(
-        ch,
-        '，' | '。'
-            | '！'
-            | '？'
-            | '；'
-            | '：'
-            | '、'
-            | '）'
-            | '】'
-            | '》'
-            | '」'
-            | '』'
-            | ','
-            | '.'
-            | '!'
-            | '?'
-            | ';'
-            | ':'
-            | ')'
-    )
+    crate::cjk::prohibits_line_start(ch)
 }
 
 fn is_opening(ch: char) -> bool {
-    matches!(ch, '（' | '【' | '《' | '「' | '『' | '(' | '[')
+    crate::cjk::prohibits_line_end(ch)
 }
 
 /// Move `at` so the following line does not start with closing punctuation and

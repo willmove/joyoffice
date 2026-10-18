@@ -4,9 +4,10 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数已开始，尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、统一排版场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、完整中文排版，以及 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+- **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、把 T207 接入排版入口后的完整中文排版，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+- **T207（进行中，2026-10-18）**：保留并审核 `joyword-layout::cjk` 的默认东亚家族查询、字间余量、行高公式／网格、有限标点配对与禁则表。R3／R4 算法标 Inferred；R7 区分等线 12 pt 已测配对、字号缩放和汉字类别外推，未知跟随返回未验证。未确认单位的字符／行换算及中西文间距宽度、`adjustRightInd` 返回未验证。单次对齐最多 65,536 个 advance，并检查算术溢出。`layout_document`／`wrap_mixed` 尚未调用计算函数（禁则仅复用既有集合），不声明完成中文排版。验证结果与范围见文末本轮记录；人工 Word／WPS 版式对照未做。
 
 下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
@@ -267,7 +268,7 @@
 7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含隔离标记文档的图形确认、覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
 8. T105、T108：`layout_document` 对东亚或复杂文字调用 `slot_for`、`wrap_mixed` 和 `adjust_cjk_break`；屏幕入口在只有一份字体时用 `FaceSet::uniform`。窗口按可见页及前后预取页调用 `raster_page`，超出像素预算时丢掉远离视口的页。光标由 `paint_caret_overlay` 画到单独缓冲，不改该页像素。固定 Word 的完整中文规则、widowControl，以及长文档滚动缩放的人工验收未完成，两项保持 `in_progress`。
 9. T104、T106、T109：命令注册表是打开、另存、最近文件、切换和关闭的唯一入口，参数齐全则执行，缺参数返回待输入。取消关闭保留会话。打开在版本接受前只读，期间输入保留；过期保存不写文件、不清 dirty。生产恢复日志写入原包基线与已提交文本，加密包不写明文。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则在示例文档之前恢复进会话。文件对话框、最近文件菜单和强制结束后的图形恢复仍待人工验收，三项保持 `in_progress`。
-10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T208–T211（增量排版、撤销组、无头读回、应用日志）以及 M2–M9 保持 `planned`。
+10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T207 已开始但只限纯函数，尚未接入排版入口；T208–T211 与其余 M2 任务以及 M3–M9 保持 `planned`。
 
 2026-10-17 本环境补记：
 
@@ -278,9 +279,9 @@
 - 另存副本：`BoundDocx::save_copy_job` 取走一个已提交版本，计划、校验和写入可以在另一线程进行，保存期间继续输入的内容不进入副本，也不清未保存状态。窗口在选好路径后后台执行该作业；结果只作用于同一编辑世代，世代已变则丢弃，同世代但版本已变则提示副本不含开始保存后的修改。worktree `claude/nice-swartz-b742a2` 里“打开期间拒绝一切编辑”的方案没有并入：当前 `main` 已在版本门闩期间保留输入。
 - `scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例。engine 事务有 panic 守卫。
 - 启动示例文档改为语料用例 DOCX-SAMPLE-001（`joyword-corpus` 确定性生成，正文逐行取自 cjk-contract.txt），以 `DocxSession` 导入而非裸内存文档：启动即可编辑、写恢复日志并另存。`DocxSession` 新增 `open_default` 与 `save_copy_job`；另存可用性改按能否导出判断，无源文档不再静默禁用。命令被禁用或失败时窗口显示原因（本地化键或错误文本），不再无反应。
-- 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Mac 未安装 Microsoft Word.app；2026-10-18 确认 Windows 参考机装有 Word 2024 永久版（家庭版，build 16.0.20430.20182），规格同步放宽。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。M2 及以后保持 `planned`。
+- 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Mac 未安装 Microsoft Word.app；2026-10-18 确认 Windows 参考机装有 Word 2024 永久版（家庭版，build 16.0.20430.20182），规格同步放宽。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。T207 纯函数除外（见进度速览），其余 M2 及以后保持 `planned`。
 
-M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2–M9 未实施。
+M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2 只有 T207 的纯函数落地，排版入口未接；M3–M9 未实施。
 
 ### T000 完成与 T111 豁免清单审查（2026-10-17）
 
@@ -319,3 +320,11 @@ M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍�
 ### T107 端到端报告（2026-10-18）
 
 [e2e_report.md](../../tests/fixtures/reference/word2024/e2e_report.md)：DOCX-SAMPLE-001 → JoyWord 打开 → 中文编辑插入 → 已验证另存（2092 字节、sync）→ 进程退出 → 新进程重开（unrestricted、0 诊断、段落一致、export_plan 再成功）→ Word 2024 读回逐字一致。关联证据：`m1_edit_save`（格式／剪贴板／保护拒绝／失败不改源）、`m1_concurrency_recovery`、`perf_smoke` 性能基线、`interop/` 互操作闭环。
+
+### T207 纯函数切片审核（2026-10-18）
+
+- 保留独立目录 `joyoffice-m2-t207`、分支 `m2/t207-cjk-measures` 原有现场，基线 `b097f55374761acf1a3f701afcf365b3aae2c90b`。未修改 CLI／CI、未接入分页计算入口、未增加依赖。
+- R4 的 1.3 系数是规则目录的拟合机制；缺少字体身份时一律标 Inferred。R3 等分与余数分配仅为基于行边界观测的算法，不宣称单个字间距已实测。R7 根据原始逐字 advance 表限定连排配对；函数要求调用方建立等线 face，不能从字号确认字体。句号＋空格与逗号＋乙的原始 advance 分别约 12.03／11.88 pt，前者未支持，后者仅以汉字类别的全宽推导返回 Inferred，均未当作精确全宽实测。
+- 来源：仓库 [排版规则目录](layout_rules.md) 与 `tests/fixtures/reference/word2024/breaks/word_punct_table.txt`、`word_punct2_table.txt`；百分之一行单位参考 Microsoft 的 [BeforeLines 文档](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.spacingbetweenlines.beforelines?view=openxml-3.0.1)。单位助手只做算术，不决定 Word 的字符／行单位基准或属性优先级。
+- 自动验证：Rust 1.98.1 下 `cargo test -p joyword-layout --locked` 通过 70 项（其中新增 CJK 集成测试 8 项），覆盖规则目录带宽、证据分类、未知配对、非法参数、算术溢出与对齐预算边界；`cargo fmt --all -- --check`、`cargo clippy -p joyword-layout --all-targets --locked -- -D warnings`、`python3 scripts/check_docs.py`、`python3 scripts/check_gates.py` 通过。单测不等于真实文档版式验收。
+- 未覆盖：排版入口接入、真实字体选择与替代链、字符网格、完整 OOXML 属性组合、中西文间距和 adjustRightInd 实测。未进行 GUI／Word／WPS 人工验收，T207 保持 `in_progress`。

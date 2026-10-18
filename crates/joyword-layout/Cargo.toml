@@ -1,6 +1,6 @@
 [package]
 name = "joyword-layout"
-description = "JoyWord font identity, shaping and page scenes (T003, T105)"
+description = "JoyWord font identity, shaping and page scenes (T003, T105, T207)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
