@@ -25,7 +25,7 @@ JoyWord 侧依据：`wrap_mixed`＋Unicode 默认断点＋`adjust_cjk_break` 在
 
 ### R3：两端对齐的余量分配
 
-Word 2024 两端对齐（Justify）下，纯中文行把余量分配到字间并抵满版心（样例 stress 文本，行尾 x1 ≈ 368.65 pt ≈ 右边界），段末行不拉伸（x1 = 351.02 pt < 版心右界）。产物 `breaks/word_justify.pdf`。JoyWord 的两端对齐余量分配属 T207，未实现。
+Word 2024 两端对齐（Justify）下，纯中文行把余量分配到字间并抵满版心（样例 stress 文本，行尾 x1 ≈ 368.65 pt ≈ 右边界），段末行不拉伸（x1 = 351.02 pt < 版心右界）。产物 `breaks/word_justify.pdf`。JoyWord 对纯中文行调用 `justify_intercharacter`（证据 Inferred：等分余量，段末行与单字行不拉伸）。含拉丁字母或 ASCII 标点的行，以及 `distribute`，仍然拒绝。尚未用 Word 2024 重新导出对照。
 
 ### R4：单倍行距的机制（实测推导）
 
@@ -53,6 +53,8 @@ Word 2024 默认单倍行距（LineSpacingRule = single）的实测与机制拆�
 
 1.3 系数与 win 跨度的取法由三个字体族、四个 snap-off 实测点拟合（误差 ≤0.4%），宋体／仿宋／楷体 hhea=typo≠win、等线三套跨度相同、雅黑 hhea=win≠typo，数据点均支持 win 跨度。产物：`breaks/word_single_*.pdf`、`breaks/word_nogrid*.pdf`、保存的 DOCX 中的 sectPr 网格设置。
 
+JoyWord 只在段落为单倍行距（`w:spacing@w:line` = 240 且 `w:lineRule` = auto），且整形字体名称表解析为宋体、仿宋、楷体、等线或微软雅黑时使用上述公式（证据 Inferred）。`snapToGrid` 未显式关闭时吸附到这条实测 312 twips 网格；显式关闭则保留自然行高。黑体不在该拟合集合内，未具名字体和其他行距规则继续用调用方给出的行框。模型尚未保存 `w:docGrid`，因此不读取其他 `linePitch`。尚未用 Word 2024 重新对照。
+
 ### R5：孤行控制的默认状态与强制拆分实测
 
 - 本机 Word 2024 新建文档（Normal 模板）的段落 `WidowControl` 读值为 0（关闭）。
@@ -74,7 +76,7 @@ Word 2024 默认标点压缩（DengXian 12 pt 实测，advance 精确到 0.01 pt
 | 标点＋标点（连排） | 前一个字距 6.0 pt（0.5 em），串尾恢复 12.0 pt | 全部 12.0 pt |
 | 标点＋汉字 | 12.0 pt（全宽） | 12.0 pt |
 
-即：压缩按位置生效——连排标点除串尾外全部半宽，孤立标点保持全宽；引号在两类场景下都按约三分之一宽排。与 R2 的断行一致互证：压力样例中无连排标点与引号，孤立标点全宽故断行一致。产物：`breaks/word_punct.pdf`、`breaks/word_punct2.pdf`、`breaks/joyword_punct.pdf` 与逐字 advance 表。JoyWord 的标点压缩属 T207，未实现。
+即：压缩按位置生效——连排标点除串尾外全部半宽，孤立标点保持全宽；引号在两类场景下都按约三分之一宽排。与 R2 的断行一致互证：压力样例中无连排标点与引号，孤立标点全宽故断行一致。产物：`breaks/word_punct.pdf`、`breaks/word_punct2.pdf`、`breaks/joyword_punct.pdf` 与逐字 advance 表。JoyWord 仅当名称表为等线，且 `punctuation_advance` 成功并窄于该字形的整形宽度时，才把该宽度写入页面场景（Measured／Scaled／Inferred 沿用函数自身的标记）。全宽结果、未验证配对和其他字体保持整形宽度。行尾无跟随标点按函数约定保持未验证。尚未用 Word 2024 重新对照。
 
 ### R8：keepLines 强制拆分实测
 

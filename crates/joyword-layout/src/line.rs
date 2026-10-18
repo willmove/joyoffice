@@ -193,6 +193,41 @@ pub fn layout_paragraph(
     breakpoints: &[usize],
     limits: LineLimits,
 ) -> Result<ParagraphLines, LineError> {
+    layout_paragraph_adjusted(
+        font,
+        text,
+        size,
+        features,
+        width,
+        breakpoints,
+        LineFit {
+            limits,
+            adjust: keep_shaped,
+        },
+    )
+}
+
+fn keep_shaped(_at: usize, _run: &mut ShapedRun) -> Result<(), LineError> {
+    Ok(())
+}
+
+pub(crate) struct LineFit<F> {
+    pub limits: LineLimits,
+    pub adjust: F,
+}
+
+pub(crate) fn layout_paragraph_adjusted<F>(
+    font: &LoadedFont,
+    text: &str,
+    size: Emu,
+    features: FeatureSet,
+    width: Emu,
+    breakpoints: &[usize],
+    fit: LineFit<F>,
+) -> Result<ParagraphLines, LineError>
+where
+    F: FnMut(usize, &mut ShapedRun) -> Result<(), LineError>,
+{
     layout_with_breaks(
         font,
         text,
@@ -200,7 +235,7 @@ pub fn layout_paragraph(
         features,
         width,
         BreakInput::Explicit(breakpoints),
-        limits,
+        fit,
     )
 }
 
@@ -230,7 +265,10 @@ pub fn layout_paragraph_auto(
         features,
         width,
         BreakInput::Unicode(None),
-        limits,
+        LineFit {
+            limits,
+            adjust: keep_shaped,
+        },
     )
 }
 
@@ -240,15 +278,18 @@ enum BreakInput<'a> {
     Unicode(Option<&'a AtomicBool>),
 }
 
-pub(crate) fn layout_paragraph_auto_cancellable(
+pub(crate) fn layout_paragraph_auto_cancellable_adjusted<F>(
     font: &LoadedFont,
     text: &str,
     size: Emu,
     features: FeatureSet,
     width: Emu,
-    limits: LineLimits,
     cancellation: &AtomicBool,
-) -> Result<ParagraphLines, LineError> {
+    fit: LineFit<F>,
+) -> Result<ParagraphLines, LineError>
+where
+    F: FnMut(usize, &mut ShapedRun) -> Result<(), LineError>,
+{
     layout_with_breaks(
         font,
         text,
@@ -256,7 +297,7 @@ pub(crate) fn layout_paragraph_auto_cancellable(
         features,
         width,
         BreakInput::Unicode(Some(cancellation)),
-        limits,
+        fit,
     )
 }
 
@@ -294,17 +335,20 @@ fn unicode_breaks(text: &str, limit: usize) -> Result<Vec<usize>, LineError> {
     Ok(points)
 }
 
-fn layout_with_breaks(
+fn layout_with_breaks<F>(
     font: &LoadedFont,
     text: &str,
     size: Emu,
     features: FeatureSet,
     width: Emu,
     input: BreakInput<'_>,
-    limits: LineLimits,
-) -> Result<ParagraphLines, LineError> {
+    mut fit: LineFit<F>,
+) -> Result<ParagraphLines, LineError>
+where
+    F: FnMut(usize, &mut ShapedRun) -> Result<(), LineError>,
+{
     input.check()?;
-    let limits = limits.capped();
+    let limits = fit.limits.capped();
     let explicit = match input {
         BreakInput::Explicit(points) => points,
         BreakInput::Unicode(_) => &[],
@@ -327,14 +371,16 @@ fn layout_with_breaks(
         BreakInput::Unicode(_) => &generated,
     };
     let mut stats = LineStats::default();
-    let mut measure = |part: &str| {
+    let mut measure = |byte_start: usize, part: &str| {
         input.check()?;
         charge_shape(&mut stats, limits, part.len())?;
-        let run = shape(font, part, size, features);
+        let mut run = shape(font, part, size, features);
+        validate_run(&run)?;
+        (fit.adjust)(byte_start, &mut run)?;
         validate_run(&run)?;
         Ok(run)
     };
-    let paragraph = measure(text)?;
+    let paragraph = measure(0, text)?;
     let mut cluster_starts: Vec<usize> = paragraph.glyphs.iter().map(|g| g.cluster).collect();
     cluster_starts.dedup();
     let safe: Vec<_> = match input {
@@ -371,7 +417,7 @@ fn layout_with_breaks(
             let remaining = if byte_start == 0 {
                 paragraph.clone()
             } else {
-                measure(&text[byte_start..])?
+                measure(byte_start, &text[byte_start..])?
             };
             let mut starts: Vec<usize> = remaining
                 .glyphs
@@ -388,7 +434,7 @@ fn layout_with_breaks(
                 let run = if end == text.len() {
                     remaining.clone()
                 } else {
-                    measure(&text[byte_start..end])?
+                    measure(byte_start, &text[byte_start..end])?
                 };
                 Ok((run.width, run))
             })?

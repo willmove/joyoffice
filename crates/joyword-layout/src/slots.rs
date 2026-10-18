@@ -132,6 +132,10 @@ pub struct MixedParagraph {
 /// Shape `text` with the four slots and fall back per cluster when the slot
 /// font has no glyph. Line breaks use Unicode opportunities, then
 /// [`adjust_cjk_break`], so a prohibition moves the break.
+///
+/// When the face that drew a one-glyph cluster is named 等线, a narrower R7
+/// punctuation width replaces that cluster's advance before the break is
+/// chosen. Other faces keep the shaped advance.
 pub fn wrap_mixed(
     faces: FaceSet<'_>,
     text: &str,
@@ -222,8 +226,13 @@ fn shaped_pieces(faces: FaceSet<'_>, text: &str, size: Emu, hint: Option<FontHin
             .unwrap_or(rest.len());
         let slice = &rest[..run_end];
         let shaped = shape_or_fallback(face, faces.fallback, slice, size);
+        let family = if shaped.font == face.key() {
+            crate::cjk::face_cjk_family(face)
+        } else {
+            crate::cjk::face_cjk_family(faces.fallback)
+        };
         let mut cursor = 0usize;
-        for glyph in &shaped.glyphs {
+        for (glyph_index, glyph) in shaped.glyphs.iter().enumerate() {
             if glyph.cluster < cursor {
                 continue;
             }
@@ -235,11 +244,36 @@ fn shaped_pieces(faces: FaceSet<'_>, text: &str, size: Emu, hint: Option<FontHin
                 .min()
                 .unwrap_or(slice.len());
             if next > cursor {
+                let one_glyph = shaped
+                    .glyphs
+                    .get(glyph_index + 1)
+                    .is_none_or(|item| item.cluster != glyph.cluster)
+                    && glyph_index
+                        .checked_sub(1)
+                        .is_none_or(|previous| shaped.glyphs[previous].cluster != glyph.cluster);
+                let cluster_text = &slice[cursor..next];
+                let mut chars = cluster_text.chars();
+                let only = one_glyph
+                    .then(|| chars.next())
+                    .flatten()
+                    .filter(|_| chars.next().is_none());
+                let width = if let Some(ch) = only {
+                    let absolute_end = offset + next;
+                    crate::cjk::compressed_cluster_advance(
+                        ch,
+                        text[absolute_end..].chars().next(),
+                        glyph.advance,
+                        size,
+                        family,
+                    )
+                } else {
+                    glyph.advance
+                };
                 pieces.push(Piece {
                     start: offset + cursor,
                     end: offset + next,
                     font: shaped.font,
-                    width: glyph.advance,
+                    width,
                 });
                 cursor = next;
             }
