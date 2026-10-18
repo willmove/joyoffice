@@ -1,5 +1,5 @@
 //! Command registry (PLATFORM-002, ARCHITECTURE §3). Menus, keyboard
-//! shortcuts, the command line and later the ribbon all resolve to the same
+//! shortcuts, the command line and the ribbon all resolve to the same
 //! entries and run through [`Registry::invoke`], which checks availability
 //! before calling the host. Only implemented commands are registered, so an
 //! unimplemented feature never shows up as a dead menu item.

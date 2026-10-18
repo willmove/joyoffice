@@ -1,6 +1,7 @@
 //! In-memory text editing backed by the engine and unified page scene.
 //! Menus, shortcuts and on-screen buttons come from the joyword-shell command
 //! registry and run through its single entry point (T106).
+mod chrome_ui;
 mod document_canvas;
 mod input_ui;
 
@@ -13,6 +14,7 @@ use joyword_foundation::ScreenScale;
 use joyword_layout::{LoadedFont, SingleFontProfile};
 use joyword_render::Projection;
 use joyword_render::requests::RasterTicket;
+use joyword_shell::chrome::RibbonTab;
 use joyword_shell::command::*;
 use joyword_shell::diag::{self, AppLog, Event, Level};
 use joyword_shell::input::{InputLimits, TextInput};
@@ -298,6 +300,7 @@ struct JoyWord {
     find_replacement_focus: FocusHandle,
     find_note: Option<String>,
     format_repeat: bool,
+    ribbon_tab: RibbonTab,
 }
 
 #[derive(Clone, Copy)]
@@ -1322,6 +1325,8 @@ impl Render for JoyWord {
                     .text_sm()
                     .child(self.label("stage")),
             )
+            .child(self.ribbon(cx))
+            .child(self.ruler())
             .child(
                 div()
                     .flex()
@@ -1340,7 +1345,19 @@ impl Render for JoyWord {
                     .py_2()
                     .bg(rgb(0xffffff))
                     .text_sm()
-                    .child(self.input_status())
+                    .child(
+                        div()
+                            .flex()
+                            .flex_col()
+                            .gap_1()
+                            .child(self.input_status())
+                            .child(
+                                div()
+                                    .text_xs()
+                                    .text_color(rgb(0x5c6b7a))
+                                    .child(self.status_counts()),
+                            ),
+                    )
                     .child(
                         div()
                             .flex()
@@ -1568,6 +1585,7 @@ fn main() {
                         find_replacement_focus: cx.focus_handle(),
                         find_note: None,
                         format_repeat: false,
+                        ribbon_tab: RibbonTab::Start,
                     };
                     view.install_input_lifecycle(window, cx);
                     view
@@ -1641,6 +1659,20 @@ mod tests {
         })();
         let _ = std::fs::remove_dir_all(&dir);
         outcome
+    }
+
+    #[test]
+    fn ribbon_commands_have_gpui_actions() {
+        let registry = Registry::builtin();
+        for control in
+            joyword_shell::chrome::visible_controls(&registry, joyword_shell::chrome::RIBBON)
+        {
+            assert!(
+                action_for(control.command).is_some(),
+                "{} has no GPUI action",
+                control.id
+            );
+        }
     }
 
     #[test]
