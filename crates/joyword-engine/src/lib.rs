@@ -15,7 +15,9 @@ mod paint;
 mod session;
 mod table;
 
-pub use command::{Command, CommandError, ParagraphChange, Precondition, RunChange};
+pub use command::{
+    Command, CommandError, ParagraphChange, Precondition, RunChange, TableMerge, TableStructure,
+};
 pub use find::{
     FindError, FindHit, FindQuery, FindReport, MAX_HITS, MAX_QUERY_SCALARS,
     MAX_REPLACEMENT_SCALARS, ReplacePlan, paragraph_order, replace_commands, search,

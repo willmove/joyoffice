@@ -1,21 +1,22 @@
 //! Typed `w:tbl` subset (ECMA-376 Part 1 §17.4 tables, §17.4.58 `tblGrid`,
 //! §17.4.66 `tr`, §17.4.64 `tc`, §17.4.17 `gridSpan`, §17.4.84 `vMerge`,
-//! §17.4.73 `tcW`, §17.3.4 borders, §17.4.32 `shd`).
+//! §17.4.73 `tcW`, §17.3.4 borders, §17.4.32 `shd`, §17.4.43 `tblCellMar`,
+//! §17.4.6 `cantSplit`, §17.4.49 `tblHeader`).
 //!
 //! A table is mapped only when every element and attribute is represented in
 //! the model. Anything else — nested tables, revisions, bookmarks, theme
-//! colours, `tblLook`, cell margins, percentage widths — returns `None` and
-//! the caller preserves the whole `w:tbl` byte range. This parser allocates
-//! no identifiers and records no fragments, so a refusal leaves the document
-//! untouched.
+//! colours, `tblLook`, per-cell `tcMar`, percentage widths — returns `None`
+//! and the caller preserves the whole `w:tbl` byte range. This parser
+//! allocates no identifiers and records no fragments, so a refusal leaves
+//! the document untouched.
 
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, Color, Indent, Measure, OBJECT_MARKER,
-    ParaProps, Paragraph, Row, RunProps, Shading, Spacing, StyleId, Table, TableWidth,
-    VerticalMerge,
+    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
+    OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, StyleId, Table,
+    TableWidth, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -52,12 +53,14 @@ struct DraftRow {
     before: u32,
     after: u32,
     header: bool,
+    cant_split: bool,
     cells: Vec<DraftCell>,
 }
 
 struct DraftTable {
     style: Option<StyleId>,
     width: Option<TableWidth>,
+    cell_margin: Option<CellMargins>,
     grid: Vec<Measure>,
     rows: Vec<DraftRow>,
 }
@@ -104,6 +107,7 @@ fn build(
             grid_after: row.after,
             cells,
             header: row.header,
+            cant_split: row.cant_split,
             preserved: None,
         });
     }
@@ -113,6 +117,7 @@ fn build(
         rows,
         style: draft.style,
         width: draft.width,
+        cell_margin: draft.cell_margin,
         preserved: None,
         source: Some(Importer::source(part, element)),
     })
@@ -142,12 +147,18 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
     }
     let mut style = None;
     let mut width = None;
+    let mut cell_margin = None;
     let mut grid = None;
     let mut rows = Vec::new();
     let mut seen_row = false;
     for child in element.elements() {
-        if child.is(W, "tblPr") && !seen_row && style.is_none() && width.is_none() {
-            (style, width) = parse_tbl_pr(child)?;
+        if child.is(W, "tblPr")
+            && !seen_row
+            && style.is_none()
+            && width.is_none()
+            && cell_margin.is_none()
+        {
+            (style, width, cell_margin) = parse_tbl_pr(child)?;
         } else if child.is(W, "tblGrid") && !seen_row && grid.is_none() {
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
@@ -164,17 +175,21 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
     Some(DraftTable {
         style,
         width,
+        cell_margin,
         grid,
         rows,
     })
 }
 
-fn parse_tbl_pr(element: &Element) -> Option<(Option<StyleId>, Option<TableWidth>)> {
+fn parse_tbl_pr(
+    element: &Element,
+) -> Option<(Option<StyleId>, Option<TableWidth>, Option<CellMargins>)> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
     let mut style = None;
     let mut width = None;
+    let mut cell_margin = None;
     for child in element.elements() {
         if child.is(W, "tblStyle") && style.is_none() {
             if !only_word_attributes(child, &["val"]) || !text_is_space(child) {
@@ -187,11 +202,56 @@ fn parse_tbl_pr(element: &Element) -> Option<(Option<StyleId>, Option<TableWidth
             style = Some(StyleId::new(name));
         } else if child.is(W, "tblW") && width.is_none() {
             width = Some(parse_table_width(child)?);
+        } else if child.is(W, "tblCellMar") && cell_margin.is_none() {
+            cell_margin = Some(parse_cell_margins(child)?);
         } else {
             return None;
         }
     }
-    Some((style, width))
+    Some((style, width, cell_margin))
+}
+
+fn parse_cell_margins(element: &Element) -> Option<CellMargins> {
+    if !only_word_attributes(element, &[]) || !text_is_space(element) {
+        return None;
+    }
+    let mut top = None;
+    let mut left = None;
+    let mut bottom = None;
+    let mut right = None;
+    for child in element.elements() {
+        let value = parse_margin_edge(child)?;
+        let slot = match &*child.local {
+            "top" if top.is_none() => &mut top,
+            "left" if left.is_none() => &mut left,
+            "bottom" if bottom.is_none() => &mut bottom,
+            "right" if right.is_none() => &mut right,
+            _ => return None,
+        };
+        *slot = Some(value);
+    }
+    // ECMA-376 §17.4.28 and the sibling edge elements: an omitted edge is 0
+    // when `tblCellMar` itself is present.
+    Some(CellMargins {
+        top: top.unwrap_or(0),
+        left: left.unwrap_or(0),
+        bottom: bottom.unwrap_or(0),
+        right: right.unwrap_or(0),
+    })
+}
+
+fn parse_margin_edge(element: &Element) -> Option<i64> {
+    if !only_word_attributes(element, &["w", "type"]) || !text_is_space(element) {
+        return None;
+    }
+    match element.attribute(Some(W), "type")? {
+        "nil" => Some(0),
+        "dxa" => {
+            let width = integer_attr(element, "w")?;
+            (width >= 0).then_some(width)
+        }
+        _ => None,
+    }
 }
 
 fn parse_table_width(element: &Element) -> Option<TableWidth> {
@@ -231,12 +291,13 @@ fn parse_row(element: &Element) -> Option<DraftRow> {
     let mut before = 0u32;
     let mut after = 0u32;
     let mut header = false;
+    let mut cant_split = false;
     let mut saw_pr = false;
     let mut cells = Vec::new();
     for child in element.elements() {
         if child.is(W, "trPr") && !saw_pr && cells.is_empty() {
             saw_pr = true;
-            (before, after, header) = parse_tr_pr(child)?;
+            (before, after, header, cant_split) = parse_tr_pr(child)?;
         } else if child.is(W, "tc") {
             cells.push(parse_cell(child)?);
         } else {
@@ -247,22 +308,26 @@ fn parse_row(element: &Element) -> Option<DraftRow> {
         before,
         after,
         header,
+        cant_split,
         cells,
     })
 }
 
-fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool)> {
+fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool)> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
     let mut before = None;
     let mut after = None;
     let mut header = None;
+    let mut cant_split = None;
     for child in element.elements() {
         if child.is(W, "gridBefore") && before.is_none() {
             before = Some(decimal_val(child)?);
         } else if child.is(W, "gridAfter") && after.is_none() {
             after = Some(decimal_val(child)?);
+        } else if child.is(W, "cantSplit") && cant_split.is_none() {
+            cant_split = Some(on_off_element(child)?);
         } else if child.is(W, "tblHeader") && header.is_none() {
             header = Some(on_off_element(child)?);
         } else {
@@ -273,6 +338,7 @@ fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool)> {
         before.unwrap_or(0),
         after.unwrap_or(0),
         header.unwrap_or(false),
+        cant_split.unwrap_or(false),
     ))
 }
 

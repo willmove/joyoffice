@@ -145,6 +145,7 @@ fn contract_structure_preserves_unsupported_nodes() {
             },
         ],
         header: false,
+        cant_split: false,
         preserved: None,
     };
     let table = Table {
@@ -153,6 +154,7 @@ fn contract_structure_preserves_unsupported_nodes() {
         rows: vec![row(ids, "项目", "金额"), row(ids, "设计费", "12,345.67")],
         style: None,
         width: None,
+        cell_margin: None,
         preserved: None,
         source: None,
     };
@@ -345,6 +347,7 @@ fn invalid_trees_report_bounded_errors() {
                 grid_after: 0,
                 cells: vec![cell(ids.node(), VerticalMerge::None, vec![])],
                 header: false,
+                cant_split: false,
                 preserved: None,
             },
             Row {
@@ -357,11 +360,13 @@ fn invalid_trees_report_bounded_errors() {
                     vec![paragraph(ids, "x")],
                 )],
                 header: false,
+                cant_split: false,
                 preserved: None,
             },
         ],
         style: Some(StyleId::new("Normal")),
         width: None,
+        cell_margin: None,
         preserved: None,
         source: None,
     };

@@ -849,10 +849,12 @@ fn locked_content_controls_and_containers_are_respected() {
                 preserved: None,
             }],
             header: false,
+            cant_split: false,
             preserved: None,
         }],
         style: None,
         width: None,
+        cell_margin: None,
         preserved: None,
         source: None,
     };

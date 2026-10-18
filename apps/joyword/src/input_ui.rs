@@ -129,6 +129,9 @@ pub(crate) trait DocEditor {
     fn insert_table_column(&mut self) -> Result<bool, InputError>;
     fn delete_table_column(&mut self) -> Result<bool, InputError>;
     fn select_table_cell(&mut self) -> Result<(), InputError>;
+    fn merge_table_right(&mut self) -> Result<bool, InputError>;
+    fn merge_table_down(&mut self) -> Result<bool, InputError>;
+    fn split_table_cell(&mut self) -> Result<bool, InputError>;
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
@@ -291,6 +294,15 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn select_table_cell(&mut self) -> Result<(), InputError> {
         TextInput::select_table_cell(self)
+    }
+    fn merge_table_right(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Right)
+    }
+    fn merge_table_down(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Down)
+    }
+    fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        TextInput::split_table_cell(self)
     }
     fn format_paragraph(
         &mut self,
@@ -480,6 +492,15 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn select_table_cell(&mut self) -> Result<(), InputError> {
         TextInput::select_table_cell(self)
+    }
+    fn merge_table_right(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Right)
+    }
+    fn merge_table_down(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Down)
+    }
+    fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        TextInput::split_table_cell(self)
     }
     fn format_paragraph(
         &mut self,
@@ -672,6 +693,15 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn select_table_cell(&mut self) -> Result<(), InputError> {
         TextInput::select_table_cell(self)
+    }
+    fn merge_table_right(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Right)
+    }
+    fn merge_table_down(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Down)
+    }
+    fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        TextInput::split_table_cell(self)
     }
     fn format_paragraph(
         &mut self,
@@ -1794,6 +1824,9 @@ impl JoyWord {
                 | TABLE_COLUMN_INSERT
                 | TABLE_COLUMN_DELETE
                 | TABLE_SELECT
+                | TABLE_MERGE_RIGHT
+                | TABLE_MERGE_DOWN
+                | TABLE_SPLIT
         ) {
             if self.open_gate.is_some() && id != STYLE_LIST {
                 return Availability::Disabled("input.read_only");
@@ -1815,6 +1848,9 @@ impl JoyWord {
                     | TABLE_ROW_DELETE
                     | TABLE_COLUMN_INSERT
                     | TABLE_COLUMN_DELETE
+                    | TABLE_MERGE_RIGHT
+                    | TABLE_MERGE_DOWN
+                    | TABLE_SPLIT
             ) && editor.read_only()
             {
                 return Availability::Disabled("input.read_only");
@@ -2278,6 +2314,13 @@ impl JoyWord {
                 self.apply_input(cx, |editor| editor.delete_table_column().map(|_| ()))
             }
             TABLE_SELECT => self.apply_input(cx, |editor| editor.select_table_cell()),
+            TABLE_MERGE_RIGHT => {
+                self.apply_input(cx, |editor| editor.merge_table_right().map(|_| ()))
+            }
+            TABLE_MERGE_DOWN => {
+                self.apply_input(cx, |editor| editor.merge_table_down().map(|_| ()))
+            }
+            TABLE_SPLIT => self.apply_input(cx, |editor| editor.split_table_cell().map(|_| ())),
             FORMAT_FONT => {
                 let draft = match joyword_shell::dialogs::font_draft_from_decision(Some(args)) {
                     Ok(Some(draft)) => draft,

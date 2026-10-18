@@ -5,9 +5,11 @@ use std::fs;
 use joyoffice_opc::{Budget, Method, write_archive};
 use joyword_docx::import;
 use joyword_model::Block;
+use joyword_model::VerticalMerge;
 use joyword_shell::command::{
     ArgValue, EDIT_INSERT, FILE_OPEN, FILE_SAVE_COPY, InvokeError, TABLE_COLUMN_DELETE,
-    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
+    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE,
+    TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT,
 };
 use joyword_shell::host::Office;
 
@@ -100,6 +102,79 @@ fn table_commands_go_through_the_command_registry() {
         saved.document.body().blocks.get(0),
         Some(Block::Table(table)) if table.rows.len() == 1 && table.grid.len() == 2
     ));
+}
+
+fn grid_span(office: &Office) -> u32 {
+    match office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+    {
+        Some(Block::Table(table)) => table.rows[0].cells[0].grid_span,
+        _ => 0,
+    }
+}
+
+fn vertical(office: &Office, row: usize) -> VerticalMerge {
+    match office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+    {
+        Some(Block::Table(table)) => table.rows[row].cells[0].vertical_merge,
+        _ => VerticalMerge::None,
+    }
+}
+
+#[test]
+fn merge_and_split_go_through_the_command_registry() {
+    let (dir, mut office) = open(
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>甲</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>乙</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:p><w:r><w:t>丙</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>丁</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+    );
+    office.invoke(TABLE_MERGE_RIGHT, &[]).unwrap();
+    assert_eq!(grid_span(&office), 2);
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(grid_span(&office), 1);
+    office.active_mut().unwrap().redo().unwrap();
+    assert_eq!(grid_span(&office), 2);
+    office.invoke(TABLE_SPLIT, &[]).unwrap();
+    assert_eq!(grid_span(&office), 1);
+    office.active_mut().unwrap().undo().unwrap();
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(grid_span(&office), 1);
+    office.invoke(TABLE_MERGE_DOWN, &[]).unwrap();
+    assert_eq!(vertical(&office, 0), VerticalMerge::Restart);
+    assert_eq!(vertical(&office, 1), VerticalMerge::Continue);
+    office.invoke(TABLE_SPLIT, &[]).unwrap();
+    assert_eq!(vertical(&office, 0), VerticalMerge::None);
+    let copy = dir.path().join("merged.docx");
+    office
+        .invoke(
+            FILE_SAVE_COPY,
+            &[("destination", ArgValue::Path(copy.clone()))],
+        )
+        .unwrap();
+    let saved = import(&fs::read(copy).unwrap(), &Budget::default()).unwrap();
+    let current = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document();
+    assert_eq!(current.semantic_difference(&saved.document), None);
 }
 
 #[test]

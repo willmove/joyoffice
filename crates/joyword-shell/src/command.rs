@@ -453,6 +453,9 @@ pub const TABLE_ROW_DELETE: CommandId = CommandId("table.row.delete");
 pub const TABLE_COLUMN_INSERT: CommandId = CommandId("table.column.insert");
 pub const TABLE_COLUMN_DELETE: CommandId = CommandId("table.column.delete");
 pub const TABLE_SELECT: CommandId = CommandId("table.select");
+pub const TABLE_MERGE_RIGHT: CommandId = CommandId("table.merge.right");
+pub const TABLE_MERGE_DOWN: CommandId = CommandId("table.merge.down");
+pub const TABLE_SPLIT: CommandId = CommandId("table.split");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
@@ -934,6 +937,39 @@ impl Registry {
                 }),
                 shortcut: Shortcut::NONE,
                 modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_MERGE_RIGHT,
+                label: "command.table.merge.right",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_MERGE_DOWN,
+                label: "command.table.merge.down",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_SPLIT,
+                label: "command.table.split",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
                 parameters: &[],
             },
             CommandSpec {

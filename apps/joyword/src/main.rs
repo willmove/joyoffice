@@ -84,6 +84,9 @@ actions!(
         InsertTableColumn,
         DeleteTableColumn,
         SelectTableCell,
+        MergeTableRight,
+        MergeTableDown,
+        SplitTableCell,
         FontDialog,
         ParagraphDialog,
         FormattingMarks,
@@ -188,6 +191,9 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         TABLE_COLUMN_INSERT => Box::new(InsertTableColumn),
         TABLE_COLUMN_DELETE => Box::new(DeleteTableColumn),
         TABLE_SELECT => Box::new(SelectTableCell),
+        TABLE_MERGE_RIGHT => Box::new(MergeTableRight),
+        TABLE_MERGE_DOWN => Box::new(MergeTableDown),
+        TABLE_SPLIT => Box::new(SplitTableCell),
         FORMAT_FONT => Box::new(FontDialog),
         FORMAT_PARAGRAPH => Box::new(ParagraphDialog),
         VIEW_FORMATTING_MARKS => Box::new(FormattingMarks),
@@ -1345,6 +1351,17 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &SelectTableCell, window, cx| {
                 this.run(TABLE_SELECT, window, cx)
             }))
+            .on_action(cx.listener(|this, _: &MergeTableRight, window, cx| {
+                this.run(TABLE_MERGE_RIGHT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &MergeTableDown, window, cx| {
+                this.run(TABLE_MERGE_DOWN, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &SplitTableCell, window, cx| {
+                    this.run(TABLE_SPLIT, window, cx)
+                }),
+            )
             .on_action(
                 cx.listener(|this, _: &FontDialog, window, cx| this.run(FORMAT_FONT, window, cx)),
             )

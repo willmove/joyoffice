@@ -458,6 +458,17 @@ pub enum TableWidth {
     Dxa(i64),
 }
 
+/// Four edges of `w:tblCellMar`, in twips (ECMA-376 §17.4.43). When the
+/// element is present, an omitted edge is 0. [`Table::cell_margin`] `None`
+/// means the element itself was absent.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CellMargins {
+    pub top: i64,
+    pub left: i64,
+    pub bottom: i64,
+    pub right: i64,
+}
+
 /// Border line recorded from `w:tcBorders` (`nil` or `single` only).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BorderKind {
@@ -512,6 +523,8 @@ pub struct Row {
     pub grid_after: u32,
     pub cells: Vec<Cell>,
     pub header: bool,
+    /// `w:cantSplit`. Absent markup is false: the row may break across pages.
+    pub cant_split: bool,
     pub preserved: Option<PreservedId>,
 }
 
@@ -523,6 +536,8 @@ pub struct Table {
     pub rows: Vec<Row>,
     pub style: Option<StyleId>,
     pub width: Option<TableWidth>,
+    /// `w:tblCellMar`. `None` is an omitted element, not four explicit zeros.
+    pub cell_margin: Option<CellMargins>,
     pub preserved: Option<PreservedId>,
     pub source: Option<Arc<SourceRef>>,
 }
@@ -534,6 +549,7 @@ impl Table {
         self.grid == other.grid
             && self.style == other.style
             && self.width == other.width
+            && self.cell_margin == other.cell_margin
             && self.preserved == other.preserved
             && self.source == other.source
             && self.rows.len() == other.rows.len()
@@ -550,6 +566,7 @@ fn same_row(left: &Row, right: &Row) -> bool {
         && left.grid_before == right.grid_before
         && left.grid_after == right.grid_after
         && left.header == right.header
+        && left.cant_split == right.cant_split
         && left.preserved == right.preserved
         && left.cells.len() == right.cells.len()
         && left

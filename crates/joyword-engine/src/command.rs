@@ -101,6 +101,16 @@ pub enum Command {
     DeleteTableColumn {
         at: Position,
     },
+    /// Merges the cell at `at` with the next cell to the right or below.
+    MergeTableCells {
+        at: Position,
+        direction: TableMerge,
+    },
+    /// Splits a vertical merge, or a horizontal span when there is no
+    /// vertical merge. Text stays in the leading cell.
+    SplitTableCell {
+        at: Position,
+    },
     /// Replaces one section's page size, margins and orientation.
     SetPageSetup {
         section: NodeId,
@@ -164,6 +174,34 @@ pub enum Precondition {
     },
 }
 
+/// Which neighbour [`Command::MergeTableCells`] joins to the anchor cell.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableMerge {
+    Right,
+    Down,
+}
+
+/// Why a merge or split left the table unchanged.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableStructure {
+    /// The requested neighbour cell does not exist.
+    NoNeighbour,
+    /// A horizontal merge refuses a cell that already has `vMerge`.
+    VerticalMerge,
+    /// The cell below does not start on the same column with the same span.
+    SpanMismatch,
+    /// Merge and split start at the restart cell, not a continue cell.
+    ContinueCell,
+    /// The cell below already belongs to a vertical merge.
+    VerticalConflict,
+    /// The cell has neither a horizontal span nor a vertical merge.
+    NotMerged,
+    /// The table, row or cell still holds preserved markup.
+    Preserved,
+    /// The cell holds a block this edit does not move.
+    UnsupportedCell,
+}
+
 /// Why a command could not apply. The whole transaction is rejected.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CommandError {
@@ -210,10 +248,27 @@ pub enum CommandError {
     LastRow(NodeId),
     /// A table must keep one column.
     LastColumn(NodeId),
+    /// Merge or split would not leave a grid the model accepts.
+    TableStructure(NodeId, TableStructure),
     /// Table insertion is a body-story operation.
     NotTopLevel,
     /// Page size, margins or header distance cannot be placed.
     InvalidPage,
+}
+
+impl fmt::Display for TableStructure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            TableStructure::NoNeighbour => "there is no cell on that side",
+            TableStructure::VerticalMerge => "a horizontal merge cannot cross a vertical merge",
+            TableStructure::SpanMismatch => "the cell below does not cover the same columns",
+            TableStructure::ContinueCell => "merge or split starts at the restart cell",
+            TableStructure::VerticalConflict => "the cell below is already merged",
+            TableStructure::NotMerged => "the cell is not merged",
+            TableStructure::Preserved => "preserved markup would be rewritten",
+            TableStructure::UnsupportedCell => "the cell holds a block this edit cannot move",
+        })
+    }
 }
 
 impl From<TextError> for CommandError {
@@ -262,6 +317,9 @@ impl fmt::Display for CommandError {
             CommandError::GridGap(node) => write!(f, "table {node} has grid gaps"),
             CommandError::LastRow(node) => write!(f, "table {node} has one row"),
             CommandError::LastColumn(node) => write!(f, "table {node} has one column"),
+            CommandError::TableStructure(node, reason) => {
+                write!(f, "table {node} refuses the edit: {reason}")
+            }
             CommandError::NotTopLevel => f.write_str("tables are inserted in the body"),
             CommandError::InvalidPage => f.write_str("page setup is not usable"),
         }
