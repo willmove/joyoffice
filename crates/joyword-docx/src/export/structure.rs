@@ -26,9 +26,9 @@ use std::sync::Arc;
 
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, Color, Document, FontRef, FontSlots, Indent,
-    Justification, Languages, Measure, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph,
-    RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Table, TableWidth,
-    Underline, VerticalMerge,
+    InlineKind, Justification, Languages, Measure, NodeId, NumberingRef, NumberingStore, ParaProps,
+    Paragraph, RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Table,
+    TableWidth, Underline, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -362,6 +362,13 @@ impl<'a> Source<'a> {
     /// Property bytes that may be copied onto a paragraph created or rebuilt
     /// from `paragraph`. Default formatting has nothing to copy.
     fn copy_set(&self, paragraph: &Paragraph, element: &Element) -> Result<CopySet, &'static str> {
+        if paragraph
+            .inlines()
+            .iter()
+            .any(|inline| matches!(inline.kind, InlineKind::Image { .. }))
+        {
+            return Err("inline image paragraphs are not rewritten");
+        }
         if !paragraph.inlines().is_empty() {
             return Err(
                 "paragraph structure edits require default paragraph and character properties",

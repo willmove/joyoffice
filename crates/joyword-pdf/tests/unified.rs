@@ -59,6 +59,7 @@ fn scene(font: &LoadedFont) -> PageScene {
         height: Emu::new(297 * Emu::PER_MM),
         runs,
         rects: Vec::new(),
+        images: Vec::new(),
     }
 }
 

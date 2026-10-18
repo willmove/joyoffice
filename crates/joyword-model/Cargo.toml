@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+image = { workspace = true, features = ["png", "jpeg", "gif", "bmp", "tiff"] }
 joyword-foundation.workspace = true
 sha2.workspace = true
 

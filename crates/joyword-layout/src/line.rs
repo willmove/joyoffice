@@ -16,6 +16,7 @@
 //! model, <https://harfbuzz.github.io/working-with-harfbuzz-clusters.html>.
 
 use std::ops::Range;
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use harfrust::{Direction, UnicodeBuffer};
@@ -39,12 +40,26 @@ pub struct ClusterRange {
     pub glyphs: Range<usize>,
 }
 
+/// An inline image attached to a fitted line, before page placement.
+/// `x` is the distance from the line origin, before justification.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LineImage {
+    pub media_type: Arc<str>,
+    pub bytes: Arc<[u8]>,
+    pub x: Emu,
+    pub width: Emu,
+    pub height: Emu,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LayoutLine {
     pub source: SourceRange,
     /// Font identity, EMU size/width and line-local glyph positions/clusters.
     pub run: ShapedRun,
     pub clusters: Vec<ClusterRange>,
+    pub images: Vec<LineImage>,
+    /// Zero uses the paragraph line box. A positive value replaces it.
+    pub box_height: Emu,
 }
 
 impl LayoutLine {
@@ -484,6 +499,8 @@ where
             source,
             run,
             clusters,
+            images: Vec::new(),
+            box_height: Emu::new(0),
         });
         if byte_start == text.len() {
             break;

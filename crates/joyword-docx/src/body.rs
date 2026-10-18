@@ -291,7 +291,7 @@ fn paragraph(
 }
 
 /// Keeps `element` and puts an inline object for it at the paragraph end.
-fn inline(
+pub(crate) fn inline(
     importer: &mut Importer<'_>,
     part: &PartName,
     element: &Element,
@@ -324,6 +324,33 @@ fn content(
     for child in parent.elements() {
         let local = &*child.local;
         if child.namespace.as_deref() != Some(W) {
+            if child.is(MC, "AlternateContent") {
+                match crate::images::import_container(
+                    importer,
+                    part,
+                    child,
+                    scope,
+                    paragraph,
+                    Default::default(),
+                ) {
+                    crate::images::PictureImport::Imported => {}
+                    crate::images::PictureImport::Kept => *locked = true,
+                    crate::images::PictureImport::Pass => {
+                        let reason = foreign(importer, part, child, scope);
+                        inline(
+                            importer,
+                            part,
+                            child,
+                            scope,
+                            reason,
+                            paragraph,
+                            Default::default(),
+                        );
+                        *locked = true;
+                    }
+                }
+                continue;
+            }
             let reason = foreign(importer, part, child, scope);
             inline(
                 importer,
@@ -526,6 +553,42 @@ fn run(
                 }
             }
             (true, "lastRenderedPageBreak") => importer.hint(part, "lastRenderedPageBreak"),
+            (true, "drawing" | "pict" | "object") => {
+                match crate::images::import_container(
+                    importer,
+                    part,
+                    child,
+                    scope,
+                    paragraph,
+                    format(),
+                ) {
+                    crate::images::PictureImport::Imported => {}
+                    crate::images::PictureImport::Kept => *locked = true,
+                    crate::images::PictureImport::Pass => {
+                        let reason = foreign(importer, part, child, scope);
+                        inline(importer, part, child, scope, reason, paragraph, format());
+                        *locked = true;
+                    }
+                }
+            }
+            (false, _) if child.is(MC, "AlternateContent") => {
+                match crate::images::import_container(
+                    importer,
+                    part,
+                    child,
+                    scope,
+                    paragraph,
+                    format(),
+                ) {
+                    crate::images::PictureImport::Imported => {}
+                    crate::images::PictureImport::Kept => *locked = true,
+                    crate::images::PictureImport::Pass => {
+                        let reason = foreign(importer, part, child, scope);
+                        inline(importer, part, child, scope, reason, paragraph, format());
+                        *locked = true;
+                    }
+                }
+            }
             _ => {
                 let reason = foreign(importer, part, child, scope);
                 inline(importer, part, child, scope, reason, paragraph, format());

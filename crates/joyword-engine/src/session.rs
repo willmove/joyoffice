@@ -587,6 +587,7 @@ fn execute(
     match command {
         Command::InsertText { at, text } => insert_text(document, at, text, map, changes),
         Command::InsertInline { at, kind } => insert_inline(document, at, kind, map, changes),
+        Command::InsertImage { at, data } => insert_image(document, at, data, map, changes),
         Command::DeleteRange { start, end } => delete_range(document, start, end, map, changes),
         Command::SplitParagraph { at } => split_paragraph(document, at, map, changes),
         Command::FormatText { start, end, change } => format_text(
@@ -739,6 +740,41 @@ fn insert_text(
     changes.stories.insert(at.story);
     changes.paragraphs.insert(at.paragraph);
     Ok(())
+}
+
+fn insert_image(
+    document: &mut Document,
+    at: &Position,
+    data: &Arc<[u8]>,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let accepted = joyword_model::accept_image(data, &joyword_model::ImageLimits::default())
+        .map_err(|error| CommandError::ImageRefused(error.reason()))?;
+    let (width, height) = joyword_model::display_extent(accepted.width_px, accepted.height_px);
+    let resource = if let Some(existing) = document
+        .resources()
+        .find_same(accepted.media_type, accepted.data.as_ref())
+    {
+        existing
+    } else {
+        let id = document.ids().resource();
+        document
+            .resources_mut()
+            .insert(id, accepted.media_type, accepted.data, None);
+        id
+    };
+    insert_inline(
+        document,
+        at,
+        &InlineKind::Image {
+            resource,
+            width,
+            height,
+        },
+        map,
+        changes,
+    )
 }
 
 fn insert_inline(

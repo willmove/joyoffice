@@ -5,14 +5,16 @@
 //! and position the scene already holds, through krilla's positioned-glyph
 //! interface, with the same font bytes the shaper used. Text stays text
 //! (fonts are embedded as subsets with Unicode mappings), so the PDF remains
-//! searchable. krilla's own shaping (`simple-text`) is disabled.
+//! searchable. krilla's own shaping (`simple-text`) is disabled. Still
+//! images are decoded from the scene bytes and drawn at the scene rectangle;
+//! nothing is fetched.
 
 use std::collections::HashMap;
 use std::ops::Range;
 
-use joyword_layout::{FontKey, GlyphRun, LoadedFont, PageScene, SceneRect, to_points};
+use joyword_layout::{FontKey, GlyphRun, LoadedFont, PageScene, SceneImage, SceneRect, to_points};
 use krilla::Document;
-use krilla::geom::Point;
+use krilla::geom::{Point, Transform};
 use krilla::page::PageSettings;
 use krilla::surface::Location;
 use krilla::text::{Font, GlyphId};
@@ -24,6 +26,8 @@ pub enum PdfError {
     /// krilla rejected a font or failed to serialize.
     Writer(String),
     InvalidPage,
+    /// An admitted scene image could not be drawn. The text does not echo bytes.
+    Image(&'static str),
 }
 
 /// Glyph handed to krilla: the advance is the distance to the next glyph's
@@ -113,7 +117,13 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
             surface.set_fill(None);
             surface.set_stroke(None);
         }
+        for image in &scene.images {
+            draw_image(&mut surface, image)?;
+        }
         for run in &scene.runs {
+            if run.glyphs.is_empty() && run.text.is_empty() {
+                continue;
+            }
             let font = match cache.get(&run.font) {
                 Some(font) => font.clone(),
                 None => {
@@ -173,4 +183,33 @@ fn fill_rect(surface: &mut krilla::surface::Surface<'_>, rect: &SceneRect) {
     }));
     surface.set_stroke(None);
     surface.draw_path(&path);
+}
+
+fn draw_image(
+    surface: &mut krilla::surface::Surface<'_>,
+    image: &SceneImage,
+) -> Result<(), PdfError> {
+    let decoded =
+        joyword_model::decode_rgba(image.bytes.as_ref(), &joyword_model::ImageLimits::default())
+            .map_err(|_| PdfError::Image("image decode failed"))?;
+    let expected = (decoded.width as usize)
+        .checked_mul(decoded.height as usize)
+        .and_then(|pixels| pixels.checked_mul(4))
+        .ok_or(PdfError::Image("image decode failed"))?;
+    if decoded.rgba.len() != expected || decoded.width == 0 || decoded.height == 0 {
+        return Err(PdfError::Image("image decode failed"));
+    }
+    let bitmap = krilla::image::Image::from_rgba8(decoded.rgba, decoded.width, decoded.height);
+    let width = to_points(image.width) as f32;
+    let height = to_points(image.height) as f32;
+    let Some(size) = krilla::geom::Size::from_wh(width, height) else {
+        return Err(PdfError::Image("image extent rejected"));
+    };
+    surface.push_transform(&Transform::from_translate(
+        to_points(image.x) as f32,
+        to_points(image.y) as f32,
+    ));
+    surface.draw_image(bitmap, size);
+    surface.pop();
+    Ok(())
 }
