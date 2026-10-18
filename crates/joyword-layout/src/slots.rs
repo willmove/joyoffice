@@ -253,8 +253,11 @@ fn shaped_pieces(faces: FaceSet<'_>, text: &str, size: Emu, hint: Option<FontHin
                         .is_none_or(|previous| shaped.glyphs[previous].cluster != glyph.cluster);
                 let cluster_text = &slice[cursor..next];
                 let mut chars = cluster_text.chars();
-                let width = if one_glyph && chars.next().is_some() && chars.next().is_none() {
-                    let ch = cluster_text.chars().next().expect("one char");
+                let only = one_glyph
+                    .then(|| chars.next())
+                    .flatten()
+                    .filter(|_| chars.next().is_none());
+                let width = if let Some(ch) = only {
                     let absolute_end = offset + next;
                     crate::cjk::compressed_cluster_advance(
                         ch,
