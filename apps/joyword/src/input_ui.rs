@@ -17,6 +17,19 @@ use std::ops::Range;
 pub const DOC_PAD: f32 = 32.0;
 pub const DOC_GAP: f32 = 32.0;
 
+fn table_axis(
+    args: &std::collections::BTreeMap<&'static str, joyword_shell::command::ArgValue>,
+    name: &'static str,
+) -> Result<u32, String> {
+    match args.get(name) {
+        None => Ok(2),
+        Some(joyword_shell::command::ArgValue::Text(text)) => {
+            text.parse().map_err(|_| name.to_string())
+        }
+        Some(_) => Err(name.to_string()),
+    }
+}
+
 /// The last geometry handed to the platform. Comparing this avoids an
 /// endless next-frame loop while refreshing IME coordinates after async layout
 /// and scrolling, including scrolls whose offscreen pages are not repainted.
@@ -95,6 +108,12 @@ pub(crate) trait DocEditor {
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError>;
     fn set_list_level(&mut self, level: u8) -> Result<bool, InputError>;
     fn remove_list(&mut self) -> Result<bool, InputError>;
+    fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError>;
+    fn insert_table_row(&mut self) -> Result<bool, InputError>;
+    fn delete_table_row(&mut self) -> Result<bool, InputError>;
+    fn insert_table_column(&mut self) -> Result<bool, InputError>;
+    fn delete_table_column(&mut self) -> Result<bool, InputError>;
+    fn select_table_cell(&mut self) -> Result<(), InputError>;
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
@@ -206,6 +225,24 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn remove_list(&mut self) -> Result<bool, InputError> {
         TextInput::remove_list(self)
+    }
+    fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
+        TextInput::insert_table(self, rows, columns)
+    }
+    fn insert_table_row(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_table_row(self)
+    }
+    fn delete_table_row(&mut self) -> Result<bool, InputError> {
+        TextInput::delete_table_row(self)
+    }
+    fn insert_table_column(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_table_column(self)
+    }
+    fn delete_table_column(&mut self) -> Result<bool, InputError> {
+        TextInput::delete_table_column(self)
+    }
+    fn select_table_cell(&mut self) -> Result<(), InputError> {
+        TextInput::select_table_cell(self)
     }
     fn format_paragraph(
         &mut self,
@@ -338,6 +375,24 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn remove_list(&mut self) -> Result<bool, InputError> {
         TextInput::remove_list(self)
+    }
+    fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
+        TextInput::insert_table(self, rows, columns)
+    }
+    fn insert_table_row(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_table_row(self)
+    }
+    fn delete_table_row(&mut self) -> Result<bool, InputError> {
+        TextInput::delete_table_row(self)
+    }
+    fn insert_table_column(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_table_column(self)
+    }
+    fn delete_table_column(&mut self) -> Result<bool, InputError> {
+        TextInput::delete_table_column(self)
+    }
+    fn select_table_cell(&mut self) -> Result<(), InputError> {
+        TextInput::select_table_cell(self)
     }
     fn format_paragraph(
         &mut self,
@@ -473,6 +528,24 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn remove_list(&mut self) -> Result<bool, InputError> {
         TextInput::remove_list(self)
+    }
+    fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
+        TextInput::insert_table(self, rows, columns)
+    }
+    fn insert_table_row(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_table_row(self)
+    }
+    fn delete_table_row(&mut self) -> Result<bool, InputError> {
+        TextInput::delete_table_row(self)
+    }
+    fn insert_table_column(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_table_column(self)
+    }
+    fn delete_table_column(&mut self) -> Result<bool, InputError> {
+        TextInput::delete_table_column(self)
+    }
+    fn select_table_cell(&mut self) -> Result<(), InputError> {
+        TextInput::select_table_cell(self)
     }
     fn format_paragraph(
         &mut self,
@@ -1551,6 +1624,12 @@ impl JoyWord {
                 | FORMAT_COPY
                 | FORMAT_PAINT
                 | FORMAT_CANCEL
+                | TABLE_INSERT
+                | TABLE_ROW_INSERT
+                | TABLE_ROW_DELETE
+                | TABLE_COLUMN_INSERT
+                | TABLE_COLUMN_DELETE
+                | TABLE_SELECT
         ) {
             if self.open_gate.is_some() && id != STYLE_LIST {
                 return Availability::Disabled("input.read_only");
@@ -1567,6 +1646,11 @@ impl JoyWord {
                     | FIND_REPLACE
                     | FIND_REPLACE_ALL
                     | FORMAT_PAINT
+                    | TABLE_INSERT
+                    | TABLE_ROW_INSERT
+                    | TABLE_ROW_DELETE
+                    | TABLE_COLUMN_INSERT
+                    | TABLE_COLUMN_DELETE
             ) && editor.read_only()
             {
                 return Availability::Disabled("input.read_only");
@@ -1901,6 +1985,24 @@ impl JoyWord {
             }
             EDIT_UP | EDIT_DOWN | EDIT_EXTEND_UP | EDIT_EXTEND_DOWN | EDIT_HOME | EDIT_END
             | EDIT_EXTEND_HOME | EDIT_EXTEND_END => self.move_visual(id, cx),
+            TABLE_INSERT => {
+                let rows = table_axis(args, "rows")?;
+                let columns = table_axis(args, "columns")?;
+                self.apply_input(cx, |editor| editor.insert_table(rows, columns).map(|_| ()))
+            }
+            TABLE_ROW_INSERT => {
+                self.apply_input(cx, |editor| editor.insert_table_row().map(|_| ()))
+            }
+            TABLE_ROW_DELETE => {
+                self.apply_input(cx, |editor| editor.delete_table_row().map(|_| ()))
+            }
+            TABLE_COLUMN_INSERT => {
+                self.apply_input(cx, |editor| editor.insert_table_column().map(|_| ()))
+            }
+            TABLE_COLUMN_DELETE => {
+                self.apply_input(cx, |editor| editor.delete_table_column().map(|_| ()))
+            }
+            TABLE_SELECT => self.apply_input(cx, |editor| editor.select_table_cell()),
             _ => return Err(format!("{id} is not an input command")),
         }
         window.invalidate_character_coordinates();

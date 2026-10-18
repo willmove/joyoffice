@@ -431,6 +431,27 @@ pub fn rasterize(
     }
     let mut pixmap = Pixmap::new(width, height).ok_or(RasterError::Allocation)?;
     pixmap.fill(tiny_skia::Color::WHITE);
+    for rect in &scene.rects {
+        let x = projection.pixels(rect.x);
+        let y = projection.pixels(rect.y);
+        let w = projection.pixels(rect.width);
+        let h = projection.pixels(rect.height);
+        if ![x, y, w, h].iter().all(|value| value.is_finite()) || w <= 0.0 || h <= 0.0 {
+            continue;
+        }
+        let mut builder = PathBuilder::new();
+        builder.move_to(x as f32, y as f32);
+        builder.line_to((x + w) as f32, y as f32);
+        builder.line_to((x + w) as f32, (y + h) as f32);
+        builder.line_to(x as f32, (y + h) as f32);
+        builder.close();
+        if let Some(path) = builder.finish() {
+            let mut fill = Paint::default();
+            fill.set_color_rgba8(rect.red, rect.green, rect.blue, 255);
+            fill.anti_alias = false;
+            pixmap.fill_path(&path, &fill, FillRule::Winding, Transform::identity(), None);
+        }
+    }
     let mut paint = Paint::default();
     paint.set_color_rgba8(0, 0, 0, 255);
     paint.anti_alias = true;

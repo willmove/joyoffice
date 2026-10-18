@@ -10,7 +10,7 @@
 use std::sync::Arc;
 
 use crate::id::{NodeId, PreservedId, ResourceId, SourceRef};
-use crate::props::{Measure, ParaProps, RunProps};
+use crate::props::{Color, Measure, ParaProps, RunProps};
 use crate::style::StyleId;
 use crate::text::{OBJECT_MARKER, ParagraphText, ScalarOffset, TextError};
 use crate::tree::{Item, SeqTree};
@@ -438,6 +438,44 @@ pub enum VerticalMerge {
     Continue,
 }
 
+/// `w:tblW`. Absent markup stays `None`, distinct from an explicit `auto`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableWidth {
+    Auto,
+    Dxa(i64),
+}
+
+/// Border line recorded from `w:tcBorders` (`nil` or `single` only).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum BorderKind {
+    Nil,
+    Single,
+}
+
+/// One edge of `w:tcBorders`. `size_eighths` is `w:sz` (ECMA-376 §17.3.4).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BorderEdge {
+    pub kind: BorderKind,
+    pub size_eighths: u32,
+    pub color: Color,
+}
+
+/// Cell borders. `None` means the edge element was absent, not `nil`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct CellBorders {
+    pub top: Option<BorderEdge>,
+    pub left: Option<BorderEdge>,
+    pub bottom: Option<BorderEdge>,
+    pub right: Option<BorderEdge>,
+}
+
+/// Solid cell shading from `w:shd` when `w:val` is `clear` and the fill is
+/// `auto` or an sRGB value. Theme fills are not stored.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Shading {
+    pub fill: Color,
+}
+
 #[derive(Clone, Debug)]
 pub struct Cell {
     pub id: NodeId,
@@ -445,6 +483,8 @@ pub struct Cell {
     pub grid_span: u32,
     pub vertical_merge: VerticalMerge,
     pub width: Option<Measure>,
+    pub borders: CellBorders,
+    pub shading: Option<Shading>,
     /// Cell content; Word requires at least one paragraph.
     pub blocks: BlockSeq,
     pub preserved: Option<PreservedId>,
@@ -469,8 +509,79 @@ pub struct Table {
     pub grid: Vec<Measure>,
     pub rows: Vec<Row>,
     pub style: Option<StyleId>,
+    pub width: Option<TableWidth>,
     pub preserved: Option<PreservedId>,
     pub source: Option<Arc<SourceRef>>,
+}
+
+impl Table {
+    /// Structural equality, including cell paragraphs. Export uses it to
+    /// leave an untouched table's original bytes alone.
+    pub fn same_content(&self, other: &Self) -> bool {
+        self.grid == other.grid
+            && self.style == other.style
+            && self.width == other.width
+            && self.preserved == other.preserved
+            && self.source == other.source
+            && self.rows.len() == other.rows.len()
+            && self
+                .rows
+                .iter()
+                .zip(&other.rows)
+                .all(|(left, right)| same_row(left, right))
+    }
+}
+
+fn same_row(left: &Row, right: &Row) -> bool {
+    left.id == right.id
+        && left.grid_before == right.grid_before
+        && left.grid_after == right.grid_after
+        && left.header == right.header
+        && left.preserved == right.preserved
+        && left.cells.len() == right.cells.len()
+        && left
+            .cells
+            .iter()
+            .zip(&right.cells)
+            .all(|(left, right)| same_cell(left, right))
+}
+
+fn same_cell(left: &Cell, right: &Cell) -> bool {
+    left.id == right.id
+        && left.grid_span == right.grid_span
+        && left.vertical_merge == right.vertical_merge
+        && left.width == right.width
+        && left.borders == right.borders
+        && left.shading == right.shading
+        && left.preserved == right.preserved
+        && left.blocks.len() == right.blocks.len()
+        && left
+            .blocks
+            .iter()
+            .zip(right.blocks.iter())
+            .all(|(left, right)| same_block(left, right))
+}
+
+fn same_block(left: &Block, right: &Block) -> bool {
+    match (left, right) {
+        (Block::Paragraph(left), Block::Paragraph(right)) => left.as_ref() == right.as_ref(),
+        (Block::Table(left), Block::Table(right)) => left.same_content(right),
+        (Block::Opaque(left), Block::Opaque(right)) => {
+            left.id == right.id && left.preserved == right.preserved && left.source == right.source
+        }
+        (Block::Sdt(left), Block::Sdt(right)) => {
+            left.id == right.id
+                && left.props == right.props
+                && left.source == right.source
+                && left.blocks.len() == right.blocks.len()
+                && left
+                    .blocks
+                    .iter()
+                    .zip(right.blocks.iter())
+                    .all(|(left, right)| same_block(left, right))
+        }
+        _ => false,
+    }
 }
 
 /// Content control locking (`w:lock`).

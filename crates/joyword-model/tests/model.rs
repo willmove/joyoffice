@@ -5,10 +5,10 @@ use std::path::Path;
 use std::sync::Arc;
 
 use joyword_model::{
-    Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, Document, DumpOptions,
-    IdAllocator, InlineKind, InlineObject, Issue, MAX_DIAGNOSTICS, MAX_NESTING, Measure,
-    OpaqueBlock, Paragraph, Position, Preserved, Row, RunProps, ScalarOffset, Sdt, SdtLock,
-    SdtProps, Section, Segment, StoryKind, Style, StyleId, StyleKind, Table, Utf16Offset,
+    Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, CellBorders, Document,
+    DumpOptions, IdAllocator, InlineKind, InlineObject, Issue, MAX_DIAGNOSTICS, MAX_NESTING,
+    Measure, OpaqueBlock, Paragraph, Position, Preserved, Row, RunProps, ScalarOffset, Sdt,
+    SdtLock, SdtProps, Section, Segment, StoryKind, Style, StyleId, StyleKind, Table, Utf16Offset,
     VerticalMerge,
 };
 
@@ -128,6 +128,8 @@ fn contract_structure_preserves_unsupported_nodes() {
                 grid_span: 1,
                 vertical_merge: VerticalMerge::None,
                 width: Some(Measure::Twips(2_000)),
+                borders: CellBorders::default(),
+                shading: None,
                 blocks: BlockSeq::from_vec(vec![paragraph(ids, left)]),
                 preserved: None,
             },
@@ -136,6 +138,8 @@ fn contract_structure_preserves_unsupported_nodes() {
                 grid_span: 1,
                 vertical_merge: VerticalMerge::None,
                 width: Some(Measure::Twips(3_000)),
+                borders: CellBorders::default(),
+                shading: None,
                 blocks: BlockSeq::from_vec(vec![paragraph(ids, right)]),
                 preserved: None,
             },
@@ -148,6 +152,7 @@ fn contract_structure_preserves_unsupported_nodes() {
         grid: vec![Measure::Twips(2_000), Measure::Twips(3_000)],
         rows: vec![row(ids, "项目", "金额"), row(ids, "设计费", "12,345.67")],
         style: None,
+        width: None,
         preserved: None,
         source: None,
     };
@@ -325,6 +330,8 @@ fn invalid_trees_report_bounded_errors() {
         grid_span: 1,
         vertical_merge: merge,
         width: None,
+        borders: CellBorders::default(),
+        shading: None,
         blocks: BlockSeq::from_vec(blocks),
         preserved: None,
     };
@@ -354,6 +361,7 @@ fn invalid_trees_report_bounded_errors() {
             },
         ],
         style: Some(StyleId::new("Normal")),
+        width: None,
         preserved: None,
         source: None,
     };

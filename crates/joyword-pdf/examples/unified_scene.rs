@@ -73,6 +73,7 @@ fn main() -> ExitCode {
         width: Emu::new(210 * Emu::PER_MM),
         height: Emu::new(297 * Emu::PER_MM),
         runs: Vec::new(),
+        rects: Vec::new(),
     };
     let mut lines_json = Vec::new();
     let mut missing = 0;

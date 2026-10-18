@@ -305,8 +305,15 @@ fn plan_export_after_import(
     for insertion in &alignment.inserted {
         let at = xml.insertion_point(insertion.anchor)?;
         let mut markup = String::new();
-        for &paragraph in &insertion.paragraphs {
-            let new = structure::new_paragraph(paragraph, &names, budget.max_part_bytes, &xml)?;
+        for block in &insertion.blocks {
+            let new = match block {
+                structure::NewBlock::Paragraph(paragraph) => {
+                    structure::new_paragraph(paragraph, &names, budget.max_part_bytes, &xml)?
+                }
+                structure::NewBlock::Table(table) => {
+                    structure::table_markup(table, &names, budget.max_part_bytes)?
+                }
+            };
             // Bound the accumulated new markup before building any more.
             inserted = inserted.saturating_add(new.len() as u64);
             markup.push_str(&new);
@@ -318,6 +325,15 @@ fn plan_export_after_import(
             }
         }
         patches.push((at..at, markup.into_bytes()));
+    }
+    for &(before, after) in &alignment.edited_tables {
+        let element = xml.table(before)?;
+        let markup = structure::table_markup(after, &names, budget.max_part_bytes)?;
+        patches.push((element.span.clone(), markup.into_bytes()));
+    }
+    for table in &alignment.removed_tables {
+        let element = xml.table(table)?;
+        patches.push((element.span.clone(), Vec::new()));
     }
     // An insertion sorts before a removal or replacement starting at the
     // same byte, so neither is treated as overlapping.
@@ -813,6 +829,28 @@ impl Names {
             Self::Default => format!("</{local}>"),
             Self::Declared => format!("</jwe:{local}>"),
         }
+    }
+
+    fn qname(&self, local: &str) -> String {
+        match self {
+            Self::Bound(prefix) => format!("{prefix}:{local}"),
+            Self::Default => local.to_string(),
+            Self::Declared => format!("jwe:{local}"),
+        }
+    }
+
+    /// ` prefix:local="escaped"`, using the same prefix as [`Self::start`].
+    fn attribute(&self, local: &str, value: &str) -> String {
+        let mut escaped = String::new();
+        for ch in value.chars() {
+            match ch {
+                '&' => escaped.push_str("&amp;"),
+                '<' => escaped.push_str("&lt;"),
+                '"' => escaped.push_str("&quot;"),
+                _ => escaped.push(ch),
+            }
+        }
+        format!(" {}=\"{escaped}\"", self.qname(local))
     }
 }
 

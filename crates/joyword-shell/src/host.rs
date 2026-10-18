@@ -17,7 +17,8 @@ use crate::command::{
     EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
     FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE,
     FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_PAINT, InvokeError, LIST_APPLY,
-    LIST_LEVEL, LIST_REMOVE, Registry, STYLE_APPLY, STYLE_LIST,
+    LIST_LEVEL, LIST_REMOVE, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE,
+    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
 };
 use crate::docx::BoundDocx;
 use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
@@ -549,6 +550,16 @@ fn flag(args: &BTreeMap<&'static str, ArgValue>, name: &str) -> bool {
     matches!(args.get(name), Some(ArgValue::Bool(true)))
 }
 
+fn table_axis(
+    args: &BTreeMap<&'static str, ArgValue>,
+    name: &'static str,
+) -> Result<u32, ExecuteError> {
+    match args.get(name) {
+        None => Ok(2),
+        Some(value) => parse_u32(value).ok_or_else(|| ExecuteError::Failed(name.into())),
+    }
+}
+
 fn text_arg<'a>(args: &'a BTreeMap<&'static str, ArgValue>, name: &str) -> Option<&'a str> {
     match args.get(name) {
         Some(ArgValue::Text(text)) => Some(text),
@@ -574,6 +585,12 @@ impl CommandHost for Office {
                 | FORMAT_COPY
                 | FORMAT_PAINT
                 | FORMAT_CANCEL
+                | TABLE_INSERT
+                | TABLE_ROW_INSERT
+                | TABLE_ROW_DELETE
+                | TABLE_COLUMN_INSERT
+                | TABLE_COLUMN_DELETE
+                | TABLE_SELECT
         ) || id.0.starts_with("edit."))
             && self.active.is_none()
         {
@@ -594,6 +611,12 @@ impl CommandHost for Office {
                         | FORMAT_COPY
                         | FORMAT_PAINT
                         | FORMAT_CANCEL
+                        | TABLE_INSERT
+                        | TABLE_ROW_INSERT
+                        | TABLE_ROW_DELETE
+                        | TABLE_COLUMN_INSERT
+                        | TABLE_COLUMN_DELETE
+                        | TABLE_SELECT
                 ))
         {
             return Availability::Disabled("input.read_only");
@@ -612,6 +635,11 @@ impl CommandHost for Office {
                 | FIND_REPLACE
                 | FIND_REPLACE_ALL
                 | FORMAT_PAINT
+                | TABLE_INSERT
+                | TABLE_ROW_INSERT
+                | TABLE_ROW_DELETE
+                | TABLE_COLUMN_INSERT
+                | TABLE_COLUMN_DELETE
         ) && self.active().is_some_and(|input| input.read_only())
         {
             return Availability::Disabled("input.read_only");
@@ -860,6 +888,54 @@ impl Office {
             FORMAT_CANCEL => {
                 self.require_active()?
                     .editing(EditRequest::CancelFormat)
+                    .map_err(input_error)?;
+                Ok(())
+            }
+            TABLE_INSERT => {
+                let rows = table_axis(args, "rows")?;
+                let columns = table_axis(args, "columns")?;
+                self.require_active()?
+                    .insert_table(rows, columns)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_ROW_INSERT => {
+                self.require_active()?
+                    .insert_table_row()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_ROW_DELETE => {
+                self.require_active()?
+                    .delete_table_row()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_COLUMN_INSERT => {
+                self.require_active()?
+                    .insert_table_column()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_COLUMN_DELETE => {
+                self.require_active()?
+                    .delete_table_column()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_SELECT => {
+                self.require_active()?
+                    .select_table_cell()
                     .map_err(input_error)?;
                 Ok(())
             }

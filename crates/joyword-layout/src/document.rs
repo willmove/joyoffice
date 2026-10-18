@@ -13,9 +13,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    Bias, DocDefaults, Document, DocumentSnapshot, DocumentVersion, Justification, LineSpacing,
-    Measure, NodeId, NumberLabel, NumberingProblem, Paragraph, Position, ScalarOffset, StoryId,
-    displayed_paragraph,
+    Bias, Block, BorderEdge, BorderKind, Color, DocDefaults, Document, DocumentSnapshot,
+    DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel, NumberingProblem,
+    Paragraph, Position, ScalarOffset, StoryId, Table, displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -25,7 +25,7 @@ use crate::shape::ShapedRun;
 use crate::style_paint;
 use crate::{
     FaceSet, FeatureSet, FontKey, FontSlot, LayoutLine, LineDiagnostic, LineError, LineLimits,
-    LoadedFont, PageScene, SourceRange, adjust_cjk_break, slot_for, wrap_mixed,
+    LoadedFont, PageScene, SceneRect, SourceRange, adjust_cjk_break, slot_for, wrap_mixed,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -340,12 +340,11 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
     hash.update(format!("{:?}", document.sections()[0].page).as_bytes());
     hash.update((document.body().blocks.len() as u64).to_le_bytes());
     for block in document.body().blocks.iter() {
-        let paragraph = block.as_paragraph().expect("preflight paragraphs");
-        let text = paragraph.plain_text(|_| unreachable!("preflight objects"));
-        hash.update(paragraph.id().get().to_le_bytes());
-        hash.update((text.len() as u64).to_le_bytes());
-        hash.update(text.as_bytes());
-        hash.update(format!("{:?}", paragraph.props).as_bytes());
+        match block {
+            Block::Paragraph(paragraph) => hash_paragraph(&mut hash, paragraph),
+            Block::Table(table) => hash_table(&mut hash, table),
+            Block::Sdt(_) | Block::Opaque(_) => {}
+        }
     }
     // An empty sheet keeps the historical fingerprint. A style, a default or
     // a theme changes what the scene paints, so it joins the hash.
@@ -377,8 +376,7 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
             hash.update(format!("{:?}", style.para).as_bytes());
             hash.update(format!("{:?}", style.run).as_bytes());
         }
-        for block in document.body().blocks.iter() {
-            let paragraph = block.as_paragraph().expect("preflight paragraphs");
+        for paragraph in body_paragraphs(document) {
             hash.update(
                 paragraph
                     .style
@@ -415,11 +413,78 @@ fn stylesheet_is_layout_input(document: &Document) -> bool {
     !styles.is_empty()
         || styles.defaults != DocDefaults::default()
         || !styles.theme().is_empty()
-        || document.body().blocks.iter().any(|block| {
-            block.as_paragraph().is_some_and(|paragraph| {
-                paragraph.style.is_some() || paragraph.runs().iter().any(|run| run.style.is_some())
-            })
+        || body_paragraphs(document).any(|paragraph| {
+            paragraph.style.is_some() || paragraph.runs().iter().any(|run| run.style.is_some())
         })
+}
+
+fn hash_paragraph(hash: &mut Sha256, paragraph: &Paragraph) {
+    let text = paragraph.plain_text(|_| unreachable!("preflight objects"));
+    hash.update(paragraph.id().get().to_le_bytes());
+    hash.update((text.len() as u64).to_le_bytes());
+    hash.update(text.as_bytes());
+    hash.update(format!("{:?}", paragraph.props).as_bytes());
+}
+
+fn hash_table(hash: &mut Sha256, table: &Table) {
+    hash.update(b"table");
+    hash.update(table.id.get().to_le_bytes());
+    hash.update((table.grid.len() as u64).to_le_bytes());
+    for column in &table.grid {
+        hash.update(format!("{column}").as_bytes());
+    }
+    hash.update(format!("{:?}", table.width).as_bytes());
+    for row in &table.rows {
+        hash.update(row.grid_before.to_le_bytes());
+        hash.update(row.grid_after.to_le_bytes());
+        hash.update([u8::from(row.header)]);
+        for cell in &row.cells {
+            hash.update(cell.grid_span.to_le_bytes());
+            hash.update(format!("{:?}", cell.vertical_merge).as_bytes());
+            hash.update(format!("{:?}", cell.borders).as_bytes());
+            hash.update(format!("{:?}", cell.shading).as_bytes());
+            for block in cell.blocks.iter() {
+                if let Some(paragraph) = block.as_paragraph() {
+                    hash_paragraph(hash, paragraph);
+                    for run in paragraph.runs() {
+                        hash.update(format!("{:?}", run.props).as_bytes());
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn body_paragraphs(document: &Document) -> impl Iterator<Item = &Paragraph> {
+    document.body().blocks.iter().flat_map(|block| match block {
+        Block::Paragraph(paragraph) => vec![paragraph.as_ref()],
+        Block::Table(table) => table
+            .rows
+            .iter()
+            .flat_map(|row| row.cells.iter())
+            .flat_map(|cell| cell.blocks.iter())
+            .filter_map(Block::as_paragraph)
+            .collect::<Vec<_>>(),
+        Block::Sdt(_) | Block::Opaque(_) => Vec::new(),
+    })
+}
+
+fn table_paragraphs(table: &Table) -> Result<Vec<&Paragraph>, LayoutError> {
+    let mut paragraphs = Vec::new();
+    for row in &table.rows {
+        for cell in &row.cells {
+            for block in cell.blocks.iter() {
+                let Some(paragraph) = block.as_paragraph() else {
+                    return Err(unsupported(
+                        Some(block.id()),
+                        "nested table or unsupported cell content",
+                    ));
+                };
+                paragraphs.push(paragraph);
+            }
+        }
+    }
+    Ok(paragraphs)
 }
 
 fn check_paragraph(
@@ -442,7 +507,7 @@ pub(crate) fn preflight(
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
 ) -> Result<PageGeometry, LayoutError> {
-    if document.body().blocks.len() > limits.max_paragraphs {
+    if body_paragraphs(document).count() > limits.max_paragraphs {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Paragraphs));
     }
     if document.stories().count() != 1 {
@@ -473,20 +538,26 @@ pub(crate) fn preflight(
     let mut runs = 0usize;
     for block in document.body().blocks.iter() {
         cancellation.check()?;
-        let p = block
-            .as_paragraph()
-            .ok_or_else(|| unsupported(Some(block.id()), "non-paragraph block"))?;
-        total = total
-            .checked_add(p.text().summary().bytes)
-            .ok_or(LayoutError::LimitExceeded(LayoutLimit::TextBytes))?;
-        if total > limits.max_text_bytes {
-            return Err(LayoutError::LimitExceeded(LayoutLimit::TextBytes));
+        let paragraphs = match block {
+            Block::Paragraph(paragraph) => vec![paragraph.as_ref()],
+            Block::Table(table) => table_paragraphs(table)?,
+            Block::Sdt(_) | Block::Opaque(_) => {
+                return Err(unsupported(Some(block.id()), "non-paragraph block"));
+            }
+        };
+        for p in paragraphs {
+            total = total
+                .checked_add(p.text().summary().bytes)
+                .ok_or(LayoutError::LimitExceeded(LayoutLimit::TextBytes))?;
+            if total > limits.max_text_bytes {
+                return Err(LayoutError::LimitExceeded(LayoutLimit::TextBytes));
+            }
+            runs = runs.saturating_add(p.runs().len());
+            if runs > limits.max_runs {
+                return Err(LayoutError::LimitExceeded(LayoutLimit::Runs));
+            }
+            check_paragraph(document, p, profile)?;
         }
-        runs = runs.saturating_add(p.runs().len());
-        if runs > limits.max_runs {
-            return Err(LayoutError::LimitExceeded(LayoutLimit::Runs));
-        }
-        check_paragraph(document, p, profile)?;
     }
     if document.validate().has_errors() {
         return Err(LayoutError::InvalidDocument);
@@ -523,6 +594,17 @@ pub(crate) struct FittedParagraph {
     pub justification: Option<Justification>,
     /// Baseline offset inside the line box, after style size scaling.
     pub baseline: Emu,
+    /// Page x of the text frame. Body paragraphs use the content left edge.
+    pub frame_x: Emu,
+    /// Width of the text frame. Body paragraphs use the content width.
+    pub frame_width: Emu,
+}
+
+/// Where a paragraph's lines are measured and placed.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct TextFrame {
+    pub origin_x: Emu,
+    pub width: Emu,
 }
 
 /// Where a paragraph began in a previous snapshot. `top` is the y before
@@ -713,6 +795,27 @@ pub fn layout_document(
     let geometry = preflight(document, profile, limits, cancellation)?;
     let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
     let marks = joyword_model::list_marks(document);
+    let has_table = document
+        .body()
+        .blocks
+        .iter()
+        .any(|block| matches!(block, Block::Table(_)));
+    if has_table {
+        return layout_mixed(
+            result,
+            document,
+            faces,
+            profile,
+            geometry,
+            limits,
+            cancellation,
+            &marks,
+        );
+    }
+    let frame = TextFrame {
+        origin_x: geometry.left,
+        width: geometry.content_width(),
+    };
     let mut prepared = Vec::new();
     let mut total_lines = 0usize;
     let mut charged_shapes = 0usize;
@@ -727,6 +830,7 @@ pub fn layout_document(
             faces,
             profile,
             geometry,
+            frame,
             limits,
             WorkSpent {
                 shapes: charged_shapes,
@@ -748,6 +852,392 @@ pub fn layout_document(
         prepared.push(fitted);
     }
     assemble(result, prepared, cancellation, None)
+}
+
+const CELL_MARGIN_TWIPS: i64 = 108;
+
+/// Body paragraphs keep the paragraph-only assembler. A document that contains
+/// a table places each row as one unit: cell paragraphs sit side by side in
+/// the shared page scene, and a row moves to the next page instead of
+/// splitting. Vertical merge is stored but not drawn as a rowspan.
+#[allow(clippy::too_many_arguments)]
+fn layout_mixed(
+    mut result: LayoutSnapshot,
+    document: &Document,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    geometry: PageGeometry,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+) -> Result<LayoutSnapshot, LayoutError> {
+    let body_frame = TextFrame {
+        origin_x: geometry.left,
+        width: geometry.content_width(),
+    };
+    let mut spent = WorkSpent {
+        shapes: 0,
+        bytes: 0,
+        glyphs: 0,
+        lines: 0,
+    };
+    let mut batch = Vec::new();
+    let mut top = geometry.top;
+    for block in document.body().blocks.iter() {
+        cancellation.check()?;
+        match block {
+            Block::Paragraph(paragraph) => {
+                let fitted = fit_body(
+                    document,
+                    paragraph,
+                    faces,
+                    profile,
+                    geometry,
+                    body_frame,
+                    limits,
+                    &spent,
+                    cancellation,
+                    marks,
+                )?;
+                note_fit(&mut result, &fitted, &mut spent);
+                batch.push(fitted);
+            }
+            Block::Table(table) => {
+                place_paragraph_batch(&mut result, &mut top, &mut batch, cancellation)?;
+                place_table(
+                    &mut result,
+                    &mut top,
+                    document,
+                    table,
+                    faces,
+                    profile,
+                    geometry,
+                    limits,
+                    &mut spent,
+                    cancellation,
+                    marks,
+                )?;
+            }
+            Block::Sdt(_) | Block::Opaque(_) => {
+                return Err(unsupported(Some(block.id()), "non-paragraph block"));
+            }
+        }
+    }
+    place_paragraph_batch(&mut result, &mut top, &mut batch, cancellation)?;
+    cancellation.check()?;
+    Ok(result)
+}
+
+fn note_fit(result: &mut LayoutSnapshot, fitted: &FittedParagraph, spent: &mut WorkSpent) {
+    record_fit(result, fitted);
+    spent.shapes += fitted.shape_calls;
+    spent.bytes += fitted.shaped_bytes;
+    spent.glyphs += fitted.glyphs;
+    spent.lines += fitted.lines.len();
+    result.stats.shape_calls += fitted.shape_calls;
+    result.stats.shaped_bytes += fitted.shaped_bytes;
+    result.stats.glyphs += fitted.glyphs;
+}
+
+#[allow(clippy::too_many_arguments)]
+fn fit_body(
+    document: &Document,
+    paragraph: &Paragraph,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    geometry: PageGeometry,
+    frame: TextFrame,
+    limits: LayoutLimits,
+    spent: &WorkSpent,
+    cancellation: &LayoutCancellation,
+    marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+) -> Result<FittedParagraph, LayoutError> {
+    fit_paragraph(
+        document,
+        paragraph,
+        faces,
+        profile,
+        geometry,
+        frame,
+        limits,
+        WorkSpent {
+            shapes: spent.shapes,
+            bytes: spent.bytes,
+            glyphs: spent.glyphs,
+            lines: spent.lines,
+        },
+        cancellation,
+        marks.get(&paragraph.id()),
+    )
+}
+
+fn place_paragraph_batch(
+    result: &mut LayoutSnapshot,
+    top: &mut Emu,
+    batch: &mut Vec<FittedParagraph>,
+    cancellation: &LayoutCancellation,
+) -> Result<(), LayoutError> {
+    if batch.is_empty() {
+        return Ok(());
+    }
+    prepare_keep_groups(batch, cancellation)?;
+    for paragraph in batch.iter_mut() {
+        place_one(result, top, paragraph, cancellation)?;
+    }
+    batch.clear();
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn place_table(
+    result: &mut LayoutSnapshot,
+    top: &mut Emu,
+    document: &Document,
+    table: &Table,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    geometry: PageGeometry,
+    limits: LayoutLimits,
+    spent: &mut WorkSpent,
+    cancellation: &LayoutCancellation,
+    marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+) -> Result<(), LayoutError> {
+    let margin = twips_to_emu(CELL_MARGIN_TWIPS)?;
+    let mut edges = Vec::with_capacity(table.grid.len() + 1);
+    let mut cursor = 0i64;
+    edges.push(0);
+    for column in &table.grid {
+        cursor = cursor
+            .checked_add(grid_twips(table.id, *column)?)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        edges.push(cursor);
+    }
+    for row in &table.rows {
+        cancellation.check()?;
+        let mut column = row.grid_before as usize;
+        let mut fitted_cells = Vec::new();
+        let mut row_height = 0i64;
+        for cell in &row.cells {
+            let start = column;
+            column = column.saturating_add(cell.grid_span as usize);
+            if start >= edges.len() || column >= edges.len() {
+                return Err(unsupported(
+                    Some(table.id),
+                    "table cell is outside the grid",
+                ));
+            }
+            let outer = edges[column] - edges[start];
+            let inner = outer - CELL_MARGIN_TWIPS * 2;
+            if inner <= 0 {
+                return Err(unsupported(
+                    Some(cell.id),
+                    "cell is narrower than its margins",
+                ));
+            }
+            let origin = geometry
+                .left
+                .raw()
+                .checked_add(twips_to_emu(edges[start])?)
+                .and_then(|x| x.checked_add(margin))
+                .ok_or(LayoutError::GeometryOverflow)?;
+            let frame = TextFrame {
+                origin_x: Emu::new(origin),
+                width: Emu::new(twips_to_emu(inner)?),
+            };
+            let mut paragraphs = Vec::new();
+            let mut content = 0i64;
+            for block in cell.blocks.iter() {
+                let Some(paragraph) = block.as_paragraph() else {
+                    return Err(unsupported(
+                        Some(block.id()),
+                        "nested table or unsupported cell content",
+                    ));
+                };
+                let fitted = fit_body(
+                    document,
+                    paragraph,
+                    faces,
+                    profile,
+                    geometry,
+                    frame,
+                    limits,
+                    spent,
+                    cancellation,
+                    marks,
+                )?;
+                content = content
+                    .checked_add(fitted.height.raw())
+                    .and_then(|height| height.checked_add(fitted.after.raw()))
+                    .ok_or(LayoutError::GeometryOverflow)?;
+                note_fit(result, &fitted, spent);
+                paragraphs.push(fitted);
+            }
+            let top_border = border_size(cell.borders.top);
+            let bottom_border = border_size(cell.borders.bottom);
+            let height = content
+                .checked_add(top_border)
+                .and_then(|height| height.checked_add(bottom_border))
+                .ok_or(LayoutError::GeometryOverflow)?;
+            row_height = row_height.max(height);
+            fitted_cells.push((start, column, paragraphs, top_border));
+        }
+        if row_height <= 0 {
+            return Err(LayoutError::LineTooTall);
+        }
+        let page_top = geometry.top.raw();
+        let bottom = geometry.bottom_edge().raw();
+        let occupied = result
+            .pages
+            .last()
+            .is_some_and(|page| !page.runs.is_empty() || !page.rects.is_empty());
+        if top.raw().saturating_add(row_height) > bottom && occupied && top.raw() != page_top {
+            result.new_page()?;
+            *top = geometry.top;
+        }
+        if top.raw().saturating_add(row_height) > bottom {
+            return Err(LayoutError::LineTooTall);
+        }
+        let row_top = top.raw();
+        for (start, end, mut paragraphs, top_border) in fitted_cells {
+            let cell = cell_at(row, start)?;
+            let outer = twips_to_emu(edges[end] - edges[start])?;
+            let x = geometry
+                .left
+                .raw()
+                .checked_add(twips_to_emu(edges[start])?)
+                .ok_or(LayoutError::GeometryOverflow)?;
+            paint_cell(result, cell, x, row_top, outer, row_height)?;
+            let mut cell_top = Emu::new(
+                row_top
+                    .checked_add(top_border)
+                    .ok_or(LayoutError::GeometryOverflow)?,
+            );
+            for paragraph in &mut paragraphs {
+                paragraph.page_break_before = false;
+                paragraph.keep_lines = false;
+                paragraph.keep_next = false;
+                paragraph.group_height = None;
+                place_one(result, &mut cell_top, paragraph, cancellation)?;
+            }
+        }
+        *top = Emu::new(
+            row_top
+                .checked_add(row_height)
+                .ok_or(LayoutError::GeometryOverflow)?,
+        );
+    }
+    Ok(())
+}
+
+fn cell_at(row: &joyword_model::Row, start: usize) -> Result<&joyword_model::Cell, LayoutError> {
+    let mut column = row.grid_before as usize;
+    for cell in &row.cells {
+        if column == start {
+            return Ok(cell);
+        }
+        column = column.saturating_add(cell.grid_span as usize);
+    }
+    Err(unsupported(None, "table cell is outside the grid"))
+}
+
+fn paint_cell(
+    result: &mut LayoutSnapshot,
+    cell: &joyword_model::Cell,
+    x: i64,
+    y: i64,
+    width: i64,
+    height: i64,
+) -> Result<(), LayoutError> {
+    let page = result
+        .pages
+        .last_mut()
+        .ok_or(LayoutError::GeometryOverflow)?;
+    if let Some(shading) = cell.shading
+        && let Color::Rgb(red, green, blue) = shading.fill
+    {
+        push_rect(page, x, y, width, height, (red, green, blue));
+    }
+    let top = border_size(cell.borders.top);
+    let bottom = border_size(cell.borders.bottom);
+    let left = border_size(cell.borders.left);
+    let right = border_size(cell.borders.right);
+    push_border(page, cell.borders.top, x, y, width, top);
+    push_border(
+        page,
+        cell.borders.bottom,
+        x,
+        y.saturating_add(height).saturating_sub(bottom),
+        width,
+        bottom,
+    );
+    push_border(page, cell.borders.left, x, y, left, height);
+    push_border(
+        page,
+        cell.borders.right,
+        x.saturating_add(width).saturating_sub(right),
+        y,
+        right,
+        height,
+    );
+    Ok(())
+}
+
+fn push_border(
+    page: &mut PageScene,
+    edge: Option<BorderEdge>,
+    x: i64,
+    y: i64,
+    width: i64,
+    height: i64,
+) {
+    let Some(edge) = edge else {
+        return;
+    };
+    if edge.kind != BorderKind::Single {
+        return;
+    }
+    let color = match edge.color {
+        Color::Rgb(red, green, blue) => (red, green, blue),
+        Color::Auto | Color::Theme(_) => (0, 0, 0),
+    };
+    push_rect(page, x, y, width, height, color);
+}
+
+fn push_rect(page: &mut PageScene, x: i64, y: i64, width: i64, height: i64, color: (u8, u8, u8)) {
+    if width <= 0 || height <= 0 {
+        return;
+    }
+    page.rects.push(SceneRect {
+        x: Emu::new(x),
+        y: Emu::new(y),
+        width: Emu::new(width),
+        height: Emu::new(height),
+        red: color.0,
+        green: color.1,
+        blue: color.2,
+    });
+}
+
+fn grid_twips(table: NodeId, measure: Measure) -> Result<i64, LayoutError> {
+    match measure {
+        Measure::Twips(value) if value >= 0 => Ok(value),
+        _ => Err(unsupported(Some(table), "table grid is not in twips")),
+    }
+}
+
+fn twips_to_emu(twips: i64) -> Result<i64, LayoutError> {
+    twips
+        .checked_mul(Emu::PER_TWIP)
+        .ok_or(LayoutError::GeometryOverflow)
+}
+
+fn border_size(edge: Option<BorderEdge>) -> i64 {
+    match edge {
+        Some(edge) if edge.kind == BorderKind::Single && edge.size_eighths > 0 => {
+            i64::from(edge.size_eighths) * Emu::PER_POINT / 8
+        }
+        _ => 0,
+    }
 }
 
 pub(crate) fn open_snapshot(
@@ -825,6 +1315,7 @@ pub(crate) fn fit_paragraph(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     geometry: PageGeometry,
+    frame: TextFrame,
     limits: LayoutLimits,
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
@@ -890,7 +1381,7 @@ pub(crate) fn fit_paragraph(
     )?;
     let family = cjk::face_cjk_family(shape_font);
     let needs_slots = chosen != FontSlot::Ascii;
-    let width = geometry.content_width();
+    let width = frame.width;
     let mut fit_slice = |slice: &str,
                          slice_width: Emu|
      -> Result<crate::ParagraphLines, LayoutError> {
@@ -1046,6 +1537,8 @@ pub(crate) fn fit_paragraph(
         page_break_before: painted.flow.page_break_before,
         justification: painted.flow.justification,
         baseline: painted.baseline,
+        frame_x: frame.origin_x,
+        frame_width: frame.width,
     })
 }
 
@@ -1145,6 +1638,7 @@ fn suffix_copies(
                     width: result.geometry.width,
                     height: result.geometry.height,
                     runs: Vec::new(),
+                    rects: Vec::new(),
                 });
             }
             if pages[line.page].runs.len() != line.run {
@@ -1226,13 +1720,13 @@ fn place_one(
                 return Err(LayoutError::LineTooTall);
             }
         }
-        let slack = (geometry.content_width().raw() - line.run.width.raw()).max(0);
+        let slack = (prepared.frame_width.raw() - line.run.width.raw()).max(0);
         let shift = match justification {
             Some(Justification::Center) => slack / 2,
             Some(Justification::End) => slack,
             _ => 0,
         };
-        let x = add(geometry.left, Emu::new(shift))?;
+        let x = add(prepared.frame_x, Emu::new(shift))?;
         let body_x = match line.clusters.first() {
             Some(cluster) => line
                 .run
@@ -1301,6 +1795,7 @@ impl LayoutSnapshot {
             width: self.geometry.width,
             height: self.geometry.height,
             runs: Vec::new(),
+            rects: Vec::new(),
         });
         Ok(())
     }

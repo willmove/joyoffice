@@ -238,6 +238,42 @@ struct ParagraphInfo {
     len: usize,
 }
 
+/// Grid, span, vertical-merge and empty-cell issues for one table.
+/// Nested blocks and style kinds are checked by the document walk.
+pub fn table_structure(table: &Table) -> Vec<Issue> {
+    let mut issues = Vec::new();
+    let mut above: HashMap<u32, u32> = HashMap::new();
+    for row in &table.rows {
+        let mut column = row.grid_before;
+        let mut current = HashMap::new();
+        for cell in &row.cells {
+            if cell.grid_span == 0 {
+                issues.push(Issue::ZeroGridSpan { cell: cell.id });
+            }
+            if cell.vertical_merge == VerticalMerge::Continue
+                && above.get(&column) != Some(&cell.grid_span)
+            {
+                issues.push(Issue::OrphanVerticalMerge { cell: cell.id });
+            }
+            current.insert(column, cell.grid_span);
+            column = column.saturating_add(cell.grid_span);
+            if cell.blocks.is_empty() {
+                issues.push(Issue::EmptyCell { cell: cell.id });
+            }
+        }
+        let used = column.saturating_add(row.grid_after) as usize;
+        if used != table.grid.len() {
+            issues.push(Issue::TableGridMismatch {
+                row: row.id,
+                grid: table.grid.len(),
+                used,
+            });
+        }
+        above = current;
+    }
+    issues
+}
+
 struct Validator<'a> {
     document: &'a Document,
     out: Diagnostics,
@@ -325,38 +361,15 @@ impl Validator<'_> {
         if let Some(style) = &table.style {
             self.style(style, StyleKind::Table);
         }
-        // Grid column where each cell of the previous row starts, with its span.
-        let mut above: HashMap<u32, u32> = HashMap::new();
         for row in &table.rows {
             self.id(row.id.get());
-            let mut column = row.grid_before;
-            let mut current = HashMap::new();
             for cell in &row.cells {
                 self.id(cell.id.get());
-                if cell.grid_span == 0 {
-                    self.out.error(Issue::ZeroGridSpan { cell: cell.id });
-                }
-                if cell.vertical_merge == VerticalMerge::Continue
-                    && above.get(&column) != Some(&cell.grid_span)
-                {
-                    self.out.error(Issue::OrphanVerticalMerge { cell: cell.id });
-                }
-                current.insert(column, cell.grid_span);
-                column = column.saturating_add(cell.grid_span);
-                if cell.blocks.is_empty() {
-                    self.out.error(Issue::EmptyCell { cell: cell.id });
-                }
                 self.blocks(story, &cell.blocks, depth + 1);
             }
-            let used = column.saturating_add(row.grid_after) as usize;
-            if used != table.grid.len() {
-                self.out.error(Issue::TableGridMismatch {
-                    row: row.id,
-                    grid: table.grid.len(),
-                    used,
-                });
-            }
-            above = current;
+        }
+        for issue in table_structure(table) {
+            self.out.error(issue);
         }
     }
 

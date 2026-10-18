@@ -14,15 +14,16 @@ use std::collections::{BTreeSet, HashMap};
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    Anchor, AnnotationKind, Document, DocumentSnapshot, DocumentVersion, LineSpacing, NodeId,
-    NumberLabel, NumberSuffix, NumberingProblem, Paragraph, ScalarOffset, StyleId, StyleKind,
-    StyleSheet,
+    Anchor, AnnotationKind, Block, Document, DocumentSnapshot, DocumentVersion, LineSpacing,
+    NodeId, NumberLabel, NumberSuffix, NumberingProblem, Paragraph, ScalarOffset, StyleId,
+    StyleKind, StyleSheet,
 };
 use sha2::{Digest, Sha256};
 
 use crate::document::{
-    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, WorkSpent, assemble,
-    dominant_slot, fit_paragraph, open_snapshot, preflight, record_fit,
+    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, TextFrame,
+    WorkSpent, assemble, dominant_slot, fit_paragraph, layout_document, open_snapshot, preflight,
+    record_fit,
 };
 use crate::style_paint;
 use crate::{
@@ -439,6 +440,17 @@ pub fn layout_incremental(
     cancellation: &LayoutCancellation,
     reuse: LayoutReuse<'_>,
 ) -> Result<LayoutSnapshot, LayoutError> {
+    // A table row is not a body paragraph. Suffix copy assumes those line up,
+    // so a document with a table is laid out in full. The paragraph cache is
+    // left for the paragraph-only path.
+    if document
+        .body()
+        .blocks
+        .iter()
+        .any(|block| matches!(block, Block::Table(_)))
+    {
+        return layout_document(document, faces, profile, limits, cancellation);
+    }
     let LayoutReuse {
         cache,
         previous,
@@ -669,6 +681,10 @@ fn layout_pass(
                 faces,
                 profile,
                 geometry,
+                TextFrame {
+                    origin_x: geometry.left,
+                    width: geometry.content_width(),
+                },
                 limits,
                 WorkSpent {
                     shapes: charged_shapes,
@@ -934,6 +950,8 @@ mod tests {
             page_break_before: false,
             justification: None,
             baseline: Emu::new(0),
+            frame_x: Emu::new(0),
+            frame_width: Emu::new(1),
         }
     }
 

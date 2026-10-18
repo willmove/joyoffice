@@ -55,6 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let scene = PageScene {
         width: Emu::new(210 * Emu::PER_MM),
         height: Emu::new(297 * Emu::PER_MM),
+        rects: Vec::new(),
         runs: result
             .lines
             .iter()

@@ -10,7 +10,7 @@
 use std::collections::HashMap;
 use std::ops::Range;
 
-use joyword_layout::{FontKey, GlyphRun, LoadedFont, PageScene, to_points};
+use joyword_layout::{FontKey, GlyphRun, LoadedFont, PageScene, SceneRect, to_points};
 use krilla::Document;
 use krilla::geom::Point;
 use krilla::page::PageSettings;
@@ -106,6 +106,13 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
         .ok_or(PdfError::InvalidPage)?;
         let mut page = document.start_page_with(settings);
         let mut surface = page.surface();
+        if !scene.rects.is_empty() {
+            for rect in &scene.rects {
+                fill_rect(&mut surface, rect);
+            }
+            surface.set_fill(None);
+            surface.set_stroke(None);
+        }
         for run in &scene.runs {
             let font = match cache.get(&run.font) {
                 Some(font) => font.clone(),
@@ -141,4 +148,59 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
     document
         .finish()
         .map_err(|error| PdfError::Writer(format!("{error:?}")))
+}
+
+fn fill_rect(surface: &mut krilla::surface::Surface<'_>, rect: &SceneRect) {
+    let x = to_points(rect.x) as f32;
+    let y = to_points(rect.y) as f32;
+    let width = to_points(rect.width) as f32;
+    let height = to_points(rect.height) as f32;
+    let Some(bounds) = krilla::geom::Rect::from_xywh(x, y, width, height) else {
+        return;
+    };
+    let mut builder = krilla::geom::PathBuilder::new();
+    builder.push_rect(bounds);
+    let Some(path) = builder.finish() else {
+        return;
+    };
+    let Some(opacity) = krilla::num::NormalizedF32::new(1.0) else {
+        return;
+    };
+    surface.set_fill(Some(krilla::paint::Fill {
+        paint: krilla::color::rgb::Color::new(rect.red, rect.green, rect.blue).into(),
+        opacity,
+        rule: krilla::paint::FillRule::NonZero,
+    }));
+    surface.set_stroke(None);
+    surface.draw_path(&path);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use joyword_foundation::Emu;
+
+    #[test]
+    fn a_scene_rect_changes_the_pdf_bytes() {
+        let page = PageScene {
+            width: Emu::new(72 * Emu::PER_POINT),
+            height: Emu::new(72 * Emu::PER_POINT),
+            runs: Vec::new(),
+            rects: vec![SceneRect {
+                x: Emu::new(Emu::PER_POINT),
+                y: Emu::new(Emu::PER_POINT),
+                width: Emu::new(10 * Emu::PER_POINT),
+                height: Emu::new(4 * Emu::PER_POINT),
+                red: 255,
+                green: 0,
+                blue: 0,
+            }],
+        };
+        let painted = render(std::slice::from_ref(&page), &[]).unwrap();
+        let mut blank = page;
+        blank.rects.clear();
+        let plain = render(&[blank], &[]).unwrap();
+        assert_ne!(painted, plain);
+        assert!(painted.starts_with(b"%PDF"));
+    }
 }
