@@ -11,7 +11,7 @@ use std::fmt;
 use std::sync::Arc;
 
 use crate::id::{PreservedId, SourceRef};
-use crate::props::{FontSlots, Indent, Languages, ParaProps, RunProps, Spacing};
+use crate::props::{FontSlots, Indent, Languages, ParaProps, RunProps, Spacing, merge_tab_stops};
 use crate::theme::{ThemeColorSlot, ThemeScheme};
 
 /// Longest `basedOn` chain followed before reporting [`StyleProblem::TooDeep`].
@@ -484,6 +484,9 @@ fn layer_para(base: &mut ParaProps, layer: &ParaProps) {
     if layer.numbering.is_some() {
         base.numbering = layer.numbering;
     }
+    if let Some(tabs) = &layer.tabs {
+        base.tabs = Some(merge_tab_stops(base.tabs.as_deref().unwrap_or(&[]), tabs));
+    }
     if layer.preserved.is_some() {
         base.preserved = layer.preserved;
     }
@@ -580,6 +583,12 @@ fn toggle(current: &mut Option<bool>, specified: Option<bool>) {
             *current = Some(!on);
         }
     }
+}
+
+/// Apply one paragraph-property layer. Used by style resolution and by the
+/// numbering level, which sits between the style and direct properties.
+pub fn overlay_paragraph(base: &mut ParaProps, layer: &ParaProps) {
+    layer_para(base, layer);
 }
 
 fn set_flag(current: &mut Option<bool>, specified: Option<bool>) {

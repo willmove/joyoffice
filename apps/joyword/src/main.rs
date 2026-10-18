@@ -57,6 +57,9 @@ actions!(
         Italic,
         ListStyles,
         ApplyStyle,
+        ApplyList,
+        SetListLevel,
+        RemoveList,
         AlignCenter,
         CopyText,
         PasteText,
@@ -105,6 +108,9 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_ITALIC => Box::new(Italic),
         STYLE_LIST => Box::new(ListStyles),
         STYLE_APPLY => Box::new(ApplyStyle),
+        LIST_APPLY => Box::new(ApplyList),
+        LIST_LEVEL => Box::new(SetListLevel),
+        LIST_REMOVE => Box::new(RemoveList),
         EDIT_ALIGN_CENTER => Box::new(AlignCenter),
         EDIT_COPY => Box::new(CopyText),
         EDIT_PASTE => Box::new(PasteText),
@@ -770,6 +776,15 @@ impl Render for JoyWord {
             )
             .on_action(
                 cx.listener(|this, _: &ApplyStyle, window, cx| this.run(STYLE_APPLY, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &ApplyList, window, cx| this.run(LIST_APPLY, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &SetListLevel, window, cx| this.run(LIST_LEVEL, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &RemoveList, window, cx| this.run(LIST_REMOVE, window, cx)),
             )
             .on_action(
                 cx.listener(|this, _: &Italic, window, cx| this.run(EDIT_ITALIC, window, cx)),

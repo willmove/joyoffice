@@ -25,8 +25,9 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, Color, Document, FontRef, Indent, Justification, Measure, NodeId, ParaProps, Paragraph,
-    RunProps, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Underline,
+    Block, Color, Document, FontRef, Indent, Justification, Measure, NodeId, NumberingRef,
+    NumberingStore, ParaProps, Paragraph, RunProps, SourceRef, Spacing, StyleId, StyleKind,
+    StyleSheet, Underline,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -818,6 +819,7 @@ pub(super) fn direct_m1(paragraph: &Paragraph) -> bool {
     paragraph.style.is_none()
         && props.preserved.is_none()
         && props.numbering.is_none()
+        && props.tabs.is_none()
         && props.indent == Indent::default()
         && props.spacing == Spacing::default()
         && props.keep_next.is_none()
@@ -844,7 +846,7 @@ pub(super) fn style_assignment_ok(
 ) -> Result<(), &'static str> {
     let props = &paragraph.props;
     if props.preserved.is_some()
-        || props.numbering.is_some()
+        || props.tabs.is_some()
         || props.indent != Indent::default()
         || props.spacing != Spacing::default()
         || props.keep_next.is_some()
@@ -867,6 +869,24 @@ pub(super) fn style_assignment_ok(
         if let Some(id) = &run.style {
             require_style(sheet, id, StyleKind::Character)?;
         }
+    }
+    Ok(())
+}
+
+/// `w:numPr` may be patched only when the instance exists (or `numId` is 0)
+/// and the level is one ECMA-376 defines. The numbering part is not rewritten.
+pub(super) fn numbering_assignment_ok(
+    store: &NumberingStore,
+    paragraph: &Paragraph,
+) -> Result<(), &'static str> {
+    let Some(numbering) = paragraph.props.numbering else {
+        return Ok(());
+    };
+    if numbering.level > joyword_model::MAX_LEVEL {
+        return Err("numbering level is outside 0..=8");
+    }
+    if numbering.num_id != 0 && store.instance(numbering.num_id).is_none() {
+        return Err("numbering instance is missing");
     }
     Ok(())
 }
@@ -915,7 +935,10 @@ pub(super) fn rewrite_styled_paragraph(
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
     let mut inner = String::new();
-    if paragraph.style.is_some() || paragraph.props.justification.is_some() {
+    if paragraph.style.is_some()
+        || paragraph.props.justification.is_some()
+        || paragraph.props.numbering.is_some()
+    {
         inner.push_str(&names.start("pPr"));
         inner.push('>');
         if let Some(style) = &paragraph.style {
@@ -927,6 +950,9 @@ pub(super) fn rewrite_styled_paragraph(
             inner.push_str(&names.start("jc"));
             inner.push_str(&qattr(names, "val", justification_value(justification)));
             inner.push_str("/>");
+        }
+        if let Some(numbering) = paragraph.props.numbering {
+            inner.push_str(&num_pr(names, numbering));
         }
         inner.push_str(&names.end("pPr"));
     }
@@ -955,6 +981,18 @@ pub(super) fn rewrite_styled_paragraph(
         });
     }
     Ok(out)
+}
+
+fn num_pr(names: &Names, numbering: NumberingRef) -> String {
+    format!(
+        "{}>{}{}/>{}{}/>{}",
+        names.start("numPr"),
+        names.start("ilvl"),
+        qattr(names, "val", &numbering.level.to_string()),
+        names.start("numId"),
+        qattr(names, "val", &numbering.num_id.to_string()),
+        names.end("numPr")
+    )
 }
 
 fn styled_rpr(

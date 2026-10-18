@@ -113,3 +113,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 - STYLE-002；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.7.2（样式层级：文档默认、`basedOn`、直接格式）、§17.7.3（toggle：未设置继承、显式关闭、显式打开翻转）、§17.7.4.6（`w:link` 配对段落样式与字符样式，解析时不作为第二层属性），以及 §14.2.7、§20.1.4（DrawingML `a:fontScheme`／`a:clrScheme`）。只读公开规范条款，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的样式实现。
 - 独立实现把 latin／ea／cs 映射到 ascii+hAnsi、eastAsia、bidi，并把已知的 `w:themeColor` 长名解析为方案中的 sRGB。themeTint／themeShade、表格条件格式和编号样式不在本切片解析。没有新增外部 crate。
+
+### 多级编号与制表位（T200 编号切片）
+
+- STYLE-003；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.9（`abstractNum`、`num`、`lvl`、`lvlOverride`、`startOverride`、`lvlRestart`、`lvlText`、`suff`）、§17.18.59（`ST_NumberFormat`）、§17.3.1.37–38（`tabs`／`tab`）与 §17.15.1.25（`defaultTabStop`）。`ST_NumberFormat` 的公开枚举名对照 [docx4j 转载的 ECMA-376 条款页](https://webapp.docx4java.org/OnlineDemo/ecma376/WordML/ST_NumberFormat.html)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的编号实现。
+- 中文计数与简体大写按条款示例的位值写法独立实现（十百千万；零；10–19 写作十／拾而不是一十）。`chineseLegalSimplified` 用零壹贰叁肆伍陆柒捌玖与拾佰仟万。规范没有规定上限；超过 99999 记为不能绘制，不猜测。甲乙丙丁戊己庚辛壬癸只用于 1..=10。字母只用于 1..=26，罗马数字只用于 1..=3999。MS-OI29500 记载 Word 对零和“万”使用不同码位；本切片不照搬该偏差。
+- 不支持的 `numFmt` 保留原 token 并给出诊断，不用 `lvlText` 里的静态符号代替。`numbering.xml` 不从模型回写。没有新增外部 crate。

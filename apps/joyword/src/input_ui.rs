@@ -92,6 +92,9 @@ pub(crate) trait DocEditor {
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError>;
     fn list_styles(&self) -> Vec<String>;
     fn apply_style(&mut self, style: &str) -> Result<bool, InputError>;
+    fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError>;
+    fn set_list_level(&mut self, level: u8) -> Result<bool, InputError>;
+    fn remove_list(&mut self) -> Result<bool, InputError>;
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
@@ -188,6 +191,15 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn apply_style(&mut self, style: &str) -> Result<bool, InputError> {
         TextInput::apply_style(self, style)
+    }
+    fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
+        TextInput::apply_list(self, num_id)
+    }
+    fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
+        TextInput::set_list_level(self, level)
+    }
+    fn remove_list(&mut self) -> Result<bool, InputError> {
+        TextInput::remove_list(self)
     }
     fn format_paragraph(
         &mut self,
@@ -299,6 +311,15 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn apply_style(&mut self, style: &str) -> Result<bool, InputError> {
         TextInput::apply_style(self, style)
+    }
+    fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
+        TextInput::apply_list(self, num_id)
+    }
+    fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
+        TextInput::set_list_level(self, level)
+    }
+    fn remove_list(&mut self) -> Result<bool, InputError> {
+        TextInput::remove_list(self)
     }
     fn format_paragraph(
         &mut self,
@@ -413,6 +434,15 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn apply_style(&mut self, style: &str) -> Result<bool, InputError> {
         TextInput::apply_style(self, style)
+    }
+    fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
+        TextInput::apply_list(self, num_id)
+    }
+    fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
+        TextInput::set_list_level(self, level)
+    }
+    fn remove_list(&mut self) -> Result<bool, InputError> {
+        TextInput::remove_list(self)
     }
     fn format_paragraph(
         &mut self,
@@ -1463,14 +1493,21 @@ impl JoyWord {
                 Availability::Disabled("file.save_copy.unavailable")
             };
         }
-        if matches!(id, STYLE_LIST | STYLE_APPLY) {
-            if self.open_gate.is_some() && id == STYLE_APPLY {
+        if matches!(
+            id,
+            STYLE_LIST | STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE
+        ) {
+            if self.open_gate.is_some()
+                && matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE)
+            {
                 return Availability::Disabled("input.read_only");
             }
             let Some(editor) = &self.editor else {
                 return Availability::Disabled("input.loading");
             };
-            if id == STYLE_APPLY && editor.read_only() {
+            if matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE)
+                && editor.read_only()
+            {
                 return Availability::Disabled("input.read_only");
             }
             return Availability::Enabled;
@@ -1614,6 +1651,29 @@ impl JoyWord {
                 let style = style.clone();
                 self.apply_input(cx, |editor| editor.apply_style(&style).map(|_| ()))
             }
+            LIST_APPLY => {
+                let Some(joyword_shell::command::ArgValue::Text(num)) = args.get("num") else {
+                    self.input_error = Some("num".into());
+                    return Err("num".into());
+                };
+                let Ok(num_id) = num.parse::<u32>() else {
+                    self.input_error = Some("num".into());
+                    return Err("num".into());
+                };
+                self.apply_input(cx, |editor| editor.apply_list(num_id).map(|_| ()))
+            }
+            LIST_LEVEL => {
+                let Some(joyword_shell::command::ArgValue::Text(level)) = args.get("level") else {
+                    self.input_error = Some("level".into());
+                    return Err("level".into());
+                };
+                let Ok(level) = level.parse::<u8>() else {
+                    self.input_error = Some("level".into());
+                    return Err("level".into());
+                };
+                self.apply_input(cx, |editor| editor.set_list_level(level).map(|_| ()))
+            }
+            LIST_REMOVE => self.apply_input(cx, |editor| editor.remove_list().map(|_| ())),
             EDIT_ITALIC => self.apply_input(cx, |editor| {
                 editor
                     .format_runs(joyword_engine::RunChange::Italic(Some(true)))

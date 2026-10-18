@@ -7,8 +7,9 @@ use joyword_layout::{
     LayoutSnapshot, LoadedFont, SingleFontProfile, StaleReason, layout_document, shape, wrap_mixed,
 };
 use joyword_model::{
-    Bias, Block, BlockSeq, Document, DumpOptions, FontRef, Justification, Measure, PageSetup,
-    Paragraph, Position, ScalarOffset, Style, StyleId, StyleKind,
+    AbstractNum, Bias, Block, BlockSeq, Document, DumpOptions, FontRef, Indent, Justification,
+    Measure, NumInstance, NumberFormat, NumberSuffix, NumberingLevel, NumberingRef, PageSetup,
+    Paragraph, Position, ScalarOffset, Style, StyleId, StyleKind, TabAlign, TabLeader, TabStop,
 };
 
 fn pt(value: i64) -> Emu {
@@ -897,4 +898,95 @@ fn resolved_styles_set_size_weight_and_requested_families() {
     assert!(!body.bold);
     assert_eq!(body.size, Emu::new(Emu::PER_POINT * 21 / 2));
     assert_eq!(body.east_asia_family.as_deref(), Some("宋体"));
+}
+
+fn install_list(document: &mut Document, format: NumberFormat, text: &str, start: i32) {
+    let mut level = NumberingLevel::new(format, text);
+    level.start = start;
+    level.suffix = NumberSuffix::Nothing;
+    level.para.indent = Indent {
+        start: Some(Measure::Twips(1440)),
+        hanging: Some(Measure::Twips(720)),
+        ..Indent::default()
+    };
+    let mut abstract_num = AbstractNum::new(1);
+    abstract_num.levels[0] = Some(level);
+    document.numbering_mut().insert_abstract(abstract_num);
+    document.numbering_mut().insert_instance(NumInstance {
+        id: 1,
+        abstract_id: 1,
+        overrides: Vec::new(),
+    });
+}
+
+fn mark_paragraph(document: &mut Document, index: usize) {
+    change_paragraph(document, index, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.numbering = Some(NumberingRef {
+            num_id: 1,
+            level: 0,
+        });
+        paragraph.props = Arc::new(props);
+    });
+}
+
+#[test]
+fn chinese_numbering_labels_are_prefixed_and_unsupported_formats_are_diagnosed() {
+    let mut document = make_document(&["正文"], 4);
+    install_list(&mut document, NumberFormat::ChineseCounting, "%1", 10);
+    mark_paragraph(&mut document, 0);
+    let laid = layout(&document);
+    let text = &laid.pages()[0].runs[0].text;
+    assert!(text.starts_with('十'), "{text}");
+    assert!(text.contains('正'), "{text}");
+    assert!(!text.contains('•'));
+
+    let mut document = make_document(&["正文"], 4);
+    install_list(&mut document, NumberFormat::parse("bullet"), "%1", 1);
+    mark_paragraph(&mut document, 0);
+    let laid = layout(&document);
+    let diagnostic = laid
+        .diagnostics()
+        .iter()
+        .find(|item| {
+            matches!(
+                item.diagnostic,
+                joyword_layout::LineDiagnostic::Numbering { .. }
+            )
+        })
+        .expect("unsupported numbering diagnostic");
+    let joyword_layout::LineDiagnostic::Numbering { detail } = &diagnostic.diagnostic else {
+        unreachable!("filtered");
+    };
+    assert!(detail.contains("unsupported"), "{detail}");
+    assert!(detail.contains("bullet"), "{detail}");
+    let text = &laid.pages()[0].runs[0].text;
+    assert_eq!(text, "正文");
+}
+
+#[test]
+fn a_left_tab_places_the_following_glyph_at_the_stop() {
+    let mut document = make_document(&["A\tB"], 4);
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.tabs = Some(vec![TabStop {
+            position: Measure::Twips(2880),
+            align: TabAlign::Left,
+            leader: TabLeader::None,
+        }]);
+        paragraph.props = Arc::new(props);
+    });
+    let laid = layout(&document);
+    let run = &laid.pages()[0].runs[0];
+    assert!(
+        run.text.contains('A') && run.text.contains('B'),
+        "{}",
+        run.text
+    );
+    let b = run
+        .glyphs
+        .iter()
+        .find(|glyph| glyph.cluster < run.text.len() && run.text[glyph.cluster..].starts_with('B'))
+        .expect("B glyph");
+    assert_eq!(b.x, Emu::new(2880 * Emu::PER_TWIP));
 }

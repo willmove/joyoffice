@@ -4,9 +4,9 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础切片已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号与制表位切片已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的样式面板／多级编号／制表位／查找替换／格式刷、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的表格／图片／审阅／AI 等路线图工作。
+- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的样式面板／查找替换／格式刷／主题 tint／shade／按字体名换面／表格样式／边框底纹／超出本切片的编号格式与前导符／编号部件改写、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 
@@ -38,7 +38,7 @@
 | --- | --- | --- |
 | 结构共享 | 持久化 B 树 SeqTree（扇出 16，路径复制、缓存摘要、按维度定位）；Document 各字段共享，快照 O(1) | 文档级块索引（随增量排版 LAYOUT-010 加入；当前按 ID 线性查找） |
 | 文本 | 段落文本按 ≤1 KiB UTF-8 块存储；UTF-8／标量／UTF-16 偏移互转并拒绝字符内与代理对内位置；不做 Unicode 规范化 | 输入层已采用 Unicode 17.0 默认扩展字素边界（C07）；布局层仍按实际整形簇限制几何 |
-| 结构 | story（正文、页眉页脚、脚注尾注、批注、文本框）；段落、表格（网格、gridBefore／After、横向与纵向合并）、块级 SDT、不透明块；行内对象以 U+FDD0 占原子位置并经类型化片段读取 | 编号定义（T200）、修订对象（T300）、批注线程（T302），属后续任务的产物 |
+| 结构 | story（正文、页眉页脚、脚注尾注、批注、文本框）；段落、表格（网格、gridBefore／After、横向与纵向合并）、块级 SDT、不透明块；行内对象以 U+FDD0 占原子位置并经类型化片段读取；编号定义（abstractNum、num、lvl、lvlOverride／startOverride）与段落／样式制表位 | 修订对象（T300）、批注线程（T302）；`numStyleLink`／`styleLink` 只保存不跟随 |
 | 属性 | 原始单位 Measure（twip、半磅、八分之一磅、EMU、百分之一字符／行、pct、auto）；toggle 区分未设置与显式关闭；四槽字体、hint、主题字体与语言；样式层级按文档默认、`basedOn`（根到叶）再直接格式合并，字符 toggle 显式关闭或翻转，段落开关取最近指定值 | 主题色 tint／shade、非自动颜色绘制、按字体名加载面 |
 | 样式 | 按规范名称识别内置样式（中文 Word 的 `a`／`1`、WPS 数字 ID）；basedOn 链有环、缺失、深度与类型诊断及有界回退；段落／字符样式解析（`w:link` 只配对应用，不叠第二层属性）；主题 fontScheme／clrScheme 的具体字体名与 sRGB | 表格样式与编号样式只保存不解析；表格条件格式与潜在样式；样式部件本身的导出改写 |
 | 标注与资源 | 书签、批注锚点、跨段复杂域（含 separate）、权限、行内 SDT 共用 Position（story、段落、标量偏移、偏向）；失锚状态可见；资源按 SHA-256 与来源区分，不自动去重 | — |
@@ -49,7 +49,7 @@
 | 部分 | 已实现 |
 | --- | --- |
 | 事务 | Session 持有工作文档；Transaction 携带基准版本、来源（用户／Agent／系统）、前置条件、命令与事务前选区；在 O(1) 候选副本上执行，任一失败即丢弃，文档、版本与撤销栈不变；空操作返回 NoOp 且不增版本 |
-| 命令 | 插入文字（拒绝换行、段落分隔与控制字符）、插入行内对象（图片须有资源）、同容器删除（跨段合并、中间块整体删除）、拆分段落、字符格式、段落格式、应用段落／字符样式（一次可撤销事务）、同容器移动块、移除块（容器至少保留一个块） |
+| 命令 | 插入文字（拒绝换行、段落分隔与控制字符）、插入行内对象（图片须有资源）、同容器删除（跨段合并、中间块整体删除）、拆分段落、字符格式、段落格式、应用段落／字符样式（一次可撤销事务）、设置或取消编号、改变编号级别并保留各段 numId、同容器移动块、移除块（容器至少保留一个块） |
 | 权限入口 | 只读策略、Agent 写入开关（默认关闭）、内容锁定 SDT 拒绝编辑、删除锁定 SDT 拒绝、跨 story／单元格／SDT 范围拒绝；前置条件校验目标文字未变 |
 | 位置映射 | 插入、段内删除、跨段删除、拆分、移除五种步骤；结果为保持、收缩到删除边界或丢失；组合即顺序拼接；书签、域（含 separate）、权限和批注锚点在事务内映射，批注锚点被整体删除时转为失锚 |
 | ChangeSet | 受影响的 story、段落、新增、删除、移动节点与标注，供排版失效使用；提交前检查受影响段落的不变量 |
@@ -425,7 +425,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 
 屏幕和 PDF 仍读同一页面场景。`layout_document` 仍是从零排版的参照；增量入口 `layout_incremental` 复用同一套段落拟合和分页。应用画布的后台布局（`main.rs` 与输入测试的 layout 阶段）走增量入口，并带上自上次安装布局以来的 engine `ChangeSet`。
 
-- **缓存键**：段落正文指纹、解析后的段落／字符样式链与文档默认、版心宽度、实际整形的 FontKey（混合脚本时带上四槽与回退面）、字号和显式特性。profile 行距只在行框来自 profile 时入键；单倍行距（auto 240）不把行距当键。页码、脚注编号、绕排区只在段落里的字段指令含 PAGE／NUMPAGES 或 FOOTNOTE／NOTEREF 时入键。当前预检仍拒绝批注，成功排版的文档没有这些依赖；键把依赖留在字段被接受之后。节点 id 不入键，命中后改写成当前段落。
+- **缓存键**：段落正文指纹、解析后的段落／字符样式链与文档默认、版心宽度、实际整形的 FontKey（混合脚本时带上四槽与回退面）、字号和显式特性。profile 行距只在行框来自 profile 时入键；单倍行距（auto 240）不把行距当键。编号标签（或无法绘制的诊断）和默认制表位间隔进入解析样式哈希，因此前面列表项的计数变化会使后面的项键失效。页码、脚注编号、绕排区只在段落里的字段指令含 PAGE／NUMPAGES 或 FOOTNOTE／NOTEREF 时入键。当前预检仍拒绝批注，成功排版的文档没有这些依赖；键把依赖留在字段被接受之后。节点 id 不入键，命中后改写成当前段落。
 - **失效**：直接改动的段落、插入、删除和移动来自 ChangeSet。样式 id 按 basedOn 与 link 闭包扩到使用这些样式的段落，以及在默认样式受影响时未指定样式的段落。`defaults_changed` 使每一段失效。闭包失效不调用 `clear()`。组高不入库，分页前按当前邻段重算。
 - **停止与不收敛**：先用缓存拟合每一段，再从文首放置。某一段及其后的键与上一快照相同，且页码、段前纵坐标和行下标都对齐时，拷贝上一快照的页尾。对不齐就继续放置。页码／脚注／绕排反馈最多 8 遍；状态重复或用尽遍数返回 `LayoutError::Unstable`（显示“布局未稳定”），不把该遍页面当作快照，也不更新流量记录。
 - **内存**：段落缓存默认 32 MiB。单条大于预算的拟合不入库。超出预算时按最近使用淘汰。整形器数据另有进程内上限 8 个 FontKey。
@@ -446,4 +446,18 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **语料**：DOCX-MIN-002 无主题部件。文档默认 ascii／hAnsi／cs 为 Times New Roman，eastAsia 为宋体，字号 21 半磅。标题 1（styleId `1`，basedOn `a`）为粗体 32 半磅。`min_002_recognises_builtin_styles_by_name_and_keeps_mode_15` 断言解析结果；Word 2024 参考里的 SimSun 与 TimesNewRomanPSMT 是版式测量，本切片不把调用者 face 换成这些字体。内存中的等价文档由 `resolved_styles_set_size_weight_and_requested_families` 排成 16 pt 粗体与 10.5 pt 正文，并记下请求的字体名。
 - **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt --all`；`cargo clippy --locked -p joyword-model -p joyword-docx -p joyword-engine -p joyword-layout -p joyword-pdf -p joyword-render -p joyword-shell -p joyword --all-targets -- -D warnings`；上述包的 `cargo test --locked`。model、docx、engine、layout、pdf、render 与 `joyword` 库测试通过。`joyword-shell` 的集成测试通过；库测试里 `identity_change_between_stat_and_open_is_not_a_baseline`，以及 `w07_save_original_rejection::save_original_reruns_the_full_conflict_verification_itself`、`w07_source_conflicts` 的同长度重建与硬链接别名两项，在本机文件系统上仍失败。这四项与 T211 记录相同，相关源文件未改。`python3 scripts/check_docs.py` 通过（84 个需求、66 个任务、18 条行为登记）。`python3 scripts/check_gates.py` 通过（124 个 Rust 文件）。
 - **未覆盖**：样式面板与预览、多级编号、制表位、边框底纹、查找替换、格式刷与自动更正、主题 tint／shade、按字体名加载面、表格样式解析、非自动颜色绘制、PDF 斜体、样式部件改写，以及人工制作多级标题的验收。没有新增依赖。没有启动图形界面。W09 harness 重锚到 `3787156203787884c81a5f36786d204e5a1785d9`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+
+### T200 编号与制表位（2026-10-18）
+
+这一刀在样式基础之上做多级编号和制表位。样式基础切片里对编号和缩进的整段拒绝，由本切片的列表路径取代；居中、右对齐和两端对齐与列表、缩进或自定义制表位仍拒绝。T200 保持 `in_progress`。语料和 Word 2024 参考里没有 `abstractNum` 样例，测试用合成包和内存文档。
+
+- **定义**：导入 `numbering.xml` 的 `abstractNum`、`num`、`lvl`、`lvlOverride` 和 `startOverride`。`numStyleLink` 与 `styleLink` 存下来但不跟随，标签记为未解析。`nsid`、`multiLevelType`、`lvlJc`、`rPr`、`legacy`、`isLgl` 以及级别段落属性里除缩进和制表位以外的内容标记为未建模，部件字节保留。重复 id 同样标记未建模。
+- **计数**：每个 `numId` 单独计数。见到级别 H 时，只重置那些 `lvlRestart` 指向 H 的更深级别：省略表示上一级被使用时重启，`0` 表示永不重启，`n` 表示级别 `n-1` 被使用时重启。第一次显示值是 `start`（或 `startOverride`），不是加一之后。`%n` 引用尚未使用的更高级别时显示该级的 start，不消耗它。`numId` 0 取消样式上的列表，不产生标签。
+- **标签文字**：decimal、lowerLetter、upperLetter、lowerRoman、upperRoman、chineseCounting、ideographTraditional、chineseLegalSimplified 和 `none` 按上面的范围绘制。`%%` 是百分号，`%1` 到 `%9` 替换对应级别。字母超过 26、罗马数字超过 3999、中文计数或简体大写超过 99999、甲乙超过 10，以及 0，记为不能绘制。bullet 和其他未列出的 `ST_NumberFormat` 记为不支持，计数仍前进，不用 `lvlText` 里的静态符号当标签。
+- **制表位**：段落、样式和编号级别按文档默认、`basedOn`、级别，然后直接段落属性叠加。`clear` 去掉同一位置的继承制表位。对齐为 left、center、right、decimal；`num` 按 left 放置。前导符 none、dot、hyphen、underscore 用重复字形填充。bar、middleDot、heavy 和相对位置使排版失败。默认间隔是 `w:defaultTabStop`，缺省 720 twip；自定义制表位抑制其右侧以左的默认位，默认位从右侧下一个间隔倍数继续。下一个制表位是严格大于当前笔位置的第一位。
+- **排版**：只有非空标签、非 tab 后缀、非零缩进、自定义制表位或正文里的制表符才走列表路径，其余仍用原来的行拟合。标签字形放在左缩进减悬挂处，正文从后缀落到的位置开始；续行用左缩进。每行仍是一个 `GlyphRun`，标签前缀在文本里，正文簇保持段落源偏移。不支持的格式成为 `LineDiagnostic::Numbering`，正文照排，没有猜测标签。级别上的 `rPr` 不另绘。屏幕和 PDF 共用这一页场景。
+- **缓存**：标签文本、后缀和默认制表位间隔哈希进 `resolved_style`，没有新增键字段。`list_marks` 在排版前按文档顺序算好。计数变化使后续项的键失效，因此不会把旧标签从缓存抄走。`a_list_counter_change_refits_later_items_and_reuses_an_unrelated_paragraph` 把增量结果与全量比较，并要求无关段落命中缓存。
+- **编辑与命令**：`SetNumbering` 把选区碰到的每段写成同一个 `numId` 和级别；`None` 与 `numId` 0 都写成 `numId` 0。`SetNumberingLevel` 只改 `ilvl`，每段保留自己的 `numId`（直接值，否则样式，否则缺省段落样式）；没有列表的段是 `NoNumbering`。未知实例和超过 8 的级别拒绝。一次撤销恢复改前的 `numPr`。行为登记 `LIST-APPLY-UNDO`、`LIST-LEVEL-UNDO`、`LIST-REMOVE-UNDO`，来源是假设，没有 Word 观察。外壳 `list.apply` 必填 `num`，级别 0，挂在编辑菜单；`list.level` 必填 `level`，不进菜单；`list.remove` 无参数，挂在编辑菜单。无文档、打开中和只读时与 `style.apply` 一样禁用。`list_apply_level_and_remove_go_through_the_command_registry` 经 `Office::invoke` 应用、改级、撤销和取消。
+- **导出**：`check_envelope` 比较编号存储。存储变化（包括只改定义、不改段落）拒绝，因此不会悄悄用旧的 `numbering.xml` 冒充新定义，也不会重写该部件。段落 `numPr` 变化时，两侧都要通过样式指定子集和编号实例检查，然后重写 `w:pPr` 里的 `w:ilvl` 与 `w:numId`。带制表位、缩进或其他子集外属性的段落拒绝，避免重写丢掉这些 XML。默认制表位属于设置，改变它会因设置不等而拒绝。拆段仍复制源 `numPr` 字节，`mapped_indent_fonts_language_numbering_and_explicit_off_round_trip` 继续通过。
+- **未覆盖**：样式面板、查找替换、格式刷、主题 tint／shade、按字体名加载面、表格样式解析、边框底纹、级别字符格式、字母超过 26、甲乙超过 10、bar／middleDot／heavy、居中／右对齐／两端对齐与列表或制表位同用、编号部件改写、非自动颜色、PDF 斜体，以及人工制作多级列表的验收。没有新增依赖。没有启动图形界面。
 

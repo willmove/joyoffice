@@ -34,8 +34,10 @@
 //! private origin ([`ExportPlan::origin_bytes`]). That binding is those
 //! bytes, not a document version and not a caller-supplied substitute. No
 //! file-system save is done.
-//! Tables, content controls, headers/footers, notes, comments, numbering
-//! definitions, bookmarks/fields as annotations and images remain unmapped.
+//! Numbering definitions (`abstractNum`, `num`, level overrides) and
+//! paragraph or style tab stops are mapped. `numbering.xml` is never
+//! rewritten. Tables, content controls, headers/footers, notes, comments,
+//! bookmarks/fields as annotations and images remain unmapped.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
 //! §17.3, §17.6, §17.7, §17.13.5, §17.15; Part 2 (OPC); Part 3 (Markup
@@ -48,6 +50,7 @@ mod body;
 mod export;
 mod import;
 mod ns;
+mod numbering;
 mod props;
 mod result;
 mod xml;
@@ -57,7 +60,8 @@ pub use binding::ExportBinding;
 pub use export::{ExportError, ExportMode, ExportPlan, ExportTarget, ExportWarning, plan_export};
 pub use import::import;
 pub use ns::{
-    MC, R, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, W, W_STRICT,
+    MC, R, REL_NUMBERING, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
+    REL_STYLES, W, W_STRICT,
 };
 pub use result::{
     Diagnostic, DiagnosticKind, Diagnostics, Editability, ImportError, ImportResult,

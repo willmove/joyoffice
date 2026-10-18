@@ -6,15 +6,15 @@ use std::sync::Arc;
 
 use joyoffice_opc::{Budget, ExternalKind, Package, Part, PartName, Target};
 use joyword_model::{
-    Document, DocumentSettings, PageSetup, Severity as ModelSeverity, SourceRef, Style, StyleKind,
-    ThemeColorSlot, ThemeScheme,
+    Document, DocumentSettings, Measure, PageSetup, Severity as ModelSeverity, SourceRef, Style,
+    StyleKind, ThemeColorSlot, ThemeScheme,
 };
 
 use crate::backing::{Fragment, PackageBacking, PreservedReason};
 use crate::ns::{
-    self, A, MAIN_CONTENT_TYPES, MC, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
-    REL_STYLES, REL_THEME, REL_VBA_PROJECT, STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT,
-    WORD_COMPAT_URI,
+    self, A, MAIN_CONTENT_TYPES, MC, REL_NUMBERING, REL_OFFICE_DOCUMENT,
+    REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, REL_THEME, REL_VBA_PROJECT,
+    STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
 };
 use crate::props::{self, Findings, on_off, val};
 use crate::result::{
@@ -307,6 +307,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
 
     let mut styles = None;
     let mut settings = None;
+    let mut numbering = None;
     for relationship in package.relationships(Some(&main.name)) {
         let Target::Internal(target) = &relationship.target else {
             continue;
@@ -330,6 +331,8 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
             importer.theme(part);
         } else if kind == REL_SETTINGS && settings.is_none() {
             settings = Some(part.clone());
+        } else if kind == REL_NUMBERING && numbering.is_none() {
+            numbering = Some(part.clone());
         } else if kind == REL_VBA_PROJECT {
             importer.diagnose(
                 Severity::Warning,
@@ -360,6 +363,9 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
     }
     if let Some(part) = &settings {
         importer.settings(part)?;
+    }
+    if let Some(part) = &numbering {
+        importer.numbering(part)?;
     }
     importer.main_document(&main)?;
     importer.finish_summaries();
@@ -697,6 +703,22 @@ impl Importer<'_> {
                     }
                 }
                 "evenAndOddHeaders" => settings.even_and_odd_headers = on_off(val(child)),
+                "defaultTabStop" => {
+                    let value = val(child).unwrap_or_default();
+                    match value.parse::<i64>() {
+                        Ok(twips) => settings.default_tab_stop = Some(Measure::Twips(twips)),
+                        Err(_) => self.diagnose(
+                            Severity::Warning,
+                            Some(name),
+                            Some(child.span.clone()),
+                            DiagnosticKind::InvalidValue {
+                                element: child.qname.to_string(),
+                                attribute: "w:val".into(),
+                                value: value.to_owned(),
+                            },
+                        ),
+                    }
+                }
                 "documentProtection" => {
                     // ECMA-376 treats an omitted w:enforcement as off, but
                     // Word enforces it ([MS-OI29500] note on §17.15.1.29); the stricter
@@ -725,6 +747,22 @@ impl Importer<'_> {
         settings.preserved =
             Some(self.preserve(name, &root, &Scope::default(), PreservedReason::Properties));
         *self.document.settings_mut() = settings;
+        Ok(())
+    }
+
+    /// Numbering part (ECMA-376 Part 1 §17.9). The part is interpreted into
+    /// the numbering store and its bytes are kept. Export does not rewrite it.
+    fn numbering(&mut self, part: &Part) -> Result<(), ImportError> {
+        let (root, _) = self.root(part, "numbering")?;
+        let store = crate::numbering::read(&root);
+        if store.unmodeled
+            || store.abstracts().iter().any(|item| {
+                item.unmodeled || item.levels.iter().flatten().any(|level| level.unmodeled)
+            })
+        {
+            self.hint(&part.name, "numbering");
+        }
+        *self.document.numbering_mut() = store;
         Ok(())
     }
 

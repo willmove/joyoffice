@@ -115,8 +115,8 @@ impl PackageBacking {
         &self.main_part
     }
 
-    /// Parts mapped into the model (main document, styles, settings). All
-    /// other parts are kept verbatim and not interpreted.
+    /// Parts mapped into the model (main document, styles, settings,
+    /// numbering). All other parts are kept verbatim and not interpreted.
     pub fn interpreted_parts(&self) -> &[PartName] {
         &self.interpreted
     }

@@ -14,7 +14,8 @@ use std::sync::Arc;
 
 use joyword_model::{
     Color, FontHint, FontRef, Indent, Justification, LineSpacing, Measure, NumberingRef, ParaProps,
-    RunProps, Spacing, StyleId, ThemeColorSlot, ThemeFont, Toggle, Underline,
+    RunProps, Spacing, StyleId, TabAlign, TabLeader, TabStop, ThemeColorSlot, ThemeFont, Toggle,
+    Underline,
 };
 
 use crate::ns::W;
@@ -255,6 +256,55 @@ fn numbering(element: &Element, findings: &mut Findings) -> Option<NumberingRef>
     }
 }
 
+fn tabs(element: &Element, findings: &mut Findings) -> Vec<TabStop> {
+    let mut stops = Vec::new();
+    for child in element.elements() {
+        if !child.is(W, "tab") {
+            findings.complete = false;
+            continue;
+        }
+        let Some(position) = integer(child, "pos", findings) else {
+            findings.complete = false;
+            continue;
+        };
+        let Some(value) = child.attribute(Some(W), "val") else {
+            findings.complete = false;
+            continue;
+        };
+        let align = match value {
+            "left" => TabAlign::Left,
+            "center" => TabAlign::Center,
+            "right" => TabAlign::Right,
+            "decimal" => TabAlign::Decimal,
+            "bar" => TabAlign::Bar,
+            "num" => TabAlign::Num,
+            "clear" => TabAlign::Clear,
+            other => {
+                findings.invalid(child, "w:val", other);
+                continue;
+            }
+        };
+        let leader = match child.attribute(Some(W), "leader").unwrap_or("none") {
+            "none" => TabLeader::None,
+            "dot" => TabLeader::Dot,
+            "hyphen" => TabLeader::Hyphen,
+            "underscore" => TabLeader::Underscore,
+            "middleDot" => TabLeader::MiddleDot,
+            "heavy" => TabLeader::Heavy,
+            other => {
+                findings.invalid(child, "w:leader", other);
+                continue;
+            }
+        };
+        stops.push(TabStop {
+            position: Measure::Twips(position),
+            align,
+            leader,
+        });
+    }
+    stops
+}
+
 /// Mapped paragraph properties and the children the caller handles.
 pub(crate) struct Para<'e> {
     pub props: ParaProps,
@@ -297,6 +347,7 @@ pub(crate) fn para<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e
                 }
             }
             "numPr" => props.numbering = numbering(child, findings),
+            "tabs" => props.tabs = Some(tabs(child, findings)),
             "rPr" => out.mark = Some(child),
             "sectPr" => out.section = Some(child),
             _ => findings.complete = false,

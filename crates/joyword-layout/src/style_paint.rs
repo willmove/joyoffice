@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    Color, Document, FontRef, Indent, Justification, LineSpacing, Measure, NodeId, Paragraph,
-    RunProps, StyleProblem, Underline,
+    Color, Document, FontRef, Justification, LineSpacing, Measure, NodeId, Paragraph, RunProps,
+    StyleProblem, TabAlign, TabLeader, Underline, displayed_paragraph, indent_edges,
 };
 
 use crate::{LayoutError, SingleFontProfile};
@@ -44,7 +44,8 @@ pub(crate) fn flow(document: &Document, paragraph: &Paragraph) -> Result<Flow, L
         .styles()
         .resolve_paragraph(paragraph.style.as_ref(), &paragraph.props);
     reject_problems(node, &resolved.problems)?;
-    accept_paragraph(node, &resolved.props)
+    let props = displayed_paragraph(document, paragraph);
+    accept_paragraph(node, &props)
 }
 
 pub(crate) fn paint(
@@ -57,7 +58,8 @@ pub(crate) fn paint(
         .styles()
         .resolve_paragraph(paragraph.style.as_ref(), &paragraph.props);
     reject_problems(node, &resolved_para.problems)?;
-    let flow = accept_paragraph(node, &resolved_para.props)?;
+    let props = displayed_paragraph(document, paragraph);
+    let flow = accept_paragraph(node, &props)?;
     let mark = document
         .styles()
         .resolve_run(paragraph.style.as_ref(), None, &paragraph.mark_props);
@@ -130,11 +132,37 @@ fn accept_paragraph(
     node: Option<NodeId>,
     props: &joyword_model::ParaProps,
 ) -> Result<Flow, LayoutError> {
-    if props.numbering.is_some() {
-        return Err(unsupported(node, "numbering"));
+    let Some(edges) = indent_edges(&props.indent) else {
+        return Err(unsupported(node, "relative paragraph indent"));
+    };
+    if let Some(stops) = &props.tabs {
+        for stop in stops {
+            if stop.position.absolute().is_none() {
+                return Err(unsupported(node, "relative tab stop"));
+            }
+            if stop.align == TabAlign::Bar {
+                return Err(unsupported(node, "bar tab"));
+            }
+            if matches!(stop.leader, TabLeader::MiddleDot | TabLeader::Heavy) {
+                return Err(unsupported(node, "tab leader"));
+            }
+        }
     }
-    if props.indent != Indent::default() {
-        return Err(unsupported(node, "paragraph indent"));
+    let listed = props.numbering.is_some_and(|item| item.num_id != 0);
+    let custom_tabs = props
+        .tabs
+        .as_ref()
+        .is_some_and(|stops| stops.iter().any(|stop| stop.align != TabAlign::Clear));
+    if (listed || edges.moves_text() || custom_tabs)
+        && matches!(
+            props.justification,
+            Some(Justification::Center | Justification::End | Justification::Both)
+        )
+    {
+        return Err(unsupported(
+            node,
+            "justification with indent, numbering or tabs",
+        ));
     }
     if props.preserved.is_some() {
         return Err(unsupported(node, "preserved paragraph properties"));

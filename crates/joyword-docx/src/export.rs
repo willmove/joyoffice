@@ -18,8 +18,8 @@ use std::sync::Arc;
 
 use joyoffice_opc::{Budget, Method, PartName, write_archive};
 use joyword_model::{
-    Block, Document, DocumentSnapshot, DocumentVersion, NodeId, Paragraph, RunProps, StyleId,
-    StyleSheet,
+    Block, Document, DocumentSnapshot, DocumentVersion, NodeId, NumberingStore, Paragraph,
+    RunProps, StyleId, StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
@@ -289,6 +289,7 @@ fn plan_export_after_import(
         let element = xml.paragraph(before)?;
         patch_paragraph(
             current.styles(),
+            current.numbering(),
             before,
             after,
             &[&root, body],
@@ -448,6 +449,7 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
         || before.body().kind != after.body().kind
         || !sections_equal
         || before.settings() != after.settings()
+        || before.numbering() != after.numbering()
         || before.styles().defaults != after.styles().defaults
         || before.styles().theme() != after.styles().theme()
         || !before.styles().iter().eq(after.styles().iter())
@@ -524,6 +526,7 @@ fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
 #[allow(clippy::too_many_arguments)]
 fn patch_paragraph(
     styles: &StyleSheet,
+    numbering: &NumberingStore,
     before: &Paragraph,
     after: &Paragraph,
     scope: &[&Element],
@@ -533,9 +536,12 @@ fn patch_paragraph(
     source: &structure::Source<'_>,
 ) -> Result<(), ExportError> {
     let error = |reason| unsupported(Some(before.id()), reason);
-    if style_assignment_differs(before, after) {
+    let numbering_changed = before.props.numbering != after.props.numbering;
+    if style_assignment_differs(before, after) || numbering_changed {
         structure::style_assignment_ok(styles, before).map_err(error)?;
         structure::style_assignment_ok(styles, after).map_err(error)?;
+        structure::numbering_assignment_ok(numbering, before).map_err(error)?;
+        structure::numbering_assignment_ok(numbering, after).map_err(error)?;
         if before.source != after.source
             || !before.inlines().is_empty()
             || !after.inlines().is_empty()

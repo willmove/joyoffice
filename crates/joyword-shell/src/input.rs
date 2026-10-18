@@ -7,7 +7,7 @@ use joyword_engine::{
     TxError, UndoError, UndoGroup, UndoResult,
 };
 use joyword_model::{
-    Bias, DocumentSnapshot, DocumentVersion, NodeId, Position, StyleId, Utf16Offset,
+    Bias, DocumentSnapshot, DocumentVersion, NodeId, NumberingRef, Position, StyleId, Utf16Offset,
 };
 use std::collections::BTreeMap;
 use std::fmt;
@@ -757,6 +757,59 @@ impl<B: InputBackend> TextInput<B> {
             }],
         );
         self.commit(transaction)
+    }
+
+    /// Puts every paragraph the selection touches into numbering instance
+    /// `num_id` at level 0.
+    pub fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (start, end) = self.selection_positions()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SetNumbering {
+                start,
+                end,
+                numbering: Some(NumberingRef { num_id, level: 0 }),
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Changes `ilvl` and keeps each paragraph's own `numId`.
+    pub fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (start, end) = self.selection_positions()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SetNumberingLevel { start, end, level }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Writes `numId` 0, which overrides a style's list.
+    pub fn remove_list(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (start, end) = self.selection_positions()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SetNumbering {
+                start,
+                end,
+                numbering: None,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    fn selection_positions(&self) -> Result<(Position, Position), InputError> {
+        let (range, _) = self.view.selected_range();
+        if range.is_empty() {
+            Ok((self.selection.head, self.selection.head))
+        } else {
+            let start = self.view.index.position(range.start, Bias::After)?;
+            let end = self.view.index.position(range.end, Bias::Before)?;
+            Ok((start, end))
+        }
     }
 
     /// Apply paragraph formatting to the paragraph that holds the caret.

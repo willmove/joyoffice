@@ -214,6 +214,16 @@ const STYLE_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Text,
     required: true,
 }];
+const LIST_NUM_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "num",
+    kind: ParamKind::Text,
+    required: true,
+}];
+const LIST_LEVEL_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "level",
+    kind: ParamKind::Text,
+    required: true,
+}];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Availability {
@@ -322,6 +332,9 @@ pub const EDIT_PASTE: CommandId = CommandId("edit.paste");
 pub const EDIT_INSERT: CommandId = CommandId("edit.insert");
 pub const STYLE_LIST: CommandId = CommandId("style.list");
 pub const STYLE_APPLY: CommandId = CommandId("style.apply");
+pub const LIST_APPLY: CommandId = CommandId("list.apply");
+pub const LIST_LEVEL: CommandId = CommandId("list.level");
+pub const LIST_REMOVE: CommandId = CommandId("list.remove");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
@@ -665,6 +678,36 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: STYLE_PARAM,
+            },
+            CommandSpec {
+                id: LIST_APPLY,
+                label: "command.list.apply",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: LIST_NUM_PARAM,
+            },
+            CommandSpec {
+                id: LIST_LEVEL,
+                label: "command.list.level",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: LIST_LEVEL_PARAM,
+            },
+            CommandSpec {
+                id: LIST_REMOVE,
+                label: "command.list.remove",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: FILE_OPEN_RECENT,

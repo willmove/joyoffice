@@ -11,7 +11,8 @@ use joyword_layout::{
     layout_document, layout_incremental,
 };
 use joyword_model::{
-    Bias, BlockSeq, Document, Justification, LineSpacing, Measure, PageSetup, Paragraph, Position,
+    AbstractNum, Bias, BlockSeq, Document, Justification, LineSpacing, Measure, NumInstance,
+    NumberFormat, NumberSuffix, NumberingLevel, NumberingRef, PageSetup, Paragraph, Position,
     ScalarOffset, Spacing, StoryId, Style, StyleId, StyleKind,
 };
 
@@ -493,4 +494,76 @@ fn a_style_definition_change_refits_dependents_and_reuses_the_rest() {
         incremental.pages()[0].runs[0].size,
         Emu::new(16 * Emu::PER_POINT)
     );
+}
+
+#[test]
+fn a_list_counter_change_refits_later_items_and_reuses_an_unrelated_paragraph() {
+    let font = font_named("Test");
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let mut level = NumberingLevel::new(NumberFormat::ChineseCounting, "%1");
+    level.start = 1;
+    level.suffix = NumberSuffix::Nothing;
+    let mut abstract_num = AbstractNum::new(1);
+    abstract_num.levels[0] = Some(level);
+    document.numbering_mut().insert_abstract(abstract_num);
+    document.numbering_mut().insert_instance(NumInstance {
+        id: 1,
+        abstract_id: 1,
+        overrides: Vec::new(),
+    });
+    let membership = NumberingRef {
+        num_id: 1,
+        level: 0,
+    };
+    let mut first = paragraph(&mut document, "甲");
+    first.props = Arc::new(joyword_model::ParaProps {
+        numbering: Some(membership),
+        ..joyword_model::ParaProps::default()
+    });
+    let mut second = paragraph(&mut document, "乙");
+    second.props = Arc::new(joyword_model::ParaProps {
+        numbering: Some(membership),
+        ..joyword_model::ParaProps::default()
+    });
+    let third = paragraph(&mut document, "丙");
+    let first_id = first.id();
+    install(&mut document, vec![first, second, third]);
+    let mut cache = ParagraphLayoutCache::default();
+    let warm = lay_incremental(
+        &document,
+        &font,
+        &mut cache,
+        None,
+        &LayoutInvalidation::default(),
+    )
+    .unwrap();
+    assert!(warm.pages()[0].runs[0].text.starts_with('一'));
+    assert!(warm.pages()[0].runs[1].text.starts_with('二'));
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks.update(0, |block| {
+        let joyword_model::Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        let paragraph = Arc::make_mut(paragraph);
+        let mut props = (*paragraph.props).clone();
+        props.numbering = Some(NumberingRef {
+            num_id: 0,
+            level: 0,
+        });
+        paragraph.props = Arc::new(props);
+    });
+    let mut invalidation = LayoutInvalidation::default();
+    invalidation.paragraphs.insert(first_id);
+    let incremental =
+        lay_incremental(&document, &font, &mut cache, Some(&warm), &invalidation).unwrap();
+    let full = lay_full(&document, &font).unwrap();
+    assert_same(&full, &incremental, "list counter");
+    assert!(
+        incremental.pages()[0].runs[1].text.starts_with('一'),
+        "{:?}",
+        incremental.pages()[0].runs[1].text
+    );
+    assert_eq!(incremental.pages()[0].runs[2].text, "丙");
+    assert!(incremental.stats().cache_hits >= 1);
+    assert!(incremental.stats().shape_calls > 0);
 }

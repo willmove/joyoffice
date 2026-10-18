@@ -928,3 +928,102 @@ fn a_theme_part_supplies_font_and_colour_schemes() {
         Some(&(0x2E, 0x75, 0xB6))
     );
 }
+
+#[test]
+fn numbering_and_tab_stops_import_and_export_keeps_the_numbering_part() {
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>"#;
+    let numbering = r#"<?xml version="1.0" encoding="UTF-8"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:start w:val="10"/><w:numFmt w:val="chineseCounting"/><w:lvlText w:val="%1"/><w:suff w:val="nothing"/></w:lvl></w:abstractNum><w:abstractNum w:abstractNumId="1"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>"#;
+    let settings = r#"<?xml version="1.0" encoding="UTF-8"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:defaultTabStop w:val="360"/></w:settings>"#;
+    let document = document_xml(
+        "",
+        r#"<w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr></w:pPr><w:r><w:t>甲</w:t></w:r></w:p><w:p><w:pPr><w:numPr><w:ilvl w:val="0"/><w:numId w:val="2"/></w:numPr></w:pPr><w:r><w:t>乙</w:t></w:r></w:p><w:p><w:pPr><w:tabs><w:tab w:val="left" w:leader="dot" w:pos="720"/></w:tabs></w:pPr><w:r><w:t>丙</w:t></w:r></w:p>"#,
+    );
+    let bytes = archive(&[
+        ("[Content_Types].xml", types),
+        ("_rels/.rels", PACKAGE_RELS),
+        ("word/document.xml", &document),
+        ("word/_rels/document.xml.rels", rels),
+        ("word/numbering.xml", numbering),
+        ("word/settings.xml", settings),
+    ]);
+    let result = open(&bytes);
+    assert_eq!(
+        result.document.settings().default_tab_stop,
+        Some(Measure::Twips(360))
+    );
+    let marks = joyword_model::list_marks(&result.document);
+    let paragraphs = paragraphs(&result);
+    let chinese = marks.get(&paragraphs[0].id()).unwrap().as_ref().unwrap();
+    assert_eq!(chinese.text, "十");
+    assert!(matches!(
+        marks.get(&paragraphs[1].id()).unwrap(),
+        Err(joyword_model::NumberingProblem::UnsupportedFormat { .. })
+    ));
+    let tabs = paragraphs[2].props.tabs.as_ref().unwrap();
+    assert_eq!(
+        tabs[0],
+        joyword_model::TabStop {
+            position: Measure::Twips(720),
+            align: joyword_model::TabAlign::Left,
+            leader: joyword_model::TabLeader::Dot,
+        }
+    );
+
+    let mut model = result.document.clone();
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        let paragraph = Arc::make_mut(paragraph);
+        let mut props = (*paragraph.props).clone();
+        props.numbering = Some(joyword_model::NumberingRef {
+            num_id: 0,
+            level: 0,
+        });
+        paragraph.props = Arc::new(props);
+    });
+    let plan = plan_export(&result.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(
+        package.part("/word/numbering.xml").unwrap().data,
+        result
+            .backing
+            .package()
+            .part("/word/numbering.xml")
+            .unwrap()
+            .data
+    );
+    let xml = String::from_utf8(package.part("/word/document.xml").unwrap().data.to_vec()).unwrap();
+    assert!(xml.contains(r#"<w:numId w:val="0"/>"#), "{xml}");
+
+    let mut model = result.document.clone();
+    model.numbering_mut().abstracts_mut()[0].levels[0]
+        .as_mut()
+        .unwrap()
+        .start = 3;
+    assert!(plan_export(&result.backing, &model.snapshot(), &Budget::default()).is_err());
+
+    let mut model = result.document.clone();
+    model.settings_mut().default_tab_stop = Some(Measure::Twips(720));
+    assert!(plan_export(&result.backing, &model.snapshot(), &Budget::default()).is_err());
+
+    let mut model = result.document.clone();
+    model.story_mut(body).unwrap().blocks.update(2, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        let paragraph = Arc::make_mut(paragraph);
+        let mut props = (*paragraph.props).clone();
+        props.numbering = Some(joyword_model::NumberingRef {
+            num_id: 1,
+            level: 0,
+        });
+        paragraph.props = Arc::new(props);
+    });
+    assert!(matches!(
+        plan_export(&result.backing, &model.snapshot(), &Budget::default()),
+        Err(ExportError::Unsupported { .. })
+    ));
+}

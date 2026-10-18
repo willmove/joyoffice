@@ -12,6 +12,7 @@ mod block;
 mod document;
 mod dump;
 mod id;
+mod numbering;
 mod props;
 mod resource;
 mod style;
@@ -32,14 +33,20 @@ pub use document::{
 };
 pub use dump::{DumpOptions, SemanticDifference};
 pub use id::{AnnotationId, IdAllocator, NodeId, PreservedId, ResourceId, SourceRef, StoryId};
+pub use numbering::{
+    AbstractNum, IndentEdges, LevelOverride, MAX_LEVEL, NumInstance, NumberFormat, NumberLabel,
+    NumberSuffix, NumberingLevel, NumberingProblem, NumberingStore, PlacedTab, ResolvedLevel,
+    displayed_paragraph, indent_edges, list_marks, list_reference, tab_positions,
+};
 pub use props::{
     Color, FontHint, FontRef, FontSlots, Indent, Justification, Languages, LineSpacing, Measure,
-    NumberingRef, ParaProps, RunProps, Spacing, ThemeFont, Toggle, Underline,
+    NumberingRef, ParaProps, RunProps, Spacing, TabAlign, TabLeader, TabStop, ThemeFont, Toggle,
+    Underline, merge_tab_stops,
 };
 pub use resource::{ContentHash, Resource, ResourceTable};
 pub use style::{
     BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,
-    StyleError, StyleId, StyleKind, StyleProblem, StyleSheet,
+    StyleError, StyleId, StyleKind, StyleProblem, StyleSheet, overlay_paragraph,
 };
 pub use text::{
     CHUNK_MAX_BYTES, OBJECT_MARKER, ParagraphText, ScalarOffset, TextError, TextSummary,

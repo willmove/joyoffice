@@ -14,7 +14,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use joyword_foundation::Emu;
 use joyword_model::{
     Bias, DocDefaults, Document, DocumentSnapshot, DocumentVersion, Justification, LineSpacing,
-    Measure, NodeId, Paragraph, Position, ScalarOffset, StoryId,
+    Measure, NodeId, NumberLabel, NumberingProblem, Paragraph, Position, ScalarOffset, StoryId,
+    displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -316,6 +317,17 @@ pub struct LayoutSnapshot {
 fn unsupported(node: Option<NodeId>, feature: &'static str) -> LayoutError {
     LayoutError::Unsupported { node, feature }
 }
+
+fn default_tab_interval(document: &Document) -> Result<i64, LayoutError> {
+    match document.settings().default_tab_stop {
+        None => Ok(720 * Emu::PER_TWIP),
+        Some(measure) => measure
+            .absolute()
+            .map(|length| length.raw())
+            .filter(|length| *length > 0)
+            .ok_or(unsupported(None, "relative default tab stop")),
+    }
+}
 fn add(a: Emu, b: Emu) -> Result<Emu, LayoutError> {
     a.checked_add(b).ok_or(LayoutError::GeometryOverflow)
 }
@@ -386,6 +398,14 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
                 hash.update(format!("{:?}", run.props).as_bytes());
             }
         }
+    }
+    if !document.numbering().is_empty() {
+        hash.update(b"numbering");
+        hash.update(format!("{:?}", document.numbering()).as_bytes());
+    }
+    if let Some(tab) = document.settings().default_tab_stop {
+        hash.update(b"defaultTab");
+        hash.update(format!("{tab}").as_bytes());
     }
     hash.finalize().into()
 }
@@ -692,6 +712,7 @@ pub fn layout_document(
     let limits = limits.capped();
     let geometry = preflight(document, profile, limits, cancellation)?;
     let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
+    let marks = joyword_model::list_marks(document);
     let mut prepared = Vec::new();
     let mut total_lines = 0usize;
     let mut charged_shapes = 0usize;
@@ -714,6 +735,7 @@ pub fn layout_document(
                 lines: total_lines,
             },
             cancellation,
+            marks.get(&paragraph.id()),
         )?;
         record_fit(&mut result, &fitted);
         charged_shapes += fitted.shape_calls;
@@ -806,6 +828,7 @@ pub(crate) fn fit_paragraph(
     limits: LayoutLimits,
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
+    mark: Option<&Result<NumberLabel, NumberingProblem>>,
 ) -> Result<FittedParagraph, LayoutError> {
     cancellation.check()?;
     let defaults = LineLimits::default();
@@ -866,71 +889,111 @@ pub(crate) fn fit_paragraph(
         painted.flow.snap_to_grid,
     )?;
     let family = cjk::face_cjk_family(shape_font);
-    let source = text.clone();
-    let mut adjust = move |at: usize, run: &mut ShapedRun| {
-        cjk::compress_shaped_run(&source, at, run, family).map_err(|_| LineError::InvalidShaping)
-    };
     let needs_slots = chosen != FontSlot::Ascii;
     let width = geometry.content_width();
-    let mut fitted = if needs_slots {
-        let mixed = wrap_mixed(faces, &text, painted.size, width, None);
-        let mut breaks = Vec::new();
-        let mut at = 0usize;
-        for line in &mixed.lines {
-            at += line.text.len();
-            if at == 0 || at >= text.len() {
-                continue;
+    let mut fit_slice = |slice: &str,
+                         slice_width: Emu|
+     -> Result<crate::ParagraphLines, LayoutError> {
+        let mut adjust = |at: usize, run: &mut ShapedRun| {
+            cjk::compress_shaped_run(slice, at, run, family).map_err(|_| LineError::InvalidShaping)
+        };
+        if needs_slots {
+            let mixed = wrap_mixed(faces, slice, painted.size, slice_width, None);
+            let mut breaks = Vec::new();
+            let mut at = 0usize;
+            for line in &mixed.lines {
+                at += line.text.len();
+                if at == 0 || at >= slice.len() {
+                    continue;
+                }
+                let adjusted = adjust_cjk_break(slice, at);
+                if adjusted > 0 && adjusted < slice.len() && !breaks.contains(&adjusted) {
+                    breaks.push(adjusted);
+                }
             }
-            let adjusted = adjust_cjk_break(&text, at);
-            if adjusted > 0 && adjusted < text.len() && !breaks.contains(&adjusted) {
-                breaks.push(adjusted);
-            }
-        }
-        breaks.sort_unstable();
-        match layout_paragraph_adjusted(
-            shape_font,
-            &text,
-            painted.size,
-            profile.features,
-            width,
-            &breaks,
-            LineFit {
-                limits: request_limits,
-                adjust: &mut adjust,
-            },
-        ) {
-            Ok(fitted) => fitted,
-            Err(_) => layout_paragraph_auto_cancellable_adjusted(
+            breaks.sort_unstable();
+            match layout_paragraph_adjusted(
                 shape_font,
-                &text,
+                slice,
                 painted.size,
                 profile.features,
-                width,
+                slice_width,
+                &breaks,
+                LineFit {
+                    limits: request_limits,
+                    adjust: &mut adjust,
+                },
+            ) {
+                Ok(fitted) => Ok(fitted),
+                Err(_) => layout_paragraph_auto_cancellable_adjusted(
+                    shape_font,
+                    slice,
+                    painted.size,
+                    profile.features,
+                    slice_width,
+                    &cancellation.0,
+                    LineFit {
+                        limits: request_limits,
+                        adjust: &mut adjust,
+                    },
+                )
+                .map_err(&map_line),
+            }
+        } else {
+            layout_paragraph_auto_cancellable_adjusted(
+                shape_font,
+                slice,
+                painted.size,
+                profile.features,
+                slice_width,
                 &cancellation.0,
                 LineFit {
                     limits: request_limits,
                     adjust: &mut adjust,
                 },
             )
-            .map_err(map_line)?,
+            .map_err(&map_line)
         }
-    } else {
-        layout_paragraph_auto_cancellable_adjusted(
-            shape_font,
+    };
+    let props = displayed_paragraph(document, paragraph);
+    let label = mark.and_then(|item| item.as_ref().ok());
+    let numbering_detail = match mark {
+        Some(Err(problem)) => Some(problem.to_string()),
+        _ => None,
+    };
+    let mut fitted = if crate::list_layout::needs_list_layout(&props, &text, label) {
+        if matches!(
+            painted.flow.justification,
+            Some(Justification::Center | Justification::End | Justification::Both)
+        ) {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "justification with indent, numbering or tabs",
+            ));
+        }
+        let interval = default_tab_interval(document)?;
+        crate::list_layout::layout_marked(
             &text,
+            &props,
+            label,
+            width,
+            interval,
+            shape_font,
             painted.size,
             profile.features,
-            width,
-            &cancellation.0,
-            LineFit {
-                limits: request_limits,
-                adjust: &mut adjust,
-            },
-        )
-        .map_err(map_line)?
+            &mut fit_slice,
+        )?
+    } else {
+        let mut fitted = fit_slice(&text, width)?;
+        if painted.flow.justification == Some(Justification::Both) {
+            justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
+        }
+        fitted
     };
-    if painted.flow.justification == Some(Justification::Both) {
-        justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
+    if let Some(detail) = numbering_detail {
+        fitted
+            .diagnostics
+            .push(LineDiagnostic::Numbering { detail });
     }
     for line in &mut fitted.lines {
         line.run.bold = painted.bold;
@@ -1170,10 +1233,20 @@ fn place_one(
             _ => 0,
         };
         let x = add(geometry.left, Emu::new(shift))?;
+        let body_x = match line.clusters.first() {
+            Some(cluster) => line
+                .run
+                .glyphs
+                .get(cluster.glyphs.start)
+                .map(|glyph| glyph.x)
+                .unwrap_or(Emu::new(0)),
+            None => line.run.width,
+        };
+        let caret_x = add(x, body_x)?;
         let baseline = add(*top, baseline_offset)?;
         let mut carets = vec![CaretStop {
             offset: ScalarOffset(line.source.scalars.start),
-            x,
+            x: caret_x,
         }];
         for cluster in &line.clusters {
             let glyph = &line.run.glyphs[cluster.glyphs.end - 1];
