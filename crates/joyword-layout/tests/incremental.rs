@@ -12,7 +12,7 @@ use joyword_layout::{
 };
 use joyword_model::{
     Bias, BlockSeq, Document, Justification, LineSpacing, Measure, PageSetup, Paragraph, Position,
-    ScalarOffset, Spacing, StoryId,
+    ScalarOffset, Spacing, StoryId, Style, StyleId, StyleKind,
 };
 
 fn pt(value: i64) -> Emu {
@@ -454,4 +454,43 @@ fn editing_the_first_paragraph_propagates_and_matches() {
     .unwrap();
     assert_same(&full, &incremental, "first paragraph");
     assert!(full.pages().len() >= warm.pages().len());
+}
+
+#[test]
+fn a_style_definition_change_refits_dependents_and_reuses_the_rest() {
+    let font = font_named("Test");
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let mut sized = Style::new("sized", StyleKind::Paragraph, Some("sized"));
+    sized.run.size = Some(Measure::HalfPoints(24));
+    document.styles_mut().insert(sized).unwrap();
+    let mut first = paragraph(&mut document, "Alpha");
+    first.style = Some(StyleId::new("sized"));
+    let second = paragraph(&mut document, "Beta");
+    install(&mut document, vec![first, second]);
+    let mut cache = ParagraphLayoutCache::default();
+    let warm = lay_incremental(
+        &document,
+        &font,
+        &mut cache,
+        None,
+        &LayoutInvalidation::default(),
+    )
+    .unwrap();
+    let before = warm.pages()[0].runs[0].size;
+    let mut grown = Style::new("sized", StyleKind::Paragraph, Some("sized"));
+    grown.run.size = Some(Measure::HalfPoints(32));
+    document.styles_mut().replace(grown).unwrap();
+    let mut invalidation = LayoutInvalidation::default();
+    invalidation.styles.insert(StyleId::new("sized"));
+    let incremental =
+        lay_incremental(&document, &font, &mut cache, Some(&warm), &invalidation).unwrap();
+    let full = lay_full(&document, &font).unwrap();
+    assert_same(&full, &incremental, "style size");
+    assert!(incremental.stats().cache_hits >= 1);
+    assert!(incremental.stats().shape_calls > 0);
+    assert_ne!(incremental.pages()[0].runs[0].size, before);
+    assert_eq!(
+        incremental.pages()[0].runs[0].size,
+        Emu::new(16 * Emu::PER_POINT)
+    );
 }

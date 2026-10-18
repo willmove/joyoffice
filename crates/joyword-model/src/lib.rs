@@ -16,6 +16,7 @@ mod props;
 mod resource;
 mod style;
 mod text;
+mod theme;
 mod tree;
 mod validate;
 
@@ -37,12 +38,13 @@ pub use props::{
 };
 pub use resource::{ContentHash, Resource, ResourceTable};
 pub use style::{
-    BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, Style, StyleChain, StyleError, StyleId, StyleKind,
-    StyleProblem, StyleSheet,
+    BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,
+    StyleError, StyleId, StyleKind, StyleProblem, StyleSheet,
 };
 pub use text::{
     CHUNK_MAX_BYTES, OBJECT_MARKER, ParagraphText, ScalarOffset, TextError, TextSummary,
     Utf8Offset, Utf16Offset,
 };
+pub use theme::{ThemeColorSlot, ThemeFonts, ThemeScheme};
 pub use tree::{Item, SeqTree, Summary};
 pub use validate::{Diagnostic, Diagnostics, Issue, MAX_DIAGNOSTICS, MAX_NESTING, Severity};

@@ -90,6 +90,8 @@ pub(crate) trait DocEditor {
         Err("file.save_original.unavailable".into())
     }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError>;
+    fn list_styles(&self) -> Vec<String>;
+    fn apply_style(&mut self, style: &str) -> Result<bool, InputError>;
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
@@ -180,6 +182,12 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
         TextInput::format_runs(self, change)
+    }
+    fn list_styles(&self) -> Vec<String> {
+        TextInput::list_styles(self)
+    }
+    fn apply_style(&mut self, style: &str) -> Result<bool, InputError> {
+        TextInput::apply_style(self, style)
     }
     fn format_paragraph(
         &mut self,
@@ -285,6 +293,12 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
         TextInput::format_runs(self, change)
+    }
+    fn list_styles(&self) -> Vec<String> {
+        TextInput::list_styles(self)
+    }
+    fn apply_style(&mut self, style: &str) -> Result<bool, InputError> {
+        TextInput::apply_style(self, style)
     }
     fn format_paragraph(
         &mut self,
@@ -393,6 +407,12 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
         TextInput::format_runs(self, change)
+    }
+    fn list_styles(&self) -> Vec<String> {
+        TextInput::list_styles(self)
+    }
+    fn apply_style(&mut self, style: &str) -> Result<bool, InputError> {
+        TextInput::apply_style(self, style)
     }
     fn format_paragraph(
         &mut self,
@@ -1443,6 +1463,18 @@ impl JoyWord {
                 Availability::Disabled("file.save_copy.unavailable")
             };
         }
+        if matches!(id, STYLE_LIST | STYLE_APPLY) {
+            if self.open_gate.is_some() && id == STYLE_APPLY {
+                return Availability::Disabled("input.read_only");
+            }
+            let Some(editor) = &self.editor else {
+                return Availability::Disabled("input.loading");
+            };
+            if id == STYLE_APPLY && editor.read_only() {
+                return Availability::Disabled("input.read_only");
+            }
+            return Availability::Enabled;
+        }
         if !id.0.starts_with("edit.") {
             return Availability::Enabled;
         }
@@ -1562,6 +1594,26 @@ impl JoyWord {
                     .format_runs(joyword_engine::RunChange::Bold(Some(true)))
                     .map(|_| ())
             }),
+            STYLE_LIST => {
+                if let Some(editor) = self.editor.as_ref() {
+                    let names = editor.list_styles();
+                    self.copy_note = Some(if names.is_empty() {
+                        self.label("command.style.list")
+                    } else {
+                        names.join("\n")
+                    });
+                } else {
+                    self.input_error = Some("input.loading".into());
+                }
+            }
+            STYLE_APPLY => {
+                let Some(joyword_shell::command::ArgValue::Text(style)) = args.get("style") else {
+                    self.input_error = Some("style".into());
+                    return Err("style".into());
+                };
+                let style = style.clone();
+                self.apply_input(cx, |editor| editor.apply_style(&style).map(|_| ()))
+            }
             EDIT_ITALIC => self.apply_input(cx, |editor| {
                 editor
                     .format_runs(joyword_engine::RunChange::Italic(Some(true)))

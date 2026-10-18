@@ -518,13 +518,18 @@ pub fn rasterize(
                 )?;
             }
             if work != 0 {
-                pixmap.fill_path(
-                    path,
-                    &paint,
-                    FillRule::Winding,
-                    Transform::from_translate(x, y),
-                    None,
-                );
+                let em = projection.pixels(run.size) as f32;
+                let passes = if run.bold { 2 } else { 1 };
+                for pass in 0..passes {
+                    let dx = if pass == 0 { 0.0 } else { em * 0.04 };
+                    let transform = if run.italic {
+                        // Shear about the baseline so italic leans right.
+                        Transform::from_row(1.0, 0.0, -0.2, 1.0, x + dx, y)
+                    } else {
+                        Transform::from_translate(x + dx, y)
+                    };
+                    pixmap.fill_path(path, &paint, FillRule::Winding, transform, None);
+                }
             }
         }
     }

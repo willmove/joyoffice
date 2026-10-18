@@ -108,3 +108,8 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 - QUALITY-007。不新增外部 crate，不复制 Word、WPS、Zed 或 WordCraft 的日志实现。日志文件、轮转、脱敏和 panic hook 为项目自行实现。
 - 依据 Rust 标准库文档：[std::panic::set_hook](https://doc.rust-lang.org/std/panic/fn.set_hook.html)、[PanicHookInfo](https://doc.rust-lang.org/std/panic/struct.PanicHookInfo.html)、[Backtrace::force_capture](https://doc.rust-lang.org/std/backtrace/struct.Backtrace.html#method.force_capture)、[File::create_new](https://doc.rust-lang.org/std/fs/struct.File.html#method.create_new)、[File::sync_all](https://doc.rust-lang.org/std/fs/struct.File.html#method.sync_all)。只使用这些公开 API 的语义：新建文件不截断已有文件，hook 替换默认 hook，回溯在捕获时生成。目录项本身不做目录 sync，不把文件 sync 说成断电后目录项一定可见。
+
+### 样式继承与主题解析（T200 样式基础）
+
+- STYLE-002；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.7.2（样式层级：文档默认、`basedOn`、直接格式）、§17.7.3（toggle：未设置继承、显式关闭、显式打开翻转）、§17.7.4.6（`w:link` 配对段落样式与字符样式，解析时不作为第二层属性），以及 §14.2.7、§20.1.4（DrawingML `a:fontScheme`／`a:clrScheme`）。只读公开规范条款，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的样式实现。
+- 独立实现把 latin／ea／cs 映射到 ascii+hAnsi、eastAsia、bidi，并把已知的 `w:themeColor` 长名解析为方案中的 sRGB。themeTint／themeShade、表格条件格式和编号样式不在本切片解析。没有新增外部 crate。

@@ -15,7 +15,8 @@ use crate::diag::{AppLog, Event, Level};
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
-    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, Registry,
+    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, Registry, STYLE_APPLY,
+    STYLE_LIST,
 };
 use crate::docx::BoundDocx;
 use crate::input::{InputError, InputLimits, InputSource, TextInput};
@@ -56,6 +57,8 @@ pub struct Office {
     save_generation: u64,
     recovery_dir: Option<PathBuf>,
     diag: Option<Arc<AppLog>>,
+    /// Names from the last `style.list` on the active document.
+    style_list: Vec<String>,
 }
 
 impl Default for Office {
@@ -77,7 +80,13 @@ impl Office {
             save_generation: 0,
             recovery_dir: None,
             diag: None,
+            style_list: Vec::new(),
         }
+    }
+
+    /// Styles reported by the last [`STYLE_LIST`] command.
+    pub fn listed_styles(&self) -> &[String] {
+        &self.style_list
     }
 
     /// Attaches the application log. Command failures and import diagnostic
@@ -523,17 +532,18 @@ fn input_error(error: InputError) -> ExecuteError {
 
 impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
-        if (matches!(id, FILE_SAVE | FILE_SAVE_COPY) || id.0.starts_with("edit."))
+        if (matches!(id, FILE_SAVE | FILE_SAVE_COPY | STYLE_LIST | STYLE_APPLY)
+            || id.0.starts_with("edit."))
             && self.active.is_none()
         {
             return Availability::Disabled("input.loading");
         }
-        if self.opening.is_some() && id.0.starts_with("edit.") {
+        if self.opening.is_some() && (id.0.starts_with("edit.") || id == STYLE_APPLY) {
             return Availability::Disabled("input.read_only");
         }
         if matches!(
             id,
-            EDIT_INSERT | EDIT_BOLD | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE
+            EDIT_INSERT | EDIT_BOLD | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE | STYLE_APPLY
         ) && self.active().is_some_and(|input| input.read_only())
         {
             return Availability::Disabled("input.read_only");
@@ -678,6 +688,21 @@ impl Office {
             EDIT_ALIGN_CENTER => {
                 self.require_active()?
                     .format_paragraph(ParagraphChange::Justification(Some(Justification::Center)))
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            STYLE_LIST => {
+                self.style_list = self.require_active()?.list_styles();
+                Ok(())
+            }
+            STYLE_APPLY => {
+                let Some(ArgValue::Text(style)) = args.get("style") else {
+                    return Err(ExecuteError::Failed("style".into()));
+                };
+                self.require_active()?
+                    .apply_style(style)
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;

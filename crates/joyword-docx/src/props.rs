@@ -6,7 +6,7 @@
 //! character or line); nothing is converted to EMU here. Unset stays `None`,
 //! and an explicit "off" stays `Some(false)`. Anything the model has no
 //! field for — an unmapped child, an attribute that overrides a mapped one
-//! (a theme font or theme colour), a universal measure such as `2cm`, an
+//! (a theme font, or a theme colour with tint or shade), a universal measure such as `2cm`, an
 //! unknown value — clears [`Findings::complete`], and the caller preserves the
 //! whole property element.
 
@@ -14,7 +14,7 @@ use std::sync::Arc;
 
 use joyword_model::{
     Color, FontHint, FontRef, Indent, Justification, LineSpacing, Measure, NumberingRef, ParaProps,
-    RunProps, Spacing, StyleId, ThemeFont, Toggle, Underline,
+    RunProps, Spacing, StyleId, ThemeColorSlot, ThemeFont, Toggle, Underline,
 };
 
 use crate::ns::W;
@@ -379,11 +379,34 @@ fn underline(element: &Element, findings: &mut Findings) -> Option<Underline> {
 }
 
 fn color(element: &Element, findings: &mut Findings) -> Option<Color> {
+    let theme_name = element.attribute(Some(W), "themeColor");
+    let tinted = element.attribute(Some(W), "themeTint").is_some()
+        || element.attribute(Some(W), "themeShade").is_some();
+    if let Some(name) = theme_name {
+        // Tint and shade change the scheme colour (ECMA-376 §17.15.2.5 is the
+        // settings clause; the colour modifiers are §17.3.2.6). This slice
+        // does not resolve them, so the element stays preserved.
+        if tinted {
+            findings.complete = false;
+        }
+        return match ThemeColorSlot::from_word_name(name) {
+            Some(slot) if !tinted => Some(Color::Theme(slot)),
+            Some(_) => cached_rgb(element, findings),
+            None => {
+                findings.invalid(element, "w:themeColor", name);
+                None
+            }
+        };
+    }
     if element.attributes.iter().any(|attribute| {
         attribute.namespace.as_deref() == Some(W) && attribute.local.starts_with("theme")
     }) {
         findings.complete = false;
     }
+    cached_rgb(element, findings)
+}
+
+fn cached_rgb(element: &Element, findings: &mut Findings) -> Option<Color> {
     let value = val(element).unwrap_or_default();
     if value == "auto" {
         return Some(Color::Auto);

@@ -19,6 +19,7 @@ use std::sync::Arc;
 use joyoffice_opc::{Budget, Method, PartName, write_archive};
 use joyword_model::{
     Block, Document, DocumentSnapshot, DocumentVersion, NodeId, Paragraph, RunProps, StyleId,
+    StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
@@ -287,6 +288,7 @@ fn plan_export_after_import(
     for &(before, after) in &alignment.edited {
         let element = xml.paragraph(before)?;
         patch_paragraph(
+            current.styles(),
             before,
             after,
             &[&root, body],
@@ -447,6 +449,7 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
         || !sections_equal
         || before.settings() != after.settings()
         || before.styles().defaults != after.styles().defaults
+        || before.styles().theme() != after.styles().theme()
         || !before.styles().iter().eq(after.styles().iter())
         || !before.annotations().eq(after.annotations())
         || before.resources().len() != after.resources().len()
@@ -495,6 +498,21 @@ fn groups(paragraph: &Paragraph) -> Vec<Group> {
     groups
 }
 
+fn style_ids(paragraph: &Paragraph) -> Vec<Option<StyleId>> {
+    let mut ids = vec![paragraph.style.clone()];
+    ids.extend(paragraph.runs().iter().map(|run| run.style.clone()));
+    ids
+}
+
+/// True when a paragraph or run style id was added, removed or replaced.
+/// A text split that only changes how many unstyled runs exist is not a
+/// style assignment.
+fn style_assignment_differs(before: &Paragraph, after: &Paragraph) -> bool {
+    let left = style_ids(before);
+    let right = style_ids(after);
+    left != right && (left.iter().any(Option::is_some) || right.iter().any(Option::is_some))
+}
+
 fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
     a.id() == b.id()
         && a.style == b.style
@@ -503,7 +521,9 @@ fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
         && a.source == b.source
 }
 
+#[allow(clippy::too_many_arguments)]
 fn patch_paragraph(
+    styles: &StyleSheet,
     before: &Paragraph,
     after: &Paragraph,
     scope: &[&Element],
@@ -513,6 +533,23 @@ fn patch_paragraph(
     source: &structure::Source<'_>,
 ) -> Result<(), ExportError> {
     let error = |reason| unsupported(Some(before.id()), reason);
+    if style_assignment_differs(before, after) {
+        structure::style_assignment_ok(styles, before).map_err(error)?;
+        structure::style_assignment_ok(styles, after).map_err(error)?;
+        if before.source != after.source
+            || !before.inlines().is_empty()
+            || !after.inlines().is_empty()
+        {
+            return Err(error("style assignment cannot be exported"));
+        }
+        let mut scope = scope.to_vec();
+        scope.push(element);
+        let names = Names::in_scope(&scope);
+        let bytes =
+            structure::rewrite_styled_paragraph(source.bytes(), element, after, &names, limit)?;
+        patches.push((element.span.clone(), bytes));
+        return Ok(());
+    }
     if !same_paragraph_metadata(before, after)
         || !before.inlines().is_empty()
         || !after.inlines().is_empty()

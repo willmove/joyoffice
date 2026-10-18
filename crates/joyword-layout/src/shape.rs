@@ -8,7 +8,7 @@
 
 use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use harfrust::{Feature, ShapeOptions, ShaperData, UnicodeBuffer};
 use joyword_foundation::Emu;
@@ -104,6 +104,12 @@ pub struct ShapedRun {
     /// Byte offsets of clusters the font has no glyph for (missing-glyph
     /// diagnostics; the text itself is never replaced).
     pub missing: Vec<usize>,
+    /// Resolved weight and posture. Shaping still uses the caller face.
+    pub bold: bool,
+    pub italic: bool,
+    /// Typefaces named by the resolved style. Absent when the style names none.
+    pub latin_family: Option<Arc<str>>,
+    pub east_asia_family: Option<Arc<str>>,
 }
 
 fn to_emu(units: i64, size: Emu, units_per_em: u16) -> Emu {
@@ -181,6 +187,10 @@ fn shape_with(
         glyphs,
         width: to_emu(pen, size, units_per_em),
         missing,
+        bold: false,
+        italic: false,
+        latin_family: None,
+        east_asia_family: None,
     }
 }
 

@@ -18,6 +18,7 @@ pub mod line;
 pub mod scene;
 pub mod shape;
 pub mod slots;
+mod style_paint;
 
 pub use font::{FontError, FontKey, LoadedFont};
 pub use line::{

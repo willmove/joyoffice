@@ -68,7 +68,7 @@ impl krilla::text::Glyph for SceneGlyph {
     }
 }
 
-fn scene_glyphs(run: &GlyphRun) -> Vec<SceneGlyph> {
+fn scene_glyphs(run: &GlyphRun, searchable: bool) -> Vec<SceneGlyph> {
     let em = run.size.raw() as f64;
     let per_em = |emu: i64| (emu as f64 / em) as f32;
     (0..run.glyphs.len())
@@ -80,7 +80,11 @@ fn scene_glyphs(run: &GlyphRun) -> Vec<SceneGlyph> {
                 .map_or(glyph.x.raw() + glyph.advance.raw(), |next| next.x.raw());
             SceneGlyph {
                 id: glyph.glyph_id,
-                text_range: run.cluster_range(index),
+                text_range: if searchable {
+                    run.cluster_range(index)
+                } else {
+                    0..0
+                },
                 advance_em: per_em(next - glyph.x.raw()),
                 x_offset_em: per_em(glyph.x_offset.raw()),
                 // Scene and krilla are y-down; font offsets are y-up.
@@ -116,19 +120,20 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
                     font
                 }
             };
-            let glyphs = scene_glyphs(run);
+            let glyphs = scene_glyphs(run, true);
             let start = Point::from_xy(
                 to_points(run.origin_x) as f32,
                 to_points(run.baseline_y) as f32,
             );
-            surface.draw_glyphs(
-                start,
-                &glyphs,
-                font,
-                &run.text,
-                to_points(run.size) as f32,
-                false,
-            );
+            let size = to_points(run.size) as f32;
+            surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
+            if run.bold {
+                // A second paint with empty cluster ranges keeps the searchable
+                // text to the first draw. The offset is about 0.04 em.
+                let visual = scene_glyphs(run, false);
+                let shifted = Point::from_xy(start.x + size * 0.04, start.y);
+                surface.draw_glyphs(shifted, &visual, font, "", size, false);
+            }
         }
         surface.finish();
         page.finish();

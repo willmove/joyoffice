@@ -15,6 +15,10 @@ pub const REL_OFFICE_DOCUMENT_STRICT: &str =
     "http://purl.oclc.org/ooxml/officeDocument/relationships/officeDocument";
 pub const REL_STYLES: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles";
+pub const REL_THEME: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme";
+/// DrawingML main namespace (theme part).
+pub const A: &str = "http://schemas.openxmlformats.org/drawingml/2006/main";
 pub const REL_SETTINGS: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings";
 pub const REL_VBA_PROJECT: &str =

@@ -136,6 +136,14 @@
       "source": "hypothesis",
       "test": "rejected_and_empty_transactions_leave_the_group_untouched",
       "word_observation": null
+    },
+    {
+      "id": "STYLE-APPLY-UNDO",
+      "operation": "对选区应用段落或字符样式",
+      "expectation": "一次撤销恢复样式指定前的段落与字符样式",
+      "source": "hypothesis",
+      "test": "applying_a_paragraph_style_is_one_undoable_transaction",
+      "word_observation": null
     }
   ]
 }
