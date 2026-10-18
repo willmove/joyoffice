@@ -429,8 +429,17 @@ impl JoyWord {
             let font = font.clone();
             let profile = key.profile;
             let cancellation = job.cancellation;
+            let cache = self.canvas.paragraph_cache();
+            let previous = self.canvas.previous_layout(&font.key(), profile);
             let work = cx.background_executor().spawn(async move {
-                document_canvas::layout_view(&input, &font, profile, &cancellation)
+                document_canvas::layout_view_incremental(
+                    &input,
+                    &font,
+                    profile,
+                    &cancellation,
+                    &cache,
+                    previous.as_deref(),
+                )
             });
             let ticket = job.ticket;
             self.layout_task = Some(cx.spawn(async move |view, cx| {
@@ -484,6 +493,13 @@ impl JoyWord {
         match self.canvas.install_layout(ticket, &current, result) {
             Landed::Stale => return,
             Landed::Installed(_) => {
+                let version = self
+                    .canvas
+                    .layout()
+                    .map(|frame| frame.layout.key().version.get());
+                if let Some((version, editor)) = version.zip(self.editor.as_mut()) {
+                    editor.acknowledge_layout(version);
+                }
                 // Exact geometry now: the origin AppKit asks for next and the
                 // caret no longer wait for pixels.
                 self.capture_ime_anchor();

@@ -19,6 +19,13 @@ impl FontKey {
         self.index
     }
 
+    /// A key that does not name a loaded face. Cache tests use it to show
+    /// that two external contexts alias when a dependency flag is dropped.
+    #[cfg(test)]
+    pub(crate) fn from_raw_parts(hash: [u8; 32], index: u32) -> Self {
+        Self { hash, index }
+    }
+
     /// SHA-256 of the font file, hex encoded.
     pub fn hash_hex(&self) -> String {
         self.hash.iter().map(|byte| format!("{byte:02x}")).collect()

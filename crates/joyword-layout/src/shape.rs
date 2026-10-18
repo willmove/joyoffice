@@ -6,12 +6,56 @@
 //! are converted from font units to EMU from the cumulative pen position, so
 //! rounding never accumulates along a line.
 
+use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
+use std::sync::Mutex;
 
 use harfrust::{Feature, ShapeOptions, ShaperData, UnicodeBuffer};
 use joyword_foundation::Emu;
 
 use crate::font::{FontKey, LoadedFont};
+
+/// Faces retained in the process-wide shaper-data cache (T208). Each entry is
+/// HarfRust's own parsed face, keyed by [`FontKey`], and the oldest face is
+/// dropped when the cap is reached.
+const MAX_SHAPER_FACES: usize = 8;
+
+struct ShaperCache {
+    order: VecDeque<FontKey>,
+    map: HashMap<FontKey, ShaperData>,
+}
+
+impl ShaperCache {
+    fn prepare(&mut self, font: &LoadedFont) {
+        let key = font.key();
+        if self.map.contains_key(&key) {
+            if let Some(position) = self.order.iter().position(|item| *item == key) {
+                self.order.remove(position);
+            }
+            self.order.push_back(key);
+            return;
+        }
+        while self.order.len() >= MAX_SHAPER_FACES {
+            let Some(old) = self.order.pop_front() else {
+                break;
+            };
+            self.map.remove(&old);
+        }
+        self.map.insert(key, ShaperData::new(&font.font_ref()));
+        self.order.push_back(key);
+    }
+}
+
+fn shaper_cache() -> &'static Mutex<ShaperCache> {
+    use std::sync::OnceLock;
+    static CACHE: OnceLock<Mutex<ShaperCache>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        Mutex::new(ShaperCache {
+            order: VecDeque::new(),
+            map: HashMap::new(),
+        })
+    })
+}
 
 /// OpenType features a document can switch on. Everything not listed here
 /// keeps HarfRust's required behavior (e.g. `ccmp`, `locl`, mark positioning).
@@ -80,14 +124,35 @@ fn to_emu(units: i64, size: Emu, units_per_em: u16) -> Emu {
 /// analysis of T105 will supply them.
 pub fn shape(font: &LoadedFont, text: &str, size: Emu, features: FeatureSet) -> ShapedRun {
     let font_ref = font.font_ref();
+    let cache = shaper_cache();
+    let mut guard = cache
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    guard.prepare(font);
+    let units_per_em = font.units_per_em;
+    let key = font.key();
+    if let Some(data) = guard.map.get(&key) {
+        return shape_with(data, &font_ref, key, text, size, features, units_per_em);
+    }
     let data = ShaperData::new(&font_ref);
-    let shaper = data.shaper(&font_ref).build();
+    shape_with(&data, &font_ref, key, text, size, features, units_per_em)
+}
+
+fn shape_with(
+    data: &ShaperData,
+    font_ref: &read_fonts::FontRef<'_>,
+    key: FontKey,
+    text: &str,
+    size: Emu,
+    features: FeatureSet,
+    units_per_em: u16,
+) -> ShapedRun {
+    let shaper = data.shaper(font_ref).build();
     let mut buffer = UnicodeBuffer::new();
     buffer.push_str(text);
     buffer.guess_segment_properties();
     let feature_list = features.features();
     let output = shaper.shape(buffer, ShapeOptions::new().features(&feature_list));
-    let units_per_em = font.units_per_em;
     let mut pen: i64 = 0;
     let mut glyphs = Vec::with_capacity(output.len());
     let mut missing = Vec::new();
@@ -110,7 +175,7 @@ pub fn shape(font: &LoadedFont, text: &str, size: Emu, features: FeatureSet) -> 
         pen += i64::from(position.x_advance);
     }
     ShapedRun {
-        font: font.key(),
+        font: key,
         size,
         text: text.to_owned(),
         glyphs,

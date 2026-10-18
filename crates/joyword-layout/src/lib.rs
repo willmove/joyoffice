@@ -10,6 +10,7 @@
 //! a result only when that result's evidence and face match; unverified
 //! pairs and other faces keep the T105 advance and line box.
 
+pub mod cache;
 pub mod cjk;
 pub mod document;
 pub mod font;
@@ -30,6 +31,11 @@ pub use slots::{
     wrap_mixed,
 };
 
+pub use cache::{
+    DEFAULT_CACHE_BUDGET, DependencyFlags, ExternalContext, ExternalKey, LayoutInvalidation,
+    LayoutReuse, MAX_LAYOUT_PASSES, ParagraphLayoutCache, affected_style_closure, external_key,
+    invalidated_paragraphs, layout_incremental, paragraph_dependencies, run_layout_passes,
+};
 pub use document::{
     CaretGeometry, CaretStop, LayoutCancellation, LayoutDiagnostic, LayoutError, LayoutKey,
     LayoutLimit, LayoutLimits, LayoutSnapshot, LayoutStats, PageGeometry, PlacedLine,
