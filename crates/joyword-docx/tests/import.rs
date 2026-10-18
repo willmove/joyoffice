@@ -1022,6 +1022,37 @@ fn numbering_and_tab_stops_import_and_export_keeps_the_numbering_part() {
         });
         paragraph.props = Arc::new(props);
     });
+    let plan = plan_export(&result.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(
+        package.part("/word/numbering.xml").unwrap().data,
+        result
+            .backing
+            .package()
+            .part("/word/numbering.xml")
+            .unwrap()
+            .data,
+        "assigning numPr does not rewrite numbering.xml"
+    );
+    let xml = String::from_utf8(package.part("/word/document.xml").unwrap().data.to_vec()).unwrap();
+    assert!(xml.contains(r#"<w:numId w:val="1"/>"#), "{xml}");
+    assert!(xml.contains(r#"w:pos="720""#), "{xml}");
+    assert!(xml.contains(r#"w:leader="dot""#), "{xml}");
+
+    let mut model = result.document.clone();
+    model.story_mut(body).unwrap().blocks.update(2, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        let paragraph = Arc::make_mut(paragraph);
+        let mut props = (*paragraph.props).clone();
+        props.tabs = Some(vec![joyword_model::TabStop {
+            position: Measure::Twips(720),
+            align: joyword_model::TabAlign::Bar,
+            leader: joyword_model::TabLeader::None,
+        }]);
+        paragraph.props = Arc::new(props);
+    });
     assert!(matches!(
         plan_export(&result.backing, &model.snapshot(), &Budget::default()),
         Err(ExportError::Unsupported { .. })
@@ -1150,4 +1181,75 @@ fn default_header_and_footer_import_page_fields_without_cached_results() {
     let mut changed = result.document.clone();
     changed.sections_mut()[0].page.width = Measure::Twips(10_000);
     assert!(plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err());
+}
+
+#[test]
+fn direct_indent_spacing_and_tabs_round_trip_and_survive_a_font_change() {
+    let bytes = package(
+        &document_xml("", "<w:p><w:r><w:t>甲</w:t></w:r></w:p>"),
+        None,
+    );
+    let result = open(&bytes);
+    let mut model = result.document.clone();
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        let paragraph = Arc::make_mut(paragraph);
+        let mut props = (*paragraph.props).clone();
+        props.indent = joyword_model::Indent {
+            start: Some(Measure::Twips(720)),
+            first_line: Some(Measure::Twips(360)),
+            ..joyword_model::Indent::default()
+        };
+        props.spacing = joyword_model::Spacing {
+            before: Some(Measure::Twips(120)),
+            after: Some(Measure::Twips(80)),
+            line: Some(joyword_model::LineSpacing::Auto(360)),
+            ..joyword_model::Spacing::default()
+        };
+        props.tabs = Some(vec![joyword_model::TabStop {
+            position: Measure::Twips(1440),
+            align: joyword_model::TabAlign::Left,
+            leader: joyword_model::TabLeader::Dot,
+        }]);
+        paragraph.props = Arc::new(props);
+    });
+    let plan = plan_export(&result.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let again = open(plan.bytes());
+    let paragraph = paragraphs(&again)[0];
+    assert_eq!(paragraph.props.indent.start, Some(Measure::Twips(720)));
+    assert_eq!(paragraph.props.indent.first_line, Some(Measure::Twips(360)));
+    assert!(paragraph.props.indent.hanging.is_none());
+    assert_eq!(paragraph.props.spacing.before, Some(Measure::Twips(120)));
+    assert_eq!(paragraph.props.spacing.after, Some(Measure::Twips(80)));
+    assert_eq!(
+        paragraph.props.spacing.line,
+        Some(joyword_model::LineSpacing::Auto(360))
+    );
+    assert_eq!(
+        paragraph.props.tabs.as_ref().unwrap()[0].position,
+        Measure::Twips(1440)
+    );
+
+    let mut bolded = again.document.clone();
+    let body = bolded.body_id();
+    bolded.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        let paragraph = Arc::make_mut(paragraph);
+        let end = joyword_model::ScalarOffset(paragraph.len());
+        paragraph
+            .format_runs(joyword_model::ScalarOffset(0)..end, |props| {
+                props.bold = Some(true);
+            })
+            .unwrap();
+    });
+    let plan = plan_export(&again.backing, &bolded.snapshot(), &Budget::default()).unwrap();
+    let kept = open(plan.bytes());
+    let paragraph = paragraphs(&kept)[0];
+    assert_eq!(paragraph.props.indent.start, Some(Measure::Twips(720)));
+    assert_eq!(paragraph.runs()[0].props.bold, Some(true));
 }

@@ -1279,6 +1279,7 @@ fn format_paragraph(
                 ParagraphChange::Justification(value) => props.justification = *value,
                 ParagraphChange::Indent(value) => props.indent = *value,
                 ParagraphChange::Spacing(value) => props.spacing = *value,
+                ParagraphChange::Tabs(value) => props.tabs = value.clone(),
                 ParagraphChange::Style(_) => unreachable!("handled above"),
             }
             let changed = props != *target.props;

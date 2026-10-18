@@ -10,6 +10,7 @@
 pub mod chrome;
 pub mod command;
 pub mod diag;
+pub mod dialogs;
 pub mod documents;
 pub mod docx;
 pub mod host;
