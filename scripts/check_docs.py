@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs/joyword"
 REQUIREMENT = r"(?:EDIT|STYLE|LAYOUT|REVIEW|FORMAT|CLIP|AI|PLATFORM|QUALITY|COLLAB|SUITE)-\d{3}"
 RELEASE_GATE = "T704"  # Every M0–M7 task must be a prerequisite of the 1.0 gate.
+# T205: evidenced ribbon, ruler and status controls. Lowering this is a coverage regression.
+FEATURE_FLOOR = 34
 # T209: undo-group rules (SPEC §6) that must stay registered with a test.
 REQUIRED_BEHAVIORS = (
     "EDIT-UNDO-TYPING",
@@ -129,6 +131,81 @@ def validate_behavior_registry(path, test_names, required=()):
         if entry_id not in seen:
             problems.append(f"behavior registry: required entry {entry_id} missing")
     return problems, count
+
+
+def validate_feature_catalog(requirements):
+    """T205: shown controls bind a requirement and an evidence level, and icons are drawn in code."""
+    path = DOCS / "feature_catalog.json"
+    catalog = json.loads(path.read_text(encoding="utf-8"))
+    check(catalog.get("schema_version") == 1, "feature catalog: schema_version must be 1")
+    check(catalog.get("task") == "T205", "feature catalog: task must be T205")
+    check(catalog.get("floor") == FEATURE_FLOOR,
+          f"feature catalog: floor must stay at {FEATURE_FLOOR}")
+    controls = catalog.get("controls")
+    icons = catalog.get("icons")
+    check(isinstance(controls, list) and isinstance(icons, list),
+          "feature catalog: controls and icons must be lists")
+    if not isinstance(controls, list) or not isinstance(icons, list):
+        return
+    command_ids = set(re.findall(
+        r'CommandId\("([a-z0-9_.]+)"\)',
+        (ROOT / "crates/joyword-shell/src/command.rs").read_text(encoding="utf-8")))
+    chrome = (ROOT / "crates/joyword-shell/src/chrome.rs").read_text(encoding="utf-8")
+    icons_src = chrome.split("const ICONS:", 1)
+    check(len(icons_src) == 2, "feature catalog: chrome.rs is missing the ICONS table")
+    # rustfmt wraps each ("id", "art") pair, so the id and the art may sit on
+    # different lines. Only the ICONS table is scanned.
+    drawn = set(re.findall(r'"([a-z0-9-]+)",\s*"', icons_src[-1], re.S))
+    icon_ids = set()
+    for icon in icons:
+        icon_id = icon.get("id")
+        check(isinstance(icon_id, str) and icon_id and icon_id not in icon_ids,
+              f"feature catalog: duplicate or empty icon {icon_id}")
+        icon_ids.add(icon_id)
+        check(icon.get("origin") == "drawn-in-code",
+              f"feature catalog: {icon_id} must be drawn-in-code")
+        check(icon.get("license") == "MIT", f"feature catalog: {icon_id} license must be MIT")
+        source = icon.get("source")
+        check(source == "crates/joyword-shell/src/chrome.rs" and (ROOT / source).is_file(),
+              f"feature catalog: {icon_id} source is not the icon drawing")
+        check(icon_id in drawn, f"feature catalog: {icon_id} has no drawing in chrome.rs")
+    evidence_levels = {"exists", "unit", "corpus", "reference"}
+    seen = set()
+    evidenced = 0
+    for control in controls:
+        control_id = control.get("id")
+        check(isinstance(control_id, str) and control_id and control_id not in seen,
+              f"feature catalog: duplicate or empty control {control_id}")
+        seen.add(control_id)
+        kind = control.get("kind")
+        check(kind in {"command", "status", "ruler"},
+              f"feature catalog: {control_id} has an unknown kind")
+        requirement = control.get("requirement")
+        check(requirement in requirements,
+              f"feature catalog: {control_id} has an unknown requirement")
+        evidence = control.get("evidence")
+        check(evidence in evidence_levels,
+              f"feature catalog: {control_id} needs an evidence level")
+        if evidence in evidence_levels:
+            evidenced += 1
+        if kind == "command":
+            check(control.get("command") in command_ids,
+                  f"feature catalog: {control_id} command is not registered")
+            icon = control.get("icon")
+            check(icon in icon_ids, f"feature catalog: {control_id} icon is not attributed")
+            check(control.get("tab") in {"start", "insert", "layout", "view"},
+                  f"feature catalog: {control_id} tab is not a ribbon tab")
+        else:
+            check("command" not in control and "icon" not in control,
+                  f"feature catalog: {control_id} is not a command and must not carry one")
+    check(evidenced == FEATURE_FLOOR,
+          f"feature catalog: evidenced controls {evidenced} != floor {FEATURE_FLOOR}")
+    for suffix in (".png", ".svg", ".ico", ".jpg", ".jpeg", ".webp", ".gif", ".bmp",
+                   ".ttf", ".otf", ".woff", ".woff2"):
+        for root in (ROOT / "apps/joyword", ROOT / "crates/joyword-shell"):
+            for asset in root.rglob(f"*{suffix}"):
+                if asset.is_file():
+                    check(False, f"feature catalog: unattributed binary asset {asset.relative_to(ROOT)}")
 
 
 def validate():
@@ -297,9 +374,11 @@ def validate():
     for source in ui_sources:
         text = source.read_text(encoding="utf-8").split("#[cfg(test)]")[0]
         used_keys |= set(re.findall(r'(?:label|text|format|format_count|Disabled)\(\s*"([a-z][a-z0-9_.]*)"', text))
-        used_keys |= set(re.findall(r'label: "([a-z][a-z0-9_.]*)"', text))
+        used_keys |= set(re.findall(r'(?:label|group_key): "([a-z][a-z0-9_.]*)"', text))
+        used_keys |= set(re.findall(r'=> "(ribbon\.tab\.[a-z0-9_.]+)"', text))
     missing = sorted(used_keys - (locale_keys[0] & locale_keys[1]))
     check(not missing, f"locales: UI references missing keys {missing}")
+    validate_feature_catalog(requirements)
 
     workflows = sorted((ROOT / ".github/workflows").glob("*.yml"))
     actions = 0
@@ -323,7 +402,8 @@ def validate():
           f"stage-consistent; M0–M7 required by {RELEASE_GATE}; "
           f"{len(markdown)} Markdown files; {len(case_ids)} registered cases; locale parity; "
           f"{actions} workflow actions pinned by SHA; "
-          f"{behavior_count} behavior registry entries.")
+          f"{behavior_count} behavior registry entries; "
+          f"feature catalog floor {FEATURE_FLOOR}.")
     print("Metadata validation only; Office compatibility and GUI behavior are not tested here.")
     return 0
 
