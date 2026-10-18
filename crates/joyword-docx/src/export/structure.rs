@@ -25,9 +25,10 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, Color, Document, FontRef, Indent, Justification, Measure, NodeId, NumberingRef,
-    NumberingStore, ParaProps, Paragraph, RunProps, SourceRef, Spacing, StyleId, StyleKind,
-    StyleSheet, Underline,
+    Block, BorderEdge, BorderKind, CellBorders, Color, Document, FontRef, FontSlots, Indent,
+    Justification, Languages, Measure, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph,
+    RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Table, TableWidth,
+    Underline, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -45,10 +46,16 @@ pub(super) enum Anchor<'a> {
     Before(&'a Block),
 }
 
-/// Consecutive new paragraphs and where they go.
+/// A body block created in this session, with no original element.
+pub(super) enum NewBlock<'a> {
+    Paragraph(&'a Paragraph),
+    Table(&'a Table),
+}
+
+/// Consecutive new blocks and where they go.
 pub(super) struct Insertion<'a> {
     pub anchor: Anchor<'a>,
-    pub paragraphs: Vec<&'a Paragraph>,
+    pub blocks: Vec<NewBlock<'a>>,
 }
 
 /// How the current body relates to the imported one.
@@ -61,12 +68,20 @@ pub(super) struct Alignment<'a> {
     pub involved: Vec<&'a Paragraph>,
     /// Source paragraphs that no longer exist.
     pub removed: Vec<&'a Paragraph>,
+    /// Imported tables whose model changed. The whole `w:tbl` is rewritten.
+    pub edited_tables: Vec<(&'a Table, &'a Table)>,
+    /// Imported tables that were removed. Their element range is deleted.
+    pub removed_tables: Vec<&'a Table>,
     pub inserted: Vec<Insertion<'a>>,
 }
 
 impl Alignment<'_> {
     pub fn is_unchanged(&self) -> bool {
-        self.edited.is_empty() && self.removed.is_empty() && self.inserted.is_empty()
+        self.edited.is_empty()
+            && self.removed.is_empty()
+            && self.inserted.is_empty()
+            && self.edited_tables.is_empty()
+            && self.removed_tables.is_empty()
     }
 }
 
@@ -89,18 +104,30 @@ pub(super) fn align<'a>(
     let mut previous_new = false;
     for after in current.body().blocks.iter() {
         let Some(&i) = index.get(&after.id()) else {
-            let Block::Paragraph(paragraph) = after else {
-                return Err(unsupported(Some(after.id()), "new non-paragraph block"));
+            let new_block = match after {
+                Block::Paragraph(paragraph) => {
+                    if paragraph.source.is_some() {
+                        return Err(unsupported(
+                            Some(after.id()),
+                            "new paragraph claims an original source",
+                        ));
+                    }
+                    NewBlock::Paragraph(paragraph)
+                }
+                Block::Table(table) => {
+                    if table.source.is_some() {
+                        return Err(unsupported(
+                            Some(after.id()),
+                            "new table claims an original source",
+                        ));
+                    }
+                    NewBlock::Table(table)
+                }
+                _ => return Err(unsupported(Some(after.id()), "new non-paragraph block")),
             };
-            if paragraph.source.is_some() {
-                return Err(unsupported(
-                    Some(after.id()),
-                    "new paragraph claims an original source",
-                ));
-            }
             if previous_new {
                 let group = alignment.inserted.last_mut().expect("open group");
-                group.paragraphs.push(paragraph);
+                group.blocks.push(new_block);
             } else {
                 if let Some(i) = previous {
                     involved[i] = true;
@@ -111,7 +138,7 @@ pub(super) fn align<'a>(
                 };
                 alignment.inserted.push(Insertion {
                     anchor,
-                    paragraphs: vec![paragraph],
+                    blocks: vec![new_block],
                 });
             }
             previous_new = true;
@@ -128,6 +155,11 @@ pub(super) fn align<'a>(
             (Block::Paragraph(b), Block::Paragraph(a)) => {
                 if b.as_ref() != a.as_ref() {
                     alignment.edited.push((b.as_ref(), a.as_ref()));
+                }
+            }
+            (Block::Table(b), Block::Table(a)) => {
+                if !b.same_content(a) {
+                    alignment.edited_tables.push((b.as_ref(), a.as_ref()));
                 }
             }
             (Block::Opaque(b), Block::Opaque(a))
@@ -151,12 +183,19 @@ pub(super) fn align<'a>(
             survivor = Some(i);
             continue;
         }
-        let Block::Paragraph(paragraph) = block else {
-            return Err(unsupported(Some(block.id()), "non-paragraph block removed"));
-        };
-        alignment.removed.push(paragraph);
-        if let Some(s) = survivor {
-            involved[s] = true;
+        match block {
+            Block::Paragraph(paragraph) => {
+                alignment.removed.push(paragraph);
+                if let Some(s) = survivor {
+                    involved[s] = true;
+                }
+            }
+            Block::Table(table) if table.source.is_some() => {
+                alignment.removed_tables.push(table);
+            }
+            _ => {
+                return Err(unsupported(Some(block.id()), "non-paragraph block removed"));
+            }
         }
     }
     alignment.involved = before
@@ -233,6 +272,26 @@ impl<'a> Source<'a> {
             return Err(unsupported(
                 Some(paragraph.id()),
                 "paragraph source does not match backing",
+            ));
+        }
+        Ok(element)
+    }
+
+    /// The `w:tbl` an imported table was read from.
+    pub fn table(&self, table: &Table) -> Result<&'a Element, ExportError> {
+        let source = table
+            .source
+            .as_deref()
+            .ok_or_else(|| unsupported(Some(table.id), "table has no original XML"))?;
+        let element = (source.part.as_ref() == self.part)
+            .then(|| locator(&source.locator))
+            .flatten()
+            .and_then(|span| self.elements.get(&span).copied())
+            .ok_or_else(|| unsupported(Some(table.id), "table source does not match backing"))?;
+        if !element.is(W, "tbl") {
+            return Err(unsupported(
+                Some(table.id),
+                "table source does not match backing",
             ));
         }
         Ok(element)
@@ -1252,6 +1311,377 @@ pub(super) fn new_paragraph(
     ))
 }
 
+/// Canonical `w:tbl` for a table the model fully represents. Unknown markup
+/// is never rewritten: callers keep the original element unless the table
+/// changed, and this writer refuses a model it cannot spell back.
+pub(super) fn table_markup(
+    table: &Table,
+    names: &Names,
+    limit: u64,
+) -> Result<String, ExportError> {
+    let refuse = |reason| unsupported(Some(table.id), reason);
+    if table.preserved.is_some() {
+        return Err(refuse("table holds preserved markup"));
+    }
+    let mut markup = String::new();
+    markup.push_str(&names.start("tbl"));
+    markup.push('>');
+    if table.style.is_some() || table.width.is_some() {
+        markup.push_str(&names.start("tblPr"));
+        markup.push('>');
+        if let Some(style) = &table.style {
+            if !table_style_id(style.as_str()) {
+                return Err(refuse("table style id cannot be written"));
+            }
+            markup.push_str(&names.start("tblStyle"));
+            markup.push_str(&names.attribute("val", style.as_str()));
+            markup.push_str("/>");
+        }
+        if let Some(width) = table.width {
+            markup.push_str(&width_markup(names, "tblW", width_value(width)?)?);
+        }
+        markup.push_str(&names.end("tblPr"));
+    }
+    markup.push_str(&names.start("tblGrid"));
+    markup.push('>');
+    if table.grid.is_empty() {
+        return Err(refuse("table grid is empty"));
+    }
+    for column in &table.grid {
+        let Measure::Twips(width) = column else {
+            return Err(refuse("table grid is not in twips"));
+        };
+        if *width < 0 {
+            return Err(refuse("table grid is not in twips"));
+        }
+        markup.push_str(&names.start("gridCol"));
+        markup.push_str(&names.attribute("w", &width.to_string()));
+        markup.push_str("/>");
+    }
+    markup.push_str(&names.end("tblGrid"));
+    if table.rows.is_empty() {
+        return Err(refuse("table has no rows"));
+    }
+    for row in &table.rows {
+        if row.preserved.is_some() {
+            return Err(refuse("table row holds preserved markup"));
+        }
+        markup.push_str(&names.start("tr"));
+        markup.push('>');
+        if row.grid_before != 0 || row.grid_after != 0 || row.header {
+            markup.push_str(&names.start("trPr"));
+            markup.push('>');
+            if row.grid_before != 0 {
+                markup.push_str(&val_element(
+                    names,
+                    "gridBefore",
+                    &row.grid_before.to_string(),
+                ));
+            }
+            if row.grid_after != 0 {
+                markup.push_str(&val_element(
+                    names,
+                    "gridAfter",
+                    &row.grid_after.to_string(),
+                ));
+            }
+            if row.header {
+                markup.push_str(&names.start("tblHeader"));
+                markup.push_str("/>");
+            }
+            markup.push_str(&names.end("trPr"));
+        }
+        if row.cells.is_empty() {
+            return Err(refuse("table row has no cells"));
+        }
+        for cell in &row.cells {
+            if cell.preserved.is_some() {
+                return Err(refuse("table cell holds preserved markup"));
+            }
+            if cell.grid_span == 0 {
+                return Err(refuse("table cell span is zero"));
+            }
+            markup.push_str(&names.start("tc"));
+            markup.push('>');
+            let needs_pr = cell.grid_span != 1
+                || cell.vertical_merge != VerticalMerge::None
+                || cell.width.is_some()
+                || cell.shading.is_some()
+                || borders_present(&cell.borders);
+            if needs_pr {
+                markup.push_str(&names.start("tcPr"));
+                markup.push('>');
+                if let Some(width) = cell.width {
+                    markup.push_str(&width_markup(names, "tcW", cell_width_value(width)?)?);
+                }
+                if cell.grid_span != 1 {
+                    markup.push_str(&val_element(names, "gridSpan", &cell.grid_span.to_string()));
+                }
+                match cell.vertical_merge {
+                    VerticalMerge::None => {}
+                    VerticalMerge::Restart => {
+                        markup.push_str(&val_element(names, "vMerge", "restart"));
+                    }
+                    VerticalMerge::Continue => {
+                        markup.push_str(&val_element(names, "vMerge", "continue"));
+                    }
+                }
+                if let Some(shading) = cell.shading {
+                    markup.push_str(&shading_markup(names, shading)?);
+                }
+                if borders_present(&cell.borders) {
+                    markup.push_str(&borders_markup(names, &cell.borders)?);
+                }
+                markup.push_str(&names.end("tcPr"));
+            }
+            if cell.blocks.is_empty() {
+                return Err(refuse("table cell has no paragraph"));
+            }
+            for block in cell.blocks.iter() {
+                let Some(paragraph) = block.as_paragraph() else {
+                    return Err(refuse("table cell holds an unmapped block"));
+                };
+                markup.push_str(&table_paragraph(paragraph, names, limit)?);
+            }
+            markup.push_str(&names.end("tc"));
+        }
+        markup.push_str(&names.end("tr"));
+        if markup.len() as u64 > limit {
+            return Err(ExportError::Budget {
+                part: "table".into(),
+                limit,
+            });
+        }
+    }
+    markup.push_str(&names.end("tbl"));
+    if markup.len() as u64 > limit {
+        return Err(ExportError::Budget {
+            part: "table".into(),
+            limit,
+        });
+    }
+    Ok(markup)
+}
+
+fn width_value(width: TableWidth) -> Result<(&'static str, Option<i64>), ExportError> {
+    match width {
+        TableWidth::Auto => Ok(("auto", None)),
+        TableWidth::Dxa(value) => Ok(("dxa", Some(value))),
+    }
+}
+
+fn cell_width_value(width: Measure) -> Result<(&'static str, Option<i64>), ExportError> {
+    match width {
+        Measure::Auto => Ok(("auto", None)),
+        Measure::Twips(value) if value >= 0 => Ok(("dxa", Some(value))),
+        _ => Err(unsupported(None, "table cell width cannot be written")),
+    }
+}
+
+fn width_markup(
+    names: &Names,
+    local: &str,
+    value: (&'static str, Option<i64>),
+) -> Result<String, ExportError> {
+    let (kind, width) = value;
+    let mut markup = names.start(local);
+    markup.push_str(&names.attribute("type", kind));
+    if let Some(width) = width {
+        markup.push_str(&names.attribute("w", &width.to_string()));
+    }
+    markup.push_str("/>");
+    Ok(markup)
+}
+
+fn val_element(names: &Names, local: &str, value: &str) -> String {
+    format!("{}{}/>", names.start(local), names.attribute("val", value))
+}
+
+fn borders_present(borders: &CellBorders) -> bool {
+    borders.top.is_some()
+        || borders.left.is_some()
+        || borders.bottom.is_some()
+        || borders.right.is_some()
+}
+
+fn borders_markup(names: &Names, borders: &CellBorders) -> Result<String, ExportError> {
+    let mut markup = names.start("tcBorders");
+    markup.push('>');
+    for (local, edge) in [
+        ("top", borders.top),
+        ("left", borders.left),
+        ("bottom", borders.bottom),
+        ("right", borders.right),
+    ] {
+        if let Some(edge) = edge {
+            markup.push_str(&edge_markup(names, local, edge)?);
+        }
+    }
+    markup.push_str(&names.end("tcBorders"));
+    Ok(markup)
+}
+
+fn edge_markup(names: &Names, local: &str, edge: BorderEdge) -> Result<String, ExportError> {
+    let kind = match edge.kind {
+        BorderKind::Nil => "nil",
+        BorderKind::Single => "single",
+    };
+    let color = color_value(edge.color)
+        .map_err(|_| unsupported(None, "table border colour is outside the mapped subset"))?;
+    Ok(format!(
+        "{}{}{}{}/>",
+        names.start(local),
+        names.attribute("val", kind),
+        names.attribute("sz", &edge.size_eighths.to_string()),
+        names.attribute("color", &color)
+    ))
+}
+
+fn shading_markup(names: &Names, shading: Shading) -> Result<String, ExportError> {
+    let fill = color_value(shading.fill)
+        .map_err(|_| unsupported(None, "table shading is outside the mapped subset"))?;
+    Ok(format!(
+        "{}{}{}{}/>",
+        names.start("shd"),
+        names.attribute("val", "clear"),
+        names.attribute("color", "auto"),
+        names.attribute("fill", &fill)
+    ))
+}
+
+fn color_value(color: Color) -> Result<String, ()> {
+    match color {
+        Color::Auto => Ok("auto".into()),
+        Color::Rgb(red, green, blue) => Ok(format!("{red:02X}{green:02X}{blue:02X}")),
+        Color::Theme(_) => Err(()),
+    }
+}
+
+fn table_paragraph(
+    paragraph: &Paragraph,
+    names: &Names,
+    limit: u64,
+) -> Result<String, ExportError> {
+    let refuse = |reason| unsupported(Some(paragraph.id()), reason);
+    if !table_paragraph_ok(paragraph) {
+        return Err(refuse("table cell paragraph is outside the mapped subset"));
+    }
+    let mut inner = String::new();
+    if paragraph.style.is_some() || paragraph.props.justification.is_some() {
+        inner.push_str(&names.start("pPr"));
+        inner.push('>');
+        if let Some(style) = &paragraph.style {
+            inner.push_str(&names.start("pStyle"));
+            inner.push_str(&names.attribute("val", style.as_str()));
+            inner.push_str("/>");
+        }
+        if let Some(justification) = paragraph.props.justification {
+            inner.push_str(&names.start("jc"));
+            inner.push_str(&names.attribute("val", justification_value(justification)));
+            inner.push_str("/>");
+        }
+        inner.push_str(&names.end("pPr"));
+    }
+    for (style, props, text) in table_runs(paragraph) {
+        if style.is_some() || text.contains('\u{FFFC}') {
+            return Err(refuse("table cell paragraph is outside the mapped subset"));
+        }
+        let rpr = table_rpr(names, &props).map_err(refuse)?;
+        let text = bounded_text_xml(names, &text, limit)?;
+        if rpr.is_none() && text.is_empty() {
+            continue;
+        }
+        inner.push_str(&names.start("r"));
+        inner.push('>');
+        if let Some(rpr) = rpr {
+            inner.push_str(&rpr);
+        }
+        inner.push_str(&text);
+        inner.push_str(&names.end("r"));
+    }
+    if inner.is_empty() {
+        return Ok(format!("{}/>", names.start("p")));
+    }
+    Ok(format!("{}>{inner}{}", names.start("p"), names.end("p")))
+}
+
+fn table_paragraph_ok(paragraph: &Paragraph) -> bool {
+    let props = &paragraph.props;
+    paragraph.inlines().is_empty()
+        && paragraph.mark_props.is_empty()
+        && props.preserved.is_none()
+        && props.numbering.is_none()
+        && props.tabs.is_none()
+        && props.indent == Indent::default()
+        && props.spacing == Spacing::default()
+        && props.keep_next.is_none()
+        && props.keep_lines.is_none()
+        && props.widow_control.is_none()
+        && props.page_break_before.is_none()
+        && props.snap_to_grid.is_none()
+        && props.outline_level.is_none()
+        && paragraph
+            .style
+            .as_ref()
+            .is_none_or(|style| table_style_id(style.as_str()))
+        && !paragraph
+            .plain_text(|_| "\u{FFFC}".into())
+            .contains('\u{FFFC}')
+        && paragraph.runs().iter().all(|run| {
+            run.style.is_none() && run.props.preserved.is_none() && table_run_ok(&run.props)
+        })
+}
+
+fn table_style_id(id: &str) -> bool {
+    writable_style_id(id) && !id.chars().any(|ch| matches!(ch, '<' | '>' | '&' | '"'))
+}
+
+fn table_run_ok(props: &RunProps) -> bool {
+    props.strike.is_none()
+        && props.hidden.is_none()
+        && props.underline.is_none()
+        && props.fonts == FontSlots::default()
+        && props.languages == Languages::default()
+        && props
+            .size
+            .is_none_or(|size| matches!(size, Measure::HalfPoints(value) if value >= 0))
+        && props
+            .color
+            .is_none_or(|color| matches!(color, Color::Auto | Color::Rgb(_, _, _)))
+}
+
+fn table_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'static str> {
+    if !table_run_ok(props) {
+        return Err("table cell paragraph is outside the mapped subset");
+    }
+    if props.is_empty() {
+        return Ok(None);
+    }
+    let mut body = String::new();
+    body.push_str(&toggle(names, "b", props.bold));
+    body.push_str(&toggle(names, "i", props.italic));
+    if let Some(Measure::HalfPoints(size)) = props.size {
+        body.push_str(&names.start("sz"));
+        body.push_str(&names.attribute("val", &size.to_string()));
+        body.push_str("/>");
+    }
+    if let Some(color) = props.color {
+        let value =
+            color_value(color).map_err(|_| "theme colours are outside the direct subset")?;
+        body.push_str(&names.start("color"));
+        body.push_str(&names.attribute("val", &value));
+        body.push_str("/>");
+    }
+    if body.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(format!(
+        "{}>{body}{}",
+        names.start("rPr"),
+        names.end("rPr")
+    )))
+}
+
 /// Source property element copied onto a new or rebuilt paragraph.
 #[derive(Clone)]
 struct CopySet {
@@ -1441,6 +1871,19 @@ fn property_leaf(local: &str) -> Option<&'static [&'static str]> {
         "lang" => &["val", "eastAsia", "bidi"],
         _ => return None,
     })
+}
+
+fn table_runs(paragraph: &Paragraph) -> Vec<(Option<StyleId>, Arc<RunProps>, String)> {
+    let text = paragraph.plain_text(|_| "\u{FFFC}".into());
+    let mut chars = text.chars();
+    paragraph
+        .runs()
+        .iter()
+        .map(|run| {
+            let text: String = chars.by_ref().take(run.len).collect();
+            (run.style.clone(), run.props.clone(), text)
+        })
+        .collect()
 }
 
 fn run_groups(paragraph: &Paragraph) -> Vec<(Option<StyleId>, Arc<RunProps>, String)> {

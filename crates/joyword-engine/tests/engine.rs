@@ -12,8 +12,8 @@ use joyword_engine::{
     Precondition, RunChange, Selection, Session, Transaction, TxError, UndoError,
 };
 use joyword_model::{
-    AbstractNum, Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, Document,
-    DumpOptions, InlineKind, Justification, Measure, NodeId, NumInstance, NumberFormat,
+    AbstractNum, Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, CellBorders,
+    Document, DumpOptions, InlineKind, Justification, Measure, NodeId, NumInstance, NumberFormat,
     NumberingLevel, NumberingRef, Paragraph, Position, Row, ScalarOffset, Sdt, SdtLock, SdtProps,
     StoryKind, Style, StyleId, StyleKind, Table, VerticalMerge,
 };
@@ -843,6 +843,8 @@ fn locked_content_controls_and_containers_are_respected() {
                 grid_span: 1,
                 vertical_merge: VerticalMerge::None,
                 width: None,
+                borders: CellBorders::default(),
+                shading: None,
                 blocks: BlockSeq::from_vec(vec![cell_text]),
                 preserved: None,
             }],
@@ -850,6 +852,7 @@ fn locked_content_controls_and_containers_are_respected() {
             preserved: None,
         }],
         style: None,
+        width: None,
         preserved: None,
         source: None,
     };

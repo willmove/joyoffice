@@ -64,11 +64,25 @@ impl GlyphRun {
     }
 }
 
+/// A filled rectangle in page coordinates. Borders and cell shading are
+/// rectangles so screen and PDF paint the same geometry.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SceneRect {
+    pub x: Emu,
+    pub y: Emu,
+    pub width: Emu,
+    pub height: Emu,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageScene {
     pub width: Emu,
     pub height: Emu,
     pub runs: Vec<GlyphRun>,
+    pub rects: Vec<SceneRect>,
 }
 
 /// Points as PDF and print coordinates use them.

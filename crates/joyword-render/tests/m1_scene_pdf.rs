@@ -415,5 +415,6 @@ fn blank_scene() -> joyword_layout::PageScene {
         width: Emu::new(8 * Emu::PER_INCH),
         height: Emu::new(8 * Emu::PER_INCH),
         runs: Vec::new(),
+        rects: Vec::new(),
     }
 }

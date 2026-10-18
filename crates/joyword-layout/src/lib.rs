@@ -27,7 +27,7 @@ pub use line::{
     BreakError, ClusterRange, LayoutLine, LineDiagnostic, LineError, LineLimit, LineLimits,
     LineStats, OverflowKind, ParagraphLines, SourceRange, layout_paragraph, layout_paragraph_auto,
 };
-pub use scene::{GlyphRun, PageScene, to_points, to_screen};
+pub use scene::{GlyphRun, PageScene, SceneRect, to_points, to_screen};
 pub use shape::{FeatureSet, ShapedGlyph, ShapedRun, shape};
 pub use slots::{
     FaceSet, FontSlot, MixedLine, MixedParagraph, adjust_cjk_break, prohibited_line_edge, slot_for,

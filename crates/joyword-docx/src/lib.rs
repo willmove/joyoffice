@@ -37,8 +37,10 @@
 //! file-system save is done.
 //! Numbering definitions (`abstractNum`, `num`, level overrides) and
 //! paragraph or style tab stops are mapped. `numbering.xml` is never
-//! rewritten. Header and footer part bytes are not rewritten. Tables, content
-//! controls, notes, comments,
+//! rewritten. Header and footer part bytes are not rewritten. A `w:tbl` is
+//! mapped only when every element is in the typed subset (grid, rows, cells,
+//! merge state, `nil`/`single` borders and clear shading); anything else keeps
+//! the whole table as an opaque block. Content controls, notes, comments,
 //! bookmarks/fields as annotations and images remain unmapped.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
@@ -55,6 +57,7 @@ mod ns;
 mod numbering;
 mod props;
 mod result;
+mod table;
 mod xml;
 
 pub use backing::{Fragment, PackageBacking, PreservedReason};

@@ -219,6 +219,18 @@ const LIST_NUM_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Text,
     required: true,
 }];
+const TABLE_SIZE_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "rows",
+        kind: ParamKind::Text,
+        required: false,
+    },
+    ParamSpec {
+        name: "columns",
+        kind: ParamKind::Text,
+        required: false,
+    },
+];
 const LIST_LEVEL_PARAM: &[ParamSpec] = &[ParamSpec {
     name: "level",
     kind: ParamKind::Text,
@@ -429,6 +441,12 @@ pub const FIND_REPLACE_ALL: CommandId = CommandId("find.replace_all");
 pub const FORMAT_COPY: CommandId = CommandId("format.copy");
 pub const FORMAT_PAINT: CommandId = CommandId("format.paint");
 pub const FORMAT_CANCEL: CommandId = CommandId("format.cancel");
+pub const TABLE_INSERT: CommandId = CommandId("table.insert");
+pub const TABLE_ROW_INSERT: CommandId = CommandId("table.row.insert");
+pub const TABLE_ROW_DELETE: CommandId = CommandId("table.row.delete");
+pub const TABLE_COLUMN_INSERT: CommandId = CommandId("table.column.insert");
+pub const TABLE_COLUMN_DELETE: CommandId = CommandId("table.column.delete");
+pub const TABLE_SELECT: CommandId = CommandId("table.select");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
@@ -837,6 +855,72 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: PAGE_ORIENTATION_PARAM,
+            },
+            CommandSpec {
+                id: TABLE_INSERT,
+                label: "command.table.insert",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: TABLE_SIZE_PARAMS,
+            },
+            CommandSpec {
+                id: TABLE_ROW_INSERT,
+                label: "command.table.row.insert",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_ROW_DELETE,
+                label: "command.table.row.delete",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_COLUMN_INSERT,
+                label: "command.table.column.insert",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_COLUMN_DELETE,
+                label: "command.table.column.delete",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: TABLE_SELECT,
+                label: "command.table.select",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 4,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: FIND_NEXT,

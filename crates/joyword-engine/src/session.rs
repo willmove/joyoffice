@@ -115,6 +115,8 @@ pub struct ChangeSet {
     pub styles: BTreeSet<StyleId>,
     /// `w:docDefaults` changed, so every paragraph's resolved style is stale.
     pub defaults_changed: bool,
+    /// Tables whose grid, rows or cells changed.
+    pub tables: BTreeSet<NodeId>,
 }
 
 impl ChangeSet {
@@ -125,6 +127,7 @@ impl ChangeSet {
             && self.moved.is_empty()
             && self.annotations.is_empty()
             && self.styles.is_empty()
+            && self.tables.is_empty()
             && !self.defaults_changed
     }
 }
@@ -225,6 +228,7 @@ impl ChangeSet {
         self.moved.extend(other.moved);
         self.annotations.extend(other.annotations);
         self.styles.extend(other.styles);
+        self.tables.extend(other.tables);
         self.defaults_changed |= other.defaults_changed;
     }
 }
@@ -615,6 +619,15 @@ fn execute(
         } => set_numbering(document, start, end, *numbering, None, changes),
         Command::SetNumberingLevel { start, end, level } => {
             set_numbering(document, start, end, None, Some(*level), changes)
+        }
+        Command::InsertTable { at, rows, columns } => {
+            crate::table::insert_table(document, at, *rows, *columns, changes)
+        }
+        Command::InsertTableRow { at } => crate::table::insert_row(document, at, changes),
+        Command::DeleteTableRow { at } => crate::table::delete_row(document, at, map, changes),
+        Command::InsertTableColumn { at } => crate::table::insert_column(document, at, changes),
+        Command::DeleteTableColumn { at } => {
+            crate::table::delete_column(document, at, map, changes)
         }
         Command::SetPageSetup { section, page } => {
             set_page_setup(document, *section, page, changes)
@@ -1395,8 +1408,11 @@ fn touched_issues(document: &Document, changes: &ChangeSet) -> Vec<Issue> {
         match block {
             Block::Paragraph(paragraph) => check(paragraph, changes, issues),
             Block::Table(table) => {
+                if changes.tables.contains(&table.id) {
+                    issues.extend(joyword_model::table_structure(table));
+                }
                 for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
-                    if cell.blocks.is_empty() {
+                    if cell.blocks.is_empty() && !changes.tables.contains(&table.id) {
                         issues.push(Issue::EmptyCell { cell: cell.id });
                     }
                     for inner in cell.blocks.iter() {

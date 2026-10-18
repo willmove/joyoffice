@@ -22,7 +22,7 @@
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M0 | 3 | 3 | 0 | 0 | 6 |
 | M1 | 7 | 4 | 1 | 0 | 12 |
-| M2 | 0 | 8 | 4 | 0 | 12 |
+| M2 | 0 | 9 | 3 | 0 | 12 |
 | M3 | 0 | 0 | 5 | 0 | 5 |
 | M4 | 0 | 0 | 4 | 0 | 4 |
 | M5 | 0 | 0 | 5 | 0 | 5 |
@@ -30,9 +30,9 @@
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 10 | 15 | 41 | 0 | 66 |
+| 总计 | 10 | 16 | 40 | 0 | 66 |
 
-**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 Windows 原生 GUI 确认保存人工验收，以及 T103 的覆盖引导 fuzz；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；主题 tint／shade、按字体名换面、表格样式、边框底纹、超出本切片的编号格式与前导符、编号级别字符格式、编号部件改写、正则查找、全角半角折叠和人工验收未做）、T202（页面几何、显式分页符、主页眉页脚、首页不同与奇偶页不同及其链接到前一节已绘制，人工验收未做）、T205（开始／插入／布局／视图功能区、只读标尺与状态栏第一切片已落地，字体与段落对话框、制表位拖拽、编辑标记切换和 Word 字数对照未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（人工验收未做）、T210（全部子命令已实现、人工验收未做）与 T211（应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做）进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
+**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 Windows 原生 GUI 确认保存人工验收，以及 T103 的覆盖引导 fuzz；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；主题 tint／shade、按字体名换面、表格样式、边框底纹、超出本切片的编号格式与前导符、编号级别字符格式、编号部件改写、正则查找、全角半角折叠和人工验收未做）、T201（基础表格第一切片：类型化网格、行列增删、单元格选择和页面场景；合并与拆分编辑未做）、T202（页面几何、显式分页符、主页眉页脚、首页不同与奇偶页不同及其链接到前一节已绘制，人工验收未做）、T205（开始／插入／布局／视图功能区、只读标尺与状态栏第一切片已落地，字体与段落对话框、制表位拖拽、编辑标记切换和 Word 字数对照未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（人工验收未做）、T210（全部子命令已实现、人工验收未做）与 T211（应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做）进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
 
 ## 阶段与任务
 
@@ -279,14 +279,14 @@
 ### T201：基础表格编辑
 
 - 输入：合法段落模型、表格网格定义、行列选择和 DOCX 表格规范样例。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-005`、`STYLE-004`
 - 前置：`T200`
 - 产物：真实网格、行列增删、基础合并拆分、边框／底纹及表格内选择。
 - 错误路径：不规则合并、结构破坏和跨只读对象编辑不能产生非法模型。
 - 自动验证：网格不变量、内容归属、合并逆操作和 DOCX 读写样例。
 - 人工验收：制作合同表格，插行、合并、拆分、撤销、保存重开。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-18 第一切片已落地，任务保持 `in_progress`。已覆盖：`w:tbl` 仅在完全可表示的子集内成为类型化表（`tblGrid` 的 twip 列宽、`tblW` 的 auto／dxa、`gridSpan`、`vMerge`、`tcW`、`nil`／`single` 边框、`clear` 底纹、仅含 `pStyle`／`jc` 与 `b`／`i`／`sz`／sRGB 的单元格段落）。缺网格、`tblLook`、修订、嵌套表和其他未知标记整表保持不透明，不分配标识，也不改写未知 XML。省略的 `vMerge` `w:val` 按 ECMA-376 §17.4.84 记为 `continue`；省略的边框 `sz` 记为 4、颜色记为 `auto`。导出仍走既有拒绝规则：未改的表复制原字节；改过的类型化表整表重写；含锁定节点（含不透明表）的编辑导出返回 `Restricted`，不生成丢掉该表的包。引擎 `InsertTable`／`InsertTableRow`／`DeleteTableRow`／`InsertTableColumn`／`DeleteTableColumn` 各是一次可撤销事务（行为登记 `TABLE-INSERT-UNDO`、`TABLE-ROW-UNDO`、`TABLE-COLUMN-UNDO`，来源是假设，没有 Word 观察）。行列上限 1..=32；不能删最后一行或最后一列；带垂直合并的表拒绝增删行，带水平跨列、垂直合并或 `gridBefore`／`gridAfter` 的表拒绝增删列。新表列宽取节内容宽度的 twip 等分（A4 中文页为 4153），否则每列 1440 twip。新单元格是空段加四边 `single`、`sz` 4、颜色 `auto`。外壳 `table.insert`（编辑菜单，默认 2×2）、`table.row.insert`、`table.row.delete`、`table.column.insert`、`table.column.delete`、`table.select` 经命令注册表执行。单元格选择覆盖该格全部段落；跨单元格删除仍是 `CrossContainer`。排版把单元格段落按网格跨度减去左右各 108 twip 的可用宽度放入同一 `PageScene`，边框和 sRGB 底纹画成矩形，屏幕与 PDF 共用；有表时增量排版改为整篇重排。证据：`grid_invariants_reject_a_short_row_and_an_orphan_merge`、`a_represented_table_is_typed_and_an_unknown_sibling_stays_opaque`、`editing_a_cell_round_trips_and_keeps_merge_state`、`a_simple_grid_table_round_trips_after_a_cell_edit`、`an_edited_paragraph_beside_an_opaque_table_is_refused`、`inserting_a_table_is_one_undoable_transaction`、`inserting_and_deleting_a_row_is_one_undoable_transaction`、`inserting_and_deleting_a_column_is_one_undoable_transaction`、`column_and_row_edits_refuse_merged_structure`、`cell_selection_covers_one_cell_and_cross_cell_delete_is_refused`、`two_cells_place_glyphs_at_different_x_and_paint_borders`、`incremental_layout_of_a_table_matches_a_full_layout`、`table_commands_go_through_the_command_registry`、`column_commands_refuse_a_merged_table`。未覆盖：合并与拆分的编辑命令、垂直合并的视觉跨行、跨页拆行、嵌套表、`tblLook`、单元格边距、主题色边框、表格样式、`nil`／`single` 以外的边框，以及制作合同表格的人工验收。没有启动图形界面。详见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T202：页面与页眉页脚
 

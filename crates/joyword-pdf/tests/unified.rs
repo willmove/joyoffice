@@ -58,6 +58,7 @@ fn scene(font: &LoadedFont) -> PageScene {
         width: Emu::new(210 * Emu::PER_MM),
         height: Emu::new(297 * Emu::PER_MM),
         runs,
+        rects: Vec::new(),
     }
 }
 

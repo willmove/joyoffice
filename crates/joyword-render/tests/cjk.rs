@@ -46,6 +46,7 @@ fn scene(font: &LoadedFont) -> PageScene {
     PageScene {
         width: Emu::new(400 * Emu::PER_POINT),
         height: Emu::new(60 * Emu::PER_POINT),
+        rects: Vec::new(),
         runs: vec![GlyphRun::place(
             &run,
             Emu::new(12 * Emu::PER_POINT),
