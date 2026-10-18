@@ -119,6 +119,8 @@ pub(crate) trait DocEditor {
     ) -> Result<bool, InputError>;
     fn set_page_orientation(&mut self, landscape: bool) -> Result<bool, InputError>;
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError>;
+    fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError>;
+    fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError>;
     fn insert_table_row(&mut self) -> Result<bool, InputError>;
     fn delete_table_row(&mut self) -> Result<bool, InputError>;
     fn insert_table_column(&mut self) -> Result<bool, InputError>;
@@ -256,6 +258,12 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
         TextInput::insert_table(self, rows, columns)
+    }
+    fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError> {
+        TextInput::insert_image_bytes(self, bytes)
+    }
+    fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError> {
+        TextInput::insert_image_file(self, path)
     }
     fn insert_table_row(&mut self) -> Result<bool, InputError> {
         TextInput::insert_table_row(self)
@@ -424,6 +432,12 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
         TextInput::insert_table(self, rows, columns)
+    }
+    fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError> {
+        TextInput::insert_image_bytes(self, bytes)
+    }
+    fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError> {
+        TextInput::insert_image_file(self, path)
     }
     fn insert_table_row(&mut self) -> Result<bool, InputError> {
         TextInput::insert_table_row(self)
@@ -595,6 +609,12 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
         TextInput::insert_table(self, rows, columns)
+    }
+    fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError> {
+        TextInput::insert_image_bytes(self, bytes)
+    }
+    fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError> {
+        TextInput::insert_image_file(self, path)
     }
     fn insert_table_row(&mut self) -> Result<bool, InputError> {
         TextInput::insert_table_row(self)
@@ -1050,6 +1070,7 @@ fn input_error_label(error: &InputError) -> &'static str {
         InputError::Budget(_) | InputError::GenerationOverflow => "input.limit",
         InputError::StaleComposition => "input.stale",
         InputError::InvalidText(_) => "input.unsupported_text",
+        InputError::Image(_) => "input.image",
         InputError::Undo(_) | InputError::Transaction(_) | InputError::Rejected(_) => {
             "input.rejected"
         }
@@ -1750,7 +1771,7 @@ impl JoyWord {
             EDIT_REDO if editor.is_composing() => Availability::Disabled("input.composing"),
             EDIT_CANCEL if !editor.is_composing() => Availability::Disabled("input.no_composition"),
             EDIT_UNDO | EDIT_REDO | EDIT_BACKSPACE | EDIT_DELETE | EDIT_ENTER | EDIT_BOLD
-            | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE | EDIT_INSERT
+            | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE | EDIT_INSERT | EDIT_INSERT_IMAGE
                 if editor.read_only() =>
             {
                 Availability::Disabled("input.read_only")
@@ -2091,17 +2112,63 @@ impl JoyWord {
                 })
             }
             EDIT_PASTE => {
-                // The system pasteboard is the source of truth; the in-app
-                // string only backs paste where no system clipboard exists.
-                let text = cx
-                    .read_from_clipboard()
-                    .and_then(|item| item.text())
-                    .unwrap_or_else(|| self.clipboard.clone());
-                self.apply_input(cx, |editor| {
-                    editor
-                        .replace_from(InputSource::Paste, None, &text)
-                        .map(|_| ())
-                })
+                // The system pasteboard is the source of truth. `text()` is
+                // not used: it turns file paths into text. The in-app string
+                // only backs paste where no system clipboard exists.
+                if let Some(item) = cx.read_from_clipboard() {
+                    let offers: Vec<joyword_shell::input::ClipboardOffer<'_>> = item
+                        .entries()
+                        .iter()
+                        .map(|entry| match entry {
+                            gpui::ClipboardEntry::Image(image) => {
+                                joyword_shell::input::ClipboardOffer::Image {
+                                    bytes: image.bytes.as_slice(),
+                                }
+                            }
+                            gpui::ClipboardEntry::String(text) => {
+                                joyword_shell::input::ClipboardOffer::Text(text.text.as_str())
+                            }
+                            gpui::ClipboardEntry::ExternalPaths(_) => {
+                                joyword_shell::input::ClipboardOffer::Paths
+                            }
+                        })
+                        .collect();
+                    match joyword_shell::input::choose_paste(&offers) {
+                        joyword_shell::input::PasteChoice::Image(bytes) => {
+                            let bytes = bytes.to_vec();
+                            self.apply_input(cx, |editor| {
+                                editor.insert_image_bytes(&bytes).map(|_| ())
+                            });
+                        }
+                        joyword_shell::input::PasteChoice::Text(text) => {
+                            let text = text.to_owned();
+                            self.apply_input(cx, |editor| {
+                                editor
+                                    .replace_from(InputSource::Paste, None, &text)
+                                    .map(|_| ())
+                            });
+                        }
+                        joyword_shell::input::PasteChoice::Empty => {}
+                        joyword_shell::input::PasteChoice::Refused(_) => {
+                            self.input_error = Some(self.label("input.image"));
+                        }
+                    }
+                } else if !self.clipboard.is_empty() {
+                    let text = self.clipboard.clone();
+                    self.apply_input(cx, |editor| {
+                        editor
+                            .replace_from(InputSource::Paste, None, &text)
+                            .map(|_| ())
+                    });
+                }
+            }
+            EDIT_INSERT_IMAGE => {
+                let Some(joyword_shell::command::ArgValue::Path(path)) = args.get("path") else {
+                    self.input_error = Some("path".into());
+                    return Err("path".into());
+                };
+                let path = path.clone();
+                self.apply_input(cx, |editor| editor.insert_image_file(&path).map(|_| ()))
             }
             EDIT_LEFT | EDIT_RIGHT | EDIT_EXTEND_LEFT | EDIT_EXTEND_RIGHT => {
                 let direction = if id == EDIT_LEFT || id == EDIT_EXTEND_LEFT {

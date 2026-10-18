@@ -504,6 +504,8 @@ impl LineBuilder {
                 east_asia_family: None,
             },
             clusters: self.clusters,
+            images: Vec::new(),
+            box_height: Emu::new(0),
         }
     }
 }

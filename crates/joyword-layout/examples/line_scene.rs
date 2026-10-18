@@ -56,6 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         width: Emu::new(210 * Emu::PER_MM),
         height: Emu::new(297 * Emu::PER_MM),
         rects: Vec::new(),
+        images: Vec::new(),
         runs: result
             .lines
             .iter()

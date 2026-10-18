@@ -10,14 +10,16 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use joyword_foundation::Emu;
-use joyword_layout::{FontKey, LoadedFont, PageScene};
+use joyword_layout::{FontKey, LoadedFont, PageScene, SceneImage};
 
 pub use cache::{NeighborhoodCache, NeighborhoodRequest};
 use skrifa::instance::{LocationRef, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
 use skrifa::raw::TableProvider;
 use skrifa::{GlyphId, MetadataProvider, Tag};
-use tiny_skia::{FillRule, Paint, Path, PathBuilder, Pixmap, Transform};
+use tiny_skia::{
+    BlendMode, FillRule, FilterQuality, Paint, Path, PathBuilder, Pixmap, PixmapPaint, Transform,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Projection {
@@ -171,8 +173,16 @@ pub enum RasterError {
     DuplicateFont(FontKey),
     MissingFont(FontKey),
     UnsupportedFont(FontKey),
-    InvalidGlyph { font: FontKey, glyph: u16 },
-    Outline { font: FontKey, glyph: u16 },
+    InvalidGlyph {
+        font: FontKey,
+        glyph: u16,
+    },
+    Outline {
+        font: FontKey,
+        glyph: u16,
+    },
+    /// A scene image could not be decoded. The text does not echo bytes.
+    Image(&'static str),
     LimitExceeded(RasterLimit),
     Allocation,
     Cancelled,
@@ -335,6 +345,64 @@ pub fn raster_size(
     Ok((width, height))
 }
 
+fn paint_image(
+    pixmap: &mut Pixmap,
+    image: &SceneImage,
+    projection: Projection,
+) -> Result<(), RasterError> {
+    let decoded =
+        joyword_model::decode_rgba(image.bytes.as_ref(), &joyword_model::ImageLimits::default())
+            .map_err(|_| RasterError::Image("image decode failed"))?;
+    let expected = (decoded.width as usize)
+        .checked_mul(decoded.height as usize)
+        .and_then(|pixels| pixels.checked_mul(4))
+        .ok_or(RasterError::Image("image decode failed"))?;
+    if decoded.rgba.len() != expected || decoded.width == 0 || decoded.height == 0 {
+        return Err(RasterError::Image("image decode failed"));
+    }
+    let mut rgba = decoded.rgba;
+    for pixel in rgba.as_chunks_mut::<4>().0 {
+        let alpha = u32::from(pixel[3]);
+        for channel in &mut pixel[..3] {
+            *channel = ((u32::from(*channel) * alpha + 127) / 255) as u8;
+        }
+    }
+    let size = tiny_skia::IntSize::from_wh(decoded.width, decoded.height)
+        .ok_or(RasterError::Image("image decode failed"))?;
+    let source = Pixmap::from_vec(rgba, size).ok_or(RasterError::Image("image decode failed"))?;
+    let dest_w = projection.pixels(image.width) as f32;
+    let dest_h = projection.pixels(image.height) as f32;
+    let x = projection.pixels(image.x) as f32;
+    let y = projection.pixels(image.y) as f32;
+    if ![dest_w, dest_h, x, y].iter().all(|value| value.is_finite())
+        || dest_w <= 0.0
+        || dest_h <= 0.0
+    {
+        return Err(RasterError::Image("image extent rejected"));
+    }
+    let transform = Transform::from_row(
+        dest_w / decoded.width as f32,
+        0.0,
+        0.0,
+        dest_h / decoded.height as f32,
+        x,
+        y,
+    );
+    pixmap.draw_pixmap(
+        0,
+        0,
+        source.as_ref(),
+        &PixmapPaint {
+            opacity: 1.0,
+            blend_mode: BlendMode::SourceOver,
+            quality: FilterQuality::Nearest,
+        },
+        transform,
+        None,
+    );
+    Ok(())
+}
+
 /// All work is private until success. An error or cancellation never yields a
 /// partial page. Request budgets can only lower the fixed hard ceilings.
 pub fn rasterize(
@@ -348,7 +416,10 @@ pub fn rasterize(
     let limits = limits.capped();
     let (width, height) = raster_size(scene, projection, limits)?;
     limit(fonts.len() > limits.max_fonts, RasterLimit::Fonts)?;
-    limit(scene.runs.len() > limits.max_runs, RasterLimit::Runs)?;
+    limit(
+        scene.runs.len().saturating_add(scene.images.len()) > limits.max_runs,
+        RasterLimit::Runs,
+    )?;
     let mut by_key = BTreeMap::new();
     let mut font_bytes = 0usize;
     for font in fonts {
@@ -361,6 +432,9 @@ pub fn rasterize(
     }
     let mut count = 0usize;
     for run in &scene.runs {
+        if run.glyphs.is_empty() && run.text.is_empty() {
+            continue;
+        }
         count = count.saturating_add(run.glyphs.len());
         limit(count > limits.max_glyphs, RasterLimit::Glyphs)?;
         let font = by_key
@@ -452,12 +526,18 @@ pub fn rasterize(
             pixmap.fill_path(&path, &fill, FillRule::Winding, Transform::identity(), None);
         }
     }
+    for image in &scene.images {
+        paint_image(&mut pixmap, image, projection)?;
+    }
     let mut paint = Paint::default();
     paint.set_color_rgba8(0, 0, 0, 255);
     paint.anti_alias = true;
     let mut cache: BTreeMap<(FontKey, i64, u16), (Option<Path>, usize)> = BTreeMap::new();
     let mut stats = RasterStats::default();
     for run in &scene.runs {
+        if run.glyphs.is_empty() && run.text.is_empty() {
+            continue;
+        }
         let font = by_key[&run.font];
         let outlines = font.font_ref().outline_glyphs();
         for glyph in &run.glyphs {

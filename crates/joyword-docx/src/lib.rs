@@ -40,8 +40,12 @@
 //! rewritten. Header and footer part bytes are not rewritten. A `w:tbl` is
 //! mapped only when every element is in the typed subset (grid, rows, cells,
 //! merge state, `nil`/`single` borders and clear shading); anything else keeps
-//! the whole table as an opaque block. Content controls, notes, comments,
-//! bookmarks/fields as annotations and images remain unmapped.
+//! the whole table as an opaque block. Content controls, notes, comments and
+//! bookmarks/fields as annotations remain unmapped. An inline still picture
+//! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster
+//! part inside the image budget becomes an image resource; floating anchors,
+//! OLE, SVG and remote targets stay preserved and are not fetched or run.
+//! Export does not rewrite media parts: a new image resource is refused.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
 //! §17.3, §17.6, §17.7, §17.13.5, §17.15; Part 2 (OPC); Part 3 (Markup
@@ -52,6 +56,7 @@ mod backing;
 mod binding;
 mod body;
 mod export;
+mod images;
 mod import;
 mod ns;
 mod numbering;
@@ -69,6 +74,6 @@ pub use ns::{
     REL_STYLES, W, W_STRICT,
 };
 pub use result::{
-    Diagnostic, DiagnosticKind, Diagnostics, Editability, ImportError, ImportResult,
+    Diagnostic, DiagnosticKind, Diagnostics, Editability, ImageOutcome, ImportError, ImportResult,
     MAX_DIAGNOSTICS, ReadOnlyReason, Severity,
 };

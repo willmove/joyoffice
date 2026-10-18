@@ -19,6 +19,16 @@ pub const REL_THEME: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme";
 /// DrawingML main namespace (theme part).
 pub const A: &str = "http://schemas.openxmlformats.org/drawingml/2006/main";
+/// WordprocessingML drawing (`wp:inline`, `wp:extent`).
+pub const WP: &str = "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing";
+/// DrawingML picture (`pic:pic`).
+/// PictureML. Blips are read from `a:blip`; this name is the graphic-data URI.
+#[allow(dead_code)]
+pub(crate) const PIC: &str = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+/// VML, used by legacy `w:pict`.
+pub const VML: &str = "urn:schemas-microsoft-com:vml";
+pub const REL_IMAGE: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
 pub const REL_SETTINGS: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings";
 pub const REL_NUMBERING: &str =

@@ -15,7 +15,9 @@ use joyword_model::{
 };
 use std::collections::BTreeMap;
 use std::fmt;
+use std::io::Read;
 use std::ops::Range;
+use std::path::Path;
 use std::sync::Arc;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -156,6 +158,8 @@ pub enum InputError {
     ReadOnly,
     StaleComposition,
     GenerationOverflow,
+    /// A still image was refused. The text does not include paths or bytes.
+    Image(&'static str),
     Transaction(TxError),
     Undo(UndoError),
 }
@@ -174,6 +178,89 @@ impl From<UndoError> for InputError {
     fn from(e: UndoError) -> Self {
         Self::Undo(e)
     }
+}
+
+/// One clipboard entry the paste policy can see. Paths are never opened.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ClipboardOffer<'a> {
+    Image { bytes: &'a [u8] },
+    Text(&'a str),
+    Paths,
+}
+
+/// What a paste should do. A refused image does not fall back to text.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PasteChoice<'a> {
+    Image(&'a [u8]),
+    Text(&'a str),
+    Empty,
+    Refused(&'static str),
+}
+
+/// Prefer the first admitted image. If every image entry is refused, refuse
+/// the paste. File paths are never opened. Empty content is a no-op.
+pub fn choose_paste<'a>(entries: &[ClipboardOffer<'a>]) -> PasteChoice<'a> {
+    let mut text = None;
+    let mut saw_image = false;
+    let mut saw_paths = false;
+    for entry in entries {
+        match *entry {
+            ClipboardOffer::Image { bytes } => {
+                saw_image = true;
+                if joyword_model::accept_image(bytes, &joyword_model::ImageLimits::default())
+                    .is_ok()
+                {
+                    return PasteChoice::Image(bytes);
+                }
+            }
+            ClipboardOffer::Text(value) => {
+                if text.is_none() && !value.is_empty() {
+                    text = Some(value);
+                }
+            }
+            ClipboardOffer::Paths => saw_paths = true,
+        }
+    }
+    if saw_image {
+        return PasteChoice::Refused("clipboard image was refused");
+    }
+    if let Some(value) = text {
+        return PasteChoice::Text(value);
+    }
+    if saw_paths {
+        return PasteChoice::Refused("clipboard file paths are not opened");
+    }
+    PasteChoice::Empty
+}
+
+fn read_image_file(path: &Path) -> Result<Vec<u8>, InputError> {
+    let text = path.to_string_lossy();
+    if text.contains("://")
+        || text.contains(':')
+        || text.starts_with("\\\\")
+        || text.starts_with("//")
+    {
+        return Err(InputError::Image("remote image"));
+    }
+    let meta =
+        std::fs::metadata(path).map_err(|_| InputError::Image("image file could not be read"))?;
+    if !meta.is_file() {
+        return Err(InputError::Image("image file could not be read"));
+    }
+    if meta.len() > joyword_model::MAX_IMAGE_BYTES {
+        return Err(InputError::Image("image exceeds the byte budget"));
+    }
+    let mut file =
+        std::fs::File::open(path).map_err(|_| InputError::Image("image file could not be read"))?;
+    let mut bytes = Vec::new();
+    file.by_ref()
+        .take(joyword_model::MAX_IMAGE_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|_| InputError::Image("image file could not be read"))?;
+    if bytes.len() as u64 > joyword_model::MAX_IMAGE_BYTES {
+        return Err(InputError::Image("image exceeds the byte budget"));
+    }
+    Ok(bytes)
 }
 
 #[derive(Clone, Debug)]
@@ -226,10 +313,12 @@ impl TextIndex {
         let mut utf16 = 0;
         let mut runs = 0usize;
         let mut push_paragraph = |p: &Paragraph| -> Result<(), InputError> {
-            if p.inlines()
-                .iter()
-                .any(|inline| !matches!(inline.kind, InlineKind::Break(BreakKind::Page)))
-            {
+            if p.inlines().iter().any(|inline| {
+                !matches!(
+                    inline.kind,
+                    InlineKind::Break(BreakKind::Page) | InlineKind::Image { .. }
+                )
+            }) {
                 return Err(InputError::UnsupportedBody);
             }
             if paragraphs.len() >= limits.max_paragraphs {
@@ -252,7 +341,10 @@ impl TextIndex {
                 utf16 += 1;
             }
             let content = p.plain_text(|object| {
-                debug_assert!(matches!(object.kind, InlineKind::Break(BreakKind::Page)));
+                debug_assert!(matches!(
+                    object.kind,
+                    InlineKind::Break(BreakKind::Page) | InlineKind::Image { .. }
+                ));
                 OBJECT_MARKER.to_string()
             });
             let len = content.encode_utf16().count();
@@ -770,9 +862,56 @@ impl<B: InputBackend> TextInput<B> {
     }
 
     /// Selected body text. An empty selection yields an empty string.
+    /// Object markers (images and breaks) are omitted so a plain-text copy
+    /// does not put U+FDD0 on the clipboard.
     pub fn selected_text(&self) -> Result<String, InputError> {
         let (range, _) = self.view.selected_range();
-        self.view.index.text_for_range(range)
+        let text = self.view.index.text_for_range(range)?;
+        Ok(text.replace(OBJECT_MARKER, ""))
+    }
+
+    /// Insert admitted image bytes at the selection. A selection is deleted
+    /// in the same transaction. A refused image does not change the document.
+    pub fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError> {
+        self.require_editable()?;
+        joyword_model::accept_image(bytes, &joyword_model::ImageLimits::default())
+            .map_err(|error| InputError::Image(error.reason()))?;
+        let (range, _) = self.view.selected_range();
+        self.view.index.check(&range)?;
+        let start = self.view.index.position(range.start, Bias::After)?;
+        let mut commands = Vec::new();
+        if !range.is_empty() {
+            let end = self.view.index.position(range.end, Bias::Before)?;
+            commands.push(Command::DeleteRange { start, end });
+        }
+        commands.push(Command::InsertImage {
+            at: Position {
+                bias: Bias::After,
+                ..start
+            },
+            data: Arc::from(bytes),
+        });
+        if commands.len() > self.limits.max_commands {
+            return Err(InputError::Budget("commands"));
+        }
+        let mut transaction = Transaction::new(self.backend.session().version(), commands);
+        transaction.selection = Some(self.selection);
+        transaction.undo_group = UndoGroup::Standalone;
+        let target = Selection::caret(Position {
+            bias: Bias::After,
+            ..start
+        });
+        self.commit_with(transaction, target, |_document, _changes, selection| {
+            Ok(selection)
+        })
+    }
+
+    /// Read one regular file, under the image byte cap, and insert it.
+    /// URLs, UNC paths and non-files are refused without being opened as
+    /// remote content.
+    pub fn insert_image_file(&mut self, path: &Path) -> Result<bool, InputError> {
+        let bytes = read_image_file(path)?;
+        self.insert_image_bytes(&bytes)
     }
 
     /// Apply character formatting to the current selection. An empty selection
@@ -1263,26 +1402,29 @@ impl<B: InputBackend> TextInput<B> {
     }
 
     fn commit(&mut self, transaction: Transaction) -> Result<bool, InputError> {
-        self.commit_with(transaction, |_document, _changes, selection| Ok(selection))
+        let target = self.selection;
+        self.commit_with(transaction, target, |_document, _changes, selection| {
+            Ok(selection)
+        })
     }
 
     fn commit_with(
         &mut self,
         transaction: Transaction,
+        target: Selection,
         adjust: impl FnOnce(&Document, &ChangeSet, Selection) -> Result<Selection, InputError>,
     ) -> Result<bool, InputError> {
         let revision = self.next_revision()?;
-        let fallback = self.selection;
-        let outcome = self.backend.apply_mapped(transaction, fallback)?;
+        let outcome = self.backend.apply_mapped(transaction, target)?;
         let changed = matches!(outcome, Outcome::Applied(_));
         let selection = match outcome {
             Outcome::Applied(applied) => {
                 self.note(applied.changes.clone());
-                let mapped = applied.selection.unwrap_or(fallback);
+                let mapped = applied.selection.unwrap_or(target);
                 let snapshot = self.backend.session().snapshot();
                 adjust(&snapshot, &applied.changes, mapped).unwrap_or(mapped)
             }
-            Outcome::NoOp(_) => fallback,
+            Outcome::NoOp(_) => target,
         };
         self.base = Arc::new(TextIndex::new(
             self.backend.session().snapshot(),
@@ -1306,7 +1448,8 @@ impl<B: InputBackend> TextInput<B> {
                 columns,
             }],
         );
-        self.commit_with(transaction, |document, changes, mapped| {
+        let target = self.selection;
+        self.commit_with(transaction, target, |document, changes, mapped| {
             let Some(table) = changes.tables.iter().next().copied() else {
                 return Ok(mapped);
             };
@@ -1332,7 +1475,8 @@ impl<B: InputBackend> TextInput<B> {
                 at: self.selection.head,
             }],
         );
-        self.commit_with(transaction, |document, changes, mapped| {
+        let target = self.selection;
+        self.commit_with(transaction, target, |document, changes, mapped| {
             let Some(paragraph) = changes.inserted.iter().next().copied() else {
                 return Ok(mapped);
             };
@@ -1365,7 +1509,8 @@ impl<B: InputBackend> TextInput<B> {
                 at: self.selection.head,
             }],
         );
-        self.commit_with(transaction, |document, _changes, mapped| {
+        let target = self.selection;
+        self.commit_with(transaction, target, |document, _changes, mapped| {
             let Ok(address) = cell_address(document, &mapped.head) else {
                 return Ok(mapped);
             };

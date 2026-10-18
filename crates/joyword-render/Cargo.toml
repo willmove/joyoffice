@@ -11,6 +11,7 @@ publish = false
 [dependencies]
 joyword-foundation.workspace = true
 joyword-layout.workspace = true
+joyword-model.workspace = true
 skrifa.workspace = true
 tiny-skia.workspace = true
 
