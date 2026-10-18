@@ -502,18 +502,22 @@ fn remember_flow(
     let mut keys = Vec::new();
     let mut starts = Vec::new();
     let marks = joyword_model::list_marks(document);
-    for block in document.body().blocks.iter() {
+    let plans = crate::pages::section_plans(document).unwrap_or_default();
+    for (index, block) in document.body().blocks.iter().enumerate() {
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
         let deps = paragraph_dependencies(document, paragraph);
         let context = context_of(snapshot, paragraph.id(), deps);
+        let geometry = crate::pages::plan_for(&plans, index)
+            .map(|plan| plan.geometry)
+            .unwrap_or_else(|| snapshot.geometry());
         let key = paragraph_key(
             document,
             paragraph,
             faces,
             profile,
-            snapshot.geometry(),
+            geometry,
             context,
             marks.get(&paragraph.id()),
         );
@@ -605,6 +609,7 @@ fn layout_pass(
         .as_ref()
         .filter(|_| previous.is_some())
         .map(|flow| (flow.ids.clone(), flow.keys.clone(), flow.starts.clone()));
+    let plans = crate::pages::section_plans(document)?;
     let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
     let mut prepared = Vec::new();
     let mut deps = Vec::new();
@@ -630,12 +635,13 @@ fn layout_pass(
         } else {
             ExternalContext::default()
         };
+        let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
         let key = paragraph_key(
             document,
             paragraph,
             faces,
             profile,
-            geometry,
+            plan.geometry,
             context,
             marks.get(&paragraph.id()),
         );
@@ -668,7 +674,7 @@ fn layout_pass(
                 paragraph,
                 faces,
                 profile,
-                geometry,
+                plan.geometry,
                 limits,
                 WorkSpent {
                     shapes: charged_shapes,
@@ -682,6 +688,13 @@ fn layout_pass(
             cache.insert(key, fitted.clone());
             result.stats_mut().shape_calls += fitted.shape_calls;
             result.stats_mut().shaped_bytes += fitted.shaped_bytes;
+            fitted
+        };
+        let fitted = {
+            let mut fitted = fitted;
+            fitted.geometry = plan.geometry;
+            fitted.section_index = plan.section;
+            fitted.section_break_before = crate::pages::section_break_before(&plans, index);
             fitted
         };
         record_fit(&mut result, &fitted);
@@ -706,7 +719,8 @@ fn layout_pass(
         }
         _ => None,
     };
-    let snapshot = assemble(result, prepared, cancellation, stop)?;
+    let mut snapshot = assemble(result, prepared, cancellation, stop)?;
+    crate::pages::paint_stories(&mut snapshot, document, faces, profile, cancellation)?;
     let produced = produced_contexts(document, &snapshot, &deps);
     Ok((snapshot, produced))
 }
@@ -764,6 +778,15 @@ fn produced_contexts(
         .collect()
 }
 
+fn paragraph_has_page_break(paragraph: &Paragraph) -> bool {
+    paragraph.inlines().iter().any(|inline| {
+        matches!(
+            inline.kind,
+            joyword_model::InlineKind::Break(joyword_model::BreakKind::Page)
+        )
+    })
+}
+
 fn walk_back_keep_next(document: &Document, same: &mut [bool]) {
     let paragraphs: Vec<&Paragraph> = document
         .body()
@@ -771,12 +794,15 @@ fn walk_back_keep_next(document: &Document, same: &mut [bool]) {
         .iter()
         .filter_map(|block| block.as_paragraph())
         .collect();
+    let plans = crate::pages::section_plans(document).unwrap_or_default();
     let mut index = same.iter().position(|flag| !flag).unwrap_or(same.len());
     while index > 0 && index <= paragraphs.len() {
         let previous = paragraphs[index - 1];
         let here_breaks = paragraphs.get(index).is_some_and(|paragraph| {
             style_paint::flow(document, paragraph).is_ok_and(|flow| flow.page_break_before)
-        });
+                || paragraph_has_page_break(paragraph)
+                || crate::pages::section_break_before(&plans, index)
+        }) || paragraph_has_page_break(previous);
         let previous_keeps = style_paint::flow(document, previous).is_ok_and(|flow| flow.keep_next);
         if previous_keeps && !here_breaks {
             same[index - 1] = false;
@@ -796,12 +822,13 @@ fn paragraph_key(
     context: ExternalContext,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
 ) -> ParagraphCacheKey {
+    let marked = crate::pages::marked_text(paragraph);
     let text = paragraph.plain_text(|_| String::new());
     let slot = dominant_slot(&text);
     let mixed = slot != FontSlot::Ascii;
     let flags = paragraph_dependencies(document, paragraph);
     ParagraphCacheKey {
-        content: digest(text.as_bytes()),
+        content: digest(marked.as_bytes()),
         resolved_style: resolved_style(document, paragraph, mark),
         available_width: geometry.content_width().raw(),
         font: FontEnvKey {
@@ -934,6 +961,21 @@ mod tests {
             page_break_before: false,
             justification: None,
             baseline: Emu::new(0),
+            geometry: PageGeometry {
+                width: Emu::new(11_906 * Emu::PER_TWIP),
+                height: Emu::new(16_838 * Emu::PER_TWIP),
+                left: Emu::new(1_800 * Emu::PER_TWIP),
+                top: Emu::new(1_440 * Emu::PER_TWIP),
+                right: Emu::new(1_800 * Emu::PER_TWIP),
+                bottom: Emu::new(1_440 * Emu::PER_TWIP),
+                header: Emu::new(851 * Emu::PER_TWIP),
+                footer: Emu::new(992 * Emu::PER_TWIP),
+            },
+            section_index: 0,
+            section_break_before: false,
+            piece_breaks: Vec::new(),
+            piece_lines: Vec::new(),
+            trailing_breaks: 0,
         }
     }
 

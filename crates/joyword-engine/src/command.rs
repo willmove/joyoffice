@@ -6,8 +6,8 @@
 use std::fmt;
 
 use joyword_model::{
-    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, Position,
-    RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
+    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, PageSetup,
+    Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -70,6 +70,11 @@ pub enum Command {
         start: Position,
         end: Position,
         level: u8,
+    },
+    /// Replaces one section's page size, margins and orientation.
+    SetPageSetup {
+        section: NodeId,
+        page: PageSetup,
     },
 }
 
@@ -159,6 +164,8 @@ pub enum CommandError {
     NumberingLevel(u8),
     /// `list.level` found a paragraph that is not in a list.
     NoNumbering(NodeId),
+    /// Page size, margins or header distance cannot be placed.
+    InvalidPage,
 }
 
 impl From<TextError> for CommandError {
@@ -198,6 +205,7 @@ impl fmt::Display for CommandError {
                 write!(f, "numbering level {level} is outside 0..=8")
             }
             CommandError::NoNumbering(node) => write!(f, "{node} is not in a list"),
+            CommandError::InvalidPage => f.write_str("page setup is not usable"),
         }
     }
 }

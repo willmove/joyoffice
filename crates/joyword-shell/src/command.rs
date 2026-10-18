@@ -224,6 +224,45 @@ const LIST_LEVEL_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Text,
     required: true,
 }];
+const PAGE_SIZE_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "width",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "height",
+        kind: ParamKind::Text,
+        required: true,
+    },
+];
+const PAGE_MARGIN_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "top",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "right",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "bottom",
+        kind: ParamKind::Text,
+        required: true,
+    },
+    ParamSpec {
+        name: "left",
+        kind: ParamKind::Text,
+        required: true,
+    },
+];
+const PAGE_ORIENTATION_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "orientation",
+    kind: ParamKind::Text,
+    required: true,
+}];
 const FIND_PARAMS: &[ParamSpec] = &[
     ParamSpec {
         name: "query",
@@ -379,6 +418,10 @@ pub const STYLE_APPLY: CommandId = CommandId("style.apply");
 pub const LIST_APPLY: CommandId = CommandId("list.apply");
 pub const LIST_LEVEL: CommandId = CommandId("list.level");
 pub const LIST_REMOVE: CommandId = CommandId("list.remove");
+pub const PAGE_BREAK: CommandId = CommandId("page.break");
+pub const PAGE_SIZE: CommandId = CommandId("page.size");
+pub const PAGE_MARGINS: CommandId = CommandId("page.margins");
+pub const PAGE_ORIENTATION: CommandId = CommandId("page.orientation");
 pub const FIND_NEXT: CommandId = CommandId("find.next");
 pub const FIND_PREVIOUS: CommandId = CommandId("find.previous");
 pub const FIND_REPLACE: CommandId = CommandId("find.replace");
@@ -759,6 +802,41 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: &[],
+            },
+            CommandSpec {
+                id: PAGE_BREAK,
+                label: "command.page.break",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 3,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: PAGE_SIZE,
+                label: "command.page.size",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: PAGE_SIZE_PARAMS,
+            },
+            CommandSpec {
+                id: PAGE_MARGINS,
+                label: "command.page.margins",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: PAGE_MARGIN_PARAMS,
+            },
+            CommandSpec {
+                id: PAGE_ORIENTATION,
+                label: "command.page.orientation",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: PAGE_ORIENTATION_PARAM,
             },
             CommandSpec {
                 id: FIND_NEXT,

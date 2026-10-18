@@ -10,7 +10,8 @@
 //!   character style references, and the paragraph mark's properties;
 //! - style definitions and document defaults; built-in styles are found by
 //!   canonical `w:name` through the model, never by `w:styleId`;
-//! - page size, margins and title page of each section;
+//! - page size, margins, title page, and default/first/even header and footer
+//!   stories of each section (`PAGE` / `NUMPAGES` in those stories);
 //! - settings: `compatibilityMode` as written (absent stays `None`, which the
 //!   model interprets as 12; the new-document value 15 is never imposed),
 //!   revision tracking and document protection.
@@ -36,7 +37,8 @@
 //! file-system save is done.
 //! Numbering definitions (`abstractNum`, `num`, level overrides) and
 //! paragraph or style tab stops are mapped. `numbering.xml` is never
-//! rewritten. Tables, content controls, headers/footers, notes, comments,
+//! rewritten. Header and footer part bytes are not rewritten. Tables, content
+//! controls, notes, comments,
 //! bookmarks/fields as annotations and images remain unmapped.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,

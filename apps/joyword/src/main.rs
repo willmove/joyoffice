@@ -61,6 +61,10 @@ actions!(
         SetListLevel,
         RemoveList,
         AlignCenter,
+        PageBreak,
+        PageSize,
+        PageMargins,
+        PageOrientation,
         CopyText,
         PasteText,
         CloseDocument,
@@ -118,6 +122,10 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         LIST_APPLY => Box::new(ApplyList),
         LIST_LEVEL => Box::new(SetListLevel),
         LIST_REMOVE => Box::new(RemoveList),
+        PAGE_BREAK => Box::new(PageBreak),
+        PAGE_SIZE => Box::new(PageSize),
+        PAGE_MARGINS => Box::new(PageMargins),
+        PAGE_ORIENTATION => Box::new(PageOrientation),
         EDIT_ALIGN_CENTER => Box::new(AlignCenter),
         EDIT_COPY => Box::new(CopyText),
         EDIT_PASTE => Box::new(PasteText),
@@ -1190,6 +1198,18 @@ impl Render for JoyWord {
             .on_action(
                 cx.listener(|this, _: &RemoveList, window, cx| this.run(LIST_REMOVE, window, cx)),
             )
+            .on_action(
+                cx.listener(|this, _: &PageBreak, window, cx| this.run(PAGE_BREAK, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &PageSize, window, cx| this.run(PAGE_SIZE, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &PageMargins, window, cx| this.run(PAGE_MARGINS, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &PageOrientation, window, cx| {
+                this.run(PAGE_ORIENTATION, window, cx)
+            }))
             .on_action(
                 cx.listener(|this, _: &Italic, window, cx| this.run(EDIT_ITALIC, window, cx)),
             )

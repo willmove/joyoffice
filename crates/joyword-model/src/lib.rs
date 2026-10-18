@@ -23,8 +23,8 @@ mod validate;
 
 pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
 pub use block::{
-    Block, BlockSeq, BreakKind, Cell, InlineKind, InlineObject, OpaqueBlock, Paragraph, Preserved,
-    Removed, Row, Run, Sdt, SdtLock, SdtProps, Segment, Table, VerticalMerge,
+    Block, BlockSeq, BreakKind, Cell, InlineKind, InlineObject, OpaqueBlock, PageFieldKind,
+    Paragraph, Preserved, Removed, Row, Run, Sdt, SdtLock, SdtProps, Segment, Table, VerticalMerge,
 };
 pub use document::{
     DEFAULT_COMPATIBILITY_MODE, Document, DocumentSettings, DocumentSnapshot, DocumentVersion,

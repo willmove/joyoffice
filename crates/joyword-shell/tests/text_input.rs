@@ -538,10 +538,20 @@ fn document_budgets_are_enforced_before_initialization_and_edit_commit() {
 #[test]
 fn an_additional_story_is_rejected_instead_of_silently_omitted() {
     let mut doc = session("body").document().clone();
-    let p = Paragraph::new(doc.ids().node());
-    doc.insert_story(joyword_model::StoryKind::Header, vec![p.into()]);
+    let mut header = Paragraph::new(doc.ids().node());
+    header
+        .push_text("页眉", None, std::sync::Arc::default())
+        .unwrap();
+    doc.insert_story(joyword_model::StoryKind::Header, vec![header.into()]);
+    let input = TextInput::new(Session::new(doc), InputLimits::default()).unwrap();
+    assert_eq!(input.view().index().text(), "body");
+    assert!(!input.view().index().text().contains("页眉"));
+
+    let mut noted = session("body").document().clone();
+    let note = Paragraph::new(noted.ids().node());
+    noted.insert_story(joyword_model::StoryKind::Footnote, vec![note.into()]);
     assert!(matches!(
-        TextInput::new(Session::new(doc), InputLimits::default()),
+        TextInput::new(Session::new(noted), InputLimits::default()),
         Err(InputError::UnsupportedBody)
     ));
 }
