@@ -71,6 +71,28 @@ pub enum Command {
         end: Position,
         level: u8,
     },
+    /// Inserts a table before the top-level body block that contains `at`.
+    InsertTable {
+        at: Position,
+        rows: u32,
+        columns: u32,
+    },
+    /// Inserts a row after the row that contains `at`.
+    InsertTableRow {
+        at: Position,
+    },
+    /// Deletes the row that contains `at`.
+    DeleteTableRow {
+        at: Position,
+    },
+    /// Inserts a column after the cell that contains `at`.
+    InsertTableColumn {
+        at: Position,
+    },
+    /// Deletes the column that contains `at`.
+    DeleteTableColumn {
+        at: Position,
+    },
     /// Replaces one section's page size, margins and orientation.
     SetPageSetup {
         section: NodeId,
@@ -164,6 +186,20 @@ pub enum CommandError {
     NumberingLevel(u8),
     /// `list.level` found a paragraph that is not in a list.
     NoNumbering(NodeId),
+    /// The position is not inside a top-level table cell.
+    NotATable(NodeId),
+    /// Rows and columns are limited to 1..=32.
+    TableLimit,
+    /// A row or column edit would break a vertical or horizontal merge.
+    MergedStructure(NodeId),
+    /// Column edits require every row to cover the grid with span-1 cells.
+    GridGap(NodeId),
+    /// A table must keep one row.
+    LastRow(NodeId),
+    /// A table must keep one column.
+    LastColumn(NodeId),
+    /// Table insertion is a body-story operation.
+    NotTopLevel,
     /// Page size, margins or header distance cannot be placed.
     InvalidPage,
 }
@@ -205,6 +241,15 @@ impl fmt::Display for CommandError {
                 write!(f, "numbering level {level} is outside 0..=8")
             }
             CommandError::NoNumbering(node) => write!(f, "{node} is not in a list"),
+            CommandError::NotATable(node) => write!(f, "{node} is not in a table cell"),
+            CommandError::TableLimit => f.write_str("table is limited to 32 rows and columns"),
+            CommandError::MergedStructure(node) => {
+                write!(f, "table {node} has merged cells")
+            }
+            CommandError::GridGap(node) => write!(f, "table {node} has grid gaps"),
+            CommandError::LastRow(node) => write!(f, "table {node} has one row"),
+            CommandError::LastColumn(node) => write!(f, "table {node} has one column"),
+            CommandError::NotTopLevel => f.write_str("tables are inserted in the body"),
             CommandError::InvalidPage => f.write_str("page setup is not usable"),
         }
     }

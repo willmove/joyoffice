@@ -21,6 +21,7 @@ fn scene(font: &LoadedFont, text: &str) -> PageScene {
     PageScene {
         width: pt(100),
         height: pt(60),
+        rects: Vec::new(),
         runs: vec![GlyphRun::place(
             &shape(font, text, pt(18), FeatureSet::default()),
             pt(10),

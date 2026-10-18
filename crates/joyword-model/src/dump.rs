@@ -9,7 +9,9 @@ use std::collections::HashMap;
 use std::fmt::Write;
 
 use crate::annotation::{Anchor, AnnotationKind, Position};
-use crate::block::{Block, BlockSeq, InlineKind, Paragraph, Preserved};
+use crate::block::{
+    Block, BlockSeq, BorderEdge, CellBorders, InlineKind, Paragraph, Preserved, TableWidth,
+};
 use crate::document::Document;
 use crate::id::NodeId;
 use crate::props::{Color, FontRef, FontSlots, Languages, ParaProps, RunProps, Toggle};
@@ -18,6 +20,23 @@ use crate::text::OBJECT_MARKER;
 #[derive(Clone, Copy, Debug)]
 pub struct DumpOptions {
     pub node_ids: bool,
+}
+
+fn edge(edge: Option<BorderEdge>) -> String {
+    match edge {
+        None => "-".into(),
+        Some(edge) => format!("{:?}/{}:{:?}", edge.kind, edge.size_eighths, edge.color),
+    }
+}
+
+fn border_edges(borders: &CellBorders) -> String {
+    format!(
+        "t={} l={} b={} r={}",
+        edge(borders.top),
+        edge(borders.left),
+        edge(borders.bottom),
+        edge(borders.right)
+    )
 }
 
 fn toggle(out: &mut Vec<String>, name: &str, value: Toggle) {
@@ -167,9 +186,16 @@ impl Dumper<'_> {
                         .as_ref()
                         .map_or("-".into(), |s| format!("{s:?}"));
                     let head = self.label("table", table.id);
+                    let width = table.width.map_or("-".into(), |width| match width {
+                        TableWidth::Auto => "auto".into(),
+                        TableWidth::Dxa(value) => format!("{value}dxa"),
+                    });
                     self.line(
                         depth,
-                        &format!("{head} style={style} grid=[{}]", grid.join(",")),
+                        &format!(
+                            "{head} style={style} grid=[{}] width={width}",
+                            grid.join(",")
+                        ),
                     );
                     for row in &table.rows {
                         let head = self.label("row", row.id);
@@ -188,8 +214,12 @@ impl Dumper<'_> {
                             self.line(
                                 depth + 2,
                                 &format!(
-                                    "{head} span={} vmerge={:?} width={width}",
-                                    cell.grid_span, cell.vertical_merge
+                                    "{head} span={} vmerge={:?} width={width} borders={} shading={}",
+                                    cell.grid_span,
+                                    cell.vertical_merge,
+                                    border_edges(&cell.borders),
+                                    cell.shading
+                                        .map_or("-".into(), |shading| format!("{:?}", shading.fill))
                                 ),
                             );
                             self.blocks(&cell.blocks, depth + 3);

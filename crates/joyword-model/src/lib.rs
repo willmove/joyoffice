@@ -23,8 +23,9 @@ mod validate;
 
 pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
 pub use block::{
-    Block, BlockSeq, BreakKind, Cell, InlineKind, InlineObject, OpaqueBlock, PageFieldKind,
-    Paragraph, Preserved, Removed, Row, Run, Sdt, SdtLock, SdtProps, Segment, Table, VerticalMerge,
+    Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, InlineKind,
+    InlineObject, OpaqueBlock, PageFieldKind, Paragraph, Preserved, Removed, Row, Run, Sdt,
+    SdtLock, SdtProps, Segment, Shading, Table, TableWidth, VerticalMerge,
 };
 pub use document::{
     DEFAULT_COMPATIBILITY_MODE, Document, DocumentSettings, DocumentSnapshot, DocumentVersion,
@@ -54,4 +55,6 @@ pub use text::{
 };
 pub use theme::{ThemeColorSlot, ThemeFonts, ThemeScheme};
 pub use tree::{Item, SeqTree, Summary};
-pub use validate::{Diagnostic, Diagnostics, Issue, MAX_DIAGNOSTICS, MAX_NESTING, Severity};
+pub use validate::{
+    Diagnostic, Diagnostics, Issue, MAX_DIAGNOSTICS, MAX_NESTING, Severity, table_structure,
+};

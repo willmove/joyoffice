@@ -192,6 +192,30 @@
       "source": "hypothesis",
       "test": "painting_a_format_is_one_undoable_transaction",
       "word_observation": null
+    },
+    {
+      "id": "TABLE-INSERT-UNDO",
+      "operation": "在插入点所在正文块前插入表格",
+      "expectation": "一次撤销去掉该表并恢复原文，再重做恢复该表",
+      "source": "hypothesis",
+      "test": "inserting_a_table_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
+      "id": "TABLE-ROW-UNDO",
+      "operation": "在插入点所在行之后插入一行，或删除非最后一行",
+      "expectation": "一次撤销恢复插入或删除前的行；最后一行拒绝删除且不改变文档",
+      "source": "hypothesis",
+      "test": "inserting_and_deleting_a_row_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
+      "id": "TABLE-COLUMN-UNDO",
+      "operation": "在插入点所在列之后插入一列，或删除非最后一列",
+      "expectation": "一次撤销恢复插入或删除前的网格；最后一列拒绝删除且不改变文档",
+      "source": "hypothesis",
+      "test": "inserting_and_deleting_a_column_is_one_undoable_transaction",
+      "word_observation": null
     }
   ]
 }

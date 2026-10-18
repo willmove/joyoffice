@@ -1,0 +1,29 @@
+//! A filled rectangle is part of the shared page scene, so it changes the PDF.
+
+use joyword_foundation::Emu;
+use joyword_layout::{PageScene, SceneRect};
+use joyword_pdf::render;
+
+#[test]
+fn a_scene_rect_changes_the_pdf_bytes() {
+    let page = PageScene {
+        width: Emu::new(72 * Emu::PER_POINT),
+        height: Emu::new(72 * Emu::PER_POINT),
+        runs: Vec::new(),
+        rects: vec![SceneRect {
+            x: Emu::new(Emu::PER_POINT),
+            y: Emu::new(Emu::PER_POINT),
+            width: Emu::new(10 * Emu::PER_POINT),
+            height: Emu::new(4 * Emu::PER_POINT),
+            red: 255,
+            green: 0,
+            blue: 0,
+        }],
+    };
+    let painted = render(std::slice::from_ref(&page), &[]).unwrap();
+    let mut blank = page;
+    blank.rects.clear();
+    let plain = render(&[blank], &[]).unwrap();
+    assert_ne!(painted, plain);
+    assert!(painted.starts_with(b"%PDF"));
+}

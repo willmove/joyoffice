@@ -13,6 +13,7 @@ mod locate;
 mod map;
 mod paint;
 mod session;
+mod table;
 
 pub use command::{Command, CommandError, ParagraphChange, Precondition, RunChange};
 pub use find::{
@@ -25,3 +26,4 @@ pub use session::{
     ApplyResult, ChangeSet, EditPolicy, MAX_UNDO_GROUP_STEPS, Origin, Outcome, Session,
     Transaction, TxError, UndoError, UndoGroup, UndoResult,
 };
+pub use table::{CellAddress, cell_address, cell_caret, cell_selection};

@@ -74,7 +74,13 @@ actions!(
         ReplaceAll,
         CopyFormat,
         PaintFormat,
-        CancelFormat
+        CancelFormat,
+        InsertTable,
+        InsertTableRow,
+        DeleteTableRow,
+        InsertTableColumn,
+        DeleteTableColumn,
+        SelectTableCell
     ]
 );
 
@@ -138,6 +144,12 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FORMAT_COPY => Box::new(CopyFormat),
         FORMAT_PAINT => Box::new(PaintFormat),
         FORMAT_CANCEL => Box::new(CancelFormat),
+        TABLE_INSERT => Box::new(InsertTable),
+        TABLE_ROW_INSERT => Box::new(InsertTableRow),
+        TABLE_ROW_DELETE => Box::new(DeleteTableRow),
+        TABLE_COLUMN_INSERT => Box::new(InsertTableColumn),
+        TABLE_COLUMN_DELETE => Box::new(DeleteTableColumn),
+        TABLE_SELECT => Box::new(SelectTableCell),
         _ => return None,
     })
 }
@@ -1259,6 +1271,24 @@ impl Render for JoyWord {
                     this.run(FORMAT_CANCEL, window, cx)
                 }),
             )
+            .on_action(
+                cx.listener(|this, _: &InsertTable, window, cx| this.run(TABLE_INSERT, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &InsertTableRow, window, cx| {
+                this.run(TABLE_ROW_INSERT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &DeleteTableRow, window, cx| {
+                this.run(TABLE_ROW_DELETE, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &InsertTableColumn, window, cx| {
+                this.run(TABLE_COLUMN_INSERT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &DeleteTableColumn, window, cx| {
+                this.run(TABLE_COLUMN_DELETE, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &SelectTableCell, window, cx| {
+                this.run(TABLE_SELECT, window, cx)
+            }))
             .size_full()
             .flex()
             .flex_col()

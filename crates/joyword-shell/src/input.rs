@@ -3,9 +3,10 @@
 //! an immutable preview session and never modifies the committed undo stack.
 use crate::docx::DocxSession;
 use joyword_engine::{
-    ChangeSet, Command, FindError, FindHit, FindQuery, FormatBrush, Outcome, PaintError,
-    ParagraphChange, RunChange, Selection, Session, Transaction, TxError, UndoError, UndoGroup,
-    UndoResult, capture, paint_commands, paragraph_order, replace_commands, search,
+    CellAddress, ChangeSet, Command, CommandError, FindError, FindHit, FindQuery, FormatBrush,
+    Outcome, PaintError, ParagraphChange, RunChange, Selection, Session, Transaction, TxError,
+    UndoError, UndoGroup, UndoResult, capture, cell_address, cell_caret, cell_selection,
+    paint_commands, paragraph_order, replace_commands, search,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, BreakKind, Color, Document, DocumentSnapshot, DocumentVersion, FontRef,
@@ -183,8 +184,9 @@ struct ParagraphEntry {
     len_utf16: usize,
     len_scalar: usize,
 }
-/// Flat platform projection joins root body paragraphs with one LF. It never
-/// invents text for tables, objects or additional stories.
+/// Flat platform projection joins body paragraphs, including paragraphs inside
+/// table cells, with one LF. Opaque blocks, content controls and nested tables
+/// stay unsupported.
 #[derive(Clone, Debug)]
 pub struct TextIndex {
     snapshot: DocumentSnapshot,
@@ -223,13 +225,15 @@ impl TextIndex {
         let mut by_id = BTreeMap::new();
         let mut utf16 = 0;
         let mut runs = 0usize;
-        for block in snapshot.body().blocks.iter() {
-            let p = block.as_paragraph().ok_or(InputError::UnsupportedBody)?;
+        let mut push_paragraph = |p: &Paragraph| -> Result<(), InputError> {
             if p.inlines()
                 .iter()
                 .any(|inline| !matches!(inline.kind, InlineKind::Break(BreakKind::Page)))
             {
                 return Err(InputError::UnsupportedBody);
+            }
+            if paragraphs.len() >= limits.max_paragraphs {
+                return Err(InputError::Budget("paragraphs"));
             }
             let bytes = p.text().summary().bytes;
             if bytes > limits.max_paragraph_bytes {
@@ -265,6 +269,23 @@ impl TextIndex {
             paragraphs.push(entry);
             text.push_str(&content);
             utf16 += len;
+            Ok(())
+        };
+        for block in snapshot.body().blocks.iter() {
+            match block {
+                Block::Paragraph(paragraph) => push_paragraph(paragraph)?,
+                Block::Table(table) => {
+                    for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
+                        for inner in cell.blocks.iter() {
+                            let Some(paragraph) = inner.as_paragraph() else {
+                                return Err(InputError::UnsupportedBody);
+                            };
+                            push_paragraph(paragraph)?;
+                        }
+                    }
+                }
+                Block::Sdt(_) | Block::Opaque(_) => return Err(InputError::UnsupportedBody),
+            }
         }
         if paragraphs.is_empty() || snapshot.validate().has_errors() {
             return Err(InputError::InvalidDocument);
@@ -299,13 +320,7 @@ impl TextIndex {
         if relative > p.len_utf16 {
             return Err(InputError::InvalidRange);
         }
-        let paragraph = self
-            .snapshot
-            .body()
-            .blocks
-            .get(i)
-            .and_then(|b| b.as_paragraph())
-            .expect("indexed paragraph");
+        let paragraph = paragraph_by_id(&self.snapshot, p.id).ok_or(InputError::InvalidDocument)?;
         let scalar = paragraph
             .text()
             .utf16_to_scalar(Utf16Offset(relative))
@@ -329,13 +344,8 @@ impl TextIndex {
         if position.offset.0 > p.len_scalar {
             return Err(InputError::UnknownPosition(position));
         }
-        let paragraph = self
-            .snapshot
-            .body()
-            .blocks
-            .get(i)
-            .and_then(|b| b.as_paragraph())
-            .expect("indexed paragraph");
+        let paragraph =
+            paragraph_by_id(&self.snapshot, p.id).ok_or(InputError::UnknownPosition(position))?;
         let n = paragraph
             .text()
             .scalar_to_utf16(position.offset)
@@ -345,13 +355,8 @@ impl TextIndex {
     fn byte(&self, offset: usize) -> Result<usize, InputError> {
         let position = self.position(offset, Bias::After)?;
         let i = self.by_id[&position.paragraph];
-        let p = self
-            .snapshot
-            .body()
-            .blocks
-            .get(i)
-            .and_then(|b| b.as_paragraph())
-            .expect("indexed paragraph");
+        let p = paragraph_by_id(&self.snapshot, position.paragraph)
+            .ok_or(InputError::InvalidDocument)?;
         let byte = p
             .text()
             .scalar_to_utf8(position.offset)
@@ -1258,15 +1263,25 @@ impl<B: InputBackend> TextInput<B> {
     }
 
     fn commit(&mut self, transaction: Transaction) -> Result<bool, InputError> {
+        self.commit_with(transaction, |_document, _changes, selection| Ok(selection))
+    }
+
+    fn commit_with(
+        &mut self,
+        transaction: Transaction,
+        adjust: impl FnOnce(&Document, &ChangeSet, Selection) -> Result<Selection, InputError>,
+    ) -> Result<bool, InputError> {
         let revision = self.next_revision()?;
         let fallback = self.selection;
         let outcome = self.backend.apply_mapped(transaction, fallback)?;
         let changed = matches!(outcome, Outcome::Applied(_));
-        if let Outcome::Applied(applied) = &outcome {
-            self.note(applied.changes.clone());
-        }
         let selection = match outcome {
-            Outcome::Applied(applied) => applied.selection.unwrap_or(fallback),
+            Outcome::Applied(applied) => {
+                self.note(applied.changes.clone());
+                let mapped = applied.selection.unwrap_or(fallback);
+                let snapshot = self.backend.session().snapshot();
+                adjust(&snapshot, &applied.changes, mapped).unwrap_or(mapped)
+            }
             Outcome::NoOp(_) => fallback,
         };
         self.base = Arc::new(TextIndex::new(
@@ -1277,6 +1292,114 @@ impl<B: InputBackend> TextInput<B> {
         self.composition = None;
         self.publish(self.base.clone(), selection, None, revision);
         Ok(changed)
+    }
+
+    /// Inserts a table before the body block that contains the caret and
+    /// places the caret in its first cell.
+    pub fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::InsertTable {
+                at: self.selection.head,
+                rows,
+                columns,
+            }],
+        );
+        self.commit_with(transaction, |document, changes, mapped| {
+            let Some(table) = changes.tables.iter().next().copied() else {
+                return Ok(mapped);
+            };
+            cell_caret(
+                document,
+                CellAddress {
+                    story: document.body_id(),
+                    table,
+                    row: 0,
+                    cell: 0,
+                },
+            )
+            .or(Ok(mapped))
+        })
+    }
+
+    /// Inserts a row after the caret's row and moves the caret into that row.
+    pub fn insert_table_row(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::InsertTableRow {
+                at: self.selection.head,
+            }],
+        );
+        self.commit_with(transaction, |document, changes, mapped| {
+            let Some(paragraph) = changes.inserted.iter().next().copied() else {
+                return Ok(mapped);
+            };
+            Ok(Selection::caret(Position {
+                story: document.body_id(),
+                paragraph,
+                offset: ScalarOffset(0),
+                bias: Bias::After,
+            }))
+        })
+    }
+
+    pub fn delete_table_row(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::DeleteTableRow {
+                at: self.selection.head,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Inserts a column after the caret's cell and moves the caret into it.
+    pub fn insert_table_column(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::InsertTableColumn {
+                at: self.selection.head,
+            }],
+        );
+        self.commit_with(transaction, |document, _changes, mapped| {
+            let Ok(address) = cell_address(document, &mapped.head) else {
+                return Ok(mapped);
+            };
+            cell_caret(
+                document,
+                CellAddress {
+                    cell: address.cell + 1,
+                    ..address
+                },
+            )
+            .or(Ok(mapped))
+        })
+    }
+
+    pub fn delete_table_column(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::DeleteTableColumn {
+                at: self.selection.head,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Selects every paragraph in the cell that contains the caret.
+    pub fn select_table_cell(&mut self) -> Result<(), InputError> {
+        if self.is_composing() {
+            return Err(InputError::StaleComposition);
+        }
+        let document = self.backend.session().snapshot();
+        let address = cell_address(&document, &self.selection.head).map_err(command_error)?;
+        let selection = cell_selection(&document, address).map_err(command_error)?;
+        self.select_positions(selection)
     }
 
     pub fn mark(
@@ -1560,6 +1683,10 @@ impl TextInput<crate::docx::BoundDocx> {
         let output = self.save_original_job().run(choice);
         self.apply_original_save(output)
     }
+}
+
+fn command_error(error: CommandError) -> InputError {
+    InputError::Transaction(TxError::Command { index: 0, error })
 }
 
 fn find_input_error(error: FindError) -> InputError {
