@@ -15,10 +15,10 @@
 //! `ExportPlan::origin_bytes` to equal the stamped package.
 //! [`save_original_with_lock_token`] skips only the JoyWord lock whose
 //! contents equal the caller's token; it does not delete that file.
-//! Metadata that this build cannot preserve still refuses before any write. The Unix
-//! replace strategy itself (temporary file, sync, read-back, backup hard
-//! link, exchange rename) lives behind that gate. `save_export_copy` remains the
-//! verified fallback when replacement is refused.
+//! Metadata losses require an explicit choice between a new copy and confirmed
+//! replacement. Unix uses exchange rename; Windows uses `ReplaceFileW` with
+//! original and displaced backups. Both publish only after sync and read-back.
+//! `save_export_copy` remains the verified fallback when replacement is refused.
 
 mod error;
 mod locks;

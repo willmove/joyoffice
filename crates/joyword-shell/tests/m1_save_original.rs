@@ -88,7 +88,7 @@ fn declining_replacement_lists_metadata_and_keeps_the_source() {
 
 #[cfg(windows)]
 #[test]
-fn declining_on_windows_lists_a_zone_identifier_and_keeps_everything() {
+fn declining_on_windows_keeps_the_source_and_provenance_stream() {
     let bytes = fixture();
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("report.docx");
@@ -101,7 +101,7 @@ fn declining_on_windows_lists_a_zone_identifier_and_keeps_everything() {
     let blockers = error.blockers().expect("losses");
     assert!(blockers.contains(&ReplacementBlocker::ConfirmationRequired));
     assert!(
-        blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
+        !blockers.contains(&ReplacementBlocker::UnpreservableMetadata(
             MetadataItem::ProvenanceMarks
         ))
     );

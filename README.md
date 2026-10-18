@@ -2,12 +2,12 @@
 
 JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字处理软件 **JoyWord**。JoySheet、JoyDeck 为后续方向。项目采用 MIT 许可证。
 
-**当前是 M0／M1 技术预览，不是 1.0 产品，M1 发布门槛也尚未通过。** 真实 DOCX 会话、中文文本编辑、基础格式、文本剪贴板、另存与重开、原件保存的元数据观测与显式确认路径、统一页面场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志已有实现及相应自动测试；所在任务仍可能因人工验收未完成而保持进行中。逐项复选框、阶段统计和完成证据见 [TASKS 进度总览](docs/joyword/TASKS.md#进度总览)。
+**当前是 M0／M1 技术预览，不是 1.0 产品，M1 发布门槛也尚未通过。** 真实 DOCX 会话、中文文本编辑、基础格式、文本剪贴板、另存与重开、原件保存的元数据观测与显式确认路径、Windows 原件原子替换、统一页面场景的 PDF／CPU 光栅与无头输出、可见页缓存、打开／保存并发控制和恢复日志已有实现及相应自动测试；所在任务仍可能因人工验收未完成而保持进行中。逐项复选框、阶段统计和完成证据见 [TASKS 进度总览](docs/joyword/TASKS.md#进度总览)。
 
 当前支持边界与剩余门槛：
 
 - DOCX 仅支持已声明子集；原始包、未知部件与无法安全映射的内容按契约保留或拒绝，超出支持边界的编辑不作假成功。
-- 中文编辑—格式—剪贴板—另存—重开已有自动闭环测试，但系统 IME／GUI、固定 Word／WPS 对照尚未完成；信创真机验收留待有条件时补验，不阻塞开发、阶段验收或发布，仍明确标为未验证。
+- 中文编辑—格式—剪贴板—另存—重开已有自动闭环测试；Mac GUI／IME 与固定 Word／WPS 读回已有记录，Windows 原生 GUI 原件保存确认、WPS 参考 PDF 和信创真机仍待补验。信创真机不阻塞开发、阶段验收或发布，但仍明确标为未验证。
 - M2–M9 尚未实施；完整中文排版、样式编号、表格图片、富文本剪贴板、修订、批注和 AI 等仍属后续任务。
 
 详细实现与验证记录见 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
@@ -41,6 +41,18 @@ open target/dev/JoyWord.app
 ```
 
 此包装未签名、未公证，不是发行安装包。每次修改代码后需重新构建和包装。完整 Xcode／Metal 环境及其他平台使用 `cargo run -p joyword --locked`；正式构建还必须验证不启用 dev-runtime-shaders 的路径。
+
+## 无头检查与页面输出
+
+`joyword-cli` 提供只读 `inspect`／`text`，以及统一 PageScene 的 `render` PNG 和 `convert --to pdf`。Windows 示例使用本机宋体；输出目标已存在时拒绝覆盖，重复验证请换用新路径：
+
+```sh
+cargo run -p joyword-cli --locked -- inspect tests/fixtures/docx/DOCX-SAMPLE-001.docx
+cargo run -p joyword-cli --locked -- render tests/fixtures/docx/DOCX-SAMPLE-001.docx --font C:/Windows/Fonts/simsun.ttc:0 --output target/cli-png --page 1
+cargo run -p joyword-cli --locked -- convert tests/fixtures/docx/DOCX-SAMPLE-001.docx --to pdf --font C:/Windows/Fonts/simsun.ttc:0 --output target/cli-output.pdf
+```
+
+应用内 Ctrl／Cmd+S 会先列出原件的元数据风险，默认选择另存副本；只有显式确认后才替换原件。保存期间继续输入的内容仍标为未保存。
 
 ## 验证
 

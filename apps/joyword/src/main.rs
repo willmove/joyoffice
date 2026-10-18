@@ -49,6 +49,7 @@ actions!(
         OpenRecent,
         SwitchDocument,
         InsertText,
+        SaveOriginal,
         SaveCopy,
         Bold,
         Italic,
@@ -94,6 +95,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FILE_OPEN => Box::new(OpenFile),
         FILE_OPEN_RECENT => Box::new(OpenRecent),
         DOCUMENT_SWITCH => Box::new(SwitchDocument),
+        FILE_SAVE => Box::new(SaveOriginal),
         FILE_SAVE_COPY => Box::new(SaveCopy),
         EDIT_BOLD => Box::new(Bold),
         EDIT_ITALIC => Box::new(Italic),
@@ -187,6 +189,7 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 }
                 EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some("JoyWordInput")),
                 FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
+                FILE_SAVE => KeyBinding::new(keys, SaveOriginal, None),
                 FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
                 EDIT_BOLD => KeyBinding::new(keys, Bold, Some("JoyWordInput && !composing")),
                 EDIT_ITALIC => KeyBinding::new(keys, Italic, Some("JoyWordInput && !composing")),
@@ -238,6 +241,7 @@ struct JoyWord {
     /// Bumped by [`input_ui`] each time a different editor is installed.
     copy_epoch: u64,
     copy: Option<input_ui::CopyPhase>,
+    original_save: Option<input_ui::OriginalSavePhase>,
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -301,6 +305,7 @@ impl CommandHost for ViewHost<'_, '_> {
                         InvokeError::Disabled(message) => ExecuteError::Failed(message.to_string()),
                     })?;
             }
+            FILE_SAVE => view.begin_save_original(self.window, self.cx),
             FILE_SAVE_COPY => {
                 let Some(ArgValue::Path(path)) = args.get("destination") else {
                     return Err(ExecuteError::Pending(vec!["destination"]));
@@ -713,6 +718,9 @@ impl Render for JoyWord {
                 cx.listener(|this, _: &OpenFile, window, cx| this.run(FILE_OPEN, window, cx)),
             )
             .on_action(
+                cx.listener(|this, _: &SaveOriginal, window, cx| this.run(FILE_SAVE, window, cx)),
+            )
+            .on_action(
                 cx.listener(|this, _: &SaveCopy, window, cx| this.run(FILE_SAVE_COPY, window, cx)),
             )
             .on_action(cx.listener(|this, _: &Bold, window, cx| this.run(EDIT_BOLD, window, cx)))
@@ -910,6 +918,7 @@ fn main() {
                         held_document,
                         copy_epoch: 0,
                         copy: None,
+                        original_save: None,
                     };
                     view.install_input_lifecycle(window, cx);
                     view

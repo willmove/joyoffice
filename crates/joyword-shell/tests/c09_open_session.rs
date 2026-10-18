@@ -1,5 +1,5 @@
-//! C09-A/C09-B: `open_source` becomes a bound session, and Save As is only
-//! `save_export_copy`. The bound path and dirty flag stay on the opened file.
+//! C09-A/C09-B: `open_source` becomes a bound session. Save As uses
+//! `save_export_copy`; original save has a separate explicit command.
 
 use std::fs;
 use std::path::PathBuf;
@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use joyoffice_opc::Budget;
 use joyword_model::Document;
 use joyword_shell::command::{
-    FILE_CLOSE, FILE_OPEN, FILE_SAVE_COPY, MenuEntry, MenuKind, Platform, QUIT, Registry,
+    FILE_CLOSE, FILE_OPEN, FILE_SAVE, FILE_SAVE_COPY, MenuEntry, MenuKind, Platform, QUIT, Registry,
 };
 use joyword_shell::docx::{BoundDocx, BoundOpenError, BoundSaveError, DocxSession};
 use joyword_shell::input::{InputLimits, TextInput};
@@ -241,9 +241,8 @@ fn a_copy_of_one_open_file_does_not_include_another() {
 }
 
 #[test]
-fn file_menu_offers_open_and_save_copy_but_not_save() {
+fn file_menu_offers_open_original_save_and_save_copy() {
     let registry = Registry::builtin();
-    assert!(registry.find("file.save").is_none());
     assert_eq!(
         registry
             .find("file.open")
@@ -251,6 +250,14 @@ fn file_menu_offers_open_and_save_copy_but_not_save() {
             .shortcut
             .for_platform(Platform::Linux),
         Some("ctrl-o")
+    );
+    assert_eq!(
+        registry
+            .find("file.save")
+            .unwrap()
+            .shortcut
+            .for_platform(Platform::Windows),
+        Some("ctrl-s")
     );
     assert_eq!(
         registry
@@ -270,6 +277,7 @@ fn file_menu_offers_open_and_save_copy_but_not_save() {
         file.entries,
         vec![
             MenuEntry::Command(FILE_OPEN),
+            MenuEntry::Command(FILE_SAVE),
             MenuEntry::Command(FILE_SAVE_COPY),
             MenuEntry::Separator,
             MenuEntry::Command(FILE_CLOSE),

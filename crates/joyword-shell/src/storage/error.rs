@@ -153,8 +153,8 @@ pub enum ReplacementBlocker {
     /// `ExportPlan::origin_bytes()` is `None`, so the plan cannot prove which
     /// package it came from. Equal version numbers are not a substitute.
     OriginBindingUnproven,
-    /// This build has not verified an atomic replace (non-Unix `rename` does
-    /// not replace an existing file). Metadata blockers refuse first today.
+    /// This build has no reviewed atomic replace for the current platform.
+    /// Unix and Windows have dedicated implementations; other targets refuse.
     AtomicReplaceUnverified,
     /// The metadata item cannot even be observed with the approved
     /// dependencies, so losing it could not be detected, let alone restored.
@@ -476,7 +476,7 @@ impl SaveOriginalError {
             published: None,
         }
     }
-    #[cfg(unix)]
+    #[cfg(any(unix, windows))]
     pub(crate) fn io_published(
         stage: SourceStage,
         path: &std::path::Path,

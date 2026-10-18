@@ -11,7 +11,7 @@ use joyword_model::Justification;
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
-    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE_COPY, InvokeError, Registry,
+    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, Registry,
 };
 use crate::docx::BoundDocx;
 use crate::input::{InputError, InputLimits, InputSource, TextInput};
@@ -248,7 +248,7 @@ impl Office {
         if current != ticket.version {
             return Ok(false);
         }
-        input
+        let receipt = input
             .backend()
             .save_copy(&ticket.destination)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
@@ -256,6 +256,7 @@ impl Office {
         if after != ticket.version {
             return Ok(false);
         }
+        input.mark_saved(receipt.version());
         document.saved = after;
         Ok(true)
     }
@@ -265,9 +266,7 @@ impl Office {
             .iter()
             .find(|document| document.id == id)
             .is_some_and(|document| match &document.input {
-                Some(input) => {
-                    input.backend().session().session().version().get() != document.saved
-                }
+                Some(input) => input.has_unsaved_changes(),
                 None => true,
             })
     }
@@ -325,13 +324,37 @@ impl Office {
         let Some(document) = self.documents.iter_mut().find(|document| document.id == id) else {
             return false;
         };
+        document.saved = input.saved_version().get();
         document.input = Some(input);
         true
+    }
+
+    /// Route a late original-save result to its owning session, never to the
+    /// document that happens to be active when the IO completes.
+    pub fn apply_original_save(
+        &mut self,
+        id: DocumentId,
+        output: crate::docx::SaveOriginalJobOutput,
+    ) -> Option<Result<crate::storage::SaveOriginalReceipt, crate::docx::BoundOriginalSaveError>>
+    {
+        let version = output
+            .published_receipt()
+            .map(|receipt| receipt.version().get());
+        let document = self
+            .documents
+            .iter_mut()
+            .find(|document| document.id == id)?;
+        let result = document.input.as_mut()?.apply_original_save(output);
+        if let Some(version) = version {
+            document.saved = document.saved.max(version);
+        }
+        Some(result)
     }
 
     /// Register a document opened outside [`Self::accept_open`].
     pub fn attach(&mut self, input: TextInput<BoundDocx>) -> DocumentId {
         let source = input.backend().source_path().to_path_buf();
+        let saved = input.saved_version().get();
         if let Some(id) = self
             .documents
             .iter()
@@ -339,13 +362,13 @@ impl Office {
             .map(|document| document.id)
         {
             if let Some(document) = self.documents.iter_mut().find(|document| document.id == id) {
+                document.saved = saved;
                 document.input = Some(input);
             }
             self.active = Some(id);
             self.remember(&source);
             return id;
         }
-        let saved = input.backend().session().session().version().get();
         let id = DocumentId(self.next_id);
         self.next_id += 1;
         self.documents.push(Opened {
@@ -420,7 +443,9 @@ fn input_error(error: InputError) -> ExecuteError {
 
 impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
-        if (id == FILE_SAVE_COPY || id.0.starts_with("edit.")) && self.active.is_none() {
+        if (matches!(id, FILE_SAVE | FILE_SAVE_COPY) || id.0.starts_with("edit."))
+            && self.active.is_none()
+        {
             return Availability::Disabled("input.loading");
         }
         if self.opening.is_some() && id.0.starts_with("edit.") {
@@ -457,6 +482,17 @@ impl CommandHost for Office {
                 let generation = self.begin_open();
                 self.accept_open(generation, path)
             }
+            FILE_SAVE => {
+                match args.get("choice") {
+                    Some(ArgValue::Text(choice)) if choice == "confirm" => {}
+                    None => return Err(ExecuteError::Pending(vec!["choice"])),
+                    _ => return Err(ExecuteError::Failed("unsupported save choice".into())),
+                }
+                self.require_active()?
+                    .save_original(crate::storage::OriginalChoice::Confirm)
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
             FILE_SAVE_COPY => {
                 let Some(ArgValue::Path(path)) = args.get("destination") else {
                     return Err(ExecuteError::Failed("destination".into()));
@@ -489,10 +525,7 @@ impl CommandHost for Office {
                     return Err(ExecuteError::Failed("unknown document".into()));
                 };
                 let dirty = match &self.documents[index].input {
-                    Some(input) => {
-                        input.backend().session().session().version().get()
-                            != self.documents[index].saved
-                    }
+                    Some(input) => input.has_unsaved_changes(),
                     None => true,
                 };
                 if dirty {

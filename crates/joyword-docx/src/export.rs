@@ -176,7 +176,29 @@ pub fn plan_export(
     budget: &Budget,
 ) -> Result<ExportPlan, ExportError> {
     let source = import(backing.original_bytes(), budget)?;
-    let original = &source.document;
+    plan_export_after_import(&source, backing, &source.document, current, budget)
+}
+
+/// Use an immutable baseline whose stable model IDs were retained across an
+/// original save. The package is still re-imported on every call; only the
+/// verified source-locator projection comes from `original`.
+pub(crate) fn plan_export_with_original(
+    backing: &PackageBacking,
+    original: &Document,
+    current: &DocumentSnapshot,
+    budget: &Budget,
+) -> Result<ExportPlan, ExportError> {
+    let source = import(backing.original_bytes(), budget)?;
+    plan_export_after_import(&source, backing, original, current, budget)
+}
+
+fn plan_export_after_import(
+    source: &crate::ImportResult,
+    backing: &PackageBacking,
+    original: &Document,
+    current: &DocumentSnapshot,
+    budget: &Budget,
+) -> Result<ExportPlan, ExportError> {
     check_envelope(original, current)?;
     let text_bytes = current
         .body()
@@ -213,8 +235,8 @@ pub fn plan_export(
         changed: Vec::new(),
         warnings: Vec::new(),
         preserved: package.parts().map(|part| part.name.clone()).collect(),
-        // The caller's backing, not the re-imported copy and not the patched
-        // archive later stored in `bytes`.
+        // The caller's backing allocation, not the re-imported copy and not
+        // the patched archive later stored in `bytes`.
         origin: Some(backing.original_arc()),
     };
     if alignment.is_unchanged() {

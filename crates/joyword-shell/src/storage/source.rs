@@ -26,8 +26,8 @@ use super::error::{ConflictDetail, SaveOriginalError, SourceStage};
 use super::locks;
 
 /// File-system facts of the object a stamp is bound to. Unix records the
-/// raw stat identity (device, inode, times, mode, link count); other
-/// platforms record what `std` observes there.
+/// raw stat identity. Windows additionally records the stable volume/file ID
+/// through Win32 so an atomic replacement can prove which object was displaced.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct SourceIdentity {
     len: u64,
@@ -35,6 +35,8 @@ pub(crate) struct SourceIdentity {
     unix: UnixIdentity,
     #[cfg(not(unix))]
     modified: std::time::SystemTime,
+    #[cfg(windows)]
+    windows: WindowsIdentity,
 }
 
 #[cfg(unix)]
@@ -68,7 +70,29 @@ impl UnixIdentity {
     }
 }
 
+#[cfg(windows)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct WindowsIdentity {
+    volume_serial_number: u32,
+    file_index: u64,
+    nlink: u32,
+    attributes: u32,
+    creation_time: u64,
+    last_write_time: u64,
+}
+
+#[cfg(windows)]
+fn windows_error(error: winsafe::co::ERROR) -> io::Error {
+    io::Error::from_raw_os_error(error.raw() as i32)
+}
+
+#[cfg(windows)]
+fn file_time(value: winsafe::FILETIME) -> u64 {
+    (u64::from(value.dwHighDateTime) << 32) | u64::from(value.dwLowDateTime)
+}
+
 impl SourceIdentity {
+    #[cfg(not(windows))]
     pub(crate) fn capture(metadata: &fs::Metadata) -> Self {
         Self {
             len: metadata.len(),
@@ -95,6 +119,70 @@ impl SourceIdentity {
         }
     }
 
+    #[cfg(not(windows))]
+    pub(crate) fn capture_path(path: &Path) -> io::Result<Self> {
+        fs::metadata(path).map(|metadata| Self::capture(&metadata))
+    }
+
+    #[cfg(windows)]
+    pub(crate) fn capture_path(path: &Path) -> io::Result<Self> {
+        use winsafe::prelude::*;
+
+        let metadata = fs::metadata(path)?;
+        let name = path.to_str().ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "Win32 path is not valid Unicode",
+            )
+        })?;
+        let (file, _) = winsafe::HFILE::CreateFile(
+            name,
+            winsafe::co::GENERIC::READ,
+            Some(
+                winsafe::co::FILE_SHARE::READ
+                    | winsafe::co::FILE_SHARE::WRITE
+                    | winsafe::co::FILE_SHARE::DELETE,
+            ),
+            None,
+            winsafe::co::DISPOSITION::OPEN_EXISTING,
+            winsafe::co::FILE_ATTRIBUTE::NORMAL,
+            None,
+            None,
+            None,
+        )
+        .map_err(windows_error)?;
+        let mut info = winsafe::BY_HANDLE_FILE_INFORMATION::default();
+        file.GetFileInformationByHandle(&mut info)
+            .map_err(windows_error)?;
+        Ok(Self {
+            len: metadata.len(),
+            modified: metadata
+                .modified()
+                .unwrap_or(std::time::SystemTime::UNIX_EPOCH),
+            windows: WindowsIdentity {
+                volume_serial_number: info.dwVolumeSerialNumber,
+                file_index: (u64::from(info.nFileIndexHigh) << 32) | u64::from(info.nFileIndexLow),
+                nlink: info.nNumberOfLinks,
+                attributes: info.dwFileAttributes.raw(),
+                creation_time: file_time(info.ftCreationTime),
+                last_write_time: file_time(info.ftLastWriteTime),
+            },
+        })
+    }
+
+    pub(crate) fn capture_handle(path: &Path, file: &File) -> io::Result<Self> {
+        #[cfg(not(windows))]
+        {
+            let _ = path;
+            file.metadata().map(|metadata| Self::capture(&metadata))
+        }
+        #[cfg(windows)]
+        {
+            let _ = file;
+            Self::capture_path(path)
+        }
+    }
+
     pub(crate) fn len(&self) -> u64 {
         self.len
     }
@@ -109,18 +197,37 @@ impl SourceIdentity {
         {
             self.unix.nlink()
         }
-        #[cfg(not(unix))]
+        #[cfg(windows)]
+        {
+            u64::from(self.windows.nlink)
+        }
+        #[cfg(all(not(unix), not(windows)))]
         {
             1
         }
     }
 
-    /// Same device and inode. Link count and timestamps are ignored: creating
-    /// the replacement backup changes both on purpose. Unix only: non-Unix
-    /// replacement never reaches the backup check.
-    #[cfg(unix)]
+    #[cfg(windows)]
+    pub(crate) fn creation_time(&self) -> u64 {
+        self.windows.creation_time
+    }
+
+    /// Same volume and file ID. Link count and timestamps are ignored because
+    /// creating a backup can change them without changing the object.
     pub(crate) fn same_object(&self, other: &Self) -> bool {
-        self.unix.dev == other.unix.dev && self.unix.ino == other.unix.ino
+        #[cfg(unix)]
+        {
+            self.unix.dev == other.unix.dev && self.unix.ino == other.unix.ino
+        }
+        #[cfg(windows)]
+        {
+            self.windows.volume_serial_number == other.windows.volume_serial_number
+                && self.windows.file_index == other.windows.file_index
+        }
+        #[cfg(all(not(unix), not(windows)))]
+        {
+            self.len == other.len && self.modified == other.modified
+        }
     }
 
     /// First observable difference against another identity, as a conflict.
@@ -145,11 +252,29 @@ impl SourceIdentity {
                 return Some(ConflictDetail::TimesChanged);
             }
         }
-        #[cfg(not(unix))]
+        #[cfg(windows)]
         {
-            if self.modified != other.modified {
+            if self.windows.volume_serial_number != other.windows.volume_serial_number
+                || self.windows.file_index != other.windows.file_index
+            {
+                return Some(ConflictDetail::InodeChanged);
+            }
+            if self.windows.attributes != other.windows.attributes {
+                return Some(ConflictDetail::ModeChanged);
+            }
+            if self.windows.nlink != other.windows.nlink {
+                return Some(ConflictDetail::LinkCountChanged);
+            }
+            if self.windows.creation_time != other.windows.creation_time
+                || self.windows.last_write_time != other.windows.last_write_time
+                || self.modified != other.modified
+            {
                 return Some(ConflictDetail::TimesChanged);
             }
+        }
+        #[cfg(all(not(unix), not(windows)))]
+        if self.modified != other.modified {
+            return Some(ConflictDetail::TimesChanged);
         }
         if self.len != other.len {
             return Some(ConflictDetail::SizeChanged);
@@ -214,10 +339,10 @@ impl SourceStamp {
     pub(crate) fn budget_limit(&self) -> u64 {
         self.budget_limit
     }
-    pub(crate) fn bytes(&self) -> &[u8] {
+    /// Exact bytes captured by the verified source read or published read-back.
+    pub fn bytes(&self) -> &[u8] {
         &self.bytes
     }
-    #[cfg(unix)]
     pub(crate) fn lock_directories(&self) -> &[PathBuf] {
         &self.lock_directories
     }
@@ -314,7 +439,8 @@ fn open_source_inner(
             path: canonical_path,
         });
     }
-    let before_identity = SourceIdentity::capture(&before_metadata);
+    let before_identity = SourceIdentity::capture_path(&canonical_path)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Stat, &canonical_path, e))?;
     let limit = read_cap(budget);
     if before_identity.len() > limit {
         return Err(SaveOriginalError::SourceTooLarge {
@@ -326,11 +452,8 @@ fn open_source_inner(
         .map_err(|e| SaveOriginalError::io(SourceStage::Open, &canonical_path, e))?;
     let file = File::open(&canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::Open, &canonical_path, e))?;
-    let opened_identity = SourceIdentity::capture(
-        &file
-            .metadata()
-            .map_err(|e| SaveOriginalError::io(SourceStage::Stat, &canonical_path, e))?,
-    );
+    let opened_identity = SourceIdentity::capture_handle(&canonical_path, &file)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Stat, &canonical_path, e))?;
     if opened_identity != before_identity {
         return Err(SaveOriginalError::UnstableRead {
             path: canonical_path,
@@ -351,15 +474,10 @@ fn open_source_inner(
     }
     before(SourceStage::Restat, &canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?;
-    let after_handle = SourceIdentity::capture(
-        &file
-            .metadata()
-            .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?,
-    );
-    let after_path = SourceIdentity::capture(
-        &fs::metadata(&canonical_path)
-            .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?,
-    );
+    let after_handle = SourceIdentity::capture_handle(&canonical_path, &file)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?;
+    let after_path = SourceIdentity::capture_path(&canonical_path)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?;
     if after_handle != before_identity
         || after_path != before_identity
         || after_handle.len() != bytes.len() as u64
@@ -442,7 +560,6 @@ pub fn check_source_with_lock_token(
 /// lock directories and read cap of `source`; its identity and bytes come
 /// only from this read of the file on disk, never from the plan. The
 /// returned metadata is the handle's post-read observation.
-#[cfg(unix)]
 pub(crate) fn confirm_published(
     source: &SourceStamp,
     object: &SourceIdentity,
@@ -454,11 +571,11 @@ pub(crate) fn confirm_published(
     if !before.is_file() {
         return mismatch("published path is not a regular file");
     }
-    let identity = SourceIdentity::capture(&before);
+    let identity = SourceIdentity::capture_path(path)?;
     if !identity.same_object(object) {
         return mismatch("published path names another object");
     }
-    // Another writer can grow this same inode before confirmation. Apply
+    // Another writer can grow this same object before confirmation. Apply
     // the read cap before trusting its length as an allocation request.
     if identity.len() > source.budget_limit() || expected.len() as u64 > source.budget_limit() {
         return Err(io::Error::new(
@@ -467,7 +584,7 @@ pub(crate) fn confirm_published(
         ));
     }
     let file = File::open(path)?;
-    if SourceIdentity::capture(&file.metadata()?) != identity {
+    if SourceIdentity::capture_handle(path, &file)? != identity {
         return mismatch("published object changed while it was opened");
     }
     let mut bytes = Vec::with_capacity(identity.len() as usize);
@@ -481,8 +598,8 @@ pub(crate) fn confirm_published(
         ));
     }
     let after = file.metadata()?;
-    if SourceIdentity::capture(&after) != identity
-        || SourceIdentity::capture(&fs::symlink_metadata(path)?) != identity
+    if SourceIdentity::capture_handle(path, &file)? != identity
+        || SourceIdentity::capture_path(path)? != identity
         || bytes.len() as u64 != identity.len()
     {
         return mismatch("published object changed during read-back");
@@ -513,7 +630,8 @@ pub(crate) fn verify_current(source: &SourceStamp) -> Result<(), SaveOriginalErr
             ConflictDetail::NotARegularFileAnymore,
         ));
     }
-    let current = SourceIdentity::capture(&metadata);
+    let current = SourceIdentity::capture_path(canonical_path)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Stat, canonical_path, e))?;
     if let Some(detail) = source.identity().difference(&current) {
         return Err(SaveOriginalError::conflict_error(canonical_path, detail));
     }

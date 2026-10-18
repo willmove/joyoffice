@@ -422,12 +422,12 @@ pub struct TextInput<B = Session> {
     composition: Option<Composition>,
     view: InputView,
     limits: InputLimits,
-    initial_version: DocumentVersion,
+    saved_version: DocumentVersion,
 }
 impl<B: InputBackend> TextInput<B> {
     pub fn new(backend: B, limits: InputLimits) -> Result<Self, InputError> {
         let limits = limits.capped();
-        let initial_version = backend.session().version();
+        let saved_version = backend.session().version();
         let base = Arc::new(TextIndex::new(backend.session().snapshot(), limits)?);
         let selection = Selection::caret(base.position(0, Bias::After)?);
         let view = InputView {
@@ -443,7 +443,7 @@ impl<B: InputBackend> TextInput<B> {
             composition: None,
             view,
             limits,
-            initial_version,
+            saved_version,
         })
     }
     pub fn backend(&self) -> &B {
@@ -456,7 +456,18 @@ impl<B: InputBackend> TextInput<B> {
         self.composition.is_some()
     }
     pub fn has_unsaved_changes(&self) -> bool {
-        self.backend.session().version() != self.initial_version
+        self.backend.session().version() != self.saved_version
+    }
+    pub fn saved_version(&self) -> DocumentVersion {
+        self.saved_version
+    }
+    /// Mark a version that was actually written to the bound source. Later
+    /// edits remain dirty; an older asynchronous completion cannot move the
+    /// saved baseline backwards.
+    pub fn mark_saved(&mut self, version: DocumentVersion) {
+        if version.get() > self.saved_version.get() {
+            self.saved_version = version;
+        }
     }
     pub fn can_undo(&self) -> bool {
         self.is_composing() || self.backend.session().can_undo()
@@ -995,6 +1006,36 @@ impl<B: InputBackend> TextInput<B> {
         Ok(())
     }
 }
+
+impl TextInput<crate::docx::BoundDocx> {
+    pub fn save_original_job(&self) -> crate::docx::SaveOriginalJob {
+        self.backend.save_original_job()
+    }
+
+    /// Install a published result and advance the dirty baseline to exactly
+    /// the version it wrote. Cleanup errors with a published receipt count too:
+    /// the bytes are on disk even though the caller still receives the error.
+    pub fn apply_original_save(
+        &mut self,
+        output: crate::docx::SaveOriginalJobOutput,
+    ) -> Result<crate::storage::SaveOriginalReceipt, crate::docx::BoundOriginalSaveError> {
+        let saved = output.published_receipt().map(|receipt| receipt.version());
+        let result = self.backend.apply_original_save(output);
+        if let Some(version) = saved {
+            self.mark_saved(version);
+        }
+        result
+    }
+
+    pub fn save_original(
+        &mut self,
+        choice: crate::storage::OriginalChoice,
+    ) -> Result<crate::storage::SaveOriginalReceipt, crate::docx::BoundOriginalSaveError> {
+        let output = self.save_original_job().run(choice);
+        self.apply_original_save(output)
+    }
+}
+
 fn utf16_bytes(text: &str, range: Range<usize>) -> Result<Range<usize>, InputError> {
     if range.start > range.end {
         return Err(InputError::InvalidRange);

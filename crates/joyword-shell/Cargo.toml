@@ -21,5 +21,8 @@ unicode-segmentation.workspace = true
 [target.'cfg(unix)'.dependencies]
 xattr.workspace = true
 
+[target.'cfg(windows)'.dependencies]
+winsafe.workspace = true
+
 [lints]
 workspace = true

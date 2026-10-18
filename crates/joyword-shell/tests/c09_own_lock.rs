@@ -6,7 +6,6 @@ use std::fs;
 use std::path::PathBuf;
 
 use joyoffice_opc::Budget;
-use joyword_shell::command::Registry;
 use joyword_shell::docx::BoundDocx;
 use joyword_shell::storage::{
     LockKind, LockState, check_source, check_source_with_lock_token, open_source, save_original,
@@ -151,7 +150,6 @@ fn a_directory_using_the_lock_name_is_not_owned_and_is_not_removed() {
 
 #[test]
 fn the_open_session_token_does_not_make_a_second_open_succeed() {
-    assert!(Registry::builtin().find("file.save").is_none());
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("report.docx");
     let bytes = fixture();

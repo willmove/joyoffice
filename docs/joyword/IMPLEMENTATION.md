@@ -4,9 +4,9 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数、T209 撤销组与 T210 inspect／text 切片已开始；T207 尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
-- **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、统一排版场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、把 T207 接入排版入口后的完整中文排版，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数与 T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T207 尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
+- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、把 T207 接入排版入口后的完整中文排版，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：保留并审核 `joyword-layout::cjk` 的默认东亚家族查询、字间余量、行高公式／网格、有限标点配对与禁则表。R3／R4 算法标 Inferred；R7 区分等线 12 pt 已测配对、字号缩放和汉字类别外推，未知跟随返回未验证。未确认单位的字符／行换算及中西文间距宽度、`adjustRightInd` 返回未验证。单次对齐最多 65,536 个 advance，并检查算术溢出。`layout_document`／`wrap_mixed` 尚未调用计算函数（禁则仅复用既有集合），不声明完成中文排版。验证结果与范围见文末本轮记录；人工 Word／WPS 版式对照未做。
 
@@ -382,3 +382,11 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - 行为登记表新增 10 条 `EDIT-UNDO-*`（均为 hypothesis，无 Word 观测），`check_docs.py` 以 `REQUIRED_BEHAVIORS` 校验这些条目存在且引用的测试存在。原有两项随机替换测试（`text_input`、`w05_text_input_export`）假定每次替换各成一步，改为显式 Command 来源以保留原意。
 - 自动验证（Rust 1.98.1，Windows x64 本机）：`cargo test -p joyword-engine -p joyword-shell --locked` 全部通过，其中 engine `undo_groups` 10 项（含 48 个种子 × 160 步的随机性质测试：撤销链只经过已提交状态、在每个边界停下、回到初始状态，重做回到末状态，版本严格递增）、shell `undo_groups` 8 项；`cargo test -p joyword --features dev-runtime-shaders --locked` 36 项通过；`cargo test --workspace --locked` 共 439 项通过、零失败（Windows 上不编译 Unix 专属测试，总数不与 macOS 记录直接比较）。`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings`、`check_docs.py`（17 条行为登记）、`check_gates.py`（112 个 Rust 文件）与 `scripts/tests` 53 项 Python 测试通过。
 - 未覆盖：拖动手势与自动更正尚未实现，届时分别以 Paste／Command 来源接入；审阅模式边界需 T300 在切换时调用 `seal_undo_group`；协作多作者未建模，只区分 User／Agent／System。按 Word 行为的撤销粒度（如按词切分）未观测，登记表条目均为假设。系统 IME、拖动与粘贴混合的 GUI 人工验收未执行，远程 CI 未运行，T209 保持 `in_progress`。
+
+### Windows 原件保存、导出绑定与无头视觉输出（2026-10-18）
+
+- **Windows 安全替换（T103／T110）**：非 Unix 原先恒定 `AtomicReplaceUnverified` 的路径已补齐。`joyword-shell` 仅对 Windows 精确使用 winsafe 0.0.19（kernel、MIT）调用 `ReplaceFileW`，不启用忽略 ACL／合并错误标志。来源身份增加卷序列号、文件 ID、链接数、属性和时间；发布前写同目录临时文件、sync、逐字节回读并保留硬链接原件，替换后再核对操作时刻备份。最后身份检查后的竞争写入会被识别并恢复给竞争写者；发布未确认时保留原件备份。创建时间与 `Zone.Identifier` 已实测保留，完整 ACL／ownership／其他命名流仍列在确认清单中。
+- **连续会话（T109／T110）**：`SaveOriginalJob` 把导出计划、重导入验证、来源检查与 IO 放到后台。`ExportBinding` 保留 engine 稳定节点 ID、当前编辑和撤销历史，只更新保存后 surviving paragraph 的 XML 定位；修复了直接更换 backing 后第二次保存误报来源变化的问题。保存期间继续输入仍 dirty，连续保存、撤销后再保存和 DocumentId 迟到路由均有测试。`file.save` 已加入命令注册表、菜单和 Ctrl／Cmd+S；原生提示先列风险，默认另存副本，确认后替换，提示期间编辑会重新预检。
+- **无头视觉输出（T210）**：`joyword-cli` 在保留 inspect／text 契约的同时新增 `render` 与 `convert --to pdf`。同一 DOCX 导入和 `layout_document` PageScene 分别进入 CPU PNG 光栅与可检索 PDF writer；字体、DPI、页码、输入、页数和输出大小均有硬预算。输出经临时文件写入、sync、回读和不覆盖发布；其他转换目标明确拒绝。
+- **自动验证（Windows x64，Rust 1.98.1）**：`cargo test --workspace --locked` 全部通过、零失败；`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`check_docs.py`、`check_gates.py` 及反例、53 项 Python 测试全部通过。`windows_save_original`、`original_save_job` 覆盖连续保存、元数据、竞争与故障；宋体真实 CLI 进程测试覆盖 PNG／PDF 两次输出逐字节一致和输入不变；`pdftotext -enc UTF-8` 独立读回全部中英文（本机默认输出编码会丢中文，不能省略该选项）。`cargo build -p joyword --locked` 成功后，以 `JOYWORD_FONT=C:/Windows/Fonts/simsun.ttc:0` 做进程级启动冒烟，进程保持运行且 stdout／stderr 无启动诊断。
+- **验证边界**：未做 Windows 原生 GUI 确认保存、真实 ACL 文档、断电、非 NTFS／网络盘、5 个样例完整 PNG 矩阵和 render 与窗口的人工一致性验收；T109／T110／T210 均不标 done。cargo-deny 不在本机 PATH，本轮未运行依赖公告检查；winsafe 的精确版本、MIT 许可和公开 Win32 文档已在 PROVENANCE 登记。

@@ -1,0 +1,208 @@
+use std::path::Path;
+use std::process::{Command, Output};
+
+use serde_json::Value;
+
+fn cli() -> Command {
+    let key = format!(
+        "CARGO_TARGET_{}_UNKNOWN_LINUX_GNU_RUNNER",
+        std::env::consts::ARCH.to_uppercase()
+    );
+    let runner = std::env::var(key).ok();
+    let mut parts = runner.as_deref().unwrap_or("").split_whitespace();
+    if let Some(program) = parts.next() {
+        let mut process = Command::new(program);
+        process.args(parts).arg(env!("CARGO_BIN_EXE_joyword-cli"));
+        process
+    } else {
+        Command::new(env!("CARGO_BIN_EXE_joyword-cli"))
+    }
+}
+
+fn font_spec() -> Option<String> {
+    if let Ok(spec) = std::env::var("JOYWORD_TEST_FONT") {
+        return Some(spec);
+    }
+    for (path, face) in [
+        ("/System/Library/Fonts/Supplemental/Songti.ttc", 6),
+        ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 2),
+        ("C:\\Windows\\Fonts\\simsun.ttc", 0),
+    ] {
+        if Path::new(path).is_file() {
+            return Some(format!("{path}:{face}"));
+        }
+    }
+    assert!(
+        std::env::var_os("JOYWORD_REQUIRE_TEST_FONT").is_none(),
+        "a real CJK font is required"
+    );
+    eprintln!("SKIPPED: no CJK font for visual CLI tests");
+    None
+}
+
+fn run(args: &[&str]) -> Output {
+    cli().args(args).output().unwrap()
+}
+
+fn input(dir: &Path) -> (std::path::PathBuf, Vec<u8>) {
+    let path = dir.join("input.docx");
+    let bytes = include_bytes!("../../../tests/fixtures/docx/DOCX-SAMPLE-001.docx").to_vec();
+    std::fs::write(&path, &bytes).unwrap();
+    (path, bytes)
+}
+
+fn png_size(bytes: &[u8]) -> (u32, u32) {
+    assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+    (
+        u32::from_be_bytes(bytes[16..20].try_into().unwrap()),
+        u32::from_be_bytes(bytes[20..24].try_into().unwrap()),
+    )
+}
+
+#[test]
+fn render_is_repeatable_and_refuses_overwrite() {
+    let Some(font) = font_spec() else { return };
+    let dir = tempfile::tempdir().unwrap();
+    let (input, original) = input(dir.path());
+    let input = input.to_str().unwrap();
+    let first_dir = dir.path().join("first");
+    let second_dir = dir.path().join("second");
+    for output in [&first_dir, &second_dir] {
+        let result = run(&[
+            "render",
+            input,
+            "--font",
+            &font,
+            "--output",
+            output.to_str().unwrap(),
+            "--dpi",
+            "96",
+            "--page",
+            "1",
+        ]);
+        assert_eq!(result.status.code(), Some(0), "{:?}", result.stderr);
+        let report: Value = serde_json::from_slice(&result.stdout).unwrap();
+        assert_eq!(report["operation"], "render");
+        assert_eq!(report["pages"], 1);
+        assert_eq!(report["dpi"], 96);
+        assert_eq!(report["files"][0]["name"], "page-1.png");
+    }
+    let first = std::fs::read(first_dir.join("page-1.png")).unwrap();
+    let second = std::fs::read(second_dir.join("page-1.png")).unwrap();
+    assert_eq!(first, second);
+    let (width, height) = png_size(&first);
+    assert!(width > 500 && height > 500);
+    assert_eq!(std::fs::read(input).unwrap(), original);
+
+    let repeated = run(&[
+        "render",
+        input,
+        "--font",
+        &font,
+        "--output",
+        first_dir.to_str().unwrap(),
+        "--page",
+        "1",
+    ]);
+    assert_eq!(repeated.status.code(), Some(2));
+    assert!(repeated.stdout.is_empty());
+    let outside = run(&[
+        "render",
+        input,
+        "--font",
+        &font,
+        "--output",
+        dir.path().join("outside").to_str().unwrap(),
+        "--page",
+        "99",
+    ]);
+    assert_eq!(outside.status.code(), Some(2));
+    assert!(outside.stdout.is_empty());
+}
+
+#[test]
+fn convert_to_pdf_is_repeatable_and_other_targets_are_refused() {
+    let Some(font) = font_spec() else { return };
+    let dir = tempfile::tempdir().unwrap();
+    let (input, original) = input(dir.path());
+    let input = input.to_str().unwrap();
+    let first = dir.path().join("first.pdf");
+    let second = dir.path().join("second.pdf");
+    for output in [&first, &second] {
+        let result = run(&[
+            "convert",
+            input,
+            "--to",
+            "pdf",
+            "--font",
+            &font,
+            "--output",
+            output.to_str().unwrap(),
+        ]);
+        assert_eq!(result.status.code(), Some(0), "{:?}", result.stderr);
+        let report: Value = serde_json::from_slice(&result.stdout).unwrap();
+        assert_eq!(report["operation"], "convert");
+        assert_eq!(report["target"], "pdf");
+        assert!(report["pages"].as_u64().unwrap() >= 1);
+    }
+    let first_bytes = std::fs::read(&first).unwrap();
+    assert_eq!(first_bytes, std::fs::read(&second).unwrap());
+    assert!(first_bytes.starts_with(b"%PDF-"));
+    assert!(first_bytes.len() > 1000);
+    assert_eq!(std::fs::read(input).unwrap(), original);
+
+    let extracted = dir.path().join("extracted.txt");
+    match Command::new("pdftotext")
+        .args(["-enc", "UTF-8"])
+        .arg(&first)
+        .arg(&extracted)
+        .output()
+    {
+        Ok(output) => {
+            assert!(output.status.success(), "{:?}", output.stderr);
+            let text = std::fs::read_to_string(extracted).unwrap();
+            assert!(text.contains("合作协议（原创测试文本）"), "{text}");
+            assert!(text.contains("青禾工作室"), "{text}");
+            assert!(text.contains("English summary"), "{text}");
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            eprintln!("SKIPPED: pdftotext unavailable for independent UTF-8 read-back");
+        }
+        Err(error) => panic!("cannot run pdftotext: {error}"),
+    }
+
+    let repeated = run(&[
+        "convert",
+        input,
+        "--to",
+        "pdf",
+        "--font",
+        &font,
+        "--output",
+        first.to_str().unwrap(),
+    ]);
+    assert_eq!(repeated.status.code(), Some(2));
+    assert!(repeated.stdout.is_empty());
+    let unsupported = run(&[
+        "convert",
+        input,
+        "--to",
+        "txt",
+        "--font",
+        &font,
+        "--output",
+        dir.path().join("out.txt").to_str().unwrap(),
+    ]);
+    assert_eq!(unsupported.status.code(), Some(2));
+    assert!(unsupported.stdout.is_empty());
+}
+
+#[test]
+fn visual_help_and_literal_paths_are_unambiguous() {
+    for command in ["render", "convert"] {
+        let help = run(&[command, "--help"]);
+        assert_eq!(help.status.code(), Some(0));
+        assert!(help.stderr.is_empty());
+        assert!(String::from_utf8(help.stdout).unwrap().contains(command));
+    }
+}

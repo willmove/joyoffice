@@ -80,6 +80,15 @@ pub(crate) trait DocEditor {
     fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
         None
     }
+    fn save_original_job(&self) -> Option<joyword_shell::docx::SaveOriginalJob> {
+        None
+    }
+    fn apply_original_save(
+        &mut self,
+        _output: joyword_shell::docx::SaveOriginalJobOutput,
+    ) -> Result<joyword_shell::storage::SaveOriginalReceipt, String> {
+        Err("file.save_original.unavailable".into())
+    }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError>;
     fn format_paragraph(
         &mut self,
@@ -261,6 +270,15 @@ impl DocEditor for TextInput<BoundDocx> {
     fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
         Some(self.backend().save_copy_job())
     }
+    fn save_original_job(&self) -> Option<joyword_shell::docx::SaveOriginalJob> {
+        Some(TextInput::save_original_job(self))
+    }
+    fn apply_original_save(
+        &mut self,
+        output: joyword_shell::docx::SaveOriginalJobOutput,
+    ) -> Result<joyword_shell::storage::SaveOriginalReceipt, String> {
+        TextInput::apply_original_save(self, output).map_err(|error| error.to_string())
+    }
     fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
         TextInput::format_runs(self, change)
     }
@@ -404,6 +422,61 @@ impl CopyPhase {
             Self::Picking(epoch) => epoch,
             Self::Writing(request) => request.epoch,
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct OriginalRequest {
+    epoch: u64,
+    version: u64,
+    document: Option<joyword_shell::host::DocumentId>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum OriginalSavePhase {
+    Probing(OriginalRequest),
+    Prompting(OriginalRequest),
+    Writing(OriginalRequest),
+}
+
+impl OriginalSavePhase {
+    fn epoch(self) -> u64 {
+        match self {
+            Self::Probing(request) | Self::Prompting(request) | Self::Writing(request) => {
+                request.epoch
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum OriginalDecision {
+    Cancel,
+    SaveCopy,
+    Confirm,
+    Reprobe,
+}
+
+fn original_decision(answer: Option<usize>, expected: u64, current: u64) -> OriginalDecision {
+    match answer {
+        Some(1) => OriginalDecision::SaveCopy,
+        Some(2) if expected == current => OriginalDecision::Confirm,
+        Some(2) => OriginalDecision::Reprobe,
+        _ => OriginalDecision::Cancel,
+    }
+}
+
+fn original_metadata_key(item: joyword_shell::storage::MetadataItem) -> &'static str {
+    use joyword_shell::storage::MetadataItem;
+
+    match item {
+        MetadataItem::Permissions => "metadata.permissions",
+        MetadataItem::Ownership => "metadata.ownership",
+        MetadataItem::Acl => "metadata.acl",
+        MetadataItem::ExtendedAttributes => "metadata.extended_attributes",
+        MetadataItem::CreationTime => "metadata.creation_time",
+        MetadataItem::Links => "metadata.links",
+        MetadataItem::ProvenanceMarks => "metadata.provenance_marks",
     }
 }
 
@@ -785,6 +858,259 @@ impl JoyWord {
         self.editor = Some(editor);
         self.copy_epoch = self.copy_epoch.wrapping_add(1);
     }
+    pub(crate) fn begin_save_original(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(job) = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.save_original_job())
+        else {
+            self.begin_save_copy(window, cx);
+            return;
+        };
+        if self
+            .original_save
+            .is_some_and(|phase| phase.epoch() == self.copy_epoch)
+        {
+            return;
+        }
+        let request = OriginalRequest {
+            epoch: self.copy_epoch,
+            version: job.version().get(),
+            document: self.held_document,
+        };
+        self.original_save = Some(OriginalSavePhase::Probing(request));
+        self.copy_note = None;
+        self.input_error = None;
+        cx.spawn_in(window, async move |view, cx| {
+            let output = cx
+                .background_spawn(async move {
+                    job.run(joyword_shell::storage::OriginalChoice::Decline)
+                })
+                .await;
+            let _ = view.update_in(cx, |view, window, cx| {
+                view.original_probe_landed(request, output, window, cx)
+            });
+        })
+        .detach();
+    }
+
+    fn original_probe_landed(
+        &mut self,
+        request: OriginalRequest,
+        output: joyword_shell::docx::SaveOriginalJobOutput,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.original_save == Some(OriginalSavePhase::Probing(request)) {
+            self.original_save = None;
+        }
+        if request.epoch != self.copy_epoch {
+            return;
+        }
+        let Some(error) = output.storage_error() else {
+            self.input_error = Some(match output.result() {
+                Err(error) => error.to_string(),
+                Ok(_) => self.label("file.original.unexpected"),
+            });
+            cx.notify();
+            return;
+        };
+        let Some(blockers) = error.blockers().filter(|blockers| {
+            blockers.contains(&joyword_shell::storage::ReplacementBlocker::ConfirmationRequired)
+        }) else {
+            self.input_error = Some(error.to_string());
+            cx.notify();
+            return;
+        };
+        let detail = self.original_loss_detail(error.path(), blockers);
+        self.original_save = Some(OriginalSavePhase::Prompting(request));
+        let catalog = Catalog::shipped(self.locale);
+        let receiver = window.prompt(
+            gpui::PromptLevel::Warning,
+            &catalog.text("file.original.prompt"),
+            Some(&detail),
+            &[
+                gpui::PromptButton::cancel(catalog.text("close.cancel")),
+                gpui::PromptButton::ok(catalog.text("file.original.save_copy")),
+                gpui::PromptButton::new(catalog.text("file.original.confirm")),
+            ],
+            cx,
+        );
+        cx.spawn_in(window, async move |view, cx| {
+            let answer = receiver.await.ok();
+            let _ = view.update_in(cx, |view, window, cx| {
+                if view.original_save == Some(OriginalSavePhase::Prompting(request)) {
+                    view.original_save = None;
+                }
+                let Some(editor) = view.editor.as_ref() else {
+                    return;
+                };
+                match original_decision(answer, request.version, editor.version()) {
+                    OriginalDecision::Cancel => {
+                        window.focus(&view.focus_handle, cx);
+                        cx.notify();
+                    }
+                    OriginalDecision::SaveCopy => view.begin_save_copy(window, cx),
+                    OriginalDecision::Reprobe => view.begin_save_original(window, cx),
+                    OriginalDecision::Confirm => view.start_original_write(request, window, cx),
+                }
+            });
+        })
+        .detach();
+    }
+
+    fn original_loss_detail(
+        &self,
+        path: &std::path::Path,
+        blockers: &[joyword_shell::storage::ReplacementBlocker],
+    ) -> String {
+        use joyword_shell::storage::ReplacementBlocker as Blocker;
+
+        let catalog = Catalog::shipped(self.locale);
+        let losses = blockers
+            .iter()
+            .filter_map(|blocker| {
+                let (key, item) = match blocker {
+                    Blocker::UnobservableMetadata(item) => ("file.original.unobservable", item),
+                    Blocker::UnpreservableMetadata(item) => ("file.original.unpreservable", item),
+                    _ => return None,
+                };
+                let item = catalog.text(original_metadata_key(*item));
+                Some(catalog.format(key, &[("item", &item)]))
+            })
+            .collect::<Vec<_>>();
+        let losses = if losses.is_empty() {
+            catalog.text("file.original.no_losses")
+        } else {
+            losses.join(", ")
+        };
+        let shown = path.display().to_string();
+        catalog.format(
+            "file.original.detail",
+            &[("path", &shown), ("losses", &losses)],
+        )
+    }
+
+    fn start_original_write(
+        &mut self,
+        request: OriginalRequest,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if request.epoch != self.copy_epoch {
+            return;
+        }
+        let Some(job) = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.save_original_job())
+        else {
+            self.input_error = Some(self.label("file.save_original.unavailable"));
+            cx.notify();
+            return;
+        };
+        if job.version().get() != request.version {
+            self.begin_save_original(window, cx);
+            return;
+        }
+        self.original_save = Some(OriginalSavePhase::Writing(request));
+        self.copy_note = None;
+        self.input_error = None;
+        cx.spawn_in(window, async move |view, cx| {
+            let output = cx
+                .background_spawn(async move {
+                    job.run(joyword_shell::storage::OriginalChoice::Confirm)
+                })
+                .await;
+            let _ = view.update(cx, |view, cx| {
+                view.original_write_landed(request, output, cx)
+            });
+        })
+        .detach();
+    }
+
+    fn original_write_landed(
+        &mut self,
+        request: OriginalRequest,
+        output: joyword_shell::docx::SaveOriginalJobOutput,
+        cx: &mut Context<Self>,
+    ) {
+        if self.original_save == Some(OriginalSavePhase::Writing(request)) {
+            self.original_save = None;
+        }
+        let published = output.published_receipt().cloned();
+        let current = self
+            .editor
+            .as_ref()
+            .map(|editor| (self.copy_epoch, editor.version()));
+        let landing = copy_landing(
+            CopyRequest {
+                epoch: request.epoch,
+                version: request.version,
+            },
+            current,
+        );
+        let catalog = Catalog::shipped(self.locale);
+        if landing != CopyLanding::Stale {
+            let result = self
+                .editor
+                .as_mut()
+                .map(|editor| editor.apply_original_save(output));
+            match result {
+                Some(Ok(receipt)) => {
+                    let key = if landing == CopyLanding::Current {
+                        "file.original.saved"
+                    } else {
+                        "file.original.saved_earlier"
+                    };
+                    let shown = receipt.path().display().to_string();
+                    self.copy_note = Some(catalog.format(key, &[("path", &shown)]));
+                    self.input_error = None;
+                }
+                Some(Err(error)) => {
+                    self.input_error =
+                        Some(catalog.format("file.original.error", &[("reason", &error)]));
+                    if let Some(receipt) = published {
+                        let key = if landing == CopyLanding::Current {
+                            "file.original.saved"
+                        } else {
+                            "file.original.saved_earlier"
+                        };
+                        let shown = receipt.path().display().to_string();
+                        self.copy_note = Some(catalog.format(key, &[("path", &shown)]));
+                    }
+                }
+                None => {}
+            }
+        } else {
+            let routed = request
+                .document
+                .and_then(|id| self.session.apply_original_save(id, output));
+            match routed {
+                Some(Ok(receipt)) => {
+                    let shown = receipt.path().display().to_string();
+                    self.copy_note =
+                        Some(catalog.format("file.original.saved_background", &[("path", &shown)]));
+                    self.input_error = None;
+                }
+                Some(Err(error)) => {
+                    let reason = error.to_string();
+                    self.input_error =
+                        Some(catalog.format("file.original.error", &[("reason", &reason)]));
+                }
+                None => {
+                    if let Some(receipt) = published {
+                        let shown = receipt.path().display().to_string();
+                        self.copy_note = Some(
+                            catalog.format("file.original.saved_background", &[("path", &shown)]),
+                        );
+                    }
+                }
+            }
+        }
+        cx.notify();
+    }
+
     pub(crate) fn begin_save_copy(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if self
             .copy
@@ -1093,7 +1419,7 @@ impl JoyWord {
         }
     }
     pub(crate) fn input_availability(&self, id: CommandId) -> Availability {
-        if id == FILE_SAVE_COPY {
+        if matches!(id, FILE_SAVE | FILE_SAVE_COPY) {
             return if self
                 .editor
                 .as_ref()
@@ -1370,6 +1696,16 @@ impl JoyWord {
     pub(crate) fn input_status(&self) -> String {
         if let Some(reason) = &self.input_error {
             return Catalog::shipped(self.locale).format("input.error", &[("reason", reason)]);
+        }
+        if let Some(phase) = self
+            .original_save
+            .filter(|phase| phase.epoch() == self.copy_epoch)
+        {
+            return match phase {
+                OriginalSavePhase::Probing(_) => self.label("file.original.checking"),
+                OriginalSavePhase::Prompting(_) => self.label("file.original.confirming"),
+                OriginalSavePhase::Writing(_) => self.label("file.original.saving"),
+            };
         }
         if matches!(self.copy, Some(CopyPhase::Writing(request)) if request.epoch == self.copy_epoch)
         {
@@ -2174,6 +2510,29 @@ mod tests {
             point(px(-500.0), px(-1600.0))
         );
     }
+    #[test]
+    fn original_save_prompt_defaults_to_copy_and_rechecks_edited_versions() {
+        let version = 7;
+        for answer in [None, Some(0), Some(3), Some(usize::MAX)] {
+            assert_eq!(
+                original_decision(answer, version, version),
+                OriginalDecision::Cancel
+            );
+        }
+        assert_eq!(
+            original_decision(Some(1), version, version + 1),
+            OriginalDecision::SaveCopy
+        );
+        assert_eq!(
+            original_decision(Some(2), version, version),
+            OriginalDecision::Confirm
+        );
+        assert_eq!(
+            original_decision(Some(2), version, version + 1),
+            OriginalDecision::Reprobe
+        );
+    }
+
     #[test]
     fn only_explicit_discard_for_the_prompted_version_can_close() {
         let v = 4;
