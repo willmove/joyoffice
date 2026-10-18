@@ -7,7 +7,7 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 当前支持边界与剩余门槛：
 
 - DOCX 仅支持已声明子集；原始包、未知部件与无法安全映射的内容按契约保留或拒绝，超出支持边界的编辑不作假成功。
-- 中文编辑—格式—剪贴板—另存—重开已有自动闭环测试，但系统 IME／GUI、固定 Word／WPS 对照和信创真机验收尚未完成。
+- 中文编辑—格式—剪贴板—另存—重开已有自动闭环测试，但系统 IME／GUI、固定 Word／WPS 对照尚未完成；信创真机验收留待有条件时补验，不阻塞开发、阶段验收或发布，仍明确标为未验证。
 - M2–M9 尚未实施；完整中文排版、样式编号、表格图片、富文本剪贴板、修订、批注和 AI 等仍属后续任务。
 
 详细实现与验证记录见 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
@@ -98,4 +98,4 @@ cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -
 
 ## 实施原则
 
-从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；当前尚未引入 AI 模块。后续优先关闭 M0／M1 剩余验收，包括系统 IME 与 GUI、固定 Word／WPS 对照、信创真机、恢复与原件保存的人工场景，再推进 M2 的样式、编号、表格、图片等能力；逐项依据见 [TASKS](docs/joyword/TASKS.md) 与 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
+从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；当前尚未引入 AI 模块。后续优先关闭 M0／M1 剩余验收，包括系统 IME 与 GUI、固定 Word／WPS 对照、恢复与原件保存的人工场景，再推进 M2 的样式、编号、表格、图片等能力；信创真机留待有条件时补验，不阻塞上述推进与发布。逐项依据见 [TASKS](docs/joyword/TASKS.md) 与 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
