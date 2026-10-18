@@ -192,7 +192,10 @@ impl Dumper<'_> {
                     });
                     self.line(
                         depth,
-                        &format!("{head} style={style} grid=[{}] width={width}", grid.join(",")),
+                        &format!(
+                            "{head} style={style} grid=[{}] width={width}",
+                            grid.join(",")
+                        ),
                     );
                     for row in &table.rows {
                         let head = self.label("row", row.id);
@@ -275,6 +278,7 @@ impl Dumper<'_> {
                         Some(inline) => {
                             let kind = match &inline.kind {
                                 InlineKind::Break(kind) => format!("break:{kind:?}"),
+                                InlineKind::PageField(kind) => format!("field:{kind:?}"),
                                 InlineKind::Image {
                                     resource,
                                     width,

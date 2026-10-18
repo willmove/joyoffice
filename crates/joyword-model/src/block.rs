@@ -36,6 +36,16 @@ pub enum BreakKind {
     Column,
 }
 
+/// A page-number field this slice can project. ECMA-376 Part 1 §17.16.1
+/// names `PAGE` and `NUMPAGES`; other instructions stay uninterpreted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum PageFieldKind {
+    /// Current page, 1-based, after pagination has settled.
+    Page,
+    /// Page count of the laid-out document.
+    NumPages,
+}
+
 /// Source content the model does not interpret, held by the format layer.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Preserved {
@@ -47,6 +57,9 @@ pub struct Preserved {
 #[derive(Clone, Debug, PartialEq)]
 pub enum InlineKind {
     Break(BreakKind),
+    /// `PAGE` or `NUMPAGES` in a header or footer. The cached result is not
+    /// stored; layout substitutes the number or reports that it cannot.
+    PageField(PageFieldKind),
     Image {
         resource: ResourceId,
         width: Measure,

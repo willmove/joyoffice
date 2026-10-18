@@ -1,4 +1,4 @@
-//! Read-only, versioned single-section document flow (T105, C05).
+//! Read-only document flow (T105, C05, T202).
 //!
 //! The explicit single-font profile is a preview contract, not a Word layout
 //! compatibility profile. Unsupported formatting/stories/objects are rejected
@@ -15,7 +15,7 @@ use joyword_foundation::Emu;
 use joyword_model::{
     Bias, Block, BorderEdge, BorderKind, Color, DocDefaults, Document, DocumentSnapshot,
     DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel, NumberingProblem,
-    Paragraph, Position, ScalarOffset, StoryId, Table, displayed_paragraph,
+    PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -198,35 +198,54 @@ pub struct PageGeometry {
     pub top: Emu,
     pub right: Emu,
     pub bottom: Emu,
+    /// Distance from the top edge of the page to the header (`w:header`).
+    pub header: Emu,
+    /// Distance from the bottom edge of the page to the footer (`w:footer`).
+    pub footer: Emu,
+}
+
+/// A bounded notice that did not fail pagination. Callers still receive the
+/// snapshot; the note says what was not applied.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum LayoutNote {
+    /// A keep-next chain or keep-lines paragraph is taller than the page.
+    /// It starts on a fresh page and then flows; placement does not retry.
+    KeepTallerThanPage { paragraph: NodeId },
+    /// A header or footer paragraph was not painted. Its cached field result
+    /// is not shown as a live page number.
+    StoryContentSkipped { paragraph: NodeId },
+    /// Header or footer ink crosses into the body area. The body was not
+    /// pushed, because that would change the page count this slice treats
+    /// as already settled.
+    StoryExceedsMargin { story: StoryId },
 }
 impl PageGeometry {
-    fn read(document: &Document) -> Result<Self, LayoutError> {
-        if document.sections().len() != 1 {
-            return Err(unsupported(None, "multiple sections"));
-        }
-        let section = &document.sections()[0];
-        if !section.headers.is_empty() || !section.footers.is_empty() || section.preserved.is_some()
-        {
-            return Err(unsupported(
-                None,
-                "headers, footers or preserved section properties",
-            ));
-        }
-        let page = &section.page;
-        let abs = |m: Measure| m.absolute().ok_or(LayoutError::InvalidPage);
+    /// `w` and `h` are the page size (ECMA-376 §17.6.13). `orient` is stored
+    /// with them and is not used to swap the axes here.
+    pub(crate) fn from_setup(page: &PageSetup) -> Result<Self, LayoutError> {
+        let abs = |measure: Measure| measure.absolute().ok_or(LayoutError::InvalidPage);
+        let non_negative = |measure: Measure| {
+            let length = abs(measure)?;
+            if length.raw() < 0 {
+                Err(LayoutError::InvalidPage)
+            } else {
+                Ok(length)
+            }
+        };
         let geometry = Self {
             width: abs(page.width)?,
             height: abs(page.height)?,
-            left: add(abs(page.left)?, abs(page.gutter)?)?,
-            top: abs(page.top)?,
-            right: abs(page.right)?,
-            bottom: abs(page.bottom)?,
+            left: add(non_negative(page.left)?, non_negative(page.gutter)?)?,
+            top: non_negative(page.top)?,
+            right: non_negative(page.right)?,
+            bottom: non_negative(page.bottom)?,
+            header: non_negative(page.header)?,
+            footer: non_negative(page.footer)?,
         };
+        // Header and footer distances may sit outside the body box. Painting
+        // reports that; it does not reject a page the body can still flow on.
         if geometry.width.raw() <= 0
             || geometry.height.raw() <= 0
-            || [page.left, page.right, page.top, page.bottom, page.gutter]
-                .iter()
-                .any(|m| m.absolute().is_none_or(|n| n.raw() < 0))
             || add(geometry.left, geometry.right)?.raw() >= geometry.width.raw()
             || add(geometry.top, geometry.bottom)?.raw() >= geometry.height.raw()
         {
@@ -305,6 +324,11 @@ pub struct LayoutSnapshot {
     story: StoryId,
     geometry: PageGeometry,
     pages: Vec<PageScene>,
+    /// One entry per page: the section's page box, including margins.
+    page_geometry: Vec<PageGeometry>,
+    /// Section index owning each page.
+    page_section: Vec<usize>,
+    notes: Vec<LayoutNote>,
     lines: Vec<PlacedLine>,
     paragraphs: Vec<ParagraphMap>,
     by_id: BTreeMap<NodeId, usize>,
@@ -314,7 +338,7 @@ pub struct LayoutSnapshot {
     limits: LayoutLimits,
 }
 
-fn unsupported(node: Option<NodeId>, feature: &'static str) -> LayoutError {
+pub(crate) fn unsupported(node: Option<NodeId>, feature: &'static str) -> LayoutError {
     LayoutError::Unsupported { node, feature }
 }
 
@@ -337,11 +361,33 @@ fn add(a: Emu, b: Emu) -> Result<Emu, LayoutError> {
 pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
     let mut hash = Sha256::new();
     hash.update(document.body_id().get().to_le_bytes());
-    hash.update(format!("{:?}", document.sections()[0].page).as_bytes());
+    for section in document.sections() {
+        hash.update(section.id.get().to_le_bytes());
+        hash.update(format!("{:?}", section.page).as_bytes());
+        hash.update(format!("{:?}", section.title_page).as_bytes());
+        hash.update(format!("{:?}", section.headers).as_bytes());
+        hash.update(format!("{:?}", section.footers).as_bytes());
+    }
+    hash.update(format!("{:?}", document.settings().even_and_odd_headers).as_bytes());
+    for story in document.stories() {
+        if story.id == document.body_id() {
+            continue;
+        }
+        hash.update(story.id.get().to_le_bytes());
+        hash.update(format!("{:?}", story.kind).as_bytes());
+        for block in story.blocks.iter() {
+            let Some(paragraph) = block.as_paragraph() else {
+                continue;
+            };
+            let text = crate::pages::marked_text(paragraph);
+            hash.update((text.len() as u64).to_le_bytes());
+            hash.update(text.as_bytes());
+        }
+    }
     hash.update((document.body().blocks.len() as u64).to_le_bytes());
     for block in document.body().blocks.iter() {
         match block {
-            Block::Paragraph(paragraph) => hash_paragraph(&mut hash, paragraph),
+            Block::Paragraph(paragraph) => hash_body_paragraph(&mut hash, paragraph),
             Block::Table(table) => hash_table(&mut hash, table),
             Block::Sdt(_) | Block::Opaque(_) => {}
         }
@@ -376,7 +422,7 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
             hash.update(format!("{:?}", style.para).as_bytes());
             hash.update(format!("{:?}", style.run).as_bytes());
         }
-        for paragraph in body_paragraphs(document) {
+        for paragraph in flow_paragraphs(document) {
             hash.update(
                 paragraph
                     .style
@@ -413,13 +459,13 @@ fn stylesheet_is_layout_input(document: &Document) -> bool {
     !styles.is_empty()
         || styles.defaults != DocDefaults::default()
         || !styles.theme().is_empty()
-        || body_paragraphs(document).any(|paragraph| {
+        || flow_paragraphs(document).iter().any(|paragraph| {
             paragraph.style.is_some() || paragraph.runs().iter().any(|run| run.style.is_some())
         })
 }
 
-fn hash_paragraph(hash: &mut Sha256, paragraph: &Paragraph) {
-    let text = paragraph.plain_text(|_| unreachable!("preflight objects"));
+fn hash_body_paragraph(hash: &mut Sha256, paragraph: &Paragraph) {
+    let text = crate::pages::marked_text(paragraph);
     hash.update(paragraph.id().get().to_le_bytes());
     hash.update((text.len() as u64).to_le_bytes());
     hash.update(text.as_bytes());
@@ -445,7 +491,7 @@ fn hash_table(hash: &mut Sha256, table: &Table) {
             hash.update(format!("{:?}", cell.shading).as_bytes());
             for block in cell.blocks.iter() {
                 if let Some(paragraph) = block.as_paragraph() {
-                    hash_paragraph(hash, paragraph);
+                    hash_body_paragraph(hash, paragraph);
                     for run in paragraph.runs() {
                         hash.update(format!("{:?}", run.props).as_bytes());
                     }
@@ -455,18 +501,27 @@ fn hash_table(hash: &mut Sha256, table: &Table) {
     }
 }
 
-fn body_paragraphs(document: &Document) -> impl Iterator<Item = &Paragraph> {
-    document.body().blocks.iter().flat_map(|block| match block {
-        Block::Paragraph(paragraph) => vec![paragraph.as_ref()],
-        Block::Table(table) => table
-            .rows
-            .iter()
-            .flat_map(|row| row.cells.iter())
-            .flat_map(|cell| cell.blocks.iter())
-            .filter_map(Block::as_paragraph)
-            .collect::<Vec<_>>(),
-        Block::Sdt(_) | Block::Opaque(_) => Vec::new(),
-    })
+/// Body paragraphs, then each table cell's paragraphs, in document order.
+/// A paragraph-only body yields the same sequence the fingerprint used before
+/// tables existed.
+fn flow_paragraphs(document: &Document) -> Vec<&Paragraph> {
+    let mut paragraphs = Vec::new();
+    for block in document.body().blocks.iter() {
+        match block {
+            Block::Paragraph(paragraph) => paragraphs.push(paragraph.as_ref()),
+            Block::Table(table) => {
+                for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
+                    for inner in cell.blocks.iter() {
+                        if let Some(paragraph) = inner.as_paragraph() {
+                            paragraphs.push(paragraph);
+                        }
+                    }
+                }
+            }
+            Block::Sdt(_) | Block::Opaque(_) => {}
+        }
+    }
+    paragraphs
 }
 
 fn table_paragraphs(table: &Table) -> Result<Vec<&Paragraph>, LayoutError> {
@@ -480,6 +535,12 @@ fn table_paragraphs(table: &Table) -> Result<Vec<&Paragraph>, LayoutError> {
                         "nested table or unsupported cell content",
                     ));
                 };
+                if !paragraph.inlines().is_empty() {
+                    return Err(unsupported(
+                        Some(paragraph.id()),
+                        "inline objects or breaks in a table cell",
+                    ));
+                }
                 paragraphs.push(paragraph);
             }
         }
@@ -492,12 +553,7 @@ fn check_paragraph(
     paragraph: &Paragraph,
     profile: SingleFontProfile,
 ) -> Result<(), LayoutError> {
-    if !paragraph.inlines().is_empty() {
-        return Err(unsupported(
-            Some(paragraph.id()),
-            "inline objects or breaks",
-        ));
-    }
+    crate::pages::accept_body_inlines(document, paragraph)?;
     style_paint::paint(document, paragraph, profile).map(|_| ())
 }
 
@@ -507,15 +563,10 @@ pub(crate) fn preflight(
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
 ) -> Result<PageGeometry, LayoutError> {
-    if body_paragraphs(document).count() > limits.max_paragraphs {
+    if document.body().blocks.len() > limits.max_paragraphs {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Paragraphs));
     }
-    if document.stories().count() != 1 {
-        return Err(unsupported(None, "additional stories"));
-    }
-    if document.sections().len() != 1 {
-        return Err(unsupported(None, "multiple sections"));
-    }
+    let plans = crate::pages::section_plans(document)?;
     let metadata = document
         .styles()
         .len()
@@ -536,6 +587,7 @@ pub(crate) fn preflight(
     }
     let mut total = 0usize;
     let mut runs = 0usize;
+    let mut seen = 0usize;
     for block in document.body().blocks.iter() {
         cancellation.check()?;
         let paragraphs = match block {
@@ -546,6 +598,10 @@ pub(crate) fn preflight(
             }
         };
         for p in paragraphs {
+            seen += 1;
+            if seen > limits.max_paragraphs {
+                return Err(LayoutError::LimitExceeded(LayoutLimit::Paragraphs));
+            }
             total = total
                 .checked_add(p.text().summary().bytes)
                 .ok_or(LayoutError::LimitExceeded(LayoutLimit::TextBytes))?;
@@ -559,12 +615,18 @@ pub(crate) fn preflight(
             check_paragraph(document, p, profile)?;
         }
     }
+    crate::pages::accept_stories(document)?;
     if document.validate().has_errors() {
         return Err(LayoutError::InvalidDocument);
     }
-    let geometry = PageGeometry::read(document)?;
-    if profile.leading.raw() > geometry.bottom_edge().raw() - geometry.top.raw() {
-        return Err(LayoutError::LineTooTall);
+    let geometry = plans
+        .first()
+        .map(|plan| plan.geometry)
+        .ok_or(LayoutError::InvalidDocument)?;
+    for plan in &plans {
+        if profile.leading.raw() > plan.geometry.bottom_edge().raw() - plan.geometry.top.raw() {
+            return Err(LayoutError::LineTooTall);
+        }
     }
     Ok(geometry)
 }
@@ -594,17 +656,26 @@ pub(crate) struct FittedParagraph {
     pub justification: Option<Justification>,
     /// Baseline offset inside the line box, after style size scaling.
     pub baseline: Emu,
+    pub geometry: PageGeometry,
+    pub section_index: usize,
+    /// Start a new page before this paragraph when the current page already
+    /// holds body runs. Set for the first paragraph of a later section.
+    pub section_break_before: bool,
+    /// Explicit `w:br w:type="page"` counts before each piece. Empty means
+    /// the paragraph has no explicit page breaks.
+    pub piece_breaks: Vec<u32>,
+    pub piece_lines: Vec<usize>,
+    /// Page breaks after the last text piece. One trailing break moves the
+    /// next paragraph; further breaks insert blank pages.
+    pub trailing_breaks: u32,
     /// Page x of the text frame. Body paragraphs use the content left edge.
     pub frame_x: Emu,
-    /// Width of the text frame. Body paragraphs use the content width.
+    /// Width available for this paragraph's lines. Body paragraphs use the
+    /// section content width; a cell uses its inner width.
     pub frame_width: Emu,
-}
-
-/// Where a paragraph's lines are measured and placed.
-#[derive(Clone, Copy, Debug)]
-pub(crate) struct TextFrame {
-    pub origin_x: Emu,
-    pub width: Emu,
+    /// Keep the caller's y. Cell paragraphs set this so a row is not moved
+    /// back to the page top and is not split onto the next page.
+    pub pinned: bool,
 }
 
 /// Where a paragraph began in a previous snapshot. `top` is the y before
@@ -638,7 +709,15 @@ fn prepare_keep_groups(
         let mut height = paragraphs[start].height;
         while end + 1 < paragraphs.len()
             && paragraphs[end].keep_next
+            && paragraphs[end].trailing_breaks == 0
             && !paragraphs[end + 1].page_break_before
+            && !paragraphs[end + 1].section_break_before
+            && paragraphs[end + 1]
+                .piece_breaks
+                .first()
+                .copied()
+                .unwrap_or(0)
+                == 0
         {
             cancellation.check()?;
             height = add(
@@ -793,44 +872,42 @@ pub fn layout_document(
     profile.validate()?;
     let limits = limits.capped();
     let geometry = preflight(document, profile, limits, cancellation)?;
+    let plans = crate::pages::section_plans(document)?;
     let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
     let marks = joyword_model::list_marks(document);
-    let has_table = document
+    if document
         .body()
         .blocks
         .iter()
-        .any(|block| matches!(block, Block::Table(_)));
-    if has_table {
+        .any(|block| matches!(block, Block::Table(_)))
+    {
         return layout_mixed(
             result,
             document,
             faces,
             profile,
-            geometry,
             limits,
             cancellation,
             &marks,
+            &plans,
         );
     }
-    let frame = TextFrame {
-        origin_x: geometry.left,
-        width: geometry.content_width(),
-    };
     let mut prepared = Vec::new();
     let mut total_lines = 0usize;
     let mut charged_shapes = 0usize;
     let mut charged_bytes = 0usize;
     let mut charged_glyphs = 0usize;
-    for block in document.body().blocks.iter() {
+    for (index, block) in document.body().blocks.iter().enumerate() {
         cancellation.check()?;
         let paragraph = block.as_paragraph().expect("preflight checked all blocks");
-        let fitted = fit_paragraph(
+        let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
+        let mut fitted = fit_paragraph(
             document,
             paragraph,
             faces,
             profile,
-            geometry,
-            frame,
+            plan.geometry,
+            plan.geometry.content_width(),
             limits,
             WorkSpent {
                 shapes: charged_shapes,
@@ -841,6 +918,9 @@ pub fn layout_document(
             cancellation,
             marks.get(&paragraph.id()),
         )?;
+        fitted.geometry = plan.geometry;
+        fitted.section_index = plan.section;
+        fitted.section_break_before = crate::pages::section_break_before(&plans, index);
         record_fit(&mut result, &fitted);
         charged_shapes += fitted.shape_calls;
         charged_bytes += fitted.shaped_bytes;
@@ -851,30 +931,27 @@ pub fn layout_document(
         result.stats.glyphs += fitted.glyphs;
         prepared.push(fitted);
     }
-    assemble(result, prepared, cancellation, None)
+    let mut snapshot = assemble(result, prepared, cancellation, None)?;
+    crate::pages::paint_stories(&mut snapshot, document, faces, profile, cancellation)?;
+    Ok(snapshot)
 }
 
 const CELL_MARGIN_TWIPS: i64 = 108;
 
-/// Body paragraphs keep the paragraph-only assembler. A document that contains
-/// a table places each row as one unit: cell paragraphs sit side by side in
-/// the shared page scene, and a row moves to the next page instead of
-/// splitting. Vertical merge is stored but not drawn as a rowspan.
+/// Paragraph batches keep the page and header assembler. A table row is one
+/// unit: cell paragraphs sit side by side, and the row moves to the next page
+/// instead of splitting. Vertical merge is stored and is not drawn as a rowspan.
 #[allow(clippy::too_many_arguments)]
 fn layout_mixed(
     mut result: LayoutSnapshot,
     document: &Document,
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
-    geometry: PageGeometry,
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+    plans: &[crate::pages::SectionPlan],
 ) -> Result<LayoutSnapshot, LayoutError> {
-    let body_frame = TextFrame {
-        origin_x: geometry.left,
-        width: geometry.content_width(),
-    };
     let mut spent = WorkSpent {
         shapes: 0,
         bytes: 0,
@@ -882,23 +959,32 @@ fn layout_mixed(
         lines: 0,
     };
     let mut batch = Vec::new();
-    let mut top = geometry.top;
-    for block in document.body().blocks.iter() {
+    let mut top = result.geometry.top;
+    for (index, block) in document.body().blocks.iter().enumerate() {
         cancellation.check()?;
+        let plan = crate::pages::plan_for(plans, index).ok_or(LayoutError::InvalidDocument)?;
         match block {
             Block::Paragraph(paragraph) => {
-                let fitted = fit_body(
+                let mut fitted = fit_paragraph(
                     document,
                     paragraph,
                     faces,
                     profile,
-                    geometry,
-                    body_frame,
+                    plan.geometry,
+                    plan.geometry.content_width(),
                     limits,
-                    &spent,
+                    WorkSpent {
+                        shapes: spent.shapes,
+                        bytes: spent.bytes,
+                        glyphs: spent.glyphs,
+                        lines: spent.lines,
+                    },
                     cancellation,
-                    marks,
+                    marks.get(&paragraph.id()),
                 )?;
+                fitted.geometry = plan.geometry;
+                fitted.section_index = plan.section;
+                fitted.section_break_before = crate::pages::section_break_before(plans, index);
                 note_fit(&mut result, &fitted, &mut spent);
                 batch.push(fitted);
             }
@@ -911,7 +997,9 @@ fn layout_mixed(
                     table,
                     faces,
                     profile,
-                    geometry,
+                    plan.geometry,
+                    plan.section,
+                    crate::pages::section_break_before(plans, index),
                     limits,
                     &mut spent,
                     cancellation,
@@ -924,6 +1012,7 @@ fn layout_mixed(
         }
     }
     place_paragraph_batch(&mut result, &mut top, &mut batch, cancellation)?;
+    crate::pages::paint_stories(&mut result, document, faces, profile, cancellation)?;
     cancellation.check()?;
     Ok(result)
 }
@@ -937,38 +1026,6 @@ fn note_fit(result: &mut LayoutSnapshot, fitted: &FittedParagraph, spent: &mut W
     result.stats.shape_calls += fitted.shape_calls;
     result.stats.shaped_bytes += fitted.shaped_bytes;
     result.stats.glyphs += fitted.glyphs;
-}
-
-#[allow(clippy::too_many_arguments)]
-fn fit_body(
-    document: &Document,
-    paragraph: &Paragraph,
-    faces: FaceSet<'_>,
-    profile: SingleFontProfile,
-    geometry: PageGeometry,
-    frame: TextFrame,
-    limits: LayoutLimits,
-    spent: &WorkSpent,
-    cancellation: &LayoutCancellation,
-    marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
-) -> Result<FittedParagraph, LayoutError> {
-    fit_paragraph(
-        document,
-        paragraph,
-        faces,
-        profile,
-        geometry,
-        frame,
-        limits,
-        WorkSpent {
-            shapes: spent.shapes,
-            bytes: spent.bytes,
-            glyphs: spent.glyphs,
-            lines: spent.lines,
-        },
-        cancellation,
-        marks.get(&paragraph.id()),
-    )
 }
 
 fn place_paragraph_batch(
@@ -997,6 +1054,8 @@ fn place_table(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     geometry: PageGeometry,
+    section: usize,
+    section_break_before: bool,
     limits: LayoutLimits,
     spent: &mut WorkSpent,
     cancellation: &LayoutCancellation,
@@ -1011,6 +1070,17 @@ fn place_table(
             .checked_add(grid_twips(table.id, *column)?)
             .ok_or(LayoutError::GeometryOverflow)?;
         edges.push(cursor);
+    }
+    let page_has_ink = result
+        .pages
+        .last()
+        .is_some_and(|page| !page.runs.is_empty() || !page.rects.is_empty());
+    if !page_has_ink {
+        result.retarget_open_page(geometry, section);
+        *top = geometry.top;
+    } else if section_break_before {
+        result.new_page(geometry, section)?;
+        *top = geometry.top;
     }
     for row in &table.rows {
         cancellation.check()?;
@@ -1040,10 +1110,7 @@ fn place_table(
                 .checked_add(twips_to_emu(edges[start])?)
                 .and_then(|x| x.checked_add(margin))
                 .ok_or(LayoutError::GeometryOverflow)?;
-            let frame = TextFrame {
-                origin_x: Emu::new(origin),
-                width: Emu::new(twips_to_emu(inner)?),
-            };
+            let inner_width = Emu::new(twips_to_emu(inner)?);
             let mut paragraphs = Vec::new();
             let mut content = 0i64;
             for block in cell.blocks.iter() {
@@ -1053,18 +1120,36 @@ fn place_table(
                         "nested table or unsupported cell content",
                     ));
                 };
-                let fitted = fit_body(
+                let mut fitted = fit_paragraph(
                     document,
                     paragraph,
                     faces,
                     profile,
                     geometry,
-                    frame,
+                    inner_width,
                     limits,
-                    spent,
+                    WorkSpent {
+                        shapes: spent.shapes,
+                        bytes: spent.bytes,
+                        glyphs: spent.glyphs,
+                        lines: spent.lines,
+                    },
                     cancellation,
-                    marks,
+                    marks.get(&paragraph.id()),
                 )?;
+                fitted.geometry = geometry;
+                fitted.section_index = section;
+                fitted.frame_x = Emu::new(origin);
+                fitted.frame_width = inner_width;
+                fitted.pinned = true;
+                fitted.page_break_before = false;
+                fitted.keep_lines = false;
+                fitted.keep_next = false;
+                fitted.group_height = None;
+                fitted.section_break_before = false;
+                fitted.piece_breaks.clear();
+                fitted.piece_lines.clear();
+                fitted.trailing_breaks = 0;
                 content = content
                     .checked_add(fitted.height.raw())
                     .and_then(|height| height.checked_add(fitted.after.raw()))
@@ -1091,7 +1176,7 @@ fn place_table(
             .last()
             .is_some_and(|page| !page.runs.is_empty() || !page.rects.is_empty());
         if top.raw().saturating_add(row_height) > bottom && occupied && top.raw() != page_top {
-            result.new_page()?;
+            result.new_page(geometry, section)?;
             *top = geometry.top;
         }
         if top.raw().saturating_add(row_height) > bottom {
@@ -1113,10 +1198,6 @@ fn place_table(
                     .ok_or(LayoutError::GeometryOverflow)?,
             );
             for paragraph in &mut paragraphs {
-                paragraph.page_break_before = false;
-                paragraph.keep_lines = false;
-                paragraph.keep_next = false;
-                paragraph.group_height = None;
                 place_one(result, &mut cell_top, paragraph, cancellation)?;
             }
         }
@@ -1257,6 +1338,9 @@ pub(crate) fn open_snapshot(
         story: document.body_id(),
         geometry,
         pages: Vec::new(),
+        page_geometry: Vec::new(),
+        page_section: Vec::new(),
+        notes: Vec::new(),
         lines: Vec::new(),
         paragraphs: Vec::new(),
         by_id: BTreeMap::new(),
@@ -1265,7 +1349,7 @@ pub(crate) fn open_snapshot(
         stats: LayoutStats::default(),
         limits,
     };
-    result.new_page()?;
+    result.new_page(geometry, 0)?;
     Ok(result)
 }
 
@@ -1315,7 +1399,7 @@ pub(crate) fn fit_paragraph(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     geometry: PageGeometry,
-    frame: TextFrame,
+    available_width: Emu,
     limits: LayoutLimits,
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
@@ -1355,7 +1439,7 @@ pub(crate) fn fit_paragraph(
         baseline: painted.baseline,
         features: profile.features,
     };
-    let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
+    let text = paragraph.plain_text(|_| String::new());
     let map_line = |error: LineError| {
         if error == LineError::Cancelled {
             LayoutError::Cancelled
@@ -1381,7 +1465,7 @@ pub(crate) fn fit_paragraph(
     )?;
     let family = cjk::face_cjk_family(shape_font);
     let needs_slots = chosen != FontSlot::Ascii;
-    let width = frame.width;
+    let width = available_width;
     let mut fit_slice = |slice: &str,
                          slice_width: Emu|
      -> Result<crate::ParagraphLines, LayoutError> {
@@ -1452,7 +1536,57 @@ pub(crate) fn fit_paragraph(
         Some(Err(problem)) => Some(problem.to_string()),
         _ => None,
     };
-    let mut fitted = if crate::list_layout::needs_list_layout(&props, &text, label) {
+    let split = crate::pages::split_page_breaks(paragraph);
+    let explicit =
+        split.trailing_breaks > 0 || split.pieces.iter().any(|piece| piece.breaks_before > 0);
+    if explicit && crate::list_layout::needs_list_layout(&props, &text, label) {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "page break with numbering or tabs",
+        ));
+    }
+    let mut piece_breaks = Vec::new();
+    let mut piece_lines = Vec::new();
+    let trailing_breaks;
+    let mut fitted = if explicit && split.pieces.is_empty() {
+        let count = split.trailing_breaks;
+        let mut fitted = fit_slice("", width)?;
+        let markers = count as usize;
+        let marker_bytes = markers.saturating_mul(joyword_model::OBJECT_MARKER.len_utf8());
+        if let Some(line) = fitted.lines.first_mut() {
+            line.source.scalars = 0..markers;
+            line.source.bytes = 0..marker_bytes;
+            line.clusters.clear();
+        }
+        piece_breaks.push(count);
+        piece_lines.push(fitted.lines.len());
+        trailing_breaks = 0;
+        fitted
+    } else if explicit {
+        let mut fitted = crate::ParagraphLines {
+            lines: Vec::new(),
+            diagnostics: Vec::new(),
+            omitted_diagnostics: 0,
+            stats: crate::LineStats::default(),
+        };
+        for piece in &split.pieces {
+            let mut part = fit_slice(&piece.text, width)?;
+            if painted.flow.justification == Some(Justification::Both) {
+                justify_pure_chinese(&mut part.lines, width, paragraph.id())?;
+            }
+            crate::pages::shift_piece(&mut part.lines, piece);
+            piece_breaks.push(piece.breaks_before);
+            piece_lines.push(part.lines.len());
+            fitted.lines.append(&mut part.lines);
+            fitted.diagnostics.append(&mut part.diagnostics);
+            fitted.omitted_diagnostics += part.omitted_diagnostics;
+            fitted.stats.shape_calls += part.stats.shape_calls;
+            fitted.stats.shaped_bytes += part.stats.shaped_bytes;
+        }
+        crate::pages::extend_trailing(&mut fitted.lines, split.trailing_breaks);
+        trailing_breaks = split.trailing_breaks;
+        fitted
+    } else if crate::list_layout::needs_list_layout(&props, &text, label) {
         if matches!(
             painted.flow.justification,
             Some(Justification::Center | Justification::End | Justification::Both)
@@ -1463,6 +1597,7 @@ pub(crate) fn fit_paragraph(
             ));
         }
         let interval = default_tab_interval(document)?;
+        trailing_breaks = 0;
         crate::list_layout::layout_marked(
             &text,
             &props,
@@ -1479,6 +1614,7 @@ pub(crate) fn fit_paragraph(
         if painted.flow.justification == Some(Justification::Both) {
             justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
         }
+        trailing_breaks = 0;
         fitted
     };
     if let Some(detail) = numbering_detail {
@@ -1537,8 +1673,15 @@ pub(crate) fn fit_paragraph(
         page_break_before: painted.flow.page_break_before,
         justification: painted.flow.justification,
         baseline: painted.baseline,
-        frame_x: frame.origin_x,
-        frame_width: frame.width,
+        geometry,
+        section_index: 0,
+        section_break_before: false,
+        piece_breaks,
+        piece_lines,
+        trailing_breaks,
+        frame_x: geometry.left,
+        frame_width: available_width,
+        pinned: false,
     })
 }
 
@@ -1616,6 +1759,8 @@ fn suffix_copies(
         return false;
     }
     let mut pages = result.pages.clone();
+    let mut page_geometry = result.page_geometry.clone();
+    let mut page_section = result.page_section.clone();
     let mut lines = result.lines.clone();
     let mut paragraphs = result.paragraphs.clone();
     let mut by_id = result.by_id.clone();
@@ -1634,12 +1779,26 @@ fn suffix_copies(
                 if pages.len() >= result.limits.max_pages {
                     return false;
                 }
+                let geometry = stop
+                    .previous
+                    .page_geometry
+                    .get(pages.len())
+                    .copied()
+                    .unwrap_or(result.geometry);
+                let section = stop
+                    .previous
+                    .page_section
+                    .get(pages.len())
+                    .copied()
+                    .unwrap_or(0);
                 pages.push(PageScene {
-                    width: result.geometry.width,
-                    height: result.geometry.height,
+                    width: geometry.width,
+                    height: geometry.height,
                     runs: Vec::new(),
                     rects: Vec::new(),
                 });
+                page_geometry.push(geometry);
+                page_section.push(section);
             }
             if pages[line.page].runs.len() != line.run {
                 return false;
@@ -1664,7 +1823,34 @@ fn suffix_copies(
     if cursor != source_lines.len() {
         return false;
     }
+    while pages.len() < stop.previous.pages.len() {
+        if pages.len() >= result.limits.max_pages {
+            return false;
+        }
+        let geometry = stop
+            .previous
+            .page_geometry
+            .get(pages.len())
+            .copied()
+            .unwrap_or(result.geometry);
+        let section = stop
+            .previous
+            .page_section
+            .get(pages.len())
+            .copied()
+            .unwrap_or(0);
+        pages.push(PageScene {
+            width: geometry.width,
+            height: geometry.height,
+            runs: Vec::new(),
+            rects: Vec::new(),
+        });
+        page_geometry.push(geometry);
+        page_section.push(section);
+    }
     result.pages = pages;
+    result.page_geometry = page_geometry;
+    result.page_section = page_section;
     result.lines = lines;
     result.paragraphs = paragraphs;
     result.by_id = by_id;
@@ -1677,8 +1863,12 @@ fn place_one(
     prepared: &mut FittedParagraph,
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
-    let geometry = result.geometry;
+    let geometry = prepared.geometry;
+    let section = prepared.section_index;
     let lines = std::mem::take(&mut prepared.lines);
+    let piece_breaks = prepared.piece_breaks.clone();
+    let piece_lines = prepared.piece_lines.clone();
+    let trailing_breaks = prepared.trailing_breaks;
     let id = prepared.id;
     let len = prepared.len;
     let before = prepared.before;
@@ -1688,94 +1878,90 @@ fn place_one(
     let group_height = prepared.group_height;
     let keep_lines = prepared.keep_lines;
     let page_break_before = prepared.page_break_before;
+    let section_break_before = prepared.section_break_before;
     let justification = prepared.justification;
     let baseline_offset = prepared.baseline;
-    let remaining = geometry.bottom_edge().raw() - top.raw();
-    let needs_page = page_break_before
-        || group_height.is_some_and(|height| height.raw() > remaining)
-        || (keep_lines && height.raw() > remaining);
-    // An oversized group/paragraph starts on a fresh page once, then
-    // flows forward. Never retry an impossible constraint or emit an
-    // empty leading page. Empty paragraphs still have a scene run.
+    let frame_x = prepared.frame_x;
+    let frame_width = prepared.frame_width;
+    let pinned = prepared.pinned;
+    let content_box = geometry.bottom_edge().raw() - geometry.top.raw();
+    if group_height.is_some_and(|height| height.raw() > content_box)
+        || (keep_lines && height.raw() > content_box)
+    {
+        result.note(LayoutNote::KeepTallerThanPage { paragraph: id });
+    }
+    // An oversized group starts on a fresh page once, then flows. A page
+    // that a previous break already opened empty is resized instead of
+    // gaining another blank page.
     let page_has_runs = result
         .pages
         .last()
         .is_some_and(|page| !page.runs.is_empty());
-    if needs_page && page_has_runs {
-        result.new_page()?;
+    if !pinned && !page_has_runs {
+        result.retarget_open_page(geometry, section);
         *top = geometry.top;
     }
-    *top = add(*top, before)?;
+    let remaining = geometry.bottom_edge().raw() - top.raw();
+    let needs_page = page_break_before
+        || section_break_before
+        || group_height.is_some_and(|height| height.raw() > remaining)
+        || (keep_lines && height.raw() > remaining);
+    if needs_page
+        && result
+            .pages
+            .last()
+            .is_some_and(|page| !page.runs.is_empty())
+    {
+        result.new_page(geometry, section)?;
+        *top = geometry.top;
+    }
     let first_line = result.lines.len();
-    for line in lines {
-        cancellation.check()?;
-        if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
-            result.new_page()?;
-            *top = if result.lines.len() == first_line {
-                add(geometry.top, before)?
-            } else {
-                geometry.top
-            };
-            if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
-                return Err(LayoutError::LineTooTall);
+    let mut before_applied = false;
+    let mut cursor = 0usize;
+    let slices: Vec<(u32, usize)> = if piece_breaks.is_empty() {
+        vec![(0, lines.len())]
+    } else {
+        piece_breaks.into_iter().zip(piece_lines).collect()
+    };
+    for (breaks, count) in slices {
+        for _ in 0..breaks {
+            result.new_page(geometry, section)?;
+            *top = geometry.top;
+        }
+        let end = cursor.saturating_add(count).min(lines.len());
+        for line in &lines[cursor..end] {
+            cancellation.check()?;
+            if !before_applied {
+                *top = add(*top, before)?;
+                before_applied = true;
             }
+            if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
+                if pinned {
+                    return Err(LayoutError::LineTooTall);
+                }
+                result.new_page(geometry, section)?;
+                *top = if result.lines.len() == first_line {
+                    add(geometry.top, before)?
+                } else {
+                    geometry.top
+                };
+                if add(*top, line_box)?.raw() > geometry.bottom_edge().raw() {
+                    return Err(LayoutError::LineTooTall);
+                }
+            }
+            place_line(
+                result,
+                top,
+                line,
+                id,
+                frame_x,
+                frame_width,
+                line_box,
+                justification,
+                baseline_offset,
+            )?;
         }
-        let slack = (prepared.frame_width.raw() - line.run.width.raw()).max(0);
-        let shift = match justification {
-            Some(Justification::Center) => slack / 2,
-            Some(Justification::End) => slack,
-            _ => 0,
-        };
-        let x = add(prepared.frame_x, Emu::new(shift))?;
-        let body_x = match line.clusters.first() {
-            Some(cluster) => line
-                .run
-                .glyphs
-                .get(cluster.glyphs.start)
-                .map(|glyph| glyph.x)
-                .unwrap_or(Emu::new(0)),
-            None => line.run.width,
-        };
-        let caret_x = add(x, body_x)?;
-        let baseline = add(*top, baseline_offset)?;
-        let mut carets = vec![CaretStop {
-            offset: ScalarOffset(line.source.scalars.start),
-            x: caret_x,
-        }];
-        for cluster in &line.clusters {
-            let glyph = &line.run.glyphs[cluster.glyphs.end - 1];
-            let right = add(x, add(glyph.x, glyph.advance)?)?;
-            carets.push(CaretStop {
-                offset: ScalarOffset(cluster.source.scalars.end),
-                x: right,
-            });
-        }
-        // Validate every coordinate consumed by screen/PDF before placing.
-        for glyph in &line.run.glyphs {
-            add(x, add(glyph.x, glyph.x_offset)?)?;
-            baseline
-                .raw()
-                .checked_sub(glyph.y_offset.raw())
-                .ok_or(LayoutError::GeometryOverflow)?;
-        }
-        let page_index = result.pages.len() - 1;
-        let page = match result.pages.last_mut() {
-            Some(page) => page,
-            None => return Err(LayoutError::GeometryOverflow),
-        };
-        let run = page.runs.len();
-        page.runs.push(line.to_glyph_run(x, baseline));
-        result.lines.push(PlacedLine {
-            paragraph: id,
-            source: line.source,
-            page: page_index,
-            run,
-            top: *top,
-            baseline,
-            height: line_box,
-            carets,
-        });
-        *top = add(*top, line_box)?;
+        cursor = end;
     }
     let map_index = result.paragraphs.len();
     result.by_id.insert(id, map_index);
@@ -1784,19 +1970,177 @@ fn place_one(
         lines: first_line..result.lines.len(),
     });
     *top = add(*top, after)?;
+    for _ in 0..trailing_breaks {
+        result.new_page(geometry, section)?;
+        *top = geometry.top;
+    }
     Ok(())
 }
+
+#[allow(clippy::too_many_arguments)]
+fn place_line(
+    result: &mut LayoutSnapshot,
+    top: &mut Emu,
+    line: &LayoutLine,
+    id: NodeId,
+    frame_x: Emu,
+    frame_width: Emu,
+    line_box: Emu,
+    justification: Option<Justification>,
+    baseline_offset: Emu,
+) -> Result<(), LayoutError> {
+    let slack = (frame_width.raw() - line.run.width.raw()).max(0);
+    let shift = match justification {
+        Some(Justification::Center) => slack / 2,
+        Some(Justification::End) => slack,
+        _ => 0,
+    };
+    let x = add(frame_x, Emu::new(shift))?;
+    let baseline = add(*top, baseline_offset)?;
+    let carets = line_carets(line, x)?;
+    for glyph in &line.run.glyphs {
+        add(x, add(glyph.x, glyph.x_offset)?)?;
+        baseline
+            .raw()
+            .checked_sub(glyph.y_offset.raw())
+            .ok_or(LayoutError::GeometryOverflow)?;
+    }
+    let page_index = result.pages.len() - 1;
+    let page = match result.pages.last_mut() {
+        Some(page) => page,
+        None => return Err(LayoutError::GeometryOverflow),
+    };
+    let run = page.runs.len();
+    page.runs.push(line.to_glyph_run(x, baseline));
+    result.lines.push(PlacedLine {
+        paragraph: id,
+        source: line.source.clone(),
+        page: page_index,
+        run,
+        top: *top,
+        baseline,
+        height: line_box,
+        carets,
+    });
+    *top = add(*top, line_box)?;
+    Ok(())
+}
+
+fn line_carets(line: &LayoutLine, x: Emu) -> Result<Vec<CaretStop>, LayoutError> {
+    let first = line
+        .clusters
+        .first()
+        .map(|cluster| cluster.source.scalars.start)
+        .unwrap_or(line.source.scalars.end);
+    let left = match line.clusters.first() {
+        Some(cluster) => line
+            .run
+            .glyphs
+            .get(cluster.glyphs.start)
+            .map(|glyph| glyph.x)
+            .unwrap_or(Emu::new(0)),
+        None => Emu::new(0),
+    };
+    let left = add(x, left)?;
+    let mut carets = Vec::new();
+    let mut offset = line.source.scalars.start;
+    loop {
+        carets.push(CaretStop {
+            offset: ScalarOffset(offset),
+            x: left,
+        });
+        if offset >= first {
+            break;
+        }
+        offset += 1;
+    }
+    let mut last_x = left;
+    for cluster in &line.clusters {
+        if cluster.glyphs.end == 0 || cluster.glyphs.end > line.run.glyphs.len() {
+            return Err(LayoutError::GeometryOverflow);
+        }
+        let glyph = &line.run.glyphs[cluster.glyphs.end - 1];
+        let right = add(x, add(glyph.x, glyph.advance)?)?;
+        if cluster.source.scalars.end > first {
+            carets.push(CaretStop {
+                offset: ScalarOffset(cluster.source.scalars.end),
+                x: right,
+            });
+        }
+        last_x = right;
+    }
+    let covered = carets.last().map(|stop| stop.offset.0).unwrap_or(first);
+    let mut extra = covered.saturating_add(1);
+    while extra <= line.source.scalars.end {
+        carets.push(CaretStop {
+            offset: ScalarOffset(extra),
+            x: last_x,
+        });
+        extra += 1;
+    }
+    Ok(carets)
+}
+
 impl LayoutSnapshot {
-    fn new_page(&mut self) -> Result<(), LayoutError> {
+    fn new_page(&mut self, geometry: PageGeometry, section: usize) -> Result<(), LayoutError> {
         if self.pages.len() >= self.limits.max_pages {
             return Err(LayoutError::LimitExceeded(LayoutLimit::Pages));
         }
         self.pages.push(PageScene {
-            width: self.geometry.width,
-            height: self.geometry.height,
+            width: geometry.width,
+            height: geometry.height,
             runs: Vec::new(),
             rects: Vec::new(),
         });
+        self.page_geometry.push(geometry);
+        self.page_section.push(section);
+        Ok(())
+    }
+
+    fn retarget_open_page(&mut self, geometry: PageGeometry, section: usize) {
+        let Some(page) = self.pages.last_mut() else {
+            return;
+        };
+        if !page.runs.is_empty() {
+            return;
+        }
+        page.width = geometry.width;
+        page.height = geometry.height;
+        if let Some(slot) = self.page_geometry.last_mut() {
+            *slot = geometry;
+        }
+        if let Some(slot) = self.page_section.last_mut() {
+            *slot = section;
+        }
+    }
+
+    pub(crate) fn page_count(&self) -> usize {
+        self.pages.len()
+    }
+
+    pub(crate) fn page_box(&self, page: usize) -> Option<(PageGeometry, usize)> {
+        Some((
+            *self.page_geometry.get(page)?,
+            *self.page_section.get(page)?,
+        ))
+    }
+
+    pub(crate) fn note(&mut self, note: LayoutNote) {
+        if self.notes.len() < self.limits.max_diagnostics {
+            self.notes.push(note);
+        }
+    }
+
+    pub(crate) fn append_page_run(
+        &mut self,
+        page: usize,
+        run: crate::GlyphRun,
+    ) -> Result<(), LayoutError> {
+        let scene = self
+            .pages
+            .get_mut(page)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        scene.runs.push(run);
         Ok(())
     }
     pub fn key(&self) -> &LayoutKey {
@@ -1810,6 +2154,12 @@ impl LayoutSnapshot {
     }
     pub fn geometry(&self) -> PageGeometry {
         self.geometry
+    }
+    pub fn page_geometry(&self) -> &[PageGeometry] {
+        &self.page_geometry
+    }
+    pub fn notes(&self) -> &[LayoutNote] {
+        &self.notes
     }
     pub fn diagnostics(&self) -> &[LayoutDiagnostic] {
         &self.diagnostics

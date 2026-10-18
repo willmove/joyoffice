@@ -170,6 +170,14 @@
       "word_observation": null
     },
     {
+      "id": "PAGE-SETUP-UNDO",
+      "operation": "通过命令设置纸张大小、页边距、方向或插入分页符",
+      "expectation": "页面设置写入当前节并可撤销；非法页边距被拒绝；分页符成为正文中的显式 page break",
+      "source": "hypothesis",
+      "test": "page_setup_and_break_go_through_the_command_registry",
+      "word_observation": null
+    },
+    {
       "id": "FIND-REPLACE-UNDO",
       "operation": "全部替换可见命中，并跳过锁定与保留内容",
       "expectation": "一次撤销恢复全部替换前的文字；锁定与保留内容未被改写",

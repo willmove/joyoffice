@@ -12,17 +12,19 @@
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BlockSeq, BreakKind, InlineKind, InlineObject, NodeId, OBJECT_MARKER, OpaqueBlock,
-    Orientation, PageSetup, Paragraph, Preserved, RunProps, Section, StyleId,
+    Block, BlockSeq, BreakKind, HeaderFooterKind, InlineKind, InlineObject, NodeId, OBJECT_MARKER,
+    OpaqueBlock, Orientation, PageFieldKind, PageSetup, Paragraph, Preserved, RunProps, Section,
+    StoryId, StoryKind, StyleId,
 };
 
 use crate::backing::PreservedReason;
 use crate::import::{Importer, Scope, xml_error};
-use crate::ns::{KNOWN_OFFICE, MC, W, W_STRICT, is_revision};
+use crate::ns::{KNOWN_OFFICE, MC, R, W, W_STRICT, is_revision};
 use crate::props::{self, Findings};
 use crate::result::{DiagnosticKind, ImportError, ReadOnlyReason, Severity};
 use crate::xml::{Element, Step, XML_NAMESPACE, XmlReader, is_xml_space};
 use joyoffice_opc::PartName;
+use joyoffice_opc::Target;
 
 /// Reads `w:document` and maps its body.
 pub(crate) fn read(
@@ -346,6 +348,33 @@ fn content(
                 locked,
             ),
             "proofErr" => importer.hint(part, "proofErr"),
+            "fldSimple" if importer.story_page_fields => {
+                if let Some(kind) = page_field_kind(child.attribute(Some(W), "instr").unwrap_or(""))
+                {
+                    paragraph.push_inline(
+                        InlineObject {
+                            id: importer.document.ids().node(),
+                            kind: InlineKind::PageField(kind),
+                            source: Some(Importer::source(part, child)),
+                        },
+                        None,
+                        Arc::default(),
+                    );
+                } else {
+                    // An unknown simple field stays preserved. Do not import its
+                    // cached result as text that could be mistaken for a page number.
+                    inline(
+                        importer,
+                        part,
+                        child,
+                        scope,
+                        PreservedReason::Unsupported,
+                        paragraph,
+                        Default::default(),
+                    );
+                    *locked = true;
+                }
+            }
             _ if is_wrapper(local) => {
                 let reason = if is_revision(local) {
                     PreservedReason::Revision
@@ -506,8 +535,29 @@ fn run(
     }
 }
 
-/// `w:sectPr` (§17.6.17): page size, margins and title page. Header and
-/// footer references and every other child are preserved, not imported.
+/// A `PAGE` or `NUMPAGES` instruction, optionally with `\* MERGEFORMAT`.
+/// Any other switch stays on the preserved-field path.
+fn page_field_kind(instr: &str) -> Option<PageFieldKind> {
+    let mut tokens = instr.split_whitespace();
+    let kind = match tokens.next()?.to_ascii_uppercase().as_str() {
+        "PAGE" => PageFieldKind::Page,
+        "NUMPAGES" => PageFieldKind::NumPages,
+        _ => return None,
+    };
+    let rest: Vec<&str> = tokens.collect();
+    if rest.is_empty()
+        || (rest.len() == 2
+            && rest[0].eq_ignore_ascii_case("\\*")
+            && rest[1].eq_ignore_ascii_case("MERGEFORMAT"))
+    {
+        Some(kind)
+    } else {
+        None
+    }
+}
+
+/// `w:sectPr` (§17.6.17): page size, margins, title page, and header or
+/// footer references. Other children are preserved, not imported.
 fn section(
     importer: &mut Importer<'_>,
     part: &PartName,
@@ -521,6 +571,8 @@ fn section(
     let mut title_page = None;
     let mut size = false;
     let mut margins = false;
+    let mut headers = Vec::new();
+    let mut footers = Vec::new();
     for child in element.elements() {
         let mapped = child.namespace.as_deref() == Some(W);
         match (mapped, &*child.local) {
@@ -560,6 +612,29 @@ fn section(
                 }
             }
             (true, "titlePg") => title_page = props::on_off(props::val(child)),
+            (true, "headerReference" | "footerReference") => {
+                if let Some((kind, story)) = story_reference(importer, part, child, &mut findings) {
+                    let list = if child.local.as_ref() == "headerReference" {
+                        &mut headers
+                    } else {
+                        &mut footers
+                    };
+                    if list.iter().any(|(existing, _)| *existing == kind) {
+                        importer.diagnose(
+                            Severity::Warning,
+                            Some(part),
+                            Some(child.span.clone()),
+                            DiagnosticKind::InvalidValue {
+                                element: child.qname.to_string(),
+                                attribute: "type".into(),
+                                value: "duplicate".into(),
+                            },
+                        );
+                    } else {
+                        list.push((kind, story));
+                    }
+                }
+            }
             _ => findings.complete = false,
         }
     }
@@ -579,8 +654,111 @@ fn section(
         last_block,
         page,
         title_page,
-        headers: Vec::new(),
-        footers: Vec::new(),
+        headers,
+        footers,
         preserved,
     }
+}
+
+fn story_reference(
+    importer: &mut Importer<'_>,
+    part: &PartName,
+    child: &Element,
+    findings: &mut Findings,
+) -> Option<(HeaderFooterKind, StoryId)> {
+    let kind = match child.attribute(Some(W), "type") {
+        Some("default") => HeaderFooterKind::Default,
+        Some("first") => HeaderFooterKind::First,
+        Some("even") => HeaderFooterKind::Even,
+        Some(other) => {
+            findings.invalid(child, "w:type", other);
+            return None;
+        }
+        None => {
+            findings.complete = false;
+            return None;
+        }
+    };
+    let Some(id) = child.attribute(Some(R), "id") else {
+        findings.complete = false;
+        return None;
+    };
+    let target = {
+        let package = importer.backing.package();
+        package
+            .relationships(Some(part))
+            .iter()
+            .find(|relationship| relationship.id.as_ref() == id)
+            .and_then(|relationship| match &relationship.target {
+                Target::Internal(name) => Some(name.clone()),
+                _ => None,
+            })
+    };
+    let Some(target) = target else {
+        findings.complete = false;
+        importer.diagnose(
+            Severity::Warning,
+            Some(part),
+            Some(child.span.clone()),
+            DiagnosticKind::MissingPart {
+                relationship: id.to_owned(),
+                part: String::new(),
+            },
+        );
+        return None;
+    };
+    let header = child.local.as_ref() == "headerReference";
+    match import_story(importer, &target, header) {
+        Some(story) => Some((kind, story)),
+        None => {
+            findings.complete = false;
+            None
+        }
+    }
+}
+
+fn import_story(importer: &mut Importer<'_>, name: &PartName, header: bool) -> Option<StoryId> {
+    if let Some((_, id)) = importer
+        .imported_stories
+        .iter()
+        .find(|(part, _)| part == name)
+    {
+        return Some(*id);
+    }
+    let part = importer.backing.package().part(name.as_str()).cloned()?;
+    let expected = if header { "hdr" } else { "ftr" };
+    let element = XmlReader::new(part.name.as_str(), &part.data, importer.budget)
+        .and_then(XmlReader::whole)
+        .ok()?;
+    if !element.is(W, expected) {
+        return None;
+    }
+    importer.backing.interpret(part.name.clone());
+    let scope = Scope::default();
+    importer.scan(&part.name, &element, &scope);
+    let inner = scope.enter(&element).into_owned();
+    let previous_fields = importer.story_page_fields;
+    importer.story_page_fields = true;
+    let mut blocks = Vec::new();
+    for child in element.elements() {
+        if child.is(W, "p") {
+            let (paragraph, _) = paragraph(importer, &part.name, child, &inner);
+            blocks.push(paragraph.into());
+        } else {
+            importer.preserve(&part.name, child, &inner, PreservedReason::Unsupported);
+        }
+    }
+    importer.story_page_fields = previous_fields;
+    if blocks.is_empty() {
+        let id = importer.document.ids().node();
+        blocks.push(Paragraph::new(id).into());
+    }
+    let kind = if header {
+        StoryKind::Header
+    } else {
+        StoryKind::Footer
+    };
+    let id = importer.document.insert_story(kind, blocks);
+    importer.imported_stories.push((part.name, id));
+    Some(id)
 }

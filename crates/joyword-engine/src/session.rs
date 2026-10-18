@@ -629,7 +629,88 @@ fn execute(
         Command::DeleteTableColumn { at } => {
             crate::table::delete_column(document, at, map, changes)
         }
+        Command::SetPageSetup { section, page } => {
+            set_page_setup(document, *section, page, changes)
+        }
     }
+}
+
+fn usable_page(page: &joyword_model::PageSetup) -> bool {
+    let abs =
+        |measure: joyword_model::Measure| measure.absolute().filter(|length| length.raw() >= 0);
+    let Some(width) = abs(page.width) else {
+        return false;
+    };
+    let Some(height) = abs(page.height) else {
+        return false;
+    };
+    let Some(left) = abs(page.left) else {
+        return false;
+    };
+    let Some(right) = abs(page.right) else {
+        return false;
+    };
+    let Some(top) = abs(page.top) else {
+        return false;
+    };
+    let Some(bottom) = abs(page.bottom) else {
+        return false;
+    };
+    let Some(header) = abs(page.header) else {
+        return false;
+    };
+    let Some(footer) = abs(page.footer) else {
+        return false;
+    };
+    let Some(gutter) = abs(page.gutter) else {
+        return false;
+    };
+    if width.raw() <= 0 || height.raw() <= 0 {
+        return false;
+    }
+    let Some(across) = left
+        .raw()
+        .checked_add(gutter.raw())
+        .and_then(|left| left.checked_add(right.raw()))
+    else {
+        return false;
+    };
+    let Some(down) = top.raw().checked_add(bottom.raw()) else {
+        return false;
+    };
+    across < width.raw()
+        && down < height.raw()
+        && header.raw() < height.raw()
+        && footer.raw() < height.raw()
+}
+
+fn set_page_setup(
+    document: &mut Document,
+    section: NodeId,
+    page: &joyword_model::PageSetup,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    if !usable_page(page) {
+        return Err(CommandError::InvalidPage);
+    }
+    let changed = {
+        let sections = document.sections_mut();
+        let Some(found) = sections.iter_mut().find(|item| item.id == section) else {
+            return Err(CommandError::UnknownNode(section));
+        };
+        if found.page == *page {
+            false
+        } else {
+            found.page = page.clone();
+            true
+        }
+    };
+    if changed {
+        for block in document.body().blocks.iter() {
+            changes.paragraphs.insert(block.id());
+        }
+    }
+    Ok(())
 }
 
 fn insert_text(

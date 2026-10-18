@@ -108,6 +108,16 @@ pub(crate) trait DocEditor {
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError>;
     fn set_list_level(&mut self, level: u8) -> Result<bool, InputError>;
     fn remove_list(&mut self) -> Result<bool, InputError>;
+    fn insert_page_break(&mut self) -> Result<bool, InputError>;
+    fn set_page_size(&mut self, width: i64, height: i64) -> Result<bool, InputError>;
+    fn set_page_margins(
+        &mut self,
+        top: i64,
+        right: i64,
+        bottom: i64,
+        left: i64,
+    ) -> Result<bool, InputError>;
+    fn set_page_orientation(&mut self, landscape: bool) -> Result<bool, InputError>;
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError>;
     fn insert_table_row(&mut self) -> Result<bool, InputError>;
     fn delete_table_row(&mut self) -> Result<bool, InputError>;
@@ -225,6 +235,24 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn remove_list(&mut self) -> Result<bool, InputError> {
         TextInput::remove_list(self)
+    }
+    fn insert_page_break(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_page_break(self)
+    }
+    fn set_page_size(&mut self, width: i64, height: i64) -> Result<bool, InputError> {
+        TextInput::set_page_size(self, width, height)
+    }
+    fn set_page_margins(
+        &mut self,
+        top: i64,
+        right: i64,
+        bottom: i64,
+        left: i64,
+    ) -> Result<bool, InputError> {
+        TextInput::set_page_margins(self, top, right, bottom, left)
+    }
+    fn set_page_orientation(&mut self, landscape: bool) -> Result<bool, InputError> {
+        TextInput::set_page_orientation(self, landscape)
     }
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
         TextInput::insert_table(self, rows, columns)
@@ -375,6 +403,24 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn remove_list(&mut self) -> Result<bool, InputError> {
         TextInput::remove_list(self)
+    }
+    fn insert_page_break(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_page_break(self)
+    }
+    fn set_page_size(&mut self, width: i64, height: i64) -> Result<bool, InputError> {
+        TextInput::set_page_size(self, width, height)
+    }
+    fn set_page_margins(
+        &mut self,
+        top: i64,
+        right: i64,
+        bottom: i64,
+        left: i64,
+    ) -> Result<bool, InputError> {
+        TextInput::set_page_margins(self, top, right, bottom, left)
+    }
+    fn set_page_orientation(&mut self, landscape: bool) -> Result<bool, InputError> {
+        TextInput::set_page_orientation(self, landscape)
     }
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
         TextInput::insert_table(self, rows, columns)
@@ -528,6 +574,24 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn remove_list(&mut self) -> Result<bool, InputError> {
         TextInput::remove_list(self)
+    }
+    fn insert_page_break(&mut self) -> Result<bool, InputError> {
+        TextInput::insert_page_break(self)
+    }
+    fn set_page_size(&mut self, width: i64, height: i64) -> Result<bool, InputError> {
+        TextInput::set_page_size(self, width, height)
+    }
+    fn set_page_margins(
+        &mut self,
+        top: i64,
+        right: i64,
+        bottom: i64,
+        left: i64,
+    ) -> Result<bool, InputError> {
+        TextInput::set_page_margins(self, top, right, bottom, left)
+    }
+    fn set_page_orientation(&mut self, landscape: bool) -> Result<bool, InputError> {
+        TextInput::set_page_orientation(self, landscape)
     }
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError> {
         TextInput::insert_table(self, rows, columns)
@@ -1657,6 +1721,18 @@ impl JoyWord {
             }
             return Availability::Enabled;
         }
+        if id.0.starts_with("page.") {
+            if self.open_gate.is_some() {
+                return Availability::Disabled("input.read_only");
+            }
+            let Some(editor) = &self.editor else {
+                return Availability::Disabled("input.loading");
+            };
+            if editor.read_only() {
+                return Availability::Disabled("input.read_only");
+            }
+            return Availability::Enabled;
+        }
         if !id.0.starts_with("edit.") {
             return Availability::Enabled;
         }
@@ -1819,6 +1895,59 @@ impl JoyWord {
                 self.apply_input(cx, |editor| editor.set_list_level(level).map(|_| ()))
             }
             LIST_REMOVE => self.apply_input(cx, |editor| editor.remove_list().map(|_| ())),
+            PAGE_BREAK => self.apply_input(cx, |editor| editor.insert_page_break().map(|_| ())),
+            PAGE_SIZE => {
+                let Some(joyword_shell::command::ArgValue::Text(width)) = args.get("width") else {
+                    self.input_error = Some("width".into());
+                    return Err("width".into());
+                };
+                let Some(joyword_shell::command::ArgValue::Text(height)) = args.get("height")
+                else {
+                    self.input_error = Some("height".into());
+                    return Err("height".into());
+                };
+                let (Ok(width), Ok(height)) = (width.parse::<i64>(), height.parse::<i64>()) else {
+                    self.input_error = Some("page.size".into());
+                    return Err("page.size".into());
+                };
+                self.apply_input(cx, |editor| editor.set_page_size(width, height).map(|_| ()))
+            }
+            PAGE_MARGINS => {
+                let parse = |name: &str| -> Result<i64, String> {
+                    let Some(joyword_shell::command::ArgValue::Text(text)) = args.get(name) else {
+                        return Err(name.into());
+                    };
+                    text.parse::<i64>().map_err(|_| name.to_string())
+                };
+                let top = parse("top")?;
+                let right = parse("right")?;
+                let bottom = parse("bottom")?;
+                let left = parse("left")?;
+                self.apply_input(cx, |editor| {
+                    editor
+                        .set_page_margins(top, right, bottom, left)
+                        .map(|_| ())
+                })
+            }
+            PAGE_ORIENTATION => {
+                let Some(joyword_shell::command::ArgValue::Text(orientation)) =
+                    args.get("orientation")
+                else {
+                    self.input_error = Some("orientation".into());
+                    return Err("orientation".into());
+                };
+                let landscape = match orientation.as_str() {
+                    "landscape" => true,
+                    "portrait" => false,
+                    _ => {
+                        self.input_error = Some("orientation".into());
+                        return Err("orientation".into());
+                    }
+                };
+                self.apply_input(cx, |editor| {
+                    editor.set_page_orientation(landscape).map(|_| ())
+                })
+            }
             FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL | FORMAT_COPY
             | FORMAT_PAINT | FORMAT_CANCEL => {
                 let request = match id {

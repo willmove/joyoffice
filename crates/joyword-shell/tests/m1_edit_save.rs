@@ -5,11 +5,11 @@ use std::path::PathBuf;
 
 use joyoffice_opc::{Budget, Method, Package, write_archive};
 use joyword_engine::RunChange;
-use joyword_model::{Justification, NumberingRef};
+use joyword_model::{BreakKind, InlineKind, Justification, Measure, NumberingRef, Orientation};
 use joyword_shell::command::{
     ArgValue, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_INSERT, EDIT_PASTE, EDIT_SELECT_ALL,
-    FILE_OPEN, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, STYLE_APPLY,
-    STYLE_LIST,
+    FILE_OPEN, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
+    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, STYLE_APPLY, STYLE_LIST,
 };
 use joyword_shell::host::Office;
 
@@ -317,4 +317,113 @@ fn list_apply_level_and_remove_go_through_the_command_registry() {
             level: 0
         })
     );
+}
+
+fn section_page(office: &Office) -> joyword_model::PageSetup {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .sections()[0]
+        .page
+        .clone()
+}
+
+#[test]
+fn page_setup_and_break_go_through_the_command_registry() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("page.docx");
+    fs::write(&source, fixture(1)).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    let original = section_page(&office);
+    office
+        .invoke(
+            PAGE_SIZE,
+            &[
+                ("width", ArgValue::Text("10000".into())),
+                ("height", ArgValue::Text("14000".into())),
+            ],
+        )
+        .unwrap();
+    let sized = section_page(&office);
+    assert_eq!(sized.width, Measure::Twips(10_000));
+    assert_eq!(sized.height, Measure::Twips(14_000));
+    assert_eq!(sized.orientation, original.orientation);
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(section_page(&office).width, original.width);
+    assert_eq!(section_page(&office).height, original.height);
+
+    let rejected = office.invoke(
+        PAGE_MARGINS,
+        &[
+            ("top", ArgValue::Text("100".into())),
+            ("right", ArgValue::Text("10000".into())),
+            ("bottom", ArgValue::Text("100".into())),
+            ("left", ArgValue::Text("10000".into())),
+        ],
+    );
+    assert!(rejected.is_err(), "{rejected:?}");
+    assert_eq!(section_page(&office).left, original.left);
+
+    office.invoke(PAGE_BREAK, &[]).unwrap();
+    let paragraph = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    assert!(
+        paragraph
+            .inlines()
+            .iter()
+            .any(|inline| { matches!(inline.kind, InlineKind::Break(BreakKind::Page)) })
+    );
+    office.active_mut().unwrap().undo().unwrap();
+    let restored = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    assert!(
+        restored
+            .inlines()
+            .iter()
+            .all(|inline| { !matches!(inline.kind, InlineKind::Break(BreakKind::Page)) })
+    );
+
+    let before = section_page(&office);
+    office
+        .invoke(
+            PAGE_ORIENTATION,
+            &[("orientation", ArgValue::Text("landscape".into()))],
+        )
+        .unwrap();
+    let landscape = section_page(&office);
+    assert_eq!(landscape.orientation, Orientation::Landscape);
+    assert_eq!(landscape.width, before.height);
+    assert_eq!(landscape.height, before.width);
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(section_page(&office).orientation, before.orientation);
+    assert_eq!(section_page(&office).width, before.width);
 }

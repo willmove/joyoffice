@@ -6,8 +6,8 @@
 use std::fmt;
 
 use joyword_model::{
-    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, Position,
-    RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
+    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, PageSetup,
+    Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -92,6 +92,11 @@ pub enum Command {
     /// Deletes the column that contains `at`.
     DeleteTableColumn {
         at: Position,
+    },
+    /// Replaces one section's page size, margins and orientation.
+    SetPageSetup {
+        section: NodeId,
+        page: PageSetup,
     },
 }
 
@@ -195,6 +200,8 @@ pub enum CommandError {
     LastColumn(NodeId),
     /// Table insertion is a body-story operation.
     NotTopLevel,
+    /// Page size, margins or header distance cannot be placed.
+    InvalidPage,
 }
 
 impl From<TextError> for CommandError {
@@ -243,6 +250,7 @@ impl fmt::Display for CommandError {
             CommandError::LastRow(node) => write!(f, "table {node} has one row"),
             CommandError::LastColumn(node) => write!(f, "table {node} has one column"),
             CommandError::NotTopLevel => f.write_str("tables are inserted in the body"),
+            CommandError::InvalidPage => f.write_str("page setup is not usable"),
         }
     }
 }

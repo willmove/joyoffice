@@ -119,3 +119,13 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - STYLE-003；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.9（`abstractNum`、`num`、`lvl`、`lvlOverride`、`startOverride`、`lvlRestart`、`lvlText`、`suff`）、§17.18.59（`ST_NumberFormat`）、§17.3.1.37–38（`tabs`／`tab`）与 §17.15.1.25（`defaultTabStop`）。`ST_NumberFormat` 的公开枚举名对照 [docx4j 转载的 ECMA-376 条款页](https://webapp.docx4java.org/OnlineDemo/ecma376/WordML/ST_NumberFormat.html)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的编号实现。
 - 中文计数与简体大写按条款示例的位值写法独立实现（十百千万；零；10–19 写作十／拾而不是一十）。`chineseLegalSimplified` 用零壹贰叁肆伍陆柒捌玖与拾佰仟万。规范没有规定上限；超过 99999 记为不能绘制，不猜测。甲乙丙丁戊己庚辛壬癸只用于 1..=10。字母只用于 1..=26，罗马数字只用于 1..=3999。MS-OI29500 记载 Word 对零和“万”使用不同码位；本切片不照搬该偏差。
 - 不支持的 `numFmt` 保留原 token 并给出诊断，不用 `lvlText` 里的静态符号代替。`numbering.xml` 不从模型回写。没有新增外部 crate。
+
+### 页面、分页符与主页眉页脚（T202 第一切片）
+
+- LAYOUT-004／LAYOUT-012；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.6.11（`pgMar`：页边距、页眉页脚距离、装订线）、§17.6.13（`pgSz`：`w`／`h` 为页面实际尺寸，`orient` 为方向标记）、§17.6.17（`sectPr`）、§17.3.3.1（`br` 的 `type="page"`）、§17.10.2（页眉页脚引用；省略 `headerReference` 时沿用前一节，即链接到前一节）、§17.16.1（`PAGE`、`NUMPAGES` 简单域）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的分页实现。
+- 排版不因 `orient` 交换宽高。页眉页脚画在边距内，不重排正文。首页不同与奇偶页不同只保存并给出诊断，不猜测另一套内容。widowControl 不实现，依据仓库内 layout_rules R5／R8 对 Word 2024 的负结果。没有新增外部 crate。
+
+### 首页不同与奇偶页页眉页脚（T202 第二切片）
+
+- LAYOUT-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.10.1（`evenAndOddHeaders`：按节的页码起点区分奇偶，省略的类型继承前一节，不用另一种代替）、§17.10.5（`headerReference`：省略的首页／偶数页／奇数页引用分别继承前一节的同类型，否则空白）、§17.10.2（`footerReference`，规则与页眉相同）、§17.10.6（`titlePg`：节的首页用 First；关闭时按页码用奇或偶，并忽略已保存的 First）。条款文字对照 [ECMA-376 中文摘录](https://hellowac.github.io/ecma-376-zh-cn/ecma-part1/chapter17/10headeres/)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的页眉实现。
+- 本切片不读 `pgNumType/@w:start`，奇偶与 `PAGE` 共用从 1 起的文档页序号。显式空 story 是引用，截断继承。没有新增外部 crate。
