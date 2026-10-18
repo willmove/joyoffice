@@ -513,7 +513,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **编辑**：`InsertImage` 先按内容哈希、媒体类型和字节查找已有资源。删除选区再插入图片是同一次事务；拒绝的图片丢掉整个候选，包括其中的删除。`edit.insert_image` 读一个普通文件，有字节上限，不打开 URL 或 UNC。
 - **粘贴**：`choose_paste` 优先第一张已接纳的图片。存在图片条目但全部被拒时，不回退成文字。只有文件路径时拒绝，不打开路径。纯文本复制去掉 U+FDD0。GPUI 剪贴板按条目读取，不用会把路径拼进文字的 `text()`。
 - **排版与输出**：图片不整形。前面的文字能放下时与图片同一行，后面的文字另起一行。超出内容框的显示尺寸按比例缩小。图片底边落在基线上。PDF 用 krilla 的 raster-images 画出，CPU 光栅绘制同一矩形。空字形行不要求字体。
-- **未覆盖**：超链接、HTML／RTF、拖放、浮动 `wp:anchor`、把选中图片复制回系统剪贴板、页眉页脚图片、图片后面的同行文字、表格内图片的产品验收，以及 Word／WPS／浏览器双向粘贴。没有启动图形界面。行为登记 `IMAGE-INSERT-UNDO`、`IMAGE-PASTE-REFUSE`、`IMAGE-DEDUP` 是假设，没有 Word 观察。krilla 仍是 0.8.2，只在 joyword-pdf 打开 raster-images；image 仍是 0.25.10，模型打开 png、jpeg、gif、bmp、tiff。去掉新增 panic 点之后，W09 harness 重锚到 `d217c92be2a4fb5d3cf761cd76891c48e42d68d3`（该提交的 `crates/` 含行内图片、功能区，以及不带 expect 的图片样例；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。
+- **未覆盖**：超链接、HTML／RTF、拖放、浮动 `wp:anchor`、把选中图片复制回系统剪贴板、页眉页脚图片、图片后面的同行文字、表格内图片的产品验收，以及 Word／WPS／浏览器双向粘贴。没有启动图形界面。行为登记 `IMAGE-INSERT-UNDO`、`IMAGE-PASTE-REFUSE`、`IMAGE-DEDUP` 是假设，没有 Word 观察。krilla 仍是 0.8.2，只在 joyword-pdf 打开 raster-images；image 仍是 0.25.10，模型打开 png、jpeg、gif、bmp、tiff。去掉新增 panic 点之后，W09 harness 重锚到 `d217c92be2a4fb5d3cf761cd76891c48e42d68d3`（该提交的 `crates/` 含行内图片、功能区，以及不带 expect 的图片样例；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。W09 与恢复实验的独立锁记入 image 0.25.10 及其既有传递依赖，没有升级版本。
 
 ### T205 功能区、标尺与状态栏第一切片（2026-10-18）
 
