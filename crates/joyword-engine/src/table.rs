@@ -1,6 +1,6 @@
-//! Table structure edits (T201). Merge and split stay preserved state: a
-//! command that would change a vertical merge, a horizontal span or a grid
-//! gap is refused, so the stored grid stays one the model already accepts.
+//! Table structure edits (T201). Row and column edits still refuse a merged
+//! grid. Merge and split are their own transactions: each one either leaves
+//! a grid [`joyword_model::table_structure`] accepts or changes nothing.
 
 use std::sync::Arc;
 
@@ -9,7 +9,7 @@ use joyword_model::{
     NodeId, Paragraph, Position, Row, ScalarOffset, StoryId, StoryKind, Table, VerticalMerge,
 };
 
-use crate::command::CommandError;
+use crate::command::{CommandError, TableMerge, TableStructure};
 use crate::locate::{self, Step};
 use crate::map::{MapStep, PositionMap, Selection};
 use crate::session::ChangeSet;
@@ -116,6 +116,7 @@ pub(crate) fn insert_table(
             grid_after: 0,
             cells,
             header: false,
+            cant_split: false,
             preserved: None,
         });
     }
@@ -126,6 +127,7 @@ pub(crate) fn insert_table(
         rows: table_rows,
         style: None,
         width: None,
+        cell_margin: None,
         preserved: None,
         source: None,
     };
@@ -187,6 +189,7 @@ pub(crate) fn insert_row(
         grid_after: template.1,
         cells,
         header: false,
+        cant_split: false,
         preserved: None,
     };
     table_mut(document, story, site.index, table_id)?
@@ -326,6 +329,435 @@ pub(crate) fn delete_column(
     }
     note_table(changes, story, table_id, &[], &removed);
     Ok(())
+}
+
+pub(crate) fn merge_cells(
+    document: &mut Document,
+    at: &Position,
+    direction: TableMerge,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    match direction {
+        TableMerge::Right => merge_right(document, at, changes),
+        TableMerge::Down => merge_down(document, at, changes),
+    }
+}
+
+pub(crate) fn split_cell(
+    document: &mut Document,
+    at: &Position,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let site = site(document, at)?;
+    let table_id = site.table;
+    let story = at.story;
+    let row_index = site.row;
+    let cell_index = site.cell;
+    let kind = {
+        let table = table_at(document, story, site.index, table_id)?;
+        let cell = cell_ref(table, row_index, cell_index, table_id)?;
+        if held(table, row_index, cell_index) {
+            return Err(refuse(table_id, TableStructure::Preserved));
+        }
+        if unsupported_cell(cell) {
+            return Err(refuse(table_id, TableStructure::UnsupportedCell));
+        }
+        if cell_locked(document, story, cell)? {
+            return Err(CommandError::Locked(at.paragraph));
+        }
+        cell.vertical_merge
+    };
+    if kind == VerticalMerge::Continue {
+        return Err(refuse(table_id, TableStructure::ContinueCell));
+    }
+    if kind == VerticalMerge::Restart {
+        return split_vertical(
+            document, story, site.index, table_id, row_index, cell_index, changes,
+        );
+    }
+    split_horizontal(
+        document, story, site.index, table_id, row_index, cell_index, changes,
+    )
+}
+
+fn merge_right(
+    document: &mut Document,
+    at: &Position,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let site = site(document, at)?;
+    let table_id = site.table;
+    let story = at.story;
+    let row_index = site.row;
+    let cell_index = site.cell;
+    {
+        let table = table_at(document, story, site.index, table_id)?;
+        let row = table
+            .rows
+            .get(row_index)
+            .ok_or(CommandError::NotATable(table_id))?;
+        if cell_index + 1 >= row.cells.len() {
+            return Err(refuse(table_id, TableStructure::NoNeighbour));
+        }
+        if row.cells[cell_index].vertical_merge != VerticalMerge::None
+            || row.cells[cell_index + 1].vertical_merge != VerticalMerge::None
+        {
+            return Err(refuse(table_id, TableStructure::VerticalMerge));
+        }
+        if held(table, row_index, cell_index) || held(table, row_index, cell_index + 1) {
+            return Err(refuse(table_id, TableStructure::Preserved));
+        }
+        if unsupported_cell(&row.cells[cell_index]) || unsupported_cell(&row.cells[cell_index + 1])
+        {
+            return Err(refuse(table_id, TableStructure::UnsupportedCell));
+        }
+        if cell_locked(document, story, &row.cells[cell_index])?
+            || cell_locked(document, story, &row.cells[cell_index + 1])?
+        {
+            return Err(CommandError::Locked(at.paragraph));
+        }
+    }
+    let table = table_mut(document, story, site.index, table_id)?;
+    let mut neighbour = table.rows[row_index].cells.remove(cell_index + 1);
+    let moved = drain_blocks(&mut neighbour);
+    let touched = block_ids(&moved);
+    let anchor = &mut table.rows[row_index].cells[cell_index];
+    anchor.grid_span = anchor
+        .grid_span
+        .checked_add(neighbour.grid_span)
+        .ok_or(CommandError::TableLimit)?;
+    if let (Some(Measure::Twips(left)), Some(Measure::Twips(right))) =
+        (anchor.width, neighbour.width)
+        && let Some(sum) = left.checked_add(right)
+    {
+        anchor.width = Some(Measure::Twips(sum));
+    }
+    anchor.borders.right = neighbour.borders.right;
+    for block in moved {
+        anchor.blocks.push(block);
+    }
+    note_table(changes, story, table_id, &[], &[]);
+    changes.paragraphs.extend(touched);
+    Ok(())
+}
+
+fn merge_down(
+    document: &mut Document,
+    at: &Position,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let site = site(document, at)?;
+    let table_id = site.table;
+    let story = at.story;
+    let row_index = site.row;
+    let cell_index = site.cell;
+    let (column, span, end, below_index) = {
+        let table = table_at(document, story, site.index, table_id)?;
+        let cell = cell_ref(table, row_index, cell_index, table_id)?;
+        if cell.vertical_merge == VerticalMerge::Continue {
+            return Err(refuse(table_id, TableStructure::ContinueCell));
+        }
+        if held(table, row_index, cell_index) {
+            return Err(refuse(table_id, TableStructure::Preserved));
+        }
+        if unsupported_cell(cell) {
+            return Err(refuse(table_id, TableStructure::UnsupportedCell));
+        }
+        if cell_locked(document, story, cell)? {
+            return Err(CommandError::Locked(at.paragraph));
+        }
+        let column = column_of(&table.rows[row_index], cell_index);
+        let span = cell.grid_span;
+        let end = span_end(table, row_index, column, span);
+        let Some(below_row) = table.rows.get(end + 1) else {
+            return Err(refuse(table_id, TableStructure::NoNeighbour));
+        };
+        let Some(below_index) = cell_covering(below_row, column, span) else {
+            return Err(refuse(table_id, TableStructure::SpanMismatch));
+        };
+        if below_row.cells[below_index].vertical_merge != VerticalMerge::None {
+            return Err(refuse(table_id, TableStructure::VerticalConflict));
+        }
+        if held(table, end + 1, below_index) {
+            return Err(refuse(table_id, TableStructure::Preserved));
+        }
+        if unsupported_cell(&below_row.cells[below_index]) {
+            return Err(refuse(table_id, TableStructure::UnsupportedCell));
+        }
+        if cell_locked(document, story, &below_row.cells[below_index])? {
+            return Err(CommandError::Locked(at.paragraph));
+        }
+        (column, span, end, below_index)
+    };
+    let _ = (column, span);
+    let (bottom, taken) = {
+        let table = table_mut(document, story, site.index, table_id)?;
+        let bottom = table.rows[end + 1].cells[below_index].borders.bottom;
+        let taken = drain_blocks(&mut table.rows[end + 1].cells[below_index]);
+        (bottom, taken)
+    };
+    let mut kept = Vec::new();
+    let mut moved = Vec::new();
+    for block in taken {
+        if block_has_content(&block) {
+            moved.push(block);
+        } else {
+            kept.push(block);
+        }
+    }
+    let mut inserted = Vec::new();
+    if kept.is_empty() {
+        let paragraph = empty_paragraph(document, &mut inserted);
+        kept.push(paragraph.into());
+    }
+    let touched = block_ids(&moved);
+    {
+        let table = table_mut(document, story, site.index, table_id)?;
+        table.rows[end + 1].cells[below_index].blocks = BlockSeq::from_vec(kept);
+        table.rows[end + 1].cells[below_index].vertical_merge = VerticalMerge::Continue;
+        let anchor = &mut table.rows[row_index].cells[cell_index];
+        anchor.vertical_merge = VerticalMerge::Restart;
+        anchor.borders.bottom = bottom;
+        for block in moved {
+            anchor.blocks.push(block);
+        }
+    }
+    note_table(changes, story, table_id, &inserted, &[]);
+    changes.paragraphs.extend(touched);
+    changes.paragraphs.extend(&inserted);
+    Ok(())
+}
+
+fn split_vertical(
+    document: &mut Document,
+    story: StoryId,
+    index: usize,
+    table_id: NodeId,
+    row_index: usize,
+    cell_index: usize,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    {
+        let table = table_at(document, story, index, table_id)?;
+        let column = column_of(&table.rows[row_index], cell_index);
+        let span = table.rows[row_index].cells[cell_index].grid_span;
+        for row in table.rows.iter().skip(row_index + 1) {
+            let Some(found) = cell_covering(row, column, span) else {
+                break;
+            };
+            if row.cells[found].vertical_merge != VerticalMerge::Continue {
+                break;
+            }
+            if row.preserved.is_some() || row.cells[found].preserved.is_some() {
+                return Err(refuse(table_id, TableStructure::Preserved));
+            }
+        }
+    }
+    let table = table_mut(document, story, index, table_id)?;
+    let column = column_of(&table.rows[row_index], cell_index);
+    let span = table.rows[row_index].cells[cell_index].grid_span;
+    table.rows[row_index].cells[cell_index].vertical_merge = VerticalMerge::None;
+    for row in table.rows.iter_mut().skip(row_index + 1) {
+        let Some(found) = cell_covering(row, column, span) else {
+            break;
+        };
+        if row.cells[found].vertical_merge != VerticalMerge::Continue {
+            break;
+        }
+        row.cells[found].vertical_merge = VerticalMerge::None;
+    }
+    note_table(changes, story, table_id, &[], &[]);
+    Ok(())
+}
+
+fn split_horizontal(
+    document: &mut Document,
+    story: StoryId,
+    index: usize,
+    table_id: NodeId,
+    row_index: usize,
+    cell_index: usize,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let span = {
+        let table = table_at(document, story, index, table_id)?;
+        let span = cell_ref(table, row_index, cell_index, table_id)?.grid_span;
+        if span <= 1 {
+            return Err(refuse(table_id, TableStructure::NotMerged));
+        }
+        span
+    };
+    let mut inserted = Vec::new();
+    let mut paragraphs = Vec::new();
+    let mut cell_ids = Vec::new();
+    for _ in 1..span {
+        paragraphs.push(empty_paragraph(document, &mut inserted));
+        cell_ids.push(document.ids().node());
+    }
+    let table = table_mut(document, story, index, table_id)?;
+    let start = column_of(&table.rows[row_index], cell_index);
+    let mut original = table.rows[row_index].cells.remove(cell_index);
+    let top = original.borders.top;
+    let bottom = original.borders.bottom;
+    let right = original.borders.right;
+    original.grid_span = 1;
+    original.width = table.grid.get(start as usize).copied();
+    original.borders.right = Some(insertion_edge());
+    let mut replacements = vec![original];
+    for (offset, (paragraph, id)) in paragraphs.into_iter().zip(cell_ids).enumerate() {
+        let offset = offset as u32 + 1;
+        let edge = insertion_edge();
+        replacements.push(Cell {
+            id,
+            grid_span: 1,
+            vertical_merge: VerticalMerge::None,
+            width: table.grid.get((start + offset) as usize).copied(),
+            borders: CellBorders {
+                top,
+                left: Some(edge),
+                bottom,
+                right: if offset + 1 == span {
+                    right
+                } else {
+                    Some(edge)
+                },
+            },
+            shading: None,
+            blocks: BlockSeq::from_vec(vec![paragraph.into()]),
+            preserved: None,
+        });
+    }
+    for (offset, cell) in replacements.into_iter().enumerate() {
+        table.rows[row_index]
+            .cells
+            .insert(cell_index + offset, cell);
+    }
+    note_table(changes, story, table_id, &inserted, &[]);
+    Ok(())
+}
+
+fn refuse(table: NodeId, reason: TableStructure) -> CommandError {
+    CommandError::TableStructure(table, reason)
+}
+
+fn table_at(
+    document: &Document,
+    story: StoryId,
+    index: usize,
+    table: NodeId,
+) -> Result<&Table, CommandError> {
+    match document
+        .story(story)
+        .and_then(|story| story.blocks.get(index))
+    {
+        Some(Block::Table(table)) => Ok(table),
+        _ => Err(CommandError::NotATable(table)),
+    }
+}
+
+fn cell_ref(table: &Table, row: usize, cell: usize, id: NodeId) -> Result<&Cell, CommandError> {
+    table
+        .rows
+        .get(row)
+        .and_then(|row| row.cells.get(cell))
+        .ok_or(CommandError::NotATable(id))
+}
+
+fn held(table: &Table, row: usize, cell: usize) -> bool {
+    table.preserved.is_some()
+        || table.rows[row].preserved.is_some()
+        || table.rows[row].cells[cell].preserved.is_some()
+}
+
+fn unsupported_cell(cell: &Cell) -> bool {
+    cell.blocks
+        .iter()
+        .any(|block| block.as_paragraph().is_none())
+}
+
+fn cell_locked(document: &Document, story: StoryId, cell: &Cell) -> Result<bool, CommandError> {
+    for block in cell.blocks.iter() {
+        let Some(paragraph) = block.as_paragraph() else {
+            continue;
+        };
+        let location = locate::locate(document, story, paragraph.id())
+            .ok_or(CommandError::UnknownNode(paragraph.id()))?;
+        if location.content_locked {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+fn column_of(row: &Row, cell_index: usize) -> u32 {
+    row.grid_before
+        + row
+            .cells
+            .iter()
+            .take(cell_index)
+            .map(|cell| cell.grid_span)
+            .sum::<u32>()
+}
+
+fn cell_covering(row: &Row, column: u32, span: u32) -> Option<usize> {
+    let mut cursor = row.grid_before;
+    for (index, cell) in row.cells.iter().enumerate() {
+        if cursor == column && cell.grid_span == span {
+            return Some(index);
+        }
+        if cursor > column {
+            return None;
+        }
+        cursor = cursor.saturating_add(cell.grid_span);
+    }
+    None
+}
+
+fn span_end(table: &Table, row: usize, column: u32, span: u32) -> usize {
+    let Some(cell_index) = cell_covering(&table.rows[row], column, span) else {
+        return row;
+    };
+    if table.rows[row].cells[cell_index].vertical_merge != VerticalMerge::Restart {
+        return row;
+    }
+    let mut end = row;
+    for next in (row + 1)..table.rows.len() {
+        let Some(found) = cell_covering(&table.rows[next], column, span) else {
+            break;
+        };
+        if table.rows[next].cells[found].vertical_merge != VerticalMerge::Continue {
+            break;
+        }
+        end = next;
+    }
+    end
+}
+
+fn drain_blocks(cell: &mut Cell) -> Vec<Block> {
+    let mut blocks = Vec::new();
+    while !cell.blocks.is_empty() {
+        blocks.push(cell.blocks.remove(0));
+    }
+    blocks
+}
+
+fn block_ids(blocks: &[Block]) -> Vec<NodeId> {
+    blocks.iter().map(|block| block.id()).collect()
+}
+
+fn block_has_content(block: &Block) -> bool {
+    match block.as_paragraph() {
+        Some(paragraph) => !paragraph.is_empty() || !paragraph.inlines().is_empty(),
+        None => true,
+    }
+}
+
+fn insertion_edge() -> BorderEdge {
+    BorderEdge {
+        kind: BorderKind::Single,
+        size_eighths: 4,
+        color: Color::Auto,
+    }
 }
 
 struct Site {

@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use joyword_docx::{DiagnosticKind, Diagnostics};
-use joyword_engine::{ParagraphChange, RunChange};
+use joyword_engine::{ParagraphChange, RunChange, TableMerge};
 use joyword_model::Justification;
 
 use crate::diag::{AppLog, Event, Level};
@@ -19,7 +19,8 @@ use crate::command::{
     FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_PAINT, InvokeError, LIST_APPLY,
     LIST_LEVEL, LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, Registry,
     STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT,
-    TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
+    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
+    TABLE_SPLIT,
 };
 use crate::docx::BoundDocx;
 use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
@@ -599,6 +600,9 @@ impl CommandHost for Office {
                 | TABLE_COLUMN_INSERT
                 | TABLE_COLUMN_DELETE
                 | TABLE_SELECT
+                | TABLE_MERGE_RIGHT
+                | TABLE_MERGE_DOWN
+                | TABLE_SPLIT
         ) || id.0.starts_with("edit.")
             || id.0.starts_with("page."))
             && self.active.is_none()
@@ -627,6 +631,9 @@ impl CommandHost for Office {
                         | TABLE_COLUMN_INSERT
                         | TABLE_COLUMN_DELETE
                         | TABLE_SELECT
+                        | TABLE_MERGE_RIGHT
+                        | TABLE_MERGE_DOWN
+                        | TABLE_SPLIT
                 ))
         {
             return Availability::Disabled("input.read_only");
@@ -650,6 +657,9 @@ impl CommandHost for Office {
                 | TABLE_ROW_DELETE
                 | TABLE_COLUMN_INSERT
                 | TABLE_COLUMN_DELETE
+                | TABLE_MERGE_RIGHT
+                | TABLE_MERGE_DOWN
+                | TABLE_SPLIT
         ) || id.0.starts_with("page."))
             && self.active().is_some_and(|input| input.read_only())
         {
@@ -1006,6 +1016,27 @@ impl Office {
                 self.require_active()?
                     .select_table_cell()
                     .map_err(input_error)?;
+                Ok(())
+            }
+            TABLE_MERGE_RIGHT | TABLE_MERGE_DOWN => {
+                let direction = if id == TABLE_MERGE_RIGHT {
+                    TableMerge::Right
+                } else {
+                    TableMerge::Down
+                };
+                self.require_active()?
+                    .merge_table_cells(direction)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_SPLIT => {
+                self.require_active()?
+                    .split_table_cell()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())
             }
             EDIT_COPY => {

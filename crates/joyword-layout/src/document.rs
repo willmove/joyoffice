@@ -13,9 +13,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    Bias, Block, BorderEdge, BorderKind, Color, DocDefaults, Document, DocumentSnapshot,
-    DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel, NumberingProblem,
-    PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, displayed_paragraph,
+    Bias, Block, BorderEdge, BorderKind, CellMargins, Color, DocDefaults, Document,
+    DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel,
+    NumberingProblem, PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, VerticalMerge,
+    displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -24,8 +25,9 @@ use crate::line::{LineFit, layout_paragraph_adjusted, layout_paragraph_auto_canc
 use crate::shape::ShapedRun;
 use crate::style_paint;
 use crate::{
-    FaceSet, FeatureSet, FontKey, FontSlot, LayoutLine, LineDiagnostic, LineError, LineLimits,
-    LoadedFont, PageScene, SceneRect, SourceRange, adjust_cjk_break, slot_for, wrap_mixed,
+    FaceSet, FeatureSet, FontKey, FontSlot, GlyphRun, LayoutLine, LineDiagnostic, LineError,
+    LineLimits, LoadedFont, PageScene, SceneRect, SourceRange, adjust_cjk_break, slot_for,
+    wrap_mixed,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -218,6 +220,13 @@ pub enum LayoutNote {
     /// pushed, because that would change the page count this slice treats
     /// as already settled.
     StoryExceedsMargin { story: StoryId },
+    /// A table row is taller than the page body. A `cantSplit` row stays on
+    /// one page and may pass the body edge. A splittable row still breaks;
+    /// a single line that itself exceeds the body is placed once.
+    RowTallerThanPage { row: NodeId },
+    /// The leading `tblHeader` rows are taller than the page body, so they
+    /// are drawn once and not repeated on later pages.
+    HeaderTallerThanPage { table: NodeId },
 }
 impl PageGeometry {
     /// `w` and `h` are the page size (ECMA-376 §17.6.13). `orient` is stored
@@ -480,10 +489,12 @@ fn hash_table(hash: &mut Sha256, table: &Table) {
         hash.update(format!("{column}").as_bytes());
     }
     hash.update(format!("{:?}", table.width).as_bytes());
+    hash.update(format!("{:?}", table.cell_margin).as_bytes());
     for row in &table.rows {
         hash.update(row.grid_before.to_le_bytes());
         hash.update(row.grid_after.to_le_bytes());
         hash.update([u8::from(row.header)]);
+        hash.update([u8::from(row.cant_split)]);
         for cell in &row.cells {
             hash.update(cell.grid_span.to_le_bytes());
             hash.update(format!("{:?}", cell.vertical_merge).as_bytes());
@@ -936,11 +947,9 @@ pub fn layout_document(
     Ok(snapshot)
 }
 
-const CELL_MARGIN_TWIPS: i64 = 108;
-
-/// Paragraph batches keep the page and header assembler. A table row is one
-/// unit: cell paragraphs sit side by side, and the row moves to the next page
-/// instead of splitting. Vertical merge is stored and is not drawn as a rowspan.
+/// Paragraph batches keep the page and header assembler. Table rows share
+/// that page stream: a row may split, a `cantSplit` row moves whole, and a
+/// vertical merge is one visual span.
 #[allow(clippy::too_many_arguments)]
 fn layout_mixed(
     mut result: LayoutSnapshot,
@@ -1045,6 +1054,77 @@ fn place_paragraph_batch(
     Ok(())
 }
 
+const DEFAULT_CELL_MARGIN_LEFT: i64 = 108;
+const DEFAULT_CELL_MARGIN_RIGHT: i64 = 108;
+
+/// Omitted `w:tblCellMar` uses the application default from slice 1: left and
+/// right 108 twips, top and bottom 0. ECMA-376 §17.4.43 leaves an omitted
+/// element to the table style or the application. Table styles are not
+/// resolved here, and 108 twips is not a Word observation.
+fn cell_pad(
+    margin: Option<CellMargins>,
+    table: NodeId,
+) -> Result<(i64, i64, i64, i64), LayoutError> {
+    let Some(margin) = margin else {
+        return Ok((0, DEFAULT_CELL_MARGIN_LEFT, 0, DEFAULT_CELL_MARGIN_RIGHT));
+    };
+    for value in [margin.top, margin.left, margin.bottom, margin.right] {
+        if value < 0 {
+            return Err(unsupported(Some(table), "table cell margin is negative"));
+        }
+    }
+    Ok((margin.top, margin.left, margin.bottom, margin.right))
+}
+
+struct CellFlow {
+    paragraphs: Vec<FittedParagraph>,
+    content: i64,
+    top_border: i64,
+    bottom_border: i64,
+    left_border: i64,
+    right_border: i64,
+    margin_top: i64,
+    margin_bottom: i64,
+    outer_x: i64,
+    outer_width: i64,
+    merge: VerticalMerge,
+    start_row: usize,
+    span_rows: usize,
+    line_box: i64,
+    shading: Option<(u8, u8, u8)>,
+    border_top: Option<BorderEdge>,
+    border_bottom: Option<BorderEdge>,
+    border_left: Option<BorderEdge>,
+    border_right: Option<BorderEdge>,
+}
+
+struct RowFlow {
+    cells: Vec<CellFlow>,
+    height: i64,
+    cant_split: bool,
+    header: bool,
+    id: NodeId,
+}
+
+#[derive(Clone)]
+struct LineJob {
+    row: usize,
+    cell: usize,
+    paragraph: usize,
+    line: usize,
+    page: usize,
+    top: i64,
+}
+
+struct HeaderStamp {
+    valid: bool,
+    page: usize,
+    origin_y: i64,
+    height: i64,
+    rects: Vec<SceneRect>,
+    runs: Vec<GlyphRun>,
+}
+
 #[allow(clippy::too_many_arguments)]
 fn place_table(
     result: &mut LayoutSnapshot,
@@ -1061,16 +1141,21 @@ fn place_table(
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
 ) -> Result<(), LayoutError> {
-    let margin = twips_to_emu(CELL_MARGIN_TWIPS)?;
-    let mut edges = Vec::with_capacity(table.grid.len() + 1);
-    let mut cursor = 0i64;
-    edges.push(0);
-    for column in &table.grid {
-        cursor = cursor
-            .checked_add(grid_twips(table.id, *column)?)
-            .ok_or(LayoutError::GeometryOverflow)?;
-        edges.push(cursor);
-    }
+    let mut rows = build_row_flows(
+        result,
+        document,
+        table,
+        faces,
+        profile,
+        geometry,
+        section,
+        limits,
+        spent,
+        cancellation,
+        marks,
+    )?;
+    assign_row_heights(&mut rows)?;
+    let tops = row_tops(&rows);
     let page_has_ink = result
         .pages
         .last()
@@ -1082,11 +1167,66 @@ fn place_table(
         result.new_page(geometry, section)?;
         *top = geometry.top;
     }
-    for row in &table.rows {
+    let mut y = top.raw();
+    let mut jobs = Vec::new();
+    let mut stamp = HeaderStamp {
+        valid: false,
+        page: 0,
+        origin_y: 0,
+        height: 0,
+        rects: Vec::new(),
+        runs: Vec::new(),
+    };
+    let mut repeats = Vec::new();
+    flow_rows(
+        result,
+        table.id,
+        &rows,
+        &tops,
+        &mut y,
+        &mut jobs,
+        &mut stamp,
+        &mut repeats,
+        geometry,
+        section,
+    )?;
+    flush_jobs(result, &rows, &jobs, &mut stamp, &repeats)?;
+    *top = Emu::new(y);
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_row_flows(
+    result: &mut LayoutSnapshot,
+    document: &Document,
+    table: &Table,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    geometry: PageGeometry,
+    section: usize,
+    limits: LayoutLimits,
+    spent: &mut WorkSpent,
+    cancellation: &LayoutCancellation,
+    marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+) -> Result<Vec<RowFlow>, LayoutError> {
+    let (pad_top, pad_left, pad_bottom, pad_right) = cell_pad(table.cell_margin, table.id)?;
+    let mut edges = Vec::with_capacity(table.grid.len() + 1);
+    let mut cursor = 0i64;
+    edges.push(0);
+    for column in &table.grid {
+        cursor = cursor
+            .checked_add(grid_twips(table.id, *column)?)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        edges.push(cursor);
+    }
+    let margin_top = twips_to_emu(pad_top)?;
+    let margin_bottom = twips_to_emu(pad_bottom)?;
+    let margin_left = twips_to_emu(pad_left)?;
+    let mut rows = Vec::with_capacity(table.rows.len());
+    for (row_index, row) in table.rows.iter().enumerate() {
         cancellation.check()?;
         let mut column = row.grid_before as usize;
-        let mut fitted_cells = Vec::new();
-        let mut row_height = 0i64;
+        let mut cells = Vec::new();
         for cell in &row.cells {
             let start = column;
             column = column.saturating_add(cell.grid_span as usize);
@@ -1096,30 +1236,61 @@ fn place_table(
                     "table cell is outside the grid",
                 ));
             }
+            for block in cell.blocks.iter() {
+                if block.as_paragraph().is_none() {
+                    return Err(unsupported(
+                        Some(block.id()),
+                        "nested table or unsupported cell content",
+                    ));
+                }
+            }
             let outer = edges[column] - edges[start];
-            let inner = outer - CELL_MARGIN_TWIPS * 2;
+            let inner = outer - pad_left - pad_right;
             if inner <= 0 {
                 return Err(unsupported(
                     Some(cell.id),
                     "cell is narrower than its margins",
                 ));
             }
-            let origin = geometry
+            let outer_x = geometry
                 .left
                 .raw()
                 .checked_add(twips_to_emu(edges[start])?)
-                .and_then(|x| x.checked_add(margin))
                 .ok_or(LayoutError::GeometryOverflow)?;
+            let frame_x = outer_x
+                .checked_add(margin_left)
+                .ok_or(LayoutError::GeometryOverflow)?;
+            let span_rows = vertical_span(table, row_index, start as u32, cell.grid_span);
+            if cell.vertical_merge == VerticalMerge::Continue {
+                cells.push(CellFlow {
+                    paragraphs: Vec::new(),
+                    content: 0,
+                    top_border: 0,
+                    bottom_border: 0,
+                    left_border: 0,
+                    right_border: 0,
+                    margin_top: 0,
+                    margin_bottom: 0,
+                    outer_x,
+                    outer_width: twips_to_emu(outer)?,
+                    merge: VerticalMerge::Continue,
+                    start_row: row_index,
+                    span_rows: 0,
+                    line_box: 0,
+                    shading: None,
+                    border_top: None,
+                    border_bottom: None,
+                    border_left: None,
+                    border_right: None,
+                });
+                continue;
+            }
             let inner_width = Emu::new(twips_to_emu(inner)?);
             let mut paragraphs = Vec::new();
-            let mut content = 0i64;
             for block in cell.blocks.iter() {
-                let Some(paragraph) = block.as_paragraph() else {
-                    return Err(unsupported(
-                        Some(block.id()),
-                        "nested table or unsupported cell content",
-                    ));
-                };
+                let paragraph = block.as_paragraph().ok_or_else(|| {
+                    unsupported(Some(block.id()), "nested table or unsupported cell content")
+                })?;
                 let mut fitted = fit_paragraph(
                     document,
                     paragraph,
@@ -1139,127 +1310,697 @@ fn place_table(
                 )?;
                 fitted.geometry = geometry;
                 fitted.section_index = section;
-                fitted.frame_x = Emu::new(origin);
+                fitted.frame_x = Emu::new(frame_x);
                 fitted.frame_width = inner_width;
                 fitted.pinned = true;
                 fitted.page_break_before = false;
                 fitted.keep_lines = false;
                 fitted.keep_next = false;
-                fitted.group_height = None;
                 fitted.section_break_before = false;
-                fitted.piece_breaks.clear();
-                fitted.piece_lines.clear();
-                fitted.trailing_breaks = 0;
-                content = content
-                    .checked_add(fitted.height.raw())
-                    .and_then(|height| height.checked_add(fitted.after.raw()))
-                    .ok_or(LayoutError::GeometryOverflow)?;
                 note_fit(result, &fitted, spent);
                 paragraphs.push(fitted);
             }
-            let top_border = border_size(cell.borders.top);
-            let bottom_border = border_size(cell.borders.bottom);
-            let height = content
-                .checked_add(top_border)
-                .and_then(|height| height.checked_add(bottom_border))
-                .ok_or(LayoutError::GeometryOverflow)?;
-            row_height = row_height.max(height);
-            fitted_cells.push((start, column, paragraphs, top_border));
+            let line_box = paragraphs
+                .iter()
+                .map(|paragraph| paragraph.line_box.raw())
+                .max()
+                .unwrap_or(profile.leading.raw());
+            cells.push(CellFlow {
+                content: stacked(&paragraphs)?,
+                paragraphs,
+                top_border: border_size(cell.borders.top),
+                bottom_border: border_size(cell.borders.bottom),
+                left_border: border_size(cell.borders.left),
+                right_border: border_size(cell.borders.right),
+                margin_top,
+                margin_bottom,
+                outer_x,
+                outer_width: twips_to_emu(outer)?,
+                merge: cell.vertical_merge,
+                start_row: row_index,
+                span_rows,
+                line_box,
+                shading: match cell.shading.map(|shading| shading.fill) {
+                    Some(Color::Rgb(red, green, blue)) => Some((red, green, blue)),
+                    _ => None,
+                },
+                border_top: cell.borders.top,
+                border_bottom: cell.borders.bottom,
+                border_left: cell.borders.left,
+                border_right: cell.borders.right,
+            });
         }
-        if row_height <= 0 {
-            return Err(LayoutError::LineTooTall);
+        rows.push(RowFlow {
+            cells,
+            height: 0,
+            cant_split: row.cant_split,
+            header: row.header,
+            id: row.id,
+        });
+    }
+    Ok(rows)
+}
+
+fn stacked(paragraphs: &[FittedParagraph]) -> Result<i64, LayoutError> {
+    let mut height = 0i64;
+    for paragraph in paragraphs {
+        height = height
+            .checked_add(paragraph.before.raw())
+            .ok_or(LayoutError::GeometryOverflow)?;
+        let lines =
+            i64::try_from(paragraph.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?;
+        let block = paragraph
+            .line_box
+            .raw()
+            .checked_mul(lines)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        height = height
+            .checked_add(block)
+            .and_then(|height| height.checked_add(paragraph.after.raw()))
+            .ok_or(LayoutError::GeometryOverflow)?;
+    }
+    Ok(height)
+}
+
+fn vertical_span(table: &Table, row_index: usize, column: u32, span: u32) -> usize {
+    let Some(cell) = cell_on(&table.rows[row_index], column, span) else {
+        return 1;
+    };
+    if cell.vertical_merge != VerticalMerge::Restart {
+        return 1;
+    }
+    let mut count = 1usize;
+    for next in (row_index + 1)..table.rows.len() {
+        match cell_on(&table.rows[next], column, span) {
+            Some(found) if found.vertical_merge == VerticalMerge::Continue => count += 1,
+            _ => break,
         }
-        let page_top = geometry.top.raw();
-        let bottom = geometry.bottom_edge().raw();
-        let occupied = result
-            .pages
-            .last()
-            .is_some_and(|page| !page.runs.is_empty() || !page.rects.is_empty());
-        if top.raw().saturating_add(row_height) > bottom && occupied && top.raw() != page_top {
-            result.new_page(geometry, section)?;
-            *top = geometry.top;
+    }
+    count
+}
+
+fn cell_on(row: &joyword_model::Row, column: u32, span: u32) -> Option<&joyword_model::Cell> {
+    let mut cursor = row.grid_before;
+    for cell in &row.cells {
+        if cursor == column && cell.grid_span == span {
+            return Some(cell);
         }
-        if top.raw().saturating_add(row_height) > bottom {
-            return Err(LayoutError::LineTooTall);
-        }
-        let row_top = top.raw();
-        for (start, end, mut paragraphs, top_border) in fitted_cells {
-            let cell = cell_at(row, start)?;
-            let outer = twips_to_emu(edges[end] - edges[start])?;
-            let x = geometry
-                .left
-                .raw()
-                .checked_add(twips_to_emu(edges[start])?)
-                .ok_or(LayoutError::GeometryOverflow)?;
-            paint_cell(result, cell, x, row_top, outer, row_height)?;
-            let mut cell_top = Emu::new(
-                row_top
-                    .checked_add(top_border)
-                    .ok_or(LayoutError::GeometryOverflow)?,
-            );
-            for paragraph in &mut paragraphs {
-                place_one(result, &mut cell_top, paragraph, cancellation)?;
+        cursor = cursor.saturating_add(cell.grid_span);
+    }
+    None
+}
+
+fn assign_row_heights(rows: &mut [RowFlow]) -> Result<(), LayoutError> {
+    for row_index in 0..rows.len() {
+        let mut height = 0i64;
+        let mut visible = false;
+        for cell in &rows[row_index].cells {
+            if cell.merge == VerticalMerge::Continue {
+                continue;
+            }
+            visible = true;
+            if cell.span_rows <= 1 {
+                height = height.max(box_height(cell));
+            } else {
+                height = height.max(cell.line_box.max(cell.margin_top + cell.top_border));
             }
         }
-        *top = Emu::new(
-            row_top
-                .checked_add(row_height)
-                .ok_or(LayoutError::GeometryOverflow)?,
-        );
+        if !visible {
+            height = height.max(covering_line(rows, row_index));
+        }
+        if height <= 0 {
+            return Err(LayoutError::LineTooTall);
+        }
+        rows[row_index].height = height;
+    }
+    for row_index in 0..rows.len() {
+        for cell_index in 0..rows[row_index].cells.len() {
+            let cell = &rows[row_index].cells[cell_index];
+            if cell.merge == VerticalMerge::Continue || cell.span_rows <= 1 {
+                continue;
+            }
+            let last = row_index + cell.span_rows - 1;
+            if last >= rows.len() {
+                continue;
+            }
+            let need = box_height(cell);
+            let have: i64 = rows[row_index..=last].iter().map(|row| row.height).sum();
+            if need > have {
+                rows[last].height = rows[last].height.saturating_add(need - have);
+            }
+        }
+    }
+    for row_index in 0..rows.len() {
+        let tops = row_tops(rows);
+        let row_lo = tops[row_index];
+        let row_hi = row_lo + rows[row_index].height;
+        let mut extra = 0i64;
+        for (origin, cell_index) in visuals(rows, row_index) {
+            let cell = &rows[origin].cells[cell_index];
+            for (paragraph_index, paragraph) in cell.paragraphs.iter().enumerate() {
+                for line_index in 0..paragraph.lines.len() {
+                    let line_top = line_top(cell, &tops, paragraph_index, line_index);
+                    let line_hi = line_top.saturating_add(paragraph.line_box.raw());
+                    if line_top >= row_lo && line_top < row_hi && line_hi > row_hi {
+                        extra = extra.max(line_hi - row_hi);
+                    }
+                }
+            }
+        }
+        rows[row_index].height = rows[row_index].height.saturating_add(extra);
     }
     Ok(())
 }
 
-fn cell_at(row: &joyword_model::Row, start: usize) -> Result<&joyword_model::Cell, LayoutError> {
-    let mut column = row.grid_before as usize;
-    for cell in &row.cells {
-        if column == start {
-            return Ok(cell);
-        }
-        column = column.saturating_add(cell.grid_span as usize);
-    }
-    Err(unsupported(None, "table cell is outside the grid"))
+fn box_height(cell: &CellFlow) -> i64 {
+    cell.margin_top
+        .saturating_add(cell.top_border)
+        .saturating_add(cell.content)
+        .saturating_add(cell.bottom_border)
+        .saturating_add(cell.margin_bottom)
 }
 
-fn paint_cell(
+fn covering_line(rows: &[RowFlow], row_index: usize) -> i64 {
+    let mut line = 1i64;
+    for row in rows.iter().take(row_index + 1) {
+        for cell in &row.cells {
+            if cell.merge == VerticalMerge::Continue {
+                continue;
+            }
+            if cell.start_row + cell.span_rows > row_index {
+                line = line.max(cell.line_box);
+            }
+        }
+    }
+    line
+}
+
+fn row_tops(rows: &[RowFlow]) -> Vec<i64> {
+    let mut tops = Vec::with_capacity(rows.len());
+    let mut y = 0i64;
+    for row in rows {
+        tops.push(y);
+        y = y.saturating_add(row.height);
+    }
+    tops
+}
+
+fn visuals(rows: &[RowFlow], row_index: usize) -> Vec<(usize, usize)> {
+    let mut found = Vec::new();
+    for (origin, row) in rows.iter().enumerate().take(row_index + 1) {
+        for (cell_index, cell) in row.cells.iter().enumerate() {
+            if cell.merge == VerticalMerge::Continue || cell.span_rows == 0 {
+                continue;
+            }
+            if origin + cell.span_rows > row_index {
+                found.push((origin, cell_index));
+            }
+        }
+    }
+    found
+}
+
+fn line_top(cell: &CellFlow, tops: &[i64], paragraph_index: usize, line_index: usize) -> i64 {
+    let mut y = tops
+        .get(cell.start_row)
+        .copied()
+        .unwrap_or(0)
+        .saturating_add(cell.margin_top)
+        .saturating_add(cell.top_border);
+    for (index, paragraph) in cell.paragraphs.iter().enumerate() {
+        y = y.saturating_add(paragraph.before.raw());
+        if index == paragraph_index {
+            let offset = i64::try_from(line_index).unwrap_or(0);
+            return y.saturating_add(paragraph.line_box.raw().saturating_mul(offset));
+        }
+        let count = i64::try_from(paragraph.lines.len()).unwrap_or(0);
+        y = y.saturating_add(paragraph.line_box.raw().saturating_mul(count));
+        y = y.saturating_add(paragraph.after.raw());
+    }
+    y
+}
+
+#[allow(clippy::too_many_arguments)]
+fn flow_rows(
     result: &mut LayoutSnapshot,
-    cell: &joyword_model::Cell,
-    x: i64,
+    table: NodeId,
+    rows: &[RowFlow],
+    tops: &[i64],
+    y: &mut i64,
+    jobs: &mut Vec<LineJob>,
+    stamp: &mut HeaderStamp,
+    repeats: &mut Vec<(usize, i64)>,
+    geometry: PageGeometry,
+    section: usize,
+) -> Result<(), LayoutError> {
+    let header_count = rows.iter().take_while(|row| row.header).count();
+    let content_box = geometry.bottom_edge().raw() - geometry.top.raw();
+    let header_height: i64 = rows.iter().take(header_count).map(|row| row.height).sum();
+    if header_count > 0 && header_height > content_box {
+        result.note(LayoutNote::HeaderTallerThanPage { table });
+    }
+    let stamp_page = result.pages.len().saturating_sub(1);
+    let stamp_rects = result
+        .pages
+        .last()
+        .map(|page| page.rects.len())
+        .unwrap_or(0);
+    let stamp_origin = *y;
+    let mut header_broken = header_count > 0 && header_height > content_box;
+    let mut row_noted = vec![false; rows.len()];
+    for row_index in 0..rows.len() {
+        let mut consumed = 0i64;
+        let mut continued = false;
+        let mut steps = 0usize;
+        while consumed < rows[row_index].height {
+            steps += 1;
+            if steps > result.limits.max_pages.saturating_add(2) {
+                return Err(LayoutError::LimitExceeded(LayoutLimit::Pages));
+            }
+            let available = (geometry.bottom_edge().raw() - *y).max(0);
+            let ink = page_ink(result);
+            let remaining = rows[row_index].height - consumed;
+            let take = if rows[row_index].cant_split {
+                if remaining <= available {
+                    remaining
+                } else if ink && !continued && remaining <= content_box {
+                    *y = continue_page(
+                        result,
+                        stamp,
+                        repeats,
+                        geometry,
+                        section,
+                        rows,
+                        row_index,
+                        header_count,
+                        true,
+                        content_box,
+                    )?;
+                    if row_index < header_count {
+                        header_broken = true;
+                    }
+                    continued = true;
+                    continue;
+                } else {
+                    note_row(result, &mut row_noted, row_index, rows[row_index].id);
+                    remaining
+                }
+            } else {
+                let snapped = snap_take(rows, tops, row_index, consumed, available);
+                if snapped > 0 {
+                    snapped
+                } else if ink && !continued {
+                    *y = continue_page(
+                        result,
+                        stamp,
+                        repeats,
+                        geometry,
+                        section,
+                        rows,
+                        row_index,
+                        header_count,
+                        false,
+                        content_box,
+                    )?;
+                    if row_index < header_count {
+                        header_broken = true;
+                    }
+                    continued = true;
+                    continue;
+                } else {
+                    note_row(result, &mut row_noted, row_index, rows[row_index].id);
+                    next_piece(rows, tops, row_index, consumed)
+                }
+            };
+            let take = take.max(1).min(remaining);
+            paint_slice(result, rows, tops, row_index, consumed, take, *y, jobs)?;
+            *y = y.saturating_add(take);
+            consumed = consumed.saturating_add(take);
+            continued = false;
+        }
+        if row_index + 1 == header_count
+            && !header_broken
+            && result.pages.len().saturating_sub(1) == stamp_page
+        {
+            let page = result.pages.last().ok_or(LayoutError::GeometryOverflow)?;
+            stamp.rects = page.rects[stamp_rects.min(page.rects.len())..].to_vec();
+            stamp.origin_y = stamp_origin;
+            stamp.height = header_height;
+            stamp.page = stamp_page;
+            stamp.valid = header_height > 0 && header_height <= content_box;
+        }
+    }
+    Ok(())
+}
+
+fn note_row(result: &mut LayoutSnapshot, noted: &mut [bool], row_index: usize, id: NodeId) {
+    if noted.get(row_index).copied().unwrap_or(true) {
+        return;
+    }
+    noted[row_index] = true;
+    result.note(LayoutNote::RowTallerThanPage { row: id });
+}
+
+fn page_ink(result: &LayoutSnapshot) -> bool {
+    result
+        .pages
+        .last()
+        .is_some_and(|page| !page.runs.is_empty() || !page.rects.is_empty())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn continue_page(
+    result: &mut LayoutSnapshot,
+    stamp: &HeaderStamp,
+    repeats: &mut Vec<(usize, i64)>,
+    geometry: PageGeometry,
+    section: usize,
+    rows: &[RowFlow],
+    row_index: usize,
+    header_count: usize,
+    cant_split: bool,
+    content_box: i64,
+) -> Result<i64, LayoutError> {
+    result.new_page(geometry, section)?;
+    let mut y = geometry.top.raw();
+    if row_index >= header_count && stamp_fits(stamp, rows, row_index, cant_split, content_box) {
+        paint_stamp_rects(result, stamp, y)?;
+        repeats.push((result.pages.len() - 1, y));
+        y = y.saturating_add(stamp.height);
+    }
+    Ok(y)
+}
+
+fn stamp_fits(
+    stamp: &HeaderStamp,
+    rows: &[RowFlow],
+    row_index: usize,
+    cant_split: bool,
+    content_box: i64,
+) -> bool {
+    if !stamp.valid || stamp.height <= 0 {
+        return false;
+    }
+    let need = if cant_split {
+        rows[row_index].height
+    } else {
+        row_line(rows, row_index).max(1)
+    };
+    stamp.height.saturating_add(need) <= content_box
+}
+
+fn row_line(rows: &[RowFlow], row_index: usize) -> i64 {
+    visuals(rows, row_index)
+        .into_iter()
+        .map(|(origin, cell)| rows[origin].cells[cell].line_box)
+        .max()
+        .unwrap_or(1)
+}
+
+fn paint_stamp_rects(
+    result: &mut LayoutSnapshot,
+    stamp: &HeaderStamp,
+    origin: i64,
+) -> Result<(), LayoutError> {
+    let delta = origin - stamp.origin_y;
+    let page = result
+        .pages
+        .last_mut()
+        .ok_or(LayoutError::GeometryOverflow)?;
+    for rect in &stamp.rects {
+        page.rects.push(SceneRect {
+            x: rect.x,
+            y: Emu::new(rect.y.raw().saturating_add(delta)),
+            width: rect.width,
+            height: rect.height,
+            red: rect.red,
+            green: rect.green,
+            blue: rect.blue,
+        });
+    }
+    Ok(())
+}
+
+fn snap_take(
+    rows: &[RowFlow],
+    tops: &[i64],
+    row_index: usize,
+    consumed: i64,
+    available: i64,
+) -> i64 {
+    let row_lo = tops[row_index];
+    let row_hi = row_lo + rows[row_index].height;
+    let slice_lo = row_lo + consumed;
+    let limit = slice_lo.saturating_add(available);
+    let mut boundary = slice_lo;
+    let mut blocked = false;
+    for (origin, cell_index) in visuals(rows, row_index) {
+        let cell = &rows[origin].cells[cell_index];
+        for (paragraph_index, paragraph) in cell.paragraphs.iter().enumerate() {
+            for line_index in 0..paragraph.lines.len() {
+                let top = line_top(cell, tops, paragraph_index, line_index);
+                if top < slice_lo || top >= row_hi {
+                    continue;
+                }
+                let line_hi = top.saturating_add(paragraph.line_box.raw());
+                if top >= limit {
+                    continue;
+                }
+                if line_hi <= limit.min(row_hi) {
+                    boundary = boundary.max(line_hi);
+                } else {
+                    blocked = true;
+                }
+            }
+        }
+    }
+    if blocked && boundary == slice_lo {
+        return 0;
+    }
+    if !blocked {
+        return (row_hi - slice_lo).min(available.max(0));
+    }
+    boundary - slice_lo
+}
+
+fn next_piece(rows: &[RowFlow], tops: &[i64], row_index: usize, consumed: i64) -> i64 {
+    let row_lo = tops[row_index];
+    let row_hi = row_lo + rows[row_index].height;
+    let slice_lo = row_lo + consumed;
+    let mut next = None;
+    for (origin, cell_index) in visuals(rows, row_index) {
+        let cell = &rows[origin].cells[cell_index];
+        for (paragraph_index, paragraph) in cell.paragraphs.iter().enumerate() {
+            for line_index in 0..paragraph.lines.len() {
+                let top = line_top(cell, tops, paragraph_index, line_index);
+                if top < slice_lo || top >= row_hi {
+                    continue;
+                }
+                let end = top.saturating_add(paragraph.line_box.raw()) - slice_lo;
+                next = Some(next.map_or(end, |found: i64| found.min(end)));
+            }
+        }
+    }
+    next.unwrap_or(row_hi - slice_lo).max(1)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn paint_slice(
+    result: &mut LayoutSnapshot,
+    rows: &[RowFlow],
+    tops: &[i64],
+    row_index: usize,
+    consumed: i64,
+    take: i64,
+    page_y: i64,
+    jobs: &mut Vec<LineJob>,
+) -> Result<(), LayoutError> {
+    let slice_lo = tops[row_index] + consumed;
+    let slice_hi = slice_lo + take;
+    let page = result.pages.len().saturating_sub(1);
+    for (origin, cell_index) in visuals(rows, row_index) {
+        let cell = &rows[origin].cells[cell_index];
+        let cell_lo = tops[cell.start_row];
+        let last = cell.start_row + cell.span_rows - 1;
+        let cell_hi = tops.get(last).copied().unwrap_or(cell_lo)
+            + rows.get(last).map(|row| row.height).unwrap_or(0);
+        paint_fragment(
+            result,
+            cell,
+            page_y,
+            take,
+            slice_lo == cell_lo,
+            slice_hi == cell_hi,
+        )?;
+        for (paragraph_index, paragraph) in cell.paragraphs.iter().enumerate() {
+            for line_index in 0..paragraph.lines.len() {
+                let top = line_top(cell, tops, paragraph_index, line_index);
+                if top < slice_lo || top >= slice_hi {
+                    continue;
+                }
+                jobs.push(LineJob {
+                    row: cell.start_row,
+                    cell: cell_index,
+                    paragraph: paragraph_index,
+                    line: line_index,
+                    page,
+                    top: page_y + (top - slice_lo),
+                });
+            }
+        }
+    }
+    Ok(())
+}
+
+fn paint_fragment(
+    result: &mut LayoutSnapshot,
+    cell: &CellFlow,
     y: i64,
-    width: i64,
     height: i64,
+    first: bool,
+    last: bool,
 ) -> Result<(), LayoutError> {
     let page = result
         .pages
         .last_mut()
         .ok_or(LayoutError::GeometryOverflow)?;
-    if let Some(shading) = cell.shading
-        && let Color::Rgb(red, green, blue) = shading.fill
-    {
-        push_rect(page, x, y, width, height, (red, green, blue));
+    if let Some(color) = cell.shading {
+        push_rect(page, cell.outer_x, y, cell.outer_width, height, color);
     }
-    let top = border_size(cell.borders.top);
-    let bottom = border_size(cell.borders.bottom);
-    let left = border_size(cell.borders.left);
-    let right = border_size(cell.borders.right);
-    push_border(page, cell.borders.top, x, y, width, top);
+    if first {
+        push_border(
+            page,
+            cell.border_top,
+            cell.outer_x,
+            y,
+            cell.outer_width,
+            cell.top_border,
+        );
+    }
+    if last {
+        push_border(
+            page,
+            cell.border_bottom,
+            cell.outer_x,
+            y.saturating_add(height).saturating_sub(cell.bottom_border),
+            cell.outer_width,
+            cell.bottom_border,
+        );
+    }
     push_border(
         page,
-        cell.borders.bottom,
-        x,
-        y.saturating_add(height).saturating_sub(bottom),
-        width,
-        bottom,
-    );
-    push_border(page, cell.borders.left, x, y, left, height);
-    push_border(
-        page,
-        cell.borders.right,
-        x.saturating_add(width).saturating_sub(right),
+        cell.border_left,
+        cell.outer_x,
         y,
-        right,
+        cell.left_border,
         height,
     );
+    push_border(
+        page,
+        cell.border_right,
+        cell.outer_x
+            .saturating_add(cell.outer_width)
+            .saturating_sub(cell.right_border),
+        y,
+        cell.right_border,
+        height,
+    );
+    Ok(())
+}
+
+fn flush_jobs(
+    result: &mut LayoutSnapshot,
+    rows: &[RowFlow],
+    jobs: &[LineJob],
+    stamp: &mut HeaderStamp,
+    repeats: &[(usize, i64)],
+) -> Result<(), LayoutError> {
+    let mut ordered = jobs.to_vec();
+    ordered.sort_by_key(|job| (job.row, job.cell, job.paragraph, job.line));
+    let header_end = ordered.iter().position(|job| !rows[job.row].header);
+    let header_jobs = header_end.unwrap_or(ordered.len());
+    let run_before = if stamp.valid {
+        result
+            .pages
+            .get(stamp.page)
+            .map(|page| page.runs.len())
+            .unwrap_or(0)
+    } else {
+        0
+    };
+    place_jobs(result, rows, &ordered[..header_jobs])?;
+    if stamp.valid {
+        if let Some(page) = result.pages.get(stamp.page) {
+            stamp.runs = page.runs[run_before.min(page.runs.len())..].to_vec();
+        }
+        for &(page_index, origin) in repeats {
+            let delta = origin - stamp.origin_y;
+            let copies: Vec<GlyphRun> = stamp
+                .runs
+                .iter()
+                .map(|run| {
+                    let mut copy = run.clone();
+                    copy.baseline_y = Emu::new(copy.baseline_y.raw().saturating_add(delta));
+                    copy
+                })
+                .collect();
+            if let Some(page) = result.pages.get_mut(page_index) {
+                page.runs.extend(copies);
+            }
+        }
+    }
+    place_jobs(result, rows, &ordered[header_jobs..])?;
+    Ok(())
+}
+
+fn place_jobs(
+    result: &mut LayoutSnapshot,
+    rows: &[RowFlow],
+    jobs: &[LineJob],
+) -> Result<(), LayoutError> {
+    let mut index = 0usize;
+    while index < jobs.len() {
+        let row = jobs[index].row;
+        let cell = jobs[index].cell;
+        let paragraph_index = jobs[index].paragraph;
+        let fitted = &rows[row].cells[cell].paragraphs[paragraph_index];
+        let id = fitted.id;
+        let len = fitted.len;
+        let frame_x = fitted.frame_x;
+        let frame_width = fitted.frame_width;
+        let line_box = fitted.line_box;
+        let justification = fitted.justification;
+        let baseline = fitted.baseline;
+        let first = result.lines.len();
+        while index < jobs.len()
+            && jobs[index].row == row
+            && jobs[index].cell == cell
+            && jobs[index].paragraph == paragraph_index
+        {
+            let job = &jobs[index];
+            let line = &rows[job.row].cells[job.cell].paragraphs[job.paragraph].lines[job.line];
+            let mut top = Emu::new(job.top);
+            place_line_on(
+                result,
+                job.page,
+                &mut top,
+                line,
+                id,
+                frame_x,
+                frame_width,
+                line_box,
+                justification,
+                baseline,
+            )?;
+            index += 1;
+        }
+        let map = result.paragraphs.len();
+        result.by_id.insert(id, map);
+        result.paragraphs.push(ParagraphMap {
+            len,
+            lines: first..result.lines.len(),
+        });
+    }
     Ok(())
 }
 
@@ -1989,6 +2730,34 @@ fn place_line(
     justification: Option<Justification>,
     baseline_offset: Emu,
 ) -> Result<(), LayoutError> {
+    let page_index = result.pages.len() - 1;
+    place_line_on(
+        result,
+        page_index,
+        top,
+        line,
+        id,
+        frame_x,
+        frame_width,
+        line_box,
+        justification,
+        baseline_offset,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn place_line_on(
+    result: &mut LayoutSnapshot,
+    page_index: usize,
+    top: &mut Emu,
+    line: &LayoutLine,
+    id: NodeId,
+    frame_x: Emu,
+    frame_width: Emu,
+    line_box: Emu,
+    justification: Option<Justification>,
+    baseline_offset: Emu,
+) -> Result<(), LayoutError> {
     let slack = (frame_width.raw() - line.run.width.raw()).max(0);
     let shift = match justification {
         Some(Justification::Center) => slack / 2,
@@ -2005,11 +2774,10 @@ fn place_line(
             .checked_sub(glyph.y_offset.raw())
             .ok_or(LayoutError::GeometryOverflow)?;
     }
-    let page_index = result.pages.len() - 1;
-    let page = match result.pages.last_mut() {
-        Some(page) => page,
-        None => return Err(LayoutError::GeometryOverflow),
-    };
+    let page = result
+        .pages
+        .get_mut(page_index)
+        .ok_or(LayoutError::GeometryOverflow)?;
     let run = page.runs.len();
     page.runs.push(line.to_glyph_run(x, baseline));
     result.lines.push(PlacedLine {

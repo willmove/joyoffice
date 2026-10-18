@@ -629,6 +629,10 @@ fn execute(
         Command::DeleteTableColumn { at } => {
             crate::table::delete_column(document, at, map, changes)
         }
+        Command::MergeTableCells { at, direction } => {
+            crate::table::merge_cells(document, at, *direction, changes)
+        }
+        Command::SplitTableCell { at } => crate::table::split_cell(document, at, changes),
         Command::SetPageSetup { section, page } => {
             set_page_setup(document, *section, page, changes)
         }

@@ -190,10 +190,16 @@ impl Dumper<'_> {
                         TableWidth::Auto => "auto".into(),
                         TableWidth::Dxa(value) => format!("{value}dxa"),
                     });
+                    let margin = table.cell_margin.map_or("-".into(), |margin| {
+                        format!(
+                            "{},{},{},{}",
+                            margin.top, margin.left, margin.bottom, margin.right
+                        )
+                    });
                     self.line(
                         depth,
                         &format!(
-                            "{head} style={style} grid=[{}] width={width}",
+                            "{head} style={style} grid=[{}] width={width} margin={margin}",
                             grid.join(",")
                         ),
                     );
@@ -202,10 +208,11 @@ impl Dumper<'_> {
                         self.line(
                             depth + 1,
                             &format!(
-                                "{head} before={} after={} header={}",
+                                "{head} before={} after={} header={} cantSplit={}",
                                 row.grid_before,
                                 row.grid_after,
-                                u8::from(row.header)
+                                u8::from(row.header),
+                                u8::from(row.cant_split)
                             ),
                         );
                         for cell in &row.cells {

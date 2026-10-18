@@ -4,8 +4,8 @@
 use crate::docx::DocxSession;
 use joyword_engine::{
     CellAddress, ChangeSet, Command, CommandError, FindError, FindHit, FindQuery, FormatBrush,
-    Outcome, PaintError, ParagraphChange, RunChange, Selection, Session, Transaction, TxError,
-    UndoError, UndoGroup, UndoResult, capture, cell_address, cell_caret, cell_selection,
+    Outcome, PaintError, ParagraphChange, RunChange, Selection, Session, TableMerge, Transaction,
+    TxError, UndoError, UndoGroup, UndoResult, capture, cell_address, cell_caret, cell_selection,
     paint_commands, paragraph_order, replace_commands, search,
 };
 use joyword_model::{
@@ -1385,6 +1385,33 @@ impl<B: InputBackend> TextInput<B> {
         let transaction = Transaction::new(
             self.backend.session().version(),
             vec![Command::DeleteTableColumn {
+                at: self.selection.head,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Merges the caret's cell with the cell to the right or below.
+    /// One transaction; a refusal leaves the document unchanged.
+    pub fn merge_table_cells(&mut self, direction: TableMerge) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::MergeTableCells {
+                at: self.selection.head,
+                direction,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Splits a vertical merge, or a horizontal span when the cell is not
+    /// vertically merged. Text stays in the leading cell.
+    pub fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SplitTableCell {
                 at: self.selection.head,
             }],
         );

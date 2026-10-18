@@ -216,6 +216,22 @@
       "source": "hypothesis",
       "test": "inserting_and_deleting_a_column_is_one_undoable_transaction",
       "word_observation": null
+    },
+    {
+      "id": "TABLE-MERGE-UNDO",
+      "operation": "把插入点所在单元格与右侧或下方单元格合并",
+      "expectation": "一次撤销恢复合并前的网格与文字；没有相邻格、跨度不一致或从继续格发起时拒绝且不改变文档",
+      "source": "hypothesis",
+      "test": "merging_cells_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
+      "id": "TABLE-SPLIT-UNDO",
+      "operation": "拆开垂直合并，或在没有垂直合并时拆开水平跨列",
+      "expectation": "一次撤销恢复拆分前的合并；文字留在起始单元格；未合并的单元格拒绝拆分且不改变文档",
+      "source": "hypothesis",
+      "test": "splitting_a_cell_is_one_undoable_transaction",
+      "word_observation": null
     }
   ]
 }

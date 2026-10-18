@@ -25,10 +25,10 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BorderEdge, BorderKind, CellBorders, Color, Document, FontRef, FontSlots, Indent,
-    Justification, Languages, Measure, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph,
-    RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Table, TableWidth,
-    Underline, VerticalMerge,
+    Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, Document, FontRef, FontSlots,
+    Indent, Justification, Languages, Measure, NodeId, NumberingRef, NumberingStore, ParaProps,
+    Paragraph, RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, Table,
+    TableWidth, Underline, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -1326,7 +1326,7 @@ pub(super) fn table_markup(
     let mut markup = String::new();
     markup.push_str(&names.start("tbl"));
     markup.push('>');
-    if table.style.is_some() || table.width.is_some() {
+    if table.style.is_some() || table.width.is_some() || table.cell_margin.is_some() {
         markup.push_str(&names.start("tblPr"));
         markup.push('>');
         if let Some(style) = &table.style {
@@ -1339,6 +1339,9 @@ pub(super) fn table_markup(
         }
         if let Some(width) = table.width {
             markup.push_str(&width_markup(names, "tblW", width_value(width)?)?);
+        }
+        if let Some(margin) = table.cell_margin {
+            markup.push_str(&cell_margin_markup(names, margin)?);
         }
         markup.push_str(&names.end("tblPr"));
     }
@@ -1368,7 +1371,7 @@ pub(super) fn table_markup(
         }
         markup.push_str(&names.start("tr"));
         markup.push('>');
-        if row.grid_before != 0 || row.grid_after != 0 || row.header {
+        if row.grid_before != 0 || row.grid_after != 0 || row.cant_split || row.header {
             markup.push_str(&names.start("trPr"));
             markup.push('>');
             if row.grid_before != 0 {
@@ -1384,6 +1387,10 @@ pub(super) fn table_markup(
                     "gridAfter",
                     &row.grid_after.to_string(),
                 ));
+            }
+            if row.cant_split {
+                markup.push_str(&names.start("cantSplit"));
+                markup.push_str("/>");
             }
             if row.header {
                 markup.push_str(&names.start("tblHeader"));
@@ -1460,6 +1467,26 @@ pub(super) fn table_markup(
             limit,
         });
     }
+    Ok(markup)
+}
+
+fn cell_margin_markup(names: &Names, margin: CellMargins) -> Result<String, ExportError> {
+    for value in [margin.top, margin.left, margin.bottom, margin.right] {
+        if value < 0 {
+            return Err(unsupported(None, "table cell margin is negative"));
+        }
+    }
+    let mut markup = names.start("tblCellMar");
+    markup.push('>');
+    for (local, value) in [
+        ("top", margin.top),
+        ("left", margin.left),
+        ("bottom", margin.bottom),
+        ("right", margin.right),
+    ] {
+        markup.push_str(&width_markup(names, local, ("dxa", Some(value)))?);
+    }
+    markup.push_str(&names.end("tblCellMar"));
     Ok(markup)
 }
 

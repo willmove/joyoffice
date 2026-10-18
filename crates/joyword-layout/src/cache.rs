@@ -439,8 +439,9 @@ pub fn layout_incremental(
     cancellation: &LayoutCancellation,
     reuse: LayoutReuse<'_>,
 ) -> Result<LayoutSnapshot, LayoutError> {
-    // A table row is not a body paragraph. Suffix copy assumes those line up,
-    // so a document with a table is laid out in full.
+    // A table row is not a body paragraph, and a row may also split across
+    // pages. Suffix copy assumes body paragraphs line up, so a document with
+    // a table is laid out in full.
     if document
         .body()
         .blocks

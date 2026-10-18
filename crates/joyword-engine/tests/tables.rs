@@ -1,11 +1,10 @@
-//! T201: undoable table structure edits. Merge state is stored and refused
-//! by row and column commands; merge and split editing is not implemented.
+//! T201: undoable table structure edits, including merge and split.
 
 use std::sync::Arc;
 
 use joyword_engine::{
-    CellAddress, Command, CommandError, Outcome, Selection, Session, Transaction, TxError,
-    cell_address, cell_caret, cell_selection,
+    CellAddress, Command, CommandError, Outcome, Selection, Session, TableMerge, TableStructure,
+    Transaction, TxError, cell_address, cell_caret, cell_selection,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, Cell, CellBorders, Document, Issue, Measure, NodeId, Paragraph,
@@ -54,6 +53,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
             grid_after: 0,
             cells,
             header: false,
+            cant_split: false,
             preserved: None,
         })
         .collect();
@@ -63,6 +63,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
         rows,
         style: None,
         width: None,
+        cell_margin: None,
         preserved: None,
         source: None,
     }
@@ -325,6 +326,212 @@ fn column_and_row_edits_refuse_merged_structure() {
         );
         assert_eq!(session.version(), version);
     }
+}
+
+fn structure_error(error: &TxError) -> Option<TableStructure> {
+    match error {
+        TxError::Command {
+            error: CommandError::TableStructure(_, reason),
+            ..
+        } => Some(*reason),
+        _ => None,
+    }
+}
+
+fn cell_text(session: &Session, row: usize, cell: usize, block: usize) -> String {
+    table_of(session).rows[row].cells[cell]
+        .blocks
+        .get(block)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .plain_text(|_| String::new())
+}
+
+#[test]
+fn merging_cells_is_one_undoable_transaction() {
+    let mut document = blank(&[""]);
+    let top_left = cell(&mut document, "甲", 1, VerticalMerge::None);
+    let top_right = cell(&mut document, "乙", 1, VerticalMerge::None);
+    let bottom_left = cell(&mut document, "丙", 1, VerticalMerge::None);
+    let bottom_right = cell(&mut document, "丁", 1, VerticalMerge::None);
+    let built = table(
+        &mut document,
+        vec![vec![top_left, top_right], vec![bottom_left, bottom_right]],
+        2,
+    );
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    exec(
+        &mut session,
+        vec![Command::MergeTableCells {
+            at,
+            direction: TableMerge::Right,
+        }],
+    )
+    .unwrap();
+    assert_eq!(table_of(&session).rows[0].cells.len(), 1);
+    assert_eq!(table_of(&session).rows[0].cells[0].grid_span, 2);
+    assert_eq!(
+        table_of(&session).rows[0].cells[0].width,
+        Some(Measure::Twips(4000))
+    );
+    assert_eq!(cell_text(&session, 0, 0, 0), "甲");
+    assert_eq!(cell_text(&session, 0, 0, 1), "乙");
+    assert!(table_structure(table_of(&session)).is_empty());
+    session.undo().unwrap();
+    assert_eq!(table_of(&session).rows[0].cells.len(), 2);
+    assert_eq!(cell_text(&session, 0, 1, 0), "乙");
+    session.redo().unwrap();
+    assert_eq!(table_of(&session).rows[0].cells[0].grid_span, 2);
+
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    let version = session.version();
+    let error = exec(
+        &mut session,
+        vec![Command::MergeTableCells {
+            at,
+            direction: TableMerge::Right,
+        }],
+    )
+    .unwrap_err();
+    assert_eq!(structure_error(&error), Some(TableStructure::NoNeighbour));
+    assert_eq!(session.version(), version);
+
+    session.undo().unwrap();
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    exec(
+        &mut session,
+        vec![Command::MergeTableCells {
+            at,
+            direction: TableMerge::Down,
+        }],
+    )
+    .unwrap();
+    assert_eq!(
+        table_of(&session).rows[0].cells[0].vertical_merge,
+        VerticalMerge::Restart
+    );
+    assert_eq!(
+        table_of(&session).rows[1].cells[0].vertical_merge,
+        VerticalMerge::Continue
+    );
+    assert_eq!(cell_text(&session, 0, 0, 0), "甲");
+    assert_eq!(cell_text(&session, 0, 0, 1), "丙");
+    assert_eq!(cell_text(&session, 1, 0, 0), "");
+    assert!(table_structure(table_of(&session)).is_empty());
+    session.undo().unwrap();
+    assert_eq!(
+        table_of(&session).rows[0].cells[0].vertical_merge,
+        VerticalMerge::None
+    );
+    assert_eq!(cell_text(&session, 1, 0, 0), "丙");
+    session.redo().unwrap();
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    let version = session.version();
+    let error = exec(&mut session, vec![Command::InsertTableRow { at }]).unwrap_err();
+    assert!(matches!(
+        error,
+        TxError::Command {
+            error: CommandError::MergedStructure(_),
+            ..
+        }
+    ));
+    assert_eq!(session.version(), version);
+
+    let continue_paragraph = table_of(&session).rows[1].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .id();
+    let at = pos(&session, continue_paragraph, 0);
+    let error = exec(
+        &mut session,
+        vec![Command::MergeTableCells {
+            at,
+            direction: TableMerge::Down,
+        }],
+    )
+    .unwrap_err();
+    assert_eq!(structure_error(&error), Some(TableStructure::ContinueCell));
+}
+
+#[test]
+fn splitting_a_cell_is_one_undoable_transaction() {
+    let mut document = blank(&[""]);
+    let left = cell(&mut document, "甲", 1, VerticalMerge::None);
+    let right = cell(&mut document, "乙", 1, VerticalMerge::None);
+    let built = table(&mut document, vec![vec![left, right]], 2);
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    exec(
+        &mut session,
+        vec![Command::MergeTableCells {
+            at,
+            direction: TableMerge::Right,
+        }],
+    )
+    .unwrap();
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    exec(&mut session, vec![Command::SplitTableCell { at }]).unwrap();
+    assert_eq!(table_of(&session).rows[0].cells.len(), 2);
+    assert_eq!(table_of(&session).rows[0].cells[0].grid_span, 1);
+    assert_eq!(cell_text(&session, 0, 0, 0), "甲");
+    assert_eq!(cell_text(&session, 0, 0, 1), "乙");
+    assert_eq!(cell_text(&session, 0, 1, 0), "");
+    assert!(table_structure(table_of(&session)).is_empty());
+    session.undo().unwrap();
+    assert_eq!(table_of(&session).rows[0].cells.len(), 1);
+    assert_eq!(table_of(&session).rows[0].cells[0].grid_span, 2);
+    session.redo().unwrap();
+    assert_eq!(table_of(&session).rows[0].cells.len(), 2);
+
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    let version = session.version();
+    let error = exec(&mut session, vec![Command::SplitTableCell { at }]).unwrap_err();
+    assert_eq!(structure_error(&error), Some(TableStructure::NotMerged));
+    assert_eq!(session.version(), version);
+
+    let mut document = blank(&[""]);
+    let top = cell(&mut document, "合", 2, VerticalMerge::Restart);
+    let bottom = cell(&mut document, "续", 2, VerticalMerge::Continue);
+    let built = table(&mut document, vec![vec![top], vec![bottom]], 2);
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    exec(&mut session, vec![Command::SplitTableCell { at }]).unwrap();
+    assert_eq!(
+        table_of(&session).rows[0].cells[0].vertical_merge,
+        VerticalMerge::None
+    );
+    assert_eq!(
+        table_of(&session).rows[1].cells[0].vertical_merge,
+        VerticalMerge::None
+    );
+    assert_eq!(table_of(&session).rows[0].cells[0].grid_span, 2);
+    assert_eq!(cell_text(&session, 0, 0, 0), "合");
+    assert_eq!(cell_text(&session, 1, 0, 0), "续");
+    session.undo().unwrap();
+    assert_eq!(
+        table_of(&session).rows[0].cells[0].vertical_merge,
+        VerticalMerge::Restart
+    );
+    session.redo().unwrap();
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 0);
+    exec(&mut session, vec![Command::SplitTableCell { at }]).unwrap();
+    assert_eq!(table_of(&session).rows[0].cells.len(), 2);
+    assert!(table_structure(table_of(&session)).is_empty());
 }
 
 fn table_of_document(document: &Document) -> &Table {
