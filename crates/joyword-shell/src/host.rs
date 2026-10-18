@@ -15,8 +15,8 @@ use crate::diag::{AppLog, Event, Level};
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
-    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, Registry, STYLE_APPLY,
-    STYLE_LIST,
+    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL,
+    LIST_REMOVE, Registry, STYLE_APPLY, STYLE_LIST,
 };
 use crate::docx::BoundDocx;
 use crate::input::{InputError, InputLimits, InputSource, TextInput};
@@ -530,20 +530,53 @@ fn input_error(error: InputError) -> ExecuteError {
     ExecuteError::Failed(error.to_string())
 }
 
+fn parse_u32(value: &ArgValue) -> Option<u32> {
+    match value {
+        ArgValue::Text(text) => text.parse().ok(),
+        ArgValue::Path(_) | ArgValue::Id(_) | ArgValue::Bool(_) => None,
+    }
+}
+
+fn parse_u8(value: &ArgValue) -> Option<u8> {
+    match value {
+        ArgValue::Text(text) => text.parse().ok(),
+        ArgValue::Path(_) | ArgValue::Id(_) | ArgValue::Bool(_) => None,
+    }
+}
+
 impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
-        if (matches!(id, FILE_SAVE | FILE_SAVE_COPY | STYLE_LIST | STYLE_APPLY)
-            || id.0.starts_with("edit."))
+        if (matches!(
+            id,
+            FILE_SAVE
+                | FILE_SAVE_COPY
+                | STYLE_LIST
+                | STYLE_APPLY
+                | LIST_APPLY
+                | LIST_LEVEL
+                | LIST_REMOVE
+        ) || id.0.starts_with("edit."))
             && self.active.is_none()
         {
             return Availability::Disabled("input.loading");
         }
-        if self.opening.is_some() && (id.0.starts_with("edit.") || id == STYLE_APPLY) {
+        if self.opening.is_some()
+            && (id.0.starts_with("edit.")
+                || matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE))
+        {
             return Availability::Disabled("input.read_only");
         }
         if matches!(
             id,
-            EDIT_INSERT | EDIT_BOLD | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE | STYLE_APPLY
+            EDIT_INSERT
+                | EDIT_BOLD
+                | EDIT_ITALIC
+                | EDIT_ALIGN_CENTER
+                | EDIT_PASTE
+                | STYLE_APPLY
+                | LIST_APPLY
+                | LIST_LEVEL
+                | LIST_REMOVE
         ) && self.active().is_some_and(|input| input.read_only())
         {
             return Availability::Disabled("input.read_only");
@@ -704,6 +737,34 @@ impl Office {
                 self.require_active()?
                     .apply_style(style)
                     .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            LIST_APPLY => {
+                let Some(num_id) = args.get("num").and_then(parse_u32) else {
+                    return Err(ExecuteError::Failed("num".into()));
+                };
+                self.require_active()?
+                    .apply_list(num_id)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            LIST_LEVEL => {
+                let Some(level) = args.get("level").and_then(parse_u8) else {
+                    return Err(ExecuteError::Failed("level".into()));
+                };
+                self.require_active()?
+                    .set_list_level(level)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            LIST_REMOVE => {
+                self.require_active()?.remove_list().map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())

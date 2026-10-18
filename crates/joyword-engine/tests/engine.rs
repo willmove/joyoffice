@@ -12,9 +12,10 @@ use joyword_engine::{
     Precondition, RunChange, Selection, Session, Transaction, TxError, UndoError,
 };
 use joyword_model::{
-    Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, Document, DumpOptions,
-    InlineKind, Justification, Measure, NodeId, Paragraph, Position, Row, ScalarOffset, Sdt,
-    SdtLock, SdtProps, StoryKind, Style, StyleId, StyleKind, Table, VerticalMerge,
+    AbstractNum, Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, Document,
+    DumpOptions, InlineKind, Justification, Measure, NodeId, NumInstance, NumberFormat,
+    NumberingLevel, NumberingRef, Paragraph, Position, Row, ScalarOffset, Sdt, SdtLock, SdtProps,
+    StoryKind, Style, StyleId, StyleKind, Table, VerticalMerge,
 };
 
 const DUMP: DumpOptions = DumpOptions { node_ids: true };
@@ -1334,5 +1335,177 @@ fn style_commands_reject_unknown_table_and_cycle_targets() {
     assert!(matches!(
         command_error(cycle.unwrap_err()),
         CommandError::StyleChain(_)
+    ));
+}
+
+fn listed(lines: &[&str]) -> Session {
+    let mut document = document(lines);
+    let mut level = NumberingLevel::new(NumberFormat::Decimal, "%1.");
+    level.start = 1;
+    let mut nested = NumberingLevel::new(NumberFormat::Decimal, "%1.%2.");
+    nested.start = 1;
+    let mut abstract_num = AbstractNum::new(1);
+    abstract_num.levels[0] = Some(level);
+    abstract_num.levels[1] = Some(nested);
+    document.numbering_mut().insert_abstract(abstract_num);
+    document.numbering_mut().insert_instance(NumInstance {
+        id: 7,
+        abstract_id: 1,
+        overrides: Vec::new(),
+    });
+    Session::new(document)
+}
+
+fn numbering_at(session: &Session, index: usize) -> Option<NumberingRef> {
+    session
+        .document()
+        .body()
+        .blocks
+        .get(index)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .props
+        .numbering
+}
+
+#[test]
+fn applying_a_list_is_one_undoable_transaction() {
+    let mut session = listed(&["甲", "乙"]);
+    let ids = paragraph_ids(&session);
+    let start = pos(&session, ids[0], 0, Bias::After);
+    let end = pos(&session, ids[1], 1, Bias::Before);
+    session
+        .exec(vec![Command::SetNumbering {
+            start,
+            end,
+            numbering: Some(NumberingRef {
+                num_id: 7,
+                level: 0,
+            }),
+        }])
+        .unwrap();
+    assert_eq!(
+        numbering_at(&session, 0),
+        Some(NumberingRef {
+            num_id: 7,
+            level: 0
+        })
+    );
+    assert_eq!(numbering_at(&session, 1), numbering_at(&session, 0));
+    session.undo().unwrap();
+    assert_eq!(numbering_at(&session, 0), None);
+    assert_eq!(numbering_at(&session, 1), None);
+}
+
+#[test]
+fn changing_a_list_level_is_one_undoable_transaction() {
+    let mut session = listed(&["甲", "乙"]);
+    let ids = paragraph_ids(&session);
+    let start = pos(&session, ids[0], 0, Bias::After);
+    session
+        .exec(vec![Command::SetNumbering {
+            start,
+            end: start,
+            numbering: Some(NumberingRef {
+                num_id: 7,
+                level: 0,
+            }),
+        }])
+        .unwrap();
+    let ids = paragraph_ids(&session);
+    let second = pos(&session, ids[1], 0, Bias::After);
+    let missing = session.exec(vec![Command::SetNumberingLevel {
+        start: second,
+        end: second,
+        level: 1,
+    }]);
+    assert!(matches!(
+        command_error(missing.unwrap_err()),
+        CommandError::NoNumbering(_)
+    ));
+    let ids = paragraph_ids(&session);
+    let first = pos(&session, ids[0], 0, Bias::After);
+    session
+        .exec(vec![Command::SetNumberingLevel {
+            start: first,
+            end: first,
+            level: 1,
+        }])
+        .unwrap();
+    assert_eq!(
+        numbering_at(&session, 0),
+        Some(NumberingRef {
+            num_id: 7,
+            level: 1
+        })
+    );
+    session.undo().unwrap();
+    assert_eq!(
+        numbering_at(&session, 0),
+        Some(NumberingRef {
+            num_id: 7,
+            level: 0
+        })
+    );
+}
+
+#[test]
+fn removing_a_list_is_one_undoable_transaction() {
+    let mut session = listed(&["甲"]);
+    let ids = paragraph_ids(&session);
+    let at = pos(&session, ids[0], 0, Bias::After);
+    session
+        .exec(vec![Command::SetNumbering {
+            start: at,
+            end: at,
+            numbering: Some(NumberingRef {
+                num_id: 7,
+                level: 2,
+            }),
+        }])
+        .unwrap();
+    session
+        .exec(vec![Command::SetNumbering {
+            start: at,
+            end: at,
+            numbering: None,
+        }])
+        .unwrap();
+    assert_eq!(
+        numbering_at(&session, 0),
+        Some(NumberingRef {
+            num_id: 0,
+            level: 0
+        })
+    );
+    session.undo().unwrap();
+    assert_eq!(
+        numbering_at(&session, 0),
+        Some(NumberingRef {
+            num_id: 7,
+            level: 2
+        })
+    );
+    let unknown = session.exec(vec![Command::SetNumbering {
+        start: at,
+        end: at,
+        numbering: Some(NumberingRef {
+            num_id: 99,
+            level: 0,
+        }),
+    }]);
+    assert!(matches!(
+        command_error(unknown.unwrap_err()),
+        CommandError::UnknownNumbering(99)
+    ));
+    let range = session.exec(vec![Command::SetNumberingLevel {
+        start: at,
+        end: at,
+        level: 9,
+    }]);
+    assert!(matches!(
+        command_error(range.unwrap_err()),
+        CommandError::NumberingLevel(9)
     ));
 }

@@ -144,6 +144,30 @@
       "source": "hypothesis",
       "test": "applying_a_paragraph_style_is_one_undoable_transaction",
       "word_observation": null
+    },
+    {
+      "id": "LIST-APPLY-UNDO",
+      "operation": "对选区应用编号实例",
+      "expectation": "一次撤销恢复应用前的段落 numPr",
+      "source": "hypothesis",
+      "test": "applying_a_list_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
+      "id": "LIST-LEVEL-UNDO",
+      "operation": "改变选区的编号级别并保留各段自己的 numId",
+      "expectation": "一次撤销恢复改变前的 ilvl",
+      "source": "hypothesis",
+      "test": "changing_a_list_level_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
+      "id": "LIST-REMOVE-UNDO",
+      "operation": "取消选区编号",
+      "expectation": "一次撤销恢复取消前的 numPr；取消本身写入 numId 0",
+      "source": "hypothesis",
+      "test": "removing_a_list_is_one_undoable_transaction",
+      "word_observation": null
     }
   ]
 }

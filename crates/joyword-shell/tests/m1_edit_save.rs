@@ -5,10 +5,11 @@ use std::path::PathBuf;
 
 use joyoffice_opc::{Budget, Method, Package, write_archive};
 use joyword_engine::RunChange;
-use joyword_model::Justification;
+use joyword_model::{Justification, NumberingRef};
 use joyword_shell::command::{
     ArgValue, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_INSERT, EDIT_PASTE, EDIT_SELECT_ALL,
-    FILE_OPEN, FILE_SAVE_COPY, InvokeError, STYLE_APPLY, STYLE_LIST,
+    FILE_OPEN, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, STYLE_APPLY,
+    STYLE_LIST,
 };
 use joyword_shell::host::Office;
 
@@ -221,4 +222,99 @@ fn style_list_and_apply_go_through_the_command_registry() {
         .style
         .clone();
     assert_eq!(restored.unwrap().as_str(), "1");
+}
+
+fn numbering_package() -> Vec<u8> {
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/></Types>"#;
+    let package_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>"#;
+    let numbering = r#"<?xml version="1.0" encoding="UTF-8"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/></w:lvl><w:lvl w:ilvl="1"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1.%2."/></w:lvl></w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>"#;
+    let document = r#"<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>甲</w:t></w:r></w:p><w:p><w:r><w:t>乙</w:t></w:r></w:p></w:body></w:document>"#;
+    let items = [
+        ("[Content_Types].xml", types.as_bytes()),
+        ("_rels/.rels", package_rels.as_bytes()),
+        ("word/document.xml", document.as_bytes()),
+        ("word/_rels/document.xml.rels", rels.as_bytes()),
+        ("word/numbering.xml", numbering.as_bytes()),
+    ];
+    let stored: Vec<(&str, &[u8], Method)> = items
+        .iter()
+        .map(|(name, data)| (*name, *data, Method::Deflated))
+        .collect();
+    write_archive(&stored).unwrap()
+}
+
+fn paragraph_numbering(office: &Office, index: usize) -> Option<NumberingRef> {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(index)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .props
+        .numbering
+}
+
+#[test]
+fn list_apply_level_and_remove_go_through_the_command_registry() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("listed.docx");
+    fs::write(&source, numbering_package()).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    let missing = office.invoke(LIST_APPLY, &[("num", ArgValue::Text("9".into()))]);
+    assert!(missing.is_err(), "{missing:?}");
+    office
+        .invoke(LIST_APPLY, &[("num", ArgValue::Text("1".into()))])
+        .unwrap();
+    assert_eq!(
+        paragraph_numbering(&office, 0),
+        Some(NumberingRef {
+            num_id: 1,
+            level: 0
+        })
+    );
+    office
+        .invoke(LIST_LEVEL, &[("level", ArgValue::Text("1".into()))])
+        .unwrap();
+    assert_eq!(
+        paragraph_numbering(&office, 0),
+        Some(NumberingRef {
+            num_id: 1,
+            level: 1
+        })
+    );
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(
+        paragraph_numbering(&office, 0),
+        Some(NumberingRef {
+            num_id: 1,
+            level: 0
+        })
+    );
+    office.invoke(LIST_REMOVE, &[]).unwrap();
+    assert_eq!(
+        paragraph_numbering(&office, 0),
+        Some(NumberingRef {
+            num_id: 0,
+            level: 0
+        })
+    );
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(
+        paragraph_numbering(&office, 0),
+        Some(NumberingRef {
+            num_id: 1,
+            level: 0
+        })
+    );
 }

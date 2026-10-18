@@ -6,8 +6,8 @@
 use std::fmt;
 
 use joyword_model::{
-    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, Position, RunProps,
-    ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
+    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, Position,
+    RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -57,6 +57,19 @@ pub enum Command {
         start: Position,
         end: Position,
         style: StyleId,
+    },
+    /// Sets list membership on every paragraph the range touches.
+    /// `None` and `num_id` 0 both write `numId` 0, which overrides a style.
+    SetNumbering {
+        start: Position,
+        end: Position,
+        numbering: Option<NumberingRef>,
+    },
+    /// Changes `ilvl` and keeps each paragraph's own `numId`.
+    SetNumberingLevel {
+        start: Position,
+        end: Position,
+        level: u8,
     },
 }
 
@@ -140,6 +153,12 @@ pub enum CommandError {
     StyleChain(StyleId),
     /// The selection does not match the style kind and there is no usable link.
     StyleTarget(StyleId),
+    /// No numbering instance with this `numId`.
+    UnknownNumbering(u32),
+    /// `ilvl` is outside 0..=8.
+    NumberingLevel(u8),
+    /// `list.level` found a paragraph that is not in a list.
+    NoNumbering(NodeId),
 }
 
 impl From<TextError> for CommandError {
@@ -174,6 +193,11 @@ impl fmt::Display for CommandError {
             CommandError::StyleTarget(style) => {
                 write!(f, "style {style} does not apply to this selection")
             }
+            CommandError::UnknownNumbering(id) => write!(f, "unknown numbering instance {id}"),
+            CommandError::NumberingLevel(level) => {
+                write!(f, "numbering level {level} is outside 0..=8")
+            }
+            CommandError::NoNumbering(node) => write!(f, "{node} is not in a list"),
         }
     }
 }

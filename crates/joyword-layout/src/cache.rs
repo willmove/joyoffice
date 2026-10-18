@@ -15,7 +15,8 @@ use std::collections::{BTreeSet, HashMap};
 use joyword_foundation::Emu;
 use joyword_model::{
     Anchor, AnnotationKind, Document, DocumentSnapshot, DocumentVersion, LineSpacing, NodeId,
-    Paragraph, ScalarOffset, StyleId, StyleKind, StyleSheet,
+    NumberLabel, NumberSuffix, NumberingProblem, Paragraph, ScalarOffset, StyleId, StyleKind,
+    StyleSheet,
 };
 use sha2::{Digest, Sha256};
 
@@ -500,6 +501,7 @@ fn remember_flow(
     let mut ids = Vec::new();
     let mut keys = Vec::new();
     let mut starts = Vec::new();
+    let marks = joyword_model::list_marks(document);
     for block in document.body().blocks.iter() {
         let Some(paragraph) = block.as_paragraph() else {
             continue;
@@ -513,6 +515,7 @@ fn remember_flow(
             profile,
             snapshot.geometry(),
             context,
+            marks.get(&paragraph.id()),
         );
         let anchor = snapshot
             .lines()
@@ -606,6 +609,7 @@ fn layout_pass(
     let mut prepared = Vec::new();
     let mut deps = Vec::new();
     let mut same = Vec::new();
+    let marks = joyword_model::list_marks(document);
     let mut total_lines = 0usize;
     let mut charged_shapes = 0usize;
     let mut charged_bytes = 0usize;
@@ -626,7 +630,15 @@ fn layout_pass(
         } else {
             ExternalContext::default()
         };
-        let key = paragraph_key(document, paragraph, faces, profile, geometry, context);
+        let key = paragraph_key(
+            document,
+            paragraph,
+            faces,
+            profile,
+            geometry,
+            context,
+            marks.get(&paragraph.id()),
+        );
         let unchanged = stored.as_ref().is_some_and(|(ids, keys, _)| {
             ids.get(index) == Some(&paragraph.id())
                 && keys.get(index) == Some(&key)
@@ -665,6 +677,7 @@ fn layout_pass(
                     lines: total_lines,
                 },
                 cancellation,
+                marks.get(&paragraph.id()),
             )?;
             cache.insert(key, fitted.clone());
             result.stats_mut().shape_calls += fitted.shape_calls;
@@ -781,6 +794,7 @@ fn paragraph_key(
     profile: SingleFontProfile,
     geometry: PageGeometry,
     context: ExternalContext,
+    mark: Option<&Result<NumberLabel, NumberingProblem>>,
 ) -> ParagraphCacheKey {
     let text = paragraph.plain_text(|_| String::new());
     let slot = dominant_slot(&text);
@@ -788,7 +802,7 @@ fn paragraph_key(
     let flags = paragraph_dependencies(document, paragraph);
     ParagraphCacheKey {
         content: digest(text.as_bytes()),
-        resolved_style: resolved_style(document, paragraph),
+        resolved_style: resolved_style(document, paragraph, mark),
         available_width: geometry.content_width().raw(),
         font: FontEnvKey {
             shaping: faces.face(slot).key(),
@@ -818,10 +832,35 @@ fn uses_profile_leading(document: &Document, paragraph: &Paragraph) -> bool {
     }
 }
 
-fn resolved_style(document: &Document, paragraph: &Paragraph) -> [u8; 32] {
+fn resolved_style(
+    document: &Document,
+    paragraph: &Paragraph,
+    mark: Option<&Result<NumberLabel, NumberingProblem>>,
+) -> [u8; 32] {
     let mut hash = Sha256::new();
     let styles = document.styles();
     hash.update(format!("{:?}", paragraph.props).as_bytes());
+    let interval = match document.settings().default_tab_stop {
+        None => 720 * Emu::PER_TWIP,
+        Some(measure) => measure.absolute().map(|length| length.raw()).unwrap_or(0),
+    };
+    hash.update(interval.to_le_bytes());
+    match mark {
+        None => hash.update([0]),
+        Some(Ok(label)) => {
+            hash.update([1]);
+            hash.update(label.text.as_bytes());
+            hash.update([match label.suffix {
+                NumberSuffix::Tab => 0,
+                NumberSuffix::Space => 1,
+                NumberSuffix::Nothing => 2,
+            }]);
+        }
+        Some(Err(problem)) => {
+            hash.update([2]);
+            hash.update(problem.to_string().as_bytes());
+        }
+    }
     hash.update(format!("{:?}", paragraph.mark_props).as_bytes());
     hash_used(
         &mut hash,

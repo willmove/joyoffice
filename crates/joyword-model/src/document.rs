@@ -13,6 +13,7 @@ use std::sync::Arc;
 use crate::annotation::{Anchor, Annotation, AnnotationKind};
 use crate::block::{Block, BlockSeq, Paragraph};
 use crate::id::{AnnotationId, IdAllocator, NodeId, PreservedId, StoryId};
+use crate::numbering::NumberingStore;
 use crate::props::{Measure, Toggle};
 use crate::resource::ResourceTable;
 use crate::style::{Style, StyleKind, StyleSheet};
@@ -127,6 +128,8 @@ pub struct DocumentSettings {
     /// `w:trackRevisions`: until review lands (M3) such documents open
     /// read-only or with an explicit prompt (FORMAT-002).
     pub track_revisions: Toggle,
+    /// `w:defaultTabStop`. Absent means 720 twips when layout places tabs.
+    pub default_tab_stop: Option<Measure>,
     pub preserved: Option<PreservedId>,
 }
 
@@ -164,6 +167,7 @@ pub struct Document {
     resources: Arc<ResourceTable>,
     annotations: Arc<BTreeMap<AnnotationId, Annotation>>,
     settings: Arc<DocumentSettings>,
+    numbering: Arc<NumberingStore>,
 }
 
 impl Document {
@@ -196,6 +200,7 @@ impl Document {
             resources: Arc::default(),
             annotations: Arc::default(),
             settings: Arc::default(),
+            numbering: Arc::default(),
         }
     }
 
@@ -311,6 +316,14 @@ impl Document {
 
     pub fn settings_mut(&mut self) -> &mut DocumentSettings {
         Arc::make_mut(&mut self.settings)
+    }
+
+    pub fn numbering(&self) -> &NumberingStore {
+        &self.numbering
+    }
+
+    pub fn numbering_mut(&mut self) -> &mut NumberingStore {
+        Arc::make_mut(&mut self.numbering)
     }
 
     pub fn annotations(&self) -> impl Iterator<Item = &Annotation> {

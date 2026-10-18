@@ -21,6 +21,8 @@ pub const REL_THEME: &str =
 pub const A: &str = "http://schemas.openxmlformats.org/drawingml/2006/main";
 pub const REL_SETTINGS: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings";
+pub const REL_NUMBERING: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
 pub const REL_VBA_PROJECT: &str =
     "http://schemas.microsoft.com/office/2006/relationships/vbaProject";
 

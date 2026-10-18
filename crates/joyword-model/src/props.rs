@@ -204,11 +204,80 @@ pub struct Spacing {
     pub line: Option<LineSpacing>,
 }
 
-/// List membership as written (`w:numPr`); numbering semantics arrive in T200.
+/// List membership as written (`w:numPr`). `num_id` 0 suppresses numbering.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct NumberingRef {
     pub num_id: u32,
     pub level: u8,
+}
+
+/// `w:tab@val` (ECMA-376 Part 1 §17.18.84). `Clear` removes a stop at the
+/// same position while styles are layered. `Num` is a list tab and is placed
+/// as [`TabAlign::Left`]. `Bar` is stored and not painted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum TabAlign {
+    Left,
+    Center,
+    Right,
+    Decimal,
+    Bar,
+    Num,
+    Clear,
+}
+
+/// `w:tab@leader`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum TabLeader {
+    None,
+    Dot,
+    Hyphen,
+    Underscore,
+    MiddleDot,
+    Heavy,
+}
+
+/// One `w:tab` in source units. `None` on [`ParaProps::tabs`] means inherit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct TabStop {
+    pub position: Measure,
+    pub align: TabAlign,
+    pub leader: TabLeader,
+}
+
+/// Layer `delta` onto inherited stops. A clear removes the stop at that
+/// position; any other alignment replaces it. Positions compare as absolute
+/// EMU when both convert, otherwise as the source measure.
+pub fn merge_tab_stops(inherited: &[TabStop], delta: &[TabStop]) -> Vec<TabStop> {
+    let mut out = inherited.to_vec();
+    for stop in delta {
+        let index = out
+            .iter()
+            .position(|existing| same_tab_position(existing, stop));
+        if stop.align == TabAlign::Clear {
+            if let Some(index) = index {
+                out.remove(index);
+            }
+        } else if let Some(index) = index {
+            out[index] = *stop;
+        } else {
+            out.push(*stop);
+        }
+    }
+    out.retain(|stop| stop.align != TabAlign::Clear);
+    out.sort_by_key(|stop| {
+        stop.position
+            .absolute()
+            .map(|length| length.raw())
+            .unwrap_or(i64::MAX)
+    });
+    out
+}
+
+fn same_tab_position(left: &TabStop, right: &TabStop) -> bool {
+    match (left.position.absolute(), right.position.absolute()) {
+        (Some(left), Some(right)) => left == right,
+        _ => left.position == right.position,
+    }
 }
 
 /// Paragraph properties (`w:pPr`) of the editable subset.
@@ -224,6 +293,9 @@ pub struct ParaProps {
     pub snap_to_grid: Toggle,
     pub outline_level: Option<u8>,
     pub numbering: Option<NumberingRef>,
+    /// `None` inherits. `Some` is the full stop list after this layer's delta
+    /// has been merged, including an explicit empty list.
+    pub tabs: Option<Vec<TabStop>>,
     /// Unexplained `w:pPr` children kept by the format layer.
     pub preserved: Option<PreservedId>,
 }

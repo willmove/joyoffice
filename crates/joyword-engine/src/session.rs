@@ -15,8 +15,9 @@ use std::sync::Arc;
 
 use joyword_model::{
     Anchor, AnnotationId, AnnotationKind, Bias, Block, Document, DocumentSnapshot, DocumentVersion,
-    InlineKind, InlineObject, Issue, MAX_NESTING, NodeId, ParaProps, Paragraph, Position, RunProps,
-    ScalarOffset, StoryId, StyleId, StyleKind, StyleProblem, TextError,
+    InlineKind, InlineObject, Issue, MAX_LEVEL, MAX_NESTING, NodeId, NumberingRef, ParaProps,
+    Paragraph, Position, RunProps, ScalarOffset, StoryId, StyleId, StyleKind, StyleProblem,
+    TextError,
 };
 
 thread_local! {
@@ -607,6 +608,14 @@ fn execute(
         Command::ApplyStyle { start, end, style } => {
             apply_style(document, start, end, style, changes)
         }
+        Command::SetNumbering {
+            start,
+            end,
+            numbering,
+        } => set_numbering(document, start, end, *numbering, None, changes),
+        Command::SetNumberingLevel { start, end, level } => {
+            set_numbering(document, start, end, None, Some(*level), changes)
+        }
     }
 }
 
@@ -946,6 +955,125 @@ fn apply_style(
         changes.paragraphs.extend(touched);
     }
     Ok(())
+}
+
+fn set_numbering(
+    document: &mut Document,
+    start: &Position,
+    end: &Position,
+    numbering: Option<NumberingRef>,
+    level_only: Option<u8>,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let (first, last) = locate_range(document, start, end)?;
+    if let Some(level) = level_only
+        && level > MAX_LEVEL
+    {
+        return Err(CommandError::NumberingLevel(level));
+    }
+    let assigned = match level_only {
+        None => Some(assigned_numbering(document, numbering)?),
+        Some(_) => None,
+    };
+    let instance_ids: Vec<u32> = document
+        .numbering()
+        .instances()
+        .iter()
+        .map(|item| item.id)
+        .collect();
+    let style_ids: Vec<StyleId> = document
+        .styles()
+        .iter()
+        .map(|style| style.id.clone())
+        .collect();
+    let mut style_numbers = Vec::new();
+    for id in &style_ids {
+        let resolved = document
+            .styles()
+            .resolve_paragraph(Some(id), &ParaProps::default());
+        if let Some(item) = resolved.props.numbering.filter(|item| item.num_id != 0) {
+            style_numbers.push((id.clone(), item.num_id));
+        }
+    }
+    let default_number = document
+        .styles()
+        .resolve_paragraph(None, &ParaProps::default())
+        .props
+        .numbering
+        .filter(|item| item.num_id != 0)
+        .map(|item| item.num_id);
+    let story = start.story;
+    let Some(seq) = locate::container_mut(document, story, &first.containers) else {
+        return Err(CommandError::UnknownNode(start.paragraph));
+    };
+    let mut touched = Vec::new();
+    for index in first.index..=last.index {
+        locate::for_each_paragraph_mut(seq, index, &mut |paragraph, locked| {
+            let id = paragraph.id();
+            if locked {
+                return Err(CommandError::Locked(id));
+            }
+            let written = if let Some(level) = level_only {
+                let num_id = if let Some(direct) = paragraph.props.numbering {
+                    direct.num_id
+                } else if let Some(style) = &paragraph.style {
+                    style_numbers
+                        .iter()
+                        .find(|(candidate, _)| candidate == style)
+                        .map(|(_, num_id)| *num_id)
+                        .ok_or(CommandError::NoNumbering(id))?
+                } else {
+                    default_number.ok_or(CommandError::NoNumbering(id))?
+                };
+                if num_id != 0 && !instance_ids.contains(&num_id) {
+                    return Err(CommandError::UnknownNumbering(num_id));
+                }
+                NumberingRef { num_id, level }
+            } else if let Some(written) = assigned {
+                written
+            } else {
+                return Err(CommandError::NumberingLevel(0));
+            };
+            if paragraph.props.numbering == Some(written) {
+                return Ok(());
+            }
+            let mut props = (*paragraph.props).clone();
+            props.numbering = Some(written);
+            paragraph.props = Arc::new(props);
+            touched.push(id);
+            Ok(())
+        })?;
+    }
+    if !touched.is_empty() {
+        changes.stories.insert(story);
+        changes.paragraphs.extend(touched);
+    }
+    Ok(())
+}
+
+fn assigned_numbering(
+    document: &Document,
+    numbering: Option<NumberingRef>,
+) -> Result<NumberingRef, CommandError> {
+    match numbering {
+        None => Ok(NumberingRef {
+            num_id: 0,
+            level: 0,
+        }),
+        Some(item) if item.num_id == 0 => Ok(NumberingRef {
+            num_id: 0,
+            level: 0,
+        }),
+        Some(item) => {
+            if item.level > MAX_LEVEL {
+                return Err(CommandError::NumberingLevel(item.level));
+            }
+            if document.numbering().instance(item.num_id).is_none() {
+                return Err(CommandError::UnknownNumbering(item.num_id));
+            }
+            Ok(item)
+        }
+    }
 }
 
 fn linked_character(

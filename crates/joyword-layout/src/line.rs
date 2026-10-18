@@ -72,6 +72,11 @@ pub enum LineDiagnostic {
     MissingGlyph {
         source: SourceRange,
     },
+    /// Numbering that this slice will not paint. The paragraph body is still
+    /// fitted; the label is omitted rather than guessed.
+    Numbering {
+        detail: String,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
