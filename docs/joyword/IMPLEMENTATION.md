@@ -356,3 +356,20 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - W09 严格绑定已提交的集成生产版本（rebase 前为 `b57544e9e81c1650d218d09d518125878298033e`，随远端 c7abd1c 收口提交 rebase 后为 `a7aaaf19cdb8f78468bd1de1fe1ebf2efe615c1a`），同步更新 build.rs、driver.py、lib.rs 与 README，未放宽 `git diff <SHA> -- crates` 校验。集成时还纠正 CLI 测试和说明中的内部占位符为模型实际的 U+FDD0。
 - 自动验证：Rust 1.98.1、macOS arm64 上 `cargo test --workspace --locked` 共 443 项通过（含应用 36 项、T207 新增 8 项、CLI 5 项），零失败／忽略；workspace fmt、全部 target 的 clippy `-D warnings` 和普通应用构建通过。W08 恢复实验 15 项、W09 Rust 3 项及两实验 fmt／clippy 通过；W09 Python 12 项、工具脚本 52 项、check_docs、check_gates 与反例拒绝检查通过。重绑后 W09 smoke 执行 81／81，43 ok、38 合约内 rejected，无 crash／timeout／invariant／protocol 异常。
 - 验证边界：本轮只做本机自动验证；远程 CI、Windows／Linux／QEMU 未重跑，未推送远程。W09 本机地址空间限制探测失败，记录 `enforced=false`，没有将其宣称为内存隔离通过。现有传递依赖 `block 0.1.6` 的 future-incompat 提示仍存在，本轮未升级依赖。GUI／IME／Word／WPS／信创真机验收未执行；T207 尚未接入分页计算入口，T210 render／convert／PNG 仍未实现，两任务继续 `in_progress`。本轮无需要用户决定的方向冲突或未解决实现阻塞。
+
+### Mac GUI 验收、剪贴板修复与 WPS 参考环境（2026-10-18，Mac 参考机）
+
+会话条件：用户在场并亲自执行 A 批（IME/字素/选择）；其余批次由会话以屏幕截图判读＋像素测量＋System Events/cliclick 输入合成自驾验证，截图与测量过程留存会话记录。本批文档更新在当日曾两次被并行集成会话的合并覆盖，本段为按现存文件证据重写的版本；WPS 读回结论经两轮独立执行一致，参考 PDF 因本机导出通道故障未建立。当日同仓库另一集成线完成 T207/T210 切片与 W09 终态绑定（上文“本轮 main 集成验证”），与本批互不覆盖。
+
+- **剪贴板缺陷修复（T102，提交 e9d3d1c）**：GUI 的 `EDIT_COPY`/`EDIT_PASTE` 原先只用应用内字符串（`input_ui.rs` 的 `self.clipboard`，从未接系统剪贴板），跨应用粘贴无反应——用户实测发现。修复：`EDIT_COPY` 经 GPUI `write_to_clipboard` 写系统剪贴板；`EDIT_PASTE` 优先 `read_from_clipboard`，内部字符串仅作无系统剪贴板环境的回退。实测：ZWJ 全家福 emoji 粘贴生效（宋体无 emoji 字形按缺字占位渲染、原文码点保留，一次退格整组删除）、`é`（U+00E9）粘贴与字素步进经恢复日志字节核对、JoyWord 复制到 TextEdit 反向可用。
+- **T102 人工验收**：系统拼音提交（数字键选词）／Esc 取消（无残留、撤销栈无多余步）／候选框贴近光标／一次撤销=一次提交；中文/emoji/组合字符输入与鼠标键盘选择后编辑＋撤销（用户实测）。
+- **T105/T108 GUI**：100%↔150% 页宽 466→699 px（1.4998）、分页与行集合不变；30000 段（4.58 MB XML）大文档打开（日志基线 23514 佐证），累计数百页当量滚动、200%（页宽比例 ≈2.02）、深位置插入、回滚顶部无错乱、无画布错误与单页提示。
+- **T003 屏幕字形**：截图判读确认正文为宋体衬线字形（画布 Songti.ttc），IME 候选框位置用户实测；Retina／多显示器未验证（本机仅一台 1080p 1x 显示器）。
+- **T106 GUI**：原生打开/另存面板、建议名 copy-big.docx、最近文件切换（基线 23535/23514/1356 三态佐证）、未保存关闭提示默认=取消、放弃才关闭；手写 preferences.conf（author_name=GUI-验收作者）→启动→正常退出→值原样保留。
+- **T109 部分**：另存落盘后继续输入，关闭提示正确识别未保存；打开确认后立即键入的内容保留在最终文档；长只读窗口未稳定观察（本机导入约 1 秒）。
+- **T110 部分**：quarantine 文档（com.apple.quarantine）打开/编辑/另存副本，原件 sha256 与 xattr 完全未动；`file.save`/`save_original` 无 GUI 入口（发现记录，替换损失清单界面待接）。
+- **T104 GUI**：提交 QMARK、K1 两笔后 `kill -9`，重启恢复含两笔且顺序正确（截图＋日志双证）；断电未验证。
+- **WPS 固定参考环境（T004/T107 WPS 腿，读回材料提交 27bb78b）**：WPS Office for Mac **12.1.29181**（CFBundleVersion 29181）。6 个格式夹具＋e2e 编辑副本全选复制读回 **7/7 逐段一致**（WPS 复制在中西文边界插半角空格，去空格归一后逐字一致；基线为 document.xml 独立解析；两轮独立复现，现存 `reference/wps/DOCX-MIN-001.txt`、`DOCX-MIN-002.txt` 与 [wps_report.json](../../tests/fixtures/reference/wps/wps_report.json)）。**参考 PDF 不可得**：同日上午系统打印面板“存储为PDF”曾成功产出 7 份（产物后被并行清理丢失），下午起系统“存储为PDF”（默认 Downloads 与 Cmd+Shift+G 指定目录均试）、“打开PDF于预览”、WPS 自绘“输出为PDF”（冷启动+默认目录）全部静默无产物，无排队作业、无 TCC 弹窗、无替代落盘位置，cupsd 在跑但无 sudo 无法深查；PDF 参考与几何抽取待环境修复后补建，如实记录。工具链：poppler 26.10（pdfinfo/pdftotext）、pdfplumber 0.11.10（/tmp venv）。
+- **T001 Mac 腿**：Rust/Cargo 1.98.1、Xcode 27.1（MetalToolchain-v27.1）、macOS 27.0.1（26A434）arm64（M4）；`target/debug/joyword` 构建并在本会话多次启动（含 kill -9 重启恢复）。Linux 真机腿未核对。
+- **W09 锁核查（同日）**：并行集成后 `experiments/docx-robustness/Cargo.lock` 无未提交变更、`--locked` 构建通过、与生产锁共有外部包零版本漂移、独立锁无生产锁之外的外部版本（README 不变量成立），无需同步提交。
+- 未覆盖：Retina/多显示器 DPI、断电恢复、T110 GUI 替换路径、T109 长只读窗口、WPS 参考 PDF（本机通道故障）、信创真机（非阻塞待补验）、覆盖引导 fuzz。

@@ -20,8 +20,8 @@
 
 | 阶段 | 已完成 | 进行中 | 未开始 | 阻塞 | 合计 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| M0 | 2 | 4 | 0 | 0 | 6 |
-| M1 | 3 | 8 | 1 | 0 | 12 |
+| M0 | 3 | 3 | 0 | 0 | 6 |
+| M1 | 7 | 4 | 1 | 0 | 12 |
 | M2 | 0 | 2 | 10 | 0 | 12 |
 | M3 | 0 | 0 | 5 | 0 | 5 |
 | M4 | 0 | 0 | 4 | 0 | 4 |
@@ -30,9 +30,9 @@
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 5 | 14 | 47 | 0 | 66 |
+| 总计 | 10 | 9 | 47 | 0 | 66 |
 
-**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002（M0）与 T100、T101、T111（M1）已完成；M1 的中文编辑、基础格式、文本剪贴板、另存与重开等路径已有自动测试，并在 Windows 参考环境原生复验通过；但 M0 的真机／参考环境验证（GPUI 来源屏幕核对、固定 Word 参考环境、信创真机）和 M1 的系统 IME／GUI、Word／WPS 人工验收尚未完成；M2 的 T207 纯函数（尚未接入排版入口）与 T210 inspect／text 切片进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
+**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 GUI 原件保存入口，以及 T103 的覆盖引导 fuzz；M2 的 T207（纯函数尚未接入排版入口）与 T210 inspect／text 切片进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
 
 ## 阶段与任务
 
@@ -62,7 +62,7 @@
 - 错误路径：缺少 Xcode／Metal 工具链（Xcode 26 起需单独下载）、Linux 系统库、Windows SDK 时显示对应原因，不假称平台不支持。
 - 自动验证：三端执行 locked build、fmt、clippy、核心测试和 cargo-deny；开发 shader 与发行路径分开。
 - 人工验收：在三台参考环境核对工具链及可启动产物；CI 配置不算成功运行证据。
-- 完成证据：三端 CI 运行 38481758247（提交 ac40043）全部通过：三端 fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建，以及 cargo-deny；Actions 按 SHA 固定。2026-10-17 本机 Xcode 27.1 下不启用 `dev-runtime-shaders` 的普通构建已通过。GPUI 来源（ADR-010）的屏幕字形核对与三台参考环境人工核对未完成，T001 保持 `in_progress`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：三端 CI 运行 38481758247（提交 ac40043）全部通过：三端 fmt、40 项核心测试、clippy 与不启用开发着色器的应用构建，以及 cargo-deny；Actions 按 SHA 固定。2026-10-17 本机 Xcode 27.1 下不启用 `dev-runtime-shaders` 的普通构建已通过。GPUI 来源（ADR-010）的屏幕字形核对已在 Mac 执行（宋体衬线渲染确认，见 T003）；2026-10-18 Mac 参考环境腿已核对（Rust/Cargo 1.98.1、Xcode 27.1、macOS 27.0.1 arm64，`target/debug/joyword` 多次启动含 kill -9 后重启恢复）；Linux 真机参考环境腿未核对（CI 构建不算真机证据），T001 保持 `in_progress`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T002：GPUI 原生窗口与页面投影
 
@@ -86,19 +86,19 @@
 - 错误路径：字体映射不一致、缺字、surrogate 范围非法、组合取消和字形 API 缺口有明确记录。
 - 自动验证：同一字形场景几何比较；Unicode 范围和组合态测试；PDF 文本抽取。
 - 人工验收：系统拼音提交／取消、候选框、一次撤销、多显示器 DPI；PDF 独立阅读器检查。
-- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；C06 已实现实际 FontKey 的 CPU 场景消费者并接入只读窗口，离线 PNG／PDF 光栅位置对照通过，见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。2026-10-17 PDF 独立阅读器检查已在 Windows 参考环境执行：`document_flow` 场景 PDF（2 页 32 行，Noto Serif SC VF）经 xpdf `pdftotext` 与 pdfplumber（pdfminer.six，独立实现）双阅读器逐页文字一致、pdfplumber 行首偏差 0.000 pt，两阅读器与场景互相一致，见 [IMPLEMENTATION](IMPLEMENTATION.md)。正式来源的 GL/CPU 窗口、Retina、IME 人工验收未完成，T003 保持 `in_progress`，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
+- 完成证据：整形—页面场景—PDF 链路已实现（joyword-layout、joyword-pdf）：同一字体字节整形并写出可检索 PDF，独立读回验证。W02 独立 macOS 探针以 GPUI 0.2.2 最小可见性补丁验证外部字形绘制，协调者复验实验测试与已有截图；C06 已实现实际 FontKey 的 CPU 场景消费者并接入只读窗口，离线 PNG／PDF 光栅位置对照通过，见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。2026-10-17 PDF 独立阅读器检查已在 Windows 参考环境执行：`document_flow` 场景 PDF（2 页 32 行，Noto Serif SC VF）经 xpdf `pdftotext` 与 pdfplumber（pdfminer.six，独立实现）双阅读器逐页文字一致、pdfplumber 行首偏差 0.000 pt，两阅读器与场景互相一致，见 [IMPLEMENTATION](IMPLEMENTATION.md)。2026-10-18 Mac GUI 会话补验：屏幕字形经截图判读确认为宋体衬线（画布加载系统 Songti.ttc，与 CPU/PDF 同一份字体字节，未落入无衬线回退）；系统拼音候选框贴近插入光标（用户实测）；PDF 双独立阅读器核对已于 2026-10-17 在 Windows 完成。Retina 与多显示器 DPI 未验证（本机仅一台 1920×1080 1x 显示器），T003 保持 `in_progress`，见 [IMPLEMENTATION](IMPLEMENTATION.md) 和[W02 审查](../coordination/reports/W02-REVIEW.md)。
 
 ### T004：原创语料与验证框架
 
 - 输入：需求清单、规范元素列表、原创文本，以及固定参考环境（Word 为 Word 2024 永久版，观测记录绑定确切 build；中文互操作对照固定版本 WPS）和字体。
-- [ ] 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`QUALITY-001`、`QUALITY-003`
 - 前置：`T000`
 - 产物：case registry、原创文本、来源信息、预期行为、语义／几何比较接口，以及固定 Word 导出 PDF 的字形坐标抽取与行／页断点比较工具；排版行为规则目录随实测建立。编辑行为登记表把每条规定行为写成“操作 → 固定 Word 观测记录（版本、样例 ID、日期、截图散列）→ 测试名”；外部项目的已固定规则只作待验证假设登记，不直接当作规则。
 - 错误路径：缺失字体／参考结果必须标未验证；非法清单和未知需求 ID 拒绝。
 - 自动验证：清单格式、文件散列、ID 唯一性和需求引用检查；最小样例可重复生成；检查器校验行为登记表引用的测试名存在。
 - 人工验收：审查样例无敏感内容；确认原始文字与正式 DOCX 夹具区别。
-- 完成证据：清单与检查器、模型语义比较、PDF 行／页断点比较工具（CI 端到端：相同排版通过、改变换行被检出）、5 个确定性生成的原创最小 DOCX 样例已落地；2026-10-17 编辑行为登记表落地：[behavior_registry.json](behavior_registry.json)（schema 1，7 条假设条目均绑定现有测试名），`check_docs.py` 校验唯一 ID、假设不携带观测／规则必须带完整 Word 观测字段、引用的测试名在工作区真实存在，并有 10 项单元测试（`scripts/tests/test_behavior_registry.py`）。2026-10-18 固定 Word 参考结果已建立：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182，Windows 11 x86_64）COM 只读打开 6 个格式样例并导出 PDF（禁链接更新与宏、位图字体替代关闭），逐样例保存 PDF、文本读回与 pdfplumber 几何抽取记录于 `tests/fixtures/reference/word2024/`，清单的参考档案置为 established；Word 实测字体：默认中文为等线（DengXian），DOCX-MIN-002 的显式样式解析为宋体＋Times New Roman；DOCX-MIN-005 报保护类型 3（只读限制）且强制修订开启。2026-10-18 排版规则目录建立首批实测条目（[layout_rules.md](layout_rules.md) R1–R9）：同页框同度量下 Word 与 JoyWord 断行逐行一致（两处对照，行位偏差 ≤1 pt）。2026-10-18 人工验收已执行：逐份审查 4 个文本种子与 6 个 DOCX 夹具，均为原创虚构内容（无个人信息、凭据或真实地址；注入测试样例明确标注为测试数据），原始 UTF-8 种子与 joyword-corpus 确定性生成的正式 DOCX 夹具角色区分明确。WPS 参考环境未建立，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
+- 完成证据：清单与检查器、模型语义比较、PDF 行／页断点比较工具（CI 端到端：相同排版通过、改变换行被检出）、5 个确定性生成的原创最小 DOCX 样例已落地；2026-10-17 编辑行为登记表落地：[behavior_registry.json](behavior_registry.json)（schema 1，7 条假设条目均绑定现有测试名），`check_docs.py` 校验唯一 ID、假设不携带观测／规则必须带完整 Word 观测字段、引用的测试名在工作区真实存在，并有 10 项单元测试（`scripts/tests/test_behavior_registry.py`）。2026-10-18 固定 Word 参考结果已建立：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182，Windows 11 x86_64）COM 只读打开 6 个格式样例并导出 PDF（禁链接更新与宏、位图字体替代关闭），逐样例保存 PDF、文本读回与 pdfplumber 几何抽取记录于 `tests/fixtures/reference/word2024/`，清单的参考档案置为 established；Word 实测字体：默认中文为等线（DengXian），DOCX-MIN-002 的显式样式解析为宋体＋Times New Roman；DOCX-MIN-005 报保护类型 3（只读限制）且强制修订开启。2026-10-18 排版规则目录建立首批实测条目（[layout_rules.md](layout_rules.md) R1–R9）：同页框同度量下 Word 与 JoyWord 断行逐行一致（两处对照，行位偏差 ≤1 pt）。2026-10-18 人工验收已执行：逐份审查 4 个文本种子与 6 个 DOCX 夹具，均为原创虚构内容（无个人信息、凭据或真实地址；注入测试样例明确标注为测试数据），原始 UTF-8 种子与 joyword-corpus 确定性生成的正式 DOCX 夹具角色区分明确。2026-10-18 WPS 固定参考环境建立（Mac）：WPS Office for Mac 12.1.29181（build 29181）打开 6 个格式夹具与 e2e 编辑副本，全选复制读回逐段一致（WPS 复制在中西文边界插半角空格，去空格归一后逐字一致；基线为包内 document.xml 独立解析；当日两轮独立复现，现存读回文件与 [wps_report.json](../../tests/fixtures/reference/wps/wps_report.json)）。参考 PDF 导出通道当日本机故障（系统“存储为PDF”与 WPS“输出为PDF”均静默无产物，上午曾成功、下午不可复现，无 sudo 无法排查），PDF 参考与几何抽取待环境修复后补建，如实记录。T004 人工验收（审查样例、种子与夹具区分）已于 2026-10-18 执行，标记 `done`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T005：信创平台技术验证
 
@@ -143,14 +143,14 @@
 ### T102：输入、选择与基础格式
 
 - 输入：文档会话、PositionMap、平台输入事件及布局命中数据。
-- [ ] 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`EDIT-001`、`EDIT-002`、`EDIT-003`、`STYLE-001`、`PLATFORM-004`
 - 前置：`T101`、`T105`、`T106`
 - 产物：GPUI 文档画布输入、选择、字符及段落基础格式、组合态 overlay。
 - 错误路径：IME 取消、焦点切换、非法 UTF-16 范围和渲染陈旧结果正确处理。
 - 自动验证：字素簇编辑、组合提交／取消、命中和 selection 映射测试。
 - 人工验收：输入中文／emoji／组合字符，鼠标与键盘选择后编辑并一次撤销。
-- 完成证据：C07 已实现 engine 事务驱动的会话内纯文本编辑、UTF-16 投影、独立组合预编辑、字素移动／删除、选择／撤销及 GPUI EntityInputHandler；统一画布绘制光标／选择／标记并拒绝陈旧结果，关闭提供不保存／取消。新增输入性质、预算、只读 DOCX、真实排版／CPU 和几何测试，见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。`Office` 命令路径已能对选区加粗、段落居中，并经复制／粘贴回写文字；`m1_edit_save` 覆盖中文编辑、格式、剪贴板、另存与重开。系统拼音提交／取消／一次撤销的人工验收尚未完成，T102 不标 done。
+- 完成证据：C07 已实现 engine 事务驱动的会话内纯文本编辑、UTF-16 投影、独立组合预编辑、字素移动／删除、选择／撤销及 GPUI EntityInputHandler；统一画布绘制光标／选择／标记并拒绝陈旧结果，关闭提供不保存／取消。新增输入性质、预算、只读 DOCX、真实排版／CPU 和几何测试，见 [C07 报告](../coordination/reports/C07-TEXT-INPUT.md)。`Office` 命令路径已能对选区加粗、段落居中，并经复制／粘贴回写文字；`m1_edit_save` 覆盖中文编辑、格式、剪贴板、另存与重开。2026-10-18 GUI 人工验收执行（用户在场操作＋恢复日志字节核对）：系统拼音提交（数字键选词）、Esc 取消（无残留、撤销栈无多余步）、候选框贴近光标、一次撤销撤掉整次提交；emoji 全家福（ZWJ 组合）粘贴一次退格整组删除（宋体无 emoji 字形，画布缺字占位为预期，原文码点保留）；`é`（U+00E9 预组合，恢复日志字节核对）与组合式字素光标一步跨过；鼠标拖选跨行与键盘扩展选择、替换并一次撤销。期间发现并修复 GUI 剪贴板缺陷（复制/粘贴原只走应用内字符串，不接系统剪贴板，跨应用粘贴无反应；已加 GPUI 读写桥接并实测双向通过，提交 e9d3d1c）。T102 标记 `done`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T103：DOCX 最小语义与保留读写
 
@@ -174,43 +174,43 @@
 - 错误路径：磁盘满、截断、外部修改、保存期间继续编辑和日志迁移失败不丢原件。
 - 自动验证：故障注入、有效前缀恢复、保存版本竞争、undo／redo 属性测试。
 - 人工验收：强制结束测试进程后恢复，比较最后完整事务和正式保存文件。
-- 完成证据：生产恢复日志在 `joyword-shell` 的 `storage::recovery`：提交写入原包基线与已提交文本，校验后原子改名；加密包拒绝且不写明文。`Office` 在编辑提交后写恢复日志。子进程经 `FILE_OPEN` 与 `EDIT_INSERT` 提交后被终止，父进程用 `Office::recover_from` 把该提交放回会话。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则恢复进会话，示例文档不会盖掉它。2026-10-17 起 `m1_concurrency_recovery` 已在 Windows 参考环境原生通过（3 项，含子进程终止后的恢复与加密包拒绝），macOS 复验见 [IMPLEMENTATION](IMPLEMENTATION.md)。断电与图形界面强制结束未验证，不标 done。
+- 完成证据：生产恢复日志在 `joyword-shell` 的 `storage::recovery`：提交写入原包基线与已提交文本，校验后原子改名；加密包拒绝且不写明文。`Office` 在编辑提交后写恢复日志。子进程经 `FILE_OPEN` 与 `EDIT_INSERT` 提交后被终止，父进程用 `Office::recover_from` 把该提交放回会话。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则恢复进会话，示例文档不会盖掉它。2026-10-17 起 `m1_concurrency_recovery` 已在 Windows 参考环境原生通过（3 项，含子进程终止后的恢复与加密包拒绝），macOS 复验见 [IMPLEMENTATION](IMPLEMENTATION.md)。2026-10-18 GUI 强制结束验证执行：对正在编辑的窗口提交两笔事务（QMARK、K1）后 `kill -9`，重启后恢复的最后完整事务含两笔插入且顺序正确（截图与日志双证）。断电场景未验证，T104 保持 `in_progress`。
 
 ### T105：基础排版引擎
 
 - 输入：文档快照、T003 验证的字体身份与整形链路、页面设置和 Unicode 分析。
-- [ ] 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`LAYOUT-002`、`LAYOUT-003`、`LAYOUT-009`
 - 前置：`T100`、`T003`
 - 产物：四槽字体选择与整形、段落断行（含基础禁则）、单节分页、命中测试、光标与选区几何、LayoutSnapshot 与屏幕 PageScene。
 - 错误路径：缺字体、超长无断点文本、过高对象和陈旧快照有界诊断，不阻塞输入。
 - 自动验证：固定字体断行／分页样例、命中往返、快照键与版本、缩放不改变几何。
 - 人工验收：打开原创中英文样例，滚动、缩放并核对光标、选区与分页。
-- 完成证据：W03 已增量实现单字体 LTR、显式合法断点的行拟合切片，含候选行重整形、EMU 几何、源范围映射、预算及超宽诊断；7 项新单元测试和 8 项真实字体集成测试在集成复验中通过。C04 已增量接入 Unicode 15.0 默认自动断点，与整形簇求交并共享同一请求预算；新增 8 项真实字体测试通过。C06 已把只读文档快照和 CPU 场景图像接入窗口（新画布 GUI 尚待验收），见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。C05 已增量实现单节预览分页、版本／内容／字体／profile 快照键、命中／光标／跨页选区与多页 PDF 链路，19 项新增排版测试及 PDF 集成测试通过，见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。第二轮 W06 增量接受 keep_next／keep_lines 并做有界分页，原有几何接口不变，新增 12 项测试，见 [W06 报告](../coordination/reports/W06.md)。`wrap_mixed` 按四槽选字体，缺字改用 fallback，并用 `adjust_cjk_break` 挪开会把收尾标点放到行首的断点；本机宋体对照见 layout 测试。2026-10-17：`m1_scene_pdf` 对同一次 `layout_document` 的两次结果比较页面、行、光标与选区，缩放只走屏幕投影，字形、光标和选区换算回点后不超过 0.01 pt；`joyword_pdf::render` 用同一份字体字节，PDF 内容流里的文本矩阵与场景字形原点不超过 0.01 pt。`layout_document` 对含东亚或复杂文字的段落调用 `wrap_mixed`、`slot_for` 和 `adjust_cjk_break`，窄页上的句号不会被排到行首。2026-10-18 固定 Word 2024 实测对照：同字体（等线）同字号同固定行距同页框下，合同样例（2 页 24 行）与标点压力样例（2 页 27 行）的断行与 JoyWord 逐行一致、行位偏差 ≤1 pt（[规则目录 R2](layout_rules.md)，产物在 `tests/fixtures/reference/word2024/breaks/`）；同日实测登记 R3（两端对齐余量分配到字间、段末行不拉伸）、R4（单倍行距机制破解：自然行高 ≈1.3×win 跨度×字号，行距吸附到 312 twips 行网格整数倍）、R5（孤行控制强制拆分负结果，已核实写入 XML）、R6（keepNext 正对照）；标点压缩分类规则已实测（R7：引号 0.36em、连排半宽、孤立全宽）、keepLines 负结果（R8）、悬挂标点观测（R9）；混合格式尚未实测，widowControl 未实现，界面滚动缩放验收未完成，T105 不标 done。
+- 完成证据：W03 已增量实现单字体 LTR、显式合法断点的行拟合切片，含候选行重整形、EMU 几何、源范围映射、预算及超宽诊断；7 项新单元测试和 8 项真实字体集成测试在集成复验中通过。C04 已增量接入 Unicode 15.0 默认自动断点，与整形簇求交并共享同一请求预算；新增 8 项真实字体测试通过。C06 已把只读文档快照和 CPU 场景图像接入窗口（新画布 GUI 尚待验收），见 [C06 报告](../coordination/reports/C06-CPU-CANVAS.md)。C05 已增量实现单节预览分页、版本／内容／字体／profile 快照键、命中／光标／跨页选区与多页 PDF 链路，19 项新增排版测试及 PDF 集成测试通过，见 [C05 报告](../coordination/reports/C05-LAYOUT-SNAPSHOT.md)。第二轮 W06 增量接受 keep_next／keep_lines 并做有界分页，原有几何接口不变，新增 12 项测试，见 [W06 报告](../coordination/reports/W06.md)。`wrap_mixed` 按四槽选字体，缺字改用 fallback，并用 `adjust_cjk_break` 挪开会把收尾标点放到行首的断点；本机宋体对照见 layout 测试。2026-10-17：`m1_scene_pdf` 对同一次 `layout_document` 的两次结果比较页面、行、光标与选区，缩放只走屏幕投影，字形、光标和选区换算回点后不超过 0.01 pt；`joyword_pdf::render` 用同一份字体字节，PDF 内容流里的文本矩阵与场景字形原点不超过 0.01 pt。`layout_document` 对含东亚或复杂文字的段落调用 `wrap_mixed`、`slot_for` 和 `adjust_cjk_break`，窄页上的句号不会被排到行首。2026-10-18 固定 Word 2024 实测对照：同字体（等线）同字号同固定行距同页框下，合同样例（2 页 24 行）与标点压力样例（2 页 27 行）的断行与 JoyWord 逐行一致、行位偏差 ≤1 pt（[规则目录 R2](layout_rules.md)，产物在 `tests/fixtures/reference/word2024/breaks/`）；同日实测登记 R3（两端对齐余量分配到字间、段末行不拉伸）、R4（单倍行距机制破解：自然行高 ≈1.3×win 跨度×字号，行距吸附到 312 twips 行网格整数倍）、R5（孤行控制强制拆分负结果，已核实写入 XML）、R6（keepNext 正对照）；标点压缩分类规则已实测（R7：引号 0.36em、连排半宽、孤立全宽）、keepLines 负结果（R8）、悬挂标点观测（R9）；2026-10-18 界面滚动缩放验收执行（Mac GUI，屏幕像素测量）：100%↔150% 页宽 466→699 px（比例 1.4998）、行集合与分页不变；30000 段大文档滚动（数百页当量）、200% 缩放（页宽比例 ≈2.02）、深位置插入、回滚顶部无错乱、无画布错误。T105 标记 `done`（混合格式的 Word 对照属 T207、widowControl 属 T202，如实登记为未实测/未实现），见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T106：应用外壳、命令注册表与偏好
 
 - 输入：GPUI 窗口、事务入口、平台菜单与文件对话框接口及本地化资源。
-- [ ] 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`EDIT-001`、`PLATFORM-002`、`PLATFORM-008`
 - 前置：`T002`、`T101`
 - 产物：命令注册表（名称、可用状态、快捷键、执行入口；元数据含是否修改文档与类型化参数说明，程序化调用参数齐全时直接执行、缺参数时返回待输入结果而非弹框）、菜单、快捷键、文件对话框、最近文件、多文档会话与未保存提示、偏好设置，以及支持插值和复数的本地化资源。
 - 错误路径：未实现命令不出现；取消关闭保留会话；偏好损坏时回退默认值并提示。
 - 自动验证：菜单、快捷键与 CLI 指向同一命令；关闭流程、偏好迁移和本地化键一致。
 - 人工验收：在 Mac 上用菜单和快捷键新建、打开、切换、关闭多个文档，修改作者名后重启核对。
-- 完成证据：joyword-shell 已实现命令注册表（唯一执行入口、可用状态、平台快捷键、菜单分组与冲突校验）、带插值与 CLDR 复数的本地化、偏好设置（迁移、损坏回退与备份、新版本只读、原子写入）和多文档未保存／关闭流程；应用的菜单、快捷键与按钮已改由注册表驱动。第三轮 C09 已把绑定打开接入应用外壳：`open_source` 成为持有 DocxSession 的绑定会话，另存只走 `save_export_copy`，绑定路径与 dirty 状态跟随已打开文件，锁文件创建／释放归会话生命周期，见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md)。文件对话框、最近文件界面与多窗口随 T103 的打开／保存接入。W07 的源身份与冲突预检已随 C09 接入文件命令：`open_path` 经 `BoundDocx::open_default`（内含 `open_source` 的身份核对与锁冲突预检），保存版本跟踪由 `start_save`／`finish_save` 票据实现（会话版本不符不写文件、不清 dirty；2026-10-17 Windows 原生复验）。命令已带 `modifies_document` 与类型化参数；缺参数返回 `PendingInput`，参数齐全则执行。`Office` 覆盖最近文件、多文档切换和未保存关闭的取消。无头读回命令仍属 T210，不在本任务。`file.open_recent` 与 `document.switch` 有命令测试。窗口持有 `Office`，关闭时 `choice=cancel` 保留会话。文件对话框的图形人工验收未完成，T106 不标 done。2026-10-17：启动示例改为真实 DOCX 包会话（DOCX-SAMPLE-001，正文逐行取自 cjk-contract.txt），未打开文件时另存同样可用；另存在保存期间继续编辑走后台 `SaveCopyJob`，结果按会话纪元与版本落地。命令被禁用或失败时在窗口显示原因，不再静默。
+- 完成证据：joyword-shell 已实现命令注册表（唯一执行入口、可用状态、平台快捷键、菜单分组与冲突校验）、带插值与 CLDR 复数的本地化、偏好设置（迁移、损坏回退与备份、新版本只读、原子写入）和多文档未保存／关闭流程；应用的菜单、快捷键与按钮已改由注册表驱动。第三轮 C09 已把绑定打开接入应用外壳：`open_source` 成为持有 DocxSession 的绑定会话，另存只走 `save_export_copy`，绑定路径与 dirty 状态跟随已打开文件，锁文件创建／释放归会话生命周期，见 [main 集成记录](../coordination/reports/MAIN-INTEGRATION-20261016.md)。文件对话框、最近文件界面与多窗口随 T103 的打开／保存接入。W07 的源身份与冲突预检已随 C09 接入文件命令：`open_path` 经 `BoundDocx::open_default`（内含 `open_source` 的身份核对与锁冲突预检），保存版本跟踪由 `start_save`／`finish_save` 票据实现（会话版本不符不写文件、不清 dirty；2026-10-17 Windows 原生复验）。命令已带 `modifies_document` 与类型化参数；缺参数返回 `PendingInput`，参数齐全则执行。`Office` 覆盖最近文件、多文档切换和未保存关闭的取消。无头读回命令仍属 T210，不在本任务。`file.open_recent` 与 `document.switch` 有命令测试。窗口持有 `Office`，关闭时 `choice=cancel` 保留会话。文件对话框的图形人工验收未完成，T106 不标 done。2026-10-18 GUI 人工验收执行（Mac）：菜单触发原生打开/另存面板（经 Cmd+Shift+G 直达路径完成打开与另存，另存建议名 copy-big.docx 按源文件名派生）；最近文件菜单列出并切换多个文档（恢复日志基线字节数随切换佐证 23535/23514/1356）；未保存关闭提示默认回车=取消保留会话、显式“放弃修改”才关闭；修改作者名（手写 preferences.conf）后重启再正常退出，值原样保留未被清掉。T106 标记 `done`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。2026-10-17：启动示例改为真实 DOCX 包会话（DOCX-SAMPLE-001，正文逐行取自 cjk-contract.txt），未打开文件时另存同样可用；另存在保存期间继续编辑走后台 `SaveCopyJob`，结果按会话纪元与版本落地。命令被禁用或失败时在窗口显示原因，不再静默。
 
 ### T108：画布可见页光栅与缓存
 
 - 输入：现有 CanvasPipeline 排版／光栅两段流水线、页面场景与投影约定、当前全部页面共用像素预算的实现。
-- [ ] 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`LAYOUT-015`
 - 前置：`T105`
 - 产物：光栅阶段改为视口±N 页的增量作业；缓存键为布局键＋页序号＋投影；每帧光栅预算与远离视口淘汰；超高页按固定网格分块；像素上限只约束缓存规模，不限制文档页数；选区、光标与查找高亮作为叠加层，不触发重新光栅。
 - 错误路径：缓存键遗漏依赖导致陈旧像素必须有反例测试；预算超限排队而非整次失败；导出与打印不读屏幕缓存。
 - 自动验证：2 倍屏 100%／200% 缩放下 100 页文档逐页可显示；滚动只光栅进入视口的页；淘汰后重建像素一致。
 - 人工验收：长文档中交替滚动、缩放与编辑，无画布错误且响应正常。
-- 完成证据：`joyword-render::NeighborhoodCache` 按视口邻域光栅，每页使用自身像素预算；100 页、2 倍缩放下远页可出图。应用侧 `CanvasPipeline` 按可见页及前后预取页排队，`raster_page` 一次画一页，超出像素预算时先丢掉远离视口的页。光标叠加由 `raster_page` 经 `joyword_render::paint_caret_overlay` 画到单独缓冲，不改该页像素，其他页不带光标。人工长文档滚动未做，不标 done。
+- 完成证据：`joyword-render::NeighborhoodCache` 按视口邻域光栅，每页使用自身像素预算；100 页、2 倍缩放下远页可出图。应用侧 `CanvasPipeline` 按可见页及前后预取页排队，`raster_page` 一次画一页，超出像素预算时先丢掉远离视口的页。光标叠加由 `raster_page` 经 `joyword_render::paint_caret_overlay` 画到单独缓冲，不改该页像素，其他页不带光标。人工长文档滚动未做，不标 done。2026-10-18 补验：30000 段文档交替滚动、100%→200% 缩放、深位置编辑与回滚顶部，无画布错误、页面不错乱、单页提示未出现。T108 标记 `done`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T109：打开与保存的并发安全
 
@@ -222,7 +222,7 @@
 - 错误路径：放弃修改后、新文件就绪前键入的内容不无提示丢弃；保存期间继续输入不阻塞、不误清未保存状态；切换或关闭后迟到结果不影响新会话。
 - 自动验证：版本复核、迟到结果丢弃、保存期间脏版本绑定的竞争测试。
 - 人工验收：慢速打开大文档期间输入与取消；保存期间连续编辑后关闭提示正确。
-- 完成证据：`file.open` 经 `begin_open`／`accept_open`。窗口打开在版本门关闭前保持只读，期间输入保留。`finish_save` 只在版本仍匹配时写另存并清 dirty；过期票据不写字节。另存副本经 `save_copy_job` 在后台写出取作业时的版本，保存期间的后续输入仍为未保存，迟到结果不改另一份文档。见 `m1_concurrency_recovery` 与 `save_copy_job`。人工慢速打开未做，不标 done。
+- 完成证据：`file.open` 经 `begin_open`／`accept_open`。窗口打开在版本门关闭前保持只读，期间输入保留。`finish_save` 只在版本仍匹配时写另存并清 dirty；过期票据不写字节。另存副本经 `save_copy_job` 在后台写出取作业时的版本，保存期间的后续输入仍为未保存，迟到结果不改另一份文档。见 `m1_concurrency_recovery` 与 `save_copy_job`。2026-10-18 人工补验（Mac GUI）：另存大文档副本落盘后立即继续输入，关闭提示正确识别“保存开始后的修改仍未保存”；打开确认后立即键入的内容出现在最终文档（打开→就绪边界输入不丢失）。长时间“打开中”只读窗口未稳定观察到（本机导入大文档约 1 秒内完成），如实记录。T109 保持 `in_progress`。
 
 ### T110：原件保存的元数据观测与用户选择路径
 
@@ -234,7 +234,7 @@
 - 错误路径：观测失败默认拒绝替换；确认与拒绝都留下诊断；新增依赖须经 cargo-deny 并记录来源。
 - 自动验证：逐项元数据的保留与拒绝测试、锁与外部修改检测、确认替换与另存副本两条路径。
 - 人工验收：普通本地文档保存原件并重开；含 ACL 或隔离标记的文档在替换前列出损失项且默认仍为另存。
-- 完成证据：`save_original` 在未确认时不改源字节并列出不能保留或不能观测的元数据；`save_original_with_choice(Confirm)` 在观测成功时替换并核对权限、所有者、macOS 创建时间与扩展属性；`save_default_copy` 写新副本。观测失败拒绝替换。依赖精确固定的 `xattr` 1.6.1。macOS 与 Linux 的确认替换使用 rustix 1.1.5 的 `renameat_with(RenameFlags::EXCHANGE)`（Apple 上为 `RENAME_SWAP`）：交换之后若临时名上的 inode 不是已核对的源文件，再交换回来并拒绝替换。见 `m1_save_original` 与 `exchange_restores_a_file_replaced_after_the_identity_check`。2026-10-17 起 Windows 观测落地（stable std）：`Metadata::created()` 观测创建时间（不可恢复则列为损失）、`path:Zone.Identifier` ADS 经长度上限读取（缺失无损失、存在列为不可保留、读取失败即观测拒绝）、所有权／ACL／链接数／其余 ADS 报告不可观测；能力矩阵同步更新并有 Windows 矩阵测试与观测单元测试、公共路径集成测试（含 ADS 的拒绝清单不改源字节与流）。公开原件保存在 Windows 仍在写入前拒绝，恢复路径仅 Unix 接线。人工含隔离标记的文档未做，不标 done。
+- 完成证据：`save_original` 在未确认时不改源字节并列出不能保留或不能观测的元数据；`save_original_with_choice(Confirm)` 在观测成功时替换并核对权限、所有者、macOS 创建时间与扩展属性；`save_default_copy` 写新副本。观测失败拒绝替换。依赖精确固定的 `xattr` 1.6.1。macOS 与 Linux 的确认替换使用 rustix 1.1.5 的 `renameat_with(RenameFlags::EXCHANGE)`（Apple 上为 `RENAME_SWAP`）：交换之后若临时名上的 inode 不是已核对的源文件，再交换回来并拒绝替换。见 `m1_save_original` 与 `exchange_restores_a_file_replaced_after_the_identity_check`。2026-10-17 起 Windows 观测落地（stable std）：`Metadata::created()` 观测创建时间（不可恢复则列为损失）、`path:Zone.Identifier` ADS 经长度上限读取（缺失无损失、存在列为不可保留、读取失败即观测拒绝）、所有权／ACL／链接数／其余 ADS 报告不可观测；能力矩阵同步更新并有 Windows 矩阵测试与观测单元测试、公共路径集成测试（含 ADS 的拒绝清单不改源字节与流）。公开原件保存在 Windows 仍在写入前拒绝，恢复路径仅 Unix 接线。人工含隔离标记的文档未做，不标 done。2026-10-18 部分补验（Mac GUI）：对带 `com.apple.quarantine` 的文档完成打开、编辑与另存副本，原件字节与隔离属性完全未动。“替换前列出损失项且默认仍为另存”的界面路径当前不存在——`file.save`/`save_original` 未接任何菜单或界面入口（发现记录），T110 保持 `in_progress`。
 
 ### T111：工程门禁自动化
 
@@ -258,7 +258,7 @@
 - 错误路径：任何静默数据丢失、绕过文档保护或无界资源消耗阻断阶段；参考样例缺失不按通过计。
 - 自动验证：端到端脚本、保存故障注入、fuzz 冒烟及 20 页样例的打开与输入延迟。
 - 人工验收：在 Mac 上完成 M1 工作流，并用 Word 与 WPS 打开保存结果。
-- 完成证据：2026-10-17 自动部分已跑：`m1_edit_save` 连续两次通过，覆盖中文编辑、加粗、居中、剪贴板、另存重开和未知部件，受保护文档拒绝编辑，失败的另存不改源字节。`m1_concurrency_recovery` 通过：打开期间的输入保留，过期保存不清 dirty，子进程终止后恢复最后一次提交和原包基线，加密包不写明文副本。不启用 `dev-runtime-shaders` 的 `joyword` 构建连续两次成功。首个性能冒烟基线已建立：无头可复现基准 `apps/joyword/examples/perf_smoke.rs`（release），Windows 参考环境实测——打开启动样例中位 0.099 ms（5 行小文件）、20 页样例首次整篇排版 15.997 ms、输入路径（提交＋整篇重排）中位 0.015＋16.463 ms，远低于 50 ms 输入预算；详见 [IMPLEMENTATION](IMPLEMENTATION.md)。2026-10-18 Word 正文核对已在 Windows 参考机完成；同日端到端报告组装完成（[e2e_report.md](../../tests/fixtures/reference/word2024/e2e_report.md)：打开—中文编辑—保存—退出—重开—Word 核对逐字一致，含关联恢复与性能证据）：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182）COM 只读打开 JoyWord 导出的编辑副本（DOCX-SAMPLE-001 ＋段首插入"校验"），读回正文与包内段落逐段逐字一致（144 字符、1 页），`protection_type` 无保护。WPS 一侧在 Mac 上被要求打开过另存 DOCX（进程运行，无读回）；本 Windows 环境未装 WPS。在 Mac 上完成 M1 工作流并用 WPS 核对的人工验收未完成，T107 保持 `planned`。
+- 完成证据：2026-10-17 自动部分已跑：`m1_edit_save` 连续两次通过，覆盖中文编辑、加粗、居中、剪贴板、另存重开和未知部件，受保护文档拒绝编辑，失败的另存不改源字节。`m1_concurrency_recovery` 通过：打开期间的输入保留，过期保存不清 dirty，子进程终止后恢复最后一次提交和原包基线，加密包不写明文副本。不启用 `dev-runtime-shaders` 的 `joyword` 构建连续两次成功。首个性能冒烟基线已建立：无头可复现基准 `apps/joyword/examples/perf_smoke.rs`（release），Windows 参考环境实测——打开启动样例中位 0.099 ms（5 行小文件）、20 页样例首次整篇排版 15.997 ms、输入路径（提交＋整篇重排）中位 0.015＋16.463 ms，远低于 50 ms 输入预算；详见 [IMPLEMENTATION](IMPLEMENTATION.md)。2026-10-18 Word 正文核对已在 Windows 参考机完成；同日端到端报告组装完成（[e2e_report.md](../../tests/fixtures/reference/word2024/e2e_report.md)：打开—中文编辑—保存—退出—重开—Word 核对逐字一致，含关联恢复与性能证据）：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182）COM 只读打开 JoyWord 导出的编辑副本（DOCX-SAMPLE-001 ＋段首插入"校验"），读回正文与包内段落逐段逐字一致（144 字符、1 页），`protection_type` 无保护。WPS 一侧在 Mac 上被要求打开过另存 DOCX（进程运行，无读回）；本 Windows 环境未装 WPS。在 Mac 上完成 M1 工作流并用 WPS 核对的人工验收未完成，T107 保持 `planned`。2026-10-18 WPS 一侧已执行（Mac）：WPS 12.1.29181 打开 JoyWord 另存的 e2e 编辑副本并全选复制读回，与包内正文逐字一致（去中西文空格归一）；Mac 上 M1 工作流（打开—中文编辑—另存—退出—重开—kill -9 恢复）经 GUI 会话多轮验证。前置 T109/T110 完成前 T107 保持 `planned`。
 
 ## M2：日常办公
 
