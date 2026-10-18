@@ -63,6 +63,7 @@ FS_ALLOW = {
     "crates/joyword-shell/src/storage/recovery.rs",
     "crates/joyword-shell/src/storage/metadata.rs",
     "crates/joyword-shell/src/prefs.rs",
+    "crates/joyword-shell/src/diag.rs",
     "crates/joyword-shell/src/docx.rs",
     "crates/joyword-shell/src/host.rs",
     "apps/joyword/src/main.rs",

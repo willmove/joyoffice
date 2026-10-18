@@ -14,8 +14,10 @@ use joyword_layout::{LoadedFont, SingleFontProfile};
 use joyword_render::Projection;
 use joyword_render::requests::RasterTicket;
 use joyword_shell::command::*;
+use joyword_shell::diag::{self, AppLog, Event, Level};
 use joyword_shell::input::{InputLimits, TextInput};
 use joyword_shell::l10n::{Catalog, Locale};
+use joyword_shell::prefs::{PrefsNotice, PrefsStore};
 use std::sync::Arc;
 
 actions!(
@@ -242,6 +244,7 @@ struct JoyWord {
     copy_epoch: u64,
     copy: Option<input_ui::CopyPhase>,
     original_save: Option<input_ui::OriginalSavePhase>,
+    diagnostics: Option<Arc<AppLog>>,
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -393,7 +396,7 @@ impl JoyWord {
                                 &font,
                                 profile,
                             ) {
-                                view.canvas_error = Some(error.to_string());
+                                view.report_canvas_error(error.to_string());
                                 cx.notify();
                                 return;
                             }
@@ -406,10 +409,10 @@ impl JoyWord {
                                     view.font = Some(Arc::new(font));
                                     view.profile = Some(profile);
                                 }
-                                Err(e) => view.canvas_error = Some(e.to_string()),
+                                Err(e) => view.report_canvas_error(e.to_string()),
                             }
                         }
-                        Err(e) => view.canvas_error = Some(e),
+                        Err(e) => view.report_canvas_error(e),
                     }
                     cx.notify();
                 });
@@ -487,7 +490,7 @@ impl JoyWord {
                 self.reveal_caret();
                 self.request_canvas(cx);
             }
-            Landed::Failed(error) => self.canvas_error = Some(error),
+            Landed::Failed(error) => self.report_canvas_error(error),
         }
         cx.notify();
     }
@@ -512,7 +515,7 @@ impl JoyWord {
                 }
             }
             // The page shows its own failure; the canvas and other pages stay.
-            Landed::Failed(_) => {}
+            Landed::Failed(error) => self.note_diag(Level::Error, "ui.raster", &error),
         }
         cx.notify();
     }
@@ -591,6 +594,24 @@ impl JoyWord {
         Catalog::shipped(self.locale).text(key)
     }
 
+    pub(crate) fn report_canvas_error(&mut self, message: impl Into<String>) {
+        let message = message.into();
+        self.note_diag(Level::Error, "ui.canvas", &message);
+        self.canvas_error = Some(message);
+    }
+
+    pub(crate) fn report_input_error(&mut self, message: impl Into<String>) {
+        let message = message.into();
+        self.note_diag(Level::Error, "ui.input", &message);
+        self.input_error = Some(message);
+    }
+
+    fn note_diag(&self, level: Level, event: &str, message: &str) {
+        if let Some(log) = &self.diagnostics {
+            let _ = log.record_untrusted(level, event, message);
+        }
+    }
+
     /// Single entry for menus, shortcuts and on-screen controls. Disabled and
     /// failed commands surface their reason instead of doing nothing silently.
     fn run(&mut self, id: CommandId, window: &mut Window, cx: &mut Context<Self>) {
@@ -613,11 +634,11 @@ impl JoyWord {
                 self.request_close(false, window, cx);
             }
             Err(InvokeError::Disabled(reason)) => {
-                self.input_error = Some(self.label(reason));
+                self.report_input_error(self.label(reason));
                 cx.notify();
             }
             Err(InvokeError::Failed(message)) | Err(InvokeError::Unknown(message)) => {
-                self.input_error = Some(message);
+                self.report_input_error(message);
                 cx.notify();
             }
             _ => {}
@@ -830,22 +851,106 @@ impl Render for JoyWord {
 /// unreadable journal returns `None` and the caller keeps the sample document.
 fn take_recovered(
     directory: &std::path::Path,
+    log: Option<&AppLog>,
 ) -> Option<(
     joyword_shell::host::Office,
     Box<dyn input_ui::DocEditor>,
     joyword_shell::host::DocumentId,
 )> {
-    let mut office = joyword_shell::host::Office::recover_from(directory).ok()?;
+    let mut office = match joyword_shell::host::Office::recover_from(directory) {
+        Ok(office) => office,
+        Err(error) => {
+            if directory.join("recovery.jwr").is_file()
+                && let Some(log) = log
+            {
+                let _ = log.record_untrusted(Level::Error, "recovery.failed", &error.to_string());
+            }
+            return None;
+        }
+    };
     office.set_recovery_directory(directory.to_path_buf());
     let id = office.active_id()?;
+    if let Some(log) = log {
+        let _ = log.record(Event {
+            level: Level::Info,
+            event: "recovery.restored",
+            kind: Some("document"),
+            count: Some(id.0),
+        });
+    }
     let input = office.hold_active()?;
     Some((office, Box::new(input), id))
 }
 
+struct Boot {
+    log: Option<Arc<AppLog>>,
+    locale: Locale,
+}
+
+fn boot_diagnostics() -> Boot {
+    let paths = match diag::resolve() {
+        Ok(paths) => paths,
+        Err(diag::ProfileError::UserDirectoryUnavailable) => {
+            eprintln!(
+                "JoyWord could not find the user configuration directory; diagnostics are off"
+            );
+            return Boot {
+                log: None,
+                locale: Locale::ZhCn,
+            };
+        }
+        Err(error) => {
+            eprintln!("JoyWord refused the diagnostics profile: {error}");
+            std::process::exit(2);
+        }
+    };
+    let loaded = PrefsStore::new(&paths.config_dir).load(Locale::ZhCn);
+    let locale = loaded.prefs.ui_locale;
+    let log = match AppLog::open(&paths.log_dir) {
+        Ok(log) => {
+            let log = Arc::new(log);
+            let _ = log.record(Event {
+                level: Level::Info,
+                event: "startup",
+                kind: Some(paths.profile.tag()),
+                count: None,
+            });
+            for notice in &loaded.notices {
+                let _ = log.record(Event {
+                    level: Level::Warn,
+                    event: "prefs.notice",
+                    kind: Some(prefs_notice_kind(notice)),
+                    count: None,
+                });
+            }
+            if let Err(error) = diag::install_panic_hook(Arc::clone(&log)) {
+                let _ = log.record_untrusted(Level::Error, "panic.hook", &error.to_string());
+            }
+            Some(log)
+        }
+        Err(_) => {
+            eprintln!("JoyWord could not open the diagnostics log");
+            None
+        }
+    };
+    Boot { log, locale }
+}
+
+fn prefs_notice_kind(notice: &PrefsNotice) -> &'static str {
+    match notice {
+        PrefsNotice::Corrupt { .. } => "corrupt",
+        PrefsNotice::Newer { .. } => "newer",
+        PrefsNotice::Migrated { .. } => "migrated",
+        PrefsNotice::InvalidValue { .. } => "invalid_value",
+    }
+}
+
 fn main() {
-    gpui_platform::application().run(|cx: &mut App| {
+    let boot = boot_diagnostics();
+    let boot_log = boot.log.clone();
+    let locale = boot.locale;
+    gpui_platform::application().run(move |cx: &mut App| {
         let registry = Registry::builtin();
-        let locale = Locale::ZhCn;
         cx.on_action(|_: &Quit, cx| {
             if let Some(MainWindow(handle)) = cx.try_global::<MainWindow>().copied()
                 && handle
@@ -872,15 +977,22 @@ fn main() {
                 cx.new(|cx| {
                     let recovery_dir = joyword_shell::storage::recovery_directory();
                     let mut session = joyword_shell::host::Office::new();
+                    if let Some(log) = &boot_log {
+                        session.set_diagnostics(Arc::clone(log));
+                    }
                     if let Some(dir) = &recovery_dir {
                         session.set_recovery_directory(dir.clone());
                     }
                     let mut editor = None;
                     let mut held_document = None;
                     if let Some(dir) = &recovery_dir
-                        && let Some((recovered, input, id)) = take_recovered(dir)
+                        && let Some((recovered, input, id)) =
+                            take_recovered(dir, boot_log.as_deref())
                     {
                         session = recovered;
+                        if let Some(log) = &boot_log {
+                            session.set_diagnostics(Arc::clone(log));
+                        }
                         editor = Some(input);
                         held_document = Some(id);
                     }
@@ -919,6 +1031,7 @@ fn main() {
                         copy_epoch: 0,
                         copy: None,
                         original_save: None,
+                        diagnostics: boot_log.clone(),
                     };
                     view.install_input_lifecycle(window, cx);
                     view
@@ -934,7 +1047,11 @@ fn main() {
                 });
             }
             Err(error) => {
-                eprintln!("Could not open the JoyWord window: {error}");
+                let detail = diag::redact(&error.to_string());
+                if let Some(log) = &boot_log {
+                    let _ = log.record_untrusted(Level::Error, "window.open", &detail);
+                }
+                eprintln!("Could not open the JoyWord window: {detail}");
                 cx.quit();
             }
         }
@@ -975,8 +1092,8 @@ mod tests {
             let baseline = include_bytes!("../../../tests/fixtures/docx/DOCX-MIN-001.docx");
             joyword_shell::storage::commit_recovery(&dir, baseline, "已提交")
                 .map_err(|error| error.to_string())?;
-            let (_office, editor, id) =
-                super::take_recovered(&dir).ok_or_else(|| "journal did not restore".to_string())?;
+            let (_office, editor, id) = super::take_recovered(&dir, None)
+                .ok_or_else(|| "journal did not restore".to_string())?;
             if id.0 == 0 {
                 return Err("recovered document has no id".into());
             }

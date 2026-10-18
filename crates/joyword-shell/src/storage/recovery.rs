@@ -90,13 +90,12 @@ pub fn directory_from(explicit: Option<&Path>, config_dir: Option<&Path>) -> Opt
 }
 
 /// `JOYWORD_RECOVERY_DIR` when it is set, otherwise [`directory_from`] with
-/// the preferences directory.
+/// the active profile's configuration directory. A test profile does not
+/// fall back to the user preferences directory.
 pub fn directory() -> Option<PathBuf> {
     let explicit = std::env::var_os("JOYWORD_RECOVERY_DIR").map(PathBuf::from);
-    directory_from(
-        explicit.as_deref(),
-        crate::prefs::default_config_dir().as_deref(),
-    )
+    let config = crate::diag::resolve().ok().map(|paths| paths.config_dir);
+    directory_from(explicit.as_deref(), config.as_deref())
 }
 
 fn write_blob(out: &mut Vec<u8>, bytes: &[u8]) {

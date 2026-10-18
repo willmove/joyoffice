@@ -4,9 +4,13 @@
 use std::collections::BTreeMap;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
+use joyword_docx::{DiagnosticKind, Diagnostics};
 use joyword_engine::{ParagraphChange, RunChange};
 use joyword_model::Justification;
+
+use crate::diag::{AppLog, Event, Level};
 
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
@@ -51,6 +55,7 @@ pub struct Office {
     open_generation: u64,
     save_generation: u64,
     recovery_dir: Option<PathBuf>,
+    diag: Option<Arc<AppLog>>,
 }
 
 impl Default for Office {
@@ -71,6 +76,60 @@ impl Office {
             open_generation: 0,
             save_generation: 0,
             recovery_dir: None,
+            diag: None,
+        }
+    }
+
+    /// Attaches the application log. Command failures and import diagnostic
+    /// counts are written there; document text, comments and revisions are not.
+    pub fn set_diagnostics(&mut self, log: Arc<AppLog>) {
+        self.diag = Some(log);
+    }
+
+    fn note_failure(&self, event: &str, error: &ExecuteError) {
+        let Some(log) = &self.diag else {
+            return;
+        };
+        let ExecuteError::Failed(message) = error else {
+            return;
+        };
+        let _ = log.record_untrusted(Level::Error, event, message);
+    }
+
+    fn note_import(&self, diagnostics: &Diagnostics) {
+        let Some(log) = &self.diag else {
+            return;
+        };
+        let _ = log.record(Event {
+            level: Level::Info,
+            event: "import.diagnostics",
+            kind: Some("count"),
+            count: Some(diagnostics.len() as u64),
+        });
+        if diagnostics.suppressed() > 0 {
+            let _ = log.record(Event {
+                level: Level::Info,
+                event: "import.diagnostics",
+                kind: Some("suppressed"),
+                count: Some(diagnostics.suppressed() as u64),
+            });
+        }
+        let mut kinds: Vec<(&'static str, u64)> = Vec::new();
+        for item in diagnostics.iter().take(64) {
+            let name = diagnostic_kind_name(&item.kind);
+            if let Some((_, count)) = kinds.iter_mut().find(|(kind, _)| *kind == name) {
+                *count = count.saturating_add(1);
+            } else if kinds.len() < 16 {
+                kinds.push((name, 1));
+            }
+        }
+        for (name, count) in kinds {
+            let _ = log.record(Event {
+                level: Level::Info,
+                event: "import.diagnostic",
+                kind: Some(name),
+                count: Some(count),
+            });
         }
     }
 
@@ -404,6 +463,7 @@ impl Office {
         let source = bound.source_path().to_path_buf();
         let input = TextInput::new(bound, InputLimits::default())
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        self.note_import(input.backend().session().diagnostics());
         let saved = input.backend().session().session().version().get();
         let id = DocumentId(self.next_id);
         self.next_id += 1;
@@ -437,6 +497,26 @@ fn same_file(left: &Path, right: &Path) -> bool {
     }
 }
 
+fn diagnostic_kind_name(kind: &DiagnosticKind) -> &'static str {
+    match kind {
+        DiagnosticKind::Package(_) => "package",
+        DiagnosticKind::ExternalTarget { .. } => "external_target",
+        DiagnosticKind::Preserved { .. } => "preserved",
+        DiagnosticKind::ReadOnly(_) => "read_only",
+        DiagnosticKind::MissingPart { .. } => "missing_part",
+        DiagnosticKind::NotImported { .. } => "not_imported",
+        DiagnosticKind::InvalidValue { .. } => "invalid_value",
+        DiagnosticKind::StyleSkipped { .. } => "style_skipped",
+        DiagnosticKind::SectionDefaults { .. } => "section_defaults",
+        DiagnosticKind::PropertiesPreserved { .. } => "properties_preserved",
+        DiagnosticKind::HintsSkipped { .. } => "hints_skipped",
+        DiagnosticKind::UnpreservedWhitespace => "unpreserved_whitespace",
+        DiagnosticKind::EmptyBody => "empty_body",
+        DiagnosticKind::MacroProject => "macro_project",
+        DiagnosticKind::Model(_) => "model",
+    }
+}
+
 fn input_error(error: InputError) -> ExecuteError {
     ExecuteError::Failed(error.to_string())
 }
@@ -462,6 +542,20 @@ impl CommandHost for Office {
     }
 
     fn execute(
+        &mut self,
+        id: CommandId,
+        args: &BTreeMap<&'static str, ArgValue>,
+    ) -> Result<(), ExecuteError> {
+        let result = self.dispatch(id, args);
+        if let Err(error) = &result {
+            self.note_failure(id.0, error);
+        }
+        result
+    }
+}
+
+impl Office {
+    fn dispatch(
         &mut self,
         id: CommandId,
         args: &BTreeMap<&'static str, ArgValue>,
