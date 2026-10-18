@@ -15,11 +15,12 @@ use crate::diag::{AppLog, Event, Level};
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
-    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL,
-    LIST_REMOVE, Registry, STYLE_APPLY, STYLE_LIST,
+    FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE,
+    FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_PAINT, InvokeError, LIST_APPLY,
+    LIST_LEVEL, LIST_REMOVE, Registry, STYLE_APPLY, STYLE_LIST,
 };
 use crate::docx::BoundDocx;
-use crate::input::{InputError, InputLimits, InputSource, TextInput};
+use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DocumentId(pub u64);
@@ -544,6 +545,17 @@ fn parse_u8(value: &ArgValue) -> Option<u8> {
     }
 }
 
+fn flag(args: &BTreeMap<&'static str, ArgValue>, name: &str) -> bool {
+    matches!(args.get(name), Some(ArgValue::Bool(true)))
+}
+
+fn text_arg<'a>(args: &'a BTreeMap<&'static str, ArgValue>, name: &str) -> Option<&'a str> {
+    match args.get(name) {
+        Some(ArgValue::Text(text)) => Some(text),
+        _ => None,
+    }
+}
+
 impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
         if (matches!(
@@ -555,6 +567,13 @@ impl CommandHost for Office {
                 | LIST_APPLY
                 | LIST_LEVEL
                 | LIST_REMOVE
+                | FIND_NEXT
+                | FIND_PREVIOUS
+                | FIND_REPLACE
+                | FIND_REPLACE_ALL
+                | FORMAT_COPY
+                | FORMAT_PAINT
+                | FORMAT_CANCEL
         ) || id.0.starts_with("edit."))
             && self.active.is_none()
         {
@@ -562,7 +581,20 @@ impl CommandHost for Office {
         }
         if self.opening.is_some()
             && (id.0.starts_with("edit.")
-                || matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE))
+                || matches!(
+                    id,
+                    STYLE_APPLY
+                        | LIST_APPLY
+                        | LIST_LEVEL
+                        | LIST_REMOVE
+                        | FIND_NEXT
+                        | FIND_PREVIOUS
+                        | FIND_REPLACE
+                        | FIND_REPLACE_ALL
+                        | FORMAT_COPY
+                        | FORMAT_PAINT
+                        | FORMAT_CANCEL
+                ))
         {
             return Availability::Disabled("input.read_only");
         }
@@ -577,6 +609,9 @@ impl CommandHost for Office {
                 | LIST_APPLY
                 | LIST_LEVEL
                 | LIST_REMOVE
+                | FIND_REPLACE
+                | FIND_REPLACE_ALL
+                | FORMAT_PAINT
         ) && self.active().is_some_and(|input| input.read_only())
         {
             return Availability::Disabled("input.read_only");
@@ -767,6 +802,65 @@ impl Office {
                 self.require_active()?.remove_list().map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            FIND_NEXT | FIND_PREVIOUS => {
+                let Some(query) = text_arg(args, "query") else {
+                    return Err(ExecuteError::Failed("query".into()));
+                };
+                let query = query.to_owned();
+                self.require_active()?
+                    .editing(EditRequest::Find {
+                        query,
+                        case_sensitive: flag(args, "case"),
+                        whole_word: flag(args, "word"),
+                        forward: id == FIND_NEXT,
+                    })
+                    .map_err(input_error)?;
+                Ok(())
+            }
+            FIND_REPLACE | FIND_REPLACE_ALL => {
+                let Some(query) = text_arg(args, "query") else {
+                    return Err(ExecuteError::Failed("query".into()));
+                };
+                let Some(replacement) = text_arg(args, "replacement") else {
+                    return Err(ExecuteError::Failed("replacement".into()));
+                };
+                let query = query.to_owned();
+                let replacement = replacement.to_owned();
+                self.require_active()?
+                    .editing(EditRequest::Replace {
+                        query,
+                        replacement,
+                        case_sensitive: flag(args, "case"),
+                        whole_word: flag(args, "word"),
+                        all: id == FIND_REPLACE_ALL,
+                    })
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            FORMAT_COPY => {
+                self.require_active()?
+                    .editing(EditRequest::CopyFormat {
+                        repeat: flag(args, "repeat"),
+                    })
+                    .map_err(input_error)?;
+                Ok(())
+            }
+            FORMAT_PAINT => {
+                self.require_active()?
+                    .editing(EditRequest::PaintFormat)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            FORMAT_CANCEL => {
+                self.require_active()?
+                    .editing(EditRequest::CancelFormat)
+                    .map_err(input_error)?;
                 Ok(())
             }
             EDIT_COPY => {

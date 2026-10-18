@@ -99,6 +99,12 @@ pub(crate) trait DocEditor {
         &mut self,
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError>;
+    fn editing(
+        &mut self,
+        request: joyword_shell::input::EditRequest,
+    ) -> Result<joyword_shell::input::EditReport, InputError>;
+    fn style_rows(&self) -> Vec<joyword_shell::input::StyleRow>;
+    fn caret_styles(&self) -> (Option<String>, Option<String>);
     fn acknowledge_layout(&mut self, version: u64);
     fn selected_text(&self) -> Result<String, InputError>;
     fn recovery_baseline(&self) -> Option<&[u8]> {
@@ -206,6 +212,18 @@ impl DocEditor for TextInput<joyword_engine::Session> {
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn editing(
+        &mut self,
+        request: joyword_shell::input::EditRequest,
+    ) -> Result<joyword_shell::input::EditReport, InputError> {
+        TextInput::editing(self, request)
+    }
+    fn style_rows(&self) -> Vec<joyword_shell::input::StyleRow> {
+        TextInput::style_rows(self)
+    }
+    fn caret_styles(&self) -> (Option<String>, Option<String>) {
+        TextInput::caret_styles(self)
     }
     fn acknowledge_layout(&mut self, version: u64) {
         TextInput::acknowledge_layout(self, version);
@@ -326,6 +344,18 @@ impl DocEditor for TextInput<BoundDocx> {
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn editing(
+        &mut self,
+        request: joyword_shell::input::EditRequest,
+    ) -> Result<joyword_shell::input::EditReport, InputError> {
+        TextInput::editing(self, request)
+    }
+    fn style_rows(&self) -> Vec<joyword_shell::input::StyleRow> {
+        TextInput::style_rows(self)
+    }
+    fn caret_styles(&self) -> (Option<String>, Option<String>) {
+        TextInput::caret_styles(self)
     }
     fn acknowledge_layout(&mut self, version: u64) {
         TextInput::acknowledge_layout(self, version);
@@ -449,6 +479,18 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn editing(
+        &mut self,
+        request: joyword_shell::input::EditRequest,
+    ) -> Result<joyword_shell::input::EditReport, InputError> {
+        TextInput::editing(self, request)
+    }
+    fn style_rows(&self) -> Vec<joyword_shell::input::StyleRow> {
+        TextInput::style_rows(self)
+    }
+    fn caret_styles(&self) -> (Option<String>, Option<String>) {
+        TextInput::caret_styles(self)
     }
     fn acknowledge_layout(&mut self, version: u64) {
         TextInput::acknowledge_layout(self, version);
@@ -871,7 +913,9 @@ fn input_error_label(error: &InputError) -> &'static str {
         InputError::Budget(_) | InputError::GenerationOverflow => "input.limit",
         InputError::StaleComposition => "input.stale",
         InputError::InvalidText(_) => "input.unsupported_text",
-        InputError::Undo(_) | InputError::Transaction(_) => "input.rejected",
+        InputError::Undo(_) | InputError::Transaction(_) | InputError::Rejected(_) => {
+            "input.rejected"
+        }
     }
 }
 
@@ -1495,18 +1539,35 @@ impl JoyWord {
         }
         if matches!(
             id,
-            STYLE_LIST | STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE
+            STYLE_LIST
+                | STYLE_APPLY
+                | LIST_APPLY
+                | LIST_LEVEL
+                | LIST_REMOVE
+                | FIND_NEXT
+                | FIND_PREVIOUS
+                | FIND_REPLACE
+                | FIND_REPLACE_ALL
+                | FORMAT_COPY
+                | FORMAT_PAINT
+                | FORMAT_CANCEL
         ) {
-            if self.open_gate.is_some()
-                && matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE)
-            {
+            if self.open_gate.is_some() && id != STYLE_LIST {
                 return Availability::Disabled("input.read_only");
             }
             let Some(editor) = &self.editor else {
                 return Availability::Disabled("input.loading");
             };
-            if matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE)
-                && editor.read_only()
+            if matches!(
+                id,
+                STYLE_APPLY
+                    | LIST_APPLY
+                    | LIST_LEVEL
+                    | LIST_REMOVE
+                    | FIND_REPLACE
+                    | FIND_REPLACE_ALL
+                    | FORMAT_PAINT
+            ) && editor.read_only()
             {
                 return Availability::Disabled("input.read_only");
             }
@@ -1674,6 +1735,111 @@ impl JoyWord {
                 self.apply_input(cx, |editor| editor.set_list_level(level).map(|_| ()))
             }
             LIST_REMOVE => self.apply_input(cx, |editor| editor.remove_list().map(|_| ())),
+            FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL | FORMAT_COPY
+            | FORMAT_PAINT | FORMAT_CANCEL => {
+                let request = match id {
+                    FIND_NEXT | FIND_PREVIOUS => {
+                        let Some(joyword_shell::command::ArgValue::Text(query)) = args.get("query")
+                        else {
+                            self.input_error = Some("query".into());
+                            return Err("query".into());
+                        };
+                        joyword_shell::input::EditRequest::Find {
+                            query: query.clone(),
+                            case_sensitive: matches!(
+                                args.get("case"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            whole_word: matches!(
+                                args.get("word"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            forward: id == FIND_NEXT,
+                        }
+                    }
+                    FIND_REPLACE | FIND_REPLACE_ALL => {
+                        let Some(joyword_shell::command::ArgValue::Text(query)) = args.get("query")
+                        else {
+                            self.input_error = Some("query".into());
+                            return Err("query".into());
+                        };
+                        let Some(joyword_shell::command::ArgValue::Text(replacement)) =
+                            args.get("replacement")
+                        else {
+                            self.input_error = Some("replacement".into());
+                            return Err("replacement".into());
+                        };
+                        joyword_shell::input::EditRequest::Replace {
+                            query: query.clone(),
+                            replacement: replacement.clone(),
+                            case_sensitive: matches!(
+                                args.get("case"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            whole_word: matches!(
+                                args.get("word"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            all: id == FIND_REPLACE_ALL,
+                        }
+                    }
+                    FORMAT_COPY => joyword_shell::input::EditRequest::CopyFormat {
+                        repeat: matches!(
+                            args.get("repeat"),
+                            Some(joyword_shell::command::ArgValue::Bool(true))
+                        ),
+                    },
+                    FORMAT_PAINT => joyword_shell::input::EditRequest::PaintFormat,
+                    _ => joyword_shell::input::EditRequest::CancelFormat,
+                };
+                let mut report = None;
+                self.apply_input(cx, |editor| {
+                    report = Some(editor.editing(request)?);
+                    Ok(())
+                });
+                if let Some(report) = report {
+                    let catalog = Catalog::shipped(self.locale);
+                    let mut note = catalog.format(
+                        "find.status",
+                        &[
+                            ("matches", &report.matches.to_string()),
+                            ("skipped", &report.skipped.to_string()),
+                            ("replaced", &report.replaced.to_string()),
+                        ],
+                    );
+                    if report.truncated {
+                        note.push(' ');
+                        note.push_str(&catalog.text("find.truncated"));
+                    }
+                    if report.matches == 0
+                        && report.replaced == 0
+                        && matches!(
+                            id,
+                            FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL
+                        )
+                    {
+                        note = catalog.text("find.none");
+                        if report.skipped > 0 {
+                            note.push_str(&catalog.format(
+                                "find.status",
+                                &[
+                                    ("matches", "0"),
+                                    ("skipped", &report.skipped.to_string()),
+                                    ("replaced", "0"),
+                                ],
+                            ));
+                        }
+                    }
+                    if matches!(id, FORMAT_COPY | FORMAT_PAINT | FORMAT_CANCEL) {
+                        note = catalog.text(if report.armed {
+                            "format.armed"
+                        } else {
+                            "format.applied"
+                        });
+                    }
+                    self.find_note = Some(note);
+                }
+            }
             EDIT_ITALIC => self.apply_input(cx, |editor| {
                 editor
                     .format_runs(joyword_engine::RunChange::Italic(Some(true)))

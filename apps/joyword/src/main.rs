@@ -6,8 +6,8 @@ mod input_ui;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
 use gpui::{
-    Action, App, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, Window, WindowBounds,
-    WindowOptions, actions, div, img, prelude::*, px, rgb, size,
+    Action, App, Bounds, Context, FocusHandle, KeyBinding, Menu, MenuItem, SharedString, Window,
+    WindowBounds, WindowOptions, actions, div, img, prelude::*, px, rgb, size,
 };
 use joyword_foundation::ScreenScale;
 use joyword_layout::{LoadedFont, SingleFontProfile};
@@ -63,7 +63,14 @@ actions!(
         AlignCenter,
         CopyText,
         PasteText,
-        CloseDocument
+        CloseDocument,
+        FindNext,
+        FindPrevious,
+        ReplaceNext,
+        ReplaceAll,
+        CopyFormat,
+        PaintFormat,
+        CancelFormat
     ]
 );
 
@@ -116,6 +123,13 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_PASTE => Box::new(PasteText),
         EDIT_INSERT => Box::new(InsertText),
         FILE_CLOSE => Box::new(CloseDocument),
+        FIND_NEXT => Box::new(FindNext),
+        FIND_PREVIOUS => Box::new(FindPrevious),
+        FIND_REPLACE => Box::new(ReplaceNext),
+        FIND_REPLACE_ALL => Box::new(ReplaceAll),
+        FORMAT_COPY => Box::new(CopyFormat),
+        FORMAT_PAINT => Box::new(PaintFormat),
+        FORMAT_CANCEL => Box::new(CancelFormat),
         _ => return None,
     })
 }
@@ -208,6 +222,7 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 EDIT_COPY => KeyBinding::new(keys, CopyText, Some("JoyWordInput")),
                 EDIT_PASTE => KeyBinding::new(keys, PasteText, Some("JoyWordInput && !composing")),
                 FILE_CLOSE => KeyBinding::new(keys, CloseDocument, None),
+                FIND_NEXT => KeyBinding::new(keys, FindNext, Some("JoyWordInput")),
                 _ => return None,
             })
         })
@@ -255,6 +270,20 @@ struct JoyWord {
     copy: Option<input_ui::CopyPhase>,
     original_save: Option<input_ui::OriginalSavePhase>,
     diagnostics: Option<Arc<AppLog>>,
+    find_query: String,
+    find_replacement: String,
+    find_case: bool,
+    find_word: bool,
+    find_query_focus: FocusHandle,
+    find_replacement_focus: FocusHandle,
+    find_note: Option<String>,
+    format_repeat: bool,
+}
+
+#[derive(Clone, Copy)]
+enum FindSlot {
+    Query,
+    Replacement,
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -620,6 +649,372 @@ impl JoyWord {
         Catalog::shipped(self.locale).text(key)
     }
 
+    fn run_with(
+        &mut self,
+        id: CommandId,
+        args: &[(&'static str, ArgValue)],
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let registry = self.registry.clone();
+        match registry.invoke_with(
+            &mut ViewHost {
+                view: self,
+                window,
+                cx,
+            },
+            id,
+            args,
+        ) {
+            Err(InvokeError::Disabled(reason)) => {
+                self.report_input_error(self.label(reason));
+                cx.notify();
+            }
+            Err(InvokeError::Failed(message)) | Err(InvokeError::Unknown(message)) => {
+                self.report_input_error(message);
+                cx.notify();
+            }
+            Err(InvokeError::PendingInput { .. }) => {
+                window.focus(&self.find_query_focus, cx);
+                cx.notify();
+            }
+            Ok(()) => cx.notify(),
+        }
+    }
+
+    fn find_args(&self, replacement: bool) -> Vec<(&'static str, ArgValue)> {
+        let mut args = vec![
+            ("query", ArgValue::Text(self.find_query.clone())),
+            ("case", ArgValue::Bool(self.find_case)),
+            ("word", ArgValue::Bool(self.find_word)),
+        ];
+        if replacement {
+            args.push(("replacement", ArgValue::Text(self.find_replacement.clone())));
+        }
+        args
+    }
+
+    fn style_panel(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        let rows = self
+            .editor
+            .as_ref()
+            .map(|editor| editor.style_rows())
+            .unwrap_or_default();
+        let (paragraph, character) = self
+            .editor
+            .as_ref()
+            .map(|editor| editor.caret_styles())
+            .unwrap_or((None, None));
+        let paragraph = paragraph.unwrap_or_else(|| self.label("style.none"));
+        let character = character.unwrap_or_else(|| self.label("style.none"));
+        let current = Catalog::shipped(self.locale).format(
+            "style.current",
+            &[("paragraph", &paragraph), ("character", &character)],
+        );
+        let current_paragraph = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.caret_styles().0);
+        let current_character = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.caret_styles().1);
+        div()
+            .id("style-panel")
+            .w(px(220.0))
+            .h_full()
+            .flex_shrink_0()
+            .overflow_y_scroll()
+            .bg(rgb(0xf7f9fb))
+            .border_r_1()
+            .border_color(rgb(0xd5dbe3))
+            .p_2()
+            .flex()
+            .flex_col()
+            .gap_1()
+            .text_sm()
+            .child(self.label("style.panel"))
+            .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(current))
+            .children(rows.into_iter().map(|row| {
+                let id = row.id.clone();
+                let marked = current_paragraph.as_deref() == Some(row.id.as_str())
+                    || current_character.as_deref() == Some(row.id.as_str());
+                let preview = if row.preview.is_empty() {
+                    row.kind.clone()
+                } else {
+                    format!("{} · {}", row.kind, row.preview)
+                };
+                div()
+                    .id(SharedString::from(format!("style-{}", row.id)))
+                    .cursor_pointer()
+                    .px_2()
+                    .py_1()
+                    .rounded_sm()
+                    .bg(if marked { rgb(0xd7e6f5) } else { rgb(0xf7f9fb) })
+                    .hover(|style| style.bg(rgb(0xe7eef5)))
+                    .on_click(cx.listener(move |this, _, window, cx| {
+                        this.run_with(
+                            STYLE_APPLY,
+                            &[("style", ArgValue::Text(id.clone()))],
+                            window,
+                            cx,
+                        );
+                    }))
+                    .child(row.name)
+                    .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(preview))
+            }))
+    }
+
+    fn find_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        div()
+            .flex()
+            .items_center()
+            .gap_2()
+            .px_3()
+            .py_2()
+            .bg(rgb(0xffffff))
+            .border_t_1()
+            .border_color(rgb(0xd5dbe3))
+            .text_sm()
+            .child(self.find_field(FindSlot::Query, cx))
+            .child(self.find_field(FindSlot::Replacement, cx))
+            .child(self.find_button(
+                "find-next",
+                &self.label("command.find.next"),
+                FIND_NEXT,
+                false,
+                cx,
+            ))
+            .child(self.find_button(
+                "find-previous",
+                &self.label("command.find.previous"),
+                FIND_PREVIOUS,
+                false,
+                cx,
+            ))
+            .child(self.find_button(
+                "find-replace",
+                &self.label("command.find.replace"),
+                FIND_REPLACE,
+                true,
+                cx,
+            ))
+            .child(self.find_button(
+                "find-replace-all",
+                &self.label("command.find.replace_all"),
+                FIND_REPLACE_ALL,
+                true,
+                cx,
+            ))
+            .child(self.toggle_button(
+                "find-case",
+                &self.label("find.case"),
+                self.find_case,
+                true,
+                cx,
+            ))
+            .child(self.toggle_button(
+                "find-word",
+                &self.label("find.word"),
+                self.find_word,
+                false,
+                cx,
+            ))
+            .child(self.repeat_button(cx))
+            .child(self.find_button(
+                "format-copy",
+                &self.label("command.format.copy"),
+                FORMAT_COPY,
+                false,
+                cx,
+            ))
+            .child(self.find_button(
+                "format-paint",
+                &self.label("command.format.paint"),
+                FORMAT_PAINT,
+                false,
+                cx,
+            ))
+            .child(self.find_button(
+                "format-cancel",
+                &self.label("command.format.cancel"),
+                FORMAT_CANCEL,
+                false,
+                cx,
+            ))
+            .child(
+                div()
+                    .text_xs()
+                    .text_color(rgb(0x5c6b7a))
+                    .child(self.find_note.clone().unwrap_or_default()),
+            )
+    }
+
+    fn find_field(&self, slot: FindSlot, cx: &mut Context<Self>) -> impl IntoElement {
+        let (focus, text, placeholder) = match slot {
+            FindSlot::Query => (
+                self.find_query_focus.clone(),
+                self.find_query.clone(),
+                self.label("find.query"),
+            ),
+            FindSlot::Replacement => (
+                self.find_replacement_focus.clone(),
+                self.find_replacement.clone(),
+                self.label("find.replacement"),
+            ),
+        };
+        let shown = if text.is_empty() { placeholder } else { text };
+        let faded = match slot {
+            FindSlot::Query => self.find_query.is_empty(),
+            FindSlot::Replacement => self.find_replacement.is_empty(),
+        };
+        div()
+            .id(match slot {
+                FindSlot::Query => "find-query",
+                FindSlot::Replacement => "find-replacement",
+            })
+            .track_focus(&focus)
+            .focusable()
+            .w(px(160.0))
+            .px_2()
+            .py_1()
+            .border_1()
+            .border_color(rgb(0xc5ced6))
+            .bg(rgb(0xffffff))
+            .text_color(if faded { rgb(0x8896a3) } else { rgb(0x263247) })
+            .on_click(cx.listener(move |this, _, window, cx| {
+                let focus = match slot {
+                    FindSlot::Query => this.find_query_focus.clone(),
+                    FindSlot::Replacement => this.find_replacement_focus.clone(),
+                };
+                window.focus(&focus, cx);
+            }))
+            .on_key_down(
+                cx.listener(move |this, event: &gpui::KeyDownEvent, window, cx| {
+                    this.type_find(slot, event, window, cx);
+                }),
+            )
+            .child(shown)
+    }
+
+    fn type_find(
+        &mut self,
+        slot: FindSlot,
+        event: &gpui::KeyDownEvent,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let mods = &event.keystroke.modifiers;
+        if mods.control || mods.alt || mods.platform || mods.function {
+            return;
+        }
+        if event.keystroke.key == "enter" {
+            cx.stop_propagation();
+            let args = self.find_args(false);
+            self.run_with(FIND_NEXT, &args, window, cx);
+            return;
+        }
+        if event.keystroke.key == "escape" {
+            cx.stop_propagation();
+            window.focus(&self.focus_handle, cx);
+            cx.notify();
+            return;
+        }
+        let text = match slot {
+            FindSlot::Query => &mut self.find_query,
+            FindSlot::Replacement => &mut self.find_replacement,
+        };
+        if event.keystroke.key == "backspace" {
+            text.pop();
+        } else if let Some(ch) = event.keystroke.key_char.as_deref() {
+            if ch.chars().any(char::is_control) {
+                return;
+            }
+            text.push_str(ch);
+        } else {
+            return;
+        }
+        cx.stop_propagation();
+        cx.notify();
+    }
+
+    fn find_button(
+        &self,
+        id: &'static str,
+        label: &str,
+        command: CommandId,
+        replacement: bool,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
+        let label = label.to_owned();
+        div()
+            .id(id)
+            .cursor_pointer()
+            .px_2()
+            .py_1()
+            .rounded_sm()
+            .bg(rgb(0xe7eef5))
+            .on_click(cx.listener(move |this, _, window, cx| {
+                if command == FORMAT_COPY {
+                    this.run_with(
+                        FORMAT_COPY,
+                        &[("repeat", ArgValue::Bool(this.format_repeat))],
+                        window,
+                        cx,
+                    );
+                } else if command == FORMAT_PAINT || command == FORMAT_CANCEL {
+                    this.run_with(command, &[], window, cx);
+                } else {
+                    let args = this.find_args(replacement);
+                    this.run_with(command, &args, window, cx);
+                }
+            }))
+            .child(label)
+    }
+
+    fn toggle_button(
+        &self,
+        id: &'static str,
+        label: &str,
+        on: bool,
+        case: bool,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
+        let label = label.to_owned();
+        div()
+            .id(id)
+            .cursor_pointer()
+            .px_2()
+            .py_1()
+            .rounded_sm()
+            .bg(if on { rgb(0xc5d8ea) } else { rgb(0xe7eef5) })
+            .on_click(cx.listener(move |this, _, _, cx| {
+                if case {
+                    this.find_case = !this.find_case;
+                } else {
+                    this.find_word = !this.find_word;
+                }
+                cx.notify();
+            }))
+            .child(label)
+    }
+
+    fn repeat_button(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        let on = self.format_repeat;
+        div()
+            .id("format-repeat")
+            .cursor_pointer()
+            .px_2()
+            .py_1()
+            .rounded_sm()
+            .bg(if on { rgb(0xc5d8ea) } else { rgb(0xe7eef5) })
+            .on_click(cx.listener(|this, _, _, cx| {
+                this.format_repeat = !this.format_repeat;
+                cx.notify();
+            }))
+            .child(if on { "Repeat" } else { "Once" })
+    }
+
     pub(crate) fn report_canvas_error(&mut self, message: impl Into<String>) {
         let message = message.into();
         self.note_diag(Level::Error, "ui.canvas", &message);
@@ -658,6 +1053,15 @@ impl JoyWord {
             }
             Err(InvokeError::PendingInput { .. }) if id == FILE_CLOSE => {
                 self.request_close(false, window, cx);
+            }
+            Err(InvokeError::PendingInput { .. })
+                if matches!(
+                    id,
+                    FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL
+                ) =>
+            {
+                window.focus(&self.find_query_focus, cx);
+                cx.notify();
             }
             Err(InvokeError::Disabled(reason)) => {
                 self.report_input_error(self.label(reason));
@@ -810,6 +1214,31 @@ impl Render for JoyWord {
             .on_action(
                 cx.listener(|this, _: &InsertText, window, cx| this.run(EDIT_INSERT, window, cx)),
             )
+            .on_action(
+                cx.listener(|this, _: &FindNext, window, cx| this.run(FIND_NEXT, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &FindPrevious, window, cx| {
+                    this.run(FIND_PREVIOUS, window, cx)
+                }),
+            )
+            .on_action(
+                cx.listener(|this, _: &ReplaceNext, window, cx| this.run(FIND_REPLACE, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &ReplaceAll, window, cx| {
+                this.run(FIND_REPLACE_ALL, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &CopyFormat, window, cx| this.run(FORMAT_COPY, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &PaintFormat, window, cx| this.run(FORMAT_PAINT, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &CancelFormat, window, cx| {
+                    this.run(FORMAT_CANCEL, window, cx)
+                }),
+            )
             .size_full()
             .flex()
             .flex_col()
@@ -843,7 +1272,15 @@ impl Render for JoyWord {
                     .text_sm()
                     .child(self.label("stage")),
             )
-            .child(self.input_viewport(cx))
+            .child(
+                div()
+                    .flex()
+                    .flex_1()
+                    .min_h_0()
+                    .child(self.style_panel(cx))
+                    .child(self.input_viewport(cx)),
+            )
+            .child(self.find_bar(cx))
             .child(
                 div()
                     .flex()
@@ -1073,6 +1510,14 @@ fn main() {
                         copy: None,
                         original_save: None,
                         diagnostics: boot_log.clone(),
+                        find_query: String::new(),
+                        find_replacement: String::new(),
+                        find_case: false,
+                        find_word: false,
+                        find_query_focus: cx.focus_handle(),
+                        find_replacement_focus: cx.focus_handle(),
+                        find_note: None,
+                        format_repeat: false,
                     };
                     view.install_input_lifecycle(window, cx);
                     view
