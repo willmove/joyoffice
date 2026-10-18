@@ -2,7 +2,7 @@ use joyoffice_opc::Budget;
 use joyword_engine::{Command, EditPolicy, Session, Transaction};
 use joyword_model::{Bias, BlockSeq, Document, DumpOptions, Paragraph, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
-use joyword_shell::input::{Direction, InputError, InputLimits, TextInput};
+use joyword_shell::input::{Direction, InputError, InputLimits, InputSource, TextInput};
 use std::sync::Arc;
 fn session(text: &str) -> Session {
     let mut doc = Document::new_blank();
@@ -380,7 +380,9 @@ fn deterministic_unicode_replacements_match_an_independent_string_model() {
         let before = reference.clone();
         let piece = pieces[step % pieces.len()];
         i.select(range.clone(), step % 2 == 0).unwrap();
-        let changed = i.replace(None, piece).unwrap();
+        // Command replacements are standalone undo steps; keyboard typing at
+        // the same caret would coalesce (T209, tests/undo_groups.rs).
+        let changed = i.replace_from(InputSource::Command, None, piece).unwrap();
         reference.replace_range(start..end, piece);
         assert_eq!(body(&i), reference, "step {step}");
         assert_index(&i, &reference);

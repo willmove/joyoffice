@@ -92,12 +92,27 @@ class BehaviorRegistryTest(unittest.TestCase):
         self.assertIn("alpha_test", names)
         self.assertIn("beta_test", names)
 
+    def test_required_entries_must_be_registered(self):
+        problems, _ = self.run_registry_required(
+            registry([ENTRY]), {"some_test_name"}, ("EDIT-X", "EDIT-UNDO-TYPING")
+        )
+        self.assertEqual(
+            problems, ["behavior registry: required entry EDIT-UNDO-TYPING missing"]
+        )
+
+    def run_registry_required(self, data, names, required):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "registry.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            return check_docs.validate_behavior_registry(path, names, required)
+
     def test_repo_registry_is_valid_and_every_test_exists(self):
         problems, count = check_docs.validate_behavior_registry(
             check_docs.DOCS / "behavior_registry.json",
             check_docs.rust_function_names(
                 [check_docs.ROOT / "crates", check_docs.ROOT / "apps"]
             ),
+            check_docs.REQUIRED_BEHAVIORS,
         )
         self.assertEqual(problems, [])
         self.assertGreater(count, 0)

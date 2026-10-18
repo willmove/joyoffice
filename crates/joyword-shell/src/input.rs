@@ -4,7 +4,7 @@
 use crate::docx::DocxSession;
 use joyword_engine::{
     Command, Outcome, ParagraphChange, RunChange, Selection, Session, Transaction, TxError,
-    UndoError, UndoResult,
+    UndoError, UndoGroup, UndoResult,
 };
 use joyword_model::{Bias, DocumentSnapshot, DocumentVersion, NodeId, Position, Utf16Offset};
 use std::collections::BTreeMap;
@@ -22,6 +22,8 @@ pub trait InputBackend {
     ) -> Result<Outcome, TxError>;
     fn undo(&mut self) -> Result<UndoResult, UndoError>;
     fn redo(&mut self) -> Result<UndoResult, UndoError>;
+    /// Close the open typing/deleting undo group (T209).
+    fn seal_undo_group(&mut self);
     fn preview_undo(&self) -> Result<(DocumentSnapshot, Option<Selection>), UndoError> {
         self.session().preview_undo()
     }
@@ -42,6 +44,9 @@ impl InputBackend for Session {
     fn redo(&mut self) -> Result<UndoResult, UndoError> {
         Session::redo(self)
     }
+    fn seal_undo_group(&mut self) {
+        Session::seal_undo_group(self);
+    }
 }
 impl InputBackend for crate::docx::BoundDocx {
     fn session(&self) -> &Session {
@@ -55,6 +60,9 @@ impl InputBackend for crate::docx::BoundDocx {
     }
     fn redo(&mut self) -> Result<UndoResult, UndoError> {
         self.session_mut().redo()
+    }
+    fn seal_undo_group(&mut self) {
+        self.session_mut().seal_undo_group();
     }
 }
 impl InputBackend for DocxSession {
@@ -70,6 +78,23 @@ impl InputBackend for DocxSession {
     fn redo(&mut self) -> Result<UndoResult, UndoError> {
         DocxSession::redo(self)
     }
+    fn seal_undo_group(&mut self) {
+        DocxSession::seal_undo_group(self);
+    }
+}
+/// Where a text replacement came from (SPEC §6 undo groups, T209). Only
+/// plain keyboard typing and keyboard deletion coalesce into one undo step;
+/// paste, drag, IME commits, Enter, autocorrect and menu commands each stay
+/// a standalone step that also ends any open typing group.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum InputSource {
+    /// Keystrokes delivered by the platform text-input client.
+    #[default]
+    Keyboard,
+    /// Clipboard paste or drag-and-drop insertion.
+    Paste,
+    /// Menu, toolbar, recovery or automation insertion.
+    Command,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct InputLimits {
@@ -479,7 +504,12 @@ impl<B: InputBackend> TextInput<B> {
         }
         Ok(text)
     }
-    fn prepare(&self, range: Range<usize>, text: &str) -> Result<Prepared, InputError> {
+    fn prepare(
+        &self,
+        range: Range<usize>,
+        text: &str,
+        group: UndoGroup,
+    ) -> Result<Prepared, InputError> {
         self.writable()?;
         self.base.check(&range)?;
         let start = self.base.position(range.start, Bias::After)?;
@@ -511,6 +541,7 @@ impl<B: InputBackend> TextInput<B> {
         }
         let mut transaction = Transaction::new(self.backend.session().version(), commands);
         transaction.selection = Some(self.selection);
+        transaction.undo_group = group;
         let target = Selection::caret(start);
         let mut candidate = Session::new(self.backend.session().document().clone());
         candidate.set_policy(self.backend.session().policy().clone());
@@ -554,13 +585,47 @@ impl<B: InputBackend> TextInput<B> {
         text.push_str(&self.view.index.text_for_range(range.end..union.end)?);
         Ok((base_start..base_end, text, mark))
     }
+    /// Replace a range with keyboard text; see [`Self::replace_from`].
     pub fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
+        self.replace_from(InputSource::Keyboard, range, text)
+    }
+    /// Replace a range (default: the marked range, else the selection) with
+    /// `text` from `source`. Keyboard text without a paragraph break that does
+    /// not commit a composition and replaces the current selection joins the
+    /// open typing group; everything else, including a platform replacement
+    /// of some other range, is a standalone undo step.
+    pub fn replace_from(
+        &mut self,
+        source: InputSource,
+        range: Option<Range<usize>>,
+        text: &str,
+    ) -> Result<bool, InputError> {
+        let typing = source == InputSource::Keyboard
+            && self.composition.is_none()
+            && !text.is_empty()
+            && !text.contains(['\n', '\r'])
+            && range
+                .as_ref()
+                .is_none_or(|range| *range == self.view.selected_range().0);
+        let group = if typing {
+            UndoGroup::Typing
+        } else {
+            UndoGroup::Standalone
+        };
+        self.replace_grouped(range, text, group)
+    }
+    fn replace_grouped(
+        &mut self,
+        range: Option<Range<usize>>,
+        text: &str,
+        group: UndoGroup,
+    ) -> Result<bool, InputError> {
         let text = self.normalize(text, false)?;
         let (base_range, text, _) = self.fold(range, &text)?;
         if text.len() > self.limits.max_insert_bytes {
             return Err(InputError::Budget("folded insert bytes"));
         }
-        let prepared = self.prepare(base_range, &text)?;
+        let prepared = self.prepare(base_range, &text, group)?;
         let revision = self.next_revision()?;
         let outcome = self
             .backend
@@ -679,7 +744,7 @@ impl<B: InputBackend> TextInput<B> {
             self.cancel_composition()?;
             return Ok(());
         }
-        let prepared = self.prepare(base_range.clone(), &overlay)?;
+        let prepared = self.prepare(base_range.clone(), &overlay, UndoGroup::Standalone)?;
         let selection = prepared.index.selection(
             marked.start + selected.start..marked.start + selected.end,
             false,
@@ -705,7 +770,8 @@ impl<B: InputBackend> TextInput<B> {
             return Ok(false);
         };
         self.writable()?;
-        let prepared = self.prepare(c.base_range, &c.text)?;
+        // A committed composition is one standalone undo step (SPEC §6).
+        let prepared = self.prepare(c.base_range, &c.text, UndoGroup::Standalone)?;
         let revision = self.next_revision()?;
         let outcome = self
             .backend
@@ -747,8 +813,7 @@ impl<B: InputBackend> TextInput<B> {
             return Err(InputError::StaleComposition);
         }
         let selection = self.base.selection(range, reversed)?;
-        self.selection = selection;
-        self.view.selection = selection;
+        self.set_selection(selection);
         Ok(())
     }
     pub fn select_positions(&mut self, selection: Selection) -> Result<(), InputError> {
@@ -756,9 +821,17 @@ impl<B: InputBackend> TextInput<B> {
             return Err(InputError::StaleComposition);
         }
         self.base.selection_range(selection)?;
+        self.set_selection(selection);
+        Ok(())
+    }
+    /// Moving the caret or selection ends the open typing/deleting group, so
+    /// typing that later returns to the same place starts a new undo step.
+    fn set_selection(&mut self, selection: Selection) {
+        if selection != self.selection {
+            self.backend.seal_undo_group();
+        }
         self.selection = selection;
         self.view.selection = selection;
-        Ok(())
     }
     pub fn select_all(&mut self) -> Result<(), InputError> {
         self.cancel_composition()?;
@@ -867,7 +940,7 @@ impl<B: InputBackend> TextInput<B> {
         } else {
             range
         };
-        self.replace(Some(range), "")
+        self.replace_grouped(Some(range), "", UndoGroup::Deleting)
     }
     pub fn undo(&mut self) -> Result<(), InputError> {
         if self.cancel_composition()? {

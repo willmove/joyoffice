@@ -14,7 +14,7 @@ use crate::command::{
     FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE_COPY, InvokeError, Registry,
 };
 use crate::docx::BoundDocx;
-use crate::input::{InputError, InputLimits, TextInput};
+use crate::input::{InputError, InputLimits, InputSource, TextInput};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DocumentId(pub u64);
@@ -130,7 +130,7 @@ impl Office {
             office
                 .active_mut()
                 .ok_or_else(|| ExecuteError::Failed("no document".into()))?
-                .replace(Some(0..len), &recovered.text)
+                .replace_from(InputSource::Command, Some(0..len), &recovered.text)
                 .map_err(input_error)?;
         }
         Ok(office)
@@ -192,7 +192,7 @@ impl Office {
         if !pending.buffered.is_empty() {
             self.active_mut()
                 .ok_or_else(|| ExecuteError::Failed("no document".into()))?
-                .replace(None, &pending.buffered)
+                .replace_from(InputSource::Command, None, &pending.buffered)
                 .map_err(input_error)?;
         }
         Ok(())
@@ -203,7 +203,9 @@ impl Office {
             return Ok(());
         }
         if let Some(active) = self.active_mut() {
-            active.replace(None, text).map_err(input_error)?;
+            active
+                .replace_from(InputSource::Command, None, text)
+                .map_err(input_error)?;
         }
         Ok(())
     }
@@ -524,7 +526,7 @@ impl CommandHost for Office {
                     return Err(ExecuteError::Failed("text".into()));
                 };
                 self.require_active()?
-                    .replace(None, text)
+                    .replace_from(InputSource::Command, None, text)
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
@@ -564,7 +566,7 @@ impl CommandHost for Office {
             EDIT_PASTE => {
                 let text = self.clipboard.clone();
                 self.require_active()?
-                    .replace(None, &text)
+                    .replace_from(InputSource::Paste, None, &text)
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;

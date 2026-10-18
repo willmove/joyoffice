@@ -140,6 +140,12 @@ impl DocxSession {
         self.session.redo()
     }
 
+    /// Close the open typing/deleting undo group (see
+    /// [`Session::seal_undo_group`]).
+    pub fn seal_undo_group(&mut self) {
+        self.session.seal_undo_group();
+    }
+
     /// Build a verified export for the current immutable version, using the
     /// original import budget. This does not save or change session state.
     pub fn export_plan(&self) -> Result<ExportPlan, ExportError> {

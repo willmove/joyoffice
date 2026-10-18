@@ -4,7 +4,7 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数与 T210 inspect／text 切片已开始；T207 尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T207 纯函数、T209 撤销组与 T210 inspect／text 切片已开始；T207 尚未接入排版入口。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、统一排版场景的 PDF／CPU 光栅、可见页缓存、打开／保存并发控制和恢复日志。
 - **主要未完成项**：系统 IME 与 GUI 人工验收、固定 WPS 参考对照（Word 2024 参考结果已在 Windows 参考机建立）、信创真机验证、把 T207 接入排版入口后的完整中文排版，以及其余 M2–M9 的样式／编号／表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
@@ -373,3 +373,12 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **T001 Mac 腿**：Rust/Cargo 1.98.1、Xcode 27.1（MetalToolchain-v27.1）、macOS 27.0.1（26A434）arm64（M4）；`target/debug/joyword` 构建并在本会话多次启动（含 kill -9 重启恢复）。Linux 真机腿未核对。
 - **W09 锁核查（同日）**：并行集成后 `experiments/docx-robustness/Cargo.lock` 无未提交变更、`--locked` 构建通过、与生产锁共有外部包零版本漂移、独立锁无生产锁之外的外部版本（README 不变量成立），无需同步提交。
 - 未覆盖：Retina/多显示器 DPI、断电恢复、T110 GUI 替换路径、T109 长只读窗口、WPS 参考 PDF（本机通道故障）、信创真机（非阻塞待补验）、覆盖引导 fuzz。
+
+### T209 撤销组与输入来源切片（2026-10-18）
+
+- 现场：独立 worktree `joyoffice-t209`、分支 `m2/t209-undo-groups`，基于 `main@cbeea1d`；未增加依赖，公共 API 只做增量扩展（`InputBackend` 新增必需方法 `seal_undo_group`，仓库内三个实现均已补齐）。
+- engine（`session.rs`）：`Transaction::undo_group` 默认 `Standalone`，`Typing`／`Deleting` 只在以下条件全部成立时并入栈顶条目：会话的组未封口、同类、双方均为 `Origin::User`、事务起始选区等于栈顶的结束选区、栈顶已合并步数小于 `MAX_UNDO_GROUP_STEPS`（100）。合并后栈顶保留最初的 before 状态与撤销选区，after／版本／重做选区更新，ChangeSet 取并集；版本仍逐次单调递增。撤销、重做、独立提交与 `Session::seal_undo_group` 封口；版本过期、只读、命令失败、不变量失败与空事务不改变组状态；panic 守卫一并恢复组状态。新增 `undo_depth`／`redo_depth` 观测接口。
+- shell（`input.rs`）：`InputSource`（Keyboard／Paste／Command）与 `TextInput::replace_from`，`replace` 等价于 Keyboard。只有键盘来源、非组合提交、非空、无段落分隔且作用于当前选区（`range` 为空或等于当前选区）的文本记为 Typing；`delete` 记为 Deleting；回车、粘贴（多段粘贴只按段落分隔插入，不走按键语义）、IME 提交（`unmark` 或组合中 `insertText`）、替换当前选区以外的范围、菜单插入、恢复日志回放和打开期间缓冲输入均为独立步骤。`select`／`select_positions`（以及基于它们的移动、点选、全选）只在选区实际改变时封口。host 的 EDIT_INSERT／恢复／缓冲输入使用 Command，EDIT_PASTE 使用 Paste；应用 `DocEditor` 新增 `replace_from`，EDIT_INSERT／EDIT_PASTE／打开缓冲输入接入对应来源，平台文本输入仍走 Keyboard。
+- 行为登记表新增 10 条 `EDIT-UNDO-*`（均为 hypothesis，无 Word 观测），`check_docs.py` 以 `REQUIRED_BEHAVIORS` 校验这些条目存在且引用的测试存在。原有两项随机替换测试（`text_input`、`w05_text_input_export`）假定每次替换各成一步，改为显式 Command 来源以保留原意。
+- 自动验证（Rust 1.98.1，Windows x64 本机）：`cargo test -p joyword-engine -p joyword-shell --locked` 全部通过，其中 engine `undo_groups` 10 项（含 48 个种子 × 160 步的随机性质测试：撤销链只经过已提交状态、在每个边界停下、回到初始状态，重做回到末状态，版本严格递增）、shell `undo_groups` 8 项；`cargo test -p joyword --features dev-runtime-shaders --locked` 36 项通过；`cargo test --workspace --locked` 共 439 项通过、零失败（Windows 上不编译 Unix 专属测试，总数不与 macOS 记录直接比较）。`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -- -D warnings`、`check_docs.py`（17 条行为登记）、`check_gates.py`（112 个 Rust 文件）与 `scripts/tests` 53 项 Python 测试通过。
+- 未覆盖：拖动手势与自动更正尚未实现，届时分别以 Paste／Command 来源接入；审阅模式边界需 T300 在切换时调用 `seal_undo_group`；协作多作者未建模，只区分 User／Agent／System。按 Word 行为的撤销粒度（如按词切分）未观测，登记表条目均为假设。系统 IME、拖动与粘贴混合的 GUI 人工验收未执行，远程 CI 未运行，T209 保持 `in_progress`。

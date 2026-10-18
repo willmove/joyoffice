@@ -10,7 +10,7 @@ use joyword_engine::Selection;
 use joyword_foundation::Emu;
 use joyword_model::{Bias, Position};
 use joyword_shell::docx::BoundDocx;
-use joyword_shell::input::{Direction, InputError, InputView, TextInput};
+use joyword_shell::input::{Direction, InputError, InputSource, InputView, TextInput};
 use joyword_shell::storage::SaveCopyReceipt;
 use std::ops::Range;
 
@@ -48,7 +48,16 @@ pub(crate) trait DocEditor {
     fn redo(&mut self) -> Result<(), InputError>;
     fn select_all(&mut self) -> Result<(), InputError>;
     fn delete(&mut self, direction: Direction) -> Result<bool, InputError>;
-    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError>;
+    /// Keyboard text from the platform input client.
+    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
+        self.replace_from(InputSource::Keyboard, range, text)
+    }
+    fn replace_from(
+        &mut self,
+        source: InputSource,
+        range: Option<Range<usize>>,
+        text: &str,
+    ) -> Result<bool, InputError>;
     fn mark(
         &mut self,
         range: Option<Range<usize>>,
@@ -119,8 +128,13 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
         TextInput::delete(self, direction)
     }
-    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
-        TextInput::replace(self, range, text)
+    fn replace_from(
+        &mut self,
+        source: InputSource,
+        range: Option<Range<usize>>,
+        text: &str,
+    ) -> Result<bool, InputError> {
+        TextInput::replace_from(self, source, range, text)
     }
     fn mark(
         &mut self,
@@ -202,8 +216,13 @@ impl DocEditor for TextInput<BoundDocx> {
     fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
         TextInput::delete(self, direction)
     }
-    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
-        TextInput::replace(self, range, text)
+    fn replace_from(
+        &mut self,
+        source: InputSource,
+        range: Option<Range<usize>>,
+        text: &str,
+    ) -> Result<bool, InputError> {
+        TextInput::replace_from(self, source, range, text)
     }
     fn mark(
         &mut self,
@@ -298,8 +317,13 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
         TextInput::delete(self, direction)
     }
-    fn replace(&mut self, range: Option<Range<usize>>, text: &str) -> Result<bool, InputError> {
-        TextInput::replace(self, range, text)
+    fn replace_from(
+        &mut self,
+        source: InputSource,
+        range: Option<Range<usize>>,
+        text: &str,
+    ) -> Result<bool, InputError> {
+        TextInput::replace_from(self, source, range, text)
     }
     fn mark(
         &mut self,
@@ -990,7 +1014,8 @@ impl JoyWord {
                     Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
                         Ok(mut input) => {
                             if !buffered.is_empty()
-                                && let Err(error) = input.replace(None, &buffered)
+                                && let Err(error) =
+                                    input.replace_from(InputSource::Command, None, &buffered)
                             {
                                 view.input_error = Some(view.label(input_error_label(&error)));
                                 cx.notify();
@@ -1229,7 +1254,11 @@ impl JoyWord {
                     return Err("text".into());
                 };
                 let text = text.clone();
-                self.apply_input(cx, |editor| editor.replace(None, &text).map(|_| ()))
+                self.apply_input(cx, |editor| {
+                    editor
+                        .replace_from(InputSource::Command, None, &text)
+                        .map(|_| ())
+                })
             }
             EDIT_PASTE => {
                 // The system pasteboard is the source of truth; the in-app
@@ -1238,7 +1267,11 @@ impl JoyWord {
                     .read_from_clipboard()
                     .and_then(|item| item.text())
                     .unwrap_or_else(|| self.clipboard.clone());
-                self.apply_input(cx, |editor| editor.replace(None, &text).map(|_| ()))
+                self.apply_input(cx, |editor| {
+                    editor
+                        .replace_from(InputSource::Paste, None, &text)
+                        .map(|_| ())
+                })
             }
             EDIT_LEFT | EDIT_RIGHT | EDIT_EXTEND_LEFT | EDIT_EXTEND_RIGHT => {
                 let direction = if id == EDIT_LEFT || id == EDIT_EXTEND_LEFT {

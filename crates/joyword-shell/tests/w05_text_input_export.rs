@@ -10,7 +10,7 @@ use joyword_docx::{ExportError, ExportMode, ExportPlan, ImportResult, W, import}
 use joyword_engine::{Command, Transaction};
 use joyword_model::{Bias, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
-use joyword_shell::input::{Direction, InputError, InputLimits, TextInput};
+use joyword_shell::input::{Direction, InputError, InputLimits, InputSource, TextInput};
 use unicode_segmentation::UnicodeSegmentation;
 
 const SECT: &str = r#"<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr>"#;
@@ -352,7 +352,10 @@ fn deterministic_input_sequences_match_an_independent_text_model() {
             } else {
                 pool[next(pool.len())]
             };
-            let changed = input.replace(Some(start..end), text).unwrap();
+            // Command replacements keep one undo step per edit (T209).
+            let changed = input
+                .replace_from(InputSource::Command, Some(start..end), text)
+                .unwrap();
             let mut edited = model.clone();
             edited.replace_range(byte_offset(&model, start)..byte_offset(&model, end), text);
             // Replacing text with identical text may still be a transaction.

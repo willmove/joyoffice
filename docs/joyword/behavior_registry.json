@@ -56,6 +56,86 @@
       "source": "hypothesis",
       "test": "protected_documents_refuse_edits_and_a_failed_save_keeps_bytes",
       "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-TYPING",
+      "operation": "在同一插入点连续键入（含覆盖选区后继续键入）",
+      "expectation": "合并为一个撤销步骤，撤销恢复键入前的选区，重做恢复键入后的插入点",
+      "source": "hypothesis",
+      "test": "keystrokes_are_one_undo_step_restoring_the_starting_caret",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-DELETING",
+      "operation": "在同一插入点连续按退格或删除键",
+      "expectation": "合并为一个撤销步骤，且不与前后的键入合并",
+      "source": "hypothesis",
+      "test": "deletion_coalesces_separately_from_typing",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-SOURCE-BOUNDARY",
+      "operation": "键入之间插入回车、粘贴、输入法提交或菜单命令",
+      "expectation": "每次粘贴、回车、输入法提交与命令各自独立成一步，并结束之前的键入组",
+      "source": "hypothesis",
+      "test": "enter_paste_commands_and_ime_commits_are_separate_steps",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-CARET-BOUNDARY",
+      "operation": "键入后移动插入点或点击别处再继续键入（含移回原处）",
+      "expectation": "开始新的撤销步骤；重复设置当前选区不算移动",
+      "source": "hypothesis",
+      "test": "moving_the_caret_away_and_back_starts_a_new_step",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-REPLACE-ELSEWHERE",
+      "operation": "输入客户端替换当前选区以外的范围",
+      "expectation": "作为独立步骤，不并入插入点处的键入组",
+      "source": "hypothesis",
+      "test": "a_platform_replacement_elsewhere_is_standalone",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-FORMAT-BOUNDARY",
+      "operation": "两次键入之间应用字符格式",
+      "expectation": "格式为独立步骤，前后键入不合并",
+      "source": "hypothesis",
+      "test": "formatting_between_keystrokes_separates_the_typing",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-AFTER-HISTORY",
+      "operation": "撤销或重做后在原插入点继续键入",
+      "expectation": "开始新的撤销步骤，不并入被恢复的条目，并清空重做栈",
+      "source": "hypothesis",
+      "test": "typing_after_undo_never_folds_into_the_restored_entry",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-ORIGIN",
+      "operation": "AI 或系统来源的连续修改，以及其后的用户键入",
+      "expectation": "非用户来源从不合并，用户键入不并入非用户条目",
+      "source": "hypothesis",
+      "test": "agent_and_system_changes_never_coalesce",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-TYPING-CAP",
+      "operation": "一次不间断地键入超过 100 次",
+      "expectation": "每 100 次事务切分为一个撤销步骤",
+      "source": "hypothesis",
+      "test": "a_long_burst_is_split_at_the_step_cap",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-UNDO-FAILED-INPUT",
+      "operation": "键入组中途出现版本过期被拒或空的事务",
+      "expectation": "撤销组与撤销栈保持不变，后续键入仍可合并",
+      "source": "hypothesis",
+      "test": "rejected_and_empty_transactions_leave_the_group_untouched",
+      "word_observation": null
     }
   ]
 }
