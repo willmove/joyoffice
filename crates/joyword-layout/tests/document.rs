@@ -642,19 +642,29 @@ fn unsupported_stories_sections_objects_and_field_projection_are_explicit() {
                 });
             }
         }
-        assert!(
-            matches!(
-                layout_document(
-                    &doc.snapshot(),
-                    FaceSet::uniform(&font()),
-                    profile(),
-                    LayoutLimits::default(),
-                    &LayoutCancellation::default()
-                ),
-                Err(LayoutError::Unsupported { .. })
-            ),
-            "case {case}"
+        let outcome = layout_document(
+            &doc.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
         );
+        match case {
+            // An explicit page break is a supported body inline.
+            2 => {
+                let snapshot = outcome.expect("page break");
+                assert!(snapshot.pages().len() > 1, "page break splits the page");
+            }
+            // Two final sections (both without a boundary block) are not a chain.
+            1 => assert!(
+                matches!(outcome, Err(LayoutError::InvalidDocument)),
+                "case {case}: {outcome:?}"
+            ),
+            _ => assert!(
+                matches!(outcome, Err(LayoutError::Unsupported { .. })),
+                "case {case}: {outcome:?}"
+            ),
+        }
     }
 }
 

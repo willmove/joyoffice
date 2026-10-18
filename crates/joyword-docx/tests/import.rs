@@ -1027,3 +1027,127 @@ fn numbering_and_tab_stops_import_and_export_keeps_the_numbering_part() {
         Err(ExportError::Unsupported { .. })
     ));
 }
+
+#[test]
+fn default_header_and_footer_import_page_fields_without_cached_results() {
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/word/header-orphan.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/></Types>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header-orphan.xml"/></Relationships>"#;
+    let header = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:hdr xmlns:w="{W}"><w:p><w:r><w:t>H</w:t></w:r><w:fldSimple w:instr=" PAGE \* MERGEFORMAT "><w:r><w:t>3</w:t></w:r></w:fldSimple><w:fldSimple w:instr=" DATE "><w:r><w:t>9</w:t></w:r></w:fldSimple></w:p></w:hdr>"#
+    );
+    let footer = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:ftr xmlns:w="{W}"><w:p><w:fldSimple w:instr=" NUMPAGES "><w:r><w:t>8</w:t></w:r></w:fldSimple></w:p></w:ftr>"#
+    );
+    let orphan = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:hdr xmlns:w="{W}"><w:p><w:r><w:t>ORPHAN</w:t></w:r></w:p></w:hdr>"#
+    );
+    let sect = r#"<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/><w:headerReference w:type="default" r:id="rId2"/><w:footerReference w:type="default" r:id="rId3"/></w:sectPr>"#;
+    let next = r#"<w:sectPr><w:pgSz w:w="15840" w:h="12240" w:orient="landscape"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="360" w:footer="360" w:gutter="0"/></w:sectPr>"#;
+    let document = document_xml(
+        "",
+        &format!(
+            r#"<w:p><w:pPr>{sect}</w:pPr><w:r><w:t>One</w:t></w:r></w:p><w:p><w:r><w:t>Two</w:t></w:r></w:p>{next}"#
+        ),
+    );
+    let bytes = archive(&[
+        ("[Content_Types].xml", types),
+        ("_rels/.rels", PACKAGE_RELS),
+        ("word/document.xml", &document),
+        ("word/_rels/document.xml.rels", rels),
+        ("word/header1.xml", &header),
+        ("word/footer1.xml", &footer),
+        ("word/header-orphan.xml", &orphan),
+    ]);
+    let result = open(&bytes);
+    let sections = result.document.sections();
+    assert_eq!(sections.len(), 2);
+    assert_eq!(sections[0].page.width, Measure::Twips(12_240));
+    assert_eq!(
+        sections[0].headers,
+        vec![(
+            joyword_model::HeaderFooterKind::Default,
+            sections[0].headers[0].1
+        )]
+    );
+    assert_eq!(sections[0].footers.len(), 1);
+    assert!(sections[1].headers.is_empty());
+    assert!(sections[1].footers.is_empty());
+    assert_eq!(sections[1].page.orientation, Orientation::Landscape);
+
+    let header_story = result
+        .document
+        .stories()
+        .find(|story| story.id == sections[0].headers[0].1)
+        .unwrap();
+    let header_paragraph = header_story.blocks.get(0).unwrap().as_paragraph().unwrap();
+    let kinds: Vec<_> = header_paragraph
+        .inlines()
+        .iter()
+        .map(|inline| &inline.kind)
+        .collect();
+    assert!(kinds.iter().any(|kind| matches!(
+        kind,
+        InlineKind::PageField(joyword_model::PageFieldKind::Page)
+    )));
+    assert!(
+        kinds
+            .iter()
+            .any(|kind| matches!(kind, InlineKind::Preserved(_)))
+    );
+    assert!(!kinds.iter().any(|kind| matches!(
+        kind,
+        InlineKind::PageField(joyword_model::PageFieldKind::NumPages)
+    )));
+    let shown = header_paragraph.plain_text(|_| String::new());
+    assert_eq!(shown, "H");
+    assert!(!shown.contains('3'));
+    assert!(!shown.contains('9'));
+
+    let footer_story = result
+        .document
+        .stories()
+        .find(|story| story.id == sections[0].footers[0].1)
+        .unwrap();
+    let footer_paragraph = footer_story.blocks.get(0).unwrap().as_paragraph().unwrap();
+    assert!(footer_paragraph.inlines().iter().any(|inline| {
+        matches!(
+            inline.kind,
+            InlineKind::PageField(joyword_model::PageFieldKind::NumPages)
+        )
+    }));
+    assert!(!footer_paragraph.plain_text(|_| String::new()).contains('8'));
+
+    assert!(has(&result, |kind| matches!(
+        kind,
+        DiagnosticKind::NotImported { part, .. } if part.contains("header-orphan")
+    )));
+    assert!(
+        !result
+            .document
+            .stories()
+            .any(|story| story
+                .blocks
+                .iter()
+                .any(
+                    |block| block.as_paragraph().is_some_and(|paragraph| paragraph
+                        .plain_text(|_| String::new())
+                        .contains("ORPHAN"))
+                ))
+    );
+
+    let plan = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(
+        package.part("/word/header1.xml").unwrap().data.as_ref(),
+        header.as_bytes()
+    );
+
+    let mut changed = result.document.clone();
+    changed.sections_mut()[0].page.width = Measure::Twips(10_000);
+    assert!(plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err());
+}

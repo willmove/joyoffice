@@ -23,14 +23,19 @@ pub const REL_SETTINGS: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings";
 pub const REL_NUMBERING: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering";
+pub const REL_HEADER: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header";
+pub const REL_FOOTER: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer";
 pub const REL_VBA_PROJECT: &str =
     "http://schemas.microsoft.com/office/2006/relationships/vbaProject";
 
-/// Relationship types whose parts hold text stories this slice does not
-/// import yet; reported as warnings because their content is not visible.
+/// Relationship types whose parts hold text stories. Header and footer parts
+/// are imported when a section references them; an unreferenced one is still
+/// warned. Notes and comments stay unimported.
 pub(crate) const STORY_RELATIONSHIPS: [&str; 5] = [
-    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header",
-    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer",
+    REL_HEADER,
+    REL_FOOTER,
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",

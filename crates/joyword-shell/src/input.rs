@@ -7,7 +7,8 @@ use joyword_engine::{
     TxError, UndoError, UndoGroup, UndoResult,
 };
 use joyword_model::{
-    Bias, DocumentSnapshot, DocumentVersion, NodeId, NumberingRef, Position, StyleId, Utf16Offset,
+    Bias, BreakKind, Document, DocumentSnapshot, DocumentVersion, InlineKind, Measure, NodeId,
+    NumberingRef, OBJECT_MARKER, Orientation, PageSetup, Position, StoryKind, StyleId, Utf16Offset,
 };
 use std::collections::BTreeMap;
 use std::fmt;
@@ -193,7 +194,15 @@ impl TextIndex {
         if snapshot.body().blocks.len() > limits.max_paragraphs {
             return Err(InputError::Budget("paragraphs"));
         }
-        if snapshot.stories().count() != 1 {
+        // Header and footer stories are not part of the flat body projection.
+        // Other stories (notes, comments, text boxes) stay rejected so their
+        // text is not dropped without a diagnostic.
+        if snapshot.stories().any(|story| {
+            !matches!(
+                story.kind,
+                StoryKind::Body | StoryKind::Header | StoryKind::Footer
+            )
+        }) {
             return Err(InputError::UnsupportedBody);
         }
         if snapshot
@@ -212,7 +221,10 @@ impl TextIndex {
         let mut runs = 0usize;
         for block in snapshot.body().blocks.iter() {
             let p = block.as_paragraph().ok_or(InputError::UnsupportedBody)?;
-            if !p.inlines().is_empty() {
+            if p.inlines()
+                .iter()
+                .any(|inline| !matches!(inline.kind, InlineKind::Break(BreakKind::Page)))
+            {
                 return Err(InputError::UnsupportedBody);
             }
             let bytes = p.text().summary().bytes;
@@ -231,7 +243,10 @@ impl TextIndex {
                 text.push('\n');
                 utf16 += 1;
             }
-            let content = p.plain_text(|_| unreachable!("objects rejected"));
+            let content = p.plain_text(|object| {
+                debug_assert!(matches!(object.kind, InlineKind::Break(BreakKind::Page)));
+                OBJECT_MARKER.to_string()
+            });
             let len = content.encode_utf16().count();
             let entry = ParagraphEntry {
                 id: p.id(),
@@ -812,6 +827,83 @@ impl<B: InputBackend> TextInput<B> {
         }
     }
 
+    /// Inserts an explicit page break at the caret.
+    pub fn insert_page_break(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let at = self.selection.head;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::InsertInline {
+                at,
+                kind: InlineKind::Break(BreakKind::Page),
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Sets the current section's page size in twips. Orientation is left as stored.
+    pub fn set_page_size(&mut self, width: i64, height: i64) -> Result<bool, InputError> {
+        self.revise_page(|page| {
+            page.width = Measure::Twips(width);
+            page.height = Measure::Twips(height);
+        })
+    }
+
+    /// Sets the current section's body margins in twips.
+    pub fn set_page_margins(
+        &mut self,
+        top: i64,
+        right: i64,
+        bottom: i64,
+        left: i64,
+    ) -> Result<bool, InputError> {
+        self.revise_page(|page| {
+            page.top = Measure::Twips(top);
+            page.right = Measure::Twips(right);
+            page.bottom = Measure::Twips(bottom);
+            page.left = Measure::Twips(left);
+        })
+    }
+
+    /// Portrait or landscape. Swaps width and height when the flag changes.
+    pub fn set_page_orientation(&mut self, landscape: bool) -> Result<bool, InputError> {
+        self.revise_page(|page| {
+            let want = if landscape {
+                Orientation::Landscape
+            } else {
+                Orientation::Portrait
+            };
+            if page.orientation != want {
+                std::mem::swap(&mut page.width, &mut page.height);
+                page.orientation = want;
+            }
+        })
+    }
+
+    fn revise_page(&mut self, update: impl FnOnce(&mut PageSetup)) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let at = self.selection.head;
+        let (section, mut page) = {
+            let document = self.backend.session().document();
+            let section =
+                section_for_paragraph(document, at.paragraph).ok_or(InputError::InvalidDocument)?;
+            let page = document
+                .sections()
+                .iter()
+                .find(|item| item.id == section)
+                .ok_or(InputError::InvalidDocument)?
+                .page
+                .clone();
+            (section, page)
+        };
+        update(&mut page);
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SetPageSetup { section, page }],
+        );
+        self.commit(transaction)
+    }
+
     /// Apply paragraph formatting to the paragraph that holds the caret.
     pub fn format_paragraph(&mut self, change: ParagraphChange) -> Result<bool, InputError> {
         self.require_editable()?;
@@ -1164,6 +1256,24 @@ fn utf16_bytes(text: &str, range: Range<usize>) -> Result<Range<usize>, InputErr
         }
     };
     Ok(byte(range.start)?..byte(range.end)?)
+}
+
+fn section_for_paragraph(document: &Document, paragraph: NodeId) -> Option<NodeId> {
+    let blocks = &document.body().blocks;
+    let index = blocks.iter().position(|block| block.id() == paragraph)?;
+    for section in document.sections() {
+        match section.last_block {
+            Some(id) => {
+                if let Some(end) = blocks.iter().position(|block| block.id() == id)
+                    && index <= end
+                {
+                    return Some(section.id);
+                }
+            }
+            None => return Some(section.id),
+        }
+    }
+    None
 }
 
 #[cfg(test)]

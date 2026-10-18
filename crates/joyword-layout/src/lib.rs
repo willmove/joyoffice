@@ -16,6 +16,7 @@ pub mod document;
 pub mod font;
 pub mod line;
 mod list_layout;
+mod pages;
 pub mod scene;
 pub mod shape;
 pub mod slots;
@@ -40,6 +41,6 @@ pub use cache::{
 };
 pub use document::{
     CaretGeometry, CaretStop, LayoutCancellation, LayoutDiagnostic, LayoutError, LayoutKey,
-    LayoutLimit, LayoutLimits, LayoutSnapshot, LayoutStats, PageGeometry, PlacedLine,
+    LayoutLimit, LayoutLimits, LayoutNote, LayoutSnapshot, LayoutStats, PageGeometry, PlacedLine,
     SelectionRect, SingleFontProfile, StaleReason, layout_document,
 };

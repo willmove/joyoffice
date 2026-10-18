@@ -16,7 +16,8 @@ use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL, ExecuteError, FILE_CLOSE,
     FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL,
-    LIST_REMOVE, Registry, STYLE_APPLY, STYLE_LIST,
+    LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, Registry, STYLE_APPLY,
+    STYLE_LIST,
 };
 use crate::docx::BoundDocx;
 use crate::input::{InputError, InputLimits, InputSource, TextInput};
@@ -537,6 +538,13 @@ fn parse_u32(value: &ArgValue) -> Option<u32> {
     }
 }
 
+fn parse_i64(value: &ArgValue) -> Option<i64> {
+    match value {
+        ArgValue::Text(text) => text.parse().ok(),
+        ArgValue::Path(_) | ArgValue::Id(_) | ArgValue::Bool(_) => None,
+    }
+}
+
 fn parse_u8(value: &ArgValue) -> Option<u8> {
     match value {
         ArgValue::Text(text) => text.parse().ok(),
@@ -555,18 +563,20 @@ impl CommandHost for Office {
                 | LIST_APPLY
                 | LIST_LEVEL
                 | LIST_REMOVE
-        ) || id.0.starts_with("edit."))
+        ) || id.0.starts_with("edit.")
+            || id.0.starts_with("page."))
             && self.active.is_none()
         {
             return Availability::Disabled("input.loading");
         }
         if self.opening.is_some()
             && (id.0.starts_with("edit.")
+                || id.0.starts_with("page.")
                 || matches!(id, STYLE_APPLY | LIST_APPLY | LIST_LEVEL | LIST_REMOVE))
         {
             return Availability::Disabled("input.read_only");
         }
-        if matches!(
+        if (matches!(
             id,
             EDIT_INSERT
                 | EDIT_BOLD
@@ -577,7 +587,8 @@ impl CommandHost for Office {
                 | LIST_APPLY
                 | LIST_LEVEL
                 | LIST_REMOVE
-        ) && self.active().is_some_and(|input| input.read_only())
+        ) || id.0.starts_with("page."))
+            && self.active().is_some_and(|input| input.read_only())
         {
             return Availability::Disabled("input.read_only");
         }
@@ -765,6 +776,64 @@ impl Office {
             }
             LIST_REMOVE => {
                 self.require_active()?.remove_list().map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            PAGE_BREAK => {
+                self.require_active()?
+                    .insert_page_break()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            PAGE_SIZE => {
+                let Some(width) = args.get("width").and_then(parse_i64) else {
+                    return Err(ExecuteError::Failed("width".into()));
+                };
+                let Some(height) = args.get("height").and_then(parse_i64) else {
+                    return Err(ExecuteError::Failed("height".into()));
+                };
+                self.require_active()?
+                    .set_page_size(width, height)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            PAGE_MARGINS => {
+                let Some(top) = args.get("top").and_then(parse_i64) else {
+                    return Err(ExecuteError::Failed("top".into()));
+                };
+                let Some(right) = args.get("right").and_then(parse_i64) else {
+                    return Err(ExecuteError::Failed("right".into()));
+                };
+                let Some(bottom) = args.get("bottom").and_then(parse_i64) else {
+                    return Err(ExecuteError::Failed("bottom".into()));
+                };
+                let Some(left) = args.get("left").and_then(parse_i64) else {
+                    return Err(ExecuteError::Failed("left".into()));
+                };
+                self.require_active()?
+                    .set_page_margins(top, right, bottom, left)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            PAGE_ORIENTATION => {
+                let Some(ArgValue::Text(orientation)) = args.get("orientation") else {
+                    return Err(ExecuteError::Failed("orientation".into()));
+                };
+                let landscape = match orientation.as_str() {
+                    "landscape" => true,
+                    "portrait" => false,
+                    _ => return Err(ExecuteError::Failed("orientation".into())),
+                };
+                self.require_active()?
+                    .set_page_orientation(landscape)
+                    .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())

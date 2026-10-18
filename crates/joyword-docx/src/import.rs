@@ -12,7 +12,7 @@ use joyword_model::{
 
 use crate::backing::{Fragment, PackageBacking, PreservedReason};
 use crate::ns::{
-    self, A, MAIN_CONTENT_TYPES, MC, REL_NUMBERING, REL_OFFICE_DOCUMENT,
+    self, A, MAIN_CONTENT_TYPES, MC, REL_FOOTER, REL_HEADER, REL_NUMBERING, REL_OFFICE_DOCUMENT,
     REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, REL_THEME, REL_VBA_PROJECT,
     STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
 };
@@ -58,6 +58,11 @@ pub(crate) struct Importer<'a> {
     properties_preserved: Vec<(PartName, usize)>,
     /// Layout and proofing hints skipped per part and element.
     pub hints: Vec<(PartName, &'static str, usize)>,
+    /// `fldSimple` instructions `PAGE` / `NUMPAGES` become page fields only
+    /// while a header or footer story is being read.
+    pub(crate) story_page_fields: bool,
+    /// Header and footer parts already mapped to a story.
+    pub(crate) imported_stories: Vec<(PartName, joyword_model::StoryId)>,
 }
 
 impl<'a> Importer<'a> {
@@ -294,6 +299,8 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         editability: Editability::default(),
         properties_preserved: Vec::new(),
         hints: Vec::new(),
+        story_page_fields: false,
+        imported_stories: Vec::new(),
     };
     for diagnostic in package.diagnostics() {
         importer.diagnose(
@@ -333,6 +340,8 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
             settings = Some(part.clone());
         } else if kind == REL_NUMBERING && numbering.is_none() {
             numbering = Some(part.clone());
+        } else if kind == REL_HEADER || kind == REL_FOOTER {
+            // Resolved from `w:headerReference` / `w:footerReference`.
         } else if kind == REL_VBA_PROJECT {
             importer.diagnose(
                 Severity::Warning,
@@ -368,6 +377,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         importer.numbering(part)?;
     }
     importer.main_document(&main)?;
+    importer.warn_unreferenced_stories(&package, &main.name);
     importer.finish_summaries();
 
     let validation = importer.document.validate();
@@ -764,6 +774,30 @@ impl Importer<'_> {
         }
         *self.document.numbering_mut() = store;
         Ok(())
+    }
+
+    fn warn_unreferenced_stories(&mut self, package: &Package, main: &PartName) {
+        for relationship in package.relationships(Some(main)) {
+            let kind = relationship.kind.as_ref();
+            if kind != REL_HEADER && kind != REL_FOOTER {
+                continue;
+            }
+            let Target::Internal(target) = &relationship.target else {
+                continue;
+            };
+            if self.imported_stories.iter().any(|(name, _)| name == target) {
+                continue;
+            }
+            self.diagnose(
+                Severity::Warning,
+                Some(main),
+                None,
+                DiagnosticKind::NotImported {
+                    relationship: kind.to_owned(),
+                    part: target.to_string(),
+                },
+            );
+        }
     }
 
     fn main_document(&mut self, part: &Part) -> Result<(), ImportError> {

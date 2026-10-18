@@ -18,8 +18,8 @@ use std::sync::Arc;
 
 use joyoffice_opc::{Budget, Method, PartName, write_archive};
 use joyword_model::{
-    Block, Document, DocumentSnapshot, DocumentVersion, NodeId, NumberingStore, Paragraph,
-    RunProps, StyleId, StyleSheet,
+    Block, BreakKind, Document, DocumentSnapshot, DocumentVersion, InlineKind, NodeId,
+    NumberingStore, PageFieldKind, Paragraph, RunProps, Story, StyleId, StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
@@ -444,8 +444,7 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
             });
     // Body blocks are aligned separately; their count may change.
     if before.body_id() != after.body_id()
-        || before.stories().count() != after.stories().count()
-        || before.stories().count() != 1
+        || !auxiliary_stories_match(before, after)
         || before.body().kind != after.body().kind
         || !sections_equal
         || before.settings() != after.settings()
@@ -469,6 +468,51 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
         return Err(unsupported(None, "non-text document content changed"));
     }
     Ok(())
+}
+
+fn auxiliary_stories_match(before: &Document, after: &Document) -> bool {
+    let ids = |document: &Document| {
+        let mut ids: Vec<_> = document
+            .stories()
+            .filter(|story| story.id != document.body_id())
+            .map(|story| story.id)
+            .collect();
+        ids.sort();
+        ids
+    };
+    let left = ids(before);
+    if left != ids(after) {
+        return false;
+    }
+    left.into_iter()
+        .all(|id| match (before.story(id), after.story(id)) {
+            (Some(left), Some(right)) => {
+                left.kind == right.kind && story_signature(left) == story_signature(right)
+            }
+            _ => false,
+        })
+}
+
+fn story_signature(story: &Story) -> String {
+    story
+        .blocks
+        .iter()
+        .map(|block| {
+            block
+                .as_paragraph()
+                .map(|paragraph| {
+                    paragraph.plain_text(|object| match &object.kind {
+                        InlineKind::PageField(PageFieldKind::Page) => "field:Page".into(),
+                        InlineKind::PageField(PageFieldKind::NumPages) => "field:NumPages".into(),
+                        InlineKind::Break(BreakKind::Page) => "break:Page".into(),
+                        InlineKind::Break(kind) => format!("break:{kind:?}"),
+                        _ => "\u{FFFC}".into(),
+                    })
+                })
+                .unwrap_or_else(|| format!("block:{}", block.id()))
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 #[derive(PartialEq)]

@@ -4,9 +4,9 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号与制表位切片已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号与制表位切片已落地，任务仍 `in_progress`；T202 的页面几何、显式分页符与主页眉页脚第一切片已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的样式面板／查找替换／格式刷／主题 tint／shade／按字体名换面／表格样式／边框底纹／超出本切片的编号格式与前导符／编号部件改写、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的表格／图片／审阅／AI 等路线图工作。
+- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的样式面板／查找替换／格式刷／主题 tint／shade／按字体名换面／表格样式／边框底纹／超出本切片的编号格式与前导符／编号部件改写、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志、T202 剩余的首页不同／奇偶页行为、widowControl、连续分节、复杂页码域、页眉编辑与页面设置写回，以及其余 M2–M9 的表格／图片／审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 
@@ -460,4 +460,18 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **编辑与命令**：`SetNumbering` 把选区碰到的每段写成同一个 `numId` 和级别；`None` 与 `numId` 0 都写成 `numId` 0。`SetNumberingLevel` 只改 `ilvl`，每段保留自己的 `numId`（直接值，否则样式，否则缺省段落样式）；没有列表的段是 `NoNumbering`。未知实例和超过 8 的级别拒绝。一次撤销恢复改前的 `numPr`。行为登记 `LIST-APPLY-UNDO`、`LIST-LEVEL-UNDO`、`LIST-REMOVE-UNDO`，来源是假设，没有 Word 观察。外壳 `list.apply` 必填 `num`，级别 0，挂在编辑菜单；`list.level` 必填 `level`，不进菜单；`list.remove` 无参数，挂在编辑菜单。无文档、打开中和只读时与 `style.apply` 一样禁用。`list_apply_level_and_remove_go_through_the_command_registry` 经 `Office::invoke` 应用、改级、撤销和取消。
 - **导出**：`check_envelope` 比较编号存储。存储变化（包括只改定义、不改段落）拒绝，因此不会悄悄用旧的 `numbering.xml` 冒充新定义，也不会重写该部件。段落 `numPr` 变化时，两侧都要通过样式指定子集和编号实例检查，然后重写 `w:pPr` 里的 `w:ilvl` 与 `w:numId`。带制表位、缩进或其他子集外属性的段落拒绝，避免重写丢掉这些 XML。默认制表位属于设置，改变它会因设置不等而拒绝。拆段仍复制源 `numPr` 字节，`mapped_indent_fonts_language_numbering_and_explicit_off_round_trip` 继续通过。
 - **未覆盖**：样式面板、查找替换、格式刷、主题 tint／shade、按字体名加载面、表格样式解析、边框底纹、级别字符格式、字母超过 26、甲乙超过 10、bar／middleDot／heavy、居中／右对齐／两端对齐与列表或制表位同用、编号部件改写、非自动颜色、PDF 斜体，以及人工制作多级列表的验收。没有新增依赖。没有启动图形界面。W09 harness 重锚到 `61a24f1ce9c9311df9e323a106d67310f8ca6ea2`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境重跑固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+
+### T202 页面与页眉页脚第一切片（2026-10-18）
+
+这一刀做显式分页符、纸张大小／页边距／方向、下一页分节的页框，以及主页眉页脚和其中的 `PAGE`／`NUMPAGES`。屏幕与 PDF 仍共用同一次 `layout_document` 的 PageScene。T202 保持 `in_progress`。
+
+- **页框**：`w:pgSz` 的 `w:w`／`w:h` 是实际尺寸，`w:orient` 只是标记，排版不交换宽高。命令 `page.orientation` 在方向改变时交换宽高再写标记。页边距的左边含装订线。页眉距离从页顶量到页眉顶，页脚距离从页底量到页脚底。页眉页脚画在边距带里，不推动正文；墨水越过正文框时记 `StoryExceedsMargin`。正文边距吃掉页面、非正尺寸和非绝对／负值返回 `InvalidPage`。页眉或页脚距离大于页高不再拒绝导入的短页，只在绘制时记超出。
+- **分页符**：`w:br w:type="page"` 映射为 `InlineKind::Break(BreakKind::Page)`。文首或连续分页符各占一页空白页。`w:pageBreakBefore` 不额外制造文首空白页。仅含分页符的段落仍有段落标记。分页符与编号或制表位同段时拒绝。
+- **分节**：本切片每个分节边界都是下一页。连续、奇数页、偶数页和分栏未做。节链断裂返回 `InvalidDocument`。带保留属性的节在排版时拒绝。
+- **页眉页脚**：只应用 Default。省略的 Default 引用继承前面最近一节的 Default story；显式空 story 是引用，不继承。`titlePg`、`evenAndOddHeaders` 和 First／Even 引用会保存，排版记 `HeaderVariantNotApplied`，每页仍画 Default，不猜测首页内容。
+- **页码**：预检仍拒绝正文里的域投影。页眉页脚里的 `fldSimple`，指令为 `PAGE` 或 `NUMPAGES`，其余为空或只有 `\* MERGEFORMAT` 时，导入为 `PageField`，不读缓存结果。其他开关、`fldChar` 和正文页码域保持不支持；含这类对象的页眉段落整段跳过并记 `StoryContentSkipped`，不用缓存数字冒充页码。页码在正文分页之后按 1 起替换。若绘制改变了页数，返回 `LayoutError::Unstable`（“布局未稳定”）。
+- **约束**：`keep_next`／`keep_lines` 沿用 T105／W06。高于整页内容区的 keep 链记 `KeepTallerThanPage` 后继续，不循环。`LineTooTall` 仍在。widowControl 不实现：layout_rules R5／R8 记录 Word 2024 在 WidowControl 为真且 keepLines 时仍把段落拆成 1+1 或 1+2。
+- **编辑**：`Command::SetPageSetup` 改当前节。页面有变化时把全部正文段落记入变更，使撤销成立并让增量排版不能沿用旧页的纵坐标。页面未变则是空操作。`page.break`、`page.size`、`page.margins`、`page.orientation` 走命令注册表。无文档、打开中和只读时禁用。非法页边距拒绝。页眉部件字节不改写；改变页面设置的导出被信封拒绝。正文扁平投影保留分页符的对象标记，使光标偏移与段落标量对齐；页眉页脚不进入该投影。脚注、尾注、批注和文本框故事仍拒绝打开，避免静默丢掉它们的文字。页眉页脚里无法识别的简单域整段保留、不导入缓存结果。
+- **缓存**：分页符和页码域进入段落缓存的内容摘要。拟合命中后仍按当前节覆写页框和分节信息，避免窄的后一节用第一节的宽度。增量路径在组装之后绘制页眉，与全量比较页、行、页眉文本和注释。
+- **未覆盖**：人工改变页边距并检查缩放后分页；widowControl；首页不同与奇偶页不同的实际切换；复杂域与正文页码；连续／奇数／偶数分节与分栏；页码重新开始；页眉编辑与页眉部件改写；页面设置写回 DOCX。没有新增依赖。没有启动图形界面。
 

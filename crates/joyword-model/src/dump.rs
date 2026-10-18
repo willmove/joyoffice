@@ -248,6 +248,7 @@ impl Dumper<'_> {
                         Some(inline) => {
                             let kind = match &inline.kind {
                                 InlineKind::Break(kind) => format!("break:{kind:?}"),
+                                InlineKind::PageField(kind) => format!("field:{kind:?}"),
                                 InlineKind::Image {
                                     resource,
                                     width,
