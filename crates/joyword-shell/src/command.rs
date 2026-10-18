@@ -399,6 +399,11 @@ pub const ZOOM_IN: CommandId = CommandId("view.zoom_in");
 pub const ZOOM_OUT: CommandId = CommandId("view.zoom_out");
 pub const ZOOM_RESET: CommandId = CommandId("view.zoom_reset");
 pub const SWITCH_LANGUAGE: CommandId = CommandId("view.switch_language");
+pub const VIEW_FORMATTING_MARKS: CommandId = CommandId("view.formatting_marks");
+pub const VIEW_HIDDEN_TEXT: CommandId = CommandId("view.hidden_text");
+pub const VIEW_FIELD_CODES: CommandId = CommandId("view.field_codes");
+pub const FORMAT_FONT: CommandId = CommandId("format.font");
+pub const FORMAT_PARAGRAPH: CommandId = CommandId("format.paragraph");
 
 pub const EDIT_UNDO: CommandId = CommandId("edit.undo");
 pub const EDIT_REDO: CommandId = CommandId("edit.redo");
@@ -475,7 +480,7 @@ impl Registry {
                 group,
             })
         };
-        Self::new(vec![
+        let mut commands = vec![
             CommandSpec {
                 id: FILE_OPEN,
                 label: "command.file.open",
@@ -1062,7 +1067,9 @@ impl Registry {
                 modifies_document: false,
                 parameters: ID_PARAM,
             },
-        ])
+        ];
+        commands.extend(crate::dialogs::command_specs());
+        Self::new(commands)
     }
 
     pub fn commands(&self) -> &[CommandSpec] {

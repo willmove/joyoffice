@@ -170,7 +170,7 @@ fn accept_paragraph(
     if matches!(props.justification, Some(Justification::Distribute)) {
         return Err(unsupported(node, "paragraph layout properties"));
     }
-    if !matches!(props.spacing.line, None | Some(LineSpacing::Auto(240))) {
+    if !line_spacing_supported(props.spacing.line) {
         return Err(unsupported(node, "paragraph line spacing"));
     }
     let single = matches!(props.spacing.line, Some(LineSpacing::Auto(240)));
@@ -193,6 +193,16 @@ fn accept_paragraph(
         page_break_before: props.page_break_before == Some(true),
         justification: props.justification,
     })
+}
+
+fn line_spacing_supported(line: Option<LineSpacing>) -> bool {
+    match line {
+        None => true,
+        Some(LineSpacing::Auto(value)) => value > 0,
+        Some(LineSpacing::Exact(measure) | LineSpacing::AtLeast(measure)) => {
+            measure.absolute().is_some_and(|length| length.raw() >= 0)
+        }
+    }
 }
 
 fn absolute_gap(node: Option<NodeId>, measure: Option<Measure>) -> Result<Emu, LayoutError> {

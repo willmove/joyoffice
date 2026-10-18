@@ -8,8 +8,9 @@ use joyword_layout::{
 };
 use joyword_model::{
     AbstractNum, Bias, Block, BlockSeq, Document, DumpOptions, FontRef, Indent, Justification,
-    Measure, NumInstance, NumberFormat, NumberSuffix, NumberingLevel, NumberingRef, PageSetup,
-    Paragraph, Position, ScalarOffset, Style, StyleId, StyleKind, TabAlign, TabLeader, TabStop,
+    LineSpacing, Measure, NumInstance, NumberFormat, NumberSuffix, NumberingLevel, NumberingRef,
+    PageSetup, Paragraph, Position, ScalarOffset, Spacing, Style, StyleId, StyleKind, TabAlign,
+    TabLeader, TabStop,
 };
 
 fn pt(value: i64) -> Emu {
@@ -999,4 +1000,19 @@ fn a_left_tab_places_the_following_glyph_at_the_stop() {
         .find(|glyph| glyph.cluster < run.text.len() && run.text[glyph.cluster..].starts_with('B'))
         .expect("B glyph");
     assert_eq!(b.x, Emu::new(2880 * Emu::PER_TWIP));
+}
+
+#[test]
+fn auto_line_spacing_scales_the_profile_leading() {
+    let mut document = make_document(&["AV"], 4);
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.spacing = Spacing {
+            line: Some(LineSpacing::Auto(360)),
+            ..Spacing::default()
+        };
+        paragraph.props = Arc::new(props);
+    });
+    let laid = layout(&document);
+    assert_eq!(laid.lines()[0].height, pt(27));
 }

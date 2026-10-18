@@ -16,11 +16,15 @@ use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_INSERT_IMAGE, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL,
     ExecuteError, FILE_CLOSE, FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT,
-    FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_PAINT,
-    InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION,
-    PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT,
-    TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE, TABLE_ROW_INSERT,
-    TABLE_SELECT, TABLE_SPLIT,
+    FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_FONT,
+    FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
+    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST,
+    TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT,
+    TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES,
+    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+};
+use crate::dialogs::{
+    disabled_view_toggle, font_draft_from_decision, paragraph_draft_from_decision,
 };
 use crate::docx::BoundDocx;
 use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
@@ -579,6 +583,9 @@ fn text_arg<'a>(args: &'a BTreeMap<&'static str, ArgValue>, name: &str) -> Optio
 
 impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
+        if let Some(reason) = disabled_view_toggle(id) {
+            return Availability::Disabled(reason);
+        }
         if (matches!(
             id,
             FILE_SAVE
@@ -604,6 +611,8 @@ impl CommandHost for Office {
                 | TABLE_MERGE_RIGHT
                 | TABLE_MERGE_DOWN
                 | TABLE_SPLIT
+                | FORMAT_FONT
+                | FORMAT_PARAGRAPH
         ) || id.0.starts_with("edit.")
             || id.0.starts_with("page."))
             && self.active.is_none()
@@ -635,6 +644,8 @@ impl CommandHost for Office {
                         | TABLE_MERGE_RIGHT
                         | TABLE_MERGE_DOWN
                         | TABLE_SPLIT
+                        | FORMAT_FONT
+                        | FORMAT_PARAGRAPH
                 ))
         {
             return Availability::Disabled("input.read_only");
@@ -662,6 +673,8 @@ impl CommandHost for Office {
                 | TABLE_MERGE_RIGHT
                 | TABLE_MERGE_DOWN
                 | TABLE_SPLIT
+                | FORMAT_FONT
+                | FORMAT_PARAGRAPH
         ) || id.0.starts_with("page."))
             && self.active().is_some_and(|input| input.read_only())
         {
@@ -1058,6 +1071,37 @@ impl Office {
                     .selected_text()
                     .map_err(input_error)?;
                 Ok(())
+            }
+            FORMAT_FONT => {
+                let Some(draft) = font_draft_from_decision(Some(args))
+                    .map_err(|reason| ExecuteError::Failed(reason.into()))?
+                else {
+                    return Ok(());
+                };
+                self.require_active()?
+                    .apply_font(&draft)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            FORMAT_PARAGRAPH => {
+                let Some(draft) = paragraph_draft_from_decision(Some(args))
+                    .map_err(|reason| ExecuteError::Failed(reason.into()))?
+                else {
+                    return Ok(());
+                };
+                self.require_active()?
+                    .apply_paragraph(&draft)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES => {
+                let reason =
+                    disabled_view_toggle(id).unwrap_or("view.formatting_marks.unsupported");
+                Err(ExecuteError::Failed(reason.into()))
             }
             EDIT_PASTE => {
                 let text = self.clipboard.clone();

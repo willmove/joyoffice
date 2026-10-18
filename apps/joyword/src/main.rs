@@ -86,9 +86,43 @@ actions!(
         SelectTableCell,
         MergeTableRight,
         MergeTableDown,
-        SplitTableCell
+        SplitTableCell,
+        FontDialog,
+        ParagraphDialog,
+        FormattingMarks,
+        HiddenText,
+        FieldCodes
     ]
 );
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DialogKind {
+    Font,
+    Paragraph,
+}
+
+pub(crate) struct DialogField {
+    pub name: &'static str,
+    pub label: &'static str,
+    pub text: String,
+    pub focus: FocusHandle,
+}
+
+pub(crate) struct FormatDialog {
+    pub kind: DialogKind,
+    pub fields: Vec<DialogField>,
+    pub bold: bool,
+    pub italic: bool,
+    pub underline: bool,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum RulerHit {
+    First,
+    Body,
+    Right,
+    Tab { from_emu: i64 },
+}
 
 const ZOOM_MIN: u16 = 50;
 const ZOOM_MAX: u16 = 150;
@@ -160,6 +194,11 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         TABLE_MERGE_RIGHT => Box::new(MergeTableRight),
         TABLE_MERGE_DOWN => Box::new(MergeTableDown),
         TABLE_SPLIT => Box::new(SplitTableCell),
+        FORMAT_FONT => Box::new(FontDialog),
+        FORMAT_PARAGRAPH => Box::new(ParagraphDialog),
+        VIEW_FORMATTING_MARKS => Box::new(FormattingMarks),
+        VIEW_HIDDEN_TEXT => Box::new(HiddenText),
+        VIEW_FIELD_CODES => Box::new(FieldCodes),
         _ => return None,
     })
 }
@@ -309,6 +348,9 @@ struct JoyWord {
     find_note: Option<String>,
     format_repeat: bool,
     ribbon_tab: RibbonTab,
+    format_dialog: Option<FormatDialog>,
+    ruler_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
+    ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>)>,
 }
 
 #[derive(Clone, Copy)]
@@ -1094,6 +1136,12 @@ impl JoyWord {
                 window.focus(&self.find_query_focus, cx);
                 cx.notify();
             }
+            Err(InvokeError::PendingInput { .. }) if id == FORMAT_FONT => {
+                self.open_font_dialog(cx);
+            }
+            Err(InvokeError::PendingInput { .. }) if id == FORMAT_PARAGRAPH => {
+                self.open_paragraph_dialog(cx);
+            }
             Err(InvokeError::Disabled(reason)) => {
                 self.report_input_error(self.label(reason));
                 cx.notify();
@@ -1314,6 +1362,21 @@ impl Render for JoyWord {
                     this.run(TABLE_SPLIT, window, cx)
                 }),
             )
+            .on_action(
+                cx.listener(|this, _: &FontDialog, window, cx| this.run(FORMAT_FONT, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &ParagraphDialog, window, cx| {
+                this.run(FORMAT_PARAGRAPH, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &FormattingMarks, window, cx| {
+                this.run(VIEW_FORMATTING_MARKS, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &HiddenText, window, cx| {
+                this.run(VIEW_HIDDEN_TEXT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &FieldCodes, window, cx| {
+                this.run(VIEW_FIELD_CODES, window, cx)
+            }))
             .size_full()
             .flex()
             .flex_col()
@@ -1348,7 +1411,7 @@ impl Render for JoyWord {
                     .child(self.label("stage")),
             )
             .child(self.ribbon(cx))
-            .child(self.ruler())
+            .child(self.ruler(cx))
             .child(
                 div()
                     .flex()
@@ -1411,6 +1474,7 @@ impl Render for JoyWord {
                             ),
                     ),
             )
+            .children(self.format_panel(cx))
     }
 }
 
@@ -1608,6 +1672,9 @@ fn main() {
                         find_note: None,
                         format_repeat: false,
                         ribbon_tab: RibbonTab::Start,
+                        format_dialog: None,
+                        ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
+                        ruler_drag: None,
                     };
                     view.install_input_lifecycle(window, cx);
                     view

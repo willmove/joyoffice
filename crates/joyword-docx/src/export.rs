@@ -581,6 +581,23 @@ fn style_assignment_differs(before: &Paragraph, after: &Paragraph) -> bool {
     left != right && (left.iter().any(Option::is_some) || right.iter().any(Option::is_some))
 }
 
+fn representable_pair(
+    styles: &StyleSheet,
+    numbering: &NumberingStore,
+    before: &Paragraph,
+    after: &Paragraph,
+) -> bool {
+    before.source == after.source
+        && before.style == after.style
+        && before.props.numbering == after.props.numbering
+        && before.inlines().is_empty()
+        && after.inlines().is_empty()
+        && structure::style_assignment_ok(styles, before).is_ok()
+        && structure::style_assignment_ok(styles, after).is_ok()
+        && structure::numbering_assignment_ok(numbering, before).is_ok()
+        && structure::numbering_assignment_ok(numbering, after).is_ok()
+}
+
 fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
     a.id() == b.id()
         && a.style == b.style
@@ -648,6 +665,22 @@ fn patch_paragraph(
             patches.push((element.span.clone(), bytes));
             return Ok(());
         }
+        if representable_pair(styles, numbering, before, after)
+            && text_slots(element, source.bytes()).is_ok()
+        {
+            let mut scope = scope.to_vec();
+            scope.push(element);
+            let names = Names::in_scope(&scope);
+            let bytes = structure::rewrite_represented_paragraph(
+                source.bytes(),
+                element,
+                after,
+                &names,
+                limit,
+            )?;
+            patches.push((element.span.clone(), bytes));
+            return Ok(());
+        }
         if before
             .inlines()
             .iter()
@@ -704,6 +737,22 @@ fn patch_paragraph(
             scope.push(element);
             let names = Names::in_scope(&scope);
             let bytes = source.rebuild(before, after, element, &names, limit)?;
+            patches.push((element.span.clone(), bytes));
+            return Ok(());
+        }
+        if representable_pair(styles, numbering, before, after)
+            && text_slots(element, source.bytes()).is_ok()
+        {
+            let mut scope = scope.to_vec();
+            scope.push(element);
+            let names = Names::in_scope(&scope);
+            let bytes = structure::rewrite_represented_paragraph(
+                source.bytes(),
+                element,
+                after,
+                &names,
+                limit,
+            )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
         }
