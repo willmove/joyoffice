@@ -87,9 +87,21 @@ fn inserting_an_image_file_is_one_undo_and_remote_paths_are_refused() {
     editor.undo().unwrap();
     assert_eq!(editor.view().index().text(), "ab");
     let remote = editor.insert_image_file(std::path::Path::new("http://example.invalid/a.png"));
-    assert!(matches!(
-        remote,
-        Err(joyword_shell::input::InputError::Image(_))
-    ));
+    assert_eq!(
+        remote.unwrap_err(),
+        joyword_shell::input::InputError::Image("remote image")
+    );
+    let unc = editor.insert_image_file(std::path::Path::new(r"\\server\share\a.png"));
+    assert_eq!(
+        unc.unwrap_err(),
+        joyword_shell::input::InputError::Image("remote image")
+    );
+    // A drive letter is a local path. The file is absent, so the read fails
+    // without the remote refusal that rejected `C:\...` temp files on Windows.
+    let drive = editor.insert_image_file(std::path::Path::new(r"C:\joyword-missing.png"));
+    assert_eq!(
+        drive.unwrap_err(),
+        joyword_shell::input::InputError::Image("image file could not be read")
+    );
     assert_eq!(editor.view().index().text(), "ab");
 }

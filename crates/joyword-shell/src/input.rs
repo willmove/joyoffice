@@ -233,13 +233,25 @@ pub fn choose_paste<'a>(entries: &[ClipboardOffer<'a>]) -> PasteChoice<'a> {
     PasteChoice::Empty
 }
 
+/// URLs and UNC paths are remote. A Windows drive prefix (`C:\` or `C:/`)
+/// is a local file; any other colon is not.
+fn is_remote_image_path(text: &str) -> bool {
+    if text.contains("://") || text.starts_with("\\\\") || text.starts_with("//") {
+        return true;
+    }
+    match text.find(':') {
+        None => false,
+        Some(1) => {
+            let drive = text.as_bytes()[0].is_ascii_alphabetic();
+            let rest = &text[2..];
+            !drive || !rest.starts_with(['\\', '/']) || rest.contains(':')
+        }
+        Some(_) => true,
+    }
+}
+
 fn read_image_file(path: &Path) -> Result<Vec<u8>, InputError> {
-    let text = path.to_string_lossy();
-    if text.contains("://")
-        || text.contains(':')
-        || text.starts_with("\\\\")
-        || text.starts_with("//")
-    {
+    if is_remote_image_path(&path.to_string_lossy()) {
         return Err(InputError::Image("remote image"));
     }
     let meta =
