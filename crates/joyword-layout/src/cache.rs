@@ -1004,7 +1004,7 @@ fn layout_pass(
         _ => None,
     };
     let mut snapshot = assemble(result, prepared, cancellation, stop)?;
-    crate::pages::paint_stories(&mut snapshot, document, faces, profile, cancellation)?;
+    crate::document::finish_stories(&mut snapshot, document, faces, profile, cancellation)?;
     let produced = produced_contexts(document, &snapshot, &deps);
     Ok((snapshot, produced))
 }
