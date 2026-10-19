@@ -18,7 +18,9 @@ mod check;
 mod info;
 
 pub use check::PdfReport;
-pub use info::{OutlineEntry, PdfExport, core_title, outline_from_headings};
+pub use info::{
+    OutlineEntry, PdfExport, PdfLink, core_title, links_from_document, outline_from_headings,
+};
 
 /// Tool name written to the PDF information dictionary. It does not include
 /// a time or a build stamp.
@@ -135,7 +137,7 @@ pub fn render_export(
     };
     let mut document = Document::new_with(settings);
     let mut cache: HashMap<FontKey, Font> = HashMap::new();
-    for scene in pages {
+    for (page_index, scene) in pages.iter().enumerate() {
         let settings = PageSettings::from_wh(
             to_points(scene.width) as f32,
             to_points(scene.height) as f32,
@@ -186,6 +188,19 @@ pub fn render_export(
             }
         }
         surface.finish();
+        for link in export.links.iter().filter(|link| link.page == page_index) {
+            let Some(rect) = krilla::geom::Rect::from_xywh(link.x, link.y, link.width, link.height)
+            else {
+                continue;
+            };
+            let annotation = krilla::annotation::LinkAnnotation::new(
+                rect,
+                krilla::annotation::Target::Action(krilla::action::Action::Link(
+                    krilla::action::LinkAction::new(link.uri.clone()),
+                )),
+            );
+            page.add_annotation(krilla::annotation::Annotation::new_link(annotation, None));
+        }
         page.finish();
     }
     let mut metadata = krilla::metadata::Metadata::new().producer(PRODUCER.to_string());

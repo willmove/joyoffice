@@ -9,8 +9,9 @@
 //! otherwise it is the heading number minus one. A heading that this
 //! snapshot did not place is omitted rather than given a guessed page.
 
-use joyword_layout::{LayoutSnapshot, to_points};
-use joyword_model::{Block, BuiltinStyle, Document, Paragraph, StyleId};
+use joyword_foundation::Emu;
+use joyword_layout::{CaretStop, LayoutSnapshot, to_points};
+use joyword_model::{Block, BuiltinStyle, Document, NodeId, Paragraph, StyleId, open_target};
 use krilla::geom::Point;
 use krilla::outline::{Outline, OutlineNode};
 
@@ -30,6 +31,20 @@ pub struct OutlineEntry {
 pub struct PdfExport {
     pub title: Option<String>,
     pub outline: Vec<OutlineEntry>,
+    /// URI link annotations. Only `http`, `https` and `mailto` targets.
+    pub links: Vec<PdfLink>,
+}
+
+/// One clickable rectangle already placed on a scene page. Coordinates are
+/// PDF points, y down from the top of the page, matching the scene.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PdfLink {
+    pub page: usize,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+    pub uri: String,
 }
 
 const DC_NS: &str = "http://purl.org/dc/elements/1.1/";
@@ -55,6 +70,101 @@ pub fn core_title(xml: &[u8]) -> Option<String> {
     let decoded = decode_xml_text(&raw)?;
     let cleaned = clean_title(&decoded);
     (!cleaned.is_empty()).then_some(cleaned)
+}
+
+/// URI rectangles for runs whose external target passes [`open_target`].
+///
+/// The rectangle is the placed line box over the linked scalars. Bookmark-only
+/// links and schemes outside `http` / `https` / `mailto` stay underlines on
+/// the page and do not become actions.
+pub fn links_from_document(document: &Document, snapshot: &LayoutSnapshot) -> Vec<PdfLink> {
+    let mut paragraphs = Vec::new();
+    for story in document.stories() {
+        collect_paragraphs(story.blocks.iter(), &mut paragraphs, 0);
+    }
+    let mut spans = Vec::new();
+    for paragraph in paragraphs {
+        let mut at = 0usize;
+        for run in paragraph.runs() {
+            let end = at + run.len;
+            if let Some(link) = &run.link
+                && let Ok(uri) = open_target(link)
+            {
+                spans.push((paragraph.id(), at..end, uri.to_string()));
+            }
+            at = end;
+        }
+    }
+    let mut links = Vec::new();
+    for (id, range, uri) in spans {
+        if links.len() >= MAX_OUTLINE {
+            break;
+        }
+        push_link_rects(snapshot, id, &range, &uri, &mut links);
+    }
+    links
+}
+
+fn push_link_rects(
+    snapshot: &LayoutSnapshot,
+    id: NodeId,
+    range: &std::ops::Range<usize>,
+    uri: &str,
+    links: &mut Vec<PdfLink>,
+) {
+    for line in snapshot.lines() {
+        if links.len() >= MAX_OUTLINE {
+            return;
+        }
+        if line.paragraph != id {
+            continue;
+        }
+        let start = range.start.max(line.source.scalars.start);
+        let end = range.end.min(line.source.scalars.end);
+        if start >= end || line.page >= snapshot.pages().len() {
+            continue;
+        }
+        let Some(left) = caret_x(&line.carets, start, true) else {
+            continue;
+        };
+        let Some(right) = caret_x(&line.carets, end, false) else {
+            continue;
+        };
+        if right <= left {
+            continue;
+        }
+        let x = to_points(Emu::new(left)) as f32;
+        let y = to_points(line.top) as f32;
+        let width = to_points(Emu::new(right - left)) as f32;
+        let height = to_points(line.height) as f32;
+        if !x.is_finite() || !y.is_finite() || width <= 0.0 || height <= 0.0 {
+            continue;
+        }
+        links.push(PdfLink {
+            page: line.page,
+            x,
+            y,
+            width,
+            height,
+            uri: uri.to_string(),
+        });
+    }
+}
+
+fn caret_x(carets: &[CaretStop], offset: usize, at_or_before: bool) -> Option<i64> {
+    if at_or_before {
+        carets
+            .iter()
+            .rev()
+            .find(|stop| stop.offset.0 <= offset)
+            .or_else(|| carets.first())
+    } else {
+        carets
+            .iter()
+            .find(|stop| stop.offset.0 >= offset)
+            .or_else(|| carets.last())
+    }
+    .map(|stop| stop.x.raw())
 }
 
 /// Heading bookmarks whose first placed line is in `snapshot`.

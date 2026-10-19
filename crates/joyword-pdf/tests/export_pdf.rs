@@ -85,6 +85,7 @@ fn two_renders_match_and_carry_no_clock() {
     let export = PdfExport {
         title: Some("Contract".into()),
         outline: Vec::new(),
+        links: Vec::new(),
     };
     let first = export_of(&scene, &font, &export);
     let second = export_of(&scene, &font, &export);
@@ -172,11 +173,76 @@ fn heading_styles_become_bookmarks_and_a_bare_outline_level_does_not() {
         &PdfExport {
             title: None,
             outline,
+            links: Vec::new(),
         },
     )
     .unwrap();
     let report = inspect_pdf(&pdf).unwrap();
     assert_eq!(report.outlines, vec!["A".to_string(), "B".to_string()]);
+}
+
+#[test]
+fn an_https_link_is_a_uri_annotation_and_a_script_is_not() {
+    let mut document = Document::new(page_for(4));
+    let mut allowed = Paragraph::new(document.ids().node());
+    allowed.push_text("A", None, Arc::default()).unwrap();
+    let https =
+        joyword_model::Hyperlink::for_edit(Some("https://example.invalid/a"), None).unwrap();
+    allowed
+        .set_links(
+            joyword_model::ScalarOffset(0)..joyword_model::ScalarOffset(1),
+            Some(Arc::new(https)),
+        )
+        .unwrap();
+    let mut refused = Paragraph::new(document.ids().node());
+    refused.push_text("B", None, Arc::default()).unwrap();
+    let script =
+        joyword_model::Hyperlink::imported(None, Some(Arc::from("javascript:alert(1)")), None)
+            .unwrap();
+    refused
+        .set_links(
+            joyword_model::ScalarOffset(0)..joyword_model::ScalarOffset(1),
+            Some(Arc::new(script)),
+        )
+        .unwrap();
+    let mut bookmark = Paragraph::new(document.ids().node());
+    bookmark.push_text("H", None, Arc::default()).unwrap();
+    let anchor = joyword_model::Hyperlink::for_edit(None, Some("top")).unwrap();
+    bookmark
+        .set_links(
+            joyword_model::ScalarOffset(0)..joyword_model::ScalarOffset(1),
+            Some(Arc::new(anchor)),
+        )
+        .unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks =
+        BlockSeq::from_vec(vec![allowed.into(), refused.into(), bookmark.into()]);
+    let snapshot = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let links = joyword_pdf::links_from_document(&document, &snapshot);
+    assert_eq!(links.len(), 1);
+    assert_eq!(links[0].uri, "https://example.invalid/a");
+    assert!(links[0].width > 0.0 && links[0].height > 0.0);
+    let export = PdfExport {
+        title: None,
+        outline: Vec::new(),
+        links: links.clone(),
+    };
+    let font = font();
+    let first = render_export(snapshot.pages(), std::slice::from_ref(&font), &export).unwrap();
+    let second = render_export(snapshot.pages(), std::slice::from_ref(&font), &export).unwrap();
+    assert_eq!(first, second);
+    let report = inspect_pdf(&first).unwrap();
+    assert_eq!(
+        report.link_uris,
+        vec!["https://example.invalid/a".to_string()]
+    );
 }
 
 #[test]
@@ -272,6 +338,7 @@ fn a_classic_cross_reference_file_reports_structure_without_the_writer() {
         fonts: 1,
         fonts_with_to_unicode: 1,
         image_xobjects: 1,
+        link_uris: Vec::new(),
         has_creation_date: false,
         has_mod_date: false,
     };

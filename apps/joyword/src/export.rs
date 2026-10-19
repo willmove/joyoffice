@@ -8,7 +8,9 @@ use std::sync::Arc;
 
 use joyword_layout::{LayoutSnapshot, LoadedFont};
 use joyword_model::{Document, DocumentSnapshot};
-use joyword_pdf::{PdfExport, core_title, outline_from_headings, render_export};
+use joyword_pdf::{
+    PdfExport, core_title, links_from_document, outline_from_headings, render_export,
+};
 use joyword_shell::print::{self, PrintReceipt};
 
 pub(crate) enum PdfKind {
@@ -37,6 +39,7 @@ pub(crate) fn scene_pdf(
         return Err("range".into());
     }
     let mut outline = outline_from_headings(document, layout);
+    let mut links = links_from_document(document, layout);
     let start = pages.start;
     if pages != (0..layout.pages().len()) {
         outline.retain_mut(|entry| {
@@ -47,10 +50,19 @@ pub(crate) fn scene_pdf(
                 false
             }
         });
+        links.retain_mut(|link| {
+            if (start..pages.end).contains(&link.page) {
+                link.page -= start;
+                true
+            } else {
+                false
+            }
+        });
     }
     let export = PdfExport {
         title: core_xml.and_then(core_title),
         outline,
+        links,
     };
     let selected = layout.pages()[pages].to_vec();
     render_export(&selected, std::slice::from_ref(font), &export).map_err(|error| match error {

@@ -382,6 +382,7 @@ fn convert(
     let export = joyword_pdf::PdfExport {
         title: core.and_then(joyword_pdf::core_title),
         outline: joyword_pdf::outline_from_headings(document, &layout),
+        links: joyword_pdf::links_from_document(document, &layout),
     };
     let pdf = joyword_pdf::render_export(layout.pages(), std::slice::from_ref(&font), &export)
         .map_err(|_| "PDF writer refused the page scene")?;

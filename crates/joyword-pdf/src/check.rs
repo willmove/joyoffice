@@ -1,6 +1,7 @@
 //! Structural read of a PDF file (ISO 32000-1 §7.5 cross-reference, §7.7
 //! document structure, §7.8 page tree, §9.6 fonts, §8.9 images, §12.3
-//! outlines, §14.3.3 document information).
+//! outlines, §12.5.6.5 link annotations, §12.6.4.7 URI actions, §14.3.3
+//! document information).
 //!
 //! This parser does not share objects with the writer. It accepts a classic
 //! cross-reference table or one cross-reference stream, including objects
@@ -22,6 +23,7 @@ pub struct PdfReport {
     pub fonts: usize,
     pub fonts_with_to_unicode: usize,
     pub image_xobjects: usize,
+    pub link_uris: Vec<String>,
     pub has_creation_date: bool,
     pub has_mod_date: bool,
 }
@@ -89,6 +91,7 @@ pub fn inspect(bytes: &[u8]) -> Result<PdfReport, &'static str> {
         fonts: stats.fonts,
         fonts_with_to_unicode: stats.fonts_with_to_unicode,
         image_xobjects: stats.images,
+        link_uris: stats.link_uris,
         has_creation_date: info.has_creation_date,
         has_mod_date: info.has_mod_date,
     })
@@ -97,6 +100,7 @@ pub fn inspect(bytes: &[u8]) -> Result<PdfReport, &'static str> {
 #[derive(Default)]
 struct PageStats {
     pages: Vec<(f32, f32)>,
+    link_uris: Vec<String>,
     fonts: usize,
     fonts_with_to_unicode: usize,
     images: usize,
@@ -441,7 +445,40 @@ fn walk_pages(
         &mut stats.images,
         0,
     )?;
+    if let Some(annots) = dict.get("Annots").and_then(as_array) {
+        for annot in annots {
+            if let Some(uri) = link_uri(file, annot)? {
+                stats.link_uris.push(uri);
+            }
+        }
+    }
     Ok(())
+}
+
+fn link_uri(file: &mut File<'_>, value: &Value) -> Result<Option<String>, &'static str> {
+    let dict = match value {
+        Value::Ref(number) => dict_of(&file.object(*number)?).ok_or("annotation")?.clone(),
+        Value::Dict(dict) => dict.clone(),
+        _ => return Ok(None),
+    };
+    if name(&dict, "Subtype") != Some("Link") {
+        return Ok(None);
+    }
+    let Some(action) = dict.get("A") else {
+        return Ok(None);
+    };
+    let action = resolve_dict(file, action)?;
+    if name(&action, "S") != Some("URI") {
+        return Ok(None);
+    }
+    Ok(match action.get("URI") {
+        Some(Value::Str(text)) => Some(text.clone()),
+        Some(Value::Ref(number)) => match file.object(*number)? {
+            Value::Str(text) => Some(text),
+            _ => None,
+        },
+        _ => None,
+    })
 }
 
 fn merge_resources(
