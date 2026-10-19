@@ -562,6 +562,22 @@ fn golden_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixture_golden")
 }
 
+/// Checkout on Windows rewrites LF goldens as CRLF. The CLI writes LF.
+fn normalize_newlines(bytes: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index] == b'\r' && bytes.get(index + 1) == Some(&b'\n') {
+            out.push(b'\n');
+            index += 2;
+        } else {
+            out.push(bytes[index]);
+            index += 1;
+        }
+    }
+    out
+}
+
 fn bless_or_compare(path: &Path, actual: &[u8]) {
     if std::env::var_os("JOYWORD_BLESS_GOLDEN").is_some() {
         if let Some(parent) = path.parent() {
@@ -576,13 +592,26 @@ fn bless_or_compare(path: &Path, actual: &[u8]) {
             path.display()
         );
     });
-    assert_eq!(actual, expected.as_slice(), "golden {}", path.display());
+    assert_eq!(
+        normalize_newlines(actual),
+        normalize_newlines(&expected),
+        "golden {}",
+        path.display()
+    );
 }
 
 fn write_input(dir: &Path, fixture: &Fixture) -> PathBuf {
     let path = dir.join(format!("{}.docx", fixture.id));
     std::fs::write(&path, fixture.bytes).unwrap();
     path
+}
+
+#[test]
+fn golden_compare_accepts_crlf_checkout() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("sample.txt");
+    std::fs::write(&path, b"\xe4\xb8\x80\r\n\xe4\xba\x8c\r\n").unwrap();
+    bless_or_compare(&path, "一\n二\n".as_bytes());
 }
 
 #[test]
