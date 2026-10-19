@@ -1,0 +1,35 @@
+{
+  "dpi": 72,
+  "pages": [
+    {
+      "height": 80,
+      "ink_tiles": [
+        {
+          "basis_points": 1591,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 1250,
+          "x": 32,
+          "y": 0
+        },
+        {
+          "basis_points": 332,
+          "x": 0,
+          "y": 32
+        },
+        {
+          "basis_points": 361,
+          "x": 32,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 200
+    }
+  ],
+  "tile_px": 32,
+  "tolerance_basis_points": 250,
+  "zoom": 1
+}

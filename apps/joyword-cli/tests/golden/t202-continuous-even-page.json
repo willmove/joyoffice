@@ -1,0 +1,106 @@
+{
+  "diagnostics": [],
+  "notes": [],
+  "omitted_blocks": 0,
+  "omitted_diagnostics": 0,
+  "pages": [
+    {
+      "footer_emu": 127000,
+      "header_emu": 127000,
+      "height_emu": 965200,
+      "images": [],
+      "margin_bottom_emu": 254000,
+      "margin_left_emu": 228600,
+      "margin_right_emu": 228600,
+      "margin_top_emu": 254000,
+      "rects": [],
+      "runs": [
+        {
+          "advance_emu": 107442,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 107442,
+              "id": 4,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 228600,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 102870,
+          "baseline_y_emu": 660400,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 102870,
+              "id": 5,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 228600,
+          "size_emu": 152400,
+          "underline": null
+        }
+      ],
+      "width_emu": 2032000
+    },
+    {
+      "footer_emu": 127000,
+      "header_emu": 127000,
+      "height_emu": 965200,
+      "images": [],
+      "margin_bottom_emu": 254000,
+      "margin_left_emu": 228600,
+      "margin_right_emu": 228600,
+      "margin_top_emu": 254000,
+      "rects": [],
+      "runs": [],
+      "width_emu": 2032000
+    },
+    {
+      "footer_emu": 127000,
+      "header_emu": 127000,
+      "height_emu": 965200,
+      "images": [],
+      "margin_bottom_emu": 254000,
+      "margin_left_emu": 228600,
+      "margin_right_emu": 228600,
+      "margin_top_emu": 254000,
+      "rects": [],
+      "runs": [
+        {
+          "advance_emu": 56236,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 56236,
+              "id": 6,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 228600,
+          "size_emu": 152400,
+          "underline": null
+        }
+      ],
+      "width_emu": 2032000
+    }
+  ]
+}

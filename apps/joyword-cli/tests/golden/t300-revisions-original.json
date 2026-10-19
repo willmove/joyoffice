@@ -1,0 +1,86 @@
+{
+  "diagnostics": [],
+  "notes": [
+    {
+      "kind": "story-exceeds-margin",
+      "story": "s6"
+    }
+  ],
+  "omitted_blocks": 0,
+  "omitted_diagnostics": 0,
+  "pages": [
+    {
+      "footer_emu": 127000,
+      "header_emu": 127000,
+      "height_emu": 1016000,
+      "images": [],
+      "margin_bottom_emu": 254000,
+      "margin_left_emu": 228600,
+      "margin_right_emu": 228600,
+      "margin_top_emu": 254000,
+      "rects": [],
+      "runs": [
+        {
+          "advance_emu": 212446,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 107442,
+              "id": 4,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            },
+            {
+              "advance_emu": 56236,
+              "id": 6,
+              "x_emu": 107442,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            },
+            {
+              "advance_emu": 48768,
+              "id": 7,
+              "x_emu": 163678,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 228600,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 163678,
+          "baseline_y_emu": 304800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 107442,
+              "id": 4,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            },
+            {
+              "advance_emu": 56236,
+              "id": 6,
+              "x_emu": 107442,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 228600,
+          "size_emu": 152400,
+          "underline": null
+        }
+      ],
+      "width_emu": 2540000
+    }
+  ]
+}

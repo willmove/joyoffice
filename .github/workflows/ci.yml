@@ -163,6 +163,10 @@ jobs:
           if python3 scripts/compare_pdf_lines.py target/unified/scene.pdf target/unified-split/scene.pdf; then
             echo "a changed line break was not detected"; exit 1
           fi
+      - name: Feature scene PDFs and independent read-back
+        run: |
+          cargo run --locked -p joyword-cli --example feature_scenes -- /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc 2 target/feature-scenes
+          python3 scripts/verify_feature_pdf.py target/feature-scenes
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: unified-scene-pdf
