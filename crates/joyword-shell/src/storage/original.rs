@@ -108,12 +108,15 @@ pub struct OriginalReplacementCapabilities {
 }
 
 /// Permission bits and, on Unix, owner and group (`fchown`) are preservable,
-/// as is the creation time on macOS (`FileTimesExt::set_created`). Extended
-/// attributes and provenance marks are copied with the pinned `xattr` crate
-/// when they fit the size cap. Windows `ReplaceFileW` preserves creation time,
-/// DACLs and named streams without asking us to ignore merge failures. Only
-/// the creation time, link count and provenance stream that this build actually
-/// observes are marked accordingly; unobserved metadata remains in the prompt.
+/// as is the creation time on macOS (`FileTimesExt::set_created`). User
+/// extended attributes and provenance marks are copied with the pinned
+/// `xattr` crate when they fit the size cap. Linux `security.*` names are
+/// kernel-managed: they are observed and omitted from the restore set, and
+/// they are not a replacement blocker. Windows `ReplaceFileW` preserves
+/// creation time, DACLs and named streams without asking us to ignore merge
+/// failures. Only the creation time, link count and provenance stream that
+/// this build actually observes are marked accordingly; unobserved metadata
+/// remains in the prompt.
 pub fn original_replacement_capabilities() -> OriginalReplacementCapabilities {
     OriginalReplacementCapabilities {
         permissions: MetadataCapability::Preservable,
@@ -286,6 +289,14 @@ fn save_original_inner(
     }
     let observed = super::metadata::observe(path)
         .map_err(|error| SaveOriginalError::observation(path, error))?;
+    if !super::metadata::kernel_xattrs_are_security_namespace(&observed.kernel_xattrs) {
+        return Err(SaveOriginalError::observation(
+            path,
+            io::Error::other(
+                "extended attribute classification included a name outside security.*",
+            ),
+        ));
+    }
     let blockers = listed_blockers(
         read_only,
         source.identity().nlink(),
@@ -1177,6 +1188,63 @@ mod tests {
             xattr::get(&path, name).unwrap().as_deref(),
             Some(&b"kept"[..])
         );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn confirmed_replacement_skips_security_xattrs_and_keeps_user_xattrs() {
+        let bytes = fixture();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("report.docx");
+        std::fs::write(&path, &bytes).unwrap();
+        xattr::set(&path, "user.joyword-m1", b"kept").unwrap();
+        xattr::set(&path, "user.security.note", b"also-kept").unwrap();
+        let marker = b"v";
+        let planted = xattr::set(&path, "security.selinux", marker).is_ok();
+        let observed = super::super::metadata::observe(&path).unwrap();
+        assert!(
+            observed
+                .xattrs
+                .iter()
+                .any(|(name, value)| name == "user.joyword-m1" && value == b"kept")
+        );
+        assert!(
+            observed
+                .xattrs
+                .iter()
+                .all(|(name, _)| !super::super::metadata::is_kernel_security_xattr(name))
+        );
+        assert!(
+            super::super::metadata::kernel_xattrs_are_security_namespace(&observed.kernel_xattrs)
+        );
+        if planted {
+            assert!(
+                observed
+                    .kernel_xattrs
+                    .iter()
+                    .any(|name| name == "security.selinux")
+            );
+        }
+        let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
+            .unwrap()
+            .into_stamp();
+        let plan = edited_plan(&bytes);
+        save_original_with_choice(&plan, &stamp, None, OriginalChoice::Confirm).unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+        assert_eq!(
+            xattr::get(&path, "user.joyword-m1").unwrap().as_deref(),
+            Some(&b"kept"[..])
+        );
+        assert_eq!(
+            xattr::get(&path, "user.security.note").unwrap().as_deref(),
+            Some(&b"also-kept"[..])
+        );
+        if planted {
+            assert_ne!(
+                xattr::get(&path, "security.selinux").unwrap().as_deref(),
+                Some(marker.as_slice())
+            );
+        }
     }
 
     #[cfg(windows)]

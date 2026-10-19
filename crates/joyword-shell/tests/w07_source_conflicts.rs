@@ -144,13 +144,44 @@ fn mtime_only_change_is_still_a_conflict() {
 }
 
 #[cfg(unix)]
+fn metadata_moved(before: &std::fs::Metadata, after: &std::fs::Metadata) -> bool {
+    use std::os::unix::fs::MetadataExt;
+    before.dev() != after.dev()
+        || before.ino() != after.ino()
+        || before.mtime() != after.mtime()
+        || before.mtime_nsec() != after.mtime_nsec()
+        || before.ctime() != after.ctime()
+        || before.ctime_nsec() != after.ctime_nsec()
+}
+
+/// Recreate `path` with the same bytes once the clock can show a new object.
+///
+/// ext4 may reuse the inode number, and a jiffy clock (Linux 5.4, and this
+/// environment's ext4) can stamp that inode with the same ctime. Identical
+/// bytes then have no userspace-visible difference until the tick advances.
+/// `FS_IOC_GETVERSION` would see the generation change, but this crate forbids
+/// unsafe and rustix 1.1.5 exposes that ioctl only as an unsafe call.
+#[cfg(unix)]
+fn recreate_identical_after_clock_moves(path: &Path, bytes: &[u8]) {
+    let before = fs::metadata(path).unwrap();
+    for _ in 0..40 {
+        std::thread::sleep(std::time::Duration::from_millis(25));
+        fs::remove_file(path).unwrap();
+        fs::write(path, bytes).unwrap();
+        if metadata_moved(&before, &fs::metadata(path).unwrap()) {
+            return;
+        }
+    }
+    panic!("inode and timestamps did not change across a jiffy");
+}
+
+#[cfg(unix)]
 #[test]
 fn delete_and_recreate_with_identical_bytes_is_an_inode_change() {
     let dir = tempfile::tempdir().unwrap();
     let (path, bytes) = write_source(dir.path(), "report.docx");
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
-    fs::remove_file(&path).unwrap();
-    fs::write(&path, &bytes).unwrap();
+    recreate_identical_after_clock_moves(&path, &bytes);
     // ext4 and tmpfs may hand the freed inode number straight back; the new
     // object then differs in its change time instead.
     let conflict = check_source(&stamp).unwrap_err().conflict();
@@ -194,11 +225,18 @@ fn hard_link_alias_writes_are_detected_through_the_stamped_path() {
     let alias = dir.path().join("alias.docx");
     fs::hard_link(&path, &alias).unwrap();
     let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
-    // Same inode observed through the other name: same size, rewritten bytes.
-    fs::write(&alias, &bytes).unwrap();
-    assert_eq!(
-        check_source(&stamp).unwrap_err().conflict(),
-        Some(ConflictDetail::TimesChanged)
+    // Same inode observed through the other name. Same-length content is
+    // different, so a jiffy clock that does not advance ctime still conflicts.
+    let mut rewritten = bytes.clone();
+    rewritten[0] ^= 0xff;
+    fs::write(&alias, &rewritten).unwrap();
+    let conflict = check_source(&stamp).unwrap_err().conflict();
+    assert!(
+        matches!(
+            conflict,
+            Some(ConflictDetail::TimesChanged | ConflictDetail::ContentChanged)
+        ),
+        "{conflict:?}"
     );
 }
 

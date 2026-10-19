@@ -115,7 +115,7 @@ pub enum ConflictDetail {
     InodeChanged,
     /// Length differs from the captured baseline.
     SizeChanged,
-    /// Modification or (Unix) status-change time differs. Content may or may
+    /// Modification, status-change, or birth time differs. Content may or may
     /// not have changed; identical content with new times still conflicts.
     TimesChanged,
     /// Permission bits differ (Unix).
