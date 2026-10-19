@@ -629,3 +629,138 @@ fn regex_replace_is_one_undo_and_skips_locked() {
     assert_eq!(texts(&session), vec!["cat 12 dog 34".to_owned()]);
     assert!(!session.can_undo());
 }
+
+fn replace(session: &mut Session, pattern: &str, replacement: &str, regex: bool) -> usize {
+    let query = if regex {
+        query_regex(pattern, true, false, false)
+    } else {
+        query(pattern, true, false)
+    };
+    let report = search(session.document(), &query).unwrap();
+    let plan = replace_commands(session.document(), &report.hits, replacement).unwrap();
+    let replaced = plan.replaced;
+    apply(session, plan.commands);
+    replaced
+}
+
+#[test]
+fn regex_replace_expands_groups_and_leaves_unknown_dollars() {
+    let mut session = Session::new(document(&["aaabbb xx aaab"]));
+    let replaced = replace(&mut session, "(a+)(b+)", "$2-$1", true);
+    assert_eq!(replaced, 2);
+    assert_eq!(texts(&session), vec!["bbb-aaa xx b-aaa".to_owned()]);
+    assert!(session.can_undo());
+    session.undo().unwrap();
+    assert_eq!(texts(&session), vec!["aaabbb xx aaab".to_owned()]);
+    assert!(!session.can_undo());
+
+    let mut dollars = Session::new(document(&["aaabbb"]));
+    replace(&mut dollars, "(a+)(b+)", "$$", true);
+    assert_eq!(texts(&dollars), vec!["$".to_owned()]);
+
+    let mut doubled = Session::new(document(&["aaabbb"]));
+    replace(&mut doubled, "(a+)(b+)", "$$$1", true);
+    assert_eq!(texts(&doubled), vec!["$aaa".to_owned()]);
+
+    let mut whole = Session::new(document(&["aaabbb"]));
+    replace(&mut whole, "(a+)(b+)", "$0", true);
+    assert_eq!(texts(&whole), vec!["aaabbb".to_owned()]);
+
+    // Group 9 and group 10 are both absent. `$10` is one index, not `$1` and `0`.
+    let mut missing = Session::new(document(&["aaabbb"]));
+    replace(&mut missing, "(a+)(b+)", "$9/$10", true);
+    assert_eq!(texts(&missing), vec!["$9/$10".to_owned()]);
+
+    let mut optional = Session::new(document(&["bb"]));
+    replace(&mut optional, "(a+)?(b+)", "$1/$2", true);
+    assert_eq!(texts(&optional), vec!["/bb".to_owned()]);
+
+    let source = document(&["aaabbb"]);
+    let literal_hits = search(&source, &query("aaabbb", true, false)).unwrap();
+    assert!(literal_hits.hits.iter().all(|hit| hit.captures.is_none()));
+    let pattern_hits = search(&source, &query_regex("(a+)(b+)", true, false, false)).unwrap();
+    assert_eq!(
+        pattern_hits.hits[0].captures.as_deref(),
+        Some(["aaabbb".to_owned(), "aaa".to_owned(), "bbb".to_owned()].as_slice())
+    );
+    let mut literal = Session::new(source);
+    replace(&mut literal, "aaabbb", "$2-$1 $$", false);
+    assert_eq!(texts(&literal), vec!["$2-$1 $$".to_owned()]);
+}
+
+#[test]
+fn regex_replace_keeps_original_case_and_width() {
+    let mut cased = Session::new(document(&["CAT"]));
+    let report = search(cased.document(), &query_regex("(cat)", false, false, false)).unwrap();
+    let plan = replace_commands(cased.document(), &report.hits, "$1").unwrap();
+    apply(&mut cased, plan.commands);
+    assert_eq!(texts(&cased), vec!["CAT".to_owned()]);
+
+    let mut wide = Session::new(document(&["ＡＡb"]));
+    let report = search(wide.document(), &query_regex("(A+)", true, false, true)).unwrap();
+    assert_eq!(report.hits.len(), 1);
+    let plan = replace_commands(wide.document(), &report.hits, "$1").unwrap();
+    apply(&mut wide, plan.commands);
+    assert_eq!(texts(&wide), vec!["ＡＡb".to_owned()]);
+}
+
+#[test]
+fn regex_replace_skips_locked_and_preserved_and_undoes_once() {
+    let mut document = Document::new_blank();
+    let mut open = Paragraph::new(document.ids().node());
+    open.push_text("aaabbb aaab", None, Arc::default()).unwrap();
+    let preserved_id = document.ids().preserved();
+    let mut kept = Paragraph::new(document.ids().node());
+    kept.push_text(
+        "aaabbb",
+        None,
+        Arc::new(RunProps {
+            preserved: Some(preserved_id),
+            ..RunProps::default()
+        }),
+    )
+    .unwrap();
+    let mut inner = Paragraph::new(document.ids().node());
+    inner.push_text("aab", None, Arc::default()).unwrap();
+    let sdt = Sdt {
+        id: document.ids().node(),
+        props: SdtProps {
+            lock: SdtLock::ContentLocked,
+            ..SdtProps::default()
+        },
+        blocks: BlockSeq::from_vec(vec![inner.into()]),
+        source: None,
+    };
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks =
+        BlockSeq::from_vec(vec![open.into(), kept.into(), sdt.into()]);
+    let report = search(&document, &query_regex("(a+)(b+)", true, false, false)).unwrap();
+    assert_eq!(report.hits.len(), 2);
+    assert_eq!(report.skipped, 2);
+    assert!(report.hits.iter().all(|hit| hit.captures.is_some()));
+
+    let mut session = Session::new(document);
+    let plan = replace_commands(session.document(), &report.hits, "$2-$1").unwrap();
+    assert_eq!(plan.replaced, 2);
+    assert_eq!(plan.skipped, 0);
+    apply(&mut session, plan.commands);
+    assert_eq!(
+        texts(&session),
+        vec![
+            "bbb-aaa b-aaa".to_owned(),
+            "aaabbb".to_owned(),
+            "aab".to_owned()
+        ]
+    );
+    assert!(session.can_undo());
+    session.undo().unwrap();
+    assert_eq!(
+        texts(&session),
+        vec![
+            "aaabbb aaab".to_owned(),
+            "aaabbb".to_owned(),
+            "aab".to_owned()
+        ]
+    );
+    assert!(!session.can_undo());
+}

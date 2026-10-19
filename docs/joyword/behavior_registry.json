@@ -328,6 +328,14 @@
       "source": "hypothesis",
       "test": "a_header_and_footer_image_paint_on_their_bands",
       "word_observation": null
+    },
+    {
+      "id": "FIND-REPLACE-CAPTURE",
+      "operation": "用正则替换展开捕获组，并跳过锁定与保留内容",
+      "expectation": "`$n` 与 `$$` 按捕获展开；超出范围的组号保持字面量；一次撤销恢复全部替换，锁定与保留内容未被改写",
+      "source": "hypothesis",
+      "test": "regex_replace_skips_locked_and_preserved_and_undoes_once",
+      "word_observation": null
     }
   ]
 }

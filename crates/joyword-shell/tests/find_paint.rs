@@ -5,7 +5,8 @@ use std::path::PathBuf;
 
 use joyoffice_opc::{Method, write_archive};
 use joyword_shell::command::{
-    ArgValue, EDIT_BOLD, FILE_OPEN, FIND_NEXT, FIND_REPLACE_ALL, FORMAT_COPY, FORMAT_PAINT,
+    ArgValue, EDIT_BOLD, FILE_OPEN, FIND_NEXT, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_COPY,
+    FORMAT_PAINT,
 };
 use joyword_shell::host::Office;
 
@@ -206,4 +207,69 @@ fn find_width_and_regex_flags_go_through_the_command_registry() {
         ],
     );
     assert!(failed.is_err(), "an invalid pattern is rejected");
+}
+
+fn capture_doc() -> Vec<u8> {
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>"#;
+    let package_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#;
+    let document = r#"<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>aaabbb</w:t></w:r></w:p></w:body></w:document>"#;
+    let items = [
+        ("[Content_Types].xml", types.as_bytes()),
+        ("_rels/.rels", package_rels.as_bytes()),
+        ("word/document.xml", document.as_bytes()),
+    ];
+    let stored: Vec<(&str, &[u8], Method)> = items
+        .iter()
+        .map(|(name, data)| (*name, *data, Method::Deflated))
+        .collect();
+    write_archive(&stored).unwrap()
+}
+
+#[test]
+fn regex_capture_replacement_goes_through_the_command_registry() {
+    let (_dir, mut office) = open_bytes(&capture_doc(), "groups.docx");
+    office
+        .invoke(
+            FIND_REPLACE_ALL,
+            &[
+                ("query", ArgValue::Text("(a+)(b+)".into())),
+                ("replacement", ArgValue::Text("$2-$1".into())),
+                ("regex", ArgValue::Bool(true)),
+            ],
+        )
+        .unwrap();
+    assert_eq!(
+        paragraph(&office, 0).plain_text(|_| String::new()),
+        "bbb-aaa"
+    );
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(
+        paragraph(&office, 0).plain_text(|_| String::new()),
+        "aaabbb"
+    );
+
+    office
+        .invoke(
+            FIND_REPLACE_ALL,
+            &[
+                ("query", ArgValue::Text("aaabbb".into())),
+                ("replacement", ArgValue::Text("$1".into())),
+            ],
+        )
+        .unwrap();
+    assert_eq!(paragraph(&office, 0).plain_text(|_| String::new()), "$1");
+    office.active_mut().unwrap().undo().unwrap();
+
+    office
+        .invoke(
+            FIND_REPLACE,
+            &[
+                ("query", ArgValue::Text("(a+)(b+)".into())),
+                ("replacement", ArgValue::Text("$$".into())),
+                ("regex", ArgValue::Bool(true)),
+            ],
+        )
+        .unwrap();
+    assert_eq!(office.active().unwrap().selected_text().unwrap(), "$");
+    assert_eq!(paragraph(&office, 0).plain_text(|_| String::new()), "$");
 }
