@@ -163,6 +163,11 @@ impl DocxSession {
         self.session.seal_undo_group();
     }
 
+    /// Author stored on revisions this session creates. Blank uses `JoyWord`.
+    pub fn set_revision_author(&mut self, author: &str) {
+        self.session.set_revision_author(author);
+    }
+
     /// Build a verified export for the current immutable version, using the
     /// original import budget. This does not save or change session state.
     pub fn export_plan(&self) -> Result<ExportPlan, ExportError> {

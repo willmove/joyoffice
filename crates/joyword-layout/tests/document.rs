@@ -1267,3 +1267,54 @@ fn revision_views_change_pagination_text_and_match_the_incremental_cache() {
         }
     }
 }
+
+#[test]
+fn markup_paints_a_margin_bar_beside_a_changed_line() {
+    let document = marked("in", "out");
+    let cancellation = LayoutCancellation::default();
+    let limits = LayoutLimits::default();
+    let face = font();
+    let faces = FaceSet::uniform(&face);
+    let profile = profile();
+    let markup = layout_document_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        RevisionView::FinalWithMarkup,
+    )
+    .unwrap();
+    let content_left = markup.lines()[0].carets.first().map(|stop| stop.x.raw());
+    let content_left = content_left.expect("caret");
+    let bars: Vec<_> = markup.pages()[0]
+        .rects
+        .iter()
+        .filter(|rect| rect.x.raw().saturating_add(rect.width.raw()) < content_left)
+        .collect();
+    assert_eq!(bars.len(), markup.lines().len());
+    assert!(
+        bars.iter()
+            .all(|rect| rect.width.raw() > 0 && rect.height.raw() > 0)
+    );
+    assert!(
+        bars.iter()
+            .any(|rect| rect.red != 0 || rect.green != 0 || rect.blue != 0)
+    );
+    for view in [RevisionView::Final, RevisionView::Original] {
+        let projected = layout_document_viewed(
+            &document.snapshot(),
+            faces,
+            profile,
+            limits,
+            &cancellation,
+            view,
+        )
+        .unwrap();
+        let outside = projected.pages()[0]
+            .rects
+            .iter()
+            .any(|rect| rect.x.raw().saturating_add(rect.width.raw()) < content_left);
+        assert!(!outside, "{view:?} painted a margin bar");
+    }
+}

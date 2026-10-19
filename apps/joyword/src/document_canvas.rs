@@ -9,8 +9,9 @@ use joyword_foundation::Emu;
 use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutInvalidation, LayoutKey, LayoutLimits,
     LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile, ViewOptions,
-    layout_document, layout_incremental_with_view,
+    layout_document, layout_incremental_reviewed,
 };
+use joyword_model::RevisionView;
 #[cfg(test)]
 use joyword_model::{BlockSeq, Document, PageSetup, Paragraph};
 #[cfg(test)]
@@ -349,6 +350,8 @@ pub struct LayoutRequestKey {
     pub font: joyword_layout::FontKey,
     pub profile: SingleFontProfile,
     pub view: ViewOptions,
+    /// Markup, final or original. A different projection is a different scene.
+    pub review: RevisionView,
 }
 /// Identity of one page's pixels: the layout by its own key (version,
 /// content, font and profile), the page and the projection. Pixels depend on
@@ -619,7 +622,13 @@ impl CanvasPipeline {
         font: &LoadedFont,
         profile: SingleFontProfile,
     ) -> LayoutRequestKey {
-        self.key_viewed(view, font, profile, ViewOptions::default())
+        self.key_viewed(
+            view,
+            font,
+            profile,
+            ViewOptions::default(),
+            RevisionView::FinalWithMarkup,
+        )
     }
     pub fn key_viewed(
         &self,
@@ -627,6 +636,7 @@ impl CanvasPipeline {
         font: &LoadedFont,
         profile: SingleFontProfile,
         options: ViewOptions,
+        review: RevisionView,
     ) -> LayoutRequestKey {
         LayoutRequestKey {
             document: self.document,
@@ -634,6 +644,7 @@ impl CanvasPipeline {
             font: font.key(),
             profile,
             view: options,
+            review,
         }
     }
     /// The installed layout, current or not: page boxes and scroll extent.
@@ -872,18 +883,25 @@ impl CanvasPipeline {
         font: &joyword_layout::FontKey,
         profile: SingleFontProfile,
     ) -> Option<Arc<LayoutSnapshot>> {
-        self.previous_for(font, profile, ViewOptions::default())
+        self.previous_for(
+            font,
+            profile,
+            ViewOptions::default(),
+            RevisionView::FinalWithMarkup,
+        )
     }
     pub(crate) fn previous_for(
         &self,
         font: &joyword_layout::FontKey,
         profile: SingleFontProfile,
         view: ViewOptions,
+        review: RevisionView,
     ) -> Option<Arc<LayoutSnapshot>> {
         self.layout.as_ref().and_then(|frame| {
             (frame.layout.key().font == *font
                 && frame.layout.key().profile == profile
-                && frame.layout.key().view == view)
+                && frame.layout.key().view == view
+                && frame.layout.key().revision_view == review)
                 .then(|| Arc::clone(&frame.layout))
         })
     }
@@ -938,10 +956,12 @@ pub fn layout_view_incremental(
         cache,
         previous,
         ViewOptions::default(),
+        RevisionView::FinalWithMarkup,
     )
 }
 
-/// [`layout_view_incremental`] for one view-option set.
+/// [`layout_view_incremental`] for one view-option set and revision projection.
+#[allow(clippy::too_many_arguments)]
 pub fn layout_view_incremental_with(
     view: &InputView,
     font: &LoadedFont,
@@ -950,12 +970,13 @@ pub fn layout_view_incremental_with(
     cache: &Mutex<ParagraphLayoutCache>,
     previous: Option<&LayoutSnapshot>,
     options: ViewOptions,
+    review: RevisionView,
 ) -> Result<LayoutSnapshot, String> {
     let mut cache = cache
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
     let invalidation = invalidation_of(view.layout_changes());
-    layout_incremental_with_view(
+    layout_incremental_reviewed(
         view.snapshot(),
         FaceSet::uniform(font),
         profile,
@@ -966,6 +987,7 @@ pub fn layout_view_incremental_with(
             previous,
             invalidation: &invalidation,
         },
+        review,
         options,
     )
     .map_err(|e| e.to_string())

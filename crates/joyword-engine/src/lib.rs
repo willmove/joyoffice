@@ -25,6 +25,7 @@ pub use find::{
 };
 pub use map::{MapStep, Mapped, PositionMap, Selection};
 pub use paint::{FormatBrush, PaintError, capture, paint_commands};
+pub use revision::current_revision;
 pub use session::{
     ApplyResult, ChangeSet, EditPolicy, MAX_UNDO_GROUP_STEPS, Origin, Outcome, Session,
     Transaction, TxError, UndoError, UndoGroup, UndoResult,

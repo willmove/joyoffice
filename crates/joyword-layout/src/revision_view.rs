@@ -149,6 +149,38 @@ pub(crate) fn author_color(author: &str) -> (u8, u8, u8) {
     PALETTE[(hash as usize) % PALETTE.len()]
 }
 
+/// A vertical bar in the page's left margin beside a changed line.
+///
+/// The bar uses the line's first author colour. It sits in the margin, short
+/// of the content edge, so screen and PDF paint the same indicator. It is a
+/// JoyWord mark, not a comment balloon.
+pub(crate) fn margin_bar(
+    geometry: crate::document::PageGeometry,
+    line: &LayoutLine,
+    top: Emu,
+    height: Emu,
+) -> Option<SceneRect> {
+    let mark = line.revisions.first()?;
+    if height.raw() <= 0 {
+        return None;
+    }
+    let margin = geometry.left.raw();
+    let gap = 4 * Emu::PER_TWIP;
+    let width = Emu::PER_POINT.min(margin / 3).max(2 * Emu::PER_TWIP);
+    if margin < width.saturating_add(gap) {
+        return None;
+    }
+    Some(SceneRect {
+        x: Emu::new(margin - gap - width),
+        y: top,
+        width: Emu::new(width),
+        height,
+        red: mark.red,
+        green: mark.green,
+        blue: mark.blue,
+    })
+}
+
 /// Splits one fitted line into glyph runs. Insertions and move destinations
 /// are coloured and underlined. Deletions and move sources are struck through.
 pub(crate) fn marked_runs(

@@ -302,6 +302,11 @@ impl JoyWord {
                 page,
                 pages,
                 census,
+                review: self.view_toggles.revision.as_str(),
+                tracking: self
+                    .editor
+                    .as_ref()
+                    .is_some_and(|editor| editor.tracking_enabled()),
             },
         )
     }

@@ -212,6 +212,10 @@ impl SceneViews {
             options,
         }
     }
+
+    pub(crate) fn pair(revision: RevisionView, options: ViewOptions) -> Self {
+        Self { revision, options }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -1107,6 +1111,26 @@ pub fn layout_document_viewed(
         limits,
         cancellation,
         SceneViews::revision(revision),
+    )
+}
+
+/// [`layout_document`] with both a revision projection and view options.
+pub fn layout_document_reviewed(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    revision: RevisionView,
+    options: ViewOptions,
+) -> Result<LayoutSnapshot, LayoutError> {
+    layout_with_views(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        SceneViews::pair(revision, options),
     )
 }
 
@@ -4048,6 +4072,11 @@ fn place_line_on(
                 let (runs, rects) = crate::revision_view::marked_runs(line, x, baseline);
                 page.runs.extend(runs);
                 page.rects.extend(rects);
+                if let Some(geometry) = result.page_geometry.get(page_index).copied()
+                    && let Some(bar) = crate::revision_view::margin_bar(geometry, line, *top, step)
+                {
+                    page.rects.push(bar);
+                }
                 page.rects.extend(decoration_rects(
                     &glyph,
                     marks,

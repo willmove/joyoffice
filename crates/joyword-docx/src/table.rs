@@ -6,20 +6,21 @@
 //! styles `nil` / `single` / `double` / `dotted` / `dashed` / `thick`).
 //!
 //! A table is mapped only when every element and attribute is represented and
-//! placed. Nested tables, `trHeight`, `vAlign`, revisions, bookmarks, theme
-//! tint or shade, and any other border style return `None`. `w:tblLook` is
-//! stored. The caller preserves the whole `w:tbl` byte range. This parser
-//! allocates no identifiers and records no fragments, so a refusal leaves
-//! the document untouched.
+//! placed. Nested tables, `trHeight`, `vAlign`, format and structure revisions,
+//! bookmarks, theme tint or shade, and any other border style return `None`.
+//! A plain `w:ins`, `w:del`, `w:moveFrom` or `w:moveTo` around typed runs is
+//! a text revision on those runs. `w:tblLook` is stored. The caller preserves
+//! the whole `w:tbl` byte range. This parser allocates no identifiers and
+//! records no fragments, so a refusal leaves the document untouched.
 
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
     BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
-    OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, Style, StyleId, Table,
-    TableAlign, TableCondition, TableConditional, TableFormat, TableLayoutKind, TableLook,
-    TableWidth, ThemeColorSlot, VerticalMerge,
+    OBJECT_MARKER, ParaProps, Paragraph, RevisionKind, Row, RunProps, Shading, Spacing, Style,
+    StyleId, Table, TableAlign, TableCondition, TableConditional, TableFormat, TableLayoutKind,
+    TableLook, TableWidth, TextRevision, ThemeColorSlot, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -31,7 +32,7 @@ use joyoffice_opc::PartName;
 struct DraftParagraph {
     style: Option<StyleId>,
     props: ParaProps,
-    runs: Vec<(String, RunProps)>,
+    runs: Vec<(String, RunProps, Option<TextRevision>)>,
     span: Range<usize>,
 }
 
@@ -161,8 +162,16 @@ fn build_paragraph(
     if let Some(element) = find_span(table, &draft.span) {
         paragraph.source = Some(Importer::source(part, element));
     }
-    for (text, props) in draft.runs {
-        paragraph.push_text(&text, None, Arc::new(props)).ok()?;
+    for (text, props, revision) in draft.runs {
+        match revision {
+            Some(revision) => {
+                importer.document.note_revision_id(revision.id);
+                paragraph
+                    .push_text_marked(&text, None, Arc::new(props), revision)
+                    .ok()?;
+            }
+            None => paragraph.push_text(&text, None, Arc::new(props)).ok()?,
+        }
     }
     Some(paragraph)
 }
@@ -691,9 +700,22 @@ fn parse_paragraph(element: &Element) -> Option<DraftParagraph> {
             saw_ppr = true;
             (style, props) = parse_ppr(child)?;
         } else if child.is(W, "r") {
-            runs.push(parse_run(child)?);
+            let (text, props) = parse_run(child, false)?;
+            runs.push((text, props, None));
         } else {
-            return None;
+            let kind = crate::revision::revision_kind(child.local.as_ref())?;
+            let mark = crate::revision::cell_text_revision(child, kind)?;
+            let deleted = matches!(kind, RevisionKind::Delete | RevisionKind::MoveFrom);
+            for run in child.elements() {
+                if run.is(W, "proofErr") {
+                    continue;
+                }
+                if !run.is(W, "r") {
+                    return None;
+                }
+                let (text, props) = parse_run(run, deleted)?;
+                runs.push((text, props, Some(mark.clone())));
+            }
         }
     }
     Some(DraftParagraph {
@@ -735,7 +757,7 @@ fn parse_ppr(element: &Element) -> Option<(Option<StyleId>, ParaProps)> {
     plain.then_some((parsed.style, props))
 }
 
-fn parse_run(element: &Element) -> Option<(String, RunProps)> {
+fn parse_run(element: &Element, deleted: bool) -> Option<(String, RunProps)> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -746,7 +768,10 @@ fn parse_run(element: &Element) -> Option<(String, RunProps)> {
         if child.is(W, "rPr") && !saw_rpr && text.is_empty() {
             saw_rpr = true;
             props = parse_rpr(child)?;
-        } else if child.is(W, "t") && child.elements().next().is_none() && t_attributes_ok(child) {
+        } else if child.is(W, if deleted { "delText" } else { "t" })
+            && child.elements().next().is_none()
+            && t_attributes_ok(child)
+        {
             let piece = child.text();
             if piece.contains('\u{FFFC}') || piece.contains(OBJECT_MARKER) {
                 return None;

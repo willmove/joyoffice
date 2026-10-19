@@ -6,7 +6,7 @@ use joyword_engine::{
     CellAddress, ChangeSet, Command, CommandError, FindError, FindHit, FindQuery, FormatBrush,
     Outcome, PaintError, ParagraphChange, RunChange, Selection, Session, TableMerge, Transaction,
     TxError, UndoError, UndoGroup, UndoResult, capture, cell_address, cell_caret, cell_selection,
-    paint_commands, paragraph_order, replace_commands, search,
+    current_revision, paint_commands, paragraph_order, replace_commands, search,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, BreakKind, Color, Document, DocumentSnapshot, DocumentVersion, FontRef,
@@ -38,6 +38,8 @@ pub trait InputBackend {
     fn redo(&mut self) -> Result<UndoResult, UndoError>;
     /// Close the open typing/deleting undo group (T209).
     fn seal_undo_group(&mut self);
+    /// Author stored on revisions this session creates.
+    fn set_revision_author(&mut self, author: &str);
     fn preview_undo(&self) -> Result<(DocumentSnapshot, Option<Selection>), UndoError> {
         self.session().preview_undo()
     }
@@ -61,6 +63,9 @@ impl InputBackend for Session {
     fn seal_undo_group(&mut self) {
         Session::seal_undo_group(self);
     }
+    fn set_revision_author(&mut self, author: &str) {
+        Session::set_revision_author(self, author);
+    }
 }
 impl InputBackend for crate::docx::BoundDocx {
     fn session(&self) -> &Session {
@@ -78,6 +83,9 @@ impl InputBackend for crate::docx::BoundDocx {
     fn seal_undo_group(&mut self) {
         self.session_mut().seal_undo_group();
     }
+    fn set_revision_author(&mut self, author: &str) {
+        self.session_mut().set_revision_author(author);
+    }
 }
 impl InputBackend for DocxSession {
     fn session(&self) -> &Session {
@@ -94,6 +102,9 @@ impl InputBackend for DocxSession {
     }
     fn seal_undo_group(&mut self) {
         DocxSession::seal_undo_group(self);
+    }
+    fn set_revision_author(&mut self, author: &str) {
+        DocxSession::set_revision_author(self, author);
     }
 }
 /// Where a text replacement came from (SPEC §6 undo groups, T209). Only
@@ -1828,6 +1839,73 @@ impl<B: InputBackend> TextInput<B> {
         self.composition = None;
         self.publish(self.base.clone(), selection, None, revision);
         Ok(changed)
+    }
+
+    /// Whether `w:trackRevisions` is on for this document.
+    pub fn tracking_enabled(&self) -> bool {
+        self.backend.session().document().settings().track_revisions == Some(true)
+    }
+
+    /// Sets track changes. `None` toggles. The command seals an open typing group.
+    pub fn set_tracking(&mut self, enabled: Option<bool>) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let enabled = enabled.unwrap_or(!self.tracking_enabled());
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SetTrackRevisions { enabled }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Author used when `Origin::User` creates a revision. Seals the typing group.
+    pub fn set_revision_author(&mut self, author: &str) {
+        self.backend.seal_undo_group();
+        self.backend.set_revision_author(author);
+    }
+
+    pub fn seal_review_boundary(&mut self) {
+        self.backend.seal_undo_group();
+    }
+
+    /// Accepts the text revision at the caret or overlapping the selection.
+    pub fn accept_current_revision(&mut self) -> Result<bool, InputError> {
+        self.revise_current(true)
+    }
+
+    /// Rejects the text revision at the caret or overlapping the selection.
+    pub fn reject_current_revision(&mut self) -> Result<bool, InputError> {
+        self.revise_current(false)
+    }
+
+    pub fn accept_all_revisions(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        self.commit(Transaction::new(
+            self.backend.session().version(),
+            vec![Command::AcceptAllRevisions],
+        ))
+    }
+
+    pub fn reject_all_revisions(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        self.commit(Transaction::new(
+            self.backend.session().version(),
+            vec![Command::RejectAllRevisions],
+        ))
+    }
+
+    fn revise_current(&mut self, accept: bool) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let id = current_revision(self.backend.session().document(), &self.selection)
+            .ok_or(InputError::Rejected("review.none"))?;
+        let command = if accept {
+            Command::AcceptRevision { id }
+        } else {
+            Command::RejectRevision { id }
+        };
+        self.commit(Transaction::new(
+            self.backend.session().version(),
+            vec![command],
+        ))
     }
 
     /// Inserts a table before the body block that contains the caret and

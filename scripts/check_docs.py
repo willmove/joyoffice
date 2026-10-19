@@ -13,7 +13,7 @@ DOCS = ROOT / "docs/joyword"
 REQUIREMENT = r"(?:EDIT|STYLE|LAYOUT|REVIEW|FORMAT|CLIP|AI|PLATFORM|QUALITY|COLLAB|SUITE)-\d{3}"
 RELEASE_GATE = "T704"  # Every M0–M7 task must be a prerequisite of the 1.0 gate.
 # T205: evidenced ribbon, ruler and status controls. Lowering this is a coverage regression.
-FEATURE_FLOOR = 41
+FEATURE_FLOOR = 50
 # T209: undo-group rules (SPEC §6) that must stay registered with a test.
 REQUIRED_BEHAVIORS = (
     "EDIT-UNDO-TYPING",
@@ -193,7 +193,7 @@ def validate_feature_catalog(requirements):
                   f"feature catalog: {control_id} command is not registered")
             icon = control.get("icon")
             check(icon in icon_ids, f"feature catalog: {control_id} icon is not attributed")
-            check(control.get("tab") in {"start", "insert", "layout", "view"},
+            check(control.get("tab") in {"start", "insert", "layout", "review", "view"},
                   f"feature catalog: {control_id} tab is not a ribbon tab")
         else:
             check("command" not in control and "icon" not in control,

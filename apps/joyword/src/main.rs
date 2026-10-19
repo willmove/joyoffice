@@ -95,7 +95,16 @@ actions!(
         ParagraphDialog,
         FormattingMarks,
         HiddenText,
-        FieldCodes
+        FieldCodes,
+        TrackRevisions,
+        AcceptRevision,
+        RejectRevision,
+        AcceptAllRevisions,
+        RejectAllRevisions,
+        ReviewMarkup,
+        ReviewFinal,
+        ReviewOriginal,
+        SetReviewAuthor
     ]
 );
 
@@ -214,6 +223,15 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         VIEW_FORMATTING_MARKS => Box::new(FormattingMarks),
         VIEW_HIDDEN_TEXT => Box::new(HiddenText),
         VIEW_FIELD_CODES => Box::new(FieldCodes),
+        REVIEW_TRACK => Box::new(TrackRevisions),
+        REVIEW_ACCEPT => Box::new(AcceptRevision),
+        REVIEW_REJECT => Box::new(RejectRevision),
+        REVIEW_ACCEPT_ALL => Box::new(AcceptAllRevisions),
+        REVIEW_REJECT_ALL => Box::new(RejectAllRevisions),
+        REVIEW_MARKUP => Box::new(ReviewMarkup),
+        REVIEW_FINAL => Box::new(ReviewFinal),
+        REVIEW_ORIGINAL => Box::new(ReviewOriginal),
+        REVIEW_AUTHOR => Box::new(SetReviewAuthor),
         _ => return None,
     })
 }
@@ -534,6 +552,7 @@ impl JoyWord {
             self.font.as_ref()?,
             self.profile?,
             view_options(self.view_toggles),
+            self.view_toggles.revision,
         ))
     }
     /// The layout of the current revision: geometry for hit testing, IME,
@@ -605,7 +624,9 @@ impl JoyWord {
             let profile = key.profile;
             let cancellation = job.cancellation;
             let cache = self.canvas.paragraph_cache();
-            let previous = self.canvas.previous_for(&font.key(), profile, key.view);
+            let previous = self
+                .canvas
+                .previous_for(&font.key(), profile, key.view, key.review);
             let work = cx.background_executor().spawn(async move {
                 document_canvas::layout_view_incremental_with(
                     &input,
@@ -615,6 +636,7 @@ impl JoyWord {
                     &cache,
                     previous.as_deref(),
                     key.view,
+                    key.review,
                 )
             });
             let ticket = job.ticket;
@@ -1707,6 +1729,12 @@ fn main() {
                         }
                         editor = Some(input);
                         held_document = Some(id);
+                    }
+                    if let Ok(paths) = diag::resolve() {
+                        session.bind_preferences(&paths.config_dir, locale);
+                    }
+                    if let Some(editor) = editor.as_mut() {
+                        editor.set_revision_author(session.revision_author());
                     }
                     let mut view = JoyWord {
                         zoom_percent: ZOOM_DEFAULT,

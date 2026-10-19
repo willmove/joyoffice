@@ -385,3 +385,58 @@ fn cell_margins_borders_and_percentage_widths_round_trip_after_an_edit() {
         );
     }
 }
+
+#[test]
+fn a_plain_cell_insertion_and_deletion_round_trip() {
+    let body = r#"<w:tbl><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>甲</w:t></w:r><w:ins w:id="7" w:author="审阅人" w:date="2026-01-01T00:00:00Z"><w:r><w:t>乙</w:t></w:r></w:ins><w:del w:id="8" w:author="审阅人"><w:r><w:delText>删</w:delText></w:r></w:del></w:p></w:tc></w:tr></w:tbl>"#;
+    let source = import(&package(body), &Budget::default()).unwrap();
+    assert!(!source.editability.is_read_only());
+    let Block::Table(table) = &source.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    let paragraph = table.rows[0].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    assert_eq!(paragraph.plain_text(|_| String::new()), "甲乙删");
+    let marks: Vec<_> = paragraph
+        .runs()
+        .iter()
+        .filter_map(|run| run.revision.as_ref())
+        .map(|mark| (mark.id, mark.kind, mark.author.as_ref()))
+        .collect();
+    assert_eq!(
+        marks,
+        vec![
+            (7, joyword_model::RevisionKind::Insert, "审阅人"),
+            (8, joyword_model::RevisionKind::Delete, "审阅人"),
+        ]
+    );
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("丙", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = xml_of(plan.bytes());
+    assert!(xml.contains("w:ins"), "{xml}");
+    assert!(xml.contains("w:del"), "{xml}");
+    assert!(xml.contains("审阅人"), "{xml}");
+    assert!(xml.contains("丙"), "{xml}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
+}

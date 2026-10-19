@@ -2030,22 +2030,26 @@ fn table_paragraph(
         }
         inner.push_str(&names.end("pPr"));
     }
-    for (style, props, text) in table_runs(paragraph) {
-        if style.is_some() || text.contains('\u{FFFC}') {
-            return Err(refuse("table cell paragraph is outside the mapped subset"));
+    if paragraph.runs().iter().any(|run| run.revision.is_some()) {
+        inner.push_str(&revision_body(paragraph, &[], names, limit)?);
+    } else {
+        for (style, props, text) in table_runs(paragraph) {
+            if style.is_some() || text.contains('\u{FFFC}') {
+                return Err(refuse("table cell paragraph is outside the mapped subset"));
+            }
+            let rpr = table_rpr(names, &props).map_err(refuse)?;
+            let text = bounded_text_xml(names, &text, limit)?;
+            if rpr.is_none() && text.is_empty() {
+                continue;
+            }
+            inner.push_str(&names.start("r"));
+            inner.push('>');
+            if let Some(rpr) = rpr {
+                inner.push_str(&rpr);
+            }
+            inner.push_str(&text);
+            inner.push_str(&names.end("r"));
         }
-        let rpr = table_rpr(names, &props).map_err(refuse)?;
-        let text = bounded_text_xml(names, &text, limit)?;
-        if rpr.is_none() && text.is_empty() {
-            continue;
-        }
-        inner.push_str(&names.start("r"));
-        inner.push('>');
-        if let Some(rpr) = rpr {
-            inner.push_str(&rpr);
-        }
-        inner.push_str(&text);
-        inner.push_str(&names.end("r"));
     }
     if inner.is_empty() {
         return Ok(format!("{}/>", names.start("p")));
