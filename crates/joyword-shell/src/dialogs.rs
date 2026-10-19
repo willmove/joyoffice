@@ -14,15 +14,16 @@
 
 use std::collections::BTreeMap;
 
-use joyword_engine::{Command, ParagraphChange, RunChange};
+use joyword_engine::{Command, ParagraphChange, RunChange, TablePropertyChange};
 use joyword_model::{
-    Color, FontRef, Indent, Justification, LineSpacing, Measure, NodeId, ParaProps, Position,
-    RevisionView, StoryId, TabAlign, TabLeader, TabStop, Underline, indent_edges,
+    BorderEdge, BorderKind, CellBorders, CellMargins, Color, FontRef, Indent, Justification,
+    LineSpacing, Measure, NodeId, ParaProps, Position, RevisionView, StoryId, TabAlign, TabLeader,
+    TabStop, TableAlign, TableWidth, Underline, indent_edges,
 };
 
 use crate::command::{
-    ArgValue, CommandId, CommandSpec, FORMAT_FONT, FORMAT_PARAGRAPH, VIEW_FIELD_CODES,
-    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    ArgValue, CommandId, CommandSpec, FORMAT_FONT, FORMAT_PARAGRAPH, TABLE_PROPERTIES,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 
 /// Office 号 sizes from 初号 through 八号, including the 小 sizes that sit
@@ -166,7 +167,7 @@ impl ViewToggles {
 }
 
 pub fn is_dialog_command(id: CommandId) -> bool {
-    id == FORMAT_FONT || id == FORMAT_PARAGRAPH
+    id == FORMAT_FONT || id == FORMAT_PARAGRAPH || id == TABLE_PROPERTIES
 }
 
 /// `Leave` keeps the property. `Set` writes it, including an explicit empty
@@ -375,8 +376,75 @@ pub fn command_specs() -> Vec<CommandSpec> {
             modifies_document: false,
             parameters: &[],
         },
+        CommandSpec {
+            id: TABLE_PROPERTIES,
+            label: "command.table.properties",
+            menu: Some(MenuPlacement {
+                menu: MenuKind::Edit,
+                group: 4,
+            }),
+            shortcut: Shortcut::NONE,
+            modifies_document: true,
+            parameters: TABLE_PROPERTY_PARAMS,
+        },
     ]
 }
+
+const TABLE_PROPERTY_PARAMS: &[crate::command::ParamSpec] = {
+    use crate::command::{ParamKind, ParamSpec};
+    &[
+        ParamSpec {
+            name: "commit",
+            kind: ParamKind::Text,
+            required: true,
+        },
+        ParamSpec {
+            name: "width",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "align",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "top",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "left",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "bottom",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "right",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "border",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "border_size",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "border_color",
+            kind: ParamKind::Text,
+            required: false,
+        },
+    ]
+};
 
 pub fn chinese_size(name: &str) -> Option<&'static ChineseSize> {
     CHINESE_SIZES.iter().find(|size| size.name == name)
@@ -1014,5 +1082,174 @@ fn optional_line(value: Option<&ArgValue>) -> Result<Option<LineSpacing>, &'stat
         "exact" => LineSpacing::Exact(Measure::Twips(amount)),
         "atLeast" => LineSpacing::AtLeast(Measure::Twips(amount)),
         _ => return Err("dialog.paragraph.line"),
+    }))
+}
+
+/// Table properties the dialog can apply. Empty strings leave that field.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TableDraft {
+    pub width: Option<TableWidth>,
+    pub alignment: Option<TableAlign>,
+    pub cell_margin: Option<CellMargins>,
+    pub borders: Option<CellBorders>,
+}
+
+impl TableDraft {
+    pub fn leaves_everything(&self) -> bool {
+        self.width.is_none()
+            && self.alignment.is_none()
+            && self.cell_margin.is_none()
+            && self.borders.is_none()
+    }
+}
+
+/// `None` is cancel: the caller must not open a transaction.
+pub fn table_draft_from_decision(
+    decision: Option<&BTreeMap<&'static str, ArgValue>>,
+) -> Result<Option<TableDraft>, &'static str> {
+    let Some(args) = decision else {
+        return Ok(None);
+    };
+    parse_table_properties(args).map(Some)
+}
+
+pub fn parse_table_properties(
+    args: &BTreeMap<&'static str, ArgValue>,
+) -> Result<TableDraft, &'static str> {
+    require_commit(args)?;
+    let margin_keys = ["top", "left", "bottom", "right"]
+        .into_iter()
+        .any(|name| args.contains_key(name));
+    Ok(TableDraft {
+        width: optional_table_width(args.get("width"))?,
+        alignment: optional_table_align(args.get("align"))?,
+        cell_margin: if margin_keys {
+            Some(CellMargins {
+                top: margin_twips(args.get("top"))?,
+                left: margin_twips(args.get("left"))?,
+                bottom: margin_twips(args.get("bottom"))?,
+                right: margin_twips(args.get("right"))?,
+            })
+        } else {
+            None
+        },
+        borders: optional_table_borders(args)?,
+    })
+}
+
+/// One `SetTableProperties` command, or an empty list when every field is left.
+pub fn table_property_commands(
+    draft: &TableDraft,
+    at: Position,
+) -> Result<Vec<Command>, &'static str> {
+    if draft.leaves_everything() {
+        return Ok(Vec::new());
+    }
+    Ok(vec![Command::SetTableProperties {
+        at,
+        change: TablePropertyChange {
+            width: draft.width,
+            alignment: draft.alignment,
+            cell_margin: draft.cell_margin,
+            borders: draft.borders,
+        },
+    }])
+}
+
+fn optional_table_width(value: Option<&ArgValue>) -> Result<Option<TableWidth>, &'static str> {
+    let Some(text) = text_arg(value)? else {
+        return Ok(None);
+    };
+    let text = text.trim();
+    if text.is_empty() {
+        return Ok(None);
+    }
+    if text == "auto" {
+        return Ok(Some(TableWidth::Auto));
+    }
+    let (kind, amount) = text.split_once(':').ok_or("dialog.table.width")?;
+    let amount = amount.parse::<i64>().map_err(|_| "dialog.table.width")?;
+    match kind {
+        "dxa" if (1..=MAX_TWIPS).contains(&amount) => Ok(Some(TableWidth::Dxa(amount))),
+        "pct" if (1..=50_000).contains(&amount) => Ok(Some(TableWidth::Pct(amount))),
+        _ => Err("dialog.table.width"),
+    }
+}
+
+fn optional_table_align(value: Option<&ArgValue>) -> Result<Option<TableAlign>, &'static str> {
+    let Some(text) = text_arg(value)? else {
+        return Ok(None);
+    };
+    let text = text.trim();
+    if text.is_empty() {
+        return Ok(None);
+    }
+    match text {
+        "left" => Ok(Some(TableAlign::Left)),
+        "center" => Ok(Some(TableAlign::Center)),
+        "right" => Ok(Some(TableAlign::Right)),
+        _ => Err("dialog.table.align"),
+    }
+}
+
+fn margin_twips(value: Option<&ArgValue>) -> Result<i64, &'static str> {
+    match optional_twips(value, false, "dialog.table.margin")? {
+        None => Ok(0),
+        Some(Measure::Twips(twips)) => Ok(twips),
+        Some(_) => Err("dialog.table.margin"),
+    }
+}
+
+fn optional_table_borders(
+    args: &BTreeMap<&'static str, ArgValue>,
+) -> Result<Option<CellBorders>, &'static str> {
+    let Some(text) = text_arg(args.get("border"))? else {
+        if args.contains_key("border_size") || args.contains_key("border_color") {
+            return Err("dialog.table.border");
+        }
+        return Ok(None);
+    };
+    let text = text.trim();
+    if text.is_empty() {
+        return Ok(None);
+    }
+    let kind = match text {
+        "nil" => BorderKind::Nil,
+        "single" => BorderKind::Single,
+        "double" => BorderKind::Double,
+        "dotted" => BorderKind::Dotted,
+        "dashed" => BorderKind::Dashed,
+        "thick" => BorderKind::Thick,
+        _ => return Err("dialog.table.border"),
+    };
+    let size = match text_arg(args.get("border_size"))? {
+        None => 4u32,
+        Some(text) if text.trim().is_empty() => 4,
+        Some(text) => text
+            .trim()
+            .parse::<u32>()
+            .map_err(|_| "dialog.table.border")?,
+    };
+    if kind == BorderKind::Nil {
+        if size > 255 {
+            return Err("dialog.table.border");
+        }
+    } else if !(1..=255).contains(&size) {
+        return Err("dialog.table.border");
+    }
+    let color = match optional_color(args.get("border_color"))? {
+        Some(color) => color,
+        None => Color::Auto,
+    };
+    let edge = BorderEdge {
+        kind,
+        size_eighths: size,
+        color,
+    };
+    Ok(Some(CellBorders {
+        top: Some(edge),
+        left: Some(edge),
+        bottom: Some(edge),
+        right: Some(edge),
     }))
 }

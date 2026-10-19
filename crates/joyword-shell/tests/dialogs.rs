@@ -14,6 +14,7 @@ use joyword_shell::command::ArgValue;
 use joyword_shell::dialogs::{
     CHINESE_SIZES, Field, FontDraft, IndentMarker, ParagraphDraft, chinese_size, dragged_indent,
     dragged_tabs, font_draft_from_decision, inherited_custom_tabs, paragraph_draft_from_decision,
+    table_draft_from_decision,
 };
 use joyword_shell::input::{InputLimits, TextInput};
 
@@ -66,6 +67,23 @@ fn chinese_sizes_follow_the_office_point_table() {
     assert_eq!(chinese_size("七号").unwrap().half_points, 11);
     assert_eq!(chinese_size("八号").unwrap().half_points, 10);
     assert_eq!(chinese_size("小四").unwrap().points_tenths, 120);
+}
+
+#[test]
+fn a_cancelled_table_dialog_does_not_open_a_transaction() {
+    let mut editor = input("甲乙");
+    let version = editor.backend().version();
+    assert!(table_draft_from_decision(None).unwrap().is_none());
+    assert_eq!(editor.backend().version(), version);
+    assert!(!editor.can_undo());
+
+    let draft = table_draft_from_decision(Some(&args(&[])))
+        .unwrap()
+        .unwrap();
+    assert!(draft.leaves_everything());
+    editor.apply_table_properties(&draft).unwrap();
+    assert_eq!(editor.backend().version(), version);
+    assert!(!editor.can_undo());
 }
 
 #[test]

@@ -94,6 +94,7 @@ actions!(
         MergeTableRight,
         MergeTableDown,
         SplitTableCell,
+        TableProperties,
         FontDialog,
         ParagraphDialog,
         FormattingMarks,
@@ -115,6 +116,7 @@ actions!(
 pub(crate) enum DialogKind {
     Font,
     Paragraph,
+    Table,
 }
 
 pub(crate) struct DialogField {
@@ -224,6 +226,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         TABLE_MERGE_RIGHT => Box::new(MergeTableRight),
         TABLE_MERGE_DOWN => Box::new(MergeTableDown),
         TABLE_SPLIT => Box::new(SplitTableCell),
+        TABLE_PROPERTIES => Box::new(TableProperties),
         FORMAT_FONT => Box::new(FontDialog),
         FORMAT_PARAGRAPH => Box::new(ParagraphDialog),
         VIEW_FORMATTING_MARKS => Box::new(FormattingMarks),
@@ -1237,6 +1240,9 @@ impl JoyWord {
             Err(InvokeError::PendingInput { .. }) if id == FORMAT_FONT => {
                 self.open_font_dialog(cx);
             }
+            Err(InvokeError::PendingInput { .. }) if id == TABLE_PROPERTIES => {
+                self.open_table_dialog(cx);
+            }
             Err(InvokeError::PendingInput { .. }) if id == FORMAT_PARAGRAPH => {
                 self.open_paragraph_dialog(cx);
             }
@@ -1480,6 +1486,9 @@ impl Render for JoyWord {
                     this.run(TABLE_SPLIT, window, cx)
                 }),
             )
+            .on_action(cx.listener(|this, _: &TableProperties, window, cx| {
+                this.run(TABLE_PROPERTIES, window, cx)
+            }))
             .on_action(
                 cx.listener(|this, _: &FontDialog, window, cx| this.run(FORMAT_FONT, window, cx)),
             )

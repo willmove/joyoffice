@@ -17,8 +17,9 @@ use joyword_foundation::Emu;
 use joyword_model::{
     Bias, Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, DocDefaults, Document,
     DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel,
-    NumberingProblem, PageSetup, Paragraph, Position, RevisionView, ScalarOffset, StoryId, Table,
-    ThemeColorSlot, VerticalMerge, displayed_paragraph,
+    NumberingProblem, PageSetup, Paragraph, Position, RevisionView, RowHeight, RowHeightRule,
+    ScalarOffset, StoryId, Table, ThemeColorSlot, VerticalAlign, VerticalMerge,
+    displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -1502,6 +1503,10 @@ struct CellFlow {
     ink_bottom: Option<(u8, u8, u8)>,
     ink_left: Option<(u8, u8, u8)>,
     ink_right: Option<(u8, u8, u8)>,
+    /// `w:vAlign`. Omitted markup is top. The shift is computed after row
+    /// heights, including `trHeight`, are final.
+    valign: VerticalAlign,
+    align_shift: i64,
 }
 
 struct RowFlow {
@@ -1510,6 +1515,8 @@ struct RowFlow {
     cant_split: bool,
     header: bool,
     id: NodeId,
+    /// `w:trHeight`. Applied after the content height is known.
+    rule: Option<RowHeight>,
 }
 
 #[derive(Clone)]
@@ -1703,6 +1710,8 @@ fn build_row_flows(
                     ink_bottom: None,
                     ink_left: None,
                     ink_right: None,
+                    valign: VerticalAlign::Top,
+                    align_shift: 0,
                 });
                 continue;
             }
@@ -1790,6 +1799,8 @@ fn build_row_flows(
                 ink_bottom: border_ink(borders.bottom, theme),
                 ink_left: border_ink(borders.left, theme),
                 ink_right: border_ink(borders.right, theme),
+                valign: cell.vertical_align.unwrap_or(VerticalAlign::Top),
+                align_shift: 0,
             });
         }
         rows.push(RowFlow {
@@ -1798,6 +1809,7 @@ fn build_row_flows(
             cant_split: row.cant_split,
             header: row.header,
             id: row.id,
+            rule: row.height,
         });
     }
     Ok(rows)
@@ -2120,7 +2132,95 @@ fn assign_row_heights(rows: &mut [RowFlow]) -> Result<(), LayoutError> {
         }
         rows[row_index].height = rows[row_index].height.saturating_add(extra);
     }
+    apply_height_rules(rows)?;
+    apply_vertical_align(rows);
     Ok(())
+}
+
+/// `auto` and an omitted `w:trHeight` keep the content height. `atLeast` is a
+/// minimum. `exact` replaces the content height. ECMA-376 §17.18.37 says
+/// `auto` ignores `w:val`. A line box that then sticks out of the cell is
+/// omitted later; glyphs are not sliced.
+fn apply_height_rules(rows: &mut [RowFlow]) -> Result<(), LayoutError> {
+    for row in rows.iter_mut() {
+        let Some(height) = row.rule else {
+            continue;
+        };
+        match height.rule {
+            RowHeightRule::Auto => {}
+            RowHeightRule::AtLeast => {
+                if height.twips < 0 {
+                    return Err(unsupported(Some(row.id), "row height is negative"));
+                }
+                let min = twips_to_emu(height.twips)?;
+                if row.height < min {
+                    row.height = min;
+                }
+            }
+            RowHeightRule::Exact => {
+                if height.twips <= 0 {
+                    return Err(unsupported(
+                        Some(row.id),
+                        "exact row height is not positive",
+                    ));
+                }
+                row.height = twips_to_emu(height.twips)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Shift is the leftover inside the visual cell, after borders and margins.
+/// Top leaves the content where the line boxes already start. Center uses
+/// half the leftover, bottom uses all of it. Overflow stays at the top:
+/// this slice has not measured how Word clips a too-tall cell, and it does
+/// not pull content above the cell.
+fn apply_vertical_align(rows: &mut [RowFlow]) {
+    let tops = row_tops(rows);
+    let mut shifts = Vec::new();
+    for row in rows.iter() {
+        for cell in &row.cells {
+            shifts.push(content_shift(cell, rows, &tops));
+        }
+    }
+    let mut index = 0usize;
+    for row in rows.iter_mut() {
+        for cell in &mut row.cells {
+            cell.align_shift = shifts[index];
+            index += 1;
+        }
+    }
+}
+
+fn content_shift(cell: &CellFlow, rows: &[RowFlow], tops: &[i64]) -> i64 {
+    if cell.merge == VerticalMerge::Continue || cell.span_rows == 0 {
+        return 0;
+    }
+    if cell.valign == VerticalAlign::Top {
+        return 0;
+    }
+    let cell_lo = tops.get(cell.start_row).copied().unwrap_or(0);
+    let last = cell.start_row + cell.span_rows - 1;
+    let cell_hi = tops.get(last).copied().unwrap_or(cell_lo)
+        + rows.get(last).map(|row| row.height).unwrap_or(0);
+    let inner_top = cell_lo
+        .saturating_add(cell.margin_top)
+        .saturating_add(cell.top_border);
+    let inner_bottom = cell_hi
+        .saturating_sub(cell.margin_bottom)
+        .saturating_sub(cell.bottom_border);
+    let slack = inner_bottom
+        .saturating_sub(inner_top)
+        .saturating_sub(cell.content);
+    if slack <= 0 {
+        return 0;
+    }
+    match cell.valign {
+        VerticalAlign::Top => 0,
+        VerticalAlign::Center => slack / 2,
+        VerticalAlign::Bottom => slack,
+    }
 }
 
 fn box_height(cell: &CellFlow) -> i64 {
@@ -2177,7 +2277,8 @@ fn line_top(cell: &CellFlow, tops: &[i64], paragraph_index: usize, line_index: u
         .copied()
         .unwrap_or(0)
         .saturating_add(cell.margin_top)
-        .saturating_add(cell.top_border);
+        .saturating_add(cell.top_border)
+        .saturating_add(cell.align_shift);
     for (index, paragraph) in cell.paragraphs.iter().enumerate() {
         y = y.saturating_add(paragraph.before.raw());
         if index == paragraph_index {
@@ -2487,6 +2588,10 @@ fn paint_slice(
             for line_index in 0..paragraph.lines.len() {
                 let top = line_top(cell, tops, paragraph_index, line_index);
                 if top < slice_lo || top >= slice_hi {
+                    continue;
+                }
+                let line_hi = top.saturating_add(paragraph.line_box.raw());
+                if line_hi > cell_hi {
                     continue;
                 }
                 jobs.push(LineJob {

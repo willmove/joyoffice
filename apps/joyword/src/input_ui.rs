@@ -13,7 +13,7 @@ use joyword_model::{Bias, Position};
 use joyword_shell::command::{
     FORMAT_FONT, FORMAT_PARAGRAPH, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL,
     REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
-    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use joyword_shell::docx::BoundDocx;
 use joyword_shell::input::{Direction, InputError, InputSource, InputView, TextInput};
@@ -157,6 +157,10 @@ pub(crate) trait DocEditor {
         &mut self,
         draft: &joyword_shell::dialogs::ParagraphDraft,
     ) -> Result<(), InputError>;
+    fn apply_table_properties(
+        &mut self,
+        draft: &joyword_shell::dialogs::TableDraft,
+    ) -> Result<bool, InputError>;
     fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError>;
     fn editing(
         &mut self,
@@ -384,6 +388,12 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     ) -> Result<(), InputError> {
         TextInput::apply_paragraph(self, draft)
     }
+    fn apply_table_properties(
+        &mut self,
+        draft: &joyword_shell::dialogs::TableDraft,
+    ) -> Result<bool, InputError> {
+        TextInput::apply_table_properties(self, draft)
+    }
     fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError> {
         TextInput::apply_ruler(self, drag)
     }
@@ -602,6 +612,12 @@ impl DocEditor for TextInput<BoundDocx> {
         draft: &joyword_shell::dialogs::ParagraphDraft,
     ) -> Result<(), InputError> {
         TextInput::apply_paragraph(self, draft)
+    }
+    fn apply_table_properties(
+        &mut self,
+        draft: &joyword_shell::dialogs::TableDraft,
+    ) -> Result<bool, InputError> {
+        TextInput::apply_table_properties(self, draft)
     }
     fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError> {
         TextInput::apply_ruler(self, drag)
@@ -823,6 +839,12 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
         draft: &joyword_shell::dialogs::ParagraphDraft,
     ) -> Result<(), InputError> {
         TextInput::apply_paragraph(self, draft)
+    }
+    fn apply_table_properties(
+        &mut self,
+        draft: &joyword_shell::dialogs::TableDraft,
+    ) -> Result<bool, InputError> {
+        TextInput::apply_table_properties(self, draft)
     }
     fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError> {
         TextInput::apply_ruler(self, drag)
@@ -2285,6 +2307,7 @@ impl JoyWord {
                 | TABLE_MERGE_RIGHT
                 | TABLE_MERGE_DOWN
                 | TABLE_SPLIT
+                | TABLE_PROPERTIES
         ) {
             if self.open_gate.is_some() && id != STYLE_LIST {
                 return Availability::Disabled("input.read_only");
@@ -2309,6 +2332,7 @@ impl JoyWord {
                     | TABLE_MERGE_RIGHT
                     | TABLE_MERGE_DOWN
                     | TABLE_SPLIT
+                    | TABLE_PROPERTIES
             ) && editor.read_only()
             {
                 return Availability::Disabled("input.read_only");
@@ -2882,6 +2906,19 @@ impl JoyWord {
                 self.apply_input(cx, |editor| editor.merge_table_down().map(|_| ()))
             }
             TABLE_SPLIT => self.apply_input(cx, |editor| editor.split_table_cell().map(|_| ())),
+            TABLE_PROPERTIES => {
+                let draft = match joyword_shell::dialogs::table_draft_from_decision(Some(args)) {
+                    Ok(Some(draft)) => draft,
+                    Ok(None) => return Ok(()),
+                    Err(reason) => return Err(self.label(reason)),
+                };
+                self.apply_input(cx, |editor| {
+                    editor.apply_table_properties(&draft).map(|_| ())
+                });
+                if self.input_error.is_none() {
+                    self.format_dialog = None;
+                }
+            }
             FORMAT_FONT => {
                 let draft = match joyword_shell::dialogs::font_draft_from_decision(Some(args)) {
                     Ok(Some(draft)) => draft,

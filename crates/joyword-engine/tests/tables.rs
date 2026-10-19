@@ -3,12 +3,14 @@
 use std::sync::Arc;
 
 use joyword_engine::{
-    CellAddress, Command, CommandError, Outcome, Selection, Session, TableMerge, TableStructure,
-    Transaction, TxError, cell_address, cell_caret, cell_selection, current_revision,
+    CellAddress, Command, CommandError, Outcome, Selection, Session, TableMerge,
+    TablePropertyChange, TableStructure, Transaction, TxError, cell_address, cell_caret,
+    cell_selection, current_revision,
 };
 use joyword_model::{
-    Bias, Block, BlockSeq, Cell, CellBorders, Document, Issue, Measure, NodeId, Paragraph,
-    Position, RevisionKind, ScalarOffset, Table, VerticalMerge, table_structure,
+    Bias, Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Document,
+    Issue, Measure, NodeId, Paragraph, Position, RevisionKind, ScalarOffset, Table, TableAlign,
+    TableWidth, VerticalMerge, table_structure,
 };
 
 fn blank(lines: &[&str]) -> Document {
@@ -683,4 +685,87 @@ fn tracked_text_in_a_typed_cell_uses_the_author_and_accepts() {
     )
     .unwrap();
     assert_eq!(typed_cell(&session).plain_text(|_| String::new()), "");
+}
+
+#[test]
+fn setting_table_properties_is_one_undoable_transaction() {
+    let mut document = blank(&[""]);
+    let built = table(
+        &mut document,
+        vec![vec![
+            cell(&mut document, "甲", 1, VerticalMerge::None),
+            cell(&mut document, "乙", 1, VerticalMerge::None),
+        ]],
+        2,
+    );
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let at = pos(&session, first_cell_paragraph(&session), 0);
+    let border = BorderEdge {
+        kind: BorderKind::Dashed,
+        size_eighths: 8,
+        color: Color::Rgb(0, 0, 255),
+    };
+    let change = TablePropertyChange {
+        width: Some(TableWidth::Dxa(3_000)),
+        alignment: Some(TableAlign::Center),
+        cell_margin: Some(CellMargins {
+            top: 40,
+            left: 80,
+            bottom: 40,
+            right: 80,
+        }),
+        borders: Some(CellBorders {
+            top: Some(border),
+            left: Some(border),
+            bottom: Some(border),
+            right: Some(border),
+        }),
+    };
+    exec(
+        &mut session,
+        vec![Command::SetTableProperties {
+            at,
+            change: change.clone(),
+        }],
+    )
+    .unwrap();
+    let written = table_of(&session);
+    assert_eq!(written.width, Some(TableWidth::Dxa(3_000)));
+    assert_eq!(written.alignment, Some(TableAlign::Center));
+    assert_eq!(written.cell_margin.unwrap().left, 80);
+    assert_eq!(written.rows[0].cells[1].borders.top, Some(border));
+    assert_eq!(
+        written.grid,
+        vec![Measure::Twips(2000), Measure::Twips(2000)]
+    );
+    session.undo().unwrap();
+    let restored = table_of(&session);
+    assert!(restored.width.is_none());
+    assert!(restored.alignment.is_none());
+    assert!(restored.cell_margin.is_none());
+    assert!(restored.rows[0].cells[0].borders.top.is_none());
+    assert!(!session.can_undo());
+
+    let error = exec(
+        &mut session,
+        vec![Command::SetTableProperties {
+            at,
+            change: TablePropertyChange {
+                width: Some(TableWidth::Dxa(0)),
+                alignment: None,
+                cell_margin: None,
+                borders: None,
+            },
+        }],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        TxError::Command {
+            error: CommandError::TableProperties(_),
+            ..
+        }
+    ));
+    assert!(table_of(&session).width.is_none());
 }

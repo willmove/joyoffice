@@ -348,12 +348,35 @@ impl JoyWord {
         cx.notify();
     }
 
+    pub(crate) fn open_table_dialog(&mut self, cx: &mut Context<Self>) {
+        let (width, align, top, left, bottom, right, border, size, color) = self.table_prefill();
+        self.format_dialog = Some(FormatDialog {
+            kind: DialogKind::Table,
+            fields: vec![
+                dialog_field("width", "dialog.table.width", width, cx),
+                dialog_field("align", "dialog.table.align", align, cx),
+                dialog_field("top", "dialog.table.top", top, cx),
+                dialog_field("left", "dialog.table.left", left, cx),
+                dialog_field("bottom", "dialog.table.bottom", bottom, cx),
+                dialog_field("right", "dialog.table.right", right, cx),
+                dialog_field("border", "dialog.table.border", border, cx),
+                dialog_field("border_size", "dialog.table.border_size", size, cx),
+                dialog_field("border_color", "dialog.table.border_color", color, cx),
+            ],
+            bold: false,
+            italic: false,
+            underline: false,
+        });
+        cx.notify();
+    }
+
     pub(crate) fn format_panel(&self, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
         let dialog = self.format_dialog.as_ref()?;
         let kind = dialog.kind;
         let title = match kind {
             DialogKind::Font => self.label("command.format.font"),
             DialogKind::Paragraph => self.label("command.format.paragraph"),
+            DialogKind::Table => self.label("command.table.properties"),
         };
         let mut panel = div()
             .id("format-dialog")
@@ -547,6 +570,7 @@ impl JoyWord {
         let command = match dialog.kind {
             DialogKind::Font => joyword_shell::command::FORMAT_FONT,
             DialogKind::Paragraph => joyword_shell::command::FORMAT_PARAGRAPH,
+            DialogKind::Table => joyword_shell::command::TABLE_PROPERTIES,
         };
         let mut args = vec![(
             "commit",
@@ -719,6 +743,140 @@ impl JoyWord {
             twip_text(props.spacing.after),
             line_text(props.spacing.line),
         )
+    }
+
+    fn table_prefill(&self) -> TablePrefill {
+        let empty = (
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+        );
+        let Some(editor) = &self.editor else {
+            return empty;
+        };
+        let head = editor.view().selection().head;
+        let document = editor.view().snapshot();
+        let Ok(address) = joyword_engine::cell_address(&document, &head) else {
+            return empty;
+        };
+        let Some(story) = document.story(head.story) else {
+            return empty;
+        };
+        let Some(joyword_model::Block::Table(table)) = story
+            .blocks
+            .iter()
+            .find(|block| block.id() == address.table)
+        else {
+            return empty;
+        };
+        let (top, left, bottom, right) = match table.cell_margin {
+            Some(margin) => (
+                margin.top.to_string(),
+                margin.left.to_string(),
+                margin.bottom.to_string(),
+                margin.right.to_string(),
+            ),
+            None => (String::new(), String::new(), String::new(), String::new()),
+        };
+        let (border, size, color) = shared_border(table)
+            .map(|edge| {
+                (
+                    border_kind_text(edge.kind).to_owned(),
+                    edge.size_eighths.to_string(),
+                    border_color_text(edge.color),
+                )
+            })
+            .unwrap_or_default();
+        (
+            width_text(table.width),
+            align_table_text(table.alignment),
+            top,
+            left,
+            bottom,
+            right,
+            border,
+            size,
+            color,
+        )
+    }
+}
+
+type TablePrefill = (
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+    String,
+);
+
+fn width_text(width: Option<joyword_model::TableWidth>) -> String {
+    match width {
+        None => String::new(),
+        Some(joyword_model::TableWidth::Auto) => "auto".to_owned(),
+        Some(joyword_model::TableWidth::Dxa(value)) => format!("dxa:{value}"),
+        Some(joyword_model::TableWidth::Pct(value)) => format!("pct:{value}"),
+    }
+}
+
+fn align_table_text(alignment: Option<joyword_model::TableAlign>) -> String {
+    match alignment {
+        None => String::new(),
+        Some(joyword_model::TableAlign::Left) => "left".to_owned(),
+        Some(joyword_model::TableAlign::Center) => "center".to_owned(),
+        Some(joyword_model::TableAlign::Right) => "right".to_owned(),
+    }
+}
+
+fn shared_border(table: &joyword_model::Table) -> Option<joyword_model::BorderEdge> {
+    let mut found = None;
+    for row in &table.rows {
+        for cell in &row.cells {
+            for edge in [
+                cell.borders.top,
+                cell.borders.left,
+                cell.borders.bottom,
+                cell.borders.right,
+            ] {
+                let edge = edge?;
+                match found {
+                    None => found = Some(edge),
+                    Some(current) if current == edge => {}
+                    Some(_) => return None,
+                }
+            }
+        }
+    }
+    found
+}
+
+fn border_kind_text(kind: joyword_model::BorderKind) -> &'static str {
+    match kind {
+        joyword_model::BorderKind::Nil => "nil",
+        joyword_model::BorderKind::Single => "single",
+        joyword_model::BorderKind::Double => "double",
+        joyword_model::BorderKind::Dotted => "dotted",
+        joyword_model::BorderKind::Dashed => "dashed",
+        joyword_model::BorderKind::Thick => "thick",
+    }
+}
+
+fn border_color_text(color: joyword_model::Color) -> String {
+    match color {
+        joyword_model::Color::Auto => "auto".to_owned(),
+        joyword_model::Color::Rgb(red, green, blue) => {
+            format!("{red:02X}{green:02X}{blue:02X}")
+        }
+        joyword_model::Color::Theme { .. } => String::new(),
     }
 }
 

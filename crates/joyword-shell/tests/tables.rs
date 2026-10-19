@@ -8,8 +8,8 @@ use joyword_model::Block;
 use joyword_model::VerticalMerge;
 use joyword_shell::command::{
     ArgValue, EDIT_INSERT, FILE_OPEN, FILE_SAVE_COPY, InvokeError, TABLE_COLUMN_DELETE,
-    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE,
-    TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT,
+    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES,
+    TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT,
 };
 use joyword_shell::host::Office;
 
@@ -175,6 +175,90 @@ fn merge_and_split_go_through_the_command_registry() {
         .session()
         .document();
     assert_eq!(current.semantic_difference(&saved.document), None);
+}
+
+#[test]
+fn table_properties_go_through_the_command_registry() {
+    let (_dir, mut office) = open(
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>甲</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>乙</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+    );
+    let version = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .version();
+    let pending = office.invoke(TABLE_PROPERTIES, &[]).unwrap_err();
+    assert!(
+        matches!(pending, InvokeError::PendingInput { .. }),
+        "{pending:?}"
+    );
+    assert_eq!(
+        office
+            .active()
+            .unwrap()
+            .backend()
+            .session()
+            .session()
+            .version(),
+        version
+    );
+    office
+        .invoke(
+            TABLE_PROPERTIES,
+            &[
+                ("commit", ArgValue::Text("apply".into())),
+                ("width", ArgValue::Text("dxa:3600".into())),
+                ("align", ArgValue::Text("right".into())),
+                ("left", ArgValue::Text("36".into())),
+                ("border", ArgValue::Text("double".into())),
+                ("border_size", ArgValue::Text("12".into())),
+                ("border_color", ArgValue::Text("00FF00".into())),
+            ],
+        )
+        .unwrap();
+    let table = match office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+    {
+        Some(Block::Table(table)) => table.clone(),
+        _ => panic!("table"),
+    };
+    assert!(matches!(
+        table.width,
+        Some(joyword_model::TableWidth::Dxa(3600))
+    ));
+    assert_eq!(table.alignment, Some(joyword_model::TableAlign::Right));
+    assert_eq!(table.cell_margin.unwrap().left, 36);
+    assert_eq!(table.cell_margin.unwrap().top, 0);
+    assert_eq!(
+        table.rows[0].cells[1].borders.left.unwrap().kind,
+        joyword_model::BorderKind::Double
+    );
+    office.active_mut().unwrap().undo().unwrap();
+    let restored = match office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+    {
+        Some(Block::Table(table)) => table.width,
+        _ => panic!("table"),
+    };
+    assert!(restored.is_none());
 }
 
 #[test]
