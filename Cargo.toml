@@ -65,6 +65,9 @@ sha2 = "=0.10.9"
 tempfile = "=3.27.0"
 unicode-linebreak = "=0.1.5"
 unicode-segmentation = "=1.13.3"
+# Already in the lock via the gpui-pre snapshot. Linear-time matching only:
+# the engine exposes regex find without any backtracking (ReDoS) surface.
+regex = "=1.13.1"
 xattr = "=1.6.1"
 winsafe = { version = "=0.0.19", features = ["kernel"] }
 # Already in the lock via tempfile. Direct use is the safe renameat2 /

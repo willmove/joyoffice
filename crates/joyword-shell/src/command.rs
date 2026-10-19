@@ -326,6 +326,16 @@ const FIND_PARAMS: &[ParamSpec] = &[
         kind: ParamKind::Bool,
         required: false,
     },
+    ParamSpec {
+        name: "width",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+    ParamSpec {
+        name: "regex",
+        kind: ParamKind::Bool,
+        required: false,
+    },
 ];
 const REPLACE_PARAMS: &[ParamSpec] = &[
     ParamSpec {
@@ -345,6 +355,16 @@ const REPLACE_PARAMS: &[ParamSpec] = &[
     },
     ParamSpec {
         name: "word",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+    ParamSpec {
+        name: "width",
+        kind: ParamKind::Bool,
+        required: false,
+    },
+    ParamSpec {
+        name: "regex",
         kind: ParamKind::Bool,
         required: false,
     },

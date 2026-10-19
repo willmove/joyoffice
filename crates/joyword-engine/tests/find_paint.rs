@@ -76,6 +76,28 @@ fn query(text: &str, case_sensitive: bool, whole_word: bool) -> FindQuery {
         text: text.into(),
         case_sensitive,
         whole_word,
+        fold_width: false,
+        regex: false,
+    }
+}
+
+fn query_full(text: &str, case_sensitive: bool, whole_word: bool, fold_width: bool) -> FindQuery {
+    FindQuery {
+        text: text.into(),
+        case_sensitive,
+        whole_word,
+        fold_width,
+        regex: false,
+    }
+}
+
+fn query_regex(text: &str, case_sensitive: bool, whole_word: bool, fold_width: bool) -> FindQuery {
+    FindQuery {
+        text: text.into(),
+        case_sensitive,
+        whole_word,
+        fold_width,
+        regex: true,
     }
 }
 
@@ -429,4 +451,181 @@ fn direct_paint_refuses_a_paragraph_that_already_has_a_style() {
     .unwrap_err();
     assert!(matches!(error, PaintError::Unexportable(_)));
     assert!(body_paragraph(&session, 0).runs()[0].props.italic.is_none());
+}
+
+#[test]
+fn fullwidth_forms_fold_to_halfwidth() {
+    let document = document(&["ＡＢＣ １２３！中　x"]);
+    // Every full-width form below is one scalar, like its half-width twin:
+    // Ａ=0 Ｂ=1 Ｃ=2, space=3, １=4 ２=5 ３=6, ！=7, 中=8,　=9, x=10.
+    let strict = search(&document, &query("ABC", true, false)).unwrap();
+    assert!(
+        strict.hits.is_empty(),
+        "no folding keeps full-width distinct"
+    );
+    let folded = search(&document, &query_full("ABC", true, false, true)).unwrap();
+    assert_eq!(folded.hits.len(), 1);
+    assert_eq!((folded.hits[0].start.0, folded.hits[0].end.0), (0, 3));
+
+    let digits = search(&document, &query_full("123", true, false, true)).unwrap();
+    assert_eq!(digits.hits.len(), 1);
+    assert_eq!((digits.hits[0].start.0, digits.hits[0].end.0), (4, 7));
+    let bang = search(&document, &query_full("!", true, false, true)).unwrap();
+    assert_eq!(bang.hits.len(), 1);
+    assert_eq!((bang.hits[0].start.0, bang.hits[0].end.0), (7, 8));
+
+    // U+3000 ideographic space folds to an ordinary space.
+    let wide_space = search(&document, &query_full("中 ", true, false, true)).unwrap();
+    assert_eq!(wide_space.hits.len(), 1);
+    assert_eq!(
+        (wide_space.hits[0].start.0, wide_space.hits[0].end.0),
+        (8, 10)
+    );
+    let no_wide_space = search(&document, &query_full("中 ", true, false, false)).unwrap();
+    assert!(no_wide_space.hits.is_empty());
+
+    // Ideographs are not width-folded; the option changes nothing for them.
+    let han = search(&document, &query_full("中", true, false, true)).unwrap();
+    assert_eq!(han.hits.len(), 1);
+
+    // Half-width text is found with the option on as well.
+    let ascii = search(&document, &query_full("x", true, false, true)).unwrap();
+    assert_eq!(ascii.hits.len(), 1);
+}
+
+#[test]
+fn width_folding_combines_with_case_folding() {
+    let document = document(&["ａｂｃ Straße"]);
+    let folded = search(&document, &query_full("ABC", false, false, true)).unwrap();
+    assert_eq!(folded.hits.len(), 1, "ａｂｃ matches ABC");
+    let without_width = search(&document, &query("ABC", false, false)).unwrap();
+    assert!(without_width.hits.is_empty());
+    // ß still does not expand against SS under width folding.
+    let sharp = search(&document, &query_full("STRASSE", false, false, true)).unwrap();
+    assert!(sharp.hits.is_empty());
+    let straße = search(&document, &query_full("straße", false, false, true)).unwrap();
+    assert_eq!(straße.hits.len(), 1);
+}
+
+#[test]
+fn regex_find_matches_patterns() {
+    let document = document(&["cat category CAT 12a"]);
+    // Offsets: cat=0..3, space=3, category=4..12, space=12, CAT=13..16,
+    // space=16, 1=17, 2=18, a=19.
+    let dotted = search(&document, &query_regex("c.t", true, false, false)).unwrap();
+    assert_eq!(dotted.hits.len(), 2, "cat and the start of category");
+    let insensitive = search(&document, &query_regex("cat", false, false, false)).unwrap();
+    assert_eq!(insensitive.hits.len(), 3, "CAT joins under case folding");
+    let words = search(&document, &query_regex("cat", false, true, false)).unwrap();
+    assert_eq!(words.hits.len(), 2, "category is not a whole word");
+    let digits = search(&document, &query_regex(r"\d+", true, false, false)).unwrap();
+    assert_eq!(digits.hits.len(), 1);
+    assert_eq!((digits.hits[0].start.0, digits.hits[0].end.0), (17, 19));
+
+    assert_eq!(
+        search(&document, &query_regex("(", true, false, false)).unwrap_err(),
+        FindError::InvalidPattern
+    );
+    assert_eq!(
+        search(&document, &query_regex("a{3,1}", true, false, false)).unwrap_err(),
+        FindError::InvalidPattern
+    );
+}
+
+#[test]
+fn regex_skips_zero_width_and_cluster_splitting() {
+    let plain = document(&["ab"]);
+    let empty = search(&plain, &query_regex("x*", true, false, false)).unwrap();
+    assert!(
+        empty.hits.is_empty(),
+        "a pattern that only matches empty text finds nothing"
+    );
+    let stars = search(&plain, &query_regex("a*", true, false, false)).unwrap();
+    assert_eq!(stars.hits.len(), 1);
+    assert_eq!((stars.hits[0].start.0, stars.hits[0].end.0), (0, 1));
+
+    let clustered = document(&["a\u{0301}x"]);
+    let inside = search(&clustered, &query_regex("a", true, false, false)).unwrap();
+    assert!(
+        inside.hits.is_empty(),
+        "a match ending inside a cluster is skipped"
+    );
+    let mark = search(&clustered, &query_regex("\u{0301}", true, false, false)).unwrap();
+    assert!(
+        mark.hits.is_empty(),
+        "a match starting inside a cluster is skipped"
+    );
+    let ascii = search(&clustered, &query_regex("x", true, false, false)).unwrap();
+    assert_eq!(ascii.hits.len(), 1);
+    assert_eq!((ascii.hits[0].start.0, ascii.hits[0].end.0), (2, 3));
+}
+
+#[test]
+fn regex_never_crosses_an_inline_object() {
+    let mut document = Document::new_blank();
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph.push_text("ab", None, Arc::default()).unwrap();
+    paragraph.push_inline(
+        InlineObject {
+            id: document.ids().node(),
+            kind: InlineKind::Break(BreakKind::Line),
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+    paragraph.push_text("cd", None, Arc::default()).unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    // Offsets: a=0, b=1, the inline object=2, c=3, d=4.
+    let across = search(&document, &query_regex("b.d", true, false, false)).unwrap();
+    assert!(
+        across.hits.is_empty(),
+        "dot may touch the placeholder but the hit is refused"
+    );
+    let greedy = search(&document, &query_regex("b.*d", true, false, false)).unwrap();
+    assert!(greedy.hits.is_empty());
+    let single = search(&document, &query_regex(".", true, false, false)).unwrap();
+    let ranges: Vec<(usize, usize)> = single
+        .hits
+        .iter()
+        .map(|hit| (hit.start.0, hit.end.0))
+        .collect();
+    assert_eq!(ranges, vec![(0, 1), (1, 2), (3, 4), (4, 5)]);
+}
+
+#[test]
+fn regex_width_folding_applies_to_the_haystack() {
+    let wide = document(&["ＡＢＣ"]);
+    let strict = search(&wide, &query_regex("ABC", true, false, false)).unwrap();
+    assert!(strict.hits.is_empty());
+    let folded = search(&wide, &query_regex("ABC", true, false, true)).unwrap();
+    assert_eq!(folded.hits.len(), 1);
+    assert_eq!((folded.hits[0].start.0, folded.hits[0].end.0), (0, 3));
+
+    let lower = document(&["ａｂｃ"]);
+    let both = search(&lower, &query_regex("ABC", false, false, true)).unwrap();
+    assert_eq!(both.hits.len(), 1);
+}
+
+#[test]
+fn regex_hit_count_is_bounded() {
+    let session = Session::new(document(&[&"a".repeat(MAX_HITS + 10)]));
+    let report = search(session.document(), &query_regex("a", true, false, false)).unwrap();
+    assert_eq!(report.hits.len(), MAX_HITS);
+    assert!(report.truncated);
+}
+
+#[test]
+fn regex_replace_is_one_undo_and_skips_locked() {
+    let mut session = Session::new(document(&["cat 12 dog 34"]));
+    let report = search(session.document(), &query_regex(r"\d+", true, false, false)).unwrap();
+    assert_eq!(report.hits.len(), 2);
+    let plan = replace_commands(session.document(), &report.hits, "#").unwrap();
+    assert_eq!(plan.replaced, 2);
+    apply(&mut session, plan.commands);
+    assert_eq!(texts(&session), vec!["cat # dog #".to_owned()]);
+    session.undo().unwrap();
+    assert_eq!(texts(&session), vec!["cat 12 dog 34".to_owned()]);
+    assert!(!session.can_undo());
 }

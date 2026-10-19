@@ -2621,6 +2621,14 @@ impl JoyWord {
                                 args.get("word"),
                                 Some(joyword_shell::command::ArgValue::Bool(true))
                             ),
+                            fold_width: matches!(
+                                args.get("width"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            regex: matches!(
+                                args.get("regex"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
                             forward: id == FIND_NEXT,
                         }
                     }
@@ -2645,6 +2653,14 @@ impl JoyWord {
                             ),
                             whole_word: matches!(
                                 args.get("word"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            fold_width: matches!(
+                                args.get("width"),
+                                Some(joyword_shell::command::ArgValue::Bool(true))
+                            ),
+                            regex: matches!(
+                                args.get("regex"),
                                 Some(joyword_shell::command::ArgValue::Bool(true))
                             ),
                             all: id == FIND_REPLACE_ALL,

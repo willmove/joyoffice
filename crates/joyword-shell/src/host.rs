@@ -1092,6 +1092,8 @@ impl Office {
                         query,
                         case_sensitive: flag(args, "case"),
                         whole_word: flag(args, "word"),
+                        fold_width: flag(args, "width"),
+                        regex: flag(args, "regex"),
                         forward: id == FIND_NEXT,
                     })
                     .map_err(input_error)?;
@@ -1112,6 +1114,8 @@ impl Office {
                         replacement,
                         case_sensitive: flag(args, "case"),
                         whole_word: flag(args, "word"),
+                        fold_width: flag(args, "width"),
+                        regex: flag(args, "regex"),
                         all: id == FIND_REPLACE_ALL,
                     })
                     .map_err(input_error)?;

@@ -699,6 +699,17 @@ pub struct EditReport {
     pub armed: bool,
 }
 
+/// Matching options shared by find and replace requests.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct FindFlags {
+    pub case_sensitive: bool,
+    pub whole_word: bool,
+    /// Fold full-width forms (U+FF01..=U+FF5E, U+3000) to half-width.
+    pub fold_width: bool,
+    /// Treat the query as a linear-time regular expression.
+    pub regex: bool,
+}
+
 /// Find, replace and format-painter requests shared by the shell and the GUI.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum EditRequest {
@@ -706,6 +717,10 @@ pub enum EditRequest {
         query: String,
         case_sensitive: bool,
         whole_word: bool,
+        /// Fold full-width forms (U+FF01..=U+FF5E, U+3000) to half-width.
+        fold_width: bool,
+        /// Treat `query` as a linear-time regular expression.
+        regex: bool,
         forward: bool,
     },
     Replace {
@@ -713,6 +728,8 @@ pub enum EditRequest {
         replacement: String,
         case_sensitive: bool,
         whole_word: bool,
+        fold_width: bool,
+        regex: bool,
         all: bool,
     },
     CopyFormat {
@@ -720,6 +737,33 @@ pub enum EditRequest {
     },
     PaintFormat,
     CancelFormat,
+}
+
+impl EditRequest {
+    fn flags(&self) -> FindFlags {
+        match self {
+            EditRequest::Find {
+                case_sensitive,
+                whole_word,
+                fold_width,
+                regex,
+                ..
+            }
+            | EditRequest::Replace {
+                case_sensitive,
+                whole_word,
+                fold_width,
+                regex,
+                ..
+            } => FindFlags {
+                case_sensitive: *case_sensitive,
+                whole_word: *whole_word,
+                fold_width: *fold_width,
+                regex: *regex,
+            },
+            _ => FindFlags::default(),
+        }
+    }
 }
 impl<B: InputBackend> TextInput<B> {
     pub fn new(backend: B, limits: InputLimits) -> Result<Self, InputError> {
@@ -1357,22 +1401,17 @@ impl<B: InputBackend> TextInput<B> {
         if !matches!(request, EditRequest::CancelFormat) && self.composition.is_some() {
             return Err(InputError::StaleComposition);
         }
+        let flags = request.flags();
         match request {
-            EditRequest::Find {
-                query,
-                case_sensitive,
-                whole_word,
-                forward,
-            } => self.find_move(&query, case_sensitive, whole_word, forward),
+            EditRequest::Find { query, forward, .. } => self.find_move(&query, flags, forward),
             EditRequest::Replace {
                 query,
                 replacement,
-                case_sensitive,
-                whole_word,
                 all,
+                ..
             } => {
                 self.require_editable()?;
-                self.replace_query(&query, &replacement, case_sensitive, whole_word, all)
+                self.replace_query(&query, &replacement, flags, all)
             }
             EditRequest::CopyFormat { repeat } => {
                 let (start, end) = self.selection_positions()?;
@@ -1428,11 +1467,10 @@ impl<B: InputBackend> TextInput<B> {
     fn find_move(
         &mut self,
         query: &str,
-        case_sensitive: bool,
-        whole_word: bool,
+        flags: FindFlags,
         forward: bool,
     ) -> Result<EditReport, InputError> {
-        let report = self.searched(query, case_sensitive, whole_word)?;
+        let report = self.searched(query, flags)?;
         let outcome = self.report_of(&report, 0);
         if report.hits.is_empty() {
             return Ok(outcome);
@@ -1473,11 +1511,10 @@ impl<B: InputBackend> TextInput<B> {
         &mut self,
         query: &str,
         replacement: &str,
-        case_sensitive: bool,
-        whole_word: bool,
+        flags: FindFlags,
         all: bool,
     ) -> Result<EditReport, InputError> {
-        let report = self.searched(query, case_sensitive, whole_word)?;
+        let report = self.searched(query, flags)?;
         let hits = if all {
             report.hits.clone()
         } else {
@@ -1534,15 +1571,16 @@ impl<B: InputBackend> TextInput<B> {
     fn searched(
         &self,
         query: &str,
-        case_sensitive: bool,
-        whole_word: bool,
+        flags: FindFlags,
     ) -> Result<joyword_engine::FindReport, InputError> {
         search(
             self.backend.session().document(),
             &FindQuery {
                 text: query.to_owned(),
-                case_sensitive,
-                whole_word,
+                case_sensitive: flags.case_sensitive,
+                whole_word: flags.whole_word,
+                fold_width: flags.fold_width,
+                regex: flags.regex,
             },
         )
         .map_err(find_input_error)
@@ -2424,6 +2462,7 @@ fn find_input_error(error: FindError) -> InputError {
         FindError::Empty => InputError::Rejected("empty query"),
         FindError::TooLong => InputError::Budget("query"),
         FindError::InvalidReplacement(ch) => InputError::InvalidText(ch),
+        FindError::InvalidPattern => InputError::Rejected("query is not a valid pattern"),
     }
 }
 
