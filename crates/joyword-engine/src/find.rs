@@ -3,8 +3,18 @@
 //! Matching walks extended grapheme clusters, so a query never lands inside a
 //! cluster. Inline objects are barriers: a match cannot contain one. Locked
 //! content controls and paragraphs that hold preserved markup are counted and
-//! skipped, never edited. There is no regular-expression mode: the workspace
-//! has no linear regex engine, and an unbounded one is out of this slice.
+//! skipped, never edited.
+//!
+//! Two documented options extend plain matching. `FindQuery::fold_width`
+//! folds full-width forms to half-width before comparing: U+FF01..=U+FF5E
+//! map down by 0xFEE0 and U+3000 (ideographic space) maps to U+0020, so
+//! "ABC" matches "ＡＢＣ". That folding table is a documented assumption,
+//! not a Word observation. `FindQuery::regex` treats the query as a pattern
+//! for the locked `regex` crate, which matches in guaranteed linear time
+//! (no backtracking, no ReDoS). In regex mode the haystack is the paragraph
+//! text folded the same way; a match that would split a grapheme cluster,
+//! cover an inline object, or be empty is skipped. The replacement text is
+//! always literal: capture-group references such as `$1` are not expanded.
 
 use std::collections::BTreeMap;
 
@@ -28,6 +38,14 @@ pub struct FindQuery {
     pub text: String,
     pub case_sensitive: bool,
     pub whole_word: bool,
+    /// Fold full-width ASCII variants (U+FF01..=U+FF5E) and the ideographic
+    /// space (U+3000) to their half-width counterparts before comparing, so
+    /// "ABC" finds "ＡＢＣ". Documented assumption, not a Word observation.
+    pub fold_width: bool,
+    /// Treat `text` as a `regex`-crate pattern. The engine builds the pattern
+    /// with Unicode-aware, linear-time matching; invalid patterns are
+    /// rejected. The replacement stays literal; `$1` is not expanded.
+    pub regex: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -59,6 +77,9 @@ pub enum FindError {
     Empty,
     TooLong,
     InvalidReplacement(char),
+    /// The regex pattern did not compile. Matching never runs a pattern that
+    /// failed to build.
+    InvalidPattern,
 }
 
 impl std::fmt::Display for FindError {
@@ -73,6 +94,7 @@ impl std::fmt::Display for FindError {
                     ch = *ch as u32
                 )
             }
+            FindError::InvalidPattern => f.write_str("query is not a valid pattern"),
         }
     }
 }
@@ -90,8 +112,10 @@ struct Scan<'a> {
     truncated: bool,
     order: u32,
     needle: &'a [String],
+    pattern: Option<regex::Regex>,
     case_sensitive: bool,
     whole_word: bool,
+    fold_width: bool,
 }
 
 /// Search every story. The body is visited first; other stories follow the
@@ -107,16 +131,30 @@ pub fn search(document: &Document, query: &FindQuery) -> Result<FindReport, Find
     let needle: Vec<String> = query
         .text
         .graphemes(true)
-        .map(|cluster| fold(cluster, query.case_sensitive))
+        .map(|cluster| fold(cluster, query.case_sensitive, query.fold_width))
         .collect();
+    let pattern = if query.regex {
+        let built = regex::RegexBuilder::new(&query.text)
+            .case_insensitive(!query.case_sensitive)
+            .unicode(true)
+            .build();
+        match built {
+            Ok(pattern) => Some(pattern),
+            Err(_) => return Err(FindError::InvalidPattern),
+        }
+    } else {
+        None
+    };
     let mut scan = Scan {
         hits: Vec::new(),
         skipped: 0,
         truncated: false,
         order: 0,
         needle: &needle,
+        pattern,
         case_sensitive: query.case_sensitive,
         whole_word: query.whole_word,
+        fold_width: query.fold_width,
     };
     if let Some(body) = document.story(document.body_id()) {
         visit_blocks(&body.blocks, body.id, false, 0, &mut scan);
@@ -329,7 +367,17 @@ impl Scan<'_> {
         let order = self.order;
         self.order = self.order.saturating_add(1);
         let units = units_of(paragraph);
-        let ranges = match_ranges(&units, self.needle, self.case_sensitive, self.whole_word);
+        let ranges = if let Some(pattern) = &self.pattern {
+            match_ranges_regex(&units, pattern, self.whole_word, self.fold_width)
+        } else {
+            match_ranges(
+                &units,
+                self.needle,
+                self.case_sensitive,
+                self.whole_word,
+                self.fold_width,
+            )
+        };
         if locked || blocked(paragraph) {
             self.skipped = self.skipped.saturating_add(ranges.len() as u32);
             return;
@@ -399,6 +447,7 @@ fn match_ranges(
     needle: &[String],
     case_sensitive: bool,
     whole_word: bool,
+    fold_width: bool,
 ) -> Vec<(usize, usize)> {
     let width = needle.len();
     if width == 0 {
@@ -417,7 +466,7 @@ fn match_ranges(
                 matched = false;
                 break;
             };
-            if unit.barrier || &fold(&unit.text, case_sensitive) != wanted {
+            if unit.barrier || &fold(&unit.text, case_sensitive, fold_width) != wanted {
                 matched = false;
                 break;
             }
@@ -433,6 +482,63 @@ fn match_ranges(
         } else {
             index += 1;
         }
+    }
+    found
+}
+
+/// Run a compiled pattern over one paragraph's units. The haystack applies
+/// the same width folding as the literal path, so under `fold_width` a
+/// half-width pattern also finds full-width text. A match that splits a
+/// grapheme cluster, covers an inline object, or is empty is skipped;
+/// `whole_word` reuses the literal boundary rules on the unit indexes.
+fn match_ranges_regex(
+    units: &[Unit],
+    pattern: &regex::Regex,
+    whole_word: bool,
+    fold_width: bool,
+) -> Vec<(usize, usize)> {
+    let mut haystack = String::new();
+    let mut byte_ends = Vec::with_capacity(units.len());
+    for unit in units {
+        if unit.barrier {
+            haystack.push('\u{FFFC}');
+        } else {
+            haystack.push_str(&fold(&unit.text, true, fold_width));
+        }
+        byte_ends.push(haystack.len());
+    }
+    let byte_start_of =
+        |index: usize| -> usize { if index == 0 { 0 } else { byte_ends[index - 1] } };
+    let mut found = Vec::new();
+    // `find_iter` yields non-overlapping matches in ascending order, so the
+    // unit cursor only moves forward and the scan stays linear overall.
+    let mut hint = 0usize;
+    for hit in pattern.find_iter(&haystack) {
+        let (byte_start, byte_end) = (hit.start(), hit.end());
+        if byte_start == byte_end {
+            continue;
+        }
+        while hint < units.len() && byte_start_of(hint) < byte_start {
+            hint += 1;
+        }
+        if hint == units.len() || byte_start_of(hint) != byte_start {
+            continue;
+        }
+        let first = hint;
+        let mut last = first;
+        while last + 1 < units.len() && byte_ends[last] < byte_end {
+            last += 1;
+        }
+        if byte_ends[last] != byte_end {
+            continue;
+        }
+        if units[first..=last].iter().any(|unit| unit.barrier) {
+            continue;
+        }
+        if whole_word && !(left_boundary(units, first) && right_boundary(units, last + 1)) {
+            continue;
+        }
+        found.push((units[first].start, units[last].end));
     }
     found
 }
@@ -482,12 +588,31 @@ fn is_cjk(ch: char) -> bool {
     ) || ('\u{20000}'..='\u{3FFFF}').contains(&ch)
 }
 
-fn fold(cluster: &str, case_sensitive: bool) -> String {
-    if case_sensitive {
-        cluster.to_owned()
-    } else {
-        cluster.chars().flat_map(char::to_lowercase).collect()
+/// Width folding per the documented assumption in the module docs:
+/// U+FF01..=U+FF5E map down by 0xFEE0 and U+3000 maps to U+0020. Everything
+/// else, including CJK ideographs and halfwidth katakana, stays untouched.
+fn fold_width_char(ch: char) -> char {
+    match ch {
+        '\u{FF01}'..='\u{FF5E}' => char::from_u32(ch as u32 - 0xFEE0).unwrap_or(ch),
+        '\u{3000}' => ' ',
+        _ => ch,
     }
+}
+
+fn fold(cluster: &str, case_sensitive: bool, fold_width: bool) -> String {
+    if case_sensitive && !fold_width {
+        return cluster.to_owned();
+    }
+    let mut folded = String::with_capacity(cluster.len());
+    for ch in cluster.chars() {
+        let ch = if fold_width { fold_width_char(ch) } else { ch };
+        if case_sensitive {
+            folded.push(ch);
+        } else {
+            folded.extend(ch.to_lowercase());
+        }
+    }
+    folded
 }
 
 fn clean_range(paragraph: &Paragraph, start: usize, end: usize) -> bool {

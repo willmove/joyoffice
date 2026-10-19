@@ -10,6 +10,7 @@ publish = false
 
 [dependencies]
 joyword-model.workspace = true
+regex.workspace = true
 unicode-segmentation.workspace = true
 
 [lints]
