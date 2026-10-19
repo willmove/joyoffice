@@ -236,11 +236,18 @@ const STYLE_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Text,
     required: true,
 }];
-const LIST_NUM_PARAM: &[ParamSpec] = &[ParamSpec {
-    name: "num",
-    kind: ParamKind::Text,
-    required: true,
-}];
+const LIST_APPLY_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "num",
+        kind: ParamKind::Text,
+        required: false,
+    },
+    ParamSpec {
+        name: "bullet",
+        kind: ParamKind::Text,
+        required: false,
+    },
+];
 const TABLE_SIZE_PARAMS: &[ParamSpec] = &[
     ParamSpec {
         name: "rows",
@@ -864,7 +871,7 @@ impl Registry {
                 }),
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
-                parameters: LIST_NUM_PARAM,
+                parameters: LIST_APPLY_PARAMS,
             },
             CommandSpec {
                 id: LIST_LEVEL,

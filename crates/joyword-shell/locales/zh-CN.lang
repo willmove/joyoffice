@@ -179,6 +179,7 @@ ribbon.margins.normal = 普通页边距
 ribbon.margins.narrow = 窄页边距
 ribbon.orientation.portrait = 纵向
 ribbon.orientation.landscape = 横向
+ribbon.list.bullet = 项目符号
 ribbon.list.level_1 = 级别 1
 ribbon.list.level_2 = 级别 2
 status.page = 第 {page} 页，共 {pages} 页

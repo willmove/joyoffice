@@ -653,11 +653,19 @@ impl Importer<'_> {
                     style.run = run;
                     style.run.preserved = self.settle(part, child, &child_scope, findings);
                 }
-                // qFormat, uiPriority, table properties and the like.
+                "tblPr" | "trPr" | "tcPr" | "tblStylePr" => {
+                    if !crate::table::read_style_table(&mut style, child) {
+                        complete = false;
+                    }
+                }
+                // qFormat, uiPriority and the like.
                 _ => complete = false,
             }
         }
         style.source = Some(Self::source(part, element));
+        if style.kind == joyword_model::StyleKind::Table && style.table.bold.is_none() {
+            style.table.bold = style.run.bold;
+        }
         if !complete {
             style.preserved =
                 Some(self.preserve(part, element, scope, PreservedReason::Properties));

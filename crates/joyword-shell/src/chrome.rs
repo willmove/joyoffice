@@ -21,9 +21,9 @@ use joyword_model::{Indent, Measure, OBJECT_MARKER, TabAlign, TabStop, indent_ed
 use crate::command::{
     ArgValue, CommandId, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_ITALIC, EDIT_PASTE,
     EDIT_REDO, EDIT_UNDO, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
-    FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
-    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, STYLE_LIST, SWITCH_LANGUAGE, VIEW_FIELD_CODES,
-    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
+    PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, STYLE_LIST, SWITCH_LANGUAGE,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -148,6 +148,10 @@ pub struct RibbonCall {
     pub args: Vec<(&'static str, ArgValue)>,
 }
 
+const BULLET_LIST: &[PresetArg] = &[PresetArg {
+    name: "bullet",
+    value: PresetValue::Text("1"),
+}];
 const LEVEL_ONE: &[PresetArg] = &[PresetArg {
     name: "level",
     value: PresetValue::Text("0"),
@@ -330,6 +334,17 @@ pub const RIBBON: &[RibbonControl] = &[
         label: "command.style.list",
         icon: "styles",
         args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "start.list_bullet",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.list",
+        command: LIST_APPLY,
+        label: "ribbon.list.bullet",
+        icon: "list-bullet",
+        args: RibbonArgs::Fixed(BULLET_LIST),
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
@@ -1118,6 +1133,10 @@ const ICONS: &[(&str, &str)] = &[
     (
         "list-remove",
         "................|................|................|................|...###.#######..|.............#..|...........###..|...###.#####....|................|................|...###.....###..|.............#..|...........#.#..|................|................|................",
+    ),
+    (
+        "list-bullet",
+        "................|................|................|................|...##..######...|................|................|................|...##..######...|................|................|................|...##..######...|................|................|................",
     ),
     (
         "list-level",

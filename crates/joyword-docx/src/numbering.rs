@@ -8,8 +8,8 @@
 //! the package; export never rewrites `numbering.xml`.
 
 use joyword_model::{
-    AbstractNum, LevelOverride, NumInstance, NumberFormat, NumberSuffix, NumberingLevel,
-    NumberingStore, ParaProps,
+    AbstractNum, FontRef, LevelOverride, NumInstance, NumberFormat, NumberSuffix, NumberingLevel,
+    NumberingStore, ParaProps, RunProps,
 };
 
 use crate::ns::W;
@@ -191,6 +191,17 @@ fn parse_level(element: &Element) -> Option<(u8, NumberingLevel)> {
                 }
                 level.para = para;
             }
+            "rPr" => {
+                let (run, extra) = level_run(child);
+                if extra {
+                    level.unmodeled = true;
+                }
+                level.run = run;
+            }
+            "lvlPicBulletId" => match val(child).and_then(|value| value.parse().ok()) {
+                Some(id) => level.picture = Some(id),
+                None => level.unmodeled = true,
+            },
             _ => level.unmodeled = true,
         }
     }
@@ -226,6 +237,50 @@ fn level_paragraph(element: &Element) -> (ParaProps, bool) {
         ..ParaProps::default()
     };
     (para, extra)
+}
+
+/// Bold, size and named latin/east-Asian fonts are applied. Any other
+/// character property is reported; the part bytes stay untouched.
+fn level_run(element: &Element) -> (RunProps, bool) {
+    let mut findings = Findings::default();
+    let (run, style) = props::run(element, &mut findings);
+    let extra = !findings.complete
+        || style.is_some()
+        || run.italic.is_some()
+        || run.strike.is_some()
+        || run.hidden.is_some()
+        || run.underline.is_some()
+        || run.color.is_some()
+        || run.languages != joyword_model::Languages::default()
+        || run.fonts.complex_script.is_some()
+        || run.fonts.hint.is_some()
+        || run.preserved.is_some()
+        || font_is_theme(&run.fonts.ascii)
+        || font_is_theme(&run.fonts.h_ansi)
+        || font_is_theme(&run.fonts.east_asia);
+    let kept = RunProps {
+        bold: run.bold,
+        size: run.size,
+        fonts: joyword_model::FontSlots {
+            ascii: named_font(run.fonts.ascii),
+            h_ansi: named_font(run.fonts.h_ansi),
+            east_asia: named_font(run.fonts.east_asia),
+            ..joyword_model::FontSlots::default()
+        },
+        ..RunProps::default()
+    };
+    (kept, extra)
+}
+
+fn font_is_theme(font: &Option<FontRef>) -> bool {
+    matches!(font, Some(FontRef::Theme(_)))
+}
+
+fn named_font(font: Option<FontRef>) -> Option<FontRef> {
+    match font {
+        Some(FontRef::Named(name)) => Some(FontRef::Named(name)),
+        _ => None,
+    }
 }
 
 fn attr_u32(element: &Element, name: &str) -> Option<u32> {

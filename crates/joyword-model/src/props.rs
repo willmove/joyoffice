@@ -82,9 +82,24 @@ pub type Toggle = Option<bool>;
 pub enum Color {
     Auto,
     Rgb(u8, u8, u8),
-    /// `w:themeColor` without tint or shade. Resolution substitutes the
-    /// scheme colour; a missing scheme entry stays here.
-    Theme(ThemeColorSlot),
+    /// `w:themeColor` plus optional `w:themeTint` / `w:themeShade` bytes.
+    /// Resolution substitutes the scheme colour and applies ECMA-376
+    /// §17.3.2.6. A missing scheme entry stays here.
+    Theme {
+        slot: ThemeColorSlot,
+        tint: Option<u8>,
+        shade: Option<u8>,
+    },
+}
+
+impl Color {
+    pub fn theme(slot: ThemeColorSlot) -> Self {
+        Self::Theme {
+            slot,
+            tint: None,
+            shade: None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

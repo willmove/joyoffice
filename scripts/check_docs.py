@@ -13,7 +13,7 @@ DOCS = ROOT / "docs/joyword"
 REQUIREMENT = r"(?:EDIT|STYLE|LAYOUT|REVIEW|FORMAT|CLIP|AI|PLATFORM|QUALITY|COLLAB|SUITE)-\d{3}"
 RELEASE_GATE = "T704"  # Every M0–M7 task must be a prerequisite of the 1.0 gate.
 # T205: evidenced ribbon, ruler and status controls. Lowering this is a coverage regression.
-FEATURE_FLOOR = 40
+FEATURE_FLOOR = 41
 # T209: undo-group rules (SPEC §6) that must stay registered with a test.
 REQUIRED_BEHAVIORS = (
     "EDIT-UNDO-TYPING",
