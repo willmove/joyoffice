@@ -110,9 +110,32 @@ pub struct ShapedRun {
     /// Typefaces named by the resolved style. Absent when the style names none.
     pub latin_family: Option<Arc<str>>,
     pub east_asia_family: Option<Arc<str>>,
+    /// sRGB fill. Auto is black, which is the fill the scene used before a
+    /// colour was stored on the run.
+    pub color: [u8; 3],
+    /// Underline already resolved from the font, in EMU relative to the baseline.
+    pub underline: Option<UnderlinePaint>,
 }
 
-fn to_emu(units: i64, size: Emu, units_per_em: u16) -> Emu {
+/// Underline styles this scene paints. The stroke metrics come from the font;
+/// double and dotted only repeat that one stroke.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PaintedUnderline {
+    Single,
+    Double,
+    Dotted,
+}
+
+/// One underline resolved into EMU. `offset` is the y-down distance from the
+/// baseline to the top of the first stroke. `thickness` is the stroke height.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UnderlinePaint {
+    pub kind: PaintedUnderline,
+    pub offset: Emu,
+    pub thickness: Emu,
+}
+
+pub(crate) fn to_emu(units: i64, size: Emu, units_per_em: u16) -> Emu {
     // Round half away from zero; i128 avoids overflow for large documents.
     let numerator = i128::from(units) * i128::from(size.raw());
     let denominator = i128::from(units_per_em);
@@ -123,6 +146,30 @@ fn to_emu(units: i64, size: Emu, units_per_em: u16) -> Emu {
         (numerator - half) / denominator
     };
     Emu::new(value as i64)
+}
+
+/// Resolve one underline into baseline-relative EMU.
+///
+/// `offset` is y-down from the baseline to the top of the first stroke, so a
+/// negative OpenType position (below the baseline, y-up) becomes a positive
+/// offset. Thickness is at least one EMU. Double and dotted reuse this stroke.
+pub(crate) fn paint_underline(
+    font: &LoadedFont,
+    size: Emu,
+    kind: Option<PaintedUnderline>,
+) -> Option<UnderlinePaint> {
+    let kind = kind?;
+    let metrics = font.underline_metrics();
+    let mut thickness = to_emu(i64::from(metrics.thickness.max(1)), size, font.units_per_em);
+    if thickness.raw() < 1 {
+        thickness = Emu::new(1);
+    }
+    let offset = to_emu(-i64::from(metrics.position), size, font.units_per_em);
+    Some(UnderlinePaint {
+        kind,
+        offset,
+        thickness,
+    })
 }
 
 /// Shapes one run of text in one font, size and feature set. Script,
@@ -191,6 +238,8 @@ fn shape_with(
         italic: false,
         latin_family: None,
         east_asia_family: None,
+        color: [0, 0, 0],
+        underline: None,
     }
 }
 

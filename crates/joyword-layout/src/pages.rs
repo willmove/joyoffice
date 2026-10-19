@@ -13,6 +13,8 @@
 //! share the content box; a column break advances one column, or one page
 //! when the section has a single column (§17.3.3.1, §17.6.4).
 
+use std::collections::BTreeSet;
+
 use joyword_foundation::Emu;
 use joyword_model::{
     BreakKind, Document, HeaderFooterKind, InlineKind, NumberFormat, OBJECT_MARKER, PageField,
@@ -26,8 +28,10 @@ use crate::document::{
     unsupported,
 };
 use crate::line::{LayoutLine, LineError, LineLimits, SourceRange, layout_paragraph_auto};
-use crate::scene::GlyphRun;
+use crate::scene::{GlyphRun, decoration_rects};
+use crate::shape::paint_underline;
 use crate::style_paint;
+use crate::view::{self, ViewOptions};
 
 /// How the first block of a section meets the previous section.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -594,7 +598,7 @@ fn paint_header(
         if next.raw() > geometry.top.raw() {
             crossed = true;
         }
-        snapshot.append_page_run(page_index, place_run(line.run, geometry.left, baseline))?;
+        place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
         y = next;
     }
     if crossed {
@@ -641,8 +645,9 @@ fn paint_footer(
         let baseline = Emu::new(y)
             .checked_add(Emu::new(line.baseline))
             .ok_or(LayoutError::GeometryOverflow)?;
-        snapshot.append_page_run(page_index, place_run(line.run, geometry.left, baseline))?;
-        y += line.line_box.raw();
+        let box_height = line.line_box.raw();
+        place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
+        y += box_height;
     }
     if crossed {
         note_exceeds(snapshot, story, exceeded);
@@ -660,10 +665,20 @@ fn note_exceeds(
     }
 }
 
-fn place_run(mut run: GlyphRun, origin_x: Emu, baseline_y: Emu) -> GlyphRun {
+fn place_story_line(
+    snapshot: &mut LayoutSnapshot,
+    page_index: usize,
+    line: StoryLine,
+    origin_x: Emu,
+    baseline_y: Emu,
+) -> Result<(), LayoutError> {
+    let mut run = line.run;
     run.origin_x = origin_x;
     run.baseline_y = baseline_y;
-    run
+    let marks = snapshot.key().view.formatting_marks;
+    let rects = decoration_rects(&run, marks, line.paragraph_end, &line.tab_gaps);
+    snapshot.append_page_run(page_index, run)?;
+    snapshot.extend_page_rects(page_index, rects)
 }
 
 /// A fitted header or footer line, not yet positioned on the page.
@@ -671,6 +686,8 @@ struct StoryLine {
     run: GlyphRun,
     line_box: Emu,
     baseline: i64,
+    paragraph_end: bool,
+    tab_gaps: Vec<(i64, i64)>,
 }
 
 /// Fitted header or footer lines, not yet positioned.
@@ -689,21 +706,23 @@ fn story_runs(
     let Some(story) = document.story(story_id) else {
         return Ok(Vec::new());
     };
+    let view = snapshot.key().view;
     let mut runs = Vec::new();
     for block in story.blocks.iter() {
         cancellation.check()?;
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
-        let (display, used_cache) = match story_display(snapshot, document, paragraph, page_index) {
-            Some(text) => text,
-            None => {
-                snapshot.note(LayoutNote::StoryContentSkipped {
-                    paragraph: paragraph.id(),
-                });
-                continue;
-            }
-        };
+        let (display, used_cache) =
+            match story_display(snapshot, document, paragraph, page_index, view)? {
+                Some(text) => text,
+                None => {
+                    snapshot.note(LayoutNote::StoryContentSkipped {
+                        paragraph: paragraph.id(),
+                    });
+                    continue;
+                }
+            };
         if used_cache {
             let note = LayoutNote::PageFieldCached {
                 paragraph: paragraph.id(),
@@ -715,7 +734,7 @@ fn story_runs(
         if display.is_empty() {
             continue;
         }
-        let painted = match style_paint::paint(document, paragraph, profile, None) {
+        let painted = match style_paint::paint(document, paragraph, profile, view, None) {
             Ok(painted) => painted,
             Err(LayoutError::Cancelled) => return Err(LayoutError::Cancelled),
             Err(LayoutError::LimitExceeded(limit)) => {
@@ -756,29 +775,42 @@ fn story_runs(
             profile.leading
         };
         let baseline = painted.baseline.raw().clamp(0, line_box.raw());
-        for mut line in fitted.lines {
+        let underline = paint_underline(font, painted.size, painted.underline);
+        let last = fitted.lines.len().saturating_sub(1);
+        for (index, mut line) in fitted.lines.into_iter().enumerate() {
             line.run.bold = painted.bold;
             line.run.italic = painted.italic;
             line.run.latin_family.clone_from(&painted.latin);
             line.run.east_asia_family.clone_from(&painted.east_asia);
+            line.run.color = painted.color;
+            line.run.underline = underline;
+            let tab_gaps = line.tab_gaps.clone();
             let run = line.to_glyph_run(Emu::new(0), Emu::new(0));
             runs.push(StoryLine {
                 run,
                 line_box,
                 baseline,
+                paragraph_end: index == last,
+                tab_gaps,
             });
         }
     }
     Ok(runs)
 }
 
+/// Header and footer text. Field codes print `PAGE`, `NUMPAGES` or
+/// `SECTIONPAGES` instead of the number. Braces and switches are not
+/// printed. Scalars omitted by hidden text or a field projection are skipped.
 fn story_display(
     snapshot: &LayoutSnapshot,
     document: &Document,
     paragraph: &Paragraph,
     page_index: usize,
-) -> Option<(String, bool)> {
-    let section = snapshot.page_box(page_index)?.1;
+    view: ViewOptions,
+) -> Result<Option<(String, bool)>, LayoutError> {
+    let Some((_, section)) = snapshot.page_box(page_index) else {
+        return Ok(None);
+    };
     let numbering = document
         .sections()
         .get(section)
@@ -790,48 +822,50 @@ fn story_display(
         section_pages: snapshot.section_page_count(section),
         ..crate::cache::ExternalContext::default()
     };
-    let view = snapshot.key().revision_view;
-    let mut visible = Vec::new();
+    let revision = snapshot.key().revision_view;
+    let mut omitted = view::omitted_indices(document, paragraph, view)?;
+    let mut scalar = 0usize;
     for run in paragraph.runs() {
         let show = run
             .revision
             .as_ref()
-            .map(|revision| revision.kind.visible_in(view))
+            .map(|item| item.kind.visible_in(revision))
             .unwrap_or(true);
-        visible.extend(std::iter::repeat_n(show, run.len));
+        if !show {
+            omitted.extend(scalar..scalar + run.len);
+        }
+        scalar += run.len;
     }
     let mut text = String::new();
     let mut used_cache = false;
-    let mut index = 0usize;
+    let mut scalar = 0usize;
     for segment in paragraph.segments() {
         match segment {
             Segment::Text(chunk) => {
                 for ch in chunk.chars() {
-                    let show = visible.get(index).copied().unwrap_or(true);
-                    index += 1;
-                    if show {
+                    if !omitted.contains(&scalar) {
                         text.push(ch);
                     }
+                    scalar += 1;
                 }
             }
             Segment::Inline(object) => {
-                let show = visible.get(index).copied().unwrap_or(true);
-                index += 1;
-                if !show {
-                    continue;
-                }
-                match &object.kind {
-                    InlineKind::PageField(field) => {
-                        let (rendered, cache) = render_field(field, &numbering, ctx);
-                        used_cache |= cache;
-                        text.push_str(&rendered);
+                if !omitted.contains(&scalar) {
+                    match &object.kind {
+                        InlineKind::PageField(field) => {
+                            let (rendered, cache) =
+                                render_field(field, &numbering, ctx, view.field_codes);
+                            used_cache |= cache;
+                            text.push_str(&rendered);
+                        }
+                        _ => return Ok(None),
                     }
-                    _ => return None,
                 }
+                scalar += 1;
             }
         }
     }
-    Some((text, used_cache))
+    Ok(Some((text, used_cache)))
 }
 
 pub(crate) struct FieldExpansion {
@@ -842,12 +876,16 @@ pub(crate) struct FieldExpansion {
     pub used_cache: bool,
 }
 
-/// Replace page fields with the text layout should shape. The map sends those
-/// display scalars back to the paragraph, where the field is one marker.
+/// Replace page fields with the text layout should shape. Hidden scalars and
+/// field-annotation ranges in `omitted` are left out. Field codes show the
+/// instruction name instead of the number. The map sends display scalars back
+/// to the paragraph, where the field is one marker.
 pub(crate) fn expand_page_fields(
     paragraph: &Paragraph,
     numbering: &joyword_model::PageNumbering,
     ctx: crate::cache::ExternalContext,
+    view: ViewOptions,
+    omitted: &BTreeSet<usize>,
 ) -> FieldExpansion {
     let mut display = String::new();
     let mut source_scalars = Vec::new();
@@ -857,24 +895,29 @@ pub(crate) fn expand_page_fields(
         match segment {
             Segment::Text(chunk) => {
                 for ch in chunk.chars() {
-                    source_scalars.push(source_scalar);
+                    if !omitted.contains(&source_scalar) {
+                        source_scalars.push(source_scalar);
+                        display.push(ch);
+                    }
                     source_scalar += 1;
-                    display.push(ch);
                 }
             }
             Segment::Inline(object) => {
-                let rendered = match &object.kind {
-                    InlineKind::PageField(field) => {
-                        let (rendered, cache) = render_field(field, numbering, ctx);
-                        used_cache |= cache;
-                        rendered
+                if !omitted.contains(&source_scalar) {
+                    let rendered = match &object.kind {
+                        InlineKind::PageField(field) => {
+                            let (rendered, cache) =
+                                render_field(field, numbering, ctx, view.field_codes);
+                            used_cache |= cache;
+                            rendered
+                        }
+                        _ => OBJECT_MARKER.to_string(),
+                    };
+                    for _ch in rendered.chars() {
+                        source_scalars.push(source_scalar);
                     }
-                    _ => OBJECT_MARKER.to_string(),
-                };
-                for _ch in rendered.chars() {
-                    source_scalars.push(source_scalar);
+                    display.push_str(&rendered);
                 }
-                display.push_str(&rendered);
                 source_scalar += 1;
             }
         }
@@ -943,7 +986,11 @@ pub(crate) fn render_field(
     field: &PageField,
     numbering: &joyword_model::PageNumbering,
     ctx: crate::cache::ExternalContext,
+    codes: bool,
 ) -> (String, bool) {
+    if codes {
+        return (field_instruction(field.kind).to_owned(), false);
+    }
     if ctx.force_cache {
         return (
             field.cached.as_deref().unwrap_or("").to_owned(),
@@ -965,6 +1012,14 @@ pub(crate) fn render_field(
         (cached.to_string(), true)
     } else {
         (String::new(), false)
+    }
+}
+
+fn field_instruction(kind: PageFieldKind) -> &'static str {
+    match kind {
+        PageFieldKind::Page => "PAGE",
+        PageFieldKind::NumPages => "NUMPAGES",
+        PageFieldKind::SectionPages => "SECTIONPAGES",
     }
 }
 

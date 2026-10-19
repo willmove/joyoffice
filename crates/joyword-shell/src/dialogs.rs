@@ -8,10 +8,9 @@
 //! Chinese sizes use the Microsoft Office 号→point table recorded by OriginLab
 //! FAQ-850 and the Word column of the W3C clreq discussion (二号 is 22 pt, not
 //! the historical 21 pt). Half-points are ECMA-376 `ST_HpsMeasure` (1 pt = 2).
-//! The page scene still refuses underline and non-auto colour; those fields
-//! are applied because export writes them, and [`font_commands`] names that
-//! limit. Formatting marks, hidden text and field codes are not a layout view
-//! option, so their switches stay disabled.
+//! Single, double and dotted underlines and sRGB colour are written and
+//! painted by the page scene. Other underline styles and theme colours stay
+//! refused. [`ViewToggles`] is the session copy of the layout view options.
 
 use std::collections::BTreeMap;
 
@@ -127,14 +126,26 @@ const MAX_TWIPS: i64 = 22 * 1_440;
 const MAX_TABS: usize = 48;
 const MAX_FONT_NAME: usize = 64;
 
-/// Why a view switch cannot move. Layout has no snapshot input for these.
-pub fn disabled_view_toggle(id: CommandId) -> Option<&'static str> {
-    Some(match id {
-        VIEW_FORMATTING_MARKS => "view.formatting_marks.unsupported",
-        VIEW_HIDDEN_TEXT => "view.hidden_text.unsupported",
-        VIEW_FIELD_CODES => "view.field_codes.unsupported",
-        _ => return None,
-    })
+/// Session view switches. They are not document content. The application
+/// maps these three flags onto the layout snapshot key.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ViewToggles {
+    pub formatting_marks: bool,
+    pub show_hidden: bool,
+    pub field_codes: bool,
+}
+
+impl ViewToggles {
+    pub fn toggled(self, id: CommandId) -> Self {
+        let mut next = self;
+        match id {
+            VIEW_FORMATTING_MARKS => next.formatting_marks = !next.formatting_marks,
+            VIEW_HIDDEN_TEXT => next.show_hidden = !next.show_hidden,
+            VIEW_FIELD_CODES => next.field_codes = !next.field_codes,
+            _ => {}
+        }
+        next
+    }
 }
 
 pub fn is_dialog_command(id: CommandId) -> bool {
@@ -438,14 +449,15 @@ pub fn parse_paragraph(
     })
 }
 
-/// Commands for one non-empty range, plus notes the page scene will not paint.
+/// Commands for one non-empty range. The note list stays empty: the page
+/// scene paints single, double and dotted underlines and sRGB colour.
 pub fn font_commands(
     draft: &FontDraft,
     start: Position,
     end: Position,
 ) -> Result<(Vec<Command>, Vec<&'static str>), &'static str> {
     let mut commands = Vec::new();
-    let mut notes = Vec::new();
+    let notes = Vec::new();
     if let Some(family) = &draft.family {
         let font = FontRef::Named(family.as_str().into());
         commands.push(Command::FormatText {
@@ -484,9 +496,6 @@ pub fn font_commands(
         });
     }
     if let Some(underline) = draft.underline {
-        if underline != Underline::None {
-            notes.push("dialog.font.paint");
-        }
         commands.push(Command::FormatText {
             start,
             end,
@@ -494,9 +503,6 @@ pub fn font_commands(
         });
     }
     if let Some(color) = draft.color {
-        if matches!(color, Color::Rgb(_, _, _)) {
-            notes.push("dialog.font.paint");
-        }
         commands.push(Command::FormatText {
             start,
             end,

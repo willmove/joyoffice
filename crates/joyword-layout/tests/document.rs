@@ -1254,7 +1254,7 @@ fn revision_views_change_pagination_text_and_match_the_incremental_cache() {
                     full.pages()[0]
                         .runs
                         .iter()
-                        .any(|run| run.color != (0, 0, 0))
+                        .any(|run| run.color != [0, 0, 0])
                 );
                 assert!(!full.pages()[0].rects.is_empty());
             }

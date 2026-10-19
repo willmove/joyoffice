@@ -539,7 +539,7 @@ pub fn rasterize(
         if run.glyphs.is_empty() && run.text.is_empty() {
             continue;
         }
-        paint.set_color_rgba8(run.color.0, run.color.1, run.color.2, 255);
+        paint.set_color_rgba8(run.color[0], run.color[1], run.color[2], 255);
         let font = by_key[&run.font];
         let outlines = font.font_ref().outline_glyphs();
         for glyph in &run.glyphs {

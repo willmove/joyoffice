@@ -2161,8 +2161,11 @@ impl JoyWord {
         }
     }
     pub(crate) fn input_availability(&self, id: CommandId) -> Availability {
-        if let Some(reason) = joyword_shell::dialogs::disabled_view_toggle(id) {
-            return Availability::Disabled(reason);
+        if matches!(
+            id,
+            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES
+        ) {
+            return Availability::Enabled;
         }
         if joyword_shell::dialogs::is_dialog_command(id) {
             if self.open_gate.is_some() {
@@ -2350,6 +2353,14 @@ impl JoyWord {
         cx: &mut Context<Self>,
     ) -> Result<(), String> {
         self.input_error = None;
+        if matches!(
+            id,
+            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES
+        ) {
+            self.view_toggles = self.view_toggles.toggled(id);
+            cx.notify();
+            return Ok(());
+        }
         if self.open_gate.is_some() {
             if let EDIT_INSERT = id
                 && let Some(joyword_shell::command::ArgValue::Text(text)) = args.get("text")
@@ -2744,16 +2755,9 @@ impl JoyWord {
                     Ok(None) => return Ok(()),
                     Err(reason) => return Err(self.label(reason)),
                 };
-                let mut notes = Vec::new();
-                self.apply_input(cx, |editor| {
-                    notes = editor.apply_font(&draft)?;
-                    Ok(())
-                });
+                self.apply_input(cx, |editor| editor.apply_font(&draft).map(|_| ()));
                 if self.input_error.is_none() {
                     self.format_dialog = None;
-                    if notes.contains(&"dialog.font.paint") {
-                        self.copy_note = Some(self.label("dialog.font.paint"));
-                    }
                 }
             }
             FORMAT_PARAGRAPH => {
@@ -2767,11 +2771,6 @@ impl JoyWord {
                 if self.input_error.is_none() {
                     self.format_dialog = None;
                 }
-            }
-            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES => {
-                let reason = joyword_shell::dialogs::disabled_view_toggle(id)
-                    .unwrap_or("view.formatting_marks.unsupported");
-                return Err(self.label(reason));
             }
             _ => return Err(format!("{id} is not an input command")),
         }

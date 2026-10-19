@@ -206,8 +206,8 @@ pub(crate) fn marked_runs(
         }
         let mark = mark.and_then(|index| line.revisions.get(index));
         let color = mark
-            .map(|mark| (mark.red, mark.green, mark.blue))
-            .unwrap_or((0, 0, 0));
+            .map(|mark| [mark.red, mark.green, mark.blue])
+            .unwrap_or([0, 0, 0]);
         let mut run = GlyphRun::place(&line.run, Emu::new(origin_x.raw() + first_x), baseline_y);
         run.text = line.run.text[byte_start..byte_end].to_string();
         run.glyphs = glyphs_out;

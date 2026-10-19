@@ -155,7 +155,6 @@ pub fn render_export(
         for image in &scene.images {
             draw_image(&mut surface, image)?;
         }
-        let mut colored_fill = false;
         for run in &scene.runs {
             if run.glyphs.is_empty() && run.text.is_empty() {
                 continue;
@@ -179,15 +178,7 @@ pub fn render_export(
                 to_points(run.baseline_y) as f32,
             );
             let size = to_points(run.size) as f32;
-            // Black stays the surface default so an ordinary page's content
-            // stream is unchanged. A review colour is set for that run only.
-            if run.color != (0, 0, 0) {
-                set_glyph_fill(&mut surface, run.color);
-                colored_fill = true;
-            } else if colored_fill {
-                surface.set_fill(None);
-                colored_fill = false;
-            }
+            set_rgb_fill(&mut surface, run.color);
             surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
             if run.bold {
                 // A second paint with empty cluster ranges keeps the searchable
@@ -231,12 +222,12 @@ pub fn render_export(
         .map_err(|error| PdfError::Writer(format!("{error:?}")))
 }
 
-fn set_glyph_fill(surface: &mut krilla::surface::Surface<'_>, color: (u8, u8, u8)) {
+fn set_rgb_fill(surface: &mut krilla::surface::Surface<'_>, color: [u8; 3]) {
     let Some(opacity) = krilla::num::NormalizedF32::new(1.0) else {
         return;
     };
     surface.set_fill(Some(krilla::paint::Fill {
-        paint: krilla::color::rgb::Color::new(color.0, color.1, color.2).into(),
+        paint: krilla::color::rgb::Color::new(color[0], color[1], color[2]).into(),
         opacity,
         rule: krilla::paint::FillRule::NonZero,
     }));

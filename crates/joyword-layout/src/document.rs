@@ -26,10 +26,11 @@ use crate::cjk::{self, CjkIssue};
 use crate::line::{LineFit, layout_paragraph_adjusted, layout_paragraph_auto_cancellable_adjusted};
 use crate::shape::ShapedRun;
 use crate::style_paint;
+use crate::view::{self, ViewOptions};
 use crate::{
     FaceSet, FeatureSet, FontKey, FontSlot, GlyphRun, LayoutLine, LineDiagnostic, LineError,
     LineLimits, LoadedFont, PageScene, SceneImage, SceneRect, SourceRange, adjust_cjk_break,
-    slot_for, wrap_mixed,
+    decoration_rects, slot_for, wrap_mixed,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -181,14 +182,47 @@ impl fmt::Display for LayoutError {
 }
 impl std::error::Error for LayoutError {}
 
+/// Revision projection and paint/view options for one layout.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct SceneViews {
+    pub revision: RevisionView,
+    pub options: ViewOptions,
+}
+
+impl SceneViews {
+    pub(crate) fn standard() -> Self {
+        Self {
+            revision: RevisionView::FinalWithMarkup,
+            options: ViewOptions::default(),
+        }
+    }
+
+    pub(crate) fn revision(revision: RevisionView) -> Self {
+        Self {
+            revision,
+            options: ViewOptions::default(),
+        }
+    }
+
+    pub(crate) fn options(options: ViewOptions) -> Self {
+        Self {
+            revision: RevisionView::FinalWithMarkup,
+            options,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LayoutKey {
     pub version: DocumentVersion,
     pub font: FontKey,
     pub profile: SingleFontProfile,
-    /// How tracked changes were projected. Not part of the content hash:
-    /// the same document in another view is a different scene.
+    /// How tracked changes were projected. The same document in another
+    /// revision view is a different scene.
     pub revision_view: RevisionView,
+    /// Formatting marks, hidden text and field codes. Two snapshots of one
+    /// document with different options are different keys.
+    pub view: ViewOptions,
     content: [u8; 32],
 }
 impl LayoutKey {
@@ -301,6 +335,9 @@ pub struct PlacedLine {
     pub carets: Vec<CaretStop>,
     /// Images this line painted into `pages[page].images`.
     pub images: Range<usize>,
+    /// Line-local tab gaps `(x, width)`. A suffix copy redraws the mark from
+    /// these; they are already part of the line advance.
+    pub tab_gaps: Vec<(i64, i64)>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -638,9 +675,10 @@ fn check_paragraph(
     document: &Document,
     paragraph: &Paragraph,
     profile: SingleFontProfile,
+    view: ViewOptions,
 ) -> Result<(), LayoutError> {
     crate::pages::accept_body_inlines(document, paragraph)?;
-    style_paint::paint(document, paragraph, profile, None).map(|_| ())
+    style_paint::paint(document, paragraph, profile, view, None).map(|_| ())
 }
 
 pub(crate) fn preflight(
@@ -648,6 +686,7 @@ pub(crate) fn preflight(
     profile: SingleFontProfile,
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
+    view: ViewOptions,
 ) -> Result<PageGeometry, LayoutError> {
     if document.body().blocks.len() > limits.max_paragraphs {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Paragraphs));
@@ -661,9 +700,7 @@ pub(crate) fn preflight(
     if metadata > limits.max_metadata_items {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Metadata));
     }
-    if document.annotations().next().is_some() {
-        return Err(unsupported(None, "annotation or field projection"));
-    }
+    view::accept_annotations(document)?;
     if document.settings().preserved.is_some() {
         return Err(unsupported(None, "preserved settings"));
     }
@@ -695,7 +732,7 @@ pub(crate) fn preflight(
             if runs > limits.max_runs {
                 return Err(LayoutError::LimitExceeded(LayoutLimit::Runs));
             }
-            check_paragraph(document, p, profile)?;
+            check_paragraph(document, p, profile, view)?;
         }
     }
     crate::pages::accept_stories(document)?;
@@ -1012,31 +1049,69 @@ pub fn layout_document(
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
 ) -> Result<LayoutSnapshot, LayoutError> {
-    layout_document_viewed(
+    layout_with_views(
         document,
         faces,
         profile,
         limits,
         cancellation,
-        RevisionView::FinalWithMarkup,
+        SceneViews::standard(),
     )
 }
 
 /// [`layout_document`] with an explicit revision projection. Final and
 /// Original drop hidden runs before shaping. Final with markup shapes every
-/// run and paints the review marks.
+/// run and paints the review marks. View options stay at their defaults.
 pub fn layout_document_viewed(
     document: &DocumentSnapshot,
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
-    view: RevisionView,
+    revision: RevisionView,
+) -> Result<LayoutSnapshot, LayoutError> {
+    layout_with_views(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        SceneViews::revision(revision),
+    )
+}
+
+/// [`layout_document`] with view options in the snapshot key. The revision
+/// projection stays final-with-markup.
+pub fn layout_with_view(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    options: ViewOptions,
+) -> Result<LayoutSnapshot, LayoutError> {
+    layout_with_views(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        SceneViews::options(options),
+    )
+}
+
+pub(crate) fn layout_with_views(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
     cancellation.check()?;
     profile.validate()?;
     let limits = limits.capped();
-    let geometry = preflight(document, profile, limits, cancellation)?;
+    let geometry = preflight(document, profile, limits, cancellation, views.options)?;
     let plans = crate::pages::section_plans(document)?;
     let mut assumed = crate::cache::seed_page_contexts(document);
     let mut seen = Vec::new();
@@ -1050,7 +1125,7 @@ pub fn layout_document_viewed(
                 cancellation,
                 geometry,
                 &plans,
-                view,
+                views,
             );
         }
         seen.push(assumed.clone());
@@ -1063,7 +1138,7 @@ pub fn layout_document_viewed(
             geometry,
             &plans,
             &assumed,
-            view,
+            views,
         )?;
         let produced = crate::cache::contexts_after(document, &snapshot);
         if produced == assumed {
@@ -1079,7 +1154,7 @@ pub fn layout_document_viewed(
         cancellation,
         geometry,
         &plans,
-        view,
+        views,
     )
 }
 
@@ -1092,7 +1167,7 @@ fn layout_forced_cache(
     cancellation: &LayoutCancellation,
     geometry: PageGeometry,
     plans: &[crate::pages::SectionPlan],
-    view: RevisionView,
+    views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
     if !crate::cache::body_fields_have_cache(document) {
         return Err(LayoutError::Unstable);
@@ -1107,7 +1182,7 @@ fn layout_forced_cache(
         geometry,
         plans,
         &forced,
-        view,
+        views,
     )
 }
 
@@ -1121,10 +1196,10 @@ fn layout_once(
     geometry: PageGeometry,
     plans: &[crate::pages::SectionPlan],
     assumed: &[crate::cache::ExternalContext],
-    view: RevisionView,
+    views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
     cancellation.check()?;
-    let mut result = open_snapshot(document, faces, profile, limits, geometry, view)?;
+    let mut result = open_snapshot(document, faces, profile, limits, geometry, views)?;
     let marks = joyword_model::list_marks(document);
     if document
         .body()
@@ -1142,7 +1217,7 @@ fn layout_once(
             &marks,
             plans,
             assumed,
-            view,
+            views,
         );
     }
     let mut prepared = Vec::new();
@@ -1177,10 +1252,10 @@ fn layout_once(
             },
             cancellation,
             marks.get(&paragraph.id()),
+            views,
             None,
             assumed.get(index).copied().unwrap_or_default(),
             &numbering,
-            view,
         )?;
         apply_section(&mut fitted, document, plans, index);
         if fitted.used_field_cache {
@@ -1217,7 +1292,7 @@ fn layout_mixed(
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
     plans: &[crate::pages::SectionPlan],
     assumed: &[crate::cache::ExternalContext],
-    view: RevisionView,
+    views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
     let mut spent = WorkSpent {
         shapes: 0,
@@ -1249,10 +1324,10 @@ fn layout_mixed(
                     },
                     cancellation,
                     marks.get(&paragraph.id()),
+                    views,
                     None,
                     assumed.get(index).copied().unwrap_or_default(),
                     &numbering,
-                    view,
                 )?;
                 apply_section(&mut fitted, document, plans, index);
                 if fitted.used_field_cache {
@@ -1283,7 +1358,7 @@ fn layout_mixed(
                     &mut spent,
                     cancellation,
                     marks,
-                    view,
+                    views,
                 )?;
             }
             Block::Opaque(_) => result.omit_opaque_block(),
@@ -1414,7 +1489,7 @@ fn place_table(
     spent: &mut WorkSpent,
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
-    view: RevisionView,
+    views: SceneViews,
 ) -> Result<(), LayoutError> {
     let mut rows = build_row_flows(
         result,
@@ -1428,7 +1503,7 @@ fn place_table(
         spent,
         cancellation,
         marks,
-        view,
+        views,
     )?;
     assign_row_heights(&mut rows)?;
     let tops = row_tops(&rows);
@@ -1482,7 +1557,7 @@ fn build_row_flows(
     spent: &mut WorkSpent,
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
-    view: RevisionView,
+    views: SceneViews,
 ) -> Result<Vec<RowFlow>, LayoutError> {
     let (pad_top, pad_left, pad_bottom, pad_right) = cell_pad(table.cell_margin, table.id)?;
     let mut edges = Vec::with_capacity(table.grid.len() + 1);
@@ -1594,10 +1669,10 @@ fn build_row_flows(
                     },
                     cancellation,
                     marks.get(&paragraph.id()),
+                    views,
                     table_format.bold,
                     crate::cache::ExternalContext::default(),
                     &numbering,
-                    view,
                 )?;
                 fitted.geometry = geometry;
                 fitted.section_index = section;
@@ -2271,20 +2346,22 @@ fn flush_jobs(
     ordered.sort_by_key(|job| (job.row, job.cell, job.paragraph, job.line));
     let header_end = ordered.iter().position(|job| !rows[job.row].header);
     let header_jobs = header_end.unwrap_or(ordered.len());
-    let (run_before, image_before) = if stamp.valid {
+    let (run_before, image_before, rect_before) = if stamp.valid {
         result
             .pages
             .get(stamp.page)
-            .map(|page| (page.runs.len(), page.images.len()))
-            .unwrap_or((0, 0))
+            .map(|page| (page.runs.len(), page.images.len(), page.rects.len()))
+            .unwrap_or((0, 0, 0))
     } else {
-        (0, 0)
+        (0, 0, 0)
     };
     place_jobs(result, rows, &ordered[..header_jobs])?;
     if stamp.valid {
+        let mut header_rects = Vec::new();
         if let Some(page) = result.pages.get(stamp.page) {
             stamp.runs = page.runs[run_before.min(page.runs.len())..].to_vec();
             stamp.images = page.images[image_before.min(page.images.len())..].to_vec();
+            header_rects = page.rects[rect_before.min(page.rects.len())..].to_vec();
         }
         for &(page_index, origin) in repeats {
             let delta = origin - stamp.origin_y;
@@ -2306,9 +2383,22 @@ fn flush_jobs(
                     copy
                 })
                 .collect();
+            let rect_copies: Vec<SceneRect> = header_rects
+                .iter()
+                .map(|rect| SceneRect {
+                    x: rect.x,
+                    y: Emu::new(rect.y.raw().saturating_add(delta)),
+                    width: rect.width,
+                    height: rect.height,
+                    red: rect.red,
+                    green: rect.green,
+                    blue: rect.blue,
+                })
+                .collect();
             if let Some(page) = result.pages.get_mut(page_index) {
                 page.runs.extend(copies);
                 page.images.extend(image_copies);
+                page.rects.extend(rect_copies);
             }
         }
     }
@@ -2354,6 +2444,7 @@ fn place_jobs(
                 line_box,
                 justification,
                 baseline,
+                job.line + 1 == fitted.lines.len(),
             )?;
             index += 1;
         }
@@ -2431,14 +2522,15 @@ pub(crate) fn open_snapshot(
     profile: SingleFontProfile,
     limits: LayoutLimits,
     geometry: PageGeometry,
-    view: RevisionView,
+    views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
     let mut result = LayoutSnapshot {
         key: LayoutKey {
             version: document.version(),
             font: faces.ascii.key(),
             profile,
-            revision_view: view,
+            revision_view: views.revision,
+            view: views.options,
             content: fingerprint(document),
         },
         story: document.body_id(),
@@ -2531,10 +2623,10 @@ pub(crate) fn fit_paragraph(
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
+    views: SceneViews,
     table_bold: Option<bool>,
     field_context: crate::cache::ExternalContext,
     numbering: &joyword_model::PageNumbering,
-    view: RevisionView,
 ) -> Result<FittedParagraph, LayoutError> {
     cancellation.check()?;
     let defaults = LineLimits::default();
@@ -2563,7 +2655,10 @@ pub(crate) fn fit_paragraph(
     if request_limits.max_lines == 0 {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Lines));
     }
-    let painted = style_paint::paint(document, paragraph, profile, table_bold)?;
+    let options = views.options;
+    let revision = views.revision;
+    let painted = style_paint::paint(document, paragraph, profile, options, table_bold)?;
+    let projection = view::project_paragraph(document, paragraph, options)?;
     let shaping = SingleFontProfile {
         size: painted.size,
         leading: painted.leading,
@@ -2575,17 +2670,38 @@ pub(crate) fn fit_paragraph(
     let preview_label = mark.and_then(|item| item.as_ref().ok());
     let list_layout = mark.is_some()
         || crate::list_layout::needs_list_layout(&preview_props, &full, preview_label);
-    let projected = crate::revision_view::project(paragraph, view, list_layout)?;
+    let projected = crate::revision_view::project(paragraph, revision, list_layout)?;
     let has_field = paragraph
         .inlines()
         .iter()
         .any(|inline| matches!(inline.kind, joyword_model::InlineKind::PageField(_)));
-    let expanded =
-        has_field.then(|| crate::pages::expand_page_fields(paragraph, numbering, field_context));
-    let text = match (&projected, &expanded) {
-        (Some(item), _) => item.text.clone(),
-        (None, Some(expanded)) => expanded.display.clone(),
-        (None, None) => full,
+    let mut omitted = view::omitted_indices(document, paragraph, options)?;
+    if let Some(item) = &projected {
+        let shown: std::collections::BTreeSet<usize> = item.map.iter().copied().collect();
+        for index in 0..paragraph.len() {
+            if !shown.contains(&index) {
+                omitted.insert(index);
+            }
+        }
+    }
+    let expanded = has_field.then(|| {
+        crate::pages::expand_page_fields(paragraph, numbering, field_context, options, &omitted)
+    });
+    let text = if let Some(expanded) = &expanded {
+        expanded.display.clone()
+    } else if projected.is_some() && projection.map.is_none() {
+        projected
+            .as_ref()
+            .map(|item| item.text.clone())
+            .unwrap_or_else(|| full.clone())
+    } else if projected.is_none() {
+        projection.text.clone()
+    } else {
+        full.chars()
+            .enumerate()
+            .filter(|(index, _)| !omitted.contains(index))
+            .map(|(_, ch)| ch)
+            .collect()
     };
     let map_line = |error: LineError| {
         if error == LineError::Cancelled {
@@ -2801,17 +2917,42 @@ pub(crate) fn fit_paragraph(
             .diagnostics
             .push(LineDiagnostic::Numbering { detail });
     }
+    if expanded.is_none() && projected.is_some() && projection.map.is_some() {
+        let mut map: Vec<usize> = (0..paragraph.len())
+            .filter(|index| !omitted.contains(index))
+            .collect();
+        map.push(paragraph.len());
+        for line in &mut fitted.lines {
+            line.source.scalars = view::remap_range(line.source.scalars.clone(), &map);
+            for cluster in &mut line.clusters {
+                cluster.source.scalars = view::remap_range(cluster.source.scalars.clone(), &map);
+            }
+        }
+    } else if expanded.is_none()
+        && let Some(map) = projection.map.as_deref()
+    {
+        for line in &mut fitted.lines {
+            line.source.scalars = view::remap_range(line.source.scalars.clone(), map);
+            for cluster in &mut line.clusters {
+                cluster.source.scalars = view::remap_range(cluster.source.scalars.clone(), map);
+            }
+        }
+    } else if expanded.is_none()
+        && let Some(projected) = &projected
+    {
+        crate::revision_view::remap(&mut fitted.lines, &projected.map, paragraph.len());
+    }
     note_hyperlinks(paragraph, &mut fitted.lines);
+    let underline = crate::shape::paint_underline(shape_font, painted.size, painted.underline);
     for line in &mut fitted.lines {
         line.run.bold = painted.bold;
         line.run.italic = painted.italic;
         line.run.latin_family.clone_from(&painted.latin);
         line.run.east_asia_family.clone_from(&painted.east_asia);
+        line.run.color = painted.color;
+        line.run.underline = underline;
     }
-    if let Some(projected) = &projected {
-        crate::revision_view::remap(&mut fitted.lines, &projected.map, paragraph.len());
-    }
-    crate::revision_view::annotate(&mut fitted.lines, paragraph, view);
+    crate::revision_view::annotate(&mut fitted.lines, paragraph, revision);
     let before = painted.flow.before;
     let after = painted.flow.after;
     if before.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
@@ -3018,9 +3159,18 @@ fn suffix_copies(
             if pages[line.page].runs.len() != line.run {
                 return false;
             }
-            pages[line.page]
-                .runs
-                .push(stop.previous.pages[line.page].runs[line.run].clone());
+            let glyph = stop.previous.pages[line.page].runs[line.run].clone();
+            let paragraph_end = source_lines
+                .get(cursor + 1)
+                .is_none_or(|next| next.paragraph != fitted.id);
+            let decorations = decoration_rects(
+                &glyph,
+                result.key.view.formatting_marks,
+                paragraph_end,
+                &line.tab_gaps,
+            );
+            pages[line.page].runs.push(glyph);
+            pages[line.page].rects.extend(decorations);
             let source_images = &stop.previous.pages[line.page].images;
             if line.images.start > line.images.end || line.images.end > source_images.len() {
                 return false;
@@ -3188,7 +3338,8 @@ fn place_one(
             *top = geometry.top;
         }
         let end = cursor.saturating_add(count).min(lines.len());
-        for line in &lines[cursor..end] {
+        let paragraph_last = lines.len().saturating_sub(1);
+        for (offset, line) in lines[cursor..end].iter().enumerate() {
             cancellation.check()?;
             if !before_applied {
                 *top = add(*top, before)?;
@@ -3224,6 +3375,7 @@ fn place_one(
                 line_box,
                 justification,
                 baseline_offset,
+                cursor + offset == paragraph_last,
             )?;
         }
         cursor = end;
@@ -3399,6 +3551,7 @@ fn place_line(
     line_box: Emu,
     justification: Option<Justification>,
     baseline_offset: Emu,
+    paragraph_end: bool,
 ) -> Result<(), LayoutError> {
     let page_index = result.pages.len() - 1;
     place_line_on(
@@ -3412,6 +3565,7 @@ fn place_line(
         line_box,
         justification,
         baseline_offset,
+        paragraph_end,
     )
 }
 
@@ -3427,6 +3581,7 @@ fn place_line_on(
     line_box: Emu,
     justification: Option<Justification>,
     baseline_offset: Emu,
+    paragraph_end: bool,
 ) -> Result<(), LayoutError> {
     let slack = (frame_width.raw() - line.run.width.raw()).max(0);
     let shift = match justification {
@@ -3455,6 +3610,9 @@ fn place_line_on(
             .checked_sub(glyph.y_offset.raw())
             .ok_or(LayoutError::GeometryOverflow)?;
     }
+    let glyph = line.to_glyph_run(x, baseline);
+    let marks = result.key.view.formatting_marks;
+    let decorations = decoration_rects(&glyph, marks, paragraph_end, &line.tab_gaps);
     let (run, images) = {
         let page = result
             .pages
@@ -3470,6 +3628,7 @@ fn place_line_on(
             page.runs.extend(runs);
             page.rects.extend(rects);
         }
+        page.rects.extend(decorations);
         let image_start = page.images.len();
         for image in &line.images {
             let y = baseline
@@ -3498,6 +3657,7 @@ fn place_line_on(
         height: step,
         carets,
         images,
+        tab_gaps: line.tab_gaps.clone(),
     });
     *top = add(*top, step)?;
     Ok(())
@@ -3791,6 +3951,19 @@ impl LayoutSnapshot {
         scene.runs.push(run);
         Ok(())
     }
+
+    pub(crate) fn extend_page_rects(
+        &mut self,
+        page: usize,
+        rects: Vec<SceneRect>,
+    ) -> Result<(), LayoutError> {
+        let scene = self
+            .pages
+            .get_mut(page)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        scene.rects.extend(rects);
+        Ok(())
+    }
     pub fn key(&self) -> &LayoutKey {
         &self.key
     }
@@ -3854,6 +4027,7 @@ impl LayoutSnapshot {
             profile,
             self.limits,
             &LayoutCancellation::default(),
+            self.key.view,
         )
         .is_err()
             || self.key.content != fingerprint(document)
