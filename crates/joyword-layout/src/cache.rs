@@ -26,6 +26,7 @@ use crate::document::{
     apply_section, assemble, dominant_slot, fit_paragraph, open_snapshot, preflight, record_fit,
 };
 use crate::style_paint;
+use crate::view::ViewOptions;
 use crate::{
     FaceSet, FontKey, FontSlot, LayoutCancellation, LayoutError, LayoutLimits, SingleFontProfile,
 };
@@ -294,6 +295,10 @@ struct ParagraphCacheKey {
     font: FontEnvKey,
     profile: ProfileFitKey,
     external: ExternalKey,
+    /// Hidden text and field codes change the shaped string. Formatting marks
+    /// do not, so they stay off this key and are drawn when the line is placed.
+    show_hidden: bool,
+    field_codes: bool,
 }
 
 struct CacheEntry {
@@ -464,6 +469,27 @@ pub fn layout_incremental(
     cancellation: &LayoutCancellation,
     reuse: LayoutReuse<'_>,
 ) -> Result<LayoutSnapshot, LayoutError> {
+    layout_incremental_with_view(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        reuse,
+        ViewOptions::default(),
+    )
+}
+
+/// [`layout_incremental`] with the view options stored on the snapshot key.
+pub fn layout_incremental_with_view(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    reuse: LayoutReuse<'_>,
+    view: ViewOptions,
+) -> Result<LayoutSnapshot, LayoutError> {
     // A table row is not a body paragraph, and a row may also split across
     // pages. Suffix copy assumes body paragraphs line up, so a document with
     // a table is laid out in full. Opaque blocks are skipped by that full
@@ -474,7 +500,7 @@ pub fn layout_incremental(
         .iter()
         .any(|block| matches!(block, Block::Table(_)))
     {
-        return crate::layout_document(document, faces, profile, limits, cancellation);
+        return crate::layout_with_view(document, faces, profile, limits, cancellation, view);
     }
     let LayoutReuse {
         cache,
@@ -484,9 +510,9 @@ pub fn layout_incremental(
     cancellation.check()?;
     profile.validate()?;
     let limits = limits.capped();
-    let geometry = preflight(document, profile, limits, cancellation)?;
+    let geometry = preflight(document, profile, limits, cancellation, view)?;
     let flow_ok = match (&cache.flow, previous) {
-        (Some(flow), Some(previous)) => flow_matches(flow, previous, faces, profile, limits),
+        (Some(flow), Some(previous)) => flow_matches(flow, previous, faces, profile, limits, view),
         _ => false,
     };
     let seed = seed_page_contexts(document);
@@ -503,6 +529,7 @@ pub fn layout_incremental(
                 previous: previous.filter(|_| flow_ok),
                 invalidation,
                 assumed,
+                view,
             },
         )
     });
@@ -522,6 +549,7 @@ pub fn layout_incremental(
                     previous: previous.filter(|_| flow_ok),
                     invalidation,
                     assumed: &forced,
+                    view,
                 },
             )?;
             snapshot
@@ -538,11 +566,13 @@ fn flow_matches(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     limits: LayoutLimits,
+    view: ViewOptions,
 ) -> bool {
     previous.key().version == flow.version
         && previous.key().content_hash() == flow.content
         && previous.key().font == flow.font
         && previous.key().profile == flow.profile
+        && previous.key().view == view
         && faces.ascii.key() == flow.font
         && limits == flow.limits
         && profile == flow.profile
@@ -578,6 +608,7 @@ fn remember_flow(
             width,
             context,
             marks.get(&paragraph.id()),
+            snapshot.key().view,
         );
         let anchor = snapshot
             .lines()
@@ -726,6 +757,7 @@ struct PassInput<'a> {
     previous: Option<&'a LayoutSnapshot>,
     invalidation: &'a LayoutInvalidation,
     assumed: &'a [ExternalContext],
+    view: ViewOptions,
 }
 
 fn layout_pass(
@@ -742,6 +774,7 @@ fn layout_pass(
         previous,
         invalidation,
         assumed,
+        view,
     } = input;
     let invalid = invalidated_paragraphs(document, invalidation);
     // Clone the previous flow before the cache is mutated. A hit or a miss
@@ -752,7 +785,7 @@ fn layout_pass(
         .filter(|_| previous.is_some())
         .map(|flow| (flow.ids.clone(), flow.keys.clone(), flow.starts.clone()));
     let plans = crate::pages::section_plans(document)?;
-    let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
+    let mut result = open_snapshot(document, faces, profile, limits, geometry, view)?;
     let mut prepared = Vec::new();
     let mut deps = Vec::new();
     let mut same = Vec::new();
@@ -792,6 +825,7 @@ fn layout_pass(
             plan.fit_width.raw(),
             context,
             marks.get(&paragraph.id()),
+            view,
         );
         // Flow vectors are paragraph-rank. `index` is the body block index
         // and is only used for section geometry.
@@ -840,6 +874,7 @@ fn layout_pass(
                 },
                 cancellation,
                 marks.get(&paragraph.id()),
+                view,
                 None,
                 context,
                 &numbering,
@@ -984,6 +1019,7 @@ fn walk_back_keep_next(document: &Document, same: &mut [bool]) {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn paragraph_key(
     document: &Document,
     paragraph: &Paragraph,
@@ -992,6 +1028,7 @@ fn paragraph_key(
     available_width: i64,
     context: ExternalContext,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
+    view: ViewOptions,
 ) -> ParagraphCacheKey {
     let marked = crate::pages::marked_text(document, paragraph);
     let text = paragraph.plain_text(|_| String::new());
@@ -1020,6 +1057,8 @@ fn paragraph_key(
             leading: uses_profile_leading(document, paragraph).then_some(profile.leading.raw()),
         },
         external: external_key(flags, context),
+        show_hidden: view.show_hidden,
+        field_codes: view.field_codes,
     }
 }
 
@@ -1186,6 +1225,8 @@ mod tests {
                 leading: None,
             },
             external,
+            show_hidden: false,
+            field_codes: false,
         }
     }
 

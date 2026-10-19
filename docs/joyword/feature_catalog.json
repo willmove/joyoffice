@@ -2,7 +2,7 @@
   "schema_version": 1,
   "task": "T205",
   "floor": 41,
-  "note": "T205 slice 2 plus the T203 insert-picture button. Font and paragraph dialogs, ruler indent and tab dragging, and the three view switches are unit-tested. The view switches stay disabled because layout has no formatting-mark, hidden-text or field-code option. Underline and non-auto colour export and are not painted. This is not a Word word-count dialog comparison.",
+  "note": "T205 slice 3. The floor is 41 because T200 added the list-bullet button on top of the T203 insert-picture button. Single, double and dotted underlines and sRGB text colour are painted on the shared page scene. The three view switches are enabled and participate in the layout snapshot key. Formatting marks are a non-document overlay. Page fields show PAGE, NUMPAGES or SECTIONPAGES when field codes are on. Word count is checked against the documented EDIT-009 rule, not a Word dialog. Evidence stays unit. Other underline styles, theme colour as text fill, hidden paragraph-mark merging and cross-paragraph fields stay refused.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},

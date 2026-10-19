@@ -65,6 +65,10 @@ pub struct LayoutLine {
     pub hyperlinks: Vec<Range<usize>>,
     /// Zero uses the paragraph line box. A positive value replaces it.
     pub box_height: Emu,
+    /// Tab gaps in line-local EMU `(x, width)`, recorded where the fitter
+    /// consumed a tab without leaving a glyph. Formatting marks draw an arrow
+    /// here; the gap is already part of the line's advance.
+    pub tab_gaps: Vec<(i64, i64)>,
     /// Glyphs and text bytes of the list label, before tab leaders and body.
     /// Placement splits them into their own run when size or bold differs.
     pub label_glyphs: usize,
@@ -514,6 +518,7 @@ where
             images: Vec::new(),
             hyperlinks: Vec::new(),
             box_height: Emu::new(0),
+            tab_gaps: Vec::new(),
             label_glyphs: 0,
             label_text_bytes: 0,
             label_size: Emu::new(0),
