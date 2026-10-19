@@ -420,6 +420,18 @@ pub struct LayoutSnapshot {
     limits: LayoutLimits,
 }
 
+/// Paint header and footer stories, then revision marks on those bands.
+pub(crate) fn finish_stories(
+    snapshot: &mut LayoutSnapshot,
+    document: &Document,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    cancellation: &LayoutCancellation,
+) -> Result<(), LayoutError> {
+    crate::pages::paint_stories(snapshot, document, faces, profile, cancellation)?;
+    crate::revision_view::decorate_stories(snapshot, document, faces, profile, cancellation)
+}
+
 pub(crate) fn unsupported(node: Option<NodeId>, feature: &'static str) -> LayoutError {
     LayoutError::Unsupported { node, feature }
 }
@@ -1361,7 +1373,7 @@ fn layout_once(
         prepared.push(fitted);
     }
     let mut snapshot = assemble(result, prepared, cancellation, None)?;
-    crate::pages::paint_stories(&mut snapshot, document, faces, profile, cancellation)?;
+    finish_stories(&mut snapshot, document, faces, profile, cancellation)?;
     Ok(snapshot)
 }
 
@@ -1455,7 +1467,7 @@ fn layout_mixed(
         }
     }
     place_paragraph_batch(&mut result, &mut top, &mut batch, cancellation)?;
-    crate::pages::paint_stories(&mut result, document, faces, profile, cancellation)?;
+    finish_stories(&mut result, document, faces, profile, cancellation)?;
     cancellation.check()?;
     Ok(result)
 }
@@ -4944,6 +4956,31 @@ impl LayoutSnapshot {
         if !self.notes.contains(&note) {
             self.note(note);
         }
+    }
+
+    pub(crate) fn page_runs(&self, page: usize) -> Option<&[GlyphRun]> {
+        self.pages.get(page).map(|page| page.runs.as_slice())
+    }
+
+    /// Replace one header or footer run with revision pieces and extra rects.
+    /// Body line indices stay valid when the run sits after the body runs.
+    pub(crate) fn replace_page_run(
+        &mut self,
+        page: usize,
+        index: usize,
+        runs: Vec<GlyphRun>,
+        rects: Vec<SceneRect>,
+    ) -> Result<(), LayoutError> {
+        let scene = self
+            .pages
+            .get_mut(page)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        if index >= scene.runs.len() || runs.is_empty() {
+            return Err(LayoutError::GeometryOverflow);
+        }
+        scene.runs.splice(index..=index, runs);
+        scene.rects.extend(rects);
+        Ok(())
     }
 
     pub(crate) fn append_page_run(
