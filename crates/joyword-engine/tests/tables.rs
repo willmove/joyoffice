@@ -39,6 +39,8 @@ fn cell(document: &mut Document, text: &str, span: u32, merge: VerticalMerge) ->
         width: Some(Measure::Twips(2000)),
         borders: CellBorders::default(),
         shading: None,
+        margin: None,
+        vertical_align: None,
         blocks: BlockSeq::from_vec(vec![paragraph.into()]),
         preserved: None,
     }
@@ -54,6 +56,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
             cells,
             header: false,
             cant_split: false,
+            height: None,
             preserved: None,
         })
         .collect();
@@ -63,6 +66,9 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
         rows,
         style: None,
         width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
         cell_margin: None,
         preserved: None,
         source: None,

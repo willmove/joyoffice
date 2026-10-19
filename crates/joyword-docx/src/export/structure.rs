@@ -27,9 +27,9 @@ use std::sync::Arc;
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, Document, FontRef, FontSlots,
     Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, NodeId,
-    NumberingRef, NumberingStore, ParaProps, Paragraph, RunProps, Shading, SourceRef, Spacing,
-    StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table, TableWidth, Underline,
-    VerticalMerge,
+    NumberingRef, NumberingStore, ParaProps, Paragraph, RowHeightRule, RunProps, Shading,
+    SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table,
+    TableAlign, TableLayoutKind, TableWidth, Underline, VerticalAlign, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -1607,7 +1607,13 @@ pub(super) fn table_markup(
     let mut markup = String::new();
     markup.push_str(&names.start("tbl"));
     markup.push('>');
-    if table.style.is_some() || table.width.is_some() || table.cell_margin.is_some() {
+    if table.style.is_some()
+        || table.width.is_some()
+        || table.layout.is_some()
+        || table.alignment.is_some()
+        || table.indent.is_some()
+        || table.cell_margin.is_some()
+    {
         markup.push_str(&names.start("tblPr"));
         markup.push('>');
         if let Some(style) = &table.style {
@@ -1621,8 +1627,31 @@ pub(super) fn table_markup(
         if let Some(width) = table.width {
             markup.push_str(&width_markup(names, "tblW", width_value(width)?)?);
         }
+        if let Some(layout) = table.layout {
+            let value = match layout {
+                TableLayoutKind::Fixed => "fixed",
+                TableLayoutKind::Autofit => "autofit",
+            };
+            markup.push_str(&names.start("tblLayout"));
+            markup.push_str(&names.attribute("type", value));
+            markup.push_str("/>");
+        }
+        if let Some(alignment) = table.alignment {
+            let value = match alignment {
+                TableAlign::Left => "left",
+                TableAlign::Center => "center",
+                TableAlign::Right => "right",
+            };
+            markup.push_str(&val_element(names, "jc", value));
+        }
+        if let Some(indent) = table.indent {
+            if indent < 0 {
+                return Err(refuse("table indent is negative"));
+            }
+            markup.push_str(&width_markup(names, "tblInd", ("dxa", Some(indent)))?);
+        }
         if let Some(margin) = table.cell_margin {
-            markup.push_str(&cell_margin_markup(names, margin)?);
+            markup.push_str(&cell_margin_markup(names, "tblCellMar", margin)?);
         }
         markup.push_str(&names.end("tblPr"));
     }
@@ -1652,7 +1681,12 @@ pub(super) fn table_markup(
         }
         markup.push_str(&names.start("tr"));
         markup.push('>');
-        if row.grid_before != 0 || row.grid_after != 0 || row.cant_split || row.header {
+        if row.grid_before != 0
+            || row.grid_after != 0
+            || row.cant_split
+            || row.header
+            || row.height.is_some()
+        {
             markup.push_str(&names.start("trPr"));
             markup.push('>');
             if row.grid_before != 0 {
@@ -1677,6 +1711,23 @@ pub(super) fn table_markup(
                 markup.push_str(&names.start("tblHeader"));
                 markup.push_str("/>");
             }
+            if let Some(height) = row.height {
+                if matches!(height.rule, RowHeightRule::Exact) && height.twips <= 0 {
+                    return Err(refuse("exact row height is not positive"));
+                }
+                if matches!(height.rule, RowHeightRule::AtLeast) && height.twips < 0 {
+                    return Err(refuse("row height is negative"));
+                }
+                let rule = match height.rule {
+                    RowHeightRule::Auto => "auto",
+                    RowHeightRule::AtLeast => "atLeast",
+                    RowHeightRule::Exact => "exact",
+                };
+                markup.push_str(&names.start("trHeight"));
+                markup.push_str(&names.attribute("val", &height.twips.to_string()));
+                markup.push_str(&names.attribute("hRule", rule));
+                markup.push_str("/>");
+            }
             markup.push_str(&names.end("trPr"));
         }
         if row.cells.is_empty() {
@@ -1695,6 +1746,8 @@ pub(super) fn table_markup(
                 || cell.vertical_merge != VerticalMerge::None
                 || cell.width.is_some()
                 || cell.shading.is_some()
+                || cell.margin.is_some()
+                || cell.vertical_align.is_some()
                 || borders_present(&cell.borders);
             if needs_pr {
                 markup.push_str(&names.start("tcPr"));
@@ -1720,16 +1773,34 @@ pub(super) fn table_markup(
                 if borders_present(&cell.borders) {
                     markup.push_str(&borders_markup(names, &cell.borders)?);
                 }
+                if let Some(margin) = cell.margin {
+                    markup.push_str(&cell_margin_markup(names, "tcMar", margin)?);
+                }
+                if let Some(align) = cell.vertical_align {
+                    let value = match align {
+                        VerticalAlign::Top => "top",
+                        VerticalAlign::Center => "center",
+                        VerticalAlign::Bottom => "bottom",
+                    };
+                    markup.push_str(&val_element(names, "vAlign", value));
+                }
                 markup.push_str(&names.end("tcPr"));
             }
             if cell.blocks.is_empty() {
-                return Err(refuse("table cell has no paragraph"));
+                return Err(refuse("table cell has no block"));
             }
             for block in cell.blocks.iter() {
-                let Some(paragraph) = block.as_paragraph() else {
-                    return Err(refuse("table cell holds an unmapped block"));
-                };
-                markup.push_str(&table_paragraph(paragraph, names, limit)?);
+                match block {
+                    Block::Paragraph(paragraph) => {
+                        markup.push_str(&table_paragraph(paragraph, names, limit)?);
+                    }
+                    Block::Table(nested) => {
+                        markup.push_str(&table_markup(nested, names, limit)?);
+                    }
+                    Block::Sdt(_) | Block::Opaque(_) => {
+                        return Err(refuse("table cell holds an unmapped block"));
+                    }
+                }
             }
             markup.push_str(&names.end("tc"));
         }
@@ -1751,13 +1822,17 @@ pub(super) fn table_markup(
     Ok(markup)
 }
 
-fn cell_margin_markup(names: &Names, margin: CellMargins) -> Result<String, ExportError> {
+fn cell_margin_markup(
+    names: &Names,
+    local: &str,
+    margin: CellMargins,
+) -> Result<String, ExportError> {
     for value in [margin.top, margin.left, margin.bottom, margin.right] {
         if value < 0 {
             return Err(unsupported(None, "table cell margin is negative"));
         }
     }
-    let mut markup = names.start("tblCellMar");
+    let mut markup = names.start(local);
     markup.push('>');
     for (local, value) in [
         ("top", margin.top),
@@ -1767,7 +1842,7 @@ fn cell_margin_markup(names: &Names, margin: CellMargins) -> Result<String, Expo
     ] {
         markup.push_str(&width_markup(names, local, ("dxa", Some(value)))?);
     }
-    markup.push_str(&names.end("tblCellMar"));
+    markup.push_str(&names.end(local));
     Ok(markup)
 }
 
@@ -1775,6 +1850,8 @@ fn width_value(width: TableWidth) -> Result<(&'static str, Option<i64>), ExportE
     match width {
         TableWidth::Auto => Ok(("auto", None)),
         TableWidth::Dxa(value) => Ok(("dxa", Some(value))),
+        TableWidth::Pct(value) if value > 0 => Ok(("pct", Some(value))),
+        TableWidth::Pct(_) => Err(unsupported(None, "table percentage width is not positive")),
     }
 }
 
@@ -1782,6 +1859,7 @@ fn cell_width_value(width: Measure) -> Result<(&'static str, Option<i64>), Expor
     match width {
         Measure::Auto => Ok(("auto", None)),
         Measure::Twips(value) if value >= 0 => Ok(("dxa", Some(value))),
+        Measure::PercentFiftieths(value) if value > 0 => Ok(("pct", Some(value))),
         _ => Err(unsupported(None, "table cell width cannot be written")),
     }
 }
@@ -1833,16 +1911,31 @@ fn edge_markup(names: &Names, local: &str, edge: BorderEdge) -> Result<String, E
     let kind = match edge.kind {
         BorderKind::Nil => "nil",
         BorderKind::Single => "single",
+        BorderKind::Double => "double",
+        BorderKind::Dotted => "dotted",
+        BorderKind::Dashed => "dashed",
+        BorderKind::Thick => "thick",
     };
-    let color = color_value(edge.color)
+    let (color, theme) = border_color(edge.color)
         .map_err(|_| unsupported(None, "table border colour is outside the mapped subset"))?;
+    let theme = theme
+        .map(|slot| names.attribute("themeColor", slot))
+        .unwrap_or_default();
     Ok(format!(
-        "{}{}{}{}/>",
+        "{}{}{}{}{theme}/>",
         names.start(local),
         names.attribute("val", kind),
         names.attribute("sz", &edge.size_eighths.to_string()),
         names.attribute("color", &color)
     ))
+}
+
+fn border_color(color: Color) -> Result<(String, Option<&'static str>), ()> {
+    match color {
+        Color::Auto => Ok(("auto".into(), None)),
+        Color::Rgb(red, green, blue) => Ok((format!("{red:02X}{green:02X}{blue:02X}"), None)),
+        Color::Theme(slot) => Ok(("auto".into(), Some(slot.word_name()))),
+    }
 }
 
 fn shading_markup(names: &Names, shading: Shading) -> Result<String, ExportError> {

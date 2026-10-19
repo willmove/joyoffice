@@ -505,6 +505,16 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **外壳**：`table.merge.right`、`table.merge.down`、`table.split` 在编辑菜单第 4 组，无文档、打开中和只读时不可用。不新增功能区按钮，功能目录下限不变。
 - **未覆盖**：嵌套表、`tblLook`、单元格 `tcMar`、主题色边框、`nil`／`single` 以外的边框、表格样式、百分比宽度，以及制作合同表格的人工验收。没有启动图形界面做人工验收。没有新增外部包。行为登记 `TABLE-MERGE-UNDO`、`TABLE-SPLIT-UNDO` 是假设，没有 Word 观察。合并 origin/main 的行内图片之后，重复表头会把该表头行上已经画出的图片按同一位移抄到后续页；这没有单独的自动测试。再合并字体与段落对话框之后，W09 harness 重锚到 `2e886f16801984c21b60490c770825732a6d6179`（该提交的 `crates/` 同时含合并拆分、跨页行、行内图片和字体／段落对话框；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。
 
+### T201 单元格边距、边框样式与百分比宽度（2026-10-19）
+
+这一刀补上单元格 `tcMar`、`nil`／`single` 以外的五种边框里的 `double`／`dotted`／`dashed`／`thick`、主题色边框，以及 `tblW`／`tcW` 百分比和 `tblLayout` 的 fixed／autofit。T201 保持 `in_progress`。导出仍走既有 ExportPlan：未改的表复制原字节，改过的类型化表整表重写，文档里仍有锁定节点时编辑导出返回 `Restricted`。
+
+- **边距**：`tcMar`（ECMA-376 §17.4.68）整组覆盖 `tblCellMar`。元素存在而某边省略时该边为 0，不按边继承表级边距。`w:start` 记为左、`w:end` 记为右，因为 `bidiVisual` 不在子集里；`left` 与 `start`，或 `right` 与 `end`，同时出现则整表保持不透明。百分比边距仍不透明。
+- **边框**：子集是 §17.18.2 的 `nil`、`single`、`double`、`dotted`、`dashed`、`thick`。非 `nil` 的厚度都是 `w:sz` 的八分之一磅，省略 `sz` 仍是 4。`thick` 不另乘宽度。`double` 把总厚度分成线、空、线；不足 3 EMU 时画成一条。`dotted`／`dashed` 沿长边画多段矩形，段数不超过 48。`w:themeColor` 在没有 `themeTint`／`themeShade` 时记成主题槽，并盖过同边的十六进制缓存色；tint、shade、`space`、`shadow`、`frame` 不在允许的属性里，整表保持不透明。排版向文档主题取 sRGB。槽存在就画该色；槽不存在就保留厚度、不画墨。`auto` 仍是黑。屏幕和 PDF 仍共用这些矩形。
+- **宽度**：`pct` 是五十分之一百分比。`tblW` 的百分比相对页心宽度（§17.4.63）；跨度 1、非 continue 的 `tcW` 百分比相对表宽（§17.4.71），同列后来的百分比忽略，跨多列的百分比只保存和导出、不改网格。表宽为 auto 或省略且存在百分比列时，表宽取页心宽度。省略的 `tblLayout` 按 §17.4.52 为 autofit：首选宽度宽于页心时缩小到页心，不超过时保持网格。显式 `fixed` 不缩小，也不为了铺满页心而放大。这不是按不可断行内容测量的自动调整。`jc`（§17.4.28）为 left、center、right；`tblInd` 只在左对齐时加到原点，负缩进拒绝导入。居中和右对齐忽略缩进。
+- **增量排版**：含表的文档仍调用整篇排版。后缀复制要求正文段落一一对应，表行可以拆页、表头可以重复，做不到与全量页相等，所以没有改这条早退。`incremental_layout_of_a_table_matches_a_full_layout` 和 `incremental_layout_of_a_split_table_matches_a_full_layout` 仍比较页。
+- **未覆盖**：嵌套表、`tblLook`、`vAlign`、`trHeight`（模型里有字段，导入遇到它们仍整表不透明，排版不用它们）、表格属性对话框、列宽拖拽、表格样式解析，以及制作合同表格的人工验收。没有启动图形界面。没有新增外部包。没有 Word 观察。
+
 ### T202 首页不同与奇偶页页眉页脚（2026-10-18）
 
 这一刀把已保存的 First／Even 页眉页脚画到对应页上，并把省略引用的链接到前一节扩到这三种类型。屏幕与 PDF 仍共用同一次 `layout_document` 的 PageScene。T202 保持 `in_progress`。导出仍走既有 ExportPlan，不改写页眉部件，也不因页面设置变化放行写回。

@@ -106,6 +106,8 @@ pub(crate) fn insert_table(
                 width: Some(*width),
                 borders: insertion_borders(),
                 shading: None,
+                margin: None,
+                vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![paragraph.into()]),
                 preserved: None,
             });
@@ -117,6 +119,7 @@ pub(crate) fn insert_table(
             cells,
             header: false,
             cant_split: false,
+            height: None,
             preserved: None,
         });
     }
@@ -127,6 +130,9 @@ pub(crate) fn insert_table(
         rows: table_rows,
         style: None,
         width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -179,6 +185,8 @@ pub(crate) fn insert_row(
             width,
             borders: insertion_borders(),
             shading: None,
+            margin: None,
+            vertical_align: None,
             blocks: BlockSeq::from_vec(vec![paragraph.into()]),
             preserved: None,
         });
@@ -190,6 +198,7 @@ pub(crate) fn insert_row(
         cells,
         header: false,
         cant_split: false,
+        height: None,
         preserved: None,
     };
     table_mut(document, story, site.index, table_id)?
@@ -271,6 +280,8 @@ pub(crate) fn insert_column(
             width: Some(width),
             borders: insertion_borders(),
             shading: None,
+            margin: None,
+            vertical_align: None,
             blocks: BlockSeq::from_vec(vec![paragraph.into()]),
             preserved: None,
         });
@@ -623,6 +634,8 @@ fn split_horizontal(
                 },
             },
             shading: None,
+            margin: None,
+            vertical_align: None,
             blocks: BlockSeq::from_vec(vec![paragraph.into()]),
             preserved: None,
         });

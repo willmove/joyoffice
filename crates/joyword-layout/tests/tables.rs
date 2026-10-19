@@ -12,7 +12,8 @@ use joyword_layout::{
 };
 use joyword_model::{
     Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Document,
-    EqualColumns, Measure, Paragraph, Row, Shading, Table, VerticalMerge,
+    EqualColumns, Measure, Paragraph, Row, Shading, Table, TableAlign, TableLayoutKind,
+    ThemeColorSlot, ThemeScheme, VerticalMerge,
 };
 
 fn pt(value: i64) -> Emu {
@@ -71,6 +72,8 @@ fn document() -> Document {
         shading: Some(Shading {
             fill: Color::Rgb(255, 0, 0),
         }),
+        margin: None,
+        vertical_align: None,
         blocks: BlockSeq::from_vec(vec![paragraph.into()]),
         preserved: None,
     };
@@ -84,10 +87,14 @@ fn document() -> Document {
             cells: vec![cell(left_id, left), cell(right_id, right)],
             header: false,
             cant_split: false,
+            height: None,
             preserved: None,
         }],
         style: None,
         width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -214,6 +221,8 @@ fn plain_cell(
         width: Some(Measure::Twips(2400)),
         borders: CellBorders::default(),
         shading,
+        margin: None,
+        vertical_align: None,
         blocks: BlockSeq::from_vec(paragraphs.into_iter().map(Block::from).collect()),
         preserved: None,
     }
@@ -231,6 +240,9 @@ fn install_table(
         rows,
         style: None,
         width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
         cell_margin: margin,
         preserved: None,
         source: None,
@@ -247,6 +259,7 @@ fn row(document: &mut Document, cells: Vec<Cell>, header: bool, cant_split: bool
         cells,
         header,
         cant_split,
+        height: None,
         preserved: None,
     }
 }
@@ -333,6 +346,9 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
         rows: vec![table_row],
         style: None,
         width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -367,6 +383,9 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
         rows: vec![table_row],
         style: None,
         width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -488,6 +507,9 @@ fn a_header_taller_than_the_page_is_not_repeated() {
             rows: vec![row],
             style: None,
             width: None,
+            layout: None,
+            alignment: None,
+            indent: None,
             cell_margin: None,
             preserved: None,
             source: None,
@@ -604,4 +626,160 @@ fn a_table_in_newspaper_columns_is_refused() {
             ..
         }
     ));
+}
+
+#[test]
+fn a_cell_margin_overrides_the_table_margin() {
+    let margins = CellMargins {
+        top: 0,
+        left: 200,
+        bottom: 0,
+        right: 0,
+    };
+    let mut table_only = Document::new_blank();
+    let letter = text_paragraph(&mut table_only, "A");
+    let cell = plain_cell(&mut table_only, vec![letter], 1, VerticalMerge::None, None);
+    let table_row = row(&mut table_only, vec![cell], false, false);
+    install_table(&mut table_only, vec![table_row], 1, Some(margins));
+    let table_x = lay(&table_only).pages()[0].runs[0].origin_x.raw();
+
+    let mut overridden = Document::new_blank();
+    let letter = text_paragraph(&mut overridden, "A");
+    let mut cell = plain_cell(&mut overridden, vec![letter], 1, VerticalMerge::None, None);
+    cell.margin = Some(CellMargins {
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+    });
+    let table_row = row(&mut overridden, vec![cell], false, false);
+    install_table(&mut overridden, vec![table_row], 1, Some(margins));
+    let cell_x = lay(&overridden).pages()[0].runs[0].origin_x.raw();
+    assert_eq!(table_x - cell_x, 200 * Emu::PER_TWIP);
+}
+
+#[test]
+fn double_borders_paint_two_bands() {
+    let mut document = Document::new_blank();
+    let letter = text_paragraph(&mut document, "A");
+    let mut cell = plain_cell(&mut document, vec![letter], 1, VerticalMerge::None, None);
+    let edge = BorderEdge {
+        kind: BorderKind::Double,
+        size_eighths: 12,
+        color: Color::Rgb(0, 0, 255),
+    };
+    cell.borders.top = Some(edge);
+    let table_row = row(&mut document, vec![cell], false, false);
+    install_table(&mut document, vec![table_row], 1, None);
+    let laid = lay(&document);
+    let rects = &laid.pages()[0].rects;
+    let bands = rects
+        .iter()
+        .filter(|rect| rect.blue == 255 && rect.red == 0)
+        .count();
+    assert!(bands >= 2, "{rects:?}");
+}
+
+#[test]
+fn an_unresolved_theme_border_keeps_no_ink() {
+    let mut document = Document::new_blank();
+    let letter = text_paragraph(&mut document, "A");
+    let mut cell = plain_cell(&mut document, vec![letter], 1, VerticalMerge::None, None);
+    cell.borders.top = Some(BorderEdge {
+        kind: BorderKind::Single,
+        size_eighths: 8,
+        color: Color::Theme(ThemeColorSlot::Accent1),
+    });
+    let table_row = row(&mut document, vec![cell], false, false);
+    install_table(&mut document, vec![table_row], 1, None);
+    assert!(lay(&document).pages()[0].rects.is_empty());
+
+    document.styles_mut().set_theme(ThemeScheme {
+        colors: [(ThemeColorSlot::Accent1, (10, 20, 30))].into(),
+        ..ThemeScheme::default()
+    });
+    let laid = lay(&document);
+    let rects = &laid.pages()[0].rects;
+    assert!(
+        rects
+            .iter()
+            .any(|rect| rect.red == 10 && rect.green == 20 && rect.blue == 30),
+        "{rects:?}"
+    );
+}
+
+#[test]
+fn fixed_layout_does_not_shrink_and_centre_uses_the_leftover() {
+    let mut wide = Document::new_blank();
+    let left = text_paragraph(&mut wide, "A");
+    let right = text_paragraph(&mut wide, "B");
+    let cells = vec![
+        plain_cell(&mut wide, vec![left], 1, VerticalMerge::None, None),
+        plain_cell(&mut wide, vec![right], 1, VerticalMerge::None, None),
+    ];
+    let table_row = row(&mut wide, cells, false, false);
+    install_table(
+        &mut wide,
+        vec![table_row],
+        2,
+        Some(CellMargins {
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+        }),
+    );
+    let body = wide.body_id();
+    wide.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        let table = Arc::make_mut(table);
+        table.grid = vec![Measure::Twips(5_000), Measure::Twips(5_000)];
+        table.layout = Some(TableLayoutKind::Fixed);
+    });
+    let fixed = lay(&wide);
+    let fixed_shift =
+        fixed.pages()[0].runs[1].origin_x.raw() - fixed.pages()[0].runs[0].origin_x.raw();
+    assert_eq!(fixed_shift, 5_000 * Emu::PER_TWIP);
+
+    wide.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).layout = None;
+    });
+    let shrunk = lay(&wide);
+    let shrunk_shift =
+        shrunk.pages()[0].runs[1].origin_x.raw() - shrunk.pages()[0].runs[0].origin_x.raw();
+    assert!(shrunk_shift < fixed_shift);
+    assert_eq!(shrunk_shift, 4_153 * Emu::PER_TWIP);
+
+    wide.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        let table = Arc::make_mut(table);
+        table.grid = vec![Measure::Twips(2_400), Measure::Twips(2_400)];
+        table.alignment = Some(TableAlign::Center);
+        table.layout = Some(TableLayoutKind::Fixed);
+    });
+    let centred = lay(&wide).pages()[0].runs[0].origin_x.raw();
+    let mut left_table = Document::new_blank();
+    let letter = text_paragraph(&mut left_table, "A");
+    let cell = plain_cell(&mut left_table, vec![letter], 1, VerticalMerge::None, None);
+    let table_row = row(&mut left_table, vec![cell], false, false);
+    install_table(
+        &mut left_table,
+        vec![table_row],
+        1,
+        Some(CellMargins {
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+        }),
+    );
+    let left_x = lay(&left_table).pages()[0].runs[0].origin_x.raw();
+    assert_eq!(centred - left_x, 1_753 * Emu::PER_TWIP);
 }
