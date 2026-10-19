@@ -16,6 +16,7 @@ pub mod docx;
 pub mod host;
 pub mod l10n;
 pub mod prefs;
+pub mod print;
 
 pub mod storage;
 

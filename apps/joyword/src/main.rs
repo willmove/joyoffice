@@ -3,6 +3,7 @@
 //! registry and run through its single entry point (T106).
 mod chrome_ui;
 mod document_canvas;
+mod export;
 mod input_ui;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
@@ -55,6 +56,8 @@ actions!(
         InsertText,
         SaveOriginal,
         SaveCopy,
+        ExportPdf,
+        PrintFile,
         Bold,
         Italic,
         ListStyles,
@@ -162,6 +165,8 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         DOCUMENT_SWITCH => Box::new(SwitchDocument),
         FILE_SAVE => Box::new(SaveOriginal),
         FILE_SAVE_COPY => Box::new(SaveCopy),
+        FILE_EXPORT_PDF => Box::new(ExportPdf),
+        FILE_PRINT => Box::new(PrintFile),
         EDIT_BOLD => Box::new(Bold),
         EDIT_ITALIC => Box::new(Italic),
         STYLE_LIST => Box::new(ListStyles),
@@ -288,6 +293,8 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
                 FILE_SAVE => KeyBinding::new(keys, SaveOriginal, None),
                 FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
+                FILE_EXPORT_PDF => KeyBinding::new(keys, ExportPdf, None),
+                FILE_PRINT => KeyBinding::new(keys, PrintFile, None),
                 EDIT_BOLD => KeyBinding::new(keys, Bold, Some("JoyWordInput && !composing")),
                 EDIT_ITALIC => KeyBinding::new(keys, Italic, Some("JoyWordInput && !composing")),
                 EDIT_COPY => KeyBinding::new(keys, CopyText, Some("JoyWordInput")),
@@ -339,6 +346,7 @@ struct JoyWord {
     /// Bumped by [`input_ui`] each time a different editor is installed.
     copy_epoch: u64,
     copy: Option<input_ui::CopyPhase>,
+    pdf: Option<input_ui::PdfPhase>,
     original_save: Option<input_ui::OriginalSavePhase>,
     diagnostics: Option<Arc<AppLog>>,
     find_query: String,
@@ -362,6 +370,17 @@ enum FindSlot {
 }
 
 /// View-level commands, executed with access to the view's context.
+fn optional_text<'a>(
+    args: &'a std::collections::BTreeMap<&'static str, ArgValue>,
+    name: &'static str,
+) -> Result<Option<&'a str>, ExecuteError> {
+    match args.get(name) {
+        Some(ArgValue::Text(value)) => Ok(Some(value.as_str())),
+        Some(_) => Err(ExecuteError::Failed(name.into())),
+        None => Ok(None),
+    }
+}
+
 struct ViewHost<'a, 'b> {
     view: &'a mut JoyWord,
     window: &'a mut Window,
@@ -428,6 +447,38 @@ impl CommandHost for ViewHost<'_, '_> {
                     return Err(ExecuteError::Pending(vec!["destination"]));
                 };
                 view.save_to(path).map_err(ExecuteError::Failed)?;
+            }
+            FILE_EXPORT_PDF => {
+                let Some(ArgValue::Path(path)) = args.get("destination") else {
+                    return Err(ExecuteError::Pending(vec!["destination"]));
+                };
+                view.queue_pdf(
+                    input_ui::PdfOrder {
+                        destination: path.clone(),
+                        print: false,
+                        copies: None,
+                        range: None,
+                        marks: None,
+                    },
+                    self.window,
+                    self.cx,
+                )?;
+            }
+            FILE_PRINT => {
+                let Some(ArgValue::Path(path)) = args.get("destination") else {
+                    return Err(ExecuteError::Pending(vec!["destination"]));
+                };
+                view.queue_pdf(
+                    input_ui::PdfOrder {
+                        destination: path.clone(),
+                        print: true,
+                        copies: optional_text(args, "copies")?,
+                        range: optional_text(args, "range")?,
+                        marks: optional_text(args, "marks")?,
+                    },
+                    self.window,
+                    self.cx,
+                )?;
             }
             FILE_CLOSE => {
                 if matches!(args.get("choice"), Some(ArgValue::Text(choice)) if choice == "cancel")
@@ -1126,6 +1177,12 @@ impl JoyWord {
             Err(InvokeError::PendingInput { .. }) if id == FILE_SAVE_COPY => {
                 self.begin_save_copy(window, cx);
             }
+            Err(InvokeError::PendingInput { .. }) if id == FILE_EXPORT_PDF => {
+                self.begin_pdf(false, window, cx);
+            }
+            Err(InvokeError::PendingInput { .. }) if id == FILE_PRINT => {
+                self.begin_pdf(true, window, cx);
+            }
             Err(InvokeError::PendingInput { .. }) if id == FILE_CLOSE => {
                 self.request_close(false, window, cx);
             }
@@ -1254,6 +1311,14 @@ impl Render for JoyWord {
             )
             .on_action(
                 cx.listener(|this, _: &SaveCopy, window, cx| this.run(FILE_SAVE_COPY, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &ExportPdf, window, cx| {
+                    this.run(FILE_EXPORT_PDF, window, cx)
+                }),
+            )
+            .on_action(
+                cx.listener(|this, _: &PrintFile, window, cx| this.run(FILE_PRINT, window, cx)),
             )
             .on_action(cx.listener(|this, _: &Bold, window, cx| this.run(EDIT_BOLD, window, cx)))
             .on_action(
@@ -1666,6 +1731,7 @@ fn main() {
                         held_document,
                         copy_epoch: 0,
                         copy: None,
+                        pdf: None,
                         original_save: None,
                         diagnostics: boot_log.clone(),
                         find_query: String::new(),
