@@ -64,6 +64,14 @@ impl NumberFormat {
         }
     }
 
+    /// Draws `value` with this format. `None` when the format or the value
+    /// is outside the set this slice can render, including an empty `none`.
+    pub fn render(&self, value: i32) -> Option<String> {
+        render_format(0, self, value)
+            .ok()
+            .filter(|text| !text.is_empty())
+    }
+
     fn token(&self) -> Arc<str> {
         match self {
             Self::Decimal => Arc::from("decimal"),

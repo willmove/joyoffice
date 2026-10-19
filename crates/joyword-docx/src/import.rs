@@ -58,9 +58,6 @@ pub(crate) struct Importer<'a> {
     properties_preserved: Vec<(PartName, usize)>,
     /// Layout and proofing hints skipped per part and element.
     pub hints: Vec<(PartName, &'static str, usize)>,
-    /// `fldSimple` instructions `PAGE` / `NUMPAGES` become page fields only
-    /// while a header or footer story is being read.
-    pub(crate) story_page_fields: bool,
     /// Header and footer parts already mapped to a story.
     pub(crate) imported_stories: Vec<(PartName, joyword_model::StoryId)>,
 }
@@ -299,7 +296,6 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         editability: Editability::default(),
         properties_preserved: Vec::new(),
         hints: Vec::new(),
-        story_page_fields: false,
         imported_stories: Vec::new(),
     };
     for diagnostic in package.diagnostics() {

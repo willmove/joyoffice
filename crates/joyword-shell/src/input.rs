@@ -365,9 +365,16 @@ struct ParagraphEntry {
     len_utf16: usize,
     len_scalar: usize,
 }
+fn projected_inline(kind: &InlineKind) -> bool {
+    matches!(
+        kind,
+        InlineKind::Break(BreakKind::Page) | InlineKind::PageField(_) | InlineKind::Image { .. }
+    )
+}
+
 /// Flat platform projection joins body paragraphs, including paragraphs inside
 /// table cells, with one LF. Opaque blocks, content controls and nested tables
-/// stay unsupported.
+/// stay unsupported. A page field is one marker, the same way a page break is.
 #[derive(Clone, Debug)]
 pub struct TextIndex {
     snapshot: DocumentSnapshot,
@@ -407,12 +414,10 @@ impl TextIndex {
         let mut utf16 = 0;
         let mut runs = 0usize;
         let mut push_paragraph = |p: &Paragraph| -> Result<(), InputError> {
-            if p.inlines().iter().any(|inline| {
-                !matches!(
-                    inline.kind,
-                    InlineKind::Break(BreakKind::Page) | InlineKind::Image { .. }
-                )
-            }) {
+            if p.inlines()
+                .iter()
+                .any(|inline| !projected_inline(&inline.kind))
+            {
                 return Err(InputError::UnsupportedBody);
             }
             if paragraphs.len() >= limits.max_paragraphs {
@@ -435,10 +440,7 @@ impl TextIndex {
                 utf16 += 1;
             }
             let content = p.plain_text(|object| {
-                debug_assert!(matches!(
-                    object.kind,
-                    InlineKind::Break(BreakKind::Page) | InlineKind::Image { .. }
-                ));
+                debug_assert!(projected_inline(&object.kind));
                 OBJECT_MARKER.to_string()
             });
             let len = content.encode_utf16().count();
@@ -1545,6 +1547,22 @@ impl<B: InputBackend> TextInput<B> {
             let end = self.view.index.position(range.end, Bias::Before)?;
             Ok((start, end))
         }
+    }
+
+    /// Inserts a `PAGE` field at the caret. One undo removes it.
+    pub fn insert_page_number(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let at = self.selection.head;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::InsertInline {
+                at,
+                kind: InlineKind::PageField(joyword_model::PageField::new(
+                    joyword_model::PageFieldKind::Page,
+                )),
+            }],
+        );
+        self.commit(transaction)
     }
 
     /// Inserts an explicit page break at the caret.

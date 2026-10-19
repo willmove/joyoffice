@@ -18,7 +18,7 @@ use crate::command::{
     ExecuteError, FILE_CLOSE, FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT,
     FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_FONT,
     FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
-    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST,
+    PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST,
     TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT,
     TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES,
     VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
@@ -886,6 +886,14 @@ impl Office {
             PAGE_BREAK => {
                 self.require_active()?
                     .insert_page_break()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            PAGE_NUMBER => {
+                self.require_active()?
+                    .insert_page_number()
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;

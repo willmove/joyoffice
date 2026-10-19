@@ -148,6 +148,11 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - LAYOUT-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.10.1（`evenAndOddHeaders`：按节的页码起点区分奇偶，省略的类型继承前一节，不用另一种代替）、§17.10.5（`headerReference`：省略的首页／偶数页／奇数页引用分别继承前一节的同类型，否则空白）、§17.10.2（`footerReference`，规则与页眉相同）、§17.10.6（`titlePg`：节的首页用 First；关闭时按页码用奇或偶，并忽略已保存的 First）。条款文字对照 [ECMA-376 中文摘录](https://hellowac.github.io/ecma-376-zh-cn/ecma-part1/chapter17/10headeres/)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的页眉实现。
 - 本切片不读 `pgNumType/@w:start`，奇偶与 `PAGE` 共用从 1 起的文档页序号。显式空 story 是引用，截断继承。没有新增外部 crate。
 
+### 页码域、分节与等宽分栏（T202 第三切片）
+
+- LAYOUT-004／LAYOUT-012；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.6.12（`pgNumType`：`fmt` 与 `start`；省略 `fmt` 为 decimal，省略 `start` 继续前一节）、§17.6.22（`w:type`：`nextPage` 为默认，另有 `continuous`、`evenPage`、`oddPage`；`nextColumn` 不在本切片）、§17.6.4（`cols`：等宽与 `space`）、§17.6.17（`sectPr`）、§17.3.3.1（`br`：`type="column"` 进入下一栏，没有多栏时进入下一页）、§17.10.1（`evenAndOddHeaders` 按节的显示页码区分奇偶）、§17.16.1（`PAGE`、`NUMPAGES`、`SECTIONPAGES`）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的分页或域实现。
+- `PAGE` 使用该节的 `fmt`。`NUMPAGES` 与 `SECTIONPAGES` 用十进制计数。不能格式化时使用文件里的缓存结果，不把缓存当成普通正文。没有新增外部 crate。
+
 ### 超链接、HTML／RTF 粘贴与图片同行文字（T203 第二切片）
 
 - 依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.16.22（`w:hyperlink` 的 `r:id`、`w:anchor`、`w:tooltip`）。关系目标按 OPC 外部关系存储，不解析、不请求。打开允许列表（`http`、`https`、`mailto`）是 JoyWord 的安全选择，不是对 Word 的测量。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的超链接实现。

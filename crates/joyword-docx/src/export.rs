@@ -19,7 +19,7 @@ use std::sync::Arc;
 use joyoffice_opc::{Budget, Method, PartName, write_archive};
 use joyword_model::{
     Block, BreakKind, Document, DocumentSnapshot, DocumentVersion, InlineKind, NodeId,
-    NumberingStore, PageFieldKind, Paragraph, RunProps, Story, StyleId, StyleSheet,
+    NumberingStore, Paragraph, RunProps, Story, StyleId, StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
@@ -491,6 +491,9 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
                     && a.title_page == b.title_page
                     && a.headers == b.headers
                     && a.footers == b.footers
+                    && a.break_kind == b.break_kind
+                    && a.numbering == b.numbering
+                    && a.columns == b.columns
                     && a.preserved == b.preserved
             });
     let resources_equal = before.resources().len() == after.resources().len()
@@ -559,8 +562,13 @@ fn story_signature(story: &Story) -> String {
                 .as_paragraph()
                 .map(|paragraph| {
                     paragraph.plain_text(|object| match &object.kind {
-                        InlineKind::PageField(PageFieldKind::Page) => "field:Page".into(),
-                        InlineKind::PageField(PageFieldKind::NumPages) => "field:NumPages".into(),
+                        InlineKind::PageField(field) => {
+                            format!(
+                                "field:{:?}:{}",
+                                field.kind,
+                                field.cached.as_deref().unwrap_or("")
+                            )
+                        }
                         InlineKind::Break(BreakKind::Page) => "break:Page".into(),
                         InlineKind::Break(kind) => format!("break:{kind:?}"),
                         _ => "\u{FFFC}".into(),
