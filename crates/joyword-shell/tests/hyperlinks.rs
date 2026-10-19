@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use joyword_engine::Session;
 use joyword_model::{
-    AbstractNum, BlockSeq, Document, Hyperlink, NumInstance, NumberFormat, NumberingLevel,
+    AbstractNum, Block, BlockSeq, Document, Hyperlink, NumInstance, NumberFormat, NumberingLevel,
     OpenRefusal, Paragraph, open_target,
 };
 use joyword_shell::input::{InputLimits, TextInput};
@@ -163,4 +163,104 @@ fn a_grounded_list_paste_uses_the_existing_numbering_instance() {
     );
     editor.undo().unwrap();
     assert_eq!(editor.view().index().text(), "");
+}
+
+fn table_input(text: &str) -> TextInput {
+    let mut document = Document::new_blank();
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph.push_text(text, None, Arc::default()).unwrap();
+    let table = joyword_model::Table {
+        id: document.ids().node(),
+        grid: vec![joyword_model::Measure::Twips(2400)],
+        rows: vec![joyword_model::Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![joyword_model::Cell {
+                id: document.ids().node(),
+                grid_span: 1,
+                vertical_merge: joyword_model::VerticalMerge::None,
+                width: Some(joyword_model::Measure::Twips(2400)),
+                borders: joyword_model::CellBorders::default(),
+                shading: None,
+                margin: None,
+                vertical_align: None,
+                blocks: BlockSeq::from_vec(vec![paragraph.into()]),
+                preserved: None,
+            }],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![table.into()]);
+    TextInput::new(Session::new(document), InputLimits::default()).unwrap()
+}
+
+fn cell_link(editor: &TextInput) -> Option<Hyperlink> {
+    let Block::Table(table) = editor.backend().document().body().blocks.get(0).unwrap() else {
+        panic!("table");
+    };
+    table.rows[0].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .link_at(0)
+        .cloned()
+}
+
+#[test]
+fn a_hyperlink_inside_a_table_cell_is_set_edited_removed_and_openable() {
+    let mut editor = table_input("cell");
+    assert_eq!(editor.view().index().text(), "cell");
+    editor.select(0..4, false).unwrap();
+    editor
+        .set_hyperlink(Some("https://example.invalid/cell"), None)
+        .unwrap();
+    let link = cell_link(&editor).expect("link in the cell");
+    assert_eq!(
+        link.external.as_deref(),
+        Some("https://example.invalid/cell")
+    );
+    let anchor = editor.view().selection().anchor;
+    assert_eq!(
+        editor.openable_link(&anchor),
+        Some("https://example.invalid/cell")
+    );
+
+    editor
+        .set_hyperlink(Some("mailto:c@example.invalid"), None)
+        .unwrap();
+    assert_eq!(
+        cell_link(&editor).unwrap().external.as_deref(),
+        Some("mailto:c@example.invalid")
+    );
+    editor.set_hyperlink(None, None).unwrap();
+    assert!(cell_link(&editor).is_none());
+    editor.undo().unwrap();
+    assert_eq!(
+        cell_link(&editor).unwrap().external.as_deref(),
+        Some("mailto:c@example.invalid")
+    );
+    editor.undo().unwrap();
+    assert_eq!(
+        cell_link(&editor).unwrap().external.as_deref(),
+        Some("https://example.invalid/cell")
+    );
+    editor.undo().unwrap();
+    assert!(cell_link(&editor).is_none());
+    assert_eq!(editor.view().index().text(), "cell");
 }

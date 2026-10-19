@@ -619,6 +619,119 @@ fn typed_cell(session: &Session) -> &Paragraph {
 }
 
 #[test]
+fn a_hyperlink_inside_a_cell_is_set_edited_and_cleared_with_undo() {
+    let mut document = blank(&["正文"]);
+    let only_cell = cell(&mut document, "甲乙", 1, VerticalMerge::None);
+    let built = table(&mut document, vec![vec![only_cell]], 1);
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let paragraph = table_of(&session).rows[0].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .id();
+
+    let link = joyword_model::Hyperlink::for_edit(Some("https://example.invalid/cell"), None)
+        .map_err(|reason| panic!("{reason}"))
+        .unwrap();
+    let start = pos(&session, paragraph, 0);
+    let end = pos(&session, paragraph, 2);
+    exec(
+        &mut session,
+        vec![Command::SetHyperlink {
+            start,
+            end,
+            link: Some(link),
+        }],
+    )
+    .unwrap();
+    let stored = table_of(&session).rows[0].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .link_at(0)
+        .expect("link inside the cell");
+    assert_eq!(
+        stored.external.as_deref(),
+        Some("https://example.invalid/cell")
+    );
+
+    let edited = joyword_model::Hyperlink::for_edit(Some("mailto:c@example.invalid"), None)
+        .map_err(|reason| panic!("{reason}"))
+        .unwrap();
+    let start = pos(&session, paragraph, 0);
+    let end = pos(&session, paragraph, 2);
+    exec(
+        &mut session,
+        vec![Command::SetHyperlink {
+            start,
+            end,
+            link: Some(edited),
+        }],
+    )
+    .unwrap();
+    let start = pos(&session, paragraph, 0);
+    let end = pos(&session, paragraph, 2);
+    exec(
+        &mut session,
+        vec![Command::SetHyperlink {
+            start,
+            end,
+            link: None,
+        }],
+    )
+    .unwrap();
+    assert!(
+        table_of(&session).rows[0].cells[0]
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .link_at(0)
+            .is_none()
+    );
+    session.undo().unwrap();
+    assert_eq!(
+        table_of(&session).rows[0].cells[0]
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .link_at(0)
+            .unwrap()
+            .external
+            .as_deref(),
+        Some("mailto:c@example.invalid")
+    );
+    session.undo().unwrap();
+    session.undo().unwrap();
+    assert!(
+        table_of(&session).rows[0].cells[0]
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .link_at(0)
+            .is_none()
+    );
+    assert_eq!(
+        table_of(&session).rows[0].cells[0]
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .plain_text(|_| String::new()),
+        "甲乙"
+    );
+}
+
+#[test]
 fn tracked_text_in_a_typed_cell_uses_the_author_and_accepts() {
     let mut document = blank(&[""]);
     let one = cell(&mut document, "甲", 1, VerticalMerge::None);

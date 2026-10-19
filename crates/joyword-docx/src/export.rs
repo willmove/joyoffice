@@ -323,7 +323,7 @@ fn plan_export_after_import(
                     &markers_of(current, paragraph.id()),
                 )?,
                 structure::NewBlock::Table(table) => {
-                    structure::table_markup(table, &names, budget.max_part_bytes)?
+                    structure::table_markup(&xml, table, &names, budget.max_part_bytes)?
                 }
             };
             // Bound the accumulated new markup before building any more.
@@ -340,7 +340,7 @@ fn plan_export_after_import(
     }
     for &(before, after) in &alignment.edited_tables {
         let element = xml.table(before)?;
-        let markup = structure::table_markup(after, &names, budget.max_part_bytes)?;
+        let markup = structure::table_markup(&xml, after, &names, budget.max_part_bytes)?;
         patches.push((element.span.clone(), markup.into_bytes()));
     }
     for table in &alignment.removed_tables {

@@ -185,6 +185,28 @@ pub(crate) trait DocEditor {
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError>;
     fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError>;
     fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError>;
+    /// Insert every admitted local image path at the selection, in path
+    /// order. Refused paths are skipped; `Err` reports the first refusal
+    /// when nothing was admitted. Same policy as
+    /// `joyword_shell::input::TextInput::insert_image_paths`.
+    fn insert_image_paths(&mut self, paths: &[std::path::PathBuf]) -> Result<usize, InputError> {
+        let mut inserted = 0usize;
+        let mut first_error = None;
+        for path in paths {
+            match self.insert_image_file(path) {
+                Ok(_) => inserted += 1,
+                Err(error) => {
+                    if first_error.is_none() {
+                        first_error = Some(error);
+                    }
+                }
+            }
+        }
+        if inserted == 0 {
+            return Err(first_error.unwrap_or(InputError::Image("no image paths")));
+        }
+        Ok(inserted)
+    }
     fn paste_rich(
         &mut self,
         document: &joyword_shell::rich_paste::RichDocument,
@@ -3707,6 +3729,30 @@ impl JoyWord {
         true
     }
 
+    /// Dropped local image files insert at the drop point, in path order.
+    /// The shell image checks (regular file, byte budget, sniffed bytes, no
+    /// remote path) refuse individual entries without aborting the rest; an
+    /// all-refused drop surfaces the first refusal like any input error.
+    /// The pinned GPUI carries file-drop paths on Windows and Wayland only;
+    /// its X11 backend delivers no paths, so this never fires there.
+    fn drop_paths(
+        &mut self,
+        paths: &[std::path::PathBuf],
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if paths.is_empty() {
+            return;
+        }
+        // FileDropEvent keeps the platform mouse position current through
+        // Entered/Pending/Submit, so the window position is the drop point.
+        let position = window.mouse_position();
+        if self.hit(position, true).is_some() {
+            self.mouse_select(position, false, 1, window, cx);
+        }
+        self.apply_input(cx, |editor| editor.insert_image_paths(paths).map(|_| ()));
+    }
+
     fn mouse_select(
         &mut self,
         point: Point<Pixels>,
@@ -3864,6 +3910,11 @@ impl JoyWord {
             .on_mouse_up_out(
                 MouseButton::Left,
                 cx.listener(|view, _, _, _| view.dragging = false),
+            )
+            .on_drop(
+                cx.listener(|view, paths: &gpui::ExternalPaths, window, cx| {
+                    view.drop_paths(paths.paths(), window, cx);
+                }),
             )
             .child(
                 div()

@@ -23,7 +23,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::io::Read;
 use std::ops::Range;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -1089,6 +1089,31 @@ impl<B: InputBackend> TextInput<B> {
     pub fn insert_image_file(&mut self, path: &Path) -> Result<bool, InputError> {
         let bytes = read_image_file(path)?;
         self.insert_image_bytes(&bytes)
+    }
+
+    /// Insert every admitted image path at the selection, in path order.
+    /// Each admitted image is its own undo step. A path that is not a
+    /// regular local file, or whose bytes the image checks refuse, is
+    /// skipped; the return value counts the inserted images. When nothing
+    /// is admitted the first refusal is returned, so an all-refused drop
+    /// says why instead of looking like a no-op.
+    pub fn insert_image_paths(&mut self, paths: &[PathBuf]) -> Result<usize, InputError> {
+        let mut inserted = 0usize;
+        let mut first_error = None;
+        for path in paths {
+            match self.insert_image_file(path) {
+                Ok(_) => inserted += 1,
+                Err(error) => {
+                    if first_error.is_none() {
+                        first_error = Some(error);
+                    }
+                }
+            }
+        }
+        if inserted == 0 {
+            return Err(first_error.unwrap_or(InputError::Image("no image paths")));
+        }
+        Ok(inserted)
     }
 
     /// Sets or clears the hyperlink on the selection. `None` for both parts

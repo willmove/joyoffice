@@ -221,3 +221,68 @@ fn a_hyperlink_is_an_underline_in_the_page_scene() {
         rect.red == 0x05 && rect.green == 0x63 && rect.blue == 0xc1 && rect.width.raw() > 0
     }));
 }
+
+#[test]
+fn a_hyperlink_in_a_table_cell_is_an_underline_in_the_page_scene() {
+    let mut document = Document::new_blank();
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph.push_text("go", None, Arc::default()).unwrap();
+    let link = joyword_model::Hyperlink::for_edit(Some("https://example.invalid/a"), None).unwrap();
+    paragraph
+        .set_links(ScalarOffset(0)..ScalarOffset(2), Some(Arc::new(link)))
+        .unwrap();
+    let table = joyword_model::Table {
+        id: document.ids().node(),
+        grid: vec![joyword_model::Measure::Twips(2400)],
+        rows: vec![joyword_model::Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![joyword_model::Cell {
+                id: document.ids().node(),
+                grid_span: 1,
+                vertical_merge: joyword_model::VerticalMerge::None,
+                width: Some(joyword_model::Measure::Twips(2400)),
+                borders: joyword_model::CellBorders::default(),
+                shading: None,
+                margin: None,
+                vertical_align: None,
+                blocks: BlockSeq::from_vec(vec![paragraph.into()]),
+                preserved: None,
+            }],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![table.into()]);
+    let profile = SingleFontProfile {
+        size: pt(12),
+        leading: pt(18),
+        baseline: pt(14),
+        features: FeatureSet::default(),
+    };
+    let laid = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile,
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let page = &laid.pages()[0];
+    assert!(page.rects.iter().any(|rect| {
+        rect.red == 0x05 && rect.green == 0x63 && rect.blue == 0xc1 && rect.width.raw() > 0
+    }));
+}
