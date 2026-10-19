@@ -254,6 +254,140 @@
         "reference/word2024/DOCX-MIN-005.reference.json",
         "reference/word2024/DOCX-MIN-005.txt"
       ]
+    },
+    {
+      "id": "DOCX-FEAT-T200-NUM",
+      "kind": "format_case",
+      "path": "feature/DOCX-FEAT-T200-NUM.docx",
+      "document": "feature/DOCX-FEAT-T200-NUM.docx",
+      "sha256": "0dda15b1c39922e33ec15da59a85269b516b3af55ccfa513472b39f53bbdb010",
+      "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
+      "license": "MIT",
+      "requirements": [
+        "STYLE-002",
+        "STYLE-003",
+        "STYLE-004",
+        "EDIT-006"
+      ],
+      "expected": [
+        "Body、Clause、Article 的 basedOn 链按样式标识解析，不把样式部件改写成扁平直接格式",
+        "多级编号含 lvlRestart 与 num 的 startOverride，编号部件原字节保留",
+        "段落制表位为左对齐点线引导符",
+        "正文含可被正则捕获的 Order-014，供 $1 替换样例使用"
+      ],
+      "reference_profile": {
+        "word": "未建立。尚无 Word 打开与 PDF 读回。",
+        "wps": "未建立。尚无 WPS 打开与读回。",
+        "fonts": "未建立固定参考字体。",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-FEAT-T201-TABLE",
+      "kind": "format_case",
+      "path": "feature/DOCX-FEAT-T201-TABLE.docx",
+      "document": "feature/DOCX-FEAT-T201-TABLE.docx",
+      "sha256": "db2908c581cc7d93d0e5715eda587fbd9e72acc11420ce278c7fc2b9b0a774f5",
+      "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
+      "license": "MIT",
+      "requirements": [
+        "LAYOUT-005"
+      ],
+      "expected": [
+        "合同表含 gridSpan 与 vMerge，单元格边框和 clear 底纹进入类型化表",
+        "tblLook 打开首行、首列、末列和横纵条纹",
+        "单元格内一层嵌套表保持类型化，更深嵌套不在本样例中"
+      ],
+      "reference_profile": {
+        "word": "未建立。尚无 Word 打开与 PDF 读回。",
+        "wps": "未建立。尚无 WPS 打开与读回。",
+        "fonts": "未建立固定参考字体。",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-FEAT-T202-PAGES",
+      "kind": "format_case",
+      "path": "feature/DOCX-FEAT-T202-PAGES.docx",
+      "document": "feature/DOCX-FEAT-T202-PAGES.docx",
+      "sha256": "79203dc2744580ff910e7f5d7ff00e2a034a5960f88564b86e8bb492ece9658e",
+      "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
+      "license": "MIT",
+      "requirements": [
+        "LAYOUT-004",
+        "LAYOUT-012",
+        "LAYOUT-013"
+      ],
+      "expected": [
+        "第一节 nextPage、第二节 continuous；第二节不重复页眉引用，由前节显式页眉接上",
+        "不等宽栏与分栏符、titlePg、奇偶页眉和页码格式与起始值进入节属性",
+        "页眉含 PAGE 与 NUMPAGES 域，缓存结果不当作正文",
+        "keepNext、widowControl 与 keepLines 进入段落属性"
+      ],
+      "reference_profile": {
+        "word": "未建立。尚无 Word 打开与 PDF 读回。",
+        "wps": "未建立。尚无 WPS 打开与读回。",
+        "fonts": "未建立固定参考字体。",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-FEAT-T203-IMAGES",
+      "kind": "format_case",
+      "path": "feature/DOCX-FEAT-T203-IMAGES.docx",
+      "document": "feature/DOCX-FEAT-T203-IMAGES.docx",
+      "sha256": "b7c33585767991d9a3cafd33bc310f16ea87c7bc2c4090b47d295200ad3b4cc1",
+      "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
+      "license": "MIT",
+      "requirements": [
+        "LAYOUT-006"
+      ],
+      "expected": [
+        "行内 PNG、相对页面的 wrapNone 锚点和相对页面的 wrapSquare 锚点成为图片资源",
+        "wrapTight 锚点保留原 drawing，不丢弃，所在段落锁定",
+        "未引用的 word/custom/note.xml 在包内保持原字节"
+      ],
+      "reference_profile": {
+        "word": "未建立。尚无 Word 打开与 PDF 读回。",
+        "wps": "未建立。尚无 WPS 打开与读回。",
+        "fonts": "未建立固定参考字体。",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
+    },
+    {
+      "id": "DOCX-FEAT-T300-REVIEW",
+      "kind": "format_case",
+      "path": "feature/DOCX-FEAT-T300-REVIEW.docx",
+      "document": "feature/DOCX-FEAT-T300-REVIEW.docx",
+      "sha256": "8604183bb08535bdf9cbcde7e2693683ea137676c0653c771ab7ad2f4917352b",
+      "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
+      "license": "MIT",
+      "requirements": [
+        "REVIEW-001",
+        "REVIEW-003",
+        "REVIEW-004"
+      ],
+      "expected": [
+        "正文插入、删除和成对 moveFrom/moveTo 进入类型化修订，settings 含 trackRevisions",
+        "页眉中的插入和删除同样进入该页眉故事",
+        "未编辑导出复制原包；正文纯文本段的文本修补往返后修订标记仍在"
+      ],
+      "reference_profile": {
+        "word": "未建立。尚无 Word 打开与 PDF 读回。",
+        "wps": "未建立。尚无 WPS 打开与读回。",
+        "fonts": "未建立固定参考字体。",
+        "status": "unverified"
+      },
+      "status": "planned",
+      "evidence": []
     }
   ]
 }
