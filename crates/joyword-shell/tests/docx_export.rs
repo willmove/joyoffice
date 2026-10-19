@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use joyoffice_opc::{Budget, Method, Package, write_archive};
 use joyword_docx::{ExportError, ExportMode, ExportTarget, W, import, plan_export};
 use joyword_engine::{Command, Origin, ParagraphChange, RunChange, Transaction};
-use joyword_model::{Bias, Block, Justification, Position, ScalarOffset};
+use joyword_model::{Bias, Block, EqualColumns, Justification, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
 
 fn fixture(id: u8) -> Vec<u8> {
@@ -466,7 +466,12 @@ fn snapshot_changes_outside_text_are_never_silently_ignored() {
         match kind {
             0 => model.settings_mut().compatibility_mode = Some(11),
             1 => model.sections_mut()[0].title_page = Some(true),
-            2 => model.sections_mut()[0].preserved = None,
+            2 => {
+                model.sections_mut()[0].columns = Some(EqualColumns {
+                    count: 2,
+                    space: 720,
+                });
+            }
             3 => {
                 let mut style = joyword_model::Style::new(
                     "extra",
@@ -485,10 +490,6 @@ fn snapshot_changes_outside_text_are_never_silently_ignored() {
                     std::sync::Arc::make_mut(p).source = None;
                 });
             }
-        }
-        // Case 2 might be a no-op for this fixture; force a real section change.
-        if kind == 2 {
-            model.sections_mut()[0].page.gutter = joyword_model::Measure::Twips(17);
         }
         assert!(matches!(
             plan_export(&source.backing, &model.snapshot(), &Budget::default()),
