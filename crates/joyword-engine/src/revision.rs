@@ -1,8 +1,14 @@
 //! Accept, reject and tracked typing for text and move revisions (T300).
 //!
-//! Accept and reject do not create revisions. A move is resolved by its
-//! `w:name` on both sides together. An incomplete or crossed pair is refused
-//! with the document unchanged.
+//! Accept and reject do not create revisions. A move is one change: accepting
+//! or rejecting either side's revision id resolves both ends. Accept keeps
+//! the destination and removes the source; reject keeps the source and
+//! removes the destination. Insertions and deletions that sit inside a side
+//! are left for a single accept or reject, and batch accept or reject
+//! resolves them too, so those commands match the final and original
+//! projections. A move run that crosses a marker, or the other move kind
+//! inside a side, is [`CommandError::RevisionConflict`]. An incomplete or
+//! crossed pair is refused. Every refusal leaves the document unchanged.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -769,43 +775,79 @@ fn pair_edits(
 ) -> Result<Vec<Edit>, CommandError> {
     let order = order_of(document);
     let mut edits = Vec::new();
+    let (from_edit, to_edit) = match resolution {
+        Resolution::Accept => (EditKind::Delete, EditKind::Clear),
+        Resolution::Reject => (EditKind::Clear, EditKind::Delete),
+    };
+    side_edits(
+        document,
+        &order,
+        pair.from_start,
+        pair.from_end,
+        RevisionKind::MoveFrom,
+        from_edit,
+        &mut edits,
+    )?;
+    side_edits(
+        document,
+        &order,
+        pair.to_start,
+        pair.to_end,
+        RevisionKind::MoveTo,
+        to_edit,
+        &mut edits,
+    )?;
+    Ok(edits)
+}
+
+/// Edits every run of `kind` that lies wholly inside one side of a pair.
+///
+/// Plain text, insertions and deletions inside the side are not edits here.
+/// A single accept or reject therefore leaves them, and accept-all or
+/// reject-all still sees them as their own revisions. A move run that
+/// crosses the marker, or the opposite move kind inside the side, is refused.
+fn side_edits(
+    document: &Document,
+    order: &BTreeMap<NodeId, (usize, usize, StoryId, usize)>,
+    side_start: Place,
+    side_end: Place,
+    kind: RevisionKind,
+    edit_kind: EditKind,
+    edits: &mut Vec<Edit>,
+) -> Result<(), CommandError> {
     for (story, paragraph) in paragraphs(document) {
-        if let Some((start, end)) = overlap_slice(&order, paragraph, pair.from_start, pair.from_end)
-        {
-            expect_kind(
-                document,
-                story,
-                paragraph,
-                start,
-                end,
-                RevisionKind::MoveFrom,
-            )?;
-            edits.push(Edit {
-                story,
-                paragraph,
-                start,
-                end,
-                kind: match resolution {
-                    Resolution::Accept => EditKind::Delete,
-                    Resolution::Reject => EditKind::Clear,
-                },
-            });
-        }
-        if let Some((start, end)) = overlap_slice(&order, paragraph, pair.to_start, pair.to_end) {
-            expect_kind(document, story, paragraph, start, end, RevisionKind::MoveTo)?;
-            edits.push(Edit {
-                story,
-                paragraph,
-                start,
-                end,
-                kind: match resolution {
-                    Resolution::Accept => EditKind::Clear,
-                    Resolution::Reject => EditKind::Delete,
-                },
-            });
+        let Some((start, end)) = overlap_slice(order, paragraph, side_start, side_end) else {
+            continue;
+        };
+        let paragraph_ref = paragraph_ref(document, story, paragraph)
+            .ok_or(CommandError::UnknownNode(paragraph))?;
+        let mut offset = 0usize;
+        for run in paragraph_ref.runs() {
+            let run_end = offset + run.len;
+            if offset < end && start < run_end {
+                match &run.revision {
+                    Some(revision) if revision.kind == kind => {
+                        if offset < start || run_end > end {
+                            return Err(CommandError::RevisionConflict);
+                        }
+                        edits.push(Edit {
+                            story,
+                            paragraph,
+                            start: offset,
+                            end: run_end,
+                            kind: edit_kind,
+                        });
+                    }
+                    Some(revision) if revision.kind.is_move() => {
+                        return Err(CommandError::RevisionConflict);
+                    }
+                    _ => {}
+                }
+            }
+            offset = run_end;
         }
     }
-    Ok(edits)
+    Ok(())
 }
 
 fn overlap_slice(
@@ -832,30 +874,6 @@ fn overlap_slice(
     } else {
         None
     }
-}
-
-fn expect_kind(
-    document: &Document,
-    story: StoryId,
-    paragraph: NodeId,
-    start: usize,
-    end: usize,
-    kind: RevisionKind,
-) -> Result<(), CommandError> {
-    let paragraph =
-        paragraph_ref(document, story, paragraph).ok_or(CommandError::UnknownNode(paragraph))?;
-    let mut offset = 0usize;
-    for run in paragraph.runs() {
-        let run_end = offset + run.len;
-        if offset < end && start < run_end {
-            match &run.revision {
-                Some(revision) if revision.kind == kind => {}
-                _ => return Err(CommandError::RevisionConflict),
-            }
-        }
-        offset = run_end;
-    }
-    Ok(())
 }
 
 fn marker_groups(document: &Document) -> BTreeMap<String, Vec<MoveMarker>> {

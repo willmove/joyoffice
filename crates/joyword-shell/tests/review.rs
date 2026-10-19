@@ -1,9 +1,12 @@
 //! T300 slice 2: review commands, the author preference, and the three views.
+//! Slice 3 also drives a paired move through those commands.
 
 use std::fs;
 use std::path::PathBuf;
 
-use joyword_model::RevisionView;
+use joyoffice_opc::{Budget, Method, write_archive};
+use joyword_docx::import;
+use joyword_model::{RevisionKind, RevisionView};
 use joyword_shell::command::{
     ArgValue, EDIT_INSERT, FILE_OPEN, InvokeError, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR,
     REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
@@ -184,4 +187,132 @@ fn review_commands_use_the_registry_and_the_author_preference() {
     ));
     bare.invoke(REVIEW_MARKUP, &[]).unwrap();
     assert_eq!(bare.review_view(), RevisionView::FinalWithMarkup);
+}
+
+const W: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+
+fn move_package() -> Vec<u8> {
+    let document = format!(
+        r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="{W}"><w:body><w:p><w:moveFromRangeStart w:id="1" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/><w:moveFrom w:id="2" w:author="A" w:date="2020-01-02T03:04:05Z"><w:r><w:delText>旧</w:delText></w:r></w:moveFrom><w:moveFromRangeEnd w:id="3" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/><w:moveToRangeStart w:id="4" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/><w:moveTo w:id="5" w:author="A" w:date="2020-01-02T03:04:05Z"><w:r><w:t>新</w:t></w:r></w:moveTo><w:moveToRangeEnd w:id="6" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/></w:p></w:body></w:document>"#
+    );
+    let settings = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:settings xmlns:w="{W}"><w:trackRevisions/></w:settings>"#
+    );
+    let content_types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>"#;
+    let package_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#;
+    let document_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>"#;
+    let items = [
+        ("[Content_Types].xml", content_types),
+        ("_rels/.rels", package_rels),
+        ("word/document.xml", document.as_str()),
+        ("word/_rels/document.xml.rels", document_rels),
+        ("word/settings.xml", settings.as_str()),
+    ];
+    let stored: Vec<(&str, &[u8], Method)> = items
+        .iter()
+        .map(|(name, data)| (*name, data.as_bytes(), Method::Deflated))
+        .collect();
+    write_archive(&stored).unwrap()
+}
+
+fn marker_names(office: &Office) -> Vec<String> {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .move_markers()
+        .iter()
+        .map(|marker| marker.name.to_string())
+        .collect()
+}
+
+#[test]
+fn review_commands_accept_a_paired_move_and_a_settings_patch_keeps_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("move.docx");
+    fs::write(&source, move_package()).unwrap();
+    let mut office = Office::new();
+    office.bind_preferences(dir.path().join("prefs"), Locale::ZhCn);
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    assert_eq!(body_text(&office), "旧新");
+    assert_eq!(marker_names(&office), vec!["m", "m", "m", "m"]);
+    assert!(office.active().unwrap().tracking_enabled());
+
+    for id in [REVIEW_MARKUP, REVIEW_FINAL, REVIEW_ORIGINAL, REVIEW_MARKUP] {
+        office.invoke(id, &[]).unwrap();
+    }
+    assert_eq!(body_text(&office), "旧新");
+    assert_eq!(office.review_view(), RevisionView::FinalWithMarkup);
+
+    office
+        .invoke(REVIEW_TRACK, &[("enabled", ArgValue::Bool(false))])
+        .unwrap();
+    let plan = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .export_plan()
+        .unwrap();
+    let again = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(again.document.settings().track_revisions, Some(false));
+    assert_eq!(again.document.move_markers().len(), 4);
+    assert_eq!(
+        again
+            .document
+            .body()
+            .blocks
+            .iter()
+            .filter_map(|block| block.as_paragraph())
+            .flat_map(|paragraph| paragraph.runs().iter())
+            .filter_map(|run| run.revision.as_ref().map(|mark| mark.kind))
+            .collect::<Vec<_>>(),
+        vec![RevisionKind::MoveFrom, RevisionKind::MoveTo]
+    );
+
+    office.active_mut().unwrap().undo().unwrap();
+    assert!(office.active().unwrap().tracking_enabled());
+    assert_eq!(marker_names(&office), vec!["m", "m", "m", "m"]);
+
+    office.invoke(REVIEW_ACCEPT, &[]).unwrap();
+    assert_eq!(body_text(&office), "新");
+    assert!(marker_names(&office).is_empty());
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(body_text(&office), "旧新");
+    assert_eq!(marker_names(&office).len(), 4);
+
+    office.invoke(REVIEW_REJECT_ALL, &[]).unwrap();
+    assert_eq!(body_text(&office), "旧");
+    assert!(marker_names(&office).is_empty());
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(body_text(&office), "旧新");
+
+    office.invoke(REVIEW_ACCEPT_ALL, &[]).unwrap();
+    assert_eq!(body_text(&office), "新");
+    assert!(revision_authors(&office).is_empty());
+    let accepted = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .export_plan()
+        .unwrap();
+    let saved = import(accepted.bytes(), &Budget::default()).unwrap();
+    assert!(saved.document.move_markers().is_empty());
+    assert_eq!(
+        saved
+            .document
+            .body()
+            .blocks
+            .iter()
+            .filter_map(|block| block.as_paragraph())
+            .map(|paragraph| paragraph.plain_text(|_| String::new()))
+            .collect::<Vec<_>>(),
+        vec!["新".to_string()]
+    );
 }
