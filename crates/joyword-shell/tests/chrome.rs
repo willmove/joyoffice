@@ -251,20 +251,48 @@ fn view_ribbon_commands_do_not_modify_the_document() {
 }
 
 #[test]
-fn view_toggles_stay_disabled_with_no_document() {
-    let host = Office::new();
-    for (id, reason) in [
-        (VIEW_FORMATTING_MARKS, "view.formatting_marks.unsupported"),
-        (VIEW_HIDDEN_TEXT, "view.hidden_text.unsupported"),
-        (VIEW_FIELD_CODES, "view.field_codes.unsupported"),
-    ] {
+fn word_count_matches_the_documented_edit_009_rule() {
+    // Hand count of the EDIT-009 rule in `census`, not a Word dialog.
+    // 你 好 are two CJK words; ， is punctuation.
+    // Word, don't and count are three Latin words; the apostrophe stays inside don't.
+    // 2024 and 12.5 are two numbers; the dot stays inside 12.5.
+    // 的 字 数 are three CJK words; ： and 。 are punctuation.
+    // Four spaces separate the Latin and numeric runs.
+    let counted = census("你好，Word 2024 的字数：don't count 12.5。");
+    assert_eq!(
+        counted,
+        TextCensus {
+            cjk: 5,
+            latin_words: 3,
+            numbers: 2,
+            punctuation: 3,
+            spaces: 4,
+            graphemes: 34,
+            other: 0,
+        }
+    );
+    assert_eq!(counted.words(), 10);
+}
+
+#[test]
+fn view_toggles_flip_without_a_document() {
+    let registry = Registry::builtin();
+    let mut host = Office::new();
+    for id in [VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, VIEW_FIELD_CODES] {
         assert_eq!(
             CommandHost::availability(&host, id),
-            Availability::Disabled(reason),
-            "{}",
-            id
+            Availability::Enabled,
+            "{id}"
         );
+        assert!(!registry.get(id).unwrap().modifies_document, "{id}");
+        host.invoke(id, &[]).unwrap();
     }
+    let toggles = host.view_toggles();
+    assert!(toggles.formatting_marks);
+    assert!(toggles.show_hidden);
+    assert!(toggles.field_codes);
+    host.invoke(VIEW_FORMATTING_MARKS, &[]).unwrap();
+    assert!(!host.view_toggles().formatting_marks);
 }
 
 #[test]

@@ -1,5 +1,8 @@
 use joyword_foundation::Emu;
-use joyword_layout::{FeatureSet, GlyphRun, LoadedFont, PageScene, shape};
+use joyword_layout::{
+    FeatureSet, GlyphRun, LoadedFont, PageScene, PaintedUnderline, UnderlinePaint,
+    decoration_rects, shape,
+};
 use joyword_render::{
     Projection, RasterCancellation, RasterError, RasterLimit, RasterLimits, raster_size, rasterize,
 };
@@ -52,6 +55,33 @@ fn ink_bounds(page: &joyword_render::RasterPage) -> (u32, u32, u32, u32) {
     assert_ne!(b.0, u32::MAX);
     b
 }
+#[test]
+fn srgb_text_and_its_underline_paint_the_run_colour() {
+    let font = font();
+    let mut run = GlyphRun::place(
+        &shape(&font, "W", pt(18), FeatureSet::default()),
+        pt(10),
+        pt(30),
+    );
+    run.color = [200, 0, 0];
+    run.underline = Some(UnderlinePaint {
+        kind: PaintedUnderline::Single,
+        offset: pt(2),
+        thickness: pt(2),
+    });
+    let mut scene = scene(&font, "W");
+    scene.runs = vec![run.clone()];
+    scene.rects = decoration_rects(&run, false, false, &[]);
+    let page = render(&scene, &font);
+    let coloured = page
+        .rgba()
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .any(|pixel| pixel[0] >= 180 && pixel[1] < 40 && pixel[2] < 40 && pixel[3] == 255);
+    assert!(coloured, "expected red ink from the run colour");
+}
+
 #[test]
 fn exact_scene_is_deterministic_opaque_and_not_mutated() {
     let font = font();

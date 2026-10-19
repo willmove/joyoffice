@@ -60,6 +60,10 @@ pub struct LayoutLine {
     pub images: Vec<LineImage>,
     /// Zero uses the paragraph line box. A positive value replaces it.
     pub box_height: Emu,
+    /// Tab gaps in line-local EMU `(x, width)`, recorded where the fitter
+    /// consumed a tab without leaving a glyph. Formatting marks draw an arrow
+    /// here; the gap is already part of the line's advance.
+    pub tab_gaps: Vec<(i64, i64)>,
 }
 
 impl LayoutLine {
@@ -501,6 +505,7 @@ where
             clusters,
             images: Vec::new(),
             box_height: Emu::new(0),
+            tab_gaps: Vec::new(),
         });
         if byte_start == text.len() {
             break;

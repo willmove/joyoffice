@@ -208,7 +208,7 @@ fn inherited_style_tabs_are_detected() {
 }
 
 #[test]
-fn underline_records_the_paint_limit() {
+fn underline_and_srgb_do_not_record_a_paint_refusal() {
     let mut editor = input("甲");
     editor.select_all().unwrap();
     let notes = editor
@@ -218,8 +218,8 @@ fn underline_records_the_paint_limit() {
             bold: None,
             italic: None,
             underline: Some(joyword_model::Underline::Single),
-            color: None,
+            color: Some(joyword_model::Color::Rgb(180, 20, 20)),
         })
         .unwrap();
-    assert!(notes.contains(&"dialog.font.paint"));
+    assert!(!notes.contains(&"dialog.font.paint"));
 }

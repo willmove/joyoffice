@@ -136,6 +136,12 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - PLATFORM-003。中文字号对照 [OriginLab FAQ-850](https://www.originlab.com/doc/en/Origin-Help/FAQ-850) 所录的 Microsoft Office 号与磅值，以及 [W3C clreq issue 142](https://github.com/w3c/clreq/issues/142) 讨论中的 Word 列（二号 22 pt、三号 16 pt、四号 14 pt、六号 7.5 pt、七号 5.5 pt）。历史字号的其他列不采用。半点是 ECMA-376 `ST_HpsMeasure`。字号框范围按 Word 的 1–1638 pt，即半点 2 到 3276。
 - 缩进、间距和制表位依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.3.1.12（`ind`）、§17.3.1.33（`spacing`）、§17.3.1.37–38（`tabs`／`tab`）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的对话框实现。Auto 倍数在 n 不等于 240 时按本仓库 profile 行距做整数比例，不把它说成 Word 的行网格。没有新增外部 crate。
 
+### 下划线、文字颜色与视图选项（T205 第三切片）
+
+- 下划线度量依据 OpenType `post` 表（`underlinePosition` 为笔画顶部相对基线的 y 向上距离，`underlineThickness` 应与 `OS/2.yStrikeoutSize` 一致）：<https://learn.microsoft.com/en-us/typography/opentype/spec/post> 与 <https://learn.microsoft.com/en-us/typography/opentype/spec/os2>。只读公开表说明，未读取 Word、WPS 或系统排版器的下划线实现。`post` 厚度为正时采用该表，位置可以为 0。厚度缺失或非正且 `yStrikeoutSize` 为正时，用该尺寸作厚度，并把顶边放在基线下一倍粗细。两者都没有时，厚度为 `unitsPerEm/20`（至少 1），顶边同样在基线下一倍粗细。这些回退是 JoyWord 的，不是 Word 测量。
+- 双线在第一笔下方再隔一倍粗细画第二笔。点线是边长与间隔都等于这一粗细的方块。这两种间隔同样不是 Word 测量，因此不写入 `layout_rules.md`。粗线、虚线、波浪线和按字下划线仍拒绝。sRGB 直接作为字形填充；主题色拒绝。自动色为黑色。
+- 隐藏文字是 ECMA-376 `w:vanish`。域的指令与结果划分沿用模型里已有的分隔符，不实现跨段域。页眉页脚在显示域代码时写出 `PAGE` 或 `NUMPAGES`，不打印花括号或开关。格式标记是排版之后的灰色矩形，不改变断行。没有新增外部 crate。
+
 ### 首页不同与奇偶页页眉页脚（T202 第二切片）
 
 - LAYOUT-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.10.1（`evenAndOddHeaders`：按节的页码起点区分奇偶，省略的类型继承前一节，不用另一种代替）、§17.10.5（`headerReference`：省略的首页／偶数页／奇数页引用分别继承前一节的同类型，否则空白）、§17.10.2（`footerReference`，规则与页眉相同）、§17.10.6（`titlePg`：节的首页用 First；关闭时按页码用奇或偶，并忽略已保存的 First）。条款文字对照 [ECMA-376 中文摘录](https://hellowac.github.io/ecma-376-zh-cn/ecma-part1/chapter17/10headeres/)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的页眉实现。

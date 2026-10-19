@@ -281,10 +281,13 @@ fn image_line(
             italic: false,
             latin_family: None,
             east_asia_family: None,
+            color: [0, 0, 0],
+            underline: None,
         },
         clusters: Vec::new(),
         images: vec![line_image(image, Emu::new(0))],
         box_height: Emu::new(0),
+        tab_gaps: Vec::new(),
     };
     grow(&mut line, image.height, line_box, descent);
     line

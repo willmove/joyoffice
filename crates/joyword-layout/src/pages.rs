@@ -23,8 +23,10 @@ use crate::document::{
     unsupported,
 };
 use crate::line::{LayoutLine, LineError, LineLimits, SourceRange, layout_paragraph_auto};
-use crate::scene::GlyphRun;
+use crate::scene::{GlyphRun, decoration_rects};
+use crate::shape::paint_underline;
 use crate::style_paint;
+use crate::view::{self, ViewOptions};
 
 pub(crate) struct SectionPlan {
     pub geometry: PageGeometry,
@@ -477,7 +479,7 @@ fn paint_header(
         if next.raw() > geometry.top.raw() {
             crossed = true;
         }
-        snapshot.append_page_run(page_index, place_run(line.run, geometry.left, baseline))?;
+        place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
         y = next;
     }
     if crossed {
@@ -524,8 +526,9 @@ fn paint_footer(
         let baseline = Emu::new(y)
             .checked_add(Emu::new(line.baseline))
             .ok_or(LayoutError::GeometryOverflow)?;
-        snapshot.append_page_run(page_index, place_run(line.run, geometry.left, baseline))?;
-        y += line.line_box.raw();
+        let box_height = line.line_box.raw();
+        place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
+        y += box_height;
     }
     if crossed {
         note_exceeds(snapshot, story, exceeded);
@@ -543,10 +546,20 @@ fn note_exceeds(
     }
 }
 
-fn place_run(mut run: GlyphRun, origin_x: Emu, baseline_y: Emu) -> GlyphRun {
+fn place_story_line(
+    snapshot: &mut LayoutSnapshot,
+    page_index: usize,
+    line: StoryLine,
+    origin_x: Emu,
+    baseline_y: Emu,
+) -> Result<(), LayoutError> {
+    let mut run = line.run;
     run.origin_x = origin_x;
     run.baseline_y = baseline_y;
-    run
+    let marks = snapshot.key().view.formatting_marks;
+    let rects = decoration_rects(&run, marks, line.paragraph_end, &line.tab_gaps);
+    snapshot.append_page_run(page_index, run)?;
+    snapshot.extend_page_rects(page_index, rects)
 }
 
 /// A fitted header or footer line, not yet positioned on the page.
@@ -554,6 +567,8 @@ struct StoryLine {
     run: GlyphRun,
     line_box: Emu,
     baseline: i64,
+    paragraph_end: bool,
+    tab_gaps: Vec<(i64, i64)>,
 }
 
 /// Fitted header or footer lines, not yet positioned.
@@ -572,13 +587,14 @@ fn story_runs(
     let Some(story) = document.story(story_id) else {
         return Ok(Vec::new());
     };
+    let view = snapshot.key().view;
     let mut runs = Vec::new();
     for block in story.blocks.iter() {
         cancellation.check()?;
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
-        let display = match story_display(paragraph, page_index + 1, page_count) {
+        let display = match story_display(document, paragraph, page_index + 1, page_count, view)? {
             Some(text) => text,
             None => {
                 snapshot.note(LayoutNote::StoryContentSkipped {
@@ -590,7 +606,7 @@ fn story_runs(
         if display.is_empty() {
             continue;
         }
-        let painted = match style_paint::paint(document, paragraph, profile) {
+        let painted = match style_paint::paint(document, paragraph, profile, view) {
             Ok(painted) => painted,
             Err(LayoutError::Cancelled) => return Err(LayoutError::Cancelled),
             Err(LayoutError::LimitExceeded(limit)) => {
@@ -631,39 +647,77 @@ fn story_runs(
             profile.leading
         };
         let baseline = painted.baseline.raw().clamp(0, line_box.raw());
-        for mut line in fitted.lines {
+        let underline = paint_underline(font, painted.size, painted.underline);
+        let last = fitted.lines.len().saturating_sub(1);
+        for (index, mut line) in fitted.lines.into_iter().enumerate() {
             line.run.bold = painted.bold;
             line.run.italic = painted.italic;
             line.run.latin_family.clone_from(&painted.latin);
             line.run.east_asia_family.clone_from(&painted.east_asia);
+            line.run.color = painted.color;
+            line.run.underline = underline;
+            let tab_gaps = line.tab_gaps.clone();
             let run = line.to_glyph_run(Emu::new(0), Emu::new(0));
             runs.push(StoryLine {
                 run,
                 line_box,
                 baseline,
+                paragraph_end: index == last,
+                tab_gaps,
             });
         }
     }
     Ok(runs)
 }
 
-fn story_display(paragraph: &Paragraph, page: usize, pages: usize) -> Option<String> {
+/// Header and footer text. `field_codes` prints `PAGE` or `NUMPAGES` instead
+/// of the number. Braces and switches are not printed. Scalars omitted by
+/// hidden text or a field projection are skipped.
+fn story_display(
+    document: &Document,
+    paragraph: &Paragraph,
+    page: usize,
+    pages: usize,
+    view: ViewOptions,
+) -> Result<Option<String>, LayoutError> {
+    let omitted = view::omitted_indices(document, paragraph, view)?;
     let mut text = String::new();
+    let mut scalar = 0usize;
     for segment in paragraph.segments() {
         match segment {
-            Segment::Text(chunk) => text.push_str(&chunk),
-            Segment::Inline(object) => match object.kind {
-                InlineKind::PageField(PageFieldKind::Page) => {
-                    text.push_str(&page.to_string());
+            Segment::Text(chunk) => {
+                for ch in chunk.chars() {
+                    if !omitted.contains(&scalar) {
+                        text.push(ch);
+                    }
+                    scalar += 1;
                 }
-                InlineKind::PageField(PageFieldKind::NumPages) => {
-                    text.push_str(&pages.to_string());
+            }
+            Segment::Inline(object) => {
+                if !omitted.contains(&scalar) {
+                    match object.kind {
+                        InlineKind::PageField(PageFieldKind::Page) => {
+                            if view.field_codes {
+                                text.push_str("PAGE");
+                            } else {
+                                text.push_str(&page.to_string());
+                            }
+                        }
+                        InlineKind::PageField(PageFieldKind::NumPages) => {
+                            if view.field_codes {
+                                text.push_str("NUMPAGES");
+                            } else {
+                                text.push_str(&pages.to_string());
+                            }
+                        }
+                        _ => return Ok(None),
+                    }
                 }
-                _ => return None,
-            },
+                scalar += 1;
+            }
         }
     }
-    Some(text)
+    Ok(Some(text))
 }
 
 fn map_line_limit(limit: crate::LineLimit) -> LayoutError {

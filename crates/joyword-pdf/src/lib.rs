@@ -143,6 +143,7 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
                 to_points(run.baseline_y) as f32,
             );
             let size = to_points(run.size) as f32;
+            set_rgb_fill(&mut surface, run.color);
             surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
             if run.bold {
                 // A second paint with empty cluster ranges keeps the searchable
@@ -158,6 +159,17 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
     document
         .finish()
         .map_err(|error| PdfError::Writer(format!("{error:?}")))
+}
+
+fn set_rgb_fill(surface: &mut krilla::surface::Surface<'_>, color: [u8; 3]) {
+    let Some(opacity) = krilla::num::NormalizedF32::new(1.0) else {
+        return;
+    };
+    surface.set_fill(Some(krilla::paint::Fill {
+        paint: krilla::color::rgb::Color::new(color[0], color[1], color[2]).into(),
+        opacity,
+        rule: krilla::paint::FillRule::NonZero,
+    }));
 }
 
 fn fill_rect(surface: &mut krilla::surface::Surface<'_>, rect: &SceneRect) {

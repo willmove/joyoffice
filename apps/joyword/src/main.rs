@@ -11,7 +11,7 @@ use gpui::{
     WindowBounds, WindowOptions, actions, div, img, prelude::*, px, rgb, size,
 };
 use joyword_foundation::ScreenScale;
-use joyword_layout::{LoadedFont, SingleFontProfile};
+use joyword_layout::{LoadedFont, SingleFontProfile, ViewOptions};
 use joyword_render::Projection;
 use joyword_render::requests::RasterTicket;
 use joyword_shell::chrome::RibbonTab;
@@ -130,6 +130,14 @@ const ZOOM_DEFAULT: u16 = 80;
 
 /// GPUI action for a registered command. Every registry entry must map;
 /// `registry_commands_all_have_actions` checks it.
+fn view_options(toggles: joyword_shell::dialogs::ViewToggles) -> ViewOptions {
+    ViewOptions {
+        formatting_marks: toggles.formatting_marks,
+        show_hidden: toggles.show_hidden,
+        field_codes: toggles.field_codes,
+    }
+}
+
 fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
     Some(match id {
         QUIT => Box::new(Quit),
@@ -349,6 +357,7 @@ struct JoyWord {
     format_repeat: bool,
     ribbon_tab: RibbonTab,
     format_dialog: Option<FormatDialog>,
+    view_toggles: joyword_shell::dialogs::ViewToggles,
     ruler_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
     ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>)>,
 }
@@ -467,10 +476,11 @@ impl JoyWord {
         .expect("validated view scales")
     }
     fn layout_key(&self) -> Option<LayoutRequestKey> {
-        Some(self.canvas.key(
+        Some(self.canvas.key_viewed(
             self.editor.as_ref()?.view(),
             self.font.as_ref()?,
             self.profile?,
+            view_options(self.view_toggles),
         ))
     }
     /// The layout of the current revision: geometry for hit testing, IME,
@@ -542,15 +552,16 @@ impl JoyWord {
             let profile = key.profile;
             let cancellation = job.cancellation;
             let cache = self.canvas.paragraph_cache();
-            let previous = self.canvas.previous_layout(&font.key(), profile);
+            let previous = self.canvas.previous_for(&font.key(), profile, key.view);
             let work = cx.background_executor().spawn(async move {
-                document_canvas::layout_view_incremental(
+                document_canvas::layout_view_incremental_with(
                     &input,
                     &font,
                     profile,
                     &cancellation,
                     &cache,
                     previous.as_deref(),
+                    key.view,
                 )
             });
             let ticket = job.ticket;
@@ -1673,6 +1684,7 @@ fn main() {
                         format_repeat: false,
                         ribbon_tab: RibbonTab::Start,
                         format_dialog: None,
+                        view_toggles: joyword_shell::dialogs::ViewToggles::default(),
                         ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
                         ruler_drag: None,
                     };

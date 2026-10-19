@@ -23,9 +23,7 @@ use crate::command::{
     TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES,
     VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
-use crate::dialogs::{
-    disabled_view_toggle, font_draft_from_decision, paragraph_draft_from_decision,
-};
+use crate::dialogs::{ViewToggles, font_draft_from_decision, paragraph_draft_from_decision};
 use crate::docx::BoundDocx;
 use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
 
@@ -67,6 +65,7 @@ pub struct Office {
     diag: Option<Arc<AppLog>>,
     /// Names from the last `style.list` on the active document.
     style_list: Vec<String>,
+    view: ViewToggles,
 }
 
 impl Default for Office {
@@ -89,7 +88,14 @@ impl Office {
             recovery_dir: None,
             diag: None,
             style_list: Vec::new(),
+            view: ViewToggles::default(),
         }
+    }
+
+    /// Formatting marks, hidden text and field codes. These do not change
+    /// the document version.
+    pub fn view_toggles(&self) -> ViewToggles {
+        self.view
     }
 
     /// Styles reported by the last [`STYLE_LIST`] command.
@@ -583,8 +589,11 @@ fn text_arg<'a>(args: &'a BTreeMap<&'static str, ArgValue>, name: &str) -> Optio
 
 impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
-        if let Some(reason) = disabled_view_toggle(id) {
-            return Availability::Disabled(reason);
+        if matches!(
+            id,
+            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES
+        ) {
+            return Availability::Enabled;
         }
         if (matches!(
             id,
@@ -1099,9 +1108,8 @@ impl Office {
                 Ok(())
             }
             VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES => {
-                let reason =
-                    disabled_view_toggle(id).unwrap_or("view.formatting_marks.unsupported");
-                Err(ExecuteError::Failed(reason.into()))
+                self.view = self.view.toggled(id);
+                Ok(())
             }
             EDIT_PASTE => {
                 let text = self.clipboard.clone();
