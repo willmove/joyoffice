@@ -350,14 +350,34 @@ fn push_revised_run(
                 if (deleted && child.local.as_ref() == "delText")
                     || (!deleted && child.local.as_ref() == "t") =>
             {
-                paragraph
+                if paragraph
                     .push_text_marked(&child.text(), style.clone(), props.clone(), mark.clone())
-                    .expect("preflight rejected the object marker");
+                    .is_err()
+                {
+                    importer.diagnose(
+                        Severity::Warning,
+                        Some(part),
+                        Some(child.span.clone()),
+                        DiagnosticKind::RevisionSubset {
+                            element: child.qname.to_string(),
+                        },
+                    );
+                }
             }
             "tab" => {
-                paragraph
+                if paragraph
                     .push_text_marked("\t", style.clone(), props.clone(), mark.clone())
-                    .expect("tab");
+                    .is_err()
+                {
+                    importer.diagnose(
+                        Severity::Warning,
+                        Some(part),
+                        Some(child.span.clone()),
+                        DiagnosticKind::RevisionSubset {
+                            element: child.qname.to_string(),
+                        },
+                    );
+                }
             }
             "br" | "cr" => {
                 let clear = child.attribute(Some(W), "clear").unwrap_or("none");

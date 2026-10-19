@@ -211,13 +211,13 @@ impl Paragraph {
         if len == 0 {
             return Ok(());
         }
-        if self.runs.last().is_some_and(|run| {
-            run.style == style
-                && run.props == props
-                && run.link.is_none()
-                && run.revision.as_ref() == Some(&revision)
-        }) {
-            self.runs.last_mut().expect("run exists").len += len;
+        if let Some(run) = self.runs.last_mut()
+            && run.style == style
+            && run.props == props
+            && run.link.is_none()
+            && run.revision.as_ref() == Some(&revision)
+        {
+            run.len += len;
         } else {
             self.runs.push(Run {
                 len,
@@ -470,10 +470,9 @@ impl Paragraph {
         // revision. Ordinary insertion splits the run instead.
         let extend = match at.0 {
             0 => self.runs[0].revision.is_none().then_some(0),
-            offset => {
-                let (index, _) = self.run_at(offset - 1).expect("offset within runs");
-                self.runs[index].revision.is_none().then_some(index)
-            }
+            offset => self
+                .run_at(offset - 1)
+                .and_then(|(index, _)| self.runs[index].revision.is_none().then_some(index)),
         };
         if let Some(index) = extend {
             self.runs[index].len += len;

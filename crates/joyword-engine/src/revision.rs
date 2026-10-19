@@ -54,7 +54,9 @@ pub(crate) fn insert_tracked(
     let location = locate::locate(document, at.story, at.paragraph)
         .ok_or(CommandError::UnknownNode(at.paragraph))?;
     let revision = {
-        let paragraph = locate::paragraph(document, &location).expect("paragraph");
+        let Some(paragraph) = locate::paragraph(document, &location) else {
+            return Err(CommandError::UnknownNode(at.paragraph));
+        };
         adjacent_insert(paragraph, at.offset.0, &ctx.author)
     };
     let revision = match revision {
@@ -68,7 +70,9 @@ pub(crate) fn insert_tracked(
             date: ctx.date.clone(),
         },
     };
-    let paragraph = locate::paragraph_mut(document, &location).expect("paragraph");
+    let Some(paragraph) = locate::paragraph_mut(document, &location) else {
+        return Err(CommandError::UnknownNode(at.paragraph));
+    };
     paragraph.insert_marked(at.offset, text, revision)?;
     map.push(MapStep::Insert {
         paragraph: at.paragraph,
@@ -103,7 +107,9 @@ pub(crate) fn delete_tracked(
         return Err(CommandError::Locked(start.paragraph));
     }
     let mut plan = {
-        let paragraph = locate::paragraph(document, &location).expect("paragraph");
+        let Some(paragraph) = locate::paragraph(document, &location) else {
+            return Err(CommandError::UnknownNode(start.paragraph));
+        };
         plan_tracked_delete(paragraph, start.offset.0, end.offset.0, ctx)?
     };
     if plan
@@ -125,7 +131,9 @@ pub(crate) fn delete_tracked(
     if plan.is_empty() {
         return Ok(());
     }
-    let paragraph = locate::paragraph_mut(document, &location).expect("paragraph");
+    let Some(paragraph) = locate::paragraph_mut(document, &location) else {
+        return Err(CommandError::UnknownNode(start.paragraph));
+    };
     apply_delete_plan(paragraph, &plan, map, changes, start)?;
     Ok(())
 }
@@ -475,17 +483,13 @@ fn hits_for(document: &Document, id: u32) -> Vec<Hit> {
         let mut offset = 0usize;
         for run in paragraph.runs() {
             let end = offset + run.len;
-            if run
-                .revision
-                .as_ref()
-                .is_some_and(|revision| revision.id == id)
-            {
+            if let Some(revision) = run.revision.as_ref().filter(|revision| revision.id == id) {
                 hits.push(Hit {
                     story,
                     paragraph: paragraph.id(),
                     start: offset,
                     end,
-                    kind: run.revision.as_ref().expect("revision").kind,
+                    kind: revision.kind,
                 });
             }
             offset = end;
@@ -839,7 +843,9 @@ fn apply_edits(
             return Err(CommandError::Locked(paragraph));
         }
         group.sort_by_key(|edit| std::cmp::Reverse(edit.start));
-        let paragraph_mut = locate::paragraph_mut(document, &location).expect("paragraph");
+        let Some(paragraph_mut) = locate::paragraph_mut(document, &location) else {
+            return Err(CommandError::UnknownNode(paragraph));
+        };
         for edit in group {
             match edit.kind {
                 EditKind::Clear => paragraph_mut.set_revision(

@@ -2523,7 +2523,9 @@ fn revision_body(
                     && !cuts.contains(&abs)
             });
             if continues {
-                segments.last_mut().expect("segment").text.push_str(&text);
+                if let Some(last) = segments.last_mut() {
+                    last.text.push_str(&text);
+                }
             } else if !text.is_empty() {
                 segments.push(RevisionSegment {
                     offset: abs,
