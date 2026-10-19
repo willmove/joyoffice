@@ -23,6 +23,8 @@ const HELP: &str = concat!(
     "text: UTF-8 stdout; projection/partial/truncated JSON on stderr.\n",
     "render: deterministic CPU PNG pages from the unified PageScene.\n",
     "convert: searchable PDF from that same scene; other targets are refused.\n",
+    "render/convert JSON is schema 1 and reports omitted_blocks.\n",
+    "Opaque body blocks are skipped, counted, and take no page geometry.\n",
     "Exit: 0 complete within projection; 2 error; 3 text truncated.\n",
 );
 

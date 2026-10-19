@@ -635,7 +635,7 @@ fn unsupported_stories_sections_objects_and_field_projection_are_explicit() {
                 doc.insert_annotation(AnnotationKind::Field { separator: None }, Anchor::Detached);
             }
             4 => {
-                doc.settings_mut().track_revisions = Some(true);
+                doc.settings_mut().preserved = Some(doc.ids().preserved());
             }
             _ => {
                 change_paragraph(&mut doc, 0, |p| {
@@ -667,6 +667,15 @@ fn unsupported_stories_sections_objects_and_field_projection_are_explicit() {
             ),
         }
     }
+}
+
+#[test]
+fn track_revisions_does_not_block_layout() {
+    let mut document = make_document(&["AV"], 2);
+    document.settings_mut().track_revisions = Some(true);
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.omitted_blocks(), 0);
+    assert_eq!(snapshot.pages().len(), 1);
 }
 
 #[test]
