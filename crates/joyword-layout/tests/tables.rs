@@ -825,6 +825,299 @@ fn table_styles_paint_bands_and_direct_formatting_wins() {
     assert_eq!(incremental.pages(), full.pages());
 }
 
+fn rgb_edge(red: u8, green: u8, blue: u8) -> BorderEdge {
+    BorderEdge {
+        kind: BorderKind::Single,
+        size_eighths: 8,
+        color: Color::Rgb(red, green, blue),
+    }
+}
+
+fn fill(red: u8, green: u8, blue: u8) -> Shading {
+    Shading {
+        fill: Color::Rgb(red, green, blue),
+    }
+}
+
+fn column_look(vertical_bands: bool) -> TableLook {
+    TableLook {
+        first_row: false,
+        last_row: false,
+        first_column: true,
+        last_column: true,
+        no_h_band: true,
+        no_v_band: !vertical_bands,
+    }
+}
+
+fn covers(page: &joyword_layout::PageScene, text: &str, red: u8, green: u8, blue: u8) -> bool {
+    let run = page
+        .runs
+        .iter()
+        .find(|run| run.text == text)
+        .unwrap_or_else(|| panic!("missing {text}"));
+    let x = run.origin_x.raw();
+    let y = run.baseline_y.raw();
+    page.rects.iter().any(|rect| {
+        rect.red == red
+            && rect.green == green
+            && rect.blue == blue
+            && rect.x.raw() <= x
+            && x < rect.x.raw().saturating_add(rect.width.raw())
+            && rect.y.raw() <= y
+            && y < rect.y.raw().saturating_add(rect.height.raw())
+            && rect.width.raw() > rect.height.raw()
+    })
+}
+
+#[test]
+fn table_styles_paint_first_and_last_columns_and_vertical_bands() {
+    let mut document = Document::new_blank();
+    let mut style = Style::new("cols", StyleKind::Table, Some("Columns"));
+    style.table.bold = Some(false);
+    style.table_conditionals.push(TableConditional {
+        condition: TableCondition::Band1Vertical,
+        format: TableFormat {
+            shading: Some(fill(0, 0, 255)),
+            ..TableFormat::default()
+        },
+    });
+    style.table_conditionals.push(TableConditional {
+        condition: TableCondition::Band2Vertical,
+        format: TableFormat {
+            shading: Some(fill(0, 255, 0)),
+            ..TableFormat::default()
+        },
+    });
+    style.table_conditionals.push(TableConditional {
+        condition: TableCondition::FirstColumn,
+        format: TableFormat {
+            bold: Some(true),
+            shading: Some(fill(255, 0, 0)),
+            borders: CellBorders {
+                left: Some(rgb_edge(1, 2, 3)),
+                ..CellBorders::default()
+            },
+        },
+    });
+    style.table_conditionals.push(TableConditional {
+        condition: TableCondition::LastColumn,
+        format: TableFormat {
+            bold: Some(false),
+            shading: Some(fill(255, 255, 0)),
+            borders: CellBorders {
+                right: Some(rgb_edge(4, 5, 6)),
+                ..CellBorders::default()
+            },
+        },
+    });
+    document.styles_mut().insert(style).unwrap();
+
+    let direct_off = RunProps {
+        bold: Some(false),
+        ..RunProps::default()
+    };
+    let direct_on = RunProps {
+        bold: Some(true),
+        ..RunProps::default()
+    };
+    let mut off = Paragraph::new(document.ids().node());
+    off.push_text("F", None, Arc::new(direct_off)).unwrap();
+    let mut on = Paragraph::new(document.ids().node());
+    on.push_text("G", None, Arc::new(direct_on)).unwrap();
+    let letters: Vec<Paragraph> = ["A", "B", "C", "D", "E", "H", "I", "J"]
+        .into_iter()
+        .map(|text| text_paragraph(&mut document, text))
+        .collect();
+    let mut letters = letters.into_iter();
+    let next_cell = |document: &mut Document, letters: &mut std::vec::IntoIter<Paragraph>| {
+        plain_cell(
+            document,
+            vec![letters.next().unwrap()],
+            1,
+            VerticalMerge::None,
+            None,
+        )
+    };
+
+    let a = next_cell(&mut document, &mut letters);
+    let b = next_cell(&mut document, &mut letters);
+    let c = next_cell(&mut document, &mut letters);
+    let d = next_cell(&mut document, &mut letters);
+    let e = next_cell(&mut document, &mut letters);
+    let row0 = row(&mut document, vec![a, b, c, d, e], false, false);
+    let mut first_direct = plain_cell(&mut document, vec![off], 1, VerticalMerge::None, None);
+    first_direct.borders.left = Some(BorderEdge {
+        kind: BorderKind::Nil,
+        size_eighths: 0,
+        color: Color::Auto,
+    });
+    let band_direct = plain_cell(
+        &mut document,
+        vec![on],
+        1,
+        VerticalMerge::None,
+        Some(fill(9, 9, 9)),
+    );
+    let band2 = next_cell(&mut document, &mut letters);
+    let band1_again = next_cell(&mut document, &mut letters);
+    let mut last_direct = plain_cell(
+        &mut document,
+        vec![letters.next().unwrap()],
+        1,
+        VerticalMerge::None,
+        Some(fill(9, 9, 9)),
+    );
+    last_direct.borders.right = Some(BorderEdge {
+        kind: BorderKind::Nil,
+        size_eighths: 0,
+        color: Color::Auto,
+    });
+    let row1 = row(
+        &mut document,
+        vec![first_direct, band_direct, band2, band1_again, last_direct],
+        false,
+        false,
+    );
+    install_table(&mut document, vec![row0, row1], 5, None);
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        let table = Arc::make_mut(table);
+        table.style = Some(StyleId::new("cols"));
+        table.look = Some(column_look(true));
+    });
+
+    let laid = lay(&document);
+    let page = &laid.pages()[0];
+    let run = |text: &str| page.runs.iter().find(|run| run.text == text).unwrap();
+    assert!(run("A").bold);
+    assert!(!run("F").bold, "direct bold off wins over the first column");
+    assert!(!run("B").bold);
+    assert!(run("G").bold, "direct bold on wins over the vertical band");
+    assert!(!run("C").bold);
+    assert!(!run("E").bold);
+    assert!(!run("J").bold);
+    assert!(covers(page, "A", 255, 0, 0));
+    assert!(covers(page, "F", 255, 0, 0));
+    assert!(covers(page, "B", 0, 0, 255));
+    assert!(covers(page, "G", 9, 9, 9));
+    assert!(!covers(page, "G", 0, 0, 255));
+    assert!(covers(page, "C", 0, 255, 0));
+    assert!(covers(page, "H", 0, 255, 0));
+    assert!(covers(page, "D", 0, 0, 255));
+    assert!(covers(page, "I", 0, 0, 255));
+    assert!(covers(page, "E", 255, 255, 0));
+    assert!(covers(page, "J", 9, 9, 9));
+    assert!(!covers(page, "J", 255, 255, 0));
+    let thin = 8 * Emu::PER_POINT / 8;
+    let vertical = |red, green, blue| {
+        page.rects
+            .iter()
+            .filter(|rect| {
+                rect.red == red
+                    && rect.green == green
+                    && rect.blue == blue
+                    && rect.width.raw() == thin
+                    && rect.height.raw() > thin
+            })
+            .count()
+    };
+    assert_eq!(
+        vertical(1, 2, 3),
+        1,
+        "direct nil border removes the style edge"
+    );
+    assert_eq!(
+        vertical(4, 5, 6),
+        1,
+        "direct nil border removes the style edge"
+    );
+
+    let full = laid;
+    let mut cache = ParagraphLayoutCache::default();
+    let incremental = layout_incremental(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+    )
+    .unwrap();
+    assert_eq!(incremental.pages(), full.pages());
+
+    let mut excluded = Document::new_blank();
+    let mut bands = Style::new("bands", StyleKind::Table, Some("Bands"));
+    bands.table.bold = Some(false);
+    bands.table_conditionals.push(TableConditional {
+        condition: TableCondition::Band1Vertical,
+        format: TableFormat {
+            shading: Some(fill(0, 0, 255)),
+            ..TableFormat::default()
+        },
+    });
+    bands.table_conditionals.push(TableConditional {
+        condition: TableCondition::Band2Vertical,
+        format: TableFormat {
+            shading: Some(fill(0, 255, 0)),
+            ..TableFormat::default()
+        },
+    });
+    bands.table_conditionals.push(TableConditional {
+        condition: TableCondition::FirstColumn,
+        format: TableFormat {
+            bold: Some(true),
+            ..TableFormat::default()
+        },
+    });
+    bands.table_conditionals.push(TableConditional {
+        condition: TableCondition::LastColumn,
+        format: TableFormat {
+            bold: Some(false),
+            ..TableFormat::default()
+        },
+    });
+    excluded.styles_mut().insert(bands).unwrap();
+    let cells = ["A", "B", "C", "D", "E"]
+        .into_iter()
+        .map(|text| {
+            let paragraph = text_paragraph(&mut excluded, text);
+            plain_cell(&mut excluded, vec![paragraph], 1, VerticalMerge::None, None)
+        })
+        .collect();
+    let only = row(&mut excluded, cells, false, false);
+    install_table(&mut excluded, vec![only], 5, None);
+    let body = excluded.body_id();
+    excluded.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        let table = Arc::make_mut(table);
+        table.style = Some(StyleId::new("bands"));
+        table.look = Some(column_look(true));
+    });
+    let excluded_laid = lay(&excluded);
+    let page = &excluded_laid.pages()[0];
+    let run = |text: &str| page.runs.iter().find(|run| run.text == text).unwrap();
+    assert!(run("A").bold);
+    assert!(!run("B").bold);
+    assert!(!run("E").bold);
+    assert!(!covers(page, "A", 0, 0, 255));
+    assert!(!covers(page, "A", 0, 255, 0));
+    assert!(covers(page, "B", 0, 0, 255));
+    assert!(covers(page, "C", 0, 255, 0));
+    assert!(covers(page, "D", 0, 0, 255));
+    assert!(!covers(page, "E", 0, 0, 255));
+    assert!(!covers(page, "E", 0, 255, 0));
+}
+
 #[test]
 fn a_table_in_newspaper_columns_is_refused() {
     let mut document = document();

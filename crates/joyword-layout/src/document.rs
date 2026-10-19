@@ -1782,15 +1782,18 @@ fn build_row_flows(
                 continue;
             }
             let inner_width = Emu::new(twips_to_emu(inner)?);
-            let (table_format, table_problems) = document.styles().resolve_table_cell(
+            let table_format = style_paint::table_cell_format(
+                document,
+                table.id,
                 table.style.as_ref(),
                 table.look,
-                row_index,
-                table.rows.len(),
-            );
-            if !table_problems.is_empty() {
-                return Err(unsupported(Some(table.id), "style resolution"));
-            }
+                style_paint::TableCellPlace {
+                    row: row_index,
+                    row_count: table.rows.len(),
+                    column: start,
+                    column_count: metrics.columns.len(),
+                },
+            )?;
             let borders = overlay_borders(table_format.borders, cell.borders);
             let shading = cell.shading.or(table_format.shading);
             let numbering = numbering_of(document, section);
