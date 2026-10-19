@@ -577,10 +577,56 @@ impl TableLook {
 }
 
 /// `w:tblW`. Absent markup stays `None`, distinct from an explicit `auto`.
+/// `Pct` is fiftieths of a percent (ECMA-376 §17.18.90): 5000 is 100%.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TableWidth {
     Auto,
     Dxa(i64),
+    Pct(i64),
+}
+
+/// `w:tblLayout` (ECMA-376 §17.4.52, `ST_TblLayoutType` §17.18.87).
+/// `None` means the element was omitted, which §17.4.52 treats as `auto`:
+/// placement shrinks the preferred widths when they are wider than the
+/// content box. Explicit [`TableLayoutKind::Fixed`] does not shrink. This is
+/// not a content-measured autofit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableLayoutKind {
+    Fixed,
+    Autofit,
+}
+
+/// `w:jc` inside `w:tblPr` (ECMA-376 §17.4.28). `start` and `end` are not
+/// stored; a document that uses them stays opaque.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableAlign {
+    Left,
+    Center,
+    Right,
+}
+
+/// `w:vAlign` (ECMA-376 §17.4.83). `both` is outside this subset.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VerticalAlign {
+    Top,
+    Center,
+    Bottom,
+}
+
+/// `w:hRule` on `w:trHeight` (ECMA-376 §17.4.80, `ST_HeightRule` §17.18.37).
+/// Omitted `hRule` is `auto`, and `auto` ignores `w:val`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RowHeightRule {
+    Auto,
+    AtLeast,
+    Exact,
+}
+
+/// Explicit `w:trHeight`. `twips` is `w:val`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RowHeight {
+    pub twips: i64,
+    pub rule: RowHeightRule,
 }
 
 /// Four edges of `w:tblCellMar`, in twips (ECMA-376 §17.4.43). When the
@@ -594,11 +640,18 @@ pub struct CellMargins {
     pub right: i64,
 }
 
-/// Border line recorded from `w:tcBorders` (`nil` or `single` only).
+/// Border line recorded from `w:tcBorders`.
+///
+/// The subset is ECMA-376 §17.18.2 `nil`, `single`, `double`, `dotted`,
+/// `dashed` and `thick`. Other `ST_Border` values stay outside the typed table.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BorderKind {
     Nil,
     Single,
+    Double,
+    Dotted,
+    Dashed,
+    Thick,
 }
 
 /// One edge of `w:tcBorders`. `size_eighths` is `w:sz` (ECMA-376 §17.3.4).
@@ -634,7 +687,16 @@ pub struct Cell {
     pub width: Option<Measure>,
     pub borders: CellBorders,
     pub shading: Option<Shading>,
-    /// Cell content; Word requires at least one paragraph.
+    /// `w:tcMar`. `None` means the element was absent, so the table's
+    /// `w:tblCellMar` (or the application default) applies. When present, an
+    /// omitted edge is 0 and does not inherit that edge from the table
+    /// (ECMA-376 §17.4.68). `w:start` and `w:end` are stored as left and right
+    /// because `bidiVisual` is outside this subset.
+    pub margin: Option<CellMargins>,
+    /// `w:vAlign`. `None` is omitted and lays out as top.
+    pub vertical_align: Option<VerticalAlign>,
+    /// Cell content; Word requires at least one block. This slice allows
+    /// paragraphs and one level of nested tables.
     pub blocks: BlockSeq,
     pub preserved: Option<PreservedId>,
 }
@@ -650,6 +712,8 @@ pub struct Row {
     pub header: bool,
     /// `w:cantSplit`. Absent markup is false: the row may break across pages.
     pub cant_split: bool,
+    /// `w:trHeight`. `None` means the element was absent.
+    pub height: Option<RowHeight>,
     pub preserved: Option<PreservedId>,
 }
 
@@ -661,6 +725,12 @@ pub struct Table {
     pub rows: Vec<Row>,
     pub style: Option<StyleId>,
     pub width: Option<TableWidth>,
+    /// `w:tblLayout`. `None` is an omitted element.
+    pub layout: Option<TableLayoutKind>,
+    /// `w:jc` in table properties. `None` is omitted and lays out on the left.
+    pub alignment: Option<TableAlign>,
+    /// `w:tblInd` in twips. `None` is an omitted element, not an explicit zero.
+    pub indent: Option<i64>,
     /// `w:tblLook`. `None` means the element was omitted.
     pub look: Option<TableLook>,
     /// `w:tblCellMar`. `None` is an omitted element, not four explicit zeros.
@@ -676,6 +746,9 @@ impl Table {
         self.grid == other.grid
             && self.style == other.style
             && self.width == other.width
+            && self.layout == other.layout
+            && self.alignment == other.alignment
+            && self.indent == other.indent
             && self.look == other.look
             && self.cell_margin == other.cell_margin
             && self.preserved == other.preserved
@@ -695,6 +768,7 @@ fn same_row(left: &Row, right: &Row) -> bool {
         && left.grid_after == right.grid_after
         && left.header == right.header
         && left.cant_split == right.cant_split
+        && left.height == right.height
         && left.preserved == right.preserved
         && left.cells.len() == right.cells.len()
         && left
@@ -711,6 +785,8 @@ fn same_cell(left: &Cell, right: &Cell) -> bool {
         && left.width == right.width
         && left.borders == right.borders
         && left.shading == right.shading
+        && left.margin == right.margin
+        && left.vertical_align == right.vertical_align
         && left.preserved == right.preserved
         && left.blocks.len() == right.blocks.len()
         && left

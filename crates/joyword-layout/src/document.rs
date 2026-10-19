@@ -17,8 +17,8 @@ use joyword_foundation::Emu;
 use joyword_model::{
     Bias, Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, DocDefaults, Document,
     DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel,
-    NumberingProblem, PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, VerticalMerge,
-    displayed_paragraph,
+    NumberingProblem, PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, ThemeColorSlot,
+    VerticalMerge, displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -534,17 +534,26 @@ fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
         hash.update(format!("{column}").as_bytes());
     }
     hash.update(format!("{:?}", table.width).as_bytes());
+    hash.update(format!("{:?}", table.style).as_bytes());
+    hash.update(format!("{:?}", table.look).as_bytes());
+    hash.update(format!("{:?}", table.layout).as_bytes());
+    hash.update(format!("{:?}", table.alignment).as_bytes());
+    hash.update(format!("{:?}", table.indent).as_bytes());
     hash.update(format!("{:?}", table.cell_margin).as_bytes());
     for row in &table.rows {
         hash.update(row.grid_before.to_le_bytes());
         hash.update(row.grid_after.to_le_bytes());
         hash.update([u8::from(row.header)]);
         hash.update([u8::from(row.cant_split)]);
+        hash.update(format!("{:?}", row.height).as_bytes());
         for cell in &row.cells {
             hash.update(cell.grid_span.to_le_bytes());
             hash.update(format!("{:?}", cell.vertical_merge).as_bytes());
+            hash.update(format!("{:?}", cell.width).as_bytes());
             hash.update(format!("{:?}", cell.borders).as_bytes());
             hash.update(format!("{:?}", cell.shading).as_bytes());
+            hash.update(format!("{:?}", cell.margin).as_bytes());
+            hash.update(format!("{:?}", cell.vertical_align).as_bytes());
             for block in cell.blocks.iter() {
                 if let Some(paragraph) = block.as_paragraph() {
                     hash_body_paragraph(hash, document, paragraph);
@@ -1336,6 +1345,10 @@ struct CellFlow {
     border_bottom: Option<BorderEdge>,
     border_left: Option<BorderEdge>,
     border_right: Option<BorderEdge>,
+    ink_top: Option<(u8, u8, u8)>,
+    ink_bottom: Option<(u8, u8, u8)>,
+    ink_left: Option<(u8, u8, u8)>,
+    ink_right: Option<(u8, u8, u8)>,
 }
 
 struct RowFlow {
@@ -1452,19 +1465,24 @@ fn build_row_flows(
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
     view: ViewOptions,
 ) -> Result<Vec<RowFlow>, LayoutError> {
-    let (pad_top, pad_left, pad_bottom, pad_right) = cell_pad(table.cell_margin, table.id)?;
-    let mut edges = Vec::with_capacity(table.grid.len() + 1);
+    let content_twips = geometry.content_width().raw() / Emu::PER_TWIP;
+    let metrics = joyword_model::table_metrics(table, content_twips)
+        .ok_or_else(|| unsupported(Some(table.id), "table widths do not resolve"))?;
+    let mut edges = Vec::with_capacity(metrics.columns.len() + 1);
     let mut cursor = 0i64;
     edges.push(0);
-    for column in &table.grid {
+    for column in &metrics.columns {
         cursor = cursor
-            .checked_add(grid_twips(table.id, *column)?)
+            .checked_add(*column)
             .ok_or(LayoutError::GeometryOverflow)?;
         edges.push(cursor);
     }
-    let margin_top = twips_to_emu(pad_top)?;
-    let margin_bottom = twips_to_emu(pad_bottom)?;
-    let margin_left = twips_to_emu(pad_left)?;
+    let base = geometry
+        .left
+        .raw()
+        .checked_add(twips_to_emu(metrics.origin)?)
+        .ok_or(LayoutError::GeometryOverflow)?;
+    let theme = &document.styles().theme().colors;
     let mut rows = Vec::with_capacity(table.rows.len());
     for (row_index, row) in table.rows.iter().enumerate() {
         cancellation.check()?;
@@ -1487,6 +1505,11 @@ fn build_row_flows(
                     ));
                 }
             }
+            let (pad_top, pad_left, pad_bottom, pad_right) =
+                cell_pad(cell.margin.or(table.cell_margin), table.id)?;
+            let margin_top = twips_to_emu(pad_top)?;
+            let margin_bottom = twips_to_emu(pad_bottom)?;
+            let margin_left = twips_to_emu(pad_left)?;
             let outer = edges[column] - edges[start];
             let inner = outer - pad_left - pad_right;
             if inner <= 0 {
@@ -1495,9 +1518,7 @@ fn build_row_flows(
                     "cell is narrower than its margins",
                 ));
             }
-            let outer_x = geometry
-                .left
-                .raw()
+            let outer_x = base
                 .checked_add(twips_to_emu(edges[start])?)
                 .ok_or(LayoutError::GeometryOverflow)?;
             let frame_x = outer_x
@@ -1525,6 +1546,10 @@ fn build_row_flows(
                     border_bottom: None,
                     border_left: None,
                     border_right: None,
+                    ink_top: None,
+                    ink_bottom: None,
+                    ink_left: None,
+                    ink_right: None,
                 });
                 continue;
             }
@@ -1607,6 +1632,10 @@ fn build_row_flows(
                 border_bottom: borders.bottom,
                 border_left: borders.left,
                 border_right: borders.right,
+                ink_top: border_ink(borders.top, theme),
+                ink_bottom: border_ink(borders.bottom, theme),
+                ink_left: border_ink(borders.left, theme),
+                ink_right: border_ink(borders.right, theme),
             });
         }
         rows.push(RowFlow {
@@ -2191,6 +2220,7 @@ fn paint_fragment(
         push_border(
             page,
             cell.border_top,
+            cell.ink_top,
             cell.outer_x,
             y,
             cell.outer_width,
@@ -2201,6 +2231,7 @@ fn paint_fragment(
         push_border(
             page,
             cell.border_bottom,
+            cell.ink_bottom,
             cell.outer_x,
             y.saturating_add(height).saturating_sub(cell.bottom_border),
             cell.outer_width,
@@ -2210,6 +2241,7 @@ fn paint_fragment(
     push_border(
         page,
         cell.border_left,
+        cell.ink_left,
         cell.outer_x,
         y,
         cell.left_border,
@@ -2218,6 +2250,7 @@ fn paint_fragment(
     push_border(
         page,
         cell.border_right,
+        cell.ink_right,
         cell.outer_x
             .saturating_add(cell.outer_width)
             .saturating_sub(cell.right_border),
@@ -2354,6 +2387,7 @@ fn place_jobs(
 fn push_border(
     page: &mut PageScene,
     edge: Option<BorderEdge>,
+    ink: Option<(u8, u8, u8)>,
     x: i64,
     y: i64,
     width: i64,
@@ -2362,14 +2396,113 @@ fn push_border(
     let Some(edge) = edge else {
         return;
     };
-    if edge.kind != BorderKind::Single {
+    if edge.kind == BorderKind::Nil {
         return;
     }
-    let color = match edge.color {
-        Color::Rgb(red, green, blue) => (red, green, blue),
-        Color::Auto | Color::Theme { .. } => (0, 0, 0),
+    // An unresolved theme slot keeps its thickness and paints no colour.
+    let Some(color) = ink else {
+        return;
     };
-    push_rect(page, x, y, width, height, color);
+    match edge.kind {
+        BorderKind::Nil => {}
+        BorderKind::Single | BorderKind::Thick => push_rect(page, x, y, width, height, color),
+        BorderKind::Double => paint_double(page, x, y, width, height, color),
+        BorderKind::Dotted => paint_broken(page, x, y, width, height, color, true),
+        BorderKind::Dashed => paint_broken(page, x, y, width, height, color, false),
+    }
+}
+
+/// `thick` uses `w:sz` as its thickness, the same rule as `single`. It is not
+/// a multiple of that width.
+fn paint_double(
+    page: &mut PageScene,
+    x: i64,
+    y: i64,
+    width: i64,
+    height: i64,
+    color: (u8, u8, u8),
+) {
+    let across_height = height <= width;
+    let thickness = if across_height { height } else { width };
+    if thickness < 3 {
+        push_rect(page, x, y, width, height, color);
+        return;
+    }
+    let band = thickness / 3;
+    let line = band.max(1);
+    let gap = band;
+    let last = thickness - line - gap;
+    if last <= 0 {
+        push_rect(page, x, y, width, height, color);
+        return;
+    }
+    if across_height {
+        push_rect(page, x, y, width, line, color);
+        push_rect(page, x, y + line + gap, width, last, color);
+    } else {
+        push_rect(page, x, y, line, height, color);
+        push_rect(page, x + line + gap, y, last, height, color);
+    }
+}
+
+fn paint_broken(
+    page: &mut PageScene,
+    x: i64,
+    y: i64,
+    width: i64,
+    height: i64,
+    color: (u8, u8, u8),
+    dotted: bool,
+) {
+    let along_x = width >= height;
+    let length = if along_x { width } else { height };
+    let thickness = if along_x { height } else { width }.max(1);
+    if length <= 0 {
+        return;
+    }
+    let (mark, gap) = if dotted {
+        (thickness, thickness)
+    } else {
+        (thickness.saturating_mul(3), thickness.saturating_mul(2))
+    };
+    let period = mark.saturating_add(gap).max(1);
+    let mut count = (length / period).clamp(1, 48);
+    let step = (length / count).max(1);
+    count = (length / step).clamp(1, 48);
+    let raw = if dotted { step / 2 } else { step * 3 / 5 };
+    let mark = raw.clamp(1, step);
+    for index in 0..count {
+        let offset = index * step;
+        if offset >= length {
+            break;
+        }
+        let span = mark.min(length - offset);
+        if along_x {
+            push_rect(page, x + offset, y, span, height, color);
+        } else {
+            push_rect(page, x, y + offset, width, span, color);
+        }
+    }
+}
+
+fn border_ink(
+    edge: Option<BorderEdge>,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
+) -> Option<(u8, u8, u8)> {
+    let edge = edge?;
+    if edge.kind == BorderKind::Nil {
+        return None;
+    }
+    match edge.color {
+        Color::Rgb(red, green, blue) => Some((red, green, blue)),
+        Color::Auto => Some((0, 0, 0)),
+        Color::Theme {
+            slot,
+            tint: None,
+            shade: None,
+        } => theme.get(&slot).copied(),
+        Color::Theme { .. } => None,
+    }
 }
 
 fn push_rect(page: &mut PageScene, x: i64, y: i64, width: i64, height: i64, color: (u8, u8, u8)) {
@@ -2387,13 +2520,6 @@ fn push_rect(page: &mut PageScene, x: i64, y: i64, width: i64, height: i64, colo
     });
 }
 
-fn grid_twips(table: NodeId, measure: Measure) -> Result<i64, LayoutError> {
-    match measure {
-        Measure::Twips(value) if value >= 0 => Ok(value),
-        _ => Err(unsupported(Some(table), "table grid is not in twips")),
-    }
-}
-
 fn twips_to_emu(twips: i64) -> Result<i64, LayoutError> {
     twips
         .checked_mul(Emu::PER_TWIP)
@@ -2402,7 +2528,7 @@ fn twips_to_emu(twips: i64) -> Result<i64, LayoutError> {
 
 fn border_size(edge: Option<BorderEdge>) -> i64 {
     match edge {
-        Some(edge) if edge.kind == BorderKind::Single && edge.size_eighths > 0 => {
+        Some(edge) if edge.kind != BorderKind::Nil && edge.size_eighths > 0 => {
             i64::from(edge.size_eighths) * Emu::PER_POINT / 8
         }
         _ => 0,

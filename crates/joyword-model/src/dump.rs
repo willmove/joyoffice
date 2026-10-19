@@ -207,6 +207,7 @@ impl Dumper<'_> {
                     let width = table.width.map_or("-".into(), |width| match width {
                         TableWidth::Auto => "auto".into(),
                         TableWidth::Dxa(value) => format!("{value}dxa"),
+                        TableWidth::Pct(value) => format!("{value}pct"),
                     });
                     let margin = table.cell_margin.map_or("-".into(), |margin| {
                         format!(
@@ -214,19 +215,40 @@ impl Dumper<'_> {
                             margin.top, margin.left, margin.bottom, margin.right
                         )
                     });
+                    let layout = table
+                        .layout
+                        .map_or("-".into(), |value| format!("{value:?}"));
+                    let align = table
+                        .alignment
+                        .map_or("-".into(), |value| format!("{value:?}"));
+                    let indent = table.indent.map_or("-".into(), |value| value.to_string());
+                    let look = table.look.map_or("-".into(), |look| {
+                        format!(
+                            "{}{}{}{}{}{}",
+                            u8::from(look.first_row),
+                            u8::from(look.last_row),
+                            u8::from(look.first_column),
+                            u8::from(look.last_column),
+                            u8::from(look.no_h_band),
+                            u8::from(look.no_v_band)
+                        )
+                    });
                     self.line(
                         depth,
                         &format!(
-                            "{head} style={style} grid=[{}] width={width} margin={margin}",
+                            "{head} style={style} grid=[{}] width={width} margin={margin} layout={layout} align={align} indent={indent} look={look}",
                             grid.join(",")
                         ),
                     );
                     for row in &table.rows {
                         let head = self.label("row", row.id);
+                        let height = row.height.map_or("-".into(), |height| {
+                            format!("{:?}:{}", height.rule, height.twips)
+                        });
                         self.line(
                             depth + 1,
                             &format!(
-                                "{head} before={} after={} header={} cantSplit={}",
+                                "{head} before={} after={} header={} cantSplit={} height={height}",
                                 row.grid_before,
                                 row.grid_after,
                                 u8::from(row.header),
@@ -236,10 +258,19 @@ impl Dumper<'_> {
                         for cell in &row.cells {
                             let head = self.label("cell", cell.id);
                             let width = cell.width.map_or("-".into(), |w| w.to_string());
+                            let margin = cell.margin.map_or("-".into(), |margin| {
+                                format!(
+                                    "{},{},{},{}",
+                                    margin.top, margin.left, margin.bottom, margin.right
+                                )
+                            });
+                            let valign = cell
+                                .vertical_align
+                                .map_or("-".into(), |value| format!("{value:?}"));
                             self.line(
                                 depth + 2,
                                 &format!(
-                                    "{head} span={} vmerge={:?} width={width} borders={} shading={}",
+                                    "{head} span={} vmerge={:?} width={width} borders={} shading={} margin={margin} valign={valign}",
                                     cell.grid_span,
                                     cell.vertical_merge,
                                     border_edges(&cell.borders),

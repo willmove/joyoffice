@@ -1,13 +1,14 @@
 //! Typed `w:tbl` subset (ECMA-376 Part 1 §17.4 tables, §17.4.58 `tblGrid`,
 //! §17.4.66 `tr`, §17.4.64 `tc`, §17.4.17 `gridSpan`, §17.4.84 `vMerge`,
-//! §17.4.73 `tcW`, §17.3.4 borders, §17.4.32 `shd`, §17.4.43 `tblCellMar`,
-//! §17.4.6 `cantSplit`, §17.4.49 `tblHeader`).
+//! §17.4.73 `tcW`, §17.3.4 borders, §17.4.43 `tblCellMar`, §17.4.68 `tcMar`,
+//! §17.4.6 `cantSplit`, §17.4.49 `tblHeader`, §17.4.52 `tblLayout`,
+//! §17.4.28 `jc`, §17.4.50 `tblInd`, §17.4.56 `tblLook`, §17.18.2 border
+//! styles `nil` / `single` / `double` / `dotted` / `dashed` / `thick`).
 //!
-//! A table is mapped only when every element and attribute is represented in
-//! the model. Anything else — nested tables, revisions, bookmarks, theme
-//! colours, per-cell `tcMar`, percentage widths — returns `None`
-//! and the caller preserves the whole `w:tbl` byte range. `w:tblLook` is
-//! stored (ECMA-376 §17.4.56). This parser
+//! A table is mapped only when every element and attribute is represented and
+//! placed. Nested tables, `trHeight`, `vAlign`, revisions, bookmarks, theme
+//! tint or shade, and any other border style return `None`. `w:tblLook` is
+//! stored. The caller preserves the whole `w:tbl` byte range. This parser
 //! allocates no identifiers and records no fragments, so a refusal leaves
 //! the document untouched.
 
@@ -17,7 +18,8 @@ use std::sync::Arc;
 use joyword_model::{
     BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
     OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, Style, StyleId, Table,
-    TableCondition, TableConditional, TableFormat, TableLook, TableWidth, VerticalMerge,
+    TableAlign, TableCondition, TableConditional, TableFormat, TableLayoutKind, TableLook,
+    TableWidth, ThemeColorSlot, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -39,6 +41,7 @@ struct CellProps {
     width: Option<Measure>,
     borders: CellBorders,
     shading: Option<Shading>,
+    margin: Option<CellMargins>,
 }
 
 struct DraftCell {
@@ -47,6 +50,7 @@ struct DraftCell {
     width: Option<Measure>,
     borders: CellBorders,
     shading: Option<Shading>,
+    margin: Option<CellMargins>,
     paragraphs: Vec<DraftParagraph>,
 }
 
@@ -61,10 +65,23 @@ struct DraftRow {
 struct DraftTable {
     style: Option<StyleId>,
     width: Option<TableWidth>,
+    layout: Option<TableLayoutKind>,
+    alignment: Option<TableAlign>,
+    indent: Option<i64>,
     look: Option<TableLook>,
     cell_margin: Option<CellMargins>,
     grid: Vec<Measure>,
     rows: Vec<DraftRow>,
+}
+
+struct TableProps {
+    style: Option<StyleId>,
+    width: Option<TableWidth>,
+    layout: Option<TableLayoutKind>,
+    alignment: Option<TableAlign>,
+    indent: Option<i64>,
+    look: Option<TableLook>,
+    cell_margin: Option<CellMargins>,
 }
 
 /// Maps `element` when it is entirely inside the subset. `None` means the
@@ -99,6 +116,8 @@ fn build(
                 width: cell.width,
                 borders: cell.borders,
                 shading: cell.shading,
+                margin: cell.margin,
+                vertical_align: None,
                 blocks: BlockSeq::from_vec(blocks),
                 preserved: None,
             });
@@ -110,6 +129,7 @@ fn build(
             cells,
             header: row.header,
             cant_split: row.cant_split,
+            height: None,
             preserved: None,
         });
     }
@@ -119,6 +139,9 @@ fn build(
         rows,
         style: draft.style,
         width: draft.width,
+        layout: draft.layout,
+        alignment: draft.alignment,
+        indent: draft.indent,
         look: draft.look,
         cell_margin: draft.cell_margin,
         preserved: None,
@@ -148,26 +171,23 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
     if !element.is(W, "tbl") || !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
-    let mut style = None;
-    let mut width = None;
-    let mut look = None;
-    let mut cell_margin = None;
+    let mut props = TableProps {
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+    };
+    let mut saw_pr = false;
     let mut grid = None;
     let mut rows = Vec::new();
     let mut seen_row = false;
     for child in element.elements() {
-        if child.is(W, "tblPr")
-            && !seen_row
-            && style.is_none()
-            && width.is_none()
-            && look.is_none()
-            && cell_margin.is_none()
-        {
-            let parsed = parse_tbl_pr(child)?;
-            style = parsed.style;
-            width = parsed.width;
-            look = parsed.look;
-            cell_margin = parsed.cell_margin;
+        if child.is(W, "tblPr") && !seen_row && !saw_pr {
+            saw_pr = true;
+            props = parse_tbl_pr(child)?;
         } else if child.is(W, "tblGrid") && !seen_row && grid.is_none() {
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
@@ -182,32 +202,33 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
         return None;
     }
     Some(DraftTable {
-        style,
-        width,
-        look,
-        cell_margin,
+        style: props.style,
+        width: props.width,
+        layout: props.layout,
+        alignment: props.alignment,
+        indent: props.indent,
+        look: props.look,
+        cell_margin: props.cell_margin,
         grid,
         rows,
     })
 }
 
-struct ParsedTablePr {
-    style: Option<StyleId>,
-    width: Option<TableWidth>,
-    look: Option<TableLook>,
-    cell_margin: Option<CellMargins>,
-}
-
-fn parse_tbl_pr(element: &Element) -> Option<ParsedTablePr> {
+fn parse_tbl_pr(element: &Element) -> Option<TableProps> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
-    let mut style = None;
-    let mut width = None;
-    let mut look = None;
-    let mut cell_margin = None;
+    let mut props = TableProps {
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+    };
     for child in element.elements() {
-        if child.is(W, "tblStyle") && style.is_none() {
+        if child.is(W, "tblStyle") && props.style.is_none() {
             if !only_word_attributes(child, &["val"]) || !text_is_space(child) {
                 return None;
             }
@@ -215,23 +236,61 @@ fn parse_tbl_pr(element: &Element) -> Option<ParsedTablePr> {
             if name.is_empty() || name.chars().any(|ch| matches!(ch, '<' | '>' | '&' | '"')) {
                 return None;
             }
-            style = Some(StyleId::new(name));
-        } else if child.is(W, "tblW") && width.is_none() {
-            width = Some(parse_table_width(child)?);
-        } else if child.is(W, "tblLook") && look.is_none() {
-            look = Some(parse_look(child)?);
-        } else if child.is(W, "tblCellMar") && cell_margin.is_none() {
-            cell_margin = Some(parse_cell_margins(child)?);
+            props.style = Some(StyleId::new(name));
+        } else if child.is(W, "tblW") && props.width.is_none() {
+            props.width = Some(parse_table_width(child)?);
+        } else if child.is(W, "tblLayout") && props.layout.is_none() {
+            props.layout = Some(parse_layout(child)?);
+        } else if child.is(W, "jc") && props.alignment.is_none() {
+            props.alignment = Some(parse_alignment(child)?);
+        } else if child.is(W, "tblInd") && props.indent.is_none() {
+            props.indent = Some(parse_indent(child)?);
+        } else if child.is(W, "tblLook") && props.look.is_none() {
+            props.look = Some(parse_look(child)?);
+        } else if child.is(W, "tblCellMar") && props.cell_margin.is_none() {
+            props.cell_margin = Some(parse_cell_margins(child)?);
         } else {
             return None;
         }
     }
-    Some(ParsedTablePr {
-        style,
-        width,
-        look,
-        cell_margin,
-    })
+    Some(props)
+}
+
+fn parse_layout(element: &Element) -> Option<TableLayoutKind> {
+    if !only_word_attributes(element, &["type"]) || !text_is_space(element) {
+        return None;
+    }
+    match element.attribute(Some(W), "type")? {
+        "fixed" => Some(TableLayoutKind::Fixed),
+        "autofit" => Some(TableLayoutKind::Autofit),
+        _ => None,
+    }
+}
+
+fn parse_alignment(element: &Element) -> Option<TableAlign> {
+    if !only_word_attributes(element, &["val"]) || !text_is_space(element) {
+        return None;
+    }
+    match element.attribute(Some(W), "val")? {
+        "left" => Some(TableAlign::Left),
+        "center" => Some(TableAlign::Center),
+        "right" => Some(TableAlign::Right),
+        _ => None,
+    }
+}
+
+fn parse_indent(element: &Element) -> Option<i64> {
+    if !only_word_attributes(element, &["w", "type"]) || !text_is_space(element) {
+        return None;
+    }
+    match element.attribute(Some(W), "type")? {
+        "nil" => Some(0),
+        "dxa" => {
+            let width = integer_attr(element, "w")?;
+            (width >= 0).then_some(width)
+        }
+        _ => None,
+    }
 }
 
 /// `w:tblLook`. A present attribute overrides the same bit of `w:val`.
@@ -296,6 +355,8 @@ fn parse_cell_margins(element: &Element) -> Option<CellMargins> {
     let mut left = None;
     let mut bottom = None;
     let mut right = None;
+    let mut start = None;
+    let mut end = None;
     for child in element.elements() {
         let value = parse_margin_edge(child)?;
         let slot = match &*child.local {
@@ -303,17 +364,23 @@ fn parse_cell_margins(element: &Element) -> Option<CellMargins> {
             "left" if left.is_none() => &mut left,
             "bottom" if bottom.is_none() => &mut bottom,
             "right" if right.is_none() => &mut right,
+            "start" if start.is_none() => &mut start,
+            "end" if end.is_none() => &mut end,
             _ => return None,
         };
         *slot = Some(value);
     }
-    // ECMA-376 §17.4.28 and the sibling edge elements: an omitted edge is 0
-    // when `tblCellMar` itself is present.
+    // `bidiVisual` is outside this subset, so start/end are the left/right
+    // edges. Both names together would be ambiguous and stay opaque.
+    if (left.is_some() && start.is_some()) || (right.is_some() && end.is_some()) {
+        return None;
+    }
+    // An omitted edge is 0 when the margin element itself is present.
     Some(CellMargins {
         top: top.unwrap_or(0),
-        left: left.unwrap_or(0),
+        left: left.or(start).unwrap_or(0),
         bottom: bottom.unwrap_or(0),
-        right: right.unwrap_or(0),
+        right: right.or(end).unwrap_or(0),
     })
 }
 
@@ -338,6 +405,10 @@ fn parse_table_width(element: &Element) -> Option<TableWidth> {
     match element.attribute(Some(W), "type")? {
         "auto" => Some(TableWidth::Auto),
         "dxa" => Some(TableWidth::Dxa(integer_attr(element, "w")?)),
+        "pct" => {
+            let width = integer_attr(element, "w")?;
+            (width > 0).then_some(TableWidth::Pct(width))
+        }
         _ => None,
     }
 }
@@ -428,6 +499,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
     let mut width = None;
     let mut borders = CellBorders::default();
     let mut shading = None;
+    let mut margin = None;
     let mut saw_pr = false;
     let mut paragraphs = Vec::new();
     for child in element.elements() {
@@ -439,6 +511,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
             width = props.width;
             borders = props.borders;
             shading = props.shading;
+            margin = props.margin;
         } else if child.is(W, "p") {
             paragraphs.push(parse_paragraph(child)?);
         } else {
@@ -454,6 +527,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
         width,
         borders,
         shading,
+        margin,
         paragraphs,
     })
 }
@@ -467,6 +541,7 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
     let mut width = None;
     let mut borders = None;
     let mut shading = None;
+    let mut margin = None;
     for child in element.elements() {
         if child.is(W, "gridSpan") && span.is_none() {
             let value = decimal_val(child)?;
@@ -482,6 +557,8 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
             borders = Some(parse_borders(child)?);
         } else if child.is(W, "shd") && shading.is_none() {
             shading = Some(parse_shading(child)?);
+        } else if child.is(W, "tcMar") && margin.is_none() {
+            margin = Some(parse_cell_margins(child)?);
         } else {
             return None;
         }
@@ -492,6 +569,7 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
         width,
         borders: borders.unwrap_or_default(),
         shading,
+        margin,
     })
 }
 
@@ -516,6 +594,10 @@ fn parse_cell_width(element: &Element) -> Option<Measure> {
         "dxa" => {
             let width = integer_attr(element, "w")?;
             (width >= 0).then_some(Measure::Twips(width))
+        }
+        "pct" => {
+            let width = integer_attr(element, "w")?;
+            (width > 0).then_some(Measure::PercentFiftieths(width))
         }
         _ => None,
     }
@@ -542,7 +624,7 @@ fn parse_borders(element: &Element) -> Option<CellBorders> {
 
 fn parse_edge(element: &Element) -> Option<BorderEdge> {
     if !element.namespace.as_deref().is_some_and(|ns| ns == W)
-        || !only_word_attributes(element, &["val", "sz", "color"])
+        || !only_word_attributes(element, &["val", "sz", "color", "themeColor"])
         || !text_is_space(element)
     {
         return None;
@@ -550,18 +632,25 @@ fn parse_edge(element: &Element) -> Option<BorderEdge> {
     let kind = match element.attribute(Some(W), "val")? {
         "nil" => BorderKind::Nil,
         "single" => BorderKind::Single,
+        "double" => BorderKind::Double,
+        "dotted" => BorderKind::Dotted,
+        "dashed" => BorderKind::Dashed,
+        "thick" => BorderKind::Thick,
         _ => return None,
     };
     let size_eighths = match element.attribute(Some(W), "sz") {
         None => 4,
-        Some(value) => {
-            let parsed: u32 = value.parse().ok()?;
-            parsed
-        }
+        Some(value) => value.parse().ok()?,
     };
-    let color = match element.attribute(Some(W), "color") {
-        None | Some("auto") => Color::Auto,
-        Some(value) => rgb_color(value)?,
+    // A theme slot wins over a cached hex. Tint and shade are not in the
+    // allowed attribute list, so those borders keep the table opaque.
+    let color = if let Some(name) = element.attribute(Some(W), "themeColor") {
+        Color::theme(ThemeColorSlot::from_word_name(name)?)
+    } else {
+        match element.attribute(Some(W), "color") {
+            None | Some("auto") => Color::Auto,
+            Some(value) => rgb_color(value)?,
+        }
     };
     Some(BorderEdge {
         kind,

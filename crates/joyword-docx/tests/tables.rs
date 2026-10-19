@@ -291,3 +291,97 @@ fn cell_margins_cant_split_and_header_round_trip_after_an_edit() {
         Some(Block::Opaque(_))
     ));
 }
+
+#[test]
+fn cell_margins_borders_and_percentage_widths_round_trip_after_an_edit() {
+    let both = r#"<w:tbl><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcMar><w:left w:w="36" w:type="dxa"/><w:start w:w="1" w:type="dxa"/></w:tcMar></w:tcPr><w:p><w:r><w:t>隐</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    assert!(matches!(
+        import(&package(both), &Budget::default())
+            .unwrap()
+            .document
+            .body()
+            .blocks
+            .get(0),
+        Some(Block::Opaque(_))
+    ));
+
+    let clean = r#"<w:tbl><w:tblPr><w:tblW w:w="2500" w:type="pct"/><w:tblLayout w:type="fixed"/><w:jc w:val="center"/><w:tblInd w:w="120" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="2500" w:type="pct"/><w:tcMar><w:top w:w="10" w:type="dxa"/><w:left w:w="36" w:type="dxa"/></w:tcMar></w:tcPr><w:p><w:r><w:t>甲</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcBorders><w:top w:val="double" w:sz="12" w:color="auto" w:themeColor="accent1"/><w:left w:val="dotted" w:sz="4" w:color="00FF00"/><w:bottom w:val="dashed" w:sz="8" w:color="0000FF"/><w:right w:val="thick" w:sz="16" w:color="FF0000"/></w:tcBorders></w:tcPr><w:p><w:r><w:t>乙</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    let source = import(&package(clean), &Budget::default()).unwrap();
+    let Block::Table(table) = &source.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    assert_eq!(
+        table.rows[0].cells[0].margin.unwrap(),
+        joyword_model::CellMargins {
+            top: 10,
+            left: 36,
+            bottom: 0,
+            right: 0,
+        }
+    );
+    let borders = table.rows[0].cells[1].borders;
+    assert_eq!(borders.top.unwrap().kind, joyword_model::BorderKind::Double);
+    assert_eq!(
+        borders.top.unwrap().color,
+        joyword_model::Color::theme(joyword_model::ThemeColorSlot::Accent1)
+    );
+    assert_eq!(
+        borders.left.unwrap().kind,
+        joyword_model::BorderKind::Dotted
+    );
+    assert_eq!(
+        borders.bottom.unwrap().kind,
+        joyword_model::BorderKind::Dashed
+    );
+    assert_eq!(
+        borders.right.unwrap().kind,
+        joyword_model::BorderKind::Thick
+    );
+
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("增", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = xml_of(plan.bytes());
+    assert!(xml.contains(r#"w:type="pct""#), "{xml}");
+    assert!(xml.contains(r#"w:type="fixed""#), "{xml}");
+    assert!(xml.contains(r#"w:val="center""#), "{xml}");
+    assert!(xml.contains("tcMar"), "{xml}");
+    assert!(xml.contains(r#"w:val="double""#), "{xml}");
+    assert!(xml.contains(r#"w:themeColor="accent1""#), "{xml}");
+    assert!(xml.contains(r#"w:val="dotted""#), "{xml}");
+    assert!(xml.contains(r#"w:val="dashed""#), "{xml}");
+    assert!(xml.contains(r#"w:val="thick""#), "{xml}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
+
+    for extra in [
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>外</w:t></w:r></w:p><w:tbl><w:tblGrid><w:gridCol w:w="500"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>内</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="400" w:hRule="exact"/></w:trPr><w:tc><w:p><w:r><w:t>高</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p><w:r><w:t>中</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcBorders><w:top w:val="double" w:sz="4" w:themeColor="accent1" w:themeTint="99"/></w:tcBorders></w:tcPr><w:p><w:r><w:t>色</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+    ] {
+        let imported = import(&package(extra), &Budget::default()).unwrap();
+        assert!(
+            matches!(
+                imported.document.body().blocks.get(0),
+                Some(Block::Opaque(_))
+            ),
+            "{extra}"
+        );
+    }
+}

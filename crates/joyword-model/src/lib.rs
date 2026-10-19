@@ -19,6 +19,7 @@ mod props;
 mod resource;
 mod style;
 mod symbol_font;
+mod table_geom;
 mod text;
 mod theme;
 mod tree;
@@ -27,8 +28,9 @@ mod validate;
 pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
 pub use block::{
     Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellMargins, InlineKind,
-    InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed, Row, Run,
-    Sdt, SdtLock, SdtProps, Segment, Shading, Table, TableLook, TableWidth, VerticalMerge,
+    InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed, Row,
+    RowHeight, RowHeightRule, Run, Sdt, SdtLock, SdtProps, Segment, Shading, Table, TableAlign,
+    TableLayoutKind, TableLook, TableWidth, VerticalAlign, VerticalMerge,
 };
 pub use document::{
     DEFAULT_COMPATIBILITY_MODE, Document, DocumentSettings, DocumentSnapshot, DocumentVersion,
@@ -60,6 +62,7 @@ pub use style::{
     TableFormat, overlay_paragraph,
 };
 pub use symbol_font::{is_mapped_family, map_private_use};
+pub use table_geom::{TableMetrics, table_metrics};
 pub use text::{
     CHUNK_MAX_BYTES, OBJECT_MARKER, ParagraphText, ScalarOffset, TextError, TextSummary,
     Utf8Offset, Utf16Offset,
