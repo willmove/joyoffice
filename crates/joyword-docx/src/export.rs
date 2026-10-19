@@ -848,6 +848,45 @@ fn representable_pair(
         && structure::numbering_assignment_ok(numbering, after).is_ok()
 }
 
+type RewriteParagraph = fn(
+    &[u8],
+    &Element,
+    &Paragraph,
+    &Names,
+    u64,
+    &structure::Source<'_>,
+) -> Result<Vec<u8>, ExportError>;
+
+/// `after` without its inline objects when the only objects it gained are
+/// new page fields (`page.number`) and `before` had none. Paragraphs that
+/// already held inline objects keep the refusal: their source markup (a
+/// complex field, a cached result's formatting) is not rebuilt.
+fn without_added_page_fields(before: &Paragraph, after: &Paragraph) -> Option<Paragraph> {
+    if !before.inlines().is_empty()
+        || after.inlines().is_empty()
+        || !after.inlines().iter().all(|inline| {
+            inline.source.is_none()
+                && matches!(inline.kind, joyword_model::InlineKind::PageField(_))
+        })
+    {
+        return None;
+    }
+    let markers: Vec<usize> = after
+        .plain_text(|_| joyword_model::OBJECT_MARKER.to_string())
+        .chars()
+        .enumerate()
+        .filter(|(_, ch)| *ch == joyword_model::OBJECT_MARKER)
+        .map(|(index, _)| index)
+        .collect();
+    let mut text_only = after.clone();
+    for index in markers.into_iter().rev() {
+        text_only
+            .remove(joyword_model::ScalarOffset(index)..joyword_model::ScalarOffset(index + 1))
+            .ok()?;
+    }
+    text_only.inlines().is_empty().then_some(text_only)
+}
+
 fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
     a.id() == b.id()
         && a.style == b.style
@@ -971,6 +1010,30 @@ fn patch_paragraph(
             )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
+        }
+        if let Some(text_only) = without_added_page_fields(before, after) {
+            let rewrite = if before_plain
+                && structure::direct_m1(before)
+                && structure::direct_m1(&text_only)
+                && before.style == after.style
+                && before.source == after.source
+            {
+                Some(structure::rewrite_direct_paragraph as RewriteParagraph)
+            } else if representable_pair(styles, numbering, before, &text_only)
+                && text_slots(element, source.bytes()).is_ok()
+            {
+                Some(structure::rewrite_represented_paragraph as RewriteParagraph)
+            } else {
+                None
+            };
+            if let Some(rewrite) = rewrite {
+                let mut scope = scope.to_vec();
+                scope.push(element);
+                let names = Names::in_scope(&scope);
+                let bytes = rewrite(source.bytes(), element, after, &names, limit, source)?;
+                patches.push((element.span.clone(), bytes));
+                return Ok(());
+            }
         }
         if before
             .inlines()

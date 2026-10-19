@@ -138,7 +138,7 @@ where
     let mut omitted = 0usize;
     let mut stats = crate::line::LineStats::default();
     let mut pen = body_start;
-    let mut at_break = true;
+    let mut at_break = false;
     for piece in split_tabs(text) {
         if piece.tab_before {
             let before = pen;

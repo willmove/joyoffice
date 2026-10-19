@@ -5,7 +5,7 @@ use std::io::{Read, Write};
 use std::process::ExitCode;
 
 use joyoffice_opc::Budget;
-use joyword_model::{Block, BlockSeq, BreakKind, InlineKind, Segment};
+use joyword_model::{Block, BlockSeq, BreakKind, InlineKind, Paragraph, RevisionView, Segment};
 use serde_json::json;
 
 const MAX_INPUT: u64 = 32 << 20;
@@ -125,6 +125,39 @@ impl Text {
             self.value.push(ch);
         }
     }
+    /// Deleted and moved-out runs are left out, inline objects included, so
+    /// the text matches the `deleted_revisions` and `moved_from_revisions`
+    /// exclusions the projection declares.
+    fn paragraph(&mut self, paragraph: &Paragraph) {
+        let mut shown = paragraph.runs().iter().flat_map(|run| {
+            let visible = run
+                .revision
+                .as_ref()
+                .is_none_or(|mark| mark.kind.visible_in(RevisionView::Final));
+            std::iter::repeat_n(visible, run.len)
+        });
+        for segment in paragraph.segments() {
+            match segment {
+                Segment::Text(value) => {
+                    for ch in value.chars() {
+                        if shown.next().unwrap_or(true) {
+                            self.push(ch);
+                        }
+                    }
+                }
+                Segment::Inline(object) => {
+                    if !shown.next().unwrap_or(true) {
+                        continue;
+                    }
+                    match object.kind {
+                        InlineKind::Break(BreakKind::Line) => self.push('\n'),
+                        InlineKind::Break(_) => self.push('\u{000c}'),
+                        _ => self.omitted_objects += 1,
+                    }
+                }
+            }
+        }
+    }
     fn blocks(&mut self, blocks: &BlockSeq) {
         for block in blocks.iter() {
             match block {
@@ -133,20 +166,7 @@ impl Text {
                         self.push('\n');
                     }
                     self.paragraphs += 1;
-                    for segment in paragraph.segments() {
-                        match segment {
-                            Segment::Text(value) => {
-                                for ch in value.chars() {
-                                    self.push(ch);
-                                }
-                            }
-                            Segment::Inline(object) => match object.kind {
-                                InlineKind::Break(BreakKind::Line) => self.push('\n'),
-                                InlineKind::Break(_) => self.push('\u{000c}'),
-                                _ => self.omitted_objects += 1,
-                            },
-                        }
-                    }
+                    self.paragraph(paragraph);
                 }
                 Block::Table(table) => {
                     for row in &table.rows {

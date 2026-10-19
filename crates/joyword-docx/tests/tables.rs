@@ -634,3 +634,114 @@ fn unknown_or_deeper_nesting_stays_opaque_and_locks() {
         assert_eq!(kept.bytes(), bytes.as_slice());
     }
 }
+
+fn package_with_styles(body: &str, styles: &str) -> Vec<u8> {
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>"#;
+    let document = format!(
+        r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="{W}" xmlns:r="{R}"><w:body>{body}</w:body></w:document>"#
+    );
+    let styles = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:styles xmlns:w="{W}">{styles}</w:styles>"#
+    );
+    let items = [
+        ("[Content_Types].xml", types),
+        ("_rels/.rels", PACKAGE_RELS),
+        ("word/document.xml", document.as_str()),
+        ("word/_rels/document.xml.rels", rels),
+        ("word/styles.xml", styles.as_str()),
+    ];
+    let owned: Vec<(&str, &[u8], Method)> = items
+        .iter()
+        .map(|(name, data)| (*name, data.as_bytes(), Method::Deflated))
+        .collect();
+    write_archive(&owned).unwrap()
+}
+
+#[test]
+fn column_and_band_table_style_conditions_import_and_survive_an_edit() {
+    use joyword_model::{Color, StyleId, TableCondition};
+    let conditional = |kind: &str, fill: &str| {
+        format!(
+            r#"<w:tblStylePr w:type="{kind}"><w:tcPr><w:shd w:val="clear" w:color="auto" w:fill="{fill}"/></w:tcPr></w:tblStylePr>"#
+        )
+    };
+    let styles = format!(
+        r#"<w:style w:type="table" w:styleId="cols"><w:name w:val="Cols"/>{}{}{}{}{}{}</w:style>"#,
+        conditional("firstCol", "FF0000"),
+        conditional("lastCol", "FFFF00"),
+        conditional("band1Vert", "00FF00"),
+        conditional("band2Vert", "00FFFF"),
+        conditional("band1Horz", "0000FF"),
+        conditional("band2Horz", "FF00FF"),
+    );
+    let body = r#"<w:tbl><w:tblPr><w:tblStyle w:val="cols"/><w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="1" w:lastColumn="1" w:noHBand="0" w:noVBand="0"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>甲</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>乙</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    let bytes = package_with_styles(body, &styles);
+    let source = import(&bytes, &Budget::default()).unwrap();
+    let style = source
+        .document
+        .styles()
+        .get(&StyleId::new("cols"))
+        .expect("table style");
+    assert!(style.preserved.is_none(), "every tblStylePr is represented");
+    let found: Vec<(TableCondition, Option<Color>)> = style
+        .table_conditionals
+        .iter()
+        .map(|item| (item.condition, item.format.shading.map(|shd| shd.fill)))
+        .collect();
+    assert_eq!(
+        found,
+        vec![
+            (TableCondition::FirstColumn, Some(Color::Rgb(255, 0, 0))),
+            (TableCondition::LastColumn, Some(Color::Rgb(255, 255, 0))),
+            (TableCondition::Band1Vertical, Some(Color::Rgb(0, 255, 0))),
+            (TableCondition::Band2Vertical, Some(Color::Rgb(0, 255, 255))),
+            (TableCondition::Band1Horizontal, Some(Color::Rgb(0, 0, 255))),
+            (
+                TableCondition::Band2Horizontal,
+                Some(Color::Rgb(255, 0, 255))
+            ),
+        ]
+    );
+
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("丙", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(
+        package.part("/word/styles.xml").unwrap().data,
+        source
+            .backing
+            .package()
+            .part("/word/styles.xml")
+            .unwrap()
+            .data,
+        "the styles part stays byte-identical"
+    );
+    assert_eq!(
+        saved
+            .document
+            .styles()
+            .get(&StyleId::new("cols"))
+            .unwrap()
+            .table_conditionals,
+        style.table_conditionals
+    );
+}

@@ -329,16 +329,6 @@ fn a_page_anchor_imports_and_wrap_or_remote_targets_stay_preserved() {
     for (position, wrap, attrs) in [
         (
             page_offsets(0, 0),
-            "<wp:wrapTight/>",
-            r#"behindDoc="0" simplePos="0""#,
-        ),
-        (
-            page_offsets(0, 0),
-            "<wp:wrapThrough/>",
-            r#"behindDoc="0" simplePos="0""#,
-        ),
-        (
-            page_offsets(0, 0),
             "<wp:wrapTopAndBottom/>",
             r#"behindDoc="0" simplePos="0""#,
         ),
@@ -580,6 +570,144 @@ fn a_wrap_square_page_anchor_imports_and_other_wraps_stay_preserved() {
                 ..
             }
         )));
+    }
+}
+
+fn part_text(package: &[u8], name: &str) -> String {
+    let package = joyoffice_opc::Package::read(package, &Budget::default()).unwrap();
+    String::from_utf8(package.part(name).unwrap().data.to_vec()).unwrap()
+}
+
+#[test]
+fn a_tight_or_through_wrap_is_approximated_as_a_square_and_its_markup_survives_an_edit() {
+    let png = sample_png_1x1();
+    let tight = r#"<wp:wrapTight wrapText="bothSides" distL="91440" distR="45720"><wp:wrapPolygon edited="0"><wp:start x="0" y="0"/><wp:lineTo x="21600" y="0"/><wp:lineTo x="21600" y="21600"/><wp:lineTo x="0" y="0"/></wp:wrapPolygon></wp:wrapTight>"#;
+    let document = anchor_document(
+        r#"behindDoc="0" distT="12700" distB="25400" distL="0" distR="0" simplePos="0""#,
+        &page_offsets(457_200, 914_400),
+        tight,
+        r#"r:embed="rId1""#,
+    )
+    .replace(
+        "</w:p></w:body>",
+        "</w:p><w:p><w:r><w:t>hello</w:t></w:r></w:p></w:body>",
+    );
+    let bytes = package(&document, &image_rel("media/pixel.png", false), Some(&png));
+    let result = import(&bytes, &Budget::default()).unwrap();
+    assert!(!result.document.validate().has_errors());
+    assert!(result.editability.is_unrestricted());
+    assert!(!result.diagnostics.iter().any(|item| matches!(
+        item.kind,
+        DiagnosticKind::Image { .. } | DiagnosticKind::Preserved { .. }
+    )));
+    let paragraph = result
+        .document
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    let (anchor, width, height) = image_of(paragraph);
+    assert_eq!(
+        anchor,
+        ImageAnchor {
+            x: Measure::Emu(457_200),
+            y: Measure::Emu(914_400),
+            wrap: AnchorWrap::Square(SquareWrap {
+                top: 12_700,
+                bottom: 25_400,
+                left: 91_440,
+                right: 45_720,
+                side: WrapSide::Larger,
+            }),
+        }
+    );
+    assert_eq!(
+        (width, height),
+        (Measure::Emu(457_200), Measure::Emu(228_600))
+    );
+
+    let unedited = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(unedited.bytes(), bytes.as_slice());
+
+    let mut model = result.document.clone();
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(1, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        Arc::make_mut(paragraph)
+            .insert_text(joyword_model::ScalarOffset(5), "!")
+            .unwrap();
+    });
+    let plan = plan_export(&result.backing, &model.snapshot(), &Budget::default()).unwrap();
+    assert!(part_text(plan.bytes(), "/word/document.xml").contains(tight));
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert!(model.semantic_difference(&saved.document).is_none());
+
+    let through = package(
+        &anchor_document(
+            r#"behindDoc="0" simplePos="0""#,
+            &page_offsets(0, 0),
+            r#"<wp:wrapThrough wrapText="left"/>"#,
+            r#"r:embed="rId1""#,
+        ),
+        &image_rel("media/pixel.png", false),
+        Some(&png),
+    );
+    let result = import(&through, &Budget::default()).unwrap();
+    let (anchor, _, _) = image_of(
+        result
+            .document
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap(),
+    );
+    assert_eq!(
+        anchor.wrap,
+        AnchorWrap::Square(SquareWrap {
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            side: WrapSide::Left,
+        })
+    );
+
+    for wrap in [
+        "<wp:wrapTight/><wp:wrapSquare/>",
+        "<wp:wrapTight/><wp:wrapThrough/>",
+        r#"<wp:wrapTight><wp:wrapPolygon/><wp:wrapPolygon/></wp:wrapTight>"#,
+        r#"<wp:wrapThrough><wp:effectExtent l="0" t="0" r="0" b="0"/></wp:wrapThrough>"#,
+        r#"<wp:wrapTight wrapText="tight"/>"#,
+        r#"<wp:wrapSquare><wp:wrapPolygon/></wp:wrapSquare>"#,
+    ] {
+        let bytes = package(
+            &anchor_document(
+                r#"behindDoc="0" simplePos="0""#,
+                &page_offsets(0, 0),
+                wrap,
+                r#"r:embed="rId1""#,
+            ),
+            &image_rel("media/pixel.png", false),
+            Some(&png),
+        );
+        let result = import(&bytes, &Budget::default()).unwrap();
+        assert!(result.document.resources().is_empty(), "{wrap}");
+        let paragraph = result.document.body().blocks.get(0).unwrap();
+        assert!(
+            result.editability.locked().contains(&paragraph.id()),
+            "{wrap}"
+        );
     }
 }
 

@@ -15,7 +15,7 @@
       "margin_top_emu": 254000,
       "rects": [
         {
-          "color": "0000ff",
+          "color": "ff0000",
           "height_emu": 228600,
           "kind": "fill",
           "width_emu": 635000,
@@ -31,12 +31,28 @@
           "y_emu": 254000
         },
         {
-          "color": "0000ff",
+          "color": "ffff00",
           "height_emu": 228600,
           "kind": "fill",
           "width_emu": 635000,
           "x_emu": 1498600,
           "y_emu": 254000
+        },
+        {
+          "color": "ff0000",
+          "height_emu": 469900,
+          "kind": "fill",
+          "width_emu": 635000,
+          "x_emu": 228600,
+          "y_emu": 482600
+        },
+        {
+          "color": "00ff00",
+          "height_emu": 469900,
+          "kind": "fill",
+          "width_emu": 635000,
+          "x_emu": 863600,
+          "y_emu": 482600
         },
         {
           "color": "112233",
@@ -68,6 +84,14 @@
           "kind": "fill",
           "width_emu": 6350,
           "x_emu": 1492250,
+          "y_emu": 482600
+        },
+        {
+          "color": "ffff00",
+          "height_emu": 469900,
+          "kind": "fill",
+          "width_emu": 635000,
+          "x_emu": 1498600,
           "y_emu": 482600
         }
       ],

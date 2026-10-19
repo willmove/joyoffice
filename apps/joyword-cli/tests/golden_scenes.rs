@@ -1183,23 +1183,31 @@ fn banded_table_with_a_nested_table_matches_the_golden_scene() {
         .iter()
         .map(|item| item.condition)
         .collect();
-    assert!(conditions.contains(&TableCondition::Band1Horizontal));
-    assert!(
-        !conditions.contains(&TableCondition::FirstColumn),
-        "importer still drops firstCol; see the evidence doc"
-    );
-    assert!(!conditions.contains(&TableCondition::Band1Vertical));
+    for condition in [
+        TableCondition::Band1Horizontal,
+        TableCondition::FirstColumn,
+        TableCondition::LastColumn,
+        TableCondition::Band1Vertical,
+    ] {
+        assert!(conditions.contains(&condition), "{condition:?}");
+    }
     let page = &snapshot.pages()[0];
-    assert!(
-        page.rects
-            .iter()
-            .any(|rect| rect.red == 0 && rect.green == 0 && rect.blue == 0xff),
-        "horizontal band shading should paint: {:?}",
-        page.rects
-            .iter()
-            .map(|rect| color_hex(rect.red, rect.green, rect.blue))
-            .collect::<Vec<_>>()
-    );
+    let fills: Vec<String> = page
+        .rects
+        .iter()
+        .map(|rect| color_hex(rect.red, rect.green, rect.blue))
+        .collect();
+    for (fill, region) in [
+        ("0000ff", "horizontal band"),
+        ("ff0000", "first column"),
+        ("ffff00", "last column"),
+        ("00ff00", "vertical band"),
+    ] {
+        assert!(
+            fills.iter().any(|item| item == fill),
+            "{region} shading should paint: {fills:?}"
+        );
+    }
     publish(
         "t201-banded-nested-table",
         &evidence_for(&document, &snapshot, &font),
@@ -1207,7 +1215,6 @@ fn banded_table_with_a_nested_table_matches_the_golden_scene() {
 }
 
 #[test]
-#[ignore = "known gap: see docs/joyword/verification/golden-scenes.md"]
 fn vertical_column_bands_are_imported_from_table_style_pr() {
     let document = open_document(&banded_table_package());
     let style = document

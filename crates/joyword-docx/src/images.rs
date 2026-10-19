@@ -5,8 +5,12 @@
 //! flows with the line. A floating `wp:anchor` is placed when it is in front
 //! of the text and positioned from the page origin (`wp:simplePos` or
 //! page-relative `wp:posOffset`). `wp:wrapNone` does not change line width.
-//! `wp:wrapSquare` stores a square exclusion. Other wrap modes, `behindDoc`,
-//! and non-page anchors stay preserved. The drawing element is not registered
+//! `wp:wrapSquare` stores a square exclusion. `wp:wrapTight` and
+//! `wp:wrapThrough` are only approximated: their contour polygon is not
+//! followed and they store the same square exclusion around the anchor extent.
+//! `wp:wrapTopAndBottom`, `behindDoc`, and non-page anchors stay preserved.
+//! In every case the original wrap markup is what export writes back, since
+//! the drawing element is not registered
 //! as a fragment, so an unedited paragraph keeps its original XML on export.
 //! Remote targets are not fetched, and OLE, SVG and other active payloads are
 //! not executed.
@@ -321,8 +325,9 @@ fn anchor_only(element: &Element) -> bool {
         && find(element, WP, "inline").is_none()
 }
 
-/// Page-absolute `wp:wrapNone` or `wp:wrapSquare` in front of the text.
-/// Anything else is kept.
+/// Page-absolute `wp:wrapNone`, `wp:wrapSquare`, or `wp:wrapTight` /
+/// `wp:wrapThrough` approximated as a square, in front of the text. Anything
+/// else is kept.
 fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
     let Some(anchor) = find(element, WP, "anchor") else {
         return Err(ImageOutcome::Malformed);
@@ -330,8 +335,13 @@ fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
     if truthy(anchor.attribute(None, "behindDoc")) || unsupported_wrap(anchor) {
         return Err(ImageOutcome::Unsupported);
     }
-    let wrap = if anchor.child(WP, "wrapSquare").is_some() {
-        AnchorWrap::Square(square_distances(anchor)?)
+    let contour = anchor
+        .child(WP, "wrapTight")
+        .or_else(|| anchor.child(WP, "wrapThrough"));
+    let wrap = if let Some(wrap) = anchor.child(WP, "wrapSquare") {
+        AnchorWrap::Square(square_distances(wrap, anchor, false)?)
+    } else if let Some(wrap) = contour {
+        AnchorWrap::Square(square_distances(wrap, anchor, true)?)
     } else if anchor.child(WP, "wrapNone").is_some() {
         AnchorWrap::None
     } else {
@@ -382,12 +392,11 @@ fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
 }
 
 fn unsupported_wrap(anchor: &Element) -> bool {
-    let squares = count_children(anchor, "wrapSquare");
-    let nones = count_children(anchor, "wrapNone");
-    let others = count_children(anchor, "wrapTight")
-        + count_children(anchor, "wrapThrough")
-        + count_children(anchor, "wrapTopAndBottom");
-    others > 0 || squares > 1 || nones > 1 || (squares == 1 && nones == 1)
+    let modes = count_children(anchor, "wrapSquare")
+        + count_children(anchor, "wrapNone")
+        + count_children(anchor, "wrapTight")
+        + count_children(anchor, "wrapThrough");
+    count_children(anchor, "wrapTopAndBottom") > 0 || modes > 1
 }
 
 fn count_children(anchor: &Element, local: &str) -> usize {
@@ -397,11 +406,21 @@ fn count_children(anchor: &Element, local: &str) -> usize {
         .count()
 }
 
-fn square_distances(anchor: &Element) -> Result<SquareWrap, ImageOutcome> {
-    let Some(wrap) = anchor.child(WP, "wrapSquare") else {
-        return Err(ImageOutcome::Malformed);
-    };
-    if wrap.elements().next().is_some() {
+/// Square exclusion distances of `wrap`. With `contour`, `wrap` is a
+/// `wp:wrapTight` or `wp:wrapThrough` (ECMA-376 Part 1 §20.4.2): its
+/// `wp:wrapPolygon` is not followed and the anchor extent stands in for the
+/// contour, so text keeps a rectangular gap instead of following the outline.
+/// Those elements carry no `distT`/`distB`, which come from the anchor.
+fn square_distances(
+    wrap: &Element,
+    anchor: &Element,
+    contour: bool,
+) -> Result<SquareWrap, ImageOutcome> {
+    let polygons = wrap
+        .elements()
+        .filter(|child| contour && child.is(WP, "wrapPolygon"))
+        .count();
+    if polygons > 1 || wrap.elements().count() != polygons {
         return Err(ImageOutcome::Unsupported);
     }
     let side = match wrap.attribute(None, "wrapText").map(str::trim) {
