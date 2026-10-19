@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "target_sha": "9026d230e7e4d34349c3c4f5567f231b9f4d4c52",
+  "harness_git_sha": "2860bd68ddea4b89aa8fa7ee1b0e6952e707b5fd",
+  "harness_binary_sha256": "3f69777232a2e88de490f2762fe7723813322b669eaf42b9e81e6e3ffc78cc43",
+  "harness_worktree_dirty": false,
+  "os": "Linux-6.12.94+-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "memory_limit": {
+    "enforced": true,
+    "probe_exit": 0,
+    "reason": "64 MiB address-space probe; virtual space, not RSS"
+  },
+  "process_tree_timeout_kill": "process group",
+  "coverage_feedback": true,
+  "feedback_signal": "llvm-source-regions",
+  "llvm_profdata_version": "LLVM version 22.1.8-rust-1.98.1-stable",
+  "llvm_cov_version": "LLVM version 22.1.8-rust-1.98.1-stable",
+  "rustc_version": "rustc 1.98.1 (48a229cea 2026-09-01)\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "command": "fuzz",
+  "feedback": "coverage",
+  "campaign_seed": 20261020,
+  "requested_runs": 60,
+  "requested_seconds": 300.0,
+  "executed": 60,
+  "baseline_runs": 27,
+  "baseline_target": "import",
+  "counts": {
+    "rejected": 50,
+    "ok": 10
+  },
+  "baseline_counts": {
+    "ok": 14,
+    "rejected": 13
+  },
+  "elapsed_seconds": 95.92174847499996,
+  "timeout_seconds": 8.0,
+  "effective_address_space_mib": 512,
+  "aggregate_children_peak_rss_bytes": 444280832,
+  "peak_scope": "OS cumulative maximum across child processes; includes capability probe, not per-case",
+  "novelty_events": 5,
+  "corpus_size": 32,
+  "corpus_limit": 128,
+  "corpus_bytes_written": 112689,
+  "corpus_bytes_cap": 33554432,
+  "regions_covered": 3594,
+  "regions_total": 44812,
+  "branches_covered": 0,
+  "branches_total": 0,
+  "scheduler_regions_covered": 3594,
+  "scheduler_branches_covered": 0,
+  "coverage_merge_matches_scheduler": true,
+  "profiles_read": 87,
+  "profile_errors": 0,
+  "network": "none: the harness never resolves external relationship targets and the driver opens no sockets",
+  "comparison": {
+    "campaign_seed": 20261020,
+    "iterations": 60,
+    "behavioral": {
+      "executed": 60,
+      "novelty_events": 10,
+      "corpus_size": 37,
+      "features_discovered": 27,
+      "anomalies": 0
+    },
+    "coverage": {
+      "executed": 60,
+      "baseline_runs": 27,
+      "novelty_events": 5,
+      "corpus_size": 32,
+      "regions_covered": 3594,
+      "regions_total": 44812,
+      "branches_covered": 0,
+      "branches_total": 0,
+      "anomalies": 0
+    }
+  },
+  "corpus_import_regions": {
+    "coverage_corpus": {
+      "inputs": 32,
+      "regions_covered": 3588,
+      "regions_total": 44812,
+      "anomalies": 0
+    },
+    "behavioral_corpus": {
+      "inputs": 37,
+      "regions_covered": 3582,
+      "regions_total": 44812,
+      "anomalies": 0
+    },
+    "replay_target": "import"
+  }
+}
