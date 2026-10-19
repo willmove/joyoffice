@@ -14,7 +14,10 @@
 //!   stories of each section (`PAGE` / `NUMPAGES` in those stories);
 //! - settings: `compatibilityMode` as written (absent stays `None`, which the
 //!   model interprets as 12; the new-document value 15 is never imposed),
-//!   revision tracking and document protection.
+//!   revision tracking, document protection, even and odd headers, the
+//!   default tab stop, and `w:attachedTemplate`'s relationship id (recorded,
+//!   never resolved). The settings element is preserved only when a child
+//!   has no model field. The settings part still round-trips verbatim.
 //!
 //! Everything else is kept, not dropped: the original file and every part's
 //! exact bytes live in the [`PackageBacking`], and each element the model

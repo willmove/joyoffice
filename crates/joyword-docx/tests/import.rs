@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 use joyoffice_opc::{Budget, BudgetError, ExternalKind, Method, OpcError, XmlError, write_archive};
 use joyword_docx::{
-    DiagnosticKind, ExportError, ImportError, ImportResult, PreservedReason, ReadOnlyReason,
-    Severity, import, plan_export,
+    DiagnosticKind, ExportError, ExportMode, ImportError, ImportResult, PreservedReason,
+    ReadOnlyReason, Severity, import, plan_export,
 };
 use joyword_model::{
     Block, BreakKind, BuiltinStyle, DEFAULT_COMPATIBILITY_MODE, FontRef, InlineKind, Measure,
@@ -622,6 +622,161 @@ fn settings_without_compatibility_mode_and_with_write_protection() {
         Some(r#"<w:documentProtection w:edit="readOnly" w:enforcement="0"/>"#),
     ));
     assert!(!unenforced.editability.is_read_only());
+}
+
+fn assert_original_plan(bytes: &[u8], result: &ImportResult) {
+    let plan = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .expect("unchanged document");
+    assert_eq!(plan.mode(), ExportMode::OriginalPackage);
+    assert_eq!(plan.bytes(), bytes);
+}
+
+#[test]
+fn settings_are_preserved_only_when_a_child_has_no_model_field() {
+    let modeled_xml = r#"<w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat><w:trackRevisions w:val="0"/><w:evenAndOddHeaders w:val="0"/><w:defaultTabStop w:val="720"/><w:documentProtection w:edit="none" w:enforcement="0"/><w:writeProtection/>"#;
+    let modeled_bytes = package(
+        &document_xml("", "<w:p><w:r><w:t>a</w:t></w:r></w:p>"),
+        Some(modeled_xml),
+    );
+    let modeled = open(&modeled_bytes);
+    assert!(modeled.document.settings().preserved.is_none());
+    assert_eq!(modeled.document.settings().compatibility_mode, Some(15));
+    assert_eq!(modeled.document.settings().track_revisions, Some(false));
+    assert_eq!(
+        modeled.document.settings().even_and_odd_headers,
+        Some(false)
+    );
+    assert_eq!(
+        modeled.document.settings().default_tab_stop,
+        Some(Measure::Twips(720))
+    );
+    assert!(modeled.document.settings().attached_template.is_none());
+    assert!(
+        modeled
+            .editability
+            .read_only_reasons()
+            .any(|reason| *reason == ReadOnlyReason::WriteProtection)
+    );
+    assert_original_plan(&modeled_bytes, &modeled);
+
+    let empty_bytes = package(&document_xml("", "<w:p/>"), Some(""));
+    let empty = open(&empty_bytes);
+    assert!(empty.document.settings().preserved.is_none());
+    assert_eq!(empty.document.settings().compatibility_mode, None);
+    assert_original_plan(&empty_bytes, &empty);
+
+    let unknown_bytes = package(
+        &document_xml("", "<w:p/>"),
+        Some(r#"<w:zoom w:percent="100"/>"#),
+    );
+    let unknown = open(&unknown_bytes);
+    assert!(unknown.document.settings().preserved.is_some());
+    assert_original_plan(&unknown_bytes, &unknown);
+
+    let foreign = open(&package(
+        &document_xml("", "<w:p/>"),
+        Some(r#"<x:extra xmlns:x="urn:example:settings"/>"#),
+    ));
+    assert!(foreign.document.settings().preserved.is_some());
+
+    let other_setting = open(&package(
+        &document_xml("", "<w:p/>"),
+        Some(
+            r#"<w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/><w:compatSetting w:name="doNotAutofitConstrainedTables" w:uri="http://schemas.microsoft.com/office/word" w:val="1"/></w:compat>"#,
+        ),
+    ));
+    assert!(other_setting.document.settings().preserved.is_some());
+    assert_eq!(
+        other_setting.document.settings().compatibility_mode,
+        Some(15)
+    );
+
+    let wrong_uri = open(&package(
+        &document_xml("", "<w:p/>"),
+        Some(
+            r#"<w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://example.invalid" w:val="15"/></w:compat>"#,
+        ),
+    ));
+    assert!(wrong_uri.document.settings().preserved.is_some());
+    assert_eq!(wrong_uri.document.settings().compatibility_mode, None);
+
+    let unparsed_bytes = package(
+        &document_xml("", "<w:p/>"),
+        Some(
+            r#"<w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="nope"/></w:compat>"#,
+        ),
+    );
+    let unparsed = open(&unparsed_bytes);
+    assert!(unparsed.document.settings().preserved.is_some());
+    assert_eq!(unparsed.document.settings().compatibility_mode, None);
+    assert!(has(&unparsed, |kind| matches!(
+        kind,
+        DiagnosticKind::InvalidValue { value, .. } if value == "nope"
+    )));
+    assert_original_plan(&unparsed_bytes, &unparsed);
+
+    let template_bytes = attached_template_package();
+    let template = open(&template_bytes);
+    assert!(template.document.settings().preserved.is_none());
+    assert_eq!(template.document.settings().compatibility_mode, Some(15));
+    assert_eq!(
+        template.document.settings().attached_template.as_deref(),
+        Some("rId1")
+    );
+    assert!(template.diagnostics.iter().any(|item| matches!(
+        &item.kind,
+        DiagnosticKind::ExternalTarget { target, kind, .. }
+            if target == "file://fileserver.invalid/templates/contract.dotm"
+                && *kind == ExternalKind::NetworkShare
+    )));
+    assert_original_plan(&template_bytes, &template);
+
+    for (id, mode, template_id) in [
+        ("DOCX-MIN-001", None, None),
+        ("DOCX-MIN-002", Some(15), None),
+        ("DOCX-MIN-004", Some(15), Some("rId1")),
+        ("DOCX-MIN-005", Some(15), None),
+    ] {
+        let result = open(&fixture(id));
+        assert!(
+            result.document.settings().preserved.is_none(),
+            "{id} preserved settings"
+        );
+        assert_eq!(
+            result.document.settings().compatibility_mode,
+            mode,
+            "{id} mode"
+        );
+        assert_eq!(
+            result.document.settings().attached_template.as_deref(),
+            template_id,
+            "{id} template"
+        );
+        assert_original_plan(&fixture(id), &result);
+    }
+}
+
+fn attached_template_package() -> Vec<u8> {
+    let settings = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:settings xmlns:w="{W}" xmlns:r="{R}"><w:attachedTemplate r:id="rId1"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat></w:settings>"#
+    );
+    let document_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>"#;
+    let settings_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate" Target="file://fileserver.invalid/templates/contract.dotm" TargetMode="External"/></Relationships>"#;
+    archive(&[
+        ("[Content_Types].xml", CONTENT_TYPES),
+        ("_rels/.rels", PACKAGE_RELS),
+        (
+            "word/document.xml",
+            &document_xml("", "<w:p><w:r><w:t>a</w:t></w:r></w:p>"),
+        ),
+        ("word/_rels/document.xml.rels", document_rels),
+        ("word/settings.xml", &settings),
+        ("word/_rels/settings.xml.rels", settings_rels),
+    ])
 }
 
 #[test]

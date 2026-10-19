@@ -12,7 +12,7 @@ use joyword_model::{
 
 use crate::backing::{Fragment, PackageBacking, PreservedReason};
 use crate::ns::{
-    self, A, MAIN_CONTENT_TYPES, MC, REL_FOOTER, REL_HEADER, REL_NUMBERING, REL_OFFICE_DOCUMENT,
+    self, A, MAIN_CONTENT_TYPES, MC, R, REL_FOOTER, REL_HEADER, REL_NUMBERING, REL_OFFICE_DOCUMENT,
     REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, REL_THEME, REL_VBA_PROJECT,
     STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
 };
@@ -672,38 +672,27 @@ impl Importer<'_> {
             .expect("duplicate ids were skipped");
     }
 
-    /// Document settings (ECMA-376 Part 1 §17.15). The settings part is kept
-    /// whole; only compatibility mode, protection and revision tracking are
-    /// read.
+    /// Document settings (ECMA-376 Part 1 §17.15). The part bytes stay in the
+    /// package. A child is modeled when it is one of the fields below;
+    /// `w:attachedTemplate` is recognized and its relationship id is stored,
+    /// never resolved (QUALITY-005). The settings element is preserved only
+    /// when a child has no model field: an unknown `w:` child, a
+    /// foreign-namespace child, a `w:compatSetting` that is not
+    /// compatibilityMode, or a compatibilityMode value that does not parse.
     fn settings(&mut self, part: &Part) -> Result<(), ImportError> {
         let name = &part.name;
-        let (root, _) = self.root(part, "settings")?;
+        let (root, scope) = self.root(part, "settings")?;
         let mut settings = DocumentSettings::default();
-        for child in root
-            .elements()
-            .filter(|child| child.namespace.as_deref() == Some(W))
-        {
+        let mut unmodeled = false;
+        for child in root.elements() {
+            if child.namespace.as_deref() != Some(W) {
+                unmodeled = true;
+                continue;
+            }
             match &*child.local {
                 "compat" => {
-                    for setting in child.elements().filter(|setting| {
-                        setting.is(W, "compatSetting")
-                            && setting.attribute(Some(W), "name") == Some("compatibilityMode")
-                            && setting.attribute(Some(W), "uri") == Some(WORD_COMPAT_URI)
-                    }) {
-                        let value = val(setting).unwrap_or_default();
-                        match value.parse::<u32>() {
-                            Ok(mode) => settings.compatibility_mode = Some(mode),
-                            Err(_) => self.diagnose(
-                                Severity::Warning,
-                                Some(name),
-                                Some(setting.span.clone()),
-                                DiagnosticKind::InvalidValue {
-                                    element: setting.qname.to_string(),
-                                    attribute: "w:val".into(),
-                                    value: value.to_owned(),
-                                },
-                            ),
-                        }
+                    if !self.read_compat(name, child, &mut settings) {
+                        unmodeled = true;
                     }
                 }
                 "trackRevisions" => {
@@ -751,13 +740,58 @@ impl Importer<'_> {
                     }
                 }
                 "writeProtection" => self.deny(name, child, ReadOnlyReason::WriteProtection),
-                _ => {}
+                "attachedTemplate" => {
+                    // QUALITY-005: keep the relationship id. Do not open the
+                    // target, whether it is a file, UNC path or URL.
+                    let id = child.attribute(Some(R), "id").unwrap_or("");
+                    settings.attached_template = Some(Arc::from(id));
+                }
+                _ => unmodeled = true,
             }
         }
-        settings.preserved =
-            Some(self.preserve(name, &root, &Scope::default(), PreservedReason::Properties));
+        if unmodeled {
+            settings.preserved =
+                Some(self.preserve(name, &root, &scope, PreservedReason::Properties));
+        }
         *self.document.settings_mut() = settings;
         Ok(())
+    }
+
+    /// `true` when every `w:compat` child is a parsed compatibilityMode.
+    fn read_compat(
+        &mut self,
+        name: &PartName,
+        compat: &Element,
+        settings: &mut DocumentSettings,
+    ) -> bool {
+        let mut modeled = true;
+        for setting in compat.elements() {
+            let recognized = setting.is(W, "compatSetting")
+                && setting.attribute(Some(W), "name") == Some("compatibilityMode")
+                && setting.attribute(Some(W), "uri") == Some(WORD_COMPAT_URI);
+            if !recognized {
+                modeled = false;
+                continue;
+            }
+            let value = val(setting).unwrap_or_default();
+            match value.parse::<u32>() {
+                Ok(mode) => settings.compatibility_mode = Some(mode),
+                Err(_) => {
+                    modeled = false;
+                    self.diagnose(
+                        Severity::Warning,
+                        Some(name),
+                        Some(setting.span.clone()),
+                        DiagnosticKind::InvalidValue {
+                            element: setting.qname.to_string(),
+                            attribute: "w:val".into(),
+                            value: value.to_owned(),
+                        },
+                    );
+                }
+            }
+        }
+        modeled
     }
 
     /// Numbering part (ECMA-376 Part 1 §17.9). The part is interpreted into
