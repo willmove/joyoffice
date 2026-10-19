@@ -1,9 +1,11 @@
 //! Read-only document flow (T105, C05, T202).
 //!
 //! The explicit single-font profile is a preview contract, not a Word layout
-//! compatibility profile. Unsupported formatting/stories/objects are rejected
-//! before shaping; no apparently successful snapshot drops them. All geometry
-//! stays in EMU. The engine remains the only owner of mutable document state.
+//! compatibility profile. Unsupported formatting, stories and content
+//! controls are rejected before shaping. An opaque body block is skipped,
+//! counted, and joined to the fingerprint; it takes no geometry. All
+//! geometry stays in EMU. The engine remains the only owner of mutable
+//! document state.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -344,7 +346,11 @@ pub struct LayoutSnapshot {
     paragraphs: Vec<ParagraphMap>,
     by_id: BTreeMap<NodeId, usize>,
     diagnostics: Vec<LayoutDiagnostic>,
+    /// Line diagnostics dropped after the diagnostic cap. Not a block count.
     omitted: usize,
+    /// Body `Block::Opaque` values skipped by this layout. They occupy no
+    /// geometry and are not diagnostics.
+    omitted_blocks: usize,
     stats: LayoutStats,
     limits: LayoutLimits,
 }
@@ -400,7 +406,16 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
         match block {
             Block::Paragraph(paragraph) => hash_body_paragraph(&mut hash, document, paragraph),
             Block::Table(table) => hash_table(&mut hash, document, table),
-            Block::Sdt(_) | Block::Opaque(_) => {}
+            Block::Opaque(opaque) => {
+                // No geometry, but a different opaque block must not reuse a
+                // snapshot of the paragraphs around it.
+                hash.update(b"opaque");
+                hash.update(opaque.id.get().to_le_bytes());
+                hash.update((opaque.preserved.element.len() as u64).to_le_bytes());
+                hash.update(opaque.preserved.element.as_bytes());
+                hash.update(opaque.preserved.handle.get().to_le_bytes());
+            }
+            Block::Sdt(_) => {}
         }
     }
     // An empty sheet keeps the historical fingerprint. A style, a default or
@@ -591,12 +606,8 @@ pub(crate) fn preflight(
     if document.annotations().next().is_some() {
         return Err(unsupported(None, "annotation or field projection"));
     }
-    if document.settings().preserved.is_some() || document.settings().track_revisions == Some(true)
-    {
-        return Err(unsupported(
-            None,
-            "preserved settings or revision projection",
-        ));
+    if document.settings().preserved.is_some() {
+        return Err(unsupported(None, "preserved settings"));
     }
     let mut total = 0usize;
     let mut runs = 0usize;
@@ -606,7 +617,8 @@ pub(crate) fn preflight(
         let paragraphs = match block {
             Block::Paragraph(paragraph) => vec![paragraph.as_ref()],
             Block::Table(table) => table_paragraphs(table)?,
-            Block::Sdt(_) | Block::Opaque(_) => {
+            Block::Opaque(_) => continue,
+            Block::Sdt(_) => {
                 return Err(unsupported(Some(block.id()), "non-paragraph block"));
             }
         };
@@ -951,7 +963,13 @@ pub fn layout_document(
     let mut charged_glyphs = 0usize;
     for (index, block) in document.body().blocks.iter().enumerate() {
         cancellation.check()?;
-        let paragraph = block.as_paragraph().expect("preflight checked all blocks");
+        let Some(paragraph) = block.as_paragraph() else {
+            if matches!(block, Block::Opaque(_)) {
+                result.omit_opaque_block();
+                continue;
+            }
+            return Err(unsupported(Some(block.id()), "non-paragraph block"));
+        };
         let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
         let mut fitted = fit_paragraph(
             document,
@@ -1056,7 +1074,8 @@ fn layout_mixed(
                     marks,
                 )?;
             }
-            Block::Sdt(_) | Block::Opaque(_) => {
+            Block::Opaque(_) => result.omit_opaque_block(),
+            Block::Sdt(_) => {
                 return Err(unsupported(Some(block.id()), "non-paragraph block"));
             }
         }
@@ -2138,6 +2157,7 @@ pub(crate) fn open_snapshot(
         by_id: BTreeMap::new(),
         diagnostics: Vec::new(),
         omitted: 0,
+        omitted_blocks: 0,
         stats: LayoutStats::default(),
         limits,
     };
@@ -3070,6 +3090,15 @@ impl LayoutSnapshot {
     }
     pub fn omitted_diagnostics(&self) -> usize {
         self.omitted
+    }
+    /// Opaque body blocks this snapshot skipped. They join the fingerprint
+    /// and take no line or page geometry.
+    pub fn omitted_blocks(&self) -> usize {
+        self.omitted_blocks
+    }
+
+    pub(crate) fn omit_opaque_block(&mut self) {
+        self.omitted_blocks = self.omitted_blocks.saturating_add(1);
     }
     pub fn stats(&self) -> LayoutStats {
         self.stats

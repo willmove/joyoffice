@@ -358,15 +358,14 @@ impl Document {
         let document = dumper.document;
         dumper.line(0, "joyword-model-dump 1");
         let settings = document.settings();
-        dumper.line(
-            0,
-            &format!(
-                "settings compatibilityMode={:?} evenAndOddHeaders={:?} trackRevisions={:?}",
-                settings.compatibility_mode,
-                settings.even_and_odd_headers,
-                settings.track_revisions
-            ),
+        let mut settings_line = format!(
+            "settings compatibilityMode={:?} evenAndOddHeaders={:?} trackRevisions={:?}",
+            settings.compatibility_mode, settings.even_and_odd_headers, settings.track_revisions
         );
+        if let Some(id) = &settings.attached_template {
+            settings_line.push_str(&format!(" attachedTemplate={id}"));
+        }
+        dumper.line(0, &settings_line);
         let defaults = &document.styles().defaults;
         dumper.line(
             0,
