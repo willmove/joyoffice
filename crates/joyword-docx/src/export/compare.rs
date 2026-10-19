@@ -237,6 +237,7 @@ pub(super) fn same_section_envelope(expected: &Section, actual: &Section) -> boo
         && expected.break_kind == actual.break_kind
         && expected.numbering == actual.numbering
         && expected.columns == actual.columns
+        && expected.unequal_columns == actual.unequal_columns
         && expected.preserved == actual.preserved
 }
 

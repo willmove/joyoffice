@@ -11,7 +11,7 @@
 //! - style definitions and document defaults; built-in styles are found by
 //!   canonical `w:name` through the model, never by `w:styleId`;
 //! - page size, margins, title page, section break, page-number format and
-//!   start, equal columns, and default/first/even header and footer stories
+//!   start, equal and explicit unequal columns, and default/first/even header and footer stories
 //!   (`PAGE` / `NUMPAGES` / `SECTIONPAGES` simple and complex fields in the
 //!   body and those stories);
 //! - settings: `compatibilityMode` as written (absent stays `None`, which the
