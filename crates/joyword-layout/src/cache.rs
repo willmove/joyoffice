@@ -539,10 +539,11 @@ fn layout_incremental_views(
     reuse: LayoutReuse<'_>,
     views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
-    // A table row is not a body paragraph, and a row may also split across
-    // pages. Suffix copy assumes body paragraphs line up, so a document with
-    // a table is laid out in full. Opaque blocks are skipped by that full
-    // layout and by the paragraph path below.
+    // A table row is not a body paragraph. Rows split across pages and header
+    // rows repeat, so copying a paragraph suffix would not match a full
+    // layout. Documents that contain a table stay on the full placement.
+    // Opaque blocks are skipped by that full layout and by the paragraph
+    // path below.
     if document
         .body()
         .blocks
