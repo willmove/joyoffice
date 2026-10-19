@@ -2,8 +2,51 @@
   "dpi": 72,
   "pages": [
     {
-      "error": "InvalidGeometry",
-      "status": "refused"
+      "height": 58,
+      "ink_tiles": [
+        {
+          "basis_points": 283,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 253,
+          "x": 64,
+          "y": 0
+        },
+        {
+          "basis_points": 87,
+          "x": 96,
+          "y": 0
+        },
+        {
+          "basis_points": 68,
+          "x": 128,
+          "y": 0
+        },
+        {
+          "basis_points": 120,
+          "x": 0,
+          "y": 32
+        },
+        {
+          "basis_points": 72,
+          "x": 64,
+          "y": 32
+        },
+        {
+          "basis_points": 36,
+          "x": 96,
+          "y": 32
+        },
+        {
+          "basis_points": 36,
+          "x": 128,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 220
     }
   ],
   "tile_px": 32,

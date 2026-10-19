@@ -663,15 +663,12 @@ enum Visual {
 
 fn expected_render(id: &str) -> Visual {
     match id {
-        // Number labels and dot leaders share a glyph run whose pen does not
-        // stay continuous. The CLI raster refuses that scene.
-        "DOCX-FEAT-T200-NUM" => {
-            Visual::Refused("joyword-cli: page raster refused: invalid content or budget")
+        "DOCX-FEAT-T200-NUM" | "DOCX-FEAT-T201-TABLE" | "DOCX-FEAT-T300-REVIEW" => {
+            Visual::Success {
+                pages: 1,
+                omitted: 0,
+            }
         }
-        "DOCX-FEAT-T201-TABLE" | "DOCX-FEAT-T300-REVIEW" => Visual::Success {
-            pages: 1,
-            omitted: 0,
-        },
         "DOCX-FEAT-T202-PAGES" => Visual::Success {
             pages: 2,
             omitted: 0,

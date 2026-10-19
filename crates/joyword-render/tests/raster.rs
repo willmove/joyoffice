@@ -241,6 +241,37 @@ fn zoom_and_dpi_only_change_raster_projection() {
     assert!((i64::from(large.1) - 2 * i64::from(n.1)).abs() <= 1);
 }
 #[test]
+fn a_tab_gap_may_skip_the_pen_forward_but_not_back() {
+    let font = font();
+    let solid = scene(&font, "AV");
+    let mut gapped = solid.clone();
+    let gap = pt(30).raw();
+    let second = &mut gapped.runs[0].glyphs[1];
+    second.x = Emu::new(second.x.raw() + gap);
+    let page = render(&gapped, &font);
+    let together = ink_bounds(&render(&solid, &font));
+    let apart = ink_bounds(&page);
+    assert_eq!(apart.0, together.0, "the first glyph does not move");
+    assert_eq!(
+        apart.2,
+        together.2 + 30,
+        "the gap moves only the second glyph"
+    );
+
+    let mut backwards = solid.clone();
+    backwards.runs[0].glyphs[1].x = Emu::new(backwards.runs[0].glyphs[0].x.raw() + 1);
+    assert_eq!(
+        rasterize(
+            &backwards,
+            std::slice::from_ref(&font),
+            Projection::new(72.0, 1.0).unwrap(),
+            RasterLimits::default(),
+            &RasterCancellation::default()
+        ),
+        Err(RasterError::InvalidGeometry)
+    );
+}
+#[test]
 fn whitespace_and_empty_pages_have_no_ink_but_keep_geometry() {
     let font = font();
     let s = scene(&font, "   ");

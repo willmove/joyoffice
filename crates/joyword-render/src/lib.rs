@@ -479,11 +479,15 @@ pub fn rasterize(
             if glyph.cluster >= run.text.len() || !run.text.is_char_boundary(glyph.cluster) {
                 return Err(RasterError::InvalidGeometry);
             }
-            if glyph.cluster < previous_cluster || glyph.x.raw() != pen || glyph.advance.raw() < 0 {
+            // A pen may skip forward over a tab gap or the remainder a
+            // leader leaves before its stop, but it never moves backwards.
+            if glyph.cluster < previous_cluster || glyph.x.raw() < pen || glyph.advance.raw() < 0 {
                 return Err(RasterError::InvalidGeometry);
             }
             previous_cluster = glyph.cluster;
-            pen = pen
+            pen = glyph
+                .x
+                .raw()
                 .checked_add(glyph.advance.raw())
                 .ok_or(RasterError::InvalidGeometry)?;
             checked_position(run.origin_x, glyph.x, projection)?;

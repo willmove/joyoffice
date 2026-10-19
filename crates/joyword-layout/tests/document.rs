@@ -1047,7 +1047,7 @@ fn centered_and_right_lists_move_only_the_body_and_label_metrics_split_the_run()
 
 #[test]
 fn justified_lists_stretch_chinese_body_text_and_tabs_keep_their_stops() {
-    let mut document = make_document(&["甲乙丙丁"], 4);
+    let mut document = make_document(&["甲乙丙丁甲乙丙丁"], 4);
     install_list(&mut document, NumberFormat::Decimal, "%1", 1);
     mark_paragraph(&mut document, 0);
     change_paragraph(&mut document, 0, |paragraph| {
@@ -1140,6 +1140,89 @@ fn a_left_tab_places_the_following_glyph_at_the_stop() {
         .find(|glyph| glyph.cluster < run.text.len() && run.text[glyph.cluster..].starts_with('B'))
         .expect("B glyph");
     assert_eq!(b.x, Emu::new(2880 * Emu::PER_TWIP));
+}
+
+#[test]
+fn a_tab_suffix_without_hanging_indent_starts_the_body_at_the_next_stop() {
+    let mut document = make_document(&["A\tV"], 4);
+    let mut level = NumberingLevel::new(NumberFormat::Decimal, "%1");
+    level.start = 1;
+    level.suffix = NumberSuffix::Tab;
+    let mut abstract_num = AbstractNum::new(1);
+    abstract_num.levels[0] = Some(level);
+    document.numbering_mut().insert_abstract(abstract_num);
+    document.numbering_mut().insert_instance(NumInstance {
+        id: 1,
+        abstract_id: 1,
+        overrides: Vec::new(),
+    });
+    mark_paragraph(&mut document, 0);
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.tabs = Some(vec![TabStop {
+            position: Measure::Twips(720),
+            align: TabAlign::Left,
+            leader: TabLeader::Dot,
+        }]);
+        paragraph.props = Arc::new(props);
+    });
+    let laid = layout(&document);
+    let left = pt(6).raw();
+    let positions: Vec<(char, i64, i64)> = laid.pages()[0]
+        .runs
+        .iter()
+        .flat_map(|run| {
+            (0..run.glyphs.len()).map(move |index| {
+                let glyph = &run.glyphs[index];
+                (
+                    run.text[glyph.cluster..].chars().next().unwrap(),
+                    run.glyph_x(index).raw() - left,
+                    glyph.advance.raw(),
+                )
+            })
+        })
+        .collect();
+    assert_eq!(positions[0].0, '1', "{positions:?}");
+    assert_eq!(positions[0].1, 0, "the label sits at the start indent");
+    let body = |ch: char| {
+        positions
+            .iter()
+            .find(|item| item.0 == ch)
+            .map(|item| item.1)
+            .unwrap_or_else(|| panic!("{ch} missing: {positions:?}"))
+    };
+    assert_eq!(
+        body('A'),
+        720 * Emu::PER_TWIP,
+        "the tab suffix moves the body to the stop"
+    );
+    assert!(body('V') > body('A'), "{positions:?}");
+    for pair in positions.windows(2) {
+        assert!(
+            pair[1].1 >= pair[0].1 + pair[0].2,
+            "glyphs overlap or move back: {positions:?}"
+        );
+    }
+    assert!(
+        positions.iter().any(|item| item.0 == '.'),
+        "the dot leader fills the suffix gap: {positions:?}"
+    );
+}
+
+#[test]
+fn a_first_line_indent_moves_only_the_first_line() {
+    let mut document = make_document(&["A\tV"], 4);
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.indent = Indent {
+            first_line: Some(Measure::Twips(240)),
+            ..Indent::default()
+        };
+        paragraph.props = Arc::new(props);
+    });
+    let laid = layout(&document);
+    let run = &laid.pages()[0].runs[0];
+    assert_eq!(run.glyph_x(0).raw() - pt(6).raw(), 240 * Emu::PER_TWIP);
 }
 
 #[test]
