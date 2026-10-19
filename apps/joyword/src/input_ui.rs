@@ -4,7 +4,7 @@
 use crate::*;
 use gpui::{
     ElementInputHandler, EntityInputHandler, MouseButton, Pixels, Point, UTF16Selection, canvas,
-    fill, point, rgba,
+    div, fill, point, prelude::*, rgb, rgba,
 };
 use joyword_engine::Selection;
 use joyword_foundation::Emu;
@@ -22,6 +22,59 @@ use std::ops::Range;
 
 pub const DOC_PAD: f32 = 32.0;
 pub const DOC_GAP: f32 = 32.0;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ListChoice {
+    Bullet,
+    Number(u32),
+}
+
+/// Ribbon `start.list_bullet` sends `bullet` and no `num`. Bullet wins when
+/// both are present, matching the shell host. Missing both still reports `num`.
+pub(crate) fn list_choice(
+    args: &std::collections::BTreeMap<&'static str, joyword_shell::command::ArgValue>,
+) -> Result<ListChoice, &'static str> {
+    if args.get("bullet").is_some() {
+        return Ok(ListChoice::Bullet);
+    }
+    let Some(joyword_shell::command::ArgValue::Text(num)) = args.get("num") else {
+        return Err("num");
+    };
+    num.parse::<u32>()
+        .map(ListChoice::Number)
+        .map_err(|_| "num")
+}
+
+pub(crate) fn apply_list_choice(
+    editor: &mut dyn DocEditor,
+    choice: ListChoice,
+) -> Result<(), InputError> {
+    match choice {
+        ListChoice::Bullet => editor.apply_bullet().map(|_| ()),
+        ListChoice::Number(num_id) => editor.apply_list(num_id).map(|_| ()),
+    }
+}
+
+fn path_suggestion(draft: &str) -> (std::path::PathBuf, Option<String>) {
+    let trimmed = draft.trim();
+    if trimmed.is_empty() {
+        return (std::path::PathBuf::from("."), None);
+    }
+    let path = std::path::PathBuf::from(trimmed);
+    if path.is_dir() {
+        return (path, None);
+    }
+    let name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(str::to_owned);
+    let directory = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .map(std::path::Path::to_path_buf)
+        .unwrap_or_else(|| std::path::PathBuf::from("."));
+    (directory, name)
+}
 
 fn table_axis(
     args: &std::collections::BTreeMap<&'static str, joyword_shell::command::ArgValue>,
@@ -116,6 +169,7 @@ pub(crate) trait DocEditor {
     fn list_styles(&self) -> Vec<String>;
     fn apply_style(&mut self, style: &str) -> Result<bool, InputError>;
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError>;
+    fn apply_bullet(&mut self) -> Result<bool, InputError>;
     fn set_list_level(&mut self, level: u8) -> Result<bool, InputError>;
     fn remove_list(&mut self) -> Result<bool, InputError>;
     fn insert_page_break(&mut self) -> Result<bool, InputError>;
@@ -300,6 +354,9 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
         TextInput::apply_list(self, num_id)
+    }
+    fn apply_bullet(&mut self) -> Result<bool, InputError> {
+        TextInput::apply_bullet(self)
     }
     fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
         TextInput::set_list_level(self, level)
@@ -525,6 +582,9 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
         TextInput::apply_list(self, num_id)
+    }
+    fn apply_bullet(&mut self) -> Result<bool, InputError> {
+        TextInput::apply_bullet(self)
     }
     fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
         TextInput::set_list_level(self, level)
@@ -752,6 +812,9 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError> {
         TextInput::apply_list(self, num_id)
+    }
+    fn apply_bullet(&mut self) -> Result<bool, InputError> {
+        TextInput::apply_bullet(self)
     }
     fn set_list_level(&mut self, level: u8) -> Result<bool, InputError> {
         TextInput::set_list_level(self, level)
@@ -1394,6 +1457,87 @@ fn input_error_label(error: &InputError) -> &'static str {
     }
 }
 
+async fn open_chosen_path(
+    view: gpui::WeakEntity<JoyWord>,
+    cx: &mut gpui::AsyncApp,
+    path: std::path::PathBuf,
+) {
+    let current = view
+        .update(cx, |view, _cx| {
+            view.editor
+                .as_ref()
+                .and_then(|editor| editor.source_path().map(std::path::Path::to_path_buf))
+        })
+        .ok()
+        .flatten();
+    if let Some(current) = current.as_deref()
+        && path.canonicalize().ok().as_deref() == Some(current)
+    {
+        return;
+    }
+    let Some(generation) = view
+        .update(cx, |view, _cx| {
+            let generation = view.session.begin_open();
+            view.open_gate = Some(generation);
+            generation
+        })
+        .ok()
+    else {
+        return;
+    };
+    let opened = cx
+        .background_spawn(async move { BoundDocx::open_default(&path) })
+        .await;
+    let _ = view.update(cx, |view, cx| {
+        if view.open_gate != Some(generation) {
+            view.open_gate = None;
+            let _ = view.session.finish_open(generation);
+            cx.notify();
+            return;
+        }
+        let buffered = match view.session.finish_open(generation) {
+            Ok(text) => text,
+            Err(error) => {
+                view.open_gate = None;
+                view.report_input_error(
+                    Catalog::shipped(view.locale)
+                        .format("file.open.error", &[("reason", &error.to_string())]),
+                );
+                cx.notify();
+                return;
+            }
+        };
+        view.open_gate = None;
+        match opened {
+            Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
+                Ok(mut input) => {
+                    if !buffered.is_empty()
+                        && let Err(error) =
+                            input.replace_from(InputSource::Command, None, &buffered)
+                    {
+                        view.report_input_error(view.label(input_error_label(&error)));
+                        cx.notify();
+                        return;
+                    }
+                    view.return_held_document();
+                    let _ = view.session.attach(input);
+                    view.show_active_document(cx);
+                }
+                Err(error) => {
+                    view.report_input_error(view.label(input_error_label(&error)));
+                }
+            },
+            Err(error) => {
+                view.report_input_error(
+                    Catalog::shipped(view.locale)
+                        .format("file.open.error", &[("reason", &error.to_string())]),
+                );
+            }
+        }
+        cx.notify();
+    });
+}
+
 impl JoyWord {
     pub(crate) fn install_input_lifecycle(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let weak = cx.weak_entity();
@@ -1705,6 +1849,18 @@ impl JoyWord {
         {
             return;
         }
+        if crate::linux_files::window_needs_command_bar() {
+            if self
+                .path_sheet
+                .as_ref()
+                .is_some_and(|sheet| sheet.role == crate::linux_files::PathRole::SaveCopy)
+            {
+                return;
+            }
+            let draft = self.proposed_path(crate::linux_files::PathRole::SaveCopy);
+            self.show_path_sheet(crate::linux_files::PathRole::SaveCopy, draft, window, cx);
+            return;
+        }
         let suggested = self
             .editor
             .as_ref()
@@ -1809,6 +1965,23 @@ impl JoyWord {
         if self.ready_layout().is_none() {
             self.report_input_error(self.label("file.export.unstable"));
             cx.notify();
+            return;
+        }
+        if crate::linux_files::window_needs_command_bar() {
+            let role = if print {
+                crate::linux_files::PathRole::Print
+            } else {
+                crate::linux_files::PathRole::ExportPdf
+            };
+            if self
+                .path_sheet
+                .as_ref()
+                .is_some_and(|sheet| sheet.role == role)
+            {
+                return;
+            }
+            let draft = self.proposed_path(role);
+            self.show_path_sheet(role, draft, window, cx);
             return;
         }
         let suggested = suggested_pdf_name(self.editor.as_deref());
@@ -2078,10 +2251,19 @@ impl JoyWord {
                     window.remove_window();
                 }
             }
-            AfterDiscard::PickOpen => self.pick_open(cx),
+            AfterDiscard::PickOpen => self.pick_open(window, cx),
         }
     }
-    fn pick_open(&mut self, cx: &mut Context<Self>) {
+    fn pick_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if crate::linux_files::window_needs_command_bar() {
+            self.show_path_sheet(
+                crate::linux_files::PathRole::Open,
+                String::new(),
+                window,
+                cx,
+            );
+            return;
+        }
         let receiver = cx.prompt_for_paths(gpui::PathPromptOptions {
             files: true,
             directories: false,
@@ -2098,81 +2280,360 @@ impl JoyWord {
             let Some(path) = picked else {
                 return;
             };
-            let current = view
-                .update(cx, |view, _cx| {
-                    view.editor
-                        .as_ref()
-                        .and_then(|editor| editor.source_path().map(std::path::Path::to_path_buf))
-                })
-                .ok()
-                .flatten();
-            if let Some(current) = current.as_deref()
-                && path.canonicalize().ok().as_deref() == Some(current)
-            {
+            open_chosen_path(view, cx, path).await;
+        }));
+    }
+    fn begin_open_path(&mut self, path: std::path::PathBuf, cx: &mut Context<Self>) {
+        self.close_task = Some(cx.spawn(async move |view, cx| {
+            open_chosen_path(view, cx, path).await;
+        }));
+    }
+    fn proposed_path(&self, role: crate::linux_files::PathRole) -> String {
+        let directory = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.source_path())
+            .and_then(|path| path.parent())
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_else(|| std::path::PathBuf::from("."));
+        let name = match role {
+            crate::linux_files::PathRole::Open => return String::new(),
+            crate::linux_files::PathRole::SaveCopy => self
+                .editor
+                .as_ref()
+                .and_then(|editor| editor.source_path())
+                .and_then(|path| path.file_name())
+                .and_then(|name| name.to_str())
+                .map(|name| format!("copy-{name}"))
+                .unwrap_or_else(|| "copy-untitled.docx".to_owned()),
+            crate::linux_files::PathRole::ExportPdf | crate::linux_files::PathRole::Print => {
+                suggested_pdf_name(self.editor.as_deref())
+            }
+        };
+        directory.join(name).display().to_string()
+    }
+    fn show_path_sheet(
+        &mut self,
+        role: crate::linux_files::PathRole,
+        draft: String,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let focus = cx.focus_handle();
+        self.path_sheet = Some(crate::linux_files::PathSheet {
+            role,
+            draft,
+            focus: focus.clone(),
+            note: None,
+            browse: crate::linux_files::dialog_program_available(),
+            browsing: false,
+        });
+        window.focus(&focus, cx);
+        cx.notify();
+    }
+    fn path_sheet_title(&self, role: crate::linux_files::PathRole) -> String {
+        let key = match role {
+            crate::linux_files::PathRole::Open => "command.file.open",
+            crate::linux_files::PathRole::SaveCopy => "command.file.save_copy",
+            crate::linux_files::PathRole::ExportPdf => "command.file.export_pdf",
+            crate::linux_files::PathRole::Print => "command.file.print",
+        };
+        self.label(key)
+    }
+    pub(crate) fn path_sheet_panel(&self, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
+        let sheet = self.path_sheet.as_ref()?;
+        let title = self.path_sheet_title(sheet.role);
+        let draft = sheet.draft.clone();
+        let faded = draft.is_empty();
+        let placeholder = match self.locale {
+            joyword_shell::l10n::Locale::ZhCn => "文件路径",
+            joyword_shell::l10n::Locale::En => "File path",
+        };
+        let shown = if faded { placeholder.to_owned() } else { draft };
+        let note = sheet.note.clone().unwrap_or_default();
+        let focus = sheet.focus.clone();
+        let browse = sheet.browse;
+        let browse_label = match self.locale {
+            joyword_shell::l10n::Locale::ZhCn => "浏览…",
+            joyword_shell::l10n::Locale::En => "Browse…",
+        };
+        let mut row = div()
+            .flex()
+            .items_center()
+            .gap_2()
+            .child(
+                div()
+                    .id("linux-path")
+                    .track_focus(&focus)
+                    .focusable()
+                    .flex_1()
+                    .px_2()
+                    .py_1()
+                    .border_1()
+                    .border_color(rgb(0xc5ced6))
+                    .bg(rgb(0xffffff))
+                    .text_color(if faded { rgb(0x8896a3) } else { rgb(0x263247) })
+                    .on_click(cx.listener(|this, _, window, cx| {
+                        if let Some(sheet) = &this.path_sheet {
+                            let focus = sheet.focus.clone();
+                            window.focus(&focus, cx);
+                        }
+                    }))
+                    .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
+                        this.type_path(event, window, cx);
+                    }))
+                    .child(shown),
+            )
+            .child(self.path_button("linux-path-ok", &self.label("dialog.ok"), true, cx))
+            .child(self.path_button("linux-path-cancel", &self.label("dialog.cancel"), false, cx));
+        if browse {
+            row = row.child(self.path_button("linux-path-browse", browse_label, false, cx));
+        }
+        Some(
+            div()
+                .id("linux-path-sheet")
+                .flex()
+                .flex_col()
+                .gap_2()
+                .px_4()
+                .py_2()
+                .bg(rgb(0xfff8e7))
+                .border_t_1()
+                .border_color(rgb(0xd5dbe3))
+                .text_sm()
+                .child(title)
+                .child(row)
+                .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(note))
+                .into_any_element(),
+        )
+    }
+    fn path_button(
+        &self,
+        id: &'static str,
+        label: &str,
+        submit: bool,
+        cx: &mut Context<Self>,
+    ) -> gpui::AnyElement {
+        let label = label.to_owned();
+        let browse = id == "linux-path-browse";
+        div()
+            .id(id)
+            .cursor_pointer()
+            .px_2()
+            .py_1()
+            .rounded_sm()
+            .bg(rgb(0xe7eef5))
+            .on_click(cx.listener(move |this, _, window, cx| {
+                if browse {
+                    this.browse_path_sheet(window, cx);
+                } else if submit {
+                    this.submit_path_sheet(window, cx);
+                } else {
+                    this.cancel_path_sheet(window, cx);
+                }
+            }))
+            .child(label)
+            .into_any_element()
+    }
+    fn type_path(
+        &mut self,
+        event: &gpui::KeyDownEvent,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let mods = &event.keystroke.modifiers;
+        if mods.platform || mods.alt || mods.function {
+            return;
+        }
+        if mods.control && event.keystroke.key == "v" {
+            cx.stop_propagation();
+            if let Some(item) = cx.read_from_clipboard() {
+                for entry in item.entries() {
+                    if let gpui::ClipboardEntry::String(text) = entry {
+                        let piece = text.text.replace(['\n', '\r'], "");
+                        if let Some(sheet) = &mut self.path_sheet {
+                            sheet.draft.push_str(piece.trim());
+                        }
+                        break;
+                    }
+                }
+            }
+            cx.notify();
+            return;
+        }
+        if mods.control {
+            return;
+        }
+        if event.keystroke.key == "enter" {
+            cx.stop_propagation();
+            self.submit_path_sheet(window, cx);
+            return;
+        }
+        if event.keystroke.key == "escape" {
+            cx.stop_propagation();
+            self.cancel_path_sheet(window, cx);
+            return;
+        }
+        let Some(sheet) = &mut self.path_sheet else {
+            return;
+        };
+        if event.keystroke.key == "backspace" {
+            sheet.draft.pop();
+        } else if let Some(ch) = event.keystroke.key_char.as_deref() {
+            if ch.chars().any(char::is_control) {
                 return;
             }
-            let Some(generation) = view
-                .update(cx, |view, _cx| {
-                    let generation = view.session.begin_open();
-                    view.open_gate = Some(generation);
-                    generation
-                })
-                .ok()
-            else {
-                return;
-            };
-            let opened = cx
-                .background_spawn(async move { BoundDocx::open_default(&path) })
-                .await;
-            let _ = view.update(cx, |view, cx| {
-                if view.open_gate != Some(generation) {
-                    view.open_gate = None;
-                    let _ = view.session.finish_open(generation);
-                    cx.notify();
-                    return;
-                }
-                let buffered = match view.session.finish_open(generation) {
-                    Ok(text) => text,
-                    Err(error) => {
-                        view.open_gate = None;
-                        view.report_input_error(
-                            Catalog::shipped(view.locale)
-                                .format("file.open.error", &[("reason", &error.to_string())]),
-                        );
-                        cx.notify();
-                        return;
+            sheet.draft.push_str(ch);
+        } else {
+            return;
+        }
+        cx.stop_propagation();
+        cx.notify();
+    }
+    fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.path_sheet = None;
+        window.focus(&self.focus_handle, cx);
+        cx.notify();
+    }
+    fn submit_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(sheet) = &self.path_sheet else {
+            return;
+        };
+        let role = sheet.role;
+        let draft = sheet.draft.clone();
+        match crate::linux_files::accept_typed_path(role, &draft) {
+            Ok(path) => {
+                self.path_sheet = None;
+                match role {
+                    crate::linux_files::PathRole::Open => self.begin_open_path(path, cx),
+                    crate::linux_files::PathRole::SaveCopy => {
+                        self.launch_copy_job(path, window, cx)
                     }
-                };
-                view.open_gate = None;
-                match opened {
-                    Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
-                        Ok(mut input) => {
-                            if !buffered.is_empty()
-                                && let Err(error) =
-                                    input.replace_from(InputSource::Command, None, &buffered)
-                            {
-                                view.report_input_error(view.label(input_error_label(&error)));
-                                cx.notify();
-                                return;
-                            }
-                            view.return_held_document();
-                            let _ = view.session.attach(input);
-                            view.show_active_document(cx);
+                    crate::linux_files::PathRole::ExportPdf
+                    | crate::linux_files::PathRole::Print => {
+                        let printing = role == crate::linux_files::PathRole::Print;
+                        if let Err(error) = self.queue_pdf(
+                            PdfOrder {
+                                destination: path,
+                                print: printing,
+                                copies: None,
+                                range: None,
+                                marks: None,
+                            },
+                            window,
+                            cx,
+                        ) && let ExecuteError::Failed(message) = error
+                        {
+                            self.report_input_error(message);
                         }
-                        Err(error) => {
-                            view.report_input_error(view.label(input_error_label(&error)));
-                        }
-                    },
-                    Err(error) => {
-                        view.report_input_error(
-                            Catalog::shipped(view.locale)
-                                .format("file.open.error", &[("reason", &error.to_string())]),
-                        );
                     }
                 }
                 cx.notify();
+            }
+            Err(reason) => {
+                let key = match role {
+                    crate::linux_files::PathRole::Open => "file.open.error",
+                    crate::linux_files::PathRole::SaveCopy => "file.copy.error",
+                    crate::linux_files::PathRole::ExportPdf => "file.export.error",
+                    crate::linux_files::PathRole::Print => "file.print.error",
+                };
+                let message = Catalog::shipped(self.locale).format(key, &[("reason", reason)]);
+                if let Some(sheet) = &mut self.path_sheet {
+                    sheet.note = Some(message);
+                }
+                cx.notify();
+            }
+        }
+    }
+    fn browse_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some(sheet) = &mut self.path_sheet else {
+            return;
+        };
+        if sheet.browsing {
+            return;
+        }
+        sheet.browsing = true;
+        let role = sheet.role;
+        let draft = sheet.draft.clone();
+        let (directory, suggested) = path_suggestion(&draft);
+        cx.spawn_in(window, async move |view, cx| {
+            let picked = cx
+                .background_spawn(async move {
+                    crate::linux_files::run_first_dialog(role, &directory, suggested.as_deref())
+                })
+                .await;
+            let _ = view.update_in(cx, |view, window, cx| {
+                view.linux_dialog_finished(picked, window, cx);
             });
-        }));
+        })
+        .detach();
+        cx.notify();
+    }
+    fn linux_dialog_finished(
+        &mut self,
+        picked: crate::linux_files::LinuxPick,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.path_sheet.is_none() {
+            return;
+        }
+        match picked {
+            crate::linux_files::LinuxPick::Chosen(path) => {
+                if let Some(sheet) = &mut self.path_sheet {
+                    sheet.browsing = false;
+                    sheet.draft = path.display().to_string();
+                    sheet.note = None;
+                }
+                self.submit_path_sheet(window, cx);
+            }
+            crate::linux_files::LinuxPick::Cancelled => {
+                if let Some(sheet) = &mut self.path_sheet {
+                    sheet.browsing = false;
+                }
+                cx.notify();
+            }
+            crate::linux_files::LinuxPick::Unavailable => {
+                if let Some(sheet) = &mut self.path_sheet {
+                    sheet.browsing = false;
+                    sheet.browse = false;
+                    sheet.note = Some(
+                        Catalog::shipped(self.locale)
+                            .format("file.open.error", &[("reason", "dialog")]),
+                    );
+                }
+                cx.notify();
+            }
+        }
+    }
+    fn launch_copy_job(
+        &mut self,
+        path: std::path::PathBuf,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self
+            .copy
+            .is_some_and(|phase| phase.epoch() == self.copy_epoch)
+            || self
+                .editor
+                .as_ref()
+                .is_none_or(|editor| !editor.can_save_copy())
+        {
+            return;
+        }
+        let epoch = self.copy_epoch;
+        self.copy = Some(CopyPhase::Picking(epoch));
+        let Some((request, job, path)) = self.start_copy(epoch, Some(path), cx) else {
+            return;
+        };
+        cx.spawn_in(window, async move |view, cx| {
+            let result = cx
+                .background_spawn(async move { job.run(&path).map_err(|error| error.to_string()) })
+                .await;
+            let _ = view.update(cx, |view, cx| view.copy_landed(request, result, cx));
+        })
+        .detach();
     }
     pub(crate) fn apply_input(
         &mut self,
@@ -2550,17 +3011,13 @@ impl JoyWord {
                 let style = style.clone();
                 self.apply_input(cx, |editor| editor.apply_style(&style).map(|_| ()))
             }
-            LIST_APPLY => {
-                let Some(joyword_shell::command::ArgValue::Text(num)) = args.get("num") else {
-                    self.input_error = Some("num".into());
-                    return Err("num".into());
-                };
-                let Ok(num_id) = num.parse::<u32>() else {
-                    self.input_error = Some("num".into());
-                    return Err("num".into());
-                };
-                self.apply_input(cx, |editor| editor.apply_list(num_id).map(|_| ()))
-            }
+            LIST_APPLY => match list_choice(args) {
+                Ok(choice) => self.apply_input(cx, move |editor| apply_list_choice(editor, choice)),
+                Err(missing) => {
+                    self.input_error = Some(missing.into());
+                    return Err(missing.into());
+                }
+            },
             LIST_LEVEL => {
                 let Some(joyword_shell::command::ArgValue::Text(level)) = args.get("level") else {
                     self.input_error = Some("level".into());
@@ -3541,6 +3998,60 @@ impl EntityInputHandler for JoyWord {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ribbon_bullet_reaches_the_document_without_num() {
+        use joyword_shell::chrome::{RIBBON, RibbonInput};
+        use joyword_shell::command::ArgValue;
+        use std::collections::BTreeMap;
+
+        let control = RIBBON
+            .iter()
+            .find(|control| control.id == "start.list_bullet")
+            .unwrap();
+        let call = control.bind(RibbonInput::default());
+        let args: BTreeMap<_, _> = call.args.into_iter().collect();
+        assert_eq!(list_choice(&args), Ok(ListChoice::Bullet));
+        assert_eq!(list_choice(&BTreeMap::new()), Err("num"));
+        let mut numbered = BTreeMap::new();
+        numbered.insert("num", ArgValue::Text("4".into()));
+        assert_eq!(list_choice(&numbered), Ok(ListChoice::Number(4)));
+        numbered.insert("bullet", ArgValue::Text("1".into()));
+        assert_eq!(list_choice(&numbered), Ok(ListChoice::Bullet));
+
+        let source = pages_source();
+        let mut input = editor(&source);
+        apply_list_choice(&mut input, list_choice(&args).unwrap()).unwrap();
+        let numbering = input
+            .backend()
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .props
+            .numbering
+            .unwrap();
+        assert_eq!(numbering.level, 0);
+        assert_ne!(numbering.num_id, 0);
+        input.undo().unwrap();
+        assert!(
+            input
+                .backend()
+                .document()
+                .body()
+                .blocks
+                .get(0)
+                .unwrap()
+                .as_paragraph()
+                .unwrap()
+                .props
+                .numbering
+                .is_none()
+        );
+    }
 
     #[test]
     fn a_late_copy_applies_only_to_its_session_and_version() {

@@ -5,6 +5,7 @@ mod chrome_ui;
 mod document_canvas;
 mod export;
 mod input_ui;
+mod linux_files;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
 use gpui::{
@@ -275,14 +276,28 @@ fn menus(registry: &Registry, catalog: &Catalog) -> Vec<Menu> {
         .collect()
 }
 
-fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
+fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
     let platform = Platform::current();
-    registry
-        .commands()
-        .iter()
-        .filter_map(|spec| {
-            let keys = spec.shortcut.for_platform(platform)?;
-            Some(match spec.id {
+    let mut chords = Vec::new();
+    for spec in registry.commands() {
+        if let Some(keys) = spec.shortcut.for_platform(platform) {
+            chords.push((keys, spec.id));
+        }
+        if platform == Platform::Linux
+            && let Some(extra) = spec.shortcut.linux_alternate()
+            && spec.shortcut.for_platform(platform) != Some(extra)
+        {
+            chords.push((extra, spec.id));
+        }
+    }
+    chords
+}
+
+fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
+    shortcut_chords(registry)
+        .into_iter()
+        .filter_map(|(keys, id)| {
+            Some(match id {
                 QUIT => KeyBinding::new(keys, Quit, None),
                 ZOOM_IN => KeyBinding::new(keys, ZoomIn, None),
                 ZOOM_OUT => KeyBinding::new(keys, ZoomOut, None),
@@ -394,6 +409,7 @@ struct JoyWord {
     format_repeat: bool,
     ribbon_tab: RibbonTab,
     format_dialog: Option<FormatDialog>,
+    path_sheet: Option<linux_files::PathSheet>,
     view_toggles: joyword_shell::dialogs::ViewToggles,
     ruler_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
     ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>)>,
@@ -1537,6 +1553,7 @@ impl Render for JoyWord {
                     .text_sm()
                     .child(self.label("stage")),
             )
+            .children(linux_files::window_needs_command_bar().then(|| self.linux_command_bar(cx)))
             .child(self.ribbon(cx))
             .child(self.ruler(cx))
             .child(
@@ -1547,6 +1564,7 @@ impl Render for JoyWord {
                     .child(self.style_panel(cx))
                     .child(self.input_viewport(cx)),
             )
+            .children(self.path_sheet_panel(cx))
             .child(self.find_bar(cx))
             .child(
                 div()
@@ -1807,6 +1825,7 @@ fn main() {
                         format_repeat: false,
                         ribbon_tab: RibbonTab::Start,
                         format_dialog: None,
+                        path_sheet: None,
                         view_toggles: joyword_shell::dialogs::ViewToggles::default(),
                         ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
                         ruler_drag: None,
@@ -1850,12 +1869,30 @@ mod tests {
                 spec.id
             );
         }
-        let with_keys = registry
-            .commands()
+        assert_eq!(
+            key_bindings(&registry).len(),
+            shortcut_chords(&registry).len()
+        );
+    }
+
+    #[test]
+    fn linux_export_keeps_the_primary_chord_and_adds_ctrl_e() {
+        let chords = shortcut_chords(&Registry::builtin());
+        let export: Vec<&str> = chords
             .iter()
-            .filter(|spec| spec.shortcut.for_platform(Platform::current()).is_some())
-            .count();
-        assert_eq!(key_bindings(&registry).len(), with_keys);
+            .filter(|(_, id)| *id == FILE_EXPORT_PDF)
+            .map(|(keys, _)| *keys)
+            .collect();
+        if cfg!(target_os = "linux") {
+            assert_eq!(export, vec!["ctrl-shift-e", "ctrl-e"]);
+        } else if cfg!(target_os = "macos") {
+            assert_eq!(export, vec!["cmd-shift-e"]);
+        } else {
+            assert_eq!(export, vec!["ctrl-shift-e"]);
+        }
+        assert!(linux_files::LINUX_BAR.contains(&FILE_OPEN));
+        assert!(linux_files::LINUX_BAR.contains(&FILE_SAVE_COPY));
+        assert!(linux_files::LINUX_BAR.contains(&FILE_EXPORT_PDF));
     }
 
     #[test]

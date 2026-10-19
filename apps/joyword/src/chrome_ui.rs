@@ -12,13 +12,114 @@ use joyword_shell::chrome::{
     self, RibbonArgs, RibbonControl, RibbonInput, RibbonTab, RulerModel, RulerTab, icon_cells,
     ruler_scale, status_line,
 };
-use joyword_shell::command::{Availability, CommandId, ZOOM_IN, ZOOM_OUT};
+use joyword_shell::command::{
+    Availability, CommandId, EDIT_COPY, EDIT_PASTE, EDIT_REDO, EDIT_UNDO, FILE_EXPORT_PDF,
+    FILE_OPEN, FILE_SAVE, FILE_SAVE_COPY, ZOOM_IN, ZOOM_OUT,
+};
 use joyword_shell::l10n::Catalog;
+
+fn linux_button_id(command: CommandId) -> &'static str {
+    match command {
+        FILE_OPEN => "linux-cmd-open",
+        FILE_SAVE => "linux-cmd-save",
+        FILE_SAVE_COPY => "linux-cmd-save-copy",
+        FILE_EXPORT_PDF => "linux-cmd-export",
+        EDIT_UNDO => "linux-cmd-undo",
+        EDIT_REDO => "linux-cmd-redo",
+        EDIT_COPY => "linux-cmd-copy",
+        EDIT_PASTE => "linux-cmd-paste",
+        _ => "linux-cmd-other",
+    }
+}
 
 const INK: u32 = 0x163b65;
 const INK_MUTED: u32 = 0x9aa7b2;
 
 impl JoyWord {
+    /// File and Edit stand in for the menu bar GPUI does not draw on Linux.
+    pub(crate) fn linux_command_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
+        div()
+            .flex()
+            .items_center()
+            .gap_2()
+            .px_3()
+            .py_1()
+            .bg(rgb(0xffffff))
+            .border_b_1()
+            .border_color(rgb(0xd5dbe3))
+            .text_sm()
+            .child(self.linux_cluster(
+                "linux-file",
+                "menu.file",
+                &crate::linux_files::LINUX_BAR[..4],
+                cx,
+            ))
+            .child(self.linux_cluster(
+                "linux-edit",
+                "menu.edit",
+                &crate::linux_files::LINUX_BAR[4..],
+                cx,
+            ))
+    }
+
+    fn linux_cluster(
+        &self,
+        id: &'static str,
+        label_key: &'static str,
+        commands: &[CommandId],
+        cx: &mut Context<Self>,
+    ) -> gpui::AnyElement {
+        div()
+            .id(id)
+            .flex()
+            .items_center()
+            .gap_1()
+            .child(
+                div()
+                    .text_xs()
+                    .text_color(rgb(0x5c6b7a))
+                    .px_1()
+                    .child(self.label(label_key)),
+            )
+            .children(
+                commands
+                    .iter()
+                    .copied()
+                    .map(|command| self.linux_command_button(command, cx)),
+            )
+            .into_any_element()
+    }
+
+    fn linux_command_button(&self, command: CommandId, cx: &mut Context<Self>) -> gpui::AnyElement {
+        let enabled = !matches!(self.input_availability(command), Availability::Disabled(_));
+        let spec = self.registry.get(command);
+        let mut label = spec
+            .map(|spec| self.label(spec.label))
+            .unwrap_or_else(|| command.0.to_owned());
+        if command == FILE_EXPORT_PDF
+            && let Some(extra) = spec.and_then(|spec| spec.shortcut.linux_alternate())
+        {
+            label = format!("{label}  {}", crate::linux_files::chord_label(extra));
+        }
+        div()
+            .id(linux_button_id(command))
+            .cursor_pointer()
+            .px_2()
+            .py_1()
+            .rounded_sm()
+            .bg(if enabled {
+                rgb(0xe7eef5)
+            } else {
+                rgb(0xf4f6f8)
+            })
+            .text_color(if enabled { rgb(INK) } else { rgb(INK_MUTED) })
+            .on_click(cx.listener(move |this, _, window, cx| {
+                this.run(command, window, cx);
+            }))
+            .child(label)
+            .into_any_element()
+    }
+
     pub(crate) fn ribbon(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let shown = chrome::visible_controls(&self.registry, chrome::RIBBON);
         let on_tab = chrome::controls_on(self.ribbon_tab, shown.iter().copied());

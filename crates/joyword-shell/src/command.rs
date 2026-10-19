@@ -108,19 +108,29 @@ pub struct MenuPlacement {
 pub struct Shortcut {
     pub mac: Option<&'static str>,
     pub other: Option<&'static str>,
+    /// Extra Linux chord. `other` stays the primary, so Windows is unchanged
+    /// and desktops that deliver the primary still receive it.
+    linux_alternate: Option<&'static str>,
 }
 
 impl Shortcut {
     pub const NONE: Shortcut = Shortcut {
         mac: None,
         other: None,
+        linux_alternate: None,
     };
 
     const fn primary(mac: &'static str, other: &'static str) -> Self {
         Shortcut {
             mac: Some(mac),
             other: Some(other),
+            linux_alternate: None,
         }
+    }
+
+    const fn with_linux_alternate(mut self, keys: &'static str) -> Self {
+        self.linux_alternate = Some(keys);
+        self
     }
 
     pub fn for_platform(self, platform: Platform) -> Option<&'static str> {
@@ -128,6 +138,11 @@ impl Shortcut {
             Platform::MacOs => self.mac,
             Platform::Windows | Platform::Linux => self.other,
         }
+    }
+
+    /// Chord registered on Linux in addition to [`Self::for_platform`].
+    pub fn linux_alternate(self) -> Option<&'static str> {
+        self.linux_alternate
     }
 }
 
@@ -602,7 +617,11 @@ impl Registry {
                     menu: MenuKind::File,
                     group: 1,
                 }),
-                shortcut: Shortcut::primary("cmd-shift-e", "ctrl-shift-e"),
+                // ctrl-shift-e stays the Windows chord and the Linux primary.
+                // UKUI grabs that chord for its text editor, and GPUI on X11
+                // often drops ctrl-shift-letter, so Linux also binds ctrl-e.
+                shortcut: Shortcut::primary("cmd-shift-e", "ctrl-shift-e")
+                    .with_linux_alternate("ctrl-e"),
                 modifies_document: false,
                 parameters: DESTINATION_PARAM,
             },
@@ -1430,14 +1449,24 @@ impl Registry {
         for platform in [Platform::MacOs, Platform::Windows, Platform::Linux] {
             let mut owners: BTreeMap<&'static str, CommandId> = BTreeMap::new();
             for command in &self.commands {
-                if let Some(keys) = command.shortcut.for_platform(platform)
-                    && let Some(previous) = owners.insert(keys, command.id)
+                let mut chords = Vec::new();
+                if let Some(keys) = command.shortcut.for_platform(platform) {
+                    chords.push(keys);
+                }
+                if platform == Platform::Linux
+                    && let Some(keys) = command.shortcut.linux_alternate()
+                    && command.shortcut.for_platform(platform) != Some(keys)
                 {
-                    issues.push(RegistryIssue::ShortcutConflict {
-                        platform,
-                        keys,
-                        commands: (previous, command.id),
-                    });
+                    chords.push(keys);
+                }
+                for keys in chords {
+                    if let Some(previous) = owners.insert(keys, command.id) {
+                        issues.push(RegistryIssue::ShortcutConflict {
+                            platform,
+                            keys,
+                            commands: (previous, command.id),
+                        });
+                    }
                 }
             }
         }
@@ -1721,5 +1750,23 @@ mod tests {
                 ..
             }
         )));
+    }
+
+    #[test]
+    fn export_pdf_keeps_desktop_chords_and_adds_a_linux_alternate() {
+        let catalogs: Vec<&Catalog> = Locale::ALL.iter().map(|&l| Catalog::shipped(l)).collect();
+        let registry = Registry::builtin();
+        assert_eq!(registry.validate(&catalogs), vec![]);
+        let shortcut = registry.find("file.export_pdf").unwrap().shortcut;
+        assert_eq!(shortcut.for_platform(Platform::MacOs), Some("cmd-shift-e"));
+        assert_eq!(
+            shortcut.for_platform(Platform::Windows),
+            Some("ctrl-shift-e")
+        );
+        assert_eq!(shortcut.for_platform(Platform::Linux), Some("ctrl-shift-e"));
+        assert_eq!(shortcut.linux_alternate(), Some("ctrl-e"));
+        assert!(registry.commands().iter().all(|command| {
+            command.id == FILE_EXPORT_PDF || command.shortcut.linux_alternate().is_none()
+        }));
     }
 }
