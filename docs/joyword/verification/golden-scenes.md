@@ -38,10 +38,10 @@ CPU 光栅走 `joyword_render::rasterize`，72 dpi、缩放 1。像素 SHA-256 �
 | `t202-headers-page-fields` | `first_even_and_default_headers_match_the_golden_scene` | T202 首页/偶数/默认页眉，PAGE 与 NUMPAGES | 三页；首页只有 A，次页只有 V，第三页只有 f |
 | `t203-wrap-none` | `wrap_none_anchor_matches_the_golden_scene` | T203 页面绝对 `wrapNone` | 一张图；字母 A 的原点仍在正文左缘，并与图矩形重叠 |
 | `t203-wrap-square` | `wrap_square_text_avoids_the_rectangle` | T203 页面相对 `wrapSquare`（#60） | 没有运行与图矩形重叠，且有运行移到图的右侧或下方 |
-| `t201-banded-nested-table` | `banded_table_with_a_nested_table_matches_the_golden_scene` | T201 横向条带与一层嵌套表（#57 的可导入部分） | 两张表；样式含 `band1Horz`；页面上有蓝色 `0000ff` 填充 |
+| `t201-banded-nested-table` | `banded_table_with_a_nested_table_matches_the_golden_scene`、`vertical_column_bands_are_imported_from_table_style_pr` | T201 横向条带、首列、末列、纵向条带与一层嵌套表（#57） | 两张表；样式含 `band1Horz`、`firstCol`、`lastCol`、`band1Vert`；页面上有蓝 `0000ff`、红 `ff0000`、黄 `ffff00`、绿 `00ff00` 填充 |
 | `t300-revisions-markup` / `final` / `original` | `revision_markup_final_and_original_match_the_golden_scene` | T300 正文与页眉的插入、删除和移动（#58） | 标记视图含 V、f、i，有非黑色运行和页边条；最终视图有 V 且无 f/i；原始视图有 f、i 且无 V |
 | `t204-paper-and-link` | `paper_sizes_and_an_https_link_match_the_golden_scene` | T204 纸型与 https 链接 | 两页尺寸不同；首页有 `0563c1` 下划线；PDF 链接恰为 `https://example.invalid/joyword` |
-| `t200-numbering-tab` | `numbering_label_and_a_tab_stop_match_the_golden_scene` | T200 编号标签与制表位 | 场景含标签 A、正文 f 与 i，并有制表间隙 |
+| `t200-numbering-tab` | `numbering_label_and_a_tab_stop_match_the_golden_scene` | T200 编号标签与制表位 | 场景含标签 A、正文 f 与 i，并有制表间隙；光栅金样为 `status: ok` |
 
 `sha256_matches_fips_180_4_vectors` 用空字节和 `abc` 核对测试内的 SHA-256（FIPS 180-4）。图片摘要用的是这个实现，不另加依赖。
 
@@ -53,11 +53,13 @@ CPU 光栅走 `joyword_render::rasterize`，72 dpi、缩放 1。像素 SHA-256 �
 - 不证明 PDF 字节或像素在 x86_64、aarch64、loongarch64 之间逐字节相同。
 - 页眉金样记录了 `story-exceeds-margin`。样例页把页眉距离设成 200 twip，12 pt 运行比这段距离高。这是小页面上的确定结果，存在场景摘要里，不是对 Word 的符合性结论。
 - 页码数字在提交的测试字体里没有字形。页眉运行里对应数字的字形 id 为 0。摘要保存这个 id，测试字体下没有单独的 missing-glyph 诊断。
-- 编号加制表位的光栅金样是 `status: refused`、`error: InvalidGeometry`。光栅器要求每个字形的 `x` 等于此前前进量之和；制表间隙把后面的字形推到 1440 twip，因而被拒绝。场景摘要和 PDF 摘要仍然覆盖标签与制表位。这是已知缺口，本切片不改 `crates/**`。光栅开始接受这种行时，金样会失败，需要重新 bless 并改写本节。
 
-## 已知导入缺口
+## F1 已修复（Fixed in F1）
 
-`t201` 的样式同时写了 `band1Horz`（蓝）、`firstCol`（红）、`lastCol`（黄）和 `band1Vert`（绿）。导入后样式只保留 `Band1Horizontal`。`FirstColumn` 与 `Band1Vertical` 不在模型里，页面上也没有对应的红或绿填充。被忽略的测试 `vertical_column_bands_are_imported_from_table_style_pr` 期望三者都被导入。最小输入就是该测试使用的 `banded_table_package`。布局侧在模型直接带有这些条件时可以绘制，缺口在 DOCX 条件样式的读入。本切片不修改 `crates/**`。
+下面两条原来是本文件的已知缺口，F1 修复后金样已重新 bless。说明见 [verify-wave-fixes.md](verify-wave-fixes.md)。
+
+- 编号加制表位的光栅金样原为 `status: refused`、`error: InvalidGeometry`。原因有两层：列表正文的第一段文字被放在左缩进而不是标签后的制表位上，与标签重叠；光栅器又要求每个字形的 `x` 恰好等于此前前进量之和。现在正文从标签后的制表位开始，光栅器允许笔位向前跳过制表间隙，仍拒绝向后回退。光栅金样为 `status: ok`，场景摘要里 f 与 i 的原点随之右移。
+- `t201` 的样式同时写了 `band1Horz`（蓝）、`firstCol`（红）、`lastCol`（黄）和 `band1Vert`（绿）。原来导入后只保留 `Band1Horizontal`。现在 `w:tblStylePr` 的 `firstCol`、`lastCol`、`band1Vert`、`band2Vert` 都读入模型，`vertical_column_bands_are_imported_from_table_style_pr` 不再忽略。页面上首行为红、蓝、黄，第二行为红、绿、黄（ECMA-376 §17.7.6 的条件优先级：首列与末列压过横向条带，横向条带压过纵向条带）。
 
 ## 可选的独立回读
 
