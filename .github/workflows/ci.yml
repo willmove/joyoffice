@@ -70,9 +70,12 @@ jobs:
           python -m unittest discover -s experiments/docx-robustness/tests -p "test_*.py" -v
           cargo build --manifest-path experiments/docx-robustness/Cargo.toml --locked
           python experiments/docx-robustness/driver.py smoke --binary experiments/docx-robustness/target/debug/joyword-docx-robustness${{ runner.os == 'Windows' && '.exe' || '' }} --out experiments/docx-robustness/target/ci-smoke
+          python experiments/docx-robustness/driver.py fuzz --binary experiments/docx-robustness/target/debug/joyword-docx-robustness${{ runner.os == 'Windows' && '.exe' || '' }} --out experiments/docx-robustness/target/ci-fuzz --seed 20261019 --iterations 200 --seconds 60 --max-corpus 128
       # The smoke line above is W09's bounded fixed-matrix mutation run (exit 1
-      # on crash/timeout/invariant/protocol or an incomplete matrix); it is not
-      # coverage-guided fuzz.
+      # on crash/timeout/invariant/protocol or an incomplete matrix); the fuzz
+      # line is a time/iteration-bounded corpus-expanding run whose feedback
+      # signal is the harness's own behavioral feature list. Neither is
+      # coverage-guided fuzz: no code-coverage engine is installed.
       - name: Native application build (precompiled shaders)
         run: cargo build -p joyword --locked
       # GPU windows, IME, accessibility, printing and Office round-trips require
