@@ -45,6 +45,7 @@ command.list.apply = 应用列表
 command.list.level = 列表级别
 command.list.remove = 取消列表
 command.page.break = 分页符
+command.page.number = 页码
 command.page.size = 纸张大小
 command.page.margins = 页边距
 command.page.orientation = 纸张方向

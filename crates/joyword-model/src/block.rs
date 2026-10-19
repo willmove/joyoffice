@@ -40,13 +40,38 @@ pub enum BreakKind {
 }
 
 /// A page-number field this slice can project. ECMA-376 Part 1 §17.16.1
-/// names `PAGE` and `NUMPAGES`; other instructions stay uninterpreted.
+/// names `PAGE`, `NUMPAGES` and `SECTIONPAGES`. Other instructions stay
+/// uninterpreted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PageFieldKind {
-    /// Current page, 1-based, after pagination has settled.
+    /// Current page number after pagination has settled.
     Page,
     /// Page count of the laid-out document.
     NumPages,
+    /// Page count of the section that owns the field's page.
+    SectionPages,
+}
+
+/// `PAGE`, `NUMPAGES` or `SECTIONPAGES`, plus the result stored in the file.
+/// Layout draws the computed number. The cached text is used only when the
+/// number cannot be formatted or the live value does not settle.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct PageField {
+    pub kind: PageFieldKind,
+    pub cached: Option<std::sync::Arc<str>>,
+}
+
+impl PageField {
+    pub fn new(kind: PageFieldKind) -> Self {
+        Self { kind, cached: None }
+    }
+
+    pub fn with_cache(kind: PageFieldKind, cached: impl Into<std::sync::Arc<str>>) -> Self {
+        Self {
+            kind,
+            cached: Some(cached.into()),
+        }
+    }
 }
 
 /// Source content the model does not interpret, held by the format layer.
@@ -60,9 +85,8 @@ pub struct Preserved {
 #[derive(Clone, Debug, PartialEq)]
 pub enum InlineKind {
     Break(BreakKind),
-    /// `PAGE` or `NUMPAGES` in a header or footer. The cached result is not
-    /// stored; layout substitutes the number or reports that it cannot.
-    PageField(PageFieldKind),
+    /// `PAGE`, `NUMPAGES` or `SECTIONPAGES` in the body or a header or footer.
+    PageField(PageField),
     Image {
         resource: ResourceId,
         width: Measure,

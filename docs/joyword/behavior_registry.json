@@ -170,6 +170,14 @@
       "word_observation": null
     },
     {
+      "id": "PAGE-NUMBER-INSERT-UNDO",
+      "operation": "在插入点插入 PAGE 页码域",
+      "expectation": "一次撤销去掉该域；域是正文中的一个 PAGE 内联对象",
+      "source": "hypothesis",
+      "test": "inserting_a_page_number_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
       "id": "PAGE-SETUP-UNDO",
       "operation": "通过命令设置纸张大小、页边距、方向或插入分页符",
       "expectation": "页面设置写入当前节并可撤销；非法页边距被拒绝；分页符成为正文中的显式 page break",
