@@ -166,6 +166,7 @@ ribbon.group.list = 列表
 ribbon.group.find = 查找
 ribbon.group.painter = 格式刷
 ribbon.group.pages = 页面
+ribbon.group.illustrations = 插图
 ribbon.group.page = 页面设置
 ribbon.group.zoom = 缩放
 ribbon.group.language = 语言

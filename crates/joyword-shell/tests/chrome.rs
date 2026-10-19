@@ -283,15 +283,18 @@ fn ribbon_bindings_invoke_the_registered_command() {
     };
     for control in visible_controls(&registry, RIBBON) {
         let call = control.bind(input);
-        if control.args == RibbonArgs::Dialog {
+        if matches!(control.args, RibbonArgs::PromptPath | RibbonArgs::Dialog) {
             let error = registry
                 .invoke_with(&mut host, call.command, &call.args)
                 .unwrap_err();
-            assert!(
-                matches!(error, InvokeError::PendingInput { .. }),
-                "{}",
-                control.id
-            );
+            match &error {
+                InvokeError::PendingInput { missing } => {
+                    if matches!(control.args, RibbonArgs::PromptPath) {
+                        assert!(missing.contains(&"path"), "{}", control.id);
+                    }
+                }
+                other => panic!("{}: {other:?}", control.id),
+            }
             continue;
         }
         registry
@@ -314,7 +317,9 @@ fn ribbon_bindings_invoke_the_registered_command() {
             RibbonArgs::FormatCopy => {
                 assert_eq!(args.get("repeat"), Some(&ArgValue::Bool(true)));
             }
-            RibbonArgs::None => assert!(args.is_empty(), "{}", control.id),
+            RibbonArgs::None | RibbonArgs::PromptPath => {
+                assert!(args.is_empty(), "{}", control.id);
+            }
             RibbonArgs::Dialog => unreachable!("dialog controls return before this match"),
         }
     }

@@ -2457,6 +2457,7 @@ pub(crate) fn fit_paragraph(
             .diagnostics
             .push(LineDiagnostic::Numbering { detail });
     }
+    note_hyperlinks(paragraph, &mut fitted.lines);
     for line in &mut fitted.lines {
         line.run.bold = painted.bold;
         line.run.italic = painted.italic;
@@ -2920,6 +2921,7 @@ fn place_line_on(
                 height: image.height,
             });
         }
+        paint_hyperlink_underlines(page, line, x, baseline)?;
         (run, image_start..page.images.len())
     };
     result.lines.push(PlacedLine {
@@ -2934,6 +2936,95 @@ fn place_line_on(
         images,
     });
     *top = add(*top, step)?;
+    Ok(())
+}
+
+fn note_hyperlinks(paragraph: &Paragraph, lines: &mut [LayoutLine]) {
+    let mut ranges = Vec::new();
+    let mut at = 0usize;
+    for run in paragraph.runs() {
+        let end = at + run.len;
+        if run.link.is_some() {
+            ranges.push(at..end);
+        }
+        at = end;
+    }
+    if ranges.is_empty() {
+        return;
+    }
+    for line in lines.iter_mut() {
+        line.hyperlinks = ranges
+            .iter()
+            .filter_map(|range| {
+                let start = range.start.max(line.source.scalars.start);
+                let end = range.end.min(line.source.scalars.end);
+                (start < end).then_some(start..end)
+            })
+            .collect();
+    }
+}
+
+/// Blue underline shared by screen and PDF. It is scene geometry, not a
+/// character-property underline, because the style painter refuses those.
+fn paint_hyperlink_underlines(
+    page: &mut PageScene,
+    line: &LayoutLine,
+    origin_x: Emu,
+    baseline: Emu,
+) -> Result<(), LayoutError> {
+    let height = Emu::new(Emu::PER_POINT / 2);
+    let y = baseline.raw().saturating_add(Emu::PER_POINT / 10);
+    for range in &line.hyperlinks {
+        let mut left = None;
+        let mut right = None;
+        let mut cover = |start: i64, end: i64| {
+            if end <= start {
+                return;
+            }
+            left = Some(left.map_or(start, |value: i64| value.min(start)));
+            right = Some(right.map_or(end, |value: i64| value.max(end)));
+        };
+        for cluster in &line.clusters {
+            if cluster.source.scalars.end <= range.start
+                || cluster.source.scalars.start >= range.end
+            {
+                continue;
+            }
+            if cluster.glyphs.end == 0 || cluster.glyphs.end > line.run.glyphs.len() {
+                continue;
+            }
+            let start = cluster.glyphs.start.min(line.run.glyphs.len() - 1);
+            let end = cluster.glyphs.end - 1;
+            cover(
+                line.run.glyphs[start].x.raw(),
+                line.run.glyphs[end]
+                    .x
+                    .raw()
+                    .saturating_add(line.run.glyphs[end].advance.raw()),
+            );
+        }
+        for image in &line.images {
+            if (range.start..range.end).contains(&image.scalar) {
+                cover(
+                    image.x.raw(),
+                    image.x.raw().saturating_add(image.width.raw()),
+                );
+            }
+        }
+        if let (Some(left), Some(right)) = (left, right)
+            && right > left
+        {
+            page.rects.push(SceneRect {
+                x: add(origin_x, Emu::new(left))?,
+                y: Emu::new(y),
+                width: Emu::new(right - left),
+                height,
+                red: 0x05,
+                green: 0x63,
+                blue: 0xc1,
+            });
+        }
+    }
     Ok(())
 }
 

@@ -10,9 +10,9 @@ use joyword_engine::{
 };
 use joyword_model::{
     Bias, Block, BlockSeq, BreakKind, Color, Document, DocumentSnapshot, DocumentVersion, FontRef,
-    InlineKind, Justification, MAX_NESTING, Measure, NodeId, NumberingRef, OBJECT_MARKER,
-    Orientation, PageSetup, ParaProps, Paragraph, Position, RunProps, ScalarOffset, StoryId,
-    StoryKind, StyleId, StyleKind, Utf16Offset, indent_edges,
+    Hyperlink, InlineKind, Justification, MAX_NESTING, Measure, NodeId, NumberFormat, NumberingRef,
+    OBJECT_MARKER, Orientation, PageSetup, ParaProps, Paragraph, Position, RunProps, ScalarOffset,
+    Segment, StoryId, StoryKind, StyleId, StyleKind, Utf16Offset, indent_edges,
 };
 
 use crate::dialogs::{
@@ -189,7 +189,13 @@ impl From<UndoError> for InputError {
 /// One clipboard entry the paste policy can see. Paths are never opened.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClipboardOffer<'a> {
-    Image { bytes: &'a [u8] },
+    Image {
+        bytes: &'a [u8],
+    },
+    /// HTML clipboard markup. It is parsed, not fetched.
+    Html(&'a str),
+    /// RTF clipboard markup. It is parsed, not fetched.
+    Rtf(&'a str),
     Text(&'a str),
     Paths,
 }
@@ -198,6 +204,8 @@ pub enum ClipboardOffer<'a> {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PasteChoice<'a> {
     Image(&'a [u8]),
+    Html(&'a str),
+    Rtf(&'a str),
     Text(&'a str),
     Empty,
     Refused(&'static str),
@@ -207,6 +215,8 @@ pub enum PasteChoice<'a> {
 /// the paste. File paths are never opened. Empty content is a no-op.
 pub fn choose_paste<'a>(entries: &[ClipboardOffer<'a>]) -> PasteChoice<'a> {
     let mut text = None;
+    let mut html = None;
+    let mut rtf = None;
     let mut saw_image = false;
     let mut saw_paths = false;
     for entry in entries {
@@ -219,24 +229,92 @@ pub fn choose_paste<'a>(entries: &[ClipboardOffer<'a>]) -> PasteChoice<'a> {
                     return PasteChoice::Image(bytes);
                 }
             }
+            ClipboardOffer::Html(value) if html.is_none() && !value.is_empty() => {
+                html = Some(value)
+            }
+            ClipboardOffer::Rtf(value) if rtf.is_none() && !value.is_empty() => rtf = Some(value),
             ClipboardOffer::Text(value) => {
                 if text.is_none() && !value.is_empty() {
                     text = Some(value);
                 }
             }
+            ClipboardOffer::Html(_) | ClipboardOffer::Rtf(_) => {}
             ClipboardOffer::Paths => saw_paths = true,
         }
     }
     if saw_image {
         return PasteChoice::Refused("clipboard image was refused");
     }
+    if let Some(value) = html {
+        return PasteChoice::Html(value);
+    }
+    if let Some(value) = rtf {
+        return PasteChoice::Rtf(value);
+    }
     if let Some(value) = text {
-        return PasteChoice::Text(value);
+        return match crate::rich_paste::rich_kind(value) {
+            Some(crate::rich_paste::RichSource::Html) => PasteChoice::Html(value),
+            Some(crate::rich_paste::RichSource::Rtf) => PasteChoice::Rtf(value),
+            None => PasteChoice::Text(value),
+        };
     }
     if saw_paths {
         return PasteChoice::Refused("clipboard file paths are not opened");
     }
     PasteChoice::Empty
+}
+
+/// A plain-text clipboard entry that is not itself HTML or RTF markup.
+fn grounded_numbering(
+    document: &Document,
+    kind: crate::rich_paste::ListKind,
+) -> Option<NumberingRef> {
+    let store = document.numbering();
+    for instance in store.instances() {
+        if instance.id == 0 {
+            continue;
+        }
+        let Some(abstract_num) = store
+            .abstracts()
+            .iter()
+            .find(|item| item.id == instance.abstract_id)
+        else {
+            continue;
+        };
+        let level = instance
+            .overrides
+            .iter()
+            .find(|item| item.level == 0)
+            .and_then(|item| item.replacement.as_ref())
+            .or(abstract_num.levels[0].as_ref());
+        let Some(level) = level else {
+            continue;
+        };
+        let matches = match kind {
+            crate::rich_paste::ListKind::Ordered => level.format == NumberFormat::Decimal,
+            crate::rich_paste::ListKind::Bullet => {
+                matches!(&level.format, NumberFormat::Other(token) if token.as_ref() == "bullet")
+            }
+        };
+        if matches {
+            return Some(NumberingRef {
+                num_id: instance.id,
+                level: 0,
+            });
+        }
+    }
+    None
+}
+
+pub fn plain_text_offer<'a>(entries: &[ClipboardOffer<'a>]) -> Option<&'a str> {
+    entries.iter().find_map(|entry| match *entry {
+        ClipboardOffer::Text(value)
+            if !value.is_empty() && crate::rich_paste::rich_kind(value).is_none() =>
+        {
+            Some(value)
+        }
+        _ => None,
+    })
 }
 
 /// URLs and UNC paths are remote. A Windows drive prefix (`C:\` or `C:/`)
@@ -930,6 +1008,148 @@ impl<B: InputBackend> TextInput<B> {
     pub fn insert_image_file(&mut self, path: &Path) -> Result<bool, InputError> {
         let bytes = read_image_file(path)?;
         self.insert_image_bytes(&bytes)
+    }
+
+    /// Sets or clears the hyperlink on the selection. `None` for both parts
+    /// removes it. One call is one undo step. An empty selection changes nothing.
+    pub fn set_hyperlink(
+        &mut self,
+        external: Option<&str>,
+        anchor: Option<&str>,
+    ) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (range, _) = self.view.selected_range();
+        if range.is_empty() {
+            return Ok(false);
+        }
+        let link = if external.is_none() && anchor.is_none() {
+            None
+        } else {
+            Some(Hyperlink::for_edit(external, anchor).map_err(InputError::Rejected)?)
+        };
+        let start = self.view.index.position(range.start, Bias::After)?;
+        let end = self.view.index.position(range.end, Bias::Before)?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SetHyperlink { start, end, link }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Bytes of the image when the selection is exactly one inline image.
+    pub fn selected_image_bytes(&self) -> Option<Arc<[u8]>> {
+        let (range, _) = self.view.selected_range();
+        let text = self.view.index.text_for_range(range.clone()).ok()?;
+        let mut chars = text.chars();
+        if chars.next() != Some(OBJECT_MARKER) || chars.next().is_some() {
+            return None;
+        }
+        let position = self.view.index.position(range.start, Bias::After).ok()?;
+        let document = self.view.index.snapshot();
+        let paragraph = document.find_paragraph(position.story, position.paragraph)?;
+        let mut scalar = 0usize;
+        for segment in paragraph.segments() {
+            match segment {
+                Segment::Text(chunk) => scalar += chunk.chars().count(),
+                Segment::Inline(object) => {
+                    if scalar == position.offset.0 {
+                        let InlineKind::Image { resource, .. } = &object.kind else {
+                            return None;
+                        };
+                        let stored = document.resources().get(*resource)?;
+                        return Some(Arc::from(stored.data()));
+                    }
+                    scalar += 1;
+                }
+            }
+        }
+        None
+    }
+
+    /// External target at a model position when the open allowlist accepts it.
+    pub fn openable_link(&self, position: &Position) -> Option<&str> {
+        let paragraph = self
+            .view
+            .index
+            .snapshot()
+            .find_paragraph(position.story, position.paragraph)?;
+        let link = paragraph.link_at(position.offset.0)?;
+        joyword_model::open_target(link).ok()
+    }
+
+    /// Inserts HTML or RTF runs as one undo step. A uniform list is numbered
+    /// only when the document already has a matching numbering instance.
+    pub fn paste_rich(
+        &mut self,
+        document: &crate::rich_paste::RichDocument,
+    ) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (range, _) = self.view.selected_range();
+        self.view.index.check(&range)?;
+        let start = self.view.index.position(range.start, Bias::After)?;
+        let mut commands = Vec::new();
+        if range.start != range.end {
+            let end = self.view.index.position(range.end, Bias::Before)?;
+            commands.push(Command::DeleteRange { start, end });
+        }
+        if let Some(kind) = crate::rich_paste::uniform_list(document)
+            && let Some(numbering) = grounded_numbering(self.backend.session().document(), kind)
+        {
+            commands.push(Command::SetNumbering {
+                start,
+                end: start,
+                numbering: Some(numbering),
+            });
+        }
+        for (index, paragraph) in document.paragraphs.iter().enumerate().rev() {
+            let text: String = paragraph.runs.iter().map(|run| run.text.as_str()).collect();
+            if !text.is_empty() {
+                commands.push(Command::InsertText {
+                    at: start,
+                    text: text.clone(),
+                });
+                let mut offset = start.offset.0;
+                for run in &paragraph.runs {
+                    let end = offset + run.text.chars().count();
+                    if end > offset {
+                        let from = Position {
+                            offset: ScalarOffset(offset),
+                            ..start
+                        };
+                        let to = Position {
+                            offset: ScalarOffset(end),
+                            ..start
+                        };
+                        commands.push(Command::FormatText {
+                            start: from,
+                            end: to,
+                            change: RunChange::Bold(Some(run.bold)),
+                        });
+                        commands.push(Command::FormatText {
+                            start: from,
+                            end: to,
+                            change: RunChange::Italic(Some(run.italic)),
+                        });
+                        commands.push(Command::FormatText {
+                            start: from,
+                            end: to,
+                            change: RunChange::Underline(run.underline()),
+                        });
+                    }
+                    offset = end;
+                }
+            }
+            if index > 0 {
+                commands.push(Command::SplitParagraph { at: start });
+            }
+        }
+        if commands.len() > self.limits.max_commands {
+            return Err(InputError::Budget("commands"));
+        }
+        let mut transaction = Transaction::new(self.backend.session().version(), commands);
+        transaction.selection = Some(self.selection);
+        transaction.undo_group = UndoGroup::Standalone;
+        self.commit(transaction)
     }
 
     /// Apply character formatting to the current selection. An empty selection

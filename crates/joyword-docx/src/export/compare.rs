@@ -12,8 +12,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BlockSeq, Document, IdAllocator, InlineKind, InlineObject, NodeId, OpaqueBlock,
-    ParaProps, Paragraph, PreservedId, RunProps, Segment, StyleId,
+    Block, BlockSeq, Document, Hyperlink, IdAllocator, InlineKind, InlineObject, NodeId,
+    OpaqueBlock, ParaProps, Paragraph, PreservedId, RunProps, Segment, StyleId,
 };
 
 use crate::PackageBacking;
@@ -142,12 +142,21 @@ enum Position<'a> {
     Inline(&'a InlineObject),
 }
 
-/// Text collected for one run of equal formatting.
-type Pending = (Option<StyleId>, Arc<RunProps>, String);
+/// Text collected for one run of equal formatting and the same hyperlink.
+type Pending = (
+    Option<StyleId>,
+    Arc<RunProps>,
+    Option<Arc<Hyperlink>>,
+    String,
+);
 
 fn flush(rebuilt: &mut Paragraph, pending: &mut Option<Pending>) -> Option<()> {
     match pending.take() {
-        Some((style, props, text)) => rebuilt.push_text(&text, style, props).ok(),
+        Some((style, props, link, text)) => {
+            rebuilt.push_text(&text, style, props).ok()?;
+            rebuilt.set_last_run_link(link);
+            Some(())
+        }
         None => Some(()),
     }
 }
@@ -181,12 +190,19 @@ fn rebuild(
         for _ in 0..run.len {
             match positions.next()? {
                 Position::Char(ch) => match &mut pending {
-                    Some((style, same, text)) if *style == run.style && *same == props => {
+                    Some((style, same, link, text))
+                        if *style == run.style && *same == props && *link == run.link =>
+                    {
                         text.push(ch);
                     }
                     _ => {
                         flush(&mut rebuilt, &mut pending)?;
-                        pending = Some((run.style.clone(), props.clone(), ch.into()));
+                        pending = Some((
+                            run.style.clone(),
+                            props.clone(),
+                            run.link.clone(),
+                            ch.into(),
+                        ));
                     }
                 },
                 Position::Inline(inline) => {
@@ -196,6 +212,7 @@ fn rebuild(
                         preserved.handle = canonical(preserved.handle)?;
                     }
                     rebuilt.push_inline(inline, run.style.clone(), props.clone());
+                    rebuilt.set_last_run_link(run.link.clone());
                 }
             }
         }
