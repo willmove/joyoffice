@@ -39,7 +39,7 @@ fn simple_table() -> String {
 
 #[test]
 fn a_represented_table_is_typed_and_an_unknown_sibling_stays_opaque() {
-    let looked = r#"<w:tbl><w:tblPr><w:tblLook w:val="04A0"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>隐</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    let looked = r#"<w:tbl><w:tblPr><w:tblOverlap w:val="never"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>隐</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
     let result = import(
         &package(&format!(
             "{}<w:p><w:r><w:t>后</w:t></w:r></w:p>",
@@ -146,7 +146,7 @@ fn editing_a_cell_round_trips_and_keeps_merge_state() {
 
 #[test]
 fn an_edited_paragraph_beside_an_opaque_table_is_refused() {
-    let body = r#"<w:p><w:r><w:t>前</w:t></w:r></w:p><w:tbl><w:tblPr><w:tblLook w:val="04A0"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>隐</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p><w:r><w:t>后</w:t></w:r></w:p>"#;
+    let body = r#"<w:p><w:r><w:t>前</w:t></w:r></w:p><w:tbl><w:tblPr><w:tblOverlap w:val="never"/></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>隐</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p><w:r><w:t>后</w:t></w:r></w:p>"#;
     let source = import(&package(body), &Budget::default()).unwrap();
     let mut model = source.document.clone();
     let body_id = model.body_id();
@@ -164,7 +164,7 @@ fn an_edited_paragraph_beside_an_opaque_table_is_refused() {
         "{error:?}"
     );
     let xml = xml_of(&package(body));
-    assert!(xml.contains(r#"w:val="04A0""#), "{xml}");
+    assert!(xml.contains("tblOverlap"), "{xml}");
     assert!(xml.contains("隐"), "{xml}");
 }
 
@@ -195,6 +195,50 @@ fn a_simple_grid_table_round_trips_after_a_cell_edit() {
     assert!(xml.contains("侧"), "{xml}");
     assert!(xml.contains(r#"w:fill="FF0000""#), "{xml}");
     assert!(xml.contains(r#"w:val="nil""#), "{xml}");
+    assert!(!xml.contains("tblLook"), "{xml}");
+}
+
+#[test]
+fn tbl_look_bits_and_attributes_round_trip_after_a_cell_edit() {
+    let body = r#"<w:tbl><w:tblPr><w:tblLook w:val="04A0" w:firstRow="0"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>甲</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    let source = import(&package(body), &Budget::default()).unwrap();
+    let Block::Table(table) = &source.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    let look = table.look.unwrap();
+    assert!(!look.first_row);
+    assert!(!look.last_row);
+    assert!(look.first_column);
+    assert!(!look.last_column);
+    assert!(!look.no_h_band);
+    assert!(look.no_v_band);
+
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("乙", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = xml_of(plan.bytes());
+    assert!(xml.contains(r#"w:firstRow="0""#), "{xml}");
+    assert!(xml.contains(r#"w:lastRow="0""#), "{xml}");
+    assert!(xml.contains(r#"w:firstColumn="1""#), "{xml}");
+    assert!(xml.contains(r#"w:lastColumn="0""#), "{xml}");
+    assert!(xml.contains(r#"w:noHBand="0""#), "{xml}");
+    assert!(xml.contains(r#"w:noVBand="1""#), "{xml}");
+    assert!(xml.contains("乙"), "{xml}");
 }
 
 #[test]

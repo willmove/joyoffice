@@ -5,8 +5,9 @@
 //!
 //! A table is mapped only when every element and attribute is represented in
 //! the model. Anything else — nested tables, revisions, bookmarks, theme
-//! colours, `tblLook`, per-cell `tcMar`, percentage widths — returns `None`
-//! and the caller preserves the whole `w:tbl` byte range. This parser
+//! colours, per-cell `tcMar`, percentage widths — returns `None`
+//! and the caller preserves the whole `w:tbl` byte range. `w:tblLook` is
+//! stored (ECMA-376 §17.4.56). This parser
 //! allocates no identifiers and records no fragments, so a refusal leaves
 //! the document untouched.
 
@@ -15,8 +16,8 @@ use std::sync::Arc;
 
 use joyword_model::{
     BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
-    OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, StyleId, Table,
-    TableWidth, VerticalMerge,
+    OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, Style, StyleId, Table,
+    TableCondition, TableConditional, TableFormat, TableLook, TableWidth, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -60,6 +61,7 @@ struct DraftRow {
 struct DraftTable {
     style: Option<StyleId>,
     width: Option<TableWidth>,
+    look: Option<TableLook>,
     cell_margin: Option<CellMargins>,
     grid: Vec<Measure>,
     rows: Vec<DraftRow>,
@@ -117,6 +119,7 @@ fn build(
         rows,
         style: draft.style,
         width: draft.width,
+        look: draft.look,
         cell_margin: draft.cell_margin,
         preserved: None,
         source: Some(Importer::source(part, element)),
@@ -147,6 +150,7 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
     }
     let mut style = None;
     let mut width = None;
+    let mut look = None;
     let mut cell_margin = None;
     let mut grid = None;
     let mut rows = Vec::new();
@@ -156,9 +160,14 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
             && !seen_row
             && style.is_none()
             && width.is_none()
+            && look.is_none()
             && cell_margin.is_none()
         {
-            (style, width, cell_margin) = parse_tbl_pr(child)?;
+            let parsed = parse_tbl_pr(child)?;
+            style = parsed.style;
+            width = parsed.width;
+            look = parsed.look;
+            cell_margin = parsed.cell_margin;
         } else if child.is(W, "tblGrid") && !seen_row && grid.is_none() {
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
@@ -175,20 +184,27 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
     Some(DraftTable {
         style,
         width,
+        look,
         cell_margin,
         grid,
         rows,
     })
 }
 
-fn parse_tbl_pr(
-    element: &Element,
-) -> Option<(Option<StyleId>, Option<TableWidth>, Option<CellMargins>)> {
+struct ParsedTablePr {
+    style: Option<StyleId>,
+    width: Option<TableWidth>,
+    look: Option<TableLook>,
+    cell_margin: Option<CellMargins>,
+}
+
+fn parse_tbl_pr(element: &Element) -> Option<ParsedTablePr> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
     let mut style = None;
     let mut width = None;
+    let mut look = None;
     let mut cell_margin = None;
     for child in element.elements() {
         if child.is(W, "tblStyle") && style.is_none() {
@@ -202,13 +218,74 @@ fn parse_tbl_pr(
             style = Some(StyleId::new(name));
         } else if child.is(W, "tblW") && width.is_none() {
             width = Some(parse_table_width(child)?);
+        } else if child.is(W, "tblLook") && look.is_none() {
+            look = Some(parse_look(child)?);
         } else if child.is(W, "tblCellMar") && cell_margin.is_none() {
             cell_margin = Some(parse_cell_margins(child)?);
         } else {
             return None;
         }
     }
-    Some((style, width, cell_margin))
+    Some(ParsedTablePr {
+        style,
+        width,
+        look,
+        cell_margin,
+    })
+}
+
+/// `w:tblLook`. A present attribute overrides the same bit of `w:val`.
+/// An omitted attribute is false when the element is present. An invalid
+/// value refuses the table.
+fn parse_look(element: &Element) -> Option<TableLook> {
+    const FLAGS: &[(&str, u16)] = &[
+        ("firstRow", 0x0020),
+        ("lastRow", 0x0040),
+        ("firstColumn", 0x0080),
+        ("lastColumn", 0x0100),
+        ("noHBand", 0x0200),
+        ("noVBand", 0x0400),
+    ];
+    if !only_word_attributes(
+        element,
+        &[
+            "val",
+            "firstRow",
+            "lastRow",
+            "firstColumn",
+            "lastColumn",
+            "noHBand",
+            "noVBand",
+        ],
+    ) || !text_is_space(element)
+    {
+        return None;
+    }
+    let bits = match element.attribute(Some(W), "val") {
+        None => 0u16,
+        Some(value) => u16::from_str_radix(value, 16).ok()?,
+    };
+    let mut flags = [false; 6];
+    for (index, (_, mask)) in FLAGS.iter().enumerate() {
+        flags[index] = bits & mask != 0;
+    }
+    for (index, (name, _)) in FLAGS.iter().enumerate() {
+        if let Some(value) = element.attribute(Some(W), name) {
+            flags[index] = match value {
+                "true" | "1" | "on" => true,
+                "false" | "0" | "off" => false,
+                _ => return None,
+            };
+        }
+    }
+    Some(TableLook {
+        first_row: flags[0],
+        last_row: flags[1],
+        first_column: flags[2],
+        last_column: flags[3],
+        no_h_band: flags[4],
+        no_v_band: flags[5],
+    })
 }
 
 fn parse_cell_margins(element: &Element) -> Option<CellMargins> {
@@ -672,4 +749,131 @@ fn text_is_space(element: &Element) -> bool {
         Node::Element(_) => true,
         Node::Text(text) => text.chars().all(is_xml_space),
     })
+}
+
+/// Table-style children this slice resolves. `false` means something was
+/// left unparsed; known bold, shading and borders are still stored.
+pub(crate) fn read_style_table(style: &mut Style, element: &Element) -> bool {
+    match &*element.local {
+        "tblPr" => fill_format(&mut style.table, element, true),
+        "tcPr" => fill_format(&mut style.table, element, false),
+        "tblStylePr" => read_conditional(style, element),
+        _ => false,
+    }
+}
+
+fn read_conditional(style: &mut Style, element: &Element) -> bool {
+    if !only_word_attributes(element, &["type"]) || !text_is_space(element) {
+        return false;
+    }
+    let condition = match element.attribute(Some(W), "type") {
+        Some("firstRow") => TableCondition::FirstRow,
+        Some("lastRow") => TableCondition::LastRow,
+        Some("band1Horz") => TableCondition::Band1Horizontal,
+        Some("band2Horz") => TableCondition::Band2Horizontal,
+        _ => return false,
+    };
+    let mut format = TableFormat::default();
+    let mut complete = true;
+    for child in element.elements() {
+        if child.namespace.as_deref() != Some(W) {
+            complete = false;
+            continue;
+        }
+        let known = match &*child.local {
+            "rPr" => read_bold(&mut format, child),
+            "tblPr" => fill_format(&mut format, child, true),
+            "tcPr" => fill_format(&mut format, child, false),
+            _ => false,
+        };
+        complete &= known;
+    }
+    style
+        .table_conditionals
+        .push(TableConditional { condition, format });
+    complete
+}
+
+fn fill_format(format: &mut TableFormat, element: &Element, table_properties: bool) -> bool {
+    if !only_word_attributes(element, &[]) || !text_is_space(element) {
+        return false;
+    }
+    let mut complete = true;
+    for child in element.elements() {
+        if child.namespace.as_deref() != Some(W) {
+            complete = false;
+            continue;
+        }
+        let known = if table_properties {
+            match &*child.local {
+                "tblBorders" => match parse_borders(child) {
+                    Some(borders) => {
+                        overlay_borders(&mut format.borders, borders);
+                        true
+                    }
+                    None => false,
+                },
+                "shd" => match parse_shading(child) {
+                    Some(shading) => {
+                        format.shading = Some(shading);
+                        true
+                    }
+                    None => false,
+                },
+                _ => false,
+            }
+        } else {
+            match &*child.local {
+                "tcBorders" => match parse_borders(child) {
+                    Some(borders) => {
+                        overlay_borders(&mut format.borders, borders);
+                        true
+                    }
+                    None => false,
+                },
+                "shd" => match parse_shading(child) {
+                    Some(shading) => {
+                        format.shading = Some(shading);
+                        true
+                    }
+                    None => false,
+                },
+                _ => false,
+            }
+        };
+        complete &= known;
+    }
+    complete
+}
+
+fn overlay_borders(base: &mut CellBorders, layer: CellBorders) {
+    if layer.top.is_some() {
+        base.top = layer.top;
+    }
+    if layer.left.is_some() {
+        base.left = layer.left;
+    }
+    if layer.bottom.is_some() {
+        base.bottom = layer.bottom;
+    }
+    if layer.right.is_some() {
+        base.right = layer.right;
+    }
+}
+
+fn read_bold(format: &mut TableFormat, element: &Element) -> bool {
+    let mut findings = Findings::default();
+    let (run, style) = props::run(element, &mut findings);
+    format.bold = run.bold;
+    findings.complete
+        && style.is_none()
+        && run.italic.is_none()
+        && run.strike.is_none()
+        && run.hidden.is_none()
+        && run.underline.is_none()
+        && run.size.is_none()
+        && run.color.is_none()
+        && run.fonts == joyword_model::FontSlots::default()
+        && run.languages == joyword_model::Languages::default()
+        && run.preserved.is_none()
 }

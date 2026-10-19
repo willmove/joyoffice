@@ -20,8 +20,11 @@ use std::sync::Arc;
 use crate::block::{Block, Paragraph};
 use crate::document::Document;
 use crate::id::NodeId;
-use crate::props::{Indent, NumberingRef, ParaProps, TabStop};
+use crate::props::{
+    FontRef, FontSlots, Indent, Measure, NumberingRef, ParaProps, RunProps, TabStop,
+};
 use crate::style::overlay_paragraph;
+use crate::symbol_font::{self, is_mapped_family};
 
 /// Highest `ilvl` ECMA-376 defines (0..=8).
 pub const MAX_LEVEL: u8 = 8;
@@ -38,6 +41,8 @@ pub enum NumberFormat {
     ChineseLegalSimplified,
     /// `w:numFmt` `none`: the level contributes an empty string.
     None,
+    /// `w:numFmt` `bullet`: the label is the literal `w:lvlText` after `%%`.
+    Bullet,
     /// A token this slice does not render. The original token is kept.
     Other(Arc<str>),
 }
@@ -54,6 +59,7 @@ impl NumberFormat {
             "ideographTraditional" => Self::IdeographTraditional,
             "chineseLegalSimplified" => Self::ChineseLegalSimplified,
             "none" => Self::None,
+            "bullet" => Self::Bullet,
             other => Self::Other(Arc::from(other)),
         }
     }
@@ -69,6 +75,7 @@ impl NumberFormat {
             Self::IdeographTraditional => Arc::from("ideographTraditional"),
             Self::ChineseLegalSimplified => Arc::from("chineseLegalSimplified"),
             Self::None => Arc::from("none"),
+            Self::Bullet => Arc::from("bullet"),
             Self::Other(token) => Arc::clone(token),
         }
     }
@@ -107,9 +114,12 @@ pub struct NumberingLevel {
     pub restart: Option<u8>,
     pub suffix: NumberSuffix,
     pub para: ParaProps,
-    /// `w:rPr`, `w:pStyle`, `w:legacy`, `w:isLgl`, `w:lvlJc` or another
-    /// child this slice does not apply. The numbering part bytes stay in
-    /// the package.
+    /// Level `w:rPr`. Size, bold and the named font are used for the label.
+    pub run: RunProps,
+    /// `w:lvlPicBulletId`. The label is refused; no glyph is invented.
+    pub picture: Option<u32>,
+    /// `w:pStyle`, `w:legacy`, `w:isLgl`, `w:lvlJc` or another child this
+    /// slice does not apply. The numbering part bytes stay in the package.
     pub unmodeled: bool,
 }
 
@@ -122,6 +132,8 @@ impl NumberingLevel {
             restart: None,
             suffix: NumberSuffix::Tab,
             para: ParaProps::default(),
+            run: RunProps::default(),
+            picture: None,
             unmodeled: false,
         }
     }
@@ -204,6 +216,56 @@ impl NumberingStore {
         true
     }
 
+    /// Returns a level-0 bullet instance, creating one when none exists.
+    ///
+    /// The created label is U+2022, a tab suffix, and a hanging indent of
+    /// 720 twips with 360 twips of hanging. Those distances are a JoyWord
+    /// preset, not a measurement taken from Word. One undo of the command
+    /// that calls this restores the previous store. Export still refuses a
+    /// numbering store that differs from the package.
+    pub fn ensure_bullet(&mut self) -> u32 {
+        if let Some(id) = self.instances.iter().find_map(|instance| {
+            let abstract_num = self
+                .abstracts
+                .iter()
+                .find(|item| item.id == instance.abstract_id)?;
+            if abstract_num.linked() {
+                return None;
+            }
+            let level = abstract_num.levels[0].as_ref()?;
+            (level.format == NumberFormat::Bullet && level.picture.is_none()).then_some(instance.id)
+        }) {
+            return id;
+        }
+        let abstract_id = self
+            .abstracts
+            .iter()
+            .map(|item| item.id)
+            .max()
+            .unwrap_or(0)
+            .saturating_add(1);
+        let mut level = NumberingLevel::new(NumberFormat::Bullet, "\u{2022}");
+        level.start = 1;
+        level.para.indent.start = Some(Measure::Twips(720));
+        level.para.indent.hanging = Some(Measure::Twips(360));
+        let mut abstract_num = AbstractNum::new(abstract_id);
+        abstract_num.levels[0] = Some(level);
+        self.insert_abstract(abstract_num);
+        let id = self
+            .instances
+            .iter()
+            .map(|item| item.id)
+            .max()
+            .unwrap_or(0)
+            .saturating_add(1);
+        self.insert_instance(NumInstance {
+            id,
+            abstract_id,
+            overrides: Vec::new(),
+        });
+        id
+    }
+
     pub fn instance(&self, id: u32) -> Option<&NumInstance> {
         self.instances.iter().find(|item| item.id == id)
     }
@@ -276,10 +338,14 @@ pub enum NumberingProblem {
         num_id: u32,
         format: Arc<str>,
     },
-    /// The value is outside the range the format's specification example defines.
+    /// The value is outside the range this slice renders.
     Unrenderable {
         num_id: u32,
         value: i32,
+    },
+    /// `w:lvlPicBulletId` names a picture. No replacement glyph is drawn.
+    PictureBullet {
+        num_id: u32,
     },
     LevelRange(u8),
 }
@@ -306,6 +372,9 @@ impl fmt::Display for NumberingProblem {
             Self::Unrenderable { num_id, value } => {
                 write!(f, "numbering instance {num_id} cannot render {value}")
             }
+            Self::PictureBullet { num_id } => {
+                write!(f, "numbering instance {num_id} picture bullet is not drawn")
+            }
             Self::LevelRange(level) => write!(f, "numbering level {level} is outside 0..=8"),
         }
     }
@@ -317,6 +386,10 @@ impl fmt::Display for NumberingProblem {
 pub struct NumberLabel {
     pub text: String,
     pub suffix: NumberSuffix,
+    /// Level `w:sz`, when the level specifies one. The body size is used otherwise.
+    pub size: Option<Measure>,
+    /// Level `w:b` when it is explicitly on. The label does not inherit body bold.
+    pub bold: bool,
 }
 
 /// Direct `w:numPr`, or the paragraph style's, ignoring `numId` 0.
@@ -378,19 +451,19 @@ fn label_one(
     counters: &mut BTreeMap<u32, [Option<i32>; 9]>,
     reference: NumberingRef,
 ) -> Result<NumberLabel, NumberingProblem> {
-    let (initial, suffix, template, unsupported) = {
+    let (initial, suffix, template, format, picture, size, bold, fonts) = {
         let resolved = document
             .numbering()
             .resolved_level(reference.num_id, reference.level)?;
-        let unsupported = match &resolved.level.format {
-            NumberFormat::Other(token) => Some(Arc::clone(token)),
-            _ => None,
-        };
         (
             resolved.initial(),
             resolved.level.suffix,
             Arc::clone(&resolved.level.text),
-            unsupported,
+            resolved.level.format.clone(),
+            resolved.level.picture,
+            resolved.level.run.size,
+            resolved.level.run.bold == Some(true),
+            resolved.level.run.fonts.clone(),
         )
     };
     let state = counters.entry(reference.num_id).or_insert([None; 9]);
@@ -400,16 +473,57 @@ fn label_one(
         Some(value) => value.saturating_add(1),
     };
     state[reference.level as usize] = Some(next);
-    if let Some(format) = unsupported {
-        return Err(NumberingProblem::UnsupportedFormat {
+    if picture.is_some() {
+        return Err(NumberingProblem::PictureBullet {
             num_id: reference.num_id,
-            format,
         });
     }
-    let text = substitute(&template, |slot| {
-        render_slot(document, reference.num_id, slot, state)
-    })?;
-    Ok(NumberLabel { text, suffix })
+    if let NumberFormat::Other(token) = format {
+        return Err(NumberingProblem::UnsupportedFormat {
+            num_id: reference.num_id,
+            format: token,
+        });
+    }
+    let raw = if matches!(format, NumberFormat::Bullet) {
+        bullet_literal(&template)
+    } else {
+        substitute(&template, |slot| {
+            render_slot(document, reference.num_id, slot, state)
+        })?
+    };
+    let text = map_label_font(&fonts, &raw);
+    Ok(NumberLabel {
+        text,
+        suffix,
+        size,
+        bold,
+    })
+}
+
+fn map_label_font(fonts: &FontSlots, text: &str) -> String {
+    for slot in [&fonts.ascii, &fonts.h_ansi, &fonts.east_asia] {
+        if let Some(FontRef::Named(name)) = slot
+            && is_mapped_family(name)
+        {
+            return symbol_font::map_private_use(name, text);
+        }
+    }
+    text.to_owned()
+}
+
+/// `%%` becomes `%`. A bullet's `%n` stays literal text.
+fn bullet_literal(template: &str) -> String {
+    let mut out = String::new();
+    let mut chars = template.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '%' && chars.peek().copied() == Some('%') {
+            chars.next();
+            out.push('%');
+        } else {
+            out.push(ch);
+        }
+    }
+    out
 }
 
 fn restart_deeper(
@@ -484,6 +598,7 @@ fn render_format(
     match format {
         NumberFormat::Decimal => Ok(value.to_string()),
         NumberFormat::None => Ok(String::new()),
+        NumberFormat::Bullet => Ok(String::new()),
         NumberFormat::Other(_) => Err(unsupported()),
         NumberFormat::LowerLetter => letter(value, false).ok_or_else(unrenderable),
         NumberFormat::UpperLetter => letter(value, true).ok_or_else(unrenderable),
@@ -497,16 +612,31 @@ fn render_format(
     }
 }
 
+/// Repeated-letter scheme from the numbering examples: 1 = a, 27 = aa, 54 = bbb.
+/// Repeats are capped so a huge `i32` stays [`NumberingProblem::Unrenderable`].
+const LETTER_REPEAT_MAX: i32 = 64;
+
+/// Classical roman numerals. The specification example does not state an
+/// upper bound; values outside 1..=[`ROMAN_MAX`] stay unrenderable. This
+/// slice does not invent vinculum forms or `MMMM`.
+pub const ROMAN_MAX: i32 = 3999;
+
 fn letter(value: i32, upper: bool) -> Option<String> {
-    if !(1..=26).contains(&value) {
+    if value < 1 {
+        return None;
+    }
+    let index = (value - 1) % 26;
+    let repeat = (value - 1) / 26 + 1;
+    if repeat > LETTER_REPEAT_MAX {
         return None;
     }
     let base = if upper { b'A' } else { b'a' };
-    Some(char::from(base + (value as u8 - 1)).to_string())
+    let ch = char::from(base + index as u8);
+    Some(ch.to_string().repeat(repeat as usize))
 }
 
 fn roman(value: i32, upper: bool) -> Option<String> {
-    if !(1..=3999).contains(&value) {
+    if !(1..=ROMAN_MAX).contains(&value) {
         return None;
     }
     const PARTS: [(i32, &str); 13] = [
@@ -723,7 +853,7 @@ mod tests {
     use super::*;
     use std::sync::Arc;
 
-    use crate::props::{Measure, TabAlign, TabLeader};
+    use crate::props::{FontRef, Measure, TabAlign, TabLeader};
     use crate::text::TextError;
 
     fn render(format: NumberFormat, value: i32) -> Result<String, NumberingProblem> {
@@ -761,21 +891,117 @@ mod tests {
     fn letters_roman_and_ideographs_stop_where_the_example_stops() -> Result<(), NumberingProblem> {
         assert_eq!(render(NumberFormat::LowerLetter, 1)?, "a");
         assert_eq!(render(NumberFormat::LowerLetter, 26)?, "z");
-        assert!(render(NumberFormat::LowerLetter, 27).is_err());
+        assert_eq!(render(NumberFormat::LowerLetter, 27)?, "aa");
+        assert_eq!(render(NumberFormat::LowerLetter, 54)?, "bbb");
+        assert_eq!(render(NumberFormat::UpperLetter, 27)?, "AA");
+        assert!(render(NumberFormat::LowerLetter, 26 * LETTER_REPEAT_MAX + 2).is_err());
         assert_eq!(render(NumberFormat::UpperLetter, 2)?, "B");
         assert_eq!(render(NumberFormat::LowerRoman, 4)?, "iv");
         assert_eq!(render(NumberFormat::UpperRoman, 1994)?, "MCMXCIV");
-        assert_eq!(render(NumberFormat::UpperRoman, 3999)?, "MMMCMXCIX");
-        assert!(render(NumberFormat::LowerRoman, 4000).is_err());
+        assert_eq!(render(NumberFormat::UpperRoman, ROMAN_MAX)?, "MMMCMXCIX");
+        assert!(render(NumberFormat::LowerRoman, ROMAN_MAX + 1).is_err());
         assert_eq!(render(NumberFormat::IdeographTraditional, 1)?, "甲");
         assert_eq!(render(NumberFormat::IdeographTraditional, 10)?, "癸");
         assert!(render(NumberFormat::IdeographTraditional, 11).is_err());
         assert!(matches!(
-            render(NumberFormat::parse("bullet"), 1),
+            render(NumberFormat::parse("ordinal"), 1),
             Err(NumberingProblem::UnsupportedFormat { .. })
         ));
         assert_eq!(render(NumberFormat::None, 4)?, "");
         assert_eq!(render(NumberFormat::Decimal, 0)?, "0");
+        Ok(())
+    }
+
+    #[test]
+    fn bullets_use_lvl_text_and_picture_bullets_advance_without_a_glyph() -> Result<(), TextError> {
+        let mut document = Document::new(crate::PageSetup::a4_zh_cn());
+        let mut bullet = NumberingLevel::new(NumberFormat::Bullet, "\u{F0B7}%%");
+        bullet.start = 1;
+        bullet.run.fonts.ascii = Some(FontRef::Named(Arc::from("Symbol")));
+        bullet.run.size = Some(Measure::HalfPoints(28));
+        bullet.run.bold = Some(true);
+        let mut picture = NumberingLevel::new(NumberFormat::Decimal, "%1");
+        picture.start = 1;
+        picture.picture = Some(4);
+        picture.run.fonts.h_ansi = Some(FontRef::Named(Arc::from("Wingdings")));
+        let mut follow = NumberingLevel::new(NumberFormat::Decimal, "%1");
+        follow.start = 1;
+        let mut abstract_num = AbstractNum::new(1);
+        abstract_num.levels[0] = Some(picture);
+        abstract_num.levels[1] = Some(follow);
+        document.numbering_mut().insert_abstract(abstract_num);
+        let mut plain = AbstractNum::new(2);
+        plain.levels[0] = Some(bullet);
+        document.numbering_mut().insert_abstract(plain);
+        document.numbering_mut().insert_instance(NumInstance {
+            id: 5,
+            abstract_id: 1,
+            overrides: Vec::new(),
+        });
+        document.numbering_mut().insert_instance(NumInstance {
+            id: 6,
+            abstract_id: 2,
+            overrides: Vec::new(),
+        });
+        paragraph(&mut document, "pic", 0)?;
+        paragraph(&mut document, "pic2", 0)?;
+        let mut shown = Paragraph::new(document.ids().node());
+        shown.insert_text(crate::ScalarOffset(0), "next")?;
+        shown.props = Arc::new(ParaProps {
+            numbering: Some(NumberingRef {
+                num_id: 5,
+                level: 1,
+            }),
+            ..ParaProps::default()
+        });
+        let mut marked = Paragraph::new(document.ids().node());
+        marked.insert_text(crate::ScalarOffset(0), "dot")?;
+        marked.props = Arc::new(ParaProps {
+            numbering: Some(NumberingRef {
+                num_id: 6,
+                level: 0,
+            }),
+            ..ParaProps::default()
+        });
+        let body = document.body_id();
+        let Some(story) = document.story_mut(body) else {
+            return Err(TextError::OutOfBounds { offset: 0, len: 0 });
+        };
+        let mut blocks: Vec<Block> = story.blocks.iter().cloned().collect();
+        blocks.push(shown.into());
+        blocks.push(marked.into());
+        story.blocks = crate::block::BlockSeq::from_vec(blocks);
+        let marks = list_marks(&document);
+        let values: Vec<_> = marks.values().collect();
+        assert!(matches!(
+            values[0],
+            Err(NumberingProblem::PictureBullet { num_id: 5 })
+        ));
+        assert!(matches!(
+            values[1],
+            Err(NumberingProblem::PictureBullet { .. })
+        ));
+        let Ok(counted) = values[2].as_ref() else {
+            return Err(TextError::OutOfBounds {
+                offset: 2,
+                len: values.len(),
+            });
+        };
+        assert_eq!(counted.text, "2");
+        let Ok(label) = values[3].as_ref() else {
+            return Err(TextError::OutOfBounds {
+                offset: 3,
+                len: values.len(),
+            });
+        };
+        assert_eq!(label.text, "\u{2022}%");
+        assert_eq!(label.size, Some(Measure::HalfPoints(28)));
+        assert!(label.bold);
+        assert_eq!(document.numbering_mut().ensure_bullet(), 6);
+        let mut fresh = NumberingStore::default();
+        let created = fresh.ensure_bullet();
+        assert_eq!(created, fresh.ensure_bullet());
+        assert_eq!(fresh.instances().len(), 1);
         Ok(())
     }
 

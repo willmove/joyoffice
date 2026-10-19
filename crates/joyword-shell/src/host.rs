@@ -852,12 +852,16 @@ impl Office {
                 Ok(())
             }
             LIST_APPLY => {
-                let Some(num_id) = args.get("num").and_then(parse_u32) else {
-                    return Err(ExecuteError::Failed("num".into()));
-                };
-                self.require_active()?
-                    .apply_list(num_id)
-                    .map_err(input_error)?;
+                if args.get("bullet").is_some() {
+                    self.require_active()?.apply_bullet().map_err(input_error)?;
+                } else {
+                    let Some(num_id) = args.get("num").and_then(parse_u32) else {
+                        return Err(ExecuteError::Failed("num".into()));
+                    };
+                    self.require_active()?
+                        .apply_list(num_id)
+                        .map_err(input_error)?;
+                }
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())

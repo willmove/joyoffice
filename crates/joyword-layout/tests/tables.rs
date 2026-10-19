@@ -12,7 +12,8 @@ use joyword_layout::{
 };
 use joyword_model::{
     Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Document,
-    Measure, Paragraph, Row, Shading, Table, VerticalMerge,
+    Measure, Paragraph, Row, RunProps, Shading, Style, StyleId, StyleKind, Table, TableCondition,
+    TableConditional, TableFormat, TableLook, VerticalMerge,
 };
 
 fn pt(value: i64) -> Emu {
@@ -88,6 +89,7 @@ fn document() -> Document {
         }],
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -231,6 +233,7 @@ fn install_table(
         rows,
         style: None,
         width: None,
+        look: None,
         cell_margin: margin,
         preserved: None,
         source: None,
@@ -333,6 +336,7 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
         rows: vec![table_row],
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -367,6 +371,7 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
         rows: vec![table_row],
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,
@@ -488,6 +493,7 @@ fn a_header_taller_than_the_page_is_not_repeated() {
             rows: vec![row],
             style: None,
             width: None,
+            look: None,
             cell_margin: None,
             preserved: None,
             source: None,
@@ -580,4 +586,219 @@ fn incremental_layout_of_a_split_table_matches_a_full_layout() {
     assert_eq!(incremental.pages(), full.pages());
     assert_eq!(incremental.notes(), full.notes());
     assert!(full.pages().len() >= 2);
+}
+
+fn single_edge() -> BorderEdge {
+    BorderEdge {
+        kind: BorderKind::Single,
+        size_eighths: 4,
+        color: Color::Auto,
+    }
+}
+
+#[test]
+fn table_styles_paint_bands_and_direct_formatting_wins() {
+    let mut document = Document::new_blank();
+    let mut base = Style::new("base", StyleKind::Table, Some("Base"));
+    base.table.bold = Some(false);
+    base.table.borders.top = Some(single_edge());
+    let mut child = Style::new("grid", StyleKind::Table, Some("Grid"));
+    child.based_on = Some(StyleId::new("base"));
+    child.table.borders.left = Some(BorderEdge {
+        kind: BorderKind::Nil,
+        size_eighths: 4,
+        color: Color::Auto,
+    });
+    child.table_conditionals.push(TableConditional {
+        condition: TableCondition::Band1Horizontal,
+        format: TableFormat {
+            shading: Some(Shading {
+                fill: Color::Rgb(0, 0, 255),
+            }),
+            ..TableFormat::default()
+        },
+    });
+    child.table_conditionals.push(TableConditional {
+        condition: TableCondition::Band2Horizontal,
+        format: TableFormat {
+            shading: Some(Shading {
+                fill: Color::Rgb(0, 255, 0),
+            }),
+            ..TableFormat::default()
+        },
+    });
+    child.table_conditionals.push(TableConditional {
+        condition: TableCondition::FirstRow,
+        format: TableFormat {
+            bold: Some(true),
+            shading: Some(Shading {
+                fill: Color::Rgb(255, 0, 0),
+            }),
+            ..TableFormat::default()
+        },
+    });
+    child.table_conditionals.push(TableConditional {
+        condition: TableCondition::LastRow,
+        format: TableFormat {
+            bold: Some(false),
+            shading: Some(Shading {
+                fill: Color::Rgb(255, 255, 0),
+            }),
+            ..TableFormat::default()
+        },
+    });
+    document.styles_mut().insert(base).unwrap();
+    document.styles_mut().insert(child).unwrap();
+
+    let direct_off = RunProps {
+        bold: Some(false),
+        ..RunProps::default()
+    };
+    let direct_on = RunProps {
+        bold: Some(true),
+        ..RunProps::default()
+    };
+    let header = text_paragraph(&mut document, "A");
+    let mut header_plain = Paragraph::new(document.ids().node());
+    header_plain
+        .push_text("E", None, Arc::new(direct_off))
+        .unwrap();
+    let mut band_direct = Paragraph::new(document.ids().node());
+    band_direct
+        .push_text("B", None, Arc::new(direct_on))
+        .unwrap();
+    let band_plain = text_paragraph(&mut document, "F");
+    let band2_left = text_paragraph(&mut document, "C");
+    let band2_right = text_paragraph(&mut document, "G");
+    let last_left = text_paragraph(&mut document, "D");
+    let last_right = text_paragraph(&mut document, "H");
+
+    let header_cell = plain_cell(&mut document, vec![header], 1, VerticalMerge::None, None);
+    let header_plain_cell = plain_cell(
+        &mut document,
+        vec![header_plain],
+        1,
+        VerticalMerge::None,
+        None,
+    );
+    let shaded = plain_cell(
+        &mut document,
+        vec![band_direct],
+        1,
+        VerticalMerge::None,
+        Some(Shading {
+            fill: Color::Rgb(9, 9, 9),
+        }),
+    );
+    let band_plain_cell = plain_cell(
+        &mut document,
+        vec![band_plain],
+        1,
+        VerticalMerge::None,
+        None,
+    );
+    let mut bordered = plain_cell(
+        &mut document,
+        vec![band2_left],
+        1,
+        VerticalMerge::None,
+        None,
+    );
+    bordered.borders.left = Some(single_edge());
+    let band2_right_cell = plain_cell(
+        &mut document,
+        vec![band2_right],
+        1,
+        VerticalMerge::None,
+        None,
+    );
+    let last_left_cell = plain_cell(&mut document, vec![last_left], 1, VerticalMerge::None, None);
+    let last_right_cell = plain_cell(
+        &mut document,
+        vec![last_right],
+        1,
+        VerticalMerge::None,
+        None,
+    );
+    let row0 = row(
+        &mut document,
+        vec![header_cell, header_plain_cell],
+        false,
+        false,
+    );
+    let row1 = row(&mut document, vec![shaded, band_plain_cell], false, false);
+    let row2 = row(
+        &mut document,
+        vec![bordered, band2_right_cell],
+        false,
+        false,
+    );
+    let row3 = row(
+        &mut document,
+        vec![last_left_cell, last_right_cell],
+        false,
+        false,
+    );
+    install_table(&mut document, vec![row0, row1, row2, row3], 2, None);
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        let table = Arc::make_mut(table);
+        table.style = Some(StyleId::new("grid"));
+        table.look = Some(TableLook {
+            first_row: true,
+            last_row: true,
+            first_column: false,
+            last_column: false,
+            no_h_band: false,
+            no_v_band: true,
+        });
+    });
+
+    let laid = lay(&document);
+    let page = &laid.pages()[0];
+    let run = |text: &str| page.runs.iter().find(|run| run.text == text).unwrap();
+    assert!(run("A").bold);
+    assert!(!run("E").bold);
+    assert!(run("B").bold);
+    assert!(!run("F").bold);
+    assert!(!run("C").bold);
+    assert!(!run("H").bold);
+    let has = |red, green, blue| {
+        page.rects
+            .iter()
+            .any(|rect| rect.red == red && rect.green == green && rect.blue == blue)
+    };
+    assert!(has(255, 0, 0));
+    assert!(has(0, 0, 255));
+    assert!(has(0, 255, 0));
+    assert!(has(255, 255, 0));
+    assert!(has(9, 9, 9));
+    let thin = 4 * Emu::PER_POINT / 8;
+    assert!(page.rects.iter().any(|rect| {
+        rect.red == 0
+            && rect.green == 0
+            && rect.blue == 0
+            && rect.width.raw() == thin
+            && rect.height.raw() > thin
+    }));
+
+    let full = laid;
+    let mut cache = ParagraphLayoutCache::default();
+    let incremental = layout_incremental(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+    )
+    .unwrap();
+    assert_eq!(incremental.pages(), full.pages());
 }
