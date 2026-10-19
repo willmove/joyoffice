@@ -1,0 +1,12 @@
+{
+  "dpi": 72,
+  "pages": [
+    {
+      "error": "InvalidGeometry",
+      "status": "refused"
+    }
+  ],
+  "tile_px": 32,
+  "tolerance_basis_points": 250,
+  "zoom": 1
+}

@@ -1,0 +1,212 @@
+{
+  "diagnostics": [],
+  "notes": [],
+  "omitted_blocks": 0,
+  "omitted_diagnostics": 0,
+  "pages": [
+    {
+      "footer_emu": 127000,
+      "header_emu": 127000,
+      "height_emu": 1651000,
+      "images": [],
+      "margin_bottom_emu": 254000,
+      "margin_left_emu": 228600,
+      "margin_right_emu": 228600,
+      "margin_top_emu": 254000,
+      "rects": [
+        {
+          "color": "0000ff",
+          "height_emu": 228600,
+          "kind": "fill",
+          "width_emu": 635000,
+          "x_emu": 228600,
+          "y_emu": 254000
+        },
+        {
+          "color": "0000ff",
+          "height_emu": 228600,
+          "kind": "fill",
+          "width_emu": 635000,
+          "x_emu": 863600,
+          "y_emu": 254000
+        },
+        {
+          "color": "0000ff",
+          "height_emu": 228600,
+          "kind": "fill",
+          "width_emu": 635000,
+          "x_emu": 1498600,
+          "y_emu": 254000
+        },
+        {
+          "color": "112233",
+          "height_emu": 6350,
+          "kind": "stroke",
+          "width_emu": 635000,
+          "x_emu": 863600,
+          "y_emu": 482600
+        },
+        {
+          "color": "112233",
+          "height_emu": 6350,
+          "kind": "stroke",
+          "width_emu": 635000,
+          "x_emu": 863600,
+          "y_emu": 946150
+        },
+        {
+          "color": "112233",
+          "height_emu": 469900,
+          "kind": "fill",
+          "width_emu": 6350,
+          "x_emu": 863600,
+          "y_emu": 482600
+        },
+        {
+          "color": "112233",
+          "height_emu": 469900,
+          "kind": "fill",
+          "width_emu": 6350,
+          "x_emu": 1492250,
+          "y_emu": 482600
+        }
+      ],
+      "runs": [
+        {
+          "advance_emu": 107442,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 107442,
+              "id": 4,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 297180,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 102870,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 102870,
+              "id": 5,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 932180,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 56236,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 56236,
+              "id": 6,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 1567180,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 102870,
+          "baseline_y_emu": 660400,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 102870,
+              "id": 5,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 297180,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 107442,
+          "baseline_y_emu": 666750,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 107442,
+              "id": 4,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 932180,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 48768,
+          "baseline_y_emu": 895350,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 48768,
+              "id": 7,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 1000760,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 56236,
+          "baseline_y_emu": 660400,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 56236,
+              "id": 6,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 1567180,
+          "size_emu": 152400,
+          "underline": null
+        }
+      ],
+      "width_emu": 2794000
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "dpi": 72,
+  "pages": [
+    {
+      "height": 58,
+      "ink_tiles": [
+        {
+          "basis_points": 771,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 87,
+          "x": 32,
+          "y": 0
+        },
+        {
+          "basis_points": 72,
+          "x": 0,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 180
+    },
+    {
+      "height": 58,
+      "ink_tiles": [
+        {
+          "basis_points": 742,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 87,
+          "x": 32,
+          "y": 0
+        },
+        {
+          "basis_points": 72,
+          "x": 0,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 180
+    },
+    {
+      "height": 58,
+      "ink_tiles": [
+        {
+          "basis_points": 781,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 72,
+          "x": 0,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 180
+    }
+  ],
+  "tile_px": 32,
+  "tolerance_basis_points": 250,
+  "zoom": 1
+}

@@ -1,0 +1,52 @@
+{
+  "dpi": 72,
+  "pages": [
+    {
+      "height": 70,
+      "ink_tiles": [
+        {
+          "basis_points": 498,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 205,
+          "x": 32,
+          "y": 0
+        },
+        {
+          "basis_points": 292,
+          "x": 0,
+          "y": 32
+        },
+        {
+          "basis_points": 136,
+          "x": 32,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 160
+    },
+    {
+      "height": 100,
+      "ink_tiles": [
+        {
+          "basis_points": 253,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "basis_points": 58,
+          "x": 0,
+          "y": 32
+        }
+      ],
+      "status": "ok",
+      "width": 240
+    }
+  ],
+  "tile_px": 32,
+  "tolerance_basis_points": 250,
+  "zoom": 1
+}

@@ -1,0 +1,68 @@
+{
+  "diagnostics": [],
+  "notes": [],
+  "omitted_blocks": 0,
+  "omitted_diagnostics": 0,
+  "pages": [
+    {
+      "footer_emu": 127000,
+      "header_emu": 127000,
+      "height_emu": 1422400,
+      "images": [
+        {
+          "height_emu": 228600,
+          "sha256": "2e9b06dc65a4dec84a3eb3124553ec93ca27c78221e64ab2177d0f1412cfcb20",
+          "width_emu": 457200,
+          "x_emu": 228600,
+          "y_emu": 254000
+        }
+      ],
+      "margin_bottom_emu": 254000,
+      "margin_left_emu": 228600,
+      "margin_right_emu": 228600,
+      "margin_top_emu": 254000,
+      "rects": [],
+      "runs": [
+        {
+          "advance_emu": 107442,
+          "baseline_y_emu": 431800,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 107442,
+              "id": 4,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 685800,
+          "size_emu": 152400,
+          "underline": null
+        },
+        {
+          "advance_emu": 102870,
+          "baseline_y_emu": 660400,
+          "bold": false,
+          "color": "000000",
+          "glyphs": [
+            {
+              "advance_emu": 102870,
+              "id": 5,
+              "x_emu": 0,
+              "x_offset_emu": 0,
+              "y_offset_emu": 0
+            }
+          ],
+          "italic": false,
+          "origin_x_emu": 228600,
+          "size_emu": 152400,
+          "underline": null
+        }
+      ],
+      "width_emu": 3810000
+    }
+  ]
+}
