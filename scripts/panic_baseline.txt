@@ -4,6 +4,7 @@ crates/joyword-shell/src/command.rs:872:let from_name = registry.find("view.zoom
 crates/joyword-shell/src/command.rs:874:registry.invoke(&mut host, id).unwrap();
 crates/joyword-shell/src/command.rs:899:.unwrap()
 crates/joyword-shell/src/command.rs:1030:.unwrap();
+crates/joyword-shell/src/command.rs:1585:let shortcut = registry.find("file.export_pdf").unwrap().shortcut;
 crates/joyword-shell/src/documents.rs:218:let paragraph = doc.body().blocks.first().map(Block::id).unwrap();
 crates/joyword-shell/src/documents.rs:247:assert_eq!(manager.get(second).unwrap().title(zh), "未命名 2");
 crates/joyword-shell/src/documents.rs:248:assert_eq!(manager.get(third).unwrap().title(en), "Untitled 3");
@@ -480,7 +481,18 @@ apps/joyword/src/document_canvas.rs:1786:.unwrap();
 apps/joyword/src/document_canvas.rs:1804:.unwrap();
 apps/joyword/src/document_canvas.rs:1805:let source = source_with_text(font, "AV").unwrap();
 apps/joyword/src/document_canvas.rs:1806:let input = TextInput::new(source.session, InputLimits::default()).unwrap();
+apps/joyword/src/linux_files.rs:265:std::fs::create_dir_all(&dir).unwrap();
+apps/joyword/src/linux_files.rs:266:std::fs::write(dir.join("kdialog"), b"").unwrap();
+apps/joyword/src/linux_files.rs:268:std::fs::write(dir.join("zenity"), b"").unwrap();
+apps/joyword/src/linux_files.rs:328:std::fs::write(&file, b"x").unwrap();
+apps/joyword/src/linux_files.rs:331:accept_typed_path(PathRole::Open, file.to_str().unwrap()).unwrap(),
+apps/joyword/src/linux_files.rs:335:accept_typed_path(PathRole::Open, dir.join("missing.docx").to_str().unwrap()).is_err()
+apps/joyword/src/linux_files.rs:339:accept_typed_path(PathRole::SaveCopy, dest.to_str().unwrap()).unwrap(),
+apps/joyword/src/linux_files.rs:343:assert!(accept_typed_path(PathRole::ExportPdf, missing_parent.to_str().unwrap()).is_err());
+apps/joyword/src/linux_files.rs:344:assert!(accept_typed_path(PathRole::SaveCopy, dir.to_str().unwrap()).is_err());
 apps/joyword/src/input_ui.rs:1738:ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom")
+apps/joyword/src/input_ui.rs:3854:apply_list_choice(&mut input, list_choice(&args).unwrap()).unwrap();
+apps/joyword/src/input_ui.rs:3869:input.undo().unwrap();
 apps/joyword/src/input_ui.rs:2121:.unwrap();
 apps/joyword/src/input_ui.rs:2122:document_canvas::source_with_text(font, &vec!["AV fi"; 100].join("\n")).unwrap()
 apps/joyword/src/input_ui.rs:2126:TextInput::new(session, InputLimits::default()).unwrap()
