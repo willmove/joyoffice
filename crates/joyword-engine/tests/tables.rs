@@ -690,14 +690,9 @@ fn tracked_text_in_a_typed_cell_uses_the_author_and_accepts() {
 #[test]
 fn setting_table_properties_is_one_undoable_transaction() {
     let mut document = blank(&[""]);
-    let built = table(
-        &mut document,
-        vec![vec![
-            cell(&mut document, "甲", 1, VerticalMerge::None),
-            cell(&mut document, "乙", 1, VerticalMerge::None),
-        ]],
-        2,
-    );
+    let left = cell(&mut document, "甲", 1, VerticalMerge::None);
+    let right = cell(&mut document, "乙", 1, VerticalMerge::None);
+    let built = table(&mut document, vec![vec![left, right]], 2);
     install(&mut document, built);
     let mut session = Session::new(document);
     let at = pos(&session, first_cell_paragraph(&session), 0);

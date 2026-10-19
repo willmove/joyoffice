@@ -762,7 +762,7 @@ impl JoyWord {
         };
         let head = editor.view().selection().head;
         let document = editor.view().snapshot();
-        let Ok(address) = joyword_engine::cell_address(&document, &head) else {
+        let Ok(address) = joyword_engine::cell_address(document, &head) else {
             return empty;
         };
         let Some(story) = document.story(head.story) else {
