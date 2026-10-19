@@ -463,16 +463,33 @@ fn content(
             }
             "ins" | "del" | "moveFrom" | "moveTo" => {
                 if !crate::revision::import_run_revision(importer, part, child, scope, paragraph) {
-                    importer.preserve(part, child, scope, PreservedReason::Revision);
                     *locked = true;
-                    content(
-                        importer,
-                        part,
-                        child,
-                        &scope.enter(child),
-                        paragraph,
-                        locked,
-                    );
+                    if local == "ins" || local == "moveTo" {
+                        // Outside the typed subset, inserted and move-to text
+                        // still belongs in the imported projection.
+                        importer.preserve(part, child, scope, PreservedReason::Revision);
+                        content(
+                            importer,
+                            part,
+                            child,
+                            &scope.enter(child),
+                            paragraph,
+                            locked,
+                        );
+                    } else {
+                        // Deleted and move-from text stays out of that
+                        // projection. The wrapper is one preserved inline,
+                        // not walked for `w:t`.
+                        inline(
+                            importer,
+                            part,
+                            child,
+                            scope,
+                            PreservedReason::Revision,
+                            paragraph,
+                            Default::default(),
+                        );
+                    }
                 }
             }
             "moveFromRangeStart" | "moveFromRangeEnd" | "moveToRangeStart" | "moveToRangeEnd" => {
