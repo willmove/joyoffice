@@ -40,8 +40,14 @@ fn main() {
         ResultKind::Invariant => ("invariant", 3),
     };
     let b = budget();
+    let features = report
+        .features
+        .iter()
+        .map(|feature| json(feature))
+        .collect::<Vec<_>>()
+        .join(",");
     println!(
-        "{{\"schema\":1,\"target\":{},\"case_id\":{},\"seed\":{},\"target_sha\":{},\"input_sha256\":{},\"bytes\":{},\"status\":{},\"reason\":{},\"checks\":{},\"budget\":{{\"input_bytes\":{},\"entries\":{},\"part_bytes\":{},\"total_bytes\":{},\"ratio\":{},\"ratio_floor_bytes\":{},\"xml_depth\":{},\"xml_nodes\":{},\"relationships\":{}}}}}",
+        "{{\"schema\":1,\"target\":{},\"case_id\":{},\"seed\":{},\"target_sha\":{},\"input_sha256\":{},\"bytes\":{},\"status\":{},\"reason\":{},\"checks\":{},\"features\":[{}],\"budget\":{{\"input_bytes\":{},\"entries\":{},\"part_bytes\":{},\"total_bytes\":{},\"ratio\":{},\"ratio_floor_bytes\":{},\"xml_depth\":{},\"xml_nodes\":{},\"relationships\":{}}}}}",
         json(&args[0]),
         json(&args[1]),
         seed,
@@ -51,6 +57,7 @@ fn main() {
         json(kind),
         json(&report.reason.chars().take(4096).collect::<String>()),
         report.checks,
+        features,
         MAX_INPUT,
         b.max_entries,
         b.max_part_bytes,

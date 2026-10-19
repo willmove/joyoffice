@@ -130,7 +130,7 @@
 - W06（T105）：layout_document 接受 keep_next／keep_lines 直接段落属性，按单次放置做有界分页：链首标注组高，过高的链有界退化。公共签名、PageScene、ensure_current 与几何接口不变，新增 12 项测试。未实现 widowControl、混合格式与 Word 规则对照，见 [W06 报告](../coordination/reports/W06.md)。
 - W07（T103／T106）：shell::storage 新增 open_source／check_source。前者在 stat→open→fstat→有界读取→复查的窗口内锁定源身份（Unix 为设备、inode、时间、权限与链接数，非 Unix 为长度与修改时间）。另检测 Office `~$` 与 JoyWord 锁文件，状态不明即拒绝。save_original 自行重跑冲突验证，但因 ExportPlan 缺少来源绑定，原件替换一律拒绝，不写任何字节；来源绑定与发布策略的提案见 [W07 报告](../coordination/reports/W07.md)。集成后的 CI 暴露 Linux inode 复用与 Windows 弱源身份两类问题，仅修正测试的 PR #9 已合入 main。
 - W08（T104 实验）：experiments/recovery-journal 独立 workspace，提供有界追加日志、经真实 engine 的逻辑编辑重放、两代检查点轮转与 inspect／recover CLI。未接入应用会话；Windows 原生与断电未验证，见 [W08 报告](../coordination/reports/W08.md)。
-- W09（T103 健壮性实验）：experiments/docx-robustness 独立 workspace，提供 opc／import／roundtrip 三目标 harness、27 份原创种子、固定种子变异、最小化与有界 campaign 驱动。未发现生产缺陷；不是覆盖引导 fuzz，也未接入 CI。固定的生产目标随集成改为 bcf435c；PR #9 修改 crates 后需重新指定，见 [W09 报告](../coordination/reports/W09.md)。
+- W09（T103 健壮性实验）：experiments/docx-robustness 独立 workspace，提供 opc／import／roundtrip 三目标 harness、27 份原创种子、固定种子变异、最小化、有界 campaign 与反馈驱动的 `fuzz` 语料扩展驱动。harness schema-1 JSON 自 2026-10-19 T103 会话起携带 `features` 行为特征列表（净化阶段事实，非代码覆盖），`fuzz` 以特征新颖度扩展语料并在四平台 CI 有界运行；未发现生产缺陷。固定的生产目标随集成改为 `8b7f9c2b5e5b03c0ee6ac9a56c550a8e715f4d32`；crates 树变化后需按同一契约重新指定，见 [W09 报告](../coordination/reports/W09.md)。
 - 集成：按 协作包→W05→W07→W06→W08→W09 以合并提交合入 main（ee4f57d），并修正 W08／W09 两处依赖 C07 行为的断言。本机强制真实字体的全默认成员 312 项通过，结果与范围见 [第二轮协作包](../coordination/wave02/README.md)。
 
 ### 第三轮集成与后续切片（2026-10-16 集成，其后增量见各报告）
@@ -267,7 +267,7 @@
 4. T004：比较工具与可重复生成的最小样例已有；Windows 参考机的 Word 2024 永久版（家庭版，build 16.0.20430.20182）已可用，WPS 对照仍需固定版本；按实测逐步建立排版行为规则目录。
 5. T005：ARM64 已有原生构建，ARM64／LoongArch64 已有 QEMU 下的无界面测试；仍需统信 UOS 与银河麒麟（x86_64、ARM64、LoongArch64）真机或镜像，核对旧世界 LoongArch ABI（Rust 的 loongarch64-unknown-linux-gnu 目标要求新世界 ABI 与 glibc 2.36 以上，旧世界系统无法直接运行），验证 GL／CPU 渲染、Fcitx 中文输入和系统字体。LoongArch 上的完整应用构建需要 loong64 系统库（Ubuntu 无此架构），须在目标系统或其 sysroot 上进行。
 6. T100、T101：自动验证与 2026-10-17 人工验收均已完成并记录（不支持节点保留经模型／DOCX 导入／会话三层复核；跨段编辑后的选择、书签、批注锚点与撤销经生产会话与输入组件复核），两项为 `done`。系统拼音提交／取消／一次撤销的人工验收仍未完成，T102 保持 `in_progress`。
-7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含隔离标记文档的图形确认、覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
+7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含 ACL 或隔离标记文档的图形确认、代码覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
 8. T105、T108：`layout_document` 对东亚或复杂文字调用 `slot_for`、`wrap_mixed` 和 `adjust_cjk_break`；屏幕入口在只有一份字体时用 `FaceSet::uniform`。窗口按可见页及前后预取页调用 `raster_page`，超出像素预算时丢掉远离视口的页。光标由 `paint_caret_overlay` 画到单独缓冲，不改该页像素。固定 Word 的完整中文规则、widowControl，以及长文档滚动缩放的人工验收未完成，两项保持 `in_progress`。
 9. T104、T106、T109：命令注册表是打开、另存、最近文件、切换和关闭的唯一入口，参数齐全则执行，缺参数返回待输入。取消关闭保留会话。打开在版本接受前只读，期间输入保留；过期保存不写文件、不清 dirty。生产恢复日志写入原包基线与已提交文本，加密包不写明文。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则在示例文档之前恢复进会话。文件对话框、最近文件菜单和强制结束后的图形恢复仍待人工验收，三项保持 `in_progress`。
 10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T207 已开始但只限纯函数，尚未接入排版入口；T210 的 inspect／text 切片已开始；T208、T209、T211 与其余 M2 任务以及 M3–M9 保持 `planned`。
@@ -353,7 +353,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 
 - 开始状态：主目录 `main@b097f55` 有 5 个 CI／鲁棒性未提交文件；`joyoffice-m2-t207` 的 `m2/t207-cjk-measures@b097f55` 有 5 个已跟踪修改和未跟踪 `cjk.rs`。工具未发现可联络的原执行会话，因此保留现场后分别续接审核；CI 补丁先完整备份并复制到 `joyoffice-ci`／`codex/ci-robustness`，T207 沿用原独立目录，新增 T210 使用 `joyoffice-t210`／`codex/t210-inspect-text`。三个执行者仅提交各自任务分支，main 由本集成会话操作。
 - 任务提交：CI／鲁棒性 `8a216f034761b618a02f347eb7594d2ba832f50e`、T207 `71723be160324144edb43d91859af36d339643df`、T210 `80754ce746a585b82903004965c16117a9c6b963`。CI 原补丁与主目录逐字比对一致后才从主目录移除并集成其已提交成果；三个任务分支和独立目录均保留。TASKS／IMPLEMENTATION 的交叉修改已合并，M2 为 2 项进行中、10 项未开始，未增加 done 数量。
-- CI 将 W09 固定 27 个种子 × 3 个目标的 bounded smoke 纳入四平台作业；Windows 使用显式 `.exe` 路径以便读取二进制哈希。smoke 未完成完整矩阵即失败，不再将总时间预算耗尽视为成功；campaign 的有界停止契约保持原样。新增回归同时覆盖完整、提前停止和 campaign 情况。该 smoke 不等于覆盖引导 fuzz。
+- CI 将 W09 固定 27 个种子 × 3 个目标的 bounded smoke 纳入四平台作业；Windows 使用显式 `.exe` 路径以便读取二进制哈希。smoke 未完成完整矩阵即失败，不再将总时间预算耗尽视为成功；campaign 的有界停止契约保持原样。新增回归同时覆盖完整、提前停止和 campaign 情况。2026-10-19 T103 会话起 CI 在同一作业于 smoke 后追加有界 `fuzz`（固定种子、200 次迭代、60 秒、语料上限 128，行为特征反馈），两者的 summary 均保持 `coverage_feedback=false`。
 - W09 严格绑定已提交的集成生产版本（rebase 前为 `b57544e9e81c1650d218d09d518125878298033e`，随远端 c7abd1c 收口提交 rebase 后为 `a7aaaf19cdb8f78468bd1de1fe1ebf2efe615c1a`），同步更新 build.rs、driver.py、lib.rs 与 README，未放宽 `git diff <SHA> -- crates` 校验。集成时还纠正 CLI 测试和说明中的内部占位符为模型实际的 U+FDD0。
 - 自动验证：Rust 1.98.1、macOS arm64 上 `cargo test --workspace --locked` 共 443 项通过（含应用 36 项、T207 新增 8 项、CLI 5 项），零失败／忽略；workspace fmt、全部 target 的 clippy `-D warnings` 和普通应用构建通过。W08 恢复实验 15 项、W09 Rust 3 项及两实验 fmt／clippy 通过；W09 Python 12 项、工具脚本 52 项、check_docs、check_gates 与反例拒绝检查通过。重绑后 W09 smoke 执行 81／81，43 ok、38 合约内 rejected，无 crash／timeout／invariant／protocol 异常。
 - 验证边界：本轮只做本机自动验证；远程 CI、Windows／Linux／QEMU 未重跑，未推送远程。W09 本机地址空间限制探测失败，记录 `enforced=false`，没有将其宣称为内存隔离通过。现有传递依赖 `block 0.1.6` 的 future-incompat 提示仍存在，本轮未升级依赖。GUI／IME／Word／WPS／信创真机验收未执行；T207 尚未接入分页计算入口，T210 render／convert／PNG 仍未实现，两任务继续 `in_progress`。本轮无需要用户决定的方向冲突或未解决实现阻塞。
@@ -373,7 +373,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **WPS 固定参考环境（T004/T107 WPS 腿，读回材料提交 27bb78b）**：WPS Office for Mac **12.1.29181**（CFBundleVersion 29181）。6 个格式夹具＋e2e 编辑副本全选复制读回 **7/7 逐段一致**（WPS 复制在中西文边界插半角空格，去空格归一后逐字一致；基线为 document.xml 独立解析；两轮独立复现，现存 `reference/wps/DOCX-MIN-001.txt`、`DOCX-MIN-002.txt` 与 [wps_report.json](../../tests/fixtures/reference/wps/wps_report.json)）。**参考 PDF 不可得**：同日上午系统打印面板“存储为PDF”曾成功产出 7 份（产物后被并行清理丢失），下午起系统“存储为PDF”（默认 Downloads 与 Cmd+Shift+G 指定目录均试）、“打开PDF于预览”、WPS 自绘“输出为PDF”（冷启动+默认目录）全部静默无产物，无排队作业、无 TCC 弹窗、无替代落盘位置，cupsd 在跑但无 sudo 无法深查；PDF 参考与几何抽取待环境修复后补建，如实记录。工具链：poppler 26.10（pdfinfo/pdftotext）、pdfplumber 0.11.10（/tmp venv）。
 - **T001 Mac 腿**：Rust/Cargo 1.98.1、Xcode 27.1（MetalToolchain-v27.1）、macOS 27.0.1（26A434）arm64（M4）；`target/debug/joyword` 构建并在本会话多次启动（含 kill -9 重启恢复）。Linux 真机腿未核对。
 - **W09 锁核查（同日）**：并行集成后 `experiments/docx-robustness/Cargo.lock` 无未提交变更、`--locked` 构建通过、与生产锁共有外部包零版本漂移、独立锁无生产锁之外的外部版本（README 不变量成立），无需同步提交。
-- 未覆盖：Retina/多显示器 DPI、断电恢复、T110 GUI 替换路径、T109 长只读窗口、WPS 参考 PDF（本机通道故障）、信创真机（非阻塞待补验）、覆盖引导 fuzz。
+- 未覆盖：Retina/多显示器 DPI、断电恢复、T110 GUI 替换路径、T109 长只读窗口、WPS 参考 PDF（本机通道故障）、信创真机（非阻塞待补验）、代码覆盖引导 fuzz（2026-10-19 已交付行为特征语料扩展 fuzz，见其条目；源码行覆盖仍需覆盖引擎与 C08 审查）。
 
 ### T207 排版入口接入（2026-10-18）
 
