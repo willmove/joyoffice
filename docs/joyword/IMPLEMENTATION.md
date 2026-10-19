@@ -801,3 +801,15 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
 - **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt -p joyword-engine -p joyword-shell`；`cargo clippy --locked -p joyword-engine -p joyword-shell --all-targets -- -D warnings`；`cargo test --locked -p joyword-engine`；`cargo test --locked -p joyword-shell --test find_paint`。证据：`regex_replace_expands_groups_and_leaves_unknown_dollars`、`regex_replace_keeps_original_case_and_width`、`regex_replace_skips_locked_and_preserved_and_undoes_once`、`regex_capture_replacement_goes_through_the_command_registry`。行为登记 `FIND-REPLACE-CAPTURE`，来源是假设，没有 Word 观察。
 - **未覆盖**：查找栏上点选正则后的人工验收；与 Word 通配符 `\1` 的对照；命名捕获和 `${1}` 花括号写法；信创真机。这些不把 T200 标成 `done`。
 - **W09**：本切片改了 `crates/`。harness 改锚到 `59364d1355c4a41fdb8622c96efde1855ffecf20`（该提交的 `crates/` 含正则替换捕获组展开；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+
+### T201 首列、末列与纵向条纹（2026-10-19）
+
+这一刀让表格样式的首列、末列和纵向条纹参与排版。T201 保持 `in_progress`。列宽拖拽和合同表格的人工验收不做。没有启动图形界面。没有新增外部包。没有改 OOXML 导入。
+
+- **层叠**：依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.7.6。整表格式仍从 `basedOn` 根走到叶。条件格式接着按这个顺序叠，后一层盖过同一属性：纵向条纹、横向条纹、首行、末行、首列、末列。四角单元格（`nwCell`／`neCell`／`swCell`／`seCell`）不在本切片。粗体仍是指定值，不是 §17.7.3 的 toggle。直接单元格边框、直接底纹和直接 run 粗体由排版在样式之后应用，优先。MS-OE376 记载 Word 把横向条纹放在纵向条纹之前，并把首末行放在首末列之前。那是实现偏差，本切片不采用。
+- **条纹**：纵向一条一列，区域内下标 0 是 band1。`column` 是单元格的网格起点，已经加上 `gridBefore`，不按 `gridSpan` 再拆。首列外观打开时第 0 列不进纵向条纹；末列外观打开时最后一列不进纵向条纹。横向条纹仍按首行、末行排除。`w:noVBand` 关闭纵向条纹。省略的 `w:tblLook` 继续用既有应用默认：纵向条纹关，两列关。这仍是假定，不是 Word 观察。
+- **绘制**：粗体、底纹和 `nil`／`single` 边框走原来的单元格路径。首列、末列和两条纵向条纹都能画出这三项。有表时增量排版仍是整篇重排，页与全量一致。
+- **导入**：`w:tblStylePr` 的 `firstCol`、`lastCol`、`band1Vert`、`band2Vert` 这一刀不扩解析。样式部件里出现这些类型时，样式仍按原来记为不完整并保留原字节，类型化的 `table_conditionals` 里没有这四条，排版也就画不到。模型里已经放进 `TableCondition` 的才会画。`tblLook` 的首列、末列和纵向条纹位本来就会存，改写时写回 `1`／`0`。
+- **未覆盖**：从样式部件读入这四条条件、四角单元格、主题色底纹、列宽拖拽、合同表格人工验收。没有启动图形界面。没有 Word 观察。
+- **自动验证**：`cargo fmt -p joyword-model -p joyword-layout`；`cargo clippy --locked -p joyword-model -p joyword-layout --all-targets -- -D warnings`；`cargo test --locked -p joyword-model -p joyword-layout`。证据：`table_styles_layer_vertical_bands_under_columns_and_rows`、`table_styles_paint_first_and_last_columns_and_vertical_bands`。既有 `table_styles_paint_bands_and_direct_formatting_wins` 与 `table_styles_layer_bands_under_first_and_last_rows` 仍通过。
+- **W09**：本切片改了 `crates/`。rebase 到 main `5704bf6226cde228d37e21034c9a8d84b51eb5f7`（T200 捕获组 squash）之后，harness 重锚到 `ce1ef0c3f79be63992f974d8aedd8c5161e9bcfb`（该提交的 `crates/` 含首列、末列与纵向条纹的排版，以及 T200 的正则替换捕获组；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
