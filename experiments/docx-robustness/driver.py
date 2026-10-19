@@ -522,7 +522,7 @@ def sanitize_coverage_summary(summary):
         raise ValueError('not a coverage-guided summary')
     if summary.get('feedback_signal') != 'llvm-source-regions':
         raise ValueError('coverage summary signal is not llvm-source-regions')
-    dropped = {'reproduce', 'input_sha256', 'stdout', 'stderr', 'reason', 'harness_report', 'novel_coverage'}
+    dropped = {'reproduce', 'input_sha256', 'stdout', 'stderr', 'harness_report', 'novel_coverage'}
     def walk(value):
         if isinstance(value, dict):
             return {key: walk(item) for key, item in value.items() if key not in dropped}
