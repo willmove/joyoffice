@@ -1396,9 +1396,9 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &EditFooter, window, cx| {
                 this.run(PAGE_EDIT_FOOTER, window, cx)
             }))
-            .on_action(cx.listener(|this, _: &EditBody, window, cx| {
-                this.run(PAGE_EDIT_BODY, window, cx)
-            }))
+            .on_action(
+                cx.listener(|this, _: &EditBody, window, cx| this.run(PAGE_EDIT_BODY, window, cx)),
+            )
             .on_action(
                 cx.listener(|this, _: &Italic, window, cx| this.run(EDIT_ITALIC, window, cx)),
             )
