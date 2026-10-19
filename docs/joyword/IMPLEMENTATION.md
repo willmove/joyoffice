@@ -523,7 +523,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **分节**：节自己的 `w:type` 描述它如何相对前一节开始。文档第一块忽略第 0 节的类型。偶数或奇数节若下一页序号奇偶不对，先为前一节补一页空白（用前一节的页框和页眉），新节内容页再用 `start`，没有 `start` 则用空白之后的下一个序号。`start` 本身奇偶不对时仍显示它，并记 `PageNumberParity`。连续节在页框和栏规格都相同且当前页已有内容时共用该页，页仍属于打开它的节，栏号不变；纸张、页边距或栏不同则记 `ContinuousPageSplit` 并换页，不再补奇偶空白。
 - **分栏**：栏宽是（版心减去栏间距）除以栏数的整数商，各行都按这个宽度拟合，余数留在末栏右侧。竖向放不下时先换栏再换页。`w:br w:type="column"` 推进一栏；只有一栏时换页。多栏节里的表直接拒绝。
 - **命令**：编辑菜单 `page.number` 与分页符同组，不进功能区，因此功能目录地板仍是 39。它插入一个无缓存的 `PAGE`，一次撤销。行为登记 `PAGE-NUMBER-INSERT-UNDO` 是假设，没有 Word 观察。
-- **未覆盖**：widowControl 仍不实现。页眉编辑界面、页眉部件和页面设置都不写回 DOCX。不等宽栏、栏分隔线、`nextColumn`、章节页码未做。页码域不能和编号、制表位、图片或分页符放在同一段。连续节若没有打开自己的页，`SECTIONPAGES` 不计它借住的那一页。状态栏页码仍是物理页序，不是 `pgNumType` 之后的显示页码。没有启动图形界面。没有新增依赖。W09 重锚见本切片提交之后的实验记录。
+- **未覆盖**：widowControl 仍不实现。页眉编辑界面、页眉部件和页面设置都不写回 DOCX。不等宽栏、栏分隔线、`nextColumn`、章节页码未做。页码域不能和编号、制表位、图片或分页符放在同一段。连续节若没有打开自己的页，`SECTIONPAGES` 不计它借住的那一页。状态栏页码仍是物理页序，不是 `pgNumType` 之后的显示页码。没有启动图形界面。没有新增依赖。W09 harness 重锚到 `db08b51179e57c2b308bf62121774ef3371c7ccf`（本任务改 `crates/` 的提交，已合入当时的 `origin/main`；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
 
 ### T203 行内图片与剪贴板第一切片（2026-10-18）
 
