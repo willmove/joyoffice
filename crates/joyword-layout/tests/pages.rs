@@ -6,12 +6,13 @@ use joyword_foundation::Emu;
 use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutInvalidation, LayoutLimits,
     LayoutNote, LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile,
-    layout_document, layout_incremental,
+    ViewOptions, layout_document, layout_incremental, layout_incremental_with_view,
+    layout_with_view,
 };
 use joyword_model::{
-    Bias, Block, BlockSeq, BreakKind, Document, HeaderFooterKind, InlineKind, InlineObject,
-    Measure, Orientation, PageFieldKind, PageSetup, Paragraph, Position, Preserved, ScalarOffset,
-    StoryKind,
+    Bias, Block, BlockSeq, BreakKind, Document, EqualColumns, HeaderFooterKind, InlineKind,
+    InlineObject, Measure, NumberFormat, Orientation, PageField, PageFieldKind, PageNumbering,
+    PageSetup, Paragraph, Position, Preserved, ScalarOffset, SectionBreak, StoryKind,
 };
 
 fn pt(value: i64) -> Emu {
@@ -160,7 +161,7 @@ fn attach(
         paragraph.push_inline(
             InlineObject {
                 id: document.ids().node(),
-                kind: InlineKind::PageField(field),
+                kind: InlineKind::PageField(PageField::new(field)),
                 source: None,
             },
             None,
@@ -295,7 +296,7 @@ fn default_header_paints_page_numbers_on_the_shared_scene() {
     paragraph.push_inline(
         InlineObject {
             id: document.ids().node(),
-            kind: InlineKind::PageField(PageFieldKind::Page),
+            kind: InlineKind::PageField(PageField::new(PageFieldKind::Page)),
             source: None,
         },
         None,
@@ -304,7 +305,7 @@ fn default_header_paints_page_numbers_on_the_shared_scene() {
     paragraph.push_inline(
         InlineObject {
             id: document.ids().node(),
-            kind: InlineKind::PageField(PageFieldKind::NumPages),
+            kind: InlineKind::PageField(PageField::new(PageFieldKind::NumPages)),
             source: None,
         },
         None,
@@ -629,36 +630,231 @@ fn an_unsupported_header_inline_is_skipped_instead_of_guessing_digits() {
     assert!(snapshot.pages()[0].runs.iter().all(|run| run.text != "9"));
 }
 
-#[test]
-fn a_page_field_in_the_body_stays_unsupported() {
-    let mut document = document_with(&["A"]);
-    let field = document.ids().node();
-    change(&mut document, 0, |paragraph| {
+fn push_field(document: &mut Document, index: usize, kind: PageFieldKind, cache: Option<&str>) {
+    let id = document.ids().node();
+    change(document, index, |paragraph| {
+        let field = match cache {
+            Some(text) => PageField::with_cache(kind, text),
+            None => PageField::new(kind),
+        };
         paragraph.push_inline(
             InlineObject {
-                id: field,
-                kind: InlineKind::PageField(PageFieldKind::Page),
+                id,
+                kind: InlineKind::PageField(field),
                 source: None,
             },
             None,
             Arc::default(),
         );
     });
-    let error = layout_document(
+}
+
+fn scenes_match(full: &LayoutSnapshot, incremental: &LayoutSnapshot) {
+    assert_eq!(full.pages().len(), incremental.pages().len());
+    for (left, right) in full.pages().iter().zip(incremental.pages()) {
+        let left_text: Vec<_> = left.runs.iter().map(|run| run.text.as_str()).collect();
+        let right_text: Vec<_> = right.runs.iter().map(|run| run.text.as_str()).collect();
+        assert_eq!(left_text, right_text);
+    }
+    assert_eq!(full.notes(), incremental.notes());
+}
+
+fn layout_both(document: &Document) -> (LayoutSnapshot, LayoutSnapshot) {
+    let full = layout(document);
+    let mut cache = ParagraphLayoutCache::with_budget(1 << 20);
+    let incremental = layout_incremental(
         &document.snapshot(),
         FaceSet::uniform(&font()),
         profile(),
         LayoutLimits::default(),
         &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
     )
-    .unwrap_err();
-    assert!(matches!(
-        error,
-        LayoutError::Unsupported {
-            feature: "page field outside header or footer",
-            ..
-        }
-    ));
+    .unwrap();
+    (full, incremental)
+}
+
+#[test]
+fn a_body_page_field_uses_the_displayed_number() {
+    let mut document = document_with(&["A", "B"]);
+    fit_one_line(&mut document);
+    push_field(&mut document, 0, PageFieldKind::Page, Some("9"));
+    push_field(&mut document, 0, PageFieldKind::NumPages, None);
+    push_field(&mut document, 1, PageFieldKind::Page, None);
+    let (full, incremental) = layout_both(&document);
+    scenes_match(&full, &incremental);
+    assert_eq!(full.pages().len(), 2);
+    assert_eq!(body_text(&full, 0), "A12");
+    assert_eq!(body_text(&full, 1), "B2");
+    assert!(full.notes().is_empty());
+}
+
+#[test]
+fn field_codes_replace_body_page_fields_and_match_the_cache() {
+    let mut document = document_with(&["A", "B"]);
+    fit_one_line(&mut document);
+    push_field(&mut document, 0, PageFieldKind::Page, Some("9"));
+    push_field(&mut document, 0, PageFieldKind::NumPages, None);
+    push_field(&mut document, 1, PageFieldKind::SectionPages, None);
+    let view = ViewOptions {
+        field_codes: true,
+        ..ViewOptions::default()
+    };
+    let full = layout_with_view(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        view,
+    )
+    .unwrap();
+    let mut cache = ParagraphLayoutCache::with_budget(1 << 20);
+    let incremental = layout_incremental_with_view(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+        view,
+    )
+    .unwrap();
+    scenes_match(&full, &incremental);
+    assert_eq!(body_text(&full, 0), "APAGENUMPAGES");
+    assert_eq!(body_text(&full, 1), "BSECTIONPAGES");
+    assert_ne!(full.key(), layout(&document).key());
+    assert_eq!(
+        full.key().content_hash(),
+        layout(&document).key().content_hash()
+    );
+}
+
+#[test]
+fn an_unformattable_page_field_falls_back_to_its_cache() {
+    let mut document = document_with(&["A"]);
+    document.sections_mut()[0].numbering = PageNumbering {
+        format: NumberFormat::UpperRoman,
+        start: Some(0),
+    };
+    push_field(&mut document, 0, PageFieldKind::Page, Some("iv"));
+    let snapshot = layout(&document);
+    assert_eq!(body_text(&snapshot, 0), "Aiv");
+    assert!(
+        snapshot
+            .notes()
+            .iter()
+            .any(|note| { matches!(note, LayoutNote::PageFieldCached { .. }) })
+    );
+}
+
+#[test]
+fn section_pages_count_pages_opened_by_that_section() {
+    let mut document = document_with(&["A", "B", "C"]);
+    fit_one_line(&mut document);
+    close_section(&mut document, 0);
+    push_field(&mut document, 0, PageFieldKind::SectionPages, None);
+    push_field(&mut document, 2, PageFieldKind::SectionPages, None);
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.pages().len(), 3);
+    assert_eq!(body_text(&snapshot, 0), "A1");
+    assert_eq!(body_text(&snapshot, 2), "C2");
+}
+
+#[test]
+fn next_even_odd_and_continuous_breaks_place_sections() {
+    let mut next = document_with(&["A", "B"]);
+    fit_one_line(&mut next);
+    close_section(&mut next, 0);
+    let next_layout = layout(&next);
+    assert_eq!(next_layout.pages().len(), 2);
+
+    let mut even = document_with(&["A", "B"]);
+    fit_one_line(&mut even);
+    close_section(&mut even, 0);
+    even.sections_mut().last_mut().unwrap().break_kind = SectionBreak::EvenPage;
+    even.sections_mut().last_mut().unwrap().numbering.start = Some(5);
+    header(&mut even, "", Some(PageFieldKind::Page));
+    let even_layout = layout(&even);
+    assert_eq!(even_layout.pages().len(), 2);
+    assert!(page_text(&even_layout, 1).contains('5'));
+    assert!(
+        even_layout
+            .notes()
+            .iter()
+            .any(|note| { matches!(note, LayoutNote::PageNumberParity { .. }) })
+    );
+
+    let mut odd = document_with(&["A", "B"]);
+    fit_one_line(&mut odd);
+    close_section(&mut odd, 0);
+    odd.sections_mut().last_mut().unwrap().break_kind = SectionBreak::OddPage;
+    header(&mut odd, "", Some(PageFieldKind::Page));
+    let odd_layout = layout(&odd);
+    assert_eq!(odd_layout.pages().len(), 3);
+    assert!(page_text(&odd_layout, 1).contains('2'));
+    assert!(!page_text(&odd_layout, 1).contains('B'));
+    assert!(page_text(&odd_layout, 2).contains('3'));
+    assert!(page_text(&odd_layout, 2).contains('B'));
+
+    let mut shared = document_with(&["A", "B"]);
+    close_section(&mut shared, 0);
+    shared.sections_mut().last_mut().unwrap().break_kind = SectionBreak::Continuous;
+    let shared_layout = layout(&shared);
+    assert_eq!(shared_layout.pages().len(), 1);
+
+    let mut split = document_with(&["A", "B"]);
+    close_section(&mut split, 0);
+    let section = split.sections_mut().last_mut().unwrap();
+    section.break_kind = SectionBreak::Continuous;
+    section.page.width = Measure::Emu(pt(80).raw());
+    let split_layout = layout(&split);
+    assert_eq!(split_layout.pages().len(), 2);
+    assert!(
+        split_layout
+            .notes()
+            .iter()
+            .any(|note| { matches!(note, LayoutNote::ContinuousPageSplit { .. }) })
+    );
+}
+
+#[test]
+fn equal_columns_and_a_column_break_share_one_page() {
+    let mut document = document_with(&["AB"]);
+    document.sections_mut()[0].columns = Some(EqualColumns {
+        count: 2,
+        space: 720,
+    });
+    let id = document.ids().node();
+    change(&mut document, 0, |paragraph| {
+        paragraph
+            .insert_inline(
+                ScalarOffset(1),
+                InlineObject {
+                    id,
+                    kind: InlineKind::Break(BreakKind::Column),
+                    source: None,
+                },
+                None,
+                Arc::default(),
+            )
+            .unwrap();
+    });
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.pages().len(), 1);
+    let runs = &snapshot.pages()[0].runs;
+    assert_eq!(runs.len(), 2);
+    assert_eq!(runs[0].text, "A");
+    assert_eq!(runs[1].text, "B");
+    assert!(runs[1].origin_x.raw() > runs[0].origin_x.raw());
 }
 
 #[test]

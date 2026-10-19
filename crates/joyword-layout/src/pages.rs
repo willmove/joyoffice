@@ -1,19 +1,24 @@
 //! Section geometry, explicit page breaks, and header and footer stories.
 //!
 //! Page size is `w:pgSz/@w` and `@h` (ECMA-376 §17.6.13). `orient` is stored
-//! with them and does not swap the axes. `titlePg` paints the First story on
-//! the first page of that section. `evenAndOddHeaders` paints the Even story
-//! on even page numbers and the Default story on odd ones; the section's
-//! first page still counts, and `titlePg` wins there. An omitted reference
-//! inherits the nearest earlier story of that same kind. An explicit story,
-//! including an empty one, does not inherit and is not replaced by another
-//! kind. Page numbers are the same 1-based index as `PAGE`. `pgNumType` is
-//! not applied.
+//! with them and does not swap the axes. `w:type` places the section on the
+//! next page, the same page, or the next even or odd page (§17.6.22).
+//! `titlePg` paints the First story on the first page of that section.
+//! `evenAndOddHeaders` paints the Even story on even displayed page numbers
+//! and the Default story on odd ones. The displayed number is `PAGE` after
+//! `w:pgNumType/@w:start` (§17.6.12). The section's first page still counts,
+//! and `titlePg` wins there. An omitted reference inherits the nearest earlier
+//! story of that same kind. An explicit story, including an empty one, does
+//! not inherit and is not replaced by another kind. Equal-width `w:cols`
+//! share the content box; a column break advances one column, or one page
+//! when the section has a single column (§17.3.3.1, §17.6.4).
+
+use std::collections::BTreeSet;
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    BreakKind, Document, HeaderFooterKind, InlineKind, OBJECT_MARKER, PageFieldKind, Paragraph,
-    Segment, StoryId, StoryKind,
+    BreakKind, Document, HeaderFooterKind, InlineKind, NumberFormat, OBJECT_MARKER, PageField,
+    PageFieldKind, Paragraph, SectionBreak, Segment, StoryId, StoryKind,
 };
 
 use crate::FaceSet;
@@ -28,11 +33,41 @@ use crate::shape::paint_underline;
 use crate::style_paint;
 use crate::view::{self, ViewOptions};
 
+/// How the first block of a section meets the previous section.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub(crate) enum SectionEdge {
+    #[default]
+    Same,
+    NextPage,
+    EvenPage,
+    OddPage,
+    Continuous,
+}
+
+impl SectionEdge {
+    pub(crate) fn forces_page(self) -> bool {
+        matches!(self, Self::NextPage | Self::EvenPage | Self::OddPage)
+    }
+}
+
+/// Equal columns, or one column the width of the content box.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct ColumnSpec {
+    pub count: u16,
+    pub gap: i64,
+    pub width: i64,
+}
+
 pub(crate) struct SectionPlan {
     pub geometry: PageGeometry,
     /// Index of the section's last body block.
     pub end: usize,
     pub section: usize,
+    /// Break stored on this section. The first block of the document ignores it.
+    pub edge: SectionEdge,
+    pub columns: ColumnSpec,
+    /// Line width: one equal column, or the full content box.
+    pub fit_width: Emu,
 }
 
 pub(crate) struct TextPiece {
@@ -69,6 +104,13 @@ pub(crate) fn section_plans(document: &Document) -> Result<Vec<SectionPlan>, Lay
             ));
         }
         let geometry = PageGeometry::from_setup(&section.page)?;
+        let columns = column_spec(section.id, geometry, section.columns.as_ref())?;
+        let edge = match section.break_kind {
+            SectionBreak::NextPage => SectionEdge::NextPage,
+            SectionBreak::Continuous => SectionEdge::Continuous,
+            SectionBreak::EvenPage => SectionEdge::EvenPage,
+            SectionBreak::OddPage => SectionEdge::OddPage,
+        };
         let end = match section.last_block {
             Some(id) => {
                 if index + 1 == sections.len() {
@@ -94,6 +136,9 @@ pub(crate) fn section_plans(document: &Document) -> Result<Vec<SectionPlan>, Lay
             geometry,
             end,
             section: index,
+            edge,
+            fit_width: Emu::new(columns.width),
+            columns,
         });
         cursor = end + 1;
     }
@@ -107,14 +152,57 @@ pub(crate) fn plan_for(plans: &[SectionPlan], index: usize) -> Option<&SectionPl
     plans.iter().find(|plan| index <= plan.end)
 }
 
-pub(crate) fn section_break_before(plans: &[SectionPlan], index: usize) -> bool {
+pub(crate) fn section_edge(plans: &[SectionPlan], index: usize) -> SectionEdge {
     if index == 0 {
-        return false;
+        return SectionEdge::Same;
     }
     match (plan_for(plans, index - 1), plan_for(plans, index)) {
-        (Some(previous), Some(here)) => previous.section != here.section,
-        _ => false,
+        (Some(previous), Some(here)) if previous.section != here.section => here.edge,
+        _ => SectionEdge::Same,
     }
+}
+
+pub(crate) fn section_break_before(plans: &[SectionPlan], index: usize) -> bool {
+    section_edge(plans, index).forces_page()
+}
+
+fn column_spec(
+    section: joyword_model::NodeId,
+    geometry: PageGeometry,
+    columns: Option<&joyword_model::EqualColumns>,
+) -> Result<ColumnSpec, LayoutError> {
+    let total = geometry.content_width().raw();
+    let Some(columns) = columns else {
+        return Ok(ColumnSpec {
+            count: 1,
+            gap: 0,
+            width: total,
+        });
+    };
+    let count = i64::from(columns.count);
+    if count < 2 {
+        return Ok(ColumnSpec {
+            count: 1,
+            gap: 0,
+            width: total,
+        });
+    }
+    let gap = columns
+        .space
+        .checked_mul(Emu::PER_TWIP)
+        .ok_or(LayoutError::GeometryOverflow)?;
+    let gaps = gap
+        .checked_mul(count - 1)
+        .ok_or(LayoutError::GeometryOverflow)?;
+    if gaps >= total {
+        return Err(unsupported(Some(section), "columns do not fit the page"));
+    }
+    let width = (total - gaps) / count;
+    if width <= 0 {
+        return Err(unsupported(Some(section), "columns do not fit the page"));
+    }
+    let count = u16::try_from(count).unwrap_or(1);
+    Ok(ColumnSpec { count, gap, width })
 }
 
 /// Header and footer stories must be referenced. Anything else is still an
@@ -150,19 +238,17 @@ pub(crate) fn accept_body_inlines(
     paragraph: &Paragraph,
 ) -> Result<(), LayoutError> {
     let mut page_break = false;
+    let mut column_break = false;
     let mut image = false;
+    let mut field = false;
     for inline in paragraph.inlines() {
         match &inline.kind {
             InlineKind::Break(BreakKind::Page) => page_break = true,
-            InlineKind::Break(_) => {
-                return Err(unsupported(Some(paragraph.id()), "line or column break"));
+            InlineKind::Break(BreakKind::Column) => column_break = true,
+            InlineKind::Break(BreakKind::Line) => {
+                return Err(unsupported(Some(paragraph.id()), "line break"));
             }
-            InlineKind::PageField(_) => {
-                return Err(unsupported(
-                    Some(paragraph.id()),
-                    "page field outside header or footer",
-                ));
-            }
+            InlineKind::PageField(_) => field = true,
             InlineKind::Image { .. } => image = true,
             InlineKind::Preserved(_) => {
                 return Err(unsupported(
@@ -171,6 +257,18 @@ pub(crate) fn accept_body_inlines(
                 ));
             }
         }
+    }
+    if field && (page_break || column_break || image) {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "page field with a break or an image",
+        ));
+    }
+    if column_break && (page_break || image) {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "column break with a page break or an image",
+        ));
     }
     if image {
         let props = joyword_model::displayed_paragraph(document, paragraph);
@@ -206,6 +304,23 @@ pub(crate) fn accept_body_inlines(
             ));
         }
     }
+    if column_break || field {
+        let props = joyword_model::displayed_paragraph(document, paragraph);
+        let text = paragraph.plain_text(|_| String::new());
+        let tabs = props.tabs.as_ref().is_some_and(|stops| {
+            stops
+                .iter()
+                .any(|stop| stop.align != joyword_model::TabAlign::Clear)
+        });
+        let indent =
+            joyword_model::indent_edges(&props.indent).is_some_and(|edges| edges.moves_text());
+        if props.numbering.is_some() || tabs || indent || text.contains('\t') {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "page field or column break with numbering or tabs",
+            ));
+        }
+    }
     Ok(())
 }
 
@@ -215,7 +330,11 @@ pub(crate) fn marked_text(document: &Document, paragraph: &Paragraph) -> String 
     paragraph.plain_text(|object| match &object.kind {
         InlineKind::Break(BreakKind::Page) => format!("{OBJECT_MARKER}page"),
         InlineKind::Break(kind) => format!("{OBJECT_MARKER}{kind:?}"),
-        InlineKind::PageField(kind) => format!("{OBJECT_MARKER}{kind:?}"),
+        InlineKind::PageField(field) => format!(
+            "{OBJECT_MARKER}{:?}:{}",
+            field.kind,
+            field.cached.as_deref().unwrap_or("")
+        ),
         InlineKind::Image {
             resource,
             width,
@@ -353,7 +472,7 @@ pub(crate) fn paint_stories(
             document,
             section,
             opens_section(snapshot, page_index, section),
-            page_index + 1,
+            snapshot.displayed_page(page_index),
             even_and_odd,
         );
         if let Some(story) = linked_story(document, section, true, kind) {
@@ -398,7 +517,7 @@ fn story_kind(
     document: &Document,
     section_index: usize,
     first_of_section: bool,
-    page_number: usize,
+    page_number: i64,
     even_and_odd: bool,
 ) -> HeaderFooterKind {
     let title_page = document
@@ -407,7 +526,7 @@ fn story_kind(
         .is_some_and(|section| section.title_page == Some(true));
     if first_of_section && title_page {
         HeaderFooterKind::First
-    } else if even_and_odd && page_number.is_multiple_of(2) {
+    } else if even_and_odd && page_number.rem_euclid(2) == 0 {
         HeaderFooterKind::Even
     } else {
         HeaderFooterKind::Default
@@ -580,7 +699,7 @@ fn story_runs(
     profile: SingleFontProfile,
     cancellation: &LayoutCancellation,
     page_index: usize,
-    page_count: usize,
+    _page_count: usize,
     geometry: PageGeometry,
     story_id: StoryId,
 ) -> Result<Vec<StoryLine>, LayoutError> {
@@ -594,15 +713,24 @@ fn story_runs(
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
-        let display = match story_display(document, paragraph, page_index + 1, page_count, view)? {
-            Some(text) => text,
-            None => {
-                snapshot.note(LayoutNote::StoryContentSkipped {
-                    paragraph: paragraph.id(),
-                });
-                continue;
+        let (display, used_cache) =
+            match story_display(snapshot, document, paragraph, page_index, view)? {
+                Some(text) => text,
+                None => {
+                    snapshot.note(LayoutNote::StoryContentSkipped {
+                        paragraph: paragraph.id(),
+                    });
+                    continue;
+                }
+            };
+        if used_cache {
+            let note = LayoutNote::PageFieldCached {
+                paragraph: paragraph.id(),
+            };
+            if !snapshot.notes().contains(&note) {
+                snapshot.note(note);
             }
-        };
+        }
         if display.is_empty() {
             continue;
         }
@@ -670,18 +798,33 @@ fn story_runs(
     Ok(runs)
 }
 
-/// Header and footer text. `field_codes` prints `PAGE` or `NUMPAGES` instead
-/// of the number. Braces and switches are not printed. Scalars omitted by
-/// hidden text or a field projection are skipped.
+/// Header and footer text. Field codes print `PAGE`, `NUMPAGES` or
+/// `SECTIONPAGES` instead of the number. Braces and switches are not
+/// printed. Scalars omitted by hidden text or a field projection are skipped.
 fn story_display(
+    snapshot: &LayoutSnapshot,
     document: &Document,
     paragraph: &Paragraph,
-    page: usize,
-    pages: usize,
+    page_index: usize,
     view: ViewOptions,
-) -> Result<Option<String>, LayoutError> {
+) -> Result<Option<(String, bool)>, LayoutError> {
+    let Some((_, section)) = snapshot.page_box(page_index) else {
+        return Ok(None);
+    };
+    let numbering = document
+        .sections()
+        .get(section)
+        .map(|section| section.numbering.clone())
+        .unwrap_or_default();
+    let ctx = crate::cache::ExternalContext {
+        displayed_page: snapshot.displayed_page(page_index),
+        num_pages: u32::try_from(snapshot.page_count()).unwrap_or(u32::MAX),
+        section_pages: snapshot.section_page_count(section),
+        ..crate::cache::ExternalContext::default()
+    };
     let omitted = view::omitted_indices(document, paragraph, view)?;
     let mut text = String::new();
+    let mut used_cache = false;
     let mut scalar = 0usize;
     for segment in paragraph.segments() {
         match segment {
@@ -695,20 +838,12 @@ fn story_display(
             }
             Segment::Inline(object) => {
                 if !omitted.contains(&scalar) {
-                    match object.kind {
-                        InlineKind::PageField(PageFieldKind::Page) => {
-                            if view.field_codes {
-                                text.push_str("PAGE");
-                            } else {
-                                text.push_str(&page.to_string());
-                            }
-                        }
-                        InlineKind::PageField(PageFieldKind::NumPages) => {
-                            if view.field_codes {
-                                text.push_str("NUMPAGES");
-                            } else {
-                                text.push_str(&pages.to_string());
-                            }
+                    match &object.kind {
+                        InlineKind::PageField(field) => {
+                            let (rendered, cache) =
+                                render_field(field, &numbering, ctx, view.field_codes);
+                            used_cache |= cache;
+                            text.push_str(&rendered);
                         }
                         _ => return Ok(None),
                     }
@@ -717,7 +852,169 @@ fn story_display(
             }
         }
     }
-    Ok(Some(text))
+    Ok(Some((text, used_cache)))
+}
+
+pub(crate) struct FieldExpansion {
+    pub display: String,
+    /// Display scalar `i` belongs to this paragraph scalar. Field digits share
+    /// the one object-marker scalar.
+    pub source_scalars: Vec<usize>,
+    pub used_cache: bool,
+}
+
+/// Replace page fields with the text layout should shape. Hidden scalars and
+/// field-annotation ranges in `omitted` are left out. Field codes show the
+/// instruction name instead of the number. The map sends display scalars back
+/// to the paragraph, where the field is one marker.
+pub(crate) fn expand_page_fields(
+    paragraph: &Paragraph,
+    numbering: &joyword_model::PageNumbering,
+    ctx: crate::cache::ExternalContext,
+    view: ViewOptions,
+    omitted: &BTreeSet<usize>,
+) -> FieldExpansion {
+    let mut display = String::new();
+    let mut source_scalars = Vec::new();
+    let mut source_scalar = 0usize;
+    let mut used_cache = false;
+    for segment in paragraph.segments() {
+        match segment {
+            Segment::Text(chunk) => {
+                for ch in chunk.chars() {
+                    if !omitted.contains(&source_scalar) {
+                        source_scalars.push(source_scalar);
+                        display.push(ch);
+                    }
+                    source_scalar += 1;
+                }
+            }
+            Segment::Inline(object) => {
+                if !omitted.contains(&source_scalar) {
+                    let rendered = match &object.kind {
+                        InlineKind::PageField(field) => {
+                            let (rendered, cache) =
+                                render_field(field, numbering, ctx, view.field_codes);
+                            used_cache |= cache;
+                            rendered
+                        }
+                        _ => OBJECT_MARKER.to_string(),
+                    };
+                    for _ch in rendered.chars() {
+                        source_scalars.push(source_scalar);
+                    }
+                    display.push_str(&rendered);
+                }
+                source_scalar += 1;
+            }
+        }
+    }
+    FieldExpansion {
+        display,
+        source_scalars,
+        used_cache,
+    }
+}
+
+pub(crate) fn remap_field_sources(lines: &mut [LayoutLine], map: &[usize], paragraph: &Paragraph) {
+    if map.is_empty() {
+        let end = paragraph.len();
+        let bytes = scalar_byte(paragraph, end);
+        if let Some(line) = lines.first_mut() {
+            line.source.scalars = 0..end;
+            line.source.bytes = 0..bytes;
+            line.clusters.clear();
+        }
+        return;
+    }
+    for line in lines.iter_mut() {
+        remap_display_range(&mut line.source, map, paragraph);
+        for cluster in &mut line.clusters {
+            remap_display_range(&mut cluster.source, map, paragraph);
+        }
+    }
+}
+
+fn remap_display_range(range: &mut SourceRange, map: &[usize], paragraph: &Paragraph) {
+    if map.is_empty() {
+        range.scalars = 0..0;
+        range.bytes = 0..0;
+        return;
+    }
+    let last_slot = map.len() - 1;
+    if range.scalars.start >= map.len() {
+        let end = map[last_slot].saturating_add(1);
+        range.scalars = end..end;
+        let byte = scalar_byte(paragraph, end);
+        range.bytes = byte..byte;
+        return;
+    }
+    let start_index = range.scalars.start.min(last_slot);
+    let exclusive = range.scalars.end.min(map.len());
+    let src_start = map[start_index];
+    let src_end = if exclusive == 0 {
+        src_start
+    } else {
+        map[exclusive - 1].saturating_add(1).max(src_start)
+    };
+    range.scalars = src_start..src_end;
+    range.bytes = scalar_byte(paragraph, src_start)..scalar_byte(paragraph, src_end);
+}
+
+fn scalar_byte(paragraph: &Paragraph, scalar: usize) -> usize {
+    paragraph
+        .text()
+        .scalar_to_utf8(joyword_model::ScalarOffset(scalar))
+        .map(|offset| offset.0)
+        .unwrap_or(0)
+}
+
+pub(crate) fn render_field(
+    field: &PageField,
+    numbering: &joyword_model::PageNumbering,
+    ctx: crate::cache::ExternalContext,
+    codes: bool,
+) -> (String, bool) {
+    if codes {
+        return (field_instruction(field.kind).to_owned(), false);
+    }
+    if ctx.force_cache {
+        return (
+            field.cached.as_deref().unwrap_or("").to_owned(),
+            field.cached.is_some(),
+        );
+    }
+    let value = match field.kind {
+        PageFieldKind::Page => ctx.displayed_page,
+        PageFieldKind::NumPages => i64::from(ctx.num_pages),
+        PageFieldKind::SectionPages => i64::from(ctx.section_pages),
+    };
+    let format = match field.kind {
+        PageFieldKind::Page => &numbering.format,
+        PageFieldKind::NumPages | PageFieldKind::SectionPages => &NumberFormat::Decimal,
+    };
+    if let Some(rendered) = format_page(format, value) {
+        (rendered, false)
+    } else if let Some(cached) = &field.cached {
+        (cached.to_string(), true)
+    } else {
+        (String::new(), false)
+    }
+}
+
+fn field_instruction(kind: PageFieldKind) -> &'static str {
+    match kind {
+        PageFieldKind::Page => "PAGE",
+        PageFieldKind::NumPages => "NUMPAGES",
+        PageFieldKind::SectionPages => "SECTIONPAGES",
+    }
+}
+
+fn format_page(format: &NumberFormat, value: i64) -> Option<String> {
+    if matches!(format, NumberFormat::Decimal) {
+        return Some(value.to_string());
+    }
+    format.render(i32::try_from(value).ok()?)
 }
 
 fn map_line_limit(limit: crate::LineLimit) -> LayoutError {

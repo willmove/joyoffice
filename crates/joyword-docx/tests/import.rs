@@ -351,21 +351,30 @@ fn min_004_records_external_targets_without_accessing_them() {
             ..
         }
     ) && item.severity == Severity::Warning));
-    // The hyperlink text is visible; the hyperlink itself is preserved and
-    // its paragraph locked.
+    // The hyperlink text stays visible. A simple external target is a typed
+    // run link, so the paragraph is editable. The relationship is recorded
+    // and never requested.
     assert_eq!(
         texts(&result),
         vec!["项目说明", "模板与链接都指向本包之外。"]
     );
     let body = paragraphs(&result);
-    assert!(!result.editability.can_edit(body[0].id()));
+    assert!(result.editability.can_edit(body[0].id()));
     assert!(result.editability.can_edit(body[1].id()));
-    assert!(
-        result
-            .backing
-            .fragments()
-            .any(|(_, fragment)| &*fragment.element == "w:hyperlink")
+    let link = body[0].link_at(0).expect("imported hyperlink");
+    assert_eq!(
+        link.external.as_deref(),
+        Some("https://example.invalid/joyword")
     );
+    assert_eq!(link.relationship.as_deref(), Some("rId2"));
+    assert!(link.anchor.is_none());
+    let plan = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .expect("unchanged package");
+    assert_eq!(plan.bytes(), fixture("DOCX-MIN-004").as_slice());
     assert_eq!(result.document.settings().compatibility_mode, Some(15));
     assert_model_valid(&result);
 }
@@ -1271,19 +1280,21 @@ fn default_header_and_footer_import_page_fields_without_cached_results() {
         .iter()
         .map(|inline| &inline.kind)
         .collect();
-    assert!(kinds.iter().any(|kind| matches!(
-        kind,
-        InlineKind::PageField(joyword_model::PageFieldKind::Page)
-    )));
+    assert!(
+        kinds
+            .iter()
+            .any(|kind| is_page_field(kind, joyword_model::PageFieldKind::Page))
+    );
     assert!(
         kinds
             .iter()
             .any(|kind| matches!(kind, InlineKind::Preserved(_)))
     );
-    assert!(!kinds.iter().any(|kind| matches!(
-        kind,
-        InlineKind::PageField(joyword_model::PageFieldKind::NumPages)
-    )));
+    assert!(
+        !kinds
+            .iter()
+            .any(|kind| is_page_field(kind, joyword_model::PageFieldKind::NumPages))
+    );
     let shown = header_paragraph.plain_text(|_| String::new());
     assert_eq!(shown, "H");
     assert!(!shown.contains('3'));
@@ -1295,12 +1306,12 @@ fn default_header_and_footer_import_page_fields_without_cached_results() {
         .find(|story| story.id == sections[0].footers[0].1)
         .unwrap();
     let footer_paragraph = footer_story.blocks.get(0).unwrap().as_paragraph().unwrap();
-    assert!(footer_paragraph.inlines().iter().any(|inline| {
-        matches!(
-            inline.kind,
-            InlineKind::PageField(joyword_model::PageFieldKind::NumPages)
-        )
-    }));
+    assert!(
+        footer_paragraph
+            .inlines()
+            .iter()
+            .any(|inline| { is_page_field(&inline.kind, joyword_model::PageFieldKind::NumPages) })
+    );
     assert!(!footer_paragraph.plain_text(|_| String::new()).contains('8'));
 
     assert!(has(&result, |kind| matches!(
@@ -1407,4 +1418,111 @@ fn direct_indent_spacing_and_tabs_round_trip_and_survive_a_font_change() {
     let paragraph = paragraphs(&kept)[0];
     assert_eq!(paragraph.props.indent.start, Some(Measure::Twips(720)));
     assert_eq!(paragraph.runs()[0].props.bold, Some(true));
+}
+
+#[test]
+fn page_fields_import_without_treating_the_cache_as_body_text() {
+    let sect = r#"<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr>"#;
+    let markup = format!(
+        r#"<w:p><w:r><w:t>A</w:t></w:r><w:fldSimple w:instr=" PAGE "><w:r><w:t>9</w:t></w:r></w:fldSimple></w:p><w:p><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText> NUMPAGES </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>8</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p><w:p><w:fldSimple w:instr=" SECTIONPAGES  \* MERGEFORMAT "><w:r><w:t>3</w:t></w:r></w:fldSimple></w:p>{sect}"#
+    );
+    let result = open(&body(&markup));
+    let paragraphs = paragraphs(&result);
+    assert_eq!(paragraphs[0].plain_text(|_| String::new()), "A");
+    assert!(paragraphs[0].inlines().iter().any(|inline| {
+        is_page_field(&inline.kind, joyword_model::PageFieldKind::Page)
+            && field_cache(&inline.kind) == Some("9")
+    }));
+    assert_eq!(paragraphs[1].plain_text(|_| String::new()), "");
+    assert!(paragraphs[1].inlines().iter().any(|inline| {
+        is_page_field(&inline.kind, joyword_model::PageFieldKind::NumPages)
+            && field_cache(&inline.kind) == Some("8")
+    }));
+    assert!(paragraphs[2].inlines().iter().any(|inline| {
+        is_page_field(&inline.kind, joyword_model::PageFieldKind::SectionPages)
+            && field_cache(&inline.kind) == Some("3")
+    }));
+    assert!(
+        paragraphs
+            .iter()
+            .all(|paragraph| result.editability.can_edit(paragraph.id()))
+    );
+}
+
+#[test]
+fn section_break_page_numbers_and_equal_columns_are_imported() {
+    let first = r#"<w:p><w:pPr><w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr></w:pPr><w:r><w:t>一</w:t></w:r></w:p>"#;
+    let second = r#"<w:p><w:r><w:t>二</w:t></w:r></w:p><w:sectPr><w:type w:val="evenPage"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/><w:pgNumType w:fmt="upperRoman" w:start="4"/><w:cols w:num="2" w:space="360"/></w:sectPr>"#;
+    let result = open(&body(&format!("{first}{second}")));
+    let sections = result.document.sections();
+    assert_eq!(sections.len(), 2);
+    assert_eq!(
+        sections[1].break_kind,
+        joyword_model::SectionBreak::EvenPage
+    );
+    assert_eq!(
+        sections[1].numbering.format,
+        joyword_model::NumberFormat::UpperRoman
+    );
+    assert_eq!(sections[1].numbering.start, Some(4));
+    let columns = sections[1].columns.unwrap();
+    assert_eq!(columns.count, 2);
+    assert_eq!(columns.space, 360);
+}
+
+#[test]
+fn an_unchanged_field_package_keeps_its_markup_and_an_inserted_field_is_refused() {
+    let bytes = body(
+        r#"<w:p><w:fldSimple w:instr=" PAGE "><w:r><w:t>1</w:t></w:r></w:fldSimple></w:p><w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr>"#,
+    );
+    let result = open(&bytes);
+    let plan = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    let xml =
+        std::str::from_utf8(package.part("/word/document.xml").unwrap().data.as_ref()).unwrap();
+    assert!(xml.contains("fldSimple"), "{xml}");
+    let mut changed = result.document.clone();
+    let body_id = changed.body_id();
+    let field_id = changed.ids().node();
+    changed
+        .story_mut(body_id)
+        .unwrap()
+        .blocks
+        .update(0, |block| {
+            let Block::Paragraph(paragraph) = block else {
+                panic!("paragraph");
+            };
+            let paragraph = Arc::make_mut(paragraph);
+            paragraph.push_inline(
+                joyword_model::InlineObject {
+                    id: field_id,
+                    kind: InlineKind::PageField(joyword_model::PageField::new(
+                        joyword_model::PageFieldKind::Page,
+                    )),
+                    source: None,
+                },
+                None,
+                Arc::default(),
+            );
+        });
+    assert!(plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err());
+}
+
+fn is_page_field(kind: &InlineKind, expected: joyword_model::PageFieldKind) -> bool {
+    match kind {
+        InlineKind::PageField(field) => field.kind == expected,
+        _ => false,
+    }
+}
+
+fn field_cache(kind: &InlineKind) -> Option<&str> {
+    match kind {
+        InlineKind::PageField(field) => field.cached.as_deref(),
+        _ => None,
+    }
 }

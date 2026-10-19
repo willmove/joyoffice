@@ -513,6 +513,7 @@ impl LineBuilder {
             },
             clusters: self.clusters,
             images: Vec::new(),
+            hyperlinks: Vec::new(),
             box_height: Emu::new(0),
             tab_gaps: self.tab_gaps,
         }

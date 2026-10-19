@@ -64,6 +64,7 @@ actions!(
         RemoveList,
         AlignCenter,
         PageBreak,
+        PageNumber,
         PageSize,
         PageMargins,
         PageOrientation,
@@ -177,6 +178,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         LIST_LEVEL => Box::new(SetListLevel),
         LIST_REMOVE => Box::new(RemoveList),
         PAGE_BREAK => Box::new(PageBreak),
+        PAGE_NUMBER => Box::new(PageNumber),
         PAGE_SIZE => Box::new(PageSize),
         PAGE_MARGINS => Box::new(PageMargins),
         PAGE_ORIENTATION => Box::new(PageOrientation),
@@ -1282,6 +1284,9 @@ impl Render for JoyWord {
             )
             .on_action(
                 cx.listener(|this, _: &PageBreak, window, cx| this.run(PAGE_BREAK, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &PageNumber, window, cx| this.run(PAGE_NUMBER, window, cx)),
             )
             .on_action(
                 cx.listener(|this, _: &PageSize, window, cx| this.run(PAGE_SIZE, window, cx)),
