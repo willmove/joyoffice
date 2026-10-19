@@ -10,6 +10,7 @@
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 - **T300（进行中，2026-10-19）**：文字与移动修订。第一切片已有 `w:ins`／`w:del`／`w:moveFrom`／`w:moveTo`、三种投影和可撤销的接受／拒绝。第二切片补上审阅菜单与功能区命令、偏好作者、markup 页边色条，以及已类型化单元格段落里的文字修订。第三切片把成对 `moveFrom`／`moveTo` 当成一次修订：接受或拒绝任一端会同时处理两端，全部接受／拒绝分别落到最终／原始投影，撤销恢复两端，`trackRevisions` 设置补丁不丢掉移动对。`rPrChange` 与表格结构修订仍整篇或整表只读。页眉修订装饰和 Word／WPS 人工交换未做，任务保持 `in_progress`。
+- **T300 页眉页脚装饰（进行中，2026-10-19）**：页眉和页脚故事里的文字与移动修订画在共享 PageScene 的页眉页脚带上（下划线、删除线、作者色页边条）。最终／原始投影仍去掉隐藏文字且不画装饰。页眉里的全部接受或全部拒绝各是一步，一次撤销恢复。带图片的页眉页脚段落不画。Word／WPS 人工交换和 T301 仍未做，任务保持 `in_progress`。上一条里的「页眉修订装饰未做」是第三切片结束时的状态。
 
 下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
@@ -813,3 +814,14 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
 - **未覆盖**：从样式部件读入这四条条件、四角单元格、主题色底纹、列宽拖拽、合同表格人工验收。没有启动图形界面。没有 Word 观察。
 - **自动验证**：`cargo fmt -p joyword-model -p joyword-layout`；`cargo clippy --locked -p joyword-model -p joyword-layout --all-targets -- -D warnings`；`cargo test --locked -p joyword-model -p joyword-layout`。证据：`table_styles_layer_vertical_bands_under_columns_and_rows`、`table_styles_paint_first_and_last_columns_and_vertical_bands`。既有 `table_styles_paint_bands_and_direct_formatting_wins` 与 `table_styles_layer_bands_under_first_and_last_rows` 仍通过。
 - **W09**：本切片改了 `crates/`。rebase 到 main `5704bf6226cde228d37e21034c9a8d84b51eb5f7`（T200 捕获组 squash）之后，harness 重锚到 `ce1ef0c3f79be63992f974d8aedd8c5161e9bcfb`（该提交的 `crates/` 含首列、末列与纵向条纹的排版，以及 T200 的正则替换捕获组；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+
+### T300 页眉页脚修订装饰（2026-10-19）
+
+这一刀给页眉和页脚故事补上与正文相同的修订装饰。T300 仍是 `in_progress`。没有做 T301 的格式或表格结构修订，也没有做 Word／WPS 人工交换。没有启动图形界面。没有改 `pages.rs`（不等宽分栏仍由并行任务占用）。
+
+- **绘制**。`pages` 先把页眉页脚拟合进共享 PageScene。最终带标记时，本切片再按同一可见字符串整形，找到已经放下的字形 run，换成作者色分段，并补上下划线、删除线和左页边作者色条。插入与移动目标走下划线，删除与移动来源走删除线。色板仍是按作者名散列的 8 色，不是 Word 的修订色。最终／原始投影继续由页眉页脚拟合在整形前去掉隐藏文字，本切片不为这两种视图加装饰。
+- **接受／拒绝**。页眉故事里的文字修订本来就走全部故事的同一事务。全部接受后页眉等于最终文字，全部拒绝后等于原始文字；`undo_depth` 为 1，一次撤销恢复文字和修订 id。没有改引擎。
+- **不画的段落**。页眉或页脚段落里如果还有图片，仍由图片拟合摆放行框，好让后面的文字行对得上；这类段落自己的修订不另画。图片拟合本来也不做修订投影。
+- **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt -p joyword-layout`；`cargo clippy --locked -p joyword-layout --all-targets -- -D warnings`；`cargo test -p joyword-layout --locked`。证据：`header_and_footer_markup_paints_and_projections_omit_it`、`accepting_or_rejecting_a_header_revision_is_one_undo`。既有 `markup_paints_a_margin_bar_beside_a_changed_line`、`move_markup_paints_both_ends_and_the_projections_do_not`、`revision_views_change_pagination_text_and_match_the_incremental_cache` 仍通过。
+- **W09**：本切片改了 `crates/`。rebase 到 main `5704bf6226cde228d37e21034c9a8d84b51eb5f7`（T200 捕获组 squash）之后，harness 改锚到 `23fb2faf872b5bd5a3b103e2b33867a9b033068f`（该提交的 `crates/` 含页眉页脚修订装饰，以及 T200 的正则替换捕获组；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。该树上固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。再 rebase 到 main `cd087577a67cf5efb9164de15cde166ba7da028e`（T201 首列、末列与纵向条纹 squash）之后，harness 改锚到 `b59c8d4c8f429ff2fa6e5e26290d368e107f76e9`（该提交的 `crates/` 含页眉页脚修订装饰，以及 T201 的首列、末列与纵向条纹排版；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+- **未覆盖**：带图片的页眉／页脚段落上的修订装饰；表格单元格里的移动对；格式与表格结构修订；Word／WPS 人工交换；图形界面与信创真机。这些不把 T300 标成 `done`。
