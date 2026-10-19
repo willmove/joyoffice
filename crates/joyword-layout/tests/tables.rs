@@ -1092,3 +1092,226 @@ fn at_least_centers_the_line_exact_omits_it_and_auto_ignores_val() {
             .any(|rect| rect.y.raw() == border_y && rect.height.raw() == border)
     );
 }
+
+fn nested_document() -> Document {
+    let mut document = Document::new_blank();
+    let mut before = Paragraph::new(document.ids().node());
+    before.push_text("外", None, Arc::default()).unwrap();
+    let mut inside = Paragraph::new(document.ids().node());
+    inside.push_text("内", None, Arc::default()).unwrap();
+    let mut after = Paragraph::new(document.ids().node());
+    after.push_text("后", None, Arc::default()).unwrap();
+    let borders = CellBorders {
+        top: Some(edge()),
+        left: Some(edge()),
+        bottom: Some(edge()),
+        right: Some(edge()),
+    };
+    let inner = Table {
+        id: document.ids().node(),
+        grid: vec![Measure::Twips(2000)],
+        rows: vec![Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![Cell {
+                id: document.ids().node(),
+                grid_span: 1,
+                vertical_merge: VerticalMerge::None,
+                width: Some(Measure::Twips(2000)),
+                borders,
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 0, 255),
+                }),
+                margin: None,
+                vertical_align: None,
+                blocks: BlockSeq::from_vec(vec![inside.into()]),
+                preserved: None,
+            }],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: Some(joyword_model::TableWidth::Dxa(2000)),
+        layout: Some(TableLayoutKind::Fixed),
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let outer = Table {
+        id: document.ids().node(),
+        grid: vec![Measure::Twips(4000)],
+        rows: vec![Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![Cell {
+                id: document.ids().node(),
+                grid_span: 1,
+                vertical_merge: VerticalMerge::None,
+                width: Some(Measure::Twips(4000)),
+                borders,
+                shading: Some(Shading {
+                    fill: Color::Rgb(255, 0, 0),
+                }),
+                margin: None,
+                vertical_align: None,
+                blocks: BlockSeq::from_vec(vec![before.into(), inner.into(), after.into()]),
+                preserved: None,
+            }],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![outer.into()]);
+    document
+}
+
+#[test]
+fn a_nested_table_places_glyphs_inside_the_parent_cell() {
+    let document = nested_document();
+    let laid = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let page = &laid.pages()[0];
+    let outer = page.runs.iter().find(|run| run.text == "外").unwrap();
+    let inner = page.runs.iter().find(|run| run.text == "内").unwrap();
+    let after = page.runs.iter().find(|run| run.text == "后").unwrap();
+    let pad = 108 * Emu::PER_TWIP;
+    assert_eq!(inner.origin_x.raw() - outer.origin_x.raw(), pad);
+    assert_eq!(after.origin_x.raw(), outer.origin_x.raw());
+    assert!(outer.baseline_y.raw() < inner.baseline_y.raw());
+    assert!(inner.baseline_y.raw() < after.baseline_y.raw());
+    let cell_left = outer.origin_x.raw() - pad;
+    let cell_right = cell_left + 4000 * Emu::PER_TWIP;
+    assert!(inner.glyph_x(0).raw() > cell_left);
+    assert!(inner.glyph_x(0).raw() < cell_right);
+    assert!(page.rects.iter().any(|rect| {
+        rect.blue == 255
+            && rect.red == 0
+            && rect.x.raw() >= cell_left
+            && rect.x.raw() + rect.width.raw() <= cell_right
+    }));
+}
+
+#[test]
+fn incremental_layout_of_a_nested_table_matches_a_full_layout() {
+    let document = nested_document();
+    let full = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let mut cache = ParagraphLayoutCache::default();
+    let incremental = layout_incremental(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+    )
+    .unwrap();
+    assert_eq!(incremental.pages(), full.pages());
+}
+
+#[test]
+fn a_table_nested_two_levels_deep_is_refused() {
+    let mut document = nested_document();
+    let mut marked = Paragraph::new(document.ids().node());
+    marked.push_text("深", None, Arc::default()).unwrap();
+    let deeper = Table {
+        id: document.ids().node(),
+        grid: vec![Measure::Twips(800)],
+        rows: vec![Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![Cell {
+                id: document.ids().node(),
+                grid_span: 1,
+                vertical_merge: VerticalMerge::None,
+                width: Some(Measure::Twips(800)),
+                borders: CellBorders::default(),
+                shading: None,
+                margin: None,
+                vertical_align: None,
+                blocks: BlockSeq::from_vec(vec![marked.into()]),
+                preserved: None,
+            }],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(outer) = block else {
+            panic!("outer");
+        };
+        let Block::Table(inner) = Arc::make_mut(outer).rows[0].cells[0]
+            .blocks
+            .get_mut(1)
+            .unwrap()
+        else {
+            panic!("inner");
+        };
+        Arc::make_mut(inner).rows[0].cells[0]
+            .blocks
+            .push(deeper.into());
+    });
+    let error = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        LayoutError::Unsupported {
+            feature: "nested table deeper than one level",
+            ..
+        }
+    ));
+}
