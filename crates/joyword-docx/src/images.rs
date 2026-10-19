@@ -407,7 +407,7 @@ fn count_children(anchor: &Element, local: &str) -> usize {
 }
 
 /// Square exclusion distances of `wrap`. With `contour`, `wrap` is a
-/// `wp:wrapTight` or `wp:wrapThrough` (§20.4.2.17, §20.4.2.18): its
+/// `wp:wrapTight` or `wp:wrapThrough` (ECMA-376 Part 1 §20.4.2): its
 /// `wp:wrapPolygon` is not followed and the anchor extent stands in for the
 /// contour, so text keeps a rectangular gap instead of following the outline.
 /// Those elements carry no `distT`/`distB`, which come from the anchor.
