@@ -13,8 +13,15 @@
 //! for the locked `regex` crate, which matches in guaranteed linear time
 //! (no backtracking, no ReDoS). In regex mode the haystack is the paragraph
 //! text folded the same way; a match that would split a grapheme cluster,
-//! cover an inline object, or be empty is skipped. The replacement text is
-//! always literal: capture-group references such as `$1` are not expanded.
+//! cover an inline object, or be empty is skipped.
+//!
+//! A literal replacement is copied unchanged, so `$1` stays `$1`. A regex
+//! replacement expands capture references: `$$` is one `$`, `$0` is the
+//! whole match, and `$` plus a run of ASCII digits names that group. A
+//! number with no such group, including `$9` on `(a+)(b+)`, is copied
+//! unchanged. The inserted text is the original paragraph text, not the
+//! width-folded haystack. This syntax is a documented assumption, not a
+//! Word observation.
 
 use std::collections::BTreeMap;
 
@@ -44,7 +51,8 @@ pub struct FindQuery {
     pub fold_width: bool,
     /// Treat `text` as a `regex`-crate pattern. The engine builds the pattern
     /// with Unicode-aware, linear-time matching; invalid patterns are
-    /// rejected. The replacement stays literal; `$1` is not expanded.
+    /// rejected. The replacement then expands `$n` and `$$` (see the module
+    /// docs). A literal search does not.
     pub regex: bool,
 }
 
@@ -56,6 +64,10 @@ pub struct FindHit {
     pub order: u32,
     pub start: ScalarOffset,
     pub end: ScalarOffset,
+    /// `None` for a literal hit, so the replacement is copied unchanged.
+    /// `Some` for a regex hit: index 0 is the whole match and index n is
+    /// group n. A group that did not participate is an empty string.
+    pub captures: Option<Vec<String>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -211,6 +223,11 @@ pub fn paragraph_order(document: &Document, story: StoryId, paragraph: NodeId) -
 /// per accepted hit. Later hits are emitted first so earlier offsets stay
 /// valid inside one transaction. Overlaps, locks, preserved markup and ranges
 /// that contain an inline object are skipped.
+///
+/// Literal hits copy `replacement` unchanged. Regex hits expand `$`
+/// references against [`FindHit::captures`] before the text is inserted.
+/// The expanded text is still bounded by [`MAX_REPLACEMENT_SCALARS`] and
+/// must be ordinary text; either failure refuses the whole plan.
 pub fn replace_commands(
     document: &Document,
     hits: &[FindHit],
@@ -260,12 +277,13 @@ pub fn replace_commands(
             offset: hit.end,
             bias: Bias::Before,
         };
+        let text = match &hit.captures {
+            Some(groups) => expand_replacement(replacement, groups)?,
+            None => replacement.to_owned(),
+        };
         commands.push(Command::DeleteRange { start: at, end: to });
-        if !replacement.is_empty() {
-            commands.push(Command::InsertText {
-                at,
-                text: replacement.to_owned(),
-            });
+        if !text.is_empty() {
+            commands.push(Command::InsertText { at, text });
         }
         replaced += 1;
     }
@@ -367,34 +385,66 @@ impl Scan<'_> {
         let order = self.order;
         self.order = self.order.saturating_add(1);
         let units = units_of(paragraph);
-        let ranges = if let Some(pattern) = &self.pattern {
-            match_ranges_regex(&units, pattern, self.whole_word, self.fold_width)
+        if let Some(pattern) = &self.pattern {
+            let found = match_ranges_regex(&units, pattern, self.whole_word, self.fold_width);
+            if locked || blocked(paragraph) {
+                self.skipped = self.skipped.saturating_add(found.len() as u32);
+                return;
+            }
+            for hit in found {
+                if !self.push(
+                    story,
+                    paragraph.id(),
+                    order,
+                    hit.start,
+                    hit.end,
+                    Some(hit.groups),
+                ) {
+                    return;
+                }
+            }
         } else {
-            match_ranges(
+            let found = match_ranges(
                 &units,
                 self.needle,
                 self.case_sensitive,
                 self.whole_word,
                 self.fold_width,
-            )
-        };
-        if locked || blocked(paragraph) {
-            self.skipped = self.skipped.saturating_add(ranges.len() as u32);
-            return;
-        }
-        for (start, end) in ranges {
-            if self.hits.len() >= MAX_HITS {
-                self.truncated = true;
+            );
+            if locked || blocked(paragraph) {
+                self.skipped = self.skipped.saturating_add(found.len() as u32);
                 return;
             }
-            self.hits.push(FindHit {
-                story,
-                paragraph: paragraph.id(),
-                order,
-                start: ScalarOffset(start),
-                end: ScalarOffset(end),
-            });
+            for (start, end) in found {
+                if !self.push(story, paragraph.id(), order, start, end, None) {
+                    return;
+                }
+            }
         }
+    }
+
+    fn push(
+        &mut self,
+        story: StoryId,
+        paragraph: NodeId,
+        order: u32,
+        start: usize,
+        end: usize,
+        captures: Option<Vec<String>>,
+    ) -> bool {
+        if self.hits.len() >= MAX_HITS {
+            self.truncated = true;
+            return false;
+        }
+        self.hits.push(FindHit {
+            story,
+            paragraph,
+            order,
+            start: ScalarOffset(start),
+            end: ScalarOffset(end),
+            captures,
+        });
+        true
     }
 }
 
@@ -486,35 +536,71 @@ fn match_ranges(
     found
 }
 
+struct PatternHit {
+    start: usize,
+    end: usize,
+    groups: Vec<String>,
+}
+
 /// Run a compiled pattern over one paragraph's units. The haystack applies
 /// the same width folding as the literal path, so under `fold_width` a
 /// half-width pattern also finds full-width text. A match that splits a
 /// grapheme cluster, covers an inline object, or is empty is skipped;
 /// `whole_word` reuses the literal boundary rules on the unit indexes.
+///
+/// Capture text is sliced from the original scalars. Width folding is one
+/// scalar to one scalar, so a folded byte offset maps back without taking
+/// the half-width form as the replacement.
 fn match_ranges_regex(
     units: &[Unit],
     pattern: &regex::Regex,
     whole_word: bool,
     fold_width: bool,
-) -> Vec<(usize, usize)> {
+) -> Vec<PatternHit> {
     let mut haystack = String::new();
+    let mut originals = Vec::new();
+    let mut scalar_of_byte = Vec::new();
     let mut byte_ends = Vec::with_capacity(units.len());
+    let mut scalar = 0usize;
     for unit in units {
         if unit.barrier {
-            haystack.push('\u{FFFC}');
+            push_folded_char(
+                &mut haystack,
+                &mut scalar_of_byte,
+                &mut originals,
+                '\u{FFFC}',
+                '\u{FFFC}',
+                scalar,
+            );
+            scalar += 1;
         } else {
-            haystack.push_str(&fold(&unit.text, true, fold_width));
+            for ch in unit.text.chars() {
+                let folded = if fold_width { fold_width_char(ch) } else { ch };
+                push_folded_char(
+                    &mut haystack,
+                    &mut scalar_of_byte,
+                    &mut originals,
+                    ch,
+                    folded,
+                    scalar,
+                );
+                scalar += 1;
+            }
         }
         byte_ends.push(haystack.len());
     }
+    scalar_of_byte.push(scalar);
     let byte_start_of =
         |index: usize| -> usize { if index == 0 { 0 } else { byte_ends[index - 1] } };
     let mut found = Vec::new();
-    // `find_iter` yields non-overlapping matches in ascending order, so the
-    // unit cursor only moves forward and the scan stays linear overall.
+    // `captures_iter` yields non-overlapping matches in ascending order, so
+    // the unit cursor only moves forward and the scan stays linear overall.
     let mut hint = 0usize;
-    for hit in pattern.find_iter(&haystack) {
-        let (byte_start, byte_end) = (hit.start(), hit.end());
+    for caps in pattern.captures_iter(&haystack) {
+        let Some(whole) = caps.get(0) else {
+            continue;
+        };
+        let (byte_start, byte_end) = (whole.start(), whole.end());
         if byte_start == byte_end {
             continue;
         }
@@ -538,9 +624,113 @@ fn match_ranges_regex(
         if whole_word && !(left_boundary(units, first) && right_boundary(units, last + 1)) {
             continue;
         }
-        found.push((units[first].start, units[last].end));
+        let Some(groups) = groups_of(&caps, pattern.captures_len(), &scalar_of_byte, &originals)
+        else {
+            continue;
+        };
+        let start = units[first].start;
+        let end = units[last].end;
+        if groups
+            .first()
+            .is_none_or(|whole| whole.chars().count() != end - start)
+        {
+            continue;
+        }
+        found.push(PatternHit { start, end, groups });
     }
     found
+}
+
+fn push_folded_char(
+    haystack: &mut String,
+    scalar_of_byte: &mut Vec<usize>,
+    originals: &mut Vec<char>,
+    original: char,
+    folded: char,
+    scalar: usize,
+) {
+    haystack.push(folded);
+    scalar_of_byte.resize(haystack.len(), scalar);
+    originals.push(original);
+}
+
+fn groups_of(
+    caps: &regex::Captures<'_>,
+    count: usize,
+    scalar_of_byte: &[usize],
+    originals: &[char],
+) -> Option<Vec<String>> {
+    let mut groups = Vec::with_capacity(count);
+    for index in 0..count {
+        let Some(group) = caps.get(index) else {
+            groups.push(String::new());
+            continue;
+        };
+        let start = *scalar_of_byte.get(group.start())?;
+        let end = *scalar_of_byte.get(group.end())?;
+        if start > end || end > originals.len() {
+            return None;
+        }
+        groups.push(originals[start..end].iter().collect());
+    }
+    Some(groups)
+}
+
+/// Expand `$` references in a regex replacement.
+///
+/// `$$` becomes `$`. `$` followed by a maximal run of ASCII digits names one
+/// group: `$0` is the whole match and `$2` is the second group. `$10` is
+/// group 10, not group 1 followed by `0`. An index that the pattern does not
+/// have, and a number that does not fit in `usize`, is copied unchanged, so
+/// `$9` on a two-group pattern stays `$9`. A `$` that is not part of either
+/// form stays `$`. Group text is inserted as itself and is not scanned again.
+fn expand_replacement(template: &str, groups: &[String]) -> Result<String, FindError> {
+    let chars: Vec<char> = template.chars().collect();
+    let mut out = String::new();
+    let mut index = 0usize;
+    while index < chars.len() {
+        let ch = chars[index];
+        index += 1;
+        if ch != '$' {
+            out.push(ch);
+            continue;
+        }
+        if index < chars.len() && chars[index] == '$' {
+            index += 1;
+            out.push('$');
+            continue;
+        }
+        if index < chars.len() && chars[index].is_ascii_digit() {
+            let start = index - 1;
+            let mut number: usize = 0;
+            let mut overflow = false;
+            while index < chars.len() && chars[index].is_ascii_digit() {
+                let digit = usize::from(chars[index] as u8 - b'0');
+                index += 1;
+                match number
+                    .checked_mul(10)
+                    .and_then(|value| value.checked_add(digit))
+                {
+                    Some(value) => number = value,
+                    None => overflow = true,
+                }
+            }
+            if !overflow && number < groups.len() {
+                out.push_str(&groups[number]);
+            } else {
+                out.extend(chars[start..index].iter().copied());
+            }
+            continue;
+        }
+        out.push('$');
+    }
+    if out.chars().count() > MAX_REPLACEMENT_SCALARS {
+        return Err(FindError::TooLong);
+    }
+    if let Err(CommandError::InvalidText(ch)) = check_text(&out) {
+        return Err(FindError::InvalidReplacement(ch));
+    }
+    Ok(out)
 }
 
 fn left_boundary(units: &[Unit], index: usize) -> bool {

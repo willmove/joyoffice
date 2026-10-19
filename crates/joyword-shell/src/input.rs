@@ -1570,11 +1570,24 @@ impl<B: InputBackend> TextInput<B> {
         if plan.commands.is_empty() {
             return Ok(self.report_of(&report, 0));
         }
+        // Single replace selects the inserted text. A regex template such as
+        // `$2-$1` is shorter or longer than the expanded result.
+        let inserted = if all {
+            0
+        } else {
+            plan.commands
+                .iter()
+                .find_map(|command| match command {
+                    Command::InsertText { text, .. } => Some(text.chars().count()),
+                    _ => None,
+                })
+                .unwrap_or(0)
+        };
         let mut transaction = Transaction::new(self.backend.session().version(), plan.commands);
         transaction.selection = Some(self.selection);
         self.commit(transaction)?;
         if !all {
-            let end = chosen.start.0 + replacement.chars().count();
+            let end = chosen.start.0 + inserted;
             self.select_positions(Selection {
                 anchor: Position {
                     story: chosen.story,
