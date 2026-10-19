@@ -350,7 +350,7 @@
       ],
       "expected": [
         "行内 PNG、相对页面的 wrapNone 锚点和相对页面的 wrapSquare 锚点成为图片资源",
-        "wrapTight 锚点保留原 drawing，不丢弃，所在段落锁定",
+        "wrapTight 锚点按锚点范围近似为方形绕排（不是轮廓绕排），所在段落不锁定，原 drawing 绕排 XML 在保存时原样写回",
         "未引用的 word/custom/note.xml 在包内保持原字节"
       ],
       "reference_profile": {

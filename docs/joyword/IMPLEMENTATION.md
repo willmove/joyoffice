@@ -7,7 +7,7 @@
 - **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号、制表位、查找替换、格式刷、样式面板，以及项目符号、级别标签、列表对齐、主题 tint／shade、表格样式粗体底纹边框，和查找全半角折叠、正则查找与正则替换捕获组已落地，任务仍 `in_progress`；T201 的合并与拆分、垂直合并视觉跨行、跨页拆行、表头重复、表级边距、单元格 tcMar、double／dotted／dashed／thick 边框、有主题时的主题色边框，以及百分比宽度和 fixed／autofit 已落地，任务仍 `in_progress`；T202 的页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚页码域、`pgNumType`、下一页／连续／奇偶分节和等宽分栏已落地，任务仍 `in_progress`；T203 的行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地，拖放与表格内超链接也已落地（自动测试），页面绝对 wrapNone 浮动图与页眉页脚行内图片已落地（自动测试），页面相对 wrapSquare 第一切片已落地（自动测试），wrapTight／Through／TopAndBottom 未做，任务仍 `in_progress`；T204 的文件菜单导出 PDF 与打印到文件已消费屏幕上的同一 PageScene，系统打印对话框未验证，任务仍 `in_progress`；T205 的功能区、状态栏、字体与段落对话框、标尺拖拽，以及第三切片的下划线／sRGB 绘制和三个视图开关已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 已实现，五样例自动确定性、截断语义和 Windows GUI 窗口／CPU render 对照均完成，任务为 `done`；T211 的应用日志、panic hook 与测试 profile 已接入，麒麟与统信 UOS 的 `kill -9` 崩溃后日志检查已完成，任务为 `done`。完整统计现为 12 done／17 in_progress／37 planned。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
 - **主要未完成项**：精确 ACL／命名流、断电与非 NTFS／网络盘验收（Windows 原件保存确认路径已通过 GUI）、WPS 参考 PDF、信创真机验证、T200 剩余的按字体名换面、甲乙超过 10、中文计数超限、罗马数字超出 1..=3999、字母重复超过 64、bar／middleDot／heavy、编号部件改写、主题色文字、T201 剩余的嵌套表、列宽拖拽、首列末列与纵向条纹的排版和合同表格人工验收、T202 剩余的图形界面验收、widowControl、不等宽栏、`nextColumn`、章节页码、页眉编辑界面与页面设置写回、T203 剩余的 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS 粘贴对照（拖放、表格内超链接、wrapNone 与页面相对 wrapSquare 已落地，见该任务完成证据）、T204 剩余的双阅读器人工检查、真实打印、系统打印对话框、结构标签和仅书签锚点的文档内跳转、T205 剩余的 Word 字数对话框对照、导航窗格、审阅栏、粗线／虚线／波浪线／按字下划线、主题色、隐藏段落标记合并、跨段域，以及只用功能区完成报告排版的人工验收、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、统信 UOS 上仍不可达的 Fcitx IME 与系统文件对话框，以及其余 M2–M9 的审阅／AI 等路线图工作。
-- **2026-10-20 文档核对**：上一条把 T201 嵌套表、首列末列与纵向条纹，以及 T202 的 widowControl、不等宽栏、页眉编辑和页面设置写回，仍列在未完成项里。这些能力后来已有自动测试：一层嵌套表、首列末列与纵向条纹排版、widowControl、不等宽分栏、页眉编辑、页面设置写回和页眉页脚部件写回。T203 的页面相对 wrapSquare 上一条已经记为落地。T200 查找折叠记录里「替换文本始终是字面量」只描述该切片，捕获组切片展开 `$0`、`$1`..`$n` 和 `$$`。仍然未做的是：T201 列宽拖拽、第二层嵌套、从样式部件读入纵向条件、合同表格人工验收；T202 图形界面、栏分隔线、`nextColumn`、章节页码、Word 对照；T203 的 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS 粘贴；T204 真实打印与系统打印对话框（UOS 双阅读器有记录，不关闭人工验收）；T300 与 Word／WPS 交换。没有任何 M2 或 M3 任务改为 `done`。
+- **2026-10-20 文档核对**：上一条把 T201 嵌套表、首列末列与纵向条纹，以及 T202 的 widowControl、不等宽栏、页眉编辑和页面设置写回，仍列在未完成项里。这些能力后来已有自动测试：一层嵌套表、首列末列与纵向条纹排版、widowControl、不等宽分栏、页眉编辑、页面设置写回和页眉页脚部件写回。T203 的页面相对 wrapSquare 上一条已经记为落地。T200 查找折叠记录里「替换文本始终是字面量」只描述该切片，捕获组切片展开 `$0`、`$1`..`$n` 和 `$$`。仍然未做的是：T201 列宽拖拽、第二层嵌套、从样式部件读入纵向条件、合同表格人工验收；T202 图形界面、栏分隔线、`nextColumn`、章节页码、Word 对照；T203 的 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS 粘贴；T204 真实打印与系统打印对话框（UOS 双阅读器有记录，不关闭人工验收）；T300 与 Word／WPS 交换。没有任何 M2 或 M3 任务改为 `done`。其中 T201「从样式部件读入纵向条件」和 T203 的 wrapTight／Through 随后由 [#67](https://github.com/willmove/joyoffice/pull/67) 处理：前者已读入，后者只近似为方形绕排，见下文「2026-10-20 验证波次缺口修复（#67）」。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 - **T300（进行中，2026-10-19）**：文字与移动修订。第一切片已有 `w:ins`／`w:del`／`w:moveFrom`／`w:moveTo`、三种投影和可撤销的接受／拒绝。第二切片补上审阅菜单与功能区命令、偏好作者、markup 页边色条，以及已类型化单元格段落里的文字修订。第三切片把成对 `moveFrom`／`moveTo` 当成一次修订：接受或拒绝任一端会同时处理两端，全部接受／拒绝分别落到最终／原始投影，撤销恢复两端，`trackRevisions` 设置补丁不丢掉移动对。`rPrChange` 与表格结构修订仍整篇或整表只读。页眉修订装饰和 Word／WPS 人工交换未做，任务保持 `in_progress`。
@@ -874,12 +874,12 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
 | S3 特性样例 | [#65](https://github.com/willmove/joyoffice/pull/65) | `f0ccc659` | [特性样例](verification/feature-fixtures.md) |
 
 - **状态**。这些都是自动证据，没有人工验收、Word／WPS 对照或信创真机。没有任务改状态，计数仍是 12 done／17 in_progress／37 planned／0 blocked。TASKS 的进度总览和 T103、T200–T204、T209、T300 各追加了一条收口说明；验收清单补了排练、金样和样例的行，T103 的覆盖引导 fuzz 一行从 not-started 改为 partial。
-- **已知缺口，仍是 open**。下列缺口由验证文档报告，由分支 `fix/verify-wave-gaps` 上的修复 PR 处理；该 PR 合并前，本记录不把它们写成已修复。
-  1. T201：样式部件 `w:tblStylePr` 的 firstCol、lastCol、band1Vert 没有读入模型，页面上没有对应填充。期望记录在被忽略的测试 `vertical_column_bands_are_imported_from_table_style_pr`（[页面场景金样](verification/golden-scenes.md)）。
-  2. T200：CPU 光栅要求字形横坐标等于此前前进量之和，编号加制表位的行因此以 `InvalidGeometry` 被拒绝。S1 的光栅金样是 refused，S3 样例 DOCX-FEAT-T200-NUM 的 `render` 也被拒绝（[特性样例](verification/feature-fixtures.md)）。
-  3. T300：`text` 投影的元数据声明排除删除和移出，标准输出仍含这些文字；S3 的黄金文件锁定的是当前输出。
-  4. T203：图片资源已经导入，四条图片关系仍另报 `not-imported`。
-  5. T202：对已有正文段落执行 `page.number` 后，导出计划以 `paragraph formatting, source or inline objects changed` 拒绝，正文新页码写不回文件（[场景排练](verification/scenario-rehearsals.md)）。
+- **收口时的已知缺口**。下列缺口由验证文档报告，交给分支 `fix/verify-wave-gaps` 处理。该分支已作为 [#67](https://github.com/willmove/joyoffice/pull/67) 合入 main `caf84147`，各条现状写在括号里，详见下一节。
+  1. T201：样式部件 `w:tblStylePr` 的 firstCol、lastCol、band1Vert 没有读入模型，页面上没有对应填充。期望记录在被忽略的测试 `vertical_column_bands_are_imported_from_table_style_pr`（[页面场景金样](verification/golden-scenes.md)）。（已修复。）
+  2. T200：CPU 光栅要求字形横坐标等于此前前进量之和，编号加制表位的行因此以 `InvalidGeometry` 被拒绝。S1 的光栅金样是 refused，S3 样例 DOCX-FEAT-T200-NUM 的 `render` 也被拒绝（[特性样例](verification/feature-fixtures.md)）。（已修复。）
+  3. T300：`text` 投影的元数据声明排除删除和移出，标准输出仍含这些文字；S3 的黄金文件锁定的是当前输出。（已修复。）
+  4. T203：图片资源已经导入，四条图片关系仍另报 `not-imported`。（仍是 open，不在 #67 范围。同一样例里 `wrapTight` 锁定段落、编辑导出返回 `Restricted` 的问题由 #67 处理，见下一节。）
+  5. T202：对已有正文段落执行 `page.number` 后，导出计划以 `paragraph formatting, source or inline objects changed` 拒绝，正文新页码写不回文件（[场景排练](verification/scenario-rehearsals.md)）。（已修复，只限无格式域。）
 - **合并组合复跑**。在 main `f0ccc65944e6b961f3dcad935d5d43f5b6484c1c` 上按 `.github/workflows/ci.yml` 逐步本机复跑一次（Ubuntu 24.04 x86_64，Rust 1.98.1，apt 安装 CI 同名系统库、fonts-noto-cjk 与 poppler-utils，cargo-deny 0.20.2）。全部步骤退出码为 0，工作区复跑后仍干净，金样没有被改写。五个合并组合在一起没有引入失败。
   - build 作业：`check_docs.py`、`check_gates.py` 与反例、`scripts/tests` 单测、`cargo fmt --all -- --check`、`cargo test --locked`（781 通过、0 失败、1 忽略，忽略项即上面第 1 条）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo test --locked -p joyword`（52 通过）、恢复日志实验、DOCX 健壮性实验（固定矩阵 81／81，43 ok、38 rejected，`matrix_complete` 为真，地址空间限制 `enforced=true`；种子 20261019 的行为特征 fuzz 执行 200、ok 46、rejected 154、异常 0）、`cargo build -p joyword --locked`。本机装了 Noto CJK，所以 `feature_fixture_render_and_convert_follow_the_subset` 的视觉部分实际执行了；CI 的 build 作业没有该字体，这部分会直接返回。
   - unified-pdf 作业：强制真实字体的 layout／pdf／render 测试 226 项通过；统一场景、文档流、CPU 光栅对照、断行对照（改动断行被检出）与 12 个特性场景的 pdftotext 回读都通过。
@@ -888,3 +888,20 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
   - 夜间工作流 `fuzz-nightly.yml` 也复跑一次：覆盖反馈 `llvm-source-regions`，种子 20261020、60 次变异，ok 10、rejected 50、异常 0，`crates/` 区域 3594／44812，`coverage_merge_matches_scheduler` 为真，与 [T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md) 的数字一致。
   - 本机没有 macOS、Windows 与原生 ARM64。GitHub Actions 上 main 同一提交的 run 39338072041 九个作业全部 success，包括 macos-15、windows-2022 和 ubuntu-24.04-arm 的 build。
 - **未覆盖**：`scripts/check_acceptance.py` 仍不在 CI 里，本次只在本机运行并通过。图形界面、Word／WPS、真实打印和信创真机都没有在本次执行。
+
+### 2026-10-20 验证波次缺口修复（#67）
+
+[#67](https://github.com/willmove/joyoffice/pull/67)（分支 `fix/verify-wave-gaps`）squash 合入 main `caf84147`。根因、修复与回归测试见 [验证波次缺口修复](verification/verify-wave-fixes.md)；W09 harness 在该 PR 里重锚到 `7da6e738e1acb011c90d776007c49ccc43589f1f`。本节只更新文档，不改 `crates/` 与 `apps/`。
+
+| 缺口 | 现状 | 限制 |
+| --- | --- | --- |
+| T201 表格样式 firstCol、lastCol、band1Vert 导入时丢失 | 已修复：四条列与纵向条纹条件读入模型；样式部件仍原样写回 | 无 |
+| T200 编号标签后接制表位或点线引导符时光栅返回 `InvalidGeometry` | 已修复：正文从标签后的制表位开始，光栅允许笔位向前跳过间隙，仍拒绝回退 | 无 |
+| T202 已有正文段落 `page.number` 后导出拒绝 | 已修复：写成 `w:fldSimple` | 只限无行内对象段落里的无格式 PAGE／NUMPAGES／SECTIONPAGES；带格式域、超链接里的域、原有行内对象的段落仍拒绝，复杂域仍不支持 |
+| T203 `wrapTight` 让排版拒绝、编辑导出返回 `Restricted` | 已修复：页面相对的 `wrapTight`／`wrapThrough` 按锚点范围近似为方形绕排，原绕排 XML 照原样写回 | 近似，不沿 `wp:wrapPolygon`，不是真正的轮廓绕排；wrapTopAndBottom、衬于文字下方、非页面相对位置仍保留并锁定 |
+| T300 `text` 投影含删除与移出文字 | 已修复：投影跳过最终视图里不可见的 run | 无 |
+
+- **仍是 open**：T203 四条图片关系另报 `not-imported`（资源已导入，诊断仍在）。
+- **状态**：只有自动证据。没有任务改状态，计数仍是 12 done／17 in_progress／37 planned／0 blocked。M2／M3 任务仍需图形界面、Word／WPS、真实打印和信创真机的人工验收。
+- **同步的文档**：TASKS 的收口总览和 T200–T203、T300 条目；验收清单 README 与 T200–T203、T300；功能指南的图片与表格页、页面页的页码限制；行为登记 `IMAGE-ANCHOR-PAGE` 的期望，并新增 `IMAGE-WRAP-TIGHT-APPROX`；样例清单 DOCX-FEAT-T203-IMAGES 的期望与 [tests/fixtures/README.md](../../tests/fixtures/README.md)；[verification/README.md](verification/README.md) 新建索引。
+- **CI**：`scripts/check_acceptance.py` 加入 dependencies 作业，作为第一步运行（标准库、无网络，本机约 0.1 秒）。上一节「仍不在 CI 里」以本节为准。
