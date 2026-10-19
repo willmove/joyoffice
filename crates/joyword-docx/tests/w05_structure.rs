@@ -851,7 +851,6 @@ fn structural_removal_refuses_ignored_nontext_content() {
 }
 
 #[test]
-#[test]
 fn page_setup_margin_change_round_trips_in_export() {
     let bytes = package_with(r#"<w:p><w:r><w:t>Body</w:t></w:r></w:p>"#, None, &[]);
     let source = open(&bytes);
