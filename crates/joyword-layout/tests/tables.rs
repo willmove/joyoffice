@@ -6,13 +6,13 @@ use std::sync::Arc;
 
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FaceSet, FeatureSet, LayoutCancellation, LayoutInvalidation, LayoutLimits, LayoutNote,
-    LayoutReuse, LoadedFont, ParagraphLayoutCache, SingleFontProfile, layout_document,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutInvalidation, LayoutLimits,
+    LayoutNote, LayoutReuse, LoadedFont, ParagraphLayoutCache, SingleFontProfile, layout_document,
     layout_incremental,
 };
 use joyword_model::{
     Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Document,
-    Measure, Paragraph, Row, Shading, Table, VerticalMerge,
+    EqualColumns, Measure, Paragraph, Row, Shading, Table, VerticalMerge,
 };
 
 fn pt(value: i64) -> Emu {
@@ -580,4 +580,28 @@ fn incremental_layout_of_a_split_table_matches_a_full_layout() {
     assert_eq!(incremental.pages(), full.pages());
     assert_eq!(incremental.notes(), full.notes());
     assert!(full.pages().len() >= 2);
+}
+
+#[test]
+fn a_table_in_newspaper_columns_is_refused() {
+    let mut document = document();
+    document.sections_mut()[0].columns = Some(EqualColumns {
+        count: 2,
+        space: 720,
+    });
+    let error = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        LayoutError::Unsupported {
+            feature: "table in newspaper columns",
+            ..
+        }
+    ));
 }

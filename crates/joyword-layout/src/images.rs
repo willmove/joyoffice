@@ -1,7 +1,9 @@
 //! Inline still images in the shared page scene (LAYOUT-006, first slice).
 //!
 //! Images are not shaped. Preceding text may share a line when the image
-//! fits the remaining width; text after an image starts on the next line.
+//! fits the remaining width. Text after an image stays on that line when the
+//! first fitting span fits the width that remains; the rest starts the next
+//! line.
 //! An extent larger than the content box is scaled for display. The stored
 //! bytes stay unchanged.
 
@@ -70,6 +72,18 @@ pub(crate) fn fit_inline_images(
                     index += 1;
                 }
                 lines.append(&mut produced);
+                if attached {
+                    try_follow_text(
+                        &mut lines,
+                        &items,
+                        &mut index,
+                        content_width,
+                        fit_text,
+                        &mut diagnostics,
+                        &mut omitted,
+                        &mut stats,
+                    )?;
+                }
             }
             Item::Image(image) => {
                 if image.scaled {
@@ -77,6 +91,16 @@ pub(crate) fn fit_inline_images(
                 }
                 lines.push(image_line(font, size, image, line_box, descent));
                 index += 1;
+                try_follow_text(
+                    &mut lines,
+                    &items,
+                    &mut index,
+                    content_width,
+                    fit_text,
+                    &mut diagnostics,
+                    &mut omitted,
+                    &mut stats,
+                )?;
             }
         }
     }
@@ -236,6 +260,174 @@ fn scale_to(image: &mut FlowImage, max_width: Emu, max_height: Emu) {
     image.scaled = true;
 }
 
+#[allow(clippy::too_many_arguments)]
+fn try_follow_text(
+    lines: &mut Vec<LayoutLine>,
+    items: &[Item],
+    index: &mut usize,
+    content_width: Emu,
+    fit_text: &mut impl FnMut(&str, Emu) -> Result<ParagraphLines, LayoutError>,
+    diagnostics: &mut Vec<LineDiagnostic>,
+    omitted: &mut usize,
+    stats: &mut crate::LineStats,
+) -> Result<(), LayoutError> {
+    let Some(Item::Text(piece)) = items.get(*index) else {
+        return Ok(());
+    };
+    if piece.text.is_empty() {
+        return Ok(());
+    }
+    let Some(line) = lines.last_mut() else {
+        return Ok(());
+    };
+    if line.images.is_empty() {
+        return Ok(());
+    }
+    let remain = content_width.raw().saturating_sub(line.run.width.raw());
+    if remain <= 0 {
+        return Ok(());
+    }
+    let Some(head) = fitting_head(
+        &piece.text,
+        Emu::new(remain),
+        fit_text,
+        diagnostics,
+        omitted,
+        stats,
+    )?
+    else {
+        return Ok(());
+    };
+    let consumed_bytes = head.source.bytes.end;
+    let consumed_scalars = head.source.scalars.end;
+    if consumed_bytes == 0 || consumed_bytes > piece.text.len() {
+        return Ok(());
+    }
+    merge_text(line, head, piece.scalar, piece.byte);
+    if consumed_bytes < piece.text.len() {
+        let mut rest = fit_text(&piece.text[consumed_bytes..], content_width)?;
+        shift_lines(
+            &mut rest.lines,
+            piece.scalar + consumed_scalars,
+            piece.byte + consumed_bytes,
+        );
+        for diagnostic in &mut rest.diagnostics {
+            shift_diagnostic(
+                diagnostic,
+                piece.scalar + consumed_scalars,
+                piece.byte + consumed_bytes,
+            );
+        }
+        diagnostics.append(&mut rest.diagnostics);
+        *omitted += rest.omitted_diagnostics;
+        stats.shape_calls += rest.stats.shape_calls;
+        stats.shaped_bytes += rest.stats.shaped_bytes;
+        lines.extend(rest.lines);
+    }
+    *index += 1;
+    Ok(())
+}
+
+fn fitting_head(
+    text: &str,
+    width: Emu,
+    fit_text: &mut impl FnMut(&str, Emu) -> Result<ParagraphLines, LayoutError>,
+    diagnostics: &mut Vec<LineDiagnostic>,
+    omitted: &mut usize,
+    stats: &mut crate::LineStats,
+) -> Result<Option<LayoutLine>, LayoutError> {
+    let mut prefix_len = floor_char(text, text.len().min(64));
+    if prefix_len == 0 {
+        return Ok(None);
+    }
+    loop {
+        let mut fitted = fit_text(&text[..prefix_len], width)?;
+        stats.shape_calls += fitted.stats.shape_calls;
+        stats.shaped_bytes += fitted.stats.shaped_bytes;
+        *omitted += fitted.omitted_diagnostics;
+        let Some(first) = fitted.lines.first() else {
+            return Ok(None);
+        };
+        if first.run.width.raw() > width.raw()
+            || first.source.bytes.start != 0
+            || first.source.bytes.end == 0
+        {
+            return Ok(None);
+        }
+        let consumed = first.source.bytes.end;
+        if consumed == prefix_len && prefix_len < text.len() {
+            let grown = floor_char(text, text.len().min(prefix_len.saturating_mul(2)));
+            prefix_len = if grown <= prefix_len {
+                text.len()
+            } else {
+                grown
+            };
+            continue;
+        }
+        for diagnostic in &mut fitted.diagnostics {
+            match diagnostic {
+                LineDiagnostic::Overflow { source, .. }
+                | LineDiagnostic::MissingGlyph { source }
+                    if source.bytes.end <= consumed =>
+                {
+                    diagnostics.push(diagnostic.clone());
+                }
+                LineDiagnostic::Numbering { .. } => diagnostics.push(diagnostic.clone()),
+                _ => {}
+            }
+        }
+        return Ok(fitted.lines.into_iter().next());
+    }
+}
+
+fn merge_text(line: &mut LayoutLine, mut head: LayoutLine, scalar: usize, byte: usize) {
+    let glyph_base = line.run.glyphs.len();
+    let text_base = line.run.text.len();
+    let x_base = line.run.width.raw();
+    for glyph in &mut head.run.glyphs {
+        glyph.cluster += text_base;
+        glyph.x = Emu::new(glyph.x.raw().saturating_add(x_base));
+    }
+    line.run.glyphs.append(&mut head.run.glyphs);
+    for cluster in &mut head.clusters {
+        shift_range(&mut cluster.source.bytes, byte);
+        shift_range(&mut cluster.source.scalars, scalar);
+        cluster.glyphs.start += glyph_base;
+        cluster.glyphs.end += glyph_base;
+    }
+    line.clusters.append(&mut head.clusters);
+    line.run.missing.extend(
+        head.run
+            .missing
+            .into_iter()
+            .map(|offset| offset.saturating_add(text_base)),
+    );
+    line.run.text.push_str(&head.run.text);
+    line.run.width = Emu::new(line.run.width.raw().saturating_add(head.run.width.raw()));
+    line.source.bytes.end = byte + head.source.bytes.end;
+    line.source.scalars.end = scalar + head.source.scalars.end;
+}
+
+fn floor_char(text: &str, mut index: usize) -> usize {
+    if index > text.len() {
+        index = text.len();
+    }
+    while index > 0 && !text.is_char_boundary(index) {
+        index -= 1;
+    }
+    index
+}
+
+fn shift_diagnostic(diagnostic: &mut LineDiagnostic, scalar: usize, byte: usize) {
+    match diagnostic {
+        LineDiagnostic::Overflow { source, .. } | LineDiagnostic::MissingGlyph { source } => {
+            shift_range(&mut source.bytes, byte);
+            shift_range(&mut source.scalars, scalar);
+        }
+        LineDiagnostic::Numbering { .. } => {}
+    }
+}
+
 fn try_attach(
     line: &mut LayoutLine,
     image: &FlowImage,
@@ -284,6 +476,7 @@ fn image_line(
         },
         clusters: Vec::new(),
         images: vec![line_image(image, Emu::new(0))],
+        hyperlinks: Vec::new(),
         box_height: Emu::new(0),
     };
     grow(&mut line, image.height, line_box, descent);
@@ -297,6 +490,7 @@ fn line_image(image: &FlowImage, x: Emu) -> LineImage {
         x,
         width: image.width,
         height: image.height,
+        scalar: image.scalar,
     }
 }
 

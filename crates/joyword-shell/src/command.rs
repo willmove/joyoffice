@@ -461,6 +461,7 @@ pub const LIST_APPLY: CommandId = CommandId("list.apply");
 pub const LIST_LEVEL: CommandId = CommandId("list.level");
 pub const LIST_REMOVE: CommandId = CommandId("list.remove");
 pub const PAGE_BREAK: CommandId = CommandId("page.break");
+pub const PAGE_NUMBER: CommandId = CommandId("page.number");
 pub const PAGE_SIZE: CommandId = CommandId("page.size");
 pub const PAGE_MARGINS: CommandId = CommandId("page.margins");
 pub const PAGE_ORIENTATION: CommandId = CommandId("page.orientation");
@@ -887,6 +888,17 @@ impl Registry {
             CommandSpec {
                 id: PAGE_BREAK,
                 label: "command.page.break",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Edit,
+                    group: 3,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: PAGE_NUMBER,
+                label: "command.page.number",
                 menu: Some(MenuPlacement {
                     menu: MenuKind::Edit,
                     group: 3,

@@ -10,8 +10,10 @@
 //!   character style references, and the paragraph mark's properties;
 //! - style definitions and document defaults; built-in styles are found by
 //!   canonical `w:name` through the model, never by `w:styleId`;
-//! - page size, margins, title page, and default/first/even header and footer
-//!   stories of each section (`PAGE` / `NUMPAGES` in those stories);
+//! - page size, margins, title page, section break, page-number format and
+//!   start, equal columns, and default/first/even header and footer stories
+//!   (`PAGE` / `NUMPAGES` / `SECTIONPAGES` simple and complex fields in the
+//!   body and those stories);
 //! - settings: `compatibilityMode` as written (absent stays `None`, which the
 //!   model interprets as 12; the new-document value 15 is never imposed),
 //!   revision tracking, document protection, even and odd headers, the
@@ -49,6 +51,12 @@
 //! part inside the image budget becomes an image resource; floating anchors,
 //! OLE, SVG and remote targets stay preserved and are not fetched or run.
 //! Export does not rewrite media parts: a new image resource is refused.
+//! A simple `w:hyperlink` (`r:id` and/or `w:anchor`, runs of text and tabs)
+//! is mapped onto its runs. The external target is stored and never fetched.
+//! Export keeps that link on a text patch. A changed link is rewritten, and a
+//! new relationship is appended to `word/_rels/document.xml.rels` only when
+//! the rewrite emits a fresh id. A link that cannot be written is refused;
+//! it is not dropped. A tooltip, drawing or other child stays preserved.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
 //! §17.3, §17.6, §17.7, §17.13.5, §17.15; Part 2 (OPC); Part 3 (Markup
@@ -59,6 +67,7 @@ mod backing;
 mod binding;
 mod body;
 mod export;
+mod hyperlink;
 mod images;
 mod import;
 mod ns;

@@ -21,3 +21,4 @@ pub mod print;
 pub mod storage;
 
 pub mod input;
+pub mod rich_paste;

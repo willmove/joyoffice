@@ -4,9 +4,9 @@
 
 ## 进度速览
 
-- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号、制表位、查找替换、格式刷与样式面板切片已落地，任务仍 `in_progress`；T201 的合并与拆分、垂直合并视觉跨行、跨页拆行、表头重复和单元格边距已落地，任务仍 `in_progress`；T202 的页面几何、显式分页符、主页眉页脚，以及首页不同与奇偶页不同的绘制已落地，任务仍 `in_progress`；T203 的行内图片与纯文本／图片粘贴策略第一切片已落地，超链接、HTML／RTF 和拖放未做，任务仍 `in_progress`；T205 的功能区、状态栏、字体与段落对话框和第二切片的标尺拖拽已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
+- **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号、制表位、查找替换、格式刷与样式面板切片已落地，任务仍 `in_progress`；T201 的合并与拆分、垂直合并视觉跨行、跨页拆行、表头重复和单元格边距已落地，任务仍 `in_progress`；T202 的页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚页码域、`pgNumType`、下一页／连续／奇偶分节和等宽分栏已落地，任务仍 `in_progress`；T203 的行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地，拖放和浮动图未做，任务仍 `in_progress`；T204 的文件菜单导出 PDF 与打印到文件已消费屏幕上的同一 PageScene，系统打印对话框未验证，任务仍 `in_progress`；T205 的功能区、状态栏、字体与段落对话框和第二切片的标尺拖拽已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 均已实现但人工验收未完成；T211 的应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的主题 tint／shade、按字体名换面、表格样式、边框底纹、超出本切片的编号格式与前导符、编号部件改写、正则查找与全角半角折叠、T201 剩余的嵌套表、tblLook、单元格 tcMar、主题色边框、其他边框样式、表格样式和合同表格人工验收、T202 剩余的图形界面验收、正文页码域、连续／奇数／偶数分节与分栏、widowControl、页眉编辑界面与页面设置写回、T203 剩余的超链接、HTML／RTF、拖放、浮动图和 Word／WPS 粘贴对照、T205 剩余的 Word 字数对话框对照、视图选项进入布局快照键（排版没有这些选项，三个开关保持禁用）、下划线与非自动颜色的页面绘制，以及只用功能区完成报告排版的人工验收、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的审阅／AI 等路线图工作。
+- **主要未完成项**：Windows 原生 GUI 原件保存确认与真实 ACL／断电／非 NTFS 验收、WPS 参考 PDF、信创真机验证、T200 剩余的主题 tint／shade、按字体名换面、表格样式、边框底纹、超出本切片的编号格式与前导符、编号部件改写、正则查找与全角半角折叠、T201 剩余的嵌套表、tblLook、单元格 tcMar、主题色边框、其他边框样式、表格样式和合同表格人工验收、T202 剩余的图形界面验收、widowControl、不等宽栏、`nextColumn`、章节页码、页眉编辑界面与页面设置写回、T203 剩余的拖放、浮动图、表格内超链接和 Word／WPS 粘贴对照、T204 剩余的双阅读器人工检查、真实打印、系统打印对话框、结构标签和链接注释、T205 剩余的 Word 字数对话框对照、视图选项进入布局快照键（排版没有这些选项，三个开关保持禁用）、下划线与非自动颜色的页面绘制，以及只用功能区完成报告排版的人工验收、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、T211 崩溃后人工检查日志，以及其余 M2–M9 的审阅／AI 等路线图工作。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。模型不读 `w:docGrid`。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 
@@ -514,6 +514,17 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **绘制**：仍在正文分页之后画进边距带，不增加页，不推动正文。墨水越过正文框仍记 `StoryExceedsMargin`。无法绘制的页眉段落仍整段跳过并记 `StoryContentSkipped`。若绘制改变页数，仍返回“布局未稳定”。不再为已绘制的首页或奇偶页发出 `HeaderVariantNotApplied`。
 - **未覆盖**：图形界面验收；正文里的 `PAGE`／`NUMPAGES`；复杂 fldChar 与其他域开关；连续、奇数页、偶数页分节与分栏；`pgNumType` 重启；widowControl（layout_rules R5／R8 仍为负结果，不实现）；页眉编辑界面与页眉部件改写；页面设置的 DOCX 写回。没有新增依赖。没有启动图形界面。W09 harness 重锚到 `11fa33c2135f2d7d79a78a480c250c5363fafd1f`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
 
+### T202 页码域、分节与等宽分栏（2026-10-18）
+
+这一刀把 `PAGE`／`NUMPAGES`／`SECTIONPAGES` 放进正文和页眉页脚，按 `w:pgNumType` 计算，并让下一页、连续、奇数页和偶数页分节以及等宽栏进入同一 `PageScene`。屏幕与 PDF 仍共用这次排版。T202 保持 `in_progress`。导出仍走既有 ExportPlan：不改写 `sectPr` 和页眉部件；未改的段落复制原 XML；插入域之后的段落因内联对象变化而拒绝，不把对象标记写成正文。
+
+- **导入**：`fldSimple` 与复杂域 `begin`／`instrText`／可选 `separate` 与结果／`end` 在指令是这三个名字，或只再带 `\* MERGEFORMAT` 时，成为一个 `PageField`。缓存最长 32 个标量，不含对象标记、C0 控制符或制表符；空缓存不保存。结果不进入段落正文，段落不因此锁定。其他 `fldChar` 序列仍整段保留并锁定。`w:type` 省略为 `nextPage`；`nextColumn` 或带额外属性的 `type` 使该节不完整并保留。`pgNumType` 读 `fmt` 与 `start`；`chapStyle`／`chapSep` 使该节不完整。`w:cols` 只接受等宽：`num` 1 视为单栏，2..=45 且间距非负（省略 720 twip）、`equalWidth` 不为假、`sep` 不为真、没有 `w:col` 子元素时记为 `EqualColumns`。
+- **页码**：正文域参与最多 8 遍的分页反馈。全量排版对含域的段从显示页码 1、总页数 1、节页数 1 起算；增量路径使用同一组种子。收敛后 `PAGE` 用该节格式，另外两个域用十进制。格式失败，或状态重复／遍数用尽且每个正文域都有缓存时，再排一版只画缓存，并记 `PageFieldCached`。没有缓存则返回“布局未稳定”。页眉页脚在分页之后绘制，不改变页数。
+- **分节**：节自己的 `w:type` 描述它如何相对前一节开始。文档第一块忽略第 0 节的类型。偶数或奇数节若下一页序号奇偶不对，先为前一节补一页空白（用前一节的页框和页眉），新节内容页再用 `start`，没有 `start` 则用空白之后的下一个序号。`start` 本身奇偶不对时仍显示它，并记 `PageNumberParity`。连续节在页框和栏规格都相同且当前页已有内容时共用该页，页仍属于打开它的节，栏号不变；纸张、页边距或栏不同则记 `ContinuousPageSplit` 并换页，不再补奇偶空白。
+- **分栏**：栏宽是（版心减去栏间距）除以栏数的整数商，各行都按这个宽度拟合，余数留在末栏右侧。竖向放不下时先换栏再换页。`w:br w:type="column"` 推进一栏；只有一栏时换页。多栏节里的表直接拒绝。
+- **命令**：编辑菜单 `page.number` 与分页符同组，不进功能区，因此本命令不提高功能目录地板。地板现为 40，来自 T203 的插入图片按钮。它插入一个无缓存的 `PAGE`，一次撤销。行为登记 `PAGE-NUMBER-INSERT-UNDO` 是假设，没有 Word 观察。
+- **未覆盖**：widowControl 仍不实现。页眉编辑界面、页眉部件和页面设置都不写回 DOCX。不等宽栏、栏分隔线、`nextColumn`、章节页码未做。页码域不能和编号、制表位、图片或分页符放在同一段。连续节若没有打开自己的页，`SECTIONPAGES` 不计它借住的那一页。状态栏页码仍是物理页序，不是 `pgNumType` 之后的显示页码。没有启动图形界面。没有新增依赖。W09 harness 重锚到 `aa2f97faacd447c43aa4987a095ed94e1c494e83`（合入 PR #36 之后的 crates 树；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+
 ### T203 行内图片与剪贴板第一切片（2026-10-18）
 
 这一刀导入并插入行内静态图片，把它们放进屏幕和 PDF 共用的页面场景，并规定纯文本与图片字节的粘贴。超链接、HTML／RTF、拖放和浮动图留到后续切片。T203 保持 `in_progress`。
@@ -524,6 +535,19 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **粘贴**：`choose_paste` 优先第一张已接纳的图片。存在图片条目但全部被拒时，不回退成文字。只有文件路径时拒绝，不打开路径。纯文本复制去掉 U+FDD0。GPUI 剪贴板按条目读取，不用会把路径拼进文字的 `text()`。
 - **排版与输出**：图片不整形。前面的文字能放下时与图片同一行，后面的文字另起一行。超出内容框的显示尺寸按比例缩小。图片底边落在基线上。PDF 用 krilla 的 raster-images 画出，CPU 光栅绘制同一矩形。空字形行不要求字体。
 - **未覆盖**：超链接、HTML／RTF、拖放、浮动 `wp:anchor`、把选中图片复制回系统剪贴板、页眉页脚图片、图片后面的同行文字、表格内图片的产品验收，以及 Word／WPS／浏览器双向粘贴。没有启动图形界面。行为登记 `IMAGE-INSERT-UNDO`、`IMAGE-PASTE-REFUSE`、`IMAGE-DEDUP` 是假设，没有 Word 观察。krilla 仍是 0.8.2，只在 joyword-pdf 打开 raster-images；image 仍是 0.25.10，模型打开 png、jpeg、gif、bmp、tiff。Windows 盘符修正之后，W09 harness 重锚到 `d0f9a5ca51ca6f7610394c372ad5e8be580a58dd`（该提交的 `crates/` 含行内图片、功能区、无 expect 的图片样例，以及把 `C:\` 视为本地路径；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。W09 与恢复实验的独立锁记入 image 0.25.10 及其既有传递依赖，没有升级版本。
+
+### T203 超链接、安全粘贴与图片同行文字（2026-10-18）
+
+这一刀把简单超链接、HTML／RTF 的安全粘贴、图片后的同行文字、插入图片按钮和选中图片的复制接到已有编辑路径。T203 保持 `in_progress`。拖放、浮动图和人工对照未做。
+
+- **导入**：`w:hyperlink` 只有 `r:id` 和／或 `w:anchor`，子节点只是带 `rPr`／`t`／`tab` 的 `w:r` 时，链接记在这些 run 上。关系目标是外部字符串，只存储，不请求。`javascript:`、`data:`、`file:` 可以留下，但打开允许列表拒绝它们。允许打开的只有 `http`、`https` 和 `mailto`：`http`／`https` 要有 `://` 和主机，主机不能带用户信息或前导点；`mailto` 要有 `@`，不能有 `://`。只有锚点不是 URL。工具提示、绘图、未解析的 `r:id` 或其他子节点保持原样并锁定段落，不丢未知 XML。
+- **编辑与打开**：`SetHyperlink` 设置、修改或清除选区上的链接，空选区不变，每次一次撤销。编辑写入的外部目标必须已经通过打开允许列表。Ctrl+点击（macOS 上还有 Command+点击）命中可打开的链接时，用 `xdg-open`、`open` 或 `explorer` 把 URL 当作单个参数交给系统，不经 shell；启动失败不报成功。本环境没有启动图形界面，测试不拉起浏览器。
+- **导出**：未改动的包仍返回原始字节。链接签名不变的文字补丁保留 `w:hyperlink`。链接改变时改写段落；新的外部 URL 只在这次改写写出新 id 时追加到 `word/_rels/document.xml.rels` 的唯一结束标记之前，不重写整个关系部件。写不出的链接返回“hyperlink structure is not rewritten”，不把链接丢掉。表格段落若带链接，表格改写拒绝该段，不在本切片实现表格超链接导出。
+- **粘贴**：手写 HTML 与 RTF 子集，不新增 crate。HTML 保留 `b`／`strong`、`i`／`em`、`u`、段落、换行和 `h1`–`h3`；`script`、`style`、`iframe`、`object`、`embed`、`svg`、`img` 的内容丢掉，不取远程资源，属性忽略。实体编码的标签保持为文字，不再解析。RTF 保留 `\b`、`\i`、`\ul`、`\par`、`\line`、`\tab`、`\u` 和 `\'`；跳过 `\object`、`\pict`、`\stylesheet`、`\fonttbl`、`\info`、`\field` 指令，留下 `\fldrslt` 的可见文字，不把域变成超链接。输入超过 1 MiB 拒绝。深度超过 32、字符超过 10 万或段落超过 256 时退回纯文本。整段粘贴是同一种列表，且文档里已有对应编号实例（有序列表为 decimal，无序列表为 `numFmt` bullet）时才套用该实例；否则只分成段落，不发明 `numbering.xml`。命令数超过输入预算时退回纯文本。
+- **图片**：图片后面的文字在剩余宽度放得下第一行时留在同一行，其余另起一行。插入图片按钮不在静态功能区里携带路径；窗口弹出文件框后调用已有 `insert_image_file`。选区恰好是一张内嵌图片时，复制用 `ClipboardItem::new_image` 写入系统剪贴板。GPUI 不提供 HTML／RTF 剪贴板类型，文本里看起来像 HTML 或 RTF 的内容按富文本解析。
+- **外观**：超链接下划线是页面场景里的矩形（颜色 0x0563C1，约 0.5 磅，紧贴基线之下），屏幕和 PDF 共用，不写成 `rPr` 的下划线。
+- **样例**：DOCX-MIN-004 的简单外部超链接现在可编辑，拆开后两段仍指向同一外部目标；`file://` 附加模板仍只记录、不访问。更早的 T103 记录里“超链接段落锁定”只描述当时的导入，不描述本切片。
+- **未覆盖**：拖放；浮动 `wp:anchor`；页眉页脚图片；表格内超链接的改写；平台专有的 HTML／RTF 剪贴板格式；Word／WPS／浏览器双向粘贴对照。没有新增依赖。没有启动图形界面。再并入语料 CLI 渲染之后，W09 harness 重锚到 `0be3483ac634d787e13e41a81e83b52f2ab22ad5`（该提交的 `crates/` 含超链接、安全粘贴、行内图片、表格合并拆分、字体／段落对话框，以及五个原创样例的 CLI 渲染；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。
 
 ### T205 功能区、标尺与状态栏第一切片（2026-10-18）
 
@@ -545,8 +569,8 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **导出**：可写的直接缩进、间距和制表位随段落重写进入 `w:ind`、`w:spacing` 和 `w:tabs`。空的直接制表位列表写出空的 `w:tabs`（明确不要停止位）；省略则不写该元素（继续继承）。Bar、Clear、MiddleDot 和 Heavy 拒绝，不静默丢掉。段落仍含未知标记或不能表示的直接格式时不重合成，避免丢掉未知 XML。字体改动落在已有可表示缩进的段上时，缩进随导出保留。给已有可写制表位的段落指定 `numPr` 会同时写出编号和制表位，`numbering.xml` 仍不改写。
 - **标尺拖拽**：拖首行时保持正文左缘，拖正文左缘时保持首行位置，拖右缘时用版心宽度反算右缩进。拖动生成的默认制表位会在该段的直接列表里新增一个 Left、无前导符的停止位。解析结果里的自定义位若没有全部出现在直接列表中，拒绝 `ruler.drag.inherited`，不改写样式里的表。指针移动不足 3 像素不提交。制表位在标尺下方足够远处松开则删除该位。
 - **视图开关**：`view.formatting_marks`、`view.hidden_text`、`view.field_codes` 的 `modifies_document` 为假，可用状态在无文档时也是禁用，原因分别是排版不绘制格式标记、拒绝隐藏文字、不投影域代码。它们不进入布局快照键。点击只显示这条原因。
-- **目录**：地板从 34 升到 39。新增的字体、段落和三个视图控件证据等级是 `unit`。五个新图标仍是 `chrome.rs` 里的 16×16 格子。
-- **未覆盖**：Word 字数对话框对照；导航窗格与审阅栏；视图选项进入布局快照键（排版没有这些选项，不能把禁用开关说成已经切换显示）；下划线与非自动颜色的页面绘制；Exact 小于基线时画布仍会报错，对话框不把 Exact 悄悄抬到基线；GUI 人工验收未做。没有新增依赖。合并 `origin/main` 的行内图片之后，W09 harness 曾锚到 `347d44aebbf3d7f34e58ad88828f3ca7c031d0a7`（该提交的 `crates/` 同时含字体／段落对话框与行内图片）。随后与表格合并拆分再次合入，当前锚点见上一节 T201 记录，不放宽 `git diff <SHA> -- crates`。
+- **目录**：T205 第二切片把地板从 34 升到 39。新增的字体、段落和三个视图控件证据等级是 `unit`。五个新图标仍是 `chrome.rs` 里的 16×16 格子。T203 的插入图片按钮再把目录地板升到 40，图标 `picture` 同样画在 `chrome.rs`。
+- **未覆盖**：Word 字数对话框对照；导航窗格与审阅栏；视图选项进入布局快照键（排版没有这些选项，不能把禁用开关说成已经切换显示）；下划线与非自动颜色的页面绘制；Exact 小于基线时画布仍会报错，对话框不把 Exact 悄悄抬到基线；GUI 人工验收未做。没有新增依赖。合并 `origin/main` 的行内图片之后，W09 harness 曾锚到 `347d44aebbf3d7f34e58ad88828f3ca7c031d0a7`（该提交的 `crates/` 同时含字体／段落对话框与行内图片）。随后与表格合并拆分再次合入，当时锚在 `2e886f16801984c21b60490c770825732a6d6179`。再并入超链接与安全粘贴之后，当前锚点见上一节 T203 记录，不放宽 `git diff <SHA> -- crates`。
 
 ### T210 五个原创样例的 CLI 渲染与转换（2026-10-18）
 
@@ -557,7 +581,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **增量下标**：流向量（段落标识、缓存键、页起点）仍按段落序号。未改段落的查找用这个序号，不再用正文块下标。节几何和 `section_break_before` 继续用正文块下标。不透明块向依赖向量推入默认标志，使 `produced_contexts` 与正文块对齐。`walk_back_keep_next` 的 `keepNext` 回走按段落序号写 `same`，分节判断用该段的正文块下标。缓存与全量相等的测试覆盖：不透明块计数与指纹、不透明块两侧段落的二次增量（稳定边界为 0）、编辑后增量等于全量、不透明块之后的分节、以及表加不透明块仍等于全量。
 - **CLI**：`render` 与 `convert` 的 schema 1 JSON 增加 `omitted_blocks`。帮助文本说明不透明块被跳过、计数、且不占页面几何。非空布局诊断或 `omitted_diagnostics != 0` 仍以“字体无法完整显示文档”拒绝；`omitted_blocks` 本身不使渲染失败。未支持的转换目标、覆盖已有输出、预算和先写后校验的契约不变。输入文件不修改。
 - **自动验证**：`cargo test --locked -p joyword-docx -p joyword-layout -p joyword-model -p joyword-cli --offline` 通过。`JOYWORD_TEST_FONT` 指向文泉驿微米黑、`JOYWORD_REQUIRE_TEST_FONT=1` 时，`joyword-cli` 的 visual 测试 4 项通过：五个样例各 `render` 与 `convert --to pdf` 两次，PNG、PDF 与报告 JSON 逐字节相同，MIN-003 的 `omitted_blocks` 为 1，覆盖已有输出与 `--to html` 退出码为 2，输入字节不变。上述四个包的 `cargo clippy --all-targets -- -D warnings` 与 `cargo fmt --all -- --check` 通过。没有新增依赖。
-- **未覆盖**：render 与窗口显示的人工一致性；信创真机；没有安装宋体、Noto CJK 或 `JOYWORD_TEST_FONT` 时 visual 测试按既有契约跳过，不把跳过说成已在该环境画出五个样例。Droid Sans Fallback 缺少样例里的全角标点，会因缺字诊断拒绝渲染，这是字体覆盖而不是导入或分页失败。W09 harness 重锚到 `655cbccdd1737827da29ea182c45ac6923e74828`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+- **未覆盖**：render 与窗口显示的人工一致性；信创真机；没有安装宋体、Noto CJK 或 `JOYWORD_TEST_FONT` 时 visual 测试按既有契约跳过，不把跳过说成已在该环境画出五个样例。Droid Sans Fallback 缺少样例里的全角标点，会因缺字诊断拒绝渲染，这是字体覆盖而不是导入或分页失败。W09 harness 曾锚到 `655cbccdd1737827da29ea182c45ac6923e74828`（本任务改 `crates/` 的提交）。当时固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。再并入超链接与安全粘贴之后，当前锚点见上文 T203 超链接记录，不放宽 `git diff <SHA> -- crates`。
 
 ### T204 统一 PDF 与打印到文件第一切片（2026-10-19）
 

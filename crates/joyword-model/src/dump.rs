@@ -13,6 +13,7 @@ use crate::block::{
     Block, BlockSeq, BorderEdge, CellBorders, InlineKind, Paragraph, Preserved, TableWidth,
 };
 use crate::document::Document;
+use crate::hyperlink::Hyperlink;
 use crate::id::NodeId;
 use crate::props::{Color, FontRef, FontSlots, Languages, ParaProps, RunProps, Toggle};
 use crate::text::OBJECT_MARKER;
@@ -78,6 +79,15 @@ fn languages(out: &mut Vec<String>, languages: &Languages) {
             out.push(format!("lang.{name}={tag}"));
         }
     }
+}
+
+fn link_dump(link: Option<&Hyperlink>) -> String {
+    let Some(link) = link else {
+        return String::new();
+    };
+    let external = link.external.as_deref().unwrap_or("-");
+    let anchor = link.anchor.as_deref().unwrap_or("-");
+    format!(" link=external:{external};anchor:{anchor}")
 }
 
 fn run_props(props: &RunProps) -> String {
@@ -285,7 +295,7 @@ impl Dumper<'_> {
                         Some(inline) => {
                             let kind = match &inline.kind {
                                 InlineKind::Break(kind) => format!("break:{kind:?}"),
-                                InlineKind::PageField(kind) => format!("field:{kind:?}"),
+                                InlineKind::PageField(field) => format!("field:{:?}", field.kind),
                                 InlineKind::Image {
                                     resource,
                                     width,
@@ -325,8 +335,9 @@ impl Dumper<'_> {
             self.line(
                 depth + 1,
                 &format!(
-                    "run style={style} props={} {}",
+                    "run style={style} props={}{} {}",
                     run_props(&run.props),
+                    link_dump(run.link.as_deref()),
                     parts.join(" ")
                 ),
             );

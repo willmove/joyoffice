@@ -5,11 +5,13 @@ use std::path::PathBuf;
 
 use joyoffice_opc::{Budget, Method, Package, write_archive};
 use joyword_engine::RunChange;
-use joyword_model::{BreakKind, InlineKind, Justification, Measure, NumberingRef, Orientation};
+use joyword_model::{
+    BreakKind, InlineKind, Justification, Measure, NumberingRef, Orientation, PageFieldKind,
+};
 use joyword_shell::command::{
     ArgValue, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_INSERT, EDIT_PASTE, EDIT_SELECT_ALL,
     FILE_OPEN, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
-    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, STYLE_APPLY, STYLE_LIST,
+    PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, STYLE_APPLY, STYLE_LIST,
 };
 use joyword_shell::host::Office;
 
@@ -426,4 +428,50 @@ fn page_setup_and_break_go_through_the_command_registry() {
     office.active_mut().unwrap().undo().unwrap();
     assert_eq!(section_page(&office).orientation, before.orientation);
     assert_eq!(section_page(&office).width, before.width);
+}
+
+#[test]
+fn inserting_a_page_number_is_one_undoable_transaction() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("number.docx");
+    fs::write(&source, fixture(1)).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    office.invoke(PAGE_NUMBER, &[]).unwrap();
+    let paragraph = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    assert!(paragraph.inlines().iter().any(|inline| {
+        matches!(
+            &inline.kind,
+            InlineKind::PageField(field) if field.kind == PageFieldKind::Page
+        )
+    }));
+    office.active_mut().unwrap().undo().unwrap();
+    let restored = office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    assert!(restored.inlines().is_empty());
 }

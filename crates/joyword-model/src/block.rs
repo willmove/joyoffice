@@ -9,6 +9,7 @@
 
 use std::sync::Arc;
 
+use crate::hyperlink::Hyperlink;
 use crate::id::{NodeId, PreservedId, ResourceId, SourceRef};
 use crate::props::{Color, Measure, ParaProps, RunProps};
 use crate::style::StyleId;
@@ -26,6 +27,8 @@ pub struct Run {
     pub len: usize,
     pub style: Option<StyleId>,
     pub props: Arc<RunProps>,
+    /// `w:hyperlink` wrapping this run. Absent when the run is ordinary text.
+    pub link: Option<Arc<Hyperlink>>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -37,13 +40,38 @@ pub enum BreakKind {
 }
 
 /// A page-number field this slice can project. ECMA-376 Part 1 §17.16.1
-/// names `PAGE` and `NUMPAGES`; other instructions stay uninterpreted.
+/// names `PAGE`, `NUMPAGES` and `SECTIONPAGES`. Other instructions stay
+/// uninterpreted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PageFieldKind {
-    /// Current page, 1-based, after pagination has settled.
+    /// Current page number after pagination has settled.
     Page,
     /// Page count of the laid-out document.
     NumPages,
+    /// Page count of the section that owns the field's page.
+    SectionPages,
+}
+
+/// `PAGE`, `NUMPAGES` or `SECTIONPAGES`, plus the result stored in the file.
+/// Layout draws the computed number. The cached text is used only when the
+/// number cannot be formatted or the live value does not settle.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct PageField {
+    pub kind: PageFieldKind,
+    pub cached: Option<std::sync::Arc<str>>,
+}
+
+impl PageField {
+    pub fn new(kind: PageFieldKind) -> Self {
+        Self { kind, cached: None }
+    }
+
+    pub fn with_cache(kind: PageFieldKind, cached: impl Into<std::sync::Arc<str>>) -> Self {
+        Self {
+            kind,
+            cached: Some(cached.into()),
+        }
+    }
 }
 
 /// Source content the model does not interpret, held by the format layer.
@@ -57,9 +85,8 @@ pub struct Preserved {
 #[derive(Clone, Debug, PartialEq)]
 pub enum InlineKind {
     Break(BreakKind),
-    /// `PAGE` or `NUMPAGES` in a header or footer. The cached result is not
-    /// stored; layout substitutes the number or reports that it cannot.
-    PageField(PageFieldKind),
+    /// `PAGE`, `NUMPAGES` or `SECTIONPAGES` in the body or a header or footer.
+    PageField(PageField),
     Image {
         resource: ResourceId,
         width: Measure,
@@ -154,7 +181,12 @@ impl Paragraph {
         self.text.insert_str(end, text)?;
         let len = text.chars().count();
         if len > 0 {
-            self.runs.push(Run { len, style, props });
+            self.runs.push(Run {
+                len,
+                style,
+                props,
+                link: None,
+            });
         }
         Ok(())
     }
@@ -175,6 +207,7 @@ impl Paragraph {
             len: 1,
             style,
             props,
+            link: None,
         });
     }
 
@@ -227,7 +260,7 @@ impl Paragraph {
             return;
         }
         let (left, right) = (&self.runs[index - 1], &self.runs[index]);
-        if left.style == right.style && left.props == right.props {
+        if left.style == right.style && left.props == right.props && left.link == right.link {
             let len = right.len;
             self.runs[index - 1].len += len;
             self.runs.remove(index);
@@ -272,6 +305,65 @@ impl Paragraph {
             self.join_runs_at(boundary);
         }
         Ok(changed)
+    }
+
+    /// Sets or clears the hyperlink on every run overlapping `range`.
+    /// An empty range changes nothing.
+    pub fn set_links(
+        &mut self,
+        range: std::ops::Range<ScalarOffset>,
+        link: Option<Arc<Hyperlink>>,
+    ) -> Result<bool, TextError> {
+        if range.start > range.end {
+            return Err(TextError::InvalidRange {
+                start: range.start.0,
+                end: range.end.0,
+            });
+        }
+        if range.end.0 > self.len() {
+            return Err(TextError::OutOfBounds {
+                offset: range.end.0,
+                len: self.len(),
+            });
+        }
+        if range.start == range.end {
+            return Ok(false);
+        }
+        let first = self.split_run_at(range.start.0);
+        let last = self.split_run_at(range.end.0);
+        let mut changed = false;
+        for run in &mut self.runs[first..last] {
+            if run.link != link {
+                run.link.clone_from(&link);
+                changed = true;
+            }
+        }
+        for boundary in (first..=last).rev() {
+            self.join_runs_at(boundary);
+        }
+        Ok(changed)
+    }
+
+    /// Hyperlink covering the scalar at `offset`, if that position is in a run.
+    pub fn link_at(&self, offset: usize) -> Option<&Hyperlink> {
+        self.run_at(offset)
+            .and_then(|(index, _)| self.runs.get(index))
+            .and_then(|run| run.link.as_deref())
+    }
+
+    /// Puts `link` on the run most recently appended. Import and rebuild use
+    /// this after `push_text` or `push_inline`.
+    pub fn set_last_run_link(&mut self, link: Option<Arc<Hyperlink>>) {
+        if let Some(run) = self.runs.last_mut() {
+            run.link = link;
+        }
+    }
+
+    /// Puts the same link on every run from `from` to the end.
+    pub fn stamp_runs_from(&mut self, from: usize, link: Arc<Hyperlink>) {
+        for run in self.runs.iter_mut().skip(from) {
+            run.link = Some(Arc::clone(&link));
+        }
     }
 
     /// Sets the character style of every run overlapping `range`. Direct
@@ -325,6 +417,7 @@ impl Paragraph {
                 len,
                 style: None,
                 props: self.mark_props.clone(),
+                link: None,
             });
         } else {
             let index = match at.0 {
@@ -355,6 +448,7 @@ impl Paragraph {
                 len: 1,
                 style,
                 props,
+                link: None,
             },
         );
         Ok(())
