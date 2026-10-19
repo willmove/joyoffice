@@ -8,6 +8,21 @@
 //! searchable. krilla's own shaping (`simple-text`) is disabled. Still
 //! images are decoded from the scene bytes and drawn at the scene rectangle;
 //! nothing is fetched.
+//!
+//! Document information and outlines are optional additions on that same
+//! scene (T204). The producer is the fixed name [`PRODUCER`]. Creation and
+//! modification dates are omitted unless a caller later supplies a date that
+//! came from the document; this writer does not read the clock.
+
+mod check;
+mod info;
+
+pub use check::PdfReport;
+pub use info::{OutlineEntry, PdfExport, core_title, outline_from_headings};
+
+/// Tool name written to the PDF information dictionary. It does not include
+/// a time or a build stamp.
+pub const PRODUCER: &str = "JoyWord";
 
 use std::collections::HashMap;
 use std::ops::Range;
@@ -99,8 +114,26 @@ fn scene_glyphs(run: &GlyphRun, searchable: bool) -> Vec<SceneGlyph> {
 }
 
 /// Renders scenes to a PDF. `fonts` must contain every font the runs use.
+/// The producer is [`PRODUCER`]; there is no title, outline or timestamp.
 pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfError> {
-    let mut document = Document::new();
+    render_export(pages, fonts, &PdfExport::default())
+}
+
+/// Same scene writer as [`render`], plus a title and heading outline.
+/// Bytes stay deterministic: metadata has no creation or modification date.
+pub fn render_export(
+    pages: &[PageScene],
+    fonts: &[LoadedFont],
+    export: &PdfExport,
+) -> Result<Vec<u8>, PdfError> {
+    // XMP is omitted. krilla only writes dates into XMP when a creation date
+    // is supplied, but leaving the packet out keeps the file free of any
+    // metadata clock and of an instance-id that is not part of the scene.
+    let settings = krilla::SerializeSettings {
+        xmp_metadata: false,
+        ..krilla::SerializeSettings::default()
+    };
+    let mut document = Document::new_with(settings);
     let mut cache: HashMap<FontKey, Font> = HashMap::new();
     for scene in pages {
         let settings = PageSettings::from_wh(
@@ -155,9 +188,27 @@ pub fn render(pages: &[PageScene], fonts: &[LoadedFont]) -> Result<Vec<u8>, PdfE
         surface.finish();
         page.finish();
     }
+    let mut metadata = krilla::metadata::Metadata::new().producer(PRODUCER.to_string());
+    if let Some(title) = export
+        .title
+        .as_ref()
+        .map(|title| title.trim())
+        .filter(|title| !title.is_empty())
+    {
+        metadata = metadata.title(title.to_string());
+    }
+    document.set_metadata(metadata);
+    if let Some(outline) = info::krilla_outline(&export.outline, pages.len()) {
+        document.set_outline(outline);
+    }
     document
         .finish()
         .map_err(|error| PdfError::Writer(format!("{error:?}")))
+}
+
+/// Reads the PDF structure without using the writer that produced it.
+pub fn inspect_pdf(bytes: &[u8]) -> Result<PdfReport, &'static str> {
+    check::inspect(bytes)
 }
 
 fn fill_rect(surface: &mut krilla::surface::Surface<'_>, rect: &SceneRect) {

@@ -32,12 +32,12 @@
 | tiny-skia 0.11.4 | CPU 单色轮廓光栅直接依赖 | [上游](https://github.com/RazrFalcon/tiny-skia)，BSD-3-Clause | 重用原锁文件，默认 SIMD／PNG 特性；保留许可通知 |
 | image 0.25.10 | app 的内存页面到 GPUI 图像适配；joyword-model 对 PNG／JPEG／GIF／BMP／TIFF 的预算内接纳与解码 | [上游](https://github.com/image-rs/image)，MIT OR Apache-2.0 | 复用原锁文件 0.25.10；默认特性关闭。模型只打开 png、jpeg、gif、bmp、tiff |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
-| flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32（直接依赖） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate，以便逐项执行预算与一致性检查 |
+| flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32；joyword-pdf 结构检查的单层 FlateDecode（直接依赖，同一钉扎） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate。PDF 结构检查只复用这一已钉扎版本做 inflate，没有升级，也没有引入 qpdf 或另一套 PDF 库 |
 | unicode-linebreak 0.1.5 | layout 的默认 Unicode 候选断点（直接依赖） | [上游 API](https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/)，Apache-2.0（crate 元数据） | 精确复用锁文件版本，Unicode 15.0；不据此宣称 Word 中文规则或词典分词 |
 | unicode-segmentation 1.13.3 | shell 输入的默认扩展字素与词边界，以及引擎查找的字素对齐匹配（直接依赖） | [上游 API](https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/)，MIT OR Apache-2.0（crate 元数据） | Unicode 17.0；复用已有锁文件包，引擎与 shell 共用同一钉扎，无新版本；不等同于中文词典分词或字体整形簇 |
 | tempfile 3.27.0 | shell 安全创建同目录私有临时文件（直接依赖） | [上游 API](https://docs.rs/tempfile/3.27.0/tempfile/struct.NamedTempFile.html)，MIT OR Apache-2.0（crate 元数据） | 复用原锁文件版本；不使用可覆盖 persist，发布采用 std::fs::hard_link；无新外部包或升级 |
 | winsafe 0.0.19（kernel，仅 Windows） | shell 的 Win32 文件身份观测与 `ReplaceFileW` 原件替换（直接依赖） | [上游](https://github.com/rodrigocfd/winsafe)，MIT；[ReplaceFileW 公开文档](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-replacefilew) | 安全通用绑定，不在仓库写 unsafe；不使用 IGNORE_MERGE／ACL 标志，不把 Win32 成功码代替读回验证 |
-| krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出、定位字形和场景图片（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）。joyword-pdf 打开 raster-images，把已接纳的场景图片画进 PDF；版本仍是 0.8.2。传递依赖仍含 pdf-writer、subsetter、xmp-writer 与 tiny-skia-path |
+| krilla 0.8.2（default-features = false） | joyword-pdf 的 PDF 写出、定位字形和场景图片（直接依赖） | [上游](https://github.com/LaurenzV/krilla)，MIT OR Apache-2.0；传递依赖含 pdf-writer、subsetter、xmp-writer（MIT OR Apache-2.0）与 tiny-skia-path（BSD-3-Clause） | 关闭 simple-text（其 rustybuzz 整形）。joyword-pdf 打开 raster-images，把已接纳的场景图片画进 PDF；版本仍是 0.8.2。写出时 `xmp_metadata` 为 false，且不设置 creation date，避免时钟和实例标识进入字节。传递依赖仍含 pdf-writer、subsetter、xmp-writer 与 tiny-skia-path |
 
 MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文件已含 MPL-2.0（cbindgen、option-ext，以及 Windows 字体用的 dwrote）、Unicode-3.0、BSD、ISC、Zlib 和 CC0-1.0 等许可，均须进入通知清单。根目录 deny.toml 由 cargo-deny 在 CI 中检查许可白名单、RustSec 公告、通配版本和注册表来源；经 GPUI 间接引入的“停止维护”公告逐条登记理由，迁到 gpui-pre 0.3.9 后由 7 条减为 3 条（paste、rustybuzz、ttf-parser），每次升级 GPUI 快照时复查，JoyWord 直接依赖不得列入忽略。是否允许特定依赖应按实际许可与分发方式检查，不笼统地把全部开源代码认定为可用或不可用。
 
@@ -140,3 +140,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 - LAYOUT-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.10.1（`evenAndOddHeaders`：按节的页码起点区分奇偶，省略的类型继承前一节，不用另一种代替）、§17.10.5（`headerReference`：省略的首页／偶数页／奇数页引用分别继承前一节的同类型，否则空白）、§17.10.2（`footerReference`，规则与页眉相同）、§17.10.6（`titlePg`：节的首页用 First；关闭时按页码用奇或偶，并忽略已保存的 First）。条款文字对照 [ECMA-376 中文摘录](https://hellowac.github.io/ecma-376-zh-cn/ecma-part1/chapter17/10headeres/)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的页眉实现。
 - 本切片不读 `pgNumType/@w:start`，奇偶与 `PAGE` 共用从 1 起的文档页序号。显式空 story 是引用，截断继承。没有新增外部 crate。
+
+### 统一 PDF 与打印到文件（T204 第一切片）
+
+- LAYOUT-009／FORMAT-008／PLATFORM-007。页面几何沿用已有 PageScene，不另写分页器。文档信息字典的 Title 与 Producer 对照 [ISO 32000-1](https://www.iso.org/standard/51502.html) §14.3.3；本切片不写 CreationDate 与 ModDate。ToUnicode 对照 §9.10，字体对照 §9.6，图像 XObject 对照 §8.9，书签大纲对照 §12.3.3，页面树与 MediaBox 对照 §7.7.3。结构读取器按 §7.5.4 经典交叉引用表与 §7.5.8 交叉引用流、§7.5.7 对象流、§7.4.4 单层 FlateDecode 自行实现，与 krilla 不共享对象。只读公开规范，未读取 Word、WPS、LibreOffice、Poppler、qpdf 或其他 PDF 库的实现源码。
+- 标题取 OPC core properties 的 Dublin Core `dc:title`（[ECMA-376 第五版 Part 2](https://ecma-international.org/publications-and-standards/standards/ecma-376/) Core Properties；命名空间 `http://purl.org/dc/elements/1.1/`）。书签只在样式规范名为 heading 1–9 时生成（Part 1 §17.7.4），级别优先用已解析的 `outlineLvl`（§17.3.1.20，0 表示第一级）。没有放置行的标题不猜测页码。
+- 落盘复用 shell 已有的写入、sync、回读与 `hard_link`，不覆盖已有路径。系统打印对话框只按操作系统 cfg 返回未验证，不调用 AppKit、Win32 或 CUPS。FlateDecode 复用已钉扎的 flate2 1.1.10（rust_backend），没有新的外部包版本。krilla 仍是 0.8.2。

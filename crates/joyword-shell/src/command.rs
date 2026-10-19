@@ -182,6 +182,28 @@ const DESTINATION_PARAM: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Path,
     required: true,
 }];
+const PRINT_PARAMS: &[ParamSpec] = &[
+    ParamSpec {
+        name: "destination",
+        kind: ParamKind::Path,
+        required: true,
+    },
+    ParamSpec {
+        name: "copies",
+        kind: ParamKind::Text,
+        required: false,
+    },
+    ParamSpec {
+        name: "range",
+        kind: ParamKind::Text,
+        required: false,
+    },
+    ParamSpec {
+        name: "marks",
+        kind: ParamKind::Text,
+        required: false,
+    },
+];
 const ID_PARAM: &[ParamSpec] = &[ParamSpec {
     name: "id",
     kind: ParamKind::Id,
@@ -395,6 +417,8 @@ pub const QUIT: CommandId = CommandId("app.quit");
 pub const FILE_OPEN: CommandId = CommandId("file.open");
 pub const FILE_SAVE: CommandId = CommandId("file.save");
 pub const FILE_SAVE_COPY: CommandId = CommandId("file.save_copy");
+pub const FILE_EXPORT_PDF: CommandId = CommandId("file.export_pdf");
+pub const FILE_PRINT: CommandId = CommandId("file.print");
 pub const ZOOM_IN: CommandId = CommandId("view.zoom_in");
 pub const ZOOM_OUT: CommandId = CommandId("view.zoom_out");
 pub const ZOOM_RESET: CommandId = CommandId("view.zoom_reset");
@@ -513,6 +537,28 @@ impl Registry {
                 shortcut: Shortcut::primary("cmd-shift-s", "ctrl-shift-s"),
                 modifies_document: false,
                 parameters: DESTINATION_PARAM,
+            },
+            CommandSpec {
+                id: FILE_EXPORT_PDF,
+                label: "command.file.export_pdf",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 1,
+                }),
+                shortcut: Shortcut::primary("cmd-shift-e", "ctrl-shift-e"),
+                modifies_document: false,
+                parameters: DESTINATION_PARAM,
+            },
+            CommandSpec {
+                id: FILE_PRINT,
+                label: "command.file.print",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 1,
+                }),
+                shortcut: Shortcut::primary("cmd-p", "ctrl-p"),
+                modifies_document: false,
+                parameters: PRINT_PARAMS,
             },
             CommandSpec {
                 id: QUIT,
@@ -1283,8 +1329,8 @@ mod tests {
             Err(InvokeError::Disabled("zoom.max"))
         );
         assert_eq!(
-            registry.invoke(&mut host, CommandId("file.print")),
-            Err(InvokeError::Unknown("file.print".into()))
+            registry.invoke(&mut host, CommandId("file.not_a_command")),
+            Err(InvokeError::Unknown("file.not_a_command".into()))
         );
     }
 
@@ -1326,6 +1372,9 @@ mod tests {
                 MenuEntry::Command(FILE_SAVE),
                 MenuEntry::Command(FILE_SAVE_COPY),
                 MenuEntry::Separator,
+                MenuEntry::Command(FILE_EXPORT_PDF),
+                MenuEntry::Command(FILE_PRINT),
+                MenuEntry::Separator,
                 MenuEntry::Command(FILE_CLOSE),
             ]
         );
@@ -1346,6 +1395,9 @@ mod tests {
                     MenuEntry::Command(FILE_OPEN),
                     MenuEntry::Command(FILE_SAVE),
                     MenuEntry::Command(FILE_SAVE_COPY),
+                    MenuEntry::Separator,
+                    MenuEntry::Command(FILE_EXPORT_PDF),
+                    MenuEntry::Command(FILE_PRINT),
                     MenuEntry::Separator,
                     MenuEntry::Command(FILE_CLOSE),
                     MenuEntry::Separator,

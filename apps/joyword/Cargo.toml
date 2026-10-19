@@ -20,6 +20,7 @@ joyword-foundation.workspace = true
 joyword-engine.workspace = true
 joyword-model.workspace = true
 joyword-layout.workspace = true
+joyword-pdf.workspace = true
 joyword-render.workspace = true
 image.workspace = true
 joyword-shell.workspace = true

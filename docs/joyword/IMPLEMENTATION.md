@@ -559,3 +559,18 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **自动验证**：`cargo test --locked -p joyword-docx -p joyword-layout -p joyword-model -p joyword-cli --offline` 通过。`JOYWORD_TEST_FONT` 指向文泉驿微米黑、`JOYWORD_REQUIRE_TEST_FONT=1` 时，`joyword-cli` 的 visual 测试 4 项通过：五个样例各 `render` 与 `convert --to pdf` 两次，PNG、PDF 与报告 JSON 逐字节相同，MIN-003 的 `omitted_blocks` 为 1，覆盖已有输出与 `--to html` 退出码为 2，输入字节不变。上述四个包的 `cargo clippy --all-targets -- -D warnings` 与 `cargo fmt --all -- --check` 通过。没有新增依赖。
 - **未覆盖**：render 与窗口显示的人工一致性；信创真机；没有安装宋体、Noto CJK 或 `JOYWORD_TEST_FONT` 时 visual 测试按既有契约跳过，不把跳过说成已在该环境画出五个样例。Droid Sans Fallback 缺少样例里的全角标点，会因缺字诊断拒绝渲染，这是字体覆盖而不是导入或分页失败。W09 harness 重锚到 `655cbccdd1737827da29ea182c45ac6923e74828`（本任务改 `crates/` 的提交；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
 
+### T204 统一 PDF 与打印到文件第一切片（2026-10-19）
+
+这一刀让文件菜单的导出 PDF 和打印到文件使用屏幕已经安装的同一份 PageScene，不再另做一次分页。CLI `convert` 在它自己已经排好的同一场景上调用同一个写出函数。T204 保持 `in_progress`。没有做两个独立阅读器的人工检查，也没有在真实打印机上打印。
+
+- **同一场景**：应用导出读取 `ready_layout` 的 `LayoutSnapshot`，不调用第二次 `layout_document`。布局未稳定或没有编辑器时命令禁用，原因是 `file.export.unstable`。没有页面场景的 Office 宿主把这两条命令始终禁用。页范围在已有场景上切片；书签页号按切片重映射，落在范围外的条目丢掉。CLI 的 `convert` 仍用自己的一次分页，然后 `render_export`。
+- **文档信息**：Producer 固定为 `JoyWord`，不含时间或构建戳。标题只在 OPC `/docProps/core.xml` 的 `dc:title` 非空时写入。拒绝 DOCTYPE、超过 64 KiB、非 UTF-8 和嵌套元素，并展开预定义实体。不读时钟，不写 CreationDate 或 ModDate。`SerializeSettings.xmp_metadata` 为 false，避免 XMP 里的实例标识。同一输入两次写出逐字节相同。
+- **文字与页面**：字形仍按场景坐标交给 krilla 的定位字形接口，嵌入子集并带 ToUnicode。`pdftotext -enc UTF-8` 在本机有该程序时核对抽出的文字；未设置 `JOYWORD_REQUIRE_TEST_FONT` 且程序缺失时跳过，不把跳过说成已抽出。页面宽高来自各页场景，分节不同的纸型或方向成为不同的 MediaBox。场景图片成为图像 XObject。
+- **书签**：只在段落样式或其 `basedOn` 链（最多 64 层）解析为内置 Heading 1 到 9 时生成。级别用已解析的 `outlineLvl`（0 到 8），否则用标题号减一。该段在快照里没有放置行、标题为空或页超出范围时不写。最多 512 条，标题截到 200 个字符。普通段落即使带 `outlineLvl` 也不成书签。
+- **发布**：`publish_pdf` 与另存一样先写临时文件、sync、回读，再硬链接到新路径，不覆盖已有文件。文件必须以 `%PDF-` 开头并含 `%%EOF`，扩展名为 pdf，最大 256 MiB。打印到文件的份数（1 到 99）只记在收据上，文件里仍是一份 PDF。范围接受省略、`all`、`N` 或 `N-M`（从 1 起、含端点）；0、倒置和超出拒绝。审阅标记只接受省略或 `laid-out`；`markup` 与 `original` 拒绝，因为修订打印没有实现。
+- **系统对话框**：`macos_print_dialog`、`windows_print_dialog` 与 `linux_print_dialog` 按 cfg 编译，返回未验证，不调用系统 API。菜单上的打印走无头打印到文件，不打开这些对话框。三端原生打印对话框都未验证。
+- **结构检查**：`joyword-pdf` 自带与 krilla 不共享对象的读取器。它按 ISO 32000-1 读经典交叉引用表或交叉引用流、对象流，以及单层 FlateDecode（复用已钉扎的 flate2 1.1.10 rust_backend，没有升级）。偏移用整数保存。测试里手写的经典 PDF 与写出的文件都经该读取器核对页框、Producer、标题、书签、ToUnicode 和图像 XObject，并确认没有 CreationDate 与 ModDate。没有把 qpdf 放进产品依赖。
+- **命令**：`file.export_pdf`（Cmd/Ctrl+Shift+E）与 `file.print`（Cmd/Ctrl+P）在文件菜单第 1 组，`modifies_document` 为假。缺目标路径返回待输入，窗口再询问。写出在后台进行。文档版本变了只提示较早版本已写出，不把文档标成已保存。复制世代变化时丢掉迟到结果。
+- **自动验证**：`cargo test --offline --locked -p joyword-pdf -p joyword-shell` 通过，含 `export_pdf` 8 项与 `print_to_file` 5 项；`pdftotext -enc UTF-8` 在本环境抽出字母 A。应用注册表测试确认两条命令都有动作和快捷键。上述包与 `joyword-cli`、`joyword` 的 `cargo clippy --all-targets -- -D warnings` 通过。`scripts/check_docs.py` 与 `scripts/check_gates.py` 通过。没有启动图形界面。
+- **未覆盖**：两个独立阅读器的人工检查；真实打印机；系统打印对话框；不可打印区域作为用户可见选择；结构标签；链接注释；审阅标记视图打印；份数在文件里重复页面。CPU 光栅与打印预览是既有路径，本切片不把它们说成新完成。没有新增外部包版本。Cargo.lock 只为 joyword-pdf 记下已有的 flate2 1.1.10 直接边。
+
