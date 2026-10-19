@@ -22,6 +22,7 @@ pub mod scene;
 pub mod shape;
 pub mod slots;
 mod style_paint;
+mod view;
 
 pub use font::{FontError, FontKey, LoadedFont};
 pub use line::{
@@ -38,10 +39,15 @@ pub use slots::{
 pub use cache::{
     DEFAULT_CACHE_BUDGET, DependencyFlags, ExternalContext, ExternalKey, LayoutInvalidation,
     LayoutReuse, MAX_LAYOUT_PASSES, ParagraphLayoutCache, affected_style_closure, external_key,
-    invalidated_paragraphs, layout_incremental, paragraph_dependencies, run_layout_passes,
+    invalidated_paragraphs, layout_incremental, layout_incremental_with_view,
+    paragraph_dependencies, run_layout_passes,
 };
 pub use document::{
     CaretGeometry, CaretStop, LayoutCancellation, LayoutDiagnostic, LayoutError, LayoutKey,
     LayoutLimit, LayoutLimits, LayoutNote, LayoutSnapshot, LayoutStats, PageGeometry, PlacedLine,
-    SelectionRect, SingleFontProfile, StaleReason, layout_document,
+    SelectionRect, SingleFontProfile, StaleReason, layout_document, layout_with_view,
 };
+pub use font::{UnderlineMetricSource, UnderlineMetrics, resolve_underline_metrics};
+pub use scene::decoration_rects;
+pub use shape::{PaintedUnderline, UnderlinePaint};
+pub use view::ViewOptions;

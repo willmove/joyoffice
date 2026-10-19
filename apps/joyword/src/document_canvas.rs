@@ -8,8 +8,8 @@ use joyword_engine::{EditPolicy, Session};
 use joyword_foundation::Emu;
 use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutInvalidation, LayoutKey, LayoutLimits,
-    LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile,
-    layout_document, layout_incremental,
+    LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile, ViewOptions,
+    layout_document, layout_incremental_with_view,
 };
 #[cfg(test)]
 use joyword_model::{BlockSeq, Document, PageSetup, Paragraph};
@@ -348,6 +348,7 @@ pub struct LayoutRequestKey {
     pub revision: u64,
     pub font: joyword_layout::FontKey,
     pub profile: SingleFontProfile,
+    pub view: ViewOptions,
 }
 /// Identity of one page's pixels: the layout by its own key (version,
 /// content, font and profile), the page and the projection. Pixels depend on
@@ -611,17 +612,28 @@ impl CanvasPipeline {
             paragraph_cache: Arc::new(Mutex::new(ParagraphLayoutCache::default())),
         }
     }
+    #[cfg(test)]
     pub fn key(
         &self,
         view: &InputView,
         font: &LoadedFont,
         profile: SingleFontProfile,
     ) -> LayoutRequestKey {
+        self.key_viewed(view, font, profile, ViewOptions::default())
+    }
+    pub fn key_viewed(
+        &self,
+        view: &InputView,
+        font: &LoadedFont,
+        profile: SingleFontProfile,
+        options: ViewOptions,
+    ) -> LayoutRequestKey {
         LayoutRequestKey {
             document: self.document,
             revision: view.revision(),
             font: font.key(),
             profile,
+            view: options,
         }
     }
     /// The installed layout, current or not: page boxes and scroll extent.
@@ -854,13 +866,24 @@ impl CanvasPipeline {
     }
     /// Installed layout for the same face and profile, used as the incremental
     /// previous snapshot. A font or profile change starts from an empty tail.
+    #[cfg(test)]
     pub(crate) fn previous_layout(
         &self,
         font: &joyword_layout::FontKey,
         profile: SingleFontProfile,
     ) -> Option<Arc<LayoutSnapshot>> {
+        self.previous_for(font, profile, ViewOptions::default())
+    }
+    pub(crate) fn previous_for(
+        &self,
+        font: &joyword_layout::FontKey,
+        profile: SingleFontProfile,
+        view: ViewOptions,
+    ) -> Option<Arc<LayoutSnapshot>> {
         self.layout.as_ref().and_then(|frame| {
-            (frame.layout.key().font == *font && frame.layout.key().profile == profile)
+            (frame.layout.key().font == *font
+                && frame.layout.key().profile == profile
+                && frame.layout.key().view == view)
                 .then(|| Arc::clone(&frame.layout))
         })
     }
@@ -898,6 +921,7 @@ fn invalidation_of(changes: &joyword_engine::ChangeSet) -> LayoutInvalidation {
 
 /// Layout used by the editor. Unchanged paragraphs are reused from `cache`;
 /// the geometry matches [`layout_document`] for the same snapshot.
+#[cfg(test)]
 pub fn layout_view_incremental(
     view: &InputView,
     font: &LoadedFont,
@@ -906,11 +930,32 @@ pub fn layout_view_incremental(
     cache: &Mutex<ParagraphLayoutCache>,
     previous: Option<&LayoutSnapshot>,
 ) -> Result<LayoutSnapshot, String> {
+    layout_view_incremental_with(
+        view,
+        font,
+        profile,
+        cancellation,
+        cache,
+        previous,
+        ViewOptions::default(),
+    )
+}
+
+/// [`layout_view_incremental`] for one view-option set.
+pub fn layout_view_incremental_with(
+    view: &InputView,
+    font: &LoadedFont,
+    profile: SingleFontProfile,
+    cancellation: &LayoutCancellation,
+    cache: &Mutex<ParagraphLayoutCache>,
+    previous: Option<&LayoutSnapshot>,
+    options: ViewOptions,
+) -> Result<LayoutSnapshot, String> {
     let mut cache = cache
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
     let invalidation = invalidation_of(view.layout_changes());
-    layout_incremental(
+    layout_incremental_with_view(
         view.snapshot(),
         FaceSet::uniform(font),
         profile,
@@ -921,6 +966,7 @@ pub fn layout_view_incremental(
             previous,
             invalidation: &invalidation,
         },
+        options,
     )
     .map_err(|e| e.to_string())
 }

@@ -373,12 +373,6 @@ impl JoyWord {
                     .child(self.flag_button("dialog-italic", "dialog.font.italic", 1, cx))
                     .child(self.flag_button("dialog-underline", "dialog.font.underline", 2, cx)),
             );
-            panel = panel.child(
-                div()
-                    .text_xs()
-                    .text_color(rgb(0x8a5a00))
-                    .child(self.label("dialog.font.paint")),
-            );
         }
         Some(
             panel

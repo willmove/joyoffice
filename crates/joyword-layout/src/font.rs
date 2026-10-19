@@ -104,4 +104,88 @@ impl LoadedFont {
     pub fn font_ref(&self) -> FontRef<'_> {
         FontRef::from_index(&self.data, self.key.index).expect("validated when loaded")
     }
+
+    /// Underline position and thickness for this face.
+    ///
+    /// OpenType `post` (`underlinePosition`, `underlineThickness`) is the
+    /// primary source: the position is the top of the stroke relative to the
+    /// baseline in y-up font units, and a negative value is below the
+    /// baseline. The `post` specification says that thickness should match
+    /// `OS/2.yStrikeoutSize`, so a missing or non-positive post thickness
+    /// uses that strikeout size when it is positive.
+    ///
+    /// When neither table supplies a positive thickness, the thickness is
+    /// `unitsPerEm / 20` (at least 1) and the top of the stroke sits one
+    /// thickness below the baseline. A post table with a positive thickness
+    /// keeps its position even when that position is zero (the stroke top
+    /// is on the baseline). These fallbacks are JoyWord's, not a Word
+    /// measurement.
+    ///
+    /// Sources: OpenType `post`
+    /// <https://learn.microsoft.com/en-us/typography/opentype/spec/post> and
+    /// `OS/2` <https://learn.microsoft.com/en-us/typography/opentype/spec/os2>.
+    pub fn underline_metrics(&self) -> UnderlineMetrics {
+        let post = self.font_ref().post().ok().map(|post| {
+            (
+                i32::from(post.underline_position().to_i16()),
+                i32::from(post.underline_thickness().to_i16()),
+            )
+        });
+        let strikeout = self
+            .font_ref()
+            .os2()
+            .ok()
+            .map(|table| i32::from(table.y_strikeout_size()));
+        resolve_underline_metrics(post, strikeout, self.units_per_em)
+    }
+}
+
+/// Where [`UnderlineMetrics`] came from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UnderlineMetricSource {
+    /// `post.underlinePosition` and `post.underlineThickness`.
+    Post,
+    /// Thickness from `OS/2.yStrikeoutSize`. Position is the fallback below.
+    Os2StrikeoutSize,
+    /// `unitsPerEm / 20`, top one thickness below the baseline.
+    EmFallback,
+}
+
+/// Resolved underline stroke in y-up font units.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UnderlineMetrics {
+    /// Top of the stroke relative to the baseline. Negative is below.
+    pub position: i32,
+    pub thickness: i32,
+    pub source: UnderlineMetricSource,
+}
+
+/// `post` is `(position, thickness)` when the table was read. `strikeout` is
+/// `OS/2.yStrikeoutSize` when that table was read. See [`LoadedFont::underline_metrics`].
+pub fn resolve_underline_metrics(
+    post: Option<(i32, i32)>,
+    strikeout: Option<i32>,
+    units_per_em: u16,
+) -> UnderlineMetrics {
+    if let Some((position, thickness)) = post.filter(|(_, thickness)| *thickness > 0) {
+        return UnderlineMetrics {
+            position,
+            thickness,
+            source: UnderlineMetricSource::Post,
+        };
+    }
+    let em = i32::from(units_per_em).max(1);
+    let fallback_thickness = (em / 20).max(1);
+    if let Some(thickness) = strikeout.filter(|thickness| *thickness > 0) {
+        return UnderlineMetrics {
+            position: -thickness,
+            thickness,
+            source: UnderlineMetricSource::Os2StrikeoutSize,
+        };
+    }
+    UnderlineMetrics {
+        position: -fallback_thickness,
+        thickness: fallback_thickness,
+        source: UnderlineMetricSource::EmFallback,
+    }
 }

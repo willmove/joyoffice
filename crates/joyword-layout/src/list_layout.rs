@@ -141,6 +141,7 @@ where
     let mut at_break = true;
     for piece in split_tabs(text) {
         if piece.tab_before {
+            let before = pen;
             let stop = next_stop(&stops, pen);
             let align = stop.map(|stop| stop.align).unwrap_or(TabAlign::Left);
             let leader = stop.map(|stop| stop.leader).unwrap_or(TabLeader::None);
@@ -161,6 +162,9 @@ where
                 piece.byte,
                 piece.scalar,
             );
+            if placed > before {
+                line.tab_gaps.push((before, placed - before));
+            }
             pen = placed.max(pen);
             if piece.text.is_empty() {
                 line.body_edge = pen;
@@ -468,6 +472,7 @@ struct LineBuilder {
     source_end: (usize, usize),
     body_edge: i64,
     font_key: Option<crate::FontKey>,
+    tab_gaps: Vec<(i64, i64)>,
     label_glyphs: usize,
     label_text_bytes: usize,
     label_size: Emu,
@@ -484,6 +489,7 @@ impl LineBuilder {
             source_end: (0, 0),
             body_edge,
             font_key: None,
+            tab_gaps: Vec::new(),
             label_glyphs: 0,
             label_text_bytes: 0,
             label_size: Emu::new(0),
@@ -542,11 +548,14 @@ impl LineBuilder {
                 italic: false,
                 latin_family: None,
                 east_asia_family: None,
+                color: [0, 0, 0],
+                underline: None,
             },
             clusters: self.clusters,
             images: Vec::new(),
             hyperlinks: Vec::new(),
             box_height: Emu::new(0),
+            tab_gaps: self.tab_gaps,
             label_glyphs: self.label_glyphs,
             label_text_bytes: self.label_text_bytes,
             label_size: self.label_size,

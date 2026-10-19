@@ -14,6 +14,8 @@ use joyword_model::{
     StyleProblem, TabAlign, TabLeader, Underline, displayed_paragraph, indent_edges,
 };
 
+use crate::shape::PaintedUnderline;
+use crate::view::{ViewOptions, run_is_hidden};
 use crate::{LayoutError, SingleFontProfile};
 
 pub(crate) struct Flow {
@@ -35,6 +37,8 @@ pub(crate) struct Paint {
     pub italic: bool,
     pub latin: Option<Arc<str>>,
     pub east_asia: Option<Arc<str>>,
+    pub color: [u8; 3],
+    pub underline: Option<PaintedUnderline>,
     pub flow: Flow,
 }
 
@@ -52,6 +56,7 @@ pub(crate) fn paint(
     document: &Document,
     paragraph: &Paragraph,
     profile: SingleFontProfile,
+    view: ViewOptions,
     table_bold: Option<bool>,
 ) -> Result<Paint, LayoutError> {
     let node = Some(paragraph.id());
@@ -65,8 +70,11 @@ pub(crate) fn paint(
         .styles()
         .resolve_run(paragraph.style.as_ref(), None, &paragraph.mark_props);
     reject_problems(node, &mark.problems)?;
-    // The paragraph mark is not a painted glyph. Its properties still have
-    // to be representable, so an unsupported mark is refused.
+    // The paragraph mark is not a painted glyph. A vanished mark would join
+    // this paragraph to the next; that merge is not implemented.
+    if run_is_hidden(&mark.props) {
+        return Err(unsupported(node, "character formatting"));
+    }
     let _mark_face = face_of(node, &mark.props)?;
     let mut uniform: Option<Face> = None;
     if paragraph.runs().is_empty() {
@@ -87,6 +95,9 @@ pub(crate) fn paint(
                 .styles()
                 .resolve_run(paragraph.style.as_ref(), run.style.as_ref(), &run.props);
         reject_problems(node, &resolved.problems)?;
+        if !view.show_hidden && run_is_hidden(&resolved.props) {
+            continue;
+        }
         let mut face = face_of(node, &resolved.props)?;
         if run.props.bold.is_none()
             && let Some(forced) = table_bold
@@ -108,6 +119,8 @@ pub(crate) fn paint(
         latin: None,
         east_asia: None,
         complex: None,
+        color: [0, 0, 0],
+        underline: None,
     });
     let size = face.size.unwrap_or(profile.size);
     if !(1..=1_000_000_000).contains(&size.raw()) {
@@ -126,6 +139,8 @@ pub(crate) fn paint(
         italic: face.italic,
         latin: face.latin,
         east_asia: face.east_asia,
+        color: face.color,
+        underline: face.underline,
         flow,
     })
 }
@@ -242,24 +257,29 @@ struct Face {
     latin: Option<Arc<str>>,
     east_asia: Option<Arc<str>>,
     complex: Option<Arc<str>>,
+    color: [u8; 3],
+    underline: Option<PaintedUnderline>,
 }
 
 fn face_of(node: Option<NodeId>, props: &RunProps) -> Result<Face, LayoutError> {
     if props.preserved.is_some() {
         return Err(unsupported(node, "preserved character properties"));
     }
-    if props.strike == Some(true) || props.hidden == Some(true) {
+    if props.strike == Some(true) {
         return Err(unsupported(node, "character formatting"));
     }
-    if props
-        .underline
-        .is_some_and(|underline| underline != Underline::None)
-    {
-        return Err(unsupported(node, "character formatting"));
-    }
-    if props.color.is_some_and(|color| color != Color::Auto) {
-        return Err(unsupported(node, "character colour"));
-    }
+    let underline = match props.underline {
+        None | Some(Underline::None) => None,
+        Some(Underline::Single) => Some(PaintedUnderline::Single),
+        Some(Underline::Double) => Some(PaintedUnderline::Double),
+        Some(Underline::Dotted) => Some(PaintedUnderline::Dotted),
+        Some(_) => return Err(unsupported(node, "character formatting")),
+    };
+    let color = match props.color {
+        None | Some(Color::Auto) => [0, 0, 0],
+        Some(Color::Rgb(red, green, blue)) => [red, green, blue],
+        Some(Color::Theme { .. }) => return Err(unsupported(node, "character colour")),
+    };
     for slot in [
         &props.fonts.ascii,
         &props.fonts.h_ansi,
@@ -287,6 +307,8 @@ fn face_of(node: Option<NodeId>, props: &RunProps) -> Result<Face, LayoutError> 
         latin,
         east_asia: typeface(&props.fonts.east_asia),
         complex: typeface(&props.fonts.complex_script),
+        color,
+        underline,
     })
 }
 

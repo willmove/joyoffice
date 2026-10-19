@@ -6,7 +6,8 @@ use joyword_foundation::Emu;
 use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutInvalidation, LayoutLimits,
     LayoutNote, LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile,
-    layout_document, layout_incremental,
+    ViewOptions, layout_document, layout_incremental, layout_incremental_with_view,
+    layout_with_view,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, BreakKind, Document, EqualColumns, HeaderFooterKind, InlineKind,
@@ -690,6 +691,51 @@ fn a_body_page_field_uses_the_displayed_number() {
     assert_eq!(body_text(&full, 0), "A12");
     assert_eq!(body_text(&full, 1), "B2");
     assert!(full.notes().is_empty());
+}
+
+#[test]
+fn field_codes_replace_body_page_fields_and_match_the_cache() {
+    let mut document = document_with(&["A", "B"]);
+    fit_one_line(&mut document);
+    push_field(&mut document, 0, PageFieldKind::Page, Some("9"));
+    push_field(&mut document, 0, PageFieldKind::NumPages, None);
+    push_field(&mut document, 1, PageFieldKind::SectionPages, None);
+    let view = ViewOptions {
+        field_codes: true,
+        ..ViewOptions::default()
+    };
+    let full = layout_with_view(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        view,
+    )
+    .unwrap();
+    let mut cache = ParagraphLayoutCache::with_budget(1 << 20);
+    let incremental = layout_incremental_with_view(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+        view,
+    )
+    .unwrap();
+    scenes_match(&full, &incremental);
+    assert_eq!(body_text(&full, 0), "APAGENUMPAGES");
+    assert_eq!(body_text(&full, 1), "BSECTIONPAGES");
+    assert_ne!(full.key(), layout(&document).key());
+    assert_eq!(
+        full.key().content_hash(),
+        layout(&document).key().content_hash()
+    );
 }
 
 #[test]
