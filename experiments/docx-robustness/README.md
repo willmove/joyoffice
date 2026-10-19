@@ -15,7 +15,7 @@ matrix.py creates 27 original deterministic ZIP/XML cases: Unicode, unknown bina
 
 Exact dependencies are limited to the task-card approved crates; all external versions in the independent lock also exist in the production lock. No dependency upgrades, root-toolchain changes or production fixes.
 
-The stdlib-only driver has two modes, both with hard budgets and no network:
+The stdlib-only driver schedules every campaign itself. smoke, campaign and behavioral fuzz need no extra tools. Coverage mode shells out to the Rust toolchain's llvm-tools and still applies the same hard budgets. No network is used:
 
 ```sh
 python3 experiments/docx-robustness/driver.py smoke --binary experiments/docx-robustness/target/debug/joyword-docx-robustness --out experiments/docx-robustness/target/smoke
@@ -33,12 +33,44 @@ python3 experiments/docx-robustness/driver.py fuzz --binary experiments/docx-rob
 
 The harness schema-1 JSON carries a `features` list: sanitized stage facts (enum variant names, size buckets, status tokens) about the run, never document content, paths or hashes of parts. The driver treats an input whose feature set contains previously unseen facts as interesting and appends it to the mutation corpus (newest-first with square-biased scheduling). The summary records `feedback_signal` (`harness-features`, or `status-reason-fallback` for binaries without the field), `features_discovered`, `novelty_events`, `corpus_size`/`corpus_limit`, `corpus_bytes_written`/`corpus_bytes_cap` (32 MiB) and `network: none`. The driver also caps input, output retained in memory, per-child timeout, corpus size, total iterations/time and saved failures (stop at eight). It records JSONL results and summary with campaign seed, mutation, input hash, exact production SHA, harness Git SHA and binary hash, budget, exit, OS and replay arguments. No panic is caught as success. stdin is binary and commands are argument lists.
 
+`fuzz --feedback coverage` is the code-coverage-guided mode. It is a second build of this same harness, instrumented with the stable `-C instrument-coverage` flag and a separate target directory. Do not pass that flag to the behavioral binary above. Build and run:
+
+```sh
+rustup component add llvm-tools --toolchain 1.98.1
+profile_dir="$PWD/experiments/docx-robustness/target/cov/build-profiles"
+mkdir -p "$profile_dir"
+CARGO_INCREMENTAL=0 CARGO_TARGET_DIR=experiments/docx-robustness/target/cov \
+  RUSTFLAGS="-C instrument-coverage" \
+  LLVM_PROFILE_FILE="$profile_dir/%p-%m.profraw" \
+  cargo build --manifest-path experiments/docx-robustness/Cargo.toml --locked
+python3 experiments/docx-robustness/driver.py fuzz --feedback coverage \
+  --binary experiments/docx-robustness/target/cov/debug/joyword-docx-robustness \
+  --out experiments/docx-robustness/target/coverage-20261020 \
+  --seed 20261020 --iterations 60 --seconds 300 --timeout 8 --memory-mib 512 --max-corpus 128
+```
+
+`LLVM_PROFILE_FILE` during the build is absolute and points inside `target/`, which is gitignored. Instrumented build scripts write a profile on exit; without that setting they drop `*.profraw` next to `build.rs`. The fuzz driver sets a different profile path for each harness child and does not reuse the build-script profiles.
+
+Each child gets its own `LLVM_PROFILE_FILE`. The driver merges profiles with `llvm-profdata merge -sparse` and reads `llvm-cov export -format=text`. Only source files under `crates/` count. A mutation joins the corpus when it covers a source region, or a branch side, that no earlier input in the campaign covered. Seeds are executed once on `import` first and form the baseline; that pass does not count as novelty. The same hard budgets apply: wall clock, iterations, per-child timeout, `RLIMIT_AS` (when the probe says it is enforced), 1 MiB input, 64 KiB retained output, corpus count, 32 MiB corpus bytes, no network, and a stop at eight saved failures. The summary sets `coverage_feedback` to true and `feedback_signal` to `llvm-source-regions`, and records `regions_covered`/`regions_total`, `branches_covered`/`branches_total`, `profiles_read`, plus `llvm_profdata_version`, `llvm_cov_version` and `rustc_version`. Stable Rust 1.98.1 emits source regions; its branch array is empty unless the compiler emitted branch records, and those records are counted when present. `smoke`, `campaign` and `fuzz` without `--feedback coverage` do not change: `coverage_feedback` stays false. The behavioral CI command line is unchanged.
+
+To measure regions hit by an existing corpus directory (no mutation):
+
+```sh
+python3 experiments/docx-robustness/driver.py cover \
+  --binary experiments/docx-robustness/target/cov/debug/joyword-docx-robustness \
+  --inputs experiments/docx-robustness/target/behavior-20261020/corpus \
+  --out experiments/docx-robustness/target/behavior-corpus-coverage \
+  --timeout 8 --memory-mib 512
+```
+
+Tool review: `llvm-profdata` and `llvm-cov` are the `llvm-tools` component of the Rust project's toolchain distribution (`rustup component add llvm-tools --toolchain 1.98.1`). That component is LLVM, licensed Apache-2.0 WITH LLVM-exception, as shipped by the Rust project. It is not vendored into this repository, it adds no Cargo or Python dependency, and the driver only asks it to merge and read profiles. `rust-toolchain.toml` is unchanged. No fuzzer implementation from another project is included.
+
 CI runs the bounded smoke matrix after building the harness, selecting the explicit `.exe` filename on Windows, followed by a bounded `fuzz` run (fixed seed, 200 iterations, 60 seconds, corpus cap 128). Smoke exits 1 if the total time budget expires before all fixed matrix cases execute, even when the completed cases passed; `matrix_complete` records that condition. Time-bounded campaigns retain their existing stop-at-budget behavior and report `matrix_complete: null`; fuzz stops at its iteration/time budget and exits 1 only on anomalies. This integration was automatically checked on macOS only; Windows and Linux runner execution remain unverified locally.
 
 Timeouts kill/reap the new process group on POSIX; Windows uses taskkill /T if available, otherwise only the direct child is controlled and that limitation is reported. An RLIMIT_AS allocation probe runs before enabling address-space limits; Windows has no Job Object backend. Capability must be read from summary, never inferred from platform name. The RSS measurement is the OS cumulative maximum of all child processes in the driver lifetime (including the probe), not per-case memory or a hard RSS limit. stdout/stderr are temporary files, retained excerpts are capped at 64 KiB each. This does not provide a hard scratch-disk quota for arbitrary third-party binaries; the intended harness emits one bounded JSON line.
 
 Minimization starts only on a reproducing crash/timeout/invariant/protocol failure and retains that same category. Unit tests include an actual nonzero child minimized to `BUG`, binary stdin, Unicode/space paths, descendants terminated on timeout, malformed protocol and output limits. Synthetic failures are driver tests, not production bugs.
 
-Primary sources: https://docs.python.org/3/library/subprocess.html and https://docs.python.org/3/library/resource.html . Mutation operators and delta reduction are independently implemented. External coverage-guided drivers can invoke the three target commands with stdin bytes or call the Rust `run` function; exit/JSON and limits must remain checked. The built-in `fuzz` command uses the harness's own behavioral feature list as its feedback signal; that is stage-fact novelty, not code coverage — `coverage_feedback` stays false in every summary. Installing a coverage engine, dependencies or a nightly toolchain requires C08's explicit tool/version/license review; the fixed production toolchain is unchanged.
+Primary sources: https://docs.python.org/3/library/subprocess.html , https://docs.python.org/3/library/resource.html , and the LLVM coverage export written by the Rust toolchain's `llvm-cov` (source-based region records). Mutation operators, delta reduction and the region-set scheduler are independently implemented. The default `fuzz` command uses the harness's own behavioral feature list; that is stage-fact novelty, and `coverage_feedback` stays false. `fuzz --feedback coverage` is the coverage-guided mode described above. It uses the pinned stable toolchain's llvm-tools and does not use a nightly compiler.
 
 The generated text sequence contains up to four engine transactions; a separate Unicode character-vector reference is updated after every insertion/deletion. The harness undoes/redoes the complete committed sequence, not a private replacement undo stack. Validated text serialization may split an original run at tabs; the checker normalizes those token boundaries while continuing to compare properties and kept fragment bytes.

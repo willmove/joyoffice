@@ -1,0 +1,57 @@
+name: Nightly coverage-guided DOCX fuzz
+
+on:
+  schedule:
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'experiments/docx-robustness/**'
+      - '.github/workflows/fuzz-nightly.yml'
+
+permissions:
+  contents: read
+
+# Coverage-guided reader fuzz (T103). The llvm-tools component is installed
+# from the pinned Rust toolchain and is not a repository dependency.
+# Third-party actions are pinned to the same full SHAs as ci.yml.
+jobs:
+  coverage-fuzz:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
+      JOYWORD_REQUIRE_LLVM_TOOLS: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Fixed Rust toolchain and llvm-tools
+        run: |
+          rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+          rustup component add llvm-tools --toolchain 1.98.1
+      - name: Driver tests, including the instrumented coverage stub
+        run: python3 -m unittest discover -s experiments/docx-robustness/tests -p "test_*.py" -v
+      - name: Instrumented harness
+        run: |
+          profile_dir="$PWD/experiments/docx-robustness/target/cov/build-profiles"
+          mkdir -p "$profile_dir"
+          CARGO_INCREMENTAL=0 CARGO_TARGET_DIR=experiments/docx-robustness/target/cov \
+            RUSTFLAGS="-C instrument-coverage" \
+            LLVM_PROFILE_FILE="$profile_dir/%p-%m.profraw" \
+            cargo build --manifest-path experiments/docx-robustness/Cargo.toml --locked
+      - name: Bounded coverage campaign
+        run: |
+          python3 experiments/docx-robustness/driver.py fuzz --feedback coverage \
+            --binary experiments/docx-robustness/target/cov/debug/joyword-docx-robustness \
+            --out experiments/docx-robustness/target/nightly-cov \
+            --seed 20261020 --iterations 60 --seconds 300 --timeout 8 --memory-mib 512 --max-corpus 128
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: coverage-fuzz-summary
+          path: experiments/docx-robustness/target/nightly-cov/summary.json
+          if-no-files-found: warn
