@@ -4554,12 +4554,7 @@ fn place_line_on(
     };
     let x = add(frame_x, Emu::new(shift))?;
     let step = line_step(line, line_box);
-    let image_height = line
-        .images
-        .iter()
-        .map(|image| image.height.raw())
-        .max()
-        .unwrap_or(0);
+    let image_height = flow_image_height(line);
     let baseline = if image_height > baseline_offset.raw() {
         add(*top, Emu::new(image_height))?
     } else {
@@ -4617,6 +4612,17 @@ fn place_line_on(
         }
         let image_start = page.images.len();
         for image in &line.images {
+            if let Some(top) = image.absolute_top {
+                page.images.push(SceneImage {
+                    media_type: image.media_type.clone(),
+                    bytes: image.bytes.clone(),
+                    x: image.x,
+                    y: top,
+                    width: image.width,
+                    height: image.height,
+                });
+                continue;
+            }
             let y = baseline
                 .raw()
                 .checked_sub(image.height.raw())
@@ -4714,6 +4720,9 @@ fn paint_hyperlink_underlines(
             );
         }
         for image in &line.images {
+            if image.absolute_top.is_some() {
+                continue;
+            }
             if (range.start..range.end).contains(&image.scalar) {
                 cover(
                     image.x.raw(),
@@ -4736,6 +4745,15 @@ fn paint_hyperlink_underlines(
         }
     }
     Ok(())
+}
+
+fn flow_image_height(line: &LayoutLine) -> i64 {
+    line.images
+        .iter()
+        .filter(|image| image.absolute_top.is_none())
+        .map(|image| image.height.raw())
+        .max()
+        .unwrap_or(0)
 }
 
 fn line_step(line: &LayoutLine, line_box: Emu) -> Emu {
@@ -4948,6 +4966,19 @@ impl LayoutSnapshot {
             .get_mut(page)
             .ok_or(LayoutError::GeometryOverflow)?;
         scene.rects.extend(rects);
+        Ok(())
+    }
+
+    pub(crate) fn append_page_image(
+        &mut self,
+        page: usize,
+        image: SceneImage,
+    ) -> Result<(), LayoutError> {
+        let scene = self
+            .pages
+            .get_mut(page)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        scene.images.push(image);
         Ok(())
     }
     pub fn key(&self) -> &LayoutKey {

@@ -312,6 +312,22 @@
       "source": "hypothesis",
       "test": "dropped_image_paths_insert_in_order_and_skip_refused_files",
       "word_observation": null
+    },
+    {
+      "id": "IMAGE-ANCHOR-PAGE",
+      "operation": "导入页面绝对、无绕排、位于文字前面的 wp:anchor 光栅",
+      "expectation": "在图片预算内成为带页面坐标的图片；绕排、衬于文字下方、非页面位置和远程链接不进入资源，图片诊断不回显 URL",
+      "source": "hypothesis",
+      "test": "a_page_anchor_imports_and_wrap_or_remote_targets_stay_preserved",
+      "word_observation": null
+    },
+    {
+      "id": "IMAGE-STORY-PAINT",
+      "operation": "把页眉或页脚 story 里已导入的行内图片画到页面上",
+      "expectation": "页眉图片落在页眉条带内，页脚图片落在底边距之上",
+      "source": "hypothesis",
+      "test": "a_header_and_footer_image_paint_on_their_bands",
+      "word_observation": null
     }
   ]
 }

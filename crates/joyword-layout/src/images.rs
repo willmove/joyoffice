@@ -1,11 +1,13 @@
-//! Inline still images in the shared page scene (LAYOUT-006, first slice).
+//! Still images in the shared page scene (LAYOUT-006).
 //!
-//! Images are not shaped. Preceding text may share a line when the image
-//! fits the remaining width. Text after an image stays on that line when the
-//! first fitting span fits the width that remains; the rest starts the next
-//! line.
-//! An extent larger than the content box is scaled for display. The stored
-//! bytes stay unchanged.
+//! Inline images are not shaped. Preceding text may share a line when the
+//! image fits the remaining width. Text after an image stays on that line when
+//! the first fitting span fits the width that remains; the rest starts the next
+//! line. An extent larger than the content box is scaled for display.
+//!
+//! A page anchor (`ImageAnchor`) is painted at page coordinates. It does not
+//! take line width or line height, and it is not scaled into the content box.
+//! The stored bytes stay unchanged.
 
 use std::ops::Range;
 use std::sync::Arc;
@@ -50,8 +52,8 @@ pub(crate) fn fit_inline_images(
                 stats.shape_calls += part.stats.shape_calls;
                 stats.shaped_bytes += part.stats.shaped_bytes;
                 let attach = items.get(index + 1).and_then(|item| match item {
-                    Item::Image(image) => Some(image.clone()),
-                    Item::Text(_) => None,
+                    Item::Image(image) if image.anchor.is_none() => Some(image.clone()),
+                    Item::Image(_) | Item::Text(_) => None,
                 });
                 let mut produced = part.lines;
                 let attached = if let Some(image) = attach {
@@ -86,6 +88,25 @@ pub(crate) fn fit_inline_images(
                 }
             }
             Item::Image(image) => {
+                if image.anchor.is_some() {
+                    if let Some(line) = lines.last_mut() {
+                        attach_anchor(line, image);
+                    } else {
+                        lines.push(anchor_line(font, size, image));
+                    }
+                    index += 1;
+                    try_follow_text(
+                        &mut lines,
+                        &items,
+                        &mut index,
+                        content_width,
+                        fit_text,
+                        &mut diagnostics,
+                        &mut omitted,
+                        &mut stats,
+                    )?;
+                    continue;
+                }
                 if image.scaled {
                     diagnostics.push(overflow(image, content_width));
                 }
@@ -128,6 +149,8 @@ struct FlowImage {
     scalar: usize,
     byte: usize,
     scaled: bool,
+    /// Page origin when this picture does not flow with the line.
+    anchor: Option<(Emu, Emu)>,
 }
 
 struct TextPiece {
@@ -182,6 +205,7 @@ fn items(
                     resource,
                     width,
                     height,
+                    anchor,
                 } = &object.kind
                 else {
                     return Err(unsupported(
@@ -203,6 +227,18 @@ fn items(
                 let (width, height) = absolute(*width, *height).ok_or_else(|| {
                     unsupported(Some(paragraph.id()), "image extent is not absolute")
                 })?;
+                let anchor = match anchor {
+                    None => None,
+                    Some(place) => {
+                        let x = place.x.absolute().ok_or_else(|| {
+                            unsupported(Some(paragraph.id()), "floating image position")
+                        })?;
+                        let y = place.y.absolute().ok_or_else(|| {
+                            unsupported(Some(paragraph.id()), "floating image position")
+                        })?;
+                        Some((x, y))
+                    }
+                };
                 items.push(Item::Image(FlowImage {
                     media_type: Arc::from(resource.media_type()),
                     bytes: Arc::from(resource.data()),
@@ -212,6 +248,7 @@ fn items(
                     scalar,
                     byte,
                     scaled: false,
+                    anchor,
                 }));
                 scalar += 1;
                 byte += OBJECT_MARKER.len_utf8();
@@ -226,7 +263,9 @@ fn items(
         text_byte,
     );
     for item in &mut items {
-        if let Item::Image(image) = item {
+        if let Item::Image(image) = item
+            && image.anchor.is_none()
+        {
             scale_to(image, max_width, max_height);
         }
     }
@@ -497,7 +536,51 @@ fn image_line(
     line
 }
 
+fn attach_anchor(line: &mut LayoutLine, image: &FlowImage) {
+    line.source.scalars.end = image.scalar + 1;
+    line.source.bytes.end = image.byte + OBJECT_MARKER.len_utf8();
+    line.images.push(line_image(image, Emu::new(0)));
+}
+
+fn anchor_line(font: &LoadedFont, size: Emu, image: &FlowImage) -> LayoutLine {
+    LayoutLine {
+        source: SourceRange {
+            bytes: image.byte..image.byte + OBJECT_MARKER.len_utf8(),
+            scalars: image.scalar..image.scalar + 1,
+        },
+        run: ShapedRun {
+            font: font.key(),
+            size,
+            text: String::new(),
+            glyphs: Vec::new(),
+            width: Emu::new(0),
+            missing: Vec::new(),
+            bold: false,
+            italic: false,
+            latin_family: None,
+            east_asia_family: None,
+            color: [0, 0, 0],
+            underline: None,
+        },
+        clusters: Vec::new(),
+        images: vec![line_image(image, Emu::new(0))],
+        revisions: Vec::new(),
+        hyperlinks: Vec::new(),
+        box_height: Emu::new(0),
+        tab_gaps: Vec::new(),
+        label_glyphs: 0,
+        label_text_bytes: 0,
+        label_size: Emu::new(0),
+        label_bold: false,
+    }
+}
+
 fn line_image(image: &FlowImage, x: Emu) -> LineImage {
+    let (x, absolute_top) = if let Some((page_x, page_y)) = image.anchor {
+        (page_x, Some(page_y))
+    } else {
+        (x, None)
+    };
     LineImage {
         media_type: image.media_type.clone(),
         bytes: image.bytes.clone(),
@@ -505,6 +588,7 @@ fn line_image(image: &FlowImage, x: Emu) -> LineImage {
         width: image.width,
         height: image.height,
         scalar: image.scalar,
+        absolute_top,
     }
 }
 

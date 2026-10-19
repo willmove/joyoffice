@@ -255,6 +255,9 @@ pub enum ImageOutcome {
     Active,
     Malformed,
     Oversize,
+    /// Wrap, behind-document, or a position this slice does not place.
+    /// The drawing stays preserved; its bytes are not fetched.
+    Unsupported,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

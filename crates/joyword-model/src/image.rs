@@ -181,6 +181,35 @@ pub fn display_extent(width_px: u32, height_px: u32) -> (Measure, Measure) {
     (Measure::Emu(width), Measure::Emu(height))
 }
 
+/// Page-relative top-left of a floating picture (ECMA-376 `wp:anchor`).
+///
+/// Offsets are EMU from the page origin. This slice stores no wrap mode and
+/// no z-order: callers only build it for `wp:wrapNone` in front of the text.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ImageAnchor {
+    pub x: Measure,
+    pub y: Measure,
+}
+
+/// A page anchor inside the same extent ceiling as [`extent_emu`].
+/// Zero is the page origin. Negative offsets are not this slice.
+pub fn page_anchor(x: i64, y: i64) -> Result<ImageAnchor, ImageRefuse> {
+    if x < 0 || y < 0 {
+        return Err(ImageRefuse::Malformed);
+    }
+    if x > MAX_EXTENT_EMU || y > MAX_EXTENT_EMU {
+        let edge = u32::try_from(x.max(y)).unwrap_or(u32::MAX);
+        return Err(ImageRefuse::OversizeDimension {
+            edge,
+            limit: u32::try_from(MAX_EXTENT_EMU).unwrap_or(u32::MAX),
+        });
+    }
+    Ok(ImageAnchor {
+        x: Measure::Emu(x),
+        y: Measure::Emu(y),
+    })
+}
+
 /// An OOXML extent (`cx`/`cy` in EMU). Non-positive or absurd values are refused.
 pub fn extent_emu(cx: i64, cy: i64) -> Result<(Measure, Measure), ImageRefuse> {
     if cx <= 0 || cy <= 0 {
