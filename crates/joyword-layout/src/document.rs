@@ -803,6 +803,7 @@ pub(crate) struct FittedParagraph {
     pub group_height: Option<Emu>,
     pub keep_next: bool,
     pub keep_lines: bool,
+    pub widow_control: bool,
     pub page_break_before: bool,
     pub justification: Option<Justification>,
     /// Baseline offset inside the line box, after style size scaling.
@@ -1752,6 +1753,7 @@ fn build_row_flows(
                 fitted.page_break_before = false;
                 fitted.keep_lines = false;
                 fitted.keep_next = false;
+                fitted.widow_control = false;
                 fitted.section_break_before = false;
                 note_fit(result, &fitted, spent);
                 paragraphs.push(fitted);
@@ -3437,6 +3439,7 @@ pub(crate) fn fit_paragraph(
         group_height: None,
         keep_next: painted.flow.keep_next,
         keep_lines: painted.flow.keep_lines,
+        widow_control: painted.flow.widow_control,
         page_break_before: painted.flow.page_break_before,
         justification: painted.flow.justification,
         baseline: painted.baseline,
@@ -3684,6 +3687,53 @@ fn suffix_copies(
     true
 }
 
+/// Line indices at which a fresh page must start before placement (widow/orphan).
+fn widow_page_breaks(
+    lines: &[LayoutLine],
+    line_box: Emu,
+    before: Emu,
+    start_top: Emu,
+    geometry: PageGeometry,
+) -> Vec<usize> {
+    let bottom = geometry.bottom_edge().raw();
+    let top = geometry.top.raw();
+    let mut y = start_top.raw();
+    let mut on_page = 0usize;
+    let mut breaks = Vec::new();
+    let mut i = 0usize;
+    while i < lines.len() {
+        let step = line_step(&lines[i], line_box).raw();
+        if on_page == 0 {
+            y = y.saturating_add(before.raw());
+        }
+        if y.saturating_add(step) > bottom {
+            if on_page == 1 && i > 0 && i + 1 < lines.len() {
+                breaks.push(i - 1);
+                y = top;
+                on_page = 0;
+                i -= 1;
+                continue;
+            }
+            if on_page >= 1 && i + 1 == lines.len() && i > 0 {
+                breaks.push(i - 1);
+                y = top;
+                on_page = 0;
+                i -= 1;
+                continue;
+            }
+            y = top;
+            on_page = 0;
+            continue;
+        }
+        y = y.saturating_add(step);
+        on_page += 1;
+        i += 1;
+    }
+    breaks.sort_unstable();
+    breaks.dedup();
+    breaks
+}
+
 fn place_one(
     result: &mut LayoutSnapshot,
     top: &mut Emu,
@@ -3704,6 +3754,7 @@ fn place_one(
     let height = prepared.height;
     let group_height = prepared.group_height;
     let keep_lines = prepared.keep_lines;
+    let widow_control = prepared.widow_control;
     let page_break_before = prepared.page_break_before;
     let column_breaks = prepared.column_breaks;
     let edge = prepared.section_edge;
@@ -3751,6 +3802,11 @@ fn place_one(
     let first_line = result.lines.len();
     let mut before_applied = false;
     let mut cursor = 0usize;
+    let widow_breaks = if widow_control && !pinned && lines.len() > 1 {
+        widow_page_breaks(&lines, line_box, before, *top, geometry)
+    } else {
+        Vec::new()
+    };
     let slices: Vec<(u32, usize)> = if piece_breaks.is_empty() {
         vec![(0, lines.len())]
     } else {
@@ -3770,6 +3826,13 @@ fn place_one(
         let paragraph_last = lines.len().saturating_sub(1);
         for (offset, line) in lines[cursor..end].iter().enumerate() {
             cancellation.check()?;
+            let absolute = cursor + offset;
+            if widow_breaks.binary_search(&absolute).is_ok() {
+                result.new_page(geometry, section)?;
+                result.adopt_columns(columns, geometry.top.raw());
+                *top = geometry.top;
+                before_applied = false;
+            }
             if !before_applied {
                 *top = add(*top, before)?;
                 before_applied = true;

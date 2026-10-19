@@ -549,6 +549,10 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 - **命令**：编辑菜单 `page.number` 与分页符同组，不进功能区，因此本命令不提高功能目录地板。地板现为 40，来自 T203 的插入图片按钮。它插入一个无缓存的 `PAGE`，一次撤销。行为登记 `PAGE-NUMBER-INSERT-UNDO` 是假设，没有 Word 观察。
 - **未覆盖**：widowControl 仍不实现。页眉编辑界面、页眉部件和页面设置都不写回 DOCX。不等宽栏、栏分隔线、`nextColumn`、章节页码未做。页码域不能和编号、制表位、图片或分页符放在同一段。连续节若没有打开自己的页，`SECTIONPAGES` 不计它借住的那一页。状态栏页码仍是物理页序，不是 `pgNumType` 之后的显示页码。没有启动图形界面。没有新增依赖。W09 harness 重锚到 `aa2f97faacd447c43aa4987a095ed94e1c494e83`（合入 PR #36 之后的 crates 树；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
 
+### T202 widowControl、页面设置写回与页眉编辑（2026-10-19）
+
+第四切片补齐 T202 三项实现缺口，任务仍 `in_progress`。`w:widowControl` 为真时排版在段内分页前模拟断点，避免单独一行留在页底或页顶（依据 ECMA-376 §17.3.1.26；与 layout_rules R5 的 Word 负结果分别登记）。`plan_export` 在节信封不变且仅 `PageSetup` 变化时 patch 各节 `w:sectPr` 的 `w:pgSz`／`w:pgMar`（twip 子集）；`sectPr` 保留片段或其它节属性变化仍拒绝。壳层 `page.edit.header`／`page.edit.footer`／`page.edit.body` 与布局功能区按钮切换 `TextInput` 的 `edit_story`，经引擎路径插入文字并可撤销。证据：`widow_control_keeps_two_lines_together_at_a_page_break`、`page_setup_margin_change_round_trips_in_export`、`page_setup_change_exports_through_the_docx_plan`、`header_story_edits_and_undo_through_the_engine_path`。未覆盖：页眉／页脚部件 XML 写回、图形界面验收、Word 对照。
+
 ### T203 行内图片与剪贴板第一切片（2026-10-18）
 
 这一刀导入并插入行内静态图片，把它们放进屏幕和 PDF 共用的页面场景，并规定纯文本与图片字节的粘贴。超链接、HTML／RTF、拖放和浮动图留到后续切片。T203 保持 `in_progress`。

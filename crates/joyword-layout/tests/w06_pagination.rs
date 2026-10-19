@@ -74,6 +74,11 @@ fn keep(doc: &mut Document, index: usize, next: bool, lines: bool) {
         props.keep_lines = Some(lines);
     });
 }
+fn widow(doc: &mut Document, index: usize, on: bool) {
+    change(doc, index, |p| {
+        Arc::make_mut(&mut p.props).widow_control = Some(on);
+    });
+}
 fn run(doc: &Document, limits: LayoutLimits) -> Result<LayoutSnapshot, LayoutError> {
     layout_document(
         &doc.snapshot(),
@@ -153,6 +158,17 @@ fn verify_source_and_geometry(doc: &Document, result: &LayoutSnapshot) {
         }
         assert_eq!((bytes, scalars), (text.len(), text.chars().count()));
     }
+}
+
+#[test]
+fn widow_control_keeps_two_lines_together_at_a_page_break() {
+    // One paragraph of three breakable lines on a page that fits two lines.
+    let mut doc = document(&[3], 2);
+    assert_eq!(pages(&layout(&doc)), [0, 0, 1]);
+    widow(&mut doc, 0, true);
+    assert_eq!(pages(&layout(&doc)), [0, 1, 1]);
+    widow(&mut doc, 0, false);
+    assert_eq!(pages(&layout(&doc)), [0, 0, 1]);
 }
 
 #[test]

@@ -4,6 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use joyoffice_opc::{Budget, Method, Package, write_archive};
+use joyword_docx::plan_export;
 use joyword_engine::RunChange;
 use joyword_model::{
     BreakKind, InlineKind, Justification, Measure, NumberingRef, Orientation, PageFieldKind,
@@ -536,4 +537,43 @@ fn inserting_a_page_number_is_one_undoable_transaction() {
         .as_paragraph()
         .unwrap();
     assert!(restored.inlines().is_empty());
+}
+
+#[test]
+fn page_setup_change_exports_through_the_docx_plan() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("page.docx");
+    fs::write(&source, fixture(1)).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    office
+        .invoke(
+            PAGE_SIZE,
+            &[
+                ("width", ArgValue::Text("10000".into())),
+                ("height", ArgValue::Text("14000".into())),
+            ],
+        )
+        .unwrap();
+    let active = office.active().unwrap();
+    let backend = active.backend().session();
+    let plan = plan_export(
+        backend.backing(),
+        &backend.session().document().snapshot(),
+        &Budget::default(),
+    )
+    .expect("page setup export");
+    assert_eq!(plan.changed_parts().len(), 1);
+    let main = String::from_utf8(
+        Package::read(plan.bytes(), &Budget::default())
+            .unwrap()
+            .part("/word/document.xml")
+            .unwrap()
+            .data
+            .to_vec(),
+    )
+    .unwrap();
+    assert!(main.contains("w:w=\"10000\""));
 }

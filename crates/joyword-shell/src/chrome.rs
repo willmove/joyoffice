@@ -22,10 +22,10 @@ use crate::command::{
     ArgValue, CommandId, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_ITALIC, EDIT_PASTE,
     EDIT_REDO, EDIT_UNDO, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
-    PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL,
-    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
-    STYLE_LIST, SWITCH_LANGUAGE, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
-    ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE,
+    REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
+    REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, VIEW_FIELD_CODES,
+    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -554,6 +554,28 @@ pub const RIBBON: &[RibbonControl] = &[
         label: "ribbon.orientation.landscape",
         icon: "landscape",
         args: RibbonArgs::Fixed(LANDSCAPE),
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "layout.edit_header",
+        tab: RibbonTab::Layout,
+        group_key: "ribbon.group.page",
+        command: PAGE_EDIT_HEADER,
+        label: "ribbon.page.edit_header",
+        icon: "header",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "layout.edit_body",
+        tab: RibbonTab::Layout,
+        group_key: "ribbon.group.page",
+        command: PAGE_EDIT_BODY,
+        label: "ribbon.page.edit_body",
+        icon: "body",
+        args: RibbonArgs::None,
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
@@ -1324,6 +1346,14 @@ const ICONS: &[(&str, &str)] = &[
     ),
     (
         "landscape",
+        "................|................|................|................|................|..############..|..#..........#..|..#..........#..|..#..........#..|..#..........#..|..############..|................|................|................|................|................",
+    ),
+    (
+        "header",
+        "................|................|................|..############..|..#..........#..|..############..|................|................|................|................|................|................|................|................|................|................",
+    ),
+    (
+        "body",
         "................|................|................|................|................|..############..|..#..........#..|..#..........#..|..#..........#..|..#..........#..|..############..|................|................|................|................|................",
     ),
     (

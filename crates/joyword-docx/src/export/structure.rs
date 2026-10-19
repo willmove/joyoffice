@@ -27,10 +27,10 @@ use std::sync::Arc;
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, Document, FontRef, FontSlots,
     Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, MoveMarker,
-    MoveSide, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph, RevisionKind,
-    RowHeightRule, RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign,
-    TabLeader, TabStop, Table, TableAlign, TableLayoutKind, TableLook, TableWidth, Underline,
-    VerticalAlign, VerticalMerge,
+    MoveSide, NodeId, NumberingRef, NumberingStore, Orientation, PageSetup, ParaProps, Paragraph,
+    RevisionKind, RowHeightRule, RunProps, Section, Shading, SourceRef, Spacing, StyleId,
+    StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table, TableAlign, TableLayoutKind,
+    TableLook, TableWidth, Underline, VerticalAlign, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_leaf, bounded_text_xml, text_slots, unsupported};
@@ -3094,6 +3094,178 @@ pub(super) fn append_hyperlink_relationships(
     out.push_str(&extra);
     out.push_str(&text[pos..]);
     Ok(out.into_bytes())
+}
+
+pub(super) fn section_page_changes(
+    original: &Document,
+    current: &Document,
+) -> Result<Vec<usize>, ExportError> {
+    if original.sections().len() != current.sections().len() {
+        return Err(unsupported(None, "section count changed"));
+    }
+    let mut changed = Vec::new();
+    for (index, (before, after)) in original
+        .sections()
+        .iter()
+        .zip(current.sections())
+        .enumerate()
+    {
+        if !super::compare::same_section_envelope(before, after) {
+            return Err(unsupported(
+                None,
+                "section properties outside page setup export",
+            ));
+        }
+        if before.page != after.page {
+            if after.preserved.is_some() || !page_setup_exportable(&after.page) {
+                return Err(unsupported(
+                    None,
+                    "section page setup outside export subset",
+                ));
+            }
+            changed.push(index);
+        }
+    }
+    Ok(changed)
+}
+
+fn page_setup_exportable(page: &PageSetup) -> bool {
+    let twip = |measure: Measure| matches!(measure, Measure::Twips(value) if value >= 0);
+    twip(page.width)
+        && twip(page.height)
+        && twip(page.top)
+        && twip(page.right)
+        && twip(page.bottom)
+        && twip(page.left)
+        && twip(page.header)
+        && twip(page.footer)
+        && twip(page.gutter)
+}
+
+impl<'a> Source<'a> {
+    pub(super) fn patch_section_page(
+        &self,
+        document: &Document,
+        section: &Section,
+        page: &PageSetup,
+        names: &Names,
+    ) -> Result<(Range<usize>, Vec<u8>), ExportError> {
+        let element = self.section_sectpr(document, section)?;
+        let bytes = rewrite_sectpr_page(self.xml, element, page, names)?;
+        Ok((element.span.clone(), bytes))
+    }
+
+    fn section_sectpr(
+        &self,
+        document: &Document,
+        section: &Section,
+    ) -> Result<&'a Element, ExportError> {
+        if let Some(last) = section.last_block {
+            let paragraph = document
+                .body()
+                .blocks
+                .iter()
+                .filter_map(Block::as_paragraph)
+                .find(|paragraph| paragraph.id() == last)
+                .ok_or_else(|| unsupported(None, "section boundary block is missing"))?;
+            let element = self.paragraph(paragraph)?;
+            let ppr = element
+                .child(W, "pPr")
+                .ok_or_else(|| unsupported(None, "section paragraph has no pPr"))?;
+            return ppr
+                .child(W, "sectPr")
+                .ok_or_else(|| unsupported(None, "section paragraph has no sectPr"));
+        }
+        self.elements
+            .values()
+            .find(|element| element.is(W, "sectPr"))
+            .copied()
+            .ok_or_else(|| unsupported(None, "final section properties are missing"))
+    }
+}
+
+fn rewrite_sectpr_page(
+    xml: &[u8],
+    sectpr: &Element,
+    page: &PageSetup,
+    names: &Names,
+) -> Result<Vec<u8>, ExportError> {
+    let children: Vec<_> = sectpr.elements().collect();
+    let page_markup = format!(
+        "{}{}",
+        pg_sz_markup(names, page)?,
+        pg_mar_markup(names, page)?
+    );
+    let open_end = children
+        .first()
+        .map(|child| child.span.start)
+        .unwrap_or_else(|| {
+            xml[sectpr.span.start..]
+                .iter()
+                .position(|&byte| byte == b'>')
+                .map(|offset| sectpr.span.start + offset + 1)
+                .unwrap_or(sectpr.span.end)
+        });
+    let close_start = children
+        .last()
+        .map(|child| child.span.end)
+        .unwrap_or(open_end);
+    let mut out = Vec::new();
+    out.extend_from_slice(&xml[sectpr.span.start..open_end]);
+    let mut wrote_page = false;
+    for child in children {
+        let mapped = child.namespace.as_deref() == Some(W);
+        let local = child.local.as_ref();
+        if mapped && (local == "pgSz" || local == "pgMar") {
+            if !wrote_page {
+                out.extend_from_slice(page_markup.as_bytes());
+                wrote_page = true;
+            }
+            continue;
+        }
+        out.extend_from_slice(&xml[child.span.clone()]);
+    }
+    if !wrote_page {
+        out.extend_from_slice(page_markup.as_bytes());
+    }
+    out.extend_from_slice(&xml[close_start..sectpr.span.end]);
+    Ok(out)
+}
+
+fn pg_sz_markup(names: &Names, page: &PageSetup) -> Result<String, ExportError> {
+    let (width, height) = match (page.width, page.height) {
+        (Measure::Twips(width), Measure::Twips(height)) => (width, height),
+        _ => return Err(unsupported(None, "page size is outside export subset")),
+    };
+    let mut markup = names.start("pgSz");
+    markup.push_str(&names.attribute("w", &width.to_string()));
+    markup.push_str(&names.attribute("h", &height.to_string()));
+    if page.orientation == Orientation::Landscape {
+        markup.push_str(&names.attribute("orient", "landscape"));
+    }
+    markup.push_str("/>");
+    Ok(markup)
+}
+
+fn pg_mar_markup(names: &Names, page: &PageSetup) -> Result<String, ExportError> {
+    let twip = |measure: Measure| match measure {
+        Measure::Twips(value) if value >= 0 => Ok(value),
+        _ => Err(unsupported(None, "page margins are outside export subset")),
+    };
+    let mut markup = names.start("pgMar");
+    for (name, measure) in [
+        ("top", page.top),
+        ("right", page.right),
+        ("bottom", page.bottom),
+        ("left", page.left),
+        ("header", page.header),
+        ("footer", page.footer),
+        ("gutter", page.gutter),
+    ] {
+        markup.push_str(&names.attribute(name, &twip(measure)?.to_string()));
+    }
+    markup.push_str("/>");
+    Ok(markup)
 }
 
 #[cfg(test)]

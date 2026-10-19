@@ -13,7 +13,7 @@ use std::sync::Arc;
 
 use joyword_model::{
     Block, BlockSeq, Document, Hyperlink, IdAllocator, InlineKind, InlineObject, NodeId,
-    OpaqueBlock, ParaProps, Paragraph, PreservedId, RunProps, Segment, StyleId,
+    OpaqueBlock, ParaProps, Paragraph, PreservedId, RunProps, Section, Segment, StyleId,
 };
 
 use crate::PackageBacking;
@@ -226,6 +226,20 @@ fn rebuild(
 
 /// Section ends of `actual` fall after the same body block positions as in
 /// `expected`.
+/// Section metadata matches except `page`, which may differ when page-setup
+/// writeback is planned separately.
+pub(super) fn same_section_envelope(expected: &Section, actual: &Section) -> bool {
+    expected.id == actual.id
+        && expected.last_block == actual.last_block
+        && expected.title_page == actual.title_page
+        && expected.headers == actual.headers
+        && expected.footers == actual.footers
+        && expected.break_kind == actual.break_kind
+        && expected.numbering == actual.numbering
+        && expected.columns == actual.columns
+        && expected.preserved == actual.preserved
+}
+
 pub(super) fn same_sections(expected: &Document, actual: &Document) -> bool {
     fn boundaries(document: &Document) -> Option<Vec<Option<usize>>> {
         let index: HashMap<NodeId, usize> = document

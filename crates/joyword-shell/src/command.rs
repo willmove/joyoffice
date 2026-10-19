@@ -488,6 +488,9 @@ pub const PAGE_NUMBER: CommandId = CommandId("page.number");
 pub const PAGE_SIZE: CommandId = CommandId("page.size");
 pub const PAGE_MARGINS: CommandId = CommandId("page.margins");
 pub const PAGE_ORIENTATION: CommandId = CommandId("page.orientation");
+pub const PAGE_EDIT_HEADER: CommandId = CommandId("page.edit.header");
+pub const PAGE_EDIT_FOOTER: CommandId = CommandId("page.edit.footer");
+pub const PAGE_EDIT_BODY: CommandId = CommandId("page.edit.body");
 pub const FIND_NEXT: CommandId = CommandId("find.next");
 pub const FIND_PREVIOUS: CommandId = CommandId("find.previous");
 pub const FIND_REPLACE: CommandId = CommandId("find.replace");
@@ -962,6 +965,30 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: true,
                 parameters: PAGE_ORIENTATION_PARAM,
+            },
+            CommandSpec {
+                id: PAGE_EDIT_HEADER,
+                label: "command.page.edit.header",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: PAGE_EDIT_FOOTER,
+                label: "command.page.edit.footer",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: PAGE_EDIT_BODY,
+                label: "command.page.edit.body",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: TABLE_INSERT,

@@ -217,6 +217,7 @@ fn plan_export_after_import(
             limit: budget.max_part_bytes,
         });
     }
+    let section_page_changes = structure::section_page_changes(original, current)?;
     let mut alignment = structure::align(original, current)?;
     note_marker_edits(original, current, &mut alignment);
     let tracking_changed =
@@ -245,7 +246,7 @@ fn plan_export_after_import(
         // the patched archive later stored in `bytes`.
         origin: Some(backing.original_arc()),
     };
-    if alignment.is_unchanged() && !tracking_changed {
+    if alignment.is_unchanged() && !tracking_changed && section_page_changes.is_empty() {
         return Ok(plan);
     }
     if !source.editability.is_unrestricted() {
@@ -346,6 +347,13 @@ fn plan_export_after_import(
         let element = xml.table(table)?;
         patches.push((element.span.clone(), Vec::new()));
     }
+    if !section_page_changes.is_empty() {
+        let names = Names::in_scope(&[&root, body]);
+        for &index in &section_page_changes {
+            let section = current.sections().get(index).expect("validated index");
+            patches.push(xml.patch_section_page(current, section, &section.page, &names)?);
+        }
+    }
     // An insertion sorts before a removal or replacement starting at the
     // same byte, so neither is treated as overlapping.
     patches.sort_by_key(|(range, _)| (range.start, range.end));
@@ -418,7 +426,7 @@ fn plan_export_after_import(
         Some(appended)
     };
     let mut replacements = Vec::new();
-    if !alignment.is_unchanged() {
+    if !alignment.is_unchanged() || !section_page_changes.is_empty() {
         replacements.push((main_name.clone(), main_bytes));
     }
     if let Some(bytes) = rels_bytes {
@@ -657,18 +665,7 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
             .sections()
             .iter()
             .zip(after.sections())
-            .all(|(a, b)| {
-                a.id == b.id
-                    && a.last_block == b.last_block
-                    && a.page == b.page
-                    && a.title_page == b.title_page
-                    && a.headers == b.headers
-                    && a.footers == b.footers
-                    && a.break_kind == b.break_kind
-                    && a.numbering == b.numbering
-                    && a.columns == b.columns
-                    && a.preserved == b.preserved
-            });
+            .all(|(a, b)| compare::same_section_envelope(a, b));
     let resources_equal = before.resources().len() == after.resources().len()
         && before
             .resources()

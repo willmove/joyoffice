@@ -536,6 +536,29 @@ fn document_budgets_are_enforced_before_initialization_and_edit_commit() {
 }
 
 #[test]
+fn header_story_edits_and_undo_through_the_engine_path() {
+    let mut doc = session("body").document().clone();
+    let mut header = Paragraph::new(doc.ids().node());
+    header
+        .push_text("H", None, std::sync::Arc::default())
+        .unwrap();
+    let header_id = doc.insert_story(joyword_model::StoryKind::Header, vec![header.into()]);
+    doc.sections_mut()[0]
+        .headers
+        .push((joyword_model::HeaderFooterKind::Default, header_id));
+    let mut input = TextInput::new(Session::new(doc), InputLimits::default()).unwrap();
+    assert!(input.focus_default_header().unwrap());
+    assert!(!input.is_editing_body());
+    let len = input.view().index().len_utf16();
+    input.replace(Some(0..len), "页眉").unwrap();
+    assert_eq!(input.view().index().text(), "页眉");
+    input.undo().unwrap();
+    assert_eq!(input.view().index().text(), "H");
+    assert!(input.focus_body().unwrap());
+    assert!(input.is_editing_body());
+}
+
+#[test]
 fn an_additional_story_is_rejected_instead_of_silently_omitted() {
     let mut doc = session("body").document().clone();
     let mut header = Paragraph::new(doc.ids().node());
