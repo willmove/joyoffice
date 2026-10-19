@@ -60,7 +60,8 @@ JoyWord 只在段落为单倍行距（`w:spacing@w:line` = 240 且 `w:lineRule` 
 - 本机 Word 2024 新建文档（Normal 模板）的段落 `WidowControl` 读值为 0（关闭）。
 - 强制拆分场景（页满后接 2 行或 3 行段落）：无论关闭还是显式对受影响段落设置 `WidowControl=True`（已核实 `w:widowControl` 写入保存的 DOCX），Word 仍按 1+1／1+2 拆分，页底保留单行（孤儿）、页首保留单行（寡行）；固定 18 pt 行距与单倍行距（31.2 pt）两种设置下一致复现。
 - 产物：`breaks/word_widow.pdf`、`breaks/word_widow_on.pdf`、`breaks/word_widow2.pdf`、`breaks/word_widow3.pdf`、`breaks/word_widow4.pdf`（含对应 DOCX）。
-- 注意：该结果与"孤行控制开启即避免单行"的一般预期不符，可能是本 build 的行为或场景特殊性；建议在 GUI 会话中通过段落对话框切换孤行控制复核后再据此实现 JoyWord 的 widowControl（T202）。
+- 注意：该结果与"孤行控制开启即避免单行"的一般预期不符，可能是本 build 的行为或场景特殊性；建议在 GUI 会话中通过段落对话框切换孤行控制复核。
+- JoyWord（2026-10-19，T202 第四切片）：`w:widowControl` 为真时按 ECMA-376 §17.3.1.26 在段内分页处尽量保持至少两行同在页顶或页底（`widow_control_keeps_two_lines_together_at_a_page_break`）；未与 Word 2024 逐页对照，不推翻上述 R5 负结果登记。
 
 ### R6：keepNext（与下段同页）实测
 

@@ -71,6 +71,9 @@ actions!(
         PageSize,
         PageMargins,
         PageOrientation,
+        EditHeader,
+        EditFooter,
+        EditBody,
         CopyText,
         PasteText,
         InsertImage,
@@ -196,6 +199,9 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         PAGE_SIZE => Box::new(PageSize),
         PAGE_MARGINS => Box::new(PageMargins),
         PAGE_ORIENTATION => Box::new(PageOrientation),
+        PAGE_EDIT_HEADER => Box::new(EditHeader),
+        PAGE_EDIT_FOOTER => Box::new(EditFooter),
+        PAGE_EDIT_BODY => Box::new(EditBody),
         EDIT_ALIGN_CENTER => Box::new(AlignCenter),
         EDIT_COPY => Box::new(CopyText),
         EDIT_PASTE => Box::new(PasteText),
@@ -1384,6 +1390,15 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &PageOrientation, window, cx| {
                 this.run(PAGE_ORIENTATION, window, cx)
             }))
+            .on_action(cx.listener(|this, _: &EditHeader, window, cx| {
+                this.run(PAGE_EDIT_HEADER, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &EditFooter, window, cx| {
+                this.run(PAGE_EDIT_FOOTER, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &EditBody, window, cx| this.run(PAGE_EDIT_BODY, window, cx)),
+            )
             .on_action(
                 cx.listener(|this, _: &Italic, window, cx| this.run(EDIT_ITALIC, window, cx)),
             )

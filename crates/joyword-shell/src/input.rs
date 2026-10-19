@@ -389,22 +389,21 @@ fn projected_inline(kind: &InlineKind) -> bool {
 #[derive(Clone, Debug)]
 pub struct TextIndex {
     snapshot: DocumentSnapshot,
+    story: StoryId,
     text: Arc<str>,
     paragraphs: Vec<ParagraphEntry>,
     by_id: BTreeMap<NodeId, usize>,
     len_utf16: usize,
 }
 impl TextIndex {
-    fn new(snapshot: DocumentSnapshot, limits: InputLimits) -> Result<Self, InputError> {
-        if snapshot.body().blocks.len() > limits.max_paragraphs {
-            return Err(InputError::Budget("paragraphs"));
-        }
-        // Header and footer stories are not part of the flat body projection.
-        // Other stories (notes, comments, text boxes) stay rejected so their
-        // text is not dropped without a diagnostic.
-        if snapshot.stories().any(|story| {
+    fn new_for_story(
+        snapshot: DocumentSnapshot,
+        story: StoryId,
+        limits: InputLimits,
+    ) -> Result<Self, InputError> {
+        if snapshot.stories().any(|item| {
             !matches!(
-                story.kind,
+                item.kind,
                 StoryKind::Body | StoryKind::Header | StoryKind::Footer
             )
         }) {
@@ -470,20 +469,37 @@ impl TextIndex {
             utf16 += len;
             Ok(())
         };
-        for block in snapshot.body().blocks.iter() {
-            match block {
-                Block::Paragraph(paragraph) => push_paragraph(paragraph)?,
-                Block::Table(table) => {
-                    for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
-                        for inner in cell.blocks.iter() {
-                            let Some(paragraph) = inner.as_paragraph() else {
-                                return Err(InputError::UnsupportedBody);
-                            };
-                            push_paragraph(paragraph)?;
+        let story_blocks = snapshot
+            .story(story)
+            .ok_or(InputError::InvalidDocument)?
+            .blocks
+            .iter();
+        if story == snapshot.body_id() {
+            if snapshot.body().blocks.len() > limits.max_paragraphs {
+                return Err(InputError::Budget("paragraphs"));
+            }
+            for block in story_blocks {
+                match block {
+                    Block::Paragraph(paragraph) => push_paragraph(paragraph)?,
+                    Block::Table(table) => {
+                        for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
+                            for inner in cell.blocks.iter() {
+                                let Some(paragraph) = inner.as_paragraph() else {
+                                    return Err(InputError::UnsupportedBody);
+                                };
+                                push_paragraph(paragraph)?;
+                            }
                         }
                     }
+                    Block::Sdt(_) | Block::Opaque(_) => return Err(InputError::UnsupportedBody),
                 }
-                Block::Sdt(_) | Block::Opaque(_) => return Err(InputError::UnsupportedBody),
+            }
+        } else {
+            for block in story_blocks {
+                let Some(paragraph) = block.as_paragraph() else {
+                    return Err(InputError::UnsupportedBody);
+                };
+                push_paragraph(paragraph)?;
             }
         }
         if paragraphs.is_empty() || snapshot.validate().has_errors() {
@@ -491,6 +507,7 @@ impl TextIndex {
         }
         Ok(Self {
             snapshot,
+            story,
             text: text.into(),
             paragraphs,
             by_id,
@@ -525,14 +542,14 @@ impl TextIndex {
             .utf16_to_scalar(Utf16Offset(relative))
             .map_err(|_| InputError::InsideSurrogate)?;
         Ok(Position {
-            story: self.snapshot.body_id(),
+            story: self.story,
             paragraph: p.id,
             offset: scalar,
             bias,
         })
     }
     pub fn offset(&self, position: Position) -> Result<usize, InputError> {
-        if position.story != self.snapshot.body_id() {
+        if position.story != self.story {
             return Err(InputError::UnknownPosition(position));
         }
         let i = *self
@@ -650,6 +667,8 @@ pub enum Direction {
 pub struct TextInput<B = Session> {
     backend: B,
     base: Arc<TextIndex>,
+    /// Story receiving keyboard input (body, or a header/footer story).
+    edit_story: StoryId,
     selection: Selection,
     composition: Option<Composition>,
     view: InputView,
@@ -706,7 +725,9 @@ impl<B: InputBackend> TextInput<B> {
     pub fn new(backend: B, limits: InputLimits) -> Result<Self, InputError> {
         let limits = limits.capped();
         let saved_version = backend.session().version();
-        let base = Arc::new(TextIndex::new(backend.session().snapshot(), limits)?);
+        let snapshot = backend.session().snapshot();
+        let edit_story = snapshot.body_id();
+        let base = Arc::new(TextIndex::new_for_story(snapshot, edit_story, limits)?);
         let selection = Selection::caret(base.position(0, Bias::After)?);
         let view = InputView {
             index: base.clone(),
@@ -718,6 +739,7 @@ impl<B: InputBackend> TextInput<B> {
         Ok(Self {
             backend,
             base,
+            edit_story,
             selection,
             composition: None,
             view,
@@ -870,7 +892,11 @@ impl<B: InputBackend> TextInput<B> {
             Outcome::Applied(a) => a.selection.expect("valid target survived"),
             Outcome::NoOp(_) => target,
         };
-        let index = Arc::new(TextIndex::new(candidate.snapshot(), self.limits)?);
+        let index = Arc::new(TextIndex::new_for_story(
+            candidate.snapshot(),
+            self.edit_story,
+            self.limits,
+        )?);
         Ok(Prepared {
             index,
             selection,
@@ -1831,8 +1857,9 @@ impl<B: InputBackend> TextInput<B> {
             }
             Outcome::NoOp(_) => target,
         };
-        self.base = Arc::new(TextIndex::new(
+        self.base = Arc::new(TextIndex::new_for_story(
             self.backend.session().snapshot(),
+            self.edit_story,
             self.limits,
         )?);
         self.selection = selection;
@@ -1906,6 +1933,55 @@ impl<B: InputBackend> TextInput<B> {
             self.backend.session().version(),
             vec![command],
         ))
+    }
+
+    pub fn edit_story(&self) -> StoryId {
+        self.edit_story
+    }
+
+    pub fn is_editing_body(&self) -> bool {
+        self.edit_story == self.base.snapshot().body_id()
+    }
+
+    /// Move input focus to the main body story.
+    pub fn focus_body(&mut self) -> Result<bool, InputError> {
+        self.focus_story(self.base.snapshot().body_id())
+    }
+
+    /// Move input focus to the default header of the caret's section.
+    pub fn focus_default_header(&mut self) -> Result<bool, InputError> {
+        let document = self.backend.session().document();
+        let section = section_for_paragraph(document, self.selection.head.paragraph)
+            .ok_or(InputError::InvalidDocument)?;
+        let story = story_for_header(document, section, joyword_model::HeaderFooterKind::Default)
+            .ok_or(InputError::InvalidDocument)?;
+        self.focus_story(story)
+    }
+
+    /// Move input focus to the default footer of the caret's section.
+    pub fn focus_default_footer(&mut self) -> Result<bool, InputError> {
+        let document = self.backend.session().document();
+        let section = section_for_paragraph(document, self.selection.head.paragraph)
+            .ok_or(InputError::InvalidDocument)?;
+        let story = story_for_footer(document, section, joyword_model::HeaderFooterKind::Default)
+            .ok_or(InputError::InvalidDocument)?;
+        self.focus_story(story)
+    }
+
+    fn focus_story(&mut self, story: StoryId) -> Result<bool, InputError> {
+        if story == self.edit_story {
+            return Ok(false);
+        }
+        let snapshot = self.backend.session().snapshot();
+        let index = TextIndex::new_for_story(snapshot, story, self.limits)?;
+        let selection = Selection::caret(index.position(0, Bias::After)?);
+        self.edit_story = story;
+        self.base = Arc::new(index);
+        self.selection = selection;
+        self.composition = None;
+        let revision = self.next_revision()?;
+        self.publish(self.base.clone(), selection, None, revision);
+        Ok(true)
     }
 
     /// Inserts a table before the body block that contains the caret and
@@ -2261,12 +2337,17 @@ impl<B: InputBackend> TextInput<B> {
         self.writable()?;
         let revision = self.next_revision()?;
         let (snapshot, selection) = self.backend.preview_undo()?;
-        let candidate = TextIndex::new(snapshot, self.limits)?;
+        let story = selection
+            .as_ref()
+            .map(|item| item.head.story)
+            .unwrap_or(snapshot.body_id());
+        let candidate = TextIndex::new_for_story(snapshot, story, self.limits)?;
         let selection = selection
             .unwrap_or_else(|| Selection::caret(candidate.position(0, Bias::After).expect("body")));
         candidate.selection_range(selection)?;
         let undone = self.backend.undo()?;
         self.note(undone.changes);
+        self.edit_story = story;
         let base = Arc::new(TextIndex {
             snapshot: self.backend.session().snapshot(),
             ..candidate
@@ -2283,12 +2364,17 @@ impl<B: InputBackend> TextInput<B> {
         }
         let revision = self.next_revision()?;
         let (snapshot, selection) = self.backend.preview_redo()?;
-        let candidate = TextIndex::new(snapshot, self.limits)?;
+        let story = selection
+            .as_ref()
+            .map(|item| item.head.story)
+            .unwrap_or(snapshot.body_id());
+        let candidate = TextIndex::new_for_story(snapshot, story, self.limits)?;
         let selection = selection
             .unwrap_or_else(|| Selection::caret(candidate.position(0, Bias::After).expect("body")));
         candidate.selection_range(selection)?;
         let redone = self.backend.redo()?;
         self.note(redone.changes);
+        self.edit_story = story;
         let base = Arc::new(TextIndex {
             snapshot: self.backend.session().snapshot(),
             ..candidate
@@ -2441,6 +2527,34 @@ fn utf16_bytes(text: &str, range: Range<usize>) -> Result<Range<usize>, InputErr
         }
     };
     Ok(byte(range.start)?..byte(range.end)?)
+}
+
+fn story_for_header(
+    document: &Document,
+    section: NodeId,
+    kind: joyword_model::HeaderFooterKind,
+) -> Option<StoryId> {
+    document
+        .sections()
+        .iter()
+        .find(|item| item.id == section)?
+        .headers
+        .iter()
+        .find_map(|(header_kind, story)| (*header_kind == kind).then_some(*story))
+}
+
+fn story_for_footer(
+    document: &Document,
+    section: NodeId,
+    kind: joyword_model::HeaderFooterKind,
+) -> Option<StoryId> {
+    document
+        .sections()
+        .iter()
+        .find(|item| item.id == section)?
+        .footers
+        .iter()
+        .find_map(|(footer_kind, story)| (*footer_kind == kind).then_some(*story))
 }
 
 fn section_for_paragraph(document: &Document, paragraph: NodeId) -> Option<NodeId> {

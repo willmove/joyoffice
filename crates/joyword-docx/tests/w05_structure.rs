@@ -11,7 +11,7 @@ use joyword_docx::{
     ExportError, ExportMode, ExportPlan, ImportResult, PackageBacking, W, import, plan_export,
 };
 use joyword_model::{
-    Block, Document, OpaqueBlock, ParaProps, Paragraph, Preserved, PreservedId, RunProps,
+    Block, Document, Measure, OpaqueBlock, ParaProps, Paragraph, Preserved, PreservedId, RunProps,
     ScalarOffset,
 };
 
@@ -848,6 +848,20 @@ fn structural_removal_refuses_ignored_nontext_content() {
         );
         assert_eq!(source.backing.original_bytes(), bytes);
     }
+}
+
+#[test]
+fn page_setup_margin_change_round_trips_in_export() {
+    let bytes = package_with(r#"<w:p><w:r><w:t>Body</w:t></w:r></w:p>"#, None, &[]);
+    let source = open(&bytes);
+    let mut model = source.document.clone();
+    model.sections_mut()[0].page.left = Measure::Twips(2000);
+    let plan = export(&source, &model).expect("page setup export");
+    assert_eq!(plan.changed_parts().len(), 1);
+    let xml = main_xml(plan.bytes());
+    assert!(xml.contains("w:left=\"2000\""));
+    let saved = open(plan.bytes());
+    assert_eq!(saved.document.sections()[0].page.left, Measure::Twips(2000));
 }
 
 #[test]

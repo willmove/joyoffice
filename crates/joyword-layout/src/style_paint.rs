@@ -26,6 +26,11 @@ pub(crate) struct Flow {
     pub snap_to_grid: Option<bool>,
     pub keep_next: bool,
     pub keep_lines: bool,
+    /// ECMA-376 Part 1 §17.3.1.26 `w:widowControl`: when true, avoid a single
+    /// line of this paragraph alone at the top or bottom of a page. JoyWord
+    /// keeps at least two lines together at an internal page break when both
+    /// fit on the following page; taller-than-page paragraphs still split.
+    pub widow_control: bool,
     pub page_break_before: bool,
     pub justification: Option<Justification>,
 }
@@ -319,9 +324,6 @@ fn accept_paragraph(
     if props.snap_to_grid == Some(true) && !single {
         return Err(unsupported(node, "paragraph layout properties"));
     }
-    if props.widow_control == Some(true) {
-        return Err(unsupported(node, "widow control"));
-    }
     if props.spacing.before_auto == Some(true) || props.spacing.after_auto == Some(true) {
         return Err(unsupported(node, "paragraph spacing"));
     }
@@ -332,6 +334,7 @@ fn accept_paragraph(
         snap_to_grid: props.snap_to_grid,
         keep_next: props.keep_next == Some(true),
         keep_lines: props.keep_lines == Some(true),
+        widow_control: props.widow_control == Some(true),
         page_break_before: props.page_break_before == Some(true),
         justification: props.justification,
     })

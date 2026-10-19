@@ -20,12 +20,12 @@ use crate::command::{
     ExecuteError, FILE_CLOSE, FILE_EXPORT_PDF, FILE_OPEN, FILE_OPEN_RECENT, FILE_PRINT, FILE_SAVE,
     FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL,
-    LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT,
-    REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
-    REVIEW_REJECT_ALL, REVIEW_TRACK, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE,
-    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE,
-    TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS,
-    VIEW_HIDDEN_TEXT,
+    LIST_REMOVE, PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS,
+    PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR,
+    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
+    Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT,
+    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
+    TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use crate::dialogs::{ViewToggles, font_draft_from_decision, paragraph_draft_from_decision};
 use crate::docx::BoundDocx;
@@ -1064,6 +1064,22 @@ impl Office {
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            PAGE_EDIT_HEADER => {
+                self.require_active()?
+                    .focus_default_header()
+                    .map_err(input_error)?;
+                Ok(())
+            }
+            PAGE_EDIT_FOOTER => {
+                self.require_active()?
+                    .focus_default_footer()
+                    .map_err(input_error)?;
+                Ok(())
+            }
+            PAGE_EDIT_BODY => {
+                self.require_active()?.focus_body().map_err(input_error)?;
                 Ok(())
             }
             FIND_NEXT | FIND_PREVIOUS => {

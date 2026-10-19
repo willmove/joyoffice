@@ -1437,7 +1437,10 @@ fn default_header_and_footer_import_page_fields_without_cached_results() {
 
     let mut changed = result.document.clone();
     changed.sections_mut()[0].page.width = Measure::Twips(10_000);
-    assert!(plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err());
+    assert!(
+        plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err(),
+        "header DATE field keeps the package edit-restricted"
+    );
 }
 
 #[test]

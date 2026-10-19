@@ -1022,6 +1022,7 @@ fn adopt(
     hit.group_height = None;
     hit.keep_next = flow.keep_next;
     hit.keep_lines = flow.keep_lines;
+    hit.widow_control = flow.widow_control;
     hit.page_break_before = flow.page_break_before;
     hit.justification = flow.justification;
     Ok(hit)
@@ -1296,6 +1297,7 @@ mod tests {
             group_height: None,
             keep_next: false,
             keep_lines: false,
+            widow_control: false,
             page_break_before: false,
             justification: None,
             baseline: Emu::new(0),
