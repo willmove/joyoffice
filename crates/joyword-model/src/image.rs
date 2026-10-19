@@ -214,6 +214,8 @@ pub enum AnchorWrap {
     #[default]
     None,
     /// `wp:wrapSquare`. Text stays outside the extent plus [`SquareWrap`].
+    /// The importer also maps `wp:wrapTight` and `wp:wrapThrough` here as an
+    /// approximation that ignores their contour polygon.
     Square(SquareWrap),
 }
 

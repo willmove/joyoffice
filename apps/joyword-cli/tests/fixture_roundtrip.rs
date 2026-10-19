@@ -24,7 +24,7 @@ struct Fixture {
     bytes: &'static [u8],
     /// Sorted diagnostic codes. Empty means the importer typed the package.
     diagnostics: &'static [&'static str],
-    /// A plain body paragraph can be patched. wrapTight locks the package.
+    /// A plain body paragraph can be patched.
     editable: bool,
 }
 
@@ -51,14 +51,12 @@ const FIXTURES: &[Fixture] = &[
         id: "DOCX-FEAT-T203-IMAGES",
         bytes: include_bytes!("../../../tests/fixtures/feature/DOCX-FEAT-T203-IMAGES.docx"),
         diagnostics: &[
-            "image:rId4:Unsupported",
             "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/inline.png",
             "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/wrap-none.png",
             "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/wrap-square.png",
             "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/wrap-tight.png",
-            "preserved:w:drawing:Unsupported",
         ],
-        editable: false,
+        editable: true,
     },
     Fixture {
         id: "DOCX-FEAT-T300-REVIEW",
@@ -339,7 +337,7 @@ fn assert_pages(document: &joyword_model::Document) {
 }
 
 fn assert_images(document: &joyword_model::Document) {
-    assert_eq!(document.resources().len(), 3);
+    assert_eq!(document.resources().len(), 4);
     let mut anchors = Vec::new();
     for block in document
         .body()
@@ -365,7 +363,13 @@ fn assert_images(document: &joyword_model::Document) {
         anchors[2],
         Some(anchor) if matches!(anchor.wrap, AnchorWrap::Square(_))
     ));
-    assert!(anchors[3].is_none(), "wrapTight stays preserved");
+    assert!(
+        matches!(
+            anchors[3],
+            Some(anchor) if matches!(anchor.wrap, AnchorWrap::Square(_))
+        ),
+        "wrapTight is approximated as a square"
+    );
 }
 
 fn assert_review(document: &joyword_model::Document) {
@@ -663,40 +667,34 @@ enum Visual {
 
 fn expected_render(id: &str) -> Visual {
     match id {
-        "DOCX-FEAT-T200-NUM" | "DOCX-FEAT-T201-TABLE" | "DOCX-FEAT-T300-REVIEW" => {
-            Visual::Success {
-                pages: 1,
-                omitted: 0,
-            }
-        }
+        "DOCX-FEAT-T200-NUM"
+        | "DOCX-FEAT-T201-TABLE"
+        | "DOCX-FEAT-T203-IMAGES"
+        | "DOCX-FEAT-T300-REVIEW" => Visual::Success {
+            pages: 1,
+            omitted: 0,
+        },
         "DOCX-FEAT-T202-PAGES" => Visual::Success {
             pages: 2,
             omitted: 0,
         },
-        // wrapTight stays a preserved inline. Layout refuses that inline
-        // rather than dropping the drawing.
-        "DOCX-FEAT-T203-IMAGES" => {
-            Visual::Refused("joyword-cli: document layout refused: unsupported content or budget")
-        }
         other => panic!("unexpected fixture {other}"),
     }
 }
 
 fn expected_convert(id: &str) -> Visual {
     match id {
-        "DOCX-FEAT-T200-NUM" | "DOCX-FEAT-T201-TABLE" | "DOCX-FEAT-T300-REVIEW" => {
-            Visual::Success {
-                pages: 1,
-                omitted: 0,
-            }
-        }
+        "DOCX-FEAT-T200-NUM"
+        | "DOCX-FEAT-T201-TABLE"
+        | "DOCX-FEAT-T203-IMAGES"
+        | "DOCX-FEAT-T300-REVIEW" => Visual::Success {
+            pages: 1,
+            omitted: 0,
+        },
         "DOCX-FEAT-T202-PAGES" => Visual::Success {
             pages: 2,
             omitted: 0,
         },
-        "DOCX-FEAT-T203-IMAGES" => {
-            Visual::Refused("joyword-cli: document layout refused: unsupported content or budget")
-        }
         other => panic!("unexpected fixture {other}"),
     }
 }
