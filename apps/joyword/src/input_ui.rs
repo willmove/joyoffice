@@ -9,6 +9,9 @@ use gpui::{
 use joyword_engine::Selection;
 use joyword_foundation::Emu;
 use joyword_model::{Bias, Position};
+use joyword_shell::command::{
+    FORMAT_FONT, FORMAT_PARAGRAPH, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+};
 use joyword_shell::docx::BoundDocx;
 use joyword_shell::input::{Direction, InputError, InputSource, InputView, TextInput};
 use joyword_shell::storage::SaveCopyReceipt;
@@ -132,10 +135,22 @@ pub(crate) trait DocEditor {
     fn insert_table_column(&mut self) -> Result<bool, InputError>;
     fn delete_table_column(&mut self) -> Result<bool, InputError>;
     fn select_table_cell(&mut self) -> Result<(), InputError>;
+    fn merge_table_right(&mut self) -> Result<bool, InputError>;
+    fn merge_table_down(&mut self) -> Result<bool, InputError>;
+    fn split_table_cell(&mut self) -> Result<bool, InputError>;
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError>;
+    fn apply_font(
+        &mut self,
+        draft: &joyword_shell::dialogs::FontDraft,
+    ) -> Result<Vec<&'static str>, InputError>;
+    fn apply_paragraph(
+        &mut self,
+        draft: &joyword_shell::dialogs::ParagraphDraft,
+    ) -> Result<(), InputError>;
+    fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError>;
     fn editing(
         &mut self,
         request: joyword_shell::input::EditRequest,
@@ -298,11 +313,35 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     fn select_table_cell(&mut self) -> Result<(), InputError> {
         TextInput::select_table_cell(self)
     }
+    fn merge_table_right(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Right)
+    }
+    fn merge_table_down(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Down)
+    }
+    fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        TextInput::split_table_cell(self)
+    }
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn apply_font(
+        &mut self,
+        draft: &joyword_shell::dialogs::FontDraft,
+    ) -> Result<Vec<&'static str>, InputError> {
+        TextInput::apply_font(self, draft)
+    }
+    fn apply_paragraph(
+        &mut self,
+        draft: &joyword_shell::dialogs::ParagraphDraft,
+    ) -> Result<(), InputError> {
+        TextInput::apply_paragraph(self, draft)
+    }
+    fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError> {
+        TextInput::apply_ruler(self, drag)
     }
     fn editing(
         &mut self,
@@ -484,11 +523,35 @@ impl DocEditor for TextInput<BoundDocx> {
     fn select_table_cell(&mut self) -> Result<(), InputError> {
         TextInput::select_table_cell(self)
     }
+    fn merge_table_right(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Right)
+    }
+    fn merge_table_down(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Down)
+    }
+    fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        TextInput::split_table_cell(self)
+    }
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn apply_font(
+        &mut self,
+        draft: &joyword_shell::dialogs::FontDraft,
+    ) -> Result<Vec<&'static str>, InputError> {
+        TextInput::apply_font(self, draft)
+    }
+    fn apply_paragraph(
+        &mut self,
+        draft: &joyword_shell::dialogs::ParagraphDraft,
+    ) -> Result<(), InputError> {
+        TextInput::apply_paragraph(self, draft)
+    }
+    fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError> {
+        TextInput::apply_ruler(self, drag)
     }
     fn editing(
         &mut self,
@@ -673,11 +736,35 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     fn select_table_cell(&mut self) -> Result<(), InputError> {
         TextInput::select_table_cell(self)
     }
+    fn merge_table_right(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Right)
+    }
+    fn merge_table_down(&mut self) -> Result<bool, InputError> {
+        TextInput::merge_table_cells(self, joyword_engine::TableMerge::Down)
+    }
+    fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        TextInput::split_table_cell(self)
+    }
     fn format_paragraph(
         &mut self,
         change: joyword_engine::ParagraphChange,
     ) -> Result<bool, InputError> {
         TextInput::format_paragraph(self, change)
+    }
+    fn apply_font(
+        &mut self,
+        draft: &joyword_shell::dialogs::FontDraft,
+    ) -> Result<Vec<&'static str>, InputError> {
+        TextInput::apply_font(self, draft)
+    }
+    fn apply_paragraph(
+        &mut self,
+        draft: &joyword_shell::dialogs::ParagraphDraft,
+    ) -> Result<(), InputError> {
+        TextInput::apply_paragraph(self, draft)
+    }
+    fn apply_ruler(&mut self, drag: joyword_shell::dialogs::RulerDrag) -> Result<(), InputError> {
+        TextInput::apply_ruler(self, drag)
     }
     fn editing(
         &mut self,
@@ -1171,6 +1258,13 @@ fn input_error_label(error: &InputError) -> &'static str {
         InputError::StaleComposition => "input.stale",
         InputError::InvalidText(_) => "input.unsupported_text",
         InputError::Image(_) => "input.image",
+        InputError::Rejected(reason)
+            if reason.starts_with("dialog.")
+                || reason.starts_with("ruler.")
+                || reason.starts_with("view.") =>
+        {
+            reason
+        }
         InputError::Undo(_) | InputError::Transaction(_) | InputError::Rejected(_) => {
             "input.rejected"
         }
@@ -1731,7 +1825,7 @@ impl JoyWord {
             });
         }));
     }
-    fn apply_input(
+    pub(crate) fn apply_input(
         &mut self,
         cx: &mut Context<Self>,
         f: impl FnOnce(&mut dyn DocEditor) -> Result<(), InputError>,
@@ -1784,6 +1878,21 @@ impl JoyWord {
         }
     }
     pub(crate) fn input_availability(&self, id: CommandId) -> Availability {
+        if let Some(reason) = joyword_shell::dialogs::disabled_view_toggle(id) {
+            return Availability::Disabled(reason);
+        }
+        if joyword_shell::dialogs::is_dialog_command(id) {
+            if self.open_gate.is_some() {
+                return Availability::Disabled("input.read_only");
+            }
+            let Some(editor) = &self.editor else {
+                return Availability::Disabled("input.loading");
+            };
+            if editor.read_only() {
+                return Availability::Disabled("input.read_only");
+            }
+            return Availability::Enabled;
+        }
         if matches!(id, FILE_SAVE | FILE_SAVE_COPY) {
             return if self
                 .editor
@@ -1815,6 +1924,9 @@ impl JoyWord {
                 | TABLE_COLUMN_INSERT
                 | TABLE_COLUMN_DELETE
                 | TABLE_SELECT
+                | TABLE_MERGE_RIGHT
+                | TABLE_MERGE_DOWN
+                | TABLE_SPLIT
         ) {
             if self.open_gate.is_some() && id != STYLE_LIST {
                 return Availability::Disabled("input.read_only");
@@ -1836,6 +1948,9 @@ impl JoyWord {
                     | TABLE_ROW_DELETE
                     | TABLE_COLUMN_INSERT
                     | TABLE_COLUMN_DELETE
+                    | TABLE_MERGE_RIGHT
+                    | TABLE_MERGE_DOWN
+                    | TABLE_SPLIT
             ) && editor.read_only()
             {
                 return Availability::Disabled("input.read_only");
@@ -2326,6 +2441,48 @@ impl JoyWord {
                 self.apply_input(cx, |editor| editor.delete_table_column().map(|_| ()))
             }
             TABLE_SELECT => self.apply_input(cx, |editor| editor.select_table_cell()),
+            TABLE_MERGE_RIGHT => {
+                self.apply_input(cx, |editor| editor.merge_table_right().map(|_| ()))
+            }
+            TABLE_MERGE_DOWN => {
+                self.apply_input(cx, |editor| editor.merge_table_down().map(|_| ()))
+            }
+            TABLE_SPLIT => self.apply_input(cx, |editor| editor.split_table_cell().map(|_| ())),
+            FORMAT_FONT => {
+                let draft = match joyword_shell::dialogs::font_draft_from_decision(Some(args)) {
+                    Ok(Some(draft)) => draft,
+                    Ok(None) => return Ok(()),
+                    Err(reason) => return Err(self.label(reason)),
+                };
+                let mut notes = Vec::new();
+                self.apply_input(cx, |editor| {
+                    notes = editor.apply_font(&draft)?;
+                    Ok(())
+                });
+                if self.input_error.is_none() {
+                    self.format_dialog = None;
+                    if notes.contains(&"dialog.font.paint") {
+                        self.copy_note = Some(self.label("dialog.font.paint"));
+                    }
+                }
+            }
+            FORMAT_PARAGRAPH => {
+                let draft = match joyword_shell::dialogs::paragraph_draft_from_decision(Some(args))
+                {
+                    Ok(Some(draft)) => draft,
+                    Ok(None) => return Ok(()),
+                    Err(reason) => return Err(self.label(reason)),
+                };
+                self.apply_input(cx, |editor| editor.apply_paragraph(&draft));
+                if self.input_error.is_none() {
+                    self.format_dialog = None;
+                }
+            }
+            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES => {
+                let reason = joyword_shell::dialogs::disabled_view_toggle(id)
+                    .unwrap_or("view.formatting_marks.unsupported");
+                return Err(self.label(reason));
+            }
             _ => return Err(format!("{id} is not an input command")),
         }
         window.invalidate_character_coordinates();

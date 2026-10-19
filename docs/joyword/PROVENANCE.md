@@ -131,6 +131,11 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 标尺读取当前段经样式解析后的 `w:ind`（ECMA-376 Part 1 §17.3.1.12）和 `w:tabs`（§17.3.1.37–38）。默认制表位在设置省略时为 720 twips（§17.15.1.25）。字符单位与行单位不折算，标尺标为不能换算。本切片只显示，不拖拽。
 - 字数按 EDIT-009 自行分类：汉字（含扩展与兼容表意文字）、假名和谚文各计一字，连续西文字母计一词，连续十进制数字计一词，标点和空格分开计数，分页符对象标记不计入。这不是 Word 字数对话框的对照结果。没有新增外部 crate。
 
+### 字体与段落对话框（T205 第二切片）
+
+- PLATFORM-003。中文字号对照 [OriginLab FAQ-850](https://www.originlab.com/doc/en/Origin-Help/FAQ-850) 所录的 Microsoft Office 号与磅值，以及 [W3C clreq issue 142](https://github.com/w3c/clreq/issues/142) 讨论中的 Word 列（二号 22 pt、三号 16 pt、四号 14 pt、六号 7.5 pt、七号 5.5 pt）。历史字号的其他列不采用。半点是 ECMA-376 `ST_HpsMeasure`。字号框范围按 Word 的 1–1638 pt，即半点 2 到 3276。
+- 缩进、间距和制表位依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.3.1.12（`ind`）、§17.3.1.33（`spacing`）、§17.3.1.37–38（`tabs`／`tab`）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的对话框实现。Auto 倍数在 n 不等于 240 时按本仓库 profile 行距做整数比例，不把它说成 Word 的行网格。没有新增外部 crate。
+
 ### 首页不同与奇偶页页眉页脚（T202 第二切片）
 
 - LAYOUT-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.10.1（`evenAndOddHeaders`：按节的页码起点区分奇偶，省略的类型继承前一节，不用另一种代替）、§17.10.5（`headerReference`：省略的首页／偶数页／奇数页引用分别继承前一节的同类型，否则空白）、§17.10.2（`footerReference`，规则与页眉相同）、§17.10.6（`titlePg`：节的首页用 First；关闭时按页码用奇或偶，并忽略已保存的 First）。条款文字对照 [ECMA-376 中文摘录](https://hellowac.github.io/ecma-376-zh-cn/ecma-part1/chapter17/10headeres/)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的页眉实现。

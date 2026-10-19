@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 35,
-  "note": "T205 slice 1 plus the T203 insert-picture button. Each shown control names a requirement and an evidence level. Font and paragraph dialogs, dragging tab stops, edit-mark toggles and a Word word-count dialog comparison are not in this slice.",
+  "floor": 40,
+  "note": "T205 slice 2 plus the T203 insert-picture button. Font and paragraph dialogs, ruler indent and tab dragging, and the three view switches are unit-tested. The view switches stay disabled because layout has no formatting-mark, hidden-text or field-code option. Underline and non-auto colour export and are not painted. This is not a Word word-count dialog comparison.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},
@@ -10,7 +10,9 @@
     {"id": "start.redo", "kind": "command", "tab": "start", "command": "edit.redo", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "redo"},
     {"id": "start.bold", "kind": "command", "tab": "start", "command": "edit.bold", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "bold"},
     {"id": "start.italic", "kind": "command", "tab": "start", "command": "edit.italic", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "italic"},
+    {"id": "start.font", "kind": "command", "tab": "start", "command": "format.font", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "font"},
     {"id": "start.align", "kind": "command", "tab": "start", "command": "edit.align_center", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "align-center"},
+    {"id": "start.paragraph", "kind": "command", "tab": "start", "command": "format.paragraph", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paragraph"},
     {"id": "start.styles", "kind": "command", "tab": "start", "command": "style.list", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "styles"},
     {"id": "start.list_remove", "kind": "command", "tab": "start", "command": "list.remove", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-remove"},
     {"id": "start.list_level_1", "kind": "command", "tab": "start", "command": "list.level", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-level"},
@@ -34,6 +36,9 @@
     {"id": "view.zoom_out", "kind": "command", "tab": "view", "command": "view.zoom_out", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "zoom-out"},
     {"id": "view.zoom_reset", "kind": "command", "tab": "view", "command": "view.zoom_reset", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "zoom-reset"},
     {"id": "view.language", "kind": "command", "tab": "view", "command": "view.switch_language", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "language"},
+    {"id": "view.formatting_marks", "kind": "command", "tab": "view", "command": "view.formatting_marks", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "marks"},
+    {"id": "view.hidden_text", "kind": "command", "tab": "view", "command": "view.hidden_text", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "hidden"},
+    {"id": "view.field_codes", "kind": "command", "tab": "view", "command": "view.field_codes", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "field-code"},
     {"id": "status.page", "kind": "status", "requirement": "PLATFORM-003", "evidence": "unit"},
     {"id": "status.words", "kind": "status", "requirement": "EDIT-009", "evidence": "unit"},
     {"id": "status.graphemes", "kind": "status", "requirement": "EDIT-009", "evidence": "unit"},
@@ -69,6 +74,11 @@
     {"id": "zoom-in", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "zoom-out", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "zoom-reset", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
-    {"id": "language", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"}
+    {"id": "language", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "font", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "paragraph", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "marks", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "hidden", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "field-code", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"}
   ]
 }

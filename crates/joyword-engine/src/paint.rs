@@ -9,8 +9,8 @@
 //! must start from a plain paragraph.
 
 use joyword_model::{
-    Block, Color, Document, FontRef, Indent, InlineKind, Justification, Languages, Measure,
-    Paragraph, Position, RunProps, ScalarOffset, Spacing, StyleId,
+    Block, Color, Document, FontRef, InlineKind, Justification, Languages, LineSpacing, Measure,
+    Paragraph, Position, RunProps, ScalarOffset, StyleId, TabAlign, TabLeader,
 };
 
 use crate::command::{Command, ParagraphChange, RunChange};
@@ -213,15 +213,71 @@ fn before_plain(paragraph: &Paragraph) -> bool {
             .all(|run| run.style.is_none() && run.props.is_empty())
 }
 
+/// Twip indent, spacing and tabs the DOCX writer will emit. Mirrors
+/// `geometry_supported` in the exporter.
+fn geometry_exportable(props: &joyword_model::ParaProps) -> bool {
+    const MAX_TWIPS: i64 = 22 * 1_440;
+    let slot = |measure: Option<Measure>, negative: bool| match measure {
+        None => true,
+        Some(Measure::Twips(value)) => {
+            if negative {
+                (-MAX_TWIPS..=MAX_TWIPS).contains(&value)
+            } else {
+                (0..=MAX_TWIPS).contains(&value)
+            }
+        }
+        Some(_) => false,
+    };
+    let indent = &props.indent;
+    if !slot(indent.start, true)
+        || !slot(indent.end, true)
+        || !slot(indent.first_line, false)
+        || !slot(indent.hanging, false)
+        || (indent.first_line.is_some() && indent.hanging.is_some())
+    {
+        return false;
+    }
+    let spacing = &props.spacing;
+    if !slot(spacing.before, false)
+        || !slot(spacing.after, false)
+        || spacing.before_auto.is_some()
+        || spacing.after_auto.is_some()
+    {
+        return false;
+    }
+    let line_ok = match spacing.line {
+        None => true,
+        Some(LineSpacing::Auto(value)) => (1..=MAX_TWIPS).contains(&value),
+        Some(LineSpacing::Exact(Measure::Twips(value))) => (1..=MAX_TWIPS).contains(&value),
+        Some(LineSpacing::AtLeast(Measure::Twips(value))) => (0..=MAX_TWIPS).contains(&value),
+        Some(_) => false,
+    };
+    if !line_ok {
+        return false;
+    }
+    if let Some(tabs) = &props.tabs {
+        if tabs.len() > 48 {
+            return false;
+        }
+        for stop in tabs {
+            if !matches!(stop.position, Measure::Twips(value) if (0..=MAX_TWIPS).contains(&value))
+                || matches!(stop.align, TabAlign::Bar | TabAlign::Clear)
+                || matches!(stop.leader, TabLeader::MiddleDot | TabLeader::Heavy)
+            {
+                return false;
+            }
+        }
+    }
+    true
+}
+
 /// Mirrors `style_assignment_ok` plus the theme-colour refusal in `synthesize_rpr`.
 fn style_subset(paragraph: &Paragraph) -> Result<(), PaintError> {
     let props = &paragraph.props;
     if preserved(paragraph) {
         return Err(PaintError::Unexportable("preserved markup"));
     }
-    if props.tabs.is_some()
-        || props.indent != Indent::default()
-        || props.spacing != Spacing::default()
+    if !geometry_exportable(props)
         || props.keep_next.is_some()
         || props.keep_lines.is_some()
         || props.widow_control.is_some()

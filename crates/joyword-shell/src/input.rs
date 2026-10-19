@@ -4,15 +4,20 @@
 use crate::docx::DocxSession;
 use joyword_engine::{
     CellAddress, ChangeSet, Command, CommandError, FindError, FindHit, FindQuery, FormatBrush,
-    Outcome, PaintError, ParagraphChange, RunChange, Selection, Session, Transaction, TxError,
-    UndoError, UndoGroup, UndoResult, capture, cell_address, cell_caret, cell_selection,
+    Outcome, PaintError, ParagraphChange, RunChange, Selection, Session, TableMerge, Transaction,
+    TxError, UndoError, UndoGroup, UndoResult, capture, cell_address, cell_caret, cell_selection,
     paint_commands, paragraph_order, replace_commands, search,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, BreakKind, Color, Document, DocumentSnapshot, DocumentVersion, FontRef,
-    Hyperlink, InlineKind, MAX_NESTING, Measure, NodeId, NumberFormat, NumberingRef, OBJECT_MARKER,
-    Orientation, PageSetup, Paragraph, Position, RunProps, ScalarOffset, Segment, StoryKind,
-    StyleId, StyleKind, Utf16Offset,
+    Hyperlink, InlineKind, Justification, MAX_NESTING, Measure, NodeId, NumberFormat, NumberingRef,
+    OBJECT_MARKER, Orientation, PageSetup, ParaProps, Paragraph, Position, RunProps, ScalarOffset,
+    Segment, StoryId, StoryKind, StyleId, StyleKind, Utf16Offset, indent_edges,
+};
+
+use crate::dialogs::{
+    FontDraft, ParagraphDraft, RulerDrag, dragged_indent, dragged_tabs, font_commands,
+    inherited_custom_tabs, paragraph_commands,
 };
 use std::collections::BTreeMap;
 use std::fmt;
@@ -1624,6 +1629,134 @@ impl<B: InputBackend> TextInput<B> {
         self.commit(transaction)
     }
 
+    /// One undoable transaction. An empty list does not open a transaction.
+    pub fn apply_commands(&mut self, commands: Vec<Command>) -> Result<bool, InputError> {
+        self.require_editable()?;
+        if commands.is_empty() {
+            return Ok(false);
+        }
+        if commands.len() > self.limits.max_commands {
+            return Err(InputError::Budget("commands"));
+        }
+        let transaction = Transaction::new(self.backend.session().version(), commands);
+        self.commit(transaction)
+    }
+
+    /// Font dialog apply. An empty selection or a draft that changes nothing
+    /// does not open a transaction. Notes name limits the page scene still has.
+    pub fn apply_font(&mut self, draft: &FontDraft) -> Result<Vec<&'static str>, InputError> {
+        self.require_editable()?;
+        let (start, end) = self.selection_positions()?;
+        if start.paragraph == end.paragraph && start.offset == end.offset {
+            return Ok(Vec::new());
+        }
+        let (commands, notes) = font_commands(draft, start, end).map_err(InputError::Rejected)?;
+        self.apply_commands(commands)?;
+        Ok(notes)
+    }
+
+    /// Paragraph dialog apply for every paragraph the selection touches.
+    pub fn apply_paragraph(&mut self, draft: &ParagraphDraft) -> Result<(), InputError> {
+        self.require_editable()?;
+        let (story, paragraphs) = self.selected_paragraphs()?;
+        let commands =
+            paragraph_commands(story, &paragraphs, draft).map_err(InputError::Rejected)?;
+        self.apply_commands(commands)?;
+        Ok(())
+    }
+
+    /// Ruler indent or tab drag for the paragraph that holds the caret.
+    pub fn apply_ruler(&mut self, drag: RulerDrag) -> Result<(), InputError> {
+        self.require_editable()?;
+        let at = self.selection.head;
+        let commands = {
+            let document = self.backend.session().document();
+            let paragraph = document
+                .find_paragraph(at.story, at.paragraph)
+                .ok_or(InputError::InvalidDocument)?;
+            match drag {
+                RulerDrag::Indent {
+                    marker,
+                    position_emu,
+                    content_width_emu,
+                } => {
+                    let indent = dragged_indent(
+                        &paragraph.props.indent,
+                        marker,
+                        position_emu,
+                        content_width_emu,
+                    )
+                    .map_err(InputError::Rejected)?;
+                    if matches!(
+                        paragraph.props.justification,
+                        Some(Justification::Center | Justification::End | Justification::Both)
+                    ) && indent_edges(&indent).is_some_and(|edges| edges.moves_text())
+                    {
+                        return Err(InputError::Rejected("dialog.paragraph.justify_indent"));
+                    }
+                    vec![Command::FormatParagraph {
+                        story: at.story,
+                        paragraph: at.paragraph,
+                        change: ParagraphChange::Indent(indent),
+                    }]
+                }
+                RulerDrag::Tab { from_emu, to_emu } => {
+                    let direct = paragraph.props.tabs.clone().unwrap_or_default();
+                    let resolved = document
+                        .styles()
+                        .resolve_paragraph(paragraph.style.as_ref(), paragraph.props.as_ref());
+                    let resolved_tabs = resolved.props.tabs.clone().unwrap_or_default();
+                    if inherited_custom_tabs(&direct, &resolved_tabs) {
+                        return Err(InputError::Rejected("ruler.drag.inherited"));
+                    }
+                    let tabs =
+                        dragged_tabs(&direct, from_emu, to_emu).map_err(InputError::Rejected)?;
+                    vec![Command::FormatParagraph {
+                        story: at.story,
+                        paragraph: at.paragraph,
+                        change: ParagraphChange::Tabs(Some(tabs)),
+                    }]
+                }
+            }
+        };
+        self.apply_commands(commands)?;
+        Ok(())
+    }
+
+    fn selected_paragraphs(&self) -> Result<(StoryId, Vec<(NodeId, ParaProps)>), InputError> {
+        let (start, end) = self.selection_positions()?;
+        if start.story != end.story {
+            return Err(InputError::InvalidRange);
+        }
+        let ids = {
+            let index = self.view.index();
+            let from = index
+                .by_id
+                .get(&start.paragraph)
+                .copied()
+                .ok_or(InputError::UnknownPosition(start))?;
+            let to = index
+                .by_id
+                .get(&end.paragraph)
+                .copied()
+                .ok_or(InputError::UnknownPosition(end))?;
+            let (lo, hi) = if from <= to { (from, to) } else { (to, from) };
+            index.paragraphs[lo..=hi]
+                .iter()
+                .map(|entry| entry.id)
+                .collect::<Vec<_>>()
+        };
+        let document = self.backend.session().document();
+        let mut out = Vec::new();
+        for id in ids {
+            let paragraph = document
+                .find_paragraph(start.story, id)
+                .ok_or(InputError::InvalidDocument)?;
+            out.push((id, paragraph.props.as_ref().clone()));
+        }
+        Ok((start.story, out))
+    }
+
     fn require_editable(&self) -> Result<(), InputError> {
         if self.read_only() {
             return Err(InputError::ReadOnly);
@@ -1763,6 +1896,33 @@ impl<B: InputBackend> TextInput<B> {
         let transaction = Transaction::new(
             self.backend.session().version(),
             vec![Command::DeleteTableColumn {
+                at: self.selection.head,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Merges the caret's cell with the cell to the right or below.
+    /// One transaction; a refusal leaves the document unchanged.
+    pub fn merge_table_cells(&mut self, direction: TableMerge) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::MergeTableCells {
+                at: self.selection.head,
+                direction,
+            }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Splits a vertical merge, or a horizontal span when the cell is not
+    /// vertically merged. Text stays in the leading cell.
+    pub fn split_table_cell(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::SplitTableCell {
                 at: self.selection.head,
             }],
         );

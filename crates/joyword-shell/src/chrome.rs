@@ -1,11 +1,12 @@
-//! Ribbon, ruler and status bar for the first T205 slice (PLATFORM-003, EDIT-009).
+//! Ribbon, ruler and status bar (PLATFORM-003, EDIT-009).
 //!
 //! The ribbon lists commands the registry already implements. A command that
 //! is not registered is omitted, so an unfinished feature cannot appear as a
 //! control. Buttons call [`crate::command::Registry::invoke_with`] with the
-//! arguments [`RibbonControl::bind`] builds. Font and paragraph dialogs,
-//! dragging tab stops, and the edit-mark / hidden-text / field-code toggles
-//! are not in this slice.
+//! arguments [`RibbonControl::bind`] builds. Font and paragraph dialogs send
+//! no arguments, so invoke asks for `commit` and the window opens the dialog.
+//! Formatting marks, hidden text and field codes stay on the ribbon and stay
+//! disabled: the page scene has no view option for them.
 //!
 //! Icons are original 16×16 cell drawings in this file. They are not copied
 //! from Office, WPS or an icon font. [`TextCensus`] counts Han, kana and
@@ -20,8 +21,9 @@ use joyword_model::{Indent, Measure, OBJECT_MARKER, TabAlign, TabStop, indent_ed
 use crate::command::{
     ArgValue, CommandId, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_ITALIC, EDIT_PASTE,
     EDIT_REDO, EDIT_UNDO, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
-    FORMAT_COPY, FORMAT_PAINT, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION,
-    PAGE_SIZE, STYLE_LIST, SWITCH_LANGUAGE, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
+    PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, STYLE_LIST, SWITCH_LANGUAGE, VIEW_FIELD_CODES,
+    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -112,6 +114,9 @@ pub enum RibbonArgs {
     FormatCopy,
     /// The window asks for a file path, then invokes the command.
     PromptPath,
+    /// Opens a dialog. Bind sends no arguments, so a required `commit`
+    /// parameter stays pending until the dialog applies.
+    Dialog,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -285,6 +290,17 @@ pub const RIBBON: &[RibbonControl] = &[
         evidence: Evidence::Unit,
     },
     RibbonControl {
+        id: "start.font",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.font",
+        command: FORMAT_FONT,
+        label: "command.format.font",
+        icon: "font",
+        args: RibbonArgs::Dialog,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
         id: "start.align",
         tab: RibbonTab::Start,
         group_key: "ribbon.group.paragraph",
@@ -292,6 +308,17 @@ pub const RIBBON: &[RibbonControl] = &[
         label: "command.edit.align_center",
         icon: "align-center",
         args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "start.paragraph",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.paragraph",
+        command: FORMAT_PARAGRAPH,
+        label: "command.format.paragraph",
+        icon: "paragraph",
+        args: RibbonArgs::Dialog,
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
@@ -548,6 +575,39 @@ pub const RIBBON: &[RibbonControl] = &[
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
+    RibbonControl {
+        id: "view.formatting_marks",
+        tab: RibbonTab::View,
+        group_key: "ribbon.group.marks",
+        command: VIEW_FORMATTING_MARKS,
+        label: "command.view.formatting_marks",
+        icon: "marks",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "view.hidden_text",
+        tab: RibbonTab::View,
+        group_key: "ribbon.group.marks",
+        command: VIEW_HIDDEN_TEXT,
+        label: "command.view.hidden_text",
+        icon: "hidden",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "view.field_codes",
+        tab: RibbonTab::View,
+        group_key: "ribbon.group.marks",
+        command: VIEW_FIELD_CODES,
+        label: "command.view.field_codes",
+        icon: "field-code",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
 ];
 
 /// Status and ruler surfaces. They are not commands.
@@ -611,6 +671,7 @@ impl RibbonControl {
                 })
                 .collect(),
             RibbonArgs::Find { replacement } => find_args(input, replacement),
+            RibbonArgs::Dialog => Vec::new(),
             RibbonArgs::FormatCopy => {
                 vec![("repeat", ArgValue::Bool(input.format_repeat))]
             }
@@ -1137,6 +1198,26 @@ const ICONS: &[(&str, &str)] = &[
     (
         "language",
         "................|................|................|..#####..#####..|..#...#..#...#..|..#...#..#...#..|..#####..#####..|..#...#..#...#..|..#...#..#...#..|..#...#..#...#..|..#####..#####..|................|................|................|................|................",
+    ),
+    (
+        "font",
+        "................|................|................|....######......|....#....#......|....#....#......|....######......|....#....#......|....#....#......|....#....#......|....######......|................|................|................|................|................",
+    ),
+    (
+        "paragraph",
+        "................|................|................|................|..############..|................|................|....########....|................|................|..##########....|................|................|................|................|................",
+    ),
+    (
+        "marks",
+        "................|................|................|....#......#....|....##....##....|....#.#..#.#....|....#..##..#....|....#..##..#....|....#.#..#.#....|....##....##....|....#......#....|................|................|................|................|................",
+    ),
+    (
+        "hidden",
+        "................|................|................|......####......|.....#....#.....|.....#....#.....|......####......|................|....########....|................|....########....|................|....########....|................|................|................",
+    ),
+    (
+        "field-code",
+        "................|................|................|...##......##...|...#.#....#.#...|...#..#..#..#...|...#...##...#...|...#...##...#...|...#..#..#..#...|...#.#....#.#...|...##......##...|................|................|................|................|................",
     ),
 ];
 

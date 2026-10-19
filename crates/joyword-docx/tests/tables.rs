@@ -196,3 +196,54 @@ fn a_simple_grid_table_round_trips_after_a_cell_edit() {
     assert!(xml.contains(r#"w:fill="FF0000""#), "{xml}");
     assert!(xml.contains(r#"w:val="nil""#), "{xml}");
 }
+
+#[test]
+fn cell_margins_cant_split_and_header_round_trip_after_an_edit() {
+    let body = r#"<w:tbl><w:tblPr><w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:right w:w="200" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr><w:tc><w:p><w:r><w:t>头</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    let source = import(&package(body), &Budget::default()).unwrap();
+    let Block::Table(table) = &source.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    let margin = table.cell_margin.unwrap();
+    assert_eq!(margin.top, 0);
+    assert_eq!(margin.left, 0);
+    assert_eq!(margin.bottom, 120);
+    assert_eq!(margin.right, 200);
+    assert!(table.rows[0].cant_split);
+    assert!(table.rows[0].header);
+
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("行", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = xml_of(plan.bytes());
+    assert!(xml.contains("头"), "{xml}");
+    assert!(xml.contains("行"), "{xml}");
+    assert!(xml.contains("tblCellMar"), "{xml}");
+    assert!(xml.contains("cantSplit"), "{xml}");
+    assert!(xml.contains("tblHeader"), "{xml}");
+    assert!(xml.contains(r#"w:w="0""#), "{xml}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
+
+    let percent = r#"<w:tbl><w:tblPr><w:tblCellMar><w:left w:w="100" w:type="pct"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>隐</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#;
+    let opaque = import(&package(percent), &Budget::default()).unwrap();
+    assert!(matches!(
+        opaque.document.body().blocks.get(0),
+        Some(Block::Opaque(_))
+    ));
+}

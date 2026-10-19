@@ -25,7 +25,7 @@ mod validate;
 
 pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
 pub use block::{
-    Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, InlineKind,
+    Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellMargins, InlineKind,
     InlineObject, OpaqueBlock, PageFieldKind, Paragraph, Preserved, Removed, Row, Run, Sdt,
     SdtLock, SdtProps, Segment, Shading, Table, TableWidth, VerticalMerge,
 };

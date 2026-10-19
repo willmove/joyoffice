@@ -395,12 +395,23 @@ fn single_spacing_snaps_only_for_a_measured_family() {
         }),
         Err(LayoutError::Unsupported { .. })
     ));
-    assert!(matches!(
-        lay_err(&named, "甲乙", |props| {
-            props.spacing.line = Some(LineSpacing::Auto(480));
-        }),
-        Err(LayoutError::Unsupported { .. })
-    ));
+    // Auto multiples other than 240 scale the profile leading. They do not
+    // enter the measured single-spacing grid.
+    let doubled = lay_with(&named, "甲乙", 200, 800, |props| {
+        props.spacing.line = Some(LineSpacing::Auto(480));
+    });
+    assert!(
+        doubled
+            .lines()
+            .iter()
+            .all(|line| line.height == Emu::new(profile().leading.raw() * 2))
+    );
+    assert!(
+        doubled
+            .lines()
+            .iter()
+            .all(|line| line.height != snapped.length)
+    );
     assert!(matches!(
         lay_err(&named, "甲乙", |props| {
             props.snap_to_grid = Some(true);
