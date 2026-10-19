@@ -11,8 +11,8 @@ use joyword_layout::{
     SingleFontProfile, layout_document, to_points,
 };
 use joyword_model::{
-    BlockSeq, BuiltinStyle, Document, Measure, PageSetup, ParaProps, Paragraph, Style, StyleId,
-    StyleKind, sample_png_1x1,
+    BlockSeq, BuiltinStyle, Document, Measure, Orientation, PageSetup, ParaProps, Paragraph, Style,
+    StyleId, StyleKind, sample_png_1x1,
 };
 use joyword_pdf::{
     PRODUCER, PdfExport, PdfReport, core_title, inspect_pdf, outline_from_headings, render,
@@ -262,6 +262,7 @@ fn each_section_keeps_its_page_box() {
     next.last_block = None;
     next.page.width = Measure::Twips(10_000);
     next.page.height = Measure::Twips(8_000);
+    next.page.orientation = Orientation::Landscape;
     next.page.left = Measure::Twips(720);
     next.page.right = Measure::Twips(720);
     next.page.top = Measure::Twips(720);
@@ -285,6 +286,19 @@ fn each_section_keeps_its_page_box() {
         assert!((f64::from(*height) - to_points(scene.height)).abs() < 0.2);
     }
     assert_ne!(report.pages[0], report.pages[1]);
+    let stored_width = Measure::Twips(10_000).absolute().unwrap();
+    let stored_height = Measure::Twips(8_000).absolute().unwrap();
+    let later = snapshot
+        .pages()
+        .iter()
+        .position(|page| page.width == stored_width)
+        .expect("later section page");
+    assert_eq!(snapshot.pages()[later].height, stored_height);
+    assert!(
+        (f64::from(report.pages[later].0) - to_points(stored_width)).abs() < 0.2
+            && (f64::from(report.pages[later].1) - to_points(stored_height)).abs() < 0.2,
+        "landscape orientation must not swap the stored page box"
+    );
 }
 
 #[test]
@@ -371,12 +385,27 @@ fn pdftotext(pdf: &[u8]) -> Option<String> {
             return None;
         }
     };
-    let mut stdin = child.stdin.take().unwrap();
-    stdin.write_all(pdf).unwrap();
+    let mut stdin = child.stdin.take().expect("pdftotext stdin");
+    let wrote = stdin.write_all(pdf);
     drop(stdin);
-    let output = child.wait_with_output().unwrap();
-    assert!(output.status.success(), "pdftotext failed");
-    Some(String::from_utf8(output.stdout).unwrap())
+    let output = child.wait_with_output().expect("pdftotext wait");
+    if wrote.is_err() || !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            !require,
+            "pdftotext failed ({:?}): {stderr}",
+            output.status.code()
+        );
+        eprintln!("skipped: pdftotext could not read the PDF");
+        return None;
+    }
+    match String::from_utf8(output.stdout) {
+        Ok(text) => Some(text),
+        Err(_) => {
+            assert!(!require, "pdftotext stdout was not UTF-8");
+            None
+        }
+    }
 }
 
 fn classic_contract() -> Vec<u8> {

@@ -589,7 +589,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 
 - **同一场景**：应用导出读取 `ready_layout` 的 `LayoutSnapshot`，不调用第二次 `layout_document`。布局未稳定或没有编辑器时命令禁用，原因是 `file.export.unstable`。没有页面场景的 Office 宿主把这两条命令始终禁用。页范围在已有场景上切片；书签页号按切片重映射，落在范围外的条目丢掉。CLI 的 `convert` 仍用自己的一次分页，然后 `render_export`。
 - **文档信息**：Producer 固定为 `JoyWord`，不含时间或构建戳。标题只在 OPC `/docProps/core.xml` 的 `dc:title` 非空时写入。拒绝 DOCTYPE、超过 64 KiB、非 UTF-8 和嵌套元素，并展开预定义实体。不读时钟，不写 CreationDate 或 ModDate。`SerializeSettings.xmp_metadata` 为 false，避免 XMP 里的实例标识。同一输入两次写出逐字节相同。
-- **文字与页面**：字形仍按场景坐标交给 krilla 的定位字形接口，嵌入子集并带 ToUnicode。`pdftotext -enc UTF-8` 在本机有该程序时核对抽出的文字；未设置 `JOYWORD_REQUIRE_TEST_FONT` 且程序缺失时跳过，不把跳过说成已抽出。页面宽高来自各页场景，分节不同的纸型或方向成为不同的 MediaBox。场景图片成为图像 XObject。
+- **文字与页面**：字形仍按场景坐标交给 krilla 的定位字形接口，嵌入子集并带 ToUnicode。`pdftotext -enc UTF-8` 在本机有该程序且能读出文字时核对抽出的文字。未设置 `JOYWORD_REQUIRE_TEST_FONT` 时，程序缺失、写入中断或退出码非零都跳过，不把跳过说成已抽出；统一 PDF 作业设置了该变量，因此那里失败仍是失败。页面宽高来自各页场景。后一节可以有自己的宽高；`orient` 为横向时不交换已存储的宽高，MediaBox 跟该页场景。场景图片成为图像 XObject。
 - **书签**：只在段落样式或其 `basedOn` 链（最多 64 层）解析为内置 Heading 1 到 9 时生成。级别用已解析的 `outlineLvl`（0 到 8），否则用标题号减一。该段在快照里没有放置行、标题为空或页超出范围时不写。最多 512 条，标题截到 200 个字符。普通段落即使带 `outlineLvl` 也不成书签。
 - **链接注释**：已放置行上的超链接，外部目标通过既有 `open_target`（`http`、`https`、`mailto`）时，按该行插入点的横向范围和行框写成 URI 动作。矩形来自已有分页，不再排一次。页范围切片会丢掉范围外的注释并重映射页号。`javascript` 等名单外方案，以及只有书签锚点的链接，不写动作；屏幕上的下划线仍由排版绘制。最多 512 个矩形。这不是带标签的结构，也没有把锚点解析成文档内跳转。
 - **发布**：`publish_pdf` 与另存一样先写临时文件、sync、回读，再硬链接到新路径，不覆盖已有文件。文件必须以 `%PDF-` 开头并含 `%%EOF`，扩展名为 pdf，最大 256 MiB。打印到文件的份数（1 到 99）只记在收据上，文件里仍是一份 PDF。范围接受省略、`all`、`N` 或 `N-M`（从 1 起、含端点）；0、倒置和超出拒绝。审阅标记只接受省略或 `laid-out`；`markup` 与 `original` 拒绝，因为修订打印没有实现。
