@@ -9,9 +9,10 @@
 //! `w:pgNumType/@w:start` (§17.6.12). The section's first page still counts,
 //! and `titlePg` wins there. An omitted reference inherits the nearest earlier
 //! story of that same kind. An explicit story, including an empty one, does
-//! not inherit and is not replaced by another kind. Equal-width `w:cols`
-//! share the content box; a column break advances one column, or one page
-//! when the section has a single column (§17.3.3.1, §17.6.4).
+//! not inherit and is not replaced by another kind. Equal-width `w:cols`,
+//! and unequal columns with an explicit `w:col` width, share the content
+//! box. A column break advances one column, or one page when the section
+//! has a single column (§17.3.3.1, §17.6.3, §17.6.4).
 
 use std::collections::BTreeSet;
 
@@ -52,12 +53,114 @@ impl SectionEdge {
     }
 }
 
-/// Equal columns, or one column the width of the content box.
+/// Newspaper columns, or one column the width of the content box.
+///
+/// Widths and the gap after each column are EMU. The last gap is zero.
+/// Equal columns share `width` and `gap`. Unequal columns keep one width
+/// and one trailing gap per `w:col` (ECMA-376 §17.6.3).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct ColumnSpec {
     pub count: u16,
+    /// Gap used when every inter-column gap is the same. The first gap
+    /// otherwise.
     pub gap: i64,
+    /// Equal column width, or the first column's width.
     pub width: i64,
+    widths: [i64; 45],
+    after: [i64; 45],
+}
+
+impl ColumnSpec {
+    pub(crate) fn single(width: i64) -> Self {
+        let mut widths = [0; 45];
+        widths[0] = width;
+        Self {
+            count: 1,
+            gap: 0,
+            width,
+            widths,
+            after: [0; 45],
+        }
+    }
+
+    fn equal(count: u16, gap: i64, width: i64) -> Self {
+        let mut widths = [0; 45];
+        let mut after = [0; 45];
+        let slots = usize::from(count).min(widths.len());
+        for index in 0..slots {
+            widths[index] = width;
+            if index + 1 < slots {
+                after[index] = gap;
+            }
+        }
+        Self {
+            count,
+            gap,
+            width,
+            widths,
+            after,
+        }
+    }
+
+    pub(crate) fn uneven(&self) -> bool {
+        let slots = usize::from(self.count).min(self.widths.len());
+        if slots <= 1 {
+            return false;
+        }
+        let width = self.widths[0];
+        let gap = self.after[0];
+        (0..slots).any(|index| self.widths[index] != width)
+            || (0..slots - 1).any(|index| self.after[index] != gap)
+    }
+
+    pub(crate) fn min_width(&self) -> i64 {
+        let slots = usize::from(self.count).min(self.widths.len());
+        self.widths[..slots]
+            .iter()
+            .copied()
+            .filter(|width| *width > 0)
+            .min()
+            .unwrap_or(self.width)
+    }
+
+    /// Width passed to the line fitter when every line uses one measure.
+    /// Uneven columns use the narrowest column so a line can sit in any of
+    /// them. A column break still fits the following piece to that column.
+    pub(crate) fn fit_width_raw(&self) -> i64 {
+        if self.uneven() {
+            self.min_width()
+        } else {
+            self.width
+        }
+    }
+
+    pub(crate) fn widths(&self) -> &[i64] {
+        let slots = usize::from(self.count).min(self.widths.len());
+        &self.widths[..slots]
+    }
+
+    /// Offset from the content left and the column width, both in EMU.
+    pub(crate) fn frame(&self, index: u16) -> (i64, i64) {
+        let slots = usize::from(self.count).min(self.widths.len());
+        if slots == 0 {
+            return (0, self.width);
+        }
+        let index = usize::from(index).min(slots - 1);
+        let mut x = 0i64;
+        for slot in 0..index {
+            x = x
+                .saturating_add(self.widths[slot])
+                .saturating_add(self.after[slot]);
+        }
+        (x, self.widths[index])
+    }
+
+    pub(crate) fn same(&self, other: &Self) -> bool {
+        self.count == other.count
+            && self.widths() == other.widths()
+            && self.after[..usize::from(self.count).min(self.after.len())]
+                == other.after[..usize::from(other.count).min(other.after.len())]
+    }
 }
 
 pub(crate) struct SectionPlan {
@@ -106,7 +209,12 @@ pub(crate) fn section_plans(document: &Document) -> Result<Vec<SectionPlan>, Lay
             ));
         }
         let geometry = PageGeometry::from_setup(&section.page)?;
-        let columns = column_spec(section.id, geometry, section.columns.as_ref())?;
+        let columns = column_spec(
+            section.id,
+            geometry,
+            section.columns.as_ref(),
+            section.unequal_columns.as_ref(),
+        )?;
         let edge = match section.break_kind {
             SectionBreak::NextPage => SectionEdge::NextPage,
             SectionBreak::Continuous => SectionEdge::Continuous,
@@ -139,7 +247,7 @@ pub(crate) fn section_plans(document: &Document) -> Result<Vec<SectionPlan>, Lay
             end,
             section: index,
             edge,
-            fit_width: Emu::new(columns.width),
+            fit_width: Emu::new(columns.fit_width_raw()),
             columns,
         });
         cursor = end + 1;
@@ -168,26 +276,40 @@ pub(crate) fn section_break_before(plans: &[SectionPlan], index: usize) -> bool 
     section_edge(plans, index).forces_page()
 }
 
+pub(crate) fn column_mix(columns: &ColumnSpec) -> i64 {
+    if !columns.uneven() {
+        return 0;
+    }
+    let mut mixed = i64::from(columns.count);
+    let slots = usize::from(columns.count).min(columns.widths.len());
+    for index in 0..slots {
+        mixed = mixed
+            .wrapping_mul(0x9E37)
+            .wrapping_add(columns.widths[index])
+            .wrapping_add(columns.after[index]);
+    }
+    if mixed == 0 { 1 } else { mixed }
+}
+
 fn column_spec(
     section: joyword_model::NodeId,
     geometry: PageGeometry,
-    columns: Option<&joyword_model::EqualColumns>,
+    equal: Option<&joyword_model::EqualColumns>,
+    unequal: Option<&joyword_model::UnequalColumns>,
 ) -> Result<ColumnSpec, LayoutError> {
     let total = geometry.content_width().raw();
-    let Some(columns) = columns else {
-        return Ok(ColumnSpec {
-            count: 1,
-            gap: 0,
-            width: total,
-        });
+    if equal.is_some() && unequal.is_some() {
+        return Err(unsupported(Some(section), "conflicting column definitions"));
+    }
+    if let Some(columns) = unequal {
+        return unequal_spec(section, total, columns);
+    }
+    let Some(columns) = equal else {
+        return Ok(ColumnSpec::single(total));
     };
     let count = i64::from(columns.count);
     if count < 2 {
-        return Ok(ColumnSpec {
-            count: 1,
-            gap: 0,
-            width: total,
-        });
+        return Ok(ColumnSpec::single(total));
     }
     let gap = columns
         .space
@@ -204,7 +326,56 @@ fn column_spec(
         return Err(unsupported(Some(section), "columns do not fit the page"));
     }
     let count = u16::try_from(count).unwrap_or(1);
-    Ok(ColumnSpec { count, gap, width })
+    Ok(ColumnSpec::equal(count, gap, width))
+}
+
+fn unequal_spec(
+    section: joyword_model::NodeId,
+    total: i64,
+    columns: &joyword_model::UnequalColumns,
+) -> Result<ColumnSpec, LayoutError> {
+    let count = columns.columns.len();
+    if !(2..=45).contains(&count) {
+        return Err(unsupported(Some(section), "columns do not fit the page"));
+    }
+    let mut widths = [0; 45];
+    let mut after = [0; 45];
+    let mut used = 0i64;
+    for (index, column) in columns.columns.iter().enumerate() {
+        if column.width <= 0 || column.space < 0 {
+            return Err(unsupported(Some(section), "columns do not fit the page"));
+        }
+        let width = column
+            .width
+            .checked_mul(Emu::PER_TWIP)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        let space = column
+            .space
+            .checked_mul(Emu::PER_TWIP)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        widths[index] = width;
+        if index + 1 == count {
+            used = used
+                .checked_add(width)
+                .ok_or(LayoutError::GeometryOverflow)?;
+        } else {
+            after[index] = space;
+            used = used
+                .checked_add(width)
+                .and_then(|sum| sum.checked_add(space))
+                .ok_or(LayoutError::GeometryOverflow)?;
+        }
+    }
+    if used > total || widths[..count].iter().any(|width| *width <= 0) {
+        return Err(unsupported(Some(section), "columns do not fit the page"));
+    }
+    Ok(ColumnSpec {
+        count: u16::try_from(count).unwrap_or(45),
+        gap: after[0],
+        width: widths[0],
+        widths,
+        after,
+    })
 }
 
 /// Header and footer stories must be referenced. Anything else is still an

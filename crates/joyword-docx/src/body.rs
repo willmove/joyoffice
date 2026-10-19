@@ -14,9 +14,10 @@
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BlockSeq, BreakKind, EqualColumns, HeaderFooterKind, InlineKind, InlineObject, NodeId,
-    NumberFormat, OBJECT_MARKER, OpaqueBlock, Orientation, PageField, PageFieldKind, PageNumbering,
-    PageSetup, Paragraph, Preserved, RunProps, Section, SectionBreak, StoryId, StoryKind, StyleId,
+    Block, BlockSeq, BreakKind, EqualColumns, HeaderFooterKind, InlineKind, InlineObject,
+    NewspaperColumn, NodeId, NumberFormat, OBJECT_MARKER, OpaqueBlock, Orientation, PageField,
+    PageFieldKind, PageNumbering, PageSetup, Paragraph, Preserved, RunProps, Section, SectionBreak,
+    StoryId, StoryKind, StyleId, UnequalColumns,
 };
 
 use crate::backing::PreservedReason;
@@ -238,6 +239,7 @@ impl Body {
                 break_kind: SectionBreak::NextPage,
                 numbering: PageNumbering::default(),
                 columns: None,
+                unequal_columns: None,
                 preserved: None,
             }
         });
@@ -841,8 +843,8 @@ fn complex_page_field(children: &[&Element]) -> Option<(usize, PageField)> {
 }
 
 /// `w:sectPr` (§17.6.17): page size, margins, title page, header or footer
-/// references, section start, page numbering and equal columns. Other
-/// children are preserved, not imported.
+/// references, section start, page numbering, and equal or explicit unequal
+/// columns. Other children are preserved, not imported.
 fn section(
     importer: &mut Importer<'_>,
     part: &PartName,
@@ -861,6 +863,7 @@ fn section(
     let mut break_kind = SectionBreak::NextPage;
     let mut numbering = PageNumbering::default();
     let mut columns = None;
+    let mut unequal_columns = None;
     for child in element.elements() {
         let mapped = child.namespace.as_deref() == Some(W);
         match (mapped, &*child.local) {
@@ -924,8 +927,11 @@ fn section(
                     findings.complete = false;
                 }
             }
-            (true, "cols") => match equal_columns(child) {
-                Some(parsed) => columns = parsed,
+            (true, "cols") => match read_columns(child) {
+                Some(parsed) => {
+                    columns = parsed.equal;
+                    unequal_columns = parsed.unequal;
+                }
                 None => findings.complete = false,
             },
             (true, "headerReference" | "footerReference") => {
@@ -975,6 +981,7 @@ fn section(
         break_kind,
         numbering,
         columns,
+        unequal_columns,
         preserved,
     }
 }
@@ -998,16 +1005,23 @@ fn page_numbering(element: &Element) -> Option<PageNumbering> {
     Some(numbering)
 }
 
-/// Equal-width `w:cols` (§17.6.4). `None` means the element is not in this
-/// slice (unequal columns, a separator, or a bad value), so the section is
-/// preserved. `Some(None)` is a single column.
-fn equal_columns(element: &Element) -> Option<Option<EqualColumns>> {
-    if element.elements().next().is_some() {
-        return None;
-    }
+struct ParsedColumns {
+    equal: Option<EqualColumns>,
+    unequal: Option<UnequalColumns>,
+}
+
+/// `w:cols` (§17.6.4) and `w:col` (§17.6.3). `None` means the element is not
+/// in this slice, so the section is preserved. Equal columns are `num`
+/// 2..=45 with a non-negative `space` (omitted 720 twips), `equalWidth` not
+/// false, `sep` not true, and no `w:col` children. Unequal columns are
+/// `equalWidth` false, `sep` not true, and 2..=45 `w:col` children that each
+/// carry a positive `w:w` in twips. A missing width or `sep` true stays
+/// unmodeled. `Some` with both fields empty is a single column.
+fn read_columns(element: &Element) -> Option<ParsedColumns> {
     let mut count = 1u16;
     let mut space = 720i64;
     let mut saw_space = false;
+    let mut equal_width = true;
     for attribute in &element.attributes {
         if attribute.namespace.as_deref() != Some(W) {
             return None;
@@ -1029,9 +1043,7 @@ fn equal_columns(element: &Element) -> Option<Option<EqualColumns>> {
                 saw_space = true;
             }
             "equalWidth" => {
-                if props::on_off(Some(&attribute.value)) != Some(true) {
-                    return None;
-                }
+                equal_width = props::on_off(Some(&attribute.value))?;
             }
             "sep" => {
                 if props::on_off(Some(&attribute.value)) != Some(false) {
@@ -1041,11 +1053,77 @@ fn equal_columns(element: &Element) -> Option<Option<EqualColumns>> {
             _ => return None,
         }
     }
+    if !equal_width {
+        return unequal_columns(element);
+    }
+    if element.elements().next().is_some() {
+        return None;
+    }
     if count <= 1 {
         let _ = saw_space;
-        return Some(None);
+        return Some(ParsedColumns {
+            equal: None,
+            unequal: None,
+        });
     }
-    Some(Some(EqualColumns { count, space }))
+    Some(ParsedColumns {
+        equal: Some(EqualColumns { count, space }),
+        unequal: None,
+    })
+}
+
+/// Explicit `w:col` widths. `num` and the parent `space` describe equal
+/// columns (§17.6.4), so a valid `num` is ignored here. The last column's
+/// `space` is kept and is not a gap after the row of columns.
+fn unequal_columns(element: &Element) -> Option<ParsedColumns> {
+    let mut columns = Vec::new();
+    for child in element.elements() {
+        if !child.is(W, "col") {
+            return None;
+        }
+        columns.push(newspaper_column(child)?);
+    }
+    if !(2..=45).contains(&columns.len()) {
+        return None;
+    }
+    Some(ParsedColumns {
+        equal: None,
+        unequal: Some(UnequalColumns { columns }),
+    })
+}
+
+fn newspaper_column(element: &Element) -> Option<NewspaperColumn> {
+    if element.elements().next().is_some() {
+        return None;
+    }
+    let mut width = None;
+    let mut space = 0i64;
+    for attribute in &element.attributes {
+        if attribute.namespace.as_deref() != Some(W) {
+            return None;
+        }
+        match attribute.local.as_ref() {
+            "w" => {
+                let parsed: i64 = attribute.value.parse().ok()?;
+                if parsed <= 0 {
+                    return None;
+                }
+                width = Some(parsed);
+            }
+            "space" => {
+                let parsed: i64 = attribute.value.parse().ok()?;
+                if parsed < 0 {
+                    return None;
+                }
+                space = parsed;
+            }
+            _ => return None,
+        }
+    }
+    Some(NewspaperColumn {
+        width: width?,
+        space,
+    })
 }
 
 fn story_reference(

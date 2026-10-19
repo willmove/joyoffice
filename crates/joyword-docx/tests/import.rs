@@ -1565,6 +1565,62 @@ fn section_break_page_numbers_and_equal_columns_are_imported() {
 }
 
 #[test]
+fn unequal_columns_import_and_a_separator_or_missing_width_stays_preserved() {
+    let page = r#"<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/>"#;
+    let typed = format!(
+        r#"<w:p><w:r><w:t>A</w:t></w:r></w:p><w:sectPr>{page}<w:cols w:equalWidth="0" w:num="2"><w:col w:w="2000" w:space="200"/><w:col w:w="4000"/></w:cols></w:sectPr>"#
+    );
+    let result = open(&body(&typed));
+    assert_model_valid(&result);
+    let section = &result.document.sections()[0];
+    assert!(section.preserved.is_none());
+    assert!(section.columns.is_none());
+    assert!(result.editability.is_unrestricted());
+    let columns = section.unequal_columns.as_ref().unwrap();
+    assert_eq!(columns.columns.len(), 2);
+    assert_eq!(columns.columns[0].width, 2000);
+    assert_eq!(columns.columns[0].space, 200);
+    assert_eq!(columns.columns[1].width, 4000);
+    assert_eq!(columns.columns[1].space, 0);
+
+    let equal = format!(
+        r#"<w:p><w:r><w:t>A</w:t></w:r></w:p><w:sectPr>{page}<w:cols w:equalWidth="true" w:num="3" w:space="240"/></w:sectPr>"#
+    );
+    let equal = open(&body(&equal));
+    let columns = equal.document.sections()[0].columns.unwrap();
+    assert_eq!(columns.count, 3);
+    assert_eq!(columns.space, 240);
+    assert!(equal.document.sections()[0].unequal_columns.is_none());
+
+    for markup in [
+        r#"<w:cols w:equalWidth="0" w:sep="1"><w:col w:w="2000"/><w:col w:w="4000"/></w:cols>"#,
+        r#"<w:cols w:equalWidth="false"><w:col w:space="200"/><w:col w:w="4000"/></w:cols>"#,
+        r#"<w:cols w:equalWidth="0"/>"#,
+        r#"<w:cols w:num="2" w:sep="true"/>"#,
+        r#"<w:cols w:equalWidth="0"><w:col w:w="2000"/></w:cols>"#,
+    ] {
+        let bytes = body(&format!(
+            r#"<w:p><w:r><w:t>A</w:t></w:r></w:p><w:sectPr>{page}{markup}</w:sectPr>"#
+        ));
+        let result = open(&bytes);
+        let section = &result.document.sections()[0];
+        assert!(section.preserved.is_some(), "{markup}");
+        assert!(section.unequal_columns.is_none(), "{markup}");
+        assert!(section.columns.is_none(), "{markup}");
+        let plan = plan_export(
+            &result.backing,
+            &result.document.snapshot(),
+            &Budget::default(),
+        )
+        .unwrap();
+        let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+        let xml =
+            std::str::from_utf8(package.part("/word/document.xml").unwrap().data.as_ref()).unwrap();
+        assert!(xml.contains("w:cols"), "{markup} dropped from {xml}");
+    }
+}
+
+#[test]
 fn an_unchanged_field_package_keeps_its_markup_and_an_inserted_field_is_refused() {
     let bytes = body(
         r#"<w:p><w:fldSimple w:instr=" PAGE "><w:r><w:t>1</w:t></w:r></w:fldSimple></w:p><w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr>"#,

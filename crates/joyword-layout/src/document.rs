@@ -404,6 +404,7 @@ pub struct LayoutSnapshot {
     column_count: u16,
     column_gap: i64,
     column_width: i64,
+    column_spec: crate::pages::ColumnSpec,
     /// Y where a new column on this page starts.
     column_origin: i64,
     notes: Vec<LayoutNote>,
@@ -461,6 +462,7 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
         hash.update(format!("{:?}", section.break_kind).as_bytes());
         hash.update(format!("{:?}", section.numbering).as_bytes());
         hash.update(format!("{:?}", section.columns).as_bytes());
+        hash.update(format!("{:?}", section.unequal_columns).as_bytes());
         hash.update(format!("{:?}", section.title_page).as_bytes());
         hash.update(format!("{:?}", section.headers).as_bytes());
         hash.update(format!("{:?}", section.footers).as_bytes());
@@ -865,6 +867,8 @@ pub(crate) struct FittedParagraph {
     pub column_count: u16,
     pub column_gap: i64,
     pub column_width: i64,
+    /// Per-column widths. Equal columns repeat `column_width`.
+    pub column_spec: crate::pages::ColumnSpec,
     /// `w:br w:type="column"` counts in `piece_breaks` advance a column
     /// (or a page, when the section has one column).
     pub column_breaks: bool,
@@ -1335,6 +1339,7 @@ fn layout_once(
         };
         let plan = crate::pages::plan_for(plans, index).ok_or(LayoutError::InvalidDocument)?;
         let numbering = numbering_of(document, plan.section);
+        let piece_widths = plan.columns.uneven().then(|| plan.columns.widths());
         let mut fitted = fit_paragraph(
             document,
             paragraph,
@@ -1342,6 +1347,7 @@ fn layout_once(
             profile,
             plan.geometry,
             plan.fit_width,
+            piece_widths,
             limits,
             WorkSpent {
                 shapes: charged_shapes,
@@ -1407,6 +1413,7 @@ fn layout_mixed(
         match block {
             Block::Paragraph(paragraph) => {
                 let numbering = numbering_of(document, plan.section);
+                let piece_widths = plan.columns.uneven().then(|| plan.columns.widths());
                 let mut fitted = fit_paragraph(
                     document,
                     paragraph,
@@ -1414,6 +1421,7 @@ fn layout_mixed(
                     profile,
                     plan.geometry,
                     plan.fit_width,
+                    piece_widths,
                     limits,
                     WorkSpent {
                         shapes: spent.shapes,
@@ -1821,6 +1829,7 @@ fn build_row_flows(
                             profile,
                             geometry,
                             inner_width,
+                            None,
                             limits,
                             WorkSpent {
                                 shapes: spent.shapes,
@@ -3348,6 +3357,7 @@ pub(crate) fn open_snapshot(
         column_count: 1,
         column_gap: 0,
         column_width: geometry.content_width().raw(),
+        column_spec: crate::pages::ColumnSpec::single(geometry.content_width().raw()),
         column_origin: geometry.top.raw(),
         notes: Vec::new(),
         lines: Vec::new(),
@@ -3423,6 +3433,7 @@ pub(crate) fn fit_paragraph(
     profile: SingleFontProfile,
     geometry: PageGeometry,
     available_width: Emu,
+    piece_widths: Option<&[i64]>,
     limits: LayoutLimits,
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
@@ -3775,10 +3786,31 @@ pub(crate) fn fit_paragraph(
                 omitted_diagnostics: 0,
                 stats: crate::LineStats::default(),
             };
+            let piece_count = piece_widths.map(|items| items.len()).unwrap_or(1).max(1);
+            let mut column = 0usize;
+            let vary = column_breaks && piece_widths.is_some_and(|items| items.len() > 1);
             for piece in &split.pieces {
-                let mut part = fit_slice(&piece.text, piece.byte_origin, width)?;
+                if vary {
+                    for _ in 0..piece.breaks_before {
+                        column = if column + 1 < piece_count {
+                            column + 1
+                        } else {
+                            0
+                        };
+                    }
+                }
+                let piece_width = if vary {
+                    Emu::new(
+                        piece_widths
+                            .and_then(|items| items.get(column).copied())
+                            .unwrap_or(width.raw()),
+                    )
+                } else {
+                    width
+                };
+                let mut part = fit_slice(&piece.text, piece.byte_origin, piece_width)?;
                 if painted.flow.justification == Some(Justification::Both) {
-                    justify_pure_chinese(&mut part.lines, width, paragraph.id())?;
+                    justify_pure_chinese(&mut part.lines, piece_width, paragraph.id())?;
                 }
                 crate::pages::shift_piece(&mut part.lines, piece);
                 piece_breaks.push(piece.breaks_before);
@@ -3932,6 +3964,7 @@ pub(crate) fn fit_paragraph(
         column_count: 1,
         column_gap: 0,
         column_width: available_width.raw(),
+        column_spec: crate::pages::ColumnSpec::single(available_width.raw()),
         column_breaks,
         section_id: paragraph.id(),
         page_start: None,
@@ -4242,11 +4275,7 @@ fn place_one(
     let edge = prepared.section_edge;
     let page_start = prepared.page_start;
     let section_id = prepared.section_id;
-    let columns = crate::pages::ColumnSpec {
-        count: prepared.column_count,
-        gap: prepared.column_gap,
-        width: prepared.column_width,
-    };
+    let columns = prepared.column_spec;
     let justification = prepared.justification;
     let baseline_offset = prepared.baseline;
     let frame_x = prepared.frame_x;
@@ -4375,12 +4404,9 @@ fn place_one(
 }
 
 fn column_frame(result: &LayoutSnapshot, geometry: PageGeometry) -> (Emu, Emu) {
-    let pitch = result.column_width.saturating_add(result.column_gap);
-    let x = geometry
-        .left
-        .raw()
-        .saturating_add(i64::from(result.column_index).saturating_mul(pitch));
-    (Emu::new(x), Emu::new(result.column_width))
+    let (offset, width) = result.column_spec.frame(result.column_index);
+    let x = geometry.left.raw().saturating_add(offset);
+    (Emu::new(x), Emu::new(width))
 }
 
 fn numbering_of(document: &Document, section: usize) -> joyword_model::PageNumbering {
@@ -4407,6 +4433,7 @@ pub(crate) fn apply_section(
     fitted.column_count = plan.columns.count;
     fitted.column_gap = plan.columns.gap;
     fitted.column_width = plan.columns.width;
+    fitted.column_spec = plan.columns;
     if let Some(section) = document.sections().get(plan.section) {
         fitted.section_id = section.id;
         fitted.page_start = if fitted.section_edge == crate::pages::SectionEdge::Same {
@@ -4438,9 +4465,7 @@ fn begin_section(
         crate::pages::SectionEdge::Same => {}
         crate::pages::SectionEdge::Continuous => {
             let same_box = prev_geometry == geometry;
-            let same_cols = result.column_count == columns.count
-                && result.column_gap == columns.gap
-                && result.column_width == columns.width;
+            let same_cols = result.column_spec.same(&columns);
             if same_box && same_cols {
                 if !ink {
                     result.retarget_open_page(geometry, section);
@@ -4873,6 +4898,7 @@ impl LayoutSnapshot {
         self.column_count = columns.count;
         self.column_gap = columns.gap;
         self.column_width = columns.width;
+        self.column_spec = columns;
         self.column_index = 0;
         self.column_origin = origin;
     }
@@ -4894,11 +4920,7 @@ impl LayoutSnapshot {
             self.column_origin = geometry.top.raw();
             return Ok(());
         }
-        let columns = crate::pages::ColumnSpec {
-            count: self.column_count,
-            gap: self.column_gap,
-            width: self.column_width,
-        };
+        let columns = self.column_spec;
         self.new_page(geometry, section)?;
         self.adopt_columns(columns, geometry.top.raw());
         Ok(())

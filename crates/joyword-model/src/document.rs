@@ -107,6 +107,22 @@ pub struct EqualColumns {
     pub space: i64,
 }
 
+/// One explicit newspaper column (`w:col`, ECMA-376 §17.6.3). `width` and
+/// `space` are twips. `space` is the gap after this column; layout does not
+/// place a gap after the last column.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct NewspaperColumn {
+    pub width: i64,
+    pub space: i64,
+}
+
+/// Unequal newspaper columns (`w:cols` with `equalWidth` false and one
+/// `w:col/@w:w` per column). Length is 2..=45. A separator line is not stored.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct UnequalColumns {
+    pub columns: Vec<NewspaperColumn>,
+}
+
 /// `w:pgSz` and `w:pgMar` in source units.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageSetup {
@@ -159,6 +175,9 @@ pub struct Section {
     /// `None` is one column. Equal columns wider than the page are rejected
     /// at layout rather than stored as a single column.
     pub columns: Option<EqualColumns>,
+    /// Explicit unequal widths. Import leaves `columns` empty when this is
+    /// set. Layout rejects a section that has both.
+    pub unequal_columns: Option<UnequalColumns>,
     pub preserved: Option<PreservedId>,
 }
 
@@ -236,6 +255,7 @@ impl Document {
             break_kind: SectionBreak::NextPage,
             numbering: PageNumbering::default(),
             columns: None,
+            unequal_columns: None,
             preserved: None,
         };
         let story = Story {

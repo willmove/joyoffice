@@ -16,6 +16,7 @@ joyword-model.workspace = true
 krilla = { workspace = true, features = ["raster-images"] }
 
 [dev-dependencies]
+flate2.workspace = true
 joyword-model.workspace = true
 joyword-engine.workspace = true
 

@@ -293,6 +293,9 @@ struct ParagraphCacheKey {
     content: [u8; 32],
     resolved_style: [u8; 32],
     available_width: i64,
+    /// Zero for one column or equal columns. Uneven widths mix every column
+    /// so a fit for one row of columns is not reused for another.
+    column_mix: i64,
     font: FontEnvKey,
     profile: ProfileFitKey,
     external: ExternalKey,
@@ -685,12 +688,16 @@ fn remember_flow(
         let width = crate::pages::plan_for(&plans, index)
             .map(|plan| plan.fit_width.raw())
             .unwrap_or_else(|| snapshot.geometry().content_width().raw());
+        let column_mix = crate::pages::plan_for(&plans, index)
+            .map(|plan| crate::pages::column_mix(&plan.columns))
+            .unwrap_or(0);
         let key = paragraph_key(
             document,
             paragraph,
             faces,
             profile,
             width,
+            column_mix,
             context,
             marks.get(&paragraph.id()),
             views,
@@ -909,6 +916,7 @@ fn layout_pass(
             faces,
             profile,
             plan.fit_width.raw(),
+            crate::pages::column_mix(&plan.columns),
             context,
             marks.get(&paragraph.id()),
             views,
@@ -944,6 +952,7 @@ fn layout_pass(
             result.stats_mut().cache_hits += 1;
             adopt(hit, document, paragraph)?
         } else {
+            let piece_widths = plan.columns.uneven().then(|| plan.columns.widths());
             let fitted = fit_paragraph(
                 document,
                 paragraph,
@@ -951,6 +960,7 @@ fn layout_pass(
                 profile,
                 plan.geometry,
                 plan.fit_width,
+                piece_widths,
                 limits,
                 WorkSpent {
                     shapes: charged_shapes,
@@ -1113,6 +1123,7 @@ fn paragraph_key(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     available_width: i64,
+    column_mix: i64,
     context: ExternalContext,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
     views: SceneViews,
@@ -1139,6 +1150,7 @@ fn paragraph_key(
         content: digest(content_source.as_bytes()),
         resolved_style: resolved_style(document, paragraph, mark),
         available_width,
+        column_mix,
         font: FontEnvKey {
             shaping: faces.face(slot).key(),
             mixed: mixed.then_some(MixedFaces {
@@ -1317,6 +1329,7 @@ mod tests {
             column_count: 1,
             column_gap: 0,
             column_width: 1,
+            column_spec: crate::pages::ColumnSpec::single(1),
             column_breaks: false,
             section_id: document.ids().node(),
             page_start: None,
@@ -1336,6 +1349,7 @@ mod tests {
             content: [1; 32],
             resolved_style: [2; 32],
             available_width: 100,
+            column_mix: 0,
             font: FontEnvKey {
                 shaping: FontKey::from_raw_parts([0; 32], 0),
                 mixed: None,

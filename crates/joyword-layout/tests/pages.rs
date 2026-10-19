@@ -10,9 +10,10 @@ use joyword_layout::{
     layout_with_view,
 };
 use joyword_model::{
-    Bias, Block, BlockSeq, BreakKind, Document, EqualColumns, HeaderFooterKind, InlineKind,
-    InlineObject, Measure, NumberFormat, Orientation, PageField, PageFieldKind, PageNumbering,
-    PageSetup, Paragraph, Position, Preserved, ScalarOffset, SectionBreak, StoryKind,
+    Bias, Block, BlockSeq, BreakKind, Cell, CellBorders, Document, EqualColumns, HeaderFooterKind,
+    InlineKind, InlineObject, Measure, NewspaperColumn, NumberFormat, Orientation, PageField,
+    PageFieldKind, PageNumbering, PageSetup, Paragraph, Position, Preserved, Row, ScalarOffset,
+    SectionBreak, StoryKind, Table, UnequalColumns, VerticalMerge,
 };
 
 fn pt(value: i64) -> Emu {
@@ -855,6 +856,183 @@ fn equal_columns_and_a_column_break_share_one_page() {
     assert_eq!(runs[0].text, "A");
     assert_eq!(runs[1].text, "B");
     assert!(runs[1].origin_x.raw() > runs[0].origin_x.raw());
+}
+
+fn unequal(narrow: i64, space: i64, wide: i64) -> UnequalColumns {
+    UnequalColumns {
+        columns: vec![
+            NewspaperColumn {
+                width: narrow,
+                space,
+            },
+            NewspaperColumn {
+                width: wide,
+                space: 0,
+            },
+        ],
+    }
+}
+
+#[test]
+fn unequal_columns_place_glyphs_at_different_x_and_a_break_advances() {
+    let sample = "i i i i i i i i i i i i";
+    let mut document = document_with(&[sample]);
+    document.sections_mut()[0].page.height = page_for(8).height;
+    document.sections_mut()[0].unequal_columns = Some(unequal(400, 80, 1200));
+    let id = document.ids().node();
+    change(&mut document, 0, |paragraph| {
+        paragraph
+            .insert_inline(
+                ScalarOffset(sample.chars().count()),
+                InlineObject {
+                    id,
+                    kind: InlineKind::Break(BreakKind::Column),
+                    source: None,
+                },
+                None,
+                Arc::default(),
+            )
+            .unwrap();
+        paragraph.push_text(sample, None, Arc::default()).unwrap();
+    });
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.pages().len(), 1);
+    let runs = &snapshot.pages()[0].runs;
+    let narrow: Vec<_> = runs
+        .iter()
+        .filter(|run| run.origin_x == runs[0].origin_x)
+        .collect();
+    let wide_x = runs[0].origin_x.raw() + (400 + 80) * Emu::PER_TWIP;
+    let wide: Vec<_> = runs
+        .iter()
+        .filter(|run| run.origin_x.raw() == wide_x)
+        .collect();
+    assert!(!narrow.is_empty());
+    assert!(!wide.is_empty(), "{runs:?}");
+    assert!(
+        wide[0].text.chars().count() > narrow[0].text.chars().count(),
+        "wide {:?} narrow {:?}",
+        wide[0].text,
+        narrow[0].text
+    );
+
+    let mut overflow = document_with(&["A"]);
+    overflow.sections_mut()[0].unequal_columns = Some(unequal(400, 80, 1200));
+    for label in ["B", "C"] {
+        let id = overflow.ids().node();
+        change(&mut overflow, 0, |paragraph| {
+            paragraph.push_inline(
+                InlineObject {
+                    id,
+                    kind: InlineKind::Break(BreakKind::Column),
+                    source: None,
+                },
+                None,
+                Arc::default(),
+            );
+            paragraph.push_text(label, None, Arc::default()).unwrap();
+        });
+    }
+    let flowed = layout(&overflow);
+    assert_eq!(flowed.pages().len(), 2);
+    let first = &flowed.pages()[0].runs;
+    let second = &flowed.pages()[1].runs;
+    assert_eq!(first.len(), 2);
+    assert_eq!(second[0].text, "C");
+    assert_eq!(second[0].origin_x, first[0].origin_x);
+
+    let mut cache = ParagraphLayoutCache::with_budget(1 << 20);
+    let incremental = layout_incremental(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &LayoutInvalidation::default(),
+        },
+    )
+    .unwrap();
+    assert_eq!(snapshot.pages(), incremental.pages());
+
+    let mut too_wide = document_with(&["A"]);
+    too_wide.sections_mut()[0].unequal_columns = Some(unequal(20_000, 0, 20_000));
+    let error = layout_document(
+        &too_wide.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        LayoutError::Unsupported {
+            feature: "columns do not fit the page",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn a_table_in_unequal_columns_is_refused() {
+    let mut document = document_with(&["A"]);
+    document.sections_mut()[0].unequal_columns = Some(unequal(400, 80, 1200));
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph.push_text("T", None, Arc::default()).unwrap();
+    let table = Table {
+        id: document.ids().node(),
+        grid: vec![Measure::Twips(2400)],
+        rows: vec![Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![Cell {
+                id: document.ids().node(),
+                grid_span: 1,
+                vertical_merge: VerticalMerge::None,
+                width: Some(Measure::Twips(2400)),
+                borders: CellBorders::default(),
+                shading: None,
+                margin: None,
+                vertical_align: None,
+                blocks: BlockSeq::from_vec(vec![paragraph.into()]),
+                preserved: None,
+            }],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![table.into()]);
+    let error = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        LayoutError::Unsupported {
+            feature: "table in newspaper columns",
+            ..
+        }
+    ));
 }
 
 #[test]
