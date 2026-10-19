@@ -145,3 +145,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 - LAYOUT-004／LAYOUT-012；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.6.12（`pgNumType`：`fmt` 与 `start`；省略 `fmt` 为 decimal，省略 `start` 继续前一节）、§17.6.22（`w:type`：`nextPage` 为默认，另有 `continuous`、`evenPage`、`oddPage`；`nextColumn` 不在本切片）、§17.6.4（`cols`：等宽与 `space`）、§17.6.17（`sectPr`）、§17.3.3.1（`br`：`type="column"` 进入下一栏，没有多栏时进入下一页）、§17.10.1（`evenAndOddHeaders` 按节的显示页码区分奇偶）、§17.16.1（`PAGE`、`NUMPAGES`、`SECTIONPAGES`）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的分页或域实现。
 - `PAGE` 使用该节的 `fmt`。`NUMPAGES` 与 `SECTIONPAGES` 用十进制计数。不能格式化时使用文件里的缓存结果，不把缓存当成普通正文。没有新增外部 crate。
+
+### 超链接、HTML／RTF 粘贴与图片同行文字（T203 第二切片）
+
+- 依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.16.22（`w:hyperlink` 的 `r:id`、`w:anchor`、`w:tooltip`）。关系目标按 OPC 外部关系存储，不解析、不请求。打开允许列表（`http`、`https`、`mailto`）是 JoyWord 的安全选择，不是对 Word 的测量。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的超链接实现。
+- HTML 子集对照 [HTML Living Standard](https://html.spec.whatwg.org/) 的元素与字符引用：保留 `b`／`strong`、`i`／`em`、`u`、`p`／`div`／`br`、`ul`／`ol`／`li`、`h1`–`h3` 的文本结构，丢弃 `script`、`style` 与嵌入内容，不取远程资源。RTF 对照 [Rich Text Format (RTF) Specification 1.9.1](https://www.loc.gov/preservation/digital/formats/fdd/fdd000473.shtml) 的控制字 `\b`、`\i`、`\ul`、`\par`、`\line`、`\tab`、`\u`、`\'`、`\field`、`\fldrslt`、`\object`、`\pict`。解析器是手写子集，不复制 Word、WPS 或 LibreOffice 的粘贴实现，不新增外部 crate。
+- 列表只在文档已有编号实例时套用，不生成 `numbering.xml`。图片后的同行文字是排版规则，不是 Word 观察。插入图片按钮调用已有插入路径。没有新增外部 crate。

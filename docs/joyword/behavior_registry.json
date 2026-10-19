@@ -264,6 +264,30 @@
       "source": "hypothesis",
       "test": "two_equal_inserts_share_one_resource",
       "word_observation": null
+    },
+    {
+      "id": "LINK-EDIT-UNDO",
+      "operation": "给选区设置、修改或清除超链接",
+      "expectation": "每一步单独撤销；javascript 与 file 不能写入编辑",
+      "source": "hypothesis",
+      "test": "set_edit_and_remove_a_hyperlink_are_separate_undo_steps",
+      "word_observation": null
+    },
+    {
+      "id": "LINK-OPEN-ALLOWLIST",
+      "operation": "判断已存储的外部目标能否交给系统打开",
+      "expectation": "只放行 http、https 和 mailto；javascript、data、file 和带用户信息的主机拒绝",
+      "source": "hypothesis",
+      "test": "openable_link_refuses_schemes_outside_the_allowlist",
+      "word_observation": null
+    },
+    {
+      "id": "RICH-PASTE-STRIP",
+      "operation": "粘贴含脚本、样式和远程图片的 HTML",
+      "expectation": "留下粗体等字符格式和可见文字，不留下脚本、样式或远程地址",
+      "source": "hypothesis",
+      "test": "html_keeps_bold_italic_underline_and_drops_active_content",
+      "word_observation": null
     }
   ]
 }

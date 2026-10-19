@@ -351,21 +351,30 @@ fn min_004_records_external_targets_without_accessing_them() {
             ..
         }
     ) && item.severity == Severity::Warning));
-    // The hyperlink text is visible; the hyperlink itself is preserved and
-    // its paragraph locked.
+    // The hyperlink text stays visible. A simple external target is a typed
+    // run link, so the paragraph is editable. The relationship is recorded
+    // and never requested.
     assert_eq!(
         texts(&result),
         vec!["项目说明", "模板与链接都指向本包之外。"]
     );
     let body = paragraphs(&result);
-    assert!(!result.editability.can_edit(body[0].id()));
+    assert!(result.editability.can_edit(body[0].id()));
     assert!(result.editability.can_edit(body[1].id()));
-    assert!(
-        result
-            .backing
-            .fragments()
-            .any(|(_, fragment)| &*fragment.element == "w:hyperlink")
+    let link = body[0].link_at(0).expect("imported hyperlink");
+    assert_eq!(
+        link.external.as_deref(),
+        Some("https://example.invalid/joyword")
     );
+    assert_eq!(link.relationship.as_deref(), Some("rId2"));
+    assert!(link.anchor.is_none());
+    let plan = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .expect("unchanged package");
+    assert_eq!(plan.bytes(), fixture("DOCX-MIN-004").as_slice());
     assert_eq!(result.document.settings().compatibility_mode, Some(15));
     assert_model_valid(&result);
 }

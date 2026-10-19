@@ -5,8 +5,8 @@
 
 use std::path::PathBuf;
 
-use joyoffice_opc::{Budget, Method, Package, write_archive};
-use joyword_docx::{ExportError, ExportMode, ExportPlan, ImportResult, W, import};
+use joyoffice_opc::{Budget, ExternalKind, Method, Package, write_archive};
+use joyword_docx::{DiagnosticKind, ExportError, ExportMode, ExportPlan, ImportResult, W, import};
 use joyword_engine::{Command, Transaction};
 use joyword_model::{Bias, Position, ScalarOffset};
 use joyword_shell::docx::DocxSession;
@@ -266,9 +266,8 @@ fn corpus_fixtures_split_only_where_supported() {
     caret(&mut input, 2);
     input.replace(None, "\n").unwrap();
     check(&input, "第一\n条 合作内容\n甲方\n委托乙方完成设计服务。");
-    // DOCX-MIN-003/004/005 hold unknown, linked or protected content and
-    // open read-only; nothing can be split.
-    for id in [3, 4, 5] {
+    // DOCX-MIN-003/005 hold unknown or protected content and open read-only.
+    for id in [3, 5] {
         let session = DocxSession::open(&fixture(id), &Budget::default()).unwrap();
         assert!(session.session().policy().read_only, "fixture {id}");
         match TextInput::new(session, InputLimits::default()) {
@@ -279,6 +278,41 @@ fn corpus_fixtures_split_only_where_supported() {
             Err(error) => assert_eq!(error, InputError::UnsupportedBody, "fixture {id}"),
         }
     }
+    // DOCX-MIN-004's simple external hyperlink is editable. Splitting it
+    // keeps the same target on both pieces. The file:// attached template
+    // stays in the package and is still not fetched.
+    let mut input = open(&fixture(4));
+    assert!(!input.backend().session().policy().read_only);
+    caret(&mut input, 2);
+    input.replace(None, "\n").unwrap();
+    let plan = check(&input, "项目\n说明\n模板与链接都指向本包之外。");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    let linked: Vec<_> = saved
+        .document
+        .body()
+        .blocks
+        .iter()
+        .filter_map(|block| block.as_paragraph())
+        .take(2)
+        .collect();
+    assert_eq!(linked.len(), 2);
+    for paragraph in linked {
+        let link = paragraph.link_at(0).expect("split keeps the hyperlink");
+        assert_eq!(
+            link.external.as_deref(),
+            Some("https://example.invalid/joyword")
+        );
+    }
+    assert!(saved.diagnostics.iter().any(|item| {
+        matches!(
+            &item.kind,
+            DiagnosticKind::ExternalTarget {
+                target,
+                kind: ExternalKind::NetworkShare,
+                ..
+            } if target == "file://fileserver.invalid/templates/contract.dotm"
+        )
+    }));
 }
 
 /// Grapheme-aligned UTF-16 boundaries of `text`.

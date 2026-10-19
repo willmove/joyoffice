@@ -124,6 +124,12 @@ pub(crate) trait DocEditor {
     fn insert_table(&mut self, rows: u32, columns: u32) -> Result<bool, InputError>;
     fn insert_image_bytes(&mut self, bytes: &[u8]) -> Result<bool, InputError>;
     fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError>;
+    fn paste_rich(
+        &mut self,
+        document: &joyword_shell::rich_paste::RichDocument,
+    ) -> Result<bool, InputError>;
+    fn selected_image_bytes(&self) -> Option<std::sync::Arc<[u8]>>;
+    fn openable_link(&self, position: &Position) -> Option<&str>;
     fn insert_table_row(&mut self) -> Result<bool, InputError>;
     fn delete_table_row(&mut self) -> Result<bool, InputError>;
     fn insert_table_column(&mut self) -> Result<bool, InputError>;
@@ -279,6 +285,18 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError> {
         TextInput::insert_image_file(self, path)
+    }
+    fn paste_rich(
+        &mut self,
+        document: &joyword_shell::rich_paste::RichDocument,
+    ) -> Result<bool, InputError> {
+        TextInput::paste_rich(self, document)
+    }
+    fn selected_image_bytes(&self) -> Option<std::sync::Arc<[u8]>> {
+        TextInput::selected_image_bytes(self)
+    }
+    fn openable_link(&self, position: &Position) -> Option<&str> {
+        TextInput::openable_link(self, position)
     }
     fn insert_table_row(&mut self) -> Result<bool, InputError> {
         TextInput::insert_table_row(self)
@@ -477,6 +495,18 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError> {
         TextInput::insert_image_file(self, path)
+    }
+    fn paste_rich(
+        &mut self,
+        document: &joyword_shell::rich_paste::RichDocument,
+    ) -> Result<bool, InputError> {
+        TextInput::paste_rich(self, document)
+    }
+    fn selected_image_bytes(&self) -> Option<std::sync::Arc<[u8]>> {
+        TextInput::selected_image_bytes(self)
+    }
+    fn openable_link(&self, position: &Position) -> Option<&str> {
+        TextInput::openable_link(self, position)
     }
     fn insert_table_row(&mut self) -> Result<bool, InputError> {
         TextInput::insert_table_row(self)
@@ -678,6 +708,18 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn insert_image_file(&mut self, path: &std::path::Path) -> Result<bool, InputError> {
         TextInput::insert_image_file(self, path)
+    }
+    fn paste_rich(
+        &mut self,
+        document: &joyword_shell::rich_paste::RichDocument,
+    ) -> Result<bool, InputError> {
+        TextInput::paste_rich(self, document)
+    }
+    fn selected_image_bytes(&self) -> Option<std::sync::Arc<[u8]>> {
+        TextInput::selected_image_bytes(self)
+    }
+    fn openable_link(&self, position: &Position) -> Option<&str> {
+        TextInput::openable_link(self, position)
     }
     fn insert_table_row(&mut self) -> Result<bool, InputError> {
         TextInput::insert_table_row(self)
@@ -1143,6 +1185,64 @@ fn reveal_offset(
         .max(-(content.height - viewport.size.height).max(px(0.0)))
         .min(px(0.0));
     offset
+}
+
+fn clipboard_image_format(bytes: &[u8]) -> Option<gpui::ImageFormat> {
+    if bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+        Some(gpui::ImageFormat::Png)
+    } else if bytes.starts_with(&[0xFF, 0xD8, 0xFF]) {
+        Some(gpui::ImageFormat::Jpeg)
+    } else if bytes.starts_with(b"GIF87a") || bytes.starts_with(b"GIF89a") {
+        Some(gpui::ImageFormat::Gif)
+    } else if bytes.starts_with(b"BM") {
+        Some(gpui::ImageFormat::Bmp)
+    } else if bytes.starts_with(b"II*\0") || bytes.starts_with(b"MM\0*") {
+        Some(gpui::ImageFormat::Tiff)
+    } else {
+        None
+    }
+}
+
+fn link_modifier(modifiers: &gpui::Modifiers) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        modifiers.control || modifiers.platform
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        modifiers.control
+    }
+}
+
+/// Hands `url` to the platform opener as one argument. No shell is involved.
+fn open_external(url: &str) -> std::io::Result<()> {
+    let program = if cfg!(target_os = "macos") {
+        "open"
+    } else if cfg!(target_os = "windows") {
+        "explorer"
+    } else {
+        "xdg-open"
+    };
+    let mut child = std::process::Command::new(program).arg(url).spawn()?;
+    let _ = std::thread::Builder::new()
+        .name("joyword-open".into())
+        .spawn(move || {
+            let _ = child.wait();
+        });
+    Ok(())
+}
+
+fn rich_as_text(document: &joyword_shell::rich_paste::RichDocument) -> String {
+    let mut out = String::new();
+    for (index, paragraph) in document.paragraphs.iter().enumerate() {
+        if index > 0 {
+            out.push('\n');
+        }
+        for run in &paragraph.runs {
+            out.push_str(&run.text);
+        }
+    }
+    out
 }
 
 fn input_error_label(error: &InputError) -> &'static str {
@@ -2203,12 +2303,25 @@ impl JoyWord {
             }),
             EDIT_COPY => {
                 if let Some(editor) = self.editor.as_ref() {
-                    match editor.selected_text() {
-                        Ok(text) => {
-                            cx.write_to_clipboard(gpui::ClipboardItem::new_string(text.clone()));
-                            self.clipboard = text;
+                    if let Some(bytes) = editor.selected_image_bytes() {
+                        match clipboard_image_format(bytes.as_ref()) {
+                            Some(format) => {
+                                let image =
+                                    gpui::Image::from_bytes(format, bytes.as_ref().to_vec());
+                                cx.write_to_clipboard(gpui::ClipboardItem::new_image(&image));
+                            }
+                            None => self.input_error = Some(self.label("input.image")),
                         }
-                        Err(error) => self.input_error = Some(error.to_string()),
+                    } else {
+                        match editor.selected_text() {
+                            Ok(text) => {
+                                cx.write_to_clipboard(gpui::ClipboardItem::new_string(
+                                    text.clone(),
+                                ));
+                                self.clipboard = text;
+                            }
+                            Err(error) => self.input_error = Some(error.to_string()),
+                        }
                     }
                 } else {
                     self.input_error = Some("input.loading".into());
@@ -2254,6 +2367,20 @@ impl JoyWord {
                             self.apply_input(cx, |editor| {
                                 editor.insert_image_bytes(&bytes).map(|_| ())
                             });
+                        }
+                        joyword_shell::input::PasteChoice::Html(markup) => {
+                            self.paste_parsed(
+                                cx,
+                                joyword_shell::rich_paste::parse_html(markup),
+                                &offers,
+                            );
+                        }
+                        joyword_shell::input::PasteChoice::Rtf(markup) => {
+                            self.paste_parsed(
+                                cx,
+                                joyword_shell::rich_paste::parse_rtf(markup),
+                                &offers,
+                            );
                         }
                         joyword_shell::input::PasteChoice::Text(text) => {
                             let text = text.to_owned();
@@ -2553,6 +2680,117 @@ impl JoyWord {
             clamp,
         )
     }
+    /// Insert Picture asks for a file, then uses the existing image insert path.
+    pub(crate) fn prompt_insert_picture(&mut self, cx: &mut Context<Self>) {
+        let receiver = cx.prompt_for_paths(gpui::PathPromptOptions {
+            files: true,
+            directories: false,
+            multiple: false,
+            prompt: None,
+        });
+        cx.spawn(async move |view, cx| {
+            let picked = receiver
+                .await
+                .ok()
+                .and_then(Result::ok)
+                .flatten()
+                .and_then(|mut paths| paths.pop());
+            let Some(path) = picked else {
+                return;
+            };
+            let _ = view.update(cx, |view, cx| {
+                view.apply_input(cx, |editor| editor.insert_image_file(&path).map(|_| ()));
+            });
+        })
+        .detach();
+    }
+
+    fn paste_parsed(
+        &mut self,
+        cx: &mut Context<Self>,
+        parsed: joyword_shell::rich_paste::ParsedRich,
+        offers: &[joyword_shell::input::ClipboardOffer<'_>],
+    ) {
+        let plain = joyword_shell::input::plain_text_offer(offers)
+            .filter(|text| !text.is_empty())
+            .map(str::to_owned);
+        match parsed {
+            joyword_shell::rich_paste::ParsedRich::Formatted(document) => {
+                let fallback = rich_as_text(&document);
+                self.apply_input(cx, |editor| match editor.paste_rich(&document) {
+                    Err(InputError::Budget(_)) => {
+                        let text = if fallback.is_empty() {
+                            plain.clone().unwrap_or_default()
+                        } else {
+                            fallback.clone()
+                        };
+                        if text.is_empty() {
+                            return Err(InputError::Budget("commands"));
+                        }
+                        editor
+                            .replace_from(InputSource::Paste, None, &text)
+                            .map(|_| ())
+                    }
+                    other => other.map(|_| ()),
+                });
+            }
+            joyword_shell::rich_paste::ParsedRich::Plain(text) => {
+                let text = if text.is_empty() {
+                    plain.unwrap_or_default()
+                } else {
+                    text
+                };
+                if text.is_empty() {
+                    return;
+                }
+                self.apply_input(cx, |editor| {
+                    editor
+                        .replace_from(InputSource::Paste, None, &text)
+                        .map(|_| ())
+                });
+            }
+            joyword_shell::rich_paste::ParsedRich::Refuse(_) => {
+                if let Some(text) = plain {
+                    self.apply_input(cx, |editor| {
+                        editor
+                            .replace_from(InputSource::Paste, None, &text)
+                            .map(|_| ())
+                    });
+                } else {
+                    self.input_error = Some(self.label("input.rejected"));
+                    cx.notify();
+                }
+            }
+        }
+    }
+
+    /// Ctrl+click (Command+click on macOS) opens an allowlisted link and does
+    /// not move the selection. A refused scheme leaves the click as a selection.
+    fn try_open_link(&mut self, event: &gpui::MouseDownEvent, cx: &mut Context<Self>) -> bool {
+        if !link_modifier(&event.modifiers) {
+            return false;
+        }
+        let Some(position) = self.hit(event.position, false) else {
+            return false;
+        };
+        let Some(url) = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.openable_link(&position))
+            .map(str::to_owned)
+        else {
+            return false;
+        };
+        match open_external(&url) {
+            Ok(()) => self.input_error = None,
+            Err(_) => {
+                self.input_error = Some(self.label("input.rejected"));
+                cx.notify();
+            }
+        }
+        true
+    }
+
     fn mouse_select(
         &mut self,
         point: Point<Pixels>,
@@ -2683,6 +2921,9 @@ impl JoyWord {
             .on_mouse_down(
                 MouseButton::Left,
                 cx.listener(|view, event: &gpui::MouseDownEvent, window, cx| {
+                    if view.try_open_link(event, cx) {
+                        return;
+                    }
                     view.dragging = view.hit(event.position, false).is_some();
                     view.mouse_select(
                         event.position,

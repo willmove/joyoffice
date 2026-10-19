@@ -168,6 +168,7 @@ ribbon.group.list = List
 ribbon.group.find = Find
 ribbon.group.painter = Painter
 ribbon.group.pages = Pages
+ribbon.group.illustrations = Illustrations
 ribbon.group.page = Page Setup
 ribbon.group.zoom = Zoom
 ribbon.group.language = Language

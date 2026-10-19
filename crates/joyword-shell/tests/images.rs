@@ -105,3 +105,15 @@ fn inserting_an_image_file_is_one_undo_and_remote_paths_are_refused() {
     );
     assert_eq!(editor.view().index().text(), "ab");
 }
+
+#[test]
+fn a_selected_image_exposes_its_bytes_for_the_clipboard() {
+    let mut editor = input("");
+    let png = sample_png_1x1();
+    editor.insert_image_bytes(&png).unwrap();
+    editor.select(0..1, false).unwrap();
+    let copied = editor.selected_image_bytes().expect("image bytes");
+    assert_eq!(copied.as_ref(), png.as_slice());
+    editor.select(0..0, false).unwrap();
+    assert!(editor.selected_image_bytes().is_none());
+}

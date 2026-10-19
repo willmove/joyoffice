@@ -5,9 +5,11 @@
 //! every other block (tables, content controls, unknown elements) becomes an
 //! [`OpaqueBlock`] whose source is preserved. Inside a paragraph, text,
 //! tabs and breaks are mapped; other run content becomes a preserved inline
-//! object, wrappers such as hyperlinks are descended into for their text and
-//! preserved, and range markers such as bookmarks are preserved without a
-//! position. A paragraph or block holding preserved content is locked.
+//! object. A simple `w:hyperlink` (`r:id` external target and/or `w:anchor`,
+//! runs of text and tabs) is stored on those runs and is not fetched. Other
+//! wrappers are descended into for their text and preserved. Range markers
+//! such as bookmarks are preserved without a position. A paragraph or block
+//! holding preserved content is locked.
 
 use std::sync::Arc;
 
@@ -149,8 +151,9 @@ fn is_marker(local: &str) -> bool {
 }
 
 /// Inline wrappers whose run content is mapped while the wrapper itself is
-/// preserved: hyperlinks, smart tags, inline custom XML, simple fields,
-/// bidirectional embeddings, and inserted or moved-to revisions.
+/// preserved: smart tags, inline custom XML, simple fields, bidirectional
+/// embeddings, and inserted or moved-to revisions. A simple hyperlink is
+/// mapped instead; one this slice does not understand still uses this path.
 fn is_wrapper(local: &str) -> bool {
     matches!(
         local,
@@ -394,6 +397,42 @@ fn content(
                 paragraph,
                 locked,
             ),
+            "hyperlink" => {
+                if let Some(link) = crate::hyperlink::mapped(importer, part, child) {
+                    let before = paragraph.runs().len();
+                    let was_locked = *locked;
+                    let inner = scope.enter(child);
+                    for run_element in child.elements() {
+                        run(
+                            importer,
+                            part,
+                            run_element,
+                            &inner.enter(run_element),
+                            paragraph,
+                            locked,
+                        );
+                    }
+                    if *locked == was_locked && paragraph.runs().len() > before {
+                        paragraph.stamp_runs_from(before, Arc::new(link));
+                    } else {
+                        // The preflight did not hold. Keep the wrapper bytes and
+                        // do not read the children again.
+                        importer.preserve(part, child, scope, PreservedReason::Unsupported);
+                        *locked = true;
+                    }
+                } else {
+                    importer.preserve(part, child, scope, PreservedReason::Unsupported);
+                    *locked = true;
+                    content(
+                        importer,
+                        part,
+                        child,
+                        &scope.enter(child),
+                        paragraph,
+                        locked,
+                    );
+                }
+            }
             "proofErr" => importer.hint(part, "proofErr"),
             "fldSimple" => {
                 if let Some(kind) = page_field_kind(child.attribute(Some(W), "instr").unwrap_or(""))

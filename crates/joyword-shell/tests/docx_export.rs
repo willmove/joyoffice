@@ -581,8 +581,8 @@ fn edited_output_must_pass_total_byte_and_xml_event_budgets_too() {
 fn external_relationships_and_untouched_breaks_remain_exact_after_text_export() {
     let original = fixture(4);
     let parsed = Package::read(&original, &Budget::default()).unwrap();
-    // The fixture's hyperlink is intentionally locked. Retain its external
-    // relationships but use an independently editable body and a break.
+    // Keep the fixture's external relationships, including the unfetched
+    // file:// template, and replace the body with an editable document.
     let xml = format!(
         r#"<w:document xmlns:w="{W}"><w:body><w:p><w:r><w:t>A</w:t></w:r></w:p><w:p><w:r><w:t>B</w:t><w:br/><w:t>C</w:t></w:r></w:p></w:body></w:document>"#
     );
