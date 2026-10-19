@@ -1,0 +1,3 @@
+ts=1792401754 level=info event=log.opened pid=21617 kind=cap count=262144
+ts=1792401755 level=info event=startup pid=21617 kind=test
+ts=1792401755 level=info event=recovery.restored pid=21617 kind=document count=1

@@ -506,12 +506,18 @@ pub fn rasterize(
     let mut pixmap = Pixmap::new(width, height).ok_or(RasterError::Allocation)?;
     pixmap.fill(tiny_skia::Color::WHITE);
     for rect in &scene.rects {
-        let x = projection.pixels(rect.x);
+        let mut x = projection.pixels(rect.x);
         let y = projection.pixels(rect.y);
-        let w = projection.pixels(rect.width);
+        let mut w = projection.pixels(rect.width);
         let h = projection.pixels(rect.height);
         if ![x, y, w, h].iter().all(|value| value.is_finite()) || w <= 0.0 || h <= 0.0 {
             continue;
+        }
+        if w < 2.0 {
+            let left = x.floor();
+            let right = (x + w).ceil();
+            x = left;
+            w = (right - left).max(1.0);
         }
         if let Some(bounds) = tiny_skia::Rect::from_xywh(x as f32, y as f32, w as f32, h as f32) {
             let mut fill = Paint::default();

@@ -109,6 +109,52 @@ fn subpixel_underlines_remain_visible_between_pixel_centres() {
 }
 
 #[test]
+fn narrow_fractional_rects_keep_their_pixels_without_panicking() {
+    let font = font();
+    for phase in 1..5 {
+        let mut vertical = scene(&font, "");
+        vertical.rects.push(joyword_layout::SceneRect {
+            x: Emu::new(pt(10).raw() + phase * Emu::PER_POINT / 5),
+            y: pt(10),
+            width: Emu::new(pt(1).raw() + Emu::PER_POINT / 5),
+            height: pt(10),
+            red: 0,
+            green: 0,
+            blue: 255,
+        });
+        let page = render(&vertical, &font);
+        assert!(
+            page.rgba()
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .any(|pixel| pixel[0] < 250 && pixel[2] > pixel[0]),
+            "narrow rect vanished at subpixel phase {phase}"
+        );
+
+        let mut horizontal = scene(&font, "");
+        horizontal.rects.push(joyword_layout::SceneRect {
+            x: pt(10),
+            y: Emu::new(pt(40).raw() + phase * Emu::PER_POINT / 5),
+            width: pt(20),
+            height: Emu::new(pt(1).raw() + Emu::PER_POINT / 5),
+            red: 0,
+            green: 0,
+            blue: 255,
+        });
+        let page = render(&horizontal, &font);
+        assert!(
+            page.rgba()
+                .as_chunks::<4>()
+                .0
+                .iter()
+                .any(|pixel| pixel[0] < 250 && pixel[2] > pixel[0]),
+            "narrow horizontal rect vanished at subpixel phase {phase}"
+        );
+    }
+}
+
+#[test]
 fn exact_scene_is_deterministic_opaque_and_not_mutated() {
     let font = font();
     let s = scene(&font, "AA fi");

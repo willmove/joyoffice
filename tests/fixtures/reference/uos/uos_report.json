@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "session": "2026-10-19 UnionTech UOS desktop validation",
+  "host": {
+    "os": "UOS Desktop 20 Professional",
+    "version_id": "20",
+    "codename": "eagle",
+    "kernel": "4.19.0-amd64-desktop #7206 SMP Thu Nov 28 13:45:35 CST 2024",
+    "arch": "x86_64",
+    "cpu": "Hygon C86 7390 32-core Processor, 4 vCPU",
+    "virtualization": "KVM",
+    "memory_bytes": 7826505728,
+    "display": "X11 :0, 2560x1440, 1x",
+    "gl": "VMware llvmpipe (LLVM 7.0, 128 bits), Mesa 19.2.6, software",
+    "vulkan": "no hardware ICD; vk_swiftshader_icd.json from /opt/namiwork used",
+    "glibc": "2.28",
+    "compiler": "cc (Uos 8.3.0.13-deepin1) 8.3.0",
+    "rust": "rustc 1.98.1 (48a229cea 2026-09-01), cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "rust_components": ["clippy", "rustfmt"],
+    "build_env": "g++, make, cmake, libxcb1-dev, libxkbcommon-dev, libxkbcommon-x11-dev installed; UOS libfontconfig1-dev conflicts with the installed freetype 2.9.1.4, so a local /usr/local/lib/pkgconfig/fontconfig.pc and libfontconfig.so symlink were added; RUST_FONTCONFIG_DLOPEN=1 also works",
+    "inputs": {
+      "gui_font": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc face 2",
+      "gui_font_sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+      "pdf_font": "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc face 2",
+      "pdf_font_sha256": "5d9c31a059600193c9d7968a998bde886ccdc77e934006ad243b41794c496a7d"
+    }
+  },
+  "build": {
+    "command": "cargo build -p joyword --locked",
+    "result": "success without environment variables after adding the local fontconfig pkg-config metadata and link symlink; RUST_FONTCONFIG_DLOPEN=1 was used earlier and also succeeds",
+    "log": "build succeeded after installing the system development packages; dev-runtime-shaders not enabled",
+    "window": "JoyWord · Preview opened through the UnionTech UOS X11 session"
+  },
+  "automated": {
+    "cargo_test_default_members_no_fail_fast": {
+      "passed": 681,
+      "failed": 2,
+      "ignored": 0,
+      "failures": [
+        "joyword-shell lib storage::source::tests::identity_change_between_stat_and_open_is_not_a_baseline: same-length rewrite within the 4.19 jiffy timestamp tick keeps mtime/ctime unchanged",
+        "joyword-shell tests/w07_source_conflicts.rs hard_link_alias_writes_are_detected_through_the_stamped_path: same bytes written through a hard-link alias within the timer tick do not change times"
+      ]
+    },
+    "cargo_test_app": {
+      "command": "cargo test -p joyword --locked",
+      "passed": 38,
+      "failed": 0
+    },
+    "render_pdf_tests": "cargo test -p joyword-render -p joyword-pdf: pass, including the 19 raster tests and the new narrow-rect regression",
+    "fmt": "pass",
+    "clippy": "cargo clippy --workspace --all-targets --locked -- -D warnings: pass",
+    "docs": "python3 scripts/check_docs.py: pass (84 requirements, 66 tasks, 14 Markdown files, 36 behavior registry entries)",
+    "gates": "python3 scripts/check_gates.py: pass (180 Rust files)",
+    "scripts": "python3 -m unittest discover -s scripts/tests: 40 passed, 2 failures, 11 errors; the failures/errors are in git end-to-end helpers that require git >= 2.28 (--initial-branch/partial clone) while the host has git 2.20.1"
+  },
+  "gui": {
+    "launch": "pass; Chinese UI and document rendered; fonts loaded from the exact Noto CJK file above",
+    "zoom": "80% -> 90% -> 100%; measured page widths 635/713/793 window pixels at 80/90/100%; Ctrl+0 resets to 100%",
+    "editing": "ASCII insertion and system-clipboard Chinese paste both committed; status bar counts and dirty marker updated",
+    "view_toggles": "formatting marks, hidden text and field codes toggled without a crash after the render fix; paragraph marks and space dots painted",
+    "ime": "Fcitx 4.2.9.32.49 + Sogou Next was active, but typing nihao went into the document as ASCII with no candidate window or preedit; Chinese entry only worked through the system clipboard",
+    "file_dialogs": "Ctrl+O, Ctrl+S and Ctrl+Shift+S produced no native file chooser in this session; xdg-desktop-portal main service was not running. GUI open/save/export was therefore not usable and is not counted as verified",
+    "recovery": "sentinel UOS-RECOVERY-MARK pasted and committed; process killed with kill -9; log had no sentinel; restart with JOYWORD_RECOVERY_DIR restored the document and logged recovery.restored kind=document count=1",
+    "close_prompt": "Ctrl+O on a dirty sample showed the unsaved prompt with cancel/discard only because the sample has no source path"
+  },
+  "pdf": {
+    "generator": "joyword-cli convert tests/fixtures/docx/DOCX-SAMPLE-001.docx --to pdf --font NotoSerifCJK-Regular.ttc:2",
+    "pages": 1,
+    "poppler_readback": "pass; all five lines match the inspect projection",
+    "qpdfview": "pass; rendered the one page and highlighted 远山 through its search box",
+    "wps_pdf": "pass; WPS PDF 12.1.2.1128.AK.preload.sw rendered the page and reported one exact match for 远山",
+    "system_print": "not verified"
+  },
+  "findings": [
+    {
+      "id": "UOS-01",
+      "summary": "Formatting-mark/hidden-text toggle could panic the debug GUI in tiny-skia hairline_aa",
+      "detail": "Toggling a view option during document editing reached joyword_render::rasterize with a 1-2 px wide rect at a fractional x offset. tiny-skia 0.11.4 asserted in scan/hairline_aa.rs:124. The rasterizer now snaps sub-2-pixel rect widths to whole device pixels, preserving at least one pixel and the subpixel-underline behavior. Regression narrow_fractional_rects_keep_their_pixels_without_panicking covers vertical and horizontal cases.",
+      "evidence": ["uos-panic-hidden-text.log", "uos-gui-formatting-marks.png"]
+    },
+    {
+      "id": "UOS-02",
+      "summary": "Fcitx/Sogou input does not reach the GPUI X11 window",
+      "detail": "The desktop IME was active and Fcitx reported state 2, but nihao was inserted literally and no candidate window appeared. This matches the earlier Kylin result and leaves Chinese typing through a system IME unverified on Xinchuang desktop systems.",
+      "evidence": ["uos-gui-fcitx-passthrough.png", "uos-gui-chinese-paste.png"]
+    },
+    {
+      "id": "UOS-03",
+      "summary": "X11 file chooser is absent without the portal service",
+      "detail": "Ctrl+O produced no chooser and Ctrl+S/Ctrl+Shift+S produced no save dialog. The app remained usable, but GUI open/save/export and the hundred-page GUI acceptance remain blocked on this host.",
+      "evidence": []
+    },
+    {
+      "id": "UOS-04",
+      "summary": "Kernel 4.19 jiffy timestamps make two identity tests flaky",
+      "detail": "A same-length rewrite and a hard-link alias write within one timer tick are not distinguished by mtime/ctime. The guard is documented as a known limitation; this is not counted as a passing conflict check.",
+      "evidence": []
+    }
+  ],
+  "evidence": {
+    "gui_launch": "uos-gui-launch.png",
+    "view_tab": "uos-gui-view-tab.png",
+    "formatting_marks": "uos-gui-formatting-marks.png",
+    "chinese_paste": "uos-gui-chinese-paste.png",
+    "fcitx_passthrough": "uos-gui-fcitx-passthrough.png",
+    "recovery_restored": "uos-gui-recovery-restored.png",
+    "qpdfview_search": "uos-qpdfview-search.png",
+    "wps_pdf_search": "uos-wpspdf-search.png",
+    "panic_log": "uos-panic-hidden-text.log",
+    "recovery_log": "uos-recovery-restored.log",
+    "pdf": "joyword-uos-e2e.pdf",
+    "poppler_text": "poppler-readback.txt"
+  }
+}

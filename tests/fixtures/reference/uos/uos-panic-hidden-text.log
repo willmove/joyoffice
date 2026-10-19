@@ -1,0 +1,104 @@
+ts=1792400191 level=info event=log.opened pid=28144 kind=cap count=262144
+ts=1792400191 level=info event=startup pid=28144 kind=test
+ts=1792400515 level=error event=panic pid=28144 kind=location count=124
+ts=1792400515 level=error event=panic.location pid=28144 kind=source count=21 detail=file=/home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/scan/hairline_aa.rs column=21
+ts=1792400515 level=error event=panic.message pid=28144 detail=assertion failed: false
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=1 detail=0: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=2 detail=at ./crates/joyword-shell/src/diag.rs:461:25
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=3 detail=1: <redacted> <redacted> <redacted> <redacted> Output = <redacted> + core::marker::Send + <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=4 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=5 detail=2: std::panicking::panic_with_hook
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=6 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=7 detail=3: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=8 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=9 detail=4: <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=10 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=11 detail=5: __rustc::rust_begin_unwind
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=12 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=13 detail=6: core::panicking::panic_fmt
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=14 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=15 detail=7: core::panicking::panic
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=16 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=17 detail=8: tiny_skia::scan::hairline_aa::fill_dot8
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=18 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/scan/hairline_aa.rs:124:21
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=19 detail=9: tiny_skia::scan::hairline_aa::fill_fixed_rect
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=20 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/scan/hairline_aa.rs:58:5
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=21 detail=10: tiny_skia::scan::hairline_aa::fill_rect
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=22 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/scan/hairline_aa.rs:54:5
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=23 detail=11: tiny_skia::scan::fill_rect_aa
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=24 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/scan/mod.rs:38:5
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=25 detail=12: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=26 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/painter.rs:203:17
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=27 detail=13: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=28 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tiny-skia-0.11.4/src/painter.rs:114:23
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=29 detail=14: joyword_render::rasterize
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=30 detail=at ./crates/joyword-render/src/lib.rs:524:20
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=31 detail=15: joyword::document_canvas::raster_page
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=32 detail=at ./apps/joyword/src/document_canvas.rs:990:18
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=33 detail=16: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=34 detail=at ./apps/joyword/src/main.rs:643:17
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=35 detail=17: <redacted> <redacted> = <redacted> <redacted> + <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=36 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=37 detail=18: <redacted> <redacted> = <redacted> <redacted> + <redacted> <redacted> <redacted> <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=38 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/raw.rs:557:17
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=39 detail=19: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=40 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/runnable.rs:781:18
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=41 detail=20: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=42 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gpui-pre-linux-0.3.9/src/linux/dispatcher.rs:46:38
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=43 detail=21: <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=44 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=45 detail=22: <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=46 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=47 detail=23: <redacted> <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=48 detail=at <redacted>
+ts=1792400515 level=error event=panic pid=28144 kind=location count=452
+ts=1792400515 level=error event=panic.location pid=28144 kind=source count=45 detail=file=/home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/task.rs column=45
+ts=1792400515 level=error event=panic.message pid=28144 detail=Task polled after completion
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=1 detail=0: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=2 detail=at ./crates/joyword-shell/src/diag.rs:461:25
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=3 detail=1: <redacted> <redacted> <redacted> <redacted> Output = <redacted> + core::marker::Send + <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=4 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=5 detail=2: std::panicking::panic_with_hook
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=6 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=7 detail=3: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=8 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=9 detail=4: <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=10 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=11 detail=5: __rustc::rust_begin_unwind
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=12 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=13 detail=6: core::panicking::panic_fmt
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=14 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=15 detail=7: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=16 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=17 detail=8: core::option::expect_failed
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=18 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=19 detail=9: <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=20 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=21 detail=10: <redacted> <redacted> <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=22 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/task.rs:452:45
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=23 detail=11: <redacted> <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=24 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gpui-pre-scheduler-0.3.9/src/executor.rs:719:67
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=25 detail=12: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=26 detail=at ./apps/joyword/src/main.rs:655:35
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=27 detail=13: <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=28 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gpui-pre-0.3.9/src/app/context.rs:237:52
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=29 detail=14: <redacted> <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=30 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gpui-pre-0.3.9/src/app.rs:2305:44
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=31 detail=15: <redacted> <redacted> = <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=32 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=33 detail=16: <redacted> <redacted> = <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=34 detail=at <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=35 detail=17: <redacted> <redacted> = <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=36 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gpui-pre-scheduler-0.3.9/src/executor.rs:804:59
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=37 detail=18: <redacted> <redacted> = <redacted> <redacted> <redacted> <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=38 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/raw.rs:557:17
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=39 detail=19: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=40 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/runnable.rs:781:18
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=41 detail=20: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=42 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gpui-pre-linux-0.3.9/src/linux/platform.rs:194:38
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=43 detail=21: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=44 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/calloop-0.14.5/src/loop_logic.rs:164:17
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=45 detail=22: <redacted> as <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=46 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/calloop-0.14.5/src/sources/mod.rs:599:13
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=47 detail=23: <redacted>
+ts=1792400515 level=error event=panic.frame pid=28144 kind=trace count=48 detail=at /home/Admin/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/calloop-0.14.5/src/loop_logic.rs:615:31
