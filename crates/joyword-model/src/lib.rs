@@ -25,13 +25,13 @@ mod validate;
 pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
 pub use block::{
     Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellMargins, InlineKind,
-    InlineObject, OpaqueBlock, PageFieldKind, Paragraph, Preserved, Removed, Row, Run, Sdt,
-    SdtLock, SdtProps, Segment, Shading, Table, TableWidth, VerticalMerge,
+    InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed, Row, Run,
+    Sdt, SdtLock, SdtProps, Segment, Shading, Table, TableWidth, VerticalMerge,
 };
 pub use document::{
     DEFAULT_COMPATIBILITY_MODE, Document, DocumentSettings, DocumentSnapshot, DocumentVersion,
-    HeaderFooterKind, NEW_DOCUMENT_COMPATIBILITY_MODE, Orientation, PageSetup, Section, Story,
-    StoryKind,
+    EqualColumns, HeaderFooterKind, NEW_DOCUMENT_COMPATIBILITY_MODE, Orientation, PageNumbering,
+    PageSetup, Section, SectionBreak, Story, StoryKind,
 };
 pub use dump::{DumpOptions, SemanticDifference};
 pub use id::{AnnotationId, IdAllocator, NodeId, PreservedId, ResourceId, SourceRef, StoryId};

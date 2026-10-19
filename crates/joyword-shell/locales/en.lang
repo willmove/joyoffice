@@ -46,6 +46,7 @@ command.list.apply = Apply List
 command.list.level = List Level
 command.list.remove = Remove List
 command.page.break = Page Break
+command.page.number = Page Number
 command.page.size = Page Size
 command.page.margins = Margins
 command.page.orientation = Orientation

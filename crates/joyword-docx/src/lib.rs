@@ -10,8 +10,10 @@
 //!   character style references, and the paragraph mark's properties;
 //! - style definitions and document defaults; built-in styles are found by
 //!   canonical `w:name` through the model, never by `w:styleId`;
-//! - page size, margins, title page, and default/first/even header and footer
-//!   stories of each section (`PAGE` / `NUMPAGES` in those stories);
+//! - page size, margins, title page, section break, page-number format and
+//!   start, equal columns, and default/first/even header and footer stories
+//!   (`PAGE` / `NUMPAGES` / `SECTIONPAGES` simple and complex fields in the
+//!   body and those stories);
 //! - settings: `compatibilityMode` as written (absent stays `None`, which the
 //!   model interprets as 12; the new-document value 15 is never imposed),
 //!   revision tracking and document protection.
