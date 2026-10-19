@@ -178,6 +178,7 @@ ribbon.margins.normal = Normal Margins
 ribbon.margins.narrow = Narrow Margins
 ribbon.orientation.portrait = Portrait
 ribbon.orientation.landscape = Landscape
+ribbon.list.bullet = Bullet
 ribbon.list.level_1 = Level 1
 ribbon.list.level_2 = Level 2
 status.page = Page {page} of {pages}

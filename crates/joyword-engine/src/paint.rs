@@ -315,7 +315,7 @@ fn run_exportable(props: &RunProps) -> Result<(), PaintError> {
     if props.hidden.is_some()
         || props.preserved.is_some()
         || props.languages != Languages::default()
-        || matches!(props.color, Some(Color::Theme(_)))
+        || matches!(props.color, Some(Color::Theme { .. }))
     {
         return Err(PaintError::Unexportable(
             "character formatting is outside the exportable subset",

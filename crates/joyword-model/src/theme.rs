@@ -113,7 +113,8 @@ impl ThemeFonts {
 }
 
 /// Font scheme plus sRGB entries of the colour scheme. Tint and shade are
-/// not stored: a colour that needs them stays unresolved.
+/// applied by [`ThemeScheme::concretize_color`] using the linear sRGB
+/// formulas in ECMA-376 §17.3.2.6.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ThemeScheme {
     pub fonts: ThemeFonts,
@@ -147,15 +148,75 @@ impl ThemeScheme {
     }
 
     pub fn concretize_color(&self, color: &mut Option<Color>) -> Option<ThemeColorSlot> {
-        let Some(Color::Theme(slot)) = color else {
+        let Some(Color::Theme { slot, tint, shade }) = color.as_ref().copied() else {
             return None;
         };
-        match self.colors.get(slot) {
-            Some(&(red, green, blue)) => {
+        match self.colors.get(&slot).copied() {
+            Some((red, green, blue)) => {
+                let (red, green, blue) = apply_tint_shade(red, green, blue, tint, shade);
                 *color = Some(Color::Rgb(red, green, blue));
                 None
             }
-            None => Some(*slot),
+            None => Some(slot),
         }
+    }
+}
+
+/// ECMA-376 §17.3.2.6 linear sRGB modifiers.
+///
+/// The stored byte is `percent * 255 / 100` (the examples use `66` for a
+/// 40% shade and `99` for a 60% tint). Shade is `C' = C * byte / 255`.
+/// Tint is `C' = C * byte / 255 + (255 - byte)`. Each product rounds half
+/// up. The specification does not say what happens when both attributes
+/// are present; this applies shade first, then tint.
+pub fn apply_tint_shade(
+    red: u8,
+    green: u8,
+    blue: u8,
+    tint: Option<u8>,
+    shade: Option<u8>,
+) -> (u8, u8, u8) {
+    let mut channels = [red, green, blue];
+    if let Some(factor) = shade {
+        for channel in &mut channels {
+            *channel = scale(*channel, factor);
+        }
+    }
+    if let Some(factor) = tint {
+        for channel in &mut channels {
+            let scaled = u16::from(scale(*channel, factor));
+            *channel = u8::try_from(scaled + u16::from(255 - factor)).unwrap_or(255);
+        }
+    }
+    (channels[0], channels[1], channels[2])
+}
+
+fn scale(channel: u8, factor: u8) -> u8 {
+    let product = u16::from(channel) * u16::from(factor) + 127;
+    (product / 255) as u8
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tint_and_shade_follow_the_linear_examples() {
+        // 60% tint is byte 0x99. C = 80 becomes 150.
+        assert_eq!(
+            apply_tint_shade(80, 80, 80, Some(0x99), None),
+            (150, 150, 150)
+        );
+        // 50% shade. Byte 128 and the rounded 127 both take 150 to 75.
+        assert_eq!(apply_tint_shade(150, 0, 0, None, Some(128)), (75, 0, 0));
+        assert_eq!(apply_tint_shade(150, 0, 0, None, Some(127)), (75, 0, 0));
+        // 40% shade is byte 0x66. 255 * 102 / 255 = 102.
+        assert_eq!(apply_tint_shade(255, 0, 0, None, Some(0x66)), (102, 0, 0));
+        // Both attributes: shade, then tint. Not stated by the specification.
+        // 80 shaded by 128 is 40; tint 0x99 then lifts 40 to 126 and 0 to 102.
+        assert_eq!(
+            apply_tint_shade(80, 0, 0, Some(0x99), Some(128)),
+            (126, 102, 102)
+        );
     }
 }

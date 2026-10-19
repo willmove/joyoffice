@@ -434,15 +434,18 @@ fn color(element: &Element, findings: &mut Findings) -> Option<Color> {
     let tinted = element.attribute(Some(W), "themeTint").is_some()
         || element.attribute(Some(W), "themeShade").is_some();
     if let Some(name) = theme_name {
-        // Tint and shade change the scheme colour (ECMA-376 §17.15.2.5 is the
-        // settings clause; the colour modifiers are §17.3.2.6). This slice
-        // does not resolve them, so the element stays preserved.
-        if tinted {
-            findings.complete = false;
-        }
         return match ThemeColorSlot::from_word_name(name) {
-            Some(slot) if !tinted => Some(Color::Theme(slot)),
-            Some(_) => cached_rgb(element, findings),
+            Some(slot) => {
+                let tint = theme_byte(element, "themeTint", findings);
+                let shade = theme_byte(element, "themeShade", findings);
+                if tinted && element.attribute(Some(W), "themeTint").is_some() && tint.is_none() {
+                    findings.complete = false;
+                }
+                if tinted && element.attribute(Some(W), "themeShade").is_some() && shade.is_none() {
+                    findings.complete = false;
+                }
+                Some(Color::Theme { slot, tint, shade })
+            }
             None => {
                 findings.invalid(element, "w:themeColor", name);
                 None
@@ -455,6 +458,17 @@ fn color(element: &Element, findings: &mut Findings) -> Option<Color> {
         findings.complete = false;
     }
     cached_rgb(element, findings)
+}
+
+fn theme_byte(element: &Element, name: &str, findings: &mut Findings) -> Option<u8> {
+    let value = element.attribute(Some(W), name)?;
+    match u8::from_str_radix(value, 16) {
+        Ok(byte) if value.len() == 2 => Some(byte),
+        _ => {
+            findings.invalid(element, name, value);
+            None
+        }
+    }
 }
 
 fn cached_rgb(element: &Element, findings: &mut Findings) -> Option<Color> {

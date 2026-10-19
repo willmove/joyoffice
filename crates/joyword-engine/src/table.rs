@@ -127,6 +127,7 @@ pub(crate) fn insert_table(
         rows: table_rows,
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,

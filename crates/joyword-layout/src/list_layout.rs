@@ -8,8 +8,11 @@
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    NumberLabel, NumberSuffix, ParaProps, TabAlign, TabLeader, indent_edges, tab_positions,
+    Justification, Measure, NodeId, NumberLabel, NumberSuffix, ParaProps, TabAlign, TabLeader,
+    indent_edges, tab_positions,
 };
+
+use crate::cjk::{self, CjkIssue, ScriptRun};
 
 use crate::line::{ClusterRange, LayoutLine, LineDiagnostic, ParagraphLines, SourceRange};
 use crate::shape::{FeatureSet, ShapedGlyph, ShapedRun, shape};
@@ -40,6 +43,8 @@ pub(crate) fn layout_marked<F>(
     font: &LoadedFont,
     size: Emu,
     features: FeatureSet,
+    justification: Option<Justification>,
+    node: Option<NodeId>,
     mut fit_width: F,
 ) -> Result<ParagraphLines, LayoutError>
 where
@@ -62,9 +67,14 @@ where
     let label_x = left - edges.hanging;
     let mut label_end = label_x;
     let mut prefix: Option<ShapedRun> = None;
+    let label_size = match label.and_then(|item| item.size) {
+        None => size,
+        Some(measure) => absolute_label_size(measure)?,
+    };
+    let label_bold = label.is_some_and(|item| item.bold);
     if let Some(label) = label {
         if !label.text.is_empty() {
-            let shaped = shape(font, &label.text, size, features);
+            let shaped = shape(font, &label.text, label_size, features);
             label_end = label_x.saturating_add(shaped.width.raw());
             prefix = Some(shaped);
         }
@@ -73,7 +83,7 @@ where
                 .map(|stop| stop.position)
                 .unwrap_or(label_end),
             NumberSuffix::Space => {
-                let space = shape(font, " ", size, features);
+                let space = shape(font, " ", label_size, features);
                 let end = label_end.saturating_add(space.width.raw());
                 if let Some(run) = prefix.as_mut() {
                     append_run(run, &space, run.width.raw());
@@ -109,6 +119,14 @@ where
         // gap from the end of the label glyphs to the body.
         let glyph_end = label_x.saturating_add(run.width.raw());
         line.add_decoration(run, label_x);
+        line.mark_label(
+            label_bold,
+            if label_size == size {
+                Emu::new(0)
+            } else {
+                label_size
+            },
+        );
         if body_start > glyph_end
             && let Some(leaders) = leader_run(font, size, features, leader, body_start - glyph_end)?
         {
@@ -223,6 +241,16 @@ where
         at_break = false;
     }
     lines.push(line.finish(font, size));
+    align_lines(
+        &mut lines,
+        justification,
+        edges.start,
+        right_edge,
+        content_width.raw(),
+        text,
+        props,
+        node,
+    )?;
     Ok(ParagraphLines {
         lines,
         diagnostics,
@@ -444,8 +472,11 @@ struct LineBuilder {
     source_end: (usize, usize),
     body_edge: i64,
     font_key: Option<crate::FontKey>,
-    size: Emu,
     tab_gaps: Vec<(i64, i64)>,
+    label_glyphs: usize,
+    label_text_bytes: usize,
+    label_size: Emu,
+    label_bold: bool,
 }
 
 impl LineBuilder {
@@ -458,9 +489,19 @@ impl LineBuilder {
             source_end: (0, 0),
             body_edge,
             font_key: None,
-            size: Emu::new(0),
             tab_gaps: Vec::new(),
+            label_glyphs: 0,
+            label_text_bytes: 0,
+            label_size: Emu::new(0),
+            label_bold: false,
         }
+    }
+
+    fn mark_label(&mut self, bold: bool, size: Emu) {
+        self.label_glyphs = self.glyphs.len();
+        self.label_text_bytes = self.text.len();
+        self.label_bold = bold;
+        self.label_size = size;
     }
 
     fn cover(&mut self, byte: usize, scalar: usize, end_byte: usize, end_scalar: usize) {
@@ -474,7 +515,6 @@ impl LineBuilder {
         let text_base = self.text.len();
         self.text.push_str(&run.text);
         self.font_key = Some(run.font);
-        self.size = run.size;
         for glyph in &run.glyphs {
             let mut glyph = *glyph;
             glyph.cluster += text_base;
@@ -499,7 +539,7 @@ impl LineBuilder {
             },
             run: ShapedRun {
                 font: self.font_key.unwrap_or_else(|| font.key()),
-                size: if self.size.raw() > 0 { self.size } else { size },
+                size,
                 text: self.text,
                 glyphs: self.glyphs,
                 width: Emu::new(width),
@@ -516,8 +556,182 @@ impl LineBuilder {
             hyperlinks: Vec::new(),
             box_height: Emu::new(0),
             tab_gaps: self.tab_gaps,
+            label_glyphs: self.label_glyphs,
+            label_text_bytes: self.label_text_bytes,
+            label_size: self.label_size,
+            label_bold: self.label_bold,
         }
     }
+}
+
+fn absolute_label_size(measure: Measure) -> Result<Emu, LayoutError> {
+    match measure.absolute().filter(|length| length.raw() > 0) {
+        Some(length) => Ok(length),
+        None => Err(unsupported("relative font size")),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn align_lines(
+    lines: &mut [LayoutLine],
+    justification: Option<Justification>,
+    area_left: i64,
+    area_right: i64,
+    frame_width: i64,
+    text: &str,
+    props: &ParaProps,
+    node: Option<NodeId>,
+) -> Result<(), LayoutError> {
+    let Some(justification) = justification else {
+        return Ok(());
+    };
+    if !matches!(
+        justification,
+        Justification::Center | Justification::End | Justification::Both
+    ) {
+        return Ok(());
+    }
+    let tabs = text.as_bytes().contains(&b'\t')
+        || props
+            .tabs
+            .as_ref()
+            .is_some_and(|stops| stops.iter().any(|stop| stop.align != TabAlign::Clear));
+    let last = lines.len().saturating_sub(1);
+    for (index, line) in lines.iter_mut().enumerate() {
+        if !tabs {
+            match justification {
+                Justification::Center | Justification::End => {
+                    shift_body(line, area_left, area_right, justification);
+                }
+                Justification::Both => justify_body(line, area_right, index == last, node)?,
+                _ => {}
+            }
+        }
+        line.run.width = Emu::new(frame_width.max(0));
+    }
+    Ok(())
+}
+
+fn body_glyphs(line: &LayoutLine) -> Vec<usize> {
+    let mut indexes = Vec::new();
+    for cluster in &line.clusters {
+        indexes.extend(cluster.glyphs.clone());
+    }
+    indexes.sort_unstable();
+    indexes.dedup();
+    indexes.retain(|index| *index < line.run.glyphs.len());
+    indexes
+}
+
+fn shift_body(
+    line: &mut LayoutLine,
+    area_left: i64,
+    area_right: i64,
+    justification: Justification,
+) {
+    let indexes = body_glyphs(line);
+    if indexes.is_empty() {
+        return;
+    }
+    let left = indexes
+        .iter()
+        .map(|index| line.run.glyphs[*index].x.raw())
+        .min()
+        .unwrap_or(0);
+    let right = indexes
+        .iter()
+        .map(|index| {
+            let glyph = &line.run.glyphs[*index];
+            glyph.x.raw().saturating_add(glyph.advance.raw())
+        })
+        .max()
+        .unwrap_or(left);
+    let width = (right - left).max(0);
+    let slack = (area_right - area_left - width).max(0);
+    let target = match justification {
+        Justification::End => area_left + slack,
+        _ => area_left + slack / 2,
+    };
+    let shift = target - left;
+    if shift == 0 {
+        return;
+    }
+    for index in indexes {
+        let glyph = &mut line.run.glyphs[index];
+        glyph.x = Emu::new(glyph.x.raw().saturating_add(shift));
+    }
+}
+
+fn justify_body(
+    line: &mut LayoutLine,
+    area_right: i64,
+    last: bool,
+    node: Option<NodeId>,
+) -> Result<(), LayoutError> {
+    let indexes = body_glyphs(line);
+    if indexes.is_empty() {
+        return Ok(());
+    }
+    let mut han = false;
+    for index in &indexes {
+        let cluster = line.run.glyphs[*index].cluster;
+        let Some(ch) = line.run.text[cluster..].chars().next() else {
+            return Err(unsupported_node(node, "inter-character justification"));
+        };
+        if cjk::script_run(ch) == ScriptRun::Han {
+            han = true;
+        } else if !r3_mark(ch) {
+            return Err(unsupported_node(node, "inter-character justification"));
+        }
+    }
+    if !han {
+        return Err(unsupported_node(node, "inter-character justification"));
+    }
+    let origin = line.run.glyphs[indexes[0]].x.raw();
+    let width = Emu::new((area_right - origin).max(0));
+    let advances: Vec<Emu> = indexes
+        .iter()
+        .map(|index| line.run.glyphs[*index].advance)
+        .collect();
+    let gaps = match cjk::justify_intercharacter(&advances, width, last) {
+        Ok(justified) => justified.gaps,
+        Err(CjkIssue::UnverifiedJustify | CjkIssue::DoesNotFit) => return Ok(()),
+        Err(CjkIssue::BudgetExceeded) => {
+            return Err(unsupported_node(node, "justification budget"));
+        }
+        Err(_) => return Err(LayoutError::GeometryOverflow),
+    };
+    let mut pen = origin;
+    let count = indexes.len();
+    for (glyph_index, index) in indexes.into_iter().enumerate() {
+        let gap = if glyph_index + 1 == count {
+            0
+        } else {
+            gaps[glyph_index].raw()
+        };
+        let advance = line.run.glyphs[index]
+            .advance
+            .raw()
+            .checked_add(gap)
+            .ok_or(LayoutError::GeometryOverflow)?;
+        line.run.glyphs[index].x = Emu::new(pen);
+        line.run.glyphs[index].advance = Emu::new(advance);
+        pen = pen
+            .checked_add(advance)
+            .ok_or(LayoutError::GeometryOverflow)?;
+    }
+    Ok(())
+}
+
+fn r3_mark(ch: char) -> bool {
+    !ch.is_ascii()
+        && (cjk::prohibits_line_start(ch)
+            || cjk::prohibits_line_end(ch)
+            || matches!(ch, '\u{2018}' | '\u{2019}' | '\u{201C}' | '\u{201D}'))
+}
+
+fn unsupported_node(node: Option<NodeId>, feature: &'static str) -> LayoutError {
+    LayoutError::Unsupported { node, feature }
 }
 
 fn unsupported(feature: &'static str) -> LayoutError {

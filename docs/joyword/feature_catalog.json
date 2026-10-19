@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 40,
-  "note": "T205 slice 3. The floor is 40 because T203 added the insert-picture button. Single, double and dotted underlines and sRGB text colour are painted on the shared page scene. The three view switches are enabled and participate in the layout snapshot key. Formatting marks are a non-document overlay. Page fields show PAGE, NUMPAGES or SECTIONPAGES when field codes are on. Word count is checked against the documented EDIT-009 rule, not a Word dialog. Evidence stays unit. Other underline styles, theme colour, hidden paragraph-mark merging and cross-paragraph fields stay refused.",
+  "floor": 41,
+  "note": "T205 slice 3. The floor is 41 because T200 added the list-bullet button on top of the T203 insert-picture button. Single, double and dotted underlines and sRGB text colour are painted on the shared page scene. The three view switches are enabled and participate in the layout snapshot key. Formatting marks are a non-document overlay. Page fields show PAGE, NUMPAGES or SECTIONPAGES when field codes are on. Word count is checked against the documented EDIT-009 rule, not a Word dialog. Evidence stays unit. Other underline styles, theme colour as text fill, hidden paragraph-mark merging and cross-paragraph fields stay refused.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},
@@ -14,6 +14,7 @@
     {"id": "start.align", "kind": "command", "tab": "start", "command": "edit.align_center", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "align-center"},
     {"id": "start.paragraph", "kind": "command", "tab": "start", "command": "format.paragraph", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paragraph"},
     {"id": "start.styles", "kind": "command", "tab": "start", "command": "style.list", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "styles"},
+    {"id": "start.list_bullet", "kind": "command", "tab": "start", "command": "list.apply", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-bullet"},
     {"id": "start.list_remove", "kind": "command", "tab": "start", "command": "list.remove", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-remove"},
     {"id": "start.list_level_1", "kind": "command", "tab": "start", "command": "list.level", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-level"},
     {"id": "start.list_level_2", "kind": "command", "tab": "start", "command": "list.level", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-level"},
@@ -54,6 +55,7 @@
     {"id": "italic", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "align-center", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "styles", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "list-bullet", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "list-remove", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "list-level", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "find", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},

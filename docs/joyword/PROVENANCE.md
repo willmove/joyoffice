@@ -112,13 +112,20 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 ### 样式继承与主题解析（T200 样式基础）
 
 - STYLE-002；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.7.2（样式层级：文档默认、`basedOn`、直接格式）、§17.7.3（toggle：未设置继承、显式关闭、显式打开翻转）、§17.7.4.6（`w:link` 配对段落样式与字符样式，解析时不作为第二层属性），以及 §14.2.7、§20.1.4（DrawingML `a:fontScheme`／`a:clrScheme`）。只读公开规范条款，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的样式实现。
-- 独立实现把 latin／ea／cs 映射到 ascii+hAnsi、eastAsia、bidi，并把已知的 `w:themeColor` 长名解析为方案中的 sRGB。themeTint／themeShade、表格条件格式和编号样式不在本切片解析。没有新增外部 crate。
+- 独立实现把 latin／ea／cs 映射到 ascii+hAnsi、eastAsia、bidi，并把已知的 `w:themeColor` 长名解析为方案中的 sRGB。themeTint／themeShade 与表格条件格式当时不在本切片解析，见第四切片。编号样式仍不解析。没有新增外部 crate。
 
 ### 多级编号与制表位（T200 编号切片）
 
 - STYLE-003；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.9（`abstractNum`、`num`、`lvl`、`lvlOverride`、`startOverride`、`lvlRestart`、`lvlText`、`suff`）、§17.18.59（`ST_NumberFormat`）、§17.3.1.37–38（`tabs`／`tab`）与 §17.15.1.25（`defaultTabStop`）。`ST_NumberFormat` 的公开枚举名对照 [docx4j 转载的 ECMA-376 条款页](https://webapp.docx4java.org/OnlineDemo/ecma376/WordML/ST_NumberFormat.html)。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的编号实现。
-- 中文计数与简体大写按条款示例的位值写法独立实现（十百千万；零；10–19 写作十／拾而不是一十）。`chineseLegalSimplified` 用零壹贰叁肆伍陆柒捌玖与拾佰仟万。规范没有规定上限；超过 99999 记为不能绘制，不猜测。甲乙丙丁戊己庚辛壬癸只用于 1..=10。字母只用于 1..=26，罗马数字只用于 1..=3999。MS-OI29500 记载 Word 对零和“万”使用不同码位；本切片不照搬该偏差。
-- 不支持的 `numFmt` 保留原 token 并给出诊断，不用 `lvlText` 里的静态符号代替。`numbering.xml` 不从模型回写。没有新增外部 crate。
+- 中文计数与简体大写按条款示例的位值写法独立实现（十百千万；零；10–19 写作十／拾而不是一十）。`chineseLegalSimplified` 用零壹贰叁肆伍陆柒捌玖与拾佰仟万。规范没有规定上限；超过 99999 记为不能绘制，不猜测。甲乙丙丁戊己庚辛壬癸只用于 1..=10。字母超过 26 的重复写法见第四切片。罗马数字只用于 1..=3999。MS-OI29500 记载 Word 对零和“万”使用不同码位；本切片不照搬该偏差。
+- bullet 以外不支持的 `numFmt` 保留原 token 并给出诊断。`numbering.xml` 不从模型回写。没有新增外部 crate。
+
+### 项目符号、tint／shade 与表格样式（T200 第四切片）
+
+- STYLE-002／STYLE-003／STYLE-004；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.9（`lvlText`、`numFmt` bullet、`lvlPicBulletId`）、§17.18.59（`ST_NumberFormat` 示例：字母 27 为 aa、54 为 bbb；规范示例没有给出重复上限）、§17.3.2.6（`themeTint`／`themeShade` 的线性 sRGB：shade 为 `C * byte / 255`，tint 为 `C * byte / 255 + (255 - byte)`）、§17.7.2（`basedOn`）、§17.7.6（`tblStylePr` 的 firstRow、lastRow、band1Horz、band2Horz）与 §17.4.56（`tblLook` 的过渡位：0x0020 首行、0x0040 末行、0x0080 首列、0x0100 末列、0x0200 关闭横向条纹、0x0400 关闭纵向条纹）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的实现。MS-OI29500 记载的 Word HSL tint 偏差不采用。
+- Symbol 的私用区字节对照 Unicode 联盟公布的 Adobe Symbol 编码表（2011-07-12，每个字节取第一个非私用区标量）：<https://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt>。只使用该表的码位对照，不把该文件纳入仓库。仅有企业用区、没有其他 Unicode 标量的字节保持不映射。
+- Wingdings 的私用区字节对照 Michel Suignard，*Wingdings and Webdings symbols*（Unicode L2/11-344，WG2 N4363）第 7 节的源索引与 Unicode 对照。索引 `w-1xxx` 的字节是 `xxx - 1000`（1033..=1254，跳过 1127）。不收录该文件，也不映射 Wingdings 2、Wingdings 3 和 Webdings。
+- 规范没有说明 tint 与 shade 同时出现时的顺序；本切片先 shade 再 tint，并写成假定。`tblLook` 元素省略时的应用默认（首行、末行和横向条纹开，纵向条纹关，两列关）也是假定，不是 Word 观察。字母重复上限 64 与罗马数字上限 3999 是实现界限，不是规范条文。项目符号预设的 720／360 twip 是 JoyWord 预设，不是 Word 测量。表格样式的粗体按指定值替换，不按 §17.7.3 翻转。没有新增外部 crate。
 
 ### 页面、分页符与主页眉页脚（T202 第一切片）
 

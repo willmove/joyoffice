@@ -321,6 +321,68 @@ fn list_apply_level_and_remove_go_through_the_command_registry() {
     );
 }
 
+fn instance_ids(office: &Office) -> Vec<u32> {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .numbering()
+        .instances()
+        .iter()
+        .map(|item| item.id)
+        .collect()
+}
+
+#[test]
+fn list_apply_bullet_is_one_undo_and_the_ribbon_sends_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("plain.docx");
+    fs::write(&source, fixture(1)).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    let before = instance_ids(&office);
+    assert!(office.invoke(LIST_APPLY, &[]).is_err());
+    office
+        .invoke(LIST_APPLY, &[("bullet", ArgValue::Text("1".into()))])
+        .unwrap();
+    assert_eq!(
+        paragraph_numbering(&office, 0),
+        Some(NumberingRef {
+            num_id: 1,
+            level: 0
+        })
+    );
+    assert_eq!(instance_ids(&office), vec![1]);
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(paragraph_numbering(&office, 0), None);
+    assert_eq!(instance_ids(&office), before);
+    office
+        .invoke(LIST_APPLY, &[("bullet", ArgValue::Text("1".into()))])
+        .unwrap();
+    office
+        .invoke(
+            LIST_APPLY,
+            &[
+                ("num", ArgValue::Text("9".into())),
+                ("bullet", ArgValue::Text("1".into())),
+            ],
+        )
+        .unwrap();
+    assert_eq!(instance_ids(&office), vec![1]);
+    assert_eq!(
+        joyword_shell::chrome::RIBBON
+            .iter()
+            .find(|control| control.id == "start.list_bullet")
+            .map(|control| control.command),
+        Some(LIST_APPLY)
+    );
+}
+
 fn section_page(office: &Office) -> joyword_model::PageSetup {
     office
         .active()

@@ -545,6 +545,37 @@ pub enum VerticalMerge {
     Continue,
 }
 
+/// `w:tblLook` flags (ECMA-376 §17.4.56). First and last column and vertical
+/// banding are stored so export can write them back; layout applies the row
+/// flags only.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TableLook {
+    pub first_row: bool,
+    pub last_row: bool,
+    pub first_column: bool,
+    pub last_column: bool,
+    pub no_h_band: bool,
+    pub no_v_band: bool,
+}
+
+impl TableLook {
+    /// Used when the `w:tblLook` element itself is absent.
+    ///
+    /// This is an application default, not a measurement of Word: the first
+    /// and last rows are on, horizontal banding is on, vertical banding is
+    /// off, and both column looks are off.
+    pub fn application_default() -> Self {
+        Self {
+            first_row: true,
+            last_row: true,
+            first_column: false,
+            last_column: false,
+            no_h_band: false,
+            no_v_band: true,
+        }
+    }
+}
+
 /// `w:tblW`. Absent markup stays `None`, distinct from an explicit `auto`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TableWidth {
@@ -630,6 +661,8 @@ pub struct Table {
     pub rows: Vec<Row>,
     pub style: Option<StyleId>,
     pub width: Option<TableWidth>,
+    /// `w:tblLook`. `None` means the element was omitted.
+    pub look: Option<TableLook>,
     /// `w:tblCellMar`. `None` is an omitted element, not four explicit zeros.
     pub cell_margin: Option<CellMargins>,
     pub preserved: Option<PreservedId>,
@@ -643,6 +676,7 @@ impl Table {
         self.grid == other.grid
             && self.style == other.style
             && self.width == other.width
+            && self.look == other.look
             && self.cell_margin == other.cell_margin
             && self.preserved == other.preserved
             && self.source == other.source

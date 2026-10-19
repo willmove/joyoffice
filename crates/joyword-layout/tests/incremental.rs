@@ -567,3 +567,69 @@ fn a_list_counter_change_refits_later_items_and_reuses_an_unrelated_paragraph() 
     assert!(incremental.stats().cache_hits >= 1);
     assert!(incremental.stats().shape_calls > 0);
 }
+
+#[test]
+fn a_label_size_or_bold_change_misses_the_cache_and_matches_a_full_layout() {
+    let font = font_named("Test");
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let mut level = NumberingLevel::new(NumberFormat::Bullet, "•");
+    level.start = 1;
+    level.suffix = NumberSuffix::Nothing;
+    let mut abstract_num = AbstractNum::new(1);
+    abstract_num.levels[0] = Some(level);
+    document.numbering_mut().insert_abstract(abstract_num);
+    document.numbering_mut().insert_instance(NumInstance {
+        id: 1,
+        abstract_id: 1,
+        overrides: Vec::new(),
+    });
+    let mut listed = paragraph(&mut document, "甲");
+    listed.props = Arc::new(joyword_model::ParaProps {
+        numbering: Some(NumberingRef {
+            num_id: 1,
+            level: 0,
+        }),
+        ..joyword_model::ParaProps::default()
+    });
+    let plain = paragraph(&mut document, "乙");
+    install(&mut document, vec![listed, plain]);
+    let mut cache = ParagraphLayoutCache::default();
+    let warm = lay_incremental(
+        &document,
+        &font,
+        &mut cache,
+        None,
+        &LayoutInvalidation::default(),
+    )
+    .unwrap();
+    assert_eq!(warm.pages()[0].runs[0].text, "•甲");
+    assert!(!warm.pages()[0].runs[0].bold);
+    document.numbering_mut().abstracts_mut()[0].levels[0]
+        .as_mut()
+        .unwrap()
+        .run
+        .size = Some(Measure::HalfPoints(32));
+    document.numbering_mut().abstracts_mut()[0].levels[0]
+        .as_mut()
+        .unwrap()
+        .run
+        .bold = Some(true);
+    let incremental = lay_incremental(
+        &document,
+        &font,
+        &mut cache,
+        Some(&warm),
+        &LayoutInvalidation::default(),
+    )
+    .unwrap();
+    let full = lay_full(&document, &font).unwrap();
+    assert_same(&full, &incremental, "label metrics");
+    assert!(incremental.stats().cache_hits >= 1);
+    assert!(incremental.stats().shape_calls > 0);
+    assert_eq!(incremental.pages()[0].runs[0].text, "•");
+    assert!(incremental.pages()[0].runs[0].bold);
+    assert_eq!(incremental.pages()[0].runs[0].size, pt(16));
+    assert_eq!(incremental.pages()[0].runs[1].text, "甲");
+    assert!(!incremental.pages()[0].runs[1].bold);
+    assert_eq!(incremental.pages()[0].runs[2].text, "乙");
+}
