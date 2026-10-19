@@ -27,7 +27,7 @@ except ImportError:
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-TARGET_SHA = '2449e7fcf29d51b790ad33bc2f6f1246f5992387'
+TARGET_SHA = '99fd20b912644d8d9dc36a26925fca98c2483c85'
 MAX_INPUT = 1 << 20
 MAX_OUTPUT = 65536
 FAILURES = {'crash', 'timeout', 'invariant', 'protocol'}
