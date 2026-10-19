@@ -1,0 +1,98 @@
+{
+  "machine": "银河麒麟桌面操作系统 V10 SP1（x86_64）虚拟机，Intel Xeon Platinum，Cirrus GD 5446（虚拟 VGA，无 Vulkan 硬件）",
+  "date": "2026-10-19",
+  "toolchain": {
+    "rustc": "1.98.1",
+    "cargo": "1.98.1",
+    "profile": "minimal + clippy + rustfmt（与 rust-toolchain.toml 一致）",
+    "build": "cargo build -p joyword --locked（不启用 dev-runtime-shaders）成功；target/debug/joyword 启动正常",
+    "rendering": "VK_ICD_FILENAMES 指向机内 SwiftShader（/usr/share/trae-cn-enterprise/libvk_swiftshader.so）供 GPUI Vulkan；libEGL 回退软件渲染；mwv207 国产 GPU 桩库打开设备失败后回退（窗口正常）"
+  },
+  "tests": {
+    "fmt": "cargo fmt --all -- --check 通过",
+    "clippy": "cargo clippy --workspace --all-targets --locked -- -D warnings 无警告",
+    "crates": "joyword-foundation/model/opc/engine/docx/layout/render/pdf/corpus/cli 与 joyword bin 全部通过（约 165+38 项）",
+    "shell_lib": "47 项中 45 通过；2 项失败均为本机环境特性，见 findings"
+  },
+  "findings": [
+    {
+      "id": "kylin-1",
+      "severity": "high",
+      "summary": "KYSEC 给每个文件挂 security.ksip / security.boxadm 扩展属性，security.ksip 用户态不可写回；T110 原件替换按契约拒绝（ReplacementUnavailable[UnpreservableMetadata(ExtendedAttributes)]），确认替换路径对普通文件必然不可用（默认另存副本，数据无损）",
+      "test": "joyword-shell storage::original::tests::confirmed_replacement_copies_a_user_extended_attribute",
+      "evidence": "python 复现：security.ksip set → EPERM；同 SELinux security.selinux 将同病",
+      "direction": "restore/observe 应把内核管理的 security.* 命名空间排除出可保留集合（新文件由内核自动打标）"
+    },
+    {
+      "id": "kylin-2",
+      "severity": "medium",
+      "summary": "内核 5.4 mtime 粒度为 jiffy（实测两次相距 1ms 的写具有相同 st_mtime_ns），stat→open 身份守卫对同长度快速改写存在约一个 jiffy 的盲区",
+      "test": "joyword-shell storage::source::tests::identity_change_between_stat_and_open_is_not_a_baseline",
+      "direction": "测试注入改写长度不同的内容或跨 jiffy 等待；产品可补内容散列比对"
+    },
+    {
+      "id": "kylin-3",
+      "severity": "high",
+      "summary": "Linux/X11 上 shift+字母快捷键（Ctrl+Shift+E 导出 PDF、Ctrl+Shift+S 另存副本）不触发（XSendEvent 与 XTEST 两种注入均不触发；Ctrl+= 等无 shift 快捷键正常），且 GPUI 窗口不渲染菜单栏——这两个命令在 Linux GUI 不可达",
+      "evidence": "kylin-gui 系列截图与日志（无 file.export_pdf/file.save_copy 事件）"
+    },
+    {
+      "id": "kylin-4",
+      "severity": "high",
+      "summary": "段内部分字符改格式（如对段中一个字加粗）后整画布拒绝渲染：document layout: Unsupported { feature: \"mixed character formatting\" }，文档不可显示；撤销后恢复。T200 样式切片的整段均匀格式绘制与整画布失败语义叠加所致",
+      "test": "GUI 复现（joyword 启动样例，加粗一个字）；NodeId 为该段",
+      "direction": "style_paint 按段回退或应用层按段降级，避免整篇不可显示"
+    },
+    {
+      "id": "kylin-5",
+      "severity": "medium",
+      "summary": "功能区「项目符号」按钮在 GUI 上必报「输入未完成：num」：应用侧 execute_input 的 LIST_APPLY 分支只读 num、忽略 bullet 参数（shell 层 host 有 bullet 分支但应用未走）",
+      "location": "apps/joyword/src/input_ui.rs execute_input LIST_APPLY",
+      "direction": "该分支先查 bullet 再回落 num，与 joyword-shell host.rs LIST_APPLY 对齐"
+    },
+    {
+      "id": "kylin-6",
+      "severity": "medium",
+      "summary": "Ctrl+O 未保存提示「不保存」后文件打开对话框不出现（无新窗口、无诊断）；未绑定文档上 Ctrl+S 静默无反应",
+      "direction": "排查 rfd/GTK/portal 在 GPUI X11 事件循环中的集成"
+    },
+    {
+      "id": "kylin-7",
+      "severity": "info",
+      "summary": "曾出现一次未复现的启动样例整画布 mixed character formatting 失败（首次实例，启动+134s，无输入操作），与 kylin-4 同类签名；当日其余实例均稳定",
+      "evidence": "/tmp 截图已存档于会话记录，日志行 ts=1792391437"
+    },
+    {
+      "id": "kylin-8",
+      "severity": "info",
+      "summary": "Fcitx 4 运行中，但 GPUI X11 窗口不接入 IME：键入拼音直通文档、无候选框；中文输入当前经系统剪贴板粘贴可用",
+      "direction": "GPUI X11 IME（XIM/text-input）接入，属 T005/T701"
+    },
+    {
+      "id": "kylin-9",
+      "severity": "info",
+      "summary": "WPS Office 12.1.2.1129.AK.preload.sw（麒麟预装版）：打开 JoyWord 导出副本正常、全选复制读回与包内正文逐字一致（去空白归一）；但其「输出为PDF」菜单黑块渲染、Ctrl+P 无对话框——本机 WPS PDF 通道同 Mac 一样不可用，T004 的 WPS 参考 PDF 仍缺"
+    }
+  ],
+  "wps": {
+    "software": "WPS Office for Linux 麒麟预装版",
+    "version": "12.1.2.1129.AK.preload.sw",
+    "method_readback": "wps 打开 /tmp/joyword-accept/joyword_e2e.docx（DOCX-SAMPLE-001 段首插入「校验」的 JoyWord 导出副本）；Ctrl+A 全选 Ctrl+C，xclip 读回；与 cjk-contract.txt 前插「校验」去全部空白归一比较",
+    "readback_match": true,
+    "readback_file": "wps_readback.txt",
+    "pdf_export": "不可用（菜单黑块渲染 + Ctrl+P 无对话框），WPS 参考 PDF 待补"
+  },
+  "t204_dual_reader": {
+    "pdf": "joyword_e2e_cli.pdf（joyword-cli convert，Noto Serif CJK face 2）",
+    "reader1": "poppler pdftotext -enc UTF-8：5 行正文逐行一致",
+    "reader2": "pdfminer.six extract_text：同 5 行逐行一致",
+    "structure": "内容流含文本操作符、ToUnicode CMap 存在、Producer=JoyWord"
+  },
+  "t210_render_window": "CLI render（Noto Sans CJK face 2）page-1.png 与窗口 100% 截图逐行同断行、同内容（kywin-cli-render-sample-page1.png 与会话截图比对）",
+  "recovery": {
+    "method": "编辑后 kill -9 进程，重启（同 JOYWORD_PROFILE_DIR）",
+    "log": "joyword-000001.log 完好且无正文泄漏（grep 合作协议/青禾/远山/1234567/ENGLISH/summary 均 0 命中）",
+    "restore": "新实例日志 recovery.restored kind=document count=1；状态栏「会话文档」；正文为最后完整事务状态",
+    "screenshots": ["kylin-gui-recovery-restored.png"]
+  }
+}

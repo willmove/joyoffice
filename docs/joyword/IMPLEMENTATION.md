@@ -648,3 +648,21 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 T210 还把 80% GUI 页面按页宽归一后与 DOCX-MIN-001 的 CPU PNG 对照：同一单行正文，水平墨迹边界差不超过 2.23 px、垂直边界差不超过 6.32 px；这是截图边界下的视觉一致性检查，不是像素同一性。结合五样例逐字节确定性与 inspect 截断证据，T210 标记 `done`；任务计数更新为 11 done／18 in_progress／37 planned。
 
 未覆盖仍包括慢打开只读、保存中关闭 dirty 提示、真实崩溃、GUI PDF 阅读器和系统打印、精确 ACL 与命名流、非 NTFS／网络盘及设备平台。完成上述 GUI 证据后 Computer Use 原生管道中断，重置 node session 并重试一次仍返回 `native pipe is unavailable`。cargo-deny 未安装，本轮未验依赖公告；信创真机仍按用户决策非阻塞待补验。
+
+### 银河麒麟 V10 SP1 真机会话（2026-10-19，x86_64）
+
+在银河麒麟桌面操作系统 V10 SP1（x86_64，Intel Xeon Platinum 虚拟机、Cirrus GD 5446 虚拟 VGA、无 Vulkan 硬件、UKUI/X11 2560×1352）完成一轮真机验证，机器可读记录与截图见 [kylin_report.json](../../tests/fixtures/reference/kylin/kylin_report.json) 与 `tests/fixtures/reference/kylin/`。工具链经 rsproxy 镜像安装 rustup 1.98.1（minimal + clippy + rustfmt，与 `rust-toolchain.toml` 一致），本机需补装 `g++` 与 `libxkbcommon-x11` 后 `cargo build -p joyword --locked`（不启用 dev-runtime-shaders）成功；窗口经机内 SwiftShader（`VK_ICD_FILENAMES=/usr/share/trae-cn-enterprise/vk_swiftshader_icd.json`）加软件 EGL 启动并完整渲染，mwv207 国产 GPU 桩库打开设备失败后正常回退。`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets --locked -- -D warnings` 与各 crate 测试通过；`joyword-shell` 47 项中 2 项失败，均为本机环境特性并已定位（见下）。
+
+- **T001／T005**：Linux 真机参考环境腿核对完成（工具链与可启动产物）；本机非国产 CPU+GPU，信创真机专项仍为非阻塞待补验。Fcitx 4 在运行，但 GPUI X11 窗口不接入 IME——拼音直通文档、无候选框；中文输入经系统剪贴板粘贴（xclip 所有者）可用并计入状态栏字数。系统字体清单含 Noto Sans/Serif CJK 与思源系。
+- **发现一（KYSEC 扩展属性，高）**：KYSEC 为每个文件挂 `security.ksip`／`security.boxadm`，其中 `security.ksip` 用户态不可写回（EPERM，python 复现）。T110 的确认替换按契约拒绝：`ReplacementUnavailable[UnpreservableMetadata(ExtendedAttributes)]`，默认另存副本不丢数据，但「确认替换原件」在麒麟与同类 SELinux 系统上对普通文件必然不可用；宜把内核管理的 `security.*` 命名空间排除出可保留集合。对应测试 `confirmed_replacement_copies_a_user_extended_attribute` 在本机失败。
+- **发现二（mtime 粒度，中）**：内核 5.4 的 mtime 按 jiffy 粒度落盘（实测相距 1 ms 的两次写 `st_mtime_ns` 相同），stat→open 身份守卫对同长度快速改写存在约一个 jiffy 的盲区，`identity_change_between_stat_and_open_is_not_a_baseline` 在本机失败；测试宜注入不同长度改写或跨 jiffy 等待，产品可补内容散列比对。
+- **发现三（混合格式整画布拒绝，高，已修复）**：早期构建（`26f46c3`）上对段内单字加粗使整画布以 `Unsupported { feature: "mixed character formatting" }` 拒绝渲染（撤销可恢复，截图 `kylin-gui-mixed-format-canvas-error.png`）；同日 `da5f192` 改为按 run 跨度绘制后，在本机新构建复验通过（段内「合作**作**议」部分粗体正常渲染，`mixed_formatting` 7 项回归通过）。
+- **发现四（项目符号按钮缺参，中，未修）**：功能区「项目符号」按钮在 GUI 上必报「输入未完成：num」——应用侧 `execute_input` 的 `LIST_APPLY` 分支只读 `num`、忽略 `bullet` 参数（shell 层 `host.rs` 已有 bullet 分支但应用未走），在 `da5f192` 之后仍复现，待修。
+- **发现五（Linux GUI 命令可达性，高）**：X11 窗口不渲染菜单栏；Ctrl+Shift+E（导出 PDF）被 UKUI 全局快捷键分配给文本编辑器（XTEST 注入实测弹出编辑器窗口，按键到不了应用），Ctrl+Shift+S（另存副本）亦无反应；Ctrl+O 的未保存提示正常但「不保存」后文件打开对话框不出现（无新窗口、无诊断）；未绑定文档上 Ctrl+S 静默无反应。文件菜单命令与打开对话框在默认麒麟桌面不可用，`table.*` 命令亦无 GUI 入口（T201 人工验收受阻）。
+- **WPS 交换（T103/T004）**：WPS Office 12.1.2.1129.AK.preload.sw（麒麟预装版）打开 JoyWord 导出的编辑副本正常，Ctrl+A 复制读回与包内正文去空白归一后逐字一致（`wps_readback.txt`）；其「输出为PDF」菜单渲染为黑块、Ctrl+P 无对话框——WPS PDF 通道在本机与 Mac 一样不可用，WPS 参考 PDF 仍缺。
+- **T204 双阅读器**：`joyword-cli convert`（Noto Serif CJK face 2）对编辑副本出 1 页 PDF，poppler `pdftotext -enc UTF-8` 与 pdfminer.six 两个独立读取器逐行一致，结构核对内容流／ToUnicode／Producer=JoyWord（`joyword_e2e_cli.pdf`）。
+- **T210 一致性（Linux 旁证）**：CLI `render` 的样例页 PNG 与窗口 100% 截图逐行同断行、同内容。
+- **T104／T211**：对含未保存修改的窗口 `kill -9` 后，日志完好且文档正文关键词零命中；同 profile 重启日志记录 `recovery.restored kind=document count=1`，状态栏「会话文档」，正文为最后完整事务状态（`kylin-gui-recovery-restored.png`）。T211 的崩溃人工验收就此完成并标 `done`。
+- **GUI 人工验收（部分通过）**：双击按字素选中、整段加粗、查找替换（状态栏「1 处匹配」）、格式刷取源—应用（「已应用格式」）、撤销组（一次 Ctrl+Z 撤整组打字）、布局选项卡横向／纵向与分页符翻页（「第 2 页，共 2 页」）、缩放（Ctrl+=／Ctrl+0）与中英界面切换均正常。T202 部分、T200 部分、T205 部分如上；T208 的百页人工验收被打开对话框缺陷阻塞。
+
+本机未验证：真实打印机与系统打印对话框、断电场景、国产 CPU+GPU 硬件、Retina/多显示器 DPI、Word 参考环境复核。这些仍按各自任务记录为待补验。
