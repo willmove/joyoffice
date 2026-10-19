@@ -21,6 +21,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use harfrust::{Direction, UnicodeBuffer};
 use joyword_foundation::Emu;
+use joyword_model::RevisionKind;
 
 use crate::{FeatureSet, GlyphRun, LoadedFont, ShapedRun, shape};
 
@@ -38,6 +39,17 @@ pub struct SourceRange {
 pub struct ClusterRange {
     pub source: SourceRange,
     pub glyphs: Range<usize>,
+}
+
+/// A revision span on a fitted line, in model scalars. Paint reads this
+/// after placement; it is not a run property.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LineRevision {
+    pub scalars: Range<usize>,
+    pub kind: RevisionKind,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
 /// An inline image attached to a fitted line, before page placement.
@@ -58,6 +70,9 @@ pub struct LayoutLine {
     pub run: ShapedRun,
     pub clusters: Vec<ClusterRange>,
     pub images: Vec<LineImage>,
+    /// Final-with-markup spans. Empty for an ordinary line and for Final
+    /// or Original, which project hidden runs out before shaping.
+    pub revisions: Vec<LineRevision>,
     /// Zero uses the paragraph line box. A positive value replaces it.
     pub box_height: Emu,
 }
@@ -500,6 +515,7 @@ where
             run,
             clusters,
             images: Vec::new(),
+            revisions: Vec::new(),
             box_height: Emu::new(0),
         });
         if byte_start == text.len() {

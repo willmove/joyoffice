@@ -322,10 +322,20 @@ impl Dumper<'_> {
             if !text.is_empty() {
                 parts.push(format!("{text:?}"));
             }
+            let revision = match &run.revision {
+                Some(revision) => format!(
+                    " revision={:?}#{} author={:?} date={}",
+                    revision.kind,
+                    revision.id,
+                    revision.author,
+                    revision.date.as_deref().unwrap_or("-")
+                ),
+                None => String::new(),
+            };
             self.line(
                 depth + 1,
                 &format!(
-                    "run style={style} props={} {}",
+                    "run style={style} props={} {}{revision}",
                     run_props(&run.props),
                     parts.join(" ")
                 ),
@@ -466,6 +476,26 @@ impl Document {
                 "annotation".to_string()
             };
             dumper.line(0, &format!("{head} {kind} {anchor}"));
+        }
+        // After stories are walked, paragraph ordinals exist and positions
+        // print as pN rather than raw node ids.
+        for marker in document.move_markers() {
+            let side = match marker.side {
+                crate::MoveSide::From => "from",
+                crate::MoveSide::To => "to",
+            };
+            let end = if marker.at_end { "end" } else { "start" };
+            dumper.line(
+                0,
+                &format!(
+                    "move {side} {end} id={} name={:?} author={:?} date={} at={}",
+                    marker.id,
+                    marker.name,
+                    marker.author,
+                    marker.date.as_deref().unwrap_or("-"),
+                    dumper.position(&marker.position)
+                ),
+            );
         }
         for resource in document.resources().iter() {
             let head = if options.node_ids {

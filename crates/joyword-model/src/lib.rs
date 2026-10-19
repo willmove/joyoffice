@@ -16,6 +16,7 @@ mod image;
 mod numbering;
 mod props;
 mod resource;
+mod revision;
 mod style;
 mod text;
 mod theme;
@@ -51,6 +52,7 @@ pub use props::{
     Underline, merge_tab_stops,
 };
 pub use resource::{ContentHash, Resource, ResourceTable};
+pub use revision::{MoveMarker, MoveSide, RevisionKind, RevisionView, TextRevision};
 pub use style::{
     BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,
     StyleError, StyleId, StyleKind, StyleProblem, StyleSheet, overlay_paragraph,

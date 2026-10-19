@@ -116,6 +116,24 @@ pub enum Command {
         section: NodeId,
         page: PageSetup,
     },
+    /// Sets `w:trackRevisions`. `true` makes later user typing and deleting
+    /// create text revisions. The command itself does not create one.
+    SetTrackRevisions {
+        enabled: bool,
+    },
+    /// Accepts one revision. A move id accepts both sides of its `w:name`.
+    AcceptRevision {
+        id: u32,
+    },
+    /// Rejects one revision. A move id rejects both sides of its `w:name`.
+    RejectRevision {
+        id: u32,
+    },
+    /// Accepts every text revision and every complete move. Fails entirely
+    /// when any move pair is incomplete or crossed.
+    AcceptAllRevisions,
+    /// Rejects every text revision and every complete move.
+    RejectAllRevisions,
 }
 
 /// Character formatting changes of the M1 subset.
@@ -254,6 +272,17 @@ pub enum CommandError {
     NotTopLevel,
     /// Page size, margins or header distance cannot be placed.
     InvalidPage,
+    /// No run carries this revision id.
+    UnknownRevision(u32),
+    /// A move is missing a marker or repeats one. The string is `w:name`.
+    IncompleteMove(String),
+    /// A move's start is after its end, or the two sides overlap.
+    CrossedMove(String),
+    /// Tracked deletion does not cross a paragraph mark (T301).
+    RevisionBoundary,
+    /// The range mixes another author's insertion or move content, or one
+    /// id is used for two kinds.
+    RevisionConflict,
 }
 
 impl fmt::Display for TableStructure {
@@ -322,6 +351,13 @@ impl fmt::Display for CommandError {
             }
             CommandError::NotTopLevel => f.write_str("tables are inserted in the body"),
             CommandError::InvalidPage => f.write_str("page setup is not usable"),
+            CommandError::UnknownRevision(id) => write!(f, "unknown revision {id}"),
+            CommandError::IncompleteMove(name) => write!(f, "incomplete move {name}"),
+            CommandError::CrossedMove(name) => write!(f, "crossed move {name}"),
+            CommandError::RevisionBoundary => {
+                f.write_str("tracked deletion stays inside one paragraph")
+            }
+            CommandError::RevisionConflict => f.write_str("revision conflict"),
         }
     }
 }

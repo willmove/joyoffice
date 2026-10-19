@@ -13,7 +13,7 @@
 use joyword_foundation::Emu;
 use joyword_model::{
     BreakKind, Document, HeaderFooterKind, InlineKind, OBJECT_MARKER, PageFieldKind, Paragraph,
-    Segment, StoryId, StoryKind,
+    RevisionView, Segment, StoryId, StoryKind,
 };
 
 use crate::FaceSet;
@@ -578,7 +578,12 @@ fn story_runs(
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
-        let display = match story_display(paragraph, page_index + 1, page_count) {
+        let display = match story_display(
+            paragraph,
+            page_index + 1,
+            page_count,
+            snapshot.key().revision_view,
+        ) {
             Some(text) => text,
             None => {
                 snapshot.note(LayoutNote::StoryContentSkipped {
@@ -647,20 +652,50 @@ fn story_runs(
     Ok(runs)
 }
 
-fn story_display(paragraph: &Paragraph, page: usize, pages: usize) -> Option<String> {
+fn story_display(
+    paragraph: &Paragraph,
+    page: usize,
+    pages: usize,
+    view: RevisionView,
+) -> Option<String> {
+    let mut visible = Vec::new();
+    for run in paragraph.runs() {
+        let show = run
+            .revision
+            .as_ref()
+            .map(|revision| revision.kind.visible_in(view))
+            .unwrap_or(true);
+        visible.extend(std::iter::repeat_n(show, run.len));
+    }
     let mut text = String::new();
+    let mut index = 0usize;
     for segment in paragraph.segments() {
         match segment {
-            Segment::Text(chunk) => text.push_str(&chunk),
-            Segment::Inline(object) => match object.kind {
-                InlineKind::PageField(PageFieldKind::Page) => {
-                    text.push_str(&page.to_string());
+            Segment::Text(chunk) => {
+                for ch in chunk.chars() {
+                    let show = visible.get(index).copied().unwrap_or(true);
+                    index += 1;
+                    if show {
+                        text.push(ch);
+                    }
                 }
-                InlineKind::PageField(PageFieldKind::NumPages) => {
-                    text.push_str(&pages.to_string());
+            }
+            Segment::Inline(object) => {
+                let show = visible.get(index).copied().unwrap_or(true);
+                index += 1;
+                if !show {
+                    continue;
                 }
-                _ => return None,
-            },
+                match object.kind {
+                    InlineKind::PageField(PageFieldKind::Page) => {
+                        text.push_str(&page.to_string());
+                    }
+                    InlineKind::PageField(PageFieldKind::NumPages) => {
+                        text.push_str(&pages.to_string());
+                    }
+                    _ => return None,
+                }
+            }
         }
     }
     Some(text)

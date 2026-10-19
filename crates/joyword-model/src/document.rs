@@ -16,6 +16,7 @@ use crate::id::{AnnotationId, IdAllocator, NodeId, PreservedId, StoryId};
 use crate::numbering::NumberingStore;
 use crate::props::{Measure, Toggle};
 use crate::resource::ResourceTable;
+use crate::revision::MoveMarker;
 use crate::style::{Style, StyleKind, StyleSheet};
 use crate::validate::MAX_NESTING;
 
@@ -125,8 +126,9 @@ pub struct DocumentSettings {
     /// `compatibilityMode` as written; existing documents keep their value.
     pub compatibility_mode: Option<u32>,
     pub even_and_odd_headers: Toggle,
-    /// `w:trackRevisions`: until review lands (M3) such documents open
-    /// read-only or with an explicit prompt (FORMAT-002).
+    /// `w:trackRevisions` (ECMA-376 Part 1 §17.15.1.89). `Some(true)` makes
+    /// user typing and deleting create text revisions. It does not by itself
+    /// make the document read-only. Document protection still does.
     pub track_revisions: Toggle,
     /// `w:defaultTabStop`. Absent means 720 twips when layout places tabs.
     pub default_tab_stop: Option<Measure>,
@@ -171,6 +173,10 @@ pub struct Document {
     annotations: Arc<BTreeMap<AnnotationId, Annotation>>,
     settings: Arc<DocumentSettings>,
     numbering: Arc<NumberingStore>,
+    /// Move range markers. Text revisions live on runs.
+    move_markers: Arc<Vec<MoveMarker>>,
+    /// Next `w:id` to assign. Import sets this past every id it kept.
+    next_revision: u32,
 }
 
 impl Document {
@@ -204,6 +210,8 @@ impl Document {
             annotations: Arc::default(),
             settings: Arc::default(),
             numbering: Arc::default(),
+            move_markers: Arc::default(),
+            next_revision: 1,
         }
     }
 
@@ -319,6 +327,29 @@ impl Document {
 
     pub fn settings_mut(&mut self) -> &mut DocumentSettings {
         Arc::make_mut(&mut self.settings)
+    }
+
+    pub fn move_markers(&self) -> &[MoveMarker] {
+        &self.move_markers
+    }
+
+    pub fn move_markers_mut(&mut self) -> &mut Vec<MoveMarker> {
+        Arc::make_mut(&mut self.move_markers)
+    }
+
+    /// Remembers an imported `w:id` so the next allocated id does not reuse it.
+    pub fn note_revision_id(&mut self, id: u32) {
+        let next = id.saturating_add(1);
+        if next > self.next_revision {
+            self.next_revision = next;
+        }
+    }
+
+    /// Allocates a new revision id. `None` when the counter is exhausted.
+    pub fn allocate_revision_id(&mut self) -> Option<u32> {
+        let id = self.next_revision;
+        self.next_revision = self.next_revision.checked_add(1)?;
+        Some(id)
     }
 
     pub fn numbering(&self) -> &NumberingStore {

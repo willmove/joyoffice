@@ -529,15 +529,17 @@ pub fn rasterize(
     for image in &scene.images {
         paint_image(&mut pixmap, image, projection)?;
     }
-    let mut paint = Paint::default();
-    paint.set_color_rgba8(0, 0, 0, 255);
-    paint.anti_alias = true;
+    let mut paint = Paint {
+        anti_alias: true,
+        ..Paint::default()
+    };
     let mut cache: BTreeMap<(FontKey, i64, u16), (Option<Path>, usize)> = BTreeMap::new();
     let mut stats = RasterStats::default();
     for run in &scene.runs {
         if run.glyphs.is_empty() && run.text.is_empty() {
             continue;
         }
+        paint.set_color_rgba8(run.color.0, run.color.1, run.color.2, 255);
         let font = by_key[&run.font];
         let outlines = font.font_ref().outline_glyphs();
         for glyph in &run.glyphs {

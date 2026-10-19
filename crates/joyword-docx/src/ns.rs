@@ -95,8 +95,7 @@ pub(crate) const KNOWN_OFFICE: [&str; 21] = [
     "http://schemas.openxmlformats.org/drawingml/2006/chart",
 ];
 
-/// Tracked-change elements (ECMA-376 Part 1 §17.13.5). Any of them makes
-/// the document read-only until review lands.
+/// Tracked-change elements (ECMA-376 Part 1 §17.13.5).
 pub(crate) fn is_revision(local: &str) -> bool {
     matches!(
         local,
@@ -125,4 +124,28 @@ pub(crate) fn is_revision(local: &str) -> bool {
     ) || local.starts_with("customXmlIns")
         || local.starts_with("customXmlDel")
         || local.starts_with("customXmlMove")
+}
+
+/// Text and move revisions this slice maps (`w:ins`, `w:del`, `w:moveFrom`,
+/// `w:moveTo`, their range markers, and deleted-text leaves). Format and
+/// table revisions stay outside the model.
+pub(crate) fn is_text_revision(local: &str) -> bool {
+    matches!(
+        local,
+        "ins"
+            | "del"
+            | "moveFrom"
+            | "moveTo"
+            | "moveFromRangeStart"
+            | "moveFromRangeEnd"
+            | "moveToRangeStart"
+            | "moveToRangeEnd"
+            | "delText"
+            | "delInstrText"
+    )
+}
+
+/// Revision markup that still makes the whole document read-only (T301).
+pub(crate) fn blocks_for_review(local: &str) -> bool {
+    is_revision(local) && !is_text_revision(local)
 }

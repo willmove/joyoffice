@@ -284,6 +284,7 @@ fn image_line(
         },
         clusters: Vec::new(),
         images: vec![line_image(image, Emu::new(0))],
+        revisions: Vec::new(),
         box_height: Emu::new(0),
     };
     grow(&mut line, image.height, line_box, descent);

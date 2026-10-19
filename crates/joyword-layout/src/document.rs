@@ -17,8 +17,8 @@ use joyword_foundation::Emu;
 use joyword_model::{
     Bias, Block, BorderEdge, BorderKind, CellMargins, Color, DocDefaults, Document,
     DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel,
-    NumberingProblem, PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, VerticalMerge,
-    displayed_paragraph,
+    NumberingProblem, PageSetup, Paragraph, Position, RevisionView, ScalarOffset, StoryId, Table,
+    VerticalMerge, displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
 
@@ -186,6 +186,9 @@ pub struct LayoutKey {
     pub version: DocumentVersion,
     pub font: FontKey,
     pub profile: SingleFontProfile,
+    /// How tracked changes were projected. Not part of the content hash:
+    /// the same document in another view is a different scene.
+    pub revision_view: RevisionView,
     content: [u8; 32],
 }
 impl LayoutKey {
@@ -477,7 +480,41 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
         hash.update(b"defaultTab");
         hash.update(format!("{tab}").as_bytes());
     }
+    // Revision-free documents keep the historical digest. A run mark changes
+    // what Final and Original project, so it joins the hash only then.
+    hash_revisions_if_any(&mut hash, document);
     hash.finalize().into()
+}
+
+fn hash_revisions_if_any(hash: &mut Sha256, document: &Document) {
+    let mut paragraphs = flow_paragraphs(document);
+    for story in document.stories() {
+        if story.id == document.body_id() {
+            continue;
+        }
+        for block in story.blocks.iter() {
+            if let Some(paragraph) = block.as_paragraph() {
+                paragraphs.push(paragraph);
+            }
+        }
+    }
+    if paragraphs
+        .iter()
+        .all(|paragraph| paragraph.runs().iter().all(|run| run.revision.is_none()))
+    {
+        return;
+    }
+    hash.update(b"revisions");
+    for paragraph in paragraphs {
+        hash.update(paragraph.id().get().to_le_bytes());
+        for run in paragraph.runs() {
+            hash.update((run.len as u64).to_le_bytes());
+            match &run.revision {
+                Some(revision) => hash.update(format!("{revision:?}").as_bytes()),
+                None => hash.update(b"-"),
+            }
+        }
+    }
 }
 
 fn stylesheet_is_layout_input(document: &Document) -> bool {
@@ -932,12 +969,33 @@ pub fn layout_document(
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
 ) -> Result<LayoutSnapshot, LayoutError> {
+    layout_document_viewed(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        RevisionView::FinalWithMarkup,
+    )
+}
+
+/// [`layout_document`] with an explicit revision projection. Final and
+/// Original drop hidden runs before shaping. Final with markup shapes every
+/// run and paints the review marks.
+pub fn layout_document_viewed(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    view: RevisionView,
+) -> Result<LayoutSnapshot, LayoutError> {
     cancellation.check()?;
     profile.validate()?;
     let limits = limits.capped();
     let geometry = preflight(document, profile, limits, cancellation)?;
     let plans = crate::pages::section_plans(document)?;
-    let mut result = open_snapshot(document, faces, profile, limits, geometry)?;
+    let mut result = open_snapshot(document, faces, profile, limits, geometry, view)?;
     let marks = joyword_model::list_marks(document);
     if document
         .body()
@@ -954,6 +1012,7 @@ pub fn layout_document(
             cancellation,
             &marks,
             &plans,
+            view,
         );
     }
     let mut prepared = Vec::new();
@@ -987,6 +1046,7 @@ pub fn layout_document(
             },
             cancellation,
             marks.get(&paragraph.id()),
+            view,
         )?;
         fitted.geometry = plan.geometry;
         fitted.section_index = plan.section;
@@ -1019,6 +1079,7 @@ fn layout_mixed(
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
     plans: &[crate::pages::SectionPlan],
+    view: RevisionView,
 ) -> Result<LayoutSnapshot, LayoutError> {
     let mut spent = WorkSpent {
         shapes: 0,
@@ -1049,6 +1110,7 @@ fn layout_mixed(
                     },
                     cancellation,
                     marks.get(&paragraph.id()),
+                    view,
                 )?;
                 fitted.geometry = plan.geometry;
                 fitted.section_index = plan.section;
@@ -1072,6 +1134,7 @@ fn layout_mixed(
                     &mut spent,
                     cancellation,
                     marks,
+                    view,
                 )?;
             }
             Block::Opaque(_) => result.omit_opaque_block(),
@@ -1201,6 +1264,7 @@ fn place_table(
     spent: &mut WorkSpent,
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+    view: RevisionView,
 ) -> Result<(), LayoutError> {
     let mut rows = build_row_flows(
         result,
@@ -1214,6 +1278,7 @@ fn place_table(
         spent,
         cancellation,
         marks,
+        view,
     )?;
     assign_row_heights(&mut rows)?;
     let tops = row_tops(&rows);
@@ -1267,6 +1332,7 @@ fn build_row_flows(
     spent: &mut WorkSpent,
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
+    view: RevisionView,
 ) -> Result<Vec<RowFlow>, LayoutError> {
     let (pad_top, pad_left, pad_bottom, pad_right) = cell_pad(table.cell_margin, table.id)?;
     let mut edges = Vec::with_capacity(table.grid.len() + 1);
@@ -1366,6 +1432,7 @@ fn build_row_flows(
                     },
                     cancellation,
                     marks.get(&paragraph.id()),
+                    view,
                 )?;
                 fitted.geometry = geometry;
                 fitted.section_index = section;
@@ -2138,12 +2205,14 @@ pub(crate) fn open_snapshot(
     profile: SingleFontProfile,
     limits: LayoutLimits,
     geometry: PageGeometry,
+    view: RevisionView,
 ) -> Result<LayoutSnapshot, LayoutError> {
     let mut result = LayoutSnapshot {
         key: LayoutKey {
             version: document.version(),
             font: faces.ascii.key(),
             profile,
+            revision_view: view,
             content: fingerprint(document),
         },
         story: document.body_id(),
@@ -2216,6 +2285,7 @@ pub(crate) fn fit_paragraph(
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
+    view: RevisionView,
 ) -> Result<FittedParagraph, LayoutError> {
     cancellation.check()?;
     let defaults = LineLimits::default();
@@ -2251,7 +2321,16 @@ pub(crate) fn fit_paragraph(
         baseline: painted.baseline,
         features: profile.features,
     };
-    let text = paragraph.plain_text(|_| String::new());
+    let full = paragraph.plain_text(|_| String::new());
+    let preview_props = displayed_paragraph(document, paragraph);
+    let preview_label = mark.and_then(|item| item.as_ref().ok());
+    let list_layout = mark.is_some()
+        || crate::list_layout::needs_list_layout(&preview_props, &full, preview_label);
+    let projected = crate::revision_view::project(paragraph, view, list_layout)?;
+    let text = match &projected {
+        Some(item) => item.text.clone(),
+        None => full,
+    };
     let map_line = |error: LineError| {
         if error == LineError::Cancelled {
             LayoutError::Cancelled
@@ -2463,6 +2542,10 @@ pub(crate) fn fit_paragraph(
         line.run.latin_family.clone_from(&painted.latin);
         line.run.east_asia_family.clone_from(&painted.east_asia);
     }
+    if let Some(projected) = &projected {
+        crate::revision_view::remap(&mut fitted.lines, &projected.map, paragraph.len());
+    }
+    crate::revision_view::annotate(&mut fitted.lines, paragraph, view);
     let before = painted.flow.before;
     let after = painted.flow.after;
     if before.raw() > geometry.bottom_edge().raw() - geometry.top.raw()
@@ -2682,6 +2765,17 @@ fn suffix_copies(
     }
     if cursor != source_lines.len() {
         return false;
+    }
+    // One layout line can paint several glyph runs and revision rules.
+    // `PlacedLine::run` records only the first run, so a copy that has not
+    // reproduced every run and rule is incomplete.
+    for (index, page) in pages.iter().enumerate() {
+        let Some(source) = stop.previous.pages.get(index) else {
+            return false;
+        };
+        if page.runs.len() != source.runs.len() || page.rects.len() != source.rects.len() {
+            return false;
+        }
     }
     while pages.len() < stop.previous.pages.len() {
         if pages.len() >= result.limits.max_pages {
@@ -2904,7 +2998,13 @@ fn place_line_on(
             .get_mut(page_index)
             .ok_or(LayoutError::GeometryOverflow)?;
         let run = page.runs.len();
-        page.runs.push(line.to_glyph_run(x, baseline));
+        if line.revisions.is_empty() {
+            page.runs.push(line.to_glyph_run(x, baseline));
+        } else {
+            let (runs, rects) = crate::revision_view::marked_runs(line, x, baseline);
+            page.runs.extend(runs);
+            page.rects.extend(rects);
+        }
         let image_start = page.images.len();
         for image in &line.images {
             let y = baseline

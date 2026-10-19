@@ -4,10 +4,12 @@
 //! removed when their properties are either default or fully mapped (see
 //! `structure`). Unmapped property markup is refused rather than dropped.
 //! Comments outside text leaves, relationships and every other part stay
-//! byte-for-byte intact. Moves, other structural edits, signed packages and
-//! any imported restriction are refused. The completed output is re-imported
-//! under the same budget and compared before a plan can be returned. This
-//! module performs no IO.
+//! byte-for-byte intact. Text and move revisions are written back when a
+//! paragraph is edited; other structural edits, signed packages and any
+//! imported restriction are refused. `w:trackRevisions` may change on its
+//! own and is patched in the settings part. The completed output is
+//! re-imported under the same budget and compared before a plan can be
+//! returned. This module performs no IO.
 
 mod compare;
 mod structure;
@@ -16,14 +18,15 @@ use std::fmt;
 use std::ops::Range;
 use std::sync::Arc;
 
-use joyoffice_opc::{Budget, Method, PartName, write_archive};
+use joyoffice_opc::{Budget, Method, PartName, Target, write_archive};
 use joyword_model::{
-    Block, BreakKind, Document, DocumentSnapshot, DocumentVersion, InlineKind, NodeId,
-    NumberingStore, PageFieldKind, Paragraph, RunProps, Story, StyleId, StyleSheet,
+    Block, BreakKind, Document, DocumentSettings, DocumentSnapshot, DocumentVersion, InlineKind,
+    MoveMarker, NodeId, NumberingStore, PageFieldKind, Paragraph, RunProps, Story, StyleId,
+    StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
-use crate::{ImportError, PackageBacking, W, import};
+use crate::{ImportError, PackageBacking, W, import, ns};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExportError {
@@ -215,7 +218,10 @@ fn plan_export_after_import(
             limit: budget.max_part_bytes,
         });
     }
-    let alignment = structure::align(original, current)?;
+    let mut alignment = structure::align(original, current)?;
+    note_marker_edits(original, current, &mut alignment);
+    let tracking_changed =
+        original.settings().track_revisions != current.settings().track_revisions;
     let package = source.backing.package();
     let main_name = source.backing.main_part();
     let main = package
@@ -240,7 +246,7 @@ fn plan_export_after_import(
         // the patched archive later stored in `bytes`.
         origin: Some(backing.original_arc()),
     };
-    if alignment.is_unchanged() {
+    if alignment.is_unchanged() && !tracking_changed {
         return Ok(plan);
     }
     if !source.editability.is_unrestricted() {
@@ -292,6 +298,8 @@ fn plan_export_after_import(
             current.numbering(),
             before,
             after,
+            &markers_of(original, before.id()),
+            &markers_of(current, after.id()),
             &[&root, body],
             element,
             &mut patches,
@@ -307,9 +315,13 @@ fn plan_export_after_import(
         let mut markup = String::new();
         for block in &insertion.blocks {
             let new = match block {
-                structure::NewBlock::Paragraph(paragraph) => {
-                    structure::new_paragraph(paragraph, &names, budget.max_part_bytes, &xml)?
-                }
+                structure::NewBlock::Paragraph(paragraph) => structure::new_paragraph(
+                    paragraph,
+                    &names,
+                    budget.max_part_bytes,
+                    &xml,
+                    &markers_of(current, paragraph.id()),
+                )?,
                 structure::NewBlock::Table(table) => {
                     structure::table_markup(table, &names, budget.max_part_bytes)?
                 }
@@ -378,20 +390,32 @@ fn plan_export_after_import(
         start = range.end;
     }
     main_bytes.extend_from_slice(&main.data[start..]);
+    let mut replacements = Vec::new();
+    if !alignment.is_unchanged() {
+        replacements.push((main_name.clone(), main_bytes));
+    }
+    if tracking_changed {
+        replacements.push(patch_track_revisions(
+            package,
+            main_name,
+            current.settings().track_revisions,
+            budget,
+        )?);
+    }
     let mut items = vec![(
         "[Content_Types].xml",
         package.content_types_xml(),
         Method::Stored,
     )];
     for part in package.parts() {
-        let data = if part.name == *main_name {
-            main_bytes.as_slice()
-        } else {
-            &part.data
-        };
-        // Store the changed part: highly repetitive new text must not create
+        let replaced = replacements.iter().find(|(name, _)| name == &part.name);
+        let data = replaced
+            .map(|(_, bytes)| bytes.as_slice())
+            .unwrap_or(&part.data);
+        // Store a changed part: highly repetitive new text must not create
         // an archive that this very budget rejects for compression ratio.
-        let method = if part.name == *main_name {
+        // Unchanged parts keep their original bytes and compression method.
+        let method = if replaced.is_some() {
             Method::Stored
         } else {
             part.method
@@ -415,9 +439,163 @@ fn plan_export_after_import(
     plan.mode = ExportMode::TextPatch;
     plan.warnings.push(ExportWarning::ZipMetadataRegenerated);
     plan.bytes = bytes.into();
-    plan.changed.push(main_name.clone());
-    plan.preserved.retain(|part| part != main_name);
+    for (name, _) in &replacements {
+        plan.changed.push(name.clone());
+        plan.preserved.retain(|part| part != name);
+    }
     Ok(plan)
+}
+
+fn settings_except_tracking(before: &DocumentSettings, after: &DocumentSettings) -> bool {
+    let mut left = before.clone();
+    let mut right = after.clone();
+    left.track_revisions = None;
+    right.track_revisions = None;
+    left == right
+}
+
+fn markers_of(document: &Document, paragraph: NodeId) -> Vec<MoveMarker> {
+    document
+        .move_markers()
+        .iter()
+        .filter(|marker| marker.position.paragraph == paragraph)
+        .cloned()
+        .collect()
+}
+
+fn same_move_markers(before: &[MoveMarker], after: &[MoveMarker]) -> bool {
+    fn key(marker: &MoveMarker) -> (usize, bool, u8, u32, String, String, String) {
+        (
+            marker.position.offset.0,
+            marker.at_end,
+            match marker.side {
+                joyword_model::MoveSide::From => 0,
+                joyword_model::MoveSide::To => 1,
+            },
+            marker.id,
+            marker.name.to_string(),
+            marker.author.to_string(),
+            marker.date.as_deref().unwrap_or("").to_string(),
+        )
+    }
+    let mut left: Vec<_> = before.iter().map(key).collect();
+    let mut right: Vec<_> = after.iter().map(key).collect();
+    left.sort();
+    right.sort();
+    left == right
+}
+
+fn note_marker_edits<'a>(
+    original: &'a Document,
+    current: &'a Document,
+    alignment: &mut structure::Alignment<'a>,
+) {
+    for block in current.body().blocks.iter() {
+        let Some(paragraph) = block.as_paragraph() else {
+            continue;
+        };
+        let id = paragraph.id();
+        let before = markers_of(original, id);
+        let after = markers_of(current, id);
+        if same_move_markers(&before, &after) {
+            continue;
+        }
+        if alignment.edited.iter().any(|(source, _)| source.id() == id) {
+            continue;
+        }
+        let Some(source) = original
+            .body()
+            .blocks
+            .iter()
+            .find_map(|block| block.as_paragraph().filter(|item| item.id() == id))
+        else {
+            continue;
+        };
+        alignment.edited.push((source, paragraph));
+    }
+}
+
+/// Writes `w:trackRevisions` (§17.15.1.89). Absence imports as `None`, so
+/// off is an explicit `w:val="false"`. On is a valueless element.
+fn patch_track_revisions(
+    package: &joyoffice_opc::Package,
+    main: &PartName,
+    enabled: Option<bool>,
+    budget: &Budget,
+) -> Result<(PartName, Vec<u8>), ExportError> {
+    let relationship = package
+        .relationships(Some(main))
+        .iter()
+        .find(|item| item.kind.as_ref() == ns::REL_SETTINGS);
+    let Some(relationship) = relationship else {
+        return Err(unsupported(
+            None,
+            "settings part is required to write trackRevisions",
+        ));
+    };
+    let Target::Internal(name) = &relationship.target else {
+        return Err(unsupported(
+            None,
+            "settings part is required to write trackRevisions",
+        ));
+    };
+    let part = package
+        .part(name.as_str())
+        .ok_or_else(|| unsupported(None, "settings part is required to write trackRevisions"))?;
+    let root = XmlReader::new(name.as_str(), &part.data, budget)
+        .and_then(XmlReader::whole)
+        .map_err(|error| ImportError::Xml {
+            part: name.to_string(),
+            error,
+        })?;
+    if !root.is(W, "settings") {
+        return Err(unsupported(None, "settings part is not w:settings"));
+    }
+    let names = Names::in_scope(&[&root]);
+    let markup = match enabled {
+        Some(true) => format!("{}/>", names.start("trackRevisions")),
+        Some(false) => format!(
+            "{}{}/>",
+            names.start("trackRevisions"),
+            names.attribute("val", "false")
+        ),
+        None => String::new(),
+    };
+    let bytes = if let Some(existing) = root.child(W, "trackRevisions") {
+        splice(&part.data, existing.span.clone(), markup.as_bytes())
+    } else if markup.is_empty() {
+        part.data.to_vec()
+    } else {
+        insert_before_end(&part.data, &root, &markup)?
+    };
+    if bytes.len() as u64 > budget.max_part_bytes {
+        return Err(ExportError::Budget {
+            part: name.to_string(),
+            limit: budget.max_part_bytes,
+        });
+    }
+    Ok((name.clone(), bytes))
+}
+
+fn splice(xml: &[u8], range: Range<usize>, replacement: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(xml.len() - range.len() + replacement.len());
+    out.extend_from_slice(&xml[..range.start]);
+    out.extend_from_slice(replacement);
+    out.extend_from_slice(&xml[range.end..]);
+    out
+}
+
+fn insert_before_end(xml: &[u8], root: &Element, markup: &str) -> Result<Vec<u8>, ExportError> {
+    let raw = &xml[root.span.clone()];
+    let relative = raw
+        .iter()
+        .rposition(|&byte| byte == b'<')
+        .ok_or_else(|| unsupported(None, "settings element has no end tag"))?;
+    let at = root.span.start + relative;
+    if !xml[at..root.span.end].starts_with(b"</") {
+        return Err(unsupported(None, "settings element has no end tag"));
+    }
+    Ok(splice(xml, at..at, markup.as_bytes()))
 }
 
 fn has_signatures(package: &joyoffice_opc::Package) -> bool {
@@ -480,7 +658,7 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
         || !auxiliary_stories_match(before, after)
         || before.body().kind != after.body().kind
         || !sections_equal
-        || before.settings() != after.settings()
+        || !settings_except_tracking(before.settings(), after.settings())
         || before.numbering() != after.numbering()
         || before.styles().defaults != after.styles().defaults
         || before.styles().theme() != after.styles().theme()
@@ -612,6 +790,8 @@ fn patch_paragraph(
     numbering: &NumberingStore,
     before: &Paragraph,
     after: &Paragraph,
+    before_markers: &[MoveMarker],
+    after_markers: &[MoveMarker],
     scope: &[&Element],
     element: &Element,
     patches: &mut Vec<(Range<usize>, Vec<u8>)>,
@@ -619,6 +799,32 @@ fn patch_paragraph(
     source: &structure::Source<'_>,
 ) -> Result<(), ExportError> {
     let error = |reason| unsupported(Some(before.id()), reason);
+    let revised = before.runs().iter().any(|run| run.revision.is_some())
+        || after.runs().iter().any(|run| run.revision.is_some())
+        || !same_move_markers(before_markers, after_markers);
+    if revised {
+        if !same_paragraph_metadata(before, after)
+            || !before.inlines().is_empty()
+            || !after.inlines().is_empty()
+        {
+            return Err(error(
+                "revision export keeps paragraph properties and refuses inline objects",
+            ));
+        }
+        let mut scope = scope.to_vec();
+        scope.push(element);
+        let names = Names::in_scope(&scope);
+        let bytes = structure::rewrite_revisions(
+            source.bytes(),
+            element,
+            after,
+            after_markers,
+            &names,
+            limit,
+        )?;
+        patches.push((element.span.clone(), bytes));
+        return Ok(());
+    }
     let numbering_changed = before.props.numbering != after.props.numbering;
     if style_assignment_differs(before, after) || numbering_changed {
         structure::style_assignment_ok(styles, before).map_err(error)?;
@@ -964,6 +1170,15 @@ impl Names {
 const PRESERVE: &str = r#" xml:space="preserve">"#;
 
 fn bounded_text_xml(names: &Names, text: &str, limit: u64) -> Result<String, ExportError> {
+    bounded_text_leaf(names, text, "t", limit)
+}
+
+fn bounded_text_leaf(
+    names: &Names,
+    text: &str,
+    leaf: &str,
+    limit: u64,
+) -> Result<String, ExportError> {
     // XML 1.0 §2.2 Char; a tab becomes markup and a carriage return a
     // character reference. Nothing else can stand for the rest.
     if let Some(ch) = text.chars().find(|&ch| {
@@ -979,7 +1194,7 @@ fn bounded_text_xml(names: &Names, text: &str, limit: u64) -> Result<String, Exp
     }
     // Count the exact escaped output before allocating, including tab markup.
     let tab = names.start("tab").len() as u64 + 2;
-    let leaf = (names.start("t").len() + PRESERVE.len() + names.end("t").len()) as u64;
+    let leaf_markup = (names.start(leaf).len() + PRESERVE.len() + names.end(leaf).len()) as u64;
     let mut size = 0u64;
     for (index, part) in text.split('\t').enumerate() {
         if index > 0 {
@@ -988,7 +1203,7 @@ fn bounded_text_xml(names: &Names, text: &str, limit: u64) -> Result<String, Exp
         if part.is_empty() {
             continue;
         }
-        size = size.saturating_add(leaf);
+        size = size.saturating_add(leaf_markup);
         for ch in part.chars() {
             size = size.saturating_add(match ch {
                 '&' => 5,
@@ -1010,10 +1225,10 @@ fn bounded_text_xml(names: &Names, text: &str, limit: u64) -> Result<String, Exp
             limit,
         });
     }
-    Ok(text_xml(names, text))
+    Ok(text_xml_leaf(names, text, leaf))
 }
 
-fn text_xml(names: &Names, text: &str) -> String {
+fn text_xml_leaf(names: &Names, text: &str, leaf: &str) -> String {
     let mut xml = String::new();
     for (index, part) in text.split('\t').enumerate() {
         if index > 0 {
@@ -1023,7 +1238,7 @@ fn text_xml(names: &Names, text: &str) -> String {
         if part.is_empty() {
             continue;
         }
-        xml.push_str(&names.start("t"));
+        xml.push_str(&names.start(leaf));
         xml.push_str(PRESERVE);
         for ch in part.chars() {
             match ch {
@@ -1034,7 +1249,7 @@ fn text_xml(names: &Names, text: &str) -> String {
                 _ => xml.push(ch),
             }
         }
-        xml.push_str(&names.end("t"));
+        xml.push_str(&names.end(leaf));
     }
     xml
 }

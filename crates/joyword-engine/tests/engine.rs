@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use joyword_engine::{
     ChangeSet, Command, CommandError, EditPolicy, Mapped, Origin, Outcome, ParagraphChange,
-    Precondition, RunChange, Selection, Session, Transaction, TxError, UndoError,
+    Precondition, RunChange, Selection, Session, Transaction, TxError, UndoError, UndoGroup,
 };
 use joyword_model::{
     AbstractNum, Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, CellBorders,
@@ -1513,4 +1513,101 @@ fn removing_a_list_is_one_undoable_transaction() {
         command_error(range.unwrap_err()),
         CommandError::NumberingLevel(9)
     ));
+}
+
+fn revision_ids(session: &Session) -> Vec<u32> {
+    session
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .flat_map(|paragraph| paragraph.runs().iter())
+        .filter_map(|run| run.revision.as_ref().map(|mark| mark.id))
+        .collect()
+}
+
+#[test]
+fn user_tracking_accept_and_reject_undo_and_a_mode_switch_seals_typing() {
+    let mut session = Session::new(document(&["ab"]));
+    session.set_revision_date(Some(Arc::from("2026-01-01T00:00:00Z")));
+    session
+        .exec(vec![Command::SetTrackRevisions { enabled: true }])
+        .unwrap();
+    let id = paragraph_ids(&session)[0];
+    let mut typing = Transaction::new(
+        session.version(),
+        vec![Command::InsertText {
+            at: pos(&session, id, 2, Bias::After),
+            text: "c".into(),
+        }],
+    );
+    typing.undo_group = UndoGroup::Typing;
+    typing.selection = Some(Selection::caret(pos(&session, id, 2, Bias::After)));
+    session.apply(typing).unwrap();
+    assert_eq!(texts(&session), vec!["abc"]);
+    assert_eq!(revision_ids(&session), vec![1]);
+    let after_c = Selection::caret(pos(&session, id, 3, Bias::After));
+    let mut more = Transaction::new(
+        session.version(),
+        vec![Command::InsertText {
+            at: pos(&session, id, 3, Bias::After),
+            text: "d".into(),
+        }],
+    );
+    more.undo_group = UndoGroup::Typing;
+    more.selection = Some(after_c);
+    session.apply(more).unwrap();
+    assert_eq!(texts(&session), vec!["abcd"]);
+    assert_eq!(revision_ids(&session), vec![1]);
+
+    session
+        .exec(vec![Command::SetTrackRevisions { enabled: false }])
+        .unwrap();
+    assert_eq!(session.document().settings().track_revisions, Some(false));
+    session.undo().unwrap();
+    assert_eq!(session.document().settings().track_revisions, Some(true));
+    assert_eq!(texts(&session), vec!["abcd"]);
+    session.undo().unwrap();
+    assert_eq!(texts(&session), vec!["ab"]);
+    session.redo().unwrap();
+    assert_eq!(texts(&session), vec!["abcd"]);
+
+    let revision = revision_ids(&session)[0];
+    session
+        .exec(vec![Command::AcceptRevision { id: revision }])
+        .unwrap();
+    assert!(revision_ids(&session).is_empty());
+    assert_eq!(texts(&session), vec!["abcd"]);
+    session.undo().unwrap();
+    assert_eq!(revision_ids(&session), vec![revision]);
+    session
+        .exec(vec![Command::RejectRevision { id: revision }])
+        .unwrap();
+    assert_eq!(texts(&session), vec!["ab"]);
+    session.undo().unwrap();
+    assert_eq!(texts(&session), vec!["abcd"]);
+    session.exec(vec![Command::AcceptAllRevisions]).unwrap();
+    assert!(revision_ids(&session).is_empty());
+    session.undo().unwrap();
+    session.exec(vec![Command::RejectAllRevisions]).unwrap();
+    assert_eq!(texts(&session), vec!["ab"]);
+    session.undo().unwrap();
+    assert_eq!(texts(&session), vec!["abcd"]);
+
+    let mut agent = Transaction::new(
+        session.version(),
+        vec![Command::InsertText {
+            at: pos(&session, paragraph_ids(&session)[0], 4, Bias::After),
+            text: "e".into(),
+        }],
+    );
+    agent.origin = Origin::Agent;
+    session.set_policy(EditPolicy {
+        read_only: false,
+        agent_writes: true,
+    });
+    session.apply(agent).unwrap();
+    assert_eq!(texts(&session), vec!["abcde"]);
+    assert_eq!(revision_ids(&session), vec![revision]);
 }

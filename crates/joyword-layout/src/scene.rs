@@ -26,6 +26,9 @@ pub struct GlyphRun {
     pub italic: bool,
     pub latin_family: Option<Arc<str>>,
     pub east_asia_family: Option<Arc<str>>,
+    /// Fill colour. Black is the ordinary run; review markup sets an author
+    /// colour. Outputs that leave the fill at black can skip a black run.
+    pub color: (u8, u8, u8),
 }
 
 impl GlyphRun {
@@ -41,6 +44,7 @@ impl GlyphRun {
             italic: run.italic,
             latin_family: run.latin_family.clone(),
             east_asia_family: run.east_asia_family.clone(),
+            color: (0, 0, 0),
         }
     }
 
