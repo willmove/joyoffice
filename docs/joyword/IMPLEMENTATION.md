@@ -679,3 +679,13 @@ T210 还把 80% GUI 页面按页宽归一后与 DOCX-MIN-001 的 CPU PNG 对照�
 - **PDF 双阅读器**：`joyword-cli convert` 用 Noto Serif CJK face 2 对 DOCX-SAMPLE-001 写出 1 页 PDF，Poppler `pdftotext -raw -enc UTF-8` 五段与 inspect 投影逐字一致；qpdfview 0.4.17 显示该页并在搜索框高亮「远山」；WPS PDF 12.1.2.1128 显示同一页并报告「精确查找 (1)」。系统打印对话框与真实打印机仍未验证。
 - **发现与修复（栅格断言）**：切换隐藏文字时 debug 构建在 tiny-skia 0.11.4 `scan/hairline_aa.rs:124` 触发 `assertion failed: false`。页面场景中存在 1–2 px 宽、左边缘为分数像素的矩形；该库的覆盖率矩形光栅器在内部整像素宽度归零时断言。`joyword-render::rasterize` 现在把亚 2 px 宽的矩形吸附到整像素边界（至少保留 1 px），不改变 EMU 场景坐标，也保留亚像素下划线的可见性。新增 `narrow_fractional_rects_keep_their_pixels_without_panicking` 覆盖分数相位的竖向与横向矩形；修复后三个视图开关连续切换不再崩溃。
 - **未验证**：国产 CPU+GPU 物理硬件、ARM64／LoongArch64 UOS、Fcitx 接入、系统文件对话框、系统打印、断电、Retina／多显示器。T005 仍为 `in_progress`，按用户 2026-10-18 决策不阻塞开发与发布。
+
+### T110 Linux 元数据切片（2026-10-19）
+
+针对银河麒麟 V10 SP1 记录的两项存储失败做了限定修复。T110 仍为 `in_progress`：精确 ACL、其他命名流、非 NTFS／网络盘和信创真机没有在这一刀验收。
+
+- **`security.*` 不再挡住确认替换**。Linux 上 `security.` 前缀（SELinux、KYSEC 的 `security.ksip`／`security.boxadm`、`security.capability` 等）在 `observe` 里记到 `kernel_xattrs`，不读取、不回写、不进入 `UnpreservableMetadata(ExtendedAttributes)`。新 inode 由内核重新打标；用户态写回这些属性经常是 EPERM，把它们放进必须恢复集合会让普通文件无法替换。`user.*` 仍复制并回读核对，`user.security.note` 不算内核命名空间。macOS 没有这个内核命名空间，同名属性仍按用户属性处理。ACL 与来源标记的原规则不变。
+- **stat→open 的内容复读**。`open_source` 在打开钩子之前按预算读一次，打开后再读两次并与样本逐字节比较，同时仍比较设备、inode、权限、链接数、mtime、ctime，以及平台能提供的 birth time。内核 5.4 的 jiffy 时钟上，同长度改写可以不改变 mtime／ctime；内容不一致时返回 `UnstableRead`，不发基线。测试用线程局部的粗时间戳把 mtime／ctime／birth 压成同一值，证明拒绝来自内容而不是时间戳碰巧前进。Windows 仍用卷序列号、文件 ID 与 100ns 时间；这条复读在各平台上执行，不改变「元数据未变且字节相同则接受」的结果。
+- **相同字节的删除重建**。ext4 会立刻复用 inode 号，且同一 jiffy 内 ctime 与 birth 可以不变。`FS_IOC_GETVERSION` 的 generation 会变，但工作区 `unsafe_code = forbid`，已固定的 rustix 1.1.5 只通过 unsafe `ioctl` 提供该调用，这一刀没有取 generation。`delete_and_recreate_with_identical_bytes_is_an_inode_change` 与 `save_original_reruns_the_full_conflict_verification_itself` 改为等到 inode 或时间戳实际变化再断言冲突。硬链接别名改为写入同长度的不同字节，粗时钟下由内容比较报告 `ContentChanged`。
+- **自动验证**：`cargo fmt -p joyword-shell`；`cargo clippy --locked -p joyword-shell --all-targets -- -D warnings`；`cargo test -p joyword-shell --locked`。本环境是 Linux 6.12 上的 ext4，时间戳在约一个 jiffy 内不前进，因此能复现同长度改写的盲区；不是银河麒麟真机。信创真机未复验。
+

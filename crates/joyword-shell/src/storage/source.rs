@@ -8,15 +8,18 @@
 //! completed verified read.
 //!
 //! The stamp compares exact bytes, not digests, so same-size/same-mtime
-//! content changes are always detected. What it does not do is freeze the
-//! file: the world can change right after `open_source` returns, which is
+//! content changes are always detected on a later check. The baseline read
+//! itself also re-reads the bytes: on Linux 5.4, mtime and ctime advance in
+//! jiffies, so a same-length rewrite between stat and open can leave device,
+//! inode, size and timestamps unchanged. What the stamp does not do is freeze
+//! the file: the world can change right after `open_source` returns, which is
 //! why `check_source` re-verifies and `save_original` verifies again on its
 //! own instead of trusting earlier calls.
 
 use std::ffi::OsStr;
 use std::fmt;
 use std::fs::{self, File};
-use std::io::{self, Read};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -52,6 +55,9 @@ pub(crate) struct UnixIdentity {
     mtime_nanos: i64,
     ctime_secs: i64,
     ctime_nanos: i64,
+    /// Birth time when the platform reports one. Absent when the filesystem
+    /// has no birth timestamp. Compared only as an extra identity signal.
+    birth: Option<std::time::SystemTime>,
 }
 
 #[cfg(unix)]
@@ -91,6 +97,54 @@ fn file_time(value: winsafe::FILETIME) -> u64 {
     (u64::from(value.dwHighDateTime) << 32) | u64::from(value.dwLowDateTime)
 }
 
+#[cfg(all(test, unix))]
+thread_local! {
+    static COARSE_IDENTITY_TIMES: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Collapse mtime, ctime and birth to one value so a test can reproduce a
+/// jiffy clock. Linux 5.4 stores those times at tick granularity; a fast
+/// same-length rewrite then leaves the metadata identity unchanged.
+#[cfg(all(test, unix))]
+fn coarse_identity_times() -> bool {
+    COARSE_IDENTITY_TIMES.with(std::cell::Cell::get)
+}
+
+#[cfg(all(test, unix))]
+struct CoarseIdentityGuard;
+
+#[cfg(all(test, unix))]
+impl CoarseIdentityGuard {
+    fn enter() -> Self {
+        COARSE_IDENTITY_TIMES.with(|cell| cell.set(true));
+        Self
+    }
+}
+
+#[cfg(all(test, unix))]
+impl Drop for CoarseIdentityGuard {
+    fn drop(&mut self) {
+        COARSE_IDENTITY_TIMES.with(|cell| cell.set(false));
+    }
+}
+
+#[cfg(unix)]
+fn unix_times(metadata: &fs::Metadata) -> (i64, i64, i64, i64, Option<std::time::SystemTime>) {
+    use std::os::unix::fs::MetadataExt;
+    // Tests opt in to a jiffy clock. Production keeps the kernel's timestamps.
+    #[cfg(test)]
+    if coarse_identity_times() {
+        return (0, 0, 0, 0, None);
+    }
+    (
+        metadata.mtime(),
+        metadata.mtime_nsec(),
+        metadata.ctime(),
+        metadata.ctime_nsec(),
+        metadata.created().ok(),
+    )
+}
+
 impl SourceIdentity {
     #[cfg(not(windows))]
     pub(crate) fn capture(metadata: &fs::Metadata) -> Self {
@@ -99,6 +153,8 @@ impl SourceIdentity {
             #[cfg(unix)]
             unix: {
                 use std::os::unix::fs::MetadataExt;
+                let (mtime_secs, mtime_nanos, ctime_secs, ctime_nanos, birth) =
+                    unix_times(metadata);
                 UnixIdentity {
                     dev: metadata.dev(),
                     ino: metadata.ino(),
@@ -106,10 +162,11 @@ impl SourceIdentity {
                     nlink: metadata.nlink(),
                     uid: metadata.uid(),
                     gid: metadata.gid(),
-                    mtime_secs: metadata.mtime(),
-                    mtime_nanos: metadata.mtime_nsec(),
-                    ctime_secs: metadata.ctime(),
-                    ctime_nanos: metadata.ctime_nsec(),
+                    mtime_secs,
+                    mtime_nanos,
+                    ctime_secs,
+                    ctime_nanos,
+                    birth,
                 }
             },
             #[cfg(not(unix))]
@@ -248,6 +305,7 @@ impl SourceIdentity {
                 || a.mtime_nanos != b.mtime_nanos
                 || a.ctime_secs != b.ctime_secs
                 || a.ctime_nanos != b.ctime_nanos
+                || a.birth != b.birth
             {
                 return Some(ConflictDetail::TimesChanged);
             }
@@ -386,6 +444,65 @@ fn read_cap(budget: &Budget) -> u64 {
     budget.max_total_bytes
 }
 
+/// Read `path` while `expected` still describes it. The file is closed before
+/// return so a later test hook can replace the bytes.
+fn sample_bytes(
+    path: &Path,
+    expected: &SourceIdentity,
+    limit: u64,
+) -> Result<Vec<u8>, SaveOriginalError> {
+    let fail = |error| SaveOriginalError::io(SourceStage::Stat, path, error);
+    let file = File::open(path).map_err(fail)?;
+    let opened = SourceIdentity::capture_handle(path, &file).map_err(fail)?;
+    if opened != *expected {
+        return Err(SaveOriginalError::UnstableRead {
+            path: path.to_path_buf(),
+        });
+    }
+    let mut bytes = Vec::new();
+    (&file)
+        .take(limit.saturating_add(1))
+        .read_to_end(&mut bytes)
+        .map_err(fail)?;
+    if bytes.len() as u64 > limit {
+        return Err(SaveOriginalError::SourceTooLarge {
+            path: path.to_path_buf(),
+            limit,
+        });
+    }
+    let after_handle = SourceIdentity::capture_handle(path, &file).map_err(fail)?;
+    let after_path = SourceIdentity::capture_path(path).map_err(fail)?;
+    if after_handle != *expected || after_path != *expected || bytes.len() as u64 != expected.len()
+    {
+        return Err(SaveOriginalError::UnstableRead {
+            path: path.to_path_buf(),
+        });
+    }
+    Ok(bytes)
+}
+
+/// Byte-for-byte compare of an open file with `expected`, without keeping a
+/// second copy. A longer file, including one that crosses `limit`, does not
+/// match.
+fn contents_match(file: &File, expected: &[u8], limit: u64) -> io::Result<bool> {
+    let mut reader = file.take(limit.saturating_add(1));
+    let mut buf = [0u8; 8192];
+    let mut offset = 0usize;
+    loop {
+        let n = reader.read(&mut buf)?;
+        if n == 0 {
+            return Ok(offset == expected.len());
+        }
+        let Some(end) = offset.checked_add(n) else {
+            return Ok(false);
+        };
+        if end > expected.len() || buf[..n] != expected[offset..end] {
+            return Ok(false);
+        }
+        offset = end;
+    }
+}
+
 /// Read a source document under `budget`, capturing its bytes and identity.
 ///
 /// Refuses non-regular files, oversized files, existing or undecidable
@@ -448,9 +565,13 @@ fn open_source_inner(
             limit,
         });
     }
+    // First content sample, still inside the stat window and before the
+    // open hook. A same-length rewrite that does not advance coarse
+    // timestamps is visible here as a byte mismatch on the next read.
+    let sampled = sample_bytes(&canonical_path, &before_identity, limit)?;
     before(SourceStage::Open, &canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::Open, &canonical_path, e))?;
-    let file = File::open(&canonical_path)
+    let mut file = File::open(&canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::Open, &canonical_path, e))?;
     let opened_identity = SourceIdentity::capture_handle(&canonical_path, &file)
         .map_err(|e| SaveOriginalError::io(SourceStage::Stat, &canonical_path, e))?;
@@ -461,15 +582,11 @@ fn open_source_inner(
     }
     before(SourceStage::Read, &canonical_path)
         .map_err(|e| SaveOriginalError::io(SourceStage::Read, &canonical_path, e))?;
-    let mut bytes = Vec::with_capacity(before_identity.len() as usize);
-    (&file)
-        .take(limit.saturating_add(1))
-        .read_to_end(&mut bytes)
+    let matches_sample = contents_match(&file, &sampled, limit)
         .map_err(|e| SaveOriginalError::io(SourceStage::Read, &canonical_path, e))?;
-    if bytes.len() as u64 > limit {
-        return Err(SaveOriginalError::SourceTooLarge {
+    if !matches_sample {
+        return Err(SaveOriginalError::UnstableRead {
             path: canonical_path,
-            limit,
         });
     }
     before(SourceStage::Restat, &canonical_path)
@@ -480,13 +597,22 @@ fn open_source_inner(
         .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?;
     if after_handle != before_identity
         || after_path != before_identity
-        || after_handle.len() != bytes.len() as u64
+        || after_handle.len() != sampled.len() as u64
     {
         return Err(SaveOriginalError::UnstableRead {
             path: canonical_path,
         });
     }
-    let bytes: Arc<[u8]> = bytes.into();
+    file.seek(SeekFrom::Start(0))
+        .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?;
+    let matches_again = contents_match(&file, &sampled, limit)
+        .map_err(|e| SaveOriginalError::io(SourceStage::Restat, &canonical_path, e))?;
+    if !matches_again {
+        return Err(SaveOriginalError::UnstableRead {
+            path: canonical_path,
+        });
+    }
+    let bytes: Arc<[u8]> = sampled.into();
     Ok(OpenedSource {
         stamp: SourceStamp {
             given_path: path.to_path_buf(),
@@ -662,8 +788,10 @@ mod tests {
     }
 
     // Outside Unix the identity is length and modification time, so a
-    // same-length rewrite within one clock tick is invisible here; the
-    // byte comparison of every later check still sees changed content.
+    // same-length rewrite within one clock tick is invisible to metadata;
+    // the byte re-read above still refuses it. Unix metadata includes the
+    // inode, but a jiffy clock can hide a same-length rewrite that keeps
+    // the inode.
     #[cfg(unix)]
     #[test]
     fn identity_change_between_stat_and_open_is_not_a_baseline() {
@@ -672,6 +800,50 @@ mod tests {
         let error = open_source_inner(&path, &Budget::default(), |stage, _| {
             if stage == SourceStage::Open {
                 fs::write(&path, b"9876543210")?;
+            }
+            Ok(())
+        })
+        .unwrap_err();
+        assert!(matches!(error, SaveOriginalError::UnstableRead { .. }));
+    }
+
+    /// Metadata timestamps are forced equal, which is what kernel 5.4 does
+    /// for two writes inside one jiffy. The content re-read must still refuse.
+    #[cfg(unix)]
+    #[test]
+    fn same_length_rewrite_with_coarse_timestamps_is_not_a_baseline() {
+        let _coarse = CoarseIdentityGuard::enter();
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_source(dir.path(), "a.docx", b"0123456789");
+        let error = open_source_inner(&path, &Budget::default(), |stage, _| {
+            if stage == SourceStage::Open {
+                fs::write(&path, b"9876543210")?;
+            }
+            Ok(())
+        })
+        .unwrap_err();
+        assert!(matches!(error, SaveOriginalError::UnstableRead { .. }));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn coarse_timestamps_still_accept_an_unchanged_file() {
+        let _coarse = CoarseIdentityGuard::enter();
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_source(dir.path(), "a.docx", b"0123456789");
+        let opened = open_source(&path, &Budget::default()).unwrap();
+        assert_eq!(opened.bytes(), b"0123456789");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn same_length_rewrite_before_restat_with_coarse_timestamps_is_not_a_baseline() {
+        let _coarse = CoarseIdentityGuard::enter();
+        let dir = tempfile::tempdir().unwrap();
+        let path = write_source(dir.path(), "a.docx", b"0123456789");
+        let error = open_source_inner(&path, &Budget::default(), |stage, p| {
+            if stage == SourceStage::Restat {
+                fs::write(p, b"9876543210")?;
             }
             Ok(())
         })

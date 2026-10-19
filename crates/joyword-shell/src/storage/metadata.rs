@@ -7,13 +7,19 @@
 //! is an observation failure and refuses replacement. A platform with no API
 //! reports the item as unobservable instead of guessing that it is absent.
 //!
+//! Linux `security.*` (SELinux, Smack, KYSEC `security.ksip` /
+//! `security.boxadm`) is applied by the kernel to the new inode. Those names
+//! are recorded and are not part of the preservable set: user space often
+//! cannot write them back, and treating that `EPERM` as
+//! `UnpreservableMetadata(ExtendedAttributes)` made every ordinary file
+//! unreplacable. User-namespace attributes stay in the restore set.
+//!
 //! Windows observes creation time, link count and `Zone.Identifier`; the
 //! publish path delegates their preservation to `ReplaceFileW` and verifies
 //! the observable values after replacement. Ownership, ACLs and other named
 //! streams remain in the explicit confirmation list. The provenance stream is
 //! read through a length cap so a huge stream cannot exhaust memory.
 
-#[cfg(unix)]
 use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::io;
@@ -29,7 +35,10 @@ const MAX_TOTAL: usize = 4 << 20;
 #[derive(Clone, Debug)]
 pub(crate) struct ObservedMetadata {
     pub losses: Vec<ReplacementBlocker>,
+    /// Attributes the publish path must copy onto the replacement.
     pub xattrs: Vec<(OsString, Vec<u8>)>,
+    /// Linux `security.*` names. Observed, not restored, and not a blocker.
+    pub kernel_xattrs: Vec<OsString>,
 }
 
 pub(crate) fn observe(path: &Path) -> Result<ObservedMetadata, io::Error> {
@@ -75,7 +84,11 @@ fn observe_platform(path: &Path) -> Result<ObservedMetadata, io::Error> {
         Err(error) if error.kind() == ErrorKind::NotFound => {}
         Err(error) => return Err(error),
     }
-    Ok(ObservedMetadata { losses, xattrs })
+    Ok(ObservedMetadata {
+        losses,
+        xattrs,
+        kernel_xattrs: Vec::new(),
+    })
 }
 
 /// Other targets have no reviewed observation API: prove the source exists
@@ -93,6 +106,7 @@ fn observe_platform(path: &Path) -> Result<ObservedMetadata, io::Error> {
             ReplacementBlocker::UnobservableMetadata(MetadataItem::ProvenanceMarks),
         ],
         xattrs: Vec::new(),
+        kernel_xattrs: Vec::new(),
     })
 }
 
@@ -100,12 +114,20 @@ fn observe_platform(path: &Path) -> Result<ObservedMetadata, io::Error> {
 fn observe_unix(path: &Path) -> Result<ObservedMetadata, io::Error> {
     let mut losses = Vec::new();
     let mut xattrs = Vec::new();
+    let mut kernel_xattrs = Vec::new();
     let mut total = 0usize;
     let mut xattr_loss = false;
     let mut acl_from_xattr = false;
     for name in xattr::list(path)? {
         if is_acl_name(&name) {
             acl_from_xattr = true;
+            continue;
+        }
+        if is_kernel_security_xattr(&name) {
+            // Do not read or copy. `get`/`set` of KYSEC and SELinux labels
+            // fails with EPERM for ordinary processes, which would refuse
+            // replacement of every file on those systems.
+            kernel_xattrs.push(name);
             continue;
         }
         let provenance = is_provenance(&name);
@@ -154,7 +176,17 @@ fn observe_unix(path: &Path) -> Result<ObservedMetadata, io::Error> {
         ),
         Err(error) => return Err(error),
     }
-    Ok(ObservedMetadata { losses, xattrs })
+    Ok(ObservedMetadata {
+        losses,
+        xattrs,
+        kernel_xattrs,
+    })
+}
+
+/// `names` contains only kernel-managed security attributes, so dropping
+/// them from the restore set cannot hide a user attribute.
+pub(crate) fn kernel_xattrs_are_security_namespace(names: &[OsString]) -> bool {
+    names.iter().all(|name| is_kernel_security_xattr(name))
 }
 
 #[cfg(unix)]
@@ -163,6 +195,9 @@ pub(crate) fn restore_xattrs(
     xattrs: &[(OsString, Vec<u8>)],
 ) -> Result<(), MetadataItem> {
     for (name, value) in xattrs {
+        if is_kernel_security_xattr(name) {
+            continue;
+        }
         let item = if is_provenance(name) {
             MetadataItem::ProvenanceMarks
         } else {
@@ -192,6 +227,22 @@ fn is_provenance(name: &OsStr) -> bool {
 #[cfg(unix)]
 fn is_acl_name(name: &OsStr) -> bool {
     name == OsStr::new("system.posix_acl_access") || name == OsStr::new("system.posix_acl_default")
+}
+
+/// Linux kernel xattr namespace. The prefix is the namespace, so
+/// `user.security.note` stays preservable. Other Unix platforms have no
+/// such kernel namespace; a literal `security.*` name there is user data.
+pub(crate) fn is_kernel_security_xattr(name: &OsStr) -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        name.as_bytes().starts_with(b"security.")
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = name;
+        false
+    }
 }
 
 #[cfg(unix)]
@@ -306,5 +357,100 @@ mod tests {
         std::fs::remove_file(&stream).unwrap();
         let observed = observe(&path).unwrap();
         assert!(observed.xattrs.is_empty());
+        assert!(observed.kernel_xattrs.is_empty());
+    }
+
+    #[test]
+    fn security_namespace_is_kernel_managed_only_on_linux() {
+        assert_eq!(
+            is_kernel_security_xattr(OsStr::new("security.selinux")),
+            cfg!(target_os = "linux")
+        );
+        assert_eq!(
+            is_kernel_security_xattr(OsStr::new("security.ksip")),
+            cfg!(target_os = "linux")
+        );
+        assert_eq!(
+            is_kernel_security_xattr(OsStr::new("security.boxadm")),
+            cfg!(target_os = "linux")
+        );
+        assert_eq!(
+            is_kernel_security_xattr(OsStr::new("security.capability")),
+            cfg!(target_os = "linux")
+        );
+        assert!(!is_kernel_security_xattr(OsStr::new("user.joyword-m1")));
+        assert!(!is_kernel_security_xattr(OsStr::new("user.security.note")));
+        assert!(!is_kernel_security_xattr(OsStr::new("security")));
+        assert!(!is_kernel_security_xattr(OsStr::new(
+            "com.apple.quarantine"
+        )));
+        assert!(kernel_xattrs_are_security_namespace(&[]));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn non_utf8_security_prefix_is_kernel_managed() {
+        use std::os::unix::ffi::OsStrExt;
+        let name = OsStr::from_bytes(b"security.ksip\xff");
+        assert!(is_kernel_security_xattr(name));
+        assert!(!is_kernel_security_xattr(OsStr::from_bytes(
+            b"user.security\xff"
+        )));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_security_xattrs_are_observed_and_not_queued_for_restore() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("report.docx");
+        std::fs::write(&path, b"0123456789").unwrap();
+        xattr::set(&path, "user.joyword-m1", b"kept").unwrap();
+        xattr::set(&path, "user.security.note", b"also").unwrap();
+        let marker = b"v";
+        let planted = xattr::set(&path, "security.selinux", marker).is_ok();
+        let observed = observe(&path).unwrap();
+        assert!(
+            observed
+                .xattrs
+                .iter()
+                .any(|(name, value)| name == "user.joyword-m1" && value == b"kept")
+        );
+        assert!(
+            observed
+                .xattrs
+                .iter()
+                .any(|(name, value)| name == "user.security.note" && value == b"also")
+        );
+        assert!(
+            observed
+                .xattrs
+                .iter()
+                .all(|(name, _)| !is_kernel_security_xattr(name))
+        );
+        assert!(kernel_xattrs_are_security_namespace(
+            &observed.kernel_xattrs
+        ));
+        assert!(!observed.losses.iter().any(|loss| matches!(
+            loss,
+            ReplacementBlocker::UnpreservableMetadata(MetadataItem::ExtendedAttributes)
+        )));
+        if planted {
+            assert!(
+                observed
+                    .kernel_xattrs
+                    .iter()
+                    .any(|name| name == "security.selinux")
+            );
+        }
+        if let Ok(listed) = xattr::list(&path) {
+            for name in listed {
+                if is_kernel_security_xattr(&name) {
+                    assert!(
+                        observed.kernel_xattrs.iter().any(|got| got == &name),
+                        "{name:?}"
+                    );
+                }
+            }
+        }
     }
 }

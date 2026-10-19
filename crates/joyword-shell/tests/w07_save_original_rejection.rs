@@ -131,9 +131,28 @@ fn save_original_reruns_the_full_conflict_verification_itself() {
     #[cfg(unix)]
     {
         use joyword_shell::storage::ConflictDetail;
+        use std::os::unix::fs::MetadataExt;
         let stamp = open_source(&path, &Budget::default()).unwrap().into_stamp();
-        fs::remove_file(&path).unwrap();
-        fs::write(&path, &bytes).unwrap();
+        // Identical bytes on a reused inode are invisible until ctime or the
+        // inode number moves. Wait out one jiffy so the re-check has a signal.
+        let before = std::fs::metadata(&path).unwrap();
+        let mut moved = false;
+        for _ in 0..40 {
+            std::thread::sleep(std::time::Duration::from_millis(25));
+            fs::remove_file(&path).unwrap();
+            fs::write(&path, &bytes).unwrap();
+            let after = std::fs::metadata(&path).unwrap();
+            moved = before.dev() != after.dev()
+                || before.ino() != after.ino()
+                || before.mtime() != after.mtime()
+                || before.mtime_nsec() != after.mtime_nsec()
+                || before.ctime() != after.ctime()
+                || before.ctime_nsec() != after.ctime_nsec();
+            if moved {
+                break;
+            }
+        }
+        assert!(moved, "inode and timestamps did not change across a jiffy");
         let error = save_original(&edited_plan(1), &stamp).unwrap_err();
         // ext4 and tmpfs may reuse the freed inode number at once.
         assert!(
