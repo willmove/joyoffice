@@ -16,8 +16,8 @@ use joyword_model::{
 };
 
 use crate::dialogs::{
-    FontDraft, ParagraphDraft, RulerDrag, dragged_indent, dragged_tabs, font_commands,
-    inherited_custom_tabs, paragraph_commands,
+    FontDraft, ParagraphDraft, RulerDrag, TableDraft, dragged_indent, dragged_tabs, font_commands,
+    inherited_custom_tabs, paragraph_commands, table_property_commands,
 };
 use std::collections::BTreeMap;
 use std::fmt;
@@ -1756,6 +1756,15 @@ impl<B: InputBackend> TextInput<B> {
         let (commands, notes) = font_commands(draft, start, end).map_err(InputError::Rejected)?;
         self.apply_commands(commands)?;
         Ok(notes)
+    }
+
+    /// Table properties dialog. Cancel never calls this. An empty draft does
+    /// not open a transaction. A non-empty draft is one undo step.
+    pub fn apply_table_properties(&mut self, draft: &TableDraft) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let commands =
+            table_property_commands(draft, self.selection.head).map_err(InputError::Rejected)?;
+        self.apply_commands(commands)
     }
 
     /// Paragraph dialog apply for every paragraph the selection touches.

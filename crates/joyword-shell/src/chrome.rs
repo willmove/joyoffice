@@ -24,8 +24,8 @@ use crate::command::{
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
     PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE,
     REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
-    REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, VIEW_FIELD_CODES,
-    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, TABLE_PROPERTIES,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -488,6 +488,17 @@ pub const RIBBON: &[RibbonControl] = &[
         label: "command.page.break",
         icon: "page-break",
         args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_PROPERTIES,
+        label: "command.table.properties",
+        icon: "table",
+        args: RibbonArgs::Dialog,
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
@@ -1319,6 +1330,10 @@ const ICONS: &[(&str, &str)] = &[
     (
         "picture",
         "................|................|...##########...|...#........#...|...#..####..#...|...#..#..#..#...|...#..####..#...|...#........#...|...#..##....#...|...#........#...|...##########...|................|................|................|................|................",
+    ),
+    (
+        "table",
+        "................|................|..############..|..#.....#....#..|..#.....#....#..|..############..|..#.....#....#..|..#.....#....#..|..############..|..#.....#....#..|..#.....#....#..|..############..|................|................|................|................",
     ),
     (
         "page-break",

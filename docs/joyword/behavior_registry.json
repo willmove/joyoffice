@@ -234,6 +234,14 @@
       "word_observation": null
     },
     {
+      "id": "TABLE-PROPERTIES-UNDO",
+      "operation": "对插入点所在表设置表宽、对齐、表级单元格边距和单元格边框",
+      "expectation": "一次撤销恢复设置前的表宽、对齐、边距和边框；越界宽度拒绝且文档不变",
+      "source": "hypothesis",
+      "test": "setting_table_properties_is_one_undoable_transaction",
+      "word_observation": null
+    },
+    {
       "id": "TABLE-SPLIT-UNDO",
       "operation": "拆开垂直合并，或在没有垂直合并时拆开水平跨列",
       "expectation": "一次撤销恢复拆分前的合并；文字留在起始单元格；未合并的单元格拒绝拆分且不改变文档",

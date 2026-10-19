@@ -12,9 +12,9 @@ use joyword_layout::{
 };
 use joyword_model::{
     Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Document,
-    EqualColumns, Measure, Paragraph, Row, RunProps, Shading, Style, StyleId, StyleKind, Table,
-    TableAlign, TableCondition, TableConditional, TableFormat, TableLayoutKind, TableLook,
-    ThemeColorSlot, ThemeScheme, VerticalMerge,
+    EqualColumns, Measure, Paragraph, Row, RowHeight, RowHeightRule, RunProps, Shading, Style,
+    StyleId, StyleKind, Table, TableAlign, TableCondition, TableConditional, TableFormat,
+    TableLayoutKind, TableLook, ThemeColorSlot, ThemeScheme, VerticalAlign, VerticalMerge,
 };
 
 fn pt(value: i64) -> Emu {
@@ -1003,4 +1003,92 @@ fn fixed_layout_does_not_shrink_and_centre_uses_the_leftover() {
     );
     let left_x = lay(&left_table).pages()[0].runs[0].origin_x.raw();
     assert_eq!(centred - left_x, 1_753 * Emu::PER_TWIP);
+}
+
+#[test]
+fn at_least_centers_the_line_exact_omits_it_and_auto_ignores_val() {
+    let zero = CellMargins {
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+    };
+    let mut document = Document::new_blank();
+    let letter = text_paragraph(&mut document, "A");
+    let mut cell = plain_cell(&mut document, vec![letter], 1, VerticalMerge::None, None);
+    cell.margin = Some(zero);
+    cell.borders.bottom = Some(BorderEdge {
+        kind: BorderKind::Single,
+        size_eighths: 8,
+        color: Color::Auto,
+    });
+    let table_row = row(&mut document, vec![cell], false, false);
+    install_table(&mut document, vec![table_row], 1, Some(zero));
+    let body = document.body_id();
+    let top_base = lay(&document).pages()[0].runs[0].baseline_y.raw();
+
+    let set = |document: &mut Document, height: Option<RowHeight>, align: Option<VerticalAlign>| {
+        document.story_mut(body).unwrap().blocks.update(0, |block| {
+            let Block::Table(table) = block else {
+                panic!("table");
+            };
+            let table = Arc::make_mut(table);
+            table.rows[0].height = height;
+            table.rows[0].cells[0].vertical_align = align;
+        });
+    };
+    set(
+        &mut document,
+        Some(RowHeight {
+            twips: 1_440,
+            rule: RowHeightRule::AtLeast,
+        }),
+        Some(VerticalAlign::Center),
+    );
+    let centered = lay(&document).pages()[0].runs[0].baseline_y.raw();
+    let line = 18 * Emu::PER_POINT;
+    let border = Emu::PER_POINT;
+    let row_height = 1_440 * Emu::PER_TWIP;
+    let slack = row_height - border - line;
+    assert!(slack > 0);
+    assert_eq!(centered - top_base, slack / 2);
+
+    set(
+        &mut document,
+        Some(RowHeight {
+            twips: 1_440,
+            rule: RowHeightRule::AtLeast,
+        }),
+        Some(VerticalAlign::Bottom),
+    );
+    let bottom = lay(&document).pages()[0].runs[0].baseline_y.raw();
+    assert_eq!(bottom - top_base, slack);
+
+    set(
+        &mut document,
+        Some(RowHeight {
+            twips: 9_000,
+            rule: RowHeightRule::Auto,
+        }),
+        Some(VerticalAlign::Top),
+    );
+    assert_eq!(lay(&document).pages()[0].runs[0].baseline_y.raw(), top_base);
+
+    set(
+        &mut document,
+        Some(RowHeight {
+            twips: 200,
+            rule: RowHeightRule::Exact,
+        }),
+        Some(VerticalAlign::Center),
+    );
+    let exact = lay(&document);
+    assert!(exact.pages()[0].runs.is_empty());
+    let border_y = exact.geometry().top.raw() + 200 * Emu::PER_TWIP - border;
+    assert!(
+        exact.pages()[0]
+            .rects
+            .iter()
+            .any(|rect| rect.y.raw() == border_y && rect.height.raw() == border)
+    );
 }

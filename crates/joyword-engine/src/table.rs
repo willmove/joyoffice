@@ -6,10 +6,11 @@ use std::sync::Arc;
 
 use joyword_model::{
     Bias, Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, Color, Document, Measure,
-    NodeId, Paragraph, Position, Row, ScalarOffset, StoryId, StoryKind, Table, VerticalMerge,
+    NodeId, Paragraph, Position, Row, ScalarOffset, StoryId, StoryKind, Table, TableWidth,
+    VerticalMerge,
 };
 
-use crate::command::{CommandError, TableMerge, TableStructure};
+use crate::command::{CommandError, TableMerge, TablePropertyChange, TableStructure};
 use crate::locate::{self, Step};
 use crate::map::{MapStep, PositionMap, Selection};
 use crate::session::ChangeSet;
@@ -390,6 +391,122 @@ pub(crate) fn split_cell(
     split_horizontal(
         document, story, site.index, table_id, row_index, cell_index, changes,
     )
+}
+
+/// Writes table width, alignment, table cell margins and direct cell borders.
+/// One call changes the table or leaves it untouched. `w:tblGrid` is not
+/// rewritten. Per-cell `w:tcMar` is not cleared.
+pub(crate) fn set_properties(
+    document: &mut Document,
+    at: &Position,
+    change: &TablePropertyChange,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    if change.is_empty() {
+        return Err(CommandError::TableProperties("table properties are empty"));
+    }
+    check_property_change(change)?;
+    let site = site(document, at)?;
+    let story = at.story;
+    let table_id = site.table;
+    let paragraphs = {
+        let table = table_mut(document, story, site.index, table_id)?;
+        if table.preserved.is_some() {
+            return Err(refuse(table_id, TableStructure::Preserved));
+        }
+        for row in &table.rows {
+            if row.preserved.is_some() {
+                return Err(refuse(table_id, TableStructure::Preserved));
+            }
+            for cell in &row.cells {
+                if cell.preserved.is_some() {
+                    return Err(refuse(table_id, TableStructure::Preserved));
+                }
+            }
+        }
+        if let Some(width) = change.width {
+            table.width = Some(width);
+        }
+        if let Some(alignment) = change.alignment {
+            table.alignment = Some(alignment);
+        }
+        if let Some(margin) = change.cell_margin {
+            table.cell_margin = Some(margin);
+        }
+        if let Some(borders) = change.borders {
+            for row in &mut table.rows {
+                for cell in &mut row.cells {
+                    cell.borders = borders;
+                }
+            }
+        }
+        table
+            .rows
+            .iter()
+            .flat_map(|row| row.cells.iter().flat_map(paragraph_ids_of_cell))
+            .collect::<Vec<_>>()
+    };
+    note_table(changes, story, table_id, &[], &[]);
+    changes.paragraphs.extend(paragraphs);
+    Ok(())
+}
+
+/// Twenty-two inches, the same direct-length limit as paragraph indents.
+const MAX_PROPERTY_TWIPS: i64 = 22 * 1_440;
+/// 1000% in fiftieths of a percent. Larger percentages stay outside the dialog.
+const MAX_PROPERTY_PCT: i64 = 50_000;
+
+fn check_property_change(change: &TablePropertyChange) -> Result<(), CommandError> {
+    if let Some(width) = change.width {
+        match width {
+            TableWidth::Auto => {}
+            TableWidth::Dxa(value) if (1..=MAX_PROPERTY_TWIPS).contains(&value) => {}
+            TableWidth::Pct(value) if (1..=MAX_PROPERTY_PCT).contains(&value) => {}
+            TableWidth::Dxa(_) | TableWidth::Pct(_) => {
+                return Err(CommandError::TableProperties("table width is out of range"));
+            }
+        }
+    }
+    if let Some(margin) = change.cell_margin {
+        for value in [margin.top, margin.left, margin.bottom, margin.right] {
+            if !(0..=MAX_PROPERTY_TWIPS).contains(&value) {
+                return Err(CommandError::TableProperties(
+                    "table cell margin is out of range",
+                ));
+            }
+        }
+    }
+    if let Some(borders) = change.borders {
+        for edge in [borders.top, borders.left, borders.bottom, borders.right]
+            .into_iter()
+            .flatten()
+        {
+            check_border(edge)?;
+        }
+    }
+    Ok(())
+}
+
+fn check_border(edge: BorderEdge) -> Result<(), CommandError> {
+    let size_ok = match edge.kind {
+        BorderKind::Nil => edge.size_eighths <= 255,
+        BorderKind::Single
+        | BorderKind::Double
+        | BorderKind::Dotted
+        | BorderKind::Dashed
+        | BorderKind::Thick => (1..=255).contains(&edge.size_eighths),
+    };
+    let color_ok = matches!(
+        edge.color,
+        Color::Auto | Color::Rgb(_, _, _) | Color::Theme { .. }
+    );
+    if size_ok && color_ok {
+        Ok(())
+    } else {
+        Err(CommandError::TableProperties(
+            "table border is outside the typed subset",
+        ))
+    }
 }
 
 fn merge_right(

@@ -536,6 +536,7 @@ pub const TABLE_SELECT: CommandId = CommandId("table.select");
 pub const TABLE_MERGE_RIGHT: CommandId = CommandId("table.merge.right");
 pub const TABLE_MERGE_DOWN: CommandId = CommandId("table.merge.down");
 pub const TABLE_SPLIT: CommandId = CommandId("table.split");
+pub const TABLE_PROPERTIES: CommandId = CommandId("table.properties");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");

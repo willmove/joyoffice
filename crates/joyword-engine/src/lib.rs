@@ -17,7 +17,8 @@ mod session;
 mod table;
 
 pub use command::{
-    Command, CommandError, ParagraphChange, Precondition, RunChange, TableMerge, TableStructure,
+    Command, CommandError, ParagraphChange, Precondition, RunChange, TableMerge,
+    TablePropertyChange, TableStructure,
 };
 pub use find::{
     FindError, FindHit, FindQuery, FindReport, MAX_HITS, MAX_QUERY_SCALARS,

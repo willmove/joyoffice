@@ -7,9 +7,9 @@ use std::fmt;
 use std::sync::Arc;
 
 use joyword_model::{
-    Color, FontRef, Hyperlink, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef,
-    PageSetup, Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TabStop, TextError,
-    Toggle, Underline,
+    CellBorders, CellMargins, Color, FontRef, Hyperlink, Indent, InlineKind, Justification,
+    Measure, NodeId, NumberingRef, PageSetup, Position, RunProps, ScalarOffset, Spacing, StoryId,
+    StyleId, TabStop, TableAlign, TableWidth, TextError, Toggle, Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -124,6 +124,12 @@ pub enum Command {
     SplitTableCell {
         at: Position,
     },
+    /// Sets table width, alignment, cell margins and direct cell borders.
+    /// Absent fields stay as they are. One command is one undo step.
+    SetTableProperties {
+        at: Position,
+        change: TablePropertyChange,
+    },
     /// Replaces one section's page size, margins and orientation.
     SetPageSetup {
         section: NodeId,
@@ -212,6 +218,29 @@ pub enum TableMerge {
     Down,
 }
 
+/// Table-level properties the dialog can write in one transaction.
+///
+/// `None` leaves that property. Borders replace every cell's direct
+/// `w:tcBorders`. This subset has no `w:tblBorders`, so a table border is
+/// stored on the cells. Width does not rewrite `w:tblGrid`; placement still
+/// scales columns from `w:tblW`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TablePropertyChange {
+    pub width: Option<TableWidth>,
+    pub alignment: Option<TableAlign>,
+    pub cell_margin: Option<CellMargins>,
+    pub borders: Option<CellBorders>,
+}
+
+impl TablePropertyChange {
+    pub fn is_empty(&self) -> bool {
+        self.width.is_none()
+            && self.alignment.is_none()
+            && self.cell_margin.is_none()
+            && self.borders.is_none()
+    }
+}
+
 /// Why a merge or split left the table unchanged.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TableStructure {
@@ -298,6 +327,8 @@ pub enum CommandError {
     RevisionConflict,
     /// The editor refused to store this hyperlink. The text is not a URL.
     Hyperlink(&'static str),
+    /// Width, margin or border values are outside the typed subset.
+    TableProperties(&'static str),
 }
 
 impl fmt::Display for TableStructure {
@@ -374,6 +405,7 @@ impl fmt::Display for CommandError {
             }
             CommandError::RevisionConflict => f.write_str("revision conflict"),
             CommandError::Hyperlink(reason) => f.write_str(reason),
+            CommandError::TableProperties(reason) => f.write_str(reason),
         }
     }
 }

@@ -2,25 +2,29 @@
 //! §17.4.66 `tr`, §17.4.64 `tc`, §17.4.17 `gridSpan`, §17.4.84 `vMerge`,
 //! §17.4.73 `tcW`, §17.3.4 borders, §17.4.43 `tblCellMar`, §17.4.68 `tcMar`,
 //! §17.4.6 `cantSplit`, §17.4.49 `tblHeader`, §17.4.52 `tblLayout`,
-//! §17.4.28 `jc`, §17.4.50 `tblInd`, §17.4.56 `tblLook`, §17.18.2 border
-//! styles `nil` / `single` / `double` / `dotted` / `dashed` / `thick`).
+//! §17.4.28 `jc`, §17.4.50 `tblInd`, §17.4.56 `tblLook`, §17.4.80 `trHeight`,
+//! §17.4.83 `vAlign`, §17.18.2 border styles `nil` / `single` / `double` /
+//! `dotted` / `dashed` / `thick`, §17.18.37 `ST_HeightRule`).
 //!
 //! A table is mapped only when every element and attribute is represented and
-//! placed. Nested tables, `trHeight`, `vAlign`, format and structure revisions,
-//! bookmarks, theme tint or shade, and any other border style return `None`.
-//! A plain `w:ins`, `w:del`, `w:moveFrom` or `w:moveTo` around typed runs is
-//! a text revision on those runs. `w:tblLook` is stored. The caller preserves
-//! the whole `w:tbl` byte range. This parser allocates no identifiers and
-//! records no fragments, so a refusal leaves the document untouched.
+//! placed. Nested tables, `vAlign` `both`, a non-positive `exact` row height,
+//! format and structure revisions, bookmarks, theme tint or shade, and any
+//! other border style return `None`. A plain `w:ins`, `w:del`, `w:moveFrom`
+//! or `w:moveTo` around typed runs is a text revision on those runs.
+//! `w:tblLook`, `top` / `center` / `bottom` and `auto` / `atLeast` / positive
+//! `exact` are stored. The caller preserves the whole `w:tbl` byte range.
+//! This parser allocates no identifiers and records no fragments, so a
+//! refusal leaves the document untouched.
 
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
     BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
-    OBJECT_MARKER, ParaProps, Paragraph, RevisionKind, Row, RunProps, Shading, Spacing, Style,
-    StyleId, Table, TableAlign, TableCondition, TableConditional, TableFormat, TableLayoutKind,
-    TableLook, TableWidth, TextRevision, ThemeColorSlot, VerticalMerge,
+    OBJECT_MARKER, ParaProps, Paragraph, RevisionKind, Row, RowHeight, RowHeightRule, RunProps,
+    Shading, Spacing, Style, StyleId, Table, TableAlign, TableCondition, TableConditional,
+    TableFormat, TableLayoutKind, TableLook, TableWidth, TextRevision, ThemeColorSlot,
+    VerticalAlign, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -43,6 +47,7 @@ struct CellProps {
     borders: CellBorders,
     shading: Option<Shading>,
     margin: Option<CellMargins>,
+    vertical_align: Option<VerticalAlign>,
 }
 
 struct DraftCell {
@@ -52,6 +57,7 @@ struct DraftCell {
     borders: CellBorders,
     shading: Option<Shading>,
     margin: Option<CellMargins>,
+    vertical_align: Option<VerticalAlign>,
     paragraphs: Vec<DraftParagraph>,
 }
 
@@ -60,6 +66,7 @@ struct DraftRow {
     after: u32,
     header: bool,
     cant_split: bool,
+    height: Option<RowHeight>,
     cells: Vec<DraftCell>,
 }
 
@@ -118,7 +125,7 @@ fn build(
                 borders: cell.borders,
                 shading: cell.shading,
                 margin: cell.margin,
-                vertical_align: None,
+                vertical_align: cell.vertical_align,
                 blocks: BlockSeq::from_vec(blocks),
                 preserved: None,
             });
@@ -130,7 +137,7 @@ fn build(
             cells,
             header: row.header,
             cant_split: row.cant_split,
-            height: None,
+            height: row.height,
             preserved: None,
         });
     }
@@ -449,12 +456,13 @@ fn parse_row(element: &Element) -> Option<DraftRow> {
     let mut after = 0u32;
     let mut header = false;
     let mut cant_split = false;
+    let mut height = None;
     let mut saw_pr = false;
     let mut cells = Vec::new();
     for child in element.elements() {
         if child.is(W, "trPr") && !saw_pr && cells.is_empty() {
             saw_pr = true;
-            (before, after, header, cant_split) = parse_tr_pr(child)?;
+            (before, after, header, cant_split, height) = parse_tr_pr(child)?;
         } else if child.is(W, "tc") {
             cells.push(parse_cell(child)?);
         } else {
@@ -466,11 +474,12 @@ fn parse_row(element: &Element) -> Option<DraftRow> {
         after,
         header,
         cant_split,
+        height,
         cells,
     })
 }
 
-fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool)> {
+fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool, Option<RowHeight>)> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -478,6 +487,7 @@ fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool)> {
     let mut after = None;
     let mut header = None;
     let mut cant_split = None;
+    let mut height = None;
     for child in element.elements() {
         if child.is(W, "gridBefore") && before.is_none() {
             before = Some(decimal_val(child)?);
@@ -487,6 +497,8 @@ fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool)> {
             cant_split = Some(on_off_element(child)?);
         } else if child.is(W, "tblHeader") && header.is_none() {
             header = Some(on_off_element(child)?);
+        } else if child.is(W, "trHeight") && height.is_none() {
+            height = Some(parse_row_height(child)?);
         } else {
             return None;
         }
@@ -496,7 +508,36 @@ fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool)> {
         after.unwrap_or(0),
         header.unwrap_or(false),
         cant_split.unwrap_or(false),
+        height,
     ))
+}
+
+/// `w:trHeight` (ECMA-376 §17.4.80). An omitted `w:hRule` is `auto`
+/// (§17.18.37), and `auto` does not use `w:val` when the row is placed.
+/// An omitted `w:val` is stored as 0. `atLeast` refuses a negative value.
+/// `exact` refuses a missing or non-positive value so this slice does not
+/// invent a zero-height row.
+fn parse_row_height(element: &Element) -> Option<RowHeight> {
+    if !only_word_attributes(element, &["val", "hRule"]) || !text_is_space(element) {
+        return None;
+    }
+    let rule = match element.attribute(Some(W), "hRule") {
+        None | Some("auto") => RowHeightRule::Auto,
+        Some("atLeast") => RowHeightRule::AtLeast,
+        Some("exact") => RowHeightRule::Exact,
+        Some(_) => return None,
+    };
+    let twips = match element.attribute(Some(W), "val") {
+        None => 0,
+        Some(_) => integer_attr(element, "val")?,
+    };
+    match rule {
+        RowHeightRule::Auto => {}
+        RowHeightRule::AtLeast if twips >= 0 => {}
+        RowHeightRule::Exact if twips > 0 => {}
+        RowHeightRule::AtLeast | RowHeightRule::Exact => return None,
+    }
+    Some(RowHeight { twips, rule })
 }
 
 fn parse_cell(element: &Element) -> Option<DraftCell> {
@@ -509,6 +550,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
     let mut borders = CellBorders::default();
     let mut shading = None;
     let mut margin = None;
+    let mut vertical_align = None;
     let mut saw_pr = false;
     let mut paragraphs = Vec::new();
     for child in element.elements() {
@@ -521,6 +563,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
             borders = props.borders;
             shading = props.shading;
             margin = props.margin;
+            vertical_align = props.vertical_align;
         } else if child.is(W, "p") {
             paragraphs.push(parse_paragraph(child)?);
         } else {
@@ -537,6 +580,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
         borders,
         shading,
         margin,
+        vertical_align,
         paragraphs,
     })
 }
@@ -551,6 +595,7 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
     let mut borders = None;
     let mut shading = None;
     let mut margin = None;
+    let mut vertical_align = None;
     for child in element.elements() {
         if child.is(W, "gridSpan") && span.is_none() {
             let value = decimal_val(child)?;
@@ -568,6 +613,8 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
             shading = Some(parse_shading(child)?);
         } else if child.is(W, "tcMar") && margin.is_none() {
             margin = Some(parse_cell_margins(child)?);
+        } else if child.is(W, "vAlign") && vertical_align.is_none() {
+            vertical_align = Some(parse_valign(child)?);
         } else {
             return None;
         }
@@ -579,7 +626,23 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
         borders: borders.unwrap_or_default(),
         shading,
         margin,
+        vertical_align,
     })
+}
+
+/// `w:vAlign` (ECMA-376 §17.4.83). `both` is vertical justification and stays
+/// outside this subset, so the whole table remains opaque. An omitted `w:val`
+/// is also refused: this slice does not substitute `top`.
+fn parse_valign(element: &Element) -> Option<VerticalAlign> {
+    if !only_word_attributes(element, &["val"]) || !text_is_space(element) {
+        return None;
+    }
+    match element.attribute(Some(W), "val")? {
+        "top" => Some(VerticalAlign::Top),
+        "center" => Some(VerticalAlign::Center),
+        "bottom" => Some(VerticalAlign::Bottom),
+        _ => None,
+    }
 }
 
 fn parse_vmerge(element: &Element) -> Option<VerticalMerge> {

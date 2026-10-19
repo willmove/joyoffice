@@ -710,6 +710,9 @@ fn execute(
             crate::table::merge_cells(document, at, *direction, changes)
         }
         Command::SplitTableCell { at } => crate::table::split_cell(document, at, changes),
+        Command::SetTableProperties { at, change } => {
+            crate::table::set_properties(document, at, change, changes)
+        }
         Command::SetPageSetup { section, page } => {
             set_page_setup(document, *section, page, changes)
         }

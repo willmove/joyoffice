@@ -371,8 +371,8 @@ fn cell_margins_borders_and_percentage_widths_round_trip_after_an_edit() {
 
     for extra in [
         r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>外</w:t></w:r></w:p><w:tbl><w:tblGrid><w:gridCol w:w="500"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>内</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>"#,
-        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="400" w:hRule="exact"/></w:trPr><w:tc><w:p><w:r><w:t>高</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
-        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p><w:r><w:t>中</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="0" w:hRule="exact"/></w:trPr><w:tc><w:p><w:r><w:t>高</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:vAlign w:val="both"/></w:tcPr><w:p><w:r><w:t>中</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
         r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcBorders><w:top w:val="double" w:sz="4" w:themeColor="accent1" w:themeTint="99"/></w:tcBorders></w:tcPr><w:p><w:r><w:t>色</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
     ] {
         let imported = import(&package(extra), &Budget::default()).unwrap();
@@ -437,6 +437,79 @@ fn a_plain_cell_insertion_and_deletion_round_trip() {
     assert!(xml.contains("w:del"), "{xml}");
     assert!(xml.contains("审阅人"), "{xml}");
     assert!(xml.contains("丙"), "{xml}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
+}
+
+#[test]
+fn valign_and_row_height_round_trip_after_an_edit() {
+    let body = r#"<w:tbl><w:tblPr><w:tblW w:w="4000" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="800" w:hRule="atLeast"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="center"/></w:tcPr><w:p><w:r><w:t>中</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:vAlign w:val="bottom"/></w:tcPr><w:p><w:r><w:t>下</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:trPr><w:trHeight w:val="400" w:hRule="exact"/></w:trPr><w:tc><w:tcPr><w:vAlign w:val="top"/></w:tcPr><w:p><w:r><w:t>上</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>默</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:trPr><w:trHeight w:val="9000" w:hRule="auto"/></w:trPr><w:tc><w:p><w:r><w:t>自</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>动</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p><w:r><w:t>后</w:t></w:r></w:p>"#;
+    let source = import(&package(body), &Budget::default()).unwrap();
+    let Block::Table(table) = &source.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    assert!(matches!(
+        table.rows[0].height,
+        Some(joyword_model::RowHeight {
+            twips: 800,
+            rule: joyword_model::RowHeightRule::AtLeast,
+        })
+    ));
+    assert_eq!(
+        table.rows[0].cells[0].vertical_align,
+        Some(joyword_model::VerticalAlign::Center)
+    );
+    assert_eq!(
+        table.rows[0].cells[1].vertical_align,
+        Some(joyword_model::VerticalAlign::Bottom)
+    );
+    assert!(matches!(
+        table.rows[1].height,
+        Some(joyword_model::RowHeight {
+            twips: 400,
+            rule: joyword_model::RowHeightRule::Exact,
+        })
+    ));
+    assert_eq!(
+        table.rows[1].cells[0].vertical_align,
+        Some(joyword_model::VerticalAlign::Top)
+    );
+    assert!(table.rows[1].cells[1].vertical_align.is_none());
+    assert!(matches!(
+        table.rows[2].height,
+        Some(joyword_model::RowHeight {
+            twips: 9000,
+            rule: joyword_model::RowHeightRule::Auto,
+        })
+    ));
+    let Block::Paragraph(_) = &source.document.body().blocks.get(1).unwrap() else {
+        panic!("following paragraph stayed typed");
+    };
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("增", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = xml_of(plan.bytes());
+    assert!(xml.contains(r#"w:hRule="atLeast""#), "{xml}");
+    assert!(xml.contains(r#"w:hRule="exact""#), "{xml}");
+    assert!(xml.contains(r#"w:hRule="auto""#), "{xml}");
+    assert!(xml.contains(r#"w:val="center""#), "{xml}");
+    assert!(xml.contains(r#"w:val="bottom""#), "{xml}");
+    assert!(xml.contains(r#"w:val="top""#), "{xml}");
     let saved = import(plan.bytes(), &Budget::default()).unwrap();
     assert_eq!(model.semantic_difference(&saved.document), None);
 }

@@ -24,10 +24,12 @@ use crate::command::{
     PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR,
     REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
     Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT,
-    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
-    TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES, TABLE_ROW_DELETE, TABLE_ROW_INSERT,
+    TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
-use crate::dialogs::{ViewToggles, font_draft_from_decision, paragraph_draft_from_decision};
+use crate::dialogs::{
+    ViewToggles, font_draft_from_decision, paragraph_draft_from_decision, table_draft_from_decision,
+};
 use crate::docx::BoundDocx;
 use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
 
@@ -712,6 +714,7 @@ impl CommandHost for Office {
                 | TABLE_MERGE_RIGHT
                 | TABLE_MERGE_DOWN
                 | TABLE_SPLIT
+                | TABLE_PROPERTIES
                 | FORMAT_FONT
                 | FORMAT_PARAGRAPH
                 | REVIEW_TRACK
@@ -750,6 +753,7 @@ impl CommandHost for Office {
                         | TABLE_MERGE_RIGHT
                         | TABLE_MERGE_DOWN
                         | TABLE_SPLIT
+                        | TABLE_PROPERTIES
                         | FORMAT_FONT
                         | FORMAT_PARAGRAPH
                         | REVIEW_TRACK
@@ -784,6 +788,7 @@ impl CommandHost for Office {
                 | TABLE_MERGE_RIGHT
                 | TABLE_MERGE_DOWN
                 | TABLE_SPLIT
+                | TABLE_PROPERTIES
                 | FORMAT_FONT
                 | FORMAT_PARAGRAPH
                 | REVIEW_TRACK
@@ -1209,6 +1214,19 @@ impl Office {
             TABLE_SPLIT => {
                 self.require_active()?
                     .split_table_cell()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            TABLE_PROPERTIES => {
+                let Some(draft) = table_draft_from_decision(Some(args))
+                    .map_err(|reason| ExecuteError::Failed(reason.into()))?
+                else {
+                    return Ok(());
+                };
+                self.require_active()?
+                    .apply_table_properties(&draft)
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;

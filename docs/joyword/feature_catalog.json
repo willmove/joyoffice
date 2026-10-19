@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 52,
-  "note": "T202 header and body edit toggles on top of T300 slice 2. The floor is 52: the Review tab adds eight commands and the status bar reports the revision view, and the layout tab adds header and body edit toggles. Markup paints a simple margin bar on the shared page scene. Evidence stays unit. Header revision decoration and Word/WPS exchange stay undone.",
+  "floor": 53,
+  "note": "T201 table properties and T202 header/body edit toggles on top of T300 slice 2. The floor is 53: the Review tab adds eight commands and the status bar reports the revision view, the layout tab adds header and body edit toggles, and insert.table opens table properties. Markup paints a simple margin bar on the shared page scene. Evidence stays unit. Header revision decoration and Word/WPS exchange stay undone.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},
@@ -27,6 +27,7 @@
     {"id": "start.format_cancel", "kind": "command", "tab": "start", "command": "format.cancel", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "cancel"},
     {"id": "insert.picture", "kind": "command", "tab": "insert", "command": "edit.insert_image", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "picture"},
     {"id": "insert.page_break", "kind": "command", "tab": "insert", "command": "page.break", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "page-break"},
+    {"id": "insert.table", "kind": "command", "tab": "insert", "command": "table.properties", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "table"},
     {"id": "layout.a4", "kind": "command", "tab": "layout", "command": "page.size", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "page-a4"},
     {"id": "layout.letter", "kind": "command", "tab": "layout", "command": "page.size", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "page-letter"},
     {"id": "layout.margins", "kind": "command", "tab": "layout", "command": "page.margins", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "margins"},
@@ -78,6 +79,7 @@
     {"id": "cancel", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "picture", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "page-break", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "table", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "page-a4", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "page-letter", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "margins", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
