@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 40,
+  "floor": 41,
   "note": "T205 slice 2 plus the T203 insert-picture button. Font and paragraph dialogs, ruler indent and tab dragging, and the three view switches are unit-tested. The view switches stay disabled because layout has no formatting-mark, hidden-text or field-code option. Underline and non-auto colour export and are not painted. This is not a Word word-count dialog comparison.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
@@ -14,6 +14,7 @@
     {"id": "start.align", "kind": "command", "tab": "start", "command": "edit.align_center", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "align-center"},
     {"id": "start.paragraph", "kind": "command", "tab": "start", "command": "format.paragraph", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paragraph"},
     {"id": "start.styles", "kind": "command", "tab": "start", "command": "style.list", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "styles"},
+    {"id": "start.list_bullet", "kind": "command", "tab": "start", "command": "list.apply", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-bullet"},
     {"id": "start.list_remove", "kind": "command", "tab": "start", "command": "list.remove", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-remove"},
     {"id": "start.list_level_1", "kind": "command", "tab": "start", "command": "list.level", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-level"},
     {"id": "start.list_level_2", "kind": "command", "tab": "start", "command": "list.level", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "list-level"},
@@ -54,6 +55,7 @@
     {"id": "italic", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "align-center", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "styles", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "list-bullet", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "list-remove", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "list-level", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "find", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},

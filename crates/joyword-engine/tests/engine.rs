@@ -860,6 +860,7 @@ fn locked_content_controls_and_containers_are_respected() {
         layout: None,
         alignment: None,
         indent: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,

@@ -2,23 +2,24 @@
 //! §17.4.66 `tr`, §17.4.64 `tc`, §17.4.17 `gridSpan`, §17.4.84 `vMerge`,
 //! §17.4.73 `tcW`, §17.3.4 borders, §17.4.43 `tblCellMar`, §17.4.68 `tcMar`,
 //! §17.4.6 `cantSplit`, §17.4.49 `tblHeader`, §17.4.52 `tblLayout`,
-//! §17.4.28 `jc`, §17.4.50 `tblInd`, §17.18.2 border styles `nil` / `single` /
-//! `double` / `dotted` / `dashed` / `thick`).
+//! §17.4.28 `jc`, §17.4.50 `tblInd`, §17.4.56 `tblLook`, §17.18.2 border
+//! styles `nil` / `single` / `double` / `dotted` / `dashed` / `thick`).
 //!
 //! A table is mapped only when every element and attribute is represented and
-//! placed. Nested tables, `trHeight`, `vAlign`, revisions, bookmarks,
-//! `tblLook`, theme tint or shade, and any other border style return `None`.
-//! The caller preserves the whole `w:tbl` byte range.
-//! This parser allocates no identifiers and records no fragments, so a
-//! refusal leaves the document untouched.
+//! placed. Nested tables, `trHeight`, `vAlign`, revisions, bookmarks, theme
+//! tint or shade, and any other border style return `None`. `w:tblLook` is
+//! stored. The caller preserves the whole `w:tbl` byte range. This parser
+//! allocates no identifiers and records no fragments, so a refusal leaves
+//! the document untouched.
 
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
     BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
-    OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, StyleId, Table,
-    TableAlign, TableLayoutKind, TableWidth, ThemeColorSlot, VerticalMerge,
+    OBJECT_MARKER, ParaProps, Paragraph, Row, RunProps, Shading, Spacing, Style, StyleId, Table,
+    TableAlign, TableCondition, TableConditional, TableFormat, TableLayoutKind, TableLook,
+    TableWidth, ThemeColorSlot, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -67,6 +68,7 @@ struct DraftTable {
     layout: Option<TableLayoutKind>,
     alignment: Option<TableAlign>,
     indent: Option<i64>,
+    look: Option<TableLook>,
     cell_margin: Option<CellMargins>,
     grid: Vec<Measure>,
     rows: Vec<DraftRow>,
@@ -78,6 +80,7 @@ struct TableProps {
     layout: Option<TableLayoutKind>,
     alignment: Option<TableAlign>,
     indent: Option<i64>,
+    look: Option<TableLook>,
     cell_margin: Option<CellMargins>,
 }
 
@@ -139,6 +142,7 @@ fn build(
         layout: draft.layout,
         alignment: draft.alignment,
         indent: draft.indent,
+        look: draft.look,
         cell_margin: draft.cell_margin,
         preserved: None,
         source: Some(Importer::source(part, element)),
@@ -173,6 +177,7 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
         layout: None,
         alignment: None,
         indent: None,
+        look: None,
         cell_margin: None,
     };
     let mut saw_pr = false;
@@ -202,6 +207,7 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
         layout: props.layout,
         alignment: props.alignment,
         indent: props.indent,
+        look: props.look,
         cell_margin: props.cell_margin,
         grid,
         rows,
@@ -218,6 +224,7 @@ fn parse_tbl_pr(element: &Element) -> Option<TableProps> {
         layout: None,
         alignment: None,
         indent: None,
+        look: None,
         cell_margin: None,
     };
     for child in element.elements() {
@@ -238,6 +245,8 @@ fn parse_tbl_pr(element: &Element) -> Option<TableProps> {
             props.alignment = Some(parse_alignment(child)?);
         } else if child.is(W, "tblInd") && props.indent.is_none() {
             props.indent = Some(parse_indent(child)?);
+        } else if child.is(W, "tblLook") && props.look.is_none() {
+            props.look = Some(parse_look(child)?);
         } else if child.is(W, "tblCellMar") && props.cell_margin.is_none() {
             props.cell_margin = Some(parse_cell_margins(child)?);
         } else {
@@ -282,6 +291,60 @@ fn parse_indent(element: &Element) -> Option<i64> {
         }
         _ => None,
     }
+}
+
+/// `w:tblLook`. A present attribute overrides the same bit of `w:val`.
+/// An omitted attribute is false when the element is present. An invalid
+/// value refuses the table.
+fn parse_look(element: &Element) -> Option<TableLook> {
+    const FLAGS: &[(&str, u16)] = &[
+        ("firstRow", 0x0020),
+        ("lastRow", 0x0040),
+        ("firstColumn", 0x0080),
+        ("lastColumn", 0x0100),
+        ("noHBand", 0x0200),
+        ("noVBand", 0x0400),
+    ];
+    if !only_word_attributes(
+        element,
+        &[
+            "val",
+            "firstRow",
+            "lastRow",
+            "firstColumn",
+            "lastColumn",
+            "noHBand",
+            "noVBand",
+        ],
+    ) || !text_is_space(element)
+    {
+        return None;
+    }
+    let bits = match element.attribute(Some(W), "val") {
+        None => 0u16,
+        Some(value) => u16::from_str_radix(value, 16).ok()?,
+    };
+    let mut flags = [false; 6];
+    for (index, (_, mask)) in FLAGS.iter().enumerate() {
+        flags[index] = bits & mask != 0;
+    }
+    for (index, (name, _)) in FLAGS.iter().enumerate() {
+        if let Some(value) = element.attribute(Some(W), name) {
+            flags[index] = match value {
+                "true" | "1" | "on" => true,
+                "false" | "0" | "off" => false,
+                _ => return None,
+            };
+        }
+    }
+    Some(TableLook {
+        first_row: flags[0],
+        last_row: flags[1],
+        first_column: flags[2],
+        last_column: flags[3],
+        no_h_band: flags[4],
+        no_v_band: flags[5],
+    })
 }
 
 fn parse_cell_margins(element: &Element) -> Option<CellMargins> {
@@ -582,7 +645,7 @@ fn parse_edge(element: &Element) -> Option<BorderEdge> {
     // A theme slot wins over a cached hex. Tint and shade are not in the
     // allowed attribute list, so those borders keep the table opaque.
     let color = if let Some(name) = element.attribute(Some(W), "themeColor") {
-        Color::Theme(ThemeColorSlot::from_word_name(name)?)
+        Color::theme(ThemeColorSlot::from_word_name(name)?)
     } else {
         match element.attribute(Some(W), "color") {
             None | Some("auto") => Color::Auto,
@@ -775,4 +838,131 @@ fn text_is_space(element: &Element) -> bool {
         Node::Element(_) => true,
         Node::Text(text) => text.chars().all(is_xml_space),
     })
+}
+
+/// Table-style children this slice resolves. `false` means something was
+/// left unparsed; known bold, shading and borders are still stored.
+pub(crate) fn read_style_table(style: &mut Style, element: &Element) -> bool {
+    match &*element.local {
+        "tblPr" => fill_format(&mut style.table, element, true),
+        "tcPr" => fill_format(&mut style.table, element, false),
+        "tblStylePr" => read_conditional(style, element),
+        _ => false,
+    }
+}
+
+fn read_conditional(style: &mut Style, element: &Element) -> bool {
+    if !only_word_attributes(element, &["type"]) || !text_is_space(element) {
+        return false;
+    }
+    let condition = match element.attribute(Some(W), "type") {
+        Some("firstRow") => TableCondition::FirstRow,
+        Some("lastRow") => TableCondition::LastRow,
+        Some("band1Horz") => TableCondition::Band1Horizontal,
+        Some("band2Horz") => TableCondition::Band2Horizontal,
+        _ => return false,
+    };
+    let mut format = TableFormat::default();
+    let mut complete = true;
+    for child in element.elements() {
+        if child.namespace.as_deref() != Some(W) {
+            complete = false;
+            continue;
+        }
+        let known = match &*child.local {
+            "rPr" => read_bold(&mut format, child),
+            "tblPr" => fill_format(&mut format, child, true),
+            "tcPr" => fill_format(&mut format, child, false),
+            _ => false,
+        };
+        complete &= known;
+    }
+    style
+        .table_conditionals
+        .push(TableConditional { condition, format });
+    complete
+}
+
+fn fill_format(format: &mut TableFormat, element: &Element, table_properties: bool) -> bool {
+    if !only_word_attributes(element, &[]) || !text_is_space(element) {
+        return false;
+    }
+    let mut complete = true;
+    for child in element.elements() {
+        if child.namespace.as_deref() != Some(W) {
+            complete = false;
+            continue;
+        }
+        let known = if table_properties {
+            match &*child.local {
+                "tblBorders" => match parse_borders(child) {
+                    Some(borders) => {
+                        overlay_borders(&mut format.borders, borders);
+                        true
+                    }
+                    None => false,
+                },
+                "shd" => match parse_shading(child) {
+                    Some(shading) => {
+                        format.shading = Some(shading);
+                        true
+                    }
+                    None => false,
+                },
+                _ => false,
+            }
+        } else {
+            match &*child.local {
+                "tcBorders" => match parse_borders(child) {
+                    Some(borders) => {
+                        overlay_borders(&mut format.borders, borders);
+                        true
+                    }
+                    None => false,
+                },
+                "shd" => match parse_shading(child) {
+                    Some(shading) => {
+                        format.shading = Some(shading);
+                        true
+                    }
+                    None => false,
+                },
+                _ => false,
+            }
+        };
+        complete &= known;
+    }
+    complete
+}
+
+fn overlay_borders(base: &mut CellBorders, layer: CellBorders) {
+    if layer.top.is_some() {
+        base.top = layer.top;
+    }
+    if layer.left.is_some() {
+        base.left = layer.left;
+    }
+    if layer.bottom.is_some() {
+        base.bottom = layer.bottom;
+    }
+    if layer.right.is_some() {
+        base.right = layer.right;
+    }
+}
+
+fn read_bold(format: &mut TableFormat, element: &Element) -> bool {
+    let mut findings = Findings::default();
+    let (run, style) = props::run(element, &mut findings);
+    format.bold = run.bold;
+    findings.complete
+        && style.is_none()
+        && run.italic.is_none()
+        && run.strike.is_none()
+        && run.hidden.is_none()
+        && run.underline.is_none()
+        && run.size.is_none()
+        && run.color.is_none()
+        && run.fonts == joyword_model::FontSlots::default()
+        && run.languages == joyword_model::Languages::default()
+        && run.preserved.is_none()
 }

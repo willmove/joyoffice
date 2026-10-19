@@ -292,9 +292,7 @@ fn grounded_numbering(
         };
         let matches = match kind {
             crate::rich_paste::ListKind::Ordered => level.format == NumberFormat::Decimal,
-            crate::rich_paste::ListKind::Bullet => {
-                matches!(&level.format, NumberFormat::Other(token) if token.as_ref() == "bullet")
-            }
+            crate::rich_paste::ListKind::Bullet => level.format == NumberFormat::Bullet,
         };
         if matches {
             return Some(NumberingRef {
@@ -1204,6 +1202,18 @@ impl<B: InputBackend> TextInput<B> {
                 end,
                 style: StyleId::new(id),
             }],
+        );
+        self.commit(transaction)
+    }
+
+    /// Ensures a bullet numbering instance and applies it at level 0.
+    /// Creating the definition is part of the same undo step.
+    pub fn apply_bullet(&mut self) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (start, end) = self.selection_positions()?;
+        let transaction = Transaction::new(
+            self.backend.session().version(),
+            vec![Command::ApplyBullet { start, end }],
         );
         self.commit(transaction)
     }
@@ -2279,7 +2289,7 @@ fn describe_run(props: &RunProps) -> String {
         Some(Color::Rgb(red, green, blue)) => {
             parts.push(format!("#{red:02X}{green:02X}{blue:02X}"));
         }
-        Some(Color::Theme(_)) => parts.push("theme".to_owned()),
+        Some(Color::Theme { .. }) => parts.push("theme".to_owned()),
         None => {}
     }
     if let Some(name) = named_font(&props.fonts.east_asia) {

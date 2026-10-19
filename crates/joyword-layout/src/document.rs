@@ -15,7 +15,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    Bias, Block, BorderEdge, BorderKind, CellMargins, Color, DocDefaults, Document,
+    Bias, Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, DocDefaults, Document,
     DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel,
     NumberingProblem, PageSetup, Paragraph, Position, ScalarOffset, StoryId, Table, ThemeColorSlot,
     VerticalMerge, displayed_paragraph,
@@ -527,6 +527,8 @@ fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
         hash.update(format!("{column}").as_bytes());
     }
     hash.update(format!("{:?}", table.width).as_bytes());
+    hash.update(format!("{:?}", table.style).as_bytes());
+    hash.update(format!("{:?}", table.look).as_bytes());
     hash.update(format!("{:?}", table.layout).as_bytes());
     hash.update(format!("{:?}", table.alignment).as_bytes());
     hash.update(format!("{:?}", table.indent).as_bytes());
@@ -610,7 +612,7 @@ fn check_paragraph(
     profile: SingleFontProfile,
 ) -> Result<(), LayoutError> {
     crate::pages::accept_body_inlines(document, paragraph)?;
-    style_paint::paint(document, paragraph, profile).map(|_| ())
+    style_paint::paint(document, paragraph, profile, None).map(|_| ())
 }
 
 pub(crate) fn preflight(
@@ -1118,6 +1120,7 @@ fn layout_once(
             },
             cancellation,
             marks.get(&paragraph.id()),
+            None,
             assumed.get(index).copied().unwrap_or_default(),
             &numbering,
         )?;
@@ -1187,6 +1190,7 @@ fn layout_mixed(
                     },
                     cancellation,
                     marks.get(&paragraph.id()),
+                    None,
                     assumed.get(index).copied().unwrap_or_default(),
                     &numbering,
                 )?;
@@ -1509,6 +1513,17 @@ fn build_row_flows(
                 continue;
             }
             let inner_width = Emu::new(twips_to_emu(inner)?);
+            let (table_format, table_problems) = document.styles().resolve_table_cell(
+                table.style.as_ref(),
+                table.look,
+                row_index,
+                table.rows.len(),
+            );
+            if !table_problems.is_empty() {
+                return Err(unsupported(Some(table.id), "style resolution"));
+            }
+            let borders = overlay_borders(table_format.borders, cell.borders);
+            let shading = cell.shading.or(table_format.shading);
             let numbering = numbering_of(document, section);
             let mut paragraphs = Vec::new();
             for block in cell.blocks.iter() {
@@ -1531,6 +1546,7 @@ fn build_row_flows(
                     },
                     cancellation,
                     marks.get(&paragraph.id()),
+                    table_format.bold,
                     crate::cache::ExternalContext::default(),
                     &numbering,
                 )?;
@@ -1554,10 +1570,10 @@ fn build_row_flows(
             cells.push(CellFlow {
                 content: stacked(&paragraphs)?,
                 paragraphs,
-                top_border: border_size(cell.borders.top),
-                bottom_border: border_size(cell.borders.bottom),
-                left_border: border_size(cell.borders.left),
-                right_border: border_size(cell.borders.right),
+                top_border: border_size(borders.top),
+                bottom_border: border_size(borders.bottom),
+                left_border: border_size(borders.left),
+                right_border: border_size(borders.right),
                 margin_top,
                 margin_bottom,
                 outer_x,
@@ -1566,18 +1582,18 @@ fn build_row_flows(
                 start_row: row_index,
                 span_rows,
                 line_box,
-                shading: match cell.shading.map(|shading| shading.fill) {
+                shading: match shading.map(|shading| shading.fill) {
                     Some(Color::Rgb(red, green, blue)) => Some((red, green, blue)),
                     _ => None,
                 },
-                border_top: cell.borders.top,
-                border_bottom: cell.borders.bottom,
-                border_left: cell.borders.left,
-                border_right: cell.borders.right,
-                ink_top: border_ink(cell.borders.top, theme),
-                ink_bottom: border_ink(cell.borders.bottom, theme),
-                ink_left: border_ink(cell.borders.left, theme),
-                ink_right: border_ink(cell.borders.right, theme),
+                border_top: borders.top,
+                border_bottom: borders.bottom,
+                border_left: borders.left,
+                border_right: borders.right,
+                ink_top: border_ink(borders.top, theme),
+                ink_bottom: border_ink(borders.bottom, theme),
+                ink_left: border_ink(borders.left, theme),
+                ink_right: border_ink(borders.right, theme),
             });
         }
         rows.push(RowFlow {
@@ -1589,6 +1605,67 @@ fn build_row_flows(
         });
     }
     Ok(rows)
+}
+
+fn overlay_borders(mut base: CellBorders, direct: CellBorders) -> CellBorders {
+    if direct.top.is_some() {
+        base.top = direct.top;
+    }
+    if direct.left.is_some() {
+        base.left = direct.left;
+    }
+    if direct.bottom.is_some() {
+        base.bottom = direct.bottom;
+    }
+    if direct.right.is_some() {
+        base.right = direct.right;
+    }
+    base
+}
+
+/// Label glyphs become their own run when the level's size or bold differs
+/// from the body. The text is split so PDF search does not repeat it.
+fn label_glyph_runs(line: &LayoutLine, origin_x: Emu, baseline_y: Emu) -> Vec<GlyphRun> {
+    let glyphs = line.label_glyphs;
+    let bytes = line.label_text_bytes;
+    let size_differs = line.label_size.raw() > 0 && line.label_size != line.run.size;
+    let bold_differs = line.label_bold != line.run.bold;
+    if glyphs == 0
+        || bytes == 0
+        || glyphs > line.run.glyphs.len()
+        || bytes > line.run.text.len()
+        || (!size_differs && !bold_differs)
+    {
+        return vec![line.to_glyph_run(origin_x, baseline_y)];
+    }
+    let mut label = line.run.clone();
+    label.text = line.run.text[..bytes].to_owned();
+    label.glyphs = line.run.glyphs[..glyphs].to_vec();
+    label.size = line.label_size;
+    label.bold = line.label_bold;
+    label.width = Emu::new(
+        label
+            .glyphs
+            .iter()
+            .map(|glyph| glyph.x.raw().saturating_add(glyph.advance.raw()))
+            .max()
+            .unwrap_or(0),
+    );
+    let mut body = line.run.clone();
+    body.text = line.run.text[bytes..].to_owned();
+    body.glyphs = line.run.glyphs[glyphs..]
+        .iter()
+        .map(|glyph| {
+            let mut glyph = *glyph;
+            glyph.cluster = glyph.cluster.saturating_sub(bytes);
+            glyph
+        })
+        .collect();
+    let mut runs = vec![GlyphRun::place(&label, origin_x, baseline_y)];
+    if !body.text.is_empty() || !body.glyphs.is_empty() {
+        runs.push(GlyphRun::place(&body, origin_x, baseline_y));
+    }
+    runs
 }
 
 fn stacked(paragraphs: &[FittedParagraph]) -> Result<i64, LayoutError> {
@@ -2361,7 +2438,12 @@ fn border_ink(
     match edge.color {
         Color::Rgb(red, green, blue) => Some((red, green, blue)),
         Color::Auto => Some((0, 0, 0)),
-        Color::Theme(slot) => theme.get(&slot).copied(),
+        Color::Theme {
+            slot,
+            tint: None,
+            shade: None,
+        } => theme.get(&slot).copied(),
+        Color::Theme { .. } => None,
     }
 }
 
@@ -2499,6 +2581,7 @@ pub(crate) fn fit_paragraph(
     spent: WorkSpent,
     cancellation: &LayoutCancellation,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
+    table_bold: Option<bool>,
     field_context: crate::cache::ExternalContext,
     numbering: &joyword_model::PageNumbering,
 ) -> Result<FittedParagraph, LayoutError> {
@@ -2529,7 +2612,7 @@ pub(crate) fn fit_paragraph(
     if request_limits.max_lines == 0 {
         return Err(LayoutError::LimitExceeded(LayoutLimit::Lines));
     }
-    let painted = style_paint::paint(document, paragraph, profile)?;
+    let painted = style_paint::paint(document, paragraph, profile, table_bold)?;
     let shaping = SingleFontProfile {
         size: painted.size,
         leading: painted.leading,
@@ -2731,15 +2814,6 @@ pub(crate) fn fit_paragraph(
             trailing_breaks = split.trailing_breaks;
             fitted
         } else if crate::list_layout::needs_list_layout(&props, &text, label) {
-            if matches!(
-                painted.flow.justification,
-                Some(Justification::Center | Justification::End | Justification::Both)
-            ) {
-                return Err(unsupported(
-                    Some(paragraph.id()),
-                    "justification with indent, numbering or tabs",
-                ));
-            }
             let interval = default_tab_interval(document)?;
             trailing_breaks = 0;
             crate::list_layout::layout_marked(
@@ -2751,6 +2825,8 @@ pub(crate) fn fit_paragraph(
                 shape_font,
                 painted.size,
                 profile.features,
+                painted.flow.justification,
+                Some(paragraph.id()),
                 &mut fit_slice,
             )?
         } else {
@@ -3412,7 +3488,9 @@ fn place_line_on(
             .get_mut(page_index)
             .ok_or(LayoutError::GeometryOverflow)?;
         let run = page.runs.len();
-        page.runs.push(line.to_glyph_run(x, baseline));
+        for glyph_run in label_glyph_runs(line, x, baseline) {
+            page.runs.push(glyph_run);
+        }
         let image_start = page.images.len();
         for image in &line.images {
             let y = baseline

@@ -29,7 +29,7 @@ use joyword_model::{
     Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, NodeId,
     NumberingRef, NumberingStore, ParaProps, Paragraph, RowHeightRule, RunProps, Shading,
     SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table,
-    TableAlign, TableLayoutKind, TableWidth, Underline, VerticalAlign, VerticalMerge,
+    TableAlign, TableLayoutKind, TableLook, TableWidth, Underline, VerticalAlign, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
@@ -1458,7 +1458,7 @@ fn synthesize_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'s
         let value = match color {
             Color::Auto => "auto".to_owned(),
             Color::Rgb(red, green, blue) => format!("{red:02X}{green:02X}{blue:02X}"),
-            Color::Theme(_) => {
+            Color::Theme { .. } => {
                 return Err("theme colours are outside the direct subset");
             }
         };
@@ -1520,6 +1520,20 @@ fn qattr(names: &Names, local: &str, value: &str) -> String {
         Names::Declared => "jwe:".to_owned(),
     };
     format!(r#" {prefix}{local}="{value}""#)
+}
+
+fn look_markup(names: &Names, look: TableLook) -> String {
+    let bit = |name: &str, on: bool| names.attribute(name, if on { "1" } else { "0" });
+    format!(
+        "{}{}{}{}{}{}{}/>",
+        names.start("tblLook"),
+        bit("firstRow", look.first_row),
+        bit("lastRow", look.last_row),
+        bit("firstColumn", look.first_column),
+        bit("lastColumn", look.last_column),
+        bit("noHBand", look.no_h_band),
+        bit("noVBand", look.no_v_band),
+    )
 }
 
 fn justification_value(value: Justification) -> &'static str {
@@ -1612,6 +1626,7 @@ pub(super) fn table_markup(
         || table.layout.is_some()
         || table.alignment.is_some()
         || table.indent.is_some()
+        || table.look.is_some()
         || table.cell_margin.is_some()
     {
         markup.push_str(&names.start("tblPr"));
@@ -1649,6 +1664,9 @@ pub(super) fn table_markup(
                 return Err(refuse("table indent is negative"));
             }
             markup.push_str(&width_markup(names, "tblInd", ("dxa", Some(indent)))?);
+        }
+        if let Some(look) = table.look {
+            markup.push_str(&look_markup(names, look));
         }
         if let Some(margin) = table.cell_margin {
             markup.push_str(&cell_margin_markup(names, "tblCellMar", margin)?);
@@ -1934,7 +1952,12 @@ fn border_color(color: Color) -> Result<(String, Option<&'static str>), ()> {
     match color {
         Color::Auto => Ok(("auto".into(), None)),
         Color::Rgb(red, green, blue) => Ok((format!("{red:02X}{green:02X}{blue:02X}"), None)),
-        Color::Theme(slot) => Ok(("auto".into(), Some(slot.word_name()))),
+        Color::Theme {
+            slot,
+            tint: None,
+            shade: None,
+        } => Ok(("auto".into(), Some(slot.word_name()))),
+        Color::Theme { .. } => Err(()),
     }
 }
 
@@ -1954,7 +1977,7 @@ fn color_value(color: Color) -> Result<String, ()> {
     match color {
         Color::Auto => Ok("auto".into()),
         Color::Rgb(red, green, blue) => Ok(format!("{red:02X}{green:02X}{blue:02X}")),
-        Color::Theme(_) => Err(()),
+        Color::Theme { .. } => Err(()),
     }
 }
 

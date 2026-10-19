@@ -133,6 +133,7 @@ pub(crate) fn insert_table(
         layout: None,
         alignment: None,
         indent: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,

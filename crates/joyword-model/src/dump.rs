@@ -106,7 +106,15 @@ fn run_props(props: &RunProps) -> String {
     match props.color {
         Some(Color::Auto) => out.push("color=auto".into()),
         Some(Color::Rgb(r, g, b)) => out.push(format!("color={r:02X}{g:02X}{b:02X}")),
-        Some(Color::Theme(slot)) => out.push(format!("color=theme:{}", slot.word_name())),
+        Some(Color::Theme { slot, tint, shade }) => {
+            out.push(format!("color=theme:{}", slot.word_name()));
+            if let Some(tint) = tint {
+                out.push(format!(":tint{tint:02X}"));
+            }
+            if let Some(shade) = shade {
+                out.push(format!(":shade{shade:02X}"));
+            }
+        }
         None => {}
     }
     languages(&mut out, &props.languages);
@@ -214,10 +222,21 @@ impl Dumper<'_> {
                         .alignment
                         .map_or("-".into(), |value| format!("{value:?}"));
                     let indent = table.indent.map_or("-".into(), |value| value.to_string());
+                    let look = table.look.map_or("-".into(), |look| {
+                        format!(
+                            "{}{}{}{}{}{}",
+                            u8::from(look.first_row),
+                            u8::from(look.last_row),
+                            u8::from(look.first_column),
+                            u8::from(look.last_column),
+                            u8::from(look.no_h_band),
+                            u8::from(look.no_v_band)
+                        )
+                    });
                     self.line(
                         depth,
                         &format!(
-                            "{head} style={style} grid=[{}] width={width} margin={margin} layout={layout} align={align} indent={indent}",
+                            "{head} style={style} grid=[{}] width={width} margin={margin} layout={layout} align={align} indent={indent} look={look}",
                             grid.join(",")
                         ),
                     );
