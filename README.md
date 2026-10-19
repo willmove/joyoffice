@@ -18,6 +18,7 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 - [架构与 ADR](docs/joyword/ARCHITECTURE.md) · [兼容矩阵](docs/joyword/COMPATIBILITY.md) · [质量门槛](docs/joyword/QUALITY.md)
 - [原生 Agent 设计](docs/joyword/AI.md) · [公开资料调研](docs/joyword/RESEARCH.md) · [独立实现与来源](docs/joyword/PROVENANCE.md)
 - [当前实施与验证记录](docs/joyword/IMPLEMENTATION.md)
+- [验收清单](docs/joyword/acceptance/README.md) · [功能指南](docs/joyword/guide/README.md)
 - [开发约定](AGENTS.md) · [历史协作归档（已停用）](docs/coordination/README.md)
 
 ## 运行技术预览
