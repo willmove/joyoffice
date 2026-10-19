@@ -207,12 +207,20 @@ fn profile() -> SingleFontProfile {
     }
 }
 
-fn load_layout(options: &Options) -> Result<(LoadedFont, LayoutSnapshot), &'static str> {
+struct Prepared {
+    font: LoadedFont,
+    layout: LayoutSnapshot,
+    document: joyword_model::DocumentSnapshot,
+    core: Option<Vec<u8>>,
+}
+
+fn load_layout(options: &Options) -> Result<Prepared, &'static str> {
     let font = load_font(&options.font)?;
     let imported = import_docx(&options.input)?;
     let profile = profile();
+    let snapshot = imported.document.snapshot();
     let layout = layout_document(
-        &imported.document.snapshot(),
+        &snapshot,
         FaceSet::uniform(&font),
         profile,
         LayoutLimits::default(),
@@ -220,7 +228,7 @@ fn load_layout(options: &Options) -> Result<(LoadedFont, LayoutSnapshot), &'stat
     )
     .map_err(|_| "document layout refused: unsupported content or budget")?;
     layout
-        .ensure_current(&imported.document.snapshot(), &font, profile)
+        .ensure_current(&snapshot, &font, profile)
         .map_err(|_| "layout snapshot changed unexpectedly")?;
     if !layout.diagnostics().is_empty() || layout.omitted_diagnostics() != 0 {
         return Err("font cannot display the complete document");
@@ -228,7 +236,17 @@ fn load_layout(options: &Options) -> Result<(LoadedFont, LayoutSnapshot), &'stat
     if layout.pages().is_empty() || layout.pages().len() > MAX_PAGES {
         return Err("visual page budget exceeded");
     }
-    Ok((font, layout))
+    let core = imported
+        .backing
+        .package()
+        .part("/docProps/core.xml")
+        .map(|part| part.data.as_ref().to_vec());
+    Ok(Prepared {
+        font,
+        layout,
+        document: snapshot,
+        core,
+    })
 }
 
 fn write_new(path: &Path, bytes: &[u8]) -> Result<(), &'static str> {
@@ -350,6 +368,8 @@ fn convert(
     options: &Options,
     font: LoadedFont,
     layout: LayoutSnapshot,
+    document: &joyword_model::DocumentSnapshot,
+    core: Option<&[u8]>,
 ) -> Result<u8, &'static str> {
     let output = Path::new(&options.output);
     if !output
@@ -359,7 +379,12 @@ fn convert(
     {
         return Err("PDF output path must end in .pdf");
     }
-    let pdf = joyword_pdf::render(layout.pages(), std::slice::from_ref(&font))
+    let export = joyword_pdf::PdfExport {
+        title: core.and_then(joyword_pdf::core_title),
+        outline: joyword_pdf::outline_from_headings(document, &layout),
+        links: joyword_pdf::links_from_document(document, &layout),
+    };
+    let pdf = joyword_pdf::render_export(layout.pages(), std::slice::from_ref(&font), &export)
         .map_err(|_| "PDF writer refused the page scene")?;
     if pdf.len() > MAX_OUTPUT {
         return Err("visual output budget exceeded");
@@ -378,9 +403,15 @@ fn convert(
 }
 
 pub fn execute(options: Options) -> Result<u8, &'static str> {
-    let (font, layout) = load_layout(&options)?;
+    let prepared = load_layout(&options)?;
     match options.command {
-        Command::Render => render(&options, font, layout),
-        Command::Convert => convert(&options, font, layout),
+        Command::Render => render(&options, prepared.font, prepared.layout),
+        Command::Convert => convert(
+            &options,
+            prepared.font,
+            prepared.layout,
+            &prepared.document,
+            prepared.core.as_deref(),
+        ),
     }
 }

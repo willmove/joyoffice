@@ -2699,6 +2699,7 @@ dependencies = [
  "joyword-foundation",
  "joyword-layout",
  "joyword-model",
+ "joyword-pdf",
  "joyword-render",
  "joyword-shell",
 ]
@@ -2775,6 +2776,7 @@ dependencies = [
 name = "joyword-pdf"
 version = "0.0.1"
 dependencies = [
+ "flate2",
  "joyword-engine",
  "joyword-foundation",
  "joyword-layout",
