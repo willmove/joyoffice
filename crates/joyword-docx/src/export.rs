@@ -350,7 +350,10 @@ fn plan_export_after_import(
     if !section_page_changes.is_empty() {
         let names = Names::in_scope(&[&root, body]);
         for &index in &section_page_changes {
-            let section = current.sections().get(index).expect("validated index");
+            let section = current
+                .sections()
+                .get(index)
+                .ok_or_else(|| unsupported(None, "section index out of range"))?;
             patches.push(xml.patch_section_page(current, section, &section.page, &names)?);
         }
     }
