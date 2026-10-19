@@ -29,6 +29,9 @@ pub(crate) const PIC: &str = "http://schemas.openxmlformats.org/drawingml/2006/p
 pub const VML: &str = "urn:schemas-microsoft-com:vml";
 pub const REL_IMAGE: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+/// ECMA-376 Part 1 §15.2.3 / §17.16.22. External targets are not fetched.
+pub const REL_HYPERLINK: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
 pub const REL_SETTINGS: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings";
 pub const REL_NUMBERING: &str =

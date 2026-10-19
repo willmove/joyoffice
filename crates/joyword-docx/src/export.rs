@@ -390,9 +390,40 @@ fn plan_export_after_import(
         start = range.end;
     }
     main_bytes.extend_from_slice(&main.data[start..]);
+    let fresh = xml.fresh_hyperlinks();
+    let rels_name = main_name.relationships_part();
+    let rels_bytes = if fresh.is_empty() {
+        None
+    } else {
+        let rels = package
+            .part(rels_name.as_str())
+            .ok_or_else(|| unsupported(None, "hyperlink relationships part is missing"))?;
+        let appended = structure::append_hyperlink_relationships(&rels.data, &fresh)?;
+        if appended.len() as u64 > budget.max_part_bytes {
+            return Err(ExportError::Budget {
+                part: rels_name.to_string(),
+                limit: budget.max_part_bytes,
+            });
+        }
+        let grown = total
+            .saturating_sub(main.data.len() as u64)
+            .saturating_sub(rels.data.len() as u64)
+            .saturating_add(output_len)
+            .saturating_add(appended.len() as u64);
+        if grown > budget.max_total_bytes {
+            return Err(ExportError::Budget {
+                part: "package".into(),
+                limit: budget.max_total_bytes,
+            });
+        }
+        Some(appended)
+    };
     let mut replacements = Vec::new();
     if !alignment.is_unchanged() {
         replacements.push((main_name.clone(), main_bytes));
+    }
+    if let Some(bytes) = rels_bytes {
+        replacements.push((rels_name, bytes));
     }
     if tracking_changed {
         replacements.push(patch_track_revisions(
@@ -634,6 +665,9 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
                     && a.title_page == b.title_page
                     && a.headers == b.headers
                     && a.footers == b.footers
+                    && a.break_kind == b.break_kind
+                    && a.numbering == b.numbering
+                    && a.columns == b.columns
                     && a.preserved == b.preserved
             });
     let resources_equal = before.resources().len() == after.resources().len()
@@ -702,8 +736,13 @@ fn story_signature(story: &Story) -> String {
                 .as_paragraph()
                 .map(|paragraph| {
                     paragraph.plain_text(|object| match &object.kind {
-                        InlineKind::PageField(PageFieldKind::Page) => "field:Page".into(),
-                        InlineKind::PageField(PageFieldKind::NumPages) => "field:NumPages".into(),
+                        InlineKind::PageField(field) => {
+                            format!(
+                                "field:{:?}:{}",
+                                field.kind,
+                                field.cached.as_deref().unwrap_or("")
+                            )
+                        }
                         InlineKind::Break(BreakKind::Page) => "break:Page".into(),
                         InlineKind::Break(kind) => format!("break:{kind:?}"),
                         _ => "\u{FFFC}".into(),
@@ -719,6 +758,7 @@ fn story_signature(story: &Story) -> String {
 struct Group {
     style: Option<StyleId>,
     props: Arc<RunProps>,
+    link: Option<Arc<joyword_model::Hyperlink>>,
     text: String,
 }
 
@@ -731,17 +771,23 @@ fn groups(paragraph: &Paragraph) -> Vec<Group> {
         if let Some(last) = groups.last_mut()
             && last.style == run.style
             && last.props == run.props
+            && last.link == run.link
         {
             last.text.push_str(&text);
         } else {
             groups.push(Group {
                 style: run.style.clone(),
                 props: run.props.clone(),
+                link: run.link.clone(),
                 text,
             });
         }
     }
     groups
+}
+
+fn same_group(left: &Group, right: &Group) -> bool {
+    left.style == right.style && left.props == right.props && left.link == right.link
 }
 
 fn style_ids(paragraph: &Paragraph) -> Vec<Option<StyleId>> {
@@ -840,8 +886,14 @@ fn patch_paragraph(
         let mut scope = scope.to_vec();
         scope.push(element);
         let names = Names::in_scope(&scope);
-        let bytes =
-            structure::rewrite_styled_paragraph(source.bytes(), element, after, &names, limit)?;
+        let bytes = structure::rewrite_styled_paragraph(
+            source.bytes(),
+            element,
+            after,
+            &names,
+            limit,
+            source,
+        )?;
         patches.push((element.span.clone(), bytes));
         return Ok(());
     }
@@ -866,8 +918,14 @@ fn patch_paragraph(
             let mut scope = scope.to_vec();
             scope.push(element);
             let names = Names::in_scope(&scope);
-            let bytes =
-                structure::rewrite_direct_paragraph(source.bytes(), element, after, &names, limit)?;
+            let bytes = structure::rewrite_direct_paragraph(
+                source.bytes(),
+                element,
+                after,
+                &names,
+                limit,
+                source,
+            )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
         }
@@ -883,6 +941,7 @@ fn patch_paragraph(
                 after,
                 &names,
                 limit,
+                source,
             )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
@@ -905,16 +964,23 @@ fn patch_paragraph(
         && before_groups
             .iter()
             .zip(&after_groups)
-            .all(|(a, b)| a.style == b.style && a.props == b.props);
+            .all(|(a, b)| same_group(a, b));
     // A split keeps a prefix of the source run groups on the head. Emptying
     // the runs that moved is the text-leaf patch; adding a group (a merge of
-    // differently formatted paragraphs) has to copy source rPr bytes.
-    let split_prefix = source.touched(before.id())
+    // differently formatted paragraphs) has to copy source rPr bytes. A
+    // dropped group that still carries a hyperlink would leave an empty
+    // wrapper, so that split is rewritten or refused instead.
+    let dropped_link = before_groups
+        .iter()
+        .skip(after_groups.len())
+        .any(|group| group.link.is_some());
+    let split_prefix = !dropped_link
+        && source.touched(before.id())
         && after_groups.len() < before_groups.len()
         && before_groups
             .iter()
             .zip(&after_groups)
-            .all(|(a, b)| a.style == b.style && a.props == b.props);
+            .all(|(a, b)| same_group(a, b));
     if !before.is_empty() && !after_groups.is_empty() && !same_bounds && !split_prefix {
         let before_plain = before.props.is_empty()
             && before.mark_props.is_empty()
@@ -933,8 +999,14 @@ fn patch_paragraph(
             let mut scope = scope.to_vec();
             scope.push(element);
             let names = Names::in_scope(&scope);
-            let bytes =
-                structure::rewrite_direct_paragraph(source.bytes(), element, after, &names, limit)?;
+            let bytes = structure::rewrite_direct_paragraph(
+                source.bytes(),
+                element,
+                after,
+                &names,
+                limit,
+                source,
+            )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
         }
@@ -958,9 +1030,13 @@ fn patch_paragraph(
                 after,
                 &names,
                 limit,
+                source,
             )?;
             patches.push((element.span.clone(), bytes));
             return Ok(());
+        }
+        if links_changed(before, after) {
+            return Err(error("hyperlink structure is not rewritten"));
         }
         return Err(error("character formatting boundaries changed"));
     }
@@ -970,10 +1046,32 @@ fn patch_paragraph(
         return Err(error("source text tokens do not match imported runs"));
     }
     if before.is_empty() && !after.is_empty() {
-        if after_groups.len() != 1
-            || after_groups[0].style.is_some()
-            || !after_groups[0].props.is_empty()
-        {
+        let plain = after_groups.len() == 1
+            && after_groups[0].style.is_none()
+            && after_groups[0].props.is_empty()
+            && after_groups[0].link.is_none();
+        if !plain {
+            if after.inlines().is_empty()
+                && structure::direct_m1(after)
+                && text_slots(element, source.bytes()).is_ok()
+            {
+                let mut scope = scope.to_vec();
+                scope.push(element);
+                let names = Names::in_scope(&scope);
+                let bytes = structure::rewrite_direct_paragraph(
+                    source.bytes(),
+                    element,
+                    after,
+                    &names,
+                    limit,
+                    source,
+                )?;
+                patches.push((element.span.clone(), bytes));
+                return Ok(());
+            }
+            if links_changed(before, after) {
+                return Err(error("hyperlink structure is not rewritten"));
+            }
             return Err(error(
                 "new text in an empty paragraph requires default character properties",
             ));
@@ -1010,7 +1108,9 @@ fn patch_paragraph(
         if run.len != text.chars().count() {
             return Err(error("source text token length changed"));
         }
-        let same = previous.is_some_and(|prev| prev.style == run.style && prev.props == run.props);
+        let same = previous.is_some_and(|prev| {
+            prev.style == run.style && prev.props == run.props && prev.link == run.link
+        });
         if previous.is_some() && !same {
             group_index += 1;
         }
@@ -1035,56 +1135,120 @@ fn patch_paragraph(
 /// Source text leaves of a paragraph with their text, one per imported text
 /// run. Only the plain subset is accepted; no unknown element is
 /// reconstructed.
+fn links_changed(before: &Paragraph, after: &Paragraph) -> bool {
+    before
+        .runs()
+        .iter()
+        .map(|run| run.link.as_deref())
+        .collect::<Vec<_>>()
+        != after
+            .runs()
+            .iter()
+            .map(|run| run.link.as_deref())
+            .collect::<Vec<_>>()
+}
+
 fn text_slots<'e>(
     element: &'e Element,
     xml: &[u8],
 ) -> Result<Vec<(&'e Element, String)>, &'static str> {
     // One source leaf corresponds to each import push_text call. Empty text
-    // leaves do not create runs.
+    // leaves do not create runs. A simple `w:hyperlink` is descended into;
+    // its wrapper is not a text leaf.
     let mut slots = Vec::new();
-    for run in element.elements() {
-        if run.is(W, "pPr") || run.is(W, "proofErr") {
+    for child in element.elements() {
+        if child.is(W, "pPr") || child.is(W, "proofErr") {
             continue;
         }
-        if !run.is(W, "r") {
+        if child.is(W, "hyperlink") {
+            if hyperlink_leaf(child).is_err() {
+                return Err("unsupported paragraph markup");
+            }
+            for run in child.elements() {
+                collect_run_slots(run, xml, &mut slots)?;
+            }
+            continue;
+        }
+        if !child.is(W, "r") {
             return Err("unsupported paragraph markup");
         }
-        for leaf in run.elements() {
-            if leaf.is(W, "rPr") || leaf.is(W, "lastRenderedPageBreak") {
-                continue;
-            }
-            if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {
-                return Err("unsupported run content");
-            }
-            if leaf.attributes.iter().any(|attr| {
-                !(attr.namespace.as_deref() == Some(XML_NAMESPACE)
-                    && attr.local.as_ref() == "space"
-                    && matches!(attr.value.as_str(), "default" | "preserve"))
-            }) {
-                return Err("text leaf has unknown attributes");
-            }
-            if leaf
-                .declarations
-                .iter()
-                .any(|(_, uri)| uri.as_ref() != W && uri.as_ref() != XML_NAMESPACE)
-            {
-                return Err("text leaf declares an unknown namespace");
-            }
-            let raw = &xml[leaf.span.clone()];
-            if raw.windows(4).any(|w| w == b"<!--") || raw.windows(2).any(|w| w == b"<?") {
-                return Err("text leaf contains comments or processing instructions");
-            }
-            let text = if leaf.is(W, "tab") {
-                "\t".to_owned()
-            } else {
-                leaf.text()
-            };
-            if !text.is_empty() {
-                slots.push((leaf, text));
-            }
-        }
+        collect_run_slots(child, xml, &mut slots)?;
     }
     Ok(slots)
+}
+
+fn hyperlink_leaf(element: &Element) -> Result<(), &'static str> {
+    let mut relationship = false;
+    let mut anchor = false;
+    for attribute in &element.attributes {
+        if attribute.namespace.as_deref() == Some(crate::ns::R) && attribute.local.as_ref() == "id"
+        {
+            if relationship {
+                return Err("unsupported paragraph markup");
+            }
+            relationship = true;
+        } else if attribute.namespace.as_deref() == Some(W) && attribute.local.as_ref() == "anchor"
+        {
+            if anchor {
+                return Err("unsupported paragraph markup");
+            }
+            anchor = true;
+        } else {
+            return Err("unsupported paragraph markup");
+        }
+    }
+    if !relationship && !anchor {
+        return Err("unsupported paragraph markup");
+    }
+    if element.elements().any(|child| !child.is(W, "r")) {
+        return Err("unsupported paragraph markup");
+    }
+    Ok(())
+}
+
+fn collect_run_slots<'e>(
+    run: &'e Element,
+    xml: &[u8],
+    slots: &mut Vec<(&'e Element, String)>,
+) -> Result<(), &'static str> {
+    if !run.is(W, "r") {
+        return Err("unsupported paragraph markup");
+    }
+    for leaf in run.elements() {
+        if leaf.is(W, "rPr") || leaf.is(W, "lastRenderedPageBreak") {
+            continue;
+        }
+        if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {
+            return Err("unsupported run content");
+        }
+        if leaf.attributes.iter().any(|attr| {
+            !(attr.namespace.as_deref() == Some(XML_NAMESPACE)
+                && attr.local.as_ref() == "space"
+                && matches!(attr.value.as_str(), "default" | "preserve"))
+        }) {
+            return Err("text leaf has unknown attributes");
+        }
+        if leaf
+            .declarations
+            .iter()
+            .any(|(_, uri)| uri.as_ref() != W && uri.as_ref() != XML_NAMESPACE)
+        {
+            return Err("text leaf declares an unknown namespace");
+        }
+        let raw = &xml[leaf.span.clone()];
+        if raw.windows(4).any(|w| w == b"<!--") || raw.windows(2).any(|w| w == b"<?") {
+            return Err("text leaf contains comments or processing instructions");
+        }
+        let text = if leaf.is(W, "tab") {
+            "\t".to_owned()
+        } else {
+            leaf.text()
+        };
+        if !text.is_empty() {
+            slots.push((leaf, text));
+        }
+    }
+    Ok(())
 }
 
 /// How new WordprocessingML elements are named where they are written.

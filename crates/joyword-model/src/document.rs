@@ -13,7 +13,7 @@ use std::sync::Arc;
 use crate::annotation::{Anchor, Annotation, AnnotationKind};
 use crate::block::{Block, BlockSeq, Paragraph};
 use crate::id::{AnnotationId, IdAllocator, NodeId, PreservedId, StoryId};
-use crate::numbering::NumberingStore;
+use crate::numbering::{NumberFormat, NumberingStore};
 use crate::props::{Measure, Toggle};
 use crate::resource::ResourceTable;
 use crate::revision::MoveMarker;
@@ -71,6 +71,42 @@ pub enum Orientation {
     Landscape,
 }
 
+/// How a section begins relative to the previous one (`w:type`, §17.6.22).
+/// Omitted markup is [`SectionBreak::NextPage`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
+pub enum SectionBreak {
+    #[default]
+    NextPage,
+    Continuous,
+    EvenPage,
+    OddPage,
+}
+
+/// `w:pgNumType` format and start. An omitted format is decimal. An omitted
+/// start continues from the previous section (the first section starts at 1).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PageNumbering {
+    pub format: NumberFormat,
+    pub start: Option<i32>,
+}
+
+impl Default for PageNumbering {
+    fn default() -> Self {
+        Self {
+            format: NumberFormat::Decimal,
+            start: None,
+        }
+    }
+}
+
+/// Equal-width newspaper columns (`w:cols` with `equalWidth` true and no
+/// `w:col` children). `count` is at least 2. `space` is the gap in twips.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct EqualColumns {
+    pub count: u16,
+    pub space: i64,
+}
+
 /// `w:pgSz` and `w:pgMar` in source units.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageSetup {
@@ -118,6 +154,11 @@ pub struct Section {
     pub title_page: Toggle,
     pub headers: Vec<(HeaderFooterKind, StoryId)>,
     pub footers: Vec<(HeaderFooterKind, StoryId)>,
+    pub break_kind: SectionBreak,
+    pub numbering: PageNumbering,
+    /// `None` is one column. Equal columns wider than the page are rejected
+    /// at layout rather than stored as a single column.
+    pub columns: Option<EqualColumns>,
     pub preserved: Option<PreservedId>,
 }
 
@@ -192,6 +233,9 @@ impl Document {
             title_page: None,
             headers: Vec::new(),
             footers: Vec::new(),
+            break_kind: SectionBreak::NextPage,
+            numbering: PageNumbering::default(),
+            columns: None,
             preserved: None,
         };
         let story = Story {

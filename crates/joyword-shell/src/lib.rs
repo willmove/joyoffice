@@ -20,3 +20,4 @@ pub mod prefs;
 pub mod storage;
 
 pub mod input;
+pub mod rich_paste;

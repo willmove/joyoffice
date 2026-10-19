@@ -7,9 +7,9 @@ use std::fmt;
 use std::sync::Arc;
 
 use joyword_model::{
-    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, PageSetup,
-    Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TabStop, TextError, Toggle,
-    Underline,
+    Color, FontRef, Hyperlink, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef,
+    PageSetup, Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TabStop, TextError,
+    Toggle, Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -28,6 +28,13 @@ pub enum Command {
     InsertImage {
         at: Position,
         data: Arc<[u8]>,
+    },
+    /// Sets or clears the hyperlink on the runs in `start..end`.
+    /// `None` removes the link. One command is one undo step.
+    SetHyperlink {
+        start: Position,
+        end: Position,
+        link: Option<Hyperlink>,
     },
     /// Deletes between two positions in the same container, merging the
     /// paragraphs at both ends when they differ.
@@ -283,6 +290,8 @@ pub enum CommandError {
     /// The range mixes another author's insertion or move content, or one
     /// id is used for two kinds.
     RevisionConflict,
+    /// The editor refused to store this hyperlink. The text is not a URL.
+    Hyperlink(&'static str),
 }
 
 impl fmt::Display for TableStructure {
@@ -358,6 +367,7 @@ impl fmt::Display for CommandError {
                 f.write_str("tracked deletion stays inside one paragraph")
             }
             CommandError::RevisionConflict => f.write_str("revision conflict"),
+            CommandError::Hyperlink(reason) => f.write_str(reason),
         }
     }
 }

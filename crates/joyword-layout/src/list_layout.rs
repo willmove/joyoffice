@@ -506,6 +506,7 @@ impl LineBuilder {
             clusters: self.clusters,
             images: Vec::new(),
             revisions: Vec::new(),
+            hyperlinks: Vec::new(),
             box_height: Emu::new(0),
         }
     }

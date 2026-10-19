@@ -15,9 +15,9 @@ use std::sync::Arc;
 
 use joyword_model::{
     Anchor, AnnotationId, AnnotationKind, Bias, Block, Document, DocumentSnapshot, DocumentVersion,
-    InlineKind, InlineObject, Issue, MAX_LEVEL, MAX_NESTING, NodeId, NumberingRef, ParaProps,
-    Paragraph, Position, RunProps, ScalarOffset, StoryId, StyleId, StyleKind, StyleProblem,
-    TextError,
+    Hyperlink, InlineKind, InlineObject, Issue, MAX_LEVEL, MAX_NESTING, NodeId, NumberingRef,
+    ParaProps, Paragraph, Position, RunProps, ScalarOffset, StoryId, StyleId, StyleKind,
+    StyleProblem, TextError,
 };
 
 thread_local! {
@@ -648,6 +648,9 @@ fn execute(
         Command::InsertText { at, text } => insert_text(document, at, text, ctx, map, changes),
         Command::InsertInline { at, kind } => insert_inline(document, at, kind, map, changes),
         Command::InsertImage { at, data } => insert_image(document, at, data, map, changes),
+        Command::SetHyperlink { start, end, link } => {
+            set_hyperlink(document, start, end, link, changes)
+        }
         Command::DeleteRange { start, end } => {
             delete_range(document, start, end, ctx, map, changes)
         }
@@ -1053,6 +1056,66 @@ fn split_paragraph(
     changes.stories.insert(at.story);
     changes.paragraphs.insert(at.paragraph);
     changes.inserted.insert(new);
+    Ok(())
+}
+
+fn set_hyperlink(
+    document: &mut Document,
+    start: &Position,
+    end: &Position,
+    link: &Option<Hyperlink>,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    if let Some(link) = link {
+        // Re-validate so a command built outside `Hyperlink::for_edit` cannot
+        // store a scheme the opener would have to refuse, or a blank target.
+        let checked = Hyperlink::for_edit(link.external.as_deref(), link.anchor.as_deref())
+            .map_err(CommandError::Hyperlink)?;
+        if checked.external != link.external || checked.anchor != link.anchor {
+            return Err(CommandError::Hyperlink("hyperlink target was not accepted"));
+        }
+    }
+    let stored = link.as_ref().map(|link| Arc::new(link.clone()));
+    let (first, last) = locate_range(document, start, end)?;
+    if first.content_locked {
+        return Err(CommandError::Locked(start.paragraph));
+    }
+    let story = start.story;
+    let Some(seq) = locate::container_mut(document, story, &first.containers) else {
+        return Err(CommandError::Hyperlink(
+            "hyperlink range is not in the document",
+        ));
+    };
+    let mut touched = Vec::new();
+    for index in first.index..=last.index {
+        locate::for_each_paragraph_mut(seq, index, &mut |paragraph, locked| {
+            let id = paragraph.id();
+            let from = if id == start.paragraph {
+                start.offset
+            } else {
+                ScalarOffset(0)
+            };
+            let to = if id == end.paragraph {
+                end.offset
+            } else {
+                ScalarOffset(paragraph.len())
+            };
+            if from == to {
+                return Ok(());
+            }
+            if locked {
+                return Err(CommandError::Locked(id));
+            }
+            if paragraph.set_links(from..to, stored.clone())? {
+                touched.push(id);
+            }
+            Ok(())
+        })?;
+    }
+    if !touched.is_empty() {
+        changes.stories.insert(story);
+        changes.paragraphs.extend(touched);
+    }
     Ok(())
 }
 

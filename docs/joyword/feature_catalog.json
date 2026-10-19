@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 39,
-  "note": "T205 slice 2. Font and paragraph dialogs, ruler indent and tab dragging, and the three view switches are unit-tested. The view switches stay disabled because layout has no formatting-mark, hidden-text or field-code option. Underline and non-auto colour export and are not painted. This is not a Word word-count dialog comparison.",
+  "floor": 40,
+  "note": "T205 slice 2 plus the T203 insert-picture button. Font and paragraph dialogs, ruler indent and tab dragging, and the three view switches are unit-tested. The view switches stay disabled because layout has no formatting-mark, hidden-text or field-code option. Underline and non-auto colour export and are not painted. This is not a Word word-count dialog comparison.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},
@@ -24,6 +24,7 @@
     {"id": "start.format_copy", "kind": "command", "tab": "start", "command": "format.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "painter"},
     {"id": "start.format_paint", "kind": "command", "tab": "start", "command": "format.paint", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paint"},
     {"id": "start.format_cancel", "kind": "command", "tab": "start", "command": "format.cancel", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "cancel"},
+    {"id": "insert.picture", "kind": "command", "tab": "insert", "command": "edit.insert_image", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "picture"},
     {"id": "insert.page_break", "kind": "command", "tab": "insert", "command": "page.break", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "page-break"},
     {"id": "layout.a4", "kind": "command", "tab": "layout", "command": "page.size", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "page-a4"},
     {"id": "layout.letter", "kind": "command", "tab": "layout", "command": "page.size", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "page-letter"},
@@ -62,6 +63,7 @@
     {"id": "painter", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "paint", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "cancel", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "picture", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "page-break", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "page-a4", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "page-letter", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},

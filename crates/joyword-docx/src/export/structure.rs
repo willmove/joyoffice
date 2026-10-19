@@ -26,16 +26,18 @@ use std::sync::Arc;
 
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, Document, FontRef, FontSlots,
-    Indent, InlineKind, Justification, Languages, LineSpacing, Measure, MoveMarker, MoveSide,
-    NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph, RevisionKind, RunProps, Shading,
-    SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table,
-    TableWidth, Underline, VerticalMerge,
+    Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, MoveMarker,
+    MoveSide, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph, RevisionKind, RunProps,
+    Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop,
+    Table, TableWidth, Underline, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_leaf, bounded_text_xml, text_slots, unsupported};
+use crate::ns::{R, REL_HYPERLINK};
 use crate::props::{self, Findings};
 use crate::xml::{Element, Node};
 use crate::{PackageBacking, W};
+use joyoffice_opc::{PartName, Target};
 
 /// Where a group of new paragraphs is written.
 #[derive(Clone, Copy)]
@@ -221,6 +223,8 @@ pub(super) struct Source<'a> {
     bindings: Vec<(Arc<str>, Arc<str>)>,
     /// Property bytes of paragraphs [`Self::plain`] has accepted.
     copies: RefCell<Vec<CopySet>>,
+    /// Relationship ids for hyperlink targets written by this plan.
+    links: RefCell<LinkAssign>,
 }
 
 impl<'a> Source<'a> {
@@ -253,7 +257,23 @@ impl<'a> Source<'a> {
                 .collect(),
             bindings: ancestor_bindings(scope),
             copies: RefCell::new(Vec::new()),
+            links: RefCell::new(LinkAssign::from_package(backing, part)),
         }
+    }
+
+    /// `r:id` for an external hyperlink, allocating one when the package does
+    /// not already name this target. Anchor-only links return `None`.
+    pub(super) fn hyperlink_id(&self, link: &Hyperlink) -> Result<Option<String>, ExportError> {
+        self.links
+            .borrow_mut()
+            .id_for(link)
+            .map_err(|reason| unsupported(None, reason))
+    }
+
+    /// Relationships this plan added. Empty when every external target was
+    /// already in the package.
+    pub(super) fn fresh_hyperlinks(&self) -> Vec<(String, String)> {
+        self.links.borrow().fresh.clone()
     }
 
     fn element(&self, id: NodeId, source: Option<&SourceRef>) -> Result<&'a Element, ExportError> {
@@ -425,9 +445,21 @@ impl<'a> Source<'a> {
                             ppr = Some(child.span.clone());
                         }
                         "proofErr" => known_proof(child)?,
-                        "r" => {
-                            self.known_run(paragraph, child, &mut cursor, &mut runs, &mut rewrite)?
-                        }
+                        "r" => self.known_run(
+                            paragraph,
+                            child,
+                            None,
+                            &mut cursor,
+                            &mut runs,
+                            &mut rewrite,
+                        )?,
+                        "hyperlink" => self.known_hyperlink(
+                            paragraph,
+                            child,
+                            &mut cursor,
+                            &mut runs,
+                            &mut rewrite,
+                        )?,
                         _ => return Err("unmapped structural paragraph content"),
                     }
                 }
@@ -512,10 +544,66 @@ impl<'a> Source<'a> {
         Ok(())
     }
 
+    fn known_hyperlink(
+        &self,
+        paragraph: &Paragraph,
+        element: &Element,
+        cursor: &mut usize,
+        runs: &mut Vec<RunSource>,
+        rewrite: &mut bool,
+    ) -> Result<(), &'static str> {
+        let expected = self
+            .element_link(element)?
+            .ok_or("unmapped structural paragraph content")?;
+        let mut saw = false;
+        for node in &element.children {
+            match node {
+                Node::Text(text) if is_space(text) => {}
+                Node::Element(child) if child.is(W, "r") => {
+                    saw = true;
+                    self.known_run(paragraph, child, Some(&expected), cursor, runs, rewrite)?;
+                }
+                _ => return Err("unmapped structural paragraph content"),
+            }
+        }
+        if saw {
+            Ok(())
+        } else {
+            Err("unmapped structural paragraph content")
+        }
+    }
+
+    /// The link `w:hyperlink` names, rebuilt from its attributes and the
+    /// package relationship. `None` is not a mapped link.
+    fn element_link(&self, element: &Element) -> Result<Option<Hyperlink>, &'static str> {
+        let (relationship, anchor) = hyperlink_attrs(element)?;
+        let external = if let Some(id) = relationship {
+            let url = self
+                .links
+                .borrow()
+                .url(id)
+                .ok_or("hyperlink relationship is missing")?;
+            Some(Arc::<str>::from(url))
+        } else {
+            None
+        };
+        let anchor = match anchor {
+            Some(value) if anchor_token_ok(value) => Some(Arc::<str>::from(value)),
+            Some(_) => return Err("structural paragraph markup has unknown attributes"),
+            None => None,
+        };
+        Ok(Hyperlink::imported(
+            relationship.map(Arc::from),
+            external,
+            anchor,
+        ))
+    }
+
     fn known_run(
         &self,
         paragraph: &Paragraph,
         run: &Element,
+        expected: Option<&Hyperlink>,
         cursor: &mut usize,
         runs: &mut Vec<RunSource>,
         rewrite: &mut bool,
@@ -589,6 +677,9 @@ impl<'a> Source<'a> {
                 .ok_or("source text tokens do not match imported runs")?;
             if model.style != style || *model.props != props {
                 return Err("mapped run properties do not match the source model");
+            }
+            if model.link.as_deref() != expected {
+                return Err("mapped run hyperlink does not match the source model");
             }
             if stored.is_none() {
                 stored = Some(model.props.clone());
@@ -718,31 +809,29 @@ impl<'a> Source<'a> {
         limit: u64,
     ) -> Result<String, ExportError> {
         if paragraph.runs().iter().any(|run| run.revision.is_some()) {
+            if paragraph.runs().iter().any(|run| run.link.is_some()) {
+                return Err(unsupported(
+                    Some(paragraph.id()),
+                    "a revised run also has a hyperlink",
+                ));
+            }
             return revision_body(paragraph, &[], names, limit);
         }
-        let mut body = String::new();
-        for (style, props, text) in run_groups(paragraph) {
-            let rpr = match self.run_bytes(&style, &props) {
-                Ok(markup) => markup,
-                Err(error) if style.is_none() => match synthesize_rpr(names, &props) {
-                    Ok(markup) => markup,
-                    Err(_) => return Err(error),
+        append_linked_runs(
+            self,
+            paragraph.id(),
+            run_groups(paragraph),
+            names,
+            limit,
+            |style, props| match self.run_bytes(style, props) {
+                Ok(markup) => Ok(markup),
+                Err(error) if style.is_none() => match synthesize_rpr(names, props) {
+                    Ok(markup) => Ok(markup),
+                    Err(_) => Err(error),
                 },
-                Err(error) => return Err(error),
-            };
-            let text = bounded_text_xml(names, &text, limit)?;
-            if rpr.is_none() && text.is_empty() {
-                continue;
-            }
-            body.push_str(&names.start("r"));
-            body.push('>');
-            if let Some(rpr) = rpr {
-                body.push_str(&rpr);
-            }
-            body.push_str(&text);
-            body.push_str(&names.end("r"));
-        }
-        Ok(body)
+                Err(error) => Err(error),
+            },
+        )
     }
 
     /// Replace one surviving paragraph's element when a merge (or another
@@ -804,6 +893,9 @@ impl<'a> Source<'a> {
 /// unknown attributes on every container of a touched paragraph must survive
 /// via the original bytes or make the structural edit fail.
 fn plain_markup(element: &Element) -> Result<(), &'static str> {
+    if element.is(W, "hyperlink") {
+        return plain_hyperlink(element);
+    }
     const W14: &str = "http://schemas.microsoft.com/office/word/2010/wordml";
     let is_identifier = |paragraph: bool, namespace: Option<&str>, local: &str| {
         (namespace == Some(W)
@@ -1164,11 +1256,12 @@ pub(super) fn rewrite_represented_paragraph(
     paragraph: &Paragraph,
     names: &Names,
     limit: u64,
+    source: &Source<'_>,
 ) -> Result<Vec<u8>, ExportError> {
     if paragraph.style.is_some() || paragraph.props.numbering.is_some() {
-        rewrite_styled_paragraph(xml, element, paragraph, names, limit)
+        rewrite_styled_paragraph(xml, element, paragraph, names, limit, source)
     } else {
-        rewrite_direct_paragraph(xml, element, paragraph, names, limit)
+        rewrite_direct_paragraph(xml, element, paragraph, names, limit, source)
     }
 }
 
@@ -1178,6 +1271,7 @@ pub(super) fn rewrite_styled_paragraph(
     paragraph: &Paragraph,
     names: &Names,
     limit: u64,
+    source: &Source<'_>,
 ) -> Result<Vec<u8>, ExportError> {
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
@@ -1207,21 +1301,17 @@ pub(super) fn rewrite_styled_paragraph(
         }
         inner.push_str(&names.end("pPr"));
     }
-    for (style, props, text) in run_groups(paragraph) {
-        let rpr = styled_rpr(names, style.as_ref(), &props)
-            .map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
-        let text = bounded_text_xml(names, &text, limit)?;
-        if rpr.is_none() && text.is_empty() {
-            continue;
-        }
-        inner.push_str(&names.start("r"));
-        inner.push('>');
-        if let Some(rpr) = rpr {
-            inner.push_str(&rpr);
-        }
-        inner.push_str(&text);
-        inner.push_str(&names.end("r"));
-    }
+    inner.push_str(&append_linked_runs(
+        source,
+        paragraph.id(),
+        run_groups(paragraph),
+        names,
+        limit,
+        |style, props| {
+            styled_rpr(names, style.as_ref(), props)
+                .map_err(|reason| unsupported(Some(paragraph.id()), reason))
+        },
+    )?);
     let mut out = open;
     out.extend_from_slice(inner.as_bytes());
     out.extend_from_slice(names.end("p").as_bytes());
@@ -1282,6 +1372,7 @@ pub(super) fn rewrite_direct_paragraph(
     paragraph: &Paragraph,
     names: &Names,
     limit: u64,
+    source: &Source<'_>,
 ) -> Result<Vec<u8>, ExportError> {
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
@@ -1299,27 +1390,22 @@ pub(super) fn rewrite_direct_paragraph(
         inner.push_str(&geometry);
         inner.push_str(&names.end("pPr"));
     }
-    for (style, props, text) in run_groups(paragraph) {
-        if style.is_some() {
-            return Err(unsupported(
-                Some(paragraph.id()),
-                "character style is outside the direct formatting subset",
-            ));
-        }
-        let rpr = synthesize_rpr(names, &props)
-            .map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
-        let text = bounded_text_xml(names, &text, limit)?;
-        if rpr.is_none() && text.is_empty() {
-            continue;
-        }
-        inner.push_str(&names.start("r"));
-        inner.push('>');
-        if let Some(rpr) = rpr {
-            inner.push_str(&rpr);
-        }
-        inner.push_str(&text);
-        inner.push_str(&names.end("r"));
-    }
+    inner.push_str(&append_linked_runs(
+        source,
+        paragraph.id(),
+        run_groups(paragraph),
+        names,
+        limit,
+        |style, props| {
+            if style.is_some() {
+                return Err(unsupported(
+                    Some(paragraph.id()),
+                    "character style is outside the direct formatting subset",
+                ));
+            }
+            synthesize_rpr(names, props).map_err(|reason| unsupported(Some(paragraph.id()), reason))
+        },
+    )?);
     let mut out = open;
     out.extend_from_slice(inner.as_bytes());
     out.extend_from_slice(names.end("p").as_bytes());
@@ -1496,7 +1582,20 @@ pub(super) fn new_paragraph(
         ));
     }
     if paragraph.runs().iter().any(|run| run.revision.is_some()) || !markers.is_empty() {
+        if paragraph.runs().iter().any(|run| run.link.is_some()) {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "a revised run also has a hyperlink",
+            ));
+        }
         let body = revision_body(paragraph, markers, names, limit)?;
+        if body.is_empty() {
+            return Ok(format!("{}/>", names.start("p")));
+        }
+        return Ok(format!("{}>{body}{}", names.start("p"), names.end("p")));
+    }
+    if paragraph.runs().iter().any(|run| run.link.is_some()) {
+        let body = source.run_markup(paragraph, names, limit)?;
         if body.is_empty() {
             return Ok(format!("{}/>", names.start("p")));
         }
@@ -1860,7 +1959,10 @@ fn table_paragraph_ok(paragraph: &Paragraph) -> bool {
             .plain_text(|_| "\u{FFFC}".into())
             .contains('\u{FFFC}')
         && paragraph.runs().iter().all(|run| {
-            run.style.is_none() && run.props.preserved.is_none() && table_run_ok(&run.props)
+            run.link.is_none()
+                && run.style.is_none()
+                && run.props.preserved.is_none()
+                && table_run_ok(&run.props)
         })
 }
 
@@ -1957,6 +2059,9 @@ fn is_space(text: &str) -> bool {
 /// Leaving them in the original element is safe; rebuilding the element is not.
 fn blocks_rewrite(element: &Element) -> bool {
     element.elements().any(|child| {
+        if child.is(W, "hyperlink") {
+            return blocks_rewrite(child);
+        }
         child.is(W, "proofErr")
             || (child.is(W, "r")
                 && (child.child(W, "lastRenderedPageBreak").is_some() || !run_has_text(child)))
@@ -2142,19 +2247,27 @@ fn table_runs(paragraph: &Paragraph) -> Vec<(Option<StyleId>, Arc<RunProps>, Str
         .collect()
 }
 
-fn run_groups(paragraph: &Paragraph) -> Vec<(Option<StyleId>, Arc<RunProps>, String)> {
+type LinkedGroup = (
+    Option<StyleId>,
+    Arc<RunProps>,
+    Option<Arc<Hyperlink>>,
+    String,
+);
+
+fn run_groups(paragraph: &Paragraph) -> Vec<LinkedGroup> {
     let text = paragraph.plain_text(|_| "\u{FFFC}".into());
     let mut chars = text.chars();
-    let mut groups: Vec<(Option<StyleId>, Arc<RunProps>, String)> = Vec::new();
+    let mut groups: Vec<LinkedGroup> = Vec::new();
     for run in paragraph.runs() {
         let text: String = chars.by_ref().take(run.len).collect();
-        if let Some((style, props, existing)) = groups.last_mut()
+        if let Some((style, props, link, existing)) = groups.last_mut()
             && *style == run.style
             && *props == run.props
+            && *link == run.link
         {
             existing.push_str(&text);
         } else {
-            groups.push((run.style.clone(), run.props.clone(), text));
+            groups.push((run.style.clone(), run.props.clone(), run.link.clone(), text));
         }
     }
     groups
@@ -2547,6 +2660,317 @@ fn direct_rpr(
             Ok(Some(combined))
         }
     }
+}
+
+/// `r:id` and/or `w:anchor`, and nothing else.
+fn hyperlink_attrs(element: &Element) -> Result<(Option<&str>, Option<&str>), &'static str> {
+    let mut relationship = None;
+    let mut anchor = None;
+    for attribute in &element.attributes {
+        if attribute.namespace.as_deref() == Some(R) && attribute.local.as_ref() == "id" {
+            if relationship.is_some() {
+                return Err("structural paragraph markup has unknown attributes");
+            }
+            relationship = Some(attribute.value.as_str());
+        } else if attribute.namespace.as_deref() == Some(W) && attribute.local.as_ref() == "anchor"
+        {
+            if anchor.is_some() {
+                return Err("structural paragraph markup has unknown attributes");
+            }
+            anchor = Some(attribute.value.as_str());
+        } else {
+            return Err("structural paragraph markup has unknown attributes");
+        }
+    }
+    if relationship.is_none() && anchor.is_none() {
+        return Err("unmapped structural paragraph content");
+    }
+    Ok((relationship, anchor))
+}
+
+fn anchor_token_ok(value: &str) -> bool {
+    !value.is_empty()
+        && value.chars().count() <= 255
+        && !value
+            .chars()
+            .any(|ch| ch.is_control() || ch.is_whitespace() || matches!(ch, '<' | '>' | '"' | '\''))
+}
+
+fn plain_hyperlink(element: &Element) -> Result<(), &'static str> {
+    hyperlink_attrs(element)?;
+    let mut runs = 0usize;
+    for node in &element.children {
+        match node {
+            Node::Text(text) if is_space(text) => {}
+            Node::Element(child) if child.is(W, "r") => {
+                runs += 1;
+                plain_markup(child)?;
+            }
+            _ => return Err("unmapped structural paragraph content"),
+        }
+    }
+    if runs == 0 {
+        Err("unmapped structural paragraph content")
+    } else {
+        Ok(())
+    }
+}
+
+fn target_writable(url: &str) -> bool {
+    !url.is_empty()
+        && url.chars().count() <= joyword_model::MAX_HYPERLINK_CHARS
+        && !url
+            .chars()
+            .any(|ch| ch.is_control() || matches!(ch, '<' | '>' | '"'))
+}
+
+fn append_linked_runs(
+    source: &Source<'_>,
+    id: NodeId,
+    groups: Vec<LinkedGroup>,
+    names: &Names,
+    limit: u64,
+    mut properties: impl FnMut(&Option<StyleId>, &Arc<RunProps>) -> Result<Option<String>, ExportError>,
+) -> Result<String, ExportError> {
+    let mut body = String::new();
+    let mut index = 0usize;
+    while index < groups.len() {
+        let link = groups[index].2.clone();
+        let start = index;
+        index += 1;
+        while index < groups.len() && groups[index].2 == link {
+            index += 1;
+        }
+        let mut inner = String::new();
+        for (style, props, _, text) in &groups[start..index] {
+            let rpr = properties(style, props)?;
+            let text = bounded_text_xml(names, text, limit)?;
+            if rpr.is_none() && text.is_empty() {
+                continue;
+            }
+            inner.push_str(&names.start("r"));
+            inner.push('>');
+            if let Some(rpr) = rpr {
+                inner.push_str(&rpr);
+            }
+            inner.push_str(&text);
+            inner.push_str(&names.end("r"));
+        }
+        if inner.is_empty() {
+            continue;
+        }
+        if let Some(link) = link.as_ref() {
+            body.push_str(&hyperlink_start(source, id, names, link)?);
+            body.push_str(&inner);
+            body.push_str(&names.end("hyperlink"));
+        } else {
+            body.push_str(&inner);
+        }
+    }
+    Ok(body)
+}
+
+fn hyperlink_start(
+    source: &Source<'_>,
+    id: NodeId,
+    names: &Names,
+    link: &Hyperlink,
+) -> Result<String, ExportError> {
+    let relationship = source.hyperlink_id(link)?;
+    if relationship.is_none() && link.anchor.is_none() {
+        return Err(unsupported(
+            Some(id),
+            "hyperlink structure is not rewritten",
+        ));
+    }
+    let mut tag = names.start("hyperlink");
+    if let Some(relationship) = relationship.as_deref() {
+        if relationship
+            .chars()
+            .any(|ch| ch.is_control() || matches!(ch, '<' | '>' | '"' | '&' | ' '))
+        {
+            return Err(unsupported(
+                Some(id),
+                "hyperlink relationship id cannot be written",
+            ));
+        }
+        tag.push_str(" xmlns:r=\"");
+        tag.push_str(R);
+        tag.push('"');
+        tag.push_str(" r:id=\"");
+        tag.push_str(relationship);
+        tag.push('"');
+    }
+    if let Some(anchor) = link.anchor.as_deref() {
+        tag.push_str(&names.attribute("anchor", anchor));
+    }
+    tag.push('>');
+    Ok(tag)
+}
+
+/// Relationship ids already in the main part, plus ids this plan allocates
+/// for external targets that are not there yet.
+struct LinkAssign {
+    /// Hyperlink id to external target.
+    urls: HashMap<String, String>,
+    /// First id that already names a target.
+    by_url: HashMap<String, String>,
+    /// Every relationship id on the part, so a fresh id cannot collide.
+    taken: HashSet<String>,
+    fresh: Vec<(String, String)>,
+    next: u32,
+}
+
+impl LinkAssign {
+    fn from_package(backing: &crate::PackageBacking, part: &str) -> Self {
+        let mut assign = Self {
+            urls: HashMap::new(),
+            by_url: HashMap::new(),
+            taken: HashSet::new(),
+            fresh: Vec::new(),
+            next: 1,
+        };
+        let Ok(name) = PartName::new(part) else {
+            return assign;
+        };
+        for relationship in backing.package().relationships(Some(&name)) {
+            assign.taken.insert(relationship.id.to_string());
+            if relationship.kind.as_ref() != REL_HYPERLINK {
+                continue;
+            }
+            let Target::External { raw, .. } = &relationship.target else {
+                continue;
+            };
+            if raw.is_empty() {
+                continue;
+            }
+            assign
+                .by_url
+                .entry(raw.to_string())
+                .or_insert_with(|| relationship.id.to_string());
+            assign
+                .urls
+                .insert(relationship.id.to_string(), raw.to_string());
+        }
+        assign
+    }
+
+    fn url(&self, id: &str) -> Option<String> {
+        self.urls.get(id).cloned()
+    }
+
+    fn id_for(&mut self, link: &Hyperlink) -> Result<Option<String>, &'static str> {
+        let Some(url) = link.external.as_deref() else {
+            return Ok(None);
+        };
+        if !target_writable(url) {
+            return Err("hyperlink target cannot be written");
+        }
+        if let Some(id) = link.relationship.as_deref()
+            && self.urls.get(id).is_some_and(|existing| existing == url)
+        {
+            return Ok(Some(id.to_string()));
+        }
+        if let Some(id) = self.by_url.get(url) {
+            return Ok(Some(id.clone()));
+        }
+        let id = self.allocate()?;
+        self.fresh.push((id.clone(), url.to_string()));
+        self.by_url.insert(url.to_string(), id.clone());
+        self.urls.insert(id.clone(), url.to_string());
+        self.taken.insert(id.clone());
+        Ok(Some(id))
+    }
+
+    fn allocate(&mut self) -> Result<String, &'static str> {
+        for _ in 0..10_000 {
+            let id = format!("rIdH{}", self.next);
+            self.next = self.next.saturating_add(1);
+            if self.next == 0 {
+                return Err("hyperlink relationship ids exhausted");
+            }
+            if !self.taken.contains(&id) {
+                return Ok(id);
+            }
+        }
+        Err("hyperlink relationship ids exhausted")
+    }
+}
+
+/// Appends `Relationship` elements before the single `</Relationships>` end
+/// tag. An XML declaration at the start is kept. Comments, extra processing
+/// instructions and a missing or repeated end tag are refused.
+pub(super) fn append_hyperlink_relationships(
+    xml: &[u8],
+    fresh: &[(String, String)],
+) -> Result<Vec<u8>, ExportError> {
+    let text = std::str::from_utf8(xml)
+        .map_err(|_| unsupported(None, "hyperlink relationships part is not rewritten"))?;
+    if text.contains("<!--") {
+        return Err(unsupported(
+            None,
+            "hyperlink relationships part is not rewritten",
+        ));
+    }
+    let mut body_at = 0usize;
+    let trimmed = text.trim_start();
+    if let Some(rest) = trimmed.strip_prefix("<?xml") {
+        let lead = text.len() - trimmed.len();
+        if text[..lead].contains("<?") {
+            return Err(unsupported(
+                None,
+                "hyperlink relationships part is not rewritten",
+            ));
+        }
+        let Some(end) = rest.find("?>") else {
+            return Err(unsupported(
+                None,
+                "hyperlink relationships part is not rewritten",
+            ));
+        };
+        body_at = lead + "<?xml".len() + end + 2;
+    }
+    if text[body_at..].contains("<?") {
+        return Err(unsupported(
+            None,
+            "hyperlink relationships part is not rewritten",
+        ));
+    }
+    let end_tag = "</Relationships>";
+    if text.matches(end_tag).count() != 1 {
+        return Err(unsupported(
+            None,
+            "hyperlink relationships part is not rewritten",
+        ));
+    }
+    let Some(pos) = text.rfind(end_tag) else {
+        return Err(unsupported(
+            None,
+            "hyperlink relationships part is not rewritten",
+        ));
+    };
+    let mut extra = String::new();
+    for (id, target) in fresh {
+        if id
+            .chars()
+            .any(|ch| ch.is_control() || matches!(ch, '<' | '>' | '"' | '&' | ' '))
+            || !target_writable(target)
+        {
+            return Err(unsupported(None, "hyperlink target cannot be written"));
+        }
+        extra.push_str("<Relationship Id=\"");
+        extra.push_str(id);
+        extra.push_str("\" Type=\"");
+        extra.push_str(REL_HYPERLINK);
+        extra.push_str("\" Target=\"");
+        extra.push_str(&xml_escape(target));
+        extra.push_str("\" TargetMode=\"External\"/>");
+    }
+    let mut out = String::with_capacity(text.len() + extra.len());
+    out.push_str(&text[..pos]);
+    out.push_str(&extra);
+    out.push_str(&text[pos..]);
+    Ok(out.into_bytes())
 }
 
 #[cfg(test)]

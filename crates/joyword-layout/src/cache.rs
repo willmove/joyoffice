@@ -8,7 +8,8 @@
 //! keep-next chain) and copies the previous snapshot once a later page
 //! boundary matches. Feedback that repeats a state or exhausts its pass
 //! budget returns [`LayoutError::Unstable`] and does not publish the
-//! temporary pages.
+//! temporary pages, unless every body page field has a cached result.
+//! That case draws the cache once and notes `PageFieldCached`.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -21,8 +22,8 @@ use joyword_model::{
 use sha2::{Digest, Sha256};
 
 use crate::document::{
-    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, WorkSpent, assemble,
-    dominant_slot, fit_paragraph, open_snapshot, preflight, record_fit,
+    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, WorkSpent,
+    apply_section, assemble, dominant_slot, fit_paragraph, open_snapshot, preflight, record_fit,
 };
 use crate::style_paint;
 use crate::{
@@ -56,6 +57,12 @@ pub struct ExternalContext {
     pub page_number: u32,
     pub footnote_number: u32,
     pub wrap: u64,
+    /// `PAGE` after `w:pgNumType/@w:start`. Zero is the unset seed.
+    pub displayed_page: i64,
+    pub num_pages: u32,
+    pub section_pages: u32,
+    /// Draw the stored field result instead of a live number.
+    pub force_cache: bool,
 }
 
 /// What a transaction asked layout to drop. The app maps an engine ChangeSet
@@ -78,6 +85,10 @@ pub struct ExternalKey {
     page_number: Option<u32>,
     footnote_number: Option<u32>,
     wrap: Option<u64>,
+    displayed_page: Option<i64>,
+    num_pages: Option<u32>,
+    section_pages: Option<u32>,
+    force_cache: Option<bool>,
 }
 
 pub fn external_key(flags: DependencyFlags, context: ExternalContext) -> ExternalKey {
@@ -85,6 +96,10 @@ pub fn external_key(flags: DependencyFlags, context: ExternalContext) -> Externa
         page_number: flags.page_number.then_some(context.page_number),
         footnote_number: flags.footnote_number.then_some(context.footnote_number),
         wrap: flags.wrap.then_some(context.wrap),
+        displayed_page: flags.page_number.then_some(context.displayed_page),
+        num_pages: flags.page_number.then_some(context.num_pages),
+        section_pages: flags.page_number.then_some(context.section_pages),
+        force_cache: flags.page_number.then_some(context.force_cache),
     }
 }
 
@@ -200,12 +215,22 @@ pub fn paragraph_dependencies(document: &Document, paragraph: &Paragraph) -> Dep
         }
         let instruction = instruction_text(paragraph, start.offset, separator.as_ref(), end);
         let upper = instruction.to_ascii_uppercase();
-        if has_token(&upper, "PAGE") || has_token(&upper, "NUMPAGES") {
+        if has_token(&upper, "PAGE")
+            || has_token(&upper, "NUMPAGES")
+            || has_token(&upper, "SECTIONPAGES")
+        {
             flags.page_number = true;
         }
         if has_token(&upper, "FOOTNOTE") || has_token(&upper, "NOTEREF") {
             flags.footnote_number = true;
         }
+    }
+    if paragraph
+        .inlines()
+        .iter()
+        .any(|inline| matches!(inline.kind, joyword_model::InlineKind::PageField(_)))
+    {
+        flags.page_number = true;
     }
     flags
 }
@@ -492,8 +517,8 @@ pub fn layout_incremental_viewed(
         (Some(flow), Some(previous)) => flow_matches(flow, previous, faces, profile, limits),
         _ => false,
     };
-    let seed = vec![ExternalContext::default(); document.body().blocks.len()];
-    run_layout_passes(seed, |assumed| {
+    let seed = seed_page_contexts(document);
+    let settled = run_layout_passes(seed, |assumed| {
         layout_pass(
             cache,
             PassInput {
@@ -509,10 +534,32 @@ pub fn layout_incremental_viewed(
                 view,
             },
         )
-    })
-    .inspect(|snapshot| {
-        remember_flow(cache, snapshot, document, faces, profile, limits, view);
-    })
+    });
+    let snapshot = match settled {
+        Ok(snapshot) => snapshot,
+        Err(LayoutError::Unstable) if body_fields_have_cache(document) => {
+            let forced = forced_cache_contexts(document);
+            let (snapshot, _) = layout_pass(
+                cache,
+                PassInput {
+                    document,
+                    faces,
+                    profile,
+                    limits,
+                    geometry,
+                    cancellation,
+                    previous: previous.filter(|_| flow_ok),
+                    invalidation,
+                    assumed: &forced,
+                    view,
+                },
+            )?;
+            snapshot
+        }
+        Err(error) => return Err(error),
+    };
+    remember_flow(cache, &snapshot, document, faces, profile, limits, view);
+    Ok(snapshot)
 }
 
 fn flow_matches(
@@ -552,15 +599,15 @@ fn remember_flow(
         };
         let deps = paragraph_dependencies(document, paragraph);
         let context = context_of(snapshot, paragraph.id(), deps);
-        let geometry = crate::pages::plan_for(&plans, index)
-            .map(|plan| plan.geometry)
-            .unwrap_or_else(|| snapshot.geometry());
+        let width = crate::pages::plan_for(&plans, index)
+            .map(|plan| plan.fit_width.raw())
+            .unwrap_or_else(|| snapshot.geometry().content_width().raw());
         let key = paragraph_key(
             document,
             paragraph,
             faces,
             profile,
-            geometry,
+            width,
             context,
             marks.get(&paragraph.id()),
             view,
@@ -602,21 +649,105 @@ fn context_of(snapshot: &LayoutSnapshot, id: NodeId, deps: DependencyFlags) -> E
     if !deps.any() {
         return ExternalContext::default();
     }
-    let page = snapshot
-        .lines()
-        .iter()
-        .find(|line| line.paragraph == id)
+    let line = snapshot.lines().iter().find(|line| line.paragraph == id);
+    let page = line
         .map(|line| {
             u32::try_from(line.page)
                 .unwrap_or(u32::MAX)
                 .saturating_add(1)
         })
         .unwrap_or(1);
-    ExternalContext {
-        page_number: page,
-        footnote_number: 1,
-        wrap: 0,
+    let section = line
+        .and_then(|line| snapshot.page_box(line.page).map(|(_, section)| section))
+        .unwrap_or(0);
+    let mut context = ExternalContext::default();
+    if deps.page_number {
+        context.page_number = page;
+        context.displayed_page = line
+            .map(|line| snapshot.displayed_page(line.page))
+            .unwrap_or(0);
+        context.num_pages = u32::try_from(snapshot.page_count()).unwrap_or(u32::MAX);
+        context.section_pages = snapshot.section_page_count(section);
     }
+    if deps.footnote_number {
+        context.footnote_number = 1;
+    }
+    context
+}
+
+pub(crate) fn seed_page_contexts(document: &Document) -> Vec<ExternalContext> {
+    document
+        .body()
+        .blocks
+        .iter()
+        .map(|block| page_seed(document, block, false))
+        .collect()
+}
+
+pub(crate) fn forced_cache_contexts(document: &Document) -> Vec<ExternalContext> {
+    document
+        .body()
+        .blocks
+        .iter()
+        .map(|block| page_seed(document, block, true))
+        .collect()
+}
+
+fn page_seed(document: &Document, block: &Block, force_cache: bool) -> ExternalContext {
+    let Some(paragraph) = block.as_paragraph() else {
+        return ExternalContext::default();
+    };
+    if !paragraph_dependencies(document, paragraph).page_number {
+        return ExternalContext::default();
+    }
+    ExternalContext {
+        page_number: 1,
+        displayed_page: 1,
+        num_pages: 1,
+        section_pages: 1,
+        force_cache,
+        ..ExternalContext::default()
+    }
+}
+
+pub(crate) fn body_fields_have_cache(document: &Document) -> bool {
+    let mut any = false;
+    for block in document.body().blocks.iter() {
+        let Some(paragraph) = block.as_paragraph() else {
+            continue;
+        };
+        for inline in paragraph.inlines() {
+            let joyword_model::InlineKind::PageField(field) = &inline.kind else {
+                continue;
+            };
+            any = true;
+            if field.cached.is_none() {
+                return false;
+            }
+        }
+    }
+    any
+}
+
+pub(crate) fn contexts_after(
+    document: &Document,
+    snapshot: &LayoutSnapshot,
+) -> Vec<ExternalContext> {
+    document
+        .body()
+        .blocks
+        .iter()
+        .map(|block| {
+            let Some(paragraph) = block.as_paragraph() else {
+                return ExternalContext::default();
+            };
+            context_of(
+                snapshot,
+                paragraph.id(),
+                paragraph_dependencies(document, paragraph),
+            )
+        })
+        .collect()
 }
 
 struct PassInput<'a> {
@@ -694,7 +825,7 @@ fn layout_pass(
             paragraph,
             faces,
             profile,
-            plan.geometry,
+            plan.fit_width.raw(),
             context,
             marks.get(&paragraph.id()),
             view,
@@ -710,6 +841,11 @@ fn layout_pass(
         if remaining_shapes == 0 {
             return Err(LayoutError::LimitExceeded(crate::LayoutLimit::ShapeCalls));
         }
+        let numbering = document
+            .sections()
+            .get(plan.section)
+            .map(|section| section.numbering.clone())
+            .unwrap_or_default();
         let fitted = if let Some(hit) = cache.cloned(&key) {
             if hit.shape_calls > remaining_shapes
                 || charged_bytes.saturating_add(hit.shaped_bytes) > limits.max_shaped_bytes
@@ -731,7 +867,7 @@ fn layout_pass(
                 faces,
                 profile,
                 plan.geometry,
-                plan.geometry.content_width(),
+                plan.fit_width,
                 limits,
                 WorkSpent {
                     shapes: charged_shapes,
@@ -741,6 +877,8 @@ fn layout_pass(
                 },
                 cancellation,
                 marks.get(&paragraph.id()),
+                context,
+                &numbering,
                 view,
             )?;
             cache.insert(key, fitted.clone());
@@ -750,9 +888,12 @@ fn layout_pass(
         };
         let fitted = {
             let mut fitted = fitted;
-            fitted.geometry = plan.geometry;
-            fitted.section_index = plan.section;
-            fitted.section_break_before = crate::pages::section_break_before(&plans, index);
+            apply_section(&mut fitted, document, &plans, index);
+            if fitted.used_field_cache {
+                result.note_once(crate::document::LayoutNote::PageFieldCached {
+                    paragraph: fitted.id,
+                });
+            }
             fitted
         };
         record_fit(&mut result, &fitted);
@@ -886,7 +1027,7 @@ fn paragraph_key(
     paragraph: &Paragraph,
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
-    geometry: PageGeometry,
+    available_width: i64,
     context: ExternalContext,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
     view: RevisionView,
@@ -912,7 +1053,7 @@ fn paragraph_key(
     ParagraphCacheKey {
         content: digest(content_source.as_bytes()),
         resolved_style: resolved_style(document, paragraph, mark),
-        available_width: geometry.content_width().raw(),
+        available_width,
         font: FontEnvKey {
             shaping: faces.face(slot).key(),
             mixed: mixed.then_some(MixedFaces {
@@ -1076,6 +1217,14 @@ mod tests {
             },
             section_index: 0,
             section_break_before: false,
+            section_edge: crate::pages::SectionEdge::Same,
+            column_count: 1,
+            column_gap: 0,
+            column_width: 1,
+            column_breaks: false,
+            section_id: document.ids().node(),
+            page_start: None,
+            used_field_cache: false,
             piece_breaks: Vec::new(),
             piece_lines: Vec::new(),
             trailing_breaks: 0,

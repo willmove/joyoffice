@@ -61,6 +61,8 @@ pub struct LineImage {
     pub x: Emu,
     pub width: Emu,
     pub height: Emu,
+    /// Paragraph scalar of the image marker.
+    pub scalar: usize,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -73,6 +75,9 @@ pub struct LayoutLine {
     /// Final-with-markup spans. Empty for an ordinary line and for Final
     /// or Original, which project hidden runs out before shaping.
     pub revisions: Vec<LineRevision>,
+    /// Scalar ranges of this line that carry a hyperlink. Screen and PDF
+    /// paint these as underlines; run properties stay unchanged.
+    pub hyperlinks: Vec<Range<usize>>,
     /// Zero uses the paragraph line box. A positive value replaces it.
     pub box_height: Emu,
 }
@@ -516,6 +521,7 @@ where
             clusters,
             images: Vec::new(),
             revisions: Vec::new(),
+            hyperlinks: Vec::new(),
             box_height: Emu::new(0),
         });
         if byte_start == text.len() {

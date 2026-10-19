@@ -5,16 +5,18 @@
 //! every other block (tables, content controls, unknown elements) becomes an
 //! [`OpaqueBlock`] whose source is preserved. Inside a paragraph, text,
 //! tabs and breaks are mapped; other run content becomes a preserved inline
-//! object, wrappers such as hyperlinks are descended into for their text and
-//! preserved, and range markers such as bookmarks are preserved without a
-//! position. A paragraph or block holding preserved content is locked.
+//! object. A simple `w:hyperlink` (`r:id` external target and/or `w:anchor`,
+//! runs of text and tabs) is stored on those runs and is not fetched. Other
+//! wrappers are descended into for their text and preserved. Range markers
+//! such as bookmarks are preserved without a position. A paragraph or block
+//! holding preserved content is locked.
 
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BlockSeq, BreakKind, HeaderFooterKind, InlineKind, InlineObject, NodeId, OBJECT_MARKER,
-    OpaqueBlock, Orientation, PageFieldKind, PageSetup, Paragraph, Preserved, RunProps, Section,
-    StoryId, StoryKind, StyleId,
+    Block, BlockSeq, BreakKind, EqualColumns, HeaderFooterKind, InlineKind, InlineObject, NodeId,
+    NumberFormat, OBJECT_MARKER, OpaqueBlock, Orientation, PageField, PageFieldKind, PageNumbering,
+    PageSetup, Paragraph, Preserved, RunProps, Section, SectionBreak, StoryId, StoryKind, StyleId,
 };
 
 use crate::backing::PreservedReason;
@@ -146,8 +148,9 @@ fn is_marker(local: &str) -> bool {
 }
 
 /// Inline wrappers whose run content is mapped while the wrapper itself is
-/// preserved: hyperlinks, smart tags, inline custom XML, simple fields,
-/// bidirectional embeddings, and inserted or moved-to revisions.
+/// preserved: smart tags, inline custom XML, simple fields, bidirectional
+/// embeddings, and inserted or moved-to revisions. A simple hyperlink is
+/// mapped instead; one this slice does not understand still uses this path.
 fn is_wrapper(local: &str) -> bool {
     matches!(
         local,
@@ -232,6 +235,9 @@ impl Body {
                 title_page: None,
                 headers: Vec::new(),
                 footers: Vec::new(),
+                break_kind: SectionBreak::NextPage,
+                numbering: PageNumbering::default(),
+                columns: None,
                 preserved: None,
             }
         });
@@ -318,7 +324,24 @@ fn content(
     paragraph: &mut Paragraph,
     locked: &mut bool,
 ) {
-    for child in parent.elements() {
+    let children: Vec<&Element> = parent.elements().collect();
+    let mut index = 0;
+    while index < children.len() {
+        if let Some((taken, field)) = complex_page_field(&children[index..]) {
+            paragraph.push_inline(
+                InlineObject {
+                    id: importer.document.ids().node(),
+                    kind: InlineKind::PageField(field),
+                    source: Some(Importer::source(part, children[index])),
+                },
+                None,
+                Arc::default(),
+            );
+            index += taken;
+            continue;
+        }
+        let child = children[index];
+        index += 1;
         let local = &*child.local;
         if child.namespace.as_deref() != Some(W) {
             if child.is(MC, "AlternateContent") {
@@ -371,14 +394,53 @@ fn content(
                 paragraph,
                 locked,
             ),
+            "hyperlink" => {
+                if let Some(link) = crate::hyperlink::mapped(importer, part, child) {
+                    let before = paragraph.runs().len();
+                    let was_locked = *locked;
+                    let inner = scope.enter(child);
+                    for run_element in child.elements() {
+                        run(
+                            importer,
+                            part,
+                            run_element,
+                            &inner.enter(run_element),
+                            paragraph,
+                            locked,
+                        );
+                    }
+                    if *locked == was_locked && paragraph.runs().len() > before {
+                        paragraph.stamp_runs_from(before, Arc::new(link));
+                    } else {
+                        // The preflight did not hold. Keep the wrapper bytes and
+                        // do not read the children again.
+                        importer.preserve(part, child, scope, PreservedReason::Unsupported);
+                        *locked = true;
+                    }
+                } else {
+                    importer.preserve(part, child, scope, PreservedReason::Unsupported);
+                    *locked = true;
+                    content(
+                        importer,
+                        part,
+                        child,
+                        &scope.enter(child),
+                        paragraph,
+                        locked,
+                    );
+                }
+            }
             "proofErr" => importer.hint(part, "proofErr"),
-            "fldSimple" if importer.story_page_fields => {
+            "fldSimple" => {
                 if let Some(kind) = page_field_kind(child.attribute(Some(W), "instr").unwrap_or(""))
                 {
                     paragraph.push_inline(
                         InlineObject {
                             id: importer.document.ids().node(),
-                            kind: InlineKind::PageField(kind),
+                            kind: InlineKind::PageField(PageField {
+                                kind,
+                                cached: simple_cache(child),
+                            }),
                             source: Some(Importer::source(part, child)),
                         },
                         None,
@@ -616,13 +678,14 @@ fn run(
     }
 }
 
-/// A `PAGE` or `NUMPAGES` instruction, optionally with `\* MERGEFORMAT`.
-/// Any other switch stays on the preserved-field path.
+/// A `PAGE`, `NUMPAGES` or `SECTIONPAGES` instruction, optionally with
+/// `\* MERGEFORMAT`. Any other switch stays on the preserved-field path.
 fn page_field_kind(instr: &str) -> Option<PageFieldKind> {
     let mut tokens = instr.split_whitespace();
     let kind = match tokens.next()?.to_ascii_uppercase().as_str() {
         "PAGE" => PageFieldKind::Page,
         "NUMPAGES" => PageFieldKind::NumPages,
+        "SECTIONPAGES" => PageFieldKind::SectionPages,
         _ => return None,
     };
     let rest: Vec<&str> = tokens.collect();
@@ -637,8 +700,132 @@ fn page_field_kind(instr: &str) -> Option<PageFieldKind> {
     }
 }
 
-/// `w:sectPr` (§17.6.17): page size, margins, title page, and header or
-/// footer references. Other children are preserved, not imported.
+/// Cached result text that can be shown when a number cannot be formatted.
+/// Tabs, nested markup and long or non-character text are not a cache.
+fn cache_text(text: &str) -> Option<Arc<str>> {
+    if text.is_empty() || text.chars().count() > 32 {
+        return None;
+    }
+    if text.chars().any(|ch| {
+        ch == OBJECT_MARKER
+            || matches!(ch, '\u{0}'..='\u{8}' | '\u{B}' | '\u{C}' | '\u{E}'..='\u{1F}')
+    }) {
+        return None;
+    }
+    Some(Arc::from(text))
+}
+
+fn simple_cache(element: &Element) -> Option<Arc<str>> {
+    let mut text = String::new();
+    for run in element.elements() {
+        if !run.is(W, "r") {
+            return None;
+        }
+        for leaf in run.elements() {
+            if leaf.is(W, "rPr") {
+                continue;
+            }
+            if leaf.is(W, "t") && leaf.elements().next().is_none() {
+                text.push_str(&leaf.text());
+            } else {
+                return None;
+            }
+        }
+    }
+    cache_text(&text)
+}
+
+fn fld_char_type(run: &Element) -> Option<&str> {
+    let mut found = None;
+    for child in run.elements() {
+        if child.is(W, "rPr") {
+            continue;
+        }
+        if found.is_some() || !child.is(W, "fldChar") || child.elements().next().is_some() {
+            return None;
+        }
+        if child.attributes.len() != 1 {
+            return None;
+        }
+        found = child.attribute(Some(W), "fldCharType");
+        found?;
+    }
+    found
+}
+
+fn instr_text(run: &Element) -> Option<String> {
+    let mut text = String::new();
+    let mut any = false;
+    for child in run.elements() {
+        if child.is(W, "rPr") {
+            continue;
+        }
+        if !child.is(W, "instrText") || child.elements().next().is_some() {
+            return None;
+        }
+        text.push_str(&child.text());
+        any = true;
+    }
+    any.then_some(text)
+}
+
+fn result_text(run: &Element) -> Option<String> {
+    let mut text = String::new();
+    for child in run.elements() {
+        if child.is(W, "rPr") {
+            continue;
+        }
+        if !child.is(W, "t") || child.elements().next().is_some() {
+            return None;
+        }
+        text.push_str(&child.text());
+    }
+    Some(text)
+}
+
+/// A complex field whose instruction is only `PAGE`, `NUMPAGES` or
+/// `SECTIONPAGES`, with an optional cached result between separate and end.
+/// Anything else returns `None` so the existing per-run path preserves it.
+fn complex_page_field(children: &[&Element]) -> Option<(usize, PageField)> {
+    if children.is_empty() || fld_char_type(children[0]) != Some("begin") {
+        return None;
+    }
+    let mut index = 1;
+    let mut instr = String::new();
+    while index < children.len() {
+        let kind = fld_char_type(children[index]);
+        if kind == Some("separate") || kind == Some("end") {
+            break;
+        }
+        instr.push_str(&instr_text(children[index])?);
+        index += 1;
+    }
+    let mut cached = String::new();
+    let mut saw_result = false;
+    if index < children.len() && fld_char_type(children[index]) == Some("separate") {
+        saw_result = true;
+        index += 1;
+        while index < children.len() && fld_char_type(children[index]) != Some("end") {
+            cached.push_str(&result_text(children[index])?);
+            index += 1;
+        }
+    }
+    if index >= children.len() || fld_char_type(children[index]) != Some("end") {
+        return None;
+    }
+    let kind = page_field_kind(&instr)?;
+    Some((
+        index + 1,
+        PageField {
+            kind,
+            cached: saw_result.then(|| cache_text(&cached)).flatten(),
+        },
+    ))
+}
+
+/// `w:sectPr` (§17.6.17): page size, margins, title page, header or footer
+/// references, section start, page numbering and equal columns. Other
+/// children are preserved, not imported.
 fn section(
     importer: &mut Importer<'_>,
     part: &PartName,
@@ -654,6 +841,9 @@ fn section(
     let mut margins = false;
     let mut headers = Vec::new();
     let mut footers = Vec::new();
+    let mut break_kind = SectionBreak::NextPage;
+    let mut numbering = PageNumbering::default();
+    let mut columns = None;
     for child in element.elements() {
         let mapped = child.namespace.as_deref() == Some(W);
         match (mapped, &*child.local) {
@@ -693,6 +883,34 @@ fn section(
                 }
             }
             (true, "titlePg") => title_page = props::on_off(props::val(child)),
+            (true, "type") => {
+                if child.elements().next().is_some()
+                    || child
+                        .attributes
+                        .iter()
+                        .any(|attribute| attribute.local.as_ref() != "val")
+                {
+                    findings.complete = false;
+                }
+                match child.attribute(Some(W), "val") {
+                    None | Some("nextPage") => break_kind = SectionBreak::NextPage,
+                    Some("continuous") => break_kind = SectionBreak::Continuous,
+                    Some("evenPage") => break_kind = SectionBreak::EvenPage,
+                    Some("oddPage") => break_kind = SectionBreak::OddPage,
+                    Some(_) => findings.complete = false,
+                }
+            }
+            (true, "pgNumType") => {
+                if let Some(parsed) = page_numbering(child) {
+                    numbering = parsed;
+                } else {
+                    findings.complete = false;
+                }
+            }
+            (true, "cols") => match equal_columns(child) {
+                Some(parsed) => columns = parsed,
+                None => findings.complete = false,
+            },
             (true, "headerReference" | "footerReference") => {
                 if let Some((kind, story)) = story_reference(importer, part, child, &mut findings) {
                     let list = if child.local.as_ref() == "headerReference" {
@@ -737,8 +955,80 @@ fn section(
         title_page,
         headers,
         footers,
+        break_kind,
+        numbering,
+        columns,
         preserved,
     }
+}
+
+/// `w:pgNumType` (§17.6.12). Chapter prefixes stay unmodeled.
+fn page_numbering(element: &Element) -> Option<PageNumbering> {
+    if element.elements().next().is_some() {
+        return None;
+    }
+    let mut numbering = PageNumbering::default();
+    for attribute in &element.attributes {
+        if attribute.namespace.as_deref() != Some(W) {
+            return None;
+        }
+        match attribute.local.as_ref() {
+            "fmt" => numbering.format = NumberFormat::parse(&attribute.value),
+            "start" => numbering.start = Some(attribute.value.parse().ok()?),
+            _ => return None,
+        }
+    }
+    Some(numbering)
+}
+
+/// Equal-width `w:cols` (§17.6.4). `None` means the element is not in this
+/// slice (unequal columns, a separator, or a bad value), so the section is
+/// preserved. `Some(None)` is a single column.
+fn equal_columns(element: &Element) -> Option<Option<EqualColumns>> {
+    if element.elements().next().is_some() {
+        return None;
+    }
+    let mut count = 1u16;
+    let mut space = 720i64;
+    let mut saw_space = false;
+    for attribute in &element.attributes {
+        if attribute.namespace.as_deref() != Some(W) {
+            return None;
+        }
+        match attribute.local.as_ref() {
+            "num" => {
+                let parsed: u16 = attribute.value.parse().ok()?;
+                if !(1..=45).contains(&parsed) {
+                    return None;
+                }
+                count = parsed;
+            }
+            "space" => {
+                let parsed: i64 = attribute.value.parse().ok()?;
+                if parsed < 0 {
+                    return None;
+                }
+                space = parsed;
+                saw_space = true;
+            }
+            "equalWidth" => {
+                if props::on_off(Some(&attribute.value)) != Some(true) {
+                    return None;
+                }
+            }
+            "sep" => {
+                if props::on_off(Some(&attribute.value)) != Some(false) {
+                    return None;
+                }
+            }
+            _ => return None,
+        }
+    }
+    if count <= 1 {
+        let _ = saw_space;
+        return Some(None);
+    }
+    Some(Some(EqualColumns { count, space }))
 }
 
 fn story_reference(
@@ -818,8 +1108,6 @@ fn import_story(importer: &mut Importer<'_>, name: &PartName, header: bool) -> O
     let scope = Scope::default();
     importer.scan(&part.name, &element, &scope);
     let inner = scope.enter(&element).into_owned();
-    let previous_fields = importer.story_page_fields;
-    importer.story_page_fields = true;
     let mut blocks = Vec::new();
     for child in element.elements() {
         if child.is(W, "p") {
@@ -829,7 +1117,6 @@ fn import_story(importer: &mut Importer<'_>, name: &PartName, header: bool) -> O
             importer.preserve(&part.name, child, &inner, PreservedReason::Unsupported);
         }
     }
-    importer.story_page_fields = previous_fields;
     if blocks.is_empty() {
         let id = importer.document.ids().node();
         blocks.push(Paragraph::new(id).into());
