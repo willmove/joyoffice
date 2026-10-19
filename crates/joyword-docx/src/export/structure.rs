@@ -1634,6 +1634,7 @@ pub(super) fn new_paragraph(
 /// is never rewritten: callers keep the original element unless the table
 /// changed, and this writer refuses a model it cannot spell back.
 pub(super) fn table_markup(
+    source: &Source<'_>,
     table: &Table,
     names: &Names,
     limit: u64,
@@ -1834,10 +1835,10 @@ pub(super) fn table_markup(
             for block in cell.blocks.iter() {
                 match block {
                     Block::Paragraph(paragraph) => {
-                        markup.push_str(&table_paragraph(paragraph, names, limit)?);
+                        markup.push_str(&table_paragraph(source, paragraph, names, limit)?);
                     }
                     Block::Table(nested) => {
-                        markup.push_str(&table_markup(nested, names, limit)?);
+                        markup.push_str(&table_markup(source, nested, names, limit)?);
                     }
                     Block::Sdt(_) | Block::Opaque(_) => {
                         return Err(refuse("table cell holds an unmapped block"));
@@ -2006,6 +2007,7 @@ fn color_value(color: Color) -> Result<String, ()> {
 }
 
 fn table_paragraph(
+    source: &Source<'_>,
     paragraph: &Paragraph,
     names: &Names,
     limit: u64,
@@ -2031,14 +2033,53 @@ fn table_paragraph(
         inner.push_str(&names.end("pPr"));
     }
     if paragraph.runs().iter().any(|run| run.revision.is_some()) {
+        if paragraph.runs().iter().any(|run| run.link.is_some()) {
+            return Err(refuse(
+                "table cell revision with a hyperlink is outside the mapped subset",
+            ));
+        }
         inner.push_str(&revision_body(paragraph, &[], names, limit)?);
     } else {
-        for (style, props, text) in table_runs(paragraph) {
-            if style.is_some() || text.contains('\u{FFFC}') {
+        inner.push_str(&append_table_runs(source, paragraph, names, limit)?);
+    }
+    if inner.is_empty() {
+        return Ok(format!("{}/>", names.start("p")));
+    }
+    Ok(format!("{}>{inner}{}", names.start("p"), names.end("p")))
+}
+
+/// Table cell runs with `w:hyperlink` wrappers around the runs that carry a
+/// link. Unlike the body writer, consecutive runs are never merged: a cell
+/// paragraph is rewritten only after an edit, and the round-trip verifier
+/// treats run boundaries as semantic, so one model run is one `w:r`.
+fn append_table_runs(
+    source: &Source<'_>,
+    paragraph: &Paragraph,
+    names: &Names,
+    limit: u64,
+) -> Result<String, ExportError> {
+    let id = paragraph.id();
+    let refuse = |reason| unsupported(Some(id), reason);
+    let text = paragraph.plain_text(|_| "\u{FFFC}".into());
+    let mut chars = text.chars();
+    let runs = paragraph.runs();
+    let mut body = String::new();
+    let mut index = 0usize;
+    while index < runs.len() {
+        let link = runs[index].link.clone();
+        let start = index;
+        index += 1;
+        while index < runs.len() && runs[index].link == link {
+            index += 1;
+        }
+        let mut inner = String::new();
+        for run in &runs[start..index] {
+            if run.style.is_some() {
                 return Err(refuse("table cell paragraph is outside the mapped subset"));
             }
-            let rpr = table_rpr(names, &props).map_err(refuse)?;
-            let text = bounded_text_xml(names, &text, limit)?;
+            let run_text: String = chars.by_ref().take(run.len).collect();
+            let rpr = table_rpr(names, &run.props).map_err(refuse)?;
+            let text = bounded_text_xml(names, &run_text, limit)?;
             if rpr.is_none() && text.is_empty() {
                 continue;
             }
@@ -2050,11 +2091,18 @@ fn table_paragraph(
             inner.push_str(&text);
             inner.push_str(&names.end("r"));
         }
+        if inner.is_empty() {
+            continue;
+        }
+        if let Some(link) = link.as_ref() {
+            body.push_str(&hyperlink_start(source, id, names, link)?);
+            body.push_str(&inner);
+            body.push_str(&names.end("hyperlink"));
+        } else {
+            body.push_str(&inner);
+        }
     }
-    if inner.is_empty() {
-        return Ok(format!("{}/>", names.start("p")));
-    }
-    Ok(format!("{}>{inner}{}", names.start("p"), names.end("p")))
+    Ok(body)
 }
 
 fn table_paragraph_ok(paragraph: &Paragraph) -> bool {
@@ -2080,10 +2128,7 @@ fn table_paragraph_ok(paragraph: &Paragraph) -> bool {
             .plain_text(|_| "\u{FFFC}".into())
             .contains('\u{FFFC}')
         && paragraph.runs().iter().all(|run| {
-            run.link.is_none()
-                && run.style.is_none()
-                && run.props.preserved.is_none()
-                && table_run_ok(&run.props)
+            run.style.is_none() && run.props.preserved.is_none() && table_run_ok(&run.props)
         })
 }
 
@@ -2353,19 +2398,6 @@ fn property_leaf(local: &str) -> Option<&'static [&'static str]> {
         "lang" => &["val", "eastAsia", "bidi"],
         _ => return None,
     })
-}
-
-fn table_runs(paragraph: &Paragraph) -> Vec<(Option<StyleId>, Arc<RunProps>, String)> {
-    let text = paragraph.plain_text(|_| "\u{FFFC}".into());
-    let mut chars = text.chars();
-    paragraph
-        .runs()
-        .iter()
-        .map(|run| {
-            let text: String = chars.by_ref().take(run.len).collect();
-            (run.style.clone(), run.props.clone(), text)
-        })
-        .collect()
 }
 
 type LinkedGroup = (

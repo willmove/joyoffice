@@ -296,6 +296,22 @@
       "source": "hypothesis",
       "test": "html_keeps_bold_italic_underline_and_drops_active_content",
       "word_observation": null
+    },
+    {
+      "id": "LINK-CELL-EDIT-UNDO",
+      "operation": "在表格单元格内给选区设置、修改或清除超链接",
+      "expectation": "链接落在单元格段落上、可按允许名单打开，每一步单独撤销",
+      "source": "hypothesis",
+      "test": "a_hyperlink_inside_a_table_cell_is_set_edited_removed_and_openable",
+      "word_observation": null
+    },
+    {
+      "id": "IMAGE-DROP-LOCAL",
+      "operation": "把本地图片文件拖入文档，混入活动内容和目录",
+      "expectation": "已接纳的图片按顺序插入且各自可撤销；被拒路径跳过；全部被拒时报告第一个拒绝原因",
+      "source": "hypothesis",
+      "test": "dropped_image_paths_insert_in_order_and_skip_refused_files",
+      "word_observation": null
     }
   ]
 }

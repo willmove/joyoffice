@@ -117,3 +117,48 @@ fn a_selected_image_exposes_its_bytes_for_the_clipboard() {
     editor.select(0..0, false).unwrap();
     assert!(editor.selected_image_bytes().is_none());
 }
+
+#[test]
+fn dropped_image_paths_insert_in_order_and_skip_refused_files() {
+    let mut editor = input("ab");
+    let dir = std::env::temp_dir().join(format!("joyword-drop-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let png = sample_png_1x1();
+    let first = dir.join("first.png");
+    let second = dir.join("second.png");
+    let svg = dir.join("active.svg");
+    std::fs::write(&first, &png).unwrap();
+    std::fs::write(&second, &png).unwrap();
+    std::fs::write(&svg, b"<svg></svg>").unwrap();
+    let subdir = dir.join("folder");
+    std::fs::create_dir_all(&subdir).unwrap();
+
+    // The dropped set mixes admitted files with an active-content file and
+    // a directory; the refused entries are skipped, not fatal.
+    let inserted = editor
+        .insert_image_paths(&[first.clone(), svg.clone(), second.clone(), subdir.clone()])
+        .unwrap();
+    assert_eq!(inserted, 2);
+    let text = editor.view().index().text();
+    assert_eq!(text.matches('\u{FDD0}').count(), 2, "{text}");
+
+    // Each admitted image is its own undo step, in drop order.
+    editor.undo().unwrap();
+    assert_eq!(editor.view().index().text().matches('\u{FDD0}').count(), 1);
+    editor.undo().unwrap();
+    assert_eq!(editor.view().index().text(), "ab");
+
+    // An all-refused drop reports the first refusal.
+    let error = editor
+        .insert_image_paths(&[svg.clone(), subdir.clone()])
+        .unwrap_err();
+    assert!(matches!(error, joyword_shell::input::InputError::Image(_)));
+    let remote = editor
+        .insert_image_paths(&[std::path::PathBuf::from("https://example.invalid/a.png")])
+        .unwrap_err();
+    assert_eq!(
+        remote,
+        joyword_shell::input::InputError::Image("remote image")
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}

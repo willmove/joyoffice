@@ -11,6 +11,8 @@
 //! format and structure revisions, bookmarks, theme tint or shade, and any
 //! other border style return `None`. A plain `w:ins`, `w:del`, `w:moveFrom`
 //! or `w:moveTo` around typed runs is a text revision on those runs.
+//! A cell paragraph may carry simple `w:hyperlink` runs (text and tabs,
+//! `r:id` and/or `w:anchor`), the same subset the body parser maps.
 //! `w:tblLook`, `top` / `center` / `bottom` and `auto` / `atLeast` / positive
 //! `exact` are stored. The caller preserves the whole `w:tbl` byte range.
 //! This parser allocates no identifiers and records no fragments, so a
@@ -20,11 +22,11 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Indent, Measure,
-    OBJECT_MARKER, ParaProps, Paragraph, RevisionKind, Row, RowHeight, RowHeightRule, RunProps,
-    Shading, Spacing, Style, StyleId, Table, TableAlign, TableCondition, TableConditional,
-    TableFormat, TableLayoutKind, TableLook, TableWidth, TextRevision, ThemeColorSlot,
-    VerticalAlign, VerticalMerge,
+    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Hyperlink, Indent,
+    Measure, OBJECT_MARKER, ParaProps, Paragraph, RevisionKind, Row, RowHeight, RowHeightRule,
+    RunProps, Shading, Spacing, Style, StyleId, Table, TableAlign, TableCondition,
+    TableConditional, TableFormat, TableLayoutKind, TableLook, TableWidth, TextRevision,
+    ThemeColorSlot, VerticalAlign, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -33,10 +35,17 @@ use crate::props::{self, Findings};
 use crate::xml::{Attribute, Element, Node, XML_NAMESPACE, is_xml_space};
 use joyoffice_opc::PartName;
 
+struct DraftRun {
+    text: String,
+    props: RunProps,
+    link: Option<Arc<Hyperlink>>,
+    revision: Option<TextRevision>,
+}
+
 struct DraftParagraph {
     style: Option<StyleId>,
     props: ParaProps,
-    runs: Vec<(String, RunProps, Option<TextRevision>)>,
+    runs: Vec<DraftRun>,
     span: Range<usize>,
 }
 
@@ -99,7 +108,7 @@ pub(crate) fn import_table(
     part: &PartName,
     element: &Element,
 ) -> Option<Table> {
-    let draft = parse_table(element)?;
+    let draft = parse_table(importer, part, element)?;
     build(importer, part, element, draft)
 }
 
@@ -169,21 +178,26 @@ fn build_paragraph(
     if let Some(element) = find_span(table, &draft.span) {
         paragraph.source = Some(Importer::source(part, element));
     }
-    for (text, props, revision) in draft.runs {
-        match revision {
+    for run in draft.runs {
+        match run.revision {
             Some(revision) => {
                 importer.document.note_revision_id(revision.id);
                 paragraph
-                    .push_text_marked(&text, None, Arc::new(props), revision)
+                    .push_text_marked(&run.text, None, Arc::new(run.props), revision)
                     .ok()?;
             }
-            None => paragraph.push_text(&text, None, Arc::new(props)).ok()?,
+            None => paragraph
+                .push_text(&run.text, None, Arc::new(run.props))
+                .ok()?,
+        }
+        if run.link.is_some() {
+            paragraph.set_last_run_link(run.link);
         }
     }
     Some(paragraph)
 }
 
-fn parse_table(element: &Element) -> Option<DraftTable> {
+fn parse_table(importer: &Importer<'_>, part: &PartName, element: &Element) -> Option<DraftTable> {
     if !element.is(W, "tbl") || !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -208,7 +222,7 @@ fn parse_table(element: &Element) -> Option<DraftTable> {
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
             seen_row = true;
-            rows.push(parse_row(child)?);
+            rows.push(parse_row(importer, part, child)?);
         } else {
             return None;
         }
@@ -448,7 +462,7 @@ fn parse_grid(element: &Element) -> Option<Vec<Measure>> {
     (!columns.is_empty()).then_some(columns)
 }
 
-fn parse_row(element: &Element) -> Option<DraftRow> {
+fn parse_row(importer: &Importer<'_>, part: &PartName, element: &Element) -> Option<DraftRow> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -464,7 +478,7 @@ fn parse_row(element: &Element) -> Option<DraftRow> {
             saw_pr = true;
             (before, after, header, cant_split, height) = parse_tr_pr(child)?;
         } else if child.is(W, "tc") {
-            cells.push(parse_cell(child)?);
+            cells.push(parse_cell(importer, part, child)?);
         } else {
             return None;
         }
@@ -540,7 +554,7 @@ fn parse_row_height(element: &Element) -> Option<RowHeight> {
     Some(RowHeight { twips, rule })
 }
 
-fn parse_cell(element: &Element) -> Option<DraftCell> {
+fn parse_cell(importer: &Importer<'_>, part: &PartName, element: &Element) -> Option<DraftCell> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -565,7 +579,7 @@ fn parse_cell(element: &Element) -> Option<DraftCell> {
             margin = props.margin;
             vertical_align = props.vertical_align;
         } else if child.is(W, "p") {
-            paragraphs.push(parse_paragraph(child)?);
+            paragraphs.push(parse_paragraph(importer, part, child)?);
         } else {
             return None;
         }
@@ -750,7 +764,11 @@ fn parse_shading(element: &Element) -> Option<Shading> {
     Some(Shading { fill })
 }
 
-fn parse_paragraph(element: &Element) -> Option<DraftParagraph> {
+fn parse_paragraph(
+    importer: &Importer<'_>,
+    part: &PartName,
+    element: &Element,
+) -> Option<DraftParagraph> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -764,7 +782,26 @@ fn parse_paragraph(element: &Element) -> Option<DraftParagraph> {
             (style, props) = parse_ppr(child)?;
         } else if child.is(W, "r") {
             let (text, props) = parse_run(child, false)?;
-            runs.push((text, props, None));
+            runs.push(DraftRun {
+                text,
+                props,
+                link: None,
+                revision: None,
+            });
+        } else if child.is(W, "hyperlink") {
+            // The same simple subset the body parser maps: text and tab runs
+            // under `r:id` and/or `w:anchor`. A complex wrapper refuses the
+            // whole table, which stays preserved instead.
+            let link = crate::hyperlink::mapped(importer, part, child)?;
+            for run_element in child.elements() {
+                let (text, props) = parse_run(run_element, false)?;
+                runs.push(DraftRun {
+                    text,
+                    props,
+                    link: Some(Arc::new(link.clone())),
+                    revision: None,
+                });
+            }
         } else {
             let kind = crate::revision::revision_kind(child.local.as_ref())?;
             let mark = crate::revision::cell_text_revision(child, kind)?;
@@ -777,7 +814,12 @@ fn parse_paragraph(element: &Element) -> Option<DraftParagraph> {
                     return None;
                 }
                 let (text, props) = parse_run(run, deleted)?;
-                runs.push((text, props, Some(mark.clone())));
+                runs.push(DraftRun {
+                    text,
+                    props,
+                    link: None,
+                    revision: Some(mark.clone()),
+                });
             }
         }
     }

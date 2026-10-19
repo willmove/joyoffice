@@ -238,3 +238,172 @@ fn removing_a_hyperlink_does_not_leave_the_wrapper() {
         Err(other) => panic!("{other:?}"),
     }
 }
+
+fn one_cell_table(body: &str) -> String {
+    format!(
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="2400"/></w:tblGrid><w:tr><w:tc><w:p>{body}</w:p></w:tc></w:tr></w:tbl>"#
+    )
+}
+
+fn cell_link(result: &joyword_docx::ImportResult) -> Hyperlink {
+    let Block::Table(table) = result.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    table.rows[0].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+        .link_at(0)
+        .cloned()
+        .expect("cell hyperlink")
+}
+
+fn edit_cell_text(model: &mut joyword_model::Document, text: &str) {
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        Arc::make_mut(table).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text(text, None, Arc::default())
+                    .unwrap();
+            });
+    });
+}
+
+#[test]
+fn a_table_cell_hyperlink_round_trips_after_a_cell_edit() {
+    let bytes = package(
+        &document(&one_cell_table(
+            r#"<w:hyperlink r:id="rId2"><w:r><w:t>条款</w:t></w:r></w:hyperlink>"#,
+        )),
+        &rels("rId2", "https://example.invalid/terms"),
+    );
+    let result = import(&bytes, &Budget::default()).unwrap();
+    let link = cell_link(&result);
+    assert_eq!(link.relationship.as_deref(), Some("rId2"));
+    assert_eq!(
+        link.external.as_deref(),
+        Some("https://example.invalid/terms")
+    );
+    let Block::Table(table) = result.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    let paragraph = table.rows[0].cells[0].blocks.get(0).unwrap().id();
+    assert!(result.editability.can_edit(paragraph));
+
+    let mut edited = result.document.clone();
+    edit_cell_text(&mut edited, "附则");
+    let plan = plan_export(&result.backing, &edited.snapshot(), &Budget::default()).unwrap();
+    let xml = part_text(plan.bytes(), "/word/document.xml");
+    assert!(xml.contains("附则"), "{xml}");
+    assert!(xml.contains("w:hyperlink"), "{xml}");
+    assert!(xml.contains("r:id=\"rId2\""), "{xml}");
+    let rels = part_text(plan.bytes(), "/word/_rels/document.xml.rels");
+    assert!(rels.contains("https://example.invalid/terms"), "{rels}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(edited.semantic_difference(&saved.document), None);
+}
+
+#[test]
+fn a_new_hyperlink_target_in_a_cell_appends_a_relationship() {
+    let bytes = package(
+        &document(&one_cell_table(
+            r#"<w:hyperlink r:id="rId2"><w:r><w:t>go</w:t></w:r></w:hyperlink>"#,
+        )),
+        &rels("rId2", "https://example.invalid/old"),
+    );
+    let result = import(&bytes, &Budget::default()).unwrap();
+    let mut retargeted = result.document.clone();
+    let body = retargeted.body_id();
+    retargeted
+        .story_mut(body)
+        .unwrap()
+        .blocks
+        .update(0, |block| {
+            let Block::Table(table) = block else {
+                panic!("table");
+            };
+            Arc::make_mut(table).rows[0].cells[0]
+                .blocks
+                .update(0, |block| {
+                    let Block::Paragraph(paragraph) = block else {
+                        panic!("paragraph");
+                    };
+                    let link =
+                        Hyperlink::for_edit(Some("https://example.invalid/new"), None).unwrap();
+                    Arc::make_mut(paragraph)
+                        .set_links(ScalarOffset(0)..ScalarOffset(2), Some(Arc::new(link)))
+                        .unwrap();
+                });
+        });
+    let plan = plan_export(&result.backing, &retargeted.snapshot(), &Budget::default()).unwrap();
+    let xml = part_text(plan.bytes(), "/word/document.xml");
+    let rels = part_text(plan.bytes(), "/word/_rels/document.xml.rels");
+    assert!(xml.contains("w:hyperlink"), "{xml}");
+    assert!(rels.contains("https://example.invalid/new"), "{rels}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    let link = cell_link(&saved);
+    assert_eq!(
+        link.external.as_deref(),
+        Some("https://example.invalid/new")
+    );
+    assert_eq!(retargeted.semantic_difference(&saved.document), None);
+}
+
+#[test]
+fn an_anchor_only_cell_hyperlink_round_trips() {
+    let bytes = package(
+        &document(&one_cell_table(
+            r#"<w:hyperlink w:anchor="bookmark1"><w:r><w:t>跳</w:t></w:r></w:hyperlink>"#,
+        )),
+        &format!(r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="{REL}"/>"#),
+    );
+    let result = import(&bytes, &Budget::default()).unwrap();
+    let link = cell_link(&result);
+    assert!(link.external.is_none());
+    assert_eq!(link.anchor.as_deref(), Some("bookmark1"));
+
+    let mut edited = result.document.clone();
+    edit_cell_text(&mut edited, "转");
+    let plan = plan_export(&result.backing, &edited.snapshot(), &Budget::default()).unwrap();
+    let xml = part_text(plan.bytes(), "/word/document.xml");
+    assert!(xml.contains(r#"w:anchor="bookmark1""#), "{xml}");
+    assert!(
+        !xml.contains("r:id="),
+        "anchor-only links write no r:id: {xml}"
+    );
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(edited.semantic_difference(&saved.document), None);
+}
+
+#[test]
+fn a_complex_hyperlink_keeps_the_table_opaque() {
+    let bytes = package(
+        &document(&one_cell_table(
+            r#"<w:hyperlink r:id="rId2" w:tooltip="hint"><w:r><w:t>go</w:t></w:r></w:hyperlink>"#,
+        )),
+        &rels("rId2", "https://example.invalid/joyword"),
+    );
+    let result = import(&bytes, &Budget::default()).unwrap();
+    let block = result.document.body().blocks.get(0).unwrap();
+    assert!(
+        matches!(block, Block::Opaque(opaque) if &*opaque.preserved.element == "w:tbl"),
+        "a cell link outside the subset preserves the whole table"
+    );
+    assert!(!result.editability.can_edit(block.id()));
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|item| matches!(item.kind, DiagnosticKind::Preserved { .. }))
+    );
+}
