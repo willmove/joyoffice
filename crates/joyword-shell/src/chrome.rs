@@ -110,6 +110,8 @@ pub enum RibbonArgs {
         replacement: bool,
     },
     FormatCopy,
+    /// The window asks for a file path, then invokes the command.
+    PromptPath,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -415,6 +417,17 @@ pub const RIBBON: &[RibbonControl] = &[
         evidence: Evidence::Unit,
     },
     RibbonControl {
+        id: "insert.picture",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.illustrations",
+        command: crate::command::EDIT_INSERT_IMAGE,
+        label: "command.edit.insert_image",
+        icon: "picture",
+        args: RibbonArgs::PromptPath,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
         id: "insert.page_break",
         tab: RibbonTab::Insert,
         group_key: "ribbon.group.pages",
@@ -601,6 +614,7 @@ impl RibbonControl {
             RibbonArgs::FormatCopy => {
                 vec![("repeat", ArgValue::Bool(input.format_repeat))]
             }
+            RibbonArgs::PromptPath => Vec::new(),
         };
         RibbonCall {
             command: self.command,
@@ -1075,6 +1089,10 @@ const ICONS: &[(&str, &str)] = &[
     (
         "cancel",
         "................|................|................|................|....#......#....|.....#....#.....|......#..#......|.......##.......|.......##.......|......#..#......|.....#....#.....|....#......#....|................|................|................|................",
+    ),
+    (
+        "picture",
+        "................|................|...##########...|...#........#...|...#..####..#...|...#..#..#..#...|...#..####..#...|...#........#...|...#..##....#...|...#........#...|...##########...|................|................|................|................|................",
     ),
     (
         "page-break",

@@ -7,8 +7,9 @@ use std::fmt;
 use std::sync::Arc;
 
 use joyword_model::{
-    Color, FontRef, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef, PageSetup,
-    Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle, Underline,
+    Color, FontRef, Hyperlink, Indent, InlineKind, Justification, Measure, NodeId, NumberingRef,
+    PageSetup, Position, RunProps, ScalarOffset, Spacing, StoryId, StyleId, TextError, Toggle,
+    Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -27,6 +28,13 @@ pub enum Command {
     InsertImage {
         at: Position,
         data: Arc<[u8]>,
+    },
+    /// Sets or clears the hyperlink on the runs in `start..end`.
+    /// `None` removes the link. One command is one undo step.
+    SetHyperlink {
+        start: Position,
+        end: Position,
+        link: Option<Hyperlink>,
     },
     /// Deletes between two positions in the same container, merging the
     /// paragraphs at both ends when they differ.
@@ -211,6 +219,8 @@ pub enum CommandError {
     NotTopLevel,
     /// Page size, margins or header distance cannot be placed.
     InvalidPage,
+    /// The editor refused to store this hyperlink. The text is not a URL.
+    Hyperlink(&'static str),
 }
 
 impl From<TextError> for CommandError {
@@ -261,6 +271,7 @@ impl fmt::Display for CommandError {
             CommandError::LastColumn(node) => write!(f, "table {node} has one column"),
             CommandError::NotTopLevel => f.write_str("tables are inserted in the body"),
             CommandError::InvalidPage => f.write_str("page setup is not usable"),
+            CommandError::Hyperlink(reason) => f.write_str(reason),
         }
     }
 }

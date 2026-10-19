@@ -46,6 +46,12 @@
 //! part inside the image budget becomes an image resource; floating anchors,
 //! OLE, SVG and remote targets stay preserved and are not fetched or run.
 //! Export does not rewrite media parts: a new image resource is refused.
+//! A simple `w:hyperlink` (`r:id` and/or `w:anchor`, runs of text and tabs)
+//! is mapped onto its runs. The external target is stored and never fetched.
+//! Export keeps that link on a text patch. A changed link is rewritten, and a
+//! new relationship is appended to `word/_rels/document.xml.rels` only when
+//! the rewrite emits a fresh id. A link that cannot be written is refused;
+//! it is not dropped. A tooltip, drawing or other child stays preserved.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
 //! §17.3, §17.6, §17.7, §17.13.5, §17.15; Part 2 (OPC); Part 3 (Markup
@@ -56,6 +62,7 @@ mod backing;
 mod binding;
 mod body;
 mod export;
+mod hyperlink;
 mod images;
 mod import;
 mod ns;

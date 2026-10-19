@@ -265,6 +265,17 @@ fn ribbon_bindings_invoke_the_registered_command() {
     };
     for control in visible_controls(&registry, RIBBON) {
         let call = control.bind(input);
+        if matches!(control.args, RibbonArgs::PromptPath) {
+            let error = registry
+                .invoke_with(&mut host, call.command, &call.args)
+                .unwrap_err();
+            assert!(
+                matches!(error, InvokeError::PendingInput { ref missing } if missing.contains(&"path")),
+                "{}",
+                control.id
+            );
+            continue;
+        }
         registry
             .invoke_with(&mut host, call.command, &call.args)
             .unwrap_or_else(|error| panic!("{}: {error:?}", control.id));
@@ -285,7 +296,9 @@ fn ribbon_bindings_invoke_the_registered_command() {
             RibbonArgs::FormatCopy => {
                 assert_eq!(args.get("repeat"), Some(&ArgValue::Bool(true)));
             }
-            RibbonArgs::None => assert!(args.is_empty(), "{}", control.id),
+            RibbonArgs::None | RibbonArgs::PromptPath => {
+                assert!(args.is_empty(), "{}", control.id);
+            }
         }
     }
 }

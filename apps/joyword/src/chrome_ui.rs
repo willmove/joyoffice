@@ -5,8 +5,8 @@ use gpui::{Bounds, Context, Pixels, Window, canvas, div, fill, point, prelude::*
 use joyword_foundation::Emu;
 use joyword_model::TabAlign;
 use joyword_shell::chrome::{
-    self, RibbonControl, RibbonInput, RibbonTab, RulerModel, RulerTab, icon_cells, ruler_scale,
-    status_line,
+    self, RibbonArgs, RibbonControl, RibbonInput, RibbonTab, RulerModel, RulerTab, icon_cells,
+    ruler_scale, status_line,
 };
 use joyword_shell::command::{Availability, CommandId, ZOOM_IN, ZOOM_OUT};
 use joyword_shell::l10n::Catalog;
@@ -144,6 +144,10 @@ impl JoyWord {
     }
 
     fn run_ribbon(&mut self, control: RibbonControl, window: &mut Window, cx: &mut Context<Self>) {
+        if matches!(control.args, RibbonArgs::PromptPath) {
+            self.prompt_insert_picture(cx);
+            return;
+        }
         let call = control.bind(RibbonInput {
             query: &self.find_query,
             replacement: &self.find_replacement,

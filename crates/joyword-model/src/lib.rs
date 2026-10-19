@@ -11,6 +11,7 @@ mod annotation;
 mod block;
 mod document;
 mod dump;
+mod hyperlink;
 mod id;
 mod image;
 mod numbering;
@@ -34,6 +35,7 @@ pub use document::{
     StoryKind,
 };
 pub use dump::{DumpOptions, SemanticDifference};
+pub use hyperlink::{Hyperlink, MAX_HYPERLINK_CHARS, OpenRefusal, open_target};
 pub use id::{AnnotationId, IdAllocator, NodeId, PreservedId, ResourceId, SourceRef, StoryId};
 pub use image::{
     AcceptedImage, DecodedImage, ImageLimits, ImageRefuse, MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION,
