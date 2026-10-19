@@ -55,6 +55,64 @@ pub(crate) fn apply_list_choice(
     }
 }
 
+fn arg_flag(
+    args: &std::collections::BTreeMap<&'static str, joyword_shell::command::ArgValue>,
+    name: &str,
+) -> bool {
+    matches!(
+        args.get(name),
+        Some(joyword_shell::command::ArgValue::Bool(true))
+    )
+}
+
+/// Find, replace and format-painter requests built from command arguments.
+/// A missing `width` or `regex` flag stays off, which is the behavior from
+/// before those checkboxes existed. Only `Bool(true)` turns a flag on.
+pub(crate) fn edit_request_from_args(
+    id: CommandId,
+    args: &std::collections::BTreeMap<&'static str, joyword_shell::command::ArgValue>,
+) -> Result<joyword_shell::input::EditRequest, &'static str> {
+    match id {
+        FIND_NEXT | FIND_PREVIOUS => {
+            let Some(joyword_shell::command::ArgValue::Text(query)) = args.get("query") else {
+                return Err("query");
+            };
+            Ok(joyword_shell::input::EditRequest::Find {
+                query: query.clone(),
+                case_sensitive: arg_flag(args, "case"),
+                whole_word: arg_flag(args, "word"),
+                fold_width: arg_flag(args, "width"),
+                regex: arg_flag(args, "regex"),
+                forward: id == FIND_NEXT,
+            })
+        }
+        FIND_REPLACE | FIND_REPLACE_ALL => {
+            let Some(joyword_shell::command::ArgValue::Text(query)) = args.get("query") else {
+                return Err("query");
+            };
+            let Some(joyword_shell::command::ArgValue::Text(replacement)) = args.get("replacement")
+            else {
+                return Err("replacement");
+            };
+            Ok(joyword_shell::input::EditRequest::Replace {
+                query: query.clone(),
+                replacement: replacement.clone(),
+                case_sensitive: arg_flag(args, "case"),
+                whole_word: arg_flag(args, "word"),
+                fold_width: arg_flag(args, "width"),
+                regex: arg_flag(args, "regex"),
+                all: id == FIND_REPLACE_ALL,
+            })
+        }
+        FORMAT_COPY => Ok(joyword_shell::input::EditRequest::CopyFormat {
+            repeat: arg_flag(args, "repeat"),
+        }),
+        FORMAT_PAINT => Ok(joyword_shell::input::EditRequest::PaintFormat),
+        FORMAT_CANCEL => Ok(joyword_shell::input::EditRequest::CancelFormat),
+        _ => Err("command"),
+    }
+}
+
 fn path_suggestion(draft: &str) -> (std::path::PathBuf, Option<String>) {
     let trimmed = draft.trim();
     if trimmed.is_empty() {
@@ -3107,76 +3165,12 @@ impl JoyWord {
             }
             FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL | FORMAT_COPY
             | FORMAT_PAINT | FORMAT_CANCEL => {
-                let request = match id {
-                    FIND_NEXT | FIND_PREVIOUS => {
-                        let Some(joyword_shell::command::ArgValue::Text(query)) = args.get("query")
-                        else {
-                            self.input_error = Some("query".into());
-                            return Err("query".into());
-                        };
-                        joyword_shell::input::EditRequest::Find {
-                            query: query.clone(),
-                            case_sensitive: matches!(
-                                args.get("case"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            whole_word: matches!(
-                                args.get("word"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            fold_width: matches!(
-                                args.get("width"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            regex: matches!(
-                                args.get("regex"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            forward: id == FIND_NEXT,
-                        }
+                let request = match edit_request_from_args(id, args) {
+                    Ok(request) => request,
+                    Err(missing) => {
+                        self.input_error = Some(missing.into());
+                        return Err(missing.into());
                     }
-                    FIND_REPLACE | FIND_REPLACE_ALL => {
-                        let Some(joyword_shell::command::ArgValue::Text(query)) = args.get("query")
-                        else {
-                            self.input_error = Some("query".into());
-                            return Err("query".into());
-                        };
-                        let Some(joyword_shell::command::ArgValue::Text(replacement)) =
-                            args.get("replacement")
-                        else {
-                            self.input_error = Some("replacement".into());
-                            return Err("replacement".into());
-                        };
-                        joyword_shell::input::EditRequest::Replace {
-                            query: query.clone(),
-                            replacement: replacement.clone(),
-                            case_sensitive: matches!(
-                                args.get("case"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            whole_word: matches!(
-                                args.get("word"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            fold_width: matches!(
-                                args.get("width"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            regex: matches!(
-                                args.get("regex"),
-                                Some(joyword_shell::command::ArgValue::Bool(true))
-                            ),
-                            all: id == FIND_REPLACE_ALL,
-                        }
-                    }
-                    FORMAT_COPY => joyword_shell::input::EditRequest::CopyFormat {
-                        repeat: matches!(
-                            args.get("repeat"),
-                            Some(joyword_shell::command::ArgValue::Bool(true))
-                        ),
-                    },
-                    FORMAT_PAINT => joyword_shell::input::EditRequest::PaintFormat,
-                    _ => joyword_shell::input::EditRequest::CancelFormat,
                 };
                 let mut report = None;
                 self.apply_input(cx, |editor| {

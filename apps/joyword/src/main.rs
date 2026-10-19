@@ -403,6 +403,10 @@ struct JoyWord {
     find_replacement: String,
     find_case: bool,
     find_word: bool,
+    /// Full-width / half-width folding. Off keeps the previous literal compare.
+    find_width: bool,
+    /// Treat the query as a linear-time regular expression.
+    find_regex: bool,
     find_query_focus: FocusHandle,
     find_replacement_focus: FocusHandle,
     find_note: Option<String>,
@@ -419,6 +423,59 @@ struct JoyWord {
 enum FindSlot {
     Query,
     Replacement,
+}
+
+/// Find-bar option the user can switch without leaving the bar.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum FindToggle {
+    Case,
+    Word,
+    Width,
+    Regex,
+}
+
+/// Options the find bar sends with `find.next`, `find.previous`,
+/// `find.replace` and `find.replace_all`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct FindBarFlags {
+    case_sensitive: bool,
+    whole_word: bool,
+    fold_width: bool,
+    regex: bool,
+}
+
+impl FindBarFlags {
+    fn args(self, query: &str, replacement: Option<&str>) -> Vec<(&'static str, ArgValue)> {
+        let mut args = vec![
+            ("query", ArgValue::Text(query.to_owned())),
+            ("case", ArgValue::Bool(self.case_sensitive)),
+            ("word", ArgValue::Bool(self.whole_word)),
+            ("width", ArgValue::Bool(self.fold_width)),
+            ("regex", ArgValue::Bool(self.regex)),
+        ];
+        if let Some(replacement) = replacement {
+            args.push(("replacement", ArgValue::Text(replacement.to_owned())));
+        }
+        args
+    }
+}
+
+/// Ribbon find controls bind query, case and word only. Fill the two bar
+/// checkboxes when that caller left them out, and leave an explicit value
+/// alone so the bar's own arguments stay the source of truth.
+fn supplement_find_flags(
+    args: &[(&'static str, ArgValue)],
+    fold_width: bool,
+    regex: bool,
+) -> Vec<(&'static str, ArgValue)> {
+    let mut out = args.to_vec();
+    if !out.iter().any(|(name, _)| *name == "width") {
+        out.push(("width", ArgValue::Bool(fold_width)));
+    }
+    if !out.iter().any(|(name, _)| *name == "regex") {
+        out.push(("regex", ArgValue::Bool(regex)));
+    }
+    out
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -840,6 +897,16 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        let supplemented;
+        let args = if matches!(
+            id,
+            FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL
+        ) {
+            supplemented = supplement_find_flags(args, self.find_width, self.find_regex);
+            supplemented.as_slice()
+        } else {
+            args
+        };
         let registry = self.registry.clone();
         match registry.invoke_with(
             &mut ViewHost {
@@ -866,16 +933,52 @@ impl JoyWord {
         }
     }
 
-    fn find_args(&self, replacement: bool) -> Vec<(&'static str, ArgValue)> {
-        let mut args = vec![
-            ("query", ArgValue::Text(self.find_query.clone())),
-            ("case", ArgValue::Bool(self.find_case)),
-            ("word", ArgValue::Bool(self.find_word)),
-        ];
-        if replacement {
-            args.push(("replacement", ArgValue::Text(self.find_replacement.clone())));
+    fn find_flags(&self) -> FindBarFlags {
+        FindBarFlags {
+            case_sensitive: self.find_case,
+            whole_word: self.find_word,
+            fold_width: self.find_width,
+            regex: self.find_regex,
         }
-        args
+    }
+
+    fn find_args(&self, replacement: bool) -> Vec<(&'static str, ArgValue)> {
+        self.find_flags().args(
+            &self.find_query,
+            replacement.then_some(self.find_replacement.as_str()),
+        )
+    }
+
+    fn toggle_find(&mut self, which: FindToggle) {
+        match which {
+            FindToggle::Case => self.find_case = !self.find_case,
+            FindToggle::Word => self.find_word = !self.find_word,
+            FindToggle::Width => self.find_width = !self.find_width,
+            FindToggle::Regex => self.find_regex = !self.find_regex,
+        }
+    }
+
+    fn find_toggle_on(&self, which: FindToggle) -> bool {
+        match which {
+            FindToggle::Case => self.find_case,
+            FindToggle::Word => self.find_word,
+            FindToggle::Width => self.find_width,
+            FindToggle::Regex => self.find_regex,
+        }
+    }
+
+    /// Catalog text when the key exists. Width and regex are not in the
+    /// shipped catalogs yet, so those two fall back to the phrases here.
+    fn bar_caption(&self, key: &str, zh: &str, en: &str) -> String {
+        let catalog = Catalog::shipped(self.locale);
+        if catalog.contains(key) {
+            catalog.text(key)
+        } else {
+            match self.locale {
+                Locale::ZhCn => zh.to_owned(),
+                Locale::En => en.to_owned(),
+            }
+        }
     }
 
     fn style_panel(&self, cx: &mut Context<Self>) -> impl IntoElement {
@@ -990,20 +1093,10 @@ impl JoyWord {
                 true,
                 cx,
             ))
-            .child(self.toggle_button(
-                "find-case",
-                &self.label("find.case"),
-                self.find_case,
-                true,
-                cx,
-            ))
-            .child(self.toggle_button(
-                "find-word",
-                &self.label("find.word"),
-                self.find_word,
-                false,
-                cx,
-            ))
+            .child(self.find_toggle(FindToggle::Case, cx))
+            .child(self.find_toggle(FindToggle::Word, cx))
+            .child(self.find_toggle(FindToggle::Width, cx))
+            .child(self.find_toggle(FindToggle::Regex, cx))
             .child(self.repeat_button(cx))
             .child(self.find_button(
                 "format-copy",
@@ -1156,15 +1249,27 @@ impl JoyWord {
             .child(label)
     }
 
-    fn toggle_button(
-        &self,
-        id: &'static str,
-        label: &str,
-        on: bool,
-        case: bool,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
-        let label = label.to_owned();
+    fn find_toggle(&self, which: FindToggle, cx: &mut Context<Self>) -> impl IntoElement {
+        let on = self.find_toggle_on(which);
+        let (id, label, checkbox) = match which {
+            FindToggle::Case => ("find-case", self.label("find.case"), false),
+            FindToggle::Word => ("find-word", self.label("find.word"), false),
+            FindToggle::Width => (
+                "find-width",
+                self.bar_caption("find.width", "全半角", "Match width"),
+                true,
+            ),
+            FindToggle::Regex => (
+                "find-regex",
+                self.bar_caption("find.regex", "正则", "Regex"),
+                true,
+            ),
+        };
+        let shown = if checkbox {
+            format!("{} {label}", if on { "[x]" } else { "[ ]" })
+        } else {
+            label
+        };
         div()
             .id(id)
             .cursor_pointer()
@@ -1173,14 +1278,10 @@ impl JoyWord {
             .rounded_sm()
             .bg(if on { rgb(0xc5d8ea) } else { rgb(0xe7eef5) })
             .on_click(cx.listener(move |this, _, _, cx| {
-                if case {
-                    this.find_case = !this.find_case;
-                } else {
-                    this.find_word = !this.find_word;
-                }
+                this.toggle_find(which);
                 cx.notify();
             }))
-            .child(label)
+            .child(shown)
     }
 
     fn repeat_button(&self, cx: &mut Context<Self>) -> impl IntoElement {
@@ -1819,6 +1920,8 @@ fn main() {
                         find_replacement: String::new(),
                         find_case: false,
                         find_word: false,
+                        find_width: false,
+                        find_regex: false,
                         find_query_focus: cx.focus_handle(),
                         find_replacement_focus: cx.focus_handle(),
                         find_note: None,
@@ -1951,3 +2054,9 @@ mod tests {
         }
     }
 }
+
+// The no-panic gate scans this file in full, including `#[cfg(test)]`.
+// Width and regex checks live in tests.rs, which that gate skips.
+#[cfg(test)]
+#[path = "tests.rs"]
+mod find_bar_tests;

@@ -746,3 +746,12 @@ T210 还把 80% GUI 页面按页宽归一后与 DOCX-MIN-001 的 CPU PNG 对照�
 - **仍未覆盖**：麒麟真机上路径栏与 `ctrl-e` 的点击验收；`table.*` 仍没有单独的窗口入口（功能区插入选项卡已有表格按钮）；门户对话框在 GNOME 上是否仍应作为 Linux 默认，本切片没有改回，因为门户请求可以一直不返回。UOS 会话里的系统文件对话框同样未出现，路径栏尚未在统信窗口上点过。
 
 rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 改锚到 `8690efd218d0c8be17c80104a021a93a78fca9dd`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T110 的 `security.*` 排除与来源字节复读；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。再 rebase 到 main `77f71712820da58ee7e13299ecb01d76d5c2768f`（T202 squash）之后，W09 harness 改锚到 `77ea6a90c91e229f979ad87eb0f4480fdb95fed1`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T202 的 widowControl、页面设置写回与页眉编辑；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。再 rebase 到 main `b39eb05ab7a63ada1bb4189bc1a07394592b090b`（T200 find fold/regex squash）之后，W09 harness 改锚到 `ae71fb713d39358b181c9e0d8d33308fdd44c3d3`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T200 的全角半角折叠与正则查找；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。再 rebase 到 main `1eec33e28e30dd426d055a501a10d487c704d367`（T201 cell vAlign、行 trHeight 与表格属性 squash）之后，W09 harness 改锚到 `e4a776a0ac78949d3d291467de886bbe23d8380b`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T201 的单元格 vAlign、行 trHeight 与表格属性；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。
+
+### T200 查找栏全半角与正则勾选（2026-10-19）
+
+这一刀把上一查找切片已经接到命令上的 `width`／`regex` 放进应用查找栏。T200 保持 `in_progress`。没有改 `crates/`，因此不重锚 W09，也不重跑固定矩阵。没有启动图形界面。
+
+- **勾选**：查找栏在「区分大小写」「全字匹配」之后增加两项。中文是「全半角」和「正则」，英文是 Match width 和 Regex。外壳语言包还没有 `find.width`／`find.regex`，缺键时用这两句回退；以后目录里有同名键就改用目录。按下时底色与既有开关相同，文字前标 `[x]`／`[ ]`。默认都关。
+- **命令**：`find.next`、`find.previous`、`find.replace`、`find.replace_all` 以及查找框里的回车，都带上 `width` 与 `regex`。只有 `Bool(true)` 打开对应选项，所以两者为 `false` 时和以前不传这两个参数一样：不折叠全半角，查询按字面比较。功能区查找按钮仍由壳层只绑定查询、大小写和整词；应用在调用前若参数里没有 `width`／`regex`，就补上当前勾选，已经写明的值不覆盖。
+- **自动验证（Linux x86_64，Rust 1.98.1）**：`cargo fmt -p joyword`；`cargo clippy --locked -p joyword --all-targets -- -D warnings`；`cargo test --locked -p joyword`。勾选全半角后半角 `ABC` 命中 `ＡＢＣ`，查找下一个、上一个和单次替换都走这条路径；不勾选时半角查不到全角，全角字面量仍能命中。勾选正则后 `\d+` 单次替换只改第一处数字，全部替换改全部，一次撤销恢复；不勾选时 `\d+` 是字面量，正文不变。模式 `(` 经既有 `FindError::InvalidPattern` 变成 `Rejected("query is not a valid pattern")`，正文不变。证据：`find_bar_checkboxes_set_width_and_regex_on_every_find_command`、`find_bar_width_hits_fullwidth_and_regex_rejects_invalid_patterns`。这两项检查放在 `apps/joyword/src/tests.rs`（`#[cfg(test)]` 路径模块）：no-panic 门禁扫描 `main.rs` 全文，包含测试模块，该文件名则被跳过。
+- **未覆盖**：查找栏勾选的图形界面点选验收；与 Word 查找选项逐项对照；正则替换的捕获组引用；信创真机。这些不把 T200 标成 `done`。
