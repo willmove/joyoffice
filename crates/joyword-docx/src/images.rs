@@ -2,20 +2,22 @@
 //! `w:pict`, §20.4.2.7 `a:blip`, §20.4.2.15 `wp:extent`).
 //!
 //! A single internal raster blip becomes an image resource. An inline drawing
-//! flows with the line. A floating `wp:anchor` is placed only when it is
-//! `wp:wrapNone`, in front of the text, and positioned from the page origin
-//! (`wp:simplePos` or page-relative `wp:posOffset`). Other wrap modes,
-//! `behindDoc`, and non-page anchors stay preserved. The drawing element is
-//! not registered as a fragment, so an unedited paragraph keeps its original
-//! XML on export. Remote targets are not fetched, and OLE, SVG and other
-//! active payloads are not executed.
+//! flows with the line. A floating `wp:anchor` is placed when it is in front
+//! of the text and positioned from the page origin (`wp:simplePos` or
+//! page-relative `wp:posOffset`). `wp:wrapNone` does not change line width.
+//! `wp:wrapSquare` stores a square exclusion. Other wrap modes, `behindDoc`,
+//! and non-page anchors stay preserved. The drawing element is not registered
+//! as a fragment, so an unedited paragraph keeps its original XML on export.
+//! Remote targets are not fetched, and OLE, SVG and other active payloads are
+//! not executed.
 
 use std::sync::Arc;
 
 use joyoffice_opc::Target;
 use joyword_model::{
-    ImageAnchor, ImageLimits, ImageRefuse, InlineKind, InlineObject, MAX_IMAGE_BYTES, Measure,
-    RunProps, SourceRef, StyleId, accept_image, display_extent, extent_emu, page_anchor,
+    AnchorWrap, ImageAnchor, ImageLimits, ImageRefuse, InlineKind, InlineObject, MAX_IMAGE_BYTES,
+    Measure, RunProps, SourceRef, SquareWrap, StyleId, WrapSide, accept_image, display_extent,
+    extent_emu, page_anchor_wrap, square_wrap,
 };
 
 use crate::backing::PreservedReason;
@@ -319,15 +321,23 @@ fn anchor_only(element: &Element) -> bool {
         && find(element, WP, "inline").is_none()
 }
 
-/// Page-absolute `wp:wrapNone` in front of the text. Anything else is kept.
+/// Page-absolute `wp:wrapNone` or `wp:wrapSquare` in front of the text.
+/// Anything else is kept.
 fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
     let Some(anchor) = find(element, WP, "anchor") else {
         return Err(ImageOutcome::Malformed);
     };
-    if truthy(anchor.attribute(None, "behindDoc"))
-        || anchor.child(WP, "wrapNone").is_none()
-        || has_wrapping(anchor)
-    {
+    if truthy(anchor.attribute(None, "behindDoc")) || unsupported_wrap(anchor) {
+        return Err(ImageOutcome::Unsupported);
+    }
+    let wrap = if anchor.child(WP, "wrapSquare").is_some() {
+        AnchorWrap::Square(square_distances(anchor)?)
+    } else if anchor.child(WP, "wrapNone").is_some() {
+        AnchorWrap::None
+    } else {
+        return Err(ImageOutcome::Unsupported);
+    };
+    if nonzero_effect(anchor) {
         return Err(ImageOutcome::Unsupported);
     }
     let (x, y) = if truthy(anchor.attribute(None, "simplePos")) {
@@ -365,17 +375,74 @@ fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
     if x < 0 || y < 0 {
         return Err(ImageOutcome::Unsupported);
     }
-    page_anchor(x, y).map_err(|error| match error {
+    page_anchor_wrap(x, y, wrap).map_err(|error| match error {
         ImageRefuse::OversizeDimension { .. } => ImageOutcome::Unsupported,
         _ => ImageOutcome::Malformed,
     })
 }
 
-fn has_wrapping(anchor: &Element) -> bool {
-    anchor.child(WP, "wrapSquare").is_some()
-        || anchor.child(WP, "wrapTight").is_some()
-        || anchor.child(WP, "wrapThrough").is_some()
-        || anchor.child(WP, "wrapTopAndBottom").is_some()
+fn unsupported_wrap(anchor: &Element) -> bool {
+    let squares = count_children(anchor, "wrapSquare");
+    let nones = count_children(anchor, "wrapNone");
+    let others = count_children(anchor, "wrapTight")
+        + count_children(anchor, "wrapThrough")
+        + count_children(anchor, "wrapTopAndBottom");
+    others > 0 || squares > 1 || nones > 1 || (squares == 1 && nones == 1)
+}
+
+fn count_children(anchor: &Element, local: &str) -> usize {
+    anchor
+        .elements()
+        .filter(|child| child.is(WP, local))
+        .count()
+}
+
+fn square_distances(anchor: &Element) -> Result<SquareWrap, ImageOutcome> {
+    let Some(wrap) = anchor.child(WP, "wrapSquare") else {
+        return Err(ImageOutcome::Malformed);
+    };
+    if wrap.elements().next().is_some() {
+        return Err(ImageOutcome::Unsupported);
+    }
+    let side = match wrap.attribute(None, "wrapText").map(str::trim) {
+        None | Some("bothSides" | "largest") => WrapSide::Larger,
+        Some("left") => WrapSide::Left,
+        Some("right") => WrapSide::Right,
+        Some(_) => return Err(ImageOutcome::Unsupported),
+    };
+    let top = distance(wrap, anchor, "distT")?;
+    let bottom = distance(wrap, anchor, "distB")?;
+    let left = distance(wrap, anchor, "distL")?;
+    let right = distance(wrap, anchor, "distR")?;
+    square_wrap(top, bottom, left, right, side).map_err(|error| match error {
+        ImageRefuse::OversizeDimension { .. } => ImageOutcome::Unsupported,
+        _ => ImageOutcome::Malformed,
+    })
+}
+
+fn distance(wrap: &Element, anchor: &Element, name: &str) -> Result<i64, ImageOutcome> {
+    let raw = wrap
+        .attribute(None, name)
+        .or_else(|| anchor.attribute(None, name));
+    let Some(raw) = raw else {
+        return Ok(0);
+    };
+    let value = parse_i64(raw.trim()).ok_or(ImageOutcome::Malformed)?;
+    if value < 0 {
+        return Err(ImageOutcome::Unsupported);
+    }
+    Ok(value)
+}
+
+fn nonzero_effect(anchor: &Element) -> bool {
+    let Some(effect) = anchor.child(WP, "effectExtent") else {
+        return false;
+    };
+    ["l", "t", "r", "b"].into_iter().any(|name| {
+        effect
+            .attribute(None, name)
+            .is_some_and(|value| value.trim() != "0")
+    })
 }
 
 fn truthy(value: Option<&str>) -> bool {
