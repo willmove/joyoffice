@@ -171,6 +171,9 @@ pub struct DocumentSettings {
     pub track_revisions: Toggle,
     /// `w:defaultTabStop`. Absent means 720 twips when layout places tabs.
     pub default_tab_stop: Option<Measure>,
+    /// `w:attachedTemplate/@r:id`. The id is recorded and the target is never
+    /// resolved (QUALITY-005). `Some("")` means the element had no id.
+    pub attached_template: Option<Arc<str>>,
     pub preserved: Option<PreservedId>,
 }
 

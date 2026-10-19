@@ -466,7 +466,8 @@ pub fn layout_incremental(
 ) -> Result<LayoutSnapshot, LayoutError> {
     // A table row is not a body paragraph, and a row may also split across
     // pages. Suffix copy assumes body paragraphs line up, so a document with
-    // a table is laid out in full.
+    // a table is laid out in full. Opaque blocks are skipped by that full
+    // layout and by the paragraph path below.
     if document
         .body()
         .blocks
@@ -761,9 +762,15 @@ fn layout_pass(
     let mut charged_bytes = 0usize;
     let mut charged_glyphs = 0usize;
     let mut any_deps = false;
+    let mut rank = 0usize;
     for (index, block) in document.body().blocks.iter().enumerate() {
         cancellation.check()?;
         let Some(paragraph) = block.as_paragraph() else {
+            if matches!(block, Block::Opaque(_)) {
+                result.omit_opaque_block();
+                deps.push(DependencyFlags::default());
+                continue;
+            }
             return Err(LayoutError::Unsupported {
                 node: Some(block.id()),
                 feature: "non-paragraph block",
@@ -786,9 +793,11 @@ fn layout_pass(
             context,
             marks.get(&paragraph.id()),
         );
+        // Flow vectors are paragraph-rank. `index` is the body block index
+        // and is only used for section geometry.
         let unchanged = stored.as_ref().is_some_and(|(ids, keys, _)| {
-            ids.get(index) == Some(&paragraph.id())
-                && keys.get(index) == Some(&key)
+            ids.get(rank) == Some(&paragraph.id())
+                && keys.get(rank) == Some(&key)
                 && !invalid.contains(&paragraph.id())
         });
         let remaining_shapes = limits.max_shape_calls.saturating_sub(charged_shapes);
@@ -858,6 +867,7 @@ fn layout_pass(
         deps.push(flags);
         same.push(unchanged);
         prepared.push(fitted);
+        rank += 1;
     }
     walk_back_keep_next(document, &mut same);
     let stop = match (previous, stored.as_ref()) {
@@ -940,21 +950,29 @@ fn paragraph_has_page_break(paragraph: &Paragraph) -> bool {
 }
 
 fn walk_back_keep_next(document: &Document, same: &mut [bool]) {
-    let paragraphs: Vec<&Paragraph> = document
+    let paragraphs: Vec<(usize, &Paragraph)> = document
         .body()
         .blocks
         .iter()
-        .filter_map(|block| block.as_paragraph())
+        .enumerate()
+        .filter_map(|(block_index, block)| {
+            block
+                .as_paragraph()
+                .map(|paragraph| (block_index, paragraph))
+        })
         .collect();
     let plans = crate::pages::section_plans(document).unwrap_or_default();
     let mut index = same.iter().position(|flag| !flag).unwrap_or(same.len());
     while index > 0 && index <= paragraphs.len() {
-        let previous = paragraphs[index - 1];
-        let here_breaks = paragraphs.get(index).is_some_and(|paragraph| {
-            style_paint::flow(document, paragraph).is_ok_and(|flow| flow.page_break_before)
-                || paragraph_has_page_break(paragraph)
-                || crate::pages::section_break_before(&plans, index)
-        }) || paragraph_has_page_break(previous);
+        let (_, previous) = paragraphs[index - 1];
+        let here_breaks = paragraphs
+            .get(index)
+            .is_some_and(|(block_index, paragraph)| {
+                style_paint::flow(document, paragraph).is_ok_and(|flow| flow.page_break_before)
+                    || paragraph_has_page_break(paragraph)
+                    || crate::pages::section_break_before(&plans, *block_index)
+            })
+            || paragraph_has_page_break(previous);
         let previous_keeps = style_paint::flow(document, previous).is_ok_and(|flow| flow.keep_next);
         if previous_keeps && !here_breaks {
             same[index - 1] = false;

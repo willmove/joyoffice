@@ -339,6 +339,7 @@ fn render(options: &Options, font: LoadedFont, layout: LayoutSnapshot) -> Result
         "operation": "render",
         "dpi": options.dpi,
         "pages": files.len(),
+        "omitted_blocks": layout.omitted_blocks(),
         "font_sha256": font.key().hash_hex(),
         "font_face": font.key().index(),
         "files": files,
@@ -370,6 +371,7 @@ fn convert(
         "target": "pdf",
         "pages": layout.pages().len(),
         "bytes": pdf.len(),
+        "omitted_blocks": layout.omitted_blocks(),
         "font_sha256": font.key().hash_hex(),
         "font_face": font.key().index(),
     }))

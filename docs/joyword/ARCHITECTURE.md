@@ -73,7 +73,7 @@ PositionMap 必须覆盖插入、删除、段落分裂／合并、节点移动�
 | ExportResult | 临时产物校验结果、最终路径、诊断 | 成功仅在目标替换完成后返回 |
 | ChangeProposal | 提案 ID、base_version、目标范围、commands、解释 | 提交需重新校验授权和版本 |
 
-UI 功能区、菜单、快捷键与 CLI 通过同一命令注册表查询名称、可用状态和执行入口；命令元数据同时携带是否修改文档与类型化参数说明，参数齐全的程序化调用直接执行，缺参数时返回 NeedsInput 类结果由界面决定是否询问，CLI／自动化通道一律不弹框。Agent 只能访问显式允许的子集。当前 CLI 使用 inspect、text、render 和 convert 子命令；对应能力未实现前不暴露假成功入口。inspect 输出带 schema 版本的 JSON，显式声明读取投影（是否含隐藏文字、已删除修订与批注）与截断标志；text 输出同一投影的 UTF-8 文本；render 复用 PageScene 的 CPU 光栅后端输出 PNG；convert 目前只开放同场景的 PDF，其他目标明确拒绝。
+UI 功能区、菜单、快捷键与 CLI 通过同一命令注册表查询名称、可用状态和执行入口；命令元数据同时携带是否修改文档与类型化参数说明，参数齐全的程序化调用直接执行，缺参数时返回 NeedsInput 类结果由界面决定是否询问，CLI／自动化通道一律不弹框。Agent 只能访问显式允许的子集。当前 CLI 使用 inspect、text、render 和 convert 子命令；对应能力未实现前不暴露假成功入口。inspect 输出带 schema 版本的 JSON，显式声明读取投影（是否含隐藏文字、已删除修订与批注）与截断标志；text 输出同一投影的 UTF-8 文本；render 复用 PageScene 的 CPU 光栅后端输出 PNG；convert 目前只开放同场景的 PDF，其他目标明确拒绝。render 与 convert 的 schema 1 JSON 另报 `omitted_blocks`：正文不透明块被跳过并计数，不占页面几何，仍进入布局指纹。settings 只有在某个子元素没有模型字段时才整段保留；已建模的 `w:attachedTemplate` 只记录 `r:id`，不解析目标。
 
 ## 4. 事务、撤销与恢复
 
