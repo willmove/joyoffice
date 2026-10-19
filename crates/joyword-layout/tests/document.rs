@@ -3,14 +3,16 @@ use std::sync::Arc;
 use joyword_engine::{Command, Session, Transaction};
 use joyword_foundation::{Emu, ScreenScale};
 use joyword_layout::{
-    FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutLimit, LayoutLimits,
-    LayoutSnapshot, LoadedFont, SingleFontProfile, StaleReason, layout_document, shape, wrap_mixed,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutInvalidation, LayoutLimit,
+    LayoutLimits, LayoutReuse, LayoutSnapshot, LoadedFont, ParagraphLayoutCache, SingleFontProfile,
+    StaleReason, layout_document, layout_document_viewed, layout_incremental_viewed, shape,
+    wrap_mixed,
 };
 use joyword_model::{
     AbstractNum, Bias, Block, BlockSeq, Document, DumpOptions, FontRef, Indent, Justification,
     LineSpacing, Measure, NumInstance, NumberFormat, NumberSuffix, NumberingLevel, NumberingRef,
-    PageSetup, Paragraph, Position, ScalarOffset, Spacing, Style, StyleId, StyleKind, TabAlign,
-    TabLeader, TabStop,
+    PageSetup, Paragraph, Position, RevisionKind, RevisionView, ScalarOffset, Spacing, Style,
+    StyleId, StyleKind, TabAlign, TabLeader, TabStop, TextRevision,
 };
 
 fn pt(value: i64) -> Emu {
@@ -1153,4 +1155,115 @@ fn auto_line_spacing_scales_the_profile_leading() {
     });
     let laid = layout(&document);
     assert_eq!(laid.lines()[0].height, pt(27));
+}
+
+fn marked(text_insert: &str, text_delete: &str) -> Document {
+    let mut document = make_document(&[""], 4);
+    change_paragraph(&mut document, 0, |paragraph| {
+        let insert = TextRevision {
+            id: 1,
+            kind: RevisionKind::Insert,
+            author: Arc::from("Ada"),
+            date: None,
+        };
+        let delete = TextRevision {
+            id: 2,
+            kind: RevisionKind::Delete,
+            author: Arc::from("Ada"),
+            date: None,
+        };
+        paragraph
+            .push_text_marked(text_insert, None, Arc::default(), insert)
+            .unwrap();
+        paragraph
+            .push_text_marked(text_delete, None, Arc::default(), delete)
+            .unwrap();
+    });
+    document
+}
+
+fn scene_text(snapshot: &LayoutSnapshot) -> String {
+    snapshot
+        .pages()
+        .iter()
+        .flat_map(|page| page.runs.iter().map(|run| run.text.as_str()))
+        .collect()
+}
+
+#[test]
+fn revision_views_change_pagination_text_and_match_the_incremental_cache() {
+    let document = marked("in", "out");
+    let cancellation = LayoutCancellation::default();
+    let limits = LayoutLimits::default();
+    let face = font();
+    let faces = FaceSet::uniform(&face);
+    let profile = profile();
+    for view in [
+        RevisionView::FinalWithMarkup,
+        RevisionView::Final,
+        RevisionView::Original,
+    ] {
+        let full = layout_document_viewed(
+            &document.snapshot(),
+            faces,
+            profile,
+            limits,
+            &cancellation,
+            view,
+        )
+        .unwrap();
+        let mut cache = ParagraphLayoutCache::default();
+        let invalidation = LayoutInvalidation::default();
+        let incremental = layout_incremental_viewed(
+            &document.snapshot(),
+            faces,
+            profile,
+            limits,
+            &cancellation,
+            LayoutReuse {
+                cache: &mut cache,
+                previous: None,
+                invalidation: &invalidation,
+            },
+            view,
+        )
+        .unwrap();
+        assert_eq!(full.pages(), incremental.pages(), "{view:?}");
+        assert_eq!(full.key().revision_view, view);
+        let again = layout_incremental_viewed(
+            &document.snapshot(),
+            faces,
+            profile,
+            limits,
+            &cancellation,
+            LayoutReuse {
+                cache: &mut cache,
+                previous: Some(&incremental),
+                invalidation: &invalidation,
+            },
+            view,
+        )
+        .unwrap();
+        assert_eq!(incremental.pages(), again.pages());
+        assert!(again.stats().cache_hits > 0, "{view:?}");
+        let text = scene_text(&full);
+        match view {
+            RevisionView::FinalWithMarkup => {
+                assert!(text.contains("in") && text.contains("out"), "{text}");
+                assert!(
+                    full.pages()[0]
+                        .runs
+                        .iter()
+                        .any(|run| run.color != [0, 0, 0])
+                );
+                assert!(!full.pages()[0].rects.is_empty());
+            }
+            RevisionView::Final => {
+                assert!(text.contains("in") && !text.contains("out"), "{text}");
+            }
+            RevisionView::Original => {
+                assert!(text.contains("out") && !text.contains("in"), "{text}");
+            }
+        }
+    }
 }

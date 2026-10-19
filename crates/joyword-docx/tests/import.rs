@@ -383,7 +383,6 @@ fn min_004_records_external_targets_without_accessing_them() {
 fn min_005_protection_and_forced_tracking_open_read_only() {
     let result = open(&fixture("DOCX-MIN-005"));
     let reasons: Vec<_> = result.editability.read_only_reasons().cloned().collect();
-    assert!(reasons.contains(&ReadOnlyReason::TrackRevisions));
     assert!(reasons.contains(&ReadOnlyReason::DocumentProtection {
         edit: Some("readOnly".into())
     }));
@@ -531,18 +530,98 @@ fn tracked_changes_make_the_document_read_only() {
         r#"<w:del w:id="2" w:author="A"><w:r><w:delText>删除</w:delText></w:r></w:del></w:p>"#,
     )));
     assert!(
-        result
-            .editability
-            .read_only_reasons()
-            .any(|reason| *reason == ReadOnlyReason::Revisions)
+        !result.editability.is_read_only(),
+        "plain ins/del are typed revisions, not a document lock"
     );
-    // Inserted text shows; deleted text is preserved, not shown.
-    assert_eq!(texts(&result), vec!["新增\u{FFFC}"]);
+    assert_eq!(texts(&result), vec!["新增删除"]);
+    let runs = paragraphs(&result)[0].runs();
+    assert_eq!(runs[0].revision.as_ref().map(|mark| mark.id), Some(1));
+    assert_eq!(
+        runs[1].revision.as_ref().map(|mark| mark.kind),
+        Some(joyword_model::RevisionKind::Delete)
+    );
     // Revisions inside otherwise preserved content are found too.
     let nested = open(&body(
         r#"<w:tbl><w:tr><w:tc><w:p><w:r><w:rPr><w:rPrChange w:id="3" w:author="A"/></w:rPr></w:r></w:p></w:tc></w:tr></w:tbl>"#,
     ));
     assert!(nested.editability.is_read_only());
+}
+
+#[test]
+fn text_revisions_round_trip_and_tracking_is_a_settings_patch() {
+    let source_xml = concat!(
+        r#"<w:p>"#,
+        r#"<w:ins w:id="1" w:author="A" w:date="2020-01-02T03:04:05Z"><w:r><w:t>新增</w:t></w:r></w:ins>"#,
+        r#"<w:del w:id="2" w:author="A" w:date="2020-01-02T03:04:05Z"><w:r><w:delText>删除</w:delText></w:r></w:del>"#,
+        r#"</w:p>"#,
+    );
+    let bytes = body(source_xml);
+    let source = open(&bytes);
+    let untouched = plan_export(
+        &source.backing,
+        &source.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(untouched.mode(), joyword_docx::ExportMode::OriginalPackage);
+    assert_eq!(untouched.bytes(), bytes.as_slice());
+
+    let mut model = source.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        Arc::make_mut(paragraph)
+            .push_text("尾", None, Arc::default())
+            .unwrap();
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert!(
+        model.semantic_difference(&saved.document).is_none(),
+        "{}\n---\n{}",
+        model.canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+        saved
+            .document
+            .canonical_dump(joyword_model::DumpOptions { node_ids: false })
+    );
+
+    let tracked = package(
+        &document_xml("", r#"<w:p><w:r><w:t>a</w:t></w:r></w:p>"#),
+        Some(r#"<w:trackRevisions/>"#),
+    );
+    let tracked_source = open(&tracked);
+    assert_eq!(
+        tracked_source.document.settings().track_revisions,
+        Some(true)
+    );
+    assert!(!tracked_source.editability.is_read_only());
+    let mut turned_off = tracked_source.document.clone();
+    turned_off.settings_mut().track_revisions = Some(false);
+    let patched = plan_export(
+        &tracked_source.backing,
+        &turned_off.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    let again = import(patched.bytes(), &Budget::default()).unwrap();
+    assert_eq!(again.document.settings().track_revisions, Some(false));
+    assert!(turned_off.semantic_difference(&again.document).is_none());
+
+    let moved = open(&body(concat!(
+        r#"<w:p>"#,
+        r#"<w:moveFromRangeStart w:id="1" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/>"#,
+        r#"<w:moveFrom w:id="2" w:author="A" w:date="2020-01-02T03:04:05Z"><w:r><w:delText>旧</w:delText></w:r></w:moveFrom>"#,
+        r#"<w:moveFromRangeEnd w:id="3" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/>"#,
+        r#"<w:moveToRangeStart w:id="4" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/>"#,
+        r#"<w:moveTo w:id="5" w:author="A" w:date="2020-01-02T03:04:05Z"><w:r><w:t>新</w:t></w:r></w:moveTo>"#,
+        r#"<w:moveToRangeEnd w:id="6" w:author="A" w:name="m" w:date="2020-01-02T03:04:05Z"/>"#,
+        r#"</w:p>"#,
+    )));
+    assert!(!moved.editability.is_read_only());
+    assert_eq!(texts(&moved), vec!["旧新"]);
+    assert_eq!(moved.document.move_markers().len(), 4);
 }
 
 #[test]

@@ -20,19 +20,20 @@
 //! range. All other bytes of the part stay as they were.
 
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, Document, FontRef, FontSlots,
-    Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, NodeId,
-    NumberingRef, NumberingStore, ParaProps, Paragraph, RowHeightRule, RunProps, Shading,
-    SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table,
-    TableAlign, TableLayoutKind, TableLook, TableWidth, Underline, VerticalAlign, VerticalMerge,
+    Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, MoveMarker,
+    MoveSide, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph, RevisionKind,
+    RowHeightRule, RunProps, Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign,
+    TabLeader, TabStop, Table, TableAlign, TableLayoutKind, TableLook, TableWidth, Underline,
+    VerticalAlign, VerticalMerge,
 };
 
-use super::{ExportError, Names, bounded_text_xml, text_slots, unsupported};
+use super::{ExportError, Names, bounded_text_leaf, bounded_text_xml, text_slots, unsupported};
 use crate::ns::{R, REL_HYPERLINK};
 use crate::props::{self, Findings};
 use crate::xml::{Element, Node};
@@ -808,6 +809,15 @@ impl<'a> Source<'a> {
         names: &Names,
         limit: u64,
     ) -> Result<String, ExportError> {
+        if paragraph.runs().iter().any(|run| run.revision.is_some()) {
+            if paragraph.runs().iter().any(|run| run.link.is_some()) {
+                return Err(unsupported(
+                    Some(paragraph.id()),
+                    "a revised run also has a hyperlink",
+                ));
+            }
+            return revision_body(paragraph, &[], names, limit);
+        }
         append_linked_runs(
             self,
             paragraph.id(),
@@ -1568,6 +1578,7 @@ pub(super) fn new_paragraph(
     names: &Names,
     limit: u64,
     source: &Source<'_>,
+    markers: &[MoveMarker],
 ) -> Result<String, ExportError> {
     if !default_format(paragraph) {
         if paragraph.inlines().is_empty()
@@ -1584,6 +1595,19 @@ pub(super) fn new_paragraph(
             Some(paragraph.id()),
             "new paragraphs require default paragraph and character properties",
         ));
+    }
+    if paragraph.runs().iter().any(|run| run.revision.is_some()) || !markers.is_empty() {
+        if paragraph.runs().iter().any(|run| run.link.is_some()) {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "a revised run also has a hyperlink",
+            ));
+        }
+        let body = revision_body(paragraph, markers, names, limit)?;
+        if body.is_empty() {
+            return Ok(format!("{}/>", names.start("p")));
+        }
+        return Ok(format!("{}>{body}{}", names.start("p"), names.end("p")));
     }
     if paragraph.runs().iter().any(|run| run.link.is_some()) {
         let body = source.run_markup(paragraph, names, limit)?;
@@ -2519,6 +2543,242 @@ fn attributes_portable(
                 && attribute.namespace.as_deref() == expected.as_deref()
         })
     })
+}
+
+/// Replaces one paragraph's children, keeping the start tag and `w:pPr`.
+/// Text and move revisions are written from the model (ECMA-376 §17.13.5).
+pub(super) fn rewrite_revisions(
+    xml: &[u8],
+    element: &Element,
+    paragraph: &Paragraph,
+    markers: &[MoveMarker],
+    names: &Names,
+    limit: u64,
+) -> Result<Vec<u8>, ExportError> {
+    let refuse = |reason| unsupported(Some(paragraph.id()), reason);
+    let mut out = opened_start(xml, element).map_err(refuse)?;
+    if let Some(properties) = element.child(W, "pPr") {
+        out.extend_from_slice(&xml[properties.span.clone()]);
+    }
+    out.extend(revision_body(paragraph, markers, names, limit)?.into_bytes());
+    out.extend(names.end("p").into_bytes());
+    if out.len() as u64 > limit {
+        return Err(ExportError::Budget {
+            part: "paragraph".into(),
+            limit,
+        });
+    }
+    Ok(out)
+}
+
+struct RevisionSegment {
+    offset: usize,
+    revision: Option<joyword_model::TextRevision>,
+    style: Option<StyleId>,
+    props: Arc<RunProps>,
+    text: String,
+}
+
+fn revision_body(
+    paragraph: &Paragraph,
+    markers: &[MoveMarker],
+    names: &Names,
+    limit: u64,
+) -> Result<String, ExportError> {
+    let refuse = |reason| unsupported(Some(paragraph.id()), reason);
+    let full = paragraph.plain_text(|_| "\u{FFFC}".into());
+    if full.contains('\u{FFFC}') {
+        return Err(refuse("revision export refuses inline objects"));
+    }
+    let cuts: BTreeSet<usize> = markers
+        .iter()
+        .map(|marker| marker.position.offset.0)
+        .collect();
+    let mut chars = full.chars();
+    let mut offset = 0usize;
+    let mut segments = Vec::new();
+    for run in paragraph.runs() {
+        let run_text: String = chars.by_ref().take(run.len).collect();
+        let run_chars: Vec<char> = run_text.chars().collect();
+        let mut start = 0usize;
+        while start < run_chars.len() {
+            let abs = offset + start;
+            let end_abs = cuts
+                .range((abs + 1)..)
+                .next()
+                .copied()
+                .unwrap_or(offset + run_chars.len())
+                .min(offset + run_chars.len());
+            let end = start + (end_abs - abs);
+            let text: String = run_chars[start..end].iter().collect();
+            let continues = segments.last().is_some_and(|last: &RevisionSegment| {
+                last.revision == run.revision
+                    && last.style == run.style
+                    && last.props == run.props
+                    && last.offset + last.text.chars().count() == abs
+                    && !cuts.contains(&abs)
+            });
+            if continues {
+                if let Some(last) = segments.last_mut() {
+                    last.text.push_str(&text);
+                }
+            } else if !text.is_empty() {
+                segments.push(RevisionSegment {
+                    offset: abs,
+                    revision: run.revision.clone(),
+                    style: run.style.clone(),
+                    props: Arc::clone(&run.props),
+                    text,
+                });
+            }
+            start = end;
+        }
+        offset += run.len;
+    }
+    let mut xml = String::new();
+    let mut open: Option<joyword_model::TextRevision> = None;
+    let mut emitted = BTreeSet::new();
+    let mut emit = |xml: &mut String, at: usize| {
+        if !emitted.insert(at) {
+            return;
+        }
+        let mut here: Vec<&MoveMarker> = markers
+            .iter()
+            .filter(|marker| marker.position.offset.0 == at)
+            .collect();
+        here.sort_by_key(|marker| (!marker.at_end, marker.id));
+        for marker in here {
+            xml.push_str(&marker_xml(names, marker));
+        }
+    };
+    if segments.is_empty() {
+        emit(&mut xml, 0);
+        return Ok(xml);
+    }
+    for segment in &segments {
+        if markers
+            .iter()
+            .any(|marker| marker.position.offset.0 == segment.offset)
+        {
+            close_revision(&mut xml, names, &mut open);
+            emit(&mut xml, segment.offset);
+        }
+        if open.as_ref() != segment.revision.as_ref() {
+            close_revision(&mut xml, names, &mut open);
+            if let Some(revision) = &segment.revision {
+                xml.push_str(&names.start(revision_element(revision.kind)));
+                xml.push_str(&track_attributes(names, revision));
+                xml.push('>');
+                open = Some(revision.clone());
+            }
+        }
+        let leaf = match segment.revision.as_ref().map(|revision| revision.kind) {
+            Some(RevisionKind::Delete | RevisionKind::MoveFrom) => "delText",
+            _ => "t",
+        };
+        let text = bounded_text_leaf(names, &segment.text, leaf, limit)?;
+        let properties =
+            direct_rpr(names, segment.style.as_ref(), &segment.props).map_err(refuse)?;
+        if properties.is_none() && text.is_empty() {
+            continue;
+        }
+        xml.push_str(&names.start("r"));
+        xml.push('>');
+        if let Some(properties) = properties {
+            xml.push_str(&properties);
+        }
+        xml.push_str(&text);
+        xml.push_str(&names.end("r"));
+        if xml.len() as u64 > limit {
+            return Err(ExportError::Budget {
+                part: "paragraph".into(),
+                limit,
+            });
+        }
+    }
+    let end = paragraph.len();
+    if markers.iter().any(|marker| marker.position.offset.0 == end) {
+        close_revision(&mut xml, names, &mut open);
+        emit(&mut xml, end);
+    }
+    close_revision(&mut xml, names, &mut open);
+    Ok(xml)
+}
+
+fn close_revision(xml: &mut String, names: &Names, open: &mut Option<joyword_model::TextRevision>) {
+    if let Some(revision) = open.take() {
+        xml.push_str(&names.end(revision_element(revision.kind)));
+    }
+}
+
+fn revision_element(kind: RevisionKind) -> &'static str {
+    match kind {
+        RevisionKind::Insert => "ins",
+        RevisionKind::Delete => "del",
+        RevisionKind::MoveFrom => "moveFrom",
+        RevisionKind::MoveTo => "moveTo",
+    }
+}
+
+fn track_attributes(names: &Names, revision: &joyword_model::TextRevision) -> String {
+    let mut attributes = names.attribute("id", &revision.id.to_string());
+    attributes.push_str(&names.attribute("author", revision.author.as_ref()));
+    if let Some(date) = &revision.date {
+        attributes.push_str(&names.attribute("date", date));
+    }
+    attributes
+}
+
+fn marker_element(marker: &MoveMarker) -> &'static str {
+    match (marker.side, marker.at_end) {
+        (MoveSide::From, false) => "moveFromRangeStart",
+        (MoveSide::From, true) => "moveFromRangeEnd",
+        (MoveSide::To, false) => "moveToRangeStart",
+        (MoveSide::To, true) => "moveToRangeEnd",
+    }
+}
+
+fn marker_xml(names: &Names, marker: &MoveMarker) -> String {
+    let mut attributes = names.attribute("id", &marker.id.to_string());
+    attributes.push_str(&names.attribute("author", marker.author.as_ref()));
+    if let Some(date) = &marker.date {
+        attributes.push_str(&names.attribute("date", date));
+    }
+    attributes.push_str(&names.attribute("name", marker.name.as_ref()));
+    format!("{}{attributes}/>", names.start(marker_element(marker)))
+}
+
+fn direct_rpr(
+    names: &Names,
+    style: Option<&StyleId>,
+    props: &RunProps,
+) -> Result<Option<String>, &'static str> {
+    let mut extra = String::new();
+    if let Some(style) = style {
+        extra.push_str(&names.start("rStyle"));
+        extra.push_str(&names.attribute("val", style.as_str()));
+        extra.push_str("/>");
+    }
+    let synthesized = synthesize_rpr(names, props)?;
+    match (extra.is_empty(), synthesized) {
+        (true, None) => Ok(None),
+        (true, Some(markup)) => Ok(Some(markup)),
+        (false, None) => Ok(Some(format!(
+            "{}>{extra}{}",
+            names.start("rPr"),
+            names.end("rPr")
+        ))),
+        (false, Some(markup)) => {
+            let Some(split) = markup.find('>') else {
+                return Err("character formatting is outside the direct subset");
+            };
+            let mut combined = String::new();
+            combined.push_str(&markup[..=split]);
+            combined.push_str(&extra);
+            combined.push_str(&markup[split + 1..]);
+            Ok(Some(combined))
+        }
+    }
 }
 
 /// `r:id` and/or `w:anchor`, and nothing else.

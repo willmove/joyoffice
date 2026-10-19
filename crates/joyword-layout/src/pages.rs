@@ -822,7 +822,20 @@ fn story_display(
         section_pages: snapshot.section_page_count(section),
         ..crate::cache::ExternalContext::default()
     };
-    let omitted = view::omitted_indices(document, paragraph, view)?;
+    let revision = snapshot.key().revision_view;
+    let mut omitted = view::omitted_indices(document, paragraph, view)?;
+    let mut scalar = 0usize;
+    for run in paragraph.runs() {
+        let show = run
+            .revision
+            .as_ref()
+            .map(|item| item.kind.visible_in(revision))
+            .unwrap_or(true);
+        if !show {
+            omitted.extend(scalar..scalar + run.len);
+        }
+        scalar += run.len;
+    }
     let mut text = String::new();
     let mut used_cache = false;
     let mut scalar = 0usize;

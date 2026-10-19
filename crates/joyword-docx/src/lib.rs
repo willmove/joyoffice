@@ -16,7 +16,8 @@
 //!   body and those stories);
 //! - settings: `compatibilityMode` as written (absent stays `None`, which the
 //!   model interprets as 12; the new-document value 15 is never imposed),
-//!   revision tracking, document protection, even and odd headers, the
+//!   revision tracking (`w:trackRevisions` is stored and does not by itself
+//!   lock the document), document protection, even and odd headers, the
 //!   default tab stop, and `w:attachedTemplate`'s relationship id (recorded,
 //!   never resolved). The settings element is preserved only when a child
 //!   has no model field. The settings part still round-trips verbatim.
@@ -25,9 +26,10 @@
 //! exact bytes live in the [`PackageBacking`], and each element the model
 //! does not interpret is registered as a [`Fragment`] with its byte range and
 //! namespace context. A block or paragraph holding such content is locked in
-//! [`Editability`]; document protection, revision tracking, tracked changes,
+//! [`Editability`]; document protection, format and table revisions,
 //! unsatisfied `mc:MustUnderstand` and unknown non-ignorable namespaces make
-//! the whole document read-only. External relationship targets are recorded
+//! the whole document read-only. Plain `w:ins` / `w:del` / move markup is
+//! modeled. `w:trackRevisions` is a setting, not a read-only reason. External relationship targets are recorded
 //! and classified, never resolved or accessed. Strict documents are refused.
 //!
 //! [`plan_export`] supports text changes within existing paragraphs and
@@ -74,6 +76,7 @@ mod ns;
 mod numbering;
 mod props;
 mod result;
+mod revision;
 mod table;
 mod xml;
 

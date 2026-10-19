@@ -70,7 +70,6 @@ fn each_settings_restriction_independently_prevents_editing() {
                 edit: Some("readOnly".into()),
             },
         ),
-        ("<w:trackRevisions/>", ReadOnlyReason::TrackRevisions),
         ("<w:writeProtection/>", ReadOnlyReason::WriteProtection),
     ] {
         let bytes = with_settings(settings);
@@ -87,6 +86,22 @@ fn each_settings_restriction_independently_prevents_editing() {
         assert_eq!(session.apply(transaction), Err(TxError::ReadOnly));
         assert_eq!(session.unchanged_package_bytes().unwrap(), bytes);
     }
+}
+
+#[test]
+fn track_revisions_alone_stays_editable() {
+    let bytes = with_settings("<w:trackRevisions/>");
+    let mut session = DocxSession::open(&bytes, &Budget::default()).unwrap();
+    assert!(session.editability().is_unrestricted());
+    assert_eq!(
+        session.session().document().settings().track_revisions,
+        Some(true)
+    );
+    let transaction = insertion(&session);
+    assert!(matches!(
+        session.apply(transaction),
+        Ok(Outcome::Applied(_))
+    ));
 }
 
 #[test]
@@ -138,11 +153,9 @@ fn protected_and_tracked_documents_deny_all_write_origins_and_history() {
             .read_only_reasons()
             .any(|reason| matches!(reason, ReadOnlyReason::DocumentProtection { .. }))
     );
-    assert!(
-        session
-            .editability()
-            .read_only_reasons()
-            .any(|reason| matches!(reason, ReadOnlyReason::TrackRevisions))
+    assert_eq!(
+        session.session().document().settings().track_revisions,
+        Some(true)
     );
     let before = session.session().document().clone();
     let version = session.session().version();

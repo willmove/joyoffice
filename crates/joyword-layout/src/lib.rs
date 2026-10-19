@@ -18,6 +18,7 @@ mod images;
 pub mod line;
 mod list_layout;
 mod pages;
+mod revision_view;
 pub mod scene;
 pub mod shape;
 pub mod slots;
@@ -27,7 +28,8 @@ mod view;
 pub use font::{FontError, FontKey, LoadedFont};
 pub use line::{
     BreakError, ClusterRange, LayoutLine, LineDiagnostic, LineError, LineLimit, LineLimits,
-    LineStats, OverflowKind, ParagraphLines, SourceRange, layout_paragraph, layout_paragraph_auto,
+    LineRevision, LineStats, OverflowKind, ParagraphLines, SourceRange, layout_paragraph,
+    layout_paragraph_auto,
 };
 pub use scene::{GlyphRun, PageScene, SceneImage, SceneRect, to_points, to_screen};
 pub use shape::{FeatureSet, ShapedGlyph, ShapedRun, shape};
@@ -39,13 +41,14 @@ pub use slots::{
 pub use cache::{
     DEFAULT_CACHE_BUDGET, DependencyFlags, ExternalContext, ExternalKey, LayoutInvalidation,
     LayoutReuse, MAX_LAYOUT_PASSES, ParagraphLayoutCache, affected_style_closure, external_key,
-    invalidated_paragraphs, layout_incremental, layout_incremental_with_view,
-    paragraph_dependencies, run_layout_passes,
+    invalidated_paragraphs, layout_incremental, layout_incremental_viewed,
+    layout_incremental_with_view, paragraph_dependencies, run_layout_passes,
 };
 pub use document::{
     CaretGeometry, CaretStop, LayoutCancellation, LayoutDiagnostic, LayoutError, LayoutKey,
     LayoutLimit, LayoutLimits, LayoutNote, LayoutSnapshot, LayoutStats, PageGeometry, PlacedLine,
-    SelectionRect, SingleFontProfile, StaleReason, layout_document, layout_with_view,
+    SelectionRect, SingleFontProfile, StaleReason, layout_document, layout_document_viewed,
+    layout_with_view,
 };
 pub use font::{UnderlineMetricSource, UnderlineMetrics, resolve_underline_metrics};
 pub use scene::decoration_rects;

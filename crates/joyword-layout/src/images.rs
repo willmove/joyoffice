@@ -478,6 +478,7 @@ fn image_line(
         },
         clusters: Vec::new(),
         images: vec![line_image(image, Emu::new(0))],
+        revisions: Vec::new(),
         hyperlinks: Vec::new(),
         box_height: Emu::new(0),
         tab_gaps: Vec::new(),

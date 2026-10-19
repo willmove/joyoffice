@@ -12,6 +12,7 @@ mod find;
 mod locate;
 mod map;
 mod paint;
+mod revision;
 mod session;
 mod table;
 

@@ -88,9 +88,11 @@ pub enum ReadOnlyReason {
     DocumentProtection { edit: Option<String> },
     /// `w:writeProtection`: the author asked for read-only opening.
     WriteProtection,
-    /// `w:trackRevisions`: edits must become tracked changes (M3).
+    /// `w:trackRevisions` used to force read-only opening. Text revisions are
+    /// modeled now, so this reason is no longer produced. Document protection
+    /// still is.
     TrackRevisions,
-    /// Tracked change markup in the body; review is not implemented.
+    /// Format or table revision markup (T301) that this slice does not edit.
     Revisions,
     /// `mc:MustUnderstand` names a namespace this importer does not
     /// understand (ECMA-376 Part 3).
@@ -231,6 +233,17 @@ pub enum DiagnosticKind {
     },
     /// Validation finding of the imported model.
     Model(Issue),
+    /// A text or move revision was preserved because it is outside the typed
+    /// subset (missing id or author, extra attributes, nested markup, or a
+    /// child this slice does not map). The paragraph is locked.
+    RevisionSubset {
+        element: String,
+    },
+    /// A move range is missing a marker, repeats one, or crosses its pair.
+    /// The paragraphs it names are locked. Accept and reject refuse the name.
+    MoveRange {
+        name: String,
+    },
 }
 
 /// What happened to one inline picture. Remote and active payloads are not

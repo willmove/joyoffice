@@ -16,14 +16,15 @@ use std::collections::{BTreeSet, HashMap};
 use joyword_foundation::Emu;
 use joyword_model::{
     Anchor, AnnotationKind, Block, Document, DocumentSnapshot, DocumentVersion, LineSpacing,
-    NodeId, NumberLabel, NumberSuffix, NumberingProblem, Paragraph, ScalarOffset, StyleId,
-    StyleKind, StyleSheet,
+    NodeId, NumberLabel, NumberSuffix, NumberingProblem, Paragraph, RevisionView, ScalarOffset,
+    StyleId, StyleKind, StyleSheet,
 };
 use sha2::{Digest, Sha256};
 
 use crate::document::{
-    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, WorkSpent,
-    apply_section, assemble, dominant_slot, fit_paragraph, open_snapshot, preflight, record_fit,
+    FittedParagraph, LayoutSnapshot, PageGeometry, ParagraphAnchor, PlaceStop, SceneViews,
+    WorkSpent, apply_section, assemble, dominant_slot, fit_paragraph, open_snapshot, preflight,
+    record_fit,
 };
 use crate::style_paint;
 use crate::view::ViewOptions;
@@ -295,6 +296,11 @@ struct ParagraphCacheKey {
     font: FontEnvKey,
     profile: ProfileFitKey,
     external: ExternalKey,
+    /// `RevisionView` discriminant. Final and markup can share visible text
+    /// and still paint different decorations, so the view is its own field.
+    revision_view: u8,
+    /// Zero when the paragraph has no text revision. Otherwise the run marks.
+    revisions: [u8; 32],
     /// Hidden text and field codes change the shaped string. Formatting marks
     /// do not, so they stay off this key and are drawn when the line is placed.
     show_hidden: bool,
@@ -313,6 +319,7 @@ struct Flow {
     font: FontKey,
     profile: SingleFontProfile,
     limits: LayoutLimits,
+    views: SceneViews,
     ids: Vec<NodeId>,
     keys: Vec<ParagraphCacheKey>,
     starts: Vec<ParagraphAnchor>,
@@ -469,14 +476,36 @@ pub fn layout_incremental(
     cancellation: &LayoutCancellation,
     reuse: LayoutReuse<'_>,
 ) -> Result<LayoutSnapshot, LayoutError> {
-    layout_incremental_with_view(
+    layout_incremental_views(
         document,
         faces,
         profile,
         limits,
         cancellation,
         reuse,
-        ViewOptions::default(),
+        SceneViews::standard(),
+    )
+}
+
+/// [`layout_incremental`] with an explicit revision projection. The paragraph
+/// cache key includes the view, so a Final fit is not reused as markup.
+pub fn layout_incremental_viewed(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    reuse: LayoutReuse<'_>,
+    revision: RevisionView,
+) -> Result<LayoutSnapshot, LayoutError> {
+    layout_incremental_views(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        reuse,
+        SceneViews::revision(revision),
     )
 }
 
@@ -488,7 +517,27 @@ pub fn layout_incremental_with_view(
     limits: LayoutLimits,
     cancellation: &LayoutCancellation,
     reuse: LayoutReuse<'_>,
-    view: ViewOptions,
+    options: ViewOptions,
+) -> Result<LayoutSnapshot, LayoutError> {
+    layout_incremental_views(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        reuse,
+        SceneViews::options(options),
+    )
+}
+
+fn layout_incremental_views(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    reuse: LayoutReuse<'_>,
+    views: SceneViews,
 ) -> Result<LayoutSnapshot, LayoutError> {
     // A table row is not a body paragraph. Rows split across pages and header
     // rows repeat, so copying a paragraph suffix would not match a full
@@ -501,7 +550,14 @@ pub fn layout_incremental_with_view(
         .iter()
         .any(|block| matches!(block, Block::Table(_)))
     {
-        return crate::layout_with_view(document, faces, profile, limits, cancellation, view);
+        return crate::document::layout_with_views(
+            document,
+            faces,
+            profile,
+            limits,
+            cancellation,
+            views,
+        );
     }
     let LayoutReuse {
         cache,
@@ -511,9 +567,9 @@ pub fn layout_incremental_with_view(
     cancellation.check()?;
     profile.validate()?;
     let limits = limits.capped();
-    let geometry = preflight(document, profile, limits, cancellation, view)?;
+    let geometry = preflight(document, profile, limits, cancellation, views.options)?;
     let flow_ok = match (&cache.flow, previous) {
-        (Some(flow), Some(previous)) => flow_matches(flow, previous, faces, profile, limits, view),
+        (Some(flow), Some(previous)) => flow_matches(flow, previous, faces, profile, limits, views),
         _ => false,
     };
     let seed = seed_page_contexts(document);
@@ -530,7 +586,7 @@ pub fn layout_incremental_with_view(
                 previous: previous.filter(|_| flow_ok),
                 invalidation,
                 assumed,
-                view,
+                views,
             },
         )
     });
@@ -550,14 +606,14 @@ pub fn layout_incremental_with_view(
                     previous: previous.filter(|_| flow_ok),
                     invalidation,
                     assumed: &forced,
-                    view,
+                    views,
                 },
             )?;
             snapshot
         }
         Err(error) => return Err(error),
     };
-    remember_flow(cache, &snapshot, document, faces, profile, limits);
+    remember_flow(cache, &snapshot, document, faces, profile, limits, views);
     Ok(snapshot)
 }
 
@@ -567,16 +623,18 @@ fn flow_matches(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     limits: LayoutLimits,
-    view: ViewOptions,
+    views: SceneViews,
 ) -> bool {
     previous.key().version == flow.version
         && previous.key().content_hash() == flow.content
         && previous.key().font == flow.font
         && previous.key().profile == flow.profile
-        && previous.key().view == view
+        && previous.key().view == views.options
+        && previous.key().revision_view == views.revision
         && faces.ascii.key() == flow.font
         && limits == flow.limits
         && profile == flow.profile
+        && flow.views == views
 }
 
 fn remember_flow(
@@ -586,6 +644,7 @@ fn remember_flow(
     faces: FaceSet<'_>,
     profile: SingleFontProfile,
     limits: LayoutLimits,
+    views: SceneViews,
 ) {
     let mut ids = Vec::new();
     let mut keys = Vec::new();
@@ -609,7 +668,7 @@ fn remember_flow(
             width,
             context,
             marks.get(&paragraph.id()),
-            snapshot.key().view,
+            views,
         );
         let anchor = snapshot
             .lines()
@@ -637,6 +696,7 @@ fn remember_flow(
         font: faces.ascii.key(),
         profile,
         limits,
+        views,
         ids,
         keys,
         starts,
@@ -758,7 +818,7 @@ struct PassInput<'a> {
     previous: Option<&'a LayoutSnapshot>,
     invalidation: &'a LayoutInvalidation,
     assumed: &'a [ExternalContext],
-    view: ViewOptions,
+    views: SceneViews,
 }
 
 fn layout_pass(
@@ -775,7 +835,7 @@ fn layout_pass(
         previous,
         invalidation,
         assumed,
-        view,
+        views,
     } = input;
     let invalid = invalidated_paragraphs(document, invalidation);
     // Clone the previous flow before the cache is mutated. A hit or a miss
@@ -786,7 +846,7 @@ fn layout_pass(
         .filter(|_| previous.is_some())
         .map(|flow| (flow.ids.clone(), flow.keys.clone(), flow.starts.clone()));
     let plans = crate::pages::section_plans(document)?;
-    let mut result = open_snapshot(document, faces, profile, limits, geometry, view)?;
+    let mut result = open_snapshot(document, faces, profile, limits, geometry, views)?;
     let mut prepared = Vec::new();
     let mut deps = Vec::new();
     let mut same = Vec::new();
@@ -826,7 +886,7 @@ fn layout_pass(
             plan.fit_width.raw(),
             context,
             marks.get(&paragraph.id()),
-            view,
+            views,
         );
         // Flow vectors are paragraph-rank. `index` is the body block index
         // and is only used for section geometry.
@@ -875,7 +935,7 @@ fn layout_pass(
                 },
                 cancellation,
                 marks.get(&paragraph.id()),
-                view,
+                views,
                 None,
                 context,
                 &numbering,
@@ -1029,15 +1089,28 @@ fn paragraph_key(
     available_width: i64,
     context: ExternalContext,
     mark: Option<&Result<NumberLabel, NumberingProblem>>,
-    view: ViewOptions,
+    views: SceneViews,
 ) -> ParagraphCacheKey {
     let marked = crate::pages::marked_text(document, paragraph);
     let text = paragraph.plain_text(|_| String::new());
-    let slot = dominant_slot(&text);
+    // The same string `fit_paragraph` shapes. A hidden run changes line
+    // breaks, so the cache cannot key the full paragraph text.
+    let projected = crate::revision_view::project(paragraph, views.revision, false)
+        .ok()
+        .flatten();
+    let slot_text = projected
+        .as_ref()
+        .map(|item| item.text.as_str())
+        .unwrap_or(&text);
+    let content_source = projected
+        .as_ref()
+        .map(|item| item.text.as_str())
+        .unwrap_or(marked.as_str());
+    let slot = dominant_slot(slot_text);
     let mixed = slot != FontSlot::Ascii;
     let flags = paragraph_dependencies(document, paragraph);
     ParagraphCacheKey {
-        content: digest(marked.as_bytes()),
+        content: digest(content_source.as_bytes()),
         resolved_style: resolved_style(document, paragraph, mark),
         available_width,
         font: FontEnvKey {
@@ -1058,9 +1131,30 @@ fn paragraph_key(
             leading: uses_profile_leading(document, paragraph).then_some(profile.leading.raw()),
         },
         external: external_key(flags, context),
-        show_hidden: view.show_hidden,
-        field_codes: view.field_codes,
+        revision_view: match views.revision {
+            RevisionView::FinalWithMarkup => 0,
+            RevisionView::Final => 1,
+            RevisionView::Original => 2,
+        },
+        revisions: revision_digest(paragraph),
+        show_hidden: views.options.show_hidden,
+        field_codes: views.options.field_codes,
     }
+}
+
+fn revision_digest(paragraph: &Paragraph) -> [u8; 32] {
+    if paragraph.runs().iter().all(|run| run.revision.is_none()) {
+        return [0; 32];
+    }
+    let mut hash = Sha256::new();
+    for run in paragraph.runs() {
+        hash.update((run.len as u64).to_le_bytes());
+        match &run.revision {
+            Some(revision) => hash.update(format!("{revision:?}").as_bytes()),
+            None => hash.update(b"-"),
+        }
+    }
+    hash.finalize().into()
 }
 
 fn uses_profile_leading(document: &Document, paragraph: &Paragraph) -> bool {
@@ -1226,6 +1320,8 @@ mod tests {
                 leading: None,
             },
             external,
+            revision_view: 0,
+            revisions: [0; 32],
             show_hidden: false,
             field_codes: false,
         }

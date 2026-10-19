@@ -30,7 +30,7 @@ pub enum PreservedReason {
     Ignorable,
     /// `mc:AlternateContent`; no branch is chosen in this slice.
     AlternateContent,
-    /// Tracked change markup; the document is read-only.
+    /// Revision markup kept outside the typed text and move subset.
     Revision,
     /// A property element (`w:pPr`, `w:rPr`, `w:sectPr`, a style or the
     /// settings) with children or values the model has no field for. The

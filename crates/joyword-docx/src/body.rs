@@ -89,6 +89,7 @@ pub(crate) fn read(
         return Err(missing_body());
     }
     body.finish(importer, part);
+    crate::revision::flush_moves(importer);
     Ok(())
 }
 
@@ -142,10 +143,6 @@ fn is_marker(local: &str) -> bool {
             | "commentRangeEnd"
             | "permStart"
             | "permEnd"
-            | "moveFromRangeStart"
-            | "moveFromRangeEnd"
-            | "moveToRangeStart"
-            | "moveToRangeEnd"
     ) || (local.starts_with("customXml")
         && (local.ends_with("RangeStart") || local.ends_with("RangeEnd")))
 }
@@ -157,7 +154,7 @@ fn is_marker(local: &str) -> bool {
 fn is_wrapper(local: &str) -> bool {
     matches!(
         local,
-        "hyperlink" | "smartTag" | "customXml" | "fldSimple" | "dir" | "bdo" | "ins" | "moveTo"
+        "hyperlink" | "smartTag" | "customXml" | "fldSimple" | "dir" | "bdo"
     )
 }
 
@@ -461,6 +458,44 @@ fn content(
                         paragraph,
                         Default::default(),
                     );
+                    *locked = true;
+                }
+            }
+            "ins" | "del" | "moveFrom" | "moveTo" => {
+                if !crate::revision::import_run_revision(importer, part, child, scope, paragraph) {
+                    *locked = true;
+                    if local == "ins" || local == "moveTo" {
+                        // Outside the typed subset, inserted and move-to text
+                        // still belongs in the imported projection.
+                        importer.preserve(part, child, scope, PreservedReason::Revision);
+                        content(
+                            importer,
+                            part,
+                            child,
+                            &scope.enter(child),
+                            paragraph,
+                            locked,
+                        );
+                    } else {
+                        // Deleted and move-from text stays out of that
+                        // projection. The wrapper is one preserved inline,
+                        // not walked for `w:t`.
+                        inline(
+                            importer,
+                            part,
+                            child,
+                            scope,
+                            PreservedReason::Revision,
+                            paragraph,
+                            Default::default(),
+                        );
+                    }
+                }
+            }
+            "moveFromRangeStart" | "moveFromRangeEnd" | "moveToRangeStart" | "moveToRangeEnd" => {
+                if !crate::revision::import_move_marker(importer, part, child, paragraph) {
+                    let reason = foreign(importer, part, child, scope);
+                    importer.preserve(part, child, scope, reason);
                     *locked = true;
                 }
             }

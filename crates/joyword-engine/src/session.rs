@@ -117,6 +117,8 @@ pub struct ChangeSet {
     pub defaults_changed: bool,
     /// Tables whose grid, rows or cells changed.
     pub tables: BTreeSet<NodeId>,
+    /// Settings changed without a paragraph edit (`w:trackRevisions`).
+    pub settings_changed: bool,
 }
 
 impl ChangeSet {
@@ -129,6 +131,7 @@ impl ChangeSet {
             && self.styles.is_empty()
             && self.tables.is_empty()
             && !self.defaults_changed
+            && !self.settings_changed
     }
 }
 
@@ -230,6 +233,7 @@ impl ChangeSet {
         self.styles.extend(other.styles);
         self.tables.extend(other.tables);
         self.defaults_changed |= other.defaults_changed;
+        self.settings_changed |= other.settings_changed;
     }
 }
 
@@ -240,6 +244,12 @@ pub struct Session {
     redo: Vec<UndoEntry>,
     /// Whether the top undo entry may still absorb a coalescing transaction.
     group_open: bool,
+    /// `w:author` for revisions this session creates. Empty uses `JoyWord`.
+    revision_author: String,
+    /// Fixed `w:date`. `None` with [`Self::revision_clock`] stamps the time.
+    revision_date: Option<Arc<str>>,
+    /// Stamp UTC `xs:dateTime` when `revision_date` is unset.
+    revision_clock: bool,
 }
 
 impl Session {
@@ -250,7 +260,29 @@ impl Session {
             undo: Vec::new(),
             redo: Vec::new(),
             group_open: false,
+            revision_author: String::new(),
+            revision_date: None,
+            revision_clock: false,
         }
+    }
+
+    /// Author stored on revisions created while track changes is on.
+    /// Blank or whitespace uses `JoyWord` at edit time.
+    pub fn set_revision_author(&mut self, author: impl Into<String>) {
+        self.revision_author = author.into();
+    }
+
+    pub fn revision_author(&self) -> &str {
+        &self.revision_author
+    }
+
+    /// Fixed revision date. `None` omits `w:date` unless the clock is on.
+    pub fn set_revision_date(&mut self, date: Option<Arc<str>>) {
+        self.revision_date = date;
+    }
+
+    pub fn set_revision_clock(&mut self, enabled: bool) {
+        self.revision_clock = enabled;
     }
 
     /// Close the current typing/deleting group: the next transaction starts
@@ -323,6 +355,9 @@ impl Session {
         let undo = self.undo.clone();
         let redo = self.redo.clone();
         let group_open = self.group_open;
+        let revision_author = self.revision_author.clone();
+        let revision_date = self.revision_date.clone();
+        let revision_clock = self.revision_clock;
         match catch_unwind(AssertUnwindSafe(|| body(self))) {
             Ok(result) => result,
             Err(_) => {
@@ -331,6 +366,9 @@ impl Session {
                 self.undo = undo;
                 self.redo = redo;
                 self.group_open = group_open;
+                self.revision_author = revision_author;
+                self.revision_date = revision_date;
+                self.revision_clock = revision_clock;
                 Err(TxError::Interrupted)
             }
         }
@@ -369,11 +407,32 @@ impl Session {
         let mut candidate = self.document.clone();
         let mut map = PositionMap::new();
         let mut changes = ChangeSet::default();
+        let author = {
+            let trimmed = self.revision_author.trim();
+            if trimmed.is_empty() {
+                Arc::<str>::from("JoyWord")
+            } else {
+                Arc::<str>::from(trimmed)
+            }
+        };
+        let date = if let Some(date) = &self.revision_date {
+            Some(Arc::clone(date))
+        } else if self.revision_clock {
+            Some(Arc::<str>::from(utc_stamp()))
+        } else {
+            None
+        };
+        let ctx = crate::revision::EditContext {
+            origin: transaction.origin,
+            author,
+            date,
+        };
         for (index, command) in transaction.commands.iter().enumerate() {
             let mut step = PositionMap::new();
-            execute(&mut candidate, command, &mut step, &mut changes)
+            execute(&mut candidate, command, &ctx, &mut step, &mut changes)
                 .map_err(|error| TxError::Command { index, error })?;
             remap_annotations(&mut candidate, &step, &mut changes);
+            crate::revision::remap_markers(&mut candidate, &step, &mut changes);
             map = map.then(&step);
         }
         if changes.is_empty() {
@@ -581,17 +640,20 @@ fn check_offset(
 fn execute(
     document: &mut Document,
     command: &Command,
+    ctx: &crate::revision::EditContext,
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
     match command {
-        Command::InsertText { at, text } => insert_text(document, at, text, map, changes),
+        Command::InsertText { at, text } => insert_text(document, at, text, ctx, map, changes),
         Command::InsertInline { at, kind } => insert_inline(document, at, kind, map, changes),
         Command::InsertImage { at, data } => insert_image(document, at, data, map, changes),
         Command::SetHyperlink { start, end, link } => {
             set_hyperlink(document, start, end, link, changes)
         }
-        Command::DeleteRange { start, end } => delete_range(document, start, end, map, changes),
+        Command::DeleteRange { start, end } => {
+            delete_range(document, start, end, ctx, map, changes)
+        }
         Command::SplitParagraph { at } => split_paragraph(document, at, map, changes),
         Command::FormatText { start, end, change } => format_text(
             document,
@@ -651,7 +713,44 @@ fn execute(
         Command::SetPageSetup { section, page } => {
             set_page_setup(document, *section, page, changes)
         }
+        Command::SetTrackRevisions { enabled } => {
+            crate::revision::set_tracking(document, *enabled, changes)
+        }
+        Command::AcceptRevision { id } => crate::revision::accept_one(document, *id, map, changes),
+        Command::RejectRevision { id } => crate::revision::reject_one(document, *id, map, changes),
+        Command::AcceptAllRevisions => crate::revision::accept_all(document, map, changes),
+        Command::RejectAllRevisions => crate::revision::reject_all(document, map, changes),
     }
+}
+
+/// UTC `xs:dateTime` (`YYYY-MM-DDTHH:MM:SSZ`) from the civil calendar.
+fn utc_stamp() -> String {
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .unwrap_or(0);
+    let days = (secs / 86_400) as i64;
+    let tod = secs % 86_400;
+    let (year, month, day) = civil_from_days(days);
+    let hour = tod / 3_600;
+    let minute = (tod % 3_600) / 60;
+    let second = tod % 60;
+    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")
+}
+
+/// Howard Hinnant's `civil_from_days` (public-domain calendar arithmetic).
+fn civil_from_days(days: i64) -> (i32, u32, u32) {
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = (z - era * 146_097) as u64;
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let year = yoe as i64 + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = if month <= 2 { year + 1 } else { year };
+    (year as i32, month as u32, day as u32)
 }
 
 fn usable_page(page: &joyword_model::PageSetup) -> bool {
@@ -736,6 +835,7 @@ fn insert_text(
     document: &mut Document,
     at: &Position,
     text: &str,
+    ctx: &crate::revision::EditContext,
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
@@ -747,6 +847,9 @@ fn insert_text(
     check_offset(document, &location, at)?;
     if text.is_empty() {
         return Ok(());
+    }
+    if document.settings().track_revisions == Some(true) && ctx.origin == Origin::User {
+        return crate::revision::insert_tracked(document, at, text, ctx, map, changes);
     }
     let paragraph = locate::paragraph_mut(document, &location).expect("located paragraph");
     paragraph.insert_text(at.offset, text)?;
@@ -858,9 +961,13 @@ fn delete_range(
     document: &mut Document,
     start: &Position,
     end: &Position,
+    ctx: &crate::revision::EditContext,
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
+    if document.settings().track_revisions == Some(true) && ctx.origin == Origin::User {
+        return crate::revision::delete_tracked(document, start, end, ctx, map, changes);
+    }
     let (first, last) = locate_range(document, start, end)?;
     if first.content_locked {
         return Err(CommandError::Locked(start.paragraph));

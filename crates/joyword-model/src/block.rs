@@ -12,6 +12,7 @@ use std::sync::Arc;
 use crate::hyperlink::Hyperlink;
 use crate::id::{NodeId, PreservedId, ResourceId, SourceRef};
 use crate::props::{Color, Measure, ParaProps, RunProps};
+use crate::revision::TextRevision;
 use crate::style::StyleId;
 use crate::text::{OBJECT_MARKER, ParagraphText, ScalarOffset, TextError};
 use crate::tree::{Item, SeqTree};
@@ -27,6 +28,9 @@ pub struct Run {
     pub len: usize,
     pub style: Option<StyleId>,
     pub props: Arc<RunProps>,
+    /// `w:ins` / `w:del` / `w:moveFrom` / `w:moveTo` covering this run.
+    /// Absent on ordinary text.
+    pub revision: Option<TextRevision>,
     /// `w:hyperlink` wrapping this run. Absent when the run is ordinary text.
     pub link: Option<Arc<Hyperlink>>,
 }
@@ -185,6 +189,41 @@ impl Paragraph {
                 len,
                 style,
                 props,
+                revision: None,
+                link: None,
+            });
+        }
+        Ok(())
+    }
+
+    /// Appends text covered by `revision`, joining the previous run only when
+    /// the mark matches as well as the format.
+    pub fn push_text_marked(
+        &mut self,
+        text: &str,
+        style: Option<StyleId>,
+        props: Arc<RunProps>,
+        revision: TextRevision,
+    ) -> Result<(), TextError> {
+        let end = ScalarOffset(self.len());
+        self.text.insert_str(end, text)?;
+        let len = text.chars().count();
+        if len == 0 {
+            return Ok(());
+        }
+        if let Some(run) = self.runs.last_mut()
+            && run.style == style
+            && run.props == props
+            && run.link.is_none()
+            && run.revision.as_ref() == Some(&revision)
+        {
+            run.len += len;
+        } else {
+            self.runs.push(Run {
+                len,
+                style,
+                props,
+                revision: Some(revision),
                 link: None,
             });
         }
@@ -207,6 +246,7 @@ impl Paragraph {
             len: 1,
             style,
             props,
+            revision: None,
             link: None,
         });
     }
@@ -260,7 +300,11 @@ impl Paragraph {
             return;
         }
         let (left, right) = (&self.runs[index - 1], &self.runs[index]);
-        if left.style == right.style && left.props == right.props && left.link == right.link {
+        if left.style == right.style
+            && left.props == right.props
+            && left.revision == right.revision
+            && left.link == right.link
+        {
             let len = right.len;
             self.runs[index - 1].len += len;
             self.runs.remove(index);
@@ -417,16 +461,134 @@ impl Paragraph {
                 len,
                 style: None,
                 props: self.mark_props.clone(),
+                revision: None,
                 link: None,
             });
-        } else {
-            let index = match at.0 {
-                0 => 0,
-                offset => self.run_at(offset - 1).expect("offset within runs").0,
-            };
+            return Ok(());
+        }
+        // Extending a tracked run would mark the new characters with that
+        // revision. Ordinary insertion splits the run instead.
+        let extend = match at.0 {
+            0 => self.runs[0].revision.is_none().then_some(0),
+            offset => self
+                .run_at(offset - 1)
+                .and_then(|(index, _)| self.runs[index].revision.is_none().then_some(index)),
+        };
+        if let Some(index) = extend {
             self.runs[index].len += len;
+            return Ok(());
+        }
+        let (style, props) = self.format_at(at);
+        let index = self.split_run_at(at.0);
+        self.runs.insert(
+            index,
+            Run {
+                len,
+                style,
+                props,
+                revision: None,
+                link: None,
+            },
+        );
+        self.join_runs_at(index);
+        if index + 1 < self.runs.len() {
+            self.join_runs_at(index + 1);
         }
         Ok(())
+    }
+
+    /// Inserts text as its own run covered by `revision`, joining an adjacent
+    /// run only when the mark and the format are the same.
+    pub fn insert_marked(
+        &mut self,
+        at: ScalarOffset,
+        text: &str,
+        revision: TextRevision,
+    ) -> Result<(), TextError> {
+        self.text.insert_str(at, text)?;
+        let len = text.chars().count();
+        if len == 0 {
+            return Ok(());
+        }
+        let (style, props) = if self.runs.is_empty() {
+            (None, self.mark_props.clone())
+        } else {
+            self.format_at(at)
+        };
+        let index = self.split_run_at(at.0);
+        self.runs.insert(
+            index,
+            Run {
+                len,
+                style,
+                props,
+                revision: Some(revision),
+                link: None,
+            },
+        );
+        self.join_runs_at(index);
+        if index + 1 < self.runs.len() {
+            self.join_runs_at(index + 1);
+        }
+        Ok(())
+    }
+
+    /// Sets or clears the revision mark on `range`, splitting runs at the ends.
+    pub fn set_revision(
+        &mut self,
+        range: std::ops::Range<ScalarOffset>,
+        revision: Option<TextRevision>,
+    ) -> Result<(), TextError> {
+        if range.start > range.end {
+            return Err(TextError::InvalidRange {
+                start: range.start.0,
+                end: range.end.0,
+            });
+        }
+        if range.end.0 > self.len() {
+            return Err(TextError::OutOfBounds {
+                offset: range.end.0,
+                len: self.len(),
+            });
+        }
+        if range.start == range.end {
+            return Ok(());
+        }
+        let first = self.split_run_at(range.start.0);
+        let last = self.split_run_at(range.end.0);
+        for run in &mut self.runs[first..last] {
+            run.revision.clone_from(&revision);
+        }
+        for boundary in (first..=last).rev() {
+            self.join_runs_at(boundary);
+        }
+        Ok(())
+    }
+
+    /// The revision covering the character before `at`, or the first run when
+    /// `at` is zero.
+    pub fn revision_touching(&self, at: ScalarOffset) -> Option<&TextRevision> {
+        let run = match at.0 {
+            0 => self.runs.first(),
+            offset => self
+                .run_at(offset.saturating_sub(1))
+                .map(|(index, _)| &self.runs[index]),
+        };
+        run.and_then(|run| run.revision.as_ref())
+    }
+
+    /// The revision covering the character at `offset`.
+    pub fn revision_covering(&self, offset: usize) -> Option<&TextRevision> {
+        let (index, _) = self.run_at(offset)?;
+        self.runs[index].revision.as_ref()
+    }
+
+    /// Marks the run most recently appended. Used when an inline break is
+    /// pushed and then covered by the surrounding revision.
+    pub fn set_last_run_revision(&mut self, revision: Option<TextRevision>) {
+        if let Some(run) = self.runs.last_mut() {
+            run.revision = revision;
+        }
     }
 
     /// Inserts an inline object at `at` as its own run with the given format.
@@ -448,6 +610,7 @@ impl Paragraph {
                 len: 1,
                 style,
                 props,
+                revision: None,
                 link: None,
             },
         );

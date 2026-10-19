@@ -538,6 +538,8 @@ fn diagnostic_kind_name(kind: &DiagnosticKind) -> &'static str {
         DiagnosticKind::MacroProject => "macro_project",
         DiagnosticKind::Image { .. } => "image",
         DiagnosticKind::Model(_) => "model",
+        DiagnosticKind::RevisionSubset { .. } => "revision_subset",
+        DiagnosticKind::MoveRange { .. } => "move_range",
     }
 }
 

@@ -60,6 +60,8 @@ pub(crate) struct Importer<'a> {
     pub hints: Vec<(PartName, &'static str, usize)>,
     /// Header and footer parts already mapped to a story.
     pub(crate) imported_stories: Vec<(PartName, joyword_model::StoryId)>,
+    /// Move range markers waiting until their paragraphs sit in a story.
+    pub(crate) pending_moves: Vec<crate::revision::PendingMove>,
 }
 
 impl<'a> Importer<'a> {
@@ -182,7 +184,7 @@ impl<'a> Importer<'a> {
     /// tracked changes and unsatisfied `mc:MustUnderstand`.
     /// Recursion is bounded by the XML depth budget.
     pub fn scan(&mut self, part: &PartName, element: &Element, scope: &Scope) {
-        if element.namespace.as_deref() == Some(W) && ns::is_revision(&element.local) {
+        if element.namespace.as_deref() == Some(W) && ns::blocks_for_review(&element.local) {
             self.deny(part, element, ReadOnlyReason::Revisions);
         }
         for namespace in element.prefixed_list(MC, "MustUnderstand", &scope.namespaces) {
@@ -297,6 +299,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         properties_preserved: Vec::new(),
         hints: Vec::new(),
         imported_stories: Vec::new(),
+        pending_moves: Vec::new(),
     };
     for diagnostic in package.diagnostics() {
         importer.diagnose(
@@ -700,10 +703,9 @@ impl Importer<'_> {
                     }
                 }
                 "trackRevisions" => {
+                    // §17.15.1.89. Tracking is a setting. It does not make the
+                    // document read-only; document protection still does.
                     settings.track_revisions = on_off(val(child));
-                    if settings.track_revisions == Some(true) {
-                        self.deny(name, child, ReadOnlyReason::TrackRevisions);
-                    }
                 }
                 "evenAndOddHeaders" => settings.even_and_odd_headers = on_off(val(child)),
                 "defaultTabStop" => {

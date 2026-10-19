@@ -26,7 +26,8 @@ pub struct GlyphRun {
     pub italic: bool,
     pub latin_family: Option<Arc<str>>,
     pub east_asia_family: Option<Arc<str>>,
-    /// sRGB text fill. Auto is black.
+    /// sRGB text fill. Auto and unmarked text are black. Review markup may
+    /// replace it with an author colour.
     pub color: [u8; 3],
     /// Underline stroke resolved from the font. Empty means no underline.
     pub underline: Option<UnderlinePaint>,
