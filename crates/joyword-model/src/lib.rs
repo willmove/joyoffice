@@ -19,6 +19,7 @@ mod props;
 mod resource;
 mod revision;
 mod style;
+mod symbol_font;
 mod text;
 mod theme;
 mod tree;
@@ -28,7 +29,7 @@ pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
 pub use block::{
     Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellMargins, InlineKind,
     InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed, Row, Run,
-    Sdt, SdtLock, SdtProps, Segment, Shading, Table, TableWidth, VerticalMerge,
+    Sdt, SdtLock, SdtProps, Segment, Shading, Table, TableLook, TableWidth, VerticalMerge,
 };
 pub use document::{
     DEFAULT_COMPATIBILITY_MODE, Document, DocumentSettings, DocumentSnapshot, DocumentVersion,
@@ -45,8 +46,8 @@ pub use image::{
 };
 pub use numbering::{
     AbstractNum, IndentEdges, LevelOverride, MAX_LEVEL, NumInstance, NumberFormat, NumberLabel,
-    NumberSuffix, NumberingLevel, NumberingProblem, NumberingStore, PlacedTab, ResolvedLevel,
-    displayed_paragraph, indent_edges, list_marks, list_reference, tab_positions,
+    NumberSuffix, NumberingLevel, NumberingProblem, NumberingStore, PlacedTab, ROMAN_MAX,
+    ResolvedLevel, displayed_paragraph, indent_edges, list_marks, list_reference, tab_positions,
 };
 pub use props::{
     Color, FontHint, FontRef, FontSlots, Indent, Justification, Languages, LineSpacing, Measure,
@@ -57,12 +58,15 @@ pub use resource::{ContentHash, Resource, ResourceTable};
 pub use revision::{MoveMarker, MoveSide, RevisionKind, RevisionView, TextRevision};
 pub use style::{
     BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,
-    StyleError, StyleId, StyleKind, StyleProblem, StyleSheet, overlay_paragraph,
+    StyleError, StyleId, StyleKind, StyleProblem, StyleSheet, TableCondition, TableConditional,
+    TableFormat, overlay_paragraph,
 };
+pub use symbol_font::{is_mapped_family, map_private_use};
 pub use text::{
     CHUNK_MAX_BYTES, OBJECT_MARKER, ParagraphText, ScalarOffset, TextError, TextSummary,
     Utf8Offset, Utf16Offset,
 };
+pub use theme::apply_tint_shade;
 pub use theme::{ThemeColorSlot, ThemeFonts, ThemeScheme};
 pub use tree::{Item, SeqTree, Summary};
 pub use validate::{

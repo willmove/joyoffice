@@ -854,6 +854,7 @@ fn locked_content_controls_and_containers_are_respected() {
         }],
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,

@@ -683,6 +683,17 @@ fn execute(
             end,
             numbering,
         } => set_numbering(document, start, end, *numbering, None, changes),
+        Command::ApplyBullet { start, end } => {
+            let num_id = document.numbering_mut().ensure_bullet();
+            set_numbering(
+                document,
+                start,
+                end,
+                Some(joyword_model::NumberingRef { num_id, level: 0 }),
+                None,
+                changes,
+            )
+        }
         Command::SetNumberingLevel { start, end, level } => {
             set_numbering(document, start, end, None, Some(*level), changes)
         }

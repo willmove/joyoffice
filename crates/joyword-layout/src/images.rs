@@ -479,6 +479,10 @@ fn image_line(
         revisions: Vec::new(),
         hyperlinks: Vec::new(),
         box_height: Emu::new(0),
+        label_glyphs: 0,
+        label_text_bytes: 0,
+        label_size: Emu::new(0),
+        label_bold: false,
     };
     grow(&mut line, image.height, line_box, descent);
     line

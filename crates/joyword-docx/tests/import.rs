@@ -1199,10 +1199,8 @@ fn numbering_and_tab_stops_import_and_export_keeps_the_numbering_part() {
     let paragraphs = paragraphs(&result);
     let chinese = marks.get(&paragraphs[0].id()).unwrap().as_ref().unwrap();
     assert_eq!(chinese.text, "十");
-    assert!(matches!(
-        marks.get(&paragraphs[1].id()).unwrap(),
-        Err(joyword_model::NumberingProblem::UnsupportedFormat { .. })
-    ));
+    let bullet = marks.get(&paragraphs[1].id()).unwrap().as_ref().unwrap();
+    assert_eq!(bullet.text, "•");
     let tabs = paragraphs[2].props.tabs.as_ref().unwrap();
     assert_eq!(
         tabs[0],
@@ -1300,6 +1298,20 @@ fn numbering_and_tab_stops_import_and_export_keeps_the_numbering_part() {
         plan_export(&result.backing, &model.snapshot(), &Budget::default()),
         Err(ExportError::Unsupported { .. })
     ));
+
+    let mut model = result.document.clone();
+    let before = model.numbering().clone();
+    assert_eq!(model.numbering_mut().ensure_bullet(), 2);
+    assert_eq!(model.numbering(), &before);
+
+    let mut model = result.document.clone();
+    model.numbering_mut().abstracts_mut()[1].levels[0]
+        .as_mut()
+        .unwrap()
+        .format = joyword_model::NumberFormat::Decimal;
+    let created = model.numbering_mut().ensure_bullet();
+    assert_ne!(created, 2);
+    assert!(plan_export(&result.backing, &model.snapshot(), &Budget::default()).is_err());
 }
 
 #[test]

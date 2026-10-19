@@ -80,6 +80,13 @@ pub struct LayoutLine {
     pub hyperlinks: Vec<Range<usize>>,
     /// Zero uses the paragraph line box. A positive value replaces it.
     pub box_height: Emu,
+    /// Glyphs and text bytes of the list label, before tab leaders and body.
+    /// Placement splits them into their own run when size or bold differs.
+    pub label_glyphs: usize,
+    pub label_text_bytes: usize,
+    /// Zero means the label uses the body size.
+    pub label_size: Emu,
+    pub label_bold: bool,
 }
 
 impl LayoutLine {
@@ -523,6 +530,10 @@ where
             revisions: Vec::new(),
             hyperlinks: Vec::new(),
             box_height: Emu::new(0),
+            label_glyphs: 0,
+            label_text_bytes: 0,
+            label_size: Emu::new(0),
+            label_bold: false,
         });
         if byte_start == text.len() {
             break;

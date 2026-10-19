@@ -877,6 +877,7 @@ fn layout_pass(
                 },
                 cancellation,
                 marks.get(&paragraph.id()),
+                None,
                 context,
                 &numbering,
                 view,
@@ -1126,6 +1127,14 @@ fn resolved_style(
                 NumberSuffix::Space => 1,
                 NumberSuffix::Nothing => 2,
             }]);
+            hash.update(
+                label
+                    .size
+                    .map(|size| size.to_string())
+                    .unwrap_or_default()
+                    .as_bytes(),
+            );
+            hash.update([u8::from(label.bold)]);
         }
         Some(Err(problem)) => {
             hash.update([2]);

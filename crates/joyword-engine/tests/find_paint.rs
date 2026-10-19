@@ -340,7 +340,7 @@ fn painter_refuses_theme_colour_and_a_preserved_target() {
             "色",
             None,
             Arc::new(RunProps {
-                color: Some(Color::Theme(ThemeColorSlot::Accent1)),
+                color: Some(Color::theme(ThemeColorSlot::Accent1)),
                 ..RunProps::default()
             }),
         )

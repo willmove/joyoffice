@@ -80,6 +80,12 @@ pub enum Command {
         end: Position,
         numbering: Option<NumberingRef>,
     },
+    /// Ensures a level-0 bullet definition and applies it. The definition
+    /// and the paragraph change are one undo step.
+    ApplyBullet {
+        start: Position,
+        end: Position,
+    },
     /// Changes `ilvl` and keeps each paragraph's own `numId`.
     SetNumberingLevel {
         start: Position,

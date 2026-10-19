@@ -29,7 +29,7 @@ use joyword_model::{
     Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, MoveMarker,
     MoveSide, NodeId, NumberingRef, NumberingStore, ParaProps, Paragraph, RevisionKind, RunProps,
     Shading, SourceRef, Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop,
-    Table, TableWidth, Underline, VerticalMerge,
+    Table, TableLook, TableWidth, Underline, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_leaf, bounded_text_xml, text_slots, unsupported};
@@ -1467,7 +1467,7 @@ fn synthesize_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'s
         let value = match color {
             Color::Auto => "auto".to_owned(),
             Color::Rgb(red, green, blue) => format!("{red:02X}{green:02X}{blue:02X}"),
-            Color::Theme(_) => {
+            Color::Theme { .. } => {
                 return Err("theme colours are outside the direct subset");
             }
         };
@@ -1529,6 +1529,20 @@ fn qattr(names: &Names, local: &str, value: &str) -> String {
         Names::Declared => "jwe:".to_owned(),
     };
     format!(r#" {prefix}{local}="{value}""#)
+}
+
+fn look_markup(names: &Names, look: TableLook) -> String {
+    let bit = |name: &str, on: bool| names.attribute(name, if on { "1" } else { "0" });
+    format!(
+        "{}{}{}{}{}{}{}/>",
+        names.start("tblLook"),
+        bit("firstRow", look.first_row),
+        bit("lastRow", look.last_row),
+        bit("firstColumn", look.first_column),
+        bit("lastColumn", look.last_column),
+        bit("noHBand", look.no_h_band),
+        bit("noVBand", look.no_v_band),
+    )
 }
 
 fn justification_value(value: Justification) -> &'static str {
@@ -1630,7 +1644,11 @@ pub(super) fn table_markup(
     let mut markup = String::new();
     markup.push_str(&names.start("tbl"));
     markup.push('>');
-    if table.style.is_some() || table.width.is_some() || table.cell_margin.is_some() {
+    if table.style.is_some()
+        || table.width.is_some()
+        || table.look.is_some()
+        || table.cell_margin.is_some()
+    {
         markup.push_str(&names.start("tblPr"));
         markup.push('>');
         if let Some(style) = &table.style {
@@ -1643,6 +1661,9 @@ pub(super) fn table_markup(
         }
         if let Some(width) = table.width {
             markup.push_str(&width_markup(names, "tblW", width_value(width)?)?);
+        }
+        if let Some(look) = table.look {
+            markup.push_str(&look_markup(names, look));
         }
         if let Some(margin) = table.cell_margin {
             markup.push_str(&cell_margin_markup(names, margin)?);
@@ -1884,7 +1905,7 @@ fn color_value(color: Color) -> Result<String, ()> {
     match color {
         Color::Auto => Ok("auto".into()),
         Color::Rgb(red, green, blue) => Ok(format!("{red:02X}{green:02X}{blue:02X}")),
-        Color::Theme(_) => Err(()),
+        Color::Theme { .. } => Err(()),
     }
 }
 

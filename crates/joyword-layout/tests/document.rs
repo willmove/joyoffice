@@ -964,7 +964,15 @@ fn chinese_numbering_labels_are_prefixed_and_unsupported_formats_are_diagnosed()
     assert!(!text.contains('•'));
 
     let mut document = make_document(&["正文"], 4);
-    install_list(&mut document, NumberFormat::parse("bullet"), "%1", 1);
+    install_list(&mut document, NumberFormat::Bullet, "•", 1);
+    mark_paragraph(&mut document, 0);
+    let laid = layout(&document);
+    let text = &laid.pages()[0].runs[0].text;
+    assert!(text.starts_with('•'), "{text}");
+    assert!(text.contains('正'), "{text}");
+
+    let mut document = make_document(&["正文"], 4);
+    install_list(&mut document, NumberFormat::parse("ordinal"), "%1", 1);
     mark_paragraph(&mut document, 0);
     let laid = layout(&document);
     let diagnostic = laid
@@ -981,9 +989,130 @@ fn chinese_numbering_labels_are_prefixed_and_unsupported_formats_are_diagnosed()
         unreachable!("filtered");
     };
     assert!(detail.contains("unsupported"), "{detail}");
-    assert!(detail.contains("bullet"), "{detail}");
+    assert!(detail.contains("ordinal"), "{detail}");
     let text = &laid.pages()[0].runs[0].text;
     assert_eq!(text, "正文");
+}
+
+#[test]
+fn centered_and_right_lists_move_only_the_body_and_label_metrics_split_the_run() {
+    let mut document = make_document(&["甲"], 4);
+    install_list(&mut document, NumberFormat::Bullet, "•", 1);
+    mark_paragraph(&mut document, 0);
+    let start = layout(&document);
+    let start_body = start.pages()[0].runs[0].glyph_x(1).raw();
+
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.justification = Some(Justification::Center);
+        paragraph.props = Arc::new(props);
+    });
+    let centered = layout(&document);
+    let centered_body = centered.pages()[0].runs[0].glyph_x(1).raw();
+    assert!(centered_body > start_body);
+    assert_eq!(
+        centered.pages()[0].runs[0].glyph_x(0).raw(),
+        start.pages()[0].runs[0].glyph_x(0).raw(),
+        "the label stays at the hanging position"
+    );
+
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.justification = Some(Justification::End);
+        paragraph.props = Arc::new(props);
+    });
+    let end = layout(&document);
+    assert!(end.pages()[0].runs[0].glyph_x(1).raw() > centered_body);
+
+    document.numbering_mut().abstracts_mut()[0].levels[0]
+        .as_mut()
+        .unwrap()
+        .run
+        .size = Some(Measure::HalfPoints(32));
+    document.numbering_mut().abstracts_mut()[0].levels[0]
+        .as_mut()
+        .unwrap()
+        .run
+        .bold = Some(true);
+    let split = layout(&document);
+    let runs = &split.pages()[0].runs;
+    assert_eq!(runs.len(), 2);
+    assert_eq!(runs[0].text, "•");
+    assert!(runs[0].bold);
+    assert_eq!(runs[0].size, pt(16));
+    assert_eq!(runs[1].text, "甲");
+    assert!(!runs[1].bold);
+    assert_eq!(runs[1].size, pt(12));
+}
+
+#[test]
+fn justified_lists_stretch_chinese_body_text_and_tabs_keep_their_stops() {
+    let mut document = make_document(&["甲乙丙丁"], 4);
+    install_list(&mut document, NumberFormat::Decimal, "%1", 1);
+    mark_paragraph(&mut document, 0);
+    change_paragraph(&mut document, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.justification = Some(Justification::Both);
+        paragraph.props = Arc::new(props);
+    });
+    let laid = layout(&document);
+    let run = &laid.pages()[0].runs[0];
+    assert!(run.text.starts_with('1'));
+    assert!(run.glyphs[1].advance.raw() > run.glyphs.last().unwrap().advance.raw());
+
+    let mut latin = make_document(&["Ab"], 4);
+    install_list(&mut latin, NumberFormat::Decimal, "%1", 1);
+    mark_paragraph(&mut latin, 0);
+    change_paragraph(&mut latin, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.justification = Some(Justification::Both);
+        paragraph.props = Arc::new(props);
+    });
+    let error = layout_document(
+        &latin.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap_err();
+    assert!(
+        matches!(error, LayoutError::Unsupported { feature, .. } if feature == "inter-character justification"),
+        "{error}"
+    );
+
+    let mut tabbed = make_document(&["A\tB"], 4);
+    change_paragraph(&mut tabbed, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.justification = Some(Justification::Center);
+        props.tabs = Some(vec![TabStop {
+            position: Measure::Twips(2880),
+            align: TabAlign::Left,
+            leader: TabLeader::None,
+        }]);
+        paragraph.props = Arc::new(props);
+    });
+    let centered = layout(&tabbed);
+    change_paragraph(&mut tabbed, 0, |paragraph| {
+        let mut props = (*paragraph.props).clone();
+        props.justification = Some(Justification::Start);
+        paragraph.props = Arc::new(props);
+    });
+    let start = layout(&tabbed);
+    let centered_b = centered.pages()[0].runs[0]
+        .glyphs
+        .iter()
+        .position(|glyph| centered.pages()[0].runs[0].text[glyph.cluster..].starts_with('B'))
+        .unwrap();
+    let start_b = start.pages()[0].runs[0]
+        .glyphs
+        .iter()
+        .position(|glyph| start.pages()[0].runs[0].text[glyph.cluster..].starts_with('B'))
+        .unwrap();
+    assert_eq!(
+        centered.pages()[0].runs[0].glyph_x(centered_b),
+        start.pages()[0].runs[0].glyph_x(start_b)
+    );
 }
 
 #[test]

@@ -21,8 +21,7 @@ use std::sync::Arc;
 use joyoffice_opc::{Budget, Method, PartName, Target, write_archive};
 use joyword_model::{
     Block, BreakKind, Document, DocumentSettings, DocumentSnapshot, DocumentVersion, InlineKind,
-    MoveMarker, NodeId, NumberingStore, PageFieldKind, Paragraph, RunProps, Story, StyleId,
-    StyleSheet,
+    MoveMarker, NodeId, NumberingStore, Paragraph, RunProps, Story, StyleId, StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
