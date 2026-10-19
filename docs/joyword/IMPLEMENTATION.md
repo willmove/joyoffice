@@ -724,3 +724,5 @@ T210 还把 80% GUI 页面按页宽归一后与 DOCX-MIN-001 的 CPU PNG 对照�
 - **菜单栏与 Ctrl+Shift+E（发现五的另一半）**：`LinuxPlatform::set_menus` 只把菜单存进内存，不绘制，所以 X11 窗口没有菜单栏。窗口在 Linux 增加一行「文件／编辑」：打开、保存原件、另存为新副本、导出 PDF，以及撤销、重做、复制、粘贴，都走 `Registry::invoke`。`file.export_pdf` 的主快捷键仍是 macOS `cmd-shift-e`、Windows 与 Linux `ctrl-shift-e`。Linux 另注册 `ctrl-e`（无 Shift，避开 UKUI 抢走的 Ctrl+Shift+E，也避开 X11 上经常送不到应用的 Ctrl+Shift+字母）。证据：`export_pdf_keeps_desktop_chords_and_adds_a_linux_alternate`、`linux_export_keeps_the_primary_chord_and_adds_ctrl_e`、`linux_bar_covers_open_save_and_export`。Ctrl+Shift+S 仍是另存的主快捷键；另存按钮和路径栏不依赖它。
 - **Fcitx（kylin-8，未做）**：GPUI 的 X11 窗口不接入 XIM／text-input，拼音仍直通文档，没有候选框。这是 GPUI 平台缺口，不在本切片。中文输入仍可用系统剪贴板粘贴。T005／T701 的输入法条款未完成。
 - **仍未覆盖**：麒麟真机上路径栏与 `ctrl-e` 的点击验收；`table.*` 仍没有单独的窗口入口（功能区插入选项卡已有表格按钮）；门户对话框在 GNOME 上是否仍应作为 Linux 默认，本切片没有改回，因为门户请求可以一直不返回。UOS 会话里的系统文件对话框同样未出现，路径栏尚未在统信窗口上点过。
+
+rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 改锚到 `8690efd218d0c8be17c80104a021a93a78fca9dd`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T110 的 `security.*` 排除与来源字节复读；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。
