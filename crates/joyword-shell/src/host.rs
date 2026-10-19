@@ -15,13 +15,13 @@ use crate::diag::{AppLog, Event, Level};
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
     EDIT_COPY, EDIT_INSERT, EDIT_INSERT_IMAGE, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL,
-    ExecuteError, FILE_CLOSE, FILE_OPEN, FILE_OPEN_RECENT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT,
-    FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_FONT,
-    FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
-    PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, Registry, STYLE_APPLY, STYLE_LIST,
-    TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT,
-    TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES,
-    VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    ExecuteError, FILE_CLOSE, FILE_EXPORT_PDF, FILE_OPEN, FILE_OPEN_RECENT, FILE_PRINT, FILE_SAVE,
+    FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
+    FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL,
+    LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, Registry,
+    STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT,
+    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
+    TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use crate::dialogs::{
     disabled_view_toggle, font_draft_from_decision, paragraph_draft_from_decision,
@@ -587,6 +587,11 @@ impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
         if let Some(reason) = disabled_view_toggle(id) {
             return Availability::Disabled(reason);
+        }
+        // The shell host has no page scene. The app exports and prints from
+        // the layout it already installed for the screen.
+        if matches!(id, FILE_EXPORT_PDF | FILE_PRINT) {
+            return Availability::Disabled("file.export.unstable");
         }
         if (matches!(
             id,
