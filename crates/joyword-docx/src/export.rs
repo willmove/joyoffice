@@ -2,9 +2,11 @@
 //!
 //! Text leaves change, and body paragraphs may be split, merged, inserted or
 //! removed when their properties are either default or fully mapped (see
-//! `structure`). Unmapped property markup is refused rather than dropped.
-//! Comments outside text leaves, relationships and every other part stay
-//! byte-for-byte intact. Text and move revisions are written back when a
+//! `structure`). Header and footer stories are written back into the parts
+//! they were imported from; a new relationship id is appended only to that
+//! part's existing relationships part. Unmapped property markup is refused
+//! rather than dropped. Comments outside text leaves and every other part
+//! stay byte-for-byte intact. Text and move revisions are written back when a
 //! paragraph is edited; other structural edits, signed packages and any
 //! imported restriction are refused. `w:trackRevisions` may change on its
 //! own and is patched in the settings part. The completed output is
@@ -12,6 +14,7 @@
 //! returned. This module performs no IO.
 
 mod compare;
+mod header_footer;
 mod structure;
 
 use std::fmt;
@@ -21,7 +24,7 @@ use std::sync::Arc;
 use joyoffice_opc::{Budget, Method, PartName, Target, write_archive};
 use joyword_model::{
     Block, BreakKind, Document, DocumentSettings, DocumentSnapshot, DocumentVersion, InlineKind,
-    MoveMarker, NodeId, NumberingStore, Paragraph, RunProps, Story, StyleId, StyleSheet,
+    MoveMarker, NodeId, NumberingStore, Paragraph, RunProps, Story, StoryKind, StyleId, StyleSheet,
 };
 
 use crate::xml::{Element, XML_NAMESPACE, XmlReader};
@@ -246,7 +249,12 @@ fn plan_export_after_import(
         // the patched archive later stored in `bytes`.
         origin: Some(backing.original_arc()),
     };
-    if alignment.is_unchanged() && !tracking_changed && section_page_changes.is_empty() {
+    let story_changed = header_footer::stories_differ(original, current);
+    if alignment.is_unchanged()
+        && !tracking_changed
+        && section_page_changes.is_empty()
+        && !story_changed
+    {
         return Ok(plan);
     }
     if !source.editability.is_unrestricted() {
@@ -255,6 +263,11 @@ fn plan_export_after_import(
     if has_signatures(package) {
         return Err(ExportError::SignedPackage);
     }
+    let story_writes = if story_changed {
+        header_footer::plan(package, &source.backing, original, current, budget)?
+    } else {
+        Vec::new()
+    };
     // Refuse templates and macro-enabled output until the plan can express
     // their target type and signature/macro policy explicitly.
     if main.content_type.as_deref()
@@ -386,7 +399,10 @@ fn plan_export_after_import(
             .parts()
             .map(|part| part.data.len() as u64)
             .sum::<u64>();
-    if total - main.data.len() as u64 + output_len > budget.max_total_bytes {
+    let story_delta = header_footer::size_delta(package, &story_writes);
+    let projected =
+        (total as i128) - (main.data.len() as i128) + (output_len as i128) + story_delta;
+    if projected < 0 || projected > budget.max_total_bytes as i128 {
         return Err(ExportError::Budget {
             part: "package".into(),
             limit: budget.max_total_bytes,
@@ -415,12 +431,11 @@ fn plan_export_after_import(
                 limit: budget.max_part_bytes,
             });
         }
-        let grown = total
-            .saturating_sub(main.data.len() as u64)
-            .saturating_sub(rels.data.len() as u64)
-            .saturating_add(output_len)
-            .saturating_add(appended.len() as u64);
-        if grown > budget.max_total_bytes {
+        let grown = (total as i128) - (main.data.len() as i128) - (rels.data.len() as i128)
+            + (output_len as i128)
+            + (appended.len() as i128)
+            + story_delta;
+        if grown < 0 || grown > budget.max_total_bytes as i128 {
             return Err(ExportError::Budget {
                 part: "package".into(),
                 limit: budget.max_total_bytes,
@@ -442,6 +457,12 @@ fn plan_export_after_import(
             current.settings().track_revisions,
             budget,
         )?);
+    }
+    for write in story_writes {
+        if let Some(rels) = write.rels {
+            replacements.push(rels);
+        }
+        replacements.push((write.name, write.bytes));
     }
     let mut items = vec![(
         "[Content_Types].xml",
@@ -720,7 +741,13 @@ fn auxiliary_stories_match(before: &Document, after: &Document) -> bool {
     left.into_iter()
         .all(|id| match (before.story(id), after.story(id)) {
             (Some(left), Some(right)) => {
-                left.kind == right.kind && story_signature(left) == story_signature(right)
+                if left.kind != right.kind {
+                    return false;
+                }
+                // Header and footer text is written by `header_footer`. Any
+                // other story still has to match before a plan is attempted.
+                matches!(left.kind, StoryKind::Header | StoryKind::Footer)
+                    || story_signature(left) == story_signature(right)
             }
             _ => false,
         })

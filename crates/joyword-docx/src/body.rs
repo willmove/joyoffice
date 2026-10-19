@@ -1135,8 +1135,11 @@ fn import_story(importer: &mut Importer<'_>, name: &PartName, header: bool) -> O
         }
     }
     if blocks.is_empty() {
-        let id = importer.document.ids().node();
-        blocks.push(Paragraph::new(id).into());
+        // The part is the story's identity. A later text edit writes into this
+        // root instead of inventing another header or footer part.
+        let mut paragraph = Paragraph::new(importer.document.ids().node());
+        paragraph.source = Some(Importer::source(&part.name, &element));
+        blocks.push(paragraph.into());
     }
     let kind = if header {
         StoryKind::Header

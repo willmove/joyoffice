@@ -79,18 +79,20 @@ fn source_map(
     saved: &DocumentSnapshot,
     imported: &Document,
 ) -> Result<BTreeMap<NodeId, Option<Arc<SourceRef>>>, ExportError> {
-    if saved.body().blocks.len() != imported.body().blocks.len() {
+    let saved_stories: Vec<_> = saved.stories().collect();
+    let imported_stories: Vec<_> = imported.stories().collect();
+    if saved_stories.len() != imported_stories.len() {
         return Err(ExportError::RoundTripMismatch);
     }
     let mut sources = BTreeMap::new();
-    for (live, fresh) in saved
-        .body()
-        .blocks
-        .iter()
-        .zip(imported.body().blocks.iter())
-    {
-        if let (Block::Paragraph(live), Block::Paragraph(fresh)) = (live, fresh) {
-            sources.insert(live.id(), fresh.source.clone());
+    for (live, fresh) in saved_stories.into_iter().zip(imported_stories) {
+        if live.kind != fresh.kind || live.blocks.len() != fresh.blocks.len() {
+            return Err(ExportError::RoundTripMismatch);
+        }
+        for (live, fresh) in live.blocks.iter().zip(fresh.blocks.iter()) {
+            if let (Block::Paragraph(live), Block::Paragraph(fresh)) = (live, fresh) {
+                sources.insert(live.id(), fresh.source.clone());
+            }
         }
     }
     Ok(sources)
@@ -101,24 +103,27 @@ fn rebase(
     sources: &BTreeMap<NodeId, Option<Arc<SourceRef>>>,
 ) -> Result<DocumentSnapshot, ExportError> {
     let mut document: Document = (**current).clone();
-    let blocks = document
-        .body()
-        .blocks
-        .iter()
-        .cloned()
-        .map(|mut block| {
-            if let Block::Paragraph(paragraph) = &mut block
-                && let Some(source) = sources.get(&paragraph.id())
-            {
-                Arc::make_mut(paragraph).source = source.clone();
-            }
-            block
-        })
-        .collect::<Vec<_>>();
-    let story = document.body_id();
-    document
-        .story_mut(story)
-        .ok_or(ExportError::RoundTripMismatch)?
-        .blocks = BlockSeq::from_vec(blocks);
+    let stories: Vec<_> = document.stories().map(|story| story.id).collect();
+    for id in stories {
+        let blocks = document
+            .story(id)
+            .ok_or(ExportError::RoundTripMismatch)?
+            .blocks
+            .iter()
+            .cloned()
+            .map(|mut block| {
+                if let Block::Paragraph(paragraph) = &mut block
+                    && let Some(source) = sources.get(&paragraph.id())
+                {
+                    Arc::make_mut(paragraph).source = source.clone();
+                }
+                block
+            })
+            .collect::<Vec<_>>();
+        document
+            .story_mut(id)
+            .ok_or(ExportError::RoundTripMismatch)?
+            .blocks = BlockSeq::from_vec(blocks);
+    }
     Ok(document.snapshot())
 }
