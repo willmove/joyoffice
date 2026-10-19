@@ -711,9 +711,9 @@ pub enum VerticalMerge {
     Continue,
 }
 
-/// `w:tblLook` flags (ECMA-376 §17.4.56). First and last column and vertical
-/// banding are stored so export can write them back; layout applies the row
-/// flags only.
+/// `w:tblLook` flags (ECMA-376 §17.4.56). Row flags gate horizontal bands
+/// and the first and last rows. Column flags gate vertical bands and the
+/// first and last columns the same way.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct TableLook {
     pub first_row: bool,

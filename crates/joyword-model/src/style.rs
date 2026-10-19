@@ -158,7 +158,8 @@ pub struct Style {
     pub run: RunProps,
     /// Whole-table formatting from a table style's `w:rPr`, `w:tcPr` and `w:tblPr`.
     pub table: TableFormat,
-    /// `w:tblStylePr` rows this slice applies: first, last and horizontal bands.
+    /// `w:tblStylePr` regions this slice applies: first and last row and
+    /// column, and horizontal and vertical bands.
     pub table_conditionals: Vec<TableConditional>,
     pub source: Option<Arc<SourceRef>>,
     pub preserved: Option<PreservedId>,
@@ -174,12 +175,19 @@ pub struct TableFormat {
 }
 
 /// Conditional table formatting this slice resolves.
+///
+/// ECMA-376 §17.18.89 names. Corner cells (`nwCell`, `neCell`, `swCell`,
+/// `seCell`) are not in this slice.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TableCondition {
     FirstRow,
     LastRow,
+    FirstColumn,
+    LastColumn,
     Band1Horizontal,
     Band2Horizontal,
+    Band1Vertical,
+    Band2Vertical,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -643,20 +651,29 @@ impl StyleSheet {
     /// Table style for one cell, before direct cell and run formatting.
     ///
     /// Whole-table formatting is applied from the `basedOn` root toward the
-    /// named style. Conditionals then follow the same direction, bands
-    /// first, then the first row, then the last row, so a header or footer
-    /// replaces the band on that row. Direct cell borders, direct shading
-    /// and a direct run bold are applied by the caller and win.
+    /// named style. Conditionals then follow ECMA-376 §17.7.6, later layers
+    /// replacing earlier ones on the same property: vertical bands, horizontal
+    /// bands, first row, last row, first column, last column. Each layer walks
+    /// the `basedOn` chain from the root toward the named style. Direct cell
+    /// borders, direct shading and a direct run bold are applied by the caller
+    /// and win. Corner cells are not applied.
     ///
-    /// Horizontal bands are one row each. Row 0 is band 1 unless the first-row
-    /// look excludes it. The last row is excluded when the last-row look is
-    /// on. An omitted `w:tblLook` uses [`TableLook::application_default`].
+    /// `column` is the cell's grid start (after `gridBefore`), not a spanned
+    /// column inside the cell. Bands are one row or one column each. Index 0
+    /// inside the banded region is band 1. The first-row look excludes row 0
+    /// from horizontal bands, and the last-row look excludes the last row.
+    /// The first-column and last-column looks exclude those grid columns from
+    /// vertical bands the same way. An omitted `w:tblLook` uses
+    /// [`TableLook::application_default`], which leaves vertical bands and both
+    /// column looks off.
     pub fn resolve_table_cell(
         &self,
         style: Option<&StyleId>,
         look: Option<TableLook>,
         row: usize,
         row_count: usize,
+        column: usize,
+        column_count: usize,
     ) -> (TableFormat, Vec<StyleProblem>) {
         let mut problems = Vec::new();
         let mut format = TableFormat::default();
@@ -683,14 +700,31 @@ impl StyleSheet {
         for style in &ancestors {
             overlay_table(&mut format, &style.table);
         }
-        let band = horizontal_band(look, row, row_count);
+        let horizontal = horizontal_band(look, row, row_count);
+        let vertical = vertical_band(look, column, column_count);
         for (condition, active) in [
-            (TableCondition::Band1Horizontal, matches!(band, Some(0))),
-            (TableCondition::Band2Horizontal, matches!(band, Some(1))),
+            (TableCondition::Band1Vertical, matches!(vertical, Some(0))),
+            (TableCondition::Band2Vertical, matches!(vertical, Some(1))),
+            (
+                TableCondition::Band1Horizontal,
+                matches!(horizontal, Some(0)),
+            ),
+            (
+                TableCondition::Band2Horizontal,
+                matches!(horizontal, Some(1)),
+            ),
             (TableCondition::FirstRow, look.first_row && row == 0),
             (
                 TableCondition::LastRow,
                 look.last_row && row_count > 0 && row + 1 == row_count,
+            ),
+            (
+                TableCondition::FirstColumn,
+                look.first_column && column_count > 0 && column == 0,
+            ),
+            (
+                TableCondition::LastColumn,
+                look.last_column && column_count > 0 && column + 1 == column_count,
             ),
         ] {
             if !active {
@@ -710,19 +744,45 @@ impl StyleSheet {
 }
 
 fn horizontal_band(look: TableLook, row: usize, row_count: usize) -> Option<usize> {
-    if look.no_h_band || row_count == 0 {
+    band_index(
+        look.no_h_band,
+        look.first_row,
+        look.last_row,
+        row,
+        row_count,
+    )
+}
+
+fn vertical_band(look: TableLook, column: usize, column_count: usize) -> Option<usize> {
+    band_index(
+        look.no_v_band,
+        look.first_column,
+        look.last_column,
+        column,
+        column_count,
+    )
+}
+
+fn band_index(
+    disabled: bool,
+    skip_first: bool,
+    skip_last: bool,
+    index: usize,
+    count: usize,
+) -> Option<usize> {
+    if disabled || count == 0 {
         return None;
     }
-    let start = usize::from(look.first_row);
-    let end = if look.last_row {
-        row_count.saturating_sub(1)
+    let start = usize::from(skip_first);
+    let end = if skip_last {
+        count.saturating_sub(1)
     } else {
-        row_count
+        count
     };
-    if row < start || row >= end {
+    if index < start || index >= end {
         return None;
     }
-    Some((row - start) % 2)
+    Some((index - start) % 2)
 }
 
 fn overlay_table(base: &mut TableFormat, layer: &TableFormat) {
@@ -1115,7 +1175,7 @@ mod tests {
             no_v_band: true,
         };
         let id = StyleId::new("grid");
-        let (first, problems) = sheet.resolve_table_cell(Some(&id), Some(look), 0, 4);
+        let (first, problems) = sheet.resolve_table_cell(Some(&id), Some(look), 0, 4, 0, 0);
         assert!(problems.is_empty());
         assert_eq!(first.bold, Some(true));
         assert_eq!(
@@ -1131,7 +1191,7 @@ mod tests {
                 ..
             })
         ));
-        let (band1, _) = sheet.resolve_table_cell(Some(&id), Some(look), 1, 4);
+        let (band1, _) = sheet.resolve_table_cell(Some(&id), Some(look), 1, 4, 0, 0);
         assert_eq!(band1.bold, Some(false));
         assert_eq!(
             band1.shading,
@@ -1146,14 +1206,14 @@ mod tests {
                 ..
             })
         ));
-        let (band2, _) = sheet.resolve_table_cell(Some(&id), Some(look), 2, 4);
+        let (band2, _) = sheet.resolve_table_cell(Some(&id), Some(look), 2, 4, 0, 0);
         assert_eq!(
             band2.shading,
             Some(Shading {
                 fill: Color::Rgb(0, 255, 0),
             })
         );
-        let (last, _) = sheet.resolve_table_cell(Some(&id), Some(look), 3, 4);
+        let (last, _) = sheet.resolve_table_cell(Some(&id), Some(look), 3, 4, 0, 0);
         assert_eq!(last.bold, Some(false));
         assert_eq!(
             last.shading,
@@ -1161,7 +1221,234 @@ mod tests {
                 fill: Color::Rgb(255, 255, 0),
             })
         );
-        let (omitted, _) = sheet.resolve_table_cell(Some(&id), None, 0, 4);
+        let (omitted, _) = sheet.resolve_table_cell(Some(&id), None, 0, 4, 0, 0);
         assert_eq!(omitted.bold, Some(true));
+    }
+
+    #[test]
+    fn table_styles_layer_vertical_bands_under_columns_and_rows() {
+        let mut sheet = StyleSheet::new();
+        let mut style = Style::new("grid", StyleKind::Table, Some("Grid"));
+        style.table.bold = Some(false);
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band1Vertical,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 0, 255),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band2Vertical,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 255, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band1Horizontal,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 0, 1),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::FirstRow,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(255, 0, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::LastRow,
+            format: TableFormat {
+                bold: Some(true),
+                ..TableFormat::default()
+            },
+        });
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::FirstColumn,
+            format: TableFormat {
+                bold: Some(true),
+                borders: crate::block::CellBorders {
+                    left: Some(BorderEdge {
+                        kind: BorderKind::Single,
+                        size_eighths: 8,
+                        color: Color::Rgb(1, 2, 3),
+                    }),
+                    ..crate::block::CellBorders::default()
+                },
+                ..TableFormat::default()
+            },
+        });
+        style.table_conditionals.push(TableConditional {
+            condition: TableCondition::LastColumn,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(255, 255, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        assert!(sheet.insert(style).is_ok());
+        let look = TableLook {
+            first_row: true,
+            last_row: true,
+            first_column: true,
+            last_column: true,
+            no_h_band: false,
+            no_v_band: false,
+        };
+        let id = StyleId::new("grid");
+        let shade = |column| {
+            sheet
+                .resolve_table_cell(Some(&id), Some(look), 1, 4, column, 5)
+                .0
+                .shading
+        };
+        // Row 1 is the first horizontal band. Columns 1 and 3 are vertical
+        // band 1, column 2 is vertical band 2, and the horizontal band replaces
+        // both. Columns 0 and 4 are outside the vertical bands.
+        let horizontal = Some(Shading {
+            fill: Color::Rgb(0, 0, 1),
+        });
+        assert_eq!(shade(1), horizontal);
+        assert_eq!(shade(2), horizontal);
+        assert_eq!(shade(3), horizontal);
+        let first_col = sheet
+            .resolve_table_cell(Some(&id), Some(look), 1, 4, 0, 5)
+            .0;
+        assert_eq!(first_col.bold, Some(true));
+        assert_eq!(first_col.shading, horizontal);
+        assert!(matches!(
+            first_col.borders.left,
+            Some(BorderEdge {
+                color: Color::Rgb(1, 2, 3),
+                ..
+            })
+        ));
+        let last_col = sheet
+            .resolve_table_cell(Some(&id), Some(look), 1, 4, 4, 5)
+            .0;
+        assert_eq!(
+            last_col.shading,
+            Some(Shading {
+                fill: Color::Rgb(255, 255, 0),
+            })
+        );
+        assert_eq!(last_col.bold, Some(false));
+        // Turning vertical bands off leaves the middle columns on the horizontal band only.
+        let mut rows_only = look;
+        rows_only.no_v_band = true;
+        let (middle, _) = sheet.resolve_table_cell(Some(&id), Some(rows_only), 1, 4, 2, 5);
+        assert_eq!(middle.shading, horizontal);
+        // Without a horizontal band, the excluded columns stay unbanded and the
+        // interior alternates band 1, band 2, band 1.
+        let mut columns_only = look;
+        columns_only.no_h_band = true;
+        columns_only.first_row = false;
+        columns_only.last_row = false;
+        let band = |column| {
+            sheet
+                .resolve_table_cell(Some(&id), Some(columns_only), 0, 4, column, 5)
+                .0
+                .shading
+        };
+        assert_eq!(band(0), None);
+        assert_eq!(
+            band(1),
+            Some(Shading {
+                fill: Color::Rgb(0, 0, 255),
+            })
+        );
+        assert_eq!(
+            band(2),
+            Some(Shading {
+                fill: Color::Rgb(0, 255, 0),
+            })
+        );
+        assert_eq!(
+            band(3),
+            Some(Shading {
+                fill: Color::Rgb(0, 0, 255),
+            })
+        );
+        assert_eq!(
+            band(4),
+            Some(Shading {
+                fill: Color::Rgb(255, 255, 0),
+            })
+        );
+        // A one-column table is both the first and the last column. The last
+        // column is the later layer.
+        let (only, _) = sheet.resolve_table_cell(Some(&id), Some(columns_only), 0, 1, 0, 1);
+        assert_eq!(
+            only.shading,
+            Some(Shading {
+                fill: Color::Rgb(255, 255, 0),
+            })
+        );
+
+        // Band shading alone, so an excluded column stays unshaded instead of
+        // being covered by a later column layer.
+        let mut bands = Style::new("bands", StyleKind::Table, Some("Bands"));
+        bands.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band1Vertical,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 0, 255),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        bands.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band2Vertical,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 255, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        assert!(sheet.insert(bands).is_ok());
+        let bands_id = StyleId::new("bands");
+        let excluded = TableLook {
+            first_row: false,
+            last_row: false,
+            first_column: true,
+            last_column: true,
+            no_h_band: true,
+            no_v_band: false,
+        };
+        let mut open = excluded;
+        open.first_column = false;
+        open.last_column = false;
+        let at = |look: TableLook, column: usize| {
+            sheet
+                .resolve_table_cell(Some(&bands_id), Some(look), 0, 1, column, 5)
+                .0
+                .shading
+        };
+        let blue = Some(Shading {
+            fill: Color::Rgb(0, 0, 255),
+        });
+        let green = Some(Shading {
+            fill: Color::Rgb(0, 255, 0),
+        });
+        assert_eq!(at(excluded, 0), None);
+        assert_eq!(at(excluded, 4), None);
+        assert_eq!(at(excluded, 1), blue);
+        assert_eq!(at(excluded, 2), green);
+        assert_eq!(at(excluded, 3), blue);
+        assert_eq!(at(open, 0), blue);
+        assert_eq!(at(open, 1), green);
+        assert_eq!(at(open, 4), blue);
     }
 }

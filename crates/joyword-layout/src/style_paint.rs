@@ -12,7 +12,8 @@ use std::sync::Arc;
 use joyword_foundation::Emu;
 use joyword_model::{
     Color, Document, FontRef, Justification, LineSpacing, Measure, NodeId, Paragraph, RunProps,
-    StyleProblem, TabAlign, TabLeader, Underline, displayed_paragraph, indent_edges,
+    StyleId, StyleProblem, TabAlign, TabLeader, TableFormat, TableLook, Underline,
+    displayed_paragraph, indent_edges,
 };
 
 use crate::shape::PaintedUnderline;
@@ -45,6 +46,43 @@ pub(crate) struct Paint {
     pub east_asia: Option<Arc<str>>,
     pub color: [u8; 3],
     pub underline: Option<PaintedUnderline>,
+}
+
+/// Where a cell sits in its table grid. `column` is the cell's grid start,
+/// after `gridBefore`.
+pub(crate) struct TableCellPlace {
+    pub row: usize,
+    pub row_count: usize,
+    pub column: usize,
+    pub column_count: usize,
+}
+
+/// Bold, shading and borders from the table style for one cell.
+///
+/// ECMA-376 §17.7.6 stacks whole-table formatting, then vertical bands,
+/// horizontal bands, the first row, the last row, the first column and the
+/// last column. Later layers replace the same property. Direct cell borders,
+/// direct shading and a direct run bold are applied by the caller and win.
+pub(crate) fn table_cell_format(
+    document: &Document,
+    table: NodeId,
+    style: Option<&StyleId>,
+    look: Option<TableLook>,
+    place: TableCellPlace,
+) -> Result<TableFormat, LayoutError> {
+    let (format, problems) = document.styles().resolve_table_cell(
+        style,
+        look,
+        place.row,
+        place.row_count,
+        place.column,
+        place.column_count,
+    );
+    if problems.is_empty() {
+        Ok(format)
+    } else {
+        Err(unsupported(Some(table), "style resolution"))
+    }
 }
 
 pub(crate) fn flow(document: &Document, paragraph: &Paragraph) -> Result<Flow, LayoutError> {
