@@ -268,6 +268,7 @@ fn a_table_and_an_opaque_block_still_match_full_layout() {
         }],
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,

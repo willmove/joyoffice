@@ -52,6 +52,7 @@ pub(crate) fn paint(
     document: &Document,
     paragraph: &Paragraph,
     profile: SingleFontProfile,
+    table_bold: Option<bool>,
 ) -> Result<Paint, LayoutError> {
     let node = Some(paragraph.id());
     let resolved_para = document
@@ -74,7 +75,11 @@ pub(crate) fn paint(
                 .styles()
                 .resolve_run(paragraph.style.as_ref(), None, &RunProps::default());
         reject_problems(node, &empty.problems)?;
-        uniform = Some(face_of(node, &empty.props)?);
+        let mut face = face_of(node, &empty.props)?;
+        if let Some(forced) = table_bold {
+            face.bold = forced;
+        }
+        uniform = Some(face);
     }
     for run in paragraph.runs() {
         let resolved =
@@ -82,7 +87,12 @@ pub(crate) fn paint(
                 .styles()
                 .resolve_run(paragraph.style.as_ref(), run.style.as_ref(), &run.props);
         reject_problems(node, &resolved.problems)?;
-        let face = face_of(node, &resolved.props)?;
+        let mut face = face_of(node, &resolved.props)?;
+        if run.props.bold.is_none()
+            && let Some(forced) = table_bold
+        {
+            face.bold = forced;
+        }
         match &uniform {
             None => uniform = Some(face),
             Some(first) if first == &face => {}
@@ -153,7 +163,11 @@ fn accept_paragraph(
         .tabs
         .as_ref()
         .is_some_and(|stops| stops.iter().any(|stop| stop.align != TabAlign::Clear));
-    if (listed || edges.moves_text() || custom_tabs)
+    // A list or a custom tab stop carries its own placement. Indent alone
+    // still has no centered, right or justified line.
+    if edges.moves_text()
+        && !listed
+        && !custom_tabs
         && matches!(
             props.justification,
             Some(Justification::Center | Justification::End | Justification::Both)

@@ -63,6 +63,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
         rows,
         style: None,
         width: None,
+        look: None,
         cell_margin: None,
         preserved: None,
         source: None,

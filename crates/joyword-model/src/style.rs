@@ -10,8 +10,11 @@ use std::collections::{BTreeMap, HashSet};
 use std::fmt;
 use std::sync::Arc;
 
+use crate::block::{CellBorders, Shading, TableLook};
 use crate::id::{PreservedId, SourceRef};
-use crate::props::{FontSlots, Indent, Languages, ParaProps, RunProps, Spacing, merge_tab_stops};
+use crate::props::{
+    Color, FontSlots, Indent, Languages, ParaProps, RunProps, Spacing, Toggle, merge_tab_stops,
+};
 use crate::theme::{ThemeColorSlot, ThemeScheme};
 
 /// Longest `basedOn` chain followed before reporting [`StyleProblem::TooDeep`].
@@ -153,8 +156,36 @@ pub struct Style {
     pub custom: bool,
     pub para: ParaProps,
     pub run: RunProps,
+    /// Whole-table formatting from a table style's `w:rPr`, `w:tcPr` and `w:tblPr`.
+    pub table: TableFormat,
+    /// `w:tblStylePr` rows this slice applies: first, last and horizontal bands.
+    pub table_conditionals: Vec<TableConditional>,
     pub source: Option<Arc<SourceRef>>,
     pub preserved: Option<PreservedId>,
+}
+
+/// Bold, shading and borders contributed by one table-style layer.
+/// Bold is a specified value, not a §17.7.3 toggle.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TableFormat {
+    pub bold: Toggle,
+    pub shading: Option<Shading>,
+    pub borders: CellBorders,
+}
+
+/// Conditional table formatting this slice resolves.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TableCondition {
+    FirstRow,
+    LastRow,
+    Band1Horizontal,
+    Band2Horizontal,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TableConditional {
+    pub condition: TableCondition,
+    pub format: TableFormat,
 }
 
 impl Style {
@@ -170,6 +201,8 @@ impl Style {
             custom: false,
             para: ParaProps::default(),
             run: RunProps::default(),
+            table: TableFormat::default(),
+            table_conditionals: Vec::new(),
             source: None,
             preserved: None,
         }
@@ -606,9 +639,148 @@ fn concretize(sheet: &StyleSheet, run: &mut RunProps, problems: &mut Vec<StylePr
     }
 }
 
+impl StyleSheet {
+    /// Table style for one cell, before direct cell and run formatting.
+    ///
+    /// Whole-table formatting is applied from the `basedOn` root toward the
+    /// named style. Conditionals then follow the same direction, bands
+    /// first, then the first row, then the last row, so a header or footer
+    /// replaces the band on that row. Direct cell borders, direct shading
+    /// and a direct run bold are applied by the caller and win.
+    ///
+    /// Horizontal bands are one row each. Row 0 is band 1 unless the first-row
+    /// look excludes it. The last row is excluded when the last-row look is
+    /// on. An omitted `w:tblLook` uses [`TableLook::application_default`].
+    pub fn resolve_table_cell(
+        &self,
+        style: Option<&StyleId>,
+        look: Option<TableLook>,
+        row: usize,
+        row_count: usize,
+    ) -> (TableFormat, Vec<StyleProblem>) {
+        let mut problems = Vec::new();
+        let mut format = TableFormat::default();
+        let Some(id) = style else {
+            return (format, problems);
+        };
+        let Some(named) = self.styles.get(id) else {
+            problems.push(StyleProblem::Missing(id.clone()));
+            return (format, problems);
+        };
+        if named.kind != StyleKind::Table {
+            problems.push(StyleProblem::UnresolvedKind {
+                style: id.clone(),
+                kind: named.kind,
+            });
+            return (format, problems);
+        }
+        let chain = self.chain(id);
+        if let Some(problem) = chain.problem {
+            problems.push(problem);
+        }
+        let look = look.unwrap_or_else(TableLook::application_default);
+        let ancestors: Vec<&Arc<Style>> = chain.styles.iter().rev().collect();
+        for style in &ancestors {
+            overlay_table(&mut format, &style.table);
+        }
+        let band = horizontal_band(look, row, row_count);
+        for (condition, active) in [
+            (TableCondition::Band1Horizontal, matches!(band, Some(0))),
+            (TableCondition::Band2Horizontal, matches!(band, Some(1))),
+            (TableCondition::FirstRow, look.first_row && row == 0),
+            (
+                TableCondition::LastRow,
+                look.last_row && row_count > 0 && row + 1 == row_count,
+            ),
+        ] {
+            if !active {
+                continue;
+            }
+            for style in &ancestors {
+                for item in &style.table_conditionals {
+                    if item.condition == condition {
+                        overlay_table(&mut format, &item.format);
+                    }
+                }
+            }
+        }
+        concretize_table(self, &mut format, &mut problems);
+        (format, problems)
+    }
+}
+
+fn horizontal_band(look: TableLook, row: usize, row_count: usize) -> Option<usize> {
+    if look.no_h_band || row_count == 0 {
+        return None;
+    }
+    let start = usize::from(look.first_row);
+    let end = if look.last_row {
+        row_count.saturating_sub(1)
+    } else {
+        row_count
+    };
+    if row < start || row >= end {
+        return None;
+    }
+    Some((row - start) % 2)
+}
+
+fn overlay_table(base: &mut TableFormat, layer: &TableFormat) {
+    if layer.bold.is_some() {
+        base.bold = layer.bold;
+    }
+    if layer.shading.is_some() {
+        base.shading = layer.shading;
+    }
+    if layer.borders.top.is_some() {
+        base.borders.top = layer.borders.top;
+    }
+    if layer.borders.left.is_some() {
+        base.borders.left = layer.borders.left;
+    }
+    if layer.borders.bottom.is_some() {
+        base.borders.bottom = layer.borders.bottom;
+    }
+    if layer.borders.right.is_some() {
+        base.borders.right = layer.borders.right;
+    }
+}
+
+fn concretize_table(
+    sheet: &StyleSheet,
+    format: &mut TableFormat,
+    problems: &mut Vec<StyleProblem>,
+) {
+    if let Some(shading) = format.shading.as_mut() {
+        paint_color(sheet, &mut shading.fill, problems);
+    }
+    for edge in [
+        &mut format.borders.top,
+        &mut format.borders.left,
+        &mut format.borders.bottom,
+        &mut format.borders.right,
+    ]
+    .into_iter()
+    .flatten()
+    {
+        paint_color(sheet, &mut edge.color, problems);
+    }
+}
+
+fn paint_color(sheet: &StyleSheet, color: &mut Color, problems: &mut Vec<StyleProblem>) {
+    let mut stored = Some(*color);
+    if let Some(slot) = sheet.theme.concretize_color(&mut stored) {
+        problems.push(StyleProblem::UnresolvedThemeColor(slot));
+    } else if let Some(stored) = stored {
+        *color = stored;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::block::{BorderEdge, BorderKind, Shading, TableLook};
+    use crate::props::Color;
 
     fn based(id: &str, name: Option<&str>, base: Option<&str>) -> Style {
         let mut style = Style::new(id, StyleKind::Paragraph, name);
@@ -819,7 +991,7 @@ mod tests {
         style.is_default = true;
         style.run.fonts.east_asia = Some(FontRef::Theme(ThemeFont::MinorEastAsia));
         style.run.fonts.ascii = Some(FontRef::Theme(ThemeFont::MinorAscii));
-        style.run.color = Some(Color::Theme(ThemeColorSlot::Accent1));
+        style.run.color = Some(Color::theme(ThemeColorSlot::Accent1));
         sheet.insert(style)?;
         let resolved = sheet.resolve_run(None, None, &RunProps::default());
         assert!(resolved.problems.is_empty());
@@ -832,6 +1004,9 @@ mod tests {
             Some(FontRef::Named(Arc::from("Times New Roman")))
         );
         assert_eq!(resolved.props.color, Some(Color::Rgb(0x2E, 0x75, 0xB6)));
+        assert!(style_mut_tint(&mut sheet));
+        let tinted = sheet.resolve_run(None, None, &RunProps::default());
+        assert_eq!(tinted.props.color, Some(Color::Rgb(150, 150, 150)));
 
         let missing = ThemeScheme {
             fonts: ThemeFonts {
@@ -853,5 +1028,140 @@ mod tests {
             StyleProblem::UnresolvedThemeColor(ThemeColorSlot::Accent1)
         )));
         Ok(())
+    }
+
+    fn style_mut_tint(sheet: &mut StyleSheet) -> bool {
+        let mut theme = sheet.theme().clone();
+        theme.colors.insert(ThemeColorSlot::Accent1, (80, 80, 80));
+        sheet.set_theme(theme);
+        let Some(style) = sheet.get(&StyleId::new("a")) else {
+            return false;
+        };
+        let mut style = style.as_ref().clone();
+        style.run.color = Some(Color::Theme {
+            slot: ThemeColorSlot::Accent1,
+            tint: Some(0x99),
+            shade: None,
+        });
+        sheet.replace(style).is_ok()
+    }
+
+    #[test]
+    fn table_styles_layer_bands_under_first_and_last_rows() {
+        let mut sheet = StyleSheet::new();
+        let mut base = Style::new("base", StyleKind::Table, Some("Base"));
+        base.table.bold = Some(false);
+        base.table.shading = Some(Shading {
+            fill: Color::Rgb(1, 1, 1),
+        });
+        base.table.borders.top = Some(BorderEdge {
+            kind: BorderKind::Single,
+            size_eighths: 4,
+            color: Color::Auto,
+        });
+        let mut child = Style::new("grid", StyleKind::Table, Some("Grid"));
+        child.based_on = Some(StyleId::new("base"));
+        child.table.borders.left = Some(BorderEdge {
+            kind: BorderKind::Nil,
+            size_eighths: 4,
+            color: Color::Auto,
+        });
+        child.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band1Horizontal,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 0, 255),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        child.table_conditionals.push(TableConditional {
+            condition: TableCondition::Band2Horizontal,
+            format: TableFormat {
+                shading: Some(Shading {
+                    fill: Color::Rgb(0, 255, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        child.table_conditionals.push(TableConditional {
+            condition: TableCondition::FirstRow,
+            format: TableFormat {
+                bold: Some(true),
+                shading: Some(Shading {
+                    fill: Color::Rgb(255, 0, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        child.table_conditionals.push(TableConditional {
+            condition: TableCondition::LastRow,
+            format: TableFormat {
+                bold: Some(false),
+                shading: Some(Shading {
+                    fill: Color::Rgb(255, 255, 0),
+                }),
+                ..TableFormat::default()
+            },
+        });
+        assert!(sheet.insert(base).is_ok());
+        assert!(sheet.insert(child).is_ok());
+        let look = TableLook {
+            first_row: true,
+            last_row: true,
+            first_column: false,
+            last_column: false,
+            no_h_band: false,
+            no_v_band: true,
+        };
+        let id = StyleId::new("grid");
+        let (first, problems) = sheet.resolve_table_cell(Some(&id), Some(look), 0, 4);
+        assert!(problems.is_empty());
+        assert_eq!(first.bold, Some(true));
+        assert_eq!(
+            first.shading,
+            Some(Shading {
+                fill: Color::Rgb(255, 0, 0),
+            })
+        );
+        assert!(matches!(
+            first.borders.top,
+            Some(BorderEdge {
+                kind: BorderKind::Single,
+                ..
+            })
+        ));
+        let (band1, _) = sheet.resolve_table_cell(Some(&id), Some(look), 1, 4);
+        assert_eq!(band1.bold, Some(false));
+        assert_eq!(
+            band1.shading,
+            Some(Shading {
+                fill: Color::Rgb(0, 0, 255),
+            })
+        );
+        assert!(matches!(
+            band1.borders.left,
+            Some(BorderEdge {
+                kind: BorderKind::Nil,
+                ..
+            })
+        ));
+        let (band2, _) = sheet.resolve_table_cell(Some(&id), Some(look), 2, 4);
+        assert_eq!(
+            band2.shading,
+            Some(Shading {
+                fill: Color::Rgb(0, 255, 0),
+            })
+        );
+        let (last, _) = sheet.resolve_table_cell(Some(&id), Some(look), 3, 4);
+        assert_eq!(last.bold, Some(false));
+        assert_eq!(
+            last.shading,
+            Some(Shading {
+                fill: Color::Rgb(255, 255, 0),
+            })
+        );
+        let (omitted, _) = sheet.resolve_table_cell(Some(&id), None, 0, 4);
+        assert_eq!(omitted.bold, Some(true));
     }
 }

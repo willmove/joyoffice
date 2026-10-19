@@ -715,7 +715,7 @@ fn story_runs(
         if display.is_empty() {
             continue;
         }
-        let painted = match style_paint::paint(document, paragraph, profile) {
+        let painted = match style_paint::paint(document, paragraph, profile, None) {
             Ok(painted) => painted,
             Err(LayoutError::Cancelled) => return Err(LayoutError::Cancelled),
             Err(LayoutError::LimitExceeded(limit)) => {
