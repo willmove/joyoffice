@@ -3,7 +3,8 @@
 use joyoffice_opc::{Budget, Method, write_archive};
 use joyword_docx::{DiagnosticKind, ExportError, ImageOutcome, import, plan_export};
 use joyword_model::{
-    Block, ImageAnchor, InlineKind, Measure, StoryKind, sample_png_1x1, sample_png_overwide,
+    AnchorWrap, Block, ImageAnchor, InlineKind, Measure, SquareWrap, StoryKind, WrapSide,
+    sample_png_1x1, sample_png_overwide,
 };
 use std::sync::Arc;
 
@@ -269,6 +270,7 @@ fn a_page_anchor_imports_and_wrap_or_remote_targets_stay_preserved() {
         ImageAnchor {
             x: Measure::Emu(914_400),
             y: Measure::Emu(1_828_800),
+            wrap: AnchorWrap::None,
         }
     );
     assert_eq!(width, Measure::Emu(457_200));
@@ -325,11 +327,6 @@ fn a_page_anchor_imports_and_wrap_or_remote_targets_stay_preserved() {
     }));
 
     for (position, wrap, attrs) in [
-        (
-            page_offsets(0, 0),
-            "<wp:wrapSquare/>",
-            r#"behindDoc="0" simplePos="0""#,
-        ),
         (
             page_offsets(0, 0),
             "<wp:wrapTight/>",
@@ -389,6 +386,200 @@ fn a_page_anchor_imports_and_wrap_or_remote_targets_stay_preserved() {
             }
             _ => true,
         }));
+    }
+}
+
+#[test]
+fn a_wrap_square_page_anchor_imports_and_other_wraps_stay_preserved() {
+    let png = sample_png_1x1();
+    let bytes = package(
+        &anchor_document(
+            r#"behindDoc="0" distT="0" distB="0" distL="114300" distR="114300" simplePos="0""#,
+            &page_offsets(457_200, 914_400),
+            r#"<wp:wrapSquare wrapText="bothSides"/>"#,
+            r#"r:embed="rId1""#,
+        ),
+        &image_rel("media/pixel.png", false),
+        Some(&png),
+    );
+    let result = import(&bytes, &Budget::default()).unwrap();
+    let paragraph = result
+        .document
+        .body()
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap();
+    let (anchor, width, height) = image_of(paragraph);
+    assert_eq!(
+        anchor,
+        ImageAnchor {
+            x: Measure::Emu(457_200),
+            y: Measure::Emu(914_400),
+            wrap: AnchorWrap::Square(SquareWrap {
+                top: 0,
+                bottom: 0,
+                left: 114_300,
+                right: 114_300,
+                side: WrapSide::Larger,
+            }),
+        }
+    );
+    assert_eq!(
+        (width, height),
+        (Measure::Emu(457_200), Measure::Emu(228_600))
+    );
+    assert!(!result.editability.locked().contains(&paragraph.id()));
+    assert!(!result.document.resources().is_empty());
+
+    let on_wrap = package(
+        &anchor_document(
+            r#"behindDoc="0" simplePos="0""#,
+            &page_offsets(0, 0),
+            r#"<wp:wrapSquare wrapText="left" distT="0" distB="0" distL="0" distR="0"/>"#,
+            r#"r:embed="rId1""#,
+        ),
+        &image_rel("media/pixel.png", false),
+        Some(&png),
+    );
+    let result = import(&on_wrap, &Budget::default()).unwrap();
+    let (anchor, _, _) = image_of(
+        result
+            .document
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap(),
+    );
+    assert_eq!(
+        anchor.wrap,
+        AnchorWrap::Square(SquareWrap {
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            side: WrapSide::Left,
+        })
+    );
+
+    let simple = package(
+        &anchor_document(
+            r#"behindDoc="0" simplePos="1""#,
+            r#"<wp:simplePos x="10" y="20"/>"#,
+            "<wp:wrapSquare/>",
+            r#"r:embed="rId1""#,
+        ),
+        &image_rel("media/pixel.png", false),
+        Some(&png),
+    );
+    let result = import(&simple, &Budget::default()).unwrap();
+    let (anchor, _, _) = image_of(
+        result
+            .document
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap(),
+    );
+    assert_eq!(anchor.x, Measure::Emu(10));
+    assert_eq!(anchor.y, Measure::Emu(20));
+    assert!(matches!(anchor.wrap, AnchorWrap::Square(_)));
+
+    let remote = package(
+        &anchor_document(
+            r#"behindDoc="0" simplePos="0""#,
+            &page_offsets(0, 0),
+            "<wp:wrapSquare/>",
+            r#"r:link="rId1""#,
+        ),
+        &image_rel("http://example.invalid/secret.png", true),
+        None,
+    );
+    let result = import(&remote, &Budget::default()).unwrap();
+    assert!(result.document.resources().is_empty());
+    assert!(result.diagnostics.iter().any(|item| matches!(
+        &item.kind,
+        DiagnosticKind::Image {
+            outcome: ImageOutcome::Remote,
+            relationship,
+        } if !relationship.contains("example.invalid") && !relationship.contains("http")
+    )));
+    assert!(result.diagnostics.iter().all(|item| match &item.kind {
+        DiagnosticKind::Image { relationship, .. } => {
+            !relationship.contains("example.invalid") && !relationship.contains("http")
+        }
+        _ => true,
+    }));
+
+    for (position, wrap, attrs) in [
+        (
+            page_offsets(-1, 0),
+            "<wp:wrapSquare/>",
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+        (
+            page_offsets(0, 0),
+            r#"<wp:wrapSquare distL="-1"/>"#,
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+        (
+            page_offsets(0, 0),
+            r#"<wp:wrapSquare wrapText="tight"/>"#,
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+        (
+            page_offsets(0, 0),
+            "<wp:wrapSquare/>",
+            r#"behindDoc="1" simplePos="0""#,
+        ),
+        (
+            r#"<wp:positionH relativeFrom="column"><wp:posOffset>0</wp:posOffset></wp:positionH><wp:positionV relativeFrom="page"><wp:posOffset>0</wp:posOffset></wp:positionV>"#.to_owned(),
+            "<wp:wrapSquare/>",
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+        (
+            r#"<wp:positionH relativeFrom="page"><wp:align>center</wp:align></wp:positionH><wp:positionV relativeFrom="page"><wp:posOffset>0</wp:posOffset></wp:positionV>"#.to_owned(),
+            "<wp:wrapSquare/>",
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+        (
+            page_offsets(0, 0),
+            "<wp:wrapSquare/><wp:wrapNone/>",
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+        (
+            page_offsets(0, 0),
+            r#"<wp:wrapSquare/><wp:effectExtent l="1" t="0" r="0" b="0"/>"#,
+            r#"behindDoc="0" simplePos="0""#,
+        ),
+    ] {
+        let bytes = package(
+            &anchor_document(attrs, &position, wrap, r#"r:embed="rId1""#),
+            &image_rel("media/pixel.png", false),
+            Some(&png),
+        );
+        let result = import(&bytes, &Budget::default()).unwrap();
+        assert!(
+            result.document.resources().is_empty(),
+            "{attrs} {wrap} imported a resource"
+        );
+        let paragraph = result.document.body().blocks.get(0).unwrap();
+        assert!(result.editability.locked().contains(&paragraph.id()));
+        assert!(paragraph.as_paragraph().unwrap().inlines().iter().any(
+            |inline| matches!(inline.kind, InlineKind::Preserved(_))
+        ));
+        assert!(result.diagnostics.iter().any(|item| matches!(
+            item.kind,
+            DiagnosticKind::Image {
+                outcome: ImageOutcome::Unsupported,
+                ..
+            }
+        )));
     }
 }
 

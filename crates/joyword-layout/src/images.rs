@@ -5,18 +5,24 @@
 //! the first fitting span fits the width that remains; the rest starts the next
 //! line. An extent larger than the content box is scaled for display.
 //!
-//! A page anchor (`ImageAnchor`) is painted at page coordinates. It does not
-//! take line width or line height, and it is not scaled into the content box.
-//! The stored bytes stay unchanged.
+//! A page anchor (`ImageAnchor`) is painted at page coordinates. `wp:wrapNone`
+//! does not take line width or line height. `wp:wrapSquare` keeps the same
+//! painted rectangle and asks placement to keep glyphs outside the exclusion.
+//! Neither is scaled into the content box. The stored bytes stay unchanged.
 
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_foundation::Emu;
-use joyword_model::{Document, InlineKind, Measure, OBJECT_MARKER, Paragraph, Segment};
+use joyword_model::{
+    AnchorWrap, Document, InlineKind, Measure, OBJECT_MARKER, Paragraph, Segment, SquareWrap,
+    WrapSide,
+};
 
 use crate::document::unsupported;
-use crate::line::{LayoutLine, LineDiagnostic, LineImage, OverflowKind, SourceRange};
+use crate::line::{
+    ClusterRange, LayoutLine, LineDiagnostic, LineImage, LineRevision, OverflowKind, SourceRange,
+};
 use crate::{LayoutError, LoadedFont, ParagraphLines, ShapedRun};
 
 #[allow(clippy::too_many_arguments)]
@@ -150,7 +156,14 @@ struct FlowImage {
     byte: usize,
     scaled: bool,
     /// Page origin when this picture does not flow with the line.
-    anchor: Option<(Emu, Emu)>,
+    anchor: Option<PageAnchor>,
+}
+
+#[derive(Clone)]
+struct PageAnchor {
+    x: Emu,
+    y: Emu,
+    square: Option<SquareWrap>,
 }
 
 struct TextPiece {
@@ -236,7 +249,11 @@ fn items(
                         let y = place.y.absolute().ok_or_else(|| {
                             unsupported(Some(paragraph.id()), "floating image position")
                         })?;
-                        Some((x, y))
+                        let square = match place.wrap {
+                            AnchorWrap::None => None,
+                            AnchorWrap::Square(square) => Some(square),
+                        };
+                        Some(PageAnchor { x, y, square })
                     }
                 };
                 items.push(Item::Image(FlowImage {
@@ -576,10 +593,10 @@ fn anchor_line(font: &LoadedFont, size: Emu, image: &FlowImage) -> LayoutLine {
 }
 
 fn line_image(image: &FlowImage, x: Emu) -> LineImage {
-    let (x, absolute_top) = if let Some((page_x, page_y)) = image.anchor {
-        (page_x, Some(page_y))
+    let (x, absolute_top, square) = if let Some(place) = &image.anchor {
+        (place.x, Some(place.y), place.square)
     } else {
-        (x, None)
+        (x, None, None)
     };
     LineImage {
         media_type: image.media_type.clone(),
@@ -589,6 +606,7 @@ fn line_image(image: &FlowImage, x: Emu) -> LineImage {
         height: image.height,
         scalar: image.scalar,
         absolute_top,
+        square,
     }
 }
 
@@ -630,4 +648,357 @@ fn shift_lines(lines: &mut [LayoutLine], scalar: usize, byte: usize) {
 fn shift_range(range: &mut Range<usize>, by: usize) {
     range.start += by;
     range.end += by;
+}
+
+/// One square exclusion already committed on a page, in page EMU.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct SquareBand {
+    pub page: usize,
+    pub left: i64,
+    pub right: i64,
+    pub top: i64,
+    pub bottom: i64,
+    pub side: WrapSide,
+}
+
+/// The frame a line is about to occupy.
+pub(crate) struct CarveFrame {
+    pub x: i64,
+    pub width: i64,
+    pub top: i64,
+    pub step: i64,
+    pub page: usize,
+}
+
+pub(crate) enum Carve {
+    /// No square crosses this line. Place it in the full frame.
+    Keep,
+    /// The whole line fits in one side gap.
+    Move { x: i64, width: i64 },
+    /// The line is wider than the gap. `head` fits; `rest` is placed next.
+    Break {
+        head: Box<LayoutLine>,
+        rest: Box<LayoutLine>,
+        x: i64,
+        width: i64,
+    },
+    /// The gap is empty. The next try should start at `y`.
+    Below { y: i64 },
+}
+
+pub(crate) fn square_bands(page: usize, line: &LayoutLine) -> Vec<SquareBand> {
+    let mut bands = Vec::new();
+    for image in &line.images {
+        let Some(square) = image.square else {
+            continue;
+        };
+        let Some(top) = image.absolute_top else {
+            continue;
+        };
+        let left = image.x.raw().saturating_sub(square.left);
+        let right = image
+            .x
+            .raw()
+            .saturating_add(image.width.raw())
+            .saturating_add(square.right);
+        let band_top = top.raw().saturating_sub(square.top);
+        let bottom = top
+            .raw()
+            .saturating_add(image.height.raw())
+            .saturating_add(square.bottom);
+        if right <= left || bottom <= band_top {
+            continue;
+        }
+        bands.push(SquareBand {
+            page,
+            left,
+            right,
+            top: band_top,
+            bottom,
+            side: square.side,
+        });
+    }
+    bands
+}
+
+/// Choose a side gap for `line`, or leave it unchanged.
+///
+/// `committed` holds squares already placed on this page. The line's own
+/// square counts even before it is committed, so text on the anchor line
+/// avoids that rectangle. A gap as wide as the frame is [`Carve::Keep`].
+pub(crate) fn carve_line(line: &LayoutLine, frame: CarveFrame, committed: &[SquareBand]) -> Carve {
+    if frame.width <= 0 || frame.step <= 0 {
+        return Carve::Keep;
+    }
+    let mut hitting = Vec::new();
+    for band in committed {
+        if band_hits(band, &frame) {
+            hitting.push(*band);
+        }
+    }
+    for band in square_bands(frame.page, line) {
+        if band_hits(&band, &frame) {
+            hitting.push(band);
+        }
+    }
+    if hitting.is_empty() {
+        return Carve::Keep;
+    }
+    let mut gaps = vec![(frame.x, frame.x.saturating_add(frame.width))];
+    for band in &hitting {
+        subtract_gap(&mut gaps, band.left, band.right);
+    }
+    let side = combined_side(&hitting);
+    let union_left = hitting
+        .iter()
+        .map(|band| band.left)
+        .min()
+        .unwrap_or(frame.x);
+    let union_right = hitting
+        .iter()
+        .map(|band| band.right)
+        .max()
+        .unwrap_or(frame.x);
+    let Some((gap_x, gap_end)) = pick_gap(&gaps, side, union_left, union_right) else {
+        let below = hitting
+            .iter()
+            .map(|band| band.bottom)
+            .max()
+            .unwrap_or(frame.top);
+        return Carve::Below { y: below };
+    };
+    let gap_width = gap_end.saturating_sub(gap_x);
+    if gap_width <= 0 {
+        let below = hitting
+            .iter()
+            .map(|band| band.bottom)
+            .max()
+            .unwrap_or(frame.top);
+        return Carve::Below { y: below };
+    }
+    if gap_x == frame.x && gap_width == frame.width {
+        return Carve::Keep;
+    }
+    if line.run.glyphs.is_empty() || line.run.width.raw() <= gap_width {
+        return Carve::Move {
+            x: gap_x,
+            width: gap_width,
+        };
+    }
+    if line.label_glyphs > 0 || line.clusters.is_empty() {
+        return Carve::Keep;
+    }
+    match split_line(line, gap_width) {
+        Some((head, rest)) => Carve::Break {
+            head: Box::new(head),
+            rest: Box::new(rest),
+            x: gap_x,
+            width: gap_width,
+        },
+        None => Carve::Move {
+            x: gap_x,
+            width: gap_width,
+        },
+    }
+}
+
+fn band_hits(band: &SquareBand, frame: &CarveFrame) -> bool {
+    band.page == frame.page
+        && frame.top < band.bottom
+        && frame.top.saturating_add(frame.step) > band.top
+}
+
+fn combined_side(bands: &[SquareBand]) -> WrapSide {
+    let left = bands.iter().any(|band| band.side == WrapSide::Left);
+    let right = bands.iter().any(|band| band.side == WrapSide::Right);
+    if left && right {
+        WrapSide::Larger
+    } else if left {
+        WrapSide::Left
+    } else if right {
+        WrapSide::Right
+    } else {
+        WrapSide::Larger
+    }
+}
+
+fn subtract_gap(gaps: &mut Vec<(i64, i64)>, left: i64, right: i64) {
+    if right <= left {
+        return;
+    }
+    let mut next = Vec::new();
+    for (start, end) in gaps.drain(..) {
+        if right <= start || left >= end {
+            next.push((start, end));
+            continue;
+        }
+        if start < left {
+            next.push((start, left.min(end)));
+        }
+        if right < end {
+            next.push((right.max(start), end));
+        }
+    }
+    *gaps = next;
+}
+
+fn pick_gap(
+    gaps: &[(i64, i64)],
+    side: WrapSide,
+    union_left: i64,
+    union_right: i64,
+) -> Option<(i64, i64)> {
+    let mut chosen: Option<(i64, i64)> = None;
+    for &(start, end) in gaps {
+        let width = end.saturating_sub(start);
+        if width <= 0 {
+            continue;
+        }
+        let allowed = match side {
+            WrapSide::Left => end <= union_left,
+            WrapSide::Right => start >= union_right,
+            WrapSide::Larger => true,
+        };
+        if !allowed {
+            continue;
+        }
+        let replace = match chosen {
+            None => true,
+            Some((prev_start, prev_end)) => {
+                let prev = prev_end.saturating_sub(prev_start);
+                width > prev || (width == prev && start < prev_start)
+            }
+        };
+        if replace {
+            chosen = Some((start, end));
+        }
+    }
+    chosen
+}
+
+fn split_line(line: &LayoutLine, max_width: i64) -> Option<(LayoutLine, LayoutLine)> {
+    if line.clusters.is_empty() || max_width <= 0 {
+        return None;
+    }
+    let mut keep = 0usize;
+    for (index, cluster) in line.clusters.iter().enumerate() {
+        if cluster_right(line, cluster) <= max_width {
+            keep = index + 1;
+        } else {
+            break;
+        }
+    }
+    if keep == 0 {
+        keep = 1;
+    }
+    if keep >= line.clusters.len() {
+        return None;
+    }
+    let glyph_cut = line.clusters[keep].glyphs.start;
+    if glyph_cut == 0 || glyph_cut > line.run.glyphs.len() {
+        return None;
+    }
+    let text_cut = line.run.glyphs[glyph_cut].cluster;
+    if text_cut == 0 || text_cut > line.run.text.len() || !line.run.text.is_char_boundary(text_cut)
+    {
+        return None;
+    }
+    let shift = line.run.glyphs[glyph_cut].x.raw();
+    let scalar_cut = line.clusters[keep].source.scalars.start;
+    let byte_cut = line.clusters[keep].source.bytes.start;
+    let mut head = line.clone();
+    head.run.glyphs.truncate(glyph_cut);
+    head.run.text.truncate(text_cut);
+    head.run.missing.retain(|offset| *offset < text_cut);
+    head.run.width = Emu::new(cluster_right(&head, &line.clusters[keep - 1]).max(0));
+    head.clusters.truncate(keep);
+    head.source.bytes.end = byte_cut;
+    head.source.scalars.end = scalar_cut;
+    head.images
+        .retain(|image| head.source.scalars.contains(&image.scalar));
+    head.hyperlinks = clip_ranges(&line.hyperlinks, head.source.scalars.clone());
+    head.revisions = clip_revisions(&line.revisions, &head.source.scalars);
+    head.tab_gaps
+        .retain(|(x, width)| x.saturating_add(*width) <= shift);
+    head.label_glyphs = head.label_glyphs.min(head.run.glyphs.len());
+
+    let mut rest = line.clone();
+    rest.run.glyphs = line.run.glyphs[glyph_cut..]
+        .iter()
+        .map(|glyph| {
+            let mut glyph = *glyph;
+            glyph.cluster = glyph.cluster.saturating_sub(text_cut);
+            glyph.x = Emu::new(glyph.x.raw().saturating_sub(shift));
+            glyph
+        })
+        .collect();
+    rest.run.text = line.run.text[text_cut..].to_owned();
+    rest.run.missing = line
+        .run
+        .missing
+        .iter()
+        .filter(|offset| **offset >= text_cut)
+        .map(|offset| offset.saturating_sub(text_cut))
+        .collect();
+    rest.run.width = Emu::new(line.run.width.raw().saturating_sub(shift).max(0));
+    rest.clusters = line.clusters[keep..]
+        .iter()
+        .map(|cluster| ClusterRange {
+            source: cluster.source.clone(),
+            glyphs: cluster.glyphs.start - glyph_cut..cluster.glyphs.end - glyph_cut,
+        })
+        .collect();
+    rest.source.bytes.start = byte_cut;
+    rest.source.scalars.start = scalar_cut;
+    rest.images.retain(|image| image.scalar >= scalar_cut);
+    rest.hyperlinks = clip_ranges(&line.hyperlinks, rest.source.scalars.clone());
+    rest.revisions = clip_revisions(&line.revisions, &rest.source.scalars);
+    rest.tab_gaps = line
+        .tab_gaps
+        .iter()
+        .filter(|(x, _)| *x >= shift)
+        .map(|(x, width)| (x.saturating_sub(shift), *width))
+        .collect();
+    rest.label_glyphs = 0;
+    rest.label_text_bytes = 0;
+    rest.label_size = Emu::new(0);
+    rest.label_bold = false;
+    Some((head, rest))
+}
+
+fn cluster_right(line: &LayoutLine, cluster: &ClusterRange) -> i64 {
+    line.run
+        .glyphs
+        .get(cluster.glyphs.clone())
+        .unwrap_or(&[])
+        .iter()
+        .map(|glyph| glyph.x.raw().saturating_add(glyph.advance.raw()))
+        .max()
+        .unwrap_or(0)
+}
+
+fn clip_ranges(ranges: &[Range<usize>], scalars: Range<usize>) -> Vec<Range<usize>> {
+    ranges
+        .iter()
+        .filter_map(|range| {
+            let start = range.start.max(scalars.start);
+            let end = range.end.min(scalars.end);
+            (start < end).then_some(start..end)
+        })
+        .collect()
+}
+
+fn clip_revisions(revisions: &[LineRevision], scalars: &Range<usize>) -> Vec<LineRevision> {
+    revisions
+        .iter()
+        .filter_map(|revision| {
+            let start = revision.scalars.start.max(scalars.start);
+            let end = revision.scalars.end.min(scalars.end);
+            (start < end).then(|| {
+                let mut revision = revision.clone();
+                revision.scalars = start..end;
+                revision
+            })
+        })
+        .collect()
 }

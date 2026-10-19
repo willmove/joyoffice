@@ -9,8 +9,9 @@ use joyword_layout::{
     SingleFontProfile, layout_document,
 };
 use joyword_model::{
-    Bias, BlockSeq, Document, HeaderFooterKind, ImageAnchor, InlineKind, InlineObject, Measure,
-    PageSetup, Paragraph, Position, ScalarOffset, StoryKind, display_extent, sample_png_1x1,
+    AnchorWrap, Bias, BlockSeq, Document, HeaderFooterKind, ImageAnchor, InlineKind, InlineObject,
+    Measure, PageSetup, Paragraph, Position, ScalarOffset, SquareWrap, StoryKind, WrapSide,
+    display_extent, sample_png_1x1,
 };
 use joyword_render::{Projection, RasterCancellation, RasterLimits, rasterize};
 
@@ -364,6 +365,7 @@ fn a_page_anchor_is_a_positioned_rectangle_shared_with_the_cpu() {
         Some(ImageAnchor {
             x: Measure::Emu(origin_x),
             y: Measure::Emu(origin_y),
+            wrap: AnchorWrap::None,
         }),
     );
     paragraph.push_text("B", None, Arc::default()).unwrap();
@@ -390,6 +392,125 @@ fn a_page_anchor_is_a_positioned_rectangle_shared_with_the_cpu() {
     assert!(b.origin_x.raw() < origin_x);
     assert_red_at(page, image.x, image.y, image.width);
     assert_white_at(page, Emu::new(Emu::PER_POINT), Emu::new(Emu::PER_POINT));
+}
+
+#[test]
+fn a_wrap_square_keeps_text_outside_the_rectangle_and_wrap_none_does_not() {
+    let image_x = 24 * Emu::PER_POINT;
+    let image_y = 40 * Emu::PER_POINT;
+    let side = 60 * Emu::PER_POINT;
+    let dist_r = 6 * Emu::PER_POINT;
+    let text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".repeat(2);
+    let square = layout(&square_page(
+        &text,
+        AnchorWrap::Square(SquareWrap {
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: dist_r,
+            side: WrapSide::Larger,
+        }),
+        side,
+        image_x,
+        image_y,
+    ));
+    let geometry = square.page_geometry()[0];
+    let page = &square.pages()[0];
+    assert_eq!(page.images.len(), 1);
+    let image = &page.images[0];
+    assert_eq!(image.x, Emu::new(image_x));
+    assert_eq!(image.y, Emu::new(image_y));
+    assert_eq!(image.width, Emu::new(side));
+    assert_eq!(image.height, Emu::new(side));
+    let excl_left = image.x.raw();
+    let excl_right = image.x.raw() + image.width.raw() + dist_r;
+    let excl_top = image.y.raw();
+    let excl_bottom = image.y.raw() + image.height.raw();
+    let mut beside = false;
+    let mut below = false;
+    for placed in square.lines() {
+        if placed.page != 0 {
+            continue;
+        }
+        let run = &page.runs[placed.run];
+        if run.glyphs.is_empty() {
+            continue;
+        }
+        let band_top = placed.top.raw();
+        let band_bottom = band_top + placed.height.raw();
+        let overlaps = band_top < excl_bottom && band_bottom > excl_top;
+        if overlaps {
+            beside = true;
+            for glyph in &run.glyphs {
+                let left = run.origin_x.raw() + glyph.x.raw();
+                let right = left + glyph.advance.raw();
+                assert!(
+                    right <= excl_left || left >= excl_right,
+                    "glyph {left}..{right} entered {excl_left}..{excl_right}"
+                );
+            }
+        } else if band_top >= excl_bottom {
+            below = true;
+            assert_eq!(run.origin_x, geometry.left);
+        }
+    }
+    assert!(beside, "no line sat beside the square");
+    assert!(below, "no line resumed under the square");
+    assert_red_at(page, image.x, image.y, image.width);
+
+    let plain = layout(&square_page(
+        &text,
+        AnchorWrap::None,
+        side,
+        image_x,
+        image_y,
+    ));
+    let plain_page = &plain.pages()[0];
+    let plain_image = &plain_page.images[0];
+    assert_eq!(plain_image.x, image.x);
+    assert_eq!(plain_image.y, image.y);
+    assert_eq!(plain_image.width, image.width);
+    assert_eq!(plain_image.height, image.height);
+    let mut through = false;
+    for placed in plain.lines() {
+        let run = &plain_page.runs[placed.run];
+        let band_top = placed.top.raw();
+        let band_bottom = band_top + placed.height.raw();
+        if band_top >= plain_image.y.raw() + plain_image.height.raw()
+            || band_bottom <= plain_image.y.raw()
+        {
+            continue;
+        }
+        for glyph in &run.glyphs {
+            let left = run.origin_x.raw() + glyph.x.raw();
+            let right = left + glyph.advance.raw();
+            if left < plain_image.x.raw() + plain_image.width.raw() && right > plain_image.x.raw() {
+                through = true;
+            }
+        }
+    }
+    assert!(through, "wrapNone text should still cross the rectangle");
+}
+
+fn square_page(text: &str, wrap: AnchorWrap, side: i64, x: i64, y: i64) -> Document {
+    let mut page = small_page();
+    page.height = Measure::Emu(360 * Emu::PER_POINT);
+    let mut document = Document::new(page);
+    let mut paragraph = Paragraph::new(document.ids().node());
+    push_picture(
+        &mut document,
+        &mut paragraph,
+        side,
+        Some(ImageAnchor {
+            x: Measure::Emu(x),
+            y: Measure::Emu(y),
+            wrap,
+        }),
+    );
+    paragraph.push_text(text, None, Arc::default()).unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    document
 }
 
 #[test]

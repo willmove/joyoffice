@@ -419,6 +419,9 @@ pub struct LayoutSnapshot {
     omitted_blocks: usize,
     stats: LayoutStats,
     limits: LayoutLimits,
+    /// Square exclusions committed on the page where their anchor line was
+    /// placed. Later body lines on that page avoid them.
+    square_bands: Vec<crate::images::SquareBand>,
 }
 
 /// Paint header and footer stories, then revision marks on those bands.
@@ -3368,6 +3371,7 @@ pub(crate) fn open_snapshot(
         omitted_blocks: 0,
         stats: LayoutStats::default(),
         limits,
+        square_bands: Vec::new(),
     };
     let start = document
         .sections()
@@ -4348,38 +4352,23 @@ fn place_one(
                 *top = add(*top, before)?;
                 before_applied = true;
             }
-            let step = line_step(line, line_box);
-            if add(*top, step)?.raw() > geometry.bottom_edge().raw() {
-                if pinned {
-                    return Err(LayoutError::LineTooTall);
-                }
-                result.advance_column(geometry, section)?;
-                *top = if result.lines.len() == first_line {
-                    add(geometry.top, before)?
-                } else {
-                    geometry.top
-                };
-                if add(*top, step)?.raw() > geometry.bottom_edge().raw() {
-                    return Err(LayoutError::LineTooTall);
-                }
-            }
-            let (origin_x, origin_width) = if pinned {
-                (frame_x, frame_width)
-            } else {
-                column_frame(result, geometry)
-            };
-            place_line(
+            place_wrapped(
                 result,
                 top,
                 line,
                 id,
-                origin_x,
-                origin_width,
                 line_box,
                 justification,
                 baseline_offset,
                 cursor + offset == paragraph_last,
                 &prepared.spans,
+                geometry,
+                section,
+                pinned,
+                first_line,
+                before,
+                frame_x,
+                frame_width,
             )?;
         }
         cursor = end;
@@ -4536,6 +4525,176 @@ fn begin_section(
             result.adopt_columns(columns, geometry.top.raw());
             *top = geometry.top;
         }
+    }
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn place_wrapped(
+    result: &mut LayoutSnapshot,
+    top: &mut Emu,
+    line: &LayoutLine,
+    id: NodeId,
+    line_box: Emu,
+    justification: Option<Justification>,
+    baseline_offset: Emu,
+    paragraph_end: bool,
+    spans: &[LineSpan],
+    geometry: PageGeometry,
+    section: usize,
+    pinned: bool,
+    first_line: usize,
+    before: Emu,
+    frame_x: Emu,
+    frame_width: Emu,
+) -> Result<(), LayoutError> {
+    let mut owned: Option<LayoutLine> = None;
+    let mut drops = 0u8;
+    loop {
+        fit_line_on_page(
+            result,
+            top,
+            owned.as_ref().unwrap_or(line),
+            line_box,
+            geometry,
+            section,
+            pinned,
+            first_line,
+            before,
+        )?;
+        let page = result.pages.len() - 1;
+        let (origin_x, origin_width) = if pinned {
+            (frame_x, frame_width)
+        } else {
+            column_frame(result, geometry)
+        };
+        let step = line_step(owned.as_ref().unwrap_or(line), line_box);
+        let decision = crate::images::carve_line(
+            owned.as_ref().unwrap_or(line),
+            crate::images::CarveFrame {
+                x: origin_x.raw(),
+                width: origin_width.raw(),
+                top: top.raw(),
+                step: step.raw(),
+                page,
+            },
+            &result.square_bands,
+        );
+        match decision {
+            crate::images::Carve::Keep => {
+                let current = owned.as_ref().unwrap_or(line);
+                commit_squares(result, page, current);
+                return place_line(
+                    result,
+                    top,
+                    current,
+                    id,
+                    origin_x,
+                    origin_width,
+                    line_box,
+                    justification,
+                    baseline_offset,
+                    paragraph_end,
+                    spans,
+                );
+            }
+            crate::images::Carve::Move { x, width } => {
+                let current = owned.as_ref().unwrap_or(line);
+                commit_squares(result, page, current);
+                return place_line(
+                    result,
+                    top,
+                    current,
+                    id,
+                    Emu::new(x),
+                    Emu::new(width.max(1)),
+                    line_box,
+                    justification,
+                    baseline_offset,
+                    paragraph_end,
+                    spans,
+                );
+            }
+            crate::images::Carve::Break {
+                head,
+                rest,
+                x,
+                width,
+            } => {
+                commit_squares(result, page, head.as_ref());
+                place_line(
+                    result,
+                    top,
+                    head.as_ref(),
+                    id,
+                    Emu::new(x),
+                    Emu::new(width.max(1)),
+                    line_box,
+                    justification,
+                    baseline_offset,
+                    false,
+                    spans,
+                )?;
+                owned = Some(*rest);
+            }
+            crate::images::Carve::Below { y } if y > top.raw() && drops < 4 => {
+                *top = Emu::new(y);
+                drops += 1;
+            }
+            crate::images::Carve::Below { .. } => {
+                let current = owned.as_ref().unwrap_or(line);
+                commit_squares(result, page, current);
+                return place_line(
+                    result,
+                    top,
+                    current,
+                    id,
+                    origin_x,
+                    origin_width,
+                    line_box,
+                    justification,
+                    baseline_offset,
+                    paragraph_end,
+                    spans,
+                );
+            }
+        }
+    }
+}
+
+fn commit_squares(result: &mut LayoutSnapshot, page: usize, line: &LayoutLine) {
+    result
+        .square_bands
+        .extend(crate::images::square_bands(page, line));
+}
+
+#[allow(clippy::too_many_arguments)]
+fn fit_line_on_page(
+    result: &mut LayoutSnapshot,
+    top: &mut Emu,
+    line: &LayoutLine,
+    line_box: Emu,
+    geometry: PageGeometry,
+    section: usize,
+    pinned: bool,
+    first_line: usize,
+    before: Emu,
+) -> Result<(), LayoutError> {
+    let step = line_step(line, line_box);
+    if add(*top, step)?.raw() <= geometry.bottom_edge().raw() {
+        return Ok(());
+    }
+    if pinned {
+        return Err(LayoutError::LineTooTall);
+    }
+    result.advance_column(geometry, section)?;
+    *top = if result.lines.len() == first_line {
+        add(geometry.top, before)?
+    } else {
+        geometry.top
+    };
+    if add(*top, step)?.raw() > geometry.bottom_edge().raw() {
+        return Err(LayoutError::LineTooTall);
     }
     Ok(())
 }

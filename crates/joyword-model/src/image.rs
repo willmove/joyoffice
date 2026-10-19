@@ -181,21 +181,77 @@ pub fn display_extent(width_px: u32, height_px: u32) -> (Measure, Measure) {
     (Measure::Emu(width), Measure::Emu(height))
 }
 
+/// Which side of a square exclusion may hold text.
+///
+/// `Larger` is the omitted `wrapText`, `bothSides`, and `largest` of this
+/// slice: the wider side of the content box is used, and the left side wins
+/// a tie. Text is not split onto both sides of the rectangle.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum WrapSide {
+    #[default]
+    Larger,
+    Left,
+    Right,
+}
+
+/// Distances outside a floating picture's extent, in EMU.
+///
+/// Omitted markup is zero here. This is not a Word default of one eighth of
+/// an inch. Each edge is non-negative and within the extent ceiling.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SquareWrap {
+    pub top: i64,
+    pub bottom: i64,
+    pub left: i64,
+    pub right: i64,
+    pub side: WrapSide,
+}
+
+/// How body text meets a page-absolute picture.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum AnchorWrap {
+    /// `wp:wrapNone`. Text keeps its full line width.
+    #[default]
+    None,
+    /// `wp:wrapSquare`. Text stays outside the extent plus [`SquareWrap`].
+    Square(SquareWrap),
+}
+
 /// Page-relative top-left of a floating picture (ECMA-376 `wp:anchor`).
 ///
-/// Offsets are EMU from the page origin. This slice stores no wrap mode and
-/// no z-order: callers only build it for `wp:wrapNone` in front of the text.
+/// Offsets are EMU from the page origin. Callers build this for `wp:wrapNone`
+/// or page-relative `wp:wrapSquare` in front of the text. There is no z-order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ImageAnchor {
     pub x: Measure,
     pub y: Measure,
+    pub wrap: AnchorWrap,
 }
 
 /// A page anchor inside the same extent ceiling as [`extent_emu`].
 /// Zero is the page origin. Negative offsets are not this slice.
+/// The wrap is [`AnchorWrap::None`].
 pub fn page_anchor(x: i64, y: i64) -> Result<ImageAnchor, ImageRefuse> {
+    page_anchor_wrap(x, y, AnchorWrap::None)
+}
+
+/// [`page_anchor`] with an explicit wrap. Square distances use the same ceiling.
+pub fn page_anchor_wrap(x: i64, y: i64, wrap: AnchorWrap) -> Result<ImageAnchor, ImageRefuse> {
     if x < 0 || y < 0 {
         return Err(ImageRefuse::Malformed);
+    }
+    if let AnchorWrap::Square(square) = wrap {
+        for edge in [square.top, square.bottom, square.left, square.right] {
+            if edge < 0 {
+                return Err(ImageRefuse::Malformed);
+            }
+            if edge > MAX_EXTENT_EMU {
+                return Err(ImageRefuse::OversizeDimension {
+                    edge: u32::try_from(edge).unwrap_or(u32::MAX),
+                    limit: u32::try_from(MAX_EXTENT_EMU).unwrap_or(u32::MAX),
+                });
+            }
+        }
     }
     if x > MAX_EXTENT_EMU || y > MAX_EXTENT_EMU {
         let edge = u32::try_from(x.max(y)).unwrap_or(u32::MAX);
@@ -207,6 +263,35 @@ pub fn page_anchor(x: i64, y: i64) -> Result<ImageAnchor, ImageRefuse> {
     Ok(ImageAnchor {
         x: Measure::Emu(x),
         y: Measure::Emu(y),
+        wrap,
+    })
+}
+
+/// A square exclusion whose distances are inside the extent ceiling.
+pub fn square_wrap(
+    top: i64,
+    bottom: i64,
+    left: i64,
+    right: i64,
+    side: WrapSide,
+) -> Result<SquareWrap, ImageRefuse> {
+    for edge in [top, bottom, left, right] {
+        if edge < 0 {
+            return Err(ImageRefuse::Malformed);
+        }
+        if edge > MAX_EXTENT_EMU {
+            return Err(ImageRefuse::OversizeDimension {
+                edge: u32::try_from(edge).unwrap_or(u32::MAX),
+                limit: u32::try_from(MAX_EXTENT_EMU).unwrap_or(u32::MAX),
+            });
+        }
+    }
+    Ok(SquareWrap {
+        top,
+        bottom,
+        left,
+        right,
+        side,
     })
 }
 
