@@ -551,7 +551,7 @@ Rust 1.98.1、macOS arm64 自动验证：`cargo test -p joyword-cli --locked` �
 
 ### T202 widowControl、页面设置写回与页眉编辑（2026-10-19）
 
-第四切片补齐 T202 三项实现缺口，任务仍 `in_progress`。`w:widowControl` 为真时排版在段内分页前模拟断点，避免单独一行留在页底或页顶（依据 ECMA-376 §17.3.1.26；与 layout_rules R5 的 Word 负结果分别登记）。`plan_export` 在节信封不变且仅 `PageSetup` 变化时 patch 各节 `w:sectPr` 的 `w:pgSz`／`w:pgMar`（twip 子集）；`sectPr` 保留片段或其它节属性变化仍拒绝。壳层 `page.edit.header`／`page.edit.footer`／`page.edit.body` 与布局功能区按钮切换 `TextInput` 的 `edit_story`，经引擎路径插入文字并可撤销。证据：`widow_control_keeps_two_lines_together_at_a_page_break`、`page_setup_margin_change_round_trips_in_export`、`page_setup_change_exports_through_the_docx_plan`、`header_story_edits_and_undo_through_the_engine_path`。未覆盖：页眉／页脚部件 XML 写回、图形界面验收、Word 对照。
+第四切片补齐 T202 三项实现缺口，任务仍 `in_progress`。`w:widowControl` 为真时排版在段内分页前模拟断点，避免单独一行留在页底或页顶（依据 ECMA-376 §17.3.1.26；与 layout_rules R5 的 Word 负结果分别登记）。`plan_export` 在节信封不变且仅 `PageSetup` 变化时 patch 各节 `w:sectPr` 的 `w:pgSz`／`w:pgMar`（twip 子集）；`sectPr` 保留片段或其它节属性变化仍拒绝。壳层 `page.edit.header`／`page.edit.footer`／`page.edit.body` 与布局功能区「页眉」「正文」按钮切换 `TextInput` 的 `edit_story`，经引擎路径插入文字并可撤销；`layout.edit_header` 与 `layout.edit_body` 在 T300 地板 50 之上把功能目录地板升到 52，图标 `header`／`body` 画在 `chrome.rs`。证据：`widow_control_keeps_two_lines_together_at_a_page_break`、`page_setup_margin_change_round_trips_in_export`、`page_setup_change_exports_through_the_docx_plan`、`header_story_edits_and_undo_through_the_engine_path`。未覆盖：页眉／页脚部件 XML 写回、图形界面验收、Word 对照。
 
 ### T203 行内图片与剪贴板第一切片（2026-10-18）
 

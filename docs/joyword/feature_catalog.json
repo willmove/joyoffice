@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 50,
-  "note": "T300 slice 2. The floor is 50 because the Review tab adds eight commands and the status bar reports the revision view. Markup paints a simple margin bar on the shared page scene. Evidence stays unit. Header revision decoration and Word/WPS exchange stay undone.",
+  "floor": 52,
+  "note": "T202 header and body edit toggles on top of T300 slice 2. The floor is 52: the Review tab adds eight commands and the status bar reports the revision view, and the layout tab adds header and body edit toggles. Markup paints a simple margin bar on the shared page scene. Evidence stays unit. Header revision decoration and Word/WPS exchange stay undone.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},
@@ -33,6 +33,8 @@
     {"id": "layout.margins_narrow", "kind": "command", "tab": "layout", "command": "page.margins", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "margins-narrow"},
     {"id": "layout.portrait", "kind": "command", "tab": "layout", "command": "page.orientation", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "portrait"},
     {"id": "layout.landscape", "kind": "command", "tab": "layout", "command": "page.orientation", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "landscape"},
+    {"id": "layout.edit_header", "kind": "command", "tab": "layout", "command": "page.edit.header", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "header"},
+    {"id": "layout.edit_body", "kind": "command", "tab": "layout", "command": "page.edit.body", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "body"},
     {"id": "view.zoom_in", "kind": "command", "tab": "view", "command": "view.zoom_in", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "zoom-in"},
     {"id": "view.zoom_out", "kind": "command", "tab": "view", "command": "view.zoom_out", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "zoom-out"},
     {"id": "view.zoom_reset", "kind": "command", "tab": "view", "command": "view.zoom_reset", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "zoom-reset"},
@@ -82,6 +84,8 @@
     {"id": "margins-narrow", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "portrait", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "landscape", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "header", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "body", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "zoom-in", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "zoom-out", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "zoom-reset", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
