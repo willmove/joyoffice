@@ -1,0 +1,279 @@
+{
+  "source": "26f46c3f2582de88cb09012487def0744788f9c7",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "font_sha256": "1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab",
+  "cases": [
+    {
+      "id": "DOCX-MIN-001",
+      "input_sha256": "7f234d546783332adac448fecd8132cd0dc71900fa208e0b94021b33bdaf8cfb",
+      "runs": [
+        {
+          "run": 1,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "pdf",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "pdf",
+          "exit": 0
+        }
+      ],
+      "repeatable": true,
+      "artifacts": {
+        "document.pdf": "8c9e48e97e624fd1e15451d6d70d0e86d9e7d269bf14d9e8e63811fb1e0b8047",
+        "inspect.json": "a76aa09f163cd37bf5c934b34c67bb8b9daa756539554cf9c6aac0dae4475b33",
+        "inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pdf.json": "fabba66f16cf8b161b150d4ee8dda76ca5bca119196f03c18547d4907dd6c579",
+        "pdf.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "render.json": "faa9370e1c3b8188f22a18343cab5afd1eff505d6786be2a0800b1618bde2ccc",
+        "render.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "png\\page-1.png": "9acfe43ff2e6d80dd638dab3e68c5b445acdc7f2e2f66925f3297746fbdbb5b9"
+      },
+      "input_unchanged": true
+    },
+    {
+      "id": "DOCX-MIN-002",
+      "input_sha256": "515c0d997dffd877f2cd3e1ab8b6b6768ea4a301c05fdb1b3ac39a321bdebc07",
+      "runs": [
+        {
+          "run": 1,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "pdf",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "pdf",
+          "exit": 0
+        }
+      ],
+      "repeatable": true,
+      "artifacts": {
+        "document.pdf": "6d50b48bcc4ecca61e5e8f260b796e26852e52430b83b89630049989e00b2b33",
+        "inspect.json": "5688c5882bc1da96d0aaa5fac3301022e43c08f5dc03e115c17f84fe071a48d6",
+        "inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pdf.json": "954c573ae5358a59160961f0d0ba43bb25900869c3d746116b72b6daf8b3b8ac",
+        "pdf.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "render.json": "7647e67c98d5ff4afbe727e6afe4f8a4336ca1683f7a92542767c30bfe81ce8d",
+        "render.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "png\\page-1.png": "f1cda3a695b511af2f450c380767dfa5092666e44e8f8e321e1a9063fcb5a78e"
+      },
+      "input_unchanged": true
+    },
+    {
+      "id": "DOCX-MIN-003",
+      "input_sha256": "d00d910c4d5af5f202498e013c995bddb47f687abd43e9f4d59dda2a087869d9",
+      "runs": [
+        {
+          "run": 1,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "pdf",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "pdf",
+          "exit": 0
+        }
+      ],
+      "repeatable": true,
+      "artifacts": {
+        "document.pdf": "db0812e37095df21261844584fc4ff385d6c1e9c4da74db795b79e98d8b4682f",
+        "inspect.json": "656411c8ed46ee92bbfe7c6d17546d63d9fd8293de7de9cf2bebb2e02b796951",
+        "inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pdf.json": "c5874fe65b8acfb1400647137480afdd88ba31792fa70dc8ac7580ffef1660c7",
+        "pdf.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "render.json": "05d15e16cf4cb80d024eb855f4fd795e00a5737ccdd9a06558d04c365ab6397a",
+        "render.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "png\\page-1.png": "9160a053f8af56c0b7b8c0d036e486abb6c610ba6227a36be3963165e14e54b7"
+      },
+      "input_unchanged": true
+    },
+    {
+      "id": "DOCX-MIN-004",
+      "input_sha256": "9f5a016623eb35253b12b11be5ec3ab90fa24a30fba9e2321d8011298574e470",
+      "runs": [
+        {
+          "run": 1,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "pdf",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "pdf",
+          "exit": 0
+        }
+      ],
+      "repeatable": true,
+      "artifacts": {
+        "document.pdf": "b6b37c75547d6ccd2c034ed0c591eecd8288fe402c8117a6d0f1a0e3fbe40bee",
+        "inspect.json": "565ad1d02d03a5a4a90b7cff6e6d421cf678758d6572e6049fc9e7c79bee0f94",
+        "inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pdf.json": "693665e54ef23422123e33e0105cce3176eb832a82dc1522e369e88a33085ae7",
+        "pdf.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "render.json": "1f19c478f7da41f395a1cdf5b121d3d05c0ae0695b5906be323e4b192bed276a",
+        "render.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "png\\page-1.png": "be2f6dd8971a189fa36ff43b56550e7aaa2ac4cf80946b7073bde3502f01cba9"
+      },
+      "input_unchanged": true
+    },
+    {
+      "id": "DOCX-MIN-005",
+      "input_sha256": "917b5dee4368c6e1c595728e0825a14b39e3f58756a4374c12f83c66a6abaa44",
+      "runs": [
+        {
+          "run": 1,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 1,
+          "op": "pdf",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "inspect",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "render",
+          "exit": 0
+        },
+        {
+          "run": 2,
+          "op": "pdf",
+          "exit": 0
+        }
+      ],
+      "repeatable": true,
+      "artifacts": {
+        "document.pdf": "e97b46ea58ade52c491737ae62569fac0636f420f6d6967fca8007e07197d2ad",
+        "inspect.json": "c0c34ac27a4d7a2f963a2705e944b61f179e18ccf882b9e9c6826831b7d746af",
+        "inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pdf.json": "73ecfdff5ebf65f1ec6f252d03fab7c974b70d5f0ecd14bd3f54b8873aabb5d6",
+        "pdf.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "render.json": "61c388f9acdbeb65529adb4ed677280729b12ceb5c1f7ca66b42b1e31d5da984",
+        "render.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "png\\page-1.png": "e71b85ff52a79a8fb3fb58495a064c25f38b5a0c9dd8a602596be0fa43257c6e"
+      },
+      "input_unchanged": true
+    }
+  ],
+  "truncated_exit": 3,
+  "truncated_report": {
+    "schema_version": 1,
+    "projection": {
+      "name": "imported-main-body",
+      "hidden_text": "included",
+      "deleted_revisions": "excluded",
+      "inserted_revisions": "included",
+      "moved_to_revisions": "included",
+      "moved_from_revisions": "excluded",
+      "comments": "excluded",
+      "other_stories": "excluded",
+      "unsupported_xml": "omitted-preserved-in-source",
+      "paragraph_separator": "LF",
+      "cell_separator": "paragraph-LF",
+      "line_break": "LF",
+      "page_column_break": "FF"
+    },
+    "partial": false,
+    "truncated": true,
+    "text_bytes_limit": 1,
+    "text_bytes": 0,
+    "paragraphs": 1,
+    "omitted_objects": 0,
+    "preserved_fragments": 0,
+    "diagnostics": {
+      "reported": 0,
+      "suppressed": 0
+    },
+    "read_only": false,
+    "text": ""
+  }
+}

@@ -369,10 +369,23 @@ fn pdftotext_reads_the_scene_text() {
     assert!(text.contains('A'), "{text:?}");
 }
 
+#[test]
+fn synthetic_bold_contributes_searchable_text_only_once() -> Result<(), joyword_pdf::PdfError> {
+    let (mut scene, font) = text_scene("A");
+    scene.runs[0].bold = true;
+    let pdf = render(std::slice::from_ref(&scene), std::slice::from_ref(&font))?;
+    let Some(text) = pdftotext(&pdf) else {
+        return Ok(());
+    };
+    assert_eq!(text.split_whitespace().collect::<String>(), "A");
+    Ok(())
+}
+
 fn pdftotext(pdf: &[u8]) -> Option<String> {
     let require = std::env::var_os("JOYWORD_REQUIRE_TEST_FONT").is_some();
     let mut child = match Command::new("pdftotext")
-        .args(["-enc", "UTF-8", "-", "-"])
+        // Raw order exposes duplicate paints that geometric deduplication can hide.
+        .args(["-raw", "-enc", "UTF-8", "-", "-"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())

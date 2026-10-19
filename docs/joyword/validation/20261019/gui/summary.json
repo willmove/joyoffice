@@ -1,0 +1,247 @@
+{
+  "session": "2026-10-19 Windows GUI",
+  "observations": [
+    {
+      "name": "01-open-local",
+      "note": "GUI opens isolated DOCX-MIN-001 copy with original one-line body, page count 1.",
+      "time": "2026-10-19T04:53:23.913Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "02-save-risk",
+      "note": "Ctrl+S shows ownership/ACL/extended attributes/other named stream warning, offers Cancel / Save copy (default) / Replace original; source hash unchanged at prompt.",
+      "time": "2026-10-19T04:53:38.103Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "03-save-copy",
+      "note": "Save copy writes edited text to saved-copy.docx; original SHA256 unchanged; GUI says original not replaced.",
+      "time": "2026-10-19T04:54:16.614Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "04-save-original",
+      "note": "Explicit replacement succeeds; Chinese insertion read back; creation time and Zone.Identifier preserved. ACL owner/ACE entries unchanged but raw SDDL gains DACL auto-inherited control flag, so no exact ACL preservation claim.",
+      "time": "2026-10-19T04:54:39.600Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "05-ime-preedit",
+      "note": "Physical key a invokes active Windows Chinese IME candidate window next to caret; status composing.",
+      "time": "2026-10-19T04:54:58.242Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "06-ime-cancel",
+      "note": "Escape clears preedit and returns clean document unchanged.",
+      "time": "2026-10-19T04:55:05.855Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "07-ime-nihao",
+      "note": "Real Windows IME nihao composition, candidate 1 is 你好 and candidate box tracks caret.",
+      "time": "2026-10-19T04:55:28.019Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "08-ime-commit",
+      "note": "IME commits 你好 as document text and marks unsaved.",
+      "time": "2026-10-19T04:55:32.404Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "09-ime-undo",
+      "note": "One Ctrl+Z removes both committed Chinese characters; earlier saved insertion remains.",
+      "time": "2026-10-19T04:55:37.553Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "10-typing-abc",
+      "note": "Three physical Latin keys a,b,c produce abc in English mode.",
+      "time": "2026-10-19T04:55:57.095Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "11-typing-undo",
+      "note": "One Ctrl+Z removes abc together while preserving prior saved text.",
+      "time": "2026-10-19T04:56:02.651Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "12-system-paste",
+      "note": "Ctrl+C/Ctrl+V duplicates original test text and wraps across two lines.",
+      "time": "2026-10-19T04:56:19.747Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "13-system-paste-undo",
+      "note": "One Ctrl+Z removes the pasted block and restores prior text, distinct from typing and IME commits.",
+      "time": "2026-10-19T04:56:34.664Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "14-second-save",
+      "note": "Second Ctrl+S confirmed replacement succeeds without source identity conflict; readback includes 二次保存.",
+      "time": "2026-10-19T04:56:49.305Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "15-undo-after-save",
+      "note": "Ctrl+Z after replacement removes only 二次保存 and leaves saved earlier insertion.",
+      "time": "2026-10-19T04:56:52.642Z",
+      "window": "JoyWord · Preview"
+    },
+    {
+      "name": "16-undo-resave",
+      "note": "Third original replacement succeeds after undo; raw readback returns to first saved text.",
+      "time": "2026-10-19T04:57:09.872Z",
+      "window": "JoyWord · Preview"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "01-open-local.png",
+      "bytes": 68217,
+      "sha256": "d605b29dc2d89f119e787327dc1f0ff76debe870a330cb81ce868c62b60e232d"
+    },
+    {
+      "name": "02-save-risk.png",
+      "bytes": 88092,
+      "sha256": "afd0336d0473bb64055e970c820a8a3ac17288f8a4afcddedac98a522f0ce3c5"
+    },
+    {
+      "name": "03-save-copy.png",
+      "bytes": 75936,
+      "sha256": "d64cd3b8f5ae9372f75ec55422e916e1f2357dc7c0ed86b3aeead4bd30e34f34"
+    },
+    {
+      "name": "04-save-original.png",
+      "bytes": 74137,
+      "sha256": "c34566cbd833f77ddc2850fb0e74fa5d5a64f168999965f7eb55b14f66c6718e"
+    },
+    {
+      "name": "05-ime-preedit.png",
+      "bytes": 71733,
+      "sha256": "2e25850bf08b0b0fde63dbcc4fb0eeac4e475cc2b895d0fbd886be659b020e15"
+    },
+    {
+      "name": "06-ime-cancel.png",
+      "bytes": 68726,
+      "sha256": "825beadc5a0513dd6246d95b6e834c3b37f75c035a2e22262ff4b67823268b72"
+    },
+    {
+      "name": "07-ime-nihao.png",
+      "bytes": 73596,
+      "sha256": "b66c4b04806377991452c7f3a3752329b1800317a423b47e3e7f5935e5b24f56"
+    },
+    {
+      "name": "08-ime-commit.png",
+      "bytes": 68949,
+      "sha256": "aa8d01c98f967422755e53ccaf4f2493816faa74ab8aa926ef1f355abeb7c15f"
+    },
+    {
+      "name": "09-ime-undo.png",
+      "bytes": 68853,
+      "sha256": "08f5a8ae4315c0c36f78210fabd3c74327846d8aa4e5894b5e571defdef52a2d"
+    },
+    {
+      "name": "10-typing-abc.png",
+      "bytes": 68822,
+      "sha256": "3693cdf1c1650f875b5f2441ec2a800569a1585579102798dccdef0317fa5769"
+    },
+    {
+      "name": "11-typing-undo.png",
+      "bytes": 68853,
+      "sha256": "08f5a8ae4315c0c36f78210fabd3c74327846d8aa4e5894b5e571defdef52a2d"
+    },
+    {
+      "name": "12-system-paste.png",
+      "bytes": 70518,
+      "sha256": "7a223ef4c4f783df070691d4d7a7029f8d11c629c657c63437d1d3c74c9d8bf3"
+    },
+    {
+      "name": "13-system-paste-undo.png",
+      "bytes": 68853,
+      "sha256": "08f5a8ae4315c0c36f78210fabd3c74327846d8aa4e5894b5e571defdef52a2d"
+    },
+    {
+      "name": "14-second-save.png",
+      "bytes": 74640,
+      "sha256": "4392cb3a7847fdcfa09b89798923214d54f6815c770977cef4e5f13baaea83bb"
+    },
+    {
+      "name": "15-undo-after-save.png",
+      "bytes": 69082,
+      "sha256": "2e769db743400856bb4cae0a22a2382ef4b469291251bade0ace5d11fbc3f606"
+    },
+    {
+      "name": "16-undo-resave.png",
+      "bytes": 74372,
+      "sha256": "7f9dabe9b6a8dc1f77ebd325d71f42d0895ddebcb205e541b79aa674dc3cc002"
+    }
+  ],
+  "save_original": {
+    "sha256": "4eb8df6f041eb9a61b4e5bc4cea3b85af630498fff02f45716a53ff9714fd121",
+    "creation_time_utc": "2026-10-19T04:52:00.964938Z",
+    "body_text": "合作协验证甲议：甲方与乙方于 2026 年签署。",
+    "acl_before": "O:S-1-5-21-660113076-4206154628-3036183868-1001G:S-1-5-21-660113076-4206154628-3036183868-1001D:(A;ID;FA;;;BA)(A;ID;FA;;;SY)(A;ID;0x1301bf;;;AU)(A;ID;0x1200a9;;;BU)",
+    "acl_after": "O:S-1-5-21-660113076-4206154628-3036183868-1001G:S-1-5-21-660113076-4206154628-3036183868-1001D:AI(A;ID;FA;;;BA)(A;ID;FA;;;SY)(A;ID;0x1301bf;;;AU)(A;ID;0x1200a9;;;BU)",
+    "acl_owner_and_ace_content_unchanged": true,
+    "raw_sddl_changed_by_auto_inherited_flag": true,
+    "zone_identifier": "[ZoneTransfer]\nZoneId=3"
+  },
+  "logs": {
+    "sentinel_terms": [
+      "验证甲",
+      "你好",
+      "二次保存",
+      "合作协",
+      "测试段落"
+    ],
+    "any_sentinel_present": false,
+    "files": [
+      "joyword-000001.log",
+      "joyword-000002.log"
+    ]
+  },
+  "window_render_comparison": {
+    "gui": "01-open-local.png",
+    "render": "DOCX-MIN-001/cpu.png",
+    "zoom_percent": 80,
+    "screen_page_crop": [
+      250,
+      307,
+      889,
+      1064
+    ],
+    "render_size": [
+      794,
+      1123
+    ],
+    "screen_content_scaled_to_render": [
+      121.77,
+      95.68,
+      390.17,
+      118.04,
+      210
+    ],
+    "render_content_bbox": [
+      124,
+      102,
+      389,
+      115,
+      265
+    ],
+    "horizontal_bounds_delta_px": [
+      2.23,
+      1.17
+    ],
+    "vertical_bounds_delta_px": [
+      6.32,
+      1.17
+    ],
+    "same_declared_text": true,
+    "limitations": "Crop/page-bound uncertainty and different capture paths; this is a visual consistency check, not pixel identity."
+  },
+  "computer_use_after_evidence": "Native pipe unavailable after session interruption; reset and one recovery attempt failed."
+}

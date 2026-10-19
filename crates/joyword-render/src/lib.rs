@@ -513,17 +513,15 @@ pub fn rasterize(
         if ![x, y, w, h].iter().all(|value| value.is_finite()) || w <= 0.0 || h <= 0.0 {
             continue;
         }
-        let mut builder = PathBuilder::new();
-        builder.move_to(x as f32, y as f32);
-        builder.line_to((x + w) as f32, y as f32);
-        builder.line_to((x + w) as f32, (y + h) as f32);
-        builder.line_to(x as f32, (y + h) as f32);
-        builder.close();
-        if let Some(path) = builder.finish() {
+        if let Some(bounds) = tiny_skia::Rect::from_xywh(x as f32, y as f32, w as f32, h as f32) {
             let mut fill = Paint::default();
             fill.set_color_rgba8(rect.red, rect.green, rect.blue, 255);
-            fill.anti_alias = false;
-            pixmap.fill_path(&path, &fill, FillRule::Winding, Transform::identity(), None);
+            // Font underlines can be thinner than one device pixel. Coverage
+            // antialiasing keeps them visible between pixel centres.
+            fill.anti_alias = true;
+            // The rectangle rasterizer preserves fractional edge coverage;
+            // the general path rasterizer can clip subpixel horizontal edges.
+            pixmap.fill_rect(bounds, &fill, Transform::identity(), None);
         }
     }
     for image in &scene.images {

@@ -1,0 +1,16 @@
+{"name":"01-open-local","note":"GUI opens isolated DOCX-MIN-001 copy with original one-line body, page count 1.","time":"2026-10-19T04:53:23.913Z","window":"JoyWord · Preview"}
+{"name":"02-save-risk","note":"Ctrl+S shows ownership/ACL/extended attributes/other named stream warning, offers Cancel / Save copy (default) / Replace original; source hash unchanged at prompt.","time":"2026-10-19T04:53:38.103Z","window":"JoyWord · Preview"}
+{"name":"03-save-copy","note":"Save copy writes edited text to saved-copy.docx; original SHA256 unchanged; GUI says original not replaced.","time":"2026-10-19T04:54:16.614Z","window":"JoyWord · Preview"}
+{"name":"04-save-original","note":"Explicit replacement succeeds; Chinese insertion read back; creation time and Zone.Identifier preserved. ACL owner/ACE entries unchanged but raw SDDL gains DACL auto-inherited control flag, so no exact ACL preservation claim.","time":"2026-10-19T04:54:39.600Z","window":"JoyWord · Preview"}
+{"name":"05-ime-preedit","note":"Physical key a invokes active Windows Chinese IME candidate window next to caret; status composing.","time":"2026-10-19T04:54:58.242Z","window":"JoyWord · Preview"}
+{"name":"06-ime-cancel","note":"Escape clears preedit and returns clean document unchanged.","time":"2026-10-19T04:55:05.855Z","window":"JoyWord · Preview"}
+{"name":"07-ime-nihao","note":"Real Windows IME nihao composition, candidate 1 is 你好 and candidate box tracks caret.","time":"2026-10-19T04:55:28.019Z","window":"JoyWord · Preview"}
+{"name":"08-ime-commit","note":"IME commits 你好 as document text and marks unsaved.","time":"2026-10-19T04:55:32.404Z","window":"JoyWord · Preview"}
+{"name":"09-ime-undo","note":"One Ctrl+Z removes both committed Chinese characters; earlier saved insertion remains.","time":"2026-10-19T04:55:37.553Z","window":"JoyWord · Preview"}
+{"name":"10-typing-abc","note":"Three physical Latin keys a,b,c produce abc in English mode.","time":"2026-10-19T04:55:57.095Z","window":"JoyWord · Preview"}
+{"name":"11-typing-undo","note":"One Ctrl+Z removes abc together while preserving prior saved text.","time":"2026-10-19T04:56:02.651Z","window":"JoyWord · Preview"}
+{"name":"12-system-paste","note":"Ctrl+C/Ctrl+V duplicates original test text and wraps across two lines.","time":"2026-10-19T04:56:19.747Z","window":"JoyWord · Preview"}
+{"name":"13-system-paste-undo","note":"One Ctrl+Z removes the pasted block and restores prior text, distinct from typing and IME commits.","time":"2026-10-19T04:56:34.664Z","window":"JoyWord · Preview"}
+{"name":"14-second-save","note":"Second Ctrl+S confirmed replacement succeeds without source identity conflict; readback includes 二次保存.","time":"2026-10-19T04:56:49.305Z","window":"JoyWord · Preview"}
+{"name":"15-undo-after-save","note":"Ctrl+Z after replacement removes only 二次保存 and leaves saved earlier insertion.","time":"2026-10-19T04:56:52.642Z","window":"JoyWord · Preview"}
+{"name":"16-undo-resave","note":"Third original replacement succeeds after undo; raw readback returns to first saved text.","time":"2026-10-19T04:57:09.872Z","window":"JoyWord · Preview"}

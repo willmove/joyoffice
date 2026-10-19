@@ -1,0 +1,46 @@
+   Compiling joyword v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 21s
+     Running unittests src\main.rs (target\debug\deps\joyword-6d389099ed070d7b.exe)
+
+running 38 tests
+test document_canvas::input_pipeline_tests::missing_font_glyph_keeps_typed_unicode_and_emits_diagnostics ... ok
+test document_canvas::startup_sample_tests::in_memory_session_cannot_save_a_copy ... ok
+test document_canvas::input_pipeline_tests::stale_layouts_lose_to_newer_requests_including_a_to_b_to_a ... ok
+test document_canvas::tests::cancelled_or_stale_layout_does_not_create_images ... ok
+test document_canvas::startup_sample_tests::startup_sample_matches_seed_and_saves_a_copy ... ok
+test document_canvas::input_pipeline_tests::a_reopened_identical_document_is_painted_again ... ok
+test document_canvas::tests::real_engine_session_is_editable_and_layout_matches_source ... ok
+test document_canvas::input_pipeline_tests::geometry_installs_after_layout_while_the_last_pixels_stay_painted ... ok
+test input_ui::tests::a_late_copy_applies_only_to_its_session_and_version ... ok
+test document_canvas::input_pipeline_tests::zooming_back_while_a_page_is_in_flight_still_paints_it_later ... ok
+test document_canvas::tests::font_missing_invalid_spec_and_missing_sample_glyphs_are_errors ... ok
+test input_ui::tests::caret_reveal_scrolls_minimally_and_clamps_at_content_edges ... ok
+test document_canvas::input_pipeline_tests::another_document_cancels_jobs_and_never_matches_old_revisions ... ok
+test input_ui::tests::only_explicit_discard_for_the_prompted_version_can_close ... ok
+test document_canvas::input_pipeline_tests::commit_equal_to_its_preview_reuses_layout_and_pixels_without_jobs ... ok
+test input_ui::tests::original_save_prompt_defaults_to_copy_and_rechecks_edited_versions ... ok
+test document_canvas::tests::page_image_conversion_and_device_projection_need_no_window ... ok
+test document_canvas::input_pipeline_tests::stale_rasters_cannot_install_over_another_layout_or_projection ... ok
+test document_canvas::input_pipeline_tests::one_raster_stays_within_the_ui_cache_budget ... ok
+test tests::a_committed_journal_opens_back_into_a_session ... ok
+test tests::file_and_insert_commands_are_not_the_language_switch ... ok
+test tests::registry_commands_all_have_actions_and_bindings ... ok
+test tests::ribbon_commands_have_gpui_actions ... ok
+test input_ui::tests::page_geometry_round_trips_at_zoom_with_live_scroll_on_multiple_pages ... ok
+test input_ui::tests::visible_pages_follow_live_scroll_zoom_and_viewport ... ok
+test input_ui::tests::commit_then_type_answers_from_the_committed_layout_before_its_pixels ... ok
+test input_ui::tests::ime_bounds_are_window_logical_pixels_at_zoom_and_live_scroll ... ok
+test input_ui::tests::a_layout_without_pixels_answers_ime_hit_testing_and_reveal_exactly ... ok
+test document_canvas::input_pipeline_tests::a_page_too_large_for_the_cache_shows_its_own_notice ... ok
+test document_canvas::input_pipeline_tests::a_failed_page_keeps_its_error_and_does_not_stop_the_others ... ok
+test document_canvas::input_pipeline_tests::the_caret_overlay_rides_the_raster_of_its_own_page ... ok
+test input_ui::tests::origin_anchor_is_dropped_for_other_versions_or_origins_and_queries_clamp_to_end ... ok
+test input_ui::tests::pending_preedit_layout_answers_from_the_origin_anchor ... ok
+test input_ui::tests::pending_preedit_reveals_its_origin_before_appkit_asks ... ok
+test document_canvas::input_pipeline_tests::eviction_drops_the_farthest_pages_and_other_projections_first ... ok
+test document_canvas::input_pipeline_tests::scrolling_and_zoom_request_only_missing_pages_near_the_viewport ... ok
+test document_canvas::input_pipeline_tests::long_document_on_a_2x_display_paints_the_visible_pages ... ok
+test document_canvas::input_pipeline_tests::resident_pixels_stay_within_the_cache_at_any_page_count ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.12s
+

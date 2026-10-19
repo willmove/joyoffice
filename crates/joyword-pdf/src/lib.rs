@@ -181,11 +181,12 @@ pub fn render_export(
             set_rgb_fill(&mut surface, run.color);
             surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
             if run.bold {
-                // A second paint with empty cluster ranges keeps the searchable
-                // text to the first draw. The offset is about 0.04 em.
+                // Paint the offset copy as outlines: empty cluster ranges alone
+                // still reuse the font's ToUnicode mapping in PDF readers.
+                // Only the first draw contributes searchable text.
                 let visual = scene_glyphs(run, false);
                 let shifted = Point::from_xy(start.x + size * 0.04, start.y);
-                surface.draw_glyphs(shifted, &visual, font, "", size, false);
+                surface.draw_glyphs(shifted, &visual, font, "", size, true);
             }
         }
         surface.finish();

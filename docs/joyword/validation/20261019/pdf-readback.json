@@ -1,0 +1,147 @@
+[
+  {
+    "id": "DOCX-MIN-001",
+    "independent_text_readers_agree": true,
+    "pages": [
+      {
+        "page": 1,
+        "cpu_size": [
+          794,
+          1123
+        ],
+        "pdf_size": [
+          794,
+          1123
+        ],
+        "cpu_ink_box": [
+          120,
+          101,
+          398,
+          117
+        ],
+        "pdf_ink_box": [
+          120,
+          100,
+          398,
+          116
+        ]
+      }
+    ]
+  },
+  {
+    "id": "DOCX-MIN-002",
+    "independent_text_readers_agree": true,
+    "pages": [
+      {
+        "page": 1,
+        "cpu_size": [
+          794,
+          1123
+        ],
+        "pdf_size": [
+          794,
+          1123
+        ],
+        "cpu_ink_box": [
+          120,
+          103,
+          293,
+          146
+        ],
+        "pdf_ink_box": [
+          120,
+          102,
+          293,
+          146
+        ]
+      }
+    ]
+  },
+  {
+    "id": "DOCX-MIN-003",
+    "independent_text_readers_agree": true,
+    "pages": [
+      {
+        "page": 1,
+        "cpu_size": [
+          794,
+          1123
+        ],
+        "pdf_size": [
+          794,
+          1123
+        ],
+        "cpu_ink_box": [
+          120,
+          101,
+          286,
+          141
+        ],
+        "pdf_ink_box": [
+          120,
+          100,
+          286,
+          140
+        ]
+      }
+    ]
+  },
+  {
+    "id": "DOCX-MIN-004",
+    "independent_text_readers_agree": true,
+    "pages": [
+      {
+        "page": 1,
+        "cpu_size": [
+          794,
+          1123
+        ],
+        "pdf_size": [
+          794,
+          1123
+        ],
+        "cpu_ink_box": [
+          120,
+          101,
+          318,
+          141
+        ],
+        "pdf_ink_box": [
+          120,
+          100,
+          318,
+          140
+        ]
+      }
+    ]
+  },
+  {
+    "id": "DOCX-MIN-005",
+    "independent_text_readers_agree": true,
+    "pages": [
+      {
+        "page": 1,
+        "cpu_size": [
+          794,
+          1123
+        ],
+        "pdf_size": [
+          794,
+          1123
+        ],
+        "cpu_ink_box": [
+          120,
+          101,
+          350,
+          117
+        ],
+        "pdf_ink_box": [
+          120,
+          100,
+          350,
+          116
+        ]
+      }
+    ]
+  }
+]

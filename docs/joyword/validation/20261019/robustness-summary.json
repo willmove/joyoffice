@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "target_sha": "aef1b8ddce63aac90ba54e5340984c205a90d810",
+  "harness_git_sha": "26f46c3f2582de88cb09012487def0744788f9c7",
+  "harness_binary_sha256": "8a89d0ca74619567312e699dae2839c8f65d8132b5c730962c8494d296955623",
+  "harness_worktree_dirty": false,
+  "os": "Windows-11-10.0.26300-SP0",
+  "python": "3.14.7",
+  "memory_limit": {
+    "enforced": false,
+    "reason": "RLIMIT_AS unavailable; no Windows Job Object backend"
+  },
+  "process_tree_timeout_kill": "taskkill /T",
+  "coverage_feedback": false,
+  "campaign_seed": 20261015,
+  "requested_runs": 81,
+  "requested_seconds": 120,
+  "executed": 81,
+  "counts": {
+    "ok": 43,
+    "rejected": 38
+  },
+  "matrix_complete": true,
+  "elapsed_seconds": 11.05356529999699,
+  "timeout_seconds": 3,
+  "effective_address_space_mib": 0,
+  "aggregate_children_peak_rss_bytes": null,
+  "peak_scope": "OS cumulative maximum across child processes; includes capability probe, not per-case"
+}

@@ -1,0 +1,139 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running unittests src\lib.rs (target\debug\deps\joyword_pdf-c90209b1d7fb8410.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\export_pdf.rs (target\debug\deps\export_pdf-b8f93734f227b504.exe)
+
+running 10 tests
+test core_title_reads_dublin_core_and_rejects_active_markup ... ok
+test a_classic_cross_reference_file_reports_structure_without_the_writer ... ok
+test an_image_is_an_xobject ... ok
+test plain_render_still_names_the_producer_without_a_title ... ok
+test heading_styles_become_bookmarks_and_a_bare_outline_level_does_not ... ok
+test each_section_keeps_its_page_box ... ok
+test two_renders_match_and_carry_no_clock ... ok
+test pdftotext_reads_the_scene_text ... ok
+test synthetic_bold_contributes_searchable_text_only_once ... ok
+test an_https_link_is_a_uri_annotation_and_a_script_is_not ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\images.rs (target\debug\deps\images-7830403ec13d61c4.exe)
+
+running 1 test
+test a_scene_image_is_embedded_and_not_omitted ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\pages.rs (target\debug\deps\pages-c4c3faf5a4654635.exe)
+
+running 2 tests
+test first_and_later_headers_share_one_page_scene_with_pdf ... ok
+test a_header_on_the_page_scene_is_the_pdf_page ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\scene_rect.rs (target\debug\deps\scene_rect-ed8264774d982379.exe)
+
+running 1 test
+test a_scene_rect_changes_the_pdf_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\text_color.rs (target\debug\deps\text_color-7cc967a0ecbcf4d0.exe)
+
+running 1 test
+test a_non_black_run_changes_the_pdf_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\unified.rs (target\debug\deps\unified-7ecc86e874bc0d30.exe)
+
+running 5 tests
+test missing_glyphs_are_reported_without_changing_text ... ok
+test a_run_with_an_unknown_font_is_rejected ... ok
+test every_cjk_cluster_gets_a_glyph_and_positions_are_monotonic ... ok
+test pdf_is_deterministic_embeds_a_subset_and_keeps_text ... ok
+test document_snapshot_pages_render_deterministically_without_mutation_or_reflow ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+     Running unittests src\lib.rs (target\debug\deps\joyword_render-cf2e3eb4f0820d52.exe)
+
+running 2 tests
+test tests::bgra_conversion_swaps_only_red_and_blue ... ok
+test cache::tests::a_hundred_pages_at_two_x_raster_by_neighborhood ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests\cjk.rs (target\debug\deps\cjk-2182b5ad970067ce.exe)
+
+running 2 tests
+test cjk_scene_raster_keeps_source_positions_and_complete_ink ... ok
+test collection_face_is_not_replaced_by_another_face_with_the_same_file_hash ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+     Running tests\images.rs (target\debug\deps\images-7ed2cf0f591d7c6e.exe)
+
+running 1 test
+test a_red_image_paints_a_non_white_pixel ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\m1_scene_pdf.rs (target\debug\deps\m1_scene_pdf-2442240a8c9937a4.exe)
+
+running 1 test
+test zoom_overlay_cache_rebuild_and_pdf_glyphs_share_one_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests\raster.rs (target\debug\deps\raster-a01a3bd6992cb2fa.exe)
+
+running 18 tests
+test color_font_is_refused_instead_of_silently_drawing_base_outlines ... ok
+test hard_pixel_ceiling_cannot_be_raised ... ok
+test glyph_offsets_use_font_upward_y_and_page_downward_y ... ok
+test cancellation_is_shared_monotonic_and_keeps_existing_pixels ... ok
+test missing_outline_table_is_an_error_instead_of_blank_success ... ok
+test exact_scene_is_deterministic_opaque_and_not_mutated ... ok
+test outline_cache_still_charges_repeated_raster_work ... ok
+test whitespace_and_empty_pages_have_no_ink_but_keep_geometry ... ok
+test exact_font_bytes_and_face_identity_are_required ... ok
+test png_decodes_to_the_same_pixels ... ok
+test translated_origin_translates_pixels_without_reshaping ... ok
+test srgb_text_and_its_underline_paint_the_run_colour ... ok
+test subpixel_underlines_remain_visible_between_pixel_centres ... ok
+test legacy_ebdt_strikes_do_not_disable_existing_scalable_outlines ... ok
+test invalid_scenes_and_overflow_are_rejected ... ok
+test zoom_and_dpi_only_change_raster_projection ... ok
+test every_budget_fails_before_publishing_a_partial_page ... ok
+test raster_size_answers_exactly_what_rasterize_gives_or_refuses ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\requests.rs (target\debug\deps\requests-412054515016b5eb.exe)
+
+running 4 tests
+test current_document_font_profile_or_dpi_must_match_at_handoff ... ok
+test idle_or_failed_requests_are_not_rescheduled_without_new_input ... ok
+test late_results_from_prior_zoom_are_rejected_even_after_returning_to_it ... ok
+test renewed_requests_issue_a_new_ticket_and_retire_the_old_one ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyword_pdf
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyword_render
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

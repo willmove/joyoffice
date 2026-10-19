@@ -1,0 +1,27 @@
+[
+  {
+    "case": "DOCX-MIN-001",
+    "matches_inspect": true,
+    "text": "合作协议：甲方与乙方于 2026 年签署。\r\n\f"
+  },
+  {
+    "case": "DOCX-MIN-002",
+    "matches_inspect": true,
+    "text": "第一条 合作内容\r\n甲方委托乙方完成设计服务。\r\n\f"
+  },
+  {
+    "case": "DOCX-MIN-003",
+    "matches_inspect": true,
+    "text": "第一段：未知内容之前。\r\n第二段：未知内容之后。\r\n\f"
+  },
+  {
+    "case": "DOCX-MIN-004",
+    "matches_inspect": true,
+    "text": "项目说明\r\n模板与链接都指向本包之外。\r\n\f"
+  },
+  {
+    "case": "DOCX-MIN-005",
+    "matches_inspect": true,
+    "text": "本文档要求修订跟踪并限制编辑。\r\n\f"
+  }
+]

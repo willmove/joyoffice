@@ -1,0 +1,9 @@
+   Compiling joyword-render v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.76s
+     Running tests\raster.rs (target\debug\deps\raster-a01a3bd6992cb2fa.exe)
+
+running 1 test
+test subpixel_underlines_remain_visible_between_pixel_centres ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 0.00s
+

@@ -1,0 +1,324 @@
+{
+  "date": "2026-10-19",
+  "base_sha": "26f46c3f2582de88cb09012487def0744788f9c7",
+  "worktree_patch": {
+    "crates/joyword-pdf/src/lib.rs": "52e79162eb2603e5891d2d1911b9d2d21dc3dade44de84e8fc90aed4d0235529",
+    "crates/joyword-pdf/tests/export_pdf.rs": "83ed4bef9b3035196bb4998e0a3a5205c2410d17ad23fdcb5d982d1ac60f4efe",
+    "crates/joyword-render/src/lib.rs": "93d675f69cde82925e04e1f6eae08f6f888c867026f0737961900936f8a99067",
+    "crates/joyword-render/tests/raster.rs": "f7af239390f570d52274ee89c58ad89ce4e8deeca1dcdb4a48b219690592b404",
+    "docs/joyword/TASKS.md": "e88601d5c5efd1ebcb3a47bf6cf2f1d04f64c1770c74fb6412569e79ca47af40",
+    "docs/joyword/IMPLEMENTATION.md": "c921eda7a3d167e889a46381187e952e79441f10d4dd3ba10b42c243d048d38c",
+    "docs/joyword/VALIDATION-20261019.md": "e72f97b3946a2076b77d2dd7e2277c553a7d22aaa9543341db43c7d158b3d9f3"
+  },
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python_driver": "3.14.7",
+  "gui": {
+    "status": "completed_with_saved_evidence",
+    "window_title": "JoyWord · Preview",
+    "observations": "gui/observations.jsonl",
+    "summary": "gui/summary.json",
+    "screenshot_count": 16,
+    "iso_ime_commit": "verified",
+    "system_clipboard_paste": "verified",
+    "typing_and_ime_undo_groups": "verified",
+    "save_default_copy": "verified",
+    "save_confirm_original": "verified",
+    "repeated_save": "verified",
+    "risk_warning_lists_unobservable_metadata": "verified",
+    "creation_time_and_zone_identifier_preserved": "verified",
+    "exact_acl_flag_preservation": false,
+    "long_open_and_close_prompt": "not_verified",
+    "pdf_gui_readers_and_system_print": "not_verified",
+    "panic_crash_log": "not_verified",
+    "computer_use_after_evidence_steps": "native_pipe_unavailable_after_reset_and_retry"
+  },
+  "test_runs": {
+    "cargo-test.log": {
+      "suites": 91,
+      "passed": 652,
+      "failed": 0,
+      "ignored": 0
+    },
+    "app-test.log": {
+      "suites": 1,
+      "passed": 38,
+      "failed": 0,
+      "ignored": 0
+    },
+    "recovery.log": {
+      "suites": 6,
+      "passed": 15,
+      "failed": 0,
+      "ignored": 0
+    },
+    "robustness.log": {
+      "suites": 4,
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    "render-pdf-final.log": {
+      "suites": 15,
+      "passed": 48,
+      "failed": 0,
+      "ignored": 0
+    },
+    "subpixel-final.log": {
+      "suites": 1,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    "app-final.log": {
+      "suites": 1,
+      "passed": 38,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "files": {
+    "app-final.log": {
+      "sha256": "b26bc94dbbeadf726cff76ff752d583c9c3a12a5ea114730576946e3f7f7c81a",
+      "bytes": 4042
+    },
+    "app-test.log": {
+      "sha256": "c1dc79a8f698be3e0d459d55f06d1ddeb02baf1755ae59f1dcce3365167d7e35",
+      "bytes": 4044
+    },
+    "bold-before.txt": {
+      "sha256": "8565b80817de833e76ca99e0b29e6978aef7f5344b14864ffbd44f3fe571d8b2",
+      "bytes": 90
+    },
+    "build-final.log": {
+      "sha256": "f812ca193c0896ccd1a2fb2d35233989bc8b27298cac9e7241297b5f9b089855",
+      "bytes": 334
+    },
+    "cargo-test.log": {
+      "sha256": "a02a808f1aac2378f6b16e3ed03006bba79bbbd9134aaa4ca15e440c71a3477f",
+      "bytes": 64303
+    },
+    "cli-final.log": {
+      "sha256": "20f76bc25dd866b7d1ee58bf66482606af4c94d72c0c54b34c398816b57496d1",
+      "bytes": 60
+    },
+    "cli-summary.json": {
+      "sha256": "110b54cd4ebe4746692a49061346ed7a975fc9d5f630764135f7d9490fa89eb1",
+      "bytes": 8814
+    },
+    "clippy-final.log": {
+      "sha256": "19735fe1fa297d3b80989a645191f77f4408883b41d0007c34a8265a9a4dcb8d",
+      "bytes": 334
+    },
+    "docs-final.log": {
+      "sha256": "9ac7f2ca3c91fa5221ae60fd546f5e10d7d64c60a21a78f27fa6953449213547",
+      "bytes": 329
+    },
+    "DOCX-MIN-001/cpu.png": {
+      "sha256": "9acfe43ff2e6d80dd638dab3e68c5b445acdc7f2e2f66925f3297746fbdbb5b9",
+      "bytes": 29283
+    },
+    "DOCX-MIN-001/inspect.json": {
+      "sha256": "a76aa09f163cd37bf5c934b34c67bb8b9daa756539554cf9c6aac0dae4475b33",
+      "bytes": 676
+    },
+    "DOCX-MIN-001/pdf-raster.png": {
+      "sha256": "1fc4622043555f0ba8325d73fb241f75c2656c030b606c317a73d0f7a169a837",
+      "bytes": 9446
+    },
+    "DOCX-MIN-002/cpu.png": {
+      "sha256": "f1cda3a695b511af2f450c380767dfa5092666e44e8f8e321e1a9063fcb5a78e",
+      "bytes": 33364
+    },
+    "DOCX-MIN-002/inspect.json": {
+      "sha256": "5688c5882bc1da96d0aaa5fac3301022e43c08f5dc03e115c17f84fe071a48d6",
+      "bytes": 687
+    },
+    "DOCX-MIN-002/pdf-raster.png": {
+      "sha256": "c8f0cc397650e17827fa175cdce107b6a30aef22f45937c3ece9785383937bbd",
+      "bytes": 12813
+    },
+    "DOCX-MIN-003/cpu.png": {
+      "sha256": "9160a053f8af56c0b7b8c0d036e486abb6c610ba6227a36be3963165e14e54b7",
+      "bytes": 31661
+    },
+    "DOCX-MIN-003/inspect.json": {
+      "sha256": "656411c8ed46ee92bbfe7c6d17546d63d9fd8293de7de9cf2bebb2e02b796951",
+      "bytes": 692
+    },
+    "DOCX-MIN-003/pdf-raster.png": {
+      "sha256": "e403d6e26eae45ee93a80d26c05821d8bfb65a2f9485d9a452e16681145bd12f",
+      "bytes": 11478
+    },
+    "DOCX-MIN-004/cpu.png": {
+      "sha256": "be2f6dd8971a189fa36ff43b56550e7aaa2ac4cf80946b7073bde3502f01cba9",
+      "bytes": 31525
+    },
+    "DOCX-MIN-004/inspect.json": {
+      "sha256": "565ad1d02d03a5a4a90b7cff6e6d421cf678758d6572e6049fc9e7c79bee0f94",
+      "bytes": 677
+    },
+    "DOCX-MIN-004/pdf-raster.png": {
+      "sha256": "5ffd0079749fb4b969e881fa333242f2dcb2abafb5d4636d1045489b9e7fd5a7",
+      "bytes": 11035
+    },
+    "DOCX-MIN-005/cpu.png": {
+      "sha256": "e71b85ff52a79a8fb3fb58495a064c25f38b5a0c9dd8a602596be0fa43257c6e",
+      "bytes": 31007
+    },
+    "DOCX-MIN-005/inspect.json": {
+      "sha256": "c0c34ac27a4d7a2f963a2705e944b61f179e18ccf882b9e9c6826831b7d746af",
+      "bytes": 668
+    },
+    "DOCX-MIN-005/pdf-raster.png": {
+      "sha256": "214ce913d05bf016df79e09b54b9a8dbb217e4ca20f6b7fcee9112cb8e40774c",
+      "bytes": 10516
+    },
+    "driver-tests.log": {
+      "sha256": "247ab4f0eec60092d2a36359c93f546e029d1ab996401177dfc08b64b3dbaee4",
+      "bytes": 128
+    },
+    "gates-final.log": {
+      "sha256": "759e598ac0716e7624958b48c0651965beb044b9c12d575216d293e8b054321b",
+      "bytes": 27
+    },
+    "gui/01-open-local.png": {
+      "sha256": "d605b29dc2d89f119e787327dc1f0ff76debe870a330cb81ce868c62b60e232d",
+      "bytes": 68217
+    },
+    "gui/02-save-risk.png": {
+      "sha256": "afd0336d0473bb64055e970c820a8a3ac17288f8a4afcddedac98a522f0ce3c5",
+      "bytes": 88092
+    },
+    "gui/03-save-copy.png": {
+      "sha256": "d64cd3b8f5ae9372f75ec55422e916e1f2357dc7c0ed86b3aeead4bd30e34f34",
+      "bytes": 75936
+    },
+    "gui/04-save-original.png": {
+      "sha256": "c34566cbd833f77ddc2850fb0e74fa5d5a64f168999965f7eb55b14f66c6718e",
+      "bytes": 74137
+    },
+    "gui/05-ime-preedit.png": {
+      "sha256": "2e25850bf08b0b0fde63dbcc4fb0eeac4e475cc2b895d0fbd886be659b020e15",
+      "bytes": 71733
+    },
+    "gui/06-ime-cancel.png": {
+      "sha256": "825beadc5a0513dd6246d95b6e834c3b37f75c035a2e22262ff4b67823268b72",
+      "bytes": 68726
+    },
+    "gui/07-ime-nihao.png": {
+      "sha256": "b66c4b04806377991452c7f3a3752329b1800317a423b47e3e7f5935e5b24f56",
+      "bytes": 73596
+    },
+    "gui/08-ime-commit.png": {
+      "sha256": "aa8d01c98f967422755e53ccaf4f2493816faa74ab8aa926ef1f355abeb7c15f",
+      "bytes": 68949
+    },
+    "gui/09-ime-undo.png": {
+      "sha256": "08f5a8ae4315c0c36f78210fabd3c74327846d8aa4e5894b5e571defdef52a2d",
+      "bytes": 68853
+    },
+    "gui/10-typing-abc.png": {
+      "sha256": "3693cdf1c1650f875b5f2441ec2a800569a1585579102798dccdef0317fa5769",
+      "bytes": 68822
+    },
+    "gui/11-typing-undo.png": {
+      "sha256": "08f5a8ae4315c0c36f78210fabd3c74327846d8aa4e5894b5e571defdef52a2d",
+      "bytes": 68853
+    },
+    "gui/12-system-paste.png": {
+      "sha256": "7a223ef4c4f783df070691d4d7a7029f8d11c629c657c63437d1d3c74c9d8bf3",
+      "bytes": 70518
+    },
+    "gui/13-system-paste-undo.png": {
+      "sha256": "08f5a8ae4315c0c36f78210fabd3c74327846d8aa4e5894b5e571defdef52a2d",
+      "bytes": 68853
+    },
+    "gui/14-second-save.png": {
+      "sha256": "4392cb3a7847fdcfa09b89798923214d54f6815c770977cef4e5f13baaea83bb",
+      "bytes": 74640
+    },
+    "gui/15-undo-after-save.png": {
+      "sha256": "2e769db743400856bb4cae0a22a2382ef4b469291251bade0ace5d11fbc3f606",
+      "bytes": 69082
+    },
+    "gui/16-undo-resave.png": {
+      "sha256": "7f9dabe9b6a8dc1f77ebd325d71f42d0895ddebcb205e541b79aa674dc3cc002",
+      "bytes": 74372
+    },
+    "gui/observations.jsonl": {
+      "sha256": "e318f376e552d2dd6f56efcd265dafaf92ae113682cf0826ec0d82fb6fea9ae9",
+      "bytes": 3141
+    },
+    "gui/summary.json": {
+      "sha256": "cc49fa06f64d8ad73c7a1925ff67ba4254799c6a4a9e77e4796094295d684946",
+      "bytes": 8521
+    },
+    "long-render.log": {
+      "sha256": "cf41dec52f27aae34e3fc50e6b39580c1f1d97e7f4c27fa00d6ab7c058051ad8",
+      "bytes": 42
+    },
+    "pdf-readback.json": {
+      "sha256": "e78fec37bdc5b98100d9b1b6d57d21cb1d6aafcc78057ef6aca45efa1329622e",
+      "bytes": 2398
+    },
+    "perf.log": {
+      "sha256": "cdb1edc5d568871f48ff21eea5015237f708cfa8acaf444113d6d3a9991ab3bf",
+      "bytes": 2883
+    },
+    "poppler-readback.json": {
+      "sha256": "9d0ec5e633790576defe04b284849674ff95364ffcf01380e111ac7d24c9ea43",
+      "bytes": 749
+    },
+    "raster-final.log": {
+      "sha256": "f1016fe689a04e06f52824ef9ab260633a7a949128b6c4063a43ebd94eaec1bc",
+      "bytes": 455
+    },
+    "recovery.log": {
+      "sha256": "a0829bd03fec5dea021f7395af39ed3b3f35eec9601f521443489ba7089efd53",
+      "bytes": 3893
+    },
+    "render-pdf-final.log": {
+      "sha256": "e3f80fba5ce8c2c3ba93a0b70463a15ff41e707e98122ef740df66e625140a0d",
+      "bytes": 6061
+    },
+    "robustness-summary.json": {
+      "sha256": "ddd34b888f3ad5ec6086fdf4870ceca1625c229cc635618d9b4f222a23d8fdb9",
+      "bytes": 982
+    },
+    "robustness.log": {
+      "sha256": "488f295ea52131f04497c67c8259435248114ec49acf4599556740b83e2f659a",
+      "bytes": 2648
+    },
+    "subpixel-final.log": {
+      "sha256": "31a59f216615494cba1fe2b9bb4ab14c69ecc31e359c50b1162e46f7ff049631",
+      "bytes": 435
+    },
+    "verify_cli.py": {
+      "sha256": "ced4053528103e884d780a5533eadfa2b6fef9d173437bcb1e8a8b4990ecf5ba",
+      "bytes": 2194
+    },
+    "verify_pdf.py": {
+      "sha256": "78f67f3b4cb193e617f2ecf8f7c79e30e3415223ad6b3de79c2439ad76fbbe3c",
+      "bytes": 1560
+    }
+  },
+  "branch": "codex/validation-20261019",
+  "final_verification": {
+    "cargo_fmt": "pass",
+    "targeted_render_pdf_tests": {
+      "passed": 48,
+      "failed": 0,
+      "ignored": 0
+    },
+    "targeted_clippy": "pass",
+    "docs_check": "pass",
+    "gates_check": "pass",
+    "long_document": {
+      "paragraphs": 4000,
+      "text_chars": 160000,
+      "result": "layout exceeded 64-page CLI budget",
+      "exit": 2,
+      "input_sha256": "8a1a2f96ef71918d4bb9b2428a7d76caa6226e8e7def19466a246cc77f27390c"
+    }
+  }
+}
