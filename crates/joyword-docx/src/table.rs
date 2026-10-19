@@ -1044,8 +1044,12 @@ fn read_conditional(style: &mut Style, element: &Element) -> bool {
     let condition = match element.attribute(Some(W), "type") {
         Some("firstRow") => TableCondition::FirstRow,
         Some("lastRow") => TableCondition::LastRow,
+        Some("firstCol") => TableCondition::FirstColumn,
+        Some("lastCol") => TableCondition::LastColumn,
         Some("band1Horz") => TableCondition::Band1Horizontal,
         Some("band2Horz") => TableCondition::Band2Horizontal,
+        Some("band1Vert") => TableCondition::Band1Vertical,
+        Some("band2Vert") => TableCondition::Band2Vertical,
         _ => return false,
     };
     let mut format = TableFormat::default();
