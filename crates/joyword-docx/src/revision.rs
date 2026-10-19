@@ -160,7 +160,7 @@ pub(crate) fn flush_moves(importer: &mut Importer<'_>) {
     }
 }
 
-fn revision_kind(local: &str) -> Option<RevisionKind> {
+pub(crate) fn revision_kind(local: &str) -> Option<RevisionKind> {
     match local {
         "ins" => Some(RevisionKind::Insert),
         "del" => Some(RevisionKind::Delete),
@@ -178,6 +178,12 @@ fn move_ends(local: &str) -> Option<(MoveSide, bool)> {
         "moveToRangeEnd" => Some((MoveSide::To, true)),
         _ => None,
     }
+}
+
+/// Plain `w:ins` / `w:del` / move wrapper for a typed table cell.
+/// Anything the cell parser cannot represent returns `None`.
+pub(crate) fn cell_text_revision(element: &Element, kind: RevisionKind) -> Option<TextRevision> {
+    plain_revision(element, kind)
 }
 
 fn plain_revision(element: &Element, kind: RevisionKind) -> Option<TextRevision> {

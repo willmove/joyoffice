@@ -4,11 +4,11 @@ use std::sync::Arc;
 
 use joyword_engine::{
     CellAddress, Command, CommandError, Outcome, Selection, Session, TableMerge, TableStructure,
-    Transaction, TxError, cell_address, cell_caret, cell_selection,
+    Transaction, TxError, cell_address, cell_caret, cell_selection, current_revision,
 };
 use joyword_model::{
     Bias, Block, BlockSeq, Cell, CellBorders, Document, Issue, Measure, NodeId, Paragraph,
-    Position, ScalarOffset, Table, VerticalMerge, table_structure,
+    Position, RevisionKind, ScalarOffset, Table, VerticalMerge, table_structure,
 };
 
 fn blank(lines: &[&str]) -> Document {
@@ -605,4 +605,82 @@ fn cell_selection_covers_one_cell_and_cross_cell_delete_is_refused() {
             .plain_text(|_| String::new()),
         "甲乙"
     );
+}
+
+fn typed_cell(session: &Session) -> &Paragraph {
+    table_of(session).rows[0].cells[0]
+        .blocks
+        .get(0)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
+}
+
+#[test]
+fn tracked_text_in_a_typed_cell_uses_the_author_and_accepts() {
+    let mut document = blank(&[""]);
+    let one = cell(&mut document, "甲", 1, VerticalMerge::None);
+    let built = table(&mut document, vec![vec![one]], 1);
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    session.set_revision_author("审阅人");
+    session.set_revision_date(Some(Arc::from("2026-01-01T00:00:00Z")));
+    exec(
+        &mut session,
+        vec![Command::SetTrackRevisions { enabled: true }],
+    )
+    .unwrap();
+    let paragraph = first_cell_paragraph(&session);
+    let at = pos(&session, paragraph, 1);
+    exec(
+        &mut session,
+        vec![Command::InsertText {
+            at,
+            text: "乙".into(),
+        }],
+    )
+    .unwrap();
+    assert_eq!(typed_cell(&session).plain_text(|_| String::new()), "甲乙");
+    let mark = typed_cell(&session)
+        .runs()
+        .last()
+        .unwrap()
+        .revision
+        .as_ref()
+        .unwrap();
+    assert_eq!(mark.author.as_ref(), "审阅人");
+    assert_eq!(mark.kind, RevisionKind::Insert);
+    let id = mark.id;
+    let caret = Selection::caret(pos(&session, paragraph, 2));
+    assert_eq!(current_revision(session.document(), &caret), Some(id));
+    exec(&mut session, vec![Command::AcceptRevision { id }]).unwrap();
+    assert!(
+        typed_cell(&session)
+            .runs()
+            .iter()
+            .all(|run| run.revision.is_none())
+    );
+    assert_eq!(typed_cell(&session).plain_text(|_| String::new()), "甲乙");
+    session.undo().unwrap();
+    exec(&mut session, vec![Command::RejectRevision { id }]).unwrap();
+    assert_eq!(typed_cell(&session).plain_text(|_| String::new()), "甲");
+
+    let paragraph = first_cell_paragraph(&session);
+    let start = pos(&session, paragraph, 0);
+    let end = pos(&session, paragraph, 1);
+    exec(&mut session, vec![Command::DeleteRange { start, end }]).unwrap();
+    let deleted = typed_cell(&session).runs()[0]
+        .revision
+        .as_ref()
+        .unwrap()
+        .clone();
+    assert_eq!(deleted.kind, RevisionKind::Delete);
+    assert_eq!(deleted.author.as_ref(), "审阅人");
+    assert_eq!(typed_cell(&session).plain_text(|_| String::new()), "甲");
+    exec(
+        &mut session,
+        vec![Command::AcceptRevision { id: deleted.id }],
+    )
+    .unwrap();
+    assert_eq!(typed_cell(&session).plain_text(|_| String::new()), "");
 }

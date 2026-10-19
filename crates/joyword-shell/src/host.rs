@@ -8,9 +8,11 @@ use std::sync::Arc;
 
 use joyword_docx::{DiagnosticKind, Diagnostics};
 use joyword_engine::{ParagraphChange, RunChange, TableMerge};
-use joyword_model::Justification;
+use joyword_model::{Justification, RevisionView};
 
 use crate::diag::{AppLog, Event, Level};
+use crate::l10n::Locale;
+use crate::prefs::PrefsStore;
 
 use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
@@ -18,10 +20,12 @@ use crate::command::{
     ExecuteError, FILE_CLOSE, FILE_EXPORT_PDF, FILE_OPEN, FILE_OPEN_RECENT, FILE_PRINT, FILE_SAVE,
     FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL,
-    LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, Registry,
-    STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT,
-    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT,
-    TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT,
+    REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
+    REVIEW_REJECT_ALL, REVIEW_TRACK, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE,
+    TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_ROW_DELETE,
+    TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS,
+    VIEW_HIDDEN_TEXT,
 };
 use crate::dialogs::{ViewToggles, font_draft_from_decision, paragraph_draft_from_decision};
 use crate::docx::BoundDocx;
@@ -66,6 +70,14 @@ pub struct Office {
     /// Names from the last `style.list` on the active document.
     style_list: Vec<String>,
     view: ViewToggles,
+    /// Display name written onto revisions `Origin::User` creates.
+    revision_author: String,
+    prefs: Option<PrefsBinding>,
+}
+
+struct PrefsBinding {
+    store: PrefsStore,
+    locale: Locale,
 }
 
 impl Default for Office {
@@ -89,6 +101,60 @@ impl Office {
             diag: None,
             style_list: Vec::new(),
             view: ViewToggles::default(),
+            revision_author: String::new(),
+            prefs: None,
+        }
+    }
+
+    /// Loads `author.name` and keeps the store for later `review.author` writes.
+    pub fn bind_preferences(&mut self, dir: impl Into<std::path::PathBuf>, locale: Locale) {
+        let store = PrefsStore::new(dir);
+        let loaded = store.load(locale);
+        self.revision_author = loaded.prefs.author_name;
+        self.prefs = Some(PrefsBinding { store, locale });
+        self.apply_stored_author();
+    }
+
+    /// Author used for new user revisions. Empty means the engine writes `JoyWord`.
+    pub fn revision_author(&self) -> &str {
+        &self.revision_author
+    }
+
+    pub fn review_view(&self) -> RevisionView {
+        self.view.revision
+    }
+
+    /// Writes the author preference when a store is bound, then applies it.
+    /// A newer unwritable preferences file is left untouched.
+    pub fn set_review_author(&mut self, name: &str) -> Result<(), ExecuteError> {
+        let name = checked_author(name)?;
+        if let Some(binding) = &self.prefs {
+            let mut loaded = binding.store.load(binding.locale);
+            if !loaded.writable {
+                return Err(ExecuteError::Failed("review.author".into()));
+            }
+            loaded.prefs.author_name = name.clone();
+            binding
+                .store
+                .save(&loaded)
+                .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        }
+        self.revision_author = name;
+        self.apply_stored_author();
+        Ok(())
+    }
+
+    pub fn set_review_view(&mut self, revision: RevisionView) {
+        self.view.revision = revision;
+        if let Some(input) = self.active_mut() {
+            input.seal_review_boundary();
+        }
+    }
+
+    fn apply_stored_author(&mut self) {
+        let author = self.revision_author.clone();
+        if let Some(input) = self.active_mut() {
+            input.set_revision_author(&author);
         }
     }
 
@@ -479,13 +545,15 @@ impl Office {
         if let Some((id, source)) = existing {
             self.active = Some(id);
             self.remember(&source);
+            self.apply_stored_author();
             return Ok(());
         }
         let bound = BoundDocx::open_default(path)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
         let source = bound.source_path().to_path_buf();
-        let input = TextInput::new(bound, InputLimits::default())
+        let mut input = TextInput::new(bound, InputLimits::default())
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        input.set_revision_author(&self.revision_author);
         self.note_import(input.backend().session().diagnostics());
         let saved = input.backend().session().session().version().get();
         let id = DocumentId(self.next_id);
@@ -582,6 +650,17 @@ fn table_axis(
     }
 }
 
+fn checked_author(raw: &str) -> Result<String, ExecuteError> {
+    if raw.chars().any(|ch| ch.is_control()) {
+        return Err(ExecuteError::Failed("review.author".into()));
+    }
+    let name = raw.trim();
+    if name.chars().count() > 128 {
+        return Err(ExecuteError::Failed("review.author".into()));
+    }
+    Ok(name.to_owned())
+}
+
 fn text_arg<'a>(args: &'a BTreeMap<&'static str, ArgValue>, name: &str) -> Option<&'a str> {
     match args.get(name) {
         Some(ArgValue::Text(text)) => Some(text),
@@ -593,7 +672,13 @@ impl CommandHost for Office {
     fn availability(&self, id: CommandId) -> Availability {
         if matches!(
             id,
-            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES
+            VIEW_FORMATTING_MARKS
+                | VIEW_HIDDEN_TEXT
+                | VIEW_FIELD_CODES
+                | REVIEW_MARKUP
+                | REVIEW_FINAL
+                | REVIEW_ORIGINAL
+                | REVIEW_AUTHOR
         ) {
             return Availability::Enabled;
         }
@@ -629,6 +714,11 @@ impl CommandHost for Office {
                 | TABLE_SPLIT
                 | FORMAT_FONT
                 | FORMAT_PARAGRAPH
+                | REVIEW_TRACK
+                | REVIEW_ACCEPT
+                | REVIEW_REJECT
+                | REVIEW_ACCEPT_ALL
+                | REVIEW_REJECT_ALL
         ) || id.0.starts_with("edit.")
             || id.0.starts_with("page."))
             && self.active.is_none()
@@ -662,6 +752,11 @@ impl CommandHost for Office {
                         | TABLE_SPLIT
                         | FORMAT_FONT
                         | FORMAT_PARAGRAPH
+                        | REVIEW_TRACK
+                        | REVIEW_ACCEPT
+                        | REVIEW_REJECT
+                        | REVIEW_ACCEPT_ALL
+                        | REVIEW_REJECT_ALL
                 ))
         {
             return Availability::Disabled("input.read_only");
@@ -691,6 +786,11 @@ impl CommandHost for Office {
                 | TABLE_SPLIT
                 | FORMAT_FONT
                 | FORMAT_PARAGRAPH
+                | REVIEW_TRACK
+                | REVIEW_ACCEPT
+                | REVIEW_REJECT
+                | REVIEW_ACCEPT_ALL
+                | REVIEW_REJECT_ALL
         ) || id.0.starts_with("page."))
             && self.active().is_some_and(|input| input.read_only())
         {
@@ -765,6 +865,7 @@ impl Office {
                     return Err(ExecuteError::Failed("unknown document".into()));
                 }
                 self.active = Some(id);
+                self.apply_stored_author();
                 Ok(())
             }
             FILE_CLOSE => {
@@ -1129,6 +1230,70 @@ impl Office {
             VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES => {
                 self.view = self.view.toggled(id);
                 Ok(())
+            }
+            REVIEW_TRACK => {
+                let enabled = match args.get("enabled") {
+                    None => None,
+                    Some(ArgValue::Bool(value)) => Some(*value),
+                    Some(_) => return Err(ExecuteError::Failed("enabled".into())),
+                };
+                self.require_active()?
+                    .set_tracking(enabled)
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            REVIEW_ACCEPT => {
+                self.require_active()?
+                    .accept_current_revision()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            REVIEW_REJECT => {
+                self.require_active()?
+                    .reject_current_revision()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            REVIEW_ACCEPT_ALL => {
+                self.require_active()?
+                    .accept_all_revisions()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            REVIEW_REJECT_ALL => {
+                self.require_active()?
+                    .reject_all_revisions()
+                    .map_err(input_error)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
+            }
+            REVIEW_MARKUP => {
+                self.set_review_view(RevisionView::FinalWithMarkup);
+                Ok(())
+            }
+            REVIEW_FINAL => {
+                self.set_review_view(RevisionView::Final);
+                Ok(())
+            }
+            REVIEW_ORIGINAL => {
+                self.set_review_view(RevisionView::Original);
+                Ok(())
+            }
+            REVIEW_AUTHOR => {
+                let Some(name) = text_arg(args, "name") else {
+                    return Err(ExecuteError::Failed("name".into()));
+                };
+                let name = name.to_owned();
+                self.set_review_author(&name)
             }
             EDIT_PASTE => {
                 let text = self.clipboard.clone();

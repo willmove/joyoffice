@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 41,
-  "note": "T205 slice 3. The floor is 41 because T200 added the list-bullet button on top of the T203 insert-picture button. Single, double and dotted underlines and sRGB text colour are painted on the shared page scene. The three view switches are enabled and participate in the layout snapshot key. Formatting marks are a non-document overlay. Page fields show PAGE, NUMPAGES or SECTIONPAGES when field codes are on. Word count is checked against the documented EDIT-009 rule, not a Word dialog. Evidence stays unit. Other underline styles, theme colour as text fill, hidden paragraph-mark merging and cross-paragraph fields stay refused.",
+  "floor": 50,
+  "note": "T300 slice 2. The floor is 50 because the Review tab adds eight commands and the status bar reports the revision view. Markup paints a simple margin bar on the shared page scene. Evidence stays unit. Header revision decoration and Word/WPS exchange stay undone.",
   "controls": [
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
     {"id": "start.paste", "kind": "command", "tab": "start", "command": "edit.paste", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "paste"},
@@ -40,9 +40,18 @@
     {"id": "view.formatting_marks", "kind": "command", "tab": "view", "command": "view.formatting_marks", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "marks"},
     {"id": "view.hidden_text", "kind": "command", "tab": "view", "command": "view.hidden_text", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "hidden"},
     {"id": "view.field_codes", "kind": "command", "tab": "view", "command": "view.field_codes", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "field-code"},
+    {"id": "review.track", "kind": "command", "tab": "review", "command": "review.track", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-track"},
+    {"id": "review.accept", "kind": "command", "tab": "review", "command": "review.accept", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-accept"},
+    {"id": "review.reject", "kind": "command", "tab": "review", "command": "review.reject", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-reject"},
+    {"id": "review.accept_all", "kind": "command", "tab": "review", "command": "review.accept_all", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-accept"},
+    {"id": "review.reject_all", "kind": "command", "tab": "review", "command": "review.reject_all", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-reject"},
+    {"id": "review.markup", "kind": "command", "tab": "review", "command": "review.view.markup", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-markup"},
+    {"id": "review.final", "kind": "command", "tab": "review", "command": "review.view.final", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-final"},
+    {"id": "review.original", "kind": "command", "tab": "review", "command": "review.view.original", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-original"},
     {"id": "status.page", "kind": "status", "requirement": "PLATFORM-003", "evidence": "unit"},
     {"id": "status.words", "kind": "status", "requirement": "EDIT-009", "evidence": "unit"},
     {"id": "status.graphemes", "kind": "status", "requirement": "EDIT-009", "evidence": "unit"},
+    {"id": "status.review", "kind": "status", "requirement": "REVIEW-003", "evidence": "unit"},
     {"id": "ruler.indent", "kind": "ruler", "requirement": "PLATFORM-003", "evidence": "unit"},
     {"id": "ruler.tabs", "kind": "ruler", "requirement": "PLATFORM-003", "evidence": "unit"}
   ],
@@ -81,6 +90,12 @@
     {"id": "paragraph", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "marks", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "hidden", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
-    {"id": "field-code", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"}
+    {"id": "field-code", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-track", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-accept", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-reject", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-markup", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-final", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-original", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"}
   ]
 }

@@ -22,8 +22,10 @@ use crate::command::{
     ArgValue, CommandId, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_ITALIC, EDIT_PASTE,
     EDIT_REDO, EDIT_UNDO, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
-    PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, STYLE_LIST, SWITCH_LANGUAGE,
-    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    PAGE_BREAK, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL,
+    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
+    STYLE_LIST, SWITCH_LANGUAGE, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -64,17 +66,25 @@ pub enum RibbonTab {
     Start,
     Insert,
     Layout,
+    Review,
     View,
 }
 
 impl RibbonTab {
-    pub const ALL: [Self; 4] = [Self::Start, Self::Insert, Self::Layout, Self::View];
+    pub const ALL: [Self; 5] = [
+        Self::Start,
+        Self::Insert,
+        Self::Layout,
+        Self::Review,
+        Self::View,
+    ];
 
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Start => "start",
             Self::Insert => "insert",
             Self::Layout => "layout",
+            Self::Review => "review",
             Self::View => "view",
         }
     }
@@ -84,6 +94,7 @@ impl RibbonTab {
             Self::Start => "ribbon.tab.start",
             Self::Insert => "ribbon.tab.insert",
             Self::Layout => "ribbon.tab.layout",
+            Self::Review => "ribbon.tab.review",
             Self::View => "ribbon.tab.view",
         }
     }
@@ -623,6 +634,94 @@ pub const RIBBON: &[RibbonControl] = &[
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
+    RibbonControl {
+        id: "review.track",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.tracking",
+        command: REVIEW_TRACK,
+        label: "command.review.track",
+        icon: "review-track",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.accept",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.changes",
+        command: REVIEW_ACCEPT,
+        label: "command.review.accept",
+        icon: "review-accept",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-004",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.reject",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.changes",
+        command: REVIEW_REJECT,
+        label: "command.review.reject",
+        icon: "review-reject",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-004",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.accept_all",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.changes",
+        command: REVIEW_ACCEPT_ALL,
+        label: "command.review.accept_all",
+        icon: "review-accept",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-004",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.reject_all",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.changes",
+        command: REVIEW_REJECT_ALL,
+        label: "command.review.reject_all",
+        icon: "review-reject",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-004",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.markup",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.review_view",
+        command: REVIEW_MARKUP,
+        label: "command.review.markup",
+        icon: "review-markup",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.final",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.review_view",
+        command: REVIEW_FINAL,
+        label: "command.review.final",
+        icon: "review-final",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "review.original",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.review_view",
+        command: REVIEW_ORIGINAL,
+        label: "command.review.original",
+        icon: "review-original",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-003",
+        evidence: Evidence::Unit,
+    },
 ];
 
 /// Status and ruler surfaces. They are not commands.
@@ -643,6 +742,12 @@ pub const SURFACES: &[ChromeSurface] = &[
         id: "status.graphemes",
         kind: "status",
         requirement: "EDIT-009",
+        evidence: Evidence::Unit,
+    },
+    ChromeSurface {
+        id: "status.review",
+        kind: "status",
+        requirement: "REVIEW-003",
         evidence: Evidence::Unit,
     },
     ChromeSurface {
@@ -941,6 +1046,9 @@ pub struct StatusSnapshot {
     pub page: Option<u32>,
     pub pages: Option<u32>,
     pub census: TextCensus,
+    /// `markup`, `final` or `original`.
+    pub review: &'static str,
+    pub tracking: bool,
 }
 
 pub fn status_line(catalog: &Catalog, status: &StatusSnapshot) -> String {
@@ -972,7 +1080,23 @@ pub fn status_line(catalog: &Catalog, status: &StatusSnapshot) -> String {
             ("spaces", &spaces),
         ],
     );
-    format!("{page} · {counts}")
+    let view_key = match status.review {
+        "final" => "status.review.final",
+        "original" => "status.review.original",
+        _ => "status.review.markup",
+    };
+    let tracking_key = if status.tracking {
+        "status.tracking.on"
+    } else {
+        "status.tracking.off"
+    };
+    let view = catalog.text(view_key);
+    let tracking = catalog.text(tracking_key);
+    let review = catalog.format(
+        "status.review",
+        &[("view", view.as_str()), ("tracking", tracking.as_str())],
+    );
+    format!("{page} · {counts} · {review}")
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1237,6 +1361,30 @@ const ICONS: &[(&str, &str)] = &[
     (
         "field-code",
         "................|................|................|...##......##...|...#.#....#.#...|...#..#..#..#...|...#...##...#...|...#...##...#...|...#..#..#..#...|...#.#....#.#...|...##......##...|................|................|................|................|................",
+    ),
+    (
+        "review-track",
+        "................|................|..#.............|..#.............|..#.............|..#.............|..#.............|..#.............|..#.............|..#.............|..#.............|..#.............|................|................|................|................",
+    ),
+    (
+        "review-accept",
+        "................|................|................|................|............#...|...........#....|..........#.....|..#......#......|...#....#.......|....#..#........|.....#..........|................|................|................|................|................",
+    ),
+    (
+        "review-reject",
+        "................|................|................|................|...#........#...|....#......#....|.....#....#.....|......#..#......|......#..#......|.....#....#.....|....#......#....|...#........#...|................|................|................|................",
+    ),
+    (
+        "review-markup",
+        "................|................|..#.............|..#..######.....|..#.............|..#..####.......|..#.............|..#..######.....|..#.............|..#.............|................|................|................|................|................|................",
+    ),
+    (
+        "review-final",
+        "................|................|................|....########....|................|................|....######......|................|................|....########....|................|................|................|................|................|................",
+    ),
+    (
+        "review-original",
+        "................|................|................|....########....|................|................|################|................|................|....########....|................|................|................|................|................|................",
     ),
 ];
 

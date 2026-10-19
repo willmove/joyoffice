@@ -14,7 +14,7 @@ use joyword_model::{
 
 use crate::command::CommandError;
 use crate::locate::{self, paragraphs_in};
-use crate::map::{MapStep, PositionMap};
+use crate::map::{MapStep, PositionMap, Selection};
 use crate::session::{ChangeSet, Origin};
 
 pub(crate) struct EditContext {
@@ -27,6 +27,78 @@ pub(crate) struct EditContext {
 enum Resolution {
     Accept,
     Reject,
+}
+
+/// Text revision at the caret, or overlapping the selection.
+///
+/// A caret on the boundary between two runs prefers the run that ends there,
+/// so the change just typed is the current one. `None` means the selection
+/// does not touch a text revision.
+pub fn current_revision(document: &Document, selection: &Selection) -> Option<u32> {
+    if let Some(id) = revision_at(document, &selection.head) {
+        return Some(id);
+    }
+    if selection.anchor.story == selection.head.story
+        && selection.anchor.paragraph == selection.head.paragraph
+        && selection.anchor.offset != selection.head.offset
+    {
+        let lo = selection.anchor.offset.0.min(selection.head.offset.0);
+        let hi = selection.anchor.offset.0.max(selection.head.offset.0);
+        if let Some(id) = revision_overlapping(
+            document,
+            selection.head.story,
+            selection.head.paragraph,
+            lo,
+            hi,
+        ) {
+            return Some(id);
+        }
+    }
+    revision_at(document, &selection.anchor)
+}
+
+fn revision_at(document: &Document, position: &Position) -> Option<u32> {
+    let paragraph = document.find_paragraph(position.story, position.paragraph)?;
+    let offset = position.offset.0;
+    let mut at = 0usize;
+    let mut ending = None;
+    for run in paragraph.runs() {
+        let end = at + run.len;
+        if end == offset {
+            ending = run.revision.as_ref().map(|revision| revision.id);
+        }
+        if at < offset && offset < end {
+            return run.revision.as_ref().map(|revision| revision.id);
+        }
+        if at == offset && offset < end {
+            let starting = run.revision.as_ref().map(|revision| revision.id);
+            return ending.or(starting);
+        }
+        at = end;
+    }
+    ending
+}
+
+fn revision_overlapping(
+    document: &Document,
+    story: StoryId,
+    paragraph: NodeId,
+    start: usize,
+    end: usize,
+) -> Option<u32> {
+    let paragraph = document.find_paragraph(story, paragraph)?;
+    let mut at = 0usize;
+    for run in paragraph.runs() {
+        let run_end = at + run.len;
+        if at < end
+            && start < run_end
+            && let Some(revision) = &run.revision
+        {
+            return Some(revision.id);
+        }
+        at = run_end;
+    }
+    None
 }
 
 pub(crate) fn set_tracking(

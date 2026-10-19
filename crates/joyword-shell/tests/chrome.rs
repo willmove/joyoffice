@@ -114,6 +114,8 @@ fn status_line_reports_page_and_the_separate_counts() {
         page: Some(2),
         pages: Some(4),
         census,
+        review: "markup",
+        tracking: false,
     };
     let zh = status_line(Catalog::shipped(Locale::ZhCn), &status);
     assert!(zh.contains('2') && zh.contains('4'), "{zh}");
@@ -125,6 +127,8 @@ fn status_line_reports_page_and_the_separate_counts() {
     assert!(en.contains("CJK 2"), "{en}");
     assert!(en.contains("punctuation 1"), "{en}");
     assert!(en.contains("spaces 1"), "{en}");
+    assert!(en.contains("Markup"), "{en}");
+    assert!(en.contains("tracking off"), "{en}");
 
     let unknown = status_line(
         Catalog::shipped(Locale::En),
@@ -132,6 +136,8 @@ fn status_line_reports_page_and_the_separate_counts() {
             page: None,
             pages: None,
             census: TextCensus::default(),
+            review: "final",
+            tracking: true,
         },
     );
     assert!(unknown.contains("Page unavailable"), "{unknown}");

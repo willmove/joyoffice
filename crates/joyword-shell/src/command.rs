@@ -48,6 +48,7 @@ pub enum MenuKind {
     App,
     File,
     Edit,
+    Review,
     View,
 }
 
@@ -57,6 +58,7 @@ impl MenuKind {
             MenuKind::App => "menu.app",
             MenuKind::File => "menu.file",
             MenuKind::Edit => "menu.edit",
+            MenuKind::Review => "menu.review",
             MenuKind::View => "menu.view",
         }
     }
@@ -71,11 +73,15 @@ impl MenuKind {
                 MenuKind::App,
                 MenuKind::File,
                 MenuKind::Edit,
+                MenuKind::Review,
                 MenuKind::View,
             ],
-            Platform::Windows | Platform::Linux => {
-                &[MenuKind::File, MenuKind::Edit, MenuKind::View]
-            }
+            Platform::Windows | Platform::Linux => &[
+                MenuKind::File,
+                MenuKind::Edit,
+                MenuKind::Review,
+                MenuKind::View,
+            ],
         }
     }
 
@@ -348,6 +354,16 @@ const FORMAT_COPY_PARAMS: &[ParamSpec] = &[ParamSpec {
     kind: ParamKind::Bool,
     required: false,
 }];
+const REVIEW_TRACK_PARAMS: &[ParamSpec] = &[ParamSpec {
+    name: "enabled",
+    kind: ParamKind::Bool,
+    required: false,
+}];
+const REVIEW_AUTHOR_PARAM: &[ParamSpec] = &[ParamSpec {
+    name: "name",
+    kind: ParamKind::Text,
+    required: true,
+}];
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Availability {
@@ -477,6 +493,15 @@ pub const FIND_PREVIOUS: CommandId = CommandId("find.previous");
 pub const FIND_REPLACE: CommandId = CommandId("find.replace");
 pub const FIND_REPLACE_ALL: CommandId = CommandId("find.replace_all");
 pub const FORMAT_COPY: CommandId = CommandId("format.copy");
+pub const REVIEW_TRACK: CommandId = CommandId("review.track");
+pub const REVIEW_ACCEPT: CommandId = CommandId("review.accept");
+pub const REVIEW_REJECT: CommandId = CommandId("review.reject");
+pub const REVIEW_ACCEPT_ALL: CommandId = CommandId("review.accept_all");
+pub const REVIEW_REJECT_ALL: CommandId = CommandId("review.reject_all");
+pub const REVIEW_MARKUP: CommandId = CommandId("review.view.markup");
+pub const REVIEW_FINAL: CommandId = CommandId("review.view.final");
+pub const REVIEW_ORIGINAL: CommandId = CommandId("review.view.original");
+pub const REVIEW_AUTHOR: CommandId = CommandId("review.author");
 pub const FORMAT_PAINT: CommandId = CommandId("format.paint");
 pub const FORMAT_CANCEL: CommandId = CommandId("format.cancel");
 pub const TABLE_INSERT: CommandId = CommandId("table.insert");
@@ -1125,6 +1150,102 @@ impl Registry {
                 parameters: CLOSE_PARAMS,
             },
             CommandSpec {
+                id: REVIEW_TRACK,
+                label: "command.review.track",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 0,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: REVIEW_TRACK_PARAMS,
+            },
+            CommandSpec {
+                id: REVIEW_ACCEPT,
+                label: "command.review.accept",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_REJECT,
+                label: "command.review.reject",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_ACCEPT_ALL,
+                label: "command.review.accept_all",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_REJECT_ALL,
+                label: "command.review.reject_all",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_MARKUP,
+                label: "command.review.markup",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_FINAL,
+                label: "command.review.final",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_ORIGINAL,
+                label: "command.review.original",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_AUTHOR,
+                label: "command.review.author",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: REVIEW_AUTHOR_PARAM,
+            },
+            CommandSpec {
                 id: DOCUMENT_SWITCH,
                 label: "command.document.switch",
                 menu: None,
@@ -1377,6 +1498,7 @@ mod tests {
                 MenuKind::App,
                 MenuKind::File,
                 MenuKind::Edit,
+                MenuKind::Review,
                 MenuKind::View
             ]
         );
@@ -1405,7 +1527,12 @@ mod tests {
             let menus = Registry::builtin().menus(platform);
             assert_eq!(
                 kinds(&menus),
-                vec![MenuKind::File, MenuKind::Edit, MenuKind::View],
+                vec![
+                    MenuKind::File,
+                    MenuKind::Edit,
+                    MenuKind::Review,
+                    MenuKind::View
+                ],
                 "{platform:?}"
             );
             assert_eq!(

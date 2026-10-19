@@ -91,8 +91,8 @@ impl MoveMarker {
 }
 
 /// How layout projects tracked changes. Switching the view does not accept
-/// or delete revisions (SPEC §6, REVIEW-003). Simple margin marks are not
-/// this slice.
+/// or delete revisions (SPEC §6, REVIEW-003). Markup also paints a simple
+/// bar in the page's left margin beside each changed line.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum RevisionView {
     /// Final text with markup: insertions underlined and coloured, deletions

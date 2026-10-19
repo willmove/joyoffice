@@ -509,6 +509,31 @@ pub fn layout_incremental_viewed(
     )
 }
 
+/// [`layout_incremental`] with a revision projection and view options.
+/// The paragraph cache key includes both, so a Final fit is not reused as
+/// markup and formatting marks do not reuse a hidden-text fit.
+#[allow(clippy::too_many_arguments)]
+pub fn layout_incremental_reviewed(
+    document: &DocumentSnapshot,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    limits: LayoutLimits,
+    cancellation: &LayoutCancellation,
+    reuse: LayoutReuse<'_>,
+    revision: RevisionView,
+    options: ViewOptions,
+) -> Result<LayoutSnapshot, LayoutError> {
+    layout_incremental_views(
+        document,
+        faces,
+        profile,
+        limits,
+        cancellation,
+        reuse,
+        crate::document::SceneViews::pair(revision, options),
+    )
+}
+
 /// [`layout_incremental`] with the view options stored on the snapshot key.
 pub fn layout_incremental_with_view(
     document: &DocumentSnapshot,

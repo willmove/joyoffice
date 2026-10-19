@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 use joyword_engine::{Command, ParagraphChange, RunChange};
 use joyword_model::{
     Color, FontRef, Indent, Justification, LineSpacing, Measure, NodeId, ParaProps, Position,
-    StoryId, TabAlign, TabLeader, TabStop, Underline, indent_edges,
+    RevisionView, StoryId, TabAlign, TabLeader, TabStop, Underline, indent_edges,
 };
 
 use crate::command::{
@@ -127,12 +127,25 @@ const MAX_TABS: usize = 48;
 const MAX_FONT_NAME: usize = 64;
 
 /// Session view switches. They are not document content. The application
-/// maps these three flags onto the layout snapshot key.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// maps the flags and the revision projection onto the layout snapshot key.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ViewToggles {
     pub formatting_marks: bool,
     pub show_hidden: bool,
     pub field_codes: bool,
+    /// Markup, final or original. Markup is the session default.
+    pub revision: RevisionView,
+}
+
+impl Default for ViewToggles {
+    fn default() -> Self {
+        Self {
+            formatting_marks: false,
+            show_hidden: false,
+            field_codes: false,
+            revision: RevisionView::FinalWithMarkup,
+        }
+    }
 }
 
 impl ViewToggles {
@@ -145,6 +158,10 @@ impl ViewToggles {
             _ => {}
         }
         next
+    }
+
+    pub fn with_review(self, revision: RevisionView) -> Self {
+        Self { revision, ..self }
     }
 }
 

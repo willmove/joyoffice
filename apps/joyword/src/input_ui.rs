@@ -8,9 +8,12 @@ use gpui::{
 };
 use joyword_engine::Selection;
 use joyword_foundation::Emu;
+use joyword_model::RevisionView;
 use joyword_model::{Bias, Position};
 use joyword_shell::command::{
-    FORMAT_FONT, FORMAT_PARAGRAPH, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    FORMAT_FONT, FORMAT_PARAGRAPH, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL,
+    REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use joyword_shell::docx::BoundDocx;
 use joyword_shell::input::{Direction, InputError, InputSource, InputView, TextInput};
@@ -169,6 +172,43 @@ pub(crate) trait DocEditor {
     fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
         None
     }
+    fn set_revision_author(&mut self, author: &str);
+    fn tracking_enabled(&self) -> bool;
+    fn set_tracking(&mut self, enabled: Option<bool>) -> Result<bool, InputError>;
+    fn accept_current_revision(&mut self) -> Result<bool, InputError>;
+    fn reject_current_revision(&mut self) -> Result<bool, InputError>;
+    fn accept_all_revisions(&mut self) -> Result<bool, InputError>;
+    fn reject_all_revisions(&mut self) -> Result<bool, InputError>;
+    fn seal_review_boundary(&mut self);
+}
+
+macro_rules! forward_review {
+    () => {
+        fn set_revision_author(&mut self, author: &str) {
+            TextInput::set_revision_author(self, author);
+        }
+        fn tracking_enabled(&self) -> bool {
+            TextInput::tracking_enabled(self)
+        }
+        fn set_tracking(&mut self, enabled: Option<bool>) -> Result<bool, InputError> {
+            TextInput::set_tracking(self, enabled)
+        }
+        fn accept_current_revision(&mut self) -> Result<bool, InputError> {
+            TextInput::accept_current_revision(self)
+        }
+        fn reject_current_revision(&mut self) -> Result<bool, InputError> {
+            TextInput::reject_current_revision(self)
+        }
+        fn accept_all_revisions(&mut self) -> Result<bool, InputError> {
+            TextInput::accept_all_revisions(self)
+        }
+        fn reject_all_revisions(&mut self) -> Result<bool, InputError> {
+            TextInput::reject_all_revisions(self)
+        }
+        fn seal_review_boundary(&mut self) {
+            TextInput::seal_review_boundary(self);
+        }
+    };
 }
 
 impl DocEditor for TextInput<joyword_engine::Session> {
@@ -365,6 +405,7 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     fn selected_text(&self) -> Result<String, InputError> {
         TextInput::selected_text(self)
     }
+    forward_review!();
 }
 
 impl DocEditor for TextInput<BoundDocx> {
@@ -589,6 +630,7 @@ impl DocEditor for TextInput<BoundDocx> {
     fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
         Some(*self)
     }
+    forward_review!();
 }
 
 /// A package session without a bound path (the startup sample): fully editable
@@ -806,6 +848,7 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     fn recovery_baseline(&self) -> Option<&[u8]> {
         Some(self.backend().backing().original_bytes())
     }
+    forward_review!();
 }
 
 /// A Save As copy in flight: the editor epoch it was taken from and the
@@ -1368,7 +1411,8 @@ impl JoyWord {
     pub(crate) fn begin_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.confirm_if_dirty(AfterDiscard::PickOpen, window, cx);
     }
-    pub(crate) fn install_editor(&mut self, editor: Box<dyn DocEditor>) {
+    pub(crate) fn install_editor(&mut self, mut editor: Box<dyn DocEditor>) {
+        editor.set_revision_author(self.session.revision_author());
         self.editor = Some(editor);
         self.copy_epoch = self.copy_epoch.wrapping_add(1);
     }
@@ -2163,8 +2207,29 @@ impl JoyWord {
     pub(crate) fn input_availability(&self, id: CommandId) -> Availability {
         if matches!(
             id,
-            VIEW_FORMATTING_MARKS | VIEW_HIDDEN_TEXT | VIEW_FIELD_CODES
+            VIEW_FORMATTING_MARKS
+                | VIEW_HIDDEN_TEXT
+                | VIEW_FIELD_CODES
+                | REVIEW_MARKUP
+                | REVIEW_FINAL
+                | REVIEW_ORIGINAL
+                | REVIEW_AUTHOR
         ) {
+            return Availability::Enabled;
+        }
+        if matches!(
+            id,
+            REVIEW_TRACK | REVIEW_ACCEPT | REVIEW_REJECT | REVIEW_ACCEPT_ALL | REVIEW_REJECT_ALL
+        ) {
+            if self.open_gate.is_some() {
+                return Availability::Disabled("input.read_only");
+            }
+            let Some(editor) = &self.editor else {
+                return Availability::Disabled("input.loading");
+            };
+            if editor.read_only() {
+                return Availability::Disabled("input.read_only");
+            }
             return Availability::Enabled;
         }
         if joyword_shell::dialogs::is_dialog_command(id) {
@@ -2361,6 +2426,35 @@ impl JoyWord {
             cx.notify();
             return Ok(());
         }
+        if matches!(id, REVIEW_MARKUP | REVIEW_FINAL | REVIEW_ORIGINAL) {
+            let revision = match id {
+                REVIEW_FINAL => RevisionView::Final,
+                REVIEW_ORIGINAL => RevisionView::Original,
+                _ => RevisionView::FinalWithMarkup,
+            };
+            self.view_toggles.revision = revision;
+            self.session.set_review_view(revision);
+            if let Some(editor) = self.editor.as_mut() {
+                editor.seal_review_boundary();
+            }
+            cx.notify();
+            return Ok(());
+        }
+        if id == REVIEW_AUTHOR {
+            let Some(joyword_shell::command::ArgValue::Text(name)) = args.get("name") else {
+                self.input_error = Some("name".into());
+                return Err("name".into());
+            };
+            self.session
+                .set_review_author(name)
+                .map_err(|error| error.to_string())?;
+            let stored = self.session.revision_author().to_owned();
+            if let Some(editor) = self.editor.as_mut() {
+                editor.set_revision_author(&stored);
+            }
+            cx.notify();
+            return Ok(());
+        }
         if self.open_gate.is_some() {
             if let EDIT_INSERT = id
                 && let Some(joyword_shell::command::ArgValue::Text(text)) = args.get("text")
@@ -2373,6 +2467,29 @@ impl JoyWord {
             return Err("input.read_only".into());
         }
         match id {
+            REVIEW_TRACK => {
+                let enabled = match args.get("enabled") {
+                    None => None,
+                    Some(joyword_shell::command::ArgValue::Bool(value)) => Some(*value),
+                    Some(_) => {
+                        self.input_error = Some("enabled".into());
+                        return Err("enabled".into());
+                    }
+                };
+                self.apply_input(cx, |editor| editor.set_tracking(enabled).map(|_| ()))
+            }
+            REVIEW_ACCEPT => {
+                self.apply_input(cx, |editor| editor.accept_current_revision().map(|_| ()))
+            }
+            REVIEW_REJECT => {
+                self.apply_input(cx, |editor| editor.reject_current_revision().map(|_| ()))
+            }
+            REVIEW_ACCEPT_ALL => {
+                self.apply_input(cx, |editor| editor.accept_all_revisions().map(|_| ()))
+            }
+            REVIEW_REJECT_ALL => {
+                self.apply_input(cx, |editor| editor.reject_all_revisions().map(|_| ()))
+            }
             EDIT_UNDO => self.apply_input(cx, |editor| editor.undo()),
             EDIT_REDO => self.apply_input(cx, |editor| editor.redo()),
             EDIT_SELECT_ALL => self.apply_input(cx, |editor| editor.select_all()),
