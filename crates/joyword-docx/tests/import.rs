@@ -1663,6 +1663,112 @@ fn an_unchanged_field_package_keeps_its_markup_and_an_inserted_field_is_refused(
     assert!(plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err());
 }
 
+#[test]
+fn a_page_field_inserted_into_a_plain_paragraph_exports_and_round_trips() {
+    let sect = r#"<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/></w:sectPr>"#;
+    let bytes = body(&format!(
+        r#"<w:p><w:r><w:t>第页</w:t></w:r></w:p><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:t>共页</w:t></w:r></w:p>{sect}"#
+    ));
+    let result = open(&bytes);
+    let mut changed = result.document.clone();
+    let body_id = changed.body_id();
+    let fields = [
+        (
+            0,
+            1,
+            joyword_model::PageField::new(joyword_model::PageFieldKind::Page),
+        ),
+        (
+            1,
+            1,
+            joyword_model::PageField::with_cache(joyword_model::PageFieldKind::NumPages, "7"),
+        ),
+    ];
+    for (index, offset, field) in fields.clone() {
+        let id = changed.ids().node();
+        changed
+            .story_mut(body_id)
+            .unwrap()
+            .blocks
+            .update(index, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .insert_inline(
+                        joyword_model::ScalarOffset(offset),
+                        joyword_model::InlineObject {
+                            id,
+                            kind: InlineKind::PageField(field),
+                            source: None,
+                        },
+                        None,
+                        Arc::default(),
+                    )
+                    .unwrap();
+            });
+    }
+    let plan = plan_export(&result.backing, &changed.snapshot(), &Budget::default()).unwrap();
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    let xml =
+        std::str::from_utf8(package.part("/word/document.xml").unwrap().data.as_ref()).unwrap();
+    assert!(
+        xml.contains(r#"第</w:t></w:r><w:fldSimple w:instr=" PAGE "/><w:r>"#),
+        "{xml}"
+    );
+    assert!(
+        xml.contains(
+            r#"<w:fldSimple w:instr=" NUMPAGES "><w:r><w:t xml:space="preserve">7</w:t></w:r></w:fldSimple>"#
+        ),
+        "{xml}"
+    );
+    assert!(xml.contains(r#"<w:jc w:val="center"/>"#), "{xml}");
+    let saved = open(plan.bytes());
+    assert_eq!(changed.semantic_difference(&saved.document), None);
+    let reopened = paragraphs(&saved);
+    for ((_, _, field), paragraph) in fields.iter().zip(&reopened) {
+        assert!(
+            paragraph.inlines().iter().any(|inline| {
+                is_page_field(&inline.kind, field.kind)
+                    && field_cache(&inline.kind) == field.cached.as_deref()
+            }),
+            "{:?}",
+            paragraph.inlines()
+        );
+    }
+    assert_eq!(reopened[0].plain_text(|_| "#".into()), "第#页");
+
+    let mut bold = result.document.clone();
+    let id = bold.ids().node();
+    bold.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        Arc::make_mut(paragraph)
+            .insert_inline(
+                joyword_model::ScalarOffset(0),
+                joyword_model::InlineObject {
+                    id,
+                    kind: InlineKind::PageField(joyword_model::PageField::new(
+                        joyword_model::PageFieldKind::Page,
+                    )),
+                    source: None,
+                },
+                None,
+                Arc::new(joyword_model::RunProps {
+                    bold: Some(true),
+                    ..joyword_model::RunProps::default()
+                }),
+            )
+            .unwrap();
+    });
+    let refused = plan_export(&result.backing, &bold.snapshot(), &Budget::default()).unwrap_err();
+    assert!(
+        refused.to_string().contains("formatted page field"),
+        "{refused}"
+    );
+}
+
 fn is_page_field(kind: &InlineKind, expected: joyword_model::PageFieldKind) -> bool {
     match kind {
         InlineKind::PageField(field) => field.kind == expected,

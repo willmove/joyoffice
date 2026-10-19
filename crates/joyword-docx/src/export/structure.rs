@@ -27,10 +27,10 @@ use std::sync::Arc;
 use joyword_model::{
     Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, Document, FontRef, FontSlots,
     Hyperlink, Indent, InlineKind, Justification, Languages, LineSpacing, Measure, MoveMarker,
-    MoveSide, NodeId, NumberingRef, NumberingStore, Orientation, PageSetup, ParaProps, Paragraph,
-    RevisionKind, RowHeightRule, RunProps, Section, Shading, SourceRef, Spacing, StyleId,
-    StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table, TableAlign, TableLayoutKind,
-    TableLook, TableWidth, Underline, VerticalAlign, VerticalMerge,
+    MoveSide, NodeId, NumberingRef, NumberingStore, OBJECT_MARKER, Orientation, PageSetup,
+    ParaProps, Paragraph, RevisionKind, RowHeightRule, RunProps, Section, Shading, SourceRef,
+    Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table, TableAlign,
+    TableLayoutKind, TableLook, TableWidth, Underline, VerticalAlign, VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_leaf, bounded_text_xml, text_slots, unsupported};
@@ -2400,30 +2400,96 @@ fn property_leaf(local: &str) -> Option<&'static [&'static str]> {
     })
 }
 
+/// Run text, or one inline object standing alone in its own group.
+#[derive(Clone)]
+enum GroupContent {
+    Text(String),
+    Inline(InlineKind),
+}
+
 type LinkedGroup = (
     Option<StyleId>,
     Arc<RunProps>,
     Option<Arc<Hyperlink>>,
-    String,
+    GroupContent,
 );
 
 fn run_groups(paragraph: &Paragraph) -> Vec<LinkedGroup> {
-    let text = paragraph.plain_text(|_| "\u{FFFC}".into());
+    let text = paragraph.plain_text(|_| OBJECT_MARKER.to_string());
     let mut chars = text.chars();
+    let mut inlines = paragraph.inlines().iter();
     let mut groups: Vec<LinkedGroup> = Vec::new();
     for run in paragraph.runs() {
-        let text: String = chars.by_ref().take(run.len).collect();
-        if let Some((style, props, link, existing)) = groups.last_mut()
-            && *style == run.style
-            && *props == run.props
-            && *link == run.link
-        {
-            existing.push_str(&text);
-        } else {
-            groups.push((run.style.clone(), run.props.clone(), run.link.clone(), text));
+        let mut piece = String::new();
+        for ch in chars.by_ref().take(run.len) {
+            if ch != OBJECT_MARKER {
+                piece.push(ch);
+                continue;
+            }
+            push_text_group(&mut groups, run, std::mem::take(&mut piece));
+            // A marker without an object would be a model error; the
+            // re-import comparison refuses the plan if it ever happens.
+            if let Some(inline) = inlines.next() {
+                groups.push((
+                    run.style.clone(),
+                    run.props.clone(),
+                    run.link.clone(),
+                    GroupContent::Inline(inline.kind.clone()),
+                ));
+            }
         }
+        push_text_group(&mut groups, run, piece);
     }
     groups
+}
+
+fn push_text_group(groups: &mut Vec<LinkedGroup>, run: &joyword_model::Run, text: String) {
+    if text.is_empty() {
+        return;
+    }
+    if let Some((style, props, link, GroupContent::Text(existing))) = groups.last_mut()
+        && *style == run.style
+        && *props == run.props
+        && *link == run.link
+    {
+        existing.push_str(&text);
+    } else {
+        groups.push((
+            run.style.clone(),
+            run.props.clone(),
+            run.link.clone(),
+            GroupContent::Text(text),
+        ));
+    }
+}
+
+/// `w:fldSimple` (ECMA-376 Part 1 §17.16.19) for a page field the importer
+/// reads back as the same kind and cache. A field with no cache is written
+/// without a result run; consumers compute PAGE-type results on layout.
+fn page_field_markup(
+    names: &Names,
+    field: &joyword_model::PageField,
+    limit: u64,
+) -> Result<String, ExportError> {
+    let instr = match field.kind {
+        joyword_model::PageFieldKind::Page => " PAGE ",
+        joyword_model::PageFieldKind::NumPages => " NUMPAGES ",
+        joyword_model::PageFieldKind::SectionPages => " SECTIONPAGES ",
+    };
+    let mut out = names.start("fldSimple");
+    out.push_str(&qattr(names, "instr", instr));
+    match field.cached.as_deref() {
+        None => out.push_str("/>"),
+        Some(cached) => {
+            out.push('>');
+            out.push_str(&names.start("r"));
+            out.push('>');
+            out.push_str(&bounded_text_xml(names, cached, limit)?);
+            out.push_str(&names.end("r"));
+            out.push_str(&names.end("fldSimple"));
+        }
+    }
+    Ok(out)
 }
 
 /// `w:p` start tag, opened so inner markup can be appended. A self-closing
@@ -2897,7 +2963,34 @@ fn append_linked_runs(
             index += 1;
         }
         let mut inner = String::new();
-        for (style, props, _, text) in &groups[start..index] {
+        for (style, props, _, content) in &groups[start..index] {
+            let text = match content {
+                GroupContent::Text(text) => text,
+                GroupContent::Inline(InlineKind::PageField(field)) => {
+                    // The importer reads a simple field's result run without
+                    // formatting, so only an unformatted field round-trips.
+                    if link.is_some() {
+                        return Err(unsupported(
+                            Some(id),
+                            "a page field inside a hyperlink is not rewritten",
+                        ));
+                    }
+                    if style.is_some() || !props.is_empty() {
+                        return Err(unsupported(
+                            Some(id),
+                            "a formatted page field is not rewritten",
+                        ));
+                    }
+                    inner.push_str(&page_field_markup(names, field, limit)?);
+                    continue;
+                }
+                GroupContent::Inline(_) => {
+                    return Err(unsupported(
+                        Some(id),
+                        "paragraph formatting, source or inline objects changed",
+                    ));
+                }
+            };
             let rpr = properties(style, props)?;
             let text = bounded_text_xml(names, text, limit)?;
             if rpr.is_none() && text.is_empty() {

@@ -1024,10 +1024,9 @@ fn header_story_present(office: &Office) -> bool {
 ///
 /// T202: margins, orientation and a page number, with the header story and
 /// the laid-out PAGE values. Zoom is a screen projection. Formatting marks
-/// are a view option that does not change the page count. Inserting
-/// `page.number` into an existing body paragraph is outside the export
-/// subset, so that step is undone before the package is saved; the header
-/// PAGE field is what the re-import lays out.
+/// are a view option that does not change the page count. The body PAGE
+/// field that `page.number` inserts is saved as `w:fldSimple` and comes back
+/// on re-import beside the header PAGE field.
 #[test]
 fn t202_margins_orientation_page_numbers_and_zoom() {
     let line = "A A A A A A A A A A";
@@ -1127,20 +1126,14 @@ fn t202_margins_orientation_page_numbers_and_zoom() {
     undo(&mut office);
     assert!(!body_page_text(&lay(&office, ViewOptions::default()), 0).contains('1'));
     redo(&mut office);
-    let refused = office
+    assert!(body_page_text(&lay(&office, ViewOptions::default()), 0).contains('1'));
+    office
         .active()
         .unwrap()
         .backend()
         .session()
         .export_plan()
-        .expect_err("a body PAGE field is outside the export subset");
-    let message = refused.to_string();
-    assert!(
-        message.contains("paragraph formatting, source or inline objects changed"),
-        "{message}"
-    );
-    undo(&mut office);
-    assert!(!body_page_text(&lay(&office, ViewOptions::default()), 0).contains('1'));
+        .expect("a PAGE field inserted into a body paragraph exports");
 
     let again = lay(&office, ViewOptions::default());
     let marks = lay(
@@ -1184,6 +1177,32 @@ fn t202_margins_orientation_page_numbers_and_zoom() {
     assert_eq!(
         header_page_numbers(&reopened),
         (1..=landscape_count as u32).collect::<Vec<_>>()
+    );
+    let first = active_document(&office)
+        .body()
+        .blocks
+        .iter()
+        .find_map(joyword_model::Block::as_paragraph)
+        .unwrap();
+    assert!(
+        matches!(
+            first.inlines(),
+            [joyword_model::InlineObject {
+                kind: joyword_model::InlineKind::PageField(joyword_model::PageField {
+                    kind: joyword_model::PageFieldKind::Page,
+                    cached: None,
+                }),
+                ..
+            }]
+        ),
+        "{:?}",
+        first.inlines()
+    );
+    assert_eq!(first.plain_text(|_| "#".into()), format!("#{line}"));
+    assert!(
+        body_page_text(&reopened, 0).starts_with('1'),
+        "body {}",
+        body_page_text(&reopened, 0)
     );
     let _ = std::fs::remove_dir_all(&dir);
 }
