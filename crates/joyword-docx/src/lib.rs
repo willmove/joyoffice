@@ -44,7 +44,12 @@
 //! file-system save is done.
 //! Numbering definitions (`abstractNum`, `num`, level overrides) and
 //! paragraph or style tab stops are mapped. `numbering.xml` is never
-//! rewritten. Header and footer part bytes are not rewritten. A `w:tbl` is
+//! rewritten. An edited header or footer story is written back into the
+//! `word/header*.xml` or `word/footer*.xml` part it was imported from, and
+//! into that part's relationships part when the rewrite allocates a new
+//! external hyperlink id. Unchanged story parts keep their original bytes.
+//! A story with no part, or markup this exporter cannot represent, is
+//! refused. A `w:tbl` is
 //! mapped only when every element is in the typed subset (grid, rows, cells,
 //! merge state, `nil`/`single` borders and clear shading); anything else keeps
 //! the whole table as an opaque block. Content controls, notes, comments and
