@@ -370,7 +370,6 @@ fn cell_margins_borders_and_percentage_widths_round_trip_after_an_edit() {
     assert_eq!(model.semantic_difference(&saved.document), None);
 
     for extra in [
-        r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>外</w:t></w:r></w:p><w:tbl><w:tblGrid><w:gridCol w:w="500"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>内</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>"#,
         r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="0" w:hRule="exact"/></w:trPr><w:tc><w:p><w:r><w:t>高</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
         r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:vAlign w:val="both"/></w:tcPr><w:p><w:r><w:t>中</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
         r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcBorders><w:top w:val="double" w:sz="4" w:themeColor="accent1" w:themeTint="99"/></w:tcBorders></w:tcPr><w:p><w:r><w:t>色</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
@@ -512,4 +511,126 @@ fn valign_and_row_height_round_trip_after_an_edit() {
     assert!(xml.contains(r#"w:val="top""#), "{xml}");
     let saved = import(plan.bytes(), &Budget::default()).unwrap();
     assert_eq!(model.semantic_difference(&saved.document), None);
+}
+
+fn nested_body() -> &'static str {
+    r#"<w:tbl><w:tblGrid><w:gridCol w:w="4000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>外</w:t></w:r></w:p><w:tbl><w:tblPr><w:tblW w:w="2000" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>内</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>"#
+}
+
+#[test]
+fn a_one_level_nested_table_is_typed_and_round_trips() {
+    let bytes = package(nested_body());
+    let source = import(&bytes, &Budget::default()).unwrap();
+    assert!(!source.editability.is_read_only());
+    let Block::Table(outer) = &source.document.body().blocks.get(0).unwrap() else {
+        panic!("outer table");
+    };
+    assert!(source.editability.can_edit(outer.id));
+    let cell = &outer.rows[0].cells[0];
+    assert!(cell.blocks.get(0).unwrap().as_paragraph().is_some());
+    let Block::Table(inner) = cell.blocks.get(1).unwrap() else {
+        panic!("inner table");
+    };
+    assert_eq!(inner.grid, vec![Measure::Twips(2000)]);
+    assert!(matches!(
+        inner.width,
+        Some(joyword_model::TableWidth::Dxa(2000))
+    ));
+    assert_eq!(
+        inner.rows[0].cells[0]
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .plain_text(|_| String::new()),
+        "内"
+    );
+
+    let untouched = plan_export(
+        &source.backing,
+        &source.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(untouched.bytes(), bytes.as_slice());
+
+    let mut model = source.document.clone();
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Table(table) = block else {
+            panic!("table");
+        };
+        let table = Arc::make_mut(table);
+        table.rows[0].cells[0].blocks.update(0, |block| {
+            let Block::Paragraph(paragraph) = block else {
+                panic!("outer paragraph");
+            };
+            Arc::make_mut(paragraph)
+                .push_text("增", None, Arc::default())
+                .unwrap();
+        });
+        let Block::Table(inner) = table.rows[0].cells[0].blocks.get_mut(1).unwrap() else {
+            panic!("inner");
+        };
+        Arc::make_mut(inner).rows[0].cells[0]
+            .blocks
+            .update(0, |block| {
+                let Block::Paragraph(paragraph) = block else {
+                    panic!("inner paragraph");
+                };
+                Arc::make_mut(paragraph)
+                    .push_text("改", None, Arc::default())
+                    .unwrap();
+            });
+    });
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = xml_of(plan.bytes());
+    assert!(xml.contains("外"), "{xml}");
+    assert!(xml.contains("增"), "{xml}");
+    assert!(xml.contains("内"), "{xml}");
+    assert!(xml.contains("改"), "{xml}");
+    assert!(xml.contains("<w:b/>"), "{xml}");
+    assert_eq!(xml.matches("<w:tbl>").count(), 2, "{xml}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
+}
+
+#[test]
+fn unknown_or_deeper_nesting_stays_opaque_and_locks() {
+    let deeper = r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>外</w:t></w:r></w:p><w:tbl><w:tblGrid><w:gridCol w:w="800"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>中</w:t></w:r></w:p><w:tbl><w:tblGrid><w:gridCol w:w="400"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>内</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>"#;
+    let unknown_inner = r#"<w:tbl><w:tblGrid><w:gridCol w:w="1000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>外</w:t></w:r></w:p><w:tbl><w:tblPr><w:tblOverlap w:val="never"/></w:tblPr><w:tblGrid><w:gridCol w:w="500"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>内</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:tc></w:tr></w:tbl>"#;
+    for body in [deeper, unknown_inner] {
+        let bytes = package(&format!("{body}<w:p><w:r><w:t>后</w:t></w:r></w:p>"));
+        let source = import(&bytes, &Budget::default()).unwrap();
+        let blocks: Vec<&Block> = source.document.body().blocks.iter().collect();
+        assert!(
+            matches!(blocks[0], Block::Opaque(opaque) if &*opaque.preserved.element == "w:tbl"),
+            "{body}"
+        );
+        assert!(!source.editability.can_edit(blocks[0].id()));
+        let mut model = source.document.clone();
+        let body_id = model.body_id();
+        model.story_mut(body_id).unwrap().blocks.update(1, |block| {
+            let Block::Paragraph(paragraph) = block else {
+                panic!("paragraph");
+            };
+            Arc::make_mut(paragraph)
+                .push_text("增", None, Arc::default())
+                .unwrap();
+        });
+        let error =
+            plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap_err();
+        assert!(
+            matches!(error, joyword_docx::ExportError::Restricted),
+            "{error:?}"
+        );
+        let kept = plan_export(
+            &source.backing,
+            &source.document.snapshot(),
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(kept.bytes(), bytes.as_slice());
+    }
 }

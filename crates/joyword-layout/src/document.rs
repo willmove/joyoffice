@@ -629,10 +629,17 @@ fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
             hash.update(format!("{:?}", cell.margin).as_bytes());
             hash.update(format!("{:?}", cell.vertical_align).as_bytes());
             for block in cell.blocks.iter() {
-                if let Some(paragraph) = block.as_paragraph() {
-                    hash_body_paragraph(hash, document, paragraph);
-                    for run in paragraph.runs() {
-                        hash.update(format!("{:?}", run.props).as_bytes());
+                match block {
+                    Block::Paragraph(paragraph) => {
+                        hash_body_paragraph(hash, document, paragraph);
+                        for run in paragraph.runs() {
+                            hash.update(format!("{:?}", run.props).as_bytes());
+                        }
+                    }
+                    Block::Table(nested) => hash_table(hash, document, nested),
+                    Block::Sdt(_) | Block::Opaque(_) => {
+                        hash.update(b"cell-block");
+                        hash.update(block.id().get().to_le_bytes());
                     }
                 }
             }
@@ -648,42 +655,66 @@ fn flow_paragraphs(document: &Document) -> Vec<&Paragraph> {
     for block in document.body().blocks.iter() {
         match block {
             Block::Paragraph(paragraph) => paragraphs.push(paragraph.as_ref()),
-            Block::Table(table) => {
-                for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
-                    for inner in cell.blocks.iter() {
-                        if let Some(paragraph) = inner.as_paragraph() {
-                            paragraphs.push(paragraph);
-                        }
-                    }
-                }
-            }
+            Block::Table(table) => collect_table_paragraphs(table, &mut paragraphs),
             Block::Sdt(_) | Block::Opaque(_) => {}
         }
     }
     paragraphs
 }
 
-fn table_paragraphs(table: &Table) -> Result<Vec<&Paragraph>, LayoutError> {
-    let mut paragraphs = Vec::new();
+fn collect_table_paragraphs<'a>(table: &'a Table, paragraphs: &mut Vec<&'a Paragraph>) {
     for row in &table.rows {
         for cell in &row.cells {
             for block in cell.blocks.iter() {
-                let Some(paragraph) = block.as_paragraph() else {
-                    return Err(unsupported(
-                        Some(block.id()),
-                        "nested table or unsupported cell content",
-                    ));
-                };
-                if !paragraph.inlines().is_empty() {
-                    return Err(unsupported(
-                        Some(paragraph.id()),
-                        "inline objects or breaks in a table cell",
-                    ));
+                match block {
+                    Block::Paragraph(paragraph) => paragraphs.push(paragraph),
+                    Block::Table(nested) => collect_table_paragraphs(nested, paragraphs),
+                    Block::Sdt(_) | Block::Opaque(_) => {}
                 }
-                paragraphs.push(paragraph);
             }
         }
     }
+}
+
+fn table_paragraphs(table: &Table) -> Result<Vec<&Paragraph>, LayoutError> {
+    fn walk<'a>(
+        table: &'a Table,
+        depth: u8,
+        paragraphs: &mut Vec<&'a Paragraph>,
+    ) -> Result<(), LayoutError> {
+        for row in &table.rows {
+            for cell in &row.cells {
+                for block in cell.blocks.iter() {
+                    match block {
+                        Block::Paragraph(paragraph) => {
+                            if !paragraph.inlines().is_empty() {
+                                return Err(unsupported(
+                                    Some(paragraph.id()),
+                                    "inline objects or breaks in a table cell",
+                                ));
+                            }
+                            paragraphs.push(paragraph);
+                        }
+                        Block::Table(nested) => {
+                            if depth >= 1 {
+                                return Err(unsupported(
+                                    Some(nested.id),
+                                    "nested table deeper than one level",
+                                ));
+                            }
+                            walk(nested, depth + 1, paragraphs)?;
+                        }
+                        Block::Sdt(_) | Block::Opaque(_) => {
+                            return Err(unsupported(Some(block.id()), "unsupported cell content"));
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+    let mut paragraphs = Vec::new();
+    walk(table, 0, &mut paragraphs)?;
     Ok(paragraphs)
 }
 
@@ -1479,8 +1510,33 @@ fn cell_pad(
     Ok((margin.top, margin.left, margin.bottom, margin.right))
 }
 
+/// Horizontal frame of one table. Body tables use the page content edge.
+/// A nested table uses `content_left` 0 so its coordinates stay relative to
+/// the parent cell's content box; placement adds that box back.
+struct TableFrame {
+    content_left: i64,
+    content_twips: i64,
+}
+
+/// One direct block of a typed cell, in document order.
+enum CellItem {
+    Paragraph(usize),
+    Nested(NestedFlow),
+}
+
+/// A table laid out inside a cell. Row coordinates are relative to this
+/// table's top-left, which sits on the parent cell's content origin.
+struct NestedFlow {
+    height: i64,
+    rows: Vec<RowFlow>,
+}
+
 struct CellFlow {
     paragraphs: Vec<FittedParagraph>,
+    /// Document order of direct paragraphs and one level of nested tables.
+    items: Vec<CellItem>,
+    /// Page x of the cell content box. Nested tables store x relative to this.
+    content_x: i64,
     content: i64,
     top_border: i64,
     bottom_border: i64,
@@ -1519,6 +1575,13 @@ struct RowFlow {
     rule: Option<RowHeight>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct NestedJob {
+    item: usize,
+    row: usize,
+    cell: usize,
+}
+
 #[derive(Clone)]
 struct LineJob {
     row: usize,
@@ -1527,6 +1590,9 @@ struct LineJob {
     line: usize,
     page: usize,
     top: i64,
+    /// Item index in the parent cell, so a nested table stays in document order.
+    seq: usize,
+    nested: Option<NestedJob>,
 }
 
 struct HeaderStamp {
@@ -1570,6 +1636,11 @@ fn place_table(
         cancellation,
         marks,
         views,
+        TableFrame {
+            content_left: geometry.left.raw(),
+            content_twips: geometry.content_width().raw() / Emu::PER_TWIP,
+        },
+        0,
     )?;
     assign_row_heights(&mut rows)?;
     let tops = row_tops(&rows);
@@ -1624,8 +1695,10 @@ fn build_row_flows(
     cancellation: &LayoutCancellation,
     marks: &BTreeMap<NodeId, Result<NumberLabel, NumberingProblem>>,
     views: SceneViews,
+    frame: TableFrame,
+    depth: u8,
 ) -> Result<Vec<RowFlow>, LayoutError> {
-    let content_twips = geometry.content_width().raw() / Emu::PER_TWIP;
+    let content_twips = frame.content_twips;
     let metrics = joyword_model::table_metrics(table, content_twips)
         .ok_or_else(|| unsupported(Some(table.id), "table widths do not resolve"))?;
     let mut edges = Vec::with_capacity(metrics.columns.len() + 1);
@@ -1637,9 +1710,8 @@ fn build_row_flows(
             .ok_or(LayoutError::GeometryOverflow)?;
         edges.push(cursor);
     }
-    let base = geometry
-        .left
-        .raw()
+    let base = frame
+        .content_left
         .checked_add(twips_to_emu(metrics.origin)?)
         .ok_or(LayoutError::GeometryOverflow)?;
     let theme = &document.styles().theme().colors;
@@ -1656,14 +1728,6 @@ fn build_row_flows(
                     Some(table.id),
                     "table cell is outside the grid",
                 ));
-            }
-            for block in cell.blocks.iter() {
-                if block.as_paragraph().is_none() {
-                    return Err(unsupported(
-                        Some(block.id()),
-                        "nested table or unsupported cell content",
-                    ));
-                }
             }
             let (pad_top, pad_left, pad_bottom, pad_right) =
                 cell_pad(cell.margin.or(table.cell_margin), table.id)?;
@@ -1688,6 +1752,8 @@ fn build_row_flows(
             if cell.vertical_merge == VerticalMerge::Continue {
                 cells.push(CellFlow {
                     paragraphs: Vec::new(),
+                    items: Vec::new(),
+                    content_x: 0,
                     content: 0,
                     top_border: 0,
                     bottom_border: 0,
@@ -1729,43 +1795,90 @@ fn build_row_flows(
             let shading = cell.shading.or(table_format.shading);
             let numbering = numbering_of(document, section);
             let mut paragraphs = Vec::new();
+            let mut items = Vec::new();
             for block in cell.blocks.iter() {
-                let paragraph = block.as_paragraph().ok_or_else(|| {
-                    unsupported(Some(block.id()), "nested table or unsupported cell content")
-                })?;
-                let mut fitted = fit_paragraph(
-                    document,
-                    paragraph,
-                    faces,
-                    profile,
-                    geometry,
-                    inner_width,
-                    limits,
-                    WorkSpent {
-                        shapes: spent.shapes,
-                        bytes: spent.bytes,
-                        glyphs: spent.glyphs,
-                        lines: spent.lines,
-                    },
-                    cancellation,
-                    marks.get(&paragraph.id()),
-                    views,
-                    table_format.bold,
-                    crate::cache::ExternalContext::default(),
-                    &numbering,
-                )?;
-                fitted.geometry = geometry;
-                fitted.section_index = section;
-                fitted.frame_x = Emu::new(frame_x);
-                fitted.frame_width = inner_width;
-                fitted.pinned = true;
-                fitted.page_break_before = false;
-                fitted.keep_lines = false;
-                fitted.keep_next = false;
-                fitted.widow_control = false;
-                fitted.section_break_before = false;
-                note_fit(result, &fitted, spent);
-                paragraphs.push(fitted);
+                match block {
+                    Block::Paragraph(paragraph) => {
+                        let mut fitted = fit_paragraph(
+                            document,
+                            paragraph,
+                            faces,
+                            profile,
+                            geometry,
+                            inner_width,
+                            limits,
+                            WorkSpent {
+                                shapes: spent.shapes,
+                                bytes: spent.bytes,
+                                glyphs: spent.glyphs,
+                                lines: spent.lines,
+                            },
+                            cancellation,
+                            marks.get(&paragraph.id()),
+                            views,
+                            table_format.bold,
+                            crate::cache::ExternalContext::default(),
+                            &numbering,
+                        )?;
+                        fitted.geometry = geometry;
+                        fitted.section_index = section;
+                        fitted.frame_x = Emu::new(frame_x);
+                        fitted.frame_width = inner_width;
+                        fitted.pinned = true;
+                        fitted.page_break_before = false;
+                        fitted.keep_lines = false;
+                        fitted.keep_next = false;
+                        fitted.widow_control = false;
+                        fitted.section_break_before = false;
+                        note_fit(result, &fitted, spent);
+                        items.push(CellItem::Paragraph(paragraphs.len()));
+                        paragraphs.push(fitted);
+                    }
+                    Block::Table(nested) => {
+                        if depth >= 1 {
+                            return Err(unsupported(
+                                Some(nested.id),
+                                "nested table deeper than one level",
+                            ));
+                        }
+                        let mut nested_rows = build_row_flows(
+                            result,
+                            document,
+                            nested,
+                            faces,
+                            profile,
+                            geometry,
+                            section,
+                            limits,
+                            spent,
+                            cancellation,
+                            marks,
+                            views,
+                            TableFrame {
+                                content_left: 0,
+                                content_twips: inner,
+                            },
+                            depth + 1,
+                        )?;
+                        assign_row_heights(&mut nested_rows)?;
+                        let mut height = 0i64;
+                        for nested_row in &nested_rows {
+                            height = height
+                                .checked_add(nested_row.height)
+                                .ok_or(LayoutError::GeometryOverflow)?;
+                        }
+                        if height <= 0 {
+                            return Err(LayoutError::LineTooTall);
+                        }
+                        items.push(CellItem::Nested(NestedFlow {
+                            height,
+                            rows: nested_rows,
+                        }));
+                    }
+                    Block::Sdt(_) | Block::Opaque(_) => {
+                        return Err(unsupported(Some(block.id()), "unsupported cell content"));
+                    }
+                }
             }
             let line_box = paragraphs
                 .iter()
@@ -1773,8 +1886,10 @@ fn build_row_flows(
                 .max()
                 .unwrap_or(profile.leading.raw());
             cells.push(CellFlow {
-                content: stacked(&paragraphs)?,
+                content: content_height(&paragraphs, &items)?,
                 paragraphs,
+                items,
+                content_x: frame_x,
                 top_border: border_size(borders.top),
                 bottom_border: border_size(borders.bottom),
                 left_border: border_size(borders.left),
@@ -2024,22 +2139,29 @@ fn formatting_runs(
     (runs, rects)
 }
 
-fn stacked(paragraphs: &[FittedParagraph]) -> Result<i64, LayoutError> {
+fn paragraph_block(paragraph: &FittedParagraph) -> Result<i64, LayoutError> {
+    let height = paragraph.before.raw();
+    let lines = i64::try_from(paragraph.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?;
+    let block = paragraph
+        .line_box
+        .raw()
+        .checked_mul(lines)
+        .ok_or(LayoutError::GeometryOverflow)?;
+    height
+        .checked_add(block)
+        .and_then(|height| height.checked_add(paragraph.after.raw()))
+        .ok_or(LayoutError::GeometryOverflow)
+}
+
+fn content_height(paragraphs: &[FittedParagraph], items: &[CellItem]) -> Result<i64, LayoutError> {
     let mut height = 0i64;
-    for paragraph in paragraphs {
+    for item in items {
+        let piece = match item {
+            CellItem::Paragraph(index) => paragraph_block(&paragraphs[*index])?,
+            CellItem::Nested(nested) => nested.height,
+        };
         height = height
-            .checked_add(paragraph.before.raw())
-            .ok_or(LayoutError::GeometryOverflow)?;
-        let lines =
-            i64::try_from(paragraph.lines.len()).map_err(|_| LayoutError::GeometryOverflow)?;
-        let block = paragraph
-            .line_box
-            .raw()
-            .checked_mul(lines)
-            .ok_or(LayoutError::GeometryOverflow)?;
-        height = height
-            .checked_add(block)
-            .and_then(|height| height.checked_add(paragraph.after.raw()))
+            .checked_add(piece)
             .ok_or(LayoutError::GeometryOverflow)?;
     }
     Ok(height)
@@ -2127,6 +2249,12 @@ fn assign_row_heights(rows: &mut [RowFlow]) -> Result<(), LayoutError> {
                     if line_top >= row_lo && line_top < row_hi && line_hi > row_hi {
                         extra = extra.max(line_hi - row_hi);
                     }
+                }
+            }
+            for band in nested_bands(cell, &tops) {
+                let line_hi = band.top.saturating_add(band.height);
+                if band.top >= row_lo && band.top < row_hi && line_hi > row_hi {
+                    extra = extra.max(line_hi - row_hi);
                 }
             }
         }
@@ -2271,25 +2399,65 @@ fn visuals(rows: &[RowFlow], row_index: usize) -> Vec<(usize, usize)> {
     found
 }
 
-fn line_top(cell: &CellFlow, tops: &[i64], paragraph_index: usize, line_index: usize) -> i64 {
-    let mut y = tops
-        .get(cell.start_row)
+fn content_origin(cell: &CellFlow, tops: &[i64]) -> i64 {
+    tops.get(cell.start_row)
         .copied()
         .unwrap_or(0)
         .saturating_add(cell.margin_top)
         .saturating_add(cell.top_border)
-        .saturating_add(cell.align_shift);
-    for (index, paragraph) in cell.paragraphs.iter().enumerate() {
-        y = y.saturating_add(paragraph.before.raw());
-        if index == paragraph_index {
-            let offset = i64::try_from(line_index).unwrap_or(0);
-            return y.saturating_add(paragraph.line_box.raw().saturating_mul(offset));
+        .saturating_add(cell.align_shift)
+}
+
+fn line_top(cell: &CellFlow, tops: &[i64], paragraph_index: usize, line_index: usize) -> i64 {
+    let mut y = content_origin(cell, tops);
+    for item in &cell.items {
+        match item {
+            CellItem::Paragraph(index) => {
+                let paragraph = &cell.paragraphs[*index];
+                y = y.saturating_add(paragraph.before.raw());
+                if *index == paragraph_index {
+                    let offset = i64::try_from(line_index).unwrap_or(0);
+                    return y.saturating_add(paragraph.line_box.raw().saturating_mul(offset));
+                }
+                let count = i64::try_from(paragraph.lines.len()).unwrap_or(0);
+                y = y.saturating_add(paragraph.line_box.raw().saturating_mul(count));
+                y = y.saturating_add(paragraph.after.raw());
+            }
+            CellItem::Nested(nested) => y = y.saturating_add(nested.height),
         }
-        let count = i64::try_from(paragraph.lines.len()).unwrap_or(0);
-        y = y.saturating_add(paragraph.line_box.raw().saturating_mul(count));
-        y = y.saturating_add(paragraph.after.raw());
     }
     y
+}
+
+struct NestedBand {
+    item: usize,
+    top: i64,
+    height: i64,
+}
+
+fn nested_bands(cell: &CellFlow, tops: &[i64]) -> Vec<NestedBand> {
+    let mut y = content_origin(cell, tops);
+    let mut bands = Vec::new();
+    for (item, entry) in cell.items.iter().enumerate() {
+        match entry {
+            CellItem::Paragraph(index) => {
+                let paragraph = &cell.paragraphs[*index];
+                y = y.saturating_add(paragraph.before.raw());
+                let count = i64::try_from(paragraph.lines.len()).unwrap_or(0);
+                y = y.saturating_add(paragraph.line_box.raw().saturating_mul(count));
+                y = y.saturating_add(paragraph.after.raw());
+            }
+            CellItem::Nested(nested) => {
+                bands.push(NestedBand {
+                    item,
+                    top: y,
+                    height: nested.height,
+                });
+                y = y.saturating_add(nested.height);
+            }
+        }
+    }
+    bands
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -2525,6 +2693,17 @@ fn snap_take(
                 }
             }
         }
+        for band in nested_bands(cell, tops) {
+            if band.top < slice_lo || band.top >= row_hi || band.top >= limit {
+                continue;
+            }
+            let line_hi = band.top.saturating_add(band.height);
+            if line_hi <= limit.min(row_hi) {
+                boundary = boundary.max(line_hi);
+            } else {
+                blocked = true;
+            }
+        }
     }
     if blocked && boundary == slice_lo {
         return 0;
@@ -2551,6 +2730,13 @@ fn next_piece(rows: &[RowFlow], tops: &[i64], row_index: usize, consumed: i64) -
                 let end = top.saturating_add(paragraph.line_box.raw()) - slice_lo;
                 next = Some(next.map_or(end, |found: i64| found.min(end)));
             }
+        }
+        for band in nested_bands(cell, tops) {
+            if band.top < slice_lo || band.top >= row_hi {
+                continue;
+            }
+            let end = band.top.saturating_add(band.height) - slice_lo;
+            next = Some(next.map_or(end, |found: i64| found.min(end)));
         }
     }
     next.unwrap_or(row_hi - slice_lo).max(1)
@@ -2583,6 +2769,7 @@ fn paint_slice(
             take,
             slice_lo == cell_lo,
             slice_hi == cell_hi,
+            0,
         )?;
         for (paragraph_index, paragraph) in cell.paragraphs.iter().enumerate() {
             for line_index in 0..paragraph.lines.len() {
@@ -2601,8 +2788,94 @@ fn paint_slice(
                     line: line_index,
                     page,
                     top: page_y + (top - slice_lo),
+                    seq: paragraph_seq(cell, paragraph_index),
+                    nested: None,
                 });
             }
+        }
+        for band in nested_bands(cell, tops) {
+            if band.top < slice_lo || band.top >= slice_hi {
+                continue;
+            }
+            let CellItem::Nested(nested) = &cell.items[band.item] else {
+                continue;
+            };
+            let nested_top = page_y + (band.top - slice_lo);
+            paint_nested_table(result, nested, nested_top, cell.content_x)?;
+            let nested_tops = row_tops(&nested.rows);
+            for (nested_row, row) in nested.rows.iter().enumerate() {
+                for (nested_cell, inner) in row.cells.iter().enumerate() {
+                    if inner.merge == VerticalMerge::Continue {
+                        continue;
+                    }
+                    for (paragraph_index, paragraph) in inner.paragraphs.iter().enumerate() {
+                        for line_index in 0..paragraph.lines.len() {
+                            let rel = line_top(inner, &nested_tops, paragraph_index, line_index);
+                            let top = band.top.saturating_add(rel);
+                            if top < slice_lo || top >= slice_hi {
+                                continue;
+                            }
+                            let line_hi = top.saturating_add(paragraph.line_box.raw());
+                            if line_hi > cell_hi {
+                                continue;
+                            }
+                            jobs.push(LineJob {
+                                row: cell.start_row,
+                                cell: cell_index,
+                                paragraph: paragraph_index,
+                                line: line_index,
+                                page,
+                                top: page_y + (top - slice_lo),
+                                seq: band.item,
+                                nested: Some(NestedJob {
+                                    item: band.item,
+                                    row: nested_row,
+                                    cell: nested_cell,
+                                }),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn paragraph_seq(cell: &CellFlow, paragraph_index: usize) -> usize {
+    cell.items
+        .iter()
+        .position(|item| matches!(item, CellItem::Paragraph(index) if *index == paragraph_index))
+        .unwrap_or(paragraph_index)
+}
+
+fn paint_nested_table(
+    result: &mut LayoutSnapshot,
+    nested: &NestedFlow,
+    page_top: i64,
+    x_shift: i64,
+) -> Result<(), LayoutError> {
+    let tops = row_tops(&nested.rows);
+    for row_index in 0..nested.rows.len() {
+        let y = page_top.saturating_add(tops[row_index]);
+        let take = nested.rows[row_index].height;
+        let slice_lo = tops[row_index];
+        let slice_hi = slice_lo.saturating_add(take);
+        for (origin, cell_index) in visuals(&nested.rows, row_index) {
+            let cell = &nested.rows[origin].cells[cell_index];
+            let cell_lo = tops[cell.start_row];
+            let last = cell.start_row + cell.span_rows.saturating_sub(1);
+            let cell_hi = tops.get(last).copied().unwrap_or(cell_lo)
+                + nested.rows.get(last).map(|row| row.height).unwrap_or(0);
+            paint_fragment(
+                result,
+                cell,
+                y,
+                take,
+                slice_lo == cell_lo,
+                slice_hi == cell_hi,
+                x_shift,
+            )?;
         }
     }
     Ok(())
@@ -2615,20 +2888,22 @@ fn paint_fragment(
     height: i64,
     first: bool,
     last: bool,
+    x_shift: i64,
 ) -> Result<(), LayoutError> {
     let page = result
         .pages
         .last_mut()
         .ok_or(LayoutError::GeometryOverflow)?;
+    let x = cell.outer_x.saturating_add(x_shift);
     if let Some(color) = cell.shading {
-        push_rect(page, cell.outer_x, y, cell.outer_width, height, color);
+        push_rect(page, x, y, cell.outer_width, height, color);
     }
     if first {
         push_border(
             page,
             cell.border_top,
             cell.ink_top,
-            cell.outer_x,
+            x,
             y,
             cell.outer_width,
             cell.top_border,
@@ -2639,7 +2914,7 @@ fn paint_fragment(
             page,
             cell.border_bottom,
             cell.ink_bottom,
-            cell.outer_x,
+            x,
             y.saturating_add(height).saturating_sub(cell.bottom_border),
             cell.outer_width,
             cell.bottom_border,
@@ -2649,7 +2924,7 @@ fn paint_fragment(
         page,
         cell.border_left,
         cell.ink_left,
-        cell.outer_x,
+        x,
         y,
         cell.left_border,
         height,
@@ -2658,8 +2933,7 @@ fn paint_fragment(
         page,
         cell.border_right,
         cell.ink_right,
-        cell.outer_x
-            .saturating_add(cell.outer_width)
+        x.saturating_add(cell.outer_width)
             .saturating_sub(cell.right_border),
         y,
         cell.right_border,
@@ -2676,7 +2950,21 @@ fn flush_jobs(
     repeats: &[(usize, i64)],
 ) -> Result<(), LayoutError> {
     let mut ordered = jobs.to_vec();
-    ordered.sort_by_key(|job| (job.row, job.cell, job.paragraph, job.line));
+    ordered.sort_by_key(|job| {
+        let (nested_row, nested_cell) = job
+            .nested
+            .map(|nested| (nested.row, nested.cell))
+            .unwrap_or((0, 0));
+        (
+            job.row,
+            job.cell,
+            job.seq,
+            nested_row,
+            nested_cell,
+            job.paragraph,
+            job.line,
+        )
+    });
     let header_end = ordered.iter().position(|job| !rows[job.row].header);
     let header_jobs = header_end.unwrap_or(ordered.len());
     let (run_before, image_before, rect_before) = if stamp.valid {
@@ -2746,6 +3034,10 @@ fn place_jobs(
 ) -> Result<(), LayoutError> {
     let mut index = 0usize;
     while index < jobs.len() {
+        if jobs[index].nested.is_some() {
+            index = place_nested_jobs(result, rows, jobs, index)?;
+            continue;
+        }
         let row = jobs[index].row;
         let cell = jobs[index].cell;
         let paragraph_index = jobs[index].paragraph;
@@ -2759,6 +3051,7 @@ fn place_jobs(
         let baseline = fitted.baseline;
         let first = result.lines.len();
         while index < jobs.len()
+            && jobs[index].nested.is_none()
             && jobs[index].row == row
             && jobs[index].cell == cell
             && jobs[index].paragraph == paragraph_index
@@ -2790,6 +3083,75 @@ fn place_jobs(
         });
     }
     Ok(())
+}
+
+fn place_nested_jobs(
+    result: &mut LayoutSnapshot,
+    rows: &[RowFlow],
+    jobs: &[LineJob],
+    mut index: usize,
+) -> Result<usize, LayoutError> {
+    let row = jobs[index].row;
+    let cell = jobs[index].cell;
+    let nested = jobs[index]
+        .nested
+        .ok_or_else(|| unsupported(None, "nested table or unsupported cell content"))?;
+    let paragraph_index = jobs[index].paragraph;
+    let parent = &rows[row].cells[cell];
+    let CellItem::Nested(flow) = &parent.items[nested.item] else {
+        return Err(unsupported(
+            None,
+            "nested table or unsupported cell content",
+        ));
+    };
+    let fitted = &flow.rows[nested.row].cells[nested.cell].paragraphs[paragraph_index];
+    let frame_x = Emu::new(
+        parent
+            .content_x
+            .checked_add(fitted.frame_x.raw())
+            .ok_or(LayoutError::GeometryOverflow)?,
+    );
+    let id = fitted.id;
+    let len = fitted.len;
+    let frame_width = fitted.frame_width;
+    let line_box = fitted.line_box;
+    let justification = fitted.justification;
+    let baseline = fitted.baseline;
+    let line_count = fitted.lines.len();
+    let first = result.lines.len();
+    while index < jobs.len()
+        && jobs[index].nested == Some(nested)
+        && jobs[index].row == row
+        && jobs[index].cell == cell
+        && jobs[index].paragraph == paragraph_index
+    {
+        let job = &jobs[index];
+        let line =
+            &flow.rows[nested.row].cells[nested.cell].paragraphs[job.paragraph].lines[job.line];
+        let mut top = Emu::new(job.top);
+        place_line_on(
+            result,
+            job.page,
+            &mut top,
+            line,
+            id,
+            frame_x,
+            frame_width,
+            line_box,
+            justification,
+            baseline,
+            job.line + 1 == line_count,
+            &fitted.spans,
+        )?;
+        index += 1;
+    }
+    let map = result.paragraphs.len();
+    result.by_id.insert(id, map);
+    result.paragraphs.push(ParagraphMap {
+        len,
+        lines: first..result.lines.len(),
+    });
+    Ok(index)
 }
 
 fn push_border(

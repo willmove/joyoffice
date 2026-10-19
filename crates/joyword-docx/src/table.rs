@@ -7,10 +7,12 @@
 //! `dotted` / `dashed` / `thick`, §17.18.37 `ST_HeightRule`).
 //!
 //! A table is mapped only when every element and attribute is represented and
-//! placed. Nested tables, `vAlign` `both`, a non-positive `exact` row height,
-//! format and structure revisions, bookmarks, theme tint or shade, and any
-//! other border style return `None`. A plain `w:ins`, `w:del`, `w:moveFrom`
-//! or `w:moveTo` around typed runs is a text revision on those runs.
+//! placed. One nested `w:tbl` inside a cell is part of this subset when that
+//! inner table meets the same rules. A second nested table, `vAlign` `both`,
+//! a non-positive `exact` row height, format and structure revisions,
+//! bookmarks, theme tint or shade, and any other border style return `None`
+//! for the whole outer table. A plain `w:ins`, `w:del`, `w:moveFrom` or
+//! `w:moveTo` around typed runs is a text revision on those runs.
 //! A cell paragraph may carry simple `w:hyperlink` runs (text and tabs,
 //! `r:id` and/or `w:anchor`), the same subset the body parser maps.
 //! `w:tblLook`, `top` / `center` / `bottom` and `auto` / `atLeast` / positive
@@ -59,6 +61,11 @@ struct CellProps {
     vertical_align: Option<VerticalAlign>,
 }
 
+enum DraftBlock {
+    Paragraph(DraftParagraph),
+    Table(DraftTable),
+}
+
 struct DraftCell {
     span: u32,
     merge: VerticalMerge,
@@ -67,8 +74,12 @@ struct DraftCell {
     shading: Option<Shading>,
     margin: Option<CellMargins>,
     vertical_align: Option<VerticalAlign>,
-    paragraphs: Vec<DraftParagraph>,
+    blocks: Vec<DraftBlock>,
 }
+
+/// Body tables are depth 0. A table inside a cell is depth 1. Depth 2 stays
+/// outside this slice, so the whole outer table remains opaque.
+const MAX_NESTED_DEPTH: u8 = 1;
 
 struct DraftRow {
     before: u32,
@@ -89,6 +100,7 @@ struct DraftTable {
     cell_margin: Option<CellMargins>,
     grid: Vec<Measure>,
     rows: Vec<DraftRow>,
+    span: Range<usize>,
 }
 
 struct TableProps {
@@ -108,7 +120,7 @@ pub(crate) fn import_table(
     part: &PartName,
     element: &Element,
 ) -> Option<Table> {
-    let draft = parse_table(importer, part, element)?;
+    let draft = parse_table(importer, part, element, 0)?;
     build(importer, part, element, draft)
 }
 
@@ -123,8 +135,18 @@ fn build(
         let mut cells = Vec::new();
         for cell in row.cells {
             let mut blocks = Vec::new();
-            for paragraph in cell.paragraphs {
-                blocks.push(build_paragraph(importer, part, element, paragraph)?.into());
+            for block in cell.blocks {
+                match block {
+                    DraftBlock::Paragraph(paragraph) => {
+                        blocks.push(build_paragraph(importer, part, element, paragraph)?.into());
+                    }
+                    DraftBlock::Table(nested) => {
+                        blocks.push(build(importer, part, element, nested)?.into());
+                    }
+                }
+            }
+            if blocks.is_empty() {
+                return None;
             }
             cells.push(Cell {
                 id: importer.document.ids().node(),
@@ -162,7 +184,10 @@ fn build(
         look: draft.look,
         cell_margin: draft.cell_margin,
         preserved: None,
-        source: Some(Importer::source(part, element)),
+        source: Some(Importer::source(
+            part,
+            find_span(element, &draft.span).unwrap_or(element),
+        )),
     })
 }
 
@@ -197,7 +222,12 @@ fn build_paragraph(
     Some(paragraph)
 }
 
-fn parse_table(importer: &Importer<'_>, part: &PartName, element: &Element) -> Option<DraftTable> {
+fn parse_table(
+    importer: &Importer<'_>,
+    part: &PartName,
+    element: &Element,
+    depth: u8,
+) -> Option<DraftTable> {
     if !element.is(W, "tbl") || !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -222,7 +252,7 @@ fn parse_table(importer: &Importer<'_>, part: &PartName, element: &Element) -> O
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
             seen_row = true;
-            rows.push(parse_row(importer, part, child)?);
+            rows.push(parse_row(importer, part, child, depth)?);
         } else {
             return None;
         }
@@ -241,6 +271,7 @@ fn parse_table(importer: &Importer<'_>, part: &PartName, element: &Element) -> O
         cell_margin: props.cell_margin,
         grid,
         rows,
+        span: element.span.clone(),
     })
 }
 
@@ -462,7 +493,12 @@ fn parse_grid(element: &Element) -> Option<Vec<Measure>> {
     (!columns.is_empty()).then_some(columns)
 }
 
-fn parse_row(importer: &Importer<'_>, part: &PartName, element: &Element) -> Option<DraftRow> {
+fn parse_row(
+    importer: &Importer<'_>,
+    part: &PartName,
+    element: &Element,
+    depth: u8,
+) -> Option<DraftRow> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -478,7 +514,7 @@ fn parse_row(importer: &Importer<'_>, part: &PartName, element: &Element) -> Opt
             saw_pr = true;
             (before, after, header, cant_split, height) = parse_tr_pr(child)?;
         } else if child.is(W, "tc") {
-            cells.push(parse_cell(importer, part, child)?);
+            cells.push(parse_cell(importer, part, child, depth)?);
         } else {
             return None;
         }
@@ -554,7 +590,12 @@ fn parse_row_height(element: &Element) -> Option<RowHeight> {
     Some(RowHeight { twips, rule })
 }
 
-fn parse_cell(importer: &Importer<'_>, part: &PartName, element: &Element) -> Option<DraftCell> {
+fn parse_cell(
+    importer: &Importer<'_>,
+    part: &PartName,
+    element: &Element,
+    depth: u8,
+) -> Option<DraftCell> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -566,9 +607,9 @@ fn parse_cell(importer: &Importer<'_>, part: &PartName, element: &Element) -> Op
     let mut margin = None;
     let mut vertical_align = None;
     let mut saw_pr = false;
-    let mut paragraphs = Vec::new();
+    let mut blocks = Vec::new();
     for child in element.elements() {
-        if child.is(W, "tcPr") && !saw_pr && paragraphs.is_empty() {
+        if child.is(W, "tcPr") && !saw_pr && blocks.is_empty() {
             saw_pr = true;
             let props = parse_tc_pr(child)?;
             span = props.span;
@@ -579,12 +620,27 @@ fn parse_cell(importer: &Importer<'_>, part: &PartName, element: &Element) -> Op
             margin = props.margin;
             vertical_align = props.vertical_align;
         } else if child.is(W, "p") {
-            paragraphs.push(parse_paragraph(importer, part, child)?);
+            blocks.push(DraftBlock::Paragraph(parse_paragraph(
+                importer, part, child,
+            )?));
+        } else if child.is(W, "tbl") {
+            // ECMA-376 §17.4.64 allows a nested `w:tbl` as cell content.
+            // Only one level is typed. A deeper table, or an inner table
+            // outside the subset, refuses the whole outer table.
+            if depth >= MAX_NESTED_DEPTH {
+                return None;
+            }
+            blocks.push(DraftBlock::Table(parse_table(
+                importer,
+                part,
+                child,
+                depth + 1,
+            )?));
         } else {
             return None;
         }
     }
-    if paragraphs.is_empty() {
+    if blocks.is_empty() {
         return None;
     }
     Some(DraftCell {
@@ -595,7 +651,7 @@ fn parse_cell(importer: &Importer<'_>, part: &PartName, element: &Element) -> Op
         shading,
         margin,
         vertical_align,
-        paragraphs,
+        blocks,
     })
 }
 

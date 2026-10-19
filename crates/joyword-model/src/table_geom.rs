@@ -24,7 +24,9 @@ pub struct TableMetrics {
 /// indent is negative, or a product overflows. An omitted `tblLayout` follows
 /// §17.4.52 and shrinks the preferred widths when they are wider than the
 /// content box. Explicit `fixed` does not shrink. Nothing here grows a table
-/// to fit unwrapped text.
+/// to fit unwrapped text. A nested table uses the same function: layout
+/// passes the parent cell's inner width, so the inner grid shrinks to that
+/// box unless the nested table is explicit `fixed`.
 pub fn table_metrics(table: &Table, content_width_twips: i64) -> Option<TableMetrics> {
     if content_width_twips <= 0 || table.grid.is_empty() {
         return None;

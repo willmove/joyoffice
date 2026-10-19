@@ -5,8 +5,8 @@
 use std::sync::Arc;
 
 use joyword_model::{
-    Bias, Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, Color, Document, Measure,
-    NodeId, Paragraph, Position, Row, ScalarOffset, StoryId, StoryKind, Table, TableWidth,
+    Bias, Block, BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, Color, Document, MAX_NESTING,
+    Measure, NodeId, Paragraph, Position, Row, ScalarOffset, StoryId, StoryKind, Table, TableWidth,
     VerticalMerge,
 };
 
@@ -1048,31 +1048,93 @@ fn paragraph_ids_in_row(row: &Row) -> Vec<NodeId> {
 }
 
 fn paragraph_ids_of_cell(cell: &Cell) -> Vec<NodeId> {
-    cell.blocks.iter().map(|block| block.id()).collect()
+    let mut ids = Vec::new();
+    collect_paragraph_ids(&cell.blocks, &mut ids, 0);
+    ids
+}
+
+fn collect_paragraph_ids(blocks: &BlockSeq, ids: &mut Vec<NodeId>, depth: usize) {
+    if depth > MAX_NESTING {
+        return;
+    }
+    for block in blocks.iter() {
+        match block {
+            Block::Paragraph(paragraph) => ids.push(paragraph.id()),
+            Block::Table(table) => {
+                for row in &table.rows {
+                    for cell in &row.cells {
+                        collect_paragraph_ids(&cell.blocks, ids, depth + 1);
+                    }
+                }
+            }
+            Block::Sdt(_) | Block::Opaque(_) => {}
+        }
+    }
 }
 
 fn first_paragraph(row: &Row) -> Result<NodeId, CommandError> {
     row.cells
-        .first()
-        .and_then(|cell| cell.blocks.iter().next())
-        .map(|block| block.id())
+        .iter()
+        .find_map(|cell| first_paragraph_block(&cell.blocks, 0))
         .ok_or(CommandError::TableLimit)
 }
 
 fn last_paragraph(row: &Row) -> Result<NodeId, CommandError> {
     row.cells
-        .last()
-        .and_then(|cell| cell.blocks.iter().last())
-        .map(|block| block.id())
+        .iter()
+        .rev()
+        .find_map(|cell| last_paragraph_block(&cell.blocks, 0))
         .ok_or(CommandError::TableLimit)
 }
 
 fn first_paragraph_of_cell(cell: &Cell) -> Result<NodeId, CommandError> {
-    cell.blocks
-        .iter()
-        .next()
-        .map(|block| block.id())
-        .ok_or(CommandError::TableLimit)
+    first_paragraph_block(&cell.blocks, 0).ok_or(CommandError::TableLimit)
+}
+
+fn first_paragraph_block(blocks: &BlockSeq, depth: usize) -> Option<NodeId> {
+    if depth > MAX_NESTING {
+        return None;
+    }
+    for block in blocks.iter() {
+        match block {
+            Block::Paragraph(paragraph) => return Some(paragraph.id()),
+            Block::Table(table) => {
+                for row in &table.rows {
+                    for cell in &row.cells {
+                        if let Some(id) = first_paragraph_block(&cell.blocks, depth + 1) {
+                            return Some(id);
+                        }
+                    }
+                }
+            }
+            Block::Sdt(_) | Block::Opaque(_) => {}
+        }
+    }
+    None
+}
+
+fn last_paragraph_block(blocks: &BlockSeq, depth: usize) -> Option<NodeId> {
+    if depth > MAX_NESTING {
+        return None;
+    }
+    let mut index = blocks.len();
+    while index > 0 {
+        index -= 1;
+        match blocks.get(index)? {
+            Block::Paragraph(paragraph) => return Some(paragraph.id()),
+            Block::Table(table) => {
+                for row in table.rows.iter().rev() {
+                    for cell in row.cells.iter().rev() {
+                        if let Some(id) = last_paragraph_block(&cell.blocks, depth + 1) {
+                            return Some(id);
+                        }
+                    }
+                }
+            }
+            Block::Sdt(_) | Block::Opaque(_) => {}
+        }
+    }
+    None
 }
 
 fn paragraph_len_in_row(row: &Row, id: NodeId) -> Option<usize> {
@@ -1082,12 +1144,29 @@ fn paragraph_len_in_row(row: &Row, id: NodeId) -> Option<usize> {
 }
 
 fn paragraph_len_in_cell(cell: &Cell, id: NodeId) -> Option<usize> {
-    cell.blocks.iter().find_map(|block| {
-        block
-            .as_paragraph()
-            .filter(|paragraph| paragraph.id() == id)
-            .map(|paragraph| paragraph.len())
-    })
+    paragraph_len_in_blocks(&cell.blocks, id, 0)
+}
+
+fn paragraph_len_in_blocks(blocks: &BlockSeq, id: NodeId, depth: usize) -> Option<usize> {
+    if depth > MAX_NESTING {
+        return None;
+    }
+    for block in blocks.iter() {
+        match block {
+            Block::Paragraph(paragraph) if paragraph.id() == id => return Some(paragraph.len()),
+            Block::Table(table) => {
+                for row in &table.rows {
+                    for cell in &row.cells {
+                        if let Some(len) = paragraph_len_in_blocks(&cell.blocks, id, depth + 1) {
+                            return Some(len);
+                        }
+                    }
+                }
+            }
+            Block::Paragraph(_) | Block::Sdt(_) | Block::Opaque(_) => {}
+        }
+    }
+    None
 }
 
 fn cell_paragraphs(document: &Document, address: CellAddress) -> Result<Vec<NodeId>, CommandError> {

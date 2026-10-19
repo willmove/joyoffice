@@ -877,3 +877,115 @@ fn setting_table_properties_is_one_undoable_transaction() {
     ));
     assert!(table_of(&session).width.is_none());
 }
+
+fn plain(session: &Session, paragraph: NodeId) -> String {
+    session
+        .document()
+        .find_paragraph(session.document().body_id(), paragraph)
+        .unwrap()
+        .plain_text(|_| String::new())
+}
+
+#[test]
+fn editing_outer_or_inner_cell_text_is_one_undoable_transaction() {
+    let mut document = blank(&[""]);
+    let outer_paragraph = paragraph(&mut document, "外");
+    let inner_paragraph = paragraph(&mut document, "内");
+    let outer_id = outer_paragraph.id();
+    let inner_id = inner_paragraph.id();
+    let inner_cell = document.ids().node();
+    let left_id = document.ids().node();
+    let inner = table(
+        &mut document,
+        vec![vec![Cell {
+            id: inner_cell,
+            grid_span: 1,
+            vertical_merge: VerticalMerge::None,
+            width: Some(Measure::Twips(2000)),
+            borders: CellBorders::default(),
+            shading: None,
+            margin: None,
+            vertical_align: None,
+            blocks: BlockSeq::from_vec(vec![inner_paragraph.into()]),
+            preserved: None,
+        }]],
+        1,
+    );
+    let left = Cell {
+        id: left_id,
+        grid_span: 1,
+        vertical_merge: VerticalMerge::None,
+        width: Some(Measure::Twips(2000)),
+        borders: CellBorders::default(),
+        shading: None,
+        margin: None,
+        vertical_align: None,
+        blocks: BlockSeq::from_vec(vec![outer_paragraph.into(), inner.into()]),
+        preserved: None,
+    };
+    let right = cell(&mut document, "右", 1, VerticalMerge::None);
+    let outer = table(&mut document, vec![vec![left, right]], 2);
+    install(&mut document, outer);
+    let continued = cell(&mut document, "", 1, VerticalMerge::Continue);
+    let orphan = table(&mut document, vec![vec![continued]], 1);
+    let mut session = Session::new(document);
+
+    let at = pos(&session, outer_id, 1);
+    exec(
+        &mut session,
+        vec![Command::InsertText {
+            at,
+            text: "增".into(),
+        }],
+    )
+    .unwrap();
+    assert_eq!(plain(&session, outer_id), "外增");
+    assert_eq!(plain(&session, inner_id), "内");
+    assert_eq!(session.undo_depth(), 1);
+    session.undo().unwrap();
+    assert_eq!(plain(&session, outer_id), "外");
+    assert!(!session.can_undo());
+
+    let at = pos(&session, inner_id, 1);
+    exec(
+        &mut session,
+        vec![Command::InsertText {
+            at,
+            text: "改".into(),
+        }],
+    )
+    .unwrap();
+    assert_eq!(plain(&session, inner_id), "内改");
+    assert_eq!(plain(&session, outer_id), "外");
+    assert_eq!(session.undo_depth(), 1);
+    session.undo().unwrap();
+    assert_eq!(plain(&session, inner_id), "内");
+    assert!(!session.can_undo());
+
+    assert!(
+        table_structure(&orphan)
+            .iter()
+            .any(|issue| matches!(issue, Issue::OrphanVerticalMerge { .. }))
+    );
+
+    let at = pos(&session, outer_id, 0);
+    let error = exec(
+        &mut session,
+        vec![Command::MergeTableCells {
+            at,
+            direction: TableMerge::Right,
+        }],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        error,
+        TxError::Command {
+            error: CommandError::TableStructure(_, TableStructure::UnsupportedCell),
+            ..
+        }
+    ));
+    assert_eq!(plain(&session, outer_id), "外");
+    assert_eq!(plain(&session, inner_id), "内");
+    assert_eq!(table_of(&session).rows[0].cells.len(), 2);
+    assert!(table_structure(table_of(&session)).is_empty());
+}
