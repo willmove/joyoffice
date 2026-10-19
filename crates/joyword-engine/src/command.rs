@@ -322,8 +322,9 @@ pub enum CommandError {
     CrossedMove(String),
     /// Tracked deletion does not cross a paragraph mark (T301).
     RevisionBoundary,
-    /// The range mixes another author's insertion or move content, or one
-    /// id is used for two kinds.
+    /// The range mixes another author's insertion or move content, one id
+    /// is used for two kinds, a move run crosses its marker, or the other
+    /// move kind sits inside a side.
     RevisionConflict,
     /// The editor refused to store this hyperlink. The text is not a URL.
     Hyperlink(&'static str),
