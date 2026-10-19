@@ -403,6 +403,10 @@ struct JoyWord {
     find_replacement: String,
     find_case: bool,
     find_word: bool,
+    /// Full-width / half-width folding. Off keeps the previous literal compare.
+    find_width: bool,
+    /// Treat the query as a linear-time regular expression.
+    find_regex: bool,
     find_query_focus: FocusHandle,
     find_replacement_focus: FocusHandle,
     find_note: Option<String>,
@@ -419,6 +423,59 @@ struct JoyWord {
 enum FindSlot {
     Query,
     Replacement,
+}
+
+/// Find-bar option the user can switch without leaving the bar.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum FindToggle {
+    Case,
+    Word,
+    Width,
+    Regex,
+}
+
+/// Options the find bar sends with `find.next`, `find.previous`,
+/// `find.replace` and `find.replace_all`.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct FindBarFlags {
+    case_sensitive: bool,
+    whole_word: bool,
+    fold_width: bool,
+    regex: bool,
+}
+
+impl FindBarFlags {
+    fn args(self, query: &str, replacement: Option<&str>) -> Vec<(&'static str, ArgValue)> {
+        let mut args = vec![
+            ("query", ArgValue::Text(query.to_owned())),
+            ("case", ArgValue::Bool(self.case_sensitive)),
+            ("word", ArgValue::Bool(self.whole_word)),
+            ("width", ArgValue::Bool(self.fold_width)),
+            ("regex", ArgValue::Bool(self.regex)),
+        ];
+        if let Some(replacement) = replacement {
+            args.push(("replacement", ArgValue::Text(replacement.to_owned())));
+        }
+        args
+    }
+}
+
+/// Ribbon find controls bind query, case and word only. Fill the two bar
+/// checkboxes when that caller left them out, and leave an explicit value
+/// alone so the bar's own arguments stay the source of truth.
+fn supplement_find_flags(
+    args: &[(&'static str, ArgValue)],
+    fold_width: bool,
+    regex: bool,
+) -> Vec<(&'static str, ArgValue)> {
+    let mut out = args.to_vec();
+    if !out.iter().any(|(name, _)| *name == "width") {
+        out.push(("width", ArgValue::Bool(fold_width)));
+    }
+    if !out.iter().any(|(name, _)| *name == "regex") {
+        out.push(("regex", ArgValue::Bool(regex)));
+    }
+    out
 }
 
 /// View-level commands, executed with access to the view's context.
@@ -840,6 +897,16 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        let supplemented;
+        let args = if matches!(
+            id,
+            FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL
+        ) {
+            supplemented = supplement_find_flags(args, self.find_width, self.find_regex);
+            supplemented.as_slice()
+        } else {
+            args
+        };
         let registry = self.registry.clone();
         match registry.invoke_with(
             &mut ViewHost {
@@ -866,16 +933,52 @@ impl JoyWord {
         }
     }
 
-    fn find_args(&self, replacement: bool) -> Vec<(&'static str, ArgValue)> {
-        let mut args = vec![
-            ("query", ArgValue::Text(self.find_query.clone())),
-            ("case", ArgValue::Bool(self.find_case)),
-            ("word", ArgValue::Bool(self.find_word)),
-        ];
-        if replacement {
-            args.push(("replacement", ArgValue::Text(self.find_replacement.clone())));
+    fn find_flags(&self) -> FindBarFlags {
+        FindBarFlags {
+            case_sensitive: self.find_case,
+            whole_word: self.find_word,
+            fold_width: self.find_width,
+            regex: self.find_regex,
         }
-        args
+    }
+
+    fn find_args(&self, replacement: bool) -> Vec<(&'static str, ArgValue)> {
+        self.find_flags().args(
+            &self.find_query,
+            replacement.then_some(self.find_replacement.as_str()),
+        )
+    }
+
+    fn toggle_find(&mut self, which: FindToggle) {
+        match which {
+            FindToggle::Case => self.find_case = !self.find_case,
+            FindToggle::Word => self.find_word = !self.find_word,
+            FindToggle::Width => self.find_width = !self.find_width,
+            FindToggle::Regex => self.find_regex = !self.find_regex,
+        }
+    }
+
+    fn find_toggle_on(&self, which: FindToggle) -> bool {
+        match which {
+            FindToggle::Case => self.find_case,
+            FindToggle::Word => self.find_word,
+            FindToggle::Width => self.find_width,
+            FindToggle::Regex => self.find_regex,
+        }
+    }
+
+    /// Catalog text when the key exists. Width and regex are not in the
+    /// shipped catalogs yet, so those two fall back to the phrases here.
+    fn bar_caption(&self, key: &str, zh: &str, en: &str) -> String {
+        let catalog = Catalog::shipped(self.locale);
+        if catalog.contains(key) {
+            catalog.text(key)
+        } else {
+            match self.locale {
+                Locale::ZhCn => zh.to_owned(),
+                Locale::En => en.to_owned(),
+            }
+        }
     }
 
     fn style_panel(&self, cx: &mut Context<Self>) -> impl IntoElement {
@@ -990,20 +1093,10 @@ impl JoyWord {
                 true,
                 cx,
             ))
-            .child(self.toggle_button(
-                "find-case",
-                &self.label("find.case"),
-                self.find_case,
-                true,
-                cx,
-            ))
-            .child(self.toggle_button(
-                "find-word",
-                &self.label("find.word"),
-                self.find_word,
-                false,
-                cx,
-            ))
+            .child(self.find_toggle(FindToggle::Case, cx))
+            .child(self.find_toggle(FindToggle::Word, cx))
+            .child(self.find_toggle(FindToggle::Width, cx))
+            .child(self.find_toggle(FindToggle::Regex, cx))
             .child(self.repeat_button(cx))
             .child(self.find_button(
                 "format-copy",
@@ -1156,15 +1249,27 @@ impl JoyWord {
             .child(label)
     }
 
-    fn toggle_button(
-        &self,
-        id: &'static str,
-        label: &str,
-        on: bool,
-        case: bool,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
-        let label = label.to_owned();
+    fn find_toggle(&self, which: FindToggle, cx: &mut Context<Self>) -> impl IntoElement {
+        let on = self.find_toggle_on(which);
+        let (id, label, checkbox) = match which {
+            FindToggle::Case => ("find-case", self.label("find.case"), false),
+            FindToggle::Word => ("find-word", self.label("find.word"), false),
+            FindToggle::Width => (
+                "find-width",
+                self.bar_caption("find.width", "全半角", "Match width"),
+                true,
+            ),
+            FindToggle::Regex => (
+                "find-regex",
+                self.bar_caption("find.regex", "正则", "Regex"),
+                true,
+            ),
+        };
+        let shown = if checkbox {
+            format!("{} {label}", if on { "[x]" } else { "[ ]" })
+        } else {
+            label
+        };
         div()
             .id(id)
             .cursor_pointer()
@@ -1173,14 +1278,10 @@ impl JoyWord {
             .rounded_sm()
             .bg(if on { rgb(0xc5d8ea) } else { rgb(0xe7eef5) })
             .on_click(cx.listener(move |this, _, _, cx| {
-                if case {
-                    this.find_case = !this.find_case;
-                } else {
-                    this.find_word = !this.find_word;
-                }
+                this.toggle_find(which);
                 cx.notify();
             }))
-            .child(label)
+            .child(shown)
     }
 
     fn repeat_button(&self, cx: &mut Context<Self>) -> impl IntoElement {
@@ -1819,6 +1920,8 @@ fn main() {
                         find_replacement: String::new(),
                         find_case: false,
                         find_word: false,
+                        find_width: false,
+                        find_regex: false,
                         find_query_focus: cx.focus_handle(),
                         find_replacement_focus: cx.focus_handle(),
                         find_note: None,
@@ -1949,5 +2052,274 @@ mod tests {
             let action = action_for(id).unwrap();
             assert_ne!(action.name(), language, "{}", id);
         }
+    }
+
+    fn mapped(
+        args: &[(&'static str, ArgValue)],
+    ) -> std::collections::BTreeMap<&'static str, ArgValue> {
+        args.iter().cloned().collect()
+    }
+
+    fn flag(args: &std::collections::BTreeMap<&'static str, ArgValue>, name: &str) -> bool {
+        matches!(args.get(name), Some(ArgValue::Bool(true)))
+    }
+
+    fn request_width_regex(request: &joyword_shell::input::EditRequest) -> (bool, bool) {
+        match request {
+            joyword_shell::input::EditRequest::Find {
+                fold_width, regex, ..
+            }
+            | joyword_shell::input::EditRequest::Replace {
+                fold_width, regex, ..
+            } => (*fold_width, *regex),
+            _ => panic!("not a find request"),
+        }
+    }
+
+    #[test]
+    fn find_bar_checkboxes_set_width_and_regex_on_every_find_command() {
+        let off = FindBarFlags::default();
+        assert_eq!(
+            off,
+            FindBarFlags {
+                case_sensitive: false,
+                whole_word: false,
+                fold_width: false,
+                regex: false,
+            }
+        );
+        for replacement in [None, Some("x")] {
+            let args = off.args("ABC", replacement);
+            let map = mapped(&args);
+            assert!(!flag(&map, "case"));
+            assert!(!flag(&map, "word"));
+            assert!(!flag(&map, "width"));
+            assert!(!flag(&map, "regex"));
+            assert_eq!(map.contains_key("replacement"), replacement.is_some());
+        }
+
+        let cases = [
+            (
+                FindBarFlags {
+                    fold_width: true,
+                    ..off
+                },
+                true,
+                false,
+            ),
+            (FindBarFlags { regex: true, ..off }, false, true),
+            (
+                FindBarFlags {
+                    fold_width: true,
+                    regex: true,
+                    ..off
+                },
+                true,
+                true,
+            ),
+        ];
+        for (flags, width_on, regex_on) in cases {
+            for (id, replacement) in [
+                (FIND_NEXT, None),
+                (FIND_PREVIOUS, None),
+                (FIND_REPLACE, Some("x")),
+                (FIND_REPLACE_ALL, Some("x")),
+            ] {
+                let map = mapped(&flags.args("ABC", replacement));
+                assert_eq!(flag(&map, "width"), width_on, "{id}");
+                assert_eq!(flag(&map, "regex"), regex_on, "{id}");
+                let request = input_ui::edit_request_from_args(id, &map).unwrap();
+                assert_eq!(request_width_regex(&request), (width_on, regex_on), "{id}");
+            }
+        }
+
+        // A caller that only sends the older keys (the ribbon binder) picks up
+        // the checkboxes. An explicit false stays false.
+        let older: Vec<_> = off
+            .args("ABC", None)
+            .into_iter()
+            .filter(|(name, _)| *name != "width" && *name != "regex")
+            .collect();
+        let filled = supplement_find_flags(&older, true, true);
+        let map = mapped(&filled);
+        assert!(flag(&map, "width") && flag(&map, "regex"));
+        let explicit = supplement_find_flags(&off.args("ABC", None), true, true);
+        let map = mapped(&explicit);
+        assert!(!flag(&map, "width") && !flag(&map, "regex"));
+    }
+
+    fn wide_editor() -> joyword_shell::input::TextInput<joyword_engine::Session> {
+        use joyword_engine::{EditPolicy, Session};
+        use joyword_model::{BlockSeq, Document, PageSetup, Paragraph};
+        use std::sync::Arc;
+
+        let mut document = Document::new(PageSetup::a4_zh_cn());
+        let mut paragraph = Paragraph::new(document.ids().node());
+        paragraph
+            .push_text("ＡＢＣ 12 dog 34", None, Arc::default())
+            .unwrap();
+        let story = document.body_id();
+        document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+        let mut session = Session::new(document);
+        session.set_policy(EditPolicy {
+            read_only: false,
+            agent_writes: false,
+        });
+        joyword_shell::input::TextInput::new(session, joyword_shell::input::InputLimits::default())
+            .unwrap()
+    }
+
+    fn body_text(input: &joyword_shell::input::TextInput<joyword_engine::Session>) -> String {
+        input
+            .backend()
+            .document()
+            .body()
+            .blocks
+            .get(0)
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .plain_text(|_| String::new())
+    }
+
+    fn invoke_find(
+        input: &mut joyword_shell::input::TextInput<joyword_engine::Session>,
+        id: CommandId,
+        flags: FindBarFlags,
+        query: &str,
+        replacement: Option<&str>,
+    ) -> Result<joyword_shell::input::EditReport, joyword_shell::input::InputError> {
+        let map = mapped(&flags.args(query, replacement));
+        let request = input_ui::edit_request_from_args(id, &map).expect("find bar args");
+        input.editing(request)
+    }
+
+    #[test]
+    fn find_bar_width_hits_fullwidth_and_regex_rejects_invalid_patterns() {
+        let original = "ＡＢＣ 12 dog 34";
+        let mut input = wide_editor();
+        assert_eq!(body_text(&input), original);
+
+        let miss =
+            invoke_find(&mut input, FIND_NEXT, FindBarFlags::default(), "ABC", None).unwrap();
+        assert_eq!(miss.matches, 0);
+        assert_eq!(input.selected_text().unwrap(), "");
+        assert_eq!(body_text(&input), original);
+
+        let literal = invoke_find(
+            &mut input,
+            FIND_NEXT,
+            FindBarFlags::default(),
+            "ＡＢＣ",
+            None,
+        )
+        .unwrap();
+        assert_eq!(literal.matches, 1);
+        assert_eq!(input.selected_text().unwrap(), "ＡＢＣ");
+
+        let mut folded = wide_editor();
+        let next = invoke_find(
+            &mut folded,
+            FIND_NEXT,
+            FindBarFlags {
+                fold_width: true,
+                ..FindBarFlags::default()
+            },
+            "ABC",
+            None,
+        )
+        .unwrap();
+        assert_eq!(next.matches, 1);
+        assert_eq!(folded.selected_text().unwrap(), "ＡＢＣ");
+        let mut backward = wide_editor();
+        let previous = invoke_find(
+            &mut backward,
+            FIND_PREVIOUS,
+            FindBarFlags {
+                fold_width: true,
+                ..FindBarFlags::default()
+            },
+            "ABC",
+            None,
+        )
+        .unwrap();
+        assert_eq!(previous.matches, 1);
+        assert_eq!(backward.selected_text().unwrap(), "ＡＢＣ");
+
+        let replaced = invoke_find(
+            &mut folded,
+            FIND_REPLACE,
+            FindBarFlags {
+                fold_width: true,
+                ..FindBarFlags::default()
+            },
+            "ABC",
+            Some("Z"),
+        )
+        .unwrap();
+        assert_eq!(replaced.replaced, 1);
+        assert_eq!(body_text(&folded), "Z 12 dog 34");
+        folded.undo().unwrap();
+        assert_eq!(body_text(&folded), original);
+
+        let literal_digits = invoke_find(
+            &mut input,
+            FIND_REPLACE_ALL,
+            FindBarFlags::default(),
+            r"\d+",
+            Some("#"),
+        )
+        .unwrap();
+        assert_eq!(literal_digits.replaced, 0);
+        assert_eq!(body_text(&input), original);
+
+        let once = invoke_find(
+            &mut input,
+            FIND_REPLACE,
+            FindBarFlags {
+                regex: true,
+                ..FindBarFlags::default()
+            },
+            r"\d+",
+            Some("#"),
+        )
+        .unwrap();
+        assert_eq!(once.replaced, 1);
+        assert_eq!(body_text(&input), "ＡＢＣ # dog 34");
+        input.undo().unwrap();
+        assert_eq!(body_text(&input), original);
+
+        let all = invoke_find(
+            &mut input,
+            FIND_REPLACE_ALL,
+            FindBarFlags {
+                regex: true,
+                ..FindBarFlags::default()
+            },
+            r"\d+",
+            Some("#"),
+        )
+        .unwrap();
+        assert_eq!(all.replaced, 2);
+        assert_eq!(body_text(&input), "ＡＢＣ # dog #");
+        input.undo().unwrap();
+        assert_eq!(body_text(&input), original);
+
+        let invalid = invoke_find(
+            &mut input,
+            FIND_NEXT,
+            FindBarFlags {
+                regex: true,
+                ..FindBarFlags::default()
+            },
+            "(",
+            None,
+        )
+        .unwrap_err();
+        assert_eq!(
+            invalid,
+            joyword_shell::input::InputError::Rejected("query is not a valid pattern")
+        );
+        assert_eq!(body_text(&input), original);
     }
 }
