@@ -101,6 +101,43 @@ fn projection_preserves_hidden_but_excludes_deleted_and_unknown() {
 }
 
 #[test]
+fn imported_deleted_and_moved_out_runs_stay_out_of_the_text() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("revisions.docx");
+    let mark = r#"w:author="Ada" w:date="2026-01-02T03:04:05Z""#;
+    std::fs::write(
+        &path,
+        package(&format!(
+            concat!(
+                r#"<w:p><w:r><w:t>保留</w:t></w:r>"#,
+                r#"<w:ins w:id="1" {mark}><w:r><w:t>新增</w:t></w:r></w:ins>"#,
+                r#"<w:del w:id="2" {mark}><w:r><w:delText>删去</w:delText></w:r></w:del>"#,
+                r#"<w:r><w:t>尾</w:t></w:r></w:p>"#,
+                r#"<w:p><w:moveFromRangeStart w:id="3" {mark} w:name="m"/>"#,
+                r#"<w:moveFrom w:id="4" {mark}><w:r><w:delText>旧址</w:delText></w:r></w:moveFrom>"#,
+                r#"<w:moveFromRangeEnd w:id="5" {mark} w:name="m"/>"#,
+                r#"<w:moveToRangeStart w:id="6" {mark} w:name="m"/>"#,
+                r#"<w:moveTo w:id="7" {mark}><w:r><w:t>新址</w:t></w:r></w:moveTo>"#,
+                r#"<w:moveToRangeEnd w:id="8" {mark} w:name="m"/></w:p>"#,
+            ),
+            mark = mark
+        )),
+    )
+    .unwrap();
+    let output = run("inspect", &path, &[]);
+    assert_eq!(output.status.code(), Some(0));
+    let json: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(json["text"], "保留新增尾\n新址");
+    assert_eq!(json["projection"]["deleted_revisions"], "excluded");
+    assert_eq!(json["projection"]["moved_from_revisions"], "excluded");
+    let text = run("text", &path, &[]);
+    assert_eq!(text.status.code(), Some(0));
+    assert_eq!(text.stdout, "保留新增尾\n新址".as_bytes());
+    let metadata: Value = serde_json::from_slice(&text.stderr).unwrap();
+    assert_eq!(metadata["text_bytes"], json["text_bytes"]);
+}
+
+#[test]
 fn truncation_is_a_utf8_prefix_with_explicit_status() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("unicode.docx");
