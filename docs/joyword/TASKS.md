@@ -22,7 +22,7 @@
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M0 | 3 | 3 | 0 | 0 | 6 |
 | M1 | 7 | 4 | 1 | 0 | 12 |
-| M2 | 0 | 10 | 2 | 0 | 12 |
+| M2 | 0 | 11 | 1 | 0 | 12 |
 | M3 | 0 | 0 | 5 | 0 | 5 |
 | M4 | 0 | 0 | 4 | 0 | 4 |
 | M5 | 0 | 0 | 5 | 0 | 5 |
@@ -30,9 +30,9 @@
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 10 | 17 | 39 | 0 | 66 |
+| 总计 | 10 | 18 | 38 | 0 | 66 |
 
-**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 Windows 原生 GUI 确认保存人工验收，以及 T103 的覆盖引导 fuzz；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；按字体名换面、甲乙超过 10、中文计数超限、罗马数字超出 1..=3999、字母重复超过 64、bar／middleDot／heavy、编号部件改写、主题色文字、正则查找、全角半角折叠和人工验收未做；项目符号、级别标签字号与粗体、字母超过 26、列表与制表位上的居中／右对齐／两端对齐、主题 tint／shade，以及表格样式的粗体、底纹和边框已在第四切片落地）、T201（基础表格第二切片：合并与拆分、垂直合并的视觉跨行、跨页拆行、表头重复和单元格边距已落地；嵌套表、单元格 tcMar、主题色边框、其他边框样式、首列末列与纵向条纹的排版，以及合同表格人工验收未做）、T202（页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚的 PAGE／NUMPAGES／SECTIONPAGES、pgNumType、下一页／连续／奇偶分节和等宽分栏已落地，widowControl、页眉编辑、页面设置写回和图形界面验收未做）、T203（行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地；拖放、浮动图、表格内超链接和人工对照未做）、T205（功能区、状态栏、字体与段落对话框、标尺缩进与制表位拖拽、单线／双线／点线下划线与 sRGB 绘制、以及编辑标记／隐藏文字／域代码三个视图开关已落地；Word 字数对话框对照、导航窗格、审阅栏和只用功能区完成报告排版的人工验收未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（人工验收未做）、T210（五个原创样例的 inspect／text／render／PDF 已有自动测试且两次输出逐字节相同，render 与窗口的人工一致性未做）与 T211（应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做）进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
+**当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Linux 真机腿、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的长只读窗口观察、T110 的 Windows 原生 GUI 确认保存人工验收，以及 T103 的覆盖引导 fuzz；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；按字体名换面、甲乙超过 10、中文计数超限、罗马数字超出 1..=3999、字母重复超过 64、bar／middleDot／heavy、编号部件改写、主题色文字、正则查找、全角半角折叠和人工验收未做；项目符号、级别标签字号与粗体、字母超过 26、列表与制表位上的居中／右对齐／两端对齐、主题 tint／shade，以及表格样式的粗体、底纹和边框已在第四切片落地）、T201（基础表格第二切片：合并与拆分、垂直合并的视觉跨行、跨页拆行、表头重复和单元格边距已落地；嵌套表、单元格 tcMar、主题色边框、其他边框样式、首列末列与纵向条纹的排版，以及合同表格人工验收未做）、T202（页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚的 PAGE／NUMPAGES／SECTIONPAGES、pgNumType、下一页／连续／奇偶分节和等宽分栏已落地，widowControl、页眉编辑、页面设置写回和图形界面验收未做）、T203（行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地；拖放、浮动图、表格内超链接和人工对照未做）、T204（文件菜单导出 PDF 与打印到文件消费屏幕已安装的同一 PageScene；标题、Producer、子集字体 ToUnicode、分节纸型、图像 XObject、标题样式书签，以及 http／https／mailto 的 URI 链接注释有自动测试；仅书签锚点不写成跳转；系统打印对话框未验证，双阅读器人工验收未做）、T205（功能区、状态栏、字体与段落对话框、标尺缩进与制表位拖拽、单线／双线／点线下划线与 sRGB 绘制、以及编辑标记／隐藏文字／域代码三个视图开关已落地；Word 字数对话框对照、导航窗格、审阅栏和只用功能区完成报告排版的人工验收未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（人工验收未做）、T210（五个原创样例的 inspect／text／render／PDF 已有自动测试且两次输出逐字节相同，render 与窗口的人工一致性未做）与 T211（应用日志、panic hook 与测试 profile 已接入，崩溃后检查日志的人工验收未做）进行中，M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。
 
 ## 阶段与任务
 
@@ -315,14 +315,14 @@
 ### T204：统一 PDF 与平台打印
 
 - 输入：稳定 PageScene、字体嵌入许可、链接书签及平台打印设置。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-009`、`FORMAT-008`、`PLATFORM-007`
 - 前置：`T003`、`T201`、`T202`
 - 产物：PageScene 完整页面输出、可选文本 PDF、平台打印层（GPUI 无打印接口）与预览，以及 PageScene 的 CPU 光栅后端。
 - 错误路径：布局未稳定、字体不可嵌入、打印取消或设备失败不报告成功。
 - 自动验证：页面几何一致、PDF 文本／链接、纸型和打印范围测试。
 - 人工验收：两个独立阅读器检查 PDF；真实打印或平台打印到文件。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-19 第一切片已落地，任务保持 `in_progress`。文件菜单 `file.export_pdf` 与 `file.print` 使用屏幕已经安装的同一 `PageScene`（页范围只切片，不再分页）；CLI `convert` 在自己的一次分页之后调用同一个 `render_export`。Producer 固定为 JoyWord；标题来自 core props 的 `dc:title`；不写 CreationDate／ModDate，也不开 XMP。子集字体带 ToUnicode，`pdftotext -enc UTF-8` 在有该程序时抽出文字（未设置 `JOYWORD_REQUIRE_TEST_FONT` 且程序缺失时跳过，不把跳过说成已抽出）。分节纸型成为各页 MediaBox；场景图片成为图像 XObject；书签只来自内置标题样式 1–9（含 `basedOn` 链），普通段的 `outlineLvl` 不成书签。落盘是写入、sync、回读、硬链接，不覆盖已有文件。无头打印到文件在 CI 可测；份数只记在收据上，文件仍是一份 PDF。审阅标记 `markup`／`original` 拒绝。macOS／Windows／Linux 的系统打印对话框按 cfg 编译并返回未验证，不调用系统 API。结构由 joyword-pdf 内与写出器不共享对象的读取器核对（ISO 32000-1 经典交叉引用或交叉引用流；FlateDecode 复用已钉扎的 flate2 1.1.10，没有新外部包版本）。证据：`two_renders_match_and_carry_no_clock`、`heading_styles_become_bookmarks_and_a_bare_outline_level_does_not`、`each_section_keeps_its_page_box`、`an_image_is_an_xobject`、`a_classic_cross_reference_file_reports_structure_without_the_writer`、`an_https_link_is_a_uri_annotation_and_a_script_is_not`、`pdftotext_reads_the_scene_text`、`publish_verifies_bytes_and_refuses_an_existing_path`、`print_to_file_records_copies_once`、`the_native_dialog_is_not_verified_and_creates_no_file`。未做：两个独立阅读器的人工检查、真实打印机、系统打印对话框、结构标签、仅书签锚点的文档内跳转、审阅标记打印，以及把不可打印区域做成用户可见选择。CPU 光栅与打印预览是既有路径，本切片不另称完成。没有启动图形界面。见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T205：功能区、标尺与状态栏
 

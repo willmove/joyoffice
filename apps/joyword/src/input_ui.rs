@@ -87,6 +87,10 @@ pub(crate) trait DocEditor {
     fn select_word_at(&mut self, offset: usize) -> Result<(), InputError>;
     fn select_paragraph_at(&mut self, offset: usize) -> Result<(), InputError>;
     fn source_path(&self) -> Option<&std::path::Path>;
+    /// OPC core-properties part, when this editor still has the package.
+    fn core_properties_xml(&self) -> Option<std::sync::Arc<[u8]>> {
+        None
+    }
     /// Save As is possible whenever the editor can produce a verified export,
     /// including package sessions never bound to a path.
     fn can_save_copy(&self) -> bool {
@@ -434,6 +438,14 @@ impl DocEditor for TextInput<BoundDocx> {
     fn source_path(&self) -> Option<&std::path::Path> {
         Some(self.backend().source_path())
     }
+    fn core_properties_xml(&self) -> Option<std::sync::Arc<[u8]>> {
+        self.backend()
+            .session()
+            .backing()
+            .package()
+            .part("/docProps/core.xml")
+            .map(|part| std::sync::Arc::clone(&part.data))
+    }
     fn save_copy(&self, destination: &std::path::Path) -> Result<SaveCopyReceipt, String> {
         self.backend()
             .save_copy(destination)
@@ -652,6 +664,13 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     fn source_path(&self) -> Option<&std::path::Path> {
         None
     }
+    fn core_properties_xml(&self) -> Option<std::sync::Arc<[u8]>> {
+        self.backend()
+            .backing()
+            .package()
+            .part("/docProps/core.xml")
+            .map(|part| std::sync::Arc::clone(&part.data))
+    }
     fn can_save_copy(&self) -> bool {
         true
     }
@@ -814,6 +833,36 @@ impl CopyPhase {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct PdfRequest {
+    epoch: u64,
+    version: u64,
+    print: bool,
+}
+
+pub(crate) struct PdfOrder<'a> {
+    pub destination: std::path::PathBuf,
+    pub print: bool,
+    pub copies: Option<&'a str>,
+    pub range: Option<&'a str>,
+    pub marks: Option<&'a str>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum PdfPhase {
+    Picking(u64),
+    Writing(PdfRequest),
+}
+
+impl PdfPhase {
+    fn epoch(self) -> u64 {
+        match self {
+            Self::Picking(epoch) => epoch,
+            Self::Writing(request) => request.epoch,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct OriginalRequest {
     epoch: u64,
     version: u64,
@@ -875,6 +924,15 @@ enum CopyLanding {
     Current,
     /// Edits made after the request are not in the copy and stay unsaved.
     Earlier,
+}
+
+fn suggested_pdf_name(editor: Option<&dyn DocEditor>) -> String {
+    editor
+        .and_then(|editor| editor.source_path())
+        .and_then(|path| path.file_stem())
+        .and_then(|name| name.to_str())
+        .map(|name| format!("{name}.pdf"))
+        .unwrap_or_else(|| "untitled.pdf".to_string())
 }
 
 fn copy_landing(request: CopyRequest, current: Option<(u64, u64)>) -> CopyLanding {
@@ -1674,6 +1732,231 @@ impl JoyWord {
             }
         }
     }
+
+    pub(crate) fn begin_pdf(&mut self, print: bool, window: &mut Window, cx: &mut Context<Self>) {
+        if self
+            .pdf
+            .is_some_and(|phase| phase.epoch() == self.copy_epoch)
+        {
+            return;
+        }
+        if self.ready_layout().is_none() {
+            self.report_input_error(self.label("file.export.unstable"));
+            cx.notify();
+            return;
+        }
+        let suggested = suggested_pdf_name(self.editor.as_deref());
+        let directory = self
+            .editor
+            .as_ref()
+            .and_then(|editor| editor.source_path())
+            .and_then(|path| path.parent())
+            .map(std::path::Path::to_path_buf)
+            .unwrap_or_else(|| std::path::PathBuf::from("."));
+        let epoch = self.copy_epoch;
+        self.pdf = Some(PdfPhase::Picking(epoch));
+        let receiver = cx.prompt_for_new_path(&directory, Some(&suggested));
+        cx.spawn_in(window, async move |view, cx| {
+            let picked = receiver.await.ok().and_then(Result::ok).flatten();
+            let _ = view.update_in(cx, |view, window, cx| {
+                if view.pdf == Some(PdfPhase::Picking(epoch)) {
+                    view.pdf = None;
+                }
+                cx.notify();
+                let Some(path) = picked else {
+                    return;
+                };
+                if let Err(error) = view.queue_pdf(
+                    PdfOrder {
+                        destination: path,
+                        print,
+                        copies: None,
+                        range: None,
+                        marks: None,
+                    },
+                    window,
+                    cx,
+                ) {
+                    if let ExecuteError::Failed(message) = error {
+                        view.report_input_error(message);
+                    }
+                    cx.notify();
+                }
+            });
+        })
+        .detach();
+    }
+
+    pub(crate) fn queue_pdf(
+        &mut self,
+        order: PdfOrder<'_>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Result<(), ExecuteError> {
+        let PdfOrder {
+            destination,
+            print,
+            copies,
+            range,
+            marks,
+        } = order;
+        if matches!(self.pdf, Some(PdfPhase::Writing(request)) if request.epoch == self.copy_epoch)
+        {
+            return Err(ExecuteError::Failed(
+                self.pdf_failure(print, "export already running"),
+            ));
+        }
+        if matches!(self.pdf, Some(PdfPhase::Picking(epoch)) if epoch == self.copy_epoch) {
+            self.pdf = None;
+        }
+        let layout = self
+            .ready_layout()
+            .map(|frame| std::sync::Arc::clone(&frame.layout))
+            .ok_or_else(|| ExecuteError::Failed(self.label("file.export.unstable")))?;
+        let font = self
+            .font
+            .clone()
+            .ok_or_else(|| ExecuteError::Failed(self.label("file.export.unstable")))?;
+        let profile = self
+            .profile
+            .ok_or_else(|| ExecuteError::Failed(self.label("file.export.unstable")))?;
+        let editor = self
+            .editor
+            .as_ref()
+            .ok_or_else(|| ExecuteError::Failed(self.label("file.export.unstable")))?;
+        if layout
+            .ensure_current(editor.view().snapshot(), &font, profile)
+            .is_err()
+        {
+            return Err(ExecuteError::Failed(self.label("file.export.unstable")));
+        }
+        if print {
+            joyword_shell::print::review_marks(marks)
+                .map_err(|_| ExecuteError::Failed(self.label("file.print.marks")))?;
+        }
+        let copy_count = if print {
+            joyword_shell::print::copies_of(copies)
+                .map_err(|error| ExecuteError::Failed(self.pdf_failure(true, &error.to_string())))?
+        } else {
+            1
+        };
+        let pages = if print {
+            joyword_shell::print::page_span(range, layout.pages().len())
+                .map_err(|error| ExecuteError::Failed(self.pdf_failure(true, &error.to_string())))?
+        } else {
+            0..layout.pages().len()
+        };
+        let range_label = if print {
+            range
+                .map(str::trim)
+                .filter(|text| !text.is_empty())
+                .unwrap_or("all")
+                .to_string()
+        } else {
+            "all".to_string()
+        };
+        let request = PdfRequest {
+            epoch: self.copy_epoch,
+            version: editor.version(),
+            print,
+        };
+        let job = crate::export::PdfJob {
+            destination,
+            layout,
+            font,
+            document: editor.view().snapshot().clone(),
+            core: editor.core_properties_xml(),
+            pages,
+            kind: if print {
+                crate::export::PdfKind::Print {
+                    copies: copy_count,
+                    range: range_label,
+                }
+            } else {
+                crate::export::PdfKind::Export
+            },
+        };
+        self.pdf = Some(PdfPhase::Writing(request));
+        self.copy_note = None;
+        self.input_error = None;
+        cx.spawn_in(window, async move |view, cx| {
+            let result = cx
+                .background_spawn(async move { crate::export::run_pdf(job) })
+                .await;
+            let _ = view.update(cx, |view, cx| view.pdf_landed(request, result, cx));
+        })
+        .detach();
+        Ok(())
+    }
+
+    fn pdf_landed(
+        &mut self,
+        request: PdfRequest,
+        result: Result<joyword_shell::print::PrintReceipt, String>,
+        cx: &mut Context<Self>,
+    ) {
+        if self.pdf == Some(PdfPhase::Writing(request)) {
+            self.pdf = None;
+        }
+        let current = self
+            .editor
+            .as_ref()
+            .map(|editor| (self.copy_epoch, editor.version()));
+        let landing = copy_landing(
+            CopyRequest {
+                epoch: request.epoch,
+                version: request.version,
+            },
+            current,
+        );
+        if landing == CopyLanding::Stale {
+            cx.notify();
+            return;
+        }
+        let earlier = landing == CopyLanding::Earlier;
+        let catalog = Catalog::shipped(self.locale);
+        match result {
+            Ok(receipt) => {
+                let shown = receipt.path().display().to_string();
+                let copies = receipt.copies().to_string();
+                let key = match (request.print, earlier) {
+                    (false, false) => "file.export.saved",
+                    (false, true) => "file.export.saved_earlier",
+                    (true, false) => "file.print.saved",
+                    (true, true) => "file.print.saved_earlier",
+                };
+                self.copy_note = Some(catalog.format(
+                    key,
+                    &[
+                        ("path", shown.as_str()),
+                        ("copies", copies.as_str()),
+                        ("range", receipt.range()),
+                    ],
+                ));
+                self.input_error = None;
+            }
+            Err(error) => {
+                self.report_input_error(self.pdf_failure(request.print, &error));
+            }
+        }
+        cx.notify();
+    }
+
+    fn pdf_failure(&self, print: bool, reason: &str) -> String {
+        if reason.contains("not verified") {
+            return self.label("file.print.not_verified");
+        }
+        if reason == "marks" {
+            return self.label("file.print.marks");
+        }
+        let key = if print {
+            "file.print.error"
+        } else {
+            "file.export.error"
+        };
+        Catalog::shipped(self.locale).format(key, &[("reason", reason)])
+    }
+
     fn confirm_if_dirty(
         &mut self,
         then: AfterDiscard,
@@ -1895,6 +2178,13 @@ impl JoyWord {
                 return Availability::Disabled("input.read_only");
             }
             return Availability::Enabled;
+        }
+        if matches!(id, FILE_EXPORT_PDF | FILE_PRINT) {
+            return if self.ready_layout().is_some() && self.editor.is_some() {
+                Availability::Enabled
+            } else {
+                Availability::Disabled("file.export.unstable")
+            };
         }
         if matches!(id, FILE_SAVE | FILE_SAVE_COPY) {
             return if self
