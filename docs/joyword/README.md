@@ -15,6 +15,8 @@
 7. [RESEARCH](RESEARCH.md)：截至基线日期的公开资料与取舍。
 8. [PROVENANCE](PROVENANCE.md)：规范、实现、依赖及资产来源规则。
 9. [IMPLEMENTATION](IMPLEMENTATION.md)：当前代码、验证结果和剩余门槛。
+10. [验收清单](acceptance/README.md)：T103、T200–T205、T300 的原子准则和抽查脚本。
+11. [功能指南](guide/README.md)：查找替换、表格、页面、图片、修订和无头命令行。
 
 ## 解释优先级
 
