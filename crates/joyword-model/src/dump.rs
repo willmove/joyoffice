@@ -339,9 +339,13 @@ impl Dumper<'_> {
                                     resource,
                                     width,
                                     height,
+                                    anchor,
                                 } => {
+                                    let placed = anchor
+                                        .map(|anchor| format!("@{}x{}", anchor.x, anchor.y))
+                                        .unwrap_or_default();
                                     if self.options.node_ids {
-                                        format!("image:{resource}:{width}x{height}")
+                                        format!("image:{resource}:{width}x{height}{placed}")
                                     } else {
                                         let hash = self
                                             .document
@@ -349,7 +353,7 @@ impl Dumper<'_> {
                                             .get(*resource)
                                             .map(|item| item.hash().to_string())
                                             .unwrap_or_else(|| "missing".into());
-                                        format!("image:{hash}:{width}x{height}")
+                                        format!("image:{hash}:{width}x{height}{placed}")
                                     }
                                 }
                                 InlineKind::Preserved(value) => {

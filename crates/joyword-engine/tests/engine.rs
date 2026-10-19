@@ -1016,6 +1016,7 @@ fn inline_objects_and_formatting_round_trip_through_undo() {
             resource: session.document().clone().ids().resource(),
             width: Measure::Emu(1),
             height: Measure::Emu(1),
+            anchor: None,
         },
     }]);
     assert_eq!(

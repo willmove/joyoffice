@@ -27,8 +27,10 @@ use crate::document::{
     LayoutCancellation, LayoutError, LayoutNote, LayoutSnapshot, PageGeometry, SingleFontProfile,
     unsupported,
 };
-use crate::line::{LayoutLine, LineError, LineLimits, SourceRange, layout_paragraph_auto};
-use crate::scene::{GlyphRun, decoration_rects};
+use crate::line::{
+    LayoutLine, LineError, LineImage, LineLimits, SourceRange, layout_paragraph_auto,
+};
+use crate::scene::{GlyphRun, SceneImage, decoration_rects};
 use crate::shape::paint_underline;
 use crate::style_paint;
 use crate::view::{self, ViewOptions};
@@ -339,13 +341,17 @@ pub(crate) fn marked_text(document: &Document, paragraph: &Paragraph) -> String 
             resource,
             width,
             height,
+            anchor,
         } => {
             let hash = document
                 .resources()
                 .get(*resource)
                 .map(|item| item.hash().to_string())
                 .unwrap_or_else(|| "missing".into());
-            format!("{OBJECT_MARKER}image:{hash}:{width}x{height}")
+            let placed = anchor
+                .map(|anchor| format!("@{}x{}", anchor.x, anchor.y))
+                .unwrap_or_default();
+            format!("{OBJECT_MARKER}image:{hash}:{width}x{height}{placed}")
         }
         InlineKind::Preserved(_) => OBJECT_MARKER.to_string(),
     })
@@ -678,6 +684,35 @@ fn place_story_line(
     let marks = snapshot.key().view.formatting_marks;
     let rects = decoration_rects(&run, marks, line.paragraph_end, &line.tab_gaps);
     snapshot.append_page_run(page_index, run)?;
+    for image in &line.images {
+        let scene = if let Some(top) = image.absolute_top {
+            SceneImage {
+                media_type: image.media_type.clone(),
+                bytes: image.bytes.clone(),
+                x: image.x,
+                y: top,
+                width: image.width,
+                height: image.height,
+            }
+        } else {
+            let y = baseline_y
+                .raw()
+                .checked_sub(image.height.raw())
+                .ok_or(LayoutError::GeometryOverflow)?;
+            let x = origin_x
+                .checked_add(image.x)
+                .ok_or(LayoutError::GeometryOverflow)?;
+            SceneImage {
+                media_type: image.media_type.clone(),
+                bytes: image.bytes.clone(),
+                x,
+                y: Emu::new(y),
+                width: image.width,
+                height: image.height,
+            }
+        };
+        snapshot.append_page_image(page_index, scene)?;
+    }
     snapshot.extend_page_rects(page_index, rects)
 }
 
@@ -688,6 +723,7 @@ struct StoryLine {
     baseline: i64,
     paragraph_end: bool,
     tab_gaps: Vec<(i64, i64)>,
+    images: Vec<LineImage>,
 }
 
 /// Fitted header or footer lines, not yet positioned.
@@ -713,6 +749,23 @@ fn story_runs(
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
+        if paragraph
+            .inlines()
+            .iter()
+            .any(|inline| matches!(inline.kind, InlineKind::Image { .. }))
+        {
+            match story_image_lines(snapshot, document, faces, profile, paragraph, geometry) {
+                Ok(lines) => runs.extend(lines),
+                Err(LayoutError::Cancelled) => return Err(LayoutError::Cancelled),
+                Err(LayoutError::LimitExceeded(limit)) => {
+                    return Err(LayoutError::LimitExceeded(limit));
+                }
+                Err(_) => snapshot.note(LayoutNote::StoryContentSkipped {
+                    paragraph: paragraph.id(),
+                }),
+            }
+            continue;
+        }
         let (display, used_cache) =
             match story_display(snapshot, document, paragraph, page_index, view)? {
                 Some(text) => text,
@@ -792,10 +845,103 @@ fn story_runs(
                 baseline,
                 paragraph_end: index == last,
                 tab_gaps,
+                images: Vec::new(),
             });
         }
     }
     Ok(runs)
+}
+
+/// Inline pictures in a header or footer, fitted like body pictures and
+/// returned ready for the story band. Floating page anchors keep page
+/// coordinates. A paragraph this slice cannot place is an error so the caller
+/// can skip that paragraph without failing the page.
+fn story_image_lines(
+    snapshot: &LayoutSnapshot,
+    document: &Document,
+    faces: FaceSet<'_>,
+    profile: SingleFontProfile,
+    paragraph: &Paragraph,
+    geometry: PageGeometry,
+) -> Result<Vec<StoryLine>, LayoutError> {
+    accept_body_inlines(document, paragraph)?;
+    let view = snapshot.key().view;
+    let painted = style_paint::paint(document, paragraph, profile, view, None)?;
+    let slot = dominant_slot(&paragraph.plain_text(|_| String::new()));
+    let font = faces.face(slot);
+    let line_box = if painted.leading.raw() > 0 {
+        painted.leading
+    } else {
+        profile.leading
+    };
+    let descent = Emu::new((line_box.raw() - painted.baseline.raw()).max(0));
+    let available = Emu::new((geometry.bottom_edge().raw() - geometry.top.raw()).max(1));
+    let fitted = crate::images::fit_inline_images(
+        document,
+        paragraph,
+        font,
+        painted.size,
+        geometry.content_width(),
+        available,
+        line_box,
+        descent,
+        &mut |text, _byte, width| {
+            layout_paragraph_auto(
+                font,
+                text,
+                painted.size,
+                profile.features,
+                width,
+                LineLimits::default(),
+            )
+            .map_err(|error| match error {
+                LineError::Cancelled => LayoutError::Cancelled,
+                LineError::LimitExceeded(limit) => map_line_limit(limit),
+                _ => unsupported(Some(paragraph.id()), "header or footer image"),
+            })
+        },
+    )?;
+    if fitted.lines.is_empty() {
+        return Err(unsupported(Some(paragraph.id()), "header or footer image"));
+    }
+    let underline = paint_underline(font, painted.size, painted.underline);
+    let last = fitted.lines.len().saturating_sub(1);
+    let mut lines = Vec::new();
+    for (index, line) in fitted.lines.into_iter().enumerate() {
+        let image_height = line
+            .images
+            .iter()
+            .filter(|image| image.absolute_top.is_none())
+            .map(|image| image.height.raw())
+            .max()
+            .unwrap_or(0);
+        let box_height = if line.box_height.raw() > 0 {
+            line.box_height
+        } else {
+            line_box
+        };
+        let baseline = if image_height > painted.baseline.raw() {
+            image_height
+        } else {
+            painted.baseline.raw().clamp(0, box_height.raw())
+        };
+        let mut run = line.to_glyph_run(Emu::new(0), Emu::new(0));
+        run.bold = painted.bold;
+        run.italic = painted.italic;
+        run.latin_family.clone_from(&painted.latin);
+        run.east_asia_family.clone_from(&painted.east_asia);
+        run.color = painted.color;
+        run.underline = underline;
+        lines.push(StoryLine {
+            run,
+            line_box: box_height,
+            baseline,
+            paragraph_end: index == last,
+            tab_gaps: line.tab_gaps,
+            images: line.images,
+        });
+    }
+    Ok(lines)
 }
 
 /// Header and footer text. Field codes print `PAGE`, `NUMPAGES` or

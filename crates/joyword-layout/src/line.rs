@@ -52,8 +52,12 @@ pub struct LineRevision {
     pub blue: u8,
 }
 
-/// An inline image attached to a fitted line, before page placement.
-/// `x` is the distance from the line origin, before justification.
+/// An image attached to a fitted line, before page placement.
+///
+/// When [`absolute_top`] is `None`, `x` is the distance from the line origin
+/// before justification and the picture sits on the baseline. When it is
+/// `Some`, `x` and `absolute_top` are page coordinates and the picture does
+/// not take line width or line height.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LineImage {
     pub media_type: Arc<str>,
@@ -63,6 +67,8 @@ pub struct LineImage {
     pub height: Emu,
     /// Paragraph scalar of the image marker.
     pub scalar: usize,
+    /// Page-absolute top. `None` keeps the picture on the line.
+    pub absolute_top: Option<Emu>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

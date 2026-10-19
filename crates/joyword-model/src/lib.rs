@@ -42,9 +42,9 @@ pub use dump::{DumpOptions, SemanticDifference};
 pub use hyperlink::{Hyperlink, MAX_HYPERLINK_CHARS, OpenRefusal, open_target};
 pub use id::{AnnotationId, IdAllocator, NodeId, PreservedId, ResourceId, SourceRef, StoryId};
 pub use image::{
-    AcceptedImage, DecodedImage, ImageLimits, ImageRefuse, MAX_IMAGE_BYTES, MAX_IMAGE_DIMENSION,
-    MAX_IMAGE_PIXELS, accept_image, decode_rgba, display_extent, extent_emu, sample_png_1x1,
-    sample_png_overwide,
+    AcceptedImage, DecodedImage, ImageAnchor, ImageLimits, ImageRefuse, MAX_IMAGE_BYTES,
+    MAX_IMAGE_DIMENSION, MAX_IMAGE_PIXELS, accept_image, decode_rgba, display_extent, extent_emu,
+    page_anchor, sample_png_1x1, sample_png_overwide,
 };
 pub use numbering::{
     AbstractNum, IndentEdges, LevelOverride, MAX_LEVEL, NumInstance, NumberFormat, NumberLabel,

@@ -1,18 +1,21 @@
 //! Inline still pictures (ECMA-376 Part 1 §17.3.3.19 `w:drawing`, §17.3.3.20
 //! `w:pict`, §20.4.2.7 `a:blip`, §20.4.2.15 `wp:extent`).
 //!
-//! A single internal raster blip becomes an image resource and an inline
-//! object. The drawing element is not registered as a fragment, so an
-//! unedited paragraph keeps its original XML on export. Remote targets are
-//! not fetched, and OLE, SVG and other active payloads are not executed.
-//! Floating `wp:anchor` drawings stay on the existing preserve path.
+//! A single internal raster blip becomes an image resource. An inline drawing
+//! flows with the line. A floating `wp:anchor` is placed only when it is
+//! `wp:wrapNone`, in front of the text, and positioned from the page origin
+//! (`wp:simplePos` or page-relative `wp:posOffset`). Other wrap modes,
+//! `behindDoc`, and non-page anchors stay preserved. The drawing element is
+//! not registered as a fragment, so an unedited paragraph keeps its original
+//! XML on export. Remote targets are not fetched, and OLE, SVG and other
+//! active payloads are not executed.
 
 use std::sync::Arc;
 
 use joyoffice_opc::Target;
 use joyword_model::{
-    ImageLimits, ImageRefuse, InlineKind, InlineObject, MAX_IMAGE_BYTES, Measure, RunProps,
-    SourceRef, StyleId, accept_image, display_extent, extent_emu,
+    ImageAnchor, ImageLimits, ImageRefuse, InlineKind, InlineObject, MAX_IMAGE_BYTES, Measure,
+    RunProps, SourceRef, StyleId, accept_image, display_extent, extent_emu, page_anchor,
 };
 
 use crate::backing::PreservedReason;
@@ -78,12 +81,6 @@ fn import_picture(
     paragraph: &mut joyword_model::Paragraph,
     format: (Option<StyleId>, Arc<RunProps>),
 ) -> PictureImport {
-    if element.is(W, "drawing")
-        && find(element, WP, "anchor").is_some()
-        && find(element, WP, "inline").is_none()
-    {
-        return PictureImport::Pass;
-    }
     let blips = collect_blips(element);
     if blips.is_empty() {
         return PictureImport::Pass;
@@ -212,6 +209,18 @@ fn import_picture(
             );
         }
     };
+    let anchor = if anchor_only(element) {
+        match floating_anchor(element) {
+            Ok(anchor) => Some(anchor),
+            Err(outcome) => {
+                return refuse(
+                    importer, part, element, scope, paragraph, format, reported, outcome,
+                );
+            }
+        }
+    } else {
+        None
+    };
     let resource = importer.document.ids().resource();
     importer.document.resources_mut().insert(
         resource,
@@ -229,6 +238,7 @@ fn import_picture(
                 resource,
                 width,
                 height,
+                anchor,
             },
             source: Some(Importer::source(part, element)),
         },
@@ -303,6 +313,86 @@ fn collect_blips_into<'a>(element: &'a Element, found: &mut Vec<BlipRef<'a>>) {
     }
 }
 
+fn anchor_only(element: &Element) -> bool {
+    element.is(W, "drawing")
+        && find(element, WP, "anchor").is_some()
+        && find(element, WP, "inline").is_none()
+}
+
+/// Page-absolute `wp:wrapNone` in front of the text. Anything else is kept.
+fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
+    let Some(anchor) = find(element, WP, "anchor") else {
+        return Err(ImageOutcome::Malformed);
+    };
+    if truthy(anchor.attribute(None, "behindDoc"))
+        || anchor.child(WP, "wrapNone").is_none()
+        || has_wrapping(anchor)
+    {
+        return Err(ImageOutcome::Unsupported);
+    }
+    let (x, y) = if truthy(anchor.attribute(None, "simplePos")) {
+        let Some(pos) = anchor.child(WP, "simplePos") else {
+            return Err(ImageOutcome::Malformed);
+        };
+        let Some(x) = pos.attribute(None, "x").and_then(parse_i64) else {
+            return Err(ImageOutcome::Malformed);
+        };
+        let Some(y) = pos.attribute(None, "y").and_then(parse_i64) else {
+            return Err(ImageOutcome::Malformed);
+        };
+        (x, y)
+    } else {
+        let (Some(horizontal), Some(vertical)) =
+            (anchor.child(WP, "positionH"), anchor.child(WP, "positionV"))
+        else {
+            return Err(ImageOutcome::Unsupported);
+        };
+        if horizontal.attribute(None, "relativeFrom") != Some("page")
+            || vertical.attribute(None, "relativeFrom") != Some("page")
+            || horizontal.child(WP, "align").is_some()
+            || vertical.child(WP, "align").is_some()
+        {
+            return Err(ImageOutcome::Unsupported);
+        }
+        let Some(x) = offset_of(horizontal) else {
+            return Err(ImageOutcome::Malformed);
+        };
+        let Some(y) = offset_of(vertical) else {
+            return Err(ImageOutcome::Malformed);
+        };
+        (x, y)
+    };
+    if x < 0 || y < 0 {
+        return Err(ImageOutcome::Unsupported);
+    }
+    page_anchor(x, y).map_err(|error| match error {
+        ImageRefuse::OversizeDimension { .. } => ImageOutcome::Unsupported,
+        _ => ImageOutcome::Malformed,
+    })
+}
+
+fn has_wrapping(anchor: &Element) -> bool {
+    anchor.child(WP, "wrapSquare").is_some()
+        || anchor.child(WP, "wrapTight").is_some()
+        || anchor.child(WP, "wrapThrough").is_some()
+        || anchor.child(WP, "wrapTopAndBottom").is_some()
+}
+
+fn truthy(value: Option<&str>) -> bool {
+    matches!(
+        value.map(str::trim).map(str::to_ascii_lowercase).as_deref(),
+        Some("1" | "true" | "on")
+    )
+}
+
+fn offset_of(position: &Element) -> Option<i64> {
+    parse_i64(position.child(WP, "posOffset")?.text().trim())
+}
+
+fn parse_i64(value: &str) -> Option<i64> {
+    value.parse().ok()
+}
+
 fn placed_extent(
     element: &Element,
     width_px: u32,
@@ -311,6 +401,24 @@ fn placed_extent(
     if let Some(inline) = find(element, WP, "inline")
         && let Some(extent) = inline.child(WP, "extent")
     {
+        let cx = extent
+            .attribute(None, "cx")
+            .and_then(|value| value.parse().ok());
+        let cy = extent
+            .attribute(None, "cy")
+            .and_then(|value| value.parse().ok());
+        if let (Some(cx), Some(cy)) = (cx, cy) {
+            return extent_emu(cx, cy).map_err(|error| match error {
+                ImageRefuse::OversizeDimension { .. } => ImageOutcome::Oversize,
+                _ => ImageOutcome::Malformed,
+            });
+        }
+        return Err(ImageOutcome::Malformed);
+    }
+    if let Some(anchor) = find(element, WP, "anchor") {
+        let Some(extent) = anchor.child(WP, "extent") else {
+            return Err(ImageOutcome::Malformed);
+        };
         let cx = extent
             .attribute(None, "cx")
             .and_then(|value| value.parse().ok());

@@ -11,6 +11,7 @@ use std::sync::Arc;
 
 use crate::hyperlink::Hyperlink;
 use crate::id::{NodeId, PreservedId, ResourceId, SourceRef};
+use crate::image::ImageAnchor;
 use crate::props::{Color, Measure, ParaProps, RunProps};
 use crate::revision::TextRevision;
 use crate::style::StyleId;
@@ -95,6 +96,8 @@ pub enum InlineKind {
         resource: ResourceId,
         width: Measure,
         height: Measure,
+        /// `None` flows with the line. `Some` is a page-absolute picture.
+        anchor: Option<ImageAnchor>,
     },
     Preserved(Preserved),
 }

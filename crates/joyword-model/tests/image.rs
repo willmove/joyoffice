@@ -4,7 +4,7 @@
 use joyword_foundation::Emu;
 use joyword_model::{
     ImageLimits, ImageRefuse, Measure, accept_image, decode_rgba, display_extent, extent_emu,
-    sample_png_1x1,
+    page_anchor, sample_png_1x1,
 };
 
 #[test]
@@ -69,6 +69,15 @@ fn active_remote_and_oversize_payloads_are_refused_before_use() {
     assert_eq!(extent_emu(0, 10), Err(ImageRefuse::Malformed));
     assert!(matches!(
         extent_emu(100 * Emu::PER_INCH + 1, 10),
+        Err(ImageRefuse::OversizeDimension { .. })
+    ));
+    assert_eq!(
+        page_anchor(0, Emu::PER_INCH).unwrap().y,
+        Measure::Emu(Emu::PER_INCH)
+    );
+    assert_eq!(page_anchor(-1, 0), Err(ImageRefuse::Malformed));
+    assert!(matches!(
+        page_anchor(100 * Emu::PER_INCH + 1, 0),
         Err(ImageRefuse::OversizeDimension { .. })
     ));
 }

@@ -5,13 +5,14 @@ use std::sync::Arc;
 use joyword_engine::{Command, Selection, Session, Transaction};
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile,
-    layout_document,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LayoutNote, LoadedFont, PageScene,
+    SingleFontProfile, layout_document,
 };
 use joyword_model::{
-    Bias, BlockSeq, Document, InlineKind, Paragraph, Position, ScalarOffset, display_extent,
-    sample_png_1x1,
+    Bias, BlockSeq, Document, HeaderFooterKind, ImageAnchor, InlineKind, InlineObject, Measure,
+    PageSetup, Paragraph, Position, ScalarOffset, StoryKind, display_extent, sample_png_1x1,
 };
+use joyword_render::{Projection, RasterCancellation, RasterLimits, rasterize};
 
 fn font() -> LoadedFont {
     LoadedFont::from_bytes(
@@ -285,4 +286,200 @@ fn a_hyperlink_in_a_table_cell_is_an_underline_in_the_page_scene() {
     assert!(page.rects.iter().any(|rect| {
         rect.red == 0x05 && rect.green == 0x63 && rect.blue == 0xc1 && rect.width.raw() > 0
     }));
+}
+
+fn small_page() -> PageSetup {
+    let mut page = PageSetup::a4_zh_cn();
+    let pt = |value: i64| Measure::Emu(value * Emu::PER_POINT);
+    page.width = pt(200);
+    page.height = pt(200);
+    page.left = pt(24);
+    page.right = pt(24);
+    page.top = pt(40);
+    page.bottom = pt(40);
+    page.header = pt(16);
+    page.footer = pt(16);
+    page.gutter = pt(0);
+    page
+}
+
+fn profile() -> SingleFontProfile {
+    SingleFontProfile {
+        size: pt(12),
+        leading: pt(18),
+        baseline: pt(14),
+        features: FeatureSet::default(),
+    }
+}
+
+fn layout(document: &Document) -> joyword_layout::LayoutSnapshot {
+    layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap()
+}
+
+fn push_picture(
+    document: &mut Document,
+    paragraph: &mut Paragraph,
+    side: i64,
+    anchor: Option<ImageAnchor>,
+) {
+    let resource = document.ids().resource();
+    document
+        .resources_mut()
+        .insert(resource, "image/png", Arc::from(sample_png_1x1()), None);
+    paragraph.push_inline(
+        InlineObject {
+            id: document.ids().node(),
+            kind: InlineKind::Image {
+                resource,
+                width: Measure::Emu(side),
+                height: Measure::Emu(side),
+                anchor,
+            },
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+}
+
+#[test]
+fn a_page_anchor_is_a_positioned_rectangle_shared_with_the_cpu() {
+    let side = 20 * Emu::PER_POINT;
+    let origin_x = 72 * Emu::PER_POINT;
+    let origin_y = 80 * Emu::PER_POINT;
+    let mut document = Document::new(small_page());
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph.push_text("A", None, Arc::default()).unwrap();
+    push_picture(
+        &mut document,
+        &mut paragraph,
+        side,
+        Some(ImageAnchor {
+            x: Measure::Emu(origin_x),
+            y: Measure::Emu(origin_y),
+        }),
+    );
+    paragraph.push_text("B", None, Arc::default()).unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let laid = layout(&document);
+    let page = &laid.pages()[0];
+    assert_eq!(page.images.len(), 1);
+    let image = &page.images[0];
+    assert_eq!(image.x, Emu::new(origin_x));
+    assert_eq!(image.y, Emu::new(origin_y));
+    assert_eq!(image.width, Emu::new(side));
+    assert_eq!(image.height, Emu::new(side));
+    let letter = |ch: char| {
+        page.runs
+            .iter()
+            .find(|run| run.text.contains(ch))
+            .unwrap_or_else(|| panic!("{ch}"))
+    };
+    let a = letter('A');
+    let b = letter('B');
+    assert_eq!(a.baseline_y, b.baseline_y);
+    assert!(a.origin_x.raw() < origin_x);
+    assert!(b.origin_x.raw() < origin_x);
+    assert_red_at(page, image.x, image.y, image.width);
+    assert_white_at(page, Emu::new(Emu::PER_POINT), Emu::new(Emu::PER_POINT));
+}
+
+#[test]
+fn a_header_and_footer_image_paint_on_their_bands() {
+    let side = 12 * Emu::PER_POINT;
+    let mut document = Document::new(small_page());
+    let mut body = Paragraph::new(document.ids().node());
+    body.push_text("Body", None, Arc::default()).unwrap();
+    let body_id = document.body_id();
+    document.story_mut(body_id).unwrap().blocks = BlockSeq::from_vec(vec![body.into()]);
+    for header in [true, false] {
+        let mut paragraph = Paragraph::new(document.ids().node());
+        push_picture(&mut document, &mut paragraph, side, None);
+        let id = document.insert_story(
+            if header {
+                StoryKind::Header
+            } else {
+                StoryKind::Footer
+            },
+            vec![paragraph.into()],
+        );
+        let refs = if header {
+            &mut document.sections_mut()[0].headers
+        } else {
+            &mut document.sections_mut()[0].footers
+        };
+        refs.push((HeaderFooterKind::Default, id));
+    }
+    let laid = layout(&document);
+    assert!(
+        !laid
+            .notes()
+            .iter()
+            .any(|note| matches!(note, LayoutNote::StoryContentSkipped { .. }))
+    );
+    let geometry = laid.page_geometry()[0];
+    let page = &laid.pages()[0];
+    assert_eq!(page.images.len(), 2);
+    let header = page
+        .images
+        .iter()
+        .find(|image| image.y.raw() < geometry.top.raw())
+        .expect("header image");
+    let footer = page
+        .images
+        .iter()
+        .find(|image| image.y.raw() >= geometry.height.raw() - geometry.bottom.raw())
+        .expect("footer image");
+    assert_eq!(header.x, geometry.left);
+    assert_eq!(footer.x, geometry.left);
+    assert!(header.y.raw() >= geometry.header.raw());
+    assert!(header.y.raw() + header.height.raw() <= geometry.top.raw());
+    assert!(footer.y.raw() + footer.height.raw() <= geometry.height.raw());
+    assert_eq!(header.width, Emu::new(side));
+    assert_eq!(footer.height, Emu::new(side));
+    assert_red_at(page, header.x, header.y, header.width);
+    assert_red_at(page, footer.x, footer.y, footer.width);
+}
+
+fn assert_red_at(page: &PageScene, x: Emu, y: Emu, side: Emu) {
+    let raster = rasterize(
+        page,
+        &[font()],
+        Projection::new(72.0, 1.0).unwrap(),
+        RasterLimits::default(),
+        &RasterCancellation::default(),
+    )
+    .unwrap();
+    let px = |length: Emu| (length.raw() as f64 / Emu::PER_INCH as f64 * 72.0).round() as usize;
+    let column = px(x) + px(side) / 2;
+    let row = px(y) + px(side) / 2;
+    let width = raster.width() as usize;
+    let pixel = &raster.rgba()[(row * width + column) * 4..][..4];
+    assert!(
+        pixel[0] > 200 && pixel[1] < 40 && pixel[2] < 40 && pixel[3] == 255,
+        "pixel at {column},{row} is {pixel:?}"
+    );
+}
+
+fn assert_white_at(page: &PageScene, x: Emu, y: Emu) {
+    let raster = rasterize(
+        page,
+        &[font()],
+        Projection::new(72.0, 1.0).unwrap(),
+        RasterLimits::default(),
+        &RasterCancellation::default(),
+    )
+    .unwrap();
+    let px = |length: Emu| (length.raw() as f64 / Emu::PER_INCH as f64 * 72.0).round() as usize;
+    let width = raster.width() as usize;
+    let pixel = &raster.rgba()[(px(y) * width + px(x)) * 4..][..4];
+    assert_eq!(pixel, &[255, 255, 255, 255]);
 }

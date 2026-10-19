@@ -619,6 +619,7 @@ fn image_references_must_resolve() {
                     resource,
                     width: Measure::Emu(914_400),
                     height: Measure::Emu(457_200),
+                    anchor: None,
                 },
                 source: None,
             },

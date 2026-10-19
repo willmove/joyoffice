@@ -895,6 +895,7 @@ fn insert_image(
             resource,
             width,
             height,
+            anchor: None,
         },
         map,
         changes,
