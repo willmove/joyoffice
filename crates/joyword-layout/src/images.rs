@@ -27,7 +27,7 @@ pub(crate) fn fit_inline_images(
     available_height: Emu,
     line_box: Emu,
     descent: Emu,
-    fit_text: &mut impl FnMut(&str, Emu) -> Result<ParagraphLines, LayoutError>,
+    fit_text: &mut impl FnMut(&str, usize, Emu) -> Result<ParagraphLines, LayoutError>,
 ) -> Result<ParagraphLines, LayoutError> {
     let max_image_height = Emu::new((available_height.raw() - descent.raw()).max(1));
     let items = items(document, paragraph, content_width, max_image_height)?;
@@ -43,7 +43,7 @@ pub(crate) fn fit_inline_images(
                     index += 1;
                     continue;
                 }
-                let mut part = fit_text(&piece.text, content_width)?;
+                let mut part = fit_text(&piece.text, piece.byte, content_width)?;
                 shift_lines(&mut part.lines, piece.scalar, piece.byte);
                 diagnostics.append(&mut part.diagnostics);
                 omitted += part.omitted_diagnostics;
@@ -266,7 +266,7 @@ fn try_follow_text(
     items: &[Item],
     index: &mut usize,
     content_width: Emu,
-    fit_text: &mut impl FnMut(&str, Emu) -> Result<ParagraphLines, LayoutError>,
+    fit_text: &mut impl FnMut(&str, usize, Emu) -> Result<ParagraphLines, LayoutError>,
     diagnostics: &mut Vec<LineDiagnostic>,
     omitted: &mut usize,
     stats: &mut crate::LineStats,
@@ -289,6 +289,7 @@ fn try_follow_text(
     }
     let Some(head) = fitting_head(
         &piece.text,
+        piece.byte,
         Emu::new(remain),
         fit_text,
         diagnostics,
@@ -305,7 +306,11 @@ fn try_follow_text(
     }
     merge_text(line, head, piece.scalar, piece.byte);
     if consumed_bytes < piece.text.len() {
-        let mut rest = fit_text(&piece.text[consumed_bytes..], content_width)?;
+        let mut rest = fit_text(
+            &piece.text[consumed_bytes..],
+            piece.byte + consumed_bytes,
+            content_width,
+        )?;
         shift_lines(
             &mut rest.lines,
             piece.scalar + consumed_scalars,
@@ -330,8 +335,9 @@ fn try_follow_text(
 
 fn fitting_head(
     text: &str,
+    base: usize,
     width: Emu,
-    fit_text: &mut impl FnMut(&str, Emu) -> Result<ParagraphLines, LayoutError>,
+    fit_text: &mut impl FnMut(&str, usize, Emu) -> Result<ParagraphLines, LayoutError>,
     diagnostics: &mut Vec<LineDiagnostic>,
     omitted: &mut usize,
     stats: &mut crate::LineStats,
@@ -341,7 +347,7 @@ fn fitting_head(
         return Ok(None);
     }
     loop {
-        let mut fitted = fit_text(&text[..prefix_len], width)?;
+        let mut fitted = fit_text(&text[..prefix_len], base, width)?;
         stats.shape_calls += fitted.stats.shape_calls;
         stats.shaped_bytes += fitted.stats.shaped_bytes;
         *omitted += fitted.omitted_diagnostics;

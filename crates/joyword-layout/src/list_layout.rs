@@ -48,7 +48,7 @@ pub(crate) fn layout_marked<F>(
     mut fit_width: F,
 ) -> Result<ParagraphLines, LayoutError>
 where
-    F: FnMut(&str, Emu) -> Result<ParagraphLines, LayoutError>,
+    F: FnMut(&str, usize, Emu) -> Result<ParagraphLines, LayoutError>,
 {
     let Some(edges) = indent_edges(&props.indent) else {
         return Err(unsupported("relative paragraph indent"));
@@ -186,7 +186,7 @@ where
         let origin = if at_break { continuation } else { pen };
         let available = (right_edge - origin).max(1);
         let continuation_width = (right_edge - continuation).max(1);
-        let fitted = fit_width(piece.text, Emu::new(available))?;
+        let fitted = fit_width(piece.text, piece.byte, Emu::new(available))?;
         stats.shape_calls += fitted.stats.shape_calls;
         stats.shaped_bytes += fitted.stats.shaped_bytes;
         omitted += fitted.omitted_diagnostics;
@@ -207,7 +207,7 @@ where
                 let rest = &piece.text[consumed..];
                 let rest_scalar = piece.scalar + piece.text[..consumed].chars().count();
                 let rest_byte = piece.byte + consumed;
-                let refit = fit_width(rest, Emu::new(continuation_width))?;
+                let refit = fit_width(rest, rest_byte, Emu::new(continuation_width))?;
                 stats.shape_calls += refit.stats.shape_calls;
                 stats.shaped_bytes += refit.stats.shaped_bytes;
                 omitted += refit.omitted_diagnostics;

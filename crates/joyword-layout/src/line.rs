@@ -23,7 +23,7 @@ use harfrust::{Direction, UnicodeBuffer};
 use joyword_foundation::Emu;
 use joyword_model::RevisionKind;
 
-use crate::{FeatureSet, GlyphRun, LoadedFont, ShapedRun, shape};
+use crate::{FeatureSet, GlyphRun, LoadedFont, ShapedGlyph, ShapedRun, shape};
 
 /// Absolute positions in the input paragraph. Scalars are Unicode scalar
 /// values, not graphemes, UTF-16 units, bytes or glyph indices.
@@ -255,6 +255,7 @@ pub fn layout_paragraph(
             limits,
             adjust: keep_shaped,
         },
+        &[],
     )
 }
 
@@ -267,6 +268,17 @@ pub(crate) struct LineFit<F> {
     pub adjust: F,
 }
 
+/// A byte range of the fitted text shaped at its own size, relative to that
+/// text. Boundaries fall on scalar boundaries; together the spans cover the
+/// whole text. Advances and breaks follow each span's size; weight, posture
+/// and colour do not affect shaping and stay with placement.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct SizeSpan {
+    pub bytes: Range<usize>,
+    pub size: Emu,
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn layout_paragraph_adjusted<F>(
     font: &LoadedFont,
     text: &str,
@@ -275,6 +287,7 @@ pub(crate) fn layout_paragraph_adjusted<F>(
     width: Emu,
     breakpoints: &[usize],
     fit: LineFit<F>,
+    spans: &[SizeSpan],
 ) -> Result<ParagraphLines, LineError>
 where
     F: FnMut(usize, &mut ShapedRun) -> Result<(), LineError>,
@@ -287,6 +300,7 @@ where
         width,
         BreakInput::Explicit(breakpoints),
         fit,
+        spans,
     )
 }
 
@@ -320,6 +334,7 @@ pub fn layout_paragraph_auto(
             limits,
             adjust: keep_shaped,
         },
+        &[],
     )
 }
 
@@ -329,6 +344,7 @@ enum BreakInput<'a> {
     Unicode(Option<&'a AtomicBool>),
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn layout_paragraph_auto_cancellable_adjusted<F>(
     font: &LoadedFont,
     text: &str,
@@ -337,6 +353,7 @@ pub(crate) fn layout_paragraph_auto_cancellable_adjusted<F>(
     width: Emu,
     cancellation: &AtomicBool,
     fit: LineFit<F>,
+    spans: &[SizeSpan],
 ) -> Result<ParagraphLines, LineError>
 where
     F: FnMut(usize, &mut ShapedRun) -> Result<(), LineError>,
@@ -349,6 +366,7 @@ where
         width,
         BreakInput::Unicode(Some(cancellation)),
         fit,
+        spans,
     )
 }
 
@@ -386,6 +404,7 @@ fn unicode_breaks(text: &str, limit: usize) -> Result<Vec<usize>, LineError> {
     Ok(points)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn layout_with_breaks<F>(
     font: &LoadedFont,
     text: &str,
@@ -394,6 +413,7 @@ fn layout_with_breaks<F>(
     width: Emu,
     input: BreakInput<'_>,
     mut fit: LineFit<F>,
+    spans: &[SizeSpan],
 ) -> Result<ParagraphLines, LineError>
 where
     F: FnMut(usize, &mut ShapedRun) -> Result<(), LineError>,
@@ -424,8 +444,14 @@ where
     let mut stats = LineStats::default();
     let mut measure = |byte_start: usize, part: &str| {
         input.check()?;
-        charge_shape(&mut stats, limits, part.len())?;
-        let mut run = shape(font, part, size, features);
+        let mut run = if spans.is_empty() {
+            charge_shape(&mut stats, limits, part.len())?;
+            shape(font, part, size, features)
+        } else {
+            shape_spanned(
+                font, part, byte_start, spans, size, features, &mut stats, limits,
+            )?
+        };
         validate_run(&run)?;
         (fit.adjust)(byte_start, &mut run)?;
         validate_run(&run)?;
@@ -546,6 +572,119 @@ where
     }
     result.stats = stats;
     Ok(result)
+}
+
+/// Shape `part` across the size spans of its text. `byte_start` places the
+/// part inside the text the spans were built for; every byte of the part is
+/// shaped exactly once, at its span's size (gaps at `default_size`). The
+/// combined run keeps each glyph's cluster and pen position, so cluster and
+/// width invariants match a single-face shape. Every piece charges its own
+/// shape call and bytes against the request budget.
+#[allow(clippy::too_many_arguments)]
+fn shape_spanned(
+    font: &LoadedFont,
+    part: &str,
+    byte_start: usize,
+    spans: &[SizeSpan],
+    default_size: Emu,
+    features: FeatureSet,
+    stats: &mut LineStats,
+    limits: LineLimits,
+) -> Result<ShapedRun, LineError> {
+    let end_total = byte_start + part.len();
+    let mut combined = ShapedRun {
+        font: font.key(),
+        size: default_size,
+        text: part.to_owned(),
+        glyphs: Vec::new(),
+        width: Emu::new(0),
+        missing: Vec::new(),
+        bold: false,
+        italic: false,
+        latin_family: None,
+        east_asia_family: None,
+        color: [0, 0, 0],
+        underline: None,
+    };
+    let mut pen = 0_i64;
+    let mut push = |shaped: &ShapedRun, offset: usize, pen: &mut i64| -> Result<(), LineError> {
+        for glyph in &shaped.glyphs {
+            let x = (*pen)
+                .checked_add(glyph.x.raw())
+                .ok_or(LineError::InvalidShaping)?;
+            combined.glyphs.push(ShapedGlyph {
+                glyph_id: glyph.glyph_id,
+                cluster: glyph.cluster + offset,
+                x: Emu::new(x),
+                advance: glyph.advance,
+                x_offset: glyph.x_offset,
+                y_offset: glyph.y_offset,
+            });
+        }
+        for missing in &shaped.missing {
+            combined.missing.push(missing + offset);
+        }
+        *pen = pen
+            .checked_add(shaped.width.raw())
+            .ok_or(LineError::InvalidShaping)?;
+        if shaped.size > combined.size {
+            combined.size = shaped.size;
+        }
+        Ok(())
+    };
+    let mut cursor = byte_start;
+    for span in spans {
+        let start = span.bytes.start.max(byte_start);
+        if start > cursor {
+            let shaped = shape_gap(
+                font,
+                &part[cursor - byte_start..start - byte_start],
+                default_size,
+                features,
+                stats,
+                limits,
+            )?;
+            push(&shaped, cursor - byte_start, &mut pen)?;
+        }
+        let end = span.bytes.end.min(end_total).max(start);
+        if end > start {
+            let shaped = shape_gap(
+                font,
+                &part[start - byte_start..end - byte_start],
+                span.size,
+                features,
+                stats,
+                limits,
+            )?;
+            push(&shaped, start - byte_start, &mut pen)?;
+        }
+        cursor = cursor.max(end);
+    }
+    if cursor < end_total {
+        let shaped = shape_gap(
+            font,
+            &part[cursor - byte_start..],
+            default_size,
+            features,
+            stats,
+            limits,
+        )?;
+        push(&shaped, cursor - byte_start, &mut pen)?;
+    }
+    combined.width = Emu::new(pen);
+    Ok(combined)
+}
+
+fn shape_gap(
+    font: &LoadedFont,
+    piece: &str,
+    size: Emu,
+    features: FeatureSet,
+    stats: &mut LineStats,
+    limits: LineLimits,
+) -> Result<ShapedRun, LineError> {
+    charge_shape(stats, limits, piece.len())?;
+    Ok(shape(font, piece, size, features))
 }
 
 impl ParagraphLines {

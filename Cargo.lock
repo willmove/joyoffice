@@ -2757,6 +2757,7 @@ dependencies = [
  "joyword-engine",
  "joyword-foundation",
  "joyword-model",
+ "joyword-render",
  "read-fonts 0.39.2",
  "sha2",
  "unicode-linebreak",

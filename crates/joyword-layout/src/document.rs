@@ -23,8 +23,10 @@ use joyword_model::{
 use sha2::{Digest, Sha256};
 
 use crate::cjk::{self, CjkIssue};
-use crate::line::{LineFit, layout_paragraph_adjusted, layout_paragraph_auto_cancellable_adjusted};
-use crate::shape::ShapedRun;
+use crate::line::{
+    LineFit, SizeSpan, layout_paragraph_adjusted, layout_paragraph_auto_cancellable_adjusted,
+};
+use crate::shape::{ShapedRun, UnderlinePaint};
 use crate::style_paint;
 use crate::view::{self, ViewOptions};
 use crate::{
@@ -687,7 +689,7 @@ fn check_paragraph(
     view: ViewOptions,
 ) -> Result<(), LayoutError> {
     crate::pages::accept_body_inlines(document, paragraph)?;
-    style_paint::paint(document, paragraph, profile, view, None).map(|_| ())
+    style_paint::paint_spanned(document, paragraph, profile, view, None).map(|_| ())
 }
 
 pub(crate) fn preflight(
@@ -763,6 +765,22 @@ pub(crate) fn preflight(
 // Two bounded passes: fit each paragraph once under shared budgets, then
 // annotate only the start of each maximal keep-next chain. Placement consumes
 // the fitted lines (no reshaping, rollback, or quadratic suffix lookahead).
+/// Paint data for one character-formatting span of a fitted paragraph, over
+/// final model scalars. Placement splits a line's glyphs into one glyph run
+/// per span so each paints its own size, weight, posture, colour and
+/// underline. Empty for a paragraph whose runs resolve to one face.
+#[derive(Clone, Debug)]
+pub(crate) struct LineSpan {
+    pub scalars: Range<usize>,
+    pub size: Emu,
+    pub bold: bool,
+    pub italic: bool,
+    pub latin: Option<Arc<str>>,
+    pub east_asia: Option<Arc<str>>,
+    pub color: [u8; 3],
+    pub underline: Option<UnderlinePaint>,
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct FittedParagraph {
     pub id: NodeId,
@@ -814,6 +832,9 @@ pub(crate) struct FittedParagraph {
     /// Page breaks after the last text piece. One trailing break moves the
     /// next paragraph; further breaks insert blank pages.
     pub trailing_breaks: u32,
+    /// Character-formatting spans when the runs resolve to more than one
+    /// face; placement splits lines on their scalar boundaries.
+    pub spans: Vec<LineSpan>,
     /// Page x of the text frame. Body paragraphs use the content left edge.
     pub frame_x: Emu,
     /// Width available for this paragraph's lines. Body paragraphs use the
@@ -1802,19 +1823,167 @@ fn label_glyph_runs(line: &LayoutLine, origin_x: Emu, baseline_y: Emu) -> Vec<Gl
     );
     let mut body = line.run.clone();
     body.text = line.run.text[bytes..].to_owned();
-    body.glyphs = line.run.glyphs[glyphs..]
+    // The body piece must stay a valid GlyphRun on its own: clusters and
+    // glyph x restart at zero and the origin carries the label's advance,
+    // just as the line started there before the split.
+    let body_first_x = body.glyphs.first().map(|glyph| glyph.x.raw()).unwrap_or(0);
+    body.glyphs = body
+        .glyphs
         .iter()
         .map(|glyph| {
             let mut glyph = *glyph;
             glyph.cluster = glyph.cluster.saturating_sub(bytes);
+            glyph.x = Emu::new(glyph.x.raw().saturating_sub(body_first_x));
             glyph
         })
         .collect();
+    body.width = Emu::new(
+        body.glyphs
+            .iter()
+            .map(|glyph| glyph.x.raw().saturating_add(glyph.advance.raw()))
+            .max()
+            .unwrap_or(0),
+    );
     let mut runs = vec![GlyphRun::place(&label, origin_x, baseline_y)];
     if !body.text.is_empty() || !body.glyphs.is_empty() {
-        runs.push(GlyphRun::place(&body, origin_x, baseline_y));
+        runs.push(GlyphRun::place(
+            &body,
+            Emu::new(origin_x.raw().saturating_add(body_first_x)),
+            baseline_y,
+        ));
     }
     runs
+}
+
+/// Split one fitted line into glyph runs at its paragraph's formatting
+/// spans. Clusters carry final model scalars, so a span claims the clusters
+/// whose first scalar falls inside it; a cluster straddling a boundary
+/// follows its first scalar. Each piece is rebased to itself — clusters and
+/// glyph x start at zero, and the origin carries the removed prefix — so a
+/// piece stays a valid [`GlyphRun`]: outputs position it by `origin_x +
+/// glyph.x`. Glyphs outside any cluster — a list label and its tab leader —
+/// keep the line's label size and weight ahead of the body spans. Underline,
+/// mark and paragraph-end decorations are computed per piece, so each span
+/// draws its own stroke geometry.
+#[allow(clippy::too_many_arguments)]
+fn formatting_runs(
+    line: &LayoutLine,
+    spans: &[LineSpan],
+    origin_x: Emu,
+    baseline_y: Emu,
+    marks: bool,
+    paragraph_end: bool,
+) -> (Vec<GlyphRun>, Vec<SceneRect>) {
+    let total = line.run.glyphs.len();
+    let first_body = line
+        .clusters
+        .first()
+        .map(|cluster| cluster.glyphs.start)
+        .unwrap_or(total);
+    let mut groups: Vec<(std::ops::Range<usize>, Option<usize>)> = Vec::new();
+    if first_body > 0 {
+        groups.push((0..first_body, None));
+    }
+    let mut last_span = None;
+    for cluster in &line.clusters {
+        let claimed = spans
+            .iter()
+            .position(|span| {
+                span.scalars.start <= cluster.source.scalars.start
+                    && cluster.source.scalars.start < span.scalars.end
+            })
+            .or(last_span);
+        last_span = claimed;
+        match groups.last_mut() {
+            Some((range, current)) if *current == claimed => {
+                range.end = range.end.max(cluster.glyphs.end);
+            }
+            _ => groups.push((cluster.glyphs.clone(), claimed)),
+        }
+    }
+    let mut runs = Vec::new();
+    let mut rects = Vec::new();
+    for (index, (glyphs, claimed)) in groups.iter().enumerate() {
+        let glyph_start = glyphs.start.min(total);
+        let glyph_end = glyphs.end.clamp(glyph_start, total);
+        if glyph_start >= glyph_end {
+            continue;
+        }
+        let byte_start = line.run.glyphs[glyph_start].cluster;
+        let byte_end = line
+            .run
+            .glyphs
+            .get(glyph_end)
+            .map(|glyph| glyph.cluster)
+            .unwrap_or(line.run.text.len())
+            .max(byte_start)
+            .min(line.run.text.len());
+        if !line.run.text.is_char_boundary(byte_start) || !line.run.text.is_char_boundary(byte_end)
+        {
+            continue;
+        }
+        let first_x = line.run.glyphs[glyph_start].x.raw();
+        let mut piece = line.run.clone();
+        piece.text = line.run.text[byte_start..byte_end].to_owned();
+        piece.glyphs = line.run.glyphs[glyph_start..glyph_end]
+            .iter()
+            .map(|glyph| {
+                let mut glyph = *glyph;
+                glyph.cluster = glyph.cluster.saturating_sub(byte_start);
+                glyph.x = Emu::new(glyph.x.raw().saturating_sub(first_x));
+                glyph
+            })
+            .collect();
+        piece.width = Emu::new(
+            piece
+                .glyphs
+                .iter()
+                .map(|glyph| glyph.x.raw().saturating_add(glyph.advance.raw()))
+                .max()
+                .unwrap_or(0),
+        );
+        match claimed.and_then(|index| spans.get(index)) {
+            Some(span) => {
+                piece.size = span.size;
+                piece.bold = span.bold;
+                piece.italic = span.italic;
+                piece.latin_family.clone_from(&span.latin);
+                piece.east_asia_family.clone_from(&span.east_asia);
+                piece.color = span.color;
+                piece.underline = span.underline;
+            }
+            None => {
+                if line.label_size.raw() > 0 {
+                    piece.size = line.label_size;
+                }
+                piece.bold = line.label_bold;
+            }
+        }
+        let last_group = index + 1 == groups.len();
+        let run = GlyphRun::place(
+            &piece,
+            Emu::new(origin_x.raw().saturating_add(first_x)),
+            baseline_y,
+        );
+        rects.extend(decoration_rects(
+            &run,
+            marks,
+            paragraph_end && last_group,
+            if last_group { &line.tab_gaps } else { &[] },
+        ));
+        runs.push(run);
+    }
+    if runs.is_empty() {
+        let glyph = line.to_glyph_run(origin_x, baseline_y);
+        rects.extend(decoration_rects(
+            &glyph,
+            marks,
+            paragraph_end,
+            &line.tab_gaps,
+        ));
+        runs.push(glyph);
+    }
+    (runs, rects)
 }
 
 fn stacked(paragraphs: &[FittedParagraph]) -> Result<i64, LayoutError> {
@@ -2478,6 +2647,7 @@ fn place_jobs(
                 justification,
                 baseline,
                 job.line + 1 == fitted.lines.len(),
+                &fitted.spans,
             )?;
             index += 1;
         }
@@ -2783,7 +2953,7 @@ pub(crate) fn fit_paragraph(
     }
     let options = views.options;
     let revision = views.revision;
-    let painted = style_paint::paint(document, paragraph, profile, options, table_bold)?;
+    let painted = style_paint::paint_spanned(document, paragraph, profile, options, table_bold)?;
     let projection = view::project_paragraph(document, paragraph, options)?;
     let shaping = SingleFontProfile {
         size: painted.size,
@@ -2829,6 +2999,26 @@ pub(crate) fn fit_paragraph(
             .map(|(_, ch)| ch)
             .collect()
     };
+    // Per display char, the model scalar it shows. Spans read formatting
+    // through it, whatever projection produced the shaped string. A `map`
+    // from `project_paragraph` ends with a sentinel for the paragraph end.
+    let display_scalars: Vec<usize> = if let Some(expanded) = &expanded {
+        expanded.source_scalars.clone()
+    } else if projected.is_some() && projection.map.is_none() {
+        projected
+            .as_ref()
+            .map(|item| item.map.clone())
+            .unwrap_or_default()
+    } else if projected.is_none() {
+        match projection.map.as_deref() {
+            Some(map) => map[..map.len().saturating_sub(1)].to_vec(),
+            None => (0..paragraph.len()).collect(),
+        }
+    } else {
+        (0..paragraph.len())
+            .filter(|index| !omitted.contains(index))
+            .collect()
+    };
     let map_line = |error: LineError| {
         if error == LineError::Cancelled {
             LayoutError::Cancelled
@@ -2855,9 +3045,87 @@ pub(crate) fn fit_paragraph(
     let family = cjk::face_cjk_family(shape_font);
     let needs_slots = chosen != FontSlot::Ascii;
     let width = available_width;
+    // Formatting spans of the display text in bytes for the fitter — only
+    // the size changes advances — and of the model for placement, carrying
+    // the full paint. Both are empty when every run resolves to one face,
+    // which keeps the uniform path byte-identical to the previous slice.
+    let mut size_spans: Vec<SizeSpan> = Vec::new();
+    if painted.faces.len() > 1 {
+        let mut cursor = 0usize;
+        for (ordinal, (at, ch)) in text.char_indices().enumerate() {
+            let size = match display_scalars.get(ordinal) {
+                Some(scalar) => {
+                    while cursor < painted.faces.len()
+                        && painted.faces[cursor].scalars.end <= *scalar
+                    {
+                        cursor += 1;
+                    }
+                    match painted.faces.get(cursor) {
+                        Some(span) if span.scalars.start <= *scalar => {
+                            span.face.size.unwrap_or(profile.size)
+                        }
+                        _ => profile.size,
+                    }
+                }
+                None => profile.size,
+            };
+            match size_spans.last_mut() {
+                Some(last) if last.size == size => last.bytes.end = at + ch.len_utf8(),
+                _ => size_spans.push(SizeSpan {
+                    bytes: at..at + ch.len_utf8(),
+                    size,
+                }),
+            }
+        }
+    }
+    let line_spans: Vec<LineSpan> = if painted.faces.len() > 1 {
+        painted
+            .faces
+            .iter()
+            .map(|run_face| {
+                let size = run_face.face.size.unwrap_or(profile.size);
+                LineSpan {
+                    scalars: run_face.scalars.clone(),
+                    size,
+                    bold: run_face.face.bold,
+                    italic: run_face.face.italic,
+                    latin: run_face.face.latin.clone(),
+                    east_asia: run_face.face.east_asia.clone(),
+                    color: run_face.face.color,
+                    underline: crate::shape::paint_underline(
+                        shape_font,
+                        size,
+                        run_face.face.underline,
+                    ),
+                }
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
     let mut fit_slice = |slice: &str,
+                         base: usize,
                          slice_width: Emu|
      -> Result<crate::ParagraphLines, LayoutError> {
+        // `base` places the slice inside the display text, so the spans
+        // shift with it. The fitter re-slices within `slice`; the shifted
+        // spans stay valid for every candidate it measures.
+        let spans: Vec<SizeSpan> = if size_spans.is_empty() {
+            Vec::new()
+        } else {
+            let end = base + slice.len();
+            size_spans
+                .iter()
+                .filter_map(|span| {
+                    let start = span.bytes.start.max(base);
+                    let stop = span.bytes.end.min(end);
+                    (start < stop).then(|| SizeSpan {
+                        bytes: start - base..stop - base,
+                        size: span.size,
+                    })
+                })
+                .collect()
+        };
         let mut adjust = |at: usize, run: &mut ShapedRun| {
             cjk::compress_shaped_run(slice, at, run, family).map_err(|_| LineError::InvalidShaping)
         };
@@ -2887,6 +3155,7 @@ pub(crate) fn fit_paragraph(
                     limits: request_limits,
                     adjust: &mut adjust,
                 },
+                &spans,
             ) {
                 Ok(fitted) => Ok(fitted),
                 Err(_) => layout_paragraph_auto_cancellable_adjusted(
@@ -2900,6 +3169,7 @@ pub(crate) fn fit_paragraph(
                         limits: request_limits,
                         adjust: &mut adjust,
                     },
+                    &spans,
                 )
                 .map_err(&map_line),
             }
@@ -2915,6 +3185,7 @@ pub(crate) fn fit_paragraph(
                     limits: request_limits,
                     adjust: &mut adjust,
                 },
+                &spans,
             )
             .map_err(&map_line)
         }
@@ -2958,7 +3229,7 @@ pub(crate) fn fit_paragraph(
         )?
     } else if let Some(expanded) = &expanded {
         used_field_cache = expanded.used_cache;
-        let mut fitted = fit_slice(&expanded.display, width)?;
+        let mut fitted = fit_slice(&expanded.display, 0, width)?;
         if painted.flow.justification == Some(Justification::Both) {
             justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
         }
@@ -2977,7 +3248,7 @@ pub(crate) fn fit_paragraph(
         }
         if explicit && split.pieces.is_empty() {
             let count = split.trailing_breaks;
-            let mut fitted = fit_slice("", width)?;
+            let mut fitted = fit_slice("", 0, width)?;
             let markers = count as usize;
             let marker_bytes = markers.saturating_mul(joyword_model::OBJECT_MARKER.len_utf8());
             if let Some(line) = fitted.lines.first_mut() {
@@ -2997,7 +3268,7 @@ pub(crate) fn fit_paragraph(
                 stats: crate::LineStats::default(),
             };
             for piece in &split.pieces {
-                let mut part = fit_slice(&piece.text, width)?;
+                let mut part = fit_slice(&piece.text, piece.byte_origin, width)?;
                 if painted.flow.justification == Some(Justification::Both) {
                     justify_pure_chinese(&mut part.lines, width, paragraph.id())?;
                 }
@@ -3030,7 +3301,7 @@ pub(crate) fn fit_paragraph(
                 &mut fit_slice,
             )?
         } else {
-            let mut fitted = fit_slice(&text, width)?;
+            let mut fitted = fit_slice(&text, 0, width)?;
             if painted.flow.justification == Some(Justification::Both) {
                 justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
             }
@@ -3069,13 +3340,20 @@ pub(crate) fn fit_paragraph(
         crate::revision_view::remap(&mut fitted.lines, &projected.map, paragraph.len());
     }
     note_hyperlinks(paragraph, &mut fitted.lines);
-    let underline = crate::shape::paint_underline(shape_font, painted.size, painted.underline);
+    // Line runs default to the first visible face; placement splits spans
+    // when the paragraph carries more than one.
+    let first = &painted.first;
+    let underline = crate::shape::paint_underline(
+        shape_font,
+        first.size.unwrap_or(profile.size),
+        first.underline,
+    );
     for line in &mut fitted.lines {
-        line.run.bold = painted.bold;
-        line.run.italic = painted.italic;
-        line.run.latin_family.clone_from(&painted.latin);
-        line.run.east_asia_family.clone_from(&painted.east_asia);
-        line.run.color = painted.color;
+        line.run.bold = first.bold;
+        line.run.italic = first.italic;
+        line.run.latin_family.clone_from(&first.latin);
+        line.run.east_asia_family.clone_from(&first.east_asia);
+        line.run.color = first.color;
         line.run.underline = underline;
     }
     crate::revision_view::annotate(&mut fitted.lines, paragraph, revision);
@@ -3152,6 +3430,7 @@ pub(crate) fn fit_paragraph(
         piece_breaks,
         piece_lines,
         trailing_breaks,
+        spans: line_spans,
         frame_x: geometry.left,
         frame_width: available_width,
         pinned: false,
@@ -3502,6 +3781,7 @@ fn place_one(
                 justification,
                 baseline_offset,
                 cursor + offset == paragraph_last,
+                &prepared.spans,
             )?;
         }
         cursor = end;
@@ -3678,6 +3958,7 @@ fn place_line(
     justification: Option<Justification>,
     baseline_offset: Emu,
     paragraph_end: bool,
+    spans: &[LineSpan],
 ) -> Result<(), LayoutError> {
     let page_index = result.pages.len() - 1;
     place_line_on(
@@ -3692,6 +3973,7 @@ fn place_line(
         justification,
         baseline_offset,
         paragraph_end,
+        spans,
     )
 }
 
@@ -3708,6 +3990,7 @@ fn place_line_on(
     justification: Option<Justification>,
     baseline_offset: Emu,
     paragraph_end: bool,
+    spans: &[LineSpan],
 ) -> Result<(), LayoutError> {
     let slack = (frame_width.raw() - line.run.width.raw()).max(0);
     let shift = match justification {
@@ -3736,25 +4019,43 @@ fn place_line_on(
             .checked_sub(glyph.y_offset.raw())
             .ok_or(LayoutError::GeometryOverflow)?;
     }
-    let glyph = line.to_glyph_run(x, baseline);
     let marks = result.key.view.formatting_marks;
-    let decorations = decoration_rects(&glyph, marks, paragraph_end, &line.tab_gaps);
     let (run, images) = {
         let page = result
             .pages
             .get_mut(page_index)
             .ok_or(LayoutError::GeometryOverflow)?;
         let run = page.runs.len();
-        if line.revisions.is_empty() {
-            for glyph_run in label_glyph_runs(line, x, baseline) {
-                page.runs.push(glyph_run);
-            }
-        } else {
-            let (runs, rects) = crate::revision_view::marked_runs(line, x, baseline);
+        if line.revisions.is_empty() && !spans.is_empty() {
+            let (runs, rects) = formatting_runs(line, spans, x, baseline, marks, paragraph_end);
             page.runs.extend(runs);
             page.rects.extend(rects);
+        } else {
+            let glyph = line.to_glyph_run(x, baseline);
+            if line.revisions.is_empty() {
+                page.rects.extend(decoration_rects(
+                    &glyph,
+                    marks,
+                    paragraph_end,
+                    &line.tab_gaps,
+                ));
+                for glyph_run in label_glyph_runs(line, x, baseline) {
+                    page.runs.push(glyph_run);
+                }
+            } else {
+                // Revision markup groups keep the line's default face; mixed
+                // formatting inside a marked line falls back to it.
+                let (runs, rects) = crate::revision_view::marked_runs(line, x, baseline);
+                page.runs.extend(runs);
+                page.rects.extend(rects);
+                page.rects.extend(decoration_rects(
+                    &glyph,
+                    marks,
+                    paragraph_end,
+                    &line.tab_gaps,
+                ));
+            }
         }
-        page.rects.extend(decorations);
         let image_start = page.images.len();
         for image in &line.images {
             let y = baseline

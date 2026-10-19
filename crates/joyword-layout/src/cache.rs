@@ -1297,6 +1297,7 @@ mod tests {
             piece_breaks: Vec::new(),
             piece_lines: Vec::new(),
             trailing_breaks: 0,
+            spans: Vec::new(),
             frame_x: Emu::new(0),
             frame_width: Emu::new(1),
             pinned: false,

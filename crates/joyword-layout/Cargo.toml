@@ -18,6 +18,7 @@ unicode-linebreak.workspace = true
 
 [dev-dependencies]
 joyword-engine.workspace = true
+joyword-render.workspace = true
 
 [lints]
 workspace = true

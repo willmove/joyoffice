@@ -1,10 +1,11 @@
 //! Resolved styles for the shared page scene (ECMA-376 Part 1 §17.7.2, §17.7.3).
 //!
-//! Document defaults, then the `basedOn` chain, then direct formatting. The
-//! line fitter paints one size, weight and posture per paragraph, plus the
-//! spacing and alignment it already places. A theme font is recorded by the
-//! typeface the scheme names; the caller-supplied face still shapes the
-//! glyphs. Anything this slice cannot paint is [`LayoutError::Unsupported`].
+//! Document defaults, then the `basedOn` chain, then direct formatting. Body
+//! paragraphs paint one size, weight and posture per run span
+//! ([`paint_spanned`]); headers and footers keep the one-face-per-paragraph
+//! contract of [`paint`]. A theme font is recorded by the typeface the scheme
+//! names; the caller-supplied face still shapes the glyphs. Anything this
+//! slice cannot paint is [`LayoutError::Unsupported`].
 
 use std::sync::Arc;
 
@@ -39,7 +40,6 @@ pub(crate) struct Paint {
     pub east_asia: Option<Arc<str>>,
     pub color: [u8; 3],
     pub underline: Option<PaintedUnderline>,
-    pub flow: Flow,
 }
 
 pub(crate) fn flow(document: &Document, paragraph: &Paragraph) -> Result<Flow, LayoutError> {
@@ -65,7 +65,8 @@ pub(crate) fn paint(
         .resolve_paragraph(paragraph.style.as_ref(), &paragraph.props);
     reject_problems(node, &resolved_para.problems)?;
     let props = displayed_paragraph(document, paragraph);
-    let flow = accept_paragraph(node, &props)?;
+    // Story painting still refuses paragraph properties it cannot place.
+    accept_paragraph(node, &props)?;
     let mark = document
         .styles()
         .resolve_run(paragraph.style.as_ref(), None, &paragraph.mark_props);
@@ -112,16 +113,7 @@ pub(crate) fn paint(
             }
         }
     }
-    let face = uniform.unwrap_or(Face {
-        size: None,
-        bold: false,
-        italic: false,
-        latin: None,
-        east_asia: None,
-        complex: None,
-        color: [0, 0, 0],
-        underline: None,
-    });
+    let face = uniform.unwrap_or_else(default_face);
     let size = face.size.unwrap_or(profile.size);
     if !(1..=1_000_000_000).contains(&size.raw()) {
         return Err(unsupported(node, "relative font size"));
@@ -141,8 +133,129 @@ pub(crate) fn paint(
         east_asia: face.east_asia,
         color: face.color,
         underline: face.underline,
-        flow,
     })
+}
+
+/// One visible run's resolved face over its model scalar range.
+#[derive(Clone, Debug)]
+pub(crate) struct RunFace {
+    pub scalars: std::ops::Range<usize>,
+    pub face: Face,
+}
+
+/// Paragraph paint with per-run faces. `size`, `leading` and `baseline`
+/// describe the line box, sized by the largest visible run; `faces` maps
+/// model scalar ranges to the face that paints them, adjacent-equal merged
+/// so a uniform paragraph yields one span. Hidden runs take no span when the
+/// view omits them. `first` feeds consumers that have not switched to spans.
+pub(crate) struct SpannedPaint {
+    pub flow: Flow,
+    pub size: Emu,
+    pub leading: Emu,
+    pub baseline: Emu,
+    pub first: Face,
+    pub faces: Vec<RunFace>,
+}
+
+/// Resolve every visible run's face over its scalar range. The body layout
+/// path uses this instead of [`paint`]: runs may differ in size, weight,
+/// posture, colour and underline, and the fitter and placement split the
+/// paragraph on the boundaries.
+pub(crate) fn paint_spanned(
+    document: &Document,
+    paragraph: &Paragraph,
+    profile: SingleFontProfile,
+    view: ViewOptions,
+    table_bold: Option<bool>,
+) -> Result<SpannedPaint, LayoutError> {
+    let node = Some(paragraph.id());
+    let resolved_para = document
+        .styles()
+        .resolve_paragraph(paragraph.style.as_ref(), &paragraph.props);
+    reject_problems(node, &resolved_para.problems)?;
+    let props = displayed_paragraph(document, paragraph);
+    let flow = accept_paragraph(node, &props)?;
+    let mark = document
+        .styles()
+        .resolve_run(paragraph.style.as_ref(), None, &paragraph.mark_props);
+    reject_problems(node, &mark.problems)?;
+    // The paragraph mark is not a painted glyph. A vanished mark would join
+    // this paragraph to the next; that merge is not implemented.
+    if run_is_hidden(&mark.props) {
+        return Err(unsupported(node, "character formatting"));
+    }
+    let _mark_face = face_of(node, &mark.props)?;
+    let mut faces: Vec<RunFace> = Vec::new();
+    let mut offset = 0usize;
+    for run in paragraph.runs() {
+        let end = offset + run.len;
+        let resolved =
+            document
+                .styles()
+                .resolve_run(paragraph.style.as_ref(), run.style.as_ref(), &run.props);
+        reject_problems(node, &resolved.problems)?;
+        if !view.show_hidden && run_is_hidden(&resolved.props) {
+            offset = end;
+            continue;
+        }
+        let mut face = face_of(node, &resolved.props)?;
+        if let Some(size) = face.size
+            && !(1..=1_000_000_000).contains(&size.raw())
+        {
+            return Err(unsupported(node, "relative font size"));
+        }
+        if run.props.bold.is_none()
+            && let Some(forced) = table_bold
+        {
+            face.bold = forced;
+        }
+        match faces.last_mut() {
+            Some(last) if last.scalars.end == offset && last.face == face => {
+                last.scalars.end = end;
+            }
+            _ => faces.push(RunFace {
+                scalars: offset..end,
+                face,
+            }),
+        }
+        offset = end;
+    }
+    let size_of = |face: &Face| face.size.unwrap_or(profile.size);
+    let size = faces
+        .iter()
+        .map(|span| size_of(&span.face))
+        .max()
+        .unwrap_or_else(|| size_of(&default_face()));
+    let leading = scale(profile.leading.raw(), size.raw(), profile.size.raw())?;
+    let baseline = scale(profile.baseline.raw(), size.raw(), profile.size.raw())?;
+    if leading <= 0 || baseline < 0 || baseline > leading {
+        return Err(LayoutError::LineTooTall);
+    }
+    let first = faces
+        .first()
+        .map(|span| span.face.clone())
+        .unwrap_or_else(default_face);
+    Ok(SpannedPaint {
+        flow,
+        size,
+        leading: Emu::new(leading),
+        baseline: Emu::new(baseline),
+        first,
+        faces,
+    })
+}
+
+fn default_face() -> Face {
+    Face {
+        size: None,
+        bold: false,
+        italic: false,
+        latin: None,
+        east_asia: None,
+        complex: None,
+        color: [0, 0, 0],
+        underline: None,
+    }
 }
 
 fn reject_problems(node: Option<NodeId>, problems: &[StyleProblem]) -> Result<(), LayoutError> {
@@ -249,16 +362,16 @@ fn absolute_gap(node: Option<NodeId>, measure: Option<Measure>) -> Result<Emu, L
     }
 }
 
-#[derive(Clone, PartialEq, Eq)]
-struct Face {
-    size: Option<Emu>,
-    bold: bool,
-    italic: bool,
-    latin: Option<Arc<str>>,
-    east_asia: Option<Arc<str>>,
-    complex: Option<Arc<str>>,
-    color: [u8; 3],
-    underline: Option<PaintedUnderline>,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) struct Face {
+    pub(crate) size: Option<Emu>,
+    pub(crate) bold: bool,
+    pub(crate) italic: bool,
+    pub(crate) latin: Option<Arc<str>>,
+    pub(crate) east_asia: Option<Arc<str>>,
+    pub(crate) complex: Option<Arc<str>>,
+    pub(crate) color: [u8; 3],
+    pub(crate) underline: Option<PaintedUnderline>,
 }
 
 fn face_of(node: Option<NodeId>, props: &RunProps) -> Result<Face, LayoutError> {
