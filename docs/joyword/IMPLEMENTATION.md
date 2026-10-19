@@ -860,3 +860,31 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
 5. **入口**。[docs/joyword/README.md](README.md) 的阅读顺序加上验收清单和功能指南。仓库根 README 的文档列表只加了一行链接。
 
 并行切片不在本分支：S1 黄金场景、S2 T103 覆盖引导 fuzz、S3 功能夹具、S5 场景演练。它们在各自的 PR 里；收口时再链接，本段不指向尚未合并的文件。
+
+### 2026-10-20 验证波次收口
+
+五个验证切片已全部 squash 合入 main，顺序与提交如下。上一段「并行切片不在本分支」写于 S4 合并之前，以本节为准。
+
+| 切片 | PR | main 提交 | 证据 |
+| --- | --- | --- | --- |
+| S4 验收清单与功能指南 | [#61](https://github.com/willmove/joyoffice/pull/61) | `1bae1231` | [验收清单](acceptance/README.md)、[功能指南](guide/README.md) |
+| S2 T103 覆盖引导 fuzz | [#62](https://github.com/willmove/joyoffice/pull/62) | `8a12e6dd` | [T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md) |
+| S5 场景无界面排练 | [#63](https://github.com/willmove/joyoffice/pull/63) | `e615d308` | [场景排练](verification/scenario-rehearsals.md) |
+| S1 页面场景金样 | [#64](https://github.com/willmove/joyoffice/pull/64) | `0c80d8bb` | [页面场景金样](verification/golden-scenes.md) |
+| S3 特性样例 | [#65](https://github.com/willmove/joyoffice/pull/65) | `f0ccc659` | [特性样例](verification/feature-fixtures.md) |
+
+- **状态**。这些都是自动证据，没有人工验收、Word／WPS 对照或信创真机。没有任务改状态，计数仍是 12 done／17 in_progress／37 planned／0 blocked。TASKS 的进度总览和 T103、T200–T204、T209、T300 各追加了一条收口说明；验收清单补了排练、金样和样例的行，T103 的覆盖引导 fuzz 一行从 not-started 改为 partial。
+- **已知缺口，仍是 open**。下列缺口由验证文档报告，由分支 `fix/verify-wave-gaps` 上的修复 PR 处理；该 PR 合并前，本记录不把它们写成已修复。
+  1. T201：样式部件 `w:tblStylePr` 的 firstCol、lastCol、band1Vert 没有读入模型，页面上没有对应填充。期望记录在被忽略的测试 `vertical_column_bands_are_imported_from_table_style_pr`（[页面场景金样](verification/golden-scenes.md)）。
+  2. T200：CPU 光栅要求字形横坐标等于此前前进量之和，编号加制表位的行因此以 `InvalidGeometry` 被拒绝。S1 的光栅金样是 refused，S3 样例 DOCX-FEAT-T200-NUM 的 `render` 也被拒绝（[特性样例](verification/feature-fixtures.md)）。
+  3. T300：`text` 投影的元数据声明排除删除和移出，标准输出仍含这些文字；S3 的黄金文件锁定的是当前输出。
+  4. T203：图片资源已经导入，四条图片关系仍另报 `not-imported`。
+  5. T202：对已有正文段落执行 `page.number` 后，导出计划以 `paragraph formatting, source or inline objects changed` 拒绝，正文新页码写不回文件（[场景排练](verification/scenario-rehearsals.md)）。
+- **合并组合复跑**。在 main `f0ccc65944e6b961f3dcad935d5d43f5b6484c1c` 上按 `.github/workflows/ci.yml` 逐步本机复跑一次（Ubuntu 24.04 x86_64，Rust 1.98.1，apt 安装 CI 同名系统库、fonts-noto-cjk 与 poppler-utils，cargo-deny 0.20.2）。全部步骤退出码为 0，工作区复跑后仍干净，金样没有被改写。五个合并组合在一起没有引入失败。
+  - build 作业：`check_docs.py`、`check_gates.py` 与反例、`scripts/tests` 单测、`cargo fmt --all -- --check`、`cargo test --locked`（781 通过、0 失败、1 忽略，忽略项即上面第 1 条）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo test --locked -p joyword`（52 通过）、恢复日志实验、DOCX 健壮性实验（固定矩阵 81／81，43 ok、38 rejected，`matrix_complete` 为真，地址空间限制 `enforced=true`；种子 20261019 的行为特征 fuzz 执行 200、ok 46、rejected 154、异常 0）、`cargo build -p joyword --locked`。本机装了 Noto CJK，所以 `feature_fixture_render_and_convert_follow_the_subset` 的视觉部分实际执行了；CI 的 build 作业没有该字体，这部分会直接返回。
+  - unified-pdf 作业：强制真实字体的 layout／pdf／render 测试 226 项通过；统一场景、文档流、CPU 光栅对照、断行对照（改动断行被检出）与 12 个特性场景的 pdftotext 回读都通过。
+  - dependencies 与 provenance：`cargo deny --locked --all-features check` 四项 ok；gpui-pre 来源 16 个相同、3 个已审偏差、0 失败。
+  - cross-linux：aarch64 与 loongarch64 在 QEMU 用户模式下各 781 通过、0 失败、1 忽略。这只证明代码生成和 ABI，不是信创真机。
+  - 夜间工作流 `fuzz-nightly.yml` 也复跑一次：覆盖反馈 `llvm-source-regions`，种子 20261020、60 次变异，ok 10、rejected 50、异常 0，`crates/` 区域 3594／44812，`coverage_merge_matches_scheduler` 为真，与 [T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md) 的数字一致。
+  - 本机没有 macOS、Windows 与原生 ARM64。GitHub Actions 上 main 同一提交的 run 39338072041 九个作业全部 success，包括 macos-15、windows-2022 和 ubuntu-24.04-arm 的 build。
+- **未覆盖**：`scripts/check_acceptance.py` 仍不在 CI 里，本次只在本机运行并通过。图形界面、Word／WPS、真实打印和信创真机都没有在本次执行。
