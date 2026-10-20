@@ -64,13 +64,14 @@
 
 ## 统信 UOS Desktop 20 Professional 补充验证（2026-10-19）
 
-环境：UOS Desktop 20 Professional（VERSION_ID 20，eagle），内核 4.19.0-amd64-desktop，x86_64，glibc 2.28，海光 C86 7390 四 vCPU 的 KVM 虚机，X11 2560×1440，无 Vulkan 硬件；GPU 为 llvmpipe/VMware 软件路径。使用机内 SwiftShader ICD（`/opt/namiwork/vk_swiftshader_icd.json`）与软件 EGL 启动 GPUI。工具链 Rust 1.98.1（clippy、rustfmt）；GUI 字体 Noto Sans CJK face 2，PDF 字体 Noto Serif CJK face 2。完整记录、截图、PDF 与日志见 [UOS 报告](../../tests/fixtures/reference/uos/uos_report.json)。
+环境：UOS Desktop 20 Professional（VERSION_ID 20，eagle），内核 4.19.0-amd64-desktop，x86_64，glibc 2.28，海光 C86 7390 四 vCPU 的 KVM 虚机，X11 2560×1440，无 Vulkan 硬件；GPU 为 llvmpipe/VMware 软件路径。应用自动找到机内 SwiftShader ICD（`/opt/namiwork/vk_swiftshader_icd.json`）并以软件 EGL 启动 GPUI。工具链 Rust 1.98.1（clippy、rustfmt）；GUI 字体 Noto Sans CJK face 2，PDF 字体 Noto Serif CJK face 2。完整记录、截图、PDF 与日志见 [UOS 报告](../../tests/fixtures/reference/uos/uos_report.json)。
 
 | 验证 | 结果 | 限制 |
 | --- | --- | --- |
 | `cargo build -p joyword --locked` | 在补本地 fontconfig pkg-config 后裸命令成功，启动 `JoyWord · Preview`，中文页面与功能区完整渲染 | UOS 的 `libfontconfig1-dev` 与已装 freetype 版本冲突；也可用 `RUST_FONTCONFIG_DLOPEN=1`；软件渲染，不代表 GPU 性能 |
+| 裸 `cargo run -p joyword --locked` | 2–4 秒内出窗；日志枚举到 llvmpipe GL（surface 不兼容）后自动以 SwiftShader Vulkan 重启，无需手工 `VK_ICD_FILENAMES` | 首次渲染是软件 Vulkan；未验 GPU 帧时间 |
 | `cargo test --locked --no-fail-fast` | 681 passed、2 failed、0 ignored | 两项失败为内核 4.19 jiffy 时间粒度：同长度快速改写与硬链接别名写入未改变 mtime/ctime |
-| `cargo test -p joyword --locked` | 38 passed | 无头应用适配器 |
+| `cargo test -p joyword --locked` | 53 passed（含软件 ICD 查找与 linux_files 测试） | 无头应用适配器 |
 | fmt／clippy／docs／gates | 全部通过 | 文档检查 84 需求、66 任务、14 Markdown、36 行为条目 |
 | Python 工具测试 | 40 passed、2 failed、11 errors | 失败集中在依赖 git ≥2.28 的 `--initial-branch` 与 partial clone 辅助流程；本机 git 2.20.1 |
 | GUI 缩放 | 80%→90%→100% 页宽 635→713→793 px，Ctrl+0 复位 | 单显示器 1x，未验 Retina／多显示器 |
@@ -83,6 +84,8 @@
 | 双 GUI 阅读器 | qpdfview 高亮搜索「远山」；WPS PDF 12.1.2.1128 报告「精确查找 (1)」 | 真实打印机仍未验 |
 
 补验发现与修复：切换隐藏文字时 debug 构建在 tiny-skia 0.11.4 `scan/hairline_aa.rs:124` 断言。原因是页面场景存在 1–2 px 宽、左边缘为分数像素的矩形，覆盖率矩形光栅器内部整像素宽度归零。`joyword-render::rasterize` 现将亚 2 px 宽矩形吸附到整像素边界并至少保留 1 px，不改变 EMU 场景坐标，亚像素下划线的既有可见性回归仍通过；新增 `narrow_fractional_rects_keep_their_pixels_without_panicking`。修复后三个视图开关连续切换无崩溃。UOS 侧 `confirmed_replacement_copies_a_user_extended_attribute` 通过，但上面两项时间粒度测试失败仍按未完成记录。
+
+第二个修复针对裸启动失败：默认 Vulkan ICD 没有可用物理设备，GL 只枚举到 llvmpipe 且没有兼容 surface，`open_window` 返回 `No GPU adapter found that can configure the display surface`。应用现在在没有 `/dev/dri/renderD*` 且未显式设置 ICD 时，先按 `JOYWORD_SOFTWARE_VULKAN_ICD`、已知 SwiftShader 路径和 `*swiftshader*.json`／`*lvp_icd*.json`／`*lavapipe*.json` 查找软件 ICD，再以 `VK_ICD_FILENAMES`／`VK_DRIVER_FILES` 执行自身一次；有 render node 但 Vulkan 仍失败时也在错误后同样重试。显式 ICD 优先，找不到时保留原诊断。实测裸启动出窗并选中 SwiftShader Vulkan，新增 `a_software_vulkan_icd_is_found_by_name`；`cargo clippy --workspace --all-targets --locked -- -D warnings` 与门禁通过。
 
 ## 性能冒烟（自动，无真实窗口）
 

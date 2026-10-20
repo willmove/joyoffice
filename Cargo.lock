@@ -2702,6 +2702,7 @@ dependencies = [
  "joyword-pdf",
  "joyword-render",
  "joyword-shell",
+ "log",
 ]
 
 [[package]]

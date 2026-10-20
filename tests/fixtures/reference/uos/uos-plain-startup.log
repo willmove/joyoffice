@@ -1,0 +1,42 @@
+[INFO] write_command; command=Auth(Some(External), Some([49, 48, 48, 50]))
+[INFO] write_commands; commands=[Auth(Some(External), Some([49, 48, 48, 50]))] extra_bytes=None
+[INFO] read_command;
+[INFO] read_commands; n_commands=1
+[INFO] write_commands; commands=[NegotiateUnixFD, Begin] extra_bytes=Some([108, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 109, 0, 0, 0, 1, 1, 111, 0, 21, 0, 0, 0, 47, 111, 114, 103, 47, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 47, 68, 66, 117, 115, 0, 0, 0, 2, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0, 3, 1, 115, 0, 5, 0, 0, 0, 72, 101, 108, 108, 111, 0, 0, 0, 6, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0])
+[INFO] read_commands; n_commands=1
+[INFO] XInput version: 2.3, gesture support: false
+[INFO] x11: compositor present: true, gtk_frame_extents_supported: false
+[INFO] Using scale factor from Xft.dpi: 1
+[INFO] Try connect fcitx
+[INFO] write_command; command=Auth(Some(External), Some([49, 48, 48, 50]))
+[INFO] write_commands; commands=[Auth(Some(External), Some([49, 48, 48, 50]))] extra_bytes=None
+[INFO] read_command;
+[INFO] read_commands; n_commands=1
+[INFO] write_commands; commands=[NegotiateUnixFD, Begin] extra_bytes=Some([108, 1, 0, 1, 0, 0, 0, 0, 5, 0, 0, 0, 109, 0, 0, 0, 1, 1, 111, 0, 21, 0, 0, 0, 47, 111, 114, 103, 47, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 47, 68, 66, 117, 115, 0, 0, 0, 2, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0, 3, 1, 115, 0, 5, 0, 0, 0, 72, 101, 108, 108, 111, 0, 0, 0, 6, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0])
+[INFO] read_commands; n_commands=1
+[INFO] {}; task_name="org.freedesktop.portal.Settings proxy caching"
+[INFO] Using Visual { id: 66, colormap: 0, depth: 32 }
+[INFO] Creating colormap 130023426
+[WARN] Failed to populate properties cache via GetAll: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.portal.Desktop was not provided by any .service files. Property change streams will not produce values.
+libEGL warning: No hardware driver found, falling back to software rendering
+libEGL warning: pci id for fd 24: 1013:00b8, driver (null)
+
+[ERROR] GLES: [API/Error] ID 1 : GL_INVALID_ENUM in glGetIntegerv(pname=GL_MAX_VERTEX_IMAGE_UNIFORMS)
+[ERROR] GLES: [API/Error] ID 1 : GL_INVALID_ENUM in glGetIntegerv(pname=GL_MAX_FRAGMENT_IMAGE_UNIFORMS)
+[INFO] Found 2 GPU adapter(s):
+[INFO]   - SwiftShader Device (Subzero) (vendor=0x1ae0, device=0xc0de, backend=Vulkan, type=Cpu)
+[INFO]   - llvmpipe (LLVM 7.0, 128 bits) (vendor=0x0000, device=0x0000, backend=Gl, type=Cpu)
+[INFO] Testing adapter: SwiftShader Device (Subzero) (Vulkan)...
+[WARN] Dual-source blending not available on this GPU. Subpixel text antialiasing will be disabled.
+[INFO] Selected GPU (passed configuration test): SwiftShader Device (Subzero) (Vulkan)
+[INFO] Selected GPU adapter: "SwiftShader Device (Subzero)" (Vulkan)
+[INFO] write_command; command=Auth(Some(External), Some([49, 48, 48, 50]))
+[INFO] write_commands; commands=[Auth(Some(External), Some([49, 48, 48, 50]))] extra_bytes=None
+[INFO] read_command;
+[INFO] read_commands; n_commands=1
+[INFO] write_commands; commands=[NegotiateUnixFD, Begin] extra_bytes=Some([108, 1, 0, 1, 0, 0, 0, 0, 25, 0, 0, 0, 109, 0, 0, 0, 1, 1, 111, 0, 21, 0, 0, 0, 47, 111, 114, 103, 47, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 47, 68, 66, 117, 115, 0, 0, 0, 2, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0, 3, 1, 115, 0, 5, 0, 0, 0, 72, 101, 108, 108, 111, 0, 0, 0, 6, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0])
+[INFO] read_commands; n_commands=1
+[INFO] {}; task_name="org.a11y.Status proxy caching"
+[INFO] activate is not implemented on Linux, ignoring the call
+[INFO] Refreshing every 20ms
+[INFO] XConnected server on 6291493, transport version: 0.0, TRANSPORT_MAX: 20

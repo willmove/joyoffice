@@ -43,6 +43,8 @@ open target/dev/JoyWord.app
 
 此包装未签名、未公证，不是发行安装包。每次修改代码后需重新构建和包装。完整 Xcode／Metal 环境及其他平台使用 `cargo run -p joyword --locked`；正式构建还必须验证不启用 dev-runtime-shaders 的路径。
 
+Linux 虚拟机若没有可用的 Vulkan 硬件，JoyWord 会在没有 `/dev/dri/renderD*` 时自动寻找 SwiftShader／lavapipe ICD，或在实际窗口打开失败后带软件 ICD 重启一次；显式设置的 `VK_ICD_FILENAMES`／`VK_DRIVER_FILES` 优先，也可用 `JOYWORD_SOFTWARE_VULKAN_ICD` 指定 JSON。找不到软件 ICD 时仍返回原来的窗口诊断，不假称成功。
+
 ## 无头检查与页面输出
 
 `joyword-cli` 提供只读 `inspect`／`text`，以及统一 PageScene 的 `render` PNG 和 `convert --to pdf`。Windows 示例使用本机宋体；输出目标已存在时拒绝覆盖，重复验证请换用新路径：

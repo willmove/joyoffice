@@ -16,7 +16,10 @@
     "glibc": "2.28",
     "compiler": "cc (Uos 8.3.0.13-deepin1) 8.3.0",
     "rust": "rustc 1.98.1 (48a229cea 2026-09-01), cargo 1.98.1 (797e8a9bc 2026-08-05)",
-    "rust_components": ["clippy", "rustfmt"],
+    "rust_components": [
+      "clippy",
+      "rustfmt"
+    ],
     "build_env": "g++, make, cmake, libxcb1-dev, libxkbcommon-dev, libxkbcommon-x11-dev installed; UOS libfontconfig1-dev conflicts with the installed freetype 2.9.1.4, so a local /usr/local/lib/pkgconfig/fontconfig.pc and libfontconfig.so symlink were added; RUST_FONTCONFIG_DLOPEN=1 also works",
     "inputs": {
       "gui_font": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc face 2",
@@ -30,6 +33,14 @@
     "result": "success without environment variables after adding the local fontconfig pkg-config metadata and link symlink; RUST_FONTCONFIG_DLOPEN=1 was used earlier and also succeeds",
     "log": "build succeeded after installing the system development packages; dev-runtime-shaders not enabled",
     "window": "JoyWord · Preview opened through the UnionTech UOS X11 session"
+  },
+  "runtime": {
+    "plain_command": "cargo run -p joyword --locked",
+    "result": "window appeared in 2-4 seconds without VK_ICD_FILENAMES",
+    "fallback": "when no /dev/dri/renderD* exists and no ICD is explicit, search JOYWORD_SOFTWARE_VULKAN_ICD, known SwiftShader paths and *swiftshader*.json/*lvp_icd*.json/*lavapipe*.json; re-exec once with VK_ICD_FILENAMES and VK_DRIVER_FILES. A failed open_window also triggers the same retry when a render node exists but Vulkan is unusable.",
+    "selected_adapter": "SwiftShader Device (Subzero), Vulkan, type Cpu",
+    "limitation": "software rendering; no GPU frame-time validation",
+    "log": "uos-plain-startup.log"
   },
   "automated": {
     "cargo_test_default_members_no_fail_fast": {
@@ -76,13 +87,19 @@
       "id": "UOS-01",
       "summary": "Formatting-mark/hidden-text toggle could panic the debug GUI in tiny-skia hairline_aa",
       "detail": "Toggling a view option during document editing reached joyword_render::rasterize with a 1-2 px wide rect at a fractional x offset. tiny-skia 0.11.4 asserted in scan/hairline_aa.rs:124. The rasterizer now snaps sub-2-pixel rect widths to whole device pixels, preserving at least one pixel and the subpixel-underline behavior. Regression narrow_fractional_rects_keep_their_pixels_without_panicking covers vertical and horizontal cases.",
-      "evidence": ["uos-panic-hidden-text.log", "uos-gui-formatting-marks.png"]
+      "evidence": [
+        "uos-panic-hidden-text.log",
+        "uos-gui-formatting-marks.png"
+      ]
     },
     {
       "id": "UOS-02",
       "summary": "Fcitx/Sogou input does not reach the GPUI X11 window",
       "detail": "The desktop IME was active and Fcitx reported state 2, but nihao was inserted literally and no candidate window appeared. This matches the earlier Kylin result and leaves Chinese typing through a system IME unverified on Xinchuang desktop systems.",
-      "evidence": ["uos-gui-fcitx-passthrough.png", "uos-gui-chinese-paste.png"]
+      "evidence": [
+        "uos-gui-fcitx-passthrough.png",
+        "uos-gui-chinese-paste.png"
+      ]
     },
     {
       "id": "UOS-03",
@@ -95,6 +112,15 @@
       "summary": "Kernel 4.19 jiffy timestamps make two identity tests flaky",
       "detail": "A same-length rewrite and a hard-link alias write within one timer tick are not distinguished by mtime/ctime. The guard is documented as a known limitation; this is not counted as a passing conflict check.",
       "evidence": []
+    },
+    {
+      "id": "UOS-05",
+      "summary": "Plain startup failed because no adapter could configure the display surface",
+      "detail": "Without VK_ICD_FILENAMES the Vulkan loader found no physical device and the GL backend only enumerated llvmpipe with no compatible surface formats. The app now preflights for a render node when no ICD is explicit, finds a software ICD and re-execs itself with VK_ICD_FILENAMES/VK_DRIVER_FILES; a failed open_window also retries the same way. Explicit ICDs are never overridden. Regression a_software_vulkan_icd_is_found_by_name covers the name search; the plain run now selects SwiftShader Vulkan and opens the window. A fake renderD file forced the post-failure path and the app log recorded window.software_retry kind=vulkan before restarting.",
+      "evidence": [
+        "uos-plain-startup.log",
+        "uos-software-retry.log"
+      ]
     }
   ],
   "evidence": {
@@ -108,7 +134,9 @@
     "wps_pdf_search": "uos-wpspdf-search.png",
     "panic_log": "uos-panic-hidden-text.log",
     "recovery_log": "uos-recovery-restored.log",
+    "plain_startup": "uos-plain-startup.log",
     "pdf": "joyword-uos-e2e.pdf",
-    "poppler_text": "poppler-readback.txt"
+    "poppler_text": "poppler-readback.txt",
+    "software_retry": "uos-software-retry.log"
   }
 }

@@ -24,6 +24,7 @@ joyword-pdf.workspace = true
 joyword-render.workspace = true
 image.workspace = true
 joyword-shell.workspace = true
+log = "=0.4.34"
 
 [lints]
 workspace = true

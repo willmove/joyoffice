@@ -22,6 +22,8 @@ use joyword_shell::diag::{self, AppLog, Event, Level};
 use joyword_shell::input::{InputLimits, TextInput};
 use joyword_shell::l10n::{Catalog, Locale};
 use joyword_shell::prefs::{PrefsNotice, PrefsStore};
+#[cfg(target_os = "linux")]
+use std::os::unix::process::CommandExt;
 use std::sync::Arc;
 
 actions!(
@@ -1822,7 +1824,122 @@ fn prefs_notice_kind(notice: &PrefsNotice) -> &'static str {
     }
 }
 
+/// Some Linux virtual machines expose a Vulkan loader but no usable hardware
+/// ICD. Find a software ICD so the window can be retried without asking the
+/// user to set `VK_ICD_FILENAMES`. Explicit user choices still win.
+#[cfg(target_os = "linux")]
+fn software_vulkan_icd() -> Option<std::path::PathBuf> {
+    use std::path::PathBuf;
+
+    if let Some(path) = std::env::var_os("JOYWORD_SOFTWARE_VULKAN_ICD") {
+        let path = PathBuf::from(path);
+        if path.is_file() {
+            return Some(path);
+        }
+    }
+    for candidate in [
+        "/opt/namiwork/vk_swiftshader_icd.json",
+        "/opt/trae-cn-enterprise/vk_swiftshader_icd.json",
+        "/usr/share/trae-cn-enterprise/vk_swiftshader_icd.json",
+        "/usr/share/vulkan/icd.d/lvp_icd.x86_64.json",
+        "/usr/share/vulkan/icd.d/lvp_icd.json",
+    ] {
+        let path = PathBuf::from(candidate);
+        if path.is_file() {
+            return Some(path);
+        }
+    }
+
+    let mut directories = vec![
+        PathBuf::from("/usr/share/vulkan/icd.d"),
+        PathBuf::from("/usr/local/share/vulkan/icd.d"),
+    ];
+    for root in ["/opt", "/usr/share"] {
+        let Ok(entries) = std::fs::read_dir(root) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            directories.push(path.clone());
+            let Ok(children) = std::fs::read_dir(&path) else {
+                continue;
+            };
+            for child in children.flatten() {
+                directories.push(child.path());
+            }
+        }
+    }
+    software_vulkan_icd_in(directories)
+}
+
+#[cfg(target_os = "linux")]
+fn software_vulkan_icd_in(
+    directories: impl IntoIterator<Item = std::path::PathBuf>,
+) -> Option<std::path::PathBuf> {
+    for directory in directories {
+        let Ok(entries) = std::fs::read_dir(directory) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+                continue;
+            };
+            let name = name.to_ascii_lowercase();
+            if name.ends_with(".json")
+                && (name.contains("swiftshader")
+                    || name.contains("lvp_icd")
+                    || name.contains("lavapipe"))
+            {
+                return Some(path);
+            }
+        }
+    }
+    None
+}
+
+#[cfg(target_os = "linux")]
+fn linux_has_render_node() -> bool {
+    let Ok(entries) = std::fs::read_dir("/dev/dri") else {
+        return false;
+    };
+    entries
+        .flatten()
+        .any(|entry| entry.file_name().to_string_lossy().starts_with("renderD"))
+}
+
 fn main() {
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("VK_ICD_FILENAMES").is_none()
+        && std::env::var_os("VK_DRIVER_FILES").is_none()
+        && !linux_has_render_node()
+        && let Some(icd) = software_vulkan_icd()
+        && let Ok(exe) = std::env::current_exe()
+    {
+        let mut command = std::process::Command::new(exe);
+        command
+            .args(std::env::args_os().skip(1))
+            .env("VK_ICD_FILENAMES", &icd)
+            .env("VK_DRIVER_FILES", &icd);
+        let exec_error = command.exec();
+        eprintln!("JoyWord could not restart with software rendering: {exec_error}");
+    }
+
+    struct StderrLog;
+    impl log::Log for StderrLog {
+        fn enabled(&self, metadata: &log::Metadata) -> bool {
+            metadata.level() <= log::Level::Info
+        }
+        fn log(&self, record: &log::Record) {
+            if self.enabled(record.metadata()) {
+                eprintln!("[{}] {}", record.level(), record.args());
+            }
+        }
+        fn flush(&self) {}
+    }
+    let _ = log::set_logger(&STDERR_LOG);
+    log::set_max_level(log::LevelFilter::Info);
+    static STDERR_LOG: StderrLog = StderrLog;
     let boot = boot_diagnostics();
     let boot_log = boot.log.clone();
     let locale = boot.locale;
@@ -1938,6 +2055,35 @@ fn main() {
                 })
             },
         );
+        #[cfg(target_os = "linux")]
+        let result = match result {
+            Ok(window) => Ok(window),
+            Err(error) => {
+                if std::env::var_os("VK_ICD_FILENAMES").is_none()
+                    && std::env::var_os("VK_DRIVER_FILES").is_none()
+                    && let Some(icd) = software_vulkan_icd()
+                {
+                    let exe = std::env::current_exe()
+                        .unwrap_or_else(|_| std::path::PathBuf::from("joyword"));
+                    let mut command = std::process::Command::new(exe);
+                    command
+                        .args(std::env::args_os().skip(1))
+                        .env("VK_ICD_FILENAMES", &icd)
+                        .env("VK_DRIVER_FILES", &icd);
+                    if let Some(log) = &boot_log {
+                        let _ = log.record(Event {
+                            level: Level::Info,
+                            event: "window.software_retry",
+                            kind: Some("vulkan"),
+                            count: None,
+                        });
+                    }
+                    let exec_error = command.exec();
+                    eprintln!("JoyWord could not restart with software rendering: {exec_error}");
+                }
+                Err(error)
+            }
+        };
         match result {
             Ok(window) => {
                 cx.set_global(MainWindow(window));
@@ -1952,6 +2098,7 @@ fn main() {
                     let _ = log.record_untrusted(Level::Error, "window.open", &detail);
                 }
                 eprintln!("Could not open the JoyWord window: {detail}");
+                eprintln!("RAW-ERROR-DEBUG: {:?}", error);
                 cx.quit();
             }
         }
@@ -1961,6 +2108,23 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn a_software_vulkan_icd_is_found_by_name() {
+        let directory =
+            std::env::temp_dir().join(format!("joyword-software-icd-{}", std::process::id()));
+        if std::fs::create_dir_all(&directory).is_err() {
+            return;
+        }
+        let icd = directory.join("vk_swiftshader_icd.json");
+        if std::fs::write(&icd, "{}").is_err() {
+            let _ = std::fs::remove_dir_all(&directory);
+            return;
+        }
+        assert_eq!(software_vulkan_icd_in([directory.clone()]), Some(icd));
+        let _ = std::fs::remove_dir_all(directory);
+    }
 
     #[test]
     fn registry_commands_all_have_actions_and_bindings() {
