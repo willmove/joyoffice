@@ -237,6 +237,8 @@ fn import_picture(
             locator: embed.into(),
         })),
     );
+    let imported_id = relationship.id.to_string();
+    importer.note_imported_image(part, &imported_id);
     paragraph.push_inline(
         InlineObject {
             id: importer.document.ids().node(),
@@ -581,7 +583,7 @@ fn outcome_of(error: ImageRefuse) -> ImageOutcome {
     }
 }
 
-fn is_image_relationship(kind: &str) -> bool {
+pub(crate) fn is_image_relationship(kind: &str) -> bool {
     kind == REL_IMAGE || kind.ends_with("/image")
 }
 

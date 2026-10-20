@@ -50,12 +50,7 @@ const FIXTURES: &[Fixture] = &[
     Fixture {
         id: "DOCX-FEAT-T203-IMAGES",
         bytes: include_bytes!("../../../tests/fixtures/feature/DOCX-FEAT-T203-IMAGES.docx"),
-        diagnostics: &[
-            "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/inline.png",
-            "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/wrap-none.png",
-            "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/wrap-square.png",
-            "not-imported:http://schemas.openxmlformats.org/officeDocument/2006/relationships/image:/word/media/wrap-tight.png",
-        ],
+        diagnostics: &[],
         editable: true,
     },
     Fixture {

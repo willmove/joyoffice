@@ -60,6 +60,9 @@ pub(crate) struct Importer<'a> {
     pub hints: Vec<(PartName, &'static str, usize)>,
     /// Header and footer parts already mapped to a story.
     pub(crate) imported_stories: Vec<(PartName, joyword_model::StoryId)>,
+    /// Image relationships whose targets were stored as resources.
+    /// Keyed by the source part and the relationship id (`r:embed` / `r:id`).
+    imported_images: Vec<(PartName, Arc<str>)>,
     /// Move range markers waiting until their paragraphs sit in a story.
     pub(crate) pending_moves: Vec<crate::revision::PendingMove>,
 }
@@ -97,6 +100,18 @@ impl<'a> Importer<'a> {
             Some(element.span.clone()),
             DiagnosticKind::ReadOnly(reason),
         );
+    }
+
+    /// Records that `id` on `source` was stored as an image resource.
+    pub(crate) fn note_imported_image(&mut self, source: &PartName, id: &str) {
+        if self
+            .imported_images
+            .iter()
+            .any(|(part, known)| part == source && known.as_ref() == id)
+        {
+            return;
+        }
+        self.imported_images.push((source.clone(), Arc::from(id)));
     }
 
     pub fn source(part: &PartName, element: &Element) -> Arc<SourceRef> {
@@ -299,6 +314,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         properties_preserved: Vec::new(),
         hints: Vec::new(),
         imported_stories: Vec::new(),
+        imported_images: Vec::new(),
         pending_moves: Vec::new(),
     };
     for diagnostic in package.diagnostics() {
@@ -341,6 +357,11 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
             numbering = Some(part.clone());
         } else if kind == REL_HEADER || kind == REL_FOOTER {
             // Resolved from `w:headerReference` / `w:footerReference`.
+        } else if crate::images::is_image_relationship(kind) {
+            // Resolved from `a:blip` / `v:imagedata` (ECMA-376 Part 1
+            // §20.4.2.7) while the body is read. A relationship whose target
+            // was stored as a resource is consumed there; an unconsumed
+            // internal image part is reported after that walk.
         } else if kind == REL_VBA_PROJECT {
             importer.diagnose(
                 Severity::Warning,
@@ -377,6 +398,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
     }
     importer.main_document(&main)?;
     importer.warn_unreferenced_stories(&package, &main.name);
+    importer.warn_unreferenced_images(&package, &main.name);
     importer.finish_summaries();
 
     let validation = importer.document.validate();
@@ -834,6 +856,39 @@ impl Importer<'_> {
                 None,
                 DiagnosticKind::NotImported {
                     relationship: kind.to_owned(),
+                    part: target.to_string(),
+                },
+            );
+        }
+    }
+
+    /// Image relationships the body did not store. A missing part was already
+    /// reported as [`DiagnosticKind::MissingPart`] and is not repeated.
+    /// External targets stay on the external-target diagnostic only.
+    fn warn_unreferenced_images(&mut self, package: &Package, main: &PartName) {
+        for relationship in package.relationships(Some(main)) {
+            if !crate::images::is_image_relationship(relationship.kind.as_ref()) {
+                continue;
+            }
+            let Target::Internal(target) = &relationship.target else {
+                continue;
+            };
+            if package.part(target.as_str()).is_none() {
+                continue;
+            }
+            if self
+                .imported_images
+                .iter()
+                .any(|(source, id)| source == main && id.as_ref() == relationship.id.as_ref())
+            {
+                continue;
+            }
+            self.diagnose(
+                Severity::Info,
+                Some(main),
+                None,
+                DiagnosticKind::NotImported {
+                    relationship: relationship.kind.to_string(),
                     part: target.to_string(),
                 },
             );

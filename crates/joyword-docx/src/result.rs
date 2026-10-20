@@ -183,7 +183,8 @@ pub enum DiagnosticKind {
         part: String,
     },
     /// A part related to the main document that this slice keeps but does not
-    /// import (headers, footers, notes, comments, numbering, …).
+    /// import (unreferenced headers and footers, notes, comments, custom
+    /// parts, and image relationships whose targets were not stored).
     NotImported {
         relationship: String,
         part: String,

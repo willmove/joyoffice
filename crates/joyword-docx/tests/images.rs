@@ -1,7 +1,7 @@
 //! Inline picture import and the explicit export refusal (T203).
 
 use joyoffice_opc::{Budget, Method, write_archive};
-use joyword_docx::{DiagnosticKind, ExportError, ImageOutcome, import, plan_export};
+use joyword_docx::{DiagnosticKind, ExportError, ImageOutcome, Severity, import, plan_export};
 use joyword_model::{
     AnchorWrap, Block, ImageAnchor, InlineKind, Measure, SquareWrap, StoryKind, WrapSide,
     sample_png_1x1, sample_png_overwide,
@@ -99,6 +99,18 @@ fn an_inline_drawing_imports_the_raster_and_round_trips_beside_a_text_edit() {
         result.document.resources().get(resource).unwrap().data(),
         png.as_slice()
     );
+    assert!(
+        !result
+            .diagnostics
+            .iter()
+            .any(|item| matches!(item.kind, DiagnosticKind::NotImported { .. })),
+        "a stored image relationship is not a leftover part: {:?}",
+        result
+            .diagnostics
+            .iter()
+            .map(|item| &item.kind)
+            .collect::<Vec<_>>()
+    );
     let mut model = result.document.clone();
     let body = model.body_id();
     model.story_mut(body).unwrap().blocks.update(1, |block| {
@@ -171,6 +183,13 @@ fn a_remote_link_is_not_fetched_and_an_oversize_header_is_kept() {
     )));
     let paragraph = result.document.body().blocks.get(0).unwrap().id();
     assert!(result.editability.locked().contains(&paragraph));
+    assert!(result.diagnostics.iter().any(|item| {
+        matches!(
+            &item.kind,
+            DiagnosticKind::NotImported { relationship, part }
+                if relationship.ends_with("/image") && part.ends_with("/word/media/pixel.png")
+        ) && item.severity == Severity::Info
+    }));
 }
 
 #[test]
@@ -862,4 +881,73 @@ fn a_header_and_footer_inline_image_imports_with_the_part() {
             png.as_slice()
         );
     }
+}
+
+#[test]
+fn an_imported_image_relationship_is_consumed_and_unused_parts_stay_reported() {
+    let png = sample_png_1x1();
+    let custom = b"<note>unused custom part</note>";
+    let document = drawing(r#"r:embed="rId1""#);
+    let rels = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="{REL}"><Relationship Id="rId1" Type="{IMAGE_REL}" Target="media/pixel.png"/><Relationship Id="rId2" Type="{IMAGE_REL}" Target="media/unused.png"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" Target="custom/note.xml"/></Relationships>"#
+    );
+    let package_rels = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="{REL}"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#
+    );
+    let names = [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "word/document.xml",
+        "word/_rels/document.xml.rels",
+        "word/media/pixel.png",
+        "word/media/unused.png",
+        "word/custom/note.xml",
+    ];
+    let owned = [
+        content_types().into_bytes(),
+        package_rels.into_bytes(),
+        document.into_bytes(),
+        rels.into_bytes(),
+        png.clone(),
+        png.clone(),
+        custom.to_vec(),
+    ];
+    let items: Vec<(&str, &[u8], Method)> = names
+        .iter()
+        .zip(owned.iter())
+        .map(|(name, data)| (*name, data.as_slice(), Method::Stored))
+        .collect();
+    let bytes = write_archive(&items).unwrap();
+    let result = import(&bytes, &Budget::default()).unwrap();
+    assert_eq!(result.document.resources().len(), 1);
+    assert_eq!(
+        result.document.resources().iter().next().unwrap().data(),
+        png.as_slice()
+    );
+    let not_imported: Vec<_> = result
+        .diagnostics
+        .iter()
+        .filter_map(|item| match &item.kind {
+            DiagnosticKind::NotImported { relationship, part } => {
+                Some((item.severity, relationship.as_str(), part.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    assert!(
+        !not_imported
+            .iter()
+            .any(|(_, _, part)| part.ends_with("/word/media/pixel.png")),
+        "{not_imported:?}"
+    );
+    assert!(not_imported.iter().any(|(severity, relationship, part)| {
+        *severity == Severity::Info
+            && *relationship == IMAGE_REL
+            && part.ends_with("/word/media/unused.png")
+    }));
+    assert!(not_imported.iter().any(|(severity, relationship, part)| {
+        *severity == Severity::Info
+            && relationship.ends_with("/customXml")
+            && part.ends_with("/word/custom/note.xml")
+    }));
 }
