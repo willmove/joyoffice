@@ -17,7 +17,7 @@
 9. [IMPLEMENTATION](IMPLEMENTATION.md)：当前代码、验证结果和剩余门槛。
 10. [验收清单](acceptance/README.md)：T103、T200–T205、T300 的原子准则和抽查脚本。
 11. [功能指南](guide/README.md)：查找替换、表格、页面、图片、修订和无头命令行。
-12. 验证证据：[页面场景金样](verification/golden-scenes.md)、[T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md)、[特性样例](verification/feature-fixtures.md)和[场景排练](verification/scenario-rehearsals.md)。都是自动证据，不替代人工验收。
+12. 验证证据（[索引](verification/README.md)）：[页面场景金样](verification/golden-scenes.md)、[T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md)、[特性样例](verification/feature-fixtures.md)、[场景排练](verification/scenario-rehearsals.md)和[验证波次缺口修复](verification/verify-wave-fixes.md)。都是自动证据，不替代人工验收。
 
 ## 解释优先级
 

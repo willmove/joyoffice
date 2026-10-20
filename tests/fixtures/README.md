@@ -31,7 +31,7 @@
 | DOCX-FEAT-T200-NUM | 样式 `basedOn` 链、多级编号重启、制表位，以及可供 `$1` 替换的 `Order-014` |
 | DOCX-FEAT-T201-TABLE | 合同表：`gridSpan`／`vMerge`、边框、底纹、首末列与条纹 `tblLook`、一层嵌套表 |
 | DOCX-FEAT-T202-PAGES | 下一页与连续分节、不等宽栏与分栏符、首页／奇偶页眉、PAGE／NUMPAGES、孤行与同页约束 |
-| DOCX-FEAT-T203-IMAGES | 行内 PNG、页面 `wrapNone`、页面 `wrapSquare`，以及必须保留的 `wrapTight` |
+| DOCX-FEAT-T203-IMAGES | 行内 PNG、页面 `wrapNone`、页面 `wrapSquare`，以及按方形近似排版、原绕排 XML 照原样写回的 `wrapTight` |
 | DOCX-FEAT-T300-REVIEW | 正文与页眉的插入／删除、成对移动修订，以及 `trackRevisions` |
 
 joyword-model 的集成测试读取这些种子，检查逐码点保留与偏移换算；这属于模型测试，不改变种子的 planned 状态。比较工具：模型层的 `Document::semantic_difference` 以不含 ID 的转储比较语义；`scripts/compare_pdf_lines.py` 用同一抽取器（poppler）比较参考 PDF 与 JoyWord PDF 的页数、每页行数、逐行文字和行位置（默认 0.5 pt），`--dump` 输出可附在证据中的行几何。T004 仍缺固定 Word／WPS 参考环境与排版规则目录，不能以此清单宣称完成。
