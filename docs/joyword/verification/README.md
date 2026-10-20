@@ -10,4 +10,4 @@
 | [场景排练](scenario-rehearsals.md) | S5（[#63](https://github.com/willmove/joyoffice/pull/63)） | 经命令注册表的无界面场景排练 |
 | [验证波次缺口修复](verify-wave-fixes.md) | F1（[#67](https://github.com/willmove/joyoffice/pull/67)） | 上面几份记录里五条已知缺口的根因、修复与回归测试 |
 
-F1 的两条修复有限制：正文页码只覆盖无格式域；`wrapTight`／`wrapThrough` 只是方形近似，不是轮廓绕排。T203 图片关系另报 `not-imported` 的诊断不在 F1 范围，仍是 open。
+F1 的两条修复有限制：正文页码只覆盖无格式域；`wrapTight`／`wrapThrough` 只是方形近似，不是轮廓绕排。T203 图片关系另报 `not-imported` 的诊断不在 F1 范围，已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复。

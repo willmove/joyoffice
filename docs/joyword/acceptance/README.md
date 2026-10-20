@@ -4,7 +4,7 @@
 
 2026-10-20 验证波次收口：S2、S5、S1、S3 合入 main `f0ccc659` 之后，各清单补了无界面排练、页面场景金样和特性样例的行。这些行指向 [verification](../verification/README.md) 下的四份证据。验证文档报告的已知缺口在对应行里写成 open，等分支 fix/verify-wave-gaps 的修复 PR 合并后再改。
 
-2026-10-20 缺口修复：该分支已作为 [#67](https://github.com/willmove/joyoffice/pull/67) 合入 main `caf84147`，对应行改为已修复，见 [验证波次缺口修复](../verification/verify-wave-fixes.md)。T202 的正文页码只限无格式域，T203 的 wrapTight 只是方形近似，两条限制写在行里。T203 图片关系另报 not-imported 仍是 open。任务状态不变；`scripts/check_acceptance.py` 现在在 CI 作业 dependencies 里运行。
+2026-10-20 缺口修复：该分支已作为 [#67](https://github.com/willmove/joyoffice/pull/67) 合入 main `caf84147`，对应行改为已修复，见 [验证波次缺口修复](../verification/verify-wave-fixes.md)。T202 的正文页码只限无格式域，T203 的 wrapTight 只是方形近似，两条限制写在行里。T203 图片关系另报 not-imported 已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复。任务状态不变；`scripts/check_acceptance.py` 现在在 CI 作业 dependencies 里运行。
 
 `scripts/check_acceptance.py` 读取本目录的 `T*.md`。状态必须是下表之一；证据列里用反引号标出的、含下划线的 Rust 标识必须是 `crates/` 或 `apps/` 里的 `fn` 名。本地链接必须指向本分支已有的文件。每份清单必须原样引用该任务的自动验证和人工验收句子，并带「GUI 抽查脚本」。
 
