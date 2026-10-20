@@ -879,7 +879,7 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
   1. T201：样式部件 `w:tblStylePr` 的 firstCol、lastCol、band1Vert 没有读入模型，页面上没有对应填充。期望记录在被忽略的测试 `vertical_column_bands_are_imported_from_table_style_pr`（[页面场景金样](verification/golden-scenes.md)）。（已修复。）
   2. T200：CPU 光栅要求字形横坐标等于此前前进量之和，编号加制表位的行因此以 `InvalidGeometry` 被拒绝。S1 的光栅金样是 refused，S3 样例 DOCX-FEAT-T200-NUM 的 `render` 也被拒绝（[特性样例](verification/feature-fixtures.md)）。（已修复。）
   3. T300：`text` 投影的元数据声明排除删除和移出，标准输出仍含这些文字；S3 的黄金文件锁定的是当前输出。（已修复。）
-  4. T203：图片资源已经导入，四条图片关系仍另报 `not-imported`。（仍是 open，不在 #67 范围。同一样例里 `wrapTight` 锁定段落、编辑导出返回 `Restricted` 的问题由 #67 处理，见下一节。）
+  4. T203：图片资源已经导入，四条图片关系仍另报 `not-imported`。（不在 #67 范围，已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复，见「图片关系 not-imported」一节。同一样例里 `wrapTight` 锁定段落、编辑导出返回 `Restricted` 的问题由 #67 处理，见下一节。）
   5. T202：对已有正文段落执行 `page.number` 后，导出计划以 `paragraph formatting, source or inline objects changed` 拒绝，正文新页码写不回文件（[场景排练](verification/scenario-rehearsals.md)）。（已修复，只限无格式域。）
 - **合并组合复跑**。在 main `f0ccc65944e6b961f3dcad935d5d43f5b6484c1c` 上按 `.github/workflows/ci.yml` 逐步本机复跑一次（Ubuntu 24.04 x86_64，Rust 1.98.1，apt 安装 CI 同名系统库、fonts-noto-cjk 与 poppler-utils，cargo-deny 0.20.2）。全部步骤退出码为 0，工作区复跑后仍干净，金样没有被改写。五个合并组合在一起没有引入失败。
   - build 作业：`check_docs.py`、`check_gates.py` 与反例、`scripts/tests` 单测、`cargo fmt --all -- --check`、`cargo test --locked`（781 通过、0 失败、1 忽略，忽略项即上面第 1 条）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo test --locked -p joyword`（52 通过）、恢复日志实验、DOCX 健壮性实验（固定矩阵 81／81，43 ok、38 rejected，`matrix_complete` 为真，地址空间限制 `enforced=true`；种子 20261019 的行为特征 fuzz 执行 200、ok 46、rejected 154、异常 0）、`cargo build -p joyword --locked`。本机装了 Noto CJK，所以 `feature_fixture_render_and_convert_follow_the_subset` 的视觉部分实际执行了；CI 的 build 作业没有该字体，这部分会直接返回。
@@ -902,7 +902,17 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
 | T203 `wrapTight` 让排版拒绝、编辑导出返回 `Restricted` | 已修复：页面相对的 `wrapTight`／`wrapThrough` 按锚点范围近似为方形绕排，原绕排 XML 照原样写回 | 近似，不沿 `wp:wrapPolygon`，不是真正的轮廓绕排；wrapTopAndBottom、衬于文字下方、非页面相对位置仍保留并锁定 |
 | T300 `text` 投影含删除与移出文字 | 已修复：投影跳过最终视图里不可见的 run | 无 |
 
-- **仍是 open**：T203 四条图片关系另报 `not-imported`（资源已导入，诊断仍在）。
+- **随后修复**：T203 四条图片关系另报 `not-imported` 已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复。本段写于 #67 合入时，当时诊断仍在。
 - **状态**：只有自动证据。没有任务改状态，计数仍是 12 done／17 in_progress／37 planned／0 blocked。M2／M3 任务仍需图形界面、Word／WPS、真实打印和信创真机的人工验收。
 - **同步的文档**：TASKS 的收口总览和 T200–T203、T300 条目；验收清单 README 与 T200–T203、T300；功能指南的图片与表格页、页面页的页码限制；行为登记 `IMAGE-ANCHOR-PAGE` 的期望，并新增 `IMAGE-WRAP-TIGHT-APPROX`；样例清单 DOCX-FEAT-T203-IMAGES 的期望与 [tests/fixtures/README.md](../../tests/fixtures/README.md)；[verification/README.md](verification/README.md) 新建索引。
 - **CI**：`scripts/check_acceptance.py` 加入 dependencies 作业，作为第一步运行（标准库、无网络，本机约 0.1 秒）。上一节「仍不在 CI 里」以本节为准。
+
+### 2026-10-20 图片关系 not-imported（#69）
+
+[#69](https://github.com/willmove/joyoffice/pull/69) 修复 T203 样例里四条已导入图片关系仍报 `not-imported` 的误报。任务状态不改，T203 仍是 `in_progress`。没有图形界面操作，没有 Word／WPS 对照。
+
+- **根因**：主文档关系在读正文之前遍历。不是样式、主题、设置、编号、页眉、页脚或 VBA 工程的内部关系，当时立刻记为 `NotImported`。图片关系（ECMA-376 Part 1 §20.4.2.7 的 `a:blip`／`v:imagedata`）落在这一支。随后 `import_picture` 已经把目标字节写入资源库，但没有把该关系记为已消费。
+- **修复**：图片关系推迟到正文读完再判断。目标已经写入资源库的关系不再报告。内部图片关系如果没有写入资源（包括被拒绝的图片），以及未引用的自定义部件，仍然报告。缺失部件仍是 `MissingPart`。外部目标仍只走外部目标诊断。
+- **回归**：`an_imported_image_relationship_is_consumed_and_unused_parts_stay_reported`、`an_inline_drawing_imports_the_raster_and_round_trips_beside_a_text_edit`、`a_remote_link_is_not_fetched_and_an_oversize_header_is_kept`（超宽内部图片仍报 `not-imported`）、`feature_fixtures_import_round_trip_and_keep_unknown_parts`。`DOCX-FEAT-T203-IMAGES` 的 inspect 黄金文件把 `diagnostics.reported` 从 4 改为 0，LF 行尾；`partial` 仍为真，因为 `omitted_objects` 为 4。
+- **W09**：本切片改了 `crates/`。harness 重锚到 `8268f62b7e3606db57baa6987914fc992bb5f1d3`（该提交的 `crates/` 含上述消费记账；随后只改 experiments 与文档，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
+- **未覆盖**：真正的轮廓绕排、wrapTopAndBottom、衬于文字下方、非页面相对位置、Word／WPS／浏览器粘贴。没有把 T203 标成 done。
