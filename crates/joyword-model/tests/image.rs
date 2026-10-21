@@ -3,8 +3,9 @@
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    AnchorWrap, ImageLimits, ImageRefuse, Measure, WrapSide, accept_image, decode_rgba,
-    display_extent, extent_emu, page_anchor, sample_png_1x1, square_wrap,
+    AnchorWrap, ImageLimits, ImageRefuse, Measure, TopBottomWrap, WrapSide, accept_image,
+    decode_rgba, display_extent, extent_emu, page_anchor, page_anchor_wrap, sample_png_1x1,
+    square_wrap, top_bottom_wrap,
 };
 
 #[test]
@@ -89,6 +90,21 @@ fn active_remote_and_oversize_payloads_are_refused_before_use() {
         page_anchor(100 * Emu::PER_INCH + 1, 0),
         Err(ImageRefuse::OversizeDimension { .. })
     ));
+    assert_eq!(top_bottom_wrap(-1, 0), Err(ImageRefuse::Malformed));
+    assert!(matches!(
+        top_bottom_wrap(0, 100 * Emu::PER_INCH + 1),
+        Err(ImageRefuse::OversizeDimension { .. })
+    ));
+    assert_eq!(
+        page_anchor_wrap(
+            0,
+            0,
+            AnchorWrap::TopAndBottom(top_bottom_wrap(1, 2).unwrap())
+        )
+        .unwrap()
+        .wrap,
+        AnchorWrap::TopAndBottom(TopBottomWrap { top: 1, bottom: 2 })
+    );
 }
 
 #[test]

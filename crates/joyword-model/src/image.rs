@@ -207,6 +207,18 @@ pub struct SquareWrap {
     pub side: WrapSide,
 }
 
+/// Distances above and below a `wp:wrapTopAndBottom` picture, in EMU.
+///
+/// ECMA-376 Part 1 §20.4.2 `CT_WrapTopBottom` has `distT` and `distB` only.
+/// Omitted markup is zero here. This is not a Word default of one eighth of
+/// an inch. Each edge is non-negative and within the extent ceiling.
+/// Horizontal distances do not open a side gap.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TopBottomWrap {
+    pub top: i64,
+    pub bottom: i64,
+}
+
 /// How body text meets a page-absolute picture.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum AnchorWrap {
@@ -217,12 +229,17 @@ pub enum AnchorWrap {
     /// The importer also maps `wp:wrapTight` and `wp:wrapThrough` here as an
     /// approximation that ignores their contour polygon.
     Square(SquareWrap),
+    /// `wp:wrapTopAndBottom`. A line whose box meets the extent plus
+    /// [`TopBottomWrap`] is placed entirely below that band. Text is not
+    /// set beside the picture.
+    TopAndBottom(TopBottomWrap),
 }
 
 /// Page-relative top-left of a floating picture (ECMA-376 `wp:anchor`).
 ///
-/// Offsets are EMU from the page origin. Callers build this for `wp:wrapNone`
-/// or page-relative `wp:wrapSquare` in front of the text. There is no z-order.
+/// Offsets are EMU from the page origin. Callers build this for `wp:wrapNone`,
+/// page-relative `wp:wrapSquare`, or page-relative `wp:wrapTopAndBottom` in
+/// front of the text. There is no z-order; `behindDoc` is not represented.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ImageAnchor {
     pub x: Measure,
@@ -237,22 +254,22 @@ pub fn page_anchor(x: i64, y: i64) -> Result<ImageAnchor, ImageRefuse> {
     page_anchor_wrap(x, y, AnchorWrap::None)
 }
 
-/// [`page_anchor`] with an explicit wrap. Square distances use the same ceiling.
+/// [`page_anchor`] with an explicit wrap. Square and top-and-bottom distances
+/// use the same ceiling.
 pub fn page_anchor_wrap(x: i64, y: i64, wrap: AnchorWrap) -> Result<ImageAnchor, ImageRefuse> {
     if x < 0 || y < 0 {
         return Err(ImageRefuse::Malformed);
     }
-    if let AnchorWrap::Square(square) = wrap {
-        for edge in [square.top, square.bottom, square.left, square.right] {
-            if edge < 0 {
-                return Err(ImageRefuse::Malformed);
+    match wrap {
+        AnchorWrap::None => {}
+        AnchorWrap::Square(square) => {
+            for edge in [square.top, square.bottom, square.left, square.right] {
+                distance_emu(edge)?;
             }
-            if edge > MAX_EXTENT_EMU {
-                return Err(ImageRefuse::OversizeDimension {
-                    edge: u32::try_from(edge).unwrap_or(u32::MAX),
-                    limit: u32::try_from(MAX_EXTENT_EMU).unwrap_or(u32::MAX),
-                });
-            }
+        }
+        AnchorWrap::TopAndBottom(band) => {
+            distance_emu(band.top)?;
+            distance_emu(band.bottom)?;
         }
     }
     if x > MAX_EXTENT_EMU || y > MAX_EXTENT_EMU {
@@ -269,6 +286,19 @@ pub fn page_anchor_wrap(x: i64, y: i64, wrap: AnchorWrap) -> Result<ImageAnchor,
     })
 }
 
+fn distance_emu(edge: i64) -> Result<(), ImageRefuse> {
+    if edge < 0 {
+        return Err(ImageRefuse::Malformed);
+    }
+    if edge > MAX_EXTENT_EMU {
+        return Err(ImageRefuse::OversizeDimension {
+            edge: u32::try_from(edge).unwrap_or(u32::MAX),
+            limit: u32::try_from(MAX_EXTENT_EMU).unwrap_or(u32::MAX),
+        });
+    }
+    Ok(())
+}
+
 /// A square exclusion whose distances are inside the extent ceiling.
 pub fn square_wrap(
     top: i64,
@@ -278,15 +308,7 @@ pub fn square_wrap(
     side: WrapSide,
 ) -> Result<SquareWrap, ImageRefuse> {
     for edge in [top, bottom, left, right] {
-        if edge < 0 {
-            return Err(ImageRefuse::Malformed);
-        }
-        if edge > MAX_EXTENT_EMU {
-            return Err(ImageRefuse::OversizeDimension {
-                edge: u32::try_from(edge).unwrap_or(u32::MAX),
-                limit: u32::try_from(MAX_EXTENT_EMU).unwrap_or(u32::MAX),
-            });
-        }
+        distance_emu(edge)?;
     }
     Ok(SquareWrap {
         top,
@@ -295,6 +317,13 @@ pub fn square_wrap(
         right,
         side,
     })
+}
+
+/// A top-and-bottom exclusion whose distances are inside the extent ceiling.
+pub fn top_bottom_wrap(top: i64, bottom: i64) -> Result<TopBottomWrap, ImageRefuse> {
+    distance_emu(top)?;
+    distance_emu(bottom)?;
+    Ok(TopBottomWrap { top, bottom })
 }
 
 /// An OOXML extent (`cx`/`cy` in EMU). Non-positive or absurd values are refused.
