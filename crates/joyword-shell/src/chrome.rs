@@ -19,12 +19,13 @@ use unicode_segmentation::UnicodeSegmentation;
 use joyword_model::{Indent, Measure, OBJECT_MARKER, TabAlign, TabStop, indent_edges};
 
 use crate::command::{
-    ArgValue, CommandId, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_ITALIC, EDIT_PASTE,
-    EDIT_REDO, EDIT_UNDO, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
+    ArgValue, CommandId, EDIT_ALIGN_CENTER, EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD,
+    EDIT_COPY, EDIT_CUT, EDIT_ITALIC, EDIT_JUSTIFY, EDIT_PASTE, EDIT_REDO, EDIT_UNDERLINE,
+    EDIT_UNDO, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
-    PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION, PAGE_SIZE,
-    REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
-    REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, TABLE_PROPERTIES,
+    PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION,
+    PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL,
+    REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, TABLE_PROPERTIES,
     VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
@@ -239,6 +240,17 @@ const LANDSCAPE: &[PresetArg] = &[PresetArg {
 /// Controls the Start, Insert, Layout and View ribbon can show.
 pub const RIBBON: &[RibbonControl] = &[
     RibbonControl {
+        id: "start.cut",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.clipboard",
+        command: EDIT_CUT,
+        label: "command.edit.cut",
+        icon: "cut",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
         id: "start.copy",
         tab: RibbonTab::Start,
         group_key: "ribbon.group.clipboard",
@@ -305,6 +317,17 @@ pub const RIBBON: &[RibbonControl] = &[
         evidence: Evidence::Unit,
     },
     RibbonControl {
+        id: "start.underline",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.font",
+        command: EDIT_UNDERLINE,
+        label: "command.edit.underline",
+        icon: "underline",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
         id: "start.font",
         tab: RibbonTab::Start,
         group_key: "ribbon.group.font",
@@ -316,12 +339,45 @@ pub const RIBBON: &[RibbonControl] = &[
         evidence: Evidence::Unit,
     },
     RibbonControl {
+        id: "start.align_left",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.paragraph",
+        command: EDIT_ALIGN_LEFT,
+        label: "command.edit.align_left",
+        icon: "align-left",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
         id: "start.align",
         tab: RibbonTab::Start,
         group_key: "ribbon.group.paragraph",
         command: EDIT_ALIGN_CENTER,
         label: "command.edit.align_center",
         icon: "align-center",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "start.align_right",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.paragraph",
+        command: EDIT_ALIGN_RIGHT,
+        label: "command.edit.align_right",
+        icon: "align-right",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "start.justify",
+        tab: RibbonTab::Start,
+        group_key: "ribbon.group.paragraph",
+        command: EDIT_JUSTIFY,
+        label: "command.edit.justify",
+        icon: "align-justify",
         args: RibbonArgs::None,
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
@@ -575,6 +631,17 @@ pub const RIBBON: &[RibbonControl] = &[
         command: PAGE_EDIT_HEADER,
         label: "ribbon.page.edit_header",
         icon: "header",
+        args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "layout.edit_footer",
+        tab: RibbonTab::Layout,
+        group_key: "ribbon.group.page",
+        command: PAGE_EDIT_FOOTER,
+        label: "ribbon.page.edit_footer",
+        icon: "footer",
         args: RibbonArgs::None,
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
@@ -1260,6 +1327,10 @@ const ICONS: &[(&str, &str)] = &[
         "................|................|................|..######........|..#....#........|..#..######.....|..#..#.#..#.....|..#..#.#..#.....|..######..#.....|.....#....#.....|.....######.....|................|................|................|................|................",
     ),
     (
+        "cut",
+        "................|................|...#.......#....|....#.....#.....|.....#...#......|......#.#.......|.......#........|......#.#.......|....###.###.....|...#..#.#..#....|...#..#.#..#....|....##...##.....|................|................|................|................",
+    ),
+    (
         "paste",
         "................|................|......####......|.....######.....|....#......#....|....#......#....|....#......#....|....#......#....|....#......#....|....#......#....|....#......#....|....########....|................|................|................|................",
     ),
@@ -1280,8 +1351,24 @@ const ICONS: &[(&str, &str)] = &[
         "................|................|........####....|.........#......|........#.......|........#.......|.......#........|.......#........|......#.........|......#.........|.....#..........|.....#..........|....####........|................|................|................",
     ),
     (
+        "underline",
+        "................|................|....#.....#.....|....#.....#.....|....#.....#.....|....#.....#.....|....#.....#.....|....#.....#.....|.....#...#......|......###.......|................|...#########....|................|................|................|................",
+    ),
+    (
         "align-center",
         "................|................|................|................|...##########...|................|................|.....######.....|................|................|....########....|................|................|................|................|................",
+    ),
+    (
+        "align-left",
+        "................|................|................|................|...##########...|................|................|...######.......|................|................|...########.....|................|................|................|................|................",
+    ),
+    (
+        "align-right",
+        "................|................|................|................|...##########...|................|................|.......######...|................|................|.....########...|................|................|................|................|................",
+    ),
+    (
+        "align-justify",
+        "................|................|................|................|...##########...|................|................|...##########...|................|................|...##########...|................|................|................|................|................",
     ),
     (
         "styles",
@@ -1366,6 +1453,10 @@ const ICONS: &[(&str, &str)] = &[
     (
         "header",
         "................|................|................|..############..|..#..........#..|..############..|................|................|................|................|................|................|................|................|................|................",
+    ),
+    (
+        "footer",
+        "................|................|................|................|................|................|................|................|................|................|..############..|..#..........#..|..############..|................|................|................",
     ),
     (
         "body",

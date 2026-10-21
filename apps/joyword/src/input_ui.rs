@@ -327,6 +327,7 @@ pub(crate) trait DocEditor {
     ) -> Result<(), InputError>;
     fn delete_word(&mut self, direction: Direction) -> Result<bool, InputError>;
     fn toggle_runs(&mut self, toggle: RunToggle) -> Result<bool, InputError>;
+    fn shows(&self, toggle: RunToggle) -> bool;
 }
 
 macro_rules! forward_word_keys {
@@ -344,6 +345,9 @@ macro_rules! forward_word_keys {
         }
         fn toggle_runs(&mut self, toggle: RunToggle) -> Result<bool, InputError> {
             TextInput::toggle_runs(self, toggle)
+        }
+        fn shows(&self, toggle: RunToggle) -> bool {
+            TextInput::shows(self, toggle)
         }
     };
 }
