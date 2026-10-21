@@ -3,6 +3,7 @@ members = [
     "apps/joyword-cli",
     "apps/joyword",
     "crates/joyoffice-opc",
+    "crates/joyword-agent",
     "crates/joyword-corpus",
     "crates/joyword-docx",
     "crates/joyword-engine",
@@ -16,6 +17,7 @@ members = [
 default-members = [
     "apps/joyword-cli",
     "crates/joyoffice-opc",
+    "crates/joyword-agent",
     "crates/joyword-corpus",
     "crates/joyword-docx",
     "crates/joyword-engine",
@@ -42,6 +44,7 @@ gpui = { package = "gpui-pre", version = "=0.3.9" }
 # The macOS text system is only compiled with `font-kit`; Linux windowing needs
 # at least one of `x11` / `wayland`. None of these are platform-crate defaults.
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["font-kit", "wayland", "x11"] }
+joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyword-foundation = { path = "crates/joyword-foundation" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }

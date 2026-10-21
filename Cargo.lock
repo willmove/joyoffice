@@ -2706,6 +2706,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-agent"
+version = "0.0.1"
+
+[[package]]
 name = "joyword-cli"
 version = "0.0.1"
 dependencies = [
@@ -2806,6 +2810,7 @@ version = "0.0.1"
 dependencies = [
  "crc32fast",
  "joyoffice-opc",
+ "joyword-agent",
  "joyword-docx",
  "joyword-engine",
  "joyword-model",

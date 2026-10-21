@@ -13,6 +13,7 @@
 - **T207（进行中，2026-10-18）**：`joyword-layout::cjk` 的测量函数已接到 `layout_document`／`wrap_mixed`。等线名称表命中时，窄于整形结果的 R7 宽度进入页面场景；纯中文行 `both` 等分余量，段末行不拉伸；单倍行距仅对 R4 已测家族使用 1.3×win 跨度并在未关闭吸附时对齐 312 twips。未验证配对、非等线标点、非纯中文两端对齐、黑体与未具名字体的单倍行距、中西文间距和 `adjustRightInd` 保持原行为或拒绝。`w:docGrid` 的 `lines`／`linesAndChars` 正 `linePitch` 替换 312 twips 默认吸附；`charSpace` 与 `snapToChars` 不改变行高。人工 Word／WPS 版式对照未做，不标完成。细节见文末「T207 排版入口接入」。
 - **T300（进行中，2026-10-19）**：文字与移动修订。第一切片已有 `w:ins`／`w:del`／`w:moveFrom`／`w:moveTo`、三种投影和可撤销的接受／拒绝。第二切片补上审阅菜单与功能区命令、偏好作者、markup 页边色条，以及已类型化单元格段落里的文字修订。第三切片把成对 `moveFrom`／`moveTo` 当成一次修订：接受或拒绝任一端会同时处理两端，全部接受／拒绝分别落到最终／原始投影，撤销恢复两端，`trackRevisions` 设置补丁不丢掉移动对。`rPrChange` 与表格结构修订仍整篇或整表只读。页眉修订装饰和 Word／WPS 人工交换未做，任务保持 `in_progress`。
 - **T300 页眉页脚装饰（进行中，2026-10-19）**：页眉和页脚故事里的文字与移动修订画在共享 PageScene 的页眉页脚带上（下划线、删除线、作者色页边条）。最终／原始投影仍去掉隐藏文字且不画装饰。页眉里的全部接受或全部拒绝各是一步，一次撤销恢复。带图片的页眉页脚段落不画。Word／WPS 人工交换和 T301 仍未做，任务保持 `in_progress`。上一条里的「页眉修订装饰未做」是第三切片结束时的状态。
+- **T400（进行中，2026-10-21）**：独立 crate `joyword-agent` 默认关闭，shell／app 的 `ai` feature 默认不启用。启动不调用 Provider。操作系统策略与系统凭据库仍是接口后的 stub，ChangeProposal 不应用，AIGC 标识未做法律评估。任务不标完成。计数改为 12 done／18 in_progress／36 planned／0 blocked。细节见文末「T400 Provider 与关闭基础」。
 
 下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
@@ -972,9 +973,23 @@ main 的 build 作业自 `c198425` 起在四个平台的「DOCX robustness exper
 - **自动验证**：`t109_open_save_gate`（慢打开只读与键入保留、过期／失败打开不丢键入、另存在途时关闭提示、原件在途时关闭提示与跨文档路由）。既有 `m1_concurrency_recovery`、`save_copy_job`、`original_save_job` 不改断言。`close_and_quit_share_the_dirty_after_save_prompt` 与 `only_a_writing_save_of_this_editor_counts_as_in_flight` 覆盖提示文案和“正在写入”的判定。
 - **未覆盖**：Windows 与 macOS 上对着真实窗口做慢打开只读、取消打开，以及保存进行中点关闭／退出。没有把 T109 标成 done。
 
+### T400 Provider 与关闭基础（进行中，2026-10-21）
+
+M4 的第一刀只建立关闭基础。编辑、DOCX、排版和 GPUI 窗口默认都不链接 Provider。任务保持 `in_progress`：没有人工验收，没有真实网络传输，也没有把提案应用到文档。
+
+- **隔离**。新 crate `joyword-agent` 没有默认 feature，Cargo.toml 的 `[dependencies]` 为空。它不依赖 model、engine 或 docx。`joyword-shell` 与 `joyword` 增加可选 feature `ai`，默认 feature 列表仍是空。`--features ai` 才编译 `joyword-shell::ai::AiToggle`。功能区不注册 AI 命令，避免在关闭状态下露出一个假入口。`scripts/check_gates.py` 把 `joyword-agent` 登记成不允许依赖其他 JoyWord crate 的层，并拒绝核心 crate 的清单出现 `joyword-agent`，也拒绝 agent 源码点名 socket 客户端。
+- **默认关闭**。`AiConfig::default` 的 `ai.enabled` 与 `telemetry.enabled` 都是 false。配置文本拒绝名称里带 secret、api_key、password、token 或 authorization 的键，值不进入未知键列表，错误信息也不回显该值。比本构建新的 schema 直接拒绝，不会被当成开启。
+- **关闭状态机**。阶段是 Disabled、EnabledIdle、Running、Stopping。`begin_stop` 发布 Stopping，此后新请求和尚未接纳的提交失败，generation 先不变。`commit_disabled` 是线性化点：同一把锁里把阶段设为 Disabled 并把 generation 加一。`kill_switch` 把这两步放进同一次加锁；已经关闭时不再增加 generation。重新打开不恢复旧 generation 的 ticket。管理员 `force_disabled` 优先于用户开关，Provider 没有打开它的接口。
+- **启动零请求**。`startup_sequence` 只记下首次启动、打开文档和空闲三步。关闭和用户已打开两种配置都不调用 Provider。`FakeProvider::bomb` 一旦被调用就计次并返回错误；默认启动用的就是它。
+- **假 Provider**。契约测试使用进程内 `FakeProvider` 和 `RecordingTransport`。HTTP 形态只规定 endpoint、取消和脱敏后的 Authorization 记录。没有把任何 HTTP 库放进依赖，CI 不需要云密钥。endpoint 拒绝带用户信息的 URL。缺失凭据、策略白名单不匹配时，传输的 `calls` 保持 0。离线与限流由假 Provider 返回，`allowed_commits` 仍是 0，运行时没有文档句柄。
+- **策略与凭据**。`PolicySource` 的 Windows 组策略、macOS 配置描述文件和 Linux 系统配置变体都是 stub：`is_stub` 为真，`load` 返回未管理，不读注册表或系统文件。测试用 `StaticPolicy`。`Secret` 的 Debug 和 Display 固定写成 redacted。`UnavailableSystemStore` 表示系统凭据库尚未接入。
+- **明确不做**。`ToolId::dispatch` 对包括 `propose_comment` 在内的全部工具返回不可用。`ChangeProposal::apply` 固定返回 `DeferredUntilT402`。`aigc::write_label` 返回 `AssessmentPending`。GB 45438-2025 与欧盟 AI Act 第 50 条的义务主体评估还没做，这里不写显式或隐式标识，也不声称合规。已有包内标识仍由格式层保留，本 crate 不触碰包。
+- **自动验证**（Linux x86_64，Rust 1.98.1）。`cargo fmt --all -- --check` 通过。`cargo clippy -p joyword-agent --all-targets --locked -- -D warnings`、`cargo clippy -p joyword-shell --all-targets --locked -- -D warnings` 与 `cargo clippy -p joyword-shell --all-targets --features ai --locked -- -D warnings` 通过。`cargo test -p joyword-agent --locked` 的契约测试 18 项通过。`cargo test -p joyword-shell --locked --test ai_toggle` 在默认构建确认没有 `CARGO_FEATURE_AI`；`--features ai` 的同名测试确认启动时 Provider 调用数为 0，强制关闭后入口不可用且调用数仍为 0。`cargo tree -p joyword-agent` 只有它自己；`joyword-engine` 与默认 `joyword-shell` 的 normal 依赖树不含 `joyword-agent`，`--features ai` 的 shell 才含有。合入 main `305906e`（#75）之后重跑 `cargo test -p joyword-engine -p joyword-model -p joyword-docx --locked --offline`，263 项通过、0 失败。`python3 scripts/check_gates.py` 与 `python3 scripts/check_docs.py` 通过（84 个需求、66 个任务）。CI 增加了「AI off by default (T400)」一步，覆盖 agent 测试、shell 的 ai feature、核心 crate 的 `--no-default-features` 检查，以及上述 clippy。
+- **未覆盖**。首次启动离线编辑、配置服务后开关的人工验收没有做。没有真实操作系统策略后端，没有系统钥匙串，没有 socket 传输。选区工具是 T401，提案应用是 T402。AIGC 法律评估仍是 TODO。没有启动图形界面。因此 T400 保持 `in_progress`。T400 单独计入时进度表为 12 done／18 in_progress／36 planned／0 blocked；与 T302 同为进行中后为 12 done／19 in_progress／35 planned／0 blocked。
+
 ### T302 批注线程第一切片（2026-10-21）
 
-T302 从 `planned` 改为 `in_progress`，不标 `done`。这一刀是类型化批注模型和 DOCX 导入导出，没有图形界面，也没有 Word／WPS 人工交换。进度计数改为 12 done／18 in_progress／36 planned／0 blocked。
+T302 从 `planned` 改为 `in_progress`，不标 `done`。这一刀是类型化批注模型和 DOCX 导入导出，没有图形界面，也没有 Word／WPS 人工交换。当时进度计数改为 12 done／18 in_progress／36 planned／0 blocked。T400 随后也改为进行中，当前进度表为 12 done／19 in_progress／35 planned／0 blocked。
 
 - **模型**：`AnnotationKind::Comment(Comment)`。字段覆盖正文故事、`w:id`、作者、日期、缩写、`w14:paraId`、回复的 `w15:paraIdParent`、`w15:done`、`w16cid:durableId`、`w16cex:dateUtc`，以及未映射属性和非 `w:p` 子元素的原文。`w:id` 可以是 0。日期按原文保存，不再解析。段落标识是八位十六进制，比较时不分大小写。文档计数器分配新的批注 id 和段落标识，撤销恢复内容时一起恢复。解决只改 `resolved`，不改锚点，也不是删除（REVIEW-006）。
 - **导入**：依据 ECMA-376 Part 1 §17.13.4 `w:comment`、`w:commentRangeStart`、`w:commentRangeEnd`、`w:commentReference`，以及 [MS-DOCX] 的 commentsExtended（`w15`）、commentsIds（`w16cid`）和 commentsExtensible（`w16cex`）。关系类型分别是 `http://schemas.microsoft.com/office/2011/relationships/commentsExtended`、`http://schemas.microsoft.com/office/2016/09/relationships/commentsIds`、`http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible`。格式正确的范围标记和引用不再锁定段落；缺 `w:id` 的标记仍保留并锁定。回复通常没有范围标记，锚点复制父批注。`w15:done` 缺省表示未解决，不用把省略当成真。people.xml 不导入。
