@@ -2740,7 +2740,7 @@ impl JoyWord {
         cx.stop_propagation();
         cx.notify();
     }
-    fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    pub(crate) fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.path_sheet = None;
         window.focus(&self.focus_handle, cx);
         cx.notify();

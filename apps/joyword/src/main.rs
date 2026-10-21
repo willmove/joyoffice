@@ -382,6 +382,8 @@ fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
 
 /// Document focus with no open IME composition.
 const TYPING: &str = "JoyWordInput && !composing";
+/// Document focus while an IME composition is open.
+const COMPOSING: &str = "JoyWordInput && composing";
 
 fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
     shortcut_chords(registry)
@@ -453,7 +455,8 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                     KeyBinding::new(keys, DeleteWordBackward, Some(TYPING))
                 }
                 EDIT_DELETE_WORD_FORWARD => KeyBinding::new(keys, DeleteWordForward, Some(TYPING)),
-                EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some("JoyWordInput")),
+                // Without a composition Esc must reach the panels' key handlers.
+                EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some(COMPOSING)),
                 FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
                 FILE_SAVE => KeyBinding::new(keys, SaveOriginal, None),
                 FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
@@ -1514,6 +1517,9 @@ impl Render for JoyWord {
                     "JoyWordInput"
                 },
             )
+            .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
+                this.escape_panel(event, window, cx)
+            }))
             .on_action(cx.listener(|this, _: &Quit, window, cx| {
                 this.run(QUIT, window, cx);
                 cx.stop_propagation();

@@ -1601,3 +1601,28 @@ fn a_document_named_on_the_command_line_names_the_window_and_the_close_prompt() 
     drop(editor);
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// GUI smoke after #78: Esc in the Font panel reported "no composition"
+/// because Esc was bound to `CancelComposition` whether or not an IME
+/// composition was open, and bindings run before the panel's key handlers.
+#[test]
+fn escape_is_bound_only_while_composing_so_panels_receive_it_otherwise() {
+    use gpui::{KeyContext, Keymap, Keystroke};
+
+    let keymap = Keymap::new(super::key_bindings(
+        &joyword_shell::command::Registry::builtin(),
+    ));
+    let escape = [Keystroke::parse("escape").unwrap()];
+    for idle in ["JoyWordInput", "JoyWordInput composing"] {
+        let context = [KeyContext::parse(idle).unwrap()];
+        let (bindings, pending) = keymap.bindings_for_input(&escape, &context);
+        assert!(!pending, "{idle}");
+        let cancels = bindings
+            .iter()
+            .any(|binding| binding.action().partial_eq(&super::CancelComposition));
+        assert_eq!(cancels, idle.ends_with("composing"), "{idle}");
+        if !cancels {
+            assert!(bindings.is_empty(), "{idle}: Esc must stay unbound");
+        }
+    }
+}
