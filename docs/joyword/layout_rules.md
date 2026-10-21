@@ -53,7 +53,7 @@ Word 2024 默认单倍行距（LineSpacingRule = single）的实测与机制拆�
 
 1.3 系数与 win 跨度的取法由三个字体族、四个 snap-off 实测点拟合（误差 ≤0.4%），宋体／仿宋／楷体 hhea=typo≠win、等线三套跨度相同、雅黑 hhea=win≠typo，数据点均支持 win 跨度。产物：`breaks/word_single_*.pdf`、`breaks/word_nogrid*.pdf`、保存的 DOCX 中的 sectPr 网格设置。
 
-JoyWord 只在段落为单倍行距（`w:spacing@w:line` = 240 且 `w:lineRule` = auto），且整形字体名称表解析为宋体、仿宋、楷体、等线或微软雅黑时使用上述公式（证据 Inferred）。`snapToGrid` 未显式关闭时吸附到这条实测 312 twips 网格；显式关闭则保留自然行高。黑体不在该拟合集合内，未具名字体和其他行距规则继续用调用方给出的行框。模型尚未保存 `w:docGrid`，因此不读取其他 `linePitch`。尚未用 Word 2024 重新对照。
+JoyWord 只在段落为单倍行距（`w:spacing@w:line` = 240 且 `w:lineRule` = auto），且整形字体名称表解析为宋体、仿宋、楷体、等线或微软雅黑时使用上述公式（证据 Inferred）。`snapToGrid` 未显式关闭时，`w:docGrid` 的 `lines` 或 `linesAndChars` 若写出正的 `linePitch`，就吸附到该间距；没有该元素、省略类型，或类型为 `snapToChars` 时仍用这条实测 312 twips。`charSpace` 只保存，不参与行高。显式关闭吸附则保留自然行高。黑体不在该拟合集合内，未具名字体和其他行距规则继续用调用方给出的行框。非 312 twips 的间距没有另做 Word 对照。
 
 ### R5：孤行控制的默认状态与强制拆分实测
 

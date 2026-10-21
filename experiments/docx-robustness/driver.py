@@ -42,7 +42,6 @@ except ImportError:
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-TARGET_SHA = '8268f62b7e3606db57baa6987914fc992bb5f1d3'
 MAX_INPUT = 1 << 20
 MAX_OUTPUT = 65536
 FAILURES = {'crash', 'timeout', 'invariant', 'protocol'}
@@ -59,6 +58,13 @@ def bounded_read(path):
 
 def git(*args):
     return subprocess.check_output(['git', *args], cwd=str(REPO), timeout=10).decode().strip()
+
+def production_tree():
+    return git('rev-parse', 'HEAD:crates')
+
+# Same identity build.rs embeds in the harness; a binary built against any
+# other crates tree is classified as a protocol failure.
+TARGET_SHA = production_tree()
 
 def memory_capability():
     if resource is None or not hasattr(resource, 'RLIMIT_AS'):
@@ -895,8 +901,8 @@ def minimize(data, evaluate, failure_class, max_runs=128):
     return current, runs
 
 def environment(binary, memory):
-    if subprocess.run(['git', 'diff', '--quiet', TARGET_SHA, '--', 'crates'], cwd=str(REPO)).returncode:
-        raise ValueError('production target tree changed; C08 must approve a fixed new revision')
+    if git('status', '--porcelain', '--untracked-files=all', '--', 'crates') or production_tree() != TARGET_SHA:
+        raise ValueError('production crates differ from the committed tree; commit them and rebuild the harness')
     return {'schema': 1, 'target_sha': TARGET_SHA, 'harness_git_sha': git('rev-parse', 'HEAD'),
             'harness_binary_sha256': sha(Path(binary).read_bytes()), 'harness_worktree_dirty': bool(git('status','--porcelain','--','experiments/docx-robustness')), 'os': platform.platform(),
             'python': platform.python_version(), 'memory_limit': memory,

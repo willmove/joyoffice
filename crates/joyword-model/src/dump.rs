@@ -486,7 +486,7 @@ impl Document {
             dumper.line(
                 0,
                 &format!(
-                    "{head} last={boundary} page={}x{} {:?} margins={},{},{},{} header={} footer={} gutter={} titlePg={:?} headers={} footers={}",
+                    "{head} last={boundary} page={}x{} {:?} margins={},{},{},{} header={} footer={} gutter={} titlePg={:?} headers={} footers={} docGrid={:?}",
                     page.width,
                     page.height,
                     page.orientation,
@@ -499,7 +499,8 @@ impl Document {
                     page.gutter,
                     section.title_page,
                     section.headers.len(),
-                    section.footers.len()
+                    section.footers.len(),
+                    section.doc_grid
                 ),
             );
         }

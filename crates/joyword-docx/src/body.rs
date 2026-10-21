@@ -240,6 +240,7 @@ impl Body {
                 numbering: PageNumbering::default(),
                 columns: None,
                 unequal_columns: None,
+                doc_grid: None,
                 preserved: None,
             }
         });
@@ -843,8 +844,8 @@ fn complex_page_field(children: &[&Element]) -> Option<(usize, PageField)> {
 }
 
 /// `w:sectPr` (§17.6.17): page size, margins, title page, header or footer
-/// references, section start, page numbering, and equal or explicit unequal
-/// columns. Other children are preserved, not imported.
+/// references, section start, page numbering, equal or explicit unequal
+/// columns, and `w:docGrid`. Other children are preserved, not imported.
 fn section(
     importer: &mut Importer<'_>,
     part: &PartName,
@@ -864,6 +865,7 @@ fn section(
     let mut numbering = PageNumbering::default();
     let mut columns = None;
     let mut unequal_columns = None;
+    let mut doc_grid = None;
     for child in element.elements() {
         let mapped = child.namespace.as_deref() == Some(W);
         match (mapped, &*child.local) {
@@ -934,6 +936,10 @@ fn section(
                 }
                 None => findings.complete = false,
             },
+            (true, "docGrid") => match read_doc_grid(child, &mut findings) {
+                Some(parsed) => doc_grid = Some(parsed),
+                None => findings.complete = false,
+            },
             (true, "headerReference" | "footerReference") => {
                 if let Some((kind, story)) = story_reference(importer, part, child, &mut findings) {
                     let list = if child.local.as_ref() == "headerReference" {
@@ -982,8 +988,67 @@ fn section(
         numbering,
         columns,
         unequal_columns,
+        doc_grid,
         preserved,
     }
+}
+
+/// `w:docGrid` (§17.6.5). A recognized type, a positive `linePitch`, and
+/// `charSpace` are stored. Child elements, a non-positive line pitch, or an
+/// unknown attribute leave the section preserved.
+fn read_doc_grid(element: &Element, findings: &mut Findings) -> Option<joyword_model::DocGrid> {
+    if element.elements().next().is_some() {
+        findings.complete = false;
+        return None;
+    }
+    let mut kind = None;
+    let mut line_pitch = None;
+    let mut char_space = None;
+    for attribute in &element.attributes {
+        if attribute.namespace.as_deref() != Some(W) {
+            findings.complete = false;
+            return None;
+        }
+        match attribute.local.as_ref() {
+            "type" => match attribute.value.as_ref() {
+                "default" => {}
+                "lines" => kind = Some(joyword_model::DocGridKind::Lines),
+                "linesAndChars" => kind = Some(joyword_model::DocGridKind::LinesAndChars),
+                "snapToChars" => kind = Some(joyword_model::DocGridKind::SnapToChars),
+                other => {
+                    findings.invalid(element, "w:type", other);
+                    return None;
+                }
+            },
+            "linePitch" => {
+                let Ok(parsed) = attribute.value.parse::<i64>() else {
+                    findings.invalid(element, "w:linePitch", &attribute.value);
+                    return None;
+                };
+                if parsed <= 0 {
+                    findings.invalid(element, "w:linePitch", &attribute.value);
+                    return None;
+                }
+                line_pitch = Some(parsed);
+            }
+            "charSpace" => {
+                let Ok(parsed) = attribute.value.parse::<i64>() else {
+                    findings.invalid(element, "w:charSpace", &attribute.value);
+                    return None;
+                };
+                char_space = Some(parsed);
+            }
+            _ => {
+                findings.complete = false;
+                return None;
+            }
+        }
+    }
+    Some(joyword_model::DocGrid {
+        kind,
+        line_pitch,
+        char_space,
+    })
 }
 
 /// `w:pgNumType` (§17.6.12). Chapter prefixes stay unmodeled.

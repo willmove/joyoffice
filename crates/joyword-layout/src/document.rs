@@ -466,6 +466,7 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
         hash.update(format!("{:?}", section.numbering).as_bytes());
         hash.update(format!("{:?}", section.columns).as_bytes());
         hash.update(format!("{:?}", section.unequal_columns).as_bytes());
+        hash.update(format!("{:?}", section.doc_grid).as_bytes());
         hash.update(format!("{:?}", section.title_page).as_bytes());
         hash.update(format!("{:?}", section.headers).as_bytes());
         hash.update(format!("{:?}", section.footers).as_bytes());
@@ -957,12 +958,50 @@ fn prepare_keep_groups(
     Ok(())
 }
 
+pub(crate) fn section_for(
+    document: &Document,
+    paragraph: NodeId,
+) -> Option<&joyword_model::Section> {
+    let blocks = &document.body().blocks;
+    let owner = blocks
+        .iter()
+        .position(|block| block_holds(block, paragraph))?;
+    let mut start = 0usize;
+    for section in document.sections() {
+        let end = match section.last_block {
+            Some(id) => blocks.iter().position(|block| block.id() == id)?,
+            None => blocks.len().saturating_sub(1),
+        };
+        if owner >= start && owner <= end {
+            return Some(section);
+        }
+        start = end.saturating_add(1);
+    }
+    None
+}
+
+fn block_holds(block: &Block, paragraph: NodeId) -> bool {
+    match block {
+        Block::Paragraph(item) => item.id() == paragraph,
+        Block::Table(table) => table.rows.iter().any(|row| {
+            row.cells.iter().any(|cell| {
+                cell.blocks
+                    .iter()
+                    .any(|inner| block_holds(inner, paragraph))
+            })
+        }),
+        Block::Sdt(sdt) => sdt.blocks.iter().any(|inner| block_holds(inner, paragraph)),
+        Block::Opaque(_) => false,
+    }
+}
+
 fn line_box_for(
     paragraph: NodeId,
     font: &LoadedFont,
     profile: SingleFontProfile,
     line: Option<LineSpacing>,
     snap_to_grid: Option<bool>,
+    doc_grid: Option<joyword_model::DocGrid>,
 ) -> Result<Emu, LayoutError> {
     match line {
         None => Ok(profile.leading),
@@ -976,7 +1015,8 @@ fn line_box_for(
             let metrics = cjk::metric_set(font)
                 .map_err(|_| unsupported(Some(paragraph), "single-spacing font metrics"))?;
             let snap = snap_to_grid != Some(false);
-            let grid = cjk::measured_line_grid(snap).map_err(|_| LayoutError::GeometryOverflow)?;
+            let grid = cjk::line_grid_for(doc_grid, snap)
+                .map_err(|_| unsupported(Some(paragraph), "document grid line pitch"))?;
             let resolved =
                 cjk::single_line_height(profile.size, cjk::word_line_span(&metrics), grid)
                     .map_err(|_| unsupported(Some(paragraph), "single-spacing font metrics"))?;
@@ -3564,6 +3604,7 @@ pub(crate) fn fit_paragraph(
         shaping,
         painted.flow.line,
         painted.flow.snap_to_grid,
+        section_for(document, paragraph.id()).and_then(|section| section.doc_grid),
     )?;
     let family = cjk::face_cjk_family(shape_font);
     let needs_slots = chosen != FontSlot::Ascii;

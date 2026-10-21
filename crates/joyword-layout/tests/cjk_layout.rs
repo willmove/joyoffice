@@ -7,8 +7,8 @@ use std::sync::Arc;
 
 use joyword_foundation::Emu;
 use joyword_layout::cjk::{
-    CjkFamily, face_cjk_family, measured_line_family, measured_line_grid, metric_set,
-    punctuation_advance, single_line_height, word_line_span,
+    CjkFamily, Evidence, face_cjk_family, line_grid_for, measured_line_family, measured_line_grid,
+    metric_set, punctuation_advance, single_line_height, word_line_span,
 };
 use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutLimits, LayoutSnapshot, LoadedFont,
@@ -16,7 +16,8 @@ use joyword_layout::{
 };
 use joyword_model::ParaProps;
 use joyword_model::{
-    BlockSeq, Document, Justification, LineSpacing, Measure, PageSetup, Paragraph,
+    BlockSeq, DocGrid, DocGridKind, Document, Justification, LineSpacing, Measure, PageSetup,
+    Paragraph,
 };
 
 fn pt(value: i64) -> Emu {
@@ -418,4 +419,85 @@ fn single_spacing_snaps_only_for_a_measured_family() {
         }),
         Err(LayoutError::Unsupported { .. })
     ));
+}
+
+#[test]
+fn a_declared_line_pitch_replaces_the_measured_default() {
+    let named = font_named("DengXian");
+    let metrics = metric_set(&named).unwrap();
+    let wide = line_grid_for(
+        Some(DocGrid {
+            kind: Some(DocGridKind::LinesAndChars),
+            line_pitch: Some(480),
+            char_space: Some(-11),
+        }),
+        true,
+    )
+    .unwrap();
+    let expected = single_line_height(pt(12), word_line_span(&metrics), wide).unwrap();
+    let default = single_line_height(
+        pt(12),
+        word_line_span(&metrics),
+        measured_line_grid(true).unwrap(),
+    )
+    .unwrap();
+    assert_ne!(expected.length, default.length);
+    assert_eq!(expected.evidence, Evidence::Inferred("R4"));
+
+    let laid = lay_grid(
+        &named,
+        "甲乙丙丁戊己",
+        Some(DocGrid {
+            kind: Some(DocGridKind::Lines),
+            line_pitch: Some(480),
+            char_space: Some(-11),
+        }),
+    );
+    assert!(
+        laid.lines()
+            .iter()
+            .all(|line| line.height == expected.length)
+    );
+
+    let chars_only = lay_grid(
+        &named,
+        "甲乙丙丁戊己",
+        Some(DocGrid {
+            kind: Some(DocGridKind::SnapToChars),
+            line_pitch: Some(480),
+            char_space: Some(20),
+        }),
+    );
+    assert!(
+        chars_only
+            .lines()
+            .iter()
+            .all(|line| line.height == default.length)
+    );
+}
+
+fn lay_grid(font: &LoadedFont, text: &str, grid: Option<DocGrid>) -> LayoutSnapshot {
+    let mut page = PageSetup::a4_zh_cn();
+    page.width = Measure::Emu(pt(40).raw());
+    page.height = Measure::Emu(pt(800).raw());
+    page.left = Measure::Emu(pt(6).raw());
+    page.right = page.left;
+    page.top = page.left;
+    page.bottom = page.left;
+    page.gutter = Measure::Emu(0);
+    let mut document = Document::new(page);
+    document.sections_mut()[0].doc_grid = grid;
+    let mut paragraph = Paragraph::new(document.ids().node());
+    paragraph.push_text(text, None, Arc::default()).unwrap();
+    Arc::make_mut(&mut paragraph.props).spacing.line = Some(LineSpacing::Auto(240));
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(font),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap()
 }

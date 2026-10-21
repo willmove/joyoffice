@@ -9,8 +9,8 @@ use joyword_docx::{
     ReadOnlyReason, Severity, import, plan_export,
 };
 use joyword_model::{
-    Block, BreakKind, BuiltinStyle, DEFAULT_COMPATIBILITY_MODE, FontRef, InlineKind, Measure,
-    Orientation, Paragraph, Segment, Style, StyleId, StyleKind,
+    Block, BreakKind, BuiltinStyle, DEFAULT_COMPATIBILITY_MODE, DocGridKind, FontRef, InlineKind,
+    Measure, Orientation, Paragraph, Segment, Style, StyleId, StyleKind,
 };
 use std::sync::Arc;
 
@@ -1562,6 +1562,29 @@ fn section_break_page_numbers_and_equal_columns_are_imported() {
     let columns = sections[1].columns.unwrap();
     assert_eq!(columns.count, 2);
     assert_eq!(columns.space, 360);
+}
+
+#[test]
+fn a_line_grid_imports_and_an_illegal_pitch_stays_preserved() {
+    let page = r#"<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1800" w:bottom="1440" w:left="1800" w:header="851" w:footer="992" w:gutter="0"/>"#;
+    let typed = format!(
+        r#"<w:p><w:r><w:t>甲</w:t></w:r></w:p><w:sectPr>{page}<w:docGrid w:type="linesAndChars" w:linePitch="480" w:charSpace="-11"/></w:sectPr>"#
+    );
+    let result = open(&body(&typed));
+    assert_model_valid(&result);
+    let section = &result.document.sections()[0];
+    assert!(section.preserved.is_none());
+    let grid = section.doc_grid.unwrap();
+    assert_eq!(grid.kind, Some(DocGridKind::LinesAndChars));
+    assert_eq!(grid.line_pitch, Some(480));
+    assert_eq!(grid.char_space, Some(-11));
+
+    let bad = format!(
+        r#"<w:p><w:r><w:t>甲</w:t></w:r></w:p><w:sectPr>{page}<w:docGrid w:type="lines" w:linePitch="0"/></w:sectPr>"#
+    );
+    let bad = open(&body(&bad));
+    assert!(bad.document.sections()[0].preserved.is_some());
+    assert!(bad.document.sections()[0].doc_grid.is_none());
 }
 
 #[test]
