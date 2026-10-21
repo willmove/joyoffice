@@ -610,6 +610,16 @@ fn diagnostic_kind_name(kind: &DiagnosticKind) -> &'static str {
         DiagnosticKind::Model(_) => "model",
         DiagnosticKind::RevisionSubset { .. } => "revision_subset",
         DiagnosticKind::MoveRange { .. } => "move_range",
+        DiagnosticKind::CommentAuthorMissing { .. } => "comment_author_missing",
+        DiagnosticKind::CommentAnchorMissing { .. } => "comment_anchor_missing",
+        DiagnosticKind::CommentAnchorUnmapped { .. } => "comment_anchor_unmapped",
+        DiagnosticKind::CommentAnchorInvalid { .. } => "comment_anchor_invalid",
+        DiagnosticKind::OrphanReply { .. } => "orphan_reply",
+        DiagnosticKind::CommentExtensionUnmatched { .. } => "comment_extension_unmatched",
+        DiagnosticKind::CommentIdDuplicate { .. } => "comment_id_duplicate",
+        DiagnosticKind::CommentIdMissing => "comment_id_missing",
+        DiagnosticKind::CommentPartInvalid => "comment_part_invalid",
+        DiagnosticKind::CommentBodyEmpty { .. } => "comment_body_empty",
     }
 }
 

@@ -101,6 +101,18 @@ fn diagnostic_code(kind: &DiagnosticKind) -> String {
         DiagnosticKind::Model(issue) => format!("model:{issue}"),
         DiagnosticKind::RevisionSubset { element } => format!("revision-subset:{element}"),
         DiagnosticKind::MoveRange { name } => format!("move-range:{name}"),
+        DiagnosticKind::CommentAuthorMissing { id } => format!("comment-author-missing:{id}"),
+        DiagnosticKind::CommentAnchorMissing { id } => format!("comment-anchor-missing:{id}"),
+        DiagnosticKind::CommentAnchorUnmapped { id } => format!("comment-anchor-unmapped:{id}"),
+        DiagnosticKind::CommentAnchorInvalid { id } => format!("comment-anchor-invalid:{id}"),
+        DiagnosticKind::OrphanReply { para_id } => format!("orphan-reply:{para_id}"),
+        DiagnosticKind::CommentExtensionUnmatched { para_id } => {
+            format!("comment-extension-unmatched:{para_id}")
+        }
+        DiagnosticKind::CommentIdDuplicate { id } => format!("comment-id-duplicate:{id}"),
+        DiagnosticKind::CommentIdMissing => "comment-id-missing".into(),
+        DiagnosticKind::CommentPartInvalid => "comment-part-invalid".into(),
+        DiagnosticKind::CommentBodyEmpty { id } => format!("comment-body-empty:{id}"),
     }
 }
 
