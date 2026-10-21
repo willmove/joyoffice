@@ -393,13 +393,12 @@ fn mixed_justification_fills_lines_at_cjk_gaps_and_spaces_only() {
         if edge == content_right {
             stretched += 1;
         }
+        let word = |ch: char| ch.is_ascii_alphanumeric() || ch == ',' || ch == '.';
         for (at, pair) in chars.windows(2).enumerate() {
-            if pair[0].is_ascii_alphanumeric() || pair[0] == ',' || pair[0] == '.' {
-                if pair[1].is_ascii_alphanumeric() || pair[1] == ',' || pair[1] == '.' {
-                    let shaped = start_carets[index][at + 1] - start_carets[index][at];
-                    let justified = both_carets[index][at + 1] - both_carets[index][at];
-                    assert_eq!(justified, shaped, "{text}: inside {pair:?}");
-                }
+            if word(pair[0]) && word(pair[1]) {
+                let shaped = start_carets[index][at + 1] - start_carets[index][at];
+                let justified = both_carets[index][at + 1] - both_carets[index][at];
+                assert_eq!(justified, shaped, "{text}: inside {pair:?}");
             }
         }
     }
