@@ -4,6 +4,7 @@
 
 | 主题 | 页面 |
 | --- | --- |
+| 键盘编辑与格式快捷键 | [keyboard](keyboard.md) |
 | 查找与替换 | [find-replace](find-replace.md) |
 | 表格 | [tables](tables.md) |
 | 页面与页眉页脚 | [page-layout](page-layout.md) |

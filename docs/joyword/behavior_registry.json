@@ -376,6 +376,54 @@
       "source": "hypothesis",
       "test": "a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside",
       "word_observation": null
+    },
+    {
+      "id": "EDIT-WORD-MOVE",
+      "operation": "Ctrl+←/→（macOS Option+←/→）按词移动，Shift 同时扩展选区",
+      "expectation": "停在下一个词首、标点和段落标记处；词后空白随词跳过；CJK 表意字按 UAX #29 逐字停靠；字素簇不被拆开；扩展保持锚点，无 Shift 时先折叠选区",
+      "source": "hypothesis",
+      "test": "word_moves_stop_at_word_starts_punctuation_and_paragraph_ends",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-PARAGRAPH-DOCUMENT-MOVE",
+      "operation": "Ctrl+↑/↓ 与 Ctrl+Home/End（macOS Option+↑/↓、Cmd+↑/↓）",
+      "expectation": "Ctrl+↑ 先回本段段首，已在段首时到上一段段首；Ctrl+↓ 到下一段段首，末段到文末；Ctrl+Home/End 到文首/文末",
+      "source": "hypothesis",
+      "test": "paragraph_and_document_moves_follow_word_processor_keys",
+      "word_observation": null
+    },
+    {
+      "id": "EDIT-WORD-DELETE",
+      "operation": "Ctrl+Backspace / Ctrl+Delete（macOS Option）删除一个词",
+      "expectation": "有选区时删除选区；否则删到同一词停靠点，字素簇完整；整次删除为一步撤销；在段首或段尾时与相邻段合并；只读文档拒绝且不改动正文",
+      "source": "hypothesis",
+      "test": "word_deletion_removes_to_the_word_stop_as_one_undo_step",
+      "word_observation": null
+    },
+    {
+      "id": "FORMAT-TOGGLE-MIXED",
+      "operation": "Ctrl+B/I/U 作用于部分已有该格式的选区",
+      "expectation": "只要有一处未显示该格式就整体加上；全部已显示（按样式解析后）时整体取消；插入点不改动文档",
+      "source": "hypothesis",
+      "test": "format_toggles_turn_on_for_mixed_selections_and_off_when_all_show_it",
+      "word_observation": null
+    },
+    {
+      "id": "FORMAT-TOGGLE-STYLE",
+      "operation": "对段落样式已加粗、加下划线的文本连续两次按 Ctrl+B 或 Ctrl+U",
+      "expectation": "第一次取消、第二次恢复样式效果；只在样式结果与目标不同的部分写直接格式，其余清除直接格式；一次撤销回退一次切换",
+      "source": "hypothesis",
+      "test": "format_toggles_round_trip_on_text_whose_style_already_shows_it",
+      "word_observation": null
+    },
+    {
+      "id": "CLIP-CUT",
+      "operation": "Ctrl+X 剪切选区",
+      "expectation": "选区文本进入剪贴板后删除，删除为单独一步撤销；空选区不改动文档也不覆盖剪贴板；只读文档禁用剪切、下划线与对齐预设",
+      "source": "hypothesis",
+      "test": "cut_toggles_and_alignment_presets_go_through_the_command_registry",
+      "word_observation": null
     }
   ]
 }

@@ -962,3 +962,14 @@ main 的 build 作业自 `c198425` 起在四个平台的「DOCX robustness exper
 - **排版**：排除带是图片顶边减去 `distT` 到图片底边加上 `distB`，横向盖住当前行所在的栏框。带内有字形的行整行放到带的下沿，并使用该栏框的左缘和全宽，不拆到图片两侧。没有字形的锚点行留在原处，避免在图片下方再插一行空白。带上方的行不移动。`wrapSquare` 仍把字形留在矩形外侧。锚点段之前已经放下的行不回头重排。页眉页脚故事不参与这套排除带。屏幕、PDF 与 CPU 仍画同一个页面坐标矩形。
 - **证据**：`a_wrap_top_and_bottom_page_anchor_imports_and_its_markup_survives_an_edit`、`a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside`、`a_wrap_top_and_bottom_rectangle_is_shared_by_pdf_and_the_cpu`。行为登记新增 `IMAGE-WRAP-TOP-BOTTOM`、`IMAGE-WRAP-TOP-BOTTOM-PLACE`，来源是假设，没有 Word 观察。`IMAGE-ANCHOR-PAGE` 不再把 wrapTopAndBottom 记为拒绝。
 - **未覆盖**：真正的轮廓绕排、`behindDoc`、非 `page` 的 `relativeFrom`、`wp:align`、负偏移、表格单元格、页眉页脚上下型参与正文绕排、锚点段之前已经放下的行、GUI 人工验收、Word／WPS／浏览器粘贴。没有新增依赖。没有启动图形界面。没有把 T203 标成 done。本切片改了 `crates/`。W09 自 2026-10-21 起按检出的 `crates/` 树标识生产代码，不再为这一刀手工重锚历史 SHA。
+
+### 键盘编辑与开始功能区向 Word 对齐（2026-10-21）
+
+按体验差距分析，把主流文字处理软件的键盘编辑习惯和开始功能区常用按钮补齐。任务状态不改，计数仍是 12 done／17 in_progress／37 planned／0 blocked。没有启动图形界面，没有 Word／WPS 观察。用法与限制见 [键盘编辑指南](guide/keyboard.md)。
+
+- **移动与删除**：`TextInput::move_by` 提供按词、按段、到文首文末的移动，扩展选区保持锚点；`delete_word` 删到同一词停靠点，一步撤销。词停靠按 UAX #29，表意字逐字，字素簇不拆。PgUp／PgDn 在窗口里按已排版行累计约一屏，并同步滚动。
+- **格式切换**：Ctrl+B／I／U 按样式解析后的效果判断，有一处缺就整体加上，全有就整体取消。只在样式结果与目标不同处写直接格式，其余清除，所以样式本身加粗的文字也能来回切换，不依赖直接切换属性与样式的叠加规则。`shows` 供功能区显示按下状态。
+- **命令与快捷键**：新增剪切、下划线、左对齐、右对齐、两端对齐、按词／段／文档移动及其扩展、翻页及其扩展、删除前后一个词，补上 Ctrl+Enter 分页符、Ctrl+H 替换（macOS 为 Control+H）、Ctrl+D 字体。居中的 Ctrl+E 用 `Shortcut::windows_only`，Linux 上 Ctrl+E 仍是导出 PDF。
+- **功能区与窗口**：开始功能区加剪切、下划线、左对齐、右对齐、两端对齐，布局功能区加页脚，功能区地板从 53 升到 59。格式、对齐、视图开关与修订视图按钮显示按下状态。Linux 编辑栏加剪切。窗口标题为「文件名 - JoyWord」，未保存时加 `*`，关闭提示写出文档名。格式刷「连续／单次」和查找栏「全半角／正则」改用语言包文字。
+- **证据**：[word_navigation.rs](../../crates/joyword-shell/tests/word_navigation.rs) 11 个测试，`cut_toggles_and_alignment_presets_go_through_the_command_registry`、`protected_documents_refuse_edits_and_a_failed_save_keeps_bytes`，应用内 `word_processor_chords_reach_their_commands`、`window_title_names_the_document_and_marks_unsaved_changes`、`page_keys_move_about_one_screen_and_stop_at_the_ends`、`every_word_unit_command_maps_to_one_caret_move`。行为登记新增 `EDIT-WORD-MOVE`、`EDIT-PARAGRAPH-DOCUMENT-MOVE`、`EDIT-WORD-DELETE`、`FORMAT-TOGGLE-MIXED`、`FORMAT-TOGGLE-STYLE`、`CLIP-CUT`，来源都是假设。本机 `cargo fmt`、`cargo clippy --locked -D warnings`、`cargo test --locked`、`scripts/check_gates.py` 与 `scripts/check_docs.py` 通过。
+- **未覆盖**：真实窗口里的按键、IME 组合期间的快捷键、PgUp／PgDn 滚动手感和按下状态的视觉效果没有人工验收；麒麟、统信真机未验证。中日韩没有词典分词。对齐快捷键不做「再按一次回到左对齐」。多段混合对齐时按钮只看插入点段落。
