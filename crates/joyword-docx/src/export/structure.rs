@@ -20,7 +20,7 @@
 //! range. All other bytes of the part stay as they were.
 
 use std::cell::RefCell;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ops::Range;
 use std::sync::Arc;
 
@@ -30,7 +30,8 @@ use joyword_model::{
     MoveSide, NodeId, NumberingRef, NumberingStore, OBJECT_MARKER, Orientation, PageSetup,
     ParaProps, Paragraph, RevisionKind, RowHeightRule, RunProps, Section, Shading, SourceRef,
     Spacing, StyleId, StyleKind, StyleSheet, TabAlign, TabLeader, TabStop, Table, TableAlign,
-    TableLayoutKind, TableLook, TableWidth, Underline, VerticalAlign, VerticalMerge,
+    TableLayoutKind, TableLook, TableWidth, ThemeColorSlot, Underline, VerticalAlign,
+    VerticalMerge,
 };
 
 use super::{ExportError, Names, bounded_text_leaf, bounded_text_xml, text_slots, unsupported};
@@ -226,6 +227,9 @@ pub(super) struct Source<'a> {
     copies: RefCell<Vec<CopySet>>,
     /// Relationship ids for hyperlink targets written by this plan.
     links: RefCell<LinkAssign>,
+    /// sRGB entries of the edited document's colour scheme. Theme text
+    /// colours are written as `w:val` plus `w:themeColor`.
+    theme_colors: BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
 }
 
 impl<'a> Source<'a> {
@@ -236,6 +240,7 @@ impl<'a> Source<'a> {
         backing: &PackageBacking,
         original: &Document,
         scope: &[&Element],
+        theme_colors: BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
     ) -> Self {
         let mut fragments: Vec<_> = backing
             .fragments()
@@ -259,6 +264,7 @@ impl<'a> Source<'a> {
             bindings: ancestor_bindings(scope),
             copies: RefCell::new(Vec::new()),
             links: RefCell::new(LinkAssign::from_package(backing, part)),
+            theme_colors,
         }
     }
 
@@ -816,7 +822,7 @@ impl<'a> Source<'a> {
                     "a revised run also has a hyperlink",
                 ));
             }
-            return revision_body(paragraph, &[], names, limit);
+            return revision_body(paragraph, &[], names, limit, &self.theme_colors);
         }
         append_linked_runs(
             self,
@@ -826,10 +832,12 @@ impl<'a> Source<'a> {
             limit,
             |style, props| match self.run_bytes(style, props) {
                 Ok(markup) => Ok(markup),
-                Err(error) if style.is_none() => match synthesize_rpr(names, props) {
-                    Ok(markup) => Ok(markup),
-                    Err(_) => Err(error),
-                },
+                Err(error) if style.is_none() => {
+                    match synthesize_rpr(names, props, &self.theme_colors) {
+                        Ok(markup) => Ok(markup),
+                        Err(_) => Err(error),
+                    }
+                }
                 Err(error) => Err(error),
             },
         )
@@ -983,8 +991,9 @@ fn default_format(paragraph: &Paragraph) -> bool {
 
 /// A paragraph whose direct formatting is the M1 subset: justification,
 /// writable twip indent, spacing and tabs, plus character toggles, size,
-/// color, named font slots and underline. No style, numbering, preserved
-/// markup or theme font.
+/// colour (sRGB, auto, or a theme slot), named font slots and underline.
+/// No style, numbering, preserved markup or theme font. A theme slot whose
+/// scheme entry is missing is refused when the run is written.
 pub(super) fn direct_m1(paragraph: &Paragraph) -> bool {
     let props = &paragraph.props;
     paragraph.style.is_none()
@@ -1321,7 +1330,7 @@ pub(super) fn rewrite_styled_paragraph(
         names,
         limit,
         |style, props| {
-            styled_rpr(names, style.as_ref(), props)
+            styled_rpr(names, style.as_ref(), props, &source.theme_colors)
                 .map_err(|reason| unsupported(Some(paragraph.id()), reason))
         },
     )?);
@@ -1353,8 +1362,9 @@ fn styled_rpr(
     names: &Names,
     style: Option<&StyleId>,
     props: &RunProps,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
 ) -> Result<Option<String>, &'static str> {
-    let rpr = synthesize_rpr(names, props)?;
+    let rpr = synthesize_rpr(names, props, theme)?;
     let Some(style) = style else {
         return Ok(rpr);
     };
@@ -1422,7 +1432,8 @@ pub(super) fn rewrite_direct_paragraph(
                     "character style is outside the direct formatting subset",
                 ));
             }
-            synthesize_rpr(names, props).map_err(|reason| unsupported(Some(paragraph.id()), reason))
+            synthesize_rpr(names, props, &source.theme_colors)
+                .map_err(|reason| unsupported(Some(paragraph.id()), reason))
         },
     )?);
     let mut out = open;
@@ -1463,7 +1474,11 @@ fn run_supported(props: &RunProps) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn synthesize_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'static str> {
+fn synthesize_rpr(
+    names: &Names,
+    props: &RunProps,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
+) -> Result<Option<String>, &'static str> {
     run_supported(props)?;
     if props.is_empty() && props.fonts.hint.is_none() {
         return Ok(None);
@@ -1483,15 +1498,8 @@ fn synthesize_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'s
         body.push_str("/>");
     }
     if let Some(color) = props.color {
-        let value = match color {
-            Color::Auto => "auto".to_owned(),
-            Color::Rgb(red, green, blue) => format!("{red:02X}{green:02X}{blue:02X}"),
-            Color::Theme { .. } => {
-                return Err("theme colours are outside the direct subset");
-            }
-        };
         body.push_str(&names.start("color"));
-        body.push_str(&qattr(names, "val", &value));
+        body.push_str(&color_attributes(names, color, theme)?);
         body.push_str("/>");
     }
     let fonts = font_attributes(names, &props.fonts);
@@ -1621,7 +1629,7 @@ pub(super) fn new_paragraph(
                 "a revised run also has a hyperlink",
             ));
         }
-        let body = revision_body(paragraph, markers, names, limit)?;
+        let body = revision_body(paragraph, markers, names, limit, &source.theme_colors)?;
         if body.is_empty() {
             return Ok(format!("{}/>", names.start("p")));
         }
@@ -2016,6 +2024,38 @@ fn shading_markup(names: &Names, shading: Shading) -> Result<String, ExportError
     ))
 }
 
+/// `w:color` attributes. `w:val` is required by ECMA-376 §17.3.2.6. A theme
+/// slot is written back with the sRGB that [`joyword_model::apply_tint_shade`]
+/// produces from the scheme, then `w:themeColor` and any tint or shade.
+/// A slot missing from the scheme is refused instead of dropping the theme.
+fn color_attributes(
+    names: &Names,
+    color: Color,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
+) -> Result<String, &'static str> {
+    match color {
+        Color::Auto => Ok(names.attribute("val", "auto")),
+        Color::Rgb(red, green, blue) => {
+            Ok(names.attribute("val", &format!("{red:02X}{green:02X}{blue:02X}")))
+        }
+        Color::Theme { slot, tint, shade } => {
+            let Some((red, green, blue)) = theme.get(&slot).copied() else {
+                return Err("theme colour has no scheme entry");
+            };
+            let (red, green, blue) = joyword_model::apply_tint_shade(red, green, blue, tint, shade);
+            let mut attrs = names.attribute("val", &format!("{red:02X}{green:02X}{blue:02X}"));
+            attrs.push_str(&names.attribute("themeColor", slot.word_name()));
+            if let Some(tint) = tint {
+                attrs.push_str(&names.attribute("themeTint", &format!("{tint:02X}")));
+            }
+            if let Some(shade) = shade {
+                attrs.push_str(&names.attribute("themeShade", &format!("{shade:02X}")));
+            }
+            Ok(attrs)
+        }
+    }
+}
+
 fn color_value(color: Color) -> Result<String, ()> {
     match color {
         Color::Auto => Ok("auto".into()),
@@ -2056,7 +2096,13 @@ fn table_paragraph(
                 "table cell revision with a hyperlink is outside the mapped subset",
             ));
         }
-        inner.push_str(&revision_body(paragraph, &[], names, limit)?);
+        inner.push_str(&revision_body(
+            paragraph,
+            &[],
+            names,
+            limit,
+            &source.theme_colors,
+        )?);
     } else {
         inner.push_str(&append_table_runs(source, paragraph, names, limit)?);
     }
@@ -2096,7 +2142,7 @@ fn append_table_runs(
                 return Err(refuse("table cell paragraph is outside the mapped subset"));
             }
             let run_text: String = chars.by_ref().take(run.len).collect();
-            let rpr = table_rpr(names, &run.props).map_err(refuse)?;
+            let rpr = table_rpr(names, &run.props, &source.theme_colors).map_err(refuse)?;
             let text = bounded_text_xml(names, &run_text, limit)?;
             if rpr.is_none() && text.is_empty() {
                 continue;
@@ -2163,12 +2209,19 @@ fn table_run_ok(props: &RunProps) -> bool {
         && props
             .size
             .is_none_or(|size| matches!(size, Measure::HalfPoints(value) if value >= 0))
-        && props
-            .color
-            .is_none_or(|color| matches!(color, Color::Auto | Color::Rgb(_, _, _)))
+        && props.color.is_none_or(|color| {
+            matches!(
+                color,
+                Color::Auto | Color::Rgb(_, _, _) | Color::Theme { .. }
+            )
+        })
 }
 
-fn table_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'static str> {
+fn table_rpr(
+    names: &Names,
+    props: &RunProps,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
+) -> Result<Option<String>, &'static str> {
     if !table_run_ok(props) {
         return Err("table cell paragraph is outside the mapped subset");
     }
@@ -2184,10 +2237,8 @@ fn table_rpr(names: &Names, props: &RunProps) -> Result<Option<String>, &'static
         body.push_str("/>");
     }
     if let Some(color) = props.color {
-        let value =
-            color_value(color).map_err(|_| "theme colours are outside the direct subset")?;
         body.push_str(&names.start("color"));
-        body.push_str(&names.attribute("val", &value));
+        body.push_str(&color_attributes(names, color, theme)?);
         body.push_str("/>");
     }
     if body.is_empty() {
@@ -2674,6 +2725,7 @@ pub(super) fn rewrite_revisions(
     markers: &[MoveMarker],
     names: &Names,
     limit: u64,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
 ) -> Result<Vec<u8>, ExportError> {
     if crate::comment::has_markup(element) {
         return Err(unsupported(
@@ -2686,7 +2738,7 @@ pub(super) fn rewrite_revisions(
     if let Some(properties) = element.child(W, "pPr") {
         out.extend_from_slice(&xml[properties.span.clone()]);
     }
-    out.extend(revision_body(paragraph, markers, names, limit)?.into_bytes());
+    out.extend(revision_body(paragraph, markers, names, limit, theme)?.into_bytes());
     out.extend(names.end("p").into_bytes());
     if out.len() as u64 > limit {
         return Err(ExportError::Budget {
@@ -2710,6 +2762,7 @@ fn revision_body(
     markers: &[MoveMarker],
     names: &Names,
     limit: u64,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
 ) -> Result<String, ExportError> {
     let refuse = |reason| unsupported(Some(paragraph.id()), reason);
     let full = paragraph.plain_text(|_| "\u{FFFC}".into());
@@ -2804,7 +2857,7 @@ fn revision_body(
         };
         let text = bounded_text_leaf(names, &segment.text, leaf, limit)?;
         let properties =
-            direct_rpr(names, segment.style.as_ref(), &segment.props).map_err(refuse)?;
+            direct_rpr(names, segment.style.as_ref(), &segment.props, theme).map_err(refuse)?;
         if properties.is_none() && text.is_empty() {
             continue;
         }
@@ -2878,6 +2931,7 @@ fn direct_rpr(
     names: &Names,
     style: Option<&StyleId>,
     props: &RunProps,
+    theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
 ) -> Result<Option<String>, &'static str> {
     let mut extra = String::new();
     if let Some(style) = style {
@@ -2885,7 +2939,7 @@ fn direct_rpr(
         extra.push_str(&names.attribute("val", style.as_str()));
         extra.push_str("/>");
     }
-    let synthesized = synthesize_rpr(names, props)?;
+    let synthesized = synthesize_rpr(names, props, theme)?;
     match (extra.is_empty(), synthesized) {
         (true, None) => Ok(None),
         (true, Some(markup)) => Ok(Some(markup)),

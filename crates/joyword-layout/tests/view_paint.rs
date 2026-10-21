@@ -17,7 +17,8 @@ use joyword_layout::{
 };
 use joyword_model::{
     Anchor, AnnotationKind, Bias, BlockSeq, Color, Document, NodeId, PageSetup, Paragraph,
-    Position, RunProps, ScalarOffset, StoryId, Underline,
+    Position, RunProps, ScalarOffset, StoryId, ThemeColorSlot, ThemeScheme, Underline,
+    apply_tint_shade,
 };
 
 fn pt(value: i64) -> Emu {
@@ -178,6 +179,57 @@ fn single_underline_and_srgb_are_on_the_shared_scene() {
         line.baseline.raw().saturating_add(paint.offset.raw())
     );
     cache_matches(&document, ViewOptions::default());
+}
+
+#[test]
+fn theme_colour_text_paints_the_resolved_srgb() {
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let mut theme = ThemeScheme::default();
+    theme
+        .colors
+        .insert(ThemeColorSlot::Accent1, (0x2E, 0x75, 0xB6));
+    document.styles_mut().set_theme(theme);
+    let props = RunProps {
+        color: Some(Color::Theme {
+            slot: ThemeColorSlot::Accent1,
+            tint: Some(0x99),
+            shade: Some(0xBF),
+        }),
+        ..RunProps::default()
+    };
+    let paragraph = paragraph_text(&mut document, "色", props);
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let snapshot = lay(&document, ViewOptions::default());
+    let (red, green, blue) = apply_tint_shade(0x2E, 0x75, 0xB6, Some(0x99), Some(0xBF));
+    assert_eq!(snapshot.pages()[0].runs[0].color, [red, green, blue]);
+    assert_ne!([red, green, blue], [0, 0, 0]);
+    cache_matches(&document, ViewOptions::default());
+
+    let mut bare = Document::new(PageSetup::a4_zh_cn());
+    let props = RunProps {
+        color: Some(Color::theme(ThemeColorSlot::Accent1)),
+        ..RunProps::default()
+    };
+    let paragraph = paragraph_text(&mut bare, "色", props);
+    let body = bare.body_id();
+    bare.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let error = layout_with_view(
+        &bare.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+        ViewOptions::default(),
+    )
+    .expect_err("a theme colour with no scheme entry is not painted");
+    let LayoutError::Unsupported { feature, .. } = error else {
+        panic!("{error}");
+    };
+    assert!(
+        feature.contains("style") || feature.contains("colour"),
+        "{feature}"
+    );
 }
 
 #[test]
