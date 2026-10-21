@@ -6,6 +6,8 @@ mod document_canvas;
 mod export;
 mod input_ui;
 mod linux_files;
+#[cfg(target_os = "linux")]
+mod prompt_ui;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
 use gpui::{
@@ -2146,6 +2148,8 @@ fn main() {
             cx.quit();
         });
         cx.bind_keys(key_bindings(&registry));
+        #[cfg(target_os = "linux")]
+        prompt_ui::install(cx);
         cx.set_menus(menus(&registry, Catalog::shipped(locale)));
         let bounds = Bounds::centered(None, size(px(1100.0), px(850.0)), cx);
         let result = cx.open_window(

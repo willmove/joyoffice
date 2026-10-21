@@ -1626,3 +1626,22 @@ fn escape_is_bound_only_while_composing_so_panels_receive_it_otherwise() {
         }
     }
 }
+
+#[cfg(target_os = "linux")]
+#[test]
+fn prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only() {
+    use super::prompt_ui::key_answer;
+    use gpui::PromptButton;
+
+    let close = [PromptButton::cancel("取消"), PromptButton::new("不保存")];
+    assert_eq!(key_answer(&close, "escape"), Some(0));
+    assert_eq!(key_answer(&close, "enter"), None, "Enter never discards");
+    let original = [
+        PromptButton::cancel("取消"),
+        PromptButton::ok("另存为"),
+        PromptButton::new("确认"),
+    ];
+    assert_eq!(key_answer(&original, "escape"), Some(0));
+    assert_eq!(key_answer(&original, "enter"), Some(1));
+    assert_eq!(key_answer(&original, "a"), None);
+}
