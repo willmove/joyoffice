@@ -171,3 +171,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 标题取 OPC core properties 的 Dublin Core `dc:title`（[ECMA-376 第五版 Part 2](https://ecma-international.org/publications-and-standards/standards/ecma-376/) Core Properties；命名空间 `http://purl.org/dc/elements/1.1/`）。书签只在样式规范名为 heading 1–9 时生成（Part 1 §17.7.4），级别优先用已解析的 `outlineLvl`（§17.3.1.20，0 表示第一级）。没有放置行的标题不猜测页码。
 - 落盘复用 shell 已有的写入、sync、回读与 `hard_link`，不覆盖已有路径。系统打印对话框只按操作系统 cfg 返回未验证，不调用 AppKit、Win32 或 CUPS。FlateDecode 复用已钉扎的 flate2 1.1.10（rust_backend），没有新的外部包版本。krilla 仍是 0.8.2。
 - 链接注释对照 ISO 32000-1 §12.5.6.5，URI 动作对照 §12.6.4.7。只把已经通过打开允许列表的 `http`／`https`／`mailto` 写进行动；不把 `javascript`、`file` 或其他方案写进 PDF。矩形用已放置行的插入点，不另做分页。仅书签的锚点不解析成跳转。没有读取 Poppler、qpdf 或其他 PDF 库的注释实现。
+
+### 编号超限与主题色文字（T200，2026-10-21）
+
+- STYLE-002／STYLE-003；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.18.59（`ST_NumberFormat`：字母示例 27 为 aa、54 为 bbb，没有重复上限；中文计数示例是位值写法；甲乙示例列出十个天干）与 §17.3.2.6（`w:color` 的 `w:val` 必需，`w:themeColor`／`w:themeTint`／`w:themeShade` 可选；tint／shade 的线性 sRGB 公式沿用第四切片）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的编号或主题色实现。
+- 甲乙超过 10 时按字母示例的方式重复天干（11 为甲甲）。这是 JoyWord 假定，不是该示例中的句子，也不是 Word 观察。中文计数用同一「零」（U+96F6）并把四位分组延续到亿，使每一个非负 `i32` 可写；10–19 只有在十是整个数字的首字时才省略前导一。正数罗马数字在 3999 之后继续同一加法表（4000 为 `MMMM`），不用上横线。0 与负数仍不可绘制。标签预算 256 个 Unicode 标量是不可信输入的界限，不是规范条文。MS-OI29500 记载的 Word 零／万码位和 HSL tint 偏差不采用。
+- 改写 run 时把方案色收成 sRGB 写入 `w:val`，并写回 `w:themeColor` 与已有的 tint／shade，使再次导入恢复主题色。缺方案项时拒绝，不丢掉主题色。主题部件不改写。`numbering.xml` 仍不从模型回写。没有新增外部 crate。

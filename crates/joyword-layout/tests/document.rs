@@ -995,6 +995,57 @@ fn chinese_numbering_labels_are_prefixed_and_unsupported_formats_are_diagnosed()
 }
 
 #[test]
+fn numbering_edges_place_labels_past_the_old_caps() {
+    let letter = "a".repeat(65);
+    let cases = [
+        (NumberFormat::IdeographTraditional, 11, "甲甲".to_owned()),
+        (NumberFormat::ChineseCounting, 100_000, "十万".to_owned()),
+        (NumberFormat::ChineseLegalSimplified, 0, "零".to_owned()),
+        (NumberFormat::UpperRoman, 4000, "MMMM".to_owned()),
+        (NumberFormat::LowerLetter, 26 * 64 + 1, letter),
+    ];
+    for (format, start, label) in cases {
+        let mut document = make_document(&["正文"], 4);
+        install_list(&mut document, format.clone(), "%1", start);
+        mark_paragraph(&mut document, 0);
+        let laid = layout(&document);
+        let text: String = laid.pages()[0]
+            .runs
+            .iter()
+            .map(|run| run.text.as_str())
+            .collect();
+        assert!(text.starts_with(&label), "{format:?} start {start}: {text}");
+        assert!(
+            laid.diagnostics().iter().all(|item| {
+                !matches!(
+                    item.diagnostic,
+                    joyword_layout::LineDiagnostic::Numbering { .. }
+                )
+            }),
+            "{format:?} start {start} was not drawn"
+        );
+    }
+
+    let mut document = make_document(&["正文"], 4);
+    install_list(&mut document, NumberFormat::LowerRoman, "%1", 0);
+    mark_paragraph(&mut document, 0);
+    let laid = layout(&document);
+    let detail = laid
+        .diagnostics()
+        .iter()
+        .find_map(|item| match &item.diagnostic {
+            joyword_layout::LineDiagnostic::Numbering { detail } => Some(detail.as_str()),
+            _ => None,
+        })
+        .expect("zero roman stays unrenderable");
+    assert!(
+        detail.contains("unrenderable") || detail.contains("0"),
+        "{detail}"
+    );
+    assert_eq!(laid.pages()[0].runs[0].text, "正文");
+}
+
+#[test]
 fn centered_and_right_lists_move_only_the_body_and_label_metrics_split_the_run() {
     let mut document = make_document(&["甲"], 4);
     install_list(&mut document, NumberFormat::Bullet, "•", 1);
