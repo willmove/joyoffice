@@ -17,6 +17,7 @@ use joyword_shell::command::{
     PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, STYLE_APPLY, STYLE_LIST,
 };
 use joyword_shell::host::Office;
+use joyword_shell::input::RunToggle;
 
 fn fixture(id: u8) -> Vec<u8> {
     fs::read(
@@ -195,26 +196,21 @@ fn cut_toggles_and_alignment_presets_go_through_the_command_registry() {
     );
 
     office.invoke(EDIT_SELECT_ALL, &[]).unwrap();
-    let shows = |office: &Office, check: fn(&joyword_model::RunProps) -> bool| {
-        first_paragraph(office)
+    let shows = |office: &Office, toggle| office.active().unwrap().shows(toggle);
+    office.invoke(EDIT_BOLD, &[]).unwrap();
+    assert!(shows(&office, RunToggle::Bold));
+    office.invoke(EDIT_BOLD, &[]).unwrap();
+    assert!(!shows(&office, RunToggle::Bold));
+    office.invoke(EDIT_UNDERLINE, &[]).unwrap();
+    assert!(shows(&office, RunToggle::Underline));
+    assert!(
+        first_paragraph(&office)
             .runs()
             .iter()
-            .all(|run| check(&run.props))
-    };
-    let bold = |props: &joyword_model::RunProps| props.bold == Some(true);
-    let underlined = |props: &joyword_model::RunProps| {
-        props
-            .underline
-            .is_some_and(|underline| underline != Underline::None)
-    };
-    office.invoke(EDIT_BOLD, &[]).unwrap();
-    assert!(shows(&office, bold));
-    office.invoke(EDIT_BOLD, &[]).unwrap();
-    assert!(shows(&office, |props| props.bold == Some(false)));
+            .all(|run| run.props.underline == Some(Underline::Single))
+    );
     office.invoke(EDIT_UNDERLINE, &[]).unwrap();
-    assert!(shows(&office, underlined));
-    office.invoke(EDIT_UNDERLINE, &[]).unwrap();
-    assert!(shows(&office, |props| props.underline == Some(Underline::None)));
+    assert!(!shows(&office, RunToggle::Underline));
 
     for (command, expected) in [
         (EDIT_ALIGN_RIGHT, Justification::End),

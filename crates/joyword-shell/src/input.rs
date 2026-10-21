@@ -682,6 +682,38 @@ pub enum RunToggle {
     Italic,
     Underline,
 }
+
+impl RunToggle {
+    fn shown_by(self, props: &RunProps) -> bool {
+        match self {
+            RunToggle::Bold => props.bold == Some(true),
+            RunToggle::Italic => props.italic == Some(true),
+            RunToggle::Underline => props
+                .underline
+                .is_some_and(|line| line != joyword_model::Underline::None),
+        }
+    }
+
+    /// `props` without this format's direct value.
+    fn cleared(self, props: &RunProps) -> RunProps {
+        let mut props = props.clone();
+        match self {
+            RunToggle::Bold => props.bold = None,
+            RunToggle::Italic => props.italic = None,
+            RunToggle::Underline => props.underline = None,
+        }
+        props
+    }
+}
+
+struct RunPiece {
+    start: Position,
+    end: Position,
+    /// The run shows the format after style resolution.
+    shows: bool,
+    /// It would show it without its direct value.
+    inherited: bool,
+}
 pub struct TextInput<B = Session> {
     backend: B,
     base: Arc<TextIndex>,
@@ -1294,28 +1326,82 @@ impl<B: InputBackend> TextInput<B> {
     }
 
     /// Ctrl+B, Ctrl+I and Ctrl+U: when every selected run already shows the
-    /// format after style resolution, the format is turned off as direct
-    /// formatting; otherwise it is turned on. An empty selection changes
-    /// nothing, as with [`Self::format_runs`].
+    /// format after style resolution, the format is turned off; otherwise it
+    /// is turned on. Direct formatting is written only where the style alone
+    /// would not give the wanted result and is cleared elsewhere, so the
+    /// outcome does not depend on how a direct toggle combines with the style.
+    /// An empty selection changes nothing, as with [`Self::format_runs`].
     pub fn toggle_runs(&mut self, toggle: RunToggle) -> Result<bool, InputError> {
         self.require_editable()?;
         let (range, _) = self.view.selected_range();
         if range.is_empty() {
             return Ok(false);
         }
-        let on = self.selection_shows(toggle, range)?;
-        self.format_runs(match toggle {
-            RunToggle::Bold => RunChange::Bold(Some(!on)),
-            RunToggle::Italic => RunChange::Italic(Some(!on)),
-            RunToggle::Underline => RunChange::Underline(Some(if on {
-                joyword_model::Underline::None
-            } else {
-                joyword_model::Underline::Single
-            })),
-        })
+        let pieces = self.run_pieces(toggle, range)?;
+        let want = !pieces.iter().all(|piece| piece.shows);
+        let mut spans: Vec<(Position, Position, Option<bool>)> = Vec::new();
+        for piece in pieces {
+            let value = (piece.inherited != want).then_some(want);
+            match spans.last_mut() {
+                Some((_, end, last)) if *last == value => *end = piece.end,
+                _ => spans.push((piece.start, piece.end, value)),
+            }
+        }
+        if spans.is_empty() {
+            return Ok(false);
+        }
+        if spans.len() > self.limits.max_commands {
+            return Err(InputError::Budget("commands"));
+        }
+        let commands = spans
+            .into_iter()
+            .map(|(start, end, value)| Command::FormatText {
+                start,
+                end,
+                change: match toggle {
+                    RunToggle::Bold => RunChange::Bold(value),
+                    RunToggle::Italic => RunChange::Italic(value),
+                    RunToggle::Underline => RunChange::Underline(value.map(|on| {
+                        if on {
+                            joyword_model::Underline::Single
+                        } else {
+                            joyword_model::Underline::None
+                        }
+                    })),
+                },
+            })
+            .collect();
+        self.commit(Transaction::new(self.backend.session().version(), commands))
     }
 
-    fn selection_shows(&self, toggle: RunToggle, range: Range<usize>) -> Result<bool, InputError> {
+    /// Whether the selection shows the format, so a toggle would turn it
+    /// off. A caret reports the formatting text typed there would take.
+    pub fn shows(&self, toggle: RunToggle) -> bool {
+        let (range, _) = self.view.selected_range();
+        if !range.is_empty() {
+            return self
+                .run_pieces(toggle, range)
+                .is_ok_and(|pieces| !pieces.is_empty() && pieces.iter().all(|piece| piece.shows));
+        }
+        let head = self.view.selection().head;
+        let document = &self.view.index.snapshot;
+        let Some(paragraph) = document.find_paragraph(head.story, head.paragraph) else {
+            return false;
+        };
+        let (style, props) = paragraph.format_at(head.offset);
+        let resolved =
+            document
+                .styles()
+                .resolve_run(paragraph.style.as_ref(), style.as_ref(), &props);
+        toggle.shown_by(&resolved.props)
+    }
+
+    /// The selected part of every run in `range`, in document order.
+    fn run_pieces(
+        &self,
+        toggle: RunToggle,
+        range: Range<usize>,
+    ) -> Result<Vec<RunPiece>, InputError> {
         let index = &self.view.index;
         let start = index.position(range.start, Bias::After)?;
         let end = index.position(range.end, Bias::Before)?;
@@ -1328,7 +1414,7 @@ impl<B: InputBackend> TextInput<B> {
             .get(&end.paragraph)
             .ok_or(InputError::UnknownPosition(end))?;
         let sheet = index.snapshot.styles();
-        let mut seen = false;
+        let mut pieces = Vec::new();
         for entry in &index.paragraphs[first..=last] {
             let paragraph =
                 paragraph_by_id(&index.snapshot, entry.id).ok_or(InputError::InvalidDocument)?;
@@ -1349,23 +1435,28 @@ impl<B: InputBackend> TextInput<B> {
                 if run_end <= from || run_start >= to {
                     continue;
                 }
-                seen = true;
-                let props = sheet
-                    .resolve_run(paragraph.style.as_ref(), run.style.as_ref(), &run.props)
-                    .props;
-                let shows = match toggle {
-                    RunToggle::Bold => props.bold == Some(true),
-                    RunToggle::Italic => props.italic == Some(true),
-                    RunToggle::Underline => props
-                        .underline
-                        .is_some_and(|line| line != joyword_model::Underline::None),
+                let resolve = |props: &RunProps| {
+                    toggle.shown_by(
+                        &sheet
+                            .resolve_run(paragraph.style.as_ref(), run.style.as_ref(), props)
+                            .props,
+                    )
                 };
-                if !shows {
-                    return Ok(false);
-                }
+                let position = |offset: usize, bias: Bias| Position {
+                    paragraph: entry.id,
+                    offset: ScalarOffset(offset),
+                    bias,
+                    ..start
+                };
+                pieces.push(RunPiece {
+                    start: position(run_start.max(from), Bias::After),
+                    end: position(run_end.min(to), Bias::Before),
+                    shows: resolve(&run.props),
+                    inherited: resolve(&toggle.cleared(&run.props)),
+                });
             }
         }
-        Ok(seen)
+        Ok(pieces)
     }
 
     /// Styles on the sheet, one line per style: id, kind, canonical name.

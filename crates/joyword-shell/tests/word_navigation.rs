@@ -2,7 +2,7 @@
 //! (Ctrl+Backspace/Delete) and the Ctrl+B/I/U toggles at the shell boundary.
 
 use joyword_engine::{EditPolicy, Session};
-use joyword_model::{BlockSeq, Document, Paragraph, Underline};
+use joyword_model::{BlockSeq, Document, Paragraph, Style, StyleId, StyleKind, Underline};
 use joyword_shell::input::{CaretUnit, Direction, InputBackend, InputLimits, RunToggle, TextInput};
 use std::sync::Arc;
 
@@ -229,24 +229,74 @@ fn format_toggles_turn_on_for_mixed_selections_and_off_when_all_show_it() {
     i.select(0..4, false).unwrap();
     i.toggle_runs(RunToggle::Bold).unwrap();
     assert_eq!(run_props(&i), [(4, Some(true), None, None)]);
-    // All bold: the toggle clears it.
+    assert!(i.shows(RunToggle::Bold));
+    // All bold: the toggle clears it. The style gives no bold, so the direct
+    // value is removed rather than written as off.
     i.toggle_runs(RunToggle::Bold).unwrap();
-    assert_eq!(run_props(&i), [(4, Some(false), None, None)]);
+    assert_eq!(run_props(&i), [(4, None, None, None)]);
+    assert!(!i.shows(RunToggle::Bold));
 
     i.toggle_runs(RunToggle::Italic).unwrap();
     i.toggle_runs(RunToggle::Underline).unwrap();
     assert_eq!(
         run_props(&i),
-        [(4, Some(false), Some(true), Some(Underline::Single))]
+        [(4, None, Some(true), Some(Underline::Single))]
     );
     i.toggle_runs(RunToggle::Underline).unwrap();
-    assert_eq!(
-        run_props(&i),
-        [(4, Some(false), Some(true), Some(Underline::None))]
-    );
-    // A caret changes nothing.
+    assert_eq!(run_props(&i), [(4, None, Some(true), None)]);
+    // A caret changes nothing and reports the format typed text would take.
     i.select(1..1, false).unwrap();
     assert!(!i.toggle_runs(RunToggle::Italic).unwrap());
+    assert!(i.shows(RunToggle::Italic));
+    assert!(!i.shows(RunToggle::Underline));
+}
+
+fn styled(text: &str) -> TextInput {
+    let mut doc = Document::new_blank();
+    let mut strong = Style::new("strong", StyleKind::Paragraph, Some("Strong"));
+    strong.run.bold = Some(true);
+    strong.run.underline = Some(Underline::Single);
+    doc.styles_mut().insert(strong).unwrap();
+    let mut blocks = Vec::new();
+    for line in text.split('\n') {
+        let mut p = Paragraph::new(doc.ids().node());
+        p.style = Some(StyleId::new("strong"));
+        p.push_text(line, None, Arc::default()).unwrap();
+        blocks.push(p.into());
+    }
+    let body = doc.body_id();
+    doc.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+    TextInput::new(Session::new(doc), InputLimits::default()).unwrap()
+}
+
+#[test]
+fn format_toggles_round_trip_on_text_whose_style_already_shows_it() {
+    let mut i = styled("abcd");
+    i.select(0..4, false).unwrap();
+    assert!(i.shows(RunToggle::Bold));
+    i.toggle_runs(RunToggle::Bold).unwrap();
+    assert_eq!(run_props(&i), [(4, Some(false), None, None)]);
+    assert!(!i.shows(RunToggle::Bold));
+    // Back on: the direct off is cleared and the style's bold shows again.
+    i.toggle_runs(RunToggle::Bold).unwrap();
+    assert_eq!(run_props(&i), [(4, None, None, None)]);
+    assert!(i.shows(RunToggle::Bold));
+
+    i.toggle_runs(RunToggle::Underline).unwrap();
+    assert_eq!(run_props(&i), [(4, None, None, Some(Underline::None))]);
+    i.toggle_runs(RunToggle::Underline).unwrap();
+    assert!(i.shows(RunToggle::Underline));
+
+    // Partly off: turning on clears only the runs that need it.
+    i.select(0..2, false).unwrap();
+    i.toggle_runs(RunToggle::Bold).unwrap();
+    i.select(0..4, false).unwrap();
+    assert!(!i.shows(RunToggle::Bold));
+    i.toggle_runs(RunToggle::Bold).unwrap();
+    assert!(i.shows(RunToggle::Bold));
+    assert!(run_props(&i).iter().all(|run| run.1.is_none()));
+    i.undo().unwrap();
+    assert!(!i.shows(RunToggle::Bold));
 }
 
 #[test]
