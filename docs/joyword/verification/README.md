@@ -11,3 +11,5 @@
 | [验证波次缺口修复](verify-wave-fixes.md) | F1（[#67](https://github.com/willmove/joyoffice/pull/67)） | 上面几份记录里五条已知缺口的根因、修复与回归测试 |
 
 F1 的两条修复有限制：正文页码只覆盖无格式域；`wrapTight`／`wrapThrough` 只是方形近似，不是轮廓绕排。T203 图片关系另报 `not-imported` 的诊断不在 F1 范围，已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复。
+
+2026-10-21：[#71](https://github.com/willmove/joyoffice/pull/71)（`e8c47764`）把 W09 从固定提交改为检出的 `crates/` 树 id，并去掉 CI 的 `fetch-depth: 0`。[T103 覆盖引导 fuzz](t103-coverage-fuzz.md) 正文里的提交锚点是 2026-10-20 那次活动的记录。麒麟修复会话的机器侧证据由 [#70](https://github.com/willmove/joyoffice/pull/70)（`f7cbeadd`）落库，见 [IMPLEMENTATION](../IMPLEMENTATION.md)「麒麟缺陷修复会话的机器侧证据」，不在本目录。
