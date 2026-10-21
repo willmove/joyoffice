@@ -25,6 +25,7 @@ command.view.switch_language = 界面语言切换为 English
 
 document.untitled = 未命名 {number}
 close.unsaved = “{title}”有尚未保存的更改。
+close.dirty_after_save = “{title}”在保存开始后又有修改，这些修改不在这次保存中。
 close.save = 保存
 close.discard = 不保存
 close.cancel = 取消
@@ -150,6 +151,7 @@ input.layout_pending = 页面正在更新
 input.error = 输入未完成：{reason}
 input.dirty = 尚未保存 · AI 未加载
 file.open.error = 无法打开：{reason}
+file.open.reading = 正在打开…文件就绪前编辑器为只读，键入的文字会保留。
 file.copy.error = 无法另存为：{reason}
 file.copy.saved = 已写入新副本 {path}。当前打开的文件没有被替换。
 file.copy.saved_earlier = 已写入新副本 {path}，不含开始保存后的修改；这些修改仍未保存。

@@ -963,6 +963,15 @@ main 的 build 作业自 `c198425` 起在四个平台的「DOCX robustness exper
 - **证据**：`a_wrap_top_and_bottom_page_anchor_imports_and_its_markup_survives_an_edit`、`a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside`、`a_wrap_top_and_bottom_rectangle_is_shared_by_pdf_and_the_cpu`。行为登记新增 `IMAGE-WRAP-TOP-BOTTOM`、`IMAGE-WRAP-TOP-BOTTOM-PLACE`，来源是假设，没有 Word 观察。`IMAGE-ANCHOR-PAGE` 不再把 wrapTopAndBottom 记为拒绝。
 - **未覆盖**：真正的轮廓绕排、`behindDoc`、非 `page` 的 `relativeFrom`、`wp:align`、负偏移、表格单元格、页眉页脚上下型参与正文绕排、锚点段之前已经放下的行、GUI 人工验收、Word／WPS／浏览器粘贴。没有新增依赖。没有启动图形界面。没有把 T203 标成 done。本切片改了 `crates/`。W09 自 2026-10-21 起按检出的 `crates/` 树标识生产代码，不再为这一刀手工重锚历史 SHA。
 
+### T109 打开与保存并发的自动补强（2026-10-21）
+
+慢打开只读窗口和保存进行中的关闭提示以前只靠真实耗时，本机往往在 1 秒内结束，图形会话看不稳。这一刀加上可放行的 `StepGate`，并让窗口与外壳走同一套判断。T109 仍是 `in_progress`：没有做 Windows 或 macOS 的人工窗口验收，也不把这次自动测试当成那个验收。
+
+- **慢打开**。`BoundDocx::open_default_paused` 在读文件之前等待测试放行。等待期间外壳把除 `edit.insert` 以外的编辑和页面命令标成只读；插入写入打开缓冲，不改当前文档。平台键入（`replace_text_in_range`／预编辑）在 `is_opening` 时同样只进缓冲。`accept_bound` 把缓冲放进新文档。过期的 generation 或打开失败时，缓冲写回仍在的文档，不无提示丢掉。状态栏在打开期间使用 `file.open.reading`。
+- **保存进行中的关闭与退出**。`SaveCopyJob::run_paused` 与 `SaveOriginalJob::run_paused` 在计划与 IO 之前等待。`close_prompt` 同时给关闭和退出用：当前版本等于已保存版本则直接离开；在途保存的版本就是当前版本时仍提示尚未落盘（`close.unsaved`）；在途版本比当前版本旧时提示保存开始后的修改不在这次保存里（`close.dirty_after_save`）。取消关闭保留会话。另存不改 dirty；原件保存只把已写出的版本标成已保存，随后的键入仍脏，迟到结果仍按 DocumentId 路由。
+- **自动验证**：`t109_open_save_gate`（慢打开只读与键入保留、过期／失败打开不丢键入、另存在途时关闭提示、原件在途时关闭提示与跨文档路由）。既有 `m1_concurrency_recovery`、`save_copy_job`、`original_save_job` 不改断言。`close_and_quit_share_the_dirty_after_save_prompt` 与 `only_a_writing_save_of_this_editor_counts_as_in_flight` 覆盖提示文案和“正在写入”的判定。
+- **未覆盖**：Windows 与 macOS 上对着真实窗口做慢打开只读、取消打开，以及保存进行中点关闭／退出。没有把 T109 标成 done。
+
 ### 键盘编辑与开始功能区向 Word 对齐（2026-10-21）
 
 按体验差距分析，把主流文字处理软件的键盘编辑习惯和开始功能区常用按钮补齐。任务状态不改，计数仍是 12 done／17 in_progress／37 planned／0 blocked。没有启动图形界面，没有 Word／WPS 观察。用法与限制见 [键盘编辑指南](guide/keyboard.md)。
