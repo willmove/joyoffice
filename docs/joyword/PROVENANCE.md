@@ -165,6 +165,11 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - HTML 子集对照 [HTML Living Standard](https://html.spec.whatwg.org/) 的元素与字符引用：保留 `b`／`strong`、`i`／`em`、`u`、`p`／`div`／`br`、`ul`／`ol`／`li`、`h1`–`h3` 的文本结构，丢弃 `script`、`style` 与嵌入内容，不取远程资源。RTF 对照 [Rich Text Format (RTF) Specification 1.9.1](https://www.loc.gov/preservation/digital/formats/fdd/fdd000473.shtml) 的控制字 `\b`、`\i`、`\ul`、`\par`、`\line`、`\tab`、`\u`、`\'`、`\field`、`\fldrslt`、`\object`、`\pict`。解析器是手写子集，不复制 Word、WPS 或 LibreOffice 的粘贴实现，不新增外部 crate。
 - 列表只在文档已有编号实例时套用，不生成 `numbering.xml`。图片后的同行文字是排版规则，不是 Word 观察。插入图片按钮调用已有插入路径。没有新增外部 crate。
 
+### 上下型绕排（T203）
+
+- LAYOUT-006。依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §20.4.2 的 `wp:wrapTopAndBottom`／`CT_WrapTopBottom`（只有 `distT` 与 `distB`）和 `wp:anchor` 的页面相对 `posOffset`。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的绕排实现。
+- JoyWord 把该元素读成一条横向排除带：与带垂直相交且含字形的行整行移到带下方，不在图片左右留字。省略距离记为 0 EMU，不是 Word 省略时的八分之一英寸。`distL`／`distR` 不打开侧向空隙。`wp:wrapTight`／`wp:wrapThrough` 的轮廓多边形仍不跟随。没有新增外部 crate。
+
 ### 统一 PDF 与打印到文件（T204 第一切片）
 
 - LAYOUT-009／FORMAT-008／PLATFORM-007。页面几何沿用已有 PageScene，不另写分页器。文档信息字典的 Title 与 Producer 对照 [ISO 32000-1](https://www.iso.org/standard/51502.html) §14.3.3；本切片不写 CreationDate 与 ModDate。ToUnicode 对照 §9.10，字体对照 §9.6，图像 XObject 对照 §8.9，书签大纲对照 §12.3.3，页面树与 MediaBox 对照 §7.7.3。结构读取器按 §7.5.4 经典交叉引用表与 §7.5.8 交叉引用流、§7.5.7 对象流、§7.4.4 单层 FlateDecode 自行实现，与 krilla 不共享对象。只读公开规范，未读取 Word、WPS、LibreOffice、Poppler、qpdf 或其他 PDF 库的实现源码。

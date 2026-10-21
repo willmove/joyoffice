@@ -9,7 +9,7 @@ use joyword_layout::{
 };
 use joyword_model::{
     AnchorWrap, BlockSeq, Document, HeaderFooterKind, ImageAnchor, InlineKind, InlineObject,
-    Measure, PageSetup, Paragraph, SquareWrap, StoryKind, WrapSide, sample_png_1x1,
+    Measure, PageSetup, Paragraph, SquareWrap, StoryKind, TopBottomWrap, WrapSide, sample_png_1x1,
 };
 use joyword_pdf::{inspect_pdf, render};
 use joyword_render::{Projection, RasterCancellation, RasterLimits, rasterize};
@@ -272,6 +272,110 @@ fn a_wrap_square_rectangle_is_shared_by_pdf_and_the_cpu() {
     let image = &scene.images[0];
     assert_eq!(image.x, pt(24));
     assert_eq!(image.y, pt(40));
+    assert_eq!(image.width, Emu::new(side));
+    assert_eq!(image.height, Emu::new(side));
+    let pdf = render(std::slice::from_ref(scene), std::slice::from_ref(&font)).unwrap();
+    assert!(inspect_pdf(&pdf).unwrap().image_xobjects >= 1);
+    let mut blank = scene.clone();
+    blank.images.clear();
+    assert_ne!(
+        pdf,
+        render(std::slice::from_ref(&blank), std::slice::from_ref(&font)).unwrap()
+    );
+    let raster = rasterize(
+        scene,
+        std::slice::from_ref(&font),
+        Projection::new(72.0, 1.0).unwrap(),
+        RasterLimits::default(),
+        &RasterCancellation::default(),
+    )
+    .unwrap();
+    let px = |length: Emu| (length.raw() as f64 / Emu::PER_INCH as f64 * 72.0).round() as usize;
+    let column = px(image.x) + px(image.width) / 2;
+    let row = px(image.y) + px(image.height) / 2;
+    let width = raster.width() as usize;
+    let pixel = &raster.rgba()[(row * width + column) * 4..][..4];
+    assert!(
+        pixel[0] > 200 && pixel[1] < 40 && pixel[3] == 255,
+        "cpu pixel {pixel:?} is not the shared rectangle"
+    );
+}
+
+#[test]
+fn a_wrap_top_and_bottom_rectangle_is_shared_by_pdf_and_the_cpu() {
+    let font = LoadedFont::from_bytes(
+        Arc::from(
+            include_bytes!("../../../tests/fixtures/fonts/joyoffice-test-serif.ttf").as_slice(),
+        ),
+        0,
+    )
+    .unwrap();
+    let mut page = PageSetup::a4_zh_cn();
+    let length = |value: i64| Measure::Emu(pt(value).raw());
+    page.width = length(200);
+    page.height = length(360);
+    page.left = length(24);
+    page.right = length(24);
+    page.top = length(40);
+    page.bottom = length(40);
+    page.header = length(16);
+    page.footer = length(16);
+    page.gutter = length(0);
+    let mut document = Document::new(page);
+    let mut paragraph = Paragraph::new(document.ids().node());
+    let resource = document.ids().resource();
+    document
+        .resources_mut()
+        .insert(resource, "image/png", Arc::from(sample_png_1x1()), None);
+    let side = 48 * Emu::PER_POINT;
+    paragraph.push_inline(
+        InlineObject {
+            id: document.ids().node(),
+            kind: InlineKind::Image {
+                resource,
+                width: Measure::Emu(side),
+                height: Measure::Emu(side),
+                anchor: Some(ImageAnchor {
+                    x: length(24),
+                    y: length(100),
+                    wrap: AnchorWrap::TopAndBottom(TopBottomWrap {
+                        top: 6 * Emu::PER_POINT,
+                        bottom: 6 * Emu::PER_POINT,
+                    }),
+                }),
+            },
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+    paragraph
+        .push_text(
+            &"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".repeat(4),
+            None,
+            Arc::default(),
+        )
+        .unwrap();
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let laid = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font),
+        SingleFontProfile {
+            size: pt(12),
+            leading: pt(18),
+            baseline: pt(14),
+            features: FeatureSet::default(),
+        },
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    let scene = &laid.pages()[0];
+    assert_eq!(scene.images.len(), 1);
+    let image = &scene.images[0];
+    assert_eq!(image.x, pt(24));
+    assert_eq!(image.y, pt(100));
     assert_eq!(image.width, Emu::new(side));
     assert_eq!(image.height, Emu::new(side));
     let pdf = render(std::slice::from_ref(scene), std::slice::from_ref(&font)).unwrap();

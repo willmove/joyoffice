@@ -8,7 +8,8 @@
 //! `wp:wrapSquare` stores a square exclusion. `wp:wrapTight` and
 //! `wp:wrapThrough` are only approximated: their contour polygon is not
 //! followed and they store the same square exclusion around the anchor extent.
-//! `wp:wrapTopAndBottom`, `behindDoc`, and non-page anchors stay preserved.
+//! `wp:wrapTopAndBottom` stores a vertical band (`distT` / `distB` only) and
+//! does not open a side gap. `behindDoc` and non-page anchors stay preserved.
 //! In every case the original wrap markup is what export writes back, since
 //! the drawing element is not registered
 //! as a fragment, so an unedited paragraph keeps its original XML on export.
@@ -20,8 +21,8 @@ use std::sync::Arc;
 use joyoffice_opc::Target;
 use joyword_model::{
     AnchorWrap, ImageAnchor, ImageLimits, ImageRefuse, InlineKind, InlineObject, MAX_IMAGE_BYTES,
-    Measure, RunProps, SourceRef, SquareWrap, StyleId, WrapSide, accept_image, display_extent,
-    extent_emu, page_anchor_wrap, square_wrap,
+    Measure, RunProps, SourceRef, SquareWrap, StyleId, TopBottomWrap, WrapSide, accept_image,
+    display_extent, extent_emu, page_anchor_wrap, square_wrap, top_bottom_wrap,
 };
 
 use crate::backing::PreservedReason;
@@ -327,9 +328,9 @@ fn anchor_only(element: &Element) -> bool {
         && find(element, WP, "inline").is_none()
 }
 
-/// Page-absolute `wp:wrapNone`, `wp:wrapSquare`, or `wp:wrapTight` /
-/// `wp:wrapThrough` approximated as a square, in front of the text. Anything
-/// else is kept.
+/// Page-absolute `wp:wrapNone`, `wp:wrapSquare`, `wp:wrapTopAndBottom`, or
+/// `wp:wrapTight` / `wp:wrapThrough` approximated as a square, in front of
+/// the text. Anything else is kept.
 fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
     let Some(anchor) = find(element, WP, "anchor") else {
         return Err(ImageOutcome::Malformed);
@@ -344,6 +345,8 @@ fn floating_anchor(element: &Element) -> Result<ImageAnchor, ImageOutcome> {
         AnchorWrap::Square(square_distances(wrap, anchor, false)?)
     } else if let Some(wrap) = contour {
         AnchorWrap::Square(square_distances(wrap, anchor, true)?)
+    } else if let Some(wrap) = anchor.child(WP, "wrapTopAndBottom") {
+        AnchorWrap::TopAndBottom(top_bottom_distances(wrap, anchor)?)
     } else if anchor.child(WP, "wrapNone").is_some() {
         AnchorWrap::None
     } else {
@@ -397,8 +400,9 @@ fn unsupported_wrap(anchor: &Element) -> bool {
     let modes = count_children(anchor, "wrapSquare")
         + count_children(anchor, "wrapNone")
         + count_children(anchor, "wrapTight")
-        + count_children(anchor, "wrapThrough");
-    count_children(anchor, "wrapTopAndBottom") > 0 || modes > 1
+        + count_children(anchor, "wrapThrough")
+        + count_children(anchor, "wrapTopAndBottom");
+    modes != 1
 }
 
 fn count_children(anchor: &Element, local: &str) -> usize {
@@ -436,6 +440,21 @@ fn square_distances(
     let left = distance(wrap, anchor, "distL")?;
     let right = distance(wrap, anchor, "distR")?;
     square_wrap(top, bottom, left, right, side).map_err(|error| match error {
+        ImageRefuse::OversizeDimension { .. } => ImageOutcome::Unsupported,
+        _ => ImageOutcome::Malformed,
+    })
+}
+
+/// Vertical band of `wp:wrapTopAndBottom`. Child elements and `wrapText`
+/// are not this slice: the element has no side and no contour. `distL` and
+/// `distR` are not read, so they do not open a gap beside the picture.
+fn top_bottom_distances(wrap: &Element, anchor: &Element) -> Result<TopBottomWrap, ImageOutcome> {
+    if wrap.elements().next().is_some() || wrap.attribute(None, "wrapText").is_some() {
+        return Err(ImageOutcome::Unsupported);
+    }
+    let top = distance(wrap, anchor, "distT")?;
+    let bottom = distance(wrap, anchor, "distB")?;
+    top_bottom_wrap(top, bottom).map_err(|error| match error {
         ImageRefuse::OversizeDimension { .. } => ImageOutcome::Unsupported,
         _ => ImageOutcome::Malformed,
     })

@@ -419,8 +419,8 @@ pub struct LayoutSnapshot {
     omitted_blocks: usize,
     stats: LayoutStats,
     limits: LayoutLimits,
-    /// Square exclusions committed on the page where their anchor line was
-    /// placed. Later body lines on that page avoid them.
+    /// Square and top-and-bottom exclusions committed on the page where their
+    /// anchor line was placed. Later body lines on that page avoid them.
     square_bands: Vec<crate::images::SquareBand>,
 }
 
