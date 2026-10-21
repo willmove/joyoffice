@@ -1,6 +1,6 @@
 # T103 代码覆盖引导 fuzz（2026-10-20）
 
-本文件是 DOCX 读取器 harness 的代码覆盖引导 fuzz 证据。生产 crate 树仍钉在 `9026d230e7e4d34349c3c4f5567f231b9f4d4c52`，本轮没有改 `crates/**`，也没有改生产行为。T103 仍是 `in_progress`：WPS 生成的样例和 Word／WPS 人工交换都不在本轮。
+本文件是 DOCX 读取器 harness 的代码覆盖引导 fuzz 证据。本轮（2026-10-20）活动时生产 crate 树钉在 `9026d230e7e4d34349c3c4f5567f231b9f4d4c52`，没有改 `crates/**`，也没有改生产行为。2026-10-21 起 [#71](https://github.com/willmove/joyoffice/pull/71)（`e8c47764`）不再使用固定提交锚点，改为绑定检出的 `crates/` 树 id（`git rev-parse HEAD:crates`）；本页数字仍是该次活动的记录，不是当前树的覆盖率。T103 仍是 `in_progress`：WPS 生成的样例和 Word／WPS 人工交换都不在本轮。
 
 ## 结论
 
