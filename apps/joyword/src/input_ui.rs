@@ -170,6 +170,8 @@ pub(crate) trait DocEditor {
     fn has_unsaved_changes(&self) -> bool;
     fn is_composing(&self) -> bool;
     fn version(&self) -> u64;
+    /// Last version marked written. Later edits stay unsaved.
+    fn saved_version(&self) -> u64;
     fn view(&self) -> &joyword_shell::input::InputView;
     fn can_undo(&self) -> bool;
     fn can_redo(&self) -> bool;
@@ -358,6 +360,9 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn version(&self) -> u64 {
         self.backend().version().get()
+    }
+    fn saved_version(&self) -> u64 {
+        TextInput::saved_version(self).get()
     }
     fn view(&self) -> &joyword_shell::input::InputView {
         TextInput::view(self)
@@ -564,6 +569,9 @@ impl DocEditor for TextInput<BoundDocx> {
     }
     fn version(&self) -> u64 {
         self.backend().session().session().version().get()
+    }
+    fn saved_version(&self) -> u64 {
+        TextInput::saved_version(self).get()
     }
     fn view(&self) -> &joyword_shell::input::InputView {
         TextInput::view(self)
@@ -800,6 +808,9 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn version(&self) -> u64 {
         self.backend().session().version().get()
+    }
+    fn saved_version(&self) -> u64 {
+        TextInput::saved_version(self).get()
     }
     fn view(&self) -> &joyword_shell::input::InputView {
         TextInput::view(self)
@@ -1170,6 +1181,46 @@ fn close_decision(answer: Option<usize>, expected: u64, current: u64) -> CloseDe
         CloseDecision::AskAgain
     } else {
         CloseDecision::Discard
+    }
+}
+
+/// Platform keystrokes during an open are kept for the document that will be
+/// accepted. They do not change the document still on screen.
+pub(crate) fn preserve_platform_text(opening: bool) -> bool {
+    opening
+}
+
+/// Message key for [`joyword_shell::host::close_prompt`]. Close and quit share it.
+pub(crate) fn close_prompt_key(prompt: joyword_shell::host::ClosePrompt) -> Option<&'static str> {
+    use joyword_shell::host::ClosePrompt;
+    match prompt {
+        ClosePrompt::Allow => None,
+        ClosePrompt::Unsaved { .. } => Some("close.unsaved"),
+        ClosePrompt::DirtyAfterSaveStart { .. } => Some("close.dirty_after_save"),
+    }
+}
+
+/// Version captured by a save that is writing for this editor epoch.
+/// Choosing a path or showing the original-save prompt is not in flight yet.
+pub(crate) fn in_flight_save_version(
+    epoch: u64,
+    copy: Option<CopyPhase>,
+    original: Option<OriginalSavePhase>,
+) -> Option<u64> {
+    let copy_version = match copy {
+        Some(CopyPhase::Writing(request)) if request.epoch == epoch => Some(request.version),
+        _ => None,
+    };
+    let original_version = match original {
+        Some(OriginalSavePhase::Writing(request)) if request.epoch == epoch => {
+            Some(request.version)
+        }
+        _ => None,
+    };
+    match (copy_version, original_version) {
+        (Some(left), Some(right)) => Some(left.min(right)),
+        (Some(version), None) | (None, Some(version)) => Some(version),
+        (None, None) => None,
     }
 }
 
@@ -1569,49 +1620,40 @@ async fn open_chosen_path(
         .background_spawn(async move { BoundDocx::open_default(&path) })
         .await;
     let _ = view.update(cx, |view, cx| {
-        if view.open_gate != Some(generation) {
-            view.open_gate = None;
+        let gate_matches = view.open_gate == Some(generation);
+        view.open_gate = None;
+        if !gate_matches {
             let _ = view.session.finish_open(generation);
             cx.notify();
             return;
         }
-        let buffered = match view.session.finish_open(generation) {
-            Ok(text) => text,
-            Err(error) => {
-                view.open_gate = None;
-                view.report_input_error(
-                    Catalog::shipped(view.locale)
-                        .format("file.open.error", &[("reason", &error.to_string())]),
-                );
-                cx.notify();
-                return;
-            }
-        };
-        view.open_gate = None;
         match opened {
-            Ok(bound) => match TextInput::new(bound, InputLimits::default()) {
-                Ok(mut input) => {
-                    if !buffered.is_empty()
-                        && let Err(error) =
-                            input.replace_from(InputSource::Command, None, &buffered)
-                    {
-                        view.report_input_error(view.label(input_error_label(&error)));
-                        cx.notify();
-                        return;
+            Ok(bound) => {
+                view.return_held_document();
+                match view.session.accept_bound(generation, bound) {
+                    Ok(()) => view.show_active_document(cx),
+                    Err(error) => {
+                        view.show_active_document(cx);
+                        view.report_input_error(
+                            Catalog::shipped(view.locale)
+                                .format("file.open.error", &[("reason", &error.to_string())]),
+                        );
                     }
-                    view.return_held_document();
-                    let _ = view.session.attach(input);
-                    view.show_active_document(cx);
                 }
-                Err(error) => {
-                    view.report_input_error(view.label(input_error_label(&error)));
-                }
-            },
+            }
             Err(error) => {
-                view.report_input_error(
-                    Catalog::shipped(view.locale)
-                        .format("file.open.error", &[("reason", &error.to_string())]),
-                );
+                let kept = match view.session.finish_open(generation) {
+                    Ok(buffered) => view.keep_open_keystrokes(&buffered),
+                    Err(_) => true,
+                };
+                if kept {
+                    view.report_input_error(
+                        Catalog::shipped(view.locale)
+                            .format("file.open.error", &[("reason", &error.to_string())]),
+                    );
+                } else {
+                    view.report_input_error(view.label("input.rejected"));
+                }
             }
         }
         cx.notify();
@@ -2276,6 +2318,23 @@ impl JoyWord {
         Catalog::shipped(self.locale).format(key, &[("reason", reason)])
     }
 
+    fn in_flight_save_version(&self) -> Option<u64> {
+        in_flight_save_version(self.copy_epoch, self.copy, self.original_save)
+    }
+
+    /// Put keystrokes from an open that failed onto the document still shown.
+    fn keep_open_keystrokes(&mut self, text: &str) -> bool {
+        if text.is_empty() {
+            return true;
+        }
+        if let Some(editor) = self.editor.as_mut() {
+            return editor
+                .replace_from(InputSource::Command, None, text)
+                .is_ok();
+        }
+        self.session.keep_unopened_keystrokes(text).is_ok()
+    }
+
     fn confirm_if_dirty(
         &mut self,
         then: AfterDiscard,
@@ -2286,14 +2345,30 @@ impl JoyWord {
             return;
         }
         self.cancel_preedit(cx);
-        let Some(editor) = self.editor.as_ref().filter(|e| e.has_unsaved_changes()) else {
+        // Close and quit both arrive here. A save that is still writing does
+        // not hide edits made after that save started.
+        let Some(editor) = self.editor.as_ref() else {
+            self.finish_discard(then, window, cx);
+            return;
+        };
+        let prompt = joyword_shell::host::close_prompt(
+            editor.saved_version(),
+            editor.version(),
+            self.in_flight_save_version(),
+        );
+        let Some(key) = close_prompt_key(prompt) else {
             self.finish_discard(then, window, cx);
             return;
         };
         let expected = editor.version();
         self.close_pending = true;
         let catalog = Catalog::shipped(self.locale);
-        let message = catalog.format("close.unsaved", &[("title", "JoyWord")]);
+        let message = match key {
+            "close.dirty_after_save" => {
+                catalog.format("close.dirty_after_save", &[("title", "JoyWord")])
+            }
+            _ => catalog.format("close.unsaved", &[("title", "JoyWord")]),
+        };
         let receiver = window.prompt(
             gpui::PromptLevel::Warning,
             &message,
@@ -2896,6 +2971,9 @@ impl JoyWord {
             return Availability::Enabled;
         }
         if self.open_gate.is_some() {
+            if id == EDIT_INSERT {
+                return Availability::Enabled;
+            }
             return Availability::Disabled("input.read_only");
         }
         let Some(editor) = &self.editor else {
@@ -3502,6 +3580,9 @@ impl JoyWord {
         if let Some(reason) = &self.input_error {
             return Catalog::shipped(self.locale).format("input.error", &[("reason", reason)]);
         }
+        if self.session.is_opening() || self.open_gate.is_some() {
+            return self.label("file.open.reading");
+        }
         if let Some(phase) = self
             .original_save
             .filter(|phase| phase.epoch() == self.copy_epoch)
@@ -3988,6 +4069,9 @@ impl EntityInputHandler for JoyWord {
         self.editor.as_ref()?.view().marked_range()
     }
     fn unmark_text(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if preserve_platform_text(self.session.is_opening()) {
+            return;
+        }
         self.apply_input(cx, |editor| editor.unmark().map(|_| ()));
         window.invalidate_character_coordinates();
     }
@@ -3998,6 +4082,10 @@ impl EntityInputHandler for JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if preserve_platform_text(self.session.is_opening()) {
+            let _ = self.session.type_during_open(text);
+            return;
+        }
         self.apply_input(cx, |e| e.replace(range, text).map(|_| ()));
         window.invalidate_character_coordinates();
     }
@@ -4009,6 +4097,10 @@ impl EntityInputHandler for JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if preserve_platform_text(self.session.is_opening()) {
+            let _ = self.session.type_during_open(text);
+            return;
+        }
         self.apply_input(cx, |e| e.mark(range, text, selected));
         window.invalidate_character_coordinates();
     }
@@ -4551,5 +4643,66 @@ mod tests {
         }
         assert_eq!(close_decision(Some(1), v, v), CloseDecision::Discard);
         assert_eq!(close_decision(Some(1), v, 5), CloseDecision::AskAgain);
+    }
+
+    #[test]
+    fn close_and_quit_share_the_dirty_after_save_prompt() {
+        use joyword_shell::host::{ClosePrompt, close_prompt};
+
+        let after = close_prompt(1, 4, Some(2));
+        assert_eq!(
+            after,
+            ClosePrompt::DirtyAfterSaveStart {
+                saving: 2,
+                current: 4
+            }
+        );
+        assert_eq!(close_prompt_key(after), Some("close.dirty_after_save"));
+        let in_flight = close_prompt(1, 2, Some(2));
+        assert_eq!(in_flight, ClosePrompt::Unsaved { version: 2 });
+        assert_eq!(close_prompt_key(in_flight), Some("close.unsaved"));
+        assert_eq!(close_prompt(2, 2, Some(2)), ClosePrompt::Allow);
+        assert_eq!(close_prompt_key(ClosePrompt::Allow), None);
+        assert_eq!(
+            close_prompt_key(close_prompt(1, 4, None)),
+            Some("close.unsaved")
+        );
+        assert!(preserve_platform_text(true));
+        assert!(!preserve_platform_text(false));
+    }
+
+    #[test]
+    fn only_a_writing_save_of_this_editor_counts_as_in_flight() {
+        let writing = CopyPhase::Writing(CopyRequest {
+            epoch: 3,
+            version: 8,
+        });
+        let original = OriginalSavePhase::Writing(OriginalRequest {
+            epoch: 3,
+            version: 5,
+            document: None,
+        });
+        assert_eq!(
+            in_flight_save_version(3, Some(writing), Some(original)),
+            Some(5)
+        );
+        assert_eq!(in_flight_save_version(3, Some(writing), None), Some(8));
+        assert_eq!(
+            in_flight_save_version(3, Some(CopyPhase::Picking(3)), None),
+            None
+        );
+        assert_eq!(
+            in_flight_save_version(
+                3,
+                None,
+                Some(OriginalSavePhase::Prompting(OriginalRequest {
+                    epoch: 3,
+                    version: 5,
+                    document: None,
+                }))
+            ),
+            None
+        );
+        assert_eq!(in_flight_save_version(9, Some(writing), None), None);
     }
 }

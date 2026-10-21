@@ -57,6 +57,33 @@ pub struct SaveTicket {
     destination: PathBuf,
 }
 
+/// Whether close or quit must ask before leaving a document.
+/// Close and quit share this decision.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ClosePrompt {
+    /// The current version is the one already marked saved.
+    Allow,
+    /// Unsaved edits. An in-flight save, if any, is of this same version and
+    /// has not landed, so the edits are not durable yet.
+    Unsaved { version: u64 },
+    /// A save of `saving` is still in flight, and the editor has moved on.
+    /// Those later edits are not in that save.
+    DirtyAfterSaveStart { saving: u64, current: u64 },
+}
+
+/// `saved` is the last version marked written. `current` is the editor version.
+/// `in_flight` is the version a background save already captured, if it has
+/// not landed. Close and quit both use this.
+pub fn close_prompt(saved: u64, current: u64, in_flight: Option<u64>) -> ClosePrompt {
+    if current == saved {
+        return ClosePrompt::Allow;
+    }
+    match in_flight {
+        Some(saving) if saving < current => ClosePrompt::DirtyAfterSaveStart { saving, current },
+        _ => ClosePrompt::Unsaved { version: current },
+    }
+}
+
 /// The shipped multi-document session. File and edit commands run here.
 pub struct Office {
     documents: Vec<Opened>,
@@ -345,6 +372,50 @@ impl Office {
                 .replace_from(InputSource::Command, None, &pending.buffered)
                 .map_err(input_error)?;
         }
+        Ok(())
+    }
+
+    /// Text typed while an open is in progress, still waiting for acceptance.
+    pub fn buffered_open_text(&self) -> Option<&str> {
+        self.opening
+            .as_ref()
+            .map(|pending| pending.buffered.as_str())
+    }
+
+    /// Install a package that was opened off the UI thread for `generation`.
+    /// Keystrokes buffered since [`Self::begin_open`] land in that document.
+    /// A stale generation keeps them on the document that is still current.
+    pub fn accept_bound(&mut self, generation: u64, bound: BoundDocx) -> Result<(), ExecuteError> {
+        let Some(pending) = self.opening.take() else {
+            return self.install_bound(bound, "");
+        };
+        if pending.generation != generation {
+            self.apply_buffered(&pending.buffered)?;
+            return Err(ExecuteError::Failed("stale open dropped".into()));
+        }
+        if let Err(error) = self.install_bound(bound, &pending.buffered) {
+            self.apply_buffered(&pending.buffered)?;
+            return Err(error);
+        }
+        Ok(())
+    }
+
+    /// Keep keystrokes from an open that did not install a document.
+    pub fn keep_unopened_keystrokes(&mut self, text: &str) -> Result<(), ExecuteError> {
+        self.apply_buffered(text)
+    }
+
+    fn install_bound(&mut self, bound: BoundDocx, buffered: &str) -> Result<(), ExecuteError> {
+        let mut input = TextInput::new(bound, InputLimits::default())
+            .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        input.set_revision_author(&self.revision_author);
+        self.note_import(input.backend().session().diagnostics());
+        if !buffered.is_empty() {
+            input
+                .replace_from(InputSource::Command, None, buffered)
+                .map_err(input_error)?;
+        }
+        self.attach(input);
         Ok(())
     }
 
@@ -689,6 +760,11 @@ impl CommandHost for Office {
         if matches!(id, FILE_EXPORT_PDF | FILE_PRINT) {
             return Availability::Disabled("file.export.unstable");
         }
+        // Keystrokes during open are kept. Every other document edit stays
+        // read-only until that open is accepted, even when no document is current.
+        if self.opening.is_some() && id == EDIT_INSERT {
+            return Availability::Enabled;
+        }
         if (matches!(
             id,
             FILE_SAVE
@@ -916,6 +992,10 @@ impl Office {
                 let Some(ArgValue::Text(text)) = args.get("text") else {
                     return Err(ExecuteError::Failed("text".into()));
                 };
+                if self.is_opening() {
+                    self.type_during_open(text).map_err(input_error)?;
+                    return Ok(());
+                }
                 self.require_active()?
                     .replace_from(InputSource::Command, None, text)
                     .map_err(input_error)?;
