@@ -56,10 +56,11 @@
 //! bookmarks/fields as annotations remain unmapped. An inline still picture
 //! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster
 //! part inside the image budget becomes an image resource. A page-absolute
-//! `wp:anchor` with `wp:wrapNone` or page-relative `wp:wrapSquare` in front
-//! of the text is placed on the page; other wrap modes, behind-document
-//! anchors, OLE, SVG and remote targets stay preserved and are not fetched
-//! or run.
+//! `wp:anchor` with `wp:wrapNone`, page-relative `wp:wrapSquare`, or
+//! page-relative `wp:wrapTopAndBottom` in front of the text is placed on the
+//! page. `wp:wrapTight` and `wp:wrapThrough` are approximated as that square.
+//! Behind-document anchors, non-page positions, OLE, SVG and remote targets
+//! stay preserved and are not fetched or run.
 //! Export does not rewrite media parts: a new image resource is refused.
 //! A simple `w:hyperlink` (`r:id` and/or `w:anchor`, runs of text and tabs)
 //! is mapped onto its runs. The external target is stored and never fetched.

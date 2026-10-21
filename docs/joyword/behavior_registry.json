@@ -316,7 +316,7 @@
     {
       "id": "IMAGE-ANCHOR-PAGE",
       "operation": "导入页面绝对、无绕排、位于文字前面的 wp:anchor 光栅",
-      "expectation": "在图片预算内成为带页面坐标的图片；wrapTopAndBottom、衬于文字下方、非页面位置和远程链接不进入资源，图片诊断不回显 URL；wrapTight、wrapThrough 另见 IMAGE-WRAP-TIGHT-APPROX",
+      "expectation": "在图片预算内成为带页面坐标的图片；衬于文字下方、非页面位置和远程链接不进入资源，图片诊断不回显 URL；wrapTight、wrapThrough 另见 IMAGE-WRAP-TIGHT-APPROX；wrapTopAndBottom 另见 IMAGE-WRAP-TOP-BOTTOM",
       "source": "hypothesis",
       "test": "a_page_anchor_imports_and_wrap_or_remote_targets_stay_preserved",
       "word_observation": null
@@ -359,6 +359,22 @@
       "expectation": "按锚点范围近似为方形绕排，不跟随 wp:wrapPolygon，不是轮廓绕排；段落不锁定，未编辑与编辑后保存都写回原绕排 XML",
       "source": "hypothesis",
       "test": "a_tight_or_through_wrap_is_approximated_as_a_square_and_its_markup_survives_an_edit",
+      "word_observation": null
+    },
+    {
+      "id": "IMAGE-WRAP-TOP-BOTTOM",
+      "operation": "导入页面相对、非负偏移、位于文字前面的 wp:wrapTopAndBottom 光栅",
+      "expectation": "在图片预算内成为带上下距离的页面坐标图片；distL 与 distR 不打开侧向空隙。未知子元素、wrapText、负距离、behindDoc、非页面相对、对齐、非零 effectExtent 和远程链接不进入资源，图片诊断不回显 URL。未编辑与只改后续段落的保存都写回原绕排 XML",
+      "source": "hypothesis",
+      "test": "a_wrap_top_and_bottom_page_anchor_imports_and_its_markup_survives_an_edit",
+      "word_observation": null
+    },
+    {
+      "id": "IMAGE-WRAP-TOP-BOTTOM-PLACE",
+      "operation": "把与上下型绕排垂直相交的正文行放到图片带下方",
+      "expectation": "带内没有字形；带上方与带下方的行都在版心左缘。同一矩形的 wrapSquare 仍把字形留在矩形外侧",
+      "source": "hypothesis",
+      "test": "a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside",
       "word_observation": null
     }
   ]
