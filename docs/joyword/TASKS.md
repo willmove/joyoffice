@@ -23,14 +23,14 @@
 | M0 | 3 | 3 | 0 | 0 | 6 |
 | M1 | 7 | 4 | 1 | 0 | 12 |
 | M2 | 2 | 9 | 1 | 0 | 12 |
-| M3 | 0 | 1 | 4 | 0 | 5 |
+| M3 | 0 | 2 | 3 | 0 | 5 |
 | M4 | 0 | 0 | 4 | 0 | 4 |
 | M5 | 0 | 0 | 5 | 0 | 5 |
 | M6 | 0 | 0 | 6 | 0 | 6 |
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 12 | 17 | 37 | 0 | 66 |
+| 总计 | 12 | 18 | 36 | 0 | 66 |
 
 **当前判断：项目处于 M0／M1 技术预览阶段。** T000、T002、T004（M0）与 T100、T101、T102、T105、T106、T108、T111（M1）已完成：中文输入（含系统 IME 与字素编辑）、基础格式、系统剪贴板、另存与重开、长文档滚动缩放等路径已有自动测试，并分别在 Windows 参考环境与 2026-10-18 Mac GUI 会话（用户在场＋屏幕自动核对）复验；Word 2024 与 WPS 12.1.29181 双固定参考环境已建立并读回核对（WPS 参考 PDF 因本机导出通道故障待补）。剩余：T001 的 Windows 腿与 cargo-deny 本机复核、T003 的 Retina／多显示器（硬件不具备）、T005 的信创真机专项（按 2026-10-18 用户决策为非阻塞待补验）、T109 的慢打开只读与保存中关闭提示、T110 的精确 ACL／命名流与非 NTFS／网络盘，以及 T103 的代码覆盖引导 fuzz（其行为特征语料扩展 fuzz 已在该任务 2026-10-19 专属会话交付，代码覆盖引导仍未完成）；M2 的 T200（样式继承解析、主题字体／颜色、可撤销的样式应用、多级编号与制表位、字素查找替换、格式刷、样式面板、`style.list`／`style.apply`／`list.apply`／`list.level`／`list.remove`／`find.next`／`find.replace`／`find.replace_all`／`format.copy`、样式指定与段落 numPr 导出，以及排版与段落缓存消费；按字体名换面、甲乙超过 10、中文计数超限、罗马数字超出 1..=3999、字母重复超过 64、bar／middleDot／heavy、编号部件改写、主题色文字和人工验收未做；项目符号、级别标签字号与粗体、字母超过 26、列表与制表位上的居中／右对齐／两端对齐、主题 tint／shade，以及表格样式的粗体、底纹和边框已在第四切片落地，全角半角折叠与正则查找已在查找折叠切片落地，正则替换的 `$1`..`$n` 与 `$$` 已在捕获组切片落地）、T201（合并与拆分、垂直合并的视觉跨行、跨页拆行、表头重复、表级边距、单元格 tcMar、nil／single／double／dotted／dashed／thick 边框、有主题时的主题色边框，以及百分比宽度和 fixed／autofit、单元格 vAlign、行 trHeight，以及表格属性对话框已落地；嵌套表、列宽拖拽、首列末列与纵向条纹的排版，以及合同表格人工验收未做）、T202（页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚的 PAGE／NUMPAGES／SECTIONPAGES、pgNumType、下一页／连续／奇偶分节和等宽分栏已落地，widowControl、页眉编辑、页面设置写回和图形界面验收未做）、T203（行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地；拖放与表格内超链接已落地并有自动测试；页面绝对 wrapNone 浮动图与页眉页脚行内图片已有自动测试，绕排与人工对照未做）、T204（文件菜单导出 PDF 与打印到文件消费屏幕已安装的同一 PageScene；标题、Producer、子集字体 ToUnicode、分节纸型、图像 XObject、标题样式书签，以及 http／https／mailto 的 URI 链接注释有自动测试；仅书签锚点不写成跳转；系统打印对话框未验证，UOS 上 qpdfview 与 WPS PDF 双阅读器已补验）、T205（功能区、状态栏、字体与段落对话框、标尺缩进与制表位拖拽、单线／双线／点线下划线与 sRGB 绘制、以及编辑标记／隐藏文字／域代码三个视图开关已落地；UOS 三开关与缩放已补验并修复一处栅格断言；Word 字数对话框对照、导航窗格、审阅栏和只用功能区完成报告排版的人工验收未做）、T207（有证据的测量已接入排版入口，人工对照未做）、T208（段落缓存与增量重排已接入编辑路径，百页首段／末段人工验收未做）、T209 撤销组（键入、IME 与粘贴已做 Windows GUI 分步撤销；拖动／自动更正／审阅模式边界未做）、T210（五个原创样例的 inspect／text／render／PDF 已有自动测试且两次输出逐字节相同，并已用 Windows GUI 的 DOCX-MIN-001 实际窗口与 CPU render 对照）已完成，T211（应用日志、panic hook 与测试 profile 已接入，2026-10-19 银河麒麟与统信 UOS `kill -9` 崩溃后日志完好且无正文泄漏的人工验收已执行）已完成；M3 的 T300 文字与移动修订第一切片进行中（简单页边标记、壳层命令、表格内修订和 Word／WPS 人工交换未做），其余 M3–M9 尚未开始，不能据此宣称 1.0 或完整 Word 兼容已完成。 2026-10-19 银河麒麟桌面版 V10 SP1（x86_64）真机会话补充验证并登记九项发现：工具链与 SwiftShader 软件渲染窗口启动、fmt／clippy／各 crate 测试通过（joyword-shell 2 项失败为本机 KYSEC 扩展属性与内核 5.4 mtime 粒度所致）、WPS 麒麟预装版打开 JoyWord 导出副本读回一致、kill -9 恢复与崩溃日志无泄漏（T211 据此完成）、CLI PDF 双独立阅读器读回一致、部分 GUI 人工验收通过；同时发现混合格式整画布拒绝（已由 `da5f192` 修复并复验）、功能区项目符号按钮缺 `bullet` 参数、X11 无菜单栏且 Ctrl+Shift+E 被 UKUI 全局快捷键抢占、文件打开对话框不出现与 Fcitx 未接入 GPUI X11，详见 [kylin_report.json](../../tests/fixtures/reference/kylin/kylin_report.json)。
 
@@ -41,6 +41,8 @@
 2026-10-20 文档核对：上面进度总览里有几处「未做」已被后续合并取代，任务状态和计数不改（仍是 12 done／17 in_progress／37 planned／0 blocked）。T201 的一层嵌套表和首列、末列、纵向条纹排版已有测试；仍未做列宽拖拽、更深嵌套、从样式部件读入这四条条件，以及合同表格人工验收。T202 的 widowControl、页眉编辑、页面设置写回、页眉页脚部件写回和不等宽分栏已有测试；仍未做图形界面验收、栏分隔线、`nextColumn`、章节页码和 Word 对照。T203 的页面相对 wrapSquare 已有测试；仍未做 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS／浏览器粘贴。T300 已超过第一切片：页边标记、审阅命令、单元格文字修订、成对移动和页眉页脚标记已有测试；Word／WPS 交换仍未做。T200 查找折叠切片里「`$1` 不展开」已被捕获组切片取代。没有任何 M2 或 M3 任务同时具备自动验证和人工验收，因此没有一项改为 `done`。原子准则见 [验收清单](acceptance/README.md)。本段里 T201「从样式部件读入这四条条件」和 T203 的 wrapTight／Through 两项，随后由 [#67](https://github.com/willmove/joyoffice/pull/67) 取代：前者已读入，后者近似为方形绕排（不是轮廓绕排），见下一段。
 
 2026-10-20 验证波次收口：五个验证切片已合入 main，分别是 S4 验收清单与功能指南（[#61](https://github.com/willmove/joyoffice/pull/61)，`1bae1231`）、S2 T103 覆盖引导 fuzz（[#62](https://github.com/willmove/joyoffice/pull/62)，`8a12e6dd`）、S5 场景无界面排练（[#63](https://github.com/willmove/joyoffice/pull/63)，`e615d308`）、S1 页面场景金样（[#64](https://github.com/willmove/joyoffice/pull/64)，`0c80d8bb`）和 S3 特性样例（[#65](https://github.com/willmove/joyoffice/pull/65)，`f0ccc659`）。证据见 [覆盖引导 fuzz](verification/t103-coverage-fuzz.md)、[场景排练](verification/scenario-rehearsals.md)、[页面场景金样](verification/golden-scenes.md)和[特性样例](verification/feature-fixtures.md)。这些都是自动证据，不是人工验收；任务状态和计数不改（仍是 12 done／17 in_progress／37 planned／0 blocked）。收口时验证文档报告的已知缺口，五条已由 [#67](https://github.com/willmove/joyoffice/pull/67)（main `caf84147`）修复：T201 样式部件里的首列、末列和纵向条纹条件现在读入模型；CPU 光栅接受编号加制表位或点线引导符的行；T300 的 `text` 投影不再输出删除和移出的文字；T203 的 `wrapTight`／`wrapThrough` 不再让排版拒绝、编辑导出不再返回 `Restricted`，但只按锚点范围近似为方形绕排，不是真正的轮廓绕排；T202 对已有正文段落插入页码后可以导出，但只限无行内对象段落里的无格式域，带格式域、超链接里的域和原有行内对象的段落仍拒绝。T203 四条图片关系另报 `not-imported` 的诊断不在 #67 范围内，已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复（资源已导入的图片关系不再另报，未消费的关系仍报告）。修复说明见 [验证波次缺口修复](verification/verify-wave-fixes.md)。这些仍是自动证据，任务状态和计数不改。收口记录与 main `f0ccc659` 上的整套 CI 等价复跑见 [IMPLEMENTATION](IMPLEMENTATION.md)「2026-10-20 验证波次收口」。
+
+2026-10-21 T302 第一切片开始：状态从 `planned` 改为 `in_progress`，计数改为 12 done／18 in_progress／36 planned／0 blocked。这一刀只有批注模型和 DOCX 导入导出的自动测试，没有 Word／WPS 人工交换，不标 `done`。见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ## 阶段与任务
 
@@ -469,14 +471,14 @@
 ### T302：批注线程与现代扩展
 
 - 输入：批注范围、正文、作者、回复及传统／现代批注规范样例。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`REVIEW-005`、`REVIEW-006`、`REVIEW-008`
 - 前置：`T100`、`T101`、`T103`
 - 产物：范围批注、回复、解决、重开、作者信息及现代扩展映射。
 - 错误路径：删除锚点、未知扩展、孤立回复和身份缺失可见，不静默丢批注。
 - 自动验证：范围变换、线程往返、解决／删除区别及未知 XML 保留。
 - 人工验收：跨段批注后移动或删除正文，交换 Word 并检查线程。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-21 第一切片进行中，任务不打勾，没有 Word／WPS 人工交换。类型化 `Comment` 进入 `AnnotationKind`：范围锚点、作者、日期、缩写、`w14:paraId`、回复的 `w15:paraIdParent`、`w15:done` 的解决与重开（解决不删除锚点）、`w16cid:durableId` 与 `w16cex:dateUtc`。导入依据 ECMA-376 Part 1 §17.13.4 与 [MS-DOCX] 的 commentsExtended、commentsIds、commentsExtensible。未知子元素和未匹配的 `commentEx` 保留；缺作者、孤立回复、不透明表格里的锚点保持可见并给出诊断，不把文档标成只读。导出不重写已有 `w:comment`：解决只就地改 `w15:done`，新批注才追加部件。删除锚点导出为 Detached 且不解决。引擎命令 `AddComment`、`ReplyComment`、`ResolveComment`、`ReopenComment` 可撤销；缺作者、孤立回复、未解决却重开、已解决再解决都会拒绝且文档不变。自动测试：`add_reply_resolve_and_reopen_are_undoable`、`deleting_the_range_detaches_and_does_not_resolve`、`resolving_does_not_detach`、`orphan_reply_missing_author_and_bad_reopen_leave_the_document_unchanged`、`range_comment_imports_author_date_and_cross_paragraph_ends`、`reply_thread_resolve_and_reopen_round_trip_keeps_unknown_xml`、`deleting_the_anchor_exports_detached_without_resolving`、`text_inserted_inside_a_range_stays_inside_after_export`、`orphan_reply_and_missing_author_stay_visible`、`opaque_table_comment_anchor_is_detached`、`a_new_comment_and_reply_are_written_back`。未做：图形界面气泡、people.xml 身份、commentsIds 与 commentsExtensible 对新回复的改写（这两部分保持原字节，新回复的 `durable_id` 为空）、不透明表格内的批注锚点映射、仍带范围标记的段落整段重写、页眉批注导出专项测试、Word／WPS 人工交换。见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ### T303：比较与合并
 

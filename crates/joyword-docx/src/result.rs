@@ -245,6 +245,45 @@ pub enum DiagnosticKind {
     MoveRange {
         name: String,
     },
+    /// `w:comment` has no `w:author`. The comment is kept.
+    CommentAuthorMissing {
+        id: u32,
+    },
+    /// A root comment has no range markers. The anchor is detached.
+    CommentAnchorMissing {
+        id: u32,
+    },
+    /// Range markers sit in markup this slice does not map, such as an
+    /// opaque table. The anchor is detached.
+    CommentAnchorUnmapped {
+        id: u32,
+    },
+    /// Markers are duplicated, reversed, split across stories, or a reply
+    /// cycle cannot be anchored.
+    CommentAnchorInvalid {
+        id: u32,
+    },
+    /// `w15:paraIdParent` names no comment. The reply is kept and detached.
+    OrphanReply {
+        para_id: String,
+    },
+    /// A `w15:commentEx` `paraId` matches no comment. The element is kept.
+    CommentExtensionUnmatched {
+        para_id: String,
+    },
+    /// A later `w:comment` reuses `w:id`. The first comment is kept.
+    CommentIdDuplicate {
+        id: u32,
+    },
+    /// A `w:comment` has no usable `w:id` and was not imported.
+    CommentIdMissing,
+    /// Comment markup is outside the shape this slice reads. The part bytes
+    /// are kept.
+    CommentPartInvalid,
+    /// A comment has no `w:p`. An empty paragraph was added.
+    CommentBodyEmpty {
+        id: u32,
+    },
 }
 
 /// What happened to one inline picture. Remote and active payloads are not

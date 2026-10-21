@@ -437,8 +437,8 @@ impl Validator<'_> {
         let document = self.document;
         for annotation in document.annotations() {
             self.id(annotation.id.get());
-            if let AnnotationKind::Comment { body } = annotation.kind {
-                self.story_ref(body, StoryKind::Comment);
+            if let AnnotationKind::Comment(comment) = &annotation.kind {
+                self.story_ref(comment.body, StoryKind::Comment);
             }
             let Anchor::Range { start, end } = &annotation.anchor else {
                 continue;
