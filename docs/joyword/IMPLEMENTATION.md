@@ -916,3 +916,12 @@ rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 
 - **回归**：`an_imported_image_relationship_is_consumed_and_unused_parts_stay_reported`、`an_inline_drawing_imports_the_raster_and_round_trips_beside_a_text_edit`、`a_remote_link_is_not_fetched_and_an_oversize_header_is_kept`（超宽内部图片仍报 `not-imported`）、`feature_fixtures_import_round_trip_and_keep_unknown_parts`。`DOCX-FEAT-T203-IMAGES` 的 inspect 黄金文件把 `diagnostics.reported` 从 4 改为 0，LF 行尾；`partial` 仍为真，因为 `omitted_objects` 为 4。
 - **W09**：本切片改了 `crates/`。harness 重锚到 `8268f62b7e3606db57baa6987914fc992bb5f1d3`（该提交的 `crates/` 含上述消费记账；随后只改 experiments 与文档，不放宽 `git diff <SHA> -- crates`）。本环境固定矩阵 smoke：81／81，43 ok、38 rejected，无 crash／timeout／invariant／protocol，`matrix_complete` 为真；地址空间限制探测 `enforced=true`。这仍不是覆盖引导 fuzz。独立锁无新包。
 - **未覆盖**：真正的轮廓绕排、wrapTopAndBottom、衬于文字下方、非页面相对位置、Word／WPS／浏览器粘贴。没有把 T203 标成 done。
+
+### 2026-10-21 W09 改为绑定检出的 `crates/` 树
+
+main 的 build 作业自 `c198425` 起在四个平台的「DOCX robustness experiment」一步失败，只改文档的 [#70](https://github.com/willmove/joyoffice/pull/70) 也被同一步阻塞。任务状态不改。
+
+- **根因**：W09 的 build.rs、driver.py 与 lib.rs 把生产目标固定为提交 `8268f62b`，要求 `git diff --quiet <SHA> -- crates` 成立。该提交是 #69 分支上的提交；#69 以 squash 合入为 `02046d9` 后分支被删除，检出里不再有这个对象（`fatal: bad object`，失败在 build.rs 断言）。`02046d9` 之所以通过，是因为当时分支仍在，`fetch-depth: 0` 还能取到它。随后 `c198425` 改了 `crates/` 而没有重锚，即使对象可取也会失败。README 记录过 82 个固定绑定，build.rs 在 main 上被改过 57 次，都依赖同一手工重锚机制。
+- **修复**：目标改为当前检出中已提交的 `crates/` 树，用 Git 树对象 id（`git rev-parse HEAD:crates`）标识。build.rs 把它嵌入 harness，`crates/` 有未提交或未跟踪的改动时拒绝构建；driver.py 在同样状态下拒绝运行，harness 报告的 `target_sha` 与当前树不同（过期二进制）时仍判为 `protocol`。树 id 按内容寻址，squash 合并、删分支和浅克隆都不影响，只改文档的提交不改变它（`8268f62b:crates` 与 `02046d9:crates` 同为 `45bff81`）。提交仍由摘要里的 `harness_git_sha` 记录。ci.yml 与 fuzz-nightly.yml 不再需要 `fetch-depth: 0`。
+- **验证**（Linux x86_64，Rust 1.98.1，`c198425` 之上）：实验 cargo test 3 项、fmt、clippy `-D warnings`，Python 驱动 26 项（跳过 1 项 Windows 专属）通过；固定矩阵 smoke 81／81，43 ok、38 rejected，`matrix_complete` 为真；CI 同参数 fuzz 200 次，46 ok、154 rejected，无 crash／timeout／invariant／protocol。反例：`crates/` 有未提交改动时 build.rs 拒绝构建，driver 以 64 退出；把期望树改成其他值时同一二进制的结果判为 `protocol`。
+- **未覆盖**：Windows 与 macOS 只由本 PR 的 CI 执行。这仍不是覆盖引导 fuzz；覆盖模式的 nightly 未在本机运行。
