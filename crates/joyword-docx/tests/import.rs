@@ -9,8 +9,9 @@ use joyword_docx::{
     ReadOnlyReason, Severity, import, plan_export,
 };
 use joyword_model::{
-    Block, BreakKind, BuiltinStyle, DEFAULT_COMPATIBILITY_MODE, DocGridKind, FontRef, InlineKind,
-    Measure, Orientation, Paragraph, Segment, Style, StyleId, StyleKind,
+    Block, BreakKind, BuiltinStyle, Color, DEFAULT_COMPATIBILITY_MODE, DocGridKind, FontRef,
+    InlineKind, Measure, Orientation, Paragraph, Segment, Style, StyleId, StyleKind,
+    ThemeColorSlot, apply_tint_shade,
 };
 use std::sync::Arc;
 
@@ -1790,6 +1791,84 @@ fn a_page_field_inserted_into_a_plain_paragraph_exports_and_round_trips() {
         refused.to_string().contains("formatted page field"),
         "{refused}"
     );
+}
+
+#[test]
+fn theme_colour_text_round_trips_when_the_run_is_rewritten() {
+    let theme = r#"<?xml version="1.0" encoding="UTF-8"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:themeElements><a:clrScheme name="Office"><a:accent1><a:srgbClr val="2E75B6"/></a:accent1></a:clrScheme><a:fontScheme name="Office"><a:majorFont><a:latin typeface="Calibri Light"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme></a:themeElements></a:theme>"#;
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/></Types>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/></Relationships>"#;
+    let document = document_xml("", "<w:p><w:r><w:t>甲</w:t></w:r></w:p>");
+    let bytes = archive(&[
+        ("[Content_Types].xml", types),
+        ("_rels/.rels", PACKAGE_RELS),
+        ("word/document.xml", &document),
+        ("word/_rels/document.xml.rels", rels),
+        ("word/theme/theme1.xml", theme),
+    ]);
+    let result = open(&bytes);
+    let color = Color::Theme {
+        slot: ThemeColorSlot::Accent1,
+        tint: Some(0x99),
+        shade: Some(0xBF),
+    };
+    let mut model = result.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        Arc::make_mut(paragraph)
+            .format_runs(
+                joyword_model::ScalarOffset(0)..joyword_model::ScalarOffset(1),
+                |props| props.color = Some(color),
+            )
+            .unwrap();
+    });
+    let plan = plan_export(&result.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default()).unwrap();
+    let xml = String::from_utf8(package.part("/word/document.xml").unwrap().data.to_vec()).unwrap();
+    let (red, green, blue) = apply_tint_shade(0x2E, 0x75, 0xB6, Some(0x99), Some(0xBF));
+    let val = format!("{red:02X}{green:02X}{blue:02X}");
+    assert!(xml.contains(&format!(r#"w:val="{val}""#)), "{xml}");
+    assert!(xml.contains(r#"w:themeColor="accent1""#), "{xml}");
+    assert!(xml.contains(r#"w:themeTint="99""#), "{xml}");
+    assert!(xml.contains(r#"w:themeShade="BF""#), "{xml}");
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(
+        saved
+            .document
+            .body()
+            .blocks
+            .iter()
+            .next()
+            .unwrap()
+            .as_paragraph()
+            .unwrap()
+            .runs()[0]
+            .props
+            .color,
+        Some(color)
+    );
+    assert_eq!(texts(&saved), vec!["甲".to_owned()]);
+
+    let plain = open(&body("<w:p><w:r><w:t>甲</w:t></w:r></w:p>"));
+    let mut model = plain.document.clone();
+    let body_id = model.body_id();
+    model.story_mut(body_id).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        Arc::make_mut(paragraph)
+            .format_runs(
+                joyword_model::ScalarOffset(0)..joyword_model::ScalarOffset(1),
+                |props| props.color = Some(Color::theme(ThemeColorSlot::Accent1)),
+            )
+            .unwrap();
+    });
+    let refused = plan_export(&plain.backing, &model.snapshot(), &Budget::default())
+        .expect_err("a theme colour with no scheme entry is not written");
+    assert!(refused.to_string().contains("theme colour"), "{refused}");
 }
 
 fn is_page_field(kind: &InlineKind, expected: joyword_model::PageFieldKind) -> bool {

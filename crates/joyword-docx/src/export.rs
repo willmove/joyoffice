@@ -294,6 +294,7 @@ fn plan_export_after_import(
         &source.backing,
         original,
         &[&root, body],
+        current.styles().theme().colors.clone(),
     );
     // Structural limits are reported before any text patch is attempted.
     let mut patches = Vec::new();
@@ -932,6 +933,7 @@ fn patch_paragraph(
             after_markers,
             &names,
             limit,
+            &styles.theme().colors,
         )?;
         patches.push((element.span.clone(), bytes));
         return Ok(());

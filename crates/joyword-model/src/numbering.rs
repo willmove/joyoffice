@@ -9,9 +9,10 @@
 //! Counter values follow the level's start and `lvlRestart`. The first use
 //! after a restart displays `start` (or `startOverride`). A `%n` reference
 //! to a level that has not been used displays that level's start and does
-//! not consume it. Formats outside the set this module can render, and
-//! values outside the range the specification's examples define, are
-//! errors: the label is never a guessed string.
+//! not consume it. Formats outside the set this module can render are
+//! errors. A label longer than [`LABEL_CHAR_BUDGET`] scalar values is
+//! [`NumberingProblem::Unrenderable`], as are non-positive letters, roman
+//! numerals and heavenly stems. The label is never a decimal fallback.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -346,7 +347,8 @@ pub enum NumberingProblem {
         num_id: u32,
         format: Arc<str>,
     },
-    /// The value is outside the range this slice renders.
+    /// Non-positive where the format has no glyph, or a label longer than
+    /// [`LABEL_CHAR_BUDGET`].
     Unrenderable {
         num_id: u32,
         value: i32,
@@ -620,13 +622,17 @@ fn render_format(
     }
 }
 
-/// Repeated-letter scheme from the numbering examples: 1 = a, 27 = aa, 54 = bbb.
-/// Repeats are capped so a huge `i32` stays [`NumberingProblem::Unrenderable`].
-const LETTER_REPEAT_MAX: i32 = 64;
+/// One numbering label may not exceed this many Unicode scalar values.
+///
+/// ECMA-376 §17.18.59 does not cap letter repeats or additive roman
+/// thousands. This bound keeps an untrusted `i32` counter from allocating
+/// a multi-megabyte label. It is a JoyWord input budget, not a clause.
+const LABEL_CHAR_BUDGET: usize = 256;
 
-/// Classical roman numerals. The specification example does not state an
-/// upper bound; values outside 1..=[`ROMAN_MAX`] stay unrenderable. This
-/// slice does not invent vinculum forms or `MMMM`.
+/// Largest value whose classical form repeats a symbol at most three times
+/// (`MMMCMXCIX`). Positive values above this keep the same additive table,
+/// so 4000 is `MMMM`, until the label would pass [`LABEL_CHAR_BUDGET`].
+/// Zero and negative values stay unrenderable. Vinculum forms are not used.
 pub const ROMAN_MAX: i32 = 3999;
 
 fn letter(value: i32, upper: bool) -> Option<String> {
@@ -635,16 +641,19 @@ fn letter(value: i32, upper: bool) -> Option<String> {
     }
     let index = (value - 1) % 26;
     let repeat = (value - 1) / 26 + 1;
-    if repeat > LETTER_REPEAT_MAX {
+    let base = if upper { b'A' } else { b'a' };
+    repeated(char::from(base + index as u8), repeat)
+}
+
+fn repeated(ch: char, repeat: i32) -> Option<String> {
+    if !(1..=LABEL_CHAR_BUDGET as i32).contains(&repeat) {
         return None;
     }
-    let base = if upper { b'A' } else { b'a' };
-    let ch = char::from(base + index as u8);
     Some(ch.to_string().repeat(repeat as usize))
 }
 
 fn roman(value: i32, upper: bool) -> Option<String> {
-    if !(1..=ROMAN_MAX).contains(&value) {
+    if value < 1 {
         return None;
     }
     const PARTS: [(i32, &str); 13] = [
@@ -666,6 +675,9 @@ fn roman(value: i32, upper: bool) -> Option<String> {
     let mut out = String::new();
     for (amount, glyph) in PARTS {
         while rest >= amount {
+            if out.len() + glyph.len() > LABEL_CHAR_BUDGET {
+                return None;
+            }
             out.push_str(glyph);
             rest -= amount;
         }
@@ -678,11 +690,18 @@ fn roman(value: i32, upper: bool) -> Option<String> {
 
 const IDEAGRAPH: [char; 10] = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
 
+/// Heavenly stems. The §17.18.59 example lists the ten stems and stops.
+/// Past 10 this repeats a stem the way the same clause's letter example
+/// repeats a letter: 11 is 甲甲, 12 is 乙乙, 21 is 甲甲甲. That continuation
+/// is a JoyWord assumption, not a sentence in the example, and not a Word
+/// observation. Zero and negative values stay unrenderable.
 fn ideograph(value: i32) -> Option<String> {
-    if !(1..=10).contains(&value) {
+    if value < 1 {
         return None;
     }
-    Some(IDEAGRAPH[(value as usize) - 1].to_string())
+    let index = (value - 1) % 10;
+    let repeat = (value - 1) / 10 + 1;
+    repeated(IDEAGRAPH[index as usize], repeat)
 }
 
 fn chinese_counting(value: i32) -> Option<String> {
@@ -697,28 +716,50 @@ fn chinese_legal_simplified(value: i32) -> Option<String> {
     chinese_group(value, &DIGITS, &UNITS, "万")
 }
 
-/// Chinese counting for 1..=99999. The specification's example is 一, 二, 三;
-/// values outside this range are not rendered. Tens from 10 to 19 omit the
-/// leading 一 only when 十 is the first character of the whole number.
+/// Chinese counting for every non-negative `i32`.
+///
+/// The §17.18.59 example is 一, 二, 三 and the place-value spellings already
+/// used through 万. This continues that grouping with 亿 so a positive `i32`
+/// fits. A skipped group, or a group whose thousands digit is 0, inserts one
+/// 零. Tens from 10 to 19 omit the leading 一 only when 十 is the first
+/// character of the whole number. The value 0 is the same 零 digit used
+/// between places, not a second code point. Negative values are not rendered.
 fn chinese_group(value: i32, digits: &[&str; 10], units: &[&str; 4], wan: &str) -> Option<String> {
-    if !(1..=99_999).contains(&value) {
+    if value < 0 {
         return None;
     }
+    if value == 0 {
+        return within_budget(digits[0].to_owned());
+    }
     let value = value as u32;
-    let high = value / 10_000;
-    let low = value % 10_000;
+    let groups = [
+        (value / 100_000_000, "亿"),
+        ((value % 100_000_000) / 10_000, wan),
+        (value % 10_000, ""),
+    ];
     let mut out = String::new();
-    if high > 0 {
-        out.push_str(digits[high as usize]);
-        out.push_str(wan);
-        if low > 0 && low < 1000 {
-            out.push_str(digits[0]);
+    let mut started = false;
+    let mut pending_zero = false;
+    for (group, unit) in groups {
+        if group == 0 {
+            if started {
+                pending_zero = true;
+            }
+            continue;
         }
+        if pending_zero || (started && group < 1000) {
+            out.push_str(digits[0]);
+            pending_zero = false;
+        }
+        out.push_str(&chinese_section(group, digits, units, !started));
+        out.push_str(unit);
+        started = true;
     }
-    if low > 0 {
-        out.push_str(&chinese_section(low, digits, units, high == 0));
-    }
-    Some(out)
+    within_budget(out)
+}
+
+fn within_budget(text: String) -> Option<String> {
+    (text.chars().count() <= LABEL_CHAR_BUDGET).then_some(text)
 }
 
 fn chinese_section(
@@ -889,28 +930,83 @@ mod tests {
         assert_eq!(render(legal.clone(), 10)?, "拾");
         assert_eq!(render(legal.clone(), 11)?, "拾壹");
         assert_eq!(render(legal.clone(), 20)?, "贰拾");
-        assert_eq!(render(legal, 101)?, "壹佰零壹");
-        assert!(render(counting.clone(), 0).is_err());
-        assert!(render(counting, 100_000).is_err());
+        assert_eq!(render(legal.clone(), 101)?, "壹佰零壹");
+        assert_eq!(render(counting.clone(), 0)?, "零");
+        assert_eq!(render(legal.clone(), 0)?, "零");
+        assert_eq!(render(counting.clone(), 100_000)?, "十万");
+        assert_eq!(render(counting.clone(), 100_010)?, "十万零一十");
+        assert_eq!(render(counting.clone(), 101_000)?, "十万一千");
+        assert_eq!(render(counting.clone(), 1_000_000)?, "一百万");
+        assert_eq!(render(counting.clone(), 100_000_000)?, "一亿");
+        assert_eq!(render(counting.clone(), 100_010_000)?, "一亿零一万");
+        assert_eq!(render(counting.clone(), 101_000_000)?, "一亿零一百万");
+        assert_eq!(render(counting.clone(), 100_000_001)?, "一亿零一");
+        assert_eq!(render(counting.clone(), 110_000_000)?, "一亿一千万");
+        assert_eq!(render(counting.clone(), 1_000_000_000)?, "十亿");
+        assert_eq!(
+            render(counting.clone(), 2_147_483_647)?,
+            "二十一亿四千七百四十八万三千六百四十七"
+        );
+        assert_eq!(render(legal.clone(), 100_000)?, "拾万");
+        assert_eq!(render(legal, 100_000_000)?, "壹亿");
+        assert!(render(counting, -1).is_err());
         Ok(())
     }
 
     #[test]
-    fn letters_roman_and_ideographs_stop_where_the_example_stops() -> Result<(), NumberingProblem> {
+    fn letters_roman_and_ideographs_follow_the_repeat_and_the_label_budget()
+    -> Result<(), NumberingProblem> {
         assert_eq!(render(NumberFormat::LowerLetter, 1)?, "a");
         assert_eq!(render(NumberFormat::LowerLetter, 26)?, "z");
         assert_eq!(render(NumberFormat::LowerLetter, 27)?, "aa");
         assert_eq!(render(NumberFormat::LowerLetter, 54)?, "bbb");
         assert_eq!(render(NumberFormat::UpperLetter, 27)?, "AA");
-        assert!(render(NumberFormat::LowerLetter, 26 * LETTER_REPEAT_MAX + 2).is_err());
+        assert_eq!(
+            render(NumberFormat::LowerLetter, 26 * 64 + 1)?,
+            "a".repeat(65)
+        );
+        assert_eq!(
+            render(
+                NumberFormat::LowerLetter,
+                26 * (LABEL_CHAR_BUDGET as i32 - 1) + 1
+            )?,
+            "a".repeat(LABEL_CHAR_BUDGET)
+        );
+        assert!(render(NumberFormat::LowerLetter, 26 * LABEL_CHAR_BUDGET as i32 + 1).is_err());
         assert_eq!(render(NumberFormat::UpperLetter, 2)?, "B");
+        assert!(render(NumberFormat::LowerLetter, 0).is_err());
         assert_eq!(render(NumberFormat::LowerRoman, 4)?, "iv");
         assert_eq!(render(NumberFormat::UpperRoman, 1994)?, "MCMXCIV");
         assert_eq!(render(NumberFormat::UpperRoman, ROMAN_MAX)?, "MMMCMXCIX");
-        assert!(render(NumberFormat::LowerRoman, ROMAN_MAX + 1).is_err());
+        assert_eq!(render(NumberFormat::LowerRoman, ROMAN_MAX + 1)?, "mmmm");
+        assert_eq!(render(NumberFormat::UpperRoman, 5000)?, "MMMMM");
+        assert_eq!(
+            render(NumberFormat::LowerRoman, 1000 * LABEL_CHAR_BUDGET as i32)?.len(),
+            LABEL_CHAR_BUDGET
+        );
+        assert!(
+            render(
+                NumberFormat::LowerRoman,
+                1000 * (LABEL_CHAR_BUDGET as i32 + 1)
+            )
+            .is_err()
+        );
+        assert!(render(NumberFormat::UpperRoman, 0).is_err());
+        assert!(render(NumberFormat::LowerRoman, -3).is_err());
         assert_eq!(render(NumberFormat::IdeographTraditional, 1)?, "甲");
         assert_eq!(render(NumberFormat::IdeographTraditional, 10)?, "癸");
-        assert!(render(NumberFormat::IdeographTraditional, 11).is_err());
+        assert_eq!(render(NumberFormat::IdeographTraditional, 11)?, "甲甲");
+        assert_eq!(render(NumberFormat::IdeographTraditional, 12)?, "乙乙");
+        assert_eq!(render(NumberFormat::IdeographTraditional, 20)?, "癸癸");
+        assert_eq!(render(NumberFormat::IdeographTraditional, 21)?, "甲甲甲");
+        assert!(render(NumberFormat::IdeographTraditional, 0).is_err());
+        assert!(
+            render(
+                NumberFormat::IdeographTraditional,
+                10 * LABEL_CHAR_BUDGET as i32 + 1
+            )
+            .is_err()
+        );
         assert!(matches!(
             render(NumberFormat::parse("ordinal"), 1),
             Err(NumberingProblem::UnsupportedFormat { .. })
