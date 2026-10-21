@@ -16,7 +16,9 @@ use joyword_shell::command::{
     TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use joyword_shell::docx::BoundDocx;
-use joyword_shell::input::{Direction, InputError, InputSource, InputView, TextInput};
+use joyword_shell::input::{
+    CaretUnit, Direction, InputError, InputSource, InputView, RunToggle, TextInput,
+};
 use joyword_shell::storage::SaveCopyReceipt;
 use std::ops::Range;
 
@@ -223,7 +225,6 @@ pub(crate) trait DocEditor {
     ) -> Result<joyword_shell::storage::SaveOriginalReceipt, String> {
         Err("file.save_original.unavailable".into())
     }
-    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError>;
     fn list_styles(&self) -> Vec<String>;
     fn apply_style(&mut self, style: &str) -> Result<bool, InputError>;
     fn apply_list(&mut self, num_id: u32) -> Result<bool, InputError>;
@@ -318,6 +319,33 @@ pub(crate) trait DocEditor {
     fn accept_all_revisions(&mut self) -> Result<bool, InputError>;
     fn reject_all_revisions(&mut self) -> Result<bool, InputError>;
     fn seal_review_boundary(&mut self);
+    fn move_by(
+        &mut self,
+        unit: CaretUnit,
+        direction: Direction,
+        extend: bool,
+    ) -> Result<(), InputError>;
+    fn delete_word(&mut self, direction: Direction) -> Result<bool, InputError>;
+    fn toggle_runs(&mut self, toggle: RunToggle) -> Result<bool, InputError>;
+}
+
+macro_rules! forward_word_keys {
+    () => {
+        fn move_by(
+            &mut self,
+            unit: CaretUnit,
+            direction: Direction,
+            extend: bool,
+        ) -> Result<(), InputError> {
+            TextInput::move_by(self, unit, direction, extend)
+        }
+        fn delete_word(&mut self, direction: Direction) -> Result<bool, InputError> {
+            TextInput::delete_word(self, direction)
+        }
+        fn toggle_runs(&mut self, toggle: RunToggle) -> Result<bool, InputError> {
+            TextInput::toggle_runs(self, toggle)
+        }
+    };
 }
 
 macro_rules! forward_review {
@@ -422,9 +450,6 @@ impl DocEditor for TextInput<joyword_engine::Session> {
     }
     fn save_copy(&self, _destination: &std::path::Path) -> Result<SaveCopyReceipt, String> {
         Err("file.save_copy.unavailable".into())
-    }
-    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
-        TextInput::format_runs(self, change)
     }
     fn list_styles(&self) -> Vec<String> {
         TextInput::list_styles(self)
@@ -553,6 +578,7 @@ impl DocEditor for TextInput<joyword_engine::Session> {
         TextInput::selected_text(self)
     }
     forward_review!();
+    forward_word_keys!();
 }
 
 impl DocEditor for TextInput<BoundDocx> {
@@ -650,9 +676,6 @@ impl DocEditor for TextInput<BoundDocx> {
         output: joyword_shell::docx::SaveOriginalJobOutput,
     ) -> Result<joyword_shell::storage::SaveOriginalReceipt, String> {
         TextInput::apply_original_save(self, output).map_err(|error| error.to_string())
-    }
-    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
-        TextInput::format_runs(self, change)
     }
     fn list_styles(&self) -> Vec<String> {
         TextInput::list_styles(self)
@@ -787,6 +810,7 @@ impl DocEditor for TextInput<BoundDocx> {
         Some(*self)
     }
     forward_review!();
+    forward_word_keys!();
 }
 
 /// A package session without a bound path (the startup sample): fully editable
@@ -880,9 +904,6 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn save_copy_job(&self) -> Option<joyword_shell::docx::SaveCopyJob> {
         Some(self.backend().save_copy_job())
-    }
-    fn format_runs(&mut self, change: joyword_engine::RunChange) -> Result<bool, InputError> {
-        TextInput::format_runs(self, change)
     }
     fn list_styles(&self) -> Vec<String> {
         TextInput::list_styles(self)
@@ -1014,6 +1035,7 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
         Some(self.backend().backing().original_bytes())
     }
     forward_review!();
+    forward_word_keys!();
 }
 
 /// A Save As copy in flight: the editor epoch it was taken from and the
@@ -1425,6 +1447,56 @@ fn local_emu(point: Point<Pixels>, page: Bounds<Pixels>, zoom: u16) -> (Emu, Emu
         Emu::new((f64::from(f32::from(point.y - page.origin.y)) * emu_per_px).round() as i64),
     )
 }
+/// Ctrl+arrow and Ctrl+Home/End moves, in the platform-neutral input.
+fn caret_move(id: CommandId) -> Option<(CaretUnit, Direction, bool)> {
+    use CaretUnit::{Document, Paragraph, Word};
+    use Direction::{Backward, Forward};
+    Some(match id {
+        EDIT_WORD_LEFT => (Word, Backward, false),
+        EDIT_WORD_RIGHT => (Word, Forward, false),
+        EDIT_EXTEND_WORD_LEFT => (Word, Backward, true),
+        EDIT_EXTEND_WORD_RIGHT => (Word, Forward, true),
+        EDIT_PARAGRAPH_UP => (Paragraph, Backward, false),
+        EDIT_PARAGRAPH_DOWN => (Paragraph, Forward, false),
+        EDIT_EXTEND_PARAGRAPH_UP => (Paragraph, Backward, true),
+        EDIT_EXTEND_PARAGRAPH_DOWN => (Paragraph, Forward, true),
+        EDIT_DOCUMENT_START => (Document, Backward, false),
+        EDIT_DOCUMENT_END => (Document, Forward, false),
+        EDIT_EXTEND_DOCUMENT_START => (Document, Backward, true),
+        EDIT_EXTEND_DOCUMENT_END => (Document, Forward, true),
+        _ => return None,
+    })
+}
+
+/// Page Up/Down: the laid-out line about one screen away from `from`, and
+/// the distance travelled. Moves at least one line while one remains.
+fn page_line(
+    from: usize,
+    count: usize,
+    up: bool,
+    screen: Pixels,
+    height: impl Fn(usize) -> Pixels,
+) -> (usize, Pixels) {
+    let mut at = from;
+    let mut travelled = px(0.0);
+    loop {
+        let next = if up {
+            at.checked_sub(1)
+        } else {
+            (at + 1 < count).then_some(at + 1)
+        };
+        let Some(next) = next else {
+            break;
+        };
+        travelled += height(at.min(next));
+        at = next;
+        if travelled >= screen {
+            break;
+        }
+    }
+    (at, travelled)
+}
+
 fn reveal_offset(
     viewport: Bounds<Pixels>,
     caret: Bounds<Pixels>,
@@ -2293,7 +2365,10 @@ impl JoyWord {
         let expected = editor.version();
         self.close_pending = true;
         let catalog = Catalog::shipped(self.locale);
-        let message = catalog.format("close.unsaved", &[("title", "JoyWord")]);
+        let title = self
+            .document_title()
+            .unwrap_or_else(|| "JoyWord".to_owned());
+        let message = catalog.format("close.unsaved", &[("title", &title)]);
         let receiver = window.prompt(
             gpui::PromptLevel::Warning,
             &message,
@@ -2908,14 +2983,40 @@ impl JoyWord {
             EDIT_REDO if !editor.can_redo() => Availability::Disabled("input.no_redo"),
             EDIT_REDO if editor.is_composing() => Availability::Disabled("input.composing"),
             EDIT_CANCEL if !editor.is_composing() => Availability::Disabled("input.no_composition"),
-            EDIT_UNDO | EDIT_REDO | EDIT_BACKSPACE | EDIT_DELETE | EDIT_ENTER | EDIT_BOLD
-            | EDIT_ITALIC | EDIT_ALIGN_CENTER | EDIT_PASTE | EDIT_INSERT | EDIT_INSERT_IMAGE
+            EDIT_UNDO
+            | EDIT_REDO
+            | EDIT_BACKSPACE
+            | EDIT_DELETE
+            | EDIT_DELETE_WORD_BACKWARD
+            | EDIT_DELETE_WORD_FORWARD
+            | EDIT_ENTER
+            | EDIT_BOLD
+            | EDIT_ITALIC
+            | EDIT_UNDERLINE
+            | EDIT_ALIGN_LEFT
+            | EDIT_ALIGN_CENTER
+            | EDIT_ALIGN_RIGHT
+            | EDIT_JUSTIFY
+            | EDIT_CUT
+            | EDIT_PASTE
+            | EDIT_INSERT
+            | EDIT_INSERT_IMAGE
                 if editor.read_only() =>
             {
                 Availability::Disabled("input.read_only")
             }
-            EDIT_UP | EDIT_DOWN | EDIT_EXTEND_UP | EDIT_EXTEND_DOWN | EDIT_HOME | EDIT_END
-            | EDIT_EXTEND_HOME | EDIT_EXTEND_END
+            EDIT_UP
+            | EDIT_DOWN
+            | EDIT_EXTEND_UP
+            | EDIT_EXTEND_DOWN
+            | EDIT_HOME
+            | EDIT_END
+            | EDIT_EXTEND_HOME
+            | EDIT_EXTEND_END
+            | EDIT_PAGE_UP
+            | EDIT_PAGE_DOWN
+            | EDIT_EXTEND_PAGE_UP
+            | EDIT_EXTEND_PAGE_DOWN
                 if self.ready_layout().is_none() =>
             {
                 Availability::Disabled("input.layout_pending")
@@ -3066,11 +3167,14 @@ impl JoyWord {
             }
             EDIT_ENTER => self.apply_input(cx, |editor| editor.replace(None, "\n").map(|_| ())),
             EDIT_CANCEL => self.apply_input(cx, |editor| editor.cancel_composition().map(|_| ())),
-            EDIT_BOLD => self.apply_input(cx, |editor| {
-                editor
-                    .format_runs(joyword_engine::RunChange::Bold(Some(true)))
-                    .map(|_| ())
-            }),
+            EDIT_BOLD | EDIT_ITALIC | EDIT_UNDERLINE => {
+                let toggle = match id {
+                    EDIT_BOLD => RunToggle::Bold,
+                    EDIT_ITALIC => RunToggle::Italic,
+                    _ => RunToggle::Underline,
+                };
+                self.apply_input(cx, |editor| editor.toggle_runs(toggle).map(|_| ()))
+            }
             STYLE_LIST => {
                 if let Some(editor) = self.editor.as_ref() {
                     let names = editor.list_styles();
@@ -3220,42 +3324,31 @@ impl JoyWord {
                     self.find_note = Some(note);
                 }
             }
-            EDIT_ITALIC => self.apply_input(cx, |editor| {
-                editor
-                    .format_runs(joyword_engine::RunChange::Italic(Some(true)))
-                    .map(|_| ())
-            }),
-            EDIT_ALIGN_CENTER => self.apply_input(cx, |editor| {
-                editor
-                    .format_paragraph(joyword_engine::ParagraphChange::Justification(Some(
-                        joyword_model::Justification::Center,
-                    )))
-                    .map(|_| ())
-            }),
+            EDIT_ALIGN_LEFT | EDIT_ALIGN_CENTER | EDIT_ALIGN_RIGHT | EDIT_JUSTIFY => {
+                let alignment = match id {
+                    EDIT_ALIGN_LEFT => joyword_model::Justification::Start,
+                    EDIT_ALIGN_CENTER => joyword_model::Justification::Center,
+                    EDIT_ALIGN_RIGHT => joyword_model::Justification::End,
+                    _ => joyword_model::Justification::Both,
+                };
+                self.apply_input(cx, |editor| {
+                    editor
+                        .format_paragraph(joyword_engine::ParagraphChange::Justification(Some(
+                            alignment,
+                        )))
+                        .map(|_| ())
+                })
+            }
             EDIT_COPY => {
-                if let Some(editor) = self.editor.as_ref() {
-                    if let Some(bytes) = editor.selected_image_bytes() {
-                        match clipboard_image_format(bytes.as_ref()) {
-                            Some(format) => {
-                                let image =
-                                    gpui::Image::from_bytes(format, bytes.as_ref().to_vec());
-                                cx.write_to_clipboard(gpui::ClipboardItem::new_image(&image));
-                            }
-                            None => self.input_error = Some(self.label("input.image")),
-                        }
-                    } else {
-                        match editor.selected_text() {
-                            Ok(text) => {
-                                cx.write_to_clipboard(gpui::ClipboardItem::new_string(
-                                    text.clone(),
-                                ));
-                                self.clipboard = text;
-                            }
-                            Err(error) => self.input_error = Some(error.to_string()),
-                        }
-                    }
-                } else {
-                    self.input_error = Some("input.loading".into());
+                self.copy_selection(cx);
+            }
+            EDIT_CUT => {
+                if self.copy_selection(cx) {
+                    self.apply_input(cx, |editor| {
+                        editor
+                            .replace_from(InputSource::Command, None, "")
+                            .map(|_| ())
+                    });
                 }
             }
             EDIT_INSERT => {
@@ -3352,8 +3445,40 @@ impl JoyWord {
                 let extend = id == EDIT_EXTEND_LEFT || id == EDIT_EXTEND_RIGHT;
                 self.apply_input(cx, |e| e.move_grapheme(direction, extend));
             }
-            EDIT_UP | EDIT_DOWN | EDIT_EXTEND_UP | EDIT_EXTEND_DOWN | EDIT_HOME | EDIT_END
-            | EDIT_EXTEND_HOME | EDIT_EXTEND_END => self.move_visual(id, cx),
+            EDIT_UP
+            | EDIT_DOWN
+            | EDIT_EXTEND_UP
+            | EDIT_EXTEND_DOWN
+            | EDIT_HOME
+            | EDIT_END
+            | EDIT_EXTEND_HOME
+            | EDIT_EXTEND_END
+            | EDIT_PAGE_UP
+            | EDIT_PAGE_DOWN
+            | EDIT_EXTEND_PAGE_UP
+            | EDIT_EXTEND_PAGE_DOWN => self.move_visual(id, cx),
+            EDIT_WORD_LEFT
+            | EDIT_WORD_RIGHT
+            | EDIT_EXTEND_WORD_LEFT
+            | EDIT_EXTEND_WORD_RIGHT
+            | EDIT_PARAGRAPH_UP
+            | EDIT_PARAGRAPH_DOWN
+            | EDIT_EXTEND_PARAGRAPH_UP
+            | EDIT_EXTEND_PARAGRAPH_DOWN
+            | EDIT_DOCUMENT_START
+            | EDIT_DOCUMENT_END
+            | EDIT_EXTEND_DOCUMENT_START
+            | EDIT_EXTEND_DOCUMENT_END => {
+                if let Some((unit, direction, extend)) = caret_move(id) {
+                    self.apply_input(cx, |editor| editor.move_by(unit, direction, extend));
+                }
+            }
+            EDIT_DELETE_WORD_BACKWARD => self.apply_input(cx, |editor| {
+                editor.delete_word(Direction::Backward).map(|_| ())
+            }),
+            EDIT_DELETE_WORD_FORWARD => self.apply_input(cx, |editor| {
+                editor.delete_word(Direction::Forward).map(|_| ())
+            }),
             TABLE_INSERT => {
                 let rows = table_axis(args, "rows")?;
                 let columns = table_axis(args, "columns")?;
@@ -3450,14 +3575,39 @@ impl JoyWord {
             return;
         };
         let lines = frame.layout.lines();
-        let vertical = matches!(id, EDIT_UP | EDIT_DOWN | EDIT_EXTEND_UP | EDIT_EXTEND_DOWN);
+        let paging = matches!(
+            id,
+            EDIT_PAGE_UP | EDIT_PAGE_DOWN | EDIT_EXTEND_PAGE_UP | EDIT_EXTEND_PAGE_DOWN
+        );
+        let vertical =
+            paging || matches!(id, EDIT_UP | EDIT_DOWN | EDIT_EXTEND_UP | EDIT_EXTEND_DOWN);
+        let up = matches!(
+            id,
+            EDIT_UP | EDIT_EXTEND_UP | EDIT_PAGE_UP | EDIT_EXTEND_PAGE_UP
+        );
         let extend = matches!(
             id,
-            EDIT_EXTEND_UP | EDIT_EXTEND_DOWN | EDIT_EXTEND_HOME | EDIT_EXTEND_END
+            EDIT_EXTEND_UP
+                | EDIT_EXTEND_DOWN
+                | EDIT_EXTEND_HOME
+                | EDIT_EXTEND_END
+                | EDIT_EXTEND_PAGE_UP
+                | EDIT_EXTEND_PAGE_DOWN
         );
         let x = self.preferred_x.unwrap_or(caret.x);
+        let mut travelled = px(0.0);
         let target = if vertical {
-            let j = if id == EDIT_UP || id == EDIT_EXTEND_UP {
+            let j = if paging {
+                let scale = self.scale();
+                let screen = self
+                    .viewport_bounds
+                    .map_or(px(0.0), |viewport| viewport.size.height);
+                let (j, distance) = page_line(i, lines.len(), up, screen, |k| {
+                    px(scale.logical_pixels(lines[k].height) as f32)
+                });
+                travelled = distance;
+                j
+            } else if up {
                 i.saturating_sub(1)
             } else {
                 (i + 1).min(lines.len() - 1)
@@ -3487,6 +3637,16 @@ impl JoyWord {
             })
         };
         if let Some(head) = target {
+            if paging && let Some(placement) = self.placement() {
+                let content = content_size(&frame.layout, placement.scale);
+                let mut offset = placement.offset;
+                offset.y += if up { travelled } else { -travelled };
+                offset.y = offset
+                    .y
+                    .max(-(content.height - placement.viewport.size.height).max(px(0.0)))
+                    .min(px(0.0));
+                self.scroll.set_offset(offset);
+            }
             self.apply_input(cx, |e| {
                 e.select_positions(Selection {
                     anchor: if extend { selection.anchor } else { head },
@@ -3495,6 +3655,37 @@ impl JoyWord {
             });
             if vertical {
                 self.preferred_x = Some(x);
+            }
+        }
+    }
+    /// Copies a non-empty selection to the system clipboard; an image
+    /// selection goes as an image. Returns whether anything was copied.
+    fn copy_selection(&mut self, cx: &mut Context<Self>) -> bool {
+        let Some(editor) = self.editor.as_ref() else {
+            self.input_error = Some("input.loading".into());
+            return false;
+        };
+        if editor.view().selected_range().0.is_empty() {
+            return false;
+        }
+        if let Some(bytes) = editor.selected_image_bytes() {
+            let Some(format) = clipboard_image_format(bytes.as_ref()) else {
+                self.input_error = Some(self.label("input.image"));
+                return false;
+            };
+            let image = gpui::Image::from_bytes(format, bytes.as_ref().to_vec());
+            cx.write_to_clipboard(gpui::ClipboardItem::new_image(&image));
+            return true;
+        }
+        match editor.selected_text() {
+            Ok(text) => {
+                cx.write_to_clipboard(gpui::ClipboardItem::new_string(text.clone()));
+                self.clipboard = text;
+                true
+            }
+            Err(error) => {
+                self.input_error = Some(error.to_string());
+                false
             }
         }
     }
@@ -4043,6 +4234,42 @@ impl EntityInputHandler for JoyWord {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn page_keys_move_about_one_screen_and_stop_at_the_ends() {
+        let heights = [px(20.0); 10];
+        let height = |k: usize| heights[k];
+        assert_eq!(page_line(0, 10, false, px(50.0), height), (3, px(60.0)));
+        assert_eq!(page_line(5, 10, true, px(50.0), height), (2, px(60.0)));
+        assert_eq!(page_line(8, 10, false, px(500.0), height), (9, px(20.0)));
+        assert_eq!(page_line(1, 10, true, px(500.0), height), (0, px(20.0)));
+        assert_eq!(page_line(9, 10, false, px(50.0), height), (9, px(0.0)));
+        assert_eq!(page_line(4, 10, false, px(0.0), height), (5, px(20.0)));
+    }
+
+    #[test]
+    fn every_word_unit_command_maps_to_one_caret_move() {
+        let ids = [
+            EDIT_WORD_LEFT,
+            EDIT_WORD_RIGHT,
+            EDIT_EXTEND_WORD_LEFT,
+            EDIT_EXTEND_WORD_RIGHT,
+            EDIT_PARAGRAPH_UP,
+            EDIT_PARAGRAPH_DOWN,
+            EDIT_EXTEND_PARAGRAPH_UP,
+            EDIT_EXTEND_PARAGRAPH_DOWN,
+            EDIT_DOCUMENT_START,
+            EDIT_DOCUMENT_END,
+            EDIT_EXTEND_DOCUMENT_START,
+            EDIT_EXTEND_DOCUMENT_END,
+        ];
+        let moves: Vec<_> = ids.iter().filter_map(|id| caret_move(*id)).collect();
+        assert_eq!(moves.len(), ids.len());
+        for (i, a) in moves.iter().enumerate() {
+            assert!(!moves[i + 1..].contains(a), "{} repeats a move", ids[i]);
+        }
+        assert_eq!(caret_move(EDIT_LEFT), None);
+    }
 
     #[test]
     fn ribbon_bullet_reaches_the_document_without_num() {
