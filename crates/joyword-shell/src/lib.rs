@@ -22,3 +22,7 @@ pub mod storage;
 
 pub mod input;
 pub mod rich_paste;
+
+/// AI toggle. Absent unless the crate is built with `--features ai`.
+#[cfg(feature = "ai")]
+pub mod ai;

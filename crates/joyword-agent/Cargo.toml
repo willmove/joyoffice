@@ -1,0 +1,20 @@
+[package]
+name = "joyword-agent"
+description = "JoyWord AI foundation: default-off gate, provider contract, and policy hooks (T400)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+# No default features. This crate does not link a socket client or a model
+# runtime. CI runs it as a normal workspace member; core crates do not depend
+# on it. See docs/joyword/AI.md §5.
+default = []
+
+[dependencies]
+
+[lints]
+workspace = true

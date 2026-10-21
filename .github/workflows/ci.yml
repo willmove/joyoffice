@@ -50,6 +50,13 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Headless crate tests (default workspace members)
         run: cargo test --locked
+      - name: AI off by default (T400)
+        run: |
+          cargo test -p joyword-agent --locked --offline
+          cargo test -p joyword-shell --features ai --locked --offline --test ai_toggle
+          cargo check -p joyword-engine -p joyword-model -p joyword-docx -p joyword-layout -p joyword-shell --locked --offline --no-default-features
+          cargo clippy -p joyword-agent --all-targets --locked --offline -- -D warnings
+          cargo clippy -p joyword-shell --all-targets --features ai --locked --offline -- -D warnings
       - name: Lints
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Headless application adapter tests

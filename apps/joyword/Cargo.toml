@@ -12,6 +12,9 @@ default = []
 # Development-only escape hatch for macOS machines without the Metal compiler.
 # Release validation must also build without this feature using full Xcode.
 dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
+# Opt-in AI toggle. Off unless requested, so `--no-default-features` and the
+# default build keep the editor free of the provider runtime.
+ai = ["joyword-shell/ai"]
 
 [dependencies]
 gpui.workspace = true

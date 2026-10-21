@@ -27,6 +27,9 @@ LAYERS = {
         "joyword-render",
     },
     "joyword-foundation": set(),
+    # T400: no document, engine, or network crate. Core crates must not depend
+    # on it; shell may, only as an optional non-default feature.
+    "joyword-agent": set(),
     "joyword-model": {"joyword-foundation"},
     "joyword-engine": {"joyword-model", "joyword-foundation"},
     "joyoffice-opc": set(),
@@ -37,6 +40,7 @@ LAYERS = {
     "joyword-corpus": {"joyoffice-opc"},
     "joyword-shell": {
         "joyoffice-opc",
+        "joyword-agent",
         "joyword-docx",
         "joyword-engine",
         "joyword-model",
@@ -79,6 +83,24 @@ PANIC_RE = re.compile(
 )
 FS_RE = re.compile(r"\b(?:std::fs::|fs::(?:read|write|create_dir|remove_file|rename|copy|metadata|File::))")
 DEP_RE = re.compile(r"^([A-Za-z0-9_-]+)\s*=")
+# T400: the agent crate must not grow a socket client. Comments should not
+# name these crates either; the scan is textual on purpose.
+AI_NET_RE = re.compile(
+    r"\b(?:std::net::|TcpStream|UdpSocket|reqwest::|hyper::|ureq::|tokio::net)\b"
+)
+CORE_WITHOUT_AGENT = (
+    "crates/joyword-foundation/Cargo.toml",
+    "crates/joyword-model/Cargo.toml",
+    "crates/joyword-engine/Cargo.toml",
+    "crates/joyword-docx/Cargo.toml",
+    "crates/joyword-layout/Cargo.toml",
+    "crates/joyword-pdf/Cargo.toml",
+    "crates/joyword-render/Cargo.toml",
+    "crates/joyoffice-opc/Cargo.toml",
+    "crates/joyword-corpus/Cargo.toml",
+    "apps/joyword-cli/Cargo.toml",
+    "apps/joyword/Cargo.toml",
+)
 
 
 def crate_name(path: Path) -> str | None:
@@ -231,6 +253,37 @@ def manifest_layer_problems(text: str) -> list[str]:
     return layer_violations(name, deps)
 
 
+def check_ai_isolation(root: Path = ROOT) -> list[str]:
+    """Core crates stay free of the agent, and the agent stays free of sockets."""
+    errors = []
+    for rel in CORE_WITHOUT_AGENT:
+        text = (root / rel).read_text(encoding="utf-8")
+        if "joyword-agent" in text:
+            errors.append(f"{rel} must not reference joyword-agent")
+    shell = (root / "crates/joyword-shell/Cargo.toml").read_text(encoding="utf-8")
+    if "optional = true" not in shell or "joyword-agent" not in shell:
+        errors.append("joyword-shell must depend on joyword-agent only as an optional crate")
+    default = re.search(r"(?m)^default\s*=\s*\[([^\]]*)\]", shell)
+    if default is None or "ai" in default.group(1):
+        errors.append("joyword-shell must not enable the ai feature by default")
+    app = (root / "apps/joyword/Cargo.toml").read_text(encoding="utf-8")
+    app_default = re.search(r"(?m)^default\s*=\s*\[([^\]]*)\]", app)
+    if app_default is None or "ai" in app_default.group(1):
+        errors.append("joyword must not enable the ai feature by default")
+    agent_src = root / "crates/joyword-agent"
+    if not agent_src.is_dir():
+        errors.append("joyword-agent crate is missing")
+        return errors
+    manifest = (agent_src / "Cargo.toml").read_text(encoding="utf-8")
+    if AI_NET_RE.search(manifest):
+        errors.append("joyword-agent Cargo.toml names a network client")
+    for path in (agent_src / "src").rglob("*.rs"):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if AI_NET_RE.search(text):
+            errors.append(f"network client reference in {rel(path, root)}")
+    return errors
+
+
 def counterexample(path: Path) -> list[str]:
     """Run ``check_layers``, ``check_filesystem`` and ``check_panic`` on a
     throwaway crate. A stubbed guard returns no findings and this command
@@ -285,6 +338,7 @@ def main() -> int:
     errors = []
     errors.extend(check_layers())
     errors.extend(check_filesystem())
+    errors.extend(check_ai_isolation())
     errors.extend(check_panic(ROOT / "scripts" / "panic_baseline.txt"))
     if errors:
         print("\n".join(errors))
