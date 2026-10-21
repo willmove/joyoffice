@@ -499,7 +499,9 @@ fn a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside(
     let side = 48 * Emu::PER_POINT;
     let dist_t = 6 * Emu::PER_POINT;
     let dist_b = 6 * Emu::PER_POINT;
-    let text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".repeat(6);
+    // Spaces are break opportunities. A single unspaced run stays one line
+    // and never reaches the band.
+    let text = "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp ".repeat(8);
     let laid = layout(&square_page(
         &text,
         AnchorWrap::TopAndBottom(TopBottomWrap {
