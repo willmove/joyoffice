@@ -11,8 +11,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use joyword_shell::command::{
-    CommandId, EDIT_COPY, EDIT_PASTE, EDIT_REDO, EDIT_UNDO, FILE_EXPORT_PDF, FILE_OPEN, FILE_SAVE,
-    FILE_SAVE_COPY,
+    CommandId, EDIT_COPY, EDIT_CUT, EDIT_PASTE, EDIT_REDO, EDIT_UNDO, FILE_EXPORT_PDF, FILE_OPEN,
+    FILE_SAVE, FILE_SAVE_COPY,
 };
 
 /// File commands, then Edit commands. The window bar splits at index 4.
@@ -23,6 +23,7 @@ pub(crate) const LINUX_BAR: &[CommandId] = &[
     FILE_EXPORT_PDF,
     EDIT_UNDO,
     EDIT_REDO,
+    EDIT_CUT,
     EDIT_COPY,
     EDIT_PASTE,
 ];
@@ -248,7 +249,7 @@ mod tests {
         );
         assert_eq!(
             &LINUX_BAR[4..],
-            &[EDIT_UNDO, EDIT_REDO, EDIT_COPY, EDIT_PASTE]
+            &[EDIT_UNDO, EDIT_REDO, EDIT_CUT, EDIT_COPY, EDIT_PASTE]
         );
     }
 

@@ -111,6 +111,9 @@ pub struct Shortcut {
     /// Extra Linux chord. `other` stays the primary, so Windows is unchanged
     /// and desktops that deliver the primary still receive it.
     linux_alternate: Option<&'static str>,
+    /// `other` is bound on Windows only, because Linux already gives that
+    /// chord to another command.
+    windows_only: bool,
 }
 
 impl Shortcut {
@@ -118,13 +121,15 @@ impl Shortcut {
         mac: None,
         other: None,
         linux_alternate: None,
+        windows_only: false,
     };
 
-    const fn primary(mac: &'static str, other: &'static str) -> Self {
+    pub(crate) const fn primary(mac: &'static str, other: &'static str) -> Self {
         Shortcut {
             mac: Some(mac),
             other: Some(other),
             linux_alternate: None,
+            windows_only: false,
         }
     }
 
@@ -133,9 +138,15 @@ impl Shortcut {
         self
     }
 
+    const fn windows_only(mut self) -> Self {
+        self.windows_only = true;
+        self
+    }
+
     pub fn for_platform(self, platform: Platform) -> Option<&'static str> {
         match platform {
             Platform::MacOs => self.mac,
+            Platform::Linux if self.windows_only => None,
             Platform::Windows | Platform::Linux => self.other,
         }
     }
@@ -505,10 +516,33 @@ pub const EDIT_HOME: CommandId = CommandId("edit.line_start");
 pub const EDIT_END: CommandId = CommandId("edit.line_end");
 pub const EDIT_EXTEND_HOME: CommandId = CommandId("edit.extend_line_start");
 pub const EDIT_EXTEND_END: CommandId = CommandId("edit.extend_line_end");
+pub const EDIT_WORD_LEFT: CommandId = CommandId("edit.word_left");
+pub const EDIT_WORD_RIGHT: CommandId = CommandId("edit.word_right");
+pub const EDIT_EXTEND_WORD_LEFT: CommandId = CommandId("edit.extend_word_left");
+pub const EDIT_EXTEND_WORD_RIGHT: CommandId = CommandId("edit.extend_word_right");
+pub const EDIT_PARAGRAPH_UP: CommandId = CommandId("edit.paragraph_up");
+pub const EDIT_PARAGRAPH_DOWN: CommandId = CommandId("edit.paragraph_down");
+pub const EDIT_EXTEND_PARAGRAPH_UP: CommandId = CommandId("edit.extend_paragraph_up");
+pub const EDIT_EXTEND_PARAGRAPH_DOWN: CommandId = CommandId("edit.extend_paragraph_down");
+pub const EDIT_DOCUMENT_START: CommandId = CommandId("edit.document_start");
+pub const EDIT_DOCUMENT_END: CommandId = CommandId("edit.document_end");
+pub const EDIT_EXTEND_DOCUMENT_START: CommandId = CommandId("edit.extend_document_start");
+pub const EDIT_EXTEND_DOCUMENT_END: CommandId = CommandId("edit.extend_document_end");
+pub const EDIT_PAGE_UP: CommandId = CommandId("edit.page_up");
+pub const EDIT_PAGE_DOWN: CommandId = CommandId("edit.page_down");
+pub const EDIT_EXTEND_PAGE_UP: CommandId = CommandId("edit.extend_page_up");
+pub const EDIT_EXTEND_PAGE_DOWN: CommandId = CommandId("edit.extend_page_down");
+pub const EDIT_DELETE_WORD_BACKWARD: CommandId = CommandId("edit.delete_word_backward");
+pub const EDIT_DELETE_WORD_FORWARD: CommandId = CommandId("edit.delete_word_forward");
 pub const EDIT_CANCEL: CommandId = CommandId("edit.cancel_composition");
 pub const EDIT_BOLD: CommandId = CommandId("edit.bold");
 pub const EDIT_ITALIC: CommandId = CommandId("edit.italic");
+pub const EDIT_UNDERLINE: CommandId = CommandId("edit.underline");
+pub const EDIT_ALIGN_LEFT: CommandId = CommandId("edit.align_left");
 pub const EDIT_ALIGN_CENTER: CommandId = CommandId("edit.align_center");
+pub const EDIT_ALIGN_RIGHT: CommandId = CommandId("edit.align_right");
+pub const EDIT_JUSTIFY: CommandId = CommandId("edit.justify");
+pub const EDIT_CUT: CommandId = CommandId("edit.cut");
 pub const EDIT_COPY: CommandId = CommandId("edit.copy");
 pub const EDIT_PASTE: CommandId = CommandId("edit.paste");
 pub const EDIT_INSERT: CommandId = CommandId("edit.insert");
@@ -575,6 +609,20 @@ impl Registry {
                 menu: MenuKind::View,
                 group,
             })
+        };
+        let edit = |group| {
+            Some(MenuPlacement {
+                menu: MenuKind::Edit,
+                group,
+            })
+        };
+        let key = |id, label, shortcut| CommandSpec {
+            id,
+            label,
+            menu: None,
+            shortcut,
+            modifies_document: false,
+            parameters: &[],
         };
         let mut commands = vec![
             CommandSpec {
@@ -702,17 +750,6 @@ impl Registry {
                 parameters: &[],
             },
             CommandSpec {
-                id: EDIT_SELECT_ALL,
-                label: "command.edit.select_all",
-                menu: Some(MenuPlacement {
-                    menu: MenuKind::Edit,
-                    group: 1,
-                }),
-                shortcut: Shortcut::primary("cmd-a", "ctrl-a"),
-                modifies_document: false,
-                parameters: &[],
-            },
-            CommandSpec {
                 id: EDIT_BACKSPACE,
                 label: "command.edit.backspace",
                 menu: None,
@@ -832,6 +869,104 @@ impl Registry {
                 modifies_document: false,
                 parameters: &[],
             },
+            // macOS keeps its own text conventions: Option moves by word and
+            // paragraph, Command+Up/Down reaches the document edges.
+            key(
+                EDIT_WORD_LEFT,
+                "command.edit.word_left",
+                Shortcut::primary("alt-left", "ctrl-left"),
+            ),
+            key(
+                EDIT_WORD_RIGHT,
+                "command.edit.word_right",
+                Shortcut::primary("alt-right", "ctrl-right"),
+            ),
+            key(
+                EDIT_EXTEND_WORD_LEFT,
+                "command.edit.extend_word_left",
+                Shortcut::primary("alt-shift-left", "ctrl-shift-left"),
+            ),
+            key(
+                EDIT_EXTEND_WORD_RIGHT,
+                "command.edit.extend_word_right",
+                Shortcut::primary("alt-shift-right", "ctrl-shift-right"),
+            ),
+            key(
+                EDIT_PARAGRAPH_UP,
+                "command.edit.paragraph_up",
+                Shortcut::primary("alt-up", "ctrl-up"),
+            ),
+            key(
+                EDIT_PARAGRAPH_DOWN,
+                "command.edit.paragraph_down",
+                Shortcut::primary("alt-down", "ctrl-down"),
+            ),
+            key(
+                EDIT_EXTEND_PARAGRAPH_UP,
+                "command.edit.extend_paragraph_up",
+                Shortcut::primary("alt-shift-up", "ctrl-shift-up"),
+            ),
+            key(
+                EDIT_EXTEND_PARAGRAPH_DOWN,
+                "command.edit.extend_paragraph_down",
+                Shortcut::primary("alt-shift-down", "ctrl-shift-down"),
+            ),
+            key(
+                EDIT_DOCUMENT_START,
+                "command.edit.document_start",
+                Shortcut::primary("cmd-up", "ctrl-home"),
+            ),
+            key(
+                EDIT_DOCUMENT_END,
+                "command.edit.document_end",
+                Shortcut::primary("cmd-down", "ctrl-end"),
+            ),
+            key(
+                EDIT_EXTEND_DOCUMENT_START,
+                "command.edit.extend_document_start",
+                Shortcut::primary("cmd-shift-up", "ctrl-shift-home"),
+            ),
+            key(
+                EDIT_EXTEND_DOCUMENT_END,
+                "command.edit.extend_document_end",
+                Shortcut::primary("cmd-shift-down", "ctrl-shift-end"),
+            ),
+            key(
+                EDIT_PAGE_UP,
+                "command.edit.page_up",
+                Shortcut::primary("pageup", "pageup"),
+            ),
+            key(
+                EDIT_PAGE_DOWN,
+                "command.edit.page_down",
+                Shortcut::primary("pagedown", "pagedown"),
+            ),
+            key(
+                EDIT_EXTEND_PAGE_UP,
+                "command.edit.extend_page_up",
+                Shortcut::primary("shift-pageup", "shift-pageup"),
+            ),
+            key(
+                EDIT_EXTEND_PAGE_DOWN,
+                "command.edit.extend_page_down",
+                Shortcut::primary("shift-pagedown", "shift-pagedown"),
+            ),
+            CommandSpec {
+                id: EDIT_DELETE_WORD_BACKWARD,
+                label: "command.edit.delete_word_backward",
+                menu: None,
+                shortcut: Shortcut::primary("alt-backspace", "ctrl-backspace"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_DELETE_WORD_FORWARD,
+                label: "command.edit.delete_word_forward",
+                menu: None,
+                shortcut: Shortcut::primary("alt-delete", "ctrl-delete"),
+                modifies_document: true,
+                parameters: &[],
+            },
             CommandSpec {
                 id: EDIT_CANCEL,
                 label: "command.edit.cancel_composition",
@@ -863,13 +998,52 @@ impl Registry {
                 parameters: &[],
             },
             CommandSpec {
+                id: EDIT_UNDERLINE,
+                label: "command.edit.underline",
+                menu: edit(2),
+                shortcut: Shortcut::primary("cmd-u", "ctrl-u"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_ALIGN_LEFT,
+                label: "command.edit.align_left",
+                menu: edit(2),
+                shortcut: Shortcut::primary("cmd-l", "ctrl-l"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            // Linux gives ctrl-e to PDF export (UKUI grabs ctrl-shift-e), so
+            // centering keeps its Word chord on Windows and macOS only.
+            CommandSpec {
                 id: EDIT_ALIGN_CENTER,
                 label: "command.edit.align_center",
-                menu: Some(MenuPlacement {
-                    menu: MenuKind::Edit,
-                    group: 2,
-                }),
-                shortcut: Shortcut::NONE,
+                menu: edit(2),
+                shortcut: Shortcut::primary("cmd-e", "ctrl-e").windows_only(),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_ALIGN_RIGHT,
+                label: "command.edit.align_right",
+                menu: edit(2),
+                shortcut: Shortcut::primary("cmd-r", "ctrl-r"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_JUSTIFY,
+                label: "command.edit.justify",
+                menu: edit(2),
+                shortcut: Shortcut::primary("cmd-j", "ctrl-j"),
+                modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_CUT,
+                label: "command.edit.cut",
+                menu: edit(1),
+                shortcut: Shortcut::primary("cmd-x", "ctrl-x"),
                 modifies_document: true,
                 parameters: &[],
             },
@@ -893,6 +1067,14 @@ impl Registry {
                 }),
                 shortcut: Shortcut::primary("cmd-v", "ctrl-v"),
                 modifies_document: true,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: EDIT_SELECT_ALL,
+                label: "command.edit.select_all",
+                menu: edit(1),
+                shortcut: Shortcut::primary("cmd-a", "ctrl-a"),
+                modifies_document: false,
                 parameters: &[],
             },
             CommandSpec {
@@ -967,7 +1149,7 @@ impl Registry {
                     menu: MenuKind::Edit,
                     group: 3,
                 }),
-                shortcut: Shortcut::NONE,
+                shortcut: Shortcut::primary("cmd-enter", "ctrl-enter"),
                 modifies_document: true,
                 parameters: &[],
             },
@@ -1148,6 +1330,7 @@ impl Registry {
                 modifies_document: false,
                 parameters: FIND_PARAMS,
             },
+            // Word for Mac also uses Control+H; Command+H hides the app.
             CommandSpec {
                 id: FIND_REPLACE,
                 label: "command.find.replace",
@@ -1155,7 +1338,7 @@ impl Registry {
                     menu: MenuKind::Edit,
                     group: 3,
                 }),
-                shortcut: Shortcut::NONE,
+                shortcut: Shortcut::primary("ctrl-h", "ctrl-h"),
                 modifies_document: true,
                 parameters: REPLACE_PARAMS,
             },

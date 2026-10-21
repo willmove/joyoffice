@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use joyword_docx::{DiagnosticKind, Diagnostics};
-use joyword_engine::{ParagraphChange, RunChange, TableMerge};
+use joyword_engine::{ParagraphChange, TableMerge};
 use joyword_model::{Justification, RevisionView};
 
 use crate::diag::{AppLog, Event, Level};
@@ -15,8 +15,9 @@ use crate::l10n::Locale;
 use crate::prefs::PrefsStore;
 
 use crate::command::{
-    ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER, EDIT_BOLD,
-    EDIT_COPY, EDIT_INSERT, EDIT_INSERT_IMAGE, EDIT_ITALIC, EDIT_PASTE, EDIT_SELECT_ALL,
+    ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER,
+    EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD, EDIT_COPY, EDIT_CUT, EDIT_INSERT,
+    EDIT_INSERT_IMAGE, EDIT_ITALIC, EDIT_JUSTIFY, EDIT_PASTE, EDIT_SELECT_ALL, EDIT_UNDERLINE,
     ExecuteError, FILE_CLOSE, FILE_EXPORT_PDF, FILE_OPEN, FILE_OPEN_RECENT, FILE_PRINT, FILE_SAVE,
     FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL,
@@ -31,7 +32,7 @@ use crate::dialogs::{
     ViewToggles, font_draft_from_decision, paragraph_draft_from_decision, table_draft_from_decision,
 };
 use crate::docx::BoundDocx;
-use crate::input::{EditRequest, InputError, InputLimits, InputSource, TextInput};
+use crate::input::{EditRequest, InputError, InputLimits, InputSource, RunToggle, TextInput};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DocumentId(pub u64);
@@ -857,7 +858,12 @@ impl CommandHost for Office {
                 | EDIT_INSERT_IMAGE
                 | EDIT_BOLD
                 | EDIT_ITALIC
+                | EDIT_UNDERLINE
+                | EDIT_ALIGN_LEFT
                 | EDIT_ALIGN_CENTER
+                | EDIT_ALIGN_RIGHT
+                | EDIT_JUSTIFY
+                | EDIT_CUT
                 | EDIT_PASTE
                 | STYLE_APPLY
                 | LIST_APPLY
@@ -1024,26 +1030,43 @@ impl Office {
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())
             }
-            EDIT_BOLD => {
+            EDIT_BOLD | EDIT_ITALIC | EDIT_UNDERLINE => {
+                let toggle = match id {
+                    EDIT_BOLD => RunToggle::Bold,
+                    EDIT_ITALIC => RunToggle::Italic,
+                    _ => RunToggle::Underline,
+                };
                 self.require_active()?
-                    .format_runs(RunChange::Bold(Some(true)))
+                    .toggle_runs(toggle)
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())
             }
-            EDIT_ITALIC => {
+            EDIT_ALIGN_LEFT | EDIT_ALIGN_CENTER | EDIT_ALIGN_RIGHT | EDIT_JUSTIFY => {
+                let alignment = match id {
+                    EDIT_ALIGN_LEFT => Justification::Start,
+                    EDIT_ALIGN_CENTER => Justification::Center,
+                    EDIT_ALIGN_RIGHT => Justification::End,
+                    _ => Justification::Both,
+                };
                 self.require_active()?
-                    .format_runs(RunChange::Italic(Some(true)))
+                    .format_paragraph(ParagraphChange::Justification(Some(alignment)))
                     .map_err(input_error)?;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())
             }
-            EDIT_ALIGN_CENTER => {
-                self.require_active()?
-                    .format_paragraph(ParagraphChange::Justification(Some(Justification::Center)))
+            EDIT_CUT => {
+                let input = self.require_active()?;
+                let text = input.selected_text().map_err(input_error)?;
+                if input.view().selected_range().0.is_empty() {
+                    return Ok(());
+                }
+                input
+                    .replace_from(InputSource::Command, None, "")
                     .map_err(input_error)?;
+                self.clipboard = text;
                 self.journal_active()
                     .map_err(|error| ExecuteError::Failed(error.to_string()))?;
                 Ok(())

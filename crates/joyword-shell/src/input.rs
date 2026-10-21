@@ -664,6 +664,56 @@ pub enum Direction {
     Backward,
     Forward,
 }
+/// Caret steps larger than one grapheme, for the word-processor movement
+/// keys. Lines and screens need layout and stay in the window.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CaretUnit {
+    /// UAX #29 word segments. Forward stops at the start of the next word,
+    /// backward at the start of the current or previous one; a paragraph
+    /// end is a stop of its own, and CJK ideographs step one at a time.
+    Word,
+    Paragraph,
+    Document,
+}
+/// Character formats the keyboard toggles on a selection.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RunToggle {
+    Bold,
+    Italic,
+    Underline,
+}
+
+impl RunToggle {
+    fn shown_by(self, props: &RunProps) -> bool {
+        match self {
+            RunToggle::Bold => props.bold == Some(true),
+            RunToggle::Italic => props.italic == Some(true),
+            RunToggle::Underline => props
+                .underline
+                .is_some_and(|line| line != joyword_model::Underline::None),
+        }
+    }
+
+    /// `props` without this format's direct value.
+    fn cleared(self, props: &RunProps) -> RunProps {
+        let mut props = props.clone();
+        match self {
+            RunToggle::Bold => props.bold = None,
+            RunToggle::Italic => props.italic = None,
+            RunToggle::Underline => props.underline = None,
+        }
+        props
+    }
+}
+
+struct RunPiece {
+    start: Position,
+    end: Position,
+    /// The run shows the format after style resolution.
+    shows: bool,
+    /// It would show it without its direct value.
+    inherited: bool,
+}
 pub struct TextInput<B = Session> {
     backend: B,
     base: Arc<TextIndex>,
@@ -1273,6 +1323,140 @@ impl<B: InputBackend> TextInput<B> {
             vec![Command::FormatText { start, end, change }],
         );
         self.commit(transaction)
+    }
+
+    /// Ctrl+B, Ctrl+I and Ctrl+U: when every selected run already shows the
+    /// format after style resolution, the format is turned off; otherwise it
+    /// is turned on. Direct formatting is written only where the style alone
+    /// would not give the wanted result and is cleared elsewhere, so the
+    /// outcome does not depend on how a direct toggle combines with the style.
+    /// An empty selection changes nothing, as with [`Self::format_runs`].
+    pub fn toggle_runs(&mut self, toggle: RunToggle) -> Result<bool, InputError> {
+        self.require_editable()?;
+        let (range, _) = self.view.selected_range();
+        if range.is_empty() {
+            return Ok(false);
+        }
+        let pieces = self.run_pieces(toggle, range)?;
+        let want = !pieces.iter().all(|piece| piece.shows);
+        let mut spans: Vec<(Position, Position, Option<bool>)> = Vec::new();
+        for piece in pieces {
+            let value = (piece.inherited != want).then_some(want);
+            match spans.last_mut() {
+                Some((_, end, last)) if *last == value => *end = piece.end,
+                _ => spans.push((piece.start, piece.end, value)),
+            }
+        }
+        if spans.is_empty() {
+            return Ok(false);
+        }
+        if spans.len() > self.limits.max_commands {
+            return Err(InputError::Budget("commands"));
+        }
+        let commands = spans
+            .into_iter()
+            .map(|(start, end, value)| Command::FormatText {
+                start,
+                end,
+                change: match toggle {
+                    RunToggle::Bold => RunChange::Bold(value),
+                    RunToggle::Italic => RunChange::Italic(value),
+                    RunToggle::Underline => RunChange::Underline(value.map(|on| {
+                        if on {
+                            joyword_model::Underline::Single
+                        } else {
+                            joyword_model::Underline::None
+                        }
+                    })),
+                },
+            })
+            .collect();
+        self.commit(Transaction::new(self.backend.session().version(), commands))
+    }
+
+    /// Whether the selection shows the format, so a toggle would turn it
+    /// off. A caret reports the formatting text typed there would take.
+    pub fn shows(&self, toggle: RunToggle) -> bool {
+        let (range, _) = self.view.selected_range();
+        if !range.is_empty() {
+            return self
+                .run_pieces(toggle, range)
+                .is_ok_and(|pieces| !pieces.is_empty() && pieces.iter().all(|piece| piece.shows));
+        }
+        let head = self.view.selection().head;
+        let document = &self.view.index.snapshot;
+        let Some(paragraph) = document.find_paragraph(head.story, head.paragraph) else {
+            return false;
+        };
+        let (style, props) = paragraph.format_at(head.offset);
+        let resolved =
+            document
+                .styles()
+                .resolve_run(paragraph.style.as_ref(), style.as_ref(), &props);
+        toggle.shown_by(&resolved.props)
+    }
+
+    /// The selected part of every run in `range`, in document order.
+    fn run_pieces(
+        &self,
+        toggle: RunToggle,
+        range: Range<usize>,
+    ) -> Result<Vec<RunPiece>, InputError> {
+        let index = &self.view.index;
+        let start = index.position(range.start, Bias::After)?;
+        let end = index.position(range.end, Bias::Before)?;
+        let first = *index
+            .by_id
+            .get(&start.paragraph)
+            .ok_or(InputError::UnknownPosition(start))?;
+        let last = *index
+            .by_id
+            .get(&end.paragraph)
+            .ok_or(InputError::UnknownPosition(end))?;
+        let sheet = index.snapshot.styles();
+        let mut pieces = Vec::new();
+        for entry in &index.paragraphs[first..=last] {
+            let paragraph =
+                paragraph_by_id(&index.snapshot, entry.id).ok_or(InputError::InvalidDocument)?;
+            let from = if entry.id == start.paragraph {
+                start.offset.0
+            } else {
+                0
+            };
+            let to = if entry.id == end.paragraph {
+                end.offset.0
+            } else {
+                entry.len_scalar
+            };
+            let mut at = 0;
+            for run in paragraph.runs() {
+                let (run_start, run_end) = (at, at + run.len);
+                at = run_end;
+                if run_end <= from || run_start >= to {
+                    continue;
+                }
+                let resolve = |props: &RunProps| {
+                    toggle.shown_by(
+                        &sheet
+                            .resolve_run(paragraph.style.as_ref(), run.style.as_ref(), props)
+                            .props,
+                    )
+                };
+                let position = |offset: usize, bias: Bias| Position {
+                    paragraph: entry.id,
+                    offset: ScalarOffset(offset),
+                    bias,
+                    ..start
+                };
+                pieces.push(RunPiece {
+                    start: position(run_start.max(from), Bias::After),
+                    end: position(run_end.min(to), Bias::Before),
+                    shows: resolve(&run.props),
+                    inherited: resolve(&toggle.cleared(&run.props)),
+                });
+            }
+        }
+        Ok(pieces)
     }
 
     /// Styles on the sheet, one line per style: id, kind, canonical name.
@@ -2353,8 +2537,45 @@ impl<B: InputBackend> TextInput<B> {
         } else {
             self.adjacent(current, direction)?
         };
+        self.place_head(next, direction, extend)
+    }
+    /// Word, paragraph and document movement (Ctrl+arrows, Ctrl+Home/End).
+    /// Without `extend`, a selection first collapses to its edge in
+    /// `direction` and the move starts there.
+    pub fn move_by(
+        &mut self,
+        unit: CaretUnit,
+        direction: Direction,
+        extend: bool,
+    ) -> Result<(), InputError> {
+        self.cancel_composition()?;
+        let (range, _) = self.view.selected_range();
+        let from = if extend || range.is_empty() {
+            self.base.offset(self.selection.head)?
+        } else {
+            match direction {
+                Direction::Backward => range.start,
+                Direction::Forward => range.end,
+            }
+        };
+        let next = match unit {
+            CaretUnit::Word => self.word_stop(from, direction)?,
+            CaretUnit::Paragraph => self.paragraph_stop(from, direction),
+            CaretUnit::Document => match direction {
+                Direction::Backward => 0,
+                Direction::Forward => self.base.len_utf16,
+            },
+        };
+        self.place_head(next, direction, extend)
+    }
+    fn place_head(
+        &mut self,
+        offset: usize,
+        direction: Direction,
+        extend: bool,
+    ) -> Result<(), InputError> {
         let position = self.base.position(
-            next,
+            offset,
             match direction {
                 Direction::Backward => Bias::Before,
                 Direction::Forward => Bias::After,
@@ -2368,6 +2589,74 @@ impl<B: InputBackend> TextInput<B> {
         } else {
             Selection::caret(position)
         })
+    }
+    fn paragraph_at(&self, offset: usize) -> usize {
+        self.base
+            .paragraphs
+            .partition_point(|p| p.utf16 <= offset)
+            .saturating_sub(1)
+    }
+    /// The word stop never leaves the caret's paragraph except to step over
+    /// one paragraph mark, so only that paragraph is segmented.
+    fn word_stop(&self, offset: usize, direction: Direction) -> Result<usize, InputError> {
+        let i = self.paragraph_at(offset);
+        let entry = &self.base.paragraphs[i];
+        let end_byte = self
+            .base
+            .paragraphs
+            .get(i + 1)
+            .map_or(self.base.text.len(), |next| next.byte - 1);
+        let text = &self.base.text[entry.byte..end_byte];
+        let at = self.base.byte(offset)? - entry.byte;
+        let blank = |segment: &str| segment.chars().all(char::is_whitespace);
+        let stop = match direction {
+            Direction::Forward if at == text.len() => {
+                return Ok(self
+                    .base
+                    .paragraphs
+                    .get(i + 1)
+                    .map_or(offset, |next| next.utf16));
+            }
+            Direction::Backward if at == 0 => return Ok(offset.saturating_sub(1)),
+            Direction::Forward => {
+                let mut segments = text
+                    .split_word_bound_indices()
+                    .skip_while(|(start, segment)| start + segment.len() <= at);
+                let mut stop = text.len();
+                if let Some((start, segment)) = segments.next() {
+                    stop = start + segment.len();
+                    for (start, segment) in segments {
+                        if !blank(segment) {
+                            break;
+                        }
+                        stop = start + segment.len();
+                    }
+                }
+                stop
+            }
+            Direction::Backward => text
+                .split_word_bound_indices()
+                .take_while(|(start, _)| *start < at)
+                .filter(|(_, segment)| !blank(segment))
+                .last()
+                .map_or(0, |(start, _)| start),
+        };
+        Ok(entry.utf16 + text[..stop].encode_utf16().count())
+    }
+    fn paragraph_stop(&self, offset: usize, direction: Direction) -> usize {
+        let i = self.paragraph_at(offset);
+        let start = self.base.paragraphs[i].utf16;
+        match direction {
+            Direction::Forward => self
+                .base
+                .paragraphs
+                .get(i + 1)
+                .map_or(self.base.len_utf16, |next| next.utf16),
+            Direction::Backward if offset > start => start,
+            Direction::Backward => i
+                .checked_sub(1)
+                .map_or(0, |previous| self.base.paragraphs[previous].utf16),
+        }
     }
     fn adjacent(&self, offset: usize, direction: Direction) -> Result<usize, InputError> {
         let byte = self.base.byte(offset)?;
@@ -2393,8 +2682,30 @@ impl<B: InputBackend> TextInput<B> {
     pub fn delete(&mut self, direction: Direction) -> Result<bool, InputError> {
         self.cancel_composition()?;
         let (range, _) = self.view.selected_range();
-        // Even a programmatic scalar-valid selection inside a combining/ZWJ
-        // sequence must not leave a broken fragment after a keyboard delete.
+        let range = self.whole_graphemes(range)?;
+        let range = if range.is_empty() {
+            let next = self.adjacent(range.start, direction)?;
+            next.min(range.start)..next.max(range.end)
+        } else {
+            range
+        };
+        self.replace_grouped(Some(range), "", UndoGroup::Deleting)
+    }
+    /// Ctrl+Backspace and Ctrl+Delete. A selection is deleted as by
+    /// [`Self::delete`]; a caret deletes up to the [`CaretUnit::Word`] stop.
+    pub fn delete_word(&mut self, direction: Direction) -> Result<bool, InputError> {
+        self.cancel_composition()?;
+        let (range, _) = self.view.selected_range();
+        if !range.is_empty() {
+            return self.delete(direction);
+        }
+        let stop = self.word_stop(range.start, direction)?;
+        let range = self.whole_graphemes(stop.min(range.start)..stop.max(range.start))?;
+        self.replace_grouped(Some(range), "", UndoGroup::Deleting)
+    }
+    /// Even a programmatic scalar-valid selection inside a combining/ZWJ
+    /// sequence must not leave a broken fragment after a keyboard delete.
+    fn whole_graphemes(&self, range: Range<usize>) -> Result<Range<usize>, InputError> {
         let (mut left, mut right) = (self.base.byte(range.start)?, self.base.byte(range.end)?);
         for (start, grapheme) in self.base.text.grapheme_indices(true) {
             let end = start + grapheme.len();
@@ -2405,15 +2716,8 @@ impl<B: InputBackend> TextInput<B> {
                 right = end;
             }
         }
-        let range = self.base.text[..left].encode_utf16().count()
-            ..self.base.text[..right].encode_utf16().count();
-        let range = if range.is_empty() {
-            let next = self.adjacent(range.start, direction)?;
-            next.min(range.start)..next.max(range.end)
-        } else {
-            range
-        };
-        self.replace_grouped(Some(range), "", UndoGroup::Deleting)
+        Ok(self.base.text[..left].encode_utf16().count()
+            ..self.base.text[..right].encode_utf16().count())
     }
     pub fn undo(&mut self) -> Result<(), InputError> {
         if self.cancel_composition()? {

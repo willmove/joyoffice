@@ -13,9 +13,13 @@ use joyword_shell::chrome::{
     ruler_scale, status_line,
 };
 use joyword_shell::command::{
-    Availability, CommandId, EDIT_COPY, EDIT_PASTE, EDIT_REDO, EDIT_UNDO, FILE_EXPORT_PDF,
-    FILE_OPEN, FILE_SAVE, FILE_SAVE_COPY, ZOOM_IN, ZOOM_OUT,
+    Availability, CommandId, EDIT_ALIGN_CENTER, EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD,
+    EDIT_COPY, EDIT_CUT, EDIT_ITALIC, EDIT_JUSTIFY, EDIT_PASTE, EDIT_REDO, EDIT_UNDERLINE,
+    EDIT_UNDO, FILE_EXPORT_PDF, FILE_OPEN, FILE_SAVE, FILE_SAVE_COPY, REVIEW_FINAL, REVIEW_MARKUP,
+    REVIEW_ORIGINAL, REVIEW_TRACK, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    ZOOM_IN, ZOOM_OUT,
 };
+use joyword_shell::input::RunToggle;
 use joyword_shell::l10n::Catalog;
 
 fn linux_button_id(command: CommandId) -> &'static str {
@@ -26,6 +30,7 @@ fn linux_button_id(command: CommandId) -> &'static str {
         FILE_EXPORT_PDF => "linux-cmd-export",
         EDIT_UNDO => "linux-cmd-undo",
         EDIT_REDO => "linux-cmd-redo",
+        EDIT_CUT => "linux-cmd-cut",
         EDIT_COPY => "linux-cmd-copy",
         EDIT_PASTE => "linux-cmd-paste",
         _ => "linux-cmd-other",
@@ -210,6 +215,7 @@ impl JoyWord {
     fn ribbon_button(&self, control: &RibbonControl, cx: &mut Context<Self>) -> gpui::AnyElement {
         let control = *control;
         let enabled = self.ribbon_enabled(control.command);
+        let pressed = enabled && self.ribbon_pressed(control.command);
         let ink = if enabled { INK } else { INK_MUTED };
         div()
             .id(control.id)
@@ -221,7 +227,15 @@ impl JoyWord {
             .py_1()
             .rounded_sm()
             .cursor_pointer()
-            .bg(if enabled {
+            .border_1()
+            .border_color(if pressed {
+                rgb(0x7fa3c7)
+            } else {
+                gpui::transparent_black().into()
+            })
+            .bg(if pressed {
+                rgb(0xc5d8ea)
+            } else if enabled {
                 rgb(0xe7eef5)
             } else {
                 rgb(0xf4f6f8)
@@ -233,6 +247,55 @@ impl JoyWord {
             .child(drawn_icon(control.icon, ink))
             .child(div().text_xs().child(self.label(control.label)))
             .into_any_element()
+    }
+
+    /// Word shows character formats, the paragraph alignment and view
+    /// switches as pressed buttons at the caret or selection.
+    fn ribbon_pressed(&self, id: CommandId) -> bool {
+        let toggles = self.view_toggles;
+        let alignment =
+            |wanted: joyword_model::Justification| self.caret_alignment() == Some(wanted);
+        let shows = |toggle: RunToggle| {
+            self.editor
+                .as_ref()
+                .is_some_and(|editor| editor.shows(toggle))
+        };
+        match id {
+            EDIT_BOLD => shows(RunToggle::Bold),
+            EDIT_ITALIC => shows(RunToggle::Italic),
+            EDIT_UNDERLINE => shows(RunToggle::Underline),
+            EDIT_ALIGN_LEFT => alignment(joyword_model::Justification::Start),
+            EDIT_ALIGN_CENTER => alignment(joyword_model::Justification::Center),
+            EDIT_ALIGN_RIGHT => alignment(joyword_model::Justification::End),
+            EDIT_JUSTIFY => alignment(joyword_model::Justification::Both),
+            VIEW_FORMATTING_MARKS => toggles.formatting_marks,
+            VIEW_HIDDEN_TEXT => toggles.show_hidden,
+            VIEW_FIELD_CODES => toggles.field_codes,
+            REVIEW_MARKUP => toggles.revision == joyword_model::RevisionView::FinalWithMarkup,
+            REVIEW_FINAL => toggles.revision == joyword_model::RevisionView::Final,
+            REVIEW_ORIGINAL => toggles.revision == joyword_model::RevisionView::Original,
+            REVIEW_TRACK => self
+                .editor
+                .as_ref()
+                .is_some_and(|editor| editor.tracking_enabled()),
+            _ => false,
+        }
+    }
+
+    /// Resolved alignment of the caret's paragraph; no value is left/start.
+    fn caret_alignment(&self) -> Option<joyword_model::Justification> {
+        let editor = self.editor.as_ref()?;
+        let head = editor.view().selection().head;
+        let document = editor.view().snapshot();
+        let paragraph = document.find_paragraph(head.story, head.paragraph)?;
+        Some(
+            document
+                .styles()
+                .resolve_paragraph(paragraph.style.as_ref(), &paragraph.props)
+                .props
+                .justification
+                .unwrap_or(joyword_model::Justification::Start),
+        )
     }
 
     fn ribbon_enabled(&self, id: CommandId) -> bool {

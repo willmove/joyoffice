@@ -52,6 +52,24 @@ actions!(
         LineEnd,
         ExtendLineStart,
         ExtendLineEnd,
+        WordLeft,
+        WordRight,
+        ExtendWordLeft,
+        ExtendWordRight,
+        ParagraphUp,
+        ParagraphDown,
+        ExtendParagraphUp,
+        ExtendParagraphDown,
+        DocumentStart,
+        DocumentEnd,
+        ExtendDocumentStart,
+        ExtendDocumentEnd,
+        PageUp,
+        PageDown,
+        ExtendPageUp,
+        ExtendPageDown,
+        DeleteWordBackward,
+        DeleteWordForward,
         CancelComposition,
         OpenFile,
         OpenRecent,
@@ -63,12 +81,16 @@ actions!(
         PrintFile,
         Bold,
         Italic,
+        Underline,
         ListStyles,
         ApplyStyle,
         ApplyList,
         SetListLevel,
         RemoveList,
+        AlignLeft,
         AlignCenter,
+        AlignRight,
+        Justify,
         PageBreak,
         PageNumber,
         PageSize,
@@ -77,6 +99,7 @@ actions!(
         EditHeader,
         EditFooter,
         EditBody,
+        CutText,
         CopyText,
         PasteText,
         InsertImage,
@@ -184,6 +207,24 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_END => Box::new(LineEnd),
         EDIT_EXTEND_HOME => Box::new(ExtendLineStart),
         EDIT_EXTEND_END => Box::new(ExtendLineEnd),
+        EDIT_WORD_LEFT => Box::new(WordLeft),
+        EDIT_WORD_RIGHT => Box::new(WordRight),
+        EDIT_EXTEND_WORD_LEFT => Box::new(ExtendWordLeft),
+        EDIT_EXTEND_WORD_RIGHT => Box::new(ExtendWordRight),
+        EDIT_PARAGRAPH_UP => Box::new(ParagraphUp),
+        EDIT_PARAGRAPH_DOWN => Box::new(ParagraphDown),
+        EDIT_EXTEND_PARAGRAPH_UP => Box::new(ExtendParagraphUp),
+        EDIT_EXTEND_PARAGRAPH_DOWN => Box::new(ExtendParagraphDown),
+        EDIT_DOCUMENT_START => Box::new(DocumentStart),
+        EDIT_DOCUMENT_END => Box::new(DocumentEnd),
+        EDIT_EXTEND_DOCUMENT_START => Box::new(ExtendDocumentStart),
+        EDIT_EXTEND_DOCUMENT_END => Box::new(ExtendDocumentEnd),
+        EDIT_PAGE_UP => Box::new(PageUp),
+        EDIT_PAGE_DOWN => Box::new(PageDown),
+        EDIT_EXTEND_PAGE_UP => Box::new(ExtendPageUp),
+        EDIT_EXTEND_PAGE_DOWN => Box::new(ExtendPageDown),
+        EDIT_DELETE_WORD_BACKWARD => Box::new(DeleteWordBackward),
+        EDIT_DELETE_WORD_FORWARD => Box::new(DeleteWordForward),
         EDIT_CANCEL => Box::new(CancelComposition),
         FILE_OPEN => Box::new(OpenFile),
         FILE_OPEN_RECENT => Box::new(OpenRecent),
@@ -194,6 +235,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FILE_PRINT => Box::new(PrintFile),
         EDIT_BOLD => Box::new(Bold),
         EDIT_ITALIC => Box::new(Italic),
+        EDIT_UNDERLINE => Box::new(Underline),
         STYLE_LIST => Box::new(ListStyles),
         STYLE_APPLY => Box::new(ApplyStyle),
         LIST_APPLY => Box::new(ApplyList),
@@ -207,7 +249,11 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         PAGE_EDIT_HEADER => Box::new(EditHeader),
         PAGE_EDIT_FOOTER => Box::new(EditFooter),
         PAGE_EDIT_BODY => Box::new(EditBody),
+        EDIT_ALIGN_LEFT => Box::new(AlignLeft),
         EDIT_ALIGN_CENTER => Box::new(AlignCenter),
+        EDIT_ALIGN_RIGHT => Box::new(AlignRight),
+        EDIT_JUSTIFY => Box::new(Justify),
+        EDIT_CUT => Box::new(CutText),
         EDIT_COPY => Box::new(CopyText),
         EDIT_PASTE => Box::new(PasteText),
         EDIT_INSERT => Box::new(InsertText),
@@ -278,6 +324,14 @@ fn menus(registry: &Registry, catalog: &Catalog) -> Vec<Menu> {
         .collect()
 }
 
+/// Word-style window title: document name first, `*` while unsaved.
+fn window_title(document: Option<&str>, edited: bool) -> String {
+    match document {
+        Some(name) => format!("{}{name} - JoyWord", if edited { "*" } else { "" }),
+        None => "JoyWord".into(),
+    }
+}
+
 fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
     let platform = Platform::current();
     let mut chords = Vec::new();
@@ -294,6 +348,9 @@ fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
     }
     chords
 }
+
+/// Document focus with no open IME composition.
+const TYPING: &str = "JoyWordInput && !composing";
 
 fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
     shortcut_chords(registry)
@@ -341,6 +398,30 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 EDIT_EXTEND_END => {
                     KeyBinding::new(keys, ExtendLineEnd, Some("JoyWordInput && !composing"))
                 }
+                EDIT_WORD_LEFT => KeyBinding::new(keys, WordLeft, Some(TYPING)),
+                EDIT_WORD_RIGHT => KeyBinding::new(keys, WordRight, Some(TYPING)),
+                EDIT_EXTEND_WORD_LEFT => KeyBinding::new(keys, ExtendWordLeft, Some(TYPING)),
+                EDIT_EXTEND_WORD_RIGHT => KeyBinding::new(keys, ExtendWordRight, Some(TYPING)),
+                EDIT_PARAGRAPH_UP => KeyBinding::new(keys, ParagraphUp, Some(TYPING)),
+                EDIT_PARAGRAPH_DOWN => KeyBinding::new(keys, ParagraphDown, Some(TYPING)),
+                EDIT_EXTEND_PARAGRAPH_UP => KeyBinding::new(keys, ExtendParagraphUp, Some(TYPING)),
+                EDIT_EXTEND_PARAGRAPH_DOWN => {
+                    KeyBinding::new(keys, ExtendParagraphDown, Some(TYPING))
+                }
+                EDIT_DOCUMENT_START => KeyBinding::new(keys, DocumentStart, Some(TYPING)),
+                EDIT_DOCUMENT_END => KeyBinding::new(keys, DocumentEnd, Some(TYPING)),
+                EDIT_EXTEND_DOCUMENT_START => {
+                    KeyBinding::new(keys, ExtendDocumentStart, Some(TYPING))
+                }
+                EDIT_EXTEND_DOCUMENT_END => KeyBinding::new(keys, ExtendDocumentEnd, Some(TYPING)),
+                EDIT_PAGE_UP => KeyBinding::new(keys, PageUp, Some(TYPING)),
+                EDIT_PAGE_DOWN => KeyBinding::new(keys, PageDown, Some(TYPING)),
+                EDIT_EXTEND_PAGE_UP => KeyBinding::new(keys, ExtendPageUp, Some(TYPING)),
+                EDIT_EXTEND_PAGE_DOWN => KeyBinding::new(keys, ExtendPageDown, Some(TYPING)),
+                EDIT_DELETE_WORD_BACKWARD => {
+                    KeyBinding::new(keys, DeleteWordBackward, Some(TYPING))
+                }
+                EDIT_DELETE_WORD_FORWARD => KeyBinding::new(keys, DeleteWordForward, Some(TYPING)),
                 EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some("JoyWordInput")),
                 FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
                 FILE_SAVE => KeyBinding::new(keys, SaveOriginal, None),
@@ -349,10 +430,19 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 FILE_PRINT => KeyBinding::new(keys, PrintFile, None),
                 EDIT_BOLD => KeyBinding::new(keys, Bold, Some("JoyWordInput && !composing")),
                 EDIT_ITALIC => KeyBinding::new(keys, Italic, Some("JoyWordInput && !composing")),
+                EDIT_UNDERLINE => KeyBinding::new(keys, Underline, Some(TYPING)),
+                EDIT_ALIGN_LEFT => KeyBinding::new(keys, AlignLeft, Some(TYPING)),
+                EDIT_ALIGN_CENTER => KeyBinding::new(keys, AlignCenter, Some(TYPING)),
+                EDIT_ALIGN_RIGHT => KeyBinding::new(keys, AlignRight, Some(TYPING)),
+                EDIT_JUSTIFY => KeyBinding::new(keys, Justify, Some(TYPING)),
+                EDIT_CUT => KeyBinding::new(keys, CutText, Some(TYPING)),
                 EDIT_COPY => KeyBinding::new(keys, CopyText, Some("JoyWordInput")),
                 EDIT_PASTE => KeyBinding::new(keys, PasteText, Some("JoyWordInput && !composing")),
                 FILE_CLOSE => KeyBinding::new(keys, CloseDocument, None),
                 FIND_NEXT => KeyBinding::new(keys, FindNext, Some("JoyWordInput")),
+                FIND_REPLACE => KeyBinding::new(keys, ReplaceNext, Some("JoyWordInput")),
+                PAGE_BREAK => KeyBinding::new(keys, PageBreak, Some(TYPING)),
+                FORMAT_FONT => KeyBinding::new(keys, FontDialog, Some(TYPING)),
                 _ => return None,
             })
         })
@@ -413,6 +503,8 @@ struct JoyWord {
     find_replacement_focus: FocusHandle,
     find_note: Option<String>,
     format_repeat: bool,
+    /// Last title given to the platform window.
+    window_title: String,
     ribbon_tab: RibbonTab,
     format_dialog: Option<FormatDialog>,
     path_sheet: Option<linux_files::PathSheet>,
@@ -892,6 +984,20 @@ impl JoyWord {
         Catalog::shipped(self.locale).text(key)
     }
 
+    /// The shown document's file name; an editor never bound to a file is
+    /// untitled. `None` before any document is shown.
+    pub(crate) fn document_title(&self) -> Option<String> {
+        let editor = self.editor.as_ref()?;
+        Some(
+            match editor.source_path().and_then(|path| path.file_name()) {
+                Some(name) => name.to_string_lossy().into_owned(),
+                None => {
+                    Catalog::shipped(self.locale).format("document.untitled", &[("number", "1")])
+                }
+            },
+        )
+    }
+
     fn run_with(
         &mut self,
         id: CommandId,
@@ -971,18 +1077,6 @@ impl JoyWord {
 
     /// Catalog text when the key exists. Width and regex are not in the
     /// shipped catalogs yet, so those two fall back to the phrases here.
-    fn bar_caption(&self, key: &str, zh: &str, en: &str) -> String {
-        let catalog = Catalog::shipped(self.locale);
-        if catalog.contains(key) {
-            catalog.text(key)
-        } else {
-            match self.locale {
-                Locale::ZhCn => zh.to_owned(),
-                Locale::En => en.to_owned(),
-            }
-        }
-    }
-
     fn style_panel(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let rows = self
             .editor
@@ -1256,16 +1350,8 @@ impl JoyWord {
         let (id, label, checkbox) = match which {
             FindToggle::Case => ("find-case", self.label("find.case"), false),
             FindToggle::Word => ("find-word", self.label("find.word"), false),
-            FindToggle::Width => (
-                "find-width",
-                self.bar_caption("find.width", "全半角", "Match width"),
-                true,
-            ),
-            FindToggle::Regex => (
-                "find-regex",
-                self.bar_caption("find.regex", "正则", "Regex"),
-                true,
-            ),
+            FindToggle::Width => ("find-width", self.label("find.width"), true),
+            FindToggle::Regex => ("find-regex", self.label("find.regex"), true),
         };
         let shown = if checkbox {
             format!("{} {label}", if on { "[x]" } else { "[ ]" })
@@ -1299,7 +1385,7 @@ impl JoyWord {
                 this.format_repeat = !this.format_repeat;
                 cx.notify();
             }))
-            .child(if on { "Repeat" } else { "Once" })
+            .child(self.label(if on { "format.repeat" } else { "format.once" }))
     }
 
     pub(crate) fn report_canvas_error(&mut self, message: impl Into<String>) {
@@ -1382,11 +1468,16 @@ impl Render for JoyWord {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         self.device_scale = window.scale_factor();
         self.request_canvas(cx);
-        window.set_window_edited(
-            self.editor
-                .as_ref()
-                .is_some_and(|editor| editor.has_unsaved_changes()),
-        );
+        let edited = self
+            .editor
+            .as_ref()
+            .is_some_and(|editor| editor.has_unsaved_changes());
+        window.set_window_edited(edited);
+        let title = window_title(self.document_title().as_deref(), edited);
+        if title != self.window_title {
+            window.set_window_title(&title);
+            self.window_title = title.clone();
+        }
         let catalog = Catalog::shipped(self.locale);
 
         div()
@@ -1464,6 +1555,62 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &ExtendLineEnd, window, cx| {
                 this.run(EDIT_EXTEND_END, window, cx)
             }))
+            .on_action(
+                cx.listener(|this, _: &WordLeft, window, cx| this.run(EDIT_WORD_LEFT, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &WordRight, window, cx| {
+                    this.run(EDIT_WORD_RIGHT, window, cx)
+                }),
+            )
+            .on_action(cx.listener(|this, _: &ExtendWordLeft, window, cx| {
+                this.run(EDIT_EXTEND_WORD_LEFT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExtendWordRight, window, cx| {
+                this.run(EDIT_EXTEND_WORD_RIGHT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ParagraphUp, window, cx| {
+                this.run(EDIT_PARAGRAPH_UP, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ParagraphDown, window, cx| {
+                this.run(EDIT_PARAGRAPH_DOWN, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExtendParagraphUp, window, cx| {
+                this.run(EDIT_EXTEND_PARAGRAPH_UP, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExtendParagraphDown, window, cx| {
+                this.run(EDIT_EXTEND_PARAGRAPH_DOWN, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &DocumentStart, window, cx| {
+                this.run(EDIT_DOCUMENT_START, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &DocumentEnd, window, cx| {
+                this.run(EDIT_DOCUMENT_END, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExtendDocumentStart, window, cx| {
+                this.run(EDIT_EXTEND_DOCUMENT_START, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExtendDocumentEnd, window, cx| {
+                this.run(EDIT_EXTEND_DOCUMENT_END, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &PageUp, window, cx| this.run(EDIT_PAGE_UP, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &PageDown, window, cx| this.run(EDIT_PAGE_DOWN, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &ExtendPageUp, window, cx| {
+                this.run(EDIT_EXTEND_PAGE_UP, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExtendPageDown, window, cx| {
+                this.run(EDIT_EXTEND_PAGE_DOWN, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &DeleteWordBackward, window, cx| {
+                this.run(EDIT_DELETE_WORD_BACKWARD, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &DeleteWordForward, window, cx| {
+                this.run(EDIT_DELETE_WORD_FORWARD, window, cx)
+            }))
             .on_action(cx.listener(|this, _: &CancelComposition, window, cx| {
                 this.run(EDIT_CANCEL, window, cx)
             }))
@@ -1530,6 +1677,21 @@ impl Render for JoyWord {
             .on_action(cx.listener(|this, _: &AlignCenter, window, cx| {
                 this.run(EDIT_ALIGN_CENTER, window, cx)
             }))
+            .on_action(
+                cx.listener(|this, _: &Underline, window, cx| this.run(EDIT_UNDERLINE, window, cx)),
+            )
+            .on_action(
+                cx.listener(|this, _: &AlignLeft, window, cx| {
+                    this.run(EDIT_ALIGN_LEFT, window, cx)
+                }),
+            )
+            .on_action(cx.listener(|this, _: &AlignRight, window, cx| {
+                this.run(EDIT_ALIGN_RIGHT, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &Justify, window, cx| this.run(EDIT_JUSTIFY, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &CutText, window, cx| this.run(EDIT_CUT, window, cx)))
             .on_action(
                 cx.listener(|this, _: &CopyText, window, cx| this.run(EDIT_COPY, window, cx)),
             )
@@ -1637,7 +1799,7 @@ impl Render for JoyWord {
                     .py_3()
                     .bg(rgb(0x163b65))
                     .text_color(rgb(0xffffff))
-                    .child("JoyWord · JoyOffice")
+                    .child(title)
                     .child(
                         div()
                             .id("language")
@@ -1962,7 +2124,7 @@ fn main() {
             WindowOptions {
                 window_bounds: Some(WindowBounds::Windowed(bounds)),
                 titlebar: Some(gpui::TitlebarOptions {
-                    title: Some("JoyWord · Preview".into()),
+                    title: Some("JoyWord".into()),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -2049,6 +2211,7 @@ fn main() {
                         view_toggles: joyword_shell::dialogs::ViewToggles::default(),
                         ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
                         ruler_drag: None,
+                        window_title: String::new(),
                     };
                     view.install_input_lifecycle(window, cx);
                     view
@@ -2160,6 +2323,77 @@ mod tests {
         assert!(linux_files::LINUX_BAR.contains(&FILE_OPEN));
         assert!(linux_files::LINUX_BAR.contains(&FILE_SAVE_COPY));
         assert!(linux_files::LINUX_BAR.contains(&FILE_EXPORT_PDF));
+    }
+
+    #[test]
+    fn word_processor_chords_reach_their_commands() {
+        let chords = shortcut_chords(&Registry::builtin());
+        let bound = |keys: &str| -> Vec<CommandId> {
+            chords
+                .iter()
+                .filter(|(chord, _)| *chord == keys)
+                .map(|(_, id)| *id)
+                .collect()
+        };
+        let expected: &[(&str, CommandId)] = if cfg!(target_os = "macos") {
+            &[
+                ("alt-left", EDIT_WORD_LEFT),
+                ("alt-shift-right", EDIT_EXTEND_WORD_RIGHT),
+                ("alt-down", EDIT_PARAGRAPH_DOWN),
+                ("cmd-up", EDIT_DOCUMENT_START),
+                ("cmd-shift-down", EDIT_EXTEND_DOCUMENT_END),
+                ("alt-backspace", EDIT_DELETE_WORD_BACKWARD),
+                ("cmd-x", EDIT_CUT),
+                ("cmd-u", EDIT_UNDERLINE),
+                ("cmd-e", EDIT_ALIGN_CENTER),
+                ("cmd-enter", PAGE_BREAK),
+                ("ctrl-h", FIND_REPLACE),
+                ("cmd-d", FORMAT_FONT),
+            ]
+        } else {
+            &[
+                ("ctrl-left", EDIT_WORD_LEFT),
+                ("ctrl-shift-right", EDIT_EXTEND_WORD_RIGHT),
+                ("ctrl-down", EDIT_PARAGRAPH_DOWN),
+                ("ctrl-home", EDIT_DOCUMENT_START),
+                ("ctrl-shift-end", EDIT_EXTEND_DOCUMENT_END),
+                ("ctrl-backspace", EDIT_DELETE_WORD_BACKWARD),
+                ("ctrl-delete", EDIT_DELETE_WORD_FORWARD),
+                ("ctrl-x", EDIT_CUT),
+                ("ctrl-u", EDIT_UNDERLINE),
+                ("ctrl-l", EDIT_ALIGN_LEFT),
+                ("ctrl-r", EDIT_ALIGN_RIGHT),
+                ("ctrl-j", EDIT_JUSTIFY),
+                ("ctrl-enter", PAGE_BREAK),
+                ("ctrl-h", FIND_REPLACE),
+                ("ctrl-d", FORMAT_FONT),
+            ]
+        };
+        for (keys, id) in expected {
+            assert_eq!(bound(keys), vec![*id], "{keys}");
+        }
+        assert_eq!(bound("pageup"), vec![EDIT_PAGE_UP]);
+        assert_eq!(bound("shift-pagedown"), vec![EDIT_EXTEND_PAGE_DOWN]);
+        let center = chords.iter().any(|(_, id)| *id == EDIT_ALIGN_CENTER);
+        if cfg!(target_os = "linux") {
+            assert!(!center, "Linux keeps Ctrl+E for PDF export");
+            assert_eq!(bound("ctrl-e"), vec![FILE_EXPORT_PDF]);
+        } else {
+            assert!(center);
+        }
+    }
+
+    #[test]
+    fn window_title_names_the_document_and_marks_unsaved_changes() {
+        assert_eq!(window_title(None, false), "JoyWord");
+        assert_eq!(
+            window_title(Some("合同.docx"), false),
+            "合同.docx - JoyWord"
+        );
+        assert_eq!(
+            window_title(Some("合同.docx"), true),
+            "*合同.docx - JoyWord"
+        );
     }
 
     #[test]
