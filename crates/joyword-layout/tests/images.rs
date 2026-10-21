@@ -10,8 +10,8 @@ use joyword_layout::{
 };
 use joyword_model::{
     AnchorWrap, Bias, BlockSeq, Document, HeaderFooterKind, ImageAnchor, InlineKind, InlineObject,
-    Measure, PageSetup, Paragraph, Position, ScalarOffset, SquareWrap, StoryKind, WrapSide,
-    display_extent, sample_png_1x1,
+    Measure, PageSetup, Paragraph, Position, ScalarOffset, SquareWrap, StoryKind, TopBottomWrap,
+    WrapSide, display_extent, sample_png_1x1,
 };
 use joyword_render::{Projection, RasterCancellation, RasterLimits, rasterize};
 
@@ -490,6 +490,110 @@ fn a_wrap_square_keeps_text_outside_the_rectangle_and_wrap_none_does_not() {
         }
     }
     assert!(through, "wrapNone text should still cross the rectangle");
+}
+
+#[test]
+fn a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside() {
+    let image_x = 24 * Emu::PER_POINT;
+    let image_y = 100 * Emu::PER_POINT;
+    let side = 48 * Emu::PER_POINT;
+    let dist_t = 6 * Emu::PER_POINT;
+    let dist_b = 6 * Emu::PER_POINT;
+    // Spaces are break opportunities. A single unspaced run stays one line
+    // and never reaches the band.
+    let text = "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp ".repeat(8);
+    let laid = layout(&square_page(
+        &text,
+        AnchorWrap::TopAndBottom(TopBottomWrap {
+            top: dist_t,
+            bottom: dist_b,
+        }),
+        side,
+        image_x,
+        image_y,
+    ));
+    let geometry = laid.page_geometry()[0];
+    let page = &laid.pages()[0];
+    assert_eq!(page.images.len(), 1);
+    let image = &page.images[0];
+    assert_eq!(image.x, Emu::new(image_x));
+    assert_eq!(image.y, Emu::new(image_y));
+    assert_eq!(image.width, Emu::new(side));
+    assert_eq!(image.height, Emu::new(side));
+    let band_top = image.y.raw() - dist_t;
+    let band_bottom = image.y.raw() + image.height.raw() + dist_b;
+    let mut above = false;
+    let mut below = false;
+    for placed in laid.lines() {
+        if placed.page != 0 {
+            continue;
+        }
+        let run = &page.runs[placed.run];
+        if run.glyphs.is_empty() {
+            continue;
+        }
+        let line_top = placed.top.raw();
+        let line_bottom = line_top + placed.height.raw();
+        assert!(
+            line_bottom <= band_top || line_top >= band_bottom,
+            "line {line_top}..{line_bottom} met the band {band_top}..{band_bottom}"
+        );
+        assert_eq!(run.origin_x, geometry.left);
+        if line_bottom <= band_top {
+            above = true;
+        }
+        if line_top >= band_bottom {
+            below = true;
+        }
+    }
+    assert!(above, "no line stayed above the band");
+    assert!(below, "no line resumed under the band");
+    assert_red_at(page, image.x, image.y, image.width);
+
+    let square = layout(&square_page(
+        &text,
+        AnchorWrap::Square(SquareWrap {
+            top: dist_t,
+            bottom: dist_b,
+            left: 0,
+            right: 0,
+            side: WrapSide::Larger,
+        }),
+        side,
+        image_x,
+        image_y,
+    ));
+    let square_page = &square.pages()[0];
+    let square_image = &square_page.images[0];
+    assert_eq!(square_image.x, image.x);
+    assert_eq!(square_image.y, image.y);
+    let mut beside = false;
+    for placed in square.lines() {
+        if placed.page != 0 {
+            continue;
+        }
+        let run = &square_page.runs[placed.run];
+        let line_top = placed.top.raw();
+        let line_bottom = line_top + placed.height.raw();
+        if line_top >= square_image.y.raw() + square_image.height.raw()
+            || line_bottom <= square_image.y.raw()
+        {
+            continue;
+        }
+        for glyph in &run.glyphs {
+            let left = run.origin_x.raw() + glyph.x.raw();
+            let right = left + glyph.advance.raw();
+            if right <= square_image.x.raw()
+                || left >= square_image.x.raw() + square_image.width.raw()
+            {
+                beside = true;
+            }
+        }
+    }
+    assert!(
+        beside,
+        "wrapSquare should still keep glyphs beside the rectangle"
+    );
 }
 
 fn square_page(text: &str, wrap: AnchorWrap, side: i64, x: i64, y: i64) -> Document {

@@ -21,7 +21,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use harfrust::{Direction, UnicodeBuffer};
 use joyword_foundation::Emu;
-use joyword_model::{RevisionKind, SquareWrap};
+use joyword_model::{RevisionKind, SquareWrap, TopBottomWrap};
 
 use crate::{FeatureSet, GlyphRun, LoadedFont, ShapedGlyph, ShapedRun, shape};
 
@@ -57,8 +57,10 @@ pub struct LineRevision {
 /// When [`absolute_top`] is `None`, `x` is the distance from the line origin
 /// before justification and the picture sits on the baseline. When it is
 /// `Some`, `x` and `absolute_top` are page coordinates and the picture does
-/// not take line width or line height. [`square`] is set only for
-/// `wp:wrapSquare`; `None` is an inline picture or `wp:wrapNone`.
+/// not take line width or line height. [`square`] is set for `wp:wrapSquare`
+/// and for the square approximation of tight/through wrap. [`top_bottom`] is
+/// set for `wp:wrapTopAndBottom`. Both `None` is an inline picture or
+/// `wp:wrapNone`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LineImage {
     pub media_type: Arc<str>,
@@ -73,6 +75,9 @@ pub struct LineImage {
     /// Distances outside the painted extent. The painted rectangle stays
     /// `x`/`absolute_top`/`width`/`height`.
     pub square: Option<SquareWrap>,
+    /// Vertical band of `wp:wrapTopAndBottom`. The painted rectangle stays
+    /// `x`/`absolute_top`/`width`/`height`.
+    pub top_bottom: Option<TopBottomWrap>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
