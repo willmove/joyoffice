@@ -21,6 +21,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use crate::pause::StepGate;
 use crate::storage::{
     OriginalChoice, SaveCopyError, SaveCopyReceipt, SaveOriginalError, SaveOriginalReceipt,
     SourceStamp, open_source, save_export_copy, save_original_with_choice,
@@ -352,6 +353,16 @@ impl BoundDocx {
         Self::open(path, &Budget::default())
     }
 
+    /// [`Self::open_default`] after an optional test pause. The pause is taken
+    /// before any read, so the editor can be observed while this call is in flight.
+    pub fn open_default_paused(
+        path: &Path,
+        gate: Option<&StepGate>,
+    ) -> Result<Self, BoundOpenError> {
+        StepGate::wait(gate);
+        Self::open_default(path)
+    }
+
     pub fn session(&self) -> &DocxSession {
         &self.inner
     }
@@ -454,6 +465,16 @@ impl SaveCopyJob {
 
     /// Same plan and copy as [`BoundDocx::save_copy`] at [`Self::version`].
     pub fn run(&self, destination: &Path) -> Result<SaveCopyReceipt, BoundSaveError> {
+        self.run_paused(destination, None)
+    }
+
+    /// [`Self::run`] after an optional test pause, before planning or IO.
+    pub fn run_paused(
+        &self,
+        destination: &Path,
+        gate: Option<&StepGate>,
+    ) -> Result<SaveCopyReceipt, BoundSaveError> {
+        StepGate::wait(gate);
         let plan = match &self.rebound {
             Some(binding) => binding.plan(&self.snapshot, &self.budget),
             None => plan_export(&self.backing, &self.snapshot, &self.budget),
@@ -503,6 +524,16 @@ impl SaveOriginalJob {
     }
 
     pub fn run(&self, choice: OriginalChoice) -> SaveOriginalJobOutput {
+        self.run_paused(choice, None)
+    }
+
+    /// [`Self::run`] after an optional test pause, before export or IO.
+    pub fn run_paused(
+        &self,
+        choice: OriginalChoice,
+        gate: Option<&StepGate>,
+    ) -> SaveOriginalJobOutput {
+        StepGate::wait(gate);
         let (plan, rebound) = match self.prepare() {
             Ok(prepared) => prepared,
             Err(error) => {
