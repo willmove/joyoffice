@@ -21,4 +21,5 @@ pub mod print;
 pub mod storage;
 
 pub mod input;
+pub mod pause;
 pub mod rich_paste;

@@ -935,3 +935,12 @@ main 的 build 作业自 `c198425` 起在四个平台的「DOCX robustness exper
 - **修复**：目标改为当前检出中已提交的 `crates/` 树，用 Git 树对象 id（`git rev-parse HEAD:crates`）标识。build.rs 把它嵌入 harness，`crates/` 有未提交或未跟踪的改动时拒绝构建；driver.py 在同样状态下拒绝运行，harness 报告的 `target_sha` 与当前树不同（过期二进制）时仍判为 `protocol`。树 id 按内容寻址，squash 合并、删分支和浅克隆都不影响，只改文档的提交不改变它（`8268f62b:crates` 与 `02046d9:crates` 同为 `45bff81`）。提交仍由摘要里的 `harness_git_sha` 记录。ci.yml 与 fuzz-nightly.yml 不再需要 `fetch-depth: 0`。
 - **验证**（Linux x86_64，Rust 1.98.1，`c198425` 之上）：实验 cargo test 3 项、fmt、clippy `-D warnings`，Python 驱动 26 项（跳过 1 项 Windows 专属）通过；固定矩阵 smoke 81／81，43 ok、38 rejected，`matrix_complete` 为真；CI 同参数 fuzz 200 次，46 ok、154 rejected，无 crash／timeout／invariant／protocol。反例：`crates/` 有未提交改动时 build.rs 拒绝构建，driver 以 64 退出；把期望树改成其他值时同一二进制的结果判为 `protocol`。
 - **未覆盖**：Windows 与 macOS 只由本 PR 的 CI 执行。这仍不是覆盖引导 fuzz；覆盖模式的 nightly 未在本机运行。
+
+### T109 打开与保存并发的自动补强（2026-10-21）
+
+慢打开只读窗口和保存进行中的关闭提示以前只靠真实耗时，本机往往在 1 秒内结束，图形会话看不稳。这一刀加上可放行的 `StepGate`，并让窗口与外壳走同一套判断。T109 仍是 `in_progress`：没有做 Windows 或 macOS 的人工窗口验收，也不把这次自动测试当成那个验收。
+
+- **慢打开**。`BoundDocx::open_default_paused` 在读文件之前等待测试放行。等待期间外壳把除 `edit.insert` 以外的编辑和页面命令标成只读；插入写入打开缓冲，不改当前文档。平台键入（`replace_text_in_range`／预编辑）在 `is_opening` 时同样只进缓冲。`accept_bound` 把缓冲放进新文档。过期的 generation 或打开失败时，缓冲写回仍在的文档，不无提示丢掉。状态栏在打开期间使用 `file.open.reading`。
+- **保存进行中的关闭与退出**。`SaveCopyJob::run_paused` 与 `SaveOriginalJob::run_paused` 在计划与 IO 之前等待。`close_prompt` 同时给关闭和退出用：当前版本等于已保存版本则直接离开；在途保存的版本就是当前版本时仍提示尚未落盘（`close.unsaved`）；在途版本比当前版本旧时提示保存开始后的修改不在这次保存里（`close.dirty_after_save`）。取消关闭保留会话。另存不改 dirty；原件保存只把已写出的版本标成已保存，随后的键入仍脏，迟到结果仍按 DocumentId 路由。
+- **自动验证**：`t109_open_save_gate`（慢打开只读与键入保留、过期／失败打开不丢键入、另存在途时关闭提示、原件在途时关闭提示与跨文档路由）。既有 `m1_concurrency_recovery`、`save_copy_job`、`original_save_job` 不改断言。`close_and_quit_share_the_dirty_after_save_prompt` 与 `only_a_writing_save_of_this_editor_counts_as_in_flight` 覆盖提示文案和“正在写入”的判定。
+- **未覆盖**：Windows 与 macOS 上对着真实窗口做慢打开只读、取消打开，以及保存进行中点关闭／退出。没有把 T109 标成 done。
