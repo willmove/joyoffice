@@ -935,3 +935,10 @@ main 的 build 作业自 `c198425` 起在四个平台的「DOCX robustness exper
 - **修复**：目标改为当前检出中已提交的 `crates/` 树，用 Git 树对象 id（`git rev-parse HEAD:crates`）标识。build.rs 把它嵌入 harness，`crates/` 有未提交或未跟踪的改动时拒绝构建；driver.py 在同样状态下拒绝运行，harness 报告的 `target_sha` 与当前树不同（过期二进制）时仍判为 `protocol`。树 id 按内容寻址，squash 合并、删分支和浅克隆都不影响，只改文档的提交不改变它（`8268f62b:crates` 与 `02046d9:crates` 同为 `45bff81`）。提交仍由摘要里的 `harness_git_sha` 记录。ci.yml 与 fuzz-nightly.yml 不再需要 `fetch-depth: 0`。
 - **验证**（Linux x86_64，Rust 1.98.1，`c198425` 之上）：实验 cargo test 3 项、fmt、clippy `-D warnings`，Python 驱动 26 项（跳过 1 项 Windows 专属）通过；固定矩阵 smoke 81／81，43 ok、38 rejected，`matrix_complete` 为真；CI 同参数 fuzz 200 次，46 ok、154 rejected，无 crash／timeout／invariant／protocol。反例：`crates/` 有未提交改动时 build.rs 拒绝构建，driver 以 64 退出；把期望树改成其他值时同一二进制的结果判为 `protocol`。
 - **未覆盖**：Windows 与 macOS 只由本 PR 的 CI 执行。这仍不是覆盖引导 fuzz；覆盖模式的 nightly 未在本机运行。
+
+### 2026-10-21 文档同步（#71 与 #70 已在 main）
+
+上一节写于 [#71](https://github.com/willmove/joyoffice/pull/71) 合入时：当时只改文档的 #70 还被同一 CI 步挡住。随后 [#70](https://github.com/willmove/joyoffice/pull/70)（`f7cbeadd`）已合入 main。任务状态与计数不改（12 done／17 in_progress／37 planned／0 blocked）。没有任何任务因此改为 `done`。
+
+- **#71**（`e8c47764`）：W09 绑定当前检出已提交的 `crates/` 树 id（`git rev-parse HEAD:crates`），不再手工重锚固定提交。`ci.yml` 与 `fuzz-nightly.yml` 去掉 `fetch-depth: 0`。上一节的根因、修复与本机验证仍然有效。更早条目里的「重锚到某提交、不放宽 `git diff <SHA> -- crates`」描述的是改绑之前的契约。
+- **#70**（`f7cbeadd`）：银河麒麟 V10 SP1 修复会话的机器侧证据已落在 main，见上文「麒麟缺陷修复会话的机器侧证据」与 [kylin_report.json](../../tests/fixtures/reference/kylin/kylin_report.json)。截图、`min002_export.pdf` 和报告里的 `fix_session`／`main_landing` 随该 PR 入库。分支代码没有整体合入。KYSEC／mtime、项目符号和文件入口的等价修复此前已由 #44、#46 进入 main，软件 Vulkan 回退由 `4bf14f2` 进入 main。分支变体的麒麟点击复验不能代替 main 变体的真机复验。T005、T110 与 T200 保持原状态。
