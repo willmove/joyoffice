@@ -34,9 +34,10 @@ pub use block::{
     TableLayoutKind, TableLook, TableWidth, VerticalAlign, VerticalMerge,
 };
 pub use document::{
-    DEFAULT_COMPATIBILITY_MODE, Document, DocumentSettings, DocumentSnapshot, DocumentVersion,
-    EqualColumns, HeaderFooterKind, NEW_DOCUMENT_COMPATIBILITY_MODE, NewspaperColumn, Orientation,
-    PageNumbering, PageSetup, Section, SectionBreak, Story, StoryKind, UnequalColumns,
+    DEFAULT_COMPATIBILITY_MODE, DocGrid, DocGridKind, Document, DocumentSettings, DocumentSnapshot,
+    DocumentVersion, EqualColumns, HeaderFooterKind, NEW_DOCUMENT_COMPATIBILITY_MODE,
+    NewspaperColumn, Orientation, PageNumbering, PageSetup, Section, SectionBreak, Story,
+    StoryKind, UnequalColumns,
 };
 pub use dump::{DumpOptions, SemanticDifference};
 pub use hyperlink::{Hyperlink, MAX_HYPERLINK_CHARS, OpenRefusal, open_target};

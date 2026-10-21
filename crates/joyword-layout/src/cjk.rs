@@ -15,7 +15,7 @@
 use std::fmt;
 
 use joyword_foundation::Emu;
-use joyword_model::ThemeFont;
+use joyword_model::{DocGrid, DocGridKind, ThemeFont};
 use read_fonts::TableProvider;
 
 use crate::shape::ShapedRun;
@@ -210,6 +210,44 @@ pub fn single_line_height(size: Emu, win: VerticalSpan, grid: LineGrid) -> CjkRe
 pub fn measured_line_grid(snap: bool) -> Result<LineGrid, CjkIssue> {
     let pitch = Emu::from_twips(MEASURED_LINE_PITCH_TWIPS).ok_or(CjkIssue::Overflow)?;
     Ok(LineGrid { pitch, snap })
+}
+
+/// Line grid for one section. A positive `linePitch` on `lines` or
+/// `linesAndChars` replaces the measured 312 twip default. `snapToChars`,
+/// an omitted type, and a missing element keep that default. `charSpace`
+/// is not a line pitch. Evidence stays [`Evidence::Inferred`], because only
+/// the 312 twip grid was fitted to Word.
+pub fn line_grid_for(grid: Option<DocGrid>, snap: bool) -> Result<LineGrid, CjkIssue> {
+    if !snap {
+        return measured_line_grid(false);
+    }
+    let pitch_twips = match grid {
+        Some(DocGrid {
+            kind: Some(DocGridKind::Lines | DocGridKind::LinesAndChars),
+            line_pitch: Some(pitch),
+            ..
+        }) => {
+            if pitch <= 0 {
+                return Err(CjkIssue::IllegalGrid);
+            }
+            pitch
+        }
+        _ => MEASURED_LINE_PITCH_TWIPS,
+    };
+    let pitch = Emu::from_twips(pitch_twips).ok_or(CjkIssue::Overflow)?;
+    Ok(LineGrid { pitch, snap: true })
+}
+
+/// Twips of [`line_grid_for`] with snapping on. Cache keys store this value.
+pub fn snapped_pitch_twips(grid: Option<DocGrid>) -> Result<i64, CjkIssue> {
+    match line_grid_for(grid, true)?
+        .pitch
+        .raw()
+        .checked_div(Emu::PER_TWIP)
+    {
+        Some(twips) => Ok(twips),
+        None => Err(CjkIssue::Overflow),
+    }
 }
 
 /// Advance of one punctuation character for the DengXian R7 profile.

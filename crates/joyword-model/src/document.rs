@@ -123,6 +123,25 @@ pub struct UnequalColumns {
     pub columns: Vec<NewspaperColumn>,
 }
 
+/// `w:docGrid/@w:type` (ECMA-376 §17.6.5). An omitted type is the schema
+/// value `default` and is stored as `None`, not as a line grid.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum DocGridKind {
+    Lines,
+    LinesAndChars,
+    SnapToChars,
+}
+
+/// `w:docGrid`. Lengths are twips as written. Layout reads a positive
+/// `line_pitch` only for [`DocGridKind::Lines`] and
+/// [`DocGridKind::LinesAndChars`]. `char_space` is kept and not applied.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DocGrid {
+    pub kind: Option<DocGridKind>,
+    pub line_pitch: Option<i64>,
+    pub char_space: Option<i64>,
+}
+
 /// `w:pgSz` and `w:pgMar` in source units.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageSetup {
@@ -178,6 +197,8 @@ pub struct Section {
     /// Explicit unequal widths. Import leaves `columns` empty when this is
     /// set. Layout rejects a section that has both.
     pub unequal_columns: Option<UnequalColumns>,
+    /// `None` means the section has no `w:docGrid` element.
+    pub doc_grid: Option<DocGrid>,
     pub preserved: Option<PreservedId>,
 }
 
@@ -256,6 +277,7 @@ impl Document {
             numbering: PageNumbering::default(),
             columns: None,
             unequal_columns: None,
+            doc_grid: None,
             preserved: None,
         };
         let story = Story {

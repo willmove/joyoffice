@@ -271,6 +271,8 @@ struct ProfileFitKey {
     liga: bool,
     calt: bool,
     leading: Option<i64>,
+    /// Twips of the single-spacing line grid. `None` when that grid is not used.
+    line_pitch: Option<i64>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -1167,6 +1169,7 @@ fn paragraph_key(
             liga: profile.features.standard_ligatures,
             calt: profile.features.contextual_alternates,
             leading: uses_profile_leading(document, paragraph).then_some(profile.leading.raw()),
+            line_pitch: single_pitch_twips(document, paragraph),
         },
         external: external_key(flags, context),
         revision_view: match views.revision {
@@ -1200,6 +1203,16 @@ fn uses_profile_leading(document: &Document, paragraph: &Paragraph) -> bool {
         Ok(flow) => !matches!(flow.line, Some(LineSpacing::Auto(240))),
         Err(_) => true,
     }
+}
+
+fn single_pitch_twips(document: &Document, paragraph: &Paragraph) -> Option<i64> {
+    let flow = style_paint::flow(document, paragraph).ok()?;
+    if !matches!(flow.line, Some(LineSpacing::Auto(240))) || flow.snap_to_grid == Some(false) {
+        return None;
+    }
+    let grid =
+        crate::document::section_for(document, paragraph.id()).and_then(|section| section.doc_grid);
+    crate::cjk::snapped_pitch_twips(grid).ok()
 }
 
 fn resolved_style(
@@ -1360,6 +1373,7 @@ mod tests {
                 liga: false,
                 calt: false,
                 leading: None,
+                line_pitch: None,
             },
             external,
             revision_view: 0,
