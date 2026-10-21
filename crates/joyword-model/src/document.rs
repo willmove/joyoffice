@@ -258,6 +258,10 @@ pub struct Document {
     move_markers: Arc<Vec<MoveMarker>>,
     /// Next `w:id` to assign. Import sets this past every id it kept.
     next_revision: u32,
+    /// Next comment `w:id`. Word ids may be 0, so a new document starts there.
+    next_comment: u32,
+    /// Next `w14:paraId` counter. 0 is avoided; values are formatted `{:08X}`.
+    next_para: u32,
 }
 
 impl Document {
@@ -298,6 +302,8 @@ impl Document {
             numbering: Arc::default(),
             move_markers: Arc::default(),
             next_revision: 1,
+            next_comment: 0,
+            next_para: 1,
         }
     }
 
@@ -436,6 +442,43 @@ impl Document {
         let id = self.next_revision;
         self.next_revision = self.next_revision.checked_add(1)?;
         Some(id)
+    }
+
+    /// Remembers an imported comment `w:id` so the next allocated id does not reuse it.
+    pub fn note_comment_id(&mut self, id: u32) {
+        let next = id.saturating_add(1);
+        if next > self.next_comment {
+            self.next_comment = next;
+        }
+    }
+
+    /// Allocates a comment `w:id`. `None` when the counter is exhausted.
+    pub fn allocate_comment_id(&mut self) -> Option<u32> {
+        let id = self.next_comment;
+        self.next_comment = self.next_comment.checked_add(1)?;
+        Some(id)
+    }
+
+    /// Remembers an imported `w14:paraId` (hex) so a new id does not reuse it.
+    pub fn note_para_id(&mut self, para_id: &str) {
+        let Ok(id) = u32::from_str_radix(para_id, 16) else {
+            return;
+        };
+        let next = id.saturating_add(1);
+        if next > self.next_para {
+            self.next_para = next;
+        }
+    }
+
+    /// Allocates a `w14:paraId` of eight uppercase hex digits.
+    /// `None` when the counter is exhausted.
+    pub fn allocate_para_id(&mut self) -> Option<Arc<str>> {
+        if self.next_para == 0 {
+            self.next_para = 1;
+        }
+        let id = self.next_para;
+        self.next_para = self.next_para.checked_add(1)?;
+        Some(Arc::from(format!("{id:08X}")))
     }
 
     pub fn numbering(&self) -> &NumberingStore {

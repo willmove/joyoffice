@@ -7,9 +7,9 @@ use std::fmt;
 use std::sync::Arc;
 
 use joyword_model::{
-    CellBorders, CellMargins, Color, FontRef, Hyperlink, Indent, InlineKind, Justification,
-    Measure, NodeId, NumberingRef, PageSetup, Position, RunProps, ScalarOffset, Spacing, StoryId,
-    StyleId, TabStop, TableAlign, TableWidth, TextError, Toggle, Underline,
+    AnnotationId, CellBorders, CellMargins, Color, FontRef, Hyperlink, Indent, InlineKind,
+    Justification, Measure, NodeId, NumberingRef, PageSetup, Position, RunProps, ScalarOffset,
+    Spacing, StoryId, StyleId, TabStop, TableAlign, TableWidth, TextError, Toggle, Underline,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -153,6 +153,35 @@ pub enum Command {
     AcceptAllRevisions,
     /// Rejects every text revision and every complete move.
     RejectAllRevisions,
+    /// Inserts a root comment on `start..end` in one story.
+    /// The start sticks before insertions there; the end sticks after.
+    /// An empty `text` is an empty comment paragraph. `date` is stored as
+    /// written and is not parsed (ECMA-376 Part 1 §17.13.4.2).
+    AddComment {
+        start: Position,
+        end: Position,
+        author: String,
+        date: Option<String>,
+        initials: Option<String>,
+        text: String,
+    },
+    /// Replies to `parent`. The reply copies the parent's anchor and sets
+    /// `w15:paraIdParent`. A missing parent is [`CommandError::OrphanReply`].
+    ReplyComment {
+        parent: AnnotationId,
+        author: String,
+        date: Option<String>,
+        initials: Option<String>,
+        text: String,
+    },
+    /// Marks a comment resolved without detaching or deleting it (REVIEW-006).
+    ResolveComment {
+        id: AnnotationId,
+    },
+    /// Clears the resolved flag. The anchor is unchanged.
+    ReopenComment {
+        id: AnnotationId,
+    },
 }
 
 /// Character formatting changes of the M1 subset.
@@ -330,6 +359,21 @@ pub enum CommandError {
     Hyperlink(&'static str),
     /// Width, margin or border values are outside the typed subset.
     TableProperties(&'static str),
+    /// A new comment needs a non-empty author of at most 255 scalars.
+    CommentAuthorMissing,
+    /// The range is empty of a story, longer than this slice allows, or the
+    /// date, initials or comment text exceed their limits.
+    CommentRangeInvalid,
+    /// `id` is not a comment annotation.
+    UnknownComment(AnnotationId),
+    /// The parent is missing or is not a comment.
+    OrphanReply(AnnotationId),
+    /// Reopen was asked of a comment that is not resolved.
+    CommentNotResolved(AnnotationId),
+    /// Resolve was asked of a comment that is already resolved.
+    CommentAlreadyResolved(AnnotationId),
+    /// The parent comment has no `w14:paraId`, or a new id cannot be allocated.
+    CommentThreadUnavailable,
 }
 
 impl fmt::Display for TableStructure {
@@ -407,6 +451,15 @@ impl fmt::Display for CommandError {
             CommandError::RevisionConflict => f.write_str("revision conflict"),
             CommandError::Hyperlink(reason) => f.write_str(reason),
             CommandError::TableProperties(reason) => f.write_str(reason),
+            CommandError::CommentAuthorMissing => f.write_str("comment author is missing"),
+            CommandError::CommentRangeInvalid => f.write_str("comment range is not usable"),
+            CommandError::UnknownComment(id) => write!(f, "unknown comment {id}"),
+            CommandError::OrphanReply(id) => write!(f, "orphan reply to {id}"),
+            CommandError::CommentNotResolved(id) => write!(f, "comment {id} is not resolved"),
+            CommandError::CommentAlreadyResolved(id) => {
+                write!(f, "comment {id} is already resolved")
+            }
+            CommandError::CommentThreadUnavailable => f.write_str("comment thread is unavailable"),
         }
     }
 }

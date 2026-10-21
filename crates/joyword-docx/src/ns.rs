@@ -42,16 +42,35 @@ pub const REL_FOOTER: &str =
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer";
 pub const REL_VBA_PROJECT: &str =
     "http://schemas.microsoft.com/office/2006/relationships/vbaProject";
+/// ECMA-376 Part 1 §17.13.4 comments part.
+pub(crate) const REL_COMMENTS: &str =
+    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments";
+/// [MS-DOCX] commentsExtended (`w15:commentEx`).
+pub(crate) const REL_COMMENTS_EXTENDED: &str =
+    "http://schemas.microsoft.com/office/2011/relationships/commentsExtended";
+/// [MS-DOCX] commentsIds (`w16cid:commentId`).
+pub(crate) const REL_COMMENTS_IDS: &str =
+    "http://schemas.microsoft.com/office/2016/09/relationships/commentsIds";
+/// [MS-DOCX] commentsExtensible (`w16cex:commentExtensible`).
+pub(crate) const REL_COMMENTS_EXTENSIBLE: &str =
+    "http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible";
+/// Word 2010 wordml (`w14:paraId`).
+pub(crate) const W14: &str = "http://schemas.microsoft.com/office/word/2010/wordml";
+/// Word 2012 wordml (`w15`).
+pub(crate) const W15: &str = "http://schemas.microsoft.com/office/word/2012/wordml";
+/// Word 2016 comment id (`w16cid`).
+pub(crate) const W16CID: &str = "http://schemas.microsoft.com/office/word/2016/wordml/cid";
+/// Word 2018 comment extensibility (`w16cex`).
+pub(crate) const W16CEX: &str = "http://schemas.microsoft.com/office/word/2018/wordml/cex";
 
 /// Relationship types whose parts hold text stories. Header and footer parts
 /// are imported when a section references them; an unreferenced one is still
-/// warned. Notes and comments stay unimported.
-pub(crate) const STORY_RELATIONSHIPS: [&str; 5] = [
+/// warned. Notes stay unimported. Comments are imported separately.
+pub(crate) const STORY_RELATIONSHIPS: [&str; 4] = [
     REL_HEADER,
     REL_FOOTER,
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes",
     "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes",
-    "http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments",
 ];
 
 /// Content types of a WordprocessingML main document part: document,

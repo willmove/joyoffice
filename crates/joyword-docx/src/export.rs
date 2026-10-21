@@ -5,8 +5,8 @@
 //! `structure`). Header and footer stories are written back into the parts
 //! they were imported from; a new relationship id is appended only to that
 //! part's existing relationships part. Unmapped property markup is refused
-//! rather than dropped. Comments outside text leaves and every other part
-//! stay byte-for-byte intact. Text and move revisions are written back when a
+//! rather than dropped. Comment resolve patches `w15:done`; a new comment is
+//! appended. Other comment bytes stay intact. Text and move revisions are written back when a
 //! paragraph is edited; other structural edits, signed packages and any
 //! imported restriction are refused. `w:trackRevisions` may change on its
 //! own and is patched in the settings part. The completed output is
@@ -169,7 +169,7 @@ impl ExportPlan {
     }
 }
 
-fn unsupported(node: Option<NodeId>, reason: &'static str) -> ExportError {
+pub(crate) fn unsupported(node: Option<NodeId>, reason: &'static str) -> ExportError {
     ExportError::Unsupported { node, reason }
 }
 
@@ -254,6 +254,7 @@ fn plan_export_after_import(
         && !tracking_changed
         && section_page_changes.is_empty()
         && !story_changed
+        && !crate::comment::differs(original, current)
     {
         return Ok(plan);
     }
@@ -444,12 +445,41 @@ fn plan_export_after_import(
         }
         Some(appended)
     };
+    let comment_write = crate::comment::apply(
+        package,
+        main_name,
+        &main_bytes,
+        rels_bytes.as_deref(),
+        original,
+        current,
+        budget,
+    )?;
+    if let Some(bytes) = comment_write.as_ref().and_then(|write| write.main.clone()) {
+        main_bytes = bytes;
+    }
+    let main_changed = !alignment.is_unchanged()
+        || !section_page_changes.is_empty()
+        || comment_write
+            .as_ref()
+            .is_some_and(|write| write.main.is_some());
     let mut replacements = Vec::new();
-    if !alignment.is_unchanged() || !section_page_changes.is_empty() {
+    if main_changed {
         replacements.push((main_name.clone(), main_bytes));
     }
     if let Some(bytes) = rels_bytes {
         replacements.push((rels_name, bytes));
+    }
+    if let Some(write) = &comment_write {
+        for (name, bytes) in &write.parts {
+            if let Some(slot) = replacements
+                .iter_mut()
+                .find(|(existing, _)| existing == name)
+            {
+                slot.1.clone_from(bytes);
+            } else {
+                replacements.push((name.clone(), bytes.clone()));
+            }
+        }
     }
     if tracking_changed {
         replacements.push(patch_track_revisions(
@@ -465,11 +495,17 @@ fn plan_export_after_import(
         }
         replacements.push((write.name, write.bytes));
     }
-    let mut items = vec![(
-        "[Content_Types].xml",
-        package.content_types_xml(),
-        Method::Stored,
-    )];
+    let created = comment_write
+        .as_ref()
+        .map(|write| write.created.clone())
+        .unwrap_or_default();
+    let content_types_owned = comment_write
+        .as_ref()
+        .and_then(|write| write.content_types.clone());
+    let content_types = content_types_owned
+        .as_deref()
+        .unwrap_or_else(|| package.content_types_xml());
+    let mut items = vec![("[Content_Types].xml", content_types, Method::Stored)];
     for part in package.parts() {
         let replaced = replacements.iter().find(|(name, _)| name == &part.name);
         let data = replaced
@@ -484,6 +520,9 @@ fn plan_export_after_import(
             part.method
         };
         items.push((part.name.item_name(), data, method));
+    }
+    for (name, bytes) in &created {
+        items.push((name.as_str(), bytes.as_slice(), Method::Stored));
     }
     let bytes = write_archive(&items).map_err(|error| ExportError::Write(error.to_string()))?;
     let verified = import(&bytes, budget)?;
@@ -505,6 +544,11 @@ fn plan_export_after_import(
     for (name, _) in &replacements {
         plan.changed.push(name.clone());
         plan.preserved.retain(|part| part != name);
+    }
+    for (name, _) in &created {
+        if let Ok(part) = PartName::from_item_name(name) {
+            plan.changed.push(part);
+        }
     }
     Ok(plan)
 }
@@ -718,40 +762,38 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
         || before.styles().defaults != after.styles().defaults
         || before.styles().theme() != after.styles().theme()
         || !before.styles().iter().eq(after.styles().iter())
-        || !before.annotations().eq(after.annotations())
     {
         return Err(unsupported(None, "non-text document content changed"));
     }
+    crate::comment::envelope(before, after).map_err(|reason| unsupported(None, reason))?;
     Ok(())
 }
 
 fn auxiliary_stories_match(before: &Document, after: &Document) -> bool {
-    let ids = |document: &Document| {
-        let mut ids: Vec<_> = document
-            .stories()
-            .filter(|story| story.id != document.body_id())
-            .map(|story| story.id)
-            .collect();
-        ids.sort();
-        ids
-    };
-    let left = ids(before);
-    if left != ids(after) {
-        return false;
+    for story in before.stories() {
+        if story.id == before.body_id() {
+            continue;
+        }
+        let Some(right) = after.story(story.id) else {
+            return false;
+        };
+        if story.kind != right.kind {
+            return false;
+        }
+        // Header and footer text is written by `header_footer`. Existing
+        // comment stories must keep their text; new comment stories are
+        // allowed below.
+        if !matches!(story.kind, StoryKind::Header | StoryKind::Footer)
+            && story_signature(story) != story_signature(right)
+        {
+            return false;
+        }
     }
-    left.into_iter()
-        .all(|id| match (before.story(id), after.story(id)) {
-            (Some(left), Some(right)) => {
-                if left.kind != right.kind {
-                    return false;
-                }
-                // Header and footer text is written by `header_footer`. Any
-                // other story still has to match before a plan is attempted.
-                matches!(left.kind, StoryKind::Header | StoryKind::Footer)
-                    || story_signature(left) == story_signature(right)
-            }
-            _ => false,
-        })
+    after.stories().all(|story| {
+        story.id == after.body_id()
+            || before.story(story.id).is_some()
+            || story.kind == StoryKind::Comment
+    })
 }
 
 fn story_signature(story: &Story) -> String {
@@ -1248,7 +1290,11 @@ fn text_slots<'e>(
     // its wrapper is not a text leaf.
     let mut slots = Vec::new();
     for child in element.elements() {
-        if child.is(W, "pPr") || child.is(W, "proofErr") {
+        if child.is(W, "pPr")
+            || child.is(W, "proofErr")
+            || child.is(W, "commentRangeStart")
+            || child.is(W, "commentRangeEnd")
+        {
             continue;
         }
         if child.is(W, "hyperlink") {
@@ -1306,7 +1352,10 @@ fn collect_run_slots<'e>(
         return Err("unsupported paragraph markup");
     }
     for leaf in run.elements() {
-        if leaf.is(W, "rPr") || leaf.is(W, "lastRenderedPageBreak") {
+        if leaf.is(W, "rPr")
+            || leaf.is(W, "lastRenderedPageBreak")
+            || leaf.is(W, "commentReference")
+        {
             continue;
         }
         if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {

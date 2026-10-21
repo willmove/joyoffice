@@ -723,6 +723,44 @@ fn execute(
         Command::RejectRevision { id } => crate::revision::reject_one(document, *id, map, changes),
         Command::AcceptAllRevisions => crate::revision::accept_all(document, map, changes),
         Command::RejectAllRevisions => crate::revision::reject_all(document, map, changes),
+        Command::AddComment {
+            start,
+            end,
+            author,
+            date,
+            initials,
+            text,
+        } => crate::comment::add(
+            document,
+            start,
+            end,
+            crate::comment::Draft {
+                author,
+                date: date.as_deref(),
+                initials: initials.as_deref(),
+                text,
+            },
+            changes,
+        ),
+        Command::ReplyComment {
+            parent,
+            author,
+            date,
+            initials,
+            text,
+        } => crate::comment::reply(
+            document,
+            *parent,
+            crate::comment::Draft {
+                author,
+                date: date.as_deref(),
+                initials: initials.as_deref(),
+                text,
+            },
+            changes,
+        ),
+        Command::ResolveComment { id } => crate::comment::resolve(document, *id, changes),
+        Command::ReopenComment { id } => crate::comment::reopen(document, *id, changes),
     }
 }
 
@@ -1601,7 +1639,7 @@ fn remap_annotations(document: &mut Document, map: &PositionMap, changes: &mut C
                 let emptied = start != end
                     && new_start.paragraph == new_end.paragraph
                     && new_start.offset == new_end.offset;
-                if emptied && matches!(annotation.kind, AnnotationKind::Comment { .. }) {
+                if emptied && matches!(annotation.kind, AnnotationKind::Comment(_)) {
                     Anchor::Detached
                 } else {
                     Anchor::Range {

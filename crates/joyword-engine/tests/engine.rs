@@ -705,7 +705,7 @@ fn bookmarks_and_comments_follow_cross_paragraph_edits_and_undo() {
         bias,
     };
     let comment = doc.insert_annotation(
-        AnnotationKind::Comment { body: comment_body },
+        AnnotationKind::comment(comment_body),
         Anchor::Range {
             start: at(ids[0], 7, Bias::After),
             end: at(ids[0], 12, Bias::Before),

@@ -463,7 +463,7 @@ fn annotation_ranges_are_checked_against_story_text() {
         document.insert_story(StoryKind::Comment, vec![block])
     };
     let good = document.insert_annotation(
-        AnnotationKind::Comment { body: comment_body },
+        AnnotationKind::comment(comment_body),
         Anchor::Range {
             start: at(paragraphs[0], 7, Bias::After),
             end: at(paragraphs[0], 12, Bias::Before),
@@ -493,10 +493,8 @@ fn annotation_ranges_are_checked_against_story_text() {
             end: at(paragraphs[0], 500, Bias::Before),
         },
     );
-    let detached = document.insert_annotation(
-        AnnotationKind::Comment { body: comment_body },
-        Anchor::Detached,
-    );
+    let detached =
+        document.insert_annotation(AnnotationKind::comment(comment_body), Anchor::Detached);
     document.annotation_mut(spanning).unwrap().kind = AnnotationKind::Field {
         separator: Some(at(paragraphs[3], 0, Bias::After)),
     };

@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 use std::fmt::Write;
 
-use crate::annotation::{Anchor, AnnotationKind, Position};
+use crate::annotation::{Anchor, Annotation, AnnotationKind, Position};
 use crate::block::{
     Block, BlockSeq, BorderEdge, CellBorders, InlineKind, Paragraph, Preserved, TableWidth,
 };
@@ -507,7 +507,7 @@ impl Document {
         for annotation in document.annotations() {
             let kind = match &annotation.kind {
                 AnnotationKind::Bookmark { name } => format!("bookmark name={name:?}"),
-                AnnotationKind::Comment { .. } => "comment".to_string(),
+                AnnotationKind::Comment(_) => "comment".to_string(),
                 AnnotationKind::Field { separator } => match separator {
                     Some(separator) => format!("field separator={}", dumper.position(separator)),
                     None => "field".to_string(),
@@ -530,7 +530,10 @@ impl Document {
             } else {
                 "annotation".to_string()
             };
-            dumper.line(0, &format!("{head} {kind} {anchor}"));
+            dumper.line(
+                0,
+                &format!("{head} {kind} {anchor}{}", comment_suffix(annotation)),
+            );
         }
         // After stories are walked, paragraph ordinals exist and positions
         // print as pN rather than raw node ids.
@@ -570,6 +573,45 @@ impl Document {
         }
         dumper.out
     }
+}
+
+/// Fields that follow the anchor. The `annotation comment {anchor}` prefix
+/// stays stable for existing golden substrings.
+fn comment_suffix(annotation: &Annotation) -> String {
+    let AnnotationKind::Comment(comment) = &annotation.kind else {
+        return String::new();
+    };
+    let mut line = format!(
+        " id={} author={:?} date={:?} initials={:?} para={:?} parent={:?} resolved={} durable={:?} utc={:?}",
+        comment.source_id,
+        comment.author.as_deref(),
+        comment.date.as_deref(),
+        comment.initials.as_deref(),
+        comment.para_id.as_deref(),
+        comment.parent_para_id.as_deref(),
+        comment.resolved,
+        comment.durable_id.as_deref(),
+        comment.date_utc.as_deref(),
+    );
+    if !comment.extra_attributes.is_empty() {
+        line.push_str(" attrs=");
+        for (index, attribute) in comment.extra_attributes.iter().enumerate() {
+            if index > 0 {
+                line.push(',');
+            }
+            let _ = write!(
+                line,
+                "{}:{}={:?}",
+                attribute.namespace.as_deref().unwrap_or(""),
+                attribute.local,
+                attribute.value.as_ref()
+            );
+        }
+    }
+    if let Some(markup) = &comment.extra_markup {
+        let _ = write!(line, " markup={markup:?}");
+    }
+    line
 }
 
 /// First difference between two documents' identifier-free dumps (T004

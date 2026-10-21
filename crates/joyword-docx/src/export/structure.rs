@@ -854,6 +854,12 @@ impl<'a> Source<'a> {
         names: &Names,
         limit: u64,
     ) -> Result<Vec<u8>, ExportError> {
+        if crate::comment::has_markup(element) {
+            return Err(unsupported(
+                Some(before.id()),
+                "comment range is kept only for a text change",
+            ));
+        }
         let template = {
             let copies = self.copies.borrow();
             copies
@@ -1283,6 +1289,12 @@ pub(super) fn rewrite_styled_paragraph(
     limit: u64,
     source: &Source<'_>,
 ) -> Result<Vec<u8>, ExportError> {
+    if crate::comment::has_markup(element) {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "comment range is kept only for a text change",
+        ));
+    }
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
     let mut inner = String::new();
@@ -1385,6 +1397,12 @@ pub(super) fn rewrite_direct_paragraph(
     limit: u64,
     source: &Source<'_>,
 ) -> Result<Vec<u8>, ExportError> {
+    if crate::comment::has_markup(element) {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "comment range is kept only for a text change",
+        ));
+    }
     let open =
         opened_start(xml, element).map_err(|reason| unsupported(Some(paragraph.id()), reason))?;
     let mut inner = String::new();
@@ -2709,6 +2727,12 @@ pub(super) fn rewrite_revisions(
     limit: u64,
     theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
 ) -> Result<Vec<u8>, ExportError> {
+    if crate::comment::has_markup(element) {
+        return Err(unsupported(
+            Some(paragraph.id()),
+            "comment range is kept only for a text change",
+        ));
+    }
     let refuse = |reason| unsupported(Some(paragraph.id()), reason);
     let mut out = opened_start(xml, element).map_err(refuse)?;
     if let Some(properties) = element.child(W, "pPr") {
