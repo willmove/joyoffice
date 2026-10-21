@@ -8,11 +8,13 @@ use joyword_docx::plan_export;
 use joyword_engine::RunChange;
 use joyword_model::{
     BreakKind, InlineKind, Justification, Measure, NumberingRef, Orientation, PageFieldKind,
+    Paragraph, Underline,
 };
 use joyword_shell::command::{
-    ArgValue, EDIT_ALIGN_CENTER, EDIT_BOLD, EDIT_COPY, EDIT_INSERT, EDIT_PASTE, EDIT_SELECT_ALL,
-    FILE_OPEN, FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK,
-    PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, STYLE_APPLY, STYLE_LIST,
+    ArgValue, EDIT_ALIGN_CENTER, EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD, EDIT_COPY, EDIT_CUT,
+    EDIT_INSERT, EDIT_JUSTIFY, EDIT_PASTE, EDIT_SELECT_ALL, EDIT_UNDERLINE, FILE_OPEN,
+    FILE_SAVE_COPY, InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK, PAGE_MARGINS,
+    PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, STYLE_APPLY, STYLE_LIST,
 };
 use joyword_shell::host::Office;
 
@@ -138,6 +140,93 @@ fn edit_format_clipboard_save_and_reopen_keeps_text_and_unknown_parts() {
     let _ = RunChange::Bold(Some(true));
 }
 
+fn first_paragraph(office: &Office) -> Paragraph {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .find_map(|block| block.as_paragraph())
+        .unwrap()
+        .clone()
+}
+
+#[test]
+fn cut_toggles_and_alignment_presets_go_through_the_command_registry() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("plain.docx");
+    fs::write(&source, fixture(1)).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+        .unwrap();
+    let original = office.active().unwrap().view().index().text().to_owned();
+
+    office.invoke(EDIT_CUT, &[]).unwrap();
+    assert_eq!(office.active().unwrap().view().index().text(), original);
+    office.active_mut().unwrap().select(0..4, false).unwrap();
+    office.invoke(EDIT_CUT, &[]).unwrap();
+    assert_eq!(
+        office.active().unwrap().view().index().text(),
+        original.strip_prefix("合作协议").unwrap()
+    );
+    office.active_mut().unwrap().undo().unwrap();
+    assert_eq!(office.active().unwrap().view().index().text(), original);
+    let end = office.active().unwrap().view().index().len_utf16();
+    office
+        .active_mut()
+        .unwrap()
+        .select(end..end, false)
+        .unwrap();
+    office.invoke(EDIT_PASTE, &[]).unwrap();
+    assert!(
+        office
+            .active()
+            .unwrap()
+            .view()
+            .index()
+            .text()
+            .ends_with("签署。合作协议")
+    );
+
+    office.invoke(EDIT_SELECT_ALL, &[]).unwrap();
+    let shows = |office: &Office, check: fn(&joyword_model::RunProps) -> bool| {
+        first_paragraph(office)
+            .runs()
+            .iter()
+            .all(|run| check(&run.props))
+    };
+    let bold = |props: &joyword_model::RunProps| props.bold == Some(true);
+    let underlined = |props: &joyword_model::RunProps| {
+        props
+            .underline
+            .is_some_and(|underline| underline != Underline::None)
+    };
+    office.invoke(EDIT_BOLD, &[]).unwrap();
+    assert!(shows(&office, bold));
+    office.invoke(EDIT_BOLD, &[]).unwrap();
+    assert!(shows(&office, |props| props.bold == Some(false)));
+    office.invoke(EDIT_UNDERLINE, &[]).unwrap();
+    assert!(shows(&office, underlined));
+    office.invoke(EDIT_UNDERLINE, &[]).unwrap();
+    assert!(shows(&office, |props| props.underline == Some(Underline::None)));
+
+    for (command, expected) in [
+        (EDIT_ALIGN_RIGHT, Justification::End),
+        (EDIT_JUSTIFY, Justification::Both),
+        (EDIT_ALIGN_CENTER, Justification::Center),
+        (EDIT_ALIGN_LEFT, Justification::Start),
+    ] {
+        office.invoke(command, &[]).unwrap();
+        assert_eq!(first_paragraph(&office).props.justification, Some(expected));
+    }
+}
+
 #[test]
 fn protected_documents_refuse_edits_and_a_failed_save_keeps_bytes() {
     let bytes = fixture(5);
@@ -152,6 +241,18 @@ fn protected_documents_refuse_edits_and_a_failed_save_keeps_bytes() {
         .invoke(EDIT_INSERT, &[("text", ArgValue::Text("改".into()))])
         .unwrap_err();
     assert!(matches!(error, InvokeError::Disabled(_)));
+    office.invoke(EDIT_SELECT_ALL, &[]).unwrap();
+    for command in [
+        EDIT_CUT,
+        EDIT_UNDERLINE,
+        EDIT_ALIGN_LEFT,
+        EDIT_ALIGN_RIGHT,
+        EDIT_JUSTIFY,
+    ] {
+        let error = office.invoke(command, &[]).unwrap_err();
+        assert!(matches!(error, InvokeError::Disabled(_)), "{command}");
+    }
+    office.invoke(EDIT_COPY, &[]).unwrap();
     assert_eq!(fs::read(&source).unwrap(), bytes);
 
     let editable = fixture(1);

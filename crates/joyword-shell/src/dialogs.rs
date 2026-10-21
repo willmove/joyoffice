@@ -340,7 +340,7 @@ pub fn command_specs() -> Vec<CommandSpec> {
             id: FORMAT_FONT,
             label: "command.format.font",
             menu: edit,
-            shortcut: Shortcut::NONE,
+            shortcut: Shortcut::primary("cmd-d", "ctrl-d"),
             modifies_document: true,
             parameters: FONT_PARAMS,
         },
