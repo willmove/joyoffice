@@ -173,6 +173,7 @@ fn write_story(
         backing,
         original,
         &[&root],
+        current.styles().theme().colors.clone(),
     );
     let edited = paragraph_edits(before, after)?;
     let mut patches = Vec::new();
