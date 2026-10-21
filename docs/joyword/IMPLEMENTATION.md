@@ -782,6 +782,16 @@ T210 还把 80% GUI 页面按页宽归一后与 DOCX-MIN-001 的 CPU PNG 对照�
 
 rebase 到 main `5b07db6f7ec72392bd2b123a8235fa1dc0884f31` 之后，W09 harness 改锚到 `8690efd218d0c8be17c80104a021a93a78fca9dd`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T110 的 `security.*` 排除与来源字节复读；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。再 rebase 到 main `77f71712820da58ee7e13299ecb01d76d5c2768f`（T202 squash）之后，W09 harness 改锚到 `77ea6a90c91e229f979ad87eb0f4480fdb95fed1`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T202 的 widowControl、页面设置写回与页眉编辑；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。再 rebase 到 main `b39eb05ab7a63ada1bb4189bc1a07394592b090b`（T200 find fold/regex squash）之后，W09 harness 改锚到 `ae71fb713d39358b181c9e0d8d33308fdd44c3d3`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T200 的全角半角折叠与正则查找；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。再 rebase 到 main `1eec33e28e30dd426d055a501a10d487c704d367`（T201 cell vAlign、行 trHeight 与表格属性 squash）之后，W09 harness 改锚到 `e4a776a0ac78949d3d291467de886bbe23d8380b`（该提交的 `crates/` 含 Linux 文件条与 `ctrl-e`，以及 T201 的单元格 vAlign、行 trHeight 与表格属性；随后只改 experiments 与本记录，不放宽 `git diff <SHA> -- crates`）。固定矩阵尚未在该树上重跑。
 
+### 麒麟缺陷修复会话的机器侧证据（2026-10-19，分支 verify/kylin-v10sp1-session-20261019）
+
+同日真机会话的九项发现里，可由代码解决的部分先在分支 `verify/kylin-v10sp1-session-20261019` 上修复并逐项在银河麒麟 V10 SP1 本机复验；该分支的代码后来没有整体合入，等价修复以下述方式落进 main。本节补记机器侧验证证据与两边的映射，机器可读记录（含逐项 status、`fix_session` 与 `launch_requirement`）见 [kylin_report.json](../../tests/fixtures/reference/kylin/kylin_report.json)。
+
+- **KYSEC `security.*`（kylin-1）与 mtime 粒度（kylin-2）**：分支版在写回被拒时跳过内核管理的 `security.*`；`restore_xattrs` 跳过后，确认替换在本机走通、GUI 损失清单只剩创建时间（不再列扩展属性）。同族测试改为注入不同长度改写并在重写前跨一个时间戳粒度（50 ms），本机此前从未跑到的 `w07` 集成测试全部转绿。main 经 PR #44（`5b07db6`，T110 Linux 元数据切片）落地等价修复但设计不同：observe 侧把 `security.*` 记入 `kernel_xattrs` 不进恢复集合，产品侧 `open_source` 增加内容复读。分支验证的是分支变体，main 变体未在麒麟真机复验。
+- **项目符号按钮（kylin-5）**：应用侧 `LIST_APPLY` 补 `bullet` 优先、回落 `num`，与 shell host 对齐；本机 GUI 实测按钮正确套用 U+2022 圆点列表（`kylin-gui-bullet-applied-after-fix.png`）。main 经 PR #46（`fe50e74`，Linux GUI 入口修补）以相同语义落地。
+- **文件命令可达性（kylin-3／6）**：分支实现为五命令「文件」功能区页经门户对话框取路径（`kylin-gui-file-ribbon-tab.png`）；本机补装 `xdg-desktop-portal`＋gtk 后端后链路全通——经对话框打开 DOCX-MIN-002、另存副本落盘、导出 PDF 落盘且 poppler 与 pdfminer.six 双读回一致（`min002_export.pdf`）。提示测试中出现过一次未解释的应用退出（无 panic、无段错误，重启 `recovery.restored`），已如实记录在报告。main 经 PR #46 落地为窗口内「文件／编辑」条＋路径栏（不依赖门户），设计不同且未在麒麟真机点击复验；UKUI 劫持 Ctrl+Shift+E 属桌面设置，两边都以不依赖该快捷键的入口替代。
+- **裸跑建窗失败（T002 错误路径）**：分支版把建窗错误原文加固定 Linux 软件渲染提示打到 stderr 并 `exit(1)`；本机复验裸跑打印真实错误后立即退出，带 SwiftShader ICD 启动窗口正常（`kylin-gui-window-with-swiftshader-icd.png`，首帧约 15–25 秒）。main 的 `4bf14f2` 以更强的方案取代：自动查找软件 ICD 并自我重启，无需手工环境变量；该自动路径在 UOS 验证，未在麒麟复测。机器启动要求（SwiftShader ICD 路径、门户依赖）记录在报告 `launch_requirement`。
+- **未修项**：GPUI X11 不接 IME（kylin-8，上游缺口）、WPS PDF 通道（kylin-9，WPS 自身），与真机会话记录一致。
+
 ### T200 查找栏全半角与正则勾选（2026-10-19）
 
 这一刀把上一查找切片已经接到命令上的 `width`／`regex` 放进应用查找栏。T200 保持 `in_progress`。没有改 `crates/`，因此不重锚 W09，也不重跑固定矩阵。没有启动图形界面。

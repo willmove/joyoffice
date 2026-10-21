@@ -21,40 +21,46 @@
       "summary": "KYSEC 给每个文件挂 security.ksip / security.boxadm 扩展属性，security.ksip 用户态不可写回；T110 原件替换按契约拒绝（ReplacementUnavailable[UnpreservableMetadata(ExtendedAttributes)]），确认替换路径对普通文件必然不可用（默认另存副本，数据无损）",
       "test": "joyword-shell storage::original::tests::confirmed_replacement_copies_a_user_extended_attribute",
       "evidence": "python 复现：security.ksip set → EPERM；同 SELinux security.selinux 将同病",
-      "direction": "restore/observe 应把内核管理的 security.* 命名空间排除出可保留集合（新文件由内核自动打标）"
+      "direction": "restore/observe 应把内核管理的 security.* 命名空间排除出可保留集合（新文件由内核自动打标）",
+      "status": "fixed and re-verified on the Kylin machine (2026-10-19, branch verify/kylin-v10sp1-session-20261019); landed on main via PR #44 (5b07db6): restore_xattrs now skips the kernel-managed security.* namespace; the failing test passes and the GUI replacement prompt no longer lists extended attributes as a loss (creation time only)"
     },
     {
       "id": "kylin-2",
       "severity": "medium",
       "summary": "内核 5.4 mtime 粒度为 jiffy（实测两次相距 1ms 的写具有相同 st_mtime_ns），stat→open 身份守卫对同长度快速改写存在约一个 jiffy 的盲区",
       "test": "joyword-shell storage::source::tests::identity_change_between_stat_and_open_is_not_a_baseline",
-      "direction": "测试注入改写长度不同的内容或跨 jiffy 等待；产品可补内容散列比对"
+      "direction": "测试注入改写长度不同的内容或跨 jiffy 等待；产品可补内容散列比对",
+      "status": "fixed and re-verified on the Kylin machine; landed on main via PR #44 (5b07db6): the guard test now injects a different-length rewrite; three more same-family integration tests cross one timestamp granule (50 ms sleep) so jiffy-grained kernels detect the change"
     },
     {
       "id": "kylin-3",
       "severity": "high",
       "summary": "Linux/X11 上 shift+字母快捷键（Ctrl+Shift+E 导出 PDF、Ctrl+Shift+S 另存副本）不触发（XSendEvent 与 XTEST 两种注入均不触发；Ctrl+= 等无 shift 快捷键正常），且 GPUI 窗口不渲染菜单栏——这两个命令在 Linux GUI 不可达",
-      "evidence": "kylin-gui 系列截图与日志（无 file.export_pdf/file.save_copy 事件）"
+      "evidence": "kylin-gui 系列截图与日志（无 file.export_pdf/file.save_copy 事件）",
+      "status": "partly addressed; landed on main via PR #46 (fe50e74) as a File/Edit bar with path-sheet prompts making the commands reachable without a menubar or shortcuts; the desktop shortcut hijack itself is a UKUI setting, not app-fixable"
     },
     {
       "id": "kylin-4",
       "severity": "high",
       "summary": "段内部分字符改格式（如对段中一个字加粗）后整画布拒绝渲染：document layout: Unsupported { feature: \"mixed character formatting\" }，文档不可显示；撤销后恢复。T200 样式切片的整段均匀格式绘制与整画布失败语义叠加所致",
       "test": "GUI 复现（joyword 启动样例，加粗一个字）；NodeId 为该段",
-      "direction": "style_paint 按段回退或应用层按段降级，避免整篇不可显示"
+      "direction": "style_paint 按段回退或应用层按段降级，避免整篇不可显示",
+      "status": "fixed upstream by da5f192 (paint mixed character formatting per run span); re-verified on this machine after the fix"
     },
     {
       "id": "kylin-5",
       "severity": "medium",
       "summary": "功能区「项目符号」按钮在 GUI 上必报「输入未完成：num」：应用侧 execute_input 的 LIST_APPLY 分支只读 num、忽略 bullet 参数（shell 层 host 有 bullet 分支但应用未走）",
       "location": "apps/joyword/src/input_ui.rs execute_input LIST_APPLY",
-      "direction": "该分支先查 bullet 再回落 num，与 joyword-shell host.rs LIST_APPLY 对齐"
+      "direction": "该分支先查 bullet 再回落 num，与 joyword-shell host.rs LIST_APPLY 对齐",
+      "status": "fixed and re-verified on the Kylin machine; landed on main via PR #46 (fe50e74): the app-side LIST_APPLY dispatcher honours the bullet argument (mirrors the shell host); the ribbon bullet button applies a U+2022 list in the GUI"
     },
     {
       "id": "kylin-6",
       "severity": "medium",
       "summary": "Ctrl+O 未保存提示「不保存」后文件打开对话框不出现（无新窗口、无诊断）；未绑定文档上 Ctrl+S 静默无反应",
-      "direction": "排查 rfd/GTK/portal 在 GPUI X11 事件循环中的集成"
+      "direction": "排查 rfd/GTK/portal 在 GPUI X11 事件循环中的集成",
+      "status": "environment gap, fixed by installing xdg-desktop-portal + xdg-desktop-portal-gtk: GPUI dialogs go through ashpd/portal; open/save/export dialogs then worked end to end (files opened, copies saved, PDF exported and read back by poppler and pdfminer.six)"
     },
     {
       "id": "kylin-7",
@@ -93,6 +99,38 @@
     "method": "编辑后 kill -9 进程，重启（同 JOYWORD_PROFILE_DIR）",
     "log": "joyword-000001.log 完好且无正文泄漏（grep 合作协议/青禾/远山/1234567/ENGLISH/summary 均 0 命中）",
     "restore": "新实例日志 recovery.restored kind=document count=1；状态栏「会话文档」；正文为最后完整事务状态",
-    "screenshots": ["kylin-gui-recovery-restored.png"]
+    "screenshots": [
+      "kylin-gui-recovery-restored.png"
+    ]
+  },
+  "fix_session": {
+    "date": "2026-10-19",
+    "branch": "verify/kylin-v10sp1-session-20261019",
+    "code_changes": [
+      "storage/metadata.rs: restore_xattrs skips kernel security.* xattr writes (KYSEC security.ksip, SELinux security.selinux)",
+      "apps/joyword input_ui.rs: LIST_APPLY bullet branch + DocEditor::apply_bullet",
+      "chrome.rs + chrome_ui.rs + locales: File ribbon tab with five commands; PromptPath dispatch per command",
+      "feature_catalog.json floor 41->46; check_docs FEATURE_FLOOR and tab set updated",
+      "tests: metadata/source/guards portable across mtime granularity (length-changing injection, 50 ms granule crossings)",
+      "panic_baseline.txt: two new test-only sites registered",
+      "apps/joyword main.rs: window-open failure prints the raw platform error plus a fixed Linux Vulkan hint to stderr (log keeps the redacted form) and exits deterministically instead of the non-terminating cx.quit()"
+    ],
+    "verification": [
+      "cargo test --locked: all crates green on this machine (shell 49 lib + integration suites; app 38)",
+      "cargo fmt/clippy -D warnings: clean; check_docs.py and check_gates.py: pass",
+      "GUI on Kylin: bullet list applies (kylin-gui-bullet-applied-after-fix.png); File tab open dialog opens DOCX-MIN-002 (kylin-gui-file-ribbon-tab.png); save-copy writes min002_copy; export PDF writes min002_export.pdf, read back identically by poppler and pdfminer.six; original-save prompt lists creation time only; Tab/Enter attempt during the replace prompt coincided with an unexplained app exit (no panic, no segfault; recovery.restored on relaunch)",
+      "bare run now prints \"No GPU adapter found that can configure the display surface\" plus the VK_ICD_FILENAMES hint and exits 1; with the SwiftShader ICD the window renders normally (kylin-gui-window-with-swiftshader-icd.png)"
+    ],
+    "main_landing": [
+      "security.* xattr skip in restore_xattrs and the mtime-granularity test portability landed on main via PR #44 (5b07db6, \"fix(storage): skip security xattrs and recheck source bytes\")",
+      "the LIST_APPLY bullet dispatch and file-command reachability landed on main via PR #46 (fe50e74) as a File/Edit bar with path-sheet prompts instead of this branch's five-command File ribbon tab; the feature-catalog floor on main has since risen past this branch's 46",
+      "the bare-run window-open failure is superseded on main by 4bf14f2 (\"fix(app): fall back to software Vulkan on GPU-less Linux\"), which auto-detects a software ICD and re-executes without a manual env var instead of printing a hint and exiting; that auto path was verified on UOS, not re-measured on this Kylin machine"
+    ]
+  },
+  "launch_requirement": {
+    "window": "The machine has no working Vulkan hardware driver (Cirrus VGA; system mesa-vulkan-drivers 20.0.8 exposes only intel/radeon ICDs). The window opens only with VK_ICD_FILENAMES pointing at a software ICD, e.g. VK_ICD_FILENAMES=/usr/share/trae-cn-enterprise/vk_swiftshader_icd.json; first frame takes roughly 15-25 s under SwiftShader.",
+    "dialogs": "GPUI file dialogs additionally require xdg-desktop-portal (installed this session with the gtk backend).",
+    "bare_run_before_fix": "Without the env var the window-open error was printed fully redacted (<redacted>) and the process hung instead of exiting.",
+    "main_auto_fallback": "Since main 4bf14f2 the app auto-detects a software Vulkan ICD and re-executes itself, so the manual env var is in principle no longer required; verified on UOS only, not re-measured on this machine."
   }
 }
