@@ -504,7 +504,7 @@ fn unsupported_content_and_active_styles_are_not_silently_laid_out_as_plain_text
     );
     let mut document = make_document(&["AV"], 2);
     change_paragraph(&mut document, 0, |p| {
-        Arc::make_mut(&mut p.props).justification = Some(Justification::Both)
+        Arc::make_mut(&mut p.props).justification = Some(Justification::Distribute)
     });
     assert!(matches!(
         layout_document(
@@ -1114,22 +1114,17 @@ fn justified_lists_stretch_chinese_body_text_and_tabs_keep_their_stops() {
     let mut latin = make_document(&["Ab"], 4);
     install_list(&mut latin, NumberFormat::Decimal, "%1", 1);
     mark_paragraph(&mut latin, 0);
+    let latin_start = layout(&latin);
     change_paragraph(&mut latin, 0, |paragraph| {
         let mut props = (*paragraph.props).clone();
         props.justification = Some(Justification::Both);
         paragraph.props = Arc::new(props);
     });
-    let error = layout_document(
-        &latin.snapshot(),
-        FaceSet::uniform(&font()),
-        profile(),
-        LayoutLimits::default(),
-        &LayoutCancellation::default(),
-    )
-    .unwrap_err();
-    assert!(
-        matches!(error, LayoutError::Unsupported { feature, .. } if feature == "inter-character justification"),
-        "{error}"
+    let latin_both = layout(&latin);
+    assert_eq!(
+        latin_both.lines()[0].carets,
+        latin_start.lines()[0].carets,
+        "a lone Latin word has no gap to stretch"
     );
 
     let mut tabbed = make_document(&["A\tB"], 4);

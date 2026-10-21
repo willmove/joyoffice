@@ -186,6 +186,73 @@ fn r7_punctuation_widths_follow_the_measured_pairs() {
     );
 }
 
+fn glyphs(text: &str, advance: Emu) -> Vec<JustifyGlyph> {
+    text.char_indices()
+        .map(|(cluster, ch)| JustifyGlyph {
+            ch,
+            cluster,
+            advance,
+        })
+        .collect()
+}
+
+#[test]
+fn justify_line_matches_r3_on_pure_chinese_and_spares_latin_words() {
+    let chinese = glyphs("甲乙丙", pt(12));
+    let r3 = justify_intercharacter(&[pt(12); 3], pt(48), false).unwrap();
+    let mut expected = r3.gaps.clone();
+    expected.push(Emu::new(0));
+    assert_eq!(justify_line(&chinese, pt(48), false).unwrap(), expected);
+
+    // Gaps: after 甲 (before A), after the space, between 乙 and 1, and
+    // nowhere inside "Ab" or "12".
+    let mixed = glyphs("甲Ab 乙12", pt(10));
+    let gaps = justify_line(&mixed, pt(100), false).unwrap();
+    assert_eq!(
+        gaps,
+        vec![pt(10), pt(0), pt(0), pt(10), pt(10), pt(0), pt(0)]
+    );
+
+    // A trailing space hangs: it takes no share and its width is not counted.
+    let trailing = glyphs("甲乙 ", pt(10));
+    assert_eq!(
+        justify_line(&trailing, pt(30), false).unwrap(),
+        vec![pt(10), pt(0), pt(0)]
+    );
+
+    // Multi-glyph clusters stretch only between clusters.
+    let mut composed = glyphs("甲乙", pt(10));
+    composed.insert(
+        1,
+        JustifyGlyph {
+            ch: '\u{0301}',
+            cluster: 0,
+            advance: Emu::new(0),
+        },
+    );
+    assert_eq!(
+        justify_line(&composed, pt(30), false).unwrap(),
+        vec![pt(0), pt(10), pt(0)]
+    );
+
+    assert_eq!(
+        justify_line(&glyphs("summary", pt(10)), pt(100), false),
+        Err(CjkIssue::UnverifiedJustify)
+    );
+    assert_eq!(
+        justify_line(&glyphs("甲 b", pt(10)), pt(100), true).unwrap(),
+        vec![pt(0); 3]
+    );
+    assert_eq!(
+        justify_line(&glyphs("甲乙", pt(10)), pt(10), false),
+        Err(CjkIssue::DoesNotFit)
+    );
+    assert_eq!(
+        justify_line(&glyphs("  ", pt(10)), pt(100), false).unwrap(),
+        vec![pt(0); 2]
+    );
+}
+
 #[test]
 fn r3_justify_fills_the_line_and_leaves_the_last_line() {
     let advances = [pt(12), pt(12), pt(12)];

@@ -293,13 +293,13 @@ use joyword_layout::{
     SingleFontProfile, ViewOptions, layout_document_viewed, layout_with_view, to_screen,
 };
 use joyword_model::{
-    Block, BorderKind, HeaderFooterKind, Orientation, PageSetup, RevisionKind, RevisionView,
-    StoryKind, TableAlign, TableWidth, VerticalMerge,
+    Block, BorderKind, HeaderFooterKind, Justification, Orientation, PageSetup, RevisionKind,
+    RevisionView, StoryKind, TableAlign, TableWidth, VerticalMerge,
 };
 use joyword_shell::command::{
-    EDIT_BOLD, FILE_OPEN, FILE_SAVE_COPY, FORMAT_COPY, FORMAT_PAINT, LIST_APPLY, LIST_LEVEL,
-    PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, REVIEW_ACCEPT,
-    REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
+    EDIT_BOLD, EDIT_JUSTIFY, FILE_OPEN, FILE_SAVE_COPY, FORMAT_COPY, FORMAT_PAINT, LIST_APPLY,
+    LIST_LEVEL, PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION,
+    REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
     REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_INSERT, TABLE_INSERT,
     TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES, TABLE_ROW_DELETE, TABLE_ROW_INSERT,
     TABLE_SPLIT,
@@ -1486,4 +1486,40 @@ fn t300_tracked_edits_views_and_revision_round_trip() {
     assert_eq!(active_document(&office).move_markers().len(), 4);
     assert_eq!(story_text(&office), "AVif");
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// GUI smoke after #78: typing into a Chinese paragraph and pressing Ctrl+J
+/// replaced the page with "inter-character justification" unsupported.
+#[test]
+fn justify_on_mixed_script_paragraphs_keeps_the_document_displayable() {
+    let sample: &[u8] = include_bytes!("../../../tests/fixtures/docx/DOCX-SAMPLE-001.docx");
+    let mixed = plain_package(
+        "<w:p><w:r><w:t>甲方：青禾工作室；双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。</w:t></w:r></w:p><w:p><w:r><w:t xml:space=\"preserve\">交付内容包括：正文、表格、图片以及 English summary and appendix notes。</w:t></w:r></w:p>",
+    );
+    for (label, bytes) in [
+        ("justify-sample", sample),
+        ("justify-mixed", mixed.as_slice()),
+    ] {
+        let (dir, mut office) = open_package(bytes, label);
+        caret_at(&mut office, 0);
+        office.active_mut().unwrap().replace(None, "x").unwrap();
+        cmd(&mut office, EDIT_JUSTIFY, &[]);
+        let first = active_document(&office)
+            .body()
+            .blocks
+            .iter()
+            .find_map(Block::as_paragraph)
+            .unwrap();
+        assert_eq!(first.props.justification, Some(Justification::Both));
+        assert!(first.plain_text(|_| String::new()).starts_with('x'));
+        let typed = lay(&office, ViewOptions::default());
+        assert!(scene_text(&typed).starts_with('x'), "{label}");
+
+        let end = office.active().unwrap().view().index().len_utf16();
+        office.active_mut().unwrap().select(0..end, false).unwrap();
+        cmd(&mut office, EDIT_JUSTIFY, &[]);
+        let all = lay(&office, ViewOptions::default());
+        assert_eq!(scene_text(&all), scene_text(&typed), "{label}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }
