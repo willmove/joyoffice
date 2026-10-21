@@ -8,6 +8,7 @@
 //! inside the transaction. No UI, file format or AI provider code lives here.
 
 mod command;
+mod comment;
 mod find;
 mod locate;
 mod map;

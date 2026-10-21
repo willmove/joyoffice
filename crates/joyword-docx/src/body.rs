@@ -191,6 +191,9 @@ impl Body {
         {
             self.blocks.push(table.into());
         } else {
+            if element.is(W, "tbl") {
+                crate::comment::note_unmapped(importer, element);
+            }
             let reason = foreign(importer, part, element, scope);
             let handle = importer.preserve(part, element, scope, reason);
             let id = importer.document.ids().node();
@@ -257,7 +260,7 @@ impl Body {
 
 /// Maps `w:p`; returns the paragraph and its `w:sectPr`, if it ends a
 /// section.
-fn paragraph(
+pub(crate) fn paragraph(
     importer: &mut Importer<'_>,
     part: &PartName,
     element: &Element,
@@ -536,9 +539,11 @@ fn content(
                 }
             }
             _ if is_marker(local) => {
-                let reason = foreign(importer, part, child, scope);
-                importer.preserve(part, child, scope, reason);
-                *locked = true;
+                if !crate::comment::record_marker(importer, child, paragraph) {
+                    let reason = foreign(importer, part, child, scope);
+                    importer.preserve(part, child, scope, reason);
+                    *locked = true;
+                }
             }
             _ => {
                 let reason = foreign(importer, part, child, scope);
@@ -652,6 +657,7 @@ fn run(
                     }
                 }
             }
+            (true, "commentReference") if crate::comment::skip_reference(child) => {}
             (true, "lastRenderedPageBreak") => importer.hint(part, "lastRenderedPageBreak"),
             (true, "drawing" | "pict" | "object") => {
                 match crate::images::import_container(

@@ -12,9 +12,10 @@ use joyword_model::{
 
 use crate::backing::{Fragment, PackageBacking, PreservedReason};
 use crate::ns::{
-    self, A, MAIN_CONTENT_TYPES, MC, R, REL_FOOTER, REL_HEADER, REL_NUMBERING, REL_OFFICE_DOCUMENT,
-    REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, REL_THEME, REL_VBA_PROJECT,
-    STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
+    self, A, MAIN_CONTENT_TYPES, MC, R, REL_COMMENTS, REL_COMMENTS_EXTENDED,
+    REL_COMMENTS_EXTENSIBLE, REL_COMMENTS_IDS, REL_FOOTER, REL_HEADER, REL_NUMBERING,
+    REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS, REL_STYLES, REL_THEME,
+    REL_VBA_PROJECT, STORY_RELATIONSHIPS, UNDERSTOOD, W, W_STRICT, WORD_COMPAT_URI,
 };
 use crate::props::{self, Findings, on_off, val};
 use crate::result::{
@@ -65,6 +66,13 @@ pub(crate) struct Importer<'a> {
     imported_images: Vec<(PartName, Arc<str>)>,
     /// Move range markers waiting until their paragraphs sit in a story.
     pub(crate) pending_moves: Vec<crate::revision::PendingMove>,
+    /// Comment range markers recorded while story paragraphs are read.
+    pub(crate) comment_marks: Vec<crate::comment::CommentMark>,
+    /// Comment ids whose markers sit in an opaque table.
+    pub(crate) unmapped_comment_ids: std::collections::BTreeSet<u32>,
+    /// `false` while reading `comments.xml`, so a comment body is not a
+    /// document anchor.
+    pub(crate) record_comment_anchors: bool,
 }
 
 impl<'a> Importer<'a> {
@@ -316,6 +324,9 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         imported_stories: Vec::new(),
         imported_images: Vec::new(),
         pending_moves: Vec::new(),
+        comment_marks: Vec::new(),
+        unmapped_comment_ids: std::collections::BTreeSet::new(),
+        record_comment_anchors: true,
     };
     for diagnostic in package.diagnostics() {
         importer.diagnose(
@@ -362,6 +373,13 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
             // §20.4.2.7) while the body is read. A relationship whose target
             // was stored as a resource is consumed there; an unconsumed
             // internal image part is reported after that walk.
+        } else if kind == REL_COMMENTS
+            || kind == REL_COMMENTS_EXTENDED
+            || kind == REL_COMMENTS_IDS
+            || kind == REL_COMMENTS_EXTENSIBLE
+        {
+            // Imported after the body so anchors bind to paragraphs already
+            // allocated. People.xml stays unimported.
         } else if kind == REL_VBA_PROJECT {
             importer.diagnose(
                 Severity::Warning,
@@ -397,6 +415,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         importer.numbering(part)?;
     }
     importer.main_document(&main)?;
+    importer.import_comments(&package)?;
     importer.warn_unreferenced_stories(&package, &main.name);
     importer.warn_unreferenced_images(&package, &main.name);
     importer.finish_summaries();

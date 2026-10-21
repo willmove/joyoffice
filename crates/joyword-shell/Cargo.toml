@@ -8,8 +8,15 @@ license.workspace = true
 repository.workspace = true
 publish = false
 
+[features]
+default = []
+# Opt-in AI runtime. Core editing stays available with `--no-default-features`
+# and with the default build, which does not enable this feature.
+ai = ["dep:joyword-agent"]
+
 [dependencies]
 crc32fast.workspace = true
+joyword-agent = { workspace = true, optional = true }
 joyoffice-opc.workspace = true
 joyword-docx.workspace = true
 joyword-engine.workspace = true

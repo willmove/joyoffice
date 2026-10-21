@@ -52,8 +52,10 @@
 //! refused. A `w:tbl` is
 //! mapped only when every element is in the typed subset (grid, rows, cells,
 //! merge state, `nil`/`single` borders and clear shading); anything else keeps
-//! the whole table as an opaque block. Content controls, notes, comments and
-//! bookmarks/fields as annotations remain unmapped. An inline still picture
+//! the whole table as an opaque block. Comments (`comments.xml`, range
+//! markers, commentsExtended, commentsIds and commentsExtensible) are mapped.
+//! Content controls, notes and bookmarks/fields as annotations remain
+//! unmapped. An inline still picture
 //! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster
 //! part inside the image budget becomes an image resource. A page-absolute
 //! `wp:anchor` with `wp:wrapNone`, page-relative `wp:wrapSquare`, or
@@ -77,6 +79,7 @@
 mod backing;
 mod binding;
 mod body;
+mod comment;
 mod export;
 mod hyperlink;
 mod images;

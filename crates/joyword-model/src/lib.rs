@@ -26,7 +26,9 @@ mod theme;
 mod tree;
 mod validate;
 
-pub use annotation::{Anchor, Annotation, AnnotationKind, Bias, Position};
+pub use annotation::{
+    Anchor, Annotation, AnnotationKind, Bias, Comment, CommentAttribute, Position,
+};
 pub use block::{
     Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellMargins, InlineKind,
     InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed, Row,

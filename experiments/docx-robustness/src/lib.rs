@@ -133,6 +133,16 @@ fn diag_kind_name(kind: &DiagnosticKind) -> &'static str {
         DiagnosticKind::Model(_) => "model",
         DiagnosticKind::RevisionSubset { .. } => "revision-subset",
         DiagnosticKind::MoveRange { .. } => "move-range",
+        DiagnosticKind::CommentAuthorMissing { .. } => "comment-author-missing",
+        DiagnosticKind::CommentAnchorMissing { .. } => "comment-anchor-missing",
+        DiagnosticKind::CommentAnchorUnmapped { .. } => "comment-anchor-unmapped",
+        DiagnosticKind::CommentAnchorInvalid { .. } => "comment-anchor-invalid",
+        DiagnosticKind::OrphanReply { .. } => "orphan-reply",
+        DiagnosticKind::CommentExtensionUnmatched { .. } => "comment-extension-unmatched",
+        DiagnosticKind::CommentIdDuplicate { .. } => "comment-id-duplicate",
+        DiagnosticKind::CommentIdMissing => "comment-id-missing",
+        DiagnosticKind::CommentPartInvalid => "comment-part-invalid",
+        DiagnosticKind::CommentBodyEmpty { .. } => "comment-body-empty",
     }
 }
 fn read_only_reason_name(reason: &ReadOnlyReason) -> &'static str {
