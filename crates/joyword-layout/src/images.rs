@@ -8,7 +8,9 @@
 //! A page anchor (`ImageAnchor`) is painted at page coordinates. `wp:wrapNone`
 //! does not take line width or line height. `wp:wrapSquare` keeps the same
 //! painted rectangle and asks placement to keep glyphs outside the exclusion.
-//! Neither is scaled into the content box. The stored bytes stay unchanged.
+//! `wp:wrapTopAndBottom` keeps that rectangle and asks placement to move a
+//! line that meets the vertical band entirely below it, with no side gap.
+//! None of these is scaled into the content box. The stored bytes stay unchanged.
 
 use std::ops::Range;
 use std::sync::Arc;
@@ -16,7 +18,7 @@ use std::sync::Arc;
 use joyword_foundation::Emu;
 use joyword_model::{
     AnchorWrap, Document, InlineKind, Measure, OBJECT_MARKER, Paragraph, Segment, SquareWrap,
-    WrapSide,
+    TopBottomWrap, WrapSide,
 };
 
 use crate::document::unsupported;
@@ -164,6 +166,7 @@ struct PageAnchor {
     x: Emu,
     y: Emu,
     square: Option<SquareWrap>,
+    top_bottom: Option<TopBottomWrap>,
 }
 
 struct TextPiece {
@@ -249,11 +252,17 @@ fn items(
                         let y = place.y.absolute().ok_or_else(|| {
                             unsupported(Some(paragraph.id()), "floating image position")
                         })?;
-                        let square = match place.wrap {
-                            AnchorWrap::None => None,
-                            AnchorWrap::Square(square) => Some(square),
+                        let (square, top_bottom) = match place.wrap {
+                            AnchorWrap::None => (None, None),
+                            AnchorWrap::Square(square) => (Some(square), None),
+                            AnchorWrap::TopAndBottom(band) => (None, Some(band)),
                         };
-                        Some(PageAnchor { x, y, square })
+                        Some(PageAnchor {
+                            x,
+                            y,
+                            square,
+                            top_bottom,
+                        })
                     }
                 };
                 items.push(Item::Image(FlowImage {
@@ -593,10 +602,10 @@ fn anchor_line(font: &LoadedFont, size: Emu, image: &FlowImage) -> LayoutLine {
 }
 
 fn line_image(image: &FlowImage, x: Emu) -> LineImage {
-    let (x, absolute_top, square) = if let Some(place) = &image.anchor {
-        (place.x, Some(place.y), place.square)
+    let (x, absolute_top, square, top_bottom) = if let Some(place) = &image.anchor {
+        (place.x, Some(place.y), place.square, place.top_bottom)
     } else {
-        (x, None, None)
+        (x, None, None, None)
     };
     LineImage {
         media_type: image.media_type.clone(),
@@ -607,6 +616,7 @@ fn line_image(image: &FlowImage, x: Emu) -> LineImage {
         scalar: image.scalar,
         absolute_top,
         square,
+        top_bottom,
     }
 }
 
@@ -650,7 +660,11 @@ fn shift_range(range: &mut Range<usize>, by: usize) {
     range.end += by;
 }
 
-/// One square exclusion already committed on a page, in page EMU.
+/// One exclusion already committed on a page, in page EMU.
+///
+/// `full_width` is `wp:wrapTopAndBottom`: the band covers the line frame, so
+/// text is not placed in a side gap. `left`, `right` and `side` are unused
+/// in that case.
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct SquareBand {
     pub page: usize,
@@ -659,6 +673,7 @@ pub(crate) struct SquareBand {
     pub top: i64,
     pub bottom: i64,
     pub side: WrapSide,
+    pub full_width: bool,
 }
 
 /// The frame a line is about to occupy.
@@ -716,6 +731,32 @@ pub(crate) fn square_bands(page: usize, line: &LayoutLine) -> Vec<SquareBand> {
             top: band_top,
             bottom,
             side: square.side,
+            full_width: false,
+        });
+    }
+    for image in &line.images {
+        let Some(band) = image.top_bottom else {
+            continue;
+        };
+        let Some(top) = image.absolute_top else {
+            continue;
+        };
+        let band_top = top.raw().saturating_sub(band.top);
+        let bottom = top
+            .raw()
+            .saturating_add(image.height.raw())
+            .saturating_add(band.bottom);
+        if bottom <= band_top {
+            continue;
+        }
+        bands.push(SquareBand {
+            page,
+            left: 0,
+            right: 0,
+            top: band_top,
+            bottom,
+            side: WrapSide::Larger,
+            full_width: true,
         });
     }
     bands
@@ -723,9 +764,12 @@ pub(crate) fn square_bands(page: usize, line: &LayoutLine) -> Vec<SquareBand> {
 
 /// Choose a side gap for `line`, or leave it unchanged.
 ///
-/// `committed` holds squares already placed on this page. The line's own
-/// square counts even before it is committed, so text on the anchor line
-/// avoids that rectangle. A gap as wide as the frame is [`Carve::Keep`].
+/// `committed` holds exclusions already placed on this page. The line's own
+/// square or top-and-bottom band counts even before it is committed, so text
+/// on the anchor line avoids that rectangle. A gap as wide as the frame is
+/// [`Carve::Keep`]. A top-and-bottom band covers the whole frame: a line with
+/// glyphs moves entirely below it, and a line with no glyphs stays put so the
+/// anchor marker does not insert a blank line under the picture.
 pub(crate) fn carve_line(line: &LayoutLine, frame: CarveFrame, committed: &[SquareBand]) -> Carve {
     if frame.width <= 0 || frame.step <= 0 {
         return Carve::Keep;
@@ -743,6 +787,18 @@ pub(crate) fn carve_line(line: &LayoutLine, frame: CarveFrame, committed: &[Squa
     }
     if hitting.is_empty() {
         return Carve::Keep;
+    }
+    if hitting.iter().any(|band| band.full_width) {
+        if line.run.glyphs.is_empty() {
+            return Carve::Keep;
+        }
+        let below = hitting
+            .iter()
+            .filter(|band| band.full_width)
+            .map(|band| band.bottom)
+            .max()
+            .unwrap_or(frame.top);
+        return Carve::Below { y: below };
     }
     let mut gaps = vec![(frame.x, frame.x.saturating_add(frame.width))];
     for band in &hitting {
