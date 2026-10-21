@@ -1523,3 +1523,81 @@ fn justify_on_mixed_script_paragraphs_keeps_the_document_displayable() {
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
+
+/// GUI smoke after #78: `joyword sample.docx` titled the window and the close
+/// prompt "未命名 1", because the argument was never opened.
+#[test]
+fn a_document_named_on_the_command_line_names_the_window_and_the_close_prompt() {
+    use super::input_ui::{DocEditor, close_prompt_message};
+    use super::{document_name, startup_document, window_title};
+    use joyword_shell::l10n::Locale;
+    use std::ffi::OsString;
+
+    let dir = scratch("cli-title");
+    let sample = dir.join("sample.docx");
+    std::fs::write(
+        &sample,
+        include_bytes!("../../../tests/fixtures/reference/word2024/interop/word_edited.docx"),
+    )
+    .unwrap();
+    let args = |items: &[&str]| -> Vec<OsString> { items.iter().map(OsString::from).collect() };
+    let shown = sample.to_str().unwrap();
+    assert_eq!(startup_document(args(&[])), None);
+    assert_eq!(startup_document(args(&["--verbose"])), None);
+    assert_eq!(
+        startup_document(args(&["--verbose", shown, "other.docx"])),
+        Some(sample.clone())
+    );
+    assert_eq!(
+        startup_document(args(&["--", "-dash.docx"])),
+        Some(PathBuf::from("-dash.docx"))
+    );
+
+    // The window's open for a chosen path.
+    let path = startup_document(args(&[shown])).unwrap();
+    let mut office = Office::new();
+    let generation = office.begin_open();
+    let bound = joyword_shell::docx::BoundDocx::open_default(&path).unwrap();
+    office.accept_bound(generation, bound).unwrap();
+    let mut editor: Box<dyn DocEditor> = Box::new(office.hold_active().unwrap());
+    let name = document_name(Some(editor.as_ref()), Locale::ZhCn);
+    assert_eq!(name.as_deref(), Some("sample.docx"));
+    assert_eq!(
+        window_title(name.as_deref(), false),
+        "sample.docx - JoyWord"
+    );
+    editor.replace(None, "x").unwrap();
+    assert!(editor.has_unsaved_changes());
+    assert_eq!(
+        window_title(name.as_deref(), true),
+        "*sample.docx - JoyWord"
+    );
+    assert_eq!(
+        close_prompt_message(Locale::ZhCn, "close.unsaved", name.as_deref()),
+        "“sample.docx”有尚未保存的更改。"
+    );
+    assert_eq!(
+        close_prompt_message(Locale::En, "close.dirty_after_save", name.as_deref()),
+        "“sample.docx” changed after saving started. Those edits are not in this save."
+    );
+
+    // Only an editor never bound to a file is untitled.
+    let startup_sample = joyword_shell::docx::DocxSession::open_default(include_bytes!(
+        "../../../tests/fixtures/docx/DOCX-SAMPLE-001.docx"
+    ))
+    .unwrap();
+    let untitled: Box<dyn DocEditor> = Box::new(
+        joyword_shell::input::TextInput::new(
+            startup_sample,
+            joyword_shell::input::InputLimits::default(),
+        )
+        .unwrap(),
+    );
+    assert_eq!(
+        document_name(Some(untitled.as_ref()), Locale::ZhCn).as_deref(),
+        Some("未命名 1")
+    );
+    assert_eq!(document_name(None, Locale::ZhCn), None);
+    drop(editor);
+    let _ = std::fs::remove_dir_all(&dir);
+}
