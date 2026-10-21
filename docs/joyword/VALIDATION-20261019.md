@@ -6,6 +6,8 @@
 
 任务现为 **12 done／17 in_progress／37 planned／0 blocked，共 66 项**。本轮补齐自动验证、两个渲染缺陷、Windows GUI 保存／IME／剪贴板／撤销证据，以及 T210 的真实窗口对照；T210 与 T211 因此标记 `done`。其余任务仍有明确未完成条款，未把局部通过计成整项 done。M0 退出条件和 T107／T206／T304／T403／T704 发布门槛仍未通过。
 
+2026-10-21 补记：下文健壮性矩阵使用的是当天的固定提交绑定。其后 [#71](https://github.com/willmove/joyoffice/pull/71)（`e8c47764`）改为绑定检出的 `crates/` 树 id，并去掉 CI 的 `fetch-depth: 0`；[#70](https://github.com/willmove/joyoffice/pull/70)（`f7cbeadd`）把麒麟修复会话证据落进 `tests/fixtures/reference/kylin/`。本文的计数与结论不因此改写。
+
 本文先记录 Windows 审计，再补充 2026-10-19 统信 UOS Desktop 20 Professional 会话。UOS 侧新增窗口、缩放、中文剪贴板、视图开关、`kill -9` 恢复、CLI PDF 与双 GUI 阅读器证据，并发现和修复一处 tiny-skia 栅格断言；Fcitx 与系统文件对话框仍未打通。
 
 ## Windows GUI 实测（2026-10-19）
