@@ -70,6 +70,7 @@ pub(crate) fn scene_pdf(
         joyword_pdf::PdfError::Writer(_) => "pdf writer".into(),
         joyword_pdf::PdfError::InvalidPage => "invalid page".into(),
         joyword_pdf::PdfError::Image(_) => "image".into(),
+        joyword_pdf::PdfError::Navigation(_) => "navigation".into(),
     })
 }
 
