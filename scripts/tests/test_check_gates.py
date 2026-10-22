@@ -19,10 +19,12 @@ SPEC = importlib.util.spec_from_file_location("check_gates", ROOT / "scripts" / 
 check_gates = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(check_gates)
 
-# The one filesystem offender the hardened scan surfaces on main. It is reported
-# to the reviewer instead of being added to FS_ALLOW, which is a human-reviewed
-# security boundary; see GATES-REPORT.md. The assertion below is a ratchet, so
-# the test keeps passing once that file is allowlisted by a human decision.
+# The one filesystem offender the hardened scan surfaced on main. It was reported
+# for review rather than silently allowlisted, and on 2026-10-22 the coordinator
+# added it to FS_ALLOW with the justification recorded there (Linux file-dialog
+# fallback, same category as the already-listed input_ui.rs). The constant stays
+# so the ratchet below still explains itself, and the assertion now expects an
+# empty finding list: any *new* offender fails the suite.
 REPORTED_FS_OFFENDER = "apps/joyword/src/linux_files.rs"
 
 
@@ -387,11 +389,17 @@ class FilesystemGate(TempTree):
         self.assertTrue(check_gates.is_test_path("apps/joyword/src/tests.rs"))
 
     def test_repo_offenders_are_only_the_reported_one(self):
-        """Integration ratchet: the hardened scan surfaces exactly one offender
-        on main, reported for human review instead of silently allowlisted."""
+        """Integration ratchet: the real tree has no filesystem offender left.
+
+        `linux_files.rs` was the single offender the hardened scan surfaced and
+        is now allowlisted with its justification recorded in FS_ALLOW, so the
+        expected finding list is empty. Any new offender — or the removal of
+        that allowlist entry — fails here.
+        """
         errors = check_gates.check_filesystem()
         unexpected = [error for error in errors if REPORTED_FS_OFFENDER not in error]
         self.assertEqual(unexpected, [])
+        self.assertEqual(errors, [], "FS_ALLOW changed; re-review the allowlist")
 
     def test_repo_files_below_a_test_module_are_really_scanned(self):
         """Integration: the old `split("#[cfg(test)]")[0]` truncation hid most of

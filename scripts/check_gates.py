@@ -121,6 +121,14 @@ FS_ALLOW = {
     "apps/joyword/src/main.rs",
     "apps/joyword/src/document_canvas.rs",
     "apps/joyword/src/input_ui.rs",
+    # Linux file-dialog fallback: gpui-pre-linux 0.3.9 stores `set_menus` and its
+    # XDG portal prompt can hang with no window on UKUI/X11, so this module asks
+    # for a path in-window and spawns zenity, qarma or kdialog. Same category as
+    # the already-listed `input_ui.rs`, which spawns a process to open a URL, and
+    # it cannot move to joyword-shell because the shell crate must not depend on
+    # GPUI. Allowlisted 2026-10-22 by the coordinator when the hardened scan
+    # first saw it; see GATES-REPORT.md.
+    "apps/joyword/src/linux_files.rs",
 }
 
 PANIC_RE = re.compile(
