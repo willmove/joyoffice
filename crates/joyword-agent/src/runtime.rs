@@ -8,12 +8,15 @@ use std::sync::{Arc, Mutex};
 
 use crate::config::{AiConfig, ConfigError};
 use crate::credential::{CredentialError, CredentialStore, Secret};
+use crate::document::DocumentPort;
 use crate::gate::{Admission, AiGate, AiPhase, CommitDecision, GateError, Generation};
 use crate::policy::{AdminPolicy, ManagedReason, SettingsView};
 use crate::provider::{
     CancelFlag, CompletionRequest, CompletionResponse, LogCredential, LoggedRequest, Provider,
     ProviderError, RequestLog,
 };
+use crate::scope::{Grant, ScopeError, TickClock};
+use crate::scoped::{ToolError, build_context_text};
 use crate::telemetry::Telemetry;
 
 const MAX_PROMPT_BYTES: usize = 32 * 1024;
@@ -25,6 +28,8 @@ pub enum AgentError {
     Provider(ProviderError),
     Credential(CredentialError),
     Config(ConfigError),
+    Scope(ScopeError),
+    Tool(ToolError),
     Prompt,
 }
 
@@ -35,6 +40,8 @@ impl fmt::Display for AgentError {
             AgentError::Provider(error) => write!(f, "{error}"),
             AgentError::Credential(error) => write!(f, "{error}"),
             AgentError::Config(error) => write!(f, "{error}"),
+            AgentError::Scope(error) => write!(f, "{error}"),
+            AgentError::Tool(error) => write!(f, "{error}"),
             AgentError::Prompt => f.write_str("prompt was rejected"),
         }
     }
@@ -65,6 +72,8 @@ impl AgentError {
             AgentError::Provider(ProviderError::NoProvider) => "no-provider",
             AgentError::Credential(_) => "credential",
             AgentError::Config(_) => "config",
+            AgentError::Scope(error) => error.kind(),
+            AgentError::Tool(error) => error.kind(),
             AgentError::Prompt => "prompt",
         }
     }
@@ -254,6 +263,60 @@ impl AgentRuntime {
         {
             return Err(AgentError::Prompt);
         }
+        self.send(prompt)
+    }
+
+    /// Scoped round trip (T401). Validates the grant against a fresh snapshot
+    /// and the live generation before sending, builds the minimal context, and
+    /// re-validates after the response so an edited, expired, or killed
+    /// session discards the result instead of surfacing it (AI.md §3–§4).
+    /// The context builder is the only path from document bytes into a prompt.
+    pub fn complete_scoped(
+        &self,
+        port: &dyn DocumentPort,
+        grant: &Grant,
+        clock: &TickClock,
+        question: &str,
+    ) -> Result<CompletionResponse, AgentError> {
+        // Fail closed on the master switch before touching the document.
+        let phase = self.gate.phase().map_err(AgentError::Gate)?;
+        if !matches!(phase, AiPhase::EnabledIdle | AiPhase::Running) {
+            return Err(AgentError::Gate(match phase {
+                AiPhase::Stopping => GateError::Stopping,
+                _ => GateError::Disabled,
+            }));
+        }
+        let generation = self.gate.generation().map_err(AgentError::Gate)?;
+        let snapshot = port
+            .snapshot(grant.document_id())
+            .map_err(|error| AgentError::Scope(ScopeError::Port(error)))?;
+        grant
+            .validate(&snapshot, generation, clock.now())
+            .map_err(AgentError::Scope)?;
+        let context = build_context_text(grant, &snapshot, question).map_err(AgentError::Tool)?;
+        let response = self.send(&context)?;
+        // Post-response re-validation: the document may have been edited and
+        // the clock or the kill switch may have moved while the call ran.
+        let generation = self.gate.generation().map_err(AgentError::Gate)?;
+        let snapshot = port
+            .snapshot(grant.document_id())
+            .map_err(|error| AgentError::Scope(ScopeError::Port(error)))?;
+        grant
+            .validate(&snapshot, generation, clock.now())
+            .map_err(AgentError::Scope)?;
+        Ok(response)
+    }
+
+    /// Gate admission, logging, and the provider call for an already
+    /// budget-checked prompt. Both public entry points share this path, so
+    /// the kill switch and the request log apply identically.
+    fn send(&self, prompt: &str) -> Result<CompletionResponse, AgentError> {
+        if prompt.is_empty()
+            || prompt.len() > MAX_PROMPT_BYTES
+            || prompt.chars().any(|ch| ch == '\0')
+        {
+            return Err(AgentError::Prompt);
+        }
         let ticket = self.gate.begin_request().map_err(AgentError::Gate)?;
         let _flight = Flight {
             gate: &self.gate,
@@ -294,6 +357,10 @@ impl AgentRuntime {
             .map_err(AgentError::Provider)?;
         self.gate.decide_result(ticket).map_err(AgentError::Gate)?;
         Ok(response)
+    }
+
+    pub(crate) fn gate(&self) -> &AiGate {
+        &self.gate
     }
 
     /// Permission hook for T402. Allowing a commit does not apply commands.
