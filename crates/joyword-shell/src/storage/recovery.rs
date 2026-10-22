@@ -157,7 +157,7 @@ mod tests {
     fn clearing_removes_a_committed_journal() -> io::Result<()> {
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map_err(|_| io::Error::new(io::ErrorKind::Other, "clock"))?
+            .map_err(|_| io::Error::other("clock"))?
             .as_nanos();
         let dir = std::env::temp_dir().join(format!(
             "joyword-recovery-clear-{}-{nanos}",
