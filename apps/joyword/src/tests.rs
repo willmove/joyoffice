@@ -1633,60 +1633,81 @@ fn escape_is_bound_only_while_composing_so_panels_receive_it_otherwise() {
 #[test]
 fn editing_keys_are_unbound_while_an_in_app_text_field_is_focused() {
     use gpui::{KeyContext, Keymap, Keystroke};
+    use joyword_shell::command::{
+        CommandId, EDIT_BACKSPACE, EDIT_BOLD, EDIT_COPY, EDIT_CUT, EDIT_DELETE,
+        EDIT_DELETE_WORD_BACKWARD, EDIT_DOWN, EDIT_END, EDIT_ENTER, EDIT_EXTEND_DOCUMENT_END,
+        EDIT_EXTEND_END, EDIT_EXTEND_LEFT, EDIT_HOME, EDIT_LEFT, EDIT_PASTE, EDIT_RIGHT,
+        EDIT_SELECT_ALL, EDIT_UNDO, EDIT_UP, EDIT_WORD_LEFT, FILE_SAVE, Registry,
+    };
 
-    let keymap = Keymap::new(super::key_bindings(
-        &joyword_shell::command::Registry::builtin(),
-    ));
+    let registry = Registry::builtin();
+    let keymap = Keymap::new(super::key_bindings(&registry));
+    let chords = super::shortcut_chords(&registry);
     let document = [KeyContext::parse("JoyWordInput").unwrap()];
     let field = [
         KeyContext::parse("JoyWordInput").unwrap(),
         KeyContext::parse(super::field_edit::FIELD_CONTEXT).unwrap(),
     ];
+    // Platform chords, not a Linux key list: macOS uses Command/Option where
+    // the other platforms use Ctrl and Home/End.
     let editing = [
-        "backspace",
-        "delete",
-        "left",
-        "right",
-        "up",
-        "down",
-        "home",
-        "end",
-        "shift-end",
-        "shift-left",
-        "ctrl-a",
-        "ctrl-left",
-        "ctrl-shift-end",
-        "ctrl-backspace",
-        "ctrl-c",
-        "ctrl-x",
-        "ctrl-v",
-        "ctrl-z",
-        "ctrl-b",
-        "enter",
+        EDIT_BACKSPACE,
+        EDIT_DELETE,
+        EDIT_LEFT,
+        EDIT_RIGHT,
+        EDIT_UP,
+        EDIT_DOWN,
+        EDIT_HOME,
+        EDIT_END,
+        EDIT_EXTEND_END,
+        EDIT_EXTEND_LEFT,
+        EDIT_SELECT_ALL,
+        EDIT_WORD_LEFT,
+        EDIT_EXTEND_DOCUMENT_END,
+        EDIT_DELETE_WORD_BACKWARD,
+        EDIT_COPY,
+        EDIT_CUT,
+        EDIT_PASTE,
+        EDIT_UNDO,
+        EDIT_BOLD,
+        EDIT_ENTER,
     ];
-    for spec in editing {
-        let key = [Keystroke::parse(spec).unwrap()];
-        let (in_document, _) = keymap.bindings_for_input(&key, &document);
-        let (in_field, pending) = keymap.bindings_for_input(&key, &field);
-        assert!(
-            !in_document.is_empty(),
-            "{spec} should still edit the document"
-        );
-        assert!(!pending, "{spec}");
-        assert!(
-            in_field.is_empty(),
-            "{spec} must not reach the document while a field is focused: {in_field:?}"
-        );
+    let of = |id: CommandId| -> Vec<&str> {
+        chords
+            .iter()
+            .filter(|(_, command)| *command == id)
+            .map(|(keys, _)| *keys)
+            .collect()
+    };
+    for id in editing {
+        let specs = of(id);
+        assert!(!specs.is_empty(), "{id} has no chord");
+        for spec in specs {
+            let key = [Keystroke::parse(spec).unwrap()];
+            let (in_document, _) = keymap.bindings_for_input(&key, &document);
+            let (in_field, pending) = keymap.bindings_for_input(&key, &field);
+            assert!(
+                !in_document.is_empty(),
+                "{spec} should still edit the document"
+            );
+            assert!(!pending, "{spec}");
+            assert!(
+                in_field.is_empty(),
+                "{spec} must not reach the document while a field is focused: {in_field:?}"
+            );
+        }
     }
     // File chords stay global, so Save still works from the path field.
-    let save = [Keystroke::parse("ctrl-s").unwrap()];
-    let (in_field, _) = keymap.bindings_for_input(&save, &field);
-    assert!(
-        in_field
-            .iter()
-            .any(|binding| binding.action().partial_eq(&super::SaveOriginal)),
-        "ctrl-s stays a file command"
-    );
+    for spec in of(FILE_SAVE) {
+        let save = [Keystroke::parse(spec).unwrap()];
+        let (in_field, _) = keymap.bindings_for_input(&save, &field);
+        assert!(
+            in_field
+                .iter()
+                .any(|binding| binding.action().partial_eq(&super::SaveOriginal)),
+            "{spec} stays a file command"
+        );
+    }
 }
 
 #[cfg(target_os = "linux")]
