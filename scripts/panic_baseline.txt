@@ -17,10 +17,6 @@ crates/joyword-shell/src/documents.rs:292:type_text(manager.get_mut(id).unwrap()
 crates/joyword-shell/src/documents.rs:294:assert!(manager.get(id).unwrap().is_dirty());
 crates/joyword-shell/src/documents.rs:299:let latest = manager.get(id).unwrap().session.version();
 crates/joyword-shell/src/documents.rs:301:assert!(!manager.get(id).unwrap().is_dirty());
-crates/joyword-shell/src/input.rs:232:let content = p.plain_text(|_| unreachable!("objects rejected"));
-crates/joyword-shell/src/input.rs:287:.expect("indexed paragraph");
-crates/joyword-shell/src/input.rs:317:.expect("indexed paragraph");
-crates/joyword-shell/src/input.rs:333:.expect("indexed paragraph");
 crates/joyword-shell/src/input.rs:397:.expect("validated selection")
 crates/joyword-shell/src/input.rs:561:Outcome::Applied(a) => a.selection.expect("valid target survived"),
 crates/joyword-shell/src/input.rs:646:Outcome::Applied(a) => a.selection.expect("validated target"),
@@ -114,7 +110,6 @@ crates/joyword-shell/src/storage/original.rs:1280:assert_eq!(std::fs::read_dir(d
 crates/joyword-shell/src/storage/original.rs:1287:let dir = tempfile::tempdir().unwrap();
 crates/joyword-shell/src/storage/original.rs:1289:std::fs::write(&path, &bytes).unwrap();
 crates/joyword-shell/src/storage/original.rs:1291:.unwrap()
-crates/joyword-shell/src/storage/original.rs:1304:assert_eq!(std::fs::read(error.retained_backup().unwrap()).unwrap(), bytes);
 crates/joyword-shell/src/storage/original.rs:1305:assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
 crates/joyword-shell/src/storage/original.rs:1306:assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 3);
 crates/joyword-shell/src/storage/original.rs:1315:.unwrap()
@@ -206,7 +201,6 @@ crates/joyword-model/examples/text_storage.rs:95:.expect("ps prints RSS in KiB")
 crates/joyword-model/examples/text_storage.rs:156:let output = Command::new(std::env::current_exe().expect("current executable"))
 crates/joyword-model/examples/text_storage.rs:159:.expect("benchmark child process");
 crates/joyword-model/src/block.rs:159:.expect("end offset is valid");
-crates/joyword-model/src/block.rs:282:offset => self.run_at(offset - 1).expect("offset within runs").0,
 crates/joyword-model/src/block.rs:552:paragraph.push_text("甲方", None, Arc::default()).unwrap();
 crates/joyword-model/src/block.rs:553:paragraph.push_text("签字", None, bold()).unwrap();
 crates/joyword-model/src/block.rs:563:paragraph.push_text("日期", None, Arc::default()).unwrap();
@@ -278,12 +272,6 @@ crates/joyword-model/src/tree.rs:406:let root = self.root.as_mut().expect("non-e
 crates/joyword-model/src/tree.rs:436:unreachable!("leaves are never empty");
 crates/joyword-model/src/tree.rs:751:let (index, prefix) = tree.locate(target, |t| t.weight).unwrap();
 crates/joyword-model/src/tree.rs:770:edited.get_mut(7_777).unwrap().0 = 0;
-crates/joyword-layout/src/document.rs:315:let paragraph = block.as_paragraph().expect("preflight paragraphs");
-crates/joyword-layout/src/document.rs:316:let text = paragraph.plain_text(|_| unreachable!("preflight objects"));
-crates/joyword-layout/src/document.rs:568:let paragraph = block.as_paragraph().expect("preflight checked all blocks");
-crates/joyword-layout/src/document.rs:597:let text = paragraph.plain_text(|_| unreachable!("objects rejected"));
-crates/joyword-layout/src/document.rs:753:if needs_page && !result.pages.last().expect("one page").runs.is_empty() {
-crates/joyword-layout/src/document.rs:801:let page = result.pages.last_mut().expect("one page");
 crates/joyword-layout/src/document.rs:965:.expect("every line has a caret");
 crates/joyword-layout/src/document.rs:1026:*line.carets.last().map(|c| &c.x).expect("caret"),
 crates/joyword-layout/src/font.rs:98:FontRef::from_index(&self.data, self.key.index).expect("validated when loaded")
@@ -552,3 +540,22 @@ apps/joyword/src/main.rs:352:.expect("validated view scales")
 apps/joyword/src/main.rs:535:ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
 apps/joyword/src/main.rs:995:let language = action_for(SWITCH_LANGUAGE).unwrap().name();
 apps/joyword/src/main.rs:997:let action = action_for(id).unwrap();
+apps/joyword/src/input_ui.rs:4395:.unwrap()
+apps/joyword/src/input_ui.rs:4409:.unwrap()
+apps/joyword/src/input_ui.rs:4411:.unwrap()
+apps/joyword/src/input_ui.rs:4441:.unwrap();
+apps/joyword/src/input_ui.rs:4456:.unwrap()
+apps/joyword/src/input_ui.rs:4507:.unwrap();
+apps/joyword/src/linux_files.rs:327:std::fs::create_dir_all(&dir).unwrap();
+crates/joyword-shell/src/storage/metadata.rs:404:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/metadata.rs:406:std::fs::write(&path, b"0123456789").unwrap();
+crates/joyword-shell/src/storage/metadata.rs:411:let observed = observe(&path).unwrap();
+crates/joyword-shell/src/storage/original.rs:1232:save_original_with_choice(&plan, &stamp, None, OriginalChoice::Confirm).unwrap();
+crates/joyword-shell/src/storage/original.rs:1546:assert_eq!(std::fs::read(&path).unwrap(), plan.bytes());
+crates/joyword-shell/src/storage/original.rs:1566:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:1568:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:1591:.unwrap()
+crates/joyword-shell/src/storage/original.rs:1808:std::fs::read(error.retained_backup().unwrap()).unwrap(),
+crates/joyword-shell/src/storage/source.rs:919:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:935:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/source.rs:955:let dir = tempfile::tempdir().unwrap();
