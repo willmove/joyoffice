@@ -4,7 +4,9 @@
 
 use std::sync::Arc;
 
-use joyword_engine::{Command, CommandError, Selection, Session, Transaction, TxError, current_revision};
+use joyword_engine::{
+    Command, CommandError, Selection, Session, Transaction, TxError, current_revision,
+};
 use joyword_model::{
     Bias, Block, BlockSeq, Document, FormatRevision, Justification, NodeId, ParaProps, Paragraph,
     Position, RevisionKind, RunProps, ScalarOffset, TextRevision,
@@ -89,7 +91,14 @@ fn format_session() -> (Session, NodeId, NodeId) {
 }
 
 fn paragraph_of(session: &Session, index: usize) -> &Paragraph {
-    session.document().body().blocks.get(index).unwrap().as_paragraph().unwrap()
+    session
+        .document()
+        .body()
+        .blocks
+        .get(index)
+        .unwrap()
+        .as_paragraph()
+        .unwrap()
 }
 
 fn run_ids(session: &Session) -> Vec<u32> {
@@ -171,10 +180,12 @@ fn accepting_one_format_revision_is_one_undo_step() {
     ));
     assert_eq!(run_ids(&session), vec![12, 13]);
     assert_eq!(para_ids(&session), vec![11]);
-    assert!(current_revision(
-        session.document(),
-        &Selection::caret(pos(&session, first_id, 0))
-    ) == Some(11));
+    assert!(
+        current_revision(
+            session.document(),
+            &Selection::caret(pos(&session, first_id, 0))
+        ) == Some(11)
+    );
 }
 
 #[test]
@@ -255,8 +266,7 @@ fn one_id_carrying_a_text_and_a_format_revision_resolves_both_in_one_command() {
     paragraph.stamp_format_from(0, Arc::new(run_change(7, "A", italic())));
     paragraph.props_revision = Some(Arc::new(para_change(7, "A", center())));
     document.note_revision_id(7);
-    document.story_mut(story).unwrap().blocks =
-        BlockSeq::from_vec(vec![paragraph.into()]);
+    document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
     let mut session = Session::new(document);
 
     exec(&mut session, vec![Command::AcceptRevision { id: 7 }]).unwrap();

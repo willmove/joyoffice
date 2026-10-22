@@ -109,32 +109,38 @@ const RPR_CHANGE_12: &str = r#"<w:rPrChange w:id="12" w:author="B" w:date="2020-
 /// A single paragraph whose only run has a bold `w:rPr` and a typed
 /// `w:rPrChange` (id 12) recording previous italic.
 fn run_change_body() -> String {
-    format!(
-        r#"<w:p><w:r><w:rPr><w:b/>{RPR_CHANGE_12}</w:rPr><w:t>bold</w:t></w:r></w:p>"#
-    )
+    format!(r#"<w:p><w:r><w:rPr><w:b/>{RPR_CHANGE_12}</w:rPr><w:t>bold</w:t></w:r></w:p>"#)
 }
 
 fn resolve(model: &mut joyword_model::Document, index: usize, id: u32, accept: bool) -> bool {
     let body_id = model.body_id();
     let mut resolved = false;
-    model.story_mut(body_id).unwrap().blocks.update(index, |block| {
-        let Block::Paragraph(paragraph) = block else {
-            panic!("paragraph");
-        };
-        resolved = Arc::make_mut(paragraph).resolve_format_revision(id, accept);
-    });
+    model
+        .story_mut(body_id)
+        .unwrap()
+        .blocks
+        .update(index, |block| {
+            let Block::Paragraph(paragraph) = block else {
+                panic!("paragraph");
+            };
+            resolved = Arc::make_mut(paragraph).resolve_format_revision(id, accept);
+        });
     resolved
 }
 
 fn resolve_all(model: &mut joyword_model::Document, index: usize, accept: bool) -> bool {
     let body_id = model.body_id();
     let mut resolved = false;
-    model.story_mut(body_id).unwrap().blocks.update(index, |block| {
-        let Block::Paragraph(paragraph) = block else {
-            panic!("paragraph");
-        };
-        resolved = Arc::make_mut(paragraph).resolve_all_format(accept);
-    });
+    model
+        .story_mut(body_id)
+        .unwrap()
+        .blocks
+        .update(index, |block| {
+            let Block::Paragraph(paragraph) = block else {
+                panic!("paragraph");
+            };
+            resolved = Arc::make_mut(paragraph).resolve_all_format(accept);
+        });
     resolved
 }
 
@@ -173,7 +179,10 @@ fn format_revisions_import_typed_with_ids_authors_dates_and_previous_properties(
     assert!(first.props.preserved.is_none());
     assert!(paragraphs[1].props_revision.is_none());
     assert!(
-        !has(&result, |kind| matches!(kind, DiagnosticKind::RevisionSubset { .. })),
+        !has(&result, |kind| matches!(
+            kind,
+            DiagnosticKind::RevisionSubset { .. }
+        )),
         "typed changes must not diagnose a subset fallback"
     );
 }
@@ -184,15 +193,19 @@ fn unchanged_and_settings_only_exports_keep_format_change_bytes_verbatim() {
     let source = open(&bytes);
 
     // No edit: the original package is handed back byte for byte.
-    let copy = plan_export(&source.backing, &source.document.snapshot(), &Budget::default()).unwrap();
+    let copy = plan_export(
+        &source.backing,
+        &source.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
     assert_eq!(copy.mode(), ExportMode::OriginalPackage);
     assert_eq!(copy.bytes(), &bytes[..]);
 
     // A settings-only edit patches settings.xml and never touches document.xml.
     let mut turned_off = source.document.clone();
     turned_off.settings_mut().track_revisions = Some(false);
-    let patched =
-        plan_export(&source.backing, &turned_off.snapshot(), &Budget::default()).unwrap();
+    let patched = plan_export(&source.backing, &turned_off.snapshot(), &Budget::default()).unwrap();
     assert_eq!(patched.mode(), ExportMode::TextPatch);
     assert!(
         patched
@@ -266,7 +279,10 @@ fn accepting_a_run_format_revision_exports_the_current_formatting() {
     });
     let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
     let xml = document_xml(plan.bytes());
-    assert!(!xml.contains("rPrChange"), "resolved change must not be re-emitted:\n{xml}");
+    assert!(
+        !xml.contains("rPrChange"),
+        "resolved change must not be re-emitted:\n{xml}"
+    );
     let saved = open(plan.bytes());
     let run = &paragraphs(&saved)[0].runs()[0];
     assert_eq!(run.props.bold, Some(true));
@@ -291,7 +307,10 @@ fn rejecting_a_run_format_revision_restores_the_previous_formatting() {
     });
     let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
     let xml = document_xml(plan.bytes());
-    assert!(!xml.contains("rPrChange"), "resolved change must not be re-emitted:\n{xml}");
+    assert!(
+        !xml.contains("rPrChange"),
+        "resolved change must not be re-emitted:\n{xml}"
+    );
     let saved = open(plan.bytes());
     let run = &paragraphs(&saved)[0].runs()[0];
     assert_eq!(run.props.italic, Some(true));
@@ -308,7 +327,10 @@ fn accept_all_and_reject_all_resolve_paragraph_and_run_format_changes() {
     assert!(resolve_all(&mut model, 0, true));
     let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
     let xml = document_xml(plan.bytes());
-    assert!(!xml.contains("PrChange"), "resolved changes must not be re-emitted:\n{xml}");
+    assert!(
+        !xml.contains("PrChange"),
+        "resolved changes must not be re-emitted:\n{xml}"
+    );
     let saved = open(plan.bytes());
     let first = paragraphs(&saved)[0];
     assert!(first.props_revision.is_none());
@@ -323,7 +345,10 @@ fn accept_all_and_reject_all_resolve_paragraph_and_run_format_changes() {
     assert!(resolve_all(&mut model, 0, false));
     let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
     let xml = document_xml(plan.bytes());
-    assert!(!xml.contains("PrChange"), "resolved changes must not be re-emitted:\n{xml}");
+    assert!(
+        !xml.contains("PrChange"),
+        "resolved changes must not be re-emitted:\n{xml}"
+    );
     let saved = open(plan.bytes());
     let first = paragraphs(&saved)[0];
     assert!(first.props_revision.is_none());
@@ -409,8 +434,7 @@ fn unresolved_format_revisions_refuse_the_five_rewrite_paths() {
 
     // 5. New text in an empty paragraph would synthesize a run into a
     //    paragraph whose `w:pPrChange` must stay verbatim.
-    let empty_with_change =
-        r#"<w:p><w:pPr><w:pPrChange w:id="25" w:author="A"/></w:pPr></w:p>"#;
+    let empty_with_change = r#"<w:p><w:pPr><w:pPrChange w:id="25" w:author="A"/></w:pPr></w:p>"#;
     assert_eq!(
         refusal_reason(empty_with_change, |paragraph| {
             paragraph.push_text("new", None, Arc::default()).unwrap();
@@ -463,8 +487,12 @@ fn out_of_subset_format_changes_are_preserved_and_lock_the_paragraph() {
         plan_export(&result.backing, &model.snapshot(), &Budget::default()),
         Err(ExportError::Restricted)
     ));
-    let untouched =
-        plan_export(&result.backing, &result.document.snapshot(), &Budget::default()).unwrap();
+    let untouched = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
     assert_eq!(untouched.mode(), ExportMode::OriginalPackage);
     assert_eq!(untouched.bytes(), &bytes[..]);
     let original = r#"<w:pPrChange w:id="31" w:author="A"><w:pPr><w:pStyle w:val="Heading1"/></w:pPr></w:pPrChange>"#;
@@ -503,7 +531,10 @@ fn out_of_subset_format_changes_are_preserved_and_lock_the_paragraph() {
             "out-of-subset change must lock its paragraph"
         );
         assert!(
-            paragraph.runs().iter().all(|run| run.format_revision.is_none()),
+            paragraph
+                .runs()
+                .iter()
+                .all(|run| run.format_revision.is_none()),
             "out-of-subset change must not be typed"
         );
     }
@@ -536,8 +567,12 @@ fn out_of_subset_format_changes_are_preserved_and_lock_the_paragraph() {
         plan_export(&result.backing, &model.snapshot(), &Budget::default()),
         Err(ExportError::Restricted)
     ));
-    let untouched =
-        plan_export(&result.backing, &result.document.snapshot(), &Budget::default()).unwrap();
+    let untouched = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
     assert_eq!(untouched.mode(), ExportMode::OriginalPackage);
     assert_eq!(untouched.bytes(), &bytes[..]);
     let xml = document_xml(untouched.bytes());
@@ -649,7 +684,9 @@ fn table_structure_revisions_stay_preserved_and_read_only() {
 #[test]
 fn the_dump_reports_typed_format_revisions() {
     let result = open(&package(&format_body()));
-    let dump = result.document.canonical_dump(DumpOptions { node_ids: false });
+    let dump = result
+        .document
+        .canonical_dump(DumpOptions { node_ids: false });
     assert!(
         dump.contains(r#"pPrChange#11 author="A" date=2020-01-02T03:04:05Z prev=["#),
         "paragraph change missing from dump:\n{dump}"

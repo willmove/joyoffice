@@ -424,6 +424,102 @@
       "source": "hypothesis",
       "test": "cut_toggles_and_alignment_presets_go_through_the_command_registry",
       "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-IMPORT-TYPED",
+      "operation": "打开正文段落（表格外）含 w:pPrChange / w:rPrChange 的 DOCX",
+      "expectation": "格式修订被类型化为 id、作者、日期与变更前段落/运行属性的记录；文档保持可编辑且不锁定段落，子集内不产生保留回退",
+      "source": "hypothesis",
+      "test": "format_revisions_import_typed_with_ids_authors_dates_and_previous_properties",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-PRESERVE-BYTES",
+      "operation": "编辑其他段落或仅改设置后保存含未决格式修订的文档",
+      "expectation": "未改动段落的变更标记逐字节保留，重新导入仍为相同的类型化记录；仅设置的改动不触碰 document.xml",
+      "source": "hypothesis",
+      "test": "editing_a_neighbour_keeps_the_revision_paragraph_bytes_and_reimport_matches",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-ACCEPT",
+      "operation": "接受单个 w:rPrChange",
+      "expectation": "记录被删除并保留变更后（当前）格式；导出重写后不再包含该变更标记，重新导入语义一致",
+      "source": "hypothesis",
+      "test": "accepting_a_run_format_revision_exports_the_current_formatting",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-REJECT",
+      "operation": "拒绝单个格式修订",
+      "expectation": "恢复变更记录的变更前格式并删除记录；导出重写后不再包含修订标记，重新导入语义一致",
+      "source": "hypothesis",
+      "test": "rejecting_a_run_format_revision_restores_the_previous_formatting",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-BATCH",
+      "operation": "全部接受 / 全部拒绝含段落级与运行级格式修订的文档",
+      "expectation": "两类格式修订随文本修订一并批量解决；接受保留当前格式，拒绝恢复各记录的变更前值，导出不再包含修订标记",
+      "source": "hypothesis",
+      "test": "accept_all_and_reject_all_resolve_paragraph_and_run_format_changes",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-EXPORT-REFUSE",
+      "operation": "导出需要重写含未决格式修订的段落（文本修订重写、改样式、段落重写、运行边界变化、空段新增文本）",
+      "expectation": "五条重写路径全部以可定位错误拒绝，绝不因合成标记丢失审阅历史；只有字节一致的段落或纯文本叶子补丁能保留修订",
+      "source": "hypothesis",
+      "test": "unresolved_format_revisions_refuse_the_five_rewrite_paths",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-SUBSET-LOCK",
+      "operation": "打开含子集外格式修订的 DOCX（前一属性含样式/段落标记、未映射属性或子元素、多个前一属性、嵌套修订、空运行上的类型化变更）",
+      "expectation": "整个属性元素按原字节保留并锁定所在段落，诊断 RevisionSubset 警告；编辑后导出被拒绝，未编辑导出返回原包字节",
+      "source": "hypothesis",
+      "test": "out_of_subset_format_changes_are_preserved_and_lock_the_paragraph",
+      "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-STRUCTURE-DEFERRED",
+      "operation": "打开含表格结构修订（tblPrChange / trPrChange / tcPrChange / cellIns / cellDel / cellMerge）或表格内格式修订的 DOCX",
+      "expectation": "整篇只读（ReadOnlyReason::Revisions），修订标记保留且不类型化；未编辑导出返回原字节，任何重写被拒绝（本切片明确不实现表格结构修订）",
+      "source": "hypothesis",
+      "test": "table_structure_revisions_stay_preserved_and_read_only",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-UNDO",
+      "operation": "以引擎命令接受 / 拒绝格式修订",
+      "expectation": "每次解决为一个可撤销事务，一次撤销完整恢复记录与先前格式；未知 id 被拒绝且不改动文档",
+      "source": "hypothesis",
+      "test": "accepting_one_format_revision_is_one_undo_step",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-SHARED-ID",
+      "operation": "同一 w:id 同时承载文本修订与格式修订",
+      "expectation": "一次接受或拒绝同时解决两者，一步撤销恢复全部",
+      "source": "hypothesis",
+      "test": "one_id_carrying_a_text_and_a_format_revision_resolves_both_in_one_command",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-CARET",
+      "operation": "插入点查询当前修订（current_revision）",
+      "expectation": "段落级格式修订适用于段内任意位置，运行级适用于其覆盖的运行；无文本修订时返回格式修订 id",
+      "source": "hypothesis",
+      "test": "current_revision_finds_paragraph_and_run_format_revisions",
+      "word_observation": null
+    },
+    {
+      "id": "REV-FORMAT-DUMP",
+      "operation": "模型规范转储含类型化格式修订的文档",
+      "expectation": "段落与运行行输出 pPrChange / rPrChange 的 id、作者、日期与变更前属性",
+      "source": "hypothesis",
+      "test": "the_dump_reports_typed_format_revisions",
+      "word_observation": null
     }
   ]
 }
