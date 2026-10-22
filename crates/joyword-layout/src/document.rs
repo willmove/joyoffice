@@ -424,7 +424,9 @@ pub struct LayoutSnapshot {
     square_bands: Vec<crate::images::SquareBand>,
 }
 
-/// Paint header and footer stories, then revision marks on those bands.
+/// Paint header and footer stories, then revision marks on those bands, and
+/// the column separator rules of every multi-column section that sets
+/// `w:cols/@w:sep`. None of these passes adds a page.
 pub(crate) fn finish_stories(
     snapshot: &mut LayoutSnapshot,
     document: &Document,
@@ -432,6 +434,7 @@ pub(crate) fn finish_stories(
     profile: SingleFontProfile,
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
+    crate::pages::paint_column_separators(snapshot, document, cancellation)?;
     crate::pages::paint_stories(snapshot, document, faces, profile, cancellation)?;
     crate::revision_view::decorate_stories(snapshot, document, faces, profile, cancellation)
 }
@@ -466,6 +469,7 @@ pub(crate) fn fingerprint(document: &Document) -> [u8; 32] {
         hash.update(format!("{:?}", section.numbering).as_bytes());
         hash.update(format!("{:?}", section.columns).as_bytes());
         hash.update(format!("{:?}", section.unequal_columns).as_bytes());
+        hash.update([u8::from(section.column_separator)]);
         hash.update(format!("{:?}", section.doc_grid).as_bytes());
         hash.update(format!("{:?}", section.title_page).as_bytes());
         hash.update(format!("{:?}", section.headers).as_bytes());
@@ -4465,6 +4469,36 @@ fn begin_section(
                     *top = geometry.top;
                 }
             } else {
+                result.note(LayoutNote::ContinuousPageSplit {
+                    section: section_id,
+                });
+                if ink {
+                    result.new_page(geometry, section)?;
+                } else {
+                    result.retarget_open_page(geometry, section);
+                }
+                if let Some(start) = start {
+                    result.renumber_open_page(i64::from(start));
+                }
+                result.adopt_columns(columns, geometry.top.raw());
+                *top = geometry.top;
+            }
+        }
+        crate::pages::SectionEdge::NextColumn => {
+            let same_box = prev_geometry == geometry;
+            let same_cols = result.column_spec.same(&columns);
+            if same_box && same_cols && ink {
+                // Advance one column of the shared flow. `advance_column`
+                // wraps to a fresh page when this was the last column, or
+                // when the flow has a single column. The page keeps the
+                // section that opened it, so its headers and separator rule
+                // are unchanged; page numbering continues.
+                result.advance_column(geometry, section)?;
+                *top = geometry.top;
+            } else {
+                // A different paper box, a different column layout, or an
+                // empty page cannot continue the previous column flow, so the
+                // section starts on a fresh page like a continuous split.
                 result.note(LayoutNote::ContinuousPageSplit {
                     section: section_id,
                 });
