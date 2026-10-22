@@ -398,6 +398,8 @@ pub struct LayoutSnapshot {
     page_section: Vec<usize>,
     /// Displayed `PAGE` value of each page, after `w:pgNumType/@w:start`.
     page_numbers: Vec<i64>,
+    /// Page-owned chapter prefix shared by body, header and footer PAGE fields.
+    chapter_prefixes: Vec<Option<Arc<str>>>,
     /// Number the next continuation page receives.
     numbering_next: i64,
     column_index: u16,
@@ -434,6 +436,7 @@ pub(crate) fn finish_stories(
     profile: SingleFontProfile,
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
+    snapshot.chapter_prefixes = crate::pages::chapter_prefixes(snapshot, document, cancellation)?;
     crate::pages::paint_column_separators(snapshot, document, cancellation)?;
     crate::pages::paint_stories(snapshot, document, faces, profile, cancellation)?;
     crate::revision_view::decorate_stories(snapshot, document, faces, profile, cancellation)
@@ -1365,7 +1368,7 @@ fn layout_once(
             marks.get(&paragraph.id()),
             views,
             None,
-            assumed.get(index).copied().unwrap_or_default(),
+            assumed.get(index).cloned().unwrap_or_default(),
             &numbering,
         )?;
         apply_section(&mut fitted, document, plans, index);
@@ -1439,7 +1442,7 @@ fn layout_mixed(
                     marks.get(&paragraph.id()),
                     views,
                     None,
-                    assumed.get(index).copied().unwrap_or_default(),
+                    assumed.get(index).cloned().unwrap_or_default(),
                     &numbering,
                 )?;
                 apply_section(&mut fitted, document, plans, index);
@@ -3358,6 +3361,7 @@ pub(crate) fn open_snapshot(
         page_geometry: Vec::new(),
         page_section: Vec::new(),
         page_numbers: Vec::new(),
+        chapter_prefixes: Vec::new(),
         numbering_next: 1,
         column_index: 0,
         column_count: 1,
@@ -3718,7 +3722,12 @@ pub(crate) fn fit_paragraph(
         }
     };
     let props = displayed_paragraph(document, paragraph);
-    let label = mark.and_then(|item| item.as_ref().ok());
+    // A wholly hidden/revision-omitted heading must not paint a phantom label
+    // or become a chapter source. An originally empty numbered paragraph keeps
+    // its normal label, but is not a chapter title.
+    let label = mark
+        .and_then(|item| item.as_ref().ok())
+        .filter(|_| paragraph.is_empty() || !text.is_empty());
     let numbering_detail = match mark {
         Some(Err(problem)) => Some(problem.to_string()),
         _ => None,
@@ -5149,6 +5158,10 @@ impl LayoutSnapshot {
 
     pub(crate) fn displayed_page(&self, page: usize) -> i64 {
         self.page_numbers.get(page).copied().unwrap_or(1)
+    }
+
+    pub(crate) fn chapter_prefix(&self, page: usize) -> Option<Arc<str>> {
+        self.chapter_prefixes.get(page).cloned().flatten()
     }
 
     pub(crate) fn section_page_count(&self, section: usize) -> u32 {
