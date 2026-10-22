@@ -1737,6 +1737,9 @@ fn a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit() {
 
 /// GUI retest after #79: the close prompt's detail wrapped as
 /// "…另存为始终写入新副本" / "。", leaving the full stop alone on a line.
+/// The wrapper lives in the Linux prompt module, which other platforms do
+/// not compile.
+#[cfg(target_os = "linux")]
 #[test]
 fn prompt_lines_never_start_with_closing_punctuation() {
     use super::prompt_ui::wrap_ranges;
