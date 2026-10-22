@@ -1616,11 +1616,12 @@ fn unequal_columns_import_and_a_separator_or_missing_width_stays_preserved() {
     assert_eq!(columns.space, 240);
     assert!(equal.document.sections()[0].unequal_columns.is_none());
 
+    // A `w:cols/@w:sep` separator is now imported typed and painted, so the
+    // two former `sep` cases moved to `column_separator.rs`; these remaining
+    // shapes are still outside the column subset and stay preserved.
     for markup in [
-        r#"<w:cols w:equalWidth="0" w:sep="1"><w:col w:w="2000"/><w:col w:w="4000"/></w:cols>"#,
         r#"<w:cols w:equalWidth="false"><w:col w:space="200"/><w:col w:w="4000"/></w:cols>"#,
         r#"<w:cols w:equalWidth="0"/>"#,
-        r#"<w:cols w:num="2" w:sep="true"/>"#,
         r#"<w:cols w:equalWidth="0"><w:col w:w="2000"/></w:cols>"#,
     ] {
         let bytes = body(&format!(
