@@ -93,6 +93,11 @@ pub struct ThemeFonts {
     pub minor_latin: Option<Arc<str>>,
     pub minor_east_asia: Option<Arc<str>>,
     pub minor_complex: Option<Arc<str>>,
+    /// Slots the scheme declares with an empty typeface and no supplemental
+    /// `a:font` for the document's theme language (ECMA-376 Part 1
+    /// §17.15.1.88, §20.1.4.1.16). They name no face, so a reference to one
+    /// resolves to no font instead of staying unresolved.
+    pub unnamed: Vec<ThemeFont>,
 }
 
 impl ThemeFonts {
@@ -126,7 +131,8 @@ impl ThemeScheme {
         self.fonts.is_empty() && self.colors.is_empty()
     }
 
-    /// Replace theme font slots whose scheme entry exists. Others stay
+    /// Replace theme font slots whose scheme entry exists. A slot listed in
+    /// [`ThemeFonts::unnamed`] becomes `None`. Others stay
     /// [`FontRef::Theme`] so a caller can refuse them instead of guessing.
     pub fn concretize_fonts(&self, fonts: &mut FontSlots) -> Vec<ThemeFont> {
         let mut missing = Vec::new();
@@ -139,9 +145,11 @@ impl ThemeScheme {
             let Some(FontRef::Theme(theme)) = slot else {
                 continue;
             };
-            match self.fonts.name(*theme).filter(|name| !name.is_empty()) {
+            let theme = *theme;
+            match self.fonts.name(theme).filter(|name| !name.is_empty()) {
                 Some(name) => *slot = Some(FontRef::Named(Arc::from(name))),
-                None => missing.push(*theme),
+                None if self.fonts.unnamed.contains(&theme) => *slot = None,
+                None => missing.push(theme),
             }
         }
         missing

@@ -317,8 +317,8 @@ impl JoyWord {
             return;
         }
         let call = control.bind(RibbonInput {
-            query: &self.find_query,
-            replacement: &self.find_replacement,
+            query: self.find_query.text(),
+            replacement: self.find_replacement.text(),
             case_sensitive: self.find_case,
             whole_word: self.find_word,
             format_repeat: self.format_repeat,
@@ -590,21 +590,17 @@ impl JoyWord {
         let focus = field.focus.clone();
         let name = field.name;
         let label = self.label(field.label);
-        let shown = if field.text.is_empty() {
-            label.clone()
-        } else {
-            field.text.clone()
-        };
-        let faded = field.text.is_empty();
+        let shown = crate::field_edit::field_view(&field.value, &label);
         div()
             .flex()
             .items_center()
             .gap_2()
-            .child(div().w(px(120.0)).text_xs().child(label))
+            .child(div().w(px(120.0)).text_xs().child(label.clone()))
             .child(
                 div()
                     .id(name)
                     .track_focus(&focus)
+                    .key_context(crate::field_edit::FIELD_CONTEXT)
                     .focusable()
                     .flex_1()
                     .px_2()
@@ -612,7 +608,7 @@ impl JoyWord {
                     .border_1()
                     .border_color(rgb(0xc5ced6))
                     .bg(rgb(0xffffff))
-                    .text_color(if faded { rgb(0x8896a3) } else { rgb(0x263247) })
+                    .text_color(rgb(0x263247))
                     .on_click(cx.listener(move |this, _, window, cx| {
                         if let Some(dialog) = &this.format_dialog
                             && let Some(field) = dialog.fields.get(index)
@@ -734,33 +730,25 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let mods = &event.keystroke.modifiers;
-        if mods.control || mods.alt || mods.platform || mods.function {
-            return;
-        }
-        if event.keystroke.key == "escape" {
-            cx.stop_propagation();
-            self.close_format_dialog(window, cx);
-            return;
-        }
-        let Some(dialog) = &mut self.format_dialog else {
-            return;
-        };
-        let Some(field) = dialog.fields.get_mut(index) else {
-            return;
-        };
-        if event.keystroke.key == "backspace" {
-            field.text.pop();
-        } else if let Some(ch) = event.keystroke.key_char.as_deref() {
-            if ch.chars().any(char::is_control) {
+        let effect = {
+            let Some(dialog) = &mut self.format_dialog else {
                 return;
-            }
-            field.text.push_str(ch);
-        } else {
+            };
+            let Some(field) = dialog.fields.get_mut(index) else {
+                return;
+            };
+            let effect = field.value.apply_key(&event.keystroke);
+            crate::field_edit::consume(effect, &mut field.value, cx)
+        };
+        let Some(effect) = effect else {
             return;
-        }
+        };
         cx.stop_propagation();
-        cx.notify();
+        if matches!(effect, crate::field_edit::FieldEffect::Cancel) {
+            self.close_format_dialog(window, cx);
+        } else {
+            cx.notify();
+        }
     }
 
     fn apply_format_dialog(&mut self, window: &mut Window, cx: &mut Context<Self>) {
@@ -779,7 +767,7 @@ impl JoyWord {
         for field in &dialog.fields {
             args.push((
                 field.name,
-                joyword_shell::command::ArgValue::Text(field.text.clone()),
+                joyword_shell::command::ArgValue::Text(field.value.text().to_owned()),
             ));
         }
         if dialog.kind == DialogKind::Font {
@@ -1089,7 +1077,7 @@ fn dialog_field(
     crate::DialogField {
         name,
         label,
-        text,
+        value: crate::field_edit::FieldBuffer::from_text(text),
         focus: cx.focus_handle(),
     }
 }

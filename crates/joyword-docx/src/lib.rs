@@ -89,6 +89,7 @@ mod numbering;
 mod props;
 mod result;
 mod revision;
+mod settings;
 mod table;
 mod xml;
 

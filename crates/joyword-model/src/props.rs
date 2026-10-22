@@ -174,6 +174,10 @@ pub struct RunProps {
     pub languages: Languages,
     /// Unexplained `w:rPr` children kept by the format layer.
     pub preserved: Option<PreservedId>,
+    /// `true` when everything kept in `preserved` changes no advance and
+    /// paints nothing, such as `w:szCs` or `w:kern`. Layout refuses other
+    /// preserved character properties.
+    pub preserved_layout_neutral: bool,
 }
 
 impl RunProps {

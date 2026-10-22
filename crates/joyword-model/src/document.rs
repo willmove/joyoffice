@@ -217,6 +217,11 @@ pub struct DocumentSettings {
     /// resolved (QUALITY-005). `Some("")` means the element had no id.
     pub attached_template: Option<Arc<str>>,
     pub preserved: Option<PreservedId>,
+    /// `true` when every child kept only in `preserved` leaves pagination
+    /// unchanged: view and proofing state, editing aids, identifiers, or a
+    /// value import already applied. Layout refuses preserved settings
+    /// unless this is set.
+    pub preserved_layout_neutral: bool,
 }
 
 impl DocumentSettings {

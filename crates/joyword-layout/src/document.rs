@@ -766,7 +766,8 @@ pub(crate) fn preflight(
         return Err(LayoutError::LimitExceeded(LayoutLimit::Metadata));
     }
     view::accept_annotations(document)?;
-    if document.settings().preserved.is_some() {
+    let settings = document.settings();
+    if settings.preserved.is_some() && !settings.preserved_layout_neutral {
         return Err(unsupported(None, "preserved settings"));
     }
     let mut total = 0usize;

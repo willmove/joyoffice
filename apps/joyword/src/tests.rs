@@ -1627,6 +1627,89 @@ fn escape_is_bound_only_while_composing_so_panels_receive_it_otherwise() {
     }
 }
 
+/// GUI retest after #79: Backspace, Delete, arrows, Home, End and the editing
+/// chords in the Save As path field (and the other in-app fields) were bound
+/// on the ancestor `JoyWordInput` context, so they edited the document.
+#[test]
+fn editing_keys_are_unbound_while_an_in_app_text_field_is_focused() {
+    use gpui::{KeyContext, Keymap, Keystroke};
+    use joyword_shell::command::{
+        CommandId, EDIT_BACKSPACE, EDIT_BOLD, EDIT_COPY, EDIT_CUT, EDIT_DELETE,
+        EDIT_DELETE_WORD_BACKWARD, EDIT_DOWN, EDIT_END, EDIT_ENTER, EDIT_EXTEND_DOCUMENT_END,
+        EDIT_EXTEND_END, EDIT_EXTEND_LEFT, EDIT_HOME, EDIT_LEFT, EDIT_PASTE, EDIT_RIGHT,
+        EDIT_SELECT_ALL, EDIT_UNDO, EDIT_UP, EDIT_WORD_LEFT, FILE_SAVE, Registry,
+    };
+
+    let registry = Registry::builtin();
+    let keymap = Keymap::new(super::key_bindings(&registry));
+    let chords = super::shortcut_chords(&registry);
+    let document = [KeyContext::parse("JoyWordInput").unwrap()];
+    let field = [
+        KeyContext::parse("JoyWordInput").unwrap(),
+        KeyContext::parse(super::field_edit::FIELD_CONTEXT).unwrap(),
+    ];
+    // Platform chords, not a Linux key list: macOS uses Command/Option where
+    // the other platforms use Ctrl and Home/End.
+    let editing = [
+        EDIT_BACKSPACE,
+        EDIT_DELETE,
+        EDIT_LEFT,
+        EDIT_RIGHT,
+        EDIT_UP,
+        EDIT_DOWN,
+        EDIT_HOME,
+        EDIT_END,
+        EDIT_EXTEND_END,
+        EDIT_EXTEND_LEFT,
+        EDIT_SELECT_ALL,
+        EDIT_WORD_LEFT,
+        EDIT_EXTEND_DOCUMENT_END,
+        EDIT_DELETE_WORD_BACKWARD,
+        EDIT_COPY,
+        EDIT_CUT,
+        EDIT_PASTE,
+        EDIT_UNDO,
+        EDIT_BOLD,
+        EDIT_ENTER,
+    ];
+    let of = |id: CommandId| -> Vec<&str> {
+        chords
+            .iter()
+            .filter(|(_, command)| *command == id)
+            .map(|(keys, _)| *keys)
+            .collect()
+    };
+    for id in editing {
+        let specs = of(id);
+        assert!(!specs.is_empty(), "{id} has no chord");
+        for spec in specs {
+            let key = [Keystroke::parse(spec).unwrap()];
+            let (in_document, _) = keymap.bindings_for_input(&key, &document);
+            let (in_field, pending) = keymap.bindings_for_input(&key, &field);
+            assert!(
+                !in_document.is_empty(),
+                "{spec} should still edit the document"
+            );
+            assert!(!pending, "{spec}");
+            assert!(
+                in_field.is_empty(),
+                "{spec} must not reach the document while a field is focused: {in_field:?}"
+            );
+        }
+    }
+    // File chords stay global, so Save still works from the path field.
+    for spec in of(FILE_SAVE) {
+        let save = [Keystroke::parse(spec).unwrap()];
+        let (in_field, _) = keymap.bindings_for_input(&save, &field);
+        assert!(
+            in_field
+                .iter()
+                .any(|binding| binding.action().partial_eq(&super::SaveOriginal)),
+            "{spec} stays a file command"
+        );
+    }
+}
+
 #[cfg(target_os = "linux")]
 #[test]
 fn prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only() {
@@ -1644,4 +1727,94 @@ fn prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only() {
     assert_eq!(key_answer(&original, "escape"), Some(0));
     assert_eq!(key_answer(&original, "enter"), Some(1));
     assert_eq!(key_answer(&original, "a"), None);
+}
+
+/// GUI retest after #79: `joyword word_edited.docx` showed the layout error
+/// "preserved settings" instead of the document, because the ordinary Word
+/// settings and document-default run properties were refused.
+#[test]
+fn a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit() {
+    let bytes =
+        include_bytes!("../../../tests/fixtures/reference/word2024/interop/word_edited.docx");
+    let (dir, mut office) = open_package(bytes, "word-edited");
+    let opened = lay(&office, ViewOptions::default());
+    let text = scene_text(&opened);
+    assert!(text.starts_with("校验合作协议（原创测试文本）"), "{text}");
+    assert!(
+        text.contains("本段由 Word 2024 追加：已完成核对。"),
+        "{text}"
+    );
+    assert_eq!(opened.omitted_blocks(), 0);
+
+    caret_at(&mut office, 0);
+    office.active_mut().unwrap().replace(None, "新").unwrap();
+    assert!(scene_text(&lay(&office, ViewOptions::default())).starts_with("新校验"));
+    save_and_reopen(&mut office, &dir, "word-edited-copy.docx");
+    let reopened = lay(&office, ViewOptions::default());
+    assert!(scene_text(&reopened).starts_with("新校验合作协议"));
+    assert!(active_document(&office).settings().preserved_layout_neutral);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// GUI retest after #79: the close prompt's detail wrapped as
+/// "…另存为始终写入新副本" / "。", leaving the full stop alone on a line.
+/// The wrapper lives in the Linux prompt module, which other platforms do
+/// not compile.
+#[cfg(target_os = "linux")]
+#[test]
+fn prompt_lines_never_start_with_closing_punctuation() {
+    use super::prompt_ui::wrap_ranges;
+    use joyword_layout::cjk::prohibits_line_start;
+
+    // A full-width character is 16 px, anything else 8 px.
+    let advance = |ch: char| if ch.is_ascii() { 8.0 } else { 16.0 };
+    let pen = |text: &str| {
+        let text = text.to_owned();
+        move |at: usize| text[..at].chars().map(advance).sum::<f32>()
+    };
+    let lines = |text: &str, width: f32| -> Vec<String> {
+        wrap_ranges(text, width, pen(text))
+            .into_iter()
+            .map(|range| text[range].trim_end().to_owned())
+            .collect()
+    };
+
+    let detail = "技术预览 · 保存原件前会列出元数据风险；另存为始终写入新副本。";
+    let full: f32 = detail.chars().map(advance).sum();
+    // Everything but the final 。 fits on the first line.
+    let wrapped = lines(detail, full - 16.0);
+    assert_eq!(wrapped.len(), 2, "{wrapped:?}");
+    assert_eq!(wrapped[1], "本。");
+    assert_eq!(wrapped.concat(), detail);
+    assert_eq!(lines(detail, full), vec![detail.to_owned()]);
+
+    // Every width keeps each line start off the closing-punctuation set and
+    // loses no character.
+    for text in [
+        detail,
+        "“sample.docx”有尚未保存的更改。",
+        "甲方：青禾工作室；乙方：远山设计室。（附件）「完」",
+    ] {
+        for width in (16..=400).step_by(8) {
+            let wrapped = lines(text, width as f32);
+            assert!(
+                wrapped.iter().skip(1).all(|line| line
+                    .chars()
+                    .next()
+                    .is_some_and(|ch| !prohibits_line_start(ch))),
+                "{width}: {wrapped:?}"
+            );
+            let joined: String = wrap_ranges(text, width as f32, pen(text))
+                .into_iter()
+                .map(|range| &text[range])
+                .collect();
+            assert_eq!(joined, text, "{width}");
+        }
+    }
+
+    // Latin text breaks between words.
+    assert_eq!(
+        lines("Save changes to sample.docx?", 15.0 * 8.0),
+        vec!["Save changes to", "sample.docx?"]
+    );
 }

@@ -1884,3 +1884,120 @@ fn field_cache(kind: &InlineKind) -> Option<&str> {
         _ => None,
     }
 }
+
+fn word_edited() -> Vec<u8> {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../tests/fixtures/reference/word2024/interop/word_edited.docx");
+    std::fs::read(&path).unwrap_or_else(|error| panic!("{}: {error}", path.display()))
+}
+
+fn part_data(bytes: &[u8], name: &str) -> Vec<u8> {
+    let package = joyoffice_opc::Package::read(bytes, &Budget::default()).unwrap();
+    package
+        .part(name)
+        .unwrap_or_else(|| panic!("missing {name}"))
+        .data
+        .to_vec()
+}
+
+/// GUI retest after #79: a document saved by Word 2024 showed only the error
+/// page, because its ordinary settings (`w:zoom`, `w:rsids`, `m:mathPr`, …)
+/// and document-default `w:kern` / `w:szCs` / `w14:ligatures` were preserved
+/// and layout refused anything preserved.
+#[test]
+fn a_word_saved_document_keeps_its_settings_and_is_marked_layout_neutral() {
+    use joyword_model::ThemeFont;
+
+    let bytes = word_edited();
+    let result = open(&bytes);
+    let settings = result.document.settings();
+    assert!(settings.preserved.is_some());
+    assert!(settings.preserved_layout_neutral);
+    assert_eq!(settings.compatibility_mode, Some(12));
+    let defaults = &result.document.styles().defaults.run;
+    assert!(defaults.preserved.is_some());
+    assert!(defaults.preserved_layout_neutral);
+
+    // `a:ea typeface=""` takes the `Hans` supplemental font for
+    // `w:themeFontLang w:eastAsia="zh-CN"`; the empty `a:cs` names no face.
+    let fonts = &result.document.styles().theme().fonts;
+    assert_eq!(fonts.minor_east_asia.as_deref(), Some("等线"));
+    assert_eq!(fonts.major_east_asia.as_deref(), Some("等线 Light"));
+    assert!(fonts.minor_complex.is_none());
+    assert!(fonts.unnamed.contains(&ThemeFont::MinorBidi));
+    assert!(!fonts.unnamed.contains(&ThemeFont::MinorEastAsia));
+    let resolved = result
+        .document
+        .styles()
+        .resolve_run(None, None, &Default::default());
+    assert!(resolved.problems.is_empty(), "{:?}", resolved.problems);
+    assert_eq!(
+        resolved.props.fonts.east_asia,
+        Some(FontRef::Named(Arc::from("等线")))
+    );
+    assert_eq!(resolved.props.fonts.complex_script, None);
+    assert!(resolved.props.preserved_layout_neutral);
+    assert_original_plan(&bytes, &result);
+
+    // A text edit rewrites the body only; settings, styles and theme stay
+    // byte for byte.
+    let mut model = result.document.clone();
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(paragraph) = block else {
+            panic!("paragraph");
+        };
+        Arc::make_mut(paragraph)
+            .push_text("（已改）", None, Arc::default())
+            .unwrap();
+    });
+    let plan = plan_export(&result.backing, &model.snapshot(), &Budget::default()).unwrap();
+    for part in [
+        "/word/settings.xml",
+        "/word/styles.xml",
+        "/word/theme/theme1.xml",
+        "/word/webSettings.xml",
+        "/word/fontTable.xml",
+    ] {
+        assert_eq!(
+            part_data(plan.bytes(), part),
+            part_data(&bytes, part),
+            "{part}"
+        );
+    }
+    let saved = open(plan.bytes());
+    assert!(texts(&saved)[0].ends_with("（已改）"));
+    assert!(saved.document.settings().preserved_layout_neutral);
+}
+
+#[test]
+fn settings_that_can_move_lines_are_not_layout_neutral() {
+    let neutral = |inner: &str| {
+        let result = open(&package(&document_xml("", "<w:p/>"), Some(inner)));
+        let settings = result.document.settings();
+        assert!(settings.preserved.is_some(), "{inner}");
+        settings.preserved_layout_neutral
+    };
+    for inner in [
+        r#"<w:zoom w:percent="100"/><w:proofState w:spelling="clean"/>"#,
+        r#"<w:autoHyphenation w:val="0"/><w:characterSpacingControl w:val="compressPunctuation"/>"#,
+        r#"<w:compat><w:useFELayout/><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/><w:compatSetting w:name="enableOpenTypeFeatures" w:uri="http://schemas.microsoft.com/office/word" w:val="1"/></w:compat>"#,
+        r#"<w:clrSchemeMapping w:bg1="light1" w:t1="dark1" w:bg2="light2" w:t2="dark2" w:accent1="accent1" w:accent2="accent2" w:accent3="accent3" w:accent4="accent4" w:accent5="accent5" w:accent6="accent6" w:hyperlink="hyperlink" w:followedHyperlink="followedHyperlink"/>"#,
+        r#"<w14:docId xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" w14:val="5E09071B"/>"#,
+    ] {
+        assert!(neutral(inner), "{inner}");
+    }
+    for inner in [
+        r#"<w:zoom w:percent="100"/><w:autoHyphenation/>"#,
+        r#"<w:mirrorMargins/>"#,
+        r#"<w:characterSpacingControl w:val="compressPunctuationAndJapaneseKana"/>"#,
+        r#"<w:compat><w:doNotExpandShiftReturn/></w:compat>"#,
+        r#"<w:compat><w:compatSetting w:name="doNotAutofitConstrainedTables" w:uri="http://schemas.microsoft.com/office/word" w:val="1"/></w:compat>"#,
+        r#"<w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="nope"/></w:compat>"#,
+        r#"<w:clrSchemeMapping w:bg1="dark1" w:t1="light1"/>"#,
+        r#"<w:noLineBreaksBefore w:lang="zh-CN" w:val="。"/>"#,
+        r#"<x:extra xmlns:x="urn:example:settings"/>"#,
+    ] {
+        assert!(!neutral(inner), "{inner}");
+    }
+}

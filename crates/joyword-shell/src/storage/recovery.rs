@@ -50,6 +50,20 @@ pub fn commit(directory: &Path, baseline: &[u8], text: &str) -> io::Result<PathB
     Ok(path)
 }
 
+/// Remove the journal for one document. Missing files are not an error.
+/// Choosing Don't Save calls this so the next launch does not restore the
+/// edits the user discarded.
+pub fn clear(directory: &Path) -> io::Result<()> {
+    for name in ["recovery.jwr", "recovery.jwr.tmp"] {
+        match fs::remove_file(directory.join(name)) {
+            Ok(()) => {}
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(())
+}
+
 pub fn recover(directory: &Path) -> io::Result<Recovered> {
     let path = directory.join("recovery.jwr");
     let mut file = File::open(&path)?;
@@ -137,5 +151,25 @@ mod tests {
         let chosen = directory_from(Some(Path::new("")), Some(Path::new("/cfg")));
         assert_eq!(chosen, Some(PathBuf::from("/cfg/recovery")));
         assert_eq!(directory_from(None, None), None);
+    }
+
+    #[test]
+    fn clearing_removes_a_committed_journal() -> io::Result<()> {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|_| io::Error::other("clock"))?
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!(
+            "joyword-recovery-clear-{}-{nanos}",
+            std::process::id(),
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        commit(&dir, b"PK", "edited")?;
+        assert_eq!(recover(&dir)?.text, "edited");
+        clear(&dir)?;
+        assert!(recover(&dir).is_err(), "discarded journal must not restore");
+        clear(&dir)?;
+        let _ = fs::remove_dir_all(&dir);
+        Ok(())
     }
 }
