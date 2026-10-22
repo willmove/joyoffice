@@ -19,7 +19,7 @@
 
 app 组合 engine、formats、layout、platform、agent。engine 依赖 model；formats 和 layout 使用 model 的只读结构；agent 使用 engine 的受限接口。engine 不反向依赖 agent，避免循环。
 
-上表的依赖方向与禁止依赖由自动检查固化（T111）：基于依赖元数据校验层表，未登记的新 crate 报错；另以源码扫描约束文件系统访问白名单，只有 OPC、storage、字体加载等少数模块可直接读写文件。新增 crate 或跨层依赖必须同步更新检查配置，否则 CI 失败。
+上表的依赖方向与禁止依赖由自动检查固化（T111）：解析 Cargo manifest 中的依赖声明校验层表，未登记的新 crate 报错。普通依赖和 build 依赖严格遵守 `LAYERS`；dev 依赖可额外使用单独审阅、逐条登记的 `DEV_LAYERS` 许可边，这些测试例外不放宽生产依赖。另以源码扫描约束文件系统访问白名单，只有 OPC、storage、字体加载等少数模块可直接读写文件。新增 crate 或跨层依赖必须经架构审阅并同步更新检查配置，否则 CI 失败。
 
 ```mermaid
 flowchart TD

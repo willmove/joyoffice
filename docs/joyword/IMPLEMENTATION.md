@@ -14,6 +14,7 @@
 - **T300（进行中，2026-10-19）**：文字与移动修订。第一切片已有 `w:ins`／`w:del`／`w:moveFrom`／`w:moveTo`、三种投影和可撤销的接受／拒绝。第二切片补上审阅菜单与功能区命令、偏好作者、markup 页边色条，以及已类型化单元格段落里的文字修订。第三切片把成对 `moveFrom`／`moveTo` 当成一次修订：接受或拒绝任一端会同时处理两端，全部接受／拒绝分别落到最终／原始投影，撤销恢复两端，`trackRevisions` 设置补丁不丢掉移动对。`rPrChange` 与表格结构修订仍整篇或整表只读。页眉修订装饰和 Word／WPS 人工交换未做，任务保持 `in_progress`。
 - **T300 页眉页脚装饰（进行中，2026-10-19）**：页眉和页脚故事里的文字与移动修订画在共享 PageScene 的页眉页脚带上（下划线、删除线、作者色页边条）。最终／原始投影仍去掉隐藏文字且不画装饰。页眉里的全部接受或全部拒绝各是一步，一次撤销恢复。带图片的页眉页脚段落不画。Word／WPS 人工交换和 T301 仍未做，任务保持 `in_progress`。上一条里的「页眉修订装饰未做」是第三切片结束时的状态。
 - **T400（进行中，2026-10-21）**：独立 crate `joyword-agent` 默认关闭，shell／app 的 `ai` feature 默认不启用。启动不调用 Provider。操作系统策略与系统凭据库仍是接口后的 stub，ChangeProposal 不应用，AIGC 标识未做法律评估。任务不标完成。计数改为 12 done／18 in_progress／36 planned／0 blocked。细节见文末「T400 Provider 与关闭基础」。
+- **2026-10-22 六分支并行波次**：T110 的 Windows 卷能力观测（[#81](https://github.com/willmove/joyoffice/pull/81)）、T200 的 `numbering.xml` 写回（[#85](https://github.com/willmove/joyoffice/pull/85)）、T202 的栏分隔线与 `nextColumn`（[#84](https://github.com/willmove/joyoffice/pull/84)）、T301 的段落与运行格式修订（[#87](https://github.com/willmove/joyoffice/pull/87)）、T401 的选区授权与受限工具（[#83](https://github.com/willmove/joyoffice/pull/83)），以及 review 分支的 CLI JSON 键序修复（[#82](https://github.com/willmove/joyoffice/pull/82)），曾在集成分支 `chore/integration-wave-20261022` 组合验证；这六项与 T111 门禁加固 [#86](https://github.com/willmove/joyoffice/pull/86) 现已全部合入 `main` `85a24de`，该主干 CI 九项全绿（2026-10-23 核验，见文末实际合并记录）。T301 与 T401 由 `planned` 改为 `in_progress`，计数改为 12 done／21 in_progress／33 planned／0 blocked，任务总数仍是 66。这一波全部是自动证据：没有任何一项拿到 Word／WPS 往返、图形界面、信创真机或打印的人工验收，因此没有任务改为 `done`。上面「主要未完成项」里 T200 的「编号部件改写」与 T202 的「栏分隔线、`nextColumn`」以本节文末记录为准（编号部件只做追加式写回，章节页码仍未做）。各切片细节见文末同名小节。
 
 下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
@@ -989,7 +990,7 @@ M4 的第一刀只建立关闭基础。编辑、DOCX、排版和 GPUI 窗口默�
 
 ### T302 批注线程第一切片（2026-10-21）
 
-T302 从 `planned` 改为 `in_progress`，不标 `done`。这一刀是类型化批注模型和 DOCX 导入导出，没有图形界面，也没有 Word／WPS 人工交换。当时进度计数改为 12 done／18 in_progress／36 planned／0 blocked。T400 随后也改为进行中，当前进度表为 12 done／19 in_progress／35 planned／0 blocked。
+T302 从 `planned` 改为 `in_progress`，不标 `done`。这一刀是类型化批注模型和 DOCX 导入导出，没有图形界面，也没有 Word／WPS 人工交换。当时进度计数改为 12 done／18 in_progress／36 planned／0 blocked。T400 随后也改为进行中，当时进度表为 12 done／19 in_progress／35 planned／0 blocked。
 
 - **模型**：`AnnotationKind::Comment(Comment)`。字段覆盖正文故事、`w:id`、作者、日期、缩写、`w14:paraId`、回复的 `w15:paraIdParent`、`w15:done`、`w16cid:durableId`、`w16cex:dateUtc`，以及未映射属性和非 `w:p` 子元素的原文。`w:id` 可以是 0。日期按原文保存，不再解析。段落标识是八位十六进制，比较时不分大小写。文档计数器分配新的批注 id 和段落标识，撤销恢复内容时一起恢复。解决只改 `resolved`，不改锚点，也不是删除（REVIEW-006）。
 - **导入**：依据 ECMA-376 Part 1 §17.13.4 `w:comment`、`w:commentRangeStart`、`w:commentRangeEnd`、`w:commentReference`，以及 [MS-DOCX] 的 commentsExtended（`w15`）、commentsIds（`w16cid`）和 commentsExtensible（`w16cex`）。关系类型分别是 `http://schemas.microsoft.com/office/2011/relationships/commentsExtended`、`http://schemas.microsoft.com/office/2016/09/relationships/commentsIds`、`http://schemas.microsoft.com/office/2018/08/relationships/commentsExtensible`。格式正确的范围标记和引用不再锁定段落；缺 `w:id` 的标记仍保留并锁定。回复通常没有范围标记，锚点复制父批注。`w15:done` 缺省表示未解决，不用把省略当成真。people.xml 不导入。
@@ -1030,3 +1031,364 @@ Linux X11 冒烟测试（main c0c3ed7f）报了四个问题。任务状态和进
 - **word_edited.docx**：Word 2024 另存的设置含 `w:zoom`、`w:rsids`、`m:mathPr` 等无排版效果的子元素，文档默认 `w:rPr` 含 `w:kern`、`w:szCs` 和 `w14:ligatures`。导入仍整段保留这些 XML，但只在每个未建模子元素都不改变行或页时把 `preserved_layout_neutral` 标为真；排版只拒绝其余保留内容。空的主题 `typeface` 用 `w:themeFontLang` 对应的补充 `a:font`（该文件的 `zh-CN` 取 `Hans` 的「等线」），没有补充字体的空槽记为未命名，解析成无字体而不是未解析主题字体。部件字节仍原样往返。会改变分页的设置（自动断字、页边镜像、非恒等颜色映射、未分类的兼容项等）仍拒绝排版。
 - **不保存**：关闭提示选「不保存」时删除 `~/.config/joyword/recovery` 下的 `recovery.jwr`（以及临时文件）。文件不存在不算错误。干净关闭不走这条路径。
 - **证据**：`props::invisible_run_children_are_preserved_as_layout_neutral`、`a_word_saved_document_keeps_its_settings_and_is_marked_layout_neutral`、`settings_that_can_move_lines_are_not_layout_neutral`、`an_unnamed_theme_slot_resolves_to_no_font`、`layout_neutral_preserved_settings_and_run_defaults_lay_out`、应用内 `a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit`、`prompt_lines_never_start_with_closing_punctuation`、`editing_keys_are_unbound_while_an_in_app_text_field_is_focused`、`editing_and_navigation_keys_edit_the_field`、`clearing_removes_a_committed_journal`。图形界面人工验收留待复测。
+
+### T200 `numbering.xml` 追加式写回（2026-10-22）
+
+编号定义第一次能写回 DOCX，但只在"追加"这一种形状下写回。任务仍 `in_progress`，没有人工验收。
+
+- **入口与不变量**：新模块 `crates/joyword-docx/src/export/numbering.rs`。`plan` 比较原始与当前 `NumberingStore`，相等时返回 `None`——part 字节原样复制、在 preserved 列表里报告，导出预算也不为它增长。`export.rs` 的 OriginalPackage 提前返回因此加上 `numbering_changed` 条件，预算的 `projected` 与 `grown` 两处都加上 `numbering_delta`。
+- **追加式差异**：`appended()` 要求旧的 abstractNum 与 num 序列是新序列逐元素的严格前缀，且 `unmodeled` 标志一致；既有定义被修改、被删除或标志变化时返回 `existing numbering definitions are not rewritten`，part 绝不重建。也就是说这一刀把"编号库任何变化都拒绝"收窄成"只有追加可以写，其余照旧拒绝"。
+- **既有 part 的拼接**：`patch_part` 解析 `word/numbering.xml`，为新条目生成标记，按 ECMA-376 §17.9.17 的 `abstractNum*` → `num*` → `numIdMacAtCleanup?` 顺序拼在最后一个既有 abstractNum 与最后一个既有 num 之后、其他尾随子元素之前，自关闭根元素也能处理。除这两个插入点外没有任何字节移动；测试把插入的标记删掉后与原 part 逐字节比对。`nsid`、`lvlJc`、`numIdMacAtCleanup` 等未建模子元素与 `numStyleLink`／`styleLink` 全部原样保留。
+- **缺 part 时新建**：`create_part` 写出带 XML 声明的 `word/numbering.xml`；`extend_relationships` 只在 `word/_rels/document.xml.rels` 追加一条 numbering 关系，rId 取现有最大数字加一，追加位置在 `</Relationships>` 之前；`extend_content_types` 只在 `[Content_Types].xml` 追加一条 Override。两者都在超链接与批注阶段已经产出的字节上继续追加，关系追加发生在超链接之后、`comment::apply` 之前，顺序不能换。
+- **写出的子集**：级别标记按 §17.9.11 的顺序写 `start`、`numFmt`、`lvlRestart`、`suff`（仅在不等于 tab 时写）、`lvlText`、`pPr`（按 §17.17.86 把 tabs 写在 ind 之前）、`rPr`（按 §17.18.74 的 rFonts＜b＜sz）；`w:num` 按 §17.9.14–15／§17.9.19 写 `abstractNumId` 再写 `lvlOverride*`，`startOverride` 为空元素、替换级别为 `lvl`。级别制表位的全部 7 种对齐与 6 种引导符都能写出并往返。
+- **显式拒绝**：链接定义、未建模条目或级别、图片项目符号、Theme 字体、超出子集的段落／字符属性、非 twips 的缩进与制表位、非半磅的字号、XML 属性规范化无法往返的控制字符与 U+FFFE／U+FFFF、指向不存在 abstract id 的实例、空格式记号，全部返回可定位的 `ExportError::Unsupported`，不猜测也不假装成功。
+- **取代 `check_envelope` 的编号整体拒绝**：`check_envelope` 里 `before.numbering() != after.numbering()` 就整体拒绝的那一行被删除，判定改由本模块的追加式差异承担，所以 `list.apply bullet=1` 新建定义之后的导出不再被一律拒绝。合并时若把这一行加回去，追加编号的导出会重新全红。导出后的重导入校验另外显式比较编号库，因为 `canonical_dump` 不含它。段落 `w:numPr` 的改写规则本切片未动。
+- **模型侧最小改动**：只加 `NumberSuffix::token()`（§17.18.88 的 `w:suff` 记号）；`NumberFormat::token` 本来就是 `pub`，未映射记号保留原拼写，所以写回不会发明格式。没有新的外部依赖，`Cargo.lock` 未动。
+- **自动验证**：`crates/joyword-docx/tests/numbering_writeback.rs` 六项——`appended_bullet_definitions_are_inserted_without_touching_other_numbering_bytes`、`a_new_numbering_part_gets_a_relationship_and_a_content_type_override`、`an_unchanged_numbering_store_keeps_the_part_verbatim_and_preserved`、`restoring_the_previous_store_keeps_the_package_unchanged`、`modified_or_unrepresentable_numbering_changes_are_refused`、`numbering_level_tabs_write_every_align_and_leader`。端到端要求（`ensure_bullet` 追加定义 → 导出写出 → 重导入复原编号库并画出 `1.`／`•`／`startOverride` 的 `4)`，以及直接恢复上一份模型快照后导出与原包字节相同，不执行 engine 撤销）在模型与 docx 层覆盖；没有新增引擎测试，因为 `Command::ApplyBullet` 就是 `ensure_bullet` 加 numPr 赋值，撤销沿用引擎既有的快照恢复。切片内 `cargo test --locked`（CI 口径）、`cargo test --locked -p joyword`、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`check_docs.py`、`check_gates.py`（含反例）、`check_acceptance.py` 通过。
+- **未覆盖**：可选的制表位引导符一项只是部分关闭——编号部件写出侧能写出并往返全部 6 种引导符与 7 种对齐，但排版侧 `crates/joyword-layout/src/list_layout.rs` 仍拒绝 `Bar` 对齐与 `MiddleDot`／`Heavy` 引导符，段落制表位的导出拒绝也仍在 `export/structure.rs` 的 `geometry_supported`／`tabs_markup` 里；`heavy` 没有规范字形，发明一个会违反不猜测原则，所以 bar／middleDot／heavy 的端到端支持没有做，不按完成记。Word／WPS 打开含追加编号定义的导出件、图形界面里点项目符号后保存重开、信创真机与打印均未做人工验收。
+
+### T202 栏分隔线与 `nextColumn`（2026-10-22）
+
+`w:cols/@w:sep` 与 `w:type w:val="nextColumn"` 从"整节保留、排版拒绝"变成类型化并参与排版。任务仍 `in_progress`。
+
+- **分隔线画进共用 PageScene**：排版新增 `paint_column_separators`（`crates/joyword-layout/src/pages.rs`），每个栏间空隙画一条竖直 `SceneRect`：1 pt（`Emu::PER_POINT`）黑色细线，横向取前一栏右边缘与后一栏左边缘的中点（等宽与不等宽都成立），纵向从页面正文框的 `geometry.top` 到 `geometry.bottom_edge()`；不足两栏的节什么都不画。屏幕、PDF（`joyword-pdf` 遍历 `scene.rects`）与 CPU 光栅（`joyword-render`）消费同一批矩形，这三个 crate 一行未改。
+- **假定，不是观察**：ECMA-376 §17.6.4 只记录 `sep` 打开，既不定线宽也不定精确位置。"1 pt 细线、空隙居中、纵向铺满正文框而不按最高那一栏的文字裁切"是 JoyWord 假定，代码注释与本记录都这样写明，不当成 Word 观察。
+- **单一汇合点**：该通道挂在 `finish_stories` 的第一行，那是全量、混合与增量排版的唯一汇合点，所以增量与全量按构造一致，也不存在第二套几何。副作用如实记录：分隔矩形是组装之后追加的，增量的 `suffix_copies` 快路径要校验 `page.rects.len()` 相等，因此带分隔线的文档失去后缀复制复用、退回完整放置（结果正确，略慢）。
+- **模型、缓存与往返**：`Section` 新增 `column_separator: bool`（`Document::new` 默认 false）；导入侧 `read_columns` 用既有 `props::on_off` 解析 `sep`，等宽（`w:num`）与不等宽（`w:col` 子元素、`equalWidth="0"`）两种形态都认，非法值（如 `sep="maybe"`）仍走 preserved／opaque 通道。`column_separator` 折进 `LayoutKey.content`（SHA-256）的节指纹，标志变化时快照缓存失效；它有意不进入段落拟合缓存键 `column_mix`，因为分隔线不改变行的拟合。导出往返是免费的：`rewrite_sectpr_page` 除 `pgSz`／`pgMar` 外逐字节拷贝 sectPr 子元素；再导入的相等校验在 `export/compare.rs` 的 `same_section_envelope` 里加一个 `column_separator` 比较项。
+- **`SectionBreak::NextColumn`**：`nextColumn` 是 §17.6.22 `ST_SectionMark` 的分节起始值，含义是"本节从当前页的下一栏开始"，不是域也不是 `w:br`。模型新增该变体，导入在 body.rs 的 `w:type` 分支识别，排版新增 `SectionEdge::NextColumn`：纸张框与分栏几何不变且当页已有墨迹时经 `advance_column` 在当前页下一栏续排（`advance_column` 在末栏之后本就换页，单栏流因此自然退化为新起一页），页码连续，该页仍归打开它的那一节；纸张或分栏不同、或当页为空时退化为连续式的页拆分并发出既有的 `LayoutNote::ContinuousPageSplit`。复用既有注记是为了不改 `apps/joyword-cli/tests/golden_scenes.rs` 里的穷尽匹配。
+- **页归属限制**：连续节或 `nextColumn` 节与打开该页的节共页时，页眉页脚与分隔线都跟随打开该页的节（与既有 Continuous 行为一致），所以在页中途才打开 `sep` 的节不会在已经打开的那一页上画线；归给前一节的奇偶补白页也带前一节的分隔线。
+- **自动验证**：新增 12 个测试，全部在新文件里——`crates/joyword-layout/tests/columns.rs` 的 `equal_column_separator_paints_one_centered_rule`、`unequal_column_separator_paints_a_rule_per_gap`、`separator_off_paints_no_rule`、`incremental_layout_matches_full_with_separators`、`next_column_section_break_advances_one_column`、`next_column_with_different_columns_splits_the_page`；`crates/joyword-docx/tests/column_separator.rs` 的 `equal_column_separator_imports_typed_and_round_trips`、`unequal_column_separator_imports_typed`、`separator_false_or_omitted_is_not_flagged`、`invalid_separator_value_stays_preserved`、`next_column_section_break_imports_typed_and_round_trips`；`crates/joyword-pdf/tests/column_separator.rs` 的 `the_column_separator_rule_is_in_the_pdf_page_scene`（分隔矩形出现在交给 `joyword_pdf::render` 的场景里，渲染字节与关闭分隔线的同一文档不同）。切片内 `cargo test --locked`（CI 口径）、`cargo test --locked -p joyword-layout -p joyword-pdf -p joyword-render`、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`check_docs.py`、`check_gates.py`（含反例）、`check_acceptance.py` 通过。没有新依赖，没有金样或夹具变化。
+- **一处名称过时的测试**：`crates/joyword-docx/tests/import.rs` 的 `unequal_columns_import_and_a_separator_or_missing_width_stays_preserved` 里两个 `w:sep` 用例已移进 `column_separator.rs` 成为更强的正向断言；该测试现在只覆盖不等宽栏的类型化导入、等宽栏，以及三种仍在子集外的形态（缺宽度、`equalWidth="0"` 而无 `w:col`、只有一个 `w:col`）。名字里的"a separator … stays preserved"已不描述它覆盖的内容。改名要动 `crates/`，不在本次文档范围内，因此只在 [验收清单](acceptance/T202.md) 里更正引用，测试名保留原样。
+- **未覆盖**：`chapStyle`／`chapSep` 章节页码本切片明确未做——章节号需要一个与标题编号互锁的章号来源，而编号写回属 T200、当时正在并行分支上进行，现在实现只能发明未经测试的互锁，所以二者仍留在 preserved／opaque 通道。图形界面里看分隔线与 `nextColumn` 续排、Word／WPS 对照（含线宽与位置这条假定的核对）、信创真机与打印均未做人工验收。
+
+### T301 段落与运行格式修订（2026-10-22）
+
+T301 由 `planned` 改为 `in_progress`。这一刀只做正文段落（表格之外）的 `w:pPrChange` 与 `w:rPrChange`，没有人工验收。
+
+- **模型**：新增 `FormatRevision { id, author, date, previous_run, previous_para }`。run 上的 `format_revision` 来自 `w:rPrChange`、存变更**前**的运行属性；段落上的 `props_revision` 来自 `w:pPrChange`、存变更**前**的段落属性。`Paragraph` 增加 `stamp_format_from`、`has_run_format_revision`、`resolve_format_revision`、`resolve_all_format`；run 合并（`join_runs_at`、`push_text_marked`）把 `format_revision` 当作 run 身份的一部分，`split_off` 把段落级变更留给前半段；规范化 dump 打出 `pPrChange#id author=… date=… prev=[…]`／`rPrChange#…` 行，所以投影能看到记录而不是只看到结果。
+- **导入子集与退回**：`props::para_with_change`／`props::run_with_change` 捕获单个 `w:pPrChange`／`w:rPrChange` 子元素而不是把整块属性留白，`revision::import_format_change` 才把它类型化：要求合法的 `w:id` 与 `w:author`（日期可选、按原文保存），至多一个正确种类的变更前属性子元素，且变更前属性完全可表示（不含前一样式、段落标记、节属性或嵌套修订）。子集之外一律返回 `None`，调用方退回"整块属性元素按原字节保留＋锁定所在段落＋`RevisionSubset` 诊断"，绝不静默丢弃；空 run 上的类型化变更同样锁定段落，防止记录消失。`scan_in` 传入 `in_table`，`blocks_for_review(local, in_table)` 只对 `w:tbl` 之外的段落类型化格式变更。
+- **接受／拒绝语义（不可颠倒）**：按 ECMA-376 §17.13.5.29／.30，**接受**一条格式修订保留当前（变更后）的格式并丢弃记录；**拒绝**恢复记录的变更前格式（没有记录前值时用空默认），随后重新合并相邻 run。引擎的 `AcceptRevision`／`RejectRevision`／`AcceptAllRevisions`／`RejectAllRevisions` 复用既有命令承担这件事：`resolve_one` 在没有文本命中时回落到只带格式修订的 id（不再误报 `UnknownRevision`），同一个 `w:id` 同时承载文本与格式修订时一条命令一并解决，锁定段落以 `CommandError::Locked` 拒绝，`current_revision` 在没有触及文本修订时也能报告插入点处的格式修订（段落级在段内任意位置生效，run 级只在其 run 上生效）。每条命令在一个 `Transaction` 内执行，撤销基于快照，一步撤销完整恢复先前状态。
+- **导出的"绝不合成掉未决 `*Change`"策略**：未决格式修订只能以原字节存活。`Group` 与组／元数据比较都纳入修订记录，所以未打戳的重发不可能被判为相同；`Paragraph` 的 `PartialEq` 纳入新字段，丢弃一条记录永远算作一次编辑，不会留下陈旧字节的洞。`patch_paragraph` 新增五条拒绝，全部由 `after_unresolved = after.has_run_format_revision() || after.props_revision.is_some()` 守卫：与文本修订重写组合（`unresolved format revision cannot be combined with a text revision rewrite`）、改样式或改编号（`… cannot be restyled`）、段落重写（`… its paragraph cannot be rewritten`）、run 边界变化（`… its run boundaries cannot change`）、空段新增文本（`… new text cannot be added`）。已解决的修订在 `after` 里已不存在，走正常重写路径输出不含 `*Change` 的干净格式；未改动的段落仍由既有对齐机制逐字节拷贝。
+- **表格结构修订明确不实现**：`w:tblPrChange`、`w:trPrChange`、`w:tcPrChange`、`w:cellIns`、`w:cellDel`、`w:cellMerge`（每一个仍只经 `ns::is_revision` 被引用一次），以及 `w:tbl` 子树内的任何 `w:rPrChange`／`w:pPrChange`，都让整篇文档只读（`ReadOnlyReason::Revisions`）、标记逐字节保留、改写式导出以 `ExportError::Restricted` 拒绝；没有任何代码路径接受、改写或丢弃它们。同样仍只读的有 `w:sectPrChange`、`w:numberingChange`、`w:tblPrExChange`、`w:tblGridChange` 与自定义 XML 修订。因此本任务产物里的段落标记修订、编号修订、节属性修订与表格网格结构修订都还没有实现。
+- **登记**：`docs/joyword/behavior_registry.json` 追加 12 条（只追加，既有条目未动，检查器报 65 条）。
+- **自动验证**：`crates/joyword-docx/tests/format_revisions.rs` 十项与 `crates/joyword-engine/tests/format_revisions.rs` 五项（名单见 [TASKS](TASKS.md) 的 T301 完成证据）。切片内 `cargo fmt --all -- --check` 干净，`cargo clippy --workspace --all-targets --locked -- -D warnings` 零告警（修掉 WIP 留下的 `collapsible_if` 与 `redundant_closure`），CI 范围 `cargo test --locked` 全绿（含 15 项新测试），`cargo test --locked -p joyword`、`check_docs.py`、`check_gates.py`（含反例）、`check_acceptance.py` 通过。
+- **未覆盖**：Word／WPS 往返交换、审阅栏与图形界面上逐项接受／拒绝、信创真机、打印，全部没有人工验收。锁定容器（表格单元格／SDT 锁）内格式修订的 `CommandError::Locked` 拒绝已实现但没有直接单测，改由 docx 侧的锁定与 `Restricted` 导出拒绝覆盖；页眉页脚与批注 story 里表格之外的格式修订走正文同一路径（`body::paragraph`），但没有专门的 story 级测试；段落标记 `w:rPr` 上的 `w:rPrChange` 经普通 `props::run` 路径退回"保留＋锁定"，行为由构造保证正确，只被子集外测试间接覆盖。
+
+### T401 选区授权与受限工具（2026-10-22）
+
+T401 由 `planned` 改为 `in_progress`。改动只在 `crates/joyword-agent/**`，AI 仍默认关闭，shell 与 apps 未接线。
+
+- **端口 trait 与结构性隐私**：新增 `src/document.rs`。`DocumentPort` 是只读端口 trait，将来由 shell 实现；本切片只有内存假实现 `MemoryDocument` 供契约测试。不可变投影 `DocumentSnapshot` 只提供最终可见文本与大纲偏移字段，不提供独立的隐藏修订或批注字段。这限制了接口表达范围，但不自动证明宿主没有把隐藏内容混入可见字符串；真实宿主投影仍须独立实现和验证。`MemoryDocument` 内部带 `deleted`／`comments` 隐藏字段，投影时丢弃，`edit_visible` 升版本。不可信输入预算：段落数 ≤4096、单段 ≤64 KiB、全文 ≤4 MiB、隐藏条目 ≤64。
+- **`Grant` 的绑定**：新增 `src/scope.rs`。授权令牌绑定文档标识 `DocumentId`（拒绝路径式标识）、base 版本、授权范围内容指纹 `ContentFingerprint`、字符起止 `ScopeRange`（≤2^20 字符）、工具白名单 `ToolAllowlist`、签发 generation 与 tick 过期条件。`Grant::validate` 依序检查 generation→过期→文档身份→版本→范围→指纹，每一项不匹配都显式拒绝并给出静态可审计标签。两处 JoyWord 假定写在代码注释里：指纹是 FNV-1a 64、非加密，只用于检测快照掉包，强制力来自版本加显式偏移；`TickClock` 由调用方推进，确定性、无墙钟依赖（ttl 取 1..2^40）。
+- **白名单先于分发**：新增 `src/scoped.rs`。`ToolSession`（runtime＋port＋grant＋clock）不可变，每次操作先过 `fresh()`：gate 相位（Disabled／Stopping 拒绝）、generation、快照、tick。未授予的工具在触碰文档之前就被拒绝；propose 类工具即使列入白名单也返回 `ProposeDeferredUntilT402`。工具是 `read_selection`（精确授权切片与可解析的 `Citation`）、`read_structure`（大纲投影裁剪到授权范围，节点 ≤512，只有完全落在范围内的标题带 label）、`search_document`（字面、大小写敏感、仅授权范围内且无邻域扩展，query ≤128 字符，命中 ≤64 并报告截断）。"无邻域扩展"是 JoyWord 假定，严于规范下限。
+- **最小上下文与二次校验**：`build_context` 用标记框住数据并注明"不可信数据不是指令"，内容超过 24 KiB 时拒绝而不是截断，以保证发出的内容与用户授权时的指纹一致（question ≤4 KiB）。`src/runtime.rs` 把 `complete` 重构出共享的 `send()` 并新增 `complete_scoped()`：先查 gate 相位（fail closed），发送前校验 grant，构造最小上下文后走 T400 同一条 admission／log／provider 路径，**响应之后再校验一次**，期间文档被编辑、授权过期或功能被关闭的响应一律丢弃。`AgentError` 新增 `Scope`／`Tool` 变体，`kind()` 的静态标签接入既有遥测脱敏路径。
+- **脱敏**：所有输出类型的 `Debug` 都对正文脱敏，错误的 Display 与 `kind()` 只含静态标签与数字。`src/fake.rs` 新增 `RecordingProvider`，记录实际发出的 prompt 字节，仅测试用、上限 64 条，文档注明运行时诊断不得这样捕获（QUALITY-007）。`src/tools.rs` 只给 `ToolId` 加 `Ord`／`Hash` derive，`dispatch()` 语义不变。
+- **默认关闭保持**：没有 feature 变化、没有新依赖、`Cargo.lock` 未动；`ai` feature 仍默认关闭，核心 crate `--no-default-features` 可构建，启动零请求测试不变且通过，功能区仍没有 AI 入口。
+- **自动验证**：`crates/joyword-agent/tests/scoped_tools.rs` 十二项（名单见 [TASKS](TASKS.md) 的 T401 完成证据）。切片内 `cargo test -p joyword-agent --locked --offline` 30 项（18 旧＋12 新）、`cargo test -p joyword-shell --features ai --locked --offline --test ai_toggle`、`cargo check … --no-default-features`、`cargo clippy -p joyword-agent …`、`cargo clippy -p joyword-shell --features ai …`、`cargo test --locked`（CI 口径）、`cargo fmt --all -- --check`、`check_docs.py`、`check_gates.py`（含反例）、`check_acceptance.py` 与 CI「AI off by default」专段全部通过。
+- **未覆盖**：人工验收（对合同选区提问、核对引用与实际发送内容不超范围）没有执行，没有启动图形界面。"明确邻域"检索未实现；`propose_*` 仍只有名字加拒绝（T402），`ChangeProposal.apply` 语义未动；取消沿用 T400 骨架（T403 完整化）；`DocumentPort` 还没有真实 shell 实现；若威胁模型需要防构造碰撞，指纹后续可换 workspace 已钉扎的 sha2（本切片被禁止新增依赖，未引入）；流式响应未涉及；信创真机未验证；AIGC 标识的法律评估仍是 TODO，本切片不写显式或隐式标识，也不声称合规。
+
+### T110 Windows 卷能力分类（2026-10-22）
+
+原件保存的替换契约在 Windows 上多了一道卷能力前置检查。改动仅限 `crates/joyword-shell/src/storage/metadata.rs`，`winsafe` 仍是锁文件里的 0.0.19，没有新依赖，没有 unsafe（仓库 `unsafe_code = forbid`）。
+
+- **观测**：`observe_volume` 经 kernel feature 的 `GetVolumePathNameW`／`GetVolumeInformationW`／`GetDriveTypeW` 观测源卷的文件系统名、驱动类型与能力标志，存进以原生基元表示的 `VolumeFacts`，便于用合成输入覆盖各分支。
+- **分类**：`classify_volume(&VolumeFacts)` 是纯函数，先判驱动类型（`DRIVE_REMOTE` 网络共享；`DRIVE_UNKNOWN`／`DRIVE_NO_ROOT_DIR` 不可识别），再判文件系统名（只有 `ntfs`／`refs` 通过，大小写无关），最后逐项核对 `FILE_VOL_PERSISTENT_ACLS`／`FILE_VOL_NAMED_STREAMS`／`FILE_VOL_SUPPORTS_HARD_LINKS`（即 Win32 的 `FILE_PERSISTENT_ACLS`／`FILE_NAMED_STREAMS`／`FILE_SUPPORTS_HARD_LINKS`）。六种 `VolumeRejection`——`Remote`、`UnknownDriveType`、`UnsupportedFileSystem`、`NoPersistentAcls`、`NoNamedStreams`、`NoHardLinks`——各有互不相同、可定位的诊断文本。
+- **接入保存路径**：Windows 的 `observe_platform` 先观测源卷再分类，不支持的卷经 `volume_rejected` 变成 `ErrorKind::Unsupported` 的 `io::Error`，使 `save_original` 即便在显式确认下也拒绝替换（走 `ObservationFailed`）。这是硬拒绝，语义上不属于"用户可确认的损失项"，所以不进损失清单；默认另存副本路径不受影响（`save_default_copy` 容忍观测失败仍写副本）。把它接进 `file.save` 的原生提示需要改共享的 UI 与语言包，超出切片边界，未改。
+- **进程内不可观测的部分**：查证结论写进模块文档——`winsafe` 0.0.19 没有暴露 `GetFileSecurityW`／`GetSecurityInfo`／`ConvertSecurityDescriptorToStringSecurityDescriptorW`，也没有 `FindFirstStreamW`／`GetFileInformationByHandleEx(FileStreamInfo)`。所以 raw SDDL（含 `D:`／`D:AI`／`D:PAI` 标志）与除 `Zone.Identifier` 外的命名流无法用已审计依赖在进程内观测，二者按 FORMAT-004 契约保持 `UnobservableMetadata`，在替换前列出、需显式确认；`Zone.Identifier` 的保留行为未退化。
+- **一次进程外实证**：本机 Windows 参考环境（NTFS）用 PowerShell + `ReplaceFileW` 观测到：继承 `D:AI` 与受保护 `D:PAI` 两种 DACL 下，替换前后 `Get-Acl .Sddl` 完全相同；`::$DATA`、自定义流与 `Zone.Identifier` 全部存活且内容不变。因此先前记录的 `D:`→`D:AI` 差异并非 `ReplaceFileW` 固有。但因为进程内无法观测，仍不宣称精确 ACL 标志保留；这次实证也不是仓库测试，不进 CI。
+- **自动验证**：六项 `#[cfg(windows)]` 测试——`classify_volume_accepts_a_local_ntfs_volume_with_every_required_capability`、`classify_volume_refuses_network_and_unrecognized_drive_types`、`classify_volume_refuses_non_ntfs_filesystems`、`classify_volume_refuses_each_missing_capability_flag`、`observe_volume_reports_a_supported_volume_for_the_temp_directory`（对本机 NTFS temp 卷做一次真实观测）、`volume_rejection_messages_are_distinct_and_non_empty`。切片内 `cargo test --locked`（CI 口径）、`cargo test --locked -p joyword-shell`、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`check_docs.py`、`check_gates.py`（含反例）、`check_acceptance.py` 通过。对 macOS／Linux（rustix）路径是纯增量、未改语义。
+- **未覆盖**：真实 FAT／exFAT／网络共享卷上的端到端替换拒绝没有真机验收（本机无此类卷可挂载，分类分支只以合成 `VolumeFacts` 覆盖）；非 Windows 路径未在本机验证；Windows 原生 GUI 的确认操作、真实带 ACL 文档的损失清单交互、断电场景、信创真机与打印均未做人工验收。
+
+### CLI JSON 键序与 cargo feature 归一化解耦（2026-10-22，review 分支）
+
+`cargo test --workspace` 会纳入 `apps/joyword`，其依赖 gpui-pre 0.3.9 启用 `serde_json/preserve_order`；feature 归一化把 CLI 共享构建的 `serde_json::Value` map 从 `BTreeMap`（键排序）换成 `IndexMap`（插入序），`inspect` 输出的键序随之改变，`fixture_roundtrip` 的金样字节比较失败。默认成员口径的 `cargo test --locked` 一直是绿的，所以 CI 测不到这个脆弱点；失败只在 `--workspace` 口径出现（`feature_fixture_cli_projections_match_goldens`：实际输出以 `"schema_version"` 开头，金样以 `"diagnostics"` 开头）。任务状态与计数不改。
+
+- **根因取证**：`cargo tree -e features -i serde_json` 显示默认成员口径下 `serde_json 1.0.154` 只有 `default`／`std`（`Value` map 是 `BTreeMap`），`--workspace` 口径下 `preserve_order`（及 `raw_value`、`indexmap`）由 `gpui-pre` 与 `gpui-pre-http-client` 0.3.9 启用，而 gpui-pre 只被非 default-member 的 `apps/joyword` 依赖。同一次构建内输出仍是确定的，T210 的"两次运行逐字节相同"在单一构建内成立；但输出字节依赖 feature 归一化，任何人给任何 workspace 成员加一个启用 `serde_json/preserve_order` 的依赖就会让两种口径分叉。
+- **修法选择**：两个候选方向里选了"消除 CLI 对 `Value` map 顺序的依赖"，而不是放宽键序比较——后者会削弱 T210 逐字节确定的强度，前者是最小修法且金样文件一个字节都不用动。
+- **改动**：`apps/joyword-cli/src/main.rs` 新增 `canonicalize_keys(&mut Value)`，递归把每个 JSON object 的键经 `BTreeMap` 重插为升序（`BTreeMap` 下是 no-op，`IndexMap` 下规范化），`inspect` 的标准输出与 `text` 的标准错误报告在序列化前统一调用；`src/visual.rs` 的 `write_report` 同样调用，`render`／`convert` 报告一并免疫。没有 unwrap／expect／panic，no-panic 门禁通过。
+- **把危险配置变成 CI 口径**：`apps/joyword-cli/Cargo.toml` 的 `[dev-dependencies]` 加 `serde_json`（与主依赖同版本、启用 `preserve_order`，indexmap 已在锁文件里，`--locked` 不受影响），使 `cargo test -p joyword-cli` 与 `cargo test --locked` 也始终在插入序 map 下构建被测二进制；新增 `inspect_json_keys_stay_sorted_whatever_the_feature_set` 先断言测试构建确实启用了 preserve_order（防止退化为空洞通过），再对 `inspect` stdout 与 `text` stderr 的原始键序递归断言升序。金样测试从"CI 口径测不到这个脆弱点"变成"CI 口径天然锁住它"。
+- **修前／修后**：只加 dev-dep 与新测试、未改 src 时，`cargo test --locked -p joyword-cli --test fixture_roundtrip` 里 `feature_fixture_cli_projections_match_goldens` 与新测试双双失败（新测试打印出插入序与排序序两份键列表），即加锁后连 CI 默认口径都能复现该红；改完 src 后 `cargo test --locked -p joyword-cli` 全绿，`cargo test --workspace --locked` 与 `cargo test --locked` 均 exit 0，`cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`check_gates.py`、`check_docs.py`、`check_acceptance.py` 通过。金样文件零改动，没有用 `JOYWORD_BLESS_GOLDEN`。
+- **未覆盖**：`cargo deny`、cross-linux（aarch64／loongarch64 + QEMU）与 unified-pdf 三个 CI 作业本机没有工具链，未验证，由 GitHub 覆盖。joyword-cli 的测试构建从此固定带 preserve_order，若将来有测试依赖 `IndexMap` 顺序，会在 CI 默认口径就暴露（这是设计意图）。
+
+### T111 门禁加固（2026-10-22，#86）
+
+加固改动 `scripts/`（含门禁反例夹具）和仓库根目录的 `GATES-REPORT.md`，没有跑 cargo，没有改 `crates/`、`apps/`、`docs/`、`.github/` 或文档格式语料。T111 的 `done` 状态本次不改；本节记录的是加固之前门禁的实际强度，以及加固之后新暴露的东西。
+
+- **层检查此前几乎未读取内部依赖**：`dependencies()` 的 `DEP_RE` 只认 `name = "..."` 内联写法，而本仓库几乎所有内部依赖都写成点号形式 `name.workspace = true`，13 个 manifest 里只解析出 1 个内部依赖。ARCHITECTURE §1 的层表因此在本次之前基本没有强制力，唯一可靠触发的路径是新 crate 未登记。现在 `dependency_tiers()`（`DEP_KEY_RE` 取代 `DEP_RE`）认全三种写法（`name.workspace = true`、`name = { ... }`、`[dependencies.name]`）以及 `[target.'cfg(...)'.dependencies]`／`.dev-dependencies`／`[build-dependencies]`，build 依赖按普通层约束。普通依赖严格照 `LAYERS` 校验、不留基线容忍。实测所有 `[dependencies]` 与 target 专属依赖边本来就合法，加固没有改任何 `Cargo.toml`。
+- **`DEV_LAYERS`**：dev 依赖照 `LAYERS ∪ DEV_LAYERS` 校验。`DEV_LAYERS` 是显式登记的许可表，六对：`joyword-cli`→`joyword-corpus`、`joyword-docx`→`joyword-corpus`、`joyword-layout`→`joyword-engine`、`joyword-layout`→`joyword-render`、`joyword-pdf`→`joyword-engine`、`joyword-render`→`joyword-pdf`，每条注释指明需要它的 manifest 行；键与值都必须已在 `LAYERS` 里，写错不能悄悄放宽。原任务描述只列了四对，少列的两对（render→pdf、cli→corpus）是既有的合法边，只登记四对会让门禁在这两处红。
+- **no-panic 基线双向漂移**：删掉 12 条指向已不存在代码的条目（陈旧条目本身就是绕过：同文件同文本再出现会直接放行），补录 19 条被旧"集合差"语义藏住的真实位点。19 条全部位于 `#[cfg(test)]` 模块体内，属 T111 归类的第一类测试代码，生产位点一条未增；它们是基线已列过一两次的重复载荷（`let dir = tempfile::tempdir().unwrap();` 之类）。净 −12／+19，`scripts/panic_baseline.txt` 由 554 行变为 561 行。TASKS 里 T111 记的"基线 513 条"是 2026-10-17 的数字，此后在加固之前就已漂到 554。`check_panic()` 改为按 `(文件, 代码文本)` 的 `Counter` 多重集比较，报出两侧计数与当前全部行号，行号漂移仍容忍；死代码 `extra = sorted(set(current) - set(expected))` 删除。`--write-baseline` 与检查现在共用 `gated_panic_sites()`／`panic_scope()`（口径取两个旧判定中更严的那个，所以重新生成既不能放宽也不能收窄门禁），另加 `--update-baseline` 只追加缺额、既有条目字节不变：全量重写与可审阅的增量补录两种模式从此可区分，增量是默认的补录路径。
+- **`#[cfg(test)]` 截断**：旧的 `text.split("#[cfg(test)]", 1)[0]` 会丢掉第一个标记之后的全部内容，而本仓库把 `cfg(test)` 用在 `use` 语句、结构体字段和单个 fn 上，不只是测试模块——`apps/joyword/src/document_canvas.rs:6` 是一条 `#[cfg(test)] use`，旧逻辑把该文件 1945 行里的 1939 行整个丢掉，共 44 个文件被截断。现在 `test_module_ranges()` 只认下一非属性行为 `mod NAME {`／`mod NAME;` 的 `#[cfg(test)]`（含 `cfg(all(test, ...))`），并在 `mask_rust()`（注释与字符串／字符／原始字面量挖空、偏移保持）的输出上做花括号配对，字面量里的花括号不能挪动边界；其余行由 `production_lines()` 全扫，所以 `use`／字段／fn 上的 `cfg(test)` 什么都不再隐藏。顺带记录一个真实的偶然：`apps/joyword/src/tests.rs` 的第一处 `#[cfg(test)]` 出现在它自己第 3 行的文档注释里（那句注释正是在描述本门禁），旧逻辑因此在第 3 行截断了全部 1821 行——描述门禁的句子把该文件的门禁关掉了。
+- **panic 正则与 `allow` 绕过**：`PANIC_RE` 增加 `todo!`／`unimplemented!`（`assert!`／`assert_eq!`／`debug_assert!` 按指示不加，它们是合法的"先校验后使用"守卫，会把基线冲垮）。含 `allow` 子串就跳过整行的绕过已关闭，改为 `lint_suppressed()`：只有同行或紧邻上一行的 `#[allow(...)]`／`#[expect(...)]`、且点名 panic 族 lint（`unwrap_used`、`expect_used`、`panic`、`unreachable`、`todo`、`unimplemented`、`indexing_slicing`）才抑制，比原任务描述更严——`#[allow(dead_code)]` 不再挡住 `unwrap`。这两项当天在 `crates/`＋`apps/` 里各命中 0 处（树里 36 处 `#[allow]` 全是 `clippy::too_many_arguments`／`dead_code`，没有一处压在 panic 行上或紧邻其上一行），属关闭绕过而不是清点违规。
+- **文件系统扫描扩面**：`FS_RE` 补上 `OpenOptions::new`、`File::open`／`create`／`open_options`、`read_dir`、`DirBuilder`、`remove_dir[_all]`、`hard_link`、`symlink`／`symlink_file`／`symlink_dir`／`symlink_metadata`、`canonicalize`、`read_link`、`std::process::Command`／`Command::new`、`env::set_var`／`remove_var`；模式匹配调用与 import 形式，所以文档注释里的散文（例如"dangling symlinks"）不会误触白名单。`"tests/" in shown` 的子串判定换成 `is_test_path()`（`tests` 路径分量，或文件名 `tests.rs`）与 `is_example_or_bin()`（`examples` 分量或 `src/bin/`）；文件系统门禁此前根本没有 `tests.rs` 规则，只有 panic 门禁有。另外 `rust_files()` 改为排序（错误顺序确定），文件系统错误带 `file:line: code`，`panic_sites()` 按 `"\n"` 切分（已核对 `crates/`＋`apps/` 没有 `\r`、`\v`、`\f`、`\x1c`–`\x1e`、`\x85`、`\u2028`、`\u2029`，行号不变）。
+- **唯一的新违规者，待批准**：加固后的扫描在 main `dd5d0dd` 上只多出一个真实的文件系统违规者 `apps/joyword/src/linux_files.rs`（第 11 行 `use std::process::Command;`、第 198 行 `Command::new(&argv[0])`）。它是 GUI 应用里的无条件生产代码（`mod linux_files;`）：`run_program()` 为 zenity／qarma／kdialog 里第一个已安装的助手拼 argv，`run_first_dialog()` 对着 `PATH` 解析，然后用 `std::process::Command` 派生并读取子进程的 stdout／stderr。理由是 gpui-pre-linux 0.3.9 的 XDG portal 提示在 UKUI/X11 上可能挂住，所以该模块在窗口内问路径；与已在白名单里的 `apps/joyword/src/input_ui.rs`（派生进程打开 URL）同类，且不能移进 `joyword-shell`，因为该 crate 不得依赖 GPUI。T111 的评审没有看到它，是因为旧 `FS_RE` 不覆盖 `process::Command`，而该文件的 `std::fs::remove_dir_all` 全在 `#[cfg(test)]` 模块里（标记在第 240 行，晚于两处违规行，所以这一发现纯粹来自扩面后的正则，与截断修复无关）。协调者已把它加进 `FS_ALLOW` 并在 `scripts/check_gates.py` 的白名单注释里记录上述理由。**这条白名单新增仍待项目负责人批准。**
+- **反例与测试**：`scripts/tests/fixtures/` 新增 4 个反例夹具（层、panic 的 `allow` 绕过、被 `cfg(test)` 隐藏的文件系统访问、`tests` 路径的相似拼写），`scripts/tests/test_check_gates.py` 新增 38 个测试。加固后 `python -m unittest scripts.tests.test_check_gates` 38 项全通过；同一套测试对着加固前的脚本（`git show dd5d0dd:scripts/check_gates.py`）是 failures=14、errors=14，即 38 项里 28 项失败。`.github/workflows/ci.yml` 未改：第 48 行的 unittest 发现自动纳入新测试，第 46 行的旧反例调用不变，旧反例仍触发层、文件系统与 panic 三项。加固分支上 `python scripts/check_gates.py` 输出 `gates ok (216 rust files)`（该分支基于 main `dd5d0dd`，不含本次波次的代码）。
+- **有意不改**：`FS_ALLOW` 只加上面一条且待批准；`panic_sites()` 仍扫描 `#[cfg(test)]` 模块体（T111 已把这些位点计入基线，排除会把基线砍半并削弱门禁，属另一次策略决定）；`check_panic()` 仍是单向的（基线可以比树里多，这是基线存在的漂移容忍），只清掉当天已经陈旧的 12 条，并用 `PanicGate.test_repo_baseline_has_no_entry_for_code_that_is_gone` 钉住"不得再有陈旧条目"；`examples/` 与 `src/bin/` 仍在文件系统门禁之外（既有行为，保留：`crates/joyword-corpus/src/bin/generate_corpus.rs` 与 `crates/joyword-model/examples/text_storage.rs` 因此不受白名单约束）。
+- **文档跟进**：#86 已作为 `74086bb` 合入 `main`。本次收尾在 [ARCHITECTURE §1](ARCHITECTURE.md#1-模块与依赖方向) 补充了 `DEV_LAYERS` 的独立审阅规则，并明确测试例外不放宽普通依赖或 build 依赖。原六特性集成分支没有包含 #86，历史验证仍区分旧门禁、加固门禁交叉扫描和含 #86 的模拟树。
+
+### 2026-10-22 并行波次集成复验（六分支）
+
+集成分支 `chore/integration-wave-20261022`，基线 `main` = `dd5d0dd`。六个 PR 以 squash
+方式按依赖顺序合入，全部零冲突：#85 `c8155ed` → #84 `ddc5985` → #81 `0b7877a` →
+#83 `5e9ddd7` → #82 `043c1e1` → 编号+分栏复合样例 `19531ad` → #87 `941e1cd` →
+三特性复合样例 `55f2e2e`；随后 cherry-pick 文档证据 `bfe13f1`。代码部分合计 43 文件、
++6947/−89，含文档后为 50 文件、+7270/−111。
+
+**变更文件覆盖**：脚本比对六个分支触及文件的并集与集成分支的变更文件集，并集 42 个文件
+全部出现在集成分支的 43 个变更文件中，`comm -23` 为空说明没有遗漏变更文件名，
+不证明文件内部的全部修改都被保留；内容语义另由 diff 审查和测试验证。多出的 1 个文件是
+集成阶段新增的 `crates/joyword-docx/tests/composite_numbering_columns_revisions.rs`。
+
+**门禁陷阱复核**：`export::check_envelope`（`crates/joyword-docx/src/export.rs:760`）不再
+比较 numbering store，改由 `export::numbering` 单独对齐（该处 784–786 行留有说明注释）。
+若合并把 `before.numbering() != after.numbering()` 恢复进 `check_envelope`，追加的编号定义
+会在信封层被拒绝、永远到不了写回逻辑，T200 会被静默禁用。合并后逐次确认该比较仍不存在；
+同时 T301 的 6 处 `after_unresolved` 拒绝路径与其共存，未被覆盖。
+
+**完整 CI 复现**（Windows 11、Rust 1.98.1、独立 `CARGO_TARGET_DIR`、串行、失败继续，
+覆盖 `.github/workflows/ci.yml` build 作业在本机可执行的全部命令）：22 步全绿。
+
+| 步骤 | 结果 |
+| --- | --- |
+| `cargo fmt --all -- --check` | exit 0 |
+| `cargo test --locked` | 884 passed / 0 failed |
+| `cargo test -p joyword-agent --locked --offline` | 30 passed |
+| `cargo test -p joyword-shell --features ai --test ai_toggle` | 1 passed |
+| `cargo check --no-default-features`（model/engine/docx/layout/shell） | exit 0 |
+| `cargo clippy` agent / shell+ai / `--workspace --all-targets -D warnings` | 0 / 0 / 0 |
+| `cargo test --locked -p joyword` | 64 passed |
+| `cargo build -p joyword --locked` | exit 0 |
+| recovery-journal test / fmt / clippy | 15 passed / 0 / 0 |
+| docx-robustness test / fmt / clippy / python / build | 3 passed / 0 / 0 / 26 tests OK / 0 |
+| Rust 合计 | **997 passed / 0 failed** |
+
+`cargo test --workspace --locked`（**非 CI 命令**，Review 3.8 建议纳入）在集成分支上
+exit 0、**948 passed / 0 failed**、116 个测试二进制全绿，恰好等于 `cargo test --locked`
+的 884 加 `cargo test -p joyword` 的 64，即 `--workspace` 口径覆盖了默认成员外加
+`apps/joyword`。#82 新增的 `inspect_json_keys_stay_sorted_whatever_the_feature_set`
+在该口径下实际运行并通过，说明六个 PR 全部在场时 CLI 金样仍然与 cargo feature 归一化无关
+（gpui-pre 经 `apps/joyword` 启用 `serde_json/preserve_order` 的那条路径已被锁住）。
+
+W09 健壮性实验（`driver.py`，`--seed 20261019 --iterations 200 --seconds 60
+--max-corpus 128`）：
+
+- smoke：`requested_runs 81`、`executed 81`、`43 ok / 38 rejected`、`matrix_complete true`。
+- fuzz：`executed 200`、`46 ok / 154 rejected`、`features_discovered 42`、
+  `novelty_events 18`、`corpus_size 45/128`、`network none`。
+- 两者 `harness_git_sha 55f2e2ed`、`harness_worktree_dirty false`。
+- 首跑 S12f/S12g 返回 64，原因是 driver 用 `out.mkdir(exist_ok=False)` 拒绝覆盖上一次
+  留存的证据目录（`main` 上同一行为）；把五分支的 `ci-smoke`/`ci-fuzz` 改名保留为
+  `ci-smoke-five-branches`/`ci-fuzz-five-branches` 后重跑，两步 exit 0。这是本机复跑
+  的环境残留，不是代码缺陷，CI 每次全新检出不会遇到。
+
+**Python 门禁**（文档证据并入后在集成分支最终树上复跑）：`check_docs.py` OK
+（84 requirements、66 tasks、依赖无环、阶段一致、
+38 Markdown、15 registered cases、locale parity、12 workflow actions 按 SHA 固定、
+65 behavior registry entries、feature catalog floor 59）；`check_gates.py` OK
+（228 rust files）；`check_gates.py --counterexample` 三条全部命中（跨层依赖、
+allowlist 外文件系统访问、新 panic 点）；`check_acceptance.py` OK（**9** checklists，
+新增 `acceptance/T301.md`；legend 状态合法、**所引用的测试名全部真实存在**）。
+
+`scripts/tests` 单测在集成分支上 69 个中 1 个失败（在含 #86 的模拟树上是 107 个中同 1 个
+失败）：`test_committed_bytes_and_manifest_hashes_match`。
+本机 Python 3.14.7 链接 zlib-ng 1.3.1，其 level-6 deflate 输出与 CI 的 stock zlib 不同，
+导致 5 个 fixture 的“新生成字节”与已提交字节哈希不一致（解压成员与 CRC 相同）。
+同一 5 个 fixture（T200-NUM、T201-TABLE、T202-PAGES、T203-IMAGES、T300-REVIEW）在干净
+`main` 上以**完全相同的新生成哈希**失败，因此不是本波次引入，属已知本机环境差异。
+
+**用 #86 加固后的门禁交叉扫描集成树**：`cross_check_gates.py gates/scripts .` →
+`HARDENED GATES: clean`（228 rust files）。即集成树同时通过旧门禁与真正会执行的加固门禁。
+六个分支**各自单独**也用加固门禁扫过（t110 216、t202 219、t200num 218、t401 220、
+review 216、t301 218 个 rust 文件），全部 clean，因此这七个 PR（含 #86）以任意顺序并入
+`main` 都不会被门禁挡住。
+
+**三特性复合样例**：`crates/joyword-docx/tests/composite_numbering_columns_revisions.rs`，
+集成分支上 5 tests passed。追加的 bullet 编号定义、`w:cols/@w:sep` 栏分隔线与未解决的
+`w:pPrChange`/`w:rPrChange` 出现在同一个导出计划里：恢复编辑前的模型快照后，栏分隔线与
+numbering part 保持原样；带未解决修订的段落再被编号时按 `ExportError::Unsupported` 拒绝；
+接受修订后导出干净格式（无 `pPrChange`/`rPrChange`、`w:jc w:val="both"`、
+无 `w:jc w:val="center"`、有 `<w:b/>`、无 `<w:i/>`）。这些是模型与格式层组合测试，
+不经过 engine 撤销命令；收尾将原来的 undo 命名改为恢复模型快照，避免夸大覆盖范围。
+
+**Review 阶段一风险清单（`REVIEW-REPORT.md` 第四节）逐条跟进**：
+
+- R1（高，export.rs 三分支语义汇聚）：`joyword-docx` 全量 159 个测试通过（含 `import` 36、
+  `w05_structure` 18、`tables` 12、`w12_structure` 11、`format_revisions` 10、`hyperlinks` 10、
+  `images` 10、`header_footer_writeback` 8、`comments` 7、`numbering_writeback` 6、
+  `column_separator` 5、复合样例 5、`w10_origin` 4、`revisions` 3、lib 单测 14）；
+  复合测试对导出 XML 逐项断言，提供了可重复的自动证据。清单要求的“复合样本人工抽查”
+  仍未执行，不能用这些断言替代 Word／WPS 或 GUI 人工验收。
+- R2（高，TASKS.md 汇总行计数）：`check_docs.py` 严格校验每行计数与状态一致，当前 OK；
+  文档并入后须再跑一次。
+- R3（中，层门禁对 `foo.workspace = true` 失明）：已由 #86 修复，并用加固后的脚本交叉
+  扫描集成树，结果 clean。
+- R4（中，panic 门禁 `allow` 子串逃逸）：已由 #86 修复；panic 基线双向漂移
+  （12 条陈旧 + 19 条被遮蔽的多余项）在 #86 中一并纠正。
+- R5（中，docx-robustness 要求 `crates/` 干净）：smoke 与 fuzz 的报告均记
+  `harness_worktree_dirty: false`。
+- R6（低，fixture 测试对 zlib 实现敏感）：见上文，已用“干净 main 上同 5 个 fixture、
+  同新生成哈希”证实为本机环境差异。
+- R7（低，本机无 cargo-deny）：本机确实缺失，须由 CI `dependencies` 作业确认。降低风险的
+  事实是六个 PR **未改动 `Cargo.lock` 与 `deny.toml`**，唯一的 `Cargo.toml` 变更是
+  `apps/joyword-cli` 的 `[dev-dependencies]` 增加 `serde_json = { version = "=1.0.154",
+  features = ["preserve_order"] }`（精确固定、非升级；`indexmap 2.14.2` 在 main 的锁文件中
+  已存在），依赖图没有新增 crate，许可/公告/banned 检查的对象与 main 相同。
+- R8（提示，CLI 测试构建从此固定带 `preserve_order`）：属设计意图，已随 #82 合入。
+
+**Review 阶段一预测的冲突点（`REVIEW-REPORT.md` 3.7）实际结果**：预测为“必然冲突”的
+`TASKS.md` 与 `IMPLEMENTATION.md` 一次都没有冲突——派工时就把这两个文件连同
+`feature_catalog.json`、`acceptance/*` 划为所有开发 Agent 的禁区，只允许 t301 追加
+`behavior_registry.json`，文档证据统一由集成阶段并入，冲突被设计掉了而不是被解决掉。
+预测为“高”的 `export.rs` 三分支汇聚（t200num / t202 / t301）实际落在互不重叠的行区间
+（t200num 6–561 与 ~781，t301 828–1281），文本零冲突；语义汇聚由上面的复合样例覆盖。
+`Cargo.lock` 预测“中”，实际六个 PR 一个字节都没动它。建议的合并顺序是
+t110 → t401 → t200num/t202 → t301 最后；实际集成分支按各分支完成先后合入
+（#85 → #84 → #81 → #83 → #82 → #87），与建议顺序不同，但两者都把足迹最大的 t301 放在
+最后，且七步全零冲突。下文“逐个合并等价性模拟”用的正是建议顺序
+（#86 → #81 → #82 → #83 → #84 → #85 → #87），同样零冲突；这为当前变更的合并路线
+提供了证据，不代表任意后续变更或任意顺序都没有风险。
+
+**“逐个合并七个 PR”等价性模拟**：在 `main`（`dd5d0dd`）的独立 worktree 上按
+#86 → #81 → #82 → #83 → #84 → #85 → #87 顺序逐个 `git merge --squash` 并各自成一次提交，
+七步全部零冲突。代码与门禁范围的比较显示两组预期差异：#86 的门禁加固
+（`GATES-REPORT.md`、`scripts/check_gates.py`、`scripts/panic_baseline.txt`、4 个 fixture、
+`scripts/tests/test_check_gates.py`）只在模拟树上，集成阶段的复合测试
+`composite_numbering_columns_revisions.rs` 只在集成分支上；`crates/` 与 `apps/` 除此之外
+逐字节相同。两者不是完整仓库树的字节等价证明：集成分支还承载了单独整理的文档证据。
+集成测试可作为共同代码的验证依据，但不能替代实际合并后含门禁与收尾测试的最终树 CI。
+
+在模拟树上直接用 #86 加固后的真实脚本复跑：`check_gates.py` → `gates ok (227 rust files)`；
+`--counterexample` → 四条发现全部命中（跨层依赖、allowlist 外文件系统访问、新 panic 点，
+以及加固后新增的“出现次数与基线不符”）；`check_docs.py` OK；`check_acceptance.py` OK；
+`scripts/tests` 107 个测试（#86 新增 38 个门禁测试全绿）中仍只有
+`test_committed_bytes_and_manifest_hashes_match` 一项失败，即上文的本机 zlib-ng 差异。
+
+**七个 PR 的 GitHub CI 状态**（2026-10-22 复核）：#81、#82、#83、#84、#85、#86、#87
+每个 18/18 检查项 pass（build 矩阵 macos-15 / windows-2022 / ubuntu-24.04 /
+ubuntu-24.04-arm、cross-linux aarch64 与 loongarch64 QEMU、unified-pdf、dependencies、
+provenance），且均为 `MERGEABLE / CLEAN`。本机缺 cargo-deny，`dependencies` 作业以 CI 结果为准。
+
+**验证边界（明确标注未验证项）**：本机复现只覆盖 `build` 作业的命令行部分，且只在
+Windows 11 上跑。`cross-linux`（aarch64 / loongarch64 QEMU 用户态）、`unified-pdf`
+（Noto CJK + poppler，仅 Linux）、`dependencies`（`cargo deny`，本机未安装）、`provenance`
+（需 github.com 与 static.crates.io）以及 macos-15 / ubuntu-24.04 / ubuntu-24.04-arm 三个
+runner，本机都无法复现。
+
+**六特性集成树的 CI**：`.github/workflows/ci.yml` 的 `on: push` 没有分支过滤，
+所以推送集成分支可触发完整 CI，而不需要先合并到主干。
+run [39793719141](https://github.com/willmove/joyoffice/actions/runs/39793719141)
+（`push` 事件，sha `c714832`）结果 **completed / success**，9 个作业全绿：
+`build (macos-15)`、`build (windows-2022)`、`build (ubuntu-24.04)`、
+`build (ubuntu-24.04-arm)`、`headless tests (aarch64-unknown-linux-gnu, QEMU)`、
+`headless tests (loongarch64-unknown-linux-gnu, QEMU)`、`unified-pdf`、`dependencies`、
+`provenance`。该树包含六个实现 PR、复合测试与文档，不含 #86 的门禁加固。
+R7（本机无 cargo-deny）的集成分支验证缺口由 `dependencies` 成功覆盖；
+`unified-pdf` 也覆盖了 T202 新加的 `crates/joyword-pdf/tests/column_separator.rs`
+在 Noto CJK 下的场景读回。随后仅更新证据文档的 `673a84f` 对应
+run [39798316908](https://github.com/willmove/joyoffice/actions/runs/39798316908) 同样成功。
+这些结果不能被记为七个 PR 实际合入 `main` 后的最终树 CI；后者须单独核验。
+
+上述自动证据不覆盖 GPU 窗口、IME、无障碍、真实打印与系统打印对话框、
+Word／WPS 往返及信创真机。仅信创真机缺环境按项目约定不阻塞开发、依赖、阶段验收或发布；
+其余人工项继续按各任务验收要求挂账，不能一概视为不阻塞，也不能据此标记任务完成。
+
+**合并授权**：用户已明确授权协调者按 #86 → #81 → #82 → #83 → #84 → #85 → #87
+顺序合并，要求各分支先包含当时最新 `main` 并通过 CI，随后单独提交复合测试和文档收尾。
+这项授权不将人工验收记为完成，也不替代最终合并状态与实际提交的核验。
+
+**文档并入方式**：六个开发 Agent 与 review Agent 一律被禁止改动 `TASKS.md`、
+`IMPLEMENTATION.md`、`feature_catalog.json` 与 `acceptance/*`（只有 t301 获准追加
+`behavior_registry.json`），证据统一由一次文档切片并入：分支 `docs/wave-evidence-20261022`
+的 `a523a28` cherry-pick 为集成分支的 `bfe13f1`，7 文件 +177/−22，只动 `docs/joyword/**`。
+T301 与 T401 由 `planned` 改 `in_progress`，进度表改为 12 done／21 in_progress／33 planned／
+0 blocked、总数仍 66；**没有任何任务改为 `done`**，因为这一波全部是自动证据。
+`acceptance/T301.md` 新建并登记进 `acceptance/README.md`，T200／T202／T300 的清单按新测试
+更新，其中 T202 的栏分隔线由 `not-implemented` 改 `partial`。
+
+**待项目负责人裁决的三项**：（1）`apps/joyword/src/linux_files.rs` 进 `FS_ALLOW`
+是否追认（理由与先例见上文 T111 小节，另一条路是把该派生进程当设计缺陷重构掉）；
+（2）`GATES-REPORT.md` 目前提交在仓库根目录，是留在根、移到 `docs/joyword/verification/`，
+还是折进本文档后删除；（3）T111 的 `done` 是否重开——本次加固证明当初人工评审所依据的
+三道门禁中，层检查几乎未读取内部依赖、`#[cfg(test)]` 截断在 44 个文件里丢掉了生产代码、
+含 `allow` 子串的行整个跳过 panic 检查，评审记录的强度高于门禁当时真正能抓到的东西。
+文档切片建议重开或至少补一次针对加固后门禁的复审，本节只记录该意见，未改动 T111 状态。
+
+### T401 合并前授权加固（2026-10-23）
+
+第二波提案契约预审发现并核实了第一波授权缺陷，协调者在 #83 合并前暂停队列，
+修复以 `7a453a2` 推送到原 PR。范围为 `joyword-agent` 的四个实现文件与一个集成测试文件；
+没有新增依赖、没有修改门禁或默认关闭策略，也没有提前实现 T402 提交接口。
+
+- **公开读取入口**：分发与直接调用共同检查对应工具白名单。未授权读取和检索在文档端口访问之前拒绝，未授权搜索也先于空查询等参数错误拒绝。
+- **快照前后状态**：工具、上下文构建以及 Provider 请求前后的快照读取共用内部校验；端口调用期间发生停止、停用或重启时，读取结果或响应被拒绝。测试覆盖这三种状态变化，不把此项描述成真实网络或宿主接线验收。
+- **坐标与版本**：段间换行按段索引插入，保留前导、连续和末尾空段及非 BMP 字符的标量偏移。内存假文档追加段落前检查全文预算与版本上限，成功才递增版本，失败保持原状态。
+- **身份与期限**：签发授权时先核对端口返回的文档 ID；时钟原子饱和，期限加法溢出拒绝，到期刻本身即过期，防止计数回绕使旧授权复活。
+- **回归证据**：开发 Agent 报告新增 17 个回归在修前为 15 失败、2 通过。修后协调者使用独立 target 复跑 `cargo test --locked -p joyword-agent`，实际 47 项通过（7 单测、18 既有契约、22 受限工具）；`cargo fmt --all -- --check`、该 crate 的全目标 clippy（`-D warnings`）、加固门禁（220 个 Rust 文件）和 `git diff --check` 均通过。本机结果不替代该提交的跨平台 CI。
+
+T401 仍为 `in_progress`。真实 shell 投影、GUI、网络与人工选区验收不在此补丁内；
+FNV 指纹仍不抗恶意构造碰撞。快照类型没有独立隐藏字段，并不自动保证未来宿主投影不会误混入隐藏字符串。
+
+### 收尾复合回归预验（2026-10-23）
+
+收尾测试文件 [composite_numbering_columns_revisions.rs](../../crates/joyword-docx/tests/composite_numbering_columns_revisions.rs)
+由 5 项增为 6 项。新增拒绝格式修订与编号追加、栏分隔线同处一个导出计划的用例；
+接受和拒绝两条路径均重导入并核对段落对齐、粗体／斜体、编号归属与模型语义相等。
+拒绝路径另核对原编号部件除追加定义外逐字节不变、两栏和分隔线保留；收尾独立审查后，
+接受路径也补齐编号部件字节守恒断言，避免未知 XML 变化仅凭模型语义比较漏检。
+对含未决修订段落应用编号的拒绝用例同时断言目标节点和原因，避免只命中不相关错误。
+原 undo 命名已改为 `restoring_the_model_snapshot_preserves_the_separator_and_numbering_part`，
+明确这是模型快照恢复后导出测试，不是 engine 撤销测试。
+
+提前验证将增强后的测试文件放进历史六特性集成树 `673a84f` 的独立工作区，使用独立 target：
+复合测试 6/6、完整 `joyword-docx` 160/160、该 crate 全目标 clippy（`-D warnings`）、
+测试文件 rustfmt 与 `git diff --check` 通过。此树不含 #86 门禁及 `7a453a2` 授权加固，
+因此这里只登记预验，不能替代实际合并后完整树的复验与 CI。
+
+### 第一波实际主干合并（2026-10-23 核验）
+
+按用户授权顺序完成下列 squash 合并；每个待合分支先纳入当时最新 main，再核验当前 head
+的全部检查成功且可合并，并以精确 head 防竞争。没有强推、跳过检查或使用管理员绕过。
+
+| 顺序 | PR | main 合并提交 |
+| --- | --- | --- |
+| 1 | [#86 门禁](https://github.com/willmove/joyoffice/pull/86) | `74086bb` |
+| 2 | [#81 卷能力](https://github.com/willmove/joyoffice/pull/81) | `81abf63` |
+| 3 | [#82 CLI 键序](https://github.com/willmove/joyoffice/pull/82) | `523a030` |
+| 4 | [#83 选区授权](https://github.com/willmove/joyoffice/pull/83) | `0ba78b4` |
+| 5 | [#84 栏分隔线](https://github.com/willmove/joyoffice/pull/84) | `f059278` |
+| 6 | [#85 编号写回](https://github.com/willmove/joyoffice/pull/85) | `9718399` |
+| 7 | [#87 格式修订](https://github.com/willmove/joyoffice/pull/87) | `85a24de` |
+
+#83 含合并前的 `7a453a2` 授权加固，因而实际主干与早先的六特性集成树有预期代码差异。
+[#83 PR 检查](https://github.com/willmove/joyoffice/actions/runs/39811714996) 的 LoongArch
+首次在交叉工具链安装阶段超时，尚未运行 Rust 测试；定向重跑后成功。
+#84 push 的 dependencies 状态异常也在定向重跑后恢复，未以失败或取消状态合并。
+
+完整主干 `85a24defe724d7d870df32d6b5a0a3a4bb0ed2d7` 的
+[push CI 39831168359](https://github.com/willmove/joyoffice/actions/runs/39831168359)
+为 completed／success，四平台 build、两种 QEMU、unified-pdf、dependencies、provenance
+共 9/9 成功。该运行的 LoongArch 首次工具链安装超时，第二次实际执行测试成功；
+其他作业的成功记录一并保留。本地 main 已快进到同一 SHA，工作树干净。
+这个 CI 包含七个 PR 及授权加固，但不包含本次收尾新增的复合测试和文档；收尾须独立验证。
+
+历史分支、模拟工作区和本地报告均保留。TASKS 仍为 12 done／21 in_progress／33 planned，
+没有把本轮自动通过当作 Word／WPS、GUI、打印、断电或信创真机人工验收完成。
+
+### 收尾树本机复验（2026-10-23）
+
+分支 `chore/wave1-closeout-20261022` 已快进到 `85a24de`，其上仅追加本次 8 份文档和
+1 份复合测试文件的改动。Windows 本机使用该工作区独占的 target，串行完成：
+
+- `cargo test --workspace --locked`：通过，包含应用适配器、授权加固与六项复合测试。
+- `cargo test -p joyword-shell --features ai --test ai_toggle --locked`：通过。
+- `cargo check -p joyword-engine -p joyword-model -p joyword-docx -p joyword-layout -p joyword-shell --no-default-features --locked`：通过。
+- `cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`：通过。
+- 独立只读审查无阻塞发现；接受修订路径补齐编号 XML 字节守恒断言后，单独复跑
+  `cargo test -p joyword-docx --locked --test composite_numbering_columns_revisions`（6/6）、
+  该 crate 全目标 clippy、fmt 与差异检查，均通过，不依赖此前运行是否已读取新断言。
+- `check_docs.py`、`check_acceptance.py`（9 份清单）、`check_gates.py`（228 个 Rust 文件）、
+  显式传入 `scripts/tests/fixtures/gate_counterexample.rs` 的反例检查，以及 38 项门禁单测均通过。
+- Python 全测 107 项中仍有 1 项失败：`test_committed_bytes_and_manifest_hashes_match`，
+  与上文已在干净 main 复现的 zlib-ng／stock zlib 压缩字节差异相同；未重生成夹具，未降低断言。
+
+本节是收尾树的本机证据，不把前一节主干 CI 冒充收尾 PR 的 CI。收尾 PR 仍须通过自身的
+跨平台检查后才合并；本轮没有新增 GUI、Word／WPS、打印、断电或信创真机人工验收。
