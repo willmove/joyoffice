@@ -309,10 +309,23 @@ impl Dumper<'_> {
             .style
             .as_ref()
             .map_or("-".into(), |s| format!("{s:?}"));
+        let props_change = match &paragraph.props_revision {
+            Some(revision) => format!(
+                " pPrChange#{} author={:?} date={} prev=[{}]",
+                revision.id,
+                revision.author,
+                revision.date.as_deref().unwrap_or("-"),
+                revision
+                    .previous_para
+                    .as_ref()
+                    .map_or("-".to_string(), |p| para_props(p))
+            ),
+            None => String::new(),
+        };
         self.line(
             depth,
             &format!(
-                "{head} p{ordinal} style={style} props={} mark={}",
+                "{head} p{ordinal} style={style} props={} mark={}{props_change}",
                 para_props(&paragraph.props),
                 run_props(&paragraph.mark_props)
             ),
@@ -385,10 +398,23 @@ impl Dumper<'_> {
                 ),
                 None => String::new(),
             };
+            let format_change = match &run.format_revision {
+                Some(revision) => format!(
+                    " rPrChange#{} author={:?} date={} prev=[{}]",
+                    revision.id,
+                    revision.author,
+                    revision.date.as_deref().unwrap_or("-"),
+                    revision
+                        .previous_run
+                        .as_ref()
+                        .map_or("-".to_string(), |p| run_props(p))
+                ),
+                None => String::new(),
+            };
             self.line(
                 depth + 1,
                 &format!(
-                    "run style={style} props={}{} {}{revision}",
+                    "run style={style} props={}{} {}{revision}{format_change}",
                     run_props(&run.props),
                     link_dump(run.link.as_deref()),
                     parts.join(" ")

@@ -26,10 +26,12 @@
 //! exact bytes live in the [`PackageBacking`], and each element the model
 //! does not interpret is registered as a [`Fragment`] with its byte range and
 //! namespace context. A block or paragraph holding such content is locked in
-//! [`Editability`]; document protection, format and table revisions,
-//! unsatisfied `mc:MustUnderstand` and unknown non-ignorable namespaces make
-//! the whole document read-only. Plain `w:ins` / `w:del` / move markup is
-//! modeled. `w:trackRevisions` is a setting, not a read-only reason. External relationship targets are recorded
+//! [`Editability`]; document protection, table structure revisions, format
+//! revisions inside tables, unsatisfied `mc:MustUnderstand` and unknown
+//! non-ignorable namespaces make the whole document read-only. Plain
+//! `w:ins` / `w:del` / move markup and paragraph or run `w:pPrChange` /
+//! `w:rPrChange` outside tables are modeled. `w:trackRevisions` is a
+//! setting, not a read-only reason. External relationship targets are recorded
 //! and classified, never resolved or accessed. Strict documents are refused.
 //!
 //! [`plan_export`] supports text changes within existing paragraphs and

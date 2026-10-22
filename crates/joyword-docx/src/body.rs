@@ -271,10 +271,11 @@ pub(crate) fn paragraph(
     paragraph.source = Some(Importer::source(part, element));
     let inner = scope.enter(element);
     let mut section = None;
+    let mut locked = false;
     if let Some(ppr) = element.child(W, "pPr") {
         let ppr_scope = inner.enter(ppr);
         let mut findings = Findings::default();
-        let para = props::para(ppr, &mut findings);
+        let para = props::para_with_change(ppr, &mut findings);
         paragraph.style = para.style;
         let mut props = para.props;
         if let Some(rpr) = para.mark {
@@ -290,10 +291,34 @@ pub(crate) fn paragraph(
         if let Some(sect) = para.section {
             section = Some((sect.clone(), ppr_scope.clone().into_owned()));
         }
+        // Type a paragraph-level `w:pPrChange` only when the rest of `w:pPr`
+        // is fully representable; otherwise keep it as a gap so the whole
+        // `w:pPr` is preserved and the paragraph is locked (never dropped).
+        if let Some(change) = para.change {
+            let typed = if findings.complete {
+                crate::revision::import_format_change(importer, change, true)
+            } else {
+                None
+            };
+            match typed {
+                Some(revision) => paragraph.props_revision = Some(Arc::new(revision)),
+                None => {
+                    findings.gap();
+                    locked = true;
+                    importer.diagnose(
+                        Severity::Warning,
+                        Some(part),
+                        Some(change.span.clone()),
+                        DiagnosticKind::RevisionSubset {
+                            element: change.qname.to_string(),
+                        },
+                    );
+                }
+            }
+        }
         props.preserved = importer.settle(part, ppr, &inner, findings);
         paragraph.props = Arc::new(props);
     }
-    let mut locked = false;
     content(importer, part, element, &inner, &mut paragraph, &mut locked);
     if locked {
         importer.editability.lock(paragraph.id());
@@ -573,15 +598,35 @@ fn run(
     paragraph: &mut Paragraph,
     locked: &mut bool,
 ) {
-    let (props, style) = match element.child(W, "rPr") {
+    let run_start = paragraph.runs().len();
+    let (props, style, format_revision) = match element.child(W, "rPr") {
         Some(rpr) => {
             let mut findings = Findings::default();
-            let (mut props, style) = props::run(rpr, &mut findings);
+            let (mut props, style, change) = props::run_with_change(rpr, &mut findings);
+            // Type a run-level `w:rPrChange`, or fall back (preserve + lock).
+            let mut format_revision = None;
+            if let Some(change) = change {
+                match crate::revision::import_format_change(importer, change, false) {
+                    Some(revision) => format_revision = Some(Arc::new(revision)),
+                    None => {
+                        findings.gap();
+                        *locked = true;
+                        importer.diagnose(
+                            Severity::Warning,
+                            Some(part),
+                            Some(change.span.clone()),
+                            DiagnosticKind::RevisionSubset {
+                                element: change.qname.to_string(),
+                            },
+                        );
+                    }
+                }
+            }
             props.preserved_layout_neutral = findings.layout_neutral();
             props.preserved = importer.settle(part, rpr, scope, findings);
-            (props, style)
+            (props, style, format_revision)
         }
-        None => (RunProps::default(), None),
+        None => (RunProps::default(), None, None),
     };
     let props = Arc::new(props);
     let format = || (style.clone(), props.clone());
@@ -703,6 +748,15 @@ fn run(
                 inline(importer, part, child, scope, reason, paragraph, format());
                 *locked = true;
             }
+        }
+    }
+    if let Some(revision) = format_revision {
+        if paragraph.runs().len() > run_start {
+            paragraph.stamp_format_from(run_start, revision);
+        } else {
+            // A typed format change on an empty run would be lost. Lock the
+            // paragraph so the change is never silently dropped.
+            *locked = true;
         }
     }
 }

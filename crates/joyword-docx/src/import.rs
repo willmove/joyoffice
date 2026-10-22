@@ -207,10 +207,18 @@ impl<'a> Importer<'a> {
 
     /// Walks a subtree for constructs that make the whole document
     /// read-only wherever they occur, including inside preserved content:
-    /// tracked changes and unsatisfied `mc:MustUnderstand`.
+    /// tracked changes and unsatisfied `mc:MustUnderstand`. Format revisions
+    /// (`w:rPrChange`, `w:pPrChange`) are typed in paragraphs outside tables,
+    /// so they only block inside a `w:tbl` subtree.
     /// Recursion is bounded by the XML depth budget.
     pub fn scan(&mut self, part: &PartName, element: &Element, scope: &Scope) {
-        if element.namespace.as_deref() == Some(W) && ns::blocks_for_review(&element.local) {
+        self.scan_in(part, element, scope, element.is(W, "tbl"));
+    }
+
+    fn scan_in(&mut self, part: &PartName, element: &Element, scope: &Scope, in_table: bool) {
+        if element.namespace.as_deref() == Some(W)
+            && ns::blocks_for_review(&element.local, in_table)
+        {
             self.deny(part, element, ReadOnlyReason::Revisions);
         }
         for namespace in element.prefixed_list(MC, "MustUnderstand", &scope.namespaces) {
@@ -225,8 +233,9 @@ impl<'a> Importer<'a> {
             }
         }
         let inner = scope.enter(element);
+        let child_in_table = in_table || element.is(W, "tbl");
         for child in element.elements() {
-            self.scan(part, child, &inner);
+            self.scan_in(part, child, &inner, child_in_table);
         }
     }
 

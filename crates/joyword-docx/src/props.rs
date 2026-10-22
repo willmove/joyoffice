@@ -334,15 +334,32 @@ pub(crate) struct Para<'e> {
     pub mark: Option<&'e Element>,
     /// `w:sectPr`: the paragraph ends a section.
     pub section: Option<&'e Element>,
+    /// `w:pPrChange`: captured only by [`para_with_change`]; `None` and
+    /// treated as a gap by [`para`].
+    pub change: Option<&'e Element>,
 }
 
-/// `w:pPr` (§17.3.1.26) or a style's / default `w:pPr`.
+/// `w:pPr` (§17.3.1.26) or a style's / default `w:pPr`. A `w:pPrChange`
+/// child is a gap: the caller does not type format revisions here.
 pub(crate) fn para<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e> {
+    para_inner(element, findings, false)
+}
+
+/// Like [`para`], but captures a single `w:pPrChange` child in
+/// [`Para::change`] instead of gapping on it. Used when importing a body
+/// paragraph, where format revisions are typed (T301). The caller must type
+/// or fall back on the returned change element.
+pub(crate) fn para_with_change<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e> {
+    para_inner(element, findings, true)
+}
+
+fn para_inner<'e>(element: &'e Element, findings: &mut Findings, capture_change: bool) -> Para<'e> {
     let mut out = Para {
         props: ParaProps::default(),
         style: None,
         mark: None,
         section: None,
+        change: None,
     };
     let props = &mut out.props;
     for child in element.elements() {
@@ -371,6 +388,14 @@ pub(crate) fn para<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e
             "tabs" => props.tabs = Some(tabs(child, findings)),
             "rPr" => out.mark = Some(child),
             "sectPr" => out.section = Some(child),
+            "pPrChange" if capture_change => {
+                if out.change.is_some() {
+                    // More than one `w:pPrChange` is out of subset.
+                    findings.gap();
+                } else {
+                    out.change = Some(child);
+                }
+            }
             _ => findings.gap(),
         }
     }
@@ -512,9 +537,32 @@ fn cached_rgb(element: &Element, findings: &mut Findings) -> Option<Color> {
 }
 
 /// `w:rPr` (§17.3.2.28), a paragraph mark's or a style's / default `w:rPr`.
+/// A `w:rPrChange` child is a gap: the caller does not type format revisions
+/// here.
 pub(crate) fn run(element: &Element, findings: &mut Findings) -> (RunProps, Option<StyleId>) {
+    let (props, style, _) = run_inner(element, findings, false);
+    (props, style)
+}
+
+/// Like [`run`], but captures a single `w:rPrChange` child as the third
+/// return value instead of gapping on it. Used when importing a body run,
+/// where format revisions are typed (T301). The caller must type or fall back
+/// on the returned change element.
+pub(crate) fn run_with_change<'e>(
+    element: &'e Element,
+    findings: &mut Findings,
+) -> (RunProps, Option<StyleId>, Option<&'e Element>) {
+    run_inner(element, findings, true)
+}
+
+fn run_inner<'e>(
+    element: &'e Element,
+    findings: &mut Findings,
+    capture_change: bool,
+) -> (RunProps, Option<StyleId>, Option<&'e Element>) {
     let mut out = RunProps::default();
     let mut style = None;
+    let mut change = None;
     for child in element.elements() {
         if child.namespace.as_deref() == Some(W14) && w14_run_child_layout_neutral(child) {
             findings.neutral_gap();
@@ -540,11 +588,19 @@ pub(crate) fn run(element: &Element, findings: &mut Findings) -> (RunProps, Opti
                 out.languages.east_asia = tag("eastAsia");
                 out.languages.bidi = tag("bidi");
             }
+            "rPrChange" if capture_change => {
+                if change.is_some() {
+                    // More than one `w:rPrChange` is out of subset.
+                    findings.gap();
+                } else {
+                    change = Some(child);
+                }
+            }
             local if run_child_layout_neutral(local) => findings.neutral_gap(),
             _ => findings.gap(),
         }
     }
-    (out, style)
+    (out, style, change)
 }
 
 /// `w:rPr` children with no model field that change no advance and paint

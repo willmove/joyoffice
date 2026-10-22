@@ -149,8 +149,9 @@ pub(crate) fn is_revision(local: &str) -> bool {
 }
 
 /// Text and move revisions this slice maps (`w:ins`, `w:del`, `w:moveFrom`,
-/// `w:moveTo`, their range markers, and deleted-text leaves). Format and
-/// table revisions stay outside the model.
+/// `w:moveTo`, their range markers, and deleted-text leaves). Format
+/// revisions are typed separately (see [`is_format_change`]); table
+/// structure revisions stay outside the model.
 pub(crate) fn is_text_revision(local: &str) -> bool {
     matches!(
         local,
@@ -167,7 +168,24 @@ pub(crate) fn is_text_revision(local: &str) -> bool {
     )
 }
 
-/// Revision markup that still makes the whole document read-only (T301).
-pub(crate) fn blocks_for_review(local: &str) -> bool {
-    is_revision(local) && !is_text_revision(local)
+/// Format revisions this slice types (`w:rPrChange` §17.13.5.30,
+/// `w:pPrChange` §17.13.5.29) when they occur in a paragraph that is not
+/// inside a table. Everywhere else they keep the document read-only.
+pub(crate) fn is_format_change(local: &str) -> bool {
+    matches!(local, "rPrChange" | "pPrChange")
+}
+
+/// Revision markup that still makes the whole document read-only. Text
+/// revisions are always typed. Format revisions (`w:rPrChange`,
+/// `w:pPrChange`) are typed outside tables (`in_table` false) and block
+/// inside tables. All other non-text revisions (table structure, section,
+/// numbering, custom XML) always block.
+pub(crate) fn blocks_for_review(local: &str, in_table: bool) -> bool {
+    if !is_revision(local) || is_text_revision(local) {
+        return false;
+    }
+    if is_format_change(local) {
+        return in_table;
+    }
+    true
 }

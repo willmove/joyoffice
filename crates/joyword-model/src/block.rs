@@ -13,7 +13,7 @@ use crate::hyperlink::Hyperlink;
 use crate::id::{NodeId, PreservedId, ResourceId, SourceRef};
 use crate::image::ImageAnchor;
 use crate::props::{Color, Measure, ParaProps, RunProps};
-use crate::revision::TextRevision;
+use crate::revision::{FormatRevision, TextRevision};
 use crate::style::StyleId;
 use crate::text::{OBJECT_MARKER, ParagraphText, ScalarOffset, TextError};
 use crate::tree::{Item, SeqTree};
@@ -32,6 +32,10 @@ pub struct Run {
     /// `w:ins` / `w:del` / `w:moveFrom` / `w:moveTo` covering this run.
     /// Absent on ordinary text.
     pub revision: Option<TextRevision>,
+    /// `w:rPrChange` recorded on this run: the run properties before the
+    /// tracked formatting change. Absent when the run formatting is not
+    /// revised.
+    pub format_revision: Option<Arc<FormatRevision>>,
     /// `w:hyperlink` wrapping this run. Absent when the run is ordinary text.
     pub link: Option<Arc<Hyperlink>>,
 }
@@ -135,6 +139,10 @@ pub struct Paragraph {
     /// Properties of the paragraph mark (`w:pPr/w:rPr`); also the formatting
     /// of text typed into an empty paragraph.
     pub mark_props: Arc<RunProps>,
+    /// `w:pPrChange` recorded on this paragraph: the paragraph properties
+    /// before the tracked formatting change. Absent when the paragraph
+    /// formatting is not revised.
+    pub props_revision: Option<Arc<FormatRevision>>,
     pub source: Option<Arc<SourceRef>>,
 }
 
@@ -148,6 +156,7 @@ impl Paragraph {
             style: None,
             props: Arc::default(),
             mark_props: Arc::default(),
+            props_revision: None,
             source: None,
         }
     }
@@ -193,6 +202,7 @@ impl Paragraph {
                 style,
                 props,
                 revision: None,
+                format_revision: None,
                 link: None,
             });
         }
@@ -218,6 +228,7 @@ impl Paragraph {
             && run.style == style
             && run.props == props
             && run.link.is_none()
+            && run.format_revision.is_none()
             && run.revision.as_ref() == Some(&revision)
         {
             run.len += len;
@@ -227,6 +238,7 @@ impl Paragraph {
                 style,
                 props,
                 revision: Some(revision),
+                format_revision: None,
                 link: None,
             });
         }
@@ -250,6 +262,7 @@ impl Paragraph {
             style,
             props,
             revision: None,
+            format_revision: None,
             link: None,
         });
     }
@@ -306,6 +319,7 @@ impl Paragraph {
         if left.style == right.style
             && left.props == right.props
             && left.revision == right.revision
+            && left.format_revision == right.format_revision
             && left.link == right.link
         {
             let len = right.len;
@@ -413,6 +427,103 @@ impl Paragraph {
         }
     }
 
+    /// Puts the same `w:rPrChange` record on every run from `from` to the
+    /// end. Import uses this after the runs of one `w:r` element were pushed.
+    pub fn stamp_format_from(&mut self, from: usize, revision: Arc<FormatRevision>) {
+        for run in self.runs.iter_mut().skip(from) {
+            run.format_revision = Some(Arc::clone(&revision));
+        }
+    }
+
+    /// Whether any run carries a tracked formatting change.
+    pub fn has_run_format_revision(&self) -> bool {
+        self.runs.iter().any(|run| run.format_revision.is_some())
+    }
+
+    /// Resolves the tracked formatting change with `id` in this paragraph:
+    /// accepting drops the record and keeps the current formatting; rejecting
+    /// restores the previous formatting recorded in the change (an absent
+    /// previous value means the empty default). Returns whether anything was
+    /// resolved (run-level `w:rPrChange` or the paragraph-level
+    /// `w:pPrChange`).
+    pub fn resolve_format_revision(&mut self, id: u32, accept: bool) -> bool {
+        let mut resolved = false;
+        for run in &mut self.runs {
+            let Some(revision) = run.format_revision.as_ref() else {
+                continue;
+            };
+            if revision.id != id {
+                continue;
+            }
+            if !accept {
+                run.props = revision
+                    .previous_run
+                    .clone()
+                    .unwrap_or_else(|| Arc::new(RunProps::default()));
+            }
+            run.format_revision = None;
+            resolved = true;
+        }
+        if let Some(revision) = self.props_revision.as_ref()
+            && revision.id == id
+        {
+            if !accept {
+                self.props = revision
+                    .previous_para
+                    .clone()
+                    .unwrap_or_else(|| Arc::new(ParaProps::default()));
+            }
+            self.props_revision = None;
+            resolved = true;
+        }
+        if resolved {
+            let mut index = self.runs.len();
+            while index > 0 {
+                self.join_runs_at(index);
+                index -= 1;
+            }
+        }
+        resolved
+    }
+
+    /// Resolves every tracked formatting change in this paragraph at once
+    /// (batch accept or reject). Accepting drops the records and keeps the
+    /// current formatting; rejecting restores each recorded previous value
+    /// (an absent previous value means the empty default). Returns whether
+    /// anything was resolved.
+    pub fn resolve_all_format(&mut self, accept: bool) -> bool {
+        let mut resolved = false;
+        for run in &mut self.runs {
+            let Some(revision) = run.format_revision.take() else {
+                continue;
+            };
+            if !accept {
+                run.props = revision
+                    .previous_run
+                    .clone()
+                    .unwrap_or_else(|| Arc::new(RunProps::default()));
+            }
+            resolved = true;
+        }
+        if let Some(revision) = self.props_revision.take() {
+            if !accept {
+                self.props = revision
+                    .previous_para
+                    .clone()
+                    .unwrap_or_else(|| Arc::new(ParaProps::default()));
+            }
+            resolved = true;
+        }
+        if resolved {
+            let mut index = self.runs.len();
+            while index > 0 {
+                self.join_runs_at(index);
+                index -= 1;
+            }
+        }
+        resolved
+    }
+
     /// Sets the character style of every run overlapping `range`. Direct
     /// formatting on those runs is left as stored.
     pub fn restyle_runs(
@@ -465,6 +576,7 @@ impl Paragraph {
                 style: None,
                 props: self.mark_props.clone(),
                 revision: None,
+                format_revision: None,
                 link: None,
             });
             return Ok(());
@@ -490,6 +602,7 @@ impl Paragraph {
                 style,
                 props,
                 revision: None,
+                format_revision: None,
                 link: None,
             },
         );
@@ -526,6 +639,7 @@ impl Paragraph {
                 style,
                 props,
                 revision: Some(revision),
+                format_revision: None,
                 link: None,
             },
         );
@@ -614,6 +728,7 @@ impl Paragraph {
                 style,
                 props,
                 revision: None,
+                format_revision: None,
                 link: None,
             },
         );
@@ -641,7 +756,9 @@ impl Paragraph {
     }
 
     /// Splits the paragraph at `at`. The tail keeps paragraph formatting under
-    /// a new identity and no source reference, since it is new content.
+    /// a new identity and no source reference, since it is new content. The
+    /// tracked paragraph-format change (`w:pPrChange`) stays with the front
+    /// half, which keeps the source identity.
     pub fn split_off(&mut self, at: ScalarOffset, new_id: NodeId) -> Result<Paragraph, TextError> {
         let first_inline = self.text.markers_before(at)?;
         let text = self.text.split_off(at)?;
@@ -654,6 +771,7 @@ impl Paragraph {
             style: self.style.clone(),
             props: self.props.clone(),
             mark_props: self.mark_props.clone(),
+            props_revision: None,
             source: None,
         })
     }
