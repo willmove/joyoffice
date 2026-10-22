@@ -15,6 +15,7 @@ use crate::provider::{
     CancelFlag, CompletionRequest, CompletionResponse, LogCredential, LoggedRequest, Provider,
     ProviderError, RequestLog,
 };
+use crate::replace::ReplaceRegistry;
 use crate::scope::{Grant, ScopeError, TickClock};
 use crate::scoped::{ToolError, build_context_text, fresh_snapshot};
 use crate::telemetry::Telemetry;
@@ -111,6 +112,7 @@ pub struct AgentRuntime {
     invocations: AtomicU64,
     allowed_commits: AtomicU64,
     proposals: Mutex<BTreeSet<String>>,
+    replace_registry: ReplaceRegistry,
     boot_steps: AtomicU64,
 }
 
@@ -134,6 +136,7 @@ impl AgentRuntime {
             invocations: AtomicU64::new(0),
             allowed_commits: AtomicU64::new(0),
             proposals: Mutex::new(BTreeSet::new()),
+            replace_registry: ReplaceRegistry::new(),
             boot_steps: AtomicU64::new(0),
         }
     }
@@ -347,6 +350,10 @@ impl AgentRuntime {
 
     pub(crate) fn gate(&self) -> &AiGate {
         &self.gate
+    }
+
+    pub(crate) fn replace_registry(&self) -> &ReplaceRegistry {
+        &self.replace_registry
     }
 
     /// Permission hook for T402. Allowing a commit does not apply commands.
