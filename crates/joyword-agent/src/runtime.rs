@@ -16,7 +16,7 @@ use crate::provider::{
     ProviderError, RequestLog,
 };
 use crate::scope::{Grant, ScopeError, TickClock};
-use crate::scoped::{ToolError, build_context_text};
+use crate::scoped::{ToolError, build_context_text, fresh_snapshot};
 use crate::telemetry::Telemetry;
 
 const MAX_PROMPT_BYTES: usize = 32 * 1024;
@@ -278,32 +278,18 @@ impl AgentRuntime {
         clock: &TickClock,
         question: &str,
     ) -> Result<CompletionResponse, AgentError> {
-        // Fail closed on the master switch before touching the document.
-        let phase = self.gate.phase().map_err(AgentError::Gate)?;
-        if !matches!(phase, AiPhase::EnabledIdle | AiPhase::Running) {
-            return Err(AgentError::Gate(match phase {
-                AiPhase::Stopping => GateError::Stopping,
-                _ => GateError::Disabled,
-            }));
-        }
-        let generation = self.gate.generation().map_err(AgentError::Gate)?;
-        let snapshot = port
-            .snapshot(grant.document_id())
-            .map_err(|error| AgentError::Scope(ScopeError::Port(error)))?;
-        grant
-            .validate(&snapshot, generation, clock.now())
-            .map_err(AgentError::Scope)?;
+        // Keep existing error categories while sharing the tools' before/after
+        // snapshot gate checks. A port may itself stop or restart AI.
+        let map_error = |error| match error {
+            ToolError::Gate(error) => AgentError::Gate(error),
+            ToolError::Scope(error) => AgentError::Scope(error),
+            error => AgentError::Tool(error),
+        };
+        let snapshot = fresh_snapshot(self, port, grant, clock).map_err(map_error)?;
         let context = build_context_text(grant, &snapshot, question).map_err(AgentError::Tool)?;
         let response = self.send(&context)?;
-        // Post-response re-validation: the document may have been edited and
-        // the clock or the kill switch may have moved while the call ran.
-        let generation = self.gate.generation().map_err(AgentError::Gate)?;
-        let snapshot = port
-            .snapshot(grant.document_id())
-            .map_err(|error| AgentError::Scope(ScopeError::Port(error)))?;
-        grant
-            .validate(&snapshot, generation, clock.now())
-            .map_err(AgentError::Scope)?;
+        // Post-response re-validation also reads the live gate after the port.
+        fresh_snapshot(self, port, grant, clock).map_err(map_error)?;
         Ok(response)
     }
 

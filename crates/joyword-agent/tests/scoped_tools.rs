@@ -2,6 +2,7 @@
 //! injection resistance, expiry/cancel, and privacy. No socket is opened and
 //! no test touches the filesystem through the agent.
 
+use std::cell::Cell;
 use std::sync::{Arc, Mutex};
 
 use joyword_agent::{
@@ -172,8 +173,8 @@ fn grant_binds_version_fingerprint_range_and_expiry() {
     assert_eq!(
         error,
         ToolError::Scope(ScopeError::VersionChanged {
-            expected: 1,
-            found: 2,
+            expected: doc.version(),
+            found: edited.version(),
         })
     );
     assert_eq!(error.kind(), "scope-version-changed");
@@ -183,7 +184,7 @@ fn grant_binds_version_fingerprint_range_and_expiry() {
     let lying = LyingPort {
         snapshot: snapshot_with(
             "doc.a",
-            1,
+            doc.version(),
             vec![
                 body("OUTSIDE-HEADING contract preamble"),
                 body("The quarterly fee is 999 EUR. IN-SCOPE-MARKER one."),
@@ -201,7 +202,7 @@ fn grant_binds_version_fingerprint_range_and_expiry() {
 
     // Same version, shorter text: the range check fires.
     let lying = LyingPort {
-        snapshot: snapshot_with("doc.a", 1, vec![body("short")]),
+        snapshot: snapshot_with("doc.a", doc.version(), vec![body("short")]),
     };
     let session = ToolSession::new(&runtime, &lying, grant.clone(), &clock);
     assert_eq!(
@@ -211,7 +212,7 @@ fn grant_binds_version_fingerprint_range_and_expiry() {
 
     // A snapshot of another document is refused even with matching content.
     let lying = LyingPort {
-        snapshot: snapshot_with("doc.b", 1, vec![body("x")]),
+        snapshot: snapshot_with("doc.b", doc.version(), vec![body("x")]),
     };
     let session = ToolSession::new(&runtime, &lying, grant.clone(), &clock);
     assert_eq!(
@@ -587,7 +588,7 @@ fn injected_document_text_cannot_change_permissions_or_leak() {
     // Permissions did not move: same allowlist, same range, one request.
     assert_eq!(session.grant().tools(), &allowlist);
     assert_eq!(session.grant().range(), range);
-    assert_eq!(session.grant().base_version(), 1);
+    assert_eq!(session.grant().base_version(), doc.version());
     assert_eq!(provider.prompts().len(), 1);
     assert_eq!(runtime.provider_calls(), 1);
     assert_eq!(runtime.invocations(), 1);
@@ -1004,4 +1005,378 @@ fn budgets_bound_untrusted_document_input() {
         session.read_structure().expect_err("nodes").kind(),
         "structure-too-large"
     );
+}
+
+struct CountingPort<'a> {
+    doc: &'a MemoryDocument,
+    calls: Cell<usize>,
+}
+
+impl DocumentPort for CountingPort<'_> {
+    fn snapshot(&self, document: &DocumentId) -> Result<DocumentSnapshot, PortError> {
+        self.calls.set(self.calls.get() + 1);
+        self.doc.snapshot(document)
+    }
+}
+
+#[test]
+fn regression_search_only_grant_refuses_direct_reads_without_port_access() {
+    let doc = contract_doc();
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let grant = Grant::issue(
+        &doc,
+        doc.document_id(),
+        authorized_range(&doc),
+        ToolAllowlist::from_slice(&[ToolId::SearchDocument]),
+        runtime.generation().expect("generation"),
+        &clock,
+        100,
+    )
+    .expect("grant");
+    let port = CountingPort {
+        doc: &doc,
+        calls: Cell::new(0),
+    };
+    let session = ToolSession::new(&runtime, &port, grant, &clock);
+    let reads = [
+        session.read_selection().map(ToolOutput::Selection),
+        session.read_structure().map(ToolOutput::Structure),
+        session.call(ToolCall::ReadSelection),
+        session.call(ToolCall::ReadStructure),
+    ];
+    assert_eq!(port.calls.get(), 0);
+    for read in reads {
+        assert_eq!(read, Err(ToolError::NotAllowed));
+    }
+}
+
+#[test]
+fn regression_empty_allowlist_refuses_search_before_query_validation() {
+    let doc = contract_doc();
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let grant = Grant::issue(
+        &doc,
+        doc.document_id(),
+        authorized_range(&doc),
+        ToolAllowlist::new(),
+        runtime.generation().expect("generation"),
+        &clock,
+        100,
+    )
+    .expect("grant");
+    let port = CountingPort {
+        doc: &doc,
+        calls: Cell::new(0),
+    };
+    let session = ToolSession::new(&runtime, &port, grant, &clock);
+    let too_long = "x".repeat(MAX_QUERY_CHARS + 1);
+    for query in ["", "fee", too_long.as_str()] {
+        assert_eq!(session.search(query), Err(ToolError::NotAllowed));
+        assert_eq!(
+            session.call(ToolCall::Search { query }),
+            Err(ToolError::NotAllowed)
+        );
+    }
+    assert_eq!(port.calls.get(), 0);
+}
+
+#[test]
+fn regression_authorized_dispatch_matches_direct_tools() {
+    let doc = contract_doc();
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let too_long = "x".repeat(MAX_QUERY_CHARS + 1);
+    for call in [
+        ToolCall::ReadSelection,
+        ToolCall::ReadStructure,
+        ToolCall::Search { query: "fee" },
+        ToolCall::Search { query: "" },
+        ToolCall::Search { query: &too_long },
+    ] {
+        let grant = Grant::issue(
+            &doc,
+            doc.document_id(),
+            authorized_range(&doc),
+            ToolAllowlist::from_slice(&[call.tool()]),
+            runtime.generation().expect("generation"),
+            &clock,
+            100,
+        )
+        .expect("grant");
+        let port = CountingPort {
+            doc: &doc,
+            calls: Cell::new(0),
+        };
+        let session = ToolSession::new(&runtime, &port, grant, &clock);
+        let direct = match call {
+            ToolCall::ReadSelection => session.read_selection().map(ToolOutput::Selection),
+            ToolCall::ReadStructure => session.read_structure().map(ToolOutput::Structure),
+            ToolCall::Search { query } => session.search(query).map(ToolOutput::Search),
+            _ => unreachable!("read-only test cases"),
+        };
+        let expected_calls = match call {
+            ToolCall::Search { query: "" } => {
+                assert_eq!(direct, Err(ToolError::EmptyQuery));
+                0
+            }
+            ToolCall::Search { query } if query == too_long => {
+                assert_eq!(direct, Err(ToolError::QueryTooLong));
+                0
+            }
+            _ => {
+                assert!(direct.is_ok(), "authorized call {call:?}");
+                2
+            }
+        };
+        assert_eq!(session.call(call), direct);
+        assert_eq!(port.calls.get(), expected_calls);
+    }
+}
+
+#[test]
+fn regression_empty_paragraphs_preserve_scalar_offsets_and_all_slices() {
+    let cases = [
+        (vec![], "", vec![]),
+        (vec![""], "", vec![(0, 0)]),
+        (
+            vec!["", "中\u{20000}"],
+            "\n中\u{20000}",
+            vec![(0, 0), (1, 3)],
+        ),
+        (vec!["", "", ""], "\n\n", vec![(0, 0), (1, 1), (2, 2)]),
+        (
+            vec!["", "", "中\u{20000}", "", "尾", ""],
+            "\n\n中\u{20000}\n\n尾\n",
+            vec![(0, 0), (1, 1), (2, 4), (5, 5), (6, 7), (8, 8)],
+        ),
+        (
+            vec!["中\u{20000}", "", ""],
+            "中\u{20000}\n\n",
+            vec![(0, 2), (3, 3), (4, 4)],
+        ),
+    ];
+    for (paragraphs, expected_text, offsets) in cases {
+        let snapshot = snapshot_with(
+            "doc.unicode",
+            7,
+            paragraphs
+                .iter()
+                .map(|text| SnapshotParagraph {
+                    heading_level: 2,
+                    visible: (*text).to_owned(),
+                })
+                .collect(),
+        );
+        assert_eq!(snapshot.text(), expected_text);
+        let chars: Vec<char> = expected_text.chars().collect();
+        assert_eq!(snapshot.char_len(), chars.len() as u64);
+        assert_eq!(snapshot.outline().len(), paragraphs.len());
+        for (index, (node, (start, end))) in snapshot.outline().iter().zip(offsets).enumerate() {
+            assert_eq!(node.paragraph, index as u32);
+            assert_eq!(node.heading_level, 2);
+            assert_eq!((node.start, node.end), (start, end));
+            assert_eq!(
+                snapshot.slice_chars(ScopeRange::new(start, end).expect("range")),
+                Some(paragraphs[index])
+            );
+        }
+        for start in 0..=chars.len() {
+            for end in start..=chars.len() {
+                let expected: String = chars[start..end].iter().collect();
+                let range = ScopeRange::new(start as u64, end as u64).expect("range");
+                assert_eq!(snapshot.slice_chars(range), Some(expected.as_str()));
+            }
+        }
+        let outside = ScopeRange::new(0, chars.len() as u64 + 1).expect("range");
+        assert_eq!(snapshot.slice_chars(outside), None);
+    }
+}
+
+#[test]
+fn regression_push_bumps_version_and_invalidates_grant() {
+    let mut doc = MemoryDocument::new("doc.push").expect("id");
+    assert_eq!(doc.version(), 1);
+    doc.push_paragraph(MemoryParagraph::body("中\u{20000}"))
+        .expect("push");
+    assert_eq!(doc.version(), 2);
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let generation = runtime.generation().expect("generation");
+    let grant = Grant::issue(
+        &doc,
+        doc.document_id(),
+        ScopeRange::new(0, 2).expect("range"),
+        ToolAllowlist::read_only(),
+        generation,
+        &clock,
+        100,
+    )
+    .expect("grant");
+    doc.push_paragraph(MemoryParagraph::body(""))
+        .expect("push empty");
+    assert_eq!(doc.version(), 3);
+    let snapshot = doc.snapshot(doc.document_id()).expect("snapshot");
+    assert_eq!(snapshot.version(), 3);
+    assert_eq!(snapshot.text(), "中\u{20000}\n");
+    assert_eq!(
+        grant.validate(&snapshot, generation, clock.now()),
+        Err(ScopeError::VersionChanged {
+            expected: 2,
+            found: 3
+        })
+    );
+}
+
+#[test]
+fn regression_grant_issue_rejects_wrong_document_before_slicing() {
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let requested = DocumentId::parse("doc.requested").expect("id");
+    let wrong = LyingPort {
+        snapshot: snapshot_with("doc.other", 1, vec![body("same")]),
+    };
+    for end in [4, 100] {
+        assert_eq!(
+            Grant::issue(
+                &wrong,
+                &requested,
+                ScopeRange::new(0, end).expect("range"),
+                ToolAllowlist::read_only(),
+                runtime.generation().expect("generation"),
+                &clock,
+                100,
+            ),
+            Err(ScopeError::DocumentMismatch)
+        );
+    }
+}
+
+#[test]
+fn regression_grant_expires_at_deadline() {
+    let doc = contract_doc();
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let grant = Grant::issue(
+        &doc,
+        doc.document_id(),
+        authorized_range(&doc),
+        ToolAllowlist::read_only(),
+        runtime.generation().expect("generation"),
+        &clock,
+        10,
+    )
+    .expect("grant");
+    let session = ToolSession::new(&runtime, &doc, grant, &clock);
+    clock.advance(9);
+    assert!(session.read_selection().is_ok());
+    clock.advance(1);
+    assert_eq!(
+        session.read_selection(),
+        Err(ToolError::Scope(ScopeError::Expired))
+    );
+}
+
+#[test]
+fn regression_clock_saturates_and_cannot_revive_expired_grants() {
+    let doc = contract_doc();
+    let clock = TickClock::new();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let generation = runtime.generation().expect("generation");
+    let grant = Grant::issue(
+        &doc,
+        doc.document_id(),
+        authorized_range(&doc),
+        ToolAllowlist::read_only(),
+        generation,
+        &clock,
+        10,
+    )
+    .expect("grant");
+    let snapshot = doc.snapshot(doc.document_id()).expect("snapshot");
+    clock.advance(u64::MAX);
+    assert_eq!(
+        grant.validate(&snapshot, generation, clock.now()),
+        Err(ScopeError::Expired)
+    );
+    clock.advance(1);
+    assert_eq!(
+        grant.validate(&snapshot, generation, clock.now()),
+        Err(ScopeError::Expired)
+    );
+    assert_eq!(clock.now(), u64::MAX);
+    clock.advance(u64::MAX);
+    assert_eq!(clock.now(), u64::MAX);
+}
+
+#[test]
+fn regression_max_tick_deadline_is_finite_and_ttl_overflow_is_refused() {
+    let doc = contract_doc();
+    let runtime = enabled_runtime(Box::new(FakeProvider::bomb()));
+    let generation = runtime.generation().expect("generation");
+    for (now, ttl) in [(u64::MAX - 5, 6), (u64::MAX, 1)] {
+        let clock = TickClock::new();
+        clock.advance(now);
+        assert_eq!(
+            Grant::issue(
+                &doc,
+                doc.document_id(),
+                authorized_range(&doc),
+                ToolAllowlist::read_only(),
+                generation,
+                &clock,
+                ttl,
+            ),
+            Err(ScopeError::TtlInvalid)
+        );
+    }
+    let clock = TickClock::new();
+    clock.advance(u64::MAX - 5);
+    let grant = Grant::issue(
+        &doc,
+        doc.document_id(),
+        authorized_range(&doc),
+        ToolAllowlist::read_only(),
+        generation,
+        &clock,
+        5,
+    )
+    .expect("finite deadline at max");
+    assert_eq!(grant.expires_at_tick(), u64::MAX);
+    let session = ToolSession::new(&runtime, &doc, grant, &clock);
+    clock.advance(4);
+    assert!(session.read_selection().is_ok());
+    clock.advance(1);
+    assert_eq!(
+        session.read_selection(),
+        Err(ToolError::Scope(ScopeError::Expired))
+    );
+    clock.advance(1);
+    assert_eq!(
+        session.read_selection(),
+        Err(ToolError::Scope(ScopeError::Expired))
+    );
+}
+
+#[test]
+fn regression_concurrent_clock_advances_are_atomic_and_saturating() {
+    let clock = TickClock::new();
+    std::thread::scope(|scope| {
+        for _ in 0..8 {
+            scope.spawn(|| {
+                for _ in 0..1000 {
+                    clock.advance(1);
+                }
+            });
+        }
+    });
+    assert_eq!(clock.now(), 8000);
+    clock.advance(u64::MAX - 8001);
+    std::thread::scope(|scope| {
+        for _ in 0..8 {
+            scope.spawn(|| clock.advance(1));
+        }
+    });
+    assert_eq!(clock.now(), u64::MAX);
 }

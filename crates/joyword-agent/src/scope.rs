@@ -187,8 +187,14 @@ impl TickClock {
         self.ticks.load(Ordering::SeqCst)
     }
 
+    /// Saturates atomically at the last tick; time must never wrap and revive
+    /// an expired grant. No positive lifetime can be issued at that tick.
     pub fn advance(&self, ticks: u64) {
-        self.ticks.fetch_add(ticks, Ordering::SeqCst);
+        let _ = self
+            .ticks
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |now| {
+                Some(now.saturating_add(ticks))
+            });
     }
 }
 
@@ -274,9 +280,18 @@ impl Grant {
             return Err(ScopeError::TtlInvalid);
         }
         let snapshot = port.snapshot(document).map_err(ScopeError::Port)?;
+        if snapshot.document_id() != document {
+            return Err(ScopeError::DocumentMismatch);
+        }
         let authorized = snapshot
             .slice_chars(range)
             .ok_or(ScopeError::RangeOutOfBounds)?;
+        // Do not saturate the deadline: overflow cannot extend a requested TTL.
+        // The clock saturates, so a deadline at MAX must expire there as well.
+        let expires_at_tick = clock
+            .now()
+            .checked_add(ttl_ticks)
+            .ok_or(ScopeError::TtlInvalid)?;
         Ok(Self {
             document_id: document.clone(),
             base_version: snapshot.version(),
@@ -284,7 +299,7 @@ impl Grant {
             range,
             tools,
             issued_generation: generation,
-            expires_at_tick: clock.now().saturating_add(ttl_ticks),
+            expires_at_tick,
         })
     }
 
@@ -298,7 +313,9 @@ impl Grant {
         if generation != self.issued_generation {
             return Err(ScopeError::StaleGeneration);
         }
-        if now_tick > self.expires_at_tick {
+        // Lifetime is half-open: the deadline itself is no longer authorized,
+        // including a deadline at the clock's saturated maximum.
+        if now_tick >= self.expires_at_tick {
             return Err(ScopeError::Expired);
         }
         if snapshot.document_id() != &self.document_id {

@@ -98,7 +98,7 @@ impl DocumentSnapshot {
             if paragraph.visible.len() > MAX_PARAGRAPH_BYTES {
                 return Err(PortError::BudgetExceeded);
             }
-            if !text.is_empty() {
+            if index > 0 {
                 text.push('\n');
                 char_pos += 1;
             }
@@ -238,7 +238,8 @@ impl MemoryDocument {
     }
 
     pub fn push_paragraph(&mut self, paragraph: MemoryParagraph) -> Result<(), PortError> {
-        if self.paragraphs.len() >= MAX_PARAGRAPHS
+        if self.version == u64::MAX
+            || self.paragraphs.len() >= MAX_PARAGRAPHS
             || paragraph.visible.len() > MAX_PARAGRAPH_BYTES
             || paragraph.deleted.len() > MAX_HIDDEN_ITEMS
             || paragraph.comments.len() > MAX_HIDDEN_ITEMS
@@ -250,7 +251,21 @@ impl MemoryDocument {
         {
             return Err(PortError::BudgetExceeded);
         }
+        // With the paragraph count and per-paragraph budgets above, this sum
+        // fits usize. The new projection has one separator per existing paragraph,
+        // including empty ones. Check everything before changing either field.
+        let projected_bytes = self
+            .paragraphs
+            .iter()
+            .map(|item| item.visible.len())
+            .sum::<usize>()
+            + paragraph.visible.len()
+            + self.paragraphs.len();
+        if projected_bytes > MAX_DOCUMENT_TEXT_BYTES {
+            return Err(PortError::BudgetExceeded);
+        }
         self.paragraphs.push(paragraph);
+        self.version += 1;
         Ok(())
     }
 
@@ -286,5 +301,85 @@ impl DocumentPort for MemoryDocument {
             return Err(PortError::UnknownDocument);
         }
         DocumentSnapshot::new(self.id.clone(), self.version, self.projected())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_push_refused_unchanged(doc: &mut MemoryDocument, paragraph: MemoryParagraph) {
+        let before = doc.clone();
+        assert_eq!(
+            doc.push_paragraph(paragraph),
+            Err(PortError::BudgetExceeded)
+        );
+        assert_eq!(doc.id, before.id);
+        assert_eq!(doc.version, before.version);
+        assert_eq!(doc.paragraphs, before.paragraphs);
+    }
+
+    #[test]
+    fn regression_push_checks_local_budgets_without_mutation()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = MemoryDocument::new("doc.budget").map_err(|_| "invalid fixture id")?;
+        doc.push_paragraph(MemoryParagraph::body("seed"))?;
+        assert_push_refused_unchanged(
+            &mut doc,
+            MemoryParagraph::body(&"x".repeat(MAX_PARAGRAPH_BYTES + 1)),
+        );
+        for hidden in [
+            vec![String::new(); MAX_HIDDEN_ITEMS + 1],
+            vec!["x".repeat(MAX_PARAGRAPH_BYTES + 1)],
+        ] {
+            let mut paragraph = MemoryParagraph::body("ok");
+            paragraph.deleted = hidden.clone();
+            assert_push_refused_unchanged(&mut doc, paragraph);
+            let mut paragraph = MemoryParagraph::body("ok");
+            paragraph.comments = hidden;
+            assert_push_refused_unchanged(&mut doc, paragraph);
+        }
+        for _ in 1..MAX_PARAGRAPHS {
+            doc.push_paragraph(MemoryParagraph::body(""))?;
+        }
+        assert_push_refused_unchanged(&mut doc, MemoryParagraph::body(""));
+        Ok(())
+    }
+
+    #[test]
+    fn regression_push_checks_total_text_budget_including_separators()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = MemoryDocument::new("doc.total").map_err(|_| "invalid fixture id")?;
+        let text = "x".repeat(MAX_PARAGRAPH_BYTES - 1);
+        for _ in 0..(MAX_DOCUMENT_TEXT_BYTES / MAX_PARAGRAPH_BYTES) {
+            doc.push_paragraph(MemoryParagraph::body(&text))?;
+        }
+        // Exactly one byte remains; appending an empty paragraph uses it as a separator.
+        assert_eq!(
+            doc.snapshot(doc.document_id())?.text().len(),
+            MAX_DOCUMENT_TEXT_BYTES - 1
+        );
+        assert_push_refused_unchanged(&mut doc, MemoryParagraph::body("x"));
+        doc.push_paragraph(MemoryParagraph::body(""))?;
+        assert_eq!(
+            doc.snapshot(doc.document_id())?.text().len(),
+            MAX_DOCUMENT_TEXT_BYTES
+        );
+        assert_push_refused_unchanged(&mut doc, MemoryParagraph::body(""));
+        Ok(())
+    }
+
+    #[test]
+    fn regression_push_checks_version_exhaustion_without_mutation()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = MemoryDocument::new("doc.max").map_err(|_| "invalid fixture id")?;
+        doc.version = u64::MAX;
+        assert_push_refused_unchanged(&mut doc, MemoryParagraph::body("must not appear"));
+        doc.version = u64::MAX - 1;
+        doc.push_paragraph(MemoryParagraph::body("last accepted"))?;
+        assert_eq!(doc.version(), u64::MAX);
+        assert_eq!(doc.snapshot(doc.document_id())?.version(), u64::MAX);
+        assert_push_refused_unchanged(&mut doc, MemoryParagraph::body("must not appear"));
+        Ok(())
     }
 }

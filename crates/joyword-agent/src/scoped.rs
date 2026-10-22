@@ -3,9 +3,9 @@
 //! A [`ToolSession`] holds one immutable [`Grant`], a [`DocumentPort`], and a
 //! [`TickClock`]. Every operation re-validates the grant against a fresh
 //! snapshot, the live gate generation, and the clock before projecting
-//! anything. The tool allowlist is enforced at dispatch: a tool the user did
-//! not grant is refused, and propose tools stay refused until T402 even when
-//! listed. Document text is only ever returned inside the authorized range;
+//! anything. The tool allowlist is enforced at dispatch and every direct tool
+//! entry point: ungranted tools are refused, and propose tools stay refused
+//! until T402 even when listed. Document text stays inside the authorized range;
 //! nothing here parses document text for instructions, so injected content
 //! cannot widen the allowlist or the range (AI.md §2: document, comment,
 //! field, and web text are data).
@@ -270,9 +270,7 @@ impl<'a> ToolSession<'a> {
     /// Allowlist-checked dispatch. Order matters: a tool the user did not
     /// grant is refused before any document access happens.
     pub fn call(&self, call: ToolCall<'_>) -> Result<ToolOutput, ToolError> {
-        if !self.grant.tools().contains(call.tool()) {
-            return Err(ToolError::NotAllowed);
-        }
+        self.require_tool(call.tool())?;
         match call {
             ToolCall::ReadSelection => self.read_selection().map(ToolOutput::Selection),
             ToolCall::ReadStructure => self.read_structure().map(ToolOutput::Structure),
@@ -285,11 +283,13 @@ impl<'a> ToolSession<'a> {
     }
 
     pub fn read_selection(&self) -> Result<SelectionText, ToolError> {
+        self.require_tool(ToolId::ReadSelection)?;
         let snapshot = self.fresh()?;
         self.selection_from(&snapshot)
     }
 
     pub fn read_structure(&self) -> Result<StructureProjection, ToolError> {
+        self.require_tool(ToolId::ReadStructure)?;
         let snapshot = self.fresh()?;
         let range = self.grant.range();
         let document_id = self.grant.document_id().clone();
@@ -336,6 +336,7 @@ impl<'a> ToolSession<'a> {
     }
 
     pub fn search(&self, query: &str) -> Result<SearchHits, ToolError> {
+        self.require_tool(ToolId::SearchDocument)?;
         if query.is_empty() {
             return Err(ToolError::EmptyQuery);
         }
@@ -410,9 +411,29 @@ impl<'a> ToolSession<'a> {
         })
     }
 
+    fn require_tool(&self, tool: ToolId) -> Result<(), ToolError> {
+        if !self.grant.tools().contains(tool) {
+            return Err(ToolError::NotAllowed);
+        }
+        Ok(())
+    }
+
     /// Gate phase, generation, snapshot, and clock validation in one place.
     fn fresh(&self) -> Result<DocumentSnapshot, ToolError> {
-        let gate = self.runtime.gate();
+        fresh_snapshot(self.runtime, self.port, &self.grant, self.clock)
+    }
+}
+
+/// Shared by local tools/context and both sides of a provider round trip.
+/// A port call may stop or restart AI: never validate with pre-call gate state.
+pub(crate) fn fresh_snapshot(
+    runtime: &AgentRuntime,
+    port: &dyn DocumentPort,
+    grant: &Grant,
+    clock: &TickClock,
+) -> Result<DocumentSnapshot, ToolError> {
+    let live_generation = || {
+        let gate = runtime.gate();
         let phase = gate.phase().map_err(ToolError::Gate)?;
         if !matches!(phase, AiPhase::EnabledIdle | AiPhase::Running) {
             return Err(ToolError::Gate(match phase {
@@ -420,16 +441,14 @@ impl<'a> ToolSession<'a> {
                 _ => GateError::Disabled,
             }));
         }
-        let generation = gate.generation().map_err(ToolError::Gate)?;
-        let snapshot = self
-            .port
-            .snapshot(self.grant.document_id())
-            .map_err(|error| ToolError::Scope(ScopeError::Port(error)))?;
-        self.grant
-            .validate(&snapshot, generation, self.clock.now())
-            .map_err(ToolError::Scope)?;
-        Ok(snapshot)
-    }
+        gate.generation().map_err(ToolError::Gate)
+    };
+    live_generation()?;
+    let snapshot = port.snapshot(grant.document_id())?;
+    grant
+        .validate(&snapshot, live_generation()?, clock.now())
+        .map_err(ToolError::Scope)?;
+    Ok(snapshot)
 }
 
 /// Shared context renderer. JoyWord assumption: the markers below frame the
@@ -475,5 +494,180 @@ pub(crate) fn build_context_text(
 impl From<PortError> for ToolError {
     fn from(error: PortError) -> Self {
         ToolError::Scope(ScopeError::Port(error))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::Cell;
+
+    use super::*;
+    use crate::{
+        AdminPolicy, AiConfig, FakeProvider, MemoryCredentialStore, MemoryDocument,
+        MemoryParagraph, ProviderSelection, Script, ToolAllowlist,
+    };
+
+    #[derive(Clone, Copy, Debug)]
+    enum GateChange {
+        Stop,
+        Disable,
+        Restart,
+    }
+
+    struct GateChangingPort<'a> {
+        runtime: &'a AgentRuntime,
+        doc: &'a MemoryDocument,
+        change: GateChange,
+        on_call: usize,
+        calls: Cell<usize>,
+    }
+
+    impl DocumentPort for GateChangingPort<'_> {
+        fn snapshot(&self, document: &DocumentId) -> Result<DocumentSnapshot, PortError> {
+            let snapshot = self.doc.snapshot(document)?;
+            self.calls.set(self.calls.get() + 1);
+            if self.calls.get() == self.on_call {
+                let gate = self.runtime.gate();
+                let changed = match self.change {
+                    GateChange::Stop => gate.begin_stop(),
+                    GateChange::Disable => gate.kill_switch().map(|_| ()),
+                    GateChange::Restart => gate
+                        .kill_switch()
+                        .and_then(|_| gate.set_user_enabled(true))
+                        .map(|_| ()),
+                };
+                changed.map_err(|_| PortError::Inaccessible)?;
+            }
+            Ok(snapshot)
+        }
+    }
+
+    fn runtime() -> Result<AgentRuntime, Box<dyn std::error::Error>> {
+        let mut config = AiConfig::default();
+        config.user_enabled = true;
+        config.provider = ProviderSelection::named("fake")?;
+        Ok(AgentRuntime::new(
+            config,
+            AdminPolicy::unmanaged(),
+            Box::new(
+                FakeProvider::scripted("fake", vec![Script::Reply("answer".to_owned())])
+                    .map_err(|_| "invalid fixture provider id")?,
+            ),
+            Box::new(MemoryCredentialStore::new()),
+        ))
+    }
+
+    fn check_snapshot_gate_change(change: GateChange) -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc = MemoryDocument::new("doc.race").map_err(|_| "invalid fixture id")?;
+        doc.push_paragraph(MemoryParagraph::heading(1, "authorized"))?;
+        let clock = TickClock::new();
+        for operation in 0..7 {
+            let runtime = runtime()?;
+            let grant = Grant::issue(
+                &doc,
+                doc.document_id(),
+                ScopeRange::new(0, 10)?,
+                ToolAllowlist::read_only(),
+                runtime.generation()?,
+                &clock,
+                100,
+            )?;
+            let port = GateChangingPort {
+                runtime: &runtime,
+                doc: &doc,
+                change,
+                on_call: 1,
+                calls: Cell::new(0),
+            };
+            let session = ToolSession::new(&runtime, &port, grant, &clock);
+            let result = match operation {
+                0 => session.read_selection().map(|_| ()),
+                1 => session.read_structure().map(|_| ()),
+                2 => session.search("authorized").map(|_| ()),
+                3 => session.call(ToolCall::ReadSelection).map(|_| ()),
+                4 => session.call(ToolCall::ReadStructure).map(|_| ()),
+                5 => session
+                    .call(ToolCall::Search {
+                        query: "authorized",
+                    })
+                    .map(|_| ()),
+                _ => session.build_context("question").map(|_| ()),
+            };
+            let expected = match change {
+                GateChange::Stop => ToolError::Gate(GateError::Stopping),
+                GateChange::Disable => ToolError::Gate(GateError::Disabled),
+                GateChange::Restart => ToolError::Scope(ScopeError::StaleGeneration),
+            };
+            assert_eq!(result, Err(expected), "operation {operation}, {change:?}");
+            assert_eq!(port.calls.get(), 1);
+            assert_eq!(runtime.provider_calls(), 0);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn regression_snapshot_stop_refuses_tools_and_context() -> Result<(), Box<dyn std::error::Error>>
+    {
+        check_snapshot_gate_change(GateChange::Stop)
+    }
+
+    #[test]
+    fn regression_snapshot_disable_refuses_tools_and_context()
+    -> Result<(), Box<dyn std::error::Error>> {
+        check_snapshot_gate_change(GateChange::Disable)
+    }
+
+    #[test]
+    fn regression_snapshot_restart_refuses_tools_and_context()
+    -> Result<(), Box<dyn std::error::Error>> {
+        check_snapshot_gate_change(GateChange::Restart)
+    }
+
+    #[test]
+    fn regression_completion_snapshot_gate_changes_never_send_or_return_stale_content()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut doc =
+            MemoryDocument::new("doc.completion-race").map_err(|_| "invalid fixture id")?;
+        doc.push_paragraph(MemoryParagraph::body("authorized"))?;
+        let clock = TickClock::new();
+        for on_call in [1, 2] {
+            for change in [GateChange::Stop, GateChange::Disable, GateChange::Restart] {
+                let runtime = runtime()?;
+                let grant = Grant::issue(
+                    &doc,
+                    doc.document_id(),
+                    ScopeRange::new(0, 10)?,
+                    ToolAllowlist::read_only(),
+                    runtime.generation()?,
+                    &clock,
+                    100,
+                )?;
+                let port = GateChangingPort {
+                    runtime: &runtime,
+                    doc: &doc,
+                    change,
+                    on_call,
+                    calls: Cell::new(0),
+                };
+                let session = ToolSession::new(&runtime, &port, grant, &clock);
+                let expected = match change {
+                    GateChange::Stop => crate::AgentError::Gate(GateError::Stopping),
+                    GateChange::Disable => crate::AgentError::Gate(GateError::Disabled),
+                    GateChange::Restart => crate::AgentError::Scope(ScopeError::StaleGeneration),
+                };
+                assert_eq!(
+                    session.complete("question").map(|_| ()),
+                    Err(expected),
+                    "snapshot {on_call}, {change:?}"
+                );
+                assert_eq!(
+                    runtime.provider_calls(),
+                    (on_call - 1) as u64,
+                    "snapshot {on_call}, {change:?}"
+                );
+                assert_eq!(port.calls.get(), on_call);
+            }
+        }
+        Ok(())
     }
 }
