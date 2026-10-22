@@ -89,10 +89,11 @@ fn format_revision_at(document: &Document, position: &Position) -> Option<u32> {
     let mut at = 0usize;
     for run in paragraph.runs() {
         let end = at + run.len;
-        if at <= offset && offset <= end {
-            if let Some(revision) = &run.format_revision {
-                return Some(revision.id);
-            }
+        if at <= offset
+            && offset <= end
+            && let Some(revision) = &run.format_revision
+        {
+            return Some(revision.id);
         }
         at = end;
     }
@@ -564,8 +565,7 @@ fn resolve_format_all(
     let targets: Vec<(StoryId, NodeId)> = paragraphs(document)
         .into_iter()
         .filter(|(story, paragraph)| {
-            paragraph_ref(document, *story, *paragraph)
-                .is_some_and(|paragraph| has_any_format_revision(paragraph))
+            paragraph_ref(document, *story, *paragraph).is_some_and(has_any_format_revision)
         })
         .collect();
     for (story, paragraph) in targets {
