@@ -6,6 +6,8 @@ mod document_canvas;
 mod export;
 mod input_ui;
 mod linux_files;
+#[cfg(target_os = "linux")]
+mod prompt_ui;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
 use gpui::{
@@ -324,12 +326,43 @@ fn menus(registry: &Registry, catalog: &Catalog) -> Vec<Menu> {
         .collect()
 }
 
+/// The shown document's file name; an editor never bound to a file is
+/// untitled. `None` before any document is shown.
+fn document_name(editor: Option<&dyn input_ui::DocEditor>, locale: Locale) -> Option<String> {
+    let editor = editor?;
+    Some(
+        match editor.source_path().and_then(|path| path.file_name()) {
+            Some(name) => name.to_string_lossy().into_owned(),
+            None => Catalog::shipped(locale).format("document.untitled", &[("number", "1")]),
+        },
+    )
+}
+
 /// Word-style window title: document name first, `*` while unsaved.
 fn window_title(document: Option<&str>, edited: bool) -> String {
     match document {
         Some(name) => format!("{}{name} - JoyWord", if edited { "*" } else { "" }),
         None => "JoyWord".into(),
     }
+}
+
+/// The document named on the command line: the first argument that is not
+/// an option, or the first one after `--`.
+fn startup_document(
+    args: impl IntoIterator<Item = std::ffi::OsString>,
+) -> Option<std::path::PathBuf> {
+    let mut options = true;
+    for arg in args {
+        if options && arg == "--" {
+            options = false;
+            continue;
+        }
+        if options && arg.to_string_lossy().starts_with('-') {
+            continue;
+        }
+        return Some(arg.into());
+    }
+    None
 }
 
 fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
@@ -351,6 +384,8 @@ fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
 
 /// Document focus with no open IME composition.
 const TYPING: &str = "JoyWordInput && !composing";
+/// Document focus while an IME composition is open.
+const COMPOSING: &str = "JoyWordInput && composing";
 
 fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
     shortcut_chords(registry)
@@ -422,7 +457,8 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                     KeyBinding::new(keys, DeleteWordBackward, Some(TYPING))
                 }
                 EDIT_DELETE_WORD_FORWARD => KeyBinding::new(keys, DeleteWordForward, Some(TYPING)),
-                EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some("JoyWordInput")),
+                // Without a composition Esc must reach the panels' key handlers.
+                EDIT_CANCEL => KeyBinding::new(keys, CancelComposition, Some(COMPOSING)),
                 FILE_OPEN => KeyBinding::new(keys, OpenFile, None),
                 FILE_SAVE => KeyBinding::new(keys, SaveOriginal, None),
                 FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
@@ -984,18 +1020,8 @@ impl JoyWord {
         Catalog::shipped(self.locale).text(key)
     }
 
-    /// The shown document's file name; an editor never bound to a file is
-    /// untitled. `None` before any document is shown.
     pub(crate) fn document_title(&self) -> Option<String> {
-        let editor = self.editor.as_ref()?;
-        Some(
-            match editor.source_path().and_then(|path| path.file_name()) {
-                Some(name) => name.to_string_lossy().into_owned(),
-                None => {
-                    Catalog::shipped(self.locale).format("document.untitled", &[("number", "1")])
-                }
-            },
-        )
+        document_name(self.editor.as_deref(), self.locale)
     }
 
     fn run_with(
@@ -1493,6 +1519,9 @@ impl Render for JoyWord {
                     "JoyWordInput"
                 },
             )
+            .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
+                this.escape_panel(event, window, cx)
+            }))
             .on_action(cx.listener(|this, _: &Quit, window, cx| {
                 this.run(QUIT, window, cx);
                 cx.stop_propagation();
@@ -2105,6 +2134,7 @@ fn main() {
     let boot = boot_diagnostics();
     let boot_log = boot.log.clone();
     let locale = boot.locale;
+    let startup = startup_document(std::env::args_os().skip(1));
     gpui_platform::application().run(move |cx: &mut App| {
         let registry = Registry::builtin();
         cx.on_action(|_: &Quit, cx| {
@@ -2118,6 +2148,8 @@ fn main() {
             cx.quit();
         });
         cx.bind_keys(key_bindings(&registry));
+        #[cfg(target_os = "linux")]
+        prompt_ui::install(cx);
         cx.set_menus(menus(&registry, Catalog::shipped(locale)));
         let bounds = Bounds::centered(None, size(px(1100.0), px(850.0)), cx);
         let result = cx.open_window(
@@ -2253,6 +2285,9 @@ fn main() {
                 let _ = window.update(cx, |view, window, cx| {
                     window.focus(&view.focus_handle, cx);
                     cx.activate(true);
+                    if let Some(path) = startup.clone() {
+                        view.open_startup_path(path, window, cx);
+                    }
                 });
             }
             Err(error) => {

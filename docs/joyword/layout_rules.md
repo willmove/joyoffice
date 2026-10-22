@@ -25,7 +25,7 @@ JoyWord 侧依据：`wrap_mixed`＋Unicode 默认断点＋`adjust_cjk_break` 在
 
 ### R3：两端对齐的余量分配
 
-Word 2024 两端对齐（Justify）下，纯中文行把余量分配到字间并抵满版心（样例 stress 文本，行尾 x1 ≈ 368.65 pt ≈ 右边界），段末行不拉伸（x1 = 351.02 pt < 版心右界）。产物 `breaks/word_justify.pdf`。JoyWord 对纯中文行调用 `justify_intercharacter`（证据 Inferred：等分余量，段末行与单字行不拉伸）。含拉丁字母或 ASCII 标点的行，以及 `distribute`，仍然拒绝。尚未用 Word 2024 重新导出对照。
+Word 2024 两端对齐（Justify）下，纯中文行把余量分配到字间并抵满版心（样例 stress 文本，行尾 x1 ≈ 368.65 pt ≈ 右边界），段末行不拉伸（x1 = 351.02 pt < 版心右界）。产物 `breaks/word_justify.pdf`。JoyWord 对纯中文行调用 `justify_intercharacter`（证据 Inferred：等分余量，段末行与单字行不拉伸）。2026-10-21 起中西文混排行经 `justify_line` 分配：余量只给中日韩字符两侧的间隙和空格，拉丁词与数字内部保持整形间距，行尾空格悬挂不分配，找不到可分配间隙的行保持左对齐，纯中文行的结果与上述等分相同。混排规则证据为 Inferred，没有 Word 对照。`distribute` 仍然拒绝。尚未用 Word 2024 重新导出对照。
 
 ### R4：单倍行距的机制（实测推导）
 

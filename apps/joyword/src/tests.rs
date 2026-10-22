@@ -293,13 +293,13 @@ use joyword_layout::{
     SingleFontProfile, ViewOptions, layout_document_viewed, layout_with_view, to_screen,
 };
 use joyword_model::{
-    Block, BorderKind, HeaderFooterKind, Orientation, PageSetup, RevisionKind, RevisionView,
-    StoryKind, TableAlign, TableWidth, VerticalMerge,
+    Block, BorderKind, HeaderFooterKind, Justification, Orientation, PageSetup, RevisionKind,
+    RevisionView, StoryKind, TableAlign, TableWidth, VerticalMerge,
 };
 use joyword_shell::command::{
-    EDIT_BOLD, FILE_OPEN, FILE_SAVE_COPY, FORMAT_COPY, FORMAT_PAINT, LIST_APPLY, LIST_LEVEL,
-    PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, REVIEW_ACCEPT,
-    REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
+    EDIT_BOLD, EDIT_JUSTIFY, FILE_OPEN, FILE_SAVE_COPY, FORMAT_COPY, FORMAT_PAINT, LIST_APPLY,
+    LIST_LEVEL, PAGE_EDIT_BODY, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION,
+    REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
     REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_INSERT, TABLE_INSERT,
     TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES, TABLE_ROW_DELETE, TABLE_ROW_INSERT,
     TABLE_SPLIT,
@@ -1486,4 +1486,162 @@ fn t300_tracked_edits_views_and_revision_round_trip() {
     assert_eq!(active_document(&office).move_markers().len(), 4);
     assert_eq!(story_text(&office), "AVif");
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// GUI smoke after #78: typing into a Chinese paragraph and pressing Ctrl+J
+/// replaced the page with "inter-character justification" unsupported.
+#[test]
+fn justify_on_mixed_script_paragraphs_keeps_the_document_displayable() {
+    let sample: &[u8] = include_bytes!("../../../tests/fixtures/docx/DOCX-SAMPLE-001.docx");
+    let mixed = plain_package(
+        "<w:p><w:r><w:t>甲方：青禾工作室；双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。</w:t></w:r></w:p><w:p><w:r><w:t xml:space=\"preserve\">交付内容包括：正文、表格、图片以及 English summary and appendix notes。</w:t></w:r></w:p>",
+    );
+    for (label, bytes) in [
+        ("justify-sample", sample),
+        ("justify-mixed", mixed.as_slice()),
+    ] {
+        let (dir, mut office) = open_package(bytes, label);
+        caret_at(&mut office, 0);
+        office.active_mut().unwrap().replace(None, "x").unwrap();
+        cmd(&mut office, EDIT_JUSTIFY, &[]);
+        let first = active_document(&office)
+            .body()
+            .blocks
+            .iter()
+            .find_map(Block::as_paragraph)
+            .unwrap();
+        assert_eq!(first.props.justification, Some(Justification::Both));
+        assert!(first.plain_text(|_| String::new()).starts_with('x'));
+        let typed = lay(&office, ViewOptions::default());
+        assert!(scene_text(&typed).starts_with('x'), "{label}");
+
+        let end = office.active().unwrap().view().index().len_utf16();
+        office.active_mut().unwrap().select(0..end, false).unwrap();
+        cmd(&mut office, EDIT_JUSTIFY, &[]);
+        let all = lay(&office, ViewOptions::default());
+        assert_eq!(scene_text(&all), scene_text(&typed), "{label}");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+/// GUI smoke after #78: `joyword sample.docx` titled the window and the close
+/// prompt "未命名 1", because the argument was never opened.
+#[test]
+fn a_document_named_on_the_command_line_names_the_window_and_the_close_prompt() {
+    use super::input_ui::{DocEditor, close_prompt_message};
+    use super::{document_name, startup_document, window_title};
+    use joyword_shell::l10n::Locale;
+    use std::ffi::OsString;
+
+    let dir = scratch("cli-title");
+    let sample = dir.join("sample.docx");
+    std::fs::write(
+        &sample,
+        include_bytes!("../../../tests/fixtures/reference/word2024/interop/word_edited.docx"),
+    )
+    .unwrap();
+    let args = |items: &[&str]| -> Vec<OsString> { items.iter().map(OsString::from).collect() };
+    let shown = sample.to_str().unwrap();
+    assert_eq!(startup_document(args(&[])), None);
+    assert_eq!(startup_document(args(&["--verbose"])), None);
+    assert_eq!(
+        startup_document(args(&["--verbose", shown, "other.docx"])),
+        Some(sample.clone())
+    );
+    assert_eq!(
+        startup_document(args(&["--", "-dash.docx"])),
+        Some(PathBuf::from("-dash.docx"))
+    );
+
+    // The window's open for a chosen path.
+    let path = startup_document(args(&[shown])).unwrap();
+    let mut office = Office::new();
+    let generation = office.begin_open();
+    let bound = joyword_shell::docx::BoundDocx::open_default(&path).unwrap();
+    office.accept_bound(generation, bound).unwrap();
+    let mut editor: Box<dyn DocEditor> = Box::new(office.hold_active().unwrap());
+    let name = document_name(Some(editor.as_ref()), Locale::ZhCn);
+    assert_eq!(name.as_deref(), Some("sample.docx"));
+    assert_eq!(
+        window_title(name.as_deref(), false),
+        "sample.docx - JoyWord"
+    );
+    editor.replace(None, "x").unwrap();
+    assert!(editor.has_unsaved_changes());
+    assert_eq!(
+        window_title(name.as_deref(), true),
+        "*sample.docx - JoyWord"
+    );
+    assert_eq!(
+        close_prompt_message(Locale::ZhCn, "close.unsaved", name.as_deref()),
+        "“sample.docx”有尚未保存的更改。"
+    );
+    assert_eq!(
+        close_prompt_message(Locale::En, "close.dirty_after_save", name.as_deref()),
+        "“sample.docx” changed after saving started. Those edits are not in this save."
+    );
+
+    // Only an editor never bound to a file is untitled.
+    let startup_sample = joyword_shell::docx::DocxSession::open_default(include_bytes!(
+        "../../../tests/fixtures/docx/DOCX-SAMPLE-001.docx"
+    ))
+    .unwrap();
+    let untitled: Box<dyn DocEditor> = Box::new(
+        joyword_shell::input::TextInput::new(
+            startup_sample,
+            joyword_shell::input::InputLimits::default(),
+        )
+        .unwrap(),
+    );
+    assert_eq!(
+        document_name(Some(untitled.as_ref()), Locale::ZhCn).as_deref(),
+        Some("未命名 1")
+    );
+    assert_eq!(document_name(None, Locale::ZhCn), None);
+    drop(editor);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+/// GUI smoke after #78: Esc in the Font panel reported "no composition"
+/// because Esc was bound to `CancelComposition` whether or not an IME
+/// composition was open, and bindings run before the panel's key handlers.
+#[test]
+fn escape_is_bound_only_while_composing_so_panels_receive_it_otherwise() {
+    use gpui::{KeyContext, Keymap, Keystroke};
+
+    let keymap = Keymap::new(super::key_bindings(
+        &joyword_shell::command::Registry::builtin(),
+    ));
+    let escape = [Keystroke::parse("escape").unwrap()];
+    for idle in ["JoyWordInput", "JoyWordInput composing"] {
+        let context = [KeyContext::parse(idle).unwrap()];
+        let (bindings, pending) = keymap.bindings_for_input(&escape, &context);
+        assert!(!pending, "{idle}");
+        let cancels = bindings
+            .iter()
+            .any(|binding| binding.action().partial_eq(&super::CancelComposition));
+        assert_eq!(cancels, idle.ends_with("composing"), "{idle}");
+        if !cancels {
+            assert!(bindings.is_empty(), "{idle}: Esc must stay unbound");
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only() {
+    use super::prompt_ui::key_answer;
+    use gpui::PromptButton;
+
+    let close = [PromptButton::cancel("取消"), PromptButton::new("不保存")];
+    assert_eq!(key_answer(&close, "escape"), Some(0));
+    assert_eq!(key_answer(&close, "enter"), None, "Enter never discards");
+    let original = [
+        PromptButton::cancel("取消"),
+        PromptButton::ok("另存为"),
+        PromptButton::new("确认"),
+    ];
+    assert_eq!(key_answer(&original, "escape"), Some(0));
+    assert_eq!(key_answer(&original, "enter"), Some(1));
+    assert_eq!(key_answer(&original, "a"), None);
 }

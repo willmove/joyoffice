@@ -1194,10 +1194,24 @@ fn copy_landing(request: CopyRequest, current: Option<(u64, u64)>) -> CopyLandin
 }
 
 /// What to do after the user discards unsaved edits. Cancel keeps the session.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 enum AfterDiscard {
     Close { quit: bool },
     PickOpen,
+    OpenPath(std::path::PathBuf),
+}
+
+/// First line of the unsaved-changes prompt for `key` from [`close_prompt_key`].
+pub(crate) fn close_prompt_message(
+    locale: joyword_shell::l10n::Locale,
+    key: &str,
+    title: Option<&str>,
+) -> String {
+    let key = match key {
+        "close.dirty_after_save" => "close.dirty_after_save",
+        _ => "close.unsaved",
+    };
+    Catalog::shipped(locale).format(key, &[("title", title.unwrap_or("JoyWord"))])
 }
 
 fn close_decision(answer: Option<usize>, expected: u64, current: u64) -> CloseDecision {
@@ -1774,6 +1788,16 @@ impl JoyWord {
     }
     pub(crate) fn begin_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.confirm_if_dirty(AfterDiscard::PickOpen, window, cx);
+    }
+    /// A document named on the command line. A journal restored at startup
+    /// gets the same unsaved-changes prompt as File > Open.
+    pub(crate) fn open_startup_path(
+        &mut self,
+        path: std::path::PathBuf,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.confirm_if_dirty(AfterDiscard::OpenPath(path), window, cx);
     }
     pub(crate) fn install_editor(&mut self, mut editor: Box<dyn DocEditor>) {
         editor.set_revision_author(self.session.revision_author());
@@ -2438,16 +2462,7 @@ impl JoyWord {
         };
         let expected = editor.version();
         self.close_pending = true;
-        let catalog = Catalog::shipped(self.locale);
-        let title = self
-            .document_title()
-            .unwrap_or_else(|| "JoyWord".to_owned());
-        let message = match key {
-            "close.dirty_after_save" => {
-                catalog.format("close.dirty_after_save", &[("title", &title)])
-            }
-            _ => catalog.format("close.unsaved", &[("title", &title)]),
-        };
+        let message = close_prompt_message(self.locale, key, self.document_title().as_deref());
         let receiver = window.prompt(
             gpui::PromptLevel::Warning,
             &message,
@@ -2486,6 +2501,7 @@ impl JoyWord {
                 }
             }
             AfterDiscard::PickOpen => self.pick_open(window, cx),
+            AfterDiscard::OpenPath(path) => self.begin_open_path(path, cx),
         }
     }
     fn pick_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
@@ -2724,7 +2740,7 @@ impl JoyWord {
         cx.stop_propagation();
         cx.notify();
     }
-    fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    pub(crate) fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.path_sheet = None;
         window.focus(&self.focus_handle, cx);
         cx.notify();

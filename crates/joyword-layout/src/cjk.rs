@@ -410,6 +410,113 @@ pub fn justify_intercharacter(
     })
 }
 
+/// One glyph offered to [`justify_line`]: the first scalar of its cluster,
+/// the cluster's byte offset and the shaped advance.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct JustifyGlyph {
+    pub ch: char,
+    pub cluster: usize,
+    pub advance: Emu,
+}
+
+/// Extra width after each glyph of one `both` line, indexed like `glyphs`.
+///
+/// R3 measured pure Chinese lines, where every inter-character gap takes an
+/// equal share; such a line gets exactly the gaps of
+/// [`justify_intercharacter`]. Mixed lines are inferred, not measured: only
+/// gaps that touch a CJK character and the gap after each space take a share,
+/// so Latin words and numbers keep their shaped spacing. Trailing whitespace
+/// hangs past the edge without a share. A line with no such gap is
+/// [`CjkIssue::UnverifiedJustify`] and stays as shaped.
+pub fn justify_line(
+    glyphs: &[JustifyGlyph],
+    content_width: Emu,
+    last_line: bool,
+) -> Result<Vec<Emu>, CjkIssue> {
+    if glyphs.len() > MAX_JUSTIFY_ADVANCES {
+        return Err(CjkIssue::BudgetExceeded);
+    }
+    if glyphs.iter().any(|glyph| glyph.advance.raw() < 0) {
+        return Err(CjkIssue::IllegalMeasure);
+    }
+    let mut gaps = vec![Emu::new(0); glyphs.len()];
+    let Some(end) = glyphs.iter().rposition(|glyph| !glyph.ch.is_whitespace()) else {
+        return Ok(gaps);
+    };
+    let mut segments = Vec::new();
+    let mut segment_ends = Vec::new();
+    let mut width = 0i64;
+    for (index, glyph) in glyphs[..=end].iter().enumerate() {
+        width = width
+            .checked_add(glyph.advance.raw())
+            .ok_or(CjkIssue::Overflow)?;
+        let closes = match glyphs.get(index + 1) {
+            Some(next) if index < end => {
+                next.cluster != glyph.cluster
+                    && (glyph.ch.is_whitespace()
+                        || justifies_between(glyph.ch)
+                        || justifies_between(next.ch))
+            }
+            _ => true,
+        };
+        if closes {
+            segments.push(Emu::new(width));
+            segment_ends.push(index);
+            width = 0;
+        }
+    }
+    let justified = justify_intercharacter(&segments, content_width, last_line)?;
+    for (gap, index) in justified.gaps.into_iter().zip(segment_ends) {
+        gaps[index] = gap;
+    }
+    Ok(gaps)
+}
+
+/// [`justify_line`] over `indexes` of `run`, in that order. A glyph whose
+/// cluster offset is not a scalar boundary of the run text is
+/// [`CjkIssue::UnverifiedJustify`].
+pub fn justify_run(
+    run: &ShapedRun,
+    indexes: &[usize],
+    content_width: Emu,
+    last_line: bool,
+) -> Result<Vec<Emu>, CjkIssue> {
+    let glyphs = indexes
+        .iter()
+        .map(|index| {
+            let glyph = run.glyphs.get(*index)?;
+            let ch = run.text.get(glyph.cluster..)?.chars().next()?;
+            Some(JustifyGlyph {
+                ch,
+                cluster: glyph.cluster,
+                advance: glyph.advance,
+            })
+        })
+        .collect::<Option<Vec<_>>>()
+        .ok_or(CjkIssue::UnverifiedJustify)?;
+    justify_line(&glyphs, content_width, last_line)
+}
+
+/// Han, kana, Hangul, CJK and full-width punctuation, and the curly quotes
+/// R3 lines carry. Gaps beside these take a share of a justified line.
+fn justifies_between(ch: char) -> bool {
+    script_run(ch) == ScriptRun::Han
+        || matches!(
+            ch,
+            '\u{2018}'
+                | '\u{2019}'
+                | '\u{201C}'
+                | '\u{201D}'
+                | '\u{2E80}'..='\u{2FFF}'
+                | '\u{3000}'..='\u{33FF}'
+                | '\u{AC00}'..='\u{D7AF}'
+                | '\u{FE30}'..='\u{FE4F}'
+                | '\u{FF00}'..='\u{FFEF}'
+                | '\u{20000}'..='\u{3FFFF}'
+        )
+        || (!ch.is_ascii() && (prohibits_line_start(ch) || prohibits_line_end(ch)))
+}
+
 /// `hundredths` of `unit`. The unit is the caller's; this does not decide
 /// what one character or one line is in Word.
 pub fn scale_hundredths(hundredths: i64, unit: Emu) -> CjkResult {

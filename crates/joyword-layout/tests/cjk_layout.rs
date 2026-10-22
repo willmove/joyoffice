@@ -328,26 +328,81 @@ fn a_single_character_justified_line_is_not_given_an_edge_gap() {
 }
 
 #[test]
-fn latin_and_distribute_justification_stay_unsupported() {
+fn distribute_stays_unsupported_and_lone_latin_words_keep_their_shaping() {
     let font = test_font();
-    assert!(matches!(
-        lay_err(&font, "AV", |props| {
-            props.justification = Some(Justification::Both);
-        }),
-        Err(LayoutError::Unsupported { .. })
-    ));
     assert!(matches!(
         lay_err(&font, "甲乙", |props| {
             props.justification = Some(Justification::Distribute);
         }),
         Err(LayoutError::Unsupported { .. })
     ));
-    assert!(matches!(
-        lay_err(&font, "甲A", |props| {
+    for text in ["AV", "甲A", "x甲乙"] {
+        let start = lay_err(&font, text, |_| {}).unwrap();
+        let both = lay_err(&font, text, |props| {
             props.justification = Some(Justification::Both);
-        }),
-        Err(LayoutError::Unsupported { .. })
-    ));
+        })
+        .unwrap();
+        assert_eq!(both.lines().len(), 1, "{text}");
+        assert_eq!(both.lines()[0].carets, start.lines()[0].carets, "{text}");
+    }
+}
+
+/// Carets of each line, indexed by line-local scalar.
+fn line_carets(snapshot: &LayoutSnapshot) -> Vec<Vec<i64>> {
+    snapshot
+        .lines()
+        .iter()
+        .map(|line| {
+            assert_eq!(line.carets.len(), line.source.scalars.len() + 1);
+            line.carets.iter().map(|caret| caret.x.raw()).collect()
+        })
+        .collect()
+}
+
+#[test]
+fn mixed_justification_fills_lines_at_cjk_gaps_and_spaces_only() {
+    let font = test_font();
+    let text = "x合作 Ab 12,345.67 元 English summary 甲乙丙丁 Cd 甲乙";
+    let content = pt(70);
+    let start = lay_box(&font, text, content, |_| {});
+    let both = lay_box(&font, text, content, |props| {
+        props.justification = Some(Justification::Both);
+    });
+    assert_eq!(line_texts(&start), line_texts(&both));
+    assert!(both.lines().len() > 2);
+    let content_right = both.geometry().left.raw() + content.raw();
+    let texts = line_texts(&both);
+    let start_carets = line_carets(&start);
+    let both_carets = line_carets(&both);
+    let last = texts.len() - 1;
+    let mut stretched = 0;
+    for (index, text) in texts.iter().enumerate() {
+        let chars: Vec<char> = text.chars().collect();
+        let visible = chars.len()
+            - chars
+                .iter()
+                .rev()
+                .take_while(|ch| ch.is_whitespace())
+                .count();
+        let edge = both_carets[index][visible];
+        if index == last {
+            assert_eq!(both_carets[index], start_carets[index], "{text}");
+            continue;
+        }
+        assert!(edge <= content_right, "{text}");
+        if edge == content_right {
+            stretched += 1;
+        }
+        let word = |ch: char| ch.is_ascii_alphanumeric() || ch == ',' || ch == '.';
+        for (at, pair) in chars.windows(2).enumerate() {
+            if word(pair[0]) && word(pair[1]) {
+                let shaped = start_carets[index][at + 1] - start_carets[index][at];
+                let justified = both_carets[index][at + 1] - both_carets[index][at];
+                assert_eq!(justified, shaped, "{text}: inside {pair:?}");
+            }
+        }
+    }
+    assert!(stretched > 0, "{texts:?}");
 }
 
 #[test]

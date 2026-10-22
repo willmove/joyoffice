@@ -1068,58 +1068,21 @@ fn absolute_line(paragraph: NodeId, measure: Measure) -> Result<Emu, LayoutError
     }
 }
 
-fn r3_mark(ch: char) -> bool {
-    !ch.is_ascii()
-        && (cjk::prohibits_line_start(ch)
-            || cjk::prohibits_line_end(ch)
-            || matches!(ch, '\u{2018}' | '\u{2019}' | '\u{201C}' | '\u{201D}'))
-}
-
-fn paragraph_is_pure_chinese(lines: &[LayoutLine]) -> bool {
-    let mut han = false;
-    for line in lines {
-        for ch in line.run.text.chars() {
-            if cjk::script_run(ch) == cjk::ScriptRun::Han {
-                han = true;
-            } else if !r3_mark(ch) {
-                return false;
-            }
-        }
-    }
-    han
-}
-
-fn justify_pure_chinese(
+/// `both` lines per [`cjk::justify_line`]. A line it cannot stretch, and a
+/// line with tab gaps or pictures, keeps its start-aligned shaping.
+fn justify_lines(
     lines: &mut [LayoutLine],
     content_width: Emu,
     paragraph: NodeId,
 ) -> Result<(), LayoutError> {
-    if !paragraph_is_pure_chinese(lines) {
-        return Err(unsupported(
-            Some(paragraph),
-            "inter-character justification",
-        ));
-    }
     let last = lines.len().saturating_sub(1);
     for (index, line) in lines.iter_mut().enumerate() {
-        if line.run.text.is_empty() {
+        if line.run.text.is_empty() || !line.tab_gaps.is_empty() || !line.images.is_empty() {
             continue;
         }
-        let chars: Vec<usize> = line.run.text.char_indices().map(|(byte, _)| byte).collect();
-        if chars.len() != line.run.glyphs.len()
-            || chars
-                .iter()
-                .zip(&line.run.glyphs)
-                .any(|(byte, glyph)| glyph.cluster != *byte)
-        {
-            return Err(unsupported(
-                Some(paragraph),
-                "inter-character justification",
-            ));
-        }
-        let advances: Vec<Emu> = line.run.glyphs.iter().map(|glyph| glyph.advance).collect();
-        let gaps = match cjk::justify_intercharacter(&advances, content_width, index == last) {
-            Ok(justified) => justified.gaps,
+        let indexes: Vec<usize> = (0..line.run.glyphs.len()).collect();
+        let gaps = match cjk::justify_run(&line.run, &indexes, content_width, index == last) {
+            Ok(gaps) => gaps,
             Err(CjkIssue::UnverifiedJustify | CjkIssue::DoesNotFit) => continue,
             Err(CjkIssue::BudgetExceeded) => {
                 return Err(unsupported(Some(paragraph), "justification budget"));
@@ -1127,13 +1090,8 @@ fn justify_pure_chinese(
             Err(_) => return Err(LayoutError::GeometryOverflow),
         };
         let mut pen = 0i64;
-        let glyph_count = line.run.glyphs.len();
-        for (glyph_index, glyph) in line.run.glyphs.iter_mut().enumerate() {
-            let gap = if glyph_index + 1 == glyph_count {
-                0
-            } else {
-                gaps[glyph_index].raw()
-            };
+        for (glyph, gap) in line.run.glyphs.iter_mut().zip(gaps) {
+            let gap = gap.raw();
             let advance = glyph
                 .advance
                 .raw()
@@ -3795,7 +3753,7 @@ pub(crate) fn fit_paragraph(
         used_field_cache = expanded.used_cache;
         let mut fitted = fit_slice(&expanded.display, 0, width)?;
         if painted.flow.justification == Some(Justification::Both) {
-            justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
+            justify_lines(&mut fitted.lines, width, paragraph.id())?;
         }
         crate::pages::remap_field_sources(&mut fitted.lines, &expanded.source_scalars, paragraph);
         trailing_breaks = 0;
@@ -3855,7 +3813,7 @@ pub(crate) fn fit_paragraph(
                 };
                 let mut part = fit_slice(&piece.text, piece.byte_origin, piece_width)?;
                 if painted.flow.justification == Some(Justification::Both) {
-                    justify_pure_chinese(&mut part.lines, piece_width, paragraph.id())?;
+                    justify_lines(&mut part.lines, piece_width, paragraph.id())?;
                 }
                 crate::pages::shift_piece(&mut part.lines, piece);
                 piece_breaks.push(piece.breaks_before);
@@ -3888,7 +3846,7 @@ pub(crate) fn fit_paragraph(
         } else {
             let mut fitted = fit_slice(&text, 0, width)?;
             if painted.flow.justification == Some(Justification::Both) {
-                justify_pure_chinese(&mut fitted.lines, width, paragraph.id())?;
+                justify_lines(&mut fitted.lines, width, paragraph.id())?;
             }
             trailing_breaks = 0;
             fitted

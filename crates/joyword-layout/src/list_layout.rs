@@ -12,7 +12,7 @@ use joyword_model::{
     indent_edges, tab_positions,
 };
 
-use crate::cjk::{self, CjkIssue, ScriptRun};
+use crate::cjk::{self, CjkIssue};
 
 use crate::line::{ClusterRange, LayoutLine, LineDiagnostic, ParagraphLines, SourceRange};
 use crate::shape::{FeatureSet, ShapedGlyph, ShapedRun, shape};
@@ -673,29 +673,10 @@ fn justify_body(
     if indexes.is_empty() {
         return Ok(());
     }
-    let mut han = false;
-    for index in &indexes {
-        let cluster = line.run.glyphs[*index].cluster;
-        let Some(ch) = line.run.text[cluster..].chars().next() else {
-            return Err(unsupported_node(node, "inter-character justification"));
-        };
-        if cjk::script_run(ch) == ScriptRun::Han {
-            han = true;
-        } else if !r3_mark(ch) {
-            return Err(unsupported_node(node, "inter-character justification"));
-        }
-    }
-    if !han {
-        return Err(unsupported_node(node, "inter-character justification"));
-    }
     let origin = line.run.glyphs[indexes[0]].x.raw();
     let width = Emu::new((area_right - origin).max(0));
-    let advances: Vec<Emu> = indexes
-        .iter()
-        .map(|index| line.run.glyphs[*index].advance)
-        .collect();
-    let gaps = match cjk::justify_intercharacter(&advances, width, last) {
-        Ok(justified) => justified.gaps,
+    let gaps = match cjk::justify_run(&line.run, &indexes, width, last) {
+        Ok(gaps) => gaps,
         Err(CjkIssue::UnverifiedJustify | CjkIssue::DoesNotFit) => return Ok(()),
         Err(CjkIssue::BudgetExceeded) => {
             return Err(unsupported_node(node, "justification budget"));
@@ -703,13 +684,8 @@ fn justify_body(
         Err(_) => return Err(LayoutError::GeometryOverflow),
     };
     let mut pen = origin;
-    let count = indexes.len();
-    for (glyph_index, index) in indexes.into_iter().enumerate() {
-        let gap = if glyph_index + 1 == count {
-            0
-        } else {
-            gaps[glyph_index].raw()
-        };
+    for (index, gap) in indexes.into_iter().zip(gaps) {
+        let gap = gap.raw();
         let advance = line.run.glyphs[index]
             .advance
             .raw()
@@ -722,13 +698,6 @@ fn justify_body(
             .ok_or(LayoutError::GeometryOverflow)?;
     }
     Ok(())
-}
-
-fn r3_mark(ch: char) -> bool {
-    !ch.is_ascii()
-        && (cjk::prohibits_line_start(ch)
-            || cjk::prohibits_line_end(ch)
-            || matches!(ch, '\u{2018}' | '\u{2019}' | '\u{201C}' | '\u{201D}'))
 }
 
 fn unsupported_node(node: Option<NodeId>, feature: &'static str) -> LayoutError {

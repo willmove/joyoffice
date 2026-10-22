@@ -620,9 +620,11 @@ impl JoyWord {
                             window.focus(&field.focus, cx);
                         }
                     }))
-                    .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
-                        this.type_dialog_field(index, event, cx);
-                    }))
+                    .on_key_down(cx.listener(
+                        move |this, event: &gpui::KeyDownEvent, window, cx| {
+                            this.type_dialog_field(index, event, window, cx);
+                        },
+                    ))
                     .child(shown),
             )
             .into_any_element()
@@ -684,17 +686,52 @@ impl JoyWord {
                 if apply {
                     this.apply_format_dialog(window, cx);
                 } else {
-                    this.format_dialog = None;
-                    cx.notify();
+                    this.close_format_dialog(window, cx);
                 }
             }))
             .child(label)
+    }
+
+    pub(crate) fn close_format_dialog(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.format_dialog = None;
+        window.focus(&self.focus_handle, cx);
+        cx.notify();
+    }
+
+    /// Esc that no field consumed closes the format panel or the path sheet,
+    /// like Cancel. While an IME composition is open Esc is bound to
+    /// `CancelComposition` instead and never arrives here.
+    pub(crate) fn escape_panel(
+        &mut self,
+        event: &gpui::KeyDownEvent,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let mods = &event.keystroke.modifiers;
+        if event.keystroke.key != "escape"
+            || mods.control
+            || mods.alt
+            || mods.shift
+            || mods.platform
+            || mods.function
+        {
+            return;
+        }
+        if self.format_dialog.is_some() {
+            self.close_format_dialog(window, cx);
+        } else if self.path_sheet.is_some() {
+            self.cancel_path_sheet(window, cx);
+        } else {
+            return;
+        }
+        cx.stop_propagation();
     }
 
     fn type_dialog_field(
         &mut self,
         index: usize,
         event: &gpui::KeyDownEvent,
+        window: &mut Window,
         cx: &mut Context<Self>,
     ) {
         let mods = &event.keystroke.modifiers;
@@ -702,9 +739,8 @@ impl JoyWord {
             return;
         }
         if event.keystroke.key == "escape" {
-            self.format_dialog = None;
             cx.stop_propagation();
-            cx.notify();
+            self.close_format_dialog(window, cx);
             return;
         }
         let Some(dialog) = &mut self.format_dialog else {

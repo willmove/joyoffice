@@ -1008,3 +1008,15 @@ T302 从 `planned` 改为 `in_progress`，不标 `done`。这一刀是类型化�
 - **功能区与窗口**：开始功能区加剪切、下划线、左对齐、右对齐、两端对齐，布局功能区加页脚，功能区地板从 53 升到 59。格式、对齐、视图开关与修订视图按钮显示按下状态。Linux 编辑栏加剪切。窗口标题为「文件名 - JoyWord」，未保存时加 `*`，关闭提示写出文档名。格式刷「连续／单次」和查找栏「全半角／正则」改用语言包文字。
 - **证据**：[word_navigation.rs](../../crates/joyword-shell/tests/word_navigation.rs) 11 个测试，`cut_toggles_and_alignment_presets_go_through_the_command_registry`、`protected_documents_refuse_edits_and_a_failed_save_keeps_bytes`，应用内 `word_processor_chords_reach_their_commands`、`window_title_names_the_document_and_marks_unsaved_changes`、`page_keys_move_about_one_screen_and_stop_at_the_ends`、`every_word_unit_command_maps_to_one_caret_move`。行为登记新增 `EDIT-WORD-MOVE`、`EDIT-PARAGRAPH-DOCUMENT-MOVE`、`EDIT-WORD-DELETE`、`FORMAT-TOGGLE-MIXED`、`FORMAT-TOGGLE-STYLE`、`CLIP-CUT`，来源都是假设。本机 `cargo fmt`、`cargo clippy --locked -D warnings`、`cargo test --locked`、`scripts/check_gates.py` 与 `scripts/check_docs.py` 通过。
 - **未覆盖**：真实窗口里的按键、IME 组合期间的快捷键、PgUp／PgDn 滚动手感和按下状态的视觉效果没有人工验收；麒麟、统信真机未验证。中日韩没有词典分词。对齐快捷键不做「再按一次回到左对齐」。多段混合对齐时按钮只看插入点段落。
+
+### Linux 冒烟测试四处修复（2026-10-21）
+
+Linux X11 冒烟测试（main c0c3ed7f）报了四个问题。任务状态和进度计数不改。
+
+- **命令行打开**：`main` 原先不读命令行参数，窗口一直显示内置样例，所以标题和关闭提示都是「未命名 1」。应用内「打开」本来就绑定文件，标题正确。现在第一个非选项参数（或 `--` 之后的第一个参数）经 `confirm_if_dirty` 走 `begin_open_path`；启动时恢复了日志的文档会先弹未保存提示。
+- **关闭提示**：GPUI 在 Linux 的后备提示框宽度固定、文字不换行，第二行被截断。Linux 上改用自绘提示框：440 px 卡片，说明文字换行，Esc 取消，Enter 只触发确定类按钮。
+- **两端对齐**：Justify 写出的是 `both`，没有写错；排版原先只接受纯中文行，含 ASCII 的段落按 `inter-character justification` 报错，整页无法显示。`cjk::justify_line`／`justify_run` 改为在中日韩字符两侧和空格处分配余量，拉丁词与数字内部不拉开，行尾空格悬挂，没有可分配间隙的行保持左对齐；纯中文行与 R3 等分结果相同。正文与列表共用同一入口。`distribute` 仍拒绝。
+- **Esc 关闭字体面板**：Esc 原先在整个 `JoyWordInput` 上下文绑定 `CancelComposition`，按键绑定先于元素按键处理，面板收不到 Esc。现在只在 `JoyWordInput && composing` 下绑定；根视图的按键处理关闭格式对话框或路径栏，并把焦点还给文档。
+- **证据**：layout `justify_line_matches_r3_on_pure_chinese_and_spares_latin_words`、`mixed_justification_fills_lines_at_cjk_gaps_and_spaces_only`、`distribute_stays_unsupported_and_lone_latin_words_keep_their_shaping`；应用内 `justify_on_mixed_script_paragraphs_keeps_the_document_displayable`、`a_document_named_on_the_command_line_names_the_window_and_the_close_prompt`、`escape_is_bound_only_while_composing_so_panels_receive_it_otherwise`、`prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only`。本机 `cargo fmt`、`cargo clippy --workspace --all-targets --locked -D warnings`、`cargo test --locked`、`cargo test --locked -p joyword`、`scripts/check_gates.py`、`scripts/check_docs.py` 通过。在 Xvfb 桌面（llvmpipe）上实际运行，看到标题「sample.docx - JoyWord」与「*sample.docx - JoyWord」、Ctrl+J 后混排段落拉伸且段末行不拉伸、Ctrl+D 后 Esc 关闭字体面板并能继续输入、关闭提示写出 sample.docx 且说明换行、Esc 取消提示、「不保存」退出。
+- **另见**：word_edited.docx 本身被排版预检以 `preserved settings` 拒绝，从命令行或应用内打开都显示错误页；冒烟测试里看到的正文其实是内置样例。关闭时选「不保存」后恢复日志仍保留，下次启动会恢复为 recovered.docx。这两处本次未改。
+- **未覆盖**：真实 fcitx／ibus 组合期间按 Esc；Wayland 下的提示框；不同窗口尺寸下提示框外观；混排两端对齐没有 Word 对照；麒麟、统信真机未验证。
