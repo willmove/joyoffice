@@ -92,7 +92,11 @@ pub enum ReadOnlyReason {
     /// modeled now, so this reason is no longer produced. Document protection
     /// still is.
     TrackRevisions,
-    /// Format or table revision markup (T301) that this slice does not edit.
+    /// Revision markup this slice does not edit: table structure revisions
+    /// (`w:tblPrChange`, `w:trPrChange`, `w:tcPrChange`, `w:cellIns`,
+    /// `w:cellDel`, `w:cellMerge`, and the other non-text revisions) anywhere,
+    /// and format revisions (`w:rPrChange`, `w:pPrChange`) inside tables.
+    /// Format revisions in paragraphs outside tables are typed (T301).
     Revisions,
     /// `mc:MustUnderstand` names a namespace this importer does not
     /// understand (ECMA-376 Part 3).

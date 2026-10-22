@@ -1,4 +1,5 @@
-//! Accept, reject and tracked typing for text and move revisions (T300).
+//! Accept, reject and tracked typing for text, move and format revisions
+//! (T300/T301).
 //!
 //! Accept and reject do not create revisions. A move is one change: accepting
 //! or rejecting either side's revision id resolves both ends. Accept keeps
@@ -9,6 +10,12 @@
 //! projections. A move run that crosses a marker, or the other move kind
 //! inside a side, is [`CommandError::RevisionConflict`]. An incomplete or
 //! crossed pair is refused. Every refusal leaves the document unchanged.
+//!
+//! Format revisions (`w:rPrChange` §17.13.5.30, `w:pPrChange` §17.13.5.29)
+//! resolve by the same commands and ids: accepting drops the record and
+//! keeps the current formatting; rejecting restores the recorded previous
+//! formatting. An id that carries both a text and a format revision is
+//! settled as one change.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -35,11 +42,14 @@ enum Resolution {
     Reject,
 }
 
-/// Text revision at the caret, or overlapping the selection.
+/// Text or format revision at the caret, or overlapping the selection.
 ///
 /// A caret on the boundary between two runs prefers the run that ends there,
-/// so the change just typed is the current one. `None` means the selection
-/// does not touch a text revision.
+/// so the change just typed is the current one. When no text revision is
+/// touched, an unresolved format revision (`w:rPrChange` / `w:pPrChange`)
+/// covering the caret is returned instead; a paragraph-level change applies
+/// wherever the caret sits in that paragraph. `None` means the selection
+/// does not touch a revision.
 pub fn current_revision(document: &Document, selection: &Selection) -> Option<u32> {
     if let Some(id) = revision_at(document, &selection.head) {
         return Some(id);
@@ -527,8 +537,8 @@ fn resolve_format_one(
         .collect();
     let mut found = false;
     for (story, paragraph) in targets {
-        let location =
-            locate::locate(document, story, paragraph).ok_or(CommandError::UnknownNode(paragraph))?;
+        let location = locate::locate(document, story, paragraph)
+            .ok_or(CommandError::UnknownNode(paragraph))?;
         if location.content_locked {
             return Err(CommandError::Locked(paragraph));
         }
@@ -559,8 +569,8 @@ fn resolve_format_all(
         })
         .collect();
     for (story, paragraph) in targets {
-        let location =
-            locate::locate(document, story, paragraph).ok_or(CommandError::UnknownNode(paragraph))?;
+        let location = locate::locate(document, story, paragraph)
+            .ok_or(CommandError::UnknownNode(paragraph))?;
         if location.content_locked {
             return Err(CommandError::Locked(paragraph));
         }

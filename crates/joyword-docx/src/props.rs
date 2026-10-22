@@ -353,11 +353,7 @@ pub(crate) fn para_with_change<'e>(element: &'e Element, findings: &mut Findings
     para_inner(element, findings, true)
 }
 
-fn para_inner<'e>(
-    element: &'e Element,
-    findings: &mut Findings,
-    capture_change: bool,
-) -> Para<'e> {
+fn para_inner<'e>(element: &'e Element, findings: &mut Findings, capture_change: bool) -> Para<'e> {
     let mut out = Para {
         props: ParaProps::default(),
         style: None,

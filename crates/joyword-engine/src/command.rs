@@ -141,17 +141,24 @@ pub enum Command {
         enabled: bool,
     },
     /// Accepts one revision. A move id accepts both sides of its `w:name`.
+    /// A format revision (`w:rPrChange` / `w:pPrChange`) keeps the current
+    /// formatting and drops the record; an id carrying both a text and a
+    /// format revision settles both.
     AcceptRevision {
         id: u32,
     },
     /// Rejects one revision. A move id rejects both sides of its `w:name`.
+    /// A format revision (`w:rPrChange` / `w:pPrChange`) restores the
+    /// recorded previous formatting; an id carrying both a text and a
+    /// format revision settles both.
     RejectRevision {
         id: u32,
     },
-    /// Accepts every text revision and every complete move. Fails entirely
-    /// when any move pair is incomplete or crossed.
+    /// Accepts every text revision, every complete move and every format
+    /// revision. Fails entirely when any move pair is incomplete or crossed.
     AcceptAllRevisions,
-    /// Rejects every text revision and every complete move.
+    /// Rejects every text revision, every complete move and every format
+    /// revision.
     RejectAllRevisions,
     /// Inserts a root comment on `start..end` in one story.
     /// The start sticks before insertions there; the end sticks after.

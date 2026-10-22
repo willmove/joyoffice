@@ -243,7 +243,8 @@ pub(crate) fn import_format_change(
     Some(revision)
 }
 
-pub(crate) fn revision_kind(local: &str) -> Option<RevisionKind> {    match local {
+pub(crate) fn revision_kind(local: &str) -> Option<RevisionKind> {
+    match local {
         "ins" => Some(RevisionKind::Insert),
         "del" => Some(RevisionKind::Delete),
         "moveFrom" => Some(RevisionKind::MoveFrom),
