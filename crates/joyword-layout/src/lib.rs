@@ -34,8 +34,8 @@ pub use line::{
 pub use scene::{GlyphRun, PageScene, SceneImage, SceneRect, to_points, to_screen};
 pub use shape::{FeatureSet, ShapedGlyph, ShapedRun, shape};
 pub use slots::{
-    FaceSet, FontSlot, MixedLine, MixedParagraph, adjust_cjk_break, prohibited_line_edge, slot_for,
-    wrap_mixed,
+    FaceSet, FontSlot, MixedLine, MixedParagraph, adjust_cjk_break, break_opportunities,
+    prohibited_line_edge, slot_for, wrap_mixed,
 };
 
 pub use cache::{

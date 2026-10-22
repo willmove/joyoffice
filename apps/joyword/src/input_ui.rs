@@ -2486,10 +2486,21 @@ impl JoyWord {
                         cx.notify();
                     }
                     CloseDecision::AskAgain => view.confirm_if_dirty(then, window, cx),
-                    CloseDecision::Discard => view.finish_discard(then, window, cx),
+                    CloseDecision::Discard => {
+                        view.forget_recovery_journal();
+                        view.finish_discard(then, window, cx);
+                    }
                 }
             });
         }));
+    }
+    /// Don't Save drops the recovery journal for this document. A clean close
+    /// never wrote one that still needs discarding, so only the prompt's
+    /// discard answer comes through here.
+    fn forget_recovery_journal(&self) {
+        if let Some(directory) = &self.recovery_dir {
+            let _ = joyword_shell::storage::clear_recovery(directory);
+        }
     }
     fn finish_discard(&mut self, then: AfterDiscard, window: &mut Window, cx: &mut Context<Self>) {
         match then {
@@ -2572,7 +2583,7 @@ impl JoyWord {
         let focus = cx.focus_handle();
         self.path_sheet = Some(crate::linux_files::PathSheet {
             role,
-            draft,
+            draft: crate::field_edit::FieldBuffer::from_text(draft),
             focus: focus.clone(),
             note: None,
             browse: crate::linux_files::dialog_program_available(),
@@ -2593,13 +2604,11 @@ impl JoyWord {
     pub(crate) fn path_sheet_panel(&self, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
         let sheet = self.path_sheet.as_ref()?;
         let title = self.path_sheet_title(sheet.role);
-        let draft = sheet.draft.clone();
-        let faded = draft.is_empty();
         let placeholder = match self.locale {
             joyword_shell::l10n::Locale::ZhCn => "文件路径",
             joyword_shell::l10n::Locale::En => "File path",
         };
-        let shown = if faded { placeholder.to_owned() } else { draft };
+        let shown = crate::field_edit::field_view(&sheet.draft, placeholder);
         let note = sheet.note.clone().unwrap_or_default();
         let focus = sheet.focus.clone();
         let browse = sheet.browse;
@@ -2615,6 +2624,7 @@ impl JoyWord {
                 div()
                     .id("linux-path")
                     .track_focus(&focus)
+                    .key_context(crate::field_edit::FIELD_CONTEXT)
                     .focusable()
                     .flex_1()
                     .px_2()
@@ -2622,7 +2632,7 @@ impl JoyWord {
                     .border_1()
                     .border_color(rgb(0xc5ced6))
                     .bg(rgb(0xffffff))
-                    .text_color(if faded { rgb(0x8896a3) } else { rgb(0x263247) })
+                    .text_color(rgb(0x263247))
                     .on_click(cx.listener(|this, _, window, cx| {
                         if let Some(sheet) = &this.path_sheet {
                             let focus = sheet.focus.clone();
@@ -2691,54 +2701,22 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let mods = &event.keystroke.modifiers;
-        if mods.platform || mods.alt || mods.function {
-            return;
-        }
-        if mods.control && event.keystroke.key == "v" {
-            cx.stop_propagation();
-            if let Some(item) = cx.read_from_clipboard() {
-                for entry in item.entries() {
-                    if let gpui::ClipboardEntry::String(text) = entry {
-                        let piece = text.text.replace(['\n', '\r'], "");
-                        if let Some(sheet) = &mut self.path_sheet {
-                            sheet.draft.push_str(piece.trim());
-                        }
-                        break;
-                    }
-                }
-            }
-            cx.notify();
-            return;
-        }
-        if mods.control {
-            return;
-        }
-        if event.keystroke.key == "enter" {
-            cx.stop_propagation();
-            self.submit_path_sheet(window, cx);
-            return;
-        }
-        if event.keystroke.key == "escape" {
-            cx.stop_propagation();
-            self.cancel_path_sheet(window, cx);
-            return;
-        }
-        let Some(sheet) = &mut self.path_sheet else {
+        let effect = {
+            let Some(sheet) = &mut self.path_sheet else {
+                return;
+            };
+            let effect = sheet.draft.apply_key(&event.keystroke);
+            crate::field_edit::consume(effect, &mut sheet.draft, cx)
+        };
+        let Some(effect) = effect else {
             return;
         };
-        if event.keystroke.key == "backspace" {
-            sheet.draft.pop();
-        } else if let Some(ch) = event.keystroke.key_char.as_deref() {
-            if ch.chars().any(char::is_control) {
-                return;
-            }
-            sheet.draft.push_str(ch);
-        } else {
-            return;
-        }
         cx.stop_propagation();
-        cx.notify();
+        match effect {
+            crate::field_edit::FieldEffect::Submit => self.submit_path_sheet(window, cx),
+            crate::field_edit::FieldEffect::Cancel => self.cancel_path_sheet(window, cx),
+            _ => cx.notify(),
+        }
     }
     pub(crate) fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.path_sheet = None;
@@ -2750,7 +2728,7 @@ impl JoyWord {
             return;
         };
         let role = sheet.role;
-        let draft = sheet.draft.clone();
+        let draft = sheet.draft.text().to_owned();
         match crate::linux_files::accept_typed_path(role, &draft) {
             Ok(path) => {
                 self.path_sheet = None;
@@ -2804,7 +2782,7 @@ impl JoyWord {
         }
         sheet.browsing = true;
         let role = sheet.role;
-        let draft = sheet.draft.clone();
+        let draft = sheet.draft.text().to_owned();
         let (directory, suggested) = path_suggestion(&draft);
         cx.spawn_in(window, async move |view, cx| {
             let picked = cx
@@ -2832,7 +2810,7 @@ impl JoyWord {
             crate::linux_files::LinuxPick::Chosen(path) => {
                 if let Some(sheet) = &mut self.path_sheet {
                     sheet.browsing = false;
-                    sheet.draft = path.display().to_string();
+                    sheet.draft.set_text(path.display().to_string());
                     sheet.note = None;
                 }
                 self.submit_path_sheet(window, cx);

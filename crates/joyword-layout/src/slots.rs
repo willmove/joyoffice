@@ -63,6 +63,28 @@ fn is_opening(ch: char) -> bool {
     crate::cjk::prohibits_line_end(ch)
 }
 
+/// Byte offsets where a line may end, ascending and ending at `text.len()`:
+/// the UAX #14 default opportunities moved by [`adjust_cjk_break`]. This is
+/// the set [`wrap_mixed`] fits lines to; UI text that wraps itself uses it so
+/// the same punctuation never starts a line there either.
+pub fn break_opportunities(text: &str) -> Vec<usize> {
+    let mut opportunities = Vec::new();
+    for (offset, _) in unicode_linebreak::linebreaks(text) {
+        if offset > 0 && offset < text.len() && text.is_char_boundary(offset) {
+            let adjusted = adjust_cjk_break(text, offset);
+            if adjusted > 0 && !opportunities.contains(&adjusted) {
+                opportunities.push(adjusted);
+            }
+        }
+    }
+    if !text.is_empty() {
+        opportunities.push(text.len());
+    }
+    opportunities.sort_unstable();
+    opportunities.dedup();
+    opportunities
+}
+
 /// Move `at` so the following line does not start with closing punctuation and
 /// this line does not end with opening punctuation. `at` is a byte offset.
 pub fn adjust_cjk_break(text: &str, at: usize) -> usize {
@@ -146,17 +168,7 @@ pub fn wrap_mixed(
     let _ = LineLimits::default();
     let pieces = shaped_pieces(faces, text, size, hint);
     let mut opportunities = vec![0];
-    for (offset, _) in unicode_linebreak::linebreaks(text) {
-        if offset > 0 && offset < text.len() && text.is_char_boundary(offset) {
-            let adjusted = adjust_cjk_break(text, offset);
-            if adjusted > 0 && !opportunities.contains(&adjusted) {
-                opportunities.push(adjusted);
-            }
-        }
-    }
-    opportunities.push(text.len());
-    opportunities.sort_unstable();
-    opportunities.dedup();
+    opportunities.extend(break_opportunities(text));
 
     let mut lines = Vec::new();
     let mut start = 0usize;

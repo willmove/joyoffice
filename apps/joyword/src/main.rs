@@ -4,6 +4,7 @@
 mod chrome_ui;
 mod document_canvas;
 mod export;
+mod field_edit;
 mod input_ui;
 mod linux_files;
 #[cfg(target_os = "linux")]
@@ -150,7 +151,7 @@ pub(crate) enum DialogKind {
 pub(crate) struct DialogField {
     pub name: &'static str,
     pub label: &'static str,
-    pub text: String,
+    pub value: field_edit::FieldBuffer,
     pub focus: FocusHandle,
 }
 
@@ -382,10 +383,14 @@ fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
     chords
 }
 
+/// Document focus, and not one of the in-app text fields. A focused field
+/// pushes [`field_edit::FIELD_CONTEXT`], and `!JoyWordField` checks the whole
+/// context stack, so these bindings stay with the document.
+const DOCUMENT: &str = "JoyWordInput && !JoyWordField";
 /// Document focus with no open IME composition.
-const TYPING: &str = "JoyWordInput && !composing";
+const TYPING: &str = "JoyWordInput && !composing && !JoyWordField";
 /// Document focus while an IME composition is open.
-const COMPOSING: &str = "JoyWordInput && composing";
+const COMPOSING: &str = "JoyWordInput && composing && !JoyWordField";
 
 fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
     shortcut_chords(registry)
@@ -397,42 +402,24 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 ZOOM_OUT => KeyBinding::new(keys, ZoomOut, None),
                 ZOOM_RESET => KeyBinding::new(keys, ZoomReset, None),
                 SWITCH_LANGUAGE => KeyBinding::new(keys, SwitchLanguage, None),
-                EDIT_UNDO => KeyBinding::new(keys, Undo, Some("JoyWordInput")),
-                EDIT_REDO => KeyBinding::new(keys, Redo, Some("JoyWordInput")),
-                EDIT_SELECT_ALL => KeyBinding::new(keys, SelectAll, Some("JoyWordInput")),
-                EDIT_BACKSPACE => {
-                    KeyBinding::new(keys, Backspace, Some("JoyWordInput && !composing"))
-                }
-                EDIT_DELETE => {
-                    KeyBinding::new(keys, DeleteForward, Some("JoyWordInput && !composing"))
-                }
-                EDIT_ENTER => {
-                    KeyBinding::new(keys, NewParagraph, Some("JoyWordInput && !composing"))
-                }
-                EDIT_LEFT => KeyBinding::new(keys, MoveLeft, Some("JoyWordInput && !composing")),
-                EDIT_RIGHT => KeyBinding::new(keys, MoveRight, Some("JoyWordInput && !composing")),
-                EDIT_EXTEND_LEFT => {
-                    KeyBinding::new(keys, ExtendLeft, Some("JoyWordInput && !composing"))
-                }
-                EDIT_EXTEND_RIGHT => {
-                    KeyBinding::new(keys, ExtendRight, Some("JoyWordInput && !composing"))
-                }
-                EDIT_UP => KeyBinding::new(keys, MoveUp, Some("JoyWordInput && !composing")),
-                EDIT_DOWN => KeyBinding::new(keys, MoveDown, Some("JoyWordInput && !composing")),
-                EDIT_EXTEND_UP => {
-                    KeyBinding::new(keys, ExtendUp, Some("JoyWordInput && !composing"))
-                }
-                EDIT_EXTEND_DOWN => {
-                    KeyBinding::new(keys, ExtendDown, Some("JoyWordInput && !composing"))
-                }
-                EDIT_HOME => KeyBinding::new(keys, LineStart, Some("JoyWordInput && !composing")),
-                EDIT_END => KeyBinding::new(keys, LineEnd, Some("JoyWordInput && !composing")),
-                EDIT_EXTEND_HOME => {
-                    KeyBinding::new(keys, ExtendLineStart, Some("JoyWordInput && !composing"))
-                }
-                EDIT_EXTEND_END => {
-                    KeyBinding::new(keys, ExtendLineEnd, Some("JoyWordInput && !composing"))
-                }
+                EDIT_UNDO => KeyBinding::new(keys, Undo, Some(DOCUMENT)),
+                EDIT_REDO => KeyBinding::new(keys, Redo, Some(DOCUMENT)),
+                EDIT_SELECT_ALL => KeyBinding::new(keys, SelectAll, Some(DOCUMENT)),
+                EDIT_BACKSPACE => KeyBinding::new(keys, Backspace, Some(TYPING)),
+                EDIT_DELETE => KeyBinding::new(keys, DeleteForward, Some(TYPING)),
+                EDIT_ENTER => KeyBinding::new(keys, NewParagraph, Some(TYPING)),
+                EDIT_LEFT => KeyBinding::new(keys, MoveLeft, Some(TYPING)),
+                EDIT_RIGHT => KeyBinding::new(keys, MoveRight, Some(TYPING)),
+                EDIT_EXTEND_LEFT => KeyBinding::new(keys, ExtendLeft, Some(TYPING)),
+                EDIT_EXTEND_RIGHT => KeyBinding::new(keys, ExtendRight, Some(TYPING)),
+                EDIT_UP => KeyBinding::new(keys, MoveUp, Some(TYPING)),
+                EDIT_DOWN => KeyBinding::new(keys, MoveDown, Some(TYPING)),
+                EDIT_EXTEND_UP => KeyBinding::new(keys, ExtendUp, Some(TYPING)),
+                EDIT_EXTEND_DOWN => KeyBinding::new(keys, ExtendDown, Some(TYPING)),
+                EDIT_HOME => KeyBinding::new(keys, LineStart, Some(TYPING)),
+                EDIT_END => KeyBinding::new(keys, LineEnd, Some(TYPING)),
+                EDIT_EXTEND_HOME => KeyBinding::new(keys, ExtendLineStart, Some(TYPING)),
+                EDIT_EXTEND_END => KeyBinding::new(keys, ExtendLineEnd, Some(TYPING)),
                 EDIT_WORD_LEFT => KeyBinding::new(keys, WordLeft, Some(TYPING)),
                 EDIT_WORD_RIGHT => KeyBinding::new(keys, WordRight, Some(TYPING)),
                 EDIT_EXTEND_WORD_LEFT => KeyBinding::new(keys, ExtendWordLeft, Some(TYPING)),
@@ -464,19 +451,19 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
                 FILE_SAVE_COPY => KeyBinding::new(keys, SaveCopy, None),
                 FILE_EXPORT_PDF => KeyBinding::new(keys, ExportPdf, None),
                 FILE_PRINT => KeyBinding::new(keys, PrintFile, None),
-                EDIT_BOLD => KeyBinding::new(keys, Bold, Some("JoyWordInput && !composing")),
-                EDIT_ITALIC => KeyBinding::new(keys, Italic, Some("JoyWordInput && !composing")),
+                EDIT_BOLD => KeyBinding::new(keys, Bold, Some(TYPING)),
+                EDIT_ITALIC => KeyBinding::new(keys, Italic, Some(TYPING)),
                 EDIT_UNDERLINE => KeyBinding::new(keys, Underline, Some(TYPING)),
                 EDIT_ALIGN_LEFT => KeyBinding::new(keys, AlignLeft, Some(TYPING)),
                 EDIT_ALIGN_CENTER => KeyBinding::new(keys, AlignCenter, Some(TYPING)),
                 EDIT_ALIGN_RIGHT => KeyBinding::new(keys, AlignRight, Some(TYPING)),
                 EDIT_JUSTIFY => KeyBinding::new(keys, Justify, Some(TYPING)),
                 EDIT_CUT => KeyBinding::new(keys, CutText, Some(TYPING)),
-                EDIT_COPY => KeyBinding::new(keys, CopyText, Some("JoyWordInput")),
-                EDIT_PASTE => KeyBinding::new(keys, PasteText, Some("JoyWordInput && !composing")),
+                EDIT_COPY => KeyBinding::new(keys, CopyText, Some(DOCUMENT)),
+                EDIT_PASTE => KeyBinding::new(keys, PasteText, Some(TYPING)),
                 FILE_CLOSE => KeyBinding::new(keys, CloseDocument, None),
-                FIND_NEXT => KeyBinding::new(keys, FindNext, Some("JoyWordInput")),
-                FIND_REPLACE => KeyBinding::new(keys, ReplaceNext, Some("JoyWordInput")),
+                FIND_NEXT => KeyBinding::new(keys, FindNext, Some(DOCUMENT)),
+                FIND_REPLACE => KeyBinding::new(keys, ReplaceNext, Some(DOCUMENT)),
                 PAGE_BREAK => KeyBinding::new(keys, PageBreak, Some(TYPING)),
                 FORMAT_FONT => KeyBinding::new(keys, FontDialog, Some(TYPING)),
                 _ => return None,
@@ -527,8 +514,8 @@ struct JoyWord {
     pdf: Option<input_ui::PdfPhase>,
     original_save: Option<input_ui::OriginalSavePhase>,
     diagnostics: Option<Arc<AppLog>>,
-    find_query: String,
-    find_replacement: String,
+    find_query: field_edit::FieldBuffer,
+    find_replacement: field_edit::FieldBuffer,
     find_case: bool,
     find_word: bool,
     /// Full-width / half-width folding. Off keeps the previous literal compare.
@@ -1078,8 +1065,8 @@ impl JoyWord {
 
     fn find_args(&self, replacement: bool) -> Vec<(&'static str, ArgValue)> {
         self.find_flags().args(
-            &self.find_query,
-            replacement.then_some(self.find_replacement.as_str()),
+            self.find_query.text(),
+            replacement.then_some(self.find_replacement.text()),
         )
     }
 
@@ -1250,22 +1237,17 @@ impl JoyWord {
     }
 
     fn find_field(&self, slot: FindSlot, cx: &mut Context<Self>) -> impl IntoElement {
-        let (focus, text, placeholder) = match slot {
+        let (focus, buffer, placeholder) = match slot {
             FindSlot::Query => (
                 self.find_query_focus.clone(),
-                self.find_query.clone(),
+                &self.find_query,
                 self.label("find.query"),
             ),
             FindSlot::Replacement => (
                 self.find_replacement_focus.clone(),
-                self.find_replacement.clone(),
+                &self.find_replacement,
                 self.label("find.replacement"),
             ),
-        };
-        let shown = if text.is_empty() { placeholder } else { text };
-        let faded = match slot {
-            FindSlot::Query => self.find_query.is_empty(),
-            FindSlot::Replacement => self.find_replacement.is_empty(),
         };
         div()
             .id(match slot {
@@ -1273,6 +1255,7 @@ impl JoyWord {
                 FindSlot::Replacement => "find-replacement",
             })
             .track_focus(&focus)
+            .key_context(field_edit::FIELD_CONTEXT)
             .focusable()
             .w(px(160.0))
             .px_2()
@@ -1280,7 +1263,7 @@ impl JoyWord {
             .border_1()
             .border_color(rgb(0xc5ced6))
             .bg(rgb(0xffffff))
-            .text_color(if faded { rgb(0x8896a3) } else { rgb(0x263247) })
+            .text_color(rgb(0x263247))
             .on_click(cx.listener(move |this, _, window, cx| {
                 let focus = match slot {
                     FindSlot::Query => this.find_query_focus.clone(),
@@ -1293,7 +1276,7 @@ impl JoyWord {
                     this.type_find(slot, event, window, cx);
                 }),
             )
-            .child(shown)
+            .child(field_edit::field_view(buffer, &placeholder))
     }
 
     fn type_find(
@@ -1303,38 +1286,29 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let mods = &event.keystroke.modifiers;
-        if mods.control || mods.alt || mods.platform || mods.function {
-            return;
-        }
-        if event.keystroke.key == "enter" {
-            cx.stop_propagation();
-            let args = self.find_args(false);
-            self.run_with(FIND_NEXT, &args, window, cx);
-            return;
-        }
-        if event.keystroke.key == "escape" {
-            cx.stop_propagation();
-            window.focus(&self.focus_handle, cx);
-            cx.notify();
-            return;
-        }
-        let text = match slot {
-            FindSlot::Query => &mut self.find_query,
-            FindSlot::Replacement => &mut self.find_replacement,
+        let effect = {
+            let buffer = match slot {
+                FindSlot::Query => &mut self.find_query,
+                FindSlot::Replacement => &mut self.find_replacement,
+            };
+            let effect = buffer.apply_key(&event.keystroke);
+            field_edit::consume(effect, buffer, cx)
         };
-        if event.keystroke.key == "backspace" {
-            text.pop();
-        } else if let Some(ch) = event.keystroke.key_char.as_deref() {
-            if ch.chars().any(char::is_control) {
-                return;
-            }
-            text.push_str(ch);
-        } else {
+        let Some(effect) = effect else {
             return;
-        }
+        };
         cx.stop_propagation();
-        cx.notify();
+        match effect {
+            field_edit::FieldEffect::Submit => {
+                let args = self.find_args(false);
+                self.run_with(FIND_NEXT, &args, window, cx);
+            }
+            field_edit::FieldEffect::Cancel => {
+                window.focus(&self.focus_handle, cx);
+                cx.notify();
+            }
+            _ => cx.notify(),
+        }
     }
 
     fn find_button(
@@ -2227,8 +2201,8 @@ fn main() {
                         pdf: None,
                         original_save: None,
                         diagnostics: boot_log.clone(),
-                        find_query: String::new(),
-                        find_replacement: String::new(),
+                        find_query: field_edit::FieldBuffer::default(),
+                        find_replacement: field_edit::FieldBuffer::default(),
                         find_case: false,
                         find_word: false,
                         find_width: false,

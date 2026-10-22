@@ -45,7 +45,7 @@ pub(crate) enum PathRole {
 
 pub(crate) struct PathSheet {
     pub role: PathRole,
-    pub draft: String,
+    pub draft: crate::field_edit::FieldBuffer,
     pub focus: gpui::FocusHandle,
     pub note: Option<String>,
     pub browse: bool,

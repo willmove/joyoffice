@@ -1018,5 +1018,15 @@ Linux X11 冒烟测试（main c0c3ed7f）报了四个问题。任务状态和进
 - **两端对齐**：Justify 写出的是 `both`，没有写错；排版原先只接受纯中文行，含 ASCII 的段落按 `inter-character justification` 报错，整页无法显示。`cjk::justify_line`／`justify_run` 改为在中日韩字符两侧和空格处分配余量，拉丁词与数字内部不拉开，行尾空格悬挂，没有可分配间隙的行保持左对齐；纯中文行与 R3 等分结果相同。正文与列表共用同一入口。`distribute` 仍拒绝。
 - **Esc 关闭字体面板**：Esc 原先在整个 `JoyWordInput` 上下文绑定 `CancelComposition`，按键绑定先于元素按键处理，面板收不到 Esc。现在只在 `JoyWordInput && composing` 下绑定；根视图的按键处理关闭格式对话框或路径栏，并把焦点还给文档。
 - **证据**：layout `justify_line_matches_r3_on_pure_chinese_and_spares_latin_words`、`mixed_justification_fills_lines_at_cjk_gaps_and_spaces_only`、`distribute_stays_unsupported_and_lone_latin_words_keep_their_shaping`；应用内 `justify_on_mixed_script_paragraphs_keeps_the_document_displayable`、`a_document_named_on_the_command_line_names_the_window_and_the_close_prompt`、`escape_is_bound_only_while_composing_so_panels_receive_it_otherwise`、`prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only`。本机 `cargo fmt`、`cargo clippy --workspace --all-targets --locked -D warnings`、`cargo test --locked`、`cargo test --locked -p joyword`、`scripts/check_gates.py`、`scripts/check_docs.py` 通过。在 Xvfb 桌面（llvmpipe）上实际运行，看到标题「sample.docx - JoyWord」与「*sample.docx - JoyWord」、Ctrl+J 后混排段落拉伸且段末行不拉伸、Ctrl+D 后 Esc 关闭字体面板并能继续输入、关闭提示写出 sample.docx 且说明换行、Esc 取消提示、「不保存」退出。
-- **另见**：word_edited.docx 本身被排版预检以 `preserved settings` 拒绝，从命令行或应用内打开都显示错误页；冒烟测试里看到的正文其实是内置样例。关闭时选「不保存」后恢复日志仍保留，下次启动会恢复为 recovered.docx。这两处本次未改。
+- **另见**：当时 word_edited.docx 被排版预检以 `preserved settings` 拒绝，关闭时选「不保存」后恢复日志仍保留。这两处随后由「图形界面复测三处修复」处理。
 - **未覆盖**：真实 fcitx／ibus 组合期间按 Esc；Wayland 下的提示框；不同窗口尺寸下提示框外观；混排两端对齐没有 Word 对照；麒麟、统信真机未验证。
+
+### 图形界面复测三处修复（2026-10-22）
+
+真机窗口复测（main cf8ab435 之后）报了三处。任务状态和进度计数不改。
+
+- **路径栏按键**：另存为、打开、查找和格式对话框里的单行输入都在文档焦点的后代上。文档编辑快捷键绑在祖先上下文 `JoyWordInput`，GPUI 在冒泡阶段让动作默认停止传播，所以 Backspace、Delete、方向键、Home、End、Ctrl+A 等改的是正文。这些绑定改为同时要求 `!JoyWordField`；字段获得焦点时加入该上下文。字段自己维护插入点和选区，处理上述按键以及 Ctrl+C／X／V、按词移动和按词删除。Ctrl+S 等文件命令仍是全局绑定。
+- **关闭提示禁则**：GPUI 的换行可以在任意汉字前断开，所以说明文字会把全角「。」单独放在下一行。提示框改为按文档排版的 `break_opportunities`（UAX #14 断点再经 `adjust_cjk_break`）自行折行，行首不能是 `cjk::prohibits_line_start` 里的收尾标点。卡片宽度仍是 440 px，窄窗口时按视口的 90% 收窄。
+- **word_edited.docx**：Word 2024 另存的设置含 `w:zoom`、`w:rsids`、`m:mathPr` 等无排版效果的子元素，文档默认 `w:rPr` 含 `w:kern`、`w:szCs` 和 `w14:ligatures`。导入仍整段保留这些 XML，但只在每个未建模子元素都不改变行或页时把 `preserved_layout_neutral` 标为真；排版只拒绝其余保留内容。空的主题 `typeface` 用 `w:themeFontLang` 对应的补充 `a:font`（该文件的 `zh-CN` 取 `Hans` 的「等线」），没有补充字体的空槽记为未命名，解析成无字体而不是未解析主题字体。部件字节仍原样往返。会改变分页的设置（自动断字、页边镜像、非恒等颜色映射、未分类的兼容项等）仍拒绝排版。
+- **不保存**：关闭提示选「不保存」时删除 `~/.config/joyword/recovery` 下的 `recovery.jwr`（以及临时文件）。文件不存在不算错误。干净关闭不走这条路径。
+- **证据**：`props::invisible_run_children_are_preserved_as_layout_neutral`、`a_word_saved_document_keeps_its_settings_and_is_marked_layout_neutral`、`settings_that_can_move_lines_are_not_layout_neutral`、`an_unnamed_theme_slot_resolves_to_no_font`、`layout_neutral_preserved_settings_and_run_defaults_lay_out`、应用内 `a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit`、`prompt_lines_never_start_with_closing_punctuation`、`editing_keys_are_unbound_while_an_in_app_text_field_is_focused`、`editing_and_navigation_keys_edit_the_field`、`clearing_removes_a_committed_journal`。图形界面人工验收留待复测。
