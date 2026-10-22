@@ -243,6 +243,7 @@ impl Body {
                 numbering: PageNumbering::default(),
                 columns: None,
                 unequal_columns: None,
+                column_separator: false,
                 doc_grid: None,
                 preserved: None,
             }
@@ -873,6 +874,7 @@ fn section(
     let mut numbering = PageNumbering::default();
     let mut columns = None;
     let mut unequal_columns = None;
+    let mut column_separator = false;
     let mut doc_grid = None;
     for child in element.elements() {
         let mapped = child.namespace.as_deref() == Some(W);
@@ -927,6 +929,7 @@ fn section(
                     Some("continuous") => break_kind = SectionBreak::Continuous,
                     Some("evenPage") => break_kind = SectionBreak::EvenPage,
                     Some("oddPage") => break_kind = SectionBreak::OddPage,
+                    Some("nextColumn") => break_kind = SectionBreak::NextColumn,
                     Some(_) => findings.gap(),
                 }
             }
@@ -941,6 +944,7 @@ fn section(
                 Some(parsed) => {
                     columns = parsed.equal;
                     unequal_columns = parsed.unequal;
+                    column_separator = parsed.separator;
                 }
                 None => findings.gap(),
             },
@@ -996,6 +1000,7 @@ fn section(
         numbering,
         columns,
         unequal_columns,
+        column_separator,
         doc_grid,
         preserved,
     }
@@ -1081,20 +1086,23 @@ fn page_numbering(element: &Element) -> Option<PageNumbering> {
 struct ParsedColumns {
     equal: Option<EqualColumns>,
     unequal: Option<UnequalColumns>,
+    separator: bool,
 }
 
 /// `w:cols` (§17.6.4) and `w:col` (§17.6.3). `None` means the element is not
 /// in this slice, so the section is preserved. Equal columns are `num`
 /// 2..=45 with a non-negative `space` (omitted 720 twips), `equalWidth` not
-/// false, `sep` not true, and no `w:col` children. Unequal columns are
-/// `equalWidth` false, `sep` not true, and 2..=45 `w:col` children that each
-/// carry a positive `w:w` in twips. A missing width or `sep` true stays
-/// unmodeled. `Some` with both fields empty is a single column.
+/// false, and no `w:col` children. Unequal columns are `equalWidth` false and
+/// 2..=45 `w:col` children that each carry a positive `w:w` in twips. A
+/// missing width stays unmodeled. `sep` (§17.6.4) is stored as `separator`
+/// for both shapes; layout paints the line between adjacent columns. `Some`
+/// with both column fields empty is a single column.
 fn read_columns(element: &Element) -> Option<ParsedColumns> {
     let mut count = 1u16;
     let mut space = 720i64;
     let mut saw_space = false;
     let mut equal_width = true;
+    let mut separator = false;
     for attribute in &element.attributes {
         if attribute.namespace.as_deref() != Some(W) {
             return None;
@@ -1119,15 +1127,15 @@ fn read_columns(element: &Element) -> Option<ParsedColumns> {
                 equal_width = props::on_off(Some(&attribute.value))?;
             }
             "sep" => {
-                if props::on_off(Some(&attribute.value)) != Some(false) {
-                    return None;
-                }
+                separator = props::on_off(Some(&attribute.value))?;
             }
             _ => return None,
         }
     }
     if !equal_width {
-        return unequal_columns(element);
+        let mut parsed = unequal_columns(element)?;
+        parsed.separator = separator;
+        return Some(parsed);
     }
     if element.elements().next().is_some() {
         return None;
@@ -1137,11 +1145,13 @@ fn read_columns(element: &Element) -> Option<ParsedColumns> {
         return Some(ParsedColumns {
             equal: None,
             unequal: None,
+            separator,
         });
     }
     Some(ParsedColumns {
         equal: Some(EqualColumns { count, space }),
         unequal: None,
+        separator,
     })
 }
 
@@ -1162,6 +1172,7 @@ fn unequal_columns(element: &Element) -> Option<ParsedColumns> {
     Some(ParsedColumns {
         equal: None,
         unequal: Some(UnequalColumns { columns }),
+        separator: false,
     })
 }
 

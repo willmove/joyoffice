@@ -1,0 +1,29 @@
+# Counterexample for the layer gate in scripts/check_gates.py. Not a real manifest.
+#
+# Every internal dependency in this repository is declared in the dotted
+# `name.workspace = true` form, so a layer check that only understands
+# `name = { ... }` inspects nothing. This fragment carries all four spellings:
+# dotted, bare inline table, target-specific and dev-dependency.
+[package]
+name = "joyword-model"
+
+[dependencies]
+# Allowed: LAYERS["joyword-model"] lists joyword-foundation.
+joyword-foundation.workspace = true
+# Violation: the model crate may not depend on the shell (dotted form).
+joyword-shell.workspace = true
+# Violation: T400 keeps the agent out of the core crates (bare inline table).
+joyword-agent = { workspace = true, optional = true }
+# Not an internal crate, so the layer table ignores it.
+sha2.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+# Violation: target-specific dependencies are real dependencies.
+joyword-render.workspace = true
+
+[target.'cfg(windows)'.dev-dependencies]
+# Violation: joyword-corpus is registered for other crates only.
+joyword-corpus.workspace = true
+
+[lints]
+workspace = true
