@@ -666,6 +666,68 @@ fn feature_fixture_cli_projections_match_goldens() {
     }
 }
 
+/// The CLI's JSON object keys must serialize in ascending order under any
+/// cargo feature resolution. `cargo test --workspace` unifies gpui-pre's
+/// `serde_json/preserve_order` into the CLI binary, turning `Value` maps from
+/// sorted BTreeMaps into insertion-ordered IndexMaps; the dev-dependency in
+/// this crate's manifest pins the same feature so this test and the
+/// byte-exact goldens above always run under the risky configuration instead
+/// of accidentally passing only in default-member builds.
+#[test]
+fn inspect_json_keys_stay_sorted_whatever_the_feature_set() {
+    // Guard against a vacuous pass: without preserve_order the parser would
+    // re-sort every object and the assertion below could not fail.
+    assert_eq!(
+        serde_json::json!({ "zebra": 1, "apple": 2 }).to_string(),
+        "{\"zebra\":1,\"apple\":2}",
+        "serde_json preserve_order must be enabled in CLI test builds"
+    );
+    fn assert_keys_sorted(value: &Value, path: &str) {
+        match value {
+            Value::Array(items) => {
+                for (index, item) in items.iter().enumerate() {
+                    assert_keys_sorted(item, &format!("{path}[{index}]"));
+                }
+            }
+            Value::Object(map) => {
+                let emitted: Vec<&str> = map.keys().map(String::as_str).collect();
+                let mut sorted = emitted.clone();
+                sorted.sort_unstable();
+                assert_eq!(emitted, sorted, "unsorted JSON keys at {path}");
+                for (key, item) in map {
+                    assert_keys_sorted(item, &format!("{path}.{key}"));
+                }
+            }
+            Value::Number(_) | Value::String(_) | Value::Bool(_) | Value::Null => {}
+        }
+    }
+    for fixture in FIXTURES {
+        let dir = tempfile::tempdir().unwrap();
+        let input = write_input(dir.path(), fixture);
+        let inspect = cli()
+            .args(["inspect", input.to_str().unwrap()])
+            .output()
+            .unwrap();
+        assert_eq!(
+            inspect.status.code(),
+            Some(0),
+            "{:?} {}",
+            inspect.stderr,
+            fixture.id
+        );
+        // Under preserve_order, parsing keeps the byte order of the output, so
+        // this checks the raw serialization, not a re-sorted copy.
+        let report: Value = serde_json::from_slice(&inspect.stdout).unwrap();
+        assert_keys_sorted(&report, fixture.id);
+        let text = cli()
+            .args(["text", input.to_str().unwrap()])
+            .output()
+            .unwrap();
+        let text_report: Value = serde_json::from_slice(&text.stderr).unwrap();
+        assert_keys_sorted(&text_report, &format!("{}:stderr", fixture.id));
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum Visual {
     Success { pages: u64, omitted: u64 },

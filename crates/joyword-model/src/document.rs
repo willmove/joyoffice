@@ -72,7 +72,9 @@ pub enum Orientation {
 }
 
 /// How a section begins relative to the previous one (`w:type`, §17.6.22).
-/// Omitted markup is [`SectionBreak::NextPage`].
+/// Omitted markup is [`SectionBreak::NextPage`]. [`SectionBreak::NextColumn`]
+/// is the `nextColumn` value of the same attribute: the section starts in the
+/// next column of the current page when the column geometry is unchanged.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 pub enum SectionBreak {
     #[default]
@@ -80,6 +82,7 @@ pub enum SectionBreak {
     Continuous,
     EvenPage,
     OddPage,
+    NextColumn,
 }
 
 /// `w:pgNumType` format and start. An omitted format is decimal. An omitted
@@ -117,7 +120,8 @@ pub struct NewspaperColumn {
 }
 
 /// Unequal newspaper columns (`w:cols` with `equalWidth` false and one
-/// `w:col/@w:w` per column). Length is 2..=45. A separator line is not stored.
+/// `w:col/@w:w` per column). Length is 2..=45. The `w:cols/@sep` separator
+/// flag is stored on [`Section::column_separator`], not here.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct UnequalColumns {
     pub columns: Vec<NewspaperColumn>,
@@ -197,6 +201,10 @@ pub struct Section {
     /// Explicit unequal widths. Import leaves `columns` empty when this is
     /// set. Layout rejects a section that has both.
     pub unequal_columns: Option<UnequalColumns>,
+    /// `w:cols/@w:sep` (ECMA-376 §17.6.4). When true, layout paints a
+    /// vertical separator line between adjacent newspaper columns of this
+    /// section. A section with fewer than two columns paints nothing.
+    pub column_separator: bool,
     /// `None` means the section has no `w:docGrid` element.
     pub doc_grid: Option<DocGrid>,
     pub preserved: Option<PreservedId>,
@@ -286,6 +294,7 @@ impl Document {
             numbering: PageNumbering::default(),
             columns: None,
             unequal_columns: None,
+            column_separator: false,
             doc_grid: None,
             preserved: None,
         };

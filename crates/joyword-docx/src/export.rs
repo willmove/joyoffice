@@ -6,7 +6,9 @@
 //! they were imported from; a new relationship id is appended only to that
 //! part's existing relationships part. Unmapped property markup is refused
 //! rather than dropped. Comment resolve patches `w15:done`; a new comment is
-//! appended. Other comment bytes stay intact. Text and move revisions are written back when a
+//! appended. Other comment bytes stay intact. Numbering definitions appended
+//! to the store are inserted into `numbering.xml`; other numbering bytes stay
+//! intact and modified definitions are refused. Text and move revisions are written back when a
 //! paragraph is edited; other structural edits, signed packages and any
 //! imported restriction are refused. `w:trackRevisions` may change on its
 //! own and is patched in the settings part. The completed output is
@@ -15,6 +17,7 @@
 
 mod compare;
 mod header_footer;
+mod numbering;
 mod structure;
 
 use std::fmt;
@@ -250,10 +253,12 @@ fn plan_export_after_import(
         origin: Some(backing.original_arc()),
     };
     let story_changed = header_footer::stories_differ(original, current);
+    let numbering_changed = original.numbering() != current.numbering();
     if alignment.is_unchanged()
         && !tracking_changed
         && section_page_changes.is_empty()
         && !story_changed
+        && !numbering_changed
         && !crate::comment::differs(original, current)
     {
         return Ok(plan);
@@ -279,6 +284,10 @@ fn plan_export_after_import(
             "edited export currently requires ordinary DOCX",
         ));
     }
+    // An unchanged numbering store keeps the original part bytes; appended
+    // definitions are inserted without touching the other entries.
+    let numbering_write = numbering::plan(package, main_name, original, current, budget)?;
+    let numbering_delta = numbering_write.as_ref().map_or(0i128, |write| write.delta);
     let root = XmlReader::new(main_name.as_str(), &main.data, budget)
         .and_then(XmlReader::whole)
         .map_err(|error| ImportError::Xml {
@@ -402,8 +411,10 @@ fn plan_export_after_import(
             .map(|part| part.data.len() as u64)
             .sum::<u64>();
     let story_delta = header_footer::size_delta(package, &story_writes);
-    let projected =
-        (total as i128) - (main.data.len() as i128) + (output_len as i128) + story_delta;
+    let projected = (total as i128) - (main.data.len() as i128)
+        + (output_len as i128)
+        + story_delta
+        + numbering_delta;
     if projected < 0 || projected > budget.max_total_bytes as i128 {
         return Err(ExportError::Budget {
             part: "package".into(),
@@ -436,7 +447,8 @@ fn plan_export_after_import(
         let grown = (total as i128) - (main.data.len() as i128) - (rels.data.len() as i128)
             + (output_len as i128)
             + (appended.len() as i128)
-            + story_delta;
+            + story_delta
+            + numbering_delta;
         if grown < 0 || grown > budget.max_total_bytes as i128 {
             return Err(ExportError::Budget {
                 part: "package".into(),
@@ -445,6 +457,8 @@ fn plan_export_after_import(
         }
         Some(appended)
     };
+    let rels_bytes =
+        numbering::extend_relationships(package, main_name, rels_bytes, &numbering_write, budget)?;
     let comment_write = crate::comment::apply(
         package,
         main_name,
@@ -481,6 +495,9 @@ fn plan_export_after_import(
             }
         }
     }
+    if let Some(write) = &numbering_write {
+        replacements.extend(write.parts.iter().cloned());
+    }
     if tracking_changed {
         replacements.push(patch_track_revisions(
             package,
@@ -495,13 +512,22 @@ fn plan_export_after_import(
         }
         replacements.push((write.name, write.bytes));
     }
-    let created = comment_write
+    let mut created = comment_write
         .as_ref()
         .map(|write| write.created.clone())
         .unwrap_or_default();
-    let content_types_owned = comment_write
+    let mut content_types_owned = comment_write
         .as_ref()
         .and_then(|write| write.content_types.clone());
+    if let Some(write) = &numbering_write {
+        created.extend(write.created.iter().cloned());
+        content_types_owned = numbering::extend_content_types(
+            package,
+            content_types_owned,
+            &numbering_write,
+            budget,
+        )?;
+    }
     let content_types = content_types_owned
         .as_deref()
         .unwrap_or_else(|| package.content_types_xml());
@@ -535,6 +561,9 @@ fn plan_export_after_import(
         )
         || !compare::same_sections(current, &verified.document)
         || !compare::same_preserved(&source.backing, &verified.backing)
+        // The semantic dump does not include the numbering store, so the
+        // written definitions are compared against it explicitly.
+        || verified.document.numbering() != current.numbering()
     {
         return Err(ExportError::RoundTripMismatch);
     }
@@ -752,13 +781,14 @@ fn check_envelope(before: &Document, after: &Document) -> Result<(), ExportError
             "image resources changed and media parts are not rewritten",
         ));
     }
-    // Body blocks are aligned separately; their count may change.
+    // Body blocks are aligned separately; their count may change. The
+    // numbering store is aligned separately by `export::numbering`; appended
+    // definitions are written, modified entries are refused there.
     if before.body_id() != after.body_id()
         || !auxiliary_stories_match(before, after)
         || before.body().kind != after.body().kind
         || !sections_equal
         || !settings_except_tracking(before.settings(), after.settings())
-        || before.numbering() != after.numbering()
         || before.styles().defaults != after.styles().defaults
         || before.styles().theme() != after.styles().theme()
         || !before.styles().iter().eq(after.styles().iter())

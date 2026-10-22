@@ -2,17 +2,18 @@
 //!
 //! Page size is `w:pgSz/@w` and `@h` (ECMA-376 §17.6.13). `orient` is stored
 //! with them and does not swap the axes. `w:type` places the section on the
-//! next page, the same page, or the next even or odd page (§17.6.22).
-//! `titlePg` paints the First story on the first page of that section.
-//! `evenAndOddHeaders` paints the Even story on even displayed page numbers
-//! and the Default story on odd ones. The displayed number is `PAGE` after
-//! `w:pgNumType/@w:start` (§17.6.12). The section's first page still counts,
-//! and `titlePg` wins there. An omitted reference inherits the nearest earlier
-//! story of that same kind. An explicit story, including an empty one, does
-//! not inherit and is not replaced by another kind. Equal-width `w:cols`,
-//! and unequal columns with an explicit `w:col` width, share the content
-//! box. A column break advances one column, or one page when the section
-//! has a single column (§17.3.3.1, §17.6.3, §17.6.4).
+//! next page, the same page, the next column, or the next even or odd page
+//! (§17.6.22). `titlePg` paints the First story on the first page of that
+//! section. `evenAndOddHeaders` paints the Even story on even displayed page
+//! numbers and the Default story on odd ones. The displayed number is `PAGE`
+//! after `w:pgNumType/@w:start` (§17.6.12). The section's first page still
+//! counts, and `titlePg` wins there. An omitted reference inherits the nearest
+//! earlier story of that same kind. An explicit story, including an empty one,
+//! does not inherit and is not replaced by another kind. Equal-width `w:cols`,
+//! and unequal columns with an explicit `w:col` width, share the content box.
+//! A column break advances one column, or one page when the section has a
+//! single column (§17.3.3.1, §17.6.3, §17.6.4). `w:cols/@w:sep` true paints a
+//! separator rule between adjacent columns of that section (§17.6.4).
 
 use std::collections::BTreeSet;
 
@@ -31,7 +32,7 @@ use crate::document::{
 use crate::line::{
     LayoutLine, LineError, LineImage, LineLimits, SourceRange, layout_paragraph_auto,
 };
-use crate::scene::{GlyphRun, SceneImage, decoration_rects};
+use crate::scene::{GlyphRun, SceneImage, SceneRect, decoration_rects};
 use crate::shape::paint_underline;
 use crate::style_paint;
 use crate::view::{self, ViewOptions};
@@ -45,6 +46,9 @@ pub(crate) enum SectionEdge {
     EvenPage,
     OddPage,
     Continuous,
+    /// `w:type="nextColumn"`: the section starts in the next column of the
+    /// current page when the column flow is unchanged.
+    NextColumn,
 }
 
 impl SectionEdge {
@@ -220,6 +224,7 @@ pub(crate) fn section_plans(document: &Document) -> Result<Vec<SectionPlan>, Lay
             SectionBreak::Continuous => SectionEdge::Continuous,
             SectionBreak::EvenPage => SectionEdge::EvenPage,
             SectionBreak::OddPage => SectionEdge::OddPage,
+            SectionBreak::NextColumn => SectionEdge::NextColumn,
         };
         let end = match section.last_block {
             Some(id) => {
@@ -680,6 +685,82 @@ pub(crate) fn paint_stories(
                 &mut exceeded,
             )?;
         }
+    }
+    if snapshot.page_count() != page_count {
+        return Err(LayoutError::Unstable);
+    }
+    Ok(())
+}
+
+/// Thickness of a column separator rule. ECMA-376 §17.6.4 records only that
+/// `w:cols/@w:sep` is on; it fixes neither the rule's thickness nor its exact
+/// position, so the one-point hairline centered in the inter-column gap is a
+/// JoyWord assumption, not a Word observation.
+pub(crate) const COLUMN_SEPARATOR_THICKNESS: i64 = Emu::PER_POINT;
+
+/// Paint a vertical separator rule between adjacent newspaper columns of every
+/// page whose section sets `w:cols/@w:sep` true and has at least two columns
+/// (ECMA-376 §17.6.4). Each rule is centered in the gap between two columns
+/// and spans the body box from `w:pgMar/@w:top` to the bottom edge. The
+/// rectangles land in the same [`PageScene`] the screen, PDF and CPU raster
+/// consume; painting never adds a page, so a change in the page count would be
+/// a bug rather than instability.
+pub(crate) fn paint_column_separators(
+    snapshot: &mut LayoutSnapshot,
+    document: &Document,
+    cancellation: &LayoutCancellation,
+) -> Result<(), LayoutError> {
+    let page_count = snapshot.page_count();
+    for page_index in 0..page_count {
+        cancellation.check()?;
+        let Some((geometry, section_index)) = snapshot.page_box(page_index) else {
+            continue;
+        };
+        let Some(section) = document.sections().get(section_index) else {
+            continue;
+        };
+        if !section.column_separator {
+            continue;
+        }
+        // The section already laid out, so its columns fit; a spec error here
+        // would contradict pagination and is skipped rather than surfaced.
+        let Ok(spec) = column_spec(
+            section.id,
+            geometry,
+            section.columns.as_ref(),
+            section.unequal_columns.as_ref(),
+        ) else {
+            continue;
+        };
+        if spec.count < 2 {
+            continue;
+        }
+        let top = geometry.top.raw();
+        let height = geometry.bottom_edge().raw().saturating_sub(top);
+        if height <= 0 {
+            continue;
+        }
+        let left = geometry.left.raw();
+        let thickness = COLUMN_SEPARATOR_THICKNESS.max(1);
+        let mut rects = Vec::new();
+        for index in 1..spec.count {
+            let (prev_offset, prev_width) = spec.frame(index - 1);
+            let (next_offset, _) = spec.frame(index);
+            let right_edge = left.saturating_add(prev_offset).saturating_add(prev_width);
+            let left_edge = left.saturating_add(next_offset);
+            let center = right_edge.saturating_add(left_edge) / 2;
+            let x = center.saturating_sub(thickness / 2);
+            rects.push(SceneRect {
+                x: Emu::new(x),
+                y: Emu::new(top),
+                width: Emu::new(thickness),
+                height: Emu::new(height),
+                red: 0,
+                green: 0,
+                blue: 0,
+            });
+        }
+        snapshot.extend_page_rects(page_index, rects)?;
     }
     if snapshot.page_count() != page_count {
         return Err(LayoutError::Unstable);
