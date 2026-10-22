@@ -1,16 +1,21 @@
-//! Typed import of text and move revisions (ECMA-376 Part 1 §17.13.5, T300).
+//! Typed import of text, move and format revisions (ECMA-376 Part 1
+//! §17.13.5, T300/T301).
 //!
 //! `w:ins`, `w:del`, `w:moveFrom` and `w:moveTo` become [`TextRevision`] marks
-//! on runs when the wrapper is a plain run sequence. Anything outside that
-//! subset is preserved and locks the paragraph; it does not make the whole
-//! document read-only. Format and table revisions are refused by [`crate::ns::blocks_for_review`].
+//! on runs when the wrapper is a plain run sequence. `w:rPrChange`
+//! (§17.13.5.30) and `w:pPrChange` (§17.13.5.29) in body paragraphs become
+//! [`FormatRevision`] records holding the previous run or paragraph
+//! properties. Anything outside those subsets is preserved and locks the
+//! paragraph; it does not make the whole document read-only. Table structure
+//! revisions and format revisions inside tables are refused by
+//! [`crate::ns::blocks_for_review`].
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BreakKind, InlineKind, InlineObject, MoveMarker, MoveSide, NodeId, Paragraph,
-    RevisionKind, RunProps, StoryId, TextRevision,
+    Block, BreakKind, FormatRevision, InlineKind, InlineObject, MoveMarker, MoveSide, NodeId,
+    Paragraph, RevisionKind, RunProps, StoryId, TextRevision,
 };
 
 use crate::import::Importer;
@@ -160,8 +165,85 @@ pub(crate) fn flush_moves(importer: &mut Importer<'_>) {
     }
 }
 
-pub(crate) fn revision_kind(local: &str) -> Option<RevisionKind> {
-    match local {
+/// Parses a `w:rPrChange` (§17.13.5.30) or `w:pPrChange` (§17.13.5.29)
+/// element into a typed [`FormatRevision`]. Returns `None` when the change is
+/// outside the subset JoyWord types: illegal or duplicated tracking
+/// attributes, more than one previous-property child, a previous property that
+/// is not fully representable, a previous character or paragraph style, a
+/// previous paragraph mark, or a nested revision inside the previous property.
+/// On `None` the caller must fall back (preserve the property element and lock
+/// the paragraph); it never silently drops the change.
+pub(crate) fn import_format_change(
+    importer: &mut Importer<'_>,
+    element: &Element,
+    paragraph_level: bool,
+) -> Option<FormatRevision> {
+    let (id, author, date) = track_attrs(element, false)?;
+    let child_name = if paragraph_level { "pPr" } else { "rPr" };
+    let mut children = element.elements();
+    let previous = match children.next() {
+        None => None,
+        Some(child) => {
+            // §17.13.5.29/.30: exactly one optional previous-property child.
+            if !child.is(W, child_name) || children.next().is_some() {
+                return None;
+            }
+            Some(child)
+        }
+    };
+    let revision = if paragraph_level {
+        let previous_para = match previous {
+            None => None,
+            Some(ppr) => {
+                let mut findings = Findings::default();
+                let parsed = props::para(ppr, &mut findings);
+                // A previous style, mark, section or nested change, or any
+                // unrepresentable property, is out of subset.
+                if !findings.complete
+                    || parsed.style.is_some()
+                    || parsed.mark.is_some()
+                    || parsed.section.is_some()
+                {
+                    return None;
+                }
+                Some(Arc::new(parsed.props))
+            }
+        };
+        FormatRevision {
+            id,
+            author,
+            date,
+            previous_run: None,
+            previous_para,
+        }
+    } else {
+        let previous_run = match previous {
+            None => None,
+            Some(rpr) => {
+                let mut findings = Findings::default();
+                // Plain `run`: a nested `w:rPrChange` gaps and fails `complete`.
+                let (props, style) = props::run(rpr, &mut findings);
+                // A previous character style or unrepresentable property is out
+                // of subset; previous run properties carry no preserved handle.
+                if !findings.complete || style.is_some() {
+                    return None;
+                }
+                Some(Arc::new(props))
+            }
+        };
+        FormatRevision {
+            id,
+            author,
+            date,
+            previous_run,
+            previous_para: None,
+        }
+    };
+    importer.document.note_revision_id(id);
+    Some(revision)
+}
+
+pub(crate) fn revision_kind(local: &str) -> Option<RevisionKind> {    match local {
         "ins" => Some(RevisionKind::Insert),
         "del" => Some(RevisionKind::Delete),
         "moveFrom" => Some(RevisionKind::MoveFrom),

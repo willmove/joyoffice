@@ -61,7 +61,9 @@ pub use props::{
     Underline, merge_tab_stops,
 };
 pub use resource::{ContentHash, Resource, ResourceTable};
-pub use revision::{MoveMarker, MoveSide, RevisionKind, RevisionView, TextRevision};
+pub use revision::{
+    FormatRevision, MoveMarker, MoveSide, RevisionKind, RevisionView, TextRevision,
+};
 pub use style::{
     BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,
     StyleError, StyleId, StyleKind, StyleProblem, StyleSheet, TableCondition, TableConditional,

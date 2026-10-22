@@ -60,7 +60,33 @@ pub fn current_revision(document: &Document, selection: &Selection) -> Option<u3
             return Some(id);
         }
     }
-    revision_at(document, &selection.anchor)
+    if let Some(id) = revision_at(document, &selection.anchor) {
+        return Some(id);
+    }
+    format_revision_at(document, &selection.head)
+        .or_else(|| format_revision_at(document, &selection.anchor))
+}
+
+/// The format revision (`w:rPrChange` / `w:pPrChange`) at a position: a
+/// paragraph-level change applies wherever the caret sits in the paragraph,
+/// otherwise the run-level change covering the offset.
+fn format_revision_at(document: &Document, position: &Position) -> Option<u32> {
+    let paragraph = document.find_paragraph(position.story, position.paragraph)?;
+    if let Some(revision) = &paragraph.props_revision {
+        return Some(revision.id);
+    }
+    let offset = position.offset.0;
+    let mut at = 0usize;
+    for run in paragraph.runs() {
+        let end = at + run.len;
+        if at <= offset && offset <= end {
+            if let Some(revision) = &run.format_revision {
+                return Some(revision.id);
+            }
+        }
+        at = end;
+    }
+    None
 }
 
 fn revision_at(document: &Document, position: &Position) -> Option<u32> {
@@ -418,6 +444,11 @@ fn resolve_one(
 ) -> Result<(), CommandError> {
     let hits = hits_for(document, id);
     if hits.is_empty() {
+        // No text revision carries this id; it may be a format revision
+        // (`w:rPrChange` / `w:pPrChange`), which has no text position.
+        if resolve_format_one(document, id, resolution, changes)? {
+            return Ok(());
+        }
         return Err(CommandError::UnknownRevision(id));
     }
     let kind = hits[0].kind;
@@ -433,6 +464,9 @@ fn resolve_one(
     };
     apply_edits(document, &edits, map, changes)?;
     drop_names(document, &names, changes);
+    // A single id can carry both a text and a format revision; resolve both so
+    // one accept or reject settles the whole change.
+    resolve_format_one(document, id, resolution, changes)?;
     Ok(())
 }
 
@@ -471,7 +505,89 @@ fn resolve_all(
     }
     apply_edits(document, &edits, map, changes)?;
     drop_names(document, &names, changes);
+    resolve_format_all(document, resolution, changes)?;
     Ok(())
+}
+
+/// Resolves every format revision (`w:rPrChange` / `w:pPrChange`) whose id
+/// matches. Returns whether any was found. Locked paragraphs are refused.
+fn resolve_format_one(
+    document: &mut Document,
+    id: u32,
+    resolution: Resolution,
+    changes: &mut ChangeSet,
+) -> Result<bool, CommandError> {
+    let accept = matches!(resolution, Resolution::Accept);
+    let targets: Vec<(StoryId, NodeId)> = paragraphs(document)
+        .into_iter()
+        .filter(|(story, paragraph)| {
+            paragraph_ref(document, *story, *paragraph)
+                .is_some_and(|paragraph| has_format_revision_id(paragraph, id))
+        })
+        .collect();
+    let mut found = false;
+    for (story, paragraph) in targets {
+        let location =
+            locate::locate(document, story, paragraph).ok_or(CommandError::UnknownNode(paragraph))?;
+        if location.content_locked {
+            return Err(CommandError::Locked(paragraph));
+        }
+        let Some(paragraph_mut) = locate::paragraph_mut(document, &location) else {
+            return Err(CommandError::UnknownNode(paragraph));
+        };
+        if paragraph_mut.resolve_format_revision(id, accept) {
+            found = true;
+            changes.stories.insert(story);
+            changes.paragraphs.insert(paragraph);
+        }
+    }
+    Ok(found)
+}
+
+/// Resolves every format revision in the document (batch accept or reject).
+fn resolve_format_all(
+    document: &mut Document,
+    resolution: Resolution,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let accept = matches!(resolution, Resolution::Accept);
+    let targets: Vec<(StoryId, NodeId)> = paragraphs(document)
+        .into_iter()
+        .filter(|(story, paragraph)| {
+            paragraph_ref(document, *story, *paragraph)
+                .is_some_and(|paragraph| has_any_format_revision(paragraph))
+        })
+        .collect();
+    for (story, paragraph) in targets {
+        let location =
+            locate::locate(document, story, paragraph).ok_or(CommandError::UnknownNode(paragraph))?;
+        if location.content_locked {
+            return Err(CommandError::Locked(paragraph));
+        }
+        let Some(paragraph_mut) = locate::paragraph_mut(document, &location) else {
+            return Err(CommandError::UnknownNode(paragraph));
+        };
+        if paragraph_mut.resolve_all_format(accept) {
+            changes.stories.insert(story);
+            changes.paragraphs.insert(paragraph);
+        }
+    }
+    Ok(())
+}
+
+fn has_format_revision_id(paragraph: &Paragraph, id: u32) -> bool {
+    paragraph
+        .runs()
+        .iter()
+        .any(|run| run.format_revision.as_ref().is_some_and(|rev| rev.id == id))
+        || paragraph
+            .props_revision
+            .as_ref()
+            .is_some_and(|rev| rev.id == id)
+}
+
+fn has_any_format_revision(paragraph: &Paragraph) -> bool {
+    paragraph.has_run_format_revision() || paragraph.props_revision.is_some()
 }
 
 struct Hit {

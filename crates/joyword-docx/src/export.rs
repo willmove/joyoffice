@@ -828,6 +828,7 @@ struct Group {
     style: Option<StyleId>,
     props: Arc<RunProps>,
     link: Option<Arc<joyword_model::Hyperlink>>,
+    format_revision: Option<Arc<joyword_model::FormatRevision>>,
     text: String,
 }
 
@@ -841,6 +842,7 @@ fn groups(paragraph: &Paragraph) -> Vec<Group> {
             && last.style == run.style
             && last.props == run.props
             && last.link == run.link
+            && last.format_revision == run.format_revision
         {
             last.text.push_str(&text);
         } else {
@@ -848,6 +850,7 @@ fn groups(paragraph: &Paragraph) -> Vec<Group> {
                 style: run.style.clone(),
                 props: run.props.clone(),
                 link: run.link.clone(),
+                format_revision: run.format_revision.clone(),
                 text,
             });
         }
@@ -856,7 +859,10 @@ fn groups(paragraph: &Paragraph) -> Vec<Group> {
 }
 
 fn same_group(left: &Group, right: &Group) -> bool {
-    left.style == right.style && left.props == right.props && left.link == right.link
+    left.style == right.style
+        && left.props == right.props
+        && left.link == right.link
+        && left.format_revision == right.format_revision
 }
 
 fn style_ids(paragraph: &Paragraph) -> Vec<Option<StyleId>> {
@@ -935,6 +941,7 @@ fn same_paragraph_metadata(a: &Paragraph, b: &Paragraph) -> bool {
         && a.style == b.style
         && a.props == b.props
         && a.mark_props == b.mark_props
+        && a.props_revision == b.props_revision
         && a.source == b.source
 }
 
@@ -956,7 +963,19 @@ fn patch_paragraph(
     let revised = before.runs().iter().any(|run| run.revision.is_some())
         || after.runs().iter().any(|run| run.revision.is_some())
         || !same_move_markers(before_markers, after_markers);
+    // An unresolved format revision (`w:rPrChange` / `w:pPrChange` still on
+    // `after`) must survive as its original bytes. Only a byte-identical
+    // paragraph or a text-leaf patch keeps it; every rewrite below synthesizes
+    // markup and would drop the `*Change` element, so refuse rather than lose
+    // review history. A resolved revision is absent from `after` and flows
+    // through the rewrite paths, which re-emit clean formatting.
+    let after_unresolved = after.has_run_format_revision() || after.props_revision.is_some();
     if revised {
+        if after_unresolved {
+            return Err(error(
+                "unresolved format revision cannot be combined with a text revision rewrite",
+            ));
+        }
         if !same_paragraph_metadata(before, after)
             || !before.inlines().is_empty()
             || !after.inlines().is_empty()
@@ -982,6 +1001,11 @@ fn patch_paragraph(
     }
     let numbering_changed = before.props.numbering != after.props.numbering;
     if style_assignment_differs(before, after) || numbering_changed {
+        if after_unresolved {
+            return Err(error(
+                "unresolved format revision is kept verbatim and cannot be restyled",
+            ));
+        }
         structure::style_assignment_ok(styles, before).map_err(error)?;
         structure::style_assignment_ok(styles, after).map_err(error)?;
         structure::numbering_assignment_ok(numbering, before).map_err(error)?;
@@ -1010,6 +1034,11 @@ fn patch_paragraph(
         || !before.inlines().is_empty()
         || !after.inlines().is_empty()
     {
+        if after_unresolved {
+            return Err(error(
+                "unresolved format revision is kept verbatim and its paragraph cannot be rewritten",
+            ));
+        }
         let before_plain = before.props.is_empty()
             && before.mark_props.is_empty()
             && before
@@ -1115,6 +1144,11 @@ fn patch_paragraph(
             .zip(&after_groups)
             .all(|(a, b)| same_group(a, b));
     if !before.is_empty() && !after_groups.is_empty() && !same_bounds && !split_prefix {
+        if after_unresolved {
+            return Err(error(
+                "unresolved format revision is kept verbatim and its run boundaries cannot change",
+            ));
+        }
         let before_plain = before.props.is_empty()
             && before.mark_props.is_empty()
             && before
@@ -1179,6 +1213,11 @@ fn patch_paragraph(
         return Err(error("source text tokens do not match imported runs"));
     }
     if before.is_empty() && !after.is_empty() {
+        if after_unresolved {
+            return Err(error(
+                "unresolved format revision is kept verbatim and new text cannot be added",
+            ));
+        }
         let plain = after_groups.len() == 1
             && after_groups[0].style.is_none()
             && after_groups[0].props.is_empty()
@@ -1242,7 +1281,10 @@ fn patch_paragraph(
             return Err(error("source text token length changed"));
         }
         let same = previous.is_some_and(|prev| {
-            prev.style == run.style && prev.props == run.props && prev.link == run.link
+            prev.style == run.style
+                && prev.props == run.props
+                && prev.link == run.link
+                && prev.format_revision == run.format_revision
         });
         if previous.is_some() && !same {
             group_index += 1;

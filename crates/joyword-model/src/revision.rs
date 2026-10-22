@@ -1,14 +1,18 @@
-//! Text and move revisions (ECMA-376 Part 1 §17.13.5, T300).
+//! Text, move and format revisions (ECMA-376 Part 1 §17.13.5, T300/T301).
 //!
 //! A run carries at most one [`TextRevision`]. `w:ins` and `w:moveTo` are
 //! present in the final projection; `w:del` and `w:moveFrom` are present in
 //! the original projection. Move range markers do not occupy a text position.
-//! Format and table revisions (`w:rPrChange`, `w:pPrChange`, row and cell
-//! revisions) are not represented here.
+//! Format revisions (`w:rPrChange` §17.13.5.30, `w:pPrChange` §17.13.5.29)
+//! are typed as [`FormatRevision`]: a run stores the pre-change run properties
+//! and a paragraph stores the pre-change paragraph properties. Table
+//! structure revisions (`w:tblPrChange`, `w:trPrChange`, `w:tcPrChange`,
+//! `w:cellIns`, `w:cellDel`, `w:cellMerge`) are not represented here.
 
 use std::sync::Arc;
 
 use crate::annotation::{Bias, Position};
+use crate::props::{ParaProps, RunProps};
 use crate::text::ScalarOffset;
 
 /// `w:ins`, `w:del`, `w:moveFrom` or `w:moveTo` (§17.13.5.18, §17.13.5.14,
@@ -49,6 +53,28 @@ pub struct TextRevision {
     pub kind: RevisionKind,
     pub author: Arc<str>,
     pub date: Option<Arc<str>>,
+}
+
+/// A tracked formatting change. `w:rPrChange` (§17.13.5.30) stores the run
+/// properties before the change in `previous_run`; `w:pPrChange` (§17.13.5.29)
+/// stores the paragraph properties before the change in `previous_para`.
+/// `id` is `w:id`, `author` is `w:author`, `date` is the `w:date` string as
+/// written. Accepting the revision keeps the current formatting and drops the
+/// change; rejecting it restores the previous formatting. Previous values are
+/// only typed for the properties JoyWord represents; content outside that
+/// subset keeps its original bytes through the preserved-markup fallback and
+/// never reaches this struct.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FormatRevision {
+    pub id: u32,
+    pub author: Arc<str>,
+    pub date: Option<Arc<str>>,
+    /// Pre-change run properties (`w:rPrChange/w:rPr`), present for run-level
+    /// changes.
+    pub previous_run: Option<Arc<RunProps>>,
+    /// Pre-change paragraph properties (`w:pPrChange/w:pPr`), present for
+    /// paragraph-level changes.
+    pub previous_para: Option<Arc<ParaProps>>,
 }
 
 /// Which side of a move a range marker belongs to.
