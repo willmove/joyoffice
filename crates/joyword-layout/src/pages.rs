@@ -206,6 +206,16 @@ pub(crate) fn section_plans(document: &Document) -> Result<Vec<SectionPlan>, Lay
     let mut plans = Vec::with_capacity(sections.len());
     let mut cursor = 0usize;
     for (index, section) in sections.iter().enumerate() {
+        if section
+            .numbering
+            .chapter_style
+            .is_some_and(|level| !(1..=9).contains(&level))
+        {
+            return Err(unsupported(
+                Some(section.id),
+                "chapter heading outside Heading1..9",
+            ));
+        }
         if section.preserved.is_some() {
             return Err(unsupported(
                 Some(section.id),
@@ -1196,6 +1206,182 @@ fn story_image_lines(
     Ok(lines)
 }
 
+/// Chapter subset and assumptions:
+/// - ECMA-376 pgNumType: one-based heading style, nearest numbered heading.
+///   https://c-rex.net/samples/ooxml/e1/Part4/OOXML_P4_DOCX_pgNumType_topic_ID0EYWCT.html
+/// - MS-OI29500 supplies the omitted separator's hyphen default:
+///   https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/a3bbd188-7d1e-400c-9ea7-1d8f96eb62c4
+/// - JoyWord deliberately does NOT implement ECMA's ambiguous "previous level"
+///   fallback. Only a top-level body paragraph with the exact built-in heading
+///   style (canonical name, not a guessed style ID/outline level) qualifies.
+/// - Use the rendered numeric list label verbatim, including multilevel/literal
+///   formatting but excluding its tab/space suffix. No body-text digit scraping,
+///   bullets, absent labels or failed number renderings can supply a chapter.
+/// - First eligible heading of the requested level starting on the physical page
+///   wins for ALL its PAGE fields; otherwise use the last preceding one, across
+///   sections. The last heading on this page becomes the next page's predecessor.
+///   The page-owning section chooses the heading level/separator even when a
+///   continuous/nextColumn section shares the page. This resolves "nearest"
+///   deterministically, not a claim of Word/WPS visual parity.
+/// - Actual first-line placement (not estimated page/column) and the same hidden
+///   and revision projection as the body determine eligibility and activation.
+pub(crate) fn chapter_prefixes(
+    snapshot: &LayoutSnapshot,
+    document: &Document,
+    cancellation: &LayoutCancellation,
+) -> Result<Vec<Option<std::sync::Arc<str>>>, LayoutError> {
+    use joyword_model::{BuiltinStyle, StyleKind};
+    use std::collections::BTreeMap;
+    use std::sync::Arc;
+
+    let mut result = vec![None; snapshot.page_count()];
+    if !document
+        .sections()
+        .iter()
+        .any(|section| section.numbering.chapter_style.is_some())
+    {
+        return Ok(result);
+    }
+    // Body fields currently receive one feedback context per paragraph. A
+    // chapter PAGE spanning physical pages cannot be rendered honestly by
+    // that fitter; refuse rather than publish the first page's stale prefix.
+    let field_paragraphs: BTreeSet<_> =
+        document
+            .body()
+            .blocks
+            .iter()
+            .filter_map(|block| block.as_paragraph())
+            .filter(|paragraph| {
+                paragraph.inlines().iter().any(|inline| matches!(
+            &inline.kind, InlineKind::PageField(field) if field.kind == PageFieldKind::Page
+        ))
+            })
+            .map(Paragraph::id)
+            .collect();
+    let mut field_pages = BTreeMap::new();
+    for line in snapshot.lines() {
+        if field_paragraphs.contains(&line.paragraph)
+            && field_pages
+                .insert(line.paragraph, line.page)
+                .is_some_and(|page| page != line.page)
+        {
+            return Err(unsupported(
+                Some(line.paragraph),
+                "chapter PAGE paragraph spans pages",
+            ));
+        }
+    }
+    let marks = joyword_model::list_marks(document);
+    let mut candidates = BTreeMap::new();
+    for block in document.body().blocks.iter() {
+        cancellation.check()?;
+        let Some(paragraph) = block.as_paragraph() else {
+            continue;
+        };
+        let Some(style) = paragraph
+            .style
+            .as_ref()
+            .and_then(|id| document.styles().get(id))
+        else {
+            continue;
+        };
+        let Some(BuiltinStyle::Heading(level @ 1..=9)) = style.builtin() else {
+            continue;
+        };
+        if style.kind != StyleKind::Paragraph {
+            continue;
+        }
+        let Some(Ok(label)) = marks.get(&paragraph.id()) else {
+            continue;
+        };
+        if label.text.is_empty() || paragraph.is_empty() {
+            continue;
+        }
+        let Some(reference) = joyword_model::list_reference(document, paragraph) else {
+            continue;
+        };
+        let Ok(numbering) = document
+            .numbering()
+            .resolved_level(reference.num_id, reference.level)
+        else {
+            continue;
+        };
+        if matches!(
+            numbering.level.format,
+            NumberFormat::Bullet | NumberFormat::None
+        ) {
+            continue;
+        }
+        let mut omitted = view::omitted_indices(document, paragraph, snapshot.key().view)?;
+        let mut scalar = 0;
+        for run in paragraph.runs() {
+            if run
+                .revision
+                .as_ref()
+                .is_some_and(|revision| !revision.kind.visible_in(snapshot.key().revision_view))
+            {
+                omitted.extend(scalar..scalar + run.len);
+            }
+            scalar += run.len;
+        }
+        if (0..paragraph.len()).all(|scalar| omitted.contains(&scalar)) {
+            continue;
+        }
+        // Fields take a separate fitter that does not paint list labels.
+        if !paragraph.inlines().is_empty() {
+            continue;
+        }
+        candidates.insert(
+            paragraph.id(),
+            (
+                usize::from(level - 1),
+                Arc::<str>::from(label.text.as_str()),
+            ),
+        );
+    }
+    let mut on_page = vec![Vec::new(); snapshot.page_count()];
+    for line in snapshot.lines() {
+        if let Some(candidate) = candidates.remove(&line.paragraph)
+            && let Some(page) = on_page.get_mut(line.page)
+        {
+            page.push(candidate);
+        }
+    }
+    let mut preceding: [Option<Arc<str>>; 9] = Default::default();
+    for (page, headings) in on_page.into_iter().enumerate() {
+        cancellation.check()?;
+        let mut current = preceding.clone();
+        let mut first = [false; 9];
+        for (level, label) in headings {
+            if !first[level] {
+                current[level] = Some(Arc::clone(&label));
+                first[level] = true;
+            }
+            preceding[level] = Some(label);
+        }
+        let Some((_, section)) = snapshot.page_box(page) else {
+            continue;
+        };
+        let Some(numbering) = document
+            .sections()
+            .get(section)
+            .map(|section| &section.numbering)
+        else {
+            continue;
+        };
+        let Some(level @ 1..=9) = numbering.chapter_style else {
+            continue;
+        };
+        if let Some(label) = &current[usize::from(level - 1)] {
+            result[page] = Some(Arc::from(format!(
+                "{label}{}",
+                numbering.chapter_separator.character()
+            )));
+        }
+    }
+    Ok(result)
+}
+
 /// Header and footer text. Field codes print `PAGE`, `NUMPAGES` or
 /// `SECTIONPAGES` instead of the number. Braces and switches are not
 /// printed. Scalars omitted by hidden text or a field projection are skipped.
@@ -1218,6 +1404,7 @@ fn story_display(
         displayed_page: snapshot.displayed_page(page_index),
         num_pages: u32::try_from(snapshot.page_count()).unwrap_or(u32::MAX),
         section_pages: snapshot.section_page_count(section),
+        chapter_prefix: snapshot.chapter_prefix(page_index),
         ..crate::cache::ExternalContext::default()
     };
     let revision = snapshot.key().revision_view;
@@ -1252,7 +1439,7 @@ fn story_display(
                     match &object.kind {
                         InlineKind::PageField(field) => {
                             let (rendered, cache) =
-                                render_field(field, &numbering, ctx, view.field_codes);
+                                render_field(field, &numbering, &ctx, view.field_codes);
                             used_cache |= cache;
                             text.push_str(&rendered);
                         }
@@ -1305,7 +1492,7 @@ pub(crate) fn expand_page_fields(
                     let rendered = match &object.kind {
                         InlineKind::PageField(field) => {
                             let (rendered, cache) =
-                                render_field(field, numbering, ctx, view.field_codes);
+                                render_field(field, numbering, &ctx, view.field_codes);
                             used_cache |= cache;
                             rendered
                         }
@@ -1383,7 +1570,7 @@ fn scalar_byte(paragraph: &Paragraph, scalar: usize) -> usize {
 pub(crate) fn render_field(
     field: &PageField,
     numbering: &joyword_model::PageNumbering,
-    ctx: crate::cache::ExternalContext,
+    ctx: &crate::cache::ExternalContext,
     codes: bool,
 ) -> (String, bool) {
     if codes {
@@ -1405,7 +1592,13 @@ pub(crate) fn render_field(
         PageFieldKind::NumPages | PageFieldKind::SectionPages => &NumberFormat::Decimal,
     };
     if let Some(rendered) = format_page(format, value) {
-        (rendered, false)
+        if field.kind == PageFieldKind::Page
+            && let Some(prefix) = &ctx.chapter_prefix
+        {
+            (format!("{prefix}{rendered}"), false)
+        } else {
+            (rendered, false)
+        }
     } else if let Some(cached) = &field.cached {
         (cached.to_string(), true)
     } else {

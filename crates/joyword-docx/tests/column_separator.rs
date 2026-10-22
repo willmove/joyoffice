@@ -50,6 +50,139 @@ fn exported_document_xml(result: &joyword_docx::ImportResult) -> String {
 }
 
 #[test]
+fn chapter_attributes_round_trip_and_neighbor_edits_keep_the_section_bytes()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::{Block, ChapterSeparator, DumpOptions, ScalarOffset};
+    use std::sync::Arc;
+    for (token, separator) in [
+        ("hyphen", ChapterSeparator::Hyphen),
+        ("period", ChapterSeparator::Period),
+        ("colon", ChapterSeparator::Colon),
+        ("emDash", ChapterSeparator::EmDash),
+        ("enDash", ChapterSeparator::EnDash),
+    ] {
+        for level in [1, 9] {
+            let section = format!(
+                r#"<w:sectPr>{PAGE}<w:type w:val="nextColumn"/><w:pgNumType w:chapStyle="{level}" w:chapSep="{token}"/><w:cols w:num="2" w:sep="1"/></w:sectPr>"#
+            );
+            let original = body(&format!(r#"<w:p><w:r><w:t>A</w:t></w:r></w:p>{section}"#));
+            let result = import(&original, &Budget::default())?;
+            let numbering = &result.document.sections()[0].numbering;
+            assert_eq!(numbering.chapter_style, Some(level));
+            assert_eq!(numbering.chapter_separator, separator);
+            assert!(result.document.sections()[0].preserved.is_none());
+            assert!(result.editability.is_unrestricted());
+            let unchanged = plan_export(
+                &result.backing,
+                &result.document.snapshot(),
+                &Budget::default(),
+            )?;
+            assert_eq!(unchanged.bytes(), original);
+            let mut edited = result.document.clone();
+            let story = edited.body_id();
+            let mut edit_result = Ok(());
+            edited
+                .story_mut(story)
+                .ok_or("body")?
+                .blocks
+                .update(0, |block| {
+                    if let Block::Paragraph(paragraph) = block {
+                        edit_result = Arc::make_mut(paragraph).insert_text(ScalarOffset(1), "X");
+                    }
+                });
+            edit_result?;
+            let plan = plan_export(&result.backing, &edited.snapshot(), &Budget::default())?;
+            let package = joyoffice_opc::Package::read(plan.bytes(), &Budget::default())?;
+            let xml = std::str::from_utf8(&package.part("/word/document.xml").ok_or("part")?.data)?;
+            assert!(xml.contains(&section), "{xml}");
+            let reimported = import(plan.bytes(), &Budget::default())?;
+            assert_eq!(&reimported.document.sections()[0].numbering, numbering);
+            assert!(reimported.document.sections()[0].column_separator);
+            assert_eq!(
+                reimported.document.sections()[0].break_kind,
+                SectionBreak::NextColumn
+            );
+            assert!(
+                result
+                    .document
+                    .canonical_dump(DumpOptions { node_ids: false })
+                    .contains("chapter=Some(")
+            );
+            // No pgNumType writeback: neither a direct chapter level nor a
+            // separator mutation may silently copy the old section XML.
+            for change_level in [true, false] {
+                let mut changed = result.document.clone();
+                if change_level {
+                    changed.sections_mut()[0].numbering.chapter_style = None;
+                } else {
+                    changed.sections_mut()[0].numbering.chapter_separator =
+                        if separator == ChapterSeparator::Colon {
+                            ChapterSeparator::Period
+                        } else {
+                            ChapterSeparator::Colon
+                        };
+                }
+                assert!(
+                    plan_export(&result.backing, &changed.snapshot(), &Budget::default()).is_err()
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn chapter_defaults_and_invalid_attributes_preserve_without_guessing()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::ChapterSeparator;
+    for (attributes, style, separator) in [
+        (r#"w:chapStyle="1""#, Some(1), ChapterSeparator::Hyphen),
+        (r#"w:chapSep="colon""#, None, ChapterSeparator::Colon),
+        ("", None, ChapterSeparator::Hyphen),
+    ] {
+        let result = import(
+            &body(&sectpr(&format!("<w:pgNumType {attributes}/>"))),
+            &Budget::default(),
+        )?;
+        assert!(result.document.sections()[0].preserved.is_none());
+        assert_eq!(result.document.sections()[0].numbering.chapter_style, style);
+        assert_eq!(
+            result.document.sections()[0].numbering.chapter_separator,
+            separator
+        );
+    }
+    for attributes in [
+        r#"w:chapStyle="0""#,
+        r#"w:chapStyle="10""#,
+        r#"w:chapStyle="255""#,
+        r#"w:chapStyle="256""#,
+        r#"w:chapStyle="-1""#,
+        r#"w:chapStyle="one""#,
+        r#"w:chapStyle="1.0""#,
+        r#"w:chapSep="dash""#,
+        r#"w:chapStyle="1" w:chapSep="invalid""#,
+        r#"w:chapStyle="1" w:unknown="1""#,
+        r#"chapStyle="1""#,
+        r#"w:chapStyle="1"><w:unknown/></w:pgNumType><w:pgNumType"#,
+    ] {
+        let original = body(&sectpr(&format!("<w:pgNumType {attributes}/>")));
+        let result = import(&original, &Budget::default())?;
+        assert!(
+            result.document.sections()[0].preserved.is_some(),
+            "{attributes}"
+        );
+        assert_eq!(result.document.sections()[0].numbering.chapter_style, None);
+        let plan = plan_export(
+            &result.backing,
+            &result.document.snapshot(),
+            &Budget::default(),
+        )?;
+        assert_eq!(plan.bytes(), original);
+    }
+    Ok(())
+}
+
+#[test]
 fn equal_column_separator_imports_typed_and_round_trips() {
     let result = import(
         &body(&sectpr(r#"<w:cols w:num="2" w:sep="true"/>"#)),
