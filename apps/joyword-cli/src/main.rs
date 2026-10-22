@@ -6,7 +6,7 @@ use std::process::ExitCode;
 
 use joyoffice_opc::Budget;
 use joyword_model::{Block, BlockSeq, BreakKind, InlineKind, Paragraph, RevisionView, Segment};
-use serde_json::json;
+use serde_json::{Value, json};
 
 const MAX_INPUT: u64 = 32 << 20;
 const MAX_TEXT: usize = 1 << 20;
@@ -29,6 +29,39 @@ const HELP: &str = concat!(
 );
 
 mod visual;
+
+/// Recursively re-insert every JSON object's keys in ascending order.
+///
+/// `serde_json::Map` is a sorted `BTreeMap` in a default-member build, but
+/// `cargo test --workspace` pulls in `apps/joyword`, whose `gpui-pre`
+/// dependency enables `serde_json/preserve_order`; feature unification then
+/// switches the shared build to an insertion-ordered `IndexMap` and the CLI's
+/// golden output bytes would silently change with it (T210 requires
+/// byte-identical output for identical input). Sorting through a `BTreeMap`
+/// makes the serialized key order identical under every feature combination:
+/// a no-op for `BTreeMap`, canonical for `IndexMap`.
+pub(crate) fn canonicalize_keys(value: &mut Value) {
+    match value {
+        Value::Array(items) => {
+            for item in items {
+                canonicalize_keys(item);
+            }
+        }
+        Value::Object(map) => {
+            let sorted: std::collections::BTreeMap<String, Value> = std::mem::take(map)
+                .into_iter()
+                .map(|(key, mut item)| {
+                    canonicalize_keys(&mut item);
+                    (key, item)
+                })
+                .collect();
+            for (key, item) in sorted {
+                map.insert(key, item);
+            }
+        }
+        Value::Number(_) | Value::String(_) | Value::Bool(_) | Value::Null => {}
+    }
+}
 
 enum Options {
     Text(TextOptions),
@@ -252,10 +285,13 @@ fn execute_text(options: TextOptions) -> Result<u8, &'static str> {
         "diagnostics": { "reported": imported.diagnostics.len(), "suppressed": imported.diagnostics.suppressed() },
         "read_only": imported.editability.is_read_only(),
     });
+    let mut report = report;
+    if options.inspect {
+        report["text"] = json!(text.value);
+    }
+    canonicalize_keys(&mut report);
     let mut stdout = std::io::stdout().lock();
     if options.inspect {
-        let mut report = report;
-        report["text"] = json!(text.value);
         serde_json::to_writer(&mut stdout, &report).map_err(|_| "cannot write JSON")?;
         stdout.write_all(b"\n").map_err(|_| "cannot write stdout")?;
     } else {
