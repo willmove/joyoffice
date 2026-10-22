@@ -28,6 +28,180 @@ pub struct PdfReport {
     pub has_mod_date: bool,
 }
 
+/// Destination read from PDF bytes, with raw PDF bottom-left coordinates.
+/// `page` is resolved by identity in the file's page tree, not by object number.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PdfDestinationReport {
+    pub page: usize,
+    pub page_object: u32,
+    pub x: f32,
+    pub y: f32,
+    pub zoom: Option<f32>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PdfGoToReport {
+    pub source_page: usize,
+    pub rect: [f32; 4],
+    pub destination: PdfDestinationReport,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PdfNavigationReport {
+    pub links: Vec<PdfGoToReport>,
+    pub bookmarks: BTreeMap<String, PdfDestinationReport>,
+}
+
+/// Independently follow xref/object streams, page tree and /GoTo /D references.
+/// This is deliberately not a search for writer-produced strings or objects.
+pub fn inspect_navigation(bytes: &[u8]) -> Result<PdfNavigationReport, &'static str> {
+    if !bytes.starts_with(b"%PDF-") {
+        return Err("pdf header");
+    }
+    let mut file = read_xref(bytes, startxref(bytes)?, 0)?;
+    let catalog = file.object(file.root)?;
+    let catalog = dict_of(&catalog).ok_or("catalog")?;
+    let pages_ref = catalog.get("Pages").and_then(as_ref).ok_or("pages")?;
+    let mut stats = PageStats::default();
+    walk_pages(&mut file, pages_ref, None, &BTreeMap::new(), &mut stats, 0)?;
+    let mut links = Vec::new();
+    for (source_page, rect, value) in &stats.goto_links {
+        links.push(PdfGoToReport {
+            source_page: *source_page,
+            rect: *rect,
+            destination: read_xyz(&mut file, value, &stats)?,
+        });
+    }
+    let mut bookmarks = BTreeMap::new();
+    if let Some(names) = catalog.get("Names") {
+        let names = resolve_dict(&mut file, names)?;
+        if let Some(dests) = names.get("Dests") {
+            read_named_destinations(
+                &mut file,
+                dests,
+                &stats,
+                &mut bookmarks,
+                &mut BTreeSet::new(),
+                0,
+            )?;
+        }
+    }
+    Ok(PdfNavigationReport { links, bookmarks })
+}
+
+fn read_xyz(
+    file: &mut File<'_>,
+    value: &Value,
+    stats: &PageStats,
+) -> Result<PdfDestinationReport, &'static str> {
+    let mut value = resolve_value(file, value)?;
+    if let Value::Dict(dict) = &value {
+        value = resolve_value(file, dict.get("D").ok_or("destination dictionary")?)?;
+    }
+    let array = as_array(&value).ok_or("destination array")?;
+    if array.len() != 5 || as_name(&array[1]) != Some("XYZ") {
+        return Err("xyz destination");
+    }
+    let page_object = as_ref(&array[0]).ok_or("destination page reference")?;
+    let page = stats
+        .page_objects
+        .iter()
+        .position(|object| *object == page_object)
+        .ok_or("destination outside page tree")?;
+    let x = as_number(&array[2]).ok_or("destination x")?;
+    let y = as_number(&array[3]).ok_or("destination y")?;
+    let zoom = match &array[4] {
+        Value::Null => None,
+        value => Some(
+            as_number(value)
+                .filter(|n| n.is_finite() && *n >= 0.0)
+                .ok_or("destination zoom")?,
+        ),
+    };
+    let (width, height) = stats.pages[page];
+    if !x.is_finite() || !y.is_finite() || x < 0.0 || y < 0.0 || x > width || y > height {
+        return Err("destination coordinates");
+    }
+    Ok(PdfDestinationReport {
+        page,
+        page_object,
+        x,
+        y,
+        zoom,
+    })
+}
+
+fn read_named_destinations(
+    file: &mut File<'_>,
+    value: &Value,
+    stats: &PageStats,
+    out: &mut BTreeMap<String, PdfDestinationReport>,
+    seen: &mut BTreeSet<u32>,
+    depth: usize,
+) -> Result<(), &'static str> {
+    if depth > MAX_DEPTH || seen.len() >= MAX_OBJECTS {
+        return Err("destination tree depth");
+    }
+    if let Value::Ref(number) = value
+        && !seen.insert(*number)
+    {
+        return Err("destination tree cycle");
+    }
+    let dict = resolve_dict(file, value)?;
+    if let Some(kids) = dict.get("Kids").and_then(as_array) {
+        for child in kids {
+            read_named_destinations(file, child, stats, out, seen, depth + 1)?;
+        }
+    }
+    if let Some(names) = dict.get("Names").and_then(as_array) {
+        if names.len() % 2 != 0 {
+            return Err("destination name pairs");
+        }
+        for pair in names.as_chunks::<2>().0 {
+            let Value::Str(name) = &pair[0] else {
+                return Err("destination name");
+            };
+            if out.len() >= MAX_OBJECTS
+                || out
+                    .insert(name.clone(), read_xyz(file, &pair[1], stats)?)
+                    .is_some()
+            {
+                return Err("destination name count or duplicate");
+            }
+        }
+    }
+    Ok(())
+}
+
+fn goto_link(
+    file: &mut File<'_>,
+    value: &Value,
+) -> Result<Option<([f32; 4], Value)>, &'static str> {
+    let dict = resolve_dict(file, value)?;
+    if name(&dict, "Subtype") != Some("Link") {
+        return Ok(None);
+    }
+    let Some(action) = dict.get("A") else {
+        return Ok(None);
+    };
+    let action = resolve_dict(file, action)?;
+    if name(&action, "S") != Some("GoTo") {
+        return Ok(None);
+    }
+    let destination = action.get("D").ok_or("goto destination")?.clone();
+    let rect = dict.get("Rect").and_then(as_array).ok_or("goto rect")?;
+    if rect.len() != 4 {
+        return Err("goto rect");
+    }
+    let mut coords = [0.0; 4];
+    for (coord, value) in coords.iter_mut().zip(rect) {
+        *coord = as_number(value)
+            .filter(|n| n.is_finite())
+            .ok_or("goto rect coordinate")?;
+    }
+    Ok(Some((coords, destination)))
+}
+
 #[derive(Clone, Debug)]
 enum Value {
     Null,
@@ -100,6 +274,8 @@ pub fn inspect(bytes: &[u8]) -> Result<PdfReport, &'static str> {
 #[derive(Default)]
 struct PageStats {
     pages: Vec<(f32, f32)>,
+    page_objects: Vec<u32>,
+    goto_links: Vec<(usize, [f32; 4], Value)>,
     link_uris: Vec<String>,
     fonts: usize,
     fonts_with_to_unicode: usize,
@@ -437,6 +613,7 @@ fn walk_pages(
         return Err("media box");
     }
     stats.pages.push(media);
+    stats.page_objects.push(number);
     count_resources(
         file,
         &resources,
@@ -449,6 +626,14 @@ fn walk_pages(
         for annot in annots {
             if let Some(uri) = link_uri(file, annot)? {
                 stats.link_uris.push(uri);
+            }
+            if let Some((rect, destination)) = goto_link(file, annot)? {
+                if stats.goto_links.len() >= MAX_OBJECTS {
+                    return Err("goto count");
+                }
+                stats
+                    .goto_links
+                    .push((stats.pages.len() - 1, rect, destination));
             }
         }
     }

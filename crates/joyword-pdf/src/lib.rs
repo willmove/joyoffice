@@ -16,10 +16,17 @@
 
 mod check;
 mod info;
+mod navigation;
 
-pub use check::PdfReport;
+pub use check::{
+    PdfDestinationReport, PdfGoToReport, PdfNavigationReport, PdfReport, inspect_navigation,
+};
 pub use info::{
     OutlineEntry, PdfExport, PdfLink, core_title, links_from_document, outline_from_headings,
+};
+pub use navigation::{
+    MAX_PDF_BOOKMARKS, MAX_PDF_LINKS, MAX_PDF_NAME_BYTES, MAX_PDF_PAGE_POINTS, NavigationError,
+    PdfBookmark, PdfDestination, PdfGoToLink, PdfNavigation, navigation_from_document,
 };
 
 /// Tool name written to the PDF information dictionary. It does not include
@@ -45,6 +52,14 @@ pub enum PdfError {
     InvalidPage,
     /// An admitted scene image could not be drawn. The text does not echo bytes.
     Image(&'static str),
+    /// Invalid or over-budget navigation is refused before serialization.
+    Navigation(NavigationError),
+}
+
+impl From<NavigationError> for PdfError {
+    fn from(error: NavigationError) -> Self {
+        Self::Navigation(error)
+    }
 }
 
 /// Glyph handed to krilla: the advance is the distance to the next glyph's
@@ -128,6 +143,24 @@ pub fn render_export(
     fonts: &[LoadedFont],
     export: &PdfExport,
 ) -> Result<Vec<u8>, PdfError> {
+    render_export_with_navigation(pages, fonts, export, &PdfNavigation::default())
+}
+
+/// Add model bookmark destinations and explicit internal GoTo annotations.
+/// `pages` must be the same scenes used to resolve `navigation`. All navigation
+/// geometry and counts (including existing outlines/URI rectangles) are checked
+/// before krilla sees them. This does not add PDF tags or accessibility claims.
+pub fn render_export_with_navigation(
+    pages: &[PageScene],
+    fonts: &[LoadedFont],
+    export: &PdfExport,
+    navigation: &PdfNavigation,
+) -> Result<Vec<u8>, PdfError> {
+    for page in pages {
+        navigation::page_size(page).map_err(|_| PdfError::InvalidPage)?;
+    }
+    info::validate_export(pages, export, navigation.links.len())?;
+    navigation::validate(pages, navigation)?;
     // XMP is omitted. krilla only writes dates into XMP when a creation date
     // is supplied, but leaving the packet out keeps the file free of any
     // metadata clock and of an instance-id that is not part of the scene.
@@ -136,6 +169,7 @@ pub fn render_export(
         ..krilla::SerializeSettings::default()
     };
     let mut document = Document::new_with(settings);
+    navigation::register(&mut document, navigation)?;
     let mut cache: HashMap<FontKey, Font> = HashMap::new();
     for (page_index, scene) in pages.iter().enumerate() {
         let settings = PageSettings::from_wh(
@@ -191,14 +225,27 @@ pub fn render_export(
         }
         surface.finish();
         for link in export.links.iter().filter(|link| link.page == page_index) {
-            let Some(rect) = krilla::geom::Rect::from_xywh(link.x, link.y, link.width, link.height)
-            else {
-                continue;
-            };
+            let rect = krilla::geom::Rect::from_xywh(link.x, link.y, link.width, link.height)
+                .ok_or(NavigationError::InvalidGeometry)?;
             let annotation = krilla::annotation::LinkAnnotation::new(
                 rect,
                 krilla::annotation::Target::Action(krilla::action::Action::Link(
                     krilla::action::LinkAction::new(link.uri.clone()),
+                )),
+            );
+            page.add_annotation(krilla::annotation::Annotation::new_link(annotation, None));
+        }
+        for link in navigation
+            .links
+            .iter()
+            .filter(|link| link.page == page_index)
+        {
+            let rect = krilla::geom::Rect::from_xywh(link.x, link.y, link.width, link.height)
+                .ok_or(NavigationError::InvalidGeometry)?;
+            let annotation = krilla::annotation::LinkAnnotation::new(
+                rect,
+                krilla::annotation::Target::Action(krilla::action::Action::Goto(
+                    navigation::xyz(link.destination).into(),
                 )),
             );
             page.add_annotation(krilla::annotation::Annotation::new_link(annotation, None));

@@ -53,6 +53,45 @@ const MAX_TITLE_CHARS: usize = 512;
 const MAX_OUTLINE: usize = 512;
 const MAX_BOOKMARK_CHARS: usize = 200;
 
+pub(crate) fn validate_export(
+    pages: &[joyword_layout::PageScene],
+    export: &PdfExport,
+    goto_count: usize,
+) -> Result<(), crate::NavigationError> {
+    use crate::navigation::{
+        MAX_PDF_LINKS, NavigationError, PdfDestination, check_point, check_rect,
+    };
+    if export.outline.len() > MAX_OUTLINE
+        || goto_count > MAX_PDF_LINKS
+        || export.links.len() > MAX_PDF_LINKS - goto_count
+    {
+        return Err(NavigationError::Budget);
+    }
+    for entry in &export.outline {
+        check_point(
+            pages,
+            PdfDestination {
+                page: entry.page,
+                x: 0.0,
+                y: entry.top,
+            },
+        )?;
+    }
+    for link in &export.links {
+        check_rect(pages, link.page, link.x, link.y, link.width, link.height)?;
+        if link.uri.len() > 4 * joyword_model::MAX_HYPERLINK_CHARS {
+            return Err(NavigationError::Budget);
+        }
+        let target = joyword_model::Hyperlink {
+            relationship: None,
+            external: Some(std::sync::Arc::from(link.uri.as_str())),
+            anchor: None,
+        };
+        open_target(&target).map_err(|_| NavigationError::InvalidUri)?;
+    }
+    Ok(())
+}
+
 /// `dc:title` text from core-properties XML, or `None` when the part is
 /// absent, too large, not UTF-8, or the title is not a single text node.
 pub fn core_title(xml: &[u8]) -> Option<String> {
@@ -74,9 +113,10 @@ pub fn core_title(xml: &[u8]) -> Option<String> {
 
 /// URI rectangles for runs whose external target passes [`open_target`].
 ///
-/// The rectangle is the placed line box over the linked scalars. Bookmark-only
-/// links and schemes outside `http` / `https` / `mailto` stay underlines on
-/// the page and do not become actions.
+/// The rectangle is the placed line box over the linked scalars. This legacy
+/// URI-only API omits bookmark links and disallowed schemes; resolve internal
+/// links separately with [`crate::navigation_from_document`] and render both
+/// with [`crate::render_export_with_navigation`].
 pub fn links_from_document(document: &Document, snapshot: &LayoutSnapshot) -> Vec<PdfLink> {
     let mut paragraphs = Vec::new();
     for story in document.stories() {
@@ -133,11 +173,15 @@ fn push_link_rects(
         if right <= left {
             continue;
         }
+        let Some(extent) = right.checked_sub(left) else {
+            continue;
+        };
         let x = to_points(Emu::new(left)) as f32;
         let y = to_points(line.top) as f32;
-        let width = to_points(Emu::new(right - left)) as f32;
+        let width = to_points(Emu::new(extent)) as f32;
         let height = to_points(line.height) as f32;
-        if !x.is_finite() || !y.is_finite() || width <= 0.0 || height <= 0.0 {
+        if crate::navigation::check_rect(snapshot.pages(), line.page, x, y, width, height).is_err()
+        {
             continue;
         }
         links.push(PdfLink {
