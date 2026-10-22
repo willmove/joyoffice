@@ -398,49 +398,56 @@ fn settle_clipboard(effect: &FieldEffect, buffer: &mut FieldBuffer, cx: &App) {
 mod tests {
     use super::*;
 
-    fn stroke(spec: &str) -> Keystroke {
-        Keystroke::parse(spec).unwrap_or_else(|error| panic!("{spec}: {error}"))
+    fn stroke(spec: &str) -> Result<Keystroke, String> {
+        Keystroke::parse(spec).map_err(|error| error.to_string())
     }
 
-    fn apply(buffer: &mut FieldBuffer, spec: &str) -> FieldEffect {
-        buffer.apply_key(&stroke(spec))
+    fn apply(buffer: &mut FieldBuffer, spec: &str) -> Result<FieldEffect, String> {
+        Ok(buffer.apply_key(&stroke(spec)?))
     }
 
     #[test]
-    fn editing_and_navigation_keys_edit_the_field() {
+    fn editing_and_navigation_keys_edit_the_field() -> Result<(), String> {
         let mut buffer = FieldBuffer::from_text("copy-sample.docx");
-        assert_eq!(apply(&mut buffer, "backspace"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "backspace")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "copy-sample.doc");
-        assert_eq!(apply(&mut buffer, "home"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "delete"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "home")?, FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "delete")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "opy-sample.doc");
-        assert_eq!(apply(&mut buffer, "shift-end"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "backspace"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "shift-end")?, FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "backspace")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "");
-        assert_eq!(apply(&mut buffer, "a"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "b"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "a")?, FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "b")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "ab");
-        assert_eq!(apply(&mut buffer, "left"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "c"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "left")?, FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "c")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "acb");
-        assert_eq!(apply(&mut buffer, "ctrl-a"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "ctrl-x"), FieldEffect::Cut("acb".into()));
+        assert_eq!(apply(&mut buffer, "ctrl-a")?, FieldEffect::Handled);
+        assert_eq!(
+            apply(&mut buffer, "ctrl-x")?,
+            FieldEffect::Cut("acb".into())
+        );
         assert!(buffer.text().is_empty());
 
         buffer.set_text("甲乙");
-        assert_eq!(apply(&mut buffer, "backspace"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "backspace")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "甲");
         buffer.set_text("ab cd");
-        assert_eq!(apply(&mut buffer, "home"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "ctrl-right"), FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "home")?, FieldEffect::Handled);
+        assert_eq!(apply(&mut buffer, "ctrl-right")?, FieldEffect::Handled);
         assert_eq!(&buffer.text()[..buffer.caret], "ab");
-        assert_eq!(apply(&mut buffer, "ctrl-shift-right"), FieldEffect::Handled);
-        assert_eq!(apply(&mut buffer, "backspace"), FieldEffect::Handled);
+        assert_eq!(
+            apply(&mut buffer, "ctrl-shift-right")?,
+            FieldEffect::Handled
+        );
+        assert_eq!(apply(&mut buffer, "backspace")?, FieldEffect::Handled);
         assert_eq!(buffer.text(), "abcd");
 
-        assert_eq!(apply(&mut buffer, "enter"), FieldEffect::Submit);
-        assert_eq!(apply(&mut buffer, "escape"), FieldEffect::Cancel);
-        assert_eq!(apply(&mut buffer, "ctrl-s"), FieldEffect::Ignored);
-        assert_eq!(apply(&mut buffer, "ctrl-b"), FieldEffect::Ignored);
+        assert_eq!(apply(&mut buffer, "enter")?, FieldEffect::Submit);
+        assert_eq!(apply(&mut buffer, "escape")?, FieldEffect::Cancel);
+        assert_eq!(apply(&mut buffer, "ctrl-s")?, FieldEffect::Ignored);
+        assert_eq!(apply(&mut buffer, "ctrl-b")?, FieldEffect::Ignored);
+        Ok(())
     }
 }

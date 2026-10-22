@@ -154,21 +154,22 @@ mod tests {
     }
 
     #[test]
-    fn clearing_removes_a_committed_journal() {
+    fn clearing_removes_a_committed_journal() -> io::Result<()> {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "clock"))?
+            .as_nanos();
         let dir = std::env::temp_dir().join(format!(
-            "joyword-recovery-clear-{}-{}",
+            "joyword-recovery-clear-{}-{nanos}",
             std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("clock")
-                .as_nanos()
         ));
         let _ = fs::remove_dir_all(&dir);
-        commit(&dir, b"PK", "edited").expect("commit");
-        assert_eq!(recover(&dir).expect("recover").text, "edited");
-        clear(&dir).expect("clear");
+        commit(&dir, b"PK", "edited")?;
+        assert_eq!(recover(&dir)?.text, "edited");
+        clear(&dir)?;
         assert!(recover(&dir).is_err(), "discarded journal must not restore");
-        clear(&dir).expect("clearing a missing journal is fine");
+        clear(&dir)?;
         let _ = fs::remove_dir_all(&dir);
+        Ok(())
     }
 }
