@@ -296,7 +296,10 @@ fn write_new(path: &Path, bytes: &[u8]) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn write_report(report: Value) -> Result<u8, &'static str> {
+fn write_report(mut report: Value) -> Result<u8, &'static str> {
+    // Keep render/convert JSON bytes identical under any cargo feature
+    // resolution; see `canonicalize_keys` in main.rs.
+    crate::canonicalize_keys(&mut report);
     let mut stdout = std::io::stdout().lock();
     serde_json::to_writer(&mut stdout, &report).map_err(|_| "cannot write JSON")?;
     stdout.write_all(b"\n").map_err(|_| "cannot write stdout")?;

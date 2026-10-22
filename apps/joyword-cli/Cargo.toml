@@ -20,6 +20,13 @@ tempfile.workspace = true
 
 [dev-dependencies]
 joyword-corpus.workspace = true
+# `cargo test --workspace` pulls apps/joyword in, and gpui-pre enables
+# serde_json/preserve_order; feature unification then gives the test-built CLI
+# binary an insertion-ordered Value map instead of the sorted BTreeMap that
+# default-member-only builds produce, which used to change the golden JSON key
+# order. Pin the same feature for tests so `cargo test -p joyword-cli` always
+# exercises the risky configuration and the goldens stay feature-independent.
+serde_json = { version = "=1.0.154", features = ["preserve_order"] }
 tempfile.workspace = true
 
 [lints]
