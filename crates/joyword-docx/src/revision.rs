@@ -340,6 +340,7 @@ fn push_revised_run(
         Some(rpr) => {
             let mut findings = Findings::default();
             let (mut props, style) = props::run(rpr, &mut findings);
+            props.preserved_layout_neutral = findings.layout_neutral();
             props.preserved = importer.settle(part, rpr, scope, findings);
             (props, style)
         }

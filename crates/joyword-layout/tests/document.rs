@@ -681,6 +681,59 @@ fn track_revisions_does_not_block_layout() {
 }
 
 #[test]
+fn layout_neutral_preserved_settings_and_run_defaults_lay_out() {
+    let mut document = make_document(&["AV"], 2);
+    let baseline = layout(&document);
+    let settings = document.ids().preserved();
+    document.settings_mut().preserved = Some(settings);
+    document.settings_mut().preserved_layout_neutral = true;
+    let run = document.ids().preserved();
+    let defaults = &mut document.styles_mut().defaults.run;
+    defaults.preserved = Some(run);
+    defaults.preserved_layout_neutral = true;
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.lines(), baseline.lines());
+
+    document.styles_mut().defaults.run.preserved_layout_neutral = false;
+    let refused = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    );
+    assert!(
+        matches!(
+            refused,
+            Err(LayoutError::Unsupported {
+                feature: "preserved character properties",
+                ..
+            })
+        ),
+        "{refused:?}"
+    );
+    document.styles_mut().defaults.run.preserved_layout_neutral = true;
+    document.settings_mut().preserved_layout_neutral = false;
+    let refused = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    );
+    assert!(
+        matches!(
+            refused,
+            Err(LayoutError::Unsupported {
+                feature: "preserved settings",
+                ..
+            })
+        ),
+        "{refused:?}"
+    );
+}
+
+#[test]
 fn repeated_engine_edits_keep_pages_source_ranges_and_hits_consistent() {
     let mut session = Session::new(make_document(
         &["AV fi AV fi AV fi", "", "AV fi", "AV fi AV fi", "fi"],

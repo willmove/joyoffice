@@ -280,8 +280,9 @@ pub(crate) fn paragraph(
             let mut mark_findings = Findings::default();
             let (mut mark, mark_style) = props::run(rpr, &mut mark_findings);
             if mark_style.is_some() {
-                mark_findings.complete = false;
+                mark_findings.gap();
             }
+            mark.preserved_layout_neutral = mark_findings.layout_neutral();
             mark.preserved = importer.settle(part, rpr, &ppr_scope, mark_findings);
             paragraph.mark_props = Arc::new(mark);
         }
@@ -575,6 +576,7 @@ fn run(
         Some(rpr) => {
             let mut findings = Findings::default();
             let (mut props, style) = props::run(rpr, &mut findings);
+            props.preserved_layout_neutral = findings.layout_neutral();
             props.preserved = importer.settle(part, rpr, scope, findings);
             (props, style)
         }
@@ -890,7 +892,7 @@ fn section(
                     }
                 };
                 if child.attribute(Some(W), "code").is_some() {
-                    findings.complete = false;
+                    findings.gap();
                 }
             }
             (true, "pgMar") => {
@@ -918,21 +920,21 @@ fn section(
                         .iter()
                         .any(|attribute| attribute.local.as_ref() != "val")
                 {
-                    findings.complete = false;
+                    findings.gap();
                 }
                 match child.attribute(Some(W), "val") {
                     None | Some("nextPage") => break_kind = SectionBreak::NextPage,
                     Some("continuous") => break_kind = SectionBreak::Continuous,
                     Some("evenPage") => break_kind = SectionBreak::EvenPage,
                     Some("oddPage") => break_kind = SectionBreak::OddPage,
-                    Some(_) => findings.complete = false,
+                    Some(_) => findings.gap(),
                 }
             }
             (true, "pgNumType") => {
                 if let Some(parsed) = page_numbering(child) {
                     numbering = parsed;
                 } else {
-                    findings.complete = false;
+                    findings.gap();
                 }
             }
             (true, "cols") => match read_columns(child) {
@@ -940,11 +942,11 @@ fn section(
                     columns = parsed.equal;
                     unequal_columns = parsed.unequal;
                 }
-                None => findings.complete = false,
+                None => findings.gap(),
             },
             (true, "docGrid") => match read_doc_grid(child, &mut findings) {
                 Some(parsed) => doc_grid = Some(parsed),
-                None => findings.complete = false,
+                None => findings.gap(),
             },
             (true, "headerReference" | "footerReference") => {
                 if let Some((kind, story)) = story_reference(importer, part, child, &mut findings) {
@@ -969,7 +971,7 @@ fn section(
                     }
                 }
             }
-            _ => findings.complete = false,
+            _ => findings.gap(),
         }
     }
     for (present, missing) in [(size, "w:pgSz"), (margins, "w:pgMar")] {
@@ -1004,7 +1006,7 @@ fn section(
 /// unknown attribute leave the section preserved.
 fn read_doc_grid(element: &Element, findings: &mut Findings) -> Option<joyword_model::DocGrid> {
     if element.elements().next().is_some() {
-        findings.complete = false;
+        findings.gap();
         return None;
     }
     let mut kind = None;
@@ -1012,7 +1014,7 @@ fn read_doc_grid(element: &Element, findings: &mut Findings) -> Option<joyword_m
     let mut char_space = None;
     for attribute in &element.attributes {
         if attribute.namespace.as_deref() != Some(W) {
-            findings.complete = false;
+            findings.gap();
             return None;
         }
         match attribute.local.as_ref() {
@@ -1045,7 +1047,7 @@ fn read_doc_grid(element: &Element, findings: &mut Findings) -> Option<joyword_m
                 char_space = Some(parsed);
             }
             _ => {
-                findings.complete = false;
+                findings.gap();
                 return None;
             }
         }
@@ -1212,12 +1214,12 @@ fn story_reference(
             return None;
         }
         None => {
-            findings.complete = false;
+            findings.gap();
             return None;
         }
     };
     let Some(id) = child.attribute(Some(R), "id") else {
-        findings.complete = false;
+        findings.gap();
         return None;
     };
     let target = {
@@ -1232,7 +1234,7 @@ fn story_reference(
             })
     };
     let Some(target) = target else {
-        findings.complete = false;
+        findings.gap();
         importer.diagnose(
             Severity::Warning,
             Some(part),
@@ -1248,7 +1250,7 @@ fn story_reference(
     match import_story(importer, &target, header) {
         Some(story) => Some((kind, story)),
         None => {
-            findings.complete = false;
+            findings.gap();
             None
         }
     }

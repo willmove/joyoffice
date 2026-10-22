@@ -73,6 +73,9 @@ pub(crate) struct Importer<'a> {
     /// `false` while reading `comments.xml`, so a comment body is not a
     /// document anchor.
     pub(crate) record_comment_anchors: bool,
+    /// Supplemental theme fonts until `w:themeFontLang` is read.
+    theme_scripts: Option<crate::settings::ThemeScripts>,
+    theme_languages: crate::settings::ThemeLanguages,
 }
 
 impl<'a> Importer<'a> {
@@ -327,6 +330,8 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         comment_marks: Vec::new(),
         unmapped_comment_ids: std::collections::BTreeSet::new(),
         record_comment_anchors: true,
+        theme_scripts: None,
+        theme_languages: crate::settings::ThemeLanguages::default(),
     };
     for diagnostic in package.diagnostics() {
         importer.diagnose(
@@ -411,6 +416,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
     if let Some(part) = &settings {
         importer.settings(part)?;
     }
+    importer.name_theme_fonts();
     if let Some(part) = &numbering {
         importer.numbering(part)?;
     }
@@ -549,16 +555,20 @@ impl Importer<'_> {
         };
         let mut theme = ThemeScheme::default();
         if let Some(scheme) = elements.child(A, "fontScheme") {
+            let mut scripts = crate::settings::ThemeScripts::default();
             if let Some(major) = scheme.child(A, "majorFont") {
                 theme.fonts.major_latin = typeface(major, "latin");
                 theme.fonts.major_east_asia = typeface(major, "ea");
                 theme.fonts.major_complex = typeface(major, "cs");
+                scripts.read(major, true);
             }
             if let Some(minor) = scheme.child(A, "minorFont") {
                 theme.fonts.minor_latin = typeface(minor, "latin");
                 theme.fonts.minor_east_asia = typeface(minor, "ea");
                 theme.fonts.minor_complex = typeface(minor, "cs");
+                scripts.read(minor, false);
             }
+            self.theme_scripts = Some(scripts);
         }
         if let Some(colors) = elements.child(A, "clrScheme") {
             for child in colors.elements() {
@@ -570,6 +580,18 @@ impl Importer<'_> {
                 }
             }
         }
+        self.document.styles_mut().set_theme(theme);
+    }
+
+    /// An empty theme typeface takes the supplemental `a:font` for the
+    /// `w:themeFontLang` script (§17.15.1.88). Without one the slot names no
+    /// face. Runs once, after the settings part.
+    fn name_theme_fonts(&mut self) {
+        let Some(scripts) = self.theme_scripts.take() else {
+            return;
+        };
+        let mut theme = self.document.styles().theme().clone();
+        scripts.apply(&self.theme_languages, &mut theme.fonts);
         self.document.styles_mut().set_theme(theme);
     }
 
@@ -603,6 +625,7 @@ impl Importer<'_> {
                 (true, "rPrDefault", Some(rpr)) if rpr.is(W, "rPr") => {
                     let mut findings = Findings::default();
                     let (mut run, _) = props::run(rpr, &mut findings);
+                    run.preserved_layout_neutral = findings.layout_neutral();
                     run.preserved = self.settle(part, rpr, &inner, findings);
                     self.document.styles_mut().defaults.run = run;
                 }
@@ -610,7 +633,7 @@ impl Importer<'_> {
                     let mut findings = Findings::default();
                     let para = props::para(ppr, &mut findings);
                     if para.style.is_some() || para.mark.is_some() || para.section.is_some() {
-                        findings.complete = false;
+                        findings.gap();
                     }
                     let mut props = para.props;
                     props.preserved = self.settle(part, ppr, &inner, findings);
@@ -683,7 +706,7 @@ impl Importer<'_> {
                     let mut findings = Findings::default();
                     let para = props::para(child, &mut findings);
                     if para.style.is_some() || para.mark.is_some() || para.section.is_some() {
-                        findings.complete = false;
+                        findings.gap();
                     }
                     style.para = para.props;
                     style.para.preserved = self.settle(part, child, &child_scope, findings);
@@ -692,9 +715,10 @@ impl Importer<'_> {
                     let mut findings = Findings::default();
                     let (run, run_style) = props::run(child, &mut findings);
                     if run_style.is_some() {
-                        findings.complete = false;
+                        findings.gap();
                     }
                     style.run = run;
+                    style.run.preserved_layout_neutral = findings.layout_neutral();
                     style.run.preserved = self.settle(part, child, &child_scope, findings);
                 }
                 "tblPr" | "trPr" | "tcPr" | "tblStylePr" => {
@@ -732,16 +756,25 @@ impl Importer<'_> {
         let (root, scope) = self.root(part, "settings")?;
         let mut settings = DocumentSettings::default();
         let mut unmodeled = false;
+        let mut layout_neutral = true;
+        let mut keep = |child: &Element| {
+            unmodeled = true;
+            layout_neutral &= crate::settings::layout_neutral(child);
+        };
         for child in root.elements() {
             if child.namespace.as_deref() != Some(W) {
-                unmodeled = true;
+                keep(child);
                 continue;
             }
             match &*child.local {
                 "compat" => {
                     if !self.read_compat(name, child, &mut settings) {
-                        unmodeled = true;
+                        keep(child);
                     }
+                }
+                "themeFontLang" => {
+                    self.theme_languages = crate::settings::ThemeLanguages::read(child);
+                    keep(child);
                 }
                 "trackRevisions" => {
                     // §17.15.1.89. Tracking is a setting. It does not make the
@@ -793,12 +826,13 @@ impl Importer<'_> {
                     let id = child.attribute(Some(R), "id").unwrap_or("");
                     settings.attached_template = Some(Arc::from(id));
                 }
-                _ => unmodeled = true,
+                _ => keep(child),
             }
         }
         if unmodeled {
             settings.preserved =
                 Some(self.preserve(name, &root, &scope, PreservedReason::Properties));
+            settings.preserved_layout_neutral = layout_neutral;
         }
         *self.document.settings_mut() = settings;
         Ok(())

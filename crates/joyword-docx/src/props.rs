@@ -18,7 +18,7 @@ use joyword_model::{
     Underline,
 };
 
-use crate::ns::W;
+use crate::ns::{W, W14};
 use crate::xml::Element;
 
 /// An attribute value outside the supported set.
@@ -33,6 +33,9 @@ pub(crate) struct Invalid {
 pub(crate) struct Findings {
     /// Every child and value was represented in the model.
     pub complete: bool,
+    /// A gap that can change a line or a page. Cleared only by
+    /// [`Findings::neutral_gap`] gaps.
+    pub layout_relevant: bool,
     pub invalid: Vec<Invalid>,
 }
 
@@ -40,14 +43,32 @@ impl Default for Findings {
     fn default() -> Self {
         Self {
             complete: true,
+            layout_relevant: false,
             invalid: Vec::new(),
         }
     }
 }
 
 impl Findings {
-    pub(crate) fn invalid(&mut self, element: &Element, attribute: &str, value: &str) {
+    /// Something the model cannot represent.
+    pub(crate) fn gap(&mut self) {
         self.complete = false;
+        self.layout_relevant = true;
+    }
+
+    /// Something the model cannot represent that never moves or paints a
+    /// glyph differently in this layout.
+    pub(crate) fn neutral_gap(&mut self) {
+        self.complete = false;
+    }
+
+    /// `true` when the element is preserved only for gaps layout can ignore.
+    pub(crate) fn layout_neutral(&self) -> bool {
+        !self.complete && !self.layout_relevant
+    }
+
+    pub(crate) fn invalid(&mut self, element: &Element, attribute: &str, value: &str) {
+        self.gap();
         self.invalid.push(Invalid {
             element: element.qname.to_string(),
             attribute: attribute.to_owned(),
@@ -128,7 +149,7 @@ fn first_measure(
         > 1
     {
         // The other spelling is kept only in the preserved element.
-        findings.complete = false;
+        findings.gap();
     }
     measure(element, name, unit, findings)
 }
@@ -144,7 +165,7 @@ fn relative_or_absolute(
     findings: &mut Findings,
 ) -> Option<Measure> {
     if relative.is_some() && absolute.is_some() {
-        findings.complete = false;
+        findings.gap();
     }
     match (relative, absolute) {
         (Some(Measure::CharHundredths(0) | Measure::LineHundredths(0)), Some(absolute)) => {
@@ -244,13 +265,13 @@ fn numbering(element: &Element, findings: &mut Findings) -> Option<NumberingRef>
         .elements()
         .any(|child| !child.is(W, "numId") && !child.is(W, "ilvl"))
     {
-        findings.complete = false;
+        findings.gap();
     }
     match (num_id, level.map(u8::try_from)) {
         (Some(num_id), Some(Ok(level))) => Some(NumberingRef { num_id, level }),
         _ => {
             // A reference without both values is kept only in the source.
-            findings.complete = false;
+            findings.gap();
             None
         }
     }
@@ -260,15 +281,15 @@ fn tabs(element: &Element, findings: &mut Findings) -> Vec<TabStop> {
     let mut stops = Vec::new();
     for child in element.elements() {
         if !child.is(W, "tab") {
-            findings.complete = false;
+            findings.gap();
             continue;
         }
         let Some(position) = integer(child, "pos", findings) else {
-            findings.complete = false;
+            findings.gap();
             continue;
         };
         let Some(value) = child.attribute(Some(W), "val") else {
-            findings.complete = false;
+            findings.gap();
             continue;
         };
         let align = match value {
@@ -326,7 +347,7 @@ pub(crate) fn para<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e
     let props = &mut out.props;
     for child in element.elements() {
         if child.namespace.as_deref() != Some(W) {
-            findings.complete = false;
+            findings.gap();
             continue;
         }
         match &*child.local {
@@ -350,7 +371,7 @@ pub(crate) fn para<'e>(element: &'e Element, findings: &mut Findings) -> Para<'e
             "tabs" => props.tabs = Some(tabs(child, findings)),
             "rPr" => out.mark = Some(child),
             "sectPr" => out.section = Some(child),
-            _ => findings.complete = false,
+            _ => findings.gap(),
         }
     }
     out
@@ -377,7 +398,7 @@ fn fonts(element: &Element, out: &mut RunProps, findings: &mut Findings) {
         let named_value = element.attribute(Some(W), named);
         if let Some(value) = element.attribute(Some(W), theme) {
             if named_value.is_some() {
-                findings.complete = false;
+                findings.gap();
             }
             return match theme_font(value) {
                 Some(theme) => Some(FontRef::Theme(theme)),
@@ -410,7 +431,7 @@ fn underline(element: &Element, findings: &mut Findings) -> Option<Underline> {
     if element.attribute(Some(W), "color").is_some()
         || element.attribute(Some(W), "themeColor").is_some()
     {
-        findings.complete = false;
+        findings.gap();
     }
     let value = val(element).unwrap_or_default();
     Some(match value {
@@ -439,10 +460,10 @@ fn color(element: &Element, findings: &mut Findings) -> Option<Color> {
                 let tint = theme_byte(element, "themeTint", findings);
                 let shade = theme_byte(element, "themeShade", findings);
                 if tinted && element.attribute(Some(W), "themeTint").is_some() && tint.is_none() {
-                    findings.complete = false;
+                    findings.gap();
                 }
                 if tinted && element.attribute(Some(W), "themeShade").is_some() && shade.is_none() {
-                    findings.complete = false;
+                    findings.gap();
                 }
                 Some(Color::Theme { slot, tint, shade })
             }
@@ -455,7 +476,7 @@ fn color(element: &Element, findings: &mut Findings) -> Option<Color> {
     if element.attributes.iter().any(|attribute| {
         attribute.namespace.as_deref() == Some(W) && attribute.local.starts_with("theme")
     }) {
-        findings.complete = false;
+        findings.gap();
     }
     cached_rgb(element, findings)
 }
@@ -495,8 +516,12 @@ pub(crate) fn run(element: &Element, findings: &mut Findings) -> (RunProps, Opti
     let mut out = RunProps::default();
     let mut style = None;
     for child in element.elements() {
+        if child.namespace.as_deref() == Some(W14) && w14_run_child_layout_neutral(child) {
+            findings.neutral_gap();
+            continue;
+        }
         if child.namespace.as_deref() != Some(W) {
-            findings.complete = false;
+            findings.gap();
             continue;
         }
         match &*child.local {
@@ -515,10 +540,31 @@ pub(crate) fn run(element: &Element, findings: &mut Findings) -> (RunProps, Opti
                 out.languages.east_asia = tag("eastAsia");
                 out.languages.bidi = tag("bidi");
             }
-            _ => findings.complete = false,
+            local if run_child_layout_neutral(local) => findings.neutral_gap(),
+            _ => findings.gap(),
         }
     }
     (out, style)
+}
+
+/// `w:rPr` children with no model field that change no advance and paint
+/// nothing in this layout. `w:szCs`, `w:bCs` and `w:iCs` format only
+/// complex-script text, which layout sizes and styles from `w:sz`, `w:b` and
+/// `w:i`; `w:kern` is the kerning threshold, and the shaper already kerns.
+fn run_child_layout_neutral(local: &str) -> bool {
+    matches!(local, "szCs" | "bCs" | "iCs" | "kern" | "noProof")
+}
+
+/// `w14:` run properties ([MS-DOCX] §2.6) at the values that match the
+/// shaper's default OpenType features.
+fn w14_run_child_layout_neutral(child: &Element) -> bool {
+    let value = child.attribute(Some(W14), "val");
+    match &*child.local {
+        "ligatures" => value == Some("standardContextual"),
+        "numForm" | "numSpacing" => value == Some("default"),
+        "cntxtAlts" => on_off(value) == Some(true),
+        _ => false,
+    }
 }
 
 #[cfg(test)]
@@ -584,6 +630,35 @@ mod tests {
         assert_eq!(props.size, None);
         assert_eq!(props.bold, None);
         assert_eq!(findings.invalid.len(), 2);
+    }
+
+    /// Word's document defaults carry `w:kern`, `w:szCs` and
+    /// `w14:ligatures`; preserving them must not stop layout.
+    #[test]
+    fn invisible_run_children_are_preserved_as_layout_neutral() {
+        let w14 = r#"xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml""#;
+        let classify = |inner: &str| {
+            let mut findings = Findings::default();
+            let rpr = element(&format!(r#"<w:rPr {w14}>{inner}</w:rPr>"#));
+            let _ = run(&rpr, &mut findings);
+            (findings.complete, findings.layout_neutral())
+        };
+        assert_eq!(classify(r#"<w:sz w:val="22"/>"#), (true, false));
+        assert_eq!(
+            classify(
+                r#"<w:kern w:val="2"/><w:sz w:val="22"/><w:szCs w:val="24"/><w:bCs/><w:noProof/><w14:ligatures w14:val="standardContextual"/>"#
+            ),
+            (false, true)
+        );
+        for relevant in [
+            r#"<w:kern w:val="2"/><w:spacing w:val="20"/>"#,
+            r#"<w14:ligatures w14:val="none"/>"#,
+            r#"<w14:textOutline/>"#,
+            r#"<w:szCs w:val="24"/><w:sz w:val="12pt"/>"#,
+            r#"<w:szCs w:val="24"/><w:rFonts w:ascii="A" w:asciiTheme="minorHAnsi"/>"#,
+        ] {
+            assert_eq!(classify(relevant), (false, false), "{relevant}");
+        }
     }
 
     #[test]

@@ -416,7 +416,7 @@ pub(crate) struct Face {
 }
 
 fn face_of(node: Option<NodeId>, props: &RunProps) -> Result<Face, LayoutError> {
-    if props.preserved.is_some() {
+    if props.preserved.is_some() && !props.preserved_layout_neutral {
         return Err(unsupported(node, "preserved character properties"));
     }
     if props.strike == Some(true) {

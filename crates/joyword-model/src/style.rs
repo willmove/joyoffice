@@ -579,7 +579,11 @@ fn layer_run(base: &mut RunProps, layer: &RunProps) {
     }
     layer_languages(&mut base.languages, &layer.languages);
     if layer.preserved.is_some() {
+        // Only the last preserved layer is kept, so the result is neutral
+        // only when every preserved layer was.
+        let earlier_neutral = base.preserved.is_none() || base.preserved_layout_neutral;
         base.preserved = layer.preserved;
+        base.preserved_layout_neutral = earlier_neutral && layer.preserved_layout_neutral;
     }
 }
 
@@ -1088,6 +1092,74 @@ mod tests {
             StyleProblem::UnresolvedThemeColor(ThemeColorSlot::Accent1)
         )));
         Ok(())
+    }
+
+    #[test]
+    fn an_unnamed_theme_slot_resolves_to_no_font() -> Result<(), StyleError> {
+        use crate::props::{FontRef, ThemeFont};
+        use crate::theme::ThemeFonts;
+        let mut sheet = StyleSheet::new();
+        sheet.set_theme(ThemeScheme {
+            fonts: ThemeFonts {
+                minor_east_asia: Some(Arc::from("等线")),
+                unnamed: vec![ThemeFont::MinorBidi],
+                ..ThemeFonts::default()
+            },
+            ..ThemeScheme::default()
+        });
+        sheet.defaults.run.fonts.east_asia = Some(FontRef::Theme(ThemeFont::MinorEastAsia));
+        sheet.defaults.run.fonts.complex_script = Some(FontRef::Theme(ThemeFont::MinorBidi));
+        let resolved = sheet.resolve_run(None, None, &RunProps::default());
+        assert!(resolved.problems.is_empty(), "{:?}", resolved.problems);
+        assert_eq!(
+            resolved.props.fonts.east_asia,
+            Some(FontRef::Named(Arc::from("等线")))
+        );
+        assert_eq!(resolved.props.fonts.complex_script, None);
+
+        sheet.defaults.run.fonts.ascii = Some(FontRef::Theme(ThemeFont::MinorAscii));
+        let missing = sheet.resolve_run(None, None, &RunProps::default());
+        assert!(
+            missing
+                .problems
+                .iter()
+                .any(|problem| matches!(problem, StyleProblem::UnresolvedThemeFont))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn preserved_run_layers_stay_neutral_only_when_every_layer_is() {
+        let mut ids = crate::id::IdAllocator::default();
+        let mut sheet = StyleSheet::new();
+        sheet.defaults.run.preserved = Some(ids.preserved());
+        sheet.defaults.run.preserved_layout_neutral = true;
+        let plain = sheet.resolve_run(None, None, &RunProps::default());
+        assert!(plain.props.preserved_layout_neutral);
+
+        let relevant = RunProps {
+            preserved: Some(ids.preserved()),
+            ..RunProps::default()
+        };
+        assert!(
+            !sheet
+                .resolve_run(None, None, &relevant)
+                .props
+                .preserved_layout_neutral
+        );
+
+        sheet.defaults.run.preserved_layout_neutral = false;
+        let neutral_direct = RunProps {
+            preserved: Some(ids.preserved()),
+            preserved_layout_neutral: true,
+            ..RunProps::default()
+        };
+        assert!(
+            !sheet
+                .resolve_run(None, None, &neutral_direct)
+                .props
+                .preserved_layout_neutral
+        );
     }
 
     fn style_mut_tint(sheet: &mut StyleSheet) -> bool {

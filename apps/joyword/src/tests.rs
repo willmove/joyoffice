@@ -1645,3 +1645,30 @@ fn prompt_keys_answer_cancel_on_escape_and_ok_on_enter_only() {
     assert_eq!(key_answer(&original, "enter"), Some(1));
     assert_eq!(key_answer(&original, "a"), None);
 }
+
+/// GUI retest after #79: `joyword word_edited.docx` showed the layout error
+/// "preserved settings" instead of the document, because the ordinary Word
+/// settings and document-default run properties were refused.
+#[test]
+fn a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit() {
+    let bytes =
+        include_bytes!("../../../tests/fixtures/reference/word2024/interop/word_edited.docx");
+    let (dir, mut office) = open_package(bytes, "word-edited");
+    let opened = lay(&office, ViewOptions::default());
+    let text = scene_text(&opened);
+    assert!(text.starts_with("校验合作协议（原创测试文本）"), "{text}");
+    assert!(
+        text.contains("本段由 Word 2024 追加：已完成核对。"),
+        "{text}"
+    );
+    assert_eq!(opened.omitted_blocks(), 0);
+
+    caret_at(&mut office, 0);
+    office.active_mut().unwrap().replace(None, "新").unwrap();
+    assert!(scene_text(&lay(&office, ViewOptions::default())).starts_with("新校验"));
+    save_and_reopen(&mut office, &dir, "word-edited-copy.docx");
+    let reopened = lay(&office, ViewOptions::default());
+    assert!(scene_text(&reopened).starts_with("新校验合作协议"));
+    assert!(active_document(&office).settings().preserved_layout_neutral);
+    let _ = std::fs::remove_dir_all(&dir);
+}
