@@ -73,7 +73,10 @@ impl NumberFormat {
             .filter(|text| !text.is_empty())
     }
 
-    fn token(&self) -> Arc<str> {
+    /// The `w:numFmt` token (§17.18.59) this format was parsed from. An
+    /// unmapped token keeps its original spelling, so writing it back does
+    /// not invent a format.
+    pub fn token(&self) -> Arc<str> {
         match self {
             Self::Decimal => Arc::from("decimal"),
             Self::LowerLetter => Arc::from("lowerLetter"),
@@ -105,6 +108,15 @@ impl NumberSuffix {
             "space" => Some(Self::Space),
             "nothing" => Some(Self::Nothing),
             _ => None,
+        }
+    }
+
+    /// The `w:suff` token (§17.18.88) this suffix was parsed from.
+    pub fn token(self) -> &'static str {
+        match self {
+            Self::Tab => "tab",
+            Self::Space => "space",
+            Self::Nothing => "nothing",
         }
     }
 }
@@ -230,8 +242,9 @@ impl NumberingStore {
     /// The created label is U+2022, a tab suffix, and a hanging indent of
     /// 720 twips with 360 twips of hanging. Those distances are a JoyWord
     /// preset, not a measurement taken from Word. One undo of the command
-    /// that calls this restores the previous store. Export still refuses a
-    /// numbering store that differs from the package.
+    /// that calls this restores the previous store. Export appends a created
+    /// definition to `numbering.xml`; it still refuses a store whose
+    /// existing entries were modified.
     pub fn ensure_bullet(&mut self) -> u32 {
         if let Some(id) = self.instances.iter().find_map(|instance| {
             let abstract_num = self

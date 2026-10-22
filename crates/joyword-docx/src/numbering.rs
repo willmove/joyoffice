@@ -5,7 +5,9 @@
 //! `styleLink` are stored and not followed. Other children (`nsid`,
 //! `multiLevelType`, `lvlJc`, `rPr`, `legacy`, `isLgl`, …) set
 //! [`NumberingStore::unmodeled`] or the level's flag. The part bytes stay in
-//! the package; export never rewrites `numbering.xml`.
+//! the package; export inserts definitions appended to the store into
+//! `numbering.xml` without rewriting any other byte (see `export::numbering`)
+//! and refuses a store whose existing entries changed.
 
 use joyword_model::{
     AbstractNum, FontRef, LevelOverride, NumInstance, NumberFormat, NumberSuffix, NumberingLevel,
