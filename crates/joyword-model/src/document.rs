@@ -85,12 +85,54 @@ pub enum SectionBreak {
     NextColumn,
 }
 
-/// `w:pgNumType` format and start. An omitted format is decimal. An omitted
+/// Chapter/page separators (ECMA-376 ST_ChapterSep).
+/// `hyphen` is explicitly a non-breaking hyphen, not ASCII hyphen-minus:
+/// https://c-rex.net/samples/ooxml/e1/Part4/OOXML_P4_DOCX_ST_ChapterSep_topic_ID0EEYJ2.html
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum ChapterSeparator {
+    #[default]
+    Hyphen,
+    Period,
+    Colon,
+    EmDash,
+    EnDash,
+}
+
+impl ChapterSeparator {
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "hyphen" => Some(Self::Hyphen),
+            "period" => Some(Self::Period),
+            "colon" => Some(Self::Colon),
+            "emDash" => Some(Self::EmDash),
+            "enDash" => Some(Self::EnDash),
+            _ => None,
+        }
+    }
+
+    pub fn character(self) -> char {
+        match self {
+            Self::Hyphen => '\u{2011}',
+            Self::Period => '.',
+            Self::Colon => ':',
+            Self::EmDash => '\u{2014}',
+            Self::EnDash => '\u{2013}',
+        }
+    }
+}
+
+/// `w:pgNumType` (§17.6.12). An omitted format is decimal. An omitted
 /// start continues from the previous section (the first section starts at 1).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageNumbering {
     pub format: NumberFormat,
     pub start: Option<i32>,
+    /// One-based built-in Heading1..9. JoyWord supports only this subset of
+    /// ST_DecimalNumber; MS-OI29500's pgNumType note requires an unsigned byte in Word.
+    pub chapter_style: Option<u8>,
+    /// Ignored without `chapter_style`. Word defaults this to hyphen, unlike
+    /// ECMA-376 which gives no default (MS-OI29500 pgNumType implementation note).
+    pub chapter_separator: ChapterSeparator,
 }
 
 impl Default for PageNumbering {
@@ -98,6 +140,8 @@ impl Default for PageNumbering {
         Self {
             format: NumberFormat::Decimal,
             start: None,
+            chapter_style: None,
+            chapter_separator: ChapterSeparator::default(),
         }
     }
 }
