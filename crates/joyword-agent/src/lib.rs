@@ -12,6 +12,10 @@
 //! not a dependency: the gate script keeps document and engine crates out of
 //! this crate, so a host implements [`DocumentPort`](document::DocumentPort).
 //!
+//! The first T402 slice adds an opaque [`ReplaceProposal`] for one complete,
+//! nonempty authorized selection and a side-effect-free [`ReplacePreview`].
+//! It does not implement production document editing or the rest of T402.
+//!
 //! AIGC labeling is not implemented. [`aigc`] records that the legal assessment
 //! is still pending and refuses to write a label.
 
@@ -26,6 +30,7 @@ mod gate;
 mod http;
 mod policy;
 mod provider;
+mod replace;
 mod runtime;
 mod scope;
 mod scoped;
@@ -54,6 +59,10 @@ pub use policy::{
 pub use provider::{
     CancelFlag, Capabilities, CompletionRequest, CompletionResponse, IdError, LogCredential,
     LoggedRequest, Provider, ProviderError, ProviderId, RequestLog,
+};
+pub use replace::{
+    MAX_REPLACE_EXPLANATION_BYTES, MAX_REPLACE_ID_BYTES, MAX_REPLACE_IDS, MAX_REPLACE_TEXT_BYTES,
+    ReplaceError, ReplacePreview, ReplaceProposal, ReplaceRequest,
 };
 pub use runtime::{AgentError, AgentRuntime, BootReport};
 pub use scope::{

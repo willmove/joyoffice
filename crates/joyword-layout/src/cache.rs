@@ -54,7 +54,7 @@ impl DependencyFlags {
 
 /// Values supplied by pagination. Ignored fields are the ones the paragraph
 /// does not depend on.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ExternalContext {
     pub page_number: u32,
     pub footnote_number: u32,
@@ -63,6 +63,9 @@ pub struct ExternalContext {
     pub displayed_page: i64,
     pub num_pages: u32,
     pub section_pages: u32,
+    /// Rendered chapter label and separator of the owning physical page.
+    /// Part of feedback equality and the paragraph key, not a cached field result.
+    pub chapter_prefix: Option<std::sync::Arc<str>>,
     /// Draw the stored field result instead of a live number.
     pub force_cache: bool,
 }
@@ -90,6 +93,7 @@ pub struct ExternalKey {
     displayed_page: Option<i64>,
     num_pages: Option<u32>,
     section_pages: Option<u32>,
+    chapter_prefix: Option<[u8; 32]>,
     force_cache: Option<bool>,
 }
 
@@ -101,6 +105,11 @@ pub fn external_key(flags: DependencyFlags, context: ExternalContext) -> Externa
         displayed_page: flags.page_number.then_some(context.displayed_page),
         num_pages: flags.page_number.then_some(context.num_pages),
         section_pages: flags.page_number.then_some(context.section_pages),
+        chapter_prefix: context
+            .chapter_prefix
+            .as_ref()
+            .filter(|_| flags.page_number)
+            .map(|text| digest(text.as_bytes())),
         force_cache: flags.page_number.then_some(context.force_cache),
     }
 }
@@ -760,6 +769,7 @@ fn context_of(snapshot: &LayoutSnapshot, id: NodeId, deps: DependencyFlags) -> E
             .unwrap_or(0);
         context.num_pages = u32::try_from(snapshot.page_count()).unwrap_or(u32::MAX);
         context.section_pages = snapshot.section_page_count(section);
+        context.chapter_prefix = line.and_then(|line| snapshot.chapter_prefix(line.page));
     }
     if deps.footnote_number {
         context.footnote_number = 1;
@@ -889,7 +899,12 @@ fn layout_pass(
     let mut charged_shapes = 0usize;
     let mut charged_bytes = 0usize;
     let mut charged_glyphs = 0usize;
-    let mut any_deps = false;
+    // Header-only chapter fields also depend on body heading placement. Do
+    // not copy a previous page suffix solely because its fitted text matches.
+    let mut any_deps = document
+        .sections()
+        .iter()
+        .any(|section| section.numbering.chapter_style.is_some());
     let mut rank = 0usize;
     for (index, block) in document.body().blocks.iter().enumerate() {
         cancellation.check()?;
@@ -907,7 +922,7 @@ fn layout_pass(
         let flags = paragraph_dependencies(document, paragraph);
         any_deps |= flags.any();
         let context = if flags.any() {
-            assumed.get(index).copied().unwrap_or_default()
+            assumed.get(index).cloned().unwrap_or_default()
         } else {
             ExternalContext::default()
         };
@@ -919,7 +934,7 @@ fn layout_pass(
             profile,
             plan.fit_width.raw(),
             crate::pages::column_mix(&plan.columns),
-            context,
+            context.clone(),
             marks.get(&paragraph.id()),
             views,
         );
@@ -1222,6 +1237,11 @@ fn resolved_style(
 ) -> [u8; 32] {
     let mut hash = Sha256::new();
     let styles = document.styles();
+    if paragraph_dependencies(document, paragraph).page_number {
+        let numbering = crate::document::section_for(document, paragraph.id())
+            .map(|section| &section.numbering);
+        hash.update(format!("{numbering:?}").as_bytes());
+    }
     hash.update(format!("{:?}", paragraph.props).as_bytes());
     let interval = match document.settings().default_tab_stop {
         None => 720 * Emu::PER_TWIP,
@@ -1398,8 +1418,8 @@ mod tests {
             page_number: true,
             ..DependencyFlags::default()
         };
-        let on_page_1 = key_for(external_key(live, page1));
-        let on_page_2 = key_for(external_key(live, page2));
+        let on_page_1 = key_for(external_key(live, page1.clone()));
+        let on_page_2 = key_for(external_key(live, page2.clone()));
         assert_ne!(on_page_1, on_page_2);
         let mut cache = ParagraphLayoutCache::default();
         cache.insert(on_page_1, blank_fit(&mut document));
@@ -1435,6 +1455,67 @@ mod tests {
         let mut huge = ParagraphLayoutCache::with_budget(bytes.saturating_sub(1));
         huge.insert(first_key, blank_fit(&mut document));
         assert_eq!(huge.resident_bytes(), 0);
+    }
+
+    #[test]
+    fn chapter_feedback_and_key_follow_the_rendered_prefix() -> Result<(), LayoutError> {
+        let flags = DependencyFlags {
+            page_number: true,
+            ..Default::default()
+        };
+        let before = ExternalContext {
+            displayed_page: 1,
+            chapter_prefix: Some(Arc::from("IV\u{2011}")),
+            ..Default::default()
+        };
+        let after = ExternalContext {
+            chapter_prefix: Some(Arc::from("V\u{2011}")),
+            ..before.clone()
+        };
+        assert_ne!(
+            external_key(flags, before.clone()),
+            external_key(flags, after.clone())
+        );
+        assert_eq!(
+            external_key(DependencyFlags::default(), before.clone()),
+            external_key(DependencyFlags::default(), after.clone())
+        );
+        let mut passes = 0;
+        let result = run_layout_passes(before, |_| {
+            passes += 1;
+            Ok((passes, after.clone()))
+        })?;
+        assert_eq!(result, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn chapter_codes_and_cached_results_do_not_get_a_live_prefix() {
+        use joyword_model::{PageField, PageFieldKind, PageNumbering};
+        let field = PageField::with_cache(PageFieldKind::Page, "stored");
+        let mut context = ExternalContext {
+            chapter_prefix: Some(Arc::from("IV:")),
+            displayed_page: 2,
+            ..Default::default()
+        };
+        assert_eq!(
+            crate::pages::render_field(&field, &PageNumbering::default(), &context, true),
+            ("PAGE".to_owned(), false)
+        );
+        context.force_cache = true;
+        assert_eq!(
+            crate::pages::render_field(&field, &PageNumbering::default(), &context, false),
+            ("stored".to_owned(), true)
+        );
+        context.force_cache = false;
+        let numbering = PageNumbering {
+            format: joyword_model::NumberFormat::Other(Arc::from("unknown")),
+            ..Default::default()
+        };
+        assert_eq!(
+            crate::pages::render_field(&field, &numbering, &context, false),
+            ("stored".to_owned(), true)
+        );
     }
 
     #[test]

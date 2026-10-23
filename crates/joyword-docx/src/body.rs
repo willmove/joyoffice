@@ -1118,7 +1118,8 @@ fn read_doc_grid(element: &Element, findings: &mut Findings) -> Option<joyword_m
     })
 }
 
-/// `w:pgNumType` (§17.6.12). Chapter prefixes stay unmodeled.
+/// `w:pgNumType` (§17.6.12), including the Heading1..9 chapter subset.
+/// Invalid/unknown attributes return None: the entire section stays preserved.
 fn page_numbering(element: &Element) -> Option<PageNumbering> {
     if element.elements().next().is_some() {
         return None;
@@ -1131,6 +1132,17 @@ fn page_numbering(element: &Element) -> Option<PageNumbering> {
         match attribute.local.as_ref() {
             "fmt" => numbering.format = NumberFormat::parse(&attribute.value),
             "start" => numbering.start = Some(attribute.value.parse().ok()?),
+            "chapStyle" => {
+                let level = attribute.value.parse::<u8>().ok()?;
+                if !(1..=9).contains(&level) {
+                    return None;
+                }
+                numbering.chapter_style = Some(level);
+            }
+            "chapSep" => {
+                numbering.chapter_separator =
+                    joyword_model::ChapterSeparator::parse(&attribute.value)?;
+            }
             _ => return None,
         }
     }

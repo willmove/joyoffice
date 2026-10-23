@@ -32,11 +32,12 @@ pub(crate) struct Projection {
 }
 
 /// `Ok(None)` keeps the paragraph text. `Err` refuses a projection that
-/// would have to guess around an image, a page break or list layout.
+/// would have to guess around an image or a page break. Plain numbered
+/// paragraphs retain their label only when their projected body is nonempty.
 pub(crate) fn project(
     paragraph: &Paragraph,
     view: RevisionView,
-    list_layout: bool,
+    _list_layout: bool,
 ) -> Result<Option<Projection>, LayoutError> {
     let hidden = paragraph.runs().iter().any(|run| {
         run.revision
@@ -46,10 +47,10 @@ pub(crate) fn project(
     if !hidden {
         return Ok(None);
     }
-    if list_layout || !paragraph.inlines().is_empty() {
+    if !paragraph.inlines().is_empty() {
         return Err(crate::document::unsupported(
             Some(paragraph.id()),
-            "revision projection with an image, break or list",
+            "revision projection with an image or break",
         ));
     }
     let mut text = String::new();
@@ -221,6 +222,31 @@ pub(crate) fn marked_runs(
     }
     let mut runs = Vec::new();
     let mut rects = Vec::new();
+    // List decorations have no source cluster. Keep the rendered label before
+    // the marked body pieces; otherwise a markup heading loses its number.
+    let first_body = line
+        .clusters
+        .first()
+        .map(|cluster| cluster.glyphs.start)
+        .unwrap_or(0);
+    if first_body > 0 && first_body <= line.run.glyphs.len() {
+        let end = line
+            .run
+            .glyphs
+            .get(first_body)
+            .map(|glyph| glyph.cluster)
+            .unwrap_or(line.run.text.len());
+        if line.run.text.is_char_boundary(end) {
+            let mut label = line.run.clone();
+            label.text = line.run.text[..end].to_owned();
+            label.glyphs = line.run.glyphs[..first_body].to_vec();
+            if line.label_size.raw() > 0 {
+                label.size = line.label_size;
+            }
+            label.bold = line.label_bold;
+            runs.push(GlyphRun::place(&label, origin_x, baseline_y));
+        }
+    }
     for (clusters, mark) in groups {
         let glyphs =
             line.clusters[clusters.start].glyphs.start..line.clusters[clusters.end - 1].glyphs.end;
@@ -510,6 +536,7 @@ fn append_paragraph(
         displayed_page: snapshot.displayed_page(page_index),
         num_pages: u32::try_from(snapshot.page_count()).unwrap_or(u32::MAX),
         section_pages: snapshot.section_page_count(section),
+        chapter_prefix: snapshot.chapter_prefix(page_index),
         ..crate::cache::ExternalContext::default()
     };
     let view = snapshot.key().view;
@@ -648,8 +675,12 @@ fn visible_display(
                 if !omitted.contains(&scalar) {
                     match &object.kind {
                         InlineKind::PageField(field) => {
-                            let (rendered, _) =
-                                crate::pages::render_field(field, numbering, ctx, view.field_codes);
+                            let (rendered, _) = crate::pages::render_field(
+                                field,
+                                numbering,
+                                &ctx,
+                                view.field_codes,
+                            );
                             for _ch in rendered.chars() {
                                 map.push(scalar);
                             }
