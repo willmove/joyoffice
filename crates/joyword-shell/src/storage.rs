@@ -37,8 +37,11 @@ pub use original::{
     save_original_with_choice, save_original_with_lock_token,
 };
 pub use recovery::{
-    Recovered, clear as clear_recovery, commit as commit_recovery, directory as recovery_directory,
-    package_is_encrypted, recover,
+    Recovered, RecoveryCheckpoint, RecoveryError, RecoveryReceipt, RecoveryRequest, RecoveryStage,
+    clear as clear_recovery, commit as commit_recovery,
+    commit_versioned as commit_recovery_versioned, directory as recovery_directory,
+    package_is_encrypted, prepare as prepare_recovery, publish as publish_recovery, recover,
+    recover_checkpoint,
 };
 pub use source::{
     OpenedSource, SourceStamp, check_source, check_source_with_lock_token, open_source,
