@@ -12,8 +12,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use joyword_model::{
-    Block, BlockSeq, Document, Hyperlink, IdAllocator, InlineKind, InlineObject, NodeId,
-    OpaqueBlock, ParaProps, Paragraph, PreservedId, RunProps, Section, Segment, StyleId,
+    Block, BlockSeq, Document, FormatRevision, Hyperlink, IdAllocator, InlineKind, InlineObject,
+    NodeId, OpaqueBlock, ParaProps, Paragraph, PreservedId, RunProps, Section, Segment, StyleId,
 };
 
 use crate::PackageBacking;
@@ -142,19 +142,33 @@ enum Position<'a> {
     Inline(&'a InlineObject),
 }
 
-/// Text collected for one run of equal formatting and the same hyperlink.
+/// Text collected for one run of equal formatting and the same hyperlink,
+/// with the run's tracked revisions so a revision difference cannot be
+/// canonicalized away.
 type Pending = (
     Option<StyleId>,
     Arc<RunProps>,
     Option<Arc<Hyperlink>>,
     String,
+    Option<joyword_model::TextRevision>,
+    Option<Arc<FormatRevision>>,
 );
 
 fn flush(rebuilt: &mut Paragraph, pending: &mut Option<Pending>) -> Option<()> {
     match pending.take() {
-        Some((style, props, link, text)) => {
-            rebuilt.push_text(&text, style, props).ok()?;
+        Some((style, props, link, text, revision, format)) => {
+            let from = rebuilt.runs().len();
+            if let Some(revision) = revision {
+                rebuilt
+                    .push_text_marked(&text, style, props, revision)
+                    .ok()?;
+            } else {
+                rebuilt.push_text(&text, style, props).ok()?;
+            }
             rebuilt.set_last_run_link(link);
+            if let Some(format) = format {
+                rebuilt.stamp_format_from(from, format);
+            }
             Some(())
         }
         None => Some(()),
@@ -175,6 +189,8 @@ fn rebuild(
         preserved: remap(paragraph.mark_props.preserved, canonical)?,
         ..RunProps::clone(&paragraph.mark_props)
     });
+    rebuilt.props_revision = paragraph.props_revision.clone();
+    rebuilt.mark_revision = paragraph.mark_revision.clone();
     rebuilt.source = paragraph.source.clone();
     let segments = paragraph.segments();
     let mut positions = segments.iter().flat_map(|segment| match segment {
@@ -190,8 +206,12 @@ fn rebuild(
         for _ in 0..run.len {
             match positions.next()? {
                 Position::Char(ch) => match &mut pending {
-                    Some((style, same, link, text))
-                        if *style == run.style && *same == props && *link == run.link =>
+                    Some((style, same, link, text, revision, format))
+                        if *style == run.style
+                            && *same == props
+                            && *link == run.link
+                            && *revision == run.revision
+                            && *format == run.format_revision =>
                     {
                         text.push(ch);
                     }
@@ -202,6 +222,8 @@ fn rebuild(
                             props.clone(),
                             run.link.clone(),
                             ch.into(),
+                            run.revision.clone(),
+                            run.format_revision.clone(),
                         ));
                     }
                 },

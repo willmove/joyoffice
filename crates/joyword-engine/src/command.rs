@@ -37,7 +37,10 @@ pub enum Command {
         link: Option<Hyperlink>,
     },
     /// Deletes between two positions in the same container, merging the
-    /// paragraphs at both ends when they differ.
+    /// paragraphs at both ends when they differ. With tracking on, the
+    /// covered runs are marked deleted and every paragraph mark between the
+    /// two ends is recorded as a deleted-mark revision instead of merging
+    /// right away; accepting that revision performs the merge.
     DeleteRange {
         start: Position,
         end: Position,
@@ -356,7 +359,9 @@ pub enum CommandError {
     IncompleteMove(String),
     /// A move's start is after its end, or the two sides overlap.
     CrossedMove(String),
-    /// Tracked deletion does not cross a paragraph mark (T301).
+    /// Tracked deletion does not cross a table, a content control or another
+    /// container boundary (T301); paragraph marks themselves are deletable
+    /// revisions.
     RevisionBoundary,
     /// The range mixes another author's insertion or move content, one id
     /// is used for two kinds, a move run crosses its marker, or the other
@@ -453,7 +458,7 @@ impl fmt::Display for CommandError {
             CommandError::IncompleteMove(name) => write!(f, "incomplete move {name}"),
             CommandError::CrossedMove(name) => write!(f, "crossed move {name}"),
             CommandError::RevisionBoundary => {
-                f.write_str("tracked deletion stays inside one paragraph")
+                f.write_str("tracked deletion stays inside one container of paragraphs")
             }
             CommandError::RevisionConflict => f.write_str("revision conflict"),
             CommandError::Hyperlink(reason) => f.write_str(reason),

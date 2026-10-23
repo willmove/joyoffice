@@ -269,6 +269,27 @@ pub(crate) fn cell_text_revision(element: &Element, kind: RevisionKind) -> Optio
     plain_revision(element, kind)
 }
 
+/// A revision on the paragraph mark (`w:pPr/w:rPr/w:del`, T402). Only the
+/// empty delete form with exactly the tracked attributes types; `w:ins`,
+/// move kinds and any child stay gaps. `false` means the caller preserves
+/// the whole `w:rPr` and locks the paragraph.
+pub(crate) fn import_mark_revision(
+    importer: &mut Importer<'_>,
+    element: &Element,
+) -> Option<TextRevision> {
+    let (id, author, date) = track_attrs(element, false)?;
+    if element.elements().next().is_some() {
+        return None;
+    }
+    importer.document.note_revision_id(id);
+    Some(TextRevision {
+        id,
+        kind: RevisionKind::Delete,
+        author,
+        date,
+    })
+}
+
 fn plain_revision(element: &Element, kind: RevisionKind) -> Option<TextRevision> {
     let (id, author, date) = track_attrs(element, false)?;
     if !wrapper_children_are_plain(element, kind) {

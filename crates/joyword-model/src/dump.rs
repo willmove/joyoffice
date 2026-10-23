@@ -322,10 +322,20 @@ impl Dumper<'_> {
             ),
             None => String::new(),
         };
+        let mark_del = match &paragraph.mark_revision {
+            Some(revision) => format!(
+                " markdel={:?}#{} author={:?} date={}",
+                revision.kind,
+                revision.id,
+                revision.author,
+                revision.date.as_deref().unwrap_or("-")
+            ),
+            None => String::new(),
+        };
         self.line(
             depth,
             &format!(
-                "{head} p{ordinal} style={style} props={} mark={}{props_change}",
+                "{head} p{ordinal} style={style} props={} mark={}{props_change}{mark_del}",
                 para_props(&paragraph.props),
                 run_props(&paragraph.mark_props)
             ),

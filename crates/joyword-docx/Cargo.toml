@@ -15,6 +15,9 @@ quick-xml.workspace = true
 
 [dev-dependencies]
 joyword-corpus.workspace = true
+# T402 mark-revision tests round-trip one AI replace through a real engine
+# session before exporting again; see scripts/check_gates.py DEV_LAYERS.
+joyword-engine.workspace = true
 
 [lints]
 workspace = true
