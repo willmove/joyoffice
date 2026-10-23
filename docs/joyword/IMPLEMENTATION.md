@@ -1465,15 +1465,17 @@ UTF-8 名称预算、缺失与 cluster 内部端点拒绝、跨页源矩形、�
 未做：外部 PDF 结构读取器复核（本机无 pypdf／pikepdf／qpdf，只有 pdftotext 可用）、
 DOCX 书签导入、PDF 结构标签、图形界面与 Word／WPS 对照。
 
-**T202 章节 PAGE 编号（[#91](https://github.com/willmove/joyoffice/pull/91)，任务仍 `in_progress`）**：
+**T202 章节 PAGE 编号（[#91](https://github.com/willmove/joyoffice/pull/91)，已合并，任务仍 `in_progress`）**：
 见 [TASKS](TASKS.md) 的 T202 条目。独立审查复跑 426 项与 918 项测试、全目标 clippy
 与 fmt，无阻塞发现；选章规则与 Word 的差异、跨页拒绝、多级 restart 未覆盖等
-如实登记为已声明假定与未覆盖项。
+如实登记为已声明假定与未覆盖项。该 PR 的两套 CI 各 9/9 成功，已按精确 head 合并入主干（合并提交 `2f183d8`）。
 
 **T402 授权替换提案与只读预览（[#89](https://github.com/willmove/joyoffice/pull/89)，已合并）**：
 见上文「收尾 PR 合并与第二波基线」小节。该切片已合入主干 `6c43799`。
 
+**T104 验收清单**：2026-10-23 新增 `docs/joyword/acceptance/T104.md`，把生产恢复双代切片拆成原子准则，引用真实存在的测试名；独立撤销栈、日志校验与 undo／redo 属性测试仍标为 not-implemented，人工验收一条未做。
 **组合验证**：四路精确提交合入同一验证树后，本机以该树独占 target 串行完成
+
 `cargo test --workspace --locked`、`cargo clippy --workspace --all-targets --locked -- -D warnings`
 与 `cargo fmt --all -- --check`，全部通过。新增跨切片回归覆盖章节前缀与书签在同一次
 布局中的一致、选页导出与全量导出字节相同、锚点无目标时不阻断导出、
