@@ -235,10 +235,7 @@ fn bookmark_names_keep_case_and_reject_empty_duplicates_and_overlong_values() {
         long = long
     );
     let result = open(&package(&body));
-    assert_eq!(
-        names(&result.document),
-        ["Go", "go", "a b", " Target ", "short"]
-    );
+    assert_eq!(names(&result.document), ["Go", "go", " Target ", "short"]);
     assert!(has(
         &result,
         &DiagnosticKind::BookmarkNameDuplicate { id: 3 }
@@ -249,11 +246,16 @@ fn bookmark_names_keep_case_and_reject_empty_duplicates_and_overlong_values() {
             "empty name {id}"
         );
     }
+    // `&#9;` is the tab character, not a space. Alone it trims to empty.
+    // Between other characters it is a control character.
+    assert!(has(&result, &DiagnosticKind::BookmarkNameInvalid { id: 7 }));
     assert!(has(&result, &DiagnosticKind::BookmarkBudget { id: 8 }));
-    assert!(result.diagnostics.iter().all(|item| {
-        !matches!(item.kind, DiagnosticKind::BookmarkNameInvalid { .. })
-            && item.severity != Severity::Error
-    }));
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .all(|item| item.severity != Severity::Error)
+    );
 }
 
 #[test]
@@ -410,10 +412,10 @@ fn an_edited_export_refuses_to_drop_bookmark_markup() {
     body_paragraph(&mut current, 1)
         .insert_text(ScalarOffset(0), "X")
         .unwrap();
-    assert_eq!(
+    assert!(matches!(
         plan_export(&result.backing, &current.snapshot(), &Budget::default()),
         Err(ExportError::Restricted)
-    );
+    ));
 
     let mut renamed = result.document.clone();
     let id = bookmark(&renamed, "mark").id;
@@ -421,21 +423,21 @@ fn an_edited_export_refuses_to_drop_bookmark_markup() {
         AnnotationKind::Bookmark { name } => *name = Arc::from("other"),
         _ => panic!("bookmark"),
     }
-    assert_eq!(
+    assert!(matches!(
         plan_export(&result.backing, &renamed.snapshot(), &Budget::default()),
         Err(ExportError::Unsupported {
             node: None,
             reason: "a bookmark changed",
         })
-    );
+    ));
 
     let mut detached = result.document.clone();
     detached.annotation_mut(id).unwrap().anchor = Anchor::Detached;
-    assert_eq!(
+    assert!(matches!(
         plan_export(&result.backing, &detached.snapshot(), &Budget::default()),
         Err(ExportError::Unsupported {
             node: None,
             reason: "a bookmark changed",
         })
-    );
+    ));
 }

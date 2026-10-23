@@ -10,10 +10,12 @@
 //! diagnosed and not inserted. Inserting them would make
 //! `navigation_from_document` refuse the whole PDF.
 //!
-//! XML 1.0 attribute-value normalization has already turned tab, line feed
-//! and carriage return into spaces before the name is checked. A control
-//! character that cannot occur in a well-formed XML 1.0 attribute is still
-//! refused here.
+//! XML 1.0 attribute-value normalization turns a literal tab, line feed or
+//! carriage return into a space. A character reference such as `&#9;` is the
+//! referenced character: a name that is only that character is trim-empty,
+//! and a name that also contains other characters is a control character.
+//! Both are refused. The classifier still rejects a control character that
+//! cannot occur in a well-formed XML 1.0 attribute.
 //!
 //! ECMA-376 keeps the first bookmark when names collide and ignores the rest.
 //! This importer does the same, case-sensitively, so the PDF writer does not
@@ -167,7 +169,7 @@ fn keep_fragment(importer: &mut Importer<'_>, part: &PartName, element: &Element
             part: part.clone(),
             element: Arc::from(&*element.qname),
             namespace: element.namespace.clone(),
-            range: element.span,
+            range: element.span.clone(),
             namespaces: scope.namespaces.clone(),
             reason: PreservedReason::Unsupported,
         },
@@ -195,7 +197,7 @@ pub(crate) fn take(
         warn(
             importer,
             part,
-            element.span,
+            element.span.clone(),
             DiagnosticKind::BookmarkIdMissing,
         );
         keep_fragment(importer, part, element, scope);
@@ -213,7 +215,7 @@ pub(crate) fn take(
         column: class.column,
         unsupported: class.unsupported,
         part: part.clone(),
-        span: element.span,
+        span: element.span.clone(),
         paragraph: paragraph.id(),
         offset: paragraph.len(),
     });
@@ -234,13 +236,13 @@ pub(crate) fn note_unmapped(importer: &mut Importer<'_>, part: &PartName, elemen
                         .entry(id)
                         .or_insert_with(|| Located {
                             part: part.clone(),
-                            span: element.span,
+                            span: element.span.clone(),
                         });
                 }
                 None => warn(
                     importer,
                     part,
-                    element.span,
+                    element.span.clone(),
                     DiagnosticKind::BookmarkIdMissing,
                 ),
             }
@@ -267,7 +269,9 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
     let mut seen = BTreeSet::new();
     for id in order {
         seen.insert(id);
-        let group = groups.remove(&id).expect("bookmark id was recorded");
+        let Some(group) = groups.remove(&id) else {
+            continue;
+        };
         if unmapped.contains_key(&id) {
             let (part, span) = locate_diag(&group);
             warn(
@@ -295,7 +299,7 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
 
 fn locate_diag(group: &[Mark]) -> (PartName, Range<usize>) {
     let mark = group.iter().find(|mark| !mark.end).unwrap_or(&group[0]);
-    (mark.part.clone(), mark.span)
+    (mark.part.clone(), mark.span.clone())
 }
 
 fn bind_group(
@@ -444,11 +448,9 @@ fn bind_group(
         part: Arc::from(start.part.as_str()),
         locator: Arc::from(format!("@{}..{}", start.span.start, start.span.end)),
     });
-    importer
-        .document
-        .annotation_mut(annotation)
-        .expect("bookmark was just inserted")
-        .source = Some(source);
+    if let Some(stored) = importer.document.annotation_mut(annotation) {
+        stored.source = Some(source);
+    }
     accepted.insert(name);
 }
 
