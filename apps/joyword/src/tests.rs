@@ -379,7 +379,6 @@ mod scene_export {
     }
 
     #[test]
-    #[test]
     fn a_selected_page_range_renumbers_both_ends_and_drops_a_link_it_cannot_keep() {
         let document = chapter_model();
         let scene = layout(&document, ViewOptions::default());
@@ -425,6 +424,7 @@ mod scene_export {
         check_target(&read.bookmarks["target"], &scene, target, 1);
     }
 
+    #[test]
     fn an_anchor_without_a_target_does_not_block_the_export() {
         // A DOCX keeps its bookmarks and its anchor links apart and only the
         // links are imported, so a real document can carry an anchor whose
