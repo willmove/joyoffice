@@ -1475,6 +1475,7 @@ DOCX 书签导入、PDF 结构标签、图形界面与 Word／WPS 对照。
 
 **T104 验收清单**：2026-10-23 新增 `docs/joyword/acceptance/T104.md`，把生产恢复双代切片拆成原子准则，引用真实存在的测试名；独立撤销栈、日志校验与 undo／redo 属性测试仍标为 not-implemented，人工验收一条未做。
 **组合验证**：四路精确提交合入同一验证树后，本机以该树独占 target 串行完成
+特性场景 PDF 与基线逐字节相同：用同一字体生成 `crates/joyword-cli` 的 `feature_scenes` 十二个样例，与第二波之前的 `main` 逐文件比较，十二个 PDF 全部字节相同。这说明四路切片没有改变既有 PDF 输出。本机 `pdftotext` 提取到的文本很短（每个样例 7 至 22 字节），是本机 CJK 字体提取的限制，在基线上同样如此，不是本波回归。
 
 `cargo test --workspace --locked`、`cargo clippy --workspace --all-targets --locked -- -D warnings`
 与 `cargo fmt --all -- --check`，全部通过。新增跨切片回归覆盖章节前缀与书签在同一次
