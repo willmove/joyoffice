@@ -5,7 +5,8 @@
 //! snapshot, the live gate generation, and the clock before projecting
 //! anything. The tool allowlist is enforced at dispatch and every direct tool
 //! entry point: ungranted tools are refused. Only the bounded replacement API
-//! supports proposals; there is no apply path. Text stays inside the authorized range;
+//! supports proposals. Accept re-checks that grant and commits through a host
+//! [`DocumentCommit`](crate::DocumentCommit); preview does not. Text stays inside the authorized range;
 //! nothing here parses document text for instructions, so injected content
 //! cannot widen the allowlist or the range (AI.md §2: document, comment,
 //! field, and web text are data).
@@ -18,7 +19,10 @@ use std::fmt;
 
 use crate::document::{DocumentPort, DocumentSnapshot, PortError};
 use crate::gate::{AiPhase, GateError};
-use crate::replace::{self, ReplaceError, ReplacePreview, ReplaceProposal, ReplaceRequest};
+use crate::replace::{
+    self, CommitError, DocumentCommit, ReplaceError, ReplacePreview, ReplaceProposal,
+    ReplaceReceipt, ReplaceRequest,
+};
 use crate::runtime::AgentRuntime;
 use crate::scope::{DocumentId, Grant, ScopeError, ScopeRange, TickClock};
 use crate::tools::ToolId;
@@ -50,6 +54,7 @@ pub enum ToolError {
     ReplaceRequestRequired,
     ProposeUnsupported,
     Replace(ReplaceError),
+    Commit(CommitError),
 }
 
 impl ToolError {
@@ -75,6 +80,7 @@ impl ToolError {
             ToolError::ReplaceRequestRequired => "replace-request-required",
             ToolError::ProposeUnsupported => "propose-unsupported",
             ToolError::Replace(error) => error.kind(),
+            ToolError::Commit(error) => error.kind(),
         }
     }
 }
@@ -104,6 +110,7 @@ impl fmt::Display for ToolError {
                 f.write_str("style, table, and comment proposals are not supported")
             }
             ToolError::Replace(error) => write!(f, "{error}"),
+            ToolError::Commit(error) => write!(f, "{error}"),
         }
     }
 }
@@ -309,9 +316,25 @@ impl<'a> ToolSession<'a> {
 
     /// Revalidate the exact original authorization on every preview. Requires
     /// ProposeReplace, not ReadSelection; an unrelated read grant is not enough.
+    /// Preview does not call [`DocumentCommit`].
     pub fn preview_replace(&self, proposal: &ReplaceProposal) -> Result<ReplacePreview, ToolError> {
         self.require_tool(ToolId::ProposeReplace)?;
         replace::preview(self.runtime, self.port, &self.grant, self.clock, proposal)
+    }
+
+    /// Accept one proposal. Re-checks the original grant against `document`
+    /// (version, fingerprint, range, expiry, generation) and the live AI gate,
+    /// then asks `document` to apply the whole selection once. `document` may
+    /// be the same value as the session port; both borrows are shared.
+    /// A refusal writes nothing and leaves the proposal id reusable. An
+    /// in-flight or already accepted id is refused without another write.
+    pub fn accept_replace(
+        &self,
+        proposal: &ReplaceProposal,
+        document: &dyn DocumentCommit,
+    ) -> Result<ReplaceReceipt, ToolError> {
+        self.require_tool(ToolId::ProposeReplace)?;
+        replace::accept(self.runtime, &self.grant, self.clock, proposal, document)
     }
 
     pub fn read_selection(&self) -> Result<SelectionText, ToolError> {

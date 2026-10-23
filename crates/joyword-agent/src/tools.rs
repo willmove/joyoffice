@@ -1,5 +1,6 @@
-//! Tool names from AI.md §2. Dispatch refuses every tool. Applying a
-//! [`ChangeProposal`] is T402 and always returns [`ApplyBlocked::DeferredUntilT402`].
+//! Tool names from AI.md §2. Dispatch refuses every tool. Applying a legacy
+//! [`ChangeProposal`] always returns [`ApplyBlocked::DeferredUntilT402`].
+//! Grant-bound acceptance is a separate path and does not go through `apply`.
 
 use std::fmt;
 

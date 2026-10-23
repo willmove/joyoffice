@@ -85,6 +85,10 @@ pub struct Transaction {
     pub selection: Option<Selection>,
     /// Undo coalescing class; `Standalone` unless the input layer says otherwise.
     pub undo_group: UndoGroup,
+    /// When set, text insertion and deletion in this transaction are tracked
+    /// revisions stamped with this author, including when document
+    /// track-changes is off. `None` keeps the user-tracking rule.
+    pub tracked_author: Option<Arc<str>>,
 }
 
 impl Transaction {
@@ -96,6 +100,7 @@ impl Transaction {
             commands,
             selection: None,
             undo_group: UndoGroup::Standalone,
+            tracked_author: None,
         }
     }
 }
@@ -170,6 +175,12 @@ pub enum TxError {
     Invariant(Vec<Issue>),
     /// A panic was caught inside the transaction guard. The session is unchanged.
     Interrupted,
+    /// [`apply_ai_text_replace`](crate::apply_ai_text_replace) refused the range before any command.
+    /// The session is unchanged. The error carries no document text.
+    AiRangeRefused,
+    /// The replacement text cannot be stored as ordinary paragraph text.
+    /// The session is unchanged. The error carries no document text.
+    AiReplacementRefused,
 }
 
 impl fmt::Display for TxError {
@@ -184,6 +195,8 @@ impl fmt::Display for TxError {
             TxError::Command { index, error } => write!(f, "command {index}: {error}"),
             TxError::Invariant(issues) => write!(f, "invariant violated: {issues:?}"),
             TxError::Interrupted => f.write_str("transaction was interrupted and discarded"),
+            TxError::AiRangeRefused => f.write_str("ai replacement range was refused"),
+            TxError::AiReplacementRefused => f.write_str("ai replacement text was refused"),
         }
     }
 }
@@ -407,7 +420,9 @@ impl Session {
         let mut candidate = self.document.clone();
         let mut map = PositionMap::new();
         let mut changes = ChangeSet::default();
-        let author = {
+        let author = if let Some(author) = transaction.tracked_author.clone() {
+            author
+        } else {
             let trimmed = self.revision_author.trim();
             if trimmed.is_empty() {
                 Arc::<str>::from("JoyWord")
@@ -426,6 +441,7 @@ impl Session {
             origin: transaction.origin,
             author,
             date,
+            force_tracked: transaction.tracked_author.is_some(),
         };
         for (index, command) in transaction.commands.iter().enumerate() {
             let mut step = PositionMap::new();
@@ -872,6 +888,11 @@ fn set_page_setup(
     Ok(())
 }
 
+fn tracks_text(document: &Document, ctx: &crate::revision::EditContext) -> bool {
+    ctx.force_tracked
+        || (document.settings().track_revisions == Some(true) && ctx.origin == Origin::User)
+}
+
 fn insert_text(
     document: &mut Document,
     at: &Position,
@@ -889,7 +910,7 @@ fn insert_text(
     if text.is_empty() {
         return Ok(());
     }
-    if document.settings().track_revisions == Some(true) && ctx.origin == Origin::User {
+    if tracks_text(document, ctx) {
         return crate::revision::insert_tracked(document, at, text, ctx, map, changes);
     }
     let paragraph = locate::paragraph_mut(document, &location).expect("located paragraph");
@@ -1007,7 +1028,7 @@ fn delete_range(
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
-    if document.settings().track_revisions == Some(true) && ctx.origin == Origin::User {
+    if tracks_text(document, ctx) {
         return crate::revision::delete_tracked(document, start, end, ctx, map, changes);
     }
     let (first, last) = locate_range(document, start, end)?;

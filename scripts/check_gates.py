@@ -99,6 +99,11 @@ DEV_LAYERS = {
     # crates/joyword-render/Cargo.toml:22 -- render tests cross-check rasters
     # against the PDF writer over one shared page scene.
     "joyword-render": {"joyword-pdf"},
+    # crates/joyword-agent/Cargo.toml dev-dependencies — T402 accept tests apply
+    # one real engine transaction and read the revision author off the model.
+    # Production dependencies of joyword-agent stay empty, and neither the
+    # engine nor the model depends on the agent.
+    "joyword-agent": {"joyword-engine", "joyword-model"},
 }
 
 FS_ALLOW = {
