@@ -278,8 +278,8 @@ fn position_key(
 ///
 /// The caller must supply the snapshot of this model's geometric content.
 /// A version mismatch is rejected; same-version manual edits cannot be detected
-/// by this API. Bookmark metadata may be attached after layout: the current
-/// layout preflight does not admit bookmarks, although its positions do.
+/// by this API. Layout admits bookmarks as zero-geometry metadata; resolve them
+/// against the scene laid out from that same document.
 /// Bookmark ranges must be ordered and both endpoints must have exact caret
 /// geometry. The start
 /// (including its wrap-boundary bias) is the target. No cluster rounding,

@@ -9,7 +9,8 @@ use std::sync::Arc;
 use joyword_layout::{LayoutSnapshot, LoadedFont};
 use joyword_model::{Document, DocumentSnapshot};
 use joyword_pdf::{
-    PdfExport, core_title, links_from_document, outline_from_headings, render_export,
+    PdfExport, core_title, links_from_document, navigation_from_document, outline_from_headings,
+    render_export_with_navigation,
 };
 use joyword_shell::print::{self, PrintReceipt};
 
@@ -38,10 +39,29 @@ pub(crate) fn scene_pdf(
     if pages.start >= pages.end || pages.end > layout.pages().len() {
         return Err("range".into());
     }
+    let mut navigation =
+        navigation_from_document(document, layout).map_err(|_| "navigation".to_string())?;
     let mut outline = outline_from_headings(document, layout);
     let mut links = links_from_document(document, layout);
     let start = pages.start;
     if pages != (0..layout.pages().len()) {
+        navigation.bookmarks.retain_mut(|bookmark| {
+            if pages.contains(&bookmark.destination.page) {
+                bookmark.destination.page -= start;
+                true
+            } else {
+                false
+            }
+        });
+        navigation.links.retain_mut(|link| {
+            if pages.contains(&link.page) && pages.contains(&link.destination.page) {
+                link.page -= start;
+                link.destination.page -= start;
+                true
+            } else {
+                false
+            }
+        });
         outline.retain_mut(|entry| {
             if (start..pages.end).contains(&entry.page) {
                 entry.page -= start;
@@ -65,13 +85,14 @@ pub(crate) fn scene_pdf(
         links,
     };
     let selected = layout.pages()[pages].to_vec();
-    render_export(&selected, std::slice::from_ref(font), &export).map_err(|error| match error {
-        joyword_pdf::PdfError::MissingFont(_) => "missing font".into(),
-        joyword_pdf::PdfError::Writer(_) => "pdf writer".into(),
-        joyword_pdf::PdfError::InvalidPage => "invalid page".into(),
-        joyword_pdf::PdfError::Image(_) => "image".into(),
-        joyword_pdf::PdfError::Navigation(_) => "navigation".into(),
-    })
+    render_export_with_navigation(&selected, std::slice::from_ref(font), &export, &navigation)
+        .map_err(|error| match error {
+            joyword_pdf::PdfError::MissingFont(_) => "missing font".into(),
+            joyword_pdf::PdfError::Writer(_) => "pdf writer".into(),
+            joyword_pdf::PdfError::InvalidPage => "invalid page".into(),
+            joyword_pdf::PdfError::Image(_) => "image".into(),
+            joyword_pdf::PdfError::Navigation(_) => "navigation".into(),
+        })
 }
 
 pub(crate) fn run_pdf(job: PdfJob) -> Result<PrintReceipt, String> {
