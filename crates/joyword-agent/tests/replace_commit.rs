@@ -180,38 +180,94 @@ impl DocumentCommit for History {
                 .collect(),
         )
         .map_err(|_| CommitError::Rejected)?;
-        let Some(node) =
-            snapshot.outline().iter().copied().find(|node| {
-                change.range().start() >= node.start && change.range().end() <= node.end
-            })
-        else {
+        if change.range().end() > snapshot.char_len() {
             return Err(CommitError::RangeRefused);
-        };
+        }
         let actual = snapshot
             .slice_chars(change.range())
             .ok_or(CommitError::RangeRefused)?;
         if actual != change.expected() {
             return Err(CommitError::Mismatch);
         }
-        let index = usize::try_from(node.paragraph).map_err(|_| CommitError::Rejected)?;
-        let local_start = usize::try_from(change.range().start() - node.start)
-            .map_err(|_| CommitError::Rejected)?;
-        let local_end = usize::try_from(change.range().end() - node.start)
-            .map_err(|_| CommitError::Rejected)?;
-        let current = inner
+        // The replacement may cover paragraph separators. Splice the whole
+        // final-view text, then split it back into paragraphs: the covered
+        // group collapses into one paragraph that keeps the first covered
+        // paragraph's heading, mirroring the engine's merge rule.
+        let joined = inner
             .paragraphs
-            .get(index)
-            .ok_or(CommitError::Rejected)?
-            .visible
-            .clone();
-        let visible = splice(&current, local_start, local_end, change.replacement())
+            .iter()
+            .map(|paragraph| paragraph.visible.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        let start = usize::try_from(change.range().start()).map_err(|_| CommitError::Rejected)?;
+        let end = usize::try_from(change.range().end()).map_err(|_| CommitError::Rejected)?;
+        let spliced =
+            splice(&joined, start, end, change.replacement()).ok_or(CommitError::RangeRefused)?;
+        if change.range().is_empty() {
+            return Err(CommitError::RangeRefused);
+        }
+        let outline = snapshot.outline();
+        // The collapsed group starts at the paragraph holding the range
+        // start (a start on a separator is that paragraph's mark) and ends
+        // at the paragraph holding the last covered character; a last
+        // character on a separator belongs to the paragraph before it.
+        let Some(first_covered) = outline.iter().position(|node| {
+            node.start <= change.range().start() && change.range().start() <= node.end
+        }) else {
+            return Err(CommitError::RangeRefused);
+        };
+        let last_char = change.range().end() - 1;
+        let last_covered = outline
+            .iter()
+            .position(|node| node.start <= last_char && last_char < node.end)
+            .or_else(|| outline.iter().rposition(|node| node.end == last_char))
             .ok_or(CommitError::RangeRefused)?;
-        if visible.len() > joyword_agent::MAX_PARAGRAPH_BYTES || inner.version == u64::MAX {
-            return Err(CommitError::Rejected);
+        if last_covered < first_covered {
+            return Err(CommitError::RangeRefused);
+        }
+        let collapsed = last_covered - first_covered;
+        let mut next = Vec::with_capacity(inner.paragraphs.len() - collapsed);
+        for (slot, part) in spliced.split('\n').enumerate() {
+            // Slots before and at the collapsed group map one to one; the
+            // ones after it skip the paragraphs the group absorbed. The
+            // collapsed slot aggregates the covered paragraphs' hidden
+            // content, the way merged engine paragraphs keep their runs.
+            let mut paragraph = if slot != first_covered {
+                let index = if slot <= first_covered {
+                    slot
+                } else {
+                    slot + collapsed
+                };
+                inner
+                    .paragraphs
+                    .get(index)
+                    .ok_or(CommitError::Rejected)?
+                    .clone()
+            } else {
+                let mut merged = inner
+                    .paragraphs
+                    .get(first_covered)
+                    .ok_or(CommitError::Rejected)?
+                    .clone();
+                for extra in inner
+                    .paragraphs
+                    .get(first_covered + 1..=last_covered)
+                    .unwrap_or(&[])
+                {
+                    merged.deleted.extend(extra.deleted.iter().cloned());
+                    merged.comments.extend(extra.comments.iter().cloned());
+                }
+                merged
+            };
+            if part.len() > joyword_agent::MAX_PARAGRAPH_BYTES || inner.version == u64::MAX {
+                return Err(CommitError::Rejected);
+            }
+            paragraph.visible = part.to_owned();
+            next.push(paragraph);
         }
         let saved = inner.paragraphs.clone();
         inner.undo.push(saved);
-        inner.paragraphs[index].visible = visible;
+        inner.paragraphs = next;
         inner.version += 1;
         inner.author = Some(AI_REVISION_AUTHOR);
         let version = inner.version;
@@ -631,6 +687,48 @@ fn accept_on_the_engine_is_one_ai_authored_undo_step() -> TestResult {
 }
 
 #[test]
+fn engine_accept_collapses_a_cross_paragraph_selection() -> TestResult {
+    let runtime = open_runtime()?;
+    let doc = EngineDoc::new(&["OUTSIDE-LEFT", BEFORE, "OUTSIDE-RIGHT"])?;
+    let clock = TickClock::new();
+    let snapshot = doc.snapshot(&doc.id)?;
+    let node = snapshot.outline().get(1).copied().ok_or("paragraph")?;
+    // From inside the left neighbour across both separators into the right
+    // one: the covered marks are deleted revisions and the final view joins
+    // the leftovers into one paragraph.
+    let grant = Grant::issue(
+        &doc,
+        &doc.id,
+        ScopeRange::new(node.start.saturating_sub(3), node.end + 4)?,
+        ToolAllowlist::from_slice(&[ToolId::ProposeReplace]),
+        runtime.generation()?,
+        &clock,
+        100,
+    )?;
+    let session = ToolSession::new(&runtime, &doc, grant, &clock);
+    let proposal = session.propose_replace(request(ID, "joined"))?;
+    let preview = session.preview_replace(&proposal)?;
+    assert!(preview.before().contains('\n'));
+    assert_eq!(doc.commits(), 0);
+    let receipt = session.accept_replace(&proposal, &doc)?;
+    assert_eq!(doc.commits(), 1);
+    assert_eq!(receipt.undo_depth(), 1);
+    assert_eq!(doc.final_text(), vec!["OUTSIDE-LEjoinedSIDE-RIGHT"]);
+    let marks = doc.authors();
+    assert!(marks.iter().all(|(_, author)| author == AI_REVISION_AUTHOR));
+    doc.undo_replace()?;
+    assert_eq!(
+        doc.final_text(),
+        vec![
+            "OUTSIDE-LEFT".to_owned(),
+            BEFORE.to_owned(),
+            "OUTSIDE-RIGHT".to_owned(),
+        ]
+    );
+    Ok(())
+}
+
+#[test]
 fn engine_accept_refuses_a_stale_document_without_a_partial_write() -> TestResult {
     let runtime = open_runtime()?;
     let doc = EngineDoc::new(&["甲乙丙"])?;
@@ -781,22 +879,37 @@ fn grant_failures_leave_the_document_and_do_not_consume_the_id() -> TestResult {
 }
 
 #[test]
-fn cross_paragraph_and_unstoreable_replacement_are_refused() -> TestResult {
+fn cross_paragraph_replacement_collapses_the_covered_group() -> TestResult {
     let runtime = open_runtime()?;
     let doc = history(BEFORE)?;
+    let original = doc.text()?;
     let clock = TickClock::new();
-    let wide = ScopeRange::new(0, doc.snapshot(&doc.id)?.char_len())?;
+    // The tail of the left neighbour, the whole selection, and the head of
+    // the right neighbour: the three paragraphs collapse into one.
+    let snapshot = doc.snapshot(&doc.id)?;
+    let node = snapshot.outline().get(1).copied().ok_or("missing node")?;
+    let wide = ScopeRange::new(node.start.saturating_sub(3), node.end + 4)?;
     let grant = grant_for(&runtime, &doc, wide, &clock)?;
     let session = ToolSession::new(&runtime, &doc, grant, &clock);
     let proposal = session.propose_replace(request("wide", "joined"))?;
     let preview = session.preview_replace(&proposal)?;
     assert!(preview.before().contains('\n'));
-    assert_eq!(
-        session.accept_replace(&proposal, &doc).map(|_| ()),
-        Err(ToolError::Replace(ReplaceError::RangeRefused))
-    );
-    assert_eq!(doc.commits(), 0);
+    let receipt = session.accept_replace(&proposal, &doc)?;
+    assert_eq!(doc.commits(), 1);
+    assert_eq!(runtime.applied_replacements(), 1);
+    assert_eq!(doc.text()?, "OUTSIDE-LEjoinedSIDE-RIGHT");
+    assert_eq!(receipt.version(), doc.snapshot(&doc.id)?.version());
+    doc.undo_replace()?;
+    assert_eq!(doc.text()?, original);
+    assert_eq!(doc.commits(), 1);
+    Ok(())
+}
 
+#[test]
+fn unstoreable_replacements_are_refused() -> TestResult {
+    let runtime = open_runtime()?;
+    let doc = history(BEFORE)?;
+    let clock = TickClock::new();
     let (grant, proposal) = propose(&runtime, &doc, &clock, "newline", "a\nb")?;
     let session = ToolSession::new(&runtime, &doc, grant, &clock);
     session.preview_replace(&proposal)?;

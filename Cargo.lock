@@ -2742,6 +2742,7 @@ version = "0.0.1"
 dependencies = [
  "joyoffice-opc",
  "joyword-corpus",
+ "joyword-engine",
  "joyword-model",
  "quick-xml",
 ]

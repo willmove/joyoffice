@@ -196,7 +196,7 @@ fn stale_disabled_cross_paragraph_and_bad_text_write_nothing() {
         agent_writes: true,
     });
     assert_eq!(
-        apply_ai_text_replace(&mut session, current, 1, 4, "跨段"),
+        apply_ai_text_replace(&mut session, current, 0, 99, "跨段"),
         Err(TxError::AiRangeRefused)
     );
     assert_eq!(
@@ -212,7 +212,7 @@ fn stale_disabled_cross_paragraph_and_bad_text_write_nothing() {
     assert_eq!(session.undo_depth(), depth);
     let display = format!(
         "{}",
-        apply_ai_text_replace(&mut session, current, 1, 4, "跨段").unwrap_err()
+        apply_ai_text_replace(&mut session, current, 0, 99, "跨段").unwrap_err()
     );
     assert!(!display.contains("甲乙"));
     assert!(!display.contains("跨段"));
@@ -278,4 +278,189 @@ fn tab_replacement_is_ordinary_text() {
     assert_eq!(final_text(&session), vec!["a\t"]);
     session.undo().unwrap();
     assert_eq!(final_text(&session), vec!["ab"]);
+}
+
+fn paragraph(session: &Session, index: usize) -> &joyword_model::Paragraph {
+    session
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .nth(index)
+        .and_then(Block::as_paragraph)
+        .unwrap()
+}
+
+fn mark_authors(session: &Session) -> Vec<(usize, String)> {
+    session
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .enumerate()
+        .filter_map(|(index, block)| {
+            let paragraph = block.as_paragraph()?;
+            paragraph
+                .mark_revision
+                .as_ref()
+                .map(|revision| (index, revision.author.to_string()))
+        })
+        .collect()
+}
+
+#[test]
+fn a_cross_paragraph_replace_deletes_the_marks_and_joins_in_the_final_view() {
+    let mut session = session(&["甲乙", "丙丁", "戊己"]);
+    let base = session.version();
+    // "乙\n丙" — the tail of the first paragraph, the mark, and the head of
+    // the second one.
+    apply_ai_text_replace(&mut session, base, 1, 4, "X").unwrap();
+    assert_eq!(final_text(&session), vec!["甲X丁", "戊己"]);
+    assert_eq!(
+        mark_authors(&session),
+        vec![(0, AI_REVISION_AUTHOR.to_string())]
+    );
+    assert_eq!(session.undo_depth(), 1);
+    let kinds: Vec<_> = paragraph(&session, 0)
+        .runs()
+        .iter()
+        .filter_map(|run| run.revision.as_ref().map(|r| r.kind))
+        .collect();
+    assert!(kinds.contains(&RevisionKind::Delete));
+    assert!(kinds.contains(&RevisionKind::Insert));
+    session.undo().unwrap();
+    assert_eq!(final_text(&session), vec!["甲乙", "丙丁", "戊己"]);
+    assert!(mark_authors(&session).is_empty());
+}
+
+#[test]
+fn a_whole_middle_paragraph_is_cleared_and_its_mark_is_deleted() {
+    let mut session = session(&["头", "中", "尾"]);
+    let base = session.version();
+    // Covers "头\n中\n" from the start of the first paragraph through the
+    // second mark.
+    apply_ai_text_replace(&mut session, base, 0, 4, "").unwrap();
+    assert_eq!(final_text(&session), vec!["尾"]);
+    assert_eq!(
+        mark_authors(&session),
+        vec![
+            (0, AI_REVISION_AUTHOR.to_string()),
+            (1, AI_REVISION_AUTHOR.to_string()),
+        ]
+    );
+    session.undo().unwrap();
+    assert_eq!(final_text(&session), vec!["头", "中", "尾"]);
+}
+
+#[test]
+fn accepting_the_cross_paragraph_revision_merges_and_rejecting_restores() {
+    let mut session = session(&["甲乙", "丙丁"]);
+    let base = session.version();
+    apply_ai_text_replace(&mut session, base, 1, 4, "").unwrap();
+    assert_eq!(final_text(&session), vec!["甲丁"]);
+    let marks = mark_authors(&session);
+    assert_eq!(marks.len(), 1);
+    // Reject the deletion: text and paragraph break come back.
+    session
+        .apply(Transaction::new(
+            session.version(),
+            vec![Command::RejectAllRevisions],
+        ))
+        .unwrap();
+    assert_eq!(final_text(&session), vec!["甲乙", "丙丁"]);
+    assert!(mark_authors(&session).is_empty());
+
+    let again = session.version();
+    apply_ai_text_replace(&mut session, again, 1, 4, "").unwrap();
+    session
+        .apply(Transaction::new(
+            session.version(),
+            vec![Command::AcceptAllRevisions],
+        ))
+        .unwrap();
+    assert_eq!(final_text(&session), vec!["甲丁"]);
+    assert_eq!(session.document().body().blocks.len(), 1);
+    assert!(mark_authors(&session).is_empty());
+}
+
+#[test]
+fn a_pure_separator_replace_merges_two_paragraphs() {
+    let mut session = session(&["左", "右"]);
+    let base = session.version();
+    // Only the separator between the two paragraphs.
+    apply_ai_text_replace(&mut session, base, 1, 2, "").unwrap();
+    assert_eq!(final_text(&session), vec!["左右"]);
+    assert_eq!(
+        mark_authors(&session),
+        vec![(0, AI_REVISION_AUTHOR.to_string())]
+    );
+    session.undo().unwrap();
+    assert_eq!(final_text(&session), vec!["左", "右"]);
+}
+
+#[test]
+fn a_replacement_cannot_contain_newlines_or_cross_hidden_runs() {
+    let mut session = session(&["abcd", "efgh"]);
+    let base = session.version();
+    assert_eq!(
+        apply_ai_text_replace(&mut session, base, 0, 6, "两\n行"),
+        Err(TxError::AiReplacementRefused)
+    );
+    // A user-tracked deletion hides a run in the first paragraph: the
+    // covered suffix no longer reaches the paragraph end contiguously.
+    session
+        .apply(Transaction::new(
+            session.version(),
+            vec![Command::SetTrackRevisions { enabled: true }],
+        ))
+        .unwrap();
+    let id = session.document().body().blocks.iter().next().unwrap().id();
+    session
+        .apply(Transaction::new(
+            session.version(),
+            vec![Command::DeleteRange {
+                start: Position {
+                    story: session.document().body_id(),
+                    paragraph: id,
+                    offset: ScalarOffset(3),
+                    bias: Bias::After,
+                },
+                end: Position {
+                    story: session.document().body_id(),
+                    paragraph: id,
+                    offset: ScalarOffset(4),
+                    bias: Bias::Before,
+                },
+            }],
+        ))
+        .unwrap();
+    let version = session.version();
+    // The final view is "abc\nefgh"; a span covering the first paragraph's
+    // visible suffix and the mark also covers the hidden "d" structurally.
+    // The user's deletion survives untouched and the replace succeeds.
+    apply_ai_text_replace(&mut session, version, 1, 5, "X").unwrap();
+    assert_eq!(final_text(&session), vec!["aXfgh"]);
+    let user_delete = authors(&session)
+        .into_iter()
+        .any(|(kind, author)| kind == RevisionKind::Delete && author == "用户");
+    assert!(
+        user_delete,
+        "another author's deletion survives the replace"
+    );
+    assert_eq!(
+        mark_authors(&session),
+        vec![(0, AI_REVISION_AUTHOR.to_string())]
+    );
+}
+
+#[test]
+fn a_second_replace_uses_the_merged_projection() {
+    let mut session = session(&["一", "二", "三"]);
+    let base = session.version();
+    apply_ai_text_replace(&mut session, base, 1, 3, "").unwrap();
+    // Final view is now "一\n三" (one separator): the mark deletion joined
+    // the groups. Replace across the remaining separator.
+    let second = session.version();
+    apply_ai_text_replace(&mut session, second, 0, 3, "全").unwrap();
+    assert_eq!(final_text(&session), vec!["全"]);
 }

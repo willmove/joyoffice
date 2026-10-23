@@ -1496,6 +1496,24 @@ ID 在重读文档之前占用。已接受或正在接受返回 `AlreadyApplied`
 
 仍留给后续切片：宿主界面接线、真实 Provider、DOCX／Word 修订往返、AIGC 文件级标识（`aigc::write_label` 仍是评估未完成）、旧 `ChangeProposal::apply`、跨段范围、替换文本里的控制字符（制表符除外）、行分隔符与对象标记、最终视图不连续的选区（中间有隐藏修订或行内对象）、正文里的非段落块，以及人工验收。预览仍允许展示这些被接受路径拒绝的文本，因为预览不落盘。
 
+### T402 跨段替换与段落标记修订（2026-10-23 第三切片）
+
+无 PR，按用户指令直接并入 main（分支 `feature/t402-cross-paragraph-docx-20261023`）。在 #94 的单事务接受之上补齐 T402 两个明确未做项：跨段有界替换与 AI 修订的 DOCX 往返。T402 状态仍是 `in_progress`，进度计数不改（12 done／22 in_progress／32 planned）。
+
+**模型**：`joyword-model` 的 `Paragraph` 新增 `mark_revision: Option<TextRevision>`——段落标记自身的跟踪修订（`w:pPr/w:rPr/w:del`，§17.13.5.12 与 §17.13.5.14 的空元素形态）。只有 `RevisionKind::Delete` 会被生产代码写入；`w:ins` 标记在导入侧保持保留 gap。`split_off` 把标记修订随段落标记移到尾半段；`append` 不触碰标记（接受路径显式继承被吸收段的标记）。`canonical_dump` 的段落头新增 `markdel=…#id author date`，因此 `semantic_difference` 能看见标记修订，不再可能被静默丢掉。
+
+**engine 跨段跟踪删除**：`revision::delete_tracked` 不再把不同段落一律拒为 `RevisionBoundary`。同一容器内的跨段 `DeleteRange` 现在按段规划：首段后缀、中间整段、末段前缀全部标 Delete（沿用 `plan_tracked_delete` 的作者规则：自己的 Insert 物理移除、自己的 Delete 复用同一 id、他人内容拒绝），并把首段到末段前一段的段落标记逐个盖上 Delete 修订；整条命令共享一个修订 id，与既有单段语义一致。段落本身保留，接受时才物理合并——`resolve_marks` 的接受把段与下一兄弟段合并（合并段保留首段身份与属性，继承被吸收段自己的待决标记，同一 id 的链式标记一次收掉），拒绝清除标记、换行回来。`AcceptAllRevisions`／`RejectAllRevisions` 全量处理；`AcceptRevision` 对不可合并的标记（容器末尾，只有导入可造）整条拒绝而非猜测。容器边界（表格、内容控件、跨单元格）仍拒绝：`RevisionBoundary` 只剩表格／内容控件语义，跨故事改报 `CrossContainer`。`current_revision` 在段尾光标处能看到待决标记修订。用户路径因此也解除 T301 的单段限制（有自动测试），AI 路径与用户路径同一套规则。
+
+**AI 跨段替换**：`apply_ai_text_replace` 的 `locate` 重写为两阶段：先在"段落最终文本按 `\n` 连接、已删除标记的段落间不加分隔符"的投影上把全局范围映射到首末两个位置（起点可落在分隔符上＝纯标记删除、终点可在分隔符后＝末段空跨度），再按是否跨界分别校验——单段要求一段连续可见标量；跨界要求首段后缀连续、中间段无行内对象、末段前缀从位置 0 连续。隐藏的 Delete／MoveFrom 修订是被结构性覆盖的对象：自己的复用，他作者的保留不动（自动测试固定该行为），真正拒绝的只有行内对象（修订导出本就拒绝带行内对象）。替换文本仍必须是单行。`body_final_paragraphs` 改为按删除标记把相邻段合并成组，与 agent 快照消费方一致；后续第二次替换在合并后的投影上进行（有测试）。
+
+**agent**：`accept` 的 `single_paragraph` 放宽为"非空且不越过最终视图文本末尾"；结构拒绝仍由宿主/engine 报告。内存宿主 `History` 的 `commit_replace` 改为对整篇最终视图拼接后裁剪再按 `\n` 拆回：覆盖组塌缩为一段、保留首段标题级别、聚合被覆盖段的隐藏内容（对应 engine 合并段保留 runs），未触碰段逐字保留。engine 宿主无改动（`apply_ai_text_replace` 直接支持全局坐标）。
+
+**DOCX 往返**：导入侧 `w:pPr/w:rPr/w:del`（恰好 id／author／可选 date、无子元素）经 `run_with_revision` 捕获并类型化，文档不因此锁定；`w:ins`、move 标记、多修订、带子元素或缺 id 仍是 gap＋整体保留（测试逐项固定）。导出侧 `patch_paragraph` 把"标记修订发生变化"并入 revised 判定；`rewrite_revisions` 复制原始 `w:pPr` 字节后注入 `<w:rPr><w:del …/></w:rPr>`（无 pPr 时合成整个 pPr；已有 rPr 时作为其首个子元素注入；自闭合标签展开；无 rPr 时按 CT_PPr 顺序插在 `w:sectPr`／`w:pPrChange` 之前），模型已解决时从原字节剥离。导入时已类型化且未变化的标记保持原始字节不动。样式改写与属性重写两条会合成 pPr 的路径在有待决标记时拒绝（与未解决格式修订同一守卫风格）。对照器 `compare.rs` 的 `rebuild` 现在携带 run 修订、格式修订、`props_revision` 与 `mark_revision`，关闭了"往返校验把修订差异规范化掉"的既有漏洞（有反例测试）。`joyword-docx` 新增 dev 依赖 `joyword-engine`（登记进 `check_gates.py` 的 `DEV_LAYERS`，注释写明用途），使测试可以：导入→engine 会话执行一次真实 AI 跨段替换→导出→重导入→断言语义一致、作者＝`JoyWord AI`、删除标记与删除／插入修订齐全、最终视图投影一致。
+
+**已知边界（如实记录）**：布局仍逐段排版——最终视图里已删除标记的相邻段在屏幕上渲染为独立行（含空行），引擎模型、投影与 DOCX 都是精确的，合并渲染留待后续切片（AI 路径尚未接入 shell 界面，用户路径在开启修订时跨段删除会触发该渲染近似）；`w:ins` 标记修订不类型化；替换文本不支持换行（需要插入标记机制）；跨容器（表格单元格之间、正文与单元格之间）的跟踪删除仍拒绝。
+
+**本机证据（Windows 参考环境，分支 HEAD）**：`cargo test --locked --offline` 998 项全过（engine `ai_replace` 12 项＋`revisions` 11 项、agent `replace_commit` 13 项、docx `mark_revisions` 7 项均含新增）；`cargo clippy --workspace --all-targets --locked --offline -- -D warnings` 干净；`cargo fmt --all -- --check` 干净；`cargo check -p joyword-engine -p joyword-model -p joyword-docx -p joyword-layout -p joyword-shell -p joyword-agent --locked --offline --no-default-features` 通过（AI 仍默认关闭、`joyword-agent` 生产依赖为空）；`python scripts/check_gates.py` ok（237 个 Rust 文件）；`python scripts/check_docs.py`、`python scripts/check_acceptance.py` 通过；`python -m unittest discover -s scripts/tests` 107 项中 106 过，唯一失败是已登记的环境性问题（本机 Python 3.14.7 链接 zlib-ng，DOCX-FEAT 夹具压缩字节哈希与 CI 的 stock zlib 不同，干净 main 同样失败，见 T401 证据）。`Cargo.lock` 新增一行（docx 的 dev 依赖边）。未做：GUI／Word／WPS 人工验收、宿主界面接线、真实 Provider、AIGC 标识、信创真机。
+
 ### T204 DOCX 书签导入（2026-10-23，[#95](https://github.com/willmove/joyoffice/pull/95)）
 
 T204 仍是 `in_progress`，进度计数不改。本切片只补 #92 留下的 DOCX 书签导入：正文成对的 `w:bookmarkStart`／`w:bookmarkEnd` 成为模型 `AnnotationKind::Bookmark`，名称原样、区分大小写，起点 `Bias::After`、终点 `Bias::Before`。既有 `navigation_from_document` 因此能把它们写成 PDF 命名目标，锚点内链写成 `/S /GoTo`。内置标题样式 1–9 的大纲书签路径不变，裸 `outlineLvl` 仍不成书签。

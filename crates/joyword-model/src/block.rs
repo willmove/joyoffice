@@ -143,6 +143,11 @@ pub struct Paragraph {
     /// before the tracked formatting change. Absent when the paragraph
     /// formatting is not revised.
     pub props_revision: Option<Arc<FormatRevision>>,
+    /// Tracked revision on the paragraph mark itself (`w:pPr/w:rPr/w:del`):
+    /// the mark at the end of this paragraph is deleted, so the final view
+    /// joins this paragraph with the next one. Only [`RevisionKind::Delete`]
+    /// is produced today; an inserted mark stays an import gap.
+    pub mark_revision: Option<TextRevision>,
     pub source: Option<Arc<SourceRef>>,
 }
 
@@ -157,6 +162,7 @@ impl Paragraph {
             props: Arc::default(),
             mark_props: Arc::default(),
             props_revision: None,
+            mark_revision: None,
             source: None,
         }
     }
@@ -758,7 +764,8 @@ impl Paragraph {
     /// Splits the paragraph at `at`. The tail keeps paragraph formatting under
     /// a new identity and no source reference, since it is new content. The
     /// tracked paragraph-format change (`w:pPrChange`) stays with the front
-    /// half, which keeps the source identity.
+    /// half, which keeps the source identity. The paragraph-mark revision
+    /// follows the mark itself, which now ends the tail.
     pub fn split_off(&mut self, at: ScalarOffset, new_id: NodeId) -> Result<Paragraph, TextError> {
         let first_inline = self.text.markers_before(at)?;
         let text = self.text.split_off(at)?;
@@ -772,6 +779,7 @@ impl Paragraph {
             props: self.props.clone(),
             mark_props: self.mark_props.clone(),
             props_revision: None,
+            mark_revision: self.mark_revision.take(),
             source: None,
         })
     }

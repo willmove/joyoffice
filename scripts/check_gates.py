@@ -89,8 +89,10 @@ LAYERS = {
 DEV_LAYERS = {
     # apps/joyword-cli/Cargo.toml:22 -- CLI integration tests replay corpus cases.
     "joyword-cli": {"joyword-corpus"},
-    # crates/joyword-docx/Cargo.toml:17 -- DOCX round-trip tests read corpus originals.
-    "joyword-docx": {"joyword-corpus"},
+    # crates/joyword-docx/Cargo.toml -- DOCX round-trip tests read corpus
+    # originals, and the T402 mark-revision slice round-trips one AI replace
+    # through a real engine session before exporting again.
+    "joyword-docx": {"joyword-corpus", "joyword-engine"},
     # crates/joyword-layout/Cargo.toml:20-21 -- layout tests drive a real engine
     # session and compare page scenes against the raster output.
     "joyword-layout": {"joyword-engine", "joyword-render"},

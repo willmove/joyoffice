@@ -2718,6 +2718,9 @@ fn attributes_portable(
 
 /// Replaces one paragraph's children, keeping the start tag and `w:pPr`.
 /// Text and move revisions are written from the model (ECMA-376 §17.13.5).
+/// A pending deleted mark (`w:pPr/w:rPr/w:del`) is injected into, or
+/// stripped from, the copied `w:pPr` bytes (T402).
+#[allow(clippy::too_many_arguments)]
 pub(super) fn rewrite_revisions(
     xml: &[u8],
     element: &Element,
@@ -2726,6 +2729,7 @@ pub(super) fn rewrite_revisions(
     names: &Names,
     limit: u64,
     theme: &BTreeMap<ThemeColorSlot, (u8, u8, u8)>,
+    original_mark: bool,
 ) -> Result<Vec<u8>, ExportError> {
     if crate::comment::has_markup(element) {
         return Err(unsupported(
@@ -2735,8 +2739,38 @@ pub(super) fn rewrite_revisions(
     }
     let refuse = |reason| unsupported(Some(paragraph.id()), reason);
     let mut out = opened_start(xml, element).map_err(refuse)?;
-    if let Some(properties) = element.child(W, "pPr") {
-        out.extend_from_slice(&xml[properties.span.clone()]);
+    match element.child(W, "pPr") {
+        Some(properties) => {
+            let bytes = patch_mark_bytes(
+                xml,
+                properties,
+                original_mark
+                    .then_some(paragraph.mark_revision.as_ref())
+                    .flatten(),
+                names,
+            )?;
+            out.extend_from_slice(&bytes);
+        }
+        None => {
+            if let Some(revision) = &paragraph.mark_revision {
+                let del = format!(
+                    "{}{}/>",
+                    names.start("del"),
+                    track_attributes(names, revision)
+                );
+                out.extend_from_slice(
+                    format!(
+                        "{}>{}>{}{}{}",
+                        names.start("pPr"),
+                        names.start("rPr"),
+                        del,
+                        names.end("rPr"),
+                        names.end("pPr"),
+                    )
+                    .as_bytes(),
+                );
+            }
+        }
     }
     out.extend(revision_body(paragraph, markers, names, limit, theme)?.into_bytes());
     out.extend(names.end("p").into_bytes());
@@ -2747,6 +2781,106 @@ pub(super) fn rewrite_revisions(
         });
     }
     Ok(out)
+}
+
+/// Copies the original `w:pPr` bytes and puts the mark's deleted revision
+/// into them: injected when the model has one the original lacks, stripped
+/// when the original carries one the model resolved, kept verbatim when
+/// both agree (the imported revision is already in the bytes).
+fn patch_mark_bytes(
+    xml: &[u8],
+    properties: &Element,
+    revision: Option<&joyword_model::TextRevision>,
+    names: &Names,
+) -> Result<Vec<u8>, ExportError> {
+    let base = properties.span.start;
+    let mut bytes = xml[properties.span.clone()].to_vec();
+    let del = revision.map(|revision| {
+        format!(
+            "{}{}/>",
+            names.start("del"),
+            track_attributes(names, revision)
+        )
+    });
+    let rpr = properties.child(W, "rPr");
+    match (rpr, del) {
+        (Some(rpr), Some(del)) => {
+            if rpr.child(W, "del").is_some() {
+                // Already in the original bytes; the caller only rewrites
+                // when something else changed, and this revision is equal.
+                return Ok(bytes);
+            }
+            if is_self_closing(xml, rpr) {
+                let cut = rpr.span.end - base - 2;
+                bytes.splice(
+                    cut..cut + 2,
+                    format!(">{del}{}", names.end("rPr")).into_bytes(),
+                );
+            } else {
+                let at = open_tag_end(xml, rpr)
+                    .ok_or_else(|| unsupported(None, "unreadable rPr start tag"))?
+                    + 1
+                    - base;
+                bytes.splice(at..at, del.into_bytes());
+            }
+        }
+        (Some(rpr), None) => {
+            if let Some(existing) = rpr.child(W, "del") {
+                let start = existing.span.start - base;
+                let end = existing.span.end - base;
+                bytes.drain(start..end);
+            }
+        }
+        (None, Some(del)) => {
+            let rpr_bytes = format!("{}>{}{}", names.start("rPr"), del, names.end("rPr"));
+            if is_self_closing(xml, properties) {
+                let cut = properties.span.end - base - 2;
+                bytes.splice(
+                    cut..cut + 2,
+                    format!(">{}{}", rpr_bytes, names.end("pPr")).into_bytes(),
+                );
+            } else {
+                let before = properties
+                    .elements()
+                    .find(|child| child.is(W, "sectPr") || child.is(W, "pPrChange"))
+                    .map(|child| child.span.start - base)
+                    .unwrap_or_else(|| {
+                        properties.span.end - base - closing_tag_len(xml, properties)
+                    });
+                bytes.splice(before..before, rpr_bytes.into_bytes());
+            }
+        }
+        (None, None) => {}
+    }
+    Ok(bytes)
+}
+
+/// Byte length of an element's closing tag; 0 for a self-closing element.
+fn closing_tag_len(xml: &[u8], element: &Element) -> usize {
+    if is_self_closing(xml, element) {
+        return 0;
+    }
+    element.qname.to_string().len() + 3
+}
+
+fn is_self_closing(xml: &[u8], element: &Element) -> bool {
+    xml.get(element.span.end - 2..element.span.end) == Some(b"/>")
+}
+
+/// Offset just past an element's start tag `>`, or `None` when the bytes do
+/// not close the tag inside the element span.
+fn open_tag_end(xml: &[u8], element: &Element) -> Option<usize> {
+    let mut quote = 0u8;
+    for (offset, &byte) in xml[element.span.start..element.span.end].iter().enumerate() {
+        match byte {
+            b'"' if quote == 0 => quote = b'"',
+            b'\'' if quote == 0 => quote = b'\'',
+            b'"' | b'\'' if quote == byte => quote = 0,
+            b'>' if quote == 0 => return Some(element.span.start + offset),
+            _ => {}
+        }
+    }
+    None
 }
 
 struct RevisionSegment {

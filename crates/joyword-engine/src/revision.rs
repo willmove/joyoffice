@@ -21,8 +21,8 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use joyword_model::{
-    Document, MoveMarker, MoveSide, NodeId, Paragraph, Position, RevisionKind, StoryId,
-    TextRevision,
+    Block, Document, MoveMarker, MoveSide, NodeId, Paragraph, Position, RevisionKind, ScalarOffset,
+    StoryId, TextRevision,
 };
 
 use crate::command::CommandError;
@@ -122,6 +122,12 @@ fn revision_at(document: &Document, position: &Position) -> Option<u32> {
         }
         at = end;
     }
+    if ending.is_none() && offset == paragraph.len() {
+        // The caret sits on the paragraph mark; surface its pending deletion.
+        if let Some(revision) = &paragraph.mark_revision {
+            return Some(revision.id);
+        }
+    }
     ending
 }
 
@@ -210,49 +216,167 @@ pub(crate) fn delete_tracked(
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
-    if start.paragraph != end.paragraph || start.story != end.story {
-        return Err(CommandError::RevisionBoundary);
+    if start.story != end.story {
+        return Err(CommandError::CrossContainer);
     }
-    if start.offset > end.offset {
+    let first_loc = locate::locate(document, start.story, start.paragraph)
+        .ok_or(CommandError::UnknownNode(start.paragraph))?;
+    let last_loc = locate::locate(document, start.story, end.paragraph)
+        .ok_or(CommandError::UnknownNode(end.paragraph))?;
+    if !first_loc.same_container(&last_loc) {
+        return Err(CommandError::CrossContainer);
+    }
+    if first_loc.index > last_loc.index
+        || (first_loc.index == last_loc.index && start.offset > end.offset)
+    {
         return Err(CommandError::ReversedRange);
     }
-    if start.offset == end.offset {
-        return Ok(());
-    }
-    let location = locate::locate(document, start.story, start.paragraph)
-        .ok_or(CommandError::UnknownNode(start.paragraph))?;
-    if location.content_locked {
+    if first_loc.content_locked || last_loc.content_locked {
         return Err(CommandError::Locked(start.paragraph));
     }
-    let mut plan = {
-        let Some(paragraph) = locate::paragraph(document, &location) else {
+    if first_loc.index == last_loc.index {
+        if start.offset == end.offset {
+            return Ok(());
+        }
+        let mut plan = {
+            let Some(paragraph) = locate::paragraph(document, &first_loc) else {
+                return Err(CommandError::UnknownNode(start.paragraph));
+            };
+            plan_tracked_delete(paragraph, start.offset.0, end.offset.0, ctx)?
+        };
+        if plan
+            .iter()
+            .any(|step| matches!(step, DeleteStep::Mark(_, revision) if revision.id == 0))
+        {
+            let id = document
+                .allocate_revision_id()
+                .ok_or(CommandError::RevisionConflict)?;
+            for step in &mut plan {
+                if let DeleteStep::Mark(_, revision) = step
+                    && revision.id == 0
+                {
+                    revision.id = id;
+                    revision.date.clone_from(&ctx.date);
+                }
+            }
+        }
+        if plan.is_empty() {
+            return Ok(());
+        }
+        let Some(paragraph) = locate::paragraph_mut(document, &first_loc) else {
             return Err(CommandError::UnknownNode(start.paragraph));
         };
-        plan_tracked_delete(paragraph, start.offset.0, end.offset.0, ctx)?
-    };
-    if plan
-        .iter()
-        .any(|step| matches!(step, DeleteStep::Mark(_, revision) if revision.id == 0))
+        apply_delete_plan(paragraph, &plan, map, changes, start)?;
+        return Ok(());
+    }
+
+    // Cross-paragraph tracked deletion: every covered run is marked deleted
+    // and the paragraph marks from the first paragraph up to (excluding) the
+    // last one are recorded as deleted revisions (`w:pPr/w:rPr/w:del`), so
+    // the final view joins the surrounding text exactly like Word. The
+    // paragraphs stay in place until the revision is accepted. One revision
+    // id covers the whole command: an adjacent same-author deletion is
+    // reused, matching the single-paragraph path.
+    let mut plans = Vec::new();
     {
-        let id = document
-            .allocate_revision_id()
-            .ok_or(CommandError::RevisionConflict)?;
-        for step in &mut plan {
+        let seq = locate::container(document, start.story, &first_loc.containers)
+            .ok_or(CommandError::UnknownNode(start.paragraph))?;
+        for index in first_loc.index..=last_loc.index {
+            let Some(Block::Paragraph(paragraph)) = seq.get(index) else {
+                return Err(CommandError::RevisionBoundary);
+            };
+            let len = paragraph.len();
+            let from = if index == first_loc.index {
+                start.offset.0
+            } else {
+                0
+            };
+            let to = if index == last_loc.index {
+                end.offset.0
+            } else {
+                len
+            };
+            if from > to || to > len {
+                return Err(CommandError::ReversedRange);
+            }
+            plans.push((
+                index,
+                paragraph.id(),
+                plan_tracked_delete(paragraph, from, to, ctx)?,
+            ));
+        }
+    }
+    let mut mark = TextRevision {
+        id: 0,
+        kind: RevisionKind::Delete,
+        author: Arc::clone(&ctx.author),
+        date: ctx.date.clone(),
+    };
+    for (_, _, plan) in &plans {
+        for step in plan {
             if let DeleteStep::Mark(_, revision) = step
-                && revision.id == 0
+                && revision.id != 0
             {
-                revision.id = id;
-                revision.date.clone_from(&ctx.date);
+                mark = revision.clone();
             }
         }
     }
-    if plan.is_empty() {
-        return Ok(());
+    for index in first_loc.index..last_loc.index {
+        let Some(paragraph) = locate::container(document, start.story, &first_loc.containers)
+            .and_then(|seq| seq.get(index))
+            .and_then(Block::as_paragraph)
+        else {
+            return Err(CommandError::RevisionBoundary);
+        };
+        match &paragraph.mark_revision {
+            Some(existing)
+                if existing.kind == RevisionKind::Delete && existing.author == ctx.author =>
+            {
+                mark = existing.clone();
+            }
+            Some(_) => return Err(CommandError::RevisionConflict),
+            None => {}
+        }
     }
-    let Some(paragraph) = locate::paragraph_mut(document, &location) else {
-        return Err(CommandError::UnknownNode(start.paragraph));
-    };
-    apply_delete_plan(paragraph, &plan, map, changes, start)?;
+    if mark.id == 0 {
+        mark.id = document
+            .allocate_revision_id()
+            .ok_or(CommandError::RevisionConflict)?;
+    }
+    for (_, _, plan) in &mut plans {
+        for step in plan {
+            if let DeleteStep::Mark(_, revision) = step {
+                *revision = mark.clone();
+            }
+        }
+    }
+    let story = start.story;
+    for (index, id, plan) in plans {
+        let at = Position {
+            story,
+            paragraph: id,
+            offset: ScalarOffset(0),
+            bias: start.bias,
+        };
+        if !plan.is_empty() {
+            let mut location = first_loc.clone();
+            location.index = index;
+            let Some(paragraph) = locate::paragraph_mut(document, &location) else {
+                return Err(CommandError::UnknownNode(id));
+            };
+            apply_delete_plan(paragraph, &plan, map, changes, &at)?;
+        }
+        if index < last_loc.index {
+            let mut location = first_loc.clone();
+            location.index = index;
+            let Some(paragraph) = locate::paragraph_mut(document, &location) else {
+                return Err(CommandError::UnknownNode(id));
+            };
+            paragraph.mark_revision = Some(mark.clone());
+            changes.stories.insert(story);
+            changes.paragraphs.insert(id);
+        }
+    }
     Ok(())
 }
 
@@ -457,16 +581,24 @@ fn resolve_one(
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
     let hits = hits_for(document, id);
-    if hits.is_empty() {
-        // No text revision carries this id; it may be a format revision
-        // (`w:rPrChange` / `w:pPrChange`), which has no text position.
+    let marks = mark_targets(document, id);
+    if hits.is_empty() && marks.is_empty() {
+        // No text or mark revision carries this id; it may be a format
+        // revision (`w:rPrChange` / `w:pPrChange`), which has no text
+        // position.
         if resolve_format_one(document, id, resolution, changes)? {
             return Ok(());
         }
         return Err(CommandError::UnknownRevision(id));
     }
-    let kind = hits[0].kind;
-    if hits.iter().any(|hit| hit.kind != kind) {
+    let kind = hits.first().map_or(RevisionKind::Delete, |hit| hit.kind);
+    // A mark revision is always a deletion; an id that also carries an
+    // insertion or a move is not one change.
+    if hits.iter().any(|hit| hit.kind != kind)
+        || marks
+            .iter()
+            .any(|mark| mark.2 != RevisionKind::Delete || kind != RevisionKind::Delete)
+    {
         return Err(CommandError::RevisionConflict);
     }
     let (edits, names) = if kind.is_move() {
@@ -477,6 +609,14 @@ fn resolve_one(
         (simple_edits(&hits, resolution), Vec::new())
     };
     apply_edits(document, &edits, map, changes)?;
+    resolve_marks(
+        document,
+        &marks,
+        MarkScope::One(id),
+        resolution,
+        map,
+        changes,
+    )?;
     drop_names(document, &names, changes);
     // A single id can carry both a text and a format revision; resolve both so
     // one accept or reject settles the whole change.
@@ -520,6 +660,140 @@ fn resolve_all(
     apply_edits(document, &edits, map, changes)?;
     drop_names(document, &names, changes);
     resolve_format_all(document, resolution, changes)?;
+    // Paragraph-mark deletions resolve last so merges run over paragraphs
+    // whose accepted text deletions have already been applied.
+    let marks = all_mark_targets(document);
+    resolve_marks(document, &marks, MarkScope::All, resolution, map, changes)?;
+    Ok(())
+}
+
+/// Which paragraph-mark revisions a resolution pass covers.
+#[derive(Clone, Copy)]
+enum MarkScope {
+    One(u32),
+    All,
+}
+
+/// Paragraphs whose pending mark revision carries `id`, with its kind.
+fn mark_targets(document: &Document, id: u32) -> Vec<(StoryId, NodeId, RevisionKind)> {
+    let mut out = Vec::new();
+    for (story, paragraph) in paragraphs(document) {
+        if let Some(paragraph) = paragraph_ref(document, story, paragraph)
+            && let Some(revision) = &paragraph.mark_revision
+            && revision.id == id
+        {
+            out.push((story, paragraph.id(), revision.kind));
+        }
+    }
+    out
+}
+
+/// Every paragraph with a pending deleted mark, in document order.
+fn all_mark_targets(document: &Document) -> Vec<(StoryId, NodeId, RevisionKind)> {
+    let mut out = Vec::new();
+    for (story, paragraph) in paragraphs(document) {
+        if let Some(paragraph) = paragraph_ref(document, story, paragraph)
+            && let Some(revision) = &paragraph.mark_revision
+            && revision.kind == RevisionKind::Delete
+        {
+            out.push((story, paragraph.id(), revision.kind));
+        }
+    }
+    out
+}
+
+/// Accept merges the paragraph with the next sibling — the boundary the
+/// deleted mark stood for disappears and the merged paragraph inherits the
+/// absorbed mark's own pending revision, so a chain of same-change marks
+/// merges in one resolution. Reject clears the mark: the break stays. A mark
+/// with no paragraph sibling after it cannot be merged and refuses the whole
+/// command rather than guessing.
+fn resolve_marks(
+    document: &mut Document,
+    targets: &[(StoryId, NodeId, RevisionKind)],
+    scope: MarkScope,
+    resolution: Resolution,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let accept = matches!(resolution, Resolution::Accept);
+    for &(story, id, _) in targets {
+        let covered = |revision: &TextRevision| match scope {
+            MarkScope::One(wanted) => {
+                revision.id == wanted && revision.kind == RevisionKind::Delete
+            }
+            MarkScope::All => revision.kind == RevisionKind::Delete,
+        };
+        let Some(location) = locate::locate(document, story, id) else {
+            continue;
+        };
+        if location.content_locked {
+            return Err(CommandError::Locked(id));
+        }
+        let pending = locate::paragraph(document, &location)
+            .and_then(|paragraph| paragraph.mark_revision.clone());
+        let Some(revision) = pending else {
+            continue;
+        };
+        if !covered(&revision) {
+            continue;
+        }
+        if !accept {
+            let Some(paragraph) = locate::paragraph_mut(document, &location) else {
+                continue;
+            };
+            paragraph.mark_revision = None;
+            changes.stories.insert(story);
+            changes.paragraphs.insert(id);
+            continue;
+        }
+        while let Some(location) = locate::locate(document, story, id) {
+            let Some((tail_id, head_len)) =
+                locate::container(document, story, &location.containers).and_then(|seq| {
+                    let head = seq.get(location.index)?.as_paragraph()?;
+                    let tail = seq.get(location.index + 1)?.as_paragraph()?;
+                    Some((tail.id(), head.len()))
+                })
+            else {
+                // A deleted mark at the end of a container has no paragraph
+                // to merge into; the engine never creates one, an import can.
+                return Err(CommandError::RevisionConflict);
+            };
+            let seq = locate::container_mut(document, story, &location.containers)
+                .ok_or(CommandError::UnknownNode(id))?;
+            let Block::Paragraph(tail) = seq.remove(location.index + 1) else {
+                return Err(CommandError::RevisionConflict);
+            };
+            let mut tail = Arc::unwrap_or_clone(tail);
+            let inherited = tail.mark_revision.take();
+            let Some(Block::Paragraph(head)) = seq.get_mut(location.index) else {
+                return Err(CommandError::UnknownNode(id));
+            };
+            let head = Arc::make_mut(head);
+            // The merged paragraph keeps the first half's formatting and
+            // identity, and ends at the absorbed mark, whose own pending
+            // revision survives on the merged paragraph.
+            head.append(tail);
+            head.mark_revision = inherited;
+            map.push(MapStep::DeleteAcross {
+                story,
+                first: id,
+                start: head_len,
+                last: tail_id,
+                end: 0,
+                removed: Vec::new(),
+            });
+            changes.stories.insert(story);
+            changes.paragraphs.insert(id);
+            changes.removed.insert(tail_id);
+            let next = locate::locate(document, story, id)
+                .and_then(|location| locate::paragraph(document, &location))
+                .and_then(|paragraph| paragraph.mark_revision.clone());
+            if !next.is_some_and(|revision| covered(&revision)) {
+                break;
+            }
+        }
+    }
     Ok(())
 }
 

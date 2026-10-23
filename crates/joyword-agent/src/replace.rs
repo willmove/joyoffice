@@ -147,7 +147,7 @@ pub enum ReplaceError {
     RegistryPoisoned,
     /// This proposal id was already accepted, or another accept is in flight.
     AlreadyApplied,
-    /// The authorized range is not one paragraph of final text.
+    /// The authorized range is empty or leaves the final-view text.
     RangeRefused,
     /// The replacement cannot be stored as ordinary paragraph text.
     InvalidReplacement,
@@ -564,11 +564,11 @@ fn commit_gate(runtime: &AgentRuntime, grant: &Grant) -> Result<(), ToolError> {
 }
 
 fn single_paragraph(snapshot: &DocumentSnapshot, range: ScopeRange) -> bool {
-    !range.is_empty()
-        && snapshot
-            .outline()
-            .iter()
-            .any(|node| range.start() >= node.start && range.end() <= node.end)
+    // A replace may cross paragraph marks inside the authorized range; the
+    // host commits the covered separators as mark deletions (T402). Only an
+    // empty range or one past the end of the final-view text is refused
+    // here; structural refusals (tables, inline objects) stay with the host.
+    !range.is_empty() && range.end() <= snapshot.char_len()
 }
 
 fn replacement_allowed(text: &str) -> bool {
