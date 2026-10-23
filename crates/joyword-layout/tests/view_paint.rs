@@ -412,3 +412,134 @@ fn field_codes_swap_instruction_and_result() {
     cache_matches(&document, results);
     cache_matches(&document, codes);
 }
+
+#[test]
+fn bookmarks_are_metadata_at_layout_and_handoff_not_fabricated_geometry() {
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let paragraph = paragraph_text(&mut document, "Word", RunProps::default());
+    let story = document.body_id();
+    let point = position(story, paragraph.id(), 2);
+    document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let plain = lay(&document, ViewOptions::default());
+    for anchor in [
+        Anchor::Range {
+            start: point,
+            end: point,
+        },
+        Anchor::Detached,
+    ] {
+        document.insert_annotation(
+            AnnotationKind::Bookmark {
+                name: Arc::from("target"),
+            },
+            anchor,
+        );
+        assert!(!document.validate().has_errors());
+        let snapshot = lay(&document, ViewOptions::default());
+        snapshot
+            .ensure_current(&document.snapshot(), &font(), profile())
+            .unwrap();
+        assert_eq!(snapshot.pages(), plain.pages());
+        assert_eq!(snapshot.lines().len(), plain.lines().len());
+        assert_eq!(snapshot.caret(point).unwrap(), plain.caret(point).unwrap());
+        cache_matches(&document, ViewOptions::default());
+    }
+}
+
+#[test]
+fn malformed_bookmark_ranges_still_fail_model_layout_and_handoff() {
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let paragraph = paragraph_text(&mut document, "Word", RunProps::default());
+    let story = document.body_id();
+    let point = position(story, paragraph.id(), 2);
+    document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(vec![paragraph.into()]);
+    let snapshot = lay(&document, ViewOptions::default());
+    for (start, end) in [
+        (
+            point,
+            Position {
+                offset: ScalarOffset(5),
+                ..point
+            },
+        ),
+        (
+            point,
+            Position {
+                offset: ScalarOffset(1),
+                ..point
+            },
+        ),
+        (
+            point,
+            Position {
+                paragraph: document.ids().node(),
+                ..point
+            },
+        ),
+    ] {
+        let mut invalid = document.clone();
+        invalid.insert_annotation(
+            AnnotationKind::Bookmark {
+                name: Arc::from("target"),
+            },
+            Anchor::Range { start, end },
+        );
+        assert!(invalid.validate().has_errors());
+        assert!(matches!(
+            layout_with_view(
+                &invalid.snapshot(),
+                FaceSet::uniform(&font()),
+                profile(),
+                LayoutLimits::default(),
+                &LayoutCancellation::default(),
+                ViewOptions::default(),
+            ),
+            Err(LayoutError::InvalidDocument)
+        ));
+        assert!(
+            snapshot
+                .ensure_current(&invalid.snapshot(), &font(), profile())
+                .is_err()
+        );
+    }
+}
+
+#[test]
+fn bookmark_admission_keeps_field_and_other_annotation_refusals() {
+    let mut document = Document::new(PageSetup::a4_zh_cn());
+    let first = paragraph_text(&mut document, "A", RunProps::default());
+    let second = paragraph_text(&mut document, "B", RunProps::default());
+    let story = document.body_id();
+    let start = position(story, first.id(), 0);
+    let end = position(story, second.id(), 1);
+    document.story_mut(story).unwrap().blocks =
+        BlockSeq::from_vec(vec![first.into(), second.into()]);
+    for (kind, anchor) in [
+        (
+            AnnotationKind::Field { separator: None },
+            Anchor::Range { start, end },
+        ),
+        (AnnotationKind::Field { separator: None }, Anchor::Detached),
+        (
+            AnnotationKind::Permission {
+                editor: None,
+                group: None,
+            },
+            Anchor::Range { start, end },
+        ),
+    ] {
+        let mut unsupported = document.clone();
+        unsupported.insert_annotation(kind, anchor);
+        assert!(matches!(
+            layout_with_view(
+                &unsupported.snapshot(),
+                FaceSet::uniform(&font()),
+                profile(),
+                LayoutLimits::default(),
+                &LayoutCancellation::default(),
+                ViewOptions::default(),
+            ),
+            Err(LayoutError::Unsupported { .. })
+        ));
+    }
+}
