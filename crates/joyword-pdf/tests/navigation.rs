@@ -217,6 +217,27 @@ fn model_forward_backward_same_page_and_uri_actions_survive_pdf_readback() -> Te
 }
 
 #[test]
+fn a_non_ascii_bookmark_name_survives_the_name_tree_readback() -> TestResult {
+    let mut document = model(&[("AV", Some(anchor("目录")?))])?;
+    let snapshot = layout(&document)?;
+    let point = position(&document, 0, 1)?;
+    bookmark(&mut document, "目录", point, point);
+    let navigation = navigation_from_document(&document, &snapshot).map_err(error)?;
+    let bytes = render_export_with_navigation(
+        snapshot.pages(),
+        &[font()?],
+        &PdfExport::default(),
+        &navigation,
+    )
+    .map_err(error)?;
+    let read = inspect_navigation(&bytes).map_err(error)?;
+    assert!(read.bookmarks.contains_key("目录"), "{:?}", read.bookmarks);
+    assert_eq!(read.links.len(), 1);
+    assert_eq!(read.links[0].destination, read.bookmarks["目录"]);
+    Ok(())
+}
+
+#[test]
 fn empty_document_and_empty_paragraph_bookmark_are_distinct_from_empty_names() -> TestResult {
     let mut document = model(&[("", None)])?;
     let snapshot = layout(&document)?;
@@ -243,16 +264,42 @@ fn empty_document_and_empty_paragraph_bookmark_are_distinct_from_empty_names() -
 }
 
 #[test]
+fn an_anchor_without_a_bookmark_is_counted_and_leaves_the_rest_usable() -> TestResult {
+    // A DOCX keeps bookmarks and anchor links apart and only the links are
+    // imported, so a real document can carry an anchor with no target.
+    let mut document = model(&[("AV", Some(anchor("absent")?))])?;
+    let snapshot = layout(&document)?;
+    let point = position(&document, 0, 1)?;
+    bookmark(&mut document, "present", point, point);
+    let navigation = navigation_from_document(&document, &snapshot).map_err(error)?;
+    assert_eq!(navigation.unresolved_links, 1);
+    assert!(navigation.links.is_empty());
+    assert_eq!(navigation.bookmarks.len(), 1);
+    let bytes = render_export_with_navigation(
+        snapshot.pages(),
+        &[font()?],
+        &PdfExport::default(),
+        &navigation,
+    )
+    .map_err(error)?;
+    let read = inspect_navigation(&bytes).map_err(error)?;
+    assert!(read.links.is_empty());
+    assert!(read.bookmarks.contains_key("present"));
+    Ok(())
+}
+
+#[test]
 fn duplicate_names_never_select_a_first_target_and_case_is_exact() -> TestResult {
     let mut document = model(&[("AV", Some(anchor("Case")?))])?;
     let snapshot = layout(&document)?;
     let a = position(&document, 0, 0)?;
     let b = position(&document, 0, 1)?;
     bookmark(&mut document, "case", a, a);
-    assert_eq!(
-        navigation_from_document(&document, &snapshot),
-        Err(NavigationError::MissingBookmark)
-    );
+    // A link names its target exactly. The bookmark "case" is not the target
+    // "Case", so the link stays unresolved instead of jumping to it.
+    let unresolved = navigation_from_document(&document, &snapshot).map_err(error)?;
+    assert_eq!(unresolved.unresolved_links, 1);
+    assert!(unresolved.links.is_empty());
     bookmark(&mut document, "Case", b, b);
     assert_eq!(
         navigation_from_document(&document, &snapshot)
@@ -461,6 +508,7 @@ fn destination_uses_target_page_height_and_accepts_legal_edge_points() -> TestRe
         let nav = PdfNavigation {
             bookmarks: Vec::new(),
             links: vec![link],
+            unresolved_links: 0,
         };
         let pdf = render_export_with_navigation(&pages, &[], &PdfExport::default(), &nav)
             .map_err(error)?;
@@ -485,7 +533,8 @@ fn all_public_navigation_numbers_are_finite_in_range_and_bounded() {
                 &PdfExport::default(),
                 &PdfNavigation {
                     bookmarks: Vec::new(),
-                    links: vec![link]
+                    links: vec![link],
+                    unresolved_links: 0,
                 }
             ),
             Err(PdfError::Navigation(NavigationError::InvalidGeometry))
@@ -671,6 +720,7 @@ fn bookmark_name_count_and_combined_rectangle_budgets_refuse_without_truncation(
     let nav = PdfNavigation {
         bookmarks: vec![],
         links: vec![goto(); MAX_PDF_LINKS + 1],
+        unresolved_links: 0,
     };
     assert_eq!(
         render_export_with_navigation(&pages, &[], &PdfExport::default(), &nav),
@@ -679,6 +729,7 @@ fn bookmark_name_count_and_combined_rectangle_budgets_refuse_without_truncation(
     let nav = PdfNavigation {
         bookmarks: vec![],
         links: vec![goto(); MAX_PDF_LINKS],
+        unresolved_links: 0,
     };
     let export = PdfExport {
         links: vec![PdfLink {
@@ -702,6 +753,7 @@ fn bookmark_name_count_and_combined_rectangle_budgets_refuse_without_truncation(
     let nav = PdfNavigation {
         bookmarks: vec![mark.clone(), mark],
         links: vec![],
+        unresolved_links: 0,
     };
     assert_eq!(
         render_export_with_navigation(&pages, &[], &PdfExport::default(), &nav),
