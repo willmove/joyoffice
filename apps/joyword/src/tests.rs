@@ -379,6 +379,52 @@ mod scene_export {
     }
 
     #[test]
+    #[test]
+    fn a_selected_page_range_renumbers_both_ends_and_drops_a_link_it_cannot_keep() {
+        let document = chapter_model();
+        let scene = layout(&document, ViewOptions::default());
+        scene
+            .ensure_current(&document.snapshot(), &test_font(), rehearsal_profile())
+            .unwrap();
+        let font = test_font();
+        let target = position(&document, 4, 1);
+        let source = position(&document, 3, 0);
+        // The bookmark sits on the third page and its link on the second.
+        assert_eq!(scene.caret(source).unwrap().page, 1);
+        assert_eq!(scene.caret(target).unwrap().page, 2);
+
+        // The whole document keeps the link and the named destination.
+        let full = scene_pdf(&scene, &font, &document, None, 0..3).unwrap();
+        let read = inspect_navigation(&full).unwrap();
+        assert_eq!(read.links.len(), 1);
+        assert_eq!(read.bookmarks.len(), 1);
+        check_target(&read.links[0].destination, &scene, target, 0);
+
+        // The second page alone holds the source but not the target, so the
+        // link has no destination left and is dropped rather than misdirected.
+        let source_only = scene_pdf(&scene, &font, &document, None, 1..2).unwrap();
+        let read = inspect_navigation(&source_only).unwrap();
+        assert!(read.links.is_empty(), "{:?}", read.links);
+        assert!(read.bookmarks.is_empty(), "{:?}", read.bookmarks);
+
+        // The third page alone holds the target but not the source, so the
+        // bookmark survives and no link points at it.
+        let target_only = scene_pdf(&scene, &font, &document, None, 2..3).unwrap();
+        let read = inspect_navigation(&target_only).unwrap();
+        assert!(read.links.is_empty(), "{:?}", read.links);
+        assert_eq!(read.bookmarks.len(), 1);
+        check_target(&read.bookmarks["target"], &scene, target, 2);
+
+        // The second and third pages together keep the link, and both ends
+        // are renumbered against the exported page range.
+        let both = scene_pdf(&scene, &font, &document, None, 1..3).unwrap();
+        let read = inspect_navigation(&both).unwrap();
+        assert_eq!(read.links.len(), 1);
+        assert_eq!(read.bookmarks.len(), 1);
+        check_target(&read.links[0].destination, &scene, target, 1);
+        check_target(&read.bookmarks["target"], &scene, target, 1);
+    }
+
     fn an_anchor_without_a_target_does_not_block_the_export() {
         // A DOCX keeps its bookmarks and its anchor links apart and only the
         // links are imported, so a real document can carry an anchor whose
