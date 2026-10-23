@@ -529,6 +529,17 @@ impl Document {
                     section.doc_grid
                 ),
             );
+            if section.numbering.chapter_style.is_some()
+                || section.numbering.chapter_separator != crate::ChapterSeparator::default()
+            {
+                dumper.line(
+                    1,
+                    &format!(
+                        "chapter={:?} separator={:?}",
+                        section.numbering.chapter_style, section.numbering.chapter_separator
+                    ),
+                );
+            }
         }
         for annotation in document.annotations() {
             let kind = match &annotation.kind {

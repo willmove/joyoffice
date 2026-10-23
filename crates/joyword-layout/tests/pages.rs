@@ -739,12 +739,467 @@ fn field_codes_replace_body_page_fields_and_match_the_cache() {
     );
 }
 
+fn chapter_document(texts: &[&str]) -> Result<Document, Box<dyn std::error::Error>> {
+    use joyword_model::{AbstractNum, NumInstance, NumberSuffix, NumberingLevel, Style, StyleKind};
+    let mut document = document_with(texts);
+    document.sections_mut()[0].page.width = Measure::Emu(pt(350).raw());
+    document.sections_mut()[0].numbering.chapter_style = Some(1);
+    for level in [1, 9] {
+        document
+            .styles_mut()
+            .insert(Style::new(
+                format!("h{level}").as_str(),
+                StyleKind::Paragraph,
+                Some(format!("heading {level}").as_str()),
+            ))
+            .map_err(|error| format!("{error:?}"))?;
+    }
+    let mut definition = AbstractNum::new(1);
+    let mut level = NumberingLevel::new(NumberFormat::UpperRoman, "%1");
+    level.start = 4;
+    level.suffix = NumberSuffix::Nothing;
+    definition.levels[0] = Some(level);
+    let mut ninth = NumberingLevel::new(NumberFormat::Decimal, "%1.%9");
+    ninth.start = 1;
+    ninth.suffix = NumberSuffix::Nothing;
+    definition.levels[8] = Some(ninth);
+    assert!(document.numbering_mut().insert_abstract(definition));
+    assert!(document.numbering_mut().insert_instance(NumInstance {
+        id: 1,
+        abstract_id: 1,
+        overrides: Vec::new(),
+    }));
+    Ok(document)
+}
+
+fn chapter_heading(document: &mut Document, index: usize, heading: u8, level: u8) {
+    change(document, index, |paragraph| {
+        paragraph.style = Some(joyword_model::StyleId::new(&format!("h{heading}")));
+        Arc::make_mut(&mut paragraph.props).numbering =
+            Some(joyword_model::NumberingRef { num_id: 1, level });
+    });
+}
+
+#[test]
+fn chapter_five_separators_body_header_footer_and_counts() -> Result<(), Box<dyn std::error::Error>>
+{
+    use joyword_model::ChapterSeparator;
+    assert_eq!(ChapterSeparator::default(), ChapterSeparator::Hyphen);
+    for (separator, ch) in [
+        (ChapterSeparator::Hyphen, '\u{2011}'),
+        (ChapterSeparator::Period, '.'),
+        (ChapterSeparator::Colon, ':'),
+        (ChapterSeparator::EmDash, '\u{2014}'),
+        (ChapterSeparator::EnDash, '\u{2013}'),
+    ] {
+        let mut document = chapter_document(&["One", "B", "Two", "D"])?;
+        chapter_heading(&mut document, 0, 1, 0);
+        chapter_heading(&mut document, 2, 1, 0);
+        document.sections_mut()[0].numbering.chapter_separator = separator;
+        for index in [1, 3] {
+            push_field(&mut document, index, PageFieldKind::Page, None);
+            push_field(&mut document, index, PageFieldKind::NumPages, None);
+            push_field(&mut document, index, PageFieldKind::SectionPages, None);
+        }
+        header(&mut document, "H", Some(PageFieldKind::Page));
+        attach(
+            &mut document,
+            0,
+            false,
+            HeaderFooterKind::Default,
+            "F",
+            Some(PageFieldKind::Page),
+        );
+        let (full, incremental) = layout_both(&document);
+        assert_eq!(full.pages(), incremental.pages());
+        assert_eq!(full.pages().len(), 2);
+        for (page, chapter, body) in [(0, "IV", "B"), (1, "V", "D")] {
+            let number = page + 1;
+            let text = page_text(&full, page);
+            assert!(
+                text.contains(&format!("{body}{chapter}{ch}{number}22")),
+                "{text}"
+            );
+            assert!(text.contains(&format!("H{chapter}{ch}{number}")), "{text}");
+            assert!(text.contains(&format!("F{chapter}{ch}{number}")), "{text}");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn chapter_heading_nine_multilevel_and_no_guessed_heading_numbers()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut document = chapter_document(&["99", "B"])?;
+    push_field(&mut document, 1, PageFieldKind::Page, None);
+    chapter_heading(&mut document, 0, 9, 8);
+    assert_eq!(
+        body_text(&layout(&document), 0),
+        "IV.199B1",
+        "no previous-level fallback"
+    );
+    document.sections_mut()[0].numbering.chapter_style = Some(9);
+    assert_eq!(body_text(&layout(&document), 0), "IV.199BIV.1\u{2011}1");
+    document.sections_mut()[0].numbering.chapter_style = None;
+    document.sections_mut()[0].numbering.chapter_separator = joyword_model::ChapterSeparator::Colon;
+    assert_eq!(
+        body_text(&layout(&document), 0),
+        "IV.199B1",
+        "separator alone is ignored"
+    );
+    document.sections_mut()[0].numbering.chapter_style = Some(9);
+    change(&mut document, 0, |paragraph| {
+        Arc::make_mut(&mut paragraph.props).numbering = None;
+    });
+    assert_eq!(
+        body_text(&layout(&document), 0),
+        "99B1",
+        "body digits are not numbering"
+    );
+    chapter_heading(&mut document, 0, 9, 8);
+    for format in [
+        NumberFormat::Bullet,
+        NumberFormat::None,
+        NumberFormat::Other(Arc::from("custom")),
+    ] {
+        document.numbering_mut().abstracts_mut()[0].levels[8]
+            .as_mut()
+            .ok_or("level")?
+            .format = format;
+        let snapshot = layout(&document);
+        assert!(body_text(&snapshot, 0).ends_with("B1"));
+    }
+    document.numbering_mut().abstracts_mut()[0].levels[8]
+        .as_mut()
+        .ok_or("level")?
+        .format = NumberFormat::UpperRoman;
+    document.numbering_mut().abstracts_mut()[0].levels[8]
+        .as_mut()
+        .ok_or("level")?
+        .start = 0;
+    assert!(
+        body_text(&layout(&document), 0).ends_with("B1"),
+        "unrenderable Roman never becomes decimal"
+    );
+    document.sections_mut()[0].numbering.chapter_style = Some(10);
+    assert!(
+        layout_document(
+            &document.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default()
+        )
+        .is_err()
+    );
+    Ok(())
+}
+
+#[test]
+fn chapter_page_first_heading_then_predecessor_and_section_level_switch()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut document = chapter_document(&["One", "Two", "B", "C"])?;
+    chapter_heading(&mut document, 0, 1, 0);
+    chapter_heading(&mut document, 1, 1, 0);
+    header(&mut document, "H", Some(PageFieldKind::Page));
+    push_field(&mut document, 2, PageFieldKind::Page, None);
+    let snapshot = layout(&document);
+    assert!(page_text(&snapshot, 0).contains("HIV\u{2011}1"));
+    assert!(page_text(&snapshot, 1).contains("BV\u{2011}2"));
+    close_section(&mut document, 1);
+    document.sections_mut()[1].numbering.chapter_style = Some(9);
+    let snapshot = layout(&document);
+    assert!(page_text(&snapshot, 1).contains("B2"));
+    assert!(page_text(&snapshot, 1).contains("H2"));
+    document.sections_mut()[1].numbering.chapter_style = Some(1);
+    document.sections_mut()[1].numbering.start = Some(7);
+    assert!(page_text(&layout(&document), 1).contains("BV\u{2011}7"));
+    Ok(())
+}
+
+#[test]
+fn chapter_revision_hidden_projection_and_warm_incremental_agree()
+-> Result<(), Box<dyn std::error::Error>> {
+    use joyword_model::{RevisionKind, RevisionView, TextRevision};
+    let mut document = chapter_document(&["OLD", "NEW", "SECRET", "B"])?;
+    document.sections_mut()[0].page.height = page_for(4).height;
+    for index in 0..3 {
+        chapter_heading(&mut document, index, 1, 0);
+    }
+    for (index, kind) in [(0, RevisionKind::Delete), (1, RevisionKind::Insert)] {
+        change(&mut document, index, |paragraph| {
+            paragraph.set_last_run_revision(Some(TextRevision {
+                id: index as u32,
+                kind,
+                author: Arc::from("Ada"),
+                date: None,
+            }))
+        });
+    }
+    change(&mut document, 2, |paragraph| {
+        assert!(
+            paragraph
+                .format_runs(ScalarOffset(0)..ScalarOffset(paragraph.len()), |props| {
+                    props.hidden = Some(true)
+                },)
+                .is_ok()
+        );
+    });
+    push_field(&mut document, 3, PageFieldKind::Page, None);
+    let story = header(&mut document, "H", Some(PageFieldKind::Page));
+    let header_paragraph = document.story_mut(story).ok_or("header")?;
+    header_paragraph.blocks.update(0, |block| {
+        if let Block::Paragraph(paragraph) = block {
+            Arc::make_mut(paragraph).set_last_run_revision(Some(TextRevision {
+                id: 8,
+                kind: RevisionKind::Insert,
+                author: Arc::from("Ada"),
+                date: None,
+            }));
+        }
+    });
+    let mut cache = ParagraphLayoutCache::default();
+    let mut previous = None;
+    for (revision, chapter) in [
+        (RevisionView::Final, "V"),
+        (RevisionView::Original, "IV"),
+        (RevisionView::FinalWithMarkup, "IV"),
+    ] {
+        let options = ViewOptions::default();
+        let full = joyword_layout::layout_document_reviewed(
+            &document.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            revision,
+            options,
+        )?;
+        let incremental = joyword_layout::layout_incremental_reviewed(
+            &document.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            LayoutReuse {
+                cache: &mut cache,
+                previous: previous.as_ref(),
+                invalidation: &LayoutInvalidation::default(),
+            },
+            revision,
+            options,
+        )?;
+        assert_eq!(full.pages(), incremental.pages());
+        let text = page_text(&full, 0);
+        assert!(text.contains(&format!("B{chapter}\u{2011}1")), "{text}");
+        assert!(!text.contains("SECRET"));
+        if revision != RevisionView::Original {
+            assert!(text.contains(&format!("H{chapter}\u{2011}1")), "{text}");
+        }
+        previous = Some(incremental);
+    }
+    // A hidden heading alone never supplies a chapter; showing hidden text
+    // changes both the painted label and the chapter source on a warm cache.
+    let mut hidden = chapter_document(&["SECRET", "B"])?;
+    chapter_heading(&mut hidden, 0, 1, 0);
+    change(&mut hidden, 0, |paragraph| {
+        assert!(
+            paragraph
+                .format_runs(ScalarOffset(0)..ScalarOffset(paragraph.len()), |props| {
+                    props.hidden = Some(true)
+                },)
+                .is_ok()
+        );
+    });
+    push_field(&mut hidden, 1, PageFieldKind::Page, None);
+    for show_hidden in [false, true, false] {
+        let options = ViewOptions {
+            show_hidden,
+            ..Default::default()
+        };
+        let full = layout_with_view(
+            &hidden.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            options,
+        )?;
+        let incremental = layout_incremental_with_view(
+            &hidden.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            LayoutReuse {
+                cache: &mut cache,
+                previous: previous.as_ref(),
+                invalidation: &LayoutInvalidation::default(),
+            },
+            options,
+        )?;
+        assert_eq!(full.pages(), incremental.pages());
+        assert!(page_text(&full, 0).ends_with(if show_hidden { "BIV\u{2011}1" } else { "B1" }));
+        previous = Some(incremental);
+    }
+    Ok(())
+}
+
+#[test]
+fn chapter_feedback_cache_changes_when_numbering_or_page_placement_changes()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut document = chapter_document(&["One", "B", "Two", "D"])?;
+    chapter_heading(&mut document, 0, 1, 0);
+    chapter_heading(&mut document, 2, 1, 0);
+    for index in [1, 3] {
+        push_field(&mut document, index, PageFieldKind::Page, None);
+    }
+    let mut cache = ParagraphLayoutCache::default();
+    let mut previous = None;
+    for step in 0..4 {
+        match step {
+            1 => {
+                document.numbering_mut().abstracts_mut()[0].levels[0]
+                    .as_mut()
+                    .ok_or("level")?
+                    .start = 14;
+            }
+            2 => {
+                change(&mut document, 2, |paragraph| {
+                    Arc::make_mut(&mut paragraph.props).page_break_before = Some(true);
+                });
+                document.sections_mut()[0].page.height = page_for(4).height;
+            }
+            3 => {
+                document.sections_mut()[0].numbering.chapter_separator =
+                    joyword_model::ChapterSeparator::Colon;
+                document.sections_mut()[0].numbering.format = NumberFormat::LowerRoman;
+            }
+            _ => {}
+        }
+        let incremental = layout_incremental(
+            &document.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            LayoutReuse {
+                cache: &mut cache,
+                previous: previous.as_ref(),
+                invalidation: &LayoutInvalidation::default(),
+            },
+        )?;
+        let full = layout(&document);
+        assert_eq!(full.pages(), incremental.pages());
+        assert!(page_text(&full, 0).contains(match step {
+            0 => "BIV\u{2011}1",
+            3 => "BXIV:i",
+            _ => "BXIV\u{2011}1",
+        }));
+        assert!(page_text(&full, 1).contains(match step {
+            0 => "DV\u{2011}2",
+            3 => "DXV:ii",
+            _ => "DXV\u{2011}2",
+        }));
+        previous = Some(incremental);
+    }
+    Ok(())
+}
+
+#[test]
+fn chapter_next_column_separator_and_continuous_sections_keep_page_context()
+-> Result<(), Box<dyn std::error::Error>> {
+    for edge in [SectionBreak::NextColumn, SectionBreak::Continuous] {
+        let mut document = chapter_document(&["One", "B", "Two", "D"])?;
+        fit_one_line(&mut document);
+        document.sections_mut()[0].columns = Some(EqualColumns {
+            count: 2,
+            space: 180,
+        });
+        document.sections_mut()[0].column_separator = true;
+        chapter_heading(&mut document, 0, 1, 0);
+        chapter_heading(&mut document, 2, 1, 0);
+        close_section(&mut document, 0);
+        document.sections_mut()[1].break_kind = edge;
+        for index in [1, 3] {
+            push_field(&mut document, index, PageFieldKind::Page, None);
+        }
+        header(&mut document, "H", Some(PageFieldKind::Page));
+        let (full, incremental) = layout_both(&document);
+        assert_eq!(full.pages(), incremental.pages());
+        assert_eq!(full.pages().len(), 2);
+        assert!(page_text(&full, 0).contains("BIV\u{2011}1"));
+        assert!(page_text(&full, 1).contains("DV\u{2011}2"));
+        assert!(full.pages().iter().all(|page| !page.rects.is_empty()));
+    }
+    Ok(())
+}
+
+#[test]
+fn chapter_prefix_width_feeds_back_into_keep_lines_pagination()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut document = chapter_document(&["One", "AA AA AA"])?;
+    let short = joyword_layout::shape(&font(), "AA AA AA1", profile().size, profile().features)
+        .width
+        .raw();
+    let prefixed = joyword_layout::shape(
+        &font(),
+        "AA AA AAIV\u{2011}1",
+        profile().size,
+        profile().features,
+    )
+    .width
+    .raw();
+    document.sections_mut()[0].page.width = Measure::Emu((short + prefixed) / 2 + pt(12).raw());
+    chapter_heading(&mut document, 0, 1, 0);
+    change(&mut document, 1, |paragraph| {
+        Arc::make_mut(&mut paragraph.props).keep_lines = Some(true);
+    });
+    push_field(&mut document, 1, PageFieldKind::Page, None);
+    let (full, incremental) = layout_both(&document);
+    assert_eq!(full.pages(), incremental.pages());
+    assert_eq!(full.pages().len(), 2);
+    assert!(body_text(&full, 1).ends_with("IV\u{2011}2"));
+    let mut no_chapter = document.clone();
+    no_chapter.sections_mut()[0].numbering.chapter_style = None;
+    assert_eq!(
+        layout(&no_chapter).pages().len(),
+        1,
+        "prefix width, not the source paragraph, creates the second page"
+    );
+    Ok(())
+}
+
+#[test]
+fn chapter_cross_page_field_paragraph_is_refused_instead_of_stale()
+-> Result<(), Box<dyn std::error::Error>> {
+    let mut document = chapter_document(&["One", &"long words ".repeat(70)])?;
+    chapter_heading(&mut document, 0, 1, 0);
+    push_field(&mut document, 1, PageFieldKind::Page, None);
+    let result = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    );
+    assert!(matches!(
+        result,
+        Err(LayoutError::Unsupported {
+            feature: "chapter PAGE paragraph spans pages",
+            ..
+        })
+    ));
+    Ok(())
+}
+
 #[test]
 fn an_unformattable_page_field_falls_back_to_its_cache() {
     let mut document = document_with(&["A"]);
     document.sections_mut()[0].numbering = PageNumbering {
         format: NumberFormat::UpperRoman,
         start: Some(0),
+        ..PageNumbering::default()
     };
     push_field(&mut document, 0, PageFieldKind::Page, Some("iv"));
     let snapshot = layout(&document);
