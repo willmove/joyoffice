@@ -343,7 +343,27 @@ fn regular(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn reader_lock(directory: &Path) -> io::Result<Option<File>> {
+/// An advisory lock held on the recovery lock file.
+///
+/// The guard releases the operating system lock before the descriptor is
+/// closed. On BSD and macOS a `flock` lock belongs to the file rather than to
+/// the descriptor: closing the descriptor leaves the process holding the
+/// lock, and the same process is then refused a conflicting lock through
+/// another descriptor. Linux and Windows release the lock with the last
+/// handle. Dropping the guard is the only release path.
+struct LockGuard {
+    file: File,
+}
+
+impl Drop for LockGuard {
+    fn drop(&mut self) {
+        // A failed unlock leaves the operating system to release the lock
+        // when the descriptor closes. There is nothing to report here.
+        let _ = self.file.unlock();
+    }
+}
+
+fn reader_lock(directory: &Path) -> io::Result<Option<LockGuard>> {
     let path = directory.join(LOCK);
     match regular(&path) {
         Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
@@ -351,10 +371,10 @@ fn reader_lock(directory: &Path) -> io::Result<Option<File>> {
     }
     let file = File::open(path)?;
     file.try_lock_shared().map_err(io::Error::from)?;
-    Ok(Some(file))
+    Ok(Some(LockGuard { file }))
 }
 
-fn writer_lock(directory: &Path) -> io::Result<File> {
+fn writer_lock(directory: &Path) -> io::Result<LockGuard> {
     fs::create_dir_all(directory)?;
     let path = directory.join(LOCK);
     match regular(&path) {
@@ -370,7 +390,7 @@ fn writer_lock(directory: &Path) -> io::Result<File> {
         .truncate(false)
         .open(path)?;
     file.try_lock().map_err(io::Error::from)?;
-    Ok(file)
+    Ok(LockGuard { file })
 }
 
 fn select(directory: &Path) -> io::Result<Selected> {
@@ -836,6 +856,28 @@ mod tests {
         clear(dir.path())?;
         assert!(publish(&concurrent, b"PK", "after discard").is_err());
         assert!(recover(dir.path()).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn a_released_lock_can_be_taken_again_by_the_same_process()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        // A released lock must not block the same process. On BSD and macOS a
+        // `flock` lock belongs to the file, so closing the descriptor alone
+        // leaves the process holding it and the next request is refused.
+        for _ in 0..3 {
+            let exclusive = writer_lock(dir.path())?;
+            drop(exclusive);
+            let shared = reader_lock(dir.path())?;
+            assert!(shared.is_some());
+            drop(shared);
+        }
+        let request = prepare(dir.path(), Some(1))?;
+        publish(&request, b"PK", "one")?;
+        let request = prepare(dir.path(), Some(2))?;
+        publish(&request, b"PK", "two")?;
+        assert_eq!(recover_checkpoint(dir.path())?.generation, 2);
         Ok(())
     }
 
