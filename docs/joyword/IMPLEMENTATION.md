@@ -1484,7 +1484,7 @@ DOCX 书签导入、PDF 结构标签、图形界面与 Word／WPS 对照。
 
 ### T402 授权替换的单事务接受（2026-10-23）
 
-#89 的 `propose_replace`／`preview_replace` 保持只读。本切片只加接受路径，T402 状态仍是 `in_progress`，进度计数不改。
+[PR #94](https://github.com/willmove/joyoffice/pull/94)。#89 的 `propose_replace`／`preview_replace` 保持只读。本切片只加接受路径，T402 状态仍是 `in_progress`，进度计数不改。
 
 接受发生在 `joyword-agent` 的 `ToolSession::accept_replace`。生产 crate 继续不依赖 engine、model 或网络；宿主实现 `DocumentCommit`（`&self`，可与会话端口是同一对象），在 `authorize` 回调成功之后才改文档。engine 导出 `apply_ai_text_replace`：一次 `Origin::Agent`、`UndoGroup::Standalone` 事务，`tracked_author` 为 `JoyWord AI`。该作者与会话用户作者分开，也不与用户输入合并撤销。文档的 `trackRevisions` 可以仍是关闭；这两处作者常量分属两个 crate，集成测试断言字符串相同。模型没有新字段，沿用已有 `TextRevision.author`。普通 `Origin::Agent` 事务在未设置 `tracked_author` 时仍不产生修订。
 
