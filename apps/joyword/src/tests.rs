@@ -12,6 +12,506 @@ use super::{
     supplement_find_flags,
 };
 
+// The panic gate scans export.rs including inline tests; keep the headless
+// application-entry regressions in the existing test module instead.
+mod scene_export {
+    use std::sync::Arc;
+
+    use joyword_foundation::Emu;
+    use joyword_layout::{
+        FaceSet, LayoutCancellation, LayoutInvalidation, LayoutLimits, LayoutReuse, LayoutSnapshot,
+        ParagraphLayoutCache, ViewOptions, layout_incremental_with_view, layout_with_view,
+        to_points,
+    };
+    use joyword_model::{
+        AbstractNum, Anchor, AnnotationKind, Bias, BlockSeq, ChapterSeparator, Document, Hyperlink,
+        InlineKind, InlineObject, Measure, NumInstance, NumberFormat, NumberSuffix, NumberingLevel,
+        NumberingRef, PageField, PageFieldKind, PageSetup, Paragraph, Position, ScalarOffset,
+        Style, StyleId, StyleKind,
+    };
+    use joyword_pdf::{
+        PdfDestinationReport, PdfExport, inspect_navigation, inspect_pdf, links_from_document,
+        outline_from_headings, render_export,
+    };
+
+    use super::{rehearsal_profile, test_font};
+    use crate::export::scene_pdf;
+
+    fn model(texts: &[&str]) -> Document {
+        let measure = |points| Measure::Emu(Emu::PER_POINT * points);
+        let mut page = PageSetup::a4_zh_cn();
+        page.width = measure(240);
+        page.height = measure(48);
+        page.left = measure(6);
+        page.right = page.left;
+        page.top = page.left;
+        page.bottom = page.left;
+        page.header = measure(2);
+        page.footer = page.header;
+        page.gutter = measure(0);
+        let mut document = Document::new(page);
+        let mut blocks = Vec::new();
+        for text in texts {
+            let mut paragraph = Paragraph::new(document.ids().node());
+            paragraph.push_text(text, None, Arc::default()).unwrap();
+            blocks.push(paragraph.into());
+        }
+        let body = document.body_id();
+        document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+        document
+    }
+
+    fn change(document: &mut Document, index: usize, f: impl FnOnce(&mut Paragraph)) {
+        let body = document.body_id();
+        document
+            .story_mut(body)
+            .unwrap()
+            .blocks
+            .update(index, |block| {
+                let joyword_model::Block::Paragraph(paragraph) = block else {
+                    panic!("test paragraph");
+                };
+                f(Arc::make_mut(paragraph));
+            });
+    }
+
+    fn position(document: &Document, paragraph: usize, offset: usize) -> Position {
+        Position {
+            story: document.body_id(),
+            paragraph: document.body().blocks.get(paragraph).unwrap().id(),
+            offset: ScalarOffset(offset),
+            bias: Bias::After,
+        }
+    }
+
+    fn bookmark(document: &mut Document, name: &str, start: Position, end: Position) {
+        document.insert_annotation(
+            AnnotationKind::Bookmark {
+                name: Arc::from(name),
+            },
+            Anchor::Range { start, end },
+        );
+    }
+
+    fn layout(document: &Document, view: ViewOptions) -> LayoutSnapshot {
+        layout_with_view(
+            &document.snapshot(),
+            FaceSet::uniform(&test_font()),
+            rehearsal_profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            view,
+        )
+        .unwrap()
+    }
+
+    fn chapter_model() -> Document {
+        let mut document = model(&["One", "P", "Two", "AV URI P", "Three", "AV URI P"]);
+        document.sections_mut()[0].numbering.chapter_style = Some(1);
+        document
+            .styles_mut()
+            .insert(Style::new("h1", StyleKind::Paragraph, Some("heading 1")))
+            .unwrap();
+        let mut definition = AbstractNum::new(1);
+        let mut level = NumberingLevel::new(NumberFormat::UpperRoman, "%1");
+        level.start = 4;
+        level.suffix = NumberSuffix::Nothing;
+        definition.levels[0] = Some(level);
+        assert!(document.numbering_mut().insert_abstract(definition));
+        assert!(document.numbering_mut().insert_instance(NumInstance {
+            id: 1,
+            abstract_id: 1,
+            overrides: Vec::new(),
+        }));
+        for index in [0, 2, 4] {
+            change(&mut document, index, |paragraph| {
+                paragraph.style = Some(StyleId::new("h1"));
+                Arc::make_mut(&mut paragraph.props).numbering = Some(NumberingRef {
+                    num_id: 1,
+                    level: 0,
+                });
+            });
+        }
+        for index in [1, 3, 5] {
+            let id = document.ids().node();
+            change(&mut document, index, |paragraph| {
+                paragraph.push_inline(
+                    InlineObject {
+                        id,
+                        kind: InlineKind::PageField(PageField::new(PageFieldKind::Page)),
+                        source: None,
+                    },
+                    None,
+                    Arc::default(),
+                );
+                if index == 3 {
+                    paragraph
+                        .set_links(
+                            ScalarOffset(0)..ScalarOffset(2),
+                            Some(Arc::new(Hyperlink::for_edit(None, Some("target")).unwrap())),
+                        )
+                        .unwrap();
+                }
+                if index != 1 {
+                    paragraph
+                        .set_links(
+                            ScalarOffset(3)..ScalarOffset(6),
+                            Some(Arc::new(
+                                Hyperlink::for_edit(Some("https://example.invalid/uri"), None)
+                                    .unwrap(),
+                            )),
+                        )
+                        .unwrap();
+                }
+            });
+        }
+        let target = position(&document, 4, 1);
+        let end = position(&document, 4, 2);
+        bookmark(&mut document, "target", target, end);
+        document
+    }
+
+    fn near(actual: f32, expected: f32) {
+        assert!((actual - expected).abs() < 0.002, "{actual} != {expected}");
+    }
+
+    fn check_target(
+        read: &PdfDestinationReport,
+        scene: &LayoutSnapshot,
+        target: Position,
+        start: usize,
+    ) {
+        let caret = scene.caret(target).unwrap();
+        assert_eq!(read.page, caret.page - start);
+        assert!(read.page_object > 0);
+        near(read.x, to_points(caret.x) as f32);
+        near(
+            read.y,
+            to_points(scene.pages()[caret.page].height) as f32 - to_points(caret.top) as f32,
+        );
+        assert_eq!(read.zoom, Some(0.0));
+    }
+
+    fn check_ranges(document: &Document, scene: &LayoutSnapshot) {
+        let target = position(document, 4, 1);
+        let source = position(document, 3, 0);
+        assert_eq!(scene.caret(source).unwrap().page, 1);
+        assert_eq!(scene.caret(target).unwrap().page, 2);
+        for (range, gotos, bookmarks, uris) in [
+            (0..3, 1, 1, 2),
+            (1..3, 1, 1, 2),
+            (1..2, 0, 0, 1),
+            (2..3, 0, 1, 1),
+            (0..1, 0, 0, 0),
+        ] {
+            let pdf = scene_pdf(scene, &test_font(), document, None, range.clone()).unwrap();
+            let info = inspect_pdf(&pdf).unwrap();
+            let read = inspect_navigation(&pdf).unwrap();
+            assert_eq!(info.pages.len(), range.len());
+            for ((width, height), page) in info.pages.iter().zip(&scene.pages()[range.clone()]) {
+                near(*width, to_points(page.width) as f32);
+                near(*height, to_points(page.height) as f32);
+            }
+            assert_eq!(info.outlines, ["One", "Two", "Three"][range.clone()]);
+            assert_eq!(info.link_uris, vec!["https://example.invalid/uri"; uris]);
+            assert_eq!(read.links.len(), gotos, "{range:?}");
+            assert_eq!(read.bookmarks.len(), bookmarks, "{range:?}");
+            if bookmarks != 0 {
+                check_target(&read.bookmarks["target"], scene, target, range.start);
+            }
+            if gotos != 0 {
+                let link = &read.links[0];
+                assert_eq!(link.source_page, 1 - range.start);
+                check_target(&link.destination, scene, target, range.start);
+                assert_eq!(link.destination, read.bookmarks["target"]);
+                let rect = scene
+                    .selection_rects(source, position(document, 3, 2))
+                    .unwrap()[0];
+                let height = to_points(scene.pages()[rect.page].height) as f32;
+                for (actual, expected) in link.rect.into_iter().zip([
+                    to_points(rect.x) as f32,
+                    height - to_points(rect.top) as f32 - to_points(rect.height) as f32,
+                    to_points(rect.x) as f32 + to_points(rect.width) as f32,
+                    height - to_points(rect.top) as f32,
+                ]) {
+                    near(actual, expected);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn chapter_bookmarks_warm_scene_and_selected_pdf_share_real_page_geometry() {
+        let mut document = chapter_model();
+        let font = test_font();
+        let mut cache = ParagraphLayoutCache::default();
+        let mut previous = None;
+        // Metadata precedes every layout, including cold, warm and changed PAGE feedback.
+        for step in 0..3 {
+            if step == 2 {
+                document.numbering_mut().abstracts_mut()[0].levels[0]
+                    .as_mut()
+                    .unwrap()
+                    .start = 14;
+                document.sections_mut()[0].numbering.chapter_separator = ChapterSeparator::Colon;
+                document.advance_version();
+            }
+            assert!(!document.validate().has_errors());
+            let full = layout(&document, ViewOptions::default());
+            let warm = layout_incremental_with_view(
+                &document.snapshot(),
+                FaceSet::uniform(&font),
+                rehearsal_profile(),
+                LayoutLimits::default(),
+                &LayoutCancellation::default(),
+                LayoutReuse {
+                    cache: &mut cache,
+                    previous: previous.as_ref(),
+                    invalidation: &LayoutInvalidation::default(),
+                },
+                ViewOptions::default(),
+            )
+            .unwrap();
+            assert_eq!(full.key(), warm.key());
+            assert_eq!(full.pages(), warm.pages());
+            assert_eq!(full.lines(), warm.lines());
+            warm.ensure_current(&document.snapshot(), &font, rehearsal_profile())
+                .unwrap();
+            assert_eq!(warm.pages().len(), 3);
+            if step == 1 {
+                assert!(warm.stats().cache_hits > 0);
+            }
+            let chapters = if step == 2 {
+                ["XIV:1", "XV:2", "XVI:3"]
+            } else {
+                ["IV\u{2011}1", "V\u{2011}2", "VI\u{2011}3"]
+            };
+            for (page, chapter) in warm.pages().iter().zip(chapters) {
+                let text: String = page.runs.iter().map(|run| run.text.as_str()).collect();
+                assert!(text.ends_with(&format!("P{chapter}")), "{text}");
+            }
+            check_ranges(&document, &warm);
+            assert_eq!(
+                scene_pdf(&warm, &font, &document, None, 0..3).unwrap(),
+                scene_pdf(&full, &font, &document, None, 0..3).unwrap(),
+            );
+            previous = Some(warm);
+        }
+    }
+
+    #[test]
+    fn plain_scene_pdf_keeps_the_existing_export_and_rejects_stale_versions_and_ranges() {
+        let mut document = model(&["AV"]);
+        change(&mut document, 0, |paragraph| {
+            paragraph
+                .set_links(
+                    ScalarOffset(0)..ScalarOffset(2),
+                    Some(Arc::new(
+                        Hyperlink::for_edit(Some("https://example.invalid/plain"), None).unwrap(),
+                    )),
+                )
+                .unwrap();
+        });
+        let scene = layout(&document, ViewOptions::default());
+        let font = test_font();
+        let pdf = scene_pdf(&scene, &font, &document, None, 0..1).unwrap();
+        assert_eq!(
+            pdf,
+            render_export(
+                scene.pages(),
+                std::slice::from_ref(&font),
+                &PdfExport {
+                    title: None,
+                    outline: outline_from_headings(&document, &scene),
+                    links: links_from_document(&document, &scene),
+                }
+            )
+            .unwrap()
+        );
+        let read = inspect_navigation(&pdf).unwrap();
+        assert!(read.bookmarks.is_empty() && read.links.is_empty());
+        assert_eq!(
+            inspect_pdf(&pdf).unwrap().link_uris,
+            ["https://example.invalid/plain"]
+        );
+        for range in [0..0, 1..1, 0..2] {
+            assert_eq!(
+                scene_pdf(&scene, &font, &document, None, range),
+                Err("range".into())
+            );
+        }
+        document.advance_version();
+        assert_eq!(
+            scene_pdf(&scene, &font, &document, None, 0..1),
+            Err("navigation".into())
+        );
+    }
+
+    #[test]
+    fn scene_export_refuses_invalid_names_detached_and_duplicate_targets_before_slicing() {
+        for case in 0..4 {
+            let mut document = chapter_model();
+            let point = position(&document, 0, 0);
+            match case {
+                0 => bookmark(&mut document, "", point, point),
+                1 => bookmark(&mut document, "PRIVATE\u{0}NAME", point, point),
+                2 => bookmark(&mut document, "target", point, point),
+                _ => {
+                    document.insert_annotation(
+                        AnnotationKind::Bookmark {
+                            name: Arc::from("PRIVATE"),
+                        },
+                        Anchor::Detached,
+                    );
+                }
+            }
+            let scene = layout(&document, ViewOptions::default());
+            scene
+                .ensure_current(&document.snapshot(), &test_font(), rehearsal_profile())
+                .unwrap();
+            for range in [0..3, 0..1] {
+                assert_eq!(
+                    scene_pdf(&scene, &test_font(), &document, None, range),
+                    Err("navigation".into())
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_selected_page_range_renumbers_both_ends_and_drops_a_link_it_cannot_keep() {
+        let document = chapter_model();
+        let scene = layout(&document, ViewOptions::default());
+        scene
+            .ensure_current(&document.snapshot(), &test_font(), rehearsal_profile())
+            .unwrap();
+        let font = test_font();
+        let target = position(&document, 4, 1);
+        let source = position(&document, 3, 0);
+        // The bookmark sits on the third page and its link on the second.
+        assert_eq!(scene.caret(source).unwrap().page, 1);
+        assert_eq!(scene.caret(target).unwrap().page, 2);
+
+        // The whole document keeps the link and the named destination.
+        let full = scene_pdf(&scene, &font, &document, None, 0..3).unwrap();
+        let read = inspect_navigation(&full).unwrap();
+        assert_eq!(read.links.len(), 1);
+        assert_eq!(read.bookmarks.len(), 1);
+        check_target(&read.links[0].destination, &scene, target, 0);
+
+        // The second page alone holds the source but not the target, so the
+        // link has no destination left and is dropped rather than misdirected.
+        let source_only = scene_pdf(&scene, &font, &document, None, 1..2).unwrap();
+        let read = inspect_navigation(&source_only).unwrap();
+        assert!(read.links.is_empty(), "{:?}", read.links);
+        assert!(read.bookmarks.is_empty(), "{:?}", read.bookmarks);
+
+        // The third page alone holds the target but not the source, so the
+        // bookmark survives and no link points at it.
+        let target_only = scene_pdf(&scene, &font, &document, None, 2..3).unwrap();
+        let read = inspect_navigation(&target_only).unwrap();
+        assert!(read.links.is_empty(), "{:?}", read.links);
+        assert_eq!(read.bookmarks.len(), 1);
+        check_target(&read.bookmarks["target"], &scene, target, 2);
+
+        // The second and third pages together keep the link, and both ends
+        // are renumbered against the exported page range.
+        let both = scene_pdf(&scene, &font, &document, None, 1..3).unwrap();
+        let read = inspect_navigation(&both).unwrap();
+        assert_eq!(read.links.len(), 1);
+        assert_eq!(read.bookmarks.len(), 1);
+        check_target(&read.links[0].destination, &scene, target, 1);
+        check_target(&read.bookmarks["target"], &scene, target, 1);
+    }
+
+    #[test]
+    fn an_anchor_without_a_target_does_not_block_the_export() {
+        // A DOCX keeps its bookmarks and its anchor links apart and only the
+        // links are imported, so a real document can carry an anchor whose
+        // target is not a bookmark of this document.
+        let mut document = chapter_model();
+        change(&mut document, 3, |paragraph| {
+            paragraph
+                .set_links(
+                    ScalarOffset(0)..ScalarOffset(2),
+                    Some(Arc::new(
+                        Hyperlink::for_edit(None, Some("PRIVATE-missing")).unwrap(),
+                    )),
+                )
+                .unwrap();
+        });
+        let scene = layout(&document, ViewOptions::default());
+        scene
+            .ensure_current(&document.snapshot(), &test_font(), rehearsal_profile())
+            .unwrap();
+        for range in [0..3, 0..1] {
+            let pdf = scene_pdf(&scene, &test_font(), &document, None, range).unwrap();
+            let read = inspect_navigation(&pdf).unwrap();
+            assert!(read.links.is_empty(), "{:?}", read.links);
+        }
+    }
+
+    #[test]
+    fn bookmark_endpoints_require_visible_exact_carets_in_the_installed_view() {
+        for (start, end) in [(3, 3), (0, 3)] {
+            let mut document = model(&["AsecretV"]);
+            change(&mut document, 0, |paragraph| {
+                paragraph
+                    .format_runs(ScalarOffset(1)..ScalarOffset(7), |props| {
+                        props.hidden = Some(true)
+                    })
+                    .unwrap();
+            });
+            let from = position(&document, 0, start);
+            let to = position(&document, 0, end);
+            bookmark(&mut document, "target", from, to);
+            let hidden = layout(&document, ViewOptions::default());
+            assert!(hidden.caret(to).is_err());
+            assert_eq!(
+                scene_pdf(&hidden, &test_font(), &document, None, 0..1),
+                Err("navigation".into())
+            );
+            let shown = layout(
+                &document,
+                ViewOptions {
+                    show_hidden: true,
+                    ..ViewOptions::default()
+                },
+            );
+            shown
+                .ensure_current(&document.snapshot(), &test_font(), rehearsal_profile())
+                .unwrap();
+            let pdf = scene_pdf(&shown, &test_font(), &document, None, 0..1).unwrap();
+            check_target(
+                &inspect_navigation(&pdf).unwrap().bookmarks["target"],
+                &shown,
+                from,
+                0,
+            );
+        }
+        let mut document = model(&["fi"]);
+        let start = position(&document, 0, 0);
+        let end = position(&document, 0, 1);
+        bookmark(&mut document, "target", start, end);
+        let mut profile = rehearsal_profile();
+        profile.features.standard_ligatures = true;
+        let scene = layout_with_view(
+            &document.snapshot(),
+            FaceSet::uniform(&test_font()),
+            profile,
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            ViewOptions::default(),
+        )
+        .unwrap();
+        assert!(scene.caret(end).is_err());
+        assert_eq!(
+            scene_pdf(&scene, &test_font(), &document, None, 0..1),
+            Err("navigation".into())
+        );
+    }
+}
+
 fn mapped(args: &[(&'static str, ArgValue)]) -> std::collections::BTreeMap<&'static str, ArgValue> {
     args.iter().cloned().collect()
 }
@@ -444,6 +944,60 @@ fn scratch(label: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("joyword-s5-{label}-{}-{n}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     dir
+}
+
+#[test]
+fn recovery_failure_log_reads_back_both_slots_and_legacy_without_content() {
+    use joyword_shell::diag::AppLog;
+    for names in [
+        vec!["recovery.jwr"],
+        vec!["recovery-a.jwr"],
+        vec!["recovery-b.jwr"],
+        vec!["recovery-a.jwr", "recovery-b.jwr"],
+    ] {
+        let dir = scratch("recovery-failure");
+        let log = AppLog::open(dir.join("logs")).unwrap();
+        for name in names {
+            std::fs::write(dir.join(name), b"PRIVATE-BODY token=PRIVATE-CREDENTIAL").unwrap();
+        }
+        assert!(super::take_recovered(&dir, Some(&log)).is_none());
+        let text = std::fs::read_to_string(log.path()).unwrap();
+        assert_eq!(text.matches("recovery.failed").count(), 1, "{text}");
+        assert!(!text.contains("recovery.restored"));
+        assert!(!text.contains("PRIVATE-BODY"));
+        assert!(!text.contains("PRIVATE-CREDENTIAL"));
+        assert!(!text.contains(&dir.to_string_lossy().to_string()));
+        drop(log);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+}
+
+#[test]
+fn recovery_log_distinguishes_absence_discard_restore_and_package_failure() {
+    use joyword_shell::{diag::AppLog, storage};
+    let dir = scratch("recovery-states");
+    let journal = dir.join("journal");
+    let log = AppLog::open(dir.join("logs")).unwrap();
+    assert!(super::take_recovered(&journal, Some(&log)).is_none());
+    std::fs::create_dir(&journal).unwrap();
+    assert!(super::take_recovered(&journal, Some(&log)).is_none());
+    let package = plain_package("<w:p><w:r><w:t>Recovered</w:t></w:r></w:p>");
+    storage::commit_recovery_versioned(&journal, 1, &package, "Recovered").unwrap();
+    storage::commit_recovery_versioned(&journal, 2, &package, "Recovered").unwrap();
+    assert!(super::take_recovered(&journal, Some(&log)).is_some());
+    storage::clear_recovery(&journal).unwrap();
+    assert!(super::take_recovered(&journal, Some(&log)).is_none());
+    let text = std::fs::read_to_string(log.path()).unwrap();
+    assert!(!text.contains("recovery.failed"), "{text}");
+    assert_eq!(text.matches("recovery.restored").count(), 1);
+    // A valid checkpoint with an unreadable package is not absence/discard.
+    storage::commit_recovery_versioned(&journal, 3, b"PK", "PRIVATE-BODY").unwrap();
+    assert!(super::take_recovered(&journal, Some(&log)).is_none());
+    let text = std::fs::read_to_string(log.path()).unwrap();
+    assert_eq!(text.matches("recovery.failed").count(), 1, "{text}");
+    assert!(!text.contains("PRIVATE-BODY"));
+    drop(log);
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 fn cmd(office: &mut Office, id: CommandId, args: &[(&'static str, ArgValue)]) {

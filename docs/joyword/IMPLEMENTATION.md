@@ -6,7 +6,7 @@
 
 - **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号、制表位、查找替换、格式刷、样式面板，以及项目符号、级别标签、列表对齐、主题 tint／shade、表格样式粗体底纹边框，和查找全半角折叠、正则查找与正则替换捕获组已落地，编号超限标签（甲乙重复、中文 0 与非负 i32、正数罗马数字超过 3999、字母重复超过 64，均受 256 标量预算）和主题色文字绘制与改写也已落地，任务仍 `in_progress`；T201 的合并与拆分、垂直合并视觉跨行、跨页拆行、表头重复、表级边距、单元格 tcMar、double／dotted／dashed／thick 边框、有主题时的主题色边框，以及百分比宽度和 fixed／autofit 已落地，任务仍 `in_progress`；T202 的页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚页码域、`pgNumType`、下一页／连续／奇偶分节和等宽分栏已落地，任务仍 `in_progress`；T203 的行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地，拖放与表格内超链接也已落地（自动测试），页面绝对 wrapNone 浮动图与页眉页脚行内图片已落地（自动测试），页面相对 wrapSquare 第一切片已落地（自动测试），wrapTight／Through／TopAndBottom 未做，任务仍 `in_progress`；T204 的文件菜单导出 PDF 与打印到文件已消费屏幕上的同一 PageScene，系统打印对话框未验证，任务仍 `in_progress`；T205 的功能区、状态栏、字体与段落对话框、标尺拖拽，以及第三切片的下划线／sRGB 绘制和三个视图开关已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 已实现，五样例自动确定性、截断语义和 Windows GUI 窗口／CPU render 对照均完成，任务为 `done`；T211 的应用日志、panic hook 与测试 profile 已接入，麒麟与统信 UOS 的 `kill -9` 崩溃后日志检查已完成，任务为 `done`。完整统计现为 12 done／17 in_progress／37 planned。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
-- **主要未完成项**：精确 ACL／命名流、断电与非 NTFS／网络盘验收（Windows 原件保存确认路径已通过 GUI）、WPS 参考 PDF、信创真机验证、T200 剩余的按字体名换面、罗马数字 0 与负数、超过 256 个标量的编号标签、bar／middleDot／heavy、编号部件改写和人工验收、T201 剩余的嵌套表、列宽拖拽、首列末列与纵向条纹的排版和合同表格人工验收、T202 剩余的图形界面验收、widowControl、不等宽栏、`nextColumn`、章节页码、页眉编辑界面与页面设置写回、T203 剩余的 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS 粘贴对照（拖放、表格内超链接、wrapNone 与页面相对 wrapSquare 已落地，见该任务完成证据）、T204 剩余的双阅读器人工检查、真实打印、系统打印对话框、结构标签和仅书签锚点的文档内跳转、T205 剩余的 Word 字数对话框对照、导航窗格、审阅栏、粗线／虚线／波浪线／按字下划线、主题色、隐藏段落标记合并、跨段域，以及只用功能区完成报告排版的人工验收、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、统信 UOS 上仍不可达的 Fcitx IME 与系统文件对话框，以及其余 M2–M9 的审阅／AI 等路线图工作。
+- **主要未完成项**：精确 ACL／命名流、断电与非 NTFS／网络盘验收（Windows 原件保存确认路径已通过 GUI）、WPS 参考 PDF、信创真机验证、T200 剩余的按字体名换面、罗马数字 0 与负数、超过 256 个标量的编号标签、bar／middleDot／heavy、编号部件改写和人工验收、T201 剩余的嵌套表、列宽拖拽、首列末列与纵向条纹的排版和合同表格人工验收、T202 剩余的图形界面验收、页眉编辑界面与页面设置写回、Word／WPS 章节页码对照、T203 剩余的 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS 粘贴对照（拖放、表格内超链接、wrapNone 与页面相对 wrapSquare 已落地，见该任务完成证据）、T204 剩余的双阅读器人工检查、真实打印、系统打印对话框、结构标签和文档内跳转的外部阅读器复核、T205 剩余的 Word 字数对话框对照、导航窗格、审阅栏、粗线／虚线／波浪线／按字下划线、主题色、隐藏段落标记合并、跨段域，以及只用功能区完成报告排版的人工验收、T207 剩余的字符网格／中西文间距／adjustRightInd／字体替代链及 Word／WPS 版式对照、统信 UOS 上仍不可达的 Fcitx IME 与系统文件对话框，以及其余 M2–M9 的审阅／AI 等路线图工作。
 - **2026-10-20 文档核对**：上一条把 T201 嵌套表、首列末列与纵向条纹，以及 T202 的 widowControl、不等宽栏、页眉编辑和页面设置写回，仍列在未完成项里。这些能力后来已有自动测试：一层嵌套表、首列末列与纵向条纹排版、widowControl、不等宽分栏、页眉编辑、页面设置写回和页眉页脚部件写回。T203 的页面相对 wrapSquare 上一条已经记为落地。T200 查找折叠记录里「替换文本始终是字面量」只描述该切片，捕获组切片展开 `$0`、`$1`..`$n` 和 `$$`。仍然未做的是：T201 列宽拖拽、第二层嵌套、从样式部件读入纵向条件、合同表格人工验收；T202 图形界面、栏分隔线、`nextColumn`、章节页码、Word 对照；T203 的 wrapTight／Through／TopAndBottom、衬于文字下方、非页面相对位置和 Word／WPS 粘贴；T204 真实打印与系统打印对话框（UOS 双阅读器有记录，不关闭人工验收）；T300 与 Word／WPS 交换。没有任何 M2 或 M3 任务改为 `done`。其中 T201「从样式部件读入纵向条件」和 T203 的 wrapTight／Through 随后由 [#67](https://github.com/willmove/joyoffice/pull/67) 处理：前者已读入，后者只近似为方形绕排，见下文「2026-10-20 验证波次缺口修复（#67）」。
 - **2026-10-21 T203 上下型绕排**：页面相对、位于文字前面的 `wp:wrapTopAndBottom` 已有自动测试。与图片带垂直相交的正文行整行放到带下方，不排到两侧。上一条「未完成项」里的 wrapTopAndBottom 以本节文末记录为准。衬于文字下方、非页面相对位置、真正的轮廓绕排和 Word／WPS／浏览器粘贴仍未做。任务仍 `in_progress`。
 - **信创真机验收策略（2026-10-18 用户决策）**：有条件时再补验，不阻塞开发、任务依赖、阶段验收或发布。T005 改为 `in_progress`，已完成的构建与 QEMU 自动验证证据保留，真机仍标“未验证／待补验”。本条取代下文历史记录中因缺信创真机而保持 `blocked` 的安排；其他未完成项的门槛不变。
@@ -1392,3 +1392,92 @@ FNV 指纹仍不抗恶意构造碰撞。快照类型没有独立隐藏字段，�
 
 本节是收尾树的本机证据，不把前一节主干 CI 冒充收尾 PR 的 CI。收尾 PR 仍须通过自身的
 跨平台检查后才合并；本轮没有新增 GUI、Word／WPS、打印、断电或信创真机人工验收。
+
+### 收尾 PR 合并与第二波基线（2026-10-23）
+
+上述收尾随后以 [PR #88](https://github.com/willmove/joyoffice/pull/88) 合并，提交为
+`ec8c8070288b8e5cedfe0608dbccf7fa4475fdaf`。其 push CI
+[39839238527](https://github.com/willmove/joyoffice/actions/runs/39839238527) 与 PR CI
+[39839249585](https://github.com/willmove/joyoffice/actions/runs/39839249585) 均 9/9 成功；合并后
+main CI [39843589125](https://github.com/willmove/joyoffice/actions/runs/39843589125) 也是 9/9 成功，
+没有重跑、跳过检查或借用历史组合树的结果。协调者另行核对 PR 已合并、主工作区干净，
+本地 main 与 origin/main 一致。
+
+第二波四条开发分支及独立审查工作区统一从该 SHA 出发，分别处理 T104 生产恢复双代、
+T204 PDF 书签内部跳转、T202 章节 PAGE、T402 有界替换提案与只读预览。每路独占源码范围和
+构建 target，任务／验收证据由协调者集中维护。各切片独立审查及 CI 不替代四路组合树验证；
+切片完成也不据此把整个 T104／T204／T202／T402 标为 done。
+
+### T402 有界替换与只读预览切片（2026-10-23）
+
+[PR #89](https://github.com/willmove/joyoffice/pull/89)，源码 `43d02b3`，仅修改
+`crates/joyword-agent` 内的 7 个文件。`ReplaceRequest` 只允许替换整个非空授权选区；
+`ReplaceProposal` 的原 Grant、runtime identity、替换文本与说明均私有。文本前后各最多
+24 KiB、说明最多 4 KiB、ASCII ID 最多 128 字节；runtime 生命周期内最多 256 个 ID，
+失败与预览不占号，满额拒绝而不淘汰。登记与旧提交 admission 表分离，不调用提交 hook，
+不增加提交计数。每次 `preview_replace` 重新校验完整原授权与新快照，公开直调和 dispatch
+都先检查工具白名单；预览不调用 Provider，也不改变文档。
+
+独立审查在指定源码上完整审读 7 文件，用独占 target 复跑 `cargo test -p joyword-agent --locked`
+（47 项既有、15 项新增、1 项 compile-fail）、该 crate 全目标 clippy（`-D warnings`）、fmt 与
+差异检查，均通过且无阻塞发现。并发 duplicate 与串行容量边界已有测试；并发争抢最后槽位是
+非阻塞补测建议，不把未执行的测试写成已有证据。授权失效前已拥有的预览是时点快照，宿主须
+撤下显示并重新请求，不承诺追溯撤回已读取数据。截至本节记录，PR CI 和最终合并待完成。
+
+本切片不含 engine 事务提交／撤销、AI 作者修订、DOCX 修订往返或真实宿主／Provider 接线；
+旧 `ChangeProposal.apply` 仍返回延后实现。无新增 GUI、Word／WPS 或真机人工验收。
+
+### 第二波并行切片与组合验证（2026-10-23）
+
+第一波七项 PR 与收尾 PR（[#88](https://github.com/willmove/joyoffice/pull/88)，合并提交
+`ec8c807`）之后，从同一 SHA 分出四路并行开发与一路独立审查。本节记录实际结果，
+不含未执行的验收。
+
+**T104 生产恢复双代（[#90](https://github.com/willmove/joyoffice/pull/90)，任务仍 `in_progress`）**：
+两个发布槽 `recovery-a.jwr`／`recovery-b.jwr` 交替写入，每代带 `JWREC002` 头与 CRC32，
+写入经临时文件、flush、sync、读回校验与原子改名后才发布，发布前一代始终保留。
+回退规则：最新槽损坏时回退到另一槽，两槽同代内容不同或都损坏时拒绝，损坏槽不覆盖、
+不重编号，墓碑式显式丢弃让旧请求失效。旧 `JWREC001` 单文件格式只读兼容，迁移期间
+不改写旧文件。文档加密拒绝写明文副本，超预算输入不落文件。保存 N 完成时编辑记录 N+1
+仍为 dirty，重启可恢复到 N+1。`joyword-shell` 263 项与应用 65 项测试通过。
+独立审查在独占 target 上复跑同组测试与全目标 clippy、fmt，无阻塞发现。
+macOS 上的一次失败经查为真实平台差异而非用例问题：BSD 与 macOS 的 `flock` 锁属于文件
+而非描述符，关闭描述符不释放进程持有的锁，std 的 `File` 析构只关描述符、不发 `LOCK_UN`，
+于是同一进程的下一次取锁被自己的旧锁拒绝（`WouldBlock`），而 Linux 与 Windows 随最后一个
+句柄关闭即释放，所以只在该平台暴露。修法是显式 `unlock()` 的守卫类型，并新增
+`a_released_lock_can_be_taken_again_by_the_same_process` 回归。
+未做：图形界面、断电、真实磁盘满与信创真机验收；Windows 目录同步按实现记为 false。
+
+**T204 PDF 书签内部跳转（[#92](https://github.com/willmove/joyoffice/pull/92)，任务仍 `in_progress`）**：
+模型书签解析为 PDF 命名目标，锚点内链写成真实 `/S /GoTo` 动作与显式 `/D` 引用，
+不用命名跳转。名称精确匹配且区分大小写；空名、控制字符名、重名、脱离锚点、
+未布局位置、过期布局、非法几何与超预算都拒绝，名称永不被当作 URL。
+坐标按 ISO 32000-1 §12.3.2、§12.5.6.5、§12.6.4.2 与 krilla 0.8.2、
+pdf-writer 0.15.0 的锁定源码核对；krilla 接收 y 向下坐标并序列化为
+`[page-ref /XYZ x (page-height-y) 0]`（缺省 zoom 序列化为 0，即保留当前缩放）。
+应用侧导出复用屏幕已安装的同一批页面场景：选页导出时书签与链接的源页、目标页一起重编号，
+源或目标不在选页内的链接被丢弃而不误跳。新增 14 项 `joyword-pdf` 导航测试，
+含中文书签名读回与锚点缺失目标的回归。
+独立审查在独占 target 上复跑 `joyword-pdf` 全套并用独立探针核对歧义判定、
+UTF-8 名称预算、缺失与 cluster 内部端点拒绝、跨页源矩形、边界偏置、
+同布局目标 caret 与非法字形不产生部分 PDF 字节。名称树键按 ISO 32000-1 §7.9.6
+逐字节比较，检查器因此保留原始八位组并按 UTF-8 还原，修复了中文名读回乱码。
+未做：外部 PDF 结构读取器复核（本机无 pypdf／pikepdf／qpdf，只有 pdftotext 可用）、
+DOCX 书签导入、PDF 结构标签、图形界面与 Word／WPS 对照。
+
+**T202 章节 PAGE 编号（[#91](https://github.com/willmove/joyoffice/pull/91)，已合并，任务仍 `in_progress`）**：
+见 [TASKS](TASKS.md) 的 T202 条目。独立审查复跑 426 项与 918 项测试、全目标 clippy
+与 fmt，无阻塞发现；选章规则与 Word 的差异、跨页拒绝、多级 restart 未覆盖等
+如实登记为已声明假定与未覆盖项。该 PR 的两套 CI 各 9/9 成功，已按精确 head 合并入主干（合并提交 `2f183d8`）。
+
+**T402 授权替换提案与只读预览（[#89](https://github.com/willmove/joyoffice/pull/89)，已合并）**：
+见上文「收尾 PR 合并与第二波基线」小节。该切片已合入主干 `6c43799`。
+
+**T104 验收清单**：2026-10-23 新增 `docs/joyword/acceptance/T104.md`，把生产恢复双代切片拆成原子准则，引用真实存在的测试名；独立撤销栈、日志校验与 undo／redo 属性测试仍标为 not-implemented，人工验收一条未做。
+**组合验证**：四路精确提交合入同一验证树后，本机以该树独占 target 串行完成
+特性场景 PDF 与基线逐字节相同：用同一字体生成 `crates/joyword-cli` 的 `feature_scenes` 十二个样例，与第二波之前的 `main` 逐文件比较，十二个 PDF 全部字节相同。这说明四路切片没有改变既有 PDF 输出。本机 `pdftotext` 提取到的文本很短（每个样例 7 至 22 字节），是本机 CJK 字体提取的限制，在基线上同样如此，不是本波回归。
+
+`cargo test --workspace --locked`、`cargo clippy --workspace --all-targets --locked -- -D warnings`
+与 `cargo fmt --all -- --check`，全部通过。新增跨切片回归覆盖章节前缀与书签在同一次
+布局中的一致、选页导出与全量导出字节相同、锚点无目标时不阻断导出、
+无书签文档的导出字节与既有路径相同。人工验收、Word／WPS 对照、双阅读器与信创真机未做。

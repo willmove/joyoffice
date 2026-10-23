@@ -1904,7 +1904,16 @@ fn take_recovered(
     let mut office = match joyword_shell::host::Office::recover_from(directory) {
         Ok(office) => office,
         Err(error) => {
-            if directory.join("recovery.jwr").is_file()
+            if ["recovery.jwr", "recovery-a.jwr", "recovery-b.jwr"]
+                .iter()
+                .any(|name| directory.join(name).is_file())
+                // Office erases the IO kind. Recheck only on failure so a valid
+                // discard tombstone is not reported as corruption. Other errors
+                // remain failures; never classify them by their untrusted text.
+                && !matches!(
+                    joyword_shell::storage::recover(directory),
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound
+                )
                 && let Some(log) = log
             {
                 let _ = log.record_untrusted(Level::Error, "recovery.failed", &error.to_string());
