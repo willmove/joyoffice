@@ -1240,6 +1240,27 @@ pub(crate) fn close_prompt_key(prompt: joyword_shell::host::ClosePrompt) -> Opti
     }
 }
 
+/// Checkpoint only committed text, never an IME preview. Save completion does
+/// not clear this record: a detached save of N must not remove a journal of N+1.
+/// The current recovery directory remains a single-active-document checkpoint.
+fn journal_editor(
+    editor: &dyn DocEditor,
+    directory: &std::path::Path,
+) -> Result<(), joyword_shell::storage::RecoveryError> {
+    if editor.is_composing() || !editor.has_unsaved_changes() {
+        return Ok(());
+    }
+    if let Some(baseline) = editor.recovery_baseline() {
+        joyword_shell::storage::commit_recovery_versioned(
+            directory,
+            editor.version(),
+            baseline,
+            editor.view().index().text(),
+        )?;
+    }
+    Ok(())
+}
+
 /// Version captured by a save that is writing for this editor epoch.
 /// Choosing a path or showing the original-save prompt is not in flight yet.
 pub(crate) fn in_flight_save_version(
@@ -2487,20 +2508,24 @@ impl JoyWord {
                     }
                     CloseDecision::AskAgain => view.confirm_if_dirty(then, window, cx),
                     CloseDecision::Discard => {
-                        view.forget_recovery_journal();
-                        view.finish_discard(then, window, cx);
+                        if let Err(error) = view.forget_recovery_journal() {
+                            view.report_input_error(error.to_string());
+                            cx.notify();
+                        } else {
+                            view.finish_discard(then, window, cx);
+                        }
                     }
                 }
             });
         }));
     }
-    /// Don't Save drops the recovery journal for this document. A clean close
-    /// never wrote one that still needs discarding, so only the prompt's
-    /// discard answer comes through here.
-    fn forget_recovery_journal(&self) {
+    /// Only explicit Don't Save discards the checkpoint. Save completions
+    /// retain it, including when edits have advanced beyond the saved version.
+    fn forget_recovery_journal(&self) -> std::io::Result<()> {
         if let Some(directory) = &self.recovery_dir {
-            let _ = joyword_shell::storage::clear_recovery(directory);
+            joyword_shell::storage::clear_recovery(directory)?;
         }
+        Ok(())
     }
     fn finish_discard(&mut self, then: AfterDiscard, window: &mut Window, cx: &mut Context<Self>) {
         match then {
@@ -2872,13 +2897,18 @@ impl JoyWord {
             return;
         };
         let result = f(editor.as_mut());
+        self.input_error = result
+            .as_ref()
+            .err()
+            .map(|error| self.label(input_error_label(error)));
         if result.is_ok() {
             self.copy_note = None;
-            self.journal_edit();
+            if let Err(error) = self.journal_edit() {
+                // The edit succeeded; surface the checkpoint stage without
+                // pretending the edit was rolled back or durably recovered.
+                self.report_input_error(error.to_string());
+            }
         }
-        self.input_error = result
-            .err()
-            .map(|error| self.label(input_error_label(&error)));
         self.preferred_x = None;
         // Committing a preview can publish exactly the same snapshot. Its
         // source IDs, version and content must all match before reusing the
@@ -2892,18 +2922,11 @@ impl JoyWord {
         self.reveal_caret();
         cx.notify();
     }
-    fn journal_edit(&self) {
-        let Some(directory) = &self.recovery_dir else {
-            return;
-        };
-        let Some(editor) = &self.editor else {
-            return;
-        };
-        let Some(baseline) = editor.recovery_baseline() else {
-            return;
-        };
-        let text = editor.view().index().text();
-        let _ = joyword_shell::storage::commit_recovery(directory, baseline, text);
+    fn journal_edit(&self) -> Result<(), joyword_shell::storage::RecoveryError> {
+        if let (Some(directory), Some(editor)) = (&self.recovery_dir, &self.editor) {
+            journal_editor(editor.as_ref(), directory)?;
+        }
+        Ok(())
     }
     fn cancel_preedit(&mut self, cx: &mut Context<Self>) {
         self.dragging = false;
@@ -4413,6 +4436,60 @@ mod tests {
                 .numbering
                 .is_none()
         );
+    }
+
+    #[test]
+    fn recovery_adapter_skips_preedit_and_keeps_newer_journal_after_save() -> std::io::Result<()> {
+        use joyword_shell::storage::{OriginalChoice, recover_checkpoint};
+        use std::{fs, io};
+        let error = |e: &dyn std::fmt::Display| io::Error::other(e.to_string());
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|e| error(&e))?
+            .as_nanos();
+        let directory = std::env::temp_dir().join(format!(
+            "joyword-recovery-adapter-{}-{nanos}",
+            std::process::id()
+        ));
+        fs::create_dir(&directory)?;
+        let result = (|| -> io::Result<()> {
+            let path = directory.join("source.docx");
+            fs::write(
+                &path,
+                include_bytes!("../../../tests/fixtures/docx/DOCX-MIN-001.docx"),
+            )?;
+            let backend = BoundDocx::open_default(&path).map_err(|e| error(&e))?;
+            let mut input =
+                TextInput::new(backend, InputLimits::default()).map_err(|e| error(&e))?;
+            let journal = directory.join("journal");
+            journal_editor(&input, &journal).map_err(|e| error(&e))?;
+            assert!(!journal.exists(), "clean sessions need no checkpoint");
+            input.replace(None, "N").map_err(|e| error(&e))?;
+            journal_editor(&input, &journal).map_err(|e| error(&e))?;
+            let first = recover_checkpoint(&journal)?;
+            let job = input.save_original_job();
+            DocEditor::mark(&mut input, None, "preedit", None).map_err(|e| error(&e))?;
+            journal_editor(&input, &journal).map_err(|e| error(&e))?;
+            assert_eq!(recover_checkpoint(&journal)?, first);
+            input.replace(None, "N+1").map_err(|e| error(&e))?;
+            journal_editor(&input, &journal).map_err(|e| error(&e))?;
+            let later = recover_checkpoint(&journal)?;
+            assert!(later.generation > first.generation);
+            assert!(later.recovered.text.contains("N+1"));
+            let output = job.run(OriginalChoice::Confirm);
+            DocEditor::apply_original_save(&mut input, output).map_err(io::Error::other)?;
+            assert!(input.has_unsaved_changes());
+            assert_eq!(recover_checkpoint(&journal)?, later);
+            fs::write(journal.join("recovery-a.jwr"), b"corrupt")?;
+            fs::write(journal.join("recovery-b.jwr"), b"corrupt")?;
+            assert!(
+                journal_editor(&input, &journal).is_err(),
+                "checkpoint errors must reach the UI"
+            );
+            Ok(())
+        })();
+        fs::remove_dir_all(directory)?;
+        result
     }
 
     #[test]

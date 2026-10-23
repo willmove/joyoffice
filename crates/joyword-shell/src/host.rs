@@ -267,7 +267,9 @@ impl Office {
         };
         let baseline = input.backend().session().backing().original_bytes();
         let text = input.view().index().text();
-        crate::storage::commit_recovery(directory, baseline, text)?;
+        let version = input.backend().session().session().version().get();
+        crate::storage::commit_recovery_versioned(directory, version, baseline, text)
+            .map_err(io::Error::other)?;
         Ok(())
     }
 
@@ -443,7 +445,10 @@ impl Office {
             .and_then(|document| document.input.as_ref())
             .map(|input| input.backend().session().session().version().get())
             .ok_or_else(|| ExecuteError::Failed("no document".into()))?;
-        self.save_generation += 1;
+        self.save_generation = self
+            .save_generation
+            .checked_add(1)
+            .ok_or_else(|| ExecuteError::Failed("save generation overflow".into()))?;
         Ok(SaveTicket {
             document: id,
             version,
@@ -456,6 +461,9 @@ impl Office {
     /// when the session version is still the one that was saved. A stale
     /// ticket writes nothing and leaves the document dirty.
     pub fn finish_save(&mut self, ticket: SaveTicket) -> Result<bool, ExecuteError> {
+        if ticket.generation != self.save_generation {
+            return Ok(false);
+        }
         let Some(document) = self
             .documents
             .iter_mut()
