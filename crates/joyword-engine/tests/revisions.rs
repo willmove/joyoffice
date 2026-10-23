@@ -2,7 +2,10 @@
 
 use std::sync::Arc;
 
-use joyword_engine::{Command, CommandError, Selection, Session, Transaction, TxError, UndoGroup};
+use joyword_engine::{
+    Command, CommandError, Selection, Session, Transaction, TxError, UndoGroup,
+    body_final_paragraphs,
+};
 use joyword_model::{
     Bias, Block, BlockSeq, Document, MoveMarker, MoveSide, NodeId, Paragraph, Position,
     RevisionKind, RevisionView, ScalarOffset, StoryId, TextRevision,
@@ -366,4 +369,236 @@ fn switching_tracking_seals_a_typing_group_beside_a_move() {
     exec(&mut session, vec![Command::AcceptAllRevisions]).unwrap();
     assert_eq!(texts(&session), final_text);
     assert_eq!(marker_count(&session), 0);
+}
+
+// --- T402/T301: tracked cross-paragraph deletion with deleted marks ---
+
+fn tracked_session(lines: &[&str]) -> Session {
+    let mut document = Document::new_blank();
+    let mut blocks = Vec::new();
+    for line in lines {
+        let mut paragraph = Paragraph::new(document.ids().node());
+        paragraph.push_text(line, None, Arc::default()).unwrap();
+        blocks.push(Block::from(paragraph));
+    }
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+    let mut session = Session::new(document);
+    session.set_revision_author("用户");
+    exec(
+        &mut session,
+        vec![Command::SetTrackRevisions { enabled: true }],
+    )
+    .unwrap();
+    session
+}
+
+fn paragraph_ids(session: &Session) -> Vec<NodeId> {
+    session
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .map(Paragraph::id)
+        .collect()
+}
+
+fn mark_ids(session: &Session) -> Vec<(NodeId, u32)> {
+    session
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .filter_map(|paragraph| {
+            paragraph
+                .mark_revision
+                .as_ref()
+                .map(|revision| (paragraph.id(), revision.id))
+        })
+        .collect()
+}
+
+fn delete_between(session: &mut Session, first: NodeId, at: usize, last: NodeId, to: usize) {
+    let start = pos(session, first, at);
+    let end = pos(session, last, to);
+    exec(session, vec![Command::DeleteRange { start, end }]).unwrap();
+}
+
+#[test]
+fn a_user_tracked_delete_across_paragraphs_marks_the_marks() {
+    let mut session = tracked_session(&["甲乙", "丙丁", "戊己"]);
+    let ids = paragraph_ids(&session);
+    delete_between(&mut session, ids[0], 1, ids[2], 1);
+    // Original text is untouched; the final view joins the leftovers.
+    assert_eq!(texts(&session), vec!["甲乙", "丙丁", "戊己"]);
+    assert_eq!(
+        body_final_paragraphs(session.document()).unwrap(),
+        vec!["甲己"]
+    );
+    assert_eq!(
+        mark_ids(&session).len(),
+        2,
+        "both covered marks are deleted"
+    );
+    let kinds: Vec<_> = session
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .flat_map(|paragraph| paragraph.runs().iter())
+        .filter_map(|run| run.revision.as_ref().map(|r| r.kind))
+        .collect();
+    assert!(kinds.iter().all(|kind| *kind == RevisionKind::Delete));
+    // One undo returns the whole tracked delete.
+    session.undo().unwrap();
+    assert_eq!(texts(&session), vec!["甲乙", "丙丁", "戊己"]);
+    assert!(mark_ids(&session).is_empty());
+}
+
+#[test]
+fn accepting_one_mark_revision_merges_the_two_paragraphs() {
+    let mut session = tracked_session(&["一", "二", "三"]);
+    let ids = paragraph_ids(&session);
+    delete_between(&mut session, ids[0], 1, ids[1], 0);
+    let [(owner, id)] = mark_ids(&session).try_into().unwrap();
+    exec(&mut session, vec![Command::AcceptRevision { id }]).unwrap();
+    assert_eq!(texts(&session), vec!["一二", "三"]);
+    assert!(mark_ids(&session).is_empty());
+    let after = paragraph_ids(&session);
+    assert_eq!(after[0], owner, "the merged paragraph keeps the first id");
+    assert_eq!(after.len(), 2);
+}
+
+#[test]
+fn accepting_all_merges_a_chain_of_marks_and_clears_the_text() {
+    let mut session = tracked_session(&["a", "b", "c", "d"]);
+    let ids = paragraph_ids(&session);
+    delete_between(&mut session, ids[0], 1, ids[3], 0);
+    assert_eq!(
+        body_final_paragraphs(session.document()).unwrap(),
+        vec!["ad"]
+    );
+    assert_eq!(mark_ids(&session).len(), 3);
+    exec(&mut session, vec![Command::AcceptAllRevisions]).unwrap();
+    assert_eq!(texts(&session), vec!["ad"]);
+    assert_eq!(paragraph_ids(&session).len(), 1);
+    assert!(mark_ids(&session).is_empty());
+}
+
+#[test]
+fn rejecting_all_restores_the_breaks_and_the_text() {
+    let mut session = tracked_session(&["a", "b"]);
+    let ids = paragraph_ids(&session);
+    delete_between(&mut session, ids[0], 1, ids[1], 1);
+    assert_eq!(
+        body_final_paragraphs(session.document()).unwrap(),
+        vec!["a"]
+    );
+    exec(&mut session, vec![Command::RejectAllRevisions]).unwrap();
+    assert_eq!(texts(&session), vec!["a", "b"]);
+    assert!(mark_ids(&session).is_empty());
+    assert_eq!(paragraph_ids(&session).len(), 2);
+}
+
+#[test]
+fn a_tracked_delete_refuses_to_cross_a_table_or_a_cell() {
+    use joyword_model::{Cell, CellBorders, Measure, Row, Table, VerticalMerge};
+    let mut document = Document::new_blank();
+    let story = document.body_id();
+    let mut first = Paragraph::new(document.ids().node());
+    first.push_text("前", None, Arc::default()).unwrap();
+    let mut cell_text = Paragraph::new(document.ids().node());
+    cell_text.push_text("格", None, Arc::default()).unwrap();
+    let cell_id = cell_text.id();
+    let cell = Cell {
+        id: document.ids().node(),
+        grid_span: 1,
+        vertical_merge: VerticalMerge::Restart,
+        width: Some(Measure::Twips(2000)),
+        borders: CellBorders::default(),
+        shading: None,
+        margin: None,
+        vertical_align: None,
+        blocks: BlockSeq::from_vec(vec![cell_text.into()]),
+        preserved: None,
+    };
+    let table = Table {
+        id: document.ids().node(),
+        grid: vec![Measure::Twips(2000)],
+        rows: vec![Row {
+            id: document.ids().node(),
+            grid_before: 0,
+            grid_after: 0,
+            cells: vec![cell],
+            header: false,
+            cant_split: false,
+            height: None,
+            preserved: None,
+        }],
+        style: None,
+        width: None,
+        layout: None,
+        alignment: None,
+        indent: None,
+        look: None,
+        cell_margin: None,
+        preserved: None,
+        source: None,
+    };
+    let mut last = Paragraph::new(document.ids().node());
+    last.push_text("后", None, Arc::default()).unwrap();
+    let first_id = first.id();
+    let last_id = last.id();
+    document.story_mut(story).unwrap().blocks = BlockSeq::from_vec(vec![
+        first.into(),
+        Block::Table(Arc::new(table)),
+        last.into(),
+    ]);
+    let mut session = Session::new(document);
+    session.set_revision_author("用户");
+    exec(
+        &mut session,
+        vec![Command::SetTrackRevisions { enabled: true }],
+    )
+    .unwrap();
+    let start = pos(&session, first_id, 0);
+    let end = pos(&session, last_id, 1);
+    assert!(matches!(
+        exec(&mut session, vec![Command::DeleteRange { start, end }]),
+        Err(TxError::Command {
+            error: CommandError::RevisionBoundary,
+            ..
+        })
+    ));
+    let start = pos(&session, cell_id, 0);
+    let end = pos(&session, last_id, 1);
+    assert!(matches!(
+        exec(&mut session, vec![Command::DeleteRange { start, end }]),
+        Err(TxError::Command {
+            error: CommandError::CrossContainer,
+            ..
+        })
+    ));
+}
+
+#[test]
+fn another_authors_pending_mark_refuses_a_second_tracked_delete() {
+    let mut session = tracked_session(&["a", "b", "c"]);
+    let ids = paragraph_ids(&session);
+    delete_between(&mut session, ids[0], 1, ids[1], 0);
+    session.set_revision_author("别人");
+    // The range covers the pending mark of the first paragraph, which the
+    // other author already deleted: refuse instead of taking it over.
+    let start = pos(&session, ids[0], 1);
+    let end = pos(&session, ids[1], 0);
+    assert!(matches!(
+        exec(&mut session, vec![Command::DeleteRange { start, end }]),
+        Err(TxError::Command {
+            error: CommandError::RevisionConflict,
+            ..
+        })
+    ));
 }

@@ -540,7 +540,7 @@ fn cached_rgb(element: &Element, findings: &mut Findings) -> Option<Color> {
 /// A `w:rPrChange` child is a gap: the caller does not type format revisions
 /// here.
 pub(crate) fn run(element: &Element, findings: &mut Findings) -> (RunProps, Option<StyleId>) {
-    let (props, style, _) = run_inner(element, findings, false);
+    let (props, style, _) = run_inner(element, findings, false, false);
     (props, style)
 }
 
@@ -552,17 +552,31 @@ pub(crate) fn run_with_change<'e>(
     element: &'e Element,
     findings: &mut Findings,
 ) -> (RunProps, Option<StyleId>, Option<&'e Element>) {
-    run_inner(element, findings, true)
+    run_inner(element, findings, true, false)
+}
+
+/// Like [`run`], but captures a single `w:ins` / `w:del` child as the third
+/// return value instead of gapping on it. Used when importing a paragraph
+/// mark (`w:pPr/w:rPr`), where a delete is the mark's own tracked revision
+/// (T402). The caller must type or fall back on the returned element.
+pub(crate) fn run_with_revision<'e>(
+    element: &'e Element,
+    findings: &mut Findings,
+) -> (RunProps, Option<StyleId>, Option<&'e Element>) {
+    run_inner(element, findings, false, true)
 }
 
 fn run_inner<'e>(
     element: &'e Element,
     findings: &mut Findings,
     capture_change: bool,
+    capture_revision: bool,
 ) -> (RunProps, Option<StyleId>, Option<&'e Element>) {
     let mut out = RunProps::default();
     let mut style = None;
     let mut change = None;
+    let mut revision = None;
+    let mut repeated_revision = false;
     for child in element.elements() {
         if child.namespace.as_deref() == Some(W14) && w14_run_child_layout_neutral(child) {
             findings.neutral_gap();
@@ -596,11 +610,24 @@ fn run_inner<'e>(
                     change = Some(child);
                 }
             }
+            "ins" | "del" if capture_revision => {
+                if revision.is_some() {
+                    // More than one mark revision is out of subset; none of
+                    // them types.
+                    repeated_revision = true;
+                } else {
+                    revision = Some(child);
+                }
+            }
             local if run_child_layout_neutral(local) => findings.neutral_gap(),
             _ => findings.gap(),
         }
     }
-    (out, style, change)
+    if repeated_revision {
+        revision = None;
+        findings.gap();
+    }
+    (out, style, if capture_change { change } else { revision })
 }
 
 /// `w:rPr` children with no model field that change no advance and paint

@@ -280,9 +280,26 @@ pub(crate) fn paragraph(
         let mut props = para.props;
         if let Some(rpr) = para.mark {
             let mut mark_findings = Findings::default();
-            let (mut mark, mark_style) = props::run(rpr, &mut mark_findings);
+            let ((mut mark, mark_style), mark_revision) = {
+                let (props, style, revision) = props::run_with_revision(rpr, &mut mark_findings);
+                ((props, style), revision)
+            };
             if mark_style.is_some() {
                 mark_findings.gap();
+            }
+            // A deleted paragraph mark (`w:pPr/w:rPr/w:del`) is the mark's
+            // own tracked revision; anything else (w:ins, move kinds,
+            // children) stays a preserved gap.
+            match mark_revision.filter(|element| element.is(W, "del")) {
+                Some(del) => match crate::revision::import_mark_revision(importer, del) {
+                    Some(revision) => paragraph.mark_revision = Some(revision),
+                    None => mark_findings.gap(),
+                },
+                None => {
+                    if mark_revision.is_some() {
+                        mark_findings.gap();
+                    }
+                }
             }
             mark.preserved_layout_neutral = mark_findings.layout_neutral();
             mark.preserved = importer.settle(part, rpr, &ppr_scope, mark_findings);

@@ -992,6 +992,7 @@ fn patch_paragraph(
     let error = |reason| unsupported(Some(before.id()), reason);
     let revised = before.runs().iter().any(|run| run.revision.is_some())
         || after.runs().iter().any(|run| run.revision.is_some())
+        || before.mark_revision != after.mark_revision
         || !same_move_markers(before_markers, after_markers);
     // An unresolved format revision (`w:rPrChange` / `w:pPrChange` still on
     // `after`) must survive as its original bytes. Only a byte-identical
@@ -1025,13 +1026,14 @@ fn patch_paragraph(
             &names,
             limit,
             &styles.theme().colors,
+            before.mark_revision.is_some(),
         )?;
         patches.push((element.span.clone(), bytes));
         return Ok(());
     }
     let numbering_changed = before.props.numbering != after.props.numbering;
     if style_assignment_differs(before, after) || numbering_changed {
-        if after_unresolved {
+        if after_unresolved || after.mark_revision.is_some() {
             return Err(error(
                 "unresolved format revision is kept verbatim and cannot be restyled",
             ));
@@ -1064,7 +1066,7 @@ fn patch_paragraph(
         || !before.inlines().is_empty()
         || !after.inlines().is_empty()
     {
-        if after_unresolved {
+        if after_unresolved || after.mark_revision.is_some() {
             return Err(error(
                 "unresolved format revision is kept verbatim and its paragraph cannot be rewritten",
             ));
