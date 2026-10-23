@@ -6,7 +6,10 @@
 //! invalidation and a [`PositionMap`] for selections and other positions, and
 //! records undo. Annotations (bookmarks, comment anchors, fields) are mapped
 //! inside the transaction. No UI, file format or AI provider code lives here.
+//! [`apply_ai_text_replace`] is the agent commit entry: one standalone
+//! transaction stamped with [`AI_REVISION_AUTHOR`].
 
+mod ai_replace;
 mod command;
 mod comment;
 mod find;
@@ -17,6 +20,7 @@ mod revision;
 mod session;
 mod table;
 
+pub use ai_replace::{AI_REVISION_AUTHOR, apply_ai_text_replace, body_final_paragraphs};
 pub use command::{
     Command, CommandError, ParagraphChange, Precondition, RunChange, TableMerge,
     TablePropertyChange, TableStructure,

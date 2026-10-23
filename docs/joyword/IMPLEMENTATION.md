@@ -1481,3 +1481,17 @@ DOCX 书签导入、PDF 结构标签、图形界面与 Word／WPS 对照。
 与 `cargo fmt --all -- --check`，全部通过。新增跨切片回归覆盖章节前缀与书签在同一次
 布局中的一致、选页导出与全量导出字节相同、锚点无目标时不阻断导出、
 无书签文档的导出字节与既有路径相同。人工验收、Word／WPS 对照、双阅读器与信创真机未做。
+
+### T402 授权替换的单事务接受（2026-10-23）
+
+#89 的 `propose_replace`／`preview_replace` 保持只读。本切片只加接受路径，T402 状态仍是 `in_progress`，进度计数不改。
+
+接受发生在 `joyword-agent` 的 `ToolSession::accept_replace`。生产 crate 继续不依赖 engine、model 或网络；宿主实现 `DocumentCommit`（`&self`，可与会话端口是同一对象），在 `authorize` 回调成功之后才改文档。engine 导出 `apply_ai_text_replace`：一次 `Origin::Agent`、`UndoGroup::Standalone` 事务，`tracked_author` 为 `JoyWord AI`。该作者与会话用户作者分开，也不与用户输入合并撤销。文档的 `trackRevisions` 可以仍是关闭；这两处作者常量分属两个 crate，集成测试断言字符串相同。模型没有新字段，沿用已有 `TextRevision.author`。普通 `Origin::Agent` 事务在未设置 `tracked_author` 时仍不产生修订。
+
+ID 在重读文档之前占用。已接受或正在接受返回 `AlreadyApplied` 且零写入；重新校验失败则退回 `Proposed`，同一次提案可以再试一次，成功后不能再试。`authorize` 是写入前的线性化点：门控已关闭则零写入；写入已经完成之后关闭，该次提交保留并可撤销。`allowed_commits` 与 Provider 计数不变；`applied_replacements` 只记录成功接受的次数。诊断的 `kind()` 与 `Debug` 只报告长度、版本和静态标签。
+
+坐标与 #89 的快照相同：正文最终视图按段落用 `\n` 连接。替换必须落在同一段落的一段连续可见标量上。空替换是一次跟踪删除。命令是一条 `DeleteRange`，非空时再加一条 `InsertText`，同属一个事务。
+
+本机证据：`cargo test -p joyword-agent --locked --offline` 74 项（库内 7、contract 18、scoped 22、预览 15、接受 11、compile-fail 1）；`cargo test -p joyword-engine --locked --offline` 94 项（其中 `tests/ai_replace.rs` 6 项）；`cargo clippy -p joyword-agent --all-targets --locked --offline -- -D warnings` 与 engine 同口径 clippy；`cargo fmt --all -- --check`；`python3 scripts/check_docs.py`；`python3 scripts/check_gates.py`（236 个 Rust 文件）。未跑整工作区 `cargo test --locked`，也未跑 shell。
+
+仍留给后续切片：宿主界面接线、真实 Provider、DOCX／Word 修订往返、AIGC 文件级标识（`aigc::write_label` 仍是评估未完成）、旧 `ChangeProposal::apply`、跨段范围、替换文本里的控制字符（制表符除外）、行分隔符与对象标记、最终视图不连续的选区（中间有隐藏修订或行内对象）、正文里的非段落块，以及人工验收。预览仍允许展示这些被接受路径拒绝的文本，因为预览不落盘。

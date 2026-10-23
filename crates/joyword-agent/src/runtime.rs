@@ -111,6 +111,7 @@ pub struct AgentRuntime {
     telemetry: Telemetry,
     invocations: AtomicU64,
     allowed_commits: AtomicU64,
+    applied_replacements: AtomicU64,
     proposals: Mutex<BTreeSet<String>>,
     replace_registry: ReplaceRegistry,
     boot_steps: AtomicU64,
@@ -135,6 +136,7 @@ impl AgentRuntime {
             telemetry,
             invocations: AtomicU64::new(0),
             allowed_commits: AtomicU64::new(0),
+            applied_replacements: AtomicU64::new(0),
             proposals: Mutex::new(BTreeSet::new()),
             replace_registry: ReplaceRegistry::new(),
             boot_steps: AtomicU64::new(0),
@@ -167,6 +169,17 @@ impl AgentRuntime {
 
     pub fn allowed_commits(&self) -> u64 {
         self.allowed_commits.load(Ordering::SeqCst)
+    }
+
+    /// Successful [`crate::ToolSession::accept_replace`] calls. Refusals and
+    /// previews do not increment it. This is not the legacy [`Self::admit_commit`]
+    /// counter.
+    pub fn applied_replacements(&self) -> u64 {
+        self.applied_replacements.load(Ordering::SeqCst)
+    }
+
+    pub(crate) fn note_applied_replacement(&self) {
+        self.applied_replacements.fetch_add(1, Ordering::SeqCst);
     }
 
     /// T400 has no document API. The value is fixed so a regression that

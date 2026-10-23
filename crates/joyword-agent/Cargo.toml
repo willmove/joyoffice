@@ -16,5 +16,12 @@ default = []
 
 [dependencies]
 
+[dev-dependencies]
+# T402 accept tests drive one real engine transaction and inspect the
+# resulting revision marks. Production dependencies stay empty; see
+# scripts/check_gates.py DEV_LAYERS.
+joyword-engine.workspace = true
+joyword-model.workspace = true
+
 [lints]
 workspace = true

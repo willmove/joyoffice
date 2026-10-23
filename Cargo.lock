@@ -2708,6 +2708,10 @@ dependencies = [
 [[package]]
 name = "joyword-agent"
 version = "0.0.1"
+dependencies = [
+ "joyword-engine",
+ "joyword-model",
+]
 
 [[package]]
 name = "joyword-cli"

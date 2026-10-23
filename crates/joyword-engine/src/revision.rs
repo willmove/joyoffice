@@ -34,6 +34,9 @@ pub(crate) struct EditContext {
     pub origin: Origin,
     pub author: Arc<str>,
     pub date: Option<Arc<str>>,
+    /// Record insert/delete as tracked revisions even when `w:trackRevisions`
+    /// is off. AI accepts set this so the author is not the session user.
+    pub force_tracked: bool,
 }
 
 #[derive(Clone, Copy)]

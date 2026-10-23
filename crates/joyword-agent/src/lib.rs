@@ -12,9 +12,11 @@
 //! not a dependency: the gate script keeps document and engine crates out of
 //! this crate, so a host implements [`DocumentPort`](document::DocumentPort).
 //!
-//! The first T402 slice adds an opaque [`ReplaceProposal`] for one complete,
-//! nonempty authorized selection and a side-effect-free [`ReplacePreview`].
-//! It does not implement production document editing or the rest of T402.
+//! T402 adds an opaque [`ReplaceProposal`] for one complete, nonempty
+//! authorized selection, a side-effect-free [`ReplacePreview`], and
+//! [`ToolSession::accept_replace`](scoped::ToolSession::accept_replace). Accept
+//! re-validates the grant and commits through [`DocumentCommit`]; this crate
+//! still does not link the editing engine or a provider.
 //!
 //! AIGC labeling is not implemented. [`aigc`] records that the legal assessment
 //! is still pending and refuses to write a label.
@@ -61,8 +63,9 @@ pub use provider::{
     LoggedRequest, Provider, ProviderError, ProviderId, RequestLog,
 };
 pub use replace::{
-    MAX_REPLACE_EXPLANATION_BYTES, MAX_REPLACE_ID_BYTES, MAX_REPLACE_IDS, MAX_REPLACE_TEXT_BYTES,
-    ReplaceError, ReplacePreview, ReplaceProposal, ReplaceRequest,
+    AI_REVISION_AUTHOR, CommitError, DocumentCommit, MAX_REPLACE_EXPLANATION_BYTES,
+    MAX_REPLACE_ID_BYTES, MAX_REPLACE_IDS, MAX_REPLACE_TEXT_BYTES, ReplaceCommit, ReplaceError,
+    ReplacePreview, ReplaceProposal, ReplaceReceipt, ReplaceRequest,
 };
 pub use runtime::{AgentError, AgentRuntime, BootReport};
 pub use scope::{
