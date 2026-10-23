@@ -143,6 +143,17 @@ fn diag_kind_name(kind: &DiagnosticKind) -> &'static str {
         DiagnosticKind::CommentIdMissing => "comment-id-missing",
         DiagnosticKind::CommentPartInvalid => "comment-part-invalid",
         DiagnosticKind::CommentBodyEmpty { .. } => "comment-body-empty",
+        DiagnosticKind::BookmarkIdMissing => "bookmark-id-missing",
+        DiagnosticKind::BookmarkNameEmpty { .. } => "bookmark-name-empty",
+        DiagnosticKind::BookmarkNameInvalid { .. } => "bookmark-name-invalid",
+        DiagnosticKind::BookmarkNameDuplicate { .. } => "bookmark-name-duplicate",
+        DiagnosticKind::BookmarkAnchorInvalid { .. } => "bookmark-anchor-invalid",
+        DiagnosticKind::BookmarkAnchorUnmapped { .. } => "bookmark-anchor-unmapped",
+        DiagnosticKind::BookmarkOutsideBody { .. } => "bookmark-outside-body",
+        DiagnosticKind::BookmarkColumn { .. } => "bookmark-column",
+        DiagnosticKind::BookmarkBudget { .. } => "bookmark-budget",
+        DiagnosticKind::BookmarkUnsupported { .. } => "bookmark-unsupported",
+        DiagnosticKind::BookmarksPreserved { .. } => "bookmarks-preserved",
     }
 }
 fn read_only_reason_name(reason: &ReadOnlyReason) -> &'static str {

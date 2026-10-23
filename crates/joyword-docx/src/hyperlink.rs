@@ -1,10 +1,12 @@
 //! `w:hyperlink` (ECMA-376 Part 1 §17.16.22).
 //!
 //! A hyperlink whose only attributes are `r:id` and/or `w:anchor`, and whose
-//! children are runs of text and tabs, becomes a link on those runs. The
-//! relationship target is stored and never requested. Anything else — a
-//! tooltip, a frame, a nested field, a break — stays preserved and locks the
-//! paragraph, which is the previous wrapper behaviour.
+//! children are runs of text and tabs, becomes a link on those runs. Direct
+//! `w:bookmarkStart` / `w:bookmarkEnd` children take no position and do not
+//! push the wrapper off this subset. The relationship target is stored and
+//! never requested. Anything else — a tooltip, a frame, a nested field, a
+//! break, a bookmark inside a run — stays preserved and locks the paragraph,
+//! which is the previous wrapper behaviour.
 
 use std::sync::Arc;
 
@@ -79,10 +81,14 @@ fn anchor_ok(value: &str) -> bool {
             .any(|ch| ch.is_control() || ch.is_whitespace() || matches!(ch, '<' | '>' | '"' | '\''))
 }
 
-/// Runs of text and tabs only. A break, drawing or other child stays preserved.
+/// Runs of text and tabs, plus bookmark markers that occupy no position.
+/// A break, drawing or other child stays preserved.
 fn simple_runs(element: &Element) -> bool {
     let mut runs = 0usize;
     for child in element.elements() {
+        if child.is(W, "bookmarkStart") || child.is(W, "bookmarkEnd") {
+            continue;
+        }
         if !child.is(W, "r") {
             return false;
         }

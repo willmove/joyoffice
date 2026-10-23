@@ -700,6 +700,17 @@ fn diagnostic_kind_name(kind: &DiagnosticKind) -> &'static str {
         DiagnosticKind::CommentIdMissing => "comment_id_missing",
         DiagnosticKind::CommentPartInvalid => "comment_part_invalid",
         DiagnosticKind::CommentBodyEmpty { .. } => "comment_body_empty",
+        DiagnosticKind::BookmarkIdMissing => "bookmark_id_missing",
+        DiagnosticKind::BookmarkNameEmpty { .. } => "bookmark_name_empty",
+        DiagnosticKind::BookmarkNameInvalid { .. } => "bookmark_name_invalid",
+        DiagnosticKind::BookmarkNameDuplicate { .. } => "bookmark_name_duplicate",
+        DiagnosticKind::BookmarkAnchorInvalid { .. } => "bookmark_anchor_invalid",
+        DiagnosticKind::BookmarkAnchorUnmapped { .. } => "bookmark_anchor_unmapped",
+        DiagnosticKind::BookmarkOutsideBody { .. } => "bookmark_outside_body",
+        DiagnosticKind::BookmarkColumn { .. } => "bookmark_column",
+        DiagnosticKind::BookmarkBudget { .. } => "bookmark_budget",
+        DiagnosticKind::BookmarkUnsupported { .. } => "bookmark_unsupported",
+        DiagnosticKind::BookmarksPreserved { .. } => "bookmarks_preserved",
     }
 }
 

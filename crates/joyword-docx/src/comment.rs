@@ -786,11 +786,17 @@ fn walk_index(
 }
 
 /// Comment anchors and resolved flags may change. Identity fields may not.
-/// New annotations must be comments with new comment stories.
+/// New annotations must be comments with new comment stories. An imported
+/// bookmark must keep its name and anchor; this slice does not rewrite the
+/// marker markup, so dropping it on export is refused.
 pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'static str> {
     for annotation in before.annotations() {
         let Some(other) = after.annotation(annotation.id) else {
-            return Err("a comment was removed");
+            return Err(match &annotation.kind {
+                AnnotationKind::Bookmark { .. } => "a bookmark was removed",
+                AnnotationKind::Comment(_) => "a comment was removed",
+                _ => "an annotation was removed",
+            });
         };
         match (&annotation.kind, &other.kind) {
             (AnnotationKind::Comment(left), AnnotationKind::Comment(right)) => {
@@ -802,6 +808,11 @@ pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'stat
                     (Anchor::Detached, Anchor::Range { .. })
                 ) {
                     return Err("detached comment anchor cannot be restored");
+                }
+            }
+            (AnnotationKind::Bookmark { .. }, AnnotationKind::Bookmark { .. }) => {
+                if annotation.kind != other.kind || annotation.anchor != other.anchor {
+                    return Err("a bookmark changed");
                 }
             }
             _ => {

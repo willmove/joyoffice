@@ -113,6 +113,17 @@ fn diagnostic_code(kind: &DiagnosticKind) -> String {
         DiagnosticKind::CommentIdMissing => "comment-id-missing".into(),
         DiagnosticKind::CommentPartInvalid => "comment-part-invalid".into(),
         DiagnosticKind::CommentBodyEmpty { id } => format!("comment-body-empty:{id}"),
+        DiagnosticKind::BookmarkIdMissing => "bookmark-id-missing".into(),
+        DiagnosticKind::BookmarkNameEmpty { id } => format!("bookmark-name-empty:{id}"),
+        DiagnosticKind::BookmarkNameInvalid { id } => format!("bookmark-name-invalid:{id}"),
+        DiagnosticKind::BookmarkNameDuplicate { id } => format!("bookmark-name-duplicate:{id}"),
+        DiagnosticKind::BookmarkAnchorInvalid { id } => format!("bookmark-anchor-invalid:{id}"),
+        DiagnosticKind::BookmarkAnchorUnmapped { id } => format!("bookmark-anchor-unmapped:{id}"),
+        DiagnosticKind::BookmarkOutsideBody { id } => format!("bookmark-outside-body:{id}"),
+        DiagnosticKind::BookmarkColumn { id } => format!("bookmark-column:{id}"),
+        DiagnosticKind::BookmarkBudget { id } => format!("bookmark-budget:{id}"),
+        DiagnosticKind::BookmarkUnsupported { id } => format!("bookmark-unsupported:{id}"),
+        DiagnosticKind::BookmarksPreserved { count } => format!("bookmarks-preserved:{count}"),
     }
 }
 

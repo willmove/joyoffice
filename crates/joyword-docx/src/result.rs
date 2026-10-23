@@ -288,6 +288,61 @@ pub enum DiagnosticKind {
     CommentBodyEmpty {
         id: u32,
     },
+    /// `w:bookmarkStart` or `w:bookmarkEnd` has no usable `w:id`. The marker
+    /// bytes are kept. No annotation is inserted.
+    BookmarkIdMissing,
+    /// The bookmark name is empty or only whitespace. PDF would refuse it.
+    /// The name is not echoed. Not inserted.
+    BookmarkNameEmpty {
+        id: u32,
+    },
+    /// The bookmark name contains a control character. PDF would refuse it.
+    /// The name is not echoed. Not inserted.
+    BookmarkNameInvalid {
+        id: u32,
+    },
+    /// A later bookmark reuses a name. ECMA-376 keeps the first. The name is
+    /// not echoed. The duplicate is not inserted.
+    BookmarkNameDuplicate {
+        id: u32,
+    },
+    /// Markers are missing, repeated, reversed, split across stories, or
+    /// partly inside unmapped markup. Not inserted. PDF would refuse a
+    /// detached bookmark.
+    BookmarkAnchorInvalid {
+        id: u32,
+    },
+    /// The bookmark sits only in markup this slice does not map, such as an
+    /// opaque table. Not inserted.
+    BookmarkAnchorUnmapped {
+        id: u32,
+    },
+    /// The range is not in the body story. Layout carets are body positions,
+    /// so the bookmark is not a PDF destination. Not inserted.
+    BookmarkOutsideBody {
+        id: u32,
+    },
+    /// `w:colFirst` / `w:colLast` mark table columns, not a text range.
+    /// Not inserted.
+    BookmarkColumn {
+        id: u32,
+    },
+    /// The name exceeds the PDF name budget, or the document already has the
+    /// PDF bookmark budget of accepted names. Not inserted.
+    BookmarkBudget {
+        id: u32,
+    },
+    /// The marker has attributes or child content this slice does not
+    /// represent. Not inserted.
+    BookmarkUnsupported {
+        id: u32,
+    },
+    /// Bookmark markers kept as fragments. Their paragraphs stay locked
+    /// because this slice does not write the markers back. `count` is the
+    /// number of `w:bookmarkStart` / `w:bookmarkEnd` elements preserved.
+    BookmarksPreserved {
+        count: usize,
+    },
 }
 
 /// What happened to one inline picture. Remote and active payloads are not

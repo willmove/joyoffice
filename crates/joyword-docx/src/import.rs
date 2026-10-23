@@ -73,6 +73,8 @@ pub(crate) struct Importer<'a> {
     /// `false` while reading `comments.xml`, so a comment body is not a
     /// document anchor.
     pub(crate) record_comment_anchors: bool,
+    /// Bookmark markers recorded while story paragraphs are read.
+    pub(crate) bookmarks: crate::bookmark::State,
     /// Supplemental theme fonts until `w:themeFontLang` is read.
     theme_scripts: Option<crate::settings::ThemeScripts>,
     theme_languages: crate::settings::ThemeLanguages,
@@ -270,6 +272,18 @@ impl<'a> Importer<'a> {
                 },
             );
         }
+        let bookmarks = self.bookmarks.preserved();
+        if bookmarks > 0 {
+            // One summary, not one warning per marker. A few hundred markers
+            // would otherwise fill [`MAX_DIAGNOSTICS`] before the name and
+            // anchor refusals were recorded.
+            self.diagnose(
+                Severity::Warning,
+                None,
+                None,
+                DiagnosticKind::BookmarksPreserved { count: bookmarks },
+            );
+        }
     }
 }
 
@@ -339,6 +353,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
         comment_marks: Vec::new(),
         unmapped_comment_ids: std::collections::BTreeSet::new(),
         record_comment_anchors: true,
+        bookmarks: crate::bookmark::State::default(),
         theme_scripts: None,
         theme_languages: crate::settings::ThemeLanguages::default(),
     };
@@ -431,6 +446,7 @@ pub fn import(bytes: &[u8], budget: &Budget) -> Result<ImportResult, ImportError
     }
     importer.main_document(&main)?;
     importer.import_comments(&package)?;
+    crate::bookmark::bind(&mut importer);
     importer.warn_unreferenced_stories(&package, &main.name);
     importer.warn_unreferenced_images(&package, &main.name);
     importer.finish_summaries();
