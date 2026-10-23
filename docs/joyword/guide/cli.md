@@ -50,6 +50,7 @@ joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf
 文本路径在 `execute_text`。光栅和 PDF 在 [visual.rs](../../../apps/joyword-cli/src/visual.rs)，调用与窗口相同的 `layout_document` 和页面场景，不做另一套分页。`render`／`convert` 的 JSON 也是 schema 1，并报告 `omitted_blocks`。
 
 帮助文本里的投影句子就是上表。测试覆盖五个原创样例的稳定 JSON 与 PNG，同一输入两次运行逐字节相同；见任务 T210 的完成证据，本页不另列未在此核对的命令输出。
+另有两个示例工具不参与上表的命令：`feature_scenes` 生成页面场景样例（CI 的 unified-pdf 作业用它），`chapter_probe` 报告一个 DOCX 导入后的章节页码设置，用来区分「`w:pgNumType` 已类型化导入」与「退回保留通道」。两者的用法见 [第二波验证手册](../verification/wave2-manual-verification.md)。
 
 ## 限制
 
