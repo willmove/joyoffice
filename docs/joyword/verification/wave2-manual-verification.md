@@ -2,6 +2,8 @@
 
 日期 2026-10-23。第二波四路切片与集成 PR 已合入 `main`（#89 `6c43799`、#91 `2f183d8`、#90 `4c9e34d`、#92 `aec6ba4`、#93 `2466b05`）。本文给出每项特性的**可执行验证步骤**，并写明哪些能手工验证、哪些只能靠自动测试。
 
+**本文只覆盖第二波。** 第一波（七项切片与收尾 PR #88，合入 `ec8c807`）的验证方式分散在各任务的 [验收清单](../acceptance/README.md) 与 [实现记录](../IMPLEMENTATION.md) 里；本文末尾的「一页速查」列出的命令同样适用于第一波切片（T200 编号写回、T202 栏分隔线、T301 格式修订、T401 受限工具、T110 Windows 卷观测）。
+
 本文只提供验证方法，不改任务状态。四个任务仍是 `in_progress`：切片落地不等于任务完成。
 
 ## 先读这一段：哪些能手工验证
@@ -339,6 +341,20 @@ gh pr checks 93
 
 1. `scripts/tests/test_make_feature_fixtures.py::test_committed_bytes_and_manifest_hashes_match` 本地必然失败：本机 Python 3.14.7 链接 zlib-ng，级别 6 deflate 字节与 CI 的 stock zlib 不同，5 个 DOCX-FEAT 夹具哈希因此不一致。**解压后成员与 CRC 相同**，干净 main 上同样失败。不要重生成夹具。
 2. `cargo test --workspace` 会带入 `apps/joyword`（非默认成员），可能触发同一 target 目录串味。**每个工作树用独立 `CARGO_TARGET_DIR`**，最终集成验证串行跑。
+
+## 第一波的验证入口
+
+第一波七项切片已合入 `main`（#81–#87 与 #88）。它们的原子准则在各自的验收清单里，下面是入口与主要自动验证命令：
+
+| 切片 | 验收清单 | 主要自动验证命令 |
+| --- | --- | --- |
+| T110 Windows 卷能力观测 | [TASKS](../TASKS.md) 的 T110 条目 | `cargo test -p joyword-shell --locked --lib storage::metadata` |
+| T401 受限工具与授权 | [TASKS](../TASKS.md) 的 T401 条目 | `cargo test -p joyword-agent --locked` |
+| T200 编号部件写回 | [T200](../acceptance/T200.md) | `cargo test -p joyword-docx --locked --test numbering_writeback` |
+| T202 栏分隔线与 `nextColumn` | [T202](../acceptance/T202.md) | 见本文第 2 节 |
+| T301 格式修订 | [T301](../acceptance/T301.md) | `cargo test -p joyword-docx --locked --test format_revisions` |
+| CLI JSON 键序（#82） | [验收清单索引](../acceptance/README.md) | `cargo test -p joyword-cli --locked --tests`（29 项；不加 `--tests` 时 CLI 没有可运行的测试目标） |
+| 门禁加固（#86） | — | `python scripts/check_gates.py` 与 `python scripts/check_gates.py --counterexample scripts/tests/fixtures/gate_counterexample.rs`（后者必须**非零退出**） |
 
 ## 一页速查
 
