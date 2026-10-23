@@ -29,10 +29,26 @@ export CARGO_TARGET_DIR="$PWD/target"     # 共享 target 会串味，见文末
 
 1. 打开 `tests/fixtures/docx/DOCX-SAMPLE-001.docx`，修改一处文字但**先不保存**。
 2. 用任务管理器强制结束 JoyWord 进程。
-3. 重新启动 JoyWord，打开同一文件：应提示恢复到强制结束前的状态。
-4. 与正式保存的文件对照：正式保存那份不含未保存的修改，恢复出来的那份含。
+3. 重新启动 JoyWord。
 
-**期望**：恢复内容是最后完整提交的状态；正式文件不被恢复内容覆盖。
+**期望**：恢复是**自动**的——启动时若恢复目录里有有效检查点，JoyWord 直接以恢复出的内容打开，不弹确认框。打开后正文应包含第 1 步的未保存修改。
+4. 与正式保存的文件对照：正式保存那份不含未保存的修改，恢复出来的那份含，两者互不覆盖。
+
+**恢复目录**（可用 `JOYWORD_RECOVERY_DIR` 环境变量改到别处，方便反复试验）：
+
+| 平台 | 位置 |
+| --- | --- |
+| Windows | `%APPDATA%\JoyWord\recovery` |
+| macOS | `~/Library/Application Support/JoyWord/recovery` |
+| Linux | `$XDG_CONFIG_HOME/joyword/recovery`（缺省 `~/.config/joyword/recovery`） |
+
+### 用例 A2：显式丢弃恢复（手工）
+
+1. 同样修改文档但不保存，强杀进程，重启（此时已自动恢复到未保存的内容）。
+2. 关闭文档，在「未保存」确认框里选**丢弃**。
+3. 再次打开该文档。
+
+**期望**：恢复槽被墓碑式丢弃（不是删文件），再次打开时**不再**自动恢复上一次的内容，而是回到上次正式保存的状态。这一步由 `only_explicit_discard_for_the_prompted_version_can_close` 覆盖。
 
 ### 用例 B：双代与损坏回退（自动 + 手工可查）
 
@@ -49,7 +65,7 @@ cargo test -p joyword-shell --locked --lib storage::recovery
 - `encryption_is_refused_on_write_and_on_legacy_or_v2_recovery`：加密包不落明文。
 - `a_released_lock_can_be_taken_again_by_the_same_process`：同进程可再次取锁（见第 6 节 macOS 说明）。
 
-**手工查文件**：恢复目录在配置目录下（Windows 为 `%APPDATA%/JoyWord/recovery`，可用 `JOYWORD_RECOVERY_DIR` 指定）。恢复后可看到 `recovery-a.jwr`／`recovery-b.jwr` 两个文件交替更新，以及 `recovery.lock` 锁文件（**不会**被删除，这是设计）。
+**手工查文件**：恢复目录见上表。恢复后可看到 `recovery-a.jwr`／`recovery-b.jwr` 两个文件交替更新，以及 `recovery.lock` 锁文件（**不会**被删除，这是设计）。
 
 ### 用例 C：macOS 锁（重点，Linux/Windows 复现不了）
 
