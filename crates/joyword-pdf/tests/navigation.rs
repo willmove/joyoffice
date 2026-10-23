@@ -217,6 +217,27 @@ fn model_forward_backward_same_page_and_uri_actions_survive_pdf_readback() -> Te
 }
 
 #[test]
+fn a_non_ascii_bookmark_name_survives_the_name_tree_readback() -> TestResult {
+    let mut document = model(&[("AV", Some(anchor("目录")?))])?;
+    let snapshot = layout(&document)?;
+    let point = position(&document, 0, 1)?;
+    bookmark(&mut document, "目录", point, point);
+    let navigation = navigation_from_document(&document, &snapshot).map_err(error)?;
+    let bytes = render_export_with_navigation(
+        snapshot.pages(),
+        &[font()?],
+        &PdfExport::default(),
+        &navigation,
+    )
+    .map_err(error)?;
+    let read = inspect_navigation(&bytes).map_err(error)?;
+    assert!(read.bookmarks.contains_key("目录"), "{:?}", read.bookmarks);
+    assert_eq!(read.links.len(), 1);
+    assert_eq!(read.links[0].destination, read.bookmarks["目录"]);
+    Ok(())
+}
+
+#[test]
 fn empty_document_and_empty_paragraph_bookmark_are_distinct_from_empty_names() -> TestResult {
     let mut document = model(&[("", None)])?;
     let snapshot = layout(&document)?;

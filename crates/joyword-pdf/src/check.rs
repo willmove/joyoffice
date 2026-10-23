@@ -158,12 +158,12 @@ fn read_named_destinations(
             return Err("destination name pairs");
         }
         for pair in names.as_chunks::<2>().0 {
-            let Value::Str(name) = &pair[0] else {
+            let Value::Str { text: name, bytes } = &pair[0] else {
                 return Err("destination name");
             };
             if out.len() >= MAX_OBJECTS
                 || out
-                    .insert(name.clone(), read_xyz(file, &pair[1], stats)?)
+                    .insert(name_key(name, bytes), read_xyz(file, &pair[1], stats)?)
                     .is_some()
             {
                 return Err("destination name count or duplicate");
@@ -171,6 +171,21 @@ fn read_named_destinations(
         }
     }
     Ok(())
+}
+
+/// Report a name tree key. ISO 32000-1 compares these keys byte by byte, so
+/// the raw octets decide the identity. A writer may store them as UTF-16BE
+/// with a byte order mark or as plain UTF-8; the text string decoding above
+/// already handles the marked form, and this recovers the unmarked UTF-8 form
+/// that the byte-wise comparison otherwise hides.
+fn name_key(text: &str, bytes: &[u8]) -> String {
+    if bytes.starts_with(&[0xfe, 0xff]) {
+        return text.to_owned();
+    }
+    match std::str::from_utf8(bytes) {
+        Ok(decoded) => decoded.to_owned(),
+        Err(_) => text.to_owned(),
+    }
 }
 
 fn goto_link(
@@ -209,7 +224,12 @@ enum Value {
     Int(i64),
     Real(f32),
     Name(String),
-    Str(String),
+    /// A text string. `bytes` keeps the raw octets so a name tree key can be
+    /// compared and reported byte by byte, as ISO 32000-1 requires.
+    Str {
+        text: String,
+        bytes: Vec<u8>,
+    },
     Ref(u32),
     Array(Vec<Value>),
     Dict(BTreeMap<String, Value>),
@@ -657,9 +677,9 @@ fn link_uri(file: &mut File<'_>, value: &Value) -> Result<Option<String>, &'stat
         return Ok(None);
     }
     Ok(match action.get("URI") {
-        Some(Value::Str(text)) => Some(text.clone()),
+        Some(Value::Str { text, .. }) => Some(text.clone()),
         Some(Value::Ref(number)) => match file.object(*number)? {
-            Value::Str(text) => Some(text),
+            Value::Str { text, .. } => Some(text),
             _ => None,
         },
         _ => None,
@@ -755,7 +775,7 @@ fn walk_outline(
     }
     let object = file.object(number)?;
     let dict = dict_of(&object).ok_or("outline item")?.clone();
-    if let Some(Value::Str(title)) = dict.get("Title") {
+    if let Some(Value::Str { text: title, .. }) = dict.get("Title") {
         titles.push(title.clone());
     }
     if let Some(child) = dict.get("First").and_then(as_ref) {
@@ -771,11 +791,11 @@ fn info_fields(value: &Value) -> Result<InfoFields, &'static str> {
     let dict = dict_of(value).ok_or("info")?;
     Ok(InfoFields {
         producer: match dict.get("Producer") {
-            Some(Value::Str(text)) => Some(text.clone()),
+            Some(Value::Str { text, .. }) => Some(text.clone()),
             _ => None,
         },
         title: match dict.get("Title") {
-            Some(Value::Str(text)) => Some(text.clone()),
+            Some(Value::Str { text, .. }) => Some(text.clone()),
             _ => None,
         },
         has_creation_date: dict.contains_key("CreationDate"),
@@ -1120,7 +1140,10 @@ impl<'a> Cursor<'a> {
                 other => bytes.push(other),
             }
         }
-        Ok(Value::Str(decode_pdf_text(&bytes)))
+        Ok(Value::Str {
+            text: decode_pdf_text(&bytes),
+            bytes,
+        })
     }
 
     fn hex_string(&mut self) -> Result<Value, &'static str> {
@@ -1144,7 +1167,10 @@ impl<'a> Cursor<'a> {
             .chunks(2)
             .map(|pair| (pair[0] << 4) | pair[1])
             .collect();
-        Ok(Value::Str(decode_pdf_text(&bytes)))
+        Ok(Value::Str {
+            text: decode_pdf_text(&bytes),
+            bytes,
+        })
     }
 }
 
