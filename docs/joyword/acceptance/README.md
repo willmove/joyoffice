@@ -7,6 +7,7 @@
 2026-10-20 缺口修复：该分支已作为 [#67](https://github.com/willmove/joyoffice/pull/67) 合入 main `caf84147`，对应行改为已修复，见 [验证波次缺口修复](../verification/verify-wave-fixes.md)。T202 的正文页码只限无格式域，T203 的 wrapTight 只是方形近似，两条限制写在行里。T203 图片关系另报 not-imported 已由 [#69](https://github.com/willmove/joyoffice/pull/69) 修复。任务状态不变；`scripts/check_acceptance.py` 现在在 CI 作业 dependencies 里运行。
 
 2026-10-22 六分支并行波次：新增 [T301](T301.md) 清单（正文段落的 `w:pPrChange`／`w:rPrChange`，表格结构修订明确不实现），[T200](T200.md) 补编号部件追加式写回与级别制表位写回的行，[T202](T202.md) 把栏分隔线从 not-implemented 改为 partial、把 `nextColumn` 写进基础分节行，并更正一处过时的测试名引用。这一波新增的行最初指向集成分支 `chore/integration-wave-20261022` 上的测试；2026-10-23 核验时，六个实现 PR 与 #86 门禁加固已全部进入 `main` `85a24de`，其主干 CI 九项全绿。`check_acceptance.py` 仍校验当前工作树里的测试名和文件，收尾记录另作复验。全部是自动证据，没有任务改为 `done`，也没有任何一条人工验收被关闭。
+2026-10-23 第二波：新增 [T104](T104.md) 清单（生产恢复双代、代次与 CRC、损坏回退、旧格式只读兼容与保存期间的编辑竞争）。其余清单按实际实现补行，没有任务改为 `done`，也没有任何一条人工验收被关闭。
 
 `scripts/check_acceptance.py` 读取本目录的 `T*.md`。状态必须是下表之一；证据列里用反引号标出的、含下划线的 Rust 标识必须是 `crates/` 或 `apps/` 里的 `fn` 名。本地链接必须指向本分支已有的文件。每份清单必须原样引用该任务的自动验证和人工验收句子，并带「GUI 抽查脚本」。
 
@@ -26,6 +27,7 @@
 
 | 任务 | 清单 |
 | --- | --- |
+| T104 撤销、本地日志与恢复 | [T104](T104.md) |
 | T103 DOCX 最小语义与保留读写 | [T103](T103.md) |
 | T200 样式、编号与编辑便利 | [T200](T200.md) |
 | T201 基础表格编辑 | [T201](T201.md) |
