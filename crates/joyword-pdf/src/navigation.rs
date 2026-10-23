@@ -58,6 +58,11 @@ pub struct PdfGoToLink {
 pub struct PdfNavigation {
     pub bookmarks: Vec<PdfBookmark>,
     pub links: Vec<PdfGoToLink>,
+    /// Anchor-only links whose target is not a bookmark of this document. They
+    /// have no destination to point at, so no annotation is written for them.
+    /// A DOCX keeps its bookmarks and its anchor links in separate parts, and
+    /// only the links are imported, so a real document can carry these.
+    pub unresolved_links: usize,
 }
 
 /// Deterministic refusal, without echoing untrusted names or URI contents.
@@ -69,7 +74,6 @@ pub enum NavigationError {
     DuplicateName,
     DetachedBookmark,
     InvalidPosition,
-    MissingBookmark,
     StaleLayout,
     InvalidGeometry,
     InvalidUri,
@@ -375,9 +379,14 @@ pub fn navigation_from_document(
             {
                 let name = link.anchor.as_deref().ok_or(NavigationError::EmptyName)?;
                 check_name(name)?;
-                let destination = *destinations
-                    .get(name)
-                    .ok_or(NavigationError::MissingBookmark)?;
+                let Some(destination) = destinations.get(name).copied() else {
+                    // The target is not a bookmark of this document. The link
+                    // cannot point anywhere, so it is left out and counted
+                    // rather than failing the whole export.
+                    navigation.unresolved_links += 1;
+                    at = end;
+                    continue;
+                };
                 spans += 1;
                 if spans > MAX_PDF_LINKS {
                     return Err(NavigationError::Budget);
