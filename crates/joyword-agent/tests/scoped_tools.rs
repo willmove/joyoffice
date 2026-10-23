@@ -283,8 +283,8 @@ fn tool_allowlist_refuses_unlisted_and_propose_tools() {
         );
     }
 
-    // A granted propose tool still defers to T402: the allowlist never turns
-    // into a write path in this slice.
+    // The old zero-payload entry still refuses: only the bounded replacement
+    // API supports proposals, and neither path edits a document.
     let grant = Grant::issue(
         &doc,
         doc.document_id(),
@@ -299,9 +299,9 @@ fn tool_allowlist_refuses_unlisted_and_propose_tools() {
     assert_eq!(
         session
             .call(ToolCall::ProposeReplace)
-            .expect_err("deferred")
+            .expect_err("bounded request required")
             .kind(),
-        "propose-deferred"
+        "replace-request-required"
     );
     assert_eq!(runtime.document_mutations(), 0);
 }

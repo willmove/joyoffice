@@ -54,13 +54,24 @@ impl fmt::Display for ToolUnavailable {
     }
 }
 
-/// Fields a later milestone will validate. `apply` does not edit a document.
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// Legacy fields, not a validated replacement. `apply` does not edit a document.
+#[derive(Clone, PartialEq, Eq)]
 pub struct ChangeProposal {
     pub proposal_id: String,
     pub document_id: String,
     pub base_version: u64,
     pub explanation: String,
+}
+
+impl fmt::Debug for ChangeProposal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ChangeProposal")
+            .field("proposal_id_bytes", &self.proposal_id.len())
+            .field("document_id_bytes", &self.document_id.len())
+            .field("base_version", &self.base_version)
+            .field("explanation_bytes", &self.explanation.len())
+            .finish()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -4,8 +4,8 @@
 //! [`TickClock`]. Every operation re-validates the grant against a fresh
 //! snapshot, the live gate generation, and the clock before projecting
 //! anything. The tool allowlist is enforced at dispatch and every direct tool
-//! entry point: ungranted tools are refused, and propose tools stay refused
-//! until T402 even when listed. Document text stays inside the authorized range;
+//! entry point: ungranted tools are refused. Only the bounded replacement API
+//! supports proposals; there is no apply path. Text stays inside the authorized range;
 //! nothing here parses document text for instructions, so injected content
 //! cannot widen the allowlist or the range (AI.md §2: document, comment,
 //! field, and web text are data).
@@ -18,6 +18,7 @@ use std::fmt;
 
 use crate::document::{DocumentPort, DocumentSnapshot, PortError};
 use crate::gate::{AiPhase, GateError};
+use crate::replace::{self, ReplaceError, ReplacePreview, ReplaceProposal, ReplaceRequest};
 use crate::runtime::AgentRuntime;
 use crate::scope::{DocumentId, Grant, ScopeError, ScopeRange, TickClock};
 use crate::tools::ToolId;
@@ -46,6 +47,9 @@ pub enum ToolError {
     ContextTooLarge,
     StructureTooLarge,
     ProposeDeferredUntilT402,
+    ReplaceRequestRequired,
+    ProposeUnsupported,
+    Replace(ReplaceError),
 }
 
 impl ToolError {
@@ -68,6 +72,9 @@ impl ToolError {
             ToolError::ContextTooLarge => "context-too-large",
             ToolError::StructureTooLarge => "structure-too-large",
             ToolError::ProposeDeferredUntilT402 => "propose-deferred",
+            ToolError::ReplaceRequestRequired => "replace-request-required",
+            ToolError::ProposeUnsupported => "propose-unsupported",
+            ToolError::Replace(error) => error.kind(),
         }
     }
 }
@@ -90,6 +97,13 @@ impl fmt::Display for ToolError {
             ToolError::ProposeDeferredUntilT402 => {
                 f.write_str("propose tools are deferred until T402")
             }
+            ToolError::ReplaceRequestRequired => {
+                f.write_str("use ToolSession::propose_replace with a bounded ReplaceRequest")
+            }
+            ToolError::ProposeUnsupported => {
+                f.write_str("style, table, and comment proposals are not supported")
+            }
+            ToolError::Replace(error) => write!(f, "{error}"),
         }
     }
 }
@@ -205,8 +219,8 @@ impl fmt::Debug for Context {
     }
 }
 
-/// A tool call as the dispatch surface sees it. Propose variants exist so the
-/// allowlist refusal path is observable before T402.
+/// Legacy dispatch surface. Zero-payload propose variants always refuse;
+/// bounded replacements use `ToolSession::propose_replace` instead.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ToolCall<'a> {
     ReadSelection,
@@ -275,11 +289,29 @@ impl<'a> ToolSession<'a> {
             ToolCall::ReadSelection => self.read_selection().map(ToolOutput::Selection),
             ToolCall::ReadStructure => self.read_structure().map(ToolOutput::Structure),
             ToolCall::Search { query } => self.search(query).map(ToolOutput::Search),
-            ToolCall::ProposeReplace
-            | ToolCall::ProposeStyle
-            | ToolCall::ProposeTable
-            | ToolCall::ProposeComment => Err(ToolError::ProposeDeferredUntilT402),
+            ToolCall::ProposeReplace => Err(ToolError::ReplaceRequestRequired),
+            ToolCall::ProposeStyle | ToolCall::ProposeTable | ToolCall::ProposeComment => {
+                Err(ToolError::ProposeUnsupported)
+            }
         }
+    }
+
+    /// Propose one plain-text replacement of the complete nonempty grant range.
+    /// The request cannot supply scope or document bindings. This reserves an ID
+    /// only, and never calls the provider or admits/applies a document commit.
+    pub fn propose_replace(
+        &self,
+        request: ReplaceRequest<'_>,
+    ) -> Result<ReplaceProposal, ToolError> {
+        self.require_tool(ToolId::ProposeReplace)?;
+        replace::propose(self.runtime, self.port, &self.grant, self.clock, request)
+    }
+
+    /// Revalidate the exact original authorization on every preview. Requires
+    /// ProposeReplace, not ReadSelection; an unrelated read grant is not enough.
+    pub fn preview_replace(&self, proposal: &ReplaceProposal) -> Result<ReplacePreview, ToolError> {
+        self.require_tool(ToolId::ProposeReplace)?;
+        replace::preview(self.runtime, self.port, &self.grant, self.clock, proposal)
     }
 
     pub fn read_selection(&self) -> Result<SelectionText, ToolError> {
@@ -561,13 +593,13 @@ mod tests {
         let mut doc = MemoryDocument::new("doc.race").map_err(|_| "invalid fixture id")?;
         doc.push_paragraph(MemoryParagraph::heading(1, "authorized"))?;
         let clock = TickClock::new();
-        for operation in 0..7 {
+        for operation in 0..9 {
             let runtime = runtime()?;
             let grant = Grant::issue(
                 &doc,
                 doc.document_id(),
                 ScopeRange::new(0, 10)?,
-                ToolAllowlist::read_only(),
+                ToolAllowlist::read_only().with(ToolId::ProposeReplace),
                 runtime.generation()?,
                 &clock,
                 100,
@@ -591,7 +623,24 @@ mod tests {
                         query: "authorized",
                     })
                     .map(|_| ()),
-                _ => session.build_context("question").map(|_| ()),
+                6 => session.build_context("question").map(|_| ()),
+                7 => session
+                    .propose_replace(ReplaceRequest {
+                        id: "snapshot-race",
+                        replacement: "replacement",
+                        explanation: "reason",
+                    })
+                    .map(|_| ()),
+                _ => {
+                    let proposal =
+                        ToolSession::new(&runtime, &doc, session.grant().clone(), &clock)
+                            .propose_replace(ReplaceRequest {
+                                id: "snapshot-race",
+                                replacement: "replacement",
+                                explanation: "reason",
+                            })?;
+                    session.preview_replace(&proposal).map(|_| ())
+                }
             };
             let expected = match change {
                 GateChange::Stop => ToolError::Gate(GateError::Stopping),
@@ -601,6 +650,34 @@ mod tests {
             assert_eq!(result, Err(expected), "operation {operation}, {change:?}");
             assert_eq!(port.calls.get(), 1);
             assert_eq!(runtime.provider_calls(), 0);
+            assert_eq!(runtime.allowed_commits(), 0);
+            if operation >= 7 {
+                runtime.gate().kill_switch()?;
+                runtime.gate().set_user_enabled(true)?;
+                let fresh_grant = Grant::issue(
+                    &doc,
+                    doc.document_id(),
+                    ScopeRange::new(0, 10)?,
+                    ToolAllowlist::from_slice(&[ToolId::ProposeReplace]),
+                    runtime.generation()?,
+                    &clock,
+                    100,
+                )?;
+                let result = ToolSession::new(&runtime, &doc, fresh_grant, &clock)
+                    .propose_replace(ReplaceRequest {
+                        id: "snapshot-race",
+                        replacement: "replacement",
+                        explanation: "reason",
+                    })
+                    .map(|_| ());
+                if operation == 7 {
+                    // A snapshot-time refusal cannot reserve the creation ID.
+                    assert_eq!(result, Ok(()));
+                } else {
+                    // A refused preview must not release a successful reservation.
+                    assert_eq!(result, Err(ToolError::Replace(ReplaceError::DuplicateId)));
+                }
+            }
         }
         Ok(())
     }
