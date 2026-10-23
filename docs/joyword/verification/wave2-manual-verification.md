@@ -98,6 +98,26 @@ PY
 
 **期望**：1 pt 黑色细线，位于栏间空隙中点，纵向从正文框顶铺到底。
 
+**用像素证据代替肉眼判断**（更可靠，也可脚本化）：
+
+```bash
+cargo run --locked -p joyword-cli -- render \
+  --font "C:/Windows/Fonts/simsun.ttc:0" \
+  --output target/manual-verify/png target/manual-verify/column-separator.docx
+
+python - <<'PY'
+from PIL import Image
+im = Image.open("target/manual-verify/png/page-1.png").convert("L")
+w, h = im.size; px = im.load()
+hits = [x for x in range(w)
+        if sum(1 for y in range(0, h, 3) if px[x, y] < 128) > (h // 3) * 0.5]
+print("vertical rule columns:", hits)   # 期望：一段连续的两列
+PY
+```
+
+**期望**：打印出一段连续的列号（本机样例为 `[469, 470]`，1 pt 宽在 144 dpi 下约 2 像素）。
+作为对照，把同一段脚本指向**未加 `w:sep`** 的原始样例 `tests/fixtures/feature/DOCX-FEAT-T202-PAGES.docx`，应打印空列表——这一对照证明竖线确实由该属性引起。
+
 ### 用例 C：自动验证
 
 ```bash
@@ -142,9 +162,33 @@ PY
 ### 用例 B：肉眼核对
 
 1. 在 JoyWord 打开 `target/manual-verify/chapter-page.docx`，翻到有页码的页。
-2. 页脚页码**应带章节前缀**，形如 `1-1`（hyphen 是 U+2011，显示为短横）。
 
-**重要限制**：样例文档**没有用 Heading 1 样式、也没有编号**，所以**看不到前缀**。这是设计而非缺陷——章节号取自「实际渲染出的编号标签」，没有编号就没有章号。要看到前缀，文档必须同时具备：内置 `heading 1` 样式的段落 **且** 该段落有编号定义。仓库内 `chapter_model()` 测试辅助函数构造了这种文档，但它是测试代码，不是可导入的样例文件。
+**重要限制：这个样例看不到章节前缀，这是文档本身不具备条件，不是功能缺陷。** 章节号取自「实际渲染出的编号标签」，所以文档必须同时具备三样东西：
+
+1. 用内置 `heading 1` 样式的段落（样式名必须是 `heading 1`，`标题 1` 之类的本地化名不被识别）；
+2. 该段落带编号定义（`w:numPr`）；
+3. 该节带 `w:pgNumType/@w:chapStyle="1"`。
+
+而 `DOCX-FEAT-T202-PAGES.docx` **三样都没有**：它没有 `word/styles.xml`、没有任何 `w:pStyle`、没有 `w:numPr`。所以在它上面加 `chapStyle` 只会得到「页码不变」。
+
+**第一步：确认 `chapStyle` 确实被导入**（用仓库附带的探针工具）：
+
+```bash
+cargo run --locked -p joyword-cli --example chapter_probe -- target/manual-verify/chapter-page.docx
+```
+
+期望输出：
+
+```
+section 0: chapter level Some(1), separator Hyphen
+section 1: no chapter settings
+sections with chapter settings: 1
+read only reasons:
+```
+
+对照（**未加 `chapStyle`** 的原始样例）应显示 `sections with chapter settings: 0` 并给出提示。这证明 `w:pgNumType` 是**类型化导入**而不是退回保留通道。
+
+**第二步：要看前缀，请用 Word 造一个满足上述条件的文档**（Word → 样式 → 标题 1 → 多级列表编号 → 插入 → 页码 → 格式 → 包含章节号），存为 DOCX 后用 JoyWord 打开：页脚页码应形如 `1-1`（hyphen 是 U+2011，显示为短横）；把 `chapSep` 改成句点／冒号／破折号应同步变化。
 
 **因此本章节的可靠验证是自动验证**：
 
@@ -301,6 +345,8 @@ cargo test -p joyword-agent   --locked                            # T402
 #   打开样例 → 改一处不保存 → 强杀进程 → 重启恢复
 # 手工：栏分隔线与章节页码样例
 #   按第 2、3 节生成 target/manual-verify/*.docx 后打开核对
+#   栏分隔线的像素证据见第 2 节用例 B 的脚本
+#   章节设置是否导入：cargo run --locked -p joyword-cli --example chapter_probe -- <file.docx>
 ```
 
 ## 仍未覆盖（不算通过）
