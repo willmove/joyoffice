@@ -10,11 +10,10 @@
 //! stored on those runs and is not fetched. Other wrappers are descended into
 //! for their text and preserved. Bookmark markers in a paragraph become
 //! annotations when the story is the body, a header, a footer, or a placeable
-//! comment; their bytes are still preserved. An accepted body bookmark does
-//! not lock the paragraph, because export writes the marker back. A header,
-//! footer, or comment bookmark is an annotation, and its paragraph stays
-//! locked because those bytes are not written back. A marker that is not
-//! accepted still locks its paragraph. Other range markers are preserved
+//! comment; their bytes are still preserved. An accepted bookmark does not
+//! lock the paragraph, because export writes the marker back into the part
+//! it came from. A marker that is not accepted still locks its paragraph.
+//! Other range markers are preserved
 //! without a position. A paragraph or block holding preserved content is
 //! locked.
 

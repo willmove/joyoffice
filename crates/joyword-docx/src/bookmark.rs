@@ -24,24 +24,25 @@
 //! This importer does the same, case-sensitively, so the PDF writer does not
 //! see a duplicate.
 //!
-//! Accepted body markers stay in the package as fragments, but they do not
-//! lock the paragraph. An unchanged export copies the original package. An
-//! edit that keeps every bookmark a body range reuses those marker bytes:
-//! a host paragraph that did not change keeps them in place, and a host that
-//! changed (or a range that moved) is rewritten by splicing the same
-//! `bookmarkStart` / `bookmarkEnd` bytes at the model offsets. Removing,
-//! renaming, detaching, reversing, or pointing a bookmark outside a top-level
-//! body paragraph is refused.
+//! Accepted markers stay in the package as fragments, but they do not lock
+//! the paragraph. An unchanged export copies the original package. An edit
+//! that keeps every bookmark a range in the part it was imported from reuses
+//! those marker bytes: a host paragraph that did not change keeps them in
+//! place, and a host that changed (or a range that moved) is rewritten by
+//! splicing the same `bookmarkStart` / `bookmarkEnd` bytes at the model
+//! offsets. Body markers are spliced into `document.xml`. Header, footer,
+//! and comment markers are spliced into the part named by their source, not
+//! into `document.xml`. Removing, renaming, detaching, reversing, changing
+//! the imported bias, or pointing a bookmark at a paragraph outside that
+//! part is refused.
 //!
-//! Header, footer, and comment ranges use the same name and pair rules and
-//! become annotations, so PDF GoTo can resolve them. This slice does not
-//! write those marker bytes back. Their paragraphs stay locked, and any edit
-//! export stays `Restricted`, so the markers are not dropped. A comment
-//! bookmark is accepted only when that comment's anchor is a range in the
-//! body, a header, or a footer: layout places every offset of the comment
-//! story on that anchor caret, because comment text is not painted. A
-//! detached comment has no page point, so its bookmark is diagnosed and not
-//! inserted. A footnote, endnote, or text-box story is not placed.
+//! A comment bookmark is accepted only when that comment's anchor is a range
+//! in the body, a header, or a footer: layout places every offset of the
+//! comment story on that anchor caret, because comment text is not painted.
+//! A detached comment has no page point, so its bookmark is diagnosed and
+//! not inserted. Export refuses a comment bookmark whose comment is no
+//! longer placeable, so the marker is not written back as a destination that
+//! import would drop. A footnote, endnote, or text-box story is not placed.
 //! A bookmark inside an opaque table, or a `colFirst` / `colLast` column
 //! bookmark, is diagnosed and not inserted, and its paragraph stays locked.
 
@@ -52,7 +53,7 @@ use std::sync::Arc;
 use joyoffice_opc::{Budget, PartName};
 use joyword_model::{
     Anchor, AnnotationId, AnnotationKind, Bias, Block, BlockSeq, Document, NodeId, Paragraph,
-    Position, ScalarOffset, SourceRef, StoryId, StoryKind,
+    Position, ScalarOffset, SourceRef, Story, StoryId, StoryKind,
 };
 
 use crate::backing::{Fragment, PreservedReason};
@@ -136,14 +137,12 @@ struct Place {
     order: usize,
 }
 
-/// Whether the pair was inserted, and whether its paragraph stays locked.
+/// Whether the pair was inserted. A rejected marker locks its paragraph.
+/// An accepted marker, in any story this slice writes back, does not.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Admission {
     Rejected,
-    /// Body range. Export can splice the marker bytes.
-    Body,
-    /// Header, footer, or comment range. The bytes are not written back.
-    LockedStory,
+    Accepted,
 }
 
 fn is_bookmark(element: &Element) -> bool {
@@ -318,7 +317,7 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
             remember_unwritable(&mut unwritable, &group);
             continue;
         }
-        if bind_group(importer, id, &group, &mut accepted) != Admission::Body {
+        if bind_group(importer, id, &group, &mut accepted) == Admission::Rejected {
             remember_unwritable(&mut unwritable, &group);
         }
     }
@@ -512,11 +511,7 @@ fn bind_group(
         stored.source = Some(source);
     }
     accepted.insert(name);
-    if start_at.kind == StoryKind::Body {
-        Admission::Body
-    } else {
-        Admission::LockedStory
-    }
+    Admission::Accepted
 }
 
 fn story_admits_bookmarks(kind: StoryKind) -> bool {
@@ -618,25 +613,33 @@ fn bookmark_rows(document: &Document) -> Vec<(AnnotationId, Arc<str>, Anchor)> {
         .collect()
 }
 
-/// A body range this slice can write with the imported marker bytes.
+/// A range this slice can write with the imported marker bytes of `part`.
 ///
-/// The bias is the one import stores. A detached anchor, a header, footer,
-/// comment, or table-cell paragraph, a reversed range, or an offset past the
-/// paragraph is not representable. Header, footer, and comment bookmarks
-/// stay in the model for PDF and are not spliced back by this function.
-pub(crate) fn anchor_writable(document: &Document, anchor: &Anchor) -> bool {
+/// The bias is the one import stores. The start and end must be top-level
+/// paragraphs of one body, header, footer, or placeable comment story, in
+/// order, and that story must live in `part`. A body bookmark may land on a
+/// new top-level body paragraph that has no source of its own; the part is
+/// the body's. A header, footer, or comment bookmark may not: its paragraphs
+/// have to name `part`, so the marker is not invented into `document.xml` or
+/// another story part. A detached anchor, a reversed range, a table cell, or
+/// an offset past the paragraph is not representable.
+pub(crate) fn anchor_writable(document: &Document, part: &str, anchor: &Anchor) -> bool {
     let Anchor::Range { start, end } = anchor else {
         return false;
     };
-    if start.bias != Bias::After || end.bias != Bias::Before {
+    if start.bias != Bias::After || end.bias != Bias::Before || start.story != end.story {
         return false;
     }
-    let body = document.body_id();
-    if start.story != body || end.story != body {
+    let Some(story) = document.story(start.story) else {
+        return false;
+    };
+    if !story_admits_bookmarks(story.kind) {
         return false;
     }
-    let paragraphs: Vec<&Paragraph> = document
-        .body()
+    if story.kind == StoryKind::Comment && !comment_anchor_placeable(document, story.id) {
+        return false;
+    }
+    let paragraphs: Vec<&Paragraph> = story
         .blocks
         .iter()
         .filter_map(Block::as_paragraph)
@@ -656,7 +659,29 @@ pub(crate) fn anchor_writable(document: &Document, anchor: &Anchor) -> bool {
     if start.offset.0 > paragraphs[start_at].len() || end.offset.0 > paragraphs[end_at].len() {
         return false;
     }
-    start_at < end_at || (start_at == end_at && start.offset.0 <= end.offset.0)
+    if start_at > end_at || (start_at == end_at && start.offset.0 > end.offset.0) {
+        return false;
+    }
+    if story.kind == StoryKind::Body {
+        return story.id == document.body_id() && body_part(document) == Some(part);
+    }
+    paragraph_part(paragraphs[start_at]) == Some(part)
+        && paragraph_part(paragraphs[end_at]) == Some(part)
+}
+
+fn body_part(document: &Document) -> Option<&str> {
+    document.body().blocks.iter().find_map(|block| {
+        block
+            .as_paragraph()
+            .and_then(|paragraph| paragraph_part(paragraph))
+    })
+}
+
+fn paragraph_part(paragraph: &Paragraph) -> Option<&str> {
+    paragraph
+        .source
+        .as_deref()
+        .map(|source| source.part.as_ref())
 }
 
 struct SavedBookmark {
@@ -668,10 +693,14 @@ struct SavedBookmark {
 /// Splice imported bookmark markers into `patched` when an edit moved them
 /// or rewrote their host paragraph.
 ///
-/// `None` means every accepted bookmark still sits on an unedited host, so
-/// the patched part already contains the original marker bytes. Markers this
-/// slice did not import are refused rather than deleted.
+/// Only bookmarks whose source part is `part` are considered. `None` means
+/// every such bookmark still sits on an unedited host, so the patched part
+/// already contains the original marker bytes. Markers this slice did not
+/// import are refused rather than deleted. Body markers stay in
+/// `document.xml`; header, footer, and comment markers stay in their own part.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn write_back(
+    part: &str,
     original_xml: &[u8],
     patched: &[u8],
     original: &Document,
@@ -679,11 +708,8 @@ pub(crate) fn write_back(
     edited: &BTreeSet<NodeId>,
     budget: &Budget,
 ) -> Result<Option<Vec<u8>>, ExportError> {
-    let saved = saved_bookmarks(original_xml, original, budget)?;
+    let saved = saved_bookmarks(part, original_xml, original, budget)?;
     if saved.is_empty() {
-        if current_bookmarks(current).next().is_some() {
-            return Err(unsupported(None, "bookmark range cannot be written"));
-        }
         return Ok(None);
     }
     let moving: Vec<usize> = saved
@@ -697,7 +723,7 @@ pub(crate) fn write_back(
     }
     let moving_ids: BTreeSet<u32> = moving.iter().map(|index| saved[*index].1.id).collect();
     let known_ids: BTreeSet<u32> = saved.iter().map(|(_, saved)| saved.id).collect();
-    let root = parse_document(patched, budget)?;
+    let root = parse_part(part, patched, budget)?;
     let mut strip = Vec::new();
     collect_markers(&root, &moving_ids, &known_ids, &mut strip)?;
     strip.sort_by_key(|range| range.start);
@@ -707,20 +733,9 @@ pub(crate) fn write_back(
         }
     }
     let stripped = apply_edits(patched, &strip, &[]);
-    let root = parse_document(&stripped, budget)?;
-    let body = root
-        .child(W, "body")
-        .ok_or_else(|| unsupported(None, "missing source body"))?;
-    let model: Vec<&Paragraph> = current
-        .body()
-        .blocks
-        .iter()
-        .filter_map(Block::as_paragraph)
-        .collect();
-    let xml_paragraphs: Vec<&Element> = body.elements().filter(|child| child.is(W, "p")).collect();
-    if model.len() != xml_paragraphs.len() {
-        return Err(unsupported(None, "bookmark range cannot be written"));
-    }
+    let root = parse_part(part, &stripped, budget)?;
+    let needed = needed_paragraphs(current, &saved, &moving);
+    let aligned = align_part(part, &root, current, &needed)?;
     let mut events: BTreeMap<usize, Vec<MarkerEvent>> = BTreeMap::new();
     for (index, saved_index) in moving.iter().enumerate() {
         let (annotation_id, marker) = &saved[*saved_index];
@@ -730,21 +745,21 @@ pub(crate) fn write_back(
         let AnnotationKind::Bookmark { .. } = &annotation.kind else {
             return Err(unsupported(None, "a bookmark changed"));
         };
-        if !anchor_writable(current, &annotation.anchor) {
+        if !anchor_writable(current, part, &annotation.anchor) {
             return Err(unsupported(None, "a bookmark changed"));
         }
         let Anchor::Range { start, end } = &annotation.anchor else {
             return Err(unsupported(None, "a bookmark changed"));
         };
-        let Some(start_at) = model
+        let Some(start_at) = aligned
             .iter()
-            .position(|paragraph| paragraph.id() == start.paragraph)
+            .position(|(paragraph, _)| *paragraph == start.paragraph)
         else {
             return Err(unsupported(None, "bookmark range cannot be written"));
         };
-        let Some(end_at) = model
+        let Some(end_at) = aligned
             .iter()
-            .position(|paragraph| paragraph.id() == end.paragraph)
+            .position(|(paragraph, _)| *paragraph == end.paragraph)
         else {
             return Err(unsupported(None, "bookmark range cannot be written"));
         };
@@ -765,18 +780,151 @@ pub(crate) fn write_back(
     for (index, paragraph_events) in events {
         edits.extend(paragraph_edits(
             &stripped,
-            xml_paragraphs[index],
+            aligned[index].1,
             &paragraph_events,
         )?);
     }
     let bytes = apply_edits(&stripped, &[], &edits);
     if bytes.len() as u64 > budget.max_part_bytes {
         return Err(ExportError::Budget {
-            part: "word/document.xml".into(),
+            part: part.into(),
             limit: budget.max_part_bytes,
         });
     }
     Ok(Some(bytes))
+}
+
+fn needed_paragraphs(
+    document: &Document,
+    saved: &[(AnnotationId, SavedBookmark)],
+    moving: &[usize],
+) -> BTreeSet<NodeId> {
+    let mut needed = BTreeSet::new();
+    for index in moving {
+        let Some(annotation) = document.annotation(saved[*index].0) else {
+            continue;
+        };
+        let Anchor::Range { start, end } = &annotation.anchor else {
+            continue;
+        };
+        needed.insert(start.paragraph);
+        needed.insert(end.paragraph);
+    }
+    needed
+}
+
+fn align_part<'a>(
+    part: &str,
+    root: &'a Element,
+    document: &Document,
+    needed: &BTreeSet<NodeId>,
+) -> Result<Vec<(NodeId, &'a Element)>, ExportError> {
+    let fail = || unsupported(None, "bookmark range cannot be written");
+    if root.is(W, "document") {
+        let body = root.child(W, "body").ok_or_else(fail)?;
+        let model = top_paragraphs(document.body());
+        let xml: Vec<&Element> = body.elements().filter(|child| child.is(W, "p")).collect();
+        return zip_ids(&model, &xml);
+    }
+    if root.is(W, "hdr") || root.is(W, "ftr") {
+        let story = story_for_part(document, part, root.is(W, "hdr"))?;
+        let model = top_paragraphs(story);
+        let xml: Vec<&Element> = root.elements().filter(|child| child.is(W, "p")).collect();
+        return zip_ids(&model, &xml);
+    }
+    if root.is(W, "comments") {
+        let mut aligned = Vec::new();
+        for element in root.elements().filter(|child| child.is(W, "comment")) {
+            let Some(id) = marker_id(element) else {
+                continue;
+            };
+            let Some(story_id) = comment_body(document, id) else {
+                continue;
+            };
+            let Some(story) = document.story(story_id) else {
+                continue;
+            };
+            let model = top_paragraphs(story);
+            let xml: Vec<&Element> = element
+                .elements()
+                .filter(|child| child.is(W, "p"))
+                .collect();
+            let targets = model.iter().any(|id| needed.contains(id));
+            if model.len() != xml.len() {
+                if targets {
+                    return Err(fail());
+                }
+                continue;
+            }
+            aligned.extend(model.into_iter().zip(xml));
+        }
+        if needed
+            .iter()
+            .any(|id| aligned.iter().all(|(paragraph, _)| paragraph != id))
+        {
+            return Err(fail());
+        }
+        return Ok(aligned);
+    }
+    Err(fail())
+}
+
+fn zip_ids<'a>(
+    model: &[NodeId],
+    xml: &[&'a Element],
+) -> Result<Vec<(NodeId, &'a Element)>, ExportError> {
+    if model.len() != xml.len() {
+        return Err(unsupported(None, "bookmark range cannot be written"));
+    }
+    Ok(model.iter().copied().zip(xml.iter().copied()).collect())
+}
+
+fn top_paragraphs(story: &Story) -> Vec<NodeId> {
+    story
+        .blocks
+        .iter()
+        .filter_map(|block| block.as_paragraph().map(|paragraph| paragraph.id()))
+        .collect()
+}
+
+fn story_for_part<'a>(
+    document: &'a Document,
+    part: &str,
+    header: bool,
+) -> Result<&'a Story, ExportError> {
+    let kind = if header {
+        StoryKind::Header
+    } else {
+        StoryKind::Footer
+    };
+    let mut found = None;
+    for story in document.stories() {
+        if story.kind != kind {
+            continue;
+        }
+        let in_part = story
+            .blocks
+            .iter()
+            .filter_map(Block::as_paragraph)
+            .any(|paragraph| paragraph_part(paragraph) == Some(part));
+        if !in_part {
+            continue;
+        }
+        if found.is_some() {
+            return Err(unsupported(None, "bookmark range cannot be written"));
+        }
+        found = Some(story);
+    }
+    found.ok_or_else(|| unsupported(None, "bookmark range cannot be written"))
+}
+
+fn comment_body(document: &Document, source_id: u32) -> Option<StoryId> {
+    document.annotations().find_map(|annotation| {
+        let AnnotationKind::Comment(comment) = &annotation.kind else {
+            return None;
+        };
+        (comment.source_id == source_id).then_some(comment.body)
+    })
 }
 
 fn current_bookmarks(document: &Document) -> impl Iterator<Item = &joyword_model::Annotation> {
@@ -807,15 +955,23 @@ fn bookmark_moves(
 }
 
 fn saved_bookmarks(
+    part: &str,
     xml: &[u8],
     document: &Document,
     budget: &Budget,
 ) -> Result<Vec<(AnnotationId, SavedBookmark)>, ExportError> {
-    let bookmarks: Vec<_> = current_bookmarks(document).collect();
+    let bookmarks: Vec<_> = current_bookmarks(document)
+        .filter(|annotation| {
+            annotation
+                .source
+                .as_deref()
+                .is_some_and(|source| source.part.as_ref() == part)
+        })
+        .collect();
     if bookmarks.is_empty() {
         return Ok(Vec::new());
     }
-    let root = parse_document(xml, budget)?;
+    let root = parse_part(part, xml, budget)?;
     let mut found = Vec::new();
     for annotation in bookmarks {
         let Some(source) = annotation.source.as_deref() else {
@@ -1161,12 +1317,12 @@ fn apply_edits(xml: &[u8], deletions: &[Range<usize>], edits: &[ByteEdit]) -> Ve
     out
 }
 
-fn parse_document(bytes: &[u8], budget: &Budget) -> Result<Element, ExportError> {
-    XmlReader::new("word/document.xml", bytes, budget)
+fn parse_part(part: &str, bytes: &[u8], budget: &Budget) -> Result<Element, ExportError> {
+    XmlReader::new(part, bytes, budget)
         .and_then(XmlReader::whole)
         .map_err(|error| {
             ExportError::Import(crate::ImportError::Xml {
-                part: "word/document.xml".into(),
+                part: part.into(),
                 error,
             })
         })

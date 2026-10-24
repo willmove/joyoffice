@@ -1,11 +1,13 @@
 //! Comment import and conservative export (ECMA-376 Part 1 §17.13.4;
 //! [MS-DOCX] commentsExtended, commentsIds and commentsExtensible).
 //!
-//! Existing `w:comment` elements are not reserialized. Resolve patches
-//! `w15:done` in place. A reply or a new root comment is spliced before the
-//! root end tag. Unknown attributes and non-paragraph children stay in the
-//! original bytes, and the model keeps a copy so a rewrite that dropped them
-//! would fail the semantic comparison.
+//! Existing `w:comment` elements are not reserialized as a whole. Resolve
+//! patches `w15:done` in place. A reply or a new root comment is spliced
+//! before the root end tag. Text leaves of an edited comment paragraph are
+//! patched in place; bookmark markers in that part are spliced by the
+//! bookmark writer. Unknown attributes and non-paragraph children stay in
+//! the original bytes, and the model keeps a copy so a rewrite that dropped
+//! them would fail the semantic comparison.
 //!
 //! Range markers use `w:commentRangeStart` / `w:commentRangeEnd`. A reply
 //! normally has no markers; its anchor is the parent's. People.xml is not
@@ -788,7 +790,8 @@ fn walk_index(
 /// Comment anchors and resolved flags may change. Identity fields may not.
 /// New annotations must be comments with new comment stories. An imported
 /// bookmark keeps its name. Its anchor may move to another representable
-/// body range; removing, renaming, or detaching it is refused.
+/// range in the part it was imported from. Removing, renaming, detaching,
+/// or pointing it at a paragraph in a different part is refused.
 pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'static str> {
     for annotation in before.annotations() {
         let Some(other) = after.annotation(annotation.id) else {
@@ -811,17 +814,26 @@ pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'stat
                 }
             }
             (AnnotationKind::Bookmark { .. }, AnnotationKind::Bookmark { .. }) => {
-                // Header, footer, and comment bookmarks stay in the model for
-                // PDF GoTo and are not written back, so an unchanged one is
-                // not a body range. A bookmark that moved must still be a
-                // body range. A body bookmark whose host disappeared is a
-                // change even when the stored position bytes are the same.
-                if annotation.kind != other.kind
-                    || (annotation.anchor != other.anchor
-                        && !crate::bookmark::anchor_writable(after, &other.anchor))
-                    || (annotation.anchor == other.anchor
-                        && crate::bookmark::anchor_writable(before, &annotation.anchor)
-                        && !crate::bookmark::anchor_writable(after, &other.anchor))
+                // The marker bytes belong to the part recorded at import.
+                // A move has to stay inside that part. A host that disappeared
+                // is a change even when the stored position bytes are the same.
+                if annotation.kind != other.kind {
+                    return Err("a bookmark changed");
+                }
+                let Some(part) = annotation
+                    .source
+                    .as_deref()
+                    .map(|source| source.part.as_ref())
+                else {
+                    if annotation.anchor != other.anchor {
+                        return Err("a bookmark changed");
+                    }
+                    continue;
+                };
+                let after_ok = crate::bookmark::anchor_writable(after, part, &other.anchor);
+                let before_ok = crate::bookmark::anchor_writable(before, part, &annotation.anchor);
+                if (annotation.anchor != other.anchor && !after_ok)
+                    || (annotation.anchor == other.anchor && before_ok && !after_ok)
                 {
                     return Err("a bookmark changed");
                 }
@@ -862,6 +874,47 @@ fn same_identity(left: &Comment, right: &Comment) -> bool {
         && left.date_utc == right.date_utc
         && left.extra_attributes == right.extra_attributes
         && left.extra_markup == right.extra_markup
+}
+
+pub(crate) fn source_id_for_story(document: &Document, story: StoryId) -> Option<u32> {
+    document.annotations().find_map(|annotation| {
+        let AnnotationKind::Comment(comment) = &annotation.kind else {
+            return None;
+        };
+        (comment.body == story).then_some(comment.source_id)
+    })
+}
+
+/// Comment story text differs. Header and footer text is compared by
+/// `header_footer`; this is the same check for comment stories, whose
+/// paragraphs are patched in place.
+pub(crate) fn stories_differ(original: &Document, current: &Document) -> bool {
+    let changed = |document: &Document, other: &Document| {
+        document.stories().any(|story| {
+            if story.kind != StoryKind::Comment {
+                return false;
+            }
+            match other.story(story.id) {
+                Some(after) => !same_story_blocks(story, after),
+                None => true,
+            }
+        })
+    };
+    changed(original, current) || changed(current, original)
+}
+
+fn same_story_blocks(before: &joyword_model::Story, after: &joyword_model::Story) -> bool {
+    before.blocks.len() == after.blocks.len()
+        && before
+            .blocks
+            .iter()
+            .zip(after.blocks.iter())
+            .all(
+                |(left, right)| match (left.as_paragraph(), right.as_paragraph()) {
+                    (Some(left), Some(right)) => left == right,
+                    _ => false,
+                },
+            )
 }
 
 pub(crate) fn differs(before: &Document, after: &Document) -> bool {
