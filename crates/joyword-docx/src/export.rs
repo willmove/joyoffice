@@ -260,6 +260,7 @@ fn plan_export_after_import(
         && !story_changed
         && !numbering_changed
         && !crate::comment::differs(original, current)
+        && !crate::bookmark::differs(original, current)
     {
         return Ok(plan);
     }
@@ -471,11 +472,36 @@ fn plan_export_after_import(
     if let Some(bytes) = comment_write.as_ref().and_then(|write| write.main.clone()) {
         main_bytes = bytes;
     }
+    let edited_paragraphs: std::collections::BTreeSet<NodeId> = alignment
+        .edited
+        .iter()
+        .map(|(_, after)| after.id())
+        .collect();
+    let bookmark_bytes = crate::bookmark::write_back(
+        &main.data,
+        &main_bytes,
+        original,
+        current,
+        &edited_paragraphs,
+        budget,
+    )?;
+    let bookmarks_rewritten = bookmark_bytes.is_some();
+    if let Some(bytes) = bookmark_bytes {
+        main_bytes = bytes;
+        let package_total = projected - (output_len as i128) + (main_bytes.len() as i128);
+        if package_total < 0 || package_total > budget.max_total_bytes as i128 {
+            return Err(ExportError::Budget {
+                part: "package".into(),
+                limit: budget.max_total_bytes,
+            });
+        }
+    }
     let main_changed = !alignment.is_unchanged()
         || !section_page_changes.is_empty()
         || comment_write
             .as_ref()
-            .is_some_and(|write| write.main.is_some());
+            .is_some_and(|write| write.main.is_some())
+        || bookmarks_rewritten;
     let mut replacements = Vec::new();
     if main_changed {
         replacements.push((main_name.clone(), main_bytes));
@@ -1368,6 +1394,8 @@ fn text_slots<'e>(
             || child.is(W, "proofErr")
             || child.is(W, "commentRangeStart")
             || child.is(W, "commentRangeEnd")
+            || child.is(W, "bookmarkStart")
+            || child.is(W, "bookmarkEnd")
         {
             continue;
         }
@@ -1411,7 +1439,9 @@ fn hyperlink_leaf(element: &Element) -> Result<(), &'static str> {
     if !relationship && !anchor {
         return Err("unsupported paragraph markup");
     }
-    if element.elements().any(|child| !child.is(W, "r")) {
+    if element.elements().any(|child| {
+        !(child.is(W, "r") || child.is(W, "bookmarkStart") || child.is(W, "bookmarkEnd"))
+    }) {
         return Err("unsupported paragraph markup");
     }
     Ok(())
@@ -1429,6 +1459,8 @@ fn collect_run_slots<'e>(
         if leaf.is(W, "rPr")
             || leaf.is(W, "lastRenderedPageBreak")
             || leaf.is(W, "commentReference")
+            || leaf.is(W, "bookmarkStart")
+            || leaf.is(W, "bookmarkEnd")
         {
             continue;
         }

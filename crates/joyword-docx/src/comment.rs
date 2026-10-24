@@ -787,8 +787,8 @@ fn walk_index(
 
 /// Comment anchors and resolved flags may change. Identity fields may not.
 /// New annotations must be comments with new comment stories. An imported
-/// bookmark must keep its name and anchor; this slice does not rewrite the
-/// marker markup, so dropping it on export is refused.
+/// bookmark keeps its name. Its anchor may move to another representable
+/// body range; removing, renaming, or detaching it is refused.
 pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'static str> {
     for annotation in before.annotations() {
         let Some(other) = after.annotation(annotation.id) else {
@@ -811,7 +811,9 @@ pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'stat
                 }
             }
             (AnnotationKind::Bookmark { .. }, AnnotationKind::Bookmark { .. }) => {
-                if annotation.kind != other.kind || annotation.anchor != other.anchor {
+                if annotation.kind != other.kind
+                    || !crate::bookmark::anchor_writable(after, &other.anchor)
+                {
                     return Err("a bookmark changed");
                 }
             }

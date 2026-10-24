@@ -2,8 +2,10 @@
 //!
 //! Body ranges become model bookmarks the PDF named-destination path can
 //! resolve. Names are kept exactly. Markers that PDF would refuse, or that
-//! are not body carets, are diagnosed and not inserted. Marker bytes stay in
-//! the package and lock the paragraph; this slice does not write them back.
+//! are not body carets, are diagnosed and not inserted. Accepted marker
+//! bytes stay in the package. An unchanged export copies them. An edit that
+//! keeps the range in the body writes them back; a shape this slice does not
+//! represent is refused.
 
 use std::sync::Arc;
 
@@ -156,8 +158,10 @@ fn a_body_bookmark_keeps_its_name_and_range() {
         &result,
         &DiagnosticKind::BookmarksPreserved { count: 8 }
     ));
+    // Accepted body bookmarks do not lock the paragraph. Export splices the
+    // marker bytes back, so editing the text does not have to drop them.
     for paragraph in paragraphs(&result) {
-        assert!(!result.editability.can_edit(paragraph.id()));
+        assert!(result.editability.can_edit(paragraph.id()));
     }
 
     let body_id = result.document.body().id;
@@ -390,11 +394,64 @@ fn the_pdf_bookmark_budget_keeps_the_first_names() {
     );
 }
 
+fn ranges(document: &Document, name: &str) -> (usize, usize, usize, usize) {
+    let paras: Vec<_> = document
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .collect();
+    let mark = bookmark(document, name);
+    let Anchor::Range { start, end } = &mark.anchor else {
+        panic!("range");
+    };
+    let index = |id| {
+        paras
+            .iter()
+            .position(|paragraph| paragraph.id() == id)
+            .unwrap()
+    };
+    (
+        index(start.paragraph),
+        start.offset.0,
+        index(end.paragraph),
+        end.offset.0,
+    )
+}
+
+fn round_trip(bytes: &[u8], document: &Document) -> ImportResult {
+    let plan = plan_export(
+        &open(bytes).backing,
+        &document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(plan.mode(), ExportMode::TextPatch);
+    let xml = part_text(plan.bytes(), "/word/document.xml");
+    assert!(xml.contains("w:bookmarkStart"), "{xml}");
+    assert!(xml.contains("w:bookmarkEnd"), "{xml}");
+    let again = open(plan.bytes());
+    assert_eq!(names(&again.document), names(document));
+    for name in names(document) {
+        assert_eq!(
+            ranges(&again.document, &name),
+            ranges(document, &name),
+            "{name}"
+        );
+    }
+    again
+}
+
 #[test]
-fn an_edited_export_refuses_to_drop_bookmark_markup() {
+fn an_edited_export_writes_body_bookmarks_back() {
     let body = concat!(
-        r#"<w:p><w:bookmarkStart w:id="1" w:name="mark"/><w:r><w:t>甲</w:t></w:r>"#,
-        r#"<w:bookmarkEnd w:id="1"/></w:p><w:p><w:r><w:t>乙</w:t></w:r></w:p>"#,
+        r#"<w:p><w:bookmarkStart w:id="1" w:name="mark" w:displacedByCustomXml="next"/>"#,
+        r#"<w:r><w:t>甲</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>"#,
+        r#"<w:p><w:r><w:bookmarkStart w:id="2" w:name="inrun"/><w:t>文</w:t>"#,
+        r#"<w:bookmarkEnd w:id="2"/></w:r></w:p>"#,
+        r#"<w:p><w:hyperlink w:anchor="mark"><w:bookmarkStart w:id="3" w:name="Inside"/>"#,
+        r#"<w:r><w:t>Go</w:t></w:r><w:bookmarkEnd w:id="3"/></w:hyperlink></w:p>"#,
+        r#"<w:p><w:r><w:t>乙</w:t></w:r></w:p>"#,
     );
     let bytes = package(body);
     let result = open(&bytes);
@@ -406,19 +463,65 @@ fn an_edited_export_refuses_to_drop_bookmark_markup() {
     .unwrap();
     assert_eq!(plan.mode(), ExportMode::OriginalPackage);
     assert_eq!(plan.bytes(), bytes.as_slice());
-    assert!(part_text(plan.bytes(), "/word/document.xml").contains("w:bookmarkStart"));
 
+    // Editing a paragraph that does not host a bookmark keeps the marker
+    // bytes. Reimport recovers the same names and ranges.
     let mut current = result.document.clone();
-    body_paragraph(&mut current, 1)
+    body_paragraph(&mut current, 3)
         .insert_text(ScalarOffset(0), "X")
         .unwrap();
-    assert!(matches!(
-        plan_export(&result.backing, &current.snapshot(), &Budget::default()),
-        Err(ExportError::Restricted)
-    ));
+    let again = round_trip(&bytes, &current);
+    assert_eq!(texts(&again), ["甲", "文", "Go", "X乙"]);
+    assert!(
+        part_text(
+            plan_export(&result.backing, &current.snapshot(), &Budget::default())
+                .unwrap()
+                .bytes(),
+            "/word/document.xml"
+        )
+        .contains(r#"w:displacedByCustomXml="next""#)
+    );
+
+    // Editing the host rewrites the markers at the model offsets. The anchor
+    // here follows the inserted scalar, the same way the engine maps
+    // Bias::After / Bias::Before.
+    let mut shifted = result.document.clone();
+    body_paragraph(&mut shifted, 0)
+        .insert_text(ScalarOffset(0), "Q")
+        .unwrap();
+    let id = bookmark(&shifted, "mark").id;
+    let Anchor::Range { start, end } = &mut shifted.annotation_mut(id).unwrap().anchor else {
+        panic!("range");
+    };
+    start.offset = ScalarOffset(1);
+    end.offset = ScalarOffset(2);
+    let again = round_trip(&bytes, &shifted);
+    assert_eq!(texts(&again), ["Q甲", "文", "Go", "乙"]);
+    assert_eq!(ranges(&again.document, "mark"), (0, 1, 0, 2));
+    assert_eq!(ranges(&again.document, "inrun"), (1, 0, 1, 1));
+    assert_eq!(ranges(&again.document, "Inside"), (2, 0, 2, 2));
+    let xml = part_text(
+        plan_export(&result.backing, &shifted.snapshot(), &Budget::default())
+            .unwrap()
+            .bytes(),
+        "/word/document.xml",
+    );
+    assert!(xml.contains(r#"w:name="mark""#), "{xml}");
+    assert!(xml.contains(r#"w:displacedByCustomXml="next""#), "{xml}");
+    assert!(xml.contains(r#"w:id="1""#), "{xml}");
+}
+
+#[test]
+fn bookmark_write_back_refuses_unrepresentable_shapes() {
+    let body = concat!(
+        r#"<w:p><w:bookmarkStart w:id="1" w:name="mark"/><w:r><w:t>甲</w:t></w:r>"#,
+        r#"<w:bookmarkEnd w:id="1"/></w:p><w:p><w:r><w:t>乙</w:t></w:r></w:p>"#,
+    );
+    let bytes = package(body);
+    let result = open(&bytes);
+    let id = bookmark(&result.document, "mark").id;
 
     let mut renamed = result.document.clone();
-    let id = bookmark(&renamed, "mark").id;
     match &mut renamed.annotation_mut(id).unwrap().kind {
         AnnotationKind::Bookmark { name } => *name = Arc::from("other"),
         _ => panic!("bookmark"),
@@ -440,4 +543,211 @@ fn an_edited_export_refuses_to_drop_bookmark_markup() {
             reason: "a bookmark changed",
         })
     ));
+
+    let mut reversed = result.document.clone();
+    let Anchor::Range { start, end } = &mut reversed.annotation_mut(id).unwrap().anchor else {
+        panic!("range");
+    };
+    start.offset = ScalarOffset(1);
+    end.offset = ScalarOffset(0);
+    assert!(matches!(
+        plan_export(&result.backing, &reversed.snapshot(), &Budget::default()),
+        Err(ExportError::Unsupported {
+            node: None,
+            reason: "a bookmark changed",
+        })
+    ));
+
+    let mut removed = result.document.clone();
+    // There is no public remove. Replacing the kind is the refusal path for
+    // a bookmark that is no longer a bookmark.
+    removed.annotation_mut(id).unwrap().kind = AnnotationKind::Field { separator: None };
+    assert!(matches!(
+        plan_export(&result.backing, &removed.snapshot(), &Budget::default()),
+        Err(ExportError::Unsupported {
+            node: None,
+            reason: "non-text document content changed",
+        })
+    ));
+
+    let mut fresh = result.document.clone();
+    let story = fresh.body_id();
+    let paragraph = paragraphs_of(&fresh)[0];
+    fresh.insert_annotation(
+        AnnotationKind::Bookmark {
+            name: Arc::from("new"),
+        },
+        Anchor::Range {
+            start: joyword_model::Position {
+                story,
+                paragraph,
+                offset: ScalarOffset(0),
+                bias: Bias::After,
+            },
+            end: joyword_model::Position {
+                story,
+                paragraph,
+                offset: ScalarOffset(0),
+                bias: Bias::Before,
+            },
+        },
+    );
+    assert!(matches!(
+        plan_export(&result.backing, &fresh.snapshot(), &Budget::default()),
+        Err(ExportError::Unsupported {
+            node: None,
+            reason: "non-text document content changed",
+        })
+    ));
+
+    // A column bookmark is not an annotation. Its paragraph stays locked, so
+    // an edit cannot drop the marker.
+    let column = package(concat!(
+        r#"<w:p><w:bookmarkStart w:id="3" w:name="col" w:colFirst="0" w:colLast="0"/>"#,
+        r#"<w:r><w:t>C</w:t></w:r><w:bookmarkEnd w:id="3"/></w:p>"#,
+        r#"<w:p><w:r><w:t>乙</w:t></w:r></w:p>"#,
+    ));
+    let column_result = open(&column);
+    assert!(names(&column_result.document).is_empty());
+    assert!(!column_result.editability.is_unrestricted());
+    let mut edited = column_result.document.clone();
+    body_paragraph(&mut edited, 1)
+        .insert_text(ScalarOffset(0), "X")
+        .unwrap();
+    assert!(matches!(
+        plan_export(
+            &column_result.backing,
+            &edited.snapshot(),
+            &Budget::default()
+        ),
+        Err(ExportError::Restricted)
+    ));
+}
+
+#[test]
+fn header_and_comment_bookmarks_still_refuse_an_edit() {
+    let header = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:hdr xmlns:w="{W}"><w:p><w:bookmarkStart w:id="2" w:name="head"/><w:r><w:t>Head</w:t></w:r><w:bookmarkEnd w:id="2"/></w:p></w:hdr>"#
+    );
+    let sect = r#"<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/><w:headerReference w:type="default" r:id="rId2"/></w:sectPr>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/></Relationships>"#;
+    let header_bytes = archive(&[
+        (
+            "[Content_Types].xml",
+            &types(
+                r#"<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>"#,
+            ),
+        ),
+        ("_rels/.rels", package_rels()),
+        (
+            "word/document.xml",
+            &document(&format!(
+                r#"<w:p><w:bookmarkStart w:id="1" w:name="body"/><w:r><w:t>Body</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>{sect}"#
+            )),
+        ),
+        ("word/_rels/document.xml.rels", rels),
+        ("word/header1.xml", &header),
+    ]);
+    let header_result = open(&header_bytes);
+    assert_eq!(names(&header_result.document), ["body"]);
+    assert!(!header_result.editability.is_unrestricted());
+    let mut edited = header_result.document.clone();
+    body_paragraph(&mut edited, 0)
+        .insert_text(ScalarOffset(0), "X")
+        .unwrap();
+    assert!(matches!(
+        plan_export(
+            &header_result.backing,
+            &edited.snapshot(),
+            &Budget::default()
+        ),
+        Err(ExportError::Restricted)
+    ));
+    let mut moved = header_result.document.clone();
+    let header_story = moved
+        .stories()
+        .find(|story| story.kind == joyword_model::StoryKind::Header)
+        .expect("header")
+        .id;
+    let header_paragraph = moved
+        .story(header_story)
+        .unwrap()
+        .blocks
+        .iter()
+        .find_map(Block::as_paragraph)
+        .unwrap()
+        .id();
+    let id = bookmark(&moved, "body").id;
+    moved.annotation_mut(id).unwrap().anchor = Anchor::Range {
+        start: joyword_model::Position {
+            story: header_story,
+            paragraph: header_paragraph,
+            offset: ScalarOffset(0),
+            bias: Bias::After,
+        },
+        end: joyword_model::Position {
+            story: header_story,
+            paragraph: header_paragraph,
+            offset: ScalarOffset(0),
+            bias: Bias::Before,
+        },
+    };
+    assert!(matches!(
+        plan_export(
+            &header_result.backing,
+            &moved.snapshot(),
+            &Budget::default()
+        ),
+        Err(ExportError::Unsupported {
+            node: None,
+            reason: "a bookmark changed",
+        })
+    ));
+
+    let comments = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:comments xmlns:w="{W}"><w:comment w:id="0" w:author="Ada"><w:p><w:bookmarkStart w:id="9" w:name="note"/><w:r><w:t>Note</w:t></w:r><w:bookmarkEnd w:id="9"/></w:p></w:comment></w:comments>"#
+    );
+    let comment_rels = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="{REL}"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="comments.xml"/></Relationships>"#
+    );
+    let comment_bytes = archive(&[
+        (
+            "[Content_Types].xml",
+            &types(
+                r#"<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/>"#,
+            ),
+        ),
+        ("_rels/.rels", package_rels()),
+        (
+            "word/document.xml",
+            &document(r#"<w:p><w:r><w:t>Body</w:t></w:r></w:p>"#),
+        ),
+        ("word/_rels/document.xml.rels", &comment_rels),
+        ("word/comments.xml", &comments),
+    ]);
+    let comment_result = open(&comment_bytes);
+    assert!(names(&comment_result.document).is_empty());
+    assert!(!comment_result.editability.is_unrestricted());
+    let mut edited = comment_result.document.clone();
+    body_paragraph(&mut edited, 0)
+        .insert_text(ScalarOffset(0), "X")
+        .unwrap();
+    assert!(matches!(
+        plan_export(
+            &comment_result.backing,
+            &edited.snapshot(),
+            &Budget::default()
+        ),
+        Err(ExportError::Restricted)
+    ));
+}
+
+fn paragraphs_of(document: &Document) -> Vec<joyword_model::NodeId> {
+    document
+        .body()
+        .blocks
+        .iter()
+        .filter_map(Block::as_paragraph)
+        .map(|paragraph| paragraph.id())
+        .collect()
 }

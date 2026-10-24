@@ -611,10 +611,6 @@ fn restricted_signed_and_locked_documents_refuse_structure_edits() {
         Some(r#"<w:documentProtection w:edit="readOnly" w:enforcement="1"/>"#),
         &[],
     );
-    let bookmark = package(&format!(
-        r#"{}<w:p><w:bookmarkStart w:id="0" w:name="mark"/><w:r><w:t>二</w:t></w:r><w:bookmarkEnd w:id="0"/></w:p>"#,
-        p("一")
-    ));
     let signed = package_with(
         &format!("{}{}", p("一"), p("二")),
         None,
@@ -622,7 +618,6 @@ fn restricted_signed_and_locked_documents_refuse_structure_edits() {
     );
     for (bytes, expected) in [
         (protected, ExportError::Restricted),
-        (bookmark, ExportError::Restricted),
         (signed, ExportError::SignedPackage),
     ] {
         let source = open(&bytes);
@@ -641,6 +636,50 @@ fn restricted_signed_and_locked_documents_refuse_structure_edits() {
             bytes.as_slice()
         );
     }
+
+    // An accepted body bookmark does not lock the package. Splitting the
+    // other paragraph keeps the marker; merging away its host is refused.
+    let bookmark = package(&format!(
+        r#"{}<w:p><w:bookmarkStart w:id="0" w:name="mark"/><w:r><w:t>二</w:t></w:r><w:bookmarkEnd w:id="0"/></w:p>"#,
+        p("一")
+    ));
+    let source = open(&bookmark);
+    let mut split_model = source.document.clone();
+    split(&mut split_model, 0, 1);
+    let plan = export(&source, &split_model).unwrap();
+    let again = import(plan.bytes(), &Budget::default()).unwrap();
+    let mark = again
+        .document
+        .annotations()
+        .find(|annotation| {
+            matches!(&annotation.kind, joyword_model::AnnotationKind::Bookmark { name } if name.as_ref() == "mark")
+        })
+        .expect("bookmark");
+    let joyword_model::Anchor::Range { end, .. } = &mark.anchor else {
+        panic!("range");
+    };
+    let host = again
+        .document
+        .body()
+        .blocks
+        .iter()
+        .filter_map(|block| block.as_paragraph())
+        .find(|paragraph| paragraph.id() == end.paragraph)
+        .expect("host");
+    assert_eq!(host.plain_text(|_| String::new()), "二");
+    let mut merged = source.document.clone();
+    merge(&mut merged, 0);
+    assert_eq!(
+        export(&source, &merged).unwrap_err(),
+        ExportError::Unsupported {
+            node: None,
+            reason: "a bookmark changed",
+        }
+    );
+    assert_eq!(
+        export(&source, &source.document).unwrap().bytes(),
+        bookmark.as_slice()
+    );
 }
 
 #[test]

@@ -337,9 +337,11 @@ pub enum DiagnosticKind {
     BookmarkUnsupported {
         id: u32,
     },
-    /// Bookmark markers kept as fragments. Their paragraphs stay locked
-    /// because this slice does not write the markers back. `count` is the
-    /// number of `w:bookmarkStart` / `w:bookmarkEnd` elements preserved.
+    /// Bookmark markers kept as fragments. An accepted body bookmark does
+    /// not lock its paragraph; an edited export writes the marker bytes
+    /// back. A marker this slice does not accept still locks its paragraph.
+    /// `count` is the number of `w:bookmarkStart` / `w:bookmarkEnd` elements
+    /// preserved.
     BookmarksPreserved {
         count: usize,
     },
