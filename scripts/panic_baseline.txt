@@ -342,7 +342,6 @@ crates/joyword-docx/src/xml.rs:545:.unwrap()
 crates/joyword-docx/src/xml.rs:557:.unwrap()
 crates/joyword-docx/src/xml.rs:559:.unwrap();
 crates/joyword-docx/src/xml.rs:560:let b = root.elements().next().unwrap();
-crates/joyword-docx/src/export/compare.rs:136:normalized.story_mut(body).expect("body").blocks = BlockSeq::from_vec(blocks);
 crates/joyword-docx/src/export/compare.rs:278:import(&write_archive(&items).unwrap(), &Budget::default()).unwrap()
 crates/joyword-docx/src/export/compare.rs:287:.unwrap()
 crates/joyword-docx/src/export/compare.rs:297:.unwrap()
