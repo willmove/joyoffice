@@ -206,6 +206,7 @@ ribbon.group.paragraph = 段落
 ribbon.group.styles = 样式
 ribbon.group.list = 列表
 ribbon.group.find = 查找
+ribbon.group.editing = 编辑
 ribbon.group.painter = 格式刷
 ribbon.group.pages = 页面
 ribbon.group.tables = 表格

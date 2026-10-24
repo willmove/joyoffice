@@ -108,25 +108,13 @@ impl JoyWord {
             .child(self.group(
                 "ribbon.group.clipboard",
                 vec![
+                    self.large_command_button(self.control("start.paste"), cx),
                     div()
                         .flex()
                         .flex_col()
-                        .gap_1()
-                        .child(self.command_button(self.control("start.paste"), compact, cx))
-                        .child(
-                            div()
-                                .flex()
-                                .gap_1()
-                                .child(self.command_button(self.control("start.cut"), true, cx))
-                                .child(self.command_button(self.control("start.copy"), true, cx)),
-                        )
-                        .into_any_element(),
-                    div()
-                        .flex()
-                        .flex_col()
-                        .gap_1()
-                        .child(self.command_button(self.control("start.format_copy"), true, cx))
-                        .child(self.command_button(self.control("start.format_paint"), true, cx))
+                        .child(self.command_button(self.control("start.cut"), false, cx))
+                        .child(self.command_button(self.control("start.copy"), false, cx))
+                        .child(self.command_button(self.control("start.format_copy"), false, cx))
                         .into_any_element(),
                 ],
                 cx,
@@ -136,30 +124,45 @@ impl JoyWord {
                 vec![
                     div()
                         .flex()
+                        .flex_col()
                         .gap_1()
-                        .child(self.dropdown(
-                            "font-family",
-                            family,
-                            PopupKind::FontFamily,
-                            150.0,
-                            cx,
-                        ))
-                        .child(self.dropdown("font-size", size, PopupKind::FontSize, 60.0, cx))
-                        .child(self.dropdown(
-                            "font-color",
-                            "A ▾".to_owned(),
-                            PopupKind::FontColor,
-                            42.0,
-                            cx,
-                        ))
-                        .into_any_element(),
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.command_button(self.control("start.bold"), true, cx))
-                        .child(self.command_button(self.control("start.italic"), true, cx))
-                        .child(self.command_button(self.control("start.underline"), true, cx))
-                        .child(self.command_button(self.control("start.font"), true, cx))
+                        .child(
+                            div()
+                                .flex()
+                                .gap_1()
+                                .child(self.dropdown(
+                                    "font-family",
+                                    family,
+                                    PopupKind::FontFamily,
+                                    150.0,
+                                    cx,
+                                ))
+                                .child(self.dropdown(
+                                    "font-size",
+                                    size,
+                                    PopupKind::FontSize,
+                                    54.0,
+                                    cx,
+                                ))
+                                .child(self.dropdown(
+                                    "font-color",
+                                    "A ▾".to_owned(),
+                                    PopupKind::FontColor,
+                                    42.0,
+                                    cx,
+                                )),
+                        )
+                        .child(
+                            div()
+                                .flex()
+                                .gap_1()
+                                .child(self.command_button(self.control("start.bold"), true, cx))
+                                .child(self.command_button(self.control("start.italic"), true, cx))
+                                .child(
+                                    self.command_button(self.control("start.underline"), true, cx),
+                                )
+                                .child(self.command_button(self.control("start.font"), true, cx)),
+                        )
                         .into_any_element(),
                 ],
                 cx,
@@ -167,36 +170,79 @@ impl JoyWord {
             .child(self.group(
                 "ribbon.group.paragraph",
                 vec![
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.command_button(self.control("start.list_bullet"), true, cx))
-                        .child(self.command_button(self.control("start.list_level_1"), true, cx))
-                        .child(self.command_button(self.control("start.list_level_2"), true, cx))
-                        .child(self.command_button(self.control("start.list_remove"), true, cx))
-                        .into_any_element(),
-                    div()
-                        .flex()
-                        .gap_1()
-                        .child(self.command_button(self.control("start.align_left"), true, cx))
-                        .child(self.command_button(self.control("start.align"), true, cx))
-                        .child(self.command_button(self.control("start.align_right"), true, cx))
-                        .child(self.command_button(self.control("start.justify"), true, cx))
-                        .child(self.command_button(self.control("start.paragraph"), true, cx))
-                        .into_any_element(),
-                ],
+                        div()
+                            .flex()
+                            .flex_col()
+                            .gap_1()
+                            .child(
+                                div()
+                                    .flex()
+                                    .gap_1()
+                                    .child(self.command_button(
+                                        self.control("start.list_bullet"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.list_level_1"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.list_level_2"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.list_remove"),
+                                        true,
+                                        cx,
+                                    )),
+                            )
+                            .child(
+                                div()
+                                    .flex()
+                                    .gap_1()
+                                    .child(self.command_button(
+                                        self.control("start.align_left"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.align"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.align_right"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.justify"),
+                                        true,
+                                        cx,
+                                    ))
+                                    .child(self.command_button(
+                                        self.control("start.paragraph"),
+                                        true,
+                                        cx,
+                                    )),
+                            )
+                            .into_any_element(),
+                    ],
                 cx,
             ))
             .children((!compact).then(|| self.style_gallery(cx)))
             .child(self.group(
-                "ribbon.group.find",
+                "ribbon.group.editing",
                 vec![
                     self.find_panel_button("start.find_next", false, cx),
                     self.find_panel_button("start.replace", true, cx),
                 ],
                 cx,
             ))
-            .child(self.more_button(cx))
+            .children(compact.then(|| self.more_button(cx)))
             .into_any_element()
     }
 
@@ -362,6 +408,24 @@ impl JoyWord {
         compact: bool,
         cx: &mut Context<Self>,
     ) -> gpui::AnyElement {
+        self.command_button_with_size(control, compact, false, cx)
+    }
+
+    fn large_command_button(
+        &self,
+        control: Option<RibbonControl>,
+        cx: &mut Context<Self>,
+    ) -> gpui::AnyElement {
+        self.command_button_with_size(control, false, true, cx)
+    }
+
+    fn command_button_with_size(
+        &self,
+        control: Option<RibbonControl>,
+        compact: bool,
+        large: bool,
+        cx: &mut Context<Self>,
+    ) -> gpui::AnyElement {
         let Some(control) = control else {
             return div().into_any_element();
         };
@@ -374,7 +438,7 @@ impl JoyWord {
         };
         let label = self.label(control.label);
         let tooltip = label.clone();
-        div()
+        let button = div()
             .id(control.id)
             .focusable()
             .cursor_pointer()
@@ -382,7 +446,6 @@ impl JoyWord {
             .items_center()
             .justify_center()
             .gap_1()
-            .h(px(theme::CONTROL_HEIGHT))
             .px_1()
             .rounded_sm()
             .border_1()
@@ -418,8 +481,12 @@ impl JoyWord {
                     .into()
             })
             .child(drawn_icon(control.icon, ink))
-            .children((!compact).then(|| div().text_xs().child(label)))
-            .into_any_element()
+            .children((!compact).then(|| div().text_xs().child(label)));
+        if large {
+            button.flex_col().h_full().w(px(58.0)).into_any_element()
+        } else {
+            button.h(px(theme::CONTROL_HEIGHT)).into_any_element()
+        }
     }
 
     fn dropdown(
@@ -469,16 +536,16 @@ impl JoyWord {
                 div()
                     .flex()
                     .gap_1()
-                    .children(rows.into_iter().take(4).map(|row| {
+                    .children(rows.into_iter().take(6).map(|row| {
                         let id = row.id.clone();
                         div()
                             .id(SharedStringStyle::id(&row.id))
                             .cursor_pointer()
                             .flex()
-                            .flex_col()
+                            .items_center()
                             .justify_center()
-                            .w(px(74.0))
-                            .h(px(48.0))
+                            .w(px(92.0))
+                            .h(px(52.0))
                             .px_2()
                             .border_1()
                             .border_color(rgb(theme::BORDER))
@@ -493,12 +560,6 @@ impl JoyWord {
                                 );
                             }))
                             .child(div().text_sm().child(row.name))
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .text_color(rgb(theme::TEXT_MUTED))
-                                    .child(row.preview),
-                            )
                             .into_any_element()
                     }))
                     .into_any_element(),
@@ -537,18 +598,23 @@ impl JoyWord {
             .focusable()
             .cursor_pointer()
             .flex()
+            .flex_col()
             .items_center()
+            .justify_center()
             .gap_1()
-            .h(px(theme::CONTROL_HEIGHT))
-            .px_2()
+            .h_full()
+            .w(px(58.0))
             .rounded_sm()
             .hover(|style| style.bg(rgb(theme::HOVER)))
             .on_click(cx.listener(move |this, _, window, cx| {
                 this.show_find_panel(replace, window, cx);
                 cx.notify();
             }))
-            .child("⌕")
-            .child(label)
+            .child(drawn_icon(
+                if replace { "replace" } else { "find" },
+                theme::TEXT,
+            ))
+            .child(div().text_xs().child(label))
             .into_any_element()
     }
 

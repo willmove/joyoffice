@@ -2434,3 +2434,29 @@ fn ribbon_density_has_full_compact_and_overflow_tiers() {
     assert_eq!(super::ui::ribbon::ribbon_density(1100.0), 1);
     assert_eq!(super::ui::ribbon::ribbon_density(700.0), 2);
 }
+
+#[test]
+fn start_more_menu_contains_only_user_facing_commands() {
+    let controls = super::ui::shell::START_MORE_CONTROLS;
+    let unique: std::collections::HashSet<_> = controls.iter().collect();
+    assert_eq!(unique.len(), controls.len());
+    for internal in [
+        "start.undo",
+        "start.redo",
+        "start.format_paint",
+        "start.format_cancel",
+        "start.find_previous",
+        "start.replace_all",
+    ] {
+        assert!(
+            !controls.contains(&internal),
+            "unexpected menu item: {internal}"
+        );
+    }
+    for expected in ["start.paste", "start.format_copy", "start.replace"] {
+        assert!(
+            controls.contains(&expected),
+            "missing menu item: {expected}"
+        );
+    }
+}

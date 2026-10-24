@@ -207,6 +207,7 @@ ribbon.group.paragraph = Paragraph
 ribbon.group.styles = Styles
 ribbon.group.list = List
 ribbon.group.find = Find
+ribbon.group.editing = Editing
 ribbon.group.painter = Painter
 ribbon.group.pages = Pages
 ribbon.group.tables = Tables

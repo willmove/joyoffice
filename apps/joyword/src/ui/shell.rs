@@ -12,6 +12,29 @@ use joyword_shell::l10n::Catalog;
 use std::rc::Rc;
 use std::sync::Arc;
 
+pub(crate) const START_MORE_CONTROLS: &[&str] = &[
+    "start.paste",
+    "start.cut",
+    "start.copy",
+    "start.format_copy",
+    "start.bold",
+    "start.italic",
+    "start.underline",
+    "start.font",
+    "start.list_bullet",
+    "start.list_level_1",
+    "start.list_level_2",
+    "start.list_remove",
+    "start.align_left",
+    "start.align",
+    "start.align_right",
+    "start.justify",
+    "start.paragraph",
+    "start.styles",
+    "start.find_next",
+    "start.replace",
+];
+
 fn activate(entity: &Entity<JoyWord>, command: CommandId) -> Activate {
     let entity = entity.clone();
     Rc::new(move |window, cx| {
@@ -604,7 +627,11 @@ impl JoyWord {
                 .children(
                     chrome::visible_controls(&self.registry, chrome::RIBBON)
                         .into_iter()
-                        .filter(|control| control.tab == self.ribbon_tab)
+                        .filter(|control| {
+                            control.tab == self.ribbon_tab
+                                && (self.ribbon_tab != chrome::RibbonTab::Start
+                                    || START_MORE_CONTROLS.contains(&control.id))
+                        })
                         .map(|control| self.popup_ribbon(control.id, cx)),
                 )
                 .into_any_element(),
