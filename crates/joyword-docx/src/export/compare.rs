@@ -34,8 +34,8 @@ pub(super) fn equivalent(
         return true;
     }
     let (Some(expected_keys), Some(actual_keys)) = (
-        body_handles(expected, expected_backing),
-        body_handles(actual, actual_backing),
+        story_handles(expected, expected_backing),
+        story_handles(actual, actual_backing),
     ) else {
         return false;
     };
@@ -56,34 +56,40 @@ pub(super) fn equivalent(
     matches!((expected, actual), (Some(e), Some(a)) if e.semantic_difference(&a).is_none())
 }
 
-/// Every preserved handle the body refers to, with what it keeps.
-fn body_handles<'a>(
+/// Every preserved handle a story refers to, with what it keeps.
+///
+/// Bookmark write-back splits a run in whichever part owns the marker.
+/// Header, footer, and comment paragraphs are normalized the same way as
+/// the body, so their preserved run properties have to be in this map.
+fn story_handles<'a>(
     document: &Document,
     backing: &'a PackageBacking,
 ) -> Option<HashMap<PreservedId, Key<'a>>> {
     let mut handles = Vec::new();
-    for block in document.body().blocks.iter() {
-        match block {
-            Block::Paragraph(paragraph) => {
-                handles.extend(paragraph.props.preserved);
-                handles.extend(paragraph.mark_props.preserved);
-                handles.extend(
-                    paragraph
-                        .runs()
-                        .iter()
-                        .filter_map(|run| run.props.preserved),
-                );
-                handles.extend(paragraph.inlines().iter().filter_map(
-                    |inline| match &inline.kind {
-                        InlineKind::Preserved(preserved) => Some(preserved.handle),
-                        _ => None,
-                    },
-                ));
+    for story in document.stories() {
+        for block in story.blocks.iter() {
+            match block {
+                Block::Paragraph(paragraph) => {
+                    handles.extend(paragraph.props.preserved);
+                    handles.extend(paragraph.mark_props.preserved);
+                    handles.extend(
+                        paragraph
+                            .runs()
+                            .iter()
+                            .filter_map(|run| run.props.preserved),
+                    );
+                    handles.extend(paragraph.inlines().iter().filter_map(
+                        |inline| match &inline.kind {
+                            InlineKind::Preserved(preserved) => Some(preserved.handle),
+                            _ => None,
+                        },
+                    ));
+                }
+                Block::Opaque(opaque) => handles.push(opaque.preserved.handle),
+                // The importer does not produce these yet; their handles stay
+                // as they are and must then match exactly.
+                Block::Table(_) | Block::Sdt(_) => {}
             }
-            Block::Opaque(opaque) => handles.push(opaque.preserved.handle),
-            // The importer does not produce these yet; their handles stay
-            // as they are and must then match exactly.
-            Block::Table(_) | Block::Sdt(_) => {}
         }
     }
     handles
@@ -111,29 +117,32 @@ fn remap(
     }
 }
 
-/// The body with canonical handles and adjacent equally formatted text
-/// joined into one run.
+/// Every story with canonical handles and adjacent equally formatted text
+/// joined into one run. Bookmark splicing splits runs in the body and in
+/// header, footer, and comment parts; that partitioning is not semantic.
 fn normalize(
     document: &Document,
     canonical: &dyn Fn(PreservedId) -> Option<PreservedId>,
 ) -> Option<Document> {
-    let blocks = document
-        .body()
-        .blocks
-        .iter()
-        .map(|block| match block {
-            Block::Paragraph(paragraph) => rebuild(paragraph, canonical).map(Block::from),
-            Block::Opaque(opaque) => {
-                let mut opaque = OpaqueBlock::clone(opaque);
-                opaque.preserved.handle = canonical(opaque.preserved.handle)?;
-                Some(Block::from(opaque))
-            }
-            other => Some(other.clone()),
-        })
-        .collect::<Option<Vec<_>>>()?;
+    let story_ids: Vec<_> = document.stories().map(|story| story.id).collect();
     let mut normalized = document.clone();
-    let body = normalized.body_id();
-    normalized.story_mut(body).expect("body").blocks = BlockSeq::from_vec(blocks);
+    for id in story_ids {
+        let blocks = document
+            .story(id)?
+            .blocks
+            .iter()
+            .map(|block| match block {
+                Block::Paragraph(paragraph) => rebuild(paragraph, canonical).map(Block::from),
+                Block::Opaque(opaque) => {
+                    let mut opaque = OpaqueBlock::clone(opaque);
+                    opaque.preserved.handle = canonical(opaque.preserved.handle)?;
+                    Some(Block::from(opaque))
+                }
+                other => Some(other.clone()),
+            })
+            .collect::<Option<Vec<_>>>()?;
+        normalized.story_mut(id)?.blocks = BlockSeq::from_vec(blocks);
+    }
     Some(normalized)
 }
 

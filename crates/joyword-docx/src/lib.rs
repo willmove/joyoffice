@@ -60,13 +60,13 @@
 //! A `w:bookmarkStart` / `w:bookmarkEnd` pair in the body, a header, a
 //! footer, or a comment becomes a bookmark annotation whose name is kept
 //! exactly, so PDF named destinations can resolve it. The marker bytes stay
-//! in the package. An accepted body bookmark does not lock its paragraph.
-//! An unchanged export copies the original package; an edit that keeps the
-//! bookmark a body range splices those marker bytes back at the model
-//! offsets. Removing, renaming, or detaching a bookmark is refused. Header,
-//! footer, and comment bookmarks are annotations too, but this slice does
-//! not write their markers back, so their paragraphs stay locked. A comment
-//! bookmark whose comment is detached is not inserted. Opaque-table and
+//! in the package. An accepted bookmark does not lock its paragraph. An
+//! unchanged export copies the original package; an edit that keeps the
+//! bookmark in the part it was imported from splices those marker bytes back
+//! at the model offsets. Body markers stay in `document.xml`. Header, footer,
+//! and comment markers stay in their own parts. Removing, renaming,
+//! detaching, or moving a bookmark into a different part is refused. A
+//! comment bookmark whose comment is detached is not inserted. Opaque-table and
 //! column bookmarks are diagnosed and are not annotations; their paragraphs
 //! stay locked so an edit cannot drop the markers. An inline still picture
 //! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster

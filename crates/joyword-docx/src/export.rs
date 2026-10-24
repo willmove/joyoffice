@@ -6,7 +6,10 @@
 //! they were imported from; a new relationship id is appended only to that
 //! part's existing relationships part. Unmapped property markup is refused
 //! rather than dropped. Comment resolve patches `w15:done`; a new comment is
-//! appended. Other comment bytes stay intact. Numbering definitions appended
+//! appended. An edited comment paragraph's text leaves are patched in that
+//! comment element. Bookmark markers are spliced back into the part they
+//! were imported from: body into `document.xml`, header, footer, and comment
+//! into those parts. Numbering definitions appended
 //! to the store are inserted into `numbering.xml`; other numbering bytes stay
 //! intact and modified definitions are refused. Text and move revisions are written back when a
 //! paragraph is edited; other structural edits, signed packages and any
@@ -260,6 +263,7 @@ fn plan_export_after_import(
         && !story_changed
         && !numbering_changed
         && !crate::comment::differs(original, current)
+        && !crate::comment::stories_differ(original, current)
         && !crate::bookmark::differs(original, current)
     {
         return Ok(plan);
@@ -472,12 +476,9 @@ fn plan_export_after_import(
     if let Some(bytes) = comment_write.as_ref().and_then(|write| write.main.clone()) {
         main_bytes = bytes;
     }
-    let edited_paragraphs: std::collections::BTreeSet<NodeId> = alignment
-        .edited
-        .iter()
-        .map(|(_, after)| after.id())
-        .collect();
+    let edited_paragraphs = collect_edited_paragraphs(original, current, &alignment);
     let bookmark_bytes = crate::bookmark::write_back(
+        main_name.as_str(),
         &main.data,
         &main_bytes,
         original,
@@ -538,6 +539,26 @@ fn plan_export_after_import(
         }
         replacements.push((write.name, write.bytes));
     }
+    if let Some((name, bytes)) = patch_comment_stories(
+        package,
+        &source.backing,
+        original,
+        current,
+        main_name,
+        &replacements,
+        budget,
+    )? {
+        upsert_part(&mut replacements, name, bytes);
+    }
+    write_story_bookmarks(
+        package,
+        main_name,
+        original,
+        current,
+        &edited_paragraphs,
+        &mut replacements,
+        budget,
+    )?;
     let mut created = comment_write
         .as_ref()
         .map(|write| write.created.clone())
@@ -606,6 +627,252 @@ fn plan_export_after_import(
         }
     }
     Ok(plan)
+}
+
+fn collect_edited_paragraphs(
+    original: &Document,
+    current: &Document,
+    alignment: &structure::Alignment<'_>,
+) -> std::collections::BTreeSet<NodeId> {
+    let mut edited: std::collections::BTreeSet<NodeId> = alignment
+        .edited
+        .iter()
+        .map(|(_, after)| after.id())
+        .collect();
+    for story in original.stories() {
+        let Some(after) = current.story(story.id) else {
+            continue;
+        };
+        for (left, right) in story.blocks.iter().zip(after.blocks.iter()) {
+            if let (Some(was), Some(now)) = (left.as_paragraph(), right.as_paragraph())
+                && was.id() == now.id()
+                && was != now
+            {
+                edited.insert(now.id());
+            }
+        }
+    }
+    edited
+}
+
+fn upsert_part(replacements: &mut Vec<(PartName, Vec<u8>)>, name: PartName, bytes: Vec<u8>) {
+    if let Some(slot) = replacements
+        .iter_mut()
+        .find(|(existing, _)| existing == &name)
+    {
+        slot.1 = bytes;
+    } else {
+        replacements.push((name, bytes));
+    }
+}
+
+fn comments_part<'a>(
+    package: &'a joyoffice_opc::Package,
+    main: &PartName,
+) -> Option<&'a joyoffice_opc::Part> {
+    package.relationships(Some(main)).iter().find_map(|rel| {
+        if rel.kind.as_ref() != crate::ns::REL_COMMENTS {
+            return None;
+        }
+        let Target::Internal(target) = &rel.target else {
+            return None;
+        };
+        package.part(target.as_str())
+    })
+}
+
+fn word_id(element: &Element) -> Option<u32> {
+    let raw = element.attribute(Some(W), "id")?;
+    if raw.is_empty() || raw.starts_with('+') || raw.starts_with('-') {
+        return None;
+    }
+    raw.parse().ok()
+}
+
+fn same_comment_blocks(before: &Story, after: &Story) -> bool {
+    before.blocks.len() == after.blocks.len()
+        && before
+            .blocks
+            .iter()
+            .zip(after.blocks.iter())
+            .all(
+                |(left, right)| match (left.as_paragraph(), right.as_paragraph()) {
+                    (Some(left), Some(right)) => left == right,
+                    _ => false,
+                },
+            )
+}
+
+fn comment_paragraph_edits<'a>(
+    before: &'a Story,
+    after: &'a Story,
+) -> Result<Vec<(&'a Paragraph, &'a Paragraph)>, ExportError> {
+    if before.blocks.len() != after.blocks.len() {
+        return Err(unsupported(
+            None,
+            "comment story structure is not rewritten",
+        ));
+    }
+    let mut edited = Vec::new();
+    for (left, right) in before.blocks.iter().zip(after.blocks.iter()) {
+        let Some(was) = left.as_paragraph() else {
+            return Err(unsupported(
+                Some(left.id()),
+                "comment story structure is not rewritten",
+            ));
+        };
+        let Some(now) = right.as_paragraph() else {
+            return Err(unsupported(
+                Some(right.id()),
+                "comment story structure is not rewritten",
+            ));
+        };
+        if was.id() != now.id() || was.source != now.source {
+            return Err(unsupported(
+                Some(now.id()),
+                "comment story structure is not rewritten",
+            ));
+        }
+        if was != now {
+            edited.push((was, now));
+        }
+    }
+    Ok(edited)
+}
+
+/// Patch text leaves of comment stories that changed. Bookmark markers in
+/// the same part are spliced afterwards, from these bytes.
+#[allow(clippy::too_many_arguments)]
+fn patch_comment_stories(
+    package: &joyoffice_opc::Package,
+    backing: &crate::PackageBacking,
+    original: &Document,
+    current: &Document,
+    main_name: &PartName,
+    replacements: &[(PartName, Vec<u8>)],
+    budget: &Budget,
+) -> Result<Option<(PartName, Vec<u8>)>, ExportError> {
+    if !crate::comment::stories_differ(original, current) {
+        return Ok(None);
+    }
+    let Some(part) = comments_part(package, main_name) else {
+        return Err(unsupported(None, "comment part cannot be written"));
+    };
+    let prior = replacements
+        .iter()
+        .find(|(name, _)| name == &part.name)
+        .map(|(_, bytes)| bytes.as_slice())
+        .unwrap_or(part.data.as_ref());
+    let root = XmlReader::new(part.name.as_str(), prior, budget)
+        .and_then(XmlReader::whole)
+        .map_err(|error| ImportError::Xml {
+            part: part.name.to_string(),
+            error,
+        })?;
+    let mut patches = Vec::new();
+    for story in original.stories() {
+        if story.kind != StoryKind::Comment {
+            continue;
+        }
+        let Some(after) = current.story(story.id) else {
+            return Err(unsupported(
+                None,
+                "comment story structure is not rewritten",
+            ));
+        };
+        if same_comment_blocks(story, after) {
+            continue;
+        }
+        let Some(source_id) = crate::comment::source_id_for_story(original, story.id) else {
+            return Err(unsupported(
+                None,
+                "comment story structure is not rewritten",
+            ));
+        };
+        let element = root
+            .elements()
+            .find(|child| child.is(W, "comment") && word_id(child) == Some(source_id))
+            .ok_or_else(|| unsupported(None, "comment story structure is not rewritten"))?;
+        let edited = comment_paragraph_edits(story, after)?;
+        let xml = structure::Source::new(
+            part.name.as_str(),
+            prior,
+            element,
+            backing,
+            original,
+            &[&root, element],
+            current.styles().theme().colors.clone(),
+        );
+        for (was, now) in edited {
+            let paragraph = xml.paragraph(was)?;
+            patch_paragraph(
+                current.styles(),
+                current.numbering(),
+                was,
+                now,
+                &markers_of(original, was.id()),
+                &markers_of(current, now.id()),
+                &[&root, element],
+                paragraph,
+                &mut patches,
+                budget.max_part_bytes,
+                &xml,
+            )?;
+        }
+    }
+    if patches.is_empty() {
+        return Ok(None);
+    }
+    let bytes = header_footer::apply_patches(prior, patches, budget.max_part_bytes, &part.name)?;
+    Ok(Some((part.name.clone(), bytes)))
+}
+
+fn write_story_bookmarks(
+    package: &joyoffice_opc::Package,
+    main_name: &PartName,
+    original: &Document,
+    current: &Document,
+    edited: &std::collections::BTreeSet<NodeId>,
+    replacements: &mut Vec<(PartName, Vec<u8>)>,
+    budget: &Budget,
+) -> Result<(), ExportError> {
+    let mut parts = std::collections::BTreeSet::new();
+    for annotation in original.annotations() {
+        let joyword_model::AnnotationKind::Bookmark { .. } = &annotation.kind else {
+            continue;
+        };
+        let Some(source) = annotation.source.as_deref() else {
+            continue;
+        };
+        if source.part.as_ref() == main_name.as_str() {
+            continue;
+        }
+        parts.insert(source.part.to_string());
+    }
+    for part_name in parts {
+        let Some(part) = package.part(&part_name) else {
+            return Err(unsupported(None, "bookmark range cannot be written"));
+        };
+        let patched = replacements
+            .iter()
+            .find(|(name, _)| name.as_str() == part_name)
+            .map(|(_, bytes)| bytes.as_slice())
+            .unwrap_or(part.data.as_ref());
+        let Some(bytes) = crate::bookmark::write_back(
+            &part_name,
+            part.data.as_ref(),
+            patched,
+            original,
+            current,
+            edited,
+            budget,
+        )?
+        else {
+            continue;
+        };
+        upsert_part(replacements, part.name.clone(), bytes);
+    }
+    Ok(())
 }
 
 fn settings_except_tracking(before: &DocumentSettings, after: &DocumentSettings) -> bool {
@@ -836,11 +1103,13 @@ fn auxiliary_stories_match(before: &Document, after: &Document) -> bool {
         if story.kind != right.kind {
             return false;
         }
-        // Header and footer text is written by `header_footer`. Existing
-        // comment stories must keep their text; new comment stories are
-        // allowed below.
-        if !matches!(story.kind, StoryKind::Header | StoryKind::Footer)
-            && story_signature(story) != story_signature(right)
+        // Header and footer text is written by `header_footer`. Comment
+        // paragraph text is patched in `comments.xml`. New comment stories
+        // are allowed below.
+        if !matches!(
+            story.kind,
+            StoryKind::Header | StoryKind::Footer | StoryKind::Comment
+        ) && story_signature(story) != story_signature(right)
         {
             return false;
         }

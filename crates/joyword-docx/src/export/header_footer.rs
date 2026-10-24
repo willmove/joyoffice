@@ -413,7 +413,7 @@ fn fresh_relationships(
     Ok(Some((rels_name, appended)))
 }
 
-fn apply_patches(
+pub(super) fn apply_patches(
     xml: &[u8],
     mut patches: Vec<(Range<usize>, Vec<u8>)>,
     limit: u64,
