@@ -59,10 +59,13 @@
 //! Content controls, notes and fields as annotations remain unmapped.
 //! A body `w:bookmarkStart` / `w:bookmarkEnd` pair becomes a bookmark
 //! annotation whose name is kept exactly, so PDF named destinations can
-//! resolve it. The marker bytes stay in the package and still lock the
-//! paragraph; this slice does not write bookmarks back. Header, footer,
-//! comment, opaque-table and column bookmarks are diagnosed and are not
-//! annotations. An inline still picture
+//! resolve it. The marker bytes stay in the package. An accepted body
+//! bookmark does not lock its paragraph. An unchanged export copies the
+//! original package; an edit that keeps the bookmark a body range splices
+//! those marker bytes back at the model offsets. Removing, renaming, or
+//! detaching a bookmark is refused. Header, footer, comment, opaque-table
+//! and column bookmarks are diagnosed and are not annotations; their
+//! paragraphs stay locked so an edit cannot drop the markers. An inline still picture
 //! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster
 //! part inside the image budget becomes an image resource. A page-absolute
 //! `wp:anchor` with `wp:wrapNone`, page-relative `wp:wrapSquare`, or

@@ -9,9 +9,11 @@
 //! runs of text and tabs, plus bookmark markers that take no position) is
 //! stored on those runs and is not fetched. Other wrappers are descended into
 //! for their text and preserved. Bookmark markers in the body become
-//! annotations; their bytes are still preserved and lock the paragraph.
-//! Other range markers are preserved without a position. A paragraph or block
-//! holding preserved content is locked.
+//! annotations; their bytes are still preserved. An accepted body bookmark
+//! does not lock the paragraph, because export writes the marker back.
+//! A marker that is not written back still locks its paragraph. Other range
+//! markers are preserved without a position. A paragraph or block holding
+//! preserved content is locked.
 
 use std::sync::Arc;
 
@@ -452,7 +454,6 @@ fn content(
                     let before = paragraph.runs().len();
                     let was_locked = *locked;
                     let inner = scope.enter(child);
-                    let mut kept_bookmark = false;
                     for run_element in child.elements() {
                         if crate::bookmark::take(
                             importer,
@@ -461,7 +462,6 @@ fn content(
                             inner.as_ref(),
                             paragraph,
                         ) {
-                            kept_bookmark = true;
                             continue;
                         }
                         run(
@@ -479,11 +479,6 @@ fn content(
                         // The preflight did not hold. Keep the wrapper bytes and
                         // do not read the children again.
                         importer.preserve(part, child, scope, PreservedReason::Unsupported);
-                        *locked = true;
-                    }
-                    // Bookmark bytes stay in the part. Lock after the link is
-                    // stamped so the marker does not look like an unknown child.
-                    if kept_bookmark {
                         *locked = true;
                     }
                 } else {
@@ -602,9 +597,9 @@ fn content(
                 }
             }
             _ if is_marker(local) => {
-                if crate::bookmark::take(importer, part, child, scope, paragraph) {
-                    *locked = true;
-                } else if !crate::comment::record_marker(importer, child, paragraph) {
+                if !crate::bookmark::take(importer, part, child, scope, paragraph)
+                    && !crate::comment::record_marker(importer, child, paragraph)
+                {
                     let reason = foreign(importer, part, child, scope);
                     importer.preserve(part, child, scope, reason);
                     *locked = true;
@@ -748,8 +743,8 @@ fn run(
                 if !crate::bookmark::take(importer, part, child, scope, paragraph) {
                     let reason = foreign(importer, part, child, scope);
                     inline(importer, part, child, scope, reason, paragraph, format());
+                    *locked = true;
                 }
-                *locked = true;
             }
             (true, "lastRenderedPageBreak") => importer.hint(part, "lastRenderedPageBreak"),
             (true, "drawing" | "pict" | "object") => {
