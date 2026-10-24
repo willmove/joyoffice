@@ -811,8 +811,17 @@ pub(crate) fn envelope(before: &Document, after: &Document) -> Result<(), &'stat
                 }
             }
             (AnnotationKind::Bookmark { .. }, AnnotationKind::Bookmark { .. }) => {
+                // Header, footer, and comment bookmarks stay in the model for
+                // PDF GoTo and are not written back, so an unchanged one is
+                // not a body range. A bookmark that moved must still be a
+                // body range. A body bookmark whose host disappeared is a
+                // change even when the stored position bytes are the same.
                 if annotation.kind != other.kind
-                    || !crate::bookmark::anchor_writable(after, &other.anchor)
+                    || (annotation.anchor != other.anchor
+                        && !crate::bookmark::anchor_writable(after, &other.anchor))
+                    || (annotation.anchor == other.anchor
+                        && crate::bookmark::anchor_writable(before, &annotation.anchor)
+                        && !crate::bookmark::anchor_writable(after, &other.anchor))
                 {
                     return Err("a bookmark changed");
                 }

@@ -182,9 +182,11 @@ pub(crate) fn omitted_indices(
 pub(crate) fn accept_annotations(document: &Document) -> Result<(), LayoutError> {
     for annotation in document.annotations() {
         match &annotation.kind {
-            // Bookmarks do not project text or create geometry. Model validation
-            // checks ranges; the PDF resolver checks names and exact carets.
-            AnnotationKind::Bookmark { .. } => {}
+            // Bookmarks and comments do not project text. Model validation
+            // checks ranges. Header, footer, and comment bookmark carets are
+            // recorded after the body is placed; the PDF resolver checks
+            // names and those carets. Comment text itself is not painted.
+            AnnotationKind::Bookmark { .. } | AnnotationKind::Comment(_) => {}
             AnnotationKind::Field { separator } => {
                 let Anchor::Range { start, end } = &annotation.anchor else {
                     return Err(unsupported(None, "annotation or field projection"));

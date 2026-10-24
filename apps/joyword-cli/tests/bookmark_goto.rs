@@ -11,7 +11,7 @@ use joyword_layout::{
     FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LoadedFont, SingleFontProfile,
     layout_document, to_points,
 };
-use joyword_model::{Anchor, AnnotationKind, Document};
+use joyword_model::{Anchor, AnnotationKind, Document, StoryKind};
 use joyword_pdf::{
     MAX_PDF_BOOKMARKS, MAX_PDF_NAME_BYTES, PdfExport, inspect_navigation, navigation_from_document,
     render_export_with_navigation,
@@ -141,4 +141,171 @@ fn an_imported_bookmark_is_a_pdf_goto_named_destination() {
     );
     assert_eq!(read.bookmarks["Target"].zoom, Some(0.0));
     assert_eq!(read.links[0].source_page, 0);
+}
+
+#[test]
+fn header_footer_and_comment_bookmarks_are_goto_destinations() {
+    let types = r#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/></Types>"#;
+    let package_rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>"#;
+    let rels = r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="comments.xml"/></Relationships>"#;
+    let document = format!(
+        concat!(
+            r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>"#,
+            r#"<w:document xmlns:w="{W}" xmlns:r="{R}"><w:body>"#,
+            r#"<w:p><w:commentRangeStart w:id="0"/><w:r><w:t>Body</w:t></w:r>"#,
+            r#"<w:commentRangeEnd w:id="0"/><w:r><w:commentReference w:id="0"/></w:r>"#,
+            r#"<w:r><w:br w:type="page"/></w:r></w:p>"#,
+            r#"<w:p><w:hyperlink w:anchor="head"><w:r><w:t>H</w:t></w:r></w:hyperlink>"#,
+            r#"<w:hyperlink w:anchor="foot"><w:r><w:t>F</w:t></w:r></w:hyperlink>"#,
+            r#"<w:hyperlink w:anchor="note"><w:r><w:t>N</w:t></w:r></w:hyperlink>"#,
+            r#"<w:hyperlink w:anchor="HEAD"><w:r><w:t>X</w:t></w:r></w:hyperlink></w:p>"#,
+            r#"<w:sectPr><w:pgSz w:w="12240" w:h="15840"/>"#,
+            r#"<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>"#,
+            r#"<w:headerReference w:type="default" r:id="rId2"/>"#,
+            r#"<w:footerReference w:type="default" r:id="rId3"/></w:sectPr>"#,
+            r#"</w:body></w:document>"#,
+        ),
+        W = W,
+        R = R,
+    );
+    let header = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:hdr xmlns:w="{W}"><w:p><w:bookmarkStart w:id="1" w:name="head"/><w:r><w:t>Head</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p></w:hdr>"#
+    );
+    let footer = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:ftr xmlns:w="{W}"><w:p><w:bookmarkStart w:id="1" w:name="foot"/><w:r><w:t>Foot</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p></w:ftr>"#
+    );
+    let comments = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><w:comments xmlns:w="{W}"><w:comment w:id="0" w:author="Ada"><w:p><w:bookmarkStart w:id="1" w:name="note"/><w:r><w:t>Note</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p></w:comment></w:comments>"#
+    );
+    let names = [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "word/document.xml",
+        "word/_rels/document.xml.rels",
+        "word/header1.xml",
+        "word/footer1.xml",
+        "word/comments.xml",
+    ];
+    let owned = [
+        types.as_bytes(),
+        package_rels.as_bytes(),
+        document.as_bytes(),
+        rels.as_bytes(),
+        header.as_bytes(),
+        footer.as_bytes(),
+        comments.as_bytes(),
+    ];
+    let items: Vec<(&str, &[u8], Method)> = names
+        .iter()
+        .zip(owned)
+        .map(|(name, data)| (*name, data, Method::Stored))
+        .collect();
+    let imported = import(&write_archive(&items).unwrap(), &Budget::default()).unwrap();
+    let document = &imported.document;
+    assert!(!document.validate().has_errors());
+    let font = test_font();
+    let snapshot = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font),
+        SingleFontProfile {
+            size: Emu::new(12 * Emu::PER_POINT),
+            leading: Emu::new(18 * Emu::PER_POINT),
+            baseline: Emu::new(14 * Emu::PER_POINT),
+            features: FeatureSet {
+                kerning: false,
+                standard_ligatures: false,
+                contextual_alternates: false,
+            },
+        },
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .expect("layout");
+    assert_eq!(snapshot.pages().len(), 2);
+    let painted: String = snapshot.pages()[0]
+        .runs
+        .iter()
+        .map(|run| run.text.as_str())
+        .collect();
+    assert!(painted.contains("Head"));
+    assert!(painted.contains("Foot"));
+    assert!(painted.contains("Body"));
+    assert!(!painted.contains("Note"));
+
+    let navigation = navigation_from_document(document, &snapshot).expect("navigation");
+    let dest = |name: &str| {
+        navigation
+            .bookmarks
+            .iter()
+            .find(|bookmark| bookmark.name == name)
+            .unwrap_or_else(|| panic!("missing {name}"))
+            .destination
+    };
+    let head = dest("head");
+    let foot = dest("foot");
+    let note = dest("note");
+    assert_eq!(head.page, 0);
+    assert_eq!(foot.page, 0);
+    assert_eq!(note.page, 0);
+    assert!(head.y < note.y && note.y < foot.y);
+    assert_eq!(navigation.unresolved_links, 1);
+    assert_eq!(navigation.links.len(), 3);
+    for (link, name) in navigation.links.iter().zip(["head", "foot", "note"]) {
+        assert_eq!(link.page, 1);
+        assert_eq!(link.destination, dest(name));
+    }
+
+    let model = |name: &str| {
+        document
+            .annotations()
+            .find(|annotation| {
+                matches!(&annotation.kind, AnnotationKind::Bookmark { name: found } if found.as_ref() == name)
+            })
+            .unwrap_or_else(|| panic!("model {name}"))
+    };
+    let note_mark = model("note");
+    let Anchor::Range { start, .. } = note_mark.anchor else {
+        panic!("range");
+    };
+    assert_eq!(
+        document.story(start.story).unwrap().kind,
+        StoryKind::Comment
+    );
+    let comment_anchor = document
+        .annotations()
+        .find(|annotation| matches!(annotation.kind, AnnotationKind::Comment(_)))
+        .expect("comment");
+    let Anchor::Range {
+        start: anchor_start,
+        ..
+    } = comment_anchor.anchor
+    else {
+        panic!("comment range");
+    };
+    let bookmark_caret = snapshot.caret(start).expect("comment bookmark caret");
+    let anchor_caret = snapshot.caret(anchor_start).expect("anchor caret");
+    assert_eq!(bookmark_caret.page, anchor_caret.page);
+    assert_eq!(bookmark_caret.x, anchor_caret.x);
+    assert_eq!(bookmark_caret.top, anchor_caret.top);
+    near(note.x, to_points(bookmark_caret.x) as f32);
+    near(note.y, to_points(bookmark_caret.top) as f32);
+
+    let pdf = render_export_with_navigation(
+        snapshot.pages(),
+        &[font],
+        &PdfExport::default(),
+        &navigation,
+    )
+    .expect("pdf");
+    let read = inspect_navigation(&pdf).expect("readback");
+    let page_height = to_points(snapshot.pages()[0].height) as f32;
+    for name in ["head", "foot", "note"] {
+        let expected = dest(name);
+        assert_eq!(read.bookmarks[name].page, expected.page);
+        near(read.bookmarks[name].x, expected.x);
+        near(read.bookmarks[name].y, page_height - expected.y);
+        assert_eq!(read.bookmarks[name].zoom, Some(0.0));
+    }
+    assert_eq!(read.links.len(), 3);
+    assert!(read.links.iter().all(|link| link.source_page == 1));
 }

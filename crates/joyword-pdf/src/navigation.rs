@@ -1,6 +1,8 @@
-//! Model bookmarks and anchor-only links. DOCX import supplies body
-//! bookmarks; this module does not read the package. PDF structure tags are
-//! not written here.
+//! Model bookmarks and anchor-only links. DOCX import supplies body, header,
+//! footer, and comment bookmarks; this module does not read the package.
+//! Header and footer carets are the first painted line of that story. Comment
+//! carets are the comment anchor, because comment text is not painted. PDF
+//! structure tags are not written here.
 //!
 //! Sources: ISO 32000-1:2008 §12.3.2 (destinations), §12.5.6.5 (links),
 //! §12.6.4.2 (Go-To); https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/
@@ -63,9 +65,10 @@ pub struct PdfNavigation {
     /// Anchor-only links whose target is not a bookmark of this document. They
     /// have no destination to point at, so no annotation is written for them.
     /// Import leaves out bookmarks it cannot represent (empty or control
-    /// names, duplicates, detached markers, non-body stories, opaque tables,
-    /// column bookmarks, and names past the budget). A link to one of those,
-    /// or to a name that was never a bookmark, is counted here.
+    /// names, duplicates, detached markers, detached comment stories,
+    /// footnote, endnote, and text-box stories, opaque tables, column
+    /// bookmarks, and names past the budget). A link to one of those, or to a
+    /// name that was never a bookmark, is counted here.
     pub unresolved_links: usize,
 }
 
@@ -312,7 +315,7 @@ pub fn navigation_from_document(
         )?;
     }
     let mut geometry = MAX_GEOMETRY_ITEMS;
-    for line in snapshot.lines() {
+    for line in snapshot.lines().iter().chain(snapshot.auxiliary_lines()) {
         spend(&mut geometry, 1)?;
         spend(&mut geometry, line.carets.len())?;
     }

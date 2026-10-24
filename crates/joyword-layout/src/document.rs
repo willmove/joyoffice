@@ -424,6 +424,18 @@ pub struct LayoutSnapshot {
     /// Square and top-and-bottom exclusions committed on the page where their
     /// anchor line was placed. Later body lines on that page avoid them.
     square_bands: Vec<crate::images::SquareBand>,
+    /// Header, footer, and comment caret lines. Body hit-testing reads
+    /// [`Self::lines`] only. A header or footer painted on several pages keeps
+    /// the first page. Every offset of a comment story shares the comment
+    /// anchor's caret, because comment text is not painted.
+    aux_lines: Vec<PlacedLine>,
+    aux_by: BTreeMap<(StoryId, NodeId), AuxParagraph>,
+}
+
+#[derive(Clone, Debug)]
+struct AuxParagraph {
+    len: usize,
+    lines: Range<usize>,
 }
 
 /// Paint header and footer stories, then revision marks on those bands, and
@@ -436,10 +448,13 @@ pub(crate) fn finish_stories(
     profile: SingleFontProfile,
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
+    snapshot.clear_auxiliary();
     snapshot.chapter_prefixes = crate::pages::chapter_prefixes(snapshot, document, cancellation)?;
     crate::pages::paint_column_separators(snapshot, document, cancellation)?;
     crate::pages::paint_stories(snapshot, document, faces, profile, cancellation)?;
-    crate::revision_view::decorate_stories(snapshot, document, faces, profile, cancellation)
+    crate::revision_view::decorate_stories(snapshot, document, faces, profile, cancellation)?;
+    crate::pages::record_comment_carets(snapshot, document);
+    Ok(())
 }
 
 pub(crate) fn unsupported(node: Option<NodeId>, feature: &'static str) -> LayoutError {
@@ -3379,6 +3394,8 @@ pub(crate) fn open_snapshot(
         stats: LayoutStats::default(),
         limits,
         square_bands: Vec::new(),
+        aux_lines: Vec::new(),
+        aux_by: BTreeMap::new(),
     };
     let start = document
         .sections()
@@ -5010,7 +5027,7 @@ fn scene_has_ink(page: &PageScene) -> bool {
     !page.runs.is_empty() || !page.rects.is_empty() || !page.images.is_empty()
 }
 
-fn line_carets(line: &LayoutLine, x: Emu) -> Result<Vec<CaretStop>, LayoutError> {
+pub(crate) fn line_carets(line: &LayoutLine, x: Emu) -> Result<Vec<CaretStop>, LayoutError> {
     let first = line
         .clusters
         .first()
@@ -5258,6 +5275,43 @@ impl LayoutSnapshot {
     pub fn lines(&self) -> &[PlacedLine] {
         &self.lines
     }
+
+    /// Caret lines for header, footer, and comment stories.
+    ///
+    /// Body hit-testing uses [`Self::lines`]. Navigation counts these lines
+    /// in the same geometry budget.
+    pub fn auxiliary_lines(&self) -> &[PlacedLine] {
+        &self.aux_lines
+    }
+
+    pub(crate) fn clear_auxiliary(&mut self) {
+        self.aux_lines.clear();
+        self.aux_by.clear();
+    }
+
+    /// Append caret lines for one non-body story. Consecutive items with the
+    /// same paragraph id form that paragraph's line range.
+    pub(crate) fn store_auxiliary(&mut self, story: StoryId, items: Vec<(PlacedLine, usize)>) {
+        let mut rest = items.into_iter().peekable();
+        while let Some((line, len)) = rest.next() {
+            let id = line.paragraph;
+            let start = self.aux_lines.len();
+            self.aux_lines.push(line);
+            while rest.peek().is_some_and(|(next, _)| next.paragraph == id) {
+                if let Some((next, _)) = rest.next() {
+                    self.aux_lines.push(next);
+                }
+            }
+            let end = self.aux_lines.len();
+            self.aux_by.insert(
+                (story, id),
+                AuxParagraph {
+                    len,
+                    lines: start..end,
+                },
+            );
+        }
+    }
     pub fn geometry(&self) -> PageGeometry {
         self.geometry
     }
@@ -5337,9 +5391,22 @@ impl LayoutSnapshot {
     }
     /// Before selects the upstream visual line at a wrap boundary, After the
     /// downstream line. Interior shaping-cluster positions are not fabricated.
+    /// A header, footer, or comment position uses the auxiliary caret index.
     pub fn caret(&self, position: Position) -> Result<CaretGeometry, LayoutError> {
-        let (_, p) = self.paragraph(position)?;
-        let candidates = &self.lines[p.lines.clone()];
+        let (lines, range) = if position.story == self.story {
+            let (_, paragraph) = self.paragraph(position)?;
+            (self.lines.as_slice(), paragraph.lines.clone())
+        } else {
+            let paragraph = self
+                .aux_by
+                .get(&(position.story, position.paragraph))
+                .ok_or(LayoutError::UnknownPosition(position))?;
+            if position.offset.0 > paragraph.len {
+                return Err(LayoutError::UnknownPosition(position));
+            }
+            (self.aux_lines.as_slice(), paragraph.lines.clone())
+        };
+        let candidates = &lines[range];
         let line = if position.bias == Bias::Before {
             candidates.iter().find(|line| {
                 line.source.scalars.start <= position.offset.0
