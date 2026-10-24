@@ -755,6 +755,28 @@ fn patch_comment_stories(
     if !crate::comment::stories_differ(original, current) {
         return Ok(None);
     }
+    // New comment stories are appended by `comment::apply`. This patch only
+    // rewrites text leaves of comments that already had a part. A package
+    // with no comments part is that append path, not a failed rewrite.
+    let mut needs_patch = false;
+    for story in original.stories() {
+        if story.kind != StoryKind::Comment {
+            continue;
+        }
+        let Some(after) = current.story(story.id) else {
+            return Err(unsupported(
+                None,
+                "comment story structure is not rewritten",
+            ));
+        };
+        if !same_comment_blocks(story, after) {
+            needs_patch = true;
+            break;
+        }
+    }
+    if !needs_patch {
+        return Ok(None);
+    }
     let Some(part) = comments_part(package, main_name) else {
         return Err(unsupported(None, "comment part cannot be written"));
     };
