@@ -1,4 +1,6 @@
-//! Model bookmarks and anchor-only links, not DOCX bookmark import or PDF tags.
+//! Model bookmarks and anchor-only links. DOCX import supplies body
+//! bookmarks; this module does not read the package. PDF structure tags are
+//! not written here.
 //!
 //! Sources: ISO 32000-1:2008 §12.3.2 (destinations), §12.5.6.5 (links),
 //! §12.6.4.2 (Go-To); https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/
@@ -60,8 +62,10 @@ pub struct PdfNavigation {
     pub links: Vec<PdfGoToLink>,
     /// Anchor-only links whose target is not a bookmark of this document. They
     /// have no destination to point at, so no annotation is written for them.
-    /// A DOCX keeps its bookmarks and its anchor links in separate parts, and
-    /// only the links are imported, so a real document can carry these.
+    /// Import leaves out bookmarks it cannot represent (empty or control
+    /// names, duplicates, detached markers, non-body stories, opaque tables,
+    /// column bookmarks, and names past the budget). A link to one of those,
+    /// or to a name that was never a bookmark, is counted here.
     pub unresolved_links: usize,
 }
 

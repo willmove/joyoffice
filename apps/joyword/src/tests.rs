@@ -426,9 +426,9 @@ mod scene_export {
 
     #[test]
     fn an_anchor_without_a_target_does_not_block_the_export() {
-        // A DOCX keeps its bookmarks and its anchor links apart and only the
-        // links are imported, so a real document can carry an anchor whose
-        // target is not a bookmark of this document.
+        // An anchor whose target is not a bookmark of this document is skipped.
+        // DOCX import models body bookmarks; this anchor still has none, and
+        // it must not block the export.
         let mut document = chapter_model();
         change(&mut document, 3, |paragraph| {
             paragraph

@@ -23,7 +23,8 @@ use joyword_model::PreservedId;
 pub enum PreservedReason {
     /// A block or inline construct this slice does not map (tables, content
     /// controls, drawings, fields, bookmarks…). Its paragraph or block is
-    /// locked against editing.
+    /// locked against editing. Body bookmarks are also annotations; the
+    /// fragment remains so an edited export cannot drop the marker bytes.
     Unsupported,
     /// In a namespace listed by `mc:Ignorable`; kept although a consumer may
     /// ignore it (ECMA-376 Part 3).

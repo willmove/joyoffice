@@ -56,8 +56,13 @@
 //! merge state, `nil`/`single` borders and clear shading); anything else keeps
 //! the whole table as an opaque block. Comments (`comments.xml`, range
 //! markers, commentsExtended, commentsIds and commentsExtensible) are mapped.
-//! Content controls, notes and bookmarks/fields as annotations remain
-//! unmapped. An inline still picture
+//! Content controls, notes and fields as annotations remain unmapped.
+//! A body `w:bookmarkStart` / `w:bookmarkEnd` pair becomes a bookmark
+//! annotation whose name is kept exactly, so PDF named destinations can
+//! resolve it. The marker bytes stay in the package and still lock the
+//! paragraph; this slice does not write bookmarks back. Header, footer,
+//! comment, opaque-table and column bookmarks are diagnosed and are not
+//! annotations. An inline still picture
 //! (`w:drawing`/`wp:inline` or `w:pict`) whose relationship points at a raster
 //! part inside the image budget becomes an image resource. A page-absolute
 //! `wp:anchor` with `wp:wrapNone`, page-relative `wp:wrapSquare`, or
@@ -74,13 +79,14 @@
 //! it is not dropped. A tooltip, drawing or other child stays preserved.
 //!
 //! Sources: ECMA-376 Part 1 (5th edition, Transitional) §11.3.10, §17.2,
-//! §17.3, §17.6, §17.7, §17.13.5, §17.15; Part 2 (OPC); Part 3 (Markup
-//! Compatibility); [MS-DOCX] for `compatSetting`. See the W01 report for
-//! the clause list.
+//! §17.3, §17.6, §17.7, §17.13.5, §17.13.6.1 `bookmarkEnd`, §17.13.6.2
+//! `bookmarkStart`, §17.15; Part 2 (OPC); Part 3 (Markup Compatibility);
+//! [MS-DOCX] for `compatSetting`. See the W01 report for the clause list.
 
 mod backing;
 mod binding;
 mod body;
+mod bookmark;
 mod comment;
 mod export;
 mod hyperlink;
@@ -97,6 +103,7 @@ mod xml;
 
 pub use backing::{Fragment, PackageBacking, PreservedReason};
 pub use binding::ExportBinding;
+pub use bookmark::{MAX_IMPORTED_BOOKMARK_NAME_BYTES, MAX_IMPORTED_BOOKMARKS};
 pub use export::{ExportError, ExportMode, ExportPlan, ExportTarget, ExportWarning, plan_export};
 pub use import::import;
 pub use ns::{

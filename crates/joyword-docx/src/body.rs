@@ -6,9 +6,11 @@
 //! [`OpaqueBlock`] whose source is preserved. Inside a paragraph, text,
 //! tabs and breaks are mapped; other run content becomes a preserved inline
 //! object. A simple `w:hyperlink` (`r:id` external target and/or `w:anchor`,
-//! runs of text and tabs) is stored on those runs and is not fetched. Other
-//! wrappers are descended into for their text and preserved. Range markers
-//! such as bookmarks are preserved without a position. A paragraph or block
+//! runs of text and tabs, plus bookmark markers that take no position) is
+//! stored on those runs and is not fetched. Other wrappers are descended into
+//! for their text and preserved. Bookmark markers in the body become
+//! annotations; their bytes are still preserved and lock the paragraph.
+//! Other range markers are preserved without a position. A paragraph or block
 //! holding preserved content is locked.
 
 use std::sync::Arc;
@@ -194,6 +196,7 @@ impl Body {
             if element.is(W, "tbl") {
                 crate::comment::note_unmapped(importer, element);
             }
+            crate::bookmark::note_unmapped(importer, part, element);
             let reason = foreign(importer, part, element, scope);
             let handle = importer.preserve(part, element, scope, reason);
             let id = importer.document.ids().node();
@@ -449,7 +452,18 @@ fn content(
                     let before = paragraph.runs().len();
                     let was_locked = *locked;
                     let inner = scope.enter(child);
+                    let mut kept_bookmark = false;
                     for run_element in child.elements() {
+                        if crate::bookmark::take(
+                            importer,
+                            part,
+                            run_element,
+                            inner.as_ref(),
+                            paragraph,
+                        ) {
+                            kept_bookmark = true;
+                            continue;
+                        }
                         run(
                             importer,
                             part,
@@ -465,6 +479,11 @@ fn content(
                         // The preflight did not hold. Keep the wrapper bytes and
                         // do not read the children again.
                         importer.preserve(part, child, scope, PreservedReason::Unsupported);
+                        *locked = true;
+                    }
+                    // Bookmark bytes stay in the part. Lock after the link is
+                    // stamped so the marker does not look like an unknown child.
+                    if kept_bookmark {
                         *locked = true;
                     }
                 } else {
@@ -583,7 +602,9 @@ fn content(
                 }
             }
             _ if is_marker(local) => {
-                if !crate::comment::record_marker(importer, child, paragraph) {
+                if crate::bookmark::take(importer, part, child, scope, paragraph) {
+                    *locked = true;
+                } else if !crate::comment::record_marker(importer, child, paragraph) {
                     let reason = foreign(importer, part, child, scope);
                     importer.preserve(part, child, scope, reason);
                     *locked = true;
@@ -723,6 +744,13 @@ fn run(
                 }
             }
             (true, "commentReference") if crate::comment::skip_reference(child) => {}
+            (true, "bookmarkStart" | "bookmarkEnd") => {
+                if !crate::bookmark::take(importer, part, child, scope, paragraph) {
+                    let reason = foreign(importer, part, child, scope);
+                    inline(importer, part, child, scope, reason, paragraph, format());
+                }
+                *locked = true;
+            }
             (true, "lastRenderedPageBreak") => importer.hint(part, "lastRenderedPageBreak"),
             (true, "drawing" | "pict" | "object") => {
                 match crate::images::import_container(
@@ -1376,6 +1404,7 @@ fn import_story(importer: &mut Importer<'_>, name: &PartName, header: bool) -> O
             let (paragraph, _) = paragraph(importer, &part.name, child, &inner);
             blocks.push(paragraph.into());
         } else {
+            crate::bookmark::note_unmapped(importer, &part.name, child);
             importer.preserve(&part.name, child, &inner, PreservedReason::Unsupported);
         }
     }
