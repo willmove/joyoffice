@@ -19,15 +19,16 @@ use std::collections::BTreeSet;
 
 use joyword_foundation::Emu;
 use joyword_model::{
-    BreakKind, Document, HeaderFooterKind, InlineKind, NumberFormat, OBJECT_MARKER, PageField,
-    PageFieldKind, Paragraph, SectionBreak, Segment, StoryId, StoryKind,
+    Anchor, AnnotationKind, BreakKind, Document, HeaderFooterKind, InlineKind, NodeId,
+    NumberFormat, OBJECT_MARKER, PageField, PageFieldKind, Paragraph, Position, ScalarOffset,
+    SectionBreak, Segment, StoryId, StoryKind,
 };
 
 use crate::FaceSet;
 use crate::document::dominant_slot;
 use crate::document::{
-    LayoutCancellation, LayoutError, LayoutNote, LayoutSnapshot, PageGeometry, SingleFontProfile,
-    unsupported,
+    CaretStop, LayoutCancellation, LayoutError, LayoutNote, LayoutSnapshot, PageGeometry,
+    PlacedLine, SingleFontProfile, unsupported,
 };
 use crate::line::{
     LayoutLine, LineError, LineImage, LineLimits, SourceRange, layout_paragraph_auto,
@@ -393,9 +394,11 @@ fn unequal_spec(
     })
 }
 
-/// Header and footer stories must be referenced. Anything else is still an
-/// unsupported extra story. Non-paragraph blocks in a referenced story are
-/// rejected rather than skipped.
+/// Header and footer stories must be referenced. Comment stories are
+/// paragraph metadata: they are not painted, and a bookmark inside one is
+/// placed on the comment anchor. Anything else is still an unsupported extra
+/// story. Non-paragraph blocks in an accepted story are rejected rather than
+/// skipped.
 pub(crate) fn accept_stories(document: &Document) -> Result<(), LayoutError> {
     let mut referenced = std::collections::BTreeSet::new();
     for section in document.sections() {
@@ -407,9 +410,12 @@ pub(crate) fn accept_stories(document: &Document) -> Result<(), LayoutError> {
         if story.id == document.body_id() {
             continue;
         }
-        if !referenced.contains(&story.id)
-            || !matches!(story.kind, StoryKind::Header | StoryKind::Footer)
-        {
+        let allowed = match story.kind {
+            StoryKind::Header | StoryKind::Footer => referenced.contains(&story.id),
+            StoryKind::Comment => true,
+            _ => false,
+        };
+        if !allowed {
             return Err(unsupported(None, "additional stories"));
         }
         for block in story.blocks.iter() {
@@ -652,6 +658,7 @@ pub(crate) fn paint_stories(
     let page_count = snapshot.page_count();
     let even_and_odd = document.settings().even_and_odd_headers == Some(true);
     let mut exceeded = std::collections::BTreeSet::new();
+    let mut recorded = BTreeSet::new();
     for page_index in 0..page_count {
         cancellation.check()?;
         let Some((geometry, section)) = snapshot.page_box(page_index) else {
@@ -668,6 +675,7 @@ pub(crate) fn paint_stories(
             even_and_odd,
         );
         if let Some(story) = linked_story(document, section, true, kind) {
+            let record = recorded.insert(story);
             paint_header(
                 snapshot,
                 document,
@@ -679,9 +687,12 @@ pub(crate) fn paint_stories(
                 geometry,
                 story,
                 &mut exceeded,
+                true,
+                record,
             )?;
         }
         if let Some(story) = linked_story(document, section, false, kind) {
+            let record = recorded.insert(story);
             paint_footer(
                 snapshot,
                 document,
@@ -693,11 +704,71 @@ pub(crate) fn paint_stories(
                 geometry,
                 story,
                 &mut exceeded,
+                true,
+                record,
             )?;
         }
     }
     if snapshot.page_count() != page_count {
         return Err(LayoutError::Unstable);
+    }
+    // A referenced variant that this section does not show (a First header
+    // while title pages are off) still needs a page caret, or a bookmark in
+    // it would fail the whole PDF export. The glyphs stay unpainted.
+    if page_count > 0
+        && let Some((geometry, _)) = snapshot.page_box(0)
+    {
+        for story in document.stories() {
+            if !matches!(story.kind, StoryKind::Header | StoryKind::Footer) {
+                continue;
+            }
+            if recorded.contains(&story.id) {
+                continue;
+            }
+            let referenced = document.sections().iter().any(|section| {
+                let refs = if story.kind == StoryKind::Header {
+                    &section.headers
+                } else {
+                    &section.footers
+                };
+                refs.iter().any(|(_, id)| *id == story.id)
+            });
+            if !referenced {
+                continue;
+            }
+            let header = story.kind == StoryKind::Header;
+            if header {
+                paint_header(
+                    snapshot,
+                    document,
+                    faces,
+                    profile,
+                    cancellation,
+                    0,
+                    page_count,
+                    geometry,
+                    story.id,
+                    &mut exceeded,
+                    false,
+                    true,
+                )?;
+            } else {
+                paint_footer(
+                    snapshot,
+                    document,
+                    faces,
+                    profile,
+                    cancellation,
+                    0,
+                    page_count,
+                    geometry,
+                    story.id,
+                    &mut exceeded,
+                    false,
+                    true,
+                )?;
+            }
+        }
     }
     Ok(())
 }
@@ -842,8 +913,10 @@ fn paint_header(
     geometry: PageGeometry,
     story: StoryId,
     exceeded: &mut std::collections::BTreeSet<StoryId>,
+    paint: bool,
+    record: bool,
 ) -> Result<(), LayoutError> {
-    let runs = story_runs(
+    let pieces = story_runs(
         snapshot,
         document,
         faces,
@@ -853,23 +926,42 @@ fn paint_header(
         page_count,
         geometry,
         story,
+        paint,
     )?;
     let mut y = geometry.header;
     let mut crossed = false;
-    for line in runs {
-        let baseline = y
-            .checked_add(Emu::new(line.baseline))
-            .ok_or(LayoutError::GeometryOverflow)?;
-        let next = y
-            .checked_add(line.line_box)
-            .ok_or(LayoutError::GeometryOverflow)?;
-        if next.raw() > geometry.top.raw() {
-            crossed = true;
+    let mut carets = Vec::new();
+    for piece in pieces {
+        match piece {
+            StoryPiece::Gap(gap) => {
+                if record {
+                    carets.push(gap_caret(gap, page_index, geometry.left, y));
+                }
+            }
+            StoryPiece::Line(line) => {
+                let baseline = y
+                    .checked_add(Emu::new(line.baseline))
+                    .ok_or(LayoutError::GeometryOverflow)?;
+                let next = y
+                    .checked_add(line.line_box)
+                    .ok_or(LayoutError::GeometryOverflow)?;
+                if next.raw() > geometry.top.raw() {
+                    crossed = true;
+                }
+                if record {
+                    carets.extend(line_caret(page_index, &line, y, baseline));
+                }
+                if paint {
+                    place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
+                }
+                y = next;
+            }
         }
-        place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
-        y = next;
     }
-    if crossed {
+    if record {
+        snapshot.store_auxiliary(story, carets);
+    }
+    if paint && crossed {
         note_exceeds(snapshot, story, exceeded);
     }
     Ok(())
@@ -887,8 +979,10 @@ fn paint_footer(
     geometry: PageGeometry,
     story: StoryId,
     exceeded: &mut std::collections::BTreeSet<StoryId>,
+    paint: bool,
+    record: bool,
 ) -> Result<(), LayoutError> {
-    let runs = story_runs(
+    let pieces = story_runs(
         snapshot,
         document,
         faces,
@@ -898,8 +992,15 @@ fn paint_footer(
         page_count,
         geometry,
         story,
+        paint,
     )?;
-    let total: i64 = runs.iter().map(|line| line.line_box.raw()).sum();
+    let total: i64 = pieces
+        .iter()
+        .map(|piece| match piece {
+            StoryPiece::Line(line) => line.line_box.raw(),
+            StoryPiece::Gap(_) => 0,
+        })
+        .sum();
     let mut y = geometry.height.raw() - geometry.footer.raw() - total;
     let mut crossed = false;
     if y < 0 {
@@ -909,18 +1010,158 @@ fn paint_footer(
     if y < geometry.bottom_edge().raw() && total > 0 {
         crossed = true;
     }
-    for line in runs {
-        let baseline = Emu::new(y)
-            .checked_add(Emu::new(line.baseline))
-            .ok_or(LayoutError::GeometryOverflow)?;
-        let box_height = line.line_box.raw();
-        place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
-        y += box_height;
+    let mut carets = Vec::new();
+    for piece in pieces {
+        match piece {
+            StoryPiece::Gap(gap) => {
+                if record {
+                    carets.push(gap_caret(gap, page_index, geometry.left, Emu::new(y)));
+                }
+            }
+            StoryPiece::Line(line) => {
+                let baseline = Emu::new(y)
+                    .checked_add(Emu::new(line.baseline))
+                    .ok_or(LayoutError::GeometryOverflow)?;
+                let box_height = line.line_box.raw();
+                if record {
+                    carets.extend(line_caret(page_index, &line, Emu::new(y), baseline));
+                }
+                if paint {
+                    place_story_line(snapshot, page_index, line, geometry.left, baseline)?;
+                }
+                y += box_height;
+            }
+        }
     }
-    if crossed {
+    if record {
+        snapshot.store_auxiliary(story, carets);
+    }
+    if paint && crossed {
         note_exceeds(snapshot, story, exceeded);
     }
     Ok(())
+}
+
+fn point_stops(x: Emu, len: usize) -> Vec<CaretStop> {
+    (0..=len)
+        .map(|offset| CaretStop {
+            offset: ScalarOffset(offset),
+            x,
+        })
+        .collect()
+}
+
+fn point_carets(paragraph: NodeId, len: usize, x: Emu) -> LineCarets {
+    LineCarets {
+        paragraph,
+        len,
+        source: SourceRange {
+            bytes: 0..0,
+            scalars: 0..len,
+        },
+        stops: point_stops(x, len),
+    }
+}
+
+fn gap_caret(gap: GapCaret, page: usize, x: Emu, top: Emu) -> (PlacedLine, usize) {
+    let carets = point_carets(gap.paragraph, gap.len, x);
+    (
+        PlacedLine {
+            paragraph: carets.paragraph,
+            source: carets.source,
+            page,
+            run: 0,
+            top,
+            baseline: top,
+            height: Emu::new(0),
+            carets: carets.stops,
+            images: 0..0,
+            tab_gaps: Vec::new(),
+        },
+        gap.len,
+    )
+}
+
+fn line_caret(page: usize, line: &StoryLine, top: Emu, baseline: Emu) -> Vec<(PlacedLine, usize)> {
+    let Some(carets) = &line.carets else {
+        return Vec::new();
+    };
+    vec![(
+        PlacedLine {
+            paragraph: carets.paragraph,
+            source: carets.source.clone(),
+            page,
+            run: 0,
+            top,
+            baseline,
+            height: line.line_box,
+            carets: carets.stops.clone(),
+            images: 0..0,
+            tab_gaps: Vec::new(),
+        },
+        carets.len,
+    )]
+}
+
+/// Place every comment-story offset on the comment anchor's caret.
+///
+/// Comment text is not painted. A bookmark in the comment still needs a page
+/// point, and that point is the anchor the comment is attached to. A detached
+/// comment, or an anchor caret layout cannot resolve, is left without carets;
+/// import does not insert a bookmark in that case.
+pub(crate) fn record_comment_carets(snapshot: &mut LayoutSnapshot, document: &Document) {
+    let mut pending = Vec::new();
+    for story in document.stories() {
+        if story.kind != StoryKind::Comment {
+            continue;
+        }
+        let Some(start) = comment_anchor_start(document, story.id) else {
+            continue;
+        };
+        let Ok(caret) = snapshot.caret(start) else {
+            continue;
+        };
+        let mut items = Vec::new();
+        for block in story.blocks.iter() {
+            let Some(paragraph) = block.as_paragraph() else {
+                continue;
+            };
+            let len = paragraph.len();
+            let placed = PlacedLine {
+                paragraph: paragraph.id(),
+                source: SourceRange {
+                    bytes: 0..0,
+                    scalars: 0..len,
+                },
+                page: caret.page,
+                run: 0,
+                top: caret.top,
+                baseline: caret.baseline,
+                height: caret.height,
+                carets: point_stops(caret.x, len),
+                images: 0..0,
+                tab_gaps: Vec::new(),
+            };
+            items.push((placed, len));
+        }
+        pending.push((story.id, items));
+    }
+    for (story, items) in pending {
+        snapshot.store_auxiliary(story, items);
+    }
+}
+
+fn comment_anchor_start(document: &Document, story: StoryId) -> Option<Position> {
+    let annotation = document.annotations().find(|annotation| {
+        matches!(
+            &annotation.kind,
+            AnnotationKind::Comment(comment) if comment.body == story
+        )
+    })?;
+    let Anchor::Range { start, .. } = annotation.anchor else {
+        return None;
+    };
+    Some(start)
 }
 
 fn note_exceeds(
@@ -986,6 +1227,31 @@ struct StoryLine {
     paragraph_end: bool,
     tab_gaps: Vec<(i64, i64)>,
     images: Vec<LineImage>,
+    /// Model-scalar carets for this painted line. Absent on a continuation
+    /// image line, which does not own a caret span.
+    carets: Option<LineCarets>,
+}
+
+struct LineCarets {
+    paragraph: NodeId,
+    len: usize,
+    source: SourceRange,
+    stops: Vec<CaretStop>,
+}
+
+struct GapCaret {
+    paragraph: NodeId,
+    len: usize,
+}
+
+// `Line` is the common case. Boxing it would allocate every header and
+// footer line only to shrink the rare `Gap` variant.
+#[allow(clippy::large_enum_variant)]
+enum StoryPiece {
+    Line(StoryLine),
+    /// A paragraph that contributes no painted line. Its bookmark still needs
+    /// a caret, and the following line does not move.
+    Gap(GapCaret),
 }
 
 /// Fitted header or footer lines, not yet positioned.
@@ -1000,7 +1266,8 @@ fn story_runs(
     _page_count: usize,
     geometry: PageGeometry,
     story_id: StoryId,
-) -> Result<Vec<StoryLine>, LayoutError> {
+    notes: bool,
+) -> Result<Vec<StoryPiece>, LayoutError> {
     let Some(story) = document.story(story_id) else {
         return Ok(Vec::new());
     };
@@ -1011,34 +1278,51 @@ fn story_runs(
         let Some(paragraph) = block.as_paragraph() else {
             continue;
         };
+        let gap = GapCaret {
+            paragraph: paragraph.id(),
+            len: paragraph.len(),
+        };
         if paragraph
             .inlines()
             .iter()
             .any(|inline| matches!(inline.kind, InlineKind::Image { .. }))
         {
             match story_image_lines(snapshot, document, faces, profile, paragraph, geometry) {
-                Ok(lines) => runs.extend(lines),
+                Ok(mut lines) => {
+                    if let Some(first) = lines.first_mut() {
+                        first.carets =
+                            Some(point_carets(paragraph.id(), paragraph.len(), geometry.left));
+                    }
+                    runs.extend(lines.into_iter().map(StoryPiece::Line));
+                }
                 Err(LayoutError::Cancelled) => return Err(LayoutError::Cancelled),
                 Err(LayoutError::LimitExceeded(limit)) => {
                     return Err(LayoutError::LimitExceeded(limit));
                 }
-                Err(_) => snapshot.note(LayoutNote::StoryContentSkipped {
-                    paragraph: paragraph.id(),
-                }),
+                Err(_) => {
+                    if notes {
+                        snapshot.note(LayoutNote::StoryContentSkipped {
+                            paragraph: paragraph.id(),
+                        });
+                    }
+                    runs.push(StoryPiece::Gap(gap));
+                }
             }
             continue;
         }
-        let (display, used_cache) =
-            match story_display(snapshot, document, paragraph, page_index, view)? {
-                Some(text) => text,
-                None => {
+        let shown = match story_display(snapshot, document, paragraph, page_index, view)? {
+            Some(text) => text,
+            None => {
+                if notes {
                     snapshot.note(LayoutNote::StoryContentSkipped {
                         paragraph: paragraph.id(),
                     });
-                    continue;
                 }
-            };
-        if used_cache {
+                runs.push(StoryPiece::Gap(gap));
+                continue;
+            }
+        };
+        if shown.used_cache && notes {
             let note = LayoutNote::PageFieldCached {
                 paragraph: paragraph.id(),
             };
@@ -1046,7 +1330,8 @@ fn story_runs(
                 snapshot.note(note);
             }
         }
-        if display.is_empty() {
+        if shown.display.is_empty() {
+            runs.push(StoryPiece::Gap(gap));
             continue;
         }
         let painted = match style_paint::paint(document, paragraph, profile, view, None) {
@@ -1056,17 +1341,20 @@ fn story_runs(
                 return Err(LayoutError::LimitExceeded(limit));
             }
             Err(_) => {
-                snapshot.note(LayoutNote::StoryContentSkipped {
-                    paragraph: paragraph.id(),
-                });
+                if notes {
+                    snapshot.note(LayoutNote::StoryContentSkipped {
+                        paragraph: paragraph.id(),
+                    });
+                }
+                runs.push(StoryPiece::Gap(gap));
                 continue;
             }
         };
-        let slot = dominant_slot(&display);
+        let slot = dominant_slot(&shown.display);
         let font = faces.face(slot);
         let fitted = match layout_paragraph_auto(
             font,
-            &display,
+            &shown.display,
             painted.size,
             profile.features,
             geometry.content_width(),
@@ -1078,9 +1366,12 @@ fn story_runs(
                 return Err(map_line_limit(limit));
             }
             Err(_) => {
-                snapshot.note(LayoutNote::StoryContentSkipped {
-                    paragraph: paragraph.id(),
-                });
+                if notes {
+                    snapshot.note(LayoutNote::StoryContentSkipped {
+                        paragraph: paragraph.id(),
+                    });
+                }
+                runs.push(StoryPiece::Gap(gap));
                 continue;
             }
         };
@@ -1092,6 +1383,12 @@ fn story_runs(
         let baseline = painted.baseline.raw().clamp(0, line_box.raw());
         let underline = paint_underline(font, painted.size, painted.underline);
         let last = fitted.lines.len().saturating_sub(1);
+        let mut caret_lines = fitted.lines.clone();
+        remap_field_sources(&mut caret_lines, &shown.sources, paragraph);
+        let mut caret_stops = Vec::with_capacity(caret_lines.len());
+        for caret_line in &caret_lines {
+            caret_stops.push(crate::document::line_carets(caret_line, geometry.left)?);
+        }
         for (index, mut line) in fitted.lines.into_iter().enumerate() {
             line.run.bold = painted.bold;
             line.run.italic = painted.italic;
@@ -1101,14 +1398,21 @@ fn story_runs(
             line.run.underline = underline;
             let tab_gaps = line.tab_gaps.clone();
             let run = line.to_glyph_run(Emu::new(0), Emu::new(0));
-            runs.push(StoryLine {
+            let carets = caret_lines.get(index).map(|caret_line| LineCarets {
+                paragraph: paragraph.id(),
+                len: paragraph.len(),
+                source: caret_line.source.clone(),
+                stops: caret_stops[index].clone(),
+            });
+            runs.push(StoryPiece::Line(StoryLine {
                 run,
                 line_box,
                 baseline,
                 paragraph_end: index == last,
                 tab_gaps,
                 images: Vec::new(),
-            });
+                carets,
+            }));
         }
     }
     Ok(runs)
@@ -1201,6 +1505,7 @@ fn story_image_lines(
             paragraph_end: index == last,
             tab_gaps: line.tab_gaps,
             images: line.images,
+            carets: None,
         });
     }
     Ok(lines)
@@ -1382,6 +1687,14 @@ pub(crate) fn chapter_prefixes(
     Ok(result)
 }
 
+struct StoryText {
+    display: String,
+    used_cache: bool,
+    /// Display scalar `i` belongs to this paragraph scalar. Field digits share
+    /// the one object-marker scalar, matching [`expand_page_fields`].
+    sources: Vec<usize>,
+}
+
 /// Header and footer text. Field codes print `PAGE`, `NUMPAGES` or
 /// `SECTIONPAGES` instead of the number. Braces and switches are not
 /// printed. Scalars omitted by hidden text or a field projection are skipped.
@@ -1391,7 +1704,7 @@ fn story_display(
     paragraph: &Paragraph,
     page_index: usize,
     view: ViewOptions,
-) -> Result<Option<(String, bool)>, LayoutError> {
+) -> Result<Option<StoryText>, LayoutError> {
     let Some((_, section)) = snapshot.page_box(page_index) else {
         return Ok(None);
     };
@@ -1422,6 +1735,7 @@ fn story_display(
         scalar += run.len;
     }
     let mut text = String::new();
+    let mut sources = Vec::new();
     let mut used_cache = false;
     let mut scalar = 0usize;
     for segment in paragraph.segments() {
@@ -1429,6 +1743,7 @@ fn story_display(
             Segment::Text(chunk) => {
                 for ch in chunk.chars() {
                     if !omitted.contains(&scalar) {
+                        sources.push(scalar);
                         text.push(ch);
                     }
                     scalar += 1;
@@ -1441,6 +1756,9 @@ fn story_display(
                             let (rendered, cache) =
                                 render_field(field, &numbering, &ctx, view.field_codes);
                             used_cache |= cache;
+                            for _ch in rendered.chars() {
+                                sources.push(scalar);
+                            }
                             text.push_str(&rendered);
                         }
                         _ => return Ok(None),
@@ -1450,7 +1768,11 @@ fn story_display(
             }
         }
     }
-    Ok(Some((text, used_cache)))
+    Ok(Some(StoryText {
+        display: text,
+        used_cache,
+        sources,
+    }))
 }
 
 pub(crate) struct FieldExpansion {

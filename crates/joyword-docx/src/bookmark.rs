@@ -1,14 +1,17 @@
 //! DOCX bookmark import (ECMA-376 Part 1 §17.13.6.1 `bookmarkEnd`,
 //! §17.13.6.2 `bookmarkStart`).
 //!
-//! A body range with one start and one end becomes a model bookmark. The name
-//! is kept exactly, including case: PDF named destinations and `w:anchor`
-//! compare that string and do not fold it. The checks match
-//! `joyword_pdf::navigation`: trim-empty, any control character, more than
+//! A range with one start and one end in the body, a header, a footer, or a
+//! comment story becomes a model bookmark. The name is kept exactly,
+//! including case: PDF named destinations and `w:anchor` compare that string
+//! and do not fold it. The checks match `joyword_pdf::navigation`:
+//! trim-empty, any control character, more than
 //! [`MAX_IMPORTED_BOOKMARK_NAME_BYTES`] UTF-8 bytes, a repeated name, or more
 //! than [`MAX_IMPORTED_BOOKMARKS`] accepted bookmarks. Those bookmarks are
 //! diagnosed and not inserted. Inserting them would make
-//! `navigation_from_document` refuse the whole PDF.
+//! `navigation_from_document` refuse the whole PDF. Bookmark ids are paired
+//! inside one part: the same `w:id` in the body and in a header is two
+//! bookmarks. ECMA-376 numbers bookmarks per story, not per package.
 //!
 //! XML 1.0 attribute-value normalization turns a literal tab, line feed or
 //! carriage return into a space. A character reference such as `&#9;` is the
@@ -28,8 +31,17 @@
 //! changed (or a range that moved) is rewritten by splicing the same
 //! `bookmarkStart` / `bookmarkEnd` bytes at the model offsets. Removing,
 //! renaming, detaching, reversing, or pointing a bookmark outside a top-level
-//! body paragraph is refused. Header, footer and comment ranges are not body
-//! carets, so they are not annotations; their paragraphs stay locked.
+//! body paragraph is refused.
+//!
+//! Header, footer, and comment ranges use the same name and pair rules and
+//! become annotations, so PDF GoTo can resolve them. This slice does not
+//! write those marker bytes back. Their paragraphs stay locked, and any edit
+//! export stays `Restricted`, so the markers are not dropped. A comment
+//! bookmark is accepted only when that comment's anchor is a range in the
+//! body, a header, or a footer: layout places every offset of the comment
+//! story on that anchor caret, because comment text is not painted. A
+//! detached comment has no page point, so its bookmark is diagnosed and not
+//! inserted. A footnote, endnote, or text-box story is not placed.
 //! A bookmark inside an opaque table, or a `colFirst` / `colLast` column
 //! bookmark, is diagnosed and not inserted, and its paragraph stays locked.
 
@@ -84,7 +96,7 @@ fn classify_name(name: &str) -> Option<NameProblem> {
 #[derive(Default)]
 pub(crate) struct State {
     marks: Vec<Mark>,
-    unmapped: BTreeMap<u32, Located>,
+    unmapped: BTreeMap<(PartName, u32), Located>,
     preserved: usize,
     /// Paragraphs whose markers this slice will not write back.
     unwritable: BTreeSet<NodeId>,
@@ -122,6 +134,16 @@ struct Place {
     story: StoryId,
     kind: StoryKind,
     order: usize,
+}
+
+/// Whether the pair was inserted, and whether its paragraph stays locked.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Admission {
+    Rejected,
+    /// Body range. Export can splice the marker bytes.
+    Body,
+    /// Header, footer, or comment range. The bytes are not written back.
+    LockedStory,
 }
 
 fn is_bookmark(element: &Element) -> bool {
@@ -243,7 +265,7 @@ pub(crate) fn note_unmapped(importer: &mut Importer<'_>, part: &PartName, elemen
                     importer
                         .bookmarks
                         .unmapped
-                        .entry(id)
+                        .entry((part.clone(), id))
                         .or_insert_with(|| Located {
                             part: part.clone(),
                             span: element.span.clone(),
@@ -268,22 +290,24 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
     let marks = std::mem::take(&mut importer.bookmarks.marks);
     let unmapped = std::mem::take(&mut importer.bookmarks.unmapped);
     let mut unwritable = std::mem::take(&mut importer.bookmarks.unwritable);
-    let mut groups: BTreeMap<u32, Vec<Mark>> = BTreeMap::new();
+    let mut groups: BTreeMap<(PartName, u32), Vec<Mark>> = BTreeMap::new();
     let mut order = Vec::new();
     for mark in marks {
-        if !groups.contains_key(&mark.id) {
-            order.push(mark.id);
+        let key = (mark.part.clone(), mark.id);
+        if !groups.contains_key(&key) {
+            order.push(key.clone());
         }
-        groups.entry(mark.id).or_default().push(mark);
+        groups.entry(key).or_default().push(mark);
     }
     let mut accepted = BTreeSet::new();
     let mut seen = BTreeSet::new();
-    for id in order {
-        seen.insert(id);
-        let Some(group) = groups.remove(&id) else {
+    for key in order {
+        seen.insert(key.clone());
+        let Some(group) = groups.remove(&key) else {
             continue;
         };
-        if unmapped.contains_key(&id) {
+        let id = key.1;
+        if unmapped.contains_key(&key) {
             let (part, span) = locate_diag(&group);
             warn(
                 importer,
@@ -294,19 +318,19 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
             remember_unwritable(&mut unwritable, &group);
             continue;
         }
-        if !bind_group(importer, id, &group, &mut accepted) {
+        if bind_group(importer, id, &group, &mut accepted) != Admission::Body {
             remember_unwritable(&mut unwritable, &group);
         }
     }
-    for (id, located) in unmapped {
-        if seen.contains(&id) {
+    for (key, located) in unmapped {
+        if seen.contains(&key) {
             continue;
         }
         warn(
             importer,
             &located.part,
             located.span,
-            DiagnosticKind::BookmarkAnchorUnmapped { id },
+            DiagnosticKind::BookmarkAnchorUnmapped { id: key.1 },
         );
     }
     for id in unwritable {
@@ -330,7 +354,7 @@ fn bind_group(
     id: u32,
     group: &[Mark],
     accepted: &mut BTreeSet<Arc<str>>,
-) -> bool {
+) -> Admission {
     let (part, span) = locate_diag(group);
     if group.iter().any(|mark| mark.unsupported) {
         warn(
@@ -339,7 +363,7 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkUnsupported { id },
         );
-        return false;
+        return Admission::Rejected;
     }
     let starts: Vec<_> = group.iter().filter(|mark| !mark.end).collect();
     let ends: Vec<_> = group.iter().filter(|mark| mark.end).collect();
@@ -350,13 +374,13 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkAnchorInvalid { id },
         );
-        return false;
+        return Admission::Rejected;
     }
     let start = starts[0];
     let end = ends[0];
     if start.column {
         warn(importer, &part, span, DiagnosticKind::BookmarkColumn { id });
-        return false;
+        return Admission::Rejected;
     }
     let Some(start_at) = place(&importer.document, start.paragraph) else {
         warn(
@@ -365,7 +389,7 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkAnchorInvalid { id },
         );
-        return false;
+        return Admission::Rejected;
     };
     let Some(end_at) = place(&importer.document, end.paragraph) else {
         warn(
@@ -374,7 +398,7 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkAnchorInvalid { id },
         );
-        return false;
+        return Admission::Rejected;
     };
     if start_at.story != end_at.story {
         warn(
@@ -383,16 +407,29 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkAnchorInvalid { id },
         );
-        return false;
+        return Admission::Rejected;
     }
-    if start_at.kind != StoryKind::Body {
+    if !story_admits_bookmarks(start_at.kind) {
         warn(
             importer,
             &part,
             span,
             DiagnosticKind::BookmarkOutsideBody { id },
         );
-        return false;
+        return Admission::Rejected;
+    }
+    if start_at.kind == StoryKind::Comment
+        && !comment_anchor_placeable(&importer.document, start_at.story)
+    {
+        // A detached comment has no page caret. Inserting the bookmark would
+        // make navigation refuse the whole PDF.
+        warn(
+            importer,
+            &part,
+            span,
+            DiagnosticKind::BookmarkAnchorInvalid { id },
+        );
+        return Admission::Rejected;
     }
     let ordered = if start.paragraph == end.paragraph {
         start.offset <= end.offset
@@ -406,7 +443,7 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkAnchorInvalid { id },
         );
-        return false;
+        return Admission::Rejected;
     }
     let name = start.name.clone().unwrap_or_else(|| Arc::from(""));
     match classify_name(&name) {
@@ -417,7 +454,7 @@ fn bind_group(
                 span,
                 DiagnosticKind::BookmarkNameEmpty { id },
             );
-            return false;
+            return Admission::Rejected;
         }
         Some(NameProblem::Control) => {
             warn(
@@ -426,11 +463,11 @@ fn bind_group(
                 span,
                 DiagnosticKind::BookmarkNameInvalid { id },
             );
-            return false;
+            return Admission::Rejected;
         }
         Some(NameProblem::Long) => {
             warn(importer, &part, span, DiagnosticKind::BookmarkBudget { id });
-            return false;
+            return Admission::Rejected;
         }
         None => {}
     }
@@ -441,11 +478,11 @@ fn bind_group(
             span,
             DiagnosticKind::BookmarkNameDuplicate { id },
         );
-        return false;
+        return Admission::Rejected;
     }
     if accepted.len() >= MAX_IMPORTED_BOOKMARKS {
         warn(importer, &part, span, DiagnosticKind::BookmarkBudget { id });
-        return false;
+        return Admission::Rejected;
     }
     let anchor = Anchor::Range {
         start: Position {
@@ -475,7 +512,44 @@ fn bind_group(
         stored.source = Some(source);
     }
     accepted.insert(name);
-    true
+    if start_at.kind == StoryKind::Body {
+        Admission::Body
+    } else {
+        Admission::LockedStory
+    }
+}
+
+fn story_admits_bookmarks(kind: StoryKind) -> bool {
+    matches!(
+        kind,
+        StoryKind::Body | StoryKind::Header | StoryKind::Footer | StoryKind::Comment
+    )
+}
+
+/// The comment anchor is a range layout can turn into a page caret.
+fn comment_anchor_placeable(document: &Document, story: StoryId) -> bool {
+    let Some(annotation) = document.annotations().find(|annotation| {
+        matches!(
+            &annotation.kind,
+            AnnotationKind::Comment(comment) if comment.body == story
+        )
+    }) else {
+        return false;
+    };
+    let Anchor::Range { start, end } = &annotation.anchor else {
+        return false;
+    };
+    if start.story != end.story {
+        return false;
+    }
+    let Some(anchor_at) = place(document, start.paragraph) else {
+        return false;
+    };
+    anchor_at.story == start.story
+        && matches!(
+            anchor_at.kind,
+            StoryKind::Body | StoryKind::Header | StoryKind::Footer
+        )
 }
 
 fn place(document: &Document, paragraph: NodeId) -> Option<Place> {
@@ -548,7 +622,8 @@ fn bookmark_rows(document: &Document) -> Vec<(AnnotationId, Arc<str>, Anchor)> {
 ///
 /// The bias is the one import stores. A detached anchor, a header, footer,
 /// comment, or table-cell paragraph, a reversed range, or an offset past the
-/// paragraph is not representable.
+/// paragraph is not representable. Header, footer, and comment bookmarks
+/// stay in the model for PDF and are not spliced back by this function.
 pub(crate) fn anchor_writable(document: &Document, anchor: &Anchor) -> bool {
     let Anchor::Range { start, end } = anchor else {
         return false;

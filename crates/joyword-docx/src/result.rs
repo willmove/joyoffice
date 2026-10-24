@@ -317,8 +317,9 @@ pub enum DiagnosticKind {
     BookmarkAnchorUnmapped {
         id: u32,
     },
-    /// The range is not in the body story. Layout carets are body positions,
-    /// so the bookmark is not a PDF destination. Not inserted.
+    /// The range is in a story this slice does not place (a footnote, endnote,
+    /// or text box). Header, footer, and comment ranges are accepted.
+    /// Not inserted.
     BookmarkOutsideBody {
         id: u32,
     },
@@ -339,7 +340,10 @@ pub enum DiagnosticKind {
     },
     /// Bookmark markers kept as fragments. An accepted body bookmark does
     /// not lock its paragraph; an edited export writes the marker bytes
-    /// back. A marker this slice does not accept still locks its paragraph.
+    /// back. An accepted header, footer, or comment bookmark is an
+    /// annotation, but its paragraph stays locked because those marker
+    /// bytes are not written back. A marker this slice does not accept
+    /// still locks its paragraph.
     /// `count` is the number of `w:bookmarkStart` / `w:bookmarkEnd` elements
     /// preserved.
     BookmarksPreserved {

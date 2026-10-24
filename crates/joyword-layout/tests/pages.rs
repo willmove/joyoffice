@@ -10,10 +10,11 @@ use joyword_layout::{
     layout_with_view,
 };
 use joyword_model::{
-    Bias, Block, BlockSeq, BreakKind, Cell, CellBorders, Document, EqualColumns, HeaderFooterKind,
-    InlineKind, InlineObject, Measure, NewspaperColumn, NumberFormat, Orientation, PageField,
-    PageFieldKind, PageNumbering, PageSetup, Paragraph, Position, Preserved, Row, ScalarOffset,
-    SectionBreak, StoryKind, Table, UnequalColumns, VerticalMerge,
+    Anchor, AnnotationKind, Bias, Block, BlockSeq, BreakKind, Cell, CellBorders, Document,
+    EqualColumns, HeaderFooterKind, InlineKind, InlineObject, Measure, NewspaperColumn,
+    NumberFormat, Orientation, PageField, PageFieldKind, PageNumbering, PageSetup, Paragraph,
+    Position, Preserved, Row, ScalarOffset, SectionBreak, StoryKind, Table, UnequalColumns,
+    VerticalMerge,
 };
 
 fn pt(value: i64) -> Emu {
@@ -1628,4 +1629,167 @@ fn incremental_layout_matches_first_and_even_headers() {
     assert!(page_text(&full, 0).contains("H1"));
     assert!(page_text(&full, 1).contains("H2"));
     assert!(page_text(&full, 2).contains("H0"));
+}
+
+fn story_paragraph(document: &Document, story: joyword_model::StoryId) -> joyword_model::NodeId {
+    document
+        .story(story)
+        .unwrap()
+        .blocks
+        .iter()
+        .find_map(Block::as_paragraph)
+        .unwrap()
+        .id()
+}
+
+fn at(
+    snapshot: &LayoutSnapshot,
+    story: joyword_model::StoryId,
+    paragraph: joyword_model::NodeId,
+    offset: usize,
+    bias: Bias,
+) -> joyword_layout::CaretGeometry {
+    snapshot
+        .caret(Position {
+            story,
+            paragraph,
+            offset: ScalarOffset(offset),
+            bias,
+        })
+        .unwrap()
+}
+
+#[test]
+fn header_and_footer_carets_stay_on_the_first_painted_page() {
+    let mut document = document_with(&["AV"]);
+    insert_break(&mut document, 0, 1);
+    let header_id = header(&mut document, "Head", None);
+    let footer_id = attach(
+        &mut document,
+        0,
+        false,
+        HeaderFooterKind::Default,
+        "Foot",
+        None,
+    );
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.pages().len(), 2);
+    assert!(page_text(&snapshot, 0).contains("Head"));
+    assert!(page_text(&snapshot, 0).contains("Foot"));
+    assert!(page_text(&snapshot, 1).contains("Head"));
+    assert!(page_text(&snapshot, 1).contains("Foot"));
+    let head = at(
+        &snapshot,
+        header_id,
+        story_paragraph(&document, header_id),
+        0,
+        Bias::After,
+    );
+    let foot = at(
+        &snapshot,
+        footer_id,
+        story_paragraph(&document, footer_id),
+        0,
+        Bias::After,
+    );
+    assert_eq!(head.page, 0);
+    assert_eq!(head.x, pt(6));
+    assert_eq!(head.top, pt(2));
+    assert_eq!(foot.page, 0);
+    assert_eq!(foot.x, pt(6));
+    assert!(foot.top.raw() > pt(6).raw());
+    assert!(!snapshot.auxiliary_lines().is_empty());
+}
+
+#[test]
+fn a_comment_caret_is_the_anchor_and_comment_text_is_not_painted() {
+    let mut document = document_with(&["Body"]);
+    let mut note = Paragraph::new(document.ids().node());
+    note.push_text("Note", None, Arc::default()).unwrap();
+    let comment = document.insert_story(StoryKind::Comment, vec![note.into()]);
+    let body = document.body_id();
+    let paragraph = story_paragraph(&document, body);
+    document.insert_annotation(
+        AnnotationKind::comment(comment),
+        Anchor::Range {
+            start: Position {
+                story: body,
+                paragraph,
+                offset: ScalarOffset(0),
+                bias: Bias::Before,
+            },
+            end: Position {
+                story: body,
+                paragraph,
+                offset: ScalarOffset(4),
+                bias: Bias::After,
+            },
+        },
+    );
+    let snapshot = layout(&document);
+    assert!(page_text(&snapshot, 0).contains("Body"));
+    assert!(!page_text(&snapshot, 0).contains("Note"));
+    let anchor = at(&snapshot, body, paragraph, 0, Bias::Before);
+    let inside = at(
+        &snapshot,
+        comment,
+        story_paragraph(&document, comment),
+        2,
+        Bias::After,
+    );
+    assert_eq!(inside.page, anchor.page);
+    assert_eq!(inside.x, anchor.x);
+    assert_eq!(inside.top, anchor.top);
+    assert_eq!(inside.baseline, anchor.baseline);
+}
+
+#[test]
+fn an_unpainted_first_header_and_an_empty_header_still_resolve_carets() {
+    let mut document = document_with(&["Body"]);
+    let shown = header(&mut document, "Shown", None);
+    let first = attach(
+        &mut document,
+        0,
+        true,
+        HeaderFooterKind::First,
+        "First",
+        None,
+    );
+    let snapshot = layout(&document);
+    assert!(page_text(&snapshot, 0).contains("Shown"));
+    assert!(!page_text(&snapshot, 0).contains("First"));
+    let caret = at(
+        &snapshot,
+        first,
+        story_paragraph(&document, first),
+        0,
+        Bias::After,
+    );
+    assert_eq!(caret.page, 0);
+    assert_eq!(caret.x, pt(6));
+    assert_eq!(caret.top, pt(2));
+    let shown_caret = at(
+        &snapshot,
+        shown,
+        story_paragraph(&document, shown),
+        0,
+        Bias::After,
+    );
+    assert_eq!(shown_caret.page, 0);
+    assert_eq!(shown_caret.top, pt(2));
+
+    let mut empty = document_with(&["Body"]);
+    let header_id = header(&mut empty, "", None);
+    let snapshot = layout(&empty);
+    assert!(page_text(&snapshot, 0).contains("Body"));
+    let caret = at(
+        &snapshot,
+        header_id,
+        story_paragraph(&empty, header_id),
+        0,
+        Bias::After,
+    );
+    assert_eq!(caret.page, 0);
+    assert_eq!(caret.x, pt(6));
+    assert_eq!(caret.top, pt(2));
 }
