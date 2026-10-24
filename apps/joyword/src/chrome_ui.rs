@@ -1,257 +1,32 @@
-//! Ribbon, horizontal ruler and status counts (T205). Buttons call the
-//! command registry. The ruler drags direct indents and tab stops. Font and
-//! paragraph dialogs apply one undoable transaction; cancel applies none.
+//! Ribbon commands, page-aligned ruler and formatting dialogs (T205).
+//! Dialogs apply one undoable transaction; cancel applies none.
 use crate::{DialogKind, FormatDialog, JoyWord, RulerHit, ZOOM_MAX, ZOOM_MIN};
 use gpui::{
-    Bounds, Context, MouseButton, Pixels, Window, canvas, div, fill, point, prelude::*, px, rgb,
-    size,
+    Bounds, Context, MouseButton, PathBuilder, Pixels, Window, canvas, div, fill, point,
+    prelude::*, px, rgb, size,
 };
 use joyword_foundation::Emu;
 use joyword_model::TabAlign;
 use joyword_shell::chrome::{
-    self, RibbonArgs, RibbonControl, RibbonInput, RibbonTab, RulerModel, RulerTab, icon_cells,
-    ruler_scale, status_line,
+    self, RibbonArgs, RibbonControl, RibbonInput, RulerModel, RulerTab, icon_cells, ruler_scale,
 };
 use joyword_shell::command::{
     Availability, CommandId, EDIT_ALIGN_CENTER, EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD,
-    EDIT_COPY, EDIT_CUT, EDIT_ITALIC, EDIT_JUSTIFY, EDIT_PASTE, EDIT_REDO, EDIT_UNDERLINE,
-    EDIT_UNDO, FILE_EXPORT_PDF, FILE_OPEN, FILE_SAVE, FILE_SAVE_COPY, REVIEW_FINAL, REVIEW_MARKUP,
-    REVIEW_ORIGINAL, REVIEW_TRACK, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
-    ZOOM_IN, ZOOM_OUT,
+    EDIT_ITALIC, EDIT_JUSTIFY, EDIT_UNDERLINE, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL,
+    REVIEW_TRACK, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT,
 };
 use joyword_shell::input::RunToggle;
-use joyword_shell::l10n::Catalog;
-
-fn linux_button_id(command: CommandId) -> &'static str {
-    match command {
-        FILE_OPEN => "linux-cmd-open",
-        FILE_SAVE => "linux-cmd-save",
-        FILE_SAVE_COPY => "linux-cmd-save-copy",
-        FILE_EXPORT_PDF => "linux-cmd-export",
-        EDIT_UNDO => "linux-cmd-undo",
-        EDIT_REDO => "linux-cmd-redo",
-        EDIT_CUT => "linux-cmd-cut",
-        EDIT_COPY => "linux-cmd-copy",
-        EDIT_PASTE => "linux-cmd-paste",
-        _ => "linux-cmd-other",
-    }
-}
 
 const INK: u32 = 0x163b65;
-const INK_MUTED: u32 = 0x9aa7b2;
 
 impl JoyWord {
-    /// File and Edit stand in for the menu bar GPUI does not draw on Linux.
-    pub(crate) fn linux_command_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        div()
-            .flex()
-            .items_center()
-            .gap_2()
-            .px_3()
-            .py_1()
-            .bg(rgb(0xffffff))
-            .border_b_1()
-            .border_color(rgb(0xd5dbe3))
-            .text_sm()
-            .child(self.linux_cluster(
-                "linux-file",
-                "menu.file",
-                &crate::linux_files::LINUX_BAR[..4],
-                cx,
-            ))
-            .child(self.linux_cluster(
-                "linux-edit",
-                "menu.edit",
-                &crate::linux_files::LINUX_BAR[4..],
-                cx,
-            ))
-    }
-
-    fn linux_cluster(
-        &self,
-        id: &'static str,
-        label_key: &'static str,
-        commands: &[CommandId],
-        cx: &mut Context<Self>,
-    ) -> gpui::AnyElement {
-        div()
-            .id(id)
-            .flex()
-            .items_center()
-            .gap_1()
-            .child(
-                div()
-                    .text_xs()
-                    .text_color(rgb(0x5c6b7a))
-                    .px_1()
-                    .child(self.label(label_key)),
-            )
-            .children(
-                commands
-                    .iter()
-                    .copied()
-                    .map(|command| self.linux_command_button(command, cx)),
-            )
-            .into_any_element()
-    }
-
-    fn linux_command_button(&self, command: CommandId, cx: &mut Context<Self>) -> gpui::AnyElement {
-        let enabled = !matches!(self.input_availability(command), Availability::Disabled(_));
-        let spec = self.registry.get(command);
-        let mut label = spec
-            .map(|spec| self.label(spec.label))
-            .unwrap_or_else(|| command.0.to_owned());
-        if command == FILE_EXPORT_PDF
-            && let Some(extra) = spec.and_then(|spec| spec.shortcut.linux_alternate())
-        {
-            label = format!("{label}  {}", crate::linux_files::chord_label(extra));
-        }
-        div()
-            .id(linux_button_id(command))
-            .cursor_pointer()
-            .px_2()
-            .py_1()
-            .rounded_sm()
-            .bg(if enabled {
-                rgb(0xe7eef5)
-            } else {
-                rgb(0xf4f6f8)
-            })
-            .text_color(if enabled { rgb(INK) } else { rgb(INK_MUTED) })
-            .on_click(cx.listener(move |this, _, window, cx| {
-                this.run(command, window, cx);
-            }))
-            .child(label)
-            .into_any_element()
-    }
-
-    pub(crate) fn ribbon(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let shown = chrome::visible_controls(&self.registry, chrome::RIBBON);
-        let on_tab = chrome::controls_on(self.ribbon_tab, shown.iter().copied());
-        let grouped = chrome::groups(&on_tab);
-        div()
-            .flex()
-            .flex_col()
-            .bg(rgb(0xf7f9fb))
-            .border_b_1()
-            .border_color(rgb(0xd5dbe3))
-            .child(self.ribbon_tabs(cx))
-            .child(
-                div()
-                    .id("ribbon-row")
-                    .flex()
-                    .items_end()
-                    .gap_2()
-                    .px_2()
-                    .py_1()
-                    .overflow_x_scroll()
-                    .children(
-                        grouped
-                            .into_iter()
-                            .map(|(group, controls)| self.ribbon_group(group, &controls, cx)),
-                    ),
-            )
-    }
-
-    fn ribbon_tabs(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        div()
-            .flex()
-            .gap_1()
-            .px_3()
-            .pt_2()
-            .children(RibbonTab::ALL.into_iter().map(|tab| {
-                let selected = self.ribbon_tab == tab;
-                div()
-                    .id(tab.label_key())
-                    .px_3()
-                    .py_1()
-                    .cursor_pointer()
-                    .rounded_t_sm()
-                    .bg(if selected {
-                        rgb(0xffffff)
-                    } else {
-                        rgb(0xf7f9fb)
-                    })
-                    .text_color(if selected { rgb(INK) } else { rgb(0x5c6b7a) })
-                    .on_click(cx.listener(move |this, _, _, cx| {
-                        this.ribbon_tab = tab;
-                        cx.notify();
-                    }))
-                    .child(self.label(tab.label_key()))
-            }))
-    }
-
-    fn ribbon_group(
-        &self,
-        group: &'static str,
-        controls: &[&RibbonControl],
-        cx: &mut Context<Self>,
-    ) -> gpui::AnyElement {
-        div()
-            .id(group)
-            .flex()
-            .flex_col()
-            .items_center()
-            .gap_1()
-            .px_2()
-            .border_r_1()
-            .border_color(rgb(0xd5dbe3))
-            .child(
-                div().flex().gap_1().children(
-                    controls
-                        .iter()
-                        .map(|control| self.ribbon_button(control, cx)),
-                ),
-            )
-            .child(
-                div()
-                    .text_xs()
-                    .text_color(rgb(0x5c6b7a))
-                    .child(self.label(group)),
-            )
-            .into_any_element()
-    }
-
-    fn ribbon_button(&self, control: &RibbonControl, cx: &mut Context<Self>) -> gpui::AnyElement {
-        let control = *control;
-        let enabled = self.ribbon_enabled(control.command);
-        let pressed = enabled && self.ribbon_pressed(control.command);
-        let ink = if enabled { INK } else { INK_MUTED };
-        div()
-            .id(control.id)
-            .flex()
-            .flex_col()
-            .items_center()
-            .gap_1()
-            .px_2()
-            .py_1()
-            .rounded_sm()
-            .cursor_pointer()
-            .border_1()
-            .border_color(if pressed {
-                rgb(0x7fa3c7)
-            } else {
-                gpui::transparent_black().into()
-            })
-            .bg(if pressed {
-                rgb(0xc5d8ea)
-            } else if enabled {
-                rgb(0xe7eef5)
-            } else {
-                rgb(0xf4f6f8)
-            })
-            .text_color(rgb(ink))
-            .on_click(cx.listener(move |this, _, window, cx| {
-                this.run_ribbon(control, window, cx);
-            }))
-            .child(drawn_icon(control.icon, ink))
-            .child(div().text_xs().child(self.label(control.label)))
-            .into_any_element()
+    pub(crate) fn ribbon(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.word_ribbon(window, cx)
     }
 
     /// Word shows character formats, the paragraph alignment and view
     /// switches as pressed buttons at the caret or selection.
-    fn ribbon_pressed(&self, id: CommandId) -> bool {
+    pub(crate) fn ribbon_pressed(&self, id: CommandId) -> bool {
         let toggles = self.view_toggles;
         let alignment =
             |wanted: joyword_model::Justification| self.caret_alignment() == Some(wanted);
@@ -298,7 +73,7 @@ impl JoyWord {
         )
     }
 
-    fn ribbon_enabled(&self, id: CommandId) -> bool {
+    pub(crate) fn ribbon_enabled(&self, id: CommandId) -> bool {
         if matches!(self.input_availability(id), Availability::Disabled(_)) {
             return false;
         }
@@ -311,7 +86,12 @@ impl JoyWord {
         true
     }
 
-    fn run_ribbon(&mut self, control: RibbonControl, window: &mut Window, cx: &mut Context<Self>) {
+    pub(crate) fn run_ribbon(
+        &mut self,
+        control: RibbonControl,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if matches!(control.args, RibbonArgs::PromptPath) {
             self.prompt_insert_picture(cx);
             return;
@@ -335,13 +115,14 @@ impl JoyWord {
         let unresolved = model.unresolved;
         let bounds_slot = std::sync::Arc::clone(&self.ruler_bounds);
         let painted = model.clone();
+        let geometry = self.ruler_screen_geometry();
         div()
             .flex()
             .items_center()
-            .h(px(28.0))
-            .bg(rgb(0xffffff))
+            .h(px(crate::ui::theme::RULER_HEIGHT))
+            .bg(rgb(crate::ui::theme::WHITE))
             .border_b_1()
-            .border_color(rgb(0xd5dbe3))
+            .border_color(rgb(crate::ui::theme::BORDER))
             .on_mouse_down(
                 MouseButton::Left,
                 cx.listener(|this, event: &gpui::MouseDownEvent, _, cx| {
@@ -361,21 +142,35 @@ impl JoyWord {
                 }),
             )
             .child(
-                div().relative().flex_1().h_full().child(
-                    canvas(
-                        |_, _, _| {},
-                        move |bounds, _, window, _| {
-                            if let Ok(mut slot) = bounds_slot.lock() {
-                                *slot = Some(bounds);
-                            }
-                            paint_ruler(bounds, &painted, window);
-                        },
+                div()
+                    .relative()
+                    .flex_1()
+                    .h_full()
+                    .child(
+                        canvas(
+                            |_, _, _| {},
+                            move |bounds, _, window, _| {
+                                let content = geometry.map_or(bounds, |(origin, width)| {
+                                    Bounds::new(
+                                        point(origin, bounds.origin.y),
+                                        size(width, bounds.size.height),
+                                    )
+                                });
+                                if let Ok(mut slot) = bounds_slot.lock() {
+                                    *slot = Some(content);
+                                }
+                                let scale = painted
+                                    .content_width
+                                    .unwrap_or_else(|| ruler_scale(&painted));
+                                paint_ruler(content, scale, &painted, window);
+                            },
+                        )
+                        .absolute()
+                        .top_0()
+                        .left_0()
+                        .size_full(),
                     )
-                    .absolute()
-                    .top_0()
-                    .left_0()
-                    .size_full(),
-                ),
+                    .children(ruler_labels(&model, geometry)),
             )
             .children(unresolved.then(|| {
                 div()
@@ -384,6 +179,32 @@ impl JoyWord {
                     .text_color(rgb(0x8a5a00))
                     .child(self.label("ruler.unresolved"))
             }))
+    }
+
+    fn ruler_screen_geometry(&self) -> Option<(Pixels, Pixels)> {
+        let frame = self.ready_layout()?;
+        let count = frame.layout.pages().len();
+        let index = self
+            .editor
+            .as_ref()
+            .and_then(|editor| {
+                frame
+                    .layout
+                    .caret(editor.view().selection().head)
+                    .ok()
+                    .map(|caret| caret.page)
+            })
+            .unwrap_or(0)
+            .min(count.checked_sub(1)?);
+        let page = frame.layout.page_geometry().get(index)?;
+        crate::ui::shell::ruler_page_geometry(
+            self.viewport_bounds?,
+            self.scroll.offset(),
+            page.width,
+            page.left,
+            page.right,
+            self.zoom_percent,
+        )
     }
 
     fn current_ruler(&self) -> RulerModel {
@@ -441,42 +262,9 @@ impl JoyWord {
         (width > 0).then_some(width)
     }
 
-    pub(crate) fn status_counts(&self) -> String {
-        let census = self
-            .editor
-            .as_ref()
-            .map(|editor| chrome::census(editor.view().index().text()))
-            .unwrap_or_default();
-        let (page, pages) = self
-            .ready_layout()
-            .map(|frame| {
-                let index = self.editor.as_ref().and_then(|editor| {
-                    frame
-                        .layout
-                        .caret(editor.view().selection().head)
-                        .ok()
-                        .map(|caret| caret.page)
-                });
-                chrome::display_page(index, frame.layout.pages().len())
-            })
-            .unwrap_or((None, None));
-        status_line(
-            Catalog::shipped(self.locale),
-            &chrome::StatusSnapshot {
-                page,
-                pages,
-                census,
-                review: self.view_toggles.revision.as_str(),
-                tracking: self
-                    .editor
-                    .as_ref()
-                    .is_some_and(|editor| editor.tracking_enabled()),
-            },
-        )
-    }
-
     pub(crate) fn open_font_dialog(&mut self, cx: &mut Context<Self>) {
         let (family, size, bold, italic, underline, color) = self.font_prefill();
+        self.format_dialog_focused = false;
         self.format_dialog = Some(FormatDialog {
             kind: DialogKind::Font,
             fields: vec![
@@ -493,6 +281,7 @@ impl JoyWord {
 
     pub(crate) fn open_paragraph_dialog(&mut self, cx: &mut Context<Self>) {
         let (align, start, end, first, hanging, before, after, line) = self.paragraph_prefill();
+        self.format_dialog_focused = false;
         self.format_dialog = Some(FormatDialog {
             kind: DialogKind::Paragraph,
             fields: vec![
@@ -514,6 +303,7 @@ impl JoyWord {
 
     pub(crate) fn open_table_dialog(&mut self, cx: &mut Context<Self>) {
         let (width, align, top, left, bottom, right, border, size, color) = self.table_prefill();
+        self.format_dialog_focused = false;
         self.format_dialog = Some(FormatDialog {
             kind: DialogKind::Table,
             fields: vec![
@@ -534,7 +324,22 @@ impl JoyWord {
         cx.notify();
     }
 
-    pub(crate) fn format_panel(&self, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
+    pub(crate) fn format_panel(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Option<gpui::AnyElement> {
+        if !self.format_dialog_focused {
+            let focus = self
+                .format_dialog
+                .as_ref()
+                .and_then(|dialog| dialog.fields.first())
+                .map(|field| field.focus.clone());
+            self.format_dialog_focused = true;
+            if let Some(focus) = focus {
+                window.focus(&focus, cx);
+            }
+        }
         let dialog = self.format_dialog.as_ref()?;
         let kind = dialog.kind;
         let title = match kind {
@@ -544,18 +349,24 @@ impl JoyWord {
         };
         let mut panel = div()
             .id("format-dialog")
+            .tab_group()
             .flex()
             .flex_col()
             .gap_2()
-            .px_4()
-            .py_3()
-            .bg(rgb(0xffffff))
-            .border_t_1()
-            .border_color(rgb(0xd5dbe3))
-            .child(div().text_sm().child(title));
+            .w(px(560.0))
+            .max_h(px(680.0))
+            .overflow_y_scroll()
+            .p_4()
+            .rounded_md()
+            .bg(rgb(crate::ui::theme::WHITE))
+            .border_1()
+            .border_color(rgb(crate::ui::theme::BORDER))
+            .shadow_lg()
+            .child(div().text_lg().child(title));
         for index in 0..dialog.fields.len() {
             panel = panel.child(self.dialog_field(index, cx));
         }
+        panel = panel.children(self.dialog_choices(kind, cx));
         if kind == DialogKind::Font {
             panel = panel.child(
                 div()
@@ -566,17 +377,128 @@ impl JoyWord {
                     .child(self.flag_button("dialog-underline", "dialog.font.underline", 2, cx)),
             );
         }
+        let panel = panel.child(
+            div()
+                .flex()
+                .justify_end()
+                .gap_2()
+                .child(self.dialog_action("dialog-cancel", "dialog.cancel", false, cx))
+                .child(self.dialog_action("dialog-ok", "dialog.ok", true, cx)),
+        );
         Some(
-            panel
-                .child(
-                    div()
-                        .flex()
-                        .gap_2()
-                        .child(self.dialog_action("dialog-ok", "dialog.ok", true, cx))
-                        .child(self.dialog_action("dialog-cancel", "dialog.cancel", false, cx)),
-                )
+            div()
+                .id("format-dialog-overlay")
+                .absolute()
+                .inset_0()
+                .size_full()
+                .occlude()
+                .flex()
+                .items_center()
+                .justify_center()
+                .bg(gpui::rgba(0x00000040))
+                .child(panel)
                 .into_any_element(),
         )
+    }
+
+    fn dialog_choices(&self, kind: DialogKind, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
+        let rows: Vec<(usize, &[(&str, &str)])> = match kind {
+            DialogKind::Font => vec![
+                (0, &[("等线", "等线"), ("宋体", "宋体"), ("Arial", "Arial")]),
+                (
+                    1,
+                    &[("10.5", "10.5"), ("12", "12"), ("14", "14"), ("16", "16")],
+                ),
+                (
+                    2,
+                    &[
+                        ("auto", "ui.color_auto"),
+                        ("000000", "ui.color_black"),
+                        ("4472C4", "ui.color_blue"),
+                    ],
+                ),
+            ],
+            DialogKind::Paragraph => vec![(
+                0,
+                &[
+                    ("start", "command.edit.align_left"),
+                    ("center", "command.edit.align_center"),
+                    ("end", "command.edit.align_right"),
+                    ("both", "command.edit.justify"),
+                ],
+            )],
+            DialogKind::Table => vec![(
+                1,
+                &[
+                    ("left", "command.edit.align_left"),
+                    ("center", "command.edit.align_center"),
+                    ("right", "command.edit.align_right"),
+                ],
+            )],
+        };
+        Some(
+            div()
+                .flex()
+                .flex_col()
+                .gap_1()
+                .children(rows.into_iter().map(|(index, choices)| {
+                    div()
+                        .flex()
+                        .flex_wrap()
+                        .gap_1()
+                        .children(
+                            choices
+                                .iter()
+                                .map(|(value, label)| self.dialog_choice(index, value, label, cx)),
+                        )
+                        .into_any_element()
+                }))
+                .into_any_element(),
+        )
+    }
+
+    fn dialog_choice(
+        &self,
+        index: usize,
+        value: &'static str,
+        label: &'static str,
+        cx: &mut Context<Self>,
+    ) -> gpui::AnyElement {
+        let text = if label.contains('.') {
+            self.label(label)
+        } else {
+            label.to_owned()
+        };
+        div()
+            .id(format!("dialog-choice-{index}-{value}"))
+            .focusable()
+            .cursor_pointer()
+            .px_2()
+            .py_1()
+            .rounded_sm()
+            .bg(rgb(crate::ui::theme::HOVER))
+            .hover(|style| style.bg(rgb(crate::ui::theme::SELECTED)))
+            .on_click(cx.listener(move |this, _, _, cx| {
+                if let Some(dialog) = &mut this.format_dialog
+                    && let Some(field) = dialog.fields.get_mut(index)
+                {
+                    field.value.set_text(value);
+                }
+                cx.notify();
+            }))
+            .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
+                if matches!(event.keystroke.key.as_str(), "enter" | "space") {
+                    if let Some(dialog) = &mut this.format_dialog
+                        && let Some(field) = dialog.fields.get_mut(index)
+                    {
+                        field.value.set_text(value);
+                    }
+                    cx.stop_propagation();
+                    cx.notify();
+                }
+            }))
+            .child(text)
+            .into_any_element()
     }
 
     fn dialog_field(&self, index: usize, cx: &mut Context<Self>) -> gpui::AnyElement {
@@ -641,9 +563,10 @@ impl JoyWord {
                 1 => dialog.italic,
                 _ => dialog.underline,
             });
-        let label = self.label(label);
+        let label = format!("{} {}", if on { "☑" } else { "☐" }, self.label(label));
         div()
             .id(id)
+            .focusable()
             .cursor_pointer()
             .px_2()
             .py_1()
@@ -659,6 +582,19 @@ impl JoyWord {
                 }
                 cx.notify();
             }))
+            .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
+                if matches!(event.keystroke.key.as_str(), "enter" | "space") {
+                    if let Some(dialog) = &mut this.format_dialog {
+                        match flag {
+                            0 => dialog.bold = !dialog.bold,
+                            1 => dialog.italic = !dialog.italic,
+                            _ => dialog.underline = !dialog.underline,
+                        }
+                    }
+                    cx.stop_propagation();
+                    cx.notify();
+                }
+            }))
             .child(label)
     }
 
@@ -672,12 +608,26 @@ impl JoyWord {
         let label = self.label(label);
         div()
             .id(id)
+            .focusable()
             .cursor_pointer()
             .px_3()
             .py_1()
             .rounded_sm()
-            .bg(rgb(0x163b65))
-            .text_color(rgb(0xffffff))
+            .bg(rgb(if apply {
+                crate::ui::theme::ACCENT
+            } else {
+                crate::ui::theme::HOVER
+            }))
+            .text_color(rgb(if apply {
+                crate::ui::theme::WHITE
+            } else {
+                crate::ui::theme::TEXT
+            }))
+            .focus(|style| {
+                style
+                    .border_1()
+                    .border_color(rgb(crate::ui::theme::ACCENT_DARK))
+            })
             .on_click(cx.listener(move |this, _, window, cx| {
                 if apply {
                     this.apply_format_dialog(window, cx);
@@ -685,11 +635,24 @@ impl JoyWord {
                     this.close_format_dialog(window, cx);
                 }
             }))
+            .on_key_down(
+                cx.listener(move |this, event: &gpui::KeyDownEvent, window, cx| {
+                    if matches!(event.keystroke.key.as_str(), "enter" | "space") {
+                        if apply {
+                            this.apply_format_dialog(window, cx);
+                        } else {
+                            this.close_format_dialog(window, cx);
+                        }
+                        cx.stop_propagation();
+                    }
+                }),
+            )
             .child(label)
     }
 
     pub(crate) fn close_format_dialog(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.format_dialog = None;
+        self.format_dialog_focused = false;
         window.focus(&self.focus_handle, cx);
         cx.notify();
     }
@@ -713,10 +676,17 @@ impl JoyWord {
         {
             return;
         }
-        if self.format_dialog.is_some() {
+        if self.popup.is_some() {
+            self.popup = None;
+            window.focus(&self.focus_handle, cx);
+            cx.notify();
+        } else if self.format_dialog.is_some() {
             self.close_format_dialog(window, cx);
         } else if self.path_sheet.is_some() {
             self.cancel_path_sheet(window, cx);
+        } else if self.side_panel.take().is_some() {
+            window.focus(&self.focus_handle, cx);
+            cx.notify();
         } else {
             return;
         }
@@ -744,10 +714,10 @@ impl JoyWord {
             return;
         };
         cx.stop_propagation();
-        if matches!(effect, crate::field_edit::FieldEffect::Cancel) {
-            self.close_format_dialog(window, cx);
-        } else {
-            cx.notify();
+        match effect {
+            crate::field_edit::FieldEffect::Cancel => self.close_format_dialog(window, cx),
+            crate::field_edit::FieldEffect::Submit => self.apply_format_dialog(window, cx),
+            _ => cx.notify(),
         }
     }
 
@@ -765,10 +735,8 @@ impl JoyWord {
             joyword_shell::command::ArgValue::Text("apply".into()),
         )];
         for field in &dialog.fields {
-            args.push((
-                field.name,
-                joyword_shell::command::ArgValue::Text(field.value.text().to_owned()),
-            ));
+            let value = dialog_command_value(dialog.kind, field.name, field.value.text());
+            args.push((field.name, joyword_shell::command::ArgValue::Text(value)));
         }
         if dialog.kind == DialogKind::Font {
             args.push((
@@ -827,7 +795,7 @@ impl JoyWord {
             return;
         };
         let model = self.current_ruler();
-        let scale = ruler_scale(&model);
+        let scale = model.content_width.unwrap_or_else(|| ruler_scale(&model));
         let position_emu = x_to_emu(bounds, scale, position.x);
         let drop_tab = outside && (f32::from(position.y - bounds.bottom())).abs() > 24.0;
         let drag = match hit {
@@ -854,7 +822,7 @@ impl JoyWord {
         self.apply_input(cx, |editor| editor.apply_ruler(drag));
     }
 
-    fn font_prefill(&self) -> (String, String, bool, bool, bool, String) {
+    pub(crate) fn font_prefill(&self) -> (String, String, bool, bool, bool, String) {
         let empty = (
             String::new(),
             String::new(),
@@ -965,10 +933,10 @@ impl JoyWord {
         };
         let (top, left, bottom, right) = match table.cell_margin {
             Some(margin) => (
-                margin.top.to_string(),
-                margin.left.to_string(),
-                margin.bottom.to_string(),
-                margin.right.to_string(),
+                twips_display(margin.top),
+                twips_display(margin.left),
+                twips_display(margin.bottom),
+                twips_display(margin.right),
             ),
             None => (String::new(), String::new(), String::new(), String::new()),
         };
@@ -976,7 +944,7 @@ impl JoyWord {
             .map(|edge| {
                 (
                     border_kind_text(edge.kind).to_owned(),
-                    edge.size_eighths.to_string(),
+                    decimal_display(i64::from(edge.size_eighths), 8),
                     border_color_text(edge.color),
                 )
             })
@@ -1125,9 +1093,62 @@ fn align_text(value: Option<joyword_model::Justification>) -> String {
     .to_owned()
 }
 
+fn decimal_display(value: i64, divisor: i64) -> String {
+    let absolute = value.unsigned_abs();
+    let whole = absolute / divisor.unsigned_abs();
+    let thousandths = absolute % divisor.unsigned_abs() * 1000 / divisor.unsigned_abs();
+    let sign = if value < 0 { "-" } else { "" };
+    if thousandths == 0 {
+        format!("{sign}{whole}")
+    } else {
+        let fraction = format!("{thousandths:03}");
+        format!("{sign}{whole}.{}", fraction.trim_end_matches('0'))
+    }
+}
+
+fn twips_display(value: i64) -> String {
+    decimal_display(value, 20)
+}
+
+fn parse_scaled(text: &str, multiplier: i64) -> String {
+    if text.trim().is_empty() {
+        return String::new();
+    }
+    text.trim()
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+        .map(|value| (value * multiplier as f64).round().to_string())
+        .unwrap_or_else(|| text.to_owned())
+}
+
+pub(crate) fn dialog_command_value(kind: DialogKind, name: &str, text: &str) -> String {
+    let paragraph_twips = matches!(
+        name,
+        "start" | "end" | "first" | "hanging" | "before" | "after"
+    );
+    let table_twips = matches!(name, "top" | "left" | "bottom" | "right");
+    if (kind == DialogKind::Paragraph && paragraph_twips)
+        || (kind == DialogKind::Table && table_twips)
+    {
+        return parse_scaled(text, 20);
+    }
+    if kind == DialogKind::Table && name == "border_size" {
+        return parse_scaled(text, 8);
+    }
+    if kind == DialogKind::Paragraph && name == "line" {
+        for prefix in ["exact:", "atLeast:"] {
+            if let Some(value) = text.strip_prefix(prefix) {
+                return format!("{prefix}{}", parse_scaled(value, 20));
+            }
+        }
+    }
+    text.to_owned()
+}
+
 fn twip_text(measure: Option<joyword_model::Measure>) -> String {
     match measure {
-        Some(joyword_model::Measure::Twips(value)) => value.to_string(),
+        Some(joyword_model::Measure::Twips(value)) => twips_display(value),
         _ => String::new(),
     }
 }
@@ -1136,10 +1157,10 @@ fn line_text(line: Option<joyword_model::LineSpacing>) -> String {
     match line {
         Some(joyword_model::LineSpacing::Auto(value)) => format!("auto:{value}"),
         Some(joyword_model::LineSpacing::Exact(joyword_model::Measure::Twips(value))) => {
-            format!("exact:{value}")
+            format!("exact:{}", twips_display(value))
         }
         Some(joyword_model::LineSpacing::AtLeast(joyword_model::Measure::Twips(value))) => {
-            format!("atLeast:{value}")
+            format!("atLeast:{}", twips_display(value))
         }
         _ => String::new(),
     }
@@ -1150,7 +1171,7 @@ fn hit_ruler(
     bounds: Bounds<Pixels>,
     position: gpui::Point<Pixels>,
 ) -> Option<RulerHit> {
-    let scale = ruler_scale(model);
+    let scale = model.content_width.unwrap_or_else(|| ruler_scale(model));
     let distance = |emu: i64| (f32::from(position.x - emu_x(bounds, scale, emu))).abs();
     let top = position.y < bounds.center().y;
     if top {
@@ -1198,7 +1219,7 @@ fn x_to_emu(bounds: Bounds<Pixels>, scale: i64, x: Pixels) -> i64 {
     (t * scale as f32).round() as i64
 }
 
-fn drawn_icon(id: &str, ink: u32) -> gpui::AnyElement {
+pub(crate) fn drawn_icon(id: &str, ink: u32) -> gpui::AnyElement {
     let cells = icon_cells(id);
     canvas(
         |_, _, _| {},
@@ -1225,8 +1246,35 @@ fn drawn_icon(id: &str, ink: u32) -> gpui::AnyElement {
     .into_any_element()
 }
 
-fn paint_ruler(bounds: Bounds<Pixels>, model: &RulerModel, window: &mut Window) {
-    let scale = ruler_scale(model);
+fn ruler_labels(model: &RulerModel, geometry: Option<(Pixels, Pixels)>) -> Vec<gpui::AnyElement> {
+    let Some((origin, width)) = geometry else {
+        return Vec::new();
+    };
+    let scale = model.content_width.unwrap_or_else(|| ruler_scale(model));
+    let mut labels = Vec::new();
+    let mut value = 0;
+    let mut inch = 0;
+    while value <= scale {
+        let x = origin + width * (value as f32 / scale.max(1) as f32);
+        if x + px(12.0) <= origin + width {
+            labels.push(
+                div()
+                    .absolute()
+                    .left(x + px(2.0))
+                    .top_0()
+                    .text_xs()
+                    .text_color(rgb(crate::ui::theme::TEXT_MUTED))
+                    .child(inch.to_string())
+                    .into_any_element(),
+            );
+        }
+        inch += 1;
+        value = value.saturating_add(Emu::PER_INCH);
+    }
+    labels
+}
+
+fn paint_ruler(bounds: Bounds<Pixels>, scale: i64, model: &RulerModel, window: &mut Window) {
     window.paint_quad(fill(
         Bounds {
             origin: point(
@@ -1241,6 +1289,8 @@ fn paint_ruler(bounds: Bounds<Pixels>, model: &RulerModel, window: &mut Window) 
         let mut inch = Emu::PER_INCH;
         while inch < scale {
             paint_tick(bounds, scale, inch, px(8.0), 0xc5ced6, window);
+            let half = inch.saturating_sub(Emu::PER_INCH / 2);
+            paint_tick(bounds, scale, half, px(5.0), 0xd2d0ce, window);
             let next = inch.saturating_add(Emu::PER_INCH);
             if next <= inch {
                 break;
@@ -1317,13 +1367,24 @@ fn paint_block(
     } else {
         bounds.origin.y + bounds.size.height - px(8.0)
     };
-    window.paint_quad(fill(
-        Bounds {
-            origin: point(x - px(3.0), y),
-            size: size(px(6.0), px(6.0)),
-        },
-        rgb(color),
-    ));
+    let points = if top {
+        [
+            point(x - px(4.0), y),
+            point(x + px(4.0), y),
+            point(x, y + px(7.0)),
+        ]
+    } else {
+        [
+            point(x - px(4.0), y + px(7.0)),
+            point(x + px(4.0), y + px(7.0)),
+            point(x, y),
+        ]
+    };
+    let mut builder = PathBuilder::fill();
+    builder.add_polygon(&points, true);
+    if let Ok(path) = builder.build() {
+        window.paint_path(path, rgb(color));
+    }
 }
 
 fn emu_x(bounds: Bounds<Pixels>, scale: i64, emu: i64) -> Pixels {

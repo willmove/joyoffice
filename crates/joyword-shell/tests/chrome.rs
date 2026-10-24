@@ -418,6 +418,8 @@ fn page_presets_match_the_product_page_setup() {
     assert_eq!(preset_text("start.list_level_1", "level"), Some("0"));
     assert_eq!(preset_text("start.list_level_2", "level"), Some("1"));
     assert_eq!(preset_text("start.list_bullet", "bullet"), Some("1"));
+    assert_eq!(preset_text("insert.table_grid", "rows"), Some("2"));
+    assert_eq!(preset_text("insert.table_grid", "columns"), Some("2"));
 }
 
 fn preset_text(id: &str, name: &str) -> Option<&'static str> {

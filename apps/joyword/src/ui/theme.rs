@@ -1,0 +1,19 @@
+pub const ACCENT: u32 = 0x185abd;
+pub const ACCENT_DARK: u32 = 0x114a8b;
+pub const TEXT: u32 = 0x242424;
+pub const TEXT_MUTED: u32 = 0x616161;
+pub const TEXT_DISABLED: u32 = 0xa19f9d;
+pub const WHITE: u32 = 0xffffff;
+pub const RIBBON: u32 = 0xfaf9f8;
+pub const CANVAS: u32 = 0xf3f2f1;
+pub const BORDER: u32 = 0xd2d0ce;
+pub const BORDER_LIGHT: u32 = 0xe1dfdd;
+pub const HOVER: u32 = 0xf3f2f1;
+pub const PRESSED: u32 = 0xe1dfdd;
+pub const SELECTED: u32 = 0xcfe4fa;
+pub const NOTICE: u32 = 0xfff4ce;
+
+pub const CONTROL_HEIGHT: f32 = 26.0;
+pub const TAB_HEIGHT: f32 = 30.0;
+pub const STATUS_HEIGHT: f32 = 26.0;
+pub const RULER_HEIGHT: f32 = 26.0;

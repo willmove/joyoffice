@@ -2372,3 +2372,65 @@ fn prompt_lines_never_start_with_closing_punctuation() {
         vec!["Save changes to", "sample.docx?"]
     );
 }
+
+#[test]
+fn formatting_dialog_converts_points_back_to_command_units() {
+    use super::{DialogKind, chrome_ui::dialog_command_value};
+
+    assert_eq!(
+        dialog_command_value(DialogKind::Paragraph, "start", "10.5"),
+        "210"
+    );
+    assert_eq!(
+        dialog_command_value(DialogKind::Paragraph, "line", "exact:18"),
+        "exact:360"
+    );
+    assert_eq!(dialog_command_value(DialogKind::Table, "top", "2.5"), "50");
+    assert_eq!(
+        dialog_command_value(DialogKind::Table, "border_size", "0.5"),
+        "4"
+    );
+    assert_eq!(
+        dialog_command_value(DialogKind::Font, "family", "宋体"),
+        "宋体"
+    );
+}
+
+#[test]
+fn zoom_slider_clamps_to_the_supported_range() {
+    let bounds = gpui::Bounds::new(
+        gpui::point(gpui::px(100.0), gpui::px(0.0)),
+        gpui::size(gpui::px(100.0), gpui::px(20.0)),
+    );
+    assert_eq!(super::ui::shell::zoom_from_x(bounds, gpui::px(0.0)), 50);
+    assert_eq!(super::ui::shell::zoom_from_x(bounds, gpui::px(150.0)), 100);
+    assert_eq!(super::ui::shell::zoom_from_x(bounds, gpui::px(300.0)), 150);
+}
+
+#[test]
+fn ruler_uses_the_same_page_origin_and_zoom_as_the_canvas() {
+    use joyword_foundation::Emu;
+
+    let viewport = gpui::Bounds::new(
+        gpui::point(gpui::px(100.0), gpui::px(200.0)),
+        gpui::size(gpui::px(900.0), gpui::px(600.0)),
+    );
+    let scroll = gpui::point(gpui::px(-20.0), gpui::px(0.0));
+    let page = Emu::new(8 * Emu::PER_INCH);
+    let margin = Emu::new(Emu::PER_INCH);
+    let (origin, width) =
+        super::ui::shell::ruler_page_geometry(viewport, scroll, page, margin, margin, 100).unwrap();
+    assert_eq!(f32::from(origin), 242.0);
+    assert_eq!(f32::from(width), 576.0);
+    let (origin, width) =
+        super::ui::shell::ruler_page_geometry(viewport, scroll, page, margin, margin, 50).unwrap();
+    assert_eq!(f32::from(origin), 386.0);
+    assert_eq!(f32::from(width), 288.0);
+}
+
+#[test]
+fn ribbon_density_has_full_compact_and_overflow_tiers() {
+    assert_eq!(super::ui::ribbon::ribbon_density(1440.0), 0);
+    assert_eq!(super::ui::ribbon::ribbon_density(1100.0), 1);
+    assert_eq!(super::ui::ribbon::ribbon_density(700.0), 2);
+}

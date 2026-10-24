@@ -1293,11 +1293,15 @@ struct Placement {
     viewport: Bounds<Pixels>,
     offset: Point<Pixels>,
     scale: ScreenScale,
+    page_width: Emu,
 }
 impl Placement {
     fn page_origin(&self, page: usize, above: Emu) -> Point<Pixels> {
+        let page_width = self.scale.logical_pixels(self.page_width) as f32;
+        let centered =
+            (f32::from(self.viewport.size.width) - 2.0 * DOC_PAD - page_width).max(0.0) / 2.0;
         point(
-            self.viewport.origin.x + px(DOC_PAD) + self.offset.x,
+            self.viewport.origin.x + px(DOC_PAD + centered) + self.offset.x,
             self.viewport.origin.y
                 + px(DOC_PAD + self.scale.logical_pixels(above) as f32 + page as f32 * DOC_GAP)
                 + self.offset.y,
@@ -2676,19 +2680,34 @@ impl JoyWord {
         }
         Some(
             div()
-                .id("linux-path-sheet")
+                .id("linux-path-overlay")
+                .absolute()
+                .inset_0()
+                .size_full()
+                .occlude()
                 .flex()
-                .flex_col()
-                .gap_2()
-                .px_4()
-                .py_2()
-                .bg(rgb(0xfff8e7))
-                .border_t_1()
-                .border_color(rgb(0xd5dbe3))
-                .text_sm()
-                .child(title)
-                .child(row)
-                .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(note))
+                .items_center()
+                .justify_center()
+                .bg(rgba(0x00000040))
+                .child(
+                    div()
+                        .id("linux-path-sheet")
+                        .tab_group()
+                        .flex()
+                        .flex_col()
+                        .gap_2()
+                        .w(px(560.0))
+                        .p_4()
+                        .rounded_md()
+                        .bg(rgb(crate::ui::theme::WHITE))
+                        .border_1()
+                        .border_color(rgb(crate::ui::theme::BORDER))
+                        .shadow_lg()
+                        .text_sm()
+                        .child(title)
+                        .child(row)
+                        .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(note)),
+                )
                 .into_any_element(),
         )
     }
@@ -3837,10 +3856,19 @@ impl JoyWord {
         ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom")
     }
     fn placement(&self) -> Option<Placement> {
+        let page_width = self
+            .canvas
+            .layout()?
+            .layout
+            .pages()
+            .iter()
+            .map(|page| page.width)
+            .max()?;
         Some(Placement {
             viewport: self.viewport_bounds?,
             offset: self.scroll.offset(),
             scale: self.scale(),
+            page_width,
         })
     }
     /// Pages of the installed layout in view now; before the viewport is
@@ -3853,6 +3881,11 @@ impl JoyWord {
             viewport: Bounds::default(),
             offset: Point::default(),
             scale: self.scale(),
+            page_width: frame
+                .layout
+                .pages()
+                .first()
+                .map_or(Emu::new(0), |page| page.width),
         });
         visible_pages(&frame.layout, placement)
     }
@@ -4537,6 +4570,7 @@ mod tests {
             viewport: Bounds::new(point(px(17.0), px(60.0)), size(px(800.0), px(500.0))),
             offset: scroll,
             scale: ScreenScale::new(f64::from(zoom) / 100.0).unwrap(),
+            page_width: Emu::new(11_906 * 635),
         }
     }
     /// UTF-16 offset of the first line placed on the second page.
@@ -4635,12 +4669,12 @@ mod tests {
         assert_eq!(line.carets[0].x, Emu::new(1_800 * 635));
         let version = input.version();
         // Pads and gaps stay 32 px; page height (841.9 pt) and margins follow zoom.
-        // The live scroll offset moves the box; device pixels never enter.
+        // At 80% the narrower page is centered with a 50.50665 px side offset.
         for (zoom, scroll, x, page_y) in [
             (100, point(px(0.0), px(0.0)), 169.0, 1246.5333),
-            (80, point(px(0.0), px(0.0)), 145.0, 1022.0267),
+            (80, point(px(0.0), px(0.0)), 195.50665, 1022.0267),
             (100, point(px(-50.0), px(-1400.0)), 119.0, -153.4667),
-            (80, point(px(-50.0), px(-1400.0)), 95.0, -377.9733),
+            (80, point(px(-50.0), px(-1400.0)), 145.50665, -377.9733),
         ] {
             let placement = placement(zoom, scroll);
             let px_per_pt = (f64::from(zoom) / 100.0 * 96.0 / 72.0) as f32;

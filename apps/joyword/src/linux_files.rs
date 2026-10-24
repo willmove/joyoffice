@@ -10,12 +10,14 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+#[cfg(test)]
 use joyword_shell::command::{
     CommandId, EDIT_COPY, EDIT_CUT, EDIT_PASTE, EDIT_REDO, EDIT_UNDO, FILE_EXPORT_PDF, FILE_OPEN,
     FILE_SAVE, FILE_SAVE_COPY,
 };
 
 /// File commands, then Edit commands. The window bar splits at index 4.
+#[cfg(test)]
 pub(crate) const LINUX_BAR: &[CommandId] = &[
     FILE_OPEN,
     FILE_SAVE,
@@ -30,7 +32,6 @@ pub(crate) const LINUX_BAR: &[CommandId] = &[
 
 pub(crate) const DIALOG_PROGRAMS: &[&str] = &["zenity", "qarma", "kdialog"];
 
-/// GPUI on Linux keeps menus in memory and does not draw a menu bar.
 pub(crate) fn window_needs_command_bar() -> bool {
     cfg!(target_os = "linux")
 }
@@ -67,6 +68,7 @@ pub(crate) enum DialogOutcome {
 }
 
 /// `ctrl-e` becomes `Ctrl+E`. Single letters are uppercased; words stay as named.
+#[cfg(test)]
 pub(crate) fn chord_label(keys: &str) -> String {
     keys.split('-')
         .map(|part| {

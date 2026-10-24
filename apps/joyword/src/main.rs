@@ -9,6 +9,7 @@ mod input_ui;
 mod linux_files;
 #[cfg(target_os = "linux")]
 mod prompt_ui;
+mod ui;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
 use gpui::{
@@ -476,6 +477,31 @@ fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
 struct MainWindow(gpui::WindowHandle<JoyWord>);
 impl gpui::Global for MainWindow {}
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SidePanel {
+    Styles,
+    Find { replace: bool },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PopupKind {
+    File,
+    FontFamily,
+    FontSize,
+    FontColor,
+    TableGrid,
+    PageSize,
+    Margins,
+    Orientation,
+    More,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Popup {
+    kind: PopupKind,
+    anchor: gpui::Point<gpui::Pixels>,
+}
+
 struct JoyWord {
     zoom_percent: u16,
     locale: Locale,
@@ -530,10 +556,17 @@ struct JoyWord {
     window_title: String,
     ribbon_tab: RibbonTab,
     format_dialog: Option<FormatDialog>,
+    format_dialog_focused: bool,
     path_sheet: Option<linux_files::PathSheet>,
     view_toggles: joyword_shell::dialogs::ViewToggles,
     ruler_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
     ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>)>,
+    side_panel: Option<SidePanel>,
+    popup: Option<Popup>,
+    table_preview: (u32, u32),
+    stage_notice: bool,
+    zoom_dragging: bool,
+    zoom_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
 }
 
 #[derive(Clone, Copy)]
@@ -952,8 +985,10 @@ impl JoyWord {
             let projection = self.projection();
             let catalog = Catalog::shipped(self.locale);
             return div()
+                .w_full()
                 .flex()
                 .flex_col()
+                .items_center()
                 .gap(px(input_ui::DOC_GAP))
                 .children(frame.layout.pages().iter().enumerate().map(|(i, page)| {
                     let sheet = div()
@@ -1047,7 +1082,7 @@ impl JoyWord {
                 cx.notify();
             }
             Err(InvokeError::PendingInput { .. }) => {
-                window.focus(&self.find_query_focus, cx);
+                self.show_find_panel(matches!(id, FIND_REPLACE | FIND_REPLACE_ALL), window, cx);
                 cx.notify();
             }
             Ok(()) => cx.notify(),
@@ -1161,81 +1196,6 @@ impl JoyWord {
             }))
     }
 
-    fn find_bar(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        div()
-            .flex()
-            .items_center()
-            .gap_2()
-            .px_3()
-            .py_2()
-            .bg(rgb(0xffffff))
-            .border_t_1()
-            .border_color(rgb(0xd5dbe3))
-            .text_sm()
-            .child(self.find_field(FindSlot::Query, cx))
-            .child(self.find_field(FindSlot::Replacement, cx))
-            .child(self.find_button(
-                "find-next",
-                &self.label("command.find.next"),
-                FIND_NEXT,
-                false,
-                cx,
-            ))
-            .child(self.find_button(
-                "find-previous",
-                &self.label("command.find.previous"),
-                FIND_PREVIOUS,
-                false,
-                cx,
-            ))
-            .child(self.find_button(
-                "find-replace",
-                &self.label("command.find.replace"),
-                FIND_REPLACE,
-                true,
-                cx,
-            ))
-            .child(self.find_button(
-                "find-replace-all",
-                &self.label("command.find.replace_all"),
-                FIND_REPLACE_ALL,
-                true,
-                cx,
-            ))
-            .child(self.find_toggle(FindToggle::Case, cx))
-            .child(self.find_toggle(FindToggle::Word, cx))
-            .child(self.find_toggle(FindToggle::Width, cx))
-            .child(self.find_toggle(FindToggle::Regex, cx))
-            .child(self.repeat_button(cx))
-            .child(self.find_button(
-                "format-copy",
-                &self.label("command.format.copy"),
-                FORMAT_COPY,
-                false,
-                cx,
-            ))
-            .child(self.find_button(
-                "format-paint",
-                &self.label("command.format.paint"),
-                FORMAT_PAINT,
-                false,
-                cx,
-            ))
-            .child(self.find_button(
-                "format-cancel",
-                &self.label("command.format.cancel"),
-                FORMAT_CANCEL,
-                false,
-                cx,
-            ))
-            .child(
-                div()
-                    .text_xs()
-                    .text_color(rgb(0x5c6b7a))
-                    .child(self.find_note.clone().unwrap_or_default()),
-            )
-    }
-
     fn find_field(&self, slot: FindSlot, cx: &mut Context<Self>) -> impl IntoElement {
         let (focus, buffer, placeholder) = match slot {
             FindSlot::Query => (
@@ -1304,6 +1264,7 @@ impl JoyWord {
                 self.run_with(FIND_NEXT, &args, window, cx);
             }
             field_edit::FieldEffect::Cancel => {
+                self.side_panel = None;
                 window.focus(&self.focus_handle, cx);
                 cx.notify();
             }
@@ -1311,7 +1272,7 @@ impl JoyWord {
         }
     }
 
-    fn find_button(
+    pub(crate) fn find_button(
         &self,
         id: &'static str,
         label: &str,
@@ -1343,49 +1304,6 @@ impl JoyWord {
                 }
             }))
             .child(label)
-    }
-
-    fn find_toggle(&self, which: FindToggle, cx: &mut Context<Self>) -> impl IntoElement {
-        let on = self.find_toggle_on(which);
-        let (id, label, checkbox) = match which {
-            FindToggle::Case => ("find-case", self.label("find.case"), false),
-            FindToggle::Word => ("find-word", self.label("find.word"), false),
-            FindToggle::Width => ("find-width", self.label("find.width"), true),
-            FindToggle::Regex => ("find-regex", self.label("find.regex"), true),
-        };
-        let shown = if checkbox {
-            format!("{} {label}", if on { "[x]" } else { "[ ]" })
-        } else {
-            label
-        };
-        div()
-            .id(id)
-            .cursor_pointer()
-            .px_2()
-            .py_1()
-            .rounded_sm()
-            .bg(if on { rgb(0xc5d8ea) } else { rgb(0xe7eef5) })
-            .on_click(cx.listener(move |this, _, _, cx| {
-                this.toggle_find(which);
-                cx.notify();
-            }))
-            .child(shown)
-    }
-
-    fn repeat_button(&self, cx: &mut Context<Self>) -> impl IntoElement {
-        let on = self.format_repeat;
-        div()
-            .id("format-repeat")
-            .cursor_pointer()
-            .px_2()
-            .py_1()
-            .rounded_sm()
-            .bg(if on { rgb(0xc5d8ea) } else { rgb(0xe7eef5) })
-            .on_click(cx.listener(|this, _, _, cx| {
-                this.format_repeat = !this.format_repeat;
-                cx.notify();
-            }))
-            .child(self.label(if on { "format.repeat" } else { "format.once" }))
     }
 
     pub(crate) fn report_canvas_error(&mut self, message: impl Into<String>) {
@@ -1439,7 +1357,7 @@ impl JoyWord {
                     FIND_NEXT | FIND_PREVIOUS | FIND_REPLACE | FIND_REPLACE_ALL
                 ) =>
             {
-                window.focus(&self.find_query_focus, cx);
+                self.show_find_panel(matches!(id, FIND_REPLACE | FIND_REPLACE_ALL), window, cx);
                 cx.notify();
             }
             Err(InvokeError::PendingInput { .. }) if id == FORMAT_FONT => {
@@ -1478,7 +1396,6 @@ impl Render for JoyWord {
             window.set_window_title(&title);
             self.window_title = title.clone();
         }
-        let catalog = Catalog::shipped(self.locale);
 
         div()
             .track_focus(&self.focus_handle)
@@ -1789,105 +1706,27 @@ impl Render for JoyWord {
                 this.run(VIEW_FIELD_CODES, window, cx)
             }))
             .size_full()
+            .relative()
             .flex()
             .flex_col()
-            .bg(rgb(0xe9edf2))
-            .text_color(rgb(0x263247))
-            .child(
-                div()
-                    .flex()
-                    .items_center()
-                    .justify_between()
-                    .px_6()
-                    .py_3()
-                    .bg(rgb(0x163b65))
-                    .text_color(rgb(0xffffff))
-                    .child(title)
-                    .child(
-                        div()
-                            .id("language")
-                            .cursor_pointer()
-                            .on_click(cx.listener(|this, _, window, cx| {
-                                this.run(SWITCH_LANGUAGE, window, cx)
-                            }))
-                            .child(self.label("language")),
-                    ),
-            )
-            .child(
-                div()
-                    .px_6()
-                    .py_3()
-                    .bg(rgb(0xfff8e7))
-                    .text_sm()
-                    .child(self.label("stage")),
-            )
-            .children(linux_files::window_needs_command_bar().then(|| self.linux_command_bar(cx)))
-            .child(self.ribbon(cx))
+            .bg(rgb(ui::theme::CANVAS))
+            .text_color(rgb(ui::theme::TEXT))
+            .child(self.title_bar(cx))
+            .children(self.stage_notice.then(|| self.stage_notification(cx)))
+            .child(self.ribbon(window, cx))
             .child(self.ruler(cx))
             .child(
                 div()
                     .flex()
                     .flex_1()
                     .min_h_0()
-                    .child(self.style_panel(cx))
+                    .children(self.workspace_side_panel(cx))
                     .child(self.input_viewport(cx)),
             )
             .children(self.path_sheet_panel(cx))
-            .child(self.find_bar(cx))
-            .child(
-                div()
-                    .flex()
-                    .items_center()
-                    .justify_between()
-                    .px_6()
-                    .py_2()
-                    .bg(rgb(0xffffff))
-                    .text_sm()
-                    .child(
-                        div()
-                            .flex()
-                            .flex_col()
-                            .gap_1()
-                            .child(self.input_status())
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .text_color(rgb(0x5c6b7a))
-                                    .child(self.status_counts()),
-                            ),
-                    )
-                    .child(
-                        div()
-                            .flex()
-                            .items_center()
-                            .gap_4()
-                            .child(
-                                div()
-                                    .id("zoom-out")
-                                    .cursor_pointer()
-                                    .px_2()
-                                    .on_click(cx.listener(|this, _, window, cx| {
-                                        this.run(ZOOM_OUT, window, cx)
-                                    }))
-                                    .child("−"),
-                            )
-                            .child(catalog.format(
-                                "zoom.percent",
-                                &[("percent", &self.zoom_percent.to_string())],
-                            ))
-                            .child(
-                                div()
-                                    .id("zoom-in")
-                                    .cursor_pointer()
-                                    .px_2()
-                                    .on_click(cx.listener(|this, _, window, cx| {
-                                        this.run(ZOOM_IN, window, cx)
-                                    }))
-                                    .child("+"),
-                            ),
-                    ),
-            )
-            .children(self.format_panel(cx))
+            .child(self.status_bar(cx))
+            .children(self.popup_overlay(cx))
+            .children(self.format_panel(window, cx))
     }
 }
 
@@ -2222,10 +2061,17 @@ fn main() {
                         format_repeat: false,
                         ribbon_tab: RibbonTab::Start,
                         format_dialog: None,
+                        format_dialog_focused: false,
                         path_sheet: None,
                         view_toggles: joyword_shell::dialogs::ViewToggles::default(),
                         ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
                         ruler_drag: None,
+                        side_panel: None,
+                        popup: None,
+                        table_preview: (2, 2),
+                        stage_notice: true,
+                        zoom_dragging: false,
+                        zoom_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
                         window_title: String::new(),
                     };
                     view.install_input_lifecycle(window, cx);

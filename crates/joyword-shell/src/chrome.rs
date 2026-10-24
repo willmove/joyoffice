@@ -25,8 +25,9 @@ use crate::command::{
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
     PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION,
     PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL,
-    REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, TABLE_PROPERTIES,
-    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, TABLE_INSERT,
+    TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT,
+    ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -164,6 +165,16 @@ const BULLET_LIST: &[PresetArg] = &[PresetArg {
     name: "bullet",
     value: PresetValue::Text("1"),
 }];
+const TABLE_TWO_BY_TWO: &[PresetArg] = &[
+    PresetArg {
+        name: "rows",
+        value: PresetValue::Text("2"),
+    },
+    PresetArg {
+        name: "columns",
+        value: PresetValue::Text("2"),
+    },
+];
 const LEVEL_ONE: &[PresetArg] = &[PresetArg {
     name: "level",
     value: PresetValue::Text("0"),
@@ -544,6 +555,17 @@ pub const RIBBON: &[RibbonControl] = &[
         label: "command.page.break",
         icon: "page-break",
         args: RibbonArgs::None,
+        requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_grid",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_INSERT,
+        label: "command.table.insert",
+        icon: "table",
+        args: RibbonArgs::Fixed(TABLE_TWO_BY_TWO),
         requirement: "PLATFORM-003",
         evidence: Evidence::Unit,
     },
