@@ -1289,7 +1289,9 @@ fn revision_markup_final_and_original_match_the_golden_scene() {
                     "{name} {letters}"
                 );
             }
-            RevisionView::Final => {
+            // Simple shares the final projection; its bare-text equality is
+            // covered by the layout tests, the goldens stay the three views.
+            RevisionView::Final | RevisionView::Simple => {
                 assert!(
                     letters.contains('V') && !letters.contains('f') && !letters.contains('i'),
                     "{name} {letters}"

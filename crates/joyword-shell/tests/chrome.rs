@@ -254,6 +254,28 @@ fn view_ribbon_commands_do_not_modify_the_document() {
         let spec = registry.get(control.command).unwrap();
         assert!(!spec.modifies_document, "{}", control.id);
     }
+    // The four review display switches, simple markup included, are pure
+    // view changes: no required parameters, no document modification.
+    let review_view_group: Vec<_> =
+        controls_on(RibbonTab::Review, visible_controls(&registry, RIBBON))
+            .into_iter()
+            .filter(|control| control.group_key == "ribbon.group.review_view")
+            .collect();
+    assert_eq!(review_view_group.len(), 4, "{:?}", review_view_group);
+    assert!(
+        review_view_group
+            .iter()
+            .any(|control| control.id == "review.simple")
+    );
+    for control in review_view_group {
+        let spec = registry.get(control.command).unwrap();
+        assert!(!spec.modifies_document, "{}", control.id);
+        assert!(
+            spec.parameters.is_empty(),
+            "{} asked for parameters",
+            control.id
+        );
+    }
 }
 
 #[test]

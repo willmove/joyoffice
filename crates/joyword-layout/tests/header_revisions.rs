@@ -176,6 +176,7 @@ fn header_and_footer_markup_paints_and_projections_omit_it() {
         RevisionView::FinalWithMarkup,
         RevisionView::Final,
         RevisionView::Original,
+        RevisionView::Simple,
     ] {
         let full = layout_document_viewed(
             &document.snapshot(),
@@ -295,6 +296,34 @@ fn header_and_footer_markup_paints_and_projections_omit_it() {
             .any(|rect| rect.x.raw().saturating_add(rect.width.raw()) < content_left);
         assert!(!outside, "{name} painted a margin bar");
     }
+
+    // Simple markup shows the final projection: no author colour, no strike
+    // and no underline on the bands, only the margin bar per changed line.
+    let simple = layout(&document, RevisionView::Simple);
+    let simple_text = scene_text(&simple);
+    assert_eq!(simple_text, final_text);
+    assert!(
+        simple.pages()[0]
+            .runs
+            .iter()
+            .all(|run| run.color == [0, 0, 0]),
+        "simple coloured a band run"
+    );
+    let inline = simple.pages()[0].rects.iter().any(|rect| {
+        rect.x.raw().saturating_add(rect.width.raw()) >= content_left
+            && (rect.red != 0 || rect.green != 0 || rect.blue != 0)
+    });
+    assert!(!inline, "simple painted an inline revision mark");
+    let simple_bars: Vec<_> = simple.pages()[0]
+        .rects
+        .iter()
+        .filter(|rect| rect.x.raw().saturating_add(rect.width.raw()) < content_left)
+        .collect();
+    assert!(
+        simple_bars.len() >= 3,
+        "expected a margin bar on each revised header and footer line, got {}",
+        simple_bars.len()
+    );
 }
 
 #[test]

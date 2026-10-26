@@ -30,7 +30,10 @@ impl RevisionKind {
     pub fn visible_in(self, view: RevisionView) -> bool {
         match view {
             RevisionView::FinalWithMarkup => true,
-            RevisionView::Final => matches!(self, Self::Insert | Self::MoveTo),
+            // Simple markup shows the final projection; only its marks differ.
+            RevisionView::Final | RevisionView::Simple => {
+                matches!(self, Self::Insert | Self::MoveTo)
+            }
             RevisionView::Original => matches!(self, Self::Delete | Self::MoveFrom),
         }
     }
@@ -132,6 +135,10 @@ pub enum RevisionView {
     /// Original projection. Deletions and move sources are shown as ordinary
     /// text. Insertions and move destinations take no space.
     Original,
+    /// Simple markup (REVIEW-003): the final projection with no inline
+    /// revision decoration. The only mark is the author-colour margin bar
+    /// beside lines of a paragraph with pending revisions.
+    Simple,
 }
 
 impl RevisionView {
@@ -140,6 +147,7 @@ impl RevisionView {
             Self::FinalWithMarkup => "markup",
             Self::Final => "final",
             Self::Original => "original",
+            Self::Simple => "simple",
         }
     }
 
@@ -148,6 +156,7 @@ impl RevisionView {
             "markup" => Some(Self::FinalWithMarkup),
             "final" => Some(Self::Final),
             "original" => Some(Self::Original),
+            "simple" => Some(Self::Simple),
             _ => None,
         }
     }

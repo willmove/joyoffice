@@ -134,7 +134,7 @@ pub struct ViewToggles {
     pub formatting_marks: bool,
     pub show_hidden: bool,
     pub field_codes: bool,
-    /// Markup, final or original. Markup is the session default.
+    /// Markup, simple, final or original. Markup is the session default.
     pub revision: RevisionView,
 }
 

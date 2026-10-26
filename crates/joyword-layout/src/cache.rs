@@ -1191,6 +1191,7 @@ fn paragraph_key(
             RevisionView::FinalWithMarkup => 0,
             RevisionView::Final => 1,
             RevisionView::Original => 2,
+            RevisionView::Simple => 3,
         },
         revisions: revision_digest(paragraph),
         show_hidden: views.options.show_hidden,

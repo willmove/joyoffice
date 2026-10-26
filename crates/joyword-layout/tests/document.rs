@@ -1384,6 +1384,7 @@ fn revision_views_change_pagination_text_and_match_the_incremental_cache() {
         RevisionView::FinalWithMarkup,
         RevisionView::Final,
         RevisionView::Original,
+        RevisionView::Simple,
     ] {
         let full = layout_document_viewed(
             &document.snapshot(),
@@ -1440,7 +1441,8 @@ fn revision_views_change_pagination_text_and_match_the_incremental_cache() {
                 );
                 assert!(!full.pages()[0].rects.is_empty());
             }
-            RevisionView::Final => {
+            // Simple shows the final text: only its marks differ.
+            RevisionView::Final | RevisionView::Simple => {
                 assert!(text.contains("in") && !text.contains("out"), "{text}");
             }
             RevisionView::Original => {
@@ -1590,4 +1592,167 @@ fn markup_paints_a_margin_bar_beside_a_changed_line() {
             .any(|rect| rect.x.raw().saturating_add(rect.width.raw()) < content_left);
         assert!(!outside, "{view:?} painted a margin bar");
     }
+}
+
+#[test]
+fn simple_view_paints_the_margin_bar_without_inline_marks() {
+    let document = marked("in", "out");
+    let cancellation = LayoutCancellation::default();
+    let limits = LayoutLimits::default();
+    let face = font();
+    let faces = FaceSet::uniform(&face);
+    let profile = profile();
+    let simple = layout_document_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        RevisionView::Simple,
+    )
+    .unwrap();
+    let final_view = layout_document_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        RevisionView::Final,
+    )
+    .unwrap();
+    let original = layout_document_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        RevisionView::Original,
+    )
+    .unwrap();
+    // The projection is the final one, so the text differs from the original.
+    let text = scene_text(&simple);
+    assert_eq!(text, scene_text(&final_view));
+    assert!(text.contains("in") && !text.contains("out"), "{text}");
+    let original_text = scene_text(&original);
+    assert!(original_text.contains("out") && !original_text.contains("in"));
+    assert_ne!(text, original_text);
+    // Same visible placement as the final view: the same runs, uncoloured.
+    assert_eq!(simple.pages()[0].runs, final_view.pages()[0].runs);
+    assert!(
+        simple.pages()[0]
+            .runs
+            .iter()
+            .all(|run| run.color == [0, 0, 0]),
+        "simple markup coloured a run"
+    );
+    let content_left = simple.lines()[0]
+        .carets
+        .first()
+        .map(|stop| stop.x.raw())
+        .expect("caret");
+    // The only mark is the margin bar beside the changed line.
+    let bars: Vec<_> = simple.pages()[0]
+        .rects
+        .iter()
+        .filter(|rect| rect.x.raw().saturating_add(rect.width.raw()) < content_left)
+        .collect();
+    assert_eq!(bars.len(), simple.lines().len());
+    assert!(
+        bars.iter()
+            .all(|rect| rect.width.raw() > 0 && rect.height.raw() > 0)
+    );
+    assert!(
+        bars.iter()
+            .any(|rect| rect.red != 0 || rect.green != 0 || rect.blue != 0)
+    );
+    // No strike or underline: no author-coloured rect inside the text area.
+    let inline = simple.pages()[0].rects.iter().any(|rect| {
+        rect.x.raw().saturating_add(rect.width.raw()) >= content_left
+            && (rect.red != 0 || rect.green != 0 || rect.blue != 0)
+    });
+    assert!(!inline, "simple markup painted an inline revision mark");
+}
+
+#[test]
+fn simple_markup_owns_its_cache_slot_across_a_view_switch() {
+    let document = marked("in", "out");
+    let cancellation = LayoutCancellation::default();
+    let limits = LayoutLimits::default();
+    let face = font();
+    let faces = FaceSet::uniform(&face);
+    let profile = profile();
+    let full = layout_document_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        RevisionView::Simple,
+    )
+    .unwrap();
+    let final_full = layout_document_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        RevisionView::Final,
+    )
+    .unwrap();
+    assert_ne!(
+        full.key(),
+        final_full.key(),
+        "Simple and Final must be distinct LayoutKeys"
+    );
+    assert_eq!(full.key().revision_view, RevisionView::Simple);
+    // A Final fit shares the visible text with Simple but lacks the margin
+    // bar annotations, so the cache must not reuse it across the switch.
+    let mut cache = ParagraphLayoutCache::default();
+    let invalidation = LayoutInvalidation::default();
+    let as_final = layout_incremental_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        LayoutReuse {
+            cache: &mut cache,
+            previous: None,
+            invalidation: &invalidation,
+        },
+        RevisionView::Final,
+    )
+    .unwrap();
+    assert_eq!(as_final.pages(), final_full.pages());
+    let switched = layout_incremental_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        LayoutReuse {
+            cache: &mut cache,
+            previous: Some(&as_final),
+            invalidation: &invalidation,
+        },
+        RevisionView::Simple,
+    )
+    .unwrap();
+    assert_eq!(switched.pages(), full.pages());
+    let again = layout_incremental_viewed(
+        &document.snapshot(),
+        faces,
+        profile,
+        limits,
+        &cancellation,
+        LayoutReuse {
+            cache: &mut cache,
+            previous: Some(&switched),
+            invalidation: &invalidation,
+        },
+        RevisionView::Simple,
+    )
+    .unwrap();
+    assert_eq!(again.pages(), full.pages());
+    assert!(again.stats().cache_hits > 0);
 }

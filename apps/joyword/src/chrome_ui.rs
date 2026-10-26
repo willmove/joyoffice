@@ -13,7 +13,8 @@ use joyword_shell::chrome::{
 use joyword_shell::command::{
     Availability, CommandId, EDIT_ALIGN_CENTER, EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD,
     EDIT_ITALIC, EDIT_JUSTIFY, EDIT_UNDERLINE, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL,
-    REVIEW_TRACK, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT,
+    REVIEW_SIMPLE, REVIEW_TRACK, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    ZOOM_IN, ZOOM_OUT,
 };
 use joyword_shell::input::RunToggle;
 
@@ -49,6 +50,7 @@ impl JoyWord {
             REVIEW_MARKUP => toggles.revision == joyword_model::RevisionView::FinalWithMarkup,
             REVIEW_FINAL => toggles.revision == joyword_model::RevisionView::Final,
             REVIEW_ORIGINAL => toggles.revision == joyword_model::RevisionView::Original,
+            REVIEW_SIMPLE => toggles.revision == joyword_model::RevisionView::Simple,
             REVIEW_TRACK => self
                 .editor
                 .as_ref()

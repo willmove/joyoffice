@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "task": "T205",
-  "floor": 60,
-  "note": "The P0/P1 desktop UI refresh adds a real table insertion grid backed by table.insert, so the floor is 60. Earlier: Word keyboard parity, table properties, page header/footer editing, review commands and revision status. Evidence stays unit; GUI and Word/WPS comparison remain separate acceptance work.",
+  "floor": 61,
+  "note": "The T300 simple-markup view adds review.view.simple beside the other three revision views, so the floor is 61. Earlier: the P0/P1 desktop UI refresh added a real table insertion grid backed by table.insert (floor 60), Word keyboard parity, table properties, page header/footer editing, review commands and revision status. Evidence stays unit; GUI and Word/WPS comparison remain separate acceptance work.",
   "controls": [
     {"id": "start.cut", "kind": "command", "tab": "start", "command": "edit.cut", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "cut"},
     {"id": "start.copy", "kind": "command", "tab": "start", "command": "edit.copy", "requirement": "PLATFORM-003", "evidence": "unit", "icon": "copy"},
@@ -55,6 +55,7 @@
     {"id": "review.reject", "kind": "command", "tab": "review", "command": "review.reject", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-reject"},
     {"id": "review.accept_all", "kind": "command", "tab": "review", "command": "review.accept_all", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-accept"},
     {"id": "review.reject_all", "kind": "command", "tab": "review", "command": "review.reject_all", "requirement": "REVIEW-004", "evidence": "unit", "icon": "review-reject"},
+    {"id": "review.simple", "kind": "command", "tab": "review", "command": "review.view.simple", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-simple"},
     {"id": "review.markup", "kind": "command", "tab": "review", "command": "review.view.markup", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-markup"},
     {"id": "review.final", "kind": "command", "tab": "review", "command": "review.view.final", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-final"},
     {"id": "review.original", "kind": "command", "tab": "review", "command": "review.view.original", "requirement": "REVIEW-003", "evidence": "unit", "icon": "review-original"},
@@ -113,6 +114,7 @@
     {"id": "review-track", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "review-accept", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "review-reject", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
+    {"id": "review-simple", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "review-markup", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "review-final", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"},
     {"id": "review-original", "origin": "drawn-in-code", "license": "MIT", "source": "crates/joyword-shell/src/chrome.rs"}
