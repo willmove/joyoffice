@@ -251,11 +251,13 @@ fn a_hyperlink_in_a_table_cell_is_an_underline_in_the_page_scene() {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![paragraph.into()]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -265,6 +267,7 @@ fn a_hyperlink_in_a_table_cell_is_an_underline_in_the_page_scene() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = document.body_id();

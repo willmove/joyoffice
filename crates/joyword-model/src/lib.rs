@@ -30,10 +30,11 @@ pub use annotation::{
     Anchor, Annotation, AnnotationKind, Bias, Comment, CommentAttribute, Position,
 };
 pub use block::{
-    Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellMargins, InlineKind,
-    InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed, Row,
-    RowHeight, RowHeightRule, Run, Sdt, SdtLock, SdtProps, Segment, Shading, Table, TableAlign,
-    TableLayoutKind, TableLook, TableWidth, VerticalAlign, VerticalMerge,
+    Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellChangeProps,
+    CellMargins, InlineKind, InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph,
+    Preserved, Removed, Row, RowChangeProps, RowHeight, RowHeightRule, Run, Sdt, SdtLock, SdtProps,
+    Segment, Shading, Table, TableAlign, TableChangeProps, TableLayoutKind, TableLook, TableWidth,
+    VerticalAlign, VerticalMerge,
 };
 pub use document::{
     ChapterSeparator, DEFAULT_COMPATIBILITY_MODE, DocGrid, DocGridKind, Document, DocumentSettings,
@@ -62,7 +63,8 @@ pub use props::{
 };
 pub use resource::{ContentHash, Resource, ResourceTable};
 pub use revision::{
-    FormatRevision, MoveMarker, MoveSide, RevisionKind, RevisionView, TextRevision,
+    FormatRevision, MoveMarker, MoveSide, PreviousTableProps, RevisionKind, RevisionView,
+    TablePropsRevision, TextRevision,
 };
 pub use style::{
     BuiltinStyle, DocDefaults, MAX_STYLE_DEPTH, ResolvedParagraph, ResolvedRun, Style, StyleChain,

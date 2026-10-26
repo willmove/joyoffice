@@ -1669,6 +1669,14 @@ pub(super) fn table_markup(
     if table.preserved.is_some() {
         return Err(refuse("table holds preserved markup"));
     }
+    // An unresolved property revision (`w:tblPrChange` still on the table)
+    // is only kept by copying the original bytes; synthesising the table
+    // would either drop the change or invent its previous-property bytes.
+    if table.props_revision.is_some() {
+        return Err(refuse(
+            "unresolved table property revision is kept verbatim and the table cannot be rewritten",
+        ));
+    }
     let mut markup = String::new();
     markup.push_str(&names.start("tbl"));
     markup.push('>');
@@ -1748,6 +1756,11 @@ pub(super) fn table_markup(
         if row.preserved.is_some() {
             return Err(refuse("table row holds preserved markup"));
         }
+        if row.props_revision.is_some() {
+            return Err(refuse(
+                "unresolved row property revision is kept verbatim and the table cannot be rewritten",
+            ));
+        }
         markup.push_str(&names.start("tr"));
         markup.push('>');
         if row.grid_before != 0
@@ -1805,6 +1818,11 @@ pub(super) fn table_markup(
         for cell in &row.cells {
             if cell.preserved.is_some() {
                 return Err(refuse("table cell holds preserved markup"));
+            }
+            if cell.props_revision.is_some() {
+                return Err(refuse(
+                    "unresolved cell property revision is kept verbatim and the table cannot be rewritten",
+                ));
             }
             if cell.grid_span == 0 {
                 return Err(refuse("table cell span is zero"));

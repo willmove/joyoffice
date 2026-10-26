@@ -1553,3 +1553,19 @@ T204 仍是 `in_progress`，进度计数不改（12 done／22 in_progress／32 p
 拒绝与导入政策对齐，不静默丢掉标记：改名、脱离、颠倒、偏置不是导入时的 `Bias::After`／`Bias::Before`、锚点落到另一个部件、新造书签，都拒绝写出。批注不再可定位（锚点脱离正文、页眉或页脚）时，书签也不再可写回。列书签、缺 id、不透明表格和游离批注里的书签仍然不是模型书签，所在段落继续锁定，因此任何编辑导出都是 `Restricted`。
 
 证据：`an_edited_export_writes_story_bookmarks_back`、`story_bookmark_write_back_refuses_cross_part_and_bad_shapes`，以及既有的 `an_edited_export_writes_body_bookmarks_back`、`bookmark_write_back_refuses_unrepresentable_shapes`。未做：不透明表格和列书签成为 PDF 目标，外部 PDF 结构读取器，PDF 结构标签，图形界面，Word／WPS 对照，真实打印与系统打印对话框。
+
+### T301 第二切片：表格属性修订（2026-10-26）
+
+T301 仍是 `in_progress`，进度计数不改。本切片把 `w:tblPrChange`／`w:trPrChange`／`w:tcPrChange`（ECMA-376 Part 1 §17.13.5）从"让整篇只读"改为类型化记录，可按 id 接受、拒绝、批量解决并一步撤销；结构修订（`w:cellIns`／`w:cellDel`／`w:cellMerge`／`w:tblGridChange`／`w:tblPrExChange`）与表内的 `w:rPrChange`／`w:pPrChange` 维持原策略。
+
+模型（`joyword-model`）：`revision.rs` 新增 `TablePropsRevision { id, author, date, previous: PreviousTableProps }`，`PreviousTableProps` 三个变体 `Table(TableChangeProps)`／`Row(RowChangeProps)`／`Cell(CellChangeProps)` 定义在 `block.rs`，字段与 `Table`／`Row`／`Cell` 上已类型化的属性子集一一对应。三个结构体各加 `props_revision: Option<Arc<TablePropsRevision>>`；`Table::same_content`、`same_row`、`same_cell` 把记录纳入相等性，所以丢弃一条记录永远算一次编辑，不会留下陈旧字节的洞。`Table::has_props_revision(Option<u32>)` 与 `Table::resolve_props_revisions(Option<u32>, accept)` 递归覆盖行、单元格与单元格内嵌套表：接受只拿掉记录，拒绝把记录里的变更前值写回各级字段（没有变更前子元素时写回全部缺省，与段落格式修订一致）。`dump.rs` 在表、行、单元格行上追加 `tblPrChange#id author=… date=…`／`trPrChange#…`／`tcPrChange#…`。
+
+导入（`joyword-docx/src/table.rs`）：`parse_tbl_pr`／`parse_tr_pr`／`parse_tc_pr` 各接受至多一个 `*PrChange` 子元素，由新的 `parse_props_change` 解析：复用 `revision::track_attrs`（改为 `pub(crate)`）校验 `w:id`／`w:author`／可选 `w:date`，要求至多一个种类正确的变更前属性子元素，并用同一套 `parse_*_pr` 解析变更前属性——因此变更前属性必须落在同一子集内，且不得再嵌套变更元素。任何一条不满足就返回 `None`，整张表照旧退回不透明保留块（原字节逐字节往返、不可编辑）。`build` 把记录装进 `Table`／`Row`／`Cell` 并 `note_revision_id`。`ns::blocks_for_review` 新增 `is_table_props_change`，这三个元素名不再触发 `ReadOnlyReason::Revisions`：它们要么已类型化，要么处于不可改写的保留表里，没有被静默丢弃的路径。`scan_in` 的其余规则不变。
+
+引擎（`joyword-engine/src/revision.rs`）：复用既有 `AcceptRevision`／`RejectRevision`／`AcceptAllRevisions`／`RejectAllRevisions`。`resolve_one` 在没有文本、标记与格式命中时再尝试 `resolve_table_one`，命中则成功，否则仍 `UnknownRevision`；有文本命中时也在末尾调用它，使同一 id 承载文本与表格记录能一并解决。`resolve_all` 在 `resolve_format_all` 之后调用 `resolve_table_all`。两者共用 `resolve_tables`：先用 `locate::tables_in`（新增，与 `paragraphs_in` 对称，含嵌套表）收集所有表，筛出 `has_props_revision(id)` 为真的，再经 `locate::locate` 取位置——位于内容锁定的内容控件内时返回 `CommandError::Locked(table)` 且文档不变——最后 `container_mut` 取到 `&mut Table` 执行 `resolve_props_revisions`，并把表写进 `ChangeSet.tables`（否则事务会被判为空而不提交）与 `ChangeSet.stories`。`current_revision` 在格式修订之后新增 `table_revision_at`：沿 `Location.containers` 由内向外报告所在单元格、所在行、所在表的记录，嵌套表自己的记录优先于外层，表外插入点不报告。
+
+导出（`joyword-docx/src/export/structure.rs`）：沿用"原字节保留，否则拒绝"。待决记录计入 `same_content`，所以未改动的表走逐字节复制，改表外邻近段落亦然，三条 `*PrChange` 原样存活并重导入为类型化记录。任何需要重写该表的编辑（改单元格文字、增删行等）在 `table_markup` 以三条可定位原因拒绝：`unresolved table property revision is kept verbatim and the table cannot be rewritten`、同样措辞的 `row`／`cell` 版本；绝不合成一个抹掉 `*PrChange` 或发明变更前字节的结果。记录解决后，重写走正常路径写出干净的 `w:tblPr`／`w:trPr`／`w:tcPr`。
+
+证据：`crates/joyword-docx/tests/table_revisions.rs` 七项（导入类型化与不只读、未改动与邻近编辑的字节守恒、三级改写拒绝、经引擎接受后导出当前属性、经引擎拒绝后导出变更前属性、七种子集外情形保持保留且不只读、空变更元素拒绝回全部缺省）；`crates/joyword-engine/tests/table_revisions.rs` 五项（单条接受一步撤销与未知 id 拒绝、行与单元格拒绝还原并各自一步撤销、批量接受／拒绝扫过嵌套表、插入点由内向外定位、锁定内容控件内拒绝且版本不变）。既有 `table_structure_revisions_stay_preserved_and_read_only` 收窄到结构修订与表内格式修订。`behavior_registry.json` 追加 6 条。本机：`cargo test --locked` 1045 项全过、workspace clippy `-D warnings` 零告警、fmt 干净、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+未做与边界：结构修订（cellIns／cellDel／cellMerge／tblGridChange／tblPrExChange）、段落标记 `w:rPrChange`、编号与节属性修订仍不实现；表格属性修订没有页面标记装饰（页边色条）；带待决记录的表在引擎侧仍可编辑、只在导出时拒绝（与段落格式修订的策略一致，但表的粒度更粗——改该表任意单元格文字都会被拒绝导出，直到记录被接受或拒绝）；Word／WPS 往返、审阅栏图形界面、信创真机与打印的人工验收全部未执行。

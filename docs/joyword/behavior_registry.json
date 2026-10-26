@@ -520,6 +520,54 @@
       "source": "hypothesis",
       "test": "the_dump_reports_typed_format_revisions",
       "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-PROPS-IMPORT",
+      "operation": "导入带 w:tblPrChange / w:trPrChange / w:tcPrChange 的表格",
+      "expectation": "变更前属性在可表示子集内时类型化到表、行、单元格的 props_revision；当前属性保持变更后的值；文档不因此只读",
+      "source": "hypothesis",
+      "test": "table_property_revisions_import_typed_and_keep_the_document_editable",
+      "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-PROPS-ACCEPT",
+      "operation": "接受表格属性修订（review.accept 或 review.accept_all）",
+      "expectation": "保留当前表、行、单元格属性并丢弃记录；导出不再含 *PrChange；一步撤销恢复记录",
+      "source": "hypothesis",
+      "test": "accepting_one_table_property_revision_is_one_undo_step",
+      "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-PROPS-REJECT",
+      "operation": "拒绝表格属性修订（review.reject 或 review.reject_all）",
+      "expectation": "按记录恢复变更前的表、行、单元格属性，没有变更前子元素时恢复为全部缺省；嵌套表一并处理",
+      "source": "hypothesis",
+      "test": "rejecting_table_property_revisions_restores_the_previous_properties",
+      "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-PROPS-CARET",
+      "operation": "插入点落在带属性修订的表格内时查询当前修订",
+      "expectation": "由内向外返回所在单元格、所在行、所在表的记录 id，嵌套表自己的记录优先",
+      "source": "hypothesis",
+      "test": "current_revision_finds_the_innermost_table_revision_at_the_caret",
+      "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-PROPS-EXPORT-REFUSE",
+      "operation": "改写带待决属性修订的表格后导出",
+      "expectation": "分别以表、行、单元格三条原因拒绝，不合成抹掉记录或发明变更前字节的结果；未改动或只改邻近段落时原字节逐字节存活",
+      "source": "hypothesis",
+      "test": "rewriting_a_table_with_a_pending_property_revision_is_refused",
+      "word_observation": null
+    },
+    {
+      "id": "REV-TABLE-PROPS-OUT-OF-SUBSET",
+      "operation": "导入子集外的表格属性修订（多个或错误种类的变更前子元素、不可表示的变更前属性、缺作者、重复或嵌套的变更元素）",
+      "expectation": "整张表保持不透明保留块，原包逐字节往返，文档不置为只读",
+      "source": "hypothesis",
+      "test": "out_of_subset_table_property_changes_keep_the_table_preserved_and_the_document_editable",
+      "word_observation": null
     }
   ]
 }

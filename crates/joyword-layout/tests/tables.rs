@@ -77,6 +77,7 @@ fn document() -> Document {
         vertical_align: None,
         blocks: BlockSeq::from_vec(vec![paragraph.into()]),
         preserved: None,
+        props_revision: None,
     };
     let table = Table {
         id: table_id,
@@ -90,6 +91,7 @@ fn document() -> Document {
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -99,6 +101,7 @@ fn document() -> Document {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = document.body_id();
@@ -227,6 +230,7 @@ fn plain_cell(
         vertical_align: None,
         blocks: BlockSeq::from_vec(paragraphs.into_iter().map(Block::from).collect()),
         preserved: None,
+        props_revision: None,
     }
 }
 
@@ -248,6 +252,7 @@ fn install_table(
         look: None,
         cell_margin: margin,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = document.body_id();
@@ -264,6 +269,7 @@ fn row(document: &mut Document, cells: Vec<Cell>, header: bool, cant_split: bool
         cant_split,
         height: None,
         preserved: None,
+        props_revision: None,
     }
 }
 
@@ -355,6 +361,7 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = splitting.body_id();
@@ -393,6 +400,7 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = whole.body_id();
@@ -518,6 +526,7 @@ fn a_header_taller_than_the_page_is_not_repeated() {
             look: None,
             cell_margin: None,
             preserved: None,
+            props_revision: None,
             source: None,
         };
         let body = document.body_id();
@@ -1420,11 +1429,13 @@ fn nested_document() -> Document {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![inside.into()]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: Some(joyword_model::TableWidth::Dxa(2000)),
@@ -1434,6 +1445,7 @@ fn nested_document() -> Document {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let outer = Table {
@@ -1456,11 +1468,13 @@ fn nested_document() -> Document {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![before.into(), inner.into(), after.into()]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -1470,6 +1484,7 @@ fn nested_document() -> Document {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = document.body_id();
@@ -1560,11 +1575,13 @@ fn a_table_nested_two_levels_deep_is_refused() {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![marked.into()]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -1574,6 +1591,7 @@ fn a_table_nested_two_levels_deep_is_refused() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = document.body_id();

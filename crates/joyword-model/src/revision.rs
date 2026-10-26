@@ -6,12 +6,15 @@
 //! Format revisions (`w:rPrChange` §17.13.5.30, `w:pPrChange` §17.13.5.29)
 //! are typed as [`FormatRevision`]: a run stores the pre-change run properties
 //! and a paragraph stores the pre-change paragraph properties. Table
-//! structure revisions (`w:tblPrChange`, `w:trPrChange`, `w:tcPrChange`,
-//! `w:cellIns`, `w:cellDel`, `w:cellMerge`) are not represented here.
+//! property revisions (`w:tblPrChange`, `w:trPrChange`, `w:tcPrChange`) are
+//! typed as [`TablePropsRevision`] on the table, row or cell they change.
+//! Structural table revisions (`w:cellIns`, `w:cellDel`, `w:cellMerge`,
+//! `w:tblGridChange`) are not represented here.
 
 use std::sync::Arc;
 
 use crate::annotation::{Bias, Position};
+use crate::block::{CellChangeProps, RowChangeProps, TableChangeProps};
 use crate::props::{ParaProps, RunProps};
 use crate::text::ScalarOffset;
 
@@ -75,6 +78,46 @@ pub struct FormatRevision {
     /// Pre-change paragraph properties (`w:pPrChange/w:pPr`), present for
     /// paragraph-level changes.
     pub previous_para: Option<Arc<ParaProps>>,
+}
+
+/// A tracked table property change (`w:tblPrChange`, `w:trPrChange` or
+/// `w:tcPrChange`, ECMA-376 Part 1 §17.13.5). Like [`FormatRevision`] the
+/// record holds the properties before the change: a table stores the
+/// previous table properties, a row the previous row properties and a cell
+/// the previous cell properties. Accepting the revision keeps the current
+/// values and drops the record; rejecting restores the previous values.
+/// Previous values are only typed for the table subset JoyWord represents;
+/// anything else keeps the whole table preserved and unedited.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TablePropsRevision {
+    pub id: u32,
+    pub author: Arc<str>,
+    pub date: Option<Arc<str>>,
+    pub previous: PreviousTableProps,
+}
+
+/// Which level of a table a [`TablePropsRevision`] records the previous
+/// properties of. The XML spelling of each element name is recorded per
+/// variant for diagnostics and export.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PreviousTableProps {
+    /// `w:tblPrChange/w:tblPr` on the whole table.
+    Table(TableChangeProps),
+    /// `w:trPrChange/w:trPr` on one row.
+    Row(RowChangeProps),
+    /// `w:tcPrChange/w:tcPr` on one cell.
+    Cell(CellChangeProps),
+}
+
+impl PreviousTableProps {
+    /// The `w:*Change` element this record came from.
+    pub fn element_name(&self) -> &'static str {
+        match self {
+            Self::Table(_) => "tblPrChange",
+            Self::Row(_) => "trPrChange",
+            Self::Cell(_) => "tcPrChange",
+        }
+    }
 }
 
 /// Which side of a move a range marker belongs to.

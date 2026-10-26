@@ -849,11 +849,13 @@ fn locked_content_controls_and_containers_are_respected() {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![cell_text]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -863,6 +865,7 @@ fn locked_content_controls_and_containers_are_respected() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = doc.body_id();
