@@ -168,3 +168,44 @@ fn the_default_path_writes_a_new_copy_and_leaves_the_source() {
     assert_eq!(fs::read(saved.receipt.path()).unwrap(), plan.bytes());
     assert!(saved.receipt.path() != path);
 }
+
+/// A volume classification refusal (network share, non-NTFS/ReFS filesystem,
+/// missing capability flag, unrecognized drive) surfaces through the Decline
+/// precheck as an observation failure carrying the structured reason. The
+/// Windows observation produces it from real volume facts; this test
+/// synthesizes the same public error shape on every platform, so the
+/// precheck contract the native prompt consumes is checked off-Windows too.
+#[test]
+fn a_volume_refused_precheck_reports_replacement_unavailable_not_confirmable_losses() {
+    use joyword_shell::storage::{SaveOriginalError, VolumeRejection};
+    use std::io;
+    let path = PathBuf::from("/net/report.docx");
+    for reason in [
+        VolumeRejection::Remote,
+        VolumeRejection::UnknownDriveType,
+        VolumeRejection::UnsupportedFileSystem,
+        VolumeRejection::NoPersistentAcls,
+        VolumeRejection::NoNamedStreams,
+        VolumeRejection::NoHardLinks,
+    ] {
+        let error = SaveOriginalError::ObservationFailed {
+            path: path.clone(),
+            source: io::Error::new(io::ErrorKind::Unsupported, reason),
+        };
+        assert!(error.is_observation_failure(), "{reason:?}");
+        assert_eq!(error.volume_rejection(), Some(reason));
+        // A refused volume is not a confirmable metadata-loss list; the
+        // prompt must treat replacement as unavailable.
+        assert!(error.blockers().is_none());
+        assert!(error.published().is_none());
+    }
+    // An ordinary observation failure keeps its current meaning: a plain
+    // error, with no volume reason attached.
+    let plain = SaveOriginalError::ObservationFailed {
+        path: path.clone(),
+        source: io::Error::new(io::ErrorKind::PermissionDenied, "acl read failed"),
+    };
+    assert!(plain.is_observation_failure());
+    assert_eq!(plain.volume_rejection(), None);
+    assert!(plain.blockers().is_none());
+}

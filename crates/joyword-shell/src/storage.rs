@@ -31,6 +31,7 @@ pub use error::{
     ConflictDetail, LockKind, LockState, MetadataItem, ReplacementBlocker, SaveOriginalError,
     SourceStage,
 };
+pub use metadata::VolumeRejection;
 pub use original::{
     MetadataCapability, OriginalChoice, OriginalDurability, OriginalReplacementCapabilities,
     SaveOriginalReceipt, original_replacement_capabilities, save_original,

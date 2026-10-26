@@ -1553,3 +1553,15 @@ T204 仍是 `in_progress`，进度计数不改（12 done／22 in_progress／32 p
 拒绝与导入政策对齐，不静默丢掉标记：改名、脱离、颠倒、偏置不是导入时的 `Bias::After`／`Bias::Before`、锚点落到另一个部件、新造书签，都拒绝写出。批注不再可定位（锚点脱离正文、页眉或页脚）时，书签也不再可写回。列书签、缺 id、不透明表格和游离批注里的书签仍然不是模型书签，所在段落继续锁定，因此任何编辑导出都是 `Restricted`。
 
 证据：`an_edited_export_writes_story_bookmarks_back`、`story_bookmark_write_back_refuses_cross_part_and_bad_shapes`，以及既有的 `an_edited_export_writes_body_bookmarks_back`、`bookmark_write_back_refuses_unrepresentable_shapes`。未做：不透明表格和列书签成为 PDF 目标，外部 PDF 结构读取器，PDF 结构标签，图形界面，Word／WPS 对照，真实打印与系统打印对话框。
+
+### T110 卷拒绝接入 file.save 原生提示（2026-10-26）
+
+T110 仍是 `in_progress`，进度计数不改。2026-10-22 的 Windows 卷能力观测切片把不支持的卷（网络共享、非 NTFS/ReFS、缺能力标志、未知驱动类型）做成 `save_original` 内部的 `ObservationFailed` 硬拒绝，但明确留下了一个缺口：`file.save` 的 Decline 预检提示没有把它与"可确认的元数据损失"区分开，用户仍会看到一个「确认替换」按钮，点下去必然失败。本切片把这条拒绝接进原生提示。
+
+存储层（`joyword-shell/src/storage`）：`metadata::VolumeRejection` 从 `#[cfg(windows)]` 的 `pub(crate)` 改为所有平台可用的 `pub` 纯数据枚举，实现 `Display`（沿用原可定位文案）与 `std::error::Error`；Windows 观测路径构造拒绝错误时把枚举本身作为 payload 放进 `io::Error::new(ErrorKind::Unsupported, rejection)`，错误文本不变。新增 `metadata::volume_rejection(&io::Error) -> Option<VolumeRejection>` 只认最外层 payload，普通观测失败和外层包装都返回 `None`。`SaveOriginalError::volume_rejection()` 在 `ObservationFailed { source, .. }` 上调用它，其余变体返回 `None`；`storage` 模块重新导出 `VolumeRejection`。非 Windows 平台不会产生这种错误，所有既有路径行为不变。
+
+应用层（`apps/joyword/src/input_ui.rs`）：新增纯函数 `original_prompt_kind(&SaveOriginalError) -> Option<OriginalPromptKind>`——先查卷拒绝，再查带 `ConfirmationRequired` 的损失清单。`ConfirmableLosses(blockers)` 沿用原来的 `file.original.prompt` 标题、损失明细和三按钮（取消／另存副本／确认替换）；`VolumeRefused(reason)` 用新标题 `file.original.volume_prompt`、新明细 `file.original.volume_detail`（路径＋按六种原因各自本地化的 `file.original.volume.{remote,unknown_drive,filesystem,no_persistent_acls,no_named_streams,no_hard_links}`），按钮只有「取消」与「另存副本」，默认按钮仍是另存副本；`volume_refusal_decision` 把除另存副本之外的任何回答都当作取消，所以没有任何路径能发起一次必然失败的替换。语言包 `en.lang`／`zh-CN.lang` 各加 8 个键，`check_docs.py` 的 parity 通过。
+
+证据：`a_volume_refusal_survives_inside_the_observation_error`、`windows_volume_rejected_carries_the_structured_refusal`（`#[cfg(windows)]`）、`a_volume_refused_precheck_surfaces_the_structured_reason_and_keeps_the_source`、`a_volume_refused_precheck_reports_replacement_unavailable_not_confirmable_losses`、`volume_refused_precheck_prompts_replacement_unavailable_and_defaults_to_copy`、`volume_refusal_entries_exist_in_both_locales`。`scripts/panic_baseline.txt` 追加 8 条，全部在 `storage/original.rs` 的 `#[cfg(test)]` 模块内，生产位点零增。本机（macOS，Rust 1.98.1）：`cargo test --locked` 1037 项全过、`cargo clippy --workspace --all-targets --locked -- -D warnings` 零告警、`cargo fmt --all -- --check` 干净、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+未做：真实 FAT／exFAT／网络共享卷上的端到端人工操作（本机无此类卷可挂载，分类分支仍以合成 `VolumeFacts` 与合成错误覆盖）；Windows 原生 GUI 上该对话框的人工验收；Word／WPS 往返；精确 ACL 与其他命名流的进程内观测（仍受 winsafe 0.0.19 接口面限制，按 FORMAT-004 契约保持 `UnobservableMetadata`）；断电与信创真机。T110 保持 `in_progress`。

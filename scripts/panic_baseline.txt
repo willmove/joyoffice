@@ -558,3 +558,11 @@ crates/joyword-shell/src/storage/original.rs:1808:std::fs::read(error.retained_b
 crates/joyword-shell/src/storage/source.rs:919:let dir = tempfile::tempdir().unwrap();
 crates/joyword-shell/src/storage/source.rs:935:let dir = tempfile::tempdir().unwrap();
 crates/joyword-shell/src/storage/source.rs:955:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:1469:.unwrap();
+crates/joyword-shell/src/storage/original.rs:1508:assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+crates/joyword-shell/src/storage/original.rs:1515:.unwrap();
+crates/joyword-shell/src/storage/original.rs:1561:assert_eq!(std::fs::read(&path).unwrap(), bytes);
+crates/joyword-shell/src/storage/original.rs:1616:let dir = tempfile::tempdir().unwrap();
+crates/joyword-shell/src/storage/original.rs:1618:std::fs::write(&path, &bytes).unwrap();
+crates/joyword-shell/src/storage/original.rs:1620:.unwrap()
+crates/joyword-shell/src/storage/original.rs:1641:.unwrap()
