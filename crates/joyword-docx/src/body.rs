@@ -200,7 +200,13 @@ impl Body {
             if element.is(W, "tbl") {
                 crate::comment::note_unmapped(importer, element);
             }
-            crate::bookmark::note_unmapped(importer, part, element);
+            let after = self
+                .blocks
+                .iter()
+                .rev()
+                .find_map(|block| block.as_paragraph())
+                .map(|paragraph| paragraph.id());
+            crate::bookmark::note_unmapped(importer, part, element, after);
             let reason = foreign(importer, part, element, scope);
             let handle = importer.preserve(part, element, scope, reason);
             let id = importer.document.ids().node();
@@ -1395,13 +1401,18 @@ fn import_story(importer: &mut Importer<'_>, name: &PartName, header: bool) -> O
     let scope = Scope::default();
     importer.scan(&part.name, &element, &scope);
     let inner = scope.enter(&element).into_owned();
-    let mut blocks = Vec::new();
+    let mut blocks: Vec<Block> = Vec::new();
     for child in element.elements() {
         if child.is(W, "p") {
             let (paragraph, _) = paragraph(importer, &part.name, child, &inner);
             blocks.push(paragraph.into());
         } else {
-            crate::bookmark::note_unmapped(importer, &part.name, child);
+            let after = blocks
+                .iter()
+                .rev()
+                .find_map(|block| block.as_paragraph())
+                .map(|paragraph| paragraph.id());
+            crate::bookmark::note_unmapped(importer, &part.name, child, after);
             importer.preserve(&part.name, child, &inner, PreservedReason::Unsupported);
         }
     }
