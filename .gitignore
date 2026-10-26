@@ -23,6 +23,13 @@ rustc-ice-*.txt
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 /backups/
+/.idea/
+/.workbuddy/
+/.codebuddy/
+/.codex/
+/.qoder/
+/.trae/
+/.reasonix/
 
 # macOS Finder metadata
 .DS_Store
