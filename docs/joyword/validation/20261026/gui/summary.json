@@ -1,0 +1,47 @@
+{
+  "session": "2026-10-26 Mac GUI (JoyWord main 5efe06a, debug build, isolated test profile)",
+  "method": "System Events keystrokes + cliclick clicks + screencapture; screenshots read via image analysis; artifacts under /tmp were partially lost to an environment rollback before archiving",
+  "observations": [
+    {
+      "name": "01-open-plain",
+      "note": "App opens plain.docx (DOCX-MIN-001 copy) with one-line body; typing via System Events lands in the document."
+    },
+    {
+      "name": "02-save-prompt",
+      "note": "Cmd+S shows the three-button prompt: 取消 / 另存副本（默认）/ 确认替换原件, default highlighted is save-copy; loss list: 无法观测所有权、无法观测 ACL、无法观测扩展属性/其他命名流. Source hash unchanged at the prompt.",
+      "archived": "gui/11-prompt.png"
+    },
+    {
+      "name": "03-save-original-confirm",
+      "note": "Clicking 确认替换原件 replaces plain.docx: hash changed 7f234d..→019935.., T110OK marker present in document.xml; status bar reads 已保存原件 /tmp/.../plain.docx."
+    },
+    {
+      "name": "04-reopen-after-replace",
+      "note": "Quit (no recovery prompt, recovery dir clean: no leftover journal after clean exit) and relaunch with the same path: first line shows T110OK…; title plain.docx - JoyWord.",
+      "note2": "Later the /tmp tree was rolled back by the environment, so the replaced-bytes evidence is the in-session hash+content check; the file now hashes as the original again."
+    },
+    {
+      "name": "05-quarantine-prompt",
+      "note": "With com.apple.quarantine set on quarantined.docx, Cmd+S lists 无法观测所有权、无法观测 ACL (no xattr loss item: the quarantine xattr is observable on macOS); default remains save-copy."
+    },
+    {
+      "name": "06-quarantine-save-copy",
+      "note": "Enter (default) opens the native save panel; copy-quarantined.docx written containing QMARK; original hash unchanged and quarantine xattr intact on the original."
+    },
+    {
+      "name": "07-slow-open-readonly",
+      "note": "Cmd+O on a 120k-paragraph large.docx: status bar shows 正在打开…文件就绪前编辑器为只读，键入的文字会保留。 while the previous document stays displayed; typing DURING-OPEN during the open."
+    },
+    {
+      "name": "08-open-accepts-buffered-input",
+      "note": "After the open completes (title large.docx, 127万字/6531页), the first line is DURING-OPEN第1段…: input buffered during the read-only window landed in the new document. No cancel affordance was observed during the open."
+    },
+    {
+      "name": "09-close-prompt-after-save",
+      "note": "With a save flow started from large.docx, Cmd+W shows “large.docx” 在保存开始后又有修改，这些修改不在这次保存中。 with buttons 保存/不保存/取消 (default 保存).",
+      "note2": "The scripted 'type during in-flight save then close' sequence was disturbed by a focus loss to another app, so this prompt was captured in the earlier attempt rather than the clean scripted one."
+    }
+  ],
+  "lost_artifacts": "All screenshots after 11-prompt.png were lost when the /tmp working directory was rolled back externally mid-session; their readings were recorded live and are reproduced in the notes above.",
+  "conclusion": "T109 slow-open read-only window with buffered input: observed and verified in GUI. T110 save-original confirm+replace+reopen and quarantined loss-list with default save-copy: observed and verified in GUI. T109 close-during-save prompt text observed, but the scripted in-flight-save typing sequence was not cleanly driven; T109/T110 remain in_progress pending a repeat with artifacts fully archived."
+}

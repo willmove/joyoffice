@@ -1553,3 +1553,7 @@ T204 仍是 `in_progress`，进度计数不改（12 done／22 in_progress／32 p
 拒绝与导入政策对齐，不静默丢掉标记：改名、脱离、颠倒、偏置不是导入时的 `Bias::After`／`Bias::Before`、锚点落到另一个部件、新造书签，都拒绝写出。批注不再可定位（锚点脱离正文、页眉或页脚）时，书签也不再可写回。列书签、缺 id、不透明表格和游离批注里的书签仍然不是模型书签，所在段落继续锁定，因此任何编辑导出都是 `Restricted`。
 
 证据：`an_edited_export_writes_story_bookmarks_back`、`story_bookmark_write_back_refuses_cross_part_and_bad_shapes`，以及既有的 `an_edited_export_writes_body_bookmarks_back`、`bookmark_write_back_refuses_unrepresentable_shapes`。未做：不透明表格和列书签成为 PDF 目标，外部 PDF 结构读取器，PDF 结构标签，图形界面，Word／WPS 对照，真实打印与系统打印对话框。
+
+### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
+
+main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
