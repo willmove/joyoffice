@@ -312,8 +312,11 @@ pub enum DiagnosticKind {
     BookmarkAnchorInvalid {
         id: u32,
     },
-    /// The bookmark sits only in markup this slice does not map, such as an
-    /// opaque table. Not inserted.
+    /// The bookmark range lives only in markup this slice does not map, such
+    /// as an opaque table. A valid named pair is still inserted with a point
+    /// destination beside the block; the marker bytes stay in the preserved
+    /// markup. A pair that is not valid, or has no placeable paragraph
+    /// beside it, is not inserted.
     BookmarkAnchorUnmapped {
         id: u32,
     },
@@ -323,8 +326,11 @@ pub enum DiagnosticKind {
     BookmarkOutsideBody {
         id: u32,
     },
-    /// `w:colFirst` / `w:colLast` mark table columns, not a text range.
-    /// Not inserted.
+    /// `w:colFirst` / `w:colLast` mark table columns, not a text range. A
+    /// well-formed pair in mapped paragraphs is inserted as a range
+    /// bookmark, but the host paragraph stays locked because the column
+    /// attributes are not written back. A pair inside preserved markup is
+    /// not inserted.
     BookmarkColumn {
         id: u32,
     },
@@ -342,8 +348,9 @@ pub enum DiagnosticKind {
     /// not lock its paragraph; an edited export writes the marker bytes
     /// back. An accepted header, footer, or comment bookmark is an
     /// annotation, but its paragraph stays locked because those marker
-    /// bytes are not written back. A marker this slice does not accept
-    /// still locks its paragraph.
+    /// bytes are not written back. An accepted column bookmark also locks
+    /// its host paragraph, because `colFirst` / `colLast` are not written
+    /// back. A marker this slice does not accept still locks its paragraph.
     /// `count` is the number of `w:bookmarkStart` / `w:bookmarkEnd` elements
     /// preserved.
     BookmarksPreserved {

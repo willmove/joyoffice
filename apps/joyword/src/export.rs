@@ -6,7 +6,7 @@ use std::ops::Range;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use joyword_layout::{LayoutSnapshot, LoadedFont};
+use joyword_layout::{LayoutSnapshot, LoadedFont, SingleFontProfile};
 use joyword_model::{Document, DocumentSnapshot};
 use joyword_pdf::{
     PdfExport, core_title, links_from_document, navigation_from_document, outline_from_headings,
@@ -23,6 +23,7 @@ pub(crate) struct PdfJob {
     pub destination: PathBuf,
     pub layout: Arc<LayoutSnapshot>,
     pub font: Arc<LoadedFont>,
+    pub profile: SingleFontProfile,
     pub document: DocumentSnapshot,
     pub core: Option<Arc<[u8]>>,
     pub pages: Range<usize>,
@@ -88,6 +89,7 @@ pub(crate) fn scene_pdf(
     render_export_with_navigation(&selected, std::slice::from_ref(font), &export, &navigation)
         .map_err(|error| match error {
             joyword_pdf::PdfError::MissingFont(_) => "missing font".into(),
+            joyword_pdf::PdfError::UnembeddableFont(_) => "unembeddable font".into(),
             joyword_pdf::PdfError::Writer(_) => "pdf writer".into(),
             joyword_pdf::PdfError::InvalidPage => "invalid page".into(),
             joyword_pdf::PdfError::Image(_) => "image".into(),
@@ -95,7 +97,14 @@ pub(crate) fn scene_pdf(
         })
 }
 
+/// One publish for export and print-to-file. The layout must still be the
+/// settled snapshot for the handed document: an unsettled or stale layout
+/// (layout reports "布局未稳定" as [`joyword_layout::LayoutError::Unstable`])
+/// refuses before any byte is written, so no partial PDF is ever published.
 pub(crate) fn run_pdf(job: PdfJob) -> Result<PrintReceipt, String> {
+    job.layout
+        .ensure_current(&job.document, &job.font, job.profile)
+        .map_err(|_| "layout unstable".to_string())?;
     let bytes = scene_pdf(
         &job.layout,
         job.font.as_ref(),

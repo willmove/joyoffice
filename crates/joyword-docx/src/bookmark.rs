@@ -43,8 +43,24 @@
 //! not inserted. Export refuses a comment bookmark whose comment is no
 //! longer placeable, so the marker is not written back as a destination that
 //! import would drop. A footnote, endnote, or text-box story is not placed.
-//! A bookmark inside an opaque table, or a `colFirst` / `colLast` column
-//! bookmark, is diagnosed and not inserted, and its paragraph stays locked.
+//!
+//! A `colFirst` / `colLast` pair in mapped paragraphs is inserted like any
+//! other range bookmark, but its host paragraph stays locked: the column
+//! attributes are not written back, so an edited export is `Restricted`
+//! rather than silently dropping them.
+//!
+//! Markers seen only inside markup this slice does not map (an opaque table,
+//! a block content control, a non-paragraph header child) cannot anchor a
+//! range: the preserved block holds no paragraphs. A well-formed named pair
+//! still becomes a bookmark with a point destination beside the block, at
+//! the end of the nearest preceding paragraph, or at the start of the
+//! story's first paragraph when the block leads the story. The marker bytes
+//! stay inside the preserved markup and no source is set, so write-back
+//! never moves them. Such a pair keeps its `BookmarkAnchorUnmapped`
+//! diagnostic as an informational note that the anchor is synthesized. A
+//! pair that is not well-formed (a half pair, reversed order, unsupported
+//! attributes, a column marker, a bad name, a duplicate, or the budget) is
+//! diagnosed and not inserted.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
@@ -97,7 +113,7 @@ fn classify_name(name: &str) -> Option<NameProblem> {
 #[derive(Default)]
 pub(crate) struct State {
     marks: Vec<Mark>,
-    unmapped: BTreeMap<(PartName, u32), Located>,
+    unmapped: BTreeMap<(PartName, u32), Vec<Located>>,
     preserved: usize,
     /// Paragraphs whose markers this slice will not write back.
     unwritable: BTreeSet<NodeId>,
@@ -122,8 +138,13 @@ struct Mark {
 }
 
 struct Located {
-    part: PartName,
     span: Range<usize>,
+    end: bool,
+    name: Option<Arc<str>>,
+    column: bool,
+    unsupported: bool,
+    /// The nearest paragraph imported before the preserved block, if any.
+    after: Option<NodeId>,
 }
 
 struct Class {
@@ -256,18 +277,44 @@ pub(crate) fn take(
 
 /// Bookmark markers inside markup this slice does not map (an opaque table,
 /// a block content control, a non-paragraph header child).
-pub(crate) fn note_unmapped(importer: &mut Importer<'_>, part: &PartName, element: &Element) {
-    fn walk(importer: &mut Importer<'_>, part: &PartName, element: &Element) {
+///
+/// `after` is the nearest paragraph imported before `element`; it anchors a
+/// point destination for a well-formed pair, because the preserved block
+/// holds no paragraphs of its own.
+pub(crate) fn note_unmapped(
+    importer: &mut Importer<'_>,
+    part: &PartName,
+    element: &Element,
+    after: Option<NodeId>,
+) {
+    fn walk(
+        importer: &mut Importer<'_>,
+        part: &PartName,
+        element: &Element,
+        after: Option<NodeId>,
+    ) {
         if is_bookmark(element) {
             match marker_id(element) {
                 Some(id) => {
+                    let class = classify(element);
+                    let end = element.local.as_ref() == "bookmarkEnd";
+                    let name = if end {
+                        None
+                    } else {
+                        element.attribute(Some(W), "name").map(Arc::<str>::from)
+                    };
                     importer
                         .bookmarks
                         .unmapped
                         .entry((part.clone(), id))
-                        .or_insert_with(|| Located {
-                            part: part.clone(),
+                        .or_default()
+                        .push(Located {
                             span: element.span.clone(),
+                            end,
+                            name,
+                            column: class.column,
+                            unsupported: class.unsupported,
+                            after,
                         });
                 }
                 None => warn(
@@ -279,10 +326,10 @@ pub(crate) fn note_unmapped(importer: &mut Importer<'_>, part: &PartName, elemen
             }
         }
         for child in element.elements() {
-            walk(importer, part, child);
+            walk(importer, part, child, after);
         }
     }
-    walk(importer, part, element);
+    walk(importer, part, element, after);
 }
 
 pub(crate) fn bind(importer: &mut Importer<'_>) {
@@ -317,7 +364,12 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
             remember_unwritable(&mut unwritable, &group);
             continue;
         }
-        if bind_group(importer, id, &group, &mut accepted) == Admission::Rejected {
+        if bind_group(importer, id, &group, &mut accepted) == Admission::Rejected
+            || group.iter().any(|mark| mark.column)
+        {
+            // A rejected marker locks its paragraph. So does an accepted
+            // column bookmark: colFirst/colLast are not written back, so an
+            // edited export is Restricted rather than silently dropping them.
             remember_unwritable(&mut unwritable, &group);
         }
     }
@@ -325,12 +377,7 @@ pub(crate) fn bind(importer: &mut Importer<'_>) {
         if seen.contains(&key) {
             continue;
         }
-        warn(
-            importer,
-            &located.part,
-            located.span,
-            DiagnosticKind::BookmarkAnchorUnmapped { id: key.1 },
-        );
+        bind_unmapped(importer, &key, located, &mut accepted);
     }
     for id in unwritable {
         importer.editability.lock(id);
@@ -377,10 +424,6 @@ fn bind_group(
     }
     let start = starts[0];
     let end = ends[0];
-    if start.column {
-        warn(importer, &part, span, DiagnosticKind::BookmarkColumn { id });
-        return Admission::Rejected;
-    }
     let Some(start_at) = place(&importer.document, start.paragraph) else {
         warn(
             importer,
@@ -445,44 +488,6 @@ fn bind_group(
         return Admission::Rejected;
     }
     let name = start.name.clone().unwrap_or_else(|| Arc::from(""));
-    match classify_name(&name) {
-        Some(NameProblem::Empty) => {
-            warn(
-                importer,
-                &part,
-                span,
-                DiagnosticKind::BookmarkNameEmpty { id },
-            );
-            return Admission::Rejected;
-        }
-        Some(NameProblem::Control) => {
-            warn(
-                importer,
-                &part,
-                span,
-                DiagnosticKind::BookmarkNameInvalid { id },
-            );
-            return Admission::Rejected;
-        }
-        Some(NameProblem::Long) => {
-            warn(importer, &part, span, DiagnosticKind::BookmarkBudget { id });
-            return Admission::Rejected;
-        }
-        None => {}
-    }
-    if accepted.contains(name.as_ref()) {
-        warn(
-            importer,
-            &part,
-            span,
-            DiagnosticKind::BookmarkNameDuplicate { id },
-        );
-        return Admission::Rejected;
-    }
-    if accepted.len() >= MAX_IMPORTED_BOOKMARKS {
-        warn(importer, &part, span, DiagnosticKind::BookmarkBudget { id });
-        return Admission::Rejected;
-    }
     let anchor = Anchor::Range {
         start: Position {
             story: start_at.story,
@@ -497,12 +502,10 @@ fn bind_group(
             bias: Bias::Before,
         },
     };
-    let annotation = importer.document.insert_annotation(
-        AnnotationKind::Bookmark {
-            name: Arc::clone(&name),
-        },
-        anchor,
-    );
+    let Some(annotation) = admit_bookmark(importer, &part, &span, id, &name, anchor, accepted)
+    else {
+        return Admission::Rejected;
+    };
     let source = Arc::new(SourceRef {
         part: Arc::from(start.part.as_str()),
         locator: Arc::from(format!("@{}..{}", start.span.start, start.span.end)),
@@ -510,8 +513,201 @@ fn bind_group(
     if let Some(stored) = importer.document.annotation_mut(annotation) {
         stored.source = Some(source);
     }
-    accepted.insert(name);
     Admission::Accepted
+}
+
+/// Name checks and insertion shared by mapped ranges and preserved-markup
+/// pairs. A refusal is diagnosed with the PDF name rules; the checks match
+/// `joyword_pdf::navigation` so an accepted bookmark never poisons export.
+/// Returns the inserted annotation.
+fn admit_bookmark(
+    importer: &mut Importer<'_>,
+    part: &PartName,
+    span: &Range<usize>,
+    id: u32,
+    name: &Arc<str>,
+    anchor: Anchor,
+    accepted: &mut BTreeSet<Arc<str>>,
+) -> Option<AnnotationId> {
+    match classify_name(name) {
+        Some(NameProblem::Empty) => {
+            warn(
+                importer,
+                part,
+                span.clone(),
+                DiagnosticKind::BookmarkNameEmpty { id },
+            );
+            return None;
+        }
+        Some(NameProblem::Control) => {
+            warn(
+                importer,
+                part,
+                span.clone(),
+                DiagnosticKind::BookmarkNameInvalid { id },
+            );
+            return None;
+        }
+        Some(NameProblem::Long) => {
+            warn(
+                importer,
+                part,
+                span.clone(),
+                DiagnosticKind::BookmarkBudget { id },
+            );
+            return None;
+        }
+        None => {}
+    }
+    if accepted.contains(name.as_ref()) {
+        warn(
+            importer,
+            part,
+            span.clone(),
+            DiagnosticKind::BookmarkNameDuplicate { id },
+        );
+        return None;
+    }
+    if accepted.len() >= MAX_IMPORTED_BOOKMARKS {
+        warn(
+            importer,
+            part,
+            span.clone(),
+            DiagnosticKind::BookmarkBudget { id },
+        );
+        return None;
+    }
+    let annotation = importer.document.insert_annotation(
+        AnnotationKind::Bookmark {
+            name: Arc::clone(name),
+        },
+        anchor,
+    );
+    accepted.insert(Arc::clone(name));
+    Some(annotation)
+}
+
+/// Admit markers that were only seen inside preserved markup (an opaque
+/// table, a block content control, a non-paragraph header child).
+///
+/// The block holds no paragraphs, so a well-formed named pair cannot anchor
+/// its real range. It becomes a point destination beside the block instead;
+/// the marker bytes stay in the preserved markup and no source is set, so
+/// write-back never moves them. The pair keeps its
+/// [`DiagnosticKind::BookmarkAnchorUnmapped`] diagnostic as an informational
+/// note that the anchor is synthesized. Everything that does not form a
+/// valid named pair is diagnosed and not inserted.
+fn bind_unmapped(
+    importer: &mut Importer<'_>,
+    key: &(PartName, u32),
+    located: Vec<Located>,
+    accepted: &mut BTreeSet<Arc<str>>,
+) {
+    let (part, id) = key;
+    let Some(first) = located.first() else {
+        return;
+    };
+    let span = first.span.clone();
+    if located.iter().any(|mark| mark.unsupported) {
+        warn(
+            importer,
+            part,
+            span,
+            DiagnosticKind::BookmarkUnsupported { id: *id },
+        );
+        return;
+    }
+    if located.iter().any(|mark| mark.column) {
+        // A column marker inside preserved markup has no text range to
+        // point at; it names a column of a table this slice does not map.
+        warn(
+            importer,
+            part,
+            span,
+            DiagnosticKind::BookmarkColumn { id: *id },
+        );
+        return;
+    }
+    let starts: Vec<&Located> = located.iter().filter(|mark| !mark.end).collect();
+    let ends: Vec<&Located> = located.iter().filter(|mark| mark.end).collect();
+    if starts.len() != 1 || ends.len() != 1 {
+        warn(
+            importer,
+            part,
+            span,
+            DiagnosticKind::BookmarkAnchorUnmapped { id: *id },
+        );
+        return;
+    }
+    let (start, end) = (starts[0], ends[0]);
+    if start.span.start >= end.span.start {
+        warn(
+            importer,
+            part,
+            span,
+            DiagnosticKind::BookmarkAnchorUnmapped { id: *id },
+        );
+        return;
+    }
+    let Some(anchor) = point_anchor(&importer.document, part, start.after) else {
+        warn(
+            importer,
+            part,
+            span,
+            DiagnosticKind::BookmarkAnchorUnmapped { id: *id },
+        );
+        return;
+    };
+    let name = start.name.clone().unwrap_or_else(|| Arc::from(""));
+    if admit_bookmark(importer, part, &span, *id, &name, anchor, accepted).is_some() {
+        warn(
+            importer,
+            part,
+            span,
+            DiagnosticKind::BookmarkAnchorUnmapped { id: *id },
+        );
+    }
+}
+
+/// A point range beside preserved markup: the end of the nearest preceding
+/// paragraph layout can place, or the start of the first paragraph of the
+/// story that owns `part` when the preserved block leads the story.
+fn point_anchor(document: &Document, part: &PartName, after: Option<NodeId>) -> Option<Anchor> {
+    let (story, paragraph, offset) = after
+        .and_then(|paragraph| {
+            let at = place(document, paragraph)?;
+            if !story_admits_bookmarks(at.kind) {
+                return None;
+            }
+            let len = document.find_paragraph(at.story, paragraph)?.len();
+            Some((at.story, paragraph, len))
+        })
+        .or_else(|| {
+            let story = document.stories().find(|story| {
+                story_admits_bookmarks(story.kind)
+                    && story
+                        .blocks
+                        .iter()
+                        .filter_map(Block::as_paragraph)
+                        .any(|paragraph| paragraph_part(paragraph) == Some(part.as_str()))
+            })?;
+            let paragraph = story.blocks.iter().find_map(Block::as_paragraph)?.id();
+            Some((story.id, paragraph, 0))
+        })?;
+    Some(Anchor::Range {
+        start: Position {
+            story,
+            paragraph,
+            offset: ScalarOffset(offset),
+            bias: Bias::After,
+        },
+        end: Position {
+            story,
+            paragraph,
+            offset: ScalarOffset(offset),
+            bias: Bias::Before,
+        },
+    })
 }
 
 fn story_admits_bookmarks(kind: StoryKind) -> bool {
