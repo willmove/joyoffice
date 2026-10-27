@@ -1642,3 +1642,14 @@ T300 仍是 `in_progress`，进度计数不改。本切片补齐 REVIEW-003 的�
 ### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
 
 main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
+### T104 周期快照收口（2026-10-27）
+
+T104 仍是 `in_progress`，进度计数不改。核对结论：任务要求的「周期快照」由 2026-10-26 的生产恢复双代日志按每次提交的粒度实现——每代都是完整快照（原包基线字节 + 全文文本），写入协议（临时文件、flush、sync、读回校验、原子改名、上一代保留、加密拒绝明文）已在 2026-10-26 切片验证。本切片补上命令层完整性审计与端到端性质测试，不改生产代码。
+
+**审计**：`host.rs` 命令分发的 33 个修改型分支全部在提交后调用 `journal_active`（编辑插入／图片／剪切、粗斜下划线、对齐、样式应用、列表三级、分页符与页码、页尺寸／边距／方向、查找替换、格式刷、表格插入／行列增删／合并／拆分／属性、字体与段落对话框、审阅跟踪／接受／拒绝／全部）；非修改命令（选择、视图、复制、导航）不写日志。
+
+**测试**：`every_committed_edit_publishes_a_complete_periodic_snapshot`（`crates/joyword-shell/tests/t104_periodic_snapshots.rs`）经命令注册表驱动九次修改与一次非修改，逐步断言代次加一、快照文本等于当前全文、快照基线等于原包字节、版本字段非空；全选不产生新代；两槽并存。
+
+未做：断电场景人工验收（不把故障注入冒充断电）。T104 保持 `in_progress`。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-shell --test t104_periodic_snapshots`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
