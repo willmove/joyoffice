@@ -1,6 +1,6 @@
 # JoyWord 当前实施与验证记录
 
-记录日期：2026-10-19（Windows 与统信 UOS 验证审计后更新）。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.3，工程版本为 0.0.1。
+记录日期：2026-10-26（在 2026-10-19 Windows 与统信 UOS 验证审计的基线上按波次追加，本次追加至 2026-10-23／24 波次、2026-10-24 桌面界面切片与 T001 收口）。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.3，工程版本为 0.0.1。
 
 ## 进度速览
 
@@ -15,13 +15,14 @@
 - **T300 页眉页脚装饰（进行中，2026-10-19）**：页眉和页脚故事里的文字与移动修订画在共享 PageScene 的页眉页脚带上（下划线、删除线、作者色页边条）。最终／原始投影仍去掉隐藏文字且不画装饰。页眉里的全部接受或全部拒绝各是一步，一次撤销恢复。带图片的页眉页脚段落不画。Word／WPS 人工交换和 T301 仍未做，任务保持 `in_progress`。上一条里的「页眉修订装饰未做」是第三切片结束时的状态。
 - **T400（进行中，2026-10-21）**：独立 crate `joyword-agent` 默认关闭，shell／app 的 `ai` feature 默认不启用。启动不调用 Provider。操作系统策略与系统凭据库仍是接口后的 stub，ChangeProposal 不应用，AIGC 标识未做法律评估。任务不标完成。计数改为 12 done／18 in_progress／36 planned／0 blocked。细节见文末「T400 Provider 与关闭基础」。
 - **2026-10-22 六分支并行波次**：T110 的 Windows 卷能力观测（[#81](https://github.com/willmove/joyoffice/pull/81)）、T200 的 `numbering.xml` 写回（[#85](https://github.com/willmove/joyoffice/pull/85)）、T202 的栏分隔线与 `nextColumn`（[#84](https://github.com/willmove/joyoffice/pull/84)）、T301 的段落与运行格式修订（[#87](https://github.com/willmove/joyoffice/pull/87)）、T401 的选区授权与受限工具（[#83](https://github.com/willmove/joyoffice/pull/83)），以及 review 分支的 CLI JSON 键序修复（[#82](https://github.com/willmove/joyoffice/pull/82)），曾在集成分支 `chore/integration-wave-20261022` 组合验证；这六项与 T111 门禁加固 [#86](https://github.com/willmove/joyoffice/pull/86) 现已全部合入 `main` `85a24de`，该主干 CI 九项全绿（2026-10-23 核验，见文末实际合并记录）。T301 与 T401 由 `planned` 改为 `in_progress`，计数改为 12 done／21 in_progress／33 planned／0 blocked，任务总数仍是 66。这一波全部是自动证据：没有任何一项拿到 Word／WPS 往返、图形界面、信创真机或打印的人工验收，因此没有任务改为 `done`。上面「主要未完成项」里 T200 的「编号部件改写」与 T202 的「栏分隔线、`nextColumn`」以本节文末记录为准（编号部件只做追加式写回，章节页码仍未做）。各切片细节见文末同名小节。
+- **2026-10-23 至 10-26 波次与 T001 收口**：第二波四路并行切片（T104 生产恢复双代、T204 PDF 书签内部跳转、T202 章节 PAGE 编号、T402 有界替换提案与只读预览）与 T402 第三切片（跨段有界替换与段落标记删除修订，按用户指令直接并入 main）已落地，T204 与 T402 由 `planned` 改为 `in_progress`；T204 的正文／页眉页脚／批注书签导入与写回随后经 [#95](https://github.com/willmove/joyoffice/pull/95)–[#98](https://github.com/willmove/joyoffice/pull/98) 合入。2026-10-24 另落地 P0／P1 桌面界面切片（真实功能区分档、插入页表格网格、单行状态栏缩放滑块，见文末「T205 桌面外壳刷新」）。T001 于 2026-10-26 收口为 `done`（见文末「T001 收口」），计数现为 13 done／21 in_progress／32 planned／0 blocked。这些仍全部是自动证据，没有任务因波次本身关闭人工验收。
 
 下文保留按时间排列的实施与验证记录；早期条目中的“尚未实现”如与后续增量不同，以最新记录和 TASKS 的当前状态为准。
 
 ## 已落地的内容
 
 - 八份专题规格、目录入口、本记录；需求与任务数量以 check_docs.py 输出为准（v0.3：84 个需求、66 个任务），每项有输入、输出、依赖、错误路径和验收要求。
-- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword-layout 字体身份、整形与页面场景，joyword-pdf 由同一场景写出 PDF（T003）；joyword-render 由同一场景生成 CPU 页面图像；joyword-corpus 确定性生成原创最小 DOCX 样例（T004）；joyword GPUI 工程窗口（菜单、快捷键与按钮由注册表驱动）。
+- Rust workspace：joyword-foundation 物理单位与屏幕投影；joyword-model 类型化文档模型（T100）；joyword-engine 编辑事务、位置映射与撤销（T101）；joyoffice-opc 格式中立的 OPC 读取层（T103 起步，ADR-011）；joyword-shell 命令注册表、本地化、偏好与多文档会话（T106）；joyword-layout 字体身份、整形与页面场景，joyword-pdf 由同一场景写出 PDF（T003）；joyword-render 由同一场景生成 CPU 页面图像；joyword-corpus 确定性生成原创最小 DOCX 样例（T004）；joyword-docx DOCX 声明子集导入与保守导出（T103）；joyword-agent 默认关闭的 AI 提案 crate（T400，`ai` feature 不默认启用）；应用为 joyword GPUI 工程窗口（菜单、快捷键、按钮与功能区由注册表驱动）和 joyword-cli 只读检查与无头 PNG／PDF 输出（T210）。
 - 精确 Rust 工具链、GPUI 包版本、Cargo.lock；三端 CI（Actions 按 commit SHA 固定）与 cargo-deny 依赖检查。
 - 中文／英文独立资源（支持插值与复数）；静态 A4 页面、语言切换和 50%–150% 缩放，均可从菜单、快捷键和界面按钮触发。
 - 原创 UTF-8 种子与 5 个原创最小 DOCX 样例、散列清单，以及需求覆盖／依赖／本地链接／语料（含参考结果状态）／语言资源／Actions 固定检查器；语义比较接口与 PDF 行／页断点比较工具。
@@ -265,7 +266,7 @@
 
 ## 未完成的 M0 门槛与下一步
 
-1. T001：三端 CI 已通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机完整 Xcode 与 Metal 工具链已于 2026-10-17 装好并验证普通构建（Xcode 27.1，见"当前环境"）。
+1. T001：三端 CI 已通过；依据 T003、T005 的实测按 ADR-010 选定 GPUI 来源（须支持 GL 或 CPU 渲染），届时复查 deny.toml 中的停止维护公告；本机完整 Xcode 与 Metal 工具链已于 2026-10-17 装好并验证普通构建（Xcode 27.1，见"当前环境"）。2026-10-26 三端参考环境腿与 cargo-deny 本机复核齐备，收口为 `done`，见文末「T001 收口」。
    ADR-010 线索（2026-10-14 只读核对，未实测）：Zed 主干 18787a9a080c 的 GPUI 已把 `GlyphId(pub u32)` 公开、`Window::paint_glyph` 为公开接口，但 `add_fonts` 仍不返回 FontId，只能按名称 `resolve_font`。候选做法是在注册前把字体 name 表的家族名改写为按散列生成的唯一名称再解析，使 FontId 必然指向同一份字节，从而无需分叉 GPUI；需在 T003 中实测屏幕与 PDF 的字形一致，并评估固定该提交的供应链与 Linux 渲染后端。
 2. T002：已完成（人工验收于 2026-10-14）；菜单、快捷键触发缩放与切换语言的路径如需单独确认，可在下次运行时顺带检查。
 3. T003：整形—场景—PDF 已贯通并有独立读回验证；剩余屏幕侧同一字形绘制（依赖 ADR-010 的 GPUI 来源或补丁，禁止用系统同名字体替代来宣称同一字形）、中文 IME 组合取消／提交／撤销、多显示器 DPI，以及两个阅读器的人工检查。
@@ -275,7 +276,7 @@
 7. T103、T110：只读导入、保守导出、新副本落盘和默认格式段落的拆分／合并已经接入。原件保存在未确认时列出不能保留或不能观测的元数据且不改源字节；显式确认且观测成功后，用 rustix 1.1.5 的 `RenameFlags::EXCHANGE`（macOS 上为 `RENAME_SWAP`）替换，并核对权限、所有者、macOS 创建时间与可复制的扩展属性。观测失败拒绝替换。macOS ACL 只观测、不回写。含 ACL 或隔离标记文档的图形确认、代码覆盖引导 fuzz 和 T107 的 Word／WPS 正文核对仍未完成，两项都保持 `in_progress`／`planned`。在 T107 通过前不提供真实用户文档的编辑保存承诺。
 8. T105、T108：`layout_document` 对东亚或复杂文字调用 `slot_for`、`wrap_mixed` 和 `adjust_cjk_break`；屏幕入口在只有一份字体时用 `FaceSet::uniform`。窗口按可见页及前后预取页调用 `raster_page`，超出像素预算时丢掉远离视口的页。光标由 `paint_caret_overlay` 画到单独缓冲，不改该页像素。固定 Word 的完整中文规则、widowControl，以及长文档滚动缩放的人工验收未完成，两项保持 `in_progress`。
 9. T104、T106、T109：命令注册表是打开、另存、最近文件、切换和关闭的唯一入口，参数齐全则执行，缺参数返回待输入。取消关闭保留会话。打开在版本接受前只读，期间输入保留；过期保存不写文件、不清 dirty。生产恢复日志写入原包基线与已提交文本，加密包不写明文。窗口启动时把目录设为 `JOYWORD_RECOVERY_DIR`，否则用偏好目录下的 `recovery`；已有日志则在示例文档之前恢复进会话。文件对话框、最近文件菜单和强制结束后的图形恢复仍待人工验收，三项保持 `in_progress`。
-10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。T207 已开始但只限纯函数，尚未接入排版入口；T210 的 inspect／text 切片已开始；T208、T209、T211 与其余 M2 任务以及 M3–M9 保持 `planned`。
+10. T111 已完成（2026-10-17，见文末审查记录）：`scripts/check_gates.py` 进入 CI，含分层、文件系统白名单、panic 基线和反例；engine 事务有 panic 守卫；豁免清单与门禁配置已逐条人工审查并记录。此后的推进以 [TASKS](TASKS.md) 当前状态为准：T207 的测量已接入排版入口，T208 的段落缓存与增量重排接入编辑路径，T210、T211 已完成，T209 与其余 M2 任务保持进行中；M3 的 T300／T301／T302 与 M4 的 T400–T402 有进行中的切片，其余 M3–M9 任务保持 `planned`。
 
 2026-10-17 本环境补记：
 
@@ -288,7 +289,7 @@
 - 启动示例文档改为语料用例 DOCX-SAMPLE-001（`joyword-corpus` 确定性生成，正文逐行取自 cjk-contract.txt），以 `DocxSession` 导入而非裸内存文档：启动即可编辑、写恢复日志并另存。`DocxSession` 新增 `open_default` 与 `save_copy_job`；另存可用性改按能否导出判断，无源文档不再静默禁用。命令被禁用或失败时窗口显示原因（本地化键或错误文本），不再无反应。
 - 本机 `xcode-select` 指向 `/Applications/Xcode.app`。不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked --offline` 连续两次成功。`m1_edit_save` 连续两次通过；`m1_concurrency_recovery` 通过，含子进程终止后的恢复和加密包拒绝。T005 保持 `blocked`：本环境没有统信 UOS、银河麒麟、旧世界 LoongArch 和 Fcitx。Mac 未安装 Microsoft Word.app；2026-10-18 确认 Windows 参考机装有 Word 2024 永久版（家庭版，build 16.0.20430.20182），规格同步放宽。T107 保持 `planned`：WPS 被要求打开这次另存的 DOCX，进程已在运行，但没有正文读回。排版入口对东亚文字使用 `wrap_mixed`。应用光栅只画视口邻域，光标叠加不改页面像素。恢复日志由 `Office` 写入，终止后恢复进会话。保存过期不清 dirty 且不写文件。T005 保持 `blocked`，T107 保持 `planned`。T102、T104、T105、T106、T108、T109、T110、T111 的人工验收仍未完成，状态保持 `in_progress`。T207 纯函数与 T210 inspect／text 切片除外（见进度速览），其余 M2 及以后保持 `planned`。
 
-M0 的真机项（信创、两个独立 PDF 阅读器、多显示器 DPI）仍未关闭。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2 的 T207 纯函数与 T210 inspect／text 切片落地，T207 排版入口未接；M3–M9 未实施。
+M0 的真机项（信创、多显示器 DPI）仍未关闭；两个独立 PDF 阅读器已于 2026-10-17 在 Windows 参考环境核对。M1 的自动闭环已有测试，T107 的 Word／WPS 人工门槛未过。M2 多数任务有进行中的自动覆盖，T210、T211 已完成。M3 的 T300／T301／T302 与 M4 的 T400–T402 进行中，其余 M3–M9 未实施。
 
 ### T000 完成与 T111 豁免清单审查（2026-10-17）
 
@@ -1565,6 +1566,40 @@ T204 仍是 `in_progress`，进度计数不改（12 done／22 in_progress／32 p
 #95 的 `detached_column_and_opaque_table_bookmarks_are_not_destinations` 已由本切片的 `column_and_opaque_table_bookmarks_are_destinations`、`an_opaque_table_at_the_body_start_anchors_the_first_paragraph` 与 `bad_opaque_table_bookmark_pairs_stay_refused` 取代；`story_bookmarks_refuse_bad_names_duplicates_columns_and_detached_comments` 改名为 `story_bookmarks_refuse_bad_names_duplicates_and_detached_comments`（列书签不再是拒绝路径）。
 
 证据：`column_and_opaque_table_bookmarks_are_destinations`、`an_opaque_table_at_the_body_start_anchors_the_first_paragraph`、`bad_opaque_table_bookmark_pairs_stay_refused`、`story_bookmarks_refuse_bad_names_duplicates_and_detached_comments`、`bookmark_write_back_refuses_unrepresentable_shapes`、`story_bookmark_write_back_refuses_cross_part_and_bad_shapes`，以及 `apps/joyword-cli/tests/bookmark_goto.rs` 的 `column_and_opaque_table_bookmarks_are_goto_destinations`（列书签与不透明表格旁点目标都经 `navigation_from_document`、写出与读回解析，链接 `/S /GoTo` 命中）。未做：外部 PDF 结构读取器复核、PDF 结构标签、图形界面、Word／WPS 对照、真实打印与系统打印对话框。
+### T205 桌面外壳刷新（2026-10-24）
+
+T205 仍是 `in_progress`，进度计数不改。范围为 main 的两个提交：`d13c9f6`（真实功能区、表格网格与缩放滑块）与 `b1625eb`（开始页与参考 UI 对齐）。窗口 chrome 拆进 `apps/joyword/src/ui` 模块（shell、ribbon、controls、theme），命令仍全部经注册表执行，未新增直达文档的旁路。
+
+- 功能区按窗口实际宽度分完整、紧凑、溢出三档（`ribbon_density`），控件带悬停、焦点、按下状态与 tooltip。插入页新增 1×1 至 8×8 表格网格（最终走 `table.insert`）；布局页纸张大小、页边距、方向改为下拉预设（仍是 `page.size`／`page.margins`／`page.orientation`）；样式与查找替换改为按需侧栏，格式与 Linux 路径输入移入模态对话框。
+- 状态栏改为单行，新增可拖动、可用键盘操作的缩放滑块；纸张在宽视口居中；命中、选区、IME 与标尺共用画布的页面原点与缩放，标尺按正文页边距对齐并显示数字刻度；段落缩进、间距、单元格边距与边框粗细以磅显示并换算回命令单位。IME 居中几何断言随页面原点统一同步更新。
+- `b1625eb` 把开始页分组与参考 UI 对齐，「更多」菜单只保留用户面命令（`START_MORE_CONTROLS` 过滤撤销／重做、格式刷取消、查找上一处、全部替换等内部命令）。
+- 功能目录地板升到 60，`scripts/check_docs.py` 的 `FEATURE_FLOOR` 同步为 60。证据：`ribbon_density_has_full_compact_and_overflow_tiers`、`ruler_uses_the_same_page_origin_and_zoom_as_the_canvas`、`zoom_slider_clamps_to_the_supported_range`、`formatting_dialog_converts_points_back_to_command_units`、`start_more_menu_contains_only_user_facing_commands`（apps/joyword/src/tests.rs），以及 joyword-shell chrome 测试与 locales 键位校验。
+- 未做：只用功能区完成报告排版、与固定 Word 字数对话框数字对照、导航窗格、审阅栏，以及三端图形界面人工验收；本切片不替代这些验收，T205 保持 `in_progress`。任务侧的对应记录见 [TASKS](TASKS.md) T205 完成证据的 2026-10-24 条目。
+
+### T001 收口：cargo-deny 本机复核与三端证据归并（2026-10-26）
+
+T001 由 `in_progress` 改为 `done`，进度计数改为 13 done／21 in_progress／32 planned／0 blocked。本次只改文档，未改代码与依赖。
+
+核对结论：TASKS 此前写的两个缺口里，Windows 腿已有证据但未归并。2026-10-17 本机 Windows（Rust 1.98.1，见上文「Windows 参考环境」）通过 fmt、全工作区 clippy、默认成员与应用测试；2026-10-19 Windows GUI 会话（Windows 11 build 26300，x86_64；`rustc 1.98.1 (48a229cea 2026-09-01)`、`cargo 1.98.1 (797e8a9bc 2026-08-05)`；分支 `codex/validation-20261019`，基线 `26f46c3f`，工作区补丁为后来合入 main 的两处渲染修复）以不带特性标志的 `cargo build` 编出 `joyword`（[build-final.log](validation/20261019/build-final.log)），`JoyWord · Preview` 以隔离测试 profile 启动并完成 16 步截图（[gui/summary.json](validation/20261019/gui/summary.json)），`cargo test --locked` 652 项、`cargo test --locked -p joyword` 38 项、全工作区 clippy `-D warnings`、fmt、文档与门禁检查通过；该机未装 cargo-deny。「Windows 腿与 cargo-deny 本机复核仍未做」一句由同日麒麟会话的提交 `8b7f9c2` 写入 TASKS，两条会话并行，Windows 证据合入 main 后没有人回头改 T001；[2026-10-19 验证审计](VALIDATION-20261019.md) 的「Windows 参考环境仍缺」两处表述同为当日快照。
+
+本日补做的是 cargo-deny 本机复核与当前主干的 Mac 腿刷新，均在 Mac 参考机（Rust/Cargo 1.98.1、Xcode 27.1 build 27A9275、macOS 27.0.1 26A434、arm64）、main `5efe06a` 上执行：
+
+- `cargo deny --locked --all-features check`（cargo-deny 0.20.2，与 CI `dependencies` 作业固定的版本和参数一致）：advisories ok、bans ok、licenses ok、sources ok。RustSec 公告库为 `21d909e4c8bd4e14c7aea58bf980c881a0053ab1`（2026-10-24）。第一次运行因本机 `http_proxy`／`https_proxy` 指向已停止的本地代理（127.0.0.1:10822），在拉取公告库时失败；去掉代理环境变量后重跑通过。这是本机网络配置问题，不是依赖问题，`deny.toml` 与 `Cargo.lock` 未改。
+- `cargo fmt --all -- --check` 通过；不启用 `dev-runtime-shaders` 的 `cargo build -p joyword --locked` 成功，产物 `target/debug/joyword`，仅有既有的上游 `block 0.1.6` future-incompat 提示（见「当前环境」）。本日未重新启动图形界面；Mac 可启动产物以 2026-10-18 会话的多次启动（含 kill -9 重启恢复）为证。
+- 同一提交的 CI 运行 [40280336418](https://github.com/willmove/joyoffice/actions/runs/40280336418) 九项作业全部 success：build（macos-15、windows-2022、ubuntu-24.04、ubuntu-24.04-arm，各含 fmt、`cargo test --locked`、clippy `-D warnings` 与不启用开发着色器的 `cargo build -p joyword --locked`）、headless tests（aarch64、loongarch64，QEMU）、unified-pdf、dependencies（cargo-deny 0.20.2）、provenance。`rust-toolchain.toml` 自 M0 基线（`4f94702`）未改；`deny.toml` 最近一次修改是 zbus 家族 unmaintained 豁免（`b097f55`）；`Cargo.lock` 最近一次修改是 T402（`2483971`）；三者都在上述绿色 CI 与本机 cargo-deny 的覆盖内。
+
+边界：三端中 cargo-deny 只在 ubuntu 的 CI 作业与 Mac 本机执行过，Windows 机当时未装；`deny.toml` 的 `[graph] all-features = true` 且未限定 `targets`，分析的是与平台无关的整份 `Cargo.lock`，所以不以此为缺口。信创真机专项属 T005（非阻塞待补验），Retina／多显示器属 T003，都不在 T001 范围。
+### T104 撤销属性测试与日志校验（2026-10-26）
+
+T104 仍是 `in_progress`，进度计数不改。本切片不改任何生产代码、不加依赖，只补三块自动验证：undo／redo 属性测试、独立撤销栈与本地日志校验。
+
+属性测试在 `crates/joyword-engine/tests/undo_properties.rs`：测试内自研 xorshift64* 伪随机数（无 proptest／quickcheck），4 个固定种子各驱动 140 步随机编辑事务（插入、段内／跨段删除、拆段、加粗、对齐、换行、移动块、删块、多命令替换，混入约五分之一必然失败的敌意事务），每步断言版本单调、深度精确与文档校验通过，失败信息携带种子、步号与完整命令日志。五条性质各有独立测试：`random_histories_undo_to_the_pristine_snapshot`（全量撤销逐状态回到初始快照，内容与段落 id 双对照）、`undoing_k_then_redoing_k_restores_the_pre_undo_state`、`a_fresh_edit_after_undo_truncates_redo`（新编辑后重做栈立即归零且不可复活，存活链条仍回到初始快照）、`rejected_transactions_leave_document_and_stacks_unchanged`（陈旧版本、Agent 关闭、前置条件失败、非法文字、越界、倒序、未知节点与"第一条成功第二条失败"的多命令事务都不动文档、版本与双栈，且不影响存活的重做侧）、`undo_redo_preserve_document_identity_and_monotonic_versions`（两轮完整撤销／重做循环状态与段落身份逐点一致，版本号只增且从不重用）。与 T209 既有 `undo_groups.rs` 的随机测试互补：那边检验分组边界，这边检验无分组历史栈的不变量。
+
+独立撤销栈按 EDIT-005 的契约检验：撤销／重做是引擎会话状态，与审阅修订和恢复日志分离。`two_sessions_have_independent_undo_stacks` 证明两个会话交错编辑后各自的栈互不干扰（一侧清空历史不影响另一侧的文档、版本与深度，另一侧仍回到自己的初始快照）；`saving_and_journaling_do_not_clear_the_undo_stack`（`joyword-shell` 的 `storage::recovery` 测试）经生产 `Office` 路径打开文档、提交两笔插入（每笔写恢复日志）、保存副本后再撤销重做：保存与日志写入既不清空也不增加撤销步，恰好两步撤销回到打开时的正文。
+
+日志校验补齐 2026-10-23 双代切片之外的验证面。`tampered_slots_fall_back_to_the_valid_prefix_or_fail_closed` 对最新槽做穷举破坏：逐字节单比特翻转（魔数、代次、kind、版本、长度、载荷、CRC 全覆盖，CRC32 保证单比特错误必被查出）、任意截断、头前垃圾（解码器不扫描魔数）与尾后垃圾，每一种都拒绝该槽、按有效前缀回退到上一代并逐字节恢复，同时写入失败即关闭（损坏槽不改写、不覆盖）。`generation_order_selects_across_slots_not_by_file_name` 证明选择按代次号而非槽文件名，下一次发布轮换到未选中的槽，被替换的旧代在被覆盖前可读，同代同内容两槽去重为一代且下一笔发布越过它。`only_verified_bytes_reach_the_target_slot` 在写入与校验之间注入头前垃圾：发布前经恢复解码器读回校验，未验证字节不进目标槽、不留待定临时文件，被拒的代随后仍可正常发布。既有契约不变：原子改名、读回校验、损坏槽不覆盖、加密拒绝与世代不回退。
+
+验证（本机 macOS，Rust 1.98.1）：`cargo test --locked`、`cargo test --locked -p joyword-engine -p joyword-shell`、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python3 scripts/check_docs.py`、`check_gates.py`、`check_acceptance.py` 全部通过。未做：周期快照（仍是保存时检查点）、断电与图形界面人工验收、T104 状态保持 `in_progress`。
 ### T110 卷拒绝接入 file.save 原生提示（2026-10-26）
 
 T110 仍是 `in_progress`，进度计数不改。2026-10-22 的 Windows 卷能力观测切片把不支持的卷（网络共享、非 NTFS/ReFS、缺能力标志、未知驱动类型）做成 `save_original` 内部的 `ObservationFailed` 硬拒绝，但明确留下了一个缺口：`file.save` 的 Decline 预检提示没有把它与"可确认的元数据损失"区分开，用户仍会看到一个「确认替换」按钮，点下去必然失败。本切片把这条拒绝接进原生提示。
