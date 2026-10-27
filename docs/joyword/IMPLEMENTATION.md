@@ -1589,3 +1589,14 @@ T001 由 `in_progress` 改为 `done`，进度计数改为 13 done／21 in_progre
 - 同一提交的 CI 运行 [40280336418](https://github.com/willmove/joyoffice/actions/runs/40280336418) 九项作业全部 success：build（macos-15、windows-2022、ubuntu-24.04、ubuntu-24.04-arm，各含 fmt、`cargo test --locked`、clippy `-D warnings` 与不启用开发着色器的 `cargo build -p joyword --locked`）、headless tests（aarch64、loongarch64，QEMU）、unified-pdf、dependencies（cargo-deny 0.20.2）、provenance。`rust-toolchain.toml` 自 M0 基线（`4f94702`）未改；`deny.toml` 最近一次修改是 zbus 家族 unmaintained 豁免（`b097f55`）；`Cargo.lock` 最近一次修改是 T402（`2483971`）；三者都在上述绿色 CI 与本机 cargo-deny 的覆盖内。
 
 边界：三端中 cargo-deny 只在 ubuntu 的 CI 作业与 Mac 本机执行过，Windows 机当时未装；`deny.toml` 的 `[graph] all-features = true` 且未限定 `targets`，分析的是与平台无关的整份 `Cargo.lock`，所以不以此为缺口。信创真机专项属 T005（非阻塞待补验），Retina／多显示器属 T003，都不在 T001 范围。
+### T104 撤销属性测试与日志校验（2026-10-26）
+
+T104 仍是 `in_progress`，进度计数不改。本切片不改任何生产代码、不加依赖，只补三块自动验证：undo／redo 属性测试、独立撤销栈与本地日志校验。
+
+属性测试在 `crates/joyword-engine/tests/undo_properties.rs`：测试内自研 xorshift64* 伪随机数（无 proptest／quickcheck），4 个固定种子各驱动 140 步随机编辑事务（插入、段内／跨段删除、拆段、加粗、对齐、换行、移动块、删块、多命令替换，混入约五分之一必然失败的敌意事务），每步断言版本单调、深度精确与文档校验通过，失败信息携带种子、步号与完整命令日志。五条性质各有独立测试：`random_histories_undo_to_the_pristine_snapshot`（全量撤销逐状态回到初始快照，内容与段落 id 双对照）、`undoing_k_then_redoing_k_restores_the_pre_undo_state`、`a_fresh_edit_after_undo_truncates_redo`（新编辑后重做栈立即归零且不可复活，存活链条仍回到初始快照）、`rejected_transactions_leave_document_and_stacks_unchanged`（陈旧版本、Agent 关闭、前置条件失败、非法文字、越界、倒序、未知节点与"第一条成功第二条失败"的多命令事务都不动文档、版本与双栈，且不影响存活的重做侧）、`undo_redo_preserve_document_identity_and_monotonic_versions`（两轮完整撤销／重做循环状态与段落身份逐点一致，版本号只增且从不重用）。与 T209 既有 `undo_groups.rs` 的随机测试互补：那边检验分组边界，这边检验无分组历史栈的不变量。
+
+独立撤销栈按 EDIT-005 的契约检验：撤销／重做是引擎会话状态，与审阅修订和恢复日志分离。`two_sessions_have_independent_undo_stacks` 证明两个会话交错编辑后各自的栈互不干扰（一侧清空历史不影响另一侧的文档、版本与深度，另一侧仍回到自己的初始快照）；`saving_and_journaling_do_not_clear_the_undo_stack`（`joyword-shell` 的 `storage::recovery` 测试）经生产 `Office` 路径打开文档、提交两笔插入（每笔写恢复日志）、保存副本后再撤销重做：保存与日志写入既不清空也不增加撤销步，恰好两步撤销回到打开时的正文。
+
+日志校验补齐 2026-10-23 双代切片之外的验证面。`tampered_slots_fall_back_to_the_valid_prefix_or_fail_closed` 对最新槽做穷举破坏：逐字节单比特翻转（魔数、代次、kind、版本、长度、载荷、CRC 全覆盖，CRC32 保证单比特错误必被查出）、任意截断、头前垃圾（解码器不扫描魔数）与尾后垃圾，每一种都拒绝该槽、按有效前缀回退到上一代并逐字节恢复，同时写入失败即关闭（损坏槽不改写、不覆盖）。`generation_order_selects_across_slots_not_by_file_name` 证明选择按代次号而非槽文件名，下一次发布轮换到未选中的槽，被替换的旧代在被覆盖前可读，同代同内容两槽去重为一代且下一笔发布越过它。`only_verified_bytes_reach_the_target_slot` 在写入与校验之间注入头前垃圾：发布前经恢复解码器读回校验，未验证字节不进目标槽、不留待定临时文件，被拒的代随后仍可正常发布。既有契约不变：原子改名、读回校验、损坏槽不覆盖、加密拒绝与世代不回退。
+
+验证（本机 macOS，Rust 1.98.1）：`cargo test --locked`、`cargo test --locked -p joyword-engine -p joyword-shell`、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python3 scripts/check_docs.py`、`check_gates.py`、`check_acceptance.py` 全部通过。未做：周期快照（仍是保存时检查点）、断电与图形界面人工验收、T104 状态保持 `in_progress`。
