@@ -12,7 +12,7 @@ use joyword_model::RevisionView;
 use joyword_model::{Bias, Position};
 use joyword_shell::command::{
     FORMAT_FONT, FORMAT_PARAGRAPH, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL,
-    REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
+    REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE, REVIEW_TRACK,
     TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use joyword_shell::docx::BoundDocx;
@@ -3067,6 +3067,7 @@ impl JoyWord {
                 | REVIEW_MARKUP
                 | REVIEW_FINAL
                 | REVIEW_ORIGINAL
+                | REVIEW_SIMPLE
                 | REVIEW_AUTHOR
         ) {
             return Availability::Enabled;
@@ -3311,10 +3312,14 @@ impl JoyWord {
             cx.notify();
             return Ok(());
         }
-        if matches!(id, REVIEW_MARKUP | REVIEW_FINAL | REVIEW_ORIGINAL) {
+        if matches!(
+            id,
+            REVIEW_MARKUP | REVIEW_FINAL | REVIEW_ORIGINAL | REVIEW_SIMPLE
+        ) {
             let revision = match id {
                 REVIEW_FINAL => RevisionView::Final,
                 REVIEW_ORIGINAL => RevisionView::Original,
+                REVIEW_SIMPLE => RevisionView::Simple,
                 _ => RevisionView::FinalWithMarkup,
             };
             self.view_toggles.revision = revision;

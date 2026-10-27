@@ -23,10 +23,11 @@ use crate::command::{
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL,
     LIST_REMOVE, PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS,
     PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR,
-    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
-    Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT,
-    TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES, TABLE_ROW_DELETE, TABLE_ROW_INSERT,
-    TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE,
+    REVIEW_TRACK, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT,
+    TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES, TABLE_ROW_DELETE,
+    TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS,
+    VIEW_HIDDEN_TEXT,
 };
 use crate::dialogs::{
     ViewToggles, font_draft_from_decision, paragraph_draft_from_decision, table_draft_from_decision,
@@ -781,6 +782,7 @@ impl CommandHost for Office {
                 | REVIEW_MARKUP
                 | REVIEW_FINAL
                 | REVIEW_ORIGINAL
+                | REVIEW_SIMPLE
                 | REVIEW_AUTHOR
         ) {
             return Availability::Enabled;
@@ -1456,6 +1458,10 @@ impl Office {
             }
             REVIEW_ORIGINAL => {
                 self.set_review_view(RevisionView::Original);
+                Ok(())
+            }
+            REVIEW_SIMPLE => {
+                self.set_review_view(RevisionView::Simple);
                 Ok(())
             }
             REVIEW_AUTHOR => {

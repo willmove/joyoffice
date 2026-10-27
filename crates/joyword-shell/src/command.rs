@@ -573,6 +573,7 @@ pub const REVIEW_REJECT_ALL: CommandId = CommandId("review.reject_all");
 pub const REVIEW_MARKUP: CommandId = CommandId("review.view.markup");
 pub const REVIEW_FINAL: CommandId = CommandId("review.view.final");
 pub const REVIEW_ORIGINAL: CommandId = CommandId("review.view.original");
+pub const REVIEW_SIMPLE: CommandId = CommandId("review.view.simple");
 pub const REVIEW_AUTHOR: CommandId = CommandId("review.author");
 pub const FORMAT_PAINT: CommandId = CommandId("format.paint");
 pub const FORMAT_CANCEL: CommandId = CommandId("format.cancel");
@@ -1479,6 +1480,17 @@ impl Registry {
             CommandSpec {
                 id: REVIEW_ORIGINAL,
                 label: "command.review.original",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::Review,
+                    group: 2,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: REVIEW_SIMPLE,
+                label: "command.review.simple",
                 menu: Some(MenuPlacement {
                     menu: MenuKind::Review,
                     group: 2,

@@ -9,7 +9,8 @@ use joyword_docx::import;
 use joyword_model::{RevisionKind, RevisionView};
 use joyword_shell::command::{
     ArgValue, EDIT_INSERT, FILE_OPEN, InvokeError, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR,
-    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
+    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE,
+    REVIEW_TRACK,
 };
 use joyword_shell::host::Office;
 use joyword_shell::l10n::Locale;
@@ -74,7 +75,13 @@ fn review_commands_use_the_registry_and_the_author_preference() {
     let mut office = open_office(dir.path());
     let before = body_text(&office);
 
-    for id in [REVIEW_MARKUP, REVIEW_FINAL, REVIEW_ORIGINAL, REVIEW_TRACK] {
+    for id in [
+        REVIEW_MARKUP,
+        REVIEW_FINAL,
+        REVIEW_ORIGINAL,
+        REVIEW_SIMPLE,
+        REVIEW_TRACK,
+    ] {
         match office.invoke(id, &[]) {
             Err(InvokeError::PendingInput { missing }) => panic!("{id} asked for {missing:?}"),
             other => other.unwrap(),
@@ -150,6 +157,8 @@ fn review_commands_use_the_registry_and_the_author_preference() {
     assert_eq!(office.review_view(), RevisionView::Final);
     office.invoke(REVIEW_ORIGINAL, &[]).unwrap();
     assert_eq!(office.review_view(), RevisionView::Original);
+    office.invoke(REVIEW_SIMPLE, &[]).unwrap();
+    assert_eq!(office.review_view(), RevisionView::Simple);
     office.invoke(REVIEW_MARKUP, &[]).unwrap();
     assert_eq!(office.review_view(), RevisionView::FinalWithMarkup);
 
@@ -187,6 +196,73 @@ fn review_commands_use_the_registry_and_the_author_preference() {
     ));
     bare.invoke(REVIEW_MARKUP, &[]).unwrap();
     assert_eq!(bare.review_view(), RevisionView::FinalWithMarkup);
+    bare.invoke(REVIEW_SIMPLE, &[]).unwrap();
+    assert_eq!(bare.review_view(), RevisionView::Simple);
+}
+
+fn session_version(office: &Office) -> u64 {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .version()
+        .get()
+}
+
+fn session_undo_depth(office: &Office) -> usize {
+    office
+        .active()
+        .unwrap()
+        .backend()
+        .session()
+        .session()
+        .undo_depth()
+}
+
+#[test]
+fn cycling_the_four_review_views_touches_neither_revisions_undo_nor_dirty() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut office = open_office(dir.path());
+    office
+        .invoke(REVIEW_TRACK, &[("enabled", ArgValue::Bool(true))])
+        .unwrap();
+    office
+        .invoke(EDIT_INSERT, &[("text", ArgValue::Text("增".into()))])
+        .unwrap();
+    let text = body_text(&office);
+    let authors = revision_authors(&office);
+    assert_eq!(authors, vec!["JoyWord".to_string()]);
+    let version = session_version(&office);
+    let undo = session_undo_depth(&office);
+    let id = office.active_id().unwrap();
+    assert!(
+        office.is_dirty(id),
+        "the tracked edit left the document clean"
+    );
+
+    for view in [
+        REVIEW_MARKUP,
+        REVIEW_SIMPLE,
+        REVIEW_FINAL,
+        REVIEW_ORIGINAL,
+        REVIEW_SIMPLE,
+        REVIEW_MARKUP,
+    ] {
+        office.invoke(view, &[]).unwrap();
+    }
+    assert_eq!(office.review_view(), RevisionView::FinalWithMarkup);
+
+    assert_eq!(session_version(&office), version, "a view switch edited");
+    assert_eq!(
+        session_undo_depth(&office),
+        undo,
+        "a view switch touched the undo stack"
+    );
+    assert_eq!(body_text(&office), text);
+    assert_eq!(revision_authors(&office), authors);
+    assert!(office.is_dirty(id), "a view switch cleared the dirty flag");
 }
 
 const W: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";

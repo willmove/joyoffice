@@ -25,9 +25,9 @@ use crate::command::{
     FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, LIST_APPLY, LIST_LEVEL, LIST_REMOVE,
     PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION,
     PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL,
-    REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE, TABLE_INSERT,
-    TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT,
-    ZOOM_RESET,
+    REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE,
+    TABLE_INSERT, TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
+    ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -812,6 +812,17 @@ pub const RIBBON: &[RibbonControl] = &[
         evidence: Evidence::Unit,
     },
     RibbonControl {
+        id: "review.simple",
+        tab: RibbonTab::Review,
+        group_key: "ribbon.group.review_view",
+        command: REVIEW_SIMPLE,
+        label: "command.review.simple",
+        icon: "review-simple",
+        args: RibbonArgs::None,
+        requirement: "REVIEW-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
         id: "review.markup",
         tab: RibbonTab::Review,
         group_key: "ribbon.group.review_view",
@@ -1168,7 +1179,7 @@ pub struct StatusSnapshot {
     pub page: Option<u32>,
     pub pages: Option<u32>,
     pub census: TextCensus,
-    /// `markup`, `final` or `original`.
+    /// `markup`, `final`, `original` or `simple`.
     pub review: &'static str,
     pub tracking: bool,
 }
@@ -1205,6 +1216,7 @@ pub fn status_line(catalog: &Catalog, status: &StatusSnapshot) -> String {
     let view_key = match status.review {
         "final" => "status.review.final",
         "original" => "status.review.original",
+        "simple" => "status.review.simple",
         _ => "status.review.markup",
     };
     let tracking_key = if status.tracking {
@@ -1531,6 +1543,10 @@ const ICONS: &[(&str, &str)] = &[
     (
         "review-reject",
         "................|................|................|................|...#........#...|....#......#....|.....#....#.....|......#..#......|......#..#......|.....#....#.....|....#......#....|...#........#...|................|................|................|................",
+    ),
+    (
+        "review-simple",
+        "................|................|..#.............|..#..######.....|..#.............|..#.............|..#..######.....|..#.............|..#.............|..#..######.....|................|................|................|................|................|................",
     ),
     (
         "review-markup",

@@ -350,7 +350,8 @@ pub struct LayoutRequestKey {
     pub font: joyword_layout::FontKey,
     pub profile: SingleFontProfile,
     pub view: ViewOptions,
-    /// Markup, final or original. A different projection is a different scene.
+    /// Markup, simple, final or original. A different projection is a
+    /// different scene.
     pub review: RevisionView,
 }
 /// Identity of one page's pixels: the layout by its own key (version,

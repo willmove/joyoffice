@@ -138,6 +138,7 @@ actions!(
         ReviewMarkup,
         ReviewFinal,
         ReviewOriginal,
+        ReviewSimple,
         SetReviewAuthor
     ]
 );
@@ -293,6 +294,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         REVIEW_MARKUP => Box::new(ReviewMarkup),
         REVIEW_FINAL => Box::new(ReviewFinal),
         REVIEW_ORIGINAL => Box::new(ReviewOriginal),
+        REVIEW_SIMPLE => Box::new(ReviewSimple),
         REVIEW_AUTHOR => Box::new(SetReviewAuthor),
         _ => return None,
     })

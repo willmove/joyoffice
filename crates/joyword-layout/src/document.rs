@@ -4840,7 +4840,11 @@ fn place_line_on(
             page.rects.extend(rects);
         } else {
             let glyph = line.to_glyph_run(x, baseline);
-            if line.revisions.is_empty() {
+            // Simple markup lays the line out like the final projection: the
+            // plain run with no strike, underline or author colour. Its only
+            // mark is the margin bar the line annotations carry.
+            let simple = result.key.revision_view == RevisionView::Simple;
+            if line.revisions.is_empty() || simple {
                 page.rects.extend(decoration_rects(
                     &glyph,
                     marks,
@@ -4849,6 +4853,12 @@ fn place_line_on(
                 ));
                 for glyph_run in label_glyph_runs(line, x, baseline) {
                     page.runs.push(glyph_run);
+                }
+                if !line.revisions.is_empty()
+                    && let Some(geometry) = result.page_geometry.get(page_index).copied()
+                    && let Some(bar) = crate::revision_view::margin_bar(geometry, line, *top, step)
+                {
+                    page.rects.push(bar);
                 }
             } else {
                 // Revision markup groups keep the line's default face; mixed

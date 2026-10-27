@@ -6,6 +6,10 @@
 //! colour is an 8-entry palette of our own, hashed from the author. The
 //! underline and strike are a preview measurement, not a Word match.
 //!
+//! Simple markup shows the Final projection with no inline decoration; the
+//! only mark is the author-colour bar in the page's left margin beside every
+//! line of a paragraph with pending revisions.
+//!
 //! Header and footer bands are fitted by `pages`. This module paints the same
 //! marks onto those bands afterwards. Final and Original already drop hidden
 //! header and footer text in that fitter, so they receive no decoration.
@@ -110,8 +114,13 @@ fn mapped(map: &[usize], visible: usize) -> usize {
 }
 
 pub(crate) fn annotate(lines: &mut [LayoutLine], paragraph: &Paragraph, view: RevisionView) {
-    if view != RevisionView::FinalWithMarkup {
-        return;
+    match view {
+        RevisionView::FinalWithMarkup => {}
+        RevisionView::Simple => {
+            annotate_simple(lines, paragraph);
+            return;
+        }
+        RevisionView::Final | RevisionView::Original => return,
     }
     let mut spans = Vec::new();
     let mut offset = 0usize;
@@ -139,6 +148,32 @@ pub(crate) fn annotate(lines: &mut [LayoutLine], paragraph: &Paragraph, view: Re
                 });
             }
         }
+    }
+}
+
+/// Simple markup keeps the final text plain: no underline, no strikethrough,
+/// no author colour on the runs. The margin bar beside every line of a
+/// changed paragraph is the indicator, so each line carries one annotation
+/// for its colour even when the revision itself is projected away.
+fn annotate_simple(lines: &mut [LayoutLine], paragraph: &Paragraph) {
+    let Some(first) = paragraph.runs().iter().find_map(|run| {
+        run.revision
+            .as_ref()
+            .map(|revision| (revision.kind, revision.author.as_ref()))
+    }) else {
+        return;
+    };
+    let (kind, author) = first;
+    let color = author_color(author);
+    for line in lines {
+        let scalars = line.source.scalars.clone();
+        line.revisions.push(LineRevision {
+            scalars,
+            kind,
+            red: color.0,
+            green: color.1,
+            blue: color.2,
+        });
     }
 }
 
@@ -324,7 +359,8 @@ pub(crate) fn marked_runs(
 /// headers, nearest earlier reference of the same kind). Text is shaped again
 /// from the same visible string so the placed run can be found and replaced.
 /// A paragraph that also holds an image keeps the image fitter's line boxes
-/// and is not marked: that fitter does not project revisions.
+/// and is not marked: that fitter does not project revisions. Simple markup
+/// keeps the placed run and adds only the margin bar.
 pub(crate) fn decorate_stories(
     snapshot: &mut LayoutSnapshot,
     document: &Document,
@@ -333,9 +369,13 @@ pub(crate) fn decorate_stories(
     cancellation: &LayoutCancellation,
 ) -> Result<(), LayoutError> {
     cancellation.check()?;
-    if snapshot.key().revision_view != RevisionView::FinalWithMarkup {
+    if !matches!(
+        snapshot.key().revision_view,
+        RevisionView::FinalWithMarkup | RevisionView::Simple
+    ) {
         return Ok(());
     }
+    let simple = snapshot.key().revision_view == RevisionView::Simple;
     if !referenced_revision(document) {
         return Ok(());
     }
@@ -367,6 +407,7 @@ pub(crate) fn decorate_stories(
                 geometry,
                 story,
                 true,
+                simple,
             )?;
             apply_markup(snapshot, page_index, placed)?;
         }
@@ -381,6 +422,7 @@ pub(crate) fn decorate_stories(
                 geometry,
                 story,
                 false,
+                simple,
             )?;
             apply_markup(snapshot, page_index, placed)?;
         }
@@ -484,6 +526,7 @@ fn place_story(
     geometry: PageGeometry,
     story_id: StoryId,
     header: bool,
+    simple: bool,
 ) -> Result<Vec<PlacedMarkup>, LayoutError> {
     let Some(story) = document.story(story_id) else {
         return Ok(Vec::new());
@@ -498,7 +541,7 @@ fn place_story(
             snapshot, document, faces, profile, page_index, geometry, paragraph, &mut lines,
         )?;
     }
-    Ok(position_lines(geometry, header, lines))
+    Ok(position_lines(geometry, header, simple, lines))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -794,6 +837,7 @@ fn image_lines(
 fn position_lines(
     geometry: PageGeometry,
     header: bool,
+    simple: bool,
     lines: Vec<LocalLine>,
 ) -> Vec<PlacedMarkup> {
     let mut placed = Vec::new();
@@ -807,7 +851,7 @@ fn position_lines(
             let Some(next) = y.checked_add(line.line_box) else {
                 break;
             };
-            push_placed(&mut placed, geometry, &line, top, baseline_y);
+            push_placed(&mut placed, geometry, &line, top, baseline_y, simple);
             y = next;
         }
     } else {
@@ -821,7 +865,7 @@ fn position_lines(
                 break;
             };
             let top = Emu::new(y);
-            push_placed(&mut placed, geometry, &line, top, baseline_y);
+            push_placed(&mut placed, geometry, &line, top, baseline_y, simple);
             y += line.line_box.raw();
         }
     }
@@ -834,12 +878,19 @@ fn push_placed(
     line: &LocalLine,
     top: Emu,
     baseline_y: Emu,
+    simple: bool,
 ) {
     let Some(marked) = &line.marked else {
         return;
     };
     let plain = marked.to_glyph_run(geometry.left, baseline_y);
-    let (runs, mut rects) = marked_runs(marked, geometry.left, baseline_y);
+    // Simple markup keeps the final run untouched: the margin bar is its
+    // only mark, so no marked runs and no strike or underline rects.
+    let (runs, mut rects) = if simple {
+        (Vec::new(), Vec::new())
+    } else {
+        marked_runs(marked, geometry.left, baseline_y)
+    };
     if let Some(bar) = margin_bar(geometry, marked, top, line.line_box) {
         rects.push(bar);
     }
