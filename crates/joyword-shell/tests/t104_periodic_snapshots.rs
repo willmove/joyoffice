@@ -40,9 +40,9 @@ fn every_committed_edit_publishes_a_complete_periodic_snapshot() {
     // the text is the whole committed document text, and the baseline is the
     // untouched original package — PackageBacking, not just the model.
     let step = |office: &mut Office,
-                    command: CommandId,
-                    args: &[(&'static str, ArgValue)],
-                    expected_generation: u64| {
+                command: CommandId,
+                args: &[(&'static str, ArgValue)],
+                expected_generation: u64| {
         office.invoke(command, args).unwrap();
         let checkpoint = storage::recover_checkpoint(&recovery).unwrap();
         assert_eq!(
