@@ -2350,6 +2350,7 @@ impl JoyWord {
             destination,
             layout,
             font,
+            profile,
             document: editor.view().snapshot().clone(),
             core: editor.core_properties_xml(),
             pages,

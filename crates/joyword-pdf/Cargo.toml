@@ -14,6 +14,7 @@ joyword-foundation.workspace = true
 joyword-layout.workspace = true
 joyword-model.workspace = true
 krilla = { workspace = true, features = ["raster-images"] }
+read-fonts.workspace = true
 
 [dev-dependencies]
 flate2.workspace = true

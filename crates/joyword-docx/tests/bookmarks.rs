@@ -3,12 +3,15 @@
 //! Body, header, footer, and placeable comment ranges become model bookmarks
 //! the PDF named-destination path can resolve. Names are kept exactly.
 //! Markers that PDF would refuse, or that have no page caret (a detached
-//! comment, an opaque table, a column bookmark), are diagnosed and not
-//! inserted. Accepted marker bytes stay in the package. An unchanged export
-//! copies them. An edit that keeps a bookmark in the part it was imported
-//! from writes that marker back. Body markers stay in `document.xml`.
-//! Header, footer, and comment markers stay in their own parts. A marker
-//! that was not accepted still locks its paragraph.
+//! comment), are diagnosed and not inserted. A `colFirst` / `colLast` pair
+//! in mapped paragraphs is inserted as a range bookmark, but its host
+//! paragraph stays locked. A well-formed pair inside an opaque table becomes
+//! a point destination beside the block and keeps an informational
+//! `BookmarkAnchorUnmapped` note. Accepted marker bytes stay in the package.
+//! An unchanged export copies them. An edit that keeps a bookmark in the
+//! part it was imported from writes that marker back. Body markers stay in
+//! `document.xml`. Header, footer, and comment markers stay in their own
+//! parts. A marker that was not accepted still locks its paragraph.
 
 use std::sync::Arc;
 
@@ -266,7 +269,7 @@ fn bookmark_names_keep_case_and_reject_empty_duplicates_and_overlong_values() {
 }
 
 #[test]
-fn detached_column_and_opaque_table_bookmarks_are_not_destinations() {
+fn column_and_opaque_table_bookmarks_are_destinations() {
     let body = concat!(
         r#"<w:p><w:bookmarkStart w:id="1" w:name="open"/><w:r><w:t>A</w:t></w:r></w:p>"#,
         r#"<w:p><w:r><w:t>A</w:t></w:r><w:bookmarkEnd w:id="2"/>"#,
@@ -281,7 +284,9 @@ fn detached_column_and_opaque_table_bookmarks_are_not_destinations() {
         r#"<w:bookmarkEnd w:id="6"/></w:p>"#,
     );
     let result = open(&package(body));
-    assert_eq!(names(&result.document), ["kept"]);
+    assert_eq!(names(&result.document), ["col", "kept", "cell"]);
+    // The detached and reversed pairs stay refused, as do the missing id
+    // and the unsupported attribute.
     assert!(has(
         &result,
         &DiagnosticKind::BookmarkAnchorInvalid { id: 1 }
@@ -290,7 +295,6 @@ fn detached_column_and_opaque_table_bookmarks_are_not_destinations() {
         &result,
         &DiagnosticKind::BookmarkAnchorInvalid { id: 2 }
     ));
-    assert!(has(&result, &DiagnosticKind::BookmarkColumn { id: 3 }));
     assert!(
         result
             .diagnostics
@@ -300,10 +304,6 @@ fn detached_column_and_opaque_table_bookmarks_are_not_destinations() {
             >= 2
     );
     assert!(has(&result, &DiagnosticKind::BookmarkUnsupported { id: 4 }));
-    assert!(has(
-        &result,
-        &DiagnosticKind::BookmarkAnchorUnmapped { id: 5 }
-    ));
     assert!(
         result
             .document
@@ -312,6 +312,119 @@ fn detached_column_and_opaque_table_bookmarks_are_not_destinations() {
             .iter()
             .any(|block| matches!(block, Block::Opaque(_)))
     );
+
+    let paras = paragraphs(&result);
+    // The column pair imports as an ordinary range bookmark with an exact,
+    // case-sensitive name.
+    let col = bookmark(&result.document, "col");
+    let Anchor::Range { start, end } = col.anchor else {
+        panic!("range");
+    };
+    assert_eq!(start.paragraph, paras[2].id());
+    assert_eq!((start.offset.0, end.offset.0), (0, 1));
+    assert_eq!(start.bias, Bias::After);
+    assert_eq!(end.bias, Bias::Before);
+    // Its host paragraph stays locked: colFirst/colLast are not written
+    // back, so an edited export is Restricted rather than dropping them.
+    assert!(!result.editability.can_edit(paras[2].id()));
+    assert!(!result.editability.is_unrestricted());
+    let unchanged = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(unchanged.mode(), ExportMode::OriginalPackage);
+    let mut edited = result.document.clone();
+    body_paragraph(&mut edited, 0)
+        .insert_text(ScalarOffset(0), "X")
+        .unwrap();
+    assert!(matches!(
+        plan_export(&result.backing, &edited.snapshot(), &Budget::default()),
+        Err(ExportError::Restricted)
+    ));
+
+    // The opaque-table pair is a point destination at the end of the
+    // paragraph before the table. It has no source: write-back must not
+    // move the markers out of the preserved markup. The pair keeps its
+    // informational diagnostic.
+    assert!(has(
+        &result,
+        &DiagnosticKind::BookmarkAnchorUnmapped { id: 5 }
+    ));
+    let cell = bookmark(&result.document, "cell");
+    assert!(cell.source.is_none());
+    let Anchor::Range { start, end } = cell.anchor else {
+        panic!("range");
+    };
+    assert_eq!(start.paragraph, paras[3].id());
+    assert_eq!(start.offset, end.offset);
+    assert_eq!(start.offset.0, 0);
+    assert_eq!(start.bias, Bias::After);
+    assert_eq!(end.bias, Bias::Before);
+}
+
+#[test]
+fn an_opaque_table_at_the_body_start_anchors_the_first_paragraph() {
+    let body = concat!(
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="1" w:name="lead"/>"#,
+        r#"<w:r><w:t>T</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:p><w:r><w:t>After</w:t></w:r></w:p>"#,
+    );
+    let result = open(&package(body));
+    assert_eq!(names(&result.document), ["lead"]);
+    assert!(has(
+        &result,
+        &DiagnosticKind::BookmarkAnchorUnmapped { id: 1 }
+    ));
+    let mark = bookmark(&result.document, "lead");
+    let paras = paragraphs(&result);
+    let Anchor::Range { start, end } = mark.anchor else {
+        panic!("range");
+    };
+    // No paragraph precedes the table: the point destination is the start
+    // of the story's first paragraph.
+    assert_eq!(start.paragraph, paras[0].id());
+    assert_eq!(start.offset, end.offset);
+    assert_eq!(start.offset.0, 0);
+}
+
+#[test]
+fn bad_opaque_table_bookmark_pairs_stay_refused() {
+    let body = concat!(
+        r#"<w:p><w:bookmarkStart w:id="9" w:name="half"/><w:r><w:t>A</w:t></w:r></w:p>"#,
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkEnd w:id="9"/></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkEnd w:id="1"/>"#,
+        r#"<w:r><w:t>T</w:t></w:r><w:bookmarkStart w:id="1" w:name="rev"/></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="2" w:name="attr" w:foo="1"/>"#,
+        r#"<w:r><w:t>T</w:t></w:r><w:bookmarkEnd w:id="2"/></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="3" w:name="col" w:colFirst="0"/>"#,
+        r#"<w:r><w:t>T</w:t></w:r><w:bookmarkEnd w:id="3"/></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="4" w:name="lone"/>"#,
+        r#"<w:r><w:t>T</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+        r#"<w:p><w:r><w:t>End</w:t></w:r></w:p>"#,
+    );
+    let result = open(&package(body));
+    // Half of the id 9 pair sits in a mapped paragraph: the whole pair is
+    // refused and the paragraph stays locked.
+    assert!(names(&result.document).is_empty());
+    assert!(has(
+        &result,
+        &DiagnosticKind::BookmarkAnchorInvalid { id: 9 }
+    ));
+    assert!(!result.editability.can_edit(paragraphs(&result)[0].id()));
+    // Reversed, unsupported, and column pairs inside preserved markup are
+    // refused with their own diagnostics; a lone start is unmapped.
+    assert!(has(
+        &result,
+        &DiagnosticKind::BookmarkAnchorUnmapped { id: 1 }
+    ));
+    assert!(has(&result, &DiagnosticKind::BookmarkUnsupported { id: 2 }));
+    assert!(has(&result, &DiagnosticKind::BookmarkColumn { id: 3 }));
+    assert!(has(
+        &result,
+        &DiagnosticKind::BookmarkAnchorUnmapped { id: 4 }
+    ));
 }
 
 fn hdr(inner: &str) -> String {
@@ -485,7 +598,7 @@ fn header_footer_and_comment_bookmarks_import_with_body_rules() {
 }
 
 #[test]
-fn story_bookmarks_refuse_bad_names_duplicates_columns_and_detached_comments() {
+fn story_bookmarks_refuse_bad_names_duplicates_and_detached_comments() {
     let long = "n".repeat(2049);
     let header = hdr(&format!(
         concat!(
@@ -516,7 +629,20 @@ fn story_bookmarks_refuse_bad_names_duplicates_columns_and_detached_comments() {
         &ftr(r#"<w:p><w:r><w:t>Foot</w:t></w:r></w:p>"#),
         None,
     ));
-    assert_eq!(names(&result.document), ["keep", "ok"]);
+    // The column pair is accepted like any other range bookmark; the header
+    // paragraph stays locked because colFirst/colLast are not written back.
+    assert_eq!(names(&result.document), ["keep", "col", "ok"]);
+    let col = bookmark(&result.document, "col");
+    let Anchor::Range { start, end } = col.anchor else {
+        panic!("range");
+    };
+    assert_eq!(
+        result.document.story(start.story).unwrap().kind,
+        joyword_model::StoryKind::Header
+    );
+    assert_eq!(start.offset, end.offset);
+    assert_eq!(start.bias, Bias::After);
+    assert_eq!(end.bias, Bias::Before);
     assert!(has(&result, &DiagnosticKind::BookmarkNameEmpty { id: 2 }));
     assert!(has(&result, &DiagnosticKind::BookmarkNameInvalid { id: 3 }));
     assert!(has(&result, &DiagnosticKind::BookmarkBudget { id: 4 }));
@@ -524,7 +650,7 @@ fn story_bookmarks_refuse_bad_names_duplicates_columns_and_detached_comments() {
         &result,
         &DiagnosticKind::BookmarkNameDuplicate { id: 5 }
     ));
-    assert!(has(&result, &DiagnosticKind::BookmarkColumn { id: 6 }));
+    assert!(!has(&result, &DiagnosticKind::BookmarkColumn { id: 6 }));
     assert!(has(
         &result,
         &DiagnosticKind::BookmarkAnchorInvalid { id: 7 }
@@ -841,16 +967,32 @@ fn bookmark_write_back_refuses_unrepresentable_shapes() {
         })
     ));
 
-    // A column bookmark is not an annotation. Its paragraph stays locked, so
-    // an edit cannot drop the marker.
+    // A column bookmark is a range annotation, but its host paragraph stays
+    // locked because colFirst/colLast are not written back. An edit is
+    // Restricted, so the marker cannot be dropped; an unchanged export
+    // still copies the original package.
     let column = package(concat!(
         r#"<w:p><w:bookmarkStart w:id="3" w:name="col" w:colFirst="0" w:colLast="0"/>"#,
         r#"<w:r><w:t>C</w:t></w:r><w:bookmarkEnd w:id="3"/></w:p>"#,
         r#"<w:p><w:r><w:t>乙</w:t></w:r></w:p>"#,
     ));
+    let column_bytes = column.clone();
     let column_result = open(&column);
-    assert!(names(&column_result.document).is_empty());
+    assert_eq!(names(&column_result.document), ["col"]);
+    let col = bookmark(&column_result.document, "col");
+    let Anchor::Range { start, end } = col.anchor else {
+        panic!("range");
+    };
+    assert_eq!((start.offset.0, end.offset.0), (0, 1));
     assert!(!column_result.editability.is_unrestricted());
+    let unchanged = plan_export(
+        &column_result.backing,
+        &column_result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(unchanged.mode(), ExportMode::OriginalPackage);
+    assert_eq!(unchanged.bytes(), column_bytes.as_slice());
     let mut edited = column_result.document.clone();
     body_paragraph(&mut edited, 1)
         .insert_text(ScalarOffset(0), "X")
@@ -1277,9 +1419,10 @@ fn story_bookmark_write_back_refuses_cross_part_and_bad_shapes() {
         })
     ));
 
-    // A column bookmark is not a destination. Its paragraph stays locked, so
-    // an edit cannot drop the marker. A detached comment bookmark is the
-    // same: it is not inserted, and the comment paragraph stays locked.
+    // A column bookmark is a destination, but its host paragraph stays
+    // locked because colFirst/colLast are not written back, so an edit is
+    // Restricted and cannot drop the marker. A detached comment bookmark is
+    // different: it is not inserted, and the comment paragraph stays locked.
     let _ = bytes;
     let column = story_package(
         &format!(r#"<w:p><w:r><w:t>Body</w:t></w:r></w:p>{SECT}"#),
@@ -1291,7 +1434,7 @@ fn story_bookmark_write_back_refuses_cross_part_and_bad_shapes() {
         None,
     );
     let column_result = open(&column);
-    assert!(names(&column_result.document).is_empty());
+    assert_eq!(names(&column_result.document), ["col"]);
     assert!(!column_result.editability.is_unrestricted());
     let mut edited = column_result.document.clone();
     body_paragraph(&mut edited, 0)
