@@ -42,12 +42,18 @@ use krilla::geom::{Point, Transform};
 use krilla::page::PageSettings;
 use krilla::surface::Location;
 use krilla::text::{Font, GlyphId};
+use read_fonts::TableProvider;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PdfError {
     /// A run uses a font that was not supplied.
     MissingFont(FontKey),
-    /// krilla rejected a font or failed to serialize.
+    /// A scene font cannot be embedded: its OS/2 `fsType` forbids embedding
+    /// (Restricted License, `fsType & 0xF == 2`), or krilla rejected the face.
+    /// Subsetting failures while finishing the document are reported as
+    /// [`PdfError::Writer`] with a font reason.
+    UnembeddableFont(FontKey),
+    /// krilla rejected input or failed to serialize.
     Writer(String),
     InvalidPage,
     /// An admitted scene image could not be drawn. The text does not echo bytes.
@@ -170,7 +176,22 @@ pub fn render_export_with_navigation(
     };
     let mut document = Document::new_with(settings);
     navigation::register(&mut document, navigation)?;
+    // Every face the runs use is admitted before the first page starts: a
+    // Restricted License embedding bit or a krilla rejection refuses the whole
+    // export here, so a refused font never leaves a half-written document.
     let mut cache: HashMap<FontKey, Font> = HashMap::new();
+    for scene in pages {
+        for run in &scene.runs {
+            if run.glyphs.is_empty() && run.text.is_empty() || cache.contains_key(&run.font) {
+                continue;
+            }
+            let loaded = fonts
+                .iter()
+                .find(|font| font.key() == run.font)
+                .ok_or(PdfError::MissingFont(run.font))?;
+            cache.insert(run.font, embeddable_font(loaded)?);
+        }
+    }
     for (page_index, scene) in pages.iter().enumerate() {
         let settings = PageSettings::from_wh(
             to_points(scene.width) as f32,
@@ -193,19 +214,10 @@ pub fn render_export_with_navigation(
             if run.glyphs.is_empty() && run.text.is_empty() {
                 continue;
             }
-            let font = match cache.get(&run.font) {
-                Some(font) => font.clone(),
-                None => {
-                    let loaded = fonts
-                        .iter()
-                        .find(|font| font.key() == run.font)
-                        .ok_or(PdfError::MissingFont(run.font))?;
-                    let font = Font::new(loaded.data().to_vec().into(), run.font.index())
-                        .ok_or_else(|| PdfError::Writer("font rejected".into()))?;
-                    cache.insert(run.font, font.clone());
-                    font
-                }
-            };
+            let font = cache
+                .get(&run.font)
+                .ok_or(PdfError::MissingFont(run.font))?
+                .clone();
             let glyphs = scene_glyphs(run, true);
             let start = Point::from_xy(
                 to_points(run.origin_x) as f32,
@@ -265,9 +277,29 @@ pub fn render_export_with_navigation(
     if let Some(outline) = info::krilla_outline(&export.outline, pages.len()) {
         document.set_outline(outline);
     }
-    document
-        .finish()
-        .map_err(|error| PdfError::Writer(format!("{error:?}")))
+    document.finish().map_err(|error| match error {
+        krilla::error::KrillaError::Font(_, reason) => {
+            PdfError::Writer(format!("font embedding failed: {reason}"))
+        }
+        other => PdfError::Writer(format!("{other:?}")),
+    })
+}
+
+/// Admit one face for embedding, or refuse it. `OS/2.fsType` Restricted
+/// License (`fsType & 0xF == 2`) forbids embedding; a face without an OS/2
+/// table stays embeddable, matching krilla. A face krilla cannot use for
+/// embedding is refused the same way. Source: OpenType `OS/2`
+/// <https://learn.microsoft.com/en-us/typography/opentype/spec/os2>.
+fn embeddable_font(loaded: &LoadedFont) -> Result<Font, PdfError> {
+    let key = loaded.key();
+    if loaded
+        .font_ref()
+        .os2()
+        .is_ok_and(|os2| os2.fs_type() & 0xF == 2)
+    {
+        return Err(PdfError::UnembeddableFont(key));
+    }
+    Font::new(loaded.data().to_vec().into(), key.index()).ok_or(PdfError::UnembeddableFont(key))
 }
 
 fn set_rgb_fill(surface: &mut krilla::surface::Surface<'_>, color: [u8; 3]) {
