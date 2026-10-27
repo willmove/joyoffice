@@ -147,7 +147,9 @@ fn missing_glyphs_are_reported_without_changing_text() {
 
 #[test]
 fn pdf_is_deterministic_embeds_a_subset_and_keeps_text() {
-    let Some(font) = embeddable_test_font() else { return };
+    let Some(font) = embeddable_test_font() else {
+        return;
+    };
     let scene = scene(&font);
     let first =
         joyword_pdf::render(std::slice::from_ref(&scene), std::slice::from_ref(&font)).unwrap();
@@ -183,7 +185,9 @@ fn document_snapshot_pages_render_deterministically_without_mutation_or_reflow()
         FaceSet, LayoutCancellation, LayoutLimits, SingleFontProfile, layout_document,
     };
     use joyword_model::{BlockSeq, Document, DumpOptions, Measure, PageSetup, Paragraph};
-    let Some(font) = embeddable_test_font() else { return };
+    let Some(font) = embeddable_test_font() else {
+        return;
+    };
     let mut setup = PageSetup::a4_zh_cn();
     setup.width = Measure::Twips(4000);
     setup.height = Measure::Twips(1800);
