@@ -39,7 +39,7 @@ fn every_committed_edit_publishes_a_complete_periodic_snapshot() {
     // The snapshot after each step: the generation advanced by exactly one,
     // the text is the whole committed document text, and the baseline is the
     // untouched original package — PackageBacking, not just the model.
-    let mut step = |office: &mut Office,
+    let step = |office: &mut Office,
                     command: CommandId,
                     args: &[(&'static str, ArgValue)],
                     expected_generation: u64| {
