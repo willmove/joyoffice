@@ -1896,10 +1896,10 @@ fn write_extensible(
     let prefix = ns_prefix(&root, W16CEX).ok_or_else(fail)?;
     let mut taken = BTreeSet::new();
     for child in root.elements() {
-        if child.local.as_ref() == "commentExtensible" {
-            if let Some(durable) = child.attribute(Some(W16CEX), "durableId") {
-                taken.insert(durable.to_owned());
-            }
+        if child.local.as_ref() == "commentExtensible"
+            && let Some(durable) = child.attribute(Some(W16CEX), "durableId")
+        {
+            taken.insert(durable.to_owned());
         }
     }
     if durables.iter().any(|durable| taken.contains(durable)) {

@@ -550,9 +550,7 @@ impl Document {
             .annotations
             .values()
             .filter_map(|annotation| match &annotation.kind {
-                crate::AnnotationKind::Comment(comment) => {
-                    comment.durable_id.as_deref()
-                }
+                crate::AnnotationKind::Comment(comment) => comment.durable_id.as_deref(),
                 _ => None,
             })
             .collect();

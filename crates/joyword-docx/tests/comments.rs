@@ -6,7 +6,6 @@ use joyoffice_opc::{Budget, Method, Package, write_archive};
 use joyword_docx::{DiagnosticKind, import, plan_export};
 use joyword_model::{
     Anchor, AnnotationKind, Bias, Block, Comment, Document, Paragraph, Position, ScalarOffset,
-    StoryKind,
 };
 
 const W: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -531,6 +530,7 @@ fn a_new_comment_and_reply_are_written_back() {
     round_trip(&written, &again.document);
 }
 
+#[test]
 fn new_comments_append_durable_ids_and_extensible_dates_without_touching_entries() {
     let bytes = thread_package();
     let imported = import(&bytes, &Budget::default()).unwrap();
