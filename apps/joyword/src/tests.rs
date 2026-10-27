@@ -20,8 +20,8 @@ mod scene_export {
     use joyword_foundation::Emu;
     use joyword_layout::{
         FaceSet, LayoutCancellation, LayoutInvalidation, LayoutLimits, LayoutReuse, LayoutSnapshot,
-        ParagraphLayoutCache, ViewOptions, layout_incremental_with_view, layout_with_view,
-        to_points,
+        LoadedFont, ParagraphLayoutCache, ViewOptions, layout_incremental_with_view,
+        layout_with_view, to_points,
     };
     use joyword_model::{
         AbstractNum, Anchor, AnnotationKind, Bias, BlockSeq, ChapterSeparator, Document, Hyperlink,
@@ -35,7 +35,7 @@ mod scene_export {
     };
 
     use super::{rehearsal_profile, test_font};
-    use crate::export::scene_pdf;
+    use crate::export::{PdfJob, PdfKind, run_pdf, scene_pdf};
 
     fn model(texts: &[&str]) -> Document {
         let measure = |points| Measure::Emu(Emu::PER_POINT * points);
@@ -345,6 +345,133 @@ mod scene_export {
             scene_pdf(&scene, &font, &document, None, 0..1),
             Err("navigation".into())
         );
+    }
+
+    /// The fixture face with its OS/2 `fsType` patched; the rest of the bytes
+    /// stay identical, so the face shapes and lays out but must not embed.
+    fn font_with_fs_type(fs_type: u16) -> LoadedFont {
+        let mut bytes =
+            include_bytes!("../../../tests/fixtures/fonts/joyoffice-test-serif.ttf").to_vec();
+        let count = u16::from_be_bytes([bytes[4], bytes[5]]) as usize;
+        let record = (0..count)
+            .map(|index| 12 + 16 * index)
+            .find(|&at| bytes[at..at + 4] == *b"OS/2")
+            .expect("fixture carries an OS/2 table");
+        let table = u32::from_be_bytes(bytes[record + 8..record + 12].try_into().unwrap()) as usize;
+        bytes[table + 8..table + 10].copy_from_slice(&fs_type.to_be_bytes());
+        LoadedFont::from_bytes(Arc::from(bytes.as_slice()), 0).expect("patched font still loads")
+    }
+
+    #[test]
+    fn export_and_print_refuse_without_a_settled_layout_and_publish_nothing() {
+        let mut document = model(&["A"]);
+        let font = test_font();
+        let profile = rehearsal_profile();
+        let snapshot = document.snapshot();
+        let layout = layout_with_view(
+            &snapshot,
+            FaceSet::uniform(&font),
+            profile,
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            ViewOptions::default(),
+        )
+        .unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        // Settled layout: export and print-to-file both publish verified bytes
+        // through the same path.
+        for (name, kind) in [
+            ("export.pdf", PdfKind::Export),
+            (
+                "print.pdf",
+                PdfKind::Print {
+                    copies: 1,
+                    range: "all".to_string(),
+                },
+            ),
+        ] {
+            let destination = dir.path().join(name);
+            let receipt = run_pdf(PdfJob {
+                destination: destination.clone(),
+                layout: Arc::new(layout.clone()),
+                font: Arc::new(font.clone()),
+                profile,
+                document: snapshot.clone(),
+                core: None,
+                pages: 0..layout.pages().len(),
+                kind,
+            })
+            .unwrap();
+            let published = std::fs::read(&destination).unwrap();
+            assert_eq!(std::fs::read(receipt.path()).unwrap(), published);
+            assert_eq!(receipt.bytes() as usize, published.len());
+        }
+        // The document changed without a settled relayout: the menu maps this
+        // same condition to file.export.unstable (布局未稳定). The job refuses
+        // before writing and no destination is left behind.
+        change(&mut document, 0, |paragraph| {
+            paragraph.push_text("B", None, Arc::default()).unwrap();
+        });
+        document.advance_version();
+        let unsettled = document.snapshot();
+        for (name, kind) in [
+            ("unsettled-export.pdf", PdfKind::Export),
+            (
+                "unsettled-print.pdf",
+                PdfKind::Print {
+                    copies: 1,
+                    range: "all".to_string(),
+                },
+            ),
+        ] {
+            let destination = dir.path().join(name);
+            let error = run_pdf(PdfJob {
+                destination: destination.clone(),
+                layout: Arc::new(layout.clone()),
+                font: Arc::new(font.clone()),
+                profile,
+                document: unsettled.clone(),
+                core: None,
+                pages: 0..1,
+                kind,
+            })
+            .unwrap_err();
+            assert_eq!(error, "layout unstable");
+            assert!(!destination.exists());
+        }
+    }
+
+    #[test]
+    fn an_unembeddable_font_refuses_export_and_publishes_nothing() {
+        let document = model(&["A"]);
+        // fsType & 0xF == 2 is Restricted License embedding (OpenType OS/2).
+        let font = font_with_fs_type(2);
+        let profile = rehearsal_profile();
+        let snapshot = document.snapshot();
+        let layout = layout_with_view(
+            &snapshot,
+            FaceSet::uniform(&font),
+            profile,
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            ViewOptions::default(),
+        )
+        .unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let destination = dir.path().join("out.pdf");
+        let error = run_pdf(PdfJob {
+            destination: destination.clone(),
+            layout: Arc::new(layout),
+            font: Arc::new(font),
+            profile,
+            document: snapshot,
+            core: None,
+            pages: 0..1,
+            kind: PdfKind::Export,
+        })
+        .unwrap_err();
+        assert_eq!(error, "unembeddable font");
+        assert!(!destination.exists());
     }
 
     #[test]
