@@ -1642,3 +1642,14 @@ T300 仍是 `in_progress`，进度计数不改。本切片补齐 REVIEW-003 的�
 ### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
 
 main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
+### T109 打开取消入口（2026-10-27）
+
+T109 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 Mac GUI 会话记录的「打开期间没有可用的取消入口」。
+
+**Shell 层**：`Office` 新增 `cancelled_open: Option<u64>` 与 `cancel_open()`——取走在途 `PendingOpen`、记下其代次、返回缓冲键入；`open_was_cancelled(generation)` 以「代次 ≤ 已取消代次」判定，`accept_open`／`accept_bound`／`finish_open` 对已取消代次的迟到结果统一拒绝（`open cancelled`），即使此后又发起了新的打开。命令分支 `FILE_OPEN_CANCEL`：取消后把缓冲经 `keep_unopened_keystrokes` 写回当前文档并照常落日志（写回是正常编辑事务，可撤销）；无当前文档时返回 "no document" 而不是静默丢弃。可用性：仅 `opening` 在途时 Enabled，否则 `Disabled("file.open.not_opening")`。
+
+**命令与应用**：注册表新增 `file.open_cancel`（`modifies_document: true`，注释写明理由：取消成功时缓冲写回会修改当前文档；`menu: None`、`Shortcut::NONE`，不占菜单与快捷键位）。应用注册 `CancelOpen` 动作与监听（`registry_commands_all_have_actions_and_bindings` 因此覆盖它），`escape_panel` 在无其他浮层时把 Esc 路由到 `cancel_open_in_flight`：清 `open_gate`、取消并写回缓冲、状态栏提示 `file.open.cancelled`。`file.open.reading` 文案追加「按 Esc 取消」。en／zh-CN 补 `command.file.open_cancel`、`file.open.not_opening`、`file.open.cancelled`（parity 通过）。
+
+**证据**：`crates/joyword-shell/tests/t109_open_save_gate.rs` 新增两项——`cancelling_a_slow_open_discards_it_and_keeps_keystrokes_on_the_current_document`、`cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes`；既有五项不回归。未做：GUI 人工验收（Windows／macOS 上慢打开期间按 Esc 观察、保存中关闭提示的干净重放）、信创真机。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-shell --test t109_open_save_gate`（6 项）、`cargo test --locked -p joyword`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
