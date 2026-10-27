@@ -946,6 +946,7 @@ struct NewComment {
     date: Option<Arc<str>>,
     initials: Option<Arc<str>>,
     para_id: Arc<str>,
+    durable_id: Option<Arc<str>>,
     parent_para_id: Option<Arc<str>>,
     resolved: bool,
     text: String,
@@ -1017,6 +1018,7 @@ pub(crate) fn apply(
             date: comment.date.clone(),
             initials: comment.initials.clone(),
             para_id,
+            durable_id: comment.durable_id.clone(),
             parent_para_id: comment.parent_para_id.clone(),
             resolved: comment.resolved,
             text: comment_plain(current, comment.body)?,
@@ -1102,6 +1104,78 @@ pub(crate) fn apply(
                 .unwrap_or(&[])
         {
             parts.push((ext_name, ext_bytes));
+        }
+        // commentsIds and commentsExtensible change only with new comments:
+        // resolving toggles `w15:done`, which neither part carries.
+        if !fresh.is_empty() {
+            let ids_existing = related(package, main_name, REL_COMMENTS_IDS).or_else(|| {
+                comments_existing.and_then(|part| related(package, &part.name, REL_COMMENTS_IDS))
+            });
+            let extensible_existing =
+                related(package, main_name, REL_COMMENTS_EXTENSIBLE).or_else(|| {
+                    comments_existing
+                        .and_then(|part| related(package, &part.name, REL_COMMENTS_EXTENSIBLE))
+                });
+            let durables = durable_plan(ids_existing, extensible_existing, &fresh)?;
+            let (ids_name, ids_bytes, ids_new) = write_ids(ids_existing, &fresh, &durables)?;
+            if ids_bytes.len() as u64 > budget.max_part_bytes {
+                return Err(ExportError::Budget {
+                    part: ids_name.to_string(),
+                    limit: budget.max_part_bytes,
+                });
+            }
+            if ids_new {
+                created.push((ids_name.item_name().to_owned(), ids_bytes));
+                content_types = Some(add_override(
+                    content_types
+                        .as_deref()
+                        .unwrap_or(package.content_types_xml()),
+                    ids_name.as_str(),
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.commentsIds+xml",
+                )?);
+                rels = Some(add_relationship(
+                    rels.as_deref().ok_or_else(|| {
+                        unsupported(None, "comment relationships part is missing")
+                    })?,
+                    REL_COMMENTS_IDS,
+                    "commentsIds.xml",
+                )?);
+            } else if ids_bytes != ids_existing.map(|part| part.data.as_ref()).unwrap_or(&[]) {
+                parts.push((ids_name, ids_bytes));
+            }
+            if let Some((ex_name, ex_bytes, ex_new)) =
+                write_extensible(extensible_existing, &fresh, &durables)?
+            {
+                if ex_bytes.len() as u64 > budget.max_part_bytes {
+                    return Err(ExportError::Budget {
+                        part: ex_name.to_string(),
+                        limit: budget.max_part_bytes,
+                    });
+                }
+                if ex_new {
+                    created.push((ex_name.item_name().to_owned(), ex_bytes));
+                    content_types = Some(add_override(
+                        content_types
+                            .as_deref()
+                            .unwrap_or(package.content_types_xml()),
+                        ex_name.as_str(),
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.commentsExtensible+xml",
+                    )?);
+                    rels = Some(add_relationship(
+                        rels.as_deref().ok_or_else(|| {
+                            unsupported(None, "comment relationships part is missing")
+                        })?,
+                        REL_COMMENTS_EXTENSIBLE,
+                        "commentsExtensible.xml",
+                    )?);
+                } else if ex_bytes
+                    != extensible_existing
+                        .map(|part| part.data.as_ref())
+                        .unwrap_or(&[])
+                {
+                    parts.push((ex_name, ex_bytes));
+                }
+            }
         }
     }
     if let Some(bytes) = rels
@@ -1667,6 +1741,178 @@ fn comment_ex(prefix: &str, para_id: &str, parent: Option<&str>, resolved: bool)
         .map(|parent| format!(" {prefix}:paraIdParent=\"{parent}\""))
         .unwrap_or_default();
     format!("<{prefix}:commentEx {prefix}:paraId=\"{para_id}\"{parent} {prefix}:done=\"{done}\"/>")
+}
+
+/// FNV-1a over the paraId text plus a zero-based attempt counter: a durable
+/// id for a comment this session created. JoyWord assumption (not a Word
+/// algorithm): the value only has to be stable and collision-free inside the
+/// part, which the deterministic retry against the ids already taken below
+/// guarantees. Word writes GUID-shaped values; the importer accepts any
+/// non-empty string, and `w16cid:durableId` is a 32-bit integer per
+/// [MS-DOCX], so the plan emits plain decimals.
+fn durable_id_for(para_id: &str, attempt: u32, taken: &BTreeSet<String>) -> String {
+    let mut candidate = joyword_model::durable_id_from(para_id, attempt).to_string();
+    let mut salt = 0u32;
+    while taken.contains(&candidate) {
+        salt += 1;
+        candidate =
+            joyword_model::durable_id_from(&format!("{para_id}:{salt}"), attempt).to_string();
+    }
+    candidate
+}
+
+/// One durable id per new comment, planned once so commentsIds and
+/// commentsExtensible write the same value for the same paraId. A paraId
+/// already present in the part for a comment this session claims as new is an
+/// inconsistency the model should not produce; refuse instead of inventing a
+/// second entry.
+fn durable_plan(
+    ids_existing: Option<&Part>,
+    extensible_existing: Option<&Part>,
+    fresh: &[NewComment],
+) -> Result<Vec<String>, ExportError> {
+    let fail = || unsupported(None, "comment thread cannot be written");
+    let mut taken = BTreeSet::new();
+    let mut para_seen = BTreeSet::new();
+    for part in [ids_existing, extensible_existing].into_iter().flatten() {
+        let root = XmlReader::new(part.name.as_str(), &part.data, &Budget::default())
+            .and_then(XmlReader::whole)
+            .map_err(|_| fail())?;
+        for child in root.elements() {
+            if child.namespace.as_deref() == Some(W16CID) && child.local.as_ref() == "commentId" {
+                if let Some(para) = child.attribute(Some(W16CID), "paraId") {
+                    para_seen.insert(para.to_ascii_uppercase());
+                }
+                if let Some(durable) = child.attribute(Some(W16CID), "durableId") {
+                    taken.insert(durable.to_owned());
+                }
+            }
+            if child.namespace.as_deref() == Some(W16CEX)
+                && child.local.as_ref() == "commentExtensible"
+                && let Some(durable) = child.attribute(Some(W16CEX), "durableId")
+            {
+                taken.insert(durable.to_owned());
+            }
+        }
+    }
+    let mut plan = Vec::with_capacity(fresh.len());
+    for comment in fresh {
+        if para_seen.contains(comment.para_id.to_ascii_uppercase().as_str()) {
+            return Err(fail());
+        }
+        // Comments created through the engine carry the durable id they were
+        // allocated with; write that value so a reimport compares equal.
+        // Anything else (a comment constructed without the allocator) falls
+        // back to the same shared derivation.
+        let durable = match comment.durable_id.as_deref() {
+            Some(durable) if !taken.contains(durable) => durable.to_owned(),
+            Some(_) => return Err(fail()),
+            None => durable_id_for(&comment.para_id, 0, &taken),
+        };
+        taken.insert(durable.clone());
+        plan.push(durable);
+    }
+    Ok(plan)
+}
+
+/// Append one `w16cid:commentId` per new comment; existing entries keep their
+/// bytes untouched, exactly like the commentsExtended writer.
+fn write_ids(
+    existing: Option<&Part>,
+    fresh: &[NewComment],
+    durables: &[String],
+) -> Result<(PartName, Vec<u8>, bool), ExportError> {
+    let fail = || unsupported(None, "comment thread cannot be written");
+    if let Some(part) = existing {
+        let root = XmlReader::new(part.name.as_str(), &part.data, &Budget::default())
+            .and_then(XmlReader::whole)
+            .map_err(|_| fail())?;
+        let prefix = ns_prefix(&root, W16CID).ok_or_else(fail)?;
+        let mut extra = String::new();
+        for (comment, durable) in fresh.iter().zip(durables) {
+            extra.push_str(&format!(
+                "<{prefix}:commentId {prefix}:paraId=\"{}\" {prefix}:durableId=\"{durable}\"/>",
+                comment.para_id
+            ));
+        }
+        let bytes = insert_before_end(&part.data, &root, &extra).map_err(|_| fail())?;
+        Ok((part.name.clone(), bytes, false))
+    } else {
+        let name = PartName::new("/word/commentsIds.xml").map_err(|_| fail())?;
+        let mut body = String::new();
+        for (comment, durable) in fresh.iter().zip(durables) {
+            body.push_str(&format!(
+                "<w16cid:commentId w16cid:paraId=\"{}\" w16cid:durableId=\"{durable}\"/>",
+                comment.para_id
+            ));
+        }
+        let xml = format!(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
+<w16cid:commentsIds xmlns:w16cid=\"{W16CID}\">{body}</w16cid:commentsIds>"
+        );
+        Ok((name, xml.into_bytes(), true))
+    }
+}
+
+/// Append one `w16cex:commentExtensible` per new comment carrying the
+/// creation timestamp as `dateUtc`. `dateUtc` is only written when every new
+/// comment's `w:date` already matches the strict UTC shape seen in the wild
+/// (`YYYY-MM-DDTHH:MM:SSZ`, the shape this repository writes); anything else
+/// leaves the part untouched rather than inventing a timestamp. `None` means
+/// "nothing to write".
+fn write_extensible(
+    existing: Option<&Part>,
+    fresh: &[NewComment],
+    durables: &[String],
+) -> Result<Option<(PartName, Vec<u8>, bool)>, ExportError> {
+    let fail = || unsupported(None, "comment thread cannot be written");
+    let mut dated = Vec::with_capacity(fresh.len());
+    for comment in fresh {
+        let Some(date) = comment.date.as_deref() else {
+            return Ok(None);
+        };
+        if !joyword_model::is_strict_utc_date(date) {
+            return Ok(None);
+        }
+        dated.push(date);
+    }
+    let Some(part) = existing else {
+        let name = PartName::new("/word/commentsExtensible.xml").map_err(|_| fail())?;
+        let mut body = String::new();
+        for (durable, date) in durables.iter().zip(&dated) {
+            body.push_str(&format!(
+                "<w16cex:commentExtensible w16cex:durableId=\"{durable}\" w16cex:dateUtc=\"{date}\"/>"
+            ));
+        }
+        let xml = format!(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\
+<w16cex:commentsExtensible xmlns:w16cex=\"{W16CEX}\">{body}</w16cex:commentsExtensible>"
+        );
+        return Ok(Some((name, xml.into_bytes(), true)));
+    };
+    let root = XmlReader::new(part.name.as_str(), &part.data, &Budget::default())
+        .and_then(XmlReader::whole)
+        .map_err(|_| fail())?;
+    let prefix = ns_prefix(&root, W16CEX).ok_or_else(fail)?;
+    let mut taken = BTreeSet::new();
+    for child in root.elements() {
+        if child.local.as_ref() == "commentExtensible" {
+            if let Some(durable) = child.attribute(Some(W16CEX), "durableId") {
+                taken.insert(durable.to_owned());
+            }
+        }
+    }
+    if durables.iter().any(|durable| taken.contains(durable)) {
+        return Err(fail());
+    }
+    let mut extra = String::new();
+    for (durable, date) in durables.iter().zip(&dated) {
+        extra.push_str(&format!(
+            "<{prefix}:commentExtensible {prefix}:durableId=\"{durable}\" {prefix}:dateUtc=\"{date}\"/>"
+        ));
+    }
+    let bytes = insert_before_end(&part.data, &root, &extra).map_err(|_| fail())?;
+    Ok(Some((part.name.clone(), bytes, false)))
 }
 
 fn patch_done(
