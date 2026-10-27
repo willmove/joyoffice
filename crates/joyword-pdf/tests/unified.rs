@@ -8,10 +8,33 @@ use std::sync::Arc;
 
 use joyword_foundation::Emu;
 use joyword_layout::{FeatureSet, GlyphRun, LoadedFont, PageScene, shape};
+use read_fonts::TableProvider;
 
 const SEED: &str = include_str!("../../../tests/fixtures/text/cjk-contract.txt");
 
 fn test_font() -> Option<LoadedFont> {
+    load_test_font(EmbedPolicy::Any)
+}
+
+/// Fonts for PDF render tests must be embeddable. macOS Songti.ttc face 0 has
+/// OS/2 Restricted License (`fsType & 0xF == 2`), so the T204 refusal path
+/// correctly rejects it; happy-path PDF tests skip that face and keep looking.
+fn embeddable_test_font() -> Option<LoadedFont> {
+    load_test_font(EmbedPolicy::Embeddable)
+}
+
+enum EmbedPolicy {
+    Any,
+    Embeddable,
+}
+
+fn face_forbids_embedding(font: &LoadedFont) -> bool {
+    font.font_ref()
+        .os2()
+        .is_ok_and(|os2| os2.fs_type() & 0xF == 2)
+}
+
+fn load_test_font(policy: EmbedPolicy) -> Option<LoadedFont> {
     let spec = std::env::var("JOYWORD_TEST_FONT").ok();
     let candidates: Vec<(String, u32)> = match spec.as_deref().and_then(|s| s.rsplit_once(':')) {
         Some((path, index)) => vec![(path.to_owned(), index.parse().expect("face index"))],
@@ -20,6 +43,9 @@ fn test_font() -> Option<LoadedFont> {
                 "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc".into(),
                 2,
             ),
+            // Prefer faces that usually allow embedding before Songti.
+            ("/System/Library/Fonts/Hiragino Sans GB.ttc".into(), 0),
+            ("/System/Library/Fonts/PingFang.ttc".into(), 0),
             ("/System/Library/Fonts/Supplemental/Songti.ttc".into(), 0),
             ("C:\\Windows\\Fonts\\simsun.ttc".into(), 0),
         ],
@@ -28,6 +54,13 @@ fn test_font() -> Option<LoadedFont> {
         if Path::new(&path).is_file() {
             let bytes: Arc<[u8]> = std::fs::read(&path).expect("readable font").into();
             let font = LoadedFont::from_bytes(bytes, index).expect("usable font");
+            if matches!(policy, EmbedPolicy::Embeddable) && face_forbids_embedding(&font) {
+                eprintln!(
+                    "skip restricted-license test font {path} #{index} sha256 {}",
+                    font.key().hash_hex()
+                );
+                continue;
+            }
             eprintln!("test font {path} #{index} sha256 {}", font.key().hash_hex());
             return Some(font);
         }
@@ -114,7 +147,9 @@ fn missing_glyphs_are_reported_without_changing_text() {
 
 #[test]
 fn pdf_is_deterministic_embeds_a_subset_and_keeps_text() {
-    let Some(font) = test_font() else { return };
+    let Some(font) = embeddable_test_font() else {
+        return;
+    };
     let scene = scene(&font);
     let first =
         joyword_pdf::render(std::slice::from_ref(&scene), std::slice::from_ref(&font)).unwrap();
@@ -150,7 +185,9 @@ fn document_snapshot_pages_render_deterministically_without_mutation_or_reflow()
         FaceSet, LayoutCancellation, LayoutLimits, SingleFontProfile, layout_document,
     };
     use joyword_model::{BlockSeq, Document, DumpOptions, Measure, PageSetup, Paragraph};
-    let Some(font) = test_font() else { return };
+    let Some(font) = embeddable_test_font() else {
+        return;
+    };
     let mut setup = PageSetup::a4_zh_cn();
     setup.width = Measure::Twips(4000);
     setup.height = Measure::Twips(1800);

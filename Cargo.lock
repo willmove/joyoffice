@@ -2703,6 +2703,7 @@ dependencies = [
  "joyword-render",
  "joyword-shell",
  "log",
+ "tempfile",
 ]
 
 [[package]]
@@ -2794,6 +2795,7 @@ dependencies = [
  "joyword-layout",
  "joyword-model",
  "krilla",
+ "read-fonts 0.39.2",
 ]
 
 [[package]]

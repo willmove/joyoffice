@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use joyoffice_opc::Budget;
 use joyword_foundation::Emu;
 use joyword_layout::{
-    FaceSet, FeatureSet, LayoutCancellation, LayoutLimits, LayoutSnapshot, LoadedFont,
+    FaceSet, FeatureSet, LayoutCancellation, LayoutError, LayoutLimits, LayoutSnapshot, LoadedFont,
     SingleFontProfile, layout_document,
 };
 use joyword_render::{Projection, RasterCancellation, RasterLimits, rasterize};
@@ -226,7 +226,11 @@ fn load_layout(options: &Options) -> Result<Prepared, &'static str> {
         LayoutLimits::default(),
         &LayoutCancellation::default(),
     )
-    .map_err(|_| "document layout refused: unsupported content or budget")?;
+    .map_err(|error| match error {
+        // Feedback did not settle (布局未稳定): refuse export, report no success.
+        LayoutError::Unstable => "layout is unstable; export refused",
+        _ => "document layout refused: unsupported content or budget",
+    })?;
     layout
         .ensure_current(&snapshot, &font, profile)
         .map_err(|_| "layout snapshot changed unexpectedly")?;
@@ -388,7 +392,10 @@ fn convert(
         links: joyword_pdf::links_from_document(document, &layout),
     };
     let pdf = joyword_pdf::render_export(layout.pages(), std::slice::from_ref(&font), &export)
-        .map_err(|_| "PDF writer refused the page scene")?;
+        .map_err(|error| match error {
+            joyword_pdf::PdfError::UnembeddableFont(_) => "font cannot be embedded; export refused",
+            _ => "PDF writer refused the page scene",
+        })?;
     if pdf.len() > MAX_OUTPUT {
         return Err("visual output budget exceeded");
     }
