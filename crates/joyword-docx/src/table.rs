@@ -9,10 +9,14 @@
 //! A table is mapped only when every element and attribute is represented and
 //! placed. One nested `w:tbl` inside a cell is part of this subset when that
 //! inner table meets the same rules. A second nested table, `vAlign` `both`,
-//! a non-positive `exact` row height, format and structure revisions,
-//! bookmarks, theme tint or shade, and any other border style return `None`
-//! for the whole outer table. A plain `w:ins`, `w:del`, `w:moveFrom` or
-//! `w:moveTo` around typed runs is a text revision on those runs.
+//! a non-positive `exact` row height, structural revisions (`w:cellIns`,
+//! `w:cellDel`, `w:cellMerge`, `w:tblGridChange`), bookmarks, theme tint or
+//! shade, and any other border style return `None` for the whole outer
+//! table. A `w:tblPrChange`, `w:trPrChange` or `w:tcPrChange` whose previous
+//! properties are fully representable is typed as a pending property
+//! revision; anything else about the change refuses the whole table. A plain
+//! `w:ins`, `w:del`, `w:moveFrom` or `w:moveTo` around typed runs is a text
+//! revision on those runs.
 //! A cell paragraph may carry simple `w:hyperlink` runs (text and tabs,
 //! `r:id` and/or `w:anchor`), the same subset the body parser maps.
 //! `w:tblLook`, `top` / `center` / `bottom` and `auto` / `atLeast` / positive
@@ -24,11 +28,12 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
-    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellMargins, Color, Hyperlink, Indent,
-    Measure, OBJECT_MARKER, ParaProps, Paragraph, RevisionKind, Row, RowHeight, RowHeightRule,
-    RunProps, Shading, Spacing, Style, StyleId, Table, TableAlign, TableCondition,
-    TableConditional, TableFormat, TableLayoutKind, TableLook, TableWidth, TextRevision,
-    ThemeColorSlot, VerticalAlign, VerticalMerge,
+    BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellChangeProps, CellMargins, Color,
+    Hyperlink, Indent, Measure, OBJECT_MARKER, ParaProps, Paragraph, PreviousTableProps,
+    RevisionKind, Row, RowChangeProps, RowHeight, RowHeightRule, RunProps, Shading, Spacing, Style,
+    StyleId, Table, TableAlign, TableChangeProps, TableCondition, TableConditional, TableFormat,
+    TableLayoutKind, TableLook, TablePropsRevision, TableWidth, TextRevision, ThemeColorSlot,
+    VerticalAlign, VerticalMerge,
 };
 
 use crate::import::Importer;
@@ -59,6 +64,15 @@ struct CellProps {
     shading: Option<Shading>,
     margin: Option<CellMargins>,
     vertical_align: Option<VerticalAlign>,
+    props_revision: Option<TablePropsRevision>,
+}
+
+struct RowProps {
+    before: u32,
+    after: u32,
+    header: bool,
+    cant_split: bool,
+    height: Option<RowHeight>,
 }
 
 enum DraftBlock {
@@ -75,6 +89,7 @@ struct DraftCell {
     margin: Option<CellMargins>,
     vertical_align: Option<VerticalAlign>,
     blocks: Vec<DraftBlock>,
+    props_revision: Option<TablePropsRevision>,
 }
 
 /// Body tables are depth 0. A table inside a cell is depth 1. Depth 2 stays
@@ -88,6 +103,7 @@ struct DraftRow {
     cant_split: bool,
     height: Option<RowHeight>,
     cells: Vec<DraftCell>,
+    props_revision: Option<TablePropsRevision>,
 }
 
 struct DraftTable {
@@ -101,6 +117,7 @@ struct DraftTable {
     grid: Vec<Measure>,
     rows: Vec<DraftRow>,
     span: Range<usize>,
+    props_revision: Option<TablePropsRevision>,
 }
 
 struct TableProps {
@@ -111,6 +128,20 @@ struct TableProps {
     indent: Option<i64>,
     look: Option<TableLook>,
     cell_margin: Option<CellMargins>,
+}
+
+impl TableProps {
+    fn previous(self) -> TableChangeProps {
+        TableChangeProps {
+            style: self.style,
+            width: self.width,
+            layout: self.layout,
+            alignment: self.alignment,
+            indent: self.indent,
+            look: self.look,
+            cell_margin: self.cell_margin,
+        }
+    }
 }
 
 /// Maps `element` when it is entirely inside the subset. `None` means the
@@ -148,6 +179,9 @@ fn build(
             if blocks.is_empty() {
                 return None;
             }
+            if let Some(revision) = &cell.props_revision {
+                importer.document.note_revision_id(revision.id);
+            }
             cells.push(Cell {
                 id: importer.document.ids().node(),
                 grid_span: cell.span,
@@ -159,7 +193,11 @@ fn build(
                 vertical_align: cell.vertical_align,
                 blocks: BlockSeq::from_vec(blocks),
                 preserved: None,
+                props_revision: cell.props_revision.map(Arc::new),
             });
+        }
+        if let Some(revision) = &row.props_revision {
+            importer.document.note_revision_id(revision.id);
         }
         rows.push(Row {
             id: importer.document.ids().node(),
@@ -170,7 +208,11 @@ fn build(
             cant_split: row.cant_split,
             height: row.height,
             preserved: None,
+            props_revision: row.props_revision.map(Arc::new),
         });
+    }
+    if let Some(revision) = &draft.props_revision {
+        importer.document.note_revision_id(revision.id);
     }
     Some(Table {
         id: importer.document.ids().node(),
@@ -184,6 +226,7 @@ fn build(
         look: draft.look,
         cell_margin: draft.cell_margin,
         preserved: None,
+        props_revision: draft.props_revision.map(Arc::new),
         source: Some(Importer::source(
             part,
             find_span(element, &draft.span).unwrap_or(element),
@@ -240,6 +283,7 @@ fn parse_table(
         look: None,
         cell_margin: None,
     };
+    let mut props_revision = None;
     let mut saw_pr = false;
     let mut grid = None;
     let mut rows = Vec::new();
@@ -247,7 +291,7 @@ fn parse_table(
     for child in element.elements() {
         if child.is(W, "tblPr") && !seen_row && !saw_pr {
             saw_pr = true;
-            props = parse_tbl_pr(child)?;
+            (props, props_revision) = parse_tbl_pr(child)?;
         } else if child.is(W, "tblGrid") && !seen_row && grid.is_none() {
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
@@ -272,10 +316,11 @@ fn parse_table(
         grid,
         rows,
         span: element.span.clone(),
+        props_revision,
     })
 }
 
-fn parse_tbl_pr(element: &Element) -> Option<TableProps> {
+fn parse_tbl_pr(element: &Element) -> Option<(TableProps, Option<TablePropsRevision>)> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -288,6 +333,7 @@ fn parse_tbl_pr(element: &Element) -> Option<TableProps> {
         look: None,
         cell_margin: None,
     };
+    let mut change = None;
     for child in element.elements() {
         if child.is(W, "tblStyle") && props.style.is_none() {
             if !only_word_attributes(child, &["val"]) || !text_is_space(child) {
@@ -310,11 +356,13 @@ fn parse_tbl_pr(element: &Element) -> Option<TableProps> {
             props.look = Some(parse_look(child)?);
         } else if child.is(W, "tblCellMar") && props.cell_margin.is_none() {
             props.cell_margin = Some(parse_cell_margins(child)?);
+        } else if child.is(W, "tblPrChange") && change.is_none() {
+            change = Some(parse_props_change(child, PropsChangeLevel::Table)?);
         } else {
             return None;
         }
     }
-    Some(props)
+    Some((props, change))
 }
 
 fn parse_layout(element: &Element) -> Option<TableLayoutKind> {
@@ -507,12 +555,19 @@ fn parse_row(
     let mut header = false;
     let mut cant_split = false;
     let mut height = None;
+    let mut props_revision = None;
     let mut saw_pr = false;
     let mut cells = Vec::new();
     for child in element.elements() {
         if child.is(W, "trPr") && !saw_pr && cells.is_empty() {
             saw_pr = true;
-            (before, after, header, cant_split, height) = parse_tr_pr(child)?;
+            let (row, change) = parse_tr_pr(child)?;
+            before = row.before;
+            after = row.after;
+            header = row.header;
+            cant_split = row.cant_split;
+            height = row.height;
+            props_revision = change;
         } else if child.is(W, "tc") {
             cells.push(parse_cell(importer, part, child, depth)?);
         } else {
@@ -526,10 +581,11 @@ fn parse_row(
         cant_split,
         height,
         cells,
+        props_revision,
     })
 }
 
-fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool, Option<RowHeight>)> {
+fn parse_tr_pr(element: &Element) -> Option<(RowProps, Option<TablePropsRevision>)> {
     if !only_word_attributes(element, &[]) || !text_is_space(element) {
         return None;
     }
@@ -538,6 +594,7 @@ fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool, Option<RowHei
     let mut header = None;
     let mut cant_split = None;
     let mut height = None;
+    let mut change = None;
     for child in element.elements() {
         if child.is(W, "gridBefore") && before.is_none() {
             before = Some(decimal_val(child)?);
@@ -549,17 +606,20 @@ fn parse_tr_pr(element: &Element) -> Option<(u32, u32, bool, bool, Option<RowHei
             header = Some(on_off_element(child)?);
         } else if child.is(W, "trHeight") && height.is_none() {
             height = Some(parse_row_height(child)?);
+        } else if child.is(W, "trPrChange") && change.is_none() {
+            change = Some(parse_props_change(child, PropsChangeLevel::Row)?);
         } else {
             return None;
         }
     }
-    Some((
-        before.unwrap_or(0),
-        after.unwrap_or(0),
-        header.unwrap_or(false),
-        cant_split.unwrap_or(false),
+    let row = RowProps {
+        before: before.unwrap_or(0),
+        after: after.unwrap_or(0),
+        header: header.unwrap_or(false),
+        cant_split: cant_split.unwrap_or(false),
         height,
-    ))
+    };
+    Some((row, change))
 }
 
 /// `w:trHeight` (ECMA-376 §17.4.80). An omitted `w:hRule` is `auto`
@@ -606,6 +666,7 @@ fn parse_cell(
     let mut shading = None;
     let mut margin = None;
     let mut vertical_align = None;
+    let mut props_revision = None;
     let mut saw_pr = false;
     let mut blocks = Vec::new();
     for child in element.elements() {
@@ -619,6 +680,7 @@ fn parse_cell(
             shading = props.shading;
             margin = props.margin;
             vertical_align = props.vertical_align;
+            props_revision = props.props_revision;
         } else if child.is(W, "p") {
             blocks.push(DraftBlock::Paragraph(parse_paragraph(
                 importer, part, child,
@@ -652,6 +714,7 @@ fn parse_cell(
         margin,
         vertical_align,
         blocks,
+        props_revision,
     })
 }
 
@@ -666,6 +729,7 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
     let mut shading = None;
     let mut margin = None;
     let mut vertical_align = None;
+    let mut change = None;
     for child in element.elements() {
         if child.is(W, "gridSpan") && span.is_none() {
             let value = decimal_val(child)?;
@@ -685,6 +749,8 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
             margin = Some(parse_cell_margins(child)?);
         } else if child.is(W, "vAlign") && vertical_align.is_none() {
             vertical_align = Some(parse_valign(child)?);
+        } else if child.is(W, "tcPrChange") && change.is_none() {
+            change = Some(parse_props_change(child, PropsChangeLevel::Cell)?);
         } else {
             return None;
         }
@@ -697,6 +763,93 @@ fn parse_tc_pr(element: &Element) -> Option<CellProps> {
         shading,
         margin,
         vertical_align,
+        props_revision: change,
+    })
+}
+
+/// Which level a `w:*PrChange` records previous properties for.
+enum PropsChangeLevel {
+    Table,
+    Row,
+    Cell,
+}
+
+/// Parses one `w:tblPrChange`, `w:trPrChange` or `w:tcPrChange` into a typed
+/// [`TablePropsRevision`] holding the pre-change properties. `None` means the
+/// change is outside the subset (illegal tracking attributes, more than one
+/// previous-property child, or a previous property that is not fully
+/// representable); the caller then refuses the whole table, which stays
+/// preserved. Nothing is dropped silently.
+fn parse_props_change(element: &Element, level: PropsChangeLevel) -> Option<TablePropsRevision> {
+    let (id, author, date) = crate::revision::track_attrs(element, false)?;
+    if !text_is_space(element) {
+        return None;
+    }
+    let child_name = match level {
+        PropsChangeLevel::Table => "tblPr",
+        PropsChangeLevel::Row => "trPr",
+        PropsChangeLevel::Cell => "tcPr",
+    };
+    let mut children = element.elements();
+    let previous = match children.next() {
+        None => None,
+        Some(child) => {
+            // §17.13.5: exactly one optional previous-property child.
+            if !child.is(W, child_name) || children.next().is_some() {
+                return None;
+            }
+            Some(child)
+        }
+    };
+    let previous = match level {
+        PropsChangeLevel::Table => PreviousTableProps::Table(match previous {
+            None => TableChangeProps::default(),
+            Some(tbl_pr) => parse_tbl_pr(tbl_pr)?.0.previous(),
+        }),
+        PropsChangeLevel::Row => PreviousTableProps::Row(match previous {
+            None => RowChangeProps::default(),
+            Some(tr_pr) => {
+                let (row, change) = parse_tr_pr(tr_pr)?;
+                // A nested `w:trPrChange` inside the previous row properties
+                // is out of subset.
+                if change.is_some() {
+                    return None;
+                }
+                RowChangeProps {
+                    grid_before: row.before,
+                    grid_after: row.after,
+                    header: row.header,
+                    cant_split: row.cant_split,
+                    height: row.height,
+                }
+            }
+        }),
+        PropsChangeLevel::Cell => PreviousTableProps::Cell(match previous {
+            None => CellChangeProps::default(),
+            Some(tc_pr) => {
+                let props = parse_tc_pr(tc_pr)?;
+                // A nested `w:tcPrChange` inside the previous cell properties
+                // is out of subset.
+                if props.props_revision.is_some() {
+                    return None;
+                }
+                CellChangeProps {
+                    grid_span: props.span,
+                    vertical_merge: props.merge,
+                    width: props.width,
+                    borders: props.borders,
+                    shading: props.shading,
+                    margin: props.margin,
+                    vertical_align: props.vertical_align,
+                }
+            }
+        }),
+    };
+    Some(TablePropsRevision {
+        id,
+        author,
+        date,
+        previous,
     })
 }
 

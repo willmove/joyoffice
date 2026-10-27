@@ -20,6 +20,7 @@ fn bare(grid: Vec<i64>, width: Option<TableWidth>, layout: Option<TableLayoutKin
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width,
@@ -29,6 +30,7 @@ fn bare(grid: Vec<i64>, width: Option<TableWidth>, layout: Option<TableLayoutKin
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     }
 }
@@ -83,6 +85,7 @@ fn a_span_one_percentage_sets_that_column_against_an_automatic_table() {
         vertical_align: None,
         blocks: BlockSeq::from_vec(vec![]),
         preserved: None,
+        props_revision: None,
     });
     table.rows[0].cells.push(Cell {
         id: ids.node(),
@@ -95,6 +98,7 @@ fn a_span_one_percentage_sets_that_column_against_an_automatic_table() {
         vertical_align: None,
         blocks: BlockSeq::from_vec(vec![]),
         preserved: None,
+        props_revision: None,
     });
     let resolved = metrics(&table, 8000);
     assert_eq!(resolved.columns[0], 4000);

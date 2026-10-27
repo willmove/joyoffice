@@ -12,7 +12,7 @@ use joyword_model::RevisionView;
 use joyword_model::{Bias, Position};
 use joyword_shell::command::{
     FORMAT_FONT, FORMAT_PARAGRAPH, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL,
-    REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_TRACK,
+    REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE, REVIEW_TRACK,
     TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use joyword_shell::docx::BoundDocx;
@@ -1148,6 +1148,66 @@ fn original_decision(answer: Option<usize>, expected: u64, current: u64) -> Orig
     }
 }
 
+/// Which native save prompt one Decline precheck outcome must show. Pure so
+/// the volume-refusal wiring is unit-testable on every platform with a
+/// synthesized precheck error, the same way the shell tests classify volumes
+/// with synthetic facts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum OriginalPromptKind<'a> {
+    /// Metadata losses the user may still accept by explicitly confirming
+    /// replacement; the confirm button is offered.
+    ConfirmableLosses(&'a [joyword_shell::storage::ReplacementBlocker]),
+    /// The source volume refused replacement outright (network share,
+    /// non-NTFS/ReFS filesystem, missing capability, unrecognized drive).
+    /// `save_original` refuses even an explicit confirmation there, so the
+    /// dialog lists this reason as its own entry and never offers the
+    /// confirm button.
+    VolumeRefused(joyword_shell::storage::VolumeRejection),
+}
+
+fn original_prompt_kind(
+    error: &joyword_shell::storage::SaveOriginalError,
+) -> Option<OriginalPromptKind<'_>> {
+    if let Some(reason) = error.volume_rejection() {
+        return Some(OriginalPromptKind::VolumeRefused(reason));
+    }
+    match error.blockers() {
+        Some(blockers)
+            if blockers
+                .contains(&joyword_shell::storage::ReplacementBlocker::ConfirmationRequired) =>
+        {
+            Some(OriginalPromptKind::ConfirmableLosses(blockers))
+        }
+        _ => None,
+    }
+}
+
+/// Locale entry for one volume refusal. Each diagnostic gets its own key so
+/// the reason the user reads is locatable in the volume classification.
+pub(crate) fn volume_rejection_key(
+    reason: joyword_shell::storage::VolumeRejection,
+) -> &'static str {
+    use joyword_shell::storage::VolumeRejection;
+    match reason {
+        VolumeRejection::Remote => "file.original.volume.remote",
+        VolumeRejection::UnknownDriveType => "file.original.volume.unknown_drive",
+        VolumeRejection::UnsupportedFileSystem => "file.original.volume.filesystem",
+        VolumeRejection::NoPersistentAcls => "file.original.volume.no_persistent_acls",
+        VolumeRejection::NoNamedStreams => "file.original.volume.no_named_streams",
+        VolumeRejection::NoHardLinks => "file.original.volume.no_hard_links",
+    }
+}
+
+/// A volume-refused prompt has no confirm button, so answers beyond the copy
+/// button cancel; nothing can start a replacement that is guaranteed to fail.
+fn volume_refusal_decision(answer: Option<usize>) -> OriginalDecision {
+    if answer == Some(1) {
+        OriginalDecision::SaveCopy
+    } else {
+        OriginalDecision::Cancel
+    }
+}
+
 fn original_metadata_key(item: joyword_shell::storage::MetadataItem) -> &'static str {
     use joyword_shell::storage::MetadataItem;
 
@@ -1887,25 +1947,43 @@ impl JoyWord {
             cx.notify();
             return;
         };
-        let Some(blockers) = error.blockers().filter(|blockers| {
-            blockers.contains(&joyword_shell::storage::ReplacementBlocker::ConfirmationRequired)
-        }) else {
+        let Some(kind) = original_prompt_kind(error) else {
             self.report_input_error(error.to_string());
             cx.notify();
             return;
         };
-        let detail = self.original_loss_detail(error.path(), blockers);
+        let (title, detail, offers_replacement) = match kind {
+            OriginalPromptKind::ConfirmableLosses(blockers) => (
+                "file.original.prompt",
+                self.original_loss_detail(error.path(), blockers),
+                true,
+            ),
+            // An unsupported volume never confirms: save_original refuses it
+            // as an observation failure even under an explicit confirmation,
+            // so the dialog presents replacement as unavailable instead of
+            // walking the user into a guaranteed failure.
+            OriginalPromptKind::VolumeRefused(reason) => (
+                "file.original.volume_prompt",
+                self.volume_refusal_detail(error.path(), reason),
+                false,
+            ),
+        };
         self.original_save = Some(OriginalSavePhase::Prompting(request));
         let catalog = Catalog::shipped(self.locale);
+        let mut buttons = vec![
+            gpui::PromptButton::cancel(catalog.text("close.cancel")),
+            gpui::PromptButton::ok(catalog.text("file.original.save_copy")),
+        ];
+        if offers_replacement {
+            buttons.push(gpui::PromptButton::new(
+                catalog.text("file.original.confirm"),
+            ));
+        }
         let receiver = window.prompt(
             gpui::PromptLevel::Warning,
-            &catalog.text("file.original.prompt"),
+            &catalog.text(title),
             Some(&detail),
-            &[
-                gpui::PromptButton::cancel(catalog.text("close.cancel")),
-                gpui::PromptButton::ok(catalog.text("file.original.save_copy")),
-                gpui::PromptButton::new(catalog.text("file.original.confirm")),
-            ],
+            &buttons,
             cx,
         );
         cx.spawn_in(window, async move |view, cx| {
@@ -1917,7 +1995,12 @@ impl JoyWord {
                 let Some(editor) = view.editor.as_ref() else {
                     return;
                 };
-                match original_decision(answer, request.version, editor.version()) {
+                let decision = if offers_replacement {
+                    original_decision(answer, request.version, editor.version())
+                } else {
+                    volume_refusal_decision(answer)
+                };
+                match decision {
                     OriginalDecision::Cancel => {
                         window.focus(&view.focus_handle, cx);
                         cx.notify();
@@ -1960,6 +2043,23 @@ impl JoyWord {
         catalog.format(
             "file.original.detail",
             &[("path", &shown), ("losses", &losses)],
+        )
+    }
+
+    /// The volume-refused prompt entry: replacement is presented as
+    /// unavailable with the classified reason, not as a confirmable
+    /// metadata loss.
+    fn volume_refusal_detail(
+        &self,
+        path: &std::path::Path,
+        reason: joyword_shell::storage::VolumeRejection,
+    ) -> String {
+        let catalog = Catalog::shipped(self.locale);
+        let reason = catalog.text(volume_rejection_key(reason));
+        let shown = path.display().to_string();
+        catalog.format(
+            "file.original.volume_detail",
+            &[("path", &shown), ("reason", &reason)],
         )
     }
 
@@ -2967,6 +3067,7 @@ impl JoyWord {
                 | REVIEW_MARKUP
                 | REVIEW_FINAL
                 | REVIEW_ORIGINAL
+                | REVIEW_SIMPLE
                 | REVIEW_AUTHOR
         ) {
             return Availability::Enabled;
@@ -3211,10 +3312,14 @@ impl JoyWord {
             cx.notify();
             return Ok(());
         }
-        if matches!(id, REVIEW_MARKUP | REVIEW_FINAL | REVIEW_ORIGINAL) {
+        if matches!(
+            id,
+            REVIEW_MARKUP | REVIEW_FINAL | REVIEW_ORIGINAL | REVIEW_SIMPLE
+        ) {
             let revision = match id {
                 REVIEW_FINAL => RevisionView::Final,
                 REVIEW_ORIGINAL => RevisionView::Original,
+                REVIEW_SIMPLE => RevisionView::Simple,
                 _ => RevisionView::FinalWithMarkup,
             };
             self.view_toggles.revision = revision;
@@ -4969,6 +5074,126 @@ mod tests {
             original_decision(Some(2), version, version + 1),
             OriginalDecision::Reprobe
         );
+    }
+
+    #[test]
+    fn volume_refused_precheck_prompts_replacement_unavailable_and_defaults_to_copy() {
+        use joyword_shell::storage::{
+            ReplacementBlocker, SaveOriginalError, VolumeRejection as Rejection,
+        };
+        let path = std::path::PathBuf::from("/net/report.docx");
+        let reasons = [
+            Rejection::Remote,
+            Rejection::UnknownDriveType,
+            Rejection::UnsupportedFileSystem,
+            Rejection::NoPersistentAcls,
+            Rejection::NoNamedStreams,
+            Rejection::NoHardLinks,
+        ];
+        for reason in reasons {
+            // The structured observation failure the Windows volume
+            // classification produces, synthesized off-Windows.
+            let error = SaveOriginalError::ObservationFailed {
+                path: path.clone(),
+                source: std::io::Error::new(std::io::ErrorKind::Unsupported, reason),
+            };
+            assert!(error.is_observation_failure());
+            assert_eq!(error.volume_rejection(), Some(reason));
+            assert_eq!(
+                original_prompt_kind(&error),
+                Some(OriginalPromptKind::VolumeRefused(reason))
+            );
+            // A refused volume never confirms: every non-copy answer cancels,
+            // including an answer that would be "confirm" on a confirmable
+            // precheck.
+            assert_eq!(volume_refusal_decision(None), OriginalDecision::Cancel);
+            for answer in [0, 2, 3, usize::MAX] {
+                assert_eq!(
+                    volume_refusal_decision(Some(answer)),
+                    OriginalDecision::Cancel,
+                    "{reason:?}: {answer}"
+                );
+            }
+            assert_eq!(volume_refusal_decision(Some(1)), OriginalDecision::SaveCopy);
+        }
+        // An ordinary observation failure is not a volume refusal and stays a
+        // plain input error, not this prompt.
+        let plain = SaveOriginalError::ObservationFailed {
+            path: path.clone(),
+            source: std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "metadata observation failed",
+            ),
+        };
+        assert_eq!(original_prompt_kind(&plain), None);
+
+        // Regression: a confirmable precheck keeps the three-button prompt
+        // and lists exactly the blockers the dialog shows.
+        let losses = vec![
+            ReplacementBlocker::ConfirmationRequired,
+            ReplacementBlocker::UnobservableMetadata(joyword_shell::storage::MetadataItem::Acl),
+        ];
+        let confirmable = SaveOriginalError::ReplacementUnavailable {
+            path,
+            blockers: losses.clone(),
+        };
+        assert_eq!(
+            original_prompt_kind(&confirmable),
+            Some(OriginalPromptKind::ConfirmableLosses(&losses))
+        );
+        assert_eq!(confirmable.volume_rejection(), None);
+        assert_eq!(
+            original_prompt_kind(&SaveOriginalError::ReplacementUnavailable {
+                path: std::path::PathBuf::from("/tmp/a.docx"),
+                blockers: vec![ReplacementBlocker::ReadOnlySource],
+            }),
+            None
+        );
+    }
+
+    #[test]
+    fn volume_refusal_entries_exist_in_both_locales() {
+        use joyword_shell::l10n::{Catalog, Locale};
+        use joyword_shell::storage::VolumeRejection as Rejection;
+        let reasons = [
+            (Rejection::Remote, "file.original.volume.remote"),
+            (
+                Rejection::UnknownDriveType,
+                "file.original.volume.unknown_drive",
+            ),
+            (
+                Rejection::UnsupportedFileSystem,
+                "file.original.volume.filesystem",
+            ),
+            (
+                Rejection::NoPersistentAcls,
+                "file.original.volume.no_persistent_acls",
+            ),
+            (
+                Rejection::NoNamedStreams,
+                "file.original.volume.no_named_streams",
+            ),
+            (Rejection::NoHardLinks, "file.original.volume.no_hard_links"),
+        ];
+        for locale in Locale::ALL {
+            let catalog = Catalog::shipped(locale);
+            for (reason, key) in reasons {
+                assert_eq!(volume_rejection_key(reason), key);
+                assert!(catalog.contains(key), "{}: {key}", locale.tag());
+            }
+            for key in ["file.original.volume_prompt", "file.original.volume_detail"] {
+                assert!(catalog.contains(key), "{}: {key}", locale.tag());
+            }
+            let entry = catalog.format(
+                "file.original.volume_detail",
+                &[
+                    ("path", "/net/a.docx"),
+                    ("reason", &catalog.text("file.original.volume.remote")),
+                ],
+            );
+            assert!(entry.contains("/net/a.docx"), "{:?}", catalog.locale());
+            assert!(entry.contains(&catalog.text("file.original.volume.remote")));
+        }
     }
 
     #[test]

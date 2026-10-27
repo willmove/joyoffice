@@ -49,10 +49,14 @@
 //! filesystems, network shares and volumes lacking persistent ACLs, named
 //! streams or hard links. A refusal surfaces as an observation failure, which
 //! `save_original` rejects even under an explicit confirmation; the default
-//! copy path is unaffected.
+//! copy path is unaffected. The refusal travels as a [`VolumeRejection`]
+//! payload inside the observation `io::Error`, so the file.save precheck can
+//! distinguish it from an ordinary observation failure and present it as its
+//! own localized entry instead of a confirmable metadata loss.
 
 use std::ffi::OsStr;
 use std::ffi::OsString;
+use std::fmt;
 use std::io;
 use std::path::Path;
 
@@ -143,9 +147,13 @@ pub(crate) struct VolumeFacts {
 
 /// Why a volume cannot carry the original-replacement contract. Each variant
 /// maps to one observable volume fact so the classification is auditable.
-#[cfg(windows)]
+///
+/// Pure data on every platform: only the Windows observation constructs it
+/// from real volume facts, and the save prompt's refusal mapping is tested
+/// with synthesized values everywhere, mirroring [`classify_volume`]'s
+/// synthetic-`VolumeFacts` tests.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum VolumeRejection {
+pub enum VolumeRejection {
     /// `GetDriveTypeW` reported `DRIVE_REMOTE`: a network share whose atomic
     /// replace, hard-link backup and stream semantics are not verified here.
     Remote,
@@ -165,7 +173,6 @@ pub(crate) enum VolumeRejection {
     NoHardLinks,
 }
 
-#[cfg(windows)]
 impl VolumeRejection {
     fn message(self) -> &'static str {
         match self {
@@ -181,6 +188,23 @@ impl VolumeRejection {
             Self::NoHardLinks => "the source volume does not support hard links",
         }
     }
+}
+
+impl fmt::Display for VolumeRejection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.message())
+    }
+}
+
+impl std::error::Error for VolumeRejection {}
+
+/// The structured refusal inside an observation `io::Error`, when that error
+/// was produced by a volume classification refusal. The error keeps its
+/// locatable message; this recovers the auditable reason behind it so the
+/// save prompt can present the refusal as its own entry. Pure and available
+/// on every platform; only Windows produces such an error from real facts.
+pub(crate) fn volume_rejection(error: &io::Error) -> Option<VolumeRejection> {
+    error.get_ref()?.downcast_ref::<VolumeRejection>().copied()
 }
 
 // `GetDriveTypeW` return values (winsafe `co::DRIVE`).
@@ -226,10 +250,12 @@ pub(crate) fn classify_volume(facts: &VolumeFacts) -> Result<(), VolumeRejection
 }
 
 /// Turn a volume refusal into the observation failure `save_original` reports;
-/// the message names the concrete volume fact so the diagnostic is locatable.
+/// the message names the concrete volume fact so the diagnostic is locatable,
+/// and the refusal itself rides inside the error as its payload so
+/// [`volume_rejection`] can recover it for the save prompt.
 #[cfg(windows)]
 fn volume_rejected(rejection: VolumeRejection) -> io::Error {
-    io::Error::new(io::ErrorKind::Unsupported, rejection.message())
+    io::Error::new(io::ErrorKind::Unsupported, rejection)
 }
 
 /// Observe the volume a source path lives on through `GetVolumePathNameW`,
@@ -672,11 +698,10 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(windows)]
     #[test]
     fn volume_rejection_messages_are_distinct_and_non_empty() {
         use std::collections::HashSet;
-        let messages: HashSet<&str> = [
+        let messages: HashSet<String> = [
             VolumeRejection::Remote,
             VolumeRejection::UnknownDriveType,
             VolumeRejection::UnsupportedFileSystem,
@@ -686,14 +711,52 @@ mod tests {
         ]
         .into_iter()
         .map(|rejection| {
-            let message = rejection.message();
+            let message = rejection.to_string();
             assert!(!message.is_empty());
-            // The io::Error carries the same locatable text.
-            assert_eq!(volume_rejected(rejection).to_string(), message);
             message
         })
         .collect();
         assert_eq!(messages.len(), 6);
+    }
+
+    /// A refusal survives inside the observation error as its payload: the
+    /// io::Error keeps the locatable text and the structured reason can be
+    /// recovered on every platform, which is how the off-Windows prompt tests
+    /// synthesize the Windows classification outcome.
+    #[test]
+    fn a_volume_refusal_survives_inside_the_observation_error() {
+        let error = io::Error::new(io::ErrorKind::Unsupported, VolumeRejection::Remote);
+        assert_eq!(volume_rejection(&error), Some(VolumeRejection::Remote));
+        assert_eq!(error.to_string(), VolumeRejection::Remote.to_string());
+        assert_eq!(error.kind(), io::ErrorKind::Unsupported);
+        // An ordinary observation failure is never misread as a volume fact.
+        let plain = io::Error::new(io::ErrorKind::Unsupported, "not a volume fact");
+        assert_eq!(volume_rejection(&plain), None);
+        let denied = io::Error::new(
+            io::ErrorKind::PermissionDenied,
+            io::Error::new(io::ErrorKind::Unsupported, VolumeRejection::NoHardLinks),
+        );
+        // Only the outermost payload is recoverable, and this one is not one.
+        assert_eq!(volume_rejection(&denied), None);
+    }
+
+    /// The Windows helper the observation path uses produces exactly the
+    /// error the cross-platform extraction above understands.
+    #[cfg(windows)]
+    #[test]
+    fn windows_volume_rejected_carries_the_structured_refusal() {
+        for rejection in [
+            VolumeRejection::Remote,
+            VolumeRejection::UnknownDriveType,
+            VolumeRejection::UnsupportedFileSystem,
+            VolumeRejection::NoPersistentAcls,
+            VolumeRejection::NoNamedStreams,
+            VolumeRejection::NoHardLinks,
+        ] {
+            let error = volume_rejected(rejection);
+            assert_eq!(volume_rejection(&error), Some(rejection));
+            assert_eq!(error.to_string(), rejection.to_string());
+        }
     }
 
     #[test]

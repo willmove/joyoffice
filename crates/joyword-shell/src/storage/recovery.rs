@@ -1052,4 +1052,277 @@ mod tests {
         assert_eq!(recover_checkpoint(dir.path())?.generation, 4);
         Ok(())
     }
+
+    /// Journal validation (T104 日志校验): every mutation of the newest slot
+    /// is refused, recovery falls back to the older valid generation (the
+    /// valid prefix), writes fail closed, and the damaged slot is preserved.
+    #[test]
+    fn tampered_slots_fall_back_to_the_valid_prefix_or_fail_closed()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        commit(dir.path(), b"PK", "one")?;
+        commit(dir.path(), b"PK", "two")?;
+        let newest = dir.path().join(SLOTS[1]);
+        let valid = fs::read(&newest)?;
+        let older = dir.path().join(SLOTS[0]);
+
+        let check = |ctx: &str| -> io::Result<()> {
+            // The older valid generation is still recovered byte-exactly.
+            assert_eq!(recover(dir.path())?.text, "one", "{ctx}");
+            // A damaged header cannot supply a generation: writes refuse...
+            let damaged = fs::read(&newest)?;
+            assert!(commit(dir.path(), b"PK", "next").is_err(), "{ctx}");
+            // ...and the refused write does not overwrite the damaged slot.
+            assert_eq!(fs::read(&newest)?, damaged, "{ctx}: damaged slot rewritten");
+            Ok(())
+        };
+
+        // A single flipped bit anywhere (magic, generation, kind, version,
+        // lengths, payload, checksum) invalidates the slot. CRC32 detects
+        // every single-bit error, so no flip can decode as another record.
+        for index in 0..valid.len() {
+            let mut tampered = valid.clone();
+            tampered[index] ^= 1 << (index % 8);
+            fs::write(&newest, &tampered)?;
+            check(&format!("bit flip at {index}"))?;
+        }
+        // Every truncation is rejected, including a partial header.
+        for end in 0..valid.len() {
+            fs::write(&newest, &valid[..end])?;
+            check(&format!("truncated to {end}"))?;
+        }
+        // Garbage before the header is not scanned for the magic, and
+        // trailing bytes are not a valid prefix of the next record either.
+        for garbage in ["X".as_bytes(), b"garbage!", &[0u8; 12][..]] {
+            let mut prefixed = garbage.to_vec();
+            prefixed.extend_from_slice(&valid);
+            fs::write(&newest, prefixed)?;
+            check("garbage before the header")?;
+        }
+        for garbage in ["X".as_bytes(), b"trailing"] {
+            let mut suffixed = valid.clone();
+            suffixed.extend_from_slice(garbage);
+            fs::write(&newest, suffixed)?;
+            check("garbage after the record")?;
+        }
+
+        // With both slots damaged nothing is guessed and nothing is lost:
+        // repairing the older slot makes recovery work again.
+        let older_valid = fs::read(&older)?;
+        fs::write(&newest, b"both damaged")?;
+        fs::write(&older, b"both damaged")?;
+        assert!(recover(dir.path()).is_err());
+        fs::write(&older, older_valid)?;
+        assert_eq!(recover(dir.path())?.text, "one");
+        Ok(())
+    }
+
+    /// Journal validation (T104 日志校验): selection follows the generation
+    /// number, not the slot file name, the next publish replaces the
+    /// non-selected slot, and equal-generation duplicates are the same bytes.
+    #[test]
+    fn generation_order_selects_across_slots_not_by_file_name() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join(SLOTS[0]), encode(&record(9, "nine")))?;
+        fs::write(dir.path().join(SLOTS[1]), encode(&record(4, "four")))?;
+        let selected = recover_checkpoint(dir.path())?;
+        assert_eq!(
+            (selected.generation, selected.recovered.text.as_str()),
+            (9, "nine")
+        );
+        // The publish after selecting slot 0 rotates to slot 1.
+        let next = commit(dir.path(), b"PK", "ten")?;
+        assert_eq!(next, dir.path().join(SLOTS[1]));
+        assert_eq!(recover_checkpoint(dir.path())?.generation, 10);
+
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join(SLOTS[0]), encode(&record(2, "two")))?;
+        fs::write(dir.path().join(SLOTS[1]), encode(&record(8, "eight")))?;
+        assert_eq!(recover(dir.path())?.text, "eight");
+        // Selecting slot 1 rotates the next publish to slot 0.
+        let next = commit(dir.path(), b"PK", "nine")?;
+        assert_eq!(next, dir.path().join(SLOTS[0]));
+        assert_eq!(recover_checkpoint(dir.path())?.generation, 9);
+        // The displaced older generation stays readable until overwritten.
+        assert_eq!(
+            fs::read(dir.path().join(SLOTS[1]))?,
+            encode(&record(8, "eight"))
+        );
+
+        // Identical bytes at the same generation in both slots are one
+        // generation, not a conflict, and the next publish moves past it.
+        let dir = tempfile::tempdir()?;
+        let same = encode(&record(5, "same"));
+        fs::write(dir.path().join(SLOTS[0]), &same)?;
+        fs::write(dir.path().join(SLOTS[1]), &same)?;
+        assert_eq!(recover_checkpoint(dir.path())?.generation, 5);
+        let next = commit(dir.path(), b"PK", "six")?;
+        assert_eq!(next, dir.path().join(SLOTS[1]));
+        assert_eq!(recover_checkpoint(dir.path())?.generation, 6);
+        Ok(())
+    }
+
+    /// Journal validation (T104 日志校验): the write path decodes the
+    /// temporary file through the recovery decoder before the atomic rename.
+    /// Unverified bytes never reach a slot, no pending temporary survives,
+    /// and the refused generation can still be published afterwards.
+    #[test]
+    fn only_verified_bytes_reach_the_target_slot() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        commit(dir.path(), b"PK", "one")?;
+        let target = dir.path().join(SLOTS[1]);
+        let request = prepare(dir.path(), Some(2))?;
+        // Between the write and the verification, garbage is placed in front
+        // of the payload, so the file the decoder sees is not a valid record
+        // and must not be published.
+        let result = publish_inner(&request, Some((b"PK", "two")), |stage, path| {
+            if stage == RecoveryStage::Verify {
+                let mut poisoned = b"GARBAGE-BEFORE-HEADER".to_vec();
+                poisoned.extend_from_slice(&fs::read(path)?);
+                fs::write(path, poisoned)?;
+            }
+            Ok(())
+        });
+        let error = result
+            .err()
+            .ok_or_else(|| invalid("unverified bytes were published"))?;
+        assert_eq!(error.stage, RecoveryStage::Verify);
+        assert!(error.published.is_none());
+        assert!(!target.exists(), "the target slot must not exist");
+        assert_eq!(recover(dir.path())?.text, "one");
+        for entry in fs::read_dir(dir.path())? {
+            let entry = entry?;
+            assert!(
+                !entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with(".joyword-recovery-pending-"),
+                "a pending temporary survived: {:?}",
+                entry.file_name()
+            );
+        }
+        // The refusal consumed nothing: the same request still publishes.
+        publish(&request, b"PK", "two")?;
+        assert_eq!(recover_checkpoint(dir.path())?.generation, 2);
+        assert_eq!(recover(dir.path())?.text, "two");
+        Ok(())
+    }
+
+    /// Independent undo stack (T104, EDIT-005): the engine history is
+    /// session state. Saving a copy and writing the recovery journal are
+    /// persistence operations and must neither clear the stack nor add steps:
+    /// exactly the two committed inserts are undoable afterwards.
+    #[test]
+    fn saving_and_journaling_do_not_clear_the_undo_stack() -> Result<(), Box<dyn std::error::Error>>
+    {
+        use crate::command::{ArgValue, EDIT_INSERT, FILE_OPEN};
+        use crate::host::Office;
+        let dir = tempfile::tempdir()?;
+        let journal = dir.path().join("journal");
+        let source = dir.path().join("source.docx");
+        fs::write(
+            &source,
+            include_bytes!("../../../../tests/fixtures/docx/DOCX-MIN-001.docx"),
+        )?;
+        let mut office = Office::new();
+        office.set_recovery_directory(journal.clone());
+        let invoke_error =
+            |error: crate::command::InvokeError| io::Error::other(format!("{error:?}"));
+        let save_error =
+            |error: crate::command::ExecuteError| io::Error::other(format!("{error:?}"));
+        office
+            .invoke(FILE_OPEN, &[("path", ArgValue::Path(source))])
+            .map_err(invoke_error)?;
+        let original = office
+            .active()
+            .ok_or_else(|| invalid("no active document"))?
+            .view()
+            .index()
+            .text()
+            .to_owned();
+        office
+            .invoke(EDIT_INSERT, &[("text", ArgValue::Text("甲".into()))])
+            .map_err(invoke_error)?;
+        office
+            .invoke(EDIT_INSERT, &[("text", ArgValue::Text("乙".into()))])
+            .map_err(invoke_error)?;
+        let edited = office
+            .active()
+            .ok_or_else(|| invalid("no active document"))?
+            .view()
+            .index()
+            .text()
+            .to_owned();
+        assert_ne!(original, edited);
+        assert!(
+            office
+                .active()
+                .ok_or_else(|| invalid("no document"))?
+                .can_undo()
+        );
+        // Each commit journaled one generation.
+        assert_eq!(recover_checkpoint(&journal)?.generation, 2);
+
+        // Saving a copy leaves the history alone.
+        let copy = dir.path().join("copy.docx");
+        let ticket = office.start_save(&copy).map_err(save_error)?;
+        assert!(office.finish_save(ticket).map_err(save_error)?);
+        assert!(copy.exists());
+        assert!(
+            office
+                .active()
+                .ok_or_else(|| invalid("no document"))?
+                .can_undo()
+        );
+
+        let undo_error = |error: crate::input::InputError| io::Error::other(error.to_string());
+        let text = |office: &Office| {
+            office
+                .active()
+                .ok_or_else(|| invalid("no document"))
+                .map(|input| input.view().index().text().to_owned())
+        };
+        office
+            .active_mut()
+            .ok_or_else(|| invalid("no document"))?
+            .undo()
+            .map_err(undo_error)?;
+        assert!(
+            office
+                .active()
+                .ok_or_else(|| invalid("no document"))?
+                .can_undo()
+        );
+        office
+            .active_mut()
+            .ok_or_else(|| invalid("no document"))?
+            .undo()
+            .map_err(undo_error)?;
+        assert_eq!(text(&office)?, original);
+        assert!(
+            !office
+                .active()
+                .ok_or_else(|| invalid("no document"))?
+                .can_undo(),
+            "saving or journaling must not add undo steps"
+        );
+        office
+            .active_mut()
+            .ok_or_else(|| invalid("no document"))?
+            .redo()
+            .map_err(undo_error)?;
+        office
+            .active_mut()
+            .ok_or_else(|| invalid("no document"))?
+            .redo()
+            .map_err(undo_error)?;
+        assert_eq!(text(&office)?, edited);
+        assert!(
+            !office
+                .active()
+                .ok_or_else(|| invalid("no document"))?
+                .can_redo()
+        );
+        Ok(())
+    }
 }

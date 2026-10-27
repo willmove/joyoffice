@@ -111,6 +111,7 @@ pub(crate) fn insert_table(
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![paragraph.into()]),
                 preserved: None,
+                props_revision: None,
             });
         }
         table_rows.push(Row {
@@ -122,6 +123,7 @@ pub(crate) fn insert_table(
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         });
     }
     let table_id = document.ids().node();
@@ -137,6 +139,7 @@ pub(crate) fn insert_table(
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     document
@@ -191,6 +194,7 @@ pub(crate) fn insert_row(
             vertical_align: None,
             blocks: BlockSeq::from_vec(vec![paragraph.into()]),
             preserved: None,
+            props_revision: None,
         });
     }
     let row = Row {
@@ -202,6 +206,7 @@ pub(crate) fn insert_row(
         cant_split: false,
         height: None,
         preserved: None,
+        props_revision: None,
     };
     table_mut(document, story, site.index, table_id)?
         .rows
@@ -286,6 +291,7 @@ pub(crate) fn insert_column(
             vertical_align: None,
             blocks: BlockSeq::from_vec(vec![paragraph.into()]),
             preserved: None,
+            props_revision: None,
         });
     }
     let table = table_mut(document, story, site.index, table_id)?;
@@ -756,6 +762,7 @@ fn split_horizontal(
             vertical_align: None,
             blocks: BlockSeq::from_vec(vec![paragraph.into()]),
             preserved: None,
+            props_revision: None,
         });
     }
     for (offset, cell) in replacements.into_iter().enumerate() {
