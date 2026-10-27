@@ -6,8 +6,11 @@
 //! (§17.13.5.30) and `w:pPrChange` (§17.13.5.29) in body paragraphs become
 //! [`FormatRevision`] records holding the previous run or paragraph
 //! properties. Anything outside those subsets is preserved and locks the
-//! paragraph; it does not make the whole document read-only. Table structure
-//! revisions and format revisions inside tables are refused by
+//! paragraph; it does not make the whole document read-only. Table property
+//! revisions (`w:tblPrChange`, `w:trPrChange`, `w:tcPrChange`) are typed by
+//! the table parser when the whole table is in the represented subset;
+//! structural table revisions (`w:cellIns`, `w:cellDel`, `w:cellMerge`) and
+//! format revisions inside tables outside that subset are refused by
 //! [`crate::ns::blocks_for_review`].
 
 use std::collections::BTreeMap;
@@ -340,7 +343,10 @@ fn plain_marker(
     })
 }
 
-fn track_attrs(element: &Element, allow_name: bool) -> Option<(u32, Arc<str>, Option<Arc<str>>)> {
+pub(crate) fn track_attrs(
+    element: &Element,
+    allow_name: bool,
+) -> Option<(u32, Arc<str>, Option<Arc<str>>)> {
     let mut id = None;
     let mut author = None;
     let mut date = None;

@@ -1165,6 +1165,56 @@ mod tests {
         assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
     }
 
+    /// A volume classification refusal is the observation failure the Windows
+    /// `observe_platform` produces for an unsupported volume. The same
+    /// structured error is injected through the stage seam here, so the
+    /// file.save Decline precheck contract — structured reason surfaced, no
+    /// confirmable blocker list, source untouched, confirmation still
+    /// refused — is tested on every platform with synthesized data.
+    #[test]
+    fn a_volume_refused_precheck_surfaces_the_structured_reason_and_keeps_the_source() {
+        let bytes = std::fs::read(
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("../../tests/fixtures/docx/DOCX-MIN-001.docx"),
+        )
+        .unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("report.docx");
+        std::fs::write(&path, &bytes).unwrap();
+        let stamp = super::super::open_source(&path, &joyoffice_opc::Budget::default())
+            .unwrap()
+            .into_stamp();
+        let plan = crate::docx::DocxSession::open(&bytes, &joyoffice_opc::Budget::default())
+            .unwrap()
+            .export_plan()
+            .unwrap();
+        let refused = |stage: SourceStage, _: &Path| {
+            if stage == SourceStage::ObserveMetadata {
+                Err(io::Error::new(
+                    io::ErrorKind::Unsupported,
+                    super::super::VolumeRejection::Remote,
+                ))
+            } else {
+                Ok(())
+            }
+        };
+        // The Decline precheck the save prompt runs, and the confirmation it
+        // must not be able to walk into: both see the same refusal.
+        for choice in [OriginalChoice::Decline, OriginalChoice::Confirm] {
+            let error = save_original_inner(&plan, &stamp, None, choice, refused).unwrap_err();
+            assert!(error.is_observation_failure(), "{choice:?}: {error}");
+            assert_eq!(
+                error.volume_rejection(),
+                Some(super::super::VolumeRejection::Remote)
+            );
+            // A refused volume is not a confirmable metadata-loss list.
+            assert!(error.blockers().is_none());
+            assert!(error.published().is_none());
+        }
+        assert_eq!(std::fs::read(&path).unwrap(), bytes);
+        assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 1);
+    }
+
     #[cfg(unix)]
     #[test]
     fn confirmed_replacement_copies_a_user_extended_attribute() {

@@ -279,6 +279,10 @@ pub enum SaveOriginalError {
     },
     /// Metadata could not be observed. Replacement is refused even when the
     /// caller asked to confirm, because the loss list would be incomplete.
+    /// When the failure was a volume classification refusal (unsupported
+    /// volume), [`Self::volume_rejection`] recovers the structured reason so
+    /// the save prompt can present replacement as unavailable rather than
+    /// confirmable.
     ObservationFailed { path: PathBuf, source: io::Error },
 }
 
@@ -467,6 +471,17 @@ impl SaveOriginalError {
     }
     pub fn is_observation_failure(&self) -> bool {
         matches!(self, Self::ObservationFailed { .. })
+    }
+    /// The structured reason the source's volume refused replacement, when
+    /// the observation failure was a volume classification refusal. Such a
+    /// source never confirms: `save_original` refuses replacement even under
+    /// [`super::OriginalChoice::Confirm`], so a prompt must offer only a
+    /// copy, not a confirmable metadata-loss list.
+    pub fn volume_rejection(&self) -> Option<super::metadata::VolumeRejection> {
+        match self {
+            Self::ObservationFailed { source, .. } => super::metadata::volume_rejection(source),
+            _ => None,
+        }
     }
     pub(crate) fn io(stage: SourceStage, path: &std::path::Path, source: io::Error) -> Self {
         Self::Io {

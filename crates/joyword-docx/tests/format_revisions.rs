@@ -589,32 +589,14 @@ fn out_of_subset_format_changes_are_preserved_and_lock_the_paragraph() {
 
 #[test]
 fn table_structure_revisions_stay_preserved_and_read_only() {
-    // T301 defers table structure revisions (§17.13.5.1-.6, §17.13.5.9-.11):
-    // each one keeps the whole document read-only and its bytes verbatim.
+    // T301 still defers structural table revisions (`w:cellIns`, `w:cellDel`,
+    // `w:cellMerge`) and format revisions inside tables: each one keeps the
+    // whole document read-only and its bytes verbatim. Table property
+    // revisions (`w:tblPrChange` / `w:trPrChange` / `w:tcPrChange`) are typed
+    // instead; see `table_revisions.rs`.
     // Each case: (name, `w:tblPr` extra, `w:trPr` markup, `w:tcPr` markup,
     // the cell paragraph's run markup).
     let cases = [
-        (
-            "tblPrChange",
-            r#"<w:tblPrChange w:id="51" w:author="A"/>"#,
-            "",
-            "",
-            "",
-        ),
-        (
-            "trPrChange",
-            "",
-            r#"<w:trPr><w:trPrChange w:id="52" w:author="A"/></w:trPr>"#,
-            "",
-            "",
-        ),
-        (
-            "tcPrChange",
-            "",
-            "",
-            r#"<w:tcPr><w:tcPrChange w:id="53" w:author="A"/></w:tcPr>"#,
-            "",
-        ),
         (
             "cellIns",
             "",
