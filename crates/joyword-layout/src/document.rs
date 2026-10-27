@@ -943,6 +943,11 @@ pub(crate) struct PlaceStop<'a> {
     /// as the previous snapshot, and was not invalidated.
     pub same: &'a [bool],
     pub place_from: usize,
+    /// Story-level separator rules per page of `previous` that the copy does
+    /// not replay: they are repainted after assembly, so the completeness
+    /// check in [`suffix_copies`] expects to find exactly this many rects on
+    /// each source page beyond the per-line decorations it replays.
+    pub separator_counts: &'a [usize],
 }
 
 fn prepare_keep_groups(
@@ -4181,12 +4186,17 @@ fn suffix_copies(
     }
     // One layout line can paint several glyph runs and revision rules.
     // `PlacedLine::run` records only the first run, so a copy that has not
-    // reproduced every run and rule is incomplete.
+    // reproduced every run and rule is incomplete. Column separator rules
+    // are story-level and repainted after assembly, so each source page may
+    // carry exactly its counted separators beyond the replayed decorations.
     for (index, page) in pages.iter().enumerate() {
         let Some(source) = stop.previous.pages.get(index) else {
             return false;
         };
-        if page.runs.len() != source.runs.len() || page.rects.len() != source.rects.len() {
+        let separators = stop.separator_counts.get(index).copied().unwrap_or(0);
+        if page.runs.len() != source.runs.len()
+            || page.rects.len() + separators != source.rects.len()
+        {
             return false;
         }
     }
