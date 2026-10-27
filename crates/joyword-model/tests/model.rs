@@ -134,6 +134,7 @@ fn contract_structure_preserves_unsupported_nodes() {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![paragraph(ids, left)]),
                 preserved: None,
+                props_revision: None,
             },
             Cell {
                 id: ids.node(),
@@ -146,12 +147,14 @@ fn contract_structure_preserves_unsupported_nodes() {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![paragraph(ids, right)]),
                 preserved: None,
+                props_revision: None,
             },
         ],
         header: false,
         cant_split: false,
         height: None,
         preserved: None,
+        props_revision: None,
     };
     let table = Table {
         id: ids.node(),
@@ -165,6 +168,7 @@ fn contract_structure_preserves_unsupported_nodes() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let control = Sdt {
@@ -347,6 +351,7 @@ fn invalid_trees_report_bounded_errors() {
         vertical_align: None,
         blocks: BlockSeq::from_vec(blocks),
         preserved: None,
+        props_revision: None,
     };
     let table = Table {
         id: ids.node(),
@@ -361,6 +366,7 @@ fn invalid_trees_report_bounded_errors() {
                 cant_split: false,
                 height: None,
                 preserved: None,
+                props_revision: None,
             },
             Row {
                 id: ids.node(),
@@ -375,6 +381,7 @@ fn invalid_trees_report_bounded_errors() {
                 cant_split: false,
                 height: None,
                 preserved: None,
+                props_revision: None,
             },
         ],
         style: Some(StyleId::new("Normal")),
@@ -385,6 +392,7 @@ fn invalid_trees_report_bounded_errors() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let unissued = paragraph(&mut foreign, "from another document");

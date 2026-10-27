@@ -970,6 +970,43 @@ pub struct Shading {
     pub fill: Color,
 }
 
+/// Pre-change table properties recorded by a `w:tblPrChange`
+/// (ECMA-376 Part 1 §17.13.5): the typed table property subset as it was
+/// before the tracked change. Default (all absent) is what a change element
+/// without a `w:tblPr` child rejects back to.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct TableChangeProps {
+    pub style: Option<StyleId>,
+    pub width: Option<TableWidth>,
+    pub layout: Option<TableLayoutKind>,
+    pub alignment: Option<TableAlign>,
+    pub indent: Option<i64>,
+    pub look: Option<TableLook>,
+    pub cell_margin: Option<CellMargins>,
+}
+
+/// Pre-change row properties recorded by a `w:trPrChange`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct RowChangeProps {
+    pub grid_before: u32,
+    pub grid_after: u32,
+    pub header: bool,
+    pub cant_split: bool,
+    pub height: Option<RowHeight>,
+}
+
+/// Pre-change cell properties recorded by a `w:tcPrChange`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct CellChangeProps {
+    pub grid_span: u32,
+    pub vertical_merge: VerticalMerge,
+    pub width: Option<Measure>,
+    pub borders: CellBorders,
+    pub shading: Option<Shading>,
+    pub margin: Option<CellMargins>,
+    pub vertical_align: Option<VerticalAlign>,
+}
+
 #[derive(Clone, Debug)]
 pub struct Cell {
     pub id: NodeId,
@@ -991,6 +1028,9 @@ pub struct Cell {
     /// paragraphs and one level of nested tables.
     pub blocks: BlockSeq,
     pub preserved: Option<PreservedId>,
+    /// Pending `w:tcPrChange` on this cell, holding the pre-change cell
+    /// properties.
+    pub props_revision: Option<Arc<crate::revision::TablePropsRevision>>,
 }
 
 #[derive(Clone, Debug)]
@@ -1007,6 +1047,9 @@ pub struct Row {
     /// `w:trHeight`. `None` means the element was absent.
     pub height: Option<RowHeight>,
     pub preserved: Option<PreservedId>,
+    /// Pending `w:trPrChange` on this row, holding the pre-change row
+    /// properties.
+    pub props_revision: Option<Arc<crate::revision::TablePropsRevision>>,
 }
 
 #[derive(Clone, Debug)]
@@ -1028,12 +1071,16 @@ pub struct Table {
     /// `w:tblCellMar`. `None` is an omitted element, not four explicit zeros.
     pub cell_margin: Option<CellMargins>,
     pub preserved: Option<PreservedId>,
+    /// Pending `w:tblPrChange` on this table, holding the pre-change table
+    /// properties.
+    pub props_revision: Option<Arc<crate::revision::TablePropsRevision>>,
     pub source: Option<Arc<SourceRef>>,
 }
 
 impl Table {
     /// Structural equality, including cell paragraphs. Export uses it to
-    /// leave an untouched table's original bytes alone.
+    /// leave an untouched table's original bytes alone. Pending property
+    /// revisions count as content, so resolving one is always an edit.
     pub fn same_content(&self, other: &Self) -> bool {
         self.grid == other.grid
             && self.style == other.style
@@ -1044,6 +1091,7 @@ impl Table {
             && self.look == other.look
             && self.cell_margin == other.cell_margin
             && self.preserved == other.preserved
+            && self.props_revision == other.props_revision
             && self.source == other.source
             && self.rows.len() == other.rows.len()
             && self
@@ -1052,6 +1100,105 @@ impl Table {
                 .zip(&other.rows)
                 .all(|(left, right)| same_row(left, right))
     }
+
+    /// Whether this table carries a pending property revision with `id`
+    /// (`None` matches any id), including its rows, cells and nested tables.
+    pub fn has_props_revision(&self, id: Option<u32>) -> bool {
+        if record_matches(&self.props_revision, id) {
+            return true;
+        }
+        self.rows.iter().any(|row| {
+            record_matches(&row.props_revision, id)
+                || row
+                    .cells
+                    .iter()
+                    .any(|cell| record_matches(&cell.props_revision, id) || cell_has(cell, id))
+        })
+    }
+
+    /// Resolves pending table property revisions. Accepting drops the
+    /// records and keeps the current values; rejecting restores the recorded
+    /// previous values (an absent previous value restores the default for
+    /// that level). `id` `None` resolves every record (batch accept or
+    /// reject). Returns whether anything was resolved. Nested tables inside
+    /// cells are resolved too.
+    pub fn resolve_props_revisions(&mut self, id: Option<u32>, accept: bool) -> bool {
+        let mut resolved = false;
+        if record_matches(&self.props_revision, id) {
+            let revision = self.props_revision.take();
+            if let Some(revision) = &revision
+                && !accept
+                && let crate::revision::PreviousTableProps::Table(previous) = &revision.previous
+            {
+                self.style = previous.style.clone();
+                self.width = previous.width;
+                self.layout = previous.layout;
+                self.alignment = previous.alignment;
+                self.indent = previous.indent;
+                self.look = previous.look;
+                self.cell_margin = previous.cell_margin;
+            }
+            resolved = true;
+        }
+        for row in &mut self.rows {
+            if record_matches(&row.props_revision, id) {
+                let revision = row.props_revision.take();
+                if let Some(revision) = &revision
+                    && !accept
+                    && let crate::revision::PreviousTableProps::Row(previous) = &revision.previous
+                {
+                    row.grid_before = previous.grid_before;
+                    row.grid_after = previous.grid_after;
+                    row.header = previous.header;
+                    row.cant_split = previous.cant_split;
+                    row.height = previous.height;
+                }
+                resolved = true;
+            }
+            for cell in &mut row.cells {
+                if record_matches(&cell.props_revision, id) {
+                    let revision = cell.props_revision.take();
+                    if let Some(revision) = &revision
+                        && !accept
+                        && let crate::revision::PreviousTableProps::Cell(previous) =
+                            &revision.previous
+                    {
+                        cell.grid_span = previous.grid_span;
+                        cell.vertical_merge = previous.vertical_merge;
+                        cell.width = previous.width;
+                        cell.borders = previous.borders;
+                        cell.shading = previous.shading;
+                        cell.margin = previous.margin;
+                        cell.vertical_align = previous.vertical_align;
+                    }
+                    resolved = true;
+                }
+                for inner in 0..cell.blocks.len() {
+                    if let Some(Block::Table(nested)) = cell.blocks.get_mut(inner) {
+                        resolved |= Arc::make_mut(nested).resolve_props_revisions(id, accept);
+                    }
+                }
+            }
+        }
+        resolved
+    }
+}
+
+/// Whether `revision` is present and matches `id` (`None` matches any id).
+fn record_matches(
+    revision: &Option<Arc<crate::revision::TablePropsRevision>>,
+    id: Option<u32>,
+) -> bool {
+    revision
+        .as_ref()
+        .is_some_and(|revision| id.is_none_or(|wanted| revision.id == wanted))
+}
+
+fn cell_has(cell: &Cell, id: Option<u32>) -> bool {
+    cell.blocks.iter().any(|block| match block {
+        Block::Table(table) => table.has_props_revision(id),
+        _ => false,
+    })
 }
 
 fn same_row(left: &Row, right: &Row) -> bool {
@@ -1062,6 +1209,7 @@ fn same_row(left: &Row, right: &Row) -> bool {
         && left.cant_split == right.cant_split
         && left.height == right.height
         && left.preserved == right.preserved
+        && left.props_revision == right.props_revision
         && left.cells.len() == right.cells.len()
         && left
             .cells
@@ -1080,6 +1228,7 @@ fn same_cell(left: &Cell, right: &Cell) -> bool {
         && left.margin == right.margin
         && left.vertical_align == right.vertical_align
         && left.preserved == right.preserved
+        && left.props_revision == right.props_revision
         && left.blocks.len() == right.blocks.len()
         && left
             .blocks

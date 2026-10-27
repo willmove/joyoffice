@@ -524,6 +524,7 @@ fn a_tracked_delete_refuses_to_cross_a_table_or_a_cell() {
         vertical_align: None,
         blocks: BlockSeq::from_vec(vec![cell_text.into()]),
         preserved: None,
+        props_revision: None,
     };
     let table = Table {
         id: document.ids().node(),
@@ -537,6 +538,7 @@ fn a_tracked_delete_refuses_to_cross_a_table_or_a_cell() {
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -546,6 +548,7 @@ fn a_tracked_delete_refuses_to_cross_a_table_or_a_cell() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let mut last = Paragraph::new(document.ids().node());

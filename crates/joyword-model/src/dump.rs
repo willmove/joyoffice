@@ -240,15 +240,35 @@ impl Dumper<'_> {
                             grid.join(",")
                         ),
                     );
+                    if let Some(revision) = &table.props_revision {
+                        self.line(
+                            depth + 1,
+                            &format!(
+                                "tblPrChange#{} author={:?} date={}",
+                                revision.id,
+                                revision.author,
+                                revision.date.as_deref().unwrap_or("-")
+                            ),
+                        );
+                    }
                     for row in &table.rows {
                         let head = self.label("row", row.id);
                         let height = row.height.map_or("-".into(), |height| {
                             format!("{:?}:{}", height.rule, height.twips)
                         });
+                        let row_change = match &row.props_revision {
+                            Some(revision) => format!(
+                                " trPrChange#{} author={:?} date={}",
+                                revision.id,
+                                revision.author,
+                                revision.date.as_deref().unwrap_or("-")
+                            ),
+                            None => String::new(),
+                        };
                         self.line(
                             depth + 1,
                             &format!(
-                                "{head} before={} after={} header={} cantSplit={} height={height}",
+                                "{head} before={} after={} header={} cantSplit={} height={height}{row_change}",
                                 row.grid_before,
                                 row.grid_after,
                                 u8::from(row.header),
@@ -267,10 +287,19 @@ impl Dumper<'_> {
                             let valign = cell
                                 .vertical_align
                                 .map_or("-".into(), |value| format!("{value:?}"));
+                            let cell_change = match &cell.props_revision {
+                                Some(revision) => format!(
+                                    " tcPrChange#{} author={:?} date={}",
+                                    revision.id,
+                                    revision.author,
+                                    revision.date.as_deref().unwrap_or("-")
+                                ),
+                                None => String::new(),
+                            };
                             self.line(
                                 depth + 2,
                                 &format!(
-                                    "{head} span={} vmerge={:?} width={width} borders={} shading={} margin={margin} valign={valign}",
+                                    "{head} span={} vmerge={:?} width={width} borders={} shading={} margin={margin} valign={valign}{cell_change}",
                                     cell.grid_span,
                                     cell.vertical_merge,
                                     border_edges(&cell.borders),

@@ -187,11 +187,13 @@ fn table_input(text: &str) -> TextInput {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![paragraph.into()]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -201,6 +203,7 @@ fn table_input(text: &str) -> TextInput {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     let body = document.body_id();

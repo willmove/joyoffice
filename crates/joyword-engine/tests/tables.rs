@@ -45,6 +45,7 @@ fn cell(document: &mut Document, text: &str, span: u32, merge: VerticalMerge) ->
         vertical_align: None,
         blocks: BlockSeq::from_vec(vec![paragraph.into()]),
         preserved: None,
+        props_revision: None,
     }
 }
 
@@ -60,6 +61,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         })
         .collect();
     Table {
@@ -74,6 +76,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     }
 }
@@ -908,6 +911,7 @@ fn editing_outer_or_inner_cell_text_is_one_undoable_transaction() {
             vertical_align: None,
             blocks: BlockSeq::from_vec(vec![inner_paragraph.into()]),
             preserved: None,
+            props_revision: None,
         }]],
         1,
     );
@@ -922,6 +926,7 @@ fn editing_outer_or_inner_cell_text_is_one_undoable_transaction() {
         vertical_align: None,
         blocks: BlockSeq::from_vec(vec![outer_paragraph.into(), inner.into()]),
         preserved: None,
+        props_revision: None,
     };
     let right = cell(&mut document, "右", 1, VerticalMerge::None);
     let outer = table(&mut document, vec![vec![left, right]], 2);

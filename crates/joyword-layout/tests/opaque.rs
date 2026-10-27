@@ -263,11 +263,13 @@ fn a_table_and_an_opaque_block_still_match_full_layout() {
                 vertical_align: None,
                 blocks: BlockSeq::from_vec(vec![cell_text.into()]),
                 preserved: None,
+                props_revision: None,
             }],
             header: false,
             cant_split: false,
             height: None,
             preserved: None,
+            props_revision: None,
         }],
         style: None,
         width: None,
@@ -277,6 +279,7 @@ fn a_table_and_an_opaque_block_still_match_full_layout() {
         look: None,
         cell_margin: None,
         preserved: None,
+        props_revision: None,
         source: None,
     };
     install(&mut document, vec![intro, marker, table.into()]);

@@ -175,11 +175,22 @@ pub(crate) fn is_format_change(local: &str) -> bool {
     matches!(local, "rPrChange" | "pPrChange")
 }
 
+/// Table property revisions (`w:tblPrChange`, `w:trPrChange`,
+/// `w:tcPrChange`): typed when the whole containing table is inside the
+/// represented subset. An occurrence outside that subset refuses the table,
+/// which stays preserved and unedited, so the markup cannot be dropped; it
+/// does not make the document read-only.
+pub(crate) fn is_table_props_change(local: &str) -> bool {
+    matches!(local, "tblPrChange" | "trPrChange" | "tcPrChange")
+}
+
 /// Revision markup that still makes the whole document read-only. Text
 /// revisions are always typed. Format revisions (`w:rPrChange`,
 /// `w:pPrChange`) are typed outside tables (`in_table` false) and block
-/// inside tables. All other non-text revisions (table structure, section,
-/// numbering, custom XML) always block.
+/// inside tables. Table property revisions (`w:tblPrChange`,
+/// `w:trPrChange`, `w:tcPrChange`) never block: either the table typed them
+/// or the table stays preserved and unedited. All other non-text revisions
+/// (structural table changes, section, numbering, custom XML) always block.
 pub(crate) fn blocks_for_review(local: &str, in_table: bool) -> bool {
     if !is_revision(local) || is_text_revision(local) {
         return false;
@@ -187,5 +198,5 @@ pub(crate) fn blocks_for_review(local: &str, in_table: bool) -> bool {
     if is_format_change(local) {
         return in_table;
     }
-    true
+    !is_table_props_change(local)
 }

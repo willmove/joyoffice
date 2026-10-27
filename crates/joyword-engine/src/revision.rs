@@ -16,13 +16,18 @@
 //! keeps the current formatting; rejecting restores the recorded previous
 //! formatting. An id that carries both a text and a format revision is
 //! settled as one change.
+//!
+//! Table property revisions (`w:tblPrChange`, `w:trPrChange`, `w:tcPrChange`)
+//! resolve the same way on the table, row or cell they were recorded on;
+//! batch accept and reject sweep nested tables too. A table inside a locked
+//! content control refuses the command and leaves the document unchanged.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use joyword_model::{
     Block, Document, MoveMarker, MoveSide, NodeId, Paragraph, Position, RevisionKind, ScalarOffset,
-    StoryId, TextRevision,
+    StoryId, Table, TextRevision,
 };
 
 use crate::command::CommandError;
@@ -45,14 +50,16 @@ enum Resolution {
     Reject,
 }
 
-/// Text or format revision at the caret, or overlapping the selection.
+/// Text, format or table property revision at the caret, or overlapping the
+/// selection.
 ///
 /// A caret on the boundary between two runs prefers the run that ends there,
 /// so the change just typed is the current one. When no text revision is
 /// touched, an unresolved format revision (`w:rPrChange` / `w:pPrChange`)
 /// covering the caret is returned instead; a paragraph-level change applies
-/// wherever the caret sits in that paragraph. `None` means the selection
-/// does not touch a revision.
+/// wherever the caret sits in that paragraph. Last, a pending table property
+/// revision on the enclosing cell, row or table is returned, innermost
+/// first. `None` means the selection does not touch a revision.
 pub fn current_revision(document: &Document, selection: &Selection) -> Option<u32> {
     if let Some(id) = revision_at(document, &selection.head) {
         return Some(id);
@@ -78,6 +85,48 @@ pub fn current_revision(document: &Document, selection: &Selection) -> Option<u3
     }
     format_revision_at(document, &selection.head)
         .or_else(|| format_revision_at(document, &selection.anchor))
+        .or_else(|| table_revision_at(document, &selection.head))
+        .or_else(|| table_revision_at(document, &selection.anchor))
+}
+
+/// The pending table property revision around a position: the innermost
+/// cell change, then its row, then its table, then outward. A table-level
+/// change applies wherever the caret sits in the table.
+fn table_revision_at(document: &Document, position: &Position) -> Option<u32> {
+    let location = locate::locate(document, position.story, position.paragraph)?;
+    let mut seq = &document.story(location.story)?.blocks;
+    let mut levels: Vec<(&Table, usize, usize)> = Vec::new();
+    for &(index, step) in &location.containers {
+        match (seq.get(index)?, step) {
+            (Block::Table(table), locate::Step::Cell { row, cell }) => {
+                levels.push((table, row, cell));
+                seq = &table.rows.get(row)?.cells.get(cell)?.blocks;
+            }
+            (Block::Sdt(sdt), locate::Step::Sdt) => seq = &sdt.blocks,
+            _ => return None,
+        }
+    }
+    for (table, row, cell) in levels.iter().rev() {
+        if let Some(revision) = &table
+            .rows
+            .get(*row)
+            .and_then(|row| row.cells.get(*cell))
+            .and_then(|cell| cell.props_revision.as_ref())
+        {
+            return Some(revision.id);
+        }
+        if let Some(revision) = &table
+            .rows
+            .get(*row)
+            .and_then(|row| row.props_revision.as_ref())
+        {
+            return Some(revision.id);
+        }
+        if let Some(revision) = &table.props_revision {
+            return Some(revision.id);
+        }
+    }
+    None
 }
 
 /// The format revision (`w:rPrChange` / `w:pPrChange`) at a position: a
@@ -584,9 +633,12 @@ fn resolve_one(
     let marks = mark_targets(document, id);
     if hits.is_empty() && marks.is_empty() {
         // No text or mark revision carries this id; it may be a format
-        // revision (`w:rPrChange` / `w:pPrChange`), which has no text
-        // position.
+        // revision (`w:rPrChange` / `w:pPrChange`) or a table property
+        // revision, neither of which has a text position.
         if resolve_format_one(document, id, resolution, changes)? {
+            return Ok(());
+        }
+        if resolve_table_one(document, id, resolution, changes)? {
             return Ok(());
         }
         return Err(CommandError::UnknownRevision(id));
@@ -619,8 +671,10 @@ fn resolve_one(
     )?;
     drop_names(document, &names, changes);
     // A single id can carry both a text and a format revision; resolve both so
-    // one accept or reject settles the whole change.
+    // one accept or reject settles the whole change. The same holds for a
+    // table property revision sharing the id.
     resolve_format_one(document, id, resolution, changes)?;
+    resolve_table_one(document, id, resolution, changes)?;
     Ok(())
 }
 
@@ -660,6 +714,7 @@ fn resolve_all(
     apply_edits(document, &edits, map, changes)?;
     drop_names(document, &names, changes);
     resolve_format_all(document, resolution, changes)?;
+    resolve_table_all(document, resolution, changes)?;
     // Paragraph-mark deletions resolve last so merges run over paragraphs
     // whose accepted text deletions have already been applied.
     let marks = all_mark_targets(document);
@@ -875,6 +930,86 @@ fn has_format_revision_id(paragraph: &Paragraph, id: u32) -> bool {
 
 fn has_any_format_revision(paragraph: &Paragraph) -> bool {
     paragraph.has_run_format_revision() || paragraph.props_revision.is_some()
+}
+
+/// Resolves every table property revision (`w:tblPrChange` / `w:trPrChange`
+/// / `w:tcPrChange`) whose id matches. Returns whether any was found. A
+/// table inside a locked content control is refused.
+fn resolve_table_one(
+    document: &mut Document,
+    id: u32,
+    resolution: Resolution,
+    changes: &mut ChangeSet,
+) -> Result<bool, CommandError> {
+    resolve_tables(document, Some(id), resolution, changes)
+}
+
+/// Resolves every table property revision in the document (batch accept or
+/// reject).
+fn resolve_table_all(
+    document: &mut Document,
+    resolution: Resolution,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    resolve_tables(document, None, resolution, changes).map(|_| ())
+}
+
+fn resolve_tables(
+    document: &mut Document,
+    id: Option<u32>,
+    resolution: Resolution,
+    changes: &mut ChangeSet,
+) -> Result<bool, CommandError> {
+    let accept = matches!(resolution, Resolution::Accept);
+    let targets: Vec<(StoryId, NodeId)> = tables(document)
+        .into_iter()
+        .filter(|(story, table)| {
+            table_ref(document, *story, *table).is_some_and(|table| table.has_props_revision(id))
+        })
+        .collect();
+    let mut found = false;
+    for (story, table) in targets {
+        let location =
+            locate::locate(document, story, table).ok_or(CommandError::UnknownNode(table))?;
+        if location.content_locked {
+            return Err(CommandError::Locked(table));
+        }
+        let Some(Block::Table(table_mut)) =
+            locate::container_mut(document, story, &location.containers)
+                .and_then(|seq| seq.get_mut(location.index))
+        else {
+            return Err(CommandError::UnknownNode(table));
+        };
+        if Arc::make_mut(table_mut).resolve_props_revisions(id, accept) {
+            found = true;
+            changes.stories.insert(story);
+            changes.tables.insert(table);
+        }
+    }
+    Ok(found)
+}
+
+/// Every table, in document order, including nested ones.
+fn tables(document: &Document) -> Vec<(StoryId, NodeId)> {
+    let mut out = Vec::new();
+    for story in document.stories() {
+        let mut ids = Vec::new();
+        for block in story.blocks.iter() {
+            locate::tables_in(block, &mut ids);
+        }
+        for id in ids {
+            out.push((story.id, id));
+        }
+    }
+    out
+}
+
+fn table_ref(document: &Document, story: StoryId, table: NodeId) -> Option<&Table> {
+    let location = locate::locate(document, story, table)?;
+    match locate::block(document, &location)? {
+        Block::Table(table) => Some(table),
+        _ => None,
+    }
 }
 
 struct Hit {

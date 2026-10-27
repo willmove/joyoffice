@@ -180,6 +180,33 @@ pub(crate) fn paragraphs_in(block: &Block, out: &mut Vec<NodeId>) {
     walk(block, out, 0);
 }
 
+/// Every table inside `block`, in document order (including itself and
+/// nested tables).
+pub(crate) fn tables_in(block: &Block, out: &mut Vec<NodeId>) {
+    fn walk(block: &Block, out: &mut Vec<NodeId>, depth: usize) {
+        if depth > MAX_NESTING {
+            return;
+        }
+        match block {
+            Block::Table(table) => {
+                out.push(table.id);
+                for cell in table.rows.iter().flat_map(|row| row.cells.iter()) {
+                    for inner in cell.blocks.iter() {
+                        walk(inner, out, depth + 1);
+                    }
+                }
+            }
+            Block::Sdt(sdt) => {
+                for inner in sdt.blocks.iter() {
+                    walk(inner, out, depth + 1);
+                }
+            }
+            Block::Paragraph(_) | Block::Opaque(_) => {}
+        }
+    }
+    walk(block, out, 0);
+}
+
 /// A content control in `block` that may not be deleted or whose content may
 /// not change, if any.
 pub(crate) fn deletion_lock(block: &Block) -> Option<NodeId> {
