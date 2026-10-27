@@ -309,3 +309,110 @@ fn header_footer_and_comment_bookmarks_are_goto_destinations() {
     assert_eq!(read.links.len(), 3);
     assert!(read.links.iter().all(|link| link.source_page == 1));
 }
+
+#[test]
+fn column_and_opaque_table_bookmarks_are_goto_destinations() {
+    // A colFirst/colLast pair in mapped paragraphs imports as an ordinary
+    // range bookmark. A pair inside an opaque table has no text range: it
+    // becomes a point destination at the end of the nearest preceding
+    // paragraph. Both names resolve through layout carets and the PDF
+    // readback.
+    let body = concat!(
+        r#"<w:p><w:hyperlink w:anchor="col"><w:r><w:t>C</w:t></w:r></w:hyperlink>"#,
+        r#"<w:hyperlink w:anchor="cell"><w:r><w:t>T</w:t></w:r></w:hyperlink></w:p>"#,
+        r#"<w:p><w:bookmarkStart w:id="1" w:name="col" w:colFirst="0" w:colLast="0"/>"#,
+        r#"<w:r><w:t>Col</w:t></w:r><w:bookmarkEnd w:id="1"/></w:p>"#,
+        r#"<w:tbl><w:tr><w:tc><w:p><w:bookmarkStart w:id="2" w:name="cell"/>"#,
+        r#"<w:r><w:t>Cell</w:t></w:r><w:bookmarkEnd w:id="2"/></w:p></w:tc></w:tr></w:tbl>"#,
+    );
+    let imported = import(&package(body), &Budget::default()).unwrap();
+    let document: &Document = &imported.document;
+    assert!(!document.validate().has_errors());
+    let font = test_font();
+    let snapshot = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font),
+        SingleFontProfile {
+            size: Emu::new(12 * Emu::PER_POINT),
+            leading: Emu::new(18 * Emu::PER_POINT),
+            baseline: Emu::new(14 * Emu::PER_POINT),
+            features: FeatureSet {
+                kerning: false,
+                standard_ligatures: false,
+                contextual_alternates: false,
+            },
+        },
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .expect("layout");
+    assert_eq!(snapshot.pages().len(), 1);
+
+    let navigation = navigation_from_document(document, &snapshot).expect("navigation");
+    let dest = |name: &str| {
+        navigation
+            .bookmarks
+            .iter()
+            .find(|bookmark| bookmark.name == name)
+            .unwrap_or_else(|| panic!("missing {name}"))
+            .destination
+    };
+    let model = |name: &str| {
+        document
+            .annotations()
+            .find(|annotation| {
+                matches!(&annotation.kind, AnnotationKind::Bookmark { name: found } if found.as_ref() == name)
+            })
+            .unwrap_or_else(|| panic!("model {name}"))
+    };
+    // The column bookmark is a real range; the opaque-table bookmark is a
+    // point at the end of the paragraph that precedes the table.
+    let col = model("col");
+    let Anchor::Range {
+        start: col_start, ..
+    } = col.anchor
+    else {
+        panic!("range");
+    };
+    let cell = model("cell");
+    assert!(cell.source.is_none());
+    let Anchor::Range {
+        start: cell_start, ..
+    } = cell.anchor
+    else {
+        panic!("range");
+    };
+    assert_eq!(col_start.paragraph, cell_start.paragraph);
+    assert_eq!(cell_start.offset.0, 3);
+    let col_caret = snapshot.caret(col_start).expect("col caret");
+    let cell_caret = snapshot.caret(cell_start).expect("cell caret");
+    near(dest("col").x, to_points(col_caret.x) as f32);
+    near(dest("col").y, to_points(col_caret.top) as f32);
+    near(dest("cell").x, to_points(cell_caret.x) as f32);
+    near(dest("cell").y, to_points(cell_caret.top) as f32);
+    assert_eq!(dest("col").page, col_caret.page);
+    assert_eq!(dest("cell").page, cell_caret.page);
+    assert_ne!(dest("col"), dest("cell"));
+    assert_eq!(navigation.unresolved_links, 0);
+    assert_eq!(navigation.links.len(), 2);
+    assert!(navigation.links.iter().all(|link| link.page == 0));
+
+    let pdf = render_export_with_navigation(
+        snapshot.pages(),
+        &[font],
+        &PdfExport::default(),
+        &navigation,
+    )
+    .expect("pdf");
+    let read = inspect_navigation(&pdf).expect("readback");
+    let page_height = to_points(snapshot.pages()[0].height) as f32;
+    for name in ["col", "cell"] {
+        let expected = dest(name);
+        assert_eq!(read.bookmarks[name].page, expected.page);
+        near(read.bookmarks[name].x, expected.x);
+        near(read.bookmarks[name].y, page_height - expected.y);
+        assert_eq!(read.bookmarks[name].zoom, Some(0.0));
+    }
+    assert_eq!(read.links.len(), 2);
+    assert!(read.links.iter().all(|link| link.source_page == 0));
+}
