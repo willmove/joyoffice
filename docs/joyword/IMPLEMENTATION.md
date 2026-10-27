@@ -1642,3 +1642,14 @@ T300 仍是 `in_progress`，进度计数不改。本切片补齐 REVIEW-003 的�
 ### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
 
 main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
+### T301 页边标记装饰测试（2026-10-27）
+
+T301 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 第二切片证据「未做」清单里的「表格属性修订的页面标记装饰（页边色条）」：实现与测试同支落地。
+
+**实现**：`table_row_bar_colour(table, row, view)` 只在 `FinalWithMarkup` 与 `Simple` 视图返回作者色；取色优先级为表级 `w:tblPrChange` ＞ 行级 `w:trPrChange` ＞ 文档序首个单元格 `w:tcPrChange`（注释已写明为 JoyWord 假定：色条固定在页边一处，重叠记录无法并排显示，规范未定义顺序）。`paint_slice` 为每个可视行带画一条 `margin_bar_of_colour`（左页边、内容边左侧留 4 twip 间隙），跨页重复的表头行带经表头印章复制色条；嵌套表经自身排版流绘制自己的行带，外层单元格记录不为内层行带上色。`hash_table` 把待决的表／行／单元格属性修订折进 `LayoutKey` 内容指纹（`hash_table_revision`）：接受或拒绝只删记录、绘制属性不变，指纹若不动，缓存页会继续画已解决记录的色条——与 `column_separator` 折进节指纹同一理由。
+
+**测试**：`crates/joyword-layout/tests/table_revisions.rs`（新文件，五项）——`markup_and_simple_paint_one_bar_per_covered_row_band`、`the_outermost_record_decides_the_band_colour`、`nested_tables_paint_their_own_row_bands_and_resolving_removes_the_bar`、`a_repeated_header_row_keeps_its_bar_on_later_pages`、`the_incremental_entry_matches_the_full_layout_with_bars`；`crates/joyword-pdf/tests/table_revision_bar.rs`（新文件）——`the_table_revision_margin_bar_is_in_the_pdf_page_scene`。识别手法：页边色条是唯一完全落在内容边左侧的矩形；优先级与嵌套断言用「同作者跨文档比对」钉住，不依赖作者调色板把不同作者分到不同颜色。
+
+**已知边界**：页眉页脚 story 里的表格修订不经过该装饰通道（正文表）；色条颜色沿用文字修订的作者调色板（FNV→PALETTE）。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout --test table_revisions`（5 项）、`cargo test --locked -p joyword-pdf --test table_revision_bar`（1 项）、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`check_gates.py`、`check_acceptance.py` 通过。

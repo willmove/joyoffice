@@ -10,6 +10,12 @@
 //! only mark is the author-colour bar in the page's left margin beside every
 //! line of a paragraph with pending revisions.
 //!
+//! Pending table property revisions (`w:tblPrChange` / `w:trPrChange` /
+//! `w:tcPrChange`, T301) paint the same margin bar over each visual row band
+//! they cover. A property revision changes properties, not text, so it never
+//! paints an inline decoration; `document::table_row_bar_colour` picks the
+//! author colour and the row-flow painter draws the bar.
+//!
 //! Header and footer bands are fitted by `pages`. This module paints the same
 //! marks onto those bands afterwards. Final and Original already drop hidden
 //! header and footer text in that fitter, so they receive no decoration.
@@ -208,6 +214,19 @@ pub(crate) fn margin_bar(
     height: Emu,
 ) -> Option<SceneRect> {
     let mark = line.revisions.first()?;
+    margin_bar_of_colour(geometry, (mark.red, mark.green, mark.blue), top, height)
+}
+
+/// The same bar for a colour chosen directly. A pending table property
+/// revision (`w:tblPrChange` / `w:trPrChange` / `w:tcPrChange`, T301) has no
+/// inline run decoration — the properties changed, not the text — so its band
+/// paints only this bar with the record's author colour.
+pub(crate) fn margin_bar_of_colour(
+    geometry: crate::document::PageGeometry,
+    color: (u8, u8, u8),
+    top: Emu,
+    height: Emu,
+) -> Option<SceneRect> {
     if height.raw() <= 0 {
         return None;
     }
@@ -222,9 +241,9 @@ pub(crate) fn margin_bar(
         y: top,
         width: Emu::new(width),
         height,
-        red: mark.red,
-        green: mark.green,
-        blue: mark.blue,
+        red: color.0,
+        green: color.1,
+        blue: color.2,
     })
 }
 

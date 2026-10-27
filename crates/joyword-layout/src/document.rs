@@ -17,8 +17,8 @@ use joyword_foundation::Emu;
 use joyword_model::{
     Bias, Block, BorderEdge, BorderKind, CellBorders, CellMargins, Color, DocDefaults, Document,
     DocumentSnapshot, DocumentVersion, Justification, LineSpacing, Measure, NodeId, NumberLabel,
-    NumberingProblem, PageSetup, Paragraph, Position, RevisionView, RowHeight, RowHeightRule,
-    ScalarOffset, StoryId, Table, ThemeColorSlot, VerticalAlign, VerticalMerge,
+    NumberingProblem, PageSetup, Paragraph, Position, RevisionView, Row, RowHeight, RowHeightRule,
+    ScalarOffset, StoryId, Table, TablePropsRevision, ThemeColorSlot, VerticalAlign, VerticalMerge,
     displayed_paragraph,
 };
 use sha2::{Digest, Sha256};
@@ -654,12 +654,14 @@ fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
     hash.update(format!("{:?}", table.alignment).as_bytes());
     hash.update(format!("{:?}", table.indent).as_bytes());
     hash.update(format!("{:?}", table.cell_margin).as_bytes());
+    hash_table_revision(hash, b"tblPrChange", table.props_revision.as_ref());
     for row in &table.rows {
         hash.update(row.grid_before.to_le_bytes());
         hash.update(row.grid_after.to_le_bytes());
         hash.update([u8::from(row.header)]);
         hash.update([u8::from(row.cant_split)]);
         hash.update(format!("{:?}", row.height).as_bytes());
+        hash_table_revision(hash, b"trPrChange", row.props_revision.as_ref());
         for cell in &row.cells {
             hash.update(cell.grid_span.to_le_bytes());
             hash.update(format!("{:?}", cell.vertical_merge).as_bytes());
@@ -668,6 +670,7 @@ fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
             hash.update(format!("{:?}", cell.shading).as_bytes());
             hash.update(format!("{:?}", cell.margin).as_bytes());
             hash.update(format!("{:?}", cell.vertical_align).as_bytes());
+            hash_table_revision(hash, b"tcPrChange", cell.props_revision.as_ref());
             for block in cell.blocks.iter() {
                 match block {
                     Block::Paragraph(paragraph) => {
@@ -684,6 +687,22 @@ fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
                 }
             }
         }
+    }
+}
+
+/// A pending table property revision joins the content fingerprint. Accepting
+/// one keeps every painted property and only drops the record — without this
+/// entry the fingerprint would not move and a cached page scene would keep
+/// painting the margin bar for an already resolved revision (the same reason
+/// `column_separator` joins the section fingerprint).
+fn hash_table_revision(
+    hash: &mut Sha256,
+    tag: &[u8],
+    revision: Option<&std::sync::Arc<TablePropsRevision>>,
+) {
+    if let Some(revision) = revision {
+        hash.update(tag);
+        hash.update(format!("{revision:?}").as_bytes());
     }
 }
 
@@ -1617,6 +1636,10 @@ struct RowFlow {
     id: NodeId,
     /// `w:trHeight`. Applied after the content height is known.
     rule: Option<RowHeight>,
+    /// Author colour of the margin bar this row's band carries: a pending
+    /// table, row or cell property revision (`w:tblPrChange` / `w:trPrChange`
+    /// / `w:tcPrChange`). `None` paints no bar. See `table_row_bar_colour`.
+    revision_color: Option<(u8, u8, u8)>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -1973,9 +1996,37 @@ fn build_row_flows(
             header: row.header,
             id: row.id,
             rule: row.height,
+            revision_color: table_row_bar_colour(table, row, views.revision),
         });
     }
     Ok(rows)
+}
+
+/// Author colour of the left-margin bar one table row band carries when a
+/// property revision is pending. A table record (`w:tblPrChange`) marks every
+/// visual row of the table, a row record (`w:trPrChange`) its own band, and a
+/// cell record (`w:tcPrChange`) the band of its row; nested tables paint
+/// their own rows through their own flows, so only the cell's own record is
+/// considered here. The bar exists only in Markup and Simple, matching the
+/// text-revision margin bar. When several records cover one band, the colour
+/// is the outermost one — table, then row, then the first cell in document
+/// order (JoyWord assumption: the bar sits at one fixed margin position, so
+/// overlapping records cannot be shown side by side and the spec does not
+/// define an order).
+fn table_row_bar_colour(table: &Table, row: &Row, view: RevisionView) -> Option<(u8, u8, u8)> {
+    if !matches!(view, RevisionView::FinalWithMarkup | RevisionView::Simple) {
+        return None;
+    }
+    let revision = table
+        .props_revision
+        .as_ref()
+        .or(row.props_revision.as_ref())
+        .or_else(|| {
+            row.cells
+                .iter()
+                .find_map(|cell| cell.props_revision.as_ref())
+        })?;
+    Some(crate::revision_view::author_color(&revision.author))
 }
 
 fn overlay_borders(mut base: CellBorders, direct: CellBorders) -> CellBorders {
@@ -2804,6 +2855,21 @@ fn paint_slice(
     let slice_lo = tops[row_index] + consumed;
     let slice_hi = slice_lo + take;
     let page = result.pages.len().saturating_sub(1);
+    // A pending table property revision marks this fragment of the row band
+    // with one bar in the page's left margin; repeated header bands carry the
+    // bar with them because the stamp copies these rects.
+    if let Some(color) = rows[row_index].revision_color
+        && let Some(geometry) = result.page_geometry.get(page).copied()
+        && let Some(bar) = crate::revision_view::margin_bar_of_colour(
+            geometry,
+            color,
+            Emu::new(page_y),
+            Emu::new(take),
+        )
+        && let Some(scene) = result.pages.get_mut(page)
+    {
+        scene.rects.push(bar);
+    }
     for (origin, cell_index) in visuals(rows, row_index) {
         let cell = &rows[origin].cells[cell_index];
         let cell_lo = tops[cell.start_row];
@@ -2903,10 +2969,26 @@ fn paint_nested_table(
     page_top: i64,
     x_shift: i64,
 ) -> Result<(), LayoutError> {
+    let page = result.pages.len().saturating_sub(1);
+    let geometry = result.page_geometry.get(page).copied();
     let tops = row_tops(&nested.rows);
     for row_index in 0..nested.rows.len() {
         let y = page_top.saturating_add(tops[row_index]);
         let take = nested.rows[row_index].height;
+        // A nested table with a pending property revision marks its own row
+        // bands, exactly like a top-level table.
+        if let Some(color) = nested.rows[row_index].revision_color
+            && let Some(geometry) = geometry
+            && let Some(bar) = crate::revision_view::margin_bar_of_colour(
+                geometry,
+                color,
+                Emu::new(y),
+                Emu::new(take),
+            )
+            && let Some(scene) = result.pages.get_mut(page)
+        {
+            scene.rects.push(bar);
+        }
         let slice_lo = tops[row_index];
         let slice_hi = slice_lo.saturating_add(take);
         for (origin, cell_index) in visuals(&nested.rows, row_index) {
