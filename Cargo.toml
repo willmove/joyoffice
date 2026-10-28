@@ -2,6 +2,7 @@
 members = [
     "apps/joyword-cli",
     "apps/joyword",
+    "crates/joyoffice-cfb",
     "crates/joyoffice-opc",
     "crates/joyword-agent",
     "crates/joyword-corpus",
@@ -16,6 +17,7 @@ members = [
 ]
 default-members = [
     "apps/joyword-cli",
+    "crates/joyoffice-cfb",
     "crates/joyoffice-opc",
     "crates/joyword-agent",
     "crates/joyword-corpus",
@@ -46,6 +48,7 @@ gpui = { package = "gpui-pre", version = "=0.3.9" }
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyword-foundation = { path = "crates/joyword-foundation" }
+joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }
 joyword-docx = { path = "crates/joyword-docx" }

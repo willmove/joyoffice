@@ -1,0 +1,14 @@
+[package]
+name = "joyoffice-cfb"
+description = "Format-neutral Compound File Binary (MS-CFB) layer with untrusted-input budgets"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+
+[lints]
+workspace = true

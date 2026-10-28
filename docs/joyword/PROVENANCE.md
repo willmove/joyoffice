@@ -182,3 +182,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - STYLE-002／STYLE-003；依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.18.59（`ST_NumberFormat`：字母示例 27 为 aa、54 为 bbb，没有重复上限；中文计数示例是位值写法；甲乙示例列出十个天干）与 §17.3.2.6（`w:color` 的 `w:val` 必需，`w:themeColor`／`w:themeTint`／`w:themeShade` 可选；tint／shade 的线性 sRGB 公式沿用第四切片）。只读公开规范，未读取 Word、WPS、LibreOffice 或 Open XML SDK 的编号或主题色实现。
 - 甲乙超过 10 时按字母示例的方式重复天干（11 为甲甲）。这是 JoyWord 假定，不是该示例中的句子，也不是 Word 观察。中文计数用同一「零」（U+96F6）并把四位分组延续到亿，使每一个非负 `i32` 可写；10–19 只有在十是整个数字的首字时才省略前导一。正数罗马数字在 3999 之后继续同一加法表（4000 为 `MMMM`），不用上横线。0 与负数仍不可绘制。标签预算 256 个 Unicode 标量是不可信输入的界限，不是规范条文。MS-OI29500 记载的 Word 零／万码位和 HSL tint 偏差不采用。
 - 改写 run 时把方案色收成 sRGB 写入 `w:val`，并写回 `w:themeColor` 与已有的 tint／shade，使再次导入恢复主题色。缺方案项时拒绝，不丢掉主题色。主题部件不改写。`numbering.xml` 仍不从模型回写。没有新增外部 crate。
+
+### MS-CFB 复合二进制文件层（T602 / T604 / T605，2026-10-28）
+
+- FORMAT-007／FORMAT-009／FORMAT-014／QUALITY-005。依据微软公开规范 [[MS-CFB]: Compound File Binary File Format](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/)。纯自研实现于 `crates/joyoffice-cfb`，零第三方依赖。只读公开规范，未读取任何专有软件或闭源库实现源码。
+- 实现了 512 字节 Header 解析与校验、FAT／MiniFAT／DIFAT 扇区链遍历、128 字节目录项与树遍历，以及受预算限制的流提取（区分普通 FAT 流与 MiniStream）；实现了 MS-CFB v3 标准写入器供测试与后续加密包输出使用。严格防环机制与不可信输入资源预算（CfbBudget）。
+
