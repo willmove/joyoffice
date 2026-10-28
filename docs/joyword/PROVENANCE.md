@@ -228,6 +228,12 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - EDIT-008／PLATFORM-003。自研实现于 `crates/joyword-layout` 与 `crates/joyword-engine`，零专有外部库依赖。只读公开标准，未读取任何专有软件实现源码。
 - 实现了页面视图（Print）、草稿视图（Draft）、大纲视图（Outline）与阅读视图（Reading）投影及大纲层级折叠过滤；实现了完全离线的英文拼写检查、Levenshtein 候选建议、用户自定义词典，以及中文重复标点与括号配对校对规则。
 
+### 中文高级版式与公文排版（T504，2026-10-28）
+
+- LAYOUT-002／LAYOUT-011／PLATFORM-004。依据国家标准 [GB/T 9704-2012《党政机关公文格式》](http://openstd.samr.gov.cn/) §5.2.1与§5.2.2、[ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.3.2.25（`w:ruby`）、§17.3.2.5（`w:combine`）、§17.3.2.9（`w:em`）。自研实现于 `crates/joyword-model` 与 `crates/joyword-layout`。只读公开标准，未读取任何专有软件实现源码。
+- 实现了拼音指南（Ruby）、双行合一（CombineCharacters）、着重号（EmphasisMark）与带圈字符（EnclosedCharacter）内联模型；实现了 GB/T 9704-2012 A4 纸张、版心（156×225mm）、边距（37/35/28/26mm）、22行×28字 LinesAndChars 网格规则生成与断言；实现了稿纸网格参数配置与双向/复杂脚本保真与受限诊断。
+
+
 
 
 

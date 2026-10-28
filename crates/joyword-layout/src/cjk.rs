@@ -874,3 +874,433 @@ fn ceil_to_multiple(value: i64, step: i64) -> Option<i64> {
     let product = value.div_ceil(step).checked_mul(step)?;
     i64::try_from(product).ok()
 }
+
+// =========================================================================
+// GB/T 9704-2012 Official Document & Advanced CJK Layout (T504)
+// =========================================================================
+
+/// GB/T 9704-2012 official document typography specification.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Gbt9704Spec;
+
+impl Gbt9704Spec {
+    /// A4 paper width: 210 mm (11,906 twips).
+    pub const PAGE_WIDTH_TWIPS: i64 = 11_906;
+    /// A4 paper height: 297 mm (16,838 twips).
+    pub const PAGE_HEIGHT_TWIPS: i64 = 16_838;
+    /// Top margin (天头): 37 mm (2,098 twips).
+    pub const TOP_MARGIN_TWIPS: i64 = 2_098;
+    /// Bottom margin (地脚): 35 mm (1_984 twips).
+    pub const BOTTOM_MARGIN_TWIPS: i64 = 1_984;
+    /// Left margin (订口): 28 mm (1,587 twips).
+    pub const LEFT_MARGIN_TWIPS: i64 = 1_587;
+    /// Right margin (切口): 26 mm (1,474 twips).
+    pub const RIGHT_MARGIN_TWIPS: i64 = 1_474;
+    /// Standard lines per page: 22 lines.
+    pub const LINES_PER_PAGE: u32 = 22;
+    /// Standard characters per line: 28 characters.
+    pub const CHARS_PER_LINE: u32 = 28;
+    /// Line pitch: 580 twips (~29 pt, 12,756 twips / 22 lines).
+    pub const LINE_PITCH_TWIPS: i64 = 580;
+    /// Character pitch: 316 twips (~15.8 pt, 8,844 twips / 28 chars).
+    pub const CHAR_PITCH_TWIPS: i64 = 316;
+    /// Print area width: 156 mm (8,844 twips).
+    pub const PRINT_AREA_WIDTH_TWIPS: i64 = 8_844;
+    /// Print area height: 225 mm (12,756 twips).
+    pub const PRINT_AREA_HEIGHT_TWIPS: i64 = 12_756;
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Gbt9704Issue {
+    PaperDimensionsMismatch {
+        width: i64,
+        height: i64,
+    },
+    MarginMismatch {
+        edge: &'static str,
+        actual: i64,
+        expected: i64,
+    },
+    GridMissing,
+    GridKindMismatch,
+    LinePitchMismatch {
+        expected: i64,
+        actual: i64,
+    },
+}
+
+impl fmt::Display for Gbt9704Issue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::PaperDimensionsMismatch { width, height } => {
+                write!(
+                    f,
+                    "paper dimensions ({width}x{height}) do not match GB/T 9704 A4"
+                )
+            }
+            Self::MarginMismatch {
+                edge,
+                actual,
+                expected,
+            } => {
+                write!(
+                    f,
+                    "{edge} margin {actual} twips does not match expected {expected} twips"
+                )
+            }
+            Self::GridMissing => write!(f, "section lacks document grid"),
+            Self::GridKindMismatch => write!(f, "document grid kind is not linesAndChars"),
+            Self::LinePitchMismatch { expected, actual } => {
+                write!(f, "line pitch {actual} does not match expected {expected}")
+            }
+        }
+    }
+}
+
+pub fn measure_twips(m: &joyword_model::Measure) -> Option<i64> {
+    match m {
+        joyword_model::Measure::Twips(t) => Some(*t),
+        joyword_model::Measure::HalfPoints(hp) => Some(hp * 10),
+        joyword_model::Measure::Emu(e) => Some(e / 635),
+        other => other.absolute().map(|emu| emu.raw() / 635),
+    }
+}
+
+/// Verify that a section conforms to GB/T 9704-2012 layout geometry and grid.
+pub fn verify_gbt9704_section(section: &joyword_model::Section) -> Result<(), Gbt9704Issue> {
+    const TOLERANCE: i64 = 15;
+
+    let w = measure_twips(&section.page.width).unwrap_or(0);
+    let h = measure_twips(&section.page.height).unwrap_or(0);
+    if (w - Gbt9704Spec::PAGE_WIDTH_TWIPS).abs() > TOLERANCE
+        || (h - Gbt9704Spec::PAGE_HEIGHT_TWIPS).abs() > TOLERANCE
+    {
+        return Err(Gbt9704Issue::PaperDimensionsMismatch {
+            width: w,
+            height: h,
+        });
+    }
+
+    let top = measure_twips(&section.page.top).unwrap_or(0);
+    if (top - Gbt9704Spec::TOP_MARGIN_TWIPS).abs() > TOLERANCE {
+        return Err(Gbt9704Issue::MarginMismatch {
+            edge: "top",
+            actual: top,
+            expected: Gbt9704Spec::TOP_MARGIN_TWIPS,
+        });
+    }
+
+    let bottom = measure_twips(&section.page.bottom).unwrap_or(0);
+    if (bottom - Gbt9704Spec::BOTTOM_MARGIN_TWIPS).abs() > TOLERANCE {
+        return Err(Gbt9704Issue::MarginMismatch {
+            edge: "bottom",
+            actual: bottom,
+            expected: Gbt9704Spec::BOTTOM_MARGIN_TWIPS,
+        });
+    }
+
+    let left = measure_twips(&section.page.left).unwrap_or(0);
+    if (left - Gbt9704Spec::LEFT_MARGIN_TWIPS).abs() > TOLERANCE {
+        return Err(Gbt9704Issue::MarginMismatch {
+            edge: "left",
+            actual: left,
+            expected: Gbt9704Spec::LEFT_MARGIN_TWIPS,
+        });
+    }
+
+    let right = measure_twips(&section.page.right).unwrap_or(0);
+    if (right - Gbt9704Spec::RIGHT_MARGIN_TWIPS).abs() > TOLERANCE {
+        return Err(Gbt9704Issue::MarginMismatch {
+            edge: "right",
+            actual: right,
+            expected: Gbt9704Spec::RIGHT_MARGIN_TWIPS,
+        });
+    }
+
+    let grid = section.doc_grid.as_ref().ok_or(Gbt9704Issue::GridMissing)?;
+    if grid.kind != Some(DocGridKind::LinesAndChars) {
+        return Err(Gbt9704Issue::GridKindMismatch);
+    }
+    let pitch = grid.line_pitch.unwrap_or(0);
+    if (pitch - Gbt9704Spec::LINE_PITCH_TWIPS).abs() > TOLERANCE {
+        return Err(Gbt9704Issue::LinePitchMismatch {
+            expected: Gbt9704Spec::LINE_PITCH_TWIPS,
+            actual: pitch,
+        });
+    }
+
+    Ok(())
+}
+
+/// Creates a standard GB/T 9704-2012 official document sample containing
+/// document headers, numbers, titles, body with first-line indent,
+/// Ruby (phonetic guide), CombineCharacters (two-lines-in-one),
+/// EmphasisMark, and EnclosedCharacter.
+pub fn create_gbt9704_document_sample() -> joyword_model::Document {
+    use joyword_model::{
+        BlockSeq, CombineBrackets, CombineCharacters, EmphasisMark, EncloseShape,
+        EnclosedCharacter, InlineKind, InlineObject, PageSetup, Paragraph, Ruby, RubyAlign,
+    };
+    use std::sync::Arc;
+
+    let mut doc = joyword_model::Document::new(PageSetup::a4_gbt9704());
+    doc.sections_mut()[0].doc_grid = Some(DocGrid::gbt9704());
+
+    let mut blocks = Vec::new();
+
+    // 1. 发文字号 (Issue Number)
+    let mut p_num = Paragraph::new(doc.ids().node());
+    p_num
+        .push_text("发文字号：京发〔2026〕1号", None, Arc::default())
+        .unwrap();
+    blocks.push(p_num.into());
+
+    // 2. 标题 (Title - 2号小标宋, 居中)
+    let mut p_title = Paragraph::new(doc.ids().node());
+    Arc::make_mut(&mut p_title.props).justification = Some(joyword_model::Justification::Center);
+    p_title
+        .push_text("关于推进政务信息系统建设的通知", None, Arc::default())
+        .unwrap();
+    blocks.push(p_title.into());
+
+    // 3. 正文 (Body - 3号仿宋, 首行缩进2字符 / 632 twips)
+    let mut p_body = Paragraph::new(doc.ids().node());
+    Arc::make_mut(&mut p_body.props).indent.first_line = Some(joyword_model::Measure::Twips(632));
+    p_body
+        .push_text(
+            "各区人民政府，市政府各委、办、局：为贯彻落实",
+            None,
+            Arc::default(),
+        )
+        .unwrap();
+
+    // 嵌入 Ruby 拼音指南
+    p_body.push_inline(
+        InlineObject {
+            id: doc.ids().node(),
+            kind: InlineKind::Ruby(Ruby {
+                base: "中华人民共和国".to_string(),
+                text: "zhōng huá rén mín gòng hé guó".to_string(),
+                align: RubyAlign::Distribute,
+                font_size_hps: Some(18),
+                raise_hps: Some(10),
+            }),
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+
+    p_body
+        .push_text(
+            "国家政务信息化发展规划，特提出以下要求：",
+            None,
+            Arc::default(),
+        )
+        .unwrap();
+    blocks.push(p_body.into());
+
+    // 4. 第一条 (包含带圈字符与着重号)
+    let mut p_item1 = Paragraph::new(doc.ids().node());
+    Arc::make_mut(&mut p_item1.props).indent.first_line = Some(joyword_model::Measure::Twips(632));
+    p_item1.push_inline(
+        InlineObject {
+            id: doc.ids().node(),
+            kind: InlineKind::Enclosed(EnclosedCharacter {
+                text: "1".to_string(),
+                shape: EncloseShape::Circle,
+            }),
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+    p_item1
+        .push_text(" 健全数据安全体系，确保", None, Arc::default())
+        .unwrap();
+    p_item1.push_inline(
+        InlineObject {
+            id: doc.ids().node(),
+            kind: InlineKind::Emphasis {
+                text: "核心数据".to_string(),
+                mark: EmphasisMark::Dot,
+            },
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+    p_item1
+        .push_text("绝对安全可靠。", None, Arc::default())
+        .unwrap();
+    blocks.push(p_item1.into());
+
+    // 5. 第二条 (包含双行合一)
+    let mut p_item2 = Paragraph::new(doc.ids().node());
+    Arc::make_mut(&mut p_item2.props).indent.first_line = Some(joyword_model::Measure::Twips(632));
+    p_item2.push_inline(
+        InlineObject {
+            id: doc.ids().node(),
+            kind: InlineKind::Combine(CombineCharacters {
+                text: "办公室信息科".to_string(),
+                brackets: CombineBrackets::Square,
+            }),
+            source: None,
+        },
+        None,
+        Arc::default(),
+    );
+    p_item2
+        .push_text("做好每日协调督办。", None, Arc::default())
+        .unwrap();
+    blocks.push(p_item2.into());
+
+    // 6. 发文机关 (Right-aligned -> End)
+    let mut p_issuer = Paragraph::new(doc.ids().node());
+    Arc::make_mut(&mut p_issuer.props).justification = Some(joyword_model::Justification::End);
+    p_issuer
+        .push_text("北京市人民政府办公厅", None, Arc::default())
+        .unwrap();
+    blocks.push(p_issuer.into());
+
+    // 7. 发文日期 (Right-aligned -> End)
+    let mut p_date = Paragraph::new(doc.ids().node());
+    Arc::make_mut(&mut p_date.props).justification = Some(joyword_model::Justification::End);
+    p_date
+        .push_text("2026年10月28日", None, Arc::default())
+        .unwrap();
+    blocks.push(p_date.into());
+
+    let body = doc.body_id();
+    doc.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+
+    doc
+}
+
+/// Manuscript paper (稿纸) specification.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ManuscriptPaperSpec {
+    pub rows: u32,
+    pub cols: u32,
+    pub line_pitch_twips: i64,
+    pub char_pitch_twips: i64,
+}
+
+impl ManuscriptPaperSpec {
+    pub fn standard_400() -> Self {
+        Self {
+            rows: 20,
+            cols: 20,
+            line_pitch_twips: 600,
+            char_pitch_twips: 440,
+        }
+    }
+
+    pub fn standard_500() -> Self {
+        Self {
+            rows: 20,
+            cols: 25,
+            line_pitch_twips: 580,
+            char_pitch_twips: 350,
+        }
+    }
+}
+
+/// Script classification for typography & layout restrictions.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScriptKind {
+    Common,
+    Latin,
+    EastAsian,
+    BiDiRtl,
+    ComplexIndic,
+}
+
+/// Classify a character for typography handling.
+pub fn classify_script(ch: char) -> ScriptKind {
+    let u = ch as u32;
+    match u {
+        0x0590..=0x05FF
+        | 0x0600..=0x06FF
+        | 0x0750..=0x077F
+        | 0x08A0..=0x08FF
+        | 0xFB50..=0xFDFF
+        | 0xFE70..=0xFEFF => ScriptKind::BiDiRtl,
+        0x0900..=0x0E7F => ScriptKind::ComplexIndic,
+        0x3000..=0x9FFF | 0xF900..=0xFAFF | 0x20000..=0x2EBEF => ScriptKind::EastAsian,
+        0x0000..=0x024F => ScriptKind::Latin,
+        _ => ScriptKind::Common,
+    }
+}
+
+/// Diagnostic notice when complex or BiDi text is retained with fidelity but
+/// layout capabilities are restricted per PLATFORM-004 / LAYOUT-014.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ComplexScriptDiagnostic {
+    BiDiRtlPreservedWithLimitedLayout {
+        range: std::ops::Range<usize>,
+        script: &'static str,
+    },
+    ComplexIndicPreservedWithLimitedLayout {
+        range: std::ops::Range<usize>,
+        script: &'static str,
+    },
+}
+
+pub fn scan_complex_scripts(text: &str) -> Vec<ComplexScriptDiagnostic> {
+    let mut diagnostics = Vec::new();
+    let mut current_bidi = None;
+    let mut current_indic = None;
+
+    for (byte_idx, ch) in text.char_indices() {
+        let script = classify_script(ch);
+        match script {
+            ScriptKind::BiDiRtl => {
+                if current_bidi.is_none() {
+                    current_bidi = Some(byte_idx);
+                }
+            }
+            _ => {
+                if let Some(start) = current_bidi.take() {
+                    diagnostics.push(ComplexScriptDiagnostic::BiDiRtlPreservedWithLimitedLayout {
+                        range: start..byte_idx,
+                        script: "Arabic/Hebrew BiDi",
+                    });
+                }
+            }
+        }
+        match script {
+            ScriptKind::ComplexIndic => {
+                if current_indic.is_none() {
+                    current_indic = Some(byte_idx);
+                }
+            }
+            _ => {
+                if let Some(start) = current_indic.take() {
+                    diagnostics.push(
+                        ComplexScriptDiagnostic::ComplexIndicPreservedWithLimitedLayout {
+                            range: start..byte_idx,
+                            script: "Indic/Thai Complex",
+                        },
+                    );
+                }
+            }
+        }
+    }
+    if let Some(start) = current_bidi {
+        diagnostics.push(ComplexScriptDiagnostic::BiDiRtlPreservedWithLimitedLayout {
+            range: start..text.len(),
+            script: "Arabic/Hebrew BiDi",
+        });
+    }
+    if let Some(start) = current_indic {
+        diagnostics.push(
+            ComplexScriptDiagnostic::ComplexIndicPreservedWithLimitedLayout {
+                range: start..text.len(),
+                script: "Indic/Thai Complex",
+            },
+        );
+    }
+
+    diagnostics
+}

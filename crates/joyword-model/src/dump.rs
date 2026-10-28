@@ -411,6 +411,18 @@ impl Dumper<'_> {
                                 InlineKind::Preserved(value) => {
                                     format!("preserved:{}", preserved(value))
                                 }
+                                InlineKind::Ruby(ruby) => {
+                                    format!("ruby:{}[{}]", ruby.base, ruby.text)
+                                }
+                                InlineKind::Combine(combine) => {
+                                    format!("combine:{:?}:{}", combine.brackets, combine.text)
+                                }
+                                InlineKind::Emphasis { text, mark } => {
+                                    format!("emphasis:{mark:?}:{text}")
+                                }
+                                InlineKind::Enclosed(enclosed) => {
+                                    format!("enclosed:{:?}:{}", enclosed.shape, enclosed.text)
+                                }
                             };
                             if self.options.node_ids {
                                 format!("<{} {kind}>", inline.id)

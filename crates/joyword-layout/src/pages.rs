@@ -450,6 +450,10 @@ pub(crate) fn accept_body_inlines(
                     "inline objects or breaks",
                 ));
             }
+            InlineKind::Ruby(_)
+            | InlineKind::Combine(_)
+            | InlineKind::Emphasis { .. }
+            | InlineKind::Enclosed(_) => {}
         }
     }
     if field && (page_break || column_break || image) {
@@ -546,6 +550,22 @@ pub(crate) fn marked_text(document: &Document, paragraph: &Paragraph) -> String 
             format!("{OBJECT_MARKER}image:{hash}:{width}x{height}{placed}")
         }
         InlineKind::Preserved(_) => OBJECT_MARKER.to_string(),
+        InlineKind::Ruby(ruby) => format!("{OBJECT_MARKER}ruby:{}[{}]", ruby.base, ruby.text),
+        InlineKind::Combine(combine) => {
+            format!(
+                "{OBJECT_MARKER}combine:{:?}:{}",
+                combine.brackets, combine.text
+            )
+        }
+        InlineKind::Emphasis { text, mark } => {
+            format!("{OBJECT_MARKER}emphasis:{mark:?}:{text}")
+        }
+        InlineKind::Enclosed(enclosed) => {
+            format!(
+                "{OBJECT_MARKER}enclosed:{:?}:{}",
+                enclosed.shape, enclosed.text
+            )
+        }
     })
 }
 
@@ -571,18 +591,37 @@ pub(crate) fn split_page_breaks(paragraph: &Paragraph) -> PageBreakSplit {
                 cursor_byte += chunk.len();
                 text.push_str(&chunk);
             }
-            Segment::Inline(_) => {
-                if started {
-                    pieces.push(TextPiece {
-                        text: std::mem::take(&mut text),
-                        scalar_origin: origin_scalar,
-                        byte_origin: origin_byte,
-                        breaks_before: pending,
-                    });
-                    pending = 1;
-                    started = false;
+            Segment::Inline(inline) => {
+                if matches!(
+                    inline.kind,
+                    InlineKind::Break(BreakKind::Page | BreakKind::Column)
+                ) {
+                    if started {
+                        pieces.push(TextPiece {
+                            text: std::mem::take(&mut text),
+                            scalar_origin: origin_scalar,
+                            byte_origin: origin_byte,
+                            breaks_before: pending,
+                        });
+                        pending = 1;
+                        started = false;
+                    } else {
+                        pending = pending.saturating_add(1);
+                    }
                 } else {
-                    pending = pending.saturating_add(1);
+                    if !started {
+                        origin_scalar = cursor_scalar;
+                        origin_byte = cursor_byte;
+                        started = true;
+                    }
+                    let inline_text = match &inline.kind {
+                        InlineKind::Ruby(ruby) => ruby.base.as_str(),
+                        InlineKind::Combine(combine) => combine.text.as_str(),
+                        InlineKind::Emphasis { text, .. } => text.as_str(),
+                        InlineKind::Enclosed(enclosed) => enclosed.text.as_str(),
+                        _ => "",
+                    };
+                    text.push_str(inline_text);
                 }
                 cursor_scalar += 1;
                 cursor_byte += marker_bytes;

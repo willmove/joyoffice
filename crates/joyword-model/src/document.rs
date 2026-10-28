@@ -190,6 +190,26 @@ pub struct DocGrid {
     pub char_space: Option<i64>,
 }
 
+impl DocGrid {
+    /// Document grid per GB/T 9704-2012: linesAndChars, 22 lines × 28 chars.
+    pub fn gbt9704() -> Self {
+        Self {
+            kind: Some(DocGridKind::LinesAndChars),
+            line_pitch: Some(580),
+            char_space: Some(316),
+        }
+    }
+
+    /// Document grid for standard 20×20 manuscript paper (稿纸).
+    pub fn manuscript_20x20() -> Self {
+        Self {
+            kind: Some(DocGridKind::LinesAndChars),
+            line_pitch: Some(600),
+            char_space: Some(440),
+        }
+    }
+}
+
 /// `w:pgSz` and `w:pgMar` in source units.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PageSetup {
@@ -219,6 +239,30 @@ impl PageSetup {
             right: Measure::Twips(1_800),
             bottom: Measure::Twips(1_440),
             left: Measure::Twips(1_800),
+            header: Measure::Twips(851),
+            footer: Measure::Twips(992),
+            gutter: Measure::Twips(0),
+        }
+    }
+
+    /// A4 portrait per GB/T 9704-2012 §5.2.1 / §5.2.2:
+    /// Paper: 210 mm × 297 mm (11,906 × 16,838 twips)
+    /// Margins:
+    /// - Top (天头): 37 mm (2,098 twips)
+    /// - Bottom (地脚): 35 mm (1,984 twips)
+    /// - Left (订口): 28 mm (1,587 twips)
+    /// - Right (切口): 26 mm (1,474 twips)
+    ///
+    /// Print area (版心): 156 mm × 225 mm (8,844 × 12,756 twips)
+    pub fn a4_gbt9704() -> Self {
+        Self {
+            width: Measure::Twips(11_906),
+            height: Measure::Twips(16_838),
+            orientation: Orientation::Portrait,
+            top: Measure::Twips(2_098),
+            right: Measure::Twips(1_474),
+            bottom: Measure::Twips(1_984),
+            left: Measure::Twips(1_587),
             header: Measure::Twips(851),
             footer: Measure::Twips(992),
             gutter: Measure::Twips(0),

@@ -31,8 +31,9 @@ pub use annotation::{
 };
 pub use block::{
     Block, BlockSeq, BorderEdge, BorderKind, BreakKind, Cell, CellBorders, CellChangeProps,
-    CellMargins, InlineKind, InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph,
-    Preserved, Removed, Row, RowChangeProps, RowHeight, RowHeightRule, Run, Sdt, SdtLock, SdtProps,
+    CellMargins, CombineBrackets, CombineCharacters, EmphasisMark, EncloseShape, EnclosedCharacter,
+    InlineKind, InlineObject, OpaqueBlock, PageField, PageFieldKind, Paragraph, Preserved, Removed,
+    Row, RowChangeProps, RowHeight, RowHeightRule, Ruby, RubyAlign, Run, Sdt, SdtLock, SdtProps,
     Segment, Shading, Table, TableAlign, TableChangeProps, TableLayoutKind, TableLook, TableWidth,
     VerticalAlign, VerticalMerge,
 };

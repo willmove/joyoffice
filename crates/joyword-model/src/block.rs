@@ -91,6 +91,71 @@ pub struct Preserved {
     pub handle: PreservedId,
 }
 
+/// Ruby phonetic alignment (`w:rubyAlign`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum RubyAlign {
+    Distribute,
+    Center,
+    Left,
+    Right,
+    RightVertical,
+}
+
+/// Phonetic guide / Ruby annotation (`w:ruby`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Ruby {
+    pub base: String,
+    pub text: String,
+    pub align: RubyAlign,
+    pub font_size_hps: Option<u32>,
+    pub raise_hps: Option<u32>,
+}
+
+/// Enclosing brackets for combined characters (`w:combineBrackets`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum CombineBrackets {
+    #[default]
+    None,
+    Round,
+    Square,
+    Angle,
+    Curly,
+}
+
+/// Two-lines-in-one / combine characters (`w:combine`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CombineCharacters {
+    pub text: String,
+    pub brackets: CombineBrackets,
+}
+
+/// Emphasis mark (`w:em`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum EmphasisMark {
+    None,
+    Dot,
+    Comma,
+    Circle,
+    UnderDot,
+}
+
+/// Enclosed shape (`w:combineShape` / circled/enclosed character).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum EncloseShape {
+    #[default]
+    Circle,
+    Square,
+    Triangle,
+    Diamond,
+}
+
+/// Enclosed / circled character (`w:sym` or combine shape).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct EnclosedCharacter {
+    pub text: String,
+    pub shape: EncloseShape,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum InlineKind {
     Break(BreakKind),
@@ -104,6 +169,13 @@ pub enum InlineKind {
         anchor: Option<ImageAnchor>,
     },
     Preserved(Preserved),
+    Ruby(Ruby),
+    Combine(CombineCharacters),
+    Emphasis {
+        text: String,
+        mark: EmphasisMark,
+    },
+    Enclosed(EnclosedCharacter),
 }
 
 #[derive(Clone, Debug, PartialEq)]
