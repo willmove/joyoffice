@@ -1708,3 +1708,19 @@ T104 仍是 `in_progress`，进度计数不改。核对结论：任务要求的�
 未做：断电场景人工验收（不把故障注入冒充断电）。T104 保持 `in_progress`。
 
 本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-shell --test t104_periodic_snapshots`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+### T302 commentsIds 与 commentsExtensible 写回（2026-10-27）
+
+T302 仍是 `in_progress`，进度计数不改。本切片补上第一切片「未做」清单里的「commentsIds 与 commentsExtensible 对新回复的改写（这两部分保持原字节，新回复的 durable_id 为空）」。
+
+**分配在创建时**：`joyword-model::Document::allocate_durable_id(para_id)` 以 `durable_id_from`（paraId 的 FNV-1a 32 位，冲突时确定性加盐重试，对文档内既有 durable id 查重）分配；`is_strict_utc_date` 识别 `YYYY-MM-DDTHH:MM:SSZ`。引擎 `AddComment`／`ReplyComment` 创建批注时分配 durable id，`w:date` 已是严格形状时同步设置 `date_utc`——野外部件中 `w16cex:dateUtc` 逐字重复 `w:date`（本仓库测试夹具同样如此），因此这不是发明时间戳。durableId 派生是 JoyWord 假定（非 Word 算法）：[MS-DOCX] 定义为 32 位整数，写十进制；导入侧接受任意非空串（Word 写 GUID 形态），十进制不会与 GUID 冲突。
+
+**导出追加式写回**：`durable_plan` 从既有 commentsIds／commentsExtensible 部件收集已占用的 durable id 与已见 paraId，一次规划全部新批注的 id——引擎分配值优先写入（重导入后语义比较相等），未经分配器构造的批注走同一共享派生，部件内冲突显式拒绝。`write_ids`／`write_extensible` 与 commentsExtended 同一手法：既有条目字节不动，新条目插在根结束标签前（`insert_before_end`）；缺部件时新建 `/word/commentsIds.xml`／`/word/commentsExtensible.xml` 并追加关系与 Content-Type Override。commentsExtensible 仅当每个新批注的 `w:date` 都是严格 UTC 形状时才写，否则整部件保持原字节。两部件由同一 plan 供值，同一批注在两部件键一致。
+
+**语义往返闭合**：规范化 dump（`semantic_difference` 的基础）比较 `durable_id` 与 `date_utc`；因为引擎在创建时已设置两者、导出写同值，导出→重导入后逐字相等，`round_trip` 断言通过。
+
+**证据**：`crates/joyword-docx/tests/comments.rs`——`a_new_comment_and_reply_are_written_back` 重写为经引擎命令创建并断言两新部件；新增三项 `new_comments_append_durable_ids_and_extensible_dates_without_touching_entries`、`a_new_comment_without_a_strict_utc_date_leaves_comments_extensible_untouched`、`a_fresh_package_without_extension_parts_gains_ids_and_extensible`。
+
+未做：people.xml 身份、GUI 气泡、不透明表格锚点映射、带范围标记段落的整段重写、页眉批注导出专项测试、Word／WPS 人工交换。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-docx --test comments`（9 项）、`cargo test --locked -p joyword-engine -p joyword-model`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。

@@ -40,7 +40,7 @@ pub use document::{
     ChapterSeparator, DEFAULT_COMPATIBILITY_MODE, DocGrid, DocGridKind, Document, DocumentSettings,
     DocumentSnapshot, DocumentVersion, EqualColumns, HeaderFooterKind,
     NEW_DOCUMENT_COMPATIBILITY_MODE, NewspaperColumn, Orientation, PageNumbering, PageSetup,
-    Section, SectionBreak, Story, StoryKind, UnequalColumns,
+    Section, SectionBreak, Story, StoryKind, UnequalColumns, durable_id_from, is_strict_utc_date,
 };
 pub use dump::{DumpOptions, SemanticDifference};
 pub use hyperlink::{Hyperlink, MAX_HYPERLINK_CHARS, OpenRefusal, open_target};
