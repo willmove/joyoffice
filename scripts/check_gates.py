@@ -56,6 +56,13 @@ LAYERS = {
     "joyword-render": {"joyword-foundation", "joyword-layout", "joyword-model"},
     "joyword-pdf": {"joyword-foundation", "joyword-layout", "joyword-model"},
     "joyword-corpus": {"joyoffice-opc"},
+    "joyoffice-cfb": set(),
+    "joyoffice-drawingml": set(),
+    "joyoffice-omml": set(),
+    "joyword-doc": {"joyoffice-cfb", "joyword-model", "joyword-textfmt"},
+    "joyword-protect": {"joyoffice-cfb", "joyoffice-opc"},
+    "joyword-rtf": {"joyword-model", "joyword-textfmt"},
+    "joyword-textfmt": {"joyword-model"},
     "joyword-shell": {
         "joyoffice-opc",
         "joyword-agent",
@@ -92,7 +99,12 @@ DEV_LAYERS = {
     # crates/joyword-docx/Cargo.toml -- DOCX round-trip tests read corpus
     # originals, and the T402 mark-revision slice round-trips one AI replace
     # through a real engine session before exporting again.
-    "joyword-docx": {"joyword-corpus", "joyword-engine"},
+    "joyword-docx": {
+        "joyoffice-drawingml",
+        "joyoffice-omml",
+        "joyword-corpus",
+        "joyword-engine",
+    },
     # crates/joyword-layout/Cargo.toml:20-21 -- layout tests drive a real engine
     # session and compare page scenes against the raster output.
     "joyword-layout": {"joyword-engine", "joyword-render"},

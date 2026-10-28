@@ -1050,29 +1050,23 @@ pub fn create_gbt9704_document_sample() -> joyword_model::Document {
 
     // 1. 发文字号 (Issue Number)
     let mut p_num = Paragraph::new(doc.ids().node());
-    p_num
-        .push_text("发文字号：京发〔2026〕1号", None, Arc::default())
-        .unwrap();
+    let _ = p_num.push_text("发文字号：京发〔2026〕1号", None, Arc::default());
     blocks.push(p_num.into());
 
     // 2. 标题 (Title - 2号小标宋, 居中)
     let mut p_title = Paragraph::new(doc.ids().node());
     Arc::make_mut(&mut p_title.props).justification = Some(joyword_model::Justification::Center);
-    p_title
-        .push_text("关于推进政务信息系统建设的通知", None, Arc::default())
-        .unwrap();
+    let _ = p_title.push_text("关于推进政务信息系统建设的通知", None, Arc::default());
     blocks.push(p_title.into());
 
     // 3. 正文 (Body - 3号仿宋, 首行缩进2字符 / 632 twips)
     let mut p_body = Paragraph::new(doc.ids().node());
     Arc::make_mut(&mut p_body.props).indent.first_line = Some(joyword_model::Measure::Twips(632));
-    p_body
-        .push_text(
-            "各区人民政府，市政府各委、办、局：为贯彻落实",
-            None,
-            Arc::default(),
-        )
-        .unwrap();
+    let _ = p_body.push_text(
+        "各区人民政府，市政府各委、办、局：为贯彻落实",
+        None,
+        Arc::default(),
+    );
 
     // 嵌入 Ruby 拼音指南
     p_body.push_inline(
@@ -1091,13 +1085,11 @@ pub fn create_gbt9704_document_sample() -> joyword_model::Document {
         Arc::default(),
     );
 
-    p_body
-        .push_text(
-            "国家政务信息化发展规划，特提出以下要求：",
-            None,
-            Arc::default(),
-        )
-        .unwrap();
+    let _ = p_body.push_text(
+        "国家政务信息化发展规划，特提出以下要求：",
+        None,
+        Arc::default(),
+    );
     blocks.push(p_body.into());
 
     // 4. 第一条 (包含带圈字符与着重号)
@@ -1115,9 +1107,7 @@ pub fn create_gbt9704_document_sample() -> joyword_model::Document {
         None,
         Arc::default(),
     );
-    p_item1
-        .push_text(" 健全数据安全体系，确保", None, Arc::default())
-        .unwrap();
+    let _ = p_item1.push_text(" 健全数据安全体系，确保", None, Arc::default());
     p_item1.push_inline(
         InlineObject {
             id: doc.ids().node(),
@@ -1130,9 +1120,7 @@ pub fn create_gbt9704_document_sample() -> joyword_model::Document {
         None,
         Arc::default(),
     );
-    p_item1
-        .push_text("绝对安全可靠。", None, Arc::default())
-        .unwrap();
+    let _ = p_item1.push_text("绝对安全可靠。", None, Arc::default());
     blocks.push(p_item1.into());
 
     // 5. 第二条 (包含双行合一)
@@ -1150,29 +1138,25 @@ pub fn create_gbt9704_document_sample() -> joyword_model::Document {
         None,
         Arc::default(),
     );
-    p_item2
-        .push_text("做好每日协调督办。", None, Arc::default())
-        .unwrap();
+    let _ = p_item2.push_text("做好每日协调督办。", None, Arc::default());
     blocks.push(p_item2.into());
 
     // 6. 发文机关 (Right-aligned -> End)
     let mut p_issuer = Paragraph::new(doc.ids().node());
     Arc::make_mut(&mut p_issuer.props).justification = Some(joyword_model::Justification::End);
-    p_issuer
-        .push_text("北京市人民政府办公厅", None, Arc::default())
-        .unwrap();
+    let _ = p_issuer.push_text("北京市人民政府办公厅", None, Arc::default());
     blocks.push(p_issuer.into());
 
     // 7. 发文日期 (Right-aligned -> End)
     let mut p_date = Paragraph::new(doc.ids().node());
     Arc::make_mut(&mut p_date.props).justification = Some(joyword_model::Justification::End);
-    p_date
-        .push_text("2026年10月28日", None, Arc::default())
-        .unwrap();
+    let _ = p_date.push_text("2026年10月28日", None, Arc::default());
     blocks.push(p_date.into());
 
     let body = doc.body_id();
-    doc.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+    if let Some(story) = doc.story_mut(body) {
+        story.blocks = BlockSeq::from_vec(blocks);
+    }
 
     doc
 }

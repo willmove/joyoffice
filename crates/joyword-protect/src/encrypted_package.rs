@@ -288,10 +288,7 @@ impl EncryptedPackageReader {
         enc_package_stream.extend_from_slice(&encrypted_body);
 
         // Build XML
-        use std::fmt::Write;
-        let mut xml = String::new();
-        write!(
-            &mut xml,
+        let xml = format!(
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n\
             <encryption xmlns=\"http://schemas.microsoft.com/office/2006/encryption\">\n\
               <keyData saltSize=\"16\" blockSize=\"16\" keyBits=\"256\" hashSize=\"64\" cipherAlgorithm=\"AES\" cipherChaining=\"ChainingModeCBC\" hashAlgorithm=\"SHA512\" saltValue=\"{}\"/>\n\
@@ -308,7 +305,7 @@ impl EncryptedPackageReader {
             encode_base64(&enc_verifier_input),
             encode_base64(&enc_verifier_value),
             encode_base64(&enc_key_value)
-        ).unwrap();
+        );
 
         let mut enc_info_stream = vec![4, 0, 4, 0, 0x40, 0, 0, 0]; // major 4, minor 4, flags
         enc_info_stream.extend_from_slice(xml.as_bytes());

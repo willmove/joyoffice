@@ -219,11 +219,12 @@ pub fn parse_omml_xml(xml: &str, budget: &OmmlBudget) -> Result<MathElement, Omm
         }
     }
 
-    if elements.len() == 1 {
-        Ok(elements.pop().unwrap())
-    } else {
-        Ok(MathElement::Group(elements))
+    if elements.len() == 1
+        && let Some(first) = elements.pop()
+    {
+        return Ok(first);
     }
+    Ok(MathElement::Group(elements))
 }
 
 fn parse_element(
@@ -274,11 +275,12 @@ fn parse_element(
                     _ => {}
                 }
             }
-            if children.len() == 1 {
-                Ok(children.pop().unwrap())
-            } else {
-                Ok(MathElement::Group(children))
+            if children.len() == 1
+                && let Some(first) = children.pop()
+            {
+                return Ok(first);
             }
+            Ok(MathElement::Group(children))
         }
         b"r" => {
             // Math run containing m:t

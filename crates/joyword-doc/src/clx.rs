@@ -14,6 +14,20 @@ pub struct Clx {
     pub pieces: Vec<PieceDescriptor>,
 }
 
+fn read_u16_le(bytes: &[u8], offset: usize) -> Result<u16, DocError> {
+    let sub = bytes
+        .get(offset..offset + 2)
+        .ok_or(DocError::MalformedClx)?;
+    Ok(u16::from_le_bytes([sub[0], sub[1]]))
+}
+
+fn read_u32_le(bytes: &[u8], offset: usize) -> Result<u32, DocError> {
+    let sub = bytes
+        .get(offset..offset + 4)
+        .ok_or(DocError::MalformedClx)?;
+    Ok(u32::from_le_bytes([sub[0], sub[1], sub[2], sub[3]]))
+}
+
 impl Clx {
     pub fn parse(
         table_stream: &[u8],
@@ -37,20 +51,12 @@ impl Clx {
             match clxt {
                 0x01 => {
                     // Prc: cbGrpprl (u16) followed by grpprl
-                    if pos + 2 > clx_bytes.len() {
-                        return Err(DocError::MalformedClx);
-                    }
-                    let cb_grpprl =
-                        u16::from_le_bytes(clx_bytes[pos..pos + 2].try_into().unwrap()) as usize;
+                    let cb_grpprl = read_u16_le(clx_bytes, pos)? as usize;
                     pos += 2 + cb_grpprl;
                 }
                 0x02 => {
                     // Pcdt found: lcb (u32) followed by PlcPcd
-                    if pos + 4 > clx_bytes.len() {
-                        return Err(DocError::MalformedClx);
-                    }
-                    let lcb_pcd =
-                        u32::from_le_bytes(clx_bytes[pos..pos + 4].try_into().unwrap()) as usize;
+                    let lcb_pcd = read_u32_le(clx_bytes, pos)? as usize;
                     pos += 4;
                     if pos + lcb_pcd > clx_bytes.len() {
                         return Err(DocError::MalformedClx);
@@ -81,7 +87,7 @@ impl Clx {
         let mut cps = Vec::with_capacity(n + 1);
         for i in 0..=n {
             let offset = i * 4;
-            let cp = u32::from_le_bytes(bytes[offset..offset + 4].try_into().unwrap());
+            let cp = read_u32_le(bytes, offset).map_err(|_| DocError::MalformedPieceTable)?;
             cps.push(cp);
         }
 
@@ -91,7 +97,7 @@ impl Clx {
             let pcd_offset = pcd_start + i * 8;
             // PCD: 2 bytes flags, 4 bytes fc, 2 bytes prm
             let raw_fc =
-                u32::from_le_bytes(bytes[pcd_offset + 2..pcd_offset + 6].try_into().unwrap());
+                read_u32_le(bytes, pcd_offset + 2).map_err(|_| DocError::MalformedPieceTable)?;
             let is_compressed = (raw_fc & 0x4000_0000) != 0;
             let file_offset = if is_compressed {
                 ((raw_fc & 0x3FFF_FFFF) / 2) as usize

@@ -390,6 +390,8 @@ fn convert(
         title: core.and_then(joyword_pdf::core_title),
         outline: joyword_pdf::outline_from_headings(document, &layout),
         links: joyword_pdf::links_from_document(document, &layout),
+        tagged: true,
+        lang: Some("zh-CN".to_string()),
     };
     let pdf = joyword_pdf::render_export(layout.pages(), std::slice::from_ref(&font), &export)
         .map_err(|error| match error {

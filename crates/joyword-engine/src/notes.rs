@@ -33,15 +33,14 @@ fn insert_note_internal(
     let story_id = doc.insert_story(kind, vec![Block::Paragraph(Arc::new(para))]);
 
     let anno_kind = match kind {
-        StoryKind::Footnote => AnnotationKind::Footnote {
-            story: story_id,
-            custom_mark: None,
-        },
         StoryKind::Endnote => AnnotationKind::Endnote {
             story: story_id,
             custom_mark: None,
         },
-        _ => unreachable!(),
+        _ => AnnotationKind::Footnote {
+            story: story_id,
+            custom_mark: None,
+        },
     };
 
     let anchor = Anchor::Range {
