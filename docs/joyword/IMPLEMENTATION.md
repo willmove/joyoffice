@@ -1642,3 +1642,15 @@ T300 仍是 `in_progress`，进度计数不改。本切片补齐 REVIEW-003 的�
 ### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
 
 main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
+
+### T204 文档内跳转：外部 PDF 结构读取器复核（2026-10-27）
+
+T204 仍是 `in_progress`，进度计数不改。「文档内跳转」自动化缺口里的「没有外部 PDF 结构读取器复核」由本切片关闭：同一导出字节除 joyword-pdf 内部读取器（`inspect_navigation`）外，再经外部 qpdf CLI 结构读取器（`qpdf --json=2`，JSON format v2）复核。工具约定与 `pdftotext`／`JOYWORD_REQUIRE_TEST_FONT` 一致：本机无 qpdf 或环境变量未设时测试打印跳过并返回成功；设 `JOYWORD_REQUIRE_QPDF=1` 时要求（unified-pdf apt 安装 qpdf 的 CI 步骤另跟），缺失即失败。依赖只增 qpdf 一个 apt 包与 joyword-pdf 的一条 serde_json dev-dependency 边（解析 qpdf JSON；Cargo.lock 无新包）。qpdf 11.9（ubuntu-24.04）与 12.2（本机）都支持 `--json=2`。
+
+实现（`crates/joyword-pdf/tests/navigation.rs` 与 `apps/joyword-cli/tests/bookmark_goto.rs` 各带同一份 `mod qpdf` 读取辅助，互不依赖）：写临时文件后运行 `qpdf --json=2 <file> -`，从 JSON v2 的完整对象转储（`qpdf[1]` 的 `obj:<ref>` 表与 `trailer`）解析——目录 `/Names /Dests` 名称树（支持 `/Kids` 子树，键按 qpdf 的 `u:`／`b:<hex>` 标注还原为原始字节；ISO 32000-1 名称树键按字节比较，与内部 `name_key` 对 UTF-16BE-BOM 与裸 UTF-8 两种写法的契约一致）；逐页 `/Annots` 中 `/Subtype /Link` 的 `/A` 动作，`/S /GoTo` 的 `/D` 解析为 `[page /XYZ x y zoom]`（间接引用跟一层）。
+
+证据：`navigation.rs` 新增 `an_external_reader_sees_named_destinations_and_resolves_goto_actions`——模型书签（ASCII `first`、非 ASCII「目录」、无链接的 `unused`）加两条锚点 GoTo 与一条 `https` URI 导出后，qpdf 侧断言名称树按键字节可见且坐标与内部读回一致、每个 GoTo 的 `/D` 命中同名命名目标数组与正确页面对象、URI 动作原样保留；`bookmark_goto.rs` 的 `an_imported_bookmark_is_a_pdf_goto_named_destination`、`header_footer_and_comment_bookmarks_are_goto_destinations`、`column_and_opaque_table_bookmarks_are_goto_destinations` 三个导入场景在同一份字节上追加 `assert_external_goto_destinations`，与内部读回逐名逐链对照（正文、页眉页脚批注、列与不透明表格点目标全部覆盖）。
+
+本机验证（Linux，Rust 1.98.1，qpdf 12.2.0）：`JOYWORD_REQUIRE_QPDF=1 cargo test --locked -p joyword-pdf` 全部通过（11 个测试目标，含新增外部复核），`cargo test --locked -p joyword-cli --test bookmark_goto` 3 项全过；无 qpdf 时跳过、设变量时以「qpdf is not installed」失败两条路径均实测；`cargo fmt --all -- --check` 干净，`cargo clippy -p joyword-pdf -p joyword-cli --all-targets --locked -- -D warnings` 零告警；`check_docs.py`／`check_acceptance.py` 通过。
+
+未做：锚点目标不在本文档书签中时该链接仍被跳过而不阻断导出（`文档内跳转` 保持 `partial` 的唯一剩余理由）；PDF 结构标签（tagged PDF）；图形界面；Word／WPS 对照；真实打印与系统打印对话框；两个独立阅读器人工检查（UOS 报告的 qpdfview／WPS PDF 仍是人工行）。T204 保持 `in_progress`。
