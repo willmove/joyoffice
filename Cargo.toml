@@ -12,6 +12,7 @@ members = [
     "crates/joyword-layout",
     "crates/joyword-model",
     "crates/joyword-pdf",
+    "crates/joyword-protect",
     "crates/joyword-render",
     "crates/joyword-shell",
 ]
@@ -27,6 +28,7 @@ default-members = [
     "crates/joyword-layout",
     "crates/joyword-model",
     "crates/joyword-pdf",
+    "crates/joyword-protect",
     "crates/joyword-render",
     "crates/joyword-shell",
 ]
@@ -56,6 +58,7 @@ joyword-engine = { path = "crates/joyword-engine" }
 joyword-layout = { path = "crates/joyword-layout" }
 joyword-model = { path = "crates/joyword-model" }
 joyword-pdf = { path = "crates/joyword-pdf" }
+joyword-protect = { path = "crates/joyword-protect" }
 joyword-render = { path = "crates/joyword-render" }
 joyword-shell = { path = "crates/joyword-shell" }
 crc32fast = "=1.5.2"

@@ -188,3 +188,9 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-007／FORMAT-009／FORMAT-014／QUALITY-005。依据微软公开规范 [[MS-CFB]: Compound File Binary File Format](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/)。纯自研实现于 `crates/joyoffice-cfb`，零第三方依赖。只读公开规范，未读取任何专有软件或闭源库实现源码。
 - 实现了 512 字节 Header 解析与校验、FAT／MiniFAT／DIFAT 扇区链遍历、128 字节目录项与树遍历，以及受预算限制的流提取（区分普通 FAT 流与 MiniStream）；实现了 MS-CFB v3 标准写入器供测试与后续加密包输出使用。严格防环机制与不可信输入资源预算（CfbBudget）。
 
+### 文档保护、活动内容与加解密（T604，2026-10-28）
+
+- FORMAT-009／QUALITY-009／FORMAT-003。依据微软公开规范 [[MS-OFFCRYPTO]: Office Document Cryptography Structure](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-offcrypto/)、[ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.15.1.29、NIST FIPS 180-4（SHA 系列）、NIST FIPS 197（AES）与 RFC 4231（HMAC）。自研实现于 `crates/joyword-protect`，零第三方加密库依赖。只读公开规范，未读取任何专有软件实现源码。
+- 实现了文档保护密码哈希校验（支持 SHA-1／256／512 与 spinCount 迭代比对）、活动内容安全审计与外部外链（UNC、本地协议）防御、XML-DSig 签名被签部件摘要一致性检查，以及 CFB 容器中的 Agile 加密 OOXML 解密与往返测试。
+
+

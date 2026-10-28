@@ -1,0 +1,17 @@
+[package]
+name = "joyword-protect"
+description = "Document protection, active content safety, digital signatures, and OOXML encryption (T604)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyoffice-cfb.workspace = true
+joyoffice-opc.workspace = true
+quick-xml.workspace = true
+
+[lints]
+workspace = true
