@@ -3,6 +3,8 @@ members = [
     "apps/joyword-cli",
     "apps/joyword",
     "crates/joyoffice-cfb",
+    "crates/joyoffice-drawingml",
+    "crates/joyoffice-omml",
     "crates/joyoffice-opc",
     "crates/joyword-agent",
     "crates/joyword-corpus",
@@ -22,6 +24,8 @@ members = [
 default-members = [
     "apps/joyword-cli",
     "crates/joyoffice-cfb",
+    "crates/joyoffice-drawingml",
+    "crates/joyoffice-omml",
     "crates/joyoffice-opc",
     "crates/joyword-agent",
     "crates/joyword-corpus",
@@ -57,6 +61,8 @@ gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = 
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyword-foundation = { path = "crates/joyword-foundation" }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
+joyoffice-drawingml = { path = "crates/joyoffice-drawingml" }
+joyoffice-omml = { path = "crates/joyoffice-omml" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }
 joyword-doc = { path = "crates/joyword-doc" }

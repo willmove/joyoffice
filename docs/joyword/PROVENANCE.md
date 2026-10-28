@@ -218,6 +218,12 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - LAYOUT-007／STYLE-002／FORMAT-003。依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.11 (Footnotes and Endnotes)、§17.16 (Fields and Hyperlinks)。纯自研实现于 `crates/joyword-model` 与 `crates/joyword-engine`，零第三方外部库依赖。只读公开规范，未读取任何专有软件实现源码。
 - 实现了脚注与尾注独立故事引用模型、生命周期管理与安全删除；实现了 TOC、REF、PAGEREF、SEQ 复杂域代码词法与参数解析、序号计数器递增、交叉引用链循环引用拦截与有界递归保护，以及解耦的布局页码查询接口。
 
+### 公式、形状与表单内容（T502，2026-10-28）
+
+- LAYOUT-006／LAYOUT-007／FORMAT-011／FORMAT-010。依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §20 (DrawingML) 与 §22 (Math)。自研实现于 `crates/joyoffice-omml`、`crates/joyoffice-drawingml` 与 `crates/joyword-docx`。只读公开规范，未读取任何专有软件实现源码。
+- 实现了 OMML AST 结构映射、双向线性数学公式表示与有界 XML 序列化；实现了标准 DrawingML 预设几何形状与文本框流解析、尺寸单位转换与安全预算防护；实现了 SDT 内容控件类型化、锁定语义保护与 DOTX 模板工作流支持。
+
+
 
 
 

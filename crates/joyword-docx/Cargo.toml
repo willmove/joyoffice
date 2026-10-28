@@ -14,6 +14,8 @@ joyword-model.workspace = true
 quick-xml.workspace = true
 
 [dev-dependencies]
+joyoffice-drawingml.workspace = true
+joyoffice-omml.workspace = true
 joyword-corpus.workspace = true
 # T402 mark-revision tests round-trip one AI replace through a real engine
 # session before exporting again; see scripts/check_gates.py DEV_LAYERS.

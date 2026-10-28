@@ -1,0 +1,10 @@
+[package]
+name = "joyoffice-omml"
+version = "0.0.1"
+edition = "2024"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[dependencies]
+quick-xml.workspace = true

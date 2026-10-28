@@ -2684,6 +2684,20 @@ name = "joyoffice-cfb"
 version = "0.0.1"
 
 [[package]]
+name = "joyoffice-drawingml"
+version = "0.0.1"
+dependencies = [
+ "quick-xml",
+]
+
+[[package]]
+name = "joyoffice-omml"
+version = "0.0.1"
+dependencies = [
+ "quick-xml",
+]
+
+[[package]]
 name = "joyoffice-opc"
 version = "0.0.1"
 dependencies = [
@@ -2755,6 +2769,8 @@ dependencies = [
 name = "joyword-docx"
 version = "0.0.1"
 dependencies = [
+ "joyoffice-drawingml",
+ "joyoffice-omml",
  "joyoffice-opc",
  "joyword-corpus",
  "joyword-engine",
