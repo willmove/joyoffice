@@ -20,6 +20,8 @@ read-fonts.workspace = true
 flate2.workspace = true
 joyword-model.workspace = true
 joyword-engine.workspace = true
+# Only for parsing `qpdf --json` output in the external-reader navigation test.
+serde_json = "=1.0.154"
 
 [lints]
 workspace = true
