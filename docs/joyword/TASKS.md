@@ -25,12 +25,12 @@
 | M2 | 2 | 9 | 1 | 0 | 12 |
 | M3 | 0 | 3 | 2 | 0 | 5 |
 | M4 | 0 | 3 | 1 | 0 | 4 |
-| M5 | 0 | 0 | 5 | 0 | 5 |
+| M5 | 0 | 1 | 4 | 0 | 5 |
 | M6 | 0 | 0 | 6 | 0 | 6 |
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 13 | 21 | 32 | 0 | 66 |
+| 总计 | 13 | 22 | 31 | 0 | 66 |
 
 T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`。2026-10-22 六分支波次之后 T301 与 T401 也由 `planned` 改为 `in_progress`；2026-10-23 第二波的 T402 有界替换提案与只读预览进入独立审查，状态改为 `in_progress`。所以 2026-10-23 各波次后上表为 12 done／22 in_progress／32 planned／0 blocked；2026-10-26 T001 收口后为 13 done／21 in_progress／32 planned／0 blocked（见下文该段）。任务总数仍是 66，切片交付不等于整个任务完成。2026-10-23 第二波四路并行切片落地：T104 生产恢复双代、T204 PDF 书签内部跳转、T202 章节 PAGE 编号与 T402 有界替换提案与只读预览，四项各自进入 `in_progress`，没有一项被标成 `done`；详细证据见各任务的完成证据与 [验收清单](acceptance/README.md)。2026-10-23 第三切片（无 PR，按用户指令直接并入 main）：T402 跨段有界替换与段落标记删除修订（`w:pPr/w:rPr/w:del`）落地，同时补齐 AI 修订的 DOCX 往返与对照器修订携带；T301 的跨段跟踪删除限制随之解除（表格／内容控件边界仍拒绝）。布局的合并渲染（最终视图中删除标记的相邻段仍逐段排版）是如实记录的已知边界，留待后续切片。
 
@@ -51,6 +51,8 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 2026-10-21 T203 上下型绕排：页面相对、位于文字前面的 `wrapTopAndBottom` 已有自动测试。正文与图片带垂直相交的行整行放到带下方，不排到两侧。原绕排 XML 照原样写回。这是 JoyWord 假设，不是 Word 观察。真正的轮廓绕排、衬于文字下方、非页面相对位置和 Word／WPS／浏览器粘贴仍未做。状态保持 `in_progress`。计数不改。
 
 2026-10-22 六分支并行波次：T110 的 Windows 卷能力观测、T200 的 `numbering.xml` 写回、T202 的栏分隔线与 `nextColumn`、T301 的段落与运行格式修订、T401 的选区授权与受限工具这五个实现分支，加上 review 分支的 CLI JSON 键序修复，曾在集成分支 `chore/integration-wave-20261022` 组合验证；这六项与 T111 门禁加固 [#86](https://github.com/willmove/joyoffice/pull/86) 现已全部合入 `main` `85a24de`，该主干 CI 九项全绿（2026-10-23 核验）。T301 与 T401 由 `planned` 改为 `in_progress`：两者已有真实实现和自动测试，但没有 Word／WPS 往返、图形界面、信创真机或打印的人工验收，按任务规则不能标 `done`。计数改为 12 done／21 in_progress／33 planned／0 blocked，任务总数仍是 66。这一波没有任何任务改为 `done`。各切片的实现说明见 [IMPLEMENTATION](IMPLEMENTATION.md)，T200 与 T202 的原子准则见 [验收清单](acceptance/README.md)。
+
+2026-10-27 T500 开始：M5 第一个任务由 `planned` 改为 `in_progress`（计数随之改为 13 done／22 in_progress／31 planned／0 blocked，任务总数 66）。第一切片恢复带栏分隔线文档的稳定页尾复用（T202 记录的已知性能缺口），并补上百页混合分节长文档、长文档取消与屏幕／PDF 几何对照的自动证据；没有人工验收，不标 `done`。见 T500 的完成证据与 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 2026-10-26 T001 收口：核对发现 TASKS 此前记录的两个缺口中，Windows 腿其实已有证据——2026-10-19 Windows GUI 会话（[验证审计](VALIDATION-20261019.md)）已核对 rustc／cargo 1.98.1，并以隔离测试 profile 启动 `JoyWord · Preview` 完成 16 步截图，fmt／clippy／652＋38 项测试通过，只是该机缺 cargo-deny；「Windows 腿仍未做」一句出自同日麒麟会话的提交 `8b7f9c2`，两条会话并行，Windows 证据合入 main 后没有归并回 T001。真正缺的 cargo-deny 本机复核于本日在 Mac 参考机完成（cargo-deny 0.20.2，`--locked --all-features`，公告库 `21d909e4`，advisories／bans／licenses／sources 四项 ok），并在 main `5efe06a` 复核工具链、fmt 与不启用 `dev-runtime-shaders` 的应用构建，该提交 CI [40280336418](https://github.com/willmove/joyoffice/actions/runs/40280336418) 九项全绿。T001 由 `in_progress` 改为 `done`，计数改为 13 done／21 in_progress／32 planned／0 blocked，任务总数仍是 66。本次只改文档，未改代码与依赖；M0 退出条件中的信创真机专项仍属 T005 非阻塞待补验，不因 T001 完成而改变；[2026-10-19 验证审计](VALIDATION-20261019.md) 关于 T001「Windows 参考环境仍缺」的两处表述是当日快照，以本段为准。
 
@@ -380,6 +382,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 2026-10-24 页眉页脚与批注书签写回切片（任务仍 `in_progress`，进度计数不变，仍是 12 done／22 in_progress／32 planned／0 blocked）：#97 已经导入的页眉、页脚和可定位批注书签可以写回，规则与正文书签写回相同。未改动的包仍逐字节复制。宿主段落和锚点都没变时，标记字节留在原部件原处；段落被编辑或锚点仍是该部件里可表示的范围时，按模型偏移拼回原来的 `w:bookmarkStart`／`w:bookmarkEnd` 字节（保留 `w:id`、名称和 `displacedByCustomXml`）。正文标记只进 `document.xml`；页眉、页脚和批注标记写回各自部件，不发明进 `document.xml`。`w:id` 仍按部件配对。批注文字叶子就地改写后再拼书签。改名、脱离、颠倒、偏置变化、跨部件移动和新造书签都拒绝，不静默丢掉。批注不再可定位时书签也不写回。列书签、缺 id、不透明表格和游离批注继续锁定所在段落，编辑导出为 `Restricted`。已接受的页眉、页脚和批注书签不再锁定段落。证据：`an_edited_export_writes_story_bookmarks_back`、`story_bookmark_write_back_refuses_cross_part_and_bad_shapes`。未做：不透明表格和列书签成为 PDF 目标、外部 PDF 结构读取器复核、PDF 结构标签、图形界面、Word／WPS 对照、真实打印与系统打印对话框。
 - 2026-10-26 列与不透明表格书签目标切片（任务仍 `in_progress`，进度计数不变，仍是 12 done／22 in_progress／32 planned／0 blocked）：映射段落里带 `colFirst`／`colLast` 的成对书签按普通范围书签导入为模型书签，名称原样、区分大小写；所在段落保持锁定，因为列属性不写回，编辑导出仍是 `Restricted`，未改动导出仍逐字节复制原包。只在未映射标记里观察到的成对书签（不透明表格、块级内容控件、页眉页脚的非段落子元素）没有文本范围可锚定：良构成对且名称合法的，以前置段落末尾（块在故事开头则用第一个段落开头）的点目标插入模型书签，标记字节留在保留标记内、不设 source，写回不会移动它们，并保留 `BookmarkAnchorUnmapped` 作为「锚点为合成」的信息性诊断。不成对、顺序颠倒、未知属性、列标记、空名／控制字符／超预算、重名和超 512 个的仍然只诊断不插入，避免污染整份 PDF 导出。半对半映射的同一 `w:id` 仍记 `BookmarkAnchorInvalid` 并锁定段落。既有 `navigation_from_document` 与布局 caret 不改动即可解析这些名称。证据：`column_and_opaque_table_bookmarks_are_destinations`、`an_opaque_table_at_the_body_start_anchors_the_first_paragraph`、`bad_opaque_table_bookmark_pairs_stay_refused`、`story_bookmarks_refuse_bad_names_duplicates_and_detached_comments`（原 `story_bookmarks_refuse_bad_names_duplicates_columns_and_detached_comments`），以及 `apps/joyword-cli/tests/bookmark_goto.rs` 的 `column_and_opaque_table_bookmarks_are_goto_destinations`。未做：外部 PDF 结构读取器复核、PDF 结构标签、图形界面、Word／WPS 对照、真实打印与系统打印对话框。
 - 2026-10-26 错误路径切片（任务仍 `in_progress`，进度计数不变，仍是 12 done／22 in_progress／32 planned／0 blocked）：布局未稳定、字体不可嵌入不再报告成功，也不留下已发布文件。joyword-pdf 新增 `PdfError::UnembeddableFont`（与 `MissingFont` 分开）：写页前逐面检查 OS/2 `fsType`——Restricted License 按 `fsType & 0xF == 2` 读，与 krilla text/cid.rs 一致，无 OS/2 的 face 视为可嵌入——再由 krilla `Font::new` 接收；任一拒绝则整份导出不产出字节，finish 阶段的子集化失败报字体原因。应用侧导出与打印到文件共用的 publish 入口 `run_pdf` 现在先校验 `ensure_current`：布局未稳定或过期（菜单同一条件 `file.export.unstable`／布局未稳定）以「layout unstable」拒绝，场景字节不会写出；CLI `convert` 对 `LayoutError::Unstable` 与不可嵌入字体分别明确拒绝，坏路径不留文件。布局不收敛的检测本身仍在 layout（`run_layout_passes` 返回 `LayoutError::Unstable` 不发布临时页），本切片只接导出／打印侧。证据：`a_restricted_license_font_refuses_export_with_no_bytes`、`the_restriction_reads_the_low_nibble_like_krilla`、`an_allowed_embedding_bit_still_exports`（joyword-pdf，改 OS/2 fsType 的 fixture 字节），`an_unembeddable_font_refuses_export_and_publishes_nothing`、`export_and_print_refuse_without_a_settled_layout_and_publish_nothing`（apps/joyword，共用 publish 入口无头复排），`convert_refuses_a_restricted_license_font_and_writes_no_pdf`、`convert_still_exports_with_an_embeddable_font`（joyword-cli 真实进程）；不收敛检测仍由 `repeated_feedback_is_unstable_and_unpublished` 覆盖。未做：两个独立阅读器人工检查、真实打印、系统打印对话框、PDF 结构标签、图形界面、Word／WPS 对照。
+- 2026-10-27 外部 PDF 结构读取器复核切片（任务仍 `in_progress`，进度计数不变，仍是 12 done／22 in_progress／32 planned／0 blocked）：「文档内跳转」不再只由 joyword-pdf 内部读取器自证。新增外部 qpdf CLI 结构读取器复核（`qpdf --json=2`；设 `JOYWORD_REQUIRE_QPDF=1` 时要求跑通（unified-pdf apt 安装 qpdf 的 CI 步骤另跟），本机无 qpdf 或未设该变量时跳过，与 `pdftotext`／`JOYWORD_REQUIRE_TEST_FONT` 同一 skip-vs-require 模式；只加 qpdf 一个 apt 包与 serde_json 一条 dev-dependency 边，lock 无新包）。`crates/joyword-pdf/tests/navigation.rs` 新增 `an_external_reader_sees_named_destinations_and_resolves_goto_actions`：模型书签（ASCII `first`、非 ASCII「目录」、无链接的 `unused`）、两条锚点 GoTo 与一条 URI 链接同页导出，qpdf 侧断言命名目标树按键字节可见（qpdf v2 JSON 把可打印字符串标 `u:`、其他字节串标 `b:<hex>`，按 ISO 32000 字节比较还原，与内部 `name_key` 契约一致）、每个 `/S /GoTo` 注释的 `/D` 解析为 `[page /XYZ x y 0]` 且命中同名命名目标数组与正确页面对象、坐标与内部读回一致、URI 动作原样。`apps/joyword-cli/tests/bookmark_goto.rs` 的正文、页眉页脚批注、列与不透明表格三个导入场景在同一份字节上追加同一外部复核并与内部 `inspect_navigation` 逐名逐链对照。证据：`an_external_reader_sees_named_destinations_and_resolves_goto_actions`，以及现在内含 qpdf 外部断言的 `an_imported_bookmark_is_a_pdf_goto_named_destination`、`header_footer_and_comment_bookmarks_are_goto_destinations`、`column_and_opaque_table_bookmarks_are_goto_destinations`。未做：锚点目标不在本文档书签中时链接仍被跳过而不阻断导出、PDF 结构标签、图形界面、Word／WPS 对照、真实打印与系统打印对话框、两个独立阅读器人工检查（UOS 报告的 qpdfview／WPS PDF 仍是人工行）。
 
 ### T205：功能区、标尺与状态栏
 
@@ -602,7 +605,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 ### T500：复杂分页与长文档
 
 - 输入：分页约束图、复杂分节／对象／表格语料及稳定布局缓存。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-012`、`LAYOUT-013`、`LAYOUT-005`、`LAYOUT-006`、`LAYOUT-010`
 - 前置：`T204`
 - 产物：多栏、连续及奇偶分节、跨页／嵌套表格、浮动绕排与增量分页。
@@ -610,6 +613,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 自动验证：最小约束样例、稳定页尾复用、几何对照和长文档取消。
 - 人工验收：百页报告改首段／末段、改变方向与图文绕排，观察定位与响应。
 - 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 2026-10-27 第一切片（任务由 `planned` 改为 `in_progress`，没有人工验收，不标 `done`）：T500 的产物项多数已由 M2 各任务落地（等宽／不等宽分栏与栏分隔线、连续／奇偶／下一栏分节、跨页表格与表头重复、一层嵌套表、页面相对浮动绕排、增量分页与段落缓存），本切片补上还没有的三件自动化证据并修复一个已知性能缺口。其一，稳定页尾复用恢复到带栏分隔线的文档：T202 栏分隔线切片曾记录「带分隔线的文档失去后缀复制复用，退回完整放置」——根因是 `suffix_copies` 的完整性校验按源页最终 rects 数量比较，而分隔矩形由 `finish_stories` 在组装之后追加、复制时不重放。现在 `pages.rs` 把分隔矩形计算提取为纯函数 `separator_rects(section, geometry)`（绘制与计数共用同一几何，无第二套实现），增量路径在构造 `PlaceStop` 时按当前节规格对上一快照逐页计算分隔矩形数并存入 `separator_counts`，`suffix_copies` 的校验改为「复制页 rects + 该页分隔数 == 源页 rects」，重放之外恰好允许这批故事级矩形；`finish_stories` 之后仍统一重画分隔线，复制页不携带旧墨。节规格在两次排版之间变化时计数与源页不符，校验失败退回完整放置，不复制陈旧墨迹。证据：`long_document_edits_reuse_fits_and_the_stable_page_tail`——1500+ 段、65+ 页、含横向节（页面锚定浮动图）与带分隔线双栏节的长文档，未变重排 `shape_calls` 为 0 且后缀从锚点整体复制（`stable_boundary` 有值，栏分隔页在复制范围内）；改首段只重排该段（其余段全部缓存命中，增量与全量逐页一致）；改末段无后缀复制（`stable_boundary` 为 None）、仅该段重排（缓存命中恰为其余全部段）且与全量一致。其二，长文档取消与规模：`a_hundred_page_mixed_section_document_lays_out` 构造 100+ 页混合文档（纵向正文＋41 行跨页表头重复表格→横向节浮动绕排图→奇偶分节双栏＋栏分隔线），断言页数、横纵页框、表头多页重复、分隔线两侧有文字与浮动图落页；`a_cancelled_hundred_page_layout_returns_without_publishing_pages` 在该规模上复验取消令牌的单调性与 `LayoutError::Cancelled`（协作检查点在既有代码中按块粒度存在，应用层新旧作业替代已有 `stale_layouts_lose_to_newer_requests_including_a_to_b_to_a`）。其三，几何对照：`a_mixed_section_document_shares_one_geometry_with_the_pdf`（joyword-pdf）对混合分节样例断言屏幕 PageScene 与 PDF 消费同一次布局——每个 run 原点在 PDF 文本矩阵 0.01 pt 内。未做：人工验收（百页报告改首段／末段、改变方向与图文绕排的人工观察）；含表格文档在增量路径仍整体走完整放置（表行跨页与表头重复使段落级后缀复制不适用，缓存命中与页尾复用因此不覆盖含表文档，是如实记录的已知边界）；`suffix_copies` 对含页面锚定浮动图的页保守不复制（图不是行级图像，复制页校验只重放行级内容，本切片不扩大复制范围）；金样场景（golden-scenes harness）未新增 t500 场景。详见 [IMPLEMENTATION](IMPLEMENTATION.md) 的「T500 第一切片」。
 
 ### T501：注释、域与引用体系
 

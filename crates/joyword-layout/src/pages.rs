@@ -21,7 +21,7 @@ use joyword_foundation::Emu;
 use joyword_model::{
     Anchor, AnnotationKind, BreakKind, Document, HeaderFooterKind, InlineKind, NodeId,
     NumberFormat, OBJECT_MARKER, PageField, PageFieldKind, Paragraph, Position, ScalarOffset,
-    SectionBreak, Segment, StoryId, StoryKind,
+    Section, SectionBreak, Segment, StoryId, StoryKind,
 };
 
 use crate::FaceSet;
@@ -786,6 +786,56 @@ pub(crate) const COLUMN_SEPARATOR_THICKNESS: i64 = Emu::PER_POINT;
 /// rectangles land in the same [`PageScene`] the screen, PDF and CPU raster
 /// consume; painting never adds a page, so a change in the page count would be
 /// a bug rather than instability.
+/// The separator rules of one page, derived only from the section's column
+/// spec and the page box: the same rectangles [`paint_column_separators`]
+/// appends after assembly. Empty when the section has no separator flag, a
+/// spec error (which pagination would have surfaced), fewer than two columns,
+/// or a non-positive body height.
+pub(crate) fn separator_rects(section: &Section, geometry: &PageGeometry) -> Vec<SceneRect> {
+    if !section.column_separator {
+        return Vec::new();
+    }
+    // The section already laid out, so its columns fit; a spec error here
+    // would contradict pagination and is skipped rather than surfaced.
+    let Ok(spec) = column_spec(
+        section.id,
+        *geometry,
+        section.columns.as_ref(),
+        section.unequal_columns.as_ref(),
+    ) else {
+        return Vec::new();
+    };
+    if spec.count < 2 {
+        return Vec::new();
+    }
+    let top = geometry.top.raw();
+    let height = geometry.bottom_edge().raw().saturating_sub(top);
+    if height <= 0 {
+        return Vec::new();
+    }
+    let left = geometry.left.raw();
+    let thickness = COLUMN_SEPARATOR_THICKNESS.max(1);
+    let mut rects = Vec::new();
+    for index in 1..spec.count {
+        let (prev_offset, prev_width) = spec.frame(index - 1);
+        let (next_offset, _) = spec.frame(index);
+        let right_edge = left.saturating_add(prev_offset).saturating_add(prev_width);
+        let left_edge = left.saturating_add(next_offset);
+        let center = right_edge.saturating_add(left_edge) / 2;
+        let x = center.saturating_sub(thickness / 2);
+        rects.push(SceneRect {
+            x: Emu::new(x),
+            y: Emu::new(top),
+            width: Emu::new(thickness),
+            height: Emu::new(height),
+            red: 0,
+            green: 0,
+            blue: 0,
+        });
+    }
+    rects
+}
+
 pub(crate) fn paint_column_separators(
     snapshot: &mut LayoutSnapshot,
     document: &Document,
@@ -800,46 +850,9 @@ pub(crate) fn paint_column_separators(
         let Some(section) = document.sections().get(section_index) else {
             continue;
         };
-        if !section.column_separator {
+        let rects = separator_rects(section, &geometry);
+        if rects.is_empty() {
             continue;
-        }
-        // The section already laid out, so its columns fit; a spec error here
-        // would contradict pagination and is skipped rather than surfaced.
-        let Ok(spec) = column_spec(
-            section.id,
-            geometry,
-            section.columns.as_ref(),
-            section.unequal_columns.as_ref(),
-        ) else {
-            continue;
-        };
-        if spec.count < 2 {
-            continue;
-        }
-        let top = geometry.top.raw();
-        let height = geometry.bottom_edge().raw().saturating_sub(top);
-        if height <= 0 {
-            continue;
-        }
-        let left = geometry.left.raw();
-        let thickness = COLUMN_SEPARATOR_THICKNESS.max(1);
-        let mut rects = Vec::new();
-        for index in 1..spec.count {
-            let (prev_offset, prev_width) = spec.frame(index - 1);
-            let (next_offset, _) = spec.frame(index);
-            let right_edge = left.saturating_add(prev_offset).saturating_add(prev_width);
-            let left_edge = left.saturating_add(next_offset);
-            let center = right_edge.saturating_add(left_edge) / 2;
-            let x = center.saturating_sub(thickness / 2);
-            rects.push(SceneRect {
-                x: Emu::new(x),
-                y: Emu::new(top),
-                width: Emu::new(thickness),
-                height: Emu::new(height),
-                red: 0,
-                green: 0,
-                blue: 0,
-            });
         }
         snapshot.extend_page_rects(page_index, rects)?;
     }

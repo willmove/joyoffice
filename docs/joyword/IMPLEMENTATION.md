@@ -1642,6 +1642,37 @@ T300 仍是 `in_progress`，进度计数不改。本切片补齐 REVIEW-003 的�
 ### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
 
 main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
+
+### T204 文档内跳转：外部 PDF 结构读取器复核（2026-10-27）
+
+T204 仍是 `in_progress`，进度计数不改。「文档内跳转」自动化缺口里的「没有外部 PDF 结构读取器复核」由本切片关闭：同一导出字节除 joyword-pdf 内部读取器（`inspect_navigation`）外，再经外部 qpdf CLI 结构读取器（`qpdf --json=2`，JSON format v2）复核。工具约定与 `pdftotext`／`JOYWORD_REQUIRE_TEST_FONT` 一致：本机无 qpdf 或环境变量未设时测试打印跳过并返回成功；设 `JOYWORD_REQUIRE_QPDF=1` 时要求（unified-pdf apt 安装 qpdf 的 CI 步骤另跟），缺失即失败。依赖只增 qpdf 一个 apt 包与 joyword-pdf 的一条 serde_json dev-dependency 边（解析 qpdf JSON；Cargo.lock 无新包）。qpdf 11.9（ubuntu-24.04）与 12.2（本机）都支持 `--json=2`。
+
+实现（`crates/joyword-pdf/tests/navigation.rs` 与 `apps/joyword-cli/tests/bookmark_goto.rs` 各带同一份 `mod qpdf` 读取辅助，互不依赖）：写临时文件后运行 `qpdf --json=2 <file> -`，从 JSON v2 的完整对象转储（`qpdf[1]` 的 `obj:<ref>` 表与 `trailer`）解析——目录 `/Names /Dests` 名称树（支持 `/Kids` 子树，键按 qpdf 的 `u:`／`b:<hex>` 标注还原为原始字节；ISO 32000-1 名称树键按字节比较，与内部 `name_key` 对 UTF-16BE-BOM 与裸 UTF-8 两种写法的契约一致）；逐页 `/Annots` 中 `/Subtype /Link` 的 `/A` 动作，`/S /GoTo` 的 `/D` 解析为 `[page /XYZ x y zoom]`（间接引用跟一层）。
+
+证据：`navigation.rs` 新增 `an_external_reader_sees_named_destinations_and_resolves_goto_actions`——模型书签（ASCII `first`、非 ASCII「目录」、无链接的 `unused`）加两条锚点 GoTo 与一条 `https` URI 导出后，qpdf 侧断言名称树按键字节可见且坐标与内部读回一致、每个 GoTo 的 `/D` 命中同名命名目标数组与正确页面对象、URI 动作原样保留；`bookmark_goto.rs` 的 `an_imported_bookmark_is_a_pdf_goto_named_destination`、`header_footer_and_comment_bookmarks_are_goto_destinations`、`column_and_opaque_table_bookmarks_are_goto_destinations` 三个导入场景在同一份字节上追加 `assert_external_goto_destinations`，与内部读回逐名逐链对照（正文、页眉页脚批注、列与不透明表格点目标全部覆盖）。
+
+本机验证（Linux，Rust 1.98.1，qpdf 12.2.0）：`JOYWORD_REQUIRE_QPDF=1 cargo test --locked -p joyword-pdf` 全部通过（11 个测试目标，含新增外部复核），`cargo test --locked -p joyword-cli --test bookmark_goto` 3 项全过；无 qpdf 时跳过、设变量时以「qpdf is not installed」失败两条路径均实测；`cargo fmt --all -- --check` 干净，`cargo clippy -p joyword-pdf -p joyword-cli --all-targets --locked -- -D warnings` 零告警；`check_docs.py`／`check_acceptance.py` 通过。
+
+未做：锚点目标不在本文档书签中时该链接仍被跳过而不阻断导出（`文档内跳转` 保持 `partial` 的唯一剩余理由）；PDF 结构标签（tagged PDF）；图形界面；Word／WPS 对照；真实打印与系统打印对话框；两个独立阅读器人工检查（UOS 报告的 qpdfview／WPS PDF 仍是人工行）。T204 保持 `in_progress`。
+
+### T500 第一切片：长文档规模证据与分隔线文档的页尾复用（2026-10-27）
+
+T500 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 planned／0 blocked）。本切片没有人工验收，不标 `done`。
+
+**分隔线文档恢复后缀复制复用。** T202 栏分隔线切片记录的已知缺口——「带分隔线的文档失去后缀复制复用，退回完整放置（结果正确，略慢）」——根因在 `suffix_copies` 的完整性校验：它按源页最终 rects 数量比较复制页，而栏分隔矩形由 `finish_stories` 在组装之后追加，复制路径只重放行级装饰矩形，永远少这批故事级矩形，校验必然失败。修复保持单一几何来源：`pages.rs` 把分隔矩形计算提取为纯函数 `separator_rects(section, geometry)`（无分隔标志、规范错误、少于两栏或非正高度的节返回空），`paint_column_separators` 改为调用它；增量路径在构造 `PlaceStop` 前按当前文档节规格对上一快照逐页计算分隔矩形数（`separator_counts`），`suffix_copies` 的最终校验改为「复制页 runs 数与源页相等，且复制页 rects 数 + 该页分隔数 == 源页 rects 数」。`finish_stories` 在组装（含复制）之后仍统一重画分隔线，复制页不携带旧墨；节规格在两次排版之间变化时（例如切换 `w:sep`），计数与源页实际数量不符，校验失败退回完整放置——宁可失去复用也不复制陈旧墨迹。页面锚定的浮动图不是行级图像，复制只重放行级内容，因此含浮动图的页仍被保守地完整放置；本切片不扩大复制范围。
+
+**长文档规模与页尾复用证据**（`crates/joyword-layout/tests/long_document.rs`，新文件）：
+
+- `a_hundred_page_mixed_section_document_lays_out`：100+ 页混合文档（纵向正文节＋41 行两行单元格跨页表格（表头行重复）→ NextPage 横向节（页面锚定 wrapSquare 浮动图＋正文）→ EvenPage 双栏节（栏分隔线开）），断言页数、横纵页框并存、表头文字出现在多页、分隔线两侧各有文字、浮动图以页图像落页。
+- `a_cancelled_hundred_page_layout_returns_without_publishing_pages`：同一规模上预取消令牌返回 `LayoutError::Cancelled`、令牌单调共享、换新令牌重试完整通过（协作检查点在既有代码按块粒度存在；应用层新旧排版作业替代与取消由既有 `stale_layouts_lose_to_newer_requests_including_a_to_b_to_a` 覆盖，本切片未新增取消语义）。
+- `long_document_edits_reuse_fits_and_the_stable_page_tail`：1351 段、65+ 页、含横向节（浮动图）与带分隔线双栏节的无表长文档。未变重排 `shape_calls` 为 0、缓存命中全量、`stable_boundary` 有值（分隔线页在复制范围内——修复的直接回归测试）；改首段只重排该段、其余全部缓存命中、增量与全量逐页一致（runs／rects／images／lines／页框）；改末段 `stable_boundary` 为 None（被改段的 fit 不再是「相同」）、缓存命中恰为其余全部段、增量与全量一致、页数不变。
+
+**几何对照**（`crates/joyword-pdf/tests/long_document.rs`，新文件）：`a_mixed_section_document_shares_one_geometry_with_the_pdf` 对混合分节样例（含跨页表头重复表格、横向浮动图节、双栏分隔线节）断言屏幕 PageScene 与 PDF 消费同一次布局——每个非空 run 原点在 PDF 文本矩阵 0.01 pt 内（`text_matrices` 解析沿 `pages.rs` 既有手法），并核对横纵页框、分隔线与表头重复存在。
+
+**已知边界（如实记录）**：含表格文档在增量路径仍整体走完整放置（表行跨页与表头重复使段落级后缀复制不适用，`layout_incremental` 对含表文档既有回退不变），缓存命中与页尾复用因此不覆盖含表文档；含页面锚定浮动图的页保守不复制；golden-scenes harness 未新增 t500 场景（几何对照由上述 PDF 测试承担）；人工验收（百页报告改首段／末段、改变方向与图文绕排的人工观察）未做。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout`（210 项，含 3 项新测试）、`cargo test --locked -p joyword-pdf --test long_document`、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`python scripts/check_gates.py`、`python scripts/check_acceptance.py` 通过；`python -m unittest discover -s scripts/tests` 的 `test_committed_bytes_and_manifest_hashes_match` 在本机 zlib-ng 上仍失败（干净 main 同样失败）。
+
 ### T301 页边标记装饰测试（2026-10-27）
 
 T301 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 第二切片证据「未做」清单里的「表格属性修订的页面标记装饰（页边色条）」：实现与测试同支落地。
