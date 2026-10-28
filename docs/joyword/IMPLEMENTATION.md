@@ -1672,3 +1672,15 @@ T500 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 p
 **已知边界（如实记录）**：含表格文档在增量路径仍整体走完整放置（表行跨页与表头重复使段落级后缀复制不适用，`layout_incremental` 对含表文档既有回退不变），缓存命中与页尾复用因此不覆盖含表文档；含页面锚定浮动图的页保守不复制；golden-scenes harness 未新增 t500 场景（几何对照由上述 PDF 测试承担）；人工验收（百页报告改首段／末段、改变方向与图文绕排的人工观察）未做。
 
 本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout`（210 项，含 3 项新测试）、`cargo test --locked -p joyword-pdf --test long_document`、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`python scripts/check_gates.py`、`python scripts/check_acceptance.py` 通过；`python -m unittest discover -s scripts/tests` 的 `test_committed_bytes_and_manifest_hashes_match` 在本机 zlib-ng 上仍失败（干净 main 同样失败）。
+
+### T301 页边标记装饰测试（2026-10-27）
+
+T301 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 第二切片证据「未做」清单里的「表格属性修订的页面标记装饰（页边色条）」：实现与测试同支落地。
+
+**实现**：`table_row_bar_colour(table, row, view)` 只在 `FinalWithMarkup` 与 `Simple` 视图返回作者色；取色优先级为表级 `w:tblPrChange` ＞ 行级 `w:trPrChange` ＞ 文档序首个单元格 `w:tcPrChange`（注释已写明为 JoyWord 假定：色条固定在页边一处，重叠记录无法并排显示，规范未定义顺序）。`paint_slice` 为每个可视行带画一条 `margin_bar_of_colour`（左页边、内容边左侧留 4 twip 间隙），跨页重复的表头行带经表头印章复制色条；嵌套表经自身排版流绘制自己的行带，外层单元格记录不为内层行带上色。`hash_table` 把待决的表／行／单元格属性修订折进 `LayoutKey` 内容指纹（`hash_table_revision`）：接受或拒绝只删记录、绘制属性不变，指纹若不动，缓存页会继续画已解决记录的色条——与 `column_separator` 折进节指纹同一理由。
+
+**测试**：`crates/joyword-layout/tests/table_revisions.rs`（新文件，五项）——`markup_and_simple_paint_one_bar_per_covered_row_band`、`the_outermost_record_decides_the_band_colour`、`nested_tables_paint_their_own_row_bands_and_resolving_removes_the_bar`、`a_repeated_header_row_keeps_its_bar_on_later_pages`、`the_incremental_entry_matches_the_full_layout_with_bars`；`crates/joyword-pdf/tests/table_revision_bar.rs`（新文件）——`the_table_revision_margin_bar_is_in_the_pdf_page_scene`。识别手法：页边色条是唯一完全落在内容边左侧的矩形；优先级与嵌套断言用「同作者跨文档比对」钉住，不依赖作者调色板把不同作者分到不同颜色。
+
+**已知边界**：页眉页脚 story 里的表格修订不经过该装饰通道（正文表）；色条颜色沿用文字修订的作者调色板（FNV→PALETTE）。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout --test table_revisions`（5 项）、`cargo test --locked -p joyword-pdf --test table_revision_bar`（1 项）、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`check_gates.py`、`check_acceptance.py` 通过。
