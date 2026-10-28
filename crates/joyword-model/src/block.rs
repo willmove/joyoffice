@@ -143,10 +143,11 @@ pub struct Paragraph {
     /// before the tracked formatting change. Absent when the paragraph
     /// formatting is not revised.
     pub props_revision: Option<Arc<FormatRevision>>,
-    /// Tracked revision on the paragraph mark itself (`w:pPr/w:rPr/w:del`):
-    /// the mark at the end of this paragraph is deleted, so the final view
-    /// joins this paragraph with the next one. Only [`RevisionKind::Delete`]
-    /// is produced today; an inserted mark stays an import gap.
+    /// Tracked revision on the paragraph mark itself (`w:pPr/w:rPr/w:del`
+    /// or `w:pPr/w:rPr/w:ins`). A deleted mark joins this paragraph with the
+    /// next one in the final view once accepted; an inserted mark means this
+    /// break is new, so the original view does not show it and rejecting the
+    /// revision joins this paragraph into the next one.
     pub mark_revision: Option<TextRevision>,
     pub source: Option<Arc<SourceRef>>,
 }
@@ -782,6 +783,31 @@ impl Paragraph {
             mark_revision: self.mark_revision.take(),
             source: None,
         })
+    }
+
+    /// Prepends the content of `other` (paragraph merge in front). The
+    /// formatting and identity of `self` are kept; `other`'s identity ends.
+    /// The mark that ended `other` stood between the two halves and
+    /// disappears with it — a rejected inserted mark is dropped here — while
+    /// `self`'s own pending mark survives.
+    pub fn prepend(&mut self, other: Paragraph) {
+        let tail_id = self.id;
+        let tail_style = self.style.clone();
+        let tail_props = self.props.clone();
+        let tail_mark_props = self.mark_props.clone();
+        let tail_props_revision = self.props_revision.clone();
+        let tail_source = self.source.clone();
+        let own_mark = self.mark_revision.take();
+        let mut merged = other;
+        merged.append(std::mem::replace(self, Paragraph::new(tail_id)));
+        merged.id = tail_id;
+        merged.style = tail_style;
+        merged.props = tail_props;
+        merged.mark_props = tail_mark_props;
+        merged.props_revision = tail_props_revision;
+        merged.source = tail_source;
+        merged.mark_revision = own_mark;
+        *self = merged;
     }
 
     /// Appends the content of `next` (paragraph merge). Formatting of `self`

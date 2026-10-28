@@ -1724,3 +1724,26 @@ T302 仍是 `in_progress`，进度计数不改。本切片补上第一切片「�
 未做：people.xml 身份、GUI 气泡、不透明表格锚点映射、带范围标记段落的整段重写、页眉批注导出专项测试、Word／WPS 人工交换。
 
 本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-docx --test comments`（9 项）、`cargo test --locked -p joyword-engine -p joyword-model`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+### T303 第一切片：无头语义比较（2026-10-27）
+
+T303 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 planned／0 blocked）。本切片实现 REVIEW-007 的语义比较核心：`joyword_engine::compare_documents(original, revised, author, date)` 产出一份以原稿为底、差异盖着跟踪修订的新文档，满足投影不变量——全部接受 reproduces 改稿正文文本，全部拒绝恢复原稿正文文本。
+
+**对齐与间隙解析**。正文段落文本（行内对象被拒绝，故 plain_text 即全部）做最长公共子序列对齐，动态规划表 `(n+1)×(m+1)` 个 `u32`，超过 4M 格（约 16 MiB）以 `CompareError::TooLarge` 拒绝。每个间隙按孤儿段数量解析：
+
+- **纯插入**（d=0, r>0）：逐段在幸存段末尾跟踪分节（尾段标记盖 `w:ins`）＋跟踪插入文本。拒绝时分节标记把新段并入后段——插入保持后段的身份与格式，因此全部拒绝精确还原原稿。
+- **纯删除**（d>0, r=0）：跨段跟踪删除，范围从幸存段文本末尾到最后被删段文本末尾——删除的文字是被删段全体，被盖删除标记的分节是幸存段到最后被删段的前一段。接受链把空壳逐个吸收后停在幸存分节处；最后被删段自己的标记不盖（它就是合并后群组的收尾分节，继承给合并段）。
+- **单删单增**（d=r=1）：公共前后缀修剪后的段内 diff——删除原稿中段、在同偏移插入改稿中段。段落与其标记不动，没有任何分节修订。
+- **多段对多段**：一个分节必须在接受与拒绝时都消失，纯 ins/del 标记无法忠实表示，显式拒绝（`replacing several paragraphs at once`）。
+
+**支撑引擎改动**。模型 `Paragraph::prepend`（`append` 的镜像：内容插到前方，self 的身份、格式与自身待决标记保留，对方的标记随之消失）；`split_off` 原本把标记修订移到尾半段，跟踪分节现在在头段标记已是 `w:ins` 时把它留在头段（两处分节都源自同一次插入），新分节获得新 id。`resolve_marks` 重构为按「标记类型×决议」分派：接受的删除标记与拒绝的插入标记移除分节——删除保持前段身份（head 吸收 tail，`MapStep::DeleteAcross`），插入保持后段身份（head 内容并到 tail 前方，tail 保留身份格式，新 `MapStep::MergeBefore`）；另外两种组合只清除记录。容器末尾的空段插入标记在拒绝时整段移除（`MapStep::Remove` 回退到前段末尾）——尾部新增段落的拒绝路径；非空拒绝。`MarkScope::One` 匹配改为按 id（不再限定 Delete），`all_mark_targets` 收集两种类型。
+
+**DOCX 侧**。`w:pPr/w:rPr/w:ins`（恰好 id／author／可选 date 的空元素）类型化为 `mark_revision`（kind Insert），文档不只读；富内容、move 类型仍走保留 gap。导出 `patch_mark_bytes` 按 kind 选 `w:del`／`w:ins` 注入；剥离（记录已解决）时两种拼法都认。
+
+**输入拒绝**（全部显式，不静默合并历史）：任一侧有待决修订（run 修订、标记修订、格式修订）、移动标记、批注、表格、行内对象、脚注／尾注／文本框 story、页眉页脚 story 文本不一致、分节数不同、正文为空、文档开头的变化（无锚定幸存段）。
+
+**已知边界（如实记录）**：段内 diff 保持原段格式——纯格式变化与格式随文字变化都不在比较范围（格式修订比较属 T301 后续）；比较结果含段落结构增删时 DOCX 导出尚不可用（ExportPlan 只补丁既有段落；`check_envelope` 对结构与信封变化拒绝），本切片只有段内 diff 结果的 DOCX 往返证据；原始视图对插入标记段不合并渲染（与 T402 删除标记同属排版已知边界）；词内 diff、移动块的比较、本地版本历史（EDIT-011）与比较合并的宿主命令接线是后续切片。
+
+**证据**：`crates/joyword-engine/tests/compare.rs` 十项（投影不变量、逐步解决、首部拒绝、各类输入拒绝、格式边界）；`crates/joyword-docx/tests/mark_revisions.rs` 三项新增与一项收窄（`w:ins` 从保留 gap 用例移入类型化用例）。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-engine --test compare`（10 项）、`cargo test --locked -p joyword-docx --test mark_revisions`（10 项）、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。

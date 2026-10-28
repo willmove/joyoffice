@@ -23,14 +23,14 @@
 | M0 | 4 | 2 | 0 | 0 | 6 |
 | M1 | 7 | 4 | 1 | 0 | 12 |
 | M2 | 2 | 9 | 1 | 0 | 12 |
-| M3 | 0 | 3 | 2 | 0 | 5 |
+| M3 | 0 | 4 | 1 | 0 | 5 |
 | M4 | 0 | 3 | 1 | 0 | 4 |
 | M5 | 0 | 1 | 4 | 0 | 5 |
 | M6 | 0 | 0 | 6 | 0 | 6 |
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 13 | 22 | 31 | 0 | 66 |
+| 总计 | 13 | 23 | 30 | 0 | 66 |
 
 T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`。2026-10-22 六分支波次之后 T301 与 T401 也由 `planned` 改为 `in_progress`；2026-10-23 第二波的 T402 有界替换提案与只读预览进入独立审查，状态改为 `in_progress`。所以 2026-10-23 各波次后上表为 12 done／22 in_progress／32 planned／0 blocked；2026-10-26 T001 收口后为 13 done／21 in_progress／32 planned／0 blocked（见下文该段）。任务总数仍是 66，切片交付不等于整个任务完成。2026-10-23 第二波四路并行切片落地：T104 生产恢复双代、T204 PDF 书签内部跳转、T202 章节 PAGE 编号与 T402 有界替换提案与只读预览，四项各自进入 `in_progress`，没有一项被标成 `done`；详细证据见各任务的完成证据与 [验收清单](acceptance/README.md)。2026-10-23 第三切片（无 PR，按用户指令直接并入 main）：T402 跨段有界替换与段落标记删除修订（`w:pPr/w:rPr/w:del`）落地，同时补齐 AI 修订的 DOCX 往返与对照器修订携带；T301 的跨段跟踪删除限制随之解除（表格／内容控件边界仍拒绝）。布局的合并渲染（最终视图中删除标记的相邻段仍逐段排版）是如实记录的已知边界，留待后续切片。
 
@@ -525,10 +525,12 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 
 - 2026-10-27 commentsIds 与 commentsExtensible 写回切片（任务仍 `in_progress`，进度计数不变）：补上第一切片「未做」清单里的「commentsIds 与 commentsExtensible 对新回复的改写」。新批注／新回复现在同时改写四个现代扩展部件：commentsExtended（既有）、commentsIds 与 commentsExtensible（本切片），people.xml 仍不做。分配侧：`joyword-model` 新增 `allocate_durable_id(para_id)` 与共享的 `durable_id_from`（paraId 的 FNV-1a 32 位＋确定性重试，注释写明 JoyWord 假定——durableId 只需在部件内稳定且不冲突，Word 写 GUID 形态而 [MS-DOCX] 定义为 32 位整数，故写十进制）与 `is_strict_utc_date`（`YYYY-MM-DDTHH:MM:SSZ` 严格形状）；引擎 `AddComment`／`ReplyComment` 在创建时分配 durable id，且 `w:date` 已是该形状时同步镜像 `date_utc`（野外部件中 `w16cex:dateUtc` 逐字重复 `w:date`）。导出侧：`durable_plan` 一次规划全部新批注的 durable id（引擎分配值优先，未带者走同一派生；部件内既有条目的 paraId 或 durableId 冲突时显式拒绝），commentsIds 按追加式写回——既有条目字节不动，新条目插在根结束标签前，新部件附带关系与 Content-Type Override；commentsExtensible 同样追加式，且仅当每个新批注的 `w:date` 都是严格 UTC 形状时才写（否则整部件保持原字节，不发明时间戳）；两部件由同一 `durable_plan` 供值，同一 paraId 在两部件键一致。语义往返因此闭合：引擎创建的批注在导出→重导入后 durable 与 date_utc 逐字相等（规范化 dump 参与比较）。证据：`crates/joyword-docx/tests/comments.rs`——`a_new_comment_and_reply_are_written_back` 重写为经引擎命令创建（断言 ids 部件两条、extensible 含 dateUtc、重导入 durable 非空且父子关系不变）；新增 `new_comments_append_durable_ids_and_extensible_dates_without_touching_entries`（删除追加条目后与原部件逐字节相同、GUID 既有条目保留、durable 为十进制、重导入读回 durable 与 date_utc）、`a_new_comment_without_a_strict_utc_date_leaves_comments_extensible_untouched`（宽松日期：ids 仍追加、extensible 字节不变）、`a_fresh_package_without_extension_parts_gains_ids_and_extensible`（无现代扩展部件的包新建批注后获得两部件，关系与内容类型齐全，重导入 durable 一致）。未做：people.xml 身份、图形界面气泡、不透明表格内的批注锚点映射、仍带范围标记的段落整段重写、页眉批注导出专项测试、Word／WPS 人工交换。T302 保持 `in_progress`。见 [IMPLEMENTATION](IMPLEMENTATION.md) 的「T302 commentsIds 与 commentsExtensible 写回」。
 
+2026-10-27 T303 开始：M3 最后一个未开始的实现任务由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 planned／0 blocked）。第一切片是无头语义比较引擎：全部接受=改稿正文、全部拒绝=原稿正文的投影不变量已有自动测试；人工验收与比较合并的其余部分仍属后续切片。见 T303 的完成证据与 [IMPLEMENTATION](IMPLEMENTATION.md)。
+
 ### T303：比较与合并
 
 - 输入：原稿与目标稿的明确投影、语义差异及已有修订集合。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`REVIEW-007`、`EDIT-011`
 - 前置：`T300`、`T301`、`T302`
 - 产物：语义比较、目标投影选择、可接受／拒绝的修订结果与合并冲突；本地版本历史的保留、浏览、比较与另存恢复。
@@ -536,6 +538,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 自动验证：A/B 比较后全部拒绝=A、全部接受=B；合并冲突及幂等性。
 - 人工验收：比较两份合同并在 Word 审阅结果，检查格式和表格差异；与本地历史版本比较后另存恢复。
 - 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 2026-10-27 第一切片（无头语义比较，任务仍 `in_progress`，不标 `done`）：引擎新增 `compare_documents(original, revised, author, date)`（`crates/joyword-engine/src/compare.rs`）——以正文段落文本的最长公共子序列对齐（对齐表预算 4M 格，超出显式拒绝），间隙按三类解析：仅改稿有的段落在幸存段末以跟踪插入新建（每次分节的尾段标记盖 `w:ins`，拒绝时并入后段并保持后段身份与格式）；仅原稿有的段落经跨段跟踪删除删除（标记集合为幸存段到最后被删段的前一段，接受链吸收空壳后恰好停在幸存分节处）；单删单增的间隙修剪公共前后缀后在段内做文字 diff（段落与标记不动）。多段对多段的间隙没有忠实的修订表示（一个分节必须在接受与拒绝时都消失），显式拒绝；文档开头的变化没有锚定幸存段，同样拒绝。为承载插入的段落标记，模型 `Paragraph::prepend`（镜像 `append`，保持 self 身份与格式）、引擎跟踪分节（`SplitParagraph` 在跟踪时给尾段标记盖 `w:ins`；头段标记已是 `w:ins` 时两处分节都保持插入态）与标记解决（`resolve_marks` 按类型×决议分派：接受的删除标记与拒绝的插入标记移除分节——删除保持前段身份、插入保持后段身份；容器末尾的空段插入标记拒绝时整段移除）均为本切片新增，`MarkScope` 匹配改为按 id。DOCX 侧 `w:pPr/w:rPr/w:ins` 类型化导入（恰好 id／author／可选 date 的空元素；富内容仍是保留 gap）与注入／剥离导出（`patch_mark_bytes` 按 kind 选 `w:del`／`w:ins`，剥离时两者都认）。比较输入的拒绝检查：任一侧有待决修订、移动标记、批注、表格、行内对象、脚注／尾注／文本框 story、页眉页脚文本不一致或分节数不同都显式拒绝（SPEC：不静默合并历史）。已知边界如实记录：段内 diff 保持原段格式，纯格式变化不在比较范围；比较结果含段落结构增删时 DOCX 导出尚不可用（ExportPlan 只补丁既有段落，结构改写拒绝），本切片只有段内 diff 结果的 DOCX 往返证据；原始视图对插入标记段不合并渲染（与 T402 删除标记的合并渲染同属排版已知边界）；文字级（词内）diff、格式修订比较、本地版本历史（EDIT-011）与比较合并的宿主接线是后续切片。证据：`crates/joyword-engine/tests/compare.rs` 十项——`identical_documents_compare_without_revisions`、`all_accept_reproduces_revised_and_all_reject_restores_original`、`a_deleted_paragraph_between_kept_ones_vanishes_on_accept`、`single_revisions_resolve_step_by_step`、`trailing_and_middle_deletions_absorb_the_empty_remainder`、`inserted_paragraphs_carry_inserted_marks_and_reject_joins_the_next`、`formatting_only_changes_are_a_recorded_boundary`、`one_paragraph_replaced_by_several_diffs_and_inserts`、`a_change_at_the_very_beginning_is_refused`、`pending_revisions_tables_comments_and_story_gaps_are_refused`；`crates/joyword-docx/tests/mark_revisions.rs` 三项新增——`an_inserted_paragraph_mark_imports_typed_and_round_trips`、`an_engine_created_inserted_mark_is_injected_and_a_resolved_one_is_stripped`、`an_in_paragraph_compare_result_round_trips_through_docx`（接受与拒绝双投影断言），并把 `w:ins` 从保留 gap 用例移入类型化用例（`a_malformed_or_rich_paragraph_mark_stays_a_preserved_gap`）。见 [IMPLEMENTATION](IMPLEMENTATION.md) 的「T303 第一切片：无头语义比较」。
 
 ### T304：审阅交换发布门槛
 

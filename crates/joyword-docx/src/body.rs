@@ -22,8 +22,8 @@ use std::sync::Arc;
 use joyword_model::{
     Block, BlockSeq, BreakKind, EqualColumns, HeaderFooterKind, InlineKind, InlineObject,
     NewspaperColumn, NodeId, NumberFormat, OBJECT_MARKER, OpaqueBlock, Orientation, PageField,
-    PageFieldKind, PageNumbering, PageSetup, Paragraph, Preserved, RunProps, Section, SectionBreak,
-    StoryId, StoryKind, StyleId, UnequalColumns,
+    PageFieldKind, PageNumbering, PageSetup, Paragraph, Preserved, RevisionKind, RunProps, Section,
+    SectionBreak, StoryId, StoryKind, StyleId, UnequalColumns,
 };
 
 use crate::backing::PreservedReason;
@@ -300,14 +300,24 @@ pub(crate) fn paragraph(
             if mark_style.is_some() {
                 mark_findings.gap();
             }
-            // A deleted paragraph mark (`w:pPr/w:rPr/w:del`) is the mark's
-            // own tracked revision; anything else (w:ins, move kinds,
-            // children) stays a preserved gap.
-            match mark_revision.filter(|element| element.is(W, "del")) {
-                Some(del) => match crate::revision::import_mark_revision(importer, del) {
-                    Some(revision) => paragraph.mark_revision = Some(revision),
-                    None => mark_findings.gap(),
-                },
+            // A deleted or inserted paragraph mark (`w:pPr/w:rPr/w:del` or
+            // `w:ins`) is the mark's own tracked revision; move kinds and
+            // children stay a preserved gap.
+            let mark_kind = mark_revision
+                .filter(|element| element.is(W, "del"))
+                .map(|element| (element, RevisionKind::Delete))
+                .or_else(|| {
+                    mark_revision
+                        .filter(|element| element.is(W, "ins"))
+                        .map(|element| (element, RevisionKind::Insert))
+                });
+            match mark_kind {
+                Some((element, kind)) => {
+                    match crate::revision::import_mark_revision(importer, element, kind) {
+                        Some(revision) => paragraph.mark_revision = Some(revision),
+                        None => mark_findings.gap(),
+                    }
+                }
                 None => {
                     if mark_revision.is_some() {
                         mark_findings.gap();
