@@ -588,6 +588,7 @@ pub const TABLE_MERGE_DOWN: CommandId = CommandId("table.merge.down");
 pub const TABLE_SPLIT: CommandId = CommandId("table.split");
 pub const TABLE_PROPERTIES: CommandId = CommandId("table.properties");
 pub const FILE_OPEN_RECENT: CommandId = CommandId("file.open_recent");
+pub const FILE_OPEN_CANCEL: CommandId = CommandId("file.open_cancel");
 pub const FILE_CLOSE: CommandId = CommandId("file.close");
 pub const DOCUMENT_SWITCH: CommandId = CommandId("document.switch");
 
@@ -1388,6 +1389,20 @@ impl Registry {
                 shortcut: Shortcut::NONE,
                 modifies_document: false,
                 parameters: PATH_PARAM,
+            },
+            // Available only while an open is in flight, so it never gets a
+            // persistent menu slot or a keyboard chord here; the app binds
+            // plain Esc to it during the opening state. Cancelling hands the
+            // keystrokes buffered during that open back to the document still
+            // current as a normal, undoable edit, so a successful invocation
+            // can change document content.
+            CommandSpec {
+                id: FILE_OPEN_CANCEL,
+                label: "command.file.open_cancel",
+                menu: None,
+                shortcut: Shortcut::NONE,
+                modifies_document: true,
+                parameters: &[],
             },
             CommandSpec {
                 id: FILE_CLOSE,

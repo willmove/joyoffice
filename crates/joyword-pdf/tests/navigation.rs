@@ -119,6 +119,271 @@ fn near(actual: f32, expected: f32) {
     assert!((actual - expected).abs() < 0.002, "{actual} != {expected}");
 }
 
+mod qpdf {
+    //! External cross-check of the exported bytes with the qpdf structure
+    //! reader (`qpdf --json=2`), independent of joyword-pdf's own reader.
+    //! When qpdf is not installed the checks skip, unless
+    //! `JOYWORD_REQUIRE_QPDF` is set (the unified-pdf CI job installs qpdf
+    //! and sets it), in which case they fail.
+
+    use std::collections::BTreeMap;
+    use std::io::ErrorKind;
+    use std::process::{Command, Stdio};
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    use serde_json::Value;
+
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    /// An `[page /XYZ x y zoom]` destination resolved through the qpdf
+    /// object dump.
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct ExternalDestination {
+        pub page_object: String,
+        pub x: f64,
+        pub y: f64,
+    }
+
+    /// Navigation facts qpdf read from the exported bytes.
+    #[derive(Debug, Default)]
+    pub struct ExternalNavigation {
+        /// Page object reference per page index, in page order.
+        pub page_objects: Vec<String>,
+        /// Name-tree keys as raw octets: ISO 32000-1 compares them byte by
+        /// byte, so the external identity is the byte sequence, not a
+        /// decoded string.
+        pub destinations: BTreeMap<Vec<u8>, ExternalDestination>,
+        /// `/S /GoTo` link annotations with their resolved `/D` arrays.
+        pub goto_links: Vec<(usize, ExternalDestination)>,
+        /// `/S /URI` action strings.
+        pub uri_actions: Vec<String>,
+    }
+
+    impl ExternalNavigation {
+        pub fn page_index(&self, page_object: &str) -> usize {
+            self.page_objects
+                .iter()
+                .position(|object| object == page_object)
+                .unwrap_or_else(|| panic!("qpdf page {page_object} outside the page tree"))
+        }
+    }
+
+    fn require() -> bool {
+        std::env::var_os("JOYWORD_REQUIRE_QPDF").is_some()
+    }
+
+    fn skip(message: &str) {
+        assert!(!require(), "{message}");
+        eprintln!("skipped: {message}");
+    }
+
+    /// Run qpdf over the bytes and extract the navigation facts. Returns
+    /// None only when qpdf is unavailable and not required.
+    pub fn read_navigation(pdf: &[u8]) -> Option<ExternalNavigation> {
+        let document = json(pdf)?;
+        Some(parse(&document))
+    }
+
+    fn json(pdf: &[u8]) -> Option<Value> {
+        let path = std::env::temp_dir().join(format!(
+            "joyword-qpdf-{}-{}.pdf",
+            std::process::id(),
+            COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
+        if let Err(error) = std::fs::write(&path, pdf) {
+            skip(&format!("could not write a PDF for qpdf: {error}"));
+            return None;
+        }
+        let run = Command::new("qpdf")
+            .arg("--json=2")
+            .arg(&path)
+            .arg("-")
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output();
+        let _ = std::fs::remove_file(&path);
+        let output = match run {
+            Ok(output) if output.status.success() => output,
+            Ok(output) => {
+                skip(&format!(
+                    "qpdf failed ({:?}): {}",
+                    output.status.code(),
+                    String::from_utf8_lossy(&output.stderr)
+                ));
+                return None;
+            }
+            Err(error) if error.kind() == ErrorKind::NotFound => {
+                skip("qpdf is not installed");
+                return None;
+            }
+            Err(error) => {
+                skip(&format!("could not run qpdf: {error}"));
+                return None;
+            }
+        };
+        match serde_json::from_slice(&output.stdout) {
+            Ok(value) => Some(value),
+            Err(error) => panic!("qpdf --json=2 stdout was not JSON: {error}"),
+        }
+    }
+
+    /// qpdf JSON format v2 keeps the full object dump in the second element
+    /// of the top-level "qpdf" array.
+    fn objects(document: &Value) -> &Value {
+        let objects = &document["qpdf"][1];
+        assert!(objects.is_object(), "qpdf reported no object dump");
+        objects
+    }
+
+    fn entry<'v>(objects: &'v Value, reference: &str) -> &'v Value {
+        &objects[&format!("obj:{reference}")]["value"]
+    }
+
+    /// Follow an indirect `"12 0 R"` reference one level.
+    fn resolve<'v>(objects: &'v Value, value: &'v Value) -> &'v Value {
+        match value.as_str().and_then(parse_reference) {
+            Some(reference) => entry(objects, reference),
+            None => value,
+        }
+    }
+
+    fn parse_reference(value: &str) -> Option<&str> {
+        let mut parts = value.split(' ');
+        match (parts.next(), parts.next(), parts.next(), parts.next()) {
+            (Some(number), Some(generation), Some("R"), None) => {
+                number.parse::<u32>().ok()?;
+                generation.parse::<u32>().ok()?;
+                Some(value)
+            }
+            _ => None,
+        }
+    }
+
+    /// qpdf v2 tags text strings as `u:<utf8>` and other byte strings as
+    /// `b:<hex>`. Name-tree key identity is the raw octet sequence.
+    fn string_bytes(value: &Value) -> Vec<u8> {
+        let text = value.as_str().expect("qpdf string");
+        if let Some(unicode) = text.strip_prefix("u:") {
+            unicode.as_bytes().to_vec()
+        } else if let Some(hex) = text.strip_prefix("b:") {
+            assert!(hex.len() % 2 == 0, "qpdf hex string {text:?}");
+            (0..hex.len())
+                .step_by(2)
+                .map(|index| {
+                    u8::from_str_radix(&hex[index..index + 2], 16).expect("qpdf hex string")
+                })
+                .collect()
+        } else {
+            text.as_bytes().to_vec()
+        }
+    }
+
+    fn string_of(objects: &Value, value: &Value) -> String {
+        String::from_utf8(string_bytes(resolve(objects, value))).expect("qpdf UTF-8 string")
+    }
+
+    fn number(value: &Value) -> f64 {
+        value.as_f64().expect("qpdf number")
+    }
+
+    fn xyz(objects: &Value, value: &Value) -> ExternalDestination {
+        let array = resolve(objects, value)
+            .as_array()
+            .expect("qpdf destination array");
+        assert!(
+            array.len() == 5 && array[1].as_str() == Some("/XYZ"),
+            "qpdf destination is not [page /XYZ x y zoom]: {array:?}"
+        );
+        ExternalDestination {
+            page_object: array[0].as_str().expect("qpdf destination page").to_owned(),
+            x: number(&array[2]),
+            y: number(&array[3]),
+        }
+    }
+
+    fn collect_destinations(
+        objects: &Value,
+        value: &Value,
+        out: &mut BTreeMap<Vec<u8>, ExternalDestination>,
+        depth: usize,
+    ) {
+        assert!(depth < 8, "qpdf destination tree too deep");
+        let dict = resolve(objects, value);
+        if let Some(kids) = dict.get("/Kids").and_then(Value::as_array) {
+            for kid in kids {
+                collect_destinations(objects, kid, out, depth + 1);
+            }
+        }
+        if let Some(names) = dict.get("/Names").and_then(Value::as_array) {
+            assert!(names.len() % 2 == 0, "qpdf destination name pairs");
+            for pair in names.as_chunks::<2>().0 {
+                let name = string_bytes(&pair[0]);
+                let destination = xyz(objects, &pair[1]);
+                assert!(
+                    out.insert(name.clone(), destination).is_none(),
+                    "qpdf duplicate destination name {name:?}"
+                );
+            }
+        }
+    }
+
+    fn parse(document: &Value) -> ExternalNavigation {
+        let objects = objects(document);
+        let pages = document["pages"].as_array().expect("qpdf pages");
+        let mut navigation = ExternalNavigation {
+            page_objects: pages
+                .iter()
+                .map(|page| {
+                    page["object"]
+                        .as_str()
+                        .expect("qpdf page object")
+                        .to_owned()
+                })
+                .collect(),
+            ..ExternalNavigation::default()
+        };
+        let root = objects["trailer"]["value"]["/Root"]
+            .as_str()
+            .expect("qpdf trailer /Root");
+        let catalog = entry(objects, root);
+        if let Some(dests) = catalog
+            .get("/Names")
+            .map(|names| resolve(objects, names))
+            .and_then(|names| names.get("/Dests"))
+        {
+            collect_destinations(objects, dests, &mut navigation.destinations, 0);
+        }
+        let page_objects = navigation.page_objects.clone();
+        for (source_page, page_object) in page_objects.iter().enumerate() {
+            let annots = entry(objects, page_object)
+                .get("/Annots")
+                .map(|value| resolve(objects, value))
+                .and_then(Value::as_array);
+            for annot in annots.into_iter().flatten() {
+                let annot = resolve(objects, annot);
+                if annot.get("/Subtype").and_then(Value::as_str) != Some("/Link") {
+                    continue;
+                }
+                let action = resolve(
+                    objects,
+                    annot.get("/A").expect("qpdf link annotation action"),
+                );
+                match action.get("/S").and_then(Value::as_str) {
+                    Some("/GoTo") => {
+                        let destination = xyz(objects, &action["/D"]);
+                        navigation.goto_links.push((source_page, destination));
+                    }
+                    Some("/URI") => navigation
+                        .uri_actions
+                        .push(string_of(objects, &action["/URI"])),
+                    _ => {}
+                }
+            }
+        }
+        navigation
+    }
+}
+
 #[test]
 fn model_forward_backward_same_page_and_uri_actions_survive_pdf_readback() -> TestResult {
     let mut document = model(&[
@@ -234,6 +499,80 @@ fn a_non_ascii_bookmark_name_survives_the_name_tree_readback() -> TestResult {
     assert!(read.bookmarks.contains_key("目录"), "{:?}", read.bookmarks);
     assert_eq!(read.links.len(), 1);
     assert_eq!(read.links[0].destination, read.bookmarks["目录"]);
+    Ok(())
+}
+
+#[test]
+fn an_external_reader_sees_named_destinations_and_resolves_goto_actions() -> TestResult {
+    // The same bytes inspect_navigation reads must make sense to the external
+    // qpdf structure reader: every bookmark (ASCII and non-ASCII names) is a
+    // named destination there, and every anchor link is a /S /GoTo action
+    // whose /D resolves to that destination on the correct page. Skips when
+    // qpdf is not installed; JOYWORD_REQUIRE_QPDF makes it fail (CI).
+    let mut document = model(&[
+        ("AV", Some(anchor("first")?)),
+        ("AV", Some(anchor("目录")?)),
+        (
+            "A",
+            Some(Hyperlink::for_edit(Some("https://example.invalid/x"), None).map_err(error)?),
+        ),
+    ])?;
+    let snapshot = layout(&document)?;
+    let first = position(&document, 0, 1)?;
+    let toc = position(&document, 1, 1)?;
+    bookmark(&mut document, "first", first, first);
+    bookmark(&mut document, "目录", toc, toc);
+    bookmark(&mut document, "unused", first, first);
+    let navigation = navigation_from_document(&document, &snapshot).map_err(error)?;
+    assert_eq!(navigation.links.len(), 2);
+    let export = PdfExport {
+        links: links_from_document(&document, &snapshot),
+        ..PdfExport::default()
+    };
+    let bytes = render_export_with_navigation(snapshot.pages(), &[font()?], &export, &navigation)
+        .map_err(error)?;
+    let read = inspect_navigation(&bytes).map_err(error)?;
+    assert_eq!(read.links.len(), 2);
+    assert_eq!(
+        inspect_pdf(&bytes).map_err(error)?.link_uris,
+        ["https://example.invalid/x"]
+    );
+
+    let Some(external) = qpdf::read_navigation(&bytes) else {
+        return Ok(());
+    };
+    // Every bookmark name is a named destination qpdf can see, with the same
+    // page and /XYZ coordinates as the internal readback.
+    assert_eq!(external.destinations.len(), read.bookmarks.len());
+    for (name, expected) in &read.bookmarks {
+        let found = external
+            .destinations
+            .get(name.as_bytes())
+            .unwrap_or_else(|| panic!("qpdf named destination {name:?}"));
+        assert_eq!(external.page_index(&found.page_object), expected.page);
+        near(found.x as f32, expected.x);
+        near(found.y as f32, expected.y);
+    }
+    // The URI action survives as its own kind, and every GoTo action
+    // resolves to the destination array of one of the named bookmarks.
+    assert_eq!(external.uri_actions, ["https://example.invalid/x"]);
+    assert_eq!(external.goto_links.len(), read.links.len());
+    for link in &read.links {
+        let (_, found) = external
+            .goto_links
+            .iter()
+            .find(|(page, found)| {
+                *page == link.source_page
+                    && external.page_index(&found.page_object) == link.destination.page
+                    && (found.x - link.destination.x as f64).abs() < 0.002
+                    && (found.y - link.destination.y as f64).abs() < 0.002
+            })
+            .unwrap_or_else(|| panic!("qpdf GoTo for {link:?}"));
+        assert!(
+            external.destinations.values().any(|named| named == found),
+            "qpdf GoTo {found:?} resolves to no named destination"
+        );
+    }
     Ok(())
 }
 
