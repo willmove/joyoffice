@@ -23,7 +23,7 @@ pub mod scene;
 pub mod shape;
 pub mod slots;
 mod style_paint;
-mod view;
+pub mod view;
 
 pub use font::{FontError, FontKey, LoadedFont};
 pub use line::{
@@ -54,4 +54,4 @@ pub use document::{
 pub use font::{UnderlineMetricSource, UnderlineMetrics, resolve_underline_metrics};
 pub use scene::decoration_rects;
 pub use shape::{PaintedUnderline, UnderlinePaint};
-pub use view::ViewOptions;
+pub use view::{ViewMode, ViewOptions};

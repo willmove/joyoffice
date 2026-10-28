@@ -21,6 +21,7 @@ pub mod notes;
 mod paint;
 mod revision;
 mod session;
+pub mod spell;
 mod table;
 
 pub use ai_replace::{AI_REVISION_AUTHOR, apply_ai_text_replace, body_final_paragraphs};

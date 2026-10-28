@@ -20,10 +20,21 @@ fn unsupported(node: Option<NodeId>, feature: &'static str) -> LayoutError {
     LayoutError::Unsupported { node, feature }
 }
 
+/// Layout view mode for document presentation (T503, EDIT-008, PLATFORM-003).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub enum ViewMode {
+    #[default]
+    Print,
+    Draft,
+    Outline,
+    Reading,
+}
+
 /// Options stored on [`crate::LayoutKey`]. Defaults match the previous scene:
 /// marks off, hidden text omitted, field results shown.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct ViewOptions {
+    pub mode: ViewMode,
     pub formatting_marks: bool,
     /// Paint runs whose resolved `w:vanish` is on. Off omits those runs.
     pub show_hidden: bool,
@@ -31,18 +42,29 @@ pub struct ViewOptions {
     pub field_codes: bool,
 }
 
-pub(crate) struct Projection {
+pub struct Projection {
     pub text: String,
     /// `None` means the fitted offsets are already the paragraph offsets the
     /// fitter used before this projection existed.
     pub map: Option<Vec<usize>>,
 }
 
-pub(crate) fn project_paragraph(
+pub fn project_paragraph(
     document: &Document,
     paragraph: &Paragraph,
     view: ViewOptions,
 ) -> Result<Projection, LayoutError> {
+    if view.mode == ViewMode::Outline && heading_level(document, paragraph).is_none() {
+        return Ok(Projection {
+            text: String::new(),
+            map: Some(vec![
+                0;
+                paragraph.plain_text(|_| String::new()).chars().count()
+                    + 1
+            ]),
+        });
+    }
+
     let original = paragraph.plain_text(|_| String::new());
     let hidden = hidden_scalars(document, paragraph, view)?;
     let fields = field_omissions(document, paragraph, view)?;
@@ -186,7 +208,10 @@ pub(crate) fn accept_annotations(document: &Document) -> Result<(), LayoutError>
             // checks ranges. Header, footer, and comment bookmark carets are
             // recorded after the body is placed; the PDF resolver checks
             // names and those carets. Comment text itself is not painted.
-            AnnotationKind::Bookmark { .. } | AnnotationKind::Comment(_) => {}
+            AnnotationKind::Bookmark { .. }
+            | AnnotationKind::Comment(_)
+            | AnnotationKind::Footnote { .. }
+            | AnnotationKind::Endnote { .. } => {}
             AnnotationKind::Field { separator } => {
                 let Anchor::Range { start, end } = &annotation.anchor else {
                     return Err(unsupported(None, "annotation or field projection"));
@@ -204,4 +229,17 @@ pub(crate) fn accept_annotations(document: &Document) -> Result<(), LayoutError>
         }
     }
     Ok(())
+}
+
+fn heading_level(document: &Document, paragraph: &Paragraph) -> Option<u8> {
+    if let Some(style_id) = &paragraph.style
+        && let Some(style) = document.styles().get(style_id)
+        && let Some(name) = style.name.as_deref()
+    {
+        let lower = name.to_ascii_lowercase();
+        if let Some(rest) = lower.strip_prefix("heading ") {
+            return rest.parse().ok();
+        }
+    }
+    None
 }
