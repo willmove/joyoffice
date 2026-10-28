@@ -237,7 +237,7 @@ impl ParagraphText {
         self.chunks.iter().flat_map(|chunk| chunk.text.chars())
     }
 
-    pub(crate) fn to_raw_string(&self) -> String {
+    pub fn to_raw_string(&self) -> String {
         let mut text = String::with_capacity(self.summary().bytes);
         for chunk in self.chunks.iter() {
             text.push_str(&chunk.text);

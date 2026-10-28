@@ -1,0 +1,15 @@
+[package]
+name = "joyword-textfmt"
+description = "HTML, Markdown, and plain text bidirectional conversion with loss reports (T601)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyword-model.workspace = true
+
+[lints]
+workspace = true

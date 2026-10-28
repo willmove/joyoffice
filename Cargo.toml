@@ -15,6 +15,7 @@ members = [
     "crates/joyword-protect",
     "crates/joyword-render",
     "crates/joyword-shell",
+    "crates/joyword-textfmt",
 ]
 default-members = [
     "apps/joyword-cli",
@@ -31,6 +32,7 @@ default-members = [
     "crates/joyword-protect",
     "crates/joyword-render",
     "crates/joyword-shell",
+    "crates/joyword-textfmt",
 ]
 resolver = "3"
 
@@ -61,6 +63,7 @@ joyword-pdf = { path = "crates/joyword-pdf" }
 joyword-protect = { path = "crates/joyword-protect" }
 joyword-render = { path = "crates/joyword-render" }
 joyword-shell = { path = "crates/joyword-shell" }
+joyword-textfmt = { path = "crates/joyword-textfmt" }
 crc32fast = "=1.5.2"
 harfrust = "=0.8.4"
 krilla = { version = "=0.8.2", default-features = false }

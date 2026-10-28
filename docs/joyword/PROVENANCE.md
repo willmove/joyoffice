@@ -193,4 +193,10 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-009／QUALITY-009／FORMAT-003。依据微软公开规范 [[MS-OFFCRYPTO]: Office Document Cryptography Structure](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-offcrypto/)、[ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.15.1.29、NIST FIPS 180-4（SHA 系列）、NIST FIPS 197（AES）与 RFC 4231（HMAC）。自研实现于 `crates/joyword-protect`，零第三方加密库依赖。只读公开规范，未读取任何专有软件实现源码。
 - 实现了文档保护密码哈希校验（支持 SHA-1／256／512 与 spinCount 迭代比对）、活动内容安全审计与外部外链（UNC、本地协议）防御、XML-DSig 签名被签部件摘要一致性检查，以及 CFB 容器中的 Agile 加密 OOXML 解密与往返测试。
 
+### HTML、Markdown 与文本双向转换（T601，2026-10-28）
+
+- FORMAT-006／FORMAT-003／CLIP-001。依据 [CommonMark 0.31.2](https://spec.commonmark.org/)、[GitHub Flavored Markdown (GFM)](https://github.github.com/gfm/) 与 [W3C HTML5 规范](https://www.w3.org/TR/html52/)。纯自研实现于 `crates/joyword-textfmt`，零第三方解析库依赖。只读公开规范，未读取任何专有软件实现源码。
+- 实现了带损失报告的 TXT／Markdown／HTML 双向转换；提供编码探测与换行规范化、受控标签白名单与恶意活动内容（脚本、伪协议、外链）强制剥离过滤。
+
+
 

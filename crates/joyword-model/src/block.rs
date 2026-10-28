@@ -176,6 +176,11 @@ impl Paragraph {
         &self.text
     }
 
+    /// Full raw text of this paragraph with inline objects omitted.
+    pub fn raw_text(&self) -> String {
+        self.plain_text(|_| String::new())
+    }
+
     pub fn runs(&self) -> &[Run] {
         &self.runs
     }
