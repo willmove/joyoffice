@@ -172,9 +172,15 @@ pub fn render_export_with_navigation(
     // metadata clock and of an instance-id that is not part of the scene.
     let settings = krilla::SerializeSettings {
         xmp_metadata: false,
+        enable_tagging: export.tagged,
         ..krilla::SerializeSettings::default()
     };
     let mut document = Document::new_with(settings);
+    let mut tag_tree = if export.tagged {
+        Some(krilla::tagging::TagTree::new().with_lang(export.lang.clone()))
+    } else {
+        None
+    };
     navigation::register(&mut document, navigation)?;
     // Every face the runs use is admitted before the first page starts: a
     // Restricted License embedding bit or a krilla rejection refuses the whole
@@ -199,16 +205,38 @@ pub fn render_export_with_navigation(
         )
         .ok_or(PdfError::InvalidPage)?;
         let mut page = document.start_page_with(settings);
+        let mut page_group = if export.tagged {
+            Some(krilla::tagging::TagGroup::new(krilla::tagging::Tag::Part))
+        } else {
+            None
+        };
         let mut surface = page.surface();
         if !scene.rects.is_empty() {
+            if export.tagged {
+                let _ = surface.start_tagged(krilla::tagging::ContentTag::Artifact(
+                    krilla::tagging::Artifact::new(krilla::tagging::ArtifactType::Layout, None),
+                ));
+            }
             for rect in &scene.rects {
                 fill_rect(&mut surface, rect);
             }
             surface.set_fill(None);
             surface.set_stroke(None);
+            if export.tagged {
+                surface.end_tagged();
+            }
         }
         for image in &scene.images {
-            draw_image(&mut surface, image)?;
+            if export.tagged {
+                let id = surface.start_tagged(krilla::tagging::ContentTag::Other);
+                draw_image(&mut surface, image)?;
+                surface.end_tagged();
+                if let Some(ref mut grp) = page_group {
+                    grp.push(id);
+                }
+            } else {
+                draw_image(&mut surface, image)?;
+            }
         }
         for run in &scene.runs {
             if run.glyphs.is_empty() && run.text.is_empty() {
@@ -225,14 +253,35 @@ pub fn render_export_with_navigation(
             );
             let size = to_points(run.size) as f32;
             set_rgb_fill(&mut surface, run.color);
-            surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
+            if export.tagged {
+                let id = surface.start_tagged(krilla::tagging::ContentTag::Span(
+                    krilla::tagging::SpanTag::empty(),
+                ));
+                surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
+                surface.end_tagged();
+                if let Some(ref mut grp) = page_group {
+                    grp.push(id);
+                }
+            } else {
+                surface.draw_glyphs(start, &glyphs, font.clone(), &run.text, size, false);
+            }
             if run.bold {
                 // Paint the offset copy as outlines: empty cluster ranges alone
                 // still reuse the font's ToUnicode mapping in PDF readers.
                 // Only the first draw contributes searchable text.
-                let visual = scene_glyphs(run, false);
-                let shifted = Point::from_xy(start.x + size * 0.04, start.y);
-                surface.draw_glyphs(shifted, &visual, font, "", size, true);
+                if export.tagged {
+                    let _ = surface.start_tagged(krilla::tagging::ContentTag::Artifact(
+                        krilla::tagging::Artifact::new(krilla::tagging::ArtifactType::Layout, None),
+                    ));
+                    let visual = scene_glyphs(run, false);
+                    let shifted = Point::from_xy(start.x + size * 0.04, start.y);
+                    surface.draw_glyphs(shifted, &visual, font, "", size, true);
+                    surface.end_tagged();
+                } else {
+                    let visual = scene_glyphs(run, false);
+                    let shifted = Point::from_xy(start.x + size * 0.04, start.y);
+                    surface.draw_glyphs(shifted, &visual, font, "", size, true);
+                }
             }
         }
         surface.finish();
@@ -263,6 +312,11 @@ pub fn render_export_with_navigation(
             page.add_annotation(krilla::annotation::Annotation::new_link(annotation, None));
         }
         page.finish();
+        if let (Some(tree), Some(grp)) = (&mut tag_tree, page_group)
+            && !grp.children.is_empty()
+        {
+            tree.push(grp);
+        }
     }
     let mut metadata = krilla::metadata::Metadata::new().producer(PRODUCER.to_string());
     if let Some(title) = export
@@ -276,6 +330,11 @@ pub fn render_export_with_navigation(
     document.set_metadata(metadata);
     if let Some(outline) = info::krilla_outline(&export.outline, pages.len()) {
         document.set_outline(outline);
+    }
+    if let Some(tree) = tag_tree
+        && !tree.children.is_empty()
+    {
+        document.set_tag_tree(tree);
     }
     document.finish().map_err(|error| match error {
         krilla::error::KrillaError::Font(_, reason) => {

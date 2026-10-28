@@ -84,8 +84,7 @@ fn two_renders_match_and_carry_no_clock() {
     let (scene, font) = text_scene("A");
     let export = PdfExport {
         title: Some("Contract".into()),
-        outline: Vec::new(),
-        links: Vec::new(),
+        ..PdfExport::default()
     };
     let first = export_of(&scene, &font, &export);
     let second = export_of(&scene, &font, &export);
@@ -171,9 +170,8 @@ fn heading_styles_become_bookmarks_and_a_bare_outline_level_does_not() {
         snapshot.pages(),
         std::slice::from_ref(&font()),
         &PdfExport {
-            title: None,
             outline,
-            links: Vec::new(),
+            ..PdfExport::default()
         },
     )
     .unwrap();
@@ -230,9 +228,8 @@ fn an_https_link_is_a_uri_annotation_and_a_script_is_not() {
     assert_eq!(links[0].uri, "https://example.invalid/a");
     assert!(links[0].width > 0.0 && links[0].height > 0.0);
     let export = PdfExport {
-        title: None,
-        outline: Vec::new(),
         links: links.clone(),
+        ..PdfExport::default()
     };
     let font = font();
     let first = render_export(snapshot.pages(), std::slice::from_ref(&font), &export).unwrap();
@@ -355,8 +352,36 @@ fn a_classic_cross_reference_file_reports_structure_without_the_writer() {
         link_uris: Vec::new(),
         has_creation_date: false,
         has_mod_date: false,
+        is_tagged: false,
+        has_struct_tree: false,
     };
     assert_eq!(report, expected);
+}
+
+#[test]
+fn test_tagged_pdf_structure() {
+    let (scene, font) = text_scene("A");
+    let export = PdfExport {
+        tagged: true,
+        lang: Some("zh-CN".into()),
+        ..PdfExport::default()
+    };
+    let pdf = render_export(
+        std::slice::from_ref(&scene),
+        std::slice::from_ref(&font),
+        &export,
+    )
+    .unwrap();
+    let report = inspect_pdf(&pdf).unwrap();
+    assert!(report.is_tagged, "PDF must have /MarkInfo Marked true");
+    assert!(report.has_struct_tree, "PDF must have /StructTreeRoot");
+    assert_eq!(report.pages.len(), 1);
+
+    // Verify text readability with pdftotext
+    let Some(text) = pdftotext(&pdf) else {
+        return;
+    };
+    assert!(text.contains('A'), "{text:?}");
 }
 
 #[test]

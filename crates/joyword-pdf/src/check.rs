@@ -26,6 +26,8 @@ pub struct PdfReport {
     pub link_uris: Vec<String>,
     pub has_creation_date: bool,
     pub has_mod_date: bool,
+    pub is_tagged: bool,
+    pub has_struct_tree: bool,
 }
 
 /// Destination read from PDF bytes, with raw PDF bottom-left coordinates.
@@ -220,7 +222,7 @@ fn goto_link(
 #[derive(Clone, Debug)]
 enum Value {
     Null,
-    Bool,
+    Bool(bool),
     Int(i64),
     Real(f32),
     Name(String),
@@ -277,6 +279,18 @@ pub fn inspect(bytes: &[u8]) -> Result<PdfReport, &'static str> {
         Some(root) => outline_titles(&mut file, root)?,
         None => Vec::new(),
     };
+    let is_tagged = match catalog.get("MarkInfo") {
+        Some(val) => {
+            if let Ok(dict) = resolve_dict(&mut file, val) {
+                dict.get("Marked")
+                    .is_some_and(|v| matches!(v, Value::Bool(true)))
+            } else {
+                false
+            }
+        }
+        None => false,
+    };
+    let has_struct_tree = catalog.get("StructTreeRoot").is_some();
     Ok(PdfReport {
         pages: stats.pages,
         producer: info.producer,
@@ -288,6 +302,8 @@ pub fn inspect(bytes: &[u8]) -> Result<PdfReport, &'static str> {
         link_uris: stats.link_uris,
         has_creation_date: info.has_creation_date,
         has_mod_date: info.has_mod_date,
+        is_tagged,
+        has_struct_tree,
     })
 }
 
@@ -968,8 +984,8 @@ impl<'a> Cursor<'a> {
             Some(b'[') => self.array(),
             Some(b'(') => self.literal(),
             Some(b'/') => Ok(Value::Name(self.name()?)),
-            Some(b't') if self.eat(b"true") => Ok(Value::Bool),
-            Some(b'f') if self.eat(b"false") => Ok(Value::Bool),
+            Some(b't') if self.eat(b"true") => Ok(Value::Bool(true)),
+            Some(b'f') if self.eat(b"false") => Ok(Value::Bool(false)),
             Some(b'n') if self.eat(b"null") => Ok(Value::Null),
             Some(b'+' | b'-' | b'.' | b'0'..=b'9') => self.number_or_ref(),
             _ => Err("pdf value"),

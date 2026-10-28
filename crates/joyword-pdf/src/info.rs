@@ -33,6 +33,10 @@ pub struct PdfExport {
     pub outline: Vec<OutlineEntry>,
     /// URI link annotations. Only `http`, `https` and `mailto` targets.
     pub links: Vec<PdfLink>,
+    /// Whether to emit Tagged PDF marked content and logical structure tree.
+    pub tagged: bool,
+    /// Document natural language (e.g. "zh-CN", "en-US") for root structure element.
+    pub lang: Option<String>,
 }
 
 /// One clickable rectangle already placed on a scene page. Coordinates are

@@ -203,5 +203,10 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-005／FORMAT-003。依据微软公开规范 [Rich Text Format (RTF) Specification Version 1.9.1](https://www.microsoft.com/en-us/download/details.aspx?id=10725)。纯自研实现于 `crates/joyword-rtf`，零第三方解析库依赖。只读公开规范，未读取任何专有软件实现源码。
 - 实现了 RTF 1.9 双向词法解析与生成器，包含花括号作用域栈、控制词与控制符分发、Unicode `\uN?` 编解码及跳过计数机制（`\uc`）、可忽略目标 `\*` 过滤，以及针对深度嵌套与畸形输入的资源预算限制（`RtfBudget`）；集成 `LossReport` 跟踪转换损失。
 
+### Tagged PDF 逻辑结构标签与页面图片（T603，2026-10-28）
+
+- FORMAT-008／LAYOUT-009。依据 [ISO 32000-1](https://www.iso.org/standard/51502.html) §14.7 Logical Structure 与 §14.8 Tagged PDF。自研集成于 `crates/joyword-pdf` 与 `apps/joyword-cli`。只读公开规范，未读取任何专有软件实现源码。
+- 实现了带 Marked Content 序列的结构树（StructTreeRoot、Document、Part、Span 等）和饰品（Artifact）分离，扩展了基于原生字节与引用的 PDF 结构检查器（检测 MarkInfo、Marked、StructTreeRoot），并结合同一 PageScene CPU 渲染器提供确定性页面图片输出。
+
 
 
