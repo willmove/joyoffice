@@ -1019,6 +1019,26 @@ fn layout_pass(
         rank += 1;
     }
     walk_back_keep_next(document, &mut same);
+    // The separator rules of each source page, from the current section
+    // specs: if a spec changed since `previous`, the counts disagree with the
+    // source pages and the copy validation fails, falling back to a full
+    // placement rather than copying stale ink.
+    let separator_counts: Vec<usize> = previous
+        .map(|previous| {
+            (0..previous.pages().len())
+                .map(|page| {
+                    previous
+                        .page_box(page)
+                        .and_then(|(geometry, section)| {
+                            document.sections().get(section).map(|section| {
+                                crate::pages::separator_rects(section, &geometry).len()
+                            })
+                        })
+                        .unwrap_or(0)
+                })
+                .collect()
+        })
+        .unwrap_or_default();
     let stop = match (previous, stored.as_ref()) {
         (Some(previous), Some((_, _, starts))) if starts.len() == prepared.len() && !any_deps => {
             Some(PlaceStop {
@@ -1026,6 +1046,7 @@ fn layout_pass(
                 starts,
                 same: &same,
                 place_from: 0,
+                separator_counts: &separator_counts,
             })
         }
         _ => None,

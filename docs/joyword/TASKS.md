@@ -25,12 +25,12 @@
 | M2 | 2 | 9 | 1 | 0 | 12 |
 | M3 | 0 | 3 | 2 | 0 | 5 |
 | M4 | 0 | 3 | 1 | 0 | 4 |
-| M5 | 0 | 0 | 5 | 0 | 5 |
+| M5 | 0 | 1 | 4 | 0 | 5 |
 | M6 | 0 | 0 | 6 | 0 | 6 |
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 13 | 21 | 32 | 0 | 66 |
+| 总计 | 13 | 22 | 31 | 0 | 66 |
 
 T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`。2026-10-22 六分支波次之后 T301 与 T401 也由 `planned` 改为 `in_progress`；2026-10-23 第二波的 T402 有界替换提案与只读预览进入独立审查，状态改为 `in_progress`。所以 2026-10-23 各波次后上表为 12 done／22 in_progress／32 planned／0 blocked；2026-10-26 T001 收口后为 13 done／21 in_progress／32 planned／0 blocked（见下文该段）。任务总数仍是 66，切片交付不等于整个任务完成。2026-10-23 第二波四路并行切片落地：T104 生产恢复双代、T204 PDF 书签内部跳转、T202 章节 PAGE 编号与 T402 有界替换提案与只读预览，四项各自进入 `in_progress`，没有一项被标成 `done`；详细证据见各任务的完成证据与 [验收清单](acceptance/README.md)。2026-10-23 第三切片（无 PR，按用户指令直接并入 main）：T402 跨段有界替换与段落标记删除修订（`w:pPr/w:rPr/w:del`）落地，同时补齐 AI 修订的 DOCX 往返与对照器修订携带；T301 的跨段跟踪删除限制随之解除（表格／内容控件边界仍拒绝）。布局的合并渲染（最终视图中删除标记的相邻段仍逐段排版）是如实记录的已知边界，留待后续切片。
 
@@ -51,6 +51,8 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 2026-10-21 T203 上下型绕排：页面相对、位于文字前面的 `wrapTopAndBottom` 已有自动测试。正文与图片带垂直相交的行整行放到带下方，不排到两侧。原绕排 XML 照原样写回。这是 JoyWord 假设，不是 Word 观察。真正的轮廓绕排、衬于文字下方、非页面相对位置和 Word／WPS／浏览器粘贴仍未做。状态保持 `in_progress`。计数不改。
 
 2026-10-22 六分支并行波次：T110 的 Windows 卷能力观测、T200 的 `numbering.xml` 写回、T202 的栏分隔线与 `nextColumn`、T301 的段落与运行格式修订、T401 的选区授权与受限工具这五个实现分支，加上 review 分支的 CLI JSON 键序修复，曾在集成分支 `chore/integration-wave-20261022` 组合验证；这六项与 T111 门禁加固 [#86](https://github.com/willmove/joyoffice/pull/86) 现已全部合入 `main` `85a24de`，该主干 CI 九项全绿（2026-10-23 核验）。T301 与 T401 由 `planned` 改为 `in_progress`：两者已有真实实现和自动测试，但没有 Word／WPS 往返、图形界面、信创真机或打印的人工验收，按任务规则不能标 `done`。计数改为 12 done／21 in_progress／33 planned／0 blocked，任务总数仍是 66。这一波没有任何任务改为 `done`。各切片的实现说明见 [IMPLEMENTATION](IMPLEMENTATION.md)，T200 与 T202 的原子准则见 [验收清单](acceptance/README.md)。
+
+2026-10-27 T500 开始：M5 第一个任务由 `planned` 改为 `in_progress`（计数随之改为 13 done／22 in_progress／31 planned／0 blocked，任务总数 66）。第一切片恢复带栏分隔线文档的稳定页尾复用（T202 记录的已知性能缺口），并补上百页混合分节长文档、长文档取消与屏幕／PDF 几何对照的自动证据；没有人工验收，不标 `done`。见 T500 的完成证据与 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 2026-10-26 T001 收口：核对发现 TASKS 此前记录的两个缺口中，Windows 腿其实已有证据——2026-10-19 Windows GUI 会话（[验证审计](VALIDATION-20261019.md)）已核对 rustc／cargo 1.98.1，并以隔离测试 profile 启动 `JoyWord · Preview` 完成 16 步截图，fmt／clippy／652＋38 项测试通过，只是该机缺 cargo-deny；「Windows 腿仍未做」一句出自同日麒麟会话的提交 `8b7f9c2`，两条会话并行，Windows 证据合入 main 后没有归并回 T001。真正缺的 cargo-deny 本机复核于本日在 Mac 参考机完成（cargo-deny 0.20.2，`--locked --all-features`，公告库 `21d909e4`，advisories／bans／licenses／sources 四项 ok），并在 main `5efe06a` 复核工具链、fmt 与不启用 `dev-runtime-shaders` 的应用构建，该提交 CI [40280336418](https://github.com/willmove/joyoffice/actions/runs/40280336418) 九项全绿。T001 由 `in_progress` 改为 `done`，计数改为 13 done／21 in_progress／32 planned／0 blocked，任务总数仍是 66。本次只改文档，未改代码与依赖；M0 退出条件中的信创真机专项仍属 T005 非阻塞待补验，不因 T001 完成而改变；[2026-10-19 验证审计](VALIDATION-20261019.md) 关于 T001「Windows 参考环境仍缺」的两处表述是当日快照，以本段为准。
 
@@ -601,7 +603,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 ### T500：复杂分页与长文档
 
 - 输入：分页约束图、复杂分节／对象／表格语料及稳定布局缓存。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-012`、`LAYOUT-013`、`LAYOUT-005`、`LAYOUT-006`、`LAYOUT-010`
 - 前置：`T204`
 - 产物：多栏、连续及奇偶分节、跨页／嵌套表格、浮动绕排与增量分页。
@@ -609,6 +611,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 自动验证：最小约束样例、稳定页尾复用、几何对照和长文档取消。
 - 人工验收：百页报告改首段／末段、改变方向与图文绕排，观察定位与响应。
 - 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 2026-10-27 第一切片（任务由 `planned` 改为 `in_progress`，没有人工验收，不标 `done`）：T500 的产物项多数已由 M2 各任务落地（等宽／不等宽分栏与栏分隔线、连续／奇偶／下一栏分节、跨页表格与表头重复、一层嵌套表、页面相对浮动绕排、增量分页与段落缓存），本切片补上还没有的三件自动化证据并修复一个已知性能缺口。其一，稳定页尾复用恢复到带栏分隔线的文档：T202 栏分隔线切片曾记录「带分隔线的文档失去后缀复制复用，退回完整放置」——根因是 `suffix_copies` 的完整性校验按源页最终 rects 数量比较，而分隔矩形由 `finish_stories` 在组装之后追加、复制时不重放。现在 `pages.rs` 把分隔矩形计算提取为纯函数 `separator_rects(section, geometry)`（绘制与计数共用同一几何，无第二套实现），增量路径在构造 `PlaceStop` 时按当前节规格对上一快照逐页计算分隔矩形数并存入 `separator_counts`，`suffix_copies` 的校验改为「复制页 rects + 该页分隔数 == 源页 rects」，重放之外恰好允许这批故事级矩形；`finish_stories` 之后仍统一重画分隔线，复制页不携带旧墨。节规格在两次排版之间变化时计数与源页不符，校验失败退回完整放置，不复制陈旧墨迹。证据：`long_document_edits_reuse_fits_and_the_stable_page_tail`——1500+ 段、65+ 页、含横向节（页面锚定浮动图）与带分隔线双栏节的长文档，未变重排 `shape_calls` 为 0 且后缀从锚点整体复制（`stable_boundary` 有值，栏分隔页在复制范围内）；改首段只重排该段（其余段全部缓存命中，增量与全量逐页一致）；改末段无后缀复制（`stable_boundary` 为 None）、仅该段重排（缓存命中恰为其余全部段）且与全量一致。其二，长文档取消与规模：`a_hundred_page_mixed_section_document_lays_out` 构造 100+ 页混合文档（纵向正文＋41 行跨页表头重复表格→横向节浮动绕排图→奇偶分节双栏＋栏分隔线），断言页数、横纵页框、表头多页重复、分隔线两侧有文字与浮动图落页；`a_cancelled_hundred_page_layout_returns_without_publishing_pages` 在该规模上复验取消令牌的单调性与 `LayoutError::Cancelled`（协作检查点在既有代码中按块粒度存在，应用层新旧作业替代已有 `stale_layouts_lose_to_newer_requests_including_a_to_b_to_a`）。其三，几何对照：`a_mixed_section_document_shares_one_geometry_with_the_pdf`（joyword-pdf）对混合分节样例断言屏幕 PageScene 与 PDF 消费同一次布局——每个 run 原点在 PDF 文本矩阵 0.01 pt 内。未做：人工验收（百页报告改首段／末段、改变方向与图文绕排的人工观察）；含表格文档在增量路径仍整体走完整放置（表行跨页与表头重复使段落级后缀复制不适用，缓存命中与页尾复用因此不覆盖含表文档，是如实记录的已知边界）；`suffix_copies` 对含页面锚定浮动图的页保守不复制（图不是行级图像，复制页校验只重放行级内容，本切片不扩大复制范围）；金样场景（golden-scenes harness）未新增 t500 场景。详见 [IMPLEMENTATION](IMPLEMENTATION.md) 的「T500 第一切片」。
 
 ### T501：注释、域与引用体系
 

@@ -1654,3 +1654,21 @@ T204 仍是 `in_progress`，进度计数不改。「文档内跳转」自动化�
 本机验证（Linux，Rust 1.98.1，qpdf 12.2.0）：`JOYWORD_REQUIRE_QPDF=1 cargo test --locked -p joyword-pdf` 全部通过（11 个测试目标，含新增外部复核），`cargo test --locked -p joyword-cli --test bookmark_goto` 3 项全过；无 qpdf 时跳过、设变量时以「qpdf is not installed」失败两条路径均实测；`cargo fmt --all -- --check` 干净，`cargo clippy -p joyword-pdf -p joyword-cli --all-targets --locked -- -D warnings` 零告警；`check_docs.py`／`check_acceptance.py` 通过。
 
 未做：锚点目标不在本文档书签中时该链接仍被跳过而不阻断导出（`文档内跳转` 保持 `partial` 的唯一剩余理由）；PDF 结构标签（tagged PDF）；图形界面；Word／WPS 对照；真实打印与系统打印对话框；两个独立阅读器人工检查（UOS 报告的 qpdfview／WPS PDF 仍是人工行）。T204 保持 `in_progress`。
+
+### T500 第一切片：长文档规模证据与分隔线文档的页尾复用（2026-10-27）
+
+T500 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 planned／0 blocked）。本切片没有人工验收，不标 `done`。
+
+**分隔线文档恢复后缀复制复用。** T202 栏分隔线切片记录的已知缺口——「带分隔线的文档失去后缀复制复用，退回完整放置（结果正确，略慢）」——根因在 `suffix_copies` 的完整性校验：它按源页最终 rects 数量比较复制页，而栏分隔矩形由 `finish_stories` 在组装之后追加，复制路径只重放行级装饰矩形，永远少这批故事级矩形，校验必然失败。修复保持单一几何来源：`pages.rs` 把分隔矩形计算提取为纯函数 `separator_rects(section, geometry)`（无分隔标志、规范错误、少于两栏或非正高度的节返回空），`paint_column_separators` 改为调用它；增量路径在构造 `PlaceStop` 前按当前文档节规格对上一快照逐页计算分隔矩形数（`separator_counts`），`suffix_copies` 的最终校验改为「复制页 runs 数与源页相等，且复制页 rects 数 + 该页分隔数 == 源页 rects 数」。`finish_stories` 在组装（含复制）之后仍统一重画分隔线，复制页不携带旧墨；节规格在两次排版之间变化时（例如切换 `w:sep`），计数与源页实际数量不符，校验失败退回完整放置——宁可失去复用也不复制陈旧墨迹。页面锚定的浮动图不是行级图像，复制只重放行级内容，因此含浮动图的页仍被保守地完整放置；本切片不扩大复制范围。
+
+**长文档规模与页尾复用证据**（`crates/joyword-layout/tests/long_document.rs`，新文件）：
+
+- `a_hundred_page_mixed_section_document_lays_out`：100+ 页混合文档（纵向正文节＋41 行两行单元格跨页表格（表头行重复）→ NextPage 横向节（页面锚定 wrapSquare 浮动图＋正文）→ EvenPage 双栏节（栏分隔线开）），断言页数、横纵页框并存、表头文字出现在多页、分隔线两侧各有文字、浮动图以页图像落页。
+- `a_cancelled_hundred_page_layout_returns_without_publishing_pages`：同一规模上预取消令牌返回 `LayoutError::Cancelled`、令牌单调共享、换新令牌重试完整通过（协作检查点在既有代码按块粒度存在；应用层新旧排版作业替代与取消由既有 `stale_layouts_lose_to_newer_requests_including_a_to_b_to_a` 覆盖，本切片未新增取消语义）。
+- `long_document_edits_reuse_fits_and_the_stable_page_tail`：1351 段、65+ 页、含横向节（浮动图）与带分隔线双栏节的无表长文档。未变重排 `shape_calls` 为 0、缓存命中全量、`stable_boundary` 有值（分隔线页在复制范围内——修复的直接回归测试）；改首段只重排该段、其余全部缓存命中、增量与全量逐页一致（runs／rects／images／lines／页框）；改末段 `stable_boundary` 为 None（被改段的 fit 不再是「相同」）、缓存命中恰为其余全部段、增量与全量一致、页数不变。
+
+**几何对照**（`crates/joyword-pdf/tests/long_document.rs`，新文件）：`a_mixed_section_document_shares_one_geometry_with_the_pdf` 对混合分节样例（含跨页表头重复表格、横向浮动图节、双栏分隔线节）断言屏幕 PageScene 与 PDF 消费同一次布局——每个非空 run 原点在 PDF 文本矩阵 0.01 pt 内（`text_matrices` 解析沿 `pages.rs` 既有手法），并核对横纵页框、分隔线与表头重复存在。
+
+**已知边界（如实记录）**：含表格文档在增量路径仍整体走完整放置（表行跨页与表头重复使段落级后缀复制不适用，`layout_incremental` 对含表文档既有回退不变），缓存命中与页尾复用因此不覆盖含表文档；含页面锚定浮动图的页保守不复制；golden-scenes harness 未新增 t500 场景（几何对照由上述 PDF 测试承担）；人工验收（百页报告改首段／末段、改变方向与图文绕排的人工观察）未做。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout`（210 项，含 3 项新测试）、`cargo test --locked -p joyword-pdf --test long_document`、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`python scripts/check_gates.py`、`python scripts/check_acceptance.py` 通过；`python -m unittest discover -s scripts/tests` 的 `test_committed_bytes_and_manifest_hashes_match` 在本机 zlib-ng 上仍失败（干净 main 同样失败）。
