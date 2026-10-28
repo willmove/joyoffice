@@ -689,6 +689,10 @@ impl JoyWord {
         } else if self.side_panel.take().is_some() {
             window.focus(&self.focus_handle, cx);
             cx.notify();
+        } else if self.open_gate.is_some() {
+            // While the status bar shows the opening note, plain Esc is the
+            // cancel entry for that open.
+            self.cancel_open_in_flight(cx);
         } else {
             return;
         }

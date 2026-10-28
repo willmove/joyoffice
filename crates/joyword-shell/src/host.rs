@@ -18,16 +18,16 @@ use crate::command::{
     ArgValue, Availability, CommandHost, CommandId, DOCUMENT_SWITCH, EDIT_ALIGN_CENTER,
     EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD, EDIT_COPY, EDIT_CUT, EDIT_INSERT,
     EDIT_INSERT_IMAGE, EDIT_ITALIC, EDIT_JUSTIFY, EDIT_PASTE, EDIT_SELECT_ALL, EDIT_UNDERLINE,
-    ExecuteError, FILE_CLOSE, FILE_EXPORT_PDF, FILE_OPEN, FILE_OPEN_RECENT, FILE_PRINT, FILE_SAVE,
-    FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FORMAT_CANCEL,
-    FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH, InvokeError, LIST_APPLY, LIST_LEVEL,
-    LIST_REMOVE, PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS,
-    PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_AUTHOR,
-    REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE,
-    REVIEW_TRACK, Registry, STYLE_APPLY, STYLE_LIST, TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT,
-    TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT, TABLE_PROPERTIES, TABLE_ROW_DELETE,
-    TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS,
-    VIEW_HIDDEN_TEXT,
+    ExecuteError, FILE_CLOSE, FILE_EXPORT_PDF, FILE_OPEN, FILE_OPEN_CANCEL, FILE_OPEN_RECENT,
+    FILE_PRINT, FILE_SAVE, FILE_SAVE_COPY, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE,
+    FIND_REPLACE_ALL, FORMAT_CANCEL, FORMAT_COPY, FORMAT_FONT, FORMAT_PAINT, FORMAT_PARAGRAPH,
+    InvokeError, LIST_APPLY, LIST_LEVEL, LIST_REMOVE, PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER,
+    PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_NUMBER, PAGE_ORIENTATION, PAGE_SIZE, REVIEW_ACCEPT,
+    REVIEW_ACCEPT_ALL, REVIEW_AUTHOR, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL, REVIEW_REJECT,
+    REVIEW_REJECT_ALL, REVIEW_SIMPLE, REVIEW_TRACK, Registry, STYLE_APPLY, STYLE_LIST,
+    TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT,
+    TABLE_PROPERTIES, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
 };
 use crate::dialogs::{
     ViewToggles, font_draft_from_decision, paragraph_draft_from_decision, table_draft_from_decision,
@@ -94,6 +94,9 @@ pub struct Office {
     clipboard: String,
     recent: Vec<PathBuf>,
     opening: Option<PendingOpen>,
+    /// Newest open generation the user cancelled. Generations are monotonic,
+    /// so any result at or before it belongs to an open already cancelled.
+    cancelled_open: Option<u64>,
     open_generation: u64,
     save_generation: u64,
     recovery_dir: Option<PathBuf>,
@@ -126,6 +129,7 @@ impl Office {
             clipboard: String::new(),
             recent: Vec::new(),
             opening: None,
+            cancelled_open: None,
             open_generation: 0,
             save_generation: 0,
             recovery_dir: None,
@@ -325,6 +329,10 @@ impl Office {
 
     /// End the read-only open gate when `generation` is still current.
     pub fn finish_open(&mut self, generation: u64) -> Result<String, ExecuteError> {
+        if self.open_was_cancelled(generation) {
+            // The buffered keystrokes were already handed back by the cancel.
+            return Err(ExecuteError::Failed("open cancelled".into()));
+        }
         match self.opening.take() {
             Some(pending) if pending.generation == generation => Ok(pending.buffered),
             Some(pending) => {
@@ -342,6 +350,29 @@ impl Office {
             buffered: String::new(),
         });
         self.open_generation
+    }
+
+    /// Cancel the open that is in flight. The document that is not ready yet
+    /// is discarded and never replaces the current session; keystrokes
+    /// buffered during that open are returned so the caller keeps them on
+    /// the document still current, exactly like a failed open. Results
+    /// arriving late for a cancelled generation are refused by
+    /// [`Self::accept_open`], [`Self::accept_bound`] and
+    /// [`Self::finish_open`].
+    pub fn cancel_open(&mut self) -> Result<String, ExecuteError> {
+        let Some(pending) = self.opening.take() else {
+            return Err(ExecuteError::Failed("no open in progress".into()));
+        };
+        self.cancelled_open = Some(pending.generation);
+        Ok(pending.buffered)
+    }
+
+    /// Generations only grow, so anything at or before the newest cancelled
+    /// open is a result the user already cancelled, even when a newer open
+    /// is in flight again.
+    fn open_was_cancelled(&self, generation: u64) -> bool {
+        self.cancelled_open
+            .is_some_and(|cancelled| cancelled >= generation)
     }
 
     pub fn is_opening(&self) -> bool {
@@ -362,6 +393,9 @@ impl Office {
     }
 
     pub fn accept_open(&mut self, generation: u64, path: &Path) -> Result<(), ExecuteError> {
+        if self.open_was_cancelled(generation) {
+            return Err(ExecuteError::Failed("open cancelled".into()));
+        }
         let Some(pending) = self.opening.take() else {
             return self.open_path(path);
         };
@@ -390,6 +424,9 @@ impl Office {
     /// Keystrokes buffered since [`Self::begin_open`] land in that document.
     /// A stale generation keeps them on the document that is still current.
     pub fn accept_bound(&mut self, generation: u64, bound: BoundDocx) -> Result<(), ExecuteError> {
+        if self.open_was_cancelled(generation) {
+            return Err(ExecuteError::Failed("open cancelled".into()));
+        }
         let Some(pending) = self.opening.take() else {
             return self.install_bound(bound, "");
         };
@@ -792,6 +829,15 @@ impl CommandHost for Office {
         if matches!(id, FILE_EXPORT_PDF | FILE_PRINT) {
             return Availability::Disabled("file.export.unstable");
         }
+        // The cancel entry only exists while an open is in flight; every
+        // other moment it is shown as unavailable with its reason.
+        if id == FILE_OPEN_CANCEL {
+            return if self.opening.is_some() {
+                Availability::Enabled
+            } else {
+                Availability::Disabled("file.open.not_opening")
+            };
+        }
         // Keystrokes during open are kept. Every other document edit stays
         // read-only until that open is accepted, even when no document is current.
         if self.opening.is_some() && id == EDIT_INSERT {
@@ -951,6 +997,21 @@ impl Office {
                 }
                 let generation = self.begin_open();
                 self.accept_open(generation, path)
+            }
+            FILE_OPEN_CANCEL => {
+                let buffered = self.cancel_open()?;
+                if buffered.is_empty() {
+                    return Ok(());
+                }
+                if self.active_mut().is_none() {
+                    // The session that should keep the buffered keystrokes is
+                    // gone; report that instead of dropping them silently.
+                    return Err(ExecuteError::Failed("no document".into()));
+                }
+                self.keep_unopened_keystrokes(&buffered)?;
+                self.journal_active()
+                    .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+                Ok(())
             }
             FILE_SAVE => {
                 match args.get("choice") {
