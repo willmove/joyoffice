@@ -208,5 +208,10 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-008／LAYOUT-009。依据 [ISO 32000-1](https://www.iso.org/standard/51502.html) §14.7 Logical Structure 与 §14.8 Tagged PDF。自研集成于 `crates/joyword-pdf` 与 `apps/joyword-cli`。只读公开规范，未读取任何专有软件实现源码。
 - 实现了带 Marked Content 序列的结构树（StructTreeRoot、Document、Part、Span 等）和饰品（Artifact）分离，扩展了基于原生字节与引用的 PDF 结构检查器（检测 MarkInfo、Marked、StructTreeRoot），并结合同一 PageScene CPU 渲染器提供确定性页面图片输出。
 
+### 旧版 MS-DOC 与 WPS 导入（T602 / T605，2026-10-28）
+
+- FORMAT-007／FORMAT-014／FORMAT-002／QUALITY-005／QUALITY-009。依据微软公开规范 [[MS-DOC]: Word (.doc) Binary File Format](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-doc/) 与 [[MS-CFB]: Compound File Binary File Format](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/)。纯自研实现于 `crates/joyword-doc`，零第三方解析库依赖。只读公开规范，未读取任何专有软件实现源码。
+- 实现了 MS-DOC 二进制 FIB 与 Clx/PlcPcd 分块描述符解析、ANSI 压缩与 UTF-16LE 文本解码、段落与表格结构映射，以及 WPS 原生 CFB 容器格式识别与私有流（KSOTree 等）原样 SHA-256 保留；对加密文档明确诊断拒绝，对未解析控制字符生成损失报告。
+
 
 

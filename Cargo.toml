@@ -6,6 +6,7 @@ members = [
     "crates/joyoffice-opc",
     "crates/joyword-agent",
     "crates/joyword-corpus",
+    "crates/joyword-doc",
     "crates/joyword-docx",
     "crates/joyword-engine",
     "crates/joyword-foundation",
@@ -24,6 +25,7 @@ default-members = [
     "crates/joyoffice-opc",
     "crates/joyword-agent",
     "crates/joyword-corpus",
+    "crates/joyword-doc",
     "crates/joyword-docx",
     "crates/joyword-engine",
     "crates/joyword-foundation",
@@ -57,6 +59,7 @@ joyword-foundation = { path = "crates/joyword-foundation" }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-opc = { path = "crates/joyoffice-opc" }
 joyword-corpus = { path = "crates/joyword-corpus" }
+joyword-doc = { path = "crates/joyword-doc" }
 joyword-docx = { path = "crates/joyword-docx" }
 joyword-engine = { path = "crates/joyword-engine" }
 joyword-layout = { path = "crates/joyword-layout" }

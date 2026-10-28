@@ -2742,6 +2742,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-doc"
+version = "0.0.1"
+dependencies = [
+ "joyoffice-cfb",
+ "joyword-model",
+ "joyword-textfmt",
+ "sha2",
+]
+
+[[package]]
 name = "joyword-docx"
 version = "0.0.1"
 dependencies = [

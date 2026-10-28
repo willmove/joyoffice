@@ -1,0 +1,18 @@
+[package]
+name = "joyword-doc"
+description = "MS-DOC (.doc) and WPS (.wps/.wpt) binary document importer with untrusted input budgets (T602, T605)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyoffice-cfb.workspace = true
+joyword-model.workspace = true
+joyword-textfmt.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true
