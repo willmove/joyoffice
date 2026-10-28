@@ -1684,3 +1684,15 @@ T301 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 第�
 **已知边界**：页眉页脚 story 里的表格修订不经过该装饰通道（正文表）；色条颜色沿用文字修订的作者调色板（FNV→PALETTE）。
 
 本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout --test table_revisions`（5 项）、`cargo test --locked -p joyword-pdf --test table_revision_bar`（1 项）、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`check_gates.py`、`check_acceptance.py` 通过。
+
+### T109 打开取消入口（2026-10-27）
+
+T109 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 Mac GUI 会话记录的「打开期间没有可用的取消入口」。
+
+**Shell 层**：`Office` 新增 `cancelled_open: Option<u64>` 与 `cancel_open()`——取走在途 `PendingOpen`、记下其代次、返回缓冲键入；`open_was_cancelled(generation)` 以「代次 ≤ 已取消代次」判定，`accept_open`／`accept_bound`／`finish_open` 对已取消代次的迟到结果统一拒绝（`open cancelled`），即使此后又发起了新的打开。命令分支 `FILE_OPEN_CANCEL`：取消后把缓冲经 `keep_unopened_keystrokes` 写回当前文档并照常落日志（写回是正常编辑事务，可撤销）；无当前文档时返回 "no document" 而不是静默丢弃。可用性：仅 `opening` 在途时 Enabled，否则 `Disabled("file.open.not_opening")`。
+
+**命令与应用**：注册表新增 `file.open_cancel`（`modifies_document: true`，注释写明理由：取消成功时缓冲写回会修改当前文档；`menu: None`、`Shortcut::NONE`，不占菜单与快捷键位）。应用注册 `CancelOpen` 动作与监听（`registry_commands_all_have_actions_and_bindings` 因此覆盖它），`escape_panel` 在无其他浮层时把 Esc 路由到 `cancel_open_in_flight`：清 `open_gate`、取消并写回缓冲、状态栏提示 `file.open.cancelled`。`file.open.reading` 文案追加「按 Esc 取消」。en／zh-CN 补 `command.file.open_cancel`、`file.open.not_opening`、`file.open.cancelled`（parity 通过）。
+
+**证据**：`crates/joyword-shell/tests/t109_open_save_gate.rs` 新增两项——`cancelling_a_slow_open_discards_it_and_keeps_keystrokes_on_the_current_document`、`cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes`；既有五项不回归。未做：GUI 人工验收（Windows／macOS 上慢打开期间按 Esc 观察、保存中关闭提示的干净重放）、信创真机。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-shell --test t109_open_save_gate`（6 项）、`cargo test --locked -p joyword`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。

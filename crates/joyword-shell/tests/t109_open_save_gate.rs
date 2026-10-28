@@ -9,7 +9,7 @@ use std::time::Duration;
 use joyoffice_opc::Budget;
 use joyword_shell::command::{
     ArgValue, Availability, CommandHost, CommandId, EDIT_BOLD, EDIT_INSERT, FILE_CLOSE, FILE_OPEN,
-    InvokeError, PAGE_BREAK,
+    FILE_OPEN_CANCEL, InvokeError, PAGE_BREAK,
 };
 use joyword_shell::docx::{BoundDocx, DocxSession};
 use joyword_shell::host::{ClosePrompt, Office, close_prompt};
@@ -311,4 +311,92 @@ fn an_original_save_in_flight_prompts_for_later_edits_and_routes_to_its_document
     assert_eq!(fs::read(&second_path).unwrap(), bytes);
     assert!(!body(&office).contains("原件"));
     assert!(!body(&office).contains("随后"));
+}
+
+#[test]
+fn cancelling_a_slow_open_discards_it_and_keeps_keystrokes_on_the_current_document() {
+    let bytes = fixture();
+    let dir = tempfile::tempdir().unwrap();
+    let first = dir.path().join("first.docx");
+    let second = dir.path().join("second.docx");
+    fs::write(&first, &bytes).unwrap();
+    fs::write(&second, &bytes).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(first.clone()))])
+        .unwrap();
+    let first_id = office.active_id().unwrap();
+    let first_text = body(&office);
+    let generation = office.begin_open();
+    let (controller, gate) = StepGate::pair();
+    let opening = second.clone();
+    let worker = std::thread::spawn(move || BoundDocx::open_default_paused(&opening, Some(&gate)));
+    assert!(controller.wait_entered(ENTERED));
+    // The cancel entry exists only while the open is in flight.
+    assert!(matches!(
+        CommandHost::availability(&office, FILE_OPEN_CANCEL),
+        Availability::Enabled
+    ));
+    office
+        .invoke(EDIT_INSERT, &[("text", ArgValue::Text("取消留".into()))])
+        .unwrap();
+    assert_eq!(office.buffered_open_text(), Some("取消留"));
+
+    office.invoke(FILE_OPEN_CANCEL, &[]).unwrap();
+    assert!(!office.is_opening());
+    assert_eq!(office.active_id(), Some(first_id));
+    assert!(office.buffered_open_text().is_none());
+    let kept = body(&office);
+    assert!(kept.contains("取消留"), "{kept}");
+    assert!(kept.contains(&first_text), "{kept}");
+    assert_eq!(fs::read(&first).unwrap(), bytes);
+    assert_eq!(fs::read(&second).unwrap(), bytes);
+
+    // The document that was not ready yet cannot land anymore.
+    drop(controller);
+    let bound = worker.join().unwrap().unwrap();
+    let error = office.accept_bound(generation, bound).unwrap_err();
+    assert!(error.to_string().contains("cancelled"), "{error}");
+    assert_eq!(office.active_id(), Some(first_id));
+    assert_eq!(body(&office), kept);
+
+    // Opening again still works and keeps its own keystrokes.
+    let again = office.begin_open();
+    office.type_during_open("再开").unwrap();
+    let bound = BoundDocx::open_default(&second).unwrap();
+    office.accept_bound(again, bound).unwrap();
+    assert!(!office.is_opening());
+    assert_ne!(office.active_id(), Some(first_id));
+    let opened = body(&office);
+    assert!(opened.contains("再开"), "{opened}");
+
+    // With nothing in flight the cancel entry reports why it is unavailable.
+    assert!(matches!(
+        CommandHost::availability(&office, FILE_OPEN_CANCEL),
+        Availability::Disabled("file.open.not_opening")
+    ));
+    // Availability gates the invoke before the host branch is reached.
+    assert!(matches!(
+        office.invoke(FILE_OPEN_CANCEL, &[]),
+        Err(InvokeError::Disabled("file.open.not_opening"))
+    ));
+}
+
+#[test]
+fn cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = dir.path().join("source.docx");
+    fs::write(&source, fixture()).unwrap();
+    let mut office = Office::new();
+    assert!(office.active_id().is_none());
+    let generation = office.begin_open();
+    office.type_during_open("无处安放").unwrap();
+    // Cancelling reports the missing destination instead of silently
+    // discarding the buffered keystrokes.
+    assert!(matches!(
+        office.invoke(FILE_OPEN_CANCEL, &[]),
+        Err(InvokeError::Failed(message)) if message.contains("no document")
+    ));
+    assert!(!office.is_opening());
+    let _ = generation;
 }

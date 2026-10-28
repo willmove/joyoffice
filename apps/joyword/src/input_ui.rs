@@ -2561,6 +2561,26 @@ impl JoyWord {
         self.session.keep_unopened_keystrokes(text).is_ok()
     }
 
+    /// Cancel the open that is in flight: the document that is not ready yet
+    /// is discarded, the window keeps showing the current document, and
+    /// keystrokes buffered during that open are kept on it like a failed
+    /// open. A result arriving later for the cancelled generation is
+    /// refused by the session, so it cannot replace the document or clear
+    /// the unsaved flag.
+    pub(crate) fn cancel_open_in_flight(&mut self, cx: &mut Context<Self>) {
+        if self.open_gate.take().is_none() {
+            return;
+        }
+        if let Ok(buffered) = self.session.cancel_open() {
+            if buffered.is_empty() || self.keep_open_keystrokes(&buffered) {
+                self.copy_note = Some(self.label("file.open.cancelled"));
+            } else {
+                self.report_input_error(self.label("input.rejected"));
+            }
+        }
+        cx.notify();
+    }
+
     fn confirm_if_dirty(
         &mut self,
         then: AfterDiscard,
@@ -3106,6 +3126,15 @@ impl JoyWord {
                 Availability::Disabled("file.export.unstable")
             };
         }
+        // The cancel entry exists only while an open is in flight; plain Esc
+        // reaches it through `escape_panel`.
+        if id == FILE_OPEN_CANCEL {
+            return if self.open_gate.is_some() || self.session.is_opening() {
+                Availability::Enabled
+            } else {
+                Availability::Disabled("file.open.not_opening")
+            };
+        }
         if matches!(id, FILE_SAVE | FILE_SAVE_COPY) {
             return if self
                 .editor
@@ -3343,6 +3372,10 @@ impl JoyWord {
                 editor.set_revision_author(&stored);
             }
             cx.notify();
+            return Ok(());
+        }
+        if id == FILE_OPEN_CANCEL {
+            self.cancel_open_in_flight(cx);
             return Ok(());
         }
         if self.open_gate.is_some() {
