@@ -213,5 +213,11 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-007／FORMAT-014／FORMAT-002／QUALITY-005／QUALITY-009。依据微软公开规范 [[MS-DOC]: Word (.doc) Binary File Format](https://learn.microsoft.com/en-us/openspecs/office_file_formats/ms-doc/) 与 [[MS-CFB]: Compound File Binary File Format](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/)。纯自研实现于 `crates/joyword-doc`，零第三方解析库依赖。只读公开规范，未读取任何专有软件实现源码。
 - 实现了 MS-DOC 二进制 FIB 与 Clx/PlcPcd 分块描述符解析、ANSI 压缩与 UTF-16LE 文本解码、段落与表格结构映射，以及 WPS 原生 CFB 容器格式识别与私有流（KSOTree 等）原样 SHA-256 保留；对加密文档明确诊断拒绝，对未解析控制字符生成损失报告。
 
+### 注释、域与引用体系（T501，2026-10-28）
+
+- LAYOUT-007／STYLE-002／FORMAT-003。依据 [ECMA-376 第五版 Part 1](https://ecma-international.org/publications-and-standards/standards/ecma-376/) §17.11 (Footnotes and Endnotes)、§17.16 (Fields and Hyperlinks)。纯自研实现于 `crates/joyword-model` 与 `crates/joyword-engine`，零第三方外部库依赖。只读公开规范，未读取任何专有软件实现源码。
+- 实现了脚注与尾注独立故事引用模型、生命周期管理与安全删除；实现了 TOC、REF、PAGEREF、SEQ 复杂域代码词法与参数解析、序号计数器递增、交叉引用链循环引用拦截与有界递归保护，以及解耦的布局页码查询接口。
+
+
 
 

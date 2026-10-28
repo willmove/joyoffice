@@ -447,6 +447,11 @@ impl Document {
         id
     }
 
+    /// Removes a story by ID.
+    pub fn remove_story(&mut self, id: StoryId) -> Option<Arc<Story>> {
+        Arc::make_mut(&mut self.stories).remove(&id)
+    }
+
     pub fn sections(&self) -> &[Section] {
         &self.sections
     }
@@ -583,6 +588,10 @@ impl Document {
 
     pub fn annotation_mut(&mut self, id: AnnotationId) -> Option<&mut Annotation> {
         Arc::make_mut(&mut self.annotations).get_mut(&id)
+    }
+
+    pub fn remove_annotation(&mut self, id: AnnotationId) -> Option<Annotation> {
+        Arc::make_mut(&mut self.annotations).remove(&id)
     }
 
     pub fn insert_annotation(&mut self, kind: AnnotationKind, anchor: Anchor) -> AnnotationId {

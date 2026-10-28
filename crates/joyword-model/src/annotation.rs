@@ -101,6 +101,16 @@ pub enum AnnotationKind {
     },
     /// Run-level content control (block-level ones are [`crate::Sdt`]).
     ContentControl(SdtProps),
+    /// Footnote reference anchoring to a [`crate::StoryKind::Footnote`] story.
+    Footnote {
+        story: StoryId,
+        custom_mark: Option<Arc<str>>,
+    },
+    /// Endnote reference anchoring to a [`crate::StoryKind::Endnote`] story.
+    Endnote {
+        story: StoryId,
+        custom_mark: Option<Arc<str>>,
+    },
 }
 
 impl AnnotationKind {

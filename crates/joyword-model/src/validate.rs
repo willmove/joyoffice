@@ -440,6 +440,12 @@ impl Validator<'_> {
             if let AnnotationKind::Comment(comment) = &annotation.kind {
                 self.story_ref(comment.body, StoryKind::Comment);
             }
+            if let AnnotationKind::Footnote { story, .. } = &annotation.kind {
+                self.story_ref(*story, StoryKind::Footnote);
+            }
+            if let AnnotationKind::Endnote { story, .. } = &annotation.kind {
+                self.story_ref(*story, StoryKind::Endnote);
+            }
             let Anchor::Range { start, end } = &annotation.anchor else {
                 continue;
             };

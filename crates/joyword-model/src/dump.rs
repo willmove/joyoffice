@@ -594,6 +594,12 @@ impl Document {
                 AnnotationKind::ContentControl(props) => {
                     format!("sdt tag={:?} lock={:?}", props.tag, props.lock)
                 }
+                AnnotationKind::Footnote { story, custom_mark } => {
+                    format!("footnote story={story:?} mark={custom_mark:?}")
+                }
+                AnnotationKind::Endnote { story, custom_mark } => {
+                    format!("endnote story={story:?} mark={custom_mark:?}")
+                }
             };
             let anchor = match &annotation.anchor {
                 Anchor::Range { start, end } => {
