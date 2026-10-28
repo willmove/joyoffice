@@ -2826,6 +2826,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-rtf"
+version = "0.0.1"
+dependencies = [
+ "joyword-model",
+ "joyword-textfmt",
+]
+
+[[package]]
 name = "joyword-shell"
 version = "0.0.1"
 dependencies = [

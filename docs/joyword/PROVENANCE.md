@@ -198,5 +198,10 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - FORMAT-006／FORMAT-003／CLIP-001。依据 [CommonMark 0.31.2](https://spec.commonmark.org/)、[GitHub Flavored Markdown (GFM)](https://github.github.com/gfm/) 与 [W3C HTML5 规范](https://www.w3.org/TR/html52/)。纯自研实现于 `crates/joyword-textfmt`，零第三方解析库依赖。只读公开规范，未读取任何专有软件实现源码。
 - 实现了带损失报告的 TXT／Markdown／HTML 双向转换；提供编码探测与换行规范化、受控标签白名单与恶意活动内容（脚本、伪协议、外链）强制剥离过滤。
 
+### RTF 1.9 读写与交换（T600，2026-10-28）
+
+- FORMAT-005／FORMAT-003。依据微软公开规范 [Rich Text Format (RTF) Specification Version 1.9.1](https://www.microsoft.com/en-us/download/details.aspx?id=10725)。纯自研实现于 `crates/joyword-rtf`，零第三方解析库依赖。只读公开规范，未读取任何专有软件实现源码。
+- 实现了 RTF 1.9 双向词法解析与生成器，包含花括号作用域栈、控制词与控制符分发、Unicode `\uN?` 编解码及跳过计数机制（`\uc`）、可忽略目标 `\*` 过滤，以及针对深度嵌套与畸形输入的资源预算限制（`RtfBudget`）；集成 `LossReport` 跟踪转换损失。
+
 
 

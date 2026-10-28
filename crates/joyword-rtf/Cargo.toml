@@ -1,0 +1,16 @@
+[package]
+name = "joyword-rtf"
+description = "RTF 1.9 bidirectional reader and writer with untrusted input budgets (T600)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyword-model.workspace = true
+joyword-textfmt.workspace = true
+
+[lints]
+workspace = true

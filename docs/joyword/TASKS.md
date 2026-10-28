@@ -26,11 +26,11 @@
 | M3 | 0 | 4 | 1 | 0 | 5 |
 | M4 | 0 | 3 | 1 | 0 | 4 |
 | M5 | 0 | 1 | 4 | 0 | 5 |
-| M6 | 0 | 2 | 4 | 0 | 6 |
+| M6 | 0 | 3 | 3 | 0 | 6 |
 | M7 | 0 | 0 | 5 | 0 | 5 |
 | M8 | 0 | 0 | 9 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 13 | 25 | 28 | 0 | 66 |
+| 总计 | 13 | 26 | 27 | 0 | 66 |
 
 T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`。2026-10-22 六分支波次之后 T301 与 T401 也由 `planned` 改为 `in_progress`；2026-10-23 第二波的 T402 有界替换提案与只读预览进入独立审查，状态改为 `in_progress`。所以 2026-10-23 各波次后上表为 12 done／22 in_progress／32 planned／0 blocked；2026-10-26 T001 收口后为 13 done／21 in_progress／32 planned／0 blocked（见下文该段）。任务总数仍是 66，切片交付不等于整个任务完成。2026-10-23 第二波四路并行切片落地：T104 生产恢复双代、T204 PDF 书签内部跳转、T202 章节 PAGE 编号与 T402 有界替换提案与只读预览，四项各自进入 `in_progress`，没有一项被标成 `done`；详细证据见各任务的完成证据与 [验收清单](acceptance/README.md)。2026-10-23 第三切片（无 PR，按用户指令直接并入 main）：T402 跨段有界替换与段落标记删除修订（`w:pPr/w:rPr/w:del`）落地，同时补齐 AI 修订的 DOCX 往返与对照器修订携带；T301 的跨段跟踪删除限制随之解除（表格／内容控件边界仍拒绝）。布局的合并渲染（最终视图中删除标记的相邻段仍逐段排版）是如实记录的已知边界，留待后续切片。
 
@@ -679,7 +679,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 ### T600：RTF 与 Strict OOXML 交换
 
 - 输入：RTF／Strict OOXML 公开规范、文档模型、审阅子集和 ExportPlan。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`FORMAT-006`、`FORMAT-003`、`FORMAT-011`
 - 前置：`T301`、`T302`、`T501`
 - 产物：RTF 文件读写、Strict profile 独立读写和元素级损失分析。
@@ -687,6 +687,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 自动验证：规范样例、双向语义、资源关系、损失报告和异常输入。
 - 人工验收：与 Word／WPS 交换带样式、脚注、修订的 RTF 与 Strict 文件。
 - 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 2026-10-28 第一切片（任务由 `planned` 改为 `in_progress`，进度计数改为 13 done／26 in_progress／27 planned／0 blocked）：实现 `crates/joyword-rtf`，支持带不可信输入资源预算（`RtfBudget`）与损失报告（`LossReport`）的标准 RTF 1.9 读写器。支持组嵌套作用域栈、控制词与控制符分发、Unicode `\uN?` 解析与 `\uc` 替代字符跳过、可忽略目标 `\*` 过滤，以及段落、运行、表格行与单元格转换。执行 `cargo test -p joyword-rtf` 4 项测试全部通过。Word/WPS 人工交换未做，标未验证，见 [T600 证据](verification/t600-rtf.md)。
 
 ### T601：HTML、Markdown 与文本
 
