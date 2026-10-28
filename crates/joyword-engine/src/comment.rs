@@ -161,6 +161,9 @@ fn allocate(
     let para_id = document
         .allocate_para_id()
         .ok_or(CommandError::CommentThreadUnavailable)?;
+    let durable_id = document
+        .allocate_durable_id(&para_id)
+        .ok_or(CommandError::CommentThreadUnavailable)?;
     let mut paragraph = Paragraph::new(document.ids().node());
     let paragraph_id = paragraph.id();
     if !text.is_empty() {
@@ -175,7 +178,18 @@ fn allocate(
     comment.date = date;
     comment.initials = initials;
     comment.para_id = Some(para_id);
+    comment.durable_id = Some(durable_id);
     comment.parent_para_id = parent_para_id;
+    // The wild commentsExtensible parts repeat `w:date` verbatim as
+    // `w16cex:dateUtc`; a comment created with that shape already knows its
+    // UTC stamp, so a reimport that reads the part back compares equal.
+    if comment
+        .date
+        .as_deref()
+        .is_some_and(joyword_model::is_strict_utc_date)
+    {
+        comment.date_utc = comment.date.clone();
+    }
     let annotation = document.insert_annotation(AnnotationKind::Comment(comment), anchor);
     Ok((annotation, story, paragraph_id))
 }

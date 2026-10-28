@@ -6,7 +6,6 @@ use joyoffice_opc::{Budget, Method, Package, write_archive};
 use joyword_docx::{DiagnosticKind, import, plan_export};
 use joyword_model::{
     Anchor, AnnotationKind, Bias, Block, Comment, Document, Paragraph, Position, ScalarOffset,
-    StoryKind,
 };
 
 const W: &str = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
@@ -431,71 +430,81 @@ fn a_new_comment_and_reply_are_written_back() {
         ("word/_rels/document.xml.rels", &rels),
     ]);
     let imported = import(&bytes, &Budget::default()).unwrap();
-    let mut current = imported.document.clone();
-    let paragraph = current.body().blocks.iter().next().unwrap().id();
-    let story = current.body_id();
-    let root_story = {
-        let mut paragraph = Paragraph::new(current.ids().node());
-        paragraph.push_text("Note", None, Arc::default()).unwrap();
-        current.insert_story(StoryKind::Comment, vec![paragraph.into()])
-    };
-    let reply_story = {
-        let mut paragraph = Paragraph::new(current.ids().node());
-        paragraph.push_text("Reply", None, Arc::default()).unwrap();
-        current.insert_story(StoryKind::Comment, vec![paragraph.into()])
-    };
-    let root_para = current.allocate_para_id().unwrap();
-    let reply_para = current.allocate_para_id().unwrap();
-    let mut root = Comment::new(root_story);
-    root.source_id = current.allocate_comment_id().unwrap();
-    root.author = Some(Arc::from("Ada"));
-    root.date = Some(Arc::from("2024-01-02T03:04:05Z"));
-    root.initials = Some(Arc::from("AL"));
-    root.para_id = Some(root_para.clone());
-    current.insert_annotation(
-        AnnotationKind::Comment(root),
-        Anchor::Range {
-            start: Position {
-                story,
-                paragraph,
-                offset: ScalarOffset(1),
-                bias: Bias::Before,
-            },
-            end: Position {
-                story,
-                paragraph,
-                offset: ScalarOffset(4),
-                bias: Bias::After,
-            },
-        },
-    );
-    let mut reply = Comment::new(reply_story);
-    reply.source_id = current.allocate_comment_id().unwrap();
-    reply.author = Some(Arc::from("Bea"));
-    reply.para_id = Some(reply_para);
-    reply.parent_para_id = Some(root_para);
-    let parent_anchor = current.annotations().next().unwrap().anchor.clone();
-    current.insert_annotation(AnnotationKind::Comment(reply), parent_anchor);
+    let mut session = joyword_engine::Session::new(imported.document.clone());
+    let paragraph = session.document().body().blocks.iter().next().unwrap().id();
+    let story = session.document().body_id();
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::AddComment {
+                start: Position {
+                    story,
+                    paragraph,
+                    offset: ScalarOffset(1),
+                    bias: Bias::Before,
+                },
+                end: Position {
+                    story,
+                    paragraph,
+                    offset: ScalarOffset(4),
+                    bias: Bias::After,
+                },
+                author: "Ada".into(),
+                date: Some("2024-01-02T03:04:05Z".into()),
+                initials: Some("AL".into()),
+                text: "Note".into(),
+            }],
+        ))
+        .unwrap();
+    let root_id = session.document().annotations().next().unwrap().id;
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::ReplyComment {
+                parent: root_id,
+                author: "Bea".into(),
+                date: Some("2024-01-03T04:05:06Z".into()),
+                initials: None,
+                text: "Reply".into(),
+            }],
+        ))
+        .unwrap();
+    let current = session.document().clone();
     let source = import(&bytes, &Budget::default()).unwrap();
     let plan = plan_export(&source.backing, &current.snapshot(), &Budget::default())
         .unwrap_or_else(|error| panic!("export failed: {error}"));
     let written = plan.bytes().to_vec();
+    let package = Package::read(&written, &Budget::default()).unwrap();
+    assert!(package.part("/word/comments.xml").is_some());
+    assert!(package.part("/word/commentsExtended.xml").is_some());
+    // New comments gain durable ids and UTC stamps this session allocated.
+    let ids = String::from_utf8(
+        package
+            .part("/word/commentsIds.xml")
+            .expect("ids part")
+            .data
+            .to_vec(),
+    )
+    .unwrap();
+    assert_eq!(ids.matches("w16cid:commentId").count(), 2, "{ids}");
+    let extensible = String::from_utf8(
+        package
+            .part("/word/commentsExtensible.xml")
+            .expect("extensible part")
+            .data
+            .to_vec(),
+    )
+    .unwrap();
     assert!(
-        Package::read(&written, &Budget::default())
-            .unwrap()
-            .part("/word/comments.xml")
-            .is_some()
-    );
-    assert!(
-        Package::read(&written, &Budget::default())
-            .unwrap()
-            .part("/word/commentsExtended.xml")
-            .is_some()
+        extensible.contains(r#"w16cex:dateUtc="2024-01-02T03:04:05Z""#),
+        "{extensible}"
     );
     let again = import(&written, &Budget::default()).unwrap();
     let (root, anchor) = comment_of(&again.document, 0);
     let (reply, reply_anchor) = comment_of(&again.document, 1);
     assert_eq!(root.author.as_deref(), Some("Ada"));
+    assert!(root.durable_id.is_some());
+    assert!(reply.durable_id.is_some());
     assert_eq!(reply.parent_para_id, root.para_id);
     assert_eq!(reply_anchor, anchor);
     let Anchor::Range { start, end } = anchor else {
@@ -519,6 +528,221 @@ fn a_new_comment_and_reply_are_written_back() {
     // A mid-run range splits `w:t` in the package. The next open sees those
     // runs; a second save of that open must not move the comment again.
     round_trip(&written, &again.document);
+}
+
+#[test]
+fn new_comments_append_durable_ids_and_extensible_dates_without_touching_entries() {
+    let bytes = thread_package();
+    let imported = import(&bytes, &Budget::default()).unwrap();
+    let (root, root_anchor) = comment_of(&imported.document, 0);
+    let root_id = imported
+        .document
+        .annotations()
+        .find(|annotation| {
+            matches!(&annotation.kind, AnnotationKind::Comment(comment) if comment.source_id == 0)
+        })
+        .unwrap()
+        .id;
+    let mut session = joyword_engine::Session::new(imported.document.clone());
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::ReplyComment {
+                parent: root_id,
+                author: "Cleo".into(),
+                date: Some("2024-05-06T07:08:09Z".into()),
+                initials: None,
+                text: "Late".into(),
+            }],
+        ))
+        .unwrap();
+    let current = session.document().clone();
+    let para_id = current
+        .annotations()
+        .find_map(|annotation| match &annotation.kind {
+            AnnotationKind::Comment(comment)
+                if comment.parent_para_id.is_some() && comment.source_id != 1 =>
+            {
+                comment.para_id.clone()
+            }
+            _ => None,
+        })
+        .expect("fresh reply para id");
+    let written = round_trip(&bytes, &current);
+
+    // commentsIds: exactly one appended entry; removing it restores the
+    // original bytes verbatim.
+    let original_ids = part_bytes(&bytes, "/word/commentsIds.xml");
+    let updated_ids = String::from_utf8(part_bytes(&written, "/word/commentsIds.xml")).unwrap();
+    let at = updated_ids
+        .rfind("<w16cid:commentId")
+        .expect("appended entry");
+    let end = "</w16cid:commentsIds>";
+    let rebuilt = format!(
+        "{}{}",
+        &updated_ids[..at],
+        &updated_ids[updated_ids.len() - end.len()..]
+    );
+    assert_eq!(rebuilt.as_bytes(), original_ids);
+    let appended = &updated_ids[at..updated_ids.len() - end.len()];
+    assert!(
+        appended.contains(&format!(r#"w16cid:paraId="{para_id}""#)),
+        "{appended}"
+    );
+    let durable: String = appended
+        .split(r#"w16cid:durableId=""#)
+        .nth(1)
+        .unwrap()
+        .split('"')
+        .next()
+        .unwrap()
+        .to_owned();
+    assert!(
+        durable.bytes().all(|byte| byte.is_ascii_digit()) && !durable.is_empty(),
+        "durable id is a decimal: {durable}"
+    );
+
+    // commentsExtensible: the same durable id carries the strict date; the
+    // existing GUID entry keeps its bytes.
+    let original_ex = part_bytes(&bytes, "/word/commentsExtensible.xml");
+    let updated_ex =
+        String::from_utf8(part_bytes(&written, "/word/commentsExtensible.xml")).unwrap();
+    assert!(updated_ex.contains("{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}"));
+    assert!(updated_ex.contains(r#"w16cex:dateUtc="2024-05-06T07:08:09Z""#));
+    assert!(updated_ex.contains(&format!(r#"w16cex:durableId="{durable}""#)));
+    let at = updated_ex
+        .rfind("<w16cex:commentExtensible")
+        .expect("appended entry");
+    let end = "</w16cex:commentsExtensible>";
+    let rebuilt = format!(
+        "{}{}",
+        &updated_ex[..at],
+        &updated_ex[updated_ex.len() - end.len()..]
+    );
+    assert_eq!(rebuilt.as_bytes(), original_ex);
+
+    // Reimport reads the durable id and the UTC date back onto the comment.
+    let again = import(&written, &Budget::default()).unwrap();
+    let found = again
+        .document
+        .annotations()
+        .find_map(|annotation| match &annotation.kind {
+            AnnotationKind::Comment(comment) if comment.para_id.as_deref() == Some(&para_id) => {
+                Some(comment)
+            }
+            _ => None,
+        })
+        .expect("fresh comment survives reimport");
+    assert_eq!(found.durable_id.as_deref(), Some(durable.as_str()));
+    assert_eq!(found.date_utc.as_deref(), Some("2024-05-06T07:08:09Z"));
+    let _ = (root, root_anchor);
+}
+
+#[test]
+fn a_new_comment_without_a_strict_utc_date_leaves_comments_extensible_untouched() {
+    let bytes = thread_package();
+    let imported = import(&bytes, &Budget::default()).unwrap();
+    let root_id = imported
+        .document
+        .annotations()
+        .find(|annotation| {
+            matches!(&annotation.kind, AnnotationKind::Comment(comment) if comment.source_id == 0)
+        })
+        .unwrap()
+        .id;
+    let mut session = joyword_engine::Session::new(imported.document.clone());
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::ReplyComment {
+                parent: root_id,
+                author: "Dee".into(),
+                date: Some("last Tuesday".into()),
+                initials: None,
+                text: "NoDate".into(),
+            }],
+        ))
+        .unwrap();
+    let written = round_trip(&bytes, session.document());
+
+    // The ids part still gains its entry; the extensible part keeps its
+    // original bytes rather than inventing a timestamp for a loose date.
+    let updated_ids = String::from_utf8(part_bytes(&written, "/word/commentsIds.xml")).unwrap();
+    assert_eq!(updated_ids.matches("w16cid:commentId").count(), 2);
+    assert_eq!(
+        part_bytes(&written, "/word/commentsExtensible.xml"),
+        part_bytes(&bytes, "/word/commentsExtensible.xml")
+    );
+}
+
+#[test]
+fn a_fresh_package_without_extension_parts_gains_ids_and_extensible() {
+    let body = r#"<w:p><w:r><w:t>Hello</w:t></w:r></w:p>"#;
+    let rels = format!(
+        r#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="{REL}"></Relationships>"#
+    );
+    let bytes = archive(&[
+        (
+            "[Content_Types].xml",
+            &types(
+                r#"<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>"#,
+            ),
+        ),
+        ("_rels/.rels", package_rels()),
+        ("word/document.xml", &document(body)),
+        ("word/_rels/document.xml.rels", &rels),
+    ]);
+    let imported = import(&bytes, &Budget::default()).unwrap();
+    let mut session = joyword_engine::Session::new(imported.document.clone());
+    let paragraph = session.document().body().blocks.iter().next().unwrap().id();
+    let story_of = session.document().body_id();
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::AddComment {
+                start: Position {
+                    story: story_of,
+                    paragraph,
+                    offset: ScalarOffset(0),
+                    bias: Bias::Before,
+                },
+                end: Position {
+                    story: story_of,
+                    paragraph,
+                    offset: ScalarOffset(5),
+                    bias: Bias::After,
+                },
+                author: "Eve".into(),
+                date: Some("2024-01-02T03:04:05Z".into()),
+                initials: None,
+                text: "Note".into(),
+            }],
+        ))
+        .unwrap();
+    let written = round_trip(&bytes, session.document());
+    let package = Package::read(&written, &Budget::default()).unwrap();
+    let ids = package.part("/word/commentsIds.xml").expect("ids part");
+    let ids_text = String::from_utf8(ids.data.to_vec()).unwrap();
+    assert!(ids_text.contains(r#"w16cid:paraId="#), "{ids_text}");
+    let extensible = package
+        .part("/word/commentsExtensible.xml")
+        .expect("extensible part");
+    let extensible_text = String::from_utf8(extensible.data.to_vec()).unwrap();
+    assert!(extensible_text.contains(r#"w16cex:dateUtc="2024-01-02T03:04:05Z""#));
+    // The durable id written to ids is the one the extensible entry keys on.
+    let durable: String = ids_text
+        .split(r#"w16cid:durableId=""#)
+        .nth(1)
+        .unwrap()
+        .split('"')
+        .next()
+        .unwrap()
+        .to_owned();
+    assert!(extensible_text.contains(&format!(r#"w16cex:durableId="{durable}""#)));
+    // The new parts reimport with the durable id on the comment.
+    let again = import(&written, &Budget::default()).unwrap();
+    let (comment, _) = comment_of(&again.document, 0);
+    assert_eq!(comment.durable_id.as_deref(), Some(durable.as_str()));
 }
 
 fn thread_package() -> Vec<u8> {

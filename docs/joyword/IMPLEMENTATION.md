@@ -1642,6 +1642,89 @@ T300 仍是 `in_progress`，进度计数不改。本切片补齐 REVIEW-003 的�
 ### 2026-10-26 Mac GUI 会话：T109／T110 部分补验
 
 main `5efe06a` 调试构建、隔离 test profile、系统键盘事件驱动。要点：120,000 段样例打开期间观察到「正在打开…只读，键入的文字会保留」状态并在打开后确认缓冲键入落到新文档；Cmd+S 三按钮提示（默认另存副本）与损失清单、确认替换后原件被替换并可重开、隔离标记文档的损失清单（macOS 上 quarantine 可观测不列为损失）与默认另存副本均经当场哈希与内容核对。关闭提示 `close.dirty_after_save` 文案已捕获，但其脚本化场景（保存作业在途时键入再关闭）被一次焦点丢失打断，未干净重放。工作目录在会话中途被外部回退，截图档案大部分丢失（仅 `gui/11-prompt.png` 存档），读图结果以文字记入 `validation/20261026/gui/summary.json`。T109／T110 保持 `in_progress`。
+
+### T204 文档内跳转：外部 PDF 结构读取器复核（2026-10-27）
+
+T204 仍是 `in_progress`，进度计数不改。「文档内跳转」自动化缺口里的「没有外部 PDF 结构读取器复核」由本切片关闭：同一导出字节除 joyword-pdf 内部读取器（`inspect_navigation`）外，再经外部 qpdf CLI 结构读取器（`qpdf --json=2`，JSON format v2）复核。工具约定与 `pdftotext`／`JOYWORD_REQUIRE_TEST_FONT` 一致：本机无 qpdf 或环境变量未设时测试打印跳过并返回成功；设 `JOYWORD_REQUIRE_QPDF=1` 时要求（unified-pdf apt 安装 qpdf 的 CI 步骤另跟），缺失即失败。依赖只增 qpdf 一个 apt 包与 joyword-pdf 的一条 serde_json dev-dependency 边（解析 qpdf JSON；Cargo.lock 无新包）。qpdf 11.9（ubuntu-24.04）与 12.2（本机）都支持 `--json=2`。
+
+实现（`crates/joyword-pdf/tests/navigation.rs` 与 `apps/joyword-cli/tests/bookmark_goto.rs` 各带同一份 `mod qpdf` 读取辅助，互不依赖）：写临时文件后运行 `qpdf --json=2 <file> -`，从 JSON v2 的完整对象转储（`qpdf[1]` 的 `obj:<ref>` 表与 `trailer`）解析——目录 `/Names /Dests` 名称树（支持 `/Kids` 子树，键按 qpdf 的 `u:`／`b:<hex>` 标注还原为原始字节；ISO 32000-1 名称树键按字节比较，与内部 `name_key` 对 UTF-16BE-BOM 与裸 UTF-8 两种写法的契约一致）；逐页 `/Annots` 中 `/Subtype /Link` 的 `/A` 动作，`/S /GoTo` 的 `/D` 解析为 `[page /XYZ x y zoom]`（间接引用跟一层）。
+
+证据：`navigation.rs` 新增 `an_external_reader_sees_named_destinations_and_resolves_goto_actions`——模型书签（ASCII `first`、非 ASCII「目录」、无链接的 `unused`）加两条锚点 GoTo 与一条 `https` URI 导出后，qpdf 侧断言名称树按键字节可见且坐标与内部读回一致、每个 GoTo 的 `/D` 命中同名命名目标数组与正确页面对象、URI 动作原样保留；`bookmark_goto.rs` 的 `an_imported_bookmark_is_a_pdf_goto_named_destination`、`header_footer_and_comment_bookmarks_are_goto_destinations`、`column_and_opaque_table_bookmarks_are_goto_destinations` 三个导入场景在同一份字节上追加 `assert_external_goto_destinations`，与内部读回逐名逐链对照（正文、页眉页脚批注、列与不透明表格点目标全部覆盖）。
+
+本机验证（Linux，Rust 1.98.1，qpdf 12.2.0）：`JOYWORD_REQUIRE_QPDF=1 cargo test --locked -p joyword-pdf` 全部通过（11 个测试目标，含新增外部复核），`cargo test --locked -p joyword-cli --test bookmark_goto` 3 项全过；无 qpdf 时跳过、设变量时以「qpdf is not installed」失败两条路径均实测；`cargo fmt --all -- --check` 干净，`cargo clippy -p joyword-pdf -p joyword-cli --all-targets --locked -- -D warnings` 零告警；`check_docs.py`／`check_acceptance.py` 通过。
+
+未做：锚点目标不在本文档书签中时该链接仍被跳过而不阻断导出（`文档内跳转` 保持 `partial` 的唯一剩余理由）；PDF 结构标签（tagged PDF）；图形界面；Word／WPS 对照；真实打印与系统打印对话框；两个独立阅读器人工检查（UOS 报告的 qpdfview／WPS PDF 仍是人工行）。T204 保持 `in_progress`。
+
+### T500 第一切片：长文档规模证据与分隔线文档的页尾复用（2026-10-27）
+
+T500 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 planned／0 blocked）。本切片没有人工验收，不标 `done`。
+
+**分隔线文档恢复后缀复制复用。** T202 栏分隔线切片记录的已知缺口——「带分隔线的文档失去后缀复制复用，退回完整放置（结果正确，略慢）」——根因在 `suffix_copies` 的完整性校验：它按源页最终 rects 数量比较复制页，而栏分隔矩形由 `finish_stories` 在组装之后追加，复制路径只重放行级装饰矩形，永远少这批故事级矩形，校验必然失败。修复保持单一几何来源：`pages.rs` 把分隔矩形计算提取为纯函数 `separator_rects(section, geometry)`（无分隔标志、规范错误、少于两栏或非正高度的节返回空），`paint_column_separators` 改为调用它；增量路径在构造 `PlaceStop` 前按当前文档节规格对上一快照逐页计算分隔矩形数（`separator_counts`），`suffix_copies` 的最终校验改为「复制页 runs 数与源页相等，且复制页 rects 数 + 该页分隔数 == 源页 rects 数」。`finish_stories` 在组装（含复制）之后仍统一重画分隔线，复制页不携带旧墨；节规格在两次排版之间变化时（例如切换 `w:sep`），计数与源页实际数量不符，校验失败退回完整放置——宁可失去复用也不复制陈旧墨迹。页面锚定的浮动图不是行级图像，复制只重放行级内容，因此含浮动图的页仍被保守地完整放置；本切片不扩大复制范围。
+
+**长文档规模与页尾复用证据**（`crates/joyword-layout/tests/long_document.rs`，新文件）：
+
+- `a_hundred_page_mixed_section_document_lays_out`：100+ 页混合文档（纵向正文节＋41 行两行单元格跨页表格（表头行重复）→ NextPage 横向节（页面锚定 wrapSquare 浮动图＋正文）→ EvenPage 双栏节（栏分隔线开）），断言页数、横纵页框并存、表头文字出现在多页、分隔线两侧各有文字、浮动图以页图像落页。
+- `a_cancelled_hundred_page_layout_returns_without_publishing_pages`：同一规模上预取消令牌返回 `LayoutError::Cancelled`、令牌单调共享、换新令牌重试完整通过（协作检查点在既有代码按块粒度存在；应用层新旧排版作业替代与取消由既有 `stale_layouts_lose_to_newer_requests_including_a_to_b_to_a` 覆盖，本切片未新增取消语义）。
+- `long_document_edits_reuse_fits_and_the_stable_page_tail`：1351 段、65+ 页、含横向节（浮动图）与带分隔线双栏节的无表长文档。未变重排 `shape_calls` 为 0、缓存命中全量、`stable_boundary` 有值（分隔线页在复制范围内——修复的直接回归测试）；改首段只重排该段、其余全部缓存命中、增量与全量逐页一致（runs／rects／images／lines／页框）；改末段 `stable_boundary` 为 None（被改段的 fit 不再是「相同」）、缓存命中恰为其余全部段、增量与全量一致、页数不变。
+
+**几何对照**（`crates/joyword-pdf/tests/long_document.rs`，新文件）：`a_mixed_section_document_shares_one_geometry_with_the_pdf` 对混合分节样例（含跨页表头重复表格、横向浮动图节、双栏分隔线节）断言屏幕 PageScene 与 PDF 消费同一次布局——每个非空 run 原点在 PDF 文本矩阵 0.01 pt 内（`text_matrices` 解析沿 `pages.rs` 既有手法），并核对横纵页框、分隔线与表头重复存在。
+
+**已知边界（如实记录）**：含表格文档在增量路径仍整体走完整放置（表行跨页与表头重复使段落级后缀复制不适用，`layout_incremental` 对含表文档既有回退不变），缓存命中与页尾复用因此不覆盖含表文档；含页面锚定浮动图的页保守不复制；golden-scenes harness 未新增 t500 场景（几何对照由上述 PDF 测试承担）；人工验收（百页报告改首段／末段、改变方向与图文绕排的人工观察）未做。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout`（210 项，含 3 项新测试）、`cargo test --locked -p joyword-pdf --test long_document`、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`python scripts/check_gates.py`、`python scripts/check_acceptance.py` 通过；`python -m unittest discover -s scripts/tests` 的 `test_committed_bytes_and_manifest_hashes_match` 在本机 zlib-ng 上仍失败（干净 main 同样失败）。
+
+### T301 页边标记装饰测试（2026-10-27）
+
+T301 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 第二切片证据「未做」清单里的「表格属性修订的页面标记装饰（页边色条）」：实现与测试同支落地。
+
+**实现**：`table_row_bar_colour(table, row, view)` 只在 `FinalWithMarkup` 与 `Simple` 视图返回作者色；取色优先级为表级 `w:tblPrChange` ＞ 行级 `w:trPrChange` ＞ 文档序首个单元格 `w:tcPrChange`（注释已写明为 JoyWord 假定：色条固定在页边一处，重叠记录无法并排显示，规范未定义顺序）。`paint_slice` 为每个可视行带画一条 `margin_bar_of_colour`（左页边、内容边左侧留 4 twip 间隙），跨页重复的表头行带经表头印章复制色条；嵌套表经自身排版流绘制自己的行带，外层单元格记录不为内层行带上色。`hash_table` 把待决的表／行／单元格属性修订折进 `LayoutKey` 内容指纹（`hash_table_revision`）：接受或拒绝只删记录、绘制属性不变，指纹若不动，缓存页会继续画已解决记录的色条——与 `column_separator` 折进节指纹同一理由。
+
+**测试**：`crates/joyword-layout/tests/table_revisions.rs`（新文件，五项）——`markup_and_simple_paint_one_bar_per_covered_row_band`、`the_outermost_record_decides_the_band_colour`、`nested_tables_paint_their_own_row_bands_and_resolving_removes_the_bar`、`a_repeated_header_row_keeps_its_bar_on_later_pages`、`the_incremental_entry_matches_the_full_layout_with_bars`；`crates/joyword-pdf/tests/table_revision_bar.rs`（新文件）——`the_table_revision_margin_bar_is_in_the_pdf_page_scene`。识别手法：页边色条是唯一完全落在内容边左侧的矩形；优先级与嵌套断言用「同作者跨文档比对」钉住，不依赖作者调色板把不同作者分到不同颜色。
+
+**已知边界**：页眉页脚 story 里的表格修订不经过该装饰通道（正文表）；色条颜色沿用文字修订的作者调色板（FNV→PALETTE）。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-layout --test table_revisions`（5 项）、`cargo test --locked -p joyword-pdf --test table_revision_bar`（1 项）、`cargo test --locked`（CI 口径全量）、`cargo clippy --workspace --all-targets --locked -- -D warnings`、`cargo fmt --all -- --check`、`python scripts/check_docs.py`、`check_gates.py`、`check_acceptance.py` 通过。
+
+### T109 打开取消入口（2026-10-27）
+
+T109 仍是 `in_progress`，进度计数不改。本切片补上 2026-10-26 Mac GUI 会话记录的「打开期间没有可用的取消入口」。
+
+**Shell 层**：`Office` 新增 `cancelled_open: Option<u64>` 与 `cancel_open()`——取走在途 `PendingOpen`、记下其代次、返回缓冲键入；`open_was_cancelled(generation)` 以「代次 ≤ 已取消代次」判定，`accept_open`／`accept_bound`／`finish_open` 对已取消代次的迟到结果统一拒绝（`open cancelled`），即使此后又发起了新的打开。命令分支 `FILE_OPEN_CANCEL`：取消后把缓冲经 `keep_unopened_keystrokes` 写回当前文档并照常落日志（写回是正常编辑事务，可撤销）；无当前文档时返回 "no document" 而不是静默丢弃。可用性：仅 `opening` 在途时 Enabled，否则 `Disabled("file.open.not_opening")`。
+
+**命令与应用**：注册表新增 `file.open_cancel`（`modifies_document: true`，注释写明理由：取消成功时缓冲写回会修改当前文档；`menu: None`、`Shortcut::NONE`，不占菜单与快捷键位）。应用注册 `CancelOpen` 动作与监听（`registry_commands_all_have_actions_and_bindings` 因此覆盖它），`escape_panel` 在无其他浮层时把 Esc 路由到 `cancel_open_in_flight`：清 `open_gate`、取消并写回缓冲、状态栏提示 `file.open.cancelled`。`file.open.reading` 文案追加「按 Esc 取消」。en／zh-CN 补 `command.file.open_cancel`、`file.open.not_opening`、`file.open.cancelled`（parity 通过）。
+
+**证据**：`crates/joyword-shell/tests/t109_open_save_gate.rs` 新增两项——`cancelling_a_slow_open_discards_it_and_keeps_keystrokes_on_the_current_document`、`cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes`；既有五项不回归。未做：GUI 人工验收（Windows／macOS 上慢打开期间按 Esc 观察、保存中关闭提示的干净重放）、信创真机。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-shell --test t109_open_save_gate`（6 项）、`cargo test --locked -p joyword`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+### T104 周期快照收口（2026-10-27）
+
+T104 仍是 `in_progress`，进度计数不改。核对结论：任务要求的「周期快照」由 2026-10-26 的生产恢复双代日志按每次提交的粒度实现——每代都是完整快照（原包基线字节 + 全文文本），写入协议（临时文件、flush、sync、读回校验、原子改名、上一代保留、加密拒绝明文）已在 2026-10-26 切片验证。本切片补上命令层完整性审计与端到端性质测试，不改生产代码。
+
+**审计**：`host.rs` 命令分发的 33 个修改型分支全部在提交后调用 `journal_active`（编辑插入／图片／剪切、粗斜下划线、对齐、样式应用、列表三级、分页符与页码、页尺寸／边距／方向、查找替换、格式刷、表格插入／行列增删／合并／拆分／属性、字体与段落对话框、审阅跟踪／接受／拒绝／全部）；非修改命令（选择、视图、复制、导航）不写日志。
+
+**测试**：`every_committed_edit_publishes_a_complete_periodic_snapshot`（`crates/joyword-shell/tests/t104_periodic_snapshots.rs`）经命令注册表驱动九次修改与一次非修改，逐步断言代次加一、快照文本等于当前全文、快照基线等于原包字节、版本字段非空；全选不产生新代；两槽并存。
+
+未做：断电场景人工验收（不把故障注入冒充断电）。T104 保持 `in_progress`。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-shell --test t104_periodic_snapshots`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+### T302 commentsIds 与 commentsExtensible 写回（2026-10-27）
+
+T302 仍是 `in_progress`，进度计数不改。本切片补上第一切片「未做」清单里的「commentsIds 与 commentsExtensible 对新回复的改写（这两部分保持原字节，新回复的 durable_id 为空）」。
+
+**分配在创建时**：`joyword-model::Document::allocate_durable_id(para_id)` 以 `durable_id_from`（paraId 的 FNV-1a 32 位，冲突时确定性加盐重试，对文档内既有 durable id 查重）分配；`is_strict_utc_date` 识别 `YYYY-MM-DDTHH:MM:SSZ`。引擎 `AddComment`／`ReplyComment` 创建批注时分配 durable id，`w:date` 已是严格形状时同步设置 `date_utc`——野外部件中 `w16cex:dateUtc` 逐字重复 `w:date`（本仓库测试夹具同样如此），因此这不是发明时间戳。durableId 派生是 JoyWord 假定（非 Word 算法）：[MS-DOCX] 定义为 32 位整数，写十进制；导入侧接受任意非空串（Word 写 GUID 形态），十进制不会与 GUID 冲突。
+
+**导出追加式写回**：`durable_plan` 从既有 commentsIds／commentsExtensible 部件收集已占用的 durable id 与已见 paraId，一次规划全部新批注的 id——引擎分配值优先写入（重导入后语义比较相等），未经分配器构造的批注走同一共享派生，部件内冲突显式拒绝。`write_ids`／`write_extensible` 与 commentsExtended 同一手法：既有条目字节不动，新条目插在根结束标签前（`insert_before_end`）；缺部件时新建 `/word/commentsIds.xml`／`/word/commentsExtensible.xml` 并追加关系与 Content-Type Override。commentsExtensible 仅当每个新批注的 `w:date` 都是严格 UTC 形状时才写，否则整部件保持原字节。两部件由同一 plan 供值，同一批注在两部件键一致。
+
+**语义往返闭合**：规范化 dump（`semantic_difference` 的基础）比较 `durable_id` 与 `date_utc`；因为引擎在创建时已设置两者、导出写同值，导出→重导入后逐字相等，`round_trip` 断言通过。
+
+**证据**：`crates/joyword-docx/tests/comments.rs`——`a_new_comment_and_reply_are_written_back` 重写为经引擎命令创建并断言两新部件；新增三项 `new_comments_append_durable_ids_and_extensible_dates_without_touching_entries`、`a_new_comment_without_a_strict_utc_date_leaves_comments_extensible_untouched`、`a_fresh_package_without_extension_parts_gains_ids_and_extensible`。
+
+未做：people.xml 身份、GUI 气泡、不透明表格锚点映射、带范围标记段落的整段重写、页眉批注导出专项测试、Word／WPS 人工交换。
+
+本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-docx --test comments`（9 项）、`cargo test --locked -p joyword-engine -p joyword-model`、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
 ### T303 第一切片：无头语义比较（2026-10-27）
 
 T303 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 planned／0 blocked）。本切片实现 REVIEW-007 的语义比较核心：`joyword_engine::compare_documents(original, revised, author, date)` 产出一份以原稿为底、差异盖着跟踪修订的新文档，满足投影不变量——全部接受 reproduces 改稿正文文本，全部拒绝恢复原稿正文文本。

@@ -76,6 +76,7 @@ actions!(
         DeleteWordForward,
         CancelComposition,
         OpenFile,
+        CancelOpen,
         OpenRecent,
         SwitchDocument,
         InsertText,
@@ -232,6 +233,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         EDIT_DELETE_WORD_FORWARD => Box::new(DeleteWordForward),
         EDIT_CANCEL => Box::new(CancelComposition),
         FILE_OPEN => Box::new(OpenFile),
+        FILE_OPEN_CANCEL => Box::new(CancelOpen),
         FILE_OPEN_RECENT => Box::new(OpenRecent),
         DOCUMENT_SWITCH => Box::new(SwitchDocument),
         FILE_SAVE => Box::new(SaveOriginal),
@@ -1625,6 +1627,9 @@ impl Render for JoyWord {
             )
             .on_action(cx.listener(|this, _: &OpenRecent, window, cx| {
                 this.run(FILE_OPEN_RECENT, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &CancelOpen, window, cx| {
+                this.run(FILE_OPEN_CANCEL, window, cx)
             }))
             .on_action(cx.listener(|this, _: &SwitchDocument, window, cx| {
                 this.run(DOCUMENT_SWITCH, window, cx)

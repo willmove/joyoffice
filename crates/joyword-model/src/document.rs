@@ -539,6 +539,32 @@ impl Document {
         Some(Arc::from(format!("{id:08X}")))
     }
 
+    /// Allocates the durable id of a comment created this session
+    /// ([MS-DOCX] `w16cid:durableId`, a 32-bit integer), derived
+    /// deterministically from its fresh `w14:paraId`. JoyWord assumption
+    /// (not a Word algorithm): the value only has to be stable and
+    /// collision-free among the durable ids this document already carries;
+    /// imported GUID-shaped ids never collide with a plain decimal.
+    pub fn allocate_durable_id(&mut self, para_id: &str) -> Option<Arc<str>> {
+        let mut taken: Vec<&str> = self
+            .annotations
+            .values()
+            .filter_map(|annotation| match &annotation.kind {
+                crate::AnnotationKind::Comment(comment) => comment.durable_id.as_deref(),
+                _ => None,
+            })
+            .collect();
+        let mut attempt = 0u32;
+        loop {
+            let candidate = durable_id_from(para_id, attempt).to_string();
+            if !taken.contains(&candidate.as_str()) {
+                return Some(Arc::from(candidate));
+            }
+            attempt = attempt.checked_add(1)?;
+            taken.push("");
+        }
+    }
+
     pub fn numbering(&self) -> &NumberingStore {
         &self.numbering
     }
@@ -604,4 +630,37 @@ impl Deref for DocumentSnapshot {
     fn deref(&self) -> &Document {
         &self.0
     }
+}
+
+/// The strict UTC timestamp shape comments carry (`YYYY-MM-DDTHH:MM:SSZ`,
+/// the shape the engine stamps and the wild commentsExtensible parts repeat
+/// verbatim as `w16cex:dateUtc`). Anything looser is left alone rather than
+/// reinterpreted.
+pub fn is_strict_utc_date(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    bytes.len() == 20
+        && bytes[..4].iter().all(u8::is_ascii_digit)
+        && bytes[4] == b'-'
+        && bytes[5..7].iter().all(u8::is_ascii_digit)
+        && bytes[7] == b'-'
+        && bytes[8..10].iter().all(u8::is_ascii_digit)
+        && bytes[10] == b'T'
+        && bytes[11..13].iter().all(u8::is_ascii_digit)
+        && bytes[13] == b':'
+        && bytes[14..16].iter().all(u8::is_ascii_digit)
+        && bytes[16] == b':'
+        && bytes[17..19].iter().all(u8::is_ascii_digit)
+        && bytes[19] == b'Z'
+}
+
+/// FNV-1a over the paraId and a zero-based attempt counter. Public so the
+/// DOCX writer derives the same value for comments created before this
+/// allocator existed.
+pub fn durable_id_from(para_id: &str, attempt: u32) -> u32 {
+    let mut hash: u32 = 0x811c_9dc5;
+    for byte in format!("{para_id}:{attempt}").bytes() {
+        hash ^= u32::from(byte);
+        hash = hash.wrapping_mul(0x0100_0193);
+    }
+    hash
 }
