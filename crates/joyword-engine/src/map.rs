@@ -40,6 +40,15 @@ pub enum MapStep {
         at: usize,
         new: NodeId,
     },
+    /// A rejected inserted mark joins `head` in front of `tail`: the head's
+    /// content keeps its offsets at the front of the tail and the tail's
+    /// content shifts by `head_len`. The tail keeps its identity.
+    MergeBefore {
+        story: StoryId,
+        head: NodeId,
+        head_len: usize,
+        tail: NodeId,
+    },
     /// The paragraph was removed with its block; positions collapse to
     /// `fallback` when there is one.
     Remove {
@@ -135,6 +144,28 @@ fn map_step(step: &MapStep, position: Position) -> Mapped {
                 Mapped::Collapsed(boundary)
             } else {
                 Mapped::Kept(position)
+            }
+        }
+        MapStep::MergeBefore {
+            story,
+            head,
+            head_len,
+            tail,
+        } if position.paragraph == head || position.paragraph == tail => {
+            if position.paragraph == head {
+                Mapped::Kept(Position {
+                    story,
+                    paragraph: tail,
+                    offset: ScalarOffset(offset),
+                    bias: position.bias,
+                })
+            } else {
+                Mapped::Kept(Position {
+                    story,
+                    paragraph: tail,
+                    offset: ScalarOffset(offset + head_len),
+                    bias: position.bias,
+                })
             }
         }
         MapStep::Split { paragraph, at, new } if position.paragraph == paragraph => {

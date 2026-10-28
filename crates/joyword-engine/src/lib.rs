@@ -12,6 +12,7 @@
 mod ai_replace;
 mod command;
 mod comment;
+mod compare;
 mod find;
 mod locate;
 mod map;
@@ -25,6 +26,7 @@ pub use command::{
     Command, CommandError, ParagraphChange, Precondition, RunChange, TableMerge,
     TablePropertyChange, TableStructure,
 };
+pub use compare::{CompareError, compare_documents};
 pub use find::{
     FindError, FindHit, FindQuery, FindReport, MAX_HITS, MAX_QUERY_SCALARS,
     MAX_REPLACEMENT_SCALARS, ReplacePlan, paragraph_order, replace_commands, search,

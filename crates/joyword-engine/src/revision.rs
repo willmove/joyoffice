@@ -743,13 +743,14 @@ fn mark_targets(document: &Document, id: u32) -> Vec<(StoryId, NodeId, RevisionK
     out
 }
 
-/// Every paragraph with a pending deleted mark, in document order.
+/// Every paragraph with a pending mark revision, in document order. Both
+/// kinds resolve: an accepted deleted mark and a rejected inserted mark both
+/// remove the break the mark stands for.
 fn all_mark_targets(document: &Document) -> Vec<(StoryId, NodeId, RevisionKind)> {
     let mut out = Vec::new();
     for (story, paragraph) in paragraphs(document) {
         if let Some(paragraph) = paragraph_ref(document, story, paragraph)
             && let Some(revision) = &paragraph.mark_revision
-            && revision.kind == RevisionKind::Delete
         {
             out.push((story, paragraph.id(), revision.kind));
         }
@@ -774,10 +775,8 @@ fn resolve_marks(
     let accept = matches!(resolution, Resolution::Accept);
     for &(story, id, _) in targets {
         let covered = |revision: &TextRevision| match scope {
-            MarkScope::One(wanted) => {
-                revision.id == wanted && revision.kind == RevisionKind::Delete
-            }
-            MarkScope::All => revision.kind == RevisionKind::Delete,
+            MarkScope::One(wanted) => revision.id == wanted,
+            MarkScope::All => true,
         };
         let Some(location) = locate::locate(document, story, id) else {
             continue;
@@ -793,7 +792,12 @@ fn resolve_marks(
         if !covered(&revision) {
             continue;
         }
-        if !accept {
+        // The action pairs the mark's kind with the resolution: an accepted
+        // deleted mark and a rejected inserted mark both remove the break
+        // the mark stands for; the other two combinations keep the break and
+        // only drop the record.
+        let removes_break = (revision.kind == RevisionKind::Delete) == accept;
+        if !removes_break {
             let Some(paragraph) = locate::paragraph_mut(document, &location) else {
                 continue;
             };
@@ -802,52 +806,184 @@ fn resolve_marks(
             changes.paragraphs.insert(id);
             continue;
         }
-        while let Some(location) = locate::locate(document, story, id) {
-            let Some((tail_id, head_len)) =
-                locate::container(document, story, &location.containers).and_then(|seq| {
-                    let head = seq.get(location.index)?.as_paragraph()?;
-                    let tail = seq.get(location.index + 1)?.as_paragraph()?;
-                    Some((tail.id(), head.len()))
-                })
-            else {
-                // A deleted mark at the end of a container has no paragraph
-                // to merge into; the engine never creates one, an import can.
+        match revision.kind {
+            RevisionKind::Delete => {
+                resolve_deleted_marks(document, story, id, &covered, map, changes)?;
+            }
+            RevisionKind::Insert => {
+                resolve_inserted_marks(document, story, id, &covered, map, changes)?;
+            }
+            RevisionKind::MoveFrom | RevisionKind::MoveTo => {
                 return Err(CommandError::RevisionConflict);
-            };
-            let seq = locate::container_mut(document, story, &location.containers)
-                .ok_or(CommandError::UnknownNode(id))?;
-            let Block::Paragraph(tail) = seq.remove(location.index + 1) else {
-                return Err(CommandError::RevisionConflict);
-            };
-            let mut tail = Arc::unwrap_or_clone(tail);
-            let inherited = tail.mark_revision.take();
-            let Some(Block::Paragraph(head)) = seq.get_mut(location.index) else {
-                return Err(CommandError::UnknownNode(id));
-            };
-            let head = Arc::make_mut(head);
-            // The merged paragraph keeps the first half's formatting and
-            // identity, and ends at the absorbed mark, whose own pending
-            // revision survives on the merged paragraph.
-            head.append(tail);
-            head.mark_revision = inherited;
-            map.push(MapStep::DeleteAcross {
-                story,
-                first: id,
-                start: head_len,
-                last: tail_id,
-                end: 0,
-                removed: Vec::new(),
-            });
-            changes.stories.insert(story);
-            changes.paragraphs.insert(id);
-            changes.removed.insert(tail_id);
-            let next = locate::locate(document, story, id)
-                .and_then(|location| locate::paragraph(document, &location))
-                .and_then(|paragraph| paragraph.mark_revision.clone());
-            if !next.is_some_and(|revision| covered(&revision)) {
-                break;
             }
         }
+    }
+    Ok(())
+}
+
+/// Accepting deleted marks: the head absorbs the following paragraph and
+/// keeps its own identity and formatting, chaining while the absorbed mark is
+/// also covered.
+fn resolve_deleted_marks(
+    document: &mut Document,
+    story: StoryId,
+    id: NodeId,
+    covered: &dyn Fn(&TextRevision) -> bool,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    while let Some(location) = locate::locate(document, story, id) {
+        let next_pair = locate::container(document, story, &location.containers).and_then(|seq| {
+            let head = seq.get(location.index)?.as_paragraph()?;
+            let tail = seq.get(location.index + 1)?.as_paragraph()?;
+            Some((tail.id(), head.len()))
+        });
+        let Some((tail_id, head_len)) = next_pair else {
+            // A deleted mark at the end of a container: the engine never
+            // creates one, an import can. An empty head loses nothing by
+            // keeping the container's final mark, so its record is dropped;
+            // anything else would have to merge into nothing and refuses.
+            let current = locate::locate(document, story, id)
+                .and_then(|located| locate::paragraph(document, &located));
+            let empty = current.is_some_and(Paragraph::is_empty);
+            if empty {
+                if let Some(located) = locate::locate(document, story, id)
+                    && let Some(paragraph) = locate::paragraph_mut(document, &located)
+                {
+                    paragraph.mark_revision = None;
+                    changes.stories.insert(story);
+                    changes.paragraphs.insert(id);
+                }
+                break;
+            }
+            return Err(CommandError::RevisionConflict);
+        };
+        let seq = locate::container_mut(document, story, &location.containers)
+            .ok_or(CommandError::UnknownNode(id))?;
+        let Block::Paragraph(tail) = seq.remove(location.index + 1) else {
+            return Err(CommandError::RevisionConflict);
+        };
+        let mut tail = Arc::unwrap_or_clone(tail);
+        let inherited = tail.mark_revision.take();
+        let Some(Block::Paragraph(head)) = seq.get_mut(location.index) else {
+            return Err(CommandError::UnknownNode(id));
+        };
+        let head = Arc::make_mut(head);
+        // The merged paragraph keeps the first half's formatting and
+        // identity, and ends at the absorbed mark, whose own pending
+        // revision survives on the merged paragraph.
+        head.append(tail);
+        head.mark_revision = inherited;
+        map.push(MapStep::DeleteAcross {
+            story,
+            first: id,
+            start: head_len,
+            last: tail_id,
+            end: 0,
+            removed: Vec::new(),
+        });
+        changes.stories.insert(story);
+        changes.paragraphs.insert(id);
+        changes.removed.insert(tail_id);
+        let next = locate::locate(document, story, id)
+            .and_then(|location| locate::paragraph(document, &location))
+            .and_then(|paragraph| paragraph.mark_revision.clone());
+        if !next.as_ref().is_some_and(covered) {
+            break;
+        }
+    }
+    Ok(())
+}
+
+/// Rejecting inserted marks: the head's content joins the following paragraph
+/// in front of it, which keeps its own identity and formatting — the state
+/// before the break was inserted — chaining while the absorbed mark is also
+/// covered.
+fn resolve_inserted_marks(
+    document: &mut Document,
+    story: StoryId,
+    mut id: NodeId,
+    covered: &dyn Fn(&TextRevision) -> bool,
+    map: &mut PositionMap,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    while let Some(location) = locate::locate(document, story, id) {
+        let next_pair = locate::container(document, story, &location.containers).and_then(|seq| {
+            let head = seq.get(location.index)?.as_paragraph()?;
+            let tail = seq.get(location.index + 1)?.as_paragraph()?;
+            Some((tail.id(), head.len(), tail.clone()))
+        });
+        let Some((_, head_len, _)) = next_pair else {
+            // An inserted mark on the container's final paragraph: with the
+            // text revisions already resolved the paragraph is empty, so
+            // rejecting the mark removes the whole paragraph — the state
+            // before it was inserted. Anything non-empty refuses.
+            let located = locate::locate(document, story, id);
+            let Some(location) = located else {
+                break;
+            };
+            let empty = locate::paragraph(document, &location).is_some_and(Paragraph::is_empty);
+            if !empty || location.content_locked {
+                return Err(CommandError::RevisionConflict);
+            }
+            let fallback =
+                locate::container(document, story, &location.containers).and_then(|seq| {
+                    match location
+                        .index
+                        .checked_sub(1)
+                        .and_then(|index| seq.get(index))
+                    {
+                        Some(Block::Paragraph(previous)) => {
+                            Some((story, previous.id(), previous.len()))
+                        }
+                        _ => None,
+                    }
+                });
+            let seq = locate::container_mut(document, story, &location.containers)
+                .ok_or(CommandError::UnknownNode(id))?;
+            seq.remove(location.index);
+            map.push(MapStep::Remove {
+                paragraph: id,
+                fallback,
+            });
+            changes.stories.insert(story);
+            changes.removed.insert(id);
+            break;
+        };
+        let seq = locate::container_mut(document, story, &location.containers)
+            .ok_or(CommandError::UnknownNode(id))?;
+        let Block::Paragraph(head) = seq.remove(location.index) else {
+            return Err(CommandError::RevisionConflict);
+        };
+        let head = Arc::unwrap_or_clone(head);
+        // The content joins in front of the tail, which keeps its own
+        // formatting, identity and pending mark; the head's mark is the
+        // rejected break and disappears with it.
+        let tail_id = {
+            let Some(Block::Paragraph(tail)) = seq.get_mut(location.index) else {
+                return Err(CommandError::RevisionConflict);
+            };
+            let tail_id = tail.id();
+            Arc::make_mut(tail).prepend(head);
+            tail_id
+        };
+        map.push(MapStep::MergeBefore {
+            story,
+            head: id,
+            head_len,
+            tail: tail_id,
+        });
+        changes.stories.insert(story);
+        changes.paragraphs.insert(tail_id);
+        changes.removed.insert(id);
+        let next = locate::locate(document, story, tail_id)
+            .and_then(|located| locate::paragraph(document, &located))
+            .and_then(|paragraph| paragraph.mark_revision.clone());
+        if !next.as_ref().is_some_and(covered) {
+            break;
+        }
+        // The chain continues from the tail, which now carries the mark.
+        id = tail_id;
     }
     Ok(())
 }

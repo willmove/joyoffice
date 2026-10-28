@@ -89,12 +89,13 @@ fn a_deleted_paragraph_mark_imports_typed_and_keeps_the_document_editable() {
 }
 
 #[test]
-fn an_inserted_or_rich_paragraph_mark_stays_a_preserved_gap() {
+fn a_malformed_or_rich_paragraph_mark_stays_a_preserved_gap() {
     for rpr in [
-        r#"<w:ins w:id="7" w:author="A"/>"#,
         r#"<w:del w:id="7" w:author="A"><w:b/></w:del>"#,
         r#"<w:del w:author="A"/>"#,
         r#"<w:del w:id="7" w:author="A"/><w:del w:id="8" w:author="A"/>"#,
+        r#"<w:ins w:id="7" w:author="A"><w:b/></w:ins>"#,
+        r#"<w:ins w:author="A"/>"#,
     ] {
         let bytes = body(&format!(
             r#"<w:p><w:pPr><w:rPr>{rpr}</w:rPr></w:pPr><w:r><w:t>一</w:t></w:r></w:p><w:p><w:r><w:t>二</w:t></w:r></w:p>"#
@@ -329,5 +330,209 @@ fn a_full_ai_replace_round_trips_through_docx() {
     assert_eq!(
         joyword_engine::body_final_paragraphs(&saved.document).unwrap(),
         vec!["甲X丁", "戊己"]
+    );
+}
+
+#[test]
+fn an_inserted_paragraph_mark_imports_typed_and_round_trips() {
+    let bytes = body(concat!(
+        r#"<w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:ins w:id="7" w:author="审阅人" w:date="2020-01-02T03:04:05Z"/></w:rPr></w:pPr><w:r><w:t>新段</w:t></w:r></w:p>"#,
+        r#"<w:p><w:r><w:t>旧段</w:t></w:r></w:p>"#,
+    ));
+    let result = import(&bytes, &Budget::default()).unwrap();
+    assert!(!result.editability.is_read_only());
+    let mark = paragraphs(&result.document)[0]
+        .mark_revision
+        .as_ref()
+        .expect("typed inserted mark");
+    assert_eq!(
+        (mark.id, mark.kind, mark.author.as_ref()),
+        (7, RevisionKind::Insert, "审阅人")
+    );
+
+    // An untouched export keeps the original bytes; a tracked text change on
+    // the same paragraph rewrites it and the inserted mark survives.
+    let source = import(&bytes, &Budget::default()).unwrap();
+    let untouched = plan_export(
+        &source.backing,
+        &source.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(untouched.mode(), ExportMode::OriginalPackage);
+    assert_eq!(untouched.bytes(), bytes.as_slice());
+
+    let mut model = source.document.clone();
+    let id = model.body_id();
+    let story = model.story_mut(id).expect("body");
+    let Some(Block::Paragraph(paragraph)) = story.blocks.get_mut(0) else {
+        panic!("paragraph");
+    };
+    Arc::make_mut(paragraph)
+        .push_text_marked(
+            "补",
+            None,
+            Arc::default(),
+            TextRevision {
+                id: 9,
+                kind: RevisionKind::Insert,
+                author: Arc::from("比较者"),
+                date: Some(Arc::from("2026-10-28T00:00:00Z")),
+            },
+        )
+        .unwrap();
+    model.note_revision_id(9);
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert!(
+        model.semantic_difference(&saved.document).is_none(),
+        "model:
+{}
+---
+saved:
+{}",
+        model.canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+        saved
+            .document
+            .canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+    );
+    let mark = paragraphs(&saved.document)[0]
+        .mark_revision
+        .as_ref()
+        .expect("inserted mark survives the rewrite");
+    assert_eq!(
+        (mark.id, mark.kind, mark.author.as_ref()),
+        (7, RevisionKind::Insert, "审阅人")
+    );
+}
+
+#[test]
+fn an_engine_created_inserted_mark_is_injected_and_a_resolved_one_is_stripped() {
+    let bytes = clean_bytes();
+    let source = import(&bytes, &Budget::default()).unwrap();
+
+    // A compare-created inserted mark on the first paragraph: export must
+    // synthesize w:pPr/w:rPr/w:ins even though the original pPr is absent.
+    let mut model = source.document.clone();
+    let revision = TextRevision {
+        id: 4,
+        kind: RevisionKind::Insert,
+        author: Arc::from("比较者"),
+        date: None,
+    };
+    set_mark(&mut model, 0, Some(revision));
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert!(
+        model.semantic_difference(&saved.document).is_none(),
+        "model:
+{}
+---
+saved:
+{}",
+        model.canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+        saved
+            .document
+            .canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+    );
+    let mark = paragraphs(&saved.document)[0]
+        .mark_revision
+        .as_ref()
+        .expect("injected inserted mark re-imports");
+    assert_eq!((mark.id, mark.kind), (4, RevisionKind::Insert));
+
+    // Resolving the mark strips the injected bytes again.
+    set_mark(&mut model, 0, None);
+    let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert!(model.semantic_difference(&saved.document).is_none());
+    assert!(paragraphs(&saved.document)[0].mark_revision.is_none());
+}
+
+#[test]
+fn an_in_paragraph_compare_result_round_trips_through_docx() {
+    let source = import(&clean_bytes(), &Budget::default()).unwrap();
+    // The compare inputs share the package envelope: the original is the
+    // imported document, the revised one applies the same text change
+    // untracked. The compare result is exported against the ORIGINAL package
+    // backing, so the pending revisions are injected into the copied
+    // paragraphs. A comparison with structural paragraph changes (added or
+    // removed paragraphs) is not exportable yet: the export plan patches
+    // existing paragraphs only, and that boundary is recorded for the next
+    // slice.
+    let original = source.document.clone();
+    let mut session = joyword_engine::Session::new(original.clone());
+    let paragraph = original
+        .body()
+        .blocks
+        .iter()
+        .nth(1)
+        .and_then(|block| block.as_paragraph())
+        .map(joyword_model::Paragraph::id)
+        .unwrap();
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::InsertText {
+                at: joyword_model::Position {
+                    story: original.body_id(),
+                    paragraph,
+                    offset: joyword_model::ScalarOffset(2),
+                    bias: joyword_model::Bias::Before,
+                },
+                text: "补".into(),
+            }],
+        ))
+        .unwrap();
+    let revised = session.document().clone();
+    let result = joyword_engine::compare_documents(
+        &original,
+        &revised,
+        "比较者",
+        Some(Arc::from("2026-10-28T00:00:00Z")),
+    )
+    .unwrap();
+    let plan = plan_export(&source.backing, &result.snapshot(), &Budget::default()).unwrap();
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert!(
+        result.semantic_difference(&saved.document).is_none(),
+        "model:
+{}
+---
+saved:
+{}",
+        result.canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+        saved
+            .document
+            .canonical_dump(joyword_model::DumpOptions { node_ids: false }),
+    );
+    // The re-imported comparison still resolves to both projections.
+    let texts = |document: &joyword_model::Document| {
+        paragraphs(document)
+            .iter()
+            .map(|paragraph| paragraph.plain_text(|_| String::new()))
+            .collect::<Vec<_>>()
+    };
+    let mut session = joyword_engine::Session::new(saved.document.clone());
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::AcceptAllRevisions],
+        ))
+        .unwrap();
+    assert_eq!(
+        texts(session.document()),
+        vec!["甲乙".to_owned(), "丙丁补".to_owned(), "戊己".to_owned()]
+    );
+    let mut session = joyword_engine::Session::new(saved.document);
+    session
+        .apply(joyword_engine::Transaction::new(
+            session.version(),
+            vec![joyword_engine::Command::RejectAllRevisions],
+        ))
+        .unwrap();
+    assert_eq!(
+        texts(session.document()),
+        vec!["甲乙".to_owned(), "丙丁".to_owned(), "戊己".to_owned()]
     );
 }

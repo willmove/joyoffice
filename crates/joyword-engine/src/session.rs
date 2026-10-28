@@ -670,7 +670,7 @@ fn execute(
         Command::DeleteRange { start, end } => {
             delete_range(document, start, end, ctx, map, changes)
         }
-        Command::SplitParagraph { at } => split_paragraph(document, at, map, changes),
+        Command::SplitParagraph { at } => split_paragraph(document, at, ctx, map, changes),
         Command::FormatText { start, end, change } => format_text(
             document,
             start,
@@ -1106,6 +1106,7 @@ fn delete_range(
 fn split_paragraph(
     document: &mut Document,
     at: &Position,
+    ctx: &crate::revision::EditContext,
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
@@ -1115,12 +1116,39 @@ fn split_paragraph(
     }
     check_offset(document, &location, at)?;
     let new = document.ids().node();
+    // Allocated before the container borrow: a split under tracking inserts
+    // the new paragraph mark, so the tail's mark carries `w:pPr/w:rPr/w:ins`
+    // — rejecting the revision joins the tail back into the head and
+    // accepting it keeps the break. The head's mark existed before the split
+    // and stays untouched.
+    let tracked_mark = match tracks_text(document, ctx) {
+        true => Some(joyword_model::TextRevision {
+            id: document
+                .allocate_revision_id()
+                .ok_or(CommandError::RevisionConflict)?,
+            kind: joyword_model::RevisionKind::Insert,
+            author: Arc::clone(&ctx.author),
+            date: ctx.date.clone(),
+        }),
+        false => None,
+    };
     let seq =
         locate::container_mut(document, at.story, &location.containers).expect("located container");
     let Some(Block::Paragraph(paragraph)) = seq.get_mut(location.index) else {
         unreachable!("located paragraph");
     };
-    let tail = Arc::make_mut(paragraph).split_off(at.offset, new)?;
+    let paragraph = Arc::make_mut(paragraph);
+    let mut tail = paragraph.split_off(at.offset, new)?;
+    // A further split of a paragraph whose own mark is already an inserted
+    // revision keeps that revision on the head — both breaks descend from
+    // the inserted one — while the new break gets a fresh mark.
+    if tracked_mark.is_some()
+        && let Some(revision) = &tail.mark_revision
+        && revision.kind == joyword_model::RevisionKind::Insert
+    {
+        paragraph.mark_revision = tail.mark_revision.take();
+    }
+    tail.mark_revision = tracked_mark;
     seq.insert(location.index + 1, tail.into());
     map.push(MapStep::Split {
         paragraph: at.paragraph,

@@ -272,13 +272,14 @@ pub(crate) fn cell_text_revision(element: &Element, kind: RevisionKind) -> Optio
     plain_revision(element, kind)
 }
 
-/// A revision on the paragraph mark (`w:pPr/w:rPr/w:del`, T402). Only the
-/// empty delete form with exactly the tracked attributes types; `w:ins`,
-/// move kinds and any child stay gaps. `false` means the caller preserves
-/// the whole `w:rPr` and locks the paragraph.
+/// A revision on the paragraph mark (`w:pPr/w:rPr/w:del` or
+/// `w:pPr/w:rPr/w:ins`, T402 and T303). Only the empty form with exactly the
+/// tracked attributes types; move kinds and any child stay gaps. `false`
+/// means the caller preserves the whole `w:rPr` and locks the paragraph.
 pub(crate) fn import_mark_revision(
     importer: &mut Importer<'_>,
     element: &Element,
+    kind: RevisionKind,
 ) -> Option<TextRevision> {
     let (id, author, date) = track_attrs(element, false)?;
     if element.elements().next().is_some() {
@@ -287,7 +288,7 @@ pub(crate) fn import_mark_revision(
     importer.document.note_revision_id(id);
     Some(TextRevision {
         id,
-        kind: RevisionKind::Delete,
+        kind,
         author,
         date,
     })

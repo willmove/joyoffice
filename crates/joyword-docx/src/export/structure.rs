@@ -2771,9 +2771,10 @@ pub(super) fn rewrite_revisions(
         }
         None => {
             if let Some(revision) = &paragraph.mark_revision {
-                let del = format!(
+                let tag = mark_tag(revision.kind);
+                let mark = format!(
                     "{}{}/>",
-                    names.start("del"),
+                    names.start(tag),
                     track_attributes(names, revision)
                 );
                 out.extend_from_slice(
@@ -2781,7 +2782,7 @@ pub(super) fn rewrite_revisions(
                         "{}>{}>{}{}{}",
                         names.start("pPr"),
                         names.start("rPr"),
-                        del,
+                        mark,
                         names.end("rPr"),
                         names.end("pPr"),
                     )
@@ -2801,10 +2802,21 @@ pub(super) fn rewrite_revisions(
     Ok(out)
 }
 
-/// Copies the original `w:pPr` bytes and puts the mark's deleted revision
-/// into them: injected when the model has one the original lacks, stripped
-/// when the original carries one the model resolved, kept verbatim when
-/// both agree (the imported revision is already in the bytes).
+/// The `w:pPr/w:rPr` element name of one mark revision kind: `w:del` for a
+/// deleted break, `w:ins` for an inserted one.
+fn mark_tag(kind: joyword_model::RevisionKind) -> &'static str {
+    match kind {
+        joyword_model::RevisionKind::Delete => "del",
+        _ => "ins",
+    }
+}
+
+/// Copies the original `w:pPr` bytes and puts the mark's revision into them:
+/// injected when the model has one the original lacks, stripped when the
+/// original carries one the model resolved, kept verbatim when both agree
+/// (the imported revision is already in the bytes). Stripping removes either
+/// spelling — the original may carry the mark as `w:del` or `w:ins` while
+/// the model has resolved it away.
 fn patch_mark_bytes(
     xml: &[u8],
     properties: &Element,
@@ -2813,17 +2825,21 @@ fn patch_mark_bytes(
 ) -> Result<Vec<u8>, ExportError> {
     let base = properties.span.start;
     let mut bytes = xml[properties.span.clone()].to_vec();
-    let del = revision.map(|revision| {
+    let mark = revision.map(|revision| {
         format!(
             "{}{}/>",
-            names.start("del"),
+            names.start(mark_tag(revision.kind)),
             track_attributes(names, revision)
         )
     });
     let rpr = properties.child(W, "rPr");
-    match (rpr, del) {
-        (Some(rpr), Some(del)) => {
-            if rpr.child(W, "del").is_some() {
+    match (rpr, mark) {
+        (Some(rpr), Some(mark)) => {
+            let Some(revision) = revision else {
+                return Ok(bytes);
+            };
+            let tag = mark_tag(revision.kind);
+            if rpr.child(W, tag).is_some() {
                 // Already in the original bytes; the caller only rewrites
                 // when something else changed, and this revision is equal.
                 return Ok(bytes);
@@ -2832,18 +2848,19 @@ fn patch_mark_bytes(
                 let cut = rpr.span.end - base - 2;
                 bytes.splice(
                     cut..cut + 2,
-                    format!(">{del}{}", names.end("rPr")).into_bytes(),
+                    format!(">{mark}{}", names.end("rPr")).into_bytes(),
                 );
             } else {
                 let at = open_tag_end(xml, rpr)
                     .ok_or_else(|| unsupported(None, "unreadable rPr start tag"))?
                     + 1
                     - base;
-                bytes.splice(at..at, del.into_bytes());
+                bytes.splice(at..at, mark.into_bytes());
             }
         }
         (Some(rpr), None) => {
-            if let Some(existing) = rpr.child(W, "del") {
+            let existing = rpr.child(W, "del").or_else(|| rpr.child(W, "ins"));
+            if let Some(existing) = existing {
                 let start = existing.span.start - base;
                 let end = existing.span.end - base;
                 bytes.drain(start..end);
