@@ -324,6 +324,7 @@ mod scene_export {
                     title: None,
                     outline: outline_from_headings(&document, &scene),
                     links: links_from_document(&document, &scene),
+                    ..Default::default()
                 }
             )
             .unwrap()
