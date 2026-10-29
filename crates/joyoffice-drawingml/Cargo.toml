@@ -1,7 +1,12 @@
 [package]
 name = "joyoffice-drawingml"
-version = "0.0.1"
-edition = "2024"
+description = "Format-neutral DrawingML layer with untrusted-input budgets (ECMA-376 Part 1 §20)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
 
 [lints.rust]
 unsafe_code = "forbid"

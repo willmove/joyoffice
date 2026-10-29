@@ -185,6 +185,7 @@ fn view_options(toggles: joyword_shell::dialogs::ViewToggles) -> ViewOptions {
         formatting_marks: toggles.formatting_marks,
         show_hidden: toggles.show_hidden,
         field_codes: toggles.field_codes,
+        ..ViewOptions::default()
     }
 }
 

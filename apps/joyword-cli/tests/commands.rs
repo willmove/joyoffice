@@ -310,8 +310,22 @@ fn broken_output_streams_never_report_success() {
     use std::process::Stdio;
 
     fn broken_stream() -> Stdio {
-        let (writer, reader) = UnixStream::pair().unwrap();
+        use std::io::Write;
+
+        let (mut writer, reader) = UnixStream::pair().unwrap();
         drop(reader);
+        // A first small write can still land in the local send buffer on
+        // Darwin before the peer close is processed, so the stream is not yet
+        // broken from the writer's point of view. Filling the send buffer
+        // forces EPIPE here; afterwards every writer of this socket,
+        // including the spawned CLI, reports the broken pipe immediately.
+        loop {
+            match writer.write_all(&[0u8; 4096]) {
+                Ok(()) => continue,
+                Err(error) if error.kind() == std::io::ErrorKind::BrokenPipe => break,
+                Err(error) => panic!("unexpected error while provoking EPIPE: {error}"),
+            }
+        }
         Stdio::from(OwnedFd::from(writer))
     }
 

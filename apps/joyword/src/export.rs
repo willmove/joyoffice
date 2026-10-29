@@ -84,6 +84,7 @@ pub(crate) fn scene_pdf(
         title: core_xml.and_then(core_title),
         outline,
         links,
+        ..Default::default()
     };
     let selected = layout.pages()[pages].to_vec();
     render_export_with_navigation(&selected, std::slice::from_ref(font), &export, &navigation)
