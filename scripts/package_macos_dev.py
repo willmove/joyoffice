@@ -22,7 +22,7 @@ with (bundle / "Contents/Info.plist").open("wb") as handle:
         "CFBundleName": "JoyWord",
         "CFBundleDisplayName": "JoyWord",
         "CFBundlePackageType": "APPL",
-        "CFBundleShortVersionString": "0.0.1",
+        "CFBundleShortVersionString": "0.1.0",
         "CFBundleVersion": "1",
         "NSHighResolutionCapable": True,
     }, handle)
