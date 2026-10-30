@@ -5,7 +5,21 @@ fn source() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/epub/book.docx")
 }
 fn cli() -> Command {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_joyword-cli"));
+    // Cargo's runner wraps the test harness, not processes spawned by it.
+    // Mirror the existing CI QEMU runner for the real CLI process tests.
+    let key = format!(
+        "CARGO_TARGET_{}_UNKNOWN_LINUX_GNU_RUNNER",
+        std::env::consts::ARCH.to_uppercase()
+    );
+    let runner = std::env::var(key).ok();
+    let mut parts = runner.as_deref().unwrap_or("").split_whitespace();
+    let mut command = if let Some(program) = parts.next() {
+        let mut process = Command::new(program);
+        process.args(parts).arg(env!("CARGO_BIN_EXE_joyword-cli"));
+        process
+    } else {
+        Command::new(env!("CARGO_BIN_EXE_joyword-cli"))
+    };
     command.arg("epub").arg(source());
     command
 }
