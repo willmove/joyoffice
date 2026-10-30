@@ -43,6 +43,10 @@ open target/dev/JoyWord.app
 
 此包装未签名、未公证，不是发行安装包。每次修改代码后需重新构建和包装。完整 Xcode／Metal 环境及其他平台使用 `cargo run -p joyword --locked`；正式构建还必须验证不启用 dev-runtime-shaders 的路径。
 
+## 发布产物
+
+`v*` 标签推送后，`.github/workflows/release.yml` 会在 macOS（Apple Silicon）、Windows x86_64 与 Linux x86_64／ARM64 上执行 `cargo build -p joyword --release --locked`，用 `scripts/package_release.py` 打包 `joyword-<版本>-<平台>-<架构>` 压缩包并生成 `.sha256` 校验文件，挂到对应 GitHub Release。产物为未签名预览构建；发布步骤见 [发布流程](docs/joyword/release-process.md)。
+
 Linux 虚拟机若没有可用的 Vulkan 硬件，JoyWord 会在没有 `/dev/dri/renderD*` 时自动寻找 SwiftShader／lavapipe ICD，或在实际窗口打开失败后带软件 ICD 重启一次；显式设置的 `VK_ICD_FILENAMES`／`VK_DRIVER_FILES` 优先，也可用 `JOYWORD_SOFTWARE_VULKAN_ICD` 指定 JSON。找不到软件 ICD 时仍返回原来的窗口诊断，不假称成功。
 
 ## 无头检查与页面输出

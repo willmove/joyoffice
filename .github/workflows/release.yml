@@ -1,0 +1,136 @@
+name: Release
+
+# Builds `cargo build -p joyword --release --locked` on all supported runners,
+# packages per-platform archives with sha256 sidecars, and attaches them to the
+# GitHub Release for the tag. Curated bilingual release notes are authored with
+# the release (see docs/joyword/release-process.md); this workflow only uploads
+# artifacts and never rewrites an existing release body.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v prefix (must match Cargo.toml)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  package:
+    name: Package (${{ matrix.platform }} ${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux
+            arch: x86_64
+            binary: target/release/joyword
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: aarch64
+            binary: target/release/joyword
+          - os: macos-15
+            platform: macos
+            arch: aarch64
+            binary: target/release/joyword
+          - os: windows-2022
+            platform: windows
+            arch: x86_64
+            binary: target/release/joyword.exe
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Resolve and validate version
+        id: version
+        shell: pwsh
+        run: |
+          $requested = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ inputs.version }}" } else { "${{ github.ref_name }}".TrimStart("v") }
+          $manifest = Get-Content Cargo.toml -Raw
+          if ($manifest -notmatch '(?ms)\[workspace\.package\].*?version\s*=\s*"([^"]+)"') { throw "workspace package version not found" }
+          if ($requested -ne $Matches[1]) { throw "Release version $requested does not match Cargo.toml version $($Matches[1])" }
+          "version=$requested" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Linux system libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+      - name: macOS Metal toolchain (required for precompiled shaders)
+        if: runner.os == 'macOS'
+        run: |
+          xcode-select --print-path
+          xcrun --find metal
+      - name: Fixed Rust toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.arch }}-cargo-
+      - name: Build release binary
+        run: cargo build -p joyword --release --locked
+      - name: Package archive and checksum
+        run: >-
+          python scripts/package_release.py
+          --binary "${{ matrix.binary }}"
+          --version "${{ steps.version.outputs.version }}"
+          --platform "${{ matrix.platform }}"
+          --arch "${{ matrix.arch }}"
+          --out dist
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-${{ matrix.platform }}-${{ matrix.arch }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/*.sha256
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Resolve and validate version
+        id: version
+        shell: pwsh
+        run: |
+          $requested = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ inputs.version }}" } else { "${{ github.ref_name }}".TrimStart("v") }
+          $manifest = Get-Content Cargo.toml -Raw
+          if ($manifest -notmatch '(?ms)\[workspace\.package\].*?version\s*=\s*"([^"]+)"') { throw "workspace package version not found" }
+          if ($requested -ne $Matches[1]) { throw "Release version $requested does not match Cargo.toml version $($Matches[1])" }
+          "version=$requested" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+      - name: Attach artifacts to the existing release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/*.sha256
