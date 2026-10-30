@@ -2002,3 +2002,65 @@ fn settings_that_can_move_lines_are_not_layout_neutral() {
         assert!(!neutral(inner), "{inner}");
     }
 }
+
+#[test]
+fn unselected_settings_choices_are_preserved_without_blocking_layout() {
+    let settings = r#"<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:future="urn:example:future-settings"><mc:Choice Requires="future"><future:typoFeatureVersion val="1"/></mc:Choice></mc:AlternateContent>"#;
+    let bytes = package(
+        &document_xml("", "<w:p><w:r><w:t>甲乙</w:t></w:r></w:p>"),
+        Some(settings),
+    );
+    let result = open(&bytes);
+    assert!(result.document.settings().preserved.is_some());
+    assert!(result.document.settings().preserved_layout_neutral);
+    assert!(!result.diagnostics.is_empty());
+    let mut document = result.document;
+    let body = document.body_id();
+    document.story_mut(body).unwrap().blocks.update(0, |block| {
+        let Block::Paragraph(p) = block else {
+            unreachable!()
+        };
+        Arc::make_mut(p)
+            .push_text("丙", None, Arc::default())
+            .unwrap();
+    });
+    let plan = plan_export(&result.backing, &document.snapshot(), &Budget::default()).unwrap();
+    assert_eq!(
+        part_data(plan.bytes(), "/word/settings.xml"),
+        part_data(&bytes, "/word/settings.xml")
+    );
+    assert!(
+        open(plan.bytes())
+            .document
+            .settings()
+            .preserved_layout_neutral
+    );
+}
+
+#[test]
+fn selected_fallback_or_malformed_settings_choices_remain_layout_relevant() {
+    let envelope = |inner: &str| {
+        format!(
+            r#"<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:x="urn:example:future-settings">{inner}</mc:AlternateContent>"#
+        )
+    };
+    for inner in [
+        r#"<mc:Choice Requires="w"><w:mirrorMargins/></mc:Choice>"#,
+        r#"<mc:Choice Requires="x"/><mc:Fallback><w:mirrorMargins/></mc:Fallback>"#,
+        r#"<mc:Choice Requires=""/>"#,
+        r#"<mc:Choice Requires="unbound"/>"#,
+        r#"<mc:Choice Requires="x" extra="1"/>"#,
+        r#"<mc:Choice xmlns:x="http://schemas.openxmlformats.org/wordprocessingml/2006/main" Requires="x"><w:mirrorMargins/></mc:Choice>"#,
+        r#"<x:payload/>"#,
+        "",
+    ] {
+        let result = open(&package(
+            &document_xml("", "<w:p/>"),
+            Some(&envelope(inner)),
+        ));
+        assert!(
+            !result.document.settings().preserved_layout_neutral,
+            "{inner}"
+        );
+    }
+}

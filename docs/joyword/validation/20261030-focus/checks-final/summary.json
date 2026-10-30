@@ -1,0 +1,117 @@
+[
+  {
+    "name": "app-tests",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "joyword"
+    ],
+    "exit_code": 0,
+    "seconds": 18.618885599978967,
+    "sha256": "4880eebb9ad6f3c2039b910de9757ba411402d69901ac1c19c248e752fecd6b4"
+  },
+  {
+    "name": "fmt",
+    "command": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 2.004297800012864,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "clippy",
+    "command": [
+      "cargo",
+      "clippy",
+      "--workspace",
+      "--all-targets",
+      "--locked",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "seconds": 3.159360799996648,
+    "sha256": "5569025efe515a0ae43b8e7680f36db0522cacec6479c3fcd3240c2e115c3ab9"
+  },
+  {
+    "name": "python-tests",
+    "command": [
+      "C:\\Applications\\Python\\Python314\\python.exe",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "scripts/tests"
+    ],
+    "exit_code": 0,
+    "seconds": 50.024727099982556,
+    "sha256": "51ab35dca8e550ab76ad20bcd5a34947211fda48a119d6f08e60a1a1ecceee86"
+  },
+  {
+    "name": "docs",
+    "command": [
+      "C:\\Applications\\Python\\Python314\\python.exe",
+      "scripts/check_docs.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.48821209999732673,
+    "sha256": "9a160ea164d127666ed53e6847fa3aa78320c1f8f8a03ac639f572204d2053d6"
+  },
+  {
+    "name": "acceptance",
+    "command": [
+      "C:\\Applications\\Python\\Python314\\python.exe",
+      "scripts/check_acceptance.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.33679899998242036,
+    "sha256": "b8a58e551e4b2f7a41842947a695e4ee0a7588f0ae104363facbb37c446501d8"
+  },
+  {
+    "name": "gates",
+    "command": [
+      "C:\\Applications\\Python\\Python314\\python.exe",
+      "scripts/check_gates.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.764592099993024,
+    "sha256": "823e12f163fe715c1f2a38240e3cd11bcc244a334677021e12768b8807c5c7b4"
+  },
+  {
+    "name": "deny",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m7-20261030\\deny-bin\\cargo-deny-0.20.2-x86_64-pc-windows-msvc\\cargo-deny.exe",
+      "--log-level",
+      "warn",
+      "check"
+    ],
+    "exit_code": 0,
+    "seconds": 13.319957200001227,
+    "sha256": "f1a0fca39d4280363937aabd77783990ea6480bd9ca257816de3b68fc8efa845"
+  },
+  {
+    "name": "external-qpdf",
+    "command": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "joyword-pdf",
+      "--features",
+      "external-qpdf",
+      "--test",
+      "export_pdf"
+    ],
+    "exit_code": 101,
+    "seconds": 0.12072799997986294,
+    "sha256": "ff71a569aa04576c1610a8a6098bedb1c389a0203fc1ea5d26fb3ede7ef5de2e"
+  }
+]

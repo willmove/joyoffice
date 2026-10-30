@@ -1,4 +1,4 @@
-//! Read-only T210 slice. Projection is intentionally the imported body, not
+//! Inspection, page output and local mail merge. Inspection projects the body, not
 //! Word's final/revision view. Importer owns ECMA-376 parsing and preservation.
 use std::ffi::OsString;
 use std::io::{Read, Write};
@@ -13,9 +13,12 @@ const MAX_TEXT: usize = 1 << 20;
 const HELP: &str = concat!(
     "joyword-cli inspect|text [--max-text-bytes N] [--] FILE\n",
     "joyword-cli render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]\n",
-    "joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf\n",
+    "joyword-cli convert FILE --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf\n",
+    "joyword-cli merge --template FILE.docx --data FILE.csv [--map FIELD=COLUMN] ",
+    "(--preview-row N | --output-parent DIR)\n",
+    "joyword-cli epub FILE.docx (--plan | --output FILE.epub [--accept-losses]) [--title TEXT] [--language TAG] [--modified UTC]\n",
     "Options may also follow FILE; -- ends option parsing.\n",
-    "Read-only DOCX; N is UTF-8 text bytes (0..1048576), default 1048576.\n",
+    "Inspection keeps the source unchanged; text N is UTF-8 bytes (0..1048576), default 1048576.\n",
     "Projection: imported main body, INCLUDING hidden text; deleted revisions,\n",
     "comments and other stories excluded; inserted/moveTo text included.\n",
     "Unsupported XML is preserved by import but omitted from text.\n",
@@ -28,6 +31,8 @@ const HELP: &str = concat!(
     "Exit: 0 complete within projection; 2 error; 3 text truncated.\n",
 );
 
+mod epub;
+mod merge;
 mod visual;
 
 /// Recursively re-insert every JSON object's keys in ascending order.
@@ -66,6 +71,8 @@ pub(crate) fn canonicalize_keys(value: &mut Value) {
 enum Options {
     Text(TextOptions),
     Visual(visual::Options),
+    Merge(merge::Options),
+    Epub(epub::Options),
 }
 
 struct TextOptions {
@@ -85,6 +92,12 @@ fn options() -> Result<Option<Options>, &'static str> {
         } else {
             Err("unexpected arguments")
         };
+    }
+    if command == "epub" {
+        return epub::options(args).map(|options| options.map(Options::Epub));
+    }
+    if command == "merge" {
+        return merge::options(args).map(|options| options.map(Options::Merge));
     }
     let visual = if command == "render" {
         Some(visual::Command::Render)
@@ -312,6 +325,8 @@ fn main() -> ExitCode {
     let result = match options() {
         Ok(Some(Options::Text(options))) => execute_text(options),
         Ok(Some(Options::Visual(options))) => visual::execute(options),
+        Ok(Some(Options::Merge(options))) => merge::execute(options),
+        Ok(Some(Options::Epub(options))) => epub::execute(options),
         Ok(None) => std::io::stdout()
             .write_all(HELP.as_bytes())
             .map(|()| 0)

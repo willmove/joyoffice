@@ -1,8 +1,19 @@
 # JoyWord 当前实施与验证记录
 
-记录日期：2026-10-26（在 2026-10-19 Windows 与统信 UOS 验证审计的基线上按波次追加，本次追加至 2026-10-23／24 波次、2026-10-24 桌面界面切片与 T001 收口）。这是源码工作区的实施状态，不能替代 SPEC 的目标或宣称所有路线图已经完成。文档基线为 v0.3，工程版本为 0.0.1。
+记录日期：2026-10-30。当前任务状态见下方最新入口；按时间保留旧波次记录，历史计数和未完成项不能替代最新结论。文档基线为 v0.3，工程版本为 0.0.1。
 
 ## 进度速览
+
+2026-10-30 归档与阅读器最新进展：PDF/A-2b 核心／CLI 输出通过独立 veraPDF（144 规则、3972 检查、零失败）；EPUB NCX 兼容目录及独立阅读器中文搜索／章节选择完成；格式对话框 Dialog 角色完成原生 GUI 复验。这些原子项 done；混合文字缺字、桌面归档入口和完整辅助技术仍未完成，T806／T701 保持 in_progress。统计仍为 15 done／38 in_progress／13 planned。见 [本轮报告](verification/m8-archive-20261030.md)。
+
+
+- **当前状态（2026-10-30）**：全仓 **15 done／38 in_progress／13 planned**，M0–M7 为 14／37／4，M8 为 1 done／1 in_progress／7 planned。详细逐项状态以 [TASKS](TASKS.md) 为准。
+- **本轮进展**：定位并修复文件菜单焦点缺少角色与 Windows 原生关闭重复销毁；补齐控件名称、输入／缩放值接口及键盘入口。T806 EPUB 第一切片进入 in_progress，保留 PDF/A 与阅读器验收缺口，见 [焦点与 EPUB 报告](verification/m8-focus-epub-20261030.md)。
+- **前轮完成**：T807 本地 CSV 邮件合并的实现、回归、真实 Windows 映射／预览／取消／批量、Word／WPS 重开与最终交付候选复验；[M8 报告](verification/m8-20261030.md) 和 [验收](acceptance/T807.md) 有完整证据。
+- **此前收口**：T208 百页首尾编辑／导航／缩放 done；WPS 设置、光标几何、PDF 编辑标记和 Windows 原生正文可访问接口修复保留，见 [前轮复验](verification/m7-followup-20261030.md)。
+- **发布状态**：M7、M8 整阶段及 1.0 尚未通过；其余实现、平台读屏／性能／打印／签名安装继续按任务跟踪。信创真机非阻塞待补验。
+
+### 2026-10-26 及以前的历史速览
 
 - **当前阶段**：M0／M1 技术预览；T000、T002 与 T111 已完成（2026-10-17，见下文），M0 退出条件与 M1 发布门槛均未完成。T200 的样式基础、多级编号、制表位、查找替换、格式刷、样式面板，以及项目符号、级别标签、列表对齐、主题 tint／shade、表格样式粗体底纹边框，和查找全半角折叠、正则查找与正则替换捕获组已落地，编号超限标签（甲乙重复、中文 0 与非负 i32、正数罗马数字超过 3999、字母重复超过 64，均受 256 标量预算）和主题色文字绘制与改写也已落地，任务仍 `in_progress`；T201 的合并与拆分、垂直合并视觉跨行、跨页拆行、表头重复、表级边距、单元格 tcMar、double／dotted／dashed／thick 边框、有主题时的主题色边框，以及百分比宽度和 fixed／autofit 已落地，任务仍 `in_progress`；T202 的页面几何、显式分页符、页眉页脚三种变体、正文与页眉页脚页码域、`pgNumType`、下一页／连续／奇偶分节和等宽分栏已落地，任务仍 `in_progress`；T203 的行内图片、简单超链接、安全 HTML／RTF 粘贴与插入图片按钮已落地，拖放与表格内超链接也已落地（自动测试），页面绝对 wrapNone 浮动图与页眉页脚行内图片已落地（自动测试），页面相对 wrapSquare 第一切片已落地（自动测试），wrapTight／Through／TopAndBottom 未做，任务仍 `in_progress`；T204 的文件菜单导出 PDF 与打印到文件已消费屏幕上的同一 PageScene，系统打印对话框未验证，任务仍 `in_progress`；T205 的功能区、状态栏、字体与段落对话框、标尺拖拽，以及第三切片的下划线／sRGB 绘制和三个视图开关已落地，任务仍 `in_progress`；T207 已把有证据的测量接入排版入口，任务仍 `in_progress`；T209 撤销组继续进行中；T210 的 inspect／text／render／convert 已实现，五样例自动确定性、截断语义和 Windows GUI 窗口／CPU render 对照均完成，任务为 `done`；T211 的应用日志、panic hook 与测试 profile 已接入，麒麟与统信 UOS 的 `kill -9` 崩溃后日志检查已完成，任务为 `done`。完整统计现为 12 done／17 in_progress／37 planned。完整统计、逐项勾选与状态口径见 [TASKS 进度总览](TASKS.md#进度总览)。
 - **已落地的主要能力（不代表所在任务已全部完成）**：真实 DOCX 会话、中文文本编辑、基础格式与文本剪贴板、另存／重开、原件保存的元数据观测与确认路径、Windows 原件原子替换与稳定导出重绑定、统一排版场景的 PDF／CPU 光栅及无头 PNG／PDF 输出、可见页缓存、打开／保存并发控制和恢复日志。
@@ -1747,3 +1758,68 @@ T303 由 `planned` 改为 `in_progress`（计数 13 done／22 in_progress／31 p
 **证据**：`crates/joyword-engine/tests/compare.rs` 十项（投影不变量、逐步解决、首部拒绝、各类输入拒绝、格式边界）；`crates/joyword-docx/tests/mark_revisions.rs` 三项新增与一项收窄（`w:ins` 从保留 gap 用例移入类型化用例）。
 
 本机验证（Windows 参考环境，Rust 1.98.1，2026-10-27）：`cargo test --locked -p joyword-engine --test compare`（10 项）、`cargo test --locked -p joyword-docx --test mark_revisions`（10 项）、`cargo test --locked`（CI 口径全量）、clippy、fmt、`check_docs.py`／`check_gates.py`／`check_acceptance.py` 通过。
+
+### M7 开发与 M0–M6 自动验证收口（2026-10-30）
+
+从 main `0a6a5fd` 的干净工作区创建 `codex/m7-validation-closure-20261030`。T700–T704 全部从 `planned` 进入 `in_progress`；总计 13 done／38 in_progress／15 planned，M0–M7 为 13 done／38 in_progress／4 planned。阶段门槛没有提前关闭。完整实现、原始样本、测试与缺口集中在 [本轮记录](verification/m7-20261030.md) 与 `validation/20261030/`。
+
+- T208／T500／T702：修复超出段落缓存预算后的顺序扫描失效，保护本轮所需键，保持默认 32 MiB 预算。新增反例在旧 main 上实际失败、在修复分支通过；全量／增量场景核对保持一致。
+- T601：HTML 标签查找改为原字节的 ASCII 大小写无关搜索，消除 Unicode case expansion 引起的切片 panic；未闭合活动元素不泄露其 payload 到正文，孤立关闭标签不吞掉后文，三项不可信输入回归通过。
+- T004／T103：特性 DOCX 用 stored 成员、PNG 用 stored zlib block，保持原 XML 语义并更新散列。stock zlib 与 zlib-ng 两套本机 Python 上均通过精确字节复现检查。
+- T701：通用按钮、复选框及功能区标签接入 GPUI／AccessKit 原生角色、名称、稳定 ID 和状态。测试直接检查真实 Node 元数据；正文语义树与实际读屏未完成。应用新增已锁定 accesskit 0.24.1 的 dev 依赖边，PDF 测试新增工作区已锁定 tempfile 的 dev 依赖边；无版本升级。
+- T700／T702：可重复的本机验证驱动、固定 10／100／1000 页 Release 模型测量、原始 JSONL、nearest-rank 分位数和进程工作集采样。三档共 4060 次场景全量核对，千页只完成每个首尾组 30 个事件；没有把无头计时当成 GUI／呈现或稳定 RSS 通过。
+- T703／T704：确定性便携 ZIP、架构与逐文件读回、SPDX 2.3 清单（381 包、913 条关系、官方 JSON Schema 通过）、依赖通知收集、15 类发布观察及证据散列／路径检查。最终便携包 31,353,151 bytes，两次字节相同，解包 CLI 读回通过；18 个源 crate 未附许可文件仍列为缺口。便携包不替代签名安装、文件关联或升级回退。
+- CI：四平台 build 新增发布证据 audit 与固定模型冒烟；unified-pdf 安装 qpdf 并要求外部导航读取器，防止静默跳过。改动后的远端 CI 未运行。
+
+本机验证：default-member 1129 项、应用 84 项、AI 开启 shell 276 项、Python 脚本 116 项；fmt、workspace／AI／应用 clippy、无 AI 构建、原生 debug／release 构建与 cargo-deny 0.20.2 均通过。健壮性实验首次被“生产树未提交”的追踪门禁拒绝，保留原日志；在独立本地验证快照 `23b97440`（生产树 `17f85b034ca311085ac0f06443ecd3a555ccfe33`）上，实验测试、81 格故障矩阵和 200 次固定种子行为反馈 fuzz 通过。Windows 地址空间硬限制仍未验证。
+
+该自动基线之后用户取消 GUI 时段要求，已执行真实 Windows／Word／WPS 窗口验证，修复默认保存和两个恢复缺陷，见下一节。未关闭项：Word COM 仍被 WPS 接管（桌面验证使用真实 WINWORD）；三端当前候选、正文读屏／焦点／DPI、多屏／高对比度、真实打印、Word／WPS 完整交换、M2–M6 剩余实现、产品性能、签名／公证和安装升级仍待完成。信创真机保持非阻塞待补验。没有把这些项目或完整 M7 标成 done。
+
+### Windows GUI 与恢复修复收口（2026-10-30）
+
+GUI 验证规则已按用户明确指令改为直接执行。完成 22 个具体桌面步骤：中文系统拼音候选／取消／提交／单次撤销、风险保存默认和显式替换、重开、Word 往返、WPS 本地另存与正文读回、强制终止后恢复和保存比较、重复恢复与丢弃重启、百页首尾编辑及 GUI PDF 导出。原始截图、日志、包散列及精确断言见 [GUI 收口记录](verification/m7-gui-20261030.md)。
+
+修复三项真实缺陷：Windows 原生保存提示首按钮与 Enter 映射不一致；全文恢复重放破坏未变格式；固定恢复路径先覆写旧副本且被旧锁阻断。恢复改为 Unicode 标量公共边界内的最小文本替换，并以 create-new 独立文件恢复，不删旧锁。文本检查点仍不恢复纯格式／表格／其他 story 或完整撤销历史。
+
+最终 default-member 1131 项、应用 85 项、shell 278 项、AI shell 278 项通过（集合重叠，不相加）；相关默认／AI clippy、fmt、Release 构建通过。生产树 041680e6fb33d3eda6e0171a1059601b4c754bd9 的隔离快照 7aa041e667f33664b59011c22b9e05ed6f5a43d8 上重新验证健壮性实验、81 格矩阵与 200 次固定种子行为 fuzz，通过；未改交付分支 HEAD／index。
+
+保留实际未通过项：WPS 重存含未知设置，GUI 明确拒绝；百页 Ctrl+End 揭示不足及光标纵向偏移；正文缺可访问节点、视图开关状态未暴露；PDF 包含当前视图编辑标记。完整平台／读屏／性能／打印／分发仍未验收，M7 不标 done。
+
+### WPS、百页几何、PDF 与可访问性后续修复（2026-10-30）
+
+T208 的实现、自动验证与百页首尾 GUI 验收已齐备，改为 done；总计 14 done／37 in_progress／15 planned，M0–M7 为 14／37／4。最终候选完成首尾编辑／撤销、直接导航和缩放揭示，见 [修复报告](verification/m7-followup-20261030.md) 与 [T208 清单](acceptance/T208.md)。
+
+WPS settings 只对无可选 Choice／无 Fallback 的经过校验的 MCE 投影按空语义处理，未知 XML 完整保留；原失败 WPS 包实际编辑、另存、重开通过，除正文外全部文件成员字节相同。页面与输入覆盖层统一累计 EMU 坐标，消除逐页舍入漂移；新发现的缩放揭示按新滚动范围处理。PDF 过滤明确分类的屏幕辅助标记，真实 GUI 开／关格式标记的百页 PDF 完全相同，普通同色图形保留。
+
+正文原生语义、焦点、完整 Unicode 选区与有版本／只读守卫的范围选择、替换选区和设置全文接入；原生写入／单步撤销及受保护文档拒绝写入通过。禁用状态已原生观察，开关元数据已接入，工具未输出按钮 ToggleState；不声称完整 Narrator／VoiceOver／Linux 读屏通过。
+
+default-member 1134 项、应用 87 项、AI shell 278 项、脚本 116 项通过；workspace／应用 clippy、fmt、Release、文档及架构门禁通过。新 crates 树 5437d75ed7921903dba7ee2918e320e6cb4a20b2 的干净隔离快照上，81 格矩阵与 200 次固定种子行为 fuzz 通过，Windows 硬内存限制未启用。最后应用快照为 21a938e8facbf0b2f82c5537b93f648ac9ceca7a，二进制散列见报告。完整 M7、平台全流程、实际朗读、打印与正式分发仍保持未完成。
+
+
+### M8 本地邮件合并收口（2026-10-30）
+
+按用户本轮明确要求，从最新 main `0a6a5fd` 创建 `codex/m8-local-mail-merge-20261030`，保留前轮 M7 工作区修改，完成 T807（EDIT-012）。全仓 **15 done／37 in_progress／14 planned**，M8 为 1 done／8 planned；M0–M7 仍 14／37／4。前置与阶段发布门槛未删改，不能据此宣称 M7／M8 或 1.0 通过。功能、源码、命令、语料与边界集中在 [M8 报告](verification/m8-20261030.md)、[T807 验收](acceptance/T807.md) 和 [操作指南](guide/mail-merge.md)。
+
+新增共享的有界本地 CSV 读取、DOCX 文字占位符映射、逐条实际导出预览、独立目录批量和取消清理；桌面文件菜单原生向导与 CLI 共用任务，编辑通过 engine 事务与 DOCX 导出语义复验。多行值需要的软换行导出只作窄扩展，已有对象／修订的拒绝契约保持。模板、数据、当前画布不改写；CSV 原字节通过 `.gitattributes` 保留。CLI 仅增加工作区 shell 依赖，第三方版本未升级。
+
+实际修复两类边界：对象标量位置与未决段落／表格属性修订保护；GUI 完成路径在状态栏裁切，改为短状态和原生完成对话框。Windows 对话框视觉缩略长路径，可访问树保留完整值，证据如实记录。
+
+自动结果：workspace 1235 项（含桌面 87）通过，UI 调整后 shell／CLI／桌面 413 项及最终桌面 87 项通过；AI shell 290 项、脚本 116 项、健壮性实验 3 项、强制 qpdf 外部导航读取 15 项通过。邮件合并新增 12 项核心、2 项 CLI 集成测试。fmt、workspace／AI clippy、无默认 feature 构建、cargo-deny 0.20.2、Release 构建通过。实际千封批量逐封正文匹配，1001 条拒绝且无额外输出。测试重复次数不累计为新增覆盖。
+
+真实 Windows GUI 完成映射列循环、三条预览、取消、原生批量与最终完成提示复验，三批九封逐字节相同；Word 和 WPS 原生窗口重开含换行的第三封正确且没有修复提示。输入与旧输出不变。共 21 条关键原生观察，见 [证据索引](validation/20261030-m8/README.md)。桌面锁屏时暂停 UI，用户解锁后继续；未归档 MRU 或锁屏界面。
+
+最终 JoyWord SHA-256 `67077ae1228f1eda7b56024d0fb662082c4b2381ec32583bc081b60f06a2af40`，CLI `42040dadc18b3877d05ac4875e61353f40ea3ea6c6b260d52846a95bdd1aaa9c`。私有本地验证快照 `118cca1f16d2301676c7a6a7d167f5f36522db1b`，生产 crates 树 `97e6931a26ee0719f27f2df9b4b872d1a881f956`，apps 树 `d6228a5e8f185857fbca370d7aafd431fb7e6de8`；主分支 HEAD、主索引未更改，也未提交／推送交付。健壮性在同一 crates 树的前一快照 `cb9f605` 上完成 81 格矩阵（43 ok／38 rejected）与 200 次固定种子行为反馈 fuzz（50 ok／150 rejected），无异常；最后变动仅在 app 等待完成对话框，不影响被测生产树。Windows 硬地址空间限制仍不可用。
+
+当前便携预览包两次字节相同，33,162,616 bytes，SHA-256 `c9625ceac11d53ee54a8f269e98c9b4c2afa537d94b8abf1c909f9d7c51e343c`；599 个 ZIP 成员、SPDX 2.3 schema（381 包／914 关系）和解包 CLI 预览读回通过。18 项依赖通知缺口保留。见 [产物验证](validation/20261030-m8/package.json)。
+
+剩余：M8 其他八项尚未开发，原生 Word MERGEFIELD 不属于当前文字模板协议；macOS／Linux 本轮原生向导未实测。M7 及之前的完整格式／排版／审阅、产品性能、完整三端读屏、打印、签名安装与发布条件仍按任务跟踪，信创真机非阻塞待补验。预览包不等于签名发布。
+
+## 2026-10-30 焦点、关闭与 EPUB 后续
+
+本轮明确关闭的原子缺陷是 File 焦点缺失角色、菜单 Enter 误触发正文换段和 Windows 原生关闭重复销毁句柄。最终应用／解包候选真实 GUI 验证通过，23 条观察包含失败与修复复验；原生查找、缩放、格式字段赋值／取消及未保存关闭取消均有证据。完整 T700／T701 不据此改为 done。
+
+T806 的 EPUB 只读导出、差异计划、CLI／桌面入口、不覆盖发布及独立校验第一切片完成。CLI 八段标题／表格／图片样例与桌面四段信件均通过 EPUBCheck 5.4.0（零错误／警告）及独立 ZIP／XML／Unicode／图片字节读回。复杂来源的桌面编辑会话仍可能 UnsupportedBody；PDF/A 与阅读器验收仍未完成。全仓保持 **15 done／38 in_progress／13 planned**，M8 为 **1 done／1 in_progress／7 planned**。
+
+全仓首轮 1249 项、最终应用 90 项、AI shell 291 项、Python 116 项、恢复实验 15 项、稳健性实验 3 项及强制 qpdf 导航 15 项通过；81 smoke＋200 次变异无崩溃／超时。fmt、clippy、无默认 feature、deny、架构和文档检查通过，未把重复运行累计为新增覆盖。
+
+源码身份、最终二进制散列、未签名便携包和未覆盖项详见 [完整报告](verification/m8-focus-epub-20261030.md)。54 发布门槛、18 NOTICE 缺口、完整平台读屏／打印等保持待验收；信创真机非阻塞待补验。没有推送、合并或宣称 CI 已通过。

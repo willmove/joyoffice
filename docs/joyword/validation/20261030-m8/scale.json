@@ -1,0 +1,11 @@
+{
+  "records": 1000,
+  "actual_files": 1000,
+  "bytes": 2121000,
+  "all_text_exact": true,
+  "template_and_data_unchanged": true,
+  "file_name_and_sha256_sequence_digest": "6acb586b207f94645d44d7efda1edd867a92c345c9ad6a858cd8fabed7aaf591",
+  "over_1000_refused_exit": 2,
+  "over_limit_no_output": true,
+  "benchmark": false
+}

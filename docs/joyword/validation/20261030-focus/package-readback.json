@@ -1,0 +1,21 @@
+{
+  "archive_sha256": "3e2f550f8706babab99b5363d036c436445a03f731b6e56f9f339e5ca4869863",
+  "bytes": 33390748,
+  "repeat_byte_identical": true,
+  "members": 599,
+  "all_member_hashes_verified": true,
+  "spdx_schema_validated": true,
+  "spdx_packages": 382,
+  "spdx_relationships": 919,
+  "missing_notices": 18,
+  "stable_release_approved": false,
+  "source": {
+    "dirty": false,
+    "head": "26e148f394e0dcaabd88bf8ee05dc7e5a58389df",
+    "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "untracked": {}
+  },
+  "unpacked_cli_plan_writes": 0,
+  "unpacked_cli_sha256": "0cfd654c374b13e6a8fa38b98dbd77bf342ab08d36976947b98fdd003fc34288",
+  "gui_sha256": "451a58bdd2205b47469965b29366a242c306eb648f13312ddf6b64a47aaf2aea"
+}

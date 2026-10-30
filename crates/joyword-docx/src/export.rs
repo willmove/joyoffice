@@ -1254,15 +1254,19 @@ type RewriteParagraph = fn(
 ) -> Result<Vec<u8>, ExportError>;
 
 /// `after` without its inline objects when the only objects it gained are
-/// new page fields (`page.number`) and `before` had none. Paragraphs that
+/// new page fields (`page.number`) or soft line breaks and `before` had none. Paragraphs that
 /// already held inline objects keep the refusal: their source markup (a
 /// complex field, a cached result's formatting) is not rebuilt.
-fn without_added_page_fields(before: &Paragraph, after: &Paragraph) -> Option<Paragraph> {
+fn without_added_fields_or_line_breaks(before: &Paragraph, after: &Paragraph) -> Option<Paragraph> {
     if !before.inlines().is_empty()
         || after.inlines().is_empty()
         || !after.inlines().iter().all(|inline| {
             inline.source.is_none()
-                && matches!(inline.kind, joyword_model::InlineKind::PageField(_))
+                && matches!(
+                    inline.kind,
+                    joyword_model::InlineKind::PageField(_)
+                        | joyword_model::InlineKind::Break(joyword_model::BreakKind::Line)
+                )
         })
     {
         return None;
@@ -1433,7 +1437,7 @@ fn patch_paragraph(
             patches.push((element.span.clone(), bytes));
             return Ok(());
         }
-        if let Some(text_only) = without_added_page_fields(before, after) {
+        if let Some(text_only) = without_added_fields_or_line_breaks(before, after) {
             let rewrite = if before_plain
                 && structure::direct_m1(before)
                 && structure::direct_m1(&text_only)

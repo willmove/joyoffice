@@ -15,6 +15,7 @@ pub mod documents;
 pub mod docx;
 pub mod host;
 pub mod l10n;
+pub mod mail_merge;
 pub mod prefs;
 pub mod print;
 
@@ -27,3 +28,5 @@ pub mod rich_paste;
 /// AI toggle. Absent unless the crate is built with `--features ai`.
 #[cfg(feature = "ai")]
 pub mod ai;
+
+pub mod epub;

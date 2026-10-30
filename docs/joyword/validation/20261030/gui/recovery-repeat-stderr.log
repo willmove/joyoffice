@@ -1,0 +1,13 @@
+[INFO] Use Microsoft YaHei UI as UI font.
+[INFO] Using GPU: Intel(R) Arc(TM) 140T GPU (16GB)
+[INFO] Created device with Direct3D 11.1 feature level.
+[INFO] Accessibility activated
+[INFO] a11y: focused element (FocusId(1v1)) has no accessibility node (it has no element id); assistive technology will announce the whole window instead. Give it both an `.id(...)` and a `.role(...)` to expose it.
+[WARN] empty paths and horizontal/vertical lines cannot be filled
+[WARN] empty paths and horizontal/vertical lines cannot be filled
+[WARN] empty paths and horizontal/vertical lines cannot be filled
+[WARN] empty paths and horizontal/vertical lines cannot be filled
+[WARN] empty paths and horizontal/vertical lines cannot be filled
+[WARN] empty paths and horizontal/vertical lines cannot be filled
+[INFO] a11y: focused element (FocusId(4v1)) has no accessibility node (it has an id but no role); assistive technology will announce the whole window instead. Give it both an `.id(...)` and a `.role(...)` to expose it.
+[ERROR] window not found

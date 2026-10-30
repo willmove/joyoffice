@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "status": "complete-for-recorded-cohorts",
+  "scope": "warm-model-layout-only",
+  "environment": {
+    "system": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "python": "3.14.7",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+  },
+  "hardware_profile": "Intel Core Ultra 9 285H; Lenovo 21TL; 32 GiB; Windows x86_64; AC; warm CPU layout; release thin LTO",
+  "power": {
+    "ac_line_status": 1,
+    "battery_percent": 95
+  },
+  "binary_sha256": "082033649feb145cb01e1945ee0d00cbb8fc181fc1fc75e93c46487f3ef08471",
+  "source_records": [
+    {
+      "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+      "tracked_diff_sha256": "4725147b26ef87016933fc36010a5236fd7df8279a18ff48c4c18b40a801f737",
+      "untracked": {
+        "crates/joyword-layout/examples/m7_performance.rs": "b068f2991a8852862e0aa067840deffeb53fdf6f4151f3b226a8360b2bae8e2c",
+        "crates/joyword-textfmt/tests/html_untrusted.rs": "2b836010455d87e1fbda531e0497f00d965c09905a9c70fb1a12f5bc855e0223",
+        "docs/joyword/release/checklist.json": "395788dce05b16aa142fd1a762b943e9176631d1f48e388ab67b185b69b3edd2",
+        "scripts/check_release.py": "79cf80ca1ce2c85199eb628c69ab74ce2cb8b5b087a3f98927efaa00efaac54d",
+        "scripts/m7_evidence.py": "b41c0aad3dba3b517d3b17dd51272eb608a41e9284341b8b97a9bffe06e95a40",
+        "scripts/measure_m7.py": "7538f3468934b8e4b989e43823026c10ceb219b233e28c9a8d2fba7aabe7fa9d",
+        "scripts/package_preview.py": "134a8406a089a66dcad83a0750d5e1a5bc20c2c524d62edcf5c3ee2248f91cec"
+      },
+      "dirty": true
+    },
+    {
+      "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+      "tracked_diff_sha256": "48baa9cd4398c163ca1e3d322b89561f03de52d11967b91bd9981bfca02573f1",
+      "untracked": {
+        "crates/joyword-layout/examples/m7_performance.rs": "b068f2991a8852862e0aa067840deffeb53fdf6f4151f3b226a8360b2bae8e2c",
+        "crates/joyword-textfmt/tests/html_untrusted.rs": "2b836010455d87e1fbda531e0497f00d965c09905a9c70fb1a12f5bc855e0223",
+        "docs/joyword/acceptance/T700.md": "8bc062d1be79dc48fc0e704fbf1ace36c3291115b345b9a3d1250eccd1d6b71d",
+        "docs/joyword/acceptance/T701.md": "e0836265efaf1c646e2b722694ea205987b5106177d7e9aa2688da8585a8708a",
+        "docs/joyword/acceptance/T702.md": "5758deb7e3d48079d030e33f4001fddbd9983790d7c6354823a49c75915fc810",
+        "docs/joyword/acceptance/T703.md": "dfafecd8530d85da1233b80bc396e6bef0a6410f8b2431ce9eb65026081050bb",
+        "docs/joyword/acceptance/T704.md": "e87d2178d61180011da7b61c843781641b282e6d7740e6181bd0aae8b3297f1f",
+        "docs/joyword/release/checklist.json": "395788dce05b16aa142fd1a762b943e9176631d1f48e388ab67b185b69b3edd2",
+        "docs/joyword/verification/m7-20261030.md": "08346b8479213c6145e03815106dcb4c7116649f9e435931dde2443dfbea8ccb",
+        "scripts/check_release.py": "b6b2097339ada563e5d1127e869b0507d24e1cc327d4097bc05f25dc679d81b9",
+        "scripts/m7_evidence.py": "b41c0aad3dba3b517d3b17dd51272eb608a41e9284341b8b97a9bffe06e95a40",
+        "scripts/measure_m7.py": "e4214b86811f2d09b5f5d427cd38efb1adf87600a71e7533853350cc8703b962",
+        "scripts/package_preview.py": "986d7b275cfd2b13c35f40e40d3f50a06cdb4e81daf375d2701b317fcbbe3213",
+        "scripts/run_m7_validation.py": "663a76edc0ede58c7b217066d82d81da285afbf2b32bf6105b8d5894909d90a7",
+        "scripts/tests/test_m7_tools.py": "6c1ad6e3953db58f5d6a16e5fdfec7fc60a437c9be0bd99017923327820047fa"
+      },
+      "dirty": true
+    }
+  ],
+  "tiers": [
+    {
+      "pages": 10,
+      "identity": {
+        "kind": "identity",
+        "schema": 1,
+        "pages": 10,
+        "corpus_sha256": "35c829321d1ad299fe3727f71fd3d9b784a7f46a75675dd16180ec56353d1124",
+        "font_sha256": "cbc12abc87271f04aa0cf107214a49bad3b865f2dd01a4dec80fed818c032ec3",
+        "font_face": 0
+      },
+      "timings_ms": {
+        "full_layout": {
+          "count": 30,
+          "method": "nearest-rank",
+          "p50": 11.0689,
+          "p95": 13.2468,
+          "p99": 13.757,
+          "max": 13.757
+        },
+        "pre_cancel": {
+          "count": 1,
+          "method": "nearest-rank",
+          "p50": 0.0002,
+          "p95": 0.0002,
+          "p99": 0.0002,
+          "max": 0.0002
+        },
+        "first_edit_layout": {
+          "count": 1000,
+          "method": "nearest-rank",
+          "p50": 0.3723,
+          "p95": 0.6677,
+          "p99": 1.2079,
+          "max": 2.3869
+        },
+        "last_edit_layout": {
+          "count": 1000,
+          "method": "nearest-rank",
+          "p50": 0.3648,
+          "p95": 0.733,
+          "p99": 1.1508,
+          "max": 1.9048
+        }
+      },
+      "raw": "10-pages.jsonl",
+      "raw_sha256": "35ce05abd5eb79b2c00dc24615b95084cdd3ef6b5171b68c1c3278c58a638af7",
+      "memory": {
+        "status": "observed",
+        "raw": "10-pages-memory.json",
+        "raw_sha256": "f9d52117e571efa405194e9124243803a27de2fbda9e1eabc12085a001dc2800",
+        "peak_rss_bytes": 12795904,
+        "stable_rss_bytes": null,
+        "note": "50 ms process working-set samples; no stable-idle RSS or GPU measurement"
+      }
+    },
+    {
+      "pages": 100,
+      "identity": {
+        "kind": "identity",
+        "schema": 1,
+        "pages": 100,
+        "corpus_sha256": "492eb33f779e86adc9ac6197de6c68a1a1cda2eaac0e56a8d7d115d5b3c6a676",
+        "font_sha256": "cbc12abc87271f04aa0cf107214a49bad3b865f2dd01a4dec80fed818c032ec3",
+        "font_face": 0
+      },
+      "timings_ms": {
+        "full_layout": {
+          "count": 30,
+          "method": "nearest-rank",
+          "p50": 112.8727,
+          "p95": 129.2655,
+          "p99": 135.1333,
+          "max": 135.1333
+        },
+        "pre_cancel": {
+          "count": 1,
+          "method": "nearest-rank",
+          "p50": 0.0004,
+          "p95": 0.0004,
+          "p99": 0.0004,
+          "max": 0.0004
+        },
+        "first_edit_layout": {
+          "count": 1000,
+          "method": "nearest-rank",
+          "p50": 3.8686,
+          "p95": 6.5987,
+          "p99": 7.5217,
+          "max": 10.3442
+        },
+        "last_edit_layout": {
+          "count": 1000,
+          "method": "nearest-rank",
+          "p50": 3.9009,
+          "p95": 6.9832,
+          "p99": 7.9387,
+          "max": 10.3877
+        }
+      },
+      "raw": "100-pages.jsonl",
+      "raw_sha256": "45e49770eba47643ea2ec95eaa9e218abca31792d63d1d048dda020b40447322",
+      "memory": {
+        "status": "observed",
+        "raw": "100-pages-memory.json",
+        "raw_sha256": "284857b5f42b709f8c0bc66ae1bd41f2602d7892248bc68c3b38c1749520398b",
+        "peak_rss_bytes": 35004416,
+        "stable_rss_bytes": null,
+        "note": "50 ms process working-set samples; no stable-idle RSS or GPU measurement"
+      }
+    },
+    {
+      "pages": 1000,
+      "identity": {
+        "kind": "identity",
+        "schema": 1,
+        "pages": 1000,
+        "corpus_sha256": "3fb41a4e0715467817ea979cc7c0772c63706a67b599ce85404b9e9a493c2fd2",
+        "font_sha256": "cbc12abc87271f04aa0cf107214a49bad3b865f2dd01a4dec80fed818c032ec3",
+        "font_face": 0
+      },
+      "timings_ms": {
+        "full_layout": {
+          "count": 30,
+          "method": "nearest-rank",
+          "p50": 1301.403,
+          "p95": 1410.2533,
+          "p99": 1421.8154,
+          "max": 1421.8154
+        },
+        "pre_cancel": {
+          "count": 1,
+          "method": "nearest-rank",
+          "p50": 0.0015,
+          "p95": 0.0015,
+          "p99": 0.0015,
+          "max": 0.0015
+        },
+        "first_edit_layout": {
+          "count": 30,
+          "method": "nearest-rank",
+          "p50": 709.0054,
+          "p95": 2179.6497,
+          "p99": 2456.2193,
+          "max": 2456.2193
+        },
+        "last_edit_layout": {
+          "count": 30,
+          "method": "nearest-rank",
+          "p50": 736.538,
+          "p95": 1109.5977,
+          "p99": 1788.0728,
+          "max": 1788.0728
+        }
+      },
+      "raw": "1000-pages.jsonl",
+      "raw_sha256": "e35695089301f7429a02c6ee8198629abd47fe1f42eb20a86e924062505092de",
+      "memory": {
+        "status": "observed",
+        "raw": "1000-pages-memory.json",
+        "raw_sha256": "34e672ebda97af49f4dfae5e30ffd56979add9d28d1eeb8239060c3601d000e9",
+        "peak_rss_bytes": 234885120,
+        "stable_rss_bytes": null,
+        "note": "50 ms process working-set samples; no stable-idle RSS or GPU measurement"
+      }
+    }
+  ],
+  "gui_budgets_verified": false,
+  "conditions": "Development machine; supplemental 1000-page cohort overlapped compilation. Warm CPU timings, not an isolated hardware acceptance.",
+  "sample_plan": "30 full layouts per tier; 1000 first and last events each at 10/100 pages; 30 first and last events each at 1000 pages.",
+  "superseded_attempts": "Earlier full three-tier/1000-event invocation stopped at the 1000-page cohort; its incomplete cohort is not used as a pass. A denser Latin candidate exceeded the existing shape-call budget and was rejected; budgets were not raised."
+}

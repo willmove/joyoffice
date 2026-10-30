@@ -1,0 +1,63 @@
+{"report":{"buildInformation":{"releaseDetails":[{
+  "id" : "core",
+  "version" : "1.30.2",
+  "buildDate" : 1780454580000
+},{
+  "id" : "validation-model",
+  "version" : "1.30.2",
+  "buildDate" : 1780454760000
+},{
+  "id" : "apps",
+  "version" : "1.30.2",
+  "buildDate" : 1780455180000
+}]},"jobs":[{"itemDetails":{
+  "name" : "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\archive.pdf",
+  "size" : 20392
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 144,
+    "failedRules" : 0,
+    "passedChecks" : 3972,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-2b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1793358176111,
+  "finish" : 1793358176548,
+  "difference" : 437,
+  "duration" : "00:00:00.437"
+}}],"batchSummary":{
+  "duration" : {
+    "start" : 1793358176040,
+    "finish" : 1793358176570,
+    "difference" : 530,
+    "duration" : "00:00:00.530"
+  },
+  "totalJobs" : 1,
+  "outOfMemory" : 0,
+  "veraExceptions" : 0,
+  "multiJob" : false,
+  "repairSummary" : {
+    "totalJobCount" : 0,
+    "failedJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "featuresSummary" : {
+    "totalJobCount" : 0,
+    "failedJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "failedEncryptedJobs" : 0,
+  "failedParsingJobs" : 0,
+  "validationSummary" : {
+    "totalJobCount" : 1,
+    "failedJobCount" : 0,
+    "compliantPdfaCount" : 1,
+    "nonCompliantPdfaCount" : 0,
+    "successfulJobCount" : 1
+  }
+}}}

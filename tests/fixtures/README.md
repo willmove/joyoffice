@@ -8,7 +8,7 @@
 
 `docx/` 中的最小样例由 `cargo run -p joyword-corpus --bin generate_corpus` 确定性生成（固定条目顺序与时间戳），`cargo test -p joyword-corpus` 逐字节核对仓库中的文件与重新生成的结果一致，并检查它们是合法、无诊断的 OPC 包。修改样例须重新生成、审阅差异并更新清单散列。它们是手写的 WordprocessingML 输入。Word 2024 与 WPS 12.1 的参考档案见 `reference/`，对应条目的 `reference_profile.status` 为 `established`。档案仍为 `unverified` 时，检查器不允许把用例标为 `passed`。
 
-`feature/` 中的特性样例不由 `joyword-corpus` 生成。运行 [make_feature_fixtures.py](../../scripts/make_feature_fixtures.py)（仅 Python 标准库）写入该目录：ZIP 成员顺序固定，时间戳为 1980-01-01 00:00:00，压缩级别为 deflate 6。`python3 scripts/make_feature_fixtures.py --check` 把重新生成的字节与已提交文件比较。这些文件是虚构的 WordprocessingML 输入，供 T200–T203 与 T300 的无界面往返测试打开；尚无 Word／WPS 参考 PDF，`reference_profile.status` 为 `unverified`。
+`feature/` 中的特性样例不由 `joyword-corpus` 生成。运行 [make_feature_fixtures.py](../../scripts/make_feature_fixtures.py)（仅 Python 标准库）写入该目录：ZIP 成员顺序固定，时间戳为 1980-01-01 00:00:00，成员使用 stored，内嵌 PNG 使用 zlib 的 stored block，避免 stock zlib 与 zlib-ng 的压缩启发式改变散列。`python3 scripts/make_feature_fixtures.py --check` 把重新生成的字节与已提交文件比较。这些文件是虚构的 WordprocessingML 输入，供 T200–T203 与 T300 的无界面往返测试打开；尚无 Word／WPS 参考 PDF，`reference_profile.status` 为 `unverified`。
 
 格式用例使用 `document` 和 `reference_profile`：输入文件、规范修订／章节、参考软件完整版本、系统、locale、字体文件散列、页面／打印设置、操作步骤、预期语义和几何结果。`evidence` 指向实际存在的报告；报告必须记录 tested revision、命令、时间、实际结果和失败分类。`passed` 不能仅引用一张截图。
 
@@ -35,3 +35,7 @@
 | DOCX-FEAT-T300-REVIEW | 正文与页眉的插入／删除、成对移动修订，以及 `trackRevisions` |
 
 joyword-model 的集成测试读取这些种子，检查逐码点保留与偏移换算；这属于模型测试，不改变种子的 planned 状态。比较工具：模型层的 `Document::semantic_difference` 以不含 ID 的转储比较语义；`scripts/compare_pdf_lines.py` 用同一抽取器（poppler）比较参考 PDF 与 JoyWord PDF 的页数、每页行数、逐行文字和行位置（默认 0.5 pt），`--dump` 输出可附在证据中的行几何。T004 仍缺固定 Word／WPS 参考环境与排版规则目录，不能以此清单宣称完成。
+
+`mail-merge/` 新增原创 T807 DOCX 模板与 UTF-8 BOM／CRLF CSV，含三个虚构收件人、逗号、转义引号、嵌入换行和前导零。运行 `python3 scripts/make_mail_merge_fixtures.py --check` 逐字节复现；用例登记保持 planned（未建立固定字体的参考 PDF），实际功能／GUI 验收见 [M8 记录](../../docs/joyword/verification/m8-20261030.md)，不以任务 done 冒充全格式兼容通过。
+
+T806 原创转换样例位于 `epub/book.docx`，用 `python scripts/make_epub_fixtures.py --check` 核对确定性。包含标题目录、Unicode、软换行、表格及 PNG；未建立 Word／WPS 固定字体参考，不据此标格式样例通过。

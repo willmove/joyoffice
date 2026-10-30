@@ -1,0 +1,12 @@
+   Compiling joyword-layout v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-layout)
+   Compiling joyword-render v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-render)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.56s
+     Running `target\debug\examples\m7_performance.exe 10 1 2`
+{"kind":"identity","schema":1,"pages":10,"corpus_sha256":"35c829321d1ad299fe3727f71fd3d9b784a7f46a75675dd16180ec56353d1124","font_sha256":"cbc12abc87271f04aa0cf107214a49bad3b865f2dd01a4dec80fed818c032ec3","font_face":0}
+{"kind":"full_layout","sample":0,"ms":331.449800,"pages":10}
+{"kind":"pre_cancel","ms":0.002700}
+{"kind":"first_edit_layout","sample":0,"operation":"insert","ms":41.039000,"cache_hits":9,"shape_calls":111}
+{"kind":"first_edit_layout","sample":1,"operation":"undo","ms":3.364900,"cache_hits":10,"shape_calls":0}
+{"kind":"last_edit_layout","sample":0,"operation":"insert","ms":41.212400,"cache_hits":9,"shape_calls":111}
+{"kind":"last_edit_layout","sample":1,"operation":"undo","ms":3.295300,"cache_hits":10,"shape_calls":0}
+{"kind":"complete","pages":10,"scene_equivalence_checks":4}

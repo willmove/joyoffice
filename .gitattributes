@@ -1,6 +1,8 @@
 # Corpus inputs are hashed byte-for-byte (tests/fixtures/manifest.json).
 # Never let checkout convert their LF line endings, including on Windows.
 tests/fixtures/text/** -text
+# Mail merge CSV deliberately mixes CRLF records with quoted LF values.
+tests/fixtures/mail-merge/*.csv -text
 *.docx binary
 *.dotx binary
 *.docm binary

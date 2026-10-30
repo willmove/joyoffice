@@ -1,0 +1,22 @@
+   Compiling joyword-pdf v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-pdf)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.85s
+     Running tests\export_pdf.rs (target\debug\deps\export_pdf-3ebd00301c6cc1c4.exe)
+
+running 1 test
+test archival_profile_embeds_output_intent_and_xmp_without_mutating_scene ... FAILED
+
+failures:
+
+---- archival_profile_embeds_output_intent_and_xmp_without_mutating_scene stdout ----
+
+thread 'archival_profile_embeds_output_intent_and_xmp_without_mutating_scene' (5956) panicked at crates\joyword-pdf\tests\export_pdf.rs:98:25:
+called `Result::unwrap()` on an `Err` value: Writer("Validation([(MissingDocumentDate, Validators { a: Some(A2_B), ua: None })])")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    archival_profile_embeds_output_intent_and_xmp_without_mutating_scene
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p joyword-pdf --test export_pdf`

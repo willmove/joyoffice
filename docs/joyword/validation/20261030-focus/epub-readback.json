@@ -1,0 +1,41 @@
+{
+  "cases": [
+    {
+      "source": "tests\\fixtures\\epub\\book.docx",
+      "source_sha256": "1004e3b2c11190faee622d8ff6c39a08760a87f86d98f6bf7fc06518899a028b",
+      "epub_sha256": "baab8c2c091662cabfd3599d63b474cdef4b66d3970ce248401f80ab011f918c",
+      "paragraphs": 8,
+      "exact_unicode_order_and_softbreaks": true,
+      "navigation_targets": [
+        "content.xhtml#p1",
+        "content.xhtml#p7"
+      ],
+      "images_identical": 1,
+      "mimetype_first_stored_no_extra": true,
+      "all_xml_well_formed": true,
+      "zip_crc_ok": true,
+      "no_scripts": true
+    },
+    {
+      "source": "tests\\fixtures\\mail-merge\\template.docx",
+      "source_sha256": "c3cbf602775fca89940bfb5b8bb476d2bcedd49db84126e14468267e76dc40f4",
+      "epub_sha256": "fb29091bd3a4500b6b699e9ceecbc6d093781af11076d7ad739d4b36eb03e4ae",
+      "paragraphs": 4,
+      "exact_unicode_order_and_softbreaks": true,
+      "navigation_targets": [
+        "content.xhtml"
+      ],
+      "images_identical": 0,
+      "mimetype_first_stored_no_extra": true,
+      "all_xml_well_formed": true,
+      "zip_crc_ok": true,
+      "no_scripts": true
+    }
+  ],
+  "gui_source_unchanged": true,
+  "cli_complex_source_unchanged": true,
+  "gui_export_created_by": "native menu/preflight/save dialog, final binary 451a58bd",
+  "gui_cancel_no_output_observed_before_export": true,
+  "independent_epubcheck_cli_and_gui": "0 fatals / 0 errors / 0 warnings",
+  "reader_gui_acceptance": false
+}

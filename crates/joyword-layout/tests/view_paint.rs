@@ -345,6 +345,17 @@ fn formatting_marks_do_not_change_line_breaks() {
             .iter()
             .any(|rect| { rect.red == 128 && rect.green == 128 && rect.blue == 128 })
     );
+    assert!(off.pages()[0].rects.iter().all(|rect| !rect.screen_only));
+    assert!(on.pages()[0].rects.iter().any(|rect| rect.screen_only));
+    assert_eq!(
+        off.pages()[0].rects,
+        on.pages()[0]
+            .rects
+            .iter()
+            .copied()
+            .filter(|rect| !rect.screen_only)
+            .collect::<Vec<_>>()
+    );
     cache_matches(
         &document,
         ViewOptions {

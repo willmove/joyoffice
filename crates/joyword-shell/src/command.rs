@@ -487,6 +487,8 @@ pub const FILE_OPEN: CommandId = CommandId("file.open");
 pub const FILE_SAVE: CommandId = CommandId("file.save");
 pub const FILE_SAVE_COPY: CommandId = CommandId("file.save_copy");
 pub const FILE_EXPORT_PDF: CommandId = CommandId("file.export_pdf");
+pub const FILE_EXPORT_EPUB: CommandId = CommandId("file.export_epub");
+pub const FILE_MAIL_MERGE: CommandId = CommandId("file.mail_merge");
 pub const FILE_PRINT: CommandId = CommandId("file.print");
 pub const ZOOM_IN: CommandId = CommandId("view.zoom_in");
 pub const ZOOM_OUT: CommandId = CommandId("view.zoom_out");
@@ -674,6 +676,28 @@ impl Registry {
                     .with_linux_alternate("ctrl-e"),
                 modifies_document: false,
                 parameters: DESTINATION_PARAM,
+            },
+            CommandSpec {
+                id: FILE_EXPORT_EPUB,
+                label: "command.file.export_epub",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: FILE_MAIL_MERGE,
+                label: "command.file.mail_merge",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: FILE_PRINT,
@@ -1801,6 +1825,8 @@ mod tests {
                 MenuEntry::Command(FILE_SAVE_COPY),
                 MenuEntry::Separator,
                 MenuEntry::Command(FILE_EXPORT_PDF),
+                MenuEntry::Command(FILE_EXPORT_EPUB),
+                MenuEntry::Command(FILE_MAIL_MERGE),
                 MenuEntry::Command(FILE_PRINT),
                 MenuEntry::Separator,
                 MenuEntry::Command(FILE_CLOSE),
@@ -1830,6 +1856,8 @@ mod tests {
                     MenuEntry::Command(FILE_SAVE_COPY),
                     MenuEntry::Separator,
                     MenuEntry::Command(FILE_EXPORT_PDF),
+                    MenuEntry::Command(FILE_EXPORT_EPUB),
+                    MenuEntry::Command(FILE_MAIL_MERGE),
                     MenuEntry::Command(FILE_PRINT),
                     MenuEntry::Separator,
                     MenuEntry::Command(FILE_CLOSE),

@@ -1,0 +1,398 @@
+   Compiling joyword-model v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-model)
+   Compiling joyword-layout v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-layout)
+   Compiling joyword-engine v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-engine)
+   Compiling joyword-render v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-render)
+   Compiling joyword-pdf v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-pdf)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 24.77s
+     Running unittests src\lib.rs (target\debug\deps\joyword_layout-f03210e9d3d07603.exe)
+
+running 21 tests
+test cache::tests::chapter_codes_and_cached_results_do_not_get_a_live_prefix ... ok
+test cache::tests::chapter_feedback_and_key_follow_the_rendered_prefix ... ok
+test cache::tests::repeated_feedback_is_unstable_and_unpublished ... ok
+test line::tests::combining_and_ligature_cluster_interiors_are_rejected ... ok
+test line::tests::furthest_fit_does_not_assume_monotonic_widths ... ok
+test line::tests::indivisible_span_overflows_and_measurement_errors_propagate ... ok
+test line::tests::rejects_byte_errors_without_slicing_multibyte_text ... ok
+test cache::tests::omitting_a_live_page_dependency_reuses_another_pages_fit ... ok
+test line::tests::shaping_budgets_charge_before_work_and_cannot_be_raised ... ok
+test cache::tests::cache_evicts_to_stay_inside_its_budget ... ok
+test scene::tests::screen_and_pdf_agree_within_a_hundredth_of_a_point ... ok
+test cache::tests::defaults_change_invalidates_every_paragraph ... ok
+test cache::tests::style_closure_reaches_dependents_and_not_the_rest ... ok
+test line::tests::validation_covers_dimensions_controls_direction_and_input_limits ... ok
+test cache::tests::oversized_scans_preserve_upcoming_hits_but_evict_stale_keys ... ok
+test shape::tests::conversion_rounds_from_the_cumulative_pen ... ok
+test slots::tests::cjk_adjustment_moves_a_break_off_closing_punctuation ... ok
+test shape::tests::features_are_always_explicit ... ok
+test slots::tests::slots_follow_script_and_hint ... ok
+test slots::tests::mixed_faces_and_fallback_change_breaks ... ok
+test line::tests::exhaustive_small_opportunity_sets_preserve_progress_and_best_fit ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\cjk.rs (target\debug\deps\cjk-13134402565faa11.exe)
+
+running 9 tests
+test unsupported_followers_and_extrapolated_evidence_are_explicit ... ok
+test r3_justify_fills_the_line_and_leaves_the_last_line ... ok
+test justify_line_matches_r3_on_pure_chinese_and_spares_latin_words ... ok
+test r4_uses_the_win_span_and_the_measured_grid ... ok
+test r7_punctuation_widths_follow_the_measured_pairs ... ok
+test relative_units_and_unmeasured_adjustments_stay_unverified ... ok
+test line_edge_table_matches_the_existing_break_predicate ... ok
+test families_match_exactly_and_theme_slots_do_not_cross ... ok
+test arithmetic_and_allocation_fail_without_partial_results ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\cjk_gbt9704.rs (target\debug\deps\cjk_gbt9704-8b74547c1cd2c72c.exe)
+
+running 5 tests
+test test_complex_scripts_and_bidi_diagnostics ... ok
+test test_manuscript_paper_specs ... ok
+test test_gbt9704_spec_and_verification ... ok
+test test_cjk_inline_structures_and_dump ... ok
+test test_gbt9704_document_sample_layout ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\cjk_layout.rs (target\debug\deps\cjk_layout-5bfc7376b934eb2a.exe)
+
+running 11 tests
+test the_test_face_is_not_a_measured_cjk_family ... ok
+test consecutive_dengxian_marks_use_the_measured_half_width_until_the_tail ... ok
+test unverified_punctuation_keeps_the_shaped_advance_on_a_dengxian_face ... ok
+test pure_chinese_justification_fills_every_line_except_the_last ... ok
+test dengxian_quotes_compress_in_the_page_scene_and_other_faces_do_not ... ok
+test single_spacing_snaps_only_for_a_measured_family ... ok
+test a_single_character_justified_line_is_not_given_an_edge_gap ... ok
+test a_declared_line_pitch_replaces_the_measured_default ... ok
+test distribute_stays_unsupported_and_lone_latin_words_keep_their_shaping ... ok
+test mixed_justification_fills_lines_at_cjk_gaps_and_spaces_only ... ok
+test isolated_stress_punctuation_does_not_change_breaks_when_the_face_is_dengxian ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s
+
+     Running tests\columns.rs (target\debug\deps\columns-879f1aeece74bbee.exe)
+
+running 6 tests
+test unequal_column_separator_paints_a_rule_per_gap ... ok
+test next_column_with_different_columns_splits_the_page ... ok
+test equal_column_separator_paints_one_centered_rule ... ok
+test next_column_section_break_advances_one_column ... ok
+test separator_off_paints_no_rule ... ok
+test incremental_layout_matches_full_with_separators ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\document.rs (target\debug\deps\document-66c8567a6c2c5490.exe)
+
+running 37 tests
+test cancellation_is_monotonic_and_does_not_publish_a_candidate ... ok
+test invalid_geometry_and_oversized_line_fail_without_overflow_or_partial_pages ... ok
+test auto_line_spacing_scales_the_profile_leading ... ok
+test font_profile_and_same_version_content_cannot_reuse_a_snapshot ... ok
+test ligature_cluster_interior_is_refused_without_fake_cursor_geometry ... ok
+test mixed_slot_faces_change_the_page_scene ... ok
+test cjk_slots_move_a_prohibited_break_in_the_page_scene ... ok
+test a_first_line_indent_moves_only_the_first_line ... ok
+test a_left_tab_places_the_following_glyph_at_the_stop ... ok
+test layout_neutral_preserved_settings_and_run_defaults_lay_out ... ok
+test a_tab_suffix_without_hanging_indent_starts_the_body_at_the_next_stop ... ok
+test move_markup_paints_both_ends_and_the_projections_do_not ... ok
+test cross_page_selection_includes_empty_paragraph_marks ... ok
+test line_boxes_are_half_open_at_shared_edges ... ok
+test markup_paints_a_margin_bar_beside_a_changed_line ... ok
+test exact_page_boundary_preserves_all_source_and_model ... ok
+test paragraph_requests_do_not_reset_global_work_budgets ... ok
+test selection_output_and_diagnostics_are_bounded ... ok
+test paragraph_alignment_spacing_and_page_break_are_applied ... ok
+test track_revisions_does_not_block_layout ... ok
+test layout_budget_failures_do_not_mutate_the_document_or_existing_snapshot ... ok
+test resolved_styles_set_size_weight_and_requested_families ... ok
+test unsupported_content_and_active_styles_are_not_silently_laid_out_as_plain_text ... ok
+test chinese_numbering_labels_are_prefixed_and_unsupported_formats_are_diagnosed ... ok
+test simple_markup_owns_its_cache_slot_across_a_view_switch ... ok
+test simple_view_paints_the_margin_bar_without_inline_marks ... ok
+test unsupported_stories_sections_objects_and_field_projection_are_explicit ... ok
+test every_caret_coordinate_hits_equivalent_geometry ... ok
+test centered_and_right_lists_move_only_the_body_and_label_metrics_split_the_run ... ok
+test zoom_changes_projection_without_changing_page_or_hit_geometry ... ok
+test revision_views_change_pagination_text_and_match_the_incremental_cache ... ok
+test hit_positions_drive_real_engine_edits_and_old_snapshots_are_rejected ... ok
+test wrap_boundary_affinity_selects_upstream_or_downstream_line ... ok
+test numbering_edges_place_labels_past_the_old_caps ... ok
+test justified_lists_stretch_chinese_body_text_and_tabs_keep_their_stops ... ok
+test paragraph_before_spacing_is_not_repeated_on_continuation_pages ... ok
+test repeated_engine_edits_keep_pages_source_ranges_and_hits_consistent ... ok
+
+test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests\header_revisions.rs (target\debug\deps\header_revisions-d69fcdc1666486fd.exe)
+
+running 2 tests
+test accepting_or_rejecting_a_header_revision_is_one_undo ... ok
+test header_and_footer_markup_paints_and_projections_omit_it ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\images.rs (target\debug\deps\images-de077f33789dbceb.exe)
+
+running 8 tests
+test a_hyperlink_is_an_underline_in_the_page_scene ... ok
+test an_inline_image_is_placed_in_the_page_scene ... ok
+test a_hyperlink_in_a_table_cell_is_an_underline_in_the_page_scene ... ok
+test text_after_an_inline_image_stays_on_the_same_line ... ok
+test a_header_and_footer_image_paint_on_their_bands ... ok
+test a_page_anchor_is_a_positioned_rectangle_shared_with_the_cpu ... ok
+test a_wrap_square_keeps_text_outside_the_rectangle_and_wrap_none_does_not ... ok
+test a_wrap_top_and_bottom_pushes_overlapping_lines_below_and_square_stays_beside ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests\incremental.rs (target\debug\deps\incremental-46eb060be8c23114.exe)
+
+running 6 tests
+test a_style_definition_change_refits_dependents_and_reuses_the_rest ... ok
+test a_label_size_or_bold_change_misses_the_cache_and_matches_a_full_layout ... ok
+test a_list_counter_change_refits_later_items_and_reuses_an_unrelated_paragraph ... ok
+test editing_the_first_paragraph_propagates_and_matches ... ok
+test editing_the_last_paragraph_shapes_fewer_runs_than_a_full_layout ... ok
+test cached_layout_matches_full_layout_across_random_edits ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests\langview_tests.rs (target\debug\deps\langview_tests-154ee15c8b653577.exe)
+
+running 1 test
+test test_view_mode_switching_does_not_mutate_document ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\line_fonts.rs (target\debug\deps\line_fonts-e6e0f1c924cc7d89.exe)
+
+running 16 tests
+test automatic_wrap_keeps_existing_unsupported_input_contract ... ok
+test ligatures_are_atomic_and_every_output_line_is_reshaped ... ok
+test kerning_at_a_line_end_differs_from_a_paragraph_glyph_slice ... ok
+test automatic_wrap_charges_breakpoint_and_shaping_budgets_without_retry_reset ... ok
+test automatic_ligatures_preserve_clusters_and_reuse_exact_fitter_statistics ... ok
+test automatic_wrap_preserves_repeated_and_edge_whitespace_without_trimming ... ok
+test budget_exhaustion_returns_error_instead_of_a_partial_success ... ok
+test cjk_breaks_fit_exact_emu_width_and_convert_to_page_scene ... ok
+test automatic_wrap_keeps_combining_and_emoji_zwj_sequences_whole ... ok
+test empty_paragraph_is_one_empty_line_with_font_identity ... ok
+test missing_glyph_diagnostics_use_absolute_source_and_are_bounded ... ok
+test automatic_cjk_wrap_obeys_default_open_and_close_punctuation_rules ... ok
+test automatic_nonbreaking_space_and_word_joiner_remain_indivisible ... ok
+test no_break_and_single_cluster_overflow_are_distinct_and_preserved ... ok
+test continuous_whitespace_combining_marks_and_emoji_never_lose_text ... ok
+test automatic_wrap_is_deterministic_and_outputs_every_byte_across_widths ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s
+
+     Running tests\long_document.rs (target\debug\deps\long_document-7f61159e2bbd4f40.exe)
+
+running 4 tests
+test a_working_set_larger_than_the_cache_keeps_hits_without_exceeding_the_cap ... ok
+test a_cancelled_hundred_page_layout_returns_without_publishing_pages ... ok
+test a_hundred_page_mixed_section_document_lays_out ... ok
+test long_document_edits_reuse_fits_and_the_stable_page_tail ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.76s
+
+     Running tests\mixed_formatting.rs (target\debug\deps\mixed_formatting-ad80e4311ee80f9b.exe)
+
+running 7 tests
+test uniform_paragraph_still_paints_one_glyph_run ... ok
+test mixed_sizes_shape_per_span_and_take_the_tallest_line_box ... ok
+test italic_colour_and_underline_follow_their_spans ... ok
+test engine_selection_bold_no_longer_refuses_the_document ... ok
+test partial_bold_paints_two_glyph_runs_with_contiguous_positions ... ok
+test partial_formatting_scenes_rasterize ... ok
+test bold_span_does_not_move_line_breaks ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\opaque.rs (target\debug\deps\opaque-162b9b1b6a703711.exe)
+
+running 5 tests
+test content_controls_are_still_refused ... ok
+test opaque_blocks_are_skipped_counted_and_fingerprinted ... ok
+test a_table_and_an_opaque_block_still_match_full_layout ... ok
+test section_break_after_an_opaque_block_uses_the_body_index ... ok
+test incremental_layout_matches_full_around_opaque_blocks ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\pages.rs (target\debug\deps\pages-e53a645d804d4d8b.exe)
+
+running 35 tests
+test a_table_in_unequal_columns_is_refused ... ok
+test an_unsupported_header_inline_is_skipped_instead_of_guessing_digits ... ok
+test a_comment_caret_is_the_anchor_and_comment_text_is_not_painted ... ok
+test a_later_section_uses_its_own_page_box ... ok
+test an_unformattable_page_field_falls_back_to_its_cache ... ok
+test a_leading_break_and_consecutive_breaks_leave_blank_pages ... ok
+test a_keep_chain_taller_than_the_page_is_diagnosed_and_stays_finite ... ok
+test an_unpainted_first_header_and_an_empty_header_still_resolve_carets ... ok
+test equal_columns_and_a_column_break_share_one_page ... ok
+test default_header_paints_page_numbers_on_the_shared_scene ... ok
+test an_omitted_first_or_even_story_does_not_fall_back_to_default ... ok
+test explicit_page_breaks_split_pages_and_keep_caret_offsets ... ok
+test a_later_section_first_page_uses_its_own_story_on_an_even_page ... ok
+test a_body_page_field_uses_the_displayed_number ... ok
+test a_missing_default_header_inherits_and_an_empty_story_does_not ... ok
+test header_and_footer_carets_stay_on_the_first_painted_page ... ok
+test stored_page_size_is_used_without_swapping_orientation ... ok
+test incremental_layout_matches_the_full_scene_including_headers ... ok
+test section_pages_count_pages_opened_by_that_section ... ok
+test too_many_explicit_breaks_hit_the_page_limit ... ok
+test first_even_and_default_headers_and_footers_paint_on_their_pages ... ok
+test incremental_layout_matches_first_and_even_headers ... ok
+test field_codes_replace_body_page_fields_and_match_the_cache ... ok
+test next_even_odd_and_continuous_breaks_place_sections ... ok
+test chapter_heading_nine_multilevel_and_no_guessed_heading_numbers ... ok
+test chapter_prefix_width_feeds_back_into_keep_lines_pagination ... ok
+test unequal_columns_place_glyphs_at_different_x_and_a_break_advances ... ok
+test title_page_and_even_odd_off_keep_the_default_story ... ok
+test chapter_page_first_heading_then_predecessor_and_section_level_switch ... ok
+test omitted_first_and_even_stories_inherit_until_an_empty_story ... ok
+test chapter_next_column_separator_and_continuous_sections_keep_page_context ... ok
+test chapter_feedback_cache_changes_when_numbering_or_page_placement_changes ... ok
+test chapter_revision_hidden_projection_and_warm_incremental_agree ... ok
+test chapter_five_separators_body_header_footer_and_counts ... ok
+test chapter_cross_page_field_paragraph_is_refused_instead_of_stale ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+     Running tests\table_revisions.rs (target\debug\deps\table_revisions-93cc6f2ed39422ac.exe)
+
+running 5 tests
+test the_outermost_record_decides_the_band_colour ... ok
+test the_incremental_entry_matches_the_full_layout_with_bars ... ok
+test nested_tables_paint_their_own_row_bands_and_resolving_removes_the_bar ... ok
+test markup_and_simple_paint_one_bar_per_covered_row_band ... ok
+test a_repeated_header_row_keeps_its_bar_on_later_pages ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\tables.rs (target\debug\deps\tables-675373858f9812cf.exe)
+
+running 21 tests
+test a_table_nested_two_levels_deep_is_refused ... ok
+test a_table_in_newspaper_columns_is_refused ... ok
+test a_vertical_merge_spans_rows_and_hides_continue_text ... ok
+test an_unresolved_theme_border_keeps_no_ink ... ok
+test a_paragraph_only_document_still_places_text_at_the_left_margin ... ok
+test double_borders_paint_two_bands ... ok
+test a_cell_margin_overrides_the_table_margin ... ok
+test an_explicit_zero_left_margin_shifts_the_glyph_left_of_the_default ... ok
+test a_cant_split_row_taller_than_the_page_is_noted_and_kept ... ok
+test a_header_taller_than_the_page_is_not_repeated ... ok
+test two_cells_place_glyphs_at_different_x_and_paint_borders ... ok
+test incremental_layout_of_a_split_table_matches_a_full_layout ... ok
+test incremental_layout_of_a_table_matches_a_full_layout ... ok
+test at_least_centers_the_line_exact_omits_it_and_auto_ignores_val ... ok
+test a_nested_table_places_glyphs_inside_the_parent_cell ... ok
+test a_splittable_row_breaks_across_pages_and_cant_split_moves_whole ... ok
+test fixed_layout_does_not_shrink_and_centre_uses_the_leftover ... ok
+test a_leading_header_repeats_and_a_later_header_does_not ... ok
+test incremental_layout_of_a_nested_table_matches_a_full_layout ... ok
+test table_styles_paint_bands_and_direct_formatting_wins ... ok
+test table_styles_paint_first_and_last_columns_and_vertical_bands ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\view_paint.rs (target\debug\deps\view_paint-d13cb0b39db1ec56.exe)
+
+running 11 tests
+test underline_metrics_prefer_post_then_strikeout_then_em ... ok
+test bookmark_admission_keeps_field_and_other_annotation_refusals ... ok
+test dash_underline_stays_unpainted ... ok
+test malformed_bookmark_ranges_still_fail_model_layout_and_handoff ... ok
+test double_and_dotted_repeat_the_same_stroke ... ok
+test single_underline_and_srgb_are_on_the_shared_scene ... ok
+test theme_colour_text_paints_the_resolved_srgb ... ok
+test field_codes_swap_instruction_and_result ... ok
+test bookmarks_are_metadata_at_layout_and_handoff_not_fabricated_geometry ... ok
+test formatting_marks_do_not_change_line_breaks ... ok
+test hidden_text_changes_layout_and_the_cache_matches ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\w06_pagination.rs (target\debug\deps\w06_pagination-bdc8a68b678c10ec.exe)
+
+running 13 tests
+test empty_paragraph_inside_chain_counts_toward_group_height ... ok
+test explicit_break_splits_keep_chain_and_empty_paragraphs_count ... ok
+test exact_fit_and_one_emu_short_respect_spacing_and_alignment ... ok
+test keep_chain_includes_terminal_paragraph_and_stops_at_false ... ok
+test widow_control_keeps_two_lines_together_at_a_page_break ... ok
+test paragraph_and_keep_chain_height_overflow_fail_without_mutating_the_model ... ok
+test keep_lines_moves_whole_paragraph_and_false_keeps_original_flow ... ok
+test continuation_does_not_repeat_spacing_and_wrap_bias_survives_pages ... ok
+test keeps_do_not_reset_work_budgets_or_publish_partial_results ... ok
+test oversized_constraints_start_fresh_once_and_flow_with_member_keeps ... ok
+test unicode_clusters_missing_glyphs_and_diagnostics_survive_keep_pagination ... ok
+test changed_keep_properties_invalidate_same_version_and_engine_edits_use_new_geometry ... ok
+test long_chain_is_bounded_and_has_no_blank_or_repeated_pages ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src\lib.rs (target\debug\deps\joyword_pdf-b9e0d1685dd593ab.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\column_separator.rs (target\debug\deps\column_separator-0f14c464252de201.exe)
+
+running 1 test
+test the_column_separator_rule_is_in_the_pdf_page_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\export_pdf.rs (target\debug\deps\export_pdf-df597a13c7a1d97a.exe)
+
+running 11 tests
+test core_title_reads_dublin_core_and_rejects_active_markup ... ok
+test a_classic_cross_reference_file_reports_structure_without_the_writer ... ok
+test an_image_is_an_xobject ... ok
+test plain_render_still_names_the_producer_without_a_title ... ok
+test each_section_keeps_its_page_box ... ok
+test heading_styles_become_bookmarks_and_a_bare_outline_level_does_not ... ok
+test two_renders_match_and_carry_no_clock ... ok
+test an_https_link_is_a_uri_annotation_and_a_script_is_not ... ok
+test pdftotext_reads_the_scene_text ... FAILED
+test test_tagged_pdf_structure ... FAILED
+test synthetic_bold_contributes_searchable_text_only_once ... FAILED
+
+failures:
+
+---- pdftotext_reads_the_scene_text stdout ----
+
+thread 'pdftotext_reads_the_scene_text' (33796) panicked at crates\joyword-pdf\tests\export_pdf.rs:432:9:
+pdftotext failed (Some(99)): 
+
+---- test_tagged_pdf_structure stdout ----
+
+thread 'test_tagged_pdf_structure' (33532) panicked at crates\joyword-pdf\tests\export_pdf.rs:432:9:
+pdftotext failed (Some(99)): 
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- synthetic_bold_contributes_searchable_text_only_once stdout ----
+
+thread 'synthetic_bold_contributes_searchable_text_only_once' (8644) panicked at crates\joyword-pdf\tests\export_pdf.rs:432:9:
+pdftotext failed (Some(99)): 
+
+
+failures:
+    pdftotext_reads_the_scene_text
+    synthetic_bold_contributes_searchable_text_only_once
+    test_tagged_pdf_structure
+
+test result: FAILED. 8 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+error: test failed, to rerun pass `-p joyword-pdf --test export_pdf`

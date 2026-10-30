@@ -162,16 +162,54 @@ pub fn render_export_with_navigation(
     export: &PdfExport,
     navigation: &PdfNavigation,
 ) -> Result<Vec<u8>, PdfError> {
+    render_with_profile(pages, fonts, export, navigation, PdfProfile::Standard)
+}
+
+/// Explicit archival target. A2b does not claim PDF/UA or semantic accessibility.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum PdfProfile {
+    #[default]
+    Standard,
+    PdfA2b {
+        year: u16,
+    },
+}
+
+/// Same immutable scenes and font admission as ordinary PDF; validation failures
+/// return no bytes. Independent validation is still required for acceptance.
+pub fn render_with_profile(
+    pages: &[PageScene],
+    fonts: &[LoadedFont],
+    export: &PdfExport,
+    navigation: &PdfNavigation,
+    profile: PdfProfile,
+) -> Result<Vec<u8>, PdfError> {
+    if matches!(
+        profile,
+        PdfProfile::PdfA2b {
+            year: 0 | 10000..=u16::MAX
+        }
+    ) {
+        return Err(PdfError::Writer("archive year must be 1..9999".into()));
+    }
     for page in pages {
         navigation::page_size(page).map_err(|_| PdfError::InvalidPage)?;
     }
     info::validate_export(pages, export, navigation.links.len())?;
     navigation::validate(pages, navigation)?;
-    // XMP is omitted. krilla only writes dates into XMP when a creation date
-    // is supplied, but leaving the packet out keeps the file free of any
-    // metadata clock and of an instance-id that is not part of the scene.
+    // Ordinary PDF retains its clock-free metadata policy. Archival output
+    // enables required XMP and receives its creation year explicitly below.
+    let configuration = if matches!(profile, PdfProfile::PdfA2b { .. }) {
+        krilla::configure::ConfigurationBuilder::new()
+            .with_archival_validator(krilla::configure::validate::Archival::A2_B)
+            .finish()
+            .map_err(|error| PdfError::Writer(format!("{error:?}")))?
+    } else {
+        krilla::configure::Configuration::default()
+    };
     let settings = krilla::SerializeSettings {
-        xmp_metadata: false,
+        configuration,
+        xmp_metadata: matches!(profile, PdfProfile::PdfA2b { .. }),
         enable_tagging: export.tagged,
         ..krilla::SerializeSettings::default()
     };
@@ -211,13 +249,13 @@ pub fn render_export_with_navigation(
             None
         };
         let mut surface = page.surface();
-        if !scene.rects.is_empty() {
+        if scene.rects.iter().any(|rect| !rect.screen_only) {
             if export.tagged {
                 let _ = surface.start_tagged(krilla::tagging::ContentTag::Artifact(
                     krilla::tagging::Artifact::new(krilla::tagging::ArtifactType::Layout, None),
                 ));
             }
-            for rect in &scene.rects {
+            for rect in scene.rects.iter().filter(|rect| !rect.screen_only) {
                 fill_rect(&mut surface, rect);
             }
             surface.set_fill(None);
@@ -326,6 +364,9 @@ pub fn render_export_with_navigation(
         .filter(|title| !title.is_empty())
     {
         metadata = metadata.title(title.to_string());
+    }
+    if let PdfProfile::PdfA2b { year } = profile {
+        metadata = metadata.creation_date(krilla::metadata::DateTime::new(year));
     }
     document.set_metadata(metadata);
     if let Some(outline) = info::krilla_outline(&export.outline, pages.len()) {

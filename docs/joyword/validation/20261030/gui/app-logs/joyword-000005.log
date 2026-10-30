@@ -1,0 +1,11 @@
+ts=1793340314 level=info event=log.opened pid=34080 kind=cap count=262144
+ts=1793340314 level=info event=startup pid=34080 kind=test
+ts=1793340314 level=info event=recovery.restored pid=34080 kind=document count=1
+ts=1793340389 level=info event=import.diagnostics pid=34080 kind=count count=9
+ts=1793340389 level=info event=import.diagnostic pid=34080 kind=package count=5
+ts=1793340389 level=info event=import.diagnostic pid=34080 kind=not_imported count=1
+ts=1793340389 level=info event=import.diagnostic pid=34080 kind=properties_preserved count=2
+ts=1793340389 level=info event=import.diagnostic pid=34080 kind=bookmarks_preserved count=1
+ts=1793340389 level=error event=ui.canvas pid=34080 detail=document layout: Unsupported <redacted> node: <redacted> feature: <redacted> <redacted>
+ts=1793340486 level=info event=import.diagnostics pid=34080 kind=count count=1
+ts=1793340486 level=info event=import.diagnostic pid=34080 kind=section_defaults count=1

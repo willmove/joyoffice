@@ -152,6 +152,8 @@ impl Render for WrappedPrompt {
             let primary = !action.is_cancel();
             div()
                 .id(index)
+                .role(gpui::Role::Button)
+                .aria_label(action.label().clone())
                 .cursor_pointer()
                 .px_3()
                 .py_1()
@@ -175,6 +177,8 @@ impl Render for WrappedPrompt {
         });
         let card = div()
             .id("joyword-prompt")
+            .role(gpui::Role::Dialog)
+            .aria_label(self.message.clone())
             .track_focus(&self.focus)
             .on_key_down(cx.listener(|this, event: &KeyDownEvent, _, cx| {
                 let mods = &event.keystroke.modifiers;

@@ -10,7 +10,8 @@ use std::sync::Arc;
 
 use joyword_model::ThemeFont;
 
-use crate::ns::{A, W, W14, W15, WORD_COMPAT_URI};
+use crate::import::Scope;
+use crate::ns::{A, MC, UNDERSTOOD, W, W14, W15, WORD_COMPAT_URI};
 use crate::props::{on_off, val};
 use crate::xml::Element;
 
@@ -129,15 +130,53 @@ const IDENTITY_COLOR_MAPPING: &[(&str, &str)] = &[
 
 /// `true` for a settings child with no model field that still cannot move
 /// a line or a page. Anything not recognised here counts as layout-relevant.
-pub(crate) fn layout_neutral(child: &Element) -> bool {
+pub(crate) fn layout_neutral(child: &Element, scope: &Scope) -> bool {
     match child.namespace.as_deref() {
         Some(W) => w_layout_neutral(child),
         Some(W14) => matches!(&*child.local, "docId" | "defaultImageDpi"),
         Some(W15) => matches!(&*child.local, "docId" | "chartTrackingRefBased"),
         Some(MATH) => &*child.local == "mathPr",
         Some(SCHEMA_LIBRARY) => &*child.local == "schemaLibrary",
+        Some(MC) if &*child.local == "AlternateContent" => unselected_alternatives(child, scope),
         _ => false,
     }
+}
+
+/// ECMA-376-3 (5th ed.) §§7.5–7.7, 9.3–9.4: when no Choice is
+/// understood and no Fallback exists, the compatibility projection is empty.
+/// Preserve the raw settings as usual; this only classifies their projection.
+/// Selected branches and envelopes outside this narrow, validated subset stay
+/// layout-relevant rather than pretending to implement their settings.
+fn unselected_alternatives(element: &Element, scope: &Scope) -> bool {
+    if !element.attributes.is_empty() || !element.text().trim().is_empty() {
+        return false;
+    }
+    let inner = scope.enter(element);
+    let mut choices = 0;
+    for choice in element.elements() {
+        if !choice.is(MC, "Choice") || choice.attributes.len() != 1 {
+            return false;
+        }
+        let Some(requires) = choice.attribute(None, "Requires") else {
+            return false;
+        };
+        let scope = inner.enter(choice);
+        let mut unknown = false;
+        let mut count = 0;
+        for prefix in requires.split_ascii_whitespace() {
+            let Some((_, namespace)) = scope.namespaces.iter().rev().find(|(p, _)| &**p == prefix)
+            else {
+                return false;
+            };
+            unknown |= !UNDERSTOOD.contains(&&**namespace);
+            count += 1;
+        }
+        if count == 0 || !unknown {
+            return false;
+        }
+        choices += 1;
+    }
+    choices > 0
 }
 
 fn w_layout_neutral(child: &Element) -> bool {

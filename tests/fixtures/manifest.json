@@ -260,7 +260,7 @@
       "kind": "format_case",
       "path": "feature/DOCX-FEAT-T200-NUM.docx",
       "document": "feature/DOCX-FEAT-T200-NUM.docx",
-      "sha256": "0dda15b1c39922e33ec15da59a85269b516b3af55ccfa513472b39f53bbdb010",
+      "sha256": "aa4e048f7ae24d0e54e40efa12df9ad82156dd7c29e8e9643620e0f1d039d16f",
       "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
       "license": "MIT",
       "requirements": [
@@ -289,7 +289,7 @@
       "kind": "format_case",
       "path": "feature/DOCX-FEAT-T201-TABLE.docx",
       "document": "feature/DOCX-FEAT-T201-TABLE.docx",
-      "sha256": "db2908c581cc7d93d0e5715eda587fbd9e72acc11420ce278c7fc2b9b0a774f5",
+      "sha256": "4c2c0dfa18d4e28b8b33a2d6229d541aa926c6e526a037b2de9820ac03cc0627",
       "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
       "license": "MIT",
       "requirements": [
@@ -314,7 +314,7 @@
       "kind": "format_case",
       "path": "feature/DOCX-FEAT-T202-PAGES.docx",
       "document": "feature/DOCX-FEAT-T202-PAGES.docx",
-      "sha256": "79203dc2744580ff910e7f5d7ff00e2a034a5960f88564b86e8bb492ece9658e",
+      "sha256": "0ccd14e577a4542df875f25382612dd9ab7b746e9f94bfb9f58c3b9acc50a538",
       "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
       "license": "MIT",
       "requirements": [
@@ -342,7 +342,7 @@
       "kind": "format_case",
       "path": "feature/DOCX-FEAT-T203-IMAGES.docx",
       "document": "feature/DOCX-FEAT-T203-IMAGES.docx",
-      "sha256": "b7c33585767991d9a3cafd33bc310f16ea87c7bc2c4090b47d295200ad3b4cc1",
+      "sha256": "b923dce820988bc59fb805543b2428d5eca3e3a1ca8a2dd0c9d08e1dd260b8b7",
       "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
       "license": "MIT",
       "requirements": [
@@ -367,7 +367,7 @@
       "kind": "format_case",
       "path": "feature/DOCX-FEAT-T300-REVIEW.docx",
       "document": "feature/DOCX-FEAT-T300-REVIEW.docx",
-      "sha256": "8604183bb08535bdf9cbcde7e2693683ea137676c0653c771ab7ad2f4917352b",
+      "sha256": "859e9995d7ef017e8811b8d1e9ea0442227f084c8ca33def3702ddc59267d001",
       "origin": "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20",
       "license": "MIT",
       "requirements": [
@@ -388,6 +388,78 @@
       },
       "status": "planned",
       "evidence": []
+    },
+    {
+      "id": "DOCX-MERGE-T807",
+      "kind": "format_case",
+      "path": "mail-merge/template.docx",
+      "sha256": "c3cbf602775fca89940bfb5b8bb476d2bcedd49db84126e14468267e76dc40f4",
+      "origin": "JoyWord 原创虚构邮件合并语料，由 scripts/make_mail_merge_fixtures.py 确定性生成，2026-10-30",
+      "license": "MIT",
+      "requirements": [
+        "EDIT-012"
+      ],
+      "expected": [
+        "三个文字占位符分别映射本地 CSV，生成三封信件，不改模板",
+        "居中粗体标题、粗体收件人和原段落格式保留，多行 CSV 值导出为软换行"
+      ],
+      "status": "planned",
+      "evidence": [
+        "../../docs/joyword/verification/m8-20261030.md"
+      ],
+      "document": "mail-merge/template.docx",
+      "reference_profile": {
+        "status": "unverified",
+        "word": "本轮仅输出信件有 Word GUI 重开，未建立模板的固定字体参考 PDF。",
+        "wps": "本轮仅输出信件有 WPS GUI 重开，未建立模板的固定字体参考 PDF。",
+        "fonts": "无系统字体随仓库分发。"
+      }
+    },
+    {
+      "id": "CSV-MERGE-T807",
+      "kind": "text_seed",
+      "path": "mail-merge/recipients.csv",
+      "sha256": "0532e55ac665a65ee0188d81a1fdbf9734a35f1c0b5385999947b1c11859c533",
+      "origin": "JoyWord 原创虚构邮件合并语料，由 scripts/make_mail_merge_fixtures.py 确定性生成，2026-10-30",
+      "license": "MIT",
+      "requirements": [
+        "EDIT-012"
+      ],
+      "expected": [
+        "UTF-8 BOM、CRLF、逗号、转义引号和嵌入换行逐值保留",
+        "前导零不变，三个虚构收件人仅用于本地合并验收"
+      ],
+      "status": "planned",
+      "evidence": [
+        "../../docs/joyword/verification/m8-20261030.md"
+      ]
+    },
+    {
+      "id": "DOCX-EPUB-T806",
+      "kind": "format_case",
+      "path": "epub/book.docx",
+      "document": "epub/book.docx",
+      "sha256": "1004e3b2c11190faee622d8ff6c39a08760a87f86d98f6bf7fc06518899a028b",
+      "origin": "JoyWord 原创 EPUB 转换语料，由 scripts/make_epub_fixtures.py 确定性生成，2026-10-30",
+      "license": "MIT",
+      "requirements": [
+        "FORMAT-012",
+        "FORMAT-003"
+      ],
+      "expected": [
+        "两标题目录、中文／组合符／emoji／阿文及软换行保持阅读顺序",
+        "基础表格与 PNG 资源导出，差异显式报告，DOCX 不改写"
+      ],
+      "status": "planned",
+      "evidence": [
+        "../../docs/joyword/verification/m8-focus-epub-20261030.md"
+      ],
+      "reference_profile": {
+        "status": "unverified",
+        "word": "未建立固定字体参考 PDF。",
+        "wps": "未建立固定字体参考 PDF。",
+        "fonts": "不分发系统字体；不能用 EPUB 校验替代 DOCX 版式参考。"
+      }
     }
   ]
 }

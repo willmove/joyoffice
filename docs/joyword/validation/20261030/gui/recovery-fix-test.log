@@ -1,0 +1,9 @@
+   Compiling joyword-shell v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.74s
+     Running tests\recovery_formatted_text.rs (target\debug\deps\recovery_formatted_text-35047922c3edf569.exe)
+
+running 1 test
+test text_recovery_preserves_unchanged_runs_and_exports_after_unicode_edits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+

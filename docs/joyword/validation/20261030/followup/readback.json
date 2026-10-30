@@ -1,0 +1,28 @@
+{
+  "wps": {
+    "source_sha256": "6558f214bcc83635ffbf1d16a91ec14a91ff36d517dab7cc96041a251b5c75f9",
+    "saved_sha256": "df4d051ccde15cde5ee67a8ae03c1161e3caa3c20af5efd560308abf11668817",
+    "changed_parts": [
+      "word/document.xml"
+    ],
+    "settings_byte_identical_sha256": "0bdcf0c6a71ff4e2d75d0e607194feb0ab3c8abadd898a887d669120a1682bb3",
+    "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。[WPS-M7-FIX]",
+    "diagnostics": {
+      "reported": 4,
+      "suppressed": 0
+    },
+    "preserved_fragments": 9,
+    "read_only": false
+  },
+  "pdf": {
+    "on_sha256": "982ec6072056b78e8984935b7a5bcd5f6f75c267083d0c4fb8172d5658b968e5",
+    "off_sha256": "982ec6072056b78e8984935b7a5bcd5f6f75c267083d0c4fb8172d5658b968e5",
+    "bytes": 60590,
+    "identical": true,
+    "all_100_page_labels": true,
+    "no_undone_markers": true,
+    "qpdf_exit": 0,
+    "pages": 100,
+    "paper": "A4"
+  }
+}

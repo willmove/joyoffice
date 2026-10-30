@@ -1,0 +1,5 @@
+[0.000s INFO direct_write.rs:1918] Use Microsoft YaHei UI as UI font.
+[0.118s INFO directx_devices.rs:121] Using GPU: Intel(R) Arc(TM) 140T GPU (16GB)
+[0.203s INFO directx_devices.rs:55] Created device with Direct3D 11.1 feature level.
+[0.490s INFO window.rs:1690] Accessibility activated
+[0.780s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled

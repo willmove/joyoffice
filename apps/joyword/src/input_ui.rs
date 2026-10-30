@@ -1141,7 +1141,7 @@ enum OriginalDecision {
 
 fn original_decision(answer: Option<usize>, expected: u64, current: u64) -> OriginalDecision {
     match answer {
-        Some(1) => OriginalDecision::SaveCopy,
+        Some(0) => OriginalDecision::SaveCopy,
         Some(2) if expected == current => OriginalDecision::Confirm,
         Some(2) => OriginalDecision::Reprobe,
         _ => OriginalDecision::Cancel,
@@ -1201,11 +1201,27 @@ pub(crate) fn volume_rejection_key(
 /// A volume-refused prompt has no confirm button, so answers beyond the copy
 /// button cancel; nothing can start a replacement that is guaranteed to fail.
 fn volume_refusal_decision(answer: Option<usize>) -> OriginalDecision {
-    if answer == Some(1) {
+    if answer == Some(0) {
         OriginalDecision::SaveCopy
     } else {
         OriginalDecision::Cancel
     }
+}
+
+/// Windows TaskDialog selects the first supplied button when the platform
+/// adapter leaves nDefaultButton unset. Keep the safe Ok action first on all
+/// platforms; Escape still targets the explicit Cancel kind independently.
+fn original_prompt_buttons(catalog: &Catalog, offers_replacement: bool) -> Vec<gpui::PromptButton> {
+    let mut buttons = vec![
+        gpui::PromptButton::ok(catalog.text("file.original.save_copy")),
+        gpui::PromptButton::cancel(catalog.text("close.cancel")),
+    ];
+    if offers_replacement {
+        buttons.push(gpui::PromptButton::new(
+            catalog.text("file.original.confirm"),
+        ));
+    }
+    buttons
 }
 
 fn original_metadata_key(item: joyword_shell::storage::MetadataItem) -> &'static str {
@@ -1356,19 +1372,20 @@ struct Placement {
     page_width: Emu,
 }
 impl Placement {
-    fn page_origin(&self, page: usize, above: Emu) -> Point<Pixels> {
-        let page_width = self.scale.logical_pixels(self.page_width) as f32;
-        let centered =
-            (f32::from(self.viewport.size.width) - 2.0 * DOC_PAD - page_width).max(0.0) / 2.0;
+    fn page_origin(&self, page: usize, above: Emu, width: Emu) -> Point<Pixels> {
+        let page_width = self.scale.logical_pixels(width) as f32;
+        let content_width = (self.scale.logical_pixels(self.page_width) as f32)
+            .max(f32::from(self.viewport.size.width) - 2.0 * DOC_PAD);
+        let centered = (content_width - page_width).max(0.0) / 2.0;
         point(
             self.viewport.origin.x + px(DOC_PAD + centered) + self.offset.x,
             self.viewport.origin.y
-                + px(DOC_PAD + self.scale.logical_pixels(above) as f32 + page as f32 * DOC_GAP)
+                + px(DOC_PAD + page_stack_top(self.scale, page, above))
                 + self.offset.y,
         )
     }
     fn project(&self, b: SceneBox) -> Bounds<Pixels> {
-        let page = self.page_origin(b.page, b.above);
+        let page = self.page_origin(b.page, b.above, b.page_width);
         Bounds::new(
             point(
                 page.x + px(self.scale.logical_pixels(b.x) as f32),
@@ -1387,6 +1404,7 @@ impl Placement {
 struct SceneBox {
     page: usize,
     above: Emu,
+    page_width: Emu,
     x: Emu,
     top: Emu,
     width: Emu,
@@ -1404,6 +1422,7 @@ impl SceneBox {
         Some(Self {
             page,
             above: pages_above(layout, page)?,
+            page_width: layout.pages().get(page)?.width,
             x,
             top,
             width,
@@ -1426,7 +1445,7 @@ fn project_page(
 ) -> Option<Bounds<Pixels>> {
     let scene = layout.pages().get(page)?;
     Some(Bounds::new(
-        placement.page_origin(page, pages_above(layout, page)?),
+        placement.page_origin(page, pages_above(layout, page)?, scene.width),
         size(
             px(placement.scale.logical_pixels(scene.width) as f32),
             px(placement.scale.logical_pixels(scene.height) as f32),
@@ -1440,7 +1459,7 @@ fn visible_pages(layout: &joyword_layout::LayoutSnapshot, placement: Placement) 
     let viewport = placement.viewport;
     let (mut above, mut started, mut shown) = (Emu::new(0), 0, None::<Range<usize>>);
     for (i, page) in layout.pages().iter().enumerate() {
-        let top = placement.page_origin(i, above).y;
+        let top = placement.page_origin(i, above, page.width).y;
         if top > viewport.bottom() {
             break;
         }
@@ -1557,16 +1576,20 @@ fn reveal_target(
         .filter(|a| a.covers(view, version, &(origin..origin)))
         .map(|a| (a.caret, true))
 }
-fn content_size(layout: &joyword_layout::LayoutSnapshot, scale: ScreenScale) -> gpui::Size<Pixels> {
+pub(crate) fn page_stack_top(scale: ScreenScale, page: usize, above: Emu) -> f32 {
+    scale.logical_pixels(above) as f32 + page as f32 * DOC_GAP
+}
+
+pub(crate) fn content_size(
+    layout: &joyword_layout::LayoutSnapshot,
+    scale: ScreenScale,
+) -> gpui::Size<Pixels> {
     let pages = layout.pages();
     let width = pages
         .iter()
         .map(|p| scale.logical_pixels(p.width) as f32)
         .fold(0.0f32, f32::max);
-    let height = pages
-        .iter()
-        .map(|p| scale.logical_pixels(p.height) as f32)
-        .sum::<f32>()
+    let height = scale.logical_pixels(Emu::new(pages.iter().map(|p| p.height.raw()).sum())) as f32
         + pages.len().saturating_sub(1) as f32 * DOC_GAP;
     size(px(width + 2.0 * DOC_PAD), px(height + 2.0 * DOC_PAD))
 }
@@ -1841,6 +1864,13 @@ impl JoyWord {
         window.on_window_should_close(cx, move |window, cx| {
             weak.update(cx, |view, cx| {
                 view.cancel_preedit(cx);
+                // On Windows, letting WM_CLOSE destroy the native HWND first
+                // races GPUI's activation callback and its own window drop.
+                // The single-window app owns shutdown; Cancel still keeps it open.
+                if cfg!(target_os = "windows") {
+                    view.request_close(true, window, cx);
+                    return false;
+                }
                 if !view
                     .editor
                     .as_ref()
@@ -1970,15 +2000,7 @@ impl JoyWord {
         };
         self.original_save = Some(OriginalSavePhase::Prompting(request));
         let catalog = Catalog::shipped(self.locale);
-        let mut buttons = vec![
-            gpui::PromptButton::cancel(catalog.text("close.cancel")),
-            gpui::PromptButton::ok(catalog.text("file.original.save_copy")),
-        ];
-        if offers_replacement {
-            buttons.push(gpui::PromptButton::new(
-                catalog.text("file.original.confirm"),
-            ));
-        }
+        let buttons = original_prompt_buttons(catalog, offers_replacement);
         let receiver = window.prompt(
             gpui::PromptLevel::Warning,
             &catalog.text(title),
@@ -2655,7 +2677,7 @@ impl JoyWord {
     fn finish_discard(&mut self, then: AfterDiscard, window: &mut Window, cx: &mut Context<Self>) {
         match then {
             AfterDiscard::Close { quit } => {
-                if quit {
+                if quit || (cfg!(target_os = "windows") && cx.windows().len() == 1) {
                     cx.quit();
                 } else {
                     window.remove_window();
@@ -2771,28 +2793,47 @@ impl JoyWord {
             .items_center()
             .gap_2()
             .child(
-                div()
-                    .id("linux-path")
-                    .track_focus(&focus)
-                    .key_context(crate::field_edit::FIELD_CONTEXT)
-                    .focusable()
-                    .flex_1()
-                    .px_2()
-                    .py_1()
-                    .border_1()
-                    .border_color(rgb(0xc5ced6))
-                    .bg(rgb(0xffffff))
-                    .text_color(rgb(0x263247))
-                    .on_click(cx.listener(|this, _, window, cx| {
-                        if let Some(sheet) = &this.path_sheet {
-                            let focus = sheet.focus.clone();
-                            window.focus(&focus, cx);
-                        }
-                    }))
-                    .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
-                        this.type_path(event, window, cx);
-                    }))
-                    .child(shown),
+                crate::ui::controls::text_field(
+                    "linux-path",
+                    placeholder,
+                    sheet.draft.text().to_owned(),
+                )
+                .on_a11y_action(gpui::AccessibleAction::SetValue, {
+                    let entity = cx.entity();
+                    move |data, _, cx| {
+                        let Some(gpui::accesskit::ActionData::Value(text)) = data else {
+                            return;
+                        };
+                        entity.update(cx, |view, cx| {
+                            if let Some(sheet) = &mut view.path_sheet
+                                && sheet.draft.set_accessible_text(text)
+                            {
+                                sheet.note = None;
+                                cx.notify();
+                            }
+                        });
+                    }
+                })
+                .track_focus(&focus)
+                .key_context(crate::field_edit::FIELD_CONTEXT)
+                .focusable()
+                .flex_1()
+                .px_2()
+                .py_1()
+                .border_1()
+                .border_color(rgb(0xc5ced6))
+                .bg(rgb(0xffffff))
+                .text_color(rgb(0x263247))
+                .on_click(cx.listener(|this, _, window, cx| {
+                    if let Some(sheet) = &this.path_sheet {
+                        let focus = sheet.focus.clone();
+                        window.focus(&focus, cx);
+                    }
+                }))
+                .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
+                    this.type_path(event, window, cx);
+                }))
+                .child(shown),
             )
             .child(self.path_button("linux-path-ok", &self.label("dialog.ok"), true, cx))
             .child(self.path_button("linux-path-cancel", &self.label("dialog.cancel"), false, cx));
@@ -4334,8 +4375,158 @@ impl JoyWord {
     pub(crate) fn input_viewport(&self, cx: &mut Context<Self>) -> gpui::AnyElement {
         let entity = cx.entity();
         let prepaint_entity = entity.clone();
+        let text_view = self.editor.as_ref().map(|editor| editor.view().clone());
+        let read_only = self.open_gate.is_some()
+            || self.editor.as_ref().is_none_or(|editor| editor.read_only());
+        let layout = self.ready_layout().map(|frame| Arc::clone(&frame.layout));
+        let placement = self.placement();
+        let expected_epoch = self.copy_epoch;
+        let expected_revision = text_view.as_ref().map(InputView::revision);
+        let ranges = std::rc::Rc::new(std::cell::RefCell::new(Vec::<
+            crate::text_accessibility::TextRange,
+        >::new()));
+        let published_ranges = ranges.clone();
+        let selection_entity = entity.clone();
+        let replacement_entity = entity.clone();
+        let value_entity = entity.clone();
+        let focus_entity = entity.clone();
+        let scroll_entity = entity.clone();
         div()
             .id("input-viewport")
+            .accessibility_id("document-text")
+            .role(gpui::Role::MultilineTextInput)
+            .aria_label(self.label("input.document_text"))
+            .track_focus(&self.focus_handle)
+            .a11y_synthetic_children(move |builder| {
+                if read_only {
+                    builder.parent_node().set_read_only();
+                }
+                let Some(view) = text_view else { return };
+                let tree = crate::text_accessibility::text_tree(
+                    &view,
+                    layout.as_deref(),
+                    |key| builder.synthetic_node_id(key),
+                    |line_index| {
+                        let layout = layout.as_ref()?;
+                        let line = layout.lines().get(line_index)?;
+                        let (first, last) = (line.carets.first()?, line.carets.last()?);
+                        let scene = SceneBox::on(
+                            layout,
+                            line.page,
+                            first.x,
+                            line.top,
+                            Emu::new((last.x.raw() - first.x.raw()).max(1)),
+                            line.height,
+                        )?;
+                        let bounds = placement?.project(scene);
+                        Some(gpui::accesskit::Rect::new(
+                            f64::from(f32::from(bounds.left())),
+                            f64::from(f32::from(bounds.top())),
+                            f64::from(f32::from(bounds.right())),
+                            f64::from(f32::from(bounds.bottom())),
+                        ))
+                    },
+                );
+                builder.parent_node().set_value(view.index().text());
+                if let Some(selection) = tree.selection {
+                    builder.parent_node().set_text_selection(selection);
+                }
+                *published_ranges.borrow_mut() = tree.ranges;
+                for (id, node) in tree.nodes {
+                    builder.push_child(id, node);
+                }
+            })
+            .on_a11y_action(gpui::AccessibleAction::Focus, move |_, window, cx| {
+                focus_entity.update(cx, |this, cx| {
+                    window.focus(&this.focus_handle, cx);
+                });
+            })
+            .on_a11y_action(gpui::AccessibleAction::ScrollIntoView, move |_, _, cx| {
+                scroll_entity.update(cx, |this, cx| {
+                    this.reveal_pending = true;
+                    this.reveal_caret();
+                    cx.notify();
+                });
+            })
+            .on_a11y_action(
+                gpui::AccessibleAction::SetTextSelection,
+                move |data, window, cx| {
+                    let Some(gpui::accesskit::ActionData::SetTextSelection(selection)) = data
+                    else {
+                        return;
+                    };
+                    selection_entity.update(cx, |this, cx| {
+                        if !this.accepts_accessibility_input(
+                            expected_epoch,
+                            expected_revision,
+                            false,
+                        ) {
+                            return;
+                        }
+                        let Some(editor) = this.editor.as_ref() else {
+                            return;
+                        };
+                        let index = editor.view().index();
+                        let Some((anchor, head)) = crate::text_accessibility::selection_offsets(
+                            &ranges.borrow(),
+                            index.text(),
+                            selection,
+                        ) else {
+                            return;
+                        };
+                        let (Ok(anchor), Ok(head)) = (
+                            index.position(anchor, Bias::After),
+                            index.position(head, Bias::After),
+                        ) else {
+                            return;
+                        };
+                        this.apply_input(cx, |editor| {
+                            editor.select_positions(Selection { anchor, head })
+                        });
+                        window.focus(&this.focus_handle, cx);
+                    });
+                },
+            )
+            .on_a11y_action(gpui::AccessibleAction::SetValue, move |data, window, cx| {
+                let Some(gpui::accesskit::ActionData::Value(text)) = data else {
+                    return;
+                };
+                value_entity.update(cx, |this, cx| {
+                    if !this.accepts_accessibility_input(expected_epoch, expected_revision, true) {
+                        return;
+                    }
+                    this.apply_input(cx, |editor| {
+                        let end = editor.view().index().len_utf16();
+                        editor
+                            .replace_from(InputSource::Command, Some(0..end), text)
+                            .map(|_| ())
+                    });
+                    window.focus(&this.focus_handle, cx);
+                });
+            })
+            .on_a11y_action(
+                gpui::AccessibleAction::ReplaceSelectedText,
+                move |data, window, cx| {
+                    let Some(gpui::accesskit::ActionData::Value(text)) = data else {
+                        return;
+                    };
+                    replacement_entity.update(cx, |this, cx| {
+                        if !this.accepts_accessibility_input(
+                            expected_epoch,
+                            expected_revision,
+                            true,
+                        ) {
+                            return;
+                        }
+                        this.apply_input(cx, |editor| {
+                            editor
+                                .replace_from(InputSource::Command, None, text)
+                                .map(|_| ())
+                        });
+                        window.focus(&this.focus_handle, cx);
+                    });
+                },
+            )
             .relative()
             .flex_1()
             .min_h_0()
@@ -4393,6 +4584,15 @@ impl JoyWord {
                             if view.viewport_bounds.replace(bounds) != Some(bounds) {
                                 view.request_canvas(cx);
                             }
+                            // The scroll child's extent has now been laid out.
+                            // Revealing before this point would clamp against
+                            // the old zoom's extent on a long document.
+                            let before = view.scroll.offset();
+                            view.reveal_caret();
+                            if view.scroll.offset() != before {
+                                view.request_canvas(cx);
+                                cx.notify();
+                            }
                         });
                     },
                     move |bounds, (), window, cx| {
@@ -4414,6 +4614,26 @@ impl JoyWord {
                 .size_full(),
             )
             .into_any_element()
+    }
+}
+
+impl JoyWord {
+    pub(crate) fn set_zoom_percent(&mut self, percent: u16) {
+        let percent = percent.clamp(ZOOM_MIN, ZOOM_MAX);
+        if self.zoom_percent != percent {
+            self.zoom_percent = percent;
+            self.reveal_pending = true;
+        }
+    }
+
+    fn accepts_accessibility_input(&self, epoch: u64, revision: Option<u64>, write: bool) -> bool {
+        self.copy_epoch == epoch
+            && self.open_gate.is_none()
+            && self.editor.as_ref().is_some_and(|editor| {
+                Some(editor.view().revision()) == revision
+                    && !editor.is_composing()
+                    && (!write || !editor.read_only())
+            })
     }
 }
 
@@ -5087,16 +5307,36 @@ mod tests {
         );
     }
     #[test]
+    fn native_original_prompt_puts_the_copy_default_first_and_keeps_escape_cancel() {
+        for locale in Locale::ALL {
+            let catalog = Catalog::shipped(locale);
+            for offers_replacement in [false, true] {
+                let buttons = original_prompt_buttons(catalog, offers_replacement);
+                assert!(matches!(buttons.first(), Some(gpui::PromptButton::Ok(_))));
+                assert!(buttons[1].is_cancel());
+                #[cfg(target_os = "linux")]
+                {
+                    assert_eq!(crate::prompt_ui::key_answer(&buttons, "enter"), Some(0));
+                    assert_eq!(crate::prompt_ui::key_answer(&buttons, "escape"), Some(1));
+                }
+                assert_eq!(buttons.len(), if offers_replacement { 3 } else { 2 });
+                assert_eq!(original_decision(Some(0), 7, 8), OriginalDecision::SaveCopy);
+                assert_eq!(volume_refusal_decision(Some(0)), OriginalDecision::SaveCopy);
+            }
+        }
+    }
+
+    #[test]
     fn original_save_prompt_defaults_to_copy_and_rechecks_edited_versions() {
         let version = 7;
-        for answer in [None, Some(0), Some(3), Some(usize::MAX)] {
+        for answer in [None, Some(1), Some(3), Some(usize::MAX)] {
             assert_eq!(
                 original_decision(answer, version, version),
                 OriginalDecision::Cancel
             );
         }
         assert_eq!(
-            original_decision(Some(1), version, version + 1),
+            original_decision(Some(0), version, version + 1),
             OriginalDecision::SaveCopy
         );
         assert_eq!(
@@ -5140,14 +5380,14 @@ mod tests {
             // including an answer that would be "confirm" on a confirmable
             // precheck.
             assert_eq!(volume_refusal_decision(None), OriginalDecision::Cancel);
-            for answer in [0, 2, 3, usize::MAX] {
+            for answer in [1, 2, 3, usize::MAX] {
                 assert_eq!(
                     volume_refusal_decision(Some(answer)),
                     OriginalDecision::Cancel,
                     "{reason:?}: {answer}"
                 );
             }
-            assert_eq!(volume_refusal_decision(Some(1)), OriginalDecision::SaveCopy);
+            assert_eq!(volume_refusal_decision(Some(0)), OriginalDecision::SaveCopy);
         }
         // An ordinary observation failure is not a volume refusal and stays a
         // plain input error, not this prompt.

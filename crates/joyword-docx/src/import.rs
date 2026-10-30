@@ -784,7 +784,7 @@ impl Importer<'_> {
         let mut layout_neutral = true;
         let mut keep = |child: &Element| {
             unmodeled = true;
-            layout_neutral &= crate::settings::layout_neutral(child);
+            layout_neutral &= crate::settings::layout_neutral(child, &scope);
         };
         for child in root.elements() {
             if child.namespace.as_deref() != Some(W) {

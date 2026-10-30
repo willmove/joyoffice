@@ -19,6 +19,62 @@ fn cli() -> Command {
     }
 }
 
+#[test]
+fn archival_export_requires_explicit_year_is_repeatable_and_never_overwrites() {
+    let Some(font) = font_spec() else { return };
+    let root =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/mail-merge/template.docx");
+    let source = std::fs::read(&root).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let output = dir.path().join("archive.pdf");
+    for year in [None, Some("0"), Some("10000"), Some("bad")] {
+        let mut command = cli();
+        command
+            .arg("convert")
+            .arg(&root)
+            .args(["--to", "pdfa-2b", "--font", &font, "--output"])
+            .arg(&output);
+        if let Some(year) = year {
+            command.args(["--archive-year", year]);
+        }
+        assert!(!command.output().unwrap().status.success());
+        assert!(!output.exists());
+    }
+    let run = |path: &Path| {
+        cli()
+            .arg("convert")
+            .arg(&root)
+            .args([
+                "--to",
+                "pdfa-2b",
+                "--archive-year",
+                "2026",
+                "--font",
+                &font,
+                "--output",
+            ])
+            .arg(path)
+            .output()
+            .unwrap()
+    };
+    let result = run(&output);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let report: Value = serde_json::from_slice(&result.stdout).unwrap();
+    assert_eq!(report["target"], "pdfa-2b");
+    assert_eq!(report["independent_conformance_verified"], false);
+    let second = dir.path().join("second.pdf");
+    assert!(run(&second).status.success());
+    let bytes = std::fs::read(&output).unwrap();
+    assert_eq!(bytes, std::fs::read(second).unwrap());
+    assert!(!run(&output).status.success());
+    assert_eq!(bytes, std::fs::read(&output).unwrap());
+    assert_eq!(source, std::fs::read(root).unwrap());
+}
+
 fn font_spec() -> Option<String> {
     if let Ok(spec) = std::env::var("JOYWORD_TEST_FONT") {
         return Some(spec);

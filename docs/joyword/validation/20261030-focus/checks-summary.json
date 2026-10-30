@@ -1,0 +1,229 @@
+{
+  "status": "passed",
+  "steps": [
+    {
+      "name": "workspace-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace"
+      ],
+      "exit_code": 0,
+      "seconds": 81.35535239998717,
+      "sha256": "bec4a87b7fc6dd5e858c81935c1ad715b1fabc0f0877bb1ed7c2c9a126a57aa3",
+      "log": "checks-initial/workspace-tests.log"
+    },
+    {
+      "name": "shell-ai",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword-shell",
+        "--features",
+        "ai"
+      ],
+      "exit_code": 0,
+      "seconds": 52.6529351999925,
+      "sha256": "cf5931d9156142ecf9e54711052dab99636778f8984df6ed598170bb9573ecfa",
+      "log": "checks-initial/shell-ai.log"
+    },
+    {
+      "name": "clippy-ai",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "-p",
+        "joyword-shell",
+        "--all-targets",
+        "--features",
+        "ai",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 14.974903199996334,
+      "sha256": "97a3f1d2cbe1861133fdc58a427091b253f0eb1e6b02ab5ccc1bad3aefae2501",
+      "log": "checks-initial/clippy-ai.log"
+    },
+    {
+      "name": "epub-fixture",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/make_epub_fixtures.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.13414779998129234,
+      "sha256": "256183ceab343ca8790ce287bf2698408de19c772ae9252aedf200f857b648bb",
+      "log": "checks-initial/epub-fixture.log"
+    },
+    {
+      "name": "release-audit",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_release.py",
+        "--audit"
+      ],
+      "exit_code": 0,
+      "seconds": 0.15636580000864342,
+      "sha256": "0e96bb5f2c40a02e8e2c68a132d7ba2607591ceb295b1ce0d30c06e2a20b335f",
+      "log": "checks-initial/release-audit.log"
+    },
+    {
+      "name": "app-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword"
+      ],
+      "exit_code": 0,
+      "seconds": 18.618885599978967,
+      "sha256": "4880eebb9ad6f3c2039b910de9757ba411402d69901ac1c19c248e752fecd6b4",
+      "log": "checks-final/app-tests.log"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 2.004297800012864,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "log": "checks-final/fmt.log"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 3.159360799996648,
+      "sha256": "5569025efe515a0ae43b8e7680f36db0522cacec6479c3fcd3240c2e115c3ab9",
+      "log": "checks-final/clippy.log"
+    },
+    {
+      "name": "python-tests",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/tests"
+      ],
+      "exit_code": 0,
+      "seconds": 50.024727099982556,
+      "sha256": "51ab35dca8e550ab76ad20bcd5a34947211fda48a119d6f08e60a1a1ecceee86",
+      "log": "checks-final/python-tests.log"
+    },
+    {
+      "name": "docs",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_docs.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.48821209999732673,
+      "sha256": "9a160ea164d127666ed53e6847fa3aa78320c1f8f8a03ac639f572204d2053d6",
+      "log": "checks-final/docs.log"
+    },
+    {
+      "name": "acceptance",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_acceptance.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.33679899998242036,
+      "sha256": "b8a58e551e4b2f7a41842947a695e4ee0a7588f0ae104363facbb37c446501d8",
+      "log": "checks-final/acceptance.log"
+    },
+    {
+      "name": "gates",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_gates.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.764592099993024,
+      "sha256": "823e12f163fe715c1f2a38240e3cd11bcc244a334677021e12768b8807c5c7b4",
+      "log": "checks-final/gates.log"
+    },
+    {
+      "name": "deny",
+      "command": [
+        "D:\\Coding\\EditorProjects\\joyoffice\\target\\m7-20261030\\deny-bin\\cargo-deny-0.20.2-x86_64-pc-windows-msvc\\cargo-deny.exe",
+        "--log-level",
+        "warn",
+        "check"
+      ],
+      "exit_code": 0,
+      "seconds": 13.319957200001227,
+      "sha256": "f1a0fca39d4280363937aabd77783990ea6480bd9ca257816de3b68fc8efa845",
+      "log": "checks-final/deny.log"
+    },
+    {
+      "name": "external-qpdf-final",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword-pdf",
+        "--test",
+        "navigation"
+      ],
+      "env": {
+        "JOYWORD_REQUIRE_QPDF": "1",
+        "PATH_prefix": "target/m7-20261030/qpdf/qpdf-12.2.0-msvc64/bin"
+      },
+      "exit_code": 0,
+      "log": "checks-final/external-qpdf-final.log",
+      "sha256": "f83173539b1a570e93c63df97802e92da47251b6029d00aac34a0fdd25898044"
+    },
+    {
+      "name": "no-default-features",
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--no-default-features",
+        "-p",
+        "joyword-engine",
+        "-p",
+        "joyword-model",
+        "-p",
+        "joyword-docx",
+        "-p",
+        "joyword-layout",
+        "-p",
+        "joyword-shell",
+        "-p",
+        "joyword-agent"
+      ],
+      "exit_code": 0,
+      "log": "checks-final/no-default-features.log",
+      "sha256": "ba3d131d81939b0921a8b38960df0864ef6899dc73b95390f74a4febbd61edac"
+    }
+  ],
+  "history": "Initial panic-gate/Python failures were corrected without baseline waivers. Initial cargo deny invocation lacked PATH tool; corrected explicit cached 0.20.2 passed. Incorrect external-qpdf feature commands failed and are retained; actual navigation target with required qpdf passed. Release rebuild while old process alive failed; later final build passed. Logs are not overwritten to hide these attempts.",
+  "delivery_metadata_checked": true
+}

@@ -1,0 +1,10 @@
+{
+  "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+  "verification_commit": "26e148f394e0dcaabd88bf8ee05dc7e5a58389df",
+  "tree": "9fd62033ab9a03f51dc584e34b4f380c6fc198ec",
+  "crates_tree": "535d7a01ce245a48d0c8ae8a7780fee8d67aee47",
+  "apps_tree": "632b8d73c2fd005b64e161b4caf211648359dbdb",
+  "scope": "private local verification ref, not delivery commit or pushed branch",
+  "worktree": "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-focus-20261030\\verified-source-final",
+  "primary_index_unchanged": true
+}

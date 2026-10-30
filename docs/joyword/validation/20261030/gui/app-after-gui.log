@@ -1,0 +1,94 @@
+   Compiling joyword-shell v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-shell)
+   Compiling joyword v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.29s
+     Running unittests src\main.rs (target\debug\deps\joyword-f74466fc53da489d.exe)
+
+running 85 tests
+test document_canvas::input_pipeline_tests::missing_font_glyph_keeps_typed_unicode_and_emits_diagnostics ... ok
+test document_canvas::startup_sample_tests::in_memory_session_cannot_save_a_copy ... ok
+test document_canvas::startup_sample_tests::startup_sample_matches_seed_and_saves_a_copy ... ok
+test document_canvas::input_pipeline_tests::stale_layouts_lose_to_newer_requests_including_a_to_b_to_a ... ok
+test document_canvas::tests::cancelled_or_stale_layout_does_not_create_images ... ok
+test document_canvas::input_pipeline_tests::a_reopened_identical_document_is_painted_again ... ok
+test document_canvas::tests::real_engine_session_is_editable_and_layout_matches_source ... ok
+test field_edit::tests::editing_and_navigation_keys_edit_the_field ... ok
+test document_canvas::tests::font_missing_invalid_spec_and_missing_sample_glyphs_are_errors ... ok
+test document_canvas::input_pipeline_tests::geometry_installs_after_layout_while_the_last_pixels_stay_painted ... ok
+test find_bar_tests::editing_keys_are_unbound_while_an_in_app_text_field_is_focused ... ok
+test document_canvas::input_pipeline_tests::another_document_cancels_jobs_and_never_matches_old_revisions ... ok
+test find_bar_tests::find_bar_checkboxes_set_width_and_regex_on_every_find_command ... ok
+test find_bar_tests::escape_is_bound_only_while_composing_so_panels_receive_it_otherwise ... ok
+test find_bar_tests::formatting_dialog_converts_points_back_to_command_units ... ok
+test find_bar_tests::find_bar_width_hits_fullwidth_and_regex_rejects_invalid_patterns ... ok
+test document_canvas::input_pipeline_tests::zooming_back_while_a_page_is_in_flight_still_paints_it_later ... ok
+test document_canvas::tests::page_image_conversion_and_device_projection_need_no_window ... ok
+test find_bar_tests::ribbon_density_has_full_compact_and_overflow_tiers ... ok
+test find_bar_tests::a_document_named_on_the_command_line_names_the_window_and_the_close_prompt ... ok
+test find_bar_tests::ruler_uses_the_same_page_origin_and_zoom_as_the_canvas ... ok
+test document_canvas::input_pipeline_tests::commit_equal_to_its_preview_reuses_layout_and_pixels_without_jobs ... ok
+test find_bar_tests::scene_export::an_unembeddable_font_refuses_export_and_publishes_nothing ... ok
+test find_bar_tests::scene_export::bookmark_endpoints_require_visible_exact_carets_in_the_installed_view ... ok
+test find_bar_tests::recovery_failure_log_reads_back_both_slots_and_legacy_without_content ... ok
+test find_bar_tests::scene_export::an_anchor_without_a_target_does_not_block_the_export ... ok
+test find_bar_tests::scene_export::a_selected_page_range_renumbers_both_ends_and_drops_a_link_it_cannot_keep ... ok
+test find_bar_tests::scene_export::plain_scene_pdf_keeps_the_existing_export_and_rejects_stale_versions_and_ranges ... ok
+test find_bar_tests::start_more_menu_contains_only_user_facing_commands ... ok
+test find_bar_tests::scene_export::export_and_print_refuse_without_a_settled_layout_and_publish_nothing ... ok
+test find_bar_tests::t200_headings_lists_painter_and_regex_undo_round_trip ... ok
+test document_canvas::input_pipeline_tests::stale_rasters_cannot_install_over_another_layout_or_projection ... ok
+test find_bar_tests::recovery_log_distinguishes_absence_discard_restore_and_package_failure ... ok
+test document_canvas::input_pipeline_tests::one_raster_stays_within_the_ui_cache_budget ... ok
+test find_bar_tests::zoom_slider_clamps_to_the_supported_range ... ok
+test input_ui::tests::a_late_copy_applies_only_to_its_session_and_version ... ok
+test find_bar_tests::t201_contract_table_edits_undo_and_reimport ... ok
+test input_ui::tests::caret_reveal_scrolls_minimally_and_clamps_at_content_edges ... ok
+test input_ui::tests::close_and_quit_share_the_dirty_after_save_prompt ... ok
+test find_bar_tests::justify_on_mixed_script_paragraphs_keeps_the_document_displayable ... ok
+test input_ui::tests::every_word_unit_command_maps_to_one_caret_move ... ok
+test find_bar_tests::t209_keyboard_paste_command_and_ime_undo_one_step_at_a_time ... ok
+test input_ui::tests::native_original_prompt_puts_the_copy_default_first_and_keeps_escape_cancel ... ok
+test input_ui::tests::only_a_writing_save_of_this_editor_counts_as_in_flight ... ok
+test input_ui::tests::only_explicit_discard_for_the_prompted_version_can_close ... ok
+test find_bar_tests::t300_tracked_edits_views_and_revision_round_trip ... ok
+test input_ui::tests::original_save_prompt_defaults_to_copy_and_rechecks_edited_versions ... ok
+test find_bar_tests::a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit ... ok
+test input_ui::tests::page_keys_move_about_one_screen_and_stop_at_the_ends ... ok
+test find_bar_tests::scene_export::scene_export_refuses_invalid_names_detached_and_duplicate_targets_before_slicing ... ok
+test find_bar_tests::scene_export::chapter_bookmarks_warm_scene_and_selected_pdf_share_real_page_geometry ... ok
+test input_ui::tests::recovery_adapter_skips_preedit_and_keeps_newer_journal_after_save ... ok
+test input_ui::tests::page_geometry_round_trips_at_zoom_with_live_scroll_on_multiple_pages ... ok
+test document_canvas::input_pipeline_tests::the_caret_overlay_rides_the_raster_of_its_own_page ... ok
+test input_ui::tests::volume_refusal_entries_exist_in_both_locales ... ok
+test input_ui::tests::volume_refused_precheck_prompts_replacement_unavailable_and_defaults_to_copy ... ok
+test linux_files::tests::chord_labels_spell_modifiers ... ok
+test linux_files::tests::dialog_cancel_stops_and_a_display_error_tries_the_next_program ... ok
+test linux_files::tests::dialog_programs_prefer_zenity_and_build_save_argv ... ok
+test linux_files::tests::linux_bar_covers_open_save_and_export ... ok
+test linux_files::tests::typed_open_requires_a_file_and_save_requires_a_parent_directory ... ok
+test tests::a_committed_journal_opens_back_into_a_session ... ok
+test tests::file_and_insert_commands_are_not_the_language_switch ... ok
+test tests::linux_export_keeps_the_primary_chord_and_adds_ctrl_e ... ok
+test tests::registry_commands_all_have_actions_and_bindings ... ok
+test tests::ribbon_commands_have_gpui_actions ... ok
+test tests::window_title_names_the_document_and_marks_unsaved_changes ... ok
+test tests::word_processor_chords_reach_their_commands ... ok
+test ui::controls::tests::checkbox_accessibility_tracks_both_checked_and_unchecked_states ... ok
+test ui::controls::tests::icon_buttons_publish_the_localized_command_name_and_stable_id ... ok
+test document_canvas::input_pipeline_tests::a_page_too_large_for_the_cache_shows_its_own_notice ... ok
+test document_canvas::input_pipeline_tests::a_failed_page_keeps_its_error_and_does_not_stop_the_others ... ok
+test input_ui::tests::ime_bounds_are_window_logical_pixels_at_zoom_and_live_scroll ... ok
+test input_ui::tests::visible_pages_follow_live_scroll_zoom_and_viewport ... ok
+test input_ui::tests::ribbon_bullet_reaches_the_document_without_num ... ok
+test input_ui::tests::a_layout_without_pixels_answers_ime_hit_testing_and_reveal_exactly ... ok
+test input_ui::tests::commit_then_type_answers_from_the_committed_layout_before_its_pixels ... ok
+test input_ui::tests::origin_anchor_is_dropped_for_other_versions_or_origins_and_queries_clamp_to_end ... ok
+test input_ui::tests::pending_preedit_layout_answers_from_the_origin_anchor ... ok
+test input_ui::tests::pending_preedit_reveals_its_origin_before_appkit_asks ... ok
+test find_bar_tests::t202_margins_orientation_page_numbers_and_zoom ... ok
+test document_canvas::input_pipeline_tests::scrolling_and_zoom_request_only_missing_pages_near_the_viewport ... ok
+test document_canvas::input_pipeline_tests::eviction_drops_the_farthest_pages_and_other_projections_first ... ok
+test document_canvas::input_pipeline_tests::long_document_on_a_2x_display_paints_the_visible_pages ... ok
+test document_canvas::input_pipeline_tests::resident_pixels_stay_within_the_cache_at_any_page_count ... ok
+
+test result: ok. 85 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.13s
+

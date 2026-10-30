@@ -33,6 +33,8 @@ pub struct Options {
     output: OsString,
     dpi: u16,
     page: Option<usize>,
+    archival: bool,
+    archive_year: Option<u16>,
 }
 
 pub fn options(
@@ -47,6 +49,7 @@ pub fn options(
     let mut dpi_seen = false;
     let mut page = None;
     let mut positional_only = false;
+    let mut archive_year = None;
     while let Some(arg) = args.next() {
         if !positional_only && arg == "--" {
             positional_only = true;
@@ -65,6 +68,18 @@ pub fn options(
             } else {
                 Err("unexpected arguments")
             };
+        }
+        if !positional_only && arg == "--archive-year" {
+            if archive_year.is_some() {
+                return Err("duplicate archive year");
+            }
+            archive_year = Some(
+                args.next()
+                    .and_then(|v| v.to_str().and_then(|v| v.parse::<u16>().ok()))
+                    .filter(|v| (1..=9999).contains(v))
+                    .ok_or("invalid archive year")?,
+            );
+            continue;
         }
         if !positional_only && arg == "--font" {
             if font.is_some() {
@@ -131,10 +146,16 @@ pub fn options(
             if page.is_some() {
                 return Err("convert writes all pages and does not accept --page");
             }
-            if to.as_deref() != Some(std::ffi::OsStr::new("pdf")) {
-                return Err("only --to pdf is supported");
+            if !matches!(
+                to.as_ref().and_then(|s| s.to_str()),
+                Some("pdf" | "pdfa-2b")
+            ) {
+                return Err("only --to pdf or pdfa-2b is supported");
             }
         }
+    }
+    if to.as_ref().is_some_and(|s| s == "pdfa-2b") != archive_year.is_some() {
+        return Err("--archive-year required only for pdfa-2b");
     }
     Ok(Some(Options {
         command,
@@ -143,6 +164,8 @@ pub fn options(
         output,
         dpi,
         page,
+        archive_year,
+        archival: to.as_ref().is_some_and(|s| s == "pdfa-2b"),
     }))
 }
 
@@ -393,11 +416,26 @@ fn convert(
         tagged: true,
         lang: Some("zh-CN".to_string()),
     };
-    let pdf = joyword_pdf::render_export(layout.pages(), std::slice::from_ref(&font), &export)
-        .map_err(|error| match error {
-            joyword_pdf::PdfError::UnembeddableFont(_) => "font cannot be embedded; export refused",
-            _ => "PDF writer refused the page scene",
-        })?;
+    if options.archival && layout.omitted_blocks() != 0 {
+        return Err("archival output refuses omitted blocks");
+    }
+    let pdf = joyword_pdf::render_with_profile(
+        layout.pages(),
+        std::slice::from_ref(&font),
+        &export,
+        &joyword_pdf::PdfNavigation::default(),
+        if options.archival {
+            joyword_pdf::PdfProfile::PdfA2b {
+                year: options.archive_year.ok_or("archive year missing")?,
+            }
+        } else {
+            joyword_pdf::PdfProfile::Standard
+        },
+    )
+    .map_err(|error| match error {
+        joyword_pdf::PdfError::UnembeddableFont(_) => "font cannot be embedded; export refused",
+        _ => "PDF writer refused the page scene",
+    })?;
     if pdf.len() > MAX_OUTPUT {
         return Err("visual output budget exceeded");
     }
@@ -405,7 +443,8 @@ fn convert(
     write_report(json!({
         "schema_version": 1,
         "operation": "convert",
-        "target": "pdf",
+        "target": if options.archival { "pdfa-2b" } else { "pdf" },
+        "independent_conformance_verified": false,
         "pages": layout.pages().len(),
         "bytes": pdf.len(),
         "omitted_blocks": layout.omitted_blocks(),

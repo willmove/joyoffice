@@ -1,0 +1,20 @@
+{
+  "branch": "codex/m8-archive-acceptance-20261030",
+  "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+  "dirty": true,
+  "gui_debug_sha256": "87ed3b665a0577073a55b36909df91503fe96bc57270032293131f4072dbf5d0",
+  "cli_debug_sha256": "2a964b5b7b23057692efd7418a5d0b666bc98bdaf8ba2994406d450f79f28332",
+  "pdf_sha256": "27a8f637ac87995f97b918e8aa464e3eebfd8c0526dcbff272d407203b7b3c04",
+  "epub_sha256": "61a8c5ae8a7ffbcded9a7e1870c85378caf1708c8f36334b0a7ab70c2c6aea95",
+  "source_unchanged": true,
+  "files": {
+    "crates/joyword-pdf/src/lib.rs": "14a5ba1e22fd65dd232b7f7ad46aa1aa3d67bd0af5110cdbf44b9e7c0917f18d",
+    "crates/joyword-pdf/tests/export_pdf.rs": "c4da82084d5bf9fb5322d03f9084bec4dcac124af7480b5b34228ad378cf234b",
+    "apps/joyword-cli/src/main.rs": "27caab637d9012312b493bb0b49dcdc75411cb9d3c5118806e10f4671b19f186",
+    "apps/joyword-cli/src/visual.rs": "717b3f43499837b00d4064179302587c235be83c2063c5d423fb2b031d52ea07",
+    "apps/joyword-cli/tests/visual.rs": "07915f1107dcd831669c350cfd09e87a0716d71c2acf9153be36cce6a977350f",
+    "crates/joyword-epub/src/lib.rs": "d1551a5bc3ccaf0ecb93563e2050b382a8d02ccde32f1ec88aabb8dd81480a49",
+    "crates/joyword-epub/tests/export.rs": "76453b32e7f6687341a13b654fe2a59e7aa02f5c0eedc54eaf1248b6ec79d75c",
+    "apps/joyword/src/chrome_ui.rs": "aad4c8f01bfe60711cf83e5b117b8b301f384112164569bd7115cffde6eb24f9"
+  }
+}

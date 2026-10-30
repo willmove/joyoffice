@@ -1,0 +1,2 @@
+ts=1793340724 level=info event=log.opened pid=3484 kind=cap count=262144
+ts=1793340724 level=info event=startup pid=3484 kind=test

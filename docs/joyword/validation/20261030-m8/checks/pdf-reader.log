@@ -1,0 +1,23 @@
+   Compiling joyword-pdf v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-pdf)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.32s
+     Running tests\navigation.rs (target\debug\deps\navigation-692314803e1fa68d.exe)
+
+running 15 tests
+test all_public_navigation_numbers_are_finite_in_range_and_bounded ... ok
+test independent_parser_checks_page_identity_xyz_kind_and_coordinate_range ... ok
+test existing_uri_api_keeps_allowlist_and_rejects_invalid_geometry ... ok
+test duplicate_names_never_select_a_first_target_and_case_is_exact ... ok
+test empty_document_and_empty_paragraph_bookmark_are_distinct_from_empty_names ... ok
+test destination_uses_target_page_height_and_accepts_legal_edge_points ... ok
+test detached_missing_reversed_out_of_range_and_unplaced_stories_are_refused ... ok
+test a_non_ascii_bookmark_name_survives_the_name_tree_readback ... ok
+test an_anchor_without_a_bookmark_is_counted_and_leaves_the_rest_usable ... ok
+test bookmark_name_count_and_combined_rectangle_budgets_refuse_without_truncation ... ok
+test model_forward_backward_same_page_and_uri_actions_survive_pdf_readback ... ok
+test wrap_boundary_bias_and_cluster_interiors_are_not_guessed ... ok
+test wrapped_source_rectangles_keep_each_page_and_raw_pdf_rect_transform ... ok
+test an_external_reader_sees_named_destinations_and_resolves_goto_actions ... ok
+test wrapped_links_exhaust_the_rectangle_budget_before_the_span_budget ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+

@@ -170,6 +170,7 @@ input.stale = The document changed. Please start the input again.
 input.unsupported_text = This input contains an unsupported control character.
 input.rejected = The edit could not be completed. The document is unchanged.
 input.image = The image was refused. The document is unchanged.
+input.document_text = Document text
 
 file.save_original.unavailable = The current document has no original file to save
 file.original.unexpected = The original-save precheck returned an unexpected result
@@ -325,3 +326,31 @@ ui.color_auto = Automatic
 ui.color_black = Black
 ui.color_blue = Blue
 status.compact = Page {page} · {words} words
+
+# M8 local mail merge
+command.file.mail_merge = Mail merge…
+merge.title = Local mail merge
+merge.choose_template = Choose mail merge DOCX template
+merge.choose_data = Choose a local UTF-8 CSV data source
+merge.choose_parent = Choose a parent folder for a new output directory
+merge.mapping = Template field: {field} · CSV column {number}: {column}
+merge.use_column = Use this column
+merge.next_column = Next column
+merge.preview = Record {row} of {count} · Plain text preview: {text}
+merge.next_row = Next record
+merge.generate = Generate all letters…
+merge.truncated =  … (preview shortened)
+merge.running = Generating local letters. Choose Mail merge again to cancel.
+merge.cancelling = Cancelling mail merge…
+merge.cancelled = Mail merge cancelled; the template was not changed.
+merge.saved = Created {count} letters in {path}. The template was not changed.
+merge.saved_count = Created {count} letters. The template was not changed.
+merge.error = Mail merge failed: {reason}
+
+command.file.export_epub = Export EPUB…
+epub.review = Review EPUB conversion losses; cancel keeps the document unchanged
+epub.continue = Export a new copy
+epub.saved = EPUB saved to {path}. The source document was not changed.
+epub.saved_earlier = EPUB saved to {path} from the earlier snapshot; current edits were not changed.
+epub.completed = EPUB export completed.
+epub.cancelled = EPUB export cancelled. The source document was not changed.

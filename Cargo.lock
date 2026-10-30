@@ -2710,6 +2710,7 @@ dependencies = [
 name = "joyword"
 version = "0.0.1"
 dependencies = [
+ "accesskit",
  "gpui-pre",
  "gpui-pre-platform",
  "image",
@@ -2744,6 +2745,7 @@ dependencies = [
  "joyword-model",
  "joyword-pdf",
  "joyword-render",
+ "joyword-shell",
  "serde_json",
  "tempfile",
 ]
@@ -2788,6 +2790,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-epub"
+version = "0.0.1"
+dependencies = [
+ "joyoffice-opc",
+ "joyword-docx",
+ "joyword-model",
+]
+
+[[package]]
 name = "joyword-foundation"
 version = "0.0.1"
 
@@ -2827,6 +2838,7 @@ dependencies = [
  "krilla",
  "read-fonts 0.39.2",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -2868,6 +2880,7 @@ dependencies = [
  "joyword-agent",
  "joyword-docx",
  "joyword-engine",
+ "joyword-epub",
  "joyword-model",
  "rustix",
  "tempfile",

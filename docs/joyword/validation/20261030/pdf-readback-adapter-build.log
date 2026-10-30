@@ -1,0 +1,22 @@
+   Compiling joyword-model v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-model)
+   Compiling joyword-layout v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-layout)
+   Compiling joyword-engine v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-engine)
+   Compiling joyword-pdf v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-pdf)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.81s
+     Running tests\export_pdf.rs (target\debug\deps\export_pdf-3ebd00301c6cc1c4.exe)
+
+running 11 tests
+test core_title_reads_dublin_core_and_rejects_active_markup ... ok
+test a_classic_cross_reference_file_reports_structure_without_the_writer ... ok
+test an_image_is_an_xobject ... ok
+test plain_render_still_names_the_producer_without_a_title ... ok
+test heading_styles_become_bookmarks_and_a_bare_outline_level_does_not ... ok
+test each_section_keeps_its_page_box ... ok
+test two_renders_match_and_carry_no_clock ... ok
+test an_https_link_is_a_uri_annotation_and_a_script_is_not ... ok
+test pdftotext_reads_the_scene_text ... ok
+test test_tagged_pdf_structure ... ok
+test synthetic_bold_contributes_searchable_text_only_once ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

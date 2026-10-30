@@ -28,7 +28,7 @@ class FeatureFixtureGeneratorTests(unittest.TestCase):
                 self.assertEqual([info.filename for info in infos], members)
                 for info in infos:
                     self.assertEqual(info.date_time, (1980, 1, 1, 0, 0, 0))
-                    self.assertEqual(info.compress_type, zipfile.ZIP_DEFLATED)
+                    self.assertEqual(info.compress_type, zipfile.ZIP_STORED)
                     self.assertFalse(info.flag_bits & 0x1)
                     self.assertFalse(info.flag_bits & 0x8)
             self.assertTrue(blob.startswith(b"PK"))

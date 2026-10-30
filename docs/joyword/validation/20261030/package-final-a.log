@@ -1,0 +1,8 @@
+warning: in the working copy of 'Cargo.lock', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/joyword/src/ui/controls.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'crates/joyword-layout/src/cache.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'crates/joyword-layout/tests/long_document.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/TASKS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/acceptance/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/fixtures/manifest.json', LF will be replaced by CRLF the next time Git touches it
+{"archive": "target\\m7-20261030\\JoyWord-preview-windows-x64-final-a.zip", "sha256": "52970307f746cd68f99755c9c9c686538254afef176b6ccdb25d1e82aa4d73eb", "bytes": 31346498, "source_packages": 381, "missing_notices": 18}

@@ -1,0 +1,19 @@
+{
+  "archive": "target\\m8-20261030\\JoyWord-preview-0.0.1-m8-mail-merge-windows-x64.zip",
+  "sha256": "c9625ceac11d53ee54a8f269e98c9b4c2afa537d94b8abf1c909f9d7c51e343c",
+  "bytes": 33162616,
+  "repeat_byte_identical": true,
+  "archive_files": 599,
+  "all_manifest_files_verified": true,
+  "spdx_2_3_schema_valid": true,
+  "source_packages": 381,
+  "relationships": 914,
+  "missing_dependency_notices": 18,
+  "stable_release_approved": false,
+  "portable_cli_preview_verified": true,
+  "preview_writes": 0,
+  "binaries": {
+    "joyword.exe": "67077ae1228f1eda7b56024d0fb662082c4b2381ec32583bc081b60f06a2af40",
+    "joyword-cli.exe": "42040dadc18b3877d05ac4875e61353f40ea3ea6c6b260d52846a95bdd1aaa9c"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "delivery_binary_sha256": "67077ae1228f1eda7b56024d0fb662082c4b2381ec32583bc081b60f06a2af40",
+  "gui_batches": [
+    "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-Ermcvf",
+    "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-j4amp4",
+    "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-lZNfrB"
+  ],
+  "delivery_directory": "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-Ermcvf",
+  "all_nine_outputs_match_first_verified_batch_bytes": true,
+  "all_inputs_unchanged": true,
+  "previous_batches_not_overwritten": true,
+  "office_opened_identical_letter_sha256": "9064d2c2752754c89dab17e10aee15fed3fcb2c924f59e0911b1178210c52838"
+}

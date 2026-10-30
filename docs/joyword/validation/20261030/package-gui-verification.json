@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "artifact": "JoyWord-preview-0.0.1-m7-gui-windows-x64.zip",
+  "archive_sha256": "288bc38f9fde9518ec9fa2bd917245681c63aca5a47512bd023a0e0fdca0ab4b",
+  "archive_bytes": 31370136,
+  "repeat_archive_equal": true,
+  "spdx_schema_validation": "passed",
+  "spdx_schema_sha256": "4126dc29f15e92feec92e9622f4939131ad58b125d6f578aa93e980a6e6f3212",
+  "packages": 381,
+  "relationships": 913,
+  "extracted_cli_help": "passed",
+  "extracted_cli_inspect_matches_build": true,
+  "missing_dependency_notice_files": 18,
+  "gui_candidate_binary_matches": true,
+  "native_gui_probe_executed": true,
+  "native_gui_verified": false,
+  "native_gui_scope": "22 completed scenarios, known failures and missing platform acceptance remain",
+  "signed_installer_verified": false
+}

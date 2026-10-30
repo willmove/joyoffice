@@ -46,6 +46,15 @@ impl FieldBuffer {
         &self.text
     }
 
+    /// AT replacement follows the same single-line contract as keyboard input.
+    pub(crate) fn set_accessible_text(&mut self, text: &str) -> bool {
+        if text.len() > 65536 || text.chars().any(char::is_control) {
+            return false;
+        }
+        self.set_text(text);
+        true
+    }
+
     /// Replace the text and put the caret at the end, with no selection.
     pub(crate) fn set_text(&mut self, text: impl Into<String>) {
         self.text = text.into();
@@ -397,6 +406,20 @@ fn settle_clipboard(effect: &FieldEffect, buffer: &mut FieldBuffer, cx: &App) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn accessibility_replacement_is_single_line_bounded_and_preserves_refused_state() {
+        let mut buffer = FieldBuffer::from_text("旧内容");
+        assert!(buffer.set_accessible_text("查找🙂 e\u{301}"));
+        assert_eq!(buffer.text(), "查找🙂 e\u{301}");
+        let before = buffer.clone();
+        for value in ["a\nb", "a\rb", "a\0b", &"界".repeat(22000)] {
+            assert!(!buffer.set_accessible_text(value));
+            assert_eq!(buffer, before);
+        }
+        assert!(buffer.set_accessible_text(""));
+        assert!(buffer.text().is_empty());
+    }
 
     fn stroke(spec: &str) -> Result<Keystroke, String> {
         Keystroke::parse(spec).map_err(|error| error.to_string())

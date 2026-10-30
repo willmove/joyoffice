@@ -1,0 +1,18 @@
+{
+  "final_gui_sha256": "451a58bdd2205b47469965b29366a242c306eb648f13312ddf6b64a47aaf2aea",
+  "unpacked_gui_sha256": "451a58bdd2205b47469965b29366a242c306eb648f13312ddf6b64a47aaf2aea",
+  "cli_sha256": "0cfd654c374b13e6a8fa38b98dbd77bf342ab08d36976947b98fdd003fc34288",
+  "native_clean_close_pid": 40784,
+  "native_clean_close_pid_absent_observed": true,
+  "dirty_close_cancel_then_application_close_pid": 40724,
+  "dirty_close_pid_absent_observed": true,
+  "final_error_or_missing_role_or_invalid_handle_lines": [],
+  "unpacked_error_or_missing_role_or_invalid_handle_lines": [],
+  "warnings_preserved": [
+    "tiny-skia empty path warning remains; not suppressed"
+  ],
+  "observations": 23,
+  "scope": "Windows native close and test-session controls only; full platform readers remain open",
+  "superseded_candidate": "fd21d07e939a07301dd7c41fca8c7ab9d222c50186e6d402c314e9823f35717a (Enter regression found and corrected in observation 08)",
+  "instrumented_baseline_hash": "not captured before debug binary overwritten; baseline logs are diagnostic evidence, not a claimed released binary hash"
+}

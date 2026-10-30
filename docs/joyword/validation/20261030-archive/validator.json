@@ -1,0 +1,8 @@
+{
+  "source": "https://repo.maven.apache.org/maven2/org/verapdf/apps/cli/1.30.2/cli-1.30.2.jar",
+  "sha256": "287cc9c9757f99dcff4a2d39b68268245b48103fb6af443162d5a29df2afa332",
+  "maven_sha256_verified": true,
+  "bytes": 16038834,
+  "version": "1.30.2",
+  "shipped_in_product": false
+}

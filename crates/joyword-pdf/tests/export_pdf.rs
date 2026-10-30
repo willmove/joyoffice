@@ -1,7 +1,6 @@
 //! T204: document info, heading outlines, section page boxes, image XObjects,
 //! subset fonts with ToUnicode, and bytes that do not contain a clock.
 
-use std::io::Write;
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 
@@ -77,6 +76,42 @@ fn export_of(scene: &PageScene, font: &LoadedFont, export: &PdfExport) -> Vec<u8
         export,
     )
     .unwrap()
+}
+
+#[test]
+fn archival_profile_embeds_output_intent_and_xmp_without_mutating_scene() {
+    use joyword_pdf::{PdfNavigation, PdfProfile, render_with_profile};
+    let (scene, font) = text_scene("A");
+    let options = PdfExport {
+        title: Some("Archive".into()),
+        ..Default::default()
+    };
+    let write = || {
+        render_with_profile(
+            std::slice::from_ref(&scene),
+            std::slice::from_ref(&font),
+            &options,
+            &PdfNavigation::default(),
+            PdfProfile::PdfA2b { year: 2026 },
+        )
+    };
+    let first = write().unwrap();
+    assert_eq!(first, write().unwrap());
+    let syntax = String::from_utf8_lossy(&first);
+    assert!(syntax.contains("/OutputIntents"));
+    assert!(syntax.contains("pdfaid:part"));
+    assert!(syntax.contains("pdfaid:conformance"));
+    assert!(!syntax.contains("/JavaScript"));
+    assert!(matches!(
+        render_with_profile(
+            &[scene],
+            &[],
+            &options,
+            &PdfNavigation::default(),
+            PdfProfile::PdfA2b { year: 2026 }
+        ),
+        Err(joyword_pdf::PdfError::MissingFont(_))
+    ));
 }
 
 #[test]
@@ -408,26 +443,30 @@ fn synthetic_bold_contributes_searchable_text_only_once() -> Result<(), joyword_
 
 fn pdftotext(pdf: &[u8]) -> Option<String> {
     let require = std::env::var_os("JOYWORD_REQUIRE_TEST_FONT").is_some();
-    let mut child = match Command::new("pdftotext")
+    // Both Poppler and Xpdf implement file input. Xpdf's Windows utility
+    // (also shipped by Git for Windows) treats a stdin filename '-' as an
+    // actual path and exits 99, which used to look like a PDF failure.
+    let directory = tempfile::tempdir().expect("PDF readback directory");
+    let path = directory.path().join("scene.pdf");
+    std::fs::write(&path, pdf).expect("PDF readback input");
+    let output = match Command::new("pdftotext")
         // Raw order exposes duplicate paints that geometric deduplication can hide.
-        .args(["-raw", "-enc", "UTF-8", "-", "-"])
-        .stdin(Stdio::piped())
+        .args(["-raw", "-enc", "UTF-8"])
+        .arg(&path)
+        .arg("-")
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
+        .stderr(Stdio::piped())
+        .output()
     {
-        Ok(child) => child,
+        Ok(output) => output,
         Err(_) => {
             assert!(!require, "pdftotext is required");
             eprintln!("skipped: pdftotext is not installed");
             return None;
         }
     };
-    let mut stdin = child.stdin.take().expect("pdftotext stdin");
-    let wrote = stdin.write_all(pdf);
-    drop(stdin);
-    let output = child.wait_with_output().expect("pdftotext wait");
-    if wrote.is_err() || !output.status.success() {
+    if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(
             !require,

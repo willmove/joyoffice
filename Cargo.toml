@@ -11,6 +11,7 @@ members = [
     "crates/joyword-doc",
     "crates/joyword-docx",
     "crates/joyword-engine",
+    "crates/joyword-epub",
     "crates/joyword-foundation",
     "crates/joyword-layout",
     "crates/joyword-model",
@@ -32,6 +33,7 @@ default-members = [
     "crates/joyword-doc",
     "crates/joyword-docx",
     "crates/joyword-engine",
+    "crates/joyword-epub",
     "crates/joyword-foundation",
     "crates/joyword-layout",
     "crates/joyword-model",
@@ -60,6 +62,7 @@ gpui = { package = "gpui-pre", version = "=0.3.9" }
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyword-foundation = { path = "crates/joyword-foundation" }
+joyword-epub = { path = "crates/joyword-epub" }
 joyoffice-cfb = { path = "crates/joyoffice-cfb" }
 joyoffice-drawingml = { path = "crates/joyoffice-drawingml" }
 joyoffice-omml = { path = "crates/joyoffice-omml" }

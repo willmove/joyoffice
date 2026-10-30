@@ -1,0 +1,13 @@
+{"archive": "D:\\Coding\\EditorProjects\\joyoffice\\target\\m7-20261030\\JoyWord-preview-0.0.1-m7-gui-windows-x64.zip", "sha256": "288bc38f9fde9518ec9fa2bd917245681c63aca5a47512bd023a0e0fdca0ab4b", "bytes": 31370136, "source_packages": 381, "missing_notices": 18}
+warning: in the working copy of 'Cargo.lock', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/joyword/src/ui/controls.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'crates/joyword-layout/src/cache.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'crates/joyword-layout/tests/long_document.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'crates/joyword-shell/src/host.rs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/IMPLEMENTATION.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/TASKS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/acceptance/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/acceptance/T103.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/acceptance/T104.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/joyword/verification/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/fixtures/manifest.json', LF will be replaced by CRLF the next time Git touches it

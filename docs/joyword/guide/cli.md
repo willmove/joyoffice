@@ -1,6 +1,6 @@
 # 无头命令行
 
-程序是 `joyword-cli`。帮助文本在 [main.rs](../../../apps/joyword-cli/src/main.rs) 的 `HELP`。只读，不改输入文件。
+程序是 `joyword-cli`。帮助文本在 [main.rs](../../../apps/joyword-cli/src/main.rs) 的 `HELP`。不改输入文件；邮件合并在独立目录创建信件，见 [使用指南](mail-merge.md)。
 
 ## 使用者
 
@@ -8,6 +8,7 @@
 joyword-cli inspect|text [--max-text-bytes N] [--] FILE
 joyword-cli render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]
 joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf
+joyword-cli merge --template FILE.docx --data FILE.csv [--map FIELD=COLUMN] (--preview-row N | --output-parent DIR)
 ```
 
 选项可以写在文件名后面。`--` 结束选项解析，用来传入以 `-` 开头的路径。
@@ -18,6 +19,7 @@ joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf
 | `text` | 标准输出 UTF-8 正文。投影、是否部分、是否截断的 JSON 在标准错误。 |
 | `render` | 把统一页面场景画成确定性的 CPU PNG，写到目录。 |
 | `convert` | 用同一场景写出可检索 PDF。`--to` 不是 `pdf` 就拒绝。 |
+| `merge` | 显式映射本地 CSV 和 DOCX 文字模板，预览或批量生成信件；schema 1 JSON，错误退出 2。 |
 
 退出码：
 
@@ -63,3 +65,9 @@ joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf
 ## JoyWord 假定，没有 Word 观察
 
 - 这段投影是导入正文，不是 Word 的最终视图或修订视图。源文件模块注释写明这是有意的。
+
+## EPUB 导出
+
+`epub` 提供计划与新文件输出，语法、预算、差异接受及拒绝范围见 [EPUB 指南](epub.md)。同一输入和固定元数据可逐字节重现；不改写 DOCX。
+
+PDF/A-2b 使用 `convert --to pdfa-2b --archive-year YEAR`，完整语法与边界见 [归档指南](pdfa.md)。

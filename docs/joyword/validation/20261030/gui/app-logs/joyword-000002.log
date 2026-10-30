@@ -1,0 +1,5 @@
+ts=1793339551 level=info event=log.opened pid=24512 kind=cap count=262144
+ts=1793339551 level=info event=startup pid=24512 kind=test
+ts=1793339551 level=info event=import.diagnostics pid=24512 kind=count count=4
+ts=1793339551 level=info event=import.diagnostic pid=24512 kind=not_imported count=2
+ts=1793339551 level=info event=import.diagnostic pid=24512 kind=properties_preserved count=2

@@ -1,0 +1,160 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "completed_scenarios": 22,
+  "window_observations": 35,
+  "last_candidate_sha256": "7bba684c94a751e4ad56269d08ed9a2fe0f2a3bce0d2de806944235f6874e078",
+  "commit": "7aa041e667f33664b59011c22b9e05ed6f5a43d8",
+  "production_tree": "041680e6fb33d3eda6e0171a1059601b4c754bd9",
+  "checks": {
+    "core": {
+      "passed": 1131,
+      "failed": 0,
+      "targets": 161
+    },
+    "application": {
+      "passed": 85,
+      "failed": 0,
+      "targets": 1
+    },
+    "shell": {
+      "passed": 278,
+      "failed": 0,
+      "targets": 36
+    },
+    "ai_shell": {
+      "passed": 278,
+      "failed": 0,
+      "targets": 36
+    },
+    "related_clippy": "passed",
+    "ai_clippy": "passed",
+    "fmt": "passed",
+    "release_build": "passed",
+    "robustness_smoke": {
+      "schema": 1,
+      "target_sha": "041680e6fb33d3eda6e0171a1059601b4c754bd9",
+      "harness_git_sha": "7aa041e667f33664b59011c22b9e05ed6f5a43d8",
+      "harness_binary_sha256": "8d74bffe97ce77036fc797a19e922ace6692dc71f4dd8ff9791cce86301afa5c",
+      "harness_worktree_dirty": false,
+      "os": "Windows-11-10.0.26300-SP0",
+      "python": "3.14.7",
+      "memory_limit": {
+        "enforced": false,
+        "reason": "RLIMIT_AS unavailable; no Windows Job Object backend"
+      },
+      "process_tree_timeout_kill": "taskkill /T",
+      "coverage_feedback": false,
+      "campaign_seed": 20261015,
+      "requested_runs": 81,
+      "requested_seconds": 120.0,
+      "executed": 81,
+      "counts": {
+        "ok": 43,
+        "rejected": 38
+      },
+      "matrix_complete": true,
+      "elapsed_seconds": 2.4438925000140443,
+      "timeout_seconds": 3.0,
+      "effective_address_space_mib": 0,
+      "aggregate_children_peak_rss_bytes": null,
+      "peak_scope": "OS cumulative maximum across child processes; includes capability probe, not per-case"
+    },
+    "robustness_fuzz": {
+      "schema": 1,
+      "target_sha": "041680e6fb33d3eda6e0171a1059601b4c754bd9",
+      "harness_git_sha": "7aa041e667f33664b59011c22b9e05ed6f5a43d8",
+      "harness_binary_sha256": "8d74bffe97ce77036fc797a19e922ace6692dc71f4dd8ff9791cce86301afa5c",
+      "harness_worktree_dirty": false,
+      "os": "Windows-11-10.0.26300-SP0",
+      "python": "3.14.7",
+      "memory_limit": {
+        "enforced": false,
+        "reason": "RLIMIT_AS unavailable; no Windows Job Object backend"
+      },
+      "process_tree_timeout_kill": "taskkill /T",
+      "coverage_feedback": false,
+      "feedback_signal": "harness-features",
+      "command": "fuzz",
+      "campaign_seed": 20261030,
+      "requested_runs": 200,
+      "requested_seconds": 120.0,
+      "executed": 200,
+      "counts": {
+        "rejected": 150,
+        "ok": 50
+      },
+      "elapsed_seconds": 3.5851200000033714,
+      "timeout_seconds": 3.0,
+      "effective_address_space_mib": 0,
+      "aggregate_children_peak_rss_bytes": null,
+      "peak_scope": "OS cumulative maximum across child processes; includes capability probe, not per-case",
+      "features_discovered": 41,
+      "novelty_events": 17,
+      "corpus_size": 44,
+      "corpus_limit": 128,
+      "corpus_bytes_written": 135069,
+      "corpus_bytes_cap": 33554432,
+      "network": "none: the harness never resolves external relationship targets and the driver opens no sockets"
+    },
+    "python": {
+      "passed": 116,
+      "failed": 0
+    }
+  },
+  "source_file_sha256": {
+    "AGENTS.md": "543ca01bcc0b79b75ea5d14a0b1943ecd4aa951f05cdccc96b1865613dbca4dd",
+    "apps/joyword/src/input_ui.rs": "5ae116ecf0269b26f74316a9dd2715bf39ea77b2e72a33f2b8d86726e12cfbb8",
+    "crates/joyword-shell/src/host.rs": "5f761222e90c6a20aefe979ee4da3ace838cdfefe3a53f2d59e69a0d7b7b0fa1",
+    "crates/joyword-shell/tests/recovery_formatted_text.rs": "34ed6f0001e42eddde4dcac6fd30ae667657b3055f48b9a227453b738f5e1cd0"
+  },
+  "full_M7_acceptance": false,
+  "xinchuang_hardware": "unverified/nonblocking",
+  "issues": [
+    {
+      "id": "M7-GUI-001",
+      "status": "fixed",
+      "title": "Save Copy default Enter mapping"
+    },
+    {
+      "id": "M7-GUI-002",
+      "status": "fixed",
+      "title": "Full-text recovery destroys unchanged formatting"
+    },
+    {
+      "id": "M7-GUI-003",
+      "status": "fixed",
+      "title": "Repeated recovery collides with old recovery copy and lock"
+    },
+    {
+      "id": "M7-GUI-004",
+      "status": "open",
+      "title": "WPS-reserialized settings refuse GUI layout"
+    },
+    {
+      "id": "M7-GUI-005",
+      "status": "open",
+      "title": "100-page end navigation and caret vertical drift"
+    },
+    {
+      "id": "M7-GUI-006",
+      "status": "open",
+      "title": "Document text accessibility and toggle state incomplete"
+    },
+    {
+      "id": "M7-GUI-007",
+      "status": "open",
+      "title": "PDF includes editing marks from current view"
+    }
+  ],
+  "final_checks": {
+    "docs": 0,
+    "acceptance": 0,
+    "gates": 0,
+    "python": 0,
+    "fmt": 0,
+    "diff": 0,
+    "releaseExpectedRefusal": true
+  },
+  "package_verification": "../package-gui-verification.json"
+}

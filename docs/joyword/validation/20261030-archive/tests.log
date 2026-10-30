@@ -1,0 +1,236 @@
+   Compiling joyword-epub v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-epub)
+   Compiling joyword-pdf v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-pdf)
+   Compiling joyword-shell v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-shell)
+   Compiling joyword-cli v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.17s
+     Running unittests src\main.rs (target\debug\deps\joyword_cli-e0c179443977b820.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\bookmark_goto.rs (target\debug\deps\bookmark_goto-3983c15a7d1174fd.exe)
+
+running 3 tests
+test column_and_opaque_table_bookmarks_are_goto_destinations ... ok
+test header_footer_and_comment_bookmarks_are_goto_destinations ... ok
+test an_imported_bookmark_is_a_pdf_goto_named_destination ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\commands.rs (target\debug\deps\commands-3bbdbb3f535eb411.exe)
+
+running 8 tests
+test projection_preserves_hidden_but_excludes_deleted_and_unknown ... ok
+test imported_deleted_and_moved_out_runs_stay_out_of_the_text ... ok
+test xml_and_expanded_part_budgets_are_enforced ... ok
+test invalid_commands_packages_and_budgets_fail_without_stdout ... ok
+test empty_body_and_paragraph_separators_obey_exact_text_budget ... ok
+test truncation_is_a_utf8_prefix_with_explicit_status ... ok
+test help_options_and_literal_paths_are_unambiguous ... ok
+test five_original_cases_are_stable_and_text_agrees ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.89s
+
+     Running tests\epub.rs (target\debug\deps\epub-58bedf8be5fc3a9f.exe)
+
+running 2 tests
+test malformed_epub_options_and_dates_produce_no_output ... ok
+test epub_plan_then_explicit_loss_acceptance_export_is_isolated_and_repeatable ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests\fixture_roundtrip.rs (target\debug\deps\fixture_roundtrip-c0a096978a7bed29.exe)
+
+running 5 tests
+test golden_compare_accepts_crlf_checkout ... ok
+test feature_fixtures_import_round_trip_and_keep_unknown_parts ... ok
+test feature_fixture_cli_projections_match_goldens ... ok
+test inspect_json_keys_stay_sorted_whatever_the_feature_set ... ok
+test feature_fixture_render_and_convert_follow_the_subset ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.43s
+
+     Running tests\font_refusal.rs (target\debug\deps\font_refusal-3a208f58d736dbd6.exe)
+
+running 2 tests
+test convert_refuses_a_restricted_license_font_and_writes_no_pdf ... ok
+test convert_still_exports_with_an_embeddable_font ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\golden_scenes.rs (target\debug\deps\golden_scenes-2fe9529cb72ae5b7.exe)
+
+running 12 tests
+test sha256_matches_fips_180_4_vectors ... ok
+test vertical_column_bands_are_imported_from_table_style_pr ... ok
+test numbering_label_and_a_tab_stop_match_the_golden_scene ... ok
+test unequal_columns_and_a_column_break_match_the_golden_scene ... ok
+test equal_columns_match_the_golden_scene ... ok
+test wrap_none_anchor_matches_the_golden_scene ... ok
+test wrap_square_text_avoids_the_rectangle ... ok
+test paper_sizes_and_an_https_link_match_the_golden_scene ... ok
+test continuous_and_even_page_sections_match_the_golden_scene ... ok
+test banded_table_with_a_nested_table_matches_the_golden_scene ... ok
+test first_even_and_default_headers_match_the_golden_scene ... ok
+test revision_markup_final_and_original_match_the_golden_scene ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\mail_merge.rs (target\debug\deps\mail_merge-afad46785211a4ce.exe)
+
+running 2 tests
+joyword-cli inspect|text [--max-text-bytes N] [--] FILE
+joyword-cli render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]
+joyword-cli convert FILE --to pdf --font PATH:FACE --output FILE.pdf
+joyword-cli merge --template FILE.docx --data FILE.csv [--map FIELD=COLUMN] (--preview-row N | --output-parent DIR)
+joyword-cli epub FILE.docx (--plan | --output FILE.epub [--accept-losses]) [--title TEXT] [--language TAG] [--modified UTC]
+Options may also follow FILE; -- ends option parsing.
+Inspection keeps the source unchanged; text N is UTF-8 bytes (0..1048576), default 1048576.
+Projection: imported main body, INCLUDING hidden text; deleted revisions,
+comments and other stories excluded; inserted/moveTo text included.
+Unsupported XML is preserved by import but omitted from text.
+inspect: schema 1 JSON, partial and truncated are independent.
+text: UTF-8 stdout; projection/partial/truncated JSON on stderr.
+render: deterministic CPU PNG pages from the unified PageScene.
+convert: searchable PDF from that same scene; other targets are refused.
+render/convert JSON is schema 1 and reports omitted_blocks.
+Opaque body blocks are skipped, counted, and take no page geometry.
+Exit: 0 complete within projection; 2 error; 3 text truncated.
+test invalid_options_encoding_columns_and_paths_create_no_output ... ok
+test local_preview_and_batch_preserve_template_and_generate_three_verified_letters ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests\visual.rs (target\debug\deps\visual-5f822926bfcd2155.exe)
+
+running 4 tests
+test visual_help_and_literal_paths_are_unambiguous ... ok
+test convert_to_pdf_is_repeatable_and_other_targets_are_refused ... ok
+test render_is_repeatable_and_refuses_overwrite ... ok
+test original_corpus_render_and_convert_are_byte_identical ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.03s
+
+     Running unittests src\lib.rs (target\debug\deps\joyword_pdf-2b851435c6ea64c1.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\column_separator.rs (target\debug\deps\column_separator-70a72ce6434e61dc.exe)
+
+running 1 test
+test the_column_separator_rule_is_in_the_pdf_page_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\export_pdf.rs (target\debug\deps\export_pdf-73b1c86985c6ee89.exe)
+
+running 11 tests
+test core_title_reads_dublin_core_and_rejects_active_markup ... ok
+test a_classic_cross_reference_file_reports_structure_without_the_writer ... ok
+test an_image_is_an_xobject ... ok
+test plain_render_still_names_the_producer_without_a_title ... ok
+test each_section_keeps_its_page_box ... ok
+test heading_styles_become_bookmarks_and_a_bare_outline_level_does_not ... ok
+test two_renders_match_and_carry_no_clock ... ok
+test an_https_link_is_a_uri_annotation_and_a_script_is_not ... ok
+test synthetic_bold_contributes_searchable_text_only_once ... ok
+test test_tagged_pdf_structure ... ok
+test pdftotext_reads_the_scene_text ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\font_refusal.rs (target\debug\deps\font_refusal-e2293260d102ef49.exe)
+
+running 3 tests
+test a_restricted_license_font_refuses_export_with_no_bytes ... ok
+test an_allowed_embedding_bit_still_exports ... ok
+test the_restriction_reads_the_low_nibble_like_krilla ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\images.rs (target\debug\deps\images-9826c31c5dbb99df.exe)
+
+running 1 test
+test a_scene_image_is_embedded_and_not_omitted ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\long_document.rs (target\debug\deps\long_document-7b263476aa2cfcea.exe)
+
+running 1 test
+test a_mixed_section_document_shares_one_geometry_with_the_pdf ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests\navigation.rs (target\debug\deps\navigation-ba518aed0e0c3a4d.exe)
+
+running 15 tests
+test all_public_navigation_numbers_are_finite_in_range_and_bounded ... ok
+test independent_parser_checks_page_identity_xyz_kind_and_coordinate_range ... ok
+test duplicate_names_never_select_a_first_target_and_case_is_exact ... ok
+test empty_document_and_empty_paragraph_bookmark_are_distinct_from_empty_names ... ok
+test existing_uri_api_keeps_allowlist_and_rejects_invalid_geometry ... ok
+test destination_uses_target_page_height_and_accepts_legal_edge_points ... ok
+test detached_missing_reversed_out_of_range_and_unplaced_stories_are_refused ... ok
+test bookmark_name_count_and_combined_rectangle_budgets_refuse_without_truncation ... ok
+test an_anchor_without_a_bookmark_is_counted_and_leaves_the_rest_usable ... ok
+test a_non_ascii_bookmark_name_survives_the_name_tree_readback ... ok
+test an_external_reader_sees_named_destinations_and_resolves_goto_actions ... ok
+test model_forward_backward_same_page_and_uri_actions_survive_pdf_readback ... ok
+test wrapped_source_rectangles_keep_each_page_and_raw_pdf_rect_transform ... ok
+test wrap_boundary_bias_and_cluster_interiors_are_not_guessed ... ok
+test wrapped_links_exhaust_the_rectangle_budget_before_the_span_budget ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests\pages.rs (target\debug\deps\pages-afde3ced2b57ff2b.exe)
+
+running 3 tests
+test a_header_on_the_page_scene_is_the_pdf_page ... ok
+test first_and_later_headers_share_one_page_scene_with_pdf ... ok
+test unequal_columns_share_one_page_scene_with_pdf ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\scene_rect.rs (target\debug\deps\scene_rect-b412996f9911e931.exe)
+
+running 2 tests
+test a_scene_rect_changes_the_pdf_bytes ... ok
+test editing_overlays_are_not_printed_but_same_color_document_ink_remains ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\table_revision_bar.rs (target\debug\deps\table_revision_bar-d285bd3e570a9c83.exe)
+
+running 1 test
+test the_table_revision_margin_bar_is_in_the_pdf_page_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\text_color.rs (target\debug\deps\text_color-90444fba3a211ecf.exe)
+
+running 1 test
+test a_non_black_run_changes_the_pdf_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\unified.rs (target\debug\deps\unified-4b9a66aeeaa15b52.exe)
+
+running 5 tests
+test missing_glyphs_are_reported_without_changing_text ... ok
+test every_cjk_cluster_gets_a_glyph_and_positions_are_monotonic ... ok
+test a_run_with_an_unknown_font_is_rejected ... ok
+test pdf_is_deterministic_embeds_a_subset_and_keeps_text ... ok
+test document_snapshot_pages_render_deterministically_without_mutation_or_reflow ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+   Doc-tests joyword_pdf
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

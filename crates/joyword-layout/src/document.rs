@@ -2753,6 +2753,7 @@ fn paint_stamp_rects(
         .ok_or(LayoutError::GeometryOverflow)?;
     for rect in &stamp.rects {
         page.rects.push(SceneRect {
+            screen_only: false,
             x: rect.x,
             y: Emu::new(rect.y.raw().saturating_add(delta)),
             width: rect.width,
@@ -3142,6 +3143,7 @@ fn flush_jobs(
             let rect_copies: Vec<SceneRect> = header_rects
                 .iter()
                 .map(|rect| SceneRect {
+                    screen_only: rect.screen_only,
                     x: rect.x,
                     y: Emu::new(rect.y.raw().saturating_add(delta)),
                     width: rect.width,
@@ -3415,6 +3417,7 @@ fn push_rect(page: &mut PageScene, x: i64, y: i64, width: i64, height: i64, colo
         return;
     }
     page.rects.push(SceneRect {
+        screen_only: false,
         x: Emu::new(x),
         y: Emu::new(y),
         width: Emu::new(width),
@@ -5095,6 +5098,7 @@ fn paint_hyperlink_underlines(
             && right > left
         {
             page.rects.push(SceneRect {
+                screen_only: false,
                 x: add(origin_x, Emu::new(left))?,
                 y: Emu::new(y),
                 width: Emu::new(right - left),

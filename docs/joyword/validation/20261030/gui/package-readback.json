@@ -1,0 +1,248 @@
+{
+  "schema": 1,
+  "documents": {
+    "gui-base.docx": {
+      "sha256": "98264994b13636255f19482c2ff6fbfac8eddf054e51684b51122f023d0da10e",
+      "bytes": 1560,
+      "inspect": {
+        "diagnostics": {
+          "reported": 0,
+          "suppressed": 0
+        },
+        "omitted_objects": 0,
+        "paragraphs": 1,
+        "partial": false,
+        "preserved_fragments": 0,
+        "projection": {
+          "cell_separator": "paragraph-LF",
+          "comments": "excluded",
+          "deleted_revisions": "excluded",
+          "hidden_text": "included",
+          "inserted_revisions": "included",
+          "line_break": "LF",
+          "moved_from_revisions": "excluded",
+          "moved_to_revisions": "included",
+          "name": "imported-main-body",
+          "other_stories": "excluded",
+          "page_column_break": "FF",
+          "paragraph_separator": "LF",
+          "unsupported_xml": "omitted-preserved-in-source"
+        },
+        "read_only": false,
+        "schema_version": 1,
+        "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+        "text_bytes": 92,
+        "text_bytes_limit": 1048576,
+        "truncated": false
+      },
+      "paragraphs": [
+        {
+          "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+          "center": true,
+          "runs": [
+            {
+              "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+              "bold": true
+            }
+          ]
+        }
+      ]
+    },
+    "gui-copy.docx": {
+      "sha256": "98264994b13636255f19482c2ff6fbfac8eddf054e51684b51122f023d0da10e",
+      "bytes": 1560,
+      "inspect": {
+        "diagnostics": {
+          "reported": 0,
+          "suppressed": 0
+        },
+        "omitted_objects": 0,
+        "paragraphs": 1,
+        "partial": false,
+        "preserved_fragments": 0,
+        "projection": {
+          "cell_separator": "paragraph-LF",
+          "comments": "excluded",
+          "deleted_revisions": "excluded",
+          "hidden_text": "included",
+          "inserted_revisions": "included",
+          "line_break": "LF",
+          "moved_from_revisions": "excluded",
+          "moved_to_revisions": "included",
+          "name": "imported-main-body",
+          "other_stories": "excluded",
+          "page_column_break": "FF",
+          "paragraph_separator": "LF",
+          "unsupported_xml": "omitted-preserved-in-source"
+        },
+        "read_only": false,
+        "schema_version": 1,
+        "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+        "text_bytes": 92,
+        "text_bytes_limit": 1048576,
+        "truncated": false
+      },
+      "paragraphs": [
+        {
+          "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+          "center": true,
+          "runs": [
+            {
+              "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+              "bold": true
+            }
+          ]
+        }
+      ]
+    },
+    "word-roundtrip.docx": {
+      "sha256": "33a0b632c23317db9c4a46c498bf58133e6692e5a709039926654c7c7b06018e",
+      "bytes": 12451,
+      "inspect": {
+        "diagnostics": {
+          "reported": 4,
+          "suppressed": 0
+        },
+        "omitted_objects": 0,
+        "paragraphs": 1,
+        "partial": true,
+        "preserved_fragments": 7,
+        "projection": {
+          "cell_separator": "paragraph-LF",
+          "comments": "excluded",
+          "deleted_revisions": "excluded",
+          "hidden_text": "included",
+          "inserted_revisions": "included",
+          "line_break": "LF",
+          "moved_from_revisions": "excluded",
+          "moved_to_revisions": "included",
+          "name": "imported-main-body",
+          "other_stories": "excluded",
+          "page_column_break": "FF",
+          "paragraph_separator": "LF",
+          "unsupported_xml": "omitted-preserved-in-source"
+        },
+        "read_only": false,
+        "schema_version": 1,
+        "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+        "text_bytes": 92,
+        "text_bytes_limit": 1048576,
+        "truncated": false
+      },
+      "paragraphs": [
+        {
+          "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+          "center": true,
+          "runs": [
+            {
+              "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+              "bold": true
+            }
+          ]
+        }
+      ]
+    },
+    "wps-roundtrip.docx": {
+      "sha256": "6558f214bcc83635ffbf1d16a91ec14a91ff36d517dab7cc96041a251b5c75f9",
+      "bytes": 9948,
+      "inspect": {
+        "diagnostics": {
+          "reported": 9,
+          "suppressed": 0
+        },
+        "omitted_objects": 0,
+        "paragraphs": 1,
+        "partial": true,
+        "preserved_fragments": 9,
+        "projection": {
+          "cell_separator": "paragraph-LF",
+          "comments": "excluded",
+          "deleted_revisions": "excluded",
+          "hidden_text": "included",
+          "inserted_revisions": "included",
+          "line_break": "LF",
+          "moved_from_revisions": "excluded",
+          "moved_to_revisions": "included",
+          "name": "imported-main-body",
+          "other_stories": "excluded",
+          "page_column_break": "FF",
+          "paragraph_separator": "LF",
+          "unsupported_xml": "omitted-preserved-in-source"
+        },
+        "read_only": false,
+        "schema_version": 1,
+        "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+        "text_bytes": 92,
+        "text_bytes_limit": 1048576,
+        "truncated": false
+      },
+      "paragraphs": [
+        {
+          "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+          "center": true,
+          "runs": [
+            {
+              "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署。",
+              "bold": true
+            }
+          ]
+        }
+      ]
+    },
+    "recovered-fixed.docx": {
+      "sha256": "7e08d856520ca29894e58234f51f6ce2b7826810e09eb7fcb36d0ed80e556180",
+      "bytes": 13497,
+      "inspect": {
+        "diagnostics": {
+          "reported": 4,
+          "suppressed": 0
+        },
+        "omitted_objects": 0,
+        "paragraphs": 1,
+        "partial": true,
+        "preserved_fragments": 7,
+        "projection": {
+          "cell_separator": "paragraph-LF",
+          "comments": "excluded",
+          "deleted_revisions": "excluded",
+          "hidden_text": "included",
+          "inserted_revisions": "included",
+          "line_break": "LF",
+          "moved_from_revisions": "excluded",
+          "moved_to_revisions": "included",
+          "name": "imported-main-body",
+          "other_stories": "excluded",
+          "page_column_break": "FF",
+          "paragraph_separator": "LF",
+          "unsupported_xml": "omitted-preserved-in-source"
+        },
+        "read_only": false,
+        "schema_version": 1,
+        "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署 [RECOVERY-M7]。",
+        "text_bytes": 106,
+        "text_bytes_limit": 1048576,
+        "truncated": false
+      },
+      "paragraphs": [
+        {
+          "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署 [RECOVERY-M7]。",
+          "center": true,
+          "runs": [
+            {
+              "text": "M7桌面验证：中文输入与保存。合作协议：甲方与乙方于 2026 年签署 [RECOVERY-M7]。",
+              "bold": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "recovery": {
+    "generation_before_discard": 10,
+    "exact_committed_text": true,
+    "source_marker_absent": true,
+    "bold_and_center_preserved": true,
+    "text_only_checkpoint": true,
+    "rich_document_edits_not_recovered": true
+  }
+}

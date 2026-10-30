@@ -351,6 +351,9 @@ impl JoyWord {
         };
         let mut panel = div()
             .id("format-dialog")
+            .accessibility_id("format-dialog")
+            .role(gpui::Role::Dialog)
+            .aria_label(title.clone())
             .tab_group()
             .flex()
             .flex_col()
@@ -471,36 +474,39 @@ impl JoyWord {
         } else {
             label.to_owned()
         };
-        div()
-            .id(format!("dialog-choice-{index}-{value}"))
-            .focusable()
-            .cursor_pointer()
-            .px_2()
-            .py_1()
-            .rounded_sm()
-            .bg(rgb(crate::ui::theme::HOVER))
-            .hover(|style| style.bg(rgb(crate::ui::theme::SELECTED)))
-            .on_click(cx.listener(move |this, _, _, cx| {
+        crate::ui::controls::named_control(
+            format!("dialog-choice-{index}-{value}"),
+            gpui::Role::Button,
+            text.clone(),
+        )
+        .focusable()
+        .cursor_pointer()
+        .px_2()
+        .py_1()
+        .rounded_sm()
+        .bg(rgb(crate::ui::theme::HOVER))
+        .hover(|style| style.bg(rgb(crate::ui::theme::SELECTED)))
+        .on_click(cx.listener(move |this, _, _, cx| {
+            if let Some(dialog) = &mut this.format_dialog
+                && let Some(field) = dialog.fields.get_mut(index)
+            {
+                field.value.set_text(value);
+            }
+            cx.notify();
+        }))
+        .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
+            if matches!(event.keystroke.key.as_str(), "enter" | "space") {
                 if let Some(dialog) = &mut this.format_dialog
                     && let Some(field) = dialog.fields.get_mut(index)
                 {
                     field.value.set_text(value);
                 }
+                cx.stop_propagation();
                 cx.notify();
-            }))
-            .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
-                if matches!(event.keystroke.key.as_str(), "enter" | "space") {
-                    if let Some(dialog) = &mut this.format_dialog
-                        && let Some(field) = dialog.fields.get_mut(index)
-                    {
-                        field.value.set_text(value);
-                    }
-                    cx.stop_propagation();
-                    cx.notify();
-                }
-            }))
-            .child(text)
-            .into_any_element()
+            }
+        }))
+        .child(text)
+        .into_any_element()
     }
 
     fn dialog_field(&self, index: usize, cx: &mut Context<Self>) -> gpui::AnyElement {
@@ -521,8 +527,26 @@ impl JoyWord {
             .gap_2()
             .child(div().w(px(120.0)).text_xs().child(label.clone()))
             .child(
-                div()
-                    .id(name)
+                crate::ui::controls::text_field(name, label.clone(), field.value.text().to_owned())
+                    .on_a11y_action(gpui::AccessibleAction::SetValue, {
+                        let entity = cx.entity();
+                        move |data, _, cx| {
+                            let Some(gpui::accesskit::ActionData::Value(text)) = data else {
+                                return;
+                            };
+                            entity.update(cx, |view, cx| {
+                                if let Some(field) = view
+                                    .format_dialog
+                                    .as_mut()
+                                    .and_then(|dialog| dialog.fields.get_mut(index))
+                                    && field.name == name
+                                    && field.value.set_accessible_text(text)
+                                {
+                                    cx.notify();
+                                }
+                            });
+                        }
+                    })
                     .track_focus(&focus)
                     .key_context(crate::field_edit::FIELD_CONTEXT)
                     .focusable()
@@ -565,9 +589,10 @@ impl JoyWord {
                 1 => dialog.italic,
                 _ => dialog.underline,
             });
-        let label = format!("{} {}", if on { "☑" } else { "☐" }, self.label(label));
-        div()
-            .id(id)
+        let name = self.label(label);
+        let label = format!("{} {name}", if on { "☑" } else { "☐" });
+        crate::ui::controls::named_control(id, gpui::Role::CheckBox, name)
+            .aria_toggled(on.into())
             .focusable()
             .cursor_pointer()
             .px_2()
@@ -608,8 +633,7 @@ impl JoyWord {
         cx: &mut Context<Self>,
     ) -> impl IntoElement {
         let label = self.label(label);
-        div()
-            .id(id)
+        crate::ui::controls::named_control(id, gpui::Role::Button, label.clone())
             .focusable()
             .cursor_pointer()
             .px_3()

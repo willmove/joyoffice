@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "scope": "automated-word-com-exchange; no-visual-acceptance",
+  "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+  "cli_sha256": "eced775359d626764fee5bb754ac99ff4332cf0bb4d38f92dc877de5d20b11ad",
+  "word_version": null,
+  "word_build": null,
+  "cases": [],
+  "status": "blocked-environment",
+  "com_server": "C:\\APPLIC~1\\Kingsoft\\WPS\\WPSOFF~1\\1210~1.291\\office6\\wps.exe /Automation",
+  "reason": "Word.Application is registered to a different product; no application started, no registry changes made."
+}

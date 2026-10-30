@@ -1,0 +1,4 @@
+ts=1793340141 level=info event=log.opened pid=8984 kind=cap count=262144
+ts=1793340141 level=info event=startup pid=8984 kind=test
+ts=1793340141 level=error event=recovery.failed pid=8984 detail=JoyWordLockFile at <redacted> lock entry exists
+ts=1793340141 level=error event=ui.input pid=8984 detail=<redacted> at <redacted> lock entry exists

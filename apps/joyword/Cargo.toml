@@ -31,6 +31,8 @@ log = "=0.4.34"
 
 [dev-dependencies]
 tempfile.workspace = true
+# Already used by the pinned GPUI runtime; inspect the actual emitted nodes.
+accesskit = "=0.24.1"
 
 [lints]
 workspace = true

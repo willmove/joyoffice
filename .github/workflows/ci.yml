@@ -46,10 +46,14 @@ jobs:
           python scripts/check_gates.py --counterexample scripts/tests/fixtures/gate_counterexample.rs
       - name: Tool logic tests
         run: python -m unittest discover -s scripts/tests
+      - name: M7 release evidence audit (pending gates remain pending)
+        run: python scripts/check_release.py --audit --out target/m7-release-readiness.json
       - name: Rust format
         run: cargo fmt --all -- --check
       - name: Headless crate tests (default workspace members)
         run: cargo test --locked
+      - name: M7 fixed model/layout corpus smoke
+        run: cargo run --locked -p joyword-layout --example m7_performance -- 10 1 2
       - name: AI off by default (T400)
         run: |
           cargo test -p joyword-agent --locked --offline
@@ -131,13 +135,14 @@ jobs:
       CARGO_TERM_COLOR: always
       JOYWORD_TEST_FONT: /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc:2
       JOYWORD_REQUIRE_TEST_FONT: '1'
+      JOYWORD_REQUIRE_QPDF: '1'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Noto CJK (OFL) and poppler
+      - name: Noto CJK (OFL), poppler and qpdf
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk poppler-utils
-          dpkg-query -W fonts-noto-cjk poppler-utils
+          sudo apt-get install -y fonts-noto-cjk poppler-utils qpdf
+          dpkg-query -W fonts-noto-cjk poppler-utils qpdf
           sha256sum /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal

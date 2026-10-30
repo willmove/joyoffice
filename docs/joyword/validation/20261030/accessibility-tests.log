@@ -1,0 +1,10 @@
+   Compiling joyword v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.22s
+     Running unittests src\main.rs (target\debug\deps\joyword-f74466fc53da489d.exe)
+
+running 2 tests
+test ui::controls::tests::icon_buttons_publish_the_localized_command_name_and_stable_id ... ok
+test ui::controls::tests::checkbox_accessibility_tracks_both_checked_and_unchecked_states ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.00s
+

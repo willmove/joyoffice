@@ -237,6 +237,7 @@ pub(crate) fn margin_bar_of_colour(
         return None;
     }
     Some(SceneRect {
+        screen_only: false,
         x: Emu::new(margin - gap - width),
         y: top,
         width: Emu::new(width),
@@ -353,6 +354,7 @@ pub(crate) fn marked_runs(
             };
             if draw {
                 rects.push(SceneRect {
+                    screen_only: false,
                     x: Emu::new(origin_x.raw() + first_x),
                     y: Emu::new(y),
                     width: Emu::new(width),

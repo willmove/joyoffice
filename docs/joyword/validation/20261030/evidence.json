@@ -1,0 +1,161 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "scope": "local implementation, automated tests, real Windows/Word/WPS GUI probes and unsigned portable preview; full M7 acceptance incomplete",
+  "branch": "codex/m7-validation-closure-20261030",
+  "base_head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+  "production_tree": "041680e6fb33d3eda6e0171a1059601b4c754bd9",
+  "verification_snapshot": "7aa041e667f33664b59011c22b9e05ed6f5a43d8",
+  "source_file_sha256": {
+    "apps/joyword/src/ui/controls.rs": "b96f637baa5429c1c8e8835ecc85f69429d8e5cfc55090023af4be83d66bd83d",
+    "apps/joyword/src/ui/ribbon.rs": "8ab3f13fce0f80747dbb46aaeed4bc032624d435126aa1941fdd39decd769d9f",
+    "apps/joyword/Cargo.toml": "aad51a5b8eb274c69d63e41210aa907f92c4d99d8e2273ede9e3974d23008ce6",
+    "Cargo.lock": "19f3d17f5e326ec22e3550f4ed6c451cab292bd51e1a7075d12656caa09fda88",
+    "crates/joyword-layout/src/cache.rs": "73371bcf5ba01346624992b75fed65d6bcde4bf23bb14d5f1468d0316f9cd3de",
+    "crates/joyword-pdf/tests/export_pdf.rs": "c5059b52ac8dc187e2008b3ee636c109720fd3ee8926b67ad244a890fe51eee2",
+    "crates/joyword-textfmt/src/html.rs": "1b977a42bbdf1ed0eed258a967a769d6ae945999a28198def03cef1b4762cb7c",
+    "AGENTS.md": "543ca01bcc0b79b75ea5d14a0b1943ecd4aa951f05cdccc96b1865613dbca4dd",
+    "apps/joyword/src/input_ui.rs": "5ae116ecf0269b26f74316a9dd2715bf39ea77b2e72a33f2b8d86726e12cfbb8",
+    "crates/joyword-shell/src/host.rs": "5f761222e90c6a20aefe979ee4da3ace838cdfefe3a53f2d59e69a0d7b7b0fa1",
+    "crates/joyword-shell/tests/recovery_formatted_text.rs": "34ed6f0001e42eddde4dcac6fd30ae667657b3055f48b9a227453b738f5e1cd0"
+  },
+  "checks": {
+    "default_members": {
+      "passed": 1131,
+      "failed": 0,
+      "targets": 161
+    },
+    "required_font_and_external_pdf_readers": {
+      "targets": 40,
+      "passed": 299,
+      "failed": 0
+    },
+    "application": {
+      "passed": 85,
+      "failed": 0,
+      "targets": 1
+    },
+    "ai_enabled_shell": {
+      "passed": 278,
+      "failed": 0,
+      "targets": 36
+    },
+    "python": {
+      "passed": 116,
+      "failed": 0
+    },
+    "robustness_snapshot": {
+      "targets": 4,
+      "passed": 3,
+      "failed": 0
+    },
+    "recovery_experiment": {
+      "targets": 6,
+      "passed": 15,
+      "failed": 0
+    },
+    "fixed_fault_matrix": {
+      "executed": 81,
+      "ok": 43,
+      "rejected": 38,
+      "matrix_complete": true,
+      "target_sha": "041680e6fb33d3eda6e0171a1059601b4c754bd9"
+    },
+    "behavior_feedback_fuzz": {
+      "seed": 20261030,
+      "executed": 200,
+      "ok": 50,
+      "rejected": 150,
+      "coverage_guided": false,
+      "windows_address_space_hard_limit": false,
+      "target_sha": "041680e6fb33d3eda6e0171a1059601b4c754bd9"
+    },
+    "fmt": "passed",
+    "workspace_clippy": "passed before GUI fixes; final changed app/shell default and AI clippy passed",
+    "ai_clippy": "passed",
+    "no_ai_build": "passed",
+    "native_debug_build": "passed before GUI fixes; final candidate Release rebuilt and verified",
+    "native_release_build": "passed",
+    "cargo_deny": "advisories/bans/licenses/sources passed"
+  },
+  "external_pdf_profile": {
+    "font": "Windows simsun.ttc",
+    "face": 0,
+    "font_sha256": "1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab",
+    "qpdf": "12.2.0",
+    "qpdf_archive_sha256": "7cf812816e7d688e6d782fb7c060ee18613e6366568f6de4819bfa7db7a05cbc",
+    "pdftotext": "Xpdf 4.06",
+    "required_tools": true
+  },
+  "expected_refusals": [
+    "Original robustness build refused uncommitted production sources; current clean snapshot passed",
+    "Old main failed the new cache regression; fixed source passed",
+    "Word COM registered to WPS; preflight refused without opening fixtures",
+    "Deng.ttf was rejected for the mandatory collection test; SimSun TTC passed",
+    "Stable release gate remains false with 55 pending task/observation gates"
+  ],
+  "milestones": {
+    "all_tasks": {
+      "done": 13,
+      "in_progress": 38,
+      "planned": 15
+    },
+    "M0_M7": {
+      "done": 13,
+      "in_progress": 38,
+      "planned": 4
+    },
+    "M7": {
+      "done": 0,
+      "in_progress": 5,
+      "planned": 0
+    }
+  },
+  "release_ready": false,
+  "remote_ci_for_changes": "not-run",
+  "gui_session": {
+    "status": "executed",
+    "report": "gui/summary.json",
+    "completed_scenarios": 22,
+    "full_acceptance": false
+  },
+  "xinchuang_hardware": "unverified/nonblocking follow-up",
+  "package": {
+    "schema": 1,
+    "artifact": "JoyWord-preview-0.0.1-m7-gui-windows-x64.zip",
+    "archive_sha256": "288bc38f9fde9518ec9fa2bd917245681c63aca5a47512bd023a0e0fdca0ab4b",
+    "archive_bytes": 31370136,
+    "repeat_archive_equal": true,
+    "spdx_schema_validation": "passed",
+    "spdx_schema_sha256": "4126dc29f15e92feec92e9622f4939131ad58b125d6f578aa93e980a6e6f3212",
+    "packages": 381,
+    "relationships": 913,
+    "extracted_cli_help": "passed",
+    "extracted_cli_inspect_matches_build": true,
+    "missing_dependency_notice_files": 18,
+    "gui_candidate_binary_matches": true,
+    "native_gui_probe_executed": true,
+    "native_gui_verified": false,
+    "native_gui_scope": "22 completed scenarios, known failures and missing platform acceptance remain",
+    "signed_installer_verified": false
+  },
+  "gui_candidate_sha256": "7bba684c94a751e4ad56269d08ed9a2fe0f2a3bce0d2de806944235f6874e078",
+  "package_before_gui_fixes": {
+    "schema": 1,
+    "artifact": "JoyWord-preview-0.0.1-m7-windows-x64.zip",
+    "archive_sha256": "669a6b1bf59c4674ba99c71c29605e71f6ed8ae88d71ce919992d71b3a4e4621",
+    "archive_bytes": 31353151,
+    "repeat_archive_equal": true,
+    "spdx_schema_validation": "passed",
+    "spdx_schema_sha256": "4126dc29f15e92feec92e9622f4939131ad58b125d6f578aa93e980a6e6f3212",
+    "packages": 381,
+    "relationships": 913,
+    "extracted_cli_help": "passed",
+    "extracted_cli_inspect_matches_build": true,
+    "missing_dependency_notice_files": 18,
+    "native_gui_verified": false,
+    "signed_installer_verified": false
+  },
+  "final_gui_checks": "gui/final-checks.json"
+}

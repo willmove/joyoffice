@@ -11,7 +11,7 @@
 //! temporary pages, unless every body page field has a cached result.
 //! That case draws the cache once and notes `PageFieldCached`.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 use joyword_foundation::Emu;
 use joyword_model::{
@@ -36,7 +36,9 @@ use crate::{
 pub const MAX_LAYOUT_PASSES: usize = 8;
 
 /// Default resident cap for fitted paragraphs. One entry larger than the cap
-/// is not stored; eviction drops the least recently used entries.
+/// is not stored; eviction drops the least recently used entries that are
+/// not required by the current pass. Oversized scans cannot evict their own
+/// upcoming hits and turn every subsequent pass into a complete cache miss.
 pub const DEFAULT_CACHE_BUDGET: usize = 32 << 20;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -382,7 +384,17 @@ impl ParagraphLayoutCache {
         }
     }
 
+    #[cfg(test)]
     fn insert(&mut self, key: ParagraphCacheKey, fit: FittedParagraph) {
+        self.insert_protected(key, fit, &HashSet::new());
+    }
+
+    fn insert_protected(
+        &mut self,
+        key: ParagraphCacheKey,
+        fit: FittedParagraph,
+        protected: &HashSet<ParagraphCacheKey>,
+    ) {
         let bytes = fit_bytes(&fit);
         if bytes > self.budget {
             return;
@@ -390,7 +402,7 @@ impl ParagraphLayoutCache {
         if let Some(old) = self.map.remove(&key) {
             self.used = self.used.saturating_sub(old.bytes);
         }
-        self.evict_for(bytes);
+        self.evict_for(bytes, protected);
         if self.used.saturating_add(bytes) > self.budget {
             return;
         }
@@ -406,11 +418,12 @@ impl ParagraphLayoutCache {
         );
     }
 
-    fn evict_for(&mut self, extra: usize) {
+    fn evict_for(&mut self, extra: usize, protected: &HashSet<ParagraphCacheKey>) {
         while self.used.saturating_add(extra) > self.budget && !self.map.is_empty() {
             let oldest = self
                 .map
                 .iter()
+                .filter(|(key, _)| !protected.contains(key))
                 .min_by_key(|(_, entry)| entry.stamp)
                 .map(|(key, _)| *key);
             let Some(key) = oldest else {
@@ -895,6 +908,42 @@ fn layout_pass(
     let mut deps = Vec::new();
     let mut same = Vec::new();
     let marks = joyword_model::list_marks(document);
+    // Compute keys once before admitting misses. Entries needed anywhere in
+    // this pass stay resident; stale entries (including changed content,
+    // styles, fonts and field contexts) remain normal LRU eviction candidates.
+    // If the working set exceeds the cap, uncached fits are still used for
+    // placement, but cannot evict the unchanged fits we are about to reuse.
+    let keys: Vec<_> = document
+        .body()
+        .blocks
+        .iter()
+        .enumerate()
+        .map(|(index, block)| {
+            let Some(paragraph) = block.as_paragraph() else {
+                return Ok(None);
+            };
+            cancellation.check()?;
+            let flags = paragraph_dependencies(document, paragraph);
+            let context = if flags.any() {
+                assumed.get(index).cloned().unwrap_or_default()
+            } else {
+                ExternalContext::default()
+            };
+            let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
+            Ok(Some(paragraph_key(
+                document,
+                paragraph,
+                faces,
+                profile,
+                plan.fit_width.raw(),
+                crate::pages::column_mix(&plan.columns),
+                context,
+                marks.get(&paragraph.id()),
+                views,
+            )))
+        })
+        .collect::<Result<_, LayoutError>>()?;
+    let protected = keys.iter().flatten().copied().collect();
     let mut total_lines = 0usize;
     let mut charged_shapes = 0usize;
     let mut charged_bytes = 0usize;
@@ -927,17 +976,7 @@ fn layout_pass(
             ExternalContext::default()
         };
         let plan = crate::pages::plan_for(&plans, index).ok_or(LayoutError::InvalidDocument)?;
-        let key = paragraph_key(
-            document,
-            paragraph,
-            faces,
-            profile,
-            plan.fit_width.raw(),
-            crate::pages::column_mix(&plan.columns),
-            context.clone(),
-            marks.get(&paragraph.id()),
-            views,
-        );
+        let key = keys[index].ok_or(LayoutError::InvalidDocument)?;
         // Flow vectors are paragraph-rank. `index` is the body block index
         // and is only used for section geometry.
         let unchanged = stored.as_ref().is_some_and(|(ids, keys, _)| {
@@ -992,7 +1031,7 @@ fn layout_pass(
                 context,
                 &numbering,
             )?;
-            cache.insert(key, fitted.clone());
+            cache.insert_protected(key, fitted.clone(), &protected);
             result.stats_mut().shape_calls += fitted.shape_calls;
             result.stats_mut().shaped_bytes += fitted.shaped_bytes;
             fitted
@@ -1477,6 +1516,30 @@ mod tests {
         let mut huge = ParagraphLayoutCache::with_budget(bytes.saturating_sub(1));
         huge.insert(first_key, blank_fit(&mut document));
         assert_eq!(huge.resident_bytes(), 0);
+    }
+
+    #[test]
+    fn oversized_scans_preserve_upcoming_hits_but_evict_stale_keys() {
+        let mut document = Document::new(PageSetup::a4_zh_cn());
+        let fit = blank_fit(&mut document);
+        let bytes = fit_bytes(&fit);
+        let mut cache = ParagraphLayoutCache::with_budget(bytes);
+        let first = key_for(ExternalKey::default());
+        let mut second = first;
+        second.content = [7; 32];
+        cache.insert(second, fit);
+        let active = HashSet::from([first, second]);
+        for _ in 0..3 {
+            // A prefix miss cannot evict a suffix that this pass needs next.
+            cache.insert_protected(first, blank_fit(&mut document), &active);
+            assert!(cache.cloned(&second).is_some());
+            assert!(cache.resident_bytes() <= bytes);
+        }
+        // A style/content/context change makes the old key expendable again.
+        cache.insert_protected(first, blank_fit(&mut document), &HashSet::from([first]));
+        assert!(cache.cloned(&first).is_some());
+        assert!(cache.cloned(&second).is_none());
+        assert!(cache.resident_bytes() <= bytes);
     }
 
     #[test]

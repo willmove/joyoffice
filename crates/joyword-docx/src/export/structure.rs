@@ -3213,6 +3213,18 @@ fn append_linked_runs(
         for (style, props, _, content) in &groups[start..index] {
             let text = match content {
                 GroupContent::Text(text) => text,
+                GroupContent::Inline(InlineKind::Break(joyword_model::BreakKind::Line)) => {
+                    let rpr = properties(style, props)?;
+                    inner.push_str(&names.start("r"));
+                    inner.push('>');
+                    if let Some(rpr) = rpr {
+                        inner.push_str(&rpr);
+                    }
+                    inner.push_str(&names.start("br"));
+                    inner.push_str("/>");
+                    inner.push_str(&names.end("r"));
+                    continue;
+                }
                 GroupContent::Inline(InlineKind::PageField(field)) => {
                     // The importer reads a simple field's result run without
                     // formatting, so only an unformatted field round-trips.

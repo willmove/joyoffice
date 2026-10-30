@@ -169,6 +169,7 @@ input.stale = 文档已变化，请重新开始输入。
 input.unsupported_text = 暂不支持本次输入中的控制字符。
 input.rejected = 本次编辑未能完成，文档保持原状。
 input.image = 图片被拒绝，文档保持原状。
+input.document_text = 文档文本
 
 file.save_original.unavailable = 当前文档没有可保存的原件
 file.original.unexpected = 原件预检返回了无法识别的结果
@@ -324,3 +325,31 @@ ui.color_auto = 自动
 ui.color_black = 黑色
 ui.color_blue = 蓝色
 status.compact = 第 {page} 页 · 字数 {words}
+
+# M8 local mail merge
+command.file.mail_merge = 邮件合并…
+merge.title = 本地邮件合并
+merge.choose_template = 选择邮件合并 DOCX 模板
+merge.choose_data = 选择本地 UTF-8 CSV 数据源
+merge.choose_parent = 选择输出位置，将新建独立文件夹
+merge.mapping = 模板字段：{field} · CSV 第 {number} 列：{column}
+merge.use_column = 使用此列
+merge.next_column = 下一列
+merge.preview = 第 {row} / {count} 行 · 文字预览：{text}
+merge.next_row = 下一行
+merge.generate = 生成全部信件…
+merge.truncated =  ……（预览已缩短）
+merge.running = 正在生成本地信件；再次选择“邮件合并”可取消。
+merge.cancelling = 正在取消邮件合并…
+merge.cancelled = 邮件合并已取消，模板未改动。
+merge.saved = 已在 {path} 生成 {count} 份信件，模板未改动。
+merge.saved_count = 已生成 {count} 份信件，模板未改动。
+merge.error = 邮件合并未完成：{reason}
+
+command.file.export_epub = 导出 EPUB…
+epub.review = 检查 EPUB 转换损失；取消保持原文档
+epub.continue = 导出新副本
+epub.saved = EPUB 已保存到 {path}，原文档未改动。
+epub.saved_earlier = EPUB 已从较早快照保存到 {path}，当前编辑未改动。
+epub.completed = EPUB 导出完成。
+epub.cancelled = EPUB 导出已取消，原文档未改动。

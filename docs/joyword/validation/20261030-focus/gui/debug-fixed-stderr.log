@@ -1,0 +1,6 @@
+[0.000s INFO C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gpui-pre-windows-0.3.9\src\direct_write.rs:1918] Use Microsoft YaHei UI as UI font.
+[0.123s INFO C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gpui-pre-windows-0.3.9\src\directx_devices.rs:121] Using GPU: Intel(R) Arc(TM) 140T GPU (16GB)
+[0.214s INFO C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gpui-pre-windows-0.3.9\src\directx_devices.rs:55] Created device with Direct3D 11.1 feature level.
+[0.506s INFO C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\gpui-pre-0.3.9\src\window.rs:1690] Accessibility activated
+[0.819s WARN C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tiny-skia-0.11.4\src\painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[105.661s WARN C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tiny-skia-0.11.4\src\painter.rs:228] empty paths and horizontal/vertical lines cannot be filled

@@ -3,12 +3,15 @@
 //! registry and run through its single entry point (T106).
 mod chrome_ui;
 mod document_canvas;
+mod epub_ui;
 mod export;
 mod field_edit;
 mod input_ui;
 mod linux_files;
+mod mail_merge_ui;
 #[cfg(target_os = "linux")]
 mod prompt_ui;
+mod text_accessibility;
 mod ui;
 
 use document_canvas::{CanvasPipeline, Landed, LayoutFrame, LayoutRequestKey, PageImage, PageKey};
@@ -140,7 +143,9 @@ actions!(
         ReviewFinal,
         ReviewOriginal,
         ReviewSimple,
-        SetReviewAuthor
+        SetReviewAuthor,
+        MailMerge,
+        ExportEpub
     ]
 );
 
@@ -240,6 +245,8 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FILE_SAVE => Box::new(SaveOriginal),
         FILE_SAVE_COPY => Box::new(SaveCopy),
         FILE_EXPORT_PDF => Box::new(ExportPdf),
+        FILE_MAIL_MERGE => Box::new(MailMerge),
+        FILE_EXPORT_EPUB => Box::new(ExportEpub),
         FILE_PRINT => Box::new(PrintFile),
         EDIT_BOLD => Box::new(Bold),
         EDIT_ITALIC => Box::new(Italic),
@@ -392,11 +399,11 @@ fn shortcut_chords(registry: &Registry) -> Vec<(&'static str, CommandId)> {
 /// Document focus, and not one of the in-app text fields. A focused field
 /// pushes [`field_edit::FIELD_CONTEXT`], and `!JoyWordField` checks the whole
 /// context stack, so these bindings stay with the document.
-const DOCUMENT: &str = "JoyWordInput && !JoyWordField";
+const DOCUMENT: &str = "JoyWordInput && !JoyWordField && !JoyWordControl";
 /// Document focus with no open IME composition.
-const TYPING: &str = "JoyWordInput && !composing && !JoyWordField";
+const TYPING: &str = "JoyWordInput && !composing && !JoyWordField && !JoyWordControl";
 /// Document focus while an IME composition is open.
-const COMPOSING: &str = "JoyWordInput && composing && !JoyWordField";
+const COMPOSING: &str = "JoyWordInput && composing && !JoyWordField && !JoyWordControl";
 
 fn key_bindings(registry: &Registry) -> Vec<KeyBinding> {
     shortcut_chords(registry)
@@ -508,6 +515,8 @@ struct Popup {
 }
 
 struct JoyWord {
+    merge_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
+    epub_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
     zoom_percent: u16,
     locale: Locale,
     registry: Registry,
@@ -654,6 +663,20 @@ struct ViewHost<'a, 'b> {
 impl CommandHost for ViewHost<'_, '_> {
     fn availability(&self, id: CommandId) -> Availability {
         match id {
+            FILE_MAIL_MERGE => Availability::Enabled,
+            FILE_EXPORT_EPUB => {
+                if self.view.epub_cancel.is_some()
+                    || self
+                        .view
+                        .editor
+                        .as_ref()
+                        .is_some_and(|e| !e.read_only() && !e.is_composing())
+                {
+                    Availability::Enabled
+                } else {
+                    Availability::Disabled("input.read_only")
+                }
+            }
             ZOOM_IN if self.view.zoom_percent >= ZOOM_MAX => Availability::Disabled("zoom.max"),
             ZOOM_OUT if self.view.zoom_percent <= ZOOM_MIN => Availability::Disabled("zoom.min"),
             _ => self.view.input_availability(id),
@@ -667,9 +690,11 @@ impl CommandHost for ViewHost<'_, '_> {
     ) -> Result<(), ExecuteError> {
         let view = &mut *self.view;
         match id {
-            ZOOM_IN => view.zoom_percent = (view.zoom_percent + 10).min(ZOOM_MAX),
-            ZOOM_OUT => view.zoom_percent = (view.zoom_percent - 10).max(ZOOM_MIN),
-            ZOOM_RESET => view.zoom_percent = 100,
+            FILE_MAIL_MERGE => view.begin_mail_merge(self.window, self.cx),
+            FILE_EXPORT_EPUB => view.begin_epub(self.window, self.cx),
+            ZOOM_IN => view.set_zoom_percent((view.zoom_percent + 10).min(ZOOM_MAX)),
+            ZOOM_OUT => view.set_zoom_percent((view.zoom_percent - 10).max(ZOOM_MIN)),
+            ZOOM_RESET => view.set_zoom_percent(100),
             SWITCH_LANGUAGE => {
                 view.locale = match view.locale {
                     Locale::ZhCn => Locale::En,
@@ -771,6 +796,12 @@ impl CommandHost for ViewHost<'_, '_> {
 
 impl Drop for JoyWord {
     fn drop(&mut self) {
+        if let Some(cancel) = &self.merge_cancel {
+            cancel.store(true, std::sync::atomic::Ordering::Release);
+        }
+        if let Some(cancel) = &self.epub_cancel {
+            cancel.store(true, std::sync::atomic::Ordering::Release);
+        }
         self.canvas.cancel();
     }
 }
@@ -989,15 +1020,26 @@ impl JoyWord {
                 ScreenScale::new(f64::from(self.zoom_percent) / 100.0).expect("clamped zoom");
             let projection = self.projection();
             let catalog = Catalog::shipped(self.locale);
+            let extent = input_ui::content_size(&frame.layout, scale);
+            let mut above = joyword_foundation::Emu::new(0);
             return div()
+                .relative()
                 .w_full()
-                .flex()
-                .flex_col()
-                .items_center()
-                .gap(px(input_ui::DOC_GAP))
+                .min_w(extent.width - px(2.0 * input_ui::DOC_PAD))
+                .h(extent.height - px(2.0 * input_ui::DOC_PAD))
                 .children(frame.layout.pages().iter().enumerate().map(|(i, page)| {
+                    // Absolute positions share the input/IME transform. A flex
+                    // stack rounds each fractional page height independently,
+                    // accumulating visible drift on long documents.
+                    let top = input_ui::page_stack_top(scale, i, above);
+                    above = joyword_foundation::Emu::new(above.raw() + page.height.raw());
+                    let width = scale.logical_pixels(page.width) as f32;
                     let sheet = div()
-                        .w(px(scale.logical_pixels(page.width) as f32))
+                        .absolute()
+                        .top(px(top))
+                        .left(gpui::relative(0.5))
+                        .ml(px(-width / 2.0))
+                        .w(px(width))
                         .h(px(scale.logical_pixels(page.height) as f32))
                         .flex_shrink_0()
                         .bg(rgb(0xffffff))
@@ -1214,34 +1256,58 @@ impl JoyWord {
                 self.label("find.replacement"),
             ),
         };
-        div()
-            .id(match slot {
+        crate::ui::controls::text_field(
+            match slot {
                 FindSlot::Query => "find-query",
                 FindSlot::Replacement => "find-replacement",
-            })
-            .track_focus(&focus)
-            .key_context(field_edit::FIELD_CONTEXT)
-            .focusable()
-            .w(px(160.0))
-            .px_2()
-            .py_1()
-            .border_1()
-            .border_color(rgb(0xc5ced6))
-            .bg(rgb(0xffffff))
-            .text_color(rgb(0x263247))
-            .on_click(cx.listener(move |this, _, window, cx| {
-                let focus = match slot {
-                    FindSlot::Query => this.find_query_focus.clone(),
-                    FindSlot::Replacement => this.find_replacement_focus.clone(),
+            },
+            placeholder.clone(),
+            buffer.text().to_owned(),
+        )
+        .on_a11y_action(gpui::AccessibleAction::SetValue, {
+            let entity = cx.entity();
+            move |data, _, cx| {
+                let Some(gpui::accesskit::ActionData::Value(text)) = data else {
+                    return;
                 };
-                window.focus(&focus, cx);
-            }))
-            .on_key_down(
-                cx.listener(move |this, event: &gpui::KeyDownEvent, window, cx| {
-                    this.type_find(slot, event, window, cx);
-                }),
-            )
-            .child(field_edit::field_view(buffer, &placeholder))
+                entity.update(cx, |view, cx| {
+                    if !matches!(view.side_panel, Some(SidePanel::Find { .. })) {
+                        return;
+                    }
+                    let buffer = match slot {
+                        FindSlot::Query => &mut view.find_query,
+                        FindSlot::Replacement => &mut view.find_replacement,
+                    };
+                    if buffer.set_accessible_text(text) {
+                        view.find_note = None;
+                        cx.notify();
+                    }
+                });
+            }
+        })
+        .track_focus(&focus)
+        .key_context(field_edit::FIELD_CONTEXT)
+        .focusable()
+        .w(px(160.0))
+        .px_2()
+        .py_1()
+        .border_1()
+        .border_color(rgb(0xc5ced6))
+        .bg(rgb(0xffffff))
+        .text_color(rgb(0x263247))
+        .on_click(cx.listener(move |this, _, window, cx| {
+            let focus = match slot {
+                FindSlot::Query => this.find_query_focus.clone(),
+                FindSlot::Replacement => this.find_replacement_focus.clone(),
+            };
+            window.focus(&focus, cx);
+        }))
+        .on_key_down(
+            cx.listener(move |this, event: &gpui::KeyDownEvent, window, cx| {
+                this.type_find(slot, event, window, cx);
+            }),
+        )
+        .child(field_edit::field_view(buffer, &placeholder))
     }
 
     fn type_find(
@@ -1403,7 +1469,6 @@ impl Render for JoyWord {
         }
 
         div()
-            .track_focus(&self.focus_handle)
             .key_context(
                 if self
                     .editor
@@ -1555,6 +1620,14 @@ impl Render for JoyWord {
             )
             .on_action(
                 cx.listener(|this, _: &PrintFile, window, cx| this.run(FILE_PRINT, window, cx)),
+            )
+            .on_action(cx.listener(|this, _: &ExportEpub, window, cx| {
+                this.run(FILE_EXPORT_EPUB, window, cx)
+            }))
+            .on_action(
+                cx.listener(|this, _: &MailMerge, window, cx| {
+                    this.run(FILE_MAIL_MERGE, window, cx)
+                }),
             )
             .on_action(cx.listener(|this, _: &Bold, window, cx| this.run(EDIT_BOLD, window, cx)))
             .on_action(
@@ -1953,7 +2026,20 @@ fn main() {
         }
         fn log(&self, record: &log::Record) {
             if self.enabled(record.metadata()) {
-                eprintln!("[{}] {}", record.level(), record.args());
+                static START: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+                let elapsed = START.get_or_init(std::time::Instant::now).elapsed();
+                eprintln!(
+                    "[{:.3}s {} {}:{}] {}",
+                    elapsed.as_secs_f64(),
+                    record.level(),
+                    record
+                        .file()
+                        .and_then(|file| std::path::Path::new(file).file_name())
+                        .and_then(|name| name.to_str())
+                        .unwrap_or(record.target()),
+                    record.line().unwrap_or(0),
+                    record.args()
+                );
             }
         }
         fn flush(&self) {}
@@ -2027,6 +2113,8 @@ fn main() {
                         focus_handle: cx.focus_handle(),
                         editor,
                         copy_note: None,
+                        merge_cancel: None,
+                        epub_cancel: None,
                         font: None,
                         profile: None,
                         canvas: CanvasPipeline::default(),

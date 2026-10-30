@@ -523,3 +523,33 @@ fn long_document_edits_reuse_fits_and_the_stable_page_tail() {
     assert_eq!(incremental.stats().stable_boundary, None);
     assert_eq!(incremental.pages().len(), before_last.pages().len());
 }
+
+#[test]
+fn a_working_set_larger_than_the_cache_keeps_hits_without_exceeding_the_cap() {
+    let document = mixed_long_document(50, false);
+    let budget = 256 << 10;
+    let mut cache = ParagraphLayoutCache::with_budget(budget);
+    let first = lay_incremental(&document, &mut cache, None, &LayoutInvalidation::default())
+        .expect("initial bounded-cache layout");
+    assert!(cache.resident_bytes() <= budget);
+    let second = lay_incremental(
+        &document,
+        &mut cache,
+        Some(&first),
+        &LayoutInvalidation::default(),
+    )
+    .expect("second bounded-cache layout");
+    assert!(cache.resident_bytes() <= budget);
+    // The whole workload cannot fit: a real pass must have both hits and
+    // misses, rather than evicting every upcoming entry during a scan.
+    assert!(
+        second.stats().cache_hits > 0,
+        "all upcoming fits were evicted"
+    );
+    assert!(
+        second.stats().shape_calls > 0,
+        "fixture no longer exceeds the cache"
+    );
+    assert!(second.stats().shape_calls < first.stats().shape_calls);
+    assert_same(&lay(&document).unwrap(), &second, "bounded cache");
+}

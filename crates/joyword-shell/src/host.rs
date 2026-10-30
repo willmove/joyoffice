@@ -2,7 +2,7 @@
 //! Menus and programmatic callers both go through [`Office::invoke`].
 
 use std::collections::BTreeMap;
-use std::io;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -292,9 +292,23 @@ impl Office {
     pub fn recover_from(directory: &Path) -> Result<Self, ExecuteError> {
         let recovered = crate::storage::recover(directory)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
-        let path = directory.join("recovered.docx");
-        std::fs::write(&path, &recovered.baseline)
+        // Each recovery owns a new copy. A previously recovered document may
+        // still be open, or its lock may survive another crash; never overwrite
+        // that document or remove its lock to make the next recovery succeed.
+        let mut copy = tempfile::Builder::new()
+            .prefix("recovered-")
+            .suffix(".docx")
+            .tempfile_in(directory)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        copy.write_all(&recovered.baseline)
+            .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        copy.as_file()
+            .sync_all()
+            .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        let (file, path) = copy
+            .keep()
+            .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        drop(file);
         let mut office = Self::new();
         let generation = office.begin_open();
         office.accept_open(generation, &path)?;
@@ -306,16 +320,32 @@ impl Office {
             .text()
             .to_owned();
         if current != recovered.text {
-            let len = office
-                .active()
-                .ok_or_else(|| ExecuteError::Failed("no document".into()))?
-                .view()
-                .index()
-                .len_utf16();
+            // A text checkpoint is not a rich-document snapshot. Preserve the
+            // unchanged edges instead of deleting all existing runs (which
+            // loses their formatting and can make a safe export impossible).
+            let prefix: usize = current
+                .chars()
+                .zip(recovered.text.chars())
+                .take_while(|(a, b)| a == b)
+                .map(|(c, _)| c.len_utf8())
+                .sum();
+            let suffix: usize = current[prefix..]
+                .chars()
+                .rev()
+                .zip(recovered.text[prefix..].chars().rev())
+                .take_while(|(a, b)| a == b)
+                .map(|(c, _)| c.len_utf8())
+                .sum();
+            let start = current[..prefix].encode_utf16().count();
+            let end = start
+                + current[prefix..current.len() - suffix]
+                    .encode_utf16()
+                    .count();
+            let replacement = &recovered.text[prefix..recovered.text.len() - suffix];
             office
                 .active_mut()
                 .ok_or_else(|| ExecuteError::Failed("no document".into()))?
-                .replace_from(InputSource::Command, Some(0..len), &recovered.text)
+                .replace_from(InputSource::Command, Some(start..end), replacement)
                 .map_err(input_error)?;
         }
         Ok(office)

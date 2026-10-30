@@ -43,6 +43,7 @@ LAYERS = {
         "joyword-model",
         "joyword-pdf",
         "joyword-render",
+        "joyword-shell",
     },
     "joyword-foundation": set(),
     # T400: no document, engine, or network crate. Core crates must not depend
@@ -54,6 +55,7 @@ LAYERS = {
     "joyword-docx": {"joyoffice-opc", "joyword-model", "joyword-foundation"},
     "joyword-layout": {"joyword-foundation", "joyword-model"},
     "joyword-render": {"joyword-foundation", "joyword-layout", "joyword-model"},
+    "joyword-epub": {"joyword-model", "joyoffice-opc"},
     "joyword-pdf": {"joyword-foundation", "joyword-layout", "joyword-model"},
     "joyword-corpus": {"joyoffice-opc"},
     "joyoffice-cfb": set(),
@@ -67,6 +69,7 @@ LAYERS = {
         "joyoffice-opc",
         "joyword-agent",
         "joyword-docx",
+        "joyword-epub",
         "joyword-engine",
         "joyword-model",
     },
@@ -94,6 +97,7 @@ LAYERS = {
 # reviewed exception list for `[dev-dependencies]` only and never weakens the
 # normal-dependency check.
 DEV_LAYERS = {
+    "joyword-epub": {"joyword-docx"},
     # apps/joyword-cli/Cargo.toml:22 -- CLI integration tests replay corpus cases.
     "joyword-cli": {"joyword-corpus"},
     # crates/joyword-docx/Cargo.toml -- DOCX round-trip tests read corpus
@@ -121,6 +125,8 @@ DEV_LAYERS = {
 }
 
 FS_ALLOW = {
+    "crates/joyword-shell/src/mail_merge.rs",
+    "crates/joyword-shell/src/epub.rs",
     "apps/joyword-cli/src/main.rs",
     "apps/joyword-cli/src/visual.rs",
     "crates/joyoffice-opc/src/zip.rs",

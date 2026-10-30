@@ -12,6 +12,7 @@
 - 状态只陈述本仓库实际工作；后续路线图不等于本次全部实施完成。
 - M0→M1→M2→M3 为主线；M4／M5 可在依赖满足后分别推进；M6 汇合到 M7。M8 是 1.0 之后的扩展，M9 仅为下一轮规格入口。
 - 前置只写技术依赖；阶段发布顺序由门槛任务（T107、T206、T304、T403、T704）串联，M0–M7 的工作任务不以其他阶段的门槛任务为前置；M8、M9 任务以 T704 为前置，表示在 1.0 之后开展。M0–M7 的任务都必须在 T704 的前置闭包内（检查器校验）。
+- 2026-10-30 用户明确要求推进 M8：可提前完成能独立验证的开发任务；保留 T704 依赖与阶段发布门槛，不把独立任务完成等同于 1.0 或整阶段通过。
 
 ## 进度总览
 
@@ -22,15 +23,27 @@
 | --- | ---: | ---: | ---: | ---: | ---: |
 | M0 | 4 | 2 | 0 | 0 | 6 |
 | M1 | 7 | 4 | 1 | 0 | 12 |
-| M2 | 2 | 9 | 1 | 0 | 12 |
+| M2 | 3 | 8 | 1 | 0 | 12 |
 | M3 | 0 | 4 | 1 | 0 | 5 |
 | M4 | 0 | 3 | 1 | 0 | 4 |
 | M5 | 0 | 5 | 0 | 0 | 5 |
 | M6 | 0 | 6 | 0 | 0 | 6 |
-| M7 | 0 | 0 | 5 | 0 | 5 |
-| M8 | 0 | 0 | 9 | 0 | 9 |
+| M7 | 0 | 5 | 0 | 0 | 5 |
+| M8 | 1 | 1 | 7 | 0 | 9 |
 | M9 | 0 | 0 | 2 | 0 | 2 |
-| 总计 | 13 | 33 | 20 | 0 | 66 |
+| 总计 | 15 | 38 | 13 | 0 | 66 |
+
+2026-10-30 归档与阅读器最新进展：PDF/A-2b 核心／CLI 输出通过独立 veraPDF（144 规则、3972 检查、零失败）；EPUB NCX 兼容目录及独立阅读器中文搜索／章节选择完成；格式对话框 Dialog 角色完成原生 GUI 复验。这些原子项 done；混合文字缺字、桌面归档入口和完整辅助技术仍未完成，T806／T701 保持 in_progress。统计仍为 15 done／38 in_progress／13 planned。见 [本轮报告](verification/m8-archive-20261030.md)。
+
+**2026-10-30 焦点与 EPUB 最新状态**：全仓 **15 done／38 in_progress／13 planned**，M8 为 **1 done／1 in_progress／7 planned**。焦点角色与窗口关闭诊断修复；T806 的 EPUB 只读导出、差异预检、CLI 和桌面入口进入实现与验证，PDF/A 和独立阅读器验收仍未完成，因此整项为 `in_progress`。见 [本轮报告](verification/m8-focus-epub-20261030.md) 和 [T806 原子验收](acceptance/T806.md)。下文保留历史快照。
+
+**2026-10-30 邮件合并历史状态**：T807 本地邮件合并已完成实现、12 项核心及 2 项 CLI 回归、真实 Windows 映射／预览／取消／三封批量生成，Word 与 WPS 重开通过，改为 `done`。当前 **15 done／37 in_progress／14 planned**；M8 为 1 done／8 planned。按用户本轮要求提前推进独立 M8 能力，T501／T502／T704 的剩余条件和 1.0 发布门槛不变。协议与边界见 [M8 本轮记录](verification/m8-20261030.md) 和 [T807 验收](acceptance/T807.md)。以下为前轮历史快照。
+
+**2026-10-30 最新修复状态**：T208 已完成百页首尾编辑、导航、光标和缩放的真实 GUI 验收，改为 `done`。当前总计 **14 done／37 in_progress／15 planned**；M0–M7 为 14／37／4。WPS 设置阻断、百页几何、PDF 编辑标记缺陷关闭；Windows 正文原生可访问读写、选区与只读保护完成，完整三端读屏仍未验收。见 [修复与复验](verification/m7-followup-20261030.md)。下列入口及 GUI 补充为先前轮次的历史快照。
+
+**2026-10-30 当前收口状态（本轮入口）**：M7 的 T700–T704 从 `planned` 进入 `in_progress`。当前总计 13 done／38 in_progress／15 planned；M0–M7 为 13 done／38 in_progress／4 planned。已执行的实现、验证、独立小项与未完成条件集中在 [M7 本轮证据](verification/m7-20261030.md) 和 [发布检查清单](release/checklist.json)。以下按日期保留历史记录；历史“尚未开始”等叙述不代表本轮状态。M7 与 1.0 尚未通过，未把缺环境、自动测试或待补验改写为人工通过。
+
+**2026-10-30 GUI 收口补充**：用户已取消 GUI 时段确认，22 个具体桌面步骤完成并记为 done；修复保存默认和两项恢复缺陷。Word 小样例往返通过，WPS 重存 GUI、百页导航／光标、正文可访问性和 PDF 编辑标记发现真实未完成项，按证据保留。完整记录见 [GUI 收口](verification/m7-gui-20261030.md)；阶段任务仍为 13 done／38 in_progress／15 planned，不把小项关闭冒充阶段完成。
 
 T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`。2026-10-22 六分支波次之后 T301 与 T401 也由 `planned` 改为 `in_progress`；2026-10-23 第二波的 T402 有界替换提案与只读预览进入独立审查，状态改为 `in_progress`。所以 2026-10-23 各波次后上表为 12 done／22 in_progress／32 planned／0 blocked；2026-10-26 T001 收口后为 13 done／21 in_progress／32 planned／0 blocked（见下文该段）。任务总数仍是 66，切片交付不等于整个任务完成。2026-10-23 第二波四路并行切片落地：T104 生产恢复双代、T204 PDF 书签内部跳转、T202 章节 PAGE 编号与 T402 有界替换提案与只读预览，四项各自进入 `in_progress`，没有一项被标成 `done`；详细证据见各任务的完成证据与 [验收清单](acceptance/README.md)。2026-10-23 第三切片（无 PR，按用户指令直接并入 main）：T402 跨段有界替换与段落标记删除修订（`w:pPr/w:rPr/w:del`）落地，同时补齐 AI 修订的 DOCX 往返与对照器修订携带；T301 的跨段跟踪删除限制随之解除（表格／内容控件边界仍拒绝）。布局的合并渲染（最终视图中删除标记的相邻段仍逐段排版）是如实记录的已知边界，留待后续切片。
 
@@ -122,6 +135,8 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 人工验收：审查样例无敏感内容；确认原始文字与正式 DOCX 夹具区别。
 - 完成证据：清单与检查器、模型语义比较、PDF 行／页断点比较工具（CI 端到端：相同排版通过、改变换行被检出）、5 个确定性生成的原创最小 DOCX 样例已落地；2026-10-17 编辑行为登记表落地：[behavior_registry.json](behavior_registry.json)（schema 1，7 条假设条目均绑定现有测试名），`check_docs.py` 校验唯一 ID、假设不携带观测／规则必须带完整 Word 观测字段、引用的测试名在工作区真实存在，并有 10 项单元测试（`scripts/tests/test_behavior_registry.py`）。2026-10-18 固定 Word 参考结果已建立：Word 2024 永久版（家庭版 2024，build 16.0.20430.20182，Windows 11 x86_64）COM 只读打开 6 个格式样例并导出 PDF（禁链接更新与宏、位图字体替代关闭），逐样例保存 PDF、文本读回与 pdfplumber 几何抽取记录于 `tests/fixtures/reference/word2024/`，清单的参考档案置为 established；Word 实测字体：默认中文为等线（DengXian），DOCX-MIN-002 的显式样式解析为宋体＋Times New Roman；DOCX-MIN-005 报保护类型 3（只读限制）且强制修订开启。2026-10-18 排版规则目录建立首批实测条目（[layout_rules.md](layout_rules.md) R1–R9）：同页框同度量下 Word 与 JoyWord 断行逐行一致（两处对照，行位偏差 ≤1 pt）。2026-10-18 人工验收已执行：逐份审查 4 个文本种子与 6 个 DOCX 夹具，均为原创虚构内容（无个人信息、凭据或真实地址；注入测试样例明确标注为测试数据），原始 UTF-8 种子与 joyword-corpus 确定性生成的正式 DOCX 夹具角色区分明确。2026-10-18 WPS 固定参考环境建立（Mac）：WPS Office for Mac 12.1.29181（build 29181）打开 6 个格式夹具与 e2e 编辑副本，全选复制读回逐段一致（WPS 复制在中西文边界插半角空格，去空格归一后逐字一致；基线为包内 document.xml 独立解析；当日两轮独立复现，现存读回文件与 [wps_report.json](../../tests/fixtures/reference/wps/wps_report.json)）。参考 PDF 导出通道当日本机故障（系统“存储为PDF”与 WPS“输出为PDF”均静默无产物，上午曾成功、下午不可复现，无 sudo 无法排查），PDF 参考与几何抽取待环境修复后补建，如实记录。T004 人工验收（审查样例、种子与夹具区分）已于 2026-10-18 执行，标记 `done`，见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
+- 2026-10-30 复验补充：特性语料改为 ZIP stored／PNG stored block 后，stock zlib 与 zlib-ng 的字节复现均通过；原 XML 与像素语义保持，登记散列已同步。任务状态仍为 done，Office 验证等级不变。
+
 ### T005：信创平台技术验证
 
 - 输入：统信 UOS 与银河麒麟桌面版（x86_64、ARM64、LoongArch64）测试机或镜像、Rust 目标支持说明及 GPUI 渲染后端候选。
@@ -189,6 +204,11 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 2026-10-20 验证波次收口：S2（[#62](https://github.com/willmove/joyoffice/pull/62)，`8a12e6dd`）接上代码覆盖引导 fuzz。反馈来自插桩二进制的 LLVM 源码区域计数器；稳定版 1.98.1 不写分支计数器，所以不是分支覆盖。固定种子 20261020、60 次变异，没有 crash、timeout、invariant 或 protocol。夜间工作流是 `.github/workflows/fuzz-nightly.yml`，见 [T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md)。验收清单里的覆盖引导 fuzz 一行改为 partial。WPS 生成的固定样例和 Word／WPS 人工交换仍未做。状态保持 `in_progress`。
 - 2026-10-23 生产恢复双代切片（[#90](https://github.com/willmove/joyoffice/pull/90)，任务仍 `in_progress`）：两个发布槽 `recovery-a.jwr`／`recovery-b.jwr` 交替写入，每代带 `JWREC002` 头与 CRC32，写入经临时文件、flush、sync、读回校验与原子改名后才发布，发布前一代始终保留。最新槽损坏时回退到另一槽；两槽同代内容不同或都损坏时拒绝，且不改写损坏槽。旧 `JWREC001` 单文件格式只读兼容，迁移期间不改写旧文件。文档加密拒绝写明文副本，超预算输入不落文件。保存 N 完成时编辑记录 N+1 仍为 dirty，重启可恢复到 N+1。独立审查在独占 target 上复跑 `joyword-shell` 263 项与应用 65 项测试、全目标 clippy 与 fmt，无阻塞发现。macOS 上的一次失败经查为平台锁语义差异：BSD 与 macOS 的 `flock` 锁属于文件而非描述符，关闭描述符不释放进程持有的锁，std 的 `File` 析构只关描述符而不发 `LOCK_UN`，于是同一下一次取锁被自己的旧锁拒绝，而 Linux 与 Windows 随最后一个句柄关闭即释放。已改为显式 `unlock()` 的守卫类型，并新增 `a_released_lock_can_be_taken_again_by_the_same_process` 回归。未做：图形界面、断电、真实磁盘满与信创真机验收；Windows 目录同步按实现记为 false。
 
+- 2026-10-30 当前生产树 `17f85b034ca311085ac0f06443ecd3a555ccfe33` 在隔离源码快照中重跑 81 格故障矩阵与种子 20261030 的 200 次行为反馈 fuzz，均完成且无崩溃／超时／不变量失败；不冒充代码覆盖引导或 Windows 地址空间硬限制。特性 DOCX 精确字节复现的 zlib 差异已修复。Word COM 被 WPS 接管，交换预检拒绝，真实 Word／WPS 完整对照未关闭，任务仍 in_progress。见 [本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：真实 Word 与 WPS 均打开 JoyWord 副本并本地另存，正文逐字一致；Word 重存副本可在 JoyWord 显示，WPS 重存因保留设置被画布明确拒绝。完整 Word／WPS 交换仍未通过。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
+
+- 2026-10-30 后续修复：WPS 未选中 AlternateContent 设置经狭窄 MCE 校验后不再阻断排版；真实 WPS 重存包编辑、另存、重开通过，所有文件成员保留且 settings 字节相同。完整交换矩阵仍未关闭。 见 [修复与复验](verification/m7-followup-20261030.md)。
+
 ### T104：撤销、本地日志与恢复
 
 - 输入：已提交事务、文档快照、正式保存版本与可注入失败的存储适配。
@@ -203,6 +223,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 2026-10-26 撤销属性与日志校验切片：`joyword-engine/tests/undo_properties.rs` 以自研 xorshift64* 固定种子（4 个）驱动随机编辑事务，覆盖全量撤销回到初始快照、撤销 k 重做 k 精确还原、撤销后新编辑永久截断重做、被拒事务（陈旧版本、Agent 关闭、前置条件、非法文字、越界、倒序、未知节点、多命令半途失败）不动文档与双栈、段落身份保持且版本只增不重用，失败打印种子与命令日志；独立撤销栈经 `two_sessions_have_independent_undo_stacks` 与 `saving_and_journaling_do_not_clear_the_undo_stack`（保存副本与恢复日志写入不清空、不增加撤销步）；日志校验经 `tampered_slots_fall_back_to_the_valid_prefix_or_fail_closed`（逐位翻转、任意截断、头前／尾后垃圾回退上一有效代且写入失败即关闭、损坏槽不覆盖）、`generation_order_selects_across_slots_not_by_file_name`（按代次不按槽名选择、同代同内容去重）与 `only_verified_bytes_reach_the_target_slot`（发布前解码校验，未验证字节不进槽、无遗留临时文件）。无生产代码改动；周期快照与断电人工验收仍未做，T104 保持 `in_progress`。
 
 - 2026-10-27 周期快照收口切片（任务仍 `in_progress`，进度计数不变）：核对「周期快照」产物项与现状：2026-10-26 的生产恢复双代日志每次编辑提交都写一份完整代——原包基线（`PackageBacking` 的 `original_bytes`，不是只有模型）加全文文本——经临时文件、flush、sync、读回校验与原子改名发布，发布前一代始终保留在另一槽，加密包拒绝写明文；这正是任务要求的周期快照形态，粒度为每次提交（严于定时）。本切片补上两点：其一，审计 `host.rs` 的命令分发——全部 33 个会改文档的命令分支（编辑、格式、样式、列表、分页与页面设置、查找替换、格式刷、表格增删改、审阅接受／拒绝／跟踪）在提交后调用 `journal_active`，非修改命令（查看、选择、视图切换、复制）不写日志；其二，新增端到端性质测试把它钉住。证据：`crates/joyword-shell/tests/t104_periodic_snapshots.rs` 的 `every_committed_edit_publishes_a_complete_periodic_snapshot`——经命令注册表依次驱动插入、全选、加粗、居中、分页符、全部替换、插表、开跟踪、插入、全部拒绝共九次修改与一次非修改，每步断言：代次恰加一、快照文本等于当前全文、快照基线等于原包字节、版本字段非空；全选不产生新代；九次提交后两个槽文件并存（上一代保留）。剩余未做：断电场景人工验收（不做故障注入冒充）；周期快照按本实现即为逐提交粒度，无更粗的定时器需求。T104 保持 `in_progress`。见 [IMPLEMENTATION](IMPLEMENTATION.md) 的「T104 周期快照收口」。
+- 2026-10-30 GUI 收口：真实强制结束后恢复、保存与正式文件比较已执行；修复未变格式被全文重放删除和重复恢复旧锁冲突，两个回归与 GUI 复测通过。文本检查点不恢复富文档编辑，断电未验证，任务仍 in_progress。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
 
 ### T105：基础排版引擎
 
@@ -388,6 +409,11 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 2026-10-26 错误路径切片（任务仍 `in_progress`，进度计数不变，仍是 12 done／22 in_progress／32 planned／0 blocked）：布局未稳定、字体不可嵌入不再报告成功，也不留下已发布文件。joyword-pdf 新增 `PdfError::UnembeddableFont`（与 `MissingFont` 分开）：写页前逐面检查 OS/2 `fsType`——Restricted License 按 `fsType & 0xF == 2` 读，与 krilla text/cid.rs 一致，无 OS/2 的 face 视为可嵌入——再由 krilla `Font::new` 接收；任一拒绝则整份导出不产出字节，finish 阶段的子集化失败报字体原因。应用侧导出与打印到文件共用的 publish 入口 `run_pdf` 现在先校验 `ensure_current`：布局未稳定或过期（菜单同一条件 `file.export.unstable`／布局未稳定）以「layout unstable」拒绝，场景字节不会写出；CLI `convert` 对 `LayoutError::Unstable` 与不可嵌入字体分别明确拒绝，坏路径不留文件。布局不收敛的检测本身仍在 layout（`run_layout_passes` 返回 `LayoutError::Unstable` 不发布临时页），本切片只接导出／打印侧。证据：`a_restricted_license_font_refuses_export_with_no_bytes`、`the_restriction_reads_the_low_nibble_like_krilla`、`an_allowed_embedding_bit_still_exports`（joyword-pdf，改 OS/2 fsType 的 fixture 字节），`an_unembeddable_font_refuses_export_and_publishes_nothing`、`export_and_print_refuse_without_a_settled_layout_and_publish_nothing`（apps/joyword，共用 publish 入口无头复排），`convert_refuses_a_restricted_license_font_and_writes_no_pdf`、`convert_still_exports_with_an_embeddable_font`（joyword-cli 真实进程）；不收敛检测仍由 `repeated_feedback_is_unstable_and_unpublished` 覆盖。未做：两个独立阅读器人工检查、真实打印、系统打印对话框、PDF 结构标签、图形界面、Word／WPS 对照。
 - 2026-10-27 外部 PDF 结构读取器复核切片（任务仍 `in_progress`，进度计数不变，仍是 12 done／22 in_progress／32 planned／0 blocked）：「文档内跳转」不再只由 joyword-pdf 内部读取器自证。新增外部 qpdf CLI 结构读取器复核（`qpdf --json=2`；设 `JOYWORD_REQUIRE_QPDF=1` 时要求跑通（unified-pdf apt 安装 qpdf 的 CI 步骤另跟），本机无 qpdf 或未设该变量时跳过，与 `pdftotext`／`JOYWORD_REQUIRE_TEST_FONT` 同一 skip-vs-require 模式；只加 qpdf 一个 apt 包与 serde_json 一条 dev-dependency 边，lock 无新包）。`crates/joyword-pdf/tests/navigation.rs` 新增 `an_external_reader_sees_named_destinations_and_resolves_goto_actions`：模型书签（ASCII `first`、非 ASCII「目录」、无链接的 `unused`）、两条锚点 GoTo 与一条 URI 链接同页导出，qpdf 侧断言命名目标树按键字节可见（qpdf v2 JSON 把可打印字符串标 `u:`、其他字节串标 `b:<hex>`，按 ISO 32000 字节比较还原，与内部 `name_key` 契约一致）、每个 `/S /GoTo` 注释的 `/D` 解析为 `[page /XYZ x y 0]` 且命中同名命名目标数组与正确页面对象、坐标与内部读回一致、URI 动作原样。`apps/joyword-cli/tests/bookmark_goto.rs` 的正文、页眉页脚批注、列与不透明表格三个导入场景在同一份字节上追加同一外部复核并与内部 `inspect_navigation` 逐名逐链对照。证据：`an_external_reader_sees_named_destinations_and_resolves_goto_actions`，以及现在内含 qpdf 外部断言的 `an_imported_bookmark_is_a_pdf_goto_named_destination`、`header_footer_and_comment_bookmarks_are_goto_destinations`、`column_and_opaque_table_bookmarks_are_goto_destinations`。未做：锚点目标不在本文档书签中时链接仍被跳过而不阻断导出、PDF 结构标签、图形界面、Word／WPS 对照、真实打印与系统打印对话框、两个独立阅读器人工检查（UOS 报告的 qpdfview／WPS PDF 仍是人工行）。
 
+- 2026-10-30 Windows 补验：qpdf 12.2.0、Xpdf pdftotext 4.06 与宋体 TTC face 0 的强制字体／外部读取器套件 299 项通过。修复 pdftotext 测试适配器在 Xpdf 上不接受 stdin 的问题，使用临时文件输入并保留 stderr；CI unified-pdf 现在安装并强制要求 qpdf。均为自动证据，真实打印与双阅读器 GUI 仍未关闭。见 [本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：真实文件菜单导出百页 PDF，qpdf 结构检查、Poppler 页数／首尾渲染和 Xpdf 全文读回通过；当前视图的编辑标记也进入 PDF，系统打印仍未验证。 证据见 [GUI 记录](verification/m7-gui-20261030.md)。
+
+- 2026-10-30 后续修复：屏幕辅助矩形增加 screen_only 分类，PDF 不输出格式编辑标记；实际 GUI 开／关标记的两个百页 PDF 逐字节相同，qpdf、全文提取及 Poppler 首尾渲染通过。真实打印仍未实现／验收。 见 [修复与复验](verification/m7-followup-20261030.md)。
+
 ### T205：功能区、标尺与状态栏
 
 - 输入：命令注册表、样式与段落属性、视图选项和本地化资源。
@@ -401,6 +427,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 完成证据：2026-10-18 第一切片已落地。开始、插入、布局、视图功能区只列出注册表里已有的命令，按钮经 `Registry::invoke_with` 执行。状态栏用当前布局的插入点页码和会话正文的字数／字素。水平标尺显示解析后的缩进和制表位。图标是 `chrome.rs` 里的 16×16 原创格子图。同日第二切片已落地，任务保持 `in_progress`。`format.font` 与 `format.paragraph` 在确认时各提交一次可撤销事务；取消、空选区或空命令列表不开启事务。字体家族同时写入 ascii 与 eastAsia，空家族保持原值；字号接受半点小数或中文号（初号至八号，含小初至小七；二号 22 pt、三号 16 pt、四号 14 pt、六号 7.5 pt、七号 5.5 pt）。粗体、斜体、单下划线与自动色或 sRGB 在导出子集内写入。下划线和非自动颜色在第二切片会导出；页面场景当时拒绝绘制，并在应用后记 `dialog.font.paint`。主题色拒绝。段落写入对齐、左右缩进、首行或悬挂（不能同时写）、段前段后和行距。居中、右对齐或两端对齐与会移动文字的缩进同时出现时拒绝；`distribute` 拒绝；`snapToGrid` 为真且行距不是省略或 Auto(240) 时拒绝。字符单位仍不能换算。行距 Auto(n≠240) 把 profile 行距按 n/240 整数截断，Exact 与 AtLeast 用绝对 twip，未与 Word 行网格对照；Auto(240) 的既有路径不改。标尺可拖首行、正文左缘、右缩进和制表位；拖动生成的默认位会新增 Left／None 直接制表位；样式继承来的自定义制表位拒绝改写。移动不足 3 像素不提交。三个视图开关在第二切片已登记且 `modifies_document` 为假，当时因为排版没有这些快照选项而禁用。功能目录地板在第二切片升到 39，T203 的插入图片按钮再把它升到 40，T200 的项目符号按钮再把它升到 41，新增控件证据等级为 `unit`。证据：`chinese_sizes_follow_the_office_point_table`、`a_cancelled_font_dialog_does_not_open_a_transaction`、`font_apply_is_one_undo_and_an_empty_selection_is_not`、`paragraph_indent_spacing_and_line_are_one_undo`、`justify_with_indent_is_refused_and_the_document_stays`、`first_line_drag_keeps_the_body_edge`、`dragging_a_generated_stop_adds_a_direct_left_stop`、`inherited_style_tabs_are_detected`、`underline_and_srgb_do_not_record_a_paint_refusal`、`view_toggles_flip_without_a_document`、`auto_line_spacing_scales_the_profile_leading`、`direct_indent_spacing_and_tabs_round_trip_and_survive_a_font_change`，以及第一切片已列出的目录与功能区测试。2026-10-19 第三切片已落地，任务仍 `in_progress`。页面场景绘制单线、双线和点线下划线以及 sRGB 文字颜色；CPU 光栅和 PDF 共用这些矩形与填充。下划线位置和粗细优先读 OpenType `post`（y 向上，负值在基线之下），厚度非正时用 `OS/2.yStrikeoutSize`，两者都没有时厚度为 `unitsPerEm/20`（至少 1）且顶边在基线下一倍粗细。双线的第二笔和点线的间隔重复这一笔，不是 Word 测量。其他下划线样式和主题色仍拒绝，不再记录 `dialog.font.paint`。格式标记、隐藏文字和域代码进入布局快照键。格式标记（段落标记、制表箭头、空格点）是灰色非文档叠层，不改变断行。`w:vanish` 的显示或省略会改变排版。域代码显示指令，域结果显示分隔符之后的文字；没有分隔符时结果投影省略整段域。正文和页眉页脚的 PAGE／NUMPAGES／SECTIONPAGES 在域代码打开时显示这三个名字，否则仍显示计算后的页码。三个功能区开关可用，且不修改文档。每种选项的增量排版与完整排版页面相同。字数测试对照 EDIT-009 的手算样例「你好，Word 2024 的字数：don't count 12.5。」（汉字 5、西文词 3、数字 2、合计 10），不是 Word 对话框。证据：`single_underline_and_srgb_are_on_the_shared_scene`、`double_and_dotted_repeat_the_same_stroke`、`dash_underline_stays_unpainted`、`formatting_marks_do_not_change_line_breaks`、`hidden_text_changes_layout_and_the_cache_matches`、`field_codes_swap_instruction_and_result`、`field_codes_replace_body_page_fields_and_match_the_cache`、`underline_metrics_prefer_post_then_strikeout_then_em`、`srgb_text_and_its_underline_paint_the_run_colour`、`a_non_black_run_changes_the_pdf_bytes`、`word_count_matches_the_documented_edit_009_rule`、`view_toggles_flip_without_a_document`、`underline_and_srgb_do_not_record_a_paint_refusal`。未做：与固定 Word 字数对话框的数字对照、导航窗格与审阅栏、粗线／虚线／波浪线／按字下划线、主题色、隐藏段落标记导致的段落合并、跨段域、斜体剪切下划线，以及只用功能区和对话框完成报告排版的人工验收。见 [IMPLEMENTATION](IMPLEMENTATION.md)。 2026-10-19 银河麒麟 GUI 部分验收：开始功能区经 `Registry::invoke_with` 执行加粗／查找替换／格式刷（见 T200），布局选项卡页面设置即时生效（见 T202），状态栏字数与缩放（Ctrl+=／Ctrl+0）正常；字体／段落对话框与「只用功能区完成报告排版」的完整人工验收仍未执行。 2026-10-19 CPU 亚像素矩形改用专用覆盖率光栅器，回归五个亚像素位置的细下划线可见性；未新增功能区、Word 字数或真实窗口验收，见 [验证审计](VALIDATION-20261019.md)。2026-10-19 统信 UOS GUI 补验：格式标记、隐藏文字、域代码三个视图开关均可切换，格式标记画出灰色空格点与段落标记且不改变断行；缩放 80%→90%→100% 与 Ctrl+0 复位正常。补验中发现切换隐藏文字可在 debug 构建触发 tiny-skia `hairline_aa` 断言（1–2 px 宽的分数坐标矩形），已把亚 2 px 宽矩形吸附到整像素并新增 `narrow_fractional_rects_keep_their_pixels_without_panicking` 回归；修复后三个开关连续切换无崩溃。仍缺 Word 字数对话框对照、导航窗格、审阅栏与「只用功能区完成报告排版」的人工验收，T205 保持 `in_progress`，证据见 [UOS 报告](../../tests/fixtures/reference/uos/uos_report.json)。
 - 2026-10-20 文档核对：功能区与注册表、字数规则（EDIT-009 手算，不是 Word 对话框数字）、视图快照键、对话框映射和功能目录地板已有自动测试。与固定 Word 样例对话框数字对照，以及只用功能区完成报告排版，仍未做。状态保持 `in_progress`。见 [验收清单](acceptance/T205.md)。
 - 2026-10-24 P0／P1 桌面界面切片：标题区整合文件与快速访问命令；开始页改为字体／字号／颜色、段落和样式库分组，插入页增加 1×1 至 8×8 表格网格，布局页改用下拉预设；样式和查找替换改为按需侧栏，格式与 Linux 路径输入改为模态对话框；状态栏改为单行并增加可拖动／键盘缩放滑块。Ribbon 按实际窗口宽度分完整、紧凑和溢出三档，控件增加悬停、焦点、按下与 tooltip。纸张在宽视口居中，命中、选区、IME 与标尺共用页面原点，标尺按正文页边距和缩放对齐并显示数字刻度。段落缩进、间距、单元格边距与边框粗细以磅显示并转换回命令单位。功能目录地板升至 60；`ribbon_density_has_full_compact_and_overflow_tiers`、`ruler_uses_the_same_page_origin_and_zoom_as_the_canvas`、`zoom_slider_clamps_to_the_supported_range`、`formatting_dialog_converts_points_back_to_command_units` 等自动回归通过，IME 居中几何断言同步更新。T205 仍为 `in_progress`，不以此替代只用功能区完成报告、固定 Word 对照及三端人工验收。
+- 2026-10-30 GUI 收口：真实功能区格式、保存入口和视图切换已执行；Word／WPS 字数 30 与 JoyWord 27 口径尚未对齐，原生开关勾选状态仍缺。 证据见 [GUI 记录](verification/m7-gui-20261030.md)。
 
 ### T206：M2 发布门槛
 
@@ -429,7 +456,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 ### T208：段落缓存与增量重排
 
 - 输入：engine 的 ChangeSet、现有全量排版入口、ARCHITECTURE §6.2 的缓存键约定。
-- [ ] 状态：`in_progress`
+- [x] 状态：`done`
 - 需求：`LAYOUT-010`
 - 前置：`T101`、`T105`
 - 产物：段落布局缓存（内容指纹＋解析样式＋可用宽度＋FontKey＋profile 基础键，页码／脚注编号／绕排区等外部依赖只在段落确实依赖时入键）、ChangeSet 驱动的失效、样式变更按受影响样式闭包失效、分页传播的稳定停止条件、整形器数据按 FontKey 缓存。
@@ -437,6 +464,11 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 自动验证：增量结果与全量结果逐页一致；末段编辑的整形次数显著少于全量；首段编辑仍正确传播。
 - 人工验收：百页文档分别编辑首段与末段，观察响应与分页正确性。
 - 完成证据：2026-10-18 段落布局缓存与增量重排已接入 `layout_document` 共用的拟合／分页，并由应用编辑路径调用。缓存键是内容指纹、解析样式、可用宽度、FontKey 与 profile 基础项；页码、脚注编号和绕排只在段落依赖字段指令时入键。样式变更按 basedOn／link 闭包失效，不整表清空。分页从最早失效段重放，后缀页边界与上一快照一致时停止拷贝。整形器 `ShaperData` 按 FontKey 缓存，最多 8 个面。不收敛返回“布局未稳定”，不发布临时页。缓存默认 32 MiB，单条超预算不入库，超出则淘汰最久未用。自动验证见 [IMPLEMENTATION](IMPLEMENTATION.md)。百页文档分别编辑首段与末段的人工验收未做，T208 保持 `in_progress`。 2026-10-19 银河麒麟尝试受挫：文件打开对话框在 X11 上不出现（见 T204 同源的 [kylin_report.json](../../tests/fixtures/reference/kylin/kylin_report.json) 缺陷），百页文档无法经 GUI 装入，该项人工验收在 Linux 上暂被阻塞，待打开对话框修复或替代入口后补做。 2026-10-19 Windows release 无头 20 页／725 段冒烟：增量输入重排中位 8.492 ms、每次整形 1 段；首段改动 8.557 ms、整形 1 段，对照全量 725 段。未测百页 GUI 与实际呈现延迟，不标 done，见 [验证审计](VALIDATION-20261019.md)。 2026-10-19 生成 4000 段／160000 字符原创长文档；CLI 全文排版超过 64 页硬预算并明确拒绝输出，但未在 GUI 编辑首段与末段，也未获得可复核的精确页数，T208 保持 `in_progress`。
+
+- 2026-10-30 修复超预算工作集顺序扫描淘汰即将命中项的问题；旧 main 上反例失败、修复后通过，默认 32 MiB 预算与全量几何一致性保持。10／100／1000 页模型测量与 4060 次场景对照已归档，仍不代替百页 GUI 验收。见 [本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：实际 100 页窗口的首段／末段输入和撤销已执行，但 Ctrl+End 揭示不足且末页光标纵向偏移；不关闭导航、几何或性能验收。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
+
+- 2026-10-30 后续修复与最终复验：累计 EMU 页面坐标消除百页舍入偏移，缩放后按新滚动范围揭示光标；最终候选首尾输入／撤销、Ctrl+Home／End 及 80%／100%／110% 缩放通过。结合现有缓存键／样式闭包失效、增量／全量逐页一致与超预算回归，T208 改为 done；完整证据见 [T208 原子清单](acceptance/T208.md) 与 [修复报告](verification/m7-followup-20261030.md)。定量 GUI 性能和其他平台全流程仍由 T702／T700 跟踪。
 
 ### T209：撤销组与输入来源区分
 
@@ -702,6 +734,8 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
 - 2026-10-28 第一切片（任务由 `planned` 改为 `in_progress`，进度计数改为 13 done／25 in_progress／28 planned／0 blocked）：实现 `crates/joyword-textfmt`，支持带有结构化损失报告（LossReport）的 TXT、Markdown（CommonMark + GFM 表格子集）与受控 HTML5 双向转换。支持编码探测（UTF-8、BOM、UTF-16LE/BE）与 CRLF/LF 换行规范化；过滤剥离 `<script>`、`<iframe>` 与 `javascript:` 恶意外链。执行 `cargo test -p joyword-textfmt` 3 项测试全部通过。人工网页片段与 Markdown 导入比对未做，标未验证，见 [T601 证据](verification/t601-textfmt.md)。
 
+- 2026-10-30 补齐 Unicode case expansion 导致 HTML 标签边界错位／切片 panic 的修复，以及未闭合活动内容和孤立关闭标签回归；三项新增测试通过。转换的完整支持子集与人工交换仍未完成。见 [本轮证据](verification/m7-20261030.md)。
+
 ### T602：旧版 DOC 导入
 
 - 输入：MS-DOC／CFB 规范、合法原创二进制样例及资源预算。
@@ -761,62 +795,71 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 ### T700：三端及信创产品验收
 
 - 输入：全部 1.0 承诺范围、兼容矩阵、三端及信创原生测试环境和发布候选。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`PLATFORM-001`、`PLATFORM-002`、`PLATFORM-009`、`CLIP-004`、`QUALITY-003`、`QUALITY-008`
 - 前置：`T005`、`T403`、`T502`、`T503`、`T504`、`T600`、`T601`、`T602`、`T603`、`T604`、`T605`
 - 产物：Mac／Windows／Linux 的全流程对照报告，Wayland／X11 分列，统信 UOS 与银河麒麟按 x86_64／ARM64／LoongArch64 分列。
 - 错误路径：任一平台未测不能用其他平台或编译成功代替。
 - 自动验证：三端核心、格式、审阅及平台适配测试集合。
 - 人工验收：逐平台运行新建、编辑、交换、打印、恢复和关闭 AI。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30 开始当前候选的本机无头验证收口：新增可重复执行的 M0–M7 验证驱动、逐命令日志与散列、Windows／Mac／Linux X11／Wayland 分列发布检查。历史平台记录不自动继承为当前候选通过；当前仅 Windows 环境可执行，本轮初次无头收口时 GUI 未执行；随后用户取消时段确认要求并授权立即执行桌面验证。见 [M7 本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：Windows 的输入／保存／Word 交换／恢复／百页 PDF 导出已执行；WPS GUI、完整打印和其他平台仍缺，原子已完成项见 GUI 记录。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
+- 2026-10-30 本轮后续：Windows 原生关闭重复销毁 HWND 已定位修复，最终 release／解包候选干净 Alt+F4、未保存关闭取消及应用关闭通过，日志无对应错误；该原子缺陷 done，完整平台验收仍 in_progress。见 [焦点与 EPUB 报告](verification/m8-focus-epub-20261030.md)。
 
 ### T701：输入法与可访问性
 
 - 输入：命令注册表、输入及可访问适配、系统 IME 与屏幕阅读器。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`PLATFORM-004`、`PLATFORM-005`
 - 前置：`T700`
 - 产物：结构化可访问树、焦点导航、高对比度、IME 与多显示器专项。
 - 错误路径：缺失角色、不可达命令、候选框偏移和阅读顺序错误阻断验收。
 - 自动验证：键盘焦点、语义树、范围与 DPI 自动检查。
 - 人工验收：VoiceOver、Narrator、Linux 辅助技术和中文 IME（含信创系统的 Fcitx 输入法）真实操作。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30 接入现有 GPUI／AccessKit 原生接口：通用按钮发布本地化命令名称与稳定 ID，复选框发布 CheckBox 与选中／未选中状态，功能区发布 Toolbar／TabList／Tab、名称和当前选中项。两个无头适配器测试直接检查实际写入的 AccessKit Node 元数据；未新增依赖版本，仅对已锁定的 accesskit 0.24.1 增加应用测试依赖边。正文文字语义子树、范围操作、禁用状态、多屏／高对比度与三端读屏人工验收仍未完成。见 [M7 本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：真实系统拼音候选、Escape 取消、Space 提交和一次撤销通过；原生按钮名称可读，正文节点缺失，视图开关只暴露 Button，完整读屏／DPI／多屏未通过。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
+
+- 2026-10-30 后续修复：正文原生节点、焦点、TextPattern 全文／方向性选区、ValuePattern 写入与单步撤销、只读拒绝和禁用状态已实测；开关 toggled 接入，原生按钮 ToggleState 与完整三端读屏／高对比度／多屏未验收。 见 [修复与复验](verification/m7-followup-20261030.md)。
+- 2026-10-30 本轮后续：File 焦点缺失角色、菜单 Enter 串入正文、原生字段／缩放值接口缺口已修复并完成最终 GUI 复验；这些原子缺陷 done，完整三端读屏／DPI／多屏仍 in_progress。见 [焦点与 EPUB 报告](verification/m8-focus-epub-20261030.md)。
 
 ### T702：性能、故障和恢复
 
 - 输入：固定 10／100／1000 页语料、性能基准环境和故障注入方案。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`LAYOUT-010`、`QUALITY-004`、`QUALITY-005`、`QUALITY-006`
 - 前置：`T700`
 - 产物：固定三级语料、分位数／RSS／峰值／体积报告、故障回归。
 - 错误路径：卡死、无界内存、布局不收敛或恢复丢失不以跳过测试掩盖。
 - 自动验证：性能采样、首尾段重排、取消、fuzz 和故障注入。
 - 人工验收：在固定硬件反复运行长文档场景，核对原始样本与统计。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30 新增固定 OFL 字体、10／100／1000 页模型语料的 Release 测量驱动，保留原始样本、分位数、进程工作集、首尾编辑与全量场景对照、预取消结果。测量发现并修复工作集超出缓存预算时顺序扫描淘汰即将命中项的问题；保持 32 MiB 默认预算。无头布局计时不代替 GUI 启动／呈现／滚动或稳定 RSS。见 [M7 本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：百页首尾交互已做功能抽查并发现揭示／光标缺陷；没有输入到实际呈现时间戳或 1000 事件，不替代性能达标数据。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
 
 ### T703：安装、签名和升级
 
 - 输入：发布候选、签名凭据引用、安装元数据、迁移及回退版本。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`PLATFORM-006`、`PLATFORM-009`、`QUALITY-002`
 - 前置：`T700`
 - 产物：三端安装器与信创 deb 软件包、文件关联、代码签名与统信／麒麟软件包签名、卸载、更新回退与日志迁移。
 - 错误路径：无签名凭据、迁移失败、更新中断或磁盘不足保留可恢复版本。
 - 自动验证：安装／卸载、升级中断、旧日志迁移、依赖通知和资源许可检查。
 - 人工验收：干净机器安装、升级与回退，确认用户文档未改动。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30 实现原生可执行文件架构检查、确定性 unsigned portable preview 打包、逐文件散列及读回、SPDX 2.3 目标平台源码依赖图与依赖自带许可文件收集。便携包不是安装器；签名、公证、文件关联、卸载和升级回退仍未完成。见 [M7 本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：包含三个 GUI 修复的新便携候选已两次生成字节一致，包内应用散列等于实际 GUI 进程候选；SPDX／逐文件散列／解包 CLI 通过，完整分发门槛仍未关闭。 证据见 [GUI 记录](verification/m7-gui-20261030.md)。
 
 ### T704：1.0 发布门槛与公开矩阵
 
 - 输入：通过的阶段证据、已知限制、来源记录和真实兼容矩阵。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`QUALITY-001`、`QUALITY-002`、`QUALITY-003`、`QUALITY-007`、`QUALITY-008`
 - 前置：`T701`、`T702`、`T703`
 - 产物：兼容矩阵、限制、证据、发布说明、SBOM 和隐私默认值。
 - 错误路径：未通过的承诺项阻断稳定版；不能只改版本名。
 - 自动验证：完整追踪、发布清单、无静默丢失语料和双构建验证。
 - 人工验收：按公开说明从安装到合同审阅执行端到端验收。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30 实现稳定版发布检查：M0–M7 任务集合、状态／复选框、15 类平台／分发／隐私／性能观察、证据文件及 SHA-256 必须一致；未完成或篡改证据不能通过。audit 模式只列出缺口，不改变任务或批准发布；信创真机仍明确为非阻塞待补验。见 [M7 本轮证据](verification/m7-20261030.md)。
+- 2026-10-30 GUI 收口：真实 GUI 失败已补入发布观察；保持 fail-closed，22 个已完成桌面小项不等于 1.0 发布批准。 证据见 [本机 GUI 记录](verification/m7-gui-20261030.md)。
 
 ## M8：1.0 之后的扩展
 
@@ -897,26 +940,26 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 ### T806：EPUB 与归档 PDF
 
 - 输入：稳定页面场景、文档导航结构、EPUB 与 PDF/A 目标配置。
-- [ ] 状态：`planned`
+- [ ] 状态：`in_progress`
 - 需求：`FORMAT-012`
 - 前置：`T603`、`T704`
 - 产物：EPUB 导出和声明范围的 PDF/A 归档输出。
 - 错误路径：字体不可嵌入、标签缺失或合规检查失败不声称合规。
 - 自动验证：PDF 合规验证器、EPUB 校验、阅读顺序与文本抽取。
 - 人工验收：EPUB 阅读器和 PDF/A 验证器检查导航、可检索性与结构。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30，PDF/A-2b CLI、显式归档年份、无覆盖发布及独立合规校验完成；EPUB 基础导出、NCX／nav、独立阅读器中文搜索与目录选择完成。阿文／emoji 缺字、桌面 PDF/A 和完整矩阵未完成，整项保持 in_progress。见 [归档与阅读器报告](verification/m8-archive-20261030.md)、[前轮 EPUB 证据](verification/m8-focus-epub-20261030.md) 和 [T806](acceptance/T806.md)。
 
 ### T807：邮件合并
 
 - 输入：用户选择的本地数据源、模板、字段映射及输出目标。
-- [ ] 状态：`planned`
+- [x] 状态：`done`
 - 需求：`EDIT-012`
 - 前置：`T501`、`T502`、`T704`
 - 产物：数据源读取、字段映射、合并预览与批量输出。
 - 错误路径：错误数据源、编码错误、字段缺失明确诊断；数据不自动上传。
 - 自动验证：合并规则、编码、输出隔离及模板不被修改。
 - 人工验收：CSV 合并生成多份信件，检查字段和取消后原模板未被覆盖。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：2026-10-30，本地 UTF-8 CSV＋DOCX `{{字段}}` 协议、显式映射、逐条预览和隔离批量输出完成；12 项核心与 2 项 CLI 回归、Windows 原生向导取消及三封信件生成、精确字段／格式／输入散列断言、Word／WPS 重开通过。见 [T807 原子验收](acceptance/T807.md)、[指南](guide/mail-merge.md) 与 [本轮证据](verification/m8-20261030.md)。保护、未决修订、原生 MERGEFIELD 和含已有对象的字段段落等边界明确拒绝／不计算；不表示 T501／T502／T704 已完成。
 
 ### T808：纵排、双向与复杂文字
 

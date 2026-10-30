@@ -2,7 +2,7 @@ use crate::chrome_ui::drawn_icon;
 use crate::ui::controls;
 use crate::ui::theme;
 use crate::{JoyWord, PopupKind, SidePanel};
-use gpui::{Context, KeyDownEvent, Window, div, prelude::*, px, rgb};
+use gpui::{Context, KeyDownEvent, Role, Window, div, prelude::*, px, rgb};
 use joyword_shell::chrome::{RibbonControl, RibbonTab};
 use joyword_shell::command::*;
 use std::rc::Rc;
@@ -31,6 +31,7 @@ impl JoyWord {
             .child(
                 div()
                     .id("ribbon-row")
+                    .role(Role::Toolbar)
                     .h(px(88.0))
                     .px_2()
                     .py_1()
@@ -50,6 +51,8 @@ impl JoyWord {
 
     fn word_ribbon_tabs(&self, cx: &mut Context<Self>) -> impl IntoElement {
         div()
+            .id("ribbon-tabs")
+            .role(Role::TabList)
             .flex()
             .items_center()
             .h(px(theme::TAB_HEIGHT))
@@ -59,6 +62,11 @@ impl JoyWord {
                 let selected = self.ribbon_tab == tab;
                 div()
                     .id(tab.label_key())
+                    .accessibility_id(tab.label_key())
+                    .role(Role::Tab)
+                    .aria_label(self.label(tab.label_key()))
+                    .aria_selected(selected)
+                    .key_context(controls::CONTROL_CONTEXT)
                     .focusable()
                     .px_3()
                     .py_1()
@@ -440,7 +448,37 @@ impl JoyWord {
         let tooltip = label.clone();
         let button = div()
             .id(control.id)
-            .focusable()
+            .accessibility_id(control.id)
+            .role(Role::Button)
+            .aria_label(label.clone())
+            .key_context(controls::CONTROL_CONTEXT)
+            .when(
+                matches!(
+                    control.command,
+                    EDIT_BOLD
+                        | EDIT_ITALIC
+                        | EDIT_UNDERLINE
+                        | EDIT_ALIGN_LEFT
+                        | EDIT_ALIGN_CENTER
+                        | EDIT_ALIGN_RIGHT
+                        | EDIT_JUSTIFY
+                        | VIEW_FORMATTING_MARKS
+                        | VIEW_HIDDEN_TEXT
+                        | VIEW_FIELD_CODES
+                        | REVIEW_MARKUP
+                        | REVIEW_FINAL
+                        | REVIEW_ORIGINAL
+                        | REVIEW_SIMPLE
+                        | REVIEW_TRACK
+                ),
+                |element| element.aria_toggled(pressed.into()),
+            )
+            .a11y_synthetic_children(move |builder| {
+                if !enabled {
+                    builder.parent_node().set_disabled();
+                }
+            })
+            .when(enabled, |element| element.focusable())
             .cursor_pointer()
             .flex()
             .items_center()
@@ -497,9 +535,7 @@ impl JoyWord {
         width: f32,
         cx: &mut Context<Self>,
     ) -> gpui::AnyElement {
-        div()
-            .id(id)
-            .focusable()
+        self.popup_trigger(id, label.clone(), kind, cx)
             .cursor_pointer()
             .flex()
             .items_center()
@@ -514,10 +550,6 @@ impl JoyWord {
             .text_sm()
             .hover(|style| style.border_color(rgb(theme::ACCENT)))
             .focus(|style| style.border_color(rgb(theme::ACCENT)))
-            .on_click(cx.listener(move |this, event: &gpui::ClickEvent, _, cx| {
-                this.open_popup(kind, event.position());
-                cx.notify();
-            }))
             .child(label)
             .child("▾")
             .into_any_element()
@@ -593,8 +625,7 @@ impl JoyWord {
         } else {
             "find.query"
         });
-        div()
-            .id(id)
+        controls::named_control(id, Role::Button, label.clone())
             .focusable()
             .cursor_pointer()
             .flex()
@@ -610,6 +641,13 @@ impl JoyWord {
                 this.show_find_panel(replace, window, cx);
                 cx.notify();
             }))
+            .on_key_down(cx.listener(move |this, event: &KeyDownEvent, window, cx| {
+                if matches!(event.keystroke.key.as_str(), "enter" | "space") {
+                    this.show_find_panel(replace, window, cx);
+                    cx.stop_propagation();
+                    cx.notify();
+                }
+            }))
             .child(drawn_icon(
                 if replace { "replace" } else { "find" },
                 theme::TEXT,
@@ -619,9 +657,7 @@ impl JoyWord {
     }
 
     fn more_button(&self, cx: &mut Context<Self>) -> gpui::AnyElement {
-        div()
-            .id("ribbon-more")
-            .focusable()
+        self.popup_trigger("ribbon-more", self.label("ui.more"), PopupKind::More, cx)
             .cursor_pointer()
             .flex()
             .items_center()
@@ -629,10 +665,6 @@ impl JoyWord {
             .px_2()
             .rounded_sm()
             .hover(|style| style.bg(rgb(theme::HOVER)))
-            .on_click(cx.listener(move |this, event: &gpui::ClickEvent, _, cx| {
-                this.open_popup(PopupKind::More, event.position());
-                cx.notify();
-            }))
             .child(self.label("ui.more"))
             .child(" ▾")
             .into_any_element()

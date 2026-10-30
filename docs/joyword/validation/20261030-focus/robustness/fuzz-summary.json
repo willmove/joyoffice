@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "target_sha": "535d7a01ce245a48d0c8ae8a7780fee8d67aee47",
+  "harness_git_sha": "26e148f394e0dcaabd88bf8ee05dc7e5a58389df",
+  "harness_binary_sha256": "b740b2fe8303adcdf45964eab280a43eddca85ff30369767609de74d98ecd0e0",
+  "harness_worktree_dirty": false,
+  "os": "Windows-11-10.0.26300-SP0",
+  "python": "3.14.7",
+  "memory_limit": {
+    "enforced": false,
+    "reason": "RLIMIT_AS unavailable; no Windows Job Object backend"
+  },
+  "process_tree_timeout_kill": "taskkill /T",
+  "coverage_feedback": false,
+  "feedback_signal": "harness-features",
+  "command": "fuzz",
+  "campaign_seed": 20261030,
+  "requested_runs": 200,
+  "requested_seconds": 120.0,
+  "executed": 200,
+  "counts": {
+    "rejected": 150,
+    "ok": 50
+  },
+  "elapsed_seconds": 3.627339099999517,
+  "timeout_seconds": 3.0,
+  "effective_address_space_mib": 0,
+  "aggregate_children_peak_rss_bytes": null,
+  "peak_scope": "OS cumulative maximum across child processes; includes capability probe, not per-case",
+  "features_discovered": 41,
+  "novelty_events": 17,
+  "corpus_size": 44,
+  "corpus_limit": 128,
+  "corpus_bytes_written": 135069,
+  "corpus_bytes_cap": 33554432,
+  "network": "none: the harness never resolves external relationship targets and the driver opens no sockets"
+}

@@ -1,0 +1,14 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling joyword-model v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-model)
+   Compiling joyword-layout v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-layout)
+   Compiling joyword-docx v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-docx)
+   Compiling joyword-engine v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-engine)
+   Compiling joyword-pdf v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-pdf)
+   Compiling joyword-render v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-render)
+   Compiling joyword-shell v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-shell)
+   Compiling joyword v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+   Compiling joyword-cli v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword-cli)
+    Finished `release` profile [optimized] target(s) in 3m 15s

@@ -1,0 +1,4 @@
+ts=1793339679 level=info event=log.opened pid=28388 kind=cap count=262144
+ts=1793339679 level=info event=startup pid=28388 kind=test
+ts=1793339679 level=info event=recovery.restored pid=28388 kind=document count=1
+ts=1793339916 level=error event=ui.input pid=28388 detail=<redacted> DOCX edit at <redacted> character formatting boundaries changed

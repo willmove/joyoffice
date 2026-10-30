@@ -21,6 +21,7 @@ joyoffice-opc.workspace = true
 joyword-docx.workspace = true
 joyword-engine.workspace = true
 joyword-model.workspace = true
+joyword-epub.workspace = true
 rustix.workspace = true
 tempfile.workspace = true
 unicode-segmentation.workspace = true

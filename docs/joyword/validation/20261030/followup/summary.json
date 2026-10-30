@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "source": {
+    "binary_sha256": "7a625529be1a8b8340c70b696e9510df7b2def23f83c5938a0a5a94922947468",
+    "apps": "32da5c0f939b40a0b3221905c0480fcb8a4440f2",
+    "crates": "5437d75ed7921903dba7ee2918e320e6cb4a20b2",
+    "snapshot": "21a938e8facbf0b2f82c5537b93f648ac9ceca7a",
+    "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1"
+  },
+  "native_observations": 36,
+  "checks": {
+    "core": {
+      "passed": 1134,
+      "failed": 0,
+      "targets": 161,
+      "log_sha256": "0d126f1edb196646631793a683522e49869c04cffa6647c1dcf6a1839444ca8b"
+    },
+    "application": {
+      "passed": 87,
+      "failed": 0,
+      "targets": 1,
+      "log_sha256": "99ccd1ae1a9160870b2856b436441f32f9195425aa7468333de7509311b55bcf"
+    },
+    "ai-shell": {
+      "passed": 278,
+      "failed": 0,
+      "targets": 36,
+      "log_sha256": "f7f372b99aa27ca5be70f125325d630a8fea30113ad64e4171262539606289b9"
+    },
+    "scripts": {
+      "passed": 116,
+      "failed": 0
+    },
+    "acceptance-script-after-legend-extension": {
+      "passed": 9,
+      "failed": 0
+    }
+  },
+  "closed_task": "T208",
+  "tasks": {
+    "done": 14,
+    "in_progress": 37,
+    "planned": 15,
+    "blocked": 0
+  },
+  "gui_candidates": {
+    "wps": "62ecb058ec1a5f9e5888cea26f2570289c843e9919c9facaf3b84e60eb3864d1",
+    "pdf_and_initial_zoom_fix": "6cb1ee8105fd15a856ccef489f5347e290019e775387b8cd9fb2dc1ce559d639",
+    "final_native_write_readonly_hundred_page": "7a625529be1a8b8340c70b696e9510df7b2def23f83c5938a0a5a94922947468"
+  },
+  "full_reader_speech_verified": false,
+  "remote_ci_run": false,
+  "release_ready": false,
+  "xinchuang_hardware_verified": false,
+  "xinchuang_hardware_nonblocking": true,
+  "persisted_gui_screenshots": 9,
+  "screenshot_archiving_note": "First27 text/state records retained, JPEG archival bug corrected; final key screenshots28-36 persisted."
+}

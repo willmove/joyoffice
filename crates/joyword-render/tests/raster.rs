@@ -88,6 +88,7 @@ fn subpixel_underlines_remain_visible_between_pixel_centres() {
     for phase in 0..5 {
         let mut scene = scene(&font, "");
         scene.rects.push(joyword_layout::SceneRect {
+            screen_only: false,
             x: pt(10),
             y: Emu::new(pt(40).raw() + phase * Emu::PER_POINT / 5),
             width: pt(20),
@@ -114,6 +115,7 @@ fn narrow_fractional_rects_keep_their_pixels_without_panicking() {
     for phase in 1..5 {
         let mut vertical = scene(&font, "");
         vertical.rects.push(joyword_layout::SceneRect {
+            screen_only: false,
             x: Emu::new(pt(10).raw() + phase * Emu::PER_POINT / 5),
             y: pt(10),
             width: Emu::new(pt(1).raw() + Emu::PER_POINT / 5),
@@ -134,6 +136,7 @@ fn narrow_fractional_rects_keep_their_pixels_without_panicking() {
 
         let mut horizontal = scene(&font, "");
         horizontal.rects.push(joyword_layout::SceneRect {
+            screen_only: false,
             x: pt(10),
             y: Emu::new(pt(40).raw() + phase * Emu::PER_POINT / 5),
             width: pt(20),

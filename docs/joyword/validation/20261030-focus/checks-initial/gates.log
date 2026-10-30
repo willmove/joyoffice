@@ -1,0 +1,5 @@
+new panic site: apps/joyword/src/ui/controls.rs:.unwrap() occurs 1x but the baseline lists it 0x (lines 269); append the missing entries to scripts/panic_baseline.txt
+new panic site: apps/joyword/src/ui/controls.rs:KeyContext::parse("JoyWordInput composing").unwrap(), occurs 1x but the baseline lists it 0x (lines 260); append the missing entries to scripts/panic_baseline.txt
+new panic site: apps/joyword/src/ui/controls.rs:KeyContext::parse(control).unwrap(), occurs 1x but the baseline lists it 0x (lines 261); append the missing entries to scripts/panic_baseline.txt
+new panic site: apps/joyword/src/ui/controls.rs:let contexts = [KeyContext::parse("JoyWordInput").unwrap()]; occurs 1x but the baseline lists it 0x (lines 266); append the missing entries to scripts/panic_baseline.txt
+new panic site: apps/joyword/src/ui/controls.rs:let predicate = KeyBindingContextPredicate::parse(predicate).unwrap(); occurs 1x but the baseline lists it 0x (lines 257); append the missing entries to scripts/panic_baseline.txt

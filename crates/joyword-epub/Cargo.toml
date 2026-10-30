@@ -1,0 +1,19 @@
+[package]
+name = "joyword-epub"
+description = "Bounded reflowable EPUB 3 export with explicit conversion losses"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+joyword-model.workspace = true
+joyoffice-opc.workspace = true
+
+[dev-dependencies]
+joyword-docx.workspace = true
+
+[lints]
+workspace = true

@@ -57,6 +57,43 @@ impl JoyWord {
         self.popup = Some(Popup { kind, anchor });
     }
 
+    pub(crate) fn popup_trigger(
+        &self,
+        id: &'static str,
+        label: String,
+        kind: PopupKind,
+        cx: &mut Context<Self>,
+    ) -> gpui::Stateful<gpui::Div> {
+        // Capture this frame's label bounds so keyboard activation is anchored
+        // to the control rather than to an unrelated mouse position.
+        let anchor = Rc::new(std::cell::Cell::new(point(px(0.0), px(0.0))));
+        let painted_anchor = anchor.clone();
+        div()
+            .on_children_prepainted(move |bounds, _, _| {
+                if let Some(bounds) = bounds.first() {
+                    painted_anchor.set(point(bounds.left(), bounds.bottom()));
+                }
+            })
+            .id(id)
+            .accessibility_id(id)
+            .role(gpui::Role::Button)
+            .aria_label(label)
+            .key_context(controls::CONTROL_CONTEXT)
+            .aria_expanded(self.popup.is_some_and(|popup| popup.kind == kind))
+            .focusable()
+            .on_click(cx.listener(move |this, event: &gpui::ClickEvent, _, cx| {
+                this.open_popup(kind, event.position());
+                cx.notify();
+            }))
+            .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
+                if matches!(event.keystroke.key.as_str(), "enter" | "space" | "down") {
+                    this.open_popup(kind, anchor.get());
+                    cx.stop_propagation();
+                    cx.notify();
+                }
+            }))
+    }
+
     pub(crate) fn show_find_panel(
         &mut self,
         replace: bool,
@@ -86,18 +123,12 @@ impl JoyWord {
             .bg(rgb(theme::ACCENT))
             .text_color(rgb(theme::WHITE))
             .child(
-                div()
-                    .id("file-menu")
-                    .focusable()
+                self.popup_trigger("file-menu", self.label("menu.file"), PopupKind::File, cx)
                     .cursor_pointer()
                     .px_3()
                     .py_1()
                     .rounded_sm()
                     .hover(|style| style.bg(rgb(theme::ACCENT_DARK)))
-                    .on_click(cx.listener(move |this, event: &gpui::ClickEvent, _, cx| {
-                        this.open_popup(PopupKind::File, event.position());
-                        cx.notify();
-                    }))
                     .child(self.label("menu.file")),
             )
             .child(controls::title_button(
@@ -420,15 +451,25 @@ impl JoyWord {
         let Some(bounds) = self.zoom_bounds.lock().ok().and_then(|slot| *slot) else {
             return;
         };
-        self.zoom_percent = zoom_from_x(bounds, position.x);
+        self.set_zoom_percent(zoom_from_x(bounds, position.x));
         cx.notify();
     }
 
     fn zoom_slider(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let slot = Arc::clone(&self.zoom_bounds);
         let zoom = self.zoom_percent;
-        div()
-            .id("zoom-slider")
+        controls::zoom_slider(zoom, self.label("ribbon.group.zoom"))
+            .on_a11y_action(gpui::AccessibleAction::SetValue, {
+                let entity = cx.entity();
+                move |data, _, cx| {
+                    if let Some(value) = controls::accessible_zoom(data) {
+                        entity.update(cx, |view, cx| {
+                            view.set_zoom_percent(value);
+                            cx.notify();
+                        });
+                    }
+                }
+            })
             .w(px(100.0))
             .h(px(18.0))
             .cursor_pointer()
@@ -441,7 +482,7 @@ impl JoyWord {
                     "end" => ZOOM_MAX,
                     _ => return,
                 };
-                this.zoom_percent = next;
+                this.set_zoom_percent(next);
                 cx.stop_propagation();
                 cx.notify();
             }))
@@ -554,6 +595,12 @@ impl JoyWord {
     fn popup_card(&self, kind: PopupKind, cx: &mut Context<Self>) -> gpui::AnyElement {
         let card = div()
             .id(SharedStringPopup::id(kind))
+            .role(gpui::Role::Group)
+            .aria_label(self.label(if matches!(kind, PopupKind::File) {
+                "menu.file"
+            } else {
+                "ui.more"
+            }))
             .flex()
             .flex_col()
             .gap_1()
@@ -573,6 +620,8 @@ impl JoyWord {
                         FILE_SAVE,
                         FILE_SAVE_COPY,
                         FILE_EXPORT_PDF,
+                        FILE_EXPORT_EPUB,
+                        FILE_MAIL_MERGE,
                         FILE_PRINT,
                         FILE_CLOSE,
                     ]

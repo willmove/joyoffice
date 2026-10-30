@@ -236,6 +236,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-epub"
+version = "0.0.1"
+dependencies = [
+ "joyoffice-opc",
+ "joyword-model",
+]
+
+[[package]]
 name = "joyword-foundation"
 version = "0.0.1"
 
@@ -270,6 +278,7 @@ dependencies = [
  "joyoffice-opc",
  "joyword-docx",
  "joyword-engine",
+ "joyword-epub",
  "joyword-model",
  "rustix",
  "tempfile",

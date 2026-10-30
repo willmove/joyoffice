@@ -5,7 +5,8 @@ The registered M0/M1 corpus is produced by ``crates/joyword-corpus``. This
 script does not call that crate. It writes a separate, byte-reproducible set
 under ``tests/fixtures/feature/`` with the Python standard library only:
 ``zipfile`` entries in a fixed order, ZIP date 1980-01-01 00:00:00, and
-deflate level 6. Text is fictional and contains no personal data.
+uncompressed ZIP members (independent of the installed deflate engine).
+Text is fictional and contains no personal data.
 
 ECMA-376 Part 1 (Transitional) element and attribute names used here are the
 public vocabulary of WordprocessingML, not copied from another implementation.
@@ -25,7 +26,6 @@ from pathlib import Path
 
 ORIGIN = "JoyWord 原创特性样例，由 scripts/make_feature_fixtures.py 确定性生成，2026-10-20"
 ZIP_DATE = (1980, 1, 1, 0, 0, 0)
-COMPRESS_LEVEL = 6
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
@@ -64,7 +64,7 @@ DEFAULT_DIR = ROOT / "tests" / "fixtures" / "feature"
 
 
 def png_rgb(red: int, green: int, blue: int) -> bytes:
-    """1×1 8-bit truecolor PNG. Filter 0, one RGB sample, fixed zlib level."""
+    """1×1 truecolor PNG with a stored zlib block (no compressor heuristics)."""
 
     def chunk(tag: bytes, data: bytes) -> bytes:
         crc = zlib.crc32(tag + data) & 0xFFFFFFFF
@@ -75,7 +75,7 @@ def png_rgb(red: int, green: int, blue: int) -> bytes:
     return (
         b"\x89PNG\r\n\x1a\n"
         + chunk(b"IHDR", ihdr)
-        + chunk(b"IDAT", zlib.compress(scanline, 9))
+        + chunk(b"IDAT", zlib.compress(scanline, 0))
         + chunk(b"IEND", b"")
     )
 
@@ -141,17 +141,16 @@ def _pack(parts: list[tuple[str, bytes]]) -> bytes:
     with zipfile.ZipFile(
         buffer,
         "w",
-        compression=zipfile.ZIP_DEFLATED,
-        compresslevel=COMPRESS_LEVEL,
+        compression=zipfile.ZIP_STORED,
         allowZip64=False,
     ) as archive:
         for name, data in parts:
             info = zipfile.ZipInfo(filename=name, date_time=ZIP_DATE)
-            info.compress_type = zipfile.ZIP_DEFLATED
+            info.compress_type = zipfile.ZIP_STORED
             info.create_system = 0
             info.external_attr = 0o644 << 16
             info.extra = b""
-            archive.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=COMPRESS_LEVEL)
+            archive.writestr(info, data, compress_type=zipfile.ZIP_STORED)
     return buffer.getvalue()
 
 

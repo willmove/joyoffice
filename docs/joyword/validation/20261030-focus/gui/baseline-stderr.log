@@ -1,0 +1,10 @@
+[0.000s INFO gpui_windows::direct_write:1918] Use Microsoft YaHei UI as UI font.
+[0.137s INFO gpui_windows::directx_devices:121] Using GPU: Intel(R) Arc(TM) 140T GPU (16GB)
+[0.232s INFO gpui_windows::directx_devices:55] Created device with Direct3D 11.1 feature level.
+[0.519s INFO gpui::window:1690] Accessibility activated
+[0.816s WARN tiny_skia::painter:228] empty paths and horizontal/vertical lines cannot be filled
+[19.901s INFO gpui::window::a11y:196] a11y: focused element (FocusId(4v1)) has no accessibility node (it has an id but no role); assistive technology will announce the whole window instead. Give it both an `.id(...)` and a `.role(...)` to expose it.
+[57.816s ERROR :2017] window not found
+[57.821s ERROR :626] 无效的窗口句柄 (0x80040102)
+[57.826s ERROR :627] 无效的窗口句柄。 (0x80070578)
+[57.833s ERROR :493] 无效的窗口句柄。 (0x80070578)

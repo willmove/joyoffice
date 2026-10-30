@@ -1,0 +1,21 @@
+..............................................F.....................................................................
+======================================================================
+FAIL: test_repo_baseline_covers_every_gated_site (test_check_gates.PanicGate.test_repo_baseline_covers_every_gated_site)
+Integration: the committed baseline satisfies the multiplicity gate.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Coding\EditorProjects\joyoffice\scripts\tests\test_check_gates.py", line 252, in test_repo_baseline_covers_every_gated_site
+    self.assertEqual(errors, [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: Lists differ: ['new panic site: apps/joyword/src/ui/cont[986 chars]txt'] != []
+
+First list contains 5 additional elements.
+First extra element 0:
+'new panic site: apps/joyword/src/ui/controls.rs:.unwrap() occurs 1x but the baseline lists it 0x (lines 269); append the missing entries to scripts/panic_baseline.txt'
+
+Diff is 1137 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 116 tests in 40.235s
+
+FAILED (failures=1)

@@ -208,6 +208,9 @@ fn mark_rects(run: &GlyphRun, paragraph_end: bool, tab_gaps: &[(i64, i64)]) -> V
             [MARK_RED, MARK_GREEN, MARK_BLUE],
         ));
     }
+    for rect in &mut rects {
+        rect.screen_only = true;
+    }
     rects
 }
 
@@ -232,6 +235,7 @@ fn tab_arrow(x: i64, mid: i64, advance: i64, side: i64) -> Vec<SceneRect> {
 
 fn bar(x: i64, y: i64, width: i64, height: i64, color: [u8; 3]) -> SceneRect {
     SceneRect {
+        screen_only: false,
         x: Emu::new(x),
         y: Emu::new(y),
         width: Emu::new(width.max(0)),
@@ -246,6 +250,9 @@ fn bar(x: i64, y: i64, width: i64, height: i64, color: [u8; 3]) -> SceneRect {
 /// rectangles so screen and PDF paint the same geometry.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SceneRect {
+    /// Non-document editing overlay. Screen consumers paint it; PDF and
+    /// print consumers omit it without changing page or text geometry.
+    pub screen_only: bool,
     pub x: Emu,
     pub y: Emu,
     pub width: Emu,

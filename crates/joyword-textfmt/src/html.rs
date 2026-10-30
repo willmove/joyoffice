@@ -59,8 +59,15 @@ pub fn import_html(html: &str) -> (Document, LossReport) {
                             format!("Stripped dangerous HTML element <{clean_tag}>"),
                         );
                         let close_pat = format!("</{clean_tag}>");
-                        if let Some(close_idx) = rest.to_lowercase().find(&close_pat) {
+                        if is_closing {
+                            continue;
+                        }
+                        if let Some(close_idx) = find_ascii_case(rest, &close_pat) {
                             rest = &rest[close_idx + close_pat.len()..];
+                        } else {
+                            // An unterminated active element owns the remaining
+                            // input. Never expose its payload as document text.
+                            rest = "";
                         }
                         continue;
                     }
@@ -72,7 +79,7 @@ pub fn import_html(html: &str) -> (Document, LossReport) {
                     if let Some(para) = current_para.take() {
                         blocks.push(Block::Paragraph(Arc::new(para)));
                     }
-                    if let Some(close_tbl) = rest.to_lowercase().find("</table>") {
+                    if let Some(close_tbl) = find_ascii_case(rest, "</table>") {
                         let tbl_content = &rest[..close_tbl];
                         rest = &rest[close_tbl + 8..];
                         if let Some(table) = parse_html_table(&mut doc, tbl_content) {
@@ -139,25 +146,35 @@ pub fn import_html(html: &str) -> (Document, LossReport) {
     (doc, report)
 }
 
+// HTML tag names are ASCII case-insensitive. Unicode lowercasing changes
+// byte lengths (e.g. U+0130), so offsets into a lowercased String cannot be
+// used to slice the original UTF-8 input.
+fn find_ascii_case(input: &str, needle: &str) -> Option<usize> {
+    input
+        .as_bytes()
+        .windows(needle.len())
+        .position(|window| window.eq_ignore_ascii_case(needle.as_bytes()))
+}
+
 fn parse_html_table(doc: &mut Document, tbl_html: &str) -> Option<Table> {
     let mut rows = Vec::new();
     let mut rest = tbl_html;
 
-    while let Some(tr_start) = rest.to_lowercase().find("<tr") {
+    while let Some(tr_start) = find_ascii_case(rest, "<tr") {
         let after_tr = &rest[tr_start..];
         let tr_open_end = after_tr.find('>')?;
         let after_open = &after_tr[tr_open_end + 1..];
-        let tr_close = after_open.to_lowercase().find("</tr>")?;
+        let tr_close = find_ascii_case(after_open, "</tr>")?;
         let row_content = &after_open[..tr_close];
         rest = &after_open[tr_close + 5..];
 
         let mut cells = Vec::new();
         let mut cell_rest = row_content;
-        while let Some(td_start) = cell_rest.to_lowercase().find("<td") {
+        while let Some(td_start) = find_ascii_case(cell_rest, "<td") {
             let after_td = &cell_rest[td_start..];
             let td_open_end = after_td.find('>')?;
             let after_td_open = &after_td[td_open_end + 1..];
-            let td_close = after_td_open.to_lowercase().find("</td>")?;
+            let td_close = find_ascii_case(after_td_open, "</td>")?;
             let cell_text = unescape_html(&after_td_open[..td_close]);
             cell_rest = &after_td_open[td_close + 5..];
 

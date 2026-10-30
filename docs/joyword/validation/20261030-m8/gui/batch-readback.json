@@ -1,0 +1,30 @@
+{
+  "directory": "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-lZNfrB",
+  "inputs_unchanged": true,
+  "letters": [
+    {
+      "path": "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-lZNfrB\\letter-0001.docx",
+      "sha256": "5723f1f943f493cb73232bf7e42c633961c158e77fe31aa45dca84ea69af2cbb",
+      "text": "项目通知\n致 张三：\n欢迎星河,实验室参加本地协作项目。\n编号：001。请保留本通知。",
+      "centered_bold_title": true,
+      "bold_recipient": true,
+      "soft_line_breaks": 0
+    },
+    {
+      "path": "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-lZNfrB\\letter-0002.docx",
+      "sha256": "960de3e8ecff0eed030d504dd4d505a42fa608f1e6dc2e21254e48a21e0b3fbf",
+      "text": "项目通知\n致 李四：\n欢迎远山 \"研发\"参加本地协作项目。\n编号：002。请保留本通知。",
+      "centered_bold_title": true,
+      "bold_recipient": true,
+      "soft_line_breaks": 0
+    },
+    {
+      "path": "target\\m7-followup\\gui\\work\\m8-output\\JoyWord-merge-lZNfrB\\letter-0003.docx",
+      "sha256": "9064d2c2752754c89dab17e10aee15fed3fcb2c924f59e0911b1178210c52838",
+      "text": "项目通知\n致 王五：\n欢迎南山\n研究组参加本地协作项目。\n编号：003。请保留本通知。",
+      "centered_bold_title": true,
+      "bold_recipient": true,
+      "soft_line_breaks": 1
+    }
+  ]
+}

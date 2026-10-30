@@ -1,0 +1,238 @@
+{
+  "at_utc": "2026-10-30T09:30:45.296191+00:00",
+  "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+  "verification_snapshot": "118cca1f16d2301676c7a6a7d167f5f36522db1b",
+  "production_crates_tree": "97e6931a26ee0719f27f2df9b4b872d1a881f956",
+  "application_tree": "d6228a5e8f185857fbca370d7aafd431fb7e6de8",
+  "steps": [
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/core-tests-final.log",
+      "sha256": "918b852d233eab5d6fef97779bd3e367a75bb267ebf7448647cf1c042f4c7cb2",
+      "passed_tests": 1235
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "joyword",
+        "-p",
+        "joyword-shell",
+        "-p",
+        "joyword-cli",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/host-tests-final.log",
+      "sha256": "aa8a523553509ea2c6b5344251c4524bd34702b2fdb1077c3ef1f1671e43261e",
+      "passed_tests": 413
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "joyword",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/app-tests-receipt-final.log",
+      "sha256": "053520418c19b14e5fe0e0ed67f78ea17549af5213de1894a9f5edff6b0d9f69",
+      "passed_tests": 87
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "joyword-shell",
+        "--features",
+        "ai",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/ai-shell-tests.log",
+      "sha256": "088c826ee0447395c33e0328fee9e05289499201ac277ea5dfdaadb8aec494db",
+      "passed_tests": 290
+    },
+    {
+      "command": [
+        "cargo",
+        "check",
+        "-p",
+        "joyword-cli",
+        "-p",
+        "joyword-shell",
+        "--no-default-features",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/ai-disabled-check.log",
+      "sha256": "9dbecd1ab62aa12c318edc764a746808cd90b36cfa631074713d520ef9e2954a",
+      "passed_tests": null
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log": "checks/clippy-receipt-final.log",
+      "sha256": "1a144109f0d846d98a73fd3a9bb74b41cb8240d38e0393cb720c4a03aa466ad4",
+      "passed_tests": null
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "joyword-shell",
+        "--all-targets",
+        "--features",
+        "ai",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "log": "checks/clippy-ai.log",
+      "sha256": "ca6bd127ffd0bf84d839eac8996fc7f167ccdd7dea702a0a2a23574f0f37ac24",
+      "passed_tests": null
+    },
+    {
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/tests"
+      ],
+      "exit_code": 0,
+      "log": "checks/python-tests.log",
+      "sha256": "39a9ad4ef6f9888b950d3b78bf04224659820046f216fd4154d3d24666c0e7d5",
+      "passed_tests": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "-p",
+        "joyword-pdf",
+        "--test",
+        "navigation",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/pdf-reader.log",
+      "sha256": "9b4fe0f124e86f5397f03e12ebb7cf4a8141b05e5e3e5cddc6114d1add32cdf1",
+      "passed_tests": 15
+    },
+    {
+      "command": [
+        "target/m7-20261030/deny-bin/cargo-deny-0.20.2-x86_64-pc-windows-msvc/cargo-deny.exe",
+        "check"
+      ],
+      "exit_code": 0,
+      "log": "checks/deny-final.log",
+      "sha256": "aa2657b0ad2d2059d4692c2c2784aaa2894f31bbaa26f532ffd3855f5625cd84",
+      "passed_tests": null
+    },
+    {
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "-p",
+        "joyword",
+        "-p",
+        "joyword-cli",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/release-build-receipt-final.log",
+      "sha256": "dbe1f4f0d19e058a9578fdf9b295b8fa98299a69de2da8b0da17aa54b1227de1",
+      "passed_tests": null
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "experiments/docx-robustness/Cargo.toml",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "log": "checks/robustness-tests.log",
+      "sha256": "dad1318d427341917a43aac33fe02ebdf4b4ea8c5b8ca8304af28aced04684bc",
+      "passed_tests": 3
+    },
+    {
+      "command": [
+        "python",
+        "scripts/check_docs.py"
+      ],
+      "exit_code": 0,
+      "log": "checks/docs-final.log",
+      "sha256": "c80158e3f628b7456a586bac46e79acf478bfe9092531f37880ddd4868f33b81"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/check_acceptance.py"
+      ],
+      "exit_code": 0,
+      "log": "checks/acceptance-final.log",
+      "sha256": "1c284fe0b016f4e187617ecdb6d446c410010d0fbf9f548544ea83b810362fcf"
+    },
+    {
+      "command": [
+        "python",
+        "scripts/check_gates.py"
+      ],
+      "exit_code": 0,
+      "log": "checks/gates-final.log",
+      "sha256": "3d8e978a62f25f4d6ccba5483c7e38e748df2e1b42123c72ce441e6bfca00d0e"
+    },
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "checks/fmt-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pdf_reader_environment": {
+    "JOYWORD_REQUIRE_QPDF": "1",
+    "qpdf": "12.2.0 local verified tool"
+  },
+  "delivery_binaries": {
+    "joyword.exe": "67077ae1228f1eda7b56024d0fb662082c4b2381ec32583bc081b60f06a2af40",
+    "joyword-cli.exe": "42040dadc18b3877d05ac4875e61353f40ea3ea6c6b260d52846a95bdd1aaa9c"
+  },
+  "scope": "Windows local; no remote CI, other OS native GUI or signed release inferred",
+  "source_trees_verified_against_final_worktree": true,
+  "gui_unresolved_diagnostics": [
+    "FocusId(4v1) has no accessibility role",
+    "window not found / invalid window handle; cause and timing not localized"
+  ]
+}

@@ -1,0 +1,88 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling simd-adler32 v0.3.10
+   Compiling cfg-if v1.0.5
+   Compiling crc32fast v1.5.2
+   Compiling adler2 v2.0.1
+   Compiling version_check v0.9.5
+   Compiling autocfg v1.5.1
+   Compiling typenum v1.20.1
+   Compiling zerocopy v0.8.62
+   Compiling zune-core v0.5.3
+   Compiling weezl v0.1.12
+   Compiling bitflags v2.13.2
+   Compiling color_quant v1.1.0
+   Compiling pxfm v0.1.30
+   Compiling fax v0.2.7
+   Compiling quick-error v2.0.1
+   Compiling cpufeatures v0.2.17
+   Compiling byteorder-lite v0.1.0
+   Compiling miniz_oxide v0.9.1
+   Compiling fdeflate v0.3.7
+   Compiling miniz_oxide v0.8.9
+   Compiling zune-jpeg v0.5.15
+   Compiling gif v0.14.2
+   Compiling memchr v2.8.3
+   Compiling generic-array v0.14.7
+   Compiling num-traits v0.2.19
+   Compiling joyword-foundation v0.0.1 (D:\Coding\EditorProjects\joyoffice\target\m7-20261030\cache-baseline\crates\joyword-foundation)
+   Compiling arrayref v0.3.9
+   Compiling smallvec v1.16.3
+   Compiling regex-syntax v0.8.11
+   Compiling flate2 v1.1.10
+   Compiling strict-num v0.1.1
+   Compiling aho-corasick v1.1.5
+   Compiling bitflags v1.3.2
+   Compiling unicode-linebreak v0.1.5
+   Compiling log v0.4.34
+   Compiling arrayvec v0.7.8
+   Compiling unicode-segmentation v1.13.3
+   Compiling png v0.18.1
+   Compiling png v0.17.16
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling sha2 v0.10.9
+   Compiling regex-automata v0.4.18
+   Compiling bytemuck_derive v1.12.1
+   Compiling regex v1.13.1
+   Compiling zerocopy-derive v0.8.62
+   Compiling bytemuck v1.25.2
+   Compiling font-types v0.11.3
+   Compiling tiny-skia-path v0.11.4
+   Compiling read-fonts v0.39.2
+   Compiling moxcms v0.8.1
+   Compiling tiny-skia v0.11.4
+   Compiling half v2.7.1
+   Compiling tiff v0.11.3
+   Compiling image v0.25.10
+   Compiling harfrust v0.8.4
+   Compiling skrifa v0.42.1
+   Compiling joyword-model v0.0.1 (D:\Coding\EditorProjects\joyoffice\target\m7-20261030\cache-baseline\crates\joyword-model)
+   Compiling joyword-layout v0.0.1 (D:\Coding\EditorProjects\joyoffice\target\m7-20261030\cache-baseline\crates\joyword-layout)
+   Compiling joyword-engine v0.0.1 (D:\Coding\EditorProjects\joyoffice\target\m7-20261030\cache-baseline\crates\joyword-engine)
+   Compiling joyword-render v0.0.1 (D:\Coding\EditorProjects\joyoffice\target\m7-20261030\cache-baseline\crates\joyword-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 33.51s
+     Running tests\long_document.rs (target\debug\deps\long_document-b148d3d438c4c7fd.exe)
+
+running 1 test
+test a_working_set_larger_than_the_cache_keeps_hits_without_exceeding_the_cap ... FAILED
+
+failures:
+
+---- a_working_set_larger_than_the_cache_keeps_hits_without_exceeding_the_cap stdout ----
+
+thread 'a_working_set_larger_than_the_cache_keeps_hits_without_exceeding_the_cap' (2236) panicked at crates\joyword-layout\tests\long_document.rs:545:5:
+all upcoming fits were evicted
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_working_set_larger_than_the_cache_keeps_hits_without_exceeding_the_cap
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.63s
+
+error: test failed, to rerun pass `-p joyword-layout --test long_document`

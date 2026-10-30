@@ -1,0 +1,19 @@
+   Compiling aho-corasick v1.1.5
+   Compiling regex-syntax v0.8.11
+   Compiling joyword-docx-robustness v0.1.0 (D:\Coding\EditorProjects\joyoffice\experiments\docx-robustness)
+   Compiling joyword-model v0.0.1 (D:\Coding\EditorProjects\joyoffice\crates\joyword-model)
+error: failed to run custom build command for `joyword-docx-robustness v0.1.0 (D:\Coding\EditorProjects\joyoffice\experiments\docx-robustness)`
+
+Caused by:
+  process didn't exit successfully: `D:\Coding\EditorProjects\joyoffice\experiments\docx-robustness\target\debug\build\joyword-docx-robustness-419306d5ce01a181\build-script-build` (exit code: 101)
+  --- stderr
+
+  thread 'main' (19704) panicked at build.rs:37:5:
+  Production crates have uncommitted changes; commit them so results name an exact tree:
+  M crates/joyword-layout/src/cache.rs
+   M crates/joyword-layout/tests/long_document.rs
+   M crates/joyword-textfmt/src/html.rs
+  ?? crates/joyword-layout/examples/m7_performance.rs
+  ?? crates/joyword-textfmt/tests/html_untrusted.rs
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...

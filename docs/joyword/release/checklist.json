@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "observations": [
+    {
+      "id": "windows-native",
+      "status": "pending",
+      "scope": "Current candidate: new/edit/exchange/print/recover/AI off",
+      "reason": "Windows two-round GUI validation closes WPS settings, long-document caret/reveal and PDF marks; native text read/write/selection/read-only verified. Full printing and reader acceptance remain incomplete. See verification/m7-followup-20261030.md Native close HWND lifecycle fixed; final release and unpacked clean Alt+F4 plus dirty-close/Cancel passed with no window errors. See verification/m8-focus-epub-20261030.md. Printing and full platform acceptance remain pending."
+    },
+    {
+      "id": "macos-native",
+      "status": "pending",
+      "scope": "Current candidate: new/edit/exchange/print/recover/AI off",
+      "reason": "No current macOS candidate session"
+    },
+    {
+      "id": "linux-x11-native",
+      "status": "pending",
+      "scope": "Current candidate X11 workflow",
+      "reason": "Historical UOS/Kylin sessions do not cover the current candidate"
+    },
+    {
+      "id": "linux-wayland-native",
+      "status": "pending",
+      "scope": "Current candidate Wayland workflow",
+      "reason": "No Wayland product acceptance record"
+    },
+    {
+      "id": "accessibility-readers",
+      "status": "pending",
+      "scope": "VoiceOver, Narrator and Linux reader, semantic tree and keyboard",
+      "reason": "Windows native document focus/full text/Unicode selection/ValuePattern write/undo/read-only and disabled controls verified. Button ToggleState is not emitted by the test tool; actual reader speech and other platforms remain unverified. File trigger missing role and toolbar Enter leaking to document fixed; final native Unicode find/zoom/font-field value tests passed. Full reader speech is still unverified."
+    },
+    {
+      "id": "ime-dpi",
+      "status": "pending",
+      "scope": "System IME, focus, high DPI and multiple monitors",
+      "reason": "Windows physical Pinyin preedit/cancel/commit/single undo passed; DPI, multiple monitors and other platforms remain unverified"
+    },
+    {
+      "id": "performance-gui",
+      "status": "pending",
+      "scope": "QUALITY section 5 startup/input/scroll/RSS/size budgets on fixed hardware",
+      "reason": "Model/layout benchmark is available; GUI presentation and stable-idle RSS remain unmeasured"
+    },
+    {
+      "id": "recovery-faults",
+      "status": "pending",
+      "scope": "Fault injection, terminated process, interrupted save and recovery migration",
+      "reason": "Real process termination/recovery/readback/discard restart passed after two fixes; rich-document recovery and power-loss acceptance remain incomplete"
+    },
+    {
+      "id": "install-upgrade-rollback",
+      "status": "pending",
+      "scope": "Native installers, association, uninstall, interrupted upgrade and rollback",
+      "reason": "Portable preview archive does not implement native installation or upgrade"
+    },
+    {
+      "id": "code-signing",
+      "status": "pending",
+      "scope": "Platform distribution signatures and macOS notarization",
+      "reason": "Distribution credentials and signing environment are unavailable"
+    },
+    {
+      "id": "sbom-licenses",
+      "status": "pending",
+      "scope": "Candidate SBOM, dependency licenses, asset notices and provenance",
+      "reason": "381-package candidate SPDX inventory passes the official schema; 18 source packages lack bundled root license files and final distribution notices remain incomplete"
+    },
+    {
+      "id": "privacy-defaults",
+      "status": "pending",
+      "scope": "No telemetry upload, AI off and no-AI build",
+      "reason": "Core tests exist; final application acceptance remains pending"
+    },
+    {
+      "id": "office-exchange",
+      "status": "pending",
+      "scope": "Fixed Word 2024 and WPS supported format/review matrix",
+      "reason": "Previous WPS settings refusal fixed using validated empty MCE projection; real WPS-derived sample edit/save/reopen and unchanged settings bytes passed. Word previous sample passed; complete Office feature matrix remains pending."
+    },
+    {
+      "id": "reproducible-builds",
+      "status": "pending",
+      "scope": "Two independent candidate builds and full manifest comparison",
+      "reason": "Repeatable archive packing is narrower than independent reproducible application builds"
+    },
+    {
+      "id": "xinchuang-hardware",
+      "status": "pending",
+      "scope": "UOS/Kylin x86_64/ARM64/LoongArch64, GPU/CPU, Fcitx and packages",
+      "reason": "Nonblocking hardware follow-up under the 2026-10-18 user decision; no substitute compatibility claim"
+    }
+  ]
+}

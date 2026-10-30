@@ -863,6 +863,7 @@ pub(crate) fn separator_rects(section: &Section, geometry: &PageGeometry) -> Vec
         let center = right_edge.saturating_add(left_edge) / 2;
         let x = center.saturating_sub(thickness / 2);
         rects.push(SceneRect {
+            screen_only: false,
             x: Emu::new(x),
             y: Emu::new(top),
             width: Emu::new(thickness),

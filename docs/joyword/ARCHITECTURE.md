@@ -19,6 +19,10 @@
 
 app 组合 engine、formats、layout、platform、agent。engine 依赖 model；formats 和 layout 使用 model 的只读结构；agent 使用 engine 的受限接口。engine 不反向依赖 agent，避免循环。
 
+2026-10-30 T807：CLI 增加生产依赖 `joyword-shell`，调用与桌面共用的有界本地邮件合并任务；该边已登记 `LAYERS`，shell 不反向依赖 CLI，也不引入 GPUI。模板只通过 engine 事务修改，DOCX 导出计划复验；CSV 与独立输出的文件 I/O 仅在 `shell/mail_merge.rs` 白名单模块中进行，不把格式语义下移 OPC。该命令不调用 Provider，AI 依赖仍由显式 feature 控制。
+
+2026-10-30 T806：`joyword-epub` 只读依赖 model 与格式中立 OPC ZIP 写出器，不含文件系统、网络或 GPUI；仅 dev 依赖 docx 验证真实样例。shell 组合导出计划、同目录临时文件读回与不覆盖发布，I/O 白名单限定 `shell/epub.rs`。CLI 和桌面共享同一计划，不能绕过差异确认。无新增第三方依赖。实现依据 [W3C EPUB 3.3](https://www.w3.org/TR/epub-33/)，PDF/A 仍未实现。
+
 上表的依赖方向与禁止依赖由自动检查固化（T111）：解析 Cargo manifest 中的依赖声明校验层表，未登记的新 crate 报错。普通依赖和 build 依赖严格遵守 `LAYERS`；dev 依赖可额外使用单独审阅、逐条登记的 `DEV_LAYERS` 许可边，这些测试例外不放宽生产依赖。`joyword-agent` 的生产依赖仍为空，只在 dev-dependencies 中为 T402 接受路径的集成测试依赖 `joyword-engine` 与 `joyword-model`（登记为 `DEV_LAYERS`）；`joyword-docx` 亦只在 dev-dependencies 中为 T402 修订往返的集成测试依赖 `joyword-engine`；engine 与 model 都不反向依赖 agent，docx 也不反向依赖 engine。另以源码扫描约束文件系统访问白名单，只有 OPC、storage、字体加载等少数模块可直接读写文件。新增 crate 或跨层依赖必须经架构审阅并同步更新检查配置，否则 CI 失败。
 
 ```mermaid
@@ -149,3 +153,5 @@ GPUI 不提供打印接口；剪贴板在 0.2.2 中只有文本和图片，现�
 | ADR-010 | GPUI 不以 crates.io 0.2.2 为长期来源；T001 依据 T003、T005 的实测，在固定 Zed commit、gpui-pre 与自维护补丁分支中选定并精确固定；所选来源必须支持 GL 或 CPU 渲染。2026-10-16 选用 crates.io gpui-pre =0.3.9（Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照），平台 crate gpui-pre-platform =0.3.9 开 font-kit、wayland、x11（[迁移报告](../coordination/reports/GPUI-PRE-MIGRATION.md)）；其 wgpu GL 后端仍待 T005 信创真机验证 | 0.2.2 为最后官方版本（2025-10），缺外部 GlyphId、AccessKit 与 Linux 非 Vulkan 渲染；第三方发布需供应链审查；打印与富剪贴板无论哪种来源都需自建。gpui-pre 由个人发布且发布包无 .cargo_vcs_info.json，补偿措施为 CI provenance 作业：19 个包按 Cargo.lock 校验和取包，要求声明提交在 Zed main 历史中，并逐文件对照 Zed 源码；16 个一致，3 个包共 9 处发布适配经 2026-10-16 审查接受，按内容钉死于 scripts/gpui_pre_reviewed_deviations.json。升级快照须同步更新 CI 的提交号并重新审查（[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)） |
 | ADR-011 | 标准层面跨应用共享的格式层（OPC、DrawingML、OMML、文档属性、CFB／加密）首次引入即格式中立 | 避免 Word 假设渗入共享层，JoySheet／JoyDeck 可复用；需更早约束其接口 |
 
+
+2026-10-30 T806：PDF/A-2b 使用 joyword-pdf 的显式 PdfProfile、调用者提供的年份及原有只读 PageScene；默认 PDF 行为不变，无新增依赖。EPUB 可选 NCX 与 EPUB 3 nav 从同一标题列表生成。

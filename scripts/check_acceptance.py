@@ -16,6 +16,7 @@ import check_docs  # noqa: E402
 
 LEGEND = (
     "automated",
+    "verified-gui",
     "partial",
     "not-started",
     "needs-gui",

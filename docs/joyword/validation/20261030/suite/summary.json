@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "source": {
+    "head": "0a6a5fdfd0c7261058b61376f2f6d4e386f38cb1",
+    "tracked_diff_sha256": "00b736fd6746ad10076663b5a672fdcec5e25f1b2cbf22cb3b9d004a90160d34",
+    "untracked": {
+      "crates/joyword-layout/examples/m7_performance.rs": "b068f2991a8852862e0aa067840deffeb53fdf6f4151f3b226a8360b2bae8e2c",
+      "crates/joyword-textfmt/tests/html_untrusted.rs": "2b836010455d87e1fbda531e0497f00d965c09905a9c70fb1a12f5bc855e0223",
+      "docs/joyword/acceptance/T700.md": "8bc062d1be79dc48fc0e704fbf1ace36c3291115b345b9a3d1250eccd1d6b71d",
+      "docs/joyword/acceptance/T701.md": "e0836265efaf1c646e2b722694ea205987b5106177d7e9aa2688da8585a8708a",
+      "docs/joyword/acceptance/T702.md": "5758deb7e3d48079d030e33f4001fddbd9983790d7c6354823a49c75915fc810",
+      "docs/joyword/acceptance/T703.md": "dfafecd8530d85da1233b80bc396e6bef0a6410f8b2431ce9eb65026081050bb",
+      "docs/joyword/acceptance/T704.md": "e87d2178d61180011da7b61c843781641b282e6d7740e6181bd0aae8b3297f1f",
+      "docs/joyword/release/checklist.json": "395788dce05b16aa142fd1a762b943e9176631d1f48e388ab67b185b69b3edd2",
+      "docs/joyword/verification/m7-20261030.md": "08346b8479213c6145e03815106dcb4c7116649f9e435931dde2443dfbea8ccb",
+      "scripts/check_release.py": "b6b2097339ada563e5d1127e869b0507d24e1cc327d4097bc05f25dc679d81b9",
+      "scripts/m7_evidence.py": "b41c0aad3dba3b517d3b17dd51272eb608a41e9284341b8b97a9bffe06e95a40",
+      "scripts/measure_m7.py": "e4214b86811f2d09b5f5d427cd38efb1adf87600a71e7533853350cc8703b962",
+      "scripts/package_preview.py": "986d7b275cfd2b13c35f40e40d3f50a06cdb4e81daf375d2701b317fcbbe3213",
+      "scripts/run_m7_validation.py": "663a76edc0ede58c7b217066d82d81da285afbf2b32bf6105b8d5894909d90a7",
+      "scripts/tests/test_m7_tools.py": "6c1ad6e3953db58f5d6a16e5fdfec7fc60a437c9be0bd99017923327820047fa"
+    },
+    "dirty": true
+  },
+  "environment": {
+    "system": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "python": "3.14.7",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+  },
+  "scope": "local-headless-and-native-build-only",
+  "status": "failed",
+  "unverified": [
+    "GUI/IME/DPI",
+    "Office exchange",
+    "screen readers",
+    "printing",
+    "other OS native sessions",
+    "signed installation/upgrade",
+    "Xinchuang hardware"
+  ],
+  "steps": [
+    {
+      "name": "docs",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_docs.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.3472821000032127,
+      "log": "docs.log",
+      "sha256": "33ab314ffe20584b08e04b2b7c0aebfa8a6c12bd5a1737f053023b064d78f7bf",
+      "error": null
+    },
+    {
+      "name": "acceptance",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_acceptance.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.27421679999679327,
+      "log": "acceptance.log",
+      "sha256": "bbef52cfd42203a30196ade451a45be852ee1742cf39005a4cbd81e0df0ad639",
+      "error": null
+    },
+    {
+      "name": "gates",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_gates.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.6525318999920273,
+      "log": "gates.log",
+      "sha256": "2851f5e5efcfac111dd73a45a5784839d8410e450fffe76f0815aa7500412a6b",
+      "error": null
+    },
+    {
+      "name": "python-tests",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/tests"
+      ],
+      "exit_code": 0,
+      "seconds": 31.153682200005278,
+      "log": "python-tests.log",
+      "sha256": "ac24c8cb5f4660e6655e03b620d7b7c4183bbb3dfa48e206e209ffc36238c8f0",
+      "error": null
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6044820999959484,
+      "log": "fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "error": null
+    },
+    {
+      "name": "core-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 83.7253544999985,
+      "log": "core-tests.log",
+      "sha256": "c67dbc5e14b64e8a3331849a35803a4226487570b94301d51f8edd5235384777",
+      "error": null
+    },
+    {
+      "name": "app-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword"
+      ],
+      "exit_code": 0,
+      "seconds": 38.434584499991615,
+      "log": "app-tests.log",
+      "sha256": "122854de67620ab3a233ba9489056c5bbb4b80e9d3bc9d8fdd6649416b97fa8d",
+      "error": null
+    },
+    {
+      "name": "ai-enabled-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "joyword-shell",
+        "--features",
+        "ai"
+      ],
+      "exit_code": 0,
+      "seconds": 43.22163489999366,
+      "log": "ai-enabled-tests.log",
+      "sha256": "63110bf2b5afe3418fa34c52d0e45ab574b5a1a2870a80bd45d6d6f6088e1cb3",
+      "error": null
+    },
+    {
+      "name": "ai-disabled-check",
+      "command": [
+        "cargo",
+        "check",
+        "--locked",
+        "--no-default-features",
+        "-p",
+        "joyword-engine",
+        "-p",
+        "joyword-model",
+        "-p",
+        "joyword-docx",
+        "-p",
+        "joyword-layout",
+        "-p",
+        "joyword-shell",
+        "-p",
+        "joyword-agent"
+      ],
+      "exit_code": 0,
+      "seconds": 4.194223999991664,
+      "log": "ai-disabled-check.log",
+      "sha256": "f34fc219de1cd06c29d2a886fca09bc1a88c19b1a7dc5fd20ef0d947db9950f8",
+      "error": null
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 15.08873859999585,
+      "log": "clippy.log",
+      "sha256": "06933f752c1b0902f0a9fe5c1d4a9ea4cfa693904986bd2222363253bdba8cfe",
+      "error": null
+    },
+    {
+      "name": "clippy-ai",
+      "command": [
+        "cargo",
+        "clippy",
+        "-p",
+        "joyword-shell",
+        "--all-targets",
+        "--features",
+        "ai",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 112.2279661999928,
+      "log": "clippy-ai.log",
+      "sha256": "d088b6060680f62711cf66be0b25ac64866b563ddd63e6792c0e7e76ae054226",
+      "error": null
+    },
+    {
+      "name": "recovery-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "experiments/recovery-journal/Cargo.toml",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "seconds": 16.530532999997376,
+      "log": "recovery-tests.log",
+      "sha256": "dcc358391bd37125bf09e63d46a371c6f42d2b9cf7029c739c4dc8f425eb2b6c",
+      "error": null
+    },
+    {
+      "name": "robustness-tests",
+      "command": [
+        "cargo",
+        "test",
+        "--manifest-path",
+        "experiments/docx-robustness/Cargo.toml",
+        "--locked"
+      ],
+      "exit_code": 101,
+      "seconds": 7.006077499987441,
+      "log": "robustness-tests.log",
+      "sha256": "459c24544f208b2fe8ece5fc8baf3740f4230534d2fc91dae7dd1e77b83a4836",
+      "error": null
+    },
+    {
+      "name": "robustness-driver-tests",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "experiments/docx-robustness/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "seconds": 4.196118899999419,
+      "log": "robustness-driver-tests.log",
+      "sha256": "d1c6009ffe4e4c74eff55bf7b6c2841d26b54090d4e59a90e72640b7dfc055a1",
+      "error": null
+    },
+    {
+      "name": "layout-corpus-smoke",
+      "command": [
+        "cargo",
+        "run",
+        "--locked",
+        "-p",
+        "joyword-layout",
+        "--example",
+        "m7_performance",
+        "--",
+        "10",
+        "1",
+        "2"
+      ],
+      "exit_code": 0,
+      "seconds": 5.995913999999175,
+      "log": "layout-corpus-smoke.log",
+      "sha256": "26a668e49f54972f6cfef78379b5cd45c1a482ec1ae02f5f1f9e969143c59264",
+      "error": null
+    },
+    {
+      "name": "release-evidence-audit",
+      "command": [
+        "C:\\Applications\\Python\\Python314\\python.exe",
+        "scripts/check_release.py",
+        "--audit"
+      ],
+      "exit_code": 0,
+      "seconds": 0.1150575000065146,
+      "log": "release-evidence-audit.log",
+      "sha256": "8de8f6f6a1be31d930454b93ba4a3f5940c9654e315347b40554149420cadc75",
+      "error": null
+    },
+    {
+      "name": "native-build",
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "joyword",
+        "-p",
+        "joyword-cli"
+      ],
+      "exit_code": 0,
+      "seconds": 21.839374399991357,
+      "log": "native-build.log",
+      "sha256": "a84304cfce350f6edd46f5d6faa252131b19fc5a48d90ba0d9abb35c46d2165e",
+      "error": null
+    }
+  ]
+}
