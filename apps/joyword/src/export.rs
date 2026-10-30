@@ -9,13 +9,14 @@ use std::sync::Arc;
 use joyword_layout::{LayoutSnapshot, LoadedFont, SingleFontProfile};
 use joyword_model::{Document, DocumentSnapshot};
 use joyword_pdf::{
-    PdfExport, core_title, links_from_document, navigation_from_document, outline_from_headings,
-    render_export_with_navigation,
+    PdfExport, PdfProfile, core_title, links_from_document, navigation_from_document,
+    outline_from_headings, render_with_profile,
 };
 use joyword_shell::print::{self, PrintReceipt};
 
 pub(crate) enum PdfKind {
     Export,
+    Archive { year: u16 },
     Print { copies: u16, range: String },
 }
 
@@ -30,12 +31,31 @@ pub(crate) struct PdfJob {
     pub kind: PdfKind,
 }
 
+#[cfg(test)]
 pub(crate) fn scene_pdf(
     layout: &LayoutSnapshot,
     font: &LoadedFont,
     document: &Document,
     core_xml: Option<&[u8]>,
     pages: Range<usize>,
+) -> Result<Vec<u8>, String> {
+    scene_pdf_with_profile(
+        layout,
+        font,
+        document,
+        core_xml,
+        pages,
+        PdfProfile::Standard,
+    )
+}
+
+fn scene_pdf_with_profile(
+    layout: &LayoutSnapshot,
+    font: &LoadedFont,
+    document: &Document,
+    core_xml: Option<&[u8]>,
+    pages: Range<usize>,
+    profile: PdfProfile,
 ) -> Result<Vec<u8>, String> {
     if pages.start >= pages.end || pages.end > layout.pages().len() {
         return Err("range".into());
@@ -87,15 +107,21 @@ pub(crate) fn scene_pdf(
         ..Default::default()
     };
     let selected = layout.pages()[pages].to_vec();
-    render_export_with_navigation(&selected, std::slice::from_ref(font), &export, &navigation)
-        .map_err(|error| match error {
-            joyword_pdf::PdfError::MissingFont(_) => "missing font".into(),
-            joyword_pdf::PdfError::UnembeddableFont(_) => "unembeddable font".into(),
-            joyword_pdf::PdfError::Writer(_) => "pdf writer".into(),
-            joyword_pdf::PdfError::InvalidPage => "invalid page".into(),
-            joyword_pdf::PdfError::Image(_) => "image".into(),
-            joyword_pdf::PdfError::Navigation(_) => "navigation".into(),
-        })
+    render_with_profile(
+        &selected,
+        std::slice::from_ref(font),
+        &export,
+        &navigation,
+        profile,
+    )
+    .map_err(|error| match error {
+        joyword_pdf::PdfError::MissingFont(_) => "missing font".into(),
+        joyword_pdf::PdfError::UnembeddableFont(_) => "unembeddable font".into(),
+        joyword_pdf::PdfError::Writer(_) => "pdf writer".into(),
+        joyword_pdf::PdfError::InvalidPage => "invalid page".into(),
+        joyword_pdf::PdfError::Image(_) => "image".into(),
+        joyword_pdf::PdfError::Navigation(_) => "navigation".into(),
+    })
 }
 
 /// One publish for export and print-to-file. The layout must still be the
@@ -106,15 +132,23 @@ pub(crate) fn run_pdf(job: PdfJob) -> Result<PrintReceipt, String> {
     job.layout
         .ensure_current(&job.document, &job.font, job.profile)
         .map_err(|_| "layout unstable".to_string())?;
-    let bytes = scene_pdf(
+    if matches!(job.kind, PdfKind::Archive { .. }) && job.layout.omitted_blocks() != 0 {
+        return Err("archival output refuses omitted blocks".into());
+    }
+    let profile = match job.kind {
+        PdfKind::Archive { year } => PdfProfile::PdfA2b { year },
+        _ => PdfProfile::Standard,
+    };
+    let bytes = scene_pdf_with_profile(
         &job.layout,
         job.font.as_ref(),
         &job.document,
         job.core.as_deref(),
         job.pages,
+        profile,
     )?;
     match job.kind {
-        PdfKind::Export => {
+        PdfKind::Export | PdfKind::Archive { .. } => {
             print::publish_pdf(&job.destination, &bytes).map_err(|error| error.to_string())
         }
         PdfKind::Print { copies, range } => print::print_to_file(print::PrintToFile {

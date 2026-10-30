@@ -353,3 +353,7 @@ epub.saved = EPUB 已保存到 {path}，原文档未改动。
 epub.saved_earlier = EPUB 已从较早快照保存到 {path}，当前编辑未改动。
 epub.completed = EPUB 导出完成。
 epub.cancelled = EPUB 导出已取消，原文档未改动。
+
+command.file.export_pdfa = 导出 PDF/A-2b…
+pdfa.review = 确认归档导出
+pdfa.description = 将当前页面场景导出为 PDF/A-2b，创建年份为 {year}（UTC）。字体须允许嵌入。请选择新的 .pdf 文件，不覆盖已有文件。实际产物仍需独立合规验证；不声称 PDF/UA 合规。

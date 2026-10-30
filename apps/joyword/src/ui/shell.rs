@@ -620,6 +620,7 @@ impl JoyWord {
                         FILE_SAVE,
                         FILE_SAVE_COPY,
                         FILE_EXPORT_PDF,
+                        FILE_EXPORT_PDFA,
                         FILE_EXPORT_EPUB,
                         FILE_MAIL_MERGE,
                         FILE_PRINT,

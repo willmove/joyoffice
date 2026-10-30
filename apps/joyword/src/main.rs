@@ -9,6 +9,7 @@ mod field_edit;
 mod input_ui;
 mod linux_files;
 mod mail_merge_ui;
+mod pdfa_ui;
 #[cfg(target_os = "linux")]
 mod prompt_ui;
 mod text_accessibility;
@@ -86,6 +87,7 @@ actions!(
         SaveOriginal,
         SaveCopy,
         ExportPdf,
+        ExportPdfa,
         PrintFile,
         Bold,
         Italic,
@@ -246,6 +248,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FILE_SAVE_COPY => Box::new(SaveCopy),
         FILE_EXPORT_PDF => Box::new(ExportPdf),
         FILE_MAIL_MERGE => Box::new(MailMerge),
+        FILE_EXPORT_PDFA => Box::new(ExportPdfa),
         FILE_EXPORT_EPUB => Box::new(ExportEpub),
         FILE_PRINT => Box::new(PrintFile),
         EDIT_BOLD => Box::new(Bold),
@@ -691,6 +694,7 @@ impl CommandHost for ViewHost<'_, '_> {
         let view = &mut *self.view;
         match id {
             FILE_MAIL_MERGE => view.begin_mail_merge(self.window, self.cx),
+            FILE_EXPORT_PDFA => view.begin_pdfa(self.window, self.cx),
             FILE_EXPORT_EPUB => view.begin_epub(self.window, self.cx),
             ZOOM_IN => view.set_zoom_percent((view.zoom_percent + 10).min(ZOOM_MAX)),
             ZOOM_OUT => view.set_zoom_percent((view.zoom_percent - 10).max(ZOOM_MIN)),
@@ -748,6 +752,7 @@ impl CommandHost for ViewHost<'_, '_> {
                         copies: None,
                         range: None,
                         marks: None,
+                        archive_year: None,
                     },
                     self.window,
                     self.cx,
@@ -764,6 +769,7 @@ impl CommandHost for ViewHost<'_, '_> {
                         copies: optional_text(args, "copies")?,
                         range: optional_text(args, "range")?,
                         marks: optional_text(args, "marks")?,
+                        archive_year: None,
                     },
                     self.window,
                     self.cx,
@@ -1613,6 +1619,9 @@ impl Render for JoyWord {
             .on_action(
                 cx.listener(|this, _: &SaveCopy, window, cx| this.run(FILE_SAVE_COPY, window, cx)),
             )
+            .on_action(cx.listener(|this, _: &ExportPdfa, window, cx| {
+                this.run(FILE_EXPORT_PDFA, window, cx)
+            }))
             .on_action(
                 cx.listener(|this, _: &ExportPdf, window, cx| {
                     this.run(FILE_EXPORT_PDF, window, cx)

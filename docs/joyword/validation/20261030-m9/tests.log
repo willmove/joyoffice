@@ -1,0 +1,754 @@
+   Compiling joyword v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.32s
+     Running unittests src\main.rs (target\debug\deps\joyword-1c7f736989de5c17.exe)
+
+running 92 tests
+test document_canvas::input_pipeline_tests::missing_font_glyph_keeps_typed_unicode_and_emits_diagnostics ... ok
+test document_canvas::startup_sample_tests::in_memory_session_cannot_save_a_copy ... ok
+test document_canvas::startup_sample_tests::startup_sample_matches_seed_and_saves_a_copy ... ok
+test document_canvas::tests::cancelled_or_stale_layout_does_not_create_images ... ok
+test document_canvas::tests::font_missing_invalid_spec_and_missing_sample_glyphs_are_errors ... ok
+test document_canvas::input_pipeline_tests::stale_layouts_lose_to_newer_requests_including_a_to_b_to_a ... ok
+test document_canvas::input_pipeline_tests::a_reopened_identical_document_is_painted_again ... ok
+test field_edit::tests::accessibility_replacement_is_single_line_bounded_and_preserves_refused_state ... ok
+test field_edit::tests::editing_and_navigation_keys_edit_the_field ... ok
+test document_canvas::tests::real_engine_session_is_editable_and_layout_matches_source ... ok
+test document_canvas::input_pipeline_tests::geometry_installs_after_layout_while_the_last_pixels_stay_painted ... ok
+test document_canvas::input_pipeline_tests::another_document_cancels_jobs_and_never_matches_old_revisions ... ok
+test find_bar_tests::escape_is_bound_only_while_composing_so_panels_receive_it_otherwise ... ok
+test find_bar_tests::editing_keys_are_unbound_while_an_in_app_text_field_is_focused ... ok
+test find_bar_tests::find_bar_checkboxes_set_width_and_regex_on_every_find_command ... ok
+test find_bar_tests::formatting_dialog_converts_points_back_to_command_units ... ok
+test find_bar_tests::find_bar_width_hits_fullwidth_and_regex_rejects_invalid_patterns ... ok
+test find_bar_tests::a_document_named_on_the_command_line_names_the_window_and_the_close_prompt ... ok
+test document_canvas::input_pipeline_tests::zooming_back_while_a_page_is_in_flight_still_paints_it_later ... ok
+test find_bar_tests::ribbon_density_has_full_compact_and_overflow_tiers ... ok
+test find_bar_tests::ruler_uses_the_same_page_origin_and_zoom_as_the_canvas ... ok
+test document_canvas::input_pipeline_tests::commit_equal_to_its_preview_reuses_layout_and_pixels_without_jobs ... ok
+test document_canvas::tests::page_image_conversion_and_device_projection_need_no_window ... ok
+test find_bar_tests::scene_export::an_unembeddable_font_refuses_export_and_publishes_nothing ... ok
+test find_bar_tests::recovery_failure_log_reads_back_both_slots_and_legacy_without_content ... ok
+test find_bar_tests::scene_export::archival_job_is_deterministic_and_refuses_invalid_year_and_overwrite ... ok
+test find_bar_tests::scene_export::an_anchor_without_a_target_does_not_block_the_export ... ok
+test find_bar_tests::scene_export::archival_job_refuses_missing_glyphs_and_omitted_objects_before_publication ... ok
+test find_bar_tests::scene_export::a_selected_page_range_renumbers_both_ends_and_drops_a_link_it_cannot_keep ... ok
+test find_bar_tests::scene_export::bookmark_endpoints_require_visible_exact_carets_in_the_installed_view ... ok
+test find_bar_tests::scene_export::plain_scene_pdf_keeps_the_existing_export_and_rejects_stale_versions_and_ranges ... ok
+test find_bar_tests::start_more_menu_contains_only_user_facing_commands ... ok
+test find_bar_tests::recovery_log_distinguishes_absence_discard_restore_and_package_failure ... ok
+test find_bar_tests::scene_export::export_and_print_refuse_without_a_settled_layout_and_publish_nothing ... ok
+test document_canvas::input_pipeline_tests::stale_rasters_cannot_install_over_another_layout_or_projection ... ok
+test find_bar_tests::t200_headings_lists_painter_and_regex_undo_round_trip ... ok
+test find_bar_tests::t209_keyboard_paste_command_and_ime_undo_one_step_at_a_time ... ok
+test find_bar_tests::t201_contract_table_edits_undo_and_reimport ... ok
+test find_bar_tests::zoom_slider_clamps_to_the_supported_range ... ok
+test input_ui::tests::a_late_copy_applies_only_to_its_session_and_version ... ok
+test input_ui::tests::caret_reveal_scrolls_minimally_and_clamps_at_content_edges ... ok
+test input_ui::tests::close_and_quit_share_the_dirty_after_save_prompt ... ok
+test document_canvas::input_pipeline_tests::one_raster_stays_within_the_ui_cache_budget ... ok
+test input_ui::tests::every_word_unit_command_maps_to_one_caret_move ... ok
+test find_bar_tests::t300_tracked_edits_views_and_revision_round_trip ... ok
+test input_ui::tests::native_original_prompt_puts_the_copy_default_first_and_keeps_escape_cancel ... ok
+test input_ui::tests::only_a_writing_save_of_this_editor_counts_as_in_flight ... ok
+test input_ui::tests::only_explicit_discard_for_the_prompted_version_can_close ... ok
+test find_bar_tests::justify_on_mixed_script_paragraphs_keeps_the_document_displayable ... ok
+test input_ui::tests::original_save_prompt_defaults_to_copy_and_rechecks_edited_versions ... ok
+test find_bar_tests::a_word_saved_document_opens_lays_out_and_lays_out_again_after_an_edit ... ok
+test input_ui::tests::page_keys_move_about_one_screen_and_stop_at_the_ends ... ok
+test find_bar_tests::scene_export::scene_export_refuses_invalid_names_detached_and_duplicate_targets_before_slicing ... ok
+test find_bar_tests::scene_export::chapter_bookmarks_warm_scene_and_selected_pdf_share_real_page_geometry ... ok
+test input_ui::tests::page_geometry_round_trips_at_zoom_with_live_scroll_on_multiple_pages ... ok
+test input_ui::tests::recovery_adapter_skips_preedit_and_keeps_newer_journal_after_save ... ok
+test document_canvas::input_pipeline_tests::the_caret_overlay_rides_the_raster_of_its_own_page ... ok
+test input_ui::tests::volume_refusal_entries_exist_in_both_locales ... ok
+test input_ui::tests::volume_refused_precheck_prompts_replacement_unavailable_and_defaults_to_copy ... ok
+test linux_files::tests::chord_labels_spell_modifiers ... ok
+test linux_files::tests::dialog_cancel_stops_and_a_display_error_tries_the_next_program ... ok
+test linux_files::tests::dialog_programs_prefer_zenity_and_build_save_argv ... ok
+test linux_files::tests::linux_bar_covers_open_save_and_export ... ok
+test linux_files::tests::typed_open_requires_a_file_and_save_requires_a_parent_directory ... ok
+test tests::a_committed_journal_opens_back_into_a_session ... ok
+test tests::file_and_insert_commands_are_not_the_language_switch ... ok
+test tests::linux_export_keeps_the_primary_chord_and_adds_ctrl_e ... ok
+test tests::registry_commands_all_have_actions_and_bindings ... ok
+test tests::ribbon_commands_have_gpui_actions ... ok
+test tests::window_title_names_the_document_and_marks_unsaved_changes ... ok
+test tests::word_processor_chords_reach_their_commands ... ok
+test text_accessibility::tests::empty_document_has_a_valid_native_insertion_point ... ok
+test text_accessibility::tests::native_text_nodes_keep_unicode_newlines_selection_direction_and_reject_bad_ranges ... ok
+test ui::controls::tests::checkbox_accessibility_tracks_both_checked_and_unchecked_states ... ok
+test ui::controls::tests::document_bindings_do_not_match_a_focused_toolbar_or_field ... ok
+test ui::controls::tests::icon_buttons_publish_the_localized_command_name_and_stable_id ... ok
+test ui::controls::tests::slider_exposes_percent_bounds_orientation_and_accepts_only_valid_values ... ok
+test document_canvas::input_pipeline_tests::a_page_too_large_for_the_cache_shows_its_own_notice ... ok
+test document_canvas::input_pipeline_tests::a_failed_page_keeps_its_error_and_does_not_stop_the_others ... ok
+test input_ui::tests::a_layout_without_pixels_answers_ime_hit_testing_and_reveal_exactly ... ok
+test input_ui::tests::ribbon_bullet_reaches_the_document_without_num ... ok
+test input_ui::tests::ime_bounds_are_window_logical_pixels_at_zoom_and_live_scroll ... ok
+test input_ui::tests::visible_pages_follow_live_scroll_zoom_and_viewport ... ok
+test input_ui::tests::commit_then_type_answers_from_the_committed_layout_before_its_pixels ... ok
+test input_ui::tests::origin_anchor_is_dropped_for_other_versions_or_origins_and_queries_clamp_to_end ... ok
+test input_ui::tests::pending_preedit_reveals_its_origin_before_appkit_asks ... ok
+test input_ui::tests::pending_preedit_layout_answers_from_the_origin_anchor ... ok
+test find_bar_tests::t202_margins_orientation_page_numbers_and_zoom ... ok
+test document_canvas::input_pipeline_tests::scrolling_and_zoom_request_only_missing_pages_near_the_viewport ... ok
+test document_canvas::input_pipeline_tests::eviction_drops_the_farthest_pages_and_other_projections_first ... ok
+test document_canvas::input_pipeline_tests::long_document_on_a_2x_display_paints_the_visible_pages ... ok
+test document_canvas::input_pipeline_tests::resident_pixels_stay_within_the_cache_at_any_page_count ... ok
+
+test result: ok. 92 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.08s
+
+     Running unittests examples\perf_smoke.rs (target\debug\examples\perf_smoke-c85873a642fe7ed5.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joyword_pdf-64f2439919612099.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\column_separator.rs (target\debug\deps\column_separator-03332b57649fc9ff.exe)
+
+running 1 test
+test the_column_separator_rule_is_in_the_pdf_page_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\export_pdf.rs (target\debug\deps\export_pdf-6026b7570c385670.exe)
+
+running 12 tests
+test core_title_reads_dublin_core_and_rejects_active_markup ... ok
+test a_classic_cross_reference_file_reports_structure_without_the_writer ... ok
+test an_image_is_an_xobject ... ok
+test plain_render_still_names_the_producer_without_a_title ... ok
+test heading_styles_become_bookmarks_and_a_bare_outline_level_does_not ... ok
+test two_renders_match_and_carry_no_clock ... ok
+test each_section_keeps_its_page_box ... ok
+test archival_profile_embeds_output_intent_and_xmp_without_mutating_scene ... ok
+test an_https_link_is_a_uri_annotation_and_a_script_is_not ... ok
+test synthetic_bold_contributes_searchable_text_only_once ... ok
+test test_tagged_pdf_structure ... ok
+test pdftotext_reads_the_scene_text ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\font_refusal.rs (target\debug\deps\font_refusal-def098c36ea8f809.exe)
+
+running 3 tests
+test a_restricted_license_font_refuses_export_with_no_bytes ... ok
+test an_allowed_embedding_bit_still_exports ... ok
+test the_restriction_reads_the_low_nibble_like_krilla ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\images.rs (target\debug\deps\images-14de24f8ec373d0d.exe)
+
+running 1 test
+test a_scene_image_is_embedded_and_not_omitted ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\long_document.rs (target\debug\deps\long_document-1fd8c263f57e3d60.exe)
+
+running 1 test
+test a_mixed_section_document_shares_one_geometry_with_the_pdf ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests\navigation.rs (target\debug\deps\navigation-4f628a57745f5e9d.exe)
+
+running 15 tests
+test all_public_navigation_numbers_are_finite_in_range_and_bounded ... ok
+test independent_parser_checks_page_identity_xyz_kind_and_coordinate_range ... ok
+test empty_document_and_empty_paragraph_bookmark_are_distinct_from_empty_names ... ok
+test duplicate_names_never_select_a_first_target_and_case_is_exact ... ok
+test detached_missing_reversed_out_of_range_and_unplaced_stories_are_refused ... ok
+test existing_uri_api_keeps_allowlist_and_rejects_invalid_geometry ... ok
+test destination_uses_target_page_height_and_accepts_legal_edge_points ... ok
+test a_non_ascii_bookmark_name_survives_the_name_tree_readback ... ok
+test an_anchor_without_a_bookmark_is_counted_and_leaves_the_rest_usable ... ok
+test bookmark_name_count_and_combined_rectangle_budgets_refuse_without_truncation ... ok
+test an_external_reader_sees_named_destinations_and_resolves_goto_actions ... ok
+test model_forward_backward_same_page_and_uri_actions_survive_pdf_readback ... ok
+test wrap_boundary_bias_and_cluster_interiors_are_not_guessed ... ok
+test wrapped_source_rectangles_keep_each_page_and_raw_pdf_rect_transform ... ok
+test wrapped_links_exhaust_the_rectangle_budget_before_the_span_budget ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests\pages.rs (target\debug\deps\pages-ec9c9e1b7ad97c23.exe)
+
+running 3 tests
+test a_header_on_the_page_scene_is_the_pdf_page ... ok
+test first_and_later_headers_share_one_page_scene_with_pdf ... ok
+test unequal_columns_share_one_page_scene_with_pdf ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\scene_rect.rs (target\debug\deps\scene_rect-8f98b6895b63301d.exe)
+
+running 2 tests
+test a_scene_rect_changes_the_pdf_bytes ... ok
+test editing_overlays_are_not_printed_but_same_color_document_ink_remains ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\table_revision_bar.rs (target\debug\deps\table_revision_bar-6559e1c80e5d224f.exe)
+
+running 1 test
+test the_table_revision_margin_bar_is_in_the_pdf_page_scene ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\text_color.rs (target\debug\deps\text_color-ba4ce6c857f3abb9.exe)
+
+running 1 test
+test a_non_black_run_changes_the_pdf_bytes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\unified.rs (target\debug\deps\unified-3e7c7de389ed744a.exe)
+
+running 5 tests
+test a_run_with_an_unknown_font_is_rejected ... ok
+test every_cjk_cluster_gets_a_glyph_and_positions_are_monotonic ... ok
+test missing_glyphs_are_reported_without_changing_text ... ok
+test pdf_is_deterministic_embeds_a_subset_and_keeps_text ... ok
+test document_snapshot_pages_render_deterministically_without_mutation_or_reflow ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running unittests examples\document_flow.rs (target\debug\examples\document_flow-4f325d51da06f46e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples\unified_scene.rs (target\debug\examples\unified_scene-dd04210a783d5a7c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joyword_shell-32a54fe8d8c87234.exe)
+
+running 66 tests
+test command::tests::macos_leads_with_the_application_menu ... ok
+test command::tests::windows_and_linux_lead_with_file_and_end_it_with_quit ... ok
+test command::tests::every_menu_command_appears_exactly_once_on_each_platform ... ok
+test command::tests::folded_app_groups_follow_file_groups_and_macos_keeps_an_app_slot ... ok
+test command::tests::menus_shortcuts_and_names_reach_the_same_command ... ok
+test documents::tests::closing_dirty_documents_asks_and_cancel_keeps_the_session ... ok
+test l10n::tests::interpolation_and_plurals_follow_cldr_categories ... ok
+test l10n::tests::invalid_resources_are_reported ... ok
+test documents::tests::saved_state_binds_to_the_saved_version ... ok
+test input::tests::externally_advanced_backend_cannot_accept_a_stale_preedit ... ok
+test input::tests::generation_exhaustion_is_checked_before_any_commit_or_preview_change ... ok
+test storage::metadata::tests::a_volume_refusal_survives_inside_the_observation_error ... ok
+test storage::metadata::tests::classify_volume_accepts_a_local_ntfs_volume_with_every_required_capability ... ok
+test storage::metadata::tests::classify_volume_refuses_each_missing_capability_flag ... ok
+test documents::tests::untitled_titles_are_localized_and_never_reused ... ok
+test storage::metadata::tests::classify_volume_refuses_network_and_unrecognized_drive_types ... ok
+test storage::metadata::tests::classify_volume_refuses_non_ntfs_filesystems ... ok
+test command::tests::builtin_registry_is_consistent_with_shipped_catalogs ... ok
+test command::tests::export_pdf_keeps_desktop_chords_and_adds_a_linux_alternate ... ok
+test storage::metadata::tests::security_namespace_is_kernel_managed_only_on_linux ... ok
+test storage::metadata::tests::windows_volume_rejected_carries_the_structured_refusal ... ok
+test command::tests::menus_group_with_separators_and_validation_finds_conflicts ... ok
+test storage::metadata::tests::volume_rejection_messages_are_distinct_and_non_empty ... ok
+test l10n::tests::shipped_resources_are_valid_and_in_parity ... ok
+test storage::original::tests::windows_matrix_reflects_replace_file_capabilities ... ok
+test storage::recovery::tests::an_explicit_directory_wins_over_the_config_dir ... ok
+test storage::original::tests::metadata_blockers_no_longer_include_the_origin_gap ... ok
+test storage::metadata::tests::a_missing_path_is_an_observation_failure ... ok
+test prefs::tests::round_trip_keeps_values_unknown_keys_and_escapes ... ok
+test prefs::tests::invalid_values_newer_schemas_and_migration ... ok
+test storage::original::tests::a_volume_refused_precheck_surfaces_the_structured_reason_and_keeps_the_source ... ok
+test prefs::tests::corrupt_files_fall_back_to_defaults_and_are_kept ... ok
+test storage::recovery::tests::encryption_is_refused_on_write_and_on_legacy_or_v2_recovery ... ok
+test storage::metadata::tests::windows_observation_reports_only_unobserved_metadata_as_losses ... ok
+test storage::recovery::tests::legacy_trailing_bytes_are_rejected_even_with_a_valid_crc ... ok
+test storage::recovery::tests::pending_and_tmp_are_never_candidates_and_equal_generation_conflicts_fail ... ok
+test storage::metadata::tests::observe_volume_reports_a_supported_volume_for_the_temp_directory ... ok
+test storage::metadata::tests::windows_zone_identifier_is_retained_for_publish_verification ... ok
+test storage::recovery::tests::a_released_lock_can_be_taken_again_by_the_same_process ... ok
+test storage::original::tests::windows_replace_restores_a_writer_raced_after_the_final_identity_check ... ok
+test storage::recovery::tests::only_verified_bytes_reach_the_target_slot ... ok
+test storage::recovery::tests::the_config_dir_is_used_when_no_directory_is_explicit ... ok
+test storage::original::tests::windows_unconfirmed_publication_keeps_the_original_backup ... ok
+test storage::recovery::tests::clearing_removes_a_committed_journal ... ok
+test storage::recovery::tests::production_rotates_and_falls_back_from_a_corrupt_latest ... ok
+test storage::recovery::tests::real_rename_error_retains_previous_slot ... ok
+test storage::recovery::tests::detached_save_n_completion_keeps_n_plus_one_dirty_and_recoverable ... ok
+test storage::source::tests::length_change_between_stat_and_open_is_not_a_baseline ... ok
+test storage::recovery::tests::superseded_save_ticket_does_not_publish ... ok
+test storage::recovery::tests::legacy_is_read_only_through_failed_and_successful_migration ... ok
+test storage::source::tests::longer_replacement_after_read_before_restat_is_not_a_baseline ... ok
+test storage::source::tests::oversized_source_is_refused_before_reading ... ok
+test storage::source::tests::every_stage_can_fail_with_real_io_error ... ok
+test storage::source::tests::truncation_during_read_is_not_a_baseline ... ok
+test storage::tests::destination_created_between_check_and_publish_is_never_overwritten ... ok
+test storage::recovery::tests::generation_order_selects_across_slots_not_by_file_name ... ok
+test storage::recovery::tests::saving_and_journaling_do_not_clear_the_undo_stack ... ok
+test storage::tests::readback_rejects_same_length_corruption_and_truncation ... ok
+test storage::tests::failures_after_publication_carry_complete_versioned_receipt ... ok
+test storage::recovery::tests::readback_rejects_corruption_truncation_and_growth_before_publish ... ok
+test storage::recovery::tests::bounded_decoder_rejects_lengths_overflow_utf8_truncation_and_generation_overflow ... ok
+test storage::recovery::tests::stale_requests_concurrent_publishers_and_discard_cannot_regress_generation ... ok
+test storage::tests::each_prepublication_failure_leaves_destination_absent_and_cleans_temporary ... ok
+test storage::original::tests::windows_failures_before_replace_keep_the_source_and_remove_backups ... ok
+test storage::recovery::tests::real_io_faults_have_stages_and_keep_the_last_published_generation ... ok
+test storage::recovery::tests::tampered_slots_fall_back_to_the_valid_prefix_or_fail_closed ... ok
+
+test result: ok. 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests\ai_toggle.rs (target\debug\deps\ai_toggle-53e03588b453e175.exe)
+
+running 1 test
+test ai_feature_is_absent_from_the_default_shell ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\c09_open_session.rs (target\debug\deps\c09_open_session-f267684c64f08a2d.exe)
+
+running 6 tests
+test file_menu_offers_open_original_save_and_save_copy ... ok
+test failed_open_creates_no_lock_and_installs_no_session ... ok
+test save_copy_refuses_an_existing_path_and_a_wrong_extension ... ok
+test open_installs_origin_and_a_joyword_lock_that_blocks_a_second_open ... ok
+test save_copy_keeps_the_original_binding_and_dirty_flag ... ok
+test a_copy_of_one_open_file_does_not_include_another ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\c09_own_lock.rs (target\debug\deps\c09_own_lock-10dfb3ad83d1e242.exe)
+
+running 4 tests
+test a_directory_using_the_lock_name_is_not_owned_and_is_not_removed ... ok
+test an_office_owner_file_still_conflicts_next_to_an_owned_lock ... ok
+test the_open_session_token_does_not_make_a_second_open_succeed ... ok
+test own_token_passes_the_lock_gate_and_leaves_the_file_in_place ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\chrome.rs (target\debug\deps\chrome-d463733148e0273f.exe)
+
+running 18 tests
+test census_counts_cjk_per_character_and_keeps_the_other_buckets_apart ... ok
+test census_counts_graphemes_and_skips_the_page_break_marker ... ok
+test a_disabled_ribbon_command_does_not_run ... ok
+test display_page_is_one_based_and_keeps_a_count_without_a_caret ... ok
+test an_empty_find_query_asks_for_input_instead_of_searching ... ok
+test page_presets_match_the_product_page_setup ... ok
+test evidence_labels_match_the_catalog_vocabulary ... ok
+test omitted_default_tab_stop_is_720_twips_and_a_relative_one_is_unresolved ... ok
+test ribbon_hides_commands_the_registry_does_not_contain ... ok
+test ruler_does_not_invent_positions_for_character_units ... ok
+test ruler_places_first_line_hanging_and_custom_tabs ... ok
+test word_count_matches_the_documented_edit_009_rule ... ok
+test view_ribbon_commands_do_not_modify_the_document ... ok
+test every_icon_is_a_16_by_16_drawing_and_every_control_uses_one ... ok
+test view_toggles_flip_without_a_document ... ok
+test ribbon_bindings_invoke_the_registered_command ... ok
+test the_feature_catalog_matches_the_ribbon_and_does_not_drop_the_floor ... ok
+test status_line_reports_page_and_the_separate_counts ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\diagnostics.rs (target\debug\deps\diagnostics-cbfd4ef944aa2b6c.exe)
+
+running 7 tests
+test the_test_profile_isolates_preferences_and_logs ... ok
+test redaction_removes_credentials_quotes_and_prose ... ok
+test sample_body_text_never_appears_in_the_log ... ok
+test a_log_file_stops_at_its_cap ... ok
+test launches_rotate_and_a_crash_keeps_the_previous_log ... ok
+test retention_drops_only_older_launches_after_the_new_file_exists ... ok
+test the_panic_hook_records_the_location_and_redacts_the_payload ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s
+
+     Running tests\dialogs.rs (target\debug\deps\dialogs-9c203bb94fdea899.exe)
+
+running 10 tests
+test first_line_drag_keeps_the_body_edge ... ok
+test chinese_sizes_follow_the_office_point_table ... ok
+test dragging_a_generated_stop_adds_a_direct_left_stop ... ok
+test inherited_style_tabs_are_detected ... ok
+test justify_with_indent_is_refused_and_the_document_stays ... ok
+test a_cancelled_font_dialog_does_not_open_a_transaction ... ok
+test a_cancelled_table_dialog_does_not_open_a_transaction ... ok
+test font_apply_is_one_undo_and_an_empty_selection_is_not ... ok
+test paragraph_indent_spacing_and_line_are_one_undo ... ok
+test underline_and_srgb_do_not_record_a_paint_refusal ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\docx_copy.rs (target\debug\deps\docx_copy-4348f96f7ea6e947.exe)
+
+running 6 tests
+test existing_file_directory_and_hard_link_are_never_overwritten ... ok
+test invalid_paths_and_mismatched_type_leave_no_artifact ... ok
+test saving_an_older_plan_reports_its_version_and_leaves_current_edit_history ... ok
+test edit_export_publish_reopen_preserves_source_and_session ... ok
+test unchanged_restricted_corpus_can_only_be_copied_exactly ... ok
+test eight_concurrent_writers_publish_exactly_one_complete_file ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests\docx_export.rs (target\debug\deps\docx_export-597a1c0eed77a502.exe)
+
+running 17 tests
+test failed_agent_and_noop_transactions_leave_exact_export_available ... ok
+test original_budget_bounds_edited_output_without_mutating_session ... ok
+test signed_packages_are_copied_exactly_but_edited_output_is_refused ... ok
+test deleting_whole_paragraph_text_keeps_the_paragraph_and_properties ... ok
+test protected_and_unknown_models_cannot_bypass_export_restrictions ... ok
+test token_merging_tabs_and_cdata_keep_text_and_formatting ... ok
+test format_edits_refuse_without_changing_session ... ok
+test edited_output_must_pass_total_byte_and_xml_event_budgets_too ... ok
+test snapshot_changes_outside_text_are_never_silently_ignored ... ok
+test text_round_trip_preserves_unknown_parts_properties_and_all_other_markup ... ok
+test typing_into_empty_paragraph_preserves_its_original_attributes_and_markup ... ok
+test plans_are_bound_to_versions_and_survive_future_edits_undo_redo ... ok
+test edited_macros_and_templates_are_refused_and_exact_copy_reports_their_type ... ok
+test external_relationships_and_untouched_breaks_remain_exact_after_text_export ... ok
+test unknown_text_attributes_comments_and_namespaces_are_not_dropped ... ok
+test untouched_corpus_is_exact_even_when_restricted ... ok
+test deterministic_unicode_edit_sequences_round_trip_and_undo ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests\docx_session.rs (target\debug\deps\docx_session-5ca931b6b1a400be.exe)
+
+running 9 tests
+test refused_and_over_budget_imports_do_not_create_sessions ... ok
+test failed_and_noop_transactions_keep_original_copy_available ... ok
+test any_preserved_node_locks_even_an_otherwise_editable_paragraph ... ok
+test editable_import_uses_engine_and_never_exports_stale_original_after_undo ... ok
+test protected_and_tracked_documents_deny_all_write_origins_and_history ... ok
+test disabled_restrictions_allow_editing_without_enabling_agent_writes ... ok
+test track_revisions_alone_stays_editable ... ok
+test each_settings_restriction_independently_prevents_editing ... ok
+test untouched_corpus_keeps_every_original_byte_and_diagnostic ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\epub.rs (target\debug\deps\epub-85ac60a0dab355ea.exe)
+
+running 1 test
+test new_epub_is_read_back_and_existing_targets_never_change ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\find_paint.rs (target\debug\deps\find_paint-108fa8629bec9bb8.exe)
+
+running 3 tests
+test find_width_and_regex_flags_go_through_the_command_registry ... ok
+test regex_capture_replacement_goes_through_the_command_registry ... ok
+test find_replace_and_format_painter_go_through_the_command_registry ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\hyperlinks.rs (target\debug\deps\hyperlinks-9a05701908c510db.exe)
+
+running 5 tests
+test an_empty_selection_does_not_create_a_hyperlink ... ok
+test openable_link_refuses_schemes_outside_the_allowlist ... ok
+test set_edit_and_remove_a_hyperlink_are_separate_undo_steps ... ok
+test a_grounded_list_paste_uses_the_existing_numbering_instance ... ok
+test a_hyperlink_inside_a_table_cell_is_set_edited_removed_and_openable ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\images.rs (target\debug\deps\images-ff2424beea12ba81.exe)
+
+running 6 tests
+test clipboard_file_paths_are_not_opened ... ok
+test a_refused_image_paste_does_not_change_the_document ... ok
+test choose_paste_prefers_an_admitted_image_over_text ... ok
+test a_selected_image_exposes_its_bytes_for_the_clipboard ... ok
+test inserting_an_image_file_is_one_undo_and_remote_paths_are_refused ... ok
+test dropped_image_paths_insert_in_order_and_skip_refused_files ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\m1_concurrency_recovery.rs (target\debug\deps\m1_concurrency_recovery-14a76af798bcf4de.exe)
+
+running 3 tests
+test input_during_open_is_kept_and_a_stale_save_stays_dirty ... ok
+test recent_open_and_document_switch_use_the_command_registry ... ok
+test killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.97s
+
+     Running tests\m1_edit_save.rs (target\debug\deps\m1_edit_save-c1f504761f8058b1.exe)
+
+running 9 tests
+test list_apply_bullet_is_one_undo_and_the_ribbon_sends_it ... ok
+test page_setup_change_exports_through_the_docx_plan ... ok
+test cut_toggles_and_alignment_presets_go_through_the_command_registry ... ok
+test page_setup_and_break_go_through_the_command_registry ... ok
+test inserting_a_page_number_is_one_undoable_transaction ... ok
+test list_apply_level_and_remove_go_through_the_command_registry ... ok
+test style_list_and_apply_go_through_the_command_registry ... ok
+test protected_documents_refuse_edits_and_a_failed_save_keeps_bytes ... ok
+test edit_format_clipboard_save_and_reopen_keeps_text_and_unknown_parts ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\m1_save_original.rs (target\debug\deps\m1_save_original-e39c01d35cb57ce3.exe)
+
+running 4 tests
+test a_volume_refused_precheck_reports_replacement_unavailable_not_confirmable_losses ... ok
+test declining_replacement_lists_metadata_and_keeps_the_source ... ok
+test declining_on_windows_keeps_the_source_and_provenance_stream ... ok
+test the_default_path_writes_a_new_copy_and_leaves_the_source ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\mail_merge.rs (target\debug\deps\mail_merge-e26d380df0306a5d.exe)
+
+running 12 tests
+test malformed_csv_and_encoding_are_refused_before_a_job_exists ... ok
+test parser_enforces_each_input_budget_including_quoted_cells ... ok
+test mapping_is_explicit_case_sensitive_and_unknown_mappings_are_errors ... ok
+test pending_paragraph_and_table_property_revisions_are_refused ... ok
+test repeated_fields_and_multiline_values_use_engine_line_breaks ... ok
+test fields_inside_table_cells_roundtrip_without_changing_the_grid ... ok
+test values_cannot_inject_new_fields_or_xml_and_first_brace_style_survives ... ok
+test csv_quotes_bom_crlf_empty_values_and_unicode_are_literal ... ok
+test existing_inline_objects_are_preserved_or_refused_before_editing ... ok
+test cancelled_or_over_budget_batches_leave_no_partial_directory ... ok
+test malformed_templates_no_fields_and_protected_content_are_refused ... ok
+test batch_uses_unique_directories_never_changes_inputs_and_is_readable ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\original_save_job.rs (target\debug\deps\original_save_job-6d6b30682ef54585.exe)
+
+running 3 tests
+test registry_save_requires_explicit_confirmation_and_marks_only_that_version_saved ... ok
+test office_routes_a_late_result_to_the_original_document ... ok
+test late_original_save_rebinds_without_rolling_back_later_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests\print_to_file.rs (target\debug\deps\print_to_file-4dd43a9ed64898f5.exe)
+
+running 5 tests
+test page_range_copies_and_review_marks_are_bounded ... ok
+test a_bad_header_and_the_wrong_extension_leave_no_file ... ok
+test the_native_dialog_is_not_verified_and_creates_no_file ... ok
+test print_to_file_records_copies_once ... ok
+test publish_verifies_bytes_and_refuses_an_existing_path ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\recovery_formatted_text.rs (target\debug\deps\recovery_formatted_text-6795061173e03356.exe)
+
+running 2 tests
+test repeated_recovery_never_overwrites_an_existing_or_locked_recovery_copy ... ok
+test text_recovery_preserves_unchanged_runs_and_exports_after_unicode_edits ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests\review.rs (target\debug\deps\review-91608abd594d66ef.exe)
+
+running 3 tests
+test cycling_the_four_review_views_touches_neither_revisions_undo_nor_dirty ... ok
+test review_commands_accept_a_paired_move_and_a_settings_patch_keeps_it ... ok
+test review_commands_use_the_registry_and_the_author_preference ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\rich_paste.rs (target\debug\deps\rich_paste-07a929ba6730914d.exe)
+
+running 5 tests
+test html_keeps_bold_italic_underline_and_drops_active_content ... ok
+test html_text_is_chosen_ahead_of_plain_text_and_paths_stay_closed ... ok
+test rtf_keeps_formatting_and_drops_objects_pictures_and_field_instructions ... ok
+test pasted_html_becomes_formatted_runs_and_one_undo ... ok
+test oversize_markup_is_refused_and_deep_markup_falls_back_to_plain_text ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\save_copy_job.rs (target\debug\deps\save_copy_job-6f1e32619ab683e4.exe)
+
+running 2 tests
+test a_copy_job_of_a_clean_session_writes_the_original_and_failures_change_nothing ... ok
+test a_copy_job_writes_its_own_version_on_another_thread_while_typing_continues ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\t104_periodic_snapshots.rs (target\debug\deps\t104_periodic_snapshots-dca347b7ff96f128.exe)
+
+running 1 test
+test every_committed_edit_publishes_a_complete_periodic_snapshot ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\t109_open_save_gate.rs (target\debug\deps\t109_open_save_gate-2b46ace8b4004982.exe)
+
+running 6 tests
+test cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes ... ok
+test close_and_quit_while_a_copy_save_is_in_flight_prompt_for_later_edits ... ok
+test a_stale_or_failed_open_keeps_keystrokes_on_the_current_document ... ok
+test slow_open_stays_read_only_until_accept_and_keeps_keystrokes ... ok
+test cancelling_a_slow_open_discards_it_and_keeps_keystrokes_on_the_current_document ... ok
+test an_original_save_in_flight_prompts_for_later_edits_and_routes_to_its_document ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\tables.rs (target\debug\deps\tables-b9f11019a185062a.exe)
+
+running 4 tests
+test column_commands_refuse_a_merged_table ... ok
+test table_properties_go_through_the_command_registry ... ok
+test table_commands_go_through_the_command_registry ... ok
+test merge_and_split_go_through_the_command_registry ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\text_input.rs (target\debug\deps\text_input-df5d1e5e813bc5c2.exe)
+
+running 21 tests
+test an_additional_story_is_rejected_instead_of_silently_omitted ... ok
+test history_outside_the_input_budget_is_rejected_before_undo_mutates_it ... ok
+test exact_command_budget_allows_one_insert_and_empty_noop_but_rejects_split ... ok
+test header_story_edits_and_undo_through_the_engine_path ... ok
+test committed_multiline_replacement_uses_one_undo_and_restores_selections ... ok
+test cancellation_and_empty_mark_restore_original_range_without_dirtying ... ok
+test pointer_selection_cannot_cancel_a_preedit_on_an_invalid_or_stale_offset ... ok
+test invalid_composition_ranges_and_controls_leave_every_state_unchanged ... ok
+test budgets_and_failed_edits_preserve_committed_and_composing_states ... ok
+test deletion_inside_a_scalar_valid_grapheme_expands_to_the_whole_cluster ... ok
+test partial_preedit_and_surrounding_range_updates_fold_into_one_transaction ... ok
+test grapheme_navigation_and_deletion_keep_emoji_combining_and_flags_whole ... ok
+test unmark_preserves_preview_text_with_one_real_commit ... ok
+test word_and_paragraph_selection_include_unicode_and_paragraph_marks ... ok
+test repeated_composition_updates_never_commit_until_confirmed ... ok
+test paragraph_mark_deletion_merges_and_empty_edges_are_noops ... ok
+test utf16_ranges_and_model_positions_round_trip_through_paragraph_marks ... ok
+test read_only_engine_and_docx_backing_cannot_be_bypassed_by_preview ... ok
+test document_budgets_are_enforced_before_initialization_and_edit_commit ... ok
+test editable_docx_uses_the_same_input_and_keeps_the_export_contract ... ok
+test deterministic_unicode_replacements_match_an_independent_string_model ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\undo_groups.rs (target\debug\deps\undo_groups-4a49da1410b45f49.exe)
+
+running 8 tests
+test typing_over_a_selection_is_one_step_that_restores_the_selection ... ok
+test a_platform_replacement_elsewhere_is_standalone ... ok
+test deletion_coalesces_separately_from_typing ... ok
+test moving_the_caret_away_and_back_starts_a_new_step ... ok
+test enter_paste_commands_and_ime_commits_are_separate_steps ... ok
+test keystrokes_are_one_undo_step_restoring_the_starting_caret ... ok
+test docx_backends_seal_groups_too ... ok
+test undo_then_typing_and_long_bursts_start_new_steps ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\w05_text_input_export.rs (target\debug\deps\w05_text_input_export-aafe3a7ca1af586d.exe)
+
+running 7 tests
+test tabs_and_xml_specials_through_engine_commands ... ok
+test composition_previews_are_never_exported ... ok
+test undo_redo_and_repeated_exports_are_versioned_and_deterministic ... ok
+test refused_structure_edits_leave_session_and_backing_untouched ... ok
+test enter_backspace_delete_and_multiline_paste_round_trip ... ok
+test corpus_fixtures_split_only_where_supported ... ok
+test deterministic_input_sequences_match_an_independent_text_model ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running tests\w07_save_original_rejection.rs (target\debug\deps\w07_save_original_rejection-c25067eafb7dac3f.exe)
+
+running 8 tests
+test stamp_bytes_reopen_as_a_real_docx_session ... ok
+test a_plan_from_another_document_cannot_overwrite_a_source ... ok
+test plan_type_and_source_extension_must_agree ... ok
+test save_original_reruns_the_full_conflict_verification_itself ... ok
+test a_plan_larger_than_the_stamp_read_budget_is_refused_before_writing ... ok
+test replacement_is_refused_with_durable_blockers_and_zero_side_effects ... ok
+test a_read_only_source_is_not_replaced ... ok
+test a_plan_from_an_older_version_of_the_same_file_is_refused ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests\w07_source_conflicts.rs (target\debug\deps\w07_source_conflicts-2a6cd0751ae06e8a.exe)
+
+running 8 tests
+test missing_paths_report_not_found ... ok
+test oversized_sources_are_refused_under_a_small_budget ... ok
+test directories_are_not_regular_files ... ok
+test deleted_source_is_a_missing_conflict ... ok
+test foreign_owner_files_do_not_block_unrelated_documents ... ok
+test open_captures_exact_bytes_and_later_checks_stay_green ... ok
+test joyword_lock_files_block_open_and_precheck ... ok
+test office_owner_files_block_open_and_precheck ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\w10_origin.rs (target\debug\deps\w10_origin-1f332b0724d60a81.exe)
+
+running 4 tests
+test open_source_bytes_round_trip_into_the_plan_origin ... ok
+test edited_sessions_keep_origin_when_versions_match ... ok
+test session_plan_origin_matches_the_opened_file ... ok
+test save_export_copy_writes_output_and_unconfirmed_original_stays_put ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests\w11_save_original.rs (target\debug\deps\w11_save_original-4b95ab9bee395ca5.exe)
+
+running 4 tests
+test oversized_sources_never_reach_replacement ... ok
+test a_lock_file_still_refuses_before_origin_or_replacement ... ok
+test same_version_different_packages_are_refused_with_no_write ... ok
+test matching_origin_requires_confirmation_before_any_write ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\w12_text_input_export.rs (target\debug\deps\w12_text_input_export-0f1e3680b69db9c0.exe)
+
+running 1 test
+test enter_and_backspace_keep_justification_and_bold ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\windows_save_original.rs (target\debug\deps\windows_save_original-fca33f1e91b008ad.exe)
+
+running 1 test
+test confirmed_replacement_preserves_metadata_and_supports_a_second_save ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\word_navigation.rs (target\debug\deps\word_navigation-8c93a7ba0303b197.exe)
+
+running 11 tests
+test extending_by_words_keeps_the_anchor_and_a_plain_move_collapses_first ... ok
+test read_only_documents_allow_word_moves_but_refuse_word_deletion ... ok
+test paragraph_and_document_moves_follow_word_processor_keys ... ok
+test word_moves_treat_leading_spaces_and_empty_paragraphs_as_stops ... ok
+test format_toggles_span_paragraphs_and_respect_read_only ... ok
+test word_moves_stop_at_word_starts_punctuation_and_paragraph_ends ... ok
+test word_deletion_at_a_paragraph_edge_joins_paragraphs ... ok
+test format_toggles_turn_on_for_mixed_selections_and_off_when_all_show_it ... ok
+test word_moves_keep_clusters_whole_and_step_through_ideographs ... ok
+test word_deletion_removes_to_the_word_stop_as_one_undo_step ... ok
+test format_toggles_round_trip_on_text_whose_style_already_shows_it ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests examples\docx_text_export.rs (target\debug\examples\docx_text_export-780daecf6811e50c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,290 @@
+[
+  {
+    "source": "tests/fixtures/mail-merge/template.docx",
+    "source_sha256": "c3cbf602775fca89940bfb5b8bb476d2bcedd49db84126e14468267e76dc40f4",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword-cli.exe",
+      "convert",
+      "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\mail-merge\\template.docx",
+      "--to",
+      "pdfa-2b",
+      "--archive-year",
+      "2026",
+      "--font",
+      "C:/Windows/Fonts/simsun.ttc:0",
+      "--output",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\template.pdf"
+    ],
+    "returncode": 0,
+    "stdout": "{\"bytes\":20392,\"font_face\":0,\"font_sha256\":\"1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab\",\"independent_conformance_verified\":false,\"omitted_blocks\":0,\"operation\":\"convert\",\"pages\":1,\"schema_version\":1,\"target\":\"pdfa-2b\"}\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "validator_command": [
+      "C:\\Applications\\Java\\jdk-24.0.1\\bin\\java.exe",
+      "-jar",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\verapdf-validated.jar",
+      "--flavour",
+      "2b",
+      "--format",
+      "json",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\template.pdf"
+    ],
+    "validator_exit": 0,
+    "pdf_sha256": "27a8f637ac87995f97b918e8aa464e3eebfd8c0526dcbff272d407203b7b3c04",
+    "validation": [
+      {
+        "details": {
+          "passedRules": 144,
+          "failedRules": 0,
+          "passedChecks": 3972,
+          "failedChecks": 0,
+          "ruleSummaries": []
+        },
+        "jobEndStatus": "normal",
+        "profileName": "PDF/A-2b validation profile",
+        "statement": "PDF file is compliant with Validation Profile requirements.",
+        "compliant": true
+      }
+    ]
+  },
+  {
+    "source": "tests/fixtures/feature/DOCX-FEAT-T200-NUM.docx",
+    "source_sha256": "aa4e048f7ae24d0e54e40efa12df9ad82156dd7c29e8e9643620e0f1d039d16f",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword-cli.exe",
+      "convert",
+      "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\feature\\DOCX-FEAT-T200-NUM.docx",
+      "--to",
+      "pdfa-2b",
+      "--archive-year",
+      "2026",
+      "--font",
+      "C:/Windows/Fonts/simsun.ttc:0",
+      "--output",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T200-NUM.pdf"
+    ],
+    "returncode": 0,
+    "stdout": "{\"bytes\":23407,\"font_face\":0,\"font_sha256\":\"1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab\",\"independent_conformance_verified\":false,\"omitted_blocks\":0,\"operation\":\"convert\",\"pages\":1,\"schema_version\":1,\"target\":\"pdfa-2b\"}\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "validator_command": [
+      "C:\\Applications\\Java\\jdk-24.0.1\\bin\\java.exe",
+      "-jar",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\verapdf-validated.jar",
+      "--flavour",
+      "2b",
+      "--format",
+      "json",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T200-NUM.pdf"
+    ],
+    "validator_exit": 0,
+    "pdf_sha256": "fc82cb20bd64d78e80ed3ebbbdce8f6881d4a7703960927d2ed684e9bfcb1c1f",
+    "validation": [
+      {
+        "details": {
+          "passedRules": 144,
+          "failedRules": 0,
+          "passedChecks": 4217,
+          "failedChecks": 0,
+          "ruleSummaries": []
+        },
+        "jobEndStatus": "normal",
+        "profileName": "PDF/A-2b validation profile",
+        "statement": "PDF file is compliant with Validation Profile requirements.",
+        "compliant": true
+      }
+    ]
+  },
+  {
+    "source": "tests/fixtures/feature/DOCX-FEAT-T201-TABLE.docx",
+    "source_sha256": "4c2c0dfa18d4e28b8b33a2d6229d541aa926c6e526a037b2de9820ac03cc0627",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword-cli.exe",
+      "convert",
+      "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\feature\\DOCX-FEAT-T201-TABLE.docx",
+      "--to",
+      "pdfa-2b",
+      "--archive-year",
+      "2026",
+      "--font",
+      "C:/Windows/Fonts/simsun.ttc:0",
+      "--output",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T201-TABLE.pdf"
+    ],
+    "returncode": 0,
+    "stdout": "{\"bytes\":20868,\"font_face\":0,\"font_sha256\":\"1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab\",\"independent_conformance_verified\":false,\"omitted_blocks\":0,\"operation\":\"convert\",\"pages\":1,\"schema_version\":1,\"target\":\"pdfa-2b\"}\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "validator_command": [
+      "C:\\Applications\\Java\\jdk-24.0.1\\bin\\java.exe",
+      "-jar",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\verapdf-validated.jar",
+      "--flavour",
+      "2b",
+      "--format",
+      "json",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T201-TABLE.pdf"
+    ],
+    "validator_exit": 0,
+    "pdf_sha256": "ff982beefcd6e9f12bca275fbcaec023e1bfb7d6600a67f962f47acb1123d1d6",
+    "validation": [
+      {
+        "details": {
+          "passedRules": 144,
+          "failedRules": 0,
+          "passedChecks": 4493,
+          "failedChecks": 0,
+          "ruleSummaries": []
+        },
+        "jobEndStatus": "normal",
+        "profileName": "PDF/A-2b validation profile",
+        "statement": "PDF file is compliant with Validation Profile requirements.",
+        "compliant": true
+      }
+    ]
+  },
+  {
+    "source": "tests/fixtures/feature/DOCX-FEAT-T202-PAGES.docx",
+    "source_sha256": "0ccd14e577a4542df875f25382612dd9ab7b746e9f94bfb9f58c3b9acc50a538",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword-cli.exe",
+      "convert",
+      "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\feature\\DOCX-FEAT-T202-PAGES.docx",
+      "--to",
+      "pdfa-2b",
+      "--archive-year",
+      "2026",
+      "--font",
+      "C:/Windows/Fonts/simsun.ttc:0",
+      "--output",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T202-PAGES.pdf"
+    ],
+    "returncode": 0,
+    "stdout": "{\"bytes\":16523,\"font_face\":0,\"font_sha256\":\"1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab\",\"independent_conformance_verified\":false,\"omitted_blocks\":0,\"operation\":\"convert\",\"pages\":2,\"schema_version\":1,\"target\":\"pdfa-2b\"}\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "validator_command": [
+      "C:\\Applications\\Java\\jdk-24.0.1\\bin\\java.exe",
+      "-jar",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\verapdf-validated.jar",
+      "--flavour",
+      "2b",
+      "--format",
+      "json",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T202-PAGES.pdf"
+    ],
+    "validator_exit": 0,
+    "pdf_sha256": "1b7e2a85685c574e4105fe77760c87ce55dc4139fab58c8a57dcd7872e84dc4c",
+    "validation": [
+      {
+        "details": {
+          "passedRules": 144,
+          "failedRules": 0,
+          "passedChecks": 845,
+          "failedChecks": 0,
+          "ruleSummaries": []
+        },
+        "jobEndStatus": "normal",
+        "profileName": "PDF/A-2b validation profile",
+        "statement": "PDF file is compliant with Validation Profile requirements.",
+        "compliant": true
+      }
+    ]
+  },
+  {
+    "source": "tests/fixtures/feature/DOCX-FEAT-T203-IMAGES.docx",
+    "source_sha256": "b923dce820988bc59fb805543b2428d5eca3e3a1ca8a2dd0c9d08e1dd260b8b7",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword-cli.exe",
+      "convert",
+      "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\feature\\DOCX-FEAT-T203-IMAGES.docx",
+      "--to",
+      "pdfa-2b",
+      "--archive-year",
+      "2026",
+      "--font",
+      "C:/Windows/Fonts/simsun.ttc:0",
+      "--output",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T203-IMAGES.pdf"
+    ],
+    "returncode": 0,
+    "stdout": "{\"bytes\":13874,\"font_face\":0,\"font_sha256\":\"1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab\",\"independent_conformance_verified\":false,\"omitted_blocks\":0,\"operation\":\"convert\",\"pages\":1,\"schema_version\":1,\"target\":\"pdfa-2b\"}\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "validator_command": [
+      "C:\\Applications\\Java\\jdk-24.0.1\\bin\\java.exe",
+      "-jar",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\verapdf-validated.jar",
+      "--flavour",
+      "2b",
+      "--format",
+      "json",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T203-IMAGES.pdf"
+    ],
+    "validator_exit": 0,
+    "pdf_sha256": "8a46fdc7d4fe4610dcec79ac8a7d9efb2a899f6c49edefe7fb1194390bcc2347",
+    "validation": [
+      {
+        "details": {
+          "passedRules": 144,
+          "failedRules": 0,
+          "passedChecks": 690,
+          "failedChecks": 0,
+          "ruleSummaries": []
+        },
+        "jobEndStatus": "normal",
+        "profileName": "PDF/A-2b validation profile",
+        "statement": "PDF file is compliant with Validation Profile requirements.",
+        "compliant": true
+      }
+    ]
+  },
+  {
+    "source": "tests/fixtures/feature/DOCX-FEAT-T300-REVIEW.docx",
+    "source_sha256": "859e9995d7ef017e8811b8d1e9ea0442227f084c8ca33def3702ddc59267d001",
+    "command": [
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword-cli.exe",
+      "convert",
+      "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\feature\\DOCX-FEAT-T300-REVIEW.docx",
+      "--to",
+      "pdfa-2b",
+      "--archive-year",
+      "2026",
+      "--font",
+      "C:/Windows/Fonts/simsun.ttc:0",
+      "--output",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T300-REVIEW.pdf"
+    ],
+    "returncode": 0,
+    "stdout": "{\"bytes\":14736,\"font_face\":0,\"font_sha256\":\"1526ac24375f51f6eb73bc2d3f8072dbe4a80a3a65217677c9d9a84f67dab2ab\",\"independent_conformance_verified\":false,\"omitted_blocks\":0,\"operation\":\"convert\",\"pages\":1,\"schema_version\":1,\"target\":\"pdfa-2b\"}\n",
+    "stderr": "",
+    "source_unchanged": true,
+    "validator_command": [
+      "C:\\Applications\\Java\\jdk-24.0.1\\bin\\java.exe",
+      "-jar",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m8-archive-20261030\\verapdf-validated.jar",
+      "--flavour",
+      "2b",
+      "--format",
+      "json",
+      "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T300-REVIEW.pdf"
+    ],
+    "validator_exit": 0,
+    "pdf_sha256": "230b3000f85139aa7a9c8fa02f5d596b7fbd94f98d337b4c8a6f7c7d5ad98637",
+    "validation": [
+      {
+        "details": {
+          "passedRules": 144,
+          "failedRules": 0,
+          "passedChecks": 986,
+          "failedChecks": 0,
+          "ruleSummaries": []
+        },
+        "jobEndStatus": "normal",
+        "profileName": "PDF/A-2b validation profile",
+        "statement": "PDF file is compliant with Validation Profile requirements.",
+        "compliant": true
+      }
+    ]
+  }
+]

@@ -1823,3 +1823,7 @@ T806 的 EPUB 只读导出、差异计划、CLI／桌面入口、不覆盖发布
 全仓首轮 1249 项、最终应用 90 项、AI shell 291 项、Python 116 项、恢复实验 15 项、稳健性实验 3 项及强制 qpdf 导航 15 项通过；81 smoke＋200 次变异无崩溃／超时。fmt、clippy、无默认 feature、deny、架构和文档检查通过，未把重复运行累计为新增覆盖。
 
 源码身份、最终二进制散列、未签名便携包和未覆盖项详见 [完整报告](verification/m8-focus-epub-20261030.md)。54 发布门槛、18 NOTICE 缺口、完整平台读屏／打印等保持待验收；信创真机非阻塞待补验。没有推送、合并或宣称 CI 已通过。
+
+## M9 独立规格与桌面 PDF/A 后续（2026-10-30）
+
+T900、T901 交付 [协作规格](COLLABORATION.md) 与 [套件共享边界](SUITE.md)，经逐场景静态审查改为 done；没有实现云服务或 JoySheet／JoyDeck。当前 **17 done／38 in_progress／11 planned**。T806 新增桌面 PDF/A-2b 确认和输出，沿用当前稳定页面场景、实际字体及无覆盖发布；缺字和遗漏对象拒绝输出。六份原创语料经独立 veraPDF 检查通过。真实 GUI 工具 native pipe 不可用，重试及重建会话仍失败，未将桌面入口或完整 T806 标为 done。完整命令、结果和边界见 [本轮报告](verification/m9-archive-20261030.md)。

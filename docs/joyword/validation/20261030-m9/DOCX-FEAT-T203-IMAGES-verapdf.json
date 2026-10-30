@@ -1,0 +1,63 @@
+{"report":{"buildInformation":{"releaseDetails":[{
+  "id" : "core",
+  "version" : "1.30.2",
+  "buildDate" : 1780454580000
+},{
+  "id" : "validation-model",
+  "version" : "1.30.2",
+  "buildDate" : 1780454760000
+},{
+  "id" : "apps",
+  "version" : "1.30.2",
+  "buildDate" : 1780455180000
+}]},"jobs":[{"itemDetails":{
+  "name" : "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T203-IMAGES.pdf",
+  "size" : 13874
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 144,
+    "failedRules" : 0,
+    "passedChecks" : 690,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-2b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1793367717300,
+  "finish" : 1793367717626,
+  "difference" : 326,
+  "duration" : "00:00:00.326"
+}}],"batchSummary":{
+  "duration" : {
+    "start" : 1793367717249,
+    "finish" : 1793367717653,
+    "difference" : 404,
+    "duration" : "00:00:00.404"
+  },
+  "totalJobs" : 1,
+  "outOfMemory" : 0,
+  "veraExceptions" : 0,
+  "validationSummary" : {
+    "nonCompliantPdfaCount" : 0,
+    "failedJobCount" : 0,
+    "compliantPdfaCount" : 1,
+    "totalJobCount" : 1,
+    "successfulJobCount" : 1
+  },
+  "failedParsingJobs" : 0,
+  "failedEncryptedJobs" : 0,
+  "multiJob" : false,
+  "repairSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "featuresSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 0,
+    "successfulJobCount" : 0
+  }
+}}}

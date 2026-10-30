@@ -1090,6 +1090,7 @@ pub(crate) struct PdfOrder<'a> {
     pub copies: Option<&'a str>,
     pub range: Option<&'a str>,
     pub marks: Option<&'a str>,
+    pub archive_year: Option<u16>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -2381,6 +2382,7 @@ impl JoyWord {
                         copies: None,
                         range: None,
                         marks: None,
+                        archive_year: None,
                     },
                     window,
                     cx,
@@ -2407,6 +2409,7 @@ impl JoyWord {
             copies,
             range,
             marks,
+            archive_year,
         } = order;
         if matches!(self.pdf, Some(PdfPhase::Writing(request)) if request.epoch == self.copy_epoch)
         {
@@ -2482,7 +2485,9 @@ impl JoyWord {
                     range: range_label,
                 }
             } else {
-                crate::export::PdfKind::Export
+                archive_year.map_or(crate::export::PdfKind::Export, |year| {
+                    crate::export::PdfKind::Archive { year }
+                })
             },
         };
         self.pdf = Some(PdfPhase::Writing(request));
@@ -2953,6 +2958,7 @@ impl JoyWord {
                                 copies: None,
                                 range: None,
                                 marks: None,
+                                archive_year: None,
                             },
                             window,
                             cx,
@@ -3160,7 +3166,7 @@ impl JoyWord {
             }
             return Availability::Enabled;
         }
-        if matches!(id, FILE_EXPORT_PDF | FILE_PRINT) {
+        if matches!(id, FILE_EXPORT_PDF | FILE_EXPORT_PDFA | FILE_PRINT) {
             return if self.ready_layout().is_some() && self.editor.is_some() {
                 Availability::Enabled
             } else {

@@ -383,6 +383,7 @@ mod scene_export {
         // through the same path.
         for (name, kind) in [
             ("export.pdf", PdfKind::Export),
+            ("archive.pdf", PdfKind::Archive { year: 2026 }),
             (
                 "print.pdf",
                 PdfKind::Print {
@@ -417,6 +418,7 @@ mod scene_export {
         let unsettled = document.snapshot();
         for (name, kind) in [
             ("unsettled-export.pdf", PdfKind::Export),
+            ("unsettled-archive.pdf", PdfKind::Archive { year: 2026 }),
             (
                 "unsettled-print.pdf",
                 PdfKind::Print {
@@ -438,6 +440,107 @@ mod scene_export {
             })
             .unwrap_err();
             assert_eq!(error, "layout unstable");
+            assert!(!destination.exists());
+        }
+    }
+
+    #[test]
+    fn archival_job_is_deterministic_and_refuses_invalid_year_and_overwrite() {
+        let document = model(&["A"]);
+        let font = test_font();
+        let profile = rehearsal_profile();
+        let snapshot = document.snapshot();
+        let layout = layout_with_view(
+            &snapshot,
+            FaceSet::uniform(&font),
+            profile,
+            LayoutLimits::default(),
+            &LayoutCancellation::default(),
+            ViewOptions::default(),
+        )
+        .unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let job = |name: &str, year| PdfJob {
+            destination: dir.path().join(name),
+            layout: Arc::new(layout.clone()),
+            font: Arc::new(font.clone()),
+            profile,
+            document: snapshot.clone(),
+            core: None,
+            pages: 0..layout.pages().len(),
+            kind: PdfKind::Archive { year },
+        };
+        for year in [0, 10000, u16::MAX] {
+            assert!(run_pdf(job("invalid.pdf", year)).is_err());
+            assert!(!dir.path().join("invalid.pdf").exists());
+        }
+        run_pdf(job("first.pdf", 2026)).unwrap();
+        run_pdf(job("second.pdf", 2026)).unwrap();
+        let bytes = std::fs::read(dir.path().join("first.pdf")).unwrap();
+        assert_eq!(bytes, std::fs::read(dir.path().join("second.pdf")).unwrap());
+        assert!(String::from_utf8_lossy(&bytes).contains("pdfaid:part"));
+        assert!(run_pdf(job("first.pdf", 2027)).is_err());
+        assert_eq!(bytes, std::fs::read(dir.path().join("first.pdf")).unwrap());
+    }
+
+    #[test]
+    fn archival_job_refuses_missing_glyphs_and_omitted_objects_before_publication() {
+        for opaque in [false, true] {
+            // The small repository font deliberately has no lowercase r.
+            let mut document = model(&[if opaque { "A" } else { "r" }]);
+            if opaque {
+                let object = joyword_model::OpaqueBlock {
+                    id: document.ids().node(),
+                    preserved: joyword_model::Preserved {
+                        element: Arc::from("w:object"),
+                        handle: document.ids().preserved(),
+                    },
+                    source: None,
+                };
+                let body = document.body_id();
+                let mut blocks: Vec<_> = document
+                    .story(body)
+                    .unwrap()
+                    .blocks
+                    .iter()
+                    .cloned()
+                    .collect();
+                blocks.push(object.into());
+                document.story_mut(body).unwrap().blocks = BlockSeq::from_vec(blocks);
+            }
+            let font = test_font();
+            let profile = rehearsal_profile();
+            let snapshot = document.snapshot();
+            let layout = layout_with_view(
+                &snapshot,
+                FaceSet::uniform(&font),
+                profile,
+                LayoutLimits::default(),
+                &LayoutCancellation::default(),
+                ViewOptions::default(),
+            )
+            .unwrap();
+            let dir = tempfile::tempdir().unwrap();
+            let destination = dir.path().join("refused.pdf");
+            let error = run_pdf(PdfJob {
+                destination: destination.clone(),
+                layout: Arc::new(layout),
+                font: Arc::new(font),
+                profile,
+                document: snapshot,
+                core: None,
+                pages: 0..1,
+                kind: PdfKind::Archive { year: 2026 },
+            })
+            .unwrap_err();
+            assert_eq!(
+                error,
+                if opaque {
+                    "archival output refuses omitted blocks"
+                } else {
+                    "pdf writer"
+                }
+            );
             assert!(!destination.exists());
         }
     }

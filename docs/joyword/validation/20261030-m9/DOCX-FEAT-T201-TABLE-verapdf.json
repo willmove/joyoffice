@@ -1,0 +1,63 @@
+{"report":{"buildInformation":{"releaseDetails":[{
+  "id" : "core",
+  "version" : "1.30.2",
+  "buildDate" : 1780454580000
+},{
+  "id" : "validation-model",
+  "version" : "1.30.2",
+  "buildDate" : 1780454760000
+},{
+  "id" : "apps",
+  "version" : "1.30.2",
+  "buildDate" : 1780455180000
+}]},"jobs":[{"itemDetails":{
+  "name" : "D:\\Coding\\EditorProjects\\joyoffice\\target\\m9-20261030\\DOCX-FEAT-T201-TABLE.pdf",
+  "size" : 20868
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 144,
+    "failedRules" : 0,
+    "passedChecks" : 4493,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-2b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1793367714235,
+  "finish" : 1793367714605,
+  "difference" : 370,
+  "duration" : "00:00:00.370"
+}}],"batchSummary":{
+  "duration" : {
+    "start" : 1793367714180,
+    "finish" : 1793367714631,
+    "difference" : 451,
+    "duration" : "00:00:00.451"
+  },
+  "totalJobs" : 1,
+  "outOfMemory" : 0,
+  "veraExceptions" : 0,
+  "failedEncryptedJobs" : 0,
+  "failedParsingJobs" : 0,
+  "validationSummary" : {
+    "nonCompliantPdfaCount" : 0,
+    "totalJobCount" : 1,
+    "compliantPdfaCount" : 1,
+    "failedJobCount" : 0,
+    "successfulJobCount" : 1
+  },
+  "multiJob" : false,
+  "repairSummary" : {
+    "totalJobCount" : 0,
+    "failedJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "featuresSummary" : {
+    "totalJobCount" : 0,
+    "failedJobCount" : 0,
+    "successfulJobCount" : 0
+  }
+}}}

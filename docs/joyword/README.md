@@ -19,6 +19,8 @@
 11. [功能指南](guide/README.md)：查找替换、表格、页面、图片、修订和无头命令行。
 12. 验证证据（[索引](verification/README.md)）：[页面场景金样](verification/golden-scenes.md)、[T103 覆盖引导 fuzz](verification/t103-coverage-fuzz.md)、[特性样例](verification/feature-fixtures.md)、[场景排练](verification/scenario-rehearsals.md)和[验证波次缺口修复](verification/verify-wave-fixes.md)。都是自动证据，不替代人工验收。
 
+13. M9 独立规格入口：[实时协作](COLLABORATION.md)、[套件共享边界](SUITE.md)。只交付规格，不声称云服务或其他应用已实现。
+
 ## 解释优先级
 
 - 已确认的用户决策与 SPEC 的规范性要求优先。

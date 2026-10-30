@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use joyoffice_opc::Budget;
 use joyword_model::Document;
 use joyword_shell::command::{
-    FILE_CLOSE, FILE_EXPORT_EPUB, FILE_EXPORT_PDF, FILE_MAIL_MERGE, FILE_OPEN, FILE_PRINT,
-    FILE_SAVE, FILE_SAVE_COPY, MenuEntry, MenuKind, Platform, QUIT, Registry,
+    FILE_CLOSE, FILE_EXPORT_EPUB, FILE_EXPORT_PDF, FILE_EXPORT_PDFA, FILE_MAIL_MERGE, FILE_OPEN,
+    FILE_PRINT, FILE_SAVE, FILE_SAVE_COPY, MenuEntry, MenuKind, Platform, QUIT, Registry,
 };
 use joyword_shell::docx::{BoundDocx, BoundOpenError, BoundSaveError, DocxSession};
 use joyword_shell::input::{InputLimits, TextInput};
@@ -282,6 +282,7 @@ fn file_menu_offers_open_original_save_and_save_copy() {
             MenuEntry::Command(FILE_SAVE_COPY),
             MenuEntry::Separator,
             MenuEntry::Command(FILE_EXPORT_PDF),
+            MenuEntry::Command(FILE_EXPORT_PDFA),
             MenuEntry::Command(FILE_EXPORT_EPUB),
             MenuEntry::Command(FILE_MAIL_MERGE),
             MenuEntry::Command(FILE_PRINT),

@@ -487,6 +487,7 @@ pub const FILE_OPEN: CommandId = CommandId("file.open");
 pub const FILE_SAVE: CommandId = CommandId("file.save");
 pub const FILE_SAVE_COPY: CommandId = CommandId("file.save_copy");
 pub const FILE_EXPORT_PDF: CommandId = CommandId("file.export_pdf");
+pub const FILE_EXPORT_PDFA: CommandId = CommandId("file.export_pdfa");
 pub const FILE_EXPORT_EPUB: CommandId = CommandId("file.export_epub");
 pub const FILE_MAIL_MERGE: CommandId = CommandId("file.mail_merge");
 pub const FILE_PRINT: CommandId = CommandId("file.print");
@@ -676,6 +677,17 @@ impl Registry {
                     .with_linux_alternate("ctrl-e"),
                 modifies_document: false,
                 parameters: DESTINATION_PARAM,
+            },
+            CommandSpec {
+                id: FILE_EXPORT_PDFA,
+                label: "command.file.export_pdfa",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
             },
             CommandSpec {
                 id: FILE_EXPORT_EPUB,
@@ -1825,6 +1837,7 @@ mod tests {
                 MenuEntry::Command(FILE_SAVE_COPY),
                 MenuEntry::Separator,
                 MenuEntry::Command(FILE_EXPORT_PDF),
+                MenuEntry::Command(FILE_EXPORT_PDFA),
                 MenuEntry::Command(FILE_EXPORT_EPUB),
                 MenuEntry::Command(FILE_MAIL_MERGE),
                 MenuEntry::Command(FILE_PRINT),
@@ -1856,6 +1869,7 @@ mod tests {
                     MenuEntry::Command(FILE_SAVE_COPY),
                     MenuEntry::Separator,
                     MenuEntry::Command(FILE_EXPORT_PDF),
+                    MenuEntry::Command(FILE_EXPORT_PDFA),
                     MenuEntry::Command(FILE_EXPORT_EPUB),
                     MenuEntry::Command(FILE_MAIL_MERGE),
                     MenuEntry::Command(FILE_PRINT),

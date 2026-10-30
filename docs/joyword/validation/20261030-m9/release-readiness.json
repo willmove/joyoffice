@@ -1,0 +1,486 @@
+{
+  "schema": 1,
+  "release_ready": false,
+  "tasks": [
+    {
+      "id": "T000",
+      "title": "规格落盘与追踪",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T001",
+      "title": "工具链、依赖锁与三端 CI",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T002",
+      "title": "GPUI 原生窗口与页面投影",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T003",
+      "title": "字体、IME 与统一 PDF 技术验证",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T004",
+      "title": "原创语料与验证框架",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T005",
+      "title": "信创平台技术验证",
+      "status": "in_progress",
+      "nonblocking": true
+    },
+    {
+      "id": "T100",
+      "title": "类型化文档模型",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T101",
+      "title": "事务与位置映射",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T102",
+      "title": "输入、选择与基础格式",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T103",
+      "title": "DOCX 最小语义与保留读写",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T104",
+      "title": "撤销、本地日志与恢复",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T105",
+      "title": "基础排版引擎",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T106",
+      "title": "应用外壳、命令注册表与偏好",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T108",
+      "title": "画布可见页光栅与缓存",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T109",
+      "title": "打开与保存的并发安全",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T110",
+      "title": "原件保存的元数据观测与用户选择路径",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T111",
+      "title": "工程门禁自动化",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T107",
+      "title": "M1 发布门槛",
+      "status": "planned",
+      "nonblocking": false
+    },
+    {
+      "id": "T200",
+      "title": "样式、编号与编辑便利",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T201",
+      "title": "基础表格编辑",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T202",
+      "title": "页面与页眉页脚",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T203",
+      "title": "图片与富文本剪贴板",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T204",
+      "title": "统一 PDF 与平台打印",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T205",
+      "title": "功能区、标尺与状态栏",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T206",
+      "title": "M2 发布门槛",
+      "status": "planned",
+      "nonblocking": false
+    },
+    {
+      "id": "T207",
+      "title": "中文基础排版",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T208",
+      "title": "段落缓存与增量重排",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T209",
+      "title": "撤销组与输入来源区分",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T210",
+      "title": "无头读回与转换 CLI",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T211",
+      "title": "应用日志与崩溃诊断",
+      "status": "done",
+      "nonblocking": false
+    },
+    {
+      "id": "T300",
+      "title": "文字与移动修订",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T301",
+      "title": "格式与表格结构修订",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T302",
+      "title": "批注线程与现代扩展",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T303",
+      "title": "比较与合并",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T304",
+      "title": "审阅交换发布门槛",
+      "status": "planned",
+      "nonblocking": false
+    },
+    {
+      "id": "T400",
+      "title": "Provider 与关闭基础",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T401",
+      "title": "受限工具与授权",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T402",
+      "title": "修改预览与 AI 修订",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T403",
+      "title": "取消、竞争与离线门槛",
+      "status": "planned",
+      "nonblocking": false
+    },
+    {
+      "id": "T500",
+      "title": "复杂分页与长文档",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T501",
+      "title": "注释、域与引用体系",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T502",
+      "title": "公式、形状和表单内容",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T503",
+      "title": "语言工具与视图",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T504",
+      "title": "中文高级版式与公文",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T600",
+      "title": "RTF 与 Strict OOXML 交换",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T601",
+      "title": "HTML、Markdown 与文本",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T602",
+      "title": "旧版 DOC 导入",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T603",
+      "title": "PDF 导航、标签与页面图片",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T604",
+      "title": "加密、保护与活动内容",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T605",
+      "title": "WPS 文字原生格式导入",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T700",
+      "title": "三端及信创产品验收",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T701",
+      "title": "输入法与可访问性",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T702",
+      "title": "性能、故障和恢复",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T703",
+      "title": "安装、签名和升级",
+      "status": "in_progress",
+      "nonblocking": false
+    },
+    {
+      "id": "T704",
+      "title": "1.0 发布门槛与公开矩阵",
+      "status": "in_progress",
+      "nonblocking": false
+    }
+  ],
+  "observations": [
+    {
+      "id": "windows-native",
+      "status": "pending",
+      "scope": "Current candidate: new/edit/exchange/print/recover/AI off",
+      "reason": "Windows two-round GUI validation closes WPS settings, long-document caret/reveal and PDF marks; native text read/write/selection/read-only verified. Full printing and reader acceptance remain incomplete. See verification/m7-followup-20261030.md Native close HWND lifecycle fixed; final release and unpacked clean Alt+F4 plus dirty-close/Cancel passed with no window errors. See verification/m8-focus-epub-20261030.md. Printing and full platform acceptance remain pending."
+    },
+    {
+      "id": "macos-native",
+      "status": "pending",
+      "scope": "Current candidate: new/edit/exchange/print/recover/AI off",
+      "reason": "No current macOS candidate session"
+    },
+    {
+      "id": "linux-x11-native",
+      "status": "pending",
+      "scope": "Current candidate X11 workflow",
+      "reason": "Historical UOS/Kylin sessions do not cover the current candidate"
+    },
+    {
+      "id": "linux-wayland-native",
+      "status": "pending",
+      "scope": "Current candidate Wayland workflow",
+      "reason": "No Wayland product acceptance record"
+    },
+    {
+      "id": "accessibility-readers",
+      "status": "pending",
+      "scope": "VoiceOver, Narrator and Linux reader, semantic tree and keyboard",
+      "reason": "Windows native document focus/full text/Unicode selection/ValuePattern write/undo/read-only and disabled controls verified. Button ToggleState is not emitted by the test tool; actual reader speech and other platforms remain unverified. File trigger missing role and toolbar Enter leaking to document fixed; final native Unicode find/zoom/font-field value tests passed. Full reader speech is still unverified."
+    },
+    {
+      "id": "ime-dpi",
+      "status": "pending",
+      "scope": "System IME, focus, high DPI and multiple monitors",
+      "reason": "Windows physical Pinyin preedit/cancel/commit/single undo passed; DPI, multiple monitors and other platforms remain unverified"
+    },
+    {
+      "id": "performance-gui",
+      "status": "pending",
+      "scope": "QUALITY section 5 startup/input/scroll/RSS/size budgets on fixed hardware",
+      "reason": "Model/layout benchmark is available; GUI presentation and stable-idle RSS remain unmeasured"
+    },
+    {
+      "id": "recovery-faults",
+      "status": "pending",
+      "scope": "Fault injection, terminated process, interrupted save and recovery migration",
+      "reason": "Real process termination/recovery/readback/discard restart passed after two fixes; rich-document recovery and power-loss acceptance remain incomplete"
+    },
+    {
+      "id": "install-upgrade-rollback",
+      "status": "pending",
+      "scope": "Native installers, association, uninstall, interrupted upgrade and rollback",
+      "reason": "Portable preview archive does not implement native installation or upgrade"
+    },
+    {
+      "id": "code-signing",
+      "status": "pending",
+      "scope": "Platform distribution signatures and macOS notarization",
+      "reason": "Distribution credentials and signing environment are unavailable"
+    },
+    {
+      "id": "sbom-licenses",
+      "status": "pending",
+      "scope": "Candidate SBOM, dependency licenses, asset notices and provenance",
+      "reason": "381-package candidate SPDX inventory passes the official schema; 18 source packages lack bundled root license files and final distribution notices remain incomplete"
+    },
+    {
+      "id": "privacy-defaults",
+      "status": "pending",
+      "scope": "No telemetry upload, AI off and no-AI build",
+      "reason": "Core tests exist; final application acceptance remains pending"
+    },
+    {
+      "id": "office-exchange",
+      "status": "pending",
+      "scope": "Fixed Word 2024 and WPS supported format/review matrix",
+      "reason": "Previous WPS settings refusal fixed using validated empty MCE projection; real WPS-derived sample edit/save/reopen and unchanged settings bytes passed. Word previous sample passed; complete Office feature matrix remains pending."
+    },
+    {
+      "id": "reproducible-builds",
+      "status": "pending",
+      "scope": "Two independent candidate builds and full manifest comparison",
+      "reason": "Repeatable archive packing is narrower than independent reproducible application builds"
+    },
+    {
+      "id": "xinchuang-hardware",
+      "status": "pending",
+      "scope": "UOS/Kylin x86_64/ARM64/LoongArch64, GPU/CPU, Fcitx and packages",
+      "reason": "Nonblocking hardware follow-up under the 2026-10-18 user decision; no substitute compatibility claim"
+    }
+  ],
+  "blockers": [
+    "T003: in_progress",
+    "T103: in_progress",
+    "T104: in_progress",
+    "T109: in_progress",
+    "T110: in_progress",
+    "T107: planned",
+    "T200: in_progress",
+    "T201: in_progress",
+    "T202: in_progress",
+    "T203: in_progress",
+    "T204: in_progress",
+    "T205: in_progress",
+    "T206: planned",
+    "T207: in_progress",
+    "T209: in_progress",
+    "T300: in_progress",
+    "T301: in_progress",
+    "T302: in_progress",
+    "T303: in_progress",
+    "T304: planned",
+    "T400: in_progress",
+    "T401: in_progress",
+    "T402: in_progress",
+    "T403: planned",
+    "T500: in_progress",
+    "T501: in_progress",
+    "T502: in_progress",
+    "T503: in_progress",
+    "T504: in_progress",
+    "T600: in_progress",
+    "T601: in_progress",
+    "T602: in_progress",
+    "T603: in_progress",
+    "T604: in_progress",
+    "T605: in_progress",
+    "T700: in_progress",
+    "T701: in_progress",
+    "T702: in_progress",
+    "T703: in_progress",
+    "T704: in_progress",
+    "windows-native: pending",
+    "macos-native: pending",
+    "linux-x11-native: pending",
+    "linux-wayland-native: pending",
+    "accessibility-readers: pending",
+    "ime-dpi: pending",
+    "performance-gui: pending",
+    "recovery-faults: pending",
+    "install-upgrade-rollback: pending",
+    "code-signing: pending",
+    "sbom-licenses: pending",
+    "privacy-defaults: pending",
+    "office-exchange: pending",
+    "reproducible-builds: pending"
+  ],
+  "invalid": [],
+  "policy": "Xinchuang hardware pending is nonblocking, never passed by substitution"
+}

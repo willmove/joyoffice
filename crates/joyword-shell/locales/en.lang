@@ -354,3 +354,7 @@ epub.saved = EPUB saved to {path}. The source document was not changed.
 epub.saved_earlier = EPUB saved to {path} from the earlier snapshot; current edits were not changed.
 epub.completed = EPUB export completed.
 epub.cancelled = EPUB export cancelled. The source document was not changed.
+
+command.file.export_pdfa = Export PDF/A-2b…
+pdfa.review = Review archival export
+pdfa.description = Export the current page scene as PDF/A-2b using creation year {year} (UTC). Fonts must permit embedding. Choose a new .pdf file; existing files are never overwritten. Independent conformance validation is required; this does not claim PDF/UA.

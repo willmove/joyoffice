@@ -1,0 +1,19 @@
+   Compiling joyword v0.0.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.79s
+     Running unittests src\main.rs (target\debug\deps\joyword-1c7f736989de5c17.exe)
+
+running 1 test
+
+thread 'find_bar_tests::scene_export::archival_job_is_deterministic_and_refuses_invalid_year_and_overwrite' (4704) panicked at apps\joyword\src\tests.rs:477:41:
+called `Result::unwrap()` on an `Err` value: "pdf writer: Validation([(ContainsNotDefGlyph(Font {..}, None, \"r\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"c\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"h\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"v\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"e\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"o\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"n\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"t\"), Validators { a: Some(A2_B), ua: None }), (ContainsNotDefGlyph(Font {..}, None, \"a\"), Validators { a: Some(A2_B), ua: None })])"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test find_bar_tests::scene_export::archival_job_is_deterministic_and_refuses_invalid_year_and_overwrite ... FAILED
+
+failures:
+
+failures:
+    find_bar_tests::scene_export::archival_job_is_deterministic_and_refuses_invalid_year_and_overwrite
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 90 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p joyword --bin joyword`

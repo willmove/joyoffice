@@ -1,0 +1,401 @@
+{
+  "counts": {
+    "done": 17,
+    "in_progress": 38,
+    "planned": 11
+  },
+  "remaining": [
+    {
+      "task": "T003",
+      "title": "字体、IME 与统一 PDF 技术验证",
+      "status": "in_progress",
+      "automation": "同一字形场景几何比较；Unicode 范围和组合态测试；PDF 文本抽取。",
+      "manual_acceptance": "系统拼音提交／取消、候选框、一次撤销、多显示器 DPI；PDF 独立阅读器检查。",
+      "deliverable": "固定字体字节／face 的整形、屏幕与 PDF 定位验证，按字体字节取得 FontId 的验证或补丁，以及 IME 验证程序。"
+    },
+    {
+      "task": "T005",
+      "title": "信创平台技术验证",
+      "status": "in_progress",
+      "automation": "交叉构建与目标机冒烟启动；无 GPU 渲染路径的启动与帧时间记录。",
+      "manual_acceptance": "有条件时在至少一台国产 CPU 与 GPU 的机器上启动窗口、输入中文并缩放；真机专项为非阻塞待补验项。",
+      "deliverable": "ARM64 与 LoongArch64 构建记录、目标系统 glibc／ABI 核对、GL 与 CPU 渲染启动结果、Fcitx 中文输入与系统字体清单，以及供 ADR-010 选型的结论。"
+    },
+    {
+      "task": "T103",
+      "title": "DOCX 最小语义与保留读写",
+      "status": "in_progress",
+      "automation": "规范最小文件、无编辑复制、编辑往返、未知部件散列、失败保存、元数据保留和 fuzz 冒烟测试。",
+      "manual_acceptance": "打开自建与固定 Word／WPS 样例，编辑支持区域、保存、重新打开。",
+      "deliverable": "OPC、关系图、正文段落和基础格式；兼容模式写入与保留；ImportResult、ExportPlan、未知保留；解析资源预算与 fuzz 目标；锁文件检测与保留元数据的原子保存。"
+    },
+    {
+      "task": "T104",
+      "title": "撤销、本地日志与恢复",
+      "status": "in_progress",
+      "automation": "故障注入、有效前缀恢复、保存版本竞争、undo／redo 属性测试。",
+      "manual_acceptance": "强制结束测试进程后恢复，比较最后完整事务和正式保存文件。",
+      "deliverable": "独立撤销栈、日志校验、周期快照、dirty 版本与恢复选择。周期快照必须包含 PackageBacking 与原包基线所需信息，不能只含模型；加密文档不落明文副本；快照写入经临时文件、校验与原子改名，并保留上一代有效副本。"
+    },
+    {
+      "task": "T109",
+      "title": "打开与保存的并发安全",
+      "status": "in_progress",
+      "automation": "版本复核、迟到结果丢弃、保存期间脏版本绑定的竞争测试。",
+      "manual_acceptance": "慢速打开大文档期间输入与取消；保存期间连续编辑后关闭提示正确。",
+      "deliverable": "打开读取期间编辑器处于只读“打开中”状态，新文档就绪按版本复核后才替换当前会话；保存副本与原件保存作为携带会话身份与版本的后台任务，计划、校验与 IO 在后台完成，结果按身份与版本应用。"
+    },
+    {
+      "task": "T110",
+      "title": "原件保存的元数据观测与用户选择路径",
+      "status": "in_progress",
+      "automation": "逐项元数据的保留与拒绝测试、锁与外部修改检测、确认替换与另存副本两条路径。",
+      "manual_acceptance": "普通本地文档保存原件并重开；含 ACL 或隔离标记的文档在替换前列出损失项且默认仍为另存。",
+      "deliverable": "各平台 ACL、扩展属性、来源标记与创建时间的观测实现（经审计的平台接口或按 ADR-009 精确固定的依赖）；不可保留或不可观测项在替换前列出，默认另存副本，用户显式确认才替换原件；以平台交换或替换语义（RENAME_SWAP／RENAME_EXCHANGE／ReplaceFileW）处理最后检查与改名之间的竞争窗口。"
+    },
+    {
+      "task": "T107",
+      "title": "M1 发布门槛",
+      "status": "planned",
+      "automation": "端到端脚本、保存故障注入、fuzz 冒烟及 20 页样例的打开与输入延迟。",
+      "manual_acceptance": "在 Mac 上完成 M1 工作流，并用 Word 与 WPS 打开保存结果。",
+      "deliverable": "中文输入—编辑—保存 DOCX—退出—重开的端到端报告、不可信文件预算与 fuzz 冒烟报告、首个性能冒烟基线。"
+    },
+    {
+      "task": "T200",
+      "title": "样式、编号与编辑便利",
+      "status": "in_progress",
+      "automation": "样式解析、编号重启、批量替换原子性和 Word 往返测试。",
+      "manual_acceptance": "制作多级标题与列表，格式刷、查找替换和撤销。",
+      "deliverable": "样式面板、继承、主题、多级编号、制表位、查找替换与格式刷。"
+    },
+    {
+      "task": "T201",
+      "title": "基础表格编辑",
+      "status": "in_progress",
+      "automation": "网格不变量、内容归属、合并逆操作和 DOCX 读写样例。",
+      "manual_acceptance": "制作合同表格，插行、合并、拆分、撤销、保存重开。",
+      "deliverable": "真实网格、行列增删、基础合并拆分、边框／底纹及表格内选择。"
+    },
+    {
+      "task": "T202",
+      "title": "页面与页眉页脚",
+      "status": "in_progress",
+      "automation": "段落分页、孤行、页眉链接、分页几何及保存样例。",
+      "manual_acceptance": "改变页边距与方向，检查页码、页眉及缩放后分页。",
+      "deliverable": "分页符、页面设置、页眉页脚（首页不同、奇偶页不同、链接到前一节）、页码域、基础分节及孤行等段落分页约束。"
+    },
+    {
+      "task": "T203",
+      "title": "图片与富文本剪贴板",
+      "status": "in_progress",
+      "automation": "清理、资源去重、样式编号映射、单次撤销与剪切失败原子性。",
+      "manual_acceptance": "Word／WPS／浏览器双向复制列表、表格、图片，比较粘贴选项。",
+      "deliverable": "行内图片、超链接插入编辑与确认后打开、拖放、纯文本／HTML／RTF／内部片段及粘贴策略；富剪贴板格式由 platform 层实现（GPUI 仅提供文本与图片）。"
+    },
+    {
+      "task": "T204",
+      "title": "统一 PDF 与平台打印",
+      "status": "in_progress",
+      "automation": "页面几何一致、PDF 文本／链接、纸型和打印范围测试。",
+      "manual_acceptance": "两个独立阅读器检查 PDF；真实打印或平台打印到文件。",
+      "deliverable": "PageScene 完整页面输出、可选文本 PDF、平台打印层（GPUI 无打印接口）与预览，以及 PageScene 的 CPU 光栅后端。"
+    },
+    {
+      "task": "T205",
+      "title": "功能区、标尺与状态栏",
+      "status": "in_progress",
+      "automation": "功能区与注册表一致、字数统计规则（中文按字，与固定 Word 样例的对话框数字对照）、视图选项进入布局快照键、对话框到命令的映射；功能目录地板测试只升不降。",
+      "manual_acceptance": "只用功能区和对话框完成报告排版，切换编辑标记与缩放。",
+      "deliverable": "开始、插入、布局、视图等功能区中的已实现命令，字体与段落对话框（含中文字号），标尺（缩进、制表位），状态栏（页码、字数），编辑标记／隐藏文字／域代码显示切换；功能区图标以代码绘制并纳入资产署名门禁；功能目录逐项绑定需求 ID 与证据等级（存在／单元测试／语料／参考对照），只统计有证据的项。"
+    },
+    {
+      "task": "T206",
+      "title": "M2 发布门槛",
+      "status": "planned",
+      "automation": "报告语料往返、几何比较、PDF 文本抽取和性能冒烟。",
+      "manual_acceptance": "在 Mac 上按报告工作流完成制作、跨应用粘贴、导出 PDF 与打印。",
+      "deliverable": "含样式、编号、表格、图片、页眉页脚和页码的报告往返与 PDF／打印报告，以及中文基础排版对照结果。"
+    },
+    {
+      "task": "T207",
+      "title": "中文基础排版",
+      "status": "in_progress",
+      "automation": "中文默认文档和公文网格样例的行／页断点比较、单位换算、禁则与间距单元测试。",
+      "manual_acceptance": "打开中文 Word 与 WPS 生成的合同和报告，对照参考 PDF 检查断行与分页。",
+      "deliverable": "文档网格（行／字符）吸附、字符与行单位的缩进和间距、禁则字符表、中西文自动间距、标点压缩、adjustRightInd 及相关兼容标志的支持子集；两端对齐在纯中文行字间分配余量；四槽字体与主题东亚字体（a:ea）落地；CJK 字体替代表（宋体、仿宋、楷体、黑体、等线、微软雅黑到各平台实际字体）与替代／缺字诊断；行高在 hhea／OS/2 typo／win 三套度量间的选择以固定 Word 实测为准。"
+    },
+    {
+      "task": "T209",
+      "title": "撤销组与输入来源区分",
+      "status": "in_progress",
+      "automation": "撤销组合并性质测试、行为登记表撤销条目存在性校验。",
+      "manual_acceptance": "连续打字、IME 提交、拖动与粘贴混合操作后逐步撤销，每步粒度符合预期。",
+      "deliverable": "事务层撤销组（连续打字合并为一步，组合输入一次提交、拖动手势、自动更正各自成一步，边界不跨作者、审阅模式与版本冲突）；输入层区分键入与粘贴两类来源，粘贴文本中的段落分隔不触发按键语义；行为登记表中的撤销条目逐条有测试。"
+    },
+    {
+      "task": "T300",
+      "title": "文字与移动修订",
+      "status": "in_progress",
+      "automation": "原始／最终投影、接受／拒绝、undo 与文件往返性质测试。",
+      "manual_acceptance": "在 Word 与 JoyWord 交换文字修订，逐项和批量接受／拒绝。",
+      "deliverable": "插入／删除／移动、作者时间、分组、四种视图（排版随投影变化）和局部处理。"
+    },
+    {
+      "task": "T301",
+      "title": "格式与表格结构修订",
+      "status": "in_progress",
+      "automation": "格式拒绝还原、表格结构与内容守恒、局部接受合法性测试。",
+      "manual_acceptance": "对含表格的合同增删行、改样式并交换审阅。",
+      "deliverable": "属性前值、段落标记、编号、节属性和表格网格结构修订，覆盖支持的 story。"
+    },
+    {
+      "task": "T302",
+      "title": "批注线程与现代扩展",
+      "status": "in_progress",
+      "automation": "范围变换、线程往返、解决／删除区别及未知 XML 保留。",
+      "manual_acceptance": "跨段批注后移动或删除正文，交换 Word 并检查线程。",
+      "deliverable": "范围批注、回复、解决、重开、作者信息及现代扩展映射。"
+    },
+    {
+      "task": "T303",
+      "title": "比较与合并",
+      "status": "in_progress",
+      "automation": "A/B 比较后全部拒绝=A、全部接受=B；合并冲突及幂等性。",
+      "manual_acceptance": "比较两份合同并在 Word 审阅结果，检查格式和表格差异；与本地历史版本比较后另存恢复。",
+      "deliverable": "语义比较、目标投影选择、可接受／拒绝的修订结果与合并冲突；本地版本历史的保留、浏览、比较与另存恢复。"
+    },
+    {
+      "task": "T304",
+      "title": "审阅交换发布门槛",
+      "status": "planned",
+      "automation": "批量语义、关系、部件保留与打印投影测试。",
+      "manual_acceptance": "按语料执行跨软件接受／拒绝和批注回复，保存证据。",
+      "deliverable": "固定 Word／WPS／LibreOffice 审阅语料和往返报告。"
+    },
+    {
+      "task": "T400",
+      "title": "Provider 与关闭基础",
+      "status": "in_progress",
+      "automation": "假 Provider 契约、无 AI 构建、策略禁用、启动零请求及凭据脱敏。",
+      "manual_acceptance": "首次启动离线编辑，配置服务后开启／关闭，检查入口与任务。",
+      "deliverable": "独立 Provider、配置、系统凭据、默认关闭、管理员策略（强制关闭、Provider 白名单）及 generation 权限门。"
+    },
+    {
+      "task": "T401",
+      "title": "受限工具与授权",
+      "status": "in_progress",
+      "automation": "最小上下文、注入语料、过期授权和能力边界测试。",
+      "manual_acceptance": "对合同选区提问，验证引用和实际发送内容不超范围。",
+      "deliverable": "选区授权、结构读取、受限检索、定位引用及工具白名单。"
+    },
+    {
+      "task": "T402",
+      "title": "修改预览与 AI 修订",
+      "status": "in_progress",
+      "automation": "重复提交防护、预览不修改原稿、提交与撤销、审阅往返。",
+      "manual_acceptance": "选区改写／格式调整，逐项接受并整体撤销。",
+      "deliverable": "结构化 ChangeProposal、差异预览、AI 作者与单事务提交。"
+    },
+    {
+      "task": "T403",
+      "title": "取消、竞争与离线门槛",
+      "status": "planned",
+      "automation": "记录假服务请求；关闭后请求／提交为零；无 AI 与有 AI 核心回归。",
+      "manual_acceptance": "在流式生成和提交前关闭，继续普通输入、保存及打印。",
+      "deliverable": "任务取消、连接释放、自有进程结束、迟到结果丢弃和关闭验证报告。"
+    },
+    {
+      "task": "T500",
+      "title": "复杂分页与长文档",
+      "status": "in_progress",
+      "automation": "最小约束样例、稳定页尾复用、几何对照和长文档取消。",
+      "manual_acceptance": "百页报告改首段／末段、改变方向与图文绕排，观察定位与响应。",
+      "deliverable": "多栏、连续及奇偶分节、跨页／嵌套表格、浮动绕排与增量分页。"
+    },
+    {
+      "task": "T501",
+      "title": "注释、域与引用体系",
+      "status": "in_progress",
+      "automation": "字段求值、引用更新、脚注分页和循环诊断测试。",
+      "manual_acceptance": "长报告插入章节与图表后更新目录、页码和交叉引用。",
+      "deliverable": "脚注尾注、目录、题注、交叉引用、文献、索引与域代码／缓存。"
+    },
+    {
+      "task": "T502",
+      "title": "公式、形状和表单内容",
+      "status": "in_progress",
+      "automation": "OMML 子集语义、对象关系、控件限制与文件往返。",
+      "manual_acceptance": "编辑带公式和表单的报告，与 Word 交换并修改。",
+      "deliverable": "公式结构、常见形状／文本框、内容控件和模板编辑。"
+    },
+    {
+      "task": "T503",
+      "title": "语言工具与视图",
+      "status": "in_progress",
+      "automation": "拼写与语言规则、视图不改变文档及无 AI 测试。",
+      "manual_acceptance": "离线检查中英文拼写，切换草稿、大纲和阅读视图并核对文档未改变。",
+      "deliverable": "离线拼写与语言工具、草稿／大纲／阅读视图。"
+    },
+    {
+      "task": "T504",
+      "title": "中文高级版式与公文",
+      "status": "in_progress",
+      "automation": "固定字体的 Unicode、cluster、几何和光标测试，公文样例行字网格对照。",
+      "manual_acceptance": "公文、拼音和中文版式样例对照与编辑，在 Word 与 WPS 中检查。",
+      "deliverable": "拼音指南、双行合一、合并字符、带圈字符、稿纸与 GB/T 9704 公文版式样例；双向与复杂文字保真保留并提示排版受限。"
+    },
+    {
+      "task": "T600",
+      "title": "RTF 与 Strict OOXML 交换",
+      "status": "in_progress",
+      "automation": "规范样例、双向语义、资源关系、损失报告和异常输入。",
+      "manual_acceptance": "与 Word／WPS 交换带样式、脚注、修订的 RTF 与 Strict 文件。",
+      "deliverable": "RTF 文件读写、Strict profile 独立读写和元素级损失分析。"
+    },
+    {
+      "task": "T601",
+      "title": "HTML、Markdown 与文本",
+      "status": "in_progress",
+      "automation": "清理、读取顺序、编码、语义子集和转换损失测试。",
+      "manual_acceptance": "导入网页片段／Markdown，导出文本后核对丢失说明。",
+      "deliverable": "受控 HTML／Markdown／TXT 文件双向转换和编码诊断。"
+    },
+    {
+      "task": "T602",
+      "title": "旧版 DOC 导入",
+      "status": "in_progress",
+      "automation": "二进制结构最小样例、模糊输入、内容关系和对照导入。",
+      "manual_acceptance": "固定 Word 生成旧 DOC，导入后与原稿语义和版面比较。",
+      "deliverable": "依据 MS-DOC／CFB 自研导入（CFB 读取供 T604 加密 OOXML 复用）、原始结构保留及支持变体矩阵。"
+    },
+    {
+      "task": "T603",
+      "title": "PDF 导航、标签与页面图片",
+      "status": "in_progress",
+      "automation": "文本抽取、阅读顺序、链接、标签结构和图像尺寸测试。",
+      "manual_acceptance": "两个 PDF 阅读器检查导航、可检索性与结构。",
+      "deliverable": "PDF 书签、链接与结构标签，页面图片输出。"
+    },
+    {
+      "task": "T604",
+      "title": "加密、保护与活动内容",
+      "status": "in_progress",
+      "automation": "密码／保护独立测试、签名改动、ZIP／XML／图像预算及无网络验证。",
+      "manual_acceptance": "打开受保护和宏文档，编辑安全区域、另存并检查状态。",
+      "deliverable": "加解密、编辑限制、签名识别与修改即失效提示、宏容器保留、受限解析和来源标记。"
+    },
+    {
+      "task": "T605",
+      "title": "WPS 文字原生格式导入",
+      "status": "in_progress",
+      "automation": "样例导入语义、私有流散列保留、模糊输入及资源预算测试。",
+      "manual_acceptance": "用固定版本 WPS 生成含样式、表格、批注和修订的 .wps，导入后与 WPS 中的显示和语义比较。",
+      "deliverable": ".wps／.wpt 类型识别、DOC 兼容内容导入、WPS 私有流原样保留、模板新建、另存为 DOCX 的损失计划及支持变体矩阵。"
+    },
+    {
+      "task": "T700",
+      "title": "三端及信创产品验收",
+      "status": "in_progress",
+      "automation": "三端核心、格式、审阅及平台适配测试集合。",
+      "manual_acceptance": "逐平台运行新建、编辑、交换、打印、恢复和关闭 AI。",
+      "deliverable": "Mac／Windows／Linux 的全流程对照报告，Wayland／X11 分列，统信 UOS 与银河麒麟按 x86_64／ARM64／LoongArch64 分列。"
+    },
+    {
+      "task": "T701",
+      "title": "输入法与可访问性",
+      "status": "in_progress",
+      "automation": "键盘焦点、语义树、范围与 DPI 自动检查。",
+      "manual_acceptance": "VoiceOver、Narrator、Linux 辅助技术和中文 IME（含信创系统的 Fcitx 输入法）真实操作。",
+      "deliverable": "结构化可访问树、焦点导航、高对比度、IME 与多显示器专项。"
+    },
+    {
+      "task": "T702",
+      "title": "性能、故障和恢复",
+      "status": "in_progress",
+      "automation": "性能采样、首尾段重排、取消、fuzz 和故障注入。",
+      "manual_acceptance": "在固定硬件反复运行长文档场景，核对原始样本与统计。",
+      "deliverable": "固定三级语料、分位数／RSS／峰值／体积报告、故障回归。"
+    },
+    {
+      "task": "T703",
+      "title": "安装、签名和升级",
+      "status": "in_progress",
+      "automation": "安装／卸载、升级中断、旧日志迁移、依赖通知和资源许可检查。",
+      "manual_acceptance": "干净机器安装、升级与回退，确认用户文档未改动。",
+      "deliverable": "三端安装器与信创 deb 软件包、文件关联、代码签名与统信／麒麟软件包签名、卸载、更新回退与日志迁移。"
+    },
+    {
+      "task": "T704",
+      "title": "1.0 发布门槛与公开矩阵",
+      "status": "in_progress",
+      "automation": "完整追踪、发布清单、无静默丢失语料和双构建验证。",
+      "manual_acceptance": "按公开说明从安装到合同审阅执行端到端验收。",
+      "deliverable": "兼容矩阵、限制、证据、发布说明、SBOM 和隐私默认值。"
+    },
+    {
+      "task": "T800",
+      "title": "DOC 写出",
+      "status": "planned",
+      "automation": "二进制有效性、Word 重开与内容／修订对照。",
+      "manual_acceptance": "保存旧 DOC 并在指定 Word 版本继续编辑。",
+      "deliverable": "MS-DOC 指定变体写出和逐元素损失计划。"
+    },
+    {
+      "task": "T801",
+      "title": "图表与 SmartArt 原生编辑",
+      "status": "planned",
+      "automation": "对象语义、资源、撤销、排版与往返测试。",
+      "manual_acceptance": "编辑真实图表数据和布局，Word 重开检查。",
+      "deliverable": "按类型逐项实现图表／SmartArt 模型、编辑与资源交换。"
+    },
+    {
+      "task": "T802",
+      "title": "稀有域与嵌入对象",
+      "status": "planned",
+      "automation": "对象保留、字段求值边界、关系及资源预算。",
+      "manual_acceptance": "对特殊文档操作并确认每个对象的实际支持等级。",
+      "deliverable": "扩展域和复杂对象的安全预览、保留和已声明的编辑子集。"
+    },
+    {
+      "task": "T803",
+      "title": "高级签名与复杂模板",
+      "status": "planned",
+      "automation": "签名验证、篡改失效、模板实例化与原件保护。",
+      "manual_acceptance": "用独立验证器检查签名，在 Word 检查模板实例。",
+      "deliverable": "指定标准的签名创建／验证、证书选择和复杂模板能力。"
+    },
+    {
+      "task": "T804",
+      "title": "PDF 重建与 OCR",
+      "status": "planned",
+      "automation": "原创 PDF／扫描语料、文字与结构误差、无损原件保存。",
+      "manual_acceptance": "将重建结果与原 PDF 并排审校，确认用户能发现不确定区域。",
+      "deliverable": "近似文档重建、OCR 置信度、阅读顺序及可定位误差说明。"
+    },
+    {
+      "task": "T805",
+      "title": "ODT 文件交换",
+      "status": "planned",
+      "automation": "规范样例、双向语义、资源关系、损失报告和异常输入。",
+      "manual_acceptance": "与 LibreOffice／WPS 交换带样式、脚注、修订的文件。",
+      "deliverable": "ODF 1.3 双向、1.4 扩展和元素级损失分析。"
+    },
+    {
+      "task": "T806",
+      "title": "EPUB 与归档 PDF",
+      "status": "in_progress",
+      "automation": "PDF 合规验证器、EPUB 校验、阅读顺序与文本抽取。",
+      "manual_acceptance": "EPUB 阅读器和 PDF/A 验证器检查导航、可检索性与结构。",
+      "deliverable": "EPUB 导出和声明范围的 PDF/A 归档输出。"
+    },
+    {
+      "task": "T808",
+      "title": "纵排、双向与复杂文字",
+      "status": "planned",
+      "automation": "固定字体的方向、cluster、几何和光标测试。",
+      "manual_acceptance": "中英阿文混排与纵排样例对照与编辑。",
+      "deliverable": "纵排、双向文本与复杂脚本的排版、光标移动和编辑。"
+    }
+  ]
+}
