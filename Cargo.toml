@@ -54,12 +54,12 @@ license = "MIT"
 repository = "https://github.com/willmove/joyoffice"
 
 [workspace.dependencies]
-# ADR-010: gpui-pre snapshot line (zed@93d745668805029476e6d7fbb19652116fed51de),
-# renamed so application code keeps the `gpui` / `gpui_platform` crate names.
-gpui = { package = "gpui-pre", version = "=0.3.9" }
-# The macOS text system is only compiled with `font-kit`; Linux windowing needs
-# at least one of `x11` / `wayland`. None of these are platform-crate defaults.
-gpui_platform = { package = "gpui-pre-platform", version = "=0.3.9", features = ["font-kit", "wayland", "x11"] }
+# ADR-010: align with JoyDeck before workspace integration. Kit 0.8.1 pins
+# gpui-pre 0.3.10 (zed@08cbb88a152c3751a43e853425a70e9f631a5918).
+gpui-kit = "=0.8.1"
+# Kit does not expose runtime_shaders. Keep this exact platform dependency to
+# forward the existing development-only shader feature; application APIs use Kit.
+gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", features = ["font-kit", "wayland", "x11"] }
 joyword-agent = { path = "crates/joyword-agent", default-features = false }
 joyword-foundation = { path = "crates/joyword-foundation" }
 joyword-epub = { path = "crates/joyword-epub" }
@@ -85,7 +85,7 @@ krilla = { version = "=0.8.2", default-features = false }
 read-fonts = "=0.39.2"
 skrifa = "=0.42.1"
 tiny-skia = "=0.11.4"
-image = { version = "=0.25.10", default-features = false }
+image = { version = "=0.25.9", default-features = false }
 flate2 = { version = "=1.1.10", default-features = false, features = ["rust_backend"] }
 quick-xml = "=0.41.0"
 sha2 = "=0.10.9"

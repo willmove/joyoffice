@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-31",
+  "joyoffice_base": "ef8599d629b186efc0057e2b423ea648d8b36b55",
+  "toolchain": "1.98.1-aarch64-apple-darwin",
+  "aligned_versions": {
+    "gpui-kit": "0.8.1",
+    "gpui-pre": "0.3.10",
+    "image": "0.25.9"
+  },
+  "files_sha256": {
+    "Cargo.lock": "61b766e3e185c3b58639a652032158773b86de6da4b36de13dd2533ba8315675",
+    "Cargo.toml": "4fccffdc2a1d111e8e2cede06b19eb9d941c54ce68b72f352b9a6ee345a5047e",
+    "scripts/verify_gpui_pre_provenance.py": "d061412aed0d0cf3242f53414bdeb7500a6b43480e6c509c88e1a7df9ce30ad8",
+    "scripts/gpui_pre_reviewed_deviations.json": "5d3826ac032e813fb983a25310023908f5e31575856fedd5b30c5d23b864afda"
+  },
+  "commands": [
+    {
+      "product": "JoyOffice",
+      "command": "cargo test --locked",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-tests.log",
+      "log_sha256": "a86e9df64964422273ee87215b85ebb1e5bdd9fbb39cd683ba0519a23d7a13b0",
+      "passed_tests": 1180
+    },
+    {
+      "product": "JoyOffice",
+      "command": "cargo test -p joyword --locked --offline",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-app-tests.log",
+      "log_sha256": "60d22813558841d3b7c9a86c258b033f5b78db6e44d73a483e9f99a956ed9307",
+      "passed_tests": 92
+    },
+    {
+      "product": "JoyOffice",
+      "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-clippy.log",
+      "log_sha256": "be52a7ded95104e5098cf83f260fd8b2ed695abab31675e903f69e669480cc54"
+    },
+    {
+      "product": "JoyOffice",
+      "command": "cargo build -p joyword --locked --offline",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-build.log",
+      "log_sha256": "972a18e26d8a9830507e4561b3205e70e269de6b7becd29e4404aebade6f9677"
+    },
+    {
+      "product": "JoyOffice",
+      "command": "cargo deny --locked --all-features check",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-deny.log",
+      "log_sha256": "f1a0fca39d4280363937aabd77783990ea6480bd9ca257816de3b68fc8efa845"
+    },
+    {
+      "product": "JoyOffice",
+      "command": "cargo test --manifest-path experiments/recovery-journal/Cargo.toml --locked --offline",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-recovery-tests.log",
+      "log_sha256": "9a24b329ce2c6f1f49c5fe04bf695cd0b4ef3cf2d08710dbb65ea1337606b861",
+      "passed_tests": 15
+    },
+    {
+      "product": "JoyOffice",
+      "command": "cargo test --manifest-path experiments/docx-robustness/Cargo.toml --locked --offline",
+      "exit_code": 0,
+      "local_log": "target/dependency-alignment-robustness-tests.log",
+      "log_sha256": "394b325469c947f4cf69cf25358a56b54dbb6f3a1caa9920565b12d0831f3d87",
+      "passed_tests": 3
+    },
+    {
+      "product": "JoyDeck",
+      "command": "cargo xtask check",
+      "exit_code": 0,
+      "local_log": "target/joyoffice-readiness-check.log",
+      "log_sha256": "48b3e404eaadbf15b8f675e9f1800ca36508f9d64b1443da76b9c6a9c835a0cc",
+      "passed_tests": 122
+    },
+    {
+      "product": "JoyDeck",
+      "command": "cargo test --no-default-features --locked --offline",
+      "exit_code": 0,
+      "local_log": "target/joyoffice-readiness-headless.log",
+      "log_sha256": "e7f589335294be2c24bd1fdb0117e9d19828423d1f3c6786da8a4117fced7914",
+      "passed_tests": 119
+    }
+  ],
+  "provenance": {
+    "joyoffice": "passed",
+    "joydeck": "passed",
+    "zed_rev": "08cbb88a152c3751a43e853425a70e9f631a5918",
+    "identical_zed_packages": 16,
+    "zed_packages_with_reviewed_deviations": 4,
+    "content_pinned_deviations": 12,
+    "renamed_registry_packages": 1
+  },
+  "pre_import_scan": {
+    "unregistered_crates": [
+      "joydeck"
+    ],
+    "filesystem_hits": 84,
+    "panic_family_hits": 407
+  },
+  "gui_smoke": {
+    "platform": "macOS ARM64",
+    "window_painted": true,
+    "injected_text_visible": true,
+    "full_ime_acceptance": false,
+    "local_screenshot": "target/dependency-alignment-gui-after-input.png"
+  },
+  "not_verified": [
+    "Remote CI",
+    "Windows/Linux GUI",
+    "Xinchuang real hardware",
+    "Full IME/printing/accessibility acceptance",
+    "Unified workspace and target crate extraction"
+  ]
+}

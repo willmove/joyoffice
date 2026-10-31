@@ -22,7 +22,7 @@
 
 | 依赖 | 定位 | 许可／来源依据 | 注意事项 |
 | --- | --- | --- | --- |
-| GPUI：crates.io gpui-pre =0.3.9（19 个 gpui-pre* 包） | UI 框架 | [上游许可](https://zed.dev/software-overview)，Apache-2.0；Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照，crates.io 所有者为个人（huacnlee），发布包无 .cargo_vcs_info.json | 编辑器主体许可不同；仅依赖框架；记录传递依赖；来源按 ADR-010，CI 逐文件比对 Zed 提交，见下文“gpui-pre 来源逐文件校验” |
+| GPUI Kit =0.8.1；锁定 gpui-pre 0.3.10 | UI 门面、组件、默认图标资产 | [Kit 上游](https://github.com/longbridge/gpui-kit)，Apache-2.0；Lucide 图标 ISC。20 个 Zed 快照包对应 `08cbb88a152c3751a43e853425a70e9f631a5918`，另有一个改名的 reqwest 包 | 快照逐文件校验；HTTP 改名包对照固定的 `zed-reqwest`；5 个 Kit／Base／Component／宏／Assets 包固定版本与锁校验和。来源与新传递依赖见[融合准备报告](../joyoffice/JOYDECK-INTEGRATION.md) |
 | sha2 0.10.9 | joyword-model 资源内容散列（直接依赖） | RustCrypto，MIT OR Apache-2.0（crate 元数据） | 与 GPUI 间接锁定的版本相同；只用于身份散列，不用于密码学保护 |
 | Ropey 1.6.1 | 仅 T100 文本存储基准的 dev 依赖 | [上游](https://github.com/cessen/ropey)，MIT | 不进入产品构建；基准结论见 IMPLEMENTATION |
 | HarfRust 0.8.4 | joyword-layout 字体整形（直接依赖） | [上游](https://github.com/harfbuzz/harfrust)，MIT | 选此版本以与 krilla 共用 read-fonts 0.39；特性逐项显式开关；不根据库名称声称兼容 Word |
@@ -30,7 +30,7 @@
 | Fontique／ICU4X | 后续字体和 Unicode 基础 | 各选定发行包的 LICENSE 与元数据 | 使用时登记，而非默认视作已加入 |
 | Skrifa 0.42.1 | CPU 字形轮廓直接依赖 | [上游](https://github.com/googlefonts/fontations)，MIT OR Apache-2.0 | 与现有 PDF 共用 read-fonts 0.39.2；只重用原锁文件版本 |
 | tiny-skia 0.11.4 | CPU 单色轮廓光栅直接依赖 | [上游](https://github.com/RazrFalcon/tiny-skia)，BSD-3-Clause | 重用原锁文件，默认 SIMD／PNG 特性；保留许可通知 |
-| image 0.25.10 | app 的内存页面到 GPUI 图像适配；joyword-model 对 PNG／JPEG／GIF／BMP／TIFF 的预算内接纳与解码 | [上游](https://github.com/image-rs/image)，MIT OR Apache-2.0 | 复用原锁文件 0.25.10；默认特性关闭。模型只打开 png、jpeg、gif、bmp、tiff |
+| image 0.25.9 | app 的内存页面到 GPUI 图像适配；joyword-model 对 PNG／JPEG／GIF／BMP／TIFF 的预算内接纳与解码 | [上游](https://github.com/image-rs/image)，MIT OR Apache-2.0 | 2026-10-31 与 JoyDeck 对齐，精确固定 0.25.9；默认特性关闭。模型只打开 png、jpeg、gif、bmp、tiff |
 | quick-xml 0.41.0 | joyoffice-opc 包级 XML 解析（直接依赖） | MIT（crate 元数据） | 拒绝 DOCTYPE，只展开预定义实体与字符引用；与 GPUI 间接锁定的版本相同 |
 | flate2 1.1.10（rust_backend）／crc32fast 1.5.2 | joyoffice-opc 的 deflate 编解码与 CRC-32；joyword-pdf 结构检查的单层 FlateDecode（直接依赖，同一钉扎） | MIT OR Apache-2.0（crate 元数据）；后端 miniz_oxide 为纯 Rust | ZIP 容器结构按公开的 PKWARE APPNOTE 自行实现，未使用 zip crate。PDF 结构检查只复用这一已钉扎版本做 inflate，没有升级，也没有引入 qpdf 或另一套 PDF 库 |
 | unicode-linebreak 0.1.5 | layout 的默认 Unicode 候选断点（直接依赖） | [上游 API](https://docs.rs/unicode-linebreak/0.1.5/unicode_linebreak/)，Apache-2.0（crate 元数据） | 精确复用锁文件版本，Unicode 15.0；不据此宣称 Word 中文规则或词典分词 |
@@ -103,6 +103,8 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 - 方法：scripts/verify_gpui_pre_provenance.py 先用 Cargo.lock 校验和验证 .crate，再要求声明的提交在 zed-industries/zed 的 main 历史中，在 Zed 工作区成员中定位 crate 目录，按 git blob ID 逐文件比较。只允许 cargo 打包生成的文件差异、符号链接解析和嵌套包排除。CI 的 provenance 作业用 `--expected-zed-rev` 固定提交，并带审查偏差文件运行。
 - 结果（2026-10-16）：19 个包中 16 个与 Zed 93d7456 逐文件一致。gpui-pre、gpui-pre-apple、gpui-pre-macros 共有 9 处发布适配：`actions!` 宏改用 `$crate::Action`；构建脚本改读 vendor/gpui，并附带 5 个与 Zed 逐字节相同的副本；新增 gpui-kit 门面改写器及其 proc-macro-crate 依赖。这些改动经项目负责人接受，按内容钉死在 scripts/gpui_pre_reviewed_deviations.json。JoyWord 不依赖 gpui-kit，门面改写器实际为空操作。
 - 边界：Cargo.toml 的内容（依赖、features）不在逐文件比对范围内，由 Cargo.lock 校验和与 cargo-deny 覆盖；本校验不评价 Zed 代码本身。升级快照时须先不带偏差文件运行，并重新审查。详见[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)。
+
+2026-10-31 更新：现用 Kit 0.8.1／快照 0.3.10。上述 2026-10-16 结果为历史；新结果为 16 个 Zed 快照包相同、4 个包共 12 处已审偏差，另一个 HTTP 改名包的 78 个非打包文件与固定 `zed-reqwest` 发布包相同。门面改写器现在生效。新增 instant／rustls-pemfile 停止维护公告逐条登记；0BSD 许可仅对 enum-iterator 2.3.0 与 enum-iterator-derive 1.5.0 放行，未扩大通用白名单。完整来源、校验和和待实测项见[融合准备报告](../joyoffice/JOYDECK-INTEGRATION.md)。
 
 ### 应用日志与崩溃诊断（T211）
 

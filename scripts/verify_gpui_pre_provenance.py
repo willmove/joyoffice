@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove that every gpui-pre* crate in Cargo.lock is Zed source, file by file.
+"""Verify every gpui-pre* crate against its pinned source, file by file.
 
 The gpui-pre crates on crates.io are snapshots of zed-industries/zed published
 by an individual, without .cargo_vcs_info.json. Each one names its origin in
@@ -21,6 +21,9 @@ Any modified, extra or missing file fails (exit 1) unless it is a packaging
 difference listed in PACKAGING_FILES / UPSTREAM_RULES, or an entry of a
 --reviewed-deviations file pinned to its exact content. Exit 2 means the check
 could not run (network, git, unreadable input).
+
+Explicitly registered renamed registry crates are compared with a separately
+checksum-pinned reference archive; they cannot bypass source comparison.
 """
 import argparse
 import contextlib
@@ -80,6 +83,15 @@ TARGET_TABLES = ("lib", "bin", "example", "test", "bench")
 DEVIATION_FIELDS = {"modified": {"sha256", "zed_blob"}, "added": {"sha256"}, "copied": {"zed_path"}}
 
 LockedPackage = namedtuple("LockedPackage", "name version source checksum")
+
+# Kit also ships a renamed HTTP client, not a Zed workspace crate. Compare it
+# with the checksum-pinned published Zed fork, rather than exempting the prefix.
+# Source review: docs/joyoffice/JOYDECK-INTEGRATION.md (2026-10-31).
+RENAMED_CRATES = {
+    ("gpui-pre-reqwest", "0.12.15"): LockedPackage(
+        "zed-reqwest", "0.12.15-zed", CRATES_IO,
+        "ac2d05756ff48539950c3282ad7acf3817ad3f08797c205ad1c34a2ce03b9970"),
+}
 
 
 class CheckError(Exception):
@@ -535,10 +547,39 @@ def inspect_crate(package, cargo_home, download):
         notes.append(f"invalid package: {error}")
         return report
     report.files = files
+    reference = RENAMED_CRATES.get((package.name, package.version))
+    if reference is not None:
+        info = manifest.get("package", {})
+        if (info.get("name"), info.get("version")) != (package.name, package.version):
+            notes.append("Cargo.toml package identity differs from Cargo.lock")
+        notes.extend(check_build_inputs(manifest, files))
+        compare_registry_source(report, reference, cargo_home, download)
+        return report
     report.zed_crate, report.zed_rev, problems = zed_origin(manifest, package)
     notes.extend(problems)
     notes.extend(check_build_inputs(manifest, files))
     return report
+
+
+def compare_registry_source(report, reference, cargo_home, download):
+    """Check every source file of an explicitly registered renamed crate."""
+    data = crate_archive(reference, cargo_home, download, report.problems)
+    if data is None:
+        return
+    try:
+        upstream = read_crate_archive(data, reference.name, reference.version)
+    except ValueError as error:
+        report.problems.append(f"invalid reference package: {error}")
+        return
+    report.zed_dir = f"crates.io/{reference.name}@{reference.version}"
+    for path in sorted(report.files.keys() | upstream.keys()):
+        if path in PACKAGING_FILES:
+            report.ignored.append(path)
+        elif report.files.get(path) != upstream.get(path):
+            report.problems.append(f"differs from {reference.name}: {path}")
+        else:
+            report.identical += 1
+    report.reviewed.append(f"renamed registry source, checksum {reference.checksum}")
 
 
 # --- Zed side -----------------------------------------------------------------

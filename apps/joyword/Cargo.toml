@@ -17,7 +17,7 @@ dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
 ai = ["joyword-shell/ai"]
 
 [dependencies]
-gpui.workspace = true
+gpui-kit.workspace = true
 gpui_platform.workspace = true
 joyword-foundation.workspace = true
 joyword-engine.workspace = true

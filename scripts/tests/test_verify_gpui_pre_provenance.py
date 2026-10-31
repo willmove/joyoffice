@@ -10,6 +10,7 @@ import subprocess
 import tarfile
 import tempfile
 import unittest
+from unittest import mock
 
 SPEC = importlib.util.spec_from_file_location(
     "verify_gpui_pre_provenance",
@@ -103,6 +104,59 @@ def crate_bytes(files, name="gpui-pre-demo", version="0.3.9"):
             info.size = len(data)
             archive.addfile(info, io.BytesIO(data))
     return buffer.getvalue()
+
+
+class RenamedRegistryCrates(unittest.TestCase):
+    def check(self, changes=None, registered=True, corrupt_reference=False):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = pathlib.Path(tmp)
+            upstream = package_files()
+            reference_bytes = crate_bytes(upstream, "upstream-demo", "1.0.0")
+            reference = provenance.LockedPackage(
+                "upstream-demo", "1.0.0", provenance.CRATES_IO,
+                provenance.sha256(reference_bytes))
+            published = dict(upstream)
+            for path, value in (changes or {}).items():
+                if value is None:
+                    published.pop(path)
+                else:
+                    published[path] = value
+            data = crate_bytes(published)
+            package = provenance.LockedPackage(
+                "gpui-pre-demo", "0.3.9", provenance.CRATES_IO, provenance.sha256(data))
+            cache = home / "registry/cache/test"
+            cache.mkdir(parents=True)
+            (cache / "upstream-demo-1.0.0.crate").write_bytes(
+                b"corrupted reference archive" if corrupt_reference else reference_bytes)
+            (cache / "gpui-pre-demo-0.3.9.crate").write_bytes(data)
+            registry = {(package.name, package.version): reference} if registered else {}
+            with mock.patch.dict(provenance.RENAMED_CRATES, registry, clear=True):
+                return provenance.inspect_crate(package, home, False)
+
+    def test_explicit_renamed_source_without_zed_metadata(self):
+        report = self.check({"Cargo.toml": manifest(metadata=False)})
+        self.assertEqual(report.problems, [])
+        self.assertIsNone(report.zed_rev)
+        self.assertEqual(report.identical, 3)
+        self.assertIn("upstream-demo", report.zed_dir)
+
+    def test_renamed_source_changes_missing_and_extra_files_fail(self):
+        for changes in ({"src/lib.rs": b"fn evil() {}"},
+                        {"src/lib.rs": None}, {"src/extra.rs": LIB}):
+            with self.subTest(changes=changes):
+                self.assertTrue(self.check(changes).problems)
+
+    def test_unknown_renamed_version_cannot_skip_metadata(self):
+        report = self.check({"Cargo.toml": manifest(metadata=False)}, registered=False)
+        self.assertIn("Cargo.toml has no [package.metadata.gpui-pre]", report.problems)
+
+    def test_reference_checksum_is_required(self):
+        report = self.check(corrupt_reference=True)
+        self.assertTrue(any("checksum differs" in problem for problem in report.problems))
+
+    def test_renamed_package_cannot_use_a_packaging_file_as_target(self):
+        report = self.check({"Cargo.toml": manifest(lib_path="Cargo.toml.orig")})
+        self.assertTrue(any("not a file compared" in problem for problem in report.problems))
 
 
 class FakeDirectories(unittest.TestCase):

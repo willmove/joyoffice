@@ -214,5 +214,5 @@ jobs:
       - name: gpui-pre source provenance
         run: >-
           python scripts/verify_gpui_pre_provenance.py
-          --expected-zed-rev 93d745668805029476e6d7fbb19652116fed51de
+          --expected-zed-rev 08cbb88a152c3751a43e853425a70e9f631a5918
           --reviewed-deviations scripts/gpui_pre_reviewed_deviations.json

@@ -113,7 +113,7 @@ Windows 使用经安全封装的 `ReplaceFileW`，不使用忽略 ACL／合并�
 
 字体身份至少包含字体字节散列、collection face index、variation axes、特性及语言／方向参数。Fontique 枚举和回退，HarfRust 整形，Skrifa 提供字形与度量，ICU4X 提供分析；这些库与 Parley 系列须对齐到同一组版本，避免同一字体经两套解析栈处理。当前选定（T003）：HarfRust 0.8.4、read-fonts 0.39.2 与 krilla 0.8.2（经 skrifa 0.42.1）共用一套 read-fonts；HarfRust 0.14 需要 read-fonts 0.45，待 krilla 跟进后整体升级。GPUI 自带的另一套字体栈只用于界面文字。整形特性完全由文档属性驱动：kern、liga 等不沿用 HarfRust 默认值，而按 `w:kern` 阈值、`w14:ligatures` 等显式设置启用。JoyWord 决定段落断行、中文兼容规则和分页。UI 标签可以使用 GPUI 默认文字系统，文档正文必须使用统一字体身份和定位结果。
 
-采用 GPUI 原生字形通道时，FontId 与文档 FontKey 的映射必须通过 M0 测试验证；不能假设同名字体或同一 glyph ID 必然属于同一 face。GPUI 0.2.2 的 GlyphId 不可在外部构造（历史情况）。现用 gpui-pre 0.3.9 已公开 `GlyphId(pub u32)` 与 `Window::paint_glyph`，但按字节加载字体的 `add_fonts` 仍不返回 FontId，按名称解析会与系统同名字体冲突；屏幕侧同一字形绘制仍待 T003 实测，来源见 ADR-010。若公共 API 不足，使用独立适配补丁并记录来源，不能修改排版结果凑合显示。krilla 使用定位字形接口消费相同场景，不再自行整形文本。
+采用 GPUI 原生字形通道时，FontId 与文档 FontKey 的映射必须通过 M0 测试验证；不能假设同名字体或同一 glyph ID 必然属于同一 face。GPUI 0.2.2 的 GlyphId 不可在外部构造（历史情况）。现用 gpui-kit 0.8.1（锁定 gpui-pre 0.3.10）已公开 `GlyphId(pub u32)` 与 `Window::paint_glyph`，但按字节加载字体的 `add_fonts` 仍不返回 FontId，按名称解析会与系统同名字体冲突；屏幕侧同一字形绘制仍待 T003 实测，来源见 ADR-010。若公共 API 不足，使用独立适配补丁并记录来源，不能修改排版结果凑合显示。krilla 使用定位字形接口消费相同场景，不再自行整形文本。
 
 ### 6.2 排版数据流
 
@@ -135,7 +135,7 @@ UI 线程只处理输入、状态提交和绘制；IO、解析、整形大任务
 
 平台差异集中在 IME、剪贴板、菜单、文件对话框、文件替换、打印、凭据、无障碍及安装器。Linux 同时记录 Wayland 和 X11 覆盖；三端构建与三端人工运行是不同证据。可访问树表达文档结构和选择状态，而非仅把画布声明成一张图片。
 
-GPUI 不提供打印接口；剪贴板在 0.2.2 中只有文本和图片，现用 gpui-pre 0.3.9 增加了文件路径条目，但仍没有富文本，因此打印与富剪贴板均由 JoyWord platform 层实现。Linux 上 0.2.2 只支持 Vulkan 渲染（历史情况）；gpui-pre 0.3.9 的 Linux 渲染器为 wgpu，按 Vulkan 与 GL 后端枚举适配器，但 GL 路径尚未在信创真机上验证。信创平台在 1.0 范围内，国产 GPU 多只提供 OpenGL，因此 GL 或 CPU 渲染退路是硬性要求（ADR-010，T005 实测）。Linux 平台层同时覆盖信创发行版（统信 UOS、银河麒麟）与 x86_64／ARM64／LoongArch64 架构。一个文档会话可有多个视图（新窗口、拆分），各视图独立持有选择、滚动位置和视图选项。
+GPUI 不提供打印接口；剪贴板在 0.2.2 中只有文本和图片，现用 gpui-kit 0.8.1（锁定 gpui-pre 0.3.10）增加了文件路径条目，但仍没有富文本，因此打印与富剪贴板均由 JoyWord platform 层实现。Linux 上 0.2.2 只支持 Vulkan 渲染（历史情况）；gpui-pre 0.3.10 的 Linux 渲染器为 wgpu，按 Vulkan 与 GL 后端枚举适配器，但 GL 路径尚未在信创真机上验证。信创平台在 1.0 范围内，国产 GPU 多只提供 OpenGL，因此 GL 或 CPU 渲染退路是硬性要求（ADR-010，T005 实测）。Linux 平台层同时覆盖信创发行版（统信 UOS、银河麒麟）与 x86_64／ARM64／LoongArch64 架构。一个文档会话可有多个视图（新窗口、拆分），各视图独立持有选择、滚动位置和视图选项。
 
 ## 8. ADR 决策记录
 
@@ -150,7 +150,7 @@ GPUI 不提供打印接口；剪贴板在 0.2.2 中只有文本和图片，现�
 | ADR-007 | AI 权限与事务层集成，默认关闭 | 所有入口服从总开关；网络 Provider 与核心解耦 |
 | ADR-008 | 单用户内核先成熟，协作另立规格 | 稳定标识与操作边界不预设 CRDT；不背负未定义云协议 |
 | ADR-009 | 工具链和依赖固定，升级以语料回归为门槛 | GPUI 与文本生态演进快；不使用浮动 git main 或通配版本 |
-| ADR-010 | GPUI 不以 crates.io 0.2.2 为长期来源；T001 依据 T003、T005 的实测，在固定 Zed commit、gpui-pre 与自维护补丁分支中选定并精确固定；所选来源必须支持 GL 或 CPU 渲染。2026-10-16 选用 crates.io gpui-pre =0.3.9（Zed 主干 93d745668805029476e6d7fbb19652116fed51de 的快照），平台 crate gpui-pre-platform =0.3.9 开 font-kit、wayland、x11（[迁移报告](../coordination/reports/GPUI-PRE-MIGRATION.md)）；其 wgpu GL 后端仍待 T005 信创真机验证 | 0.2.2 为最后官方版本（2025-10），缺外部 GlyphId、AccessKit 与 Linux 非 Vulkan 渲染；第三方发布需供应链审查；打印与富剪贴板无论哪种来源都需自建。gpui-pre 由个人发布且发布包无 .cargo_vcs_info.json，补偿措施为 CI provenance 作业：19 个包按 Cargo.lock 校验和取包，要求声明提交在 Zed main 历史中，并逐文件对照 Zed 源码；16 个一致，3 个包共 9 处发布适配经 2026-10-16 审查接受，按内容钉死于 scripts/gpui_pre_reviewed_deviations.json。升级快照须同步更新 CI 的提交号并重新审查（[来源校验报告](../coordination/reports/GPUI-PRE-PROVENANCE.md)） |
+| ADR-010 | 桌面入口使用 crates.io `gpui-kit =0.8.1`，锁定 `gpui-pre`／`gpui-pre-platform` 0.3.10（Zed `08cbb88a152c3751a43e853425a70e9f631a5918`）；与 JoyDeck 对齐。保留平台精确依赖转发开发用 runtime_shaders；正常应用 API 经 Kit。Linux GL／CPU 退路仍须验证 | 2026-10-31 更新此前 0.3.9 决策。20 个 Zed 快照包仍逐文件校验，12 处发布偏差内容固定；另一个 `gpui-pre-reqwest` 与固定校验和的 `zed-reqwest` 发布包逐文件比对。Kit 新增依赖、来源与验收边界见[融合准备报告](../joyoffice/JOYDECK-INTEGRATION.md)；保留[旧迁移报告](../coordination/reports/GPUI-PRE-MIGRATION.md)和[旧来源审查](../coordination/reports/GPUI-PRE-PROVENANCE.md)作历史证据 |
 | ADR-011 | 标准层面跨应用共享的格式层（OPC、DrawingML、OMML、文档属性、CFB／加密）首次引入即格式中立 | 避免 Word 假设渗入共享层，JoySheet／JoyDeck 可复用；需更早约束其接口 |
 
 

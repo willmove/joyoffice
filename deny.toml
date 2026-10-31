@@ -8,11 +8,12 @@ all-features = true
 # Every RustSec advisory, including unmaintained and unsound crates, fails the
 # check unless it is listed here with a reason and a revisit condition.
 # 2026-10-16: the entries below are "unmaintained" notices (no vulnerability)
-# reached only through the gpui-pre 0.3.9 dependency tree. The four entries for
-# gpui 0.2.2 (async-std, instant, proc-macro-error2, rustls-pemfile) no longer
-# match and were removed. Revisit these on every GPUI snapshot upgrade; none may
-# be added for JoyWord's own direct dependencies.
+# reached only through the GPUI/Kit dependency tree. Kit 0.8.1 reintroduces
+# instant and rustls-pemfile (2026-10-31). Revisit on every Kit/snapshot upgrade;
+# none may be added for JoyWord's own direct dependencies.
 ignore = [
+    { id = "RUSTSEC-2024-0384", reason = "instant 0.1.13 via gpui-base/gpui-component 0.8.1; unmaintained only, no vulnerability or safe update; replace upstream on next Kit upgrade; docs/joyoffice/JOYDECK-INTEGRATION.md" },
+    { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile 2.2.0 via gpui-kit-assets -> gpui-pre-reqwest; unmaintained only, no vulnerability or safe update; replace upstream on next Kit upgrade; docs/joyoffice/JOYDECK-INTEGRATION.md" },
     { id = "RUSTSEC-2024-0436", reason = "paste via metal (gpui-pre-apple) and exr/pulp (image features enabled by gpui-pre); ADR-010" },
     { id = "RUSTSEC-2026-0206", reason = "rustybuzz via usvg under gpui-pre; ADR-010" },
     { id = "RUSTSEC-2026-0192", reason = "ttf-parser via usvg/fontdb (gpui-pre, cosmic-text in gpui-pre-wgpu); ADR-010" },
@@ -38,6 +39,18 @@ allow = [
     "Zlib",
 ]
 confidence-threshold = 0.9
+
+# Kit components use the permissive BSD Zero Clause License. Keep the new
+# license acceptance limited to the two reviewed exact packages.
+[[licenses.exceptions]]
+name = "enum-iterator"
+version = "=2.3.0"
+allow = ["0BSD"]
+
+[[licenses.exceptions]]
+name = "enum-iterator-derive"
+version = "=1.5.0"
+allow = ["0BSD"]
 
 [bans]
 multiple-versions = "allow"

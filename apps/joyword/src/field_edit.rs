@@ -421,11 +421,11 @@ mod tests {
         assert!(buffer.text().is_empty());
     }
 
-    fn stroke(spec: &str) -> Result<Keystroke, String> {
+    fn stroke(spec: &'static str) -> Result<Keystroke, String> {
         Keystroke::parse(spec).map_err(|error| error.to_string())
     }
 
-    fn apply(buffer: &mut FieldBuffer, spec: &str) -> Result<FieldEffect, String> {
+    fn apply(buffer: &mut FieldBuffer, spec: &'static str) -> Result<FieldEffect, String> {
         Ok(buffer.apply_key(&stroke(spec)?))
     }
 

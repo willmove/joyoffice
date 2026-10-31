@@ -1,6 +1,9 @@
 //! In-memory text editing backed by the engine and unified page scene.
 //! Menus, shortcuts and on-screen buttons come from the joyword-shell command
 //! registry and run through its single entry point (T106).
+// Kit documents this alias for existing GPUI application code and macro paths.
+extern crate gpui_kit as gpui;
+
 mod chrome_ui;
 mod document_canvas;
 mod epub_ui;
@@ -2060,7 +2063,8 @@ fn main() {
     let boot_log = boot.log.clone();
     let locale = boot.locale;
     let startup = startup_document(std::env::args_os().skip(1));
-    gpui_platform::application().run(move |cx: &mut App| {
+    gpui_kit::application().run(move |cx: &mut App| {
+        gpui_kit::init(cx);
         let registry = Registry::builtin();
         cx.on_action(|_: &Quit, cx| {
             if let Some(MainWindow(handle)) = cx.try_global::<MainWindow>().copied()
