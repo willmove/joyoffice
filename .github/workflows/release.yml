@@ -111,9 +111,27 @@ jobs:
           pattern: release-${{ needs.resolve.outputs.product }}-*
           path: dist
           merge-multiple: true
+      - name: Require an existing curated preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
+        shell: bash
+        run: |
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,isPrerelease,isDraft > release-state.json
+          python3 - <<'PYTHON'
+          import json
+          import sys
+          release = json.load(open('release-state.json', encoding='utf-8'))
+          if not release.get('body', '').strip():
+              sys.exit('Author curated release notes before attaching artifacts')
+          if release.get('isDraft') or not release.get('isPrerelease'):
+              sys.exit('These products remain previews; an existing published prerelease is required')
+          PYTHON
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           tag_name: ${{ needs.resolve.outputs.tag }}
+          prerelease: true
+          make_latest: false
           fail_on_unmatched_files: true
           files: |
             dist/*.zip
