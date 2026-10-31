@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image, ImageCms
 
 from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+from foreground import focus_window
 
 def srgb_image(path):
     image=Image.open(path).convert('RGB')
@@ -26,6 +27,7 @@ def windows(pid):
     return json.loads(subprocess.check_output(['osascript','-l','JavaScript','-e',js],text=True))
 
 def capture(pid, output, label, bounds):
+    foreground=focus_window(pid)
     entries=windows(pid)
     if len(entries)!=1: raise RuntimeError('Expected one native benchmark window')
     window=entries[0]
@@ -41,7 +43,7 @@ def capture(pid, output, label, bounds):
     if crop.size!=reference.size: crop=crop.resize(reference.size,Image.Resampling.BOX)
     crop.save(output/f'{label}-canvas.png')
     delta=np.abs(np.asarray(crop,dtype=np.int16)-np.asarray(reference,dtype=np.int16))
-    result={'meanRgbError':float(delta.mean()),'fractionPixelsOver48':float((delta.max(axis=2)>48).mean())}
+    result={'foregroundActivation':foreground,'meanRgbError':float(delta.mean()),'fractionPixelsOver48':float((delta.max(axis=2)>48).mean())}
     # Distinguish backend AA edges from incorrect flat colors/alpha/order.
     a=np.asarray(crop,dtype=np.int16);b=np.asarray(reference,dtype=np.int16);h,w=a.shape[:2]
     padded=np.pad(b,((1,1),(1,1),(0,0)),mode='edge')

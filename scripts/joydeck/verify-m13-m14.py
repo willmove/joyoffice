@@ -5,7 +5,7 @@ from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_he
 spec=importlib.util.spec_from_file_location('bench',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 def main():
  p=argparse.ArgumentParser();p.add_argument('--native-only',action='store_true');p.add_argument('--binary',type=Path,default=binary('joydeck', 'release'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm14'/f'run-{time.time_ns()}');a=p.parse_args()
- out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);seen=set();rss=[];quality=None
+ out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);seen=set();rss=[];quality=None;foreground={}
  with (out/'native.log').open('wb') as log:
   proc=subprocess.Popen([str(a.binary.resolve()),'--beta-smoke'],cwd=ROOT,env=dict(os.environ,JOYDECK_M14_OUTPUT=str(out),JOYDECK_STATE_DIR=str(out/'state')),stdout=log,stderr=subprocess.STDOUT)
   try:
@@ -20,6 +20,7 @@ def main():
      phase=int(line.split()[1])
      if phase in seen:continue
      if not a.native_only:
+      foreground[str(phase)]=bench.focus_window(proc.pid)
       windows=bench.windows(proc.pid);assert len(windows)==1,windows
       subprocess.run(['screencapture','-x','-o','-l',str(windows[0]['kCGWindowNumber']),str(out/f'panel-{phase}.png')],check=True)
      if phase==2 and not a.native_only:
@@ -61,6 +62,6 @@ def main():
  subtitles=(out/'titles.vtt').read_text();assert subtitles.startswith('WEBVTT') and '00:00:18.000' in subtitles and '私密演讲者备注' not in subtitles
  diagnostics=command('diagnostics');assert set(diagnostics)=={'application','version','os','architecture','desktopFeature','nativeReaderMax','writerSchema','preferencesSchema','automationProtocol','videoExport','diagnosticScope'}
  assert rss and max(rss)<450*1024, max(rss,default=0)
- result={'binarySha256':hashlib.sha256(a.binary.read_bytes()).hexdigest(),'cliSha256':hashlib.sha256(cli.read_bytes()).hexdigest(),'nativeOnly':a.native_only,'guiPassed':not a.native_only,'panelsCaptured':0 if a.native_only else len(seen),'canvas':quality,'nativeState':state,'video':info,'decodedFrameMeanRgbError':error,'cliCompareAcceptUndo':True,'titleVttTimeline':True,'diagnosticsFieldsChecked':True,'appMaxRssKiB':max(rss),'preferences':{'schema':prefs['schema'],'generation':prefs['generation'],'recentCount':len(prefs['recent'])},'passed':True}
+ result={'binarySha256':hashlib.sha256(a.binary.read_bytes()).hexdigest(),'cliSha256':hashlib.sha256(cli.read_bytes()).hexdigest(),'nativeOnly':a.native_only,'guiPassed':not a.native_only,'foregroundActivation':{'required':not a.native_only,'panels':foreground},'panelsCaptured':0 if a.native_only else len(seen),'canvas':quality,'nativeState':state,'video':info,'decodedFrameMeanRgbError':error,'cliCompareAcceptUndo':True,'titleVttTimeline':True,'diagnosticsFieldsChecked':True,'appMaxRssKiB':max(rss),'preferences':{'schema':prefs['schema'],'generation':prefs['generation'],'recentCount':len(prefs['recent'])},'passed':True}
  (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2));print(out)
 if __name__=='__main__':main()
