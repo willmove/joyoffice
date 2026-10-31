@@ -283,7 +283,7 @@ pub fn render(deck: &Deck, page: usize, width: u32, cancel: &AtomicBool) -> Resu
 
 /// Resolve requested families against the same database used by CPU rendering.
 /// Coverage and embedded-font permissions require further diagnostics.
-pub fn diagnose_fonts(deck: &mut Deck) {
+pub fn font_diagnostics(deck: &Deck) -> Vec<Warning> {
     let db = fonts();
     let mut missing = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
@@ -329,9 +329,15 @@ pub fn diagnose_fonts(deck: &mut Deck) {
             }
         }
     }
-    for (page, part, message) in missing {
-        deck.warn("missing-font", Some(page), &part, &message);
-    }
+    missing
+        .into_iter()
+        .map(|(page, part, message)| Warning {
+            code: "missing-font",
+            page: Some(page),
+            part,
+            message,
+        })
+        .collect()
 }
 
 #[cfg(all(test, target_os = "macos"))]
