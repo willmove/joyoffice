@@ -7,8 +7,8 @@ from PIL import Image
 import numpy as np
 from pptx import Presentation
 from pypdf import PdfReader
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('bench',ROOT/'scripts/benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('bench',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 
 def capture(pid,title,path):
     windows=[w for w in bench.windows(pid) if w.get('kCGWindowName')==title]
@@ -17,7 +17,7 @@ def capture(pid,title,path):
     return windows[0]
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--binary',type=Path,default=ROOT/'target/debug/joydeck');p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m7'/f'run-{time.time_ns()}');p.add_argument('--poppler',type=Path,default=Path('/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/bin'))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--binary',type=Path,default=binary('joydeck', 'debug'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm7'/f'run-{time.time_ns()}');p.add_argument('--poppler',type=Path,default=Path('/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/bin'))
     args=p.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
     with (out/'native.log').open('wb') as log:
         app=subprocess.Popen([str(args.binary.resolve()),'--delivery-smoke'],cwd=ROOT,env=dict(os.environ,JOYDECK_M7_OUTPUT=str(out)),stdout=log,stderr=subprocess.STDOUT)

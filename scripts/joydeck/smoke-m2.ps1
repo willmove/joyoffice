@@ -1,6 +1,6 @@
 param([switch]$LeaveRunning, [string]$Executable = 'target/debug/joydeck.exe')
 $ErrorActionPreference = 'Stop'
-Set-Location (Split-Path $PSScriptRoot -Parent)
+Set-Location (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent)
 $app = Start-Process -FilePath (Join-Path (Get-Location) $Executable) -WindowStyle Normal -ArgumentList '--editor-smoke' -RedirectStandardError logs/m2.stderr.log -RedirectStandardOutput logs/m2.stdout.log -PassThru
 $app.Id | Set-Content logs/m2.pid
 $passed = $false

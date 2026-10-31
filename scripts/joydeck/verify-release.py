@@ -1,10 +1,10 @@
 """Negative and rollback tests for offline release staging. Does not execute staged fixture binaries."""
 import argparse,hashlib,importlib.util,json,shutil,tempfile,zipfile
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('release',ROOT/'scripts/release-tool.py');release=importlib.util.module_from_spec(spec);spec.loader.exec_module(release)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('release',SCRIPTS / 'release-tool.py');release=importlib.util.module_from_spec(spec);spec.loader.exec_module(release)
 def main():
- p=argparse.ArgumentParser();p.add_argument('--package',type=Path);p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m13/release-verification.json');a=p.parse_args();checks=[]
+ p=argparse.ArgumentParser();p.add_argument('--package',type=Path);p.add_argument('--output',type=Path,default=EVIDENCE / 'm13/release-verification.json');a=p.parse_args();checks=[]
  with tempfile.TemporaryDirectory(prefix='joydeck-release-test-') as tmp:
   tmp=Path(tmp);releases=tmp/'versions'
   def fixture(name,reader=11):

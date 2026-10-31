@@ -1,10 +1,10 @@
 """Native M9 canvas and M10 clock acceptance, plus independent public PPTX/XLSX readers."""
 import argparse,hashlib,importlib.util,json,os,subprocess,time,zipfile,io
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('bench',ROOT/'scripts/benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('bench',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--binary',type=Path,default=ROOT/'target/release/joydeck');p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m10'/f'run-{time.time_ns()}');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);quality={};seen=set()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--binary',type=Path,default=binary('joydeck', 'release'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm10'/f'run-{time.time_ns()}');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);quality={};seen=set()
  with (out/'native.log').open('wb') as log:
   proc=subprocess.Popen([str(a.binary.resolve()),'--authoring-smoke'],cwd=ROOT,env=dict(os.environ,JOYDECK_M9_OUTPUT=str(out)),stdout=log,stderr=subprocess.STDOUT)
   try:

@@ -12,7 +12,7 @@ import time
 import numpy as np
 from PIL import Image, ImageCms
 
-ROOT=Path(__file__).resolve().parent.parent
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
 
 def srgb_image(path):
     image=Image.open(path).convert('RGB')
@@ -56,8 +56,8 @@ def capture(pid, output, label, bounds):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--binary',type=Path,default=ROOT/'target/release/joydeck')
-    parser.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m4'/f'run-{time.time_ns()}')
+    parser.add_argument('--binary',type=Path,default=binary('joydeck', 'release'))
+    parser.add_argument('--output',type=Path,default=EVIDENCE / 'm4'/f'run-{time.time_ns()}')
     parser.add_argument('--diagnostic',action='store_true',help='Record debug/performance failures without accepting M4')
     args=parser.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=False)
     env=dict(os.environ,JOYDECK_M4_OUTPUT=str(output),JOYDECK_M4_CAPTURE_ACK='1')

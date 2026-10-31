@@ -1,10 +1,10 @@
 """Real macOS M13/M14 window acceptance, pixel checks and MP4 verification."""
 import argparse,hashlib,importlib.util,json,os,subprocess,time
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('bench',ROOT/'scripts/benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('bench',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 def main():
- p=argparse.ArgumentParser();p.add_argument('--native-only',action='store_true');p.add_argument('--binary',type=Path,default=ROOT/'target/release/joydeck');p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m14'/f'run-{time.time_ns()}');a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--native-only',action='store_true');p.add_argument('--binary',type=Path,default=binary('joydeck', 'release'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm14'/f'run-{time.time_ns()}');a=p.parse_args()
  out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);seen=set();rss=[];quality=None
  with (out/'native.log').open('wb') as log:
   proc=subprocess.Popen([str(a.binary.resolve()),'--beta-smoke'],cwd=ROOT,env=dict(os.environ,JOYDECK_M14_OUTPUT=str(out),JOYDECK_STATE_DIR=str(out/'state')),stdout=log,stderr=subprocess.STDOUT)
@@ -38,7 +38,7 @@ def main():
  prefs=json.loads((out/'state/preferences.json').read_text());assert prefs['zoom']==.9 and prefs['notes'] and len(prefs['recent'])==1
  # Decode every frame with a separate AVAssetReader, not the editor's AVPlayer.
  executable=out/'inspect-video'
- subprocess.run(['swiftc','-O',str(ROOT/'scripts/inspect-video.swift'),'-o',str(executable)],check=True,stdout=subprocess.DEVNULL,stderr=(out/'swift-build.log').open('w'))
+ subprocess.run(['swiftc','-O',str(SCRIPTS / 'inspect-video.swift'),'-o',str(executable)],check=True,stdout=subprocess.DEVNULL,stderr=(out/'swift-build.log').open('w'))
  info=json.loads(subprocess.check_output([str(executable),str(out/'slides.mp4'),str(out/'first-frame.bgra')],text=True))
  assert info['frames']==270 and info['audioTracks']==0 and abs(info['duration']-18)<.05,info
  assert info['width']==960 and info['height']==540 and info['monotonicPts'],info

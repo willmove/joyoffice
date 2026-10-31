@@ -7,8 +7,8 @@ from pathlib import Path
 import subprocess
 import time
 
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('benchmark_m4',ROOT/'scripts/benchmark-m4.py')
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('benchmark_m4',SCRIPTS / 'benchmark-m4.py')
 bench=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bench)
 all_windows=bench.windows
@@ -16,8 +16,8 @@ bench.windows=lambda pid:[w for w in all_windows(pid) if w.get('kCGWindowName')=
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--binary',type=Path,default=ROOT/'target/debug/joydeck')
-    parser.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m6'/f'run-{time.time_ns()}')
+    parser.add_argument('--binary',type=Path,default=binary('joydeck', 'debug'))
+    parser.add_argument('--output',type=Path,default=EVIDENCE / 'm6'/f'run-{time.time_ns()}')
     args=parser.parse_args(); output=args.output.resolve();output.mkdir(parents=True,exist_ok=False)
     quality={};seen=set();panel=False
     with (output/'native.log').open('wb') as log:

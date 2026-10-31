@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 import time
 
-ROOT = Path(__file__).resolve().parent.parent
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
 MARKERS = {
     'M0': ('--smoke', ['utf16_commit=true', 'composition_cancel=true', 'modal_open=true', 'second_window_closed=true', 'Diagnostic worker settled at 100%']),
     'M1': ('--viewer-smoke', ['M1_SMOKE passed=true']),
@@ -17,7 +17,7 @@ MARKERS = {
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('stages', nargs='*', choices=MARKERS, default=list(MARKERS))
-    parser.add_argument('--binary', type=Path, default=ROOT / 'target/debug' / ('joydeck.exe' if os.name == 'nt' else 'joydeck'))
+    parser.add_argument('--binary', type=Path, default=binary('joydeck'))
     parser.add_argument('--timeout', type=float, default=40)
     args = parser.parse_args()
     for stage in args.stages:

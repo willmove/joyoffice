@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import time
 
-ROOT = Path(__file__).resolve().parent.parent
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
 
 def command(args):
     return subprocess.check_output(args, text=True).strip()
@@ -48,15 +48,15 @@ def capture(pid, output, region=False):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--binary', type=Path, default=ROOT / 'target/debug/joydeck')
+    parser.add_argument('--binary', type=Path, default=binary('joydeck', 'debug'))
     parser.add_argument("--table", action="store_true")
     args = parser.parse_args()
-    output = ROOT / ('docs/evidence/m8' if args.table else 'docs/evidence/m3') / f'pinyin-{time.time_ns()}'
+    output = EVIDENCE / ('m8' if args.table else 'm3') / f'pinyin-{time.time_ns()}'
     output.mkdir(parents=True)
     log = output / 'native.log'
     with tempfile.TemporaryDirectory(prefix='joydeck-ime-') as temp:
         helper = str(Path(temp) / 'input-source')
-        subprocess.run(['clang', str(ROOT / 'scripts/macos-input-source.c'), '-framework', 'Carbon', '-framework', 'CoreFoundation', '-o', helper], check=True)
+        subprocess.run(['clang', str(SCRIPTS / 'macos-input-source.c'), '-framework', 'Carbon', '-framework', 'CoreFoundation', '-o', helper], check=True)
         previous = command([helper])
         env = dict(os.environ, JOYDECK_IME_EVIDENCE=str(output / 'roundtrip.joydeck'))
         with log.open('wb') as stream:

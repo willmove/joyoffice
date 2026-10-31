@@ -1,8 +1,8 @@
 """Capture actual GPUI review/media/output panels; independently inspect generated formats."""
 import argparse,hashlib,importlib.util,json,os,subprocess,time,zipfile
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('bench',ROOT/'scripts/benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('bench',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 def window_list(pid):
  js=f'ObjC.import("CoreGraphics"); JSON.stringify(ObjC.deepUnwrap(ObjC.castRefToObject($.CGWindowListCopyWindowInfo(1,0))).filter(x=>x.kCGWindowOwnerPID==={pid}));'
  return json.loads(subprocess.check_output(['osascript','-l','JavaScript','-e',js],text=True))
@@ -58,7 +58,7 @@ def video_pixels(out):
  shot.crop(best[1]).save(out/'video-preview.png')
  return {'meanRgbError':best[0],'rectangle':best[1],'passed':True}
 def main():
- p=argparse.ArgumentParser();p.add_argument('--native-only',action='store_true');p.add_argument('--binary',type=Path,default=ROOT/'target/debug/joydeck');p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m12'/f'run-{time.time_ns()}');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);seen=set();print_done=False;show_done=False
+ p=argparse.ArgumentParser();p.add_argument('--native-only',action='store_true');p.add_argument('--binary',type=Path,default=binary('joydeck', 'debug'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm12'/f'run-{time.time_ns()}');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);seen=set();print_done=False;show_done=False
  with (out/'native.log').open('wb') as log:
   proc=subprocess.Popen([str(a.binary.resolve()),'--extended-smoke'],cwd=ROOT,env=dict(os.environ,JOYDECK_M12_OUTPUT=str(out),**({} if a.native_only else {'JOYDECK_M12_GUI':'1'})),stdout=log,stderr=subprocess.STDOUT)
   try:

@@ -2,8 +2,8 @@
 import argparse, importlib.util, json, os, subprocess, time, zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('m4',ROOT/'scripts/benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('m4',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 
 def public_copy(source,target):
     with zipfile.ZipFile(source) as z: parts={n:z.read(n) for n in z.namelist() if not n.startswith('customXml/')}
@@ -16,7 +16,7 @@ def public_copy(source,target):
         for name,data in parts.items():z.writestr(name,data)
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--poppler',type=Path,default=Path('/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/bin'));p.add_argument('--binary',type=Path,default=ROOT/'target/debug/joydeck');p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m8'/f'run-{time.time_ns()}');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);quality={};seen=set()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--poppler',type=Path,default=Path('/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/bin'));p.add_argument('--binary',type=Path,default=binary('joydeck', 'debug'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm8'/f'run-{time.time_ns()}');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False);quality={};seen=set()
     with (out/'native.log').open('wb') as log:
         process=subprocess.Popen([str(a.binary.resolve()),'--table-smoke'],cwd=ROOT,env=dict(os.environ,JOYDECK_M8_OUTPUT=str(out)),stdout=log,stderr=subprocess.STDOUT)
         try:

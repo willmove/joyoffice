@@ -1,6 +1,6 @@
 param([ValidateSet('build','check','run','package')][string]$Action = 'run')
 $ErrorActionPreference = 'Stop'
-Set-Location (Split-Path $PSScriptRoot -Parent)
+Set-Location (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent)
 if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
     if (Test-Path -LiteralPath $vswhere) {
@@ -11,10 +11,10 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
 }
 switch ($Action) {
     build { cargo build --locked -p joydeck }
-    check { cargo xtask check }
-    run { cargo run --locked -p joydeck }
+    check { cargo xtask check joydeck }
+    run { cargo run --locked -p joydeck --bin joydeck }
     package {
-        python scripts/package-native.py --profile release
+        python scripts/joydeck/package-native.py --profile release
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 }

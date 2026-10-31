@@ -1,8 +1,8 @@
 param([switch]$LeaveRunning, [string]$Executable = 'target/debug/joydeck.exe')
 $ErrorActionPreference = 'Stop'
-Set-Location (Split-Path $PSScriptRoot -Parent)
+Set-Location (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent)
 New-Item -ItemType Directory -Force logs | Out-Null
-$samples = @('tests/fixtures/native-20.joydeck','tests/fixtures/public-format-20.pptx')
+$samples = @('tests/fixtures/joydeck/native-20.joydeck','tests/fixtures/joydeck/public-format-20.pptx')
 $before = @($samples | ForEach-Object { (Get-FileHash -LiteralPath $_).Hash })
 # Interactive application; native windows are deliberately visible for acceptance.
 $app = Start-Process -FilePath (Join-Path (Get-Location) $Executable) -WindowStyle Normal -ArgumentList '--viewer-smoke' -RedirectStandardOutput logs/m1.stdout.log -RedirectStandardError logs/m1.stderr.log -PassThru

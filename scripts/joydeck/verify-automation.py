@@ -1,8 +1,8 @@
 """Exercise actual CLI/stdio MCP and authenticated loopback remote with operation deduplication."""
 import argparse,json,subprocess,tempfile,time,socket,os,hashlib
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-p=argparse.ArgumentParser();p.add_argument('--binary',type=Path,default=ROOT/'target/debug/joydeck-cli');p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/m14/automation.json');a=p.parse_args();binary=str(a.binary.resolve())
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+p=argparse.ArgumentParser();p.add_argument('--binary',type=Path,default=binary('joydeck-cli', 'debug'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm14/automation.json');a=p.parse_args();binary=str(a.binary.resolve())
 def mcp(command):
  proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
  def rpc(i,method,params={}):

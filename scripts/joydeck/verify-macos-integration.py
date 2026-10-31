@@ -1,8 +1,8 @@
 """Run a self-contained moved macOS .app; verify real file events and duplicate-open activation."""
 import argparse,hashlib,importlib.util,json,os,shutil,subprocess,tempfile,time,zipfile
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
-spec=importlib.util.spec_from_file_location('bench',ROOT/'scripts/benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
+spec=importlib.util.spec_from_file_location('bench',SCRIPTS / 'benchmark-m4.py');bench=importlib.util.module_from_spec(spec);spec.loader.exec_module(bench)
 def main():
  p=argparse.ArgumentParser();p.add_argument('--app',type=Path,required=True);p.add_argument('--document',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
  with tempfile.TemporaryDirectory(prefix='JoyDeck moved 测试 ') as tmp:

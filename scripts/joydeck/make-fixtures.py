@@ -4,7 +4,7 @@ import json
 from zipfile import ZipFile, ZIP_DEFLATED
 from xml.sax.saxutils import escape
 
-ROOT = Path(__file__).resolve().parents[1] / 'tests' / 'fixtures'
+from paths import FIXTURES as ROOT
 ROOT.mkdir(parents=True, exist_ok=True)
 
 def object_(kind, x, y, w, h, fill, text='', size=24):

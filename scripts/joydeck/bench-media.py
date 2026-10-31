@@ -2,10 +2,10 @@
 import argparse,json,subprocess,tempfile,time,os,hashlib
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--seconds',type=float,default=600);a=p.parse_args()
-root=Path(__file__).resolve().parent.parent
-helper_hash=hashlib.sha256((root/'target/joydeck-media-macos').read_bytes()).hexdigest()
+from paths import ROOT as root, FIXTURES, EVIDENCE, native_helper
+helper_hash=hashlib.sha256((native_helper('media')).read_bytes()).hexdigest()
 with tempfile.TemporaryDirectory(prefix='joydeck-media-bench-') as temp:
- proc=subprocess.Popen([str(root/'target/joydeck-media-macos'),'play',str(root/'tests/fixtures/media/original-ten-minutes.wav'),temp,'0','600','0.05','false','true'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
+ proc=subprocess.Popen([str(native_helper('media')),'play',str(FIXTURES / 'media/original-ten-minutes.wav'),temp,'0','600','0.05','false','true'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
  start=None;first=None;drifts=[];last={};max_rss=0
  try:
   for line in proc.stdout:
@@ -21,5 +21,6 @@ with tempfile.TemporaryDirectory(prefix='joydeck-media-bench-') as temp:
   proc.terminate();proc.wait(timeout=5)
  elapsed=time.monotonic()-start if start else 0
  result={'helperSha256':helper_hash,'requestedSeconds':a.seconds,'elapsedSeconds':elapsed,'samples':len(drifts),'maxAbsoluteClockDriftMs':max(abs(x) for x in drifts)*1000 if drifts else None,'last':last,'adapterMaxRssKiB':max_rss,'scope':'AVPlayer position vs monotonic host; low volume actual default device output; not acoustic measurement or A/V sync calibration','passed':elapsed>=a.seconds-0.5 and max(abs(x) for x in drifts)<0.15}
- (root/'docs/evidence/m11/audio-clock-bench.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result),flush=True)
+ (EVIDENCE / 'm11').mkdir(parents=True,exist_ok=True)
+ (EVIDENCE / 'm11/audio-clock-bench.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result),flush=True)
  if not result['passed']:raise SystemExit(1)

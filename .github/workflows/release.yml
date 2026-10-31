@@ -1,134 +1,119 @@
-name: Release
+name: Product release
 
-# Builds `cargo build -p joyword --release --locked` on all supported runners,
-# packages per-platform archives with sha256 sidecars, and attaches them to the
-# GitHub Release for the tag. Curated bilingual release notes are authored with
-# the release (see docs/joyword/release-process.md); this workflow only uploads
-# artifacts and never rewrites an existing release body.
-
+# Product tags release independently. Historical v* tags still route to Word.
+# This workflow attaches artifacts; curated release notes are not rewritten.
 on:
   push:
-    tags: ["v*"]
+    tags: ["v*", "joyword-v*", "joydeck-v*"]
   workflow_dispatch:
     inputs:
+      product:
+        description: Product to package
+        type: choice
+        options: [joyword, joydeck]
+        default: joyword
+        required: true
       version:
-        description: "Version without the v prefix (must match Cargo.toml)"
+        description: Version declared by the selected application manifest
         required: true
         type: string
 
 permissions:
   contents: write
-
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.ref }}-${{ inputs.product }}-${{ inputs.version }}
   cancel-in-progress: false
-
 env:
   CARGO_TERM_COLOR: always
-
 jobs:
+  resolve:
+    name: Validate product and version
+    runs-on: ubuntu-24.04
+    outputs:
+      product: ${{ steps.version.outputs.product }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - id: version
+        name: Resolve product manifest version
+        env:
+          RELEASE_EVENT: ${{ github.event_name }}
+          RELEASE_REF: ${{ github.ref_name }}
+          RELEASE_PRODUCT: ${{ inputs.product }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          if [ "$RELEASE_EVENT" = workflow_dispatch ]; then
+            python tools/xtask/product.py release-version --product "$RELEASE_PRODUCT" --version "$RELEASE_VERSION" --github-output "$GITHUB_OUTPUT"
+          else
+            python tools/xtask/product.py release-version --tag "$RELEASE_REF" --github-output "$GITHUB_OUTPUT"
+          fi
   package:
-    name: Package (${{ matrix.platform }} ${{ matrix.arch }})
+    name: Package ${{ needs.resolve.outputs.product }} (${{ matrix.platform }} ${{ matrix.arch }})
+    needs: resolve
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
-            platform: linux
-            arch: x86_64
-            binary: target/release/joyword
-          - os: ubuntu-24.04-arm
-            platform: linux
-            arch: aarch64
-            binary: target/release/joyword
-          - os: macos-15
-            platform: macos
-            arch: aarch64
-            binary: target/release/joyword
-          - os: windows-2022
-            platform: windows
-            arch: x86_64
-            binary: target/release/joyword.exe
+          - {os: ubuntu-24.04, platform: linux, arch: x86_64}
+          - {os: ubuntu-24.04-arm, platform: linux, arch: aarch64}
+          - {os: macos-15, platform: macos, arch: aarch64}
+          - {os: windows-2022, platform: windows, arch: x86_64}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
-      - name: Resolve and validate version
-        id: version
-        shell: pwsh
-        run: |
-          $requested = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ inputs.version }}" } else { "${{ github.ref_name }}".TrimStart("v") }
-          $manifest = Get-Content Cargo.toml -Raw
-          if ($manifest -notmatch '(?ms)\[workspace\.package\].*?version\s*=\s*"([^"]+)"') { throw "workspace package version not found" }
-          if ($requested -ne $Matches[1]) { throw "Release version $requested does not match Cargo.toml version $($Matches[1])" }
-          "version=$requested" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
       - name: Linux system libraries
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
-      - name: macOS Metal toolchain (required for precompiled shaders)
+      - name: macOS Metal toolchain
         if: runner.os == 'macOS'
         run: |
           xcode-select --print-path
           xcrun --find metal
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.arch }}-cargo-
-      - name: Build release binary
-        run: cargo build -p joyword --release --locked
-      - name: Package archive and checksum
-        run: >-
-          python scripts/package_release.py
-          --binary "${{ matrix.binary }}"
-          --version "${{ steps.version.outputs.version }}"
-          --platform "${{ matrix.platform }}"
-          --arch "${{ matrix.arch }}"
-          --out dist
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+          key: ${{ runner.os }}-${{ matrix.arch }}-${{ needs.resolve.outputs.product }}-release-${{ hashFiles('Cargo.lock') }}
+      - name: Build and package selected product
+        env:
+          RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
+        run: cargo xtask package ${{ needs.resolve.outputs.product }} --release
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: release-${{ matrix.platform }}-${{ matrix.arch }}
+          name: release-${{ needs.resolve.outputs.product }}-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            dist/*.zip
-            dist/*.tar.gz
-            dist/*.sha256
+            dist/${{ needs.resolve.outputs.product }}/*.zip
+            dist/${{ needs.resolve.outputs.product }}/*.tar.gz
+            dist/${{ needs.resolve.outputs.product }}/*.sha256
           if-no-files-found: error
-
   publish:
-    name: Publish GitHub release
-    needs: package
+    name: Attach selected product artifacts
+    needs: [resolve, package]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Resolve and validate version
-        id: version
-        shell: pwsh
-        run: |
-          $requested = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "${{ inputs.version }}" } else { "${{ github.ref_name }}".TrimStart("v") }
-          $manifest = Get-Content Cargo.toml -Raw
-          if ($manifest -notmatch '(?ms)\[workspace\.package\].*?version\s*=\s*"([^"]+)"') { throw "workspace package version not found" }
-          if ($requested -ne $Matches[1]) { throw "Release version $requested does not match Cargo.toml version $($Matches[1])" }
-          "version=$requested" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
-          pattern: release-*
+          pattern: release-${{ needs.resolve.outputs.product }}-*
           path: dist
           merge-multiple: true
-      - name: Attach artifacts to the existing release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
-          tag_name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ needs.resolve.outputs.tag }}
           fail_on_unmatched_files: true
           files: |
             dist/*.zip

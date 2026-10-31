@@ -1,6 +1,6 @@
 param([switch]$LeaveRunning)
 $ErrorActionPreference = 'Stop'
-Set-Location (Split-Path $PSScriptRoot -Parent)
+Set-Location (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent)
 New-Item -ItemType Directory -Force logs | Out-Null
 # This launches the interactive desktop application requested for acceptance.
 $process = Start-Process -FilePath (Join-Path (Get-Location) 'target/debug/joydeck.exe') -WindowStyle Normal -ArgumentList '--smoke' -RedirectStandardOutput logs/smoke.stdout.log -RedirectStandardError logs/smoke.stderr.log -PassThru

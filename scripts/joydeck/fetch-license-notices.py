@@ -1,7 +1,7 @@
 """Fetch missing license notices from the exact Cargo archive VCS commit, never from a moving branch."""
 import argparse,concurrent.futures,hashlib,json,re,urllib.request,urllib.error
 from pathlib import Path
-ROOT=Path(__file__).resolve().parent.parent
+from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
 def main():
  p=argparse.ArgumentParser();p.add_argument('metadata',type=Path);p.add_argument('index',type=Path);a=p.parse_args();metadata=json.loads(a.metadata.read_text());packages={(p['name'],p['version']):p for p in metadata['packages']}
  missing=[v for v in json.loads(a.index.read_text()) if not v['texts'] and not v['workspace']]
@@ -29,10 +29,11 @@ def main():
   for key,files in pool.map(fetch,groups):
    for row in groups[key]:
     if not files:unresolved.append({'package':row['name']+'-'+row['version'],'reason':'no root notice at pinned commit'});continue
-    folder=ROOT/'licenses/dependency-notices'/(row['name']+'-'+row['version']);folder.mkdir(parents=True,exist_ok=True);sources=[]
+    folder=LICENSES / 'dependency-notices'/(row['name']+'-'+row['version']);folder.mkdir(parents=True,exist_ok=True);sources=[]
     for name,data,url in files:
      (folder/name).write_bytes(data);sources.append({'file':name,'url':url,'sha256':hashlib.sha256(data).hexdigest()})
     (folder/'SOURCES.json').write_text(json.dumps(sources,indent=2)+'\n');downloaded+=1
  result={'packagesFilled':downloaded,'unresolved':unresolved,'policy':'exact VCS commit from Cargo package metadata; no moving-branch notices'}
- (ROOT/'docs/evidence/m13/license-notices.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+ (EVIDENCE / 'm13').mkdir(parents=True,exist_ok=True)
+ (EVIDENCE / 'm13/license-notices.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
 if __name__=='__main__':main()

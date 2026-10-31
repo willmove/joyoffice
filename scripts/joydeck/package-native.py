@@ -1,86 +1,146 @@
-"""Create an unsigned native development package without replacing older stages."""
+"""Build and package JoyDeck independently from the monorepo workspace."""
 import argparse
-import re
 import hashlib
+import importlib.util
 import json
+from pathlib import Path
 import platform
+import plistlib
+import re
 import shutil
 import subprocess
-from pathlib import Path
+import sys
+import zipfile
+from paths import ROOT, SCRIPTS, FIXTURES, LICENSES, PACKAGING, WORKSPACE
+import sbom
 
-ROOT = Path(__file__).resolve().parent.parent
+
+def product_version():
+    text = (ROOT / 'apps/joydeck/Cargo.toml').read_text()
+    section = re.search(r'(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)', text)
+    match = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else '', re.M)
+    if not match:
+        raise ValueError('JoyDeck must declare its independent application version')
+    return match[1]
+
+
+def build_binary(package, profile, validation=False):
+    command = ['cargo', 'build', '--locked', '-p', package, '--message-format=json-render-diagnostics']
+    if profile == 'release':
+        command.append('--release')
+    if validation and package == 'joydeck':
+        command += ['--features', 'validation']
+    completed = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, check=True)
+    artifacts = []
+    for line in completed.stdout.splitlines():
+        try:
+            value = json.loads(line)
+        except ValueError:
+            print(line)
+            continue
+        if value.get('reason') == 'compiler-artifact' and value.get('target', {}).get('name') == package and value.get('executable'):
+            artifacts.append(Path(value['executable']))
+    if len(artifacts) != 1:
+        raise ValueError('Cargo did not report exactly one executable for ' + package)
+    return artifacts[0]
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--name', help='New package directory name; existing packages are preserved')
-    parser.add_argument('--stage', choices=['m4','m5','m6','m7','m8','m9','m10','m11','m12','m13','m14'], default='m14')
-    parser.add_argument('--profile', choices=['release','debug'], default='release')
+    parser.add_argument('--name', help='New package directory name; existing outputs are preserved')
+    parser.add_argument('--stage', choices=['m' + str(n) for n in range(4, 15)], default='m14')
+    parser.add_argument('--profile', choices=['release', 'debug'], default='release')
+    parser.add_argument('--validation', action='store_true', help='Include explicit native acceptance commands; not a production release')
+    parser.add_argument('--out', type=Path, default=ROOT / 'dist/joydeck')
     args = parser.parse_args()
-    if args.name and not re.fullmatch(r'joydeck-[a-z0-9-]+', args.name):
-        raise ValueError('Package name must match joydeck-[a-z0-9-]+')
-    build=['cargo','build','--locked','-p','joydeck']
-    if args.profile=='release':build.append('--release')
-    subprocess.run(build,cwd=ROOT,check=True)
-    system, arch = platform.system().lower(), platform.machine().lower()
-    name = args.name or f'joydeck-{args.stage}-{system}-{arch}-{args.profile}'
-    output = ROOT / 'dist' / name
-    if output.exists():
-        raise FileExistsError(f'Preserve the existing package or choose a new output name: {output}')
+    if not WORKSPACE:
+        raise ValueError('Packaging requires the source workspace, not an installed package')
+    if args.name and not re.fullmatch(r'joydeck-[a-zA-Z0-9.+-]+', args.name):
+        raise ValueError('Package name must start with joydeck- and contain only version/name characters')
+    version = product_version()
+    system = {'Darwin': 'macos', 'Windows': 'windows', 'Linux': 'linux'}[platform.system()]
+    arch = {'arm64': 'aarch64', 'aarch64': 'aarch64', 'AMD64': 'x86_64', 'x86_64': 'x86_64'}[platform.machine()]
+    name = args.name or f'joydeck-{version}-{system}-{arch}-{args.profile}'
+    output = args.out.resolve() / name
+    archive = output.with_name(output.name + '.zip')
+    if output.exists() or archive.exists():
+        raise FileExistsError('Choose a new package name or output directory: ' + str(output))
+    app_binary = build_binary('joydeck', args.profile, args.validation)
+    cli_binary = build_binary('joydeck-cli', args.profile)
     output.mkdir(parents=True)
-    binary = 'joydeck.exe' if system == 'windows' else 'joydeck'
-    shutil.copy2(ROOT / 'target' / args.profile / binary, output / binary)
-    cli='joydeck-cli.exe' if system=='windows' else 'joydeck-cli'
-    shutil.copy2(ROOT/'target'/args.profile/cli, output/cli)
-    if system=='darwin':
-        for helper in ['media','print','video']:
-            source=ROOT/'apps/joydeck/native'/f'{helper}-macos.swift'
-            executable=output/f'joydeck-{helper}-macos'
-            subprocess.run(['swiftc','-O',str(source),'-o',str(executable)],check=True)
-    for path in ['LICENSE-MIT' , 'LICENSE-APACHE', 'THIRD_PARTY.md', 'Cargo.lock', 'rust-toolchain.toml']:
-        shutil.copy2(ROOT / path, output / path)
-    shutil.copy2(ROOT / f'packaging/README-{args.stage}.md', output / 'README.md')
-    shutil.copytree(ROOT / 'licenses', output / 'licenses')
-    shutil.copytree(ROOT / 'tests/fixtures', output / 'fixtures')
-    (output / 'scripts').mkdir()
-    for script in ['smoke-native.py','smoke-macos-ime.py','macos-input-source.c','benchmark-m4.py','verify-m5.py','verify-m6.py','verify-m7.py','verify-m8.py','verify-m9-m10.py','verify-m11-m12.py','verify-automation.py','bench-media.py','verify-m13-m14.py','inspect-video.swift','release-tool.py','sbom.py','verify-release.py','verify-corpus.py','verify-macos-integration.py','fetch-license-notices.py']:
-        shutil.copy2(ROOT / 'scripts' / script,output / 'scripts' / script)
-    if system == 'darwin':
-        import plistlib
-        app=output/'JoyDeck.app/Contents'
-        (app/'MacOS').mkdir(parents=True)
-        (app/'Info.plist').write_bytes(plistlib.dumps({'CFBundleExecutable':'JoyDeck','CFBundleIdentifier':f'dev.joydeck.preview.{args.stage}','CFBundleName':'JoyDeck','CFBundlePackageType':'APPL','CFBundleVersion':args.stage[1:],'CFBundleShortVersionString':'0.1.0','NSHighResolutionCapable':True,'CFBundleDocumentTypes':[{'CFBundleTypeName':'JoyDeck Document','CFBundleTypeRole':'Editor','LSHandlerRank':'Owner','CFBundleTypeExtensions':['joydeck'],'LSItemContentTypes':['dev.joydeck.document']},{'CFBundleTypeName':'Office Presentation Import','CFBundleTypeRole':'Viewer','LSHandlerRank':'Alternate','CFBundleTypeExtensions':['pptx','potx','ppsx']}],'UTExportedTypeDeclarations':[{'UTTypeIdentifier':'dev.joydeck.document','UTTypeDescription':'JoyDeck Document','UTTypeConformsTo':['public.zip-archive'],'UTTypeTagSpecification':{'public.filename-extension':['joydeck']}}]}))
-        launcher=app/'MacOS/JoyDeck'
-        shutil.copy2(output/binary,launcher)
-        for executable in [cli,'joydeck-media-macos','joydeck-print-macos','joydeck-video-macos']:
-            shutil.copy2(output/executable,app/'MacOS'/executable)
-        resources=app/'Resources';resources.mkdir()
-        shutil.copy2(output/'README.md',resources/'README.md')
-        shutil.copy2(output/'THIRD_PARTY.md',resources/'THIRD_PARTY.md')
-        shutil.copytree(output/'licenses',resources/'licenses')
+    binary, cli = app_binary.name, cli_binary.name
+    shutil.copy2(app_binary, output / binary)
+    shutil.copy2(cli_binary, output / cli)
+    helpers = []
+    if system == 'macos':
+        for helper in ['media', 'print', 'video']:
+            executable = 'joydeck-' + helper + '-macos'
+            source = ROOT / 'crates/joydeck-platform/native' / (helper + '-macos.swift')
+            subprocess.run(['swiftc', '-O', str(source), '-o', str(output / executable)], check=True)
+            helpers.append(executable)
+    for filename in ['LICENSE-MIT', 'LICENSE-APACHE', 'THIRD_PARTY.md']:
+        shutil.copy2(LICENSES / filename, output / filename)
+    for filename in ['Cargo.lock', 'rust-toolchain.toml']:
+        shutil.copy2(ROOT / filename, output / filename)
+    shutil.copy2(PACKAGING / ('README-' + args.stage + '.md'), output / 'README.md')
+    shutil.copytree(LICENSES, output / 'licenses')
+    shutil.copytree(FIXTURES, output / 'fixtures')
+    shutil.copytree(SCRIPTS, output / 'scripts', ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'tests'))
+    if system == 'macos':
+        contents = output / 'JoyDeck.app/Contents'
+        (contents / 'MacOS').mkdir(parents=True)
+        plist = {'CFBundleExecutable': 'JoyDeck', 'CFBundleIdentifier': 'dev.joyoffice.joydeck',
+                 'CFBundleName': 'JoyDeck', 'CFBundlePackageType': 'APPL', 'CFBundleVersion': version,
+                 'CFBundleShortVersionString': version, 'NSHighResolutionCapable': True,
+                 'CFBundleDocumentTypes': [
+                     {'CFBundleTypeName': 'JoyDeck Document', 'CFBundleTypeRole': 'Editor',
+                      'LSHandlerRank': 'Owner', 'CFBundleTypeExtensions': ['joydeck'],
+                      'LSItemContentTypes': ['dev.joydeck.document']},
+                     {'CFBundleTypeName': 'Office Presentation Import', 'CFBundleTypeRole': 'Viewer',
+                      'LSHandlerRank': 'Alternate', 'CFBundleTypeExtensions': ['pptx', 'potx', 'ppsx']}],
+                 'UTExportedTypeDeclarations': [
+                     {'UTTypeIdentifier': 'dev.joydeck.document', 'UTTypeDescription': 'JoyDeck Document',
+                      'UTTypeConformsTo': ['public.zip-archive'],
+                      'UTTypeTagSpecification': {'public.filename-extension': ['joydeck']}}]}
+        (contents / 'Info.plist').write_bytes(plistlib.dumps(plist))
+        shutil.copy2(output / binary, contents / 'MacOS/JoyDeck')
+        for executable in [cli, *helpers]:
+            shutil.copy2(output / executable, contents / 'MacOS' / executable)
+        resources = contents / 'Resources'
+        resources.mkdir()
+        for filename in ['README.md', 'THIRD_PARTY.md', 'LICENSE-MIT', 'LICENSE-APACHE']:
+            shutil.copy2(output / filename, resources / filename)
+        shutil.copytree(output / 'licenses', resources / 'licenses')
         launch = output / 'Launch.command'
         launch.write_text('#!/bin/sh\ncd -- "$(dirname -- "$0")" || exit 1\nexec ./joydeck\n')
         launch.chmod(0o755)
-    import sbom
-    rustc=subprocess.check_output(['rustc','-vV'],cwd=ROOT,text=True)
-    target=next(line.split(': ',1)[1] for line in rustc.splitlines() if line.startswith('host:'))
-    dependency_info=sbom.generate(output/'SBOM.spdx.json',target,args.profile)
-    source_files=sorted([*ROOT.glob('apps/joydeck/src/**/*.rs'),*ROOT.glob('apps/joydeck/native/*.swift'),ROOT/'apps/joydeck/build.rs',ROOT/'apps/joydeck/Cargo.toml',ROOT/'Cargo.toml',ROOT/'Cargo.lock'])
-    source_hashes={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in source_files}
-    (output/'SOURCE-HASHES.json').write_text(json.dumps(source_hashes,indent=2)+'\n')
-    info={'version':'0.1.0','stage':args.stage,'target':target,'profile':args.profile,'features':['desktop'],'nativeReaderMax':11,'writerSchema':'1.10','rustc':rustc,'cargoLockSha256':dependency_info['lockSha256'],'sourceGraphSha256':hashlib.sha256(json.dumps(source_hashes,sort_keys=True).encode()).hexdigest(),'dependencyPackages':dependency_info['packages'],'officialSignatureVerified':False}
-    (output/'BUILD-INFO.json').write_text(json.dumps(info,indent=2)+'\n')
-    if system=='darwin':
-        resources=output/'JoyDeck.app/Contents/Resources'
-        for name in ['BUILD-INFO.json','SBOM.spdx.json','SOURCE-HASHES.json']:shutil.copy2(output/name,resources/name)
-        shutil.copytree(output/'dependency-licenses',resources/'dependency-licenses')
-    hashes = {str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest()
+    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True)
+    target = next(line.split(': ', 1)[1] for line in rustc.splitlines() if line.startswith('host:'))
+    features = ('joydeck/validation',) if args.validation else ()
+    dependency_info = sbom.generate(output / 'SBOM.spdx.json', target, args.profile, features=features)
+    source_hashes = dependency_info.pop('sourceHashes')
+    (output / 'SOURCE-HASHES.json').write_text(json.dumps(source_hashes, indent=2) + '\n')
+    info = {'version': version, 'stage': args.stage, 'target': target, 'profile': args.profile,
+            'features': ['desktop', *(['validation'] if args.validation else [])],
+            'packageRoots': ['joydeck', 'joydeck-cli'], 'nativeReaderMax': 11, 'writerSchema': '1.10',
+            'rustc': rustc, 'cargoLockSha256': dependency_info['lockSha256'],
+            'sourceGraphSha256': hashlib.sha256(json.dumps(source_hashes, sort_keys=True).encode()).hexdigest(),
+            'dependencyPackages': dependency_info['packages'], 'officialSignatureVerified': False}
+    (output / 'BUILD-INFO.json').write_text(json.dumps(info, indent=2) + '\n')
+    if system == 'macos':
+        resources = output / 'JoyDeck.app/Contents/Resources'
+        for filename in ['BUILD-INFO.json', 'SBOM.spdx.json', 'SOURCE-HASHES.json']:
+            shutil.copy2(output / filename, resources / filename)
+        shutil.copytree(output / 'dependency-licenses', resources / 'dependency-licenses')
+    hashes = {p.relative_to(output).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(output.rglob('*')) if p.is_file()}
     (output / 'SHA256.json').write_text(json.dumps(hashes, indent=2) + '\n')
-    import zipfile
-    archive=str(output)+'.zip'
-    with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=6,strict_timestamps=False) as zipped:
+    with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6, strict_timestamps=False) as zipped:
         for path in sorted(output.rglob('*')):
-            if path.is_file():zipped.write(path,path.relative_to(output.parent))
+            if path.is_file():
+                zipped.write(path, path.relative_to(output.parent))
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    archive.with_name(archive.name + '.sha256').write_text(digest + '  ' + archive.name + '\n')
     print(archive)
 
 if __name__ == '__main__':
