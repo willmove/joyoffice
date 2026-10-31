@@ -261,7 +261,14 @@ impl Editor {
                     let Some(player) = &s.av_player else {
                         return false;
                     };
-                    let status = player.status.lock().unwrap().clone();
+                    let status = match player.status.lock() {
+                        Ok(status) => status.clone(),
+                        Err(_) => {
+                            s.message = "媒体状态异常，已停止读取播放状态".into();
+                            cx.notify();
+                            return false;
+                        }
+                    };
                     if let Some(e) = &status.error {
                         s.message = format!("媒体错误：{e}");
                     }
@@ -271,12 +278,15 @@ impl Editor {
                     if status.sequence != s.av_sequence {
                         s.av_sequence = status.sequence;
                         if let Some(frame) = status.frame {
-                            let image = image::RgbaImage::from_raw(
+                            let Some(image) = image::RgbaImage::from_raw(
                                 frame.width,
                                 frame.height,
                                 frame.bgra.clone(),
-                            )
-                            .unwrap();
+                            ) else {
+                                s.message = "媒体帧像素与尺寸不匹配".into();
+                                cx.notify();
+                                return false;
+                            };
                             s.av_image =
                                 Some(Arc::new(RenderImage::new(vec![image::Frame::new(image)])));
                         }

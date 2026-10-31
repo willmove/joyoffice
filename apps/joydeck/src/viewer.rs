@@ -60,10 +60,10 @@ impl Drop for Viewer {
         }
     }
 }
-fn image_of(r: preview::Raster) -> Arc<RenderImage> {
-    Arc::new(RenderImage::new(vec![image::Frame::new(
-        image::RgbaImage::from_raw(r.width, r.height, r.bgra).expect("validated raster dimensions"),
-    )]))
+fn image_of(r: preview::Raster) -> std::result::Result<Arc<RenderImage>, String> {
+    let pixels =
+        image::RgbaImage::from_raw(r.width, r.height, r.bgra).ok_or("预览像素与画布尺寸不匹配")?;
+    Ok(Arc::new(RenderImage::new(vec![image::Frame::new(pixels)])))
 }
 impl Viewer {
     fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
@@ -154,6 +154,7 @@ impl Viewer {
                         s.paint_cancel.store(true, Ordering::Relaxed);
                         s.thumbs_cancel.store(true, Ordering::Relaxed);
                         s.render_generation += 1;
+                        let pages = deck.slides.len();
                         s.deck = Some(Arc::new(deck));
                         s.source = Some(path);
                         s.page = 0;
@@ -168,12 +169,12 @@ impl Viewer {
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
                         s.message = format!(
                             "读取完成 · {} 页 · {} ms · 只读",
-                            s.deck.as_ref().unwrap().slides.len(),
+                            pages,
                             s.started.elapsed().as_millis()
                         );
                         eprintln!(
                             "M1 opened=true pages={} elapsed_ms={}",
-                            s.deck.as_ref().unwrap().slides.len(),
+                            pages,
                             s.started.elapsed().as_millis()
                         );
                     }
@@ -306,7 +307,9 @@ impl Viewer {
             let started = Instant::now();
             let result = cx
                 .background_executor()
-                .spawn(async move { preview::render(&deck, key.1, key.2, &cancel) })
+                .spawn(
+                    async move { preview::render(&deck, key.1, key.2, &cancel).and_then(image_of) },
+                )
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.pending != Some(key) || s.render_generation != key.0 || s.page != key.1 {
@@ -315,7 +318,7 @@ impl Viewer {
                 // Keep key until another request; render failure must not cause an infinite retry loop.
                 match result {
                     Ok(r) => {
-                        s.image = Some((key, image_of(r)));
+                        s.image = Some((key, r));
                         s.rasters += 1;
                         eprintln!(
                             "M1 raster page={} width={} elapsed_ms={} count={}",
@@ -367,7 +370,7 @@ impl Viewer {
                     return;
                 }
                 for (p, r) in result {
-                    let Ok(r) = r else {
+                    let Ok(image) = r.and_then(image_of) else {
                         s.thumbnail_errors.insert(p);
                         continue;
                     };
@@ -377,7 +380,7 @@ impl Viewer {
                     {
                         s.thumbnails.remove(&key);
                     }
-                    s.thumbnails.insert(p, image_of(r));
+                    s.thumbnails.insert(p, image);
                 }
                 s.thumb_busy = false;
                 cx.notify();
@@ -726,162 +729,12 @@ pub fn load_path(view: &Entity<Viewer>, path: PathBuf, cx: &mut App) {
     view.update(cx, |s, cx| s.load(path, cx));
 }
 
-/// Drives production actions on a real native window; does not simulate physical keys.
-pub fn smoke(handle: AnyWindowHandle, view: &Entity<Viewer>, cx: &mut App) {
-    let fixtures = std::env::var_os("JOYDECK_FIXTURES")
-        .map(PathBuf::from)
-        .or_else(|| {
-            std::env::current_exe()
-                .ok()
-                .and_then(|p| p.parent().map(|p| p.join("fixtures")))
-                .filter(|p| p.is_dir())
-        })
-        .unwrap_or_else(|| {
-            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/joydeck")
-        });
-    load_path(view, fixtures.join("native-20.joydeck"), cx);
-    let view = view.downgrade();
-    cx.spawn(async move |cx| {
-        let start = Instant::now();
-        let mut phase = 0;
-        loop {
-            cx.background_executor()
-                .timer(std::time::Duration::from_millis(60))
-                .await;
-            if start.elapsed().as_secs() > 30 {
-                eprintln!("M1_SMOKE failed=true timeout_phase={phase}");
-                break;
-            }
-            let result = handle.update(cx, |_, w, cx| {
-                view.update(cx, |s, cx| {
-                    let ready = s.image.as_ref().is_some_and(|(k, _)| {
-                        k.0 == s.render_generation && k.1 == s.page && s.pending == Some(*k)
-                    });
-                    match phase {
-                        0 if !s.loading && ready => {
-                            assert_eq!(s.deck.as_ref().unwrap().slides.len(), 20);
-                            eprintln!("M1_SMOKE native_open=true");
-                            w.dispatch_action(Box::new(Next), cx);
-                            phase = 1;
-                        }
-                        1 if s.page == 1 && ready => {
-                            eprintln!("M1_SMOKE native_next=true");
-                            w.dispatch_action(Box::new(Last), cx);
-                            phase = 2;
-                        }
-                        2 if s.page == 19 && ready => {
-                            eprintln!("M1_SMOKE last_page=true");
-                            w.dispatch_action(Box::new(First), cx);
-                            phase = 3;
-                        }
-                        3 if s.page == 0 && ready => {
-                            s.select(2, cx);
-                            s.request_image(640, cx);
-                            s.select(0, cx);
-                            phase = 4;
-                        }
-                        4 if ready => {
-                            s.select(2, cx);
-                            phase = 5;
-                        }
-                        5 if s.page == 2 && ready => {
-                            eprintln!("M1_SMOKE rapid_navigation_no_stale=true");
-                            for _ in 0..20 {
-                                s.zoom_in(&ZoomIn, w, cx);
-                            }
-                            phase = 6;
-                        }
-                        6 if ready
-                            && s.zoom == Some(4.)
-                            && s.image.as_ref().unwrap().0.2 == 2048 =>
-                        {
-                            eprintln!("M1_SMOKE zoom_max=true raster_bounded=true");
-                            for _ in 0..20 {
-                                s.zoom_out(&ZoomOut, w, cx);
-                            }
-                            phase = 7;
-                        }
-                        7 if ready
-                            && s.zoom == Some(0.25)
-                            && s.image.as_ref().unwrap().0.2 < 2048 =>
-                        {
-                            eprintln!("M1_SMOKE zoom_min=true");
-                            s.fit(&Fit, w, cx);
-                            w.resize(size(px(940.), px(680.)));
-                            phase = 8;
-                        }
-                        8 if ready && s.zoom.is_none() && s.scale(w) < 1. => {
-                            eprintln!("M1_SMOKE fit_resize=true");
-                            let old = s.deck.clone().unwrap();
-                            s.load(fixtures.join("public-format-20.pptx"), cx);
-                            s.cancel(&Cancel, w, cx);
-                            assert!(Arc::ptr_eq(&old, s.deck.as_ref().unwrap()));
-                            assert!(!s.loading);
-                            eprintln!("M1_SMOKE cancel_preserves_document=true");
-                            s.load(fixtures.join("native-20.joydeck"), cx);
-                            s.load(fixtures.join("public-format-20.pptx"), cx);
-                            phase = 9;
-                        }
-                        9 if !s.loading
-                            && ready
-                            && s.source
-                                .as_ref()
-                                .is_some_and(|p| p.extension().is_some_and(|e| e == "pptx")) =>
-                        {
-                            let d = s.deck.as_ref().unwrap();
-                            assert_eq!(d.slides.len(), 20);
-                            assert!(d.slides[0].title.contains("20"));
-                            eprintln!("M1_SMOKE pptx_open_order=true");
-                            w.dispatch_action(Box::new(Next), cx);
-                            phase = 10;
-                        }
-                        10 if s.page == 1 && ready => {
-                            assert!(
-                                s.deck
-                                    .as_ref()
-                                    .unwrap()
-                                    .warnings
-                                    .iter()
-                                    .any(|w| w.page == Some(1))
-                            );
-                            s.report(&Report, w, cx);
-                            assert!(w.has_active_dialog(cx));
-                            w.close_dialog(cx);
-                            eprintln!("M1_SMOKE pptx_next_report=true");
-                            s.load(fixtures.join("broken.pptx"), cx);
-                            phase = 11;
-                        }
-                        11 if !s.loading && s.message.starts_with("打开失败") => {
-                            assert_eq!(s.page, 1);
-                            assert_eq!(s.deck.as_ref().unwrap().slides.len(), 20);
-                            assert!(
-                                s.source
-                                    .as_ref()
-                                    .unwrap()
-                                    .ends_with("public-format-20.pptx")
-                            );
-                            eprintln!("M1_SMOKE failure_preserves_document=true");
-                            assert!(s.thumbnails.len() <= 32);
-                            eprintln!(
-                                "M1_SMOKE passed=true native_pages=20 pptx_pages=20 elapsed_ms={}",
-                                start.elapsed().as_millis()
-                            );
-                            phase = 12;
-                        }
-                        _ => {}
-                    }
-                    phase == 12
-                })
-            });
-            match result {
-                Ok(Ok(true)) => break,
-                Ok(Ok(false)) => {}
-                _ => {
-                    eprintln!("M1_SMOKE failed=true window_closed");
-                    break;
-                }
-            }
-        }
-    })
-    .detach();
-}
+#[cfg(feature = "validation")]
+#[path = "viewer_validation.rs"]
+mod validation;
+#[cfg(feature = "validation")]
+pub use validation::smoke;
+
+#[cfg(test)]
+#[path = "viewer_tests/tests.rs"]
+mod tests;

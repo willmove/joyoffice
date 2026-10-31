@@ -23,6 +23,28 @@ struct Runtime {
     presenter_window: Option<AnyWindowHandle>,
 }
 type Shared = Arc<Mutex<Runtime>>;
+// A poisoned show cannot be advanced safely. Keep the immutable document intact
+// and surface the error instead of resuming a partially updated controller.
+macro_rules! runtime_state {
+    ($owner:ident, $cx:ident, $failure:expr) => {
+        match $owner.shared.lock() {
+            Ok(state) => state,
+            Err(_) => {
+                $owner.message = "放映状态异常，已停止更新；请关闭放映后重新开始".into();
+                $cx.notify();
+                return $failure;
+            }
+        }
+    };
+}
+fn close_runtime(shared: &Shared) -> std::result::Result<(), String> {
+    let mut state = shared
+        .lock()
+        .map_err(|_| "放映状态异常，无法完成关闭".to_string())?;
+    state.closed = true;
+    Ok(())
+}
+
 type BaseCache =
     Arc<Mutex<std::collections::BTreeMap<(usize, u32), Arc<joydeck::preview::Raster>>>>;
 type FrameKey = (usize, usize, u64, u64, u64);
@@ -55,15 +77,15 @@ pub(super) struct Slideshow {
     display_id: Option<DisplayId>,
     display_lost: bool,
 }
-fn image(r: joydeck::preview::Raster) -> Arc<RenderImage> {
-    Arc::new(RenderImage::new(vec![image::Frame::new(
-        image::RgbaImage::from_raw(r.width, r.height, r.bgra).unwrap(),
-    )]))
+fn image(r: joydeck::preview::Raster) -> std::result::Result<Arc<RenderImage>, String> {
+    let pixels =
+        image::RgbaImage::from_raw(r.width, r.height, r.bgra).ok_or("放映画面像素与尺寸不匹配")?;
+    Ok(Arc::new(RenderImage::new(vec![image::Frame::new(pixels)])))
 }
 impl Slideshow {
-    fn sync_av(&mut self) {
+    fn sync_av(&mut self, cx: &mut Context<Self>) {
         let page = self.snapshot.page();
-        let rt = self.shared.lock().unwrap();
+        let rt = runtime_state!(self, cx, ());
         let paused = rt.control.paused || rt.control.finished;
         drop(rt);
         if self.av_page != Some(page) {
@@ -111,7 +133,13 @@ impl Slideshow {
                     player.control(serde_json::json!({"command":if paused{"pause"}else{"play"}}));
                 self.av_paused = paused;
             }
-            let status = player.status.lock().unwrap().clone();
+            let status = match player.status.lock() {
+                Ok(status) => status.clone(),
+                Err(_) => {
+                    self.message = "媒体播放状态异常，已停止更新".into();
+                    return;
+                }
+            };
             if let Some(e) = status.error {
                 self.message = e;
             }
@@ -121,10 +149,15 @@ impl Slideshow {
             if status.sequence != self.av_sequence {
                 self.av_sequence = status.sequence;
                 if let Some(frame) = status.frame {
-                    self.av_image = Some(Arc::new(RenderImage::new(vec![image::Frame::new(
+                    if let Some(pixels) =
                         image::RgbaImage::from_raw(frame.width, frame.height, frame.bgra.clone())
-                            .unwrap(),
-                    )])));
+                    {
+                        self.av_image =
+                            Some(Arc::new(RenderImage::new(vec![image::Frame::new(pixels)])));
+                    } else {
+                        self.message = "媒体帧像素与尺寸不匹配".into();
+                        self.av_image = None;
+                    }
                 }
             }
         }
@@ -136,7 +169,7 @@ impl Slideshow {
         if self.busy {
             return;
         }
-        let rt = self.shared.lock().unwrap();
+        let rt = runtime_state!(self, cx, ());
         let page = rt.snapshot.page();
         let t = rt
             .snapshot
@@ -181,7 +214,11 @@ impl Slideshow {
                         && transition < t.duration_ms
                         && ["fade", "push", "wipe"].contains(&t.transition.as_str())
                     {
-                        let cached = cache.lock().unwrap().get(&(from, width)).cloned();
+                        let cached = cache
+                            .lock()
+                            .map_err(|_| "放映缓存状态异常".to_string())?
+                            .get(&(from, width))
+                            .cloned();
                         let a = if let Some(a) = cached {
                             a
                         } else {
@@ -191,7 +228,8 @@ impl Slideshow {
                                 width,
                                 &AtomicBool::new(false),
                             )?);
-                            let mut cache = cache.lock().unwrap();
+                            let mut cache =
+                                cache.lock().map_err(|_| "放映缓存状态异常".to_string())?;
                             if cache.len() >= 2 {
                                 cache.clear();
                             }
@@ -212,9 +250,9 @@ impl Slideshow {
                 .await;
             let _ = view.update(cx, |s, cx| {
                 s.busy = false;
-                match result {
+                match result.and_then(image) {
                     Ok(r) => {
-                        s.image = Some(image(r));
+                        s.image = Some(r);
                         s.frames += 1;
                         let ms = now.elapsed().as_micros() as u64;
                         s.render_times.push(ms);
@@ -228,21 +266,23 @@ impl Slideshow {
         }));
     }
     pub(super) fn navigation(&mut self, key: &str, w: &mut Window, cx: &mut Context<Self>) {
-        if key == "escape"
-            || (self.shared.lock().unwrap().control.finished
-                && ["right", "space", "enter"].contains(&key))
-        {
+        if key == "escape" {
+            self.exit(w, cx);
+            return;
+        }
+        let finished = runtime_state!(self, cx, ()).control.finished;
+        if finished && ["right", "space", "enter"].contains(&key) {
             self.exit(w, cx);
             return;
         }
         if key == "tab" {
-            let handle = self.shared.lock().unwrap().presenter_window;
+            let handle = runtime_state!(self, cx, ()).presenter_window;
             if let Some(handle) = handle {
                 let _ = handle.update(cx, |_, w, _| w.activate_window());
             }
             return;
         }
-        let mut r = self.shared.lock().unwrap();
+        let mut r = runtime_state!(self, cx, ());
         let Runtime {
             snapshot, control, ..
         } = &mut *r;
@@ -280,7 +320,9 @@ impl Slideshow {
                 r.serial += 1;
             }
             n if n.parse::<usize>().is_ok() => {
-                let n = n.parse::<usize>().unwrap();
+                let Ok(n) = n.parse::<usize>() else {
+                    return;
+                };
                 if n > 0 {
                     control.jump(snapshot, n - 1);
                 }
@@ -296,7 +338,7 @@ impl Slideshow {
             f32::from(e.position.x - self.origin.x) / self.scale,
             f32::from(e.position.y - self.origin.y) / self.scale,
         );
-        let mut rt = self.shared.lock().unwrap();
+        let mut rt = runtime_state!(self, cx, ());
         let page = rt.snapshot.page();
         let hit = rt.control.frame(&rt.snapshot).ok().and_then(|d| {
             d.slides[page]
@@ -326,14 +368,21 @@ impl Slideshow {
         }
     }
     fn exit(&mut self, w: &mut Window, cx: &mut Context<Self>) {
-        let rt = self.shared.lock().unwrap();
-        let has_ink = !rt.control.ink.is_empty();
-        drop(rt);
-        if !has_ink {
-            self.shared.lock().unwrap().closed = true;
+        let mut rt = match self.shared.lock() {
+            Ok(state) => state,
+            Err(_) => {
+                eprintln!("放映状态异常，已关闭放映；编辑中的原文稿保持不变");
+                w.remove_window();
+                return;
+            }
+        };
+        if rt.control.ink.is_empty() {
+            rt.closed = true;
+            drop(rt);
             w.remove_window();
             return;
         }
+        drop(rt);
         let choice = w.prompt(
             PromptLevel::Info,
             "是否保留墨迹？",
@@ -344,24 +393,33 @@ impl Slideshow {
         let handle = w.window_handle();
         let shared = self.shared.clone();
         cx.spawn(async move |view, cx| match choice.await {
-            Ok(1) => {
-                shared.lock().unwrap().closed = true;
-                let _ = handle.update(cx, |_, w, _| w.remove_window());
-            }
+            Ok(1) => match close_runtime(&shared) {
+                Ok(()) => {
+                    let _ = handle.update(cx, |_, w, _| w.remove_window());
+                }
+                Err(error) => {
+                    let _ = view.update(cx, |s, cx| {
+                        s.message = error;
+                        cx.notify();
+                    });
+                }
+            },
             Ok(0) => {
                 let path = cx.update(|cx| {
                     cx.prompt_for_new_path(std::path::Path::new("."), Some("放映墨迹.joydeck"))
                 });
                 if let Ok(Ok(Some(path))) = path.await {
-                    let result = {
-                        let rt = shared.lock().unwrap();
+                    let result = (|| {
+                        let rt = shared
+                            .lock()
+                            .map_err(|_| "放映状态异常，无法保存墨迹".to_string())?;
                         let mut d = (*rt.snapshot.deck).clone();
-                        motion::append_ink(&mut d, &rt.control.ink)
-                            .and_then(|()| joydeck::edit::save_new(&path, &d))
-                    };
+                        motion::append_ink(&mut d, &rt.control.ink)?;
+                        drop(rt);
+                        joydeck::edit::save_new(&path, &d).and_then(|()| close_runtime(&shared))
+                    })();
                     match result {
                         Ok(()) => {
-                            shared.lock().unwrap().closed = true;
                             let _ = handle.update(cx, |_, w, _| w.remove_window());
                         }
                         Err(e) => {
@@ -380,9 +438,13 @@ impl Slideshow {
 }
 impl Render for Slideshow {
     fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        self.sync_av();
+        self.sync_av(cx);
         self.request(cx);
-        let rt = self.shared.lock().unwrap();
+        let rt = runtime_state!(
+            self,
+            cx,
+            div().child(self.message.clone()).into_any_element()
+        );
         let blank = if rt.control.finished {
             Some(Blank::Black)
         } else {
@@ -403,8 +465,8 @@ impl Render for Slideshow {
         );
         div().id("audience").size_full().bg(rgb(if blank==Some(Blank::White){0xffffff}else{0})).text_color(rgb(0xffffff)).relative().flex().items_center().justify_center().track_focus(&self.focus)
             .on_key_down(cx.listener(|s,e:&KeyDownEvent,w,cx|{s.navigation(&e.keystroke.key,w,cx);cx.stop_propagation();}))
-            .on_mouse_down(MouseButton::Left,cx.listener(|s,e:&MouseDownEvent,w,cx|{if s.pen {let p=((f32::from(e.position.x-s.origin.x)/s.scale).clamp(0.,s.snapshot.deck.width),(f32::from(e.position.y-s.origin.y)/s.scale).clamp(0.,s.snapshot.deck.height));let mut rt=s.shared.lock().unwrap();if rt.control.ink.len()<256 {let page=rt.snapshot.page();rt.control.ink.push(motion::Ink{page,points:vec![p]});s.drawing=true;}}else if !s.laser{s.pointer_click(e,w,cx);}}))
-            .on_mouse_move(cx.listener(|s,e:&MouseMoveEvent,_,cx|{let p=(f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale);let mut rt=s.shared.lock().unwrap();if s.laser {rt.control.laser=Some(p);}
+            .on_mouse_down(MouseButton::Left,cx.listener(|s,e:&MouseDownEvent,w,cx|{if s.pen {let p=((f32::from(e.position.x-s.origin.x)/s.scale).clamp(0.,s.snapshot.deck.width),(f32::from(e.position.y-s.origin.y)/s.scale).clamp(0.,s.snapshot.deck.height));let mut rt=runtime_state!(s,cx,());if rt.control.ink.len()<256 {let page=rt.snapshot.page();rt.control.ink.push(motion::Ink{page,points:vec![p]});s.drawing=true;}}else if !s.laser{s.pointer_click(e,w,cx);}}))
+            .on_mouse_move(cx.listener(|s,e:&MouseMoveEvent,_,cx|{let p=(f32::from(e.position.x-s.origin.x)/s.scale,f32::from(e.position.y-s.origin.y)/s.scale);let mut rt=runtime_state!(s,cx,());if s.laser {rt.control.laser=Some(p);}
 if s.drawing {let total:usize=rt.control.ink.iter().map(|i|i.points.len()).sum();if total<2048 {if let Some(i)=rt.control.ink.last_mut(){i.points.push(p);}rt.serial+=1;}}cx.notify();}))
             .on_mouse_up(MouseButton::Left,cx.listener(|s,_,_,cx|{s.drawing=false;cx.notify();}))
             .on_mouse_down(MouseButton::Right,cx.listener(|s,_,w,cx|s.navigation("left",w,cx)))
@@ -412,6 +474,7 @@ if s.drawing {let total:usize=rt.control.ink.iter().map(|i|i.points.len()).sum()
             .children(self.av_image.as_ref().filter(|_|blank.is_none()).map(|i|img(i.clone()).absolute().left(self.origin.x).top(self.origin.y).w(px(self.snapshot.deck.width*scale)).h(px(self.snapshot.deck.height*scale)).object_fit(ObjectFit::Contain)))
             .children(laser.filter(|_|self.laser && blank.is_none()).map(|(x,y)|div().absolute().left(self.origin.x+px(x*scale-5.)).top(self.origin.y+px(y*scale-5.)).size(px(10.)).rounded_full().bg(rgb(0xff2828))))
             .children((self.preview||paused||finished||!self.message.is_empty()).then(||div().absolute().bottom_0().left_0().right_0().h(px(32.)).px_4().bg(rgb(0x242424)).text_size(px(12.)).child(format!("{} / {}  {}  Space 下一步 · P 暂停 · B/W 黑白屏 · L 激光 · I 墨迹 · E 清除 · Esc 退出  {}",self.snapshot.cursor+1,self.snapshot.pages.len(),if finished{"放映结束"}else if paused{"已暂停"}else{""},self.message))))
+            .into_any_element()
     }
 }
 struct Presenter {
@@ -430,7 +493,7 @@ struct Presenter {
 }
 impl Presenter {
     fn save_rehearsal(&mut self, cx: &mut Context<Self>) {
-        let rt = self.shared.lock().unwrap();
+        let rt = runtime_state!(self, cx, ());
         let mut deck = (*rt.snapshot.deck).clone();
         let mut times = rt.control.rehearsed.clone();
         if rt.control.page_elapsed > 0 {
@@ -467,7 +530,11 @@ impl Presenter {
 impl Render for Presenter {
     fn render(&mut self, w: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         self.displays = cx.displays().iter().map(|d| d.id()).collect();
-        let r = self.shared.lock().unwrap();
+        let r = runtime_state!(
+            self,
+            cx,
+            div().child(self.message.clone()).into_any_element()
+        );
         let page = r.snapshot.page();
         let next = r.snapshot.pages.get(r.snapshot.cursor + 1).copied();
         let deck = r.snapshot.deck.clone();
@@ -489,10 +556,10 @@ impl Render for Presenter {
                     .spawn(async move {
                         let current =
                             joydeck::preview::render(&deck, page, 900, &AtomicBool::new(false))
-                                .map(image);
+                                .and_then(image);
                         let next = next.map(|p| {
                             joydeck::preview::render(&deck, p, 480, &AtomicBool::new(false))
-                                .map(image)
+                                .and_then(image)
                         });
                         (current, next)
                     })
@@ -544,7 +611,7 @@ impl Render for Presenter {
                     .label("定位当前动画步(ms)")
                     .on_click(cx.listener(|s, _, _, cx| {
                         match s.seek_input.read(cx).value().parse::<u64>() {
-                            Ok(ms) => s.shared.lock().unwrap().control.seek(ms),
+                            Ok(ms) => runtime_state!(s, cx, ()).control.seek(ms),
                             Err(_) => s.message = "定位时间须为非负整数毫秒".into(),
                         }
                         cx.notify();
@@ -593,7 +660,11 @@ impl Render for Presenter {
         }
         let preview_height = (f32::from(w.viewport_size().height) - 340.).clamp(200., 460.);
         let aspect = {
-            let r = self.shared.lock().unwrap();
+            let r = runtime_state!(
+                self,
+                cx,
+                div().child(self.message.clone()).into_any_element()
+            );
             r.snapshot.deck.width / r.snapshot.deck.height
         };
         let current_width = (f32::from(w.viewport_size().width) - 380.)
@@ -672,6 +743,7 @@ impl Render for Presenter {
                     .child("演讲者备注（仅此窗口可见）")
                     .child(div().mt_3().text_size(px(22.)).child(notes)),
             )
+            .into_any_element()
     }
 }
 fn open_runtime(
@@ -681,7 +753,9 @@ fn open_runtime(
     cx: &mut App,
 ) -> Result<(AnyWindowHandle, Entity<Slideshow>)> {
     let (snapshot, owner) = {
-        let mut r = shared.lock().unwrap();
+        let mut r = shared
+            .lock()
+            .map_err(|_| std::io::Error::other("放映状态异常"))?;
         r.clock_owner += 1;
         (r.snapshot.clone(), r.clock_owner)
     };
@@ -756,7 +830,7 @@ fn open_runtime(
                 let dt = now.duration_since(last).as_millis() as u64;
                 last = now;
                 let result = view.update(cx, |s, cx| {
-                    let mut rt = s.shared.lock().unwrap();
+                    let mut rt = runtime_state!(s, cx, false);
                     if s.display_id
                         .is_some_and(|id| !cx.displays().iter().any(|d| d.id() == id))
                         && !s.display_lost
@@ -829,7 +903,11 @@ pub(super) fn open_presenter(deck: Arc<Deck>, page: usize, cx: &mut App) -> Resu
 }
 pub(super) fn open_rehearsal(deck: Arc<Deck>, page: usize, cx: &mut App) -> Result<()> {
     let shared = runtime(deck, page)?;
-    shared.lock().unwrap().control.rehearsing = true;
+    shared
+        .lock()
+        .map_err(|_| std::io::Error::other("放映状态异常"))?
+        .control
+        .rehearsing = true;
     open_shared_presenter(shared, cx)
 }
 fn open_shared_presenter(shared: Shared, cx: &mut App) -> Result<()> {
@@ -899,7 +977,7 @@ fn open_shared_presenter_on(
     )?;
     let _ = h.update(cx, |_, w, _| w.set_window_title("JoyDeck — Audience View"));
     v.update(cx, |s, cx| {
-        s.shared.lock().unwrap().presenter_window = Some(presenter_handle);
+        runtime_state!(s, cx, ()).presenter_window = Some(presenter_handle);
         s.poll = Some(cx.spawn(async move |view, cx| {
             loop {
                 cx.background_executor()
@@ -920,45 +998,12 @@ fn open_shared_presenter_on(
     .detach();
     Ok(())
 }
-/// Real monotonic timer and rendering acceptance, independently of virtual model tests.
-pub(super) fn smoke(
-    deck: Arc<Deck>,
-    output: std::path::PathBuf,
-    parent: AnyWindowHandle,
-    parent_focus: FocusHandle,
-    cx: &mut App,
-) {
-    let baseline = deck.clone();
-    let shared = runtime(deck, 0).unwrap();
-    let (h, v) = open_runtime(shared.clone(), true, None, cx).unwrap();
-    cx.spawn(async move|cx|{
-        let result:std::result::Result<(),String>=async{
-            cx.background_executor().timer(Duration::from_millis(350)).await;
-            h.update(cx,|_,w,cx|v.update(cx,|s,cx|s.navigation("right",w,cx))).map_err(|e|e.to_string())?;
-            cx.background_executor().timer(Duration::from_millis(900)).await;
-            let before=shared.lock().unwrap().control.total;if before<500{return Err("native clock did not advance".into());}
-            h.update(cx,|_,w,cx|v.update(cx,|s,cx|{s.navigation("p",w,cx);s.navigation("b",w,cx);})).map_err(|e|e.to_string())?;
-            let frozen=shared.lock().unwrap().control.total;cx.background_executor().timer(Duration::from_millis(250)).await;if shared.lock().unwrap().control.total!=frozen{return Err("paused clock advanced".into());}
-            h.update(cx,|_,w,cx|v.update(cx,|s,cx|{s.navigation("b",w,cx);s.navigation("w",w,cx);})).map_err(|e|e.to_string())?;if shared.lock().unwrap().control.blank!=Some(Blank::White){return Err("white screen failed".into());}
-            h.update(cx,|_,w,cx|v.update(cx,|s,cx|{s.navigation("w",w,cx);s.navigation("p",w,cx);s.navigation("right",w,cx);})).map_err(|e|e.to_string())?;
-            cx.background_executor().timer(Duration::from_millis(700)).await;
-            if shared.lock().unwrap().snapshot.page()!=1{return Err("effect/page navigation failed".into());}
-            let report=h.update(cx,|_,_,cx|{let s=v.read(cx);let mut times=s.render_times.clone();times.sort();serde_json::json!({"renderedFrames":s.frames,"renderP95Ms":times.get(times.len()*95/100).copied().unwrap_or(0)as f64/1000.,"totalRenderMs":s.render_ms,"monotonicPause":true,"blackWhite":true,"snapshotUnchanged":*s.snapshot.deck==*baseline,"displays":cx.displays().iter().map(|d|u64::from(d.id())).collect::<Vec<_>>(),"scope":"native preview timer/render + one physical display; not physical dual-screen/hotplug or end-to-end 60fps certification"})}).map_err(|e|e.to_string())?;
-            let before=shared.lock().unwrap().control.total;
-            let (second,second_view)=cx.update(|cx|open_runtime(shared.clone(),true,None,cx)).map_err(|e|e.to_string())?;
-            cx.background_executor().timer(Duration::from_millis(250)).await;
-            let delta=shared.lock().unwrap().control.total.saturating_sub(before);
-            if !(100..=400).contains(&delta){return Err(format!("clock handoff delta={delta}"));}
-            let _=h.update(cx,|_,w,_|w.remove_window());
-            second.update(cx,|_,w,cx|second_view.update(cx,|s,cx|s.navigation("escape",w,cx))).map_err(|e|e.to_string())?;
-            parent.update(cx,|_,w,_|w.activate_window()).map_err(|e|e.to_string())?;
-            cx.background_executor().timer(Duration::from_millis(250)).await;
-            if !parent.update(cx,|_,w,_|parent_focus.is_focused(w)).map_err(|e|e.to_string())?{return Err("editor focus was not restored after show".into());}
-            let mut report=report;report["editorFocusRestored"]=serde_json::json!(true);report["clockHandoff"]=serde_json::json!(true);report["handoffDeltaMs"]=serde_json::json!(delta);
-            std::fs::write(output.join("native-show.json"),serde_json::to_vec_pretty(&report).unwrap()).map_err(|e|e.to_string())?;
-            if shared.lock().unwrap().snapshot.deck!=baseline{return Err("show mutated document".into());}
-            Ok(())
-        }.await;
-        match result{Ok(())=>eprintln!("M10_SMOKE clock_pause_blank_navigation_snapshot=true complete=true"),Err(e)=>eprintln!("M10_SMOKE failed={e}")};cx.update(|cx|cx.quit());
-    }).detach();
-}
+#[cfg(feature = "validation")]
+#[path = "slideshow_validation.rs"]
+mod validation;
+#[cfg(feature = "validation")]
+pub(super) use validation::smoke;
+
+#[cfg(test)]
+#[path = "slideshow_tests/tests.rs"]
+mod tests;

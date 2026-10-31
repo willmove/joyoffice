@@ -25,17 +25,19 @@ pub(super) struct Resize {
     pub scale: f32,
 }
 impl Resize {
-    pub fn result(&self) -> Object {
+    pub fn result(&self) -> joydeck::document::Result<Object> {
         let mut o = self.base.clone();
-        let t = o.table.as_mut().unwrap();
-        if self.row {
-            t.rows[self.index] = (t.rows[self.index] + self.delta).clamp(24., 4096.);
+        let t = o.table.as_mut().ok_or("调整大小的目标已不是表格")?;
+        let sizes = if self.row {
+            &mut t.rows
         } else {
-            t.columns[self.index] = (t.columns[self.index] + self.delta).clamp(24., 4096.);
-        }
+            &mut t.columns
+        };
+        let size = sizes.get_mut(self.index).ok_or("调整大小的行列已不存在")?;
+        *size = (*size + self.delta).clamp(24., 4096.);
         o.width = t.columns.iter().sum();
         o.height = t.rows.iter().sum();
-        o
+        Ok(o)
     }
 }
 impl Editor {
@@ -83,7 +85,11 @@ impl Editor {
 
     pub(super) fn table_target(&self) -> Option<(&Object, &table::Table)> {
         let p = self.table_pick.as_ref()?;
-        let o = self.session.deck.slides[self.page]
+        let o = self
+            .session
+            .deck
+            .slides
+            .get(self.page)?
             .objects
             .iter()
             .find(|o| o.id == p.id)?;
@@ -112,12 +118,15 @@ impl Editor {
                 if self.session.deck.slides[self.page].objects.len() == before {
                     return;
                 }
-                let id = self.session.deck.slides[self.page]
+                let Some(id) = self.session.deck.slides[self.page]
                     .objects
                     .last()
-                    .unwrap()
-                    .id
-                    .clone();
+                    .map(|o| o.id.clone())
+                else {
+                    self.message = "插入表格后未找到目标对象".into();
+                    cx.notify();
+                    return;
+                };
                 if let Some(i) = self.session.deck.slides[self.page]
                     .objects
                     .iter()
@@ -211,7 +220,9 @@ impl Editor {
         if e.click_count >= 2 {
             self.begin_cell(i, r, c, w, cx);
         } else if o.rotation == 0. && !e.modifiers.shift {
-            let t = o.table.as_ref().unwrap();
+            let Some(t) = o.table.as_ref() else {
+                return false;
+            };
             for row in [false, true] {
                 let mut edge = if row { o.y } else { o.x };
                 let sizes = if row { &t.rows } else { &t.columns };
@@ -261,7 +272,9 @@ impl Editor {
             if let Some((o, _)) = self.table_target()
                 && let Some(cell) = table::hit(o, p.0, p.1)
             {
-                self.table_pick.as_mut().unwrap().focus = cell;
+                if let Some(pick) = &mut self.table_pick {
+                    pick.focus = cell;
+                }
                 cx.notify();
             }
             return true;
@@ -273,7 +286,14 @@ impl Editor {
         if let Some(g) = self.table_resize.take() {
             if g.delta.abs() * g.scale >= 3. {
                 let id = g.base.id.clone();
-                let o = g.result();
+                let o = match g.result() {
+                    Ok(o) => o,
+                    Err(error) => {
+                        self.message = error;
+                        cx.notify();
+                        return;
+                    }
+                };
                 if let Some(i) = self.session.deck.slides[self.page]
                     .objects
                     .iter()
@@ -296,7 +316,19 @@ impl Editor {
             return;
         };
         let (r, c) = p.focus;
-        let range = t.selection_range(p.anchor, p.focus).unwrap();
+        let range = match t.selection_range(p.anchor, p.focus) {
+            Ok(range) => range,
+            Err(error) => {
+                self.message = error;
+                cx.notify();
+                return;
+            }
+        };
+        let Some(cell) = t.index(r, c).ok().and_then(|i| t.cells.get(i)) else {
+            self.message = "所选单元格已不存在，请重新选择".into();
+            cx.notify();
+            return;
+        };
         let get = |i: usize| self.table_fields[i].read(cx).value().to_string();
         let mut style = t.style.clone();
         let a = match op {
@@ -326,12 +358,12 @@ impl Editor {
                 Action::Style(style)
             }
             "left" | "center" | "right" => {
-                let mut s = t.cells[t.index(r, c).unwrap()].style.clone();
+                let mut s = cell.style.clone();
                 s.align = Some(op.into());
                 Action::CellStyle(range, s)
             }
             "fill" => {
-                let mut s = t.cells[t.index(r, c).unwrap()].style.clone();
+                let mut s = cell.style.clone();
                 s.fill = Some(get(8));
                 Action::CellStyle(range, s)
             }
@@ -340,12 +372,16 @@ impl Editor {
         };
         self.command(Command::Table(self.page, p.id, a), cx);
         if let Some((_, t)) = self.table_target() {
-            let focus = t
-                .owner(r.min(t.rows.len() - 1), c.min(t.columns.len() - 1))
-                .unwrap();
-            let p = self.table_pick.as_mut().unwrap();
-            p.focus = focus;
-            p.anchor = focus;
+            let focus = t.owner(
+                r.min(t.rows.len().saturating_sub(1)),
+                c.min(t.columns.len().saturating_sub(1)),
+            );
+            if let (Ok(focus), Some(p)) = (focus, self.table_pick.as_mut()) {
+                p.focus = focus;
+                p.anchor = focus;
+            } else {
+                self.table_pick = None;
+            }
         }
         cx.notify();
     }
@@ -374,7 +410,9 @@ impl Editor {
                 && (s.contains('\t') || self.text_edit.is_none())
             {
                 self.finish_text(cx);
-                let p = self.table_pick.clone().unwrap();
+                let Some(p) = self.table_pick.clone() else {
+                    return false;
+                };
                 self.command(
                     Command::Table(self.page, p.id, Action::Paste(p.focus.0, p.focus.1, s)),
                     cx,
@@ -390,31 +428,36 @@ impl Editor {
         {
             let editing = self.text_edit.is_some();
             self.finish_text(cx);
-            let p = self.table_pick.clone().unwrap();
+            let Some(p) = self.table_pick.clone() else {
+                return false;
+            };
             let (r, c) = p.focus;
             if matches!(key, "enter" | "f2") {
-                let i = self.session.deck.slides[self.page]
+                let Some(i) = self.session.deck.slides[self.page]
                     .objects
                     .iter()
                     .position(|o| o.id == p.id)
-                    .unwrap();
+                else {
+                    self.table_pick = None;
+                    return false;
+                };
                 self.begin_cell(i, r, c, w, cx);
             } else {
-                let (_, t) = self.table_target().unwrap();
+                let Some((_, t)) = self.table_target() else {
+                    return false;
+                };
+                let Some(cell) = t.index(r, c).ok().and_then(|i| t.cells.get(i)) else {
+                    self.table_pick = None;
+                    return false;
+                };
                 let next = if key == "tab" {
                     t.next(r, c, mods.shift)
                 } else {
                     let (nr, nc) = match key {
                         "left" => (r, c.saturating_sub(1)),
-                        "right" => (
-                            r,
-                            (c + t.cells[t.index(r, c).unwrap()].span[1]).min(t.columns.len() - 1),
-                        ),
+                        "right" => (r, (c + cell.span[1]).min(t.columns.len() - 1)),
                         "up" => (r.saturating_sub(1), c),
-                        _ => (
-                            (r + t.cells[t.index(r, c).unwrap()].span[0]).min(t.rows.len() - 1),
-                            c,
-                        ),
+                        _ => ((r + cell.span[0]).min(t.rows.len() - 1), c),
                     };
                     t.owner(nr, nc).ok()
                 };
@@ -429,18 +472,23 @@ impl Editor {
                     next
                 };
                 if let Some(next) = next {
-                    let p = self.table_pick.as_mut().unwrap();
+                    let Some(p) = self.table_pick.as_mut() else {
+                        return false;
+                    };
                     p.focus = next;
                     if !mods.shift || key == "tab" {
                         p.anchor = next;
                     }
                     if editing || key == "tab" {
                         let id = p.id.clone();
-                        let i = self.session.deck.slides[self.page]
+                        let Some(i) = self.session.deck.slides[self.page]
                             .objects
                             .iter()
                             .position(|o| o.id == id)
-                            .unwrap();
+                        else {
+                            self.table_pick = None;
+                            return false;
+                        };
                         self.begin_cell(i, next.0, next.1, w, cx);
                     }
                 }
@@ -470,3 +518,7 @@ impl Editor {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "table_ui_tests/tests.rs"]
+mod tests;

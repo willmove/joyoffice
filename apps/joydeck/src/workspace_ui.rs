@@ -156,9 +156,17 @@ impl Editor {
             }
             "theme" | "master-title" => {
                 if let Some(l) = design.layouts.get(&chosen) {
-                    let m = design.masters.get_mut(&l.master).unwrap();
+                    let Some(m) = design.masters.get_mut(&l.master) else {
+                        self.message = "版式引用的母版不存在".into();
+                        cx.notify();
+                        return;
+                    };
                     if op == "theme" {
-                        let t = design.themes.get_mut(&m.theme).unwrap();
+                        let Some(t) = design.themes.get_mut(&m.theme) else {
+                            self.message = "母版引用的主题不存在".into();
+                            cx.notify();
+                            return;
+                        };
                         t.colors.insert("accent".into(), get(7));
                         t.colors.insert("background".into(), get(11));
                         t.fonts
@@ -475,8 +483,9 @@ impl Editor {
 }
 fn unique<'a>(prefix: &str, ids: impl Iterator<Item = &'a String>) -> String {
     let ids: BTreeSet<_> = ids.cloned().collect();
-    (1..)
-        .map(|i| format!("{prefix}-{i}"))
-        .find(|s| !ids.contains(s))
-        .unwrap()
+    let mut candidate = format!("{prefix}-{}", ids.len());
+    while ids.contains(&candidate) {
+        candidate.push('-');
+    }
+    candidate
 }

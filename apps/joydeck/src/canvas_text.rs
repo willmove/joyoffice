@@ -181,7 +181,9 @@ impl Editor {
             return false;
         }
         let pos = self.text_hit(e.position);
-        let t = self.text_edit.as_mut().unwrap();
+        let Some(t) = self.text_edit.as_mut() else {
+            return false;
+        };
         if t.marked.is_some() {
             return true;
         }
@@ -228,9 +230,15 @@ impl Editor {
         }
         let key = e.keystroke.key.as_str();
         let mods = e.keystroke.modifiers;
-        if self.text_edit.as_ref().unwrap().marked.is_some() {
+        if self
+            .text_edit
+            .as_ref()
+            .is_some_and(|edit| edit.marked.is_some())
+        {
             if key == "escape" {
-                self.text_edit.as_mut().unwrap().cancel();
+                if let Some(edit) = &mut self.text_edit {
+                    edit.cancel();
+                }
                 cx.stop_propagation();
                 cx.notify();
             }
@@ -241,7 +249,9 @@ impl Editor {
             self.finish_text(cx);
             return;
         }
-        let t = self.text_edit.as_mut().unwrap();
+        let Some(t) = self.text_edit.as_mut() else {
+            return;
+        };
         let at = t.cursor();
         let mut publish = false;
         match key {

@@ -741,8 +741,9 @@ impl Editor {
                     )),
                 )
                 .children(self.workspace_panel.then(|| self.workspace_controls(cx)));
-        } else if let Some((_, t)) = self.table_target() {
-            let pick = self.table_pick.as_ref().unwrap();
+        } else if let Some((_, t)) = self.table_target()
+            && let Some(pick) = self.table_pick.as_ref()
+        {
             body = body
                 .child(
                     div()
@@ -1084,7 +1085,9 @@ impl Editor {
         if o.rotation != 0. {
             return vec![];
         }
-        let p = self.table_pick.as_ref().unwrap();
+        let Some(p) = self.table_pick.as_ref() else {
+            return vec![];
+        };
         let Ok(range) = t.selection_range(p.anchor, p.focus) else {
             return vec![];
         };
