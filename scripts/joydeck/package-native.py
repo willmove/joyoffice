@@ -15,8 +15,8 @@ from paths import ROOT, SCRIPTS, FIXTURES, LICENSES, PACKAGING, WORKSPACE
 import sbom
 
 
-def product_version():
-    text = (ROOT / 'apps/joydeck/Cargo.toml').read_text()
+def product_version(application='joydeck'):
+    text = (ROOT / 'apps' / application / 'Cargo.toml').read_text()
     section = re.search(r'(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)', text)
     match = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else '', re.M)
     if not match:
@@ -25,7 +25,9 @@ def product_version():
 
 
 def build_binary(package, profile, validation=False):
-    command = ['cargo', 'build', '--locked', '-p', package, '--message-format=json-render-diagnostics']
+    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True)
+    host = next(line.split(': ', 1)[1] for line in rustc.splitlines() if line.startswith('host:'))
+    command = ['cargo', 'build', '--locked', '-p', package, '--target', host, '--message-format=json-render-diagnostics']
     if profile == 'release':
         command.append('--release')
     if validation and package == 'joydeck':
@@ -58,6 +60,8 @@ def main():
     if args.name and not re.fullmatch(r'joydeck-[a-zA-Z0-9.+-]+', args.name):
         raise ValueError('Package name must start with joydeck- and contain only version/name characters')
     version = product_version()
+    if product_version('joydeck-cli') != version:
+        raise ValueError('JoyDeck CLI and application versions must match')
     system = {'Darwin': 'macos', 'Windows': 'windows', 'Linux': 'linux'}[platform.system()]
     arch = {'arm64': 'aarch64', 'aarch64': 'aarch64', 'AMD64': 'x86_64', 'x86_64': 'x86_64'}[platform.machine()]
     name = args.name or f'joydeck-{version}-{system}-{arch}-{args.profile}'

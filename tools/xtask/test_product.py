@@ -27,6 +27,9 @@ class ProductRouting(unittest.TestCase):
             directory = self.root / 'apps' / name
             directory.mkdir(parents=True)
             (directory / 'Cargo.toml').write_text('[package]\nname = "' + name + '"\nversion = "' + version + '"\n')
+            cli = self.root / 'apps' / (name + '-cli')
+            cli.mkdir()
+            (cli / 'Cargo.toml').write_text('[package]\nname = "' + name + '-cli"\nversion = "' + version + '"\n')
         (self.root / 'Cargo.toml').write_text('[workspace.package]\nversion = "9.9.9"\n')
 
     def test_versions_are_product_scoped(self):
@@ -47,6 +50,11 @@ class ProductRouting(unittest.TestCase):
             product.release_target('joydeck-v0.1.3', product='joyword', root=self.root)
         with self.assertRaises(ValueError):
             product.release_target('joysheet-v0.1.0', root=self.root)
+
+    def test_cli_version_must_match_application(self):
+        (self.root / 'apps/joydeck-cli/Cargo.toml').write_text('[package]\nversion = "0.1.2"\n')
+        with self.assertRaisesRegex(ValueError, 'CLI version'):
+            product.release_target('joydeck-v0.1.3', root=self.root)
 
     def test_manual_release_requires_matching_product_version(self):
         value = product.release_target(product='joydeck', version='0.1.3', root=self.root)

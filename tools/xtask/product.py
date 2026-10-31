@@ -13,8 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli")}
 
 def manifest_version(product, root=ROOT):
-    if product not in PRODUCTS:
-        raise ValueError("unknown product: " + product)
+    if product not in {name for pair in PRODUCTS.values() for name in pair}:
+        raise ValueError("unknown application: " + product)
     text = (Path(root) / "apps" / product / "Cargo.toml").read_text(encoding="utf-8")
     section = re.search(r"(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)", text)
     found = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else "", re.M)
@@ -42,6 +42,8 @@ def release_target(tag=None, product=None, version=None, root=ROOT):
         routed, requested = product, version
     if requested != manifest_version(routed, root):
         raise ValueError("release version does not match apps/" + routed + "/Cargo.toml")
+    if manifest_version(PRODUCTS[routed][1], root) != requested:
+        raise ValueError("CLI version does not match its product application")
     return {"product": routed, "version": requested,
             "tag": tag or routed + "-v" + requested}
 
@@ -144,16 +146,35 @@ def main(argv=None):
         if args.command == "stage":
             run(["cargo", "test", *selected, "--locked", *options])
     elif args.command == "package":
+        if manifest_version(PRODUCTS[args.product][1]) != manifest_version(args.product):
+            raise ValueError("CLI version does not match its product application")
         if args.target:
             parser.error("package currently runs natively; build --target is available separately")
         if args.product == "joydeck":
             run([sys.executable, "scripts/joydeck/package-native.py", "--profile", "release" if args.release else "debug", *(["--validation"] if args.validation else []), *extra])
         else:
-            run(["cargo", "build", "-p", "joyword", "-p", "joyword-cli", "--locked", *options])
+            rustc = subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True)
+            host = next(line.split(": ", 1)[1] for line in rustc.splitlines() if line.startswith("host:"))
+            # Explicit host target prevents CARGO_BUILD_TARGET or a Cargo config
+            # from producing a cross binary labeled as a native package.
+            output = subprocess.check_output(["cargo", "build", "-p", "joyword", "-p", "joyword-cli", "--locked",
+                                              "--target", host, "--message-format=json-render-diagnostics", *options],
+                                             cwd=ROOT, text=True)
+            artifacts = {}
+            for line in output.splitlines():
+                try:
+                    value = json.loads(line)
+                except ValueError:
+                    print(line)
+                    continue
+                if value.get("reason") == "compiler-artifact" and value.get("executable"):
+                    artifacts[value["target"]["name"]] = value["executable"]
+            if not all(name in artifacts for name in PRODUCTS[args.product]):
+                raise ValueError("Cargo did not report both product executable artifacts")
             system = {"Darwin": "macos", "Windows": "windows", "Linux": "linux"}[platform.system()]
             architecture = {"arm64": "aarch64", "aarch64": "aarch64", "AMD64": "x86_64", "x86_64": "x86_64"}[platform.machine()]
-            binary = Path(data["target_directory"]) / ("release" if args.release else "debug") / ("joyword.exe" if system == "windows" else "joyword")
-            run([sys.executable, "scripts/package_release.py", "--binary", str(binary), "--cli", str(binary.with_name("joyword-cli.exe" if system == "windows" else "joyword-cli")), "--version", manifest_version("joyword"), "--profile", "release" if args.release else "debug", "--platform", system, "--arch", architecture, "--out", "dist/joyword", *extra])
+            binary = Path(artifacts["joyword"])
+            run([sys.executable, "scripts/package_release.py", "--binary", str(binary), "--cli", artifacts["joyword-cli"], "--version", manifest_version("joyword"), "--profile", "release" if args.release else "debug", "--platform", system, "--arch", architecture, "--out", "dist/joyword", *extra])
 
 if __name__ == "__main__":
     try:

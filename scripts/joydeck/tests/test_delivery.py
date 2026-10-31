@@ -70,10 +70,10 @@ class PackagePaths(unittest.TestCase):
         value = {'reason': 'compiler-artifact', 'target': {'name': 'joydeck-cli'},
                  'executable': '/custom/build-target/joydeck-cli'}
         completed = type('Result', (), {'stdout': json.dumps(value) + '\n'})()
-        with patch.object(package.subprocess, 'run', return_value=completed):
+        with patch.object(package.subprocess, 'run', return_value=completed), patch.object(package.subprocess, 'check_output', return_value='host: aarch64-apple-darwin\n'):
             self.assertEqual(package.build_binary('joydeck-cli', 'release'), Path(value['executable']))
         completed.stdout = ''
-        with patch.object(package.subprocess, 'run', return_value=completed):
+        with patch.object(package.subprocess, 'run', return_value=completed), patch.object(package.subprocess, 'check_output', return_value='host: aarch64-apple-darwin\n'):
             with self.assertRaises(ValueError):
                 package.build_binary('joydeck-cli', 'release')
 
