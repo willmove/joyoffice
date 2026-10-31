@@ -51,7 +51,7 @@ LAYERS = {
     "joysheet-protocol": set(),
     "joysheet-app": {"joysheet-engine", "joysheet-mcp", "joysheet-protocol"},
     "joysheet-platform": set(),
-    "joysheet-ui-gpui": {"joysheet-app", "joysheet-platform", "joysheet-protocol", "joysheet-engine", "joysheet-chart", "joysheet-functions"},
+    "joysheet-ui-gpui": {"joyoffice-ui", "joysheet-app", "joysheet-platform", "joysheet-protocol", "joysheet-engine", "joysheet-chart", "joysheet-functions"},
     "joysheet": {"joysheet-ui-gpui"},
     "joysheet-cli": {"joysheet-protocol", "joysheet-engine", "joysheet-mcp", "joysheet-xlsx"},
     "joysheet-tools": {"joysheet-app", "joysheet-engine"},
@@ -89,6 +89,7 @@ LAYERS = {
     "joyword-model": {"joyword-foundation"},
     "joyword-engine": {"joyword-model", "joyword-foundation"},
     "joyoffice-opc": set(),
+    "joyoffice-ui": set(),
     "joyword-docx": {"joyoffice-opc", "joyword-model", "joyword-foundation"},
     "joyword-layout": {"joyword-foundation", "joyword-model"},
     "joyword-render": {"joyword-foundation", "joyword-layout", "joyword-model"},
@@ -111,6 +112,7 @@ LAYERS = {
         "joyword-model",
     },
     "joyword": {
+        "joyoffice-ui",
         "joyword-engine",
         "joyword-foundation",
         "joyword-layout",
@@ -439,7 +441,7 @@ def dependency_isolation(crate: str, deps: set[str]) -> list[str]:
             crate.startswith("joyoffice-") and other
         ):
             errors.append(f"{crate} must not depend on product package {dep}")
-        if crate not in {"joyword", "joydeck", "joysheet", "joysheet-ui-gpui"} and gui_dependency(dep):
+        if crate not in {"joyword", "joydeck", "joysheet", "joysheet-ui-gpui", "joyoffice-ui"} and gui_dependency(dep):
             errors.append(f"{crate} must remain headless; GUI dependency {dep} is forbidden")
         if crate.startswith("joysheet-") and crate not in {"joysheet-platform", "joysheet-ui-gpui"} and dep in {"rfd", "arboard", "winit", "egui", "eframe"}:
             errors.append(f"{crate} must not depend on platform/UI package {dep}")

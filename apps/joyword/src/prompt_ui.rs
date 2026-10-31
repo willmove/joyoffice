@@ -162,12 +162,12 @@ impl Render for WrappedPrompt {
                 .bg(if primary {
                     rgb(0x163b65)
                 } else {
-                    rgb(0xe7eef5)
+                    rgb(crate::ui::theme::HOVER)
                 })
                 .text_color(if primary {
                     rgb(0xffffff)
                 } else {
-                    rgb(0x263247)
+                    rgb(crate::ui::theme::TEXT)
                 })
                 .on_click(cx.listener(move |_, _, _, cx| {
                     cx.emit(PromptResponse(index));
@@ -199,14 +199,14 @@ impl Render for WrappedPrompt {
             .rounded_md()
             .bg(rgb(0xffffff))
             .border_1()
-            .border_color(rgb(0xc5ced6))
-            .text_color(rgb(0x263247))
+            .border_color(rgb(crate::ui::theme::BORDER))
+            .text_color(rgb(crate::ui::theme::TEXT))
             .child(div().w_full().children(line_divs(message)))
             .children(detail.map(|detail| {
                 div()
                     .w_full()
                     .text_sm()
-                    .text_color(rgb(0x5c6b7a))
+                    .text_color(rgb(crate::ui::theme::TEXT_MUTED))
                     .children(line_divs(detail))
             }))
             .child(

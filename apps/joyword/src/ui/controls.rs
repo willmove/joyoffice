@@ -3,6 +3,7 @@ use gpui::{
     App, ClickEvent, Context, IntoElement, KeyDownEvent, Render, Role, SharedString, Window, div,
     prelude::*, px, rgb,
 };
+use joyoffice_ui::{IconName, icon};
 use std::rc::Rc;
 
 pub type Activate = Rc<dyn Fn(&mut Window, &mut App)>;
@@ -60,10 +61,10 @@ impl Render for TooltipText {
         div()
             .px_2()
             .py_1()
-            .rounded_sm()
+            .rounded(px(theme::metrics::RADIUS))
             .bg(rgb(theme::TEXT))
             .text_color(rgb(theme::WHITE))
-            .text_sm()
+            .text_size(px(13.0))
             .child(self.0.clone())
     }
 }
@@ -85,7 +86,6 @@ pub fn button(
             enabled,
             pressed,
             compact,
-            inverse: false,
             checkbox: false,
         },
         activate,
@@ -109,7 +109,6 @@ pub fn title_button(
             enabled,
             pressed,
             compact,
-            inverse: true,
             checkbox: false,
         },
         activate,
@@ -120,7 +119,6 @@ struct ButtonStyle {
     enabled: bool,
     pressed: bool,
     compact: bool,
-    inverse: bool,
     checkbox: bool,
 }
 
@@ -130,7 +128,7 @@ fn semantic_control(
     checkbox: bool,
     checked: bool,
 ) -> gpui::Stateful<gpui::Div> {
-    div()
+    joyoffice_ui::control(theme::PALETTE, true, checked)
         .id(id.clone())
         .accessibility_id(id)
         .role(if checkbox {
@@ -154,16 +152,17 @@ fn styled_button(
         enabled,
         pressed,
         compact,
-        inverse,
         checkbox,
     } = style;
     let label = label.into();
+    let id = id.into();
+    let glyph = button_icon(&id);
     let tooltip = tooltip.into();
     let click = Rc::clone(&activate);
     let key = Rc::clone(&activate);
     // Tooltips contain the localized command name even when the visible
     // content is only an icon (e.g. quick-open). Expose that name to AT.
-    semantic_control(id.into(), tooltip.clone(), checkbox, pressed)
+    semantic_control(id, tooltip.clone(), checkbox, pressed)
         .a11y_synthetic_children(move |builder| {
             if !enabled {
                 builder.parent_node().set_disabled();
@@ -174,9 +173,13 @@ fn styled_button(
         .flex()
         .items_center()
         .justify_center()
+        .when(checkbox, |element| element.justify_start())
         .h(px(theme::CONTROL_HEIGHT))
+        .min_w(px(theme::CONTROL_HEIGHT))
+        .flex_shrink_0()
+        .gap_2()
         .px(if compact { px(5.0) } else { px(8.0) })
-        .rounded_sm()
+        .rounded(px(theme::metrics::RADIUS))
         .border_1()
         .border_color(if pressed {
             rgb(theme::ACCENT)
@@ -190,17 +193,13 @@ fn styled_button(
         })
         .text_color(rgb(if !enabled {
             theme::TEXT_DISABLED
-        } else if inverse {
-            theme::WHITE
         } else {
             theme::TEXT
         }))
-        .text_sm()
+        .text_size(px(13.0))
         .hover(|style| {
             style.bg(if !enabled {
                 gpui::transparent_black().into()
-            } else if inverse {
-                rgb(theme::ACCENT_DARK)
             } else {
                 rgb(theme::HOVER)
             })
@@ -219,8 +218,47 @@ fn styled_button(
             }
         })
         .tooltip(move |_, cx| cx.new(|_| TooltipText(tooltip.to_string())).into())
-        .child(label)
+        .children(checkbox.then(|| {
+            icon(
+                if pressed {
+                    IconName::SquareCheck
+                } else {
+                    IconName::Square
+                },
+                16.0,
+                theme::ACCENT,
+            )
+            .into_any_element()
+        }))
+        .child(if let Some(glyph) = glyph {
+            icon(
+                glyph,
+                theme::metrics::ICON,
+                if enabled {
+                    theme::TEXT
+                } else {
+                    theme::TEXT_DISABLED
+                },
+            )
+            .into_any_element()
+        } else {
+            div().child(label).into_any_element()
+        })
         .into_any_element()
+}
+
+fn button_icon(id: &str) -> Option<IconName> {
+    Some(match id {
+        "quick-open" => IconName::FolderOpen,
+        "quick-save" => IconName::Save,
+        "quick-undo" => IconName::Undo2,
+        "quick-redo" => IconName::Redo2,
+        "status-zoom-out" => IconName::Minus,
+        "status-zoom-in" => IconName::Plus,
+        "dismiss-stage" => IconName::X,
+        id if id.starts_with("close-") || id.starts_with("panel-close-") => IconName::X,
+        _ => return None,
+    })
 }
 
 pub fn checkbox(
@@ -232,13 +270,12 @@ pub fn checkbox(
     let label = label.into();
     styled_button(
         id,
-        format!("{} {label}", if checked { "☑" } else { "☐" }),
+        label.clone(),
         label,
         ButtonStyle {
             enabled: true,
             pressed: checked,
             compact: true,
-            inverse: false,
             checkbox: true,
         },
         activate,

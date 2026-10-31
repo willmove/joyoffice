@@ -1,0 +1,23 @@
+{
+  "platform": "macOS 27.0.1 / Apple Silicon",
+  "binarySha256": "7e3e14b077d8bea596ea41de5358dc626456699e6810f0a2213d51e042cfa5da",
+  "checks": [
+    "localized stable button identity",
+    "undo initially disabled",
+    "ribbon tab insert",
+    "ribbon tab layout",
+    "ribbon tab review",
+    "ribbon tab view",
+    "ribbon tab start",
+    "bold changes selection and exposes checked state",
+    "undo restores text and bold state",
+    "font dialog opens",
+    "font cancel returns document focus",
+    "find panel opens with focused field",
+    "find panel closes",
+    "narrow layout retains formatting and overflow",
+    "narrow overflow menu opens"
+  ],
+  "passed": true,
+  "scope": "Native AX actions and synthesized system keyboard events; not physical keyboard, IME or screen-reader acceptance."
+}

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "Real imported styles fit with editing controls at 1200 logical pixels",
+    "AXFocus and Enter apply Heading2 through the production style command",
+    "Undo restores the original Heading1 selected state"
+  ],
+  "fixtureSha256": "6c1ed34420cadaaf2b5cb7a13dfd8f8e68c8c3a8b5c5dfd73e07f778b6b578ec",
+  "binarySha256": "7e3e14b077d8bea596ea41de5358dc626456699e6810f0a2213d51e042cfa5da"
+}

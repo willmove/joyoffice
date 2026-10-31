@@ -19,6 +19,8 @@
 
 app 组合 engine、formats、layout、platform、agent。engine 依赖 model；formats 和 layout 使用 model 的只读结构；agent 使用 engine 的受限接口。engine 不反向依赖 agent，避免循环。
 
+2026-11-01：桌面 `joyword` 与 `joysheet-ui-gpui` 共同依赖 `joyoffice-ui`，仅共享配色、尺寸、图标和控件表面。公共 UI 仅依赖 GPUI Kit；产品命令、本地化、辅助功能身份、焦点和事务保留在各自应用层，核心与 CLI 不引入 UI。具体边界和首批接入范围见 [JoyOffice UI 规范](../joyoffice/UI-SYSTEM.md)。
+
 2026-10-30 T807：CLI 增加生产依赖 `joyword-shell`，调用与桌面共用的有界本地邮件合并任务；该边已登记 `LAYERS`，shell 不反向依赖 CLI，也不引入 GPUI。模板只通过 engine 事务修改，DOCX 导出计划复验；CSV 与独立输出的文件 I/O 仅在 `shell/mail_merge.rs` 白名单模块中进行，不把格式语义下移 OPC。该命令不调用 Provider，AI 依赖仍由显式 feature 控制。
 
 2026-10-30 T806：`joyword-epub` 只读依赖 model 与格式中立 OPC ZIP 写出器，不含文件系统、网络或 GPUI；仅 dev 依赖 docx 验证真实样例。shell 组合导出计划、同目录临时文件读回与不覆盖发布，I/O 白名单限定 `shell/epub.rs`。CLI 和桌面共享同一计划，不能绕过差异确认。无新增第三方依赖。实现依据 [W3C EPUB 3.3](https://www.w3.org/TR/epub-33/)，PDF/A 仍未实现。

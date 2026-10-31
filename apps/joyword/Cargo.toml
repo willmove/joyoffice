@@ -18,6 +18,7 @@ ai = ["joyword-shell/ai"]
 
 [dependencies]
 gpui-kit.workspace = true
+joyoffice-ui.workspace = true
 gpui_platform.workspace = true
 joyword-foundation.workspace = true
 joyword-engine.workspace = true

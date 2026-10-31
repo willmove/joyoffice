@@ -1,0 +1,13 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running `target/debug/joyoffice-xtask build joysheet`
++ cargo build -p joysheet -p joysheet-cli --locked
+   Compiling joysheet-xlsx v0.1.0 (/Users/willm/Coding/joyoffice/crates/joysheet-xlsx)
+   Compiling joysheet-engine v0.1.0 (/Users/willm/Coding/joyoffice/crates/joysheet-engine)
+   Compiling joysheet-mcp v0.1.0 (/Users/willm/Coding/joyoffice/crates/joysheet-mcp)
+   Compiling joysheet-app v0.1.0 (/Users/willm/Coding/joyoffice/crates/joysheet-app)
+   Compiling joysheet-ui-gpui v0.1.0 (/Users/willm/Coding/joyoffice/crates/joysheet-ui-gpui)
+   Compiling joysheet-cli v0.1.0 (/Users/willm/Coding/joyoffice/apps/joysheet-cli)
+   Compiling joysheet v0.1.0 (/Users/willm/Coding/joyoffice/apps/joysheet)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.25s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`

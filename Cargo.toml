@@ -34,6 +34,7 @@ members = [
     "crates/joyoffice-drawingml",
     "crates/joyoffice-omml",
     "crates/joyoffice-opc",
+    "crates/joyoffice-ui",
     "crates/joyword-agent",
     "crates/joyword-corpus",
     "crates/joyword-doc",
@@ -149,6 +150,7 @@ getrandom = "=0.3.4"
 # ADR-010: align with JoyDeck before workspace integration. Kit 0.8.1 pins
 # gpui-pre 0.3.10 (zed@08cbb88a152c3751a43e853425a70e9f631a5918).
 gpui-kit = "=0.8.1"
+joyoffice-ui = { path = "crates/joyoffice-ui" }
 # Kit does not expose runtime_shaders. Keep this exact platform dependency to
 # forward the existing development-only shader feature; application APIs use Kit.
 gpui_platform = { package = "gpui-pre-platform", version = "=0.3.10", features = ["font-kit", "wayland", "x11"] }

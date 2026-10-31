@@ -16,6 +16,7 @@ type_complexity = "allow"
 
 [dependencies]
 gpui-kit = { workspace = true }
+joyoffice-ui.workspace = true
 joysheet-app = { workspace = true }
 joysheet-platform = { workspace = true }
 joysheet-protocol = { workspace = true }

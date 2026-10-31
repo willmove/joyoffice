@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-01",
+  "platform": "macOS 27.0.1 / Apple Silicon",
+  "rust": "1.98.1",
+  "checks": [
+    {
+      "command": "cargo xtask check joyword",
+      "passed": 1273,
+      "failed": 0,
+      "ignored": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "cargo xtask check joysheet",
+      "passed": 1400,
+      "failed": 0,
+      "ignored": 1,
+      "exitCode": 0
+    },
+    {
+      "command": "cargo xtask check joydeck",
+      "passed": 153,
+      "failed": 0,
+      "ignored": 0,
+      "exitCode": 0
+    }
+  ],
+  "thirdPartyVersionsChanged": false,
+  "wordBuild": "release, default features (full Xcode Metal compiler)",
+  "sheetBuild": "debug, default features",
+  "head": "d70e8cb + working tree on codex/joyword-unified-ui",
+  "wordSha256": "7e3e14b077d8bea596ea41de5358dc626456699e6810f0a2213d51e042cfa5da",
+  "finalWordUiTests": 92,
+  "finalWordUiClippyExitCode": 0,
+  "localMacApp": "target/dev/JoyWord.app",
+  "sourceSha256": {
+    "Cargo.lock": "3ba97aa39253101062782f9bdb3f8b429bb938aaf4732aa76116a2cd0af4b137",
+    "Cargo.toml": "7efb45a68dab21fd062b73e1a4873213155d5cb55c1fd6c2a99af2fad8474c36",
+    "apps/joyword/Cargo.toml": "08f039f34bc7f7768335350d20c6c35d1a8f36e04e2d60e57923a84f34ee11b7",
+    "apps/joyword/src/chrome_ui.rs": "15fc4d892d174c9a3a972117f73c49915fd11473a477ebc2d3d47477e13520c3",
+    "apps/joyword/src/main.rs": "aac2bcd829886efa6c3bdd32c86fccb1bce8dbb1ab38b9677689be1c1f623581",
+    "apps/joyword/src/prompt_ui.rs": "c62edfacec3f646886c8f82f8630fcb62ae65cae94276010575fdb252843c656",
+    "apps/joyword/src/ui/controls.rs": "cee023f8ee0b1218c7bc6135e5d19cef8d3e9c5a80525c1c5ccf096e4c854261",
+    "apps/joyword/src/ui/ribbon.rs": "16be61492ff5112d9b659b6f603af38ffca75395d21b1ec8d7293d35e7c2fa13",
+    "apps/joyword/src/ui/shell.rs": "2d8b46e4193fe5b2f8505a3f933e90490f20331f966f3ebf73a866acfe91dd5c",
+    "apps/joyword/src/ui/theme.rs": "4f41766e76a3f9ba98c13ce680fe26a2417dfa9c6901d2afe506e461c2a33ccb",
+    "crates/joysheet-ui-gpui/Cargo.toml": "139fe4fb8cebd9040b3ee270fe458f0c82d06f24aa1257743776b0f517f990ec",
+    "crates/joysheet-ui-gpui/src/desktop.rs": "3d2a11ff2f19804e5dd91704a57e1fe2b5db69effa7d78f11fc215aa8669b263",
+    "crates/joysheet-ui-gpui/src/ribbon.rs": "99e4edbc3117a4385736a8b19847b2cdb4b36f83e4f3e6a8ec1defe40b7fa2fb",
+    "scripts/check_gates.py": "c93796dcb00caafacd05a4aebfb8145b7225c61ca9dbb72ce440a65b4e7a9c67",
+    "scripts/tests/test_check_gates.py": "12836873a3c7c4eb26024e986f57be4a27410443a921fa730e7ead3b90f20050",
+    "crates/joyoffice-ui/Cargo.toml": "b142babb482b11493bbdb1287156714b1506d6d78eda6f1bfa1be91835346be8",
+    "crates/joyoffice-ui/src/lib.rs": "288c05f3bfa0f90dcf7d0c797896939570d81af9c83d83f03d407394776decf0"
+  }
+}

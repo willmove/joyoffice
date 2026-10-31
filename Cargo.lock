@@ -3514,6 +3514,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyoffice-ui"
+version = "0.1.0"
+dependencies = [
+ "gpui-kit",
+]
+
+[[package]]
 name = "joyoffice-xtask"
 version = "0.1.0"
 dependencies = [
@@ -3698,6 +3705,7 @@ dependencies = [
  "gpui-kit",
  "gpui-pre-platform",
  "image",
+ "joyoffice-ui",
  "joysheet-app",
  "joysheet-chart",
  "joysheet-engine",
@@ -3735,6 +3743,7 @@ dependencies = [
  "gpui-kit",
  "gpui-pre-platform",
  "image",
+ "joyoffice-ui",
  "joyword-engine",
  "joyword-foundation",
  "joyword-layout",

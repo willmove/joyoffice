@@ -25,18 +25,19 @@ impl Desktop {
         cx: &mut Context<Self>,
     ) -> AnyElement {
         let label = self.label(zh, en);
-        div()
+        joyoffice_ui::control(self.palette(), true, false)
             .id(id)
             .role(Role::Button)
             .aria_label(label.clone())
             .tab_stop(true)
-            .h(px(28.))
+            .h(px(joyoffice_ui::metrics::CONTROL))
             .px_2()
             .flex()
             .items_center()
             .rounded_sm()
             .cursor_pointer()
-            .hover(|s| s.bg(rgb(if self.preferences.dark { 0x35443d } else { 0xe7eeea })))
+            .hover(|s| s.bg(rgb(self.palette().hover)))
+            .focus(|style| style.border_color(rgb(self.palette().accent)))
             .child(label)
             .on_key_down(cx.listener(move |this, e: &KeyDownEvent, w, cx| {
                 if e.keystroke.key == "enter" || e.keystroke.key == "space" {
@@ -63,25 +64,25 @@ impl Desktop {
             .h_full()
             .px_3()
             .border_r_1()
-            .border_color(rgb(if self.preferences.dark { 0x3b4942 } else { 0xdfe3e0 }))
+            .border_color(rgb(self.palette().border))
             .flex()
             .flex_col()
             .justify_between()
             .child(div().flex().items_center().gap_1().children(buttons))
-            .child(div().text_xs().text_center().text_color(rgb(if self.preferences.dark { 0xaebbb4 } else { 0x68756e })).child(self.label(zh, en)))
+            .child(div().text_xs().text_center().text_color(rgb(self.palette().muted)).child(self.label(zh, en)))
             .into_any_element()
     }
     pub fn render_document_header(&self, cx: &mut Context<Self>) -> AnyElement {
         let title = self.view().map(|v| v.title.clone()).unwrap_or_else(|| self.label("工作簿", "Workbook"));
         div()
-            .h(px(42.))
+            .h(px(joyoffice_ui::metrics::HEADER))
             .flex_shrink_0()
             .px_4()
             .flex()
             .items_center()
             .gap_3()
-            .bg(rgb(if self.preferences.dark { 0x1d3529 } else { 0xe9f0ec }))
-            .child(div().font_weight(FontWeight::BOLD).text_color(rgb(if self.preferences.dark { 0x8cdbb3 } else { 0x146c43 })).child("Joysheet"))
+            .bg(rgb(self.palette().header))
+            .child(div().font_weight(FontWeight::BOLD).text_color(rgb(self.palette().accent)).child("Joysheet"))
             .child(self.toolbar_button("new", self.label("新建", "New"), "file.new", json!({}), cx))
             .child(div().id("open").cursor_pointer().child(self.label("打开", "Open")).on_click(cx.listener(|this, _, w, cx| this.pick_open(w, cx))))
             .child(
@@ -160,7 +161,7 @@ impl Desktop {
     pub fn render_ribbon_tabs(&self, cx: &mut Context<Self>) -> AnyElement {
         div()
             .id("ribbon-tabs")
-            .h(px(34.))
+            .h(px(joyoffice_ui::metrics::TAB))
             .flex_shrink_0()
             .flex()
             .items_center()
@@ -168,7 +169,7 @@ impl Desktop {
             .gap_1()
             .role(Role::TabList)
             .aria_label(self.label("功能区", "Ribbon"))
-            .bg(rgb(if self.preferences.dark { 0x23332a } else { 0xf6f8f7 }))
+            .bg(rgb(self.palette().chrome))
             .children(
                 [
                     ("ribbon-file", "文件", "File"),
@@ -197,10 +198,8 @@ impl Desktop {
                         .items_center()
                         .cursor_pointer()
                         .border_b_2()
-                        .border_color(rgb(if active { 0x167347 } else { if self.preferences.dark { 0x23332a } else { 0xf6f8f7 } }))
-                        .when(active, |el| {
-                            el.font_weight(FontWeight::SEMIBOLD).text_color(rgb(if self.preferences.dark { 0x94dbb4 } else { 0x146c43 }))
-                        })
+                        .border_color(rgb(if active { 0x167347 } else { self.palette().chrome }))
+                        .when(active, |el| el.font_weight(FontWeight::SEMIBOLD).text_color(rgb(self.palette().accent)))
                         .child(self.label(zh, en))
                         .on_key_down(cx.listener(move |this, e: &KeyDownEvent, _, cx| {
                             match e.keystroke.key.as_str() {
@@ -246,7 +245,7 @@ impl Desktop {
                         div()
                             .id("save-as")
                             .px_2()
-                            .h(px(28.))
+                            .h(px(joyoffice_ui::metrics::CONTROL))
                             .flex()
                             .items_center()
                             .cursor_pointer()
@@ -485,9 +484,9 @@ impl Desktop {
             .py_2()
             .flex()
             .items_center()
-            .bg(rgb(if self.preferences.dark { 0x20332a } else { 0xffffff }))
+            .bg(rgb(self.palette().surface))
             .border_b_1()
-            .border_color(rgb(if self.preferences.dark { 0x354c3e } else { 0xdce3de }))
+            .border_color(rgb(self.palette().border))
             .overflow_x_scroll()
             .children(groups)
             .child(
@@ -521,7 +520,7 @@ impl Desktop {
                     .flex_shrink_0()
                     .px_3()
                     .cursor_pointer()
-                    .text_color(rgb(if self.preferences.dark { 0x94dbb4 } else { 0x146c43 }))
+                    .text_color(rgb(self.palette().accent))
                     .child(self.label("所有命令  ···", "All commands  ···"))
                     .on_click(cx.listener(|this, _, w, cx| {
                         this.palette_open = true;

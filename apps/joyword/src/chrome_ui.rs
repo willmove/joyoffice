@@ -8,7 +8,7 @@ use gpui::{
 use joyword_foundation::Emu;
 use joyword_model::TabAlign;
 use joyword_shell::chrome::{
-    self, RibbonArgs, RibbonControl, RibbonInput, RulerModel, RulerTab, icon_cells, ruler_scale,
+    self, RibbonArgs, RibbonControl, RibbonInput, RulerModel, RulerTab, ruler_scale,
 };
 use joyword_shell::command::{
     Availability, CommandId, EDIT_ALIGN_CENTER, EDIT_ALIGN_LEFT, EDIT_ALIGN_RIGHT, EDIT_BOLD,
@@ -349,7 +349,7 @@ impl JoyWord {
             DialogKind::Paragraph => self.label("command.format.paragraph"),
             DialogKind::Table => self.label("command.table.properties"),
         };
-        let mut panel = div()
+        let mut panel = joyoffice_ui::card(crate::ui::theme::PALETTE)
             .id("format-dialog")
             .accessibility_id("format-dialog")
             .role(gpui::Role::Dialog)
@@ -357,25 +357,31 @@ impl JoyWord {
             .tab_group()
             .flex()
             .flex_col()
-            .gap_2()
+            .gap_3()
             .w(px(560.0))
-            .max_h(px(680.0))
+            .max_w(window.viewport_size().width - px(32.0))
+            .max_h(window.viewport_size().height - px(48.0))
             .overflow_y_scroll()
-            .p_4()
-            .rounded_md()
-            .bg(rgb(crate::ui::theme::WHITE))
-            .border_1()
-            .border_color(rgb(crate::ui::theme::BORDER))
+            .p_5()
             .shadow_lg()
-            .child(div().text_lg().child(title));
+            .child(
+                div()
+                    .pb_3()
+                    .border_b_1()
+                    .border_color(rgb(crate::ui::theme::BORDER_LIGHT))
+                    .text_lg()
+                    .font_weight(gpui::FontWeight::SEMIBOLD)
+                    .child(title),
+            );
         for index in 0..dialog.fields.len() {
             panel = panel.child(self.dialog_field(index, cx));
+            panel = panel.children(self.dialog_choices(kind, index, cx));
         }
-        panel = panel.children(self.dialog_choices(kind, cx));
         if kind == DialogKind::Font {
             panel = panel.child(
                 div()
                     .flex()
+                    .ml(px(144.0))
                     .gap_2()
                     .child(self.flag_button("dialog-bold", "dialog.font.bold", 0, cx))
                     .child(self.flag_button("dialog-italic", "dialog.font.italic", 1, cx))
@@ -386,6 +392,10 @@ impl JoyWord {
             div()
                 .flex()
                 .justify_end()
+                .pt_3()
+                .mt_1()
+                .border_t_1()
+                .border_color(rgb(crate::ui::theme::BORDER_LIGHT))
                 .gap_2()
                 .child(self.dialog_action("dialog-cancel", "dialog.cancel", false, cx))
                 .child(self.dialog_action("dialog-ok", "dialog.ok", true, cx)),
@@ -406,7 +416,12 @@ impl JoyWord {
         )
     }
 
-    fn dialog_choices(&self, kind: DialogKind, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
+    fn dialog_choices(
+        &self,
+        kind: DialogKind,
+        field: usize,
+        cx: &mut Context<Self>,
+    ) -> Option<gpui::AnyElement> {
         let rows: Vec<(usize, &[(&str, &str)])> = match kind {
             DialogKind::Font => vec![
                 (0, &[("等线", "等线"), ("宋体", "宋体"), ("Arial", "Arial")]),
@@ -441,23 +456,30 @@ impl JoyWord {
                 ],
             )],
         };
+        if !rows.iter().any(|(index, _)| *index == field) {
+            return None;
+        }
         Some(
             div()
                 .flex()
                 .flex_col()
                 .gap_1()
-                .children(rows.into_iter().map(|(index, choices)| {
-                    div()
-                        .flex()
-                        .flex_wrap()
-                        .gap_1()
-                        .children(
-                            choices
-                                .iter()
-                                .map(|(value, label)| self.dialog_choice(index, value, label, cx)),
-                        )
-                        .into_any_element()
-                }))
+                .ml(px(144.0))
+                .text_size(px(13.0))
+                .children(rows.into_iter().filter(|(index, _)| *index == field).map(
+                    |(index, choices)| {
+                        div()
+                            .flex()
+                            .flex_wrap()
+                            .gap_1()
+                            .children(
+                                choices.iter().map(|(value, label)| {
+                                    self.dialog_choice(index, value, label, cx)
+                                }),
+                            )
+                            .into_any_element()
+                    },
+                ))
                 .into_any_element(),
         )
     }
@@ -525,7 +547,13 @@ impl JoyWord {
             .flex()
             .items_center()
             .gap_2()
-            .child(div().w(px(120.0)).text_xs().child(label.clone()))
+            .child(
+                div()
+                    .w(px(132.0))
+                    .text_size(px(13.0))
+                    .text_color(rgb(crate::ui::theme::TEXT_MUTED))
+                    .child(label.clone()),
+            )
             .child(
                 crate::ui::controls::text_field(name, label.clone(), field.value.text().to_owned())
                     .on_a11y_action(gpui::AccessibleAction::SetValue, {
@@ -554,9 +582,17 @@ impl JoyWord {
                     .px_2()
                     .py_1()
                     .border_1()
-                    .border_color(rgb(0xc5ced6))
-                    .bg(rgb(0xffffff))
-                    .text_color(rgb(0x263247))
+                    .h(px(34.0))
+                    .rounded(px(crate::ui::theme::metrics::RADIUS))
+                    .border_color(rgb(crate::ui::theme::BORDER))
+                    .bg(rgb(crate::ui::theme::WHITE))
+                    .text_color(rgb(crate::ui::theme::TEXT))
+                    .text_size(px(13.0))
+                    .focus(|style| {
+                        style
+                            .border_color(rgb(crate::ui::theme::ACCENT))
+                            .bg(rgb(crate::ui::theme::SELECTED))
+                    })
                     .on_click(cx.listener(move |this, _, window, cx| {
                         if let Some(dialog) = &this.format_dialog
                             && let Some(field) = dialog.fields.get(index)
@@ -590,15 +626,24 @@ impl JoyWord {
                 _ => dialog.underline,
             });
         let name = self.label(label);
-        let label = format!("{} {name}", if on { "☑" } else { "☐" });
+        let label = name.clone();
         crate::ui::controls::named_control(id, gpui::Role::CheckBox, name)
             .aria_toggled(on.into())
             .focusable()
+            .flex()
+            .items_center()
+            .gap_2()
             .cursor_pointer()
             .px_2()
             .py_1()
             .rounded_sm()
-            .bg(if on { rgb(0xc5d7ea) } else { rgb(0xe7eef5) })
+            .bg(rgb(if on {
+                crate::ui::theme::SELECTED
+            } else {
+                crate::ui::theme::HOVER
+            }))
+            .text_size(px(13.0))
+            .focus(|style| style.border_1().border_color(rgb(crate::ui::theme::ACCENT)))
             .on_click(cx.listener(move |this, _, _, cx| {
                 if let Some(dialog) = &mut this.format_dialog {
                     match flag {
@@ -622,6 +667,15 @@ impl JoyWord {
                     cx.notify();
                 }
             }))
+            .child(joyoffice_ui::icon(
+                if on {
+                    joyoffice_ui::IconName::SquareCheck
+                } else {
+                    joyoffice_ui::IconName::Square
+                },
+                16.0,
+                crate::ui::theme::ACCENT,
+            ))
             .child(label)
     }
 
@@ -635,6 +689,12 @@ impl JoyWord {
         let label = self.label(label);
         crate::ui::controls::named_control(id, gpui::Role::Button, label.clone())
             .focusable()
+            .flex()
+            .items_center()
+            .justify_center()
+            .h(px(34.0))
+            .min_w(px(80.0))
+            .text_size(px(13.0))
             .cursor_pointer()
             .px_3()
             .py_1()
@@ -1249,31 +1309,55 @@ fn x_to_emu(bounds: Bounds<Pixels>, scale: i64, x: Pixels) -> i64 {
     (t * scale as f32).round() as i64
 }
 
-pub(crate) fn drawn_icon(id: &str, ink: u32) -> gpui::AnyElement {
-    let cells = icon_cells(id);
-    canvas(
-        |_, _, _| {},
-        move |bounds, _, window, _| {
-            for (column, row) in &cells {
-                let origin = point(
-                    bounds.origin.x + bounds.size.width * (f32::from(*column) / 16.0),
-                    bounds.origin.y + bounds.size.height * (f32::from(*row) / 16.0),
-                );
-                let step_x = bounds.size.width / px(16.0);
-                let step_y = bounds.size.height / px(16.0);
-                window.paint_quad(fill(
-                    Bounds {
-                        origin,
-                        size: size(px(step_x.max(1.0)), px(step_y.max(1.0))),
-                    },
-                    rgb(ink),
-                ));
-            }
-        },
-    )
-    .w(px(16.0))
-    .h(px(16.0))
-    .into_any_element()
+pub(crate) fn command_icon(id: &str, ink: u32) -> gpui::AnyElement {
+    use joyoffice_ui::IconName as I;
+    let name = match id {
+        "cut" => I::Scissors,
+        "copy" => I::Copy,
+        "paste" => I::ClipboardPaste,
+        "undo" => I::Undo2,
+        "redo" => I::Redo2,
+        "bold" => I::Bold,
+        "italic" => I::Italic,
+        "underline" => I::Underline,
+        "font" => I::Type,
+        "align-left" => I::TextAlignStart,
+        "align-center" => I::TextAlignCenter,
+        "align-right" => I::TextAlignEnd,
+        "align-justify" => I::TextAlignJustify,
+        "paragraph" | "marks" => I::Pilcrow,
+        "styles" => I::Heading,
+        "list-bullet" => I::List,
+        "list-remove" => I::ListX,
+        "list-level" => I::ListIndentIncrease,
+        "find" | "find-previous" => I::Search,
+        "replace" | "replace-all" => I::Replace,
+        "painter" | "paint" => I::Paintbrush,
+        "cancel" | "review-reject" => I::X,
+        "picture" => I::Image,
+        "table" => I::Table2,
+        "page-break" => I::BetweenHorizontalStart,
+        "margins" | "margins-narrow" => I::ScanLine,
+        "portrait" | "page-a4" | "page-letter" => I::File,
+        "landscape" => I::RectangleHorizontal,
+        "header" => I::PanelTop,
+        "footer" => I::PanelBottom,
+        "body" => I::FileText,
+        "zoom-in" => I::ZoomIn,
+        "zoom-out" => I::ZoomOut,
+        "zoom-reset" => I::Maximize,
+        "language" => I::Languages,
+        "hidden" => I::EyeOff,
+        "field-code" => I::Code,
+        "review-track" => I::FilePenLine,
+        "review-accept" => I::Check,
+        "review-markup" => I::MessageSquare,
+        "review-original" => I::RotateCcw,
+        "review-final" => I::FileCheck,
+        "review-simple" => I::FileText,
+        _ => I::Settings2,
+    };
+    joyoffice_ui::icon(name, crate::ui::theme::metrics::ICON, ink).into_any_element()
 }
 
 fn ruler_labels(model: &RulerModel, geometry: Option<(Pixels, Pixels)>) -> Vec<gpui::AnyElement> {
@@ -1313,7 +1397,7 @@ fn paint_ruler(bounds: Bounds<Pixels>, scale: i64, model: &RulerModel, window: &
             ),
             size: size(bounds.size.width, px(1.0)),
         },
-        rgb(0xd5dbe3),
+        rgb(crate::ui::theme::BORDER),
     ));
     if model.content_width.is_some() {
         let mut inch = Emu::PER_INCH;

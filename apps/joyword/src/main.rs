@@ -1208,20 +1208,24 @@ impl JoyWord {
             .and_then(|editor| editor.caret_styles().1);
         div()
             .id("style-panel")
-            .w(px(220.0))
+            .w_full()
             .h_full()
             .flex_shrink_0()
             .overflow_y_scroll()
-            .bg(rgb(0xf7f9fb))
+            .bg(rgb(ui::theme::WHITE))
             .border_r_1()
-            .border_color(rgb(0xd5dbe3))
-            .p_2()
+            .border_color(rgb(ui::theme::BORDER))
+            .p_3()
             .flex()
             .flex_col()
-            .gap_1()
+            .gap_2()
             .text_sm()
-            .child(self.label("style.panel"))
-            .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(current))
+            .child(
+                div()
+                    .text_xs()
+                    .text_color(rgb(ui::theme::TEXT_MUTED))
+                    .child(current),
+            )
             .children(rows.into_iter().map(|row| {
                 let id = row.id.clone();
                 let marked = current_paragraph.as_deref() == Some(row.id.as_str())
@@ -1236,9 +1240,19 @@ impl JoyWord {
                     .cursor_pointer()
                     .px_2()
                     .py_1()
-                    .rounded_sm()
-                    .bg(if marked { rgb(0xd7e6f5) } else { rgb(0xf7f9fb) })
-                    .hover(|style| style.bg(rgb(0xe7eef5)))
+                    .rounded(px(ui::theme::metrics::RADIUS))
+                    .border_1()
+                    .border_color(rgb(if marked {
+                        ui::theme::ACCENT
+                    } else {
+                        ui::theme::BORDER_LIGHT
+                    }))
+                    .bg(rgb(if marked {
+                        ui::theme::SELECTED
+                    } else {
+                        ui::theme::WHITE
+                    }))
+                    .hover(|style| style.bg(rgb(ui::theme::HOVER)))
                     .on_click(cx.listener(move |this, _, window, cx| {
                         this.run_with(
                             STYLE_APPLY,
@@ -1248,7 +1262,12 @@ impl JoyWord {
                         );
                     }))
                     .child(row.name)
-                    .child(div().text_xs().text_color(rgb(0x5c6b7a)).child(preview))
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(rgb(ui::theme::TEXT_MUTED))
+                            .child(preview),
+                    )
             }))
     }
 
@@ -1297,13 +1316,16 @@ impl JoyWord {
         .track_focus(&focus)
         .key_context(field_edit::FIELD_CONTEXT)
         .focusable()
-        .w(px(160.0))
+        .w_full()
+        .min_h(px(34.0))
+        .rounded(px(ui::theme::metrics::RADIUS))
         .px_2()
         .py_1()
         .border_1()
-        .border_color(rgb(0xc5ced6))
+        .border_color(rgb(ui::theme::BORDER))
         .bg(rgb(0xffffff))
-        .text_color(rgb(0x263247))
+        .text_color(rgb(ui::theme::TEXT))
+        .focus(|style| style.border_color(rgb(ui::theme::ACCENT)))
         .on_click(cx.listener(move |this, _, window, cx| {
             let focus = match slot {
                 FindSlot::Query => this.find_query_focus.clone(),
@@ -2063,182 +2085,186 @@ fn main() {
     let boot_log = boot.log.clone();
     let locale = boot.locale;
     let startup = startup_document(std::env::args_os().skip(1));
-    gpui_kit::application().run(move |cx: &mut App| {
-        gpui_kit::init(cx);
-        let registry = Registry::builtin();
-        cx.on_action(|_: &Quit, cx| {
-            if let Some(MainWindow(handle)) = cx.try_global::<MainWindow>().copied()
-                && handle
-                    .update(cx, |view, window, cx| view.run(QUIT, window, cx))
-                    .is_ok()
-            {
-                return;
-            }
-            cx.quit();
-        });
-        cx.bind_keys(key_bindings(&registry));
-        #[cfg(target_os = "linux")]
-        prompt_ui::install(cx);
-        cx.set_menus(menus(&registry, Catalog::shipped(locale)));
-        let bounds = Bounds::centered(None, size(px(1100.0), px(850.0)), cx);
-        let result = cx.open_window(
-            WindowOptions {
-                window_bounds: Some(WindowBounds::Windowed(bounds)),
-                titlebar: Some(gpui::TitlebarOptions {
-                    title: Some("JoyWord".into()),
+    gpui_kit::application()
+        .with_assets(gpui_kit::assets::AllAssets)
+        .run(move |cx: &mut App| {
+            gpui_kit::init(cx);
+            let registry = Registry::builtin();
+            cx.on_action(|_: &Quit, cx| {
+                if let Some(MainWindow(handle)) = cx.try_global::<MainWindow>().copied()
+                    && handle
+                        .update(cx, |view, window, cx| view.run(QUIT, window, cx))
+                        .is_ok()
+                {
+                    return;
+                }
+                cx.quit();
+            });
+            cx.bind_keys(key_bindings(&registry));
+            #[cfg(target_os = "linux")]
+            prompt_ui::install(cx);
+            cx.set_menus(menus(&registry, Catalog::shipped(locale)));
+            let bounds = Bounds::centered(None, size(px(1200.0), px(850.0)), cx);
+            let result = cx.open_window(
+                WindowOptions {
+                    window_bounds: Some(WindowBounds::Windowed(bounds)),
+                    titlebar: Some(gpui::TitlebarOptions {
+                        title: Some("JoyWord".into()),
+                        ..Default::default()
+                    }),
                     ..Default::default()
-                }),
-                ..Default::default()
-            },
-            |window, cx| {
-                cx.new(|cx| {
-                    let recovery_dir = joyword_shell::storage::recovery_directory();
-                    let mut session = joyword_shell::host::Office::new();
-                    if let Some(log) = &boot_log {
-                        session.set_diagnostics(Arc::clone(log));
-                    }
-                    if let Some(dir) = &recovery_dir {
-                        session.set_recovery_directory(dir.clone());
-                    }
-                    let mut editor = None;
-                    let mut held_document = None;
-                    if let Some(dir) = &recovery_dir
-                        && let Some((recovered, input, id)) =
-                            take_recovered(dir, boot_log.as_deref())
-                    {
-                        session = recovered;
+                },
+                |window, cx| {
+                    cx.new(|cx| {
+                        let recovery_dir = joyword_shell::storage::recovery_directory();
+                        let mut session = joyword_shell::host::Office::new();
                         if let Some(log) = &boot_log {
                             session.set_diagnostics(Arc::clone(log));
                         }
-                        editor = Some(input);
-                        held_document = Some(id);
+                        if let Some(dir) = &recovery_dir {
+                            session.set_recovery_directory(dir.clone());
+                        }
+                        let mut editor = None;
+                        let mut held_document = None;
+                        if let Some(dir) = &recovery_dir
+                            && let Some((recovered, input, id)) =
+                                take_recovered(dir, boot_log.as_deref())
+                        {
+                            session = recovered;
+                            if let Some(log) = &boot_log {
+                                session.set_diagnostics(Arc::clone(log));
+                            }
+                            editor = Some(input);
+                            held_document = Some(id);
+                        }
+                        if let Ok(paths) = diag::resolve() {
+                            session.bind_preferences(&paths.config_dir, locale);
+                        }
+                        if let Some(editor) = editor.as_mut() {
+                            editor.set_revision_author(session.revision_author());
+                        }
+                        let mut view = JoyWord {
+                            zoom_percent: ZOOM_DEFAULT,
+                            locale,
+                            registry: registry.clone(),
+                            focus_handle: cx.focus_handle(),
+                            editor,
+                            copy_note: None,
+                            merge_cancel: None,
+                            epub_cancel: None,
+                            font: None,
+                            profile: None,
+                            canvas: CanvasPipeline::default(),
+                            load_started: false,
+                            load_task: None,
+                            layout_task: None,
+                            raster_task: None,
+                            device_scale: 1.0,
+                            canvas_error: None,
+                            input_error: None,
+                            scroll: gpui::ScrollHandle::new(),
+                            viewport_bounds: None,
+                            dragging: false,
+                            reveal_pending: false,
+                            ime_geometry: None,
+                            ime_anchor: None,
+                            preferred_x: None,
+                            close_pending: false,
+                            close_task: None,
+                            subscriptions: Vec::new(),
+                            clipboard: String::new(),
+                            session,
+                            open_gate: None,
+                            recovery_dir,
+                            held_document,
+                            copy_epoch: 0,
+                            copy: None,
+                            pdf: None,
+                            original_save: None,
+                            diagnostics: boot_log.clone(),
+                            find_query: field_edit::FieldBuffer::default(),
+                            find_replacement: field_edit::FieldBuffer::default(),
+                            find_case: false,
+                            find_word: false,
+                            find_width: false,
+                            find_regex: false,
+                            find_query_focus: cx.focus_handle(),
+                            find_replacement_focus: cx.focus_handle(),
+                            find_note: None,
+                            format_repeat: false,
+                            ribbon_tab: RibbonTab::Start,
+                            format_dialog: None,
+                            format_dialog_focused: false,
+                            path_sheet: None,
+                            view_toggles: joyword_shell::dialogs::ViewToggles::default(),
+                            ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
+                            ruler_drag: None,
+                            side_panel: None,
+                            popup: None,
+                            table_preview: (2, 2),
+                            stage_notice: false,
+                            zoom_dragging: false,
+                            zoom_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
+                            window_title: String::new(),
+                        };
+                        view.install_input_lifecycle(window, cx);
+                        view
+                    })
+                },
+            );
+            #[cfg(target_os = "linux")]
+            let result = match result {
+                Ok(window) => Ok(window),
+                Err(error) => {
+                    if std::env::var_os("VK_ICD_FILENAMES").is_none()
+                        && std::env::var_os("VK_DRIVER_FILES").is_none()
+                        && let Some(icd) = software_vulkan_icd()
+                    {
+                        let exe = std::env::current_exe()
+                            .unwrap_or_else(|_| std::path::PathBuf::from("joyword"));
+                        let mut command = std::process::Command::new(exe);
+                        command
+                            .args(std::env::args_os().skip(1))
+                            .env("VK_ICD_FILENAMES", &icd)
+                            .env("VK_DRIVER_FILES", &icd);
+                        if let Some(log) = &boot_log {
+                            let _ = log.record(Event {
+                                level: Level::Info,
+                                event: "window.software_retry",
+                                kind: Some("vulkan"),
+                                count: None,
+                            });
+                        }
+                        let exec_error = command.exec();
+                        eprintln!(
+                            "JoyWord could not restart with software rendering: {exec_error}"
+                        );
                     }
-                    if let Ok(paths) = diag::resolve() {
-                        session.bind_preferences(&paths.config_dir, locale);
-                    }
-                    if let Some(editor) = editor.as_mut() {
-                        editor.set_revision_author(session.revision_author());
-                    }
-                    let mut view = JoyWord {
-                        zoom_percent: ZOOM_DEFAULT,
-                        locale,
-                        registry: registry.clone(),
-                        focus_handle: cx.focus_handle(),
-                        editor,
-                        copy_note: None,
-                        merge_cancel: None,
-                        epub_cancel: None,
-                        font: None,
-                        profile: None,
-                        canvas: CanvasPipeline::default(),
-                        load_started: false,
-                        load_task: None,
-                        layout_task: None,
-                        raster_task: None,
-                        device_scale: 1.0,
-                        canvas_error: None,
-                        input_error: None,
-                        scroll: gpui::ScrollHandle::new(),
-                        viewport_bounds: None,
-                        dragging: false,
-                        reveal_pending: false,
-                        ime_geometry: None,
-                        ime_anchor: None,
-                        preferred_x: None,
-                        close_pending: false,
-                        close_task: None,
-                        subscriptions: Vec::new(),
-                        clipboard: String::new(),
-                        session,
-                        open_gate: None,
-                        recovery_dir,
-                        held_document,
-                        copy_epoch: 0,
-                        copy: None,
-                        pdf: None,
-                        original_save: None,
-                        diagnostics: boot_log.clone(),
-                        find_query: field_edit::FieldBuffer::default(),
-                        find_replacement: field_edit::FieldBuffer::default(),
-                        find_case: false,
-                        find_word: false,
-                        find_width: false,
-                        find_regex: false,
-                        find_query_focus: cx.focus_handle(),
-                        find_replacement_focus: cx.focus_handle(),
-                        find_note: None,
-                        format_repeat: false,
-                        ribbon_tab: RibbonTab::Start,
-                        format_dialog: None,
-                        format_dialog_focused: false,
-                        path_sheet: None,
-                        view_toggles: joyword_shell::dialogs::ViewToggles::default(),
-                        ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
-                        ruler_drag: None,
-                        side_panel: None,
-                        popup: None,
-                        table_preview: (2, 2),
-                        stage_notice: true,
-                        zoom_dragging: false,
-                        zoom_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
-                        window_title: String::new(),
-                    };
-                    view.install_input_lifecycle(window, cx);
-                    view
-                })
-            },
-        );
-        #[cfg(target_os = "linux")]
-        let result = match result {
-            Ok(window) => Ok(window),
-            Err(error) => {
-                if std::env::var_os("VK_ICD_FILENAMES").is_none()
-                    && std::env::var_os("VK_DRIVER_FILES").is_none()
-                    && let Some(icd) = software_vulkan_icd()
-                {
-                    let exe = std::env::current_exe()
-                        .unwrap_or_else(|_| std::path::PathBuf::from("joyword"));
-                    let mut command = std::process::Command::new(exe);
-                    command
-                        .args(std::env::args_os().skip(1))
-                        .env("VK_ICD_FILENAMES", &icd)
-                        .env("VK_DRIVER_FILES", &icd);
+                    Err(error)
+                }
+            };
+            match result {
+                Ok(window) => {
+                    cx.set_global(MainWindow(window));
+                    let _ = window.update(cx, |view, window, cx| {
+                        window.focus(&view.focus_handle, cx);
+                        cx.activate(true);
+                        if let Some(path) = startup.clone() {
+                            view.open_startup_path(path, window, cx);
+                        }
+                    });
+                }
+                Err(error) => {
+                    let detail = diag::redact(&error.to_string());
                     if let Some(log) = &boot_log {
-                        let _ = log.record(Event {
-                            level: Level::Info,
-                            event: "window.software_retry",
-                            kind: Some("vulkan"),
-                            count: None,
-                        });
+                        let _ = log.record_untrusted(Level::Error, "window.open", &detail);
                     }
-                    let exec_error = command.exec();
-                    eprintln!("JoyWord could not restart with software rendering: {exec_error}");
+                    eprintln!("Could not open the JoyWord window: {detail}");
+                    eprintln!("RAW-ERROR-DEBUG: {:?}", error);
+                    cx.quit();
                 }
-                Err(error)
             }
-        };
-        match result {
-            Ok(window) => {
-                cx.set_global(MainWindow(window));
-                let _ = window.update(cx, |view, window, cx| {
-                    window.focus(&view.focus_handle, cx);
-                    cx.activate(true);
-                    if let Some(path) = startup.clone() {
-                        view.open_startup_path(path, window, cx);
-                    }
-                });
-            }
-            Err(error) => {
-                let detail = diag::redact(&error.to_string());
-                if let Some(log) = &boot_log {
-                    let _ = log.record_untrusted(Level::Error, "window.open", &detail);
-                }
-                eprintln!("Could not open the JoyWord window: {detail}");
-                eprintln!("RAW-ERROR-DEBUG: {:?}", error);
-                cx.quit();
-            }
-        }
-    });
+        });
 }
 
 #[cfg(test)]

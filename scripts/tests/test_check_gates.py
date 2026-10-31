@@ -217,6 +217,13 @@ class MonorepoGate(TempTree):
                       '[dependencies]\njoydeck-model.workspace = true\n')
         self.assertTrue(any("must not depend on product package joydeck-model" in e for e in self.layers()))
 
+    def test_shared_ui_is_presentation_only_and_not_a_headless_escape(self):
+        self.assertEqual(check_gates.layer_violations('joyoffice-ui', {'gpui-kit'}), [])
+        self.assertTrue(any('must not depend on product package' in e for e in
+                            check_gates.layer_violations('joyoffice-ui', {'joyword-model'})))
+        self.assertTrue(any('layer does not allow' in e for e in
+                            check_gates.layer_violations('joyword-model', {'joyoffice-ui'})))
+
     def test_unknown_product_package_is_rejected_even_before_registration(self):
         self.manifest("crates/joydeck-model/Cargo.toml", "joydeck-model",
                       '[dependencies]\njoysheet-unregistered = "=0.1.0"\n')

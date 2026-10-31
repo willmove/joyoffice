@@ -196,6 +196,14 @@ pub struct Desktop {
 }
 
 impl Desktop {
+    pub(crate) fn palette(&self) -> joyoffice_ui::Palette {
+        if self.preferences.dark {
+            joyoffice_ui::Palette::dark(joyoffice_ui::Brand::Sheet)
+        } else {
+            joyoffice_ui::Palette::light(joyoffice_ui::Brand::Sheet)
+        }
+    }
+
     pub fn new(engine: EngineClient, id: Option<u64>, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let formula = cx.new(|cx| InputState::new(window, cx).placeholder("输入数据或公式 / Enter a value or formula"));
         let editor = cx.new(|cx| InputState::new(window, cx));
@@ -940,18 +948,19 @@ impl Desktop {
     ) -> impl IntoElement {
         let label = label.into();
         let keyboard_params = params.clone();
-        div()
+        joyoffice_ui::control(self.palette(), true, false)
             .id(id)
             .role(Role::Button)
             .aria_label(label.clone())
             .tab_stop(true)
             .px_2()
-            .h(px(29.))
+            .h(px(joyoffice_ui::metrics::CONTROL))
             .flex()
             .items_center()
             .rounded_md()
             .cursor_pointer()
-            .hover(|style| style.bg(rgb(if self.preferences.dark { 0x33433d } else { 0xe9f0ec })))
+            .hover(|style| style.bg(rgb(self.palette().hover)))
+            .focus(|style| style.border_color(rgb(self.palette().accent)))
             .child(label)
             .on_key_down(cx.listener(move |this, event: &KeyDownEvent, window, cx| {
                 if event.keystroke.key == "enter" || event.keystroke.key == "space" {
@@ -965,12 +974,12 @@ impl Desktop {
 
 impl Render for Desktop {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let dark = self.preferences.dark;
-        let bg = if dark { 0x172620 } else { 0xf4f6f5 };
-        let panel = if dark { 0x20332a } else { 0xffffff };
-        let fg = if dark { 0xe5eee8 } else { 0x26352d };
-        let muted = if dark { 0x9eb0a4 } else { 0x6b8073 };
-        let border = if dark { 0x354c3e } else { 0xe1e8e2 };
+        let palette = self.palette();
+        let bg = palette.canvas;
+        let panel = palette.surface;
+        let fg = palette.text;
+        let muted = palette.muted;
+        let border = palette.border;
         let tabs: Vec<_> = self
             .view()
             .map(|v| {

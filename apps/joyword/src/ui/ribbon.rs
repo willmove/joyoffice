@@ -1,4 +1,4 @@
-use crate::chrome_ui::drawn_icon;
+use crate::chrome_ui::command_icon;
 use crate::ui::controls;
 use crate::ui::theme;
 use crate::{JoyWord, PopupKind, SidePanel};
@@ -24,17 +24,23 @@ impl JoyWord {
         div()
             .flex()
             .flex_col()
-            .bg(rgb(theme::RIBBON))
-            .border_b_1()
-            .border_color(rgb(theme::BORDER))
+            .flex_shrink_0()
+            .bg(rgb(theme::HEADER))
+            .pb_2()
+            .px_3()
             .child(self.word_ribbon_tabs(cx))
             .child(
                 div()
                     .id("ribbon-row")
                     .role(Role::Toolbar)
-                    .h(px(88.0))
+                    .h(px(if density == 2 { 54.0 } else { 106.0 }))
                     .px_2()
-                    .py_1()
+                    .py_2()
+                    .bg(rgb(theme::WHITE))
+                    .rounded(px(theme::metrics::CARD_RADIUS))
+                    .border_1()
+                    .border_color(rgb(theme::BORDER))
+                    .overflow_hidden()
                     .child(if density == 2 {
                         self.overflow_ribbon(cx)
                     } else {
@@ -58,6 +64,7 @@ impl JoyWord {
             .h(px(theme::TAB_HEIGHT))
             .gap_1()
             .px_2()
+            .text_size(px(13.0))
             .children(RibbonTab::ALL.into_iter().map(|tab| {
                 let selected = self.ribbon_tab == tab;
                 div()
@@ -71,7 +78,14 @@ impl JoyWord {
                     .px_3()
                     .py_1()
                     .cursor_pointer()
-                    .rounded_sm()
+                    .h_full()
+                    .flex()
+                    .items_center()
+                    .font_weight(if selected {
+                        gpui::FontWeight::SEMIBOLD
+                    } else {
+                        gpui::FontWeight::NORMAL
+                    })
                     .border_b_2()
                     .border_color(if selected {
                         rgb(theme::ACCENT)
@@ -154,7 +168,7 @@ impl JoyWord {
                                 ))
                                 .child(self.dropdown(
                                     "font-color",
-                                    "A ▾".to_owned(),
+                                    "A".to_owned(),
                                     PopupKind::FontColor,
                                     42.0,
                                     cx,
@@ -378,6 +392,7 @@ impl JoyWord {
     ) -> gpui::AnyElement {
         div()
             .id(name)
+            .flex_shrink_0()
             .flex()
             .flex_col()
             .h_full()
@@ -398,6 +413,8 @@ impl JoyWord {
                     .justify_center()
                     .text_xs()
                     .text_color(rgb(theme::TEXT_MUTED))
+                    .pt_1()
+                    .text_size(px(10.0))
                     .child(self.label(name)),
             )
             .into_any_element()
@@ -446,7 +463,7 @@ impl JoyWord {
         };
         let label = self.label(control.label);
         let tooltip = label.clone();
-        let button = div()
+        let button = joyoffice_ui::control(theme::PALETTE, enabled, pressed)
             .id(control.id)
             .accessibility_id(control.id)
             .role(Role::Button)
@@ -484,8 +501,9 @@ impl JoyWord {
             .items_center()
             .justify_center()
             .gap_1()
-            .px_1()
-            .rounded_sm()
+            .px_2()
+            .min_w(px(theme::CONTROL_HEIGHT))
+            .rounded(px(theme::metrics::RADIUS))
             .border_1()
             .border_color(if pressed {
                 rgb(theme::ACCENT)
@@ -518,10 +536,15 @@ impl JoyWord {
                 cx.new(|_| crate::ui::ribbon::RibbonTooltip(tooltip.clone()))
                     .into()
             })
-            .child(drawn_icon(control.icon, ink))
+            .child(command_icon(control.icon, ink))
             .children((!compact).then(|| div().text_xs().child(label)));
         if large {
-            button.flex_col().h_full().w(px(58.0)).into_any_element()
+            button
+                .flex_col()
+                .gap_2()
+                .h_full()
+                .w(px(60.0))
+                .into_any_element()
         } else {
             button.h(px(theme::CONTROL_HEIGHT)).into_any_element()
         }
@@ -543,7 +566,7 @@ impl JoyWord {
             .h(px(theme::CONTROL_HEIGHT))
             .w(px(width))
             .px_2()
-            .rounded_sm()
+            .rounded(px(theme::metrics::RADIUS))
             .border_1()
             .border_color(rgb(theme::BORDER))
             .bg(rgb(theme::WHITE))
@@ -551,7 +574,11 @@ impl JoyWord {
             .hover(|style| style.border_color(rgb(theme::ACCENT)))
             .focus(|style| style.border_color(rgb(theme::ACCENT)))
             .child(label)
-            .child("▾")
+            .child(joyoffice_ui::icon(
+                joyoffice_ui::IconName::ChevronDown,
+                12.0,
+                theme::TEXT_MUTED,
+            ))
             .into_any_element()
     }
 
@@ -562,27 +589,68 @@ impl JoyWord {
             .map(|editor| editor.style_rows())
             .unwrap_or_default();
         let entity = cx.entity();
+        let current = self
+            .editor
+            .as_ref()
+            .map(|editor| editor.caret_styles())
+            .unwrap_or_default();
         self.group(
             "ribbon.group.styles",
             vec![
                 div()
                     .flex()
                     .gap_1()
-                    .children(rows.into_iter().take(6).map(|row| {
+                    .children(rows.into_iter().take(3).map(|row| {
                         let id = row.id.clone();
+                        let keyboard_id = id.clone();
+                        let selected = current.0.as_deref() == Some(id.as_str())
+                            || current.1.as_deref() == Some(id.as_str());
                         div()
                             .id(SharedStringStyle::id(&row.id))
+                            .role(Role::Button)
+                            .aria_label(row.name.clone())
+                            .aria_toggled(selected.into())
+                            .key_context(controls::CONTROL_CONTEXT)
+                            .focusable()
                             .cursor_pointer()
                             .flex()
-                            .items_center()
+                            .flex_col()
                             .justify_center()
-                            .w(px(92.0))
-                            .h(px(52.0))
+                            .gap_1()
+                            .w(px(88.0))
+                            .h(px(62.0))
+                            .rounded(px(theme::metrics::RADIUS))
                             .px_2()
                             .border_1()
-                            .border_color(rgb(theme::BORDER))
-                            .bg(rgb(theme::WHITE))
+                            .border_color(rgb(if selected {
+                                theme::ACCENT
+                            } else {
+                                theme::BORDER
+                            }))
+                            .bg(rgb(if selected {
+                                theme::SELECTED
+                            } else {
+                                theme::WHITE
+                            }))
                             .hover(|style| style.border_color(rgb(theme::ACCENT)))
+                            .focus(|style| {
+                                style
+                                    .border_color(rgb(theme::ACCENT))
+                                    .bg(rgb(theme::SELECTED))
+                            })
+                            .on_key_down(cx.listener(
+                                move |this, event: &KeyDownEvent, window, cx| {
+                                    if matches!(event.keystroke.key.as_str(), "enter" | "space") {
+                                        this.run_with(
+                                            STYLE_APPLY,
+                                            &[("style", ArgValue::Text(keyboard_id.clone()))],
+                                            window,
+                                            cx,
+                                        );
+                                        cx.stop_propagation();
+                                    }
+                                },
+                            ))
                             .on_click(cx.listener(move |this, _, window, cx| {
                                 this.run_with(
                                     STYLE_APPLY,
@@ -591,7 +659,13 @@ impl JoyWord {
                                     cx,
                                 );
                             }))
-                            .child(div().text_sm().child(row.name))
+                            .child(
+                                div()
+                                    .text_size(px(18.0))
+                                    .text_color(rgb(theme::ACCENT))
+                                    .child("Aa"),
+                            )
+                            .child(div().text_xs().overflow_hidden().child(row.name))
                             .into_any_element()
                     }))
                     .into_any_element(),
@@ -635,8 +709,11 @@ impl JoyWord {
             .gap_1()
             .h_full()
             .w(px(58.0))
-            .rounded_sm()
+            .rounded(px(theme::metrics::RADIUS))
+            .border_1()
+            .border_color(gpui::transparent_black())
             .hover(|style| style.bg(rgb(theme::HOVER)))
+            .focus(|style| style.border_color(rgb(theme::ACCENT)))
             .on_click(cx.listener(move |this, _, window, cx| {
                 this.show_find_panel(replace, window, cx);
                 cx.notify();
@@ -648,7 +725,7 @@ impl JoyWord {
                     cx.notify();
                 }
             }))
-            .child(drawn_icon(
+            .child(command_icon(
                 if replace { "replace" } else { "find" },
                 theme::TEXT,
             ))
@@ -663,7 +740,7 @@ impl JoyWord {
             .items_center()
             .h(px(theme::CONTROL_HEIGHT))
             .px_2()
-            .rounded_sm()
+            .rounded(px(theme::metrics::RADIUS))
             .hover(|style| style.bg(rgb(theme::HOVER)))
             .child(self.label("ui.more"))
             .child(" ▾")
@@ -677,7 +754,7 @@ impl gpui::Render for RibbonTooltip {
         div()
             .px_2()
             .py_1()
-            .rounded_sm()
+            .rounded(px(theme::metrics::RADIUS))
             .bg(rgb(theme::TEXT))
             .text_color(rgb(theme::WHITE))
             .text_sm()

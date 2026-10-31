@@ -117,23 +117,44 @@ impl JoyWord {
         div()
             .flex()
             .items_center()
-            .h(px(38.0))
-            .px_2()
-            .gap_1()
-            .bg(rgb(theme::ACCENT))
-            .text_color(rgb(theme::WHITE))
+            .flex_shrink_0()
+            .h(px(theme::metrics::HEADER))
+            .px_4()
+            .gap_2()
+            .bg(rgb(theme::HEADER))
+            .text_color(rgb(theme::TEXT))
+            .child(
+                div()
+                    .flex()
+                    .items_center()
+                    .gap_2()
+                    .mr_2()
+                    .child(joyoffice_ui::icon(
+                        joyoffice_ui::IconName::FileText,
+                        22.0,
+                        theme::ACCENT,
+                    ))
+                    .child(
+                        div()
+                            .text_size(px(15.0))
+                            .font_weight(gpui::FontWeight::SEMIBOLD)
+                            .child("JoyWord"),
+                    ),
+            )
             .child(
                 self.popup_trigger("file-menu", self.label("menu.file"), PopupKind::File, cx)
                     .cursor_pointer()
                     .px_3()
                     .py_1()
-                    .rounded_sm()
-                    .hover(|style| style.bg(rgb(theme::ACCENT_DARK)))
+                    .rounded(px(theme::metrics::RADIUS))
+                    .hover(|style| style.bg(rgb(theme::HOVER)))
+                    .focus(|style| style.bg(rgb(theme::SELECTED)))
+                    .text_size(px(13.0))
                     .child(self.label("menu.file")),
             )
             .child(controls::title_button(
                 "quick-open",
-                "↗",
+                "",
                 self.label("command.file.open"),
                 true,
                 false,
@@ -142,7 +163,7 @@ impl JoyWord {
             ))
             .child(controls::title_button(
                 "quick-save",
-                "▣",
+                "",
                 self.label("command.file.save"),
                 !matches!(
                     self.input_availability(FILE_SAVE),
@@ -152,9 +173,10 @@ impl JoyWord {
                 true,
                 activate(&entity, FILE_SAVE),
             ))
+            .child(div().w(px(1.0)).h(px(18.0)).mx_1().bg(rgb(theme::BORDER)))
             .child(controls::title_button(
                 "quick-undo",
-                "↶",
+                "",
                 self.label("command.edit.undo"),
                 !matches!(
                     self.input_availability(EDIT_UNDO),
@@ -166,7 +188,7 @@ impl JoyWord {
             ))
             .child(controls::title_button(
                 "quick-redo",
-                "↷",
+                "",
                 self.label("command.edit.redo"),
                 !matches!(
                     self.input_availability(EDIT_REDO),
@@ -179,25 +201,42 @@ impl JoyWord {
             .child(
                 div()
                     .flex_1()
-                    .flex()
-                    .justify_center()
-                    .text_sm()
-                    .child(format!(
-                        "{}{title} - JoyWord",
-                        if edited { "*" } else { "" }
-                    )),
+                    .min_w_0()
+                    .overflow_hidden()
+                    .px_3()
+                    .text_size(px(13.0))
+                    .font_weight(gpui::FontWeight::MEDIUM)
+                    .child(title),
             )
             .child(
                 div()
-                    .w(px(170.0))
                     .flex()
-                    .justify_end()
-                    .text_xs()
-                    .child(if edited {
-                        self.label("input.dirty")
-                    } else {
-                        self.label("app.saved")
-                    }),
+                    .items_center()
+                    .gap_2()
+                    .flex_shrink_0()
+                    .px_3()
+                    .py_1()
+                    .rounded_full()
+                    .bg(rgb(theme::WHITE))
+                    .child(joyoffice_ui::icon(
+                        if edited {
+                            joyoffice_ui::IconName::CircleDot
+                        } else {
+                            joyoffice_ui::IconName::CircleCheck
+                        },
+                        14.0,
+                        theme::ACCENT,
+                    ))
+                    .child(
+                        div()
+                            .text_xs()
+                            .text_color(rgb(theme::TEXT_MUTED))
+                            .child(if edited {
+                                self.label("input.dirty")
+                            } else {
+                                self.label("app.saved")
+                            }),
+                    ),
             )
     }
 
@@ -251,7 +290,7 @@ impl JoyWord {
                     .w(px(300.0))
                     .h_full()
                     .flex_shrink_0()
-                    .bg(rgb(theme::RIBBON))
+                    .bg(rgb(theme::WHITE))
                     .border_r_1()
                     .border_color(rgb(theme::BORDER))
                     .child(self.panel_header("find.query", cx))
@@ -269,7 +308,14 @@ impl JoyWord {
             .justify_between()
             .px_3()
             .py_2()
-            .child(div().text_sm().child(self.label(label)))
+            .border_b_1()
+            .border_color(rgb(theme::BORDER_LIGHT))
+            .child(
+                div()
+                    .text_size(px(14.0))
+                    .font_weight(gpui::FontWeight::SEMIBOLD)
+                    .child(self.label(label)),
+            )
             .child(controls::button(
                 SharedStringPanel::close_id(label),
                 "×",
@@ -378,9 +424,10 @@ impl JoyWord {
             .flex()
             .items_center()
             .h(px(theme::STATUS_HEIGHT))
-            .px_2()
+            .flex_shrink_0()
+            .px_4()
             .gap_2()
-            .bg(rgb(theme::WHITE))
+            .bg(rgb(theme::RIBBON))
             .border_t_1()
             .border_color(rgb(theme::BORDER))
             .text_xs()
@@ -593,7 +640,7 @@ impl JoyWord {
     }
 
     fn popup_card(&self, kind: PopupKind, cx: &mut Context<Self>) -> gpui::AnyElement {
-        let card = div()
+        let card = joyoffice_ui::card(theme::PALETTE)
             .id(SharedStringPopup::id(kind))
             .role(gpui::Role::Group)
             .aria_label(self.label(if matches!(kind, PopupKind::File) {
