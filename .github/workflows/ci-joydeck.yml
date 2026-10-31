@@ -5,6 +5,12 @@ permissions:
   contents: read
 jobs:
   playback:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [parallel, serial]
+    env:
+      DIAGNOSTIC_MODE: ${{ matrix.mode }}
     runs-on: macos-15
     timeout-minutes: 15
     steps:
@@ -24,6 +30,6 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: joydeck-playback-diagnostic
+          name: joydeck-playback-diagnostic-${{ matrix.mode }}
           path: artifacts/playback-diagnostic
           if-no-files-found: error
