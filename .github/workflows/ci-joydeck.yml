@@ -4,6 +4,7 @@ name: JoyDeck CI
 # actual shared dependencies; root locks and shared code therefore stay covered.
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

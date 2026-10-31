@@ -4,7 +4,7 @@
 
 - `original-source-and-evidence.tar.gz`：完整旧源码、全部原始证据、日志与导出结果，排除可重建 target 和单独存放的 dist。
 - `dist/`：原目录全部历史开发包、源代码回退包、包内校验材料。原名保留，不覆盖旧产物。
-- [旧产物文件清单与 SHA-256](validation/joydeck-legacy-artifacts.json)：用报告中原来的 `dist/...` 路径查找本机 `archivePath`。
+- [旧产物索引与 SHA-256](validation/joydeck-legacy-artifacts.json)：用报告中原来的 `dist/...` 路径查找本机 `archivePath`。压缩文件逐项记录 hash，展开目录记录文件总数、总大小、聚合内容 hash 及包内校验清单；全部原文件仍完整留存，聚合算法写在索引中。
 - [原始文件清单](validation/joydeck-source-inventory-20261031.json)：包含源快照归档的 SHA-256。
 
 历史报告里的“最新包”仅指报告当时的产物；其功能、签名、平台验收边界保持原记录。迁移后的新代码必须重新构建和验证，不能将旧包或旧 hash 作为迁移通过的证据。
