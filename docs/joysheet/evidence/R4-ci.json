@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "testsPassed": 1390,
+  "testsFailed": 0,
+  "testsIgnored": 1,
+  "checks": [
+    "fmt",
+    "strict clippy workspace all targets automation",
+    "workspace tests automation",
+    "layers"
+  ],
+  "log": "artifacts/R4-ci-final.log"
+}

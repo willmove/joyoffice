@@ -1,0 +1,176 @@
+{
+  "date": "2026-10-31",
+  "product": "joysheet",
+  "packages": [
+    {
+      "automation": false,
+      "version": "0.1.0",
+      "target": "x86_64-pc-windows-msvc",
+      "directory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2",
+      "archive": {
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2.zip",
+        "bytes": 34130055,
+        "sha256": "adea3ab15726e25c0bb31719743d1fface193e68c50ccd65d191e6b37ffef472"
+      },
+      "sourceArchive": {
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2-source.zip",
+        "bytes": 11442748,
+        "sha256": "f80c1d255f7edeb89136520b97ceed4602d44218022df15cf2d2007857494e76"
+      },
+      "installer": {
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2-setup.exe",
+        "bytes": 31498527,
+        "sha256": "72d124a431f4f59c17dada3a32f35e4b0b053b68f1175e9da51ab5b661931acc"
+      },
+      "binaries": {
+        "joysheet.exe": "f046f3283ef945282005b440c6f8faabae7c8a14a97c07d48f1e6c584a1e935a",
+        "joysheet-cli.exe": "9c8cbc630d493870544a8ca81e71ec0768b9f306ab8fac6124c696bbc2887b20"
+      },
+      "dependencyCount": 431,
+      "missingLicenseTexts": 0,
+      "foreignProductDependencies": [],
+      "payloadFilesVerified": 1241,
+      "sourceFilesVerified": 903,
+      "currentRepositoryInputsStillMatch": true,
+      "sourceSnapshotVerified": true,
+      "officialSignatureVerified": false
+    },
+    {
+      "automation": true,
+      "version": "0.1.0",
+      "target": "x86_64-pc-windows-msvc",
+      "directory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2",
+      "archive": {
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2.zip",
+        "bytes": 34330330,
+        "sha256": "e7a1e280f842445861ef50b286c54bac655a50ee298d32ac1c25f1487eb85987"
+      },
+      "sourceArchive": {
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2-source.zip",
+        "bytes": 11442748,
+        "sha256": "7a334950821fa5785010f5e75f489337379e3d4f9390e1880dcd7cabfce5ddf5"
+      },
+      "installer": {
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2-setup.exe",
+        "bytes": 31583536,
+        "sha256": "81156750625d816178c33101f4e2a6169e8e9a69882bd194f94b47dff681c15e"
+      },
+      "binaries": {
+        "joysheet.exe": "e21d01e6fbb8f5ac916f995ff7b1881c00c37cff25b3e2cc67f0a0bdbd64d704",
+        "joysheet-cli.exe": "9c8cbc630d493870544a8ca81e71ec0768b9f306ab8fac6124c696bbc2887b20"
+      },
+      "dependencyCount": 451,
+      "missingLicenseTexts": 0,
+      "foreignProductDependencies": [],
+      "payloadFilesVerified": 1281,
+      "sourceFilesVerified": 903,
+      "currentRepositoryInputsStillMatch": true,
+      "sourceSnapshotVerified": true,
+      "officialSignatureVerified": false
+    }
+  ],
+  "ordinaryAutomationDefaultOffNativeProbe": {
+    "cell": {
+      "cell": "A1",
+      "value": 12345.0,
+      "type": "number",
+      "formula": null,
+      "text": "12345",
+      "input": "12345",
+      "picture": null,
+      "spilledFrom": null,
+      "spill": null,
+      "style": {
+        "font": {
+          "name": "Calibri",
+          "size": 11.0,
+          "bold": false,
+          "italic": false,
+          "underline": "None",
+          "strike": false,
+          "color": "Auto",
+          "vert": "Baseline",
+          "charset": null,
+          "family": null,
+          "minor": true
+        },
+        "fill": {
+          "pattern": "None",
+          "fg": "Auto",
+          "bg": "Auto"
+        },
+        "borders": {
+          "left": {
+            "style": "None",
+            "color": "Auto"
+          },
+          "right": {
+            "style": "None",
+            "color": "Auto"
+          },
+          "top": {
+            "style": "None",
+            "color": "Auto"
+          },
+          "bottom": {
+            "style": "None",
+            "color": "Auto"
+          },
+          "diag_down": {
+            "style": "None",
+            "color": "Auto"
+          },
+          "diag_up": {
+            "style": "None",
+            "color": "Auto"
+          }
+        },
+        "align": {
+          "h": "General",
+          "v": "Bottom",
+          "wrap": false,
+          "shrink": false,
+          "indent": 0,
+          "rotation": 0
+        },
+        "num_fmt": "General",
+        "protection": {
+          "locked": true,
+          "hidden": false
+        },
+        "dxf_stated": {
+          "bold": false,
+          "italic": false,
+          "strike": false,
+          "underline": false,
+          "size": false,
+          "name": false,
+          "scheme": null,
+          "protection": false
+        }
+      },
+      "merge": null,
+      "comment": null,
+      "hyperlink": null
+    },
+    "binarySha256": "f046f3283ef945282005b440c6f8faabae7c8a14a97c07d48f1e6c584a1e935a",
+    "automationDefaultOff": true,
+    "binary": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2\\joysheet.exe",
+    "capabilities": {
+      "screenshot": false,
+      "nativeImeVerified": false,
+      "gpuiInput": true,
+      "versionFences": true,
+      "lifecycleCompletion": true,
+      "scriptCancellation": "betweenCommands",
+      "mcpTargetedScreenshots": true
+    },
+    "passed": true
+  },
+  "standaloneSourceContentsIdentical": true,
+  "standaloneSourceFiles": 905,
+  "originalMonorepoRegistryPinsRetained": true,
+  "addedRegistryPins": 25,
+  "formalReleasePublished": false,
+  "nonWindowsNativeGuiAcceptance": "not run on this Windows host"
+}

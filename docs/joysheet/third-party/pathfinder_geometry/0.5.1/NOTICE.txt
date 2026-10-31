@@ -1,0 +1,105 @@
+pathfinder_geometry-0.5.1
+
+Published crate license declaration: MIT/Apache-2.0
+
+Published authors (not a synthesized copyright notice): Patrick Walton <pcwalton@mimiga.net>
+
+See SOURCE.json for exact source URLs, refs and hashes.
+
+The legacy Cargo VCS revision is unavailable through the upstream repository API.
+
+License texts are copied from the explicitly pinned upstream revision in SOURCE.json, not represented as files shipped in the published crate.
+
+
+
+Verbatim source-header notices from the published crate:
+
+// pathfinder/geometry/src/angle.rs
+//
+// Copyright © 2020 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/basic/line_segment.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/basic/point.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/basic/rect.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/basic/transform2d.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/basic/transform3d.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/lib.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/unit_vector.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+// pathfinder/geometry/src/util.rs
+//
+// Copyright © 2019 The Pathfinder Project Developers.
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.

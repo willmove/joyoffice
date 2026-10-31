@@ -1,0 +1,29 @@
+{
+  "scope": "target graph plus Windows build-host dependencies; native output verified by CI",
+  "reports": [
+    {
+      "target": "aarch64-apple-darwin",
+      "dependenciesWithWindowsBuildHost": 449,
+      "missingLicenseTexts": 0,
+      "licenseTextsVerified": true
+    },
+    {
+      "target": "x86_64-unknown-linux-gnu",
+      "dependenciesWithWindowsBuildHost": 556,
+      "missingLicenseTexts": 0,
+      "licenseTextsVerified": true
+    },
+    {
+      "target": "aarch64-unknown-linux-gnu",
+      "dependenciesWithWindowsBuildHost": 555,
+      "missingLicenseTexts": 0,
+      "licenseTextsVerified": true
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "dependenciesWithWindowsBuildHost": 431,
+      "missingLicenseTexts": 0,
+      "licenseTextsVerified": true
+    }
+  ]
+}

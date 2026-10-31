@@ -1,0 +1,1153 @@
+commit: edit 127.9µs, 38 changed
+recalc: 38 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 5.1603ms
+commit: + rows 6.3778ms
+commit: edit 35.3µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 4.0396ms
+commit: + rows 5.3557ms
+commit: edit 40µs, 0 changed
+commit: + recalc 1.3937ms
+commit: + rows 2.6591ms
+commit: edit 28.7µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 4.1209ms
+commit: + rows 5.5411ms
+commit: edit 22.9µs, 0 changed
+commit: + recalc 1.6049ms
+commit: + rows 2.7455ms
+commit: edit 427.6µs, 1 changed
+  eval 1 formulas 0.1 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 2.0 ms
+commit: + recalc 6.8551ms
+commit: + rows 7.9626ms
+commit: edit 23.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 1.4942ms
+commit: + rows 1.7899ms
+commit: edit 5.7µs, 0 changed
+commit: + recalc 408.5µs
+commit: + rows 831.3µs
+commit: edit 13.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 1.505ms
+commit: + rows 1.8072ms
+commit: edit 12.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 1.4752ms
+commit: + rows 1.7733ms
+commit: edit 2.7µs, 0 changed
+commit: + recalc 512.6µs
+commit: + rows 809.8µs
+commit: edit 10.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 1.5915ms
+commit: + rows 1.8911ms
+commit: edit 17.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 1.6265ms
+commit: + rows 2.1148ms
+commit: edit 4.1µs, 0 changed
+commit: + recalc 837.1µs
+commit: + rows 1.4372ms
+commit: edit 30.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 2.9476ms
+commit: + rows 3.4609ms
+commit: edit 26.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 2.5977ms
+commit: + rows 3.0878ms
+commit: edit 5µs, 0 changed
+commit: + recalc 664.4µs
+commit: + rows 1.1454ms
+commit: edit 19.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.5743ms
+commit: + rows 3.0722ms
+commit: edit 14µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.6 ms
+commit: + recalc 3.2449ms
+commit: + rows 3.7481ms
+commit: edit 7.7µs, 0 changed
+commit: + recalc 626µs
+commit: + rows 964µs
+commit: edit 21.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 2.5069ms
+commit: + rows 3.007ms
+commit: edit 17.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6287ms
+commit: + rows 3.1305ms
+commit: edit 2.6µs, 0 changed
+commit: + recalc 793.3µs
+commit: + rows 1.521ms
+commit: edit 75.7µs, 0 changed
+  eval 12 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 2.2065ms
+commit: + rows 3.3024ms
+commit: edit 57.7µs, 0 changed
+  eval 13 formulas 0.1 ms
+  write-back 0.0 ms
+commit: + recalc 2.2112ms
+commit: + rows 2.6031ms
+commit: edit 31.3µs, 0 changed
+  eval 14 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 1.21ms
+commit: + rows 1.503ms
+commit: edit 38.9µs, 0 changed
+  eval 15 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 1.0022ms
+commit: + rows 1.2992ms
+commit: edit 44.4µs, 0 changed
+  eval 16 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 1.0786ms
+commit: + rows 1.3688ms
+commit: edit 32.9µs, 0 changed
+  eval 17 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 1.0684ms
+commit: + rows 1.3524ms
+commit: edit 48.3µs, 0 changed
+  eval 18 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 1.5597ms
+commit: + rows 1.9756ms
+commit: edit 57.2µs, 0 changed
+  eval 19 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 1.0906ms
+commit: + rows 1.4636ms
+commit: edit 49.9µs, 0 changed
+  eval 18 formulas 0.0 ms
+  write-back 0.0 ms
+commit: + recalc 2.0265ms
+commit: + rows 2.3652ms
+commit: edit 54.3µs, 0 changed
+commit: + recalc 510.7µs
+commit: + rows 1.1764ms
+commit: edit 23.3µs, 0 changed
+commit: + recalc 892.4µs
+commit: + rows 1.2702ms
+commit: edit 14µs, 0 changed
+commit: + recalc 377.3µs
+commit: + rows 772.5µs
+commit: edit 13.8µs, 0 changed
+commit: + recalc 771.3µs
+commit: + rows 1.165ms
+commit: edit 11.1µs, 0 changed
+commit: + recalc 549.1µs
+commit: + rows 910.6µs
+commit: edit 8.9µs, 0 changed
+commit: + recalc 532.3µs
+commit: + rows 891.3µs
+commit: edit 19.9µs, 0 changed
+commit: + recalc 1.3773ms
+commit: + rows 1.8856ms
+commit: edit 12.7µs, 0 changed
+commit: + recalc 481µs
+commit: + rows 773.7µs
+commit: edit 8.5µs, 0 changed
+commit: + recalc 416.2µs
+commit: + rows 806.4µs
+commit: edit 14.4µs, 0 changed
+commit: + recalc 605.2µs
+commit: + rows 1.1798ms
+commit: edit 37.6µs, 4 changed
+  eval 6 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 4 seeds, closure 6 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.2098ms
+commit: + rows 2.5349ms
+commit: edit 60µs, 1 changed
+  eval 7 formulas 0.1 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 7 cells 0.0 ms, run 1.0 ms
+commit: + recalc 2.3121ms
+commit: + rows 2.6478ms
+commit: edit 30.8µs, 1 changed
+  eval 8 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 8 cells 0.0 ms, run 0.7 ms
+commit: + recalc 1.9981ms
+commit: + rows 2.403ms
+commit: edit 19.8µs, 1 changed
+  eval 8 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 8 cells 0.0 ms, run 1.0 ms
+commit: + recalc 2.6074ms
+commit: + rows 2.9912ms
+commit: edit 43.1µs, 1 changed
+  eval 8 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 8 cells 0.0 ms, run 0.6 ms
+commit: + recalc 1.7616ms
+commit: + rows 2.1883ms
+commit: edit 30.5µs, 0 changed
+commit: + recalc 756.4µs
+commit: + rows 1.5473ms
+commit: edit 34.1µs, 0 changed
+commit: + recalc 540.3µs
+commit: + rows 865.1µs
+commit: edit 26µs, 0 changed
+commit: + recalc 416.5µs
+commit: + rows 717µs
+commit: edit 42.6µs, 0 changed
+commit: + recalc 531.5µs
+commit: + rows 1.0308ms
+commit: edit 33.6µs, 0 changed
+commit: + recalc 726.1µs
+commit: + rows 1.2397ms
+commit: edit 24.7µs, 0 changed
+commit: + recalc 996.7µs
+commit: + rows 1.6725ms
+  eval 22 formulas 0.0 ms
+  write-back 0.0 ms
+Joysheet: engine initialized
+Joysheet control: 127.0.0.1:64631; token: D:\Coding\EditorProjects\joysheet\artifacts\desktop\isolated-profile-64631\control-64631.token
+Joysheet: initializing GPUI components
+Joysheet: opening desktop window
+Joysheet: desktop window initialized
+commit: edit 21.6µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 1.6289ms
+commit: + rows 2.0497ms
+commit: edit 14.4µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 2.3727ms
+commit: + rows 2.8912ms
+commit: edit 51.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 8.1691ms
+commit: + rows 8.6057ms
+commit: edit 16.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 7.7798ms
+commit: + rows 8.1603ms
+commit: edit 26.5µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 4.4776ms
+commit: + rows 5.2716ms
+commit: edit 32.7µs, 4 changed
+recalc: 4 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 1.7961ms
+commit: + rows 2.09ms
+commit: edit 30.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.5175ms
+commit: + rows 3.8144ms
+commit: edit 51.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.7787ms
+commit: + rows 3.2875ms
+commit: edit 128.7µs, 2 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 2 seeds, closure 1 cells 0.0 ms, run 1.2 ms
+commit: + recalc 4.6693ms
+commit: + rows 5.1246ms
+commit: edit 34.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.3407ms
+commit: + rows 2.6651ms
+commit: edit 16.5µs, 0 changed
+commit: + recalc 996.7µs
+commit: + rows 1.4406ms
+commit: edit 10.9µs, 0 changed
+commit: + recalc 933.9µs
+commit: + rows 1.2233ms
+commit: edit 53.9µs, 0 changed
+commit: + recalc 1.4617ms
+commit: + rows 2.2482ms
+commit: edit 29.8µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 1.3723ms
+commit: + rows 1.6747ms
+commit: edit 18.3µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 1.5589ms
+commit: + rows 1.9367ms
+  eval 4 formulas 0.0 ms
+  write-back 0.0 ms
+commit: edit 17.7µs, 1 changed
+recalc: 1 seeds, closure 0 cells 0.0 ms, run 0.0 ms
+commit: + recalc 1.5658ms
+commit: + rows 1.9123ms
+commit: edit 71.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.7425ms
+commit: + rows 3.0827ms
+commit: edit 118.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 2.5876ms
+commit: + rows 2.9076ms
+commit: edit 65.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.4331ms
+commit: + rows 2.7414ms
+commit: edit 66.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 1.9502ms
+commit: + rows 2.242ms
+commit: edit 76.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.5626ms
+commit: + rows 3.8729ms
+commit: edit 125µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 3.0 ms
+commit: + recalc 6.5575ms
+commit: + rows 7.0048ms
+commit: edit 89.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.7625ms
+commit: + rows 3.1735ms
+commit: edit 96.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.8 ms
+commit: + recalc 7.025ms
+commit: + rows 7.4224ms
+commit: edit 84.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.8686ms
+commit: + rows 3.2096ms
+commit: edit 92.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 2.1823ms
+commit: + rows 2.4803ms
+commit: edit 77.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 7.6224ms
+commit: + rows 8.0227ms
+commit: edit 60µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.3792ms
+commit: + rows 2.7552ms
+commit: edit 71µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.529ms
+commit: + rows 2.9263ms
+commit: edit 67.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.3371ms
+commit: + rows 2.6521ms
+commit: edit 62.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 3.151ms
+commit: + rows 3.5892ms
+commit: edit 57.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.4051ms
+commit: + rows 2.7029ms
+commit: edit 91µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.3 ms
+commit: + recalc 3.4555ms
+commit: + rows 3.8709ms
+commit: edit 60.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.4902ms
+commit: + rows 2.9265ms
+commit: edit 118.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 9.0966ms
+commit: + rows 9.4341ms
+commit: edit 62.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.6 ms
+commit: + recalc 3.3827ms
+commit: + rows 3.7041ms
+commit: edit 89.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 8.1567ms
+commit: + rows 8.5519ms
+commit: edit 57.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 2.8757ms
+commit: + rows 3.2322ms
+commit: edit 124.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 7.7978ms
+commit: + rows 8.3299ms
+commit: edit 104.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 7.6245ms
+commit: + rows 8.3446ms
+commit: edit 73.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.4776ms
+commit: + rows 2.8284ms
+commit: edit 77.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.3173ms
+commit: + rows 2.6396ms
+commit: edit 135.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 7.9169ms
+commit: + rows 8.2529ms
+commit: edit 95.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.4735ms
+commit: + rows 4.0143ms
+commit: edit 58.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.9934ms
+commit: + rows 3.3944ms
+commit: edit 150.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 8.8453ms
+commit: + rows 9.1857ms
+commit: edit 41.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.6 ms
+commit: + recalc 4.2068ms
+commit: + rows 4.5471ms
+commit: edit 161.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 4.1393ms
+commit: + rows 4.5765ms
+commit: edit 68.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 9.1752ms
+commit: + rows 9.8206ms
+commit: edit 48.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.9696ms
+commit: + rows 3.3593ms
+commit: edit 53.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.4833ms
+commit: + rows 2.7879ms
+commit: edit 108.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.5578ms
+commit: + rows 3.094ms
+commit: edit 150.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 3.0346ms
+commit: + rows 3.5843ms
+commit: edit 112.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 3.0137ms
+commit: + rows 3.4585ms
+commit: edit 116.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.085ms
+commit: + rows 3.5694ms
+commit: edit 177µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 7.5367ms
+commit: + rows 8.0133ms
+commit: edit 276.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 7.4545ms
+commit: + rows 7.7477ms
+commit: edit 146.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 7.7744ms
+commit: + rows 8.1176ms
+commit: edit 269.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.2251ms
+commit: + rows 3.5972ms
+commit: edit 114.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.5487ms
+commit: + rows 2.8817ms
+commit: edit 72.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.7502ms
+commit: + rows 3.1816ms
+commit: edit 116.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.6215ms
+commit: + rows 3.1042ms
+commit: edit 146.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.5729ms
+commit: + rows 3.9837ms
+commit: edit 127.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6302ms
+commit: + rows 3.026ms
+commit: edit 173.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.9 ms
+commit: + recalc 9.3244ms
+commit: + rows 9.7659ms
+commit: edit 171µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 2.7254ms
+commit: + rows 3.1844ms
+commit: edit 173.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.1436ms
+commit: + rows 3.5258ms
+commit: edit 87µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.5409ms
+commit: + rows 2.9317ms
+commit: edit 113.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.3 ms
+commit: + recalc 4.5097ms
+commit: + rows 4.8193ms
+commit: edit 122.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.4695ms
+commit: + rows 2.797ms
+commit: edit 88.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6839ms
+commit: + rows 2.9923ms
+commit: edit 198.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 2.2 ms
+commit: + recalc 6.5875ms
+commit: + rows 7.1423ms
+commit: edit 111.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.3 ms
+commit: + recalc 3.5708ms
+commit: + rows 3.8646ms
+commit: edit 105.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.6442ms
+commit: + rows 3.0261ms
+commit: edit 175.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 3.874ms
+commit: + rows 4.5612ms
+commit: edit 102.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6214ms
+commit: + rows 3.1088ms
+commit: edit 127.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.4 ms
+commit: + recalc 4.1314ms
+commit: + rows 4.538ms
+commit: edit 158µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.7032ms
+commit: + rows 3.1049ms
+commit: edit 110.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 2.078ms
+commit: + rows 2.4115ms
+commit: edit 136.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 3.2093ms
+commit: + rows 3.5487ms
+commit: edit 112.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.7188ms
+commit: + rows 3.0228ms
+commit: edit 136.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 8.6664ms
+commit: + rows 9.1253ms
+commit: edit 118.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.5 ms
+commit: + recalc 3.8263ms
+commit: + rows 4.1798ms
+commit: edit 124.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.0154ms
+commit: + rows 3.3771ms
+commit: edit 135.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.6761ms
+commit: + rows 3.0324ms
+commit: edit 137µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.8162ms
+commit: + rows 3.2404ms
+commit: edit 96.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 8.3101ms
+commit: + rows 8.6518ms
+commit: edit 72µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.116ms
+commit: + rows 3.7699ms
+commit: edit 74.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.9654ms
+commit: + rows 3.3811ms
+commit: edit 84.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 3.6122ms
+commit: + rows 4.0734ms
+commit: edit 97.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6301ms
+commit: + rows 3.0034ms
+commit: edit 66.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 7.9766ms
+commit: + rows 8.3775ms
+commit: edit 74.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.5799ms
+commit: + rows 2.927ms
+commit: edit 69.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 3.0688ms
+commit: + rows 3.4437ms
+commit: edit 81.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.6531ms
+commit: + rows 3.0169ms
+commit: edit 59µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 7.5535ms
+commit: + rows 7.9436ms
+commit: edit 74.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.7385ms
+commit: + rows 3.1842ms
+commit: edit 69.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 2.9661ms
+commit: + rows 3.4042ms
+commit: edit 57.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.5218ms
+commit: + rows 2.9866ms
+commit: edit 173.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.7 ms
+commit: + recalc 5.4215ms
+commit: + rows 5.8406ms
+commit: edit 62.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 7.7718ms
+commit: + rows 8.1231ms
+commit: edit 94µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 3.3625ms
+commit: + rows 3.6653ms
+commit: edit 108.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.1586ms
+commit: + rows 3.5321ms
+commit: edit 78.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.3 ms
+commit: + recalc 3.8523ms
+commit: + rows 4.2769ms
+commit: edit 83.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 9.2264ms
+commit: + rows 9.5454ms
+commit: edit 93.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.5 ms
+commit: + recalc 2.0081ms
+commit: + rows 2.3027ms
+commit: edit 109.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.0565ms
+commit: + rows 3.4695ms
+commit: edit 48.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.3757ms
+commit: + rows 2.9753ms
+commit: edit 86µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.2 ms
+commit: + recalc 2.8105ms
+commit: + rows 3.1106ms
+commit: edit 106.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.5 ms
+commit: + recalc 4.0954ms
+commit: + rows 4.5258ms
+commit: edit 68.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 2.8677ms
+commit: + rows 3.1946ms
+commit: edit 107.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 8.6081ms
+commit: + rows 9.1231ms
+commit: edit 117.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 3.5013ms
+commit: + rows 3.9457ms
+commit: edit 56.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 3.1604ms
+commit: + rows 3.591ms
+commit: edit 113.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.8 ms
+commit: + recalc 5.0093ms
+commit: + rows 5.3224ms
+commit: edit 102.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 7.9031ms
+commit: + rows 8.2054ms
+commit: edit 86.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.4051ms
+commit: + rows 3.8722ms
+commit: edit 77.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6639ms
+commit: + rows 2.9684ms
+commit: edit 126.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.3558ms
+commit: + rows 3.8363ms
+commit: edit 136.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 7.7157ms
+commit: + rows 8.0352ms
+commit: edit 72.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.5926ms
+commit: + rows 2.9374ms
+commit: edit 129.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.1 ms
+commit: + recalc 3.1583ms
+commit: + rows 3.6158ms
+commit: edit 114.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.4754ms
+commit: + rows 3.8144ms
+commit: edit 141µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6318ms
+commit: + rows 2.9742ms
+commit: edit 115.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.3196ms
+commit: + rows 2.7013ms
+commit: edit 233.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.4 ms
+commit: + recalc 5.4834ms
+commit: + rows 6.1656ms
+commit: edit 268.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 2.2 ms
+commit: + recalc 6.0403ms
+commit: + rows 6.5253ms
+commit: edit 137µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.0 ms
+commit: + recalc 3.4621ms
+commit: + rows 3.8025ms
+commit: edit 139.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.7731ms
+commit: + rows 3.1512ms
+commit: edit 154µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6029ms
+commit: + rows 3.0484ms
+commit: edit 223µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.2 ms
+commit: + recalc 4.3715ms
+commit: + rows 4.9773ms
+commit: edit 138.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.1349ms
+commit: + rows 2.4683ms
+commit: edit 169.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.9218ms
+commit: + rows 3.2379ms
+commit: edit 165.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 3.6766ms
+commit: + rows 4.164ms
+commit: edit 123.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.4 ms
+commit: + recalc 5.3599ms
+commit: + rows 5.7424ms
+commit: edit 182.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.7568ms
+commit: + rows 3.127ms
+commit: edit 129.8µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.5295ms
+commit: + rows 3.9613ms
+commit: edit 222.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 7.8401ms
+commit: + rows 8.259ms
+commit: edit 136.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6886ms
+commit: + rows 3.1017ms
+commit: edit 298.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.443ms
+commit: + rows 3.9224ms
+commit: edit 111.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.6286ms
+commit: + rows 3.1027ms
+commit: edit 149.3µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.0425ms
+commit: + rows 3.412ms
+commit: edit 104.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.4 ms
+commit: + recalc 3.6277ms
+commit: + rows 4.2356ms
+commit: edit 141.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.8855ms
+commit: + rows 3.3202ms
+commit: edit 77.2µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.2 ms
+commit: + recalc 4.1724ms
+commit: + rows 4.6942ms
+commit: edit 111.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.3578ms
+commit: + rows 3.936ms
+commit: edit 70.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.7004ms
+commit: + rows 3.0016ms
+commit: edit 83.5µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.3 ms
+commit: + recalc 3.5196ms
+commit: + rows 3.9968ms
+commit: edit 107.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 2.1 ms
+commit: + recalc 5.1365ms
+commit: + rows 5.5035ms
+commit: edit 170.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.6 ms
+commit: + recalc 2.8205ms
+commit: + rows 3.1877ms
+commit: edit 112.9µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.9 ms
+commit: + recalc 3.2012ms
+commit: + rows 3.6287ms
+commit: edit 200µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 1.4 ms
+commit: + recalc 4.6089ms
+commit: + rows 5.0093ms
+commit: edit 158.6µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 2.4 ms
+commit: + recalc 4.5456ms
+commit: + rows 4.9924ms
+commit: edit 121.1µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.9411ms
+commit: + rows 3.3823ms
+commit: edit 103.4µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.7 ms
+commit: + recalc 2.5394ms
+commit: + rows 2.8641ms
+commit: edit 152.7µs, 1 changed
+  eval 1 formulas 0.0 ms
+  write-back 0.0 ms
+recalc: 1 seeds, closure 1 cells 0.0 ms, run 0.8 ms
+commit: + recalc 2.5712ms
+commit: + rows 2.9365ms

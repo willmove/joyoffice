@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-29",
+  "testsPassed": 1369,
+  "passed": true,
+  "log": "artifacts/Windows-ci.log",
+  "checks": [
+    "fmt",
+    "strict workspace/all-targets Clippy",
+    "workspace unit/integration/doc tests",
+    "dependency layers: no egui/eframe"
+  ],
+  "testsFailed": 0,
+  "command": "cargo xtask ci",
+  "testsIgnored": 1
+}

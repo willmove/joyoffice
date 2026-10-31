@@ -1,0 +1,36 @@
+[package]
+publish = false
+name = "joysheet-ui-gpui"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[dependencies]
+gpui-kit = { workspace = true }
+joysheet-app = { workspace = true }
+joysheet-platform = { workspace = true }
+joysheet-protocol = { workspace = true }
+joysheet-engine = { workspace = true }
+joysheet-chart = { workspace = true }
+joysheet-functions.workspace = true
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+serde.workspace=true
+log = { workspace = true }
+image = { workspace = true, features = ["png", "jpeg"] }
+usvg = "=0.45.1"
+raw-window-handle = "=0.6.2"
+gpui-base = "=0.8.1"
+gpui-readback = { package = "gpui-pre-platform", version = "=0.3.10", optional = true, features = ["test-support"] }
+
+[features]
+automation = ["dep:gpui-readback"]
+

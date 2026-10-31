@@ -1,0 +1,28 @@
+{
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 62,
+    "paintP95Ms": 2.4894000000000003,
+    "paintedCells": 640,
+    "gpuPresentationMeasured": false
+  },
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "passed": true,
+  "platform": "Windows x64",
+  "m6Task": 0,
+  "saveDialog": false,
+  "port": 55241,
+  "stage": "M1",
+  "m7Task": 1,
+  "processId": 13064,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "M7.1 production pivot builder and field drag, descriptive report, goal seek and simplex solver"
+  ],
+  "m4Task": 0,
+  "nativeImeVerified": false,
+  "m5Task": 0
+}

@@ -1,0 +1,120 @@
+name: JoySheet CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    name: JoyOffice joint feature regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Linux desktop libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+      - name: Fixed toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ runner.arch }}-joyoffice-joint-${{ hashFiles('Cargo.lock') }}
+      - name: Joint defaults
+        run: |
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo test --workspace --locked
+      - name: Joint desktop validation features
+        run: |
+          cargo clippy --workspace --all-targets --locked --features joysheet/automation,joydeck/validation -- -D warnings
+          cargo test --workspace --locked --features joysheet/automation,joydeck/validation
+  headless:
+    name: JoySheet headless and WASM
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Fixed toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy --target wasm32-unknown-unknown
+      - name: Product engineering regression
+        run: |
+          python -m unittest discover -s tools/xtask -p 'test_*.py'
+          python -m unittest discover -s scripts/joysheet/tests -p 'test_*.py'
+      - name: Headless checks
+        run: cargo xtask check joysheet --headless
+      - name: CLI dependency isolation
+        shell: bash
+        run: |
+          cargo tree -p joysheet-cli --locked --edges normal,build > cli-dependencies.txt
+          if grep -E 'gpui|egui|eframe|joyword|joydeck' cli-dependencies.txt; then
+            echo 'Sheet CLI acquired a GUI or another product dependency'
+            exit 1
+          fi
+      - name: Portable core
+        run: cargo xtask wasm joysheet
+      - name: Engine roundtrip smoke
+        run: cargo xtask smoke joysheet --stage M8 --engine-only
+  desktop:
+    name: JoySheet desktop (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, macos-15, ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 100
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '15.0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Linux desktop libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+      - name: macOS Metal toolchain
+        if: runner.os == 'macOS'
+        run: xcrun --find metal
+      - name: Windows installer compiler
+        if: runner.os == 'Windows'
+        run: choco install nsis --version=3.11 -y --no-progress
+      - name: Fixed toolchain
+        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ runner.arch }}-joysheet-${{ hashFiles('Cargo.lock') }}
+      - name: Product and automation checks
+        run: cargo xtask check joysheet --validation
+      - name: Ordinary desktop build
+        run: cargo xtask build joysheet
+      - name: Native package and independently resolved source artifact
+        run: cargo xtask package joysheet --release
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: joysheet-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            dist/joysheet/*.zip
+            dist/joysheet/*.sha256
+            dist/joysheet/*-setup.exe
+            dist/joysheet/*.dmg
+            dist/joysheet/*.deb
+            dist/joysheet/*.tar.gz
+          if-no-files-found: error

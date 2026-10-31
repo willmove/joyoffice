@@ -1,0 +1,13 @@
+malloc_buf-0.0.6
+
+Published crate license declaration: MIT
+
+Published authors (not a synthesized copyright notice): Steven Sheldon
+
+See SOURCE.json for exact source URLs, refs and hashes.
+
+The published crate and matching upstream version tag contain no standalone license file.
+
+The unmodified standard SPDX MIT template is attached to the published MIT declaration.
+
+Its placeholders are a template, not an asserted copyright identity/year. No upstream-provided license file is claimed.

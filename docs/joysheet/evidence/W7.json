@@ -1,0 +1,39 @@
+{
+  "windowsTask": 0,
+  "windowsFrom": 1,
+  "saveDialog": false,
+  "m4Task": 0,
+  "platform": "Windows x64",
+  "passed": true,
+  "windowsQualityTask": 3,
+  "m5Task": 0,
+  "binarySha256": "e625ac36262fd1f257b9a218ccf7897cb49069612d51c13db8992ff1150fa56f",
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 160,
+    "paintP95Ms": 2.3229,
+    "paintedCells": 701,
+    "gpuPresentationMeasured": false,
+    "editSamples": 2,
+    "editP95Ms": 47.2461,
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "nativeImeVerified": false,
+  "processId": 11616,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "W5 both real input handlers: UTF-16 Chinese/emoji composition, Enter/Tab/F6 and pointer/commit/save guards, candidate layout and exactly-once commit (synthetic IME)",
+    "W6 production logical layout at synthetic 100/125/150/175/200/300 percent DPI with native-resolution GPU captures, 125 percent worksheet zoom/freeze, IME anchors and hit testing; real OS scale restored",
+    "W7 actual Windows UIA discovers the AccessKit grid and focuses a merged cell through its provider; spans/values, virtual node budget and frozen clipping verified (screen-reader speech remains manual)"
+  ],
+  "m7Task": 0,
+  "m8Task": 0,
+  "m6Task": 0,
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "stage": "M1",
+  "port": 54159
+}

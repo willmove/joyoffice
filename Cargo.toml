@@ -1,5 +1,23 @@
 [workspace]
 members = [
+    "crates/joysheet-app",
+    "crates/joysheet-calc",
+    "crates/joysheet-chart",
+    "crates/joysheet-core",
+    "crates/joysheet-engine",
+    "crates/joysheet-formula",
+    "crates/joysheet-functions",
+    "crates/joysheet-mcp",
+    "crates/joysheet-model",
+    "crates/joysheet-numfmt",
+    "crates/joysheet-pdf",
+    "crates/joysheet-platform",
+    "crates/joysheet-protocol",
+    "crates/joysheet-ui-gpui",
+    "crates/joysheet-xlsx",
+    "apps/joysheet",
+    "apps/joysheet-cli",
+    "tools/joysheet",
     "tools/xtask",
     "apps/joydeck",
     "apps/joydeck-cli",
@@ -33,6 +51,20 @@ members = [
     "crates/joyword-textfmt",
 ]
 default-members = [
+    "crates/joysheet-app",
+    "crates/joysheet-calc",
+    "crates/joysheet-chart",
+    "crates/joysheet-core",
+    "crates/joysheet-engine",
+    "crates/joysheet-formula",
+    "crates/joysheet-functions",
+    "crates/joysheet-mcp",
+    "crates/joysheet-model",
+    "crates/joysheet-numfmt",
+    "crates/joysheet-pdf",
+    "crates/joysheet-protocol",
+    "crates/joysheet-xlsx",
+    "apps/joysheet-cli",
     "apps/joydeck-cli",
     "crates/joydeck-model",
     "crates/joydeck-engine",
@@ -72,6 +104,29 @@ license = "MIT"
 repository = "https://github.com/willmove/joyoffice"
 
 [workspace.dependencies]
+joysheet-app = { path = "crates/joysheet-app" }
+joysheet-calc = { path = "crates/joysheet-calc" }
+joysheet-chart = { path = "crates/joysheet-chart" }
+joysheet-core = { path = "crates/joysheet-core" }
+joysheet-engine = { path = "crates/joysheet-engine" }
+joysheet-formula = { path = "crates/joysheet-formula" }
+joysheet-functions = { path = "crates/joysheet-functions" }
+joysheet-mcp = { path = "crates/joysheet-mcp" }
+joysheet-model = { path = "crates/joysheet-model" }
+joysheet-numfmt = { path = "crates/joysheet-numfmt" }
+joysheet-pdf = { path = "crates/joysheet-pdf" }
+joysheet-platform = { path = "crates/joysheet-platform" }
+joysheet-protocol = { path = "crates/joysheet-protocol" }
+joysheet-ui-gpui = { path = "crates/joysheet-ui-gpui" }
+joysheet-xlsx = { path = "crates/joysheet-xlsx" }
+thiserror = "=2.0.21"
+log = "=0.4.34"
+chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
+aes = { version = "=0.9.3", default-features = false }
+sha1 = { version = "=0.11.0", default-features = false }
+rfd = "=0.17.2"
+arboard = "=3.7.0"
+url = "=2.5.8"
 joydeck-model = { path = "crates/joydeck-model" }
 joydeck-engine = { path = "crates/joydeck-engine" }
 joydeck-formats = { path = "crates/joydeck-formats" }
@@ -156,3 +211,60 @@ debug = "line-tables-only"
 [profile.dev.package."*"]
 opt-level = 2
 debug = false
+
+# Preserve JoySheet's validated development profile and recursive-stack contract.
+# Exact package overrides leave Word/Deck and shared dependencies unchanged.
+
+[profile.dev.package.joysheet-app]
+opt-level = 1
+
+[profile.dev.package.joysheet-calc]
+opt-level = 1
+
+[profile.dev.package.joysheet-chart]
+opt-level = 1
+
+[profile.dev.package.joysheet-core]
+opt-level = 1
+
+[profile.dev.package.joysheet-engine]
+opt-level = 1
+
+[profile.dev.package.joysheet-formula]
+opt-level = 1
+
+[profile.dev.package.joysheet-functions]
+opt-level = 1
+
+[profile.dev.package.joysheet-mcp]
+opt-level = 1
+
+[profile.dev.package.joysheet-model]
+opt-level = 1
+
+[profile.dev.package.joysheet-numfmt]
+opt-level = 1
+
+[profile.dev.package.joysheet-pdf]
+opt-level = 1
+
+[profile.dev.package.joysheet-platform]
+opt-level = 1
+
+[profile.dev.package.joysheet-protocol]
+opt-level = 1
+
+[profile.dev.package.joysheet-ui-gpui]
+opt-level = 1
+
+[profile.dev.package.joysheet-xlsx]
+opt-level = 1
+
+[profile.dev.package.joysheet]
+opt-level = 1
+
+[profile.dev.package.joysheet-cli]
+opt-level = 1
+
+[profile.dev.package.joysheet-tools]
+opt-level = 1

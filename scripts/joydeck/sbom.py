@@ -41,7 +41,8 @@ def selected_graph(data, trees):
 def graph(target, roots=('joydeck', 'joydeck-cli'), features=()):
     data = json.loads(subprocess.check_output(
         ['cargo', 'metadata', '--locked', '--offline', '--filter-platform', target,
-         '--format-version', '1'], cwd=ROOT, text=True, encoding='utf-8'))
+         '--format-version', '1', *(['--features', ','.join(features)] if features else [])],
+        cwd=ROOT, text=True, encoding='utf-8'))
     trees = []
     for package in roots:
         command = ['cargo', 'tree', '-p', package, '--locked', '--offline', '--target', target,
@@ -70,7 +71,21 @@ def source_hashes(data, packages, reached):
         if (directory / 'build.rs').is_file():
             files.add(directory / 'build.rs')
     is_word = any(packages[i]['name'] == 'joyword' for i in reached)
-    if is_word:
+    is_sheet = any(packages[i]['name'] == 'joysheet' for i in reached)
+    if is_sheet:
+        for identifier in reached & workspace:
+            directory = Path(packages[identifier]['manifest_path']).parent
+            files.update(p for p in directory.rglob('*')
+                         if p.is_file() and not {'target', '__pycache__', '.git'} & set(p.relative_to(directory).parts))
+        for folder in ('scripts/joysheet', 'docs/joysheet', 'assets/joysheet', 'tools/joysheet'):
+            files.update(p for p in (ROOT / folder).rglob('*')
+                         if p.is_file() and '__pycache__' not in p.parts)
+        files.update(ROOT / name for name in ('AGENTS.md', 'deny.toml', '.cargo/config.toml',
+                     'scripts/joydeck/sbom.py', 'scripts/joydeck/paths.py',
+                     'tools/xtask/Cargo.toml', 'tools/xtask/src/main.rs'))
+        for identifier in reached & workspace:
+            files.update(Path(packages[identifier]['manifest_path']).parent.glob('*.rc'))
+    elif is_word:
         files.update(ROOT / 'scripts/joydeck' / name for name in ('sbom.py', 'paths.py'))
         files.add(ROOT / 'scripts/package_release.py')
     else:
@@ -94,8 +109,8 @@ def require_unchanged_sources(before, after):
                          json.dumps({'added': added, 'removed': removed, 'changed': changed}))
 
 
-def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=()):
-    product = 'joyword' if roots and roots[0].startswith('joyword') else 'joydeck'
+def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=(), require_license_texts=False):
+    product = roots[0].split('-')[0] if roots else 'joydeck'
     data, packages, reached, edges, root_ids = graph(target, roots, features)
     ids = {}
     for identifier in reached:
@@ -131,16 +146,25 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
             if candidate.is_relative_to(source) and candidate.is_file():
                 candidates.append(candidate)
         if p.get('source') is None:
-            if p['name'] == 'joydeck' or p['name'].startswith('joydeck-'):
+            if p['name'] == 'joysheet' or p['name'].startswith('joysheet-'):
+                candidates.extend(ROOT / 'docs/joysheet' / name for name in ('LICENSE-MIT', 'LICENSE-APACHE', 'NOTICE'))
+            elif p['name'] == 'joydeck' or p['name'].startswith('joydeck-'):
                 candidates.extend([LICENSES / 'LICENSE-MIT', LICENSES / 'LICENSE-APACHE'])
             else:
                 candidates.append(ROOT / 'LICENSE')
         supplement = LICENSES / 'dependency-notices' / (p['name'] + '-' + p['version'])
         if supplement.is_dir():
             candidates.extend(v for v in supplement.iterdir() if v.is_file())
+        if product == 'joysheet':
+            supplement = ROOT / 'docs/joysheet/third-party' / p['name']
+            versioned = supplement / p['version']
+            if versioned.is_dir():
+                supplement = versioned
+            if supplement.is_dir():
+                candidates.extend(v for v in supplement.iterdir() if v.is_file())
         copied = []
         for candidate in sorted(set(candidates)):
-            if not candidate.is_file() or candidate.stat().st_size > 2 * 1024 * 1024:
+            if not candidate.is_file() or not 0 < candidate.stat().st_size <= 2 * 1024 * 1024:
                 continue
             folder = license_root / (p['name'] + '-' + p['version'])
             folder.mkdir(exist_ok=True)
@@ -152,6 +176,12 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
         license_index.append({'name': p['name'], 'version': p['version'], 'declared': p.get('license'),
                               'texts': sorted(set(copied)), 'workspace': p.get('source') is None})
         objects.append(row)
+    if require_license_texts:
+        missing = [row['name'] + '@' + row['version'] for row in license_index
+                   if not any(Path(name).name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'UNLICENSE'))
+                              for name in row['texts'])]
+        if missing:
+            raise ValueError('Missing dependency license texts: ' + ', '.join(missing))
     relationships = [{'spdxElementId': 'SPDXRef-DOCUMENT', 'relationshipType': 'DESCRIBES',
                       'relatedSpdxElement': ids[i]} for i in sorted(root_ids)]
     relationships += [{'spdxElementId': ids[a], 'relationshipType': 'DEPENDS_ON',
@@ -168,6 +198,7 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
     (license_root / 'index.json').write_text(json.dumps(license_index, indent=2) + '\n', encoding='utf-8')
     return {'packages': len(objects), 'lockSha256': lock, 'target': target, 'profile': profile,
             'roots': list(roots), 'features': list(features),
+            'licenseTextsVerified': require_license_texts,
             'sourceHashes': source_hashes(data, packages, reached)}
 
 if __name__ == '__main__':

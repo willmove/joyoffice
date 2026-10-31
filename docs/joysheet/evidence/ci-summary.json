@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-28",
+  "milestoneComplete": false,
+  "totals": {
+    "passed": 1347,
+    "failed": 0,
+    "ignored": 1
+  },
+  "command": "cargo xtask ci",
+  "format": "passed",
+  "clippy": "workspace/all-targets automation -D warnings passed",
+  "layers": "passed; no egui/eframe"
+}

@@ -1,0 +1,3785 @@
+{
+  "date": "2026-10-31",
+  "files": [
+    {
+      "source": ".cargo/config.toml",
+      "destination": "docs/joysheet/legacy-source/.cargo/config.toml",
+      "importedDestination": "docs/joysheet/legacy-source/.cargo/config.toml"
+    },
+    {
+      "source": ".github/workflows/ci.yml",
+      "destination": "docs/joysheet/legacy-source/.github/workflows/ci.yml",
+      "importedDestination": "docs/joysheet/legacy-source/.github/workflows/ci.yml"
+    },
+    {
+      "source": ".gitignore",
+      "destination": "docs/joysheet/legacy-source/.gitignore",
+      "importedDestination": "docs/joysheet/legacy-source/.gitignore"
+    },
+    {
+      "source": "AGENTS.md",
+      "destination": "docs/joysheet/legacy-source/AGENTS.md",
+      "importedDestination": "docs/joysheet/legacy-source/AGENTS.md"
+    },
+    {
+      "source": "ATTRIBUTION.md",
+      "destination": "docs/joysheet/ATTRIBUTION.md",
+      "importedDestination": "docs/joysheet/ATTRIBUTION.md"
+    },
+    {
+      "source": "Cargo.lock",
+      "destination": "docs/joysheet/legacy-source/Cargo.lock",
+      "importedDestination": "docs/joysheet/legacy-source/Cargo.lock"
+    },
+    {
+      "source": "Cargo.toml",
+      "destination": "docs/joysheet/legacy-source/Cargo.toml",
+      "importedDestination": "docs/joysheet/legacy-source/Cargo.toml"
+    },
+    {
+      "source": "LICENSE-APACHE",
+      "destination": "docs/joysheet/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/LICENSE-APACHE"
+    },
+    {
+      "source": "LICENSE-MIT",
+      "destination": "docs/joysheet/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/LICENSE-MIT"
+    },
+    {
+      "source": "NOTICE",
+      "destination": "docs/joysheet/NOTICE",
+      "importedDestination": "docs/joysheet/NOTICE"
+    },
+    {
+      "source": "README.md",
+      "destination": "docs/joysheet/README.md",
+      "importedDestination": "docs/joysheet/README.md"
+    },
+    {
+      "source": "apps/joysheet-cli/Cargo.toml",
+      "destination": "apps/joysheet-cli/Cargo.toml",
+      "importedDestination": "apps/joysheet-cli/Cargo.toml"
+    },
+    {
+      "source": "apps/joysheet-cli/src/check.rs",
+      "destination": "apps/joysheet-cli/src/check.rs",
+      "importedDestination": "apps/joysheet-cli/src/check.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/check/calc.rs",
+      "destination": "apps/joysheet-cli/src/check/calc.rs",
+      "importedDestination": "apps/joysheet-cli/src/check/calc.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/check/fidelity.rs",
+      "destination": "apps/joysheet-cli/src/check/fidelity.rs",
+      "importedDestination": "apps/joysheet-cli/src/check/fidelity.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/check/package.rs",
+      "destination": "apps/joysheet-cli/src/check/package.rs",
+      "importedDestination": "apps/joysheet-cli/src/check/package.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/check/report.rs",
+      "destination": "apps/joysheet-cli/src/check/report.rs",
+      "importedDestination": "apps/joysheet-cli/src/check/report.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/check/tests.rs",
+      "destination": "apps/joysheet-cli/src/check/tests.rs",
+      "importedDestination": "apps/joysheet-cli/src/check/tests.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/main.rs",
+      "destination": "apps/joysheet-cli/src/main.rs",
+      "importedDestination": "apps/joysheet-cli/src/main.rs",
+      "additionalDestinations": [
+        "apps/joysheet-cli/src/tests/main_tests.rs"
+      ]
+    },
+    {
+      "source": "apps/joysheet-cli/tests/it/cli.rs",
+      "destination": "apps/joysheet-cli/tests/it/cli.rs",
+      "importedDestination": "apps/joysheet-cli/tests/it/cli.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/tests/it/main.rs",
+      "destination": "apps/joysheet-cli/tests/it/main.rs",
+      "importedDestination": "apps/joysheet-cli/tests/it/main.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/tests/it/text_to_columns_quotes.rs",
+      "destination": "apps/joysheet-cli/tests/it/text_to_columns_quotes.rs",
+      "importedDestination": "apps/joysheet-cli/tests/it/text_to_columns_quotes.rs"
+    },
+    {
+      "source": "apps/joysheet/Cargo.toml",
+      "destination": "apps/joysheet/Cargo.toml",
+      "importedDestination": "apps/joysheet/Cargo.toml"
+    },
+    {
+      "source": "apps/joysheet/build.rs",
+      "destination": "apps/joysheet/build.rs",
+      "importedDestination": "apps/joysheet/build.rs"
+    },
+    {
+      "source": "apps/joysheet/joysheet.rc",
+      "destination": "apps/joysheet/joysheet.rc",
+      "importedDestination": "apps/joysheet/joysheet.rc"
+    },
+    {
+      "source": "apps/joysheet/src/main.rs",
+      "destination": "apps/joysheet/src/main.rs",
+      "importedDestination": "apps/joysheet/src/main.rs"
+    },
+    {
+      "source": "assets/joysheet.icns",
+      "destination": "assets/joysheet/joysheet.icns",
+      "importedDestination": "assets/joysheet/joysheet.icns"
+    },
+    {
+      "source": "assets/joysheet.ico",
+      "destination": "assets/joysheet/joysheet.ico",
+      "importedDestination": "assets/joysheet/joysheet.ico"
+    },
+    {
+      "source": "assets/joysheet.png",
+      "destination": "assets/joysheet/joysheet.png",
+      "importedDestination": "assets/joysheet/joysheet.png"
+    },
+    {
+      "source": "assets/joysheet.svg",
+      "destination": "assets/joysheet/joysheet.svg",
+      "importedDestination": "assets/joysheet/joysheet.svg"
+    },
+    {
+      "source": "clippy.toml",
+      "destination": "docs/joysheet/legacy-source/clippy.toml",
+      "importedDestination": "docs/joysheet/legacy-source/clippy.toml"
+    },
+    {
+      "source": "crates/calc/Cargo.toml",
+      "destination": "crates/joysheet-calc/Cargo.toml",
+      "importedDestination": "crates/joysheet-calc/Cargo.toml"
+    },
+    {
+      "source": "crates/calc/src/eval.rs",
+      "destination": "crates/joysheet-calc/src/eval.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval.rs",
+      "additionalDestinations": [
+        "crates/joysheet-calc/src/tests/eval_fuel_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/calc/src/eval/array.rs",
+      "destination": "crates/joysheet-calc/src/eval/array.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval/array.rs"
+    },
+    {
+      "source": "crates/calc/src/eval/call.rs",
+      "destination": "crates/joysheet-calc/src/eval/call.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval/call.rs"
+    },
+    {
+      "source": "crates/calc/src/eval/format.rs",
+      "destination": "crates/joysheet-calc/src/eval/format.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval/format.rs"
+    },
+    {
+      "source": "crates/calc/src/eval/lambda.rs",
+      "destination": "crates/joysheet-calc/src/eval/lambda.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval/lambda.rs"
+    },
+    {
+      "source": "crates/calc/src/eval/reference_fns.rs",
+      "destination": "crates/joysheet-calc/src/eval/reference_fns.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval/reference_fns.rs"
+    },
+    {
+      "source": "crates/calc/src/eval/special.rs",
+      "destination": "crates/joysheet-calc/src/eval/special.rs",
+      "importedDestination": "crates/joysheet-calc/src/eval/special.rs"
+    },
+    {
+      "source": "crates/calc/src/lib.rs",
+      "destination": "crates/joysheet-calc/src/lib.rs",
+      "importedDestination": "crates/joysheet-calc/src/lib.rs"
+    },
+    {
+      "source": "crates/calc/src/profile.rs",
+      "destination": "crates/joysheet-calc/src/profile.rs",
+      "importedDestination": "crates/joysheet-calc/src/profile.rs",
+      "additionalDestinations": [
+        "crates/joysheet-calc/src/tests/profile_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/calc/src/recalc.rs",
+      "destination": "crates/joysheet-calc/src/recalc.rs",
+      "importedDestination": "crates/joysheet-calc/src/recalc.rs",
+      "additionalDestinations": [
+        "crates/joysheet-calc/src/tests/recalc_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/calc/src/recalc/graph.rs",
+      "destination": "crates/joysheet-calc/src/recalc/graph.rs",
+      "importedDestination": "crates/joysheet-calc/src/recalc/graph.rs"
+    },
+    {
+      "source": "crates/calc/src/recalc/pass_host.rs",
+      "destination": "crates/joysheet-calc/src/recalc/pass_host.rs",
+      "importedDestination": "crates/joysheet-calc/src/recalc/pass_host.rs",
+      "additionalDestinations": [
+        "crates/joysheet-calc/src/recalc/tests/pass_host_memo_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/calc/src/tests.rs",
+      "destination": "crates/joysheet-calc/src/tests.rs",
+      "importedDestination": "crates/joysheet-calc/src/tests.rs"
+    },
+    {
+      "source": "crates/calc/src/trimrange.rs",
+      "destination": "crates/joysheet-calc/src/trimrange.rs",
+      "importedDestination": "crates/joysheet-calc/src/trimrange.rs"
+    },
+    {
+      "source": "crates/chart/Cargo.toml",
+      "destination": "crates/joysheet-chart/Cargo.toml",
+      "importedDestination": "crates/joysheet-chart/Cargo.toml"
+    },
+    {
+      "source": "crates/chart/src/axis.rs",
+      "destination": "crates/joysheet-chart/src/axis.rs",
+      "importedDestination": "crates/joysheet-chart/src/axis.rs"
+    },
+    {
+      "source": "crates/chart/src/lib.rs",
+      "destination": "crates/joysheet-chart/src/lib.rs",
+      "importedDestination": "crates/joysheet-chart/src/lib.rs"
+    },
+    {
+      "source": "crates/chart/src/raster.rs",
+      "destination": "crates/joysheet-chart/src/raster.rs",
+      "importedDestination": "crates/joysheet-chart/src/raster.rs",
+      "additionalDestinations": [
+        "crates/joysheet-chart/src/tests/raster_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/chart/src/render.rs",
+      "destination": "crates/joysheet-chart/src/render.rs",
+      "importedDestination": "crates/joysheet-chart/src/render.rs"
+    },
+    {
+      "source": "crates/chart/src/render/cartesian.rs",
+      "destination": "crates/joysheet-chart/src/render/cartesian.rs",
+      "importedDestination": "crates/joysheet-chart/src/render/cartesian.rs"
+    },
+    {
+      "source": "crates/chart/src/render/frame.rs",
+      "destination": "crates/joysheet-chart/src/render/frame.rs",
+      "importedDestination": "crates/joysheet-chart/src/render/frame.rs"
+    },
+    {
+      "source": "crates/chart/src/render/kinds.rs",
+      "destination": "crates/joysheet-chart/src/render/kinds.rs",
+      "importedDestination": "crates/joysheet-chart/src/render/kinds.rs",
+      "additionalDestinations": [
+        "crates/joysheet-chart/src/render/tests/kinds_quartile_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/chart/src/render/legend.rs",
+      "destination": "crates/joysheet-chart/src/render/legend.rs",
+      "importedDestination": "crates/joysheet-chart/src/render/legend.rs"
+    },
+    {
+      "source": "crates/chart/src/render/lines.rs",
+      "destination": "crates/joysheet-chart/src/render/lines.rs",
+      "importedDestination": "crates/joysheet-chart/src/render/lines.rs",
+      "additionalDestinations": [
+        "crates/joysheet-chart/src/render/tests/lines_smooth_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/chart/src/render/trend.rs",
+      "destination": "crates/joysheet-chart/src/render/trend.rs",
+      "importedDestination": "crates/joysheet-chart/src/render/trend.rs"
+    },
+    {
+      "source": "crates/chart/src/resolve.rs",
+      "destination": "crates/joysheet-chart/src/resolve.rs",
+      "importedDestination": "crates/joysheet-chart/src/resolve.rs"
+    },
+    {
+      "source": "crates/chart/src/sparkline.rs",
+      "destination": "crates/joysheet-chart/src/sparkline.rs",
+      "importedDestination": "crates/joysheet-chart/src/sparkline.rs"
+    },
+    {
+      "source": "crates/chart/src/tests.rs",
+      "destination": "crates/joysheet-chart/src/tests.rs",
+      "importedDestination": "crates/joysheet-chart/src/tests.rs"
+    },
+    {
+      "source": "crates/chart/src/trend.rs",
+      "destination": "crates/joysheet-chart/src/trend.rs",
+      "importedDestination": "crates/joysheet-chart/src/trend.rs"
+    },
+    {
+      "source": "crates/core/Cargo.toml",
+      "destination": "crates/joysheet-core/Cargo.toml",
+      "importedDestination": "crates/joysheet-core/Cargo.toml"
+    },
+    {
+      "source": "crates/core/src/addr.rs",
+      "destination": "crates/joysheet-core/src/addr.rs",
+      "importedDestination": "crates/joysheet-core/src/addr.rs",
+      "additionalDestinations": [
+        "crates/joysheet-core/src/tests/addr_category_level_tests.rs",
+        "crates/joysheet-core/src/tests/addr_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/core/src/color.rs",
+      "destination": "crates/joysheet-core/src/color.rs",
+      "importedDestination": "crates/joysheet-core/src/color.rs"
+    },
+    {
+      "source": "crates/core/src/date.rs",
+      "destination": "crates/joysheet-core/src/date.rs",
+      "importedDestination": "crates/joysheet-core/src/date.rs",
+      "additionalDestinations": [
+        "crates/joysheet-core/src/tests/date_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/core/src/lib.rs",
+      "destination": "crates/joysheet-core/src/lib.rs",
+      "importedDestination": "crates/joysheet-core/src/lib.rs"
+    },
+    {
+      "source": "crates/core/src/parse.rs",
+      "destination": "crates/joysheet-core/src/parse.rs",
+      "importedDestination": "crates/joysheet-core/src/parse.rs",
+      "additionalDestinations": [
+        "crates/joysheet-core/src/tests/parse_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/core/src/value.rs",
+      "destination": "crates/joysheet-core/src/value.rs",
+      "importedDestination": "crates/joysheet-core/src/value.rs",
+      "additionalDestinations": [
+        "crates/joysheet-core/src/tests/value_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/Cargo.toml",
+      "destination": "crates/joysheet-engine/Cargo.toml",
+      "importedDestination": "crates/joysheet-engine/Cargo.toml"
+    },
+    {
+      "source": "crates/engine/examples/fill_handle_perf.rs",
+      "destination": "crates/joysheet-engine/examples/fill_handle_perf.rs",
+      "importedDestination": "crates/joysheet-engine/examples/fill_handle_perf.rs"
+    },
+    {
+      "source": "crates/engine/examples/perf.rs",
+      "destination": "crates/joysheet-engine/examples/perf.rs",
+      "importedDestination": "crates/joysheet-engine/examples/perf.rs"
+    },
+    {
+      "source": "crates/engine/src/catalog.rs",
+      "destination": "crates/joysheet-engine/src/catalog.rs",
+      "importedDestination": "crates/joysheet-engine/src/catalog.rs"
+    },
+    {
+      "source": "crates/engine/src/cf.rs",
+      "destination": "crates/joysheet-engine/src/cf.rs",
+      "importedDestination": "crates/joysheet-engine/src/cf.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/cf_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/chart_svg.rs",
+      "destination": "crates/joysheet-engine/src/chart_svg.rs",
+      "importedDestination": "crates/joysheet-engine/src/chart_svg.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/chart_svg_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/clip_html.rs",
+      "destination": "crates/joysheet-engine/src/clip_html.rs",
+      "importedDestination": "crates/joysheet-engine/src/clip_html.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/clip_html_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd.rs",
+      "destination": "crates/joysheet-engine/src/cmd.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/analysis.rs",
+      "destination": "crates/joysheet-engine/src/cmd/analysis.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/analysis.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/analysis_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/data.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/data/filter.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data/filter.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data/filter.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/data/grouping.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data/grouping.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data/grouping.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/data/sort.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data/sort.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data/sort.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/data/tests.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/data/tools.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data/tools.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data/tools.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/data/validation.rs",
+      "destination": "crates/joysheet-engine/src/cmd/data/validation.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/data/validation.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/draw.rs",
+      "destination": "crates/joysheet-engine/src/cmd/draw.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/draw.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/cell.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/cell.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/cell.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/clipboard.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/clipboard.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/clipboard.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/fill.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/fill.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/fill.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/find.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/find.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/find.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/go_to.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/go_to.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/go_to.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/paste_special.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/paste_special.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/paste_special.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/selection.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/selection.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/selection.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/edit/tests.rs",
+      "destination": "crates/joysheet-engine/src/cmd/edit/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/edit/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/extra.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/extra/cells.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra/cells.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra/cells.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/extra/chart.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra/chart.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra/chart.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/extra/data.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra/data.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra/data.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/extra/objects.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra/objects.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra/objects.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/extra/scripts.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra/scripts.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra/scripts.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/extra/tests/scripts_host_control_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/extra/window.rs",
+      "destination": "crates/joysheet-engine/src/cmd/extra/window.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/extra/window.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/file.rs",
+      "destination": "crates/joysheet-engine/src/cmd/file.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/file.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/forecast.rs",
+      "destination": "crates/joysheet-engine/src/cmd/forecast.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/forecast.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/forecast_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/format.rs",
+      "destination": "crates/joysheet-engine/src/cmd/format.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/format.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/format_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/format/cell_styles.rs",
+      "destination": "crates/joysheet-engine/src/cmd/format/cell_styles.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/format/cell_styles.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/format/sizes.rs",
+      "destination": "crates/joysheet-engine/src/cmd/format/sizes.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/format/sizes.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/formulas.rs",
+      "destination": "crates/joysheet-engine/src/cmd/formulas.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/formulas.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/formulas_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/insert.rs",
+      "destination": "crates/joysheet-engine/src/cmd/insert.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/insert.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/insert_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/insert/chart.rs",
+      "destination": "crates/joysheet-engine/src/cmd/insert/chart.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/insert/chart.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/insert/cond_format.rs",
+      "destination": "crates/joysheet-engine/src/cmd/insert/cond_format.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/insert/cond_format.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/insert/links.rs",
+      "destination": "crates/joysheet-engine/src/cmd/insert/links.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/insert/links.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/insert/objects.rs",
+      "destination": "crates/joysheet-engine/src/cmd/insert/objects.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/insert/objects.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/insert/table.rs",
+      "destination": "crates/joysheet-engine/src/cmd/insert/table.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/insert/table.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/inspect.rs",
+      "destination": "crates/joysheet-engine/src/cmd/inspect.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/inspect.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot/charts.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot/charts.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot/charts.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot/create.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot/create.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot/create.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot/fields.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot/fields.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot/fields.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot/layout.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot/layout.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot/layout.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot/params.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot/params.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot/params.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/pivot/tests.rs",
+      "destination": "crates/joysheet-engine/src/cmd/pivot/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/pivot/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print/draw.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print/draw.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print/draw.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print/header_footer.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print/header_footer.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print/header_footer.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print/layout.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print/layout.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print/layout.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print/objects.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print/objects.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print/objects.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print/tests.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/print/text.rs",
+      "destination": "crates/joysheet-engine/src/cmd/print/text.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/print/text.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/review.rs",
+      "destination": "crates/joysheet-engine/src/cmd/review.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/review.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/review_edit_range_tests.rs",
+        "crates/joysheet-engine/src/cmd/tests/review_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/sheet.rs",
+      "destination": "crates/joysheet-engine/src/cmd/sheet.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/sheet.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/sheet/tabs.rs",
+      "destination": "crates/joysheet-engine/src/cmd/sheet/tabs.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/sheet/tabs.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/slicer.rs",
+      "destination": "crates/joysheet-engine/src/cmd/slicer.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/slicer.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/evolutionary.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/evolutionary.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/evolutionary.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/lp.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/lp.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/lp.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/model.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/model.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/model.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/nlp.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/nlp.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/nlp.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/problem.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/problem.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/problem.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/reports.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/reports.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/reports.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/solver/tests.rs",
+      "destination": "crates/joysheet-engine/src/cmd/solver/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/solver/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/spelling.rs",
+      "destination": "crates/joysheet-engine/src/cmd/spelling.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/spelling.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/spelling_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/stash.rs",
+      "destination": "crates/joysheet-engine/src/cmd/stash.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/stash.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/stash_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/view.rs",
+      "destination": "crates/joysheet-engine/src/cmd/view.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/view.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/cmd/tests/view_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/cmd/whatif.rs",
+      "destination": "crates/joysheet-engine/src/cmd/whatif.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/whatif.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/whatif/advanced_filter.rs",
+      "destination": "crates/joysheet-engine/src/cmd/whatif/advanced_filter.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/whatif/advanced_filter.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/whatif/consolidate.rs",
+      "destination": "crates/joysheet-engine/src/cmd/whatif/consolidate.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/whatif/consolidate.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/whatif/scenarios.rs",
+      "destination": "crates/joysheet-engine/src/cmd/whatif/scenarios.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/whatif/scenarios.rs"
+    },
+    {
+      "source": "crates/engine/src/cmd/whatif/tests.rs",
+      "destination": "crates/joysheet-engine/src/cmd/whatif/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/cmd/whatif/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/display.rs",
+      "destination": "crates/joysheet-engine/src/display.rs",
+      "importedDestination": "crates/joysheet-engine/src/display.rs"
+    },
+    {
+      "source": "crates/engine/src/fill.rs",
+      "destination": "crates/joysheet-engine/src/fill.rs",
+      "importedDestination": "crates/joysheet-engine/src/fill.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/fill_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/io.rs",
+      "destination": "crates/joysheet-engine/src/io.rs",
+      "importedDestination": "crates/joysheet-engine/src/io.rs"
+    },
+    {
+      "source": "crates/engine/src/io/tests.rs",
+      "destination": "crates/joysheet-engine/src/io/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/io/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/lib.rs",
+      "destination": "crates/joysheet-engine/src/lib.rs",
+      "importedDestination": "crates/joysheet-engine/src/lib.rs"
+    },
+    {
+      "source": "crates/engine/src/links.rs",
+      "destination": "crates/joysheet-engine/src/links.rs",
+      "importedDestination": "crates/joysheet-engine/src/links.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/links_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/outline.rs",
+      "destination": "crates/joysheet-engine/src/outline.rs",
+      "importedDestination": "crates/joysheet-engine/src/outline.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/outline_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/paper.rs",
+      "destination": "crates/joysheet-engine/src/paper.rs",
+      "importedDestination": "crates/joysheet-engine/src/paper.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/paper_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/pivot.rs",
+      "destination": "crates/joysheet-engine/src/pivot.rs",
+      "importedDestination": "crates/joysheet-engine/src/pivot.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/pivot_fit_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/pivot/charts.rs",
+      "destination": "crates/joysheet-engine/src/pivot/charts.rs",
+      "importedDestination": "crates/joysheet-engine/src/pivot/charts.rs"
+    },
+    {
+      "source": "crates/engine/src/pivot/compute.rs",
+      "destination": "crates/joysheet-engine/src/pivot/compute.rs",
+      "importedDestination": "crates/joysheet-engine/src/pivot/compute.rs"
+    },
+    {
+      "source": "crates/engine/src/pivot/items.rs",
+      "destination": "crates/joysheet-engine/src/pivot/items.rs",
+      "importedDestination": "crates/joysheet-engine/src/pivot/items.rs"
+    },
+    {
+      "source": "crates/engine/src/pivot/output.rs",
+      "destination": "crates/joysheet-engine/src/pivot/output.rs",
+      "importedDestination": "crates/joysheet-engine/src/pivot/output.rs"
+    },
+    {
+      "source": "crates/engine/src/pivot_calc.rs",
+      "destination": "crates/joysheet-engine/src/pivot_calc.rs",
+      "importedDestination": "crates/joysheet-engine/src/pivot_calc.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/pivot_calc_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/record.rs",
+      "destination": "crates/joysheet-engine/src/record.rs",
+      "importedDestination": "crates/joysheet-engine/src/record.rs"
+    },
+    {
+      "source": "crates/engine/src/sample.rs",
+      "destination": "crates/joysheet-engine/src/sample.rs",
+      "importedDestination": "crates/joysheet-engine/src/sample.rs"
+    },
+    {
+      "source": "crates/engine/src/selection.rs",
+      "destination": "crates/joysheet-engine/src/selection.rs",
+      "importedDestination": "crates/joysheet-engine/src/selection.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/selection_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/tables.rs",
+      "destination": "crates/joysheet-engine/src/tables.rs",
+      "importedDestination": "crates/joysheet-engine/src/tables.rs",
+      "additionalDestinations": [
+        "crates/joysheet-engine/src/tests/tables_style_tests.rs",
+        "crates/joysheet-engine/src/tests/tables_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/engine/src/tests.rs",
+      "destination": "crates/joysheet-engine/src/tests.rs",
+      "importedDestination": "crates/joysheet-engine/src/tests.rs"
+    },
+    {
+      "source": "crates/engine/src/tests/seams.rs",
+      "destination": "crates/joysheet-engine/src/tests/seams.rs",
+      "importedDestination": "crates/joysheet-engine/src/tests/seams.rs"
+    },
+    {
+      "source": "crates/engine/src/windows.rs",
+      "destination": "crates/joysheet-engine/src/windows.rs",
+      "importedDestination": "crates/joysheet-engine/src/windows.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/autofit_filter_buttons.rs",
+      "destination": "crates/joysheet-engine/tests/it/autofit_filter_buttons.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/autofit_filter_buttons.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/cf_formula_validate.rs",
+      "destination": "crates/joysheet-engine/tests/it/cf_formula_validate.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/cf_formula_validate.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/chart_area_stacked100.rs",
+      "destination": "crates/joysheet-engine/tests/it/chart_area_stacked100.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/chart_area_stacked100.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/chart_workbook_names.rs",
+      "destination": "crates/joysheet-engine/tests/it/chart_workbook_names.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/chart_workbook_names.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/command_sequence_fuzz.rs",
+      "destination": "crates/joysheet-engine/tests/it/command_sequence_fuzz.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/command_sequence_fuzz.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/cross_sheet_cut.rs",
+      "destination": "crates/joysheet-engine/tests/it/cross_sheet_cut.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/cross_sheet_cut.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/csv_export_budget.rs",
+      "destination": "crates/joysheet-engine/tests/it/csv_export_budget.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/csv_export_budget.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/custom_filter_blanks.rs",
+      "destination": "crates/joysheet-engine/tests/it/custom_filter_blanks.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/custom_filter_blanks.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/custom_view_freeze.rs",
+      "destination": "crates/joysheet-engine/tests/it/custom_view_freeze.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/custom_view_freeze.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/dynamicmetadata.rs",
+      "destination": "crates/joysheet-engine/tests/it/dynamicmetadata.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/dynamicmetadata.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/extreme_selection_moves.rs",
+      "destination": "crates/joysheet-engine/tests/it/extreme_selection_moves.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/extreme_selection_moves.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/font_scheme_minor.rs",
+      "destination": "crates/joysheet-engine/tests/it/font_scheme_minor.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/font_scheme_minor.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/format_as_table_restyle.rs",
+      "destination": "crates/joysheet-engine/tests/it/format_as_table_restyle.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/format_as_table_restyle.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/hidden_sheet_navigation.rs",
+      "destination": "crates/joysheet-engine/tests/it/hidden_sheet_navigation.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/hidden_sheet_navigation.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/ink_roundtrip.rs",
+      "destination": "crates/joysheet-engine/tests/it/ink_roundtrip.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/ink_roundtrip.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/line_count_overflow.rs",
+      "destination": "crates/joysheet-engine/tests/it/line_count_overflow.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/line_count_overflow.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/long_operator_chains.rs",
+      "destination": "crates/joysheet-engine/tests/it/long_operator_chains.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/long_operator_chains.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/main.rs",
+      "destination": "crates/joysheet-engine/tests/it/main.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/main.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/offset_overflow.rs",
+      "destination": "crates/joysheet-engine/tests/it/offset_overflow.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/offset_overflow.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/percent_entry.rs",
+      "destination": "crates/joysheet-engine/tests/it/percent_entry.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/percent_entry.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/pivot_unknown_func.rs",
+      "destination": "crates/joysheet-engine/tests/it/pivot_unknown_func.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/pivot_unknown_func.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/pivotchart_link.rs",
+      "destination": "crates/joysheet-engine/tests/it/pivotchart_link.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/pivotchart_link.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/range_fill_formats.rs",
+      "destination": "crates/joysheet-engine/tests/it/range_fill_formats.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/range_fill_formats.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/row_autofit.rs",
+      "destination": "crates/joysheet-engine/tests/it/row_autofit.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/row_autofit.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/sheet_name_quoting.rs",
+      "destination": "crates/joysheet-engine/tests/it/sheet_name_quoting.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/sheet_name_quoting.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/sparse_clear_invalidation.rs",
+      "destination": "crates/joysheet-engine/tests/it/sparse_clear_invalidation.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/sparse_clear_invalidation.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/stored_list_shape.rs",
+      "destination": "crates/joysheet-engine/tests/it/stored_list_shape.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/stored_list_shape.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/table_resize_overlap.rs",
+      "destination": "crates/joysheet-engine/tests/it/table_resize_overlap.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/table_resize_overlap.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/table_total_row_last_row.rs",
+      "destination": "crates/joysheet-engine/tests/it/table_total_row_last_row.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/table_total_row_last_row.rs"
+    },
+    {
+      "source": "crates/engine/tests/it/wrap_row_height.rs",
+      "destination": "crates/joysheet-engine/tests/it/wrap_row_height.rs",
+      "importedDestination": "crates/joysheet-engine/tests/it/wrap_row_height.rs"
+    },
+    {
+      "source": "crates/formula/Cargo.toml",
+      "destination": "crates/joysheet-formula/Cargo.toml",
+      "importedDestination": "crates/joysheet-formula/Cargo.toml"
+    },
+    {
+      "source": "crates/formula/src/adjust.rs",
+      "destination": "crates/joysheet-formula/src/adjust.rs",
+      "importedDestination": "crates/joysheet-formula/src/adjust.rs"
+    },
+    {
+      "source": "crates/formula/src/ast.rs",
+      "destination": "crates/joysheet-formula/src/ast.rs",
+      "importedDestination": "crates/joysheet-formula/src/ast.rs"
+    },
+    {
+      "source": "crates/formula/src/input.rs",
+      "destination": "crates/joysheet-formula/src/input.rs",
+      "importedDestination": "crates/joysheet-formula/src/input.rs"
+    },
+    {
+      "source": "crates/formula/src/lexer.rs",
+      "destination": "crates/joysheet-formula/src/lexer.rs",
+      "importedDestination": "crates/joysheet-formula/src/lexer.rs"
+    },
+    {
+      "source": "crates/formula/src/lib.rs",
+      "destination": "crates/joysheet-formula/src/lib.rs",
+      "importedDestination": "crates/joysheet-formula/src/lib.rs"
+    },
+    {
+      "source": "crates/formula/src/parser.rs",
+      "destination": "crates/joysheet-formula/src/parser.rs",
+      "importedDestination": "crates/joysheet-formula/src/parser.rs"
+    },
+    {
+      "source": "crates/formula/src/printer.rs",
+      "destination": "crates/joysheet-formula/src/printer.rs",
+      "importedDestination": "crates/joysheet-formula/src/printer.rs"
+    },
+    {
+      "source": "crates/formula/src/tests.rs",
+      "destination": "crates/joysheet-formula/src/tests.rs",
+      "importedDestination": "crates/joysheet-formula/src/tests.rs"
+    },
+    {
+      "source": "crates/formula/tests/it/main.rs",
+      "destination": "crates/joysheet-formula/tests/it/main.rs",
+      "importedDestination": "crates/joysheet-formula/tests/it/main.rs"
+    },
+    {
+      "source": "crates/formula/tests/it/printer_roundtrip.rs",
+      "destination": "crates/joysheet-formula/tests/it/printer_roundtrip.rs",
+      "importedDestination": "crates/joysheet-formula/tests/it/printer_roundtrip.rs"
+    },
+    {
+      "source": "crates/formula/tests/it/spanish_input.rs",
+      "destination": "crates/joysheet-formula/tests/it/spanish_input.rs",
+      "importedDestination": "crates/joysheet-formula/tests/it/spanish_input.rs"
+    },
+    {
+      "source": "crates/functions/Cargo.toml",
+      "destination": "crates/joysheet-functions/Cargo.toml",
+      "importedDestination": "crates/joysheet-functions/Cargo.toml"
+    },
+    {
+      "source": "crates/functions/src/criteria.rs",
+      "destination": "crates/joysheet-functions/src/criteria.rs",
+      "importedDestination": "crates/joysheet-functions/src/criteria.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/criteria_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/database.rs",
+      "destination": "crates/joysheet-functions/src/database.rs",
+      "importedDestination": "crates/joysheet-functions/src/database.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/database_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/date.rs",
+      "destination": "crates/joysheet-functions/src/date.rs",
+      "importedDestination": "crates/joysheet-functions/src/date.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/date_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/dynamic.rs",
+      "destination": "crates/joysheet-functions/src/dynamic.rs",
+      "importedDestination": "crates/joysheet-functions/src/dynamic.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/dynamic_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/engineering.rs",
+      "destination": "crates/joysheet-functions/src/engineering.rs",
+      "importedDestination": "crates/joysheet-functions/src/engineering.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/engineering_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/engineering/bessel.rs",
+      "destination": "crates/joysheet-functions/src/engineering/bessel.rs",
+      "importedDestination": "crates/joysheet-functions/src/engineering/bessel.rs"
+    },
+    {
+      "source": "crates/functions/src/engineering/complex.rs",
+      "destination": "crates/joysheet-functions/src/engineering/complex.rs",
+      "importedDestination": "crates/joysheet-functions/src/engineering/complex.rs"
+    },
+    {
+      "source": "crates/functions/src/engineering/units.rs",
+      "destination": "crates/joysheet-functions/src/engineering/units.rs",
+      "importedDestination": "crates/joysheet-functions/src/engineering/units.rs"
+    },
+    {
+      "source": "crates/functions/src/ets.rs",
+      "destination": "crates/joysheet-functions/src/ets.rs",
+      "importedDestination": "crates/joysheet-functions/src/ets.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/ets_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/financial.rs",
+      "destination": "crates/joysheet-functions/src/financial.rs",
+      "importedDestination": "crates/joysheet-functions/src/financial.rs"
+    },
+    {
+      "source": "crates/functions/src/financial/day_count.rs",
+      "destination": "crates/joysheet-functions/src/financial/day_count.rs",
+      "importedDestination": "crates/joysheet-functions/src/financial/day_count.rs"
+    },
+    {
+      "source": "crates/functions/src/financial/depreciation.rs",
+      "destination": "crates/joysheet-functions/src/financial/depreciation.rs",
+      "importedDestination": "crates/joysheet-functions/src/financial/depreciation.rs"
+    },
+    {
+      "source": "crates/functions/src/financial/securities.rs",
+      "destination": "crates/joysheet-functions/src/financial/securities.rs",
+      "importedDestination": "crates/joysheet-functions/src/financial/securities.rs"
+    },
+    {
+      "source": "crates/functions/src/financial/tests.rs",
+      "destination": "crates/joysheet-functions/src/financial/tests.rs",
+      "importedDestination": "crates/joysheet-functions/src/financial/tests.rs"
+    },
+    {
+      "source": "crates/functions/src/financial/tvm.rs",
+      "destination": "crates/joysheet-functions/src/financial/tvm.rs",
+      "importedDestination": "crates/joysheet-functions/src/financial/tvm.rs"
+    },
+    {
+      "source": "crates/functions/src/info.rs",
+      "destination": "crates/joysheet-functions/src/info.rs",
+      "importedDestination": "crates/joysheet-functions/src/info.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/info_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/lib.rs",
+      "destination": "crates/joysheet-functions/src/lib.rs",
+      "importedDestination": "crates/joysheet-functions/src/lib.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/lib_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/lift.rs",
+      "destination": "crates/joysheet-functions/src/lift.rs",
+      "importedDestination": "crates/joysheet-functions/src/lift.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/lift_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/lookup.rs",
+      "destination": "crates/joysheet-functions/src/lookup.rs",
+      "importedDestination": "crates/joysheet-functions/src/lookup.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/lookup_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/math.rs",
+      "destination": "crates/joysheet-functions/src/math.rs",
+      "importedDestination": "crates/joysheet-functions/src/math.rs"
+    },
+    {
+      "source": "crates/functions/src/math/criteria.rs",
+      "destination": "crates/joysheet-functions/src/math/criteria.rs",
+      "importedDestination": "crates/joysheet-functions/src/math/criteria.rs"
+    },
+    {
+      "source": "crates/functions/src/math/matrix.rs",
+      "destination": "crates/joysheet-functions/src/math/matrix.rs",
+      "importedDestination": "crates/joysheet-functions/src/math/matrix.rs"
+    },
+    {
+      "source": "crates/functions/src/math/roman_base.rs",
+      "destination": "crates/joysheet-functions/src/math/roman_base.rs",
+      "importedDestination": "crates/joysheet-functions/src/math/roman_base.rs"
+    },
+    {
+      "source": "crates/functions/src/math/tests.rs",
+      "destination": "crates/joysheet-functions/src/math/tests.rs",
+      "importedDestination": "crates/joysheet-functions/src/math/tests.rs"
+    },
+    {
+      "source": "crates/functions/src/special.rs",
+      "destination": "crates/joysheet-functions/src/special.rs",
+      "importedDestination": "crates/joysheet-functions/src/special.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/special_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/stat.rs",
+      "destination": "crates/joysheet-functions/src/stat.rs",
+      "importedDestination": "crates/joysheet-functions/src/stat.rs"
+    },
+    {
+      "source": "crates/functions/src/stat/descriptive.rs",
+      "destination": "crates/joysheet-functions/src/stat/descriptive.rs",
+      "importedDestination": "crates/joysheet-functions/src/stat/descriptive.rs"
+    },
+    {
+      "source": "crates/functions/src/stat/distributions.rs",
+      "destination": "crates/joysheet-functions/src/stat/distributions.rs",
+      "importedDestination": "crates/joysheet-functions/src/stat/distributions.rs"
+    },
+    {
+      "source": "crates/functions/src/stat/regression.rs",
+      "destination": "crates/joysheet-functions/src/stat/regression.rs",
+      "importedDestination": "crates/joysheet-functions/src/stat/regression.rs"
+    },
+    {
+      "source": "crates/functions/src/stat/tests.rs",
+      "destination": "crates/joysheet-functions/src/stat/tests.rs",
+      "importedDestination": "crates/joysheet-functions/src/stat/tests.rs"
+    },
+    {
+      "source": "crates/functions/src/text.rs",
+      "destination": "crates/joysheet-functions/src/text.rs",
+      "importedDestination": "crates/joysheet-functions/src/text.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/text_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/functions/src/util.rs",
+      "destination": "crates/joysheet-functions/src/util.rs",
+      "importedDestination": "crates/joysheet-functions/src/util.rs",
+      "additionalDestinations": [
+        "crates/joysheet-functions/src/tests/util_tests.rs",
+        "crates/joysheet-functions/src/tests/util_testutil.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/Cargo.toml",
+      "destination": "crates/joysheet-app/Cargo.toml",
+      "importedDestination": "crates/joysheet-app/Cargo.toml"
+    },
+    {
+      "source": "crates/joysheet-app/src/control.rs",
+      "destination": "crates/joysheet-app/src/control.rs",
+      "importedDestination": "crates/joysheet-app/src/control.rs",
+      "additionalDestinations": [
+        "crates/joysheet-app/src/tests/control_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/src/geometry.rs",
+      "destination": "crates/joysheet-app/src/geometry.rs",
+      "importedDestination": "crates/joysheet-app/src/geometry.rs",
+      "additionalDestinations": [
+        "crates/joysheet-app/src/tests/geometry_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/src/lib.rs",
+      "destination": "crates/joysheet-app/src/lib.rs",
+      "importedDestination": "crates/joysheet-app/src/lib.rs",
+      "additionalDestinations": [
+        "crates/joysheet-app/src/tests/lib_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/src/notifications.rs",
+      "destination": "crates/joysheet-app/src/notifications.rs",
+      "importedDestination": "crates/joysheet-app/src/notifications.rs",
+      "additionalDestinations": [
+        "crates/joysheet-app/src/tests/notifications_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/src/profiling.rs",
+      "destination": "crates/joysheet-app/src/profiling.rs",
+      "importedDestination": "crates/joysheet-app/src/profiling.rs"
+    },
+    {
+      "source": "crates/joysheet-app/src/recovery.rs",
+      "destination": "crates/joysheet-app/src/recovery.rs",
+      "importedDestination": "crates/joysheet-app/src/recovery.rs",
+      "additionalDestinations": [
+        "crates/joysheet-app/src/tests/recovery_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/src/smoke.rs",
+      "destination": "crates/joysheet-app/src/smoke.rs",
+      "importedDestination": "crates/joysheet-app/src/smoke.rs",
+      "additionalDestinations": [
+        "crates/joysheet-app/src/tests/smoke_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-app/src/tasks.rs",
+      "destination": "crates/joysheet-app/src/tasks.rs",
+      "importedDestination": "crates/joysheet-app/src/tasks.rs"
+    },
+    {
+      "source": "crates/joysheet-platform/Cargo.toml",
+      "destination": "crates/joysheet-platform/Cargo.toml",
+      "importedDestination": "crates/joysheet-platform/Cargo.toml"
+    },
+    {
+      "source": "crates/joysheet-platform/src/lib.rs",
+      "destination": "crates/joysheet-platform/src/lib.rs",
+      "importedDestination": "crates/joysheet-platform/src/lib.rs"
+    },
+    {
+      "source": "crates/joysheet-platform/src/printing.rs",
+      "destination": "crates/joysheet-platform/src/printing.rs",
+      "importedDestination": "crates/joysheet-platform/src/printing.rs",
+      "additionalDestinations": [
+        "crates/joysheet-platform/src/tests/printing_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-platform/src/windows.rs",
+      "destination": "crates/joysheet-platform/src/windows.rs",
+      "importedDestination": "crates/joysheet-platform/src/windows.rs",
+      "additionalDestinations": [
+        "crates/joysheet-platform/src/tests/windows_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-protocol/Cargo.toml",
+      "destination": "crates/joysheet-protocol/Cargo.toml",
+      "importedDestination": "crates/joysheet-protocol/Cargo.toml"
+    },
+    {
+      "source": "crates/joysheet-protocol/src/lib.rs",
+      "destination": "crates/joysheet-protocol/src/lib.rs",
+      "importedDestination": "crates/joysheet-protocol/src/lib.rs",
+      "additionalDestinations": [
+        "crates/joysheet-protocol/src/tests/lib_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/Cargo.toml",
+      "destination": "crates/joysheet-ui-gpui/Cargo.toml",
+      "importedDestination": "crates/joysheet-ui-gpui/Cargo.toml"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/accessibility.rs",
+      "destination": "crates/joysheet-ui-gpui/src/accessibility.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/accessibility.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/accessibility_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/advanced.rs",
+      "destination": "crates/joysheet-ui-gpui/src/advanced.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/advanced.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/advanced_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/automation.rs",
+      "destination": "crates/joysheet-ui-gpui/src/automation.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/automation.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/cf_icons.rs",
+      "destination": "crates/joysheet-ui-gpui/src/cf_icons.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/cf_icons.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/chart_dash.rs",
+      "destination": "crates/joysheet-ui-gpui/src/chart_dash.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/chart_dash.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/chart_dash_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/charts.rs",
+      "destination": "crates/joysheet-ui-gpui/src/charts.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/charts.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/complex_format.rs",
+      "destination": "crates/joysheet-ui-gpui/src/complex_format.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/complex_format.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/complex_format_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/control.rs",
+      "destination": "crates/joysheet-ui-gpui/src/control.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/control.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/daily.rs",
+      "destination": "crates/joysheet-ui-gpui/src/daily.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/daily.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/desktop.rs",
+      "destination": "crates/joysheet-ui-gpui/src/desktop.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/desktop.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/formula_feedback.rs",
+      "destination": "crates/joysheet-ui-gpui/src/formula_feedback.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/formula_feedback.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/formula_feedback_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/grid.rs",
+      "destination": "crates/joysheet-ui-gpui/src/grid.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/grid.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/grid_tools.rs",
+      "destination": "crates/joysheet-ui-gpui/src/grid_tools.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/grid_tools.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/input.rs",
+      "destination": "crates/joysheet-ui-gpui/src/input.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/input.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/lib.rs",
+      "destination": "crates/joysheet-ui-gpui/src/lib.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/lib.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/object_tools.rs",
+      "destination": "crates/joysheet-ui-gpui/src/object_tools.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/object_tools.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/objects.rs",
+      "destination": "crates/joysheet-ui-gpui/src/objects.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/objects.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/objects_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/outline_text.rs",
+      "destination": "crates/joysheet-ui-gpui/src/outline_text.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/outline_text.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/outline_text_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/palette.rs",
+      "destination": "crates/joysheet-ui-gpui/src/palette.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/palette.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/performance.rs",
+      "destination": "crates/joysheet-ui-gpui/src/performance.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/performance.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/performance_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/printing.rs",
+      "destination": "crates/joysheet-ui-gpui/src/printing.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/printing.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/recovery.rs",
+      "destination": "crates/joysheet-ui-gpui/src/recovery.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/recovery.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/ribbon.rs",
+      "destination": "crates/joysheet-ui-gpui/src/ribbon.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/ribbon.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/settings.rs",
+      "destination": "crates/joysheet-ui-gpui/src/settings.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/settings.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/validation.rs",
+      "destination": "crates/joysheet-ui-gpui/src/validation.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/validation.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/window_tools.rs",
+      "destination": "crates/joysheet-ui-gpui/src/window_tools.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/window_tools.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/windows_quality.rs",
+      "destination": "crates/joysheet-ui-gpui/src/windows_quality.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/windows_quality.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/workflow.rs",
+      "destination": "crates/joysheet-ui-gpui/src/workflow.rs",
+      "importedDestination": "crates/joysheet-ui-gpui/src/workflow.rs",
+      "additionalDestinations": [
+        "crates/joysheet-ui-gpui/src/tests/workflow_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/mcp/Cargo.toml",
+      "destination": "crates/joysheet-mcp/Cargo.toml",
+      "importedDestination": "crates/joysheet-mcp/Cargo.toml"
+    },
+    {
+      "source": "crates/mcp/src/backend.rs",
+      "destination": "crates/joysheet-mcp/src/backend.rs",
+      "importedDestination": "crates/joysheet-mcp/src/backend.rs"
+    },
+    {
+      "source": "crates/mcp/src/control_auth.rs",
+      "destination": "crates/joysheet-mcp/src/control_auth.rs",
+      "importedDestination": "crates/joysheet-mcp/src/control_auth.rs"
+    },
+    {
+      "source": "crates/mcp/src/headless.rs",
+      "destination": "crates/joysheet-mcp/src/headless.rs",
+      "importedDestination": "crates/joysheet-mcp/src/headless.rs"
+    },
+    {
+      "source": "crates/mcp/src/lib.rs",
+      "destination": "crates/joysheet-mcp/src/lib.rs",
+      "importedDestination": "crates/joysheet-mcp/src/lib.rs"
+    },
+    {
+      "source": "crates/mcp/src/server.rs",
+      "destination": "crates/joysheet-mcp/src/server.rs",
+      "importedDestination": "crates/joysheet-mcp/src/server.rs"
+    },
+    {
+      "source": "crates/mcp/src/tests.rs",
+      "destination": "crates/joysheet-mcp/src/tests.rs",
+      "importedDestination": "crates/joysheet-mcp/src/tests.rs"
+    },
+    {
+      "source": "crates/mcp/src/tools.rs",
+      "destination": "crates/joysheet-mcp/src/tools.rs",
+      "importedDestination": "crates/joysheet-mcp/src/tools.rs"
+    },
+    {
+      "source": "crates/model/Cargo.toml",
+      "destination": "crates/joysheet-model/Cargo.toml",
+      "importedDestination": "crates/joysheet-model/Cargo.toml"
+    },
+    {
+      "source": "crates/model/src/b64.rs",
+      "destination": "crates/joysheet-model/src/b64.rs",
+      "importedDestination": "crates/joysheet-model/src/b64.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/b64_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/cell.rs",
+      "destination": "crates/joysheet-model/src/cell.rs",
+      "importedDestination": "crates/joysheet-model/src/cell.rs"
+    },
+    {
+      "source": "crates/model/src/cellmap.rs",
+      "destination": "crates/joysheet-model/src/cellmap.rs",
+      "importedDestination": "crates/joysheet-model/src/cellmap.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/cellmap_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/features.rs",
+      "destination": "crates/joysheet-model/src/features.rs",
+      "importedDestination": "crates/joysheet-model/src/features.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/features_trendline_forecast_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/features/pivot.rs",
+      "destination": "crates/joysheet-model/src/features/pivot.rs",
+      "importedDestination": "crates/joysheet-model/src/features/pivot.rs"
+    },
+    {
+      "source": "crates/model/src/features/print.rs",
+      "destination": "crates/joysheet-model/src/features/print.rs",
+      "importedDestination": "crates/joysheet-model/src/features/print.rs"
+    },
+    {
+      "source": "crates/model/src/lib.rs",
+      "destination": "crates/joysheet-model/src/lib.rs",
+      "importedDestination": "crates/joysheet-model/src/lib.rs"
+    },
+    {
+      "source": "crates/model/src/lines.rs",
+      "destination": "crates/joysheet-model/src/lines.rs",
+      "importedDestination": "crates/joysheet-model/src/lines.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/lines_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/password.rs",
+      "destination": "crates/joysheet-model/src/password.rs",
+      "importedDestination": "crates/joysheet-model/src/password.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/password_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/preserved.rs",
+      "destination": "crates/joysheet-model/src/preserved.rs",
+      "importedDestination": "crates/joysheet-model/src/preserved.rs"
+    },
+    {
+      "source": "crates/model/src/sheet.rs",
+      "destination": "crates/joysheet-model/src/sheet.rs",
+      "importedDestination": "crates/joysheet-model/src/sheet.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/sheet_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/store.rs",
+      "destination": "crates/joysheet-model/src/store.rs",
+      "importedDestination": "crates/joysheet-model/src/store.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/store_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/style.rs",
+      "destination": "crates/joysheet-model/src/style.rs",
+      "importedDestination": "crates/joysheet-model/src/style.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/style_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/model/src/workbook.rs",
+      "destination": "crates/joysheet-model/src/workbook.rs",
+      "importedDestination": "crates/joysheet-model/src/workbook.rs",
+      "additionalDestinations": [
+        "crates/joysheet-model/src/tests/workbook_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/numfmt/Cargo.toml",
+      "destination": "crates/joysheet-numfmt/Cargo.toml",
+      "importedDestination": "crates/joysheet-numfmt/Cargo.toml"
+    },
+    {
+      "source": "crates/numfmt/src/builtin.rs",
+      "destination": "crates/joysheet-numfmt/src/builtin.rs",
+      "importedDestination": "crates/joysheet-numfmt/src/builtin.rs"
+    },
+    {
+      "source": "crates/numfmt/src/decimal.rs",
+      "destination": "crates/joysheet-numfmt/src/decimal.rs",
+      "importedDestination": "crates/joysheet-numfmt/src/decimal.rs",
+      "additionalDestinations": [
+        "crates/joysheet-numfmt/src/tests/decimal_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/numfmt/src/lib.rs",
+      "destination": "crates/joysheet-numfmt/src/lib.rs",
+      "importedDestination": "crates/joysheet-numfmt/src/lib.rs"
+    },
+    {
+      "source": "crates/numfmt/src/parse.rs",
+      "destination": "crates/joysheet-numfmt/src/parse.rs",
+      "importedDestination": "crates/joysheet-numfmt/src/parse.rs",
+      "additionalDestinations": [
+        "crates/joysheet-numfmt/src/tests/parse_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/numfmt/src/render.rs",
+      "destination": "crates/joysheet-numfmt/src/render.rs",
+      "importedDestination": "crates/joysheet-numfmt/src/render.rs",
+      "additionalDestinations": [
+        "crates/joysheet-numfmt/src/tests/render_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/numfmt/src/tests.rs",
+      "destination": "crates/joysheet-numfmt/src/tests.rs",
+      "importedDestination": "crates/joysheet-numfmt/src/tests.rs"
+    },
+    {
+      "source": "crates/numfmt/tests/poi_number_format_approx.rs",
+      "destination": "crates/joysheet-numfmt/tests/poi_number_format_approx.rs",
+      "importedDestination": "crates/joysheet-numfmt/tests/poi_number_format_approx.rs"
+    },
+    {
+      "source": "crates/pdf/Cargo.toml",
+      "destination": "crates/joysheet-pdf/Cargo.toml",
+      "importedDestination": "crates/joysheet-pdf/Cargo.toml"
+    },
+    {
+      "source": "crates/pdf/src/lib.rs",
+      "destination": "crates/joysheet-pdf/src/lib.rs",
+      "importedDestination": "crates/joysheet-pdf/src/lib.rs"
+    },
+    {
+      "source": "crates/pdf/src/metrics.rs",
+      "destination": "crates/joysheet-pdf/src/metrics.rs",
+      "importedDestination": "crates/joysheet-pdf/src/metrics.rs"
+    },
+    {
+      "source": "crates/pdf/src/tests.rs",
+      "destination": "crates/joysheet-pdf/src/tests.rs",
+      "importedDestination": "crates/joysheet-pdf/src/tests.rs"
+    },
+    {
+      "source": "crates/xlsx/Cargo.toml",
+      "destination": "crates/joysheet-xlsx/Cargo.toml",
+      "importedDestination": "crates/joysheet-xlsx/Cargo.toml"
+    },
+    {
+      "source": "crates/xlsx/src/array_formula.rs",
+      "destination": "crates/joysheet-xlsx/src/array_formula.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/array_formula.rs"
+    },
+    {
+      "source": "crates/xlsx/src/cfb.rs",
+      "destination": "crates/joysheet-xlsx/src/cfb.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/cfb.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/cfb_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/chart.rs",
+      "destination": "crates/joysheet-xlsx/src/chart.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/chart.rs"
+    },
+    {
+      "source": "crates/xlsx/src/chartex.rs",
+      "destination": "crates/joysheet-xlsx/src/chartex.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/chartex.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/chartex_quartile_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/crypto.rs",
+      "destination": "crates/joysheet-xlsx/src/crypto.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/crypto.rs"
+    },
+    {
+      "source": "crates/xlsx/src/crypto/tests.rs",
+      "destination": "crates/joysheet-xlsx/src/crypto/tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/crypto/tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/csv.rs",
+      "destination": "crates/joysheet-xlsx/src/csv.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/csv.rs"
+    },
+    {
+      "source": "crates/xlsx/src/drawing.rs",
+      "destination": "crates/joysheet-xlsx/src/drawing.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/drawing.rs"
+    },
+    {
+      "source": "crates/xlsx/src/drawing/ink.rs",
+      "destination": "crates/joysheet-xlsx/src/drawing/ink.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/drawing/ink.rs"
+    },
+    {
+      "source": "crates/xlsx/src/feature_bags.rs",
+      "destination": "crates/joysheet-xlsx/src/feature_bags.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/feature_bags.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/feature_bags_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/fmla.rs",
+      "destination": "crates/joysheet-xlsx/src/fmla.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/fmla.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/fmla_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/lib.rs",
+      "destination": "crates/joysheet-xlsx/src/lib.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/lib.rs"
+    },
+    {
+      "source": "crates/xlsx/src/ods.rs",
+      "destination": "crates/joysheet-xlsx/src/ods.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/ods.rs"
+    },
+    {
+      "source": "crates/xlsx/src/package.rs",
+      "destination": "crates/joysheet-xlsx/src/package.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/package.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/package_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/passthrough.rs",
+      "destination": "crates/joysheet-xlsx/src/passthrough.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/passthrough.rs"
+    },
+    {
+      "source": "crates/xlsx/src/passthrough/read.rs",
+      "destination": "crates/joysheet-xlsx/src/passthrough/read.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/passthrough/read.rs"
+    },
+    {
+      "source": "crates/xlsx/src/passthrough/rebase.rs",
+      "destination": "crates/joysheet-xlsx/src/passthrough/rebase.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/passthrough/rebase.rs"
+    },
+    {
+      "source": "crates/xlsx/src/passthrough/write.rs",
+      "destination": "crates/joysheet-xlsx/src/passthrough/write.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/passthrough/write.rs"
+    },
+    {
+      "source": "crates/xlsx/src/pivot.rs",
+      "destination": "crates/joysheet-xlsx/src/pivot.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/pivot.rs"
+    },
+    {
+      "source": "crates/xlsx/src/pivot/read.rs",
+      "destination": "crates/joysheet-xlsx/src/pivot/read.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/pivot/read.rs"
+    },
+    {
+      "source": "crates/xlsx/src/pivot/write.rs",
+      "destination": "crates/joysheet-xlsx/src/pivot/write.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/pivot/write.rs"
+    },
+    {
+      "source": "crates/xlsx/src/read.rs",
+      "destination": "crates/joysheet-xlsx/src/read.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/read.rs"
+    },
+    {
+      "source": "crates/xlsx/src/richdata.rs",
+      "destination": "crates/joysheet-xlsx/src/richdata.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/richdata.rs"
+    },
+    {
+      "source": "crates/xlsx/src/sheet_read.rs",
+      "destination": "crates/joysheet-xlsx/src/sheet_read.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/sheet_read.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/sheet_read_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/sheet_read/parts.rs",
+      "destination": "crates/joysheet-xlsx/src/sheet_read/parts.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/sheet_read/parts.rs"
+    },
+    {
+      "source": "crates/xlsx/src/sheet_read/rules.rs",
+      "destination": "crates/joysheet-xlsx/src/sheet_read/rules.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/sheet_read/rules.rs"
+    },
+    {
+      "source": "crates/xlsx/src/sheet_write.rs",
+      "destination": "crates/joysheet-xlsx/src/sheet_write.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/sheet_write.rs"
+    },
+    {
+      "source": "crates/xlsx/src/sheet_write/parts.rs",
+      "destination": "crates/joysheet-xlsx/src/sheet_write/parts.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/sheet_write/parts.rs"
+    },
+    {
+      "source": "crates/xlsx/src/sheet_write/rules.rs",
+      "destination": "crates/joysheet-xlsx/src/sheet_write/rules.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/sheet_write/rules.rs"
+    },
+    {
+      "source": "crates/xlsx/src/styles.rs",
+      "destination": "crates/joysheet-xlsx/src/styles.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/styles.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tables.rs",
+      "destination": "crates/joysheet-xlsx/src/tables.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tables.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/tables_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/testing.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/crypto_helpers.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/testing.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/array_export.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/array_export.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/array_export.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/cellmetadata.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/cellmetadata.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/cellmetadata.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/chart_book_names.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/chart_book_names.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/chart_book_names.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/chart_bool_default.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/chart_bool_default.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/chart_bool_default.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/chart_combo_kinds.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/chart_combo_kinds.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/chart_combo_kinds.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/chart_ref_offsets.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/chart_ref_offsets.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/chart_ref_offsets.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/csv_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/csv_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/csv_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/encrypted_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/encrypted_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/encrypted_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/fixtures.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/fixtures.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/fixtures.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/ink_roundtrip.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/ink_roundtrip.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/ink_roundtrip.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/literal_category_roundtrip.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/literal_category_roundtrip.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/literal_category_roundtrip.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/locale_numfmt.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/locale_numfmt.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/locale_numfmt.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/malformed.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/malformed.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/malformed.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/multilevel_category_roundtrip.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/multilevel_category_roundtrip.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/multilevel_category_roundtrip.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/note_box.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/note_box.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/note_box.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/ods_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/ods_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/ods_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/passthrough_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/passthrough_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/passthrough_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/phonetic_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/phonetic_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/phonetic_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/pivot_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/pivot_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/pivot_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/richdata_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/richdata_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/richdata_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/roundtrip.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/roundtrip.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/roundtrip.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/shape_text_rtl.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/shape_text_rtl.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/shape_text_rtl.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/shared_media.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/shared_media.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/shared_media.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/sheet_names.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/sheet_names.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/sheet_names.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/smooth_roundtrip.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/smooth_roundtrip.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/smooth_roundtrip.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/trendline_roundtrip.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/trendline_roundtrip.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/trendline_roundtrip.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/xls_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/xls_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/xls_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/xlsb_tests.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/xlsb_tests.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/xlsb_tests.rs"
+    },
+    {
+      "source": "crates/xlsx/src/tests/zip_order.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/zip_order.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/tests/zip_order.rs"
+    },
+    {
+      "source": "crates/xlsx/src/theme.rs",
+      "destination": "crates/joysheet-xlsx/src/theme.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/theme.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/theme_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/write.rs",
+      "destination": "crates/joysheet-xlsx/src/write.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/write.rs"
+    },
+    {
+      "source": "crates/xlsx/src/xls.rs",
+      "destination": "crates/joysheet-xlsx/src/xls.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/xls.rs"
+    },
+    {
+      "source": "crates/xlsx/src/xls/formula.rs",
+      "destination": "crates/joysheet-xlsx/src/xls/formula.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/xls/formula.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/xls/tests/formula_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/xls/ftab.rs",
+      "destination": "crates/joysheet-xlsx/src/xls/ftab.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/xls/ftab.rs"
+    },
+    {
+      "source": "crates/xlsx/src/xls/records.rs",
+      "destination": "crates/joysheet-xlsx/src/xls/records.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/xls/records.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/xls/tests/records_tests.rs"
+      ]
+    },
+    {
+      "source": "crates/xlsx/src/xlsb.rs",
+      "destination": "crates/joysheet-xlsx/src/xlsb.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/xlsb.rs"
+    },
+    {
+      "source": "crates/xlsx/src/xml.rs",
+      "destination": "crates/joysheet-xlsx/src/xml.rs",
+      "importedDestination": "crates/joysheet-xlsx/src/xml.rs",
+      "additionalDestinations": [
+        "crates/joysheet-xlsx/src/tests/xml_tests.rs"
+      ]
+    },
+    {
+      "source": "docs/ARCHITECTURE.md",
+      "destination": "docs/joysheet/ARCHITECTURE.md",
+      "importedDestination": "docs/joysheet/ARCHITECTURE.md"
+    },
+    {
+      "source": "docs/CONTROL.md",
+      "destination": "docs/joysheet/CONTROL.md",
+      "importedDestination": "docs/joysheet/CONTROL.md"
+    },
+    {
+      "source": "docs/FIX-SAVE-DIALOG.md",
+      "destination": "docs/joysheet/FIX-SAVE-DIALOG.md",
+      "importedDestination": "docs/joysheet/FIX-SAVE-DIALOG.md"
+    },
+    {
+      "source": "docs/LICENSE-LUCIDE",
+      "destination": "docs/joysheet/LICENSE-LUCIDE",
+      "importedDestination": "docs/joysheet/LICENSE-LUCIDE"
+    },
+    {
+      "source": "docs/M4.md",
+      "destination": "docs/joysheet/M4.md",
+      "importedDestination": "docs/joysheet/M4.md"
+    },
+    {
+      "source": "docs/M5.md",
+      "destination": "docs/joysheet/M5.md",
+      "importedDestination": "docs/joysheet/M5.md"
+    },
+    {
+      "source": "docs/M6.md",
+      "destination": "docs/joysheet/M6.md",
+      "importedDestination": "docs/joysheet/M6.md"
+    },
+    {
+      "source": "docs/M7.md",
+      "destination": "docs/joysheet/M7.md",
+      "importedDestination": "docs/joysheet/M7.md"
+    },
+    {
+      "source": "docs/M8.md",
+      "destination": "docs/joysheet/M8.md",
+      "importedDestination": "docs/joysheet/M8.md"
+    },
+    {
+      "source": "docs/MIGRATION.md",
+      "destination": "docs/joysheet/MIGRATION.md",
+      "importedDestination": "docs/joysheet/MIGRATION.md"
+    },
+    {
+      "source": "docs/PACKAGING.md",
+      "destination": "docs/joysheet/PACKAGING.md",
+      "importedDestination": "docs/joysheet/PACKAGING.md"
+    },
+    {
+      "source": "docs/PERFORMANCE-GEOMETRY-CALC.md",
+      "destination": "docs/joysheet/PERFORMANCE-GEOMETRY-CALC.md",
+      "importedDestination": "docs/joysheet/PERFORMANCE-GEOMETRY-CALC.md"
+    },
+    {
+      "source": "docs/PERFORMANCE.md",
+      "destination": "docs/joysheet/PERFORMANCE.md",
+      "importedDestination": "docs/joysheet/PERFORMANCE.md"
+    },
+    {
+      "source": "docs/STATUS.md",
+      "destination": "docs/joysheet/STATUS.md",
+      "importedDestination": "docs/joysheet/STATUS.md"
+    },
+    {
+      "source": "docs/UI-PERFORMANCE.md",
+      "destination": "docs/joysheet/UI-PERFORMANCE.md",
+      "importedDestination": "docs/joysheet/UI-PERFORMANCE.md"
+    },
+    {
+      "source": "docs/UPSTREAM-PATCHES.md",
+      "destination": "docs/joysheet/UPSTREAM-PATCHES.md",
+      "importedDestination": "docs/joysheet/UPSTREAM-PATCHES.md"
+    },
+    {
+      "source": "docs/VALIDATION.md",
+      "destination": "docs/joysheet/VALIDATION.md",
+      "importedDestination": "docs/joysheet/VALIDATION.md"
+    },
+    {
+      "source": "docs/WINDOWS-QUALITY.md",
+      "destination": "docs/joysheet/WINDOWS-QUALITY.md",
+      "importedDestination": "docs/joysheet/WINDOWS-QUALITY.md"
+    },
+    {
+      "source": "docs/WINDOWS.md",
+      "destination": "docs/joysheet/WINDOWS.md",
+      "importedDestination": "docs/joysheet/WINDOWS.md"
+    },
+    {
+      "source": "docs/commands.json",
+      "destination": "docs/joysheet/commands.json",
+      "importedDestination": "docs/joysheet/commands.json"
+    },
+    {
+      "source": "docs/evidence/GeometryCalc-installed.json",
+      "destination": "docs/joysheet/evidence/GeometryCalc-installed.json",
+      "importedDestination": "docs/joysheet/evidence/GeometryCalc-installed.json"
+    },
+    {
+      "source": "docs/evidence/GeometryCalc-installer.json",
+      "destination": "docs/joysheet/evidence/GeometryCalc-installer.json",
+      "importedDestination": "docs/joysheet/evidence/GeometryCalc-installer.json"
+    },
+    {
+      "source": "docs/evidence/GeometryCalc-performance.json",
+      "destination": "docs/joysheet/evidence/GeometryCalc-performance.json",
+      "importedDestination": "docs/joysheet/evidence/GeometryCalc-performance.json"
+    },
+    {
+      "source": "docs/evidence/GeometryCalc-print-owner.json",
+      "destination": "docs/joysheet/evidence/GeometryCalc-print-owner.json",
+      "importedDestination": "docs/joysheet/evidence/GeometryCalc-print-owner.json"
+    },
+    {
+      "source": "docs/evidence/GeometryCalc-release.json",
+      "destination": "docs/joysheet/evidence/GeometryCalc-release.json",
+      "importedDestination": "docs/joysheet/evidence/GeometryCalc-release.json"
+    },
+    {
+      "source": "docs/evidence/GeometryCalc-standalone.json",
+      "destination": "docs/joysheet/evidence/GeometryCalc-standalone.json",
+      "importedDestination": "docs/joysheet/evidence/GeometryCalc-standalone.json"
+    },
+    {
+      "source": "docs/evidence/M4-1.json",
+      "destination": "docs/joysheet/evidence/M4-1.json",
+      "importedDestination": "docs/joysheet/evidence/M4-1.json"
+    },
+    {
+      "source": "docs/evidence/M4-2.json",
+      "destination": "docs/joysheet/evidence/M4-2.json",
+      "importedDestination": "docs/joysheet/evidence/M4-2.json"
+    },
+    {
+      "source": "docs/evidence/M4-3.json",
+      "destination": "docs/joysheet/evidence/M4-3.json",
+      "importedDestination": "docs/joysheet/evidence/M4-3.json"
+    },
+    {
+      "source": "docs/evidence/M4-4.json",
+      "destination": "docs/joysheet/evidence/M4-4.json",
+      "importedDestination": "docs/joysheet/evidence/M4-4.json"
+    },
+    {
+      "source": "docs/evidence/M4-ci.json",
+      "destination": "docs/joysheet/evidence/M4-ci.json",
+      "importedDestination": "docs/joysheet/evidence/M4-ci.json"
+    },
+    {
+      "source": "docs/evidence/M4-report.json",
+      "destination": "docs/joysheet/evidence/M4-report.json",
+      "importedDestination": "docs/joysheet/evidence/M4-report.json"
+    },
+    {
+      "source": "docs/evidence/M4-smoke.json",
+      "destination": "docs/joysheet/evidence/M4-smoke.json",
+      "importedDestination": "docs/joysheet/evidence/M4-smoke.json"
+    },
+    {
+      "source": "docs/evidence/M5-1.json",
+      "destination": "docs/joysheet/evidence/M5-1.json",
+      "importedDestination": "docs/joysheet/evidence/M5-1.json"
+    },
+    {
+      "source": "docs/evidence/M5-2.json",
+      "destination": "docs/joysheet/evidence/M5-2.json",
+      "importedDestination": "docs/joysheet/evidence/M5-2.json"
+    },
+    {
+      "source": "docs/evidence/M5-3.json",
+      "destination": "docs/joysheet/evidence/M5-3.json",
+      "importedDestination": "docs/joysheet/evidence/M5-3.json"
+    },
+    {
+      "source": "docs/evidence/M5-4.json",
+      "destination": "docs/joysheet/evidence/M5-4.json",
+      "importedDestination": "docs/joysheet/evidence/M5-4.json"
+    },
+    {
+      "source": "docs/evidence/M5-ci.json",
+      "destination": "docs/joysheet/evidence/M5-ci.json",
+      "importedDestination": "docs/joysheet/evidence/M5-ci.json"
+    },
+    {
+      "source": "docs/evidence/M5-report.json",
+      "destination": "docs/joysheet/evidence/M5-report.json",
+      "importedDestination": "docs/joysheet/evidence/M5-report.json"
+    },
+    {
+      "source": "docs/evidence/M5-smoke.json",
+      "destination": "docs/joysheet/evidence/M5-smoke.json",
+      "importedDestination": "docs/joysheet/evidence/M5-smoke.json"
+    },
+    {
+      "source": "docs/evidence/M6-1.json",
+      "destination": "docs/joysheet/evidence/M6-1.json",
+      "importedDestination": "docs/joysheet/evidence/M6-1.json"
+    },
+    {
+      "source": "docs/evidence/M6-2.json",
+      "destination": "docs/joysheet/evidence/M6-2.json",
+      "importedDestination": "docs/joysheet/evidence/M6-2.json"
+    },
+    {
+      "source": "docs/evidence/M6-3.json",
+      "destination": "docs/joysheet/evidence/M6-3.json",
+      "importedDestination": "docs/joysheet/evidence/M6-3.json"
+    },
+    {
+      "source": "docs/evidence/M6-4.json",
+      "destination": "docs/joysheet/evidence/M6-4.json",
+      "importedDestination": "docs/joysheet/evidence/M6-4.json"
+    },
+    {
+      "source": "docs/evidence/M6-ci.json",
+      "destination": "docs/joysheet/evidence/M6-ci.json",
+      "importedDestination": "docs/joysheet/evidence/M6-ci.json"
+    },
+    {
+      "source": "docs/evidence/M6-debug-integrated.json",
+      "destination": "docs/joysheet/evidence/M6-debug-integrated.json",
+      "importedDestination": "docs/joysheet/evidence/M6-debug-integrated.json"
+    },
+    {
+      "source": "docs/evidence/M6-desktop-print.json",
+      "destination": "docs/joysheet/evidence/M6-desktop-print.json",
+      "importedDestination": "docs/joysheet/evidence/M6-desktop-print.json"
+    },
+    {
+      "source": "docs/evidence/M6-engine.json",
+      "destination": "docs/joysheet/evidence/M6-engine.json",
+      "importedDestination": "docs/joysheet/evidence/M6-engine.json"
+    },
+    {
+      "source": "docs/evidence/M6-pdf.json",
+      "destination": "docs/joysheet/evidence/M6-pdf.json",
+      "importedDestination": "docs/joysheet/evidence/M6-pdf.json"
+    },
+    {
+      "source": "docs/evidence/M6-print-backend.json",
+      "destination": "docs/joysheet/evidence/M6-print-backend.json",
+      "importedDestination": "docs/joysheet/evidence/M6-print-backend.json"
+    },
+    {
+      "source": "docs/evidence/M6-release.json",
+      "destination": "docs/joysheet/evidence/M6-release.json",
+      "importedDestination": "docs/joysheet/evidence/M6-release.json"
+    },
+    {
+      "source": "docs/evidence/M7-1.json",
+      "destination": "docs/joysheet/evidence/M7-1.json",
+      "importedDestination": "docs/joysheet/evidence/M7-1.json"
+    },
+    {
+      "source": "docs/evidence/M7-2.json",
+      "destination": "docs/joysheet/evidence/M7-2.json",
+      "importedDestination": "docs/joysheet/evidence/M7-2.json"
+    },
+    {
+      "source": "docs/evidence/M7-3.json",
+      "destination": "docs/joysheet/evidence/M7-3.json",
+      "importedDestination": "docs/joysheet/evidence/M7-3.json"
+    },
+    {
+      "source": "docs/evidence/M7-4.json",
+      "destination": "docs/joysheet/evidence/M7-4.json",
+      "importedDestination": "docs/joysheet/evidence/M7-4.json"
+    },
+    {
+      "source": "docs/evidence/M7-builds.json",
+      "destination": "docs/joysheet/evidence/M7-builds.json",
+      "importedDestination": "docs/joysheet/evidence/M7-builds.json"
+    },
+    {
+      "source": "docs/evidence/M7-ci.json",
+      "destination": "docs/joysheet/evidence/M7-ci.json",
+      "importedDestination": "docs/joysheet/evidence/M7-ci.json"
+    },
+    {
+      "source": "docs/evidence/M7-release.json",
+      "destination": "docs/joysheet/evidence/M7-release.json",
+      "importedDestination": "docs/joysheet/evidence/M7-release.json"
+    },
+    {
+      "source": "docs/evidence/M8-1.json",
+      "destination": "docs/joysheet/evidence/M8-1.json",
+      "importedDestination": "docs/joysheet/evidence/M8-1.json"
+    },
+    {
+      "source": "docs/evidence/M8-2.json",
+      "destination": "docs/joysheet/evidence/M8-2.json",
+      "importedDestination": "docs/joysheet/evidence/M8-2.json"
+    },
+    {
+      "source": "docs/evidence/M8-3.json",
+      "destination": "docs/joysheet/evidence/M8-3.json",
+      "importedDestination": "docs/joysheet/evidence/M8-3.json"
+    },
+    {
+      "source": "docs/evidence/M8-ci.json",
+      "destination": "docs/joysheet/evidence/M8-ci.json",
+      "importedDestination": "docs/joysheet/evidence/M8-ci.json"
+    },
+    {
+      "source": "docs/evidence/M8-environment.json",
+      "destination": "docs/joysheet/evidence/M8-environment.json",
+      "importedDestination": "docs/joysheet/evidence/M8-environment.json"
+    },
+    {
+      "source": "docs/evidence/M8-installer.json",
+      "destination": "docs/joysheet/evidence/M8-installer.json",
+      "importedDestination": "docs/joysheet/evidence/M8-installer.json"
+    },
+    {
+      "source": "docs/evidence/M8-performance.json",
+      "destination": "docs/joysheet/evidence/M8-performance.json",
+      "importedDestination": "docs/joysheet/evidence/M8-performance.json"
+    },
+    {
+      "source": "docs/evidence/M8-release.json",
+      "destination": "docs/joysheet/evidence/M8-release.json",
+      "importedDestination": "docs/joysheet/evidence/M8-release.json"
+    },
+    {
+      "source": "docs/evidence/M8-upstream-audit.json",
+      "destination": "docs/joysheet/evidence/M8-upstream-audit.json",
+      "importedDestination": "docs/joysheet/evidence/M8-upstream-audit.json"
+    },
+    {
+      "source": "docs/evidence/P1-native.json",
+      "destination": "docs/joysheet/evidence/P1-native.json",
+      "importedDestination": "docs/joysheet/evidence/P1-native.json"
+    },
+    {
+      "source": "docs/evidence/P1-performance.json",
+      "destination": "docs/joysheet/evidence/P1-performance.json",
+      "importedDestination": "docs/joysheet/evidence/P1-performance.json"
+    },
+    {
+      "source": "docs/evidence/P2-native.json",
+      "destination": "docs/joysheet/evidence/P2-native.json",
+      "importedDestination": "docs/joysheet/evidence/P2-native.json"
+    },
+    {
+      "source": "docs/evidence/P2-performance.json",
+      "destination": "docs/joysheet/evidence/P2-performance.json",
+      "importedDestination": "docs/joysheet/evidence/P2-performance.json"
+    },
+    {
+      "source": "docs/evidence/P3-native.json",
+      "destination": "docs/joysheet/evidence/P3-native.json",
+      "importedDestination": "docs/joysheet/evidence/P3-native.json"
+    },
+    {
+      "source": "docs/evidence/P3-performance.json",
+      "destination": "docs/joysheet/evidence/P3-performance.json",
+      "importedDestination": "docs/joysheet/evidence/P3-performance.json"
+    },
+    {
+      "source": "docs/evidence/P4-ci.json",
+      "destination": "docs/joysheet/evidence/P4-ci.json",
+      "importedDestination": "docs/joysheet/evidence/P4-ci.json"
+    },
+    {
+      "source": "docs/evidence/Performance-installed-native.json",
+      "destination": "docs/joysheet/evidence/Performance-installed-native.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-installed-native.json"
+    },
+    {
+      "source": "docs/evidence/Performance-installer.json",
+      "destination": "docs/joysheet/evidence/Performance-installer.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-installer.json"
+    },
+    {
+      "source": "docs/evidence/Performance-print-owner.json",
+      "destination": "docs/joysheet/evidence/Performance-print-owner.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-print-owner.json"
+    },
+    {
+      "source": "docs/evidence/Performance-recovery-off.json",
+      "destination": "docs/joysheet/evidence/Performance-recovery-off.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-recovery-off.json"
+    },
+    {
+      "source": "docs/evidence/Performance-recovery-on.json",
+      "destination": "docs/joysheet/evidence/Performance-recovery-on.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-recovery-on.json"
+    },
+    {
+      "source": "docs/evidence/Performance-release-samples.json",
+      "destination": "docs/joysheet/evidence/Performance-release-samples.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-release-samples.json"
+    },
+    {
+      "source": "docs/evidence/Performance-release.json",
+      "destination": "docs/joysheet/evidence/Performance-release.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-release.json"
+    },
+    {
+      "source": "docs/evidence/Performance-standalone-on.json",
+      "destination": "docs/joysheet/evidence/Performance-standalone-on.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-standalone-on.json"
+    },
+    {
+      "source": "docs/evidence/Performance-standalone.json",
+      "destination": "docs/joysheet/evidence/Performance-standalone.json",
+      "importedDestination": "docs/joysheet/evidence/Performance-standalone.json"
+    },
+    {
+      "source": "docs/evidence/Q1-native.json",
+      "destination": "docs/joysheet/evidence/Q1-native.json",
+      "importedDestination": "docs/joysheet/evidence/Q1-native.json"
+    },
+    {
+      "source": "docs/evidence/Q1-performance.json",
+      "destination": "docs/joysheet/evidence/Q1-performance.json",
+      "importedDestination": "docs/joysheet/evidence/Q1-performance.json"
+    },
+    {
+      "source": "docs/evidence/Q2-native.json",
+      "destination": "docs/joysheet/evidence/Q2-native.json",
+      "importedDestination": "docs/joysheet/evidence/Q2-native.json"
+    },
+    {
+      "source": "docs/evidence/Q2-performance.json",
+      "destination": "docs/joysheet/evidence/Q2-performance.json",
+      "importedDestination": "docs/joysheet/evidence/Q2-performance.json"
+    },
+    {
+      "source": "docs/evidence/Q3-native.json",
+      "destination": "docs/joysheet/evidence/Q3-native.json",
+      "importedDestination": "docs/joysheet/evidence/Q3-native.json"
+    },
+    {
+      "source": "docs/evidence/Q3-parity.json",
+      "destination": "docs/joysheet/evidence/Q3-parity.json",
+      "importedDestination": "docs/joysheet/evidence/Q3-parity.json"
+    },
+    {
+      "source": "docs/evidence/Q3-performance.json",
+      "destination": "docs/joysheet/evidence/Q3-performance.json",
+      "importedDestination": "docs/joysheet/evidence/Q3-performance.json"
+    },
+    {
+      "source": "docs/evidence/Q4-ci.json",
+      "destination": "docs/joysheet/evidence/Q4-ci.json",
+      "importedDestination": "docs/joysheet/evidence/Q4-ci.json"
+    },
+    {
+      "source": "docs/evidence/Q4-desktop.png",
+      "destination": "docs/joysheet/evidence/Q4-desktop.png",
+      "importedDestination": "docs/joysheet/evidence/Q4-desktop.png"
+    },
+    {
+      "source": "docs/evidence/Quality-ci.json",
+      "destination": "docs/joysheet/evidence/Quality-ci.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-ci.json"
+    },
+    {
+      "source": "docs/evidence/Quality-installed-runtime.json",
+      "destination": "docs/joysheet/evidence/Quality-installed-runtime.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-installed-runtime.json"
+    },
+    {
+      "source": "docs/evidence/Quality-installer.json",
+      "destination": "docs/joysheet/evidence/Quality-installer.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-installer.json"
+    },
+    {
+      "source": "docs/evidence/Quality-performance-before-initial.json",
+      "destination": "docs/joysheet/evidence/Quality-performance-before-initial.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-performance-before-initial.json"
+    },
+    {
+      "source": "docs/evidence/Quality-performance-before-repeat.json",
+      "destination": "docs/joysheet/evidence/Quality-performance-before-repeat.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-performance-before-repeat.json"
+    },
+    {
+      "source": "docs/evidence/Quality-performance.json",
+      "destination": "docs/joysheet/evidence/Quality-performance.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-performance.json"
+    },
+    {
+      "source": "docs/evidence/Quality-release.json",
+      "destination": "docs/joysheet/evidence/Quality-release.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-release.json"
+    },
+    {
+      "source": "docs/evidence/Quality-source.json",
+      "destination": "docs/joysheet/evidence/Quality-source.json",
+      "importedDestination": "docs/joysheet/evidence/Quality-source.json"
+    },
+    {
+      "source": "docs/evidence/R1-baseline-100k.json",
+      "destination": "docs/joysheet/evidence/R1-baseline-100k.json",
+      "importedDestination": "docs/joysheet/evidence/R1-baseline-100k.json"
+    },
+    {
+      "source": "docs/evidence/R1-baseline-10k.json",
+      "destination": "docs/joysheet/evidence/R1-baseline-10k.json",
+      "importedDestination": "docs/joysheet/evidence/R1-baseline-10k.json"
+    },
+    {
+      "source": "docs/evidence/R1-baseline-clean-100k.json",
+      "destination": "docs/joysheet/evidence/R1-baseline-clean-100k.json",
+      "importedDestination": "docs/joysheet/evidence/R1-baseline-clean-100k.json"
+    },
+    {
+      "source": "docs/evidence/R1-baseline-clean-native.json",
+      "destination": "docs/joysheet/evidence/R1-baseline-clean-native.json",
+      "importedDestination": "docs/joysheet/evidence/R1-baseline-clean-native.json"
+    },
+    {
+      "source": "docs/evidence/R1-baseline-native.json",
+      "destination": "docs/joysheet/evidence/R1-baseline-native.json",
+      "importedDestination": "docs/joysheet/evidence/R1-baseline-native.json"
+    },
+    {
+      "source": "docs/evidence/R2-focus-final.json",
+      "destination": "docs/joysheet/evidence/R2-focus-final.json",
+      "importedDestination": "docs/joysheet/evidence/R2-focus-final.json"
+    },
+    {
+      "source": "docs/evidence/R2-launch.json",
+      "destination": "docs/joysheet/evidence/R2-launch.json",
+      "importedDestination": "docs/joysheet/evidence/R2-launch.json"
+    },
+    {
+      "source": "docs/evidence/R2-native-ui.json",
+      "destination": "docs/joysheet/evidence/R2-native-ui.json",
+      "importedDestination": "docs/joysheet/evidence/R2-native-ui.json"
+    },
+    {
+      "source": "docs/evidence/R3-comparison-initial.json",
+      "destination": "docs/joysheet/evidence/R3-comparison-initial.json",
+      "importedDestination": "docs/joysheet/evidence/R3-comparison-initial.json"
+    },
+    {
+      "source": "docs/evidence/R3-comparison.json",
+      "destination": "docs/joysheet/evidence/R3-comparison.json",
+      "importedDestination": "docs/joysheet/evidence/R3-comparison.json"
+    },
+    {
+      "source": "docs/evidence/R3-parity.json",
+      "destination": "docs/joysheet/evidence/R3-parity.json",
+      "importedDestination": "docs/joysheet/evidence/R3-parity.json"
+    },
+    {
+      "source": "docs/evidence/R3-stress-final.json",
+      "destination": "docs/joysheet/evidence/R3-stress-final.json",
+      "importedDestination": "docs/joysheet/evidence/R3-stress-final.json"
+    },
+    {
+      "source": "docs/evidence/R3-stress-native.json",
+      "destination": "docs/joysheet/evidence/R3-stress-native.json",
+      "importedDestination": "docs/joysheet/evidence/R3-stress-native.json"
+    },
+    {
+      "source": "docs/evidence/R4-ci.json",
+      "destination": "docs/joysheet/evidence/R4-ci.json",
+      "importedDestination": "docs/joysheet/evidence/R4-ci.json"
+    },
+    {
+      "source": "docs/evidence/R4-installed-native.json",
+      "destination": "docs/joysheet/evidence/R4-installed-native.json",
+      "importedDestination": "docs/joysheet/evidence/R4-installed-native.json"
+    },
+    {
+      "source": "docs/evidence/R4-installer.json",
+      "destination": "docs/joysheet/evidence/R4-installer.json",
+      "importedDestination": "docs/joysheet/evidence/R4-installer.json"
+    },
+    {
+      "source": "docs/evidence/R4-print-owner.json",
+      "destination": "docs/joysheet/evidence/R4-print-owner.json",
+      "importedDestination": "docs/joysheet/evidence/R4-print-owner.json"
+    },
+    {
+      "source": "docs/evidence/R4-release-native.json",
+      "destination": "docs/joysheet/evidence/R4-release-native.json",
+      "importedDestination": "docs/joysheet/evidence/R4-release-native.json"
+    },
+    {
+      "source": "docs/evidence/W1.json",
+      "destination": "docs/joysheet/evidence/W1.json",
+      "importedDestination": "docs/joysheet/evidence/W1.json"
+    },
+    {
+      "source": "docs/evidence/W2.json",
+      "destination": "docs/joysheet/evidence/W2.json",
+      "importedDestination": "docs/joysheet/evidence/W2.json"
+    },
+    {
+      "source": "docs/evidence/W3.json",
+      "destination": "docs/joysheet/evidence/W3.json",
+      "importedDestination": "docs/joysheet/evidence/W3.json"
+    },
+    {
+      "source": "docs/evidence/W4.json",
+      "destination": "docs/joysheet/evidence/W4.json",
+      "importedDestination": "docs/joysheet/evidence/W4.json"
+    },
+    {
+      "source": "docs/evidence/W5.json",
+      "destination": "docs/joysheet/evidence/W5.json",
+      "importedDestination": "docs/joysheet/evidence/W5.json"
+    },
+    {
+      "source": "docs/evidence/W6.json",
+      "destination": "docs/joysheet/evidence/W6.json",
+      "importedDestination": "docs/joysheet/evidence/W6.json"
+    },
+    {
+      "source": "docs/evidence/W7-uia.json",
+      "destination": "docs/joysheet/evidence/W7-uia.json",
+      "importedDestination": "docs/joysheet/evidence/W7-uia.json"
+    },
+    {
+      "source": "docs/evidence/W7.json",
+      "destination": "docs/joysheet/evidence/W7.json",
+      "importedDestination": "docs/joysheet/evidence/W7.json"
+    },
+    {
+      "source": "docs/evidence/W8-cancel-False.json",
+      "destination": "docs/joysheet/evidence/W8-cancel-False.json",
+      "importedDestination": "docs/joysheet/evidence/W8-cancel-False.json"
+    },
+    {
+      "source": "docs/evidence/W8-cancel-True.json",
+      "destination": "docs/joysheet/evidence/W8-cancel-True.json",
+      "importedDestination": "docs/joysheet/evidence/W8-cancel-True.json"
+    },
+    {
+      "source": "docs/evidence/W8-owner.json",
+      "destination": "docs/joysheet/evidence/W8-owner.json",
+      "importedDestination": "docs/joysheet/evidence/W8-owner.json"
+    },
+    {
+      "source": "docs/evidence/W8-paginator.json",
+      "destination": "docs/joysheet/evidence/W8-paginator.json",
+      "importedDestination": "docs/joysheet/evidence/W8-paginator.json"
+    },
+    {
+      "source": "docs/evidence/W8.json",
+      "destination": "docs/joysheet/evidence/W8.json",
+      "importedDestination": "docs/joysheet/evidence/W8.json"
+    },
+    {
+      "source": "docs/evidence/Windows-ci.json",
+      "destination": "docs/joysheet/evidence/Windows-ci.json",
+      "importedDestination": "docs/joysheet/evidence/Windows-ci.json"
+    },
+    {
+      "source": "docs/evidence/Windows-installed-runtime.json",
+      "destination": "docs/joysheet/evidence/Windows-installed-runtime.json",
+      "importedDestination": "docs/joysheet/evidence/Windows-installed-runtime.json"
+    },
+    {
+      "source": "docs/evidence/Windows-installer.json",
+      "destination": "docs/joysheet/evidence/Windows-installer.json",
+      "importedDestination": "docs/joysheet/evidence/Windows-installer.json"
+    },
+    {
+      "source": "docs/evidence/Windows-performance.json",
+      "destination": "docs/joysheet/evidence/Windows-performance.json",
+      "importedDestination": "docs/joysheet/evidence/Windows-performance.json"
+    },
+    {
+      "source": "docs/evidence/Windows-release.json",
+      "destination": "docs/joysheet/evidence/Windows-release.json",
+      "importedDestination": "docs/joysheet/evidence/Windows-release.json"
+    },
+    {
+      "source": "docs/evidence/Windows-source.json",
+      "destination": "docs/joysheet/evidence/Windows-source.json",
+      "importedDestination": "docs/joysheet/evidence/Windows-source.json"
+    },
+    {
+      "source": "docs/evidence/ci-summary.json",
+      "destination": "docs/joysheet/evidence/ci-summary.json",
+      "importedDestination": "docs/joysheet/evidence/ci-summary.json"
+    },
+    {
+      "source": "docs/evidence/environment.json",
+      "destination": "docs/joysheet/evidence/environment.json",
+      "importedDestination": "docs/joysheet/evidence/environment.json"
+    },
+    {
+      "source": "docs/evidence/geometry-benchmark.json",
+      "destination": "docs/joysheet/evidence/geometry-benchmark.json",
+      "importedDestination": "docs/joysheet/evidence/geometry-benchmark.json"
+    },
+    {
+      "source": "docs/evidence/import-diff.json",
+      "destination": "docs/joysheet/evidence/import-diff.json",
+      "importedDestination": "docs/joysheet/evidence/import-diff.json"
+    },
+    {
+      "source": "docs/evidence/performance.json",
+      "destination": "docs/joysheet/evidence/performance.json",
+      "importedDestination": "docs/joysheet/evidence/performance.json"
+    },
+    {
+      "source": "docs/evidence/report.json",
+      "destination": "docs/joysheet/evidence/report.json",
+      "importedDestination": "docs/joysheet/evidence/report.json"
+    },
+    {
+      "source": "docs/evidence/save-dialog-ci.json",
+      "destination": "docs/joysheet/evidence/save-dialog-ci.json",
+      "importedDestination": "docs/joysheet/evidence/save-dialog-ci.json"
+    },
+    {
+      "source": "docs/evidence/save-dialog-debug.json",
+      "destination": "docs/joysheet/evidence/save-dialog-debug.json",
+      "importedDestination": "docs/joysheet/evidence/save-dialog-debug.json"
+    },
+    {
+      "source": "docs/evidence/save-dialog-release.json",
+      "destination": "docs/joysheet/evidence/save-dialog-release.json",
+      "importedDestination": "docs/joysheet/evidence/save-dialog-release.json"
+    },
+    {
+      "source": "docs/samples/M5-workflow.xlsx",
+      "destination": "docs/joysheet/samples/M5-workflow.xlsx",
+      "importedDestination": "docs/joysheet/samples/M5-workflow.xlsx"
+    },
+    {
+      "source": "docs/samples/M6-report.pdf",
+      "destination": "docs/joysheet/samples/M6-report.pdf",
+      "importedDestination": "docs/joysheet/samples/M6-report.pdf"
+    },
+    {
+      "source": "docs/samples/M6-workflow.xlsx",
+      "destination": "docs/joysheet/samples/M6-workflow.xlsx",
+      "importedDestination": "docs/joysheet/samples/M6-workflow.xlsx"
+    },
+    {
+      "source": "docs/samples/M7-workflow.xlsx",
+      "destination": "docs/joysheet/samples/M7-workflow.xlsx",
+      "importedDestination": "docs/joysheet/samples/M7-workflow.xlsx"
+    },
+    {
+      "source": "docs/samples/Windows-boundaries.xlsx",
+      "destination": "docs/joysheet/samples/Windows-boundaries.xlsx",
+      "importedDestination": "docs/joysheet/samples/Windows-boundaries.xlsx"
+    },
+    {
+      "source": "docs/samples/Windows-format.xlsx",
+      "destination": "docs/joysheet/samples/Windows-format.xlsx",
+      "importedDestination": "docs/joysheet/samples/Windows-format.xlsx"
+    },
+    {
+      "source": "docs/samples/Windows-objects.xlsx",
+      "destination": "docs/joysheet/samples/Windows-objects.xlsx",
+      "importedDestination": "docs/joysheet/samples/Windows-objects.xlsx"
+    },
+    {
+      "source": "docs/samples/Windows-quality.xlsx",
+      "destination": "docs/joysheet/samples/Windows-quality.xlsx",
+      "importedDestination": "docs/joysheet/samples/Windows-quality.xlsx"
+    },
+    {
+      "source": "docs/screenshots/M4-alpha.png",
+      "destination": "docs/joysheet/screenshots/M4-alpha.png",
+      "importedDestination": "docs/joysheet/screenshots/M4-alpha.png"
+    },
+    {
+      "source": "docs/screenshots/M4-format.png",
+      "destination": "docs/joysheet/screenshots/M4-format.png",
+      "importedDestination": "docs/joysheet/screenshots/M4-format.png"
+    },
+    {
+      "source": "docs/screenshots/M5-connections.png",
+      "destination": "docs/joysheet/screenshots/M5-connections.png",
+      "importedDestination": "docs/joysheet/screenshots/M5-connections.png"
+    },
+    {
+      "source": "docs/screenshots/M5-workflow.png",
+      "destination": "docs/joysheet/screenshots/M5-workflow.png",
+      "importedDestination": "docs/joysheet/screenshots/M5-workflow.png"
+    },
+    {
+      "source": "docs/screenshots/M6-chart-after.png",
+      "destination": "docs/joysheet/screenshots/M6-chart-after.png",
+      "importedDestination": "docs/joysheet/screenshots/M6-chart-after.png"
+    },
+    {
+      "source": "docs/screenshots/M6-chart-before.png",
+      "destination": "docs/joysheet/screenshots/M6-chart-before.png",
+      "importedDestination": "docs/joysheet/screenshots/M6-chart-before.png"
+    },
+    {
+      "source": "docs/screenshots/M6-editing.png",
+      "destination": "docs/joysheet/screenshots/M6-editing.png",
+      "importedDestination": "docs/joysheet/screenshots/M6-editing.png"
+    },
+    {
+      "source": "docs/screenshots/M6-objects.png",
+      "destination": "docs/joysheet/screenshots/M6-objects.png",
+      "importedDestination": "docs/joysheet/screenshots/M6-objects.png"
+    },
+    {
+      "source": "docs/screenshots/M6-pdf-page.png",
+      "destination": "docs/joysheet/screenshots/M6-pdf-page.png",
+      "importedDestination": "docs/joysheet/screenshots/M6-pdf-page.png"
+    },
+    {
+      "source": "docs/screenshots/M6-preview.png",
+      "destination": "docs/joysheet/screenshots/M6-preview.png",
+      "importedDestination": "docs/joysheet/screenshots/M6-preview.png"
+    },
+    {
+      "source": "docs/screenshots/M7-analysis.png",
+      "destination": "docs/joysheet/screenshots/M7-analysis.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-analysis.png"
+    },
+    {
+      "source": "docs/screenshots/M7-control.png",
+      "destination": "docs/joysheet/screenshots/M7-control.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-control.png"
+    },
+    {
+      "source": "docs/screenshots/M7-mcp-targeted.png",
+      "destination": "docs/joysheet/screenshots/M7-mcp-targeted.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-mcp-targeted.png"
+    },
+    {
+      "source": "docs/screenshots/M7-names.png",
+      "destination": "docs/joysheet/screenshots/M7-names.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-names.png"
+    },
+    {
+      "source": "docs/screenshots/M7-pivot-fields.png",
+      "destination": "docs/joysheet/screenshots/M7-pivot-fields.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-pivot-fields.png"
+    },
+    {
+      "source": "docs/screenshots/M7-review.png",
+      "destination": "docs/joysheet/screenshots/M7-review.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-review.png"
+    },
+    {
+      "source": "docs/screenshots/M7-scripts.png",
+      "destination": "docs/joysheet/screenshots/M7-scripts.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-scripts.png"
+    },
+    {
+      "source": "docs/screenshots/M7-trust.png",
+      "destination": "docs/joysheet/screenshots/M7-trust.png",
+      "importedDestination": "docs/joysheet/screenshots/M7-trust.png"
+    },
+    {
+      "source": "docs/screenshots/M8-preview.png",
+      "destination": "docs/joysheet/screenshots/M8-preview.png",
+      "importedDestination": "docs/joysheet/screenshots/M8-preview.png"
+    },
+    {
+      "source": "docs/screenshots/M8-recovered.png",
+      "destination": "docs/joysheet/screenshots/M8-recovered.png",
+      "importedDestination": "docs/joysheet/screenshots/M8-recovered.png"
+    },
+    {
+      "source": "docs/screenshots/M8-settings.png",
+      "destination": "docs/joysheet/screenshots/M8-settings.png",
+      "importedDestination": "docs/joysheet/screenshots/M8-settings.png"
+    },
+    {
+      "source": "docs/screenshots/M8-validation.png",
+      "destination": "docs/joysheet/screenshots/M8-validation.png",
+      "importedDestination": "docs/joysheet/screenshots/M8-validation.png"
+    },
+    {
+      "source": "docs/screenshots/R2-native-sort.png",
+      "destination": "docs/joysheet/screenshots/R2-native-sort.png",
+      "importedDestination": "docs/joysheet/screenshots/R2-native-sort.png"
+    },
+    {
+      "source": "docs/screenshots/R2-ribbon-home.png",
+      "destination": "docs/joysheet/screenshots/R2-ribbon-home.png",
+      "importedDestination": "docs/joysheet/screenshots/R2-ribbon-home.png"
+    },
+    {
+      "source": "docs/screenshots/R4-ribbon.png",
+      "destination": "docs/joysheet/screenshots/R4-ribbon.png",
+      "importedDestination": "docs/joysheet/screenshots/R4-ribbon.png"
+    },
+    {
+      "source": "docs/screenshots/W1-complex-format.png",
+      "destination": "docs/joysheet/screenshots/W1-complex-format.png",
+      "importedDestination": "docs/joysheet/screenshots/W1-complex-format.png"
+    },
+    {
+      "source": "docs/screenshots/W2-arranged.png",
+      "destination": "docs/joysheet/screenshots/W2-arranged.png",
+      "importedDestination": "docs/joysheet/screenshots/W2-arranged.png"
+    },
+    {
+      "source": "docs/screenshots/W3-before-align.png",
+      "destination": "docs/joysheet/screenshots/W3-before-align.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-before-align.png"
+    },
+    {
+      "source": "docs/screenshots/W3-formula.png",
+      "destination": "docs/joysheet/screenshots/W3-formula.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-formula.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-3Arrows.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-3Arrows.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-3Arrows.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-3Flags.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-3Flags.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-3Flags.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-3Signs.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-3Signs.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-3Signs.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-3Symbols2.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-3Symbols2.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-3Symbols2.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-3TrafficLights1.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-3TrafficLights1.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-3TrafficLights1.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-4Rating.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-4Rating.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-4Rating.png"
+    },
+    {
+      "source": "docs/screenshots/W3-icons-5Quarters.png",
+      "destination": "docs/joysheet/screenshots/W3-icons-5Quarters.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-icons-5Quarters.png"
+    },
+    {
+      "source": "docs/screenshots/W3-merged-editor.png",
+      "destination": "docs/joysheet/screenshots/W3-merged-editor.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-merged-editor.png"
+    },
+    {
+      "source": "docs/screenshots/W3-objects.png",
+      "destination": "docs/joysheet/screenshots/W3-objects.png",
+      "importedDestination": "docs/joysheet/screenshots/W3-objects.png"
+    },
+    {
+      "source": "docs/screenshots/W4-checkbox.png",
+      "destination": "docs/joysheet/screenshots/W4-checkbox.png",
+      "importedDestination": "docs/joysheet/screenshots/W4-checkbox.png"
+    },
+    {
+      "source": "docs/screenshots/W4-frozen-objects.png",
+      "destination": "docs/joysheet/screenshots/W4-frozen-objects.png",
+      "importedDestination": "docs/joysheet/screenshots/W4-frozen-objects.png"
+    },
+    {
+      "source": "docs/screenshots/W4-icons.png",
+      "destination": "docs/joysheet/screenshots/W4-icons.png",
+      "importedDestination": "docs/joysheet/screenshots/W4-icons.png"
+    },
+    {
+      "source": "docs/screenshots/W4-shape-font.png",
+      "destination": "docs/joysheet/screenshots/W4-shape-font.png",
+      "importedDestination": "docs/joysheet/screenshots/W4-shape-font.png"
+    },
+    {
+      "source": "docs/screenshots/W5-ime-False.png",
+      "destination": "docs/joysheet/screenshots/W5-ime-False.png",
+      "importedDestination": "docs/joysheet/screenshots/W5-ime-False.png"
+    },
+    {
+      "source": "docs/screenshots/W5-ime-True.png",
+      "destination": "docs/joysheet/screenshots/W5-ime-True.png",
+      "importedDestination": "docs/joysheet/screenshots/W5-ime-True.png"
+    },
+    {
+      "source": "docs/screenshots/W6-native-scale.png",
+      "destination": "docs/joysheet/screenshots/W6-native-scale.png",
+      "importedDestination": "docs/joysheet/screenshots/W6-native-scale.png"
+    },
+    {
+      "source": "docs/screenshots/W7-accessibility.png",
+      "destination": "docs/joysheet/screenshots/W7-accessibility.png",
+      "importedDestination": "docs/joysheet/screenshots/W7-accessibility.png"
+    },
+    {
+      "source": "docs/screenshots/W8-print-preview.png",
+      "destination": "docs/joysheet/screenshots/W8-print-preview.png",
+      "importedDestination": "docs/joysheet/screenshots/W8-print-preview.png"
+    },
+    {
+      "source": "docs/screenshots/format-dialog.png",
+      "destination": "docs/joysheet/screenshots/format-dialog.png",
+      "importedDestination": "docs/joysheet/screenshots/format-dialog.png"
+    },
+    {
+      "source": "docs/screenshots/roundtrip.png",
+      "destination": "docs/joysheet/screenshots/roundtrip.png",
+      "importedDestination": "docs/joysheet/screenshots/roundtrip.png"
+    },
+    {
+      "source": "docs/screenshots/sales.png",
+      "destination": "docs/joysheet/screenshots/sales.png",
+      "importedDestination": "docs/joysheet/screenshots/sales.png"
+    },
+    {
+      "source": "docs/screenshots/save-dialog-blocking.png",
+      "destination": "docs/joysheet/screenshots/save-dialog-blocking.png",
+      "importedDestination": "docs/joysheet/screenshots/save-dialog-blocking.png"
+    },
+    {
+      "source": "docs/screenshots/save-dialog-error.png",
+      "destination": "docs/joysheet/screenshots/save-dialog-error.png",
+      "importedDestination": "docs/joysheet/screenshots/save-dialog-error.png"
+    },
+    {
+      "source": "docs/source-checkpoint.json",
+      "destination": "docs/joysheet/source-checkpoint.json",
+      "importedDestination": "docs/joysheet/source-checkpoint.json"
+    },
+    {
+      "source": "docs/third-party/accesskit/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/accesskit/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/accesskit/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/accesskit/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/accesskit/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/accesskit/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/accesskit/SOURCE.json",
+      "destination": "docs/joysheet/third-party/accesskit/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/accesskit/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/accesskit_consumer/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/accesskit_consumer/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/accesskit_consumer/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/accesskit_consumer/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/accesskit_consumer/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/accesskit_consumer/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/accesskit_consumer/SOURCE.json",
+      "destination": "docs/joysheet/third-party/accesskit_consumer/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/accesskit_consumer/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/accesskit_windows/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/accesskit_windows/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/accesskit_windows/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/accesskit_windows/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/accesskit_windows/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/accesskit_windows/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/accesskit_windows/SOURCE.json",
+      "destination": "docs/joysheet/third-party/accesskit_windows/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/accesskit_windows/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/clipboard-win/LICENSE",
+      "destination": "docs/joysheet/third-party/clipboard-win/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/clipboard-win/LICENSE"
+    },
+    {
+      "source": "docs/third-party/clipboard-win/SOURCE.json",
+      "destination": "docs/joysheet/third-party/clipboard-win/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/clipboard-win/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/gpui-kit/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/gpui-kit/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/gpui-kit/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/gpui-kit/SOURCE.json",
+      "destination": "docs/joysheet/third-party/gpui-kit/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/gpui-kit/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/lyon/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/lyon/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/lyon/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/lyon/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/lyon/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/lyon/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/lyon/SOURCE.json",
+      "destination": "docs/joysheet/third-party/lyon/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/lyon/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/lyon_algorithms/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/lyon_algorithms/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/lyon_algorithms/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/lyon_algorithms/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/lyon_algorithms/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/lyon_algorithms/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/lyon_algorithms/SOURCE.json",
+      "destination": "docs/joysheet/third-party/lyon_algorithms/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/lyon_algorithms/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/lyon_geom/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/lyon_geom/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/lyon_geom/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/lyon_geom/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/lyon_geom/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/lyon_geom/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/lyon_geom/SOURCE.json",
+      "destination": "docs/joysheet/third-party/lyon_geom/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/lyon_geom/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/lyon_path/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/lyon_path/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/lyon_path/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/lyon_path/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/lyon_path/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/lyon_path/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/lyon_path/SOURCE.json",
+      "destination": "docs/joysheet/third-party/lyon_path/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/lyon_path/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/lyon_tessellation/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/lyon_tessellation/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/lyon_tessellation/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/lyon_tessellation/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/lyon_tessellation/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/lyon_tessellation/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/lyon_tessellation/SOURCE.json",
+      "destination": "docs/joysheet/third-party/lyon_tessellation/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/lyon_tessellation/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/mac/Cargo.toml.published",
+      "destination": "docs/joysheet/third-party/mac/Cargo.toml.published",
+      "importedDestination": "docs/joysheet/third-party/mac/Cargo.toml.published"
+    },
+    {
+      "source": "docs/third-party/mac/DECLARATION.md",
+      "destination": "docs/joysheet/third-party/mac/DECLARATION.md",
+      "importedDestination": "docs/joysheet/third-party/mac/DECLARATION.md"
+    },
+    {
+      "source": "docs/third-party/mac/LICENSE-APACHE-standard",
+      "destination": "docs/joysheet/third-party/mac/LICENSE-APACHE-standard",
+      "importedDestination": "docs/joysheet/third-party/mac/LICENSE-APACHE-standard"
+    },
+    {
+      "source": "docs/third-party/mac/README.md",
+      "destination": "docs/joysheet/third-party/mac/README.md",
+      "importedDestination": "docs/joysheet/third-party/mac/README.md"
+    },
+    {
+      "source": "docs/third-party/mac/SOURCE.json",
+      "destination": "docs/joysheet/third-party/mac/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/mac/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/profiling-procmacros/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/profiling-procmacros/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/profiling-procmacros/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/profiling-procmacros/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/profiling-procmacros/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/profiling-procmacros/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/profiling-procmacros/SOURCE.json",
+      "destination": "docs/joysheet/third-party/profiling-procmacros/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/profiling-procmacros/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/profiling/LICENSE-APACHE",
+      "destination": "docs/joysheet/third-party/profiling/LICENSE-APACHE",
+      "importedDestination": "docs/joysheet/third-party/profiling/LICENSE-APACHE"
+    },
+    {
+      "source": "docs/third-party/profiling/LICENSE-MIT",
+      "destination": "docs/joysheet/third-party/profiling/LICENSE-MIT",
+      "importedDestination": "docs/joysheet/third-party/profiling/LICENSE-MIT"
+    },
+    {
+      "source": "docs/third-party/profiling/SOURCE.json",
+      "destination": "docs/joysheet/third-party/profiling/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/profiling/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/pulp-wasm-simd-flag/LICENSE",
+      "destination": "docs/joysheet/third-party/pulp-wasm-simd-flag/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/pulp-wasm-simd-flag/LICENSE"
+    },
+    {
+      "source": "docs/third-party/pulp-wasm-simd-flag/SOURCE.json",
+      "destination": "docs/joysheet/third-party/pulp-wasm-simd-flag/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/pulp-wasm-simd-flag/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/rust-i18n-macro/LICENSE",
+      "destination": "docs/joysheet/third-party/rust-i18n-macro/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/rust-i18n-macro/LICENSE"
+    },
+    {
+      "source": "docs/third-party/rust-i18n-macro/SOURCE.json",
+      "destination": "docs/joysheet/third-party/rust-i18n-macro/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/rust-i18n-macro/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/rust-i18n-support/LICENSE",
+      "destination": "docs/joysheet/third-party/rust-i18n-support/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/rust-i18n-support/LICENSE"
+    },
+    {
+      "source": "docs/third-party/rust-i18n-support/SOURCE.json",
+      "destination": "docs/joysheet/third-party/rust-i18n-support/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/rust-i18n-support/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/seahash/Cargo.toml.orig",
+      "destination": "docs/joysheet/third-party/seahash/Cargo.toml.orig",
+      "importedDestination": "docs/joysheet/third-party/seahash/Cargo.toml.orig"
+    },
+    {
+      "source": "docs/third-party/seahash/DECLARATION.md",
+      "destination": "docs/joysheet/third-party/seahash/DECLARATION.md",
+      "importedDestination": "docs/joysheet/third-party/seahash/DECLARATION.md"
+    },
+    {
+      "source": "docs/third-party/seahash/LICENSE-MIT-standard",
+      "destination": "docs/joysheet/third-party/seahash/LICENSE-MIT-standard",
+      "importedDestination": "docs/joysheet/third-party/seahash/LICENSE-MIT-standard"
+    },
+    {
+      "source": "docs/third-party/seahash/README.md",
+      "destination": "docs/joysheet/third-party/seahash/README.md",
+      "importedDestination": "docs/joysheet/third-party/seahash/README.md"
+    },
+    {
+      "source": "docs/third-party/seahash/SOURCE.json",
+      "destination": "docs/joysheet/third-party/seahash/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/seahash/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/simd_helpers/LICENSE",
+      "destination": "docs/joysheet/third-party/simd_helpers/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/simd_helpers/LICENSE"
+    },
+    {
+      "source": "docs/third-party/simd_helpers/SOURCE.json",
+      "destination": "docs/joysheet/third-party/simd_helpers/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/simd_helpers/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/svg_fmt/LICENSE",
+      "destination": "docs/joysheet/third-party/svg_fmt/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/svg_fmt/LICENSE"
+    },
+    {
+      "source": "docs/third-party/svg_fmt/SOURCE.json",
+      "destination": "docs/joysheet/third-party/svg_fmt/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/svg_fmt/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/taffy/LICENSE",
+      "destination": "docs/joysheet/third-party/taffy/LICENSE",
+      "importedDestination": "docs/joysheet/third-party/taffy/LICENSE"
+    },
+    {
+      "source": "docs/third-party/taffy/SOURCE.json",
+      "destination": "docs/joysheet/third-party/taffy/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/taffy/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/zune-core/DECLARATION.md",
+      "destination": "docs/joysheet/third-party/zune-core/DECLARATION.md",
+      "importedDestination": "docs/joysheet/third-party/zune-core/DECLARATION.md"
+    },
+    {
+      "source": "docs/third-party/zune-core/LICENSE-APACHE-standard",
+      "destination": "docs/joysheet/third-party/zune-core/LICENSE-APACHE-standard",
+      "importedDestination": "docs/joysheet/third-party/zune-core/LICENSE-APACHE-standard"
+    },
+    {
+      "source": "docs/third-party/zune-core/LICENSE.md",
+      "destination": "docs/joysheet/third-party/zune-core/LICENSE.md",
+      "importedDestination": "docs/joysheet/third-party/zune-core/LICENSE.md"
+    },
+    {
+      "source": "docs/third-party/zune-core/SOURCE.json",
+      "destination": "docs/joysheet/third-party/zune-core/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/zune-core/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/zune-inflate/DECLARATION.md",
+      "destination": "docs/joysheet/third-party/zune-inflate/DECLARATION.md",
+      "importedDestination": "docs/joysheet/third-party/zune-inflate/DECLARATION.md"
+    },
+    {
+      "source": "docs/third-party/zune-inflate/LICENSE-APACHE-standard",
+      "destination": "docs/joysheet/third-party/zune-inflate/LICENSE-APACHE-standard",
+      "importedDestination": "docs/joysheet/third-party/zune-inflate/LICENSE-APACHE-standard"
+    },
+    {
+      "source": "docs/third-party/zune-inflate/LICENSE.md",
+      "destination": "docs/joysheet/third-party/zune-inflate/LICENSE.md",
+      "importedDestination": "docs/joysheet/third-party/zune-inflate/LICENSE.md"
+    },
+    {
+      "source": "docs/third-party/zune-inflate/SOURCE.json",
+      "destination": "docs/joysheet/third-party/zune-inflate/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/zune-inflate/SOURCE.json"
+    },
+    {
+      "source": "docs/third-party/zune-jpeg/DECLARATION.md",
+      "destination": "docs/joysheet/third-party/zune-jpeg/DECLARATION.md",
+      "importedDestination": "docs/joysheet/third-party/zune-jpeg/DECLARATION.md"
+    },
+    {
+      "source": "docs/third-party/zune-jpeg/LICENSE-APACHE-standard",
+      "destination": "docs/joysheet/third-party/zune-jpeg/LICENSE-APACHE-standard",
+      "importedDestination": "docs/joysheet/third-party/zune-jpeg/LICENSE-APACHE-standard"
+    },
+    {
+      "source": "docs/third-party/zune-jpeg/LICENSE.md",
+      "destination": "docs/joysheet/third-party/zune-jpeg/LICENSE.md",
+      "importedDestination": "docs/joysheet/third-party/zune-jpeg/LICENSE.md"
+    },
+    {
+      "source": "docs/third-party/zune-jpeg/SOURCE.json",
+      "destination": "docs/joysheet/third-party/zune-jpeg/SOURCE.json",
+      "importedDestination": "docs/joysheet/third-party/zune-jpeg/SOURCE.json"
+    },
+    {
+      "source": "docs/upstream-source.json",
+      "destination": "docs/joysheet/upstream-source.json",
+      "importedDestination": "docs/joysheet/upstream-source.json"
+    },
+    {
+      "source": "rust-toolchain.toml",
+      "destination": "docs/joysheet/legacy-source/rust-toolchain.toml",
+      "importedDestination": "docs/joysheet/legacy-source/rust-toolchain.toml"
+    },
+    {
+      "source": "rustfmt.toml",
+      "destination": "docs/joysheet/legacy-source/rustfmt.toml",
+      "importedDestination": "docs/joysheet/legacy-source/rustfmt.toml"
+    },
+    {
+      "source": "scripts/CancelPrintDialog.cs",
+      "destination": "scripts/joysheet/CancelPrintDialog.cs",
+      "importedDestination": "scripts/joysheet/CancelPrintDialog.cs"
+    },
+    {
+      "source": "scripts/accessibility-smoke.ps1",
+      "destination": "scripts/joysheet/accessibility-smoke.ps1",
+      "importedDestination": "scripts/joysheet/accessibility-smoke.ps1"
+    },
+    {
+      "source": "scripts/cancel-owned-print-dialog.ps1",
+      "destination": "scripts/joysheet/cancel-owned-print-dialog.ps1",
+      "importedDestination": "scripts/joysheet/cancel-owned-print-dialog.ps1"
+    },
+    {
+      "source": "scripts/check-environment.ps1",
+      "destination": "scripts/joysheet/check-environment.ps1",
+      "importedDestination": "scripts/joysheet/check-environment.ps1"
+    },
+    {
+      "source": "scripts/checkpoint.ps1",
+      "destination": "scripts/joysheet/checkpoint.ps1",
+      "importedDestination": "scripts/joysheet/checkpoint.ps1"
+    },
+    {
+      "source": "scripts/core-parity.ps1",
+      "destination": "scripts/joysheet/core-parity.ps1",
+      "importedDestination": "scripts/joysheet/core-parity.ps1"
+    },
+    {
+      "source": "scripts/desktop-print-smoke.ps1",
+      "destination": "scripts/joysheet/desktop-print-smoke.ps1",
+      "importedDestination": "scripts/joysheet/desktop-print-smoke.ps1"
+    },
+    {
+      "source": "scripts/desktop-smoke.ps1",
+      "destination": "scripts/joysheet/desktop-smoke.ps1",
+      "importedDestination": "scripts/joysheet/desktop-smoke.ps1"
+    },
+    {
+      "source": "scripts/dev.ps1",
+      "destination": "scripts/joysheet/dev.ps1",
+      "importedDestination": "scripts/joysheet/dev.ps1"
+    },
+    {
+      "source": "scripts/installer-smoke.ps1",
+      "destination": "scripts/joysheet/installer-smoke.ps1",
+      "importedDestination": "scripts/joysheet/installer-smoke.ps1"
+    },
+    {
+      "source": "scripts/joysheet.nsi",
+      "destination": "scripts/joysheet/joysheet.nsi",
+      "importedDestination": "scripts/joysheet/joysheet.nsi"
+    },
+    {
+      "source": "scripts/m5-cases.ps1",
+      "destination": "scripts/joysheet/m5-cases.ps1",
+      "importedDestination": "scripts/joysheet/m5-cases.ps1"
+    },
+    {
+      "source": "scripts/m6-cases.ps1",
+      "destination": "scripts/joysheet/m6-cases.ps1",
+      "importedDestination": "scripts/joysheet/m6-cases.ps1"
+    },
+    {
+      "source": "scripts/m7-cases.ps1",
+      "destination": "scripts/joysheet/m7-cases.ps1",
+      "importedDestination": "scripts/joysheet/m7-cases.ps1"
+    },
+    {
+      "source": "scripts/m8-cases.ps1",
+      "destination": "scripts/joysheet/m8-cases.ps1",
+      "importedDestination": "scripts/joysheet/m8-cases.ps1"
+    },
+    {
+      "source": "scripts/native-print.ps1",
+      "destination": "scripts/joysheet/native-print.ps1",
+      "importedDestination": "scripts/joysheet/native-print.ps1"
+    },
+    {
+      "source": "scripts/package-windows.ps1",
+      "destination": "scripts/joysheet/package-windows.ps1",
+      "importedDestination": "scripts/joysheet/package-windows.ps1"
+    },
+    {
+      "source": "scripts/print-backend-smoke.ps1",
+      "destination": "scripts/joysheet/print-backend-smoke.ps1",
+      "importedDestination": "scripts/joysheet/print-backend-smoke.ps1"
+    },
+    {
+      "source": "scripts/print-owner-smoke.ps1",
+      "destination": "scripts/joysheet/print-owner-smoke.ps1",
+      "importedDestination": "scripts/joysheet/print-owner-smoke.ps1"
+    },
+    {
+      "source": "scripts/save-dialog-cases.ps1",
+      "destination": "scripts/joysheet/save-dialog-cases.ps1",
+      "importedDestination": "scripts/joysheet/save-dialog-cases.ps1"
+    },
+    {
+      "source": "scripts/stress-cases.ps1",
+      "destination": "scripts/joysheet/stress-cases.ps1",
+      "importedDestination": "scripts/joysheet/stress-cases.ps1"
+    },
+    {
+      "source": "scripts/windows-cases.ps1",
+      "destination": "scripts/joysheet/windows-cases.ps1",
+      "importedDestination": "scripts/joysheet/windows-cases.ps1"
+    },
+    {
+      "source": "scripts/windows-quality-cases.ps1",
+      "destination": "scripts/joysheet/windows-quality-cases.ps1",
+      "importedDestination": "scripts/joysheet/windows-quality-cases.ps1"
+    },
+    {
+      "source": "xtask/Cargo.toml",
+      "destination": "tools/joysheet/Cargo.toml",
+      "importedDestination": "tools/joysheet/Cargo.toml"
+    },
+    {
+      "source": "xtask/src/distribution.rs",
+      "destination": "docs/joysheet/legacy-source/xtask/src/distribution.rs",
+      "importedDestination": "tools/joysheet/src/distribution.rs"
+    },
+    {
+      "source": "xtask/src/licenses.rs",
+      "destination": "docs/joysheet/legacy-source/xtask/src/licenses.rs",
+      "importedDestination": "tools/joysheet/src/licenses.rs"
+    },
+    {
+      "source": "xtask/src/main.rs",
+      "destination": "tools/joysheet/src/main.rs",
+      "importedDestination": "tools/joysheet/src/main.rs"
+    },
+    {
+      "source": "docs/evidence/P1-core.log",
+      "destination": "docs/joysheet/evidence/P1-core.log",
+      "importedDestination": "docs/joysheet/evidence/P1-core.log"
+    },
+    {
+      "source": "docs/evidence/P3-core.log",
+      "destination": "docs/joysheet/evidence/P3-core.log",
+      "importedDestination": "docs/joysheet/evidence/P3-core.log"
+    },
+    {
+      "source": "docs/evidence/Performance-recovery-off-core.log",
+      "destination": "docs/joysheet/evidence/Performance-recovery-off-core.log",
+      "importedDestination": "docs/joysheet/evidence/Performance-recovery-off-core.log"
+    },
+    {
+      "source": "docs/evidence/Performance-release-core.log",
+      "destination": "docs/joysheet/evidence/Performance-release-core.log",
+      "importedDestination": "docs/joysheet/evidence/Performance-release-core.log"
+    }
+  ]
+}

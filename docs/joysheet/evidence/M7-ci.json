@@ -1,0 +1,11 @@
+{
+  "strictClippy": true,
+  "failed": 0,
+  "layerCheck": true,
+  "ignored": 1,
+  "platform": "Windows x64",
+  "format": true,
+  "date": "2026-10-28",
+  "passed": 1357,
+  "command": "cargo xtask ci"
+}

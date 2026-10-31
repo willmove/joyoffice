@@ -1,0 +1,27 @@
+[package]
+publish = false
+name = "joysheet-platform"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[dependencies]
+rfd = { workspace = true }
+arboard = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+url = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winsafe = { version = "=0.0.19", features = ["user"] }
+windows = { version = "=0.62.2", features = ["Data_Pdf", "Storage", "Storage_Streams", "Foundation"] }
+

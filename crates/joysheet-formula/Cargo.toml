@@ -1,0 +1,21 @@
+[package]
+publish = false
+name = "joysheet-formula"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+description = "GridCraft formula language: lexer, parser, printer and reference adjustment"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[dependencies]
+joysheet-core = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,41 @@
+accesskit_atspi_common-0.19.1
+
+Published crate license declaration: MIT OR Apache-2.0
+
+Published authors (not a synthesized copyright notice): The AccessKit contributors
+
+See SOURCE.json for exact source URLs, refs and hashes.
+
+
+
+Verbatim source-header notices from the published crate:
+
+// Copyright 2022 The AccessKit Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (found in
+// the LICENSE-APACHE file) or the MIT license (found in
+// the LICENSE-MIT file), at your option.
+
+// Copyright 2022 The AccessKit Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (found in
+// the LICENSE-APACHE file) or the MIT license (found in
+// the LICENSE-MIT file), at your option.
+
+// Derived from Chromium's accessibility abstraction.
+// Copyright 2017 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE.chromium file.
+
+// Copyright 2023 The AccessKit Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (found in
+// the LICENSE-APACHE file) or the MIT license (found in
+// the LICENSE-MIT file), at your option.
+
+// Copyright 2024 The AccessKit Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (found in
+// the LICENSE-APACHE file) or the MIT license (found in
+// the LICENSE-MIT file), at your option.
+
+// Copyright 2026 The AccessKit Authors. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (found in
+// the LICENSE-APACHE file) or the MIT license (found in
+// the LICENSE-MIT file), at your option.

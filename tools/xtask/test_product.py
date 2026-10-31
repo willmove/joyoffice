@@ -14,7 +14,8 @@ SPEC.loader.exec_module(product)
 
 def graph():
     names = ['joydeck', 'joydeck-cli', 'joydeck-model', 'joydeck-shell', 'joyword',
-             'joyword-cli', 'joyword-model', 'joyoffice-opc', 'joyoffice-cfb', 'joyoffice-omml', 'joyoffice-xtask']
+             'joyword-cli', 'joyword-model', 'joyoffice-opc', 'joyoffice-cfb', 'joyoffice-omml', 'joyoffice-xtask',
+             'joysheet', 'joysheet-cli', 'joysheet-model', 'joysheet-engine', 'joysheet-ui-gpui', 'joysheet-platform']
     return {'workspace_members': names,
             'packages': [{'id': n, 'name': n} for n in names],
             'resolve': {'nodes': [{'id': n, 'deps': [{'pkg': d} for d in {
@@ -26,7 +27,7 @@ class ProductRouting(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        for name, version in [('joyword', '0.2.1'), ('joydeck', '0.1.3')]:
+        for name, version in [('joyword', '0.2.1'), ('joydeck', '0.1.3'), ('joysheet', '0.1.4')]:
             directory = self.root / 'apps' / name
             directory.mkdir(parents=True)
             (directory / 'Cargo.toml').write_text('[package]\nname = "' + name + '"\nversion = "' + version + '"\n', encoding='utf-8')
@@ -102,6 +103,39 @@ class ProductRouting(unittest.TestCase):
             product.main(['build', 'joydeck', '--release'])
         self.assertEqual(run.call_args.args[0],
                          ['cargo', 'build', '-p', 'joydeck', '-p', 'joydeck-cli', '--locked', '--release'])
+
+    def test_sheet_release_uses_its_own_version_and_tag(self):
+        self.assertEqual(product.release_target('joysheet-v0.1.4', root=self.root),
+                         {'product': 'joysheet', 'version': '0.1.4', 'tag': 'joysheet-v0.1.4'})
+        with self.assertRaisesRegex(ValueError, 'does not belong'):
+            product.release_target('joysheet-v0.1.4', product='joydeck', root=self.root)
+
+    def test_sheet_headless_selects_core_and_cli_without_ui_adapter(self):
+        chosen = product.product_packages(graph(), 'joysheet', headless=True)
+        self.assertEqual(chosen, ['joysheet-cli', 'joysheet-engine', 'joysheet-model'])
+        with patch.object(product, 'metadata', return_value=graph()), patch.object(product, 'run') as run:
+            product.main(['test', 'joysheet', '--headless'])
+        command = run.call_args.args[0]
+        self.assertIn('joysheet-model', command)
+        self.assertNotIn('joysheet-platform', command)
+        self.assertNotIn('joysheet-ui-gpui', command)
+
+    def test_headless_cannot_hide_a_transitive_gui_dependency(self):
+        data = graph()
+        data['packages'].append({'id': 'gpui-registry', 'name': 'gpui-pre'})
+        data['resolve']['nodes'].append({'id': 'gpui-registry', 'deps': []})
+        node = next(n for n in data['resolve']['nodes'] if n['id'] == 'joysheet-model')
+        node['deps'].append({'pkg': 'gpui-registry'})
+        with self.assertRaisesRegex(ValueError, 'GPUI'):
+            product.product_packages(data, 'joysheet', headless=True)
+
+    def test_sheet_validation_enables_automation_explicitly(self):
+        with patch.object(product, 'metadata', return_value=graph()), patch.object(product, 'run') as run:
+            product.main(['test', 'joysheet', '--validation'])
+        self.assertIn('joysheet/automation', run.call_args.args[0])
+        with patch.object(product, 'metadata', return_value=graph()), patch.object(product, 'run') as run:
+            product.main(['build', 'joysheet'])
+        self.assertNotIn('--features', run.call_args.args[0])
 
 if __name__ == '__main__':
     unittest.main()

@@ -37,6 +37,24 @@ APPS = ROOT / "apps"
 
 # Direct dependencies that match ARCHITECTURE §1. Paths are crate directories.
 LAYERS = {
+    "joysheet-core": set(),
+    "joysheet-numfmt": {"joysheet-core"},
+    "joysheet-formula": {"joysheet-core"},
+    "joysheet-functions": {"joysheet-core"},
+    "joysheet-model": {"joysheet-core", "joysheet-formula"},
+    "joysheet-calc": {"joysheet-core", "joysheet-numfmt", "joysheet-formula", "joysheet-functions", "joysheet-model"},
+    "joysheet-chart": {"joysheet-core", "joysheet-model", "joysheet-calc", "joysheet-numfmt"},
+    "joysheet-pdf": set(),
+    "joysheet-xlsx": {"joysheet-core", "joysheet-formula", "joysheet-model"},
+    "joysheet-engine": {"joysheet-core", "joysheet-numfmt", "joysheet-formula", "joysheet-functions", "joysheet-model", "joysheet-calc", "joysheet-xlsx", "joysheet-chart", "joysheet-pdf"},
+    "joysheet-mcp": {"joysheet-engine"},
+    "joysheet-protocol": set(),
+    "joysheet-app": {"joysheet-engine", "joysheet-mcp", "joysheet-protocol"},
+    "joysheet-platform": set(),
+    "joysheet-ui-gpui": {"joysheet-app", "joysheet-platform", "joysheet-protocol", "joysheet-engine", "joysheet-chart", "joysheet-functions"},
+    "joysheet": {"joysheet-ui-gpui"},
+    "joysheet-cli": {"joysheet-protocol", "joysheet-engine", "joysheet-mcp", "joysheet-xlsx"},
+    "joysheet-tools": {"joysheet-app", "joysheet-engine"},
     "joyword-cli": {
         "joyoffice-opc",
         "joyword-docx",
@@ -207,6 +225,26 @@ DECK_FS_REVIEW = {
     "apps/joydeck/src/workspace_smoke.rs": "validation feature: multiwindow design and clipboard evidence",
 }
 FS_ALLOW.update(DECK_FS_REVIEW)
+
+# Exact imported Sheet adapters, reviewed in JOYSHEET-GATE-AUDIT.md. Pure model,
+# calculation, chart, formula, XLSX and PDF implementations remain absent.
+SHEET_FS_REVIEW = {
+    "apps/joysheet-cli/src/main.rs": "explicit user-selected scripts, workbook input and output",
+    "apps/joysheet-cli/src/check.rs": "bounded explicit corpus directory inspection",
+    "crates/joysheet-app/src/control.rs": "private per-user loopback authentication descriptor",
+    "crates/joysheet-app/src/recovery.rs": "bounded revision-tagged recovery copies and owned temporary files",
+    "crates/joysheet-app/src/smoke.rs": "explicit engine smoke output, invoked by the product engineering tool",
+    "crates/joysheet-engine/src/io.rs": "existing native workbook file adapter with sandbox and regular-file byte limits",
+    "crates/joysheet-engine/src/cmd/spelling.rs": "existing optional system spelling dictionary reader",
+    "crates/joysheet-mcp/src/control_auth.rs": "legacy compatible per-user control credentials",
+    "crates/joysheet-platform/src/lib.rs": "per-user preferences, clipboard and native file dialogs",
+    "crates/joysheet-platform/src/printing.rs": "owned print staging, bounded previews and native print helper",
+    "crates/joysheet-protocol/src/lib.rs": "read explicit local control credentials without a GUI dependency",
+    "crates/joysheet-ui-gpui/src/control.rs": "explicit automation-feature screenshot output after the matching frame",
+    "crates/joysheet-ui-gpui/src/printing.rs": "cleanup only the print job directories created by the platform adapter",
+    "tools/joysheet/src/main.rs": "explicit command inventory, geometry benchmark and engine smoke outputs",
+}
+FS_ALLOW.update(SHEET_FS_REVIEW)
 
 PANIC_RE = re.compile(
     r"(?:\.unwrap\s*\(|\.expect\s*\(|\bpanic!\s*\(|\bunreachable!\s*\("
@@ -401,8 +439,10 @@ def dependency_isolation(crate: str, deps: set[str]) -> list[str]:
             crate.startswith("joyoffice-") and other
         ):
             errors.append(f"{crate} must not depend on product package {dep}")
-        if crate not in {"joyword", "joydeck"} and gui_dependency(dep):
+        if crate not in {"joyword", "joydeck", "joysheet", "joysheet-ui-gpui"} and gui_dependency(dep):
             errors.append(f"{crate} must remain headless; GUI dependency {dep} is forbidden")
+        if crate.startswith("joysheet-") and crate not in {"joysheet-platform", "joysheet-ui-gpui"} and dep in {"rfd", "arboard", "winit", "egui", "eframe"}:
+            errors.append(f"{crate} must not depend on platform/UI package {dep}")
     return errors
 
 

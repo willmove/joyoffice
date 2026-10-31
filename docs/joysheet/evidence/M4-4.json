@@ -1,0 +1,39 @@
+{
+  "report": {
+    "nativeImeVerified": false,
+    "passed": true,
+    "platform": "Windows x64",
+    "performance": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 142,
+      "paintP95Ms": 1.7733,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false
+    },
+    "checks": [
+      "native GPUI window and sales screenshot",
+      "GPUI pointer and text events; Unicode; formula editing and recalculation",
+      "keyboard undo and redo",
+      "GPUI marked composition blocks premature spreadsheet submission (synthetic)",
+      "shared formula/cell draft and Escape cancellation",
+      "native millionth-row go-to, bounded painting and hit testing",
+      "formula range picking and registered function completion",
+      "native clipboard keyboard copy/paste preserves relative formulas",
+      "TSV paste; formatting; freeze; zoom",
+      "GPUI formatting form and command submission",
+      "debounced automatic save of an existing XLSX",
+      "cancelled close retains workbook edits",
+      "XLSX save/close/reopen and native GPU screenshot",
+      "live stdio MCP handshake, cell query and native screenshot",
+      "independent native views, retained background draft and explicit-window commit",
+      "M4.1 format forms, wrap, vertical alignment and decoration",
+      "M4.2 sheet add/rename/hide/unhide and row operations",
+      "M4.3 draft submission, failed save preservation, retry and recent files",
+      "M4.4 per-worksheet scroll restoration; multi-window shared data regression included"
+    ],
+    "stage": "M3",
+    "port": 54806,
+    "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe"
+  },
+  "task": "M4.4"
+}

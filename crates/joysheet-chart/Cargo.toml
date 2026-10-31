@@ -1,0 +1,23 @@
+[package]
+publish = false
+name = "joysheet-chart"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+description = "GridCraft charts: data resolution, layout into toolkit-free primitives, sparklines and a small rasteriser"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[dependencies]
+joysheet-core = { workspace = true }
+joysheet-model = { workspace = true }
+joysheet-calc = { workspace = true }
+joysheet-numfmt = { workspace = true }
+serde = { workspace = true }

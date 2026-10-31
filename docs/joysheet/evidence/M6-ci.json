@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "clippy": "workspace all-targets automation, -D warnings",
+  "command": "cargo xtask ci",
+  "layers": "passed; no egui/eframe",
+  "testsIgnored": 1,
+  "testsPassed": 1353
+}

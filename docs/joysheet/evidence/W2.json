@@ -1,0 +1,33 @@
+{
+  "saveDialog": false,
+  "processId": 5964,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 139,
+    "paintP95Ms": 3.6965000000000003,
+    "paintedCells": 16,
+    "gpuPresentationMeasured": false,
+    "editSamples": 1,
+    "editP95Ms": 21.5995,
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "passed": true,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "m7Task": 0,
+  "m6Task": 0,
+  "m8Task": 0,
+  "port": 64132,
+  "m5Task": 0,
+  "platform": "Windows x64",
+  "stage": "M1",
+  "nativeImeVerified": false,
+  "m4Task": 0,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "W1 complex-format production forms, angled/stacked Unicode outlines, border patterns/diagonals, hatch fills, double underline and XLSX roundtrip",
+    "W2 existing native windows tiled/horizontal/vertical/cascade in monitor work area; active-workbook filtering, independent drafts and shared commit preserved"
+  ]
+}

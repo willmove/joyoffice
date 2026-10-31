@@ -1,0 +1,11 @@
+{
+  "unrelatedFilePreserved": true,
+  "shortcutsAndRegistry": "not modified by isolated TEST mode",
+  "installer": "D:\\Coding\\EditorProjects\\joysheet\\dist\\joysheet-0.1.0-M8-preview-windows-x86_64-setup.exe",
+  "passed": true,
+  "nativeInstalledApp": true,
+  "binarySha256": "7ddcf4548e7d8963ad76d040bd3b068dde750764a784ea4a1183e977c864736e",
+  "installedRuntimeChecks": 5,
+  "installerCode": "scripts/joysheet.nsi and scripts/package-windows.ps1",
+  "scope": "TEST mode uses production payload and explicit-file uninstall, without changing user shortcuts or registry."
+}

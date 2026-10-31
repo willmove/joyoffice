@@ -1,0 +1,35 @@
+[package]
+publish = false
+name = "joysheet-xlsx"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+description = "GridCraft file formats: XLSX (SpreadsheetML) and CSV import/export"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[features]
+# Builds password-encrypted workbooks in code for other crates' tests (a dev-dependency feature;
+# never enabled in a shipped build).
+test-support = []
+
+[dependencies]
+# zip's deflate-flate2 feature deliberately leaves backend selection to callers.
+# Keep standalone XLSX tests and WASM on the same existing pure-Rust backend.
+flate2.workspace = true
+joysheet-core = { workspace = true }
+joysheet-formula = { workspace = true }
+joysheet-model = { workspace = true }
+thiserror = { workspace = true }
+quick-xml = { workspace = true }
+zip = { workspace = true }
+aes = { workspace = true }
+sha1 = { workspace = true }
+sha2 = { version = "=0.11.1", default-features = false }

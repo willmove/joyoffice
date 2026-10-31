@@ -1,0 +1,25 @@
+{
+  "package": "xim-ctext",
+  "version": "0.3.0",
+  "declaredLicense": "MIT",
+  "publishedCrateChecksum": "2ac61a7062c40f3c37b6e82eeeef835d5cc7824b632a72784a89b3963c33284c",
+  "repository": "https://github.com/Riey/xim-rs",
+  "authorsFromPublishedManifest": [
+    "Riey <creeper844@gmail.com>"
+  ],
+  "publishedVcs": {
+    "git": {
+      "sha1": "65f77e44524ba487285a63aac4080faf2c05b4ed"
+    },
+    "path_in_vcs": "xim-ctext"
+  },
+  "files": [
+    {
+      "url": "https://github.com/Riey/xim-rs/blob/65f77e44524ba487285a63aac4080faf2c05b4ed/LICENSE",
+      "gitBlobSha": "122b7734602689689ba95a48f5277d66f767e83c",
+      "file": "LICENSE-XIM-CTEXT-LICENSE.txt",
+      "sha256": "efa1224931b98468f5005f77285457f8d2eab0a77a15941aa10abbab1ae9a74e",
+      "kind": "verbatim upstream file"
+    }
+  ]
+}

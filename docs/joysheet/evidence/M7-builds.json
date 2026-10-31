@@ -1,0 +1,9 @@
+{
+  "wasmWarning": "upstream MAX_READ_BYTES unused on wasm32",
+  "platform": "Windows x64",
+  "defaultDesktopCheck": "passed",
+  "date": "2026-10-28",
+  "releaseBuild": "passed",
+  "rust": "1.98.1",
+  "portableCoreWasmCheck": "passed"
+}

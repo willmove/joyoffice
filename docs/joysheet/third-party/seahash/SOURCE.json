@@ -1,0 +1,12 @@
+{
+  "package": "seahash-4.1.0",
+  "source": "published crates.io archive",
+  "standardText": "MIT",
+  "originalStandaloneTextAvailable": false,
+  "files": {
+    "Cargo.toml.orig": "dd213de338ca98b7ef7a2562bcf4e4214d215d1a8277750a6a72b4e809c8d0dd",
+    "DECLARATION.md": "82a998747f4a540cf0ccd33dbade1eacd026a74367936314e25cadc987263bc5",
+    "LICENSE-MIT-standard": "9d50ec2acb7bc4951beb97916d4b38c1aff4c58582b06d4e17b9fa588a7897f9",
+    "README.md": "38357210ef69a97bf9858ff22661cb1c2384179f5e6b73143cb33193e36c6473"
+  }
+}

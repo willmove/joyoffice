@@ -312,27 +312,13 @@ fn broken_output_streams_never_report_success() {
     fn broken_stream() -> Stdio {
         use std::io::Write;
 
-        let (mut writer, reader) = UnixStream::pair().unwrap();
-        // Shut down the peer before any data is queued. Closing a peer with
-        // unread data can report ECONNRESET once on Linux before EPIPE.
-        reader.shutdown(std::net::Shutdown::Both).unwrap();
-        drop(reader);
-        // A first small write can still land in the local send buffer on
-        // Darwin before the peer close is processed, so the stream is not yet
-        // broken from the writer's point of view. Filling the send buffer
-        // forces EPIPE here; afterwards every writer of this socket,
-        // including the spawned CLI, reports the broken pipe immediately.
-        for _ in 0..1024 {
-            match writer.write_all(&[0u8; 4096]) {
-                Ok(()) => continue,
-                Err(error) if error.kind() == std::io::ErrorKind::BrokenPipe => {
-                    return Stdio::from(OwnedFd::from(writer));
-                }
-                Err(error) if error.kind() == std::io::ErrorKind::ConnectionReset => continue,
-                Err(error) => panic!("unexpected error while provoking EPIPE: {error}"),
-            }
-        }
-        panic!("peer close did not break the output stream");
+        let (mut writer, _reader) = UnixStream::pair().unwrap();
+        // Closing the local write direction makes EPIPE deterministic on every
+        // inherited descriptor; a peer close can be processed later on Darwin.
+        writer.shutdown(std::net::Shutdown::Write).unwrap();
+        let error = writer.write_all(b"probe").unwrap_err();
+        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+        Stdio::from(OwnedFd::from(writer))
     }
 
     let dir = tempfile::tempdir().unwrap();

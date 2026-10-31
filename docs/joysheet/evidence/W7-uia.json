@@ -1,0 +1,16 @@
+{
+  "value": "辅助功能中文🙂",
+  "controlType": "ControlType.DataItem",
+  "bounds": {
+    "height": 70.0,
+    "y": 573.0,
+    "x": 543.0,
+    "width": 224.0
+  },
+  "passed": true,
+  "cell": "B2",
+  "nodes": 726,
+  "name": "B2",
+  "source": "Windows UI Automation / actual AccessKit platform provider",
+  "focusRequested": true
+}

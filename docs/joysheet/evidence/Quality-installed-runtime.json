@@ -1,0 +1,37 @@
+{
+  "m6Task": 0,
+  "windowsQualityTask": 0,
+  "m7Task": 0,
+  "nativeImeVerified": false,
+  "passed": true,
+  "windowsFrom": 1,
+  "port": 50413,
+  "m5Task": 0,
+  "windowsTask": 0,
+  "binarySha256": "2d07ff0e7bdc7e7dbb242ebd04650a1ae4cbad742686e30d29c6e4b9d220213c",
+  "m4Task": 0,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 20,
+    "paintP95Ms": 2.7316,
+    "paintedCells": 704,
+    "gpuPresentationMeasured": false,
+    "editSamples": 1,
+    "editP95Ms": 23.997500000000002,
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "processId": 8256,
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "platform": "Windows x64",
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "M8.1 local file URL/drop handler validates paths and commits draft; unsupported file rejected (synthetic control regression)"
+  ],
+  "saveDialog": false,
+  "stage": "M1",
+  "m8Task": 1,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\artifacts\\install-smoke-1793243925860\\joysheet.exe"
+}

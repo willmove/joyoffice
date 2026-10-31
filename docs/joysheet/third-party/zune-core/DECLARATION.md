@@ -1,0 +1,1 @@
+Upstream LICENSE.md contains its copyright and Apache-2.0 OR MIT declaration. Complete standard Apache-2.0 terms accompany that original declaration. SOURCE.json identifies the original upstream notice.

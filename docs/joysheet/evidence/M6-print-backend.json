@@ -1,0 +1,13 @@
+{
+  "windowTitle": "打印",
+  "dialogOpened": true,
+  "dialogCancellationVerified": false,
+  "paginator": {
+    "queueSubmitted": false,
+    "height": 744.0,
+    "pages": 1,
+    "width": 1056.0
+  },
+  "cleanup": "terminated only the test-owned helper process",
+  "queueSubmissionVerified": false
+}

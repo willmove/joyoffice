@@ -1,0 +1,39 @@
+{
+  "package": "accesskit_unix",
+  "version": "0.22.1",
+  "declaredLicense": "MIT OR Apache-2.0",
+  "publishedCrateChecksum": "03e156ed3802e35eefe894ef2671bc6c889303d8a7e110b5e1b48f504b91362f",
+  "repository": "https://github.com/AccessKit/accesskit",
+  "authorsFromPublishedManifest": [
+    "The AccessKit contributors"
+  ],
+  "publishedVcs": {
+    "git": {
+      "sha1": "c88605b96d04431f9c3c792464a0f2f253480e94"
+    },
+    "path_in_vcs": "platforms/unix"
+  },
+  "files": [
+    {
+      "url": "https://github.com/AccessKit/accesskit/blob/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE-MIT",
+      "gitBlobSha": "31aa79387f27e730e33d871925e152e35e428031",
+      "file": "LICENSE-ACCESSKIT-MIT.txt",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "kind": "verbatim upstream file"
+    },
+    {
+      "url": "https://github.com/AccessKit/accesskit/blob/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE-APACHE",
+      "gitBlobSha": "1b5ec8b78e237b5c3b3d812a7c0a6589d0f7161d",
+      "file": "LICENSE-ACCESSKIT-APACHE.txt",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "kind": "verbatim upstream file"
+    },
+    {
+      "url": "https://github.com/AccessKit/accesskit/blob/c88605b96d04431f9c3c792464a0f2f253480e94/LICENSE.chromium",
+      "gitBlobSha": "a32e00ce6be3620adca152e53734f7de8fda38cf",
+      "file": "LICENSE-ACCESSKIT-CHROMIUM.txt",
+      "sha256": "845022e0c1db1abb41a6ba4cd3c4b674ec290f3359d9d3c78ae558d4c0ed9308",
+      "kind": "verbatim upstream file"
+    }
+  ]
+}

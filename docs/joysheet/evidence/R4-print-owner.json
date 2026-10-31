@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "queueSubmitted": false,
+  "helperExited": true,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\artifacts\\R4-package-1793316653272\\joysheet-0.1.0-M8-preview6-windows-x86_64\\joysheet.exe",
+  "source": "production app.quit → native print helper owner-exit watcher",
+  "nativeDialogOpened": true,
+  "ownerExited": true,
+  "binarySha256": "80c862341e77cb60c731ff5d95bf3dba8f6ecfe6f02b694a0377c12492642169"
+}

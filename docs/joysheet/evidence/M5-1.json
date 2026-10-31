@@ -1,0 +1,36 @@
+{
+  "task": "M5.1",
+  "report": {
+    "passed": true,
+    "nativeImeVerified": false,
+    "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+    "platform": "Windows x64",
+    "checks": [
+      "native GPUI window and sales screenshot",
+      "GPUI pointer and text events; Unicode; formula editing and recalculation",
+      "keyboard undo and redo",
+      "GPUI marked composition blocks premature spreadsheet submission (synthetic)",
+      "shared formula/cell draft and Escape cancellation",
+      "native millionth-row go-to, bounded painting and hit testing",
+      "formula range picking and registered function completion",
+      "native clipboard keyboard copy/paste preserves relative formulas",
+      "TSV paste; formatting; freeze; zoom",
+      "GPUI formatting form and command submission",
+      "debounced automatic save of an existing XLSX",
+      "cancelled close retains workbook edits",
+      "XLSX save/close/reopen and native GPU screenshot",
+      "live stdio MCP handshake, cell query and native screenshot",
+      "independent native views, retained background draft and explicit-window commit",
+      "M5.1 native sort/find/replace/deduplicate/filter forms and workbook results"
+    ],
+    "performance": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 74,
+      "paintP95Ms": 2.0878,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false
+    },
+    "port": 58844,
+    "stage": "M3"
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "GPUI pointer and text events; Unicode; formula editing and recalculation",
+    "keyboard undo and redo",
+    "GPUI marked composition blocks premature spreadsheet submission (synthetic)",
+    "shared formula/cell draft and Escape cancellation",
+    "native millionth-row go-to, bounded painting and hit testing",
+    "formula range picking and registered function completion",
+    "native clipboard keyboard copy/paste preserves relative formulas",
+    "TSV paste; formatting; freeze; zoom",
+    "GPUI formatting form and command submission",
+    "debounced automatic save of an existing XLSX",
+    "cancelled close retains workbook edits",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "live stdio MCP handshake, cell query and native screenshot",
+    "independent native views, retained background draft and explicit-window commit",
+    "native 10000x20 and 100000x20 CSV viewing and bounded scroll paint samples; identity-fenced edit phases and correct range aggregates",
+    "M4.1 format forms, wrap, vertical alignment and decoration",
+    "M4.2 sheet add/rename/hide/unhide and row operations",
+    "M4.3 draft submission, failed save preservation, retry and recent files",
+    "M4.4 per-worksheet scroll restoration; multi-window shared data regression included",
+    "M5.1 native sort/find/replace/deduplicate/filter forms and workbook results",
+    "M5.2 styled table, conditional formatting, validation rejection and successful edit",
+    "M5.3 grouping, collapse, expand and ungroup through production forms",
+    "M5.4 local CSV preview without mutation, import, connections list and XLSX roundtrip",
+    "M6.1 GPUI chart insertion, rendering and invalidation after data edit",
+    "M6.2 native images, shapes, text boxes and sparklines",
+    "M6.3 actual pointer selection/drag/resize, property form, delete, undo/redo and XLSX save",
+    "M6.4 page setup, real PDF export/raster preview and XLSX drawing roundtrip; printer dialog tested separately",
+    "M8.1 local file URL/drop handler validates paths and commits draft; unsupported file rejected (synthetic control regression)",
+    "M8.2 settings/shortcut, multi-area selection, resize and undo, cross-sheet formula reference and sheet tab reorder through production GPUI events",
+    "M8.3 warning validation requires explicit approval; actual cancel/keep buttons preserve draft and prevent grid click-through",
+    "M8.3 actual owned app process killed and restarted: prior workbook formula and uncommitted Unicode draft restored independently; draft commits normally",
+    "M8.4 extracted Release package starts natively with version resources and dependency license inventory",
+    "M7.1 production pivot builder and field drag, descriptive report, goal seek and simplex solver",
+    "M7.2 comments/replies/resolve, notes, name rename, password protection/rejection and XLSX roundtrip",
+    "M7.3 recording/editor, untrusted XLSX review/decline/accept, sandbox preflight and actual task cancel button",
+    "M7.4 live MCP targeted background-draft save/read/screenshot, window control, revision fences, timeout and unknown-window rejection",
+    "W1 complex-format production forms, angled/stacked Unicode outlines, border patterns/diagonals, hatch fills, double underline and XLSX roundtrip",
+    "W2 existing native windows tiled/horizontal/vertical/cascade in monitor work area; active-workbook filtering, independent drafts and shared commit preserved",
+    "W3 Ctrl mixed-object selection, group pointer drag, one-step undo, keyboard nudge, group delete/undo and actual align button",
+    "W3 caret-aware function parameter highlight/reference outlines, F6 shared-draft focus, Ctrl+1 and merged editing across freeze at 125% zoom",
+    "W3 native vector icon-set screenshots for arrows, flags, lights, signs, symbols, ratings and quarters",
+    "W4 multi-key sort form, checkbox pointer/Space/two-pass Delete, nested-input navigation, F6 sheet tabs, styled shape/rotated chart axis, frozen object clipping and all 30 upstream icon names",
+    "W4 six close/open cycles preserve the intended document despite native close activation events",
+    "W5 both real input handlers: UTF-16 Chinese/emoji composition, Enter/Tab/F6 and pointer/commit/save guards, candidate layout and exactly-once commit (synthetic IME)",
+    "W6 production logical layout at synthetic 100/125/150/175/200/300 percent DPI with native-resolution GPU captures, 125 percent worksheet zoom/freeze, IME anchors and hit testing; real OS scale restored",
+    "W7 actual Windows UIA discovers the AccessKit grid and focuses a merged cell through its provider; spans/values, virtual node budget and frozen clipping verified (screen-reader speech remains manual)",
+    "W8 real WPF paginator writes a one-page XPS with selected page/margins and no queue submission; invalid ranges, stale-sheet print rejection, background close race and keyboard preview retry verified",
+    "W8 actual native PrintDialog Cancel invoked through its owned-process UIA provider twice: outcome/retry and closing preview while the dialog retains its document; no spool job submitted",
+    "Actual close dialog: backdrop/keyboard blocked, Cancel preserves file, Save persists cell/object then closes; XLSX reopened",
+    "Actual close dialog: exclusive file lock causes visible save failure without closing; retry persists and reopens successfully",
+    "Actual close dialog Discard closes without writing the file"
+  ],
+  "windowsTask": 4,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 93,
+    "paintP95Ms": 1.8121999999999998,
+    "paintedCells": 704,
+    "gpuPresentationMeasured": false,
+    "editSamples": 0,
+    "editP95Ms": null,
+    "stages": {
+      "scope": "commit handler through first matching worksheet CPU paint; no GPU presentation",
+      "capacity": 512,
+      "pending": 0,
+      "discarded": 0,
+      "editCount": 0,
+      "phases": {
+        "totalMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "preflightMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "queueMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "engineMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "snapshotMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "publishMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "uiPollMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "uiSyncMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "frameWaitMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "prepaintMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "geometryMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "layoutMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "paintMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "cellsMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "textMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "scrollbarMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      },
+      "framePhases": {
+        "prepaintMs": {
+          "count": 93,
+          "p50": 0.0056,
+          "p95": 0.0122,
+          "p99": 0.0295,
+          "max": 0.0295
+        },
+        "geometryMs": {
+          "count": 93,
+          "p50": 0.0,
+          "p95": 0.0022,
+          "p99": 0.0040999999999999995,
+          "max": 0.0040999999999999995
+        },
+        "layoutMs": {
+          "count": 93,
+          "p50": 0.0024,
+          "p95": 0.0062,
+          "p99": 0.0223,
+          "max": 0.0223
+        },
+        "paintMs": {
+          "count": 93,
+          "p50": 1.0586,
+          "p95": 1.8121999999999998,
+          "p99": 4.9081,
+          "max": 4.9081
+        },
+        "cellsMs": {
+          "count": 93,
+          "p50": 0.8416,
+          "p95": 1.3147,
+          "p99": 1.509,
+          "max": 1.509
+        },
+        "textMs": {
+          "count": 93,
+          "p50": 0.09390000000000001,
+          "p95": 0.17149999999999999,
+          "p99": 3.9321,
+          "max": 3.9321
+        },
+        "scrollbarMs": {
+          "count": 93,
+          "p50": 0.0005,
+          "p95": 0.0009,
+          "p99": 0.0017000000000000001,
+          "max": 0.0017000000000000001
+        }
+      },
+      "edits": null,
+      "frames": null
+    },
+    "recovery": {
+      "busy": false,
+      "completed": 29,
+      "skipped": 50,
+      "doc": 22,
+      "serializeMs": 0.033800000000000004,
+      "ioMs": 0.9562,
+      "bytes": 3285,
+      "totalMs": 1.0202,
+      "success": true
+    },
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "stage": "M3",
+  "m4Task": 4,
+  "windowsFrom": 1,
+  "platform": "Windows x64",
+  "saveDialog": true,
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "port": 51013,
+  "binarySha256": "df8ce6fbff0763ed7326c46c0a68641e33780b939a29fdbbca2e1619c1e4811c",
+  "windowsQualityTask": 4,
+  "passed": true,
+  "nativeImeVerified": false,
+  "processId": 3128,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\artifacts\\P4-release-unpacked\\joysheet-0.1.0-M8-preview4-windows-x86_64\\joysheet.exe",
+  "m5Task": 4,
+  "m6Task": 4,
+  "m7Task": 4,
+  "m8Task": 4
+}

@@ -1,0 +1,314 @@
+{
+  "m7Task": 0,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 721,
+    "paintP95Ms": 0.9389,
+    "paintedCells": 450,
+    "gpuPresentationMeasured": false,
+    "editSamples": 0,
+    "editP95Ms": null,
+    "stages": {
+      "scope": "commit handler through first matching worksheet CPU paint; no GPU presentation",
+      "capacity": 512,
+      "pending": 0,
+      "discarded": 0,
+      "editCount": 0,
+      "phases": {
+        "totalMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "preflightMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "queueMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "engineMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "recalcMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "dependencyMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "evaluationMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "preparationMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "spillSeedMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "writebackMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "rangeReadMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "usedRangeMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "rowFitMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "snapshotMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "publishMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "uiPollMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "uiSyncMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "frameWaitMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "prepaintMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "geometryMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "extentMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "dimensionsMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "layoutMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "paintMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "cellsMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "textMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "scrollbarMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      },
+      "framePhases": {
+        "prepaintMs": {
+          "count": 512,
+          "p50": 0.0048,
+          "p95": 0.0098,
+          "p99": 0.0172,
+          "max": 0.0445
+        },
+        "geometryMs": {
+          "count": 512,
+          "p50": 0.0,
+          "p95": 9.999999999999999e-05,
+          "p99": 0.00019999999999999998,
+          "max": 0.00039999999999999996
+        },
+        "extentMs": {
+          "count": 512,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "dimensionsMs": {
+          "count": 512,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "layoutMs": {
+          "count": 512,
+          "p50": 0.002,
+          "p95": 0.0035,
+          "p99": 0.0049,
+          "max": 0.0406
+        },
+        "paintMs": {
+          "count": 512,
+          "p50": 0.7484,
+          "p95": 0.9366,
+          "p99": 1.5070000000000001,
+          "max": 2.1383
+        },
+        "cellsMs": {
+          "count": 512,
+          "p50": 0.5969,
+          "p95": 0.7636000000000001,
+          "p99": 1.2914,
+          "max": 1.6959
+        },
+        "textMs": {
+          "count": 512,
+          "p50": 0.045200000000000004,
+          "p95": 0.0625,
+          "p99": 0.1095,
+          "max": 0.2086
+        },
+        "scrollbarMs": {
+          "count": 512,
+          "p50": 0.00039999999999999996,
+          "p95": 0.0007,
+          "p99": 0.001,
+          "max": 0.0015
+        }
+      },
+      "edits": null,
+      "frames": null
+    },
+    "recovery": {
+      "busy": false,
+      "completed": 12,
+      "skipped": 0,
+      "doc": 12,
+      "serializeMs": 186.6368,
+      "ioMs": 117.581,
+      "bytes": 127507918,
+      "totalMs": 304.2353,
+      "success": true
+    },
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "custom 10k/100k row heights and 1000 column widths; dense 10k/100k dependent formulas; dynamic 10k/100k spills with real values, shrink/block/undo",
+    "native 10000x20 and 100000x20 CSV viewing and bounded scroll paint samples; identity-fenced edit phases and correct range aggregates"
+  ],
+  "m6Task": 0,
+  "windowsTask": 0,
+  "saveDialog": false,
+  "stage": "M1",
+  "platform": "Windows x64",
+  "windowsQualityTask": 0,
+  "windowsFrom": 1,
+  "m8Task": 0,
+  "m5Task": 0,
+  "m4Task": 0,
+  "nativeImeVerified": false,
+  "binarySha256": "e21d01e6fbb8f5ac916f995ff7b1881c00c37cff25b3e2cc67f0a0bdbd64d704",
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "binary": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet final package 中文 r8w7sw3d\\joysheet-0.1.0-windows-x86_64-release-validation-verified2\\joysheet.exe",
+  "port": 53232,
+  "passed": true,
+  "processId": 26740
+}

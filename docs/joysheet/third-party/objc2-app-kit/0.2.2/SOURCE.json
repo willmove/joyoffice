@@ -1,0 +1,23 @@
+{
+  "package": "objc2-app-kit",
+  "version": "0.2.2",
+  "declaredLicense": "MIT",
+  "publishedCrateChecksum": "e4e89ad9e3d7d297152b17d39ed92cd50ca8063a89a9fa569046d41568891eff",
+  "repository": "https://github.com/madsmtm/objc2",
+  "authorsFromPublishedManifest": [],
+  "publishedVcs": {
+    "git": {
+      "sha1": "e282618be4c3a3b9542957e0c8540e9588472ce8"
+    },
+    "path_in_vcs": "framework-crates/objc2-app-kit"
+  },
+  "files": [
+    {
+      "url": "https://github.com/madsmtm/objc2/blob/e282618be4c3a3b9542957e0c8540e9588472ce8/LICENSE.txt",
+      "gitBlobSha": "e9ab3babc0d8602b83dccde8a462f8f3dc1e52ad",
+      "file": "LICENSE-OBJC-FW-LICENSE.txt",
+      "sha256": "e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5",
+      "kind": "verbatim upstream file"
+    }
+  ]
+}

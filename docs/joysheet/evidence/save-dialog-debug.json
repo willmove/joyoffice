@@ -1,0 +1,28 @@
+{
+  "m4Task": 0,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "Actual close dialog: backdrop/keyboard blocked, Cancel preserves file, Save persists cell/object then closes; XLSX reopened",
+    "Actual close dialog: exclusive file lock causes visible save failure without closing; retry persists and reopens successfully",
+    "Actual close dialog Discard closes without writing the file"
+  ],
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "m6Task": 0,
+  "passed": true,
+  "platform": "Windows x64",
+  "nativeImeVerified": false,
+  "port": 62851,
+  "m5Task": 0,
+  "stage": "M1",
+  "processId": 12096,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 46,
+    "paintP95Ms": 1.4668,
+    "paintedCells": 450,
+    "gpuPresentationMeasured": false
+  }
+}

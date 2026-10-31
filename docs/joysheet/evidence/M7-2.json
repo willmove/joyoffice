@@ -1,0 +1,29 @@
+{
+  "processId": 27736,
+  "passed": true,
+  "stage": "M1",
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "M7.1 production pivot builder and field drag, descriptive report, goal seek and simplex solver",
+    "M7.2 comments/replies/resolve, notes, name rename, password protection/rejection and XLSX roundtrip"
+  ],
+  "m4Task": 0,
+  "nativeImeVerified": false,
+  "m5Task": 0,
+  "saveDialog": false,
+  "m6Task": 0,
+  "m7Task": 2,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 182,
+    "paintP95Ms": 1.8505,
+    "paintedCells": 640,
+    "gpuPresentationMeasured": false
+  },
+  "port": 62685,
+  "platform": "Windows x64"
+}
