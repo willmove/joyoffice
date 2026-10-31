@@ -237,6 +237,32 @@ class MonorepoGate(TempTree):
         self.assertTrue(any("escapes repository" in e for e in self.layers()))
 
 
+class ValidationGate(TempTree):
+    def test_validation_feature_does_not_hide_new_panic_sites(self):
+        self.write("apps/joydeck/src/editor_validation.rs",
+                   '#[cfg(feature = "validation")]\nfn verify() {\n'
+                   '    value.unwrap();\n    value.unwrap();\n}\n')
+        errors = self.panic('apps/joydeck/src/editor_validation.rs:3:value.unwrap();\n')
+        self.assertTrue(any("occurs 2x" in e for e in errors))
+
+    def test_validation_feature_does_not_allow_io_in_model(self):
+        self.write("crates/joydeck-model/src/validation.rs",
+                   '#[cfg(feature = "validation")]\nfn verify() { std::fs::read("x"); }\n')
+        self.assertTrue(self.filesystem())
+
+    def test_deck_allowances_are_reviewed_exact_adapter_files(self):
+        self.assertTrue(check_gates.DECK_FS_REVIEW)
+        for relative, reason in check_gates.DECK_FS_REVIEW.items():
+            self.assertTrue(relative.endswith(".rs"), relative)
+            self.assertFalse(any(c in relative for c in "*?[]"), relative)
+            self.assertTrue(reason, relative)
+            self.assertNotIn("crates/joydeck-model/", relative)
+            self.assertNotIn("crates/joydeck-engine/", relative)
+            self.assertNotIn("crates/joydeck-formats/", relative)
+            self.assertNotIn("crates/joydeck-scene/", relative)
+            self.assertNotIn("crates/joydeck-export/", relative)
+
+
 class PanicGate(TempTree):
     FIXTURE = "gate_panic_allow_bypass.rs"
 

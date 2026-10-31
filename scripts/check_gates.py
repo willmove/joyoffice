@@ -175,6 +175,36 @@ FS_ALLOW = {
     "apps/joyword/src/linux_files.rs",
 }
 
+# Each Deck adapter below has a specific IO responsibility. These are exact
+# source files, not directory exemptions. Pure model/engine/format/scene/export
+# crates are deliberately absent; their inputs and outputs stay in memory.
+# Detailed review and validation-only sites: docs/joyoffice/JOYDECK-GATE-AUDIT.md.
+DECK_FS_REVIEW = {
+    "apps/joydeck-cli/src/main.rs": "read the explicit local control credential descriptor",
+    "tools/xtask/src/main.rs": "invoke the product-scoped engineering runner, never product document commands",
+    "crates/joydeck-platform/build.rs": "compile packaged Swift helpers on desktop macOS builds",
+    "crates/joydeck-platform/src/files.rs": "bounded reads, private temp directories and atomic publication",
+    "crates/joydeck-platform/src/playback.rs": "owned native media process and private bounded frame files",
+    "crates/joydeck-shell/src/control.rs": "create/read/remove a private local-control descriptor",
+    "crates/joydeck-shell/src/export.rs": "stage and publish requested output files/directories",
+    "crates/joydeck-shell/src/media.rs": "bounded user-selected image import",
+    "crates/joydeck-shell/src/output.rs": "invoke the packaged print helper and clean its temporary input",
+    "crates/joydeck-shell/src/preferences.rs": "read/validate/atomically replace product preferences",
+    "crates/joydeck-shell/src/storage.rs": "document save, recovery, locks and source fingerprint checks",
+    "crates/joydeck-shell/src/video.rs": "owned encoder helper with private staging and cancellation",
+    "apps/joydeck/src/authoring_smoke.rs": "validation feature: independent authoring output/reference capture",
+    "apps/joydeck/src/beta_smoke.rs": "validation feature: native preference/compare/video acceptance record",
+    "apps/joydeck/src/delivery_smoke.rs": "validation feature: export fixtures and output manifest",
+    "apps/joydeck/src/editor_validation.rs": "validation feature: recovery/IME temporary roundtrip cleanup",
+    "apps/joydeck/src/extended_smoke.rs": "validation feature: media and print cancellation evidence",
+    "apps/joydeck/src/media_smoke.rs": "validation feature: clipboard/image reference capture",
+    "apps/joydeck/src/render_bench.rs": "validation feature: synthetic benchmark report and raster output",
+    "apps/joydeck/src/slideshow_validation.rs": "validation feature: native show acceptance report",
+    "apps/joydeck/src/table_smoke.rs": "validation feature: table roundtrip and raster reference capture",
+    "apps/joydeck/src/workspace_smoke.rs": "validation feature: multiwindow design and clipboard evidence",
+}
+FS_ALLOW.update(DECK_FS_REVIEW)
+
 PANIC_RE = re.compile(
     r"(?:\.unwrap\s*\(|\.expect\s*\(|\bpanic!\s*\(|\bunreachable!\s*\("
     r"|\btodo!\s*\(|\bunimplemented!\s*\()"

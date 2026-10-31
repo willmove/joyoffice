@@ -566,3 +566,134 @@ crates/joyword-shell/src/storage/original.rs:1616:let dir = tempfile::tempdir().
 crates/joyword-shell/src/storage/original.rs:1618:std::fs::write(&path, &bytes).unwrap();
 crates/joyword-shell/src/storage/original.rs:1620:.unwrap()
 crates/joyword-shell/src/storage/original.rs:1641:.unwrap()
+
+# JoyDeck explicit validation/QA inventory, reviewed 2026-10-31.
+# No normal GUI, CLI or product-library sites are added here.
+# Reviewed explicit validation/QA only: apps/joydeck/src/editor_validation.rs — 固定事件阶段中的编辑/恢复/IME验收断言；独立测试文稿与显式证据输出，失败即终止该验收，不报告成功
+apps/joydeck/src/editor_validation.rs:92:assert!(s.gesture.as_ref().unwrap().mode == Some(Mode::Scale));
+apps/joydeck/src/editor_validation.rs:105:assert!(s.gesture.as_ref().unwrap().mode == Some(Mode::Rotate));
+apps/joydeck/src/editor_validation.rs:202:let readonly = cx.update(|cx| crate::viewer::open_window(cx).unwrap().0);
+apps/joydeck/src/editor_validation.rs:216:.unwrap();
+apps/joydeck/src/editor_validation.rs:222:.expect("own recovery snapshot");
+apps/joydeck/src/editor_validation.rs:234:open(cx).unwrap();
+apps/joydeck/src/editor_validation.rs:235:cx.global::<Registry>().0.last().unwrap().clone()
+apps/joydeck/src/editor_validation.rs:265:let path = close_path.take().unwrap();
+apps/joydeck/src/editor_validation.rs:274:assert_eq!(result.unwrap(), 1);
+apps/joydeck/src/editor_validation.rs:277:open(cx).unwrap();
+apps/joydeck/src/editor_validation.rs:278:cx.global::<Registry>().0.last().unwrap().clone()
+apps/joydeck/src/editor_validation.rs:292:let service = discarded.as_ref().unwrap().clone();
+apps/joydeck/src/editor_validation.rs:298:.unwrap();
+apps/joydeck/src/editor_validation.rs:301:cx.update(|cx| cx.global::<Registry>().0.last().unwrap().clone());
+apps/joydeck/src/editor_validation.rs:312:let service = discarded.take().unwrap();
+apps/joydeck/src/editor_validation.rs:318:.unwrap();
+apps/joydeck/src/editor_validation.rs:357:s.text_edit.as_mut().unwrap().cancel();
+apps/joydeck/src/editor_validation.rs:358:assert_eq!(s.text_edit.as_ref().unwrap().object.text,committed.slides[0].objects[0].text);
+apps/joydeck/src/editor_validation.rs:365:let t=s.text_edit.as_mut().unwrap();
+apps/joydeck/src/editor_validation.rs:368:joydeck::text::format(&mut t.object,0..6,t.typing.clone()).unwrap();
+apps/joydeck/src/editor_validation.rs:371:edit::save_new(&path,&s.session.deck).unwrap();
+apps/joydeck/src/editor_validation.rs:372:assert_eq!(edit::open_editable(&path).unwrap(),*s.session.deck);
+apps/joydeck/src/editor_validation.rs:373:std::fs::remove_file(path).unwrap();
+apps/joydeck/src/editor_validation.rs:375:})).unwrap();
+apps/joydeck/src/editor_validation.rs:383:})).unwrap();
+apps/joydeck/src/editor_validation.rs:389:})).unwrap();
+apps/joydeck/src/editor_validation.rs:395:})).unwrap();
+apps/joydeck/src/editor_validation.rs:405:let mut o = if table{joydeck::table::object(4,5).unwrap()}else{edit::object("text")}; o.text.clear(); if !table{o.width=480.;}
+apps/joydeck/src/editor_validation.rs:410:})).unwrap();
+apps/joydeck/src/editor_validation.rs:441:edit::save_new(&path,&s.session.deck).unwrap();
+apps/joydeck/src/editor_validation.rs:442:assert_eq!(edit::open_editable(&path).unwrap(),*s.session.deck);
+apps/joydeck/src/editor_validation.rs:450:})).unwrap();
+# Reviewed explicit validation/QA only: apps/joydeck/src/viewer_validation.rs — 20页原创固定样本；ready和阶段守卫后的文稿/图像/来源检查，缺失即验收失败
+apps/joydeck/src/viewer_validation.rs:37:assert_eq!(s.deck.as_ref().unwrap().slides.len(), 20);
+apps/joydeck/src/viewer_validation.rs:71:&& s.image.as_ref().unwrap().0.2 == 2048 =>
+apps/joydeck/src/viewer_validation.rs:81:&& s.image.as_ref().unwrap().0.2 < 2048 =>
+apps/joydeck/src/viewer_validation.rs:90:let old = s.deck.clone().unwrap();
+apps/joydeck/src/viewer_validation.rs:93:assert!(Arc::ptr_eq(&old, s.deck.as_ref().unwrap()));
+apps/joydeck/src/viewer_validation.rs:106:let d = s.deck.as_ref().unwrap();
+apps/joydeck/src/viewer_validation.rs:117:.unwrap()
+apps/joydeck/src/viewer_validation.rs:131:assert_eq!(s.deck.as_ref().unwrap().slides.len(), 20);
+apps/joydeck/src/viewer_validation.rs:135:.unwrap()
+# Reviewed explicit validation/QA only: apps/joydeck/src/authoring_smoke.rs — 原创作者样本的图表/公开部件/参考像素及已打开窗口断言
+apps/joydeck/src/authoring_smoke.rs:14:if s.session.deck.slides[0].objects[1].chart.as_ref().unwrap().series[0].values[3]!=Some(131.){return Err("chart grid failed".into());}s.history(false,w,cx);if s.session.deck!=base{return Err("chart grid undo failed".into());}s.history(true,w,cx);
+apps/joydeck/src/authoring_smoke.rs:19:let mut parts=joydeck::pptx_write::generate(&s.session.deck)?;joydeck::export::save_parts(&output.join("authoring.pptx"),&parts,&AtomicBool::new(false))?;parts.get_mut("ppt/slides/slide1.xml").unwrap().extend_from_slice(b"<!-- independent public import -->");joydeck::export::save_parts(&output.join("authoring-public.pptx"),&parts,&AtomicBool::new(false))?;
+apps/joydeck/src/authoring_smoke.rs:24:if (phase==1||phase==3)&&since.elapsed()>Duration::from_secs(2){let ready=handle.update(cx,|_,w,cx|view.update(cx,|s,_|->std::result::Result<bool,String>{let backend=if phase==1{"GPUI"}else{"CPU"};if (phase==1&&s.scene.is_none())||(phase==3&&s.image.is_none()){return Ok(false);}let scale=s.canvas_scale(w);let width=s.session.deck.width*scale;let height=s.session.deck.height*scale;let r=preview::render(&s.session.deck,0,(width*w.scale_factor()).round()as u32,&AtomicBool::new(false))?;let mut rgba=r.bgra;for p in rgba.as_chunks_mut::<4>().0{p.swap(0,2);}image::RgbaImage::from_raw(r.width,r.height,rgba).unwrap().save(output.join(format!("M9-{backend}-reference.png"))).map_err(|e|e.to_string())?;eprintln!("M9_CAPTURE {backend} {}",serde_json::json!({"x":s.canvas_origin.0,"y":s.canvas_origin.1,"width":width,"height":height,"viewportHeight":f32::from(w.viewport_size().height)}));Ok(true)})).map_err(|e|e.to_string())??;if ready{phase+=1;}continue;}
+apps/joydeck/src/authoring_smoke.rs:30:match result{Ok(d)=>{eprintln!("M9_SMOKE grid_clipboard_undo_native_public_pdf=true complete=true");let focus=handle.update(cx,|_,w,cx|view.update(cx,|s,cx|{s.prepare_show(w,cx);s.focus.clone()})).unwrap();cx.update(|cx|crate::slideshow::smoke(d,output,handle,focus,cx));},Err(e)=>{eprintln!("M9_SMOKE failed={e}");cx.update(|cx|cx.quit());}}
+# Reviewed explicit validation/QA only: apps/joydeck/src/beta_smoke.rs — 外部验证器提供输出目录；固定比较样本、窗口重开、偏好恢复和Value报告断言
+apps/joydeck/src/beta_smoke.rs:4:let out=PathBuf::from(std::env::var_os("JOYDECK_M14_OUTPUT").unwrap());
+apps/joydeck/src/beta_smoke.rs:36:image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(out.join("M14-compare-reference.png")).map_err(|e|e.to_string())?;
+apps/joydeck/src/beta_smoke.rs:55:let (report,_)=s.comparison.as_ref().unwrap();
+apps/joydeck/src/beta_smoke.rs:56:s.comparison_pick=report.differences.iter().position(|r|r.kind=="object.changed").unwrap();
+apps/joydeck/src/beta_smoke.rs:102:open_session(cx,None).unwrap();let (h,weak)=cx.global::<Registry>().0.last().unwrap().clone();
+apps/joydeck/src/beta_smoke.rs:103:let fresh=weak.upgrade().unwrap();assert_eq!(fresh.read(cx).zoom,0.9);assert!(fresh.read(cx).show_notes);
+apps/joydeck/src/beta_smoke.rs:104:h.update(cx,|_,w,cx|{let expected=fresh.read(cx).preferences.height;assert_eq!(f32::from(w.window_bounds().get_bounds().size.height).round() as u32,expected);}).unwrap();
+apps/joydeck/src/beta_smoke.rs:105:h.update(cx,|_,w,_|w.remove_window()).unwrap();
+apps/joydeck/src/beta_smoke.rs:123:std::fs::write(out.join("native-state.json"),serde_json::to_vec_pretty(&report).unwrap()).map_err(|e|e.to_string())?;
+# Reviewed explicit validation/QA only: apps/joydeck/src/extended_smoke.rs — 外部验证器提供输出目录；独立媒体样本状态、帧尺寸、打印取消和PDF参考断言
+apps/joydeck/src/extended_smoke.rs:6:let out = PathBuf::from(std::env::var_os("JOYDECK_M12_OUTPUT").unwrap());
+apps/joydeck/src/extended_smoke.rs:46:let status = s.av_player.as_ref().ok_or("no player")?.status.lock().unwrap().clone();
+apps/joydeck/src/extended_smoke.rs:51:image::RgbaImage::from_raw(frame.width, frame.height, rgba).unwrap()
+apps/joydeck/src/extended_smoke.rs:112:.unwrap()
+apps/joydeck/src/extended_smoke.rs:153:})).unwrap()).map_err(|e|e.to_string())
+apps/joydeck/src/extended_smoke.rs:198:.unwrap()
+# Reviewed explicit validation/QA only: apps/joydeck/src/media_smoke.rs — 已粘贴原创图片的资源引用与已验证尺寸的参考像素断言
+apps/joydeck/src/media_smoke.rs:30:let image=s.session.deck.slides[0].objects[0].image.as_ref().unwrap().resource.clone();
+apps/joydeck/src/media_smoke.rs:52:image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(output.join(format!("M5-{backend}-reference.png"))).map_err(|e|e.to_string())?;
+# Reviewed explicit validation/QA only: apps/joydeck/src/render_bench.rs — 显式基准程序：固定场景生成、CPU/GPU绘制、尺寸转换、输出目录和报告失败必须中止测量
+apps/joydeck/src/render_bench.rs:75:let r = result.expect("benchmark CPU reference");
+apps/joydeck/src/render_bench.rs:84:image::RgbaImage::from_raw(r.width, r.height, r.bgra).unwrap(),
+apps/joydeck/src/render_bench.rs:103:.expect("benchmark CPU upload");
+apps/joydeck/src/render_bench.rs:109:.expect("benchmark GPU draw");
+apps/joydeck/src/render_bench.rs:153:let bounds = self.bounds.unwrap();
+apps/joydeck/src/render_bench.rs:167:let r=scene.raster(raster_width,&AtomicBool::new(false)).unwrap();let mut rgba=r.bgra;
+apps/joydeck/src/render_bench.rs:169:resvg::tiny_skia::Pixmap::from_vec(rgba,resvg::tiny_skia::IntSize::from_wh(r.width,r.height).unwrap()).unwrap().save_png(path).unwrap();
+apps/joydeck/src/render_bench.rs:191:std::fs::write(s.output.join("native-benchmark.json"),serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+apps/joydeck/src/render_bench.rs:244:std::fs::create_dir_all(&output).expect("benchmark output directory");
+apps/joydeck/src/render_bench.rs:250:let mut c = cache.lock().unwrap();
+apps/joydeck/src/render_bench.rs:251:let edit = bench::edit(&mut c).unwrap();
+apps/joydeck/src/render_bench.rs:252:let effect = bench::effect().unwrap();
+apps/joydeck/src/render_bench.rs:294:.unwrap();
+# Reviewed explicit validation/QA only: apps/joydeck/src/workspace_smoke.rs — 固定双窗口/主题阶段中的peer、theme-1和参考画面断言
+apps/joydeck/src/workspace_smoke.rs:28:let new=cx.update(|cx|->std::result::Result<_,String>{open_session(cx,Some(session)).map_err(|e|e.to_string())?;let (h,weak)=cx.global::<Registry>().0.last().unwrap().clone();Ok((h,weak.upgrade().ok_or("peer closed")?))})?;
+apps/joydeck/src/workspace_smoke.rs:33:let (peer_handle,peer_view)=peer.as_ref().unwrap();
+apps/joydeck/src/workspace_smoke.rs:35:let mut d=s.session.deck.design.clone();d.themes.get_mut("theme-1").unwrap().colors.insert("accent".into(),"#1265c5".into());s.command(Command::Design(Action::SetDesign(d)),cx);
+apps/joydeck/src/workspace_smoke.rs:45:let (h,p)=peer.as_ref().unwrap();h.update(cx,|_,_,cx|p.update(cx,|s,cx|->std::result::Result<(),String>{s.sync_document(cx);if s.selected!=Some(1){return Err("peer selection lost".into());}s.session=Session::new();s.renew_recovery();s.command(Command::Design(Action::PastePages(1,transfer,None)),cx);if s.session.deck.slides.len()!=2{return Err("cross document paste failed".into());}Ok(())})).map_err(|e|e.to_string())??;
+apps/joydeck/src/workspace_smoke.rs:56:image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(output.join(format!("M6-{backend}-reference.png"))).map_err(|e|e.to_string())?;
+# Reviewed explicit validation/QA only: apps/joydeck/src/table_smoke.rs — 固定4×5原创表格样本的焦点/预编辑/Tab/参考像素断言
+apps/joydeck/src/table_smoke.rs:15:let id=s.table_pick.as_ref().unwrap().id.clone();let base=s.session.deck.clone();
+apps/joydeck/src/table_smoke.rs:18:s.begin_cell(2,1,0,w,cx);s.replace_and_mark_text_in_range(None,"取消",None,w,cx);if s.session.deck!=base{return Err("preedit published".into());}s.text_edit.as_mut().unwrap().cancel();s.finish_text(cx);
+apps/joydeck/src/table_smoke.rs:19:let event=KeyDownEvent{keystroke:Keystroke{key:"tab".into(),..Default::default()},is_held:false,prefer_character_input:false};if !s.table_key(&event,w,cx)||s.table_pick.as_ref().unwrap().focus!=(1,1){return Err("Tab navigation failed".into());}s.finish_text(cx);
+apps/joydeck/src/table_smoke.rs:20:let mut reverse=event;reverse.keystroke.modifiers.shift=true;s.table_key(&reverse,w,cx);if s.table_pick.as_ref().unwrap().focus!=(1,0){return Err("reverse Tab failed".into());}s.finish_text(cx);
+apps/joydeck/src/table_smoke.rs:37:let scale=s.canvas_scale(w);let width=s.session.deck.width*scale;let height=s.session.deck.height*scale;let raster=preview::render(&s.session.deck,0,(width*w.scale_factor()).round() as u32,&AtomicBool::new(false))?;let mut rgba=raster.bgra;for p in rgba.as_chunks_mut::<4>().0{p.swap(0,2);}image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(output.join(format!("M8-{backend}-reference.png"))).map_err(|e|e.to_string())?;
+# Reviewed explicit validation/QA only: crates/joydeck-shell/examples/authoring-fixture.rs — 只能显式运行的QA样本/基准生成器：必需输出参数、原创样本、部件、渲染和报告失败即非零退出
+crates/joydeck-shell/examples/authoring-fixture.rs:12:.expect("output folder");
+crates/joydeck-shell/examples/authoring-fixture.rs:13:std::fs::create_dir_all(&out).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:15:edit::save(&out.join("authoring.joydeck"), &d).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:16:let parts = pptx_write::generate(&d).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:17:export::save_parts(&out.join("authoring.pptx"), &parts, &AtomicBool::new(false)).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:21:.unwrap()
+crates/joydeck-shell/examples/authoring-fixture.rs:28:.unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:29:let r = preview::render(&d, 0, 1600, &AtomicBool::new(false)).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:35:.unwrap()
+crates/joydeck-shell/examples/authoring-fixture.rs:37:.unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:71:bench.validate().unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:72:let mut s = show::ShowSnapshot::new(Arc::new(bench), 0).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:82:let frame = c.frame(&s).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:83:preview::render(&frame, s.page(), 1024, &AtomicBool::new(false)).unwrap();
+crates/joydeck-shell/examples/authoring-fixture.rs:92:serde_json::to_vec_pretty(&report).unwrap(),
+crates/joydeck-shell/examples/authoring-fixture.rs:94:.unwrap();
+# Reviewed explicit validation/QA only: crates/joydeck-shell/examples/beta-qualification.rs — 只能显式运行的QA资格化：原创语料分支构造、已生成样本hash/报告、必需输出父目录断言
+crates/joydeck-shell/examples/beta-qualification.rs:17:format!("{:x}", Sha256::digest(std::fs::read(path).unwrap()))
+crates/joydeck-shell/examples/beta-qualification.rs:20:std::fs::write(path, serde_json::to_vec_pretty(value).unwrap()).unwrap();
+crates/joydeck-shell/examples/beta-qualification.rs:60:for (i, c) in o.table.as_mut().unwrap().cells.iter_mut().enumerate() {
+crates/joydeck-shell/examples/beta-qualification.rs:66:d.slides[0].objects[1].chart.as_mut().unwrap().series[0].values = vec![
+crates/joydeck-shell/examples/beta-qualification.rs:117:let t = d.presentation.slides.get_mut("page-0").unwrap();
+crates/joydeck-shell/examples/beta-qualification.rs:146:.unwrap()
+crates/joydeck-shell/examples/beta-qualification.rs:158:.unwrap()
+crates/joydeck-shell/examples/beta-qualification.rs:266:std::fs::create_dir_all(out.parent().unwrap()).map_err(|e| e.to_string())?;
+# Reviewed explicit validation/QA only: apps/joydeck/src/scene_canvas_validation.rs — 显式画布验收：固定场景、缓存不变量、同快照身份与清空场景断言
+apps/joydeck/src/scene_canvas_validation.rs:25:assert!(s.accelerated);assert!(s.scene.as_ref().unwrap().coverage().2>0);
+apps/joydeck/src/scene_canvas_validation.rs:26:before=s.gpu_cache.stats.clone();builds=s.scene_cache.lock().unwrap().stats.builds;
+apps/joydeck/src/scene_canvas_validation.rs:40:assert_eq!(s.scene_cache.lock().unwrap().stats.builds,builds);
+apps/joydeck/src/scene_canvas_validation.rs:47:assert_eq!(s.scene_cache.lock().unwrap().stats.builds,builds);
+apps/joydeck/src/scene_canvas_validation.rs:54:assert!(Arc::ptr_eq(moved.as_ref().unwrap(),&s.session.deck));
+apps/joydeck/src/scene_canvas_validation.rs:59:assert!(s.accelerated);assert!(s.gpu_cache.stats.atlas_removals>before.atlas_removals);assert!(Arc::ptr_eq(moved.as_ref().unwrap(),&s.session.deck));
+apps/joydeck/src/scene_canvas_validation.rs:69:assert!(s.accelerated);assert!(s.scene.as_ref().unwrap().nodes.is_empty());
