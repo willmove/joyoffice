@@ -147,6 +147,96 @@ class LayerGate(TempTree):
         self.assertEqual(check_gates.check_layers(), [], "the real tree must satisfy LAYERS + DEV_LAYERS")
 
 
+class MonorepoGate(TempTree):
+    def manifest(self, relative, name, deps=""):
+        return self.write(relative, f'[package]\nname = "{name}"\n\n{deps}')
+
+    def test_unregistered_tool_is_not_outside_the_gate(self):
+        self.manifest("tools/unreviewed/Cargo.toml", "unreviewed-tool")
+        self.assertTrue(any("unregistered crate unreviewed-tool" in e for e in self.layers()))
+
+    def test_explicit_nonstandard_member_is_checked(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["maintenance/*"]\n')
+        self.manifest("maintenance/fake/Cargo.toml", "unknown-maintenance")
+        self.assertTrue(any("unregistered crate unknown-maintenance" in e for e in self.layers()))
+
+    def test_missing_explicit_member_fails_closed(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["missing"]\n')
+        # A literal member absent from disk must not silently vanish from globbing.
+        self.assertTrue(any("missing" in e for e in self.layers()))
+
+    def test_tool_sources_are_gated_for_io_and_panics(self):
+        self.manifest("tools/xtask/Cargo.toml", "joyoffice-xtask")
+        self.write("tools/xtask/src/lib.rs", 'fn f() { std::fs::read("x").unwrap(); }\n')
+        self.assertTrue(self.filesystem())
+        self.assertTrue(self.panic())
+
+    def test_nonstandard_member_sources_are_gated(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["maintenance/task"]\n')
+        self.manifest("maintenance/task/Cargo.toml", "joyoffice-xtask")
+        self.write("maintenance/task/src/lib.rs", 'fn f() { std::fs::read("x").unwrap(); }\n')
+        self.assertTrue(self.filesystem())
+        self.assertTrue(self.panic())
+
+    def test_local_path_member_cannot_hide_outside_standard_directories(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["tools/xtask"]\n')
+        self.manifest("tools/xtask/Cargo.toml", "joyoffice-xtask",
+                      '[dependencies]\nhidden = { path = "../../maintenance/hidden" }\n')
+        self.manifest("maintenance/hidden/Cargo.toml", "unknown-path-member")
+        self.assertTrue(any("unknown-path-member" in e for e in self.layers()))
+
+    def test_inherited_path_member_is_resolved_from_workspace_root(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["tools/xtask"]\n'
+                   '[workspace.dependencies]\nhidden = { path = "maintenance/hidden" }\n')
+        self.manifest("tools/xtask/Cargo.toml", "joyoffice-xtask",
+                      '[dependencies]\nhidden.workspace = true\n')
+        self.manifest("maintenance/hidden/Cargo.toml", "unknown-inherited-member")
+        self.assertTrue(any("unknown-inherited-member" in e for e in self.layers()))
+
+    def test_alias_cannot_hide_a_cross_product_dependency(self):
+        self.manifest("crates/joydeck-engine/Cargo.toml", "joydeck-engine",
+                      '[dependencies]\nhidden = { package = "joyword-model", version = "=0.1.0" }\n')
+        errors = self.layers()
+        self.assertTrue(any("must not depend on product package joyword-model" in e for e in errors))
+
+    def test_inherited_alias_cannot_hide_gui_from_model(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["crates/joydeck-model"]\n'
+                   '[workspace.dependencies]\ndrawing = { package = "gpui-kit", version = "=0.8.1" }\n')
+        self.manifest("crates/joydeck-model/Cargo.toml", "joydeck-model",
+                      '[dependencies]\ndrawing.workspace = true\n')
+        self.assertTrue(any("must remain headless; GUI dependency gpui-kit" in e for e in self.layers()))
+
+    def test_target_build_dependency_cannot_hide_gui_from_cli(self):
+        self.manifest("apps/joydeck-cli/Cargo.toml", "joydeck-cli",
+                      "[target.'cfg(unix)'.build-dependencies]\n"
+                      'renderer = { package = "gpui-pre", version = "=0.3.10" }\n')
+        self.assertTrue(any("must remain headless; GUI dependency gpui-pre" in e for e in self.layers()))
+
+    def test_shared_library_cannot_depend_on_a_product_model(self):
+        self.manifest("crates/joyoffice-opc/Cargo.toml", "joyoffice-opc",
+                      '[dependencies]\njoydeck-model.workspace = true\n')
+        self.assertTrue(any("must not depend on product package joydeck-model" in e for e in self.layers()))
+
+    def test_unknown_product_package_is_rejected_even_before_registration(self):
+        self.manifest("crates/joydeck-model/Cargo.toml", "joydeck-model",
+                      '[dependencies]\njoysheet-model = "=0.1.0"\n')
+        self.assertTrue(any("unregistered internal dependency joysheet-model" in e for e in self.layers()))
+
+    def test_dev_dependency_does_not_escape_product_isolation(self):
+        self.manifest("crates/joydeck-engine/Cargo.toml", "joydeck-engine",
+                      '[dev-dependencies]\njoyword-model.workspace = true\n')
+        self.assertTrue(any("must not depend on product package joyword-model" in e for e in self.layers()))
+
+    def test_reviewed_headless_deck_edges_are_accepted(self):
+        self.manifest("crates/joydeck-engine/Cargo.toml", "joydeck-engine",
+                      '[dependencies]\njoydeck-model.workspace = true\n')
+        self.assertEqual(self.layers(), [])
+
+    def test_member_path_cannot_escape_repository(self):
+        self.write("Cargo.toml", '[workspace]\nmembers = ["../outside"]\n')
+        self.assertTrue(any("escapes repository" in e for e in self.layers()))
+
+
 class PanicGate(TempTree):
     FIXTURE = "gate_panic_allow_bypass.rs"
 

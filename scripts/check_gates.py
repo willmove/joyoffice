@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import re
 import sys
+import tomllib
+import os
 from collections import Counter
 from pathlib import Path
 
@@ -45,6 +47,23 @@ LAYERS = {
         "joyword-render",
         "joyword-shell",
     },
+    # JoyDeck's product layers. Public format primitives stay product-neutral.
+    "joydeck-model": set(),
+    "joydeck-engine": {"joydeck-model"},
+    "joydeck-formats": {"joydeck-model", "joyoffice-opc", "joyoffice-drawingml"},
+    "joydeck-scene": {"joydeck-model"},
+    "joydeck-export": {"joydeck-model", "joydeck-scene", "joydeck-formats"},
+    "joydeck-platform": {"joydeck-model"},
+    "joydeck-shell": {
+        "joydeck-model", "joydeck-engine", "joydeck-formats", "joydeck-scene",
+        "joydeck-export", "joydeck-platform",
+    },
+    "joydeck": {
+        "joydeck-model", "joydeck-engine", "joydeck-formats", "joydeck-scene",
+        "joydeck-export", "joydeck-platform", "joydeck-shell",
+    },
+    "joydeck-cli": {"joydeck-model", "joydeck-shell"},
+    "joyoffice-xtask": set(),
     "joyword-foundation": set(),
     # T400: no document, engine, or network crate. Core crates must not depend
     # on it; shell may, only as an optional non-default feature.
@@ -282,39 +301,83 @@ def dependencies(manifest: Path) -> set[str]:
     return dependency_tiers(manifest)["normal"]
 
 
-def dependency_tiers(manifest: Path) -> dict[str, set[str]]:
-    """Parse `[dependencies]`, `[dev-dependencies]` and target-specific variants.
+def manifest_data(manifest: Path) -> dict:
+    return tomllib.loads(manifest.read_text(encoding="utf-8"))
 
-    Understands `name = {...}`, the dotted `name.workspace = true` form used
-    throughout this repository, and the `[dependencies.name]` table form.
+
+def dependency_specs(data: dict):
+    """Yield every normal/build/dev declaration, including target tables."""
+    for table in [data, *data.get("target", {}).values()]:
+        for section, tier in DEPENDENCY_TABLES.items():
+            for key, spec in table.get(section, {}).items():
+                yield tier, key, spec
+
+
+def workspace_dependency_specs(manifest: Path) -> dict:
+    for parent in manifest.parents:
+        candidate = parent / "Cargo.toml"
+        if candidate == manifest or not candidate.is_file():
+            continue
+        data = manifest_data(candidate)
+        if "workspace" in data:
+            return data["workspace"].get("dependencies", {})
+    return {}
+
+
+def dependency_tiers(manifest: Path) -> dict[str, set[str]]:
+    """Read canonical package names so dependency aliases cannot bypass layers.
+
+    TOML parsing covers dotted/table declarations and target-specific sections;
+    inherited dependency aliases are resolved from the root workspace table.
     """
     tiers: dict[str, set[str]] = {"normal": set(), "dev": set()}
-    tier: str | None = None
-    inline: str | None = None
-    for raw in manifest.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("["):
-            tier, inline = dependency_table(line)
-            if tier and inline:
-                tiers[tier].add(inline)
-            continue
-        if tier is None or inline is not None:
-            # `inline` means the following keys describe one package already
-            # registered above (`path`, `version`, `features`, ...).
-            continue
-        found = DEP_KEY_RE.match(line)
-        if found:
-            tiers[tier].add(found.group(1))
+    inherited = workspace_dependency_specs(manifest)
+    for tier, key, spec in dependency_specs(manifest_data(manifest)):
+        effective = spec
+        if isinstance(spec, dict) and spec.get("workspace"):
+            effective = inherited.get(key, spec)
+        name = effective.get("package", key) if isinstance(effective, dict) else key
+        tiers[tier].add(name)
     return tiers
+
+
+def gui_dependency(name: str) -> bool:
+    return name in {"gpui", "gpui_platform"} or name.startswith(("gpui-", "gpui_"))
+
+
+def internal_dependency(name: str) -> bool:
+    return name in {"joyword", "joydeck", "joysheet"} or name.startswith(
+        ("joyword-", "joydeck-", "joysheet-", "joyoffice-")
+    )
+
+
+def product(name: str) -> str | None:
+    for prefix in ("joyword", "joydeck", "joysheet"):
+        if name == prefix or name.startswith(prefix + "-"):
+            return prefix
+    return None
+
+
+def dependency_isolation(crate: str, deps: set[str]) -> list[str]:
+    errors = []
+    for dep in sorted(deps):
+        if internal_dependency(dep) and dep not in LAYERS:
+            errors.append(f"{crate} has unregistered internal dependency {dep}")
+        own, other = product(crate), product(dep)
+        if (own and other and own != other) or (
+            crate.startswith("joyoffice-") and other
+        ):
+            errors.append(f"{crate} must not depend on product package {dep}")
+        if crate not in {"joyword", "joydeck"} and gui_dependency(dep):
+            errors.append(f"{crate} must remain headless; GUI dependency {dep} is forbidden")
+    return errors
 
 
 def layer_violations(crate: str, deps: set[str]) -> list[str]:
     allowed = LAYERS.get(crate)
     if allowed is None:
         return [f"unregistered crate {crate}"]
-    return [
+    return dependency_isolation(crate, deps) + [
         f"{crate} depends on {dep}, which its layer does not allow"
         for dep in sorted(deps)
         if dep in LAYERS and dep not in allowed
@@ -326,16 +389,81 @@ def dev_layer_violations(crate: str, deps: set[str]) -> list[str]:
     if allowed is None:
         return [f"unregistered crate {crate}"]
     allowed = allowed | DEV_LAYERS.get(crate, set())
-    return [
+    return dependency_isolation(crate, deps) + [
         f"{crate} dev-depends on {dep}, which is registered in neither LAYERS nor DEV_LAYERS"
         for dep in sorted(deps)
         if dep in LAYERS and dep not in allowed
     ]
 
 
+def package_manifests(crates: Path = CRATES, apps: Path = APPS) -> list[Path]:
+    """Discover configured members and local dependency members, including tools.
+
+    Cargo automatically treats in-tree path dependencies as members. Follow those
+    edges as well as explicit/glob members. Also inspect conventional package
+    roots, so forgetting to add a new app/crate/tool cannot hide it from review.
+    This is offline and does not ask Cargo to resolve or mutate any lockfile.
+    """
+    root = apps.parent
+    manifests = set(crates.glob("*/Cargo.toml")) | set(apps.glob("*/Cargo.toml"))
+    manifests.update((root / "tools").glob("*/Cargo.toml"))
+    workspace = {}
+    root_manifest = root / "Cargo.toml"
+    if root_manifest.is_file():
+        data = manifest_data(root_manifest)
+        workspace = data.get("workspace", {})
+        if "package" in data:
+            manifests.add(root_manifest)
+        for pattern in workspace.get("members", []):
+            if not (root / pattern).resolve().is_relative_to(root.resolve()):
+                raise ValueError(f"member path escapes repository: {pattern}")
+            if any(char in pattern for char in "*?["):
+                manifests.update(p / "Cargo.toml" for p in root.glob(pattern))
+            else:
+                manifests.add(root / pattern / "Cargo.toml")
+    if not root_manifest.is_file():
+        # Source/manifest fragments in counterexample tests are not Cargo workspaces.
+        return sorted(manifests)
+    inherited = workspace.get("dependencies", {})
+    excluded = {
+        p.resolve() for pattern in workspace.get("exclude", []) for p in root.glob(pattern)
+    }
+    queue = list(manifests)
+    scanned = set()
+    while queue:
+        manifest = queue.pop()
+        if manifest in scanned:
+            continue
+        scanned.add(manifest)
+        if not manifest.resolve().is_relative_to(root.resolve()):
+            raise ValueError(f"member manifest escapes repository: {manifest}")
+        if not manifest.is_file():
+            raise ValueError(f"member manifest is missing: {manifest}")
+        for _, key, spec in dependency_specs(manifest_data(manifest)):
+            base = manifest.parent
+            if isinstance(spec, dict) and spec.get("workspace"):
+                spec = inherited.get(key, spec)
+                base = root
+            if not isinstance(spec, dict) or "path" not in spec:
+                continue
+            folder = (base / spec["path"]).resolve()
+            if not folder.is_relative_to(root.resolve()):
+                raise ValueError(f"path dependency escapes repository: {manifest}: {key}")
+            if folder in excluded:
+                continue
+            child = folder / "Cargo.toml"
+            if child not in manifests:
+                manifests.add(child)
+                queue.append(child)
+    return sorted(manifests)
+
+
 def check_layers(crates: Path = CRATES, apps: Path = APPS) -> list[str]:
     errors = []
-    manifests = sorted(crates.glob("*/Cargo.toml")) + sorted(apps.glob("*/Cargo.toml"))
+    try:
+        manifests = package_manifests(crates, apps)
+    except (ValueError, OSError) as error:
+        return [str(error)]
     for manifest in manifests:
         name = crate_name(manifest)
         if name not in LAYERS:
@@ -354,14 +482,16 @@ def check_layers(crates: Path = CRATES, apps: Path = APPS) -> list[str]:
 
 
 def rust_files(crates: Path = CRATES, apps: Path = APPS) -> list[Path]:
-    files = []
-    for root in (crates, apps):
+    files = set()
+    roots = {manifest.parent for manifest in package_manifests(crates, apps)}
+    # Counterexample tests also scan throwaway source-only trees.
+    roots.update([crates, apps, apps.parent / "tools"])
+    for root in roots:
         if not root.exists():
             continue
-        for path in root.rglob("*.rs"):
-            if "/target/" in path.as_posix():
-                continue
-            files.append(path)
+        for base, dirs, names in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in {"target", ".git"}]
+            files.update(Path(base) / name for name in names if name.endswith(".rs"))
     return sorted(files, key=lambda path: path.as_posix())
 
 
