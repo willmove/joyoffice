@@ -1,5 +1,7 @@
 # JoyOffice / JoyDeck 融合准备
 
+本文件保留依赖对齐阶段的历史分析。已批准的实施范围见 [迁移计划](MONOREPO-MIGRATION.md)，实际进度和新验证见 [迁移结果](MONOREPO-RESULT.md)。当前开发从 JoyOffice 开始，以下独立目录命令不是新的开发入口。
+
 2026-10-31。基线：JoyOffice `ef8599d629b186efc0057e2b423ea648d8b36b55`；JoyDeck 来自本机独立目录，没有 `.git`。本次完成依赖与独立目录门禁准备，尚未导入 JoyDeck 或拆分其 crate。既有阶段完成记录不因此改写。
 
 ## 本次实现

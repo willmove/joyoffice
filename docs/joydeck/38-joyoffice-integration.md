@@ -1,3 +1,7 @@
+# 历史融合准备记录
+
+当前执行计划与实际进度参见 [Monorepo 迁移计划](../joyoffice/MONOREPO-MIGRATION.md)及[迁移结果](../joyoffice/MONOREPO-RESULT.md)。以下是导入前独立目录的准备记录。
+
 # JoyOffice 融合准备
 
 2026-10-31。本目录没有 Git 元数据；本轮未导入 JoyOffice workspace，也未改写既有 M0–M14 验收结论。

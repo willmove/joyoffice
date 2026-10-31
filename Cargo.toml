@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "tools/xtask",
     "apps/joydeck",
     "apps/joydeck-cli",
     "crates/joydeck-model",

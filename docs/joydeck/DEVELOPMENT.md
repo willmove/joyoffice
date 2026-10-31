@@ -2,7 +2,7 @@
 
 所有开发从 JoyOffice 仓库根目录开始；不使用旧独立 JoyDeck 目录的源码、target、脚本或环境默认路径。macOS 本机目录通常为 `/Users/willm/Coding/joyoffice`，CI 和其它开发机使用实际检出路径。
 
-先读根 AGENTS.md、[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)、[模块边界](../joyoffice/ARCHITECTURE.md)、[当前状态](STATUS.md)和实施任务。迁移验证结果与未完成项以迁移结果记录为准。
+先读根 AGENTS.md、[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)、[模块边界](../joyoffice/ARCHITECTURE.md)、[当前状态](STATUS.md)和实施任务。迁移验证结果与未完成项以[迁移结果](../joyoffice/MONOREPO-RESULT.md)为准。
 
 ## 工程命令
 

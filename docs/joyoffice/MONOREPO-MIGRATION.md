@@ -36,7 +36,7 @@
 
 ## 在新目录继续
 
-以后在 Codex 中选择 /Users/willm/Coding/joyoffice 项目，开始工作时先阅读本文件、JOYDECK-INTEGRATION.md、docs/joydeck/STATUS.md，以及迁移结果记录；检查分支与工作区，不回到原独立目录开发。
+以后在 Codex 中选择 /Users/willm/Coding/joyoffice 项目，开始工作时先阅读本文件、JOYDECK-INTEGRATION.md、docs/joydeck/STATUS.md，以及[迁移结果](MONOREPO-RESULT.md)；检查分支与工作区，不回到原独立目录开发。
 
 可使用的提示词：
 

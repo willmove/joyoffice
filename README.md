@@ -4,7 +4,7 @@ JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **Joy
 
 ## Monorepo 开发入口
 
-- [迁移计划、进度及继续工作的提示词](docs/joyoffice/MONOREPO-MIGRATION.md)
+- [迁移计划、进度及继续工作的提示词](docs/joyoffice/MONOREPO-MIGRATION.md) · [实际迁移结果](docs/joyoffice/MONOREPO-RESULT.md)
 - [JoyDeck 运行与范围](docs/joydeck/README.md) · [状态](docs/joydeck/STATUS.md) · [Word 规格](docs/joyword/README.md)
 - 应用在 `apps/`，产品模块在 `crates/joyword-*`／`crates/joydeck-*`，共享能力在 `crates/joyoffice-*`。产品共用根锁文件与工具链，分别构建、测试和发布。
 

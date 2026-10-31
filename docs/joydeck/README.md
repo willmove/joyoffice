@@ -10,9 +10,9 @@ M9/M10基线：M9七类基础图表/图示与M10动画/演示者软件子项已�
 
 ## 开发与运行
 
-JoyOffice 合并前的依赖／crate 登记／CI 对齐见[融合准备](38-joyoffice-integration.md)。独立目录检查用 Python 3.11+ 执行 `python3 scripts/joydeck/check-repository.py`。
+JoyOffice 合并前的依赖／crate 登记／CI 对齐见[融合准备](38-joyoffice-integration.md)。迁移后使用根统一门禁和 `cargo xtask check joydeck`；旧独立登记检查已移除。工程工具需要 Python 3.11+。
 
-macOS/Linux 使用 `cargo run --locked -p joydeck`；跨平台窗口回归用 `python3 scripts/joydeck/smoke-native.py M0 M1 M2 M3 M4`；M10 自动检查用 `cargo xtask build joydeck`。窗口验证要求可交互桌面。
+macOS/Linux 使用 `cargo run --locked -p joydeck`；跨平台窗口回归用 `python3 scripts/joydeck/smoke-native.py M0 M1 M2 M3 M4`；按产品检查用 `cargo xtask check joydeck`。窗口验证要求可交互桌面。
 
 - `pwsh.exe -File scripts/joydeck/dev.ps1 run`：启动基础编辑器。
 - `cargo run --locked -p joydeck -- --diagnostics`：M0 诊断窗口。
@@ -20,12 +20,12 @@ macOS/Linux 使用 `cargo run --locked -p joydeck`；跨平台窗口回归用 `p
 - `pwsh.exe -File scripts/joydeck/smoke-m2.ps1`：M2真实桌面回归。
 - `cargo xtask check joydeck`：格式、Clippy 和测试。
 - `pwsh.exe -File scripts/joydeck/smoke-m1.ps1`：真实桌面窗口回归。
-- `pwsh.exe -File scripts/joydeck/dev.ps1 package`：生成当前平台 M12 release 开发包（保留旧包）。
+- `pwsh.exe -File scripts/joydeck/dev.ps1 package`：生成当前产品版本的 release 开发包（保留旧包）。
 - `cargo run --release --locked -p joydeck -- --cpu-canvas`：CPU 对照画布；默认使用 GPUI Scene。
-- `cargo run --release --locked -p joydeck -- --m4-bench`：固定原生 CPU/GPUI 场景基准。
+- `cargo run --release --locked -p joydeck --features validation -- --m4-bench`：固定原生 CPU/GPUI 场景基准。
 - `python3 scripts/joydeck/benchmark-m4.py`：macOS 窗口像素/RSS/延迟验证（需 Pillow/numpy）。
-- `python3 scripts/joydeck/package-native.py --profile release`：创建新名字的 M12 原生开发 ZIP。
-- `cargo xtask build joydeck`：构建与阶段自动检查；实际桌面验收另见记录。
+- `python3 scripts/joydeck/package-native.py --profile release`：创建当前产品版本的原生开发 ZIP。
+- `cargo xtask build joydeck`：按产品构建；实际桌面验收另见记录。
 - `python scripts/joydeck/make-fixtures.py`：生成独立 `.joydeck`/PPTX 样例。
 
 Rust 1.98.1，GPUI Kit 0.8.1 / GPUI pre 0.3.10；PowerShell 使用 `pwsh.exe`。PPTX已提供源包保留写回与明确有损新建导出（范围见29）；M2支持指纹检查后的覆盖保存、交互变换和恢复列表。
