@@ -117,7 +117,7 @@ impl Service {
                                                 &mut stream,
                                                 json!({"error":{"code":"session-failed","message":"文档会话已损坏"}}),
                                             );
-                                            continue;
+                                            return;
                                         };
                                         let response = if shutdown.load(Ordering::Relaxed) {
                                             json!({"error":{"code":"queued-cancelled"}})
