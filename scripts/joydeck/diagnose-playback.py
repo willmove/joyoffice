@@ -20,12 +20,23 @@ def run_case(label, extra_args):
     started = time.monotonic()
     report = {"selection": extra_args, "timedOut": False}
     with (case / "test.log").open("w", encoding="utf-8") as log:
-        child = subprocess.Popen(["cargo", "test", "-p", "joydeck", "-p", "joydeck-cli", "-p", "joydeck-engine", "-p", "joydeck-export", "-p", "joydeck-formats", "-p", "joydeck-model", "-p", "joydeck-platform", "-p", "joydeck-scene", "-p", "joydeck-shell", "-p", "joyoffice-opc", "--locked", *extra_args],
-                                 cwd=ROOT, env=environment, stdout=log, stderr=subprocess.STDOUT,
+        command = ["cargo", "test", "-p", "joydeck", "-p", "joydeck-cli", "-p", "joydeck-engine", "-p", "joydeck-export", "-p", "joydeck-formats", "-p", "joydeck-model", "-p", "joydeck-platform", "-p", "joydeck-scene", "-p", "joydeck-shell", "-p", "joyoffice-opc", "--locked", *extra_args]
+        if os.environ.get("DIAGNOSTIC_MODE") == "entrypoint":
+            command = ["cargo", "xtask", "check", "joydeck"]
+        child = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=log, stderr=subprocess.STDOUT,
                                  start_new_session=True)
         report["testPid"] = child.pid
         try:
-            report["returncode"] = child.wait(timeout=120)
+            deadline = started + 420
+            while child.poll() is None:
+                contents = (case / "test.log").read_text(encoding="utf-8", errors="replace")
+                if "Running tests/playback.rs" in contents:
+                    deadline = min(deadline, time.monotonic() + 45) if not report.get("playbackStarted") else deadline
+                    report["playbackStarted"] = True
+                if time.monotonic() >= deadline:
+                    raise subprocess.TimeoutExpired(child.args, time.monotonic() - started)
+                time.sleep(0.2)
+            report["returncode"] = child.returncode
         except subprocess.TimeoutExpired:
             report["timedOut"] = True
             lines = subprocess.check_output(["ps", "-axo", "pid=,ppid=,comm="], text=True).splitlines()
