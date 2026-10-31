@@ -52,6 +52,18 @@ name = "enum-iterator-derive"
 version = "=1.5.0"
 allow = ["0BSD"]
 
+# JoySheet's existing Windows clipboard adapter; retain the packaged BSL texts
+# in its selected dependency inventory. Acceptance is limited to these pins.
+[[licenses.exceptions]]
+name = "clipboard-win"
+version = "=5.4.3"
+allow = ["BSL-1.0"]
+
+[[licenses.exceptions]]
+name = "error-code"
+version = "=3.4.0"
+allow = ["BSL-1.0"]
+
 [bans]
 multiple-versions = "allow"
 wildcards = "deny"

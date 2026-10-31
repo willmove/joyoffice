@@ -1,8 +1,8 @@
 #Requires -Version 7.0
-param([Parameter(Mandatory)][string]$Reference,[string]$Candidate='target/release/joysheet-cli.exe',[string]$Report='docs/evidence/core-parity.json')
+param([Parameter(Mandatory)][string]$Reference,[string]$Candidate='target/release/joysheet-cli.exe',[string]$Report='docs/joysheet/evidence/core-parity.json')
 $ErrorActionPreference='Stop'
-$root=Split-Path $PSScriptRoot -Parent
-$output=Join-Path $root 'artifacts/core-parity'
+$root=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$output=Join-Path $root 'artifacts/joysheet/core-parity'
 New-Item -ItemType Directory -Force $output|Out-Null
 $steps=@(
  @{command='range.setValues';params=@{range='A1';values=@(@('地区','数量','价格'),@('东区',2,3),@('西区',4,5),@('东区',6,7),@('南区',8,9),@('东区',10,11))}},

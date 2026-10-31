@@ -10,8 +10,8 @@ while([DateTime]::UtcNow -lt $deadline){
     Start-Sleep -Milliseconds 100
 }
 if(!$helper -or $helper.MainWindowHandle -eq 0){throw 'Owned native print helper dialog not found'}
-$root=Split-Path $PSScriptRoot -Parent
-$binary=Join-Path $root 'artifacts/CancelPrintDialog.exe'
+$root=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$binary=Join-Path $root 'artifacts/joysheet/CancelPrintDialog.exe'
 $framework=Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319'
 $wpf=Join-Path $framework 'WPF'
 $arguments=@('/nologo',('/out:'+$binary),('/reference:'+(Join-Path $wpf 'UIAutomationClient.dll')),('/reference:'+(Join-Path $wpf 'UIAutomationTypes.dll')),('/reference:'+(Join-Path $wpf 'WindowsBase.dll')),(Join-Path $PSScriptRoot 'CancelPrintDialog.cs'))

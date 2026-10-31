@@ -105,10 +105,7 @@ pub fn read_chartex(root: &El) -> Option<Chart> {
             categories: cat,
             values: val.unwrap_or_default(),
             // The default colour (the series' theme accent, which the writer spells out) isn't kept.
-            color: s
-                .path(&["spPr", "solidFill"])
-                .and_then(dml_color)
-                .filter(|c| *c != joysheet_model::Color::Theme(4 + (series.len() % 6) as u8, 0)),
+            color: s.path(&["spPr", "solidFill"]).and_then(dml_color).filter(|c| *c != joysheet_model::Color::Theme(4 + (series.len() % 6) as u8, 0)),
             ..Default::default()
         });
     }
@@ -375,24 +372,5 @@ pub fn write_chartex(wb: &Workbook, si: usize, ch: &Chart, names: &mut Vec<Strin
 }
 
 #[cfg(test)]
-mod quartile_tests {
-    use super::*;
-
-    #[test]
-    fn box_whisker_reads_quartile_method_and_defaults() {
-        for (statistics, expected) in [
-            ("", QuartileMethod::Exclusive),
-            ("<cx:statistics/>", QuartileMethod::Exclusive),
-            (r#"<cx:statistics quartileMethod="unknown"/>"#, QuartileMethod::Exclusive),
-            (r#"<cx:statistics quartileMethod="exclusive"/>"#, QuartileMethod::Exclusive),
-            (r#"<cx:statistics quartileMethod="inclusive"/>"#, QuartileMethod::Inclusive),
-        ] {
-            let xml = format!(
-                r#"<cx:chartSpace xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex"><cx:chart><cx:plotArea><cx:plotAreaRegion><cx:series layoutId="boxWhisker"><cx:layoutPr>{statistics}</cx:layoutPr></cx:series></cx:plotAreaRegion></cx:plotArea></cx:chart></cx:chartSpace>"#
-            );
-            let root = crate::xml::parse(xml.as_bytes()).unwrap();
-            let chart = read_chartex(&root).unwrap();
-            assert_eq!(chart.series[0].quartiles, expected);
-        }
-    }
-}
+#[path = "tests/chartex_quartile_tests.rs"]
+mod quartile_tests;

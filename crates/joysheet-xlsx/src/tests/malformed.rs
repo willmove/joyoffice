@@ -6,6 +6,36 @@ use super::{make_zip, minimal};
 use crate::{IoError, read_xlsx, write_xlsx};
 
 #[test]
+fn invalid_utf8_zip_part_name_is_rejected_without_losing_the_part() {
+    let mut bytes = make_zip(&[("bad", b"1")]);
+    for (signature, flags, name) in [(b"PK\x03\x04", 6, 30), (b"PK\x01\x02", 8, 46)] {
+        let offset = bytes.windows(4).position(|value| value == signature).unwrap();
+        bytes[offset + flags + 1] |= 0x08; // general-purpose UTF-8 flag
+        bytes[offset + name] = 0xff;
+    }
+    assert!(matches!(crate::package::Package::open(&bytes), Err(IoError::Zip(_))));
+}
+
+#[test]
+fn legacy_cp437_names_do_not_collapse_into_a_single_utf8_name() {
+    let mut bytes = make_zip(&[("aa", b"one"), ("b", b"two")]);
+    for signature in [b"PK\x03\x04", b"PK\x01\x02"] {
+        let headers: Vec<_> = bytes.windows(4).enumerate().filter_map(|(i, value)| (value == signature).then_some(i)).collect();
+        for offset in headers {
+            let name = offset + if signature == b"PK\x03\x04" { 30 } else { 46 };
+            if bytes[name] == b'a' {
+                bytes[name..name + 2].copy_from_slice(b"\xc3\xa9");
+            } else {
+                bytes[name] = 0x82;
+            }
+        }
+    }
+    let mut package = crate::package::Package::open(&bytes).unwrap();
+    assert_eq!(package.read("├⌐").unwrap().unwrap(), b"one");
+    assert_eq!(package.read("é").unwrap().unwrap(), b"two");
+}
+
+#[test]
 fn garbage_and_truncation() {
     assert!(read_xlsx(b"").is_err());
     assert!(read_xlsx(b"hello world").is_err());
@@ -149,7 +179,7 @@ fn hostile_threaded_comments_persons_and_note_vml() {
         let mut f = z.by_index(i).unwrap();
         let mut d = vec![];
         std::io::Read::read_to_end(&mut f, &mut d).unwrap();
-        parts.push((f.name().to_string(), d));
+        parts.push((f.name().unwrap().into_owned(), d));
     }
     let ns = r#"xmlns="http://schemas.microsoft.com/office/spreadsheetml/2018/threadedcomments""#;
     let deep = "<v:group>".repeat(300) + &"</v:group>".repeat(300);

@@ -1,12 +1,12 @@
 #Requires -Version 7.0
 param([string]$BinaryDirectory = 'target\debug', [ValidateSet('M0','M1','M2','M3')][string]$Stage = 'M3', [ValidateRange(0,4)][int]$M4Task=0, [ValidateRange(0,4)][int]$M5Task=0,[ValidateRange(0,4)][int]$M6Task=0, [ValidateRange(0,4)][int]$M7Task=0, [ValidateRange(0,4)][int]$M8Task=0, [ValidateRange(0,4)][int]$WindowsTask=0, [ValidateRange(1,4)][int]$WindowsFrom=1, [ValidateRange(0,4)][int]$WindowsQualityTask=0, [switch]$SaveDialog, [switch]$Performance, [switch]$FormulaCases, [switch]$StressCases, [int[]]$StressSizes=@(10000,100000), [ValidateSet('on','off')][string]$PerformanceRecovery='on', [ValidateRange(1,5)][int]$PerformanceRepeats=1, [ValidateRange(0,20)][int]$PerformanceWarmup=5, [switch]$KeepOpen)
 $ErrorActionPreference = 'Stop'
-$workspace = Split-Path $PSScriptRoot -Parent
+$workspace = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $binaryRoot = [System.IO.Path]::GetFullPath($(if([IO.Path]::IsPathRooted($BinaryDirectory)){$BinaryDirectory}else{Join-Path $workspace $BinaryDirectory}))
 $app = Join-Path $binaryRoot 'joysheet.exe'
 $cli = Join-Path $binaryRoot 'joysheet-cli.exe'
-if (-not (Test-Path -LiteralPath $app)) { throw "Build first: pwsh -File scripts/dev.ps1 build --features joysheet/automation -p joysheet -p joysheet-cli" }
-$artifacts = Join-Path $workspace 'artifacts\desktop'
+if (-not (Test-Path -LiteralPath $app)) { throw "Build first: pwsh -File scripts/joysheet/dev.ps1 build --features joysheet/automation -p joysheet -p joysheet-cli" }
+$artifacts = Join-Path $workspace 'artifacts\joysheet\desktop'
 New-Item -ItemType Directory -Path $artifacts -Force | Out-Null
 $priorConfig = $env:JOYSHEET_CONFIG_DIR
 $probe = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)

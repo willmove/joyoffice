@@ -1,12 +1,19 @@
 [package]
+publish = false
 name = "joysheet-engine"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
-license.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
 description = "GridCraft engine: sessions, commands, history, clipboard, fill, sort, filter"
 
-[lints]
-workspace = true
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
 
 [dependencies]
 joysheet-core = { workspace = true }
@@ -16,13 +23,13 @@ joysheet-functions = { workspace = true }
 joysheet-model = { workspace = true }
 joysheet-calc = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 thiserror = { workspace = true }
 log = { workspace = true }
 joysheet-xlsx = { workspace = true }
 joysheet-chart = { workspace = true }
 joysheet-pdf = { workspace = true }
-image = { workspace = true }
+image = { workspace = true, features = ["png", "jpeg"] }
 
 [dev-dependencies]
 joysheet-xlsx = { workspace = true, features = ["test-support"] }

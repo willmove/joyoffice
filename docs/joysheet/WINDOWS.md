@@ -22,11 +22,11 @@
 ## 验收入口
 
 ```powershell
-pwsh -NoProfile -File scripts/dev.ps1 run --locked -p joysheet -- --sample sales
-pwsh -NoProfile -File scripts/dev.ps1 build --release --locked -p joysheet -p joysheet-cli --features joysheet/automation
-pwsh -NoProfile -File scripts/dev.ps1 xtask ci
-pwsh -NoProfile -File scripts/dev.ps1 xtask smoke --stage M8
-pwsh -NoProfile -File scripts/desktop-smoke.ps1 -BinaryDirectory dist/joysheet-0.1.0-M8-preview2-windows-x86_64 -Stage M3 -M4Task 4 -M5Task 4 -M6Task 4 -M7Task 4 -M8Task 4 -WindowsTask 4 -Performance
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 run --locked -p joysheet -- --sample sales
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 build --release --locked -p joysheet -p joysheet-cli --features joysheet/automation
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask ci joysheet
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask smoke joysheet --stage M8
+pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -BinaryDirectory dist/joysheet-0.1.0-M8-preview2-windows-x86_64 -Stage M3 -M4Task 4 -M5Task 4 -M6Task 4 -M7Task 4 -M8Task 4 -WindowsTask 4 -Performance
 ```
 
 单项回归：`-Stage M1 -WindowsTask 1`（W1）、`-Stage M1 -WindowsTask 2`（W1/W2）、`-Stage M1 -WindowsTask 3 -WindowsFrom 3`（W3）、`-Stage M1 -WindowsTask 4 -WindowsFrom 4`（W4）。运行实际 Windows GPUI 进程，输入由测试接口合成派发，截图为 GPU 读回。这不替代真实 IME、系统读屏、多显示器 DPI、外部剪贴板和实际打印队列验收。

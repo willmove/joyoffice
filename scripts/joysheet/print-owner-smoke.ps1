@@ -1,14 +1,14 @@
 #Requires -Version 7.0
 param([string]$BinaryDirectory='target/debug')
 $ErrorActionPreference='Stop'
-$root=Split-Path $PSScriptRoot -Parent
-& (Join-Path $PSScriptRoot 'desktop-smoke.ps1') -BinaryDirectory $BinaryDirectory -Stage M1 -KeepOpen *> (Join-Path $root 'artifacts/print-owner-start.log')
+$root=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+& (Join-Path $PSScriptRoot 'desktop-smoke.ps1') -BinaryDirectory $BinaryDirectory -Stage M1 -KeepOpen *> (Join-Path $root 'artifacts/joysheet/print-owner-start.log')
 if($LASTEXITCODE -ne 0){throw 'Print owner test could not start the native desktop'}
-$r=Get-Content (Join-Path $root 'artifacts/desktop/report.json') -Raw|ConvertFrom-Json
+$r=Get-Content (Join-Path $root 'artifacts/joysheet/desktop/report.json') -Raw|ConvertFrom-Json
 $app=Get-Process -Id $r.processId
 $cli=Join-Path (Split-Path $r.binary) 'joysheet-cli.exe'
 $previous=$env:JOYSHEET_CONFIG_DIR
-$env:JOYSHEET_CONFIG_DIR=Join-Path $root "artifacts/desktop/isolated-profile-$($r.port)"
+$env:JOYSHEET_CONFIG_DIR=Join-Path $root "artifacts/joysheet/desktop/isolated-profile-$($r.port)"
 $helper=$null
 function Call-Owner([string]$Method,[hashtable]$Params=@{}){
     $result=& $cli send $r.port $Method ($Params|ConvertTo-Json -Depth 8 -Compress) 2>&1
@@ -32,8 +32,8 @@ try{
     $null=Call-Owner 'app.quit' @{force=$true}
     if(!$app.WaitForExit(15000)){throw 'Application did not quit with a native print dialog open'}
     if(!$helper.WaitForExit(10000)){throw 'Print helper outlived its application owner'}
-    @{passed=$true;source='production app.quit → native print helper owner-exit watcher';binary=$r.binary;binarySha256=$r.binarySha256;nativeDialogOpened=$true;ownerExited=$true;helperExited=$true;queueSubmitted=$false}|ConvertTo-Json|Set-Content (Join-Path $root 'artifacts/print-owner-report.json') -Encoding utf8NoBOM
-    Get-Content (Join-Path $root 'artifacts/print-owner-report.json')
+    @{passed=$true;source='production app.quit → native print helper owner-exit watcher';binary=$r.binary;binarySha256=$r.binarySha256;nativeDialogOpened=$true;ownerExited=$true;helperExited=$true;queueSubmitted=$false}|ConvertTo-Json|Set-Content (Join-Path $root 'artifacts/joysheet/print-owner-report.json') -Encoding utf8NoBOM
+    Get-Content (Join-Path $root 'artifacts/joysheet/print-owner-report.json')
 }finally{
     if($helper -and !$helper.HasExited){Stop-Process -Id $helper.Id}
     if(!$app.HasExited){Stop-Process -Id $app.Id}

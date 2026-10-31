@@ -1,10 +1,10 @@
 use gpui_kit::component::input::{Input, InputEvent as TextEvent, InputState, TextareaState};
 use gpui_kit::{prelude::*, *};
-use joysheet_engine::{Selection, UiRequest, core::CellRef};
 use joysheet_app::{
     AppSnapshot, EngineClient, Ticket, WindowSnapshot,
     geometry::{GridLayout, SheetGeometry},
 };
+use joysheet_engine::{Selection, UiRequest, core::CellRef};
 use joysheet_platform::{Clipboard, Preferences};
 use joysheet_protocol::CommandTarget;
 use serde_json::{Value, json};

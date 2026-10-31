@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-31",
+  "rust": {
+    "baseline-ci.log": {
+      "suites": 37,
+      "passed": 1390,
+      "failed": 0,
+      "ignored": 1
+    },
+    "workspace-tests-default.log": {
+      "suites": 243,
+      "passed": 2788,
+      "failed": 0,
+      "ignored": 1
+    },
+    "workspace-tests-2.log": {
+      "suites": 243,
+      "passed": 2788,
+      "failed": 0,
+      "ignored": 1
+    },
+    "standalone-source-final.log": {
+      "suites": 37,
+      "passed": 1395,
+      "failed": 0,
+      "ignored": 1
+    },
+    "xlsx-name-tests-2.log": {
+      "suites": 2,
+      "passed": 268,
+      "failed": 0,
+      "ignored": 0
+    }
+  },
+  "pythonTests": {
+    "root": 145,
+    "productRouting": 13,
+    "sheetPackaging": 4,
+    "deckEngineering": 11
+  },
+  "logsDirectory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\backups\\joysheet-migration-20261031",
+  "logs": {
+    "baseline-ci.log": {
+      "bytes": 99625,
+      "sha256": "c449f6c2f0893239f950c99ab4455e460537f747a72b15db4d11d3a886555c90"
+    },
+    "baseline-native.log": {
+      "bytes": 12946,
+      "sha256": "8735a3b48e192ff442addd737795f5a21a0dbd15c8199765bb59440bb6f7bb59"
+    },
+    "baseline-advisories.log": {
+      "bytes": 6086,
+      "sha256": "8fab496d952613a2d4faee6c88579674d10f880a5a33b2af34813040d49b528a"
+    },
+    "workspace-tests-default.log": {
+      "bytes": 250498,
+      "sha256": "2ce027570a28a9cf6c595852ec063dd6030d614a62222c70460eb2cf77655170"
+    },
+    "workspace-tests-2.log": {
+      "bytes": 248826,
+      "sha256": "cdc6cf96db6533d2660d0c1dc75fb0b95fef087b691d07db5bd8444aee5914de"
+    },
+    "clippy-resource-default.log": {
+      "bytes": 172,
+      "sha256": "9a4583ebeda405fe24b2332ab0c84bf65d5aa6417fd8246b95cb257ef74be0f3"
+    },
+    "clippy-resource-validation.log": {
+      "bytes": 172,
+      "sha256": "5c0f3c44d37e4fda15b6d984af6f9a838d3470809ff360034ebb54dc14419b1e"
+    },
+    "python-tests-final.log": {
+      "bytes": 1852,
+      "sha256": "5d43e5dc1bcab45ed01eea249c020511d00381beb11f7bd34d6540e518ea7227"
+    },
+    "deck-python-tests.log": {
+      "bytes": 115,
+      "sha256": "a8be2a2853fe1200ffee08143d235fe16758e47067a6ea1ebf74d9a485557a3c"
+    },
+    "tool-wasm-final.log": {
+      "bytes": 558,
+      "sha256": "8fe9cfa05bced5a81a6a9eb4175e522a06f98a2084b68b8b53654cdf2991524f"
+    },
+    "tool-inventory-final.log": {
+      "bytes": 2033,
+      "sha256": "036a82b12700c26bb3f335734842da9825827374d63437a1a381cfb79cc107e9"
+    },
+    "tool-bench-final.log": {
+      "bytes": 653,
+      "sha256": "96be198ea16cb15e4aa650c1dfb87a6ffe16697357cae82fdfcdc261a98dfe87"
+    },
+    "tool-smoke-final.log": {
+      "bytes": 1838,
+      "sha256": "fc7b4a080ed3acb5984169005acae59bad407a7292f496642f47533e5f7b6336"
+    },
+    "deny-final.log": {
+      "bytes": 49,
+      "sha256": "aa2657b0ad2d2059d4692c2c2784aaa2894f31bbaa26f532ffd3855f5625cd84"
+    },
+    "standalone-source-final.log": {
+      "bytes": 106693,
+      "sha256": "5d60d05c2067e6acaac24f4f8b3e2798ec7bb74f8d3a186ede4be6c9b90d24be"
+    },
+    "core-parity-final.log": {
+      "bytes": 500,
+      "sha256": "3b4525e7eb850e1c8a5a6c46effd8564c93249594323fa2a2a2e1e0a7e41a4e3"
+    },
+    "package-ordinary-final.log": {
+      "bytes": 1475,
+      "sha256": "5bc13040e9e0125b2590add511782a4b7c04fed66e1eab4b5185a8ea46580c9c"
+    },
+    "package-validation-final.log": {
+      "bytes": 1120,
+      "sha256": "04819cbc72a5fa8c5ef14afb702a445198dda40ed075fbe95ab5e08e84a944d5"
+    },
+    "package-audit-final.log": {
+      "bytes": 321,
+      "sha256": "f842d9bee12c14e35f980170b41ed2c40a5bb642a9ec31e0bcbab193515365a1"
+    },
+    "native-final.log": {
+      "bytes": 13111,
+      "sha256": "f8072412348b0e6f0102be713282d18da644d3f207f280b5aedd2b9b937ea792"
+    },
+    "installer-final.log": {
+      "bytes": 77,
+      "sha256": "1ece1bf69c9f9dead6edd0348fbb0eb965d23d94aff32ae4400b27434787b674"
+    },
+    "performance-old-final.log": {
+      "bytes": 7769,
+      "sha256": "bc15007febb10de5e7cbcabe9ad5c8a1941bd9c99161a3ea76e6a13c731a979c"
+    },
+    "performance-new-final.log": {
+      "bytes": 7814,
+      "sha256": "33971f4d8435a273ceb81d909480eb1afbae78cf53850f262275fd95fd20587b"
+    },
+    "ordinary-probe.log": {
+      "bytes": 102,
+      "sha256": "f3435b09597c531e5210b62c3338471388be55f4440dd83edb5f4d0c626e2100"
+    }
+  },
+  "newNativeChecks": 52,
+  "baselineNativeChecks": 52,
+  "physicalImeVerified": false,
+  "nonWindowsNativeGuiVerified": false,
+  "formalReleasePublished": false
+}

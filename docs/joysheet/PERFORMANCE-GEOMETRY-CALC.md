@@ -51,7 +51,7 @@ Q3 首轮 100k 原生复测：SUM 32.82 ms（引擎 12.55 ms），SUMIFS 41.29 m
 测试包内双击 Run performance benchmark.cmd：无需 Rust，需 PowerShell 7；自动测试 10k/100k 编辑、SUM、SUMIFS、SUMPRODUCT、嵌套和扇出。原始 JSON、CSV 和截图写入独立 artifacts/desktop。开发启动仍为 `cargo run --locked -p joysheet -- --sample sales`，构建为 `cargo xtask dist`。可手动执行：
 
 ```powershell
-pwsh -NoProfile -File scripts/desktop-smoke.ps1 -BinaryDirectory . -Stage M1 -Performance -FormulaCases
+pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -BinaryDirectory . -Stage M1 -Performance -FormulaCases
 ```
 
 源码中的 `scripts/core-parity.ps1 -Reference <旧版CLI> -Candidate <新版CLI>` 可重跑跨版差异检查。最终桌面二进制 SHA256：`d9a1ae169ffda09a330fb394709b2dda2283c6f326965069e9acd7d7c6a5197a`。导入核心的原始哈希仍保留，新增兼容优化逐文件记录于 UPSTREAM-PATCHES.md；源码版本由 source-checkpoint.json 记录。

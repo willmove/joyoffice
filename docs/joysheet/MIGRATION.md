@@ -83,3 +83,8 @@ Windows 性能专项（分项证据见 [PERFORMANCE.md](PERFORMANCE.md)）：
 | R2 | 主流功能区与尺寸共享 | 9 个选项卡、分组工具栏、公式确认/取消、状态栏缩放；行列 COW/索引共享；Release/M3 F6/实际 Windows 选项卡点击通过 | 49 项解压包串联与 R2-native-ui.json 实际点击通过；物理 IME/DPI 等边界保留 |
 | R3 | 密集公式与溢出优化 | 批量写回、范围依赖种子、交集遍历、浅层求值免分配；161 项分层/1,390 项完整 CI 和六组包内压力通过 | CPU 首帧；10k 密集引擎 P95 有一次求值波动，原始样本保留 |
 | R4 | CI 和新测试包 | M8-preview6 便携/安装器/源码；R4-ci.json 1,390 通过/1 忽略，R4-release-native.json 49 项，六组压力、跨版文件、安装/安全卸载及打印宿主退出通过；UI-PERFORMANCE.md 汇总 | CPU 口径；旧 W7/W8 报告未冒充新运行，真实 IME/多显示器/读屏/设备打印等既有人工门槛保留；macOS/Linux/签名跳过 |
+
+
+## JoyOffice 工程整合（2026-10-31）
+
+仓库与产品命令已接入 JoyOffice，来源与测试基线已保存；工程边界见[整合记录](../joyoffice/JOYSHEET-INTEGRATION.md)，运行结果及交付状态由 JoyOffice 的 `docs/joyoffice/JOYSHEET-RESULT.md` 单列维护。原功能矩阵和平台人工验收开放项保留。

@@ -5,13 +5,13 @@ name: Product release
 # until every platform artifact and its uploaded digest have been checked.
 on:
   push:
-    tags: ["v*", "joyword-v*", "joydeck-v*"]
+    tags: ["v*", "joyword-v*", "joydeck-v*", "joysheet-v*"]
   workflow_dispatch:
     inputs:
       product:
         description: Product to package
         type: choice
-        options: [joyword, joydeck]
+        options: [joyword, joydeck, joysheet]
         default: joyword
         required: true
       version:
@@ -91,6 +91,9 @@ jobs:
           xcrun --find metal
       - name: Fixed Rust toolchain
         run: rustup toolchain install 1.98.1 --profile minimal
+      - name: Sheet Windows installer compiler
+        if: runner.os == 'Windows' && needs.resolve.outputs.product == 'joysheet'
+        run: choco install nsis --version=3.11 -y --no-progress
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
@@ -106,9 +109,12 @@ jobs:
         with:
           name: release-${{ needs.resolve.outputs.product }}-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
-            dist/${{ needs.resolve.outputs.product }}/*.zip
-            dist/${{ needs.resolve.outputs.product }}/*.tar.gz
-            dist/${{ needs.resolve.outputs.product }}/*.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.zip
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.zip.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz.sha256
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip
+            dist/${{ needs.resolve.outputs.product }}/${{ needs.resolve.outputs.product }}-${{ needs.resolve.outputs.version }}-${{ matrix.platform }}-${{ matrix.arch }}-release.zip.sha256
           if-no-files-found: error
   publish:
     name: Verify and publish selected product
@@ -142,6 +148,7 @@ jobs:
             case "$RELEASE_PRODUCT" in
               joyword) title="JoyWord v$RELEASE_VERSION · Preview 预览版" ;;
               joydeck) title="JoyDeck v$RELEASE_VERSION · Preview 预览版" ;;
+              joysheet) title="JoySheet v$RELEASE_VERSION · Preview 预览版" ;;
               *) exit 1 ;;
             esac
             gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease --latest=false --title "$title" --notes-file "$notes"

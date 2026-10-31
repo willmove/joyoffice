@@ -1,14 +1,15 @@
 # JoyOffice
 
-JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **JoyWord** 文字处理与 **JoyDeck** 演示文稿。JoySheet 为后续方向。Word 采用 MIT；Deck 保留 MIT OR Apache-2.0，具体见各包 manifest 与 `licenses/joydeck/`。
+JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **JoyWord** 文字处理、**JoyDeck** 演示文稿与 **JoySheet** 电子表格。Word 采用 MIT；Deck、Sheet 保留 MIT OR Apache-2.0，具体见各包 manifest 和产品许可记录。
 
 ## Monorepo 开发入口
 
 - [迁移计划、进度及继续工作的提示词](docs/joyoffice/MONOREPO-MIGRATION.md) · [实际迁移结果](docs/joyoffice/MONOREPO-RESULT.md)
 - [JoyDeck 运行与范围](docs/joydeck/README.md) · [状态](docs/joydeck/STATUS.md) · [Word 规格](docs/joyword/README.md)
-- 应用在 `apps/`，产品模块在 `crates/joyword-*`／`crates/joydeck-*`，共享能力在 `crates/joyoffice-*`。产品共用根锁文件与工具链，分别构建、测试和发布。
+- [JoySheet 开发入口](docs/joysheet/README.md) · [状态](docs/joysheet/STATUS.md) · [Sheet 整合记录](docs/joyoffice/JOYSHEET-INTEGRATION.md) · [整合结果](docs/joyoffice/JOYSHEET-RESULT.md)
+- 应用在 `apps/`，产品模块在 `crates/joyword-*`／`crates/joydeck-*`／`crates/joysheet-*`，共享能力在 `crates/joyoffice-*`。产品共用根锁文件与工具链，分别构建、测试和发布。
 
-从仓库根目录使用 `cargo build -p joyword --locked`、`cargo build -p joydeck --locked` 或 `cargo build -p joydeck-cli --locked`。分产品工程入口为 `cargo xtask check joyword`、`cargo xtask check joydeck`，完整约定见迁移文档。
+从仓库根目录使用 `cargo build -p joyword --locked`、`cargo build -p joydeck --locked` 或 `cargo build -p joysheet --locked`。分产品工程入口为 `cargo xtask check joyword`、`cargo xtask check joydeck`、`cargo xtask check joysheet`，完整约定见迁移文档。
 
 下文为 JoyWord 当前功能与验证记录；不代表 JoyDeck 同时通过这些验收。
 

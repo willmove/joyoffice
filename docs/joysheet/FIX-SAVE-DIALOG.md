@@ -14,9 +14,9 @@
 - “不保存”关闭窗口且文件哈希不变。
 
 ```powershell
-pwsh -File scripts/dev.ps1 xtask ci
-pwsh -File scripts/desktop-smoke.ps1 -Stage M1 -SaveDialog
-pwsh -File scripts/desktop-smoke.ps1 -M4Task 4 -M5Task 4 -M6Task 4 -SaveDialog -BinaryDirectory dist/joysheet-0.1.0-M6-alpha-hotfix1-windows-x86_64
+pwsh -File scripts/joysheet/dev.ps1 xtask ci joysheet
+pwsh -File scripts/joysheet/desktop-smoke.ps1 -Stage M1 -SaveDialog
+pwsh -File scripts/joysheet/desktop-smoke.ps1 -M4Task 4 -M5Task 4 -M6Task 4 -SaveDialog -BinaryDirectory dist/joysheet-0.1.0-M6-alpha-hotfix1-windows-x86_64
 ```
 
 修复包使用独立目录，旧版本不会被覆盖或自动更新。旧窗口若有未保存修改，可按 Esc 退出旧弹窗，再按 Ctrl+S 保存，之后运行修复版。

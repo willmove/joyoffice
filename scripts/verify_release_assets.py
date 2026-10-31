@@ -19,7 +19,7 @@ TARGETS = {('linux', 'x86_64'): 'x86_64-unknown-linux-gnu',
 
 
 def filename(product, version, platform, arch):
-    suffix = '-release.zip' if product == 'joydeck' else (
+    suffix = '-release.zip' if product in {'joydeck', 'joysheet'} else (
         '.tar.gz' if platform == 'linux' else '.zip')
     return f'{product}-{version}-{platform}-{arch}{suffix}'
 
@@ -69,7 +69,7 @@ def verify_archive(path, product, version, platform, arch):
                 raise ValueError(f'{path.name}: unable to read {name}')
             return stream
 
-        root = path.name[:-4] + '/' if product == 'joydeck' else ''
+        root = path.name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
         with read_file(root + 'BUILD-INFO.json') as stream:
             info = json.load(stream)
         if (info.get('version') != version or info.get('target') != TARGETS[platform, arch]
@@ -85,6 +85,9 @@ def verify_archive(path, product, version, platform, arch):
             if product == 'joydeck' and platform == 'macos':
                 executables += [root + 'JoyDeck.app/Contents/MacOS/JoyDeck',
                                 root + 'JoyDeck.app/Contents/MacOS/joydeck-cli']
+            if product == 'joysheet' and platform == 'macos':
+                executables += [root + 'Joysheet.app/Contents/MacOS/joysheet',
+                                root + 'Joysheet.app/Contents/MacOS/joysheet-cli']
         for name in executables:
             with read_file(name) as stream:
                 executable_header(stream, platform, arch)
@@ -117,7 +120,7 @@ def verify_assets(directory, product, version):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
-    parser.add_argument('product', choices=['joyword', 'joydeck'])
+    parser.add_argument('product', choices=['joyword', 'joydeck', 'joysheet'])
     parser.add_argument('version')
     args = parser.parse_args()
     verify_assets(args.directory, args.product, args.version)

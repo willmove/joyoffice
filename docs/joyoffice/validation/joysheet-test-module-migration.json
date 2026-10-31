@@ -1,0 +1,737 @@
+{
+  "modules": [
+    {
+      "source": "crates/joysheet-app/src/control.rs",
+      "lines": [
+        230,
+        257
+      ],
+      "destination": "crates/joysheet-app/src/tests/control_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-app/src/geometry.rs",
+      "lines": [
+        145,
+        212
+      ],
+      "destination": "crates/joysheet-app/src/tests/geometry_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-app/src/lib.rs",
+      "lines": [
+        475,
+        662
+      ],
+      "destination": "crates/joysheet-app/src/tests/lib_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-app/src/notifications.rs",
+      "lines": [
+        22,
+        42
+      ],
+      "destination": "crates/joysheet-app/src/tests/notifications_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-app/src/recovery.rs",
+      "lines": [
+        224,
+        345
+      ],
+      "destination": "crates/joysheet-app/src/tests/recovery_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-app/src/smoke.rs",
+      "lines": [
+        37,
+        46
+      ],
+      "destination": "crates/joysheet-app/src/tests/smoke_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-calc/src/eval.rs",
+      "lines": [
+        645,
+        694
+      ],
+      "destination": "crates/joysheet-calc/src/tests/eval_fuel_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-calc/src/profile.rs",
+      "lines": [
+        94,
+        126
+      ],
+      "destination": "crates/joysheet-calc/src/tests/profile_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-calc/src/recalc.rs",
+      "lines": [
+        551,
+        841
+      ],
+      "destination": "crates/joysheet-calc/src/tests/recalc_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-calc/src/recalc/pass_host.rs",
+      "lines": [
+        592,
+        626
+      ],
+      "destination": "crates/joysheet-calc/src/recalc/tests/pass_host_memo_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-chart/src/raster.rs",
+      "lines": [
+        273,
+        291
+      ],
+      "destination": "crates/joysheet-chart/src/tests/raster_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-chart/src/render/kinds.rs",
+      "lines": [
+        476,
+        505
+      ],
+      "destination": "crates/joysheet-chart/src/render/tests/kinds_quartile_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-chart/src/render/lines.rs",
+      "lines": [
+        133,
+        157
+      ],
+      "destination": "crates/joysheet-chart/src/render/tests/lines_smooth_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-core/src/addr.rs",
+      "lines": [
+        456,
+        475
+      ],
+      "destination": "crates/joysheet-core/src/tests/addr_category_level_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-core/src/addr.rs",
+      "lines": [
+        293,
+        426
+      ],
+      "destination": "crates/joysheet-core/src/tests/addr_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-core/src/date.rs",
+      "lines": [
+        223,
+        387
+      ],
+      "destination": "crates/joysheet-core/src/tests/date_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-core/src/parse.rs",
+      "lines": [
+        390,
+        636
+      ],
+      "destination": "crates/joysheet-core/src/tests/parse_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-core/src/value.rs",
+      "lines": [
+        392,
+        464
+      ],
+      "destination": "crates/joysheet-core/src/tests/value_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cf.rs",
+      "lines": [
+        396,
+        582
+      ],
+      "destination": "crates/joysheet-engine/src/tests/cf_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/chart_svg.rs",
+      "lines": [
+        148,
+        201
+      ],
+      "destination": "crates/joysheet-engine/src/tests/chart_svg_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/clip_html.rs",
+      "lines": [
+        368,
+        468
+      ],
+      "destination": "crates/joysheet-engine/src/tests/clip_html_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/fill.rs",
+      "lines": [
+        782,
+        899
+      ],
+      "destination": "crates/joysheet-engine/src/tests/fill_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/links.rs",
+      "lines": [
+        47,
+        83
+      ],
+      "destination": "crates/joysheet-engine/src/tests/links_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/outline.rs",
+      "lines": [
+        100,
+        169
+      ],
+      "destination": "crates/joysheet-engine/src/tests/outline_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/paper.rs",
+      "lines": [
+        245,
+        358
+      ],
+      "destination": "crates/joysheet-engine/src/tests/paper_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/pivot.rs",
+      "lines": [
+        317,
+        329
+      ],
+      "destination": "crates/joysheet-engine/src/tests/pivot_fit_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/pivot_calc.rs",
+      "lines": [
+        310,
+        362
+      ],
+      "destination": "crates/joysheet-engine/src/tests/pivot_calc_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/selection.rs",
+      "lines": [
+        223,
+        274
+      ],
+      "destination": "crates/joysheet-engine/src/tests/selection_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/tables.rs",
+      "lines": [
+        297,
+        309
+      ],
+      "destination": "crates/joysheet-engine/src/tests/tables_style_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/tables.rs",
+      "lines": [
+        254,
+        295
+      ],
+      "destination": "crates/joysheet-engine/src/tests/tables_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/analysis.rs",
+      "lines": [
+        1170,
+        1413
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/analysis_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/forecast.rs",
+      "lines": [
+        467,
+        624
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/forecast_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/format.rs",
+      "lines": [
+        815,
+        868
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/format_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/formulas.rs",
+      "lines": [
+        883,
+        1093
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/formulas_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/insert.rs",
+      "lines": [
+        250,
+        314
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/insert_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/review.rs",
+      "lines": [
+        530,
+        586
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/review_edit_range_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/review.rs",
+      "lines": [
+        359,
+        528
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/review_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/spelling.rs",
+      "lines": [
+        188,
+        199
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/spelling_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/stash.rs",
+      "lines": [
+        341,
+        606
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/stash_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/view.rs",
+      "lines": [
+        499,
+        540
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/tests/view_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-engine/src/cmd/extra/scripts.rs",
+      "lines": [
+        156,
+        175
+      ],
+      "destination": "crates/joysheet-engine/src/cmd/extra/tests/scripts_host_control_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/criteria.rs",
+      "lines": [
+        383,
+        449
+      ],
+      "destination": "crates/joysheet-functions/src/tests/criteria_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/database.rs",
+      "lines": [
+        301,
+        447
+      ],
+      "destination": "crates/joysheet-functions/src/tests/database_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/date.rs",
+      "lines": [
+        590,
+        881
+      ],
+      "destination": "crates/joysheet-functions/src/tests/date_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/dynamic.rs",
+      "lines": [
+        1069,
+        1308
+      ],
+      "destination": "crates/joysheet-functions/src/tests/dynamic_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/engineering.rs",
+      "lines": [
+        363,
+        584
+      ],
+      "destination": "crates/joysheet-functions/src/tests/engineering_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/ets.rs",
+      "lines": [
+        930,
+        1149
+      ],
+      "destination": "crates/joysheet-functions/src/tests/ets_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/info.rs",
+      "lines": [
+        498,
+        617
+      ],
+      "destination": "crates/joysheet-functions/src/tests/info_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/lib.rs",
+      "lines": [
+        263,
+        357
+      ],
+      "destination": "crates/joysheet-functions/src/tests/lib_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/lift.rs",
+      "lines": [
+        108,
+        184
+      ],
+      "destination": "crates/joysheet-functions/src/tests/lift_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/lookup.rs",
+      "lines": [
+        569,
+        858
+      ],
+      "destination": "crates/joysheet-functions/src/tests/lookup_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/special.rs",
+      "lines": [
+        355,
+        391
+      ],
+      "destination": "crates/joysheet-functions/src/tests/special_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/text.rs",
+      "lines": [
+        1034,
+        1325
+      ],
+      "destination": "crates/joysheet-functions/src/tests/text_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/util.rs",
+      "lines": [
+        410,
+        434
+      ],
+      "destination": "crates/joysheet-functions/src/tests/util_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-functions/src/util.rs",
+      "lines": [
+        286,
+        408
+      ],
+      "destination": "crates/joysheet-functions/src/tests/util_testutil.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/b64.rs",
+      "lines": [
+        90,
+        99
+      ],
+      "destination": "crates/joysheet-model/src/tests/b64_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/cellmap.rs",
+      "lines": [
+        24,
+        53
+      ],
+      "destination": "crates/joysheet-model/src/tests/cellmap_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/features.rs",
+      "lines": [
+        725,
+        739
+      ],
+      "destination": "crates/joysheet-model/src/tests/features_trendline_forecast_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/lines.rs",
+      "lines": [
+        57,
+        81
+      ],
+      "destination": "crates/joysheet-model/src/tests/lines_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/password.rs",
+      "lines": [
+        104,
+        133
+      ],
+      "destination": "crates/joysheet-model/src/tests/password_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/sheet.rs",
+      "lines": [
+        476,
+        629
+      ],
+      "destination": "crates/joysheet-model/src/tests/sheet_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/store.rs",
+      "lines": [
+        441,
+        667
+      ],
+      "destination": "crates/joysheet-model/src/tests/store_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/style.rs",
+      "lines": [
+        487,
+        542
+      ],
+      "destination": "crates/joysheet-model/src/tests/style_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-model/src/workbook.rs",
+      "lines": [
+        437,
+        468
+      ],
+      "destination": "crates/joysheet-model/src/tests/workbook_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-numfmt/src/decimal.rs",
+      "lines": [
+        195,
+        234
+      ],
+      "destination": "crates/joysheet-numfmt/src/tests/decimal_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-numfmt/src/parse.rs",
+      "lines": [
+        641,
+        672
+      ],
+      "destination": "crates/joysheet-numfmt/src/tests/parse_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-numfmt/src/render.rs",
+      "lines": [
+        546,
+        559
+      ],
+      "destination": "crates/joysheet-numfmt/src/tests/render_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-platform/src/printing.rs",
+      "lines": [
+        158,
+        177
+      ],
+      "destination": "crates/joysheet-platform/src/tests/printing_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-platform/src/windows.rs",
+      "lines": [
+        128,
+        144
+      ],
+      "destination": "crates/joysheet-platform/src/tests/windows_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-protocol/src/lib.rs",
+      "lines": [
+        83,
+        96
+      ],
+      "destination": "crates/joysheet-protocol/src/tests/lib_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/accessibility.rs",
+      "lines": [
+        105,
+        125
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/accessibility_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/advanced.rs",
+      "lines": [
+        462,
+        476
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/advanced_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/chart_dash.rs",
+      "lines": [
+        27,
+        36
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/chart_dash_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/complex_format.rs",
+      "lines": [
+        188,
+        199
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/complex_format_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/formula_feedback.rs",
+      "lines": [
+        89,
+        105
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/formula_feedback_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/objects.rs",
+      "lines": [
+        457,
+        522
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/objects_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/outline_text.rs",
+      "lines": [
+        132,
+        142
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/outline_text_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/performance.rs",
+      "lines": [
+        170,
+        205
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/performance_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-ui-gpui/src/workflow.rs",
+      "lines": [
+        187,
+        210
+      ],
+      "destination": "crates/joysheet-ui-gpui/src/tests/workflow_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/cfb.rs",
+      "lines": [
+        330,
+        455
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/cfb_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/chartex.rs",
+      "lines": [
+        377,
+        398
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/chartex_quartile_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/feature_bags.rs",
+      "lines": [
+        68,
+        83
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/feature_bags_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/fmla.rs",
+      "lines": [
+        135,
+        221
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/fmla_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/package.rs",
+      "lines": [
+        200,
+        230
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/package_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/sheet_read.rs",
+      "lines": [
+        677,
+        698
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/sheet_read_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/tables.rs",
+      "lines": [
+        333,
+        383
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/tables_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/theme.rs",
+      "lines": [
+        152,
+        254
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/theme_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/xml.rs",
+      "lines": [
+        487,
+        630
+      ],
+      "destination": "crates/joysheet-xlsx/src/tests/xml_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/xls/formula.rs",
+      "lines": [
+        476,
+        551
+      ],
+      "destination": "crates/joysheet-xlsx/src/xls/tests/formula_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/xls/records.rs",
+      "lines": [
+        188,
+        223
+      ],
+      "destination": "crates/joysheet-xlsx/src/xls/tests/records_tests.rs"
+    },
+    {
+      "source": "apps/joysheet-cli/src/main.rs",
+      "lines": [
+        589,
+        669
+      ],
+      "destination": "apps/joysheet-cli/src/tests/main_tests.rs"
+    },
+    {
+      "source": "crates/joysheet-xlsx/src/testing.rs",
+      "destination": "crates/joysheet-xlsx/src/tests/crypto_helpers.rs",
+      "reason": "fixture-only module remains guarded by cfg(any(test, feature=test-support))"
+    }
+  ]
+}

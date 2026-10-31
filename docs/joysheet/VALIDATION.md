@@ -41,7 +41,7 @@ M4 更新：分项构建与原生回归、完整 CI 通过，当前交付 M4-alp
 | layers | workspace 图无 egui/eframe；GridCraft 核心无 GPUI、平台服务或 Joysheet 上层依赖 |
 | 来源差异 | 导入清单仅 io.rs 的保存错误清理和 io/tests.rs 的 Unix gate 发生变化；其余导入核心文件哈希一致 |
 
-`artifacts/ci.log`、`smoke-M3.log`、`wasm-check.log`、`default-build.log` 保存本地完整输出。可随源码分发的精简证据位于 [evidence](evidence/)。
+`artifacts/ci.log`、`smoke-M3.log`、`wasm-check.log`、`default-build.log` 保存本地完整输出。可随源码分发的精简证据位于 [evidence](evidence/README.md)。
 
 ## 原生桌面场景
 

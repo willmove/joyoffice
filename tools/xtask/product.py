@@ -12,7 +12,11 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli")}
+PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli"),
+            "joysheet": ("joysheet", "joysheet-cli")}
+GUI_PACKAGES = {"joyword": {"joyword"}, "joydeck": {"joydeck"},
+                "joysheet": {"joysheet", "joysheet-ui-gpui", "joysheet-platform"}}
+VALIDATION_FEATURES = {"joydeck": "joydeck/validation", "joysheet": "joysheet/automation"}
 
 def manifest_version(product, root=ROOT):
     if product not in {name for pair in PRODUCTS.values() for name in pair}:
@@ -32,7 +36,7 @@ def manifest_version(product, root=ROOT):
 
 def release_target(tag=None, product=None, version=None, root=ROOT):
     if tag:
-        match = re.fullmatch(r"(?:(joyword|joydeck)-)?v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)", tag)
+        match = re.fullmatch(r"(?:(joyword|joydeck|joysheet)-)?v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)", tag)
         if not match:
             raise ValueError("unsupported product release tag: " + tag)
         routed, requested = match[1] or "joyword", match[2]
@@ -60,6 +64,8 @@ def product_packages(data, product, headless=False):
     packages = {p["id"]: p for p in data["packages"]}
     chosen = {i for i in members if packages[i]["name"] == product or
               packages[i]["name"].startswith(product + "-")}
+    if headless:
+        chosen = {i for i in chosen if packages[i]["name"] not in GUI_PACKAGES[product]}
     # Include the shared libraries actually consumed by this product, not all
     # joyoffice-* packages and never another product's private crates.
     nodes = {p["id"]: p for p in data["resolve"]["nodes"]}
@@ -80,12 +86,28 @@ def product_packages(data, product, headless=False):
                 chosen.add(dep)
                 queue.append(dep)
             elif name == product or name.startswith(product + "-"):
+                if headless and name in GUI_PACKAGES[product]:
+                    raise ValueError("headless product depends on GUI package: " + name)
                 chosen.add(dep)
                 queue.append(dep)
             else:
                 raise ValueError(product + " depends on another product: " + name)
+    # Inspect the selected normal/build closure, including registry dependencies.
+    # Removing a UI package from the test list must not conceal a transitive GUI edge.
     if headless:
-        chosen = {i for i in chosen if packages[i]["name"] != product}
+        queue, seen = list(chosen), set()
+        while queue:
+            key = queue.pop()
+            if key in seen:
+                continue
+            seen.add(key)
+            name = packages[key]["name"]
+            if name == "gpui" or name.startswith(("gpui-", "gpui_")):
+                raise ValueError("headless product depends on GPUI: " + name)
+            for dep in nodes.get(key, {}).get("deps", []):
+                kinds = dep.get("dep_kinds", [{"kind": None}])
+                if any(k.get("kind") != "dev" for k in kinds):
+                    queue.append(dep["pkg"])
     if not chosen:
         raise ValueError("no workspace packages for " + product)
     return sorted(packages[i]["name"] for i in chosen)
@@ -102,16 +124,28 @@ def main(argv=None):
     version.add_argument("--product", choices=PRODUCTS)
     version.add_argument("--version")
     version.add_argument("--github-output", type=Path)
+    for name in ("ci", "smoke", "inventory", "bench", "wasm"):
+        command = sub.add_parser(name)
+        command.add_argument("product", choices=["joysheet"])
+        command.add_argument("--stage", choices=["M" + str(n) for n in range(9)], default="M8")
+        command.add_argument("--engine-only", action="store_true")
+        command.add_argument("--headless", action="store_true")
     for name in ("check", "test", "build", "package", "packages", "stage"):
         command = sub.add_parser(name)
         command.add_argument("product", choices=PRODUCTS)
         command.add_argument("--headless", action="store_true")
-        command.add_argument("--validation", action="store_true", help="Enable JoyDeck native acceptance commands")
+        command.add_argument("--validation", action="store_true", help="Enable product native acceptance commands")
         command.add_argument("--release", action="store_true")
         command.add_argument("--target")
         if name == "stage":
             command.add_argument("stage", choices=["M" + str(n) for n in range(15)])
     args, extra = parser.parse_known_args(argv)
+    if args.command in {"ci", "smoke", "inventory", "bench", "wasm"}:
+        if extra:
+            parser.error("unrecognized arguments: " + " ".join(extra))
+        run([sys.executable, "scripts/joysheet/project.py", args.command,
+             "--stage", args.stage, *(["--engine-only"] if args.engine_only or args.headless else [])])
+        return
     if args.command == "release-version":
         if extra:
             parser.error("unrecognized arguments: " + " ".join(extra))
@@ -124,8 +158,8 @@ def main(argv=None):
         return
     if args.command == "package" and args.headless:
         parser.error("headless-only package output is not implemented; build --headless is available")
-    if args.validation and (args.product != "joydeck" or args.headless):
-        parser.error("--validation requires the JoyDeck desktop product")
+    if args.validation and (args.product not in VALIDATION_FEATURES or args.headless):
+        parser.error("--validation requires a supported desktop product")
     data = metadata()
     packages = product_packages(data, args.product, args.headless)
     if args.command == "packages":
@@ -134,7 +168,7 @@ def main(argv=None):
     selected = [item for name in packages for item in ("-p", name)]
     options = (["--release"] if args.release else []) + (["--target", args.target] if args.target else [])
     if args.validation:
-        options += ["--features", "joydeck/validation"]
+        options += ["--features", VALIDATION_FEATURES[args.product]]
     if args.command in ("check", "test"):
         if extra:
             parser.error("unrecognized arguments: " + " ".join(extra))
@@ -147,6 +181,9 @@ def main(argv=None):
         run(["cargo", "build", *[v for name in applications for v in ("-p", name)], "--locked", *options, *extra])
         if args.command == "stage":
             run(["cargo", "test", *selected, "--locked", *options])
+            if args.product == "joysheet":
+                run([sys.executable, "scripts/joysheet/project.py", "smoke", "--stage", args.stage,
+                     *(["--engine-only"] if args.headless else [])])
     elif args.command == "package":
         if manifest_version(PRODUCTS[args.product][1]) != manifest_version(args.product):
             raise ValueError("CLI version does not match its product application")
@@ -154,6 +191,8 @@ def main(argv=None):
             parser.error("package currently runs natively; build --target is available separately")
         if args.product == "joydeck":
             run([sys.executable, "scripts/joydeck/package-native.py", "--profile", "release" if args.release else "debug", *(["--validation"] if args.validation else []), *extra])
+        elif args.product == "joysheet":
+            run([sys.executable, "scripts/joysheet/package.py", "--profile", "release" if args.release else "debug", *(["--validation"] if args.validation else []), *extra])
         else:
             rustc = subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True, encoding='utf-8')
             host = next(line.split(": ", 1)[1] for line in rustc.splitlines() if line.startswith("host:"))

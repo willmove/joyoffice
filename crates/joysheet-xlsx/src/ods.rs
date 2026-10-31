@@ -278,9 +278,10 @@ impl Import {
                 }
                 Event::CData(t) => self.append(&t.decode().map_err(xml_error)?)?,
                 Event::GeneralRef(r) => {
+                    let reference: &[u8] = r.as_ref();
                     let ch = match r.resolve_char_ref().map_err(xml_error)? {
                         Some(c) => c,
-                        None => match r.as_ref() {
+                        None => match reference {
                             b"amp" => '&',
                             b"lt" => '<',
                             b"gt" => '>',

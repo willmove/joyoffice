@@ -1,14 +1,21 @@
 [package]
+publish = false
 name = "joysheet-mcp"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
-license.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
 description = "GridCraft MCP server: JSON-RPC 2.0 over stdio, driving a running app or a headless session"
 
-[lints]
-workspace = true
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
 
 [dependencies]
 joysheet-engine = { workspace = true }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 log = { workspace = true }

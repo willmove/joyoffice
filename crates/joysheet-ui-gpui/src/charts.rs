@@ -1,11 +1,11 @@
 //! Toolkit-free GridCraft primitives painted by GPUI; data/layout cached per document revision.
 use crate::chart_dash::dashed;
 use gpui_kit::*;
-use joysheet_chart::{Prim, Rgba};
 use joysheet_app::{
     WindowSnapshot,
     geometry::{GridLayout, SheetGeometry},
 };
+use joysheet_chart::{Prim, Rgba};
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc};
 pub type ChartCache = Rc<RefCell<HashMap<u32, Arc<Vec<Prim>>>>>;
 struct Measure(Arc<WindowTextSystem>);

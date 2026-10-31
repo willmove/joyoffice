@@ -9,7 +9,7 @@ function Invoke-M6Workflow {
     $null=Send-Control 'ui.screenshot' @{path=(Join-Path $artifacts 'M6-chart-after.png')}
     $checks.Add('M6.1 GPUI chart insertion, rendering and invalidation after data edit')
     if ($M6Task -ge 2) {
-        Test-DataForm 'insert.picture' @{path=(Join-Path $workspace 'docs\screenshots\sales.png');at='K2';width=160;height=100}
+        Test-DataForm 'insert.picture' @{path=(Join-Path $workspace 'docs\joysheet\screenshots\sales.png');at='K2';width=160;height=100}
         Test-DataForm 'insert.shape' @{kind='ellipse';at='D17';text='M6 形状'}
         Test-DataForm 'insert.textBox' @{at='H17';text='中文文本框'}
         Test-DataForm 'insert.sparkline' @{range='B2:B4';location='C2'}

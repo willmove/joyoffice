@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-31",
+  "source": "D:\\Coding\\EditorProjects\\joysheet",
+  "rawImportCommit": "ffc076df151d54f67b896a44a8b1d1f4935146a7",
+  "sourceFiles": 703,
+  "sourcePathSetUnchanged": true,
+  "allOriginalSourceHashesUnchanged": true,
+  "rawImportHashesMatch": true,
+  "originalArchiveHashesMatch": true,
+  "allFinalMappedFilesPresent": true,
+  "legacyFilesArchived": 30610,
+  "archives": {
+    "original-source.zip": {
+      "bytes": 11152547,
+      "sha256": "5622f3370fb49856798d0ac5d6cd0a872153cde7f195602006f273e961939ca3"
+    },
+    "original-evidence-and-packages.zip": {
+      "bytes": 1772673977,
+      "sha256": "6e494598af035eca1e563d7bc42a8282d24156f31530bcd22d5c5998b7b263e3"
+    },
+    "legacy-inventory.json": {
+      "bytes": 7203278,
+      "sha256": "782d879686d6485af5ed3ffe957c8c19d1175572b3d08904068cc40e7b88d7ef"
+    }
+  },
+  "backupDirectory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\backups\\joysheet-migration-20261031",
+  "originalGit": {
+    "branch": "master",
+    "hasCommits": false
+  }
+}

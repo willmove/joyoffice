@@ -108,7 +108,15 @@ function Invoke-M8Workflow {
         $buildFile=Join-Path $binaryRoot 'BUILD.json'
         if(Test-Path -LiteralPath $buildFile){
             $manifest=Get-Content -LiteralPath $buildFile -Raw|ConvertFrom-Json
-            if($manifest.stage -notin @('M8-preview','M8-preview2','M8-preview3','M8-preview4','M8-preview5','M8-preview6') -or !(Test-Path -LiteralPath (Join-Path $binaryRoot 'licenses/inventory.json'))){throw 'Distribution manifest or license inventory is missing'}
+            if($manifest.product -eq 'joysheet'){
+                foreach($file in @('BUILD-INFO.json','SBOM.spdx.json','SOURCE-HASHES.json','dependency-licenses/index.json')){
+                    if(!(Test-Path -LiteralPath (Join-Path $binaryRoot $file))){throw "Missing monorepo package input: $file"}
+                }
+                $info=Get-Content -LiteralPath (Join-Path $binaryRoot 'BUILD-INFO.json') -Raw -Encoding utf8|ConvertFrom-Json
+                $licenses=@(Get-Content -LiteralPath (Join-Path $binaryRoot 'dependency-licenses/index.json') -Raw -Encoding utf8|ConvertFrom-Json)
+                if($info.version -ne $manifest.version -or !$info.sourceSnapshotVerified -or @($info.packageRoots).Count -ne 2 -or $info.packageRoots -notcontains 'joysheet' -or $info.packageRoots -notcontains 'joysheet-cli'){throw 'Invalid product build roots or source snapshot'}
+                if(!$licenses.Count -or @($licenses|Where-Object {$_.name -match '^joy(word|deck)(-|$)' -or !@($_.texts).Count}).Count){throw 'License graph includes a foreign product or lacks required texts'}
+            }elseif($manifest.stage -notin @('M8-preview','M8-preview2','M8-preview3','M8-preview4','M8-preview5','M8-preview6') -or !(Test-Path -LiteralPath (Join-Path $binaryRoot 'licenses/inventory.json'))){throw 'Distribution manifest or license inventory is missing'}
             if((Get-Item -LiteralPath $app).VersionInfo.ProductName -ne 'Joysheet'){throw 'App version resources are missing'}
             $checks.Add('M8.4 extracted Release package starts natively with version resources and dependency license inventory')
         }else{$checks.Add('M8.4 source-build gate; extracted-package and installer checks recorded separately')}

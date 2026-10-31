@@ -1,13 +1,13 @@
 use crate::desktop::{After, Desktop};
 use gpui_kit::component::input::Input;
 use gpui_kit::{prelude::*, *};
-use joysheet_engine::{
-    core::{CellRef, MAX_COLS, RangeRef, Value as CellValue},
-    model::{Color, HAlign, PatternType, Style as CellStyle},
-};
 use joysheet_app::{
     WindowSnapshot,
     geometry::{COL_HEADER, GridLayout, ROW_HEADER, SheetGeometry},
+};
+use joysheet_engine::{
+    core::{CellRef, MAX_COLS, RangeRef, Value as CellValue},
+    model::{Color, HAlign, PatternType, Style as CellStyle},
 };
 use serde_json::json;
 use std::{collections::HashSet, time::Instant};
@@ -797,8 +797,7 @@ fn paint_cell_text(
     }
     let line_height = font_size * 1.22;
     let total = line_height * lines.len() as f32;
-    let spread_v =
-        matches!(style.align.v, joysheet_engine::model::VAlign::Distributed | joysheet_engine::model::VAlign::Justify) && lines.len() > 1;
+    let spread_v = matches!(style.align.v, joysheet_engine::model::VAlign::Distributed | joysheet_engine::model::VAlign::Justify) && lines.len() > 1;
     let gap = if spread_v { (height - total).max(0.) / (lines.len() - 1) as f32 } else { 0. };
     let top = match style.align.v {
         joysheet_engine::model::VAlign::Top => y,

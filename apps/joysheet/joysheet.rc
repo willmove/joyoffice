@@ -1,8 +1,8 @@
 #include <winver.h>
-100 ICON "../../assets/joysheet.ico"
+100 ICON "../../assets/joysheet/joysheet.ico"
 1 VERSIONINFO
-FILEVERSION 0,1,0,5
-PRODUCTVERSION 0,1,0,0
+FILEVERSION JOYSHEET_VERSION_NUM
+PRODUCTVERSION JOYSHEET_VERSION_NUM
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -12,9 +12,9 @@ BEGIN
   BEGIN
    VALUE "CompanyName", "Joysheet contributors\0"
    VALUE "FileDescription", "Joysheet spreadsheet desktop\0"
-   VALUE "FileVersion", "0.1.0 M8 preview 5\0"
+   VALUE "FileVersion", JOYSHEET_VERSION_STR
    VALUE "ProductName", "Joysheet\0"
-   VALUE "ProductVersion", "0.1.0\0"
+   VALUE "ProductVersion", JOYSHEET_VERSION_STR
    VALUE "OriginalFilename", "joysheet.exe\0"
   END
  END

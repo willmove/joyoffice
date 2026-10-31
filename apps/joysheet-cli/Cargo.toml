@@ -1,23 +1,30 @@
 [package]
 name = "joysheet-cli"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
-license.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
 description = "GridCraft command line: inspect, convert, evaluate, script and serve MCP without a window"
 publish = false
 
-[lints]
-workspace = true
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+too_many_arguments = "allow"
+type_complexity = "allow"
 
 [[bin]]
 name = "joysheet-cli"
 path = "src/main.rs"
 
 [dependencies]
+joysheet-xlsx.workspace = true
 joysheet-protocol.workspace = true
 joysheet-engine = { workspace = true }
 joysheet-mcp = { workspace = true }
-serde_json = { workspace = true }
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 log = { workspace = true }
 # `check`: validating the packages GridCraft writes (content types, relationships).
 zip = { workspace = true }

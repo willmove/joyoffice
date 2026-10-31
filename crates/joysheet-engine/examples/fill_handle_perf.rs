@@ -10,7 +10,7 @@ use joysheet_engine::Session;
 use joysheet_engine::core::CellRef;
 use serde_json::json;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rows: u32 = std::env::args().nth(1).and_then(|s| s.parse().ok()).unwrap_or(1_000_000);
     let mut s = Session::new();
     s.new_workbook();
@@ -20,21 +20,20 @@ fn main() {
     while r < rows {
         let n = chunk.min(rows - r);
         let vals: Vec<serde_json::Value> = (0..n).map(|i| json!([(r + i) as f64])).collect();
-        s.execute("range.setValues", json!({"range": format!("A{}", r + 1), "values": vals})).expect("set");
+        s.execute("range.setValues", json!({"range": format!("A{}", r + 1), "values": vals}))?;
         r += n;
     }
     println!("fill A1:A{rows}: {:?}", t.elapsed());
 
-    let d = s.doc().expect("doc");
-    let sh = d.wb.active().expect("sheet");
+    let d = s.doc()?;
+    let sh = d.wb.active().ok_or("missing worksheet")?;
     let neighbour = 0u32; // column A
     let cap = (rows - 1).min(999_999);
 
     let t = Instant::now();
     let mut last = 0u32;
     let mut iters = 0u64;
-    while last + 1 < joysheet_engine::core::MAX_ROWS && sh.value_ref(CellRef::new(last + 1, neighbour)).is_some_and(|v| !v.is_empty()) && last < cap
-    {
+    while last + 1 < joysheet_engine::core::MAX_ROWS && sh.value_ref(CellRef::new(last + 1, neighbour)).is_some_and(|v| !v.is_empty()) && last < cap {
         last += 1;
         iters += 1;
     }
@@ -47,4 +46,5 @@ fn main() {
     println!("new last_contiguous_nonempty: last={new_last}, {new_t:?} ({:.2}x faster)", old.as_secs_f64() / new_t.as_secs_f64().max(1e-12));
 
     assert_eq!(last, new_last, "old and new scans must agree");
+    Ok(())
 }

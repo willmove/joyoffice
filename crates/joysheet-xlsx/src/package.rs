@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
+use zip::HasZipMetadata;
 
 use crate::IoError;
 use crate::xml::{self, El};
@@ -45,9 +46,10 @@ impl<'a> Package<'a> {
         }
         let mut names = HashMap::new();
         for i in 0..zip.len() {
-            if let Some(n) = zip.name_for_index(i) {
-                names.entry(normalize(n)).or_insert(i);
-            }
+            let entry = zip.by_index_data(i).map_err(|e| IoError::Zip(format!("entry {i}: {e}")))?;
+            let utf8 = entry.get_metadata().flags.as_u16() & 0x0800 != 0;
+            let name = crate::decode_zip_name(entry.name_raw(), utf8)?;
+            names.entry(normalize(&name)).or_insert(i);
         }
         Ok(Package { zip, names, total: 0 })
     }
@@ -135,7 +137,12 @@ pub fn oversized_part(bytes: &[u8]) -> Option<(String, u64)> {
     let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).ok()?;
     (0..zip.len().min(MAX_ENTRIES)).find_map(|i| {
         let f = zip.by_index_raw(i).ok()?;
-        (f.size() > MAX_PART).then(|| (f.name().to_string(), f.size()))
+        (f.size() > MAX_PART).then(|| {
+            let utf8 = f.get_metadata().flags.as_u16() & 0x0800 != 0;
+            let name =
+                crate::decode_zip_name(f.name_raw(), utf8).map(|name| name.into_owned()).unwrap_or_else(|_| format!("entry {i} (invalid name)"));
+            (name, f.size())
+        })
     })
 }
 
@@ -198,33 +205,5 @@ impl ZipOut {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn resolving() {
-        assert_eq!(resolve("xl", "worksheets/sheet1.xml"), "xl/worksheets/sheet1.xml");
-        assert_eq!(resolve("xl/worksheets", "../drawings/d1.xml"), "xl/drawings/d1.xml");
-        assert_eq!(resolve("xl/worksheets", "/xl/tables/t.xml"), "xl/tables/t.xml");
-        assert_eq!(resolve("", "xl/workbook.xml"), "xl/workbook.xml");
-        assert_eq!(resolve("a", "../../../x"), "x");
-        assert_eq!(split_dir("xl/workbook.xml"), ("xl", "workbook.xml"));
-        assert_eq!(split_dir("x.xml"), ("", "x.xml"));
-    }
-
-    /// An over-budget read must spend the package's allowance once and for all: loops over many
-    /// broken parts (a sheet's optional VML relationships, for one) otherwise re-decompress the
-    /// remaining allowance again and again.
-    #[test]
-    fn a_failed_part_ends_the_package_budget() {
-        let z = crate::tests::make_zip(&[("a.xml", b"0123456789"), ("b.xml", b"hello")]);
-        let mut pkg = Package::open(&z).unwrap();
-        assert!(pkg.read("a.xml").unwrap().is_some());
-        // Nothing left to spend within the per-part limit either.
-        pkg.total = MAX_TOTAL - 1;
-        assert!(pkg.read("b.xml").is_err());
-        assert_eq!(pkg.total, MAX_TOTAL, "the failed read is charged");
-        // Oversized repeated attempts stay cheap errors now: no allowance is left to pay for.
-        assert!(matches!(pkg.read("b.xml"), Err(IoError::TooLarge(_))));
-    }
-}
+#[path = "tests/package_tests.rs"]
+mod tests;

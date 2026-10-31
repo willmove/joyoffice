@@ -26,6 +26,7 @@ rustc-ice-*.txt
 /dist/
 /logs/
 /output/
+/artifacts/
 /.idea/
 /.workbuddy/
 /.codebuddy/

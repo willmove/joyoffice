@@ -312,7 +312,9 @@ def validate():
     outside = sorted(task_id for task_id in tasks if int(task_id[1]) <= 7 and task_id not in required)
     check(not outside, f"TASKS: M0–M7 tasks not required by {RELEASE_GATE}: {outside}")
 
-    markdown = [ROOT / "README.md", *DOCS.rglob("*.md"), ROOT / "tests/fixtures/README.md"]
+    markdown = [ROOT / "README.md", *DOCS.rglob("*.md"), ROOT / "tests/fixtures/README.md",
+                *(ROOT / "docs/joysheet").rglob("*.md"),
+                *(ROOT / "docs/joyoffice").glob("JOYSHEET-*.md")]
     for path in markdown:
         for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", path.read_text(encoding="utf-8")):
             parsed = urlsplit(target.strip("<>"))

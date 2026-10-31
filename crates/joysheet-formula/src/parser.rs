@@ -163,7 +163,7 @@ impl Parser {
     fn err(&self, msg: impl Into<String>) -> ParseError {
         ParseError { msg: msg.into(), pos: self.pos() }
     }
-    fn expect(&mut self, t: Tok) -> Result<(), ParseError> {
+    fn require(&mut self, t: Tok) -> Result<(), ParseError> {
         if *self.peek() == t {
             self.next();
             Ok(())
@@ -288,7 +288,7 @@ impl Parser {
             Tok::Op("@") => Ok(Expr::Unary(UnOp::At, Box::new(self.expr(95, allow_union)?))),
             Tok::LParen => {
                 let e = self.expr(0, true)?;
-                self.expect(Tok::RParen)?;
+                self.require(Tok::RParen)?;
                 Ok(Expr::Paren(Box::new(e)))
             }
             Tok::LBrace => self.array(),

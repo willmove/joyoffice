@@ -1,9 +1,9 @@
 #Requires -Version 7.0
 # Read-only native dialog observation. No keyboard/mouse injection and no print job submission.
-param([string]$Page='artifacts/desktop/M6-pdf-page.png')
+param([string]$Page='artifacts/joysheet/desktop/M6-pdf-page.png')
 $ErrorActionPreference='Stop'
-$root=Split-Path $PSScriptRoot -Parent
-$directory=Join-Path $root 'artifacts/print-backend'
+$root=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$directory=Join-Path $root 'artifacts/joysheet/print-backend'
 $null=New-Item -ItemType Directory -Path $directory -Force
 Copy-Item -LiteralPath (Join-Path $root $Page) -Destination (Join-Path $directory 'page-1.png')
 $helper=Join-Path $PSScriptRoot 'native-print.ps1'

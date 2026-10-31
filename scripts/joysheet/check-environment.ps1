@@ -15,4 +15,4 @@ $report.installedTargets = @(& rustup target list --installed)
 $report | ConvertTo-Json -Depth 5
 if ($report.rustc -notmatch '^rustc 1\.98\.1 ') { throw 'Rust 1.98.1 is required by rust-toolchain.toml.' }
 if (-not $report.visualStudio) { throw 'Visual Studio C++ build tools are required.' }
-# scripts/dev.ps1 supplies the Visual Studio SDK and bundled CMake to Cargo.
+# scripts/joysheet/dev.ps1 supplies the Visual Studio SDK and bundled CMake to Cargo.

@@ -20,5 +20,5 @@ if (Test-Path -LiteralPath $vswhere) {
 }
 if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) { throw 'Install CMake or the Visual Studio CMake tools.' }
 if (-not $CargoArgs) { $CargoArgs = @('run','--locked','-p','joysheet','--','--sample','sales') }
-Push-Location (Split-Path $PSScriptRoot -Parent)
+Push-Location (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent)
 try { & cargo @CargoArgs; exit $LASTEXITCODE } finally { Pop-Location }

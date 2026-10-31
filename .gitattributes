@@ -25,3 +25,16 @@ docs/joyoffice/validation/** -text
 licenses/joydeck/** -text
 # Preserve the pinned third-party license verbatim, including original spacing.
 tests/fixtures/fonts/OFL.txt -whitespace
+
+# Product code uses one stable source representation across host platforms.
+apps/joysheet*/** text=auto eol=lf
+crates/joysheet-*/** text=auto eol=lf
+tools/joysheet/** text=auto eol=lf
+scripts/joysheet/** text=auto eol=lf
+assets/joysheet/** -text
+
+# Historical evidence and provenance retain their original bytes and hashes.
+docs/joysheet/evidence/** -text whitespace=cr-at-eol
+docs/joysheet/legacy-source/** -text whitespace=cr-at-eol
+docs/joysheet/upstream-source.json -text whitespace=cr-at-eol
+docs/joysheet/source-checkpoint.json -text whitespace=cr-at-eol

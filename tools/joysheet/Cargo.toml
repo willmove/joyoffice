@@ -1,11 +1,13 @@
 [package]
+publish = false
 name = "joysheet-tools"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
-license.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 joysheet-app.workspace = true
 joysheet-engine.workspace = true
-serde_json.workspace = true
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 zip.workspace = true

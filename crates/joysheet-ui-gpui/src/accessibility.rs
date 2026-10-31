@@ -1,10 +1,10 @@
 //! The virtual grid exports only visible, clipped cells, sharing its production geometry.
 use gpui_kit::{Role, accesskit};
-use joysheet_engine::{Selection, core::CellRef};
 use joysheet_app::{
     WindowSnapshot,
     geometry::{COL_HEADER, GridLayout, ROW_HEADER, Rect, SheetGeometry},
 };
+use joysheet_engine::{Selection, core::CellRef};
 use serde_json::{Value, json};
 use std::collections::HashSet;
 pub struct Cell {
@@ -103,23 +103,5 @@ pub fn cells(v: &WindowSnapshot, l: &GridLayout, g: &SheetGeometry, selection: &
     result
 }
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn merged_accessible_bounds_are_physical_at_fractional_dpi() {
-        let cell = super::Cell {
-            at: joysheet_engine::core::CellRef::new(1, 1),
-            rect: joysheet_app::geometry::Rect { x: 116., y: 48., width: 128., height: 40. },
-            value: "中文🙂".into(),
-            description: String::new(),
-            selected: true,
-            readonly: true,
-            rows: 2,
-            cols: 2,
-        };
-        let node = cell.node(0., 298., 1.75);
-        let b = node.bounds().unwrap();
-        assert_eq!((b.x0, b.y0, b.width(), b.height()), (203., 382., 224., 70.));
-        assert!(node.is_read_only());
-        assert_eq!(node.row_span(), Some(2));
-    }
-}
+#[path = "tests/accessibility_tests.rs"]
+mod tests;

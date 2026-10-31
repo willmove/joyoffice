@@ -7,7 +7,7 @@ import subprocess
 
 SCRIPTS = Path(__file__).resolve().parent
 _candidate = SCRIPTS.parents[1]
-WORKSPACE = (_candidate / 'Cargo.toml').is_file() and (_candidate / 'apps/joydeck').is_dir()
+WORKSPACE = (_candidate / 'Cargo.toml').is_file() and (_candidate / 'apps').is_dir()
 ROOT = _candidate if WORKSPACE else SCRIPTS.parent
 FIXTURES = ROOT / ('tests/fixtures/joydeck' if WORKSPACE else 'fixtures')
 EVIDENCE = ROOT / ('target/joydeck-verification' if WORKSPACE else 'verification')

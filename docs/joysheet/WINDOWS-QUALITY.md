@@ -16,14 +16,14 @@
 解压 Windows 便携包，双击 `Open Windows quality.cmd`。打印样例为 A4 横向、多页打印区域，第一张表含中文与公式；系统打印对话框需要 PowerShell 7。无需 Rust 即可手工试用。
 
 ```powershell
-pwsh -NoProfile -File scripts/dev.ps1 run --locked -p joysheet -- --sample sales
-pwsh -NoProfile -File scripts/dev.ps1 build --release --locked -p joysheet -p joysheet-cli --features joysheet/automation
-pwsh -NoProfile -File scripts/dev.ps1 xtask ci
-pwsh -NoProfile -File scripts/dev.ps1 xtask smoke --stage M8
-pwsh -NoProfile -File scripts/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 1
-pwsh -NoProfile -File scripts/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 2
-pwsh -NoProfile -File scripts/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 3
-pwsh -NoProfile -File scripts/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 4
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 run --locked -p joysheet -- --sample sales
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 build --release --locked -p joysheet -p joysheet-cli --features joysheet/automation
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask ci joysheet
+pwsh -NoProfile -File scripts/joysheet/dev.ps1 xtask smoke joysheet --stage M8
+pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 1
+pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 2
+pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 3
+pwsh -NoProfile -File scripts/joysheet/desktop-smoke.ps1 -Stage M1 -WindowsQualityTask 4
 ```
 
 任务号递增包含此前分项。实际 UIA 提供程序读取不等于读屏语音验收；GPUI 逻辑 DPI 覆盖不改变系统显示设置或原生后备缓冲大小，截图保持真实分辨率。这些测试不代替跨显示器 OS DPI 切换。辅助功能不为百万行创建控件，仅导出可见单元格，完整表格行列数仍向 UIA 报告。

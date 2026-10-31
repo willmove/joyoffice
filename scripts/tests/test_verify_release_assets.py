@@ -34,7 +34,7 @@ def binary(platform, arch):
 def package(directory, product, version, platform, arch, *, missing_cli=False, wrong_arch=False):
     name = assets.filename(product, version, platform, arch)
     path = directory / name
-    root = name[:-4] + '/' if product == 'joydeck' else ''
+    root = name[:-4] + '/' if product in {'joydeck', 'joysheet'} else ''
     info = {'version': version, 'profile': 'release', 'target': assets.TARGETS[platform, arch],
             'packageRoots': [product, product + '-cli'], 'sourceSnapshotVerified': True}
     files = {root + 'BUILD-INFO.json': json.dumps(info).encode(),
@@ -51,6 +51,9 @@ def package(directory, product, version, platform, arch, *, missing_cli=False, w
     if product == 'joydeck' and platform == 'macos':
         files[root + 'JoyDeck.app/Contents/MacOS/JoyDeck'] = data
         files[root + 'JoyDeck.app/Contents/MacOS/joydeck-cli'] = data
+    if product == 'joysheet' and platform == 'macos':
+        files[root + 'Joysheet.app/Contents/MacOS/joysheet'] = data
+        files[root + 'Joysheet.app/Contents/MacOS/joysheet-cli'] = data
     if name.endswith('.zip'):
         with zipfile.ZipFile(path, 'w') as archive:
             for key, value in files.items():
@@ -79,8 +82,8 @@ class ReleaseAssets(unittest.TestCase):
             kwargs = override if (platform, arch) == ('linux', 'x86_64') else {}
             package(self.directory, product, '0.1.0', platform, arch, **kwargs)
 
-    def test_both_products_accept_complete_platform_matrices(self):
-        for product in ('joyword', 'joydeck'):
+    def test_all_products_accept_complete_platform_matrices(self):
+        for product in ('joyword', 'joydeck', 'joysheet'):
             with self.subTest(product=product), tempfile.TemporaryDirectory() as tmp:
                 self.directory = Path(tmp)
                 self.matrix(product)
@@ -95,6 +98,11 @@ class ReleaseAssets(unittest.TestCase):
         self.matrix('joydeck', wrong_arch=True)
         with self.assertRaisesRegex(ValueError, 'invalid linux x86_64 executable'):
             assets.verify_assets(self.directory, 'joydeck', '0.1.0')
+
+    def test_sheet_cannot_publish_a_package_without_its_cli(self):
+        self.matrix('joysheet', missing_cli=True)
+        with self.assertRaisesRegex(ValueError, 'missing file .*joysheet-cli'):
+            assets.verify_assets(self.directory, 'joysheet', '0.1.0')
 
     def test_rejects_missing_platform_and_bad_checksum(self):
         self.matrix('joydeck')

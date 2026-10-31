@@ -116,7 +116,7 @@ pub fn print_dialog(document: &PrintDocument) -> Result<String, String> {
     {
         use std::os::windows::process::CommandExt;
         let script = document.directory.join("print.ps1");
-        std::fs::write(&script, include_str!("../../../scripts/native-print.ps1")).map_err(|e| e.to_string())?;
+        std::fs::write(&script, include_str!("../../../scripts/joysheet/native-print.ps1")).map_err(|e| e.to_string())?;
         let output = Command::new("pwsh.exe")
             .args(["-NoProfile", "-STA", "-File"])
             .arg(script)
@@ -156,22 +156,5 @@ pub fn export(document: &PrintDocument, path: &Path) -> Result<(), String> {
     std::fs::copy(&document.pdf, path).map(|_| ()).map_err(|e| e.to_string())
 }
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn pathological_pdf_page_dimensions_keep_a_bounded_raster() {
-        for (w, h) in [(595., 842.), (1., 1000000.), (1000000., 1.)] {
-            let (x, y) = super::preview_size(w, h).unwrap();
-            assert!((1..=1200).contains(&x));
-            assert!((1..=2000).contains(&y));
-        }
-        assert!(super::preview_size(f32::NAN, 100.).is_err());
-        assert!(super::preview_size(100., 0.).is_err());
-    }
-    #[test]
-    fn invalid_pdf_render_cleans_up_owned_directory() {
-        let dir = super::directory().unwrap();
-        std::fs::write(dir.join("document.pdf"), b"broken pdf").unwrap();
-        assert!(super::render(dir.clone()).is_err());
-        assert!(!dir.exists());
-    }
-}
+#[path = "tests/printing_tests.rs"]
+mod tests;

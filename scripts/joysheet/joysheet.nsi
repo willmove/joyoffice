@@ -1,7 +1,7 @@
 Unicode true
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
-Name "Joysheet M8 preview 5"
+Name "${DISPLAY_NAME}"
 OutFile "${OUTPUT}"
 InstallDir "$LOCALAPPDATA\Programs\Joysheet"
 RequestExecutionLevel user
@@ -38,8 +38,8 @@ Section "Joysheet desktop and CLI" Main
   CreateDirectory "$SMPROGRAMS\Joysheet"
   CreateShortcut "$SMPROGRAMS\Joysheet\Joysheet.lnk" "$INSTDIR\joysheet.exe"
   CreateShortcut "$SMPROGRAMS\Joysheet\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "DisplayName" "Joysheet M8 preview 5"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "DisplayVersion" "0.1.0"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "DisplayName" "${DISPLAY_NAME}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "DisplayIcon" "$INSTDIR\joysheet.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Joysheet" "UninstallString" '$\"$INSTDIR\Uninstall.exe$\"'

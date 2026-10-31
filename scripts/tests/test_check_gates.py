@@ -219,8 +219,15 @@ class MonorepoGate(TempTree):
 
     def test_unknown_product_package_is_rejected_even_before_registration(self):
         self.manifest("crates/joydeck-model/Cargo.toml", "joydeck-model",
-                      '[dependencies]\njoysheet-model = "=0.1.0"\n')
-        self.assertTrue(any("unregistered internal dependency joysheet-model" in e for e in self.layers()))
+                      '[dependencies]\njoysheet-unregistered = "=0.1.0"\n')
+        self.assertTrue(any("unregistered internal dependency joysheet-unregistered" in e for e in self.layers()))
+
+    def test_sheet_model_cannot_acquire_gui_platform_or_another_product(self):
+        errors = check_gates.layer_violations('joysheet-model',
+                    {'gpui-kit', 'joysheet-platform', 'joyword-model'})
+        self.assertTrue(any('must remain headless' in e for e in errors))
+        self.assertTrue(any('must not depend on product package joyword-model' in e for e in errors))
+        self.assertTrue(any('layer does not allow' in e for e in errors))
 
     def test_dev_dependency_does_not_escape_product_isolation(self):
         self.manifest("crates/joydeck-engine/Cargo.toml", "joydeck-engine",
