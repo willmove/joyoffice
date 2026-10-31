@@ -220,6 +220,7 @@ fn open_diagnostics(cx: &mut App) -> Result<(AnyWindowHandle, Entity<Diagnostics
 }
 /// Exercise the real production entities on a native window. This validates
 /// the adapter API, not the physical OS input method or mouse event injection.
+#[cfg(feature = "validation")]
 fn smoke(window: &mut Window, view: &Entity<Diagnostics>, cx: &mut App) {
     view.update(cx, |this, cx| {
         this.toggle_theme(&ToggleTheme, window, cx);
@@ -263,22 +264,37 @@ fn smoke(window: &mut Window, view: &Entity<Diagnostics>, cx: &mut App) {
 }
 fn main() {
     if std::env::args().any(|x| x == "--recovery-crash-probe") {
-        let root = std::env::args()
+        let Some(root) = std::env::args()
             .skip_while(|x| x != "--recovery-crash-probe")
             .nth(1)
-            .expect("test root");
-        let mut s = joydeck::edit::Session::new();
-        s.execute(
-            s.id,
-            joydeck::edit::Command::Batch(vec![
-                joydeck::edit::Command::AddPage,
-                joydeck::edit::Command::AddPage,
-            ]),
-        )
-        .unwrap();
-        let service = joydeck::storage::Recovery::new(root.into());
-        service.write(1, &s.deck, None, None).unwrap();
+        else {
+            eprintln!("recovery probe requires a private test root");
+            std::process::exit(2)
+        };
+        let result = (|| -> joydeck::document::Result<()> {
+            let mut session = joydeck::edit::Session::new();
+            session.execute(
+                session.id,
+                joydeck::edit::Command::Batch(vec![
+                    joydeck::edit::Command::AddPage,
+                    joydeck::edit::Command::AddPage,
+                ]),
+            )?;
+            joydeck::storage::Recovery::new(root.into()).write(1, &session.deck, None, None)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
+            eprintln!("Recovery probe failed: {error}");
+            std::process::exit(1)
+        }
         std::process::exit(73);
+    }
+    #[cfg(not(feature = "validation"))]
+    if std::env::args()
+        .any(|arg| arg.ends_with("-smoke") || arg == "--smoke" || arg == "--m4-bench")
+    {
+        eprintln!("This validation command requires --features validation");
+        std::process::exit(2);
     }
 
     if std::env::args().any(|x| x == "--version") {
@@ -297,7 +313,10 @@ fn main() {
     let incoming = requests.clone();
     let application = gpui_kit::application().with_assets(gpui_kit::assets::AllAssets);
     application.on_open_urls(move |urls| {
-        let mut queue = incoming.lock().unwrap();
+        let Ok(mut queue) = incoming.lock() else {
+            eprintln!("Open-file queue failed; restart the application");
+            return;
+        };
         for url in urls.into_iter().take(32) {
             if queue.len() < 32 {
                 queue.push_back(url);
@@ -339,15 +358,13 @@ fn main() {
                 // focused keystroke only after that dispatch has released the window.
                 cx.defer(move |cx| {
                     let _ = window.update(cx, |_, w, cx| {
-                        w.dispatch_keystroke(
-                            Keystroke::parse(if cfg!(target_os = "macos") {
-                                "cmd-z"
-                            } else {
-                                "ctrl-z"
-                            })
-                            .unwrap(),
-                            cx,
-                        );
+                        if let Ok(key) = Keystroke::parse(if cfg!(target_os = "macos") {
+                            "cmd-z"
+                        } else {
+                            "ctrl-z"
+                        }) {
+                            w.dispatch_keystroke(key, cx);
+                        }
                     });
                 });
             }
@@ -356,15 +373,13 @@ fn main() {
             if let Some(window) = cx.active_window() {
                 cx.defer(move |cx| {
                     let _ = window.update(cx, |_, w, cx| {
-                        w.dispatch_keystroke(
-                            Keystroke::parse(if cfg!(target_os = "macos") {
-                                "cmd-shift-z"
-                            } else {
-                                "ctrl-y"
-                            })
-                            .unwrap(),
-                            cx,
-                        );
+                        if let Ok(key) = Keystroke::parse(if cfg!(target_os = "macos") {
+                            "cmd-shift-z"
+                        } else {
+                            "ctrl-y"
+                        }) {
+                            w.dispatch_keystroke(key, cx);
+                        }
                     });
                 });
             }
@@ -394,7 +409,13 @@ fn main() {
                 cx.background_executor()
                     .timer(std::time::Duration::from_millis(100))
                     .await;
-                let batch = requests.lock().unwrap().drain(..).collect::<Vec<_>>();
+                let batch = match requests.lock() {
+                    Ok(mut queue) => queue.drain(..).collect::<Vec<_>>(),
+                    Err(_) => {
+                        eprintln!("Open-file queue failed; restart the application");
+                        break;
+                    }
+                };
                 for url in batch {
                     cx.update(|cx| match joydeck::preferences::local_file_url(&url) {
                         Ok(path) => match editor::open_path(path, cx) {
@@ -407,6 +428,7 @@ fn main() {
             }
         })
         .detach();
+        #[cfg(feature = "validation")]
         if std::env::args().any(|a| a == "--m4-bench") {
             editor::open_benchmark(cx);
             return;
@@ -438,11 +460,12 @@ fn main() {
         }
         if !std::env::args().any(|x| x == "--diagnostics" || x == "--smoke") {
             match viewer::open_window(cx) {
-                Ok((handle, view)) => {
+                Ok((_handle, view)) => {
                     cx.activate(true);
                     eprintln!("JoyDeck M1 native viewer opened");
                     if std::env::args().any(|x| x == "--viewer-smoke") {
-                        viewer::smoke(handle, &view, cx);
+                        #[cfg(feature = "validation")]
+                        viewer::smoke(_handle, &view, cx);
                     } else if let Some(path) =
                         std::env::args().skip(1).find(|x| !x.starts_with("--"))
                     {
@@ -457,13 +480,14 @@ fn main() {
             return;
         }
         match open_diagnostics(cx) {
-            Ok((handle, view)) => {
+            Ok((_handle, _view)) => {
                 cx.activate(true);
                 eprintln!("JoyDeck native window opened · Kit 0.8.1 / pre 0.3.10");
+                #[cfg(feature = "validation")]
                 if std::env::args().any(|x| x == "--smoke") {
                     cx.defer(move |cx| {
                         if let Err(error) =
-                            handle.update(cx, |_, window, cx| smoke(window, &view, cx))
+                            _handle.update(cx, |_, window, cx| smoke(window, &_view, cx))
                         {
                             eprintln!("SMOKE failed: {error}");
                         }

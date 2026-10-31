@@ -192,6 +192,9 @@ fn mcp(d: &mut Dispatcher) -> Result<(), String> {
             }
             continue;
         }
+        let Some(id) = id else {
+            continue;
+        };
         let result: Result<Value, (i32, &str)> = if v["jsonrpc"] != "2.0" {
             Err((-32600, "Invalid Request"))
         } else {
@@ -202,7 +205,7 @@ fn mcp(d: &mut Dispatcher) -> Result<(), String> {
                     } else {
                         initialized = true;
                         Ok(
-                            json!({"protocolVersion":"2025-11-25","capabilities":{"tools":{},"resources":{}},"serverInfo":{"name":"joydeck-headless","version":"0.1.0"}}),
+                            json!({"protocolVersion":"2025-11-25","capabilities":{"tools":{},"resources":{}},"serverInfo":{"name":"joydeck-headless","version":env!("CARGO_PKG_VERSION")}}),
                         )
                     }
                 }
@@ -241,7 +244,7 @@ fn mcp(d: &mut Dispatcher) -> Result<(), String> {
                     if v["params"]["uri"] == "joydeck://current/summary" {
                         let response = d.dispatch(Request {
                             protocol_version: VERSION.into(),
-                            request_id: format!("resource-{}", id.as_ref().unwrap()),
+                            request_id: format!("resource-{}", id),
                             method: "document.inspect".into(),
                             target: Some(d.session.id),
                             params: json!({}),

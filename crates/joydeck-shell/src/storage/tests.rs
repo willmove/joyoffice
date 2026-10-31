@@ -1,4 +1,3 @@
-
 use super::*;
 use crate::edit::{Command, Session};
 fn root() -> PathBuf {

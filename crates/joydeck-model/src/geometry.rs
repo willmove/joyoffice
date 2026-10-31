@@ -269,7 +269,7 @@ pub fn arrange(objects: &[Object], mode: Arrange) -> Result<Vec<Object>> {
                 Arrange::Top => area.y - b.y,
                 Arrange::Middle => area.y + area.h / 2. - b.y - b.h / 2.,
                 Arrange::Bottom => area.y + area.h - b.y - b.h,
-                _ => unreachable!(),
+                _ => return Err("分布操作不能用于单对象对齐".into()),
             };
             if horizontal {
                 o.x += delta;
