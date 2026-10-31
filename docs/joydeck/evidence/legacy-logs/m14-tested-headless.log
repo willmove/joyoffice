@@ -1,0 +1,70 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling joydeck v0.1.0 (/Users/willm/Coding/joydeck/apps/joydeck)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.61s
+     Running unittests src/lib.rs (target/debug/deps/joydeck-31857271e9a8e32c)
+
+running 28 tests
+test geometry::tests::all_handles_center_and_aspect_constraints ... ok
+test geometry::tests::rotated_hit_and_gesture_single_history ... ok
+test edit::tests::rollback_identity_and_history ... ok
+test geometry::tests::composite_failure_preserves_snapshot_and_reorder_identity ... ok
+test pptx::tests::relationship_paths_and_xml_limits ... ok
+test edit::tests::legacy_upgrade_and_id_overflow_are_checked ... ok
+test edit::tests::history_cap_and_new_branch_clear_redo ... ok
+test edit::tests::versioned_style_and_ids_roundtrip ... ok
+test table::tests::cross_document_table_copy_freezes_source_and_page_sizes_scale ... ok
+test table::tests::hit_rotation_resize_and_theme_override ... ok
+test edit::tests::save_new_never_replaces_existing_target ... ok
+test table::tests::merge_structure_and_illegal_intersection_are_atomic ... ok
+test preview::font_tests::mixed_bold_cjk_emoji_and_accents_use_real_glyphs ... ok
+test table::tests::merged_selection_expands_before_applying_cell_style ... ok
+test table::tests::multiline_empty_paragraphs_and_rich_public_read ... ok
+test edit::tests::save_reopen_and_stale_save ... ok
+test table::tests::public_pptx_has_real_merged_cells_without_private_snapshot ... ok
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test table::tests::table_missing_font_diagnostic_preserves_the_authored_name ... ok
+test table::tests::inherited_style_rich_merge_and_native_roundtrip ... ok
+test table::tests::seeded_structure_operations_preserve_topology ... ok
+test table::tests::tsv_transaction_budget_and_undo ... ok
+test table::tests::scene_cpu_pixel_parity_and_cache ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test table::tests::hostile_spans_and_global_cells_are_rejected ... ok
+test edit::tests::history_budget_includes_redo_and_large_to_small_edits ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+     Running tests/beta.rs (target/debug/deps/beta-d10d9a9176bf9861)
+
+running 8 tests
+test file_events_are_local_decoded_and_bounded ... ok
+test title_captions_match_video_timeline_and_keep_notes_private ... ok
+test comparison_rejects_legacy_objects_without_identity ... ok
+test video_plan_and_cancel_do_not_touch_existing_output ... ok
+test accepting_added_object_preserves_identity_through_recompare_and_history ... ok
+test offline_compare_accept_stale_guard_delete_and_undo ... ok
+test preferences_migration_quarantine_future_and_atomic_validation ... ok
+test preferences_concurrent_updates_keep_recent_and_layout ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/control.rs (target/debug/deps/control-d3221204a82676e4)
+
+running 1 test
+test authenticated_service_shares_desktop_history_and_rejects_unauthenticated ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/review_automation.rs (target/debug/deps/review_automation-49acd140e6ec2703)
+
+running 4 tests
+test dispatcher_idempotence_conflict_target_and_dirty_open ... ok
+test reading_order_is_independent_and_delete_undo_restores_access ... ok
+test canonical_roots_reject_symlink_escape_and_existing_write ... ok
+test review_transaction_undo_anchor_cleanup_and_reopen ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

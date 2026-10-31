@@ -1,0 +1,19 @@
+{
+  "publicReader": "python-pptx",
+  "documents": 128,
+  "pages": 1152,
+  "charts": 896,
+  "families": [
+    "chart-data",
+    "geometry",
+    "image-crop",
+    "motion",
+    "organization",
+    "review-native",
+    "table",
+    "text"
+  ],
+  "externalDocuments": 0,
+  "passed": true,
+  "scope": "public structure, text/data, hashes and declared losses; no independent Office visual certification"
+}

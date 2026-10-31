@@ -1,0 +1,25 @@
+{
+  "videoPreview": {
+    "meanRgbError": 3.281276933154066,
+    "rectangle": [
+      779,
+      277,
+      1072,
+      442
+    ],
+    "passed": true
+  },
+  "printCancelGui": true,
+  "videoShowCaptured": true,
+  "binarySha256": "985950004f14afb0771a031c679384e054ec33344bb060e976a36dfc68202b30",
+  "panelsCaptured": 3,
+  "nativeOnly": false,
+  "pdfPages": 2,
+  "pdfMeanRgbError": 0.4762120627572016,
+  "pdfFonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nHCJHVZ+PingFangSC-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes      6  0\nULBEXA+PingFangSC-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes     14  0\n",
+  "gifStaticPageFrames": 2,
+  "nativeComments": 1,
+  "mediaEmbedded": true,
+  "passed": true
+}
+/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m11-m12

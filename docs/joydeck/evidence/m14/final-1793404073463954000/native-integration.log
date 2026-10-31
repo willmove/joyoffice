@@ -1,0 +1,19 @@
+{
+  "binarySha256": "985950004f14afb0771a031c679384e054ec33344bb060e976a36dfc68202b30",
+  "appRelocated": true,
+  "cwdOutsideRepository": true,
+  "unicodeSpaceFileEvent": true,
+  "sameFileActivatedExistingWindow": true,
+  "windowsAfterDuplicateOpen": 2,
+  "nativeMenus": "Apple, JoyDeck, 文件, 编辑",
+  "menuUndoRedoBeforeOpenDialog": true,
+  "savedPageCounts": [
+    10,
+    9,
+    10,
+    9
+  ],
+  "systemDynamicLibrariesOnly": true,
+  "cleanMachineInstall": false,
+  "passed": true
+}

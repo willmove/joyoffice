@@ -1,0 +1,35 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+  "passed": true,
+  "publicPptxReader": "python-pptx",
+  "syntheticCorpusPublicReaderCount": 40,
+  "pdf": {
+    "slides": {
+      "pages": 2,
+      "outline": 2,
+      "unicodeText": true,
+      "sizePoints": [
+        0,
+        0,
+        960,
+        512
+      ]
+    },
+    "notes": {
+      "pages": 2,
+      "outline": 2,
+      "unicodeText": true,
+      "sizePoints": [
+        0,
+        0,
+        960,
+        652
+      ]
+    }
+  },
+  "pdfPngMeanError": 0.3589389377170139,
+  "slideshowMeanError": 1.4946324666341146,
+  "imageDpi": 144,
+  "scope": "macOS adapter/fullscreen; PowerPoint visual and other platforms recorded separately"
+}
+/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m7

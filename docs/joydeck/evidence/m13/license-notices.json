@@ -1,0 +1,70 @@
+{
+  "packagesFilled": 39,
+  "unresolved": [
+    {
+      "package": "block-0.1.6",
+      "reason": "no pinned GitHub source metadata"
+    },
+    {
+      "package": "mac-0.1.1",
+      "reason": "no pinned GitHub source metadata"
+    },
+    {
+      "package": "malloc_buf-0.0.6",
+      "reason": "no pinned GitHub source metadata"
+    },
+    {
+      "package": "seahash-4.1.0",
+      "reason": "no pinned GitHub source metadata"
+    },
+    {
+      "package": "block2-0.5.1",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc-sys-0.3.5",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-app-kit-0.2.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-core-data-0.2.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-core-image-0.2.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-foundation-0.2.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-metal-0.2.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-quartz-core-0.2.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc2-0.5.3",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "objc_exception-0.1.2",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "pathfinder_geometry-0.5.1",
+      "reason": "no root notice at pinned commit"
+    },
+    {
+      "package": "simd_helpers-0.1.0",
+      "reason": "no root notice at pinned commit"
+    }
+  ],
+  "policy": "exact VCS commit from Cargo package metadata; no moving-branch notices"
+}

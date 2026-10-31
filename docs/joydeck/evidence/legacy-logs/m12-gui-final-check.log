@@ -1,0 +1,231 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running `target/debug/xtask check`
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+cargo test --workspace --locked
+   Compiling joydeck v0.1.0 (/Users/willm/Coding/joydeck/apps/joydeck)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.35s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/deps/joydeck-c1074c5f84d419db)
+
+running 27 tests
+test geometry::tests::all_handles_center_and_aspect_constraints ... ok
+test geometry::tests::rotated_hit_and_gesture_single_history ... ok
+test geometry::tests::composite_failure_preserves_snapshot_and_reorder_identity ... ok
+test edit::tests::rollback_identity_and_history ... ok
+test pptx::tests::relationship_paths_and_xml_limits ... ok
+test edit::tests::save_new_never_replaces_existing_target ... ok
+test table::tests::cross_document_table_copy_freezes_source_and_page_sizes_scale ... ok
+test table::tests::hit_rotation_resize_and_theme_override ... ok
+test edit::tests::legacy_upgrade_and_id_overflow_are_checked ... ok
+test edit::tests::versioned_style_and_ids_roundtrip ... ok
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test table::tests::merge_structure_and_illegal_intersection_are_atomic ... ok
+test edit::tests::history_cap_and_new_branch_clear_redo ... ok
+test table::tests::merged_selection_expands_before_applying_cell_style ... ok
+test table::tests::multiline_empty_paragraphs_and_rich_public_read ... ok
+test table::tests::public_pptx_has_real_merged_cells_without_private_snapshot ... ok
+test table::tests::table_missing_font_diagnostic_preserves_the_authored_name ... ok
+test table::tests::tsv_transaction_budget_and_undo ... ok
+test table::tests::inherited_style_rich_merge_and_native_roundtrip ... ok
+test edit::tests::save_reopen_and_stale_save ... ok
+test table::tests::seeded_structure_operations_preserve_topology ... ok
+test preview::font_tests::mixed_bold_cjk_emoji_and_accents_use_real_glyphs ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test table::tests::scene_cpu_pixel_parity_and_cache ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test table::tests::hostile_spans_and_global_cells_are_rejected ... ok
+test edit::tests::history_budget_includes_redo_and_large_to_small_edits ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s
+
+     Running unittests src/main.rs (target/debug/deps/joydeck-f35c5519141e4880)
+
+running 2 tests
+test jobs::tests::cancelled_job_never_publishes_a_completed_chunk ... ok
+test jobs::tests::restarting_uses_an_independent_cancellation_token ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src/bin/joydeck-cli.rs (target/debug/deps/joydeck_cli-28d0844693d8e57d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/authoring.rs (target/debug/deps/authoring-fe46846ac0b82097)
+
+running 23 tests
+test chart_empty_negative_scatter_and_atomic_paste ... ok
+test diagram_tree_switch_and_atomic_cycle_rejection ... ok
+test chart_validation_aggregate_and_palette ... ok
+test controller_snapshot_pause_custom_order_loop_revisit ... ok
+test ink_budget_and_annotation_copy ... ok
+test morph_geometry_unmatched_opacity_and_crop ... ok
+test links_rehearsal_and_automatic_advance_share_controller ... ok
+test chart_data_and_diagram_conversion_are_one_undo ... ok
+test motion_click_with_after_repeat_reverse_rewind_and_seek ... ok
+test morph_image_crop_interpolates_only_same_resource ... ok
+test motion_invalid_ids_budget_and_reconcile_undo ... ok
+test smartart_text_topology_import_is_explicit_simplification ... ok
+test transition_pixels_boundaries_fade_push_wipe ... ok
+test paragraph_animation_preserves_byte_runs_and_document ... ok
+test page_copy_and_cross_document_transfer_remap_effects ... ok
+test all_basic_public_effect_parameters_and_transitions_roundtrip ... ok
+test chart_all_types_public_cache_workbook_and_holes ... ok
+test actual_powerpoint_chart_edit_and_stale_workbook_detection ... ok
+test empty_scatter_has_finite_axes_and_renders ... ok
+test area_gaps_and_doughnut_hole_survive_public_formats ... ok
+test public_animation_fade_and_actual_powerpoint_sample ... ok
+test unknown_chart_smartart_ole_closure_survives_native_and_preserve ... ok
+test chart_and_diagram_native_scene_and_pdf ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s
+
+     Running tests/control.rs (target/debug/deps/control-a114e0a84092e6b4)
+
+running 1 test
+test authenticated_service_shares_desktop_history_and_rejects_unauthenticated ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/delivery.rs (target/debug/deps/delivery-4534e00896b6a772)
+
+running 6 tests
+test dangling_duplicate_and_escaping_relationships_are_rejected ... ok
+test snapshot_show_skips_hidden_and_source_edits_do_not_change_show ... ok
+test static_pptx_public_xml_relationships_and_private_snapshot_are_consistent ... ok
+test preserve_unknown_relationship_closure_and_patch_single_run_text ... ok
+test page_range_transparency_dpi_and_no_clobber_exports ... ok
+test pdf_snapshot_notes_and_export_failure_preserve_document_and_files ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/design.rs (target/debug/deps/design-868b0cba063cfe02)
+
+running 10 tests
+test shared_document_stale_write_history_and_save_snapshot_guard ... ok
+test invalid_design_and_paste_never_partially_mutate ... ok
+test replace_fonts_updates_theme_and_direct_runs_and_is_undoable ... ok
+test cascade_direct_override_reset_and_reapply_preserve_content ... ok
+test referenced_design_delete_is_atomic_and_replacement_retains_text ... ok
+test new_page_has_no_copied_notes_and_unbound_fields_are_rejected ... ok
+test notes_sections_search_replace_are_single_undo_and_utf8_safe ... ok
+test cross_document_page_transfer_remaps_designs_resources_ids_and_theme ... ok
+test page_transfer_scales_media_and_preserves_references_after_source_closes ... ok
+test design_roundtrip_fields_scene_and_clipboard_flattening ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/media.rs (target/debug/deps/media-9e74ab6abb86cfbd)
+
+running 5 tests
+test arrange_uses_rotated_bounds_and_single_undo ... ok
+test malformed_oversize_missing_hash_and_crop_rejected ... ok
+test import_crop_dedup_undo_transfer_and_resource_collection ... ok
+test jpeg_exif_orientation_and_resource_recovery ... ok
+test native_resource_roundtrip_and_cpu_scene_pixels ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/playback.rs (target/debug/deps/playback-1c983d21bd66b37b)
+
+running 4 tests
+test malformed_media_fails_without_document_changes ... ok
+test media_resources_and_params_undo_native_roundtrip ... ok
+test mp3_probe_and_real_default_device_playback ... ok
+test h264_real_decode_pause_twenty_seeks_and_bounded_frame ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.11s
+
+     Running tests/reader.rs (target/debug/deps/reader-cb07a966f5a2a734)
+
+running 7 tests
+test truncated_zip_and_pre_cancelled_load_are_errors ... ok
+test rejects_unknown_required_feature_major_duplicate_ids_and_bad_geometry ... ok
+test missing_slide_external_main_and_xml_dtd_fail_safely ... ok
+test rejects_ambiguous_paths_duplicate_members_and_expansion_limit ... ok
+test pptx_resolves_main_part_and_uses_presentation_order ... ok
+test native_pages_text_and_geometry ... ok
+test background_preview_is_bounded_and_bgra ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/recovery_process.rs (target/debug/deps/recovery_process-bb447441ae44407d)
+
+running 1 test
+test abnormal_process_exit_releases_lease_and_restores_three_pages ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.82s
+
+     Running tests/review_automation.rs (target/debug/deps/review_automation-9689013cfebd7442)
+
+running 4 tests
+test dispatcher_idempotence_conflict_target_and_dirty_open ... ok
+test reading_order_is_independent_and_delete_undo_restores_access ... ok
+test canonical_roots_reject_symlink_escape_and_existing_write ... ok
+test review_transaction_undo_anchor_cleanup_and_reopen ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/save_faults.rs (target/debug/deps/save_faults-462be8f3665b181d)
+
+running 2 tests
+test unwritable_parent_preserves_target_and_cleans_staging ... ok
+test occupied_destination_and_missing_parent_preserve_document ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/scene.rs (target/debug/deps/scene-9e29889d783c97a2)
+
+running 10 tests
+test local_alpha_crosses_gpui_boundary_once_in_bgra_order ... ok
+test image_primitive_rejects_invalid_dimensions_and_payloads ... ok
+test cancellation_and_invalid_model_do_not_publish_a_scene ... ok
+test oversized_text_is_rejected_before_shaping_without_changing_document ... ok
+test shared_glyph_outlines_keep_layout_positions_without_reshaping ... ok
+test movement_reuses_outlines_and_only_changed_styles_invalidate ... ok
+test cache_eviction_is_bounded_and_clear_does_not_mutate_model ... ok
+test scene_cpu_reference_preserves_geometry_text_opacity_and_z_order ... ok
+test effects_are_isolated_and_images_are_real_bounded_rgba ... ok
+test benchmark_cpu_measurement_is_recorded_without_claiming_native_latency ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/tables.rs (target/debug/deps/tables-a1db1c9e1df0ad7b)
+
+running 1 test
+test actual_powerpoint_edit_uses_public_cells_and_preserves_merges ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/text.rs (target/debug/deps/text-84ad7b24fb0853a2)
+
+running 8 tests
+test utf16_surrogates_reversed_and_out_of_bounds_are_rejected ... ok
+test reversed_selection_extends_and_shrinks_across_unicode ... ok
+test empty_mark_cancels_replacement_of_existing_selection ... ok
+test invalid_run_gaps_style_and_boundaries_are_rejected ... ok
+test graphemes_are_atomic_for_zwj_flags_and_combining_marks ... ok
+test composition_commit_cancel_and_failed_replacement_are_atomic ... ok
+test unavailable_font_is_located_and_preserved ... ok
+test rich_splice_preserves_adjacent_styles_and_roundtrips ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running unittests src/main.rs (target/debug/deps/xtask-312d9e22997d7775)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

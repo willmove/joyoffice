@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-30",
+  "platform": "macOS ARM64",
+  "package": "dist/joydeck-m12-verified-darwin-arm64.zip",
+  "packageSha256": "af876e72abe8caf482c382f88eef6b0207f09ba61600e581f9b95dc9572fbce8",
+  "binaries": {
+    "joydeck": "0c73a8d149cc9317b415e21b3150a067938e917ab8e1ac13ce816ca7a5435a10",
+    "joydeck-cli": "019312b395cc2739f2b48d2394b437b6a3bc29360e4a1eab2782683f12f0f16c",
+    "joydeck-media-macos": "401fcd5218b7df61f3ed227f5b60f0785a26daad17dc12be03e631eac335648f",
+    "joydeck-print-macos": "b9d4bfaaf42b38cb048bda8a8fa818fb2ab2cf0611d30b0dd5c6bdb79a2a40d8"
+  },
+  "packageHashRecords": 80,
+  "rustTests": 111,
+  "headlessTests": 32,
+  "fmtClippyPassed": true,
+  "releaseLinked": true,
+  "nativeFormats": "docs/evidence/m12/final-gui-1793374588146617000/m11-m12/verification.json",
+  "automation": "docs/evidence/m12/automation.json",
+  "audioClock": "docs/evidence/m11/audio-clock-bench.json",
+  "pdfStructure": "docs/evidence/m12/headless/pdf-structure.json",
+  "gui": {
+    "passed": true,
+    "nativeOnly": false,
+    "panelsCaptured": 3,
+    "videoPreviewPixelComparison": {
+      "meanRgbError": 3.281276933154066,
+      "rectangle": [
+        779,
+        277,
+        1072,
+        442
+      ],
+      "passed": true
+    },
+    "videoShowCaptured": true,
+    "printSettingsAndCancel": true,
+    "printDocumentUnchanged": {
+      "revisionUnchanged": true,
+      "dirtyUnchanged": true,
+      "documentUnchanged": true
+    },
+    "physicalPrinting": false,
+    "report": "docs/35-m11-m12-gui-verification.md"
+  },
+  "stageM11Done": false,
+  "stageM12Done": false,
+  "openDevelopment": [
+    "Office comments/media public roundtrip",
+    "full accessibility checks and PDF reading order",
+    "async jobs/cancellation and remaining domain commands",
+    "multitrack/ShowClock integration, A/V/device matrix",
+    "Windows/Linux media and print adapters",
+    "previous M0-M7 implementation gaps"
+  ],
+  "sourceArchive": "dist/joydeck-m12-verified-source.tar.gz",
+  "rollback": "dist/joydeck-before-m11-m12-source.tar.gz",
+  "guiRegressions": {
+    "m0-m4": "docs/evidence/m12/regression-1793374344236729000/m0-m4.log",
+    "m4-benchmark": "docs/evidence/m12/final-gui-1793374588146617000/m4/verification.json",
+    "m5": "docs/evidence/m12/final-gui-1793374588146617000/m5/verification.json",
+    "m6": "docs/evidence/m12/final-gui-1793374588146617000/m6/verification.json",
+    "m7": "docs/evidence/m12/final-gui-1793374588146617000/m7/verification.json",
+    "m8": "docs/evidence/m12/final-gui-1793374588146617000/m8/verification.json",
+    "m9-m10": "docs/evidence/m12/m9-m10-icc-verified/verification.json",
+    "text-ime": "docs/evidence/m3/pinyin-1793374407716800000/result.json",
+    "table-ime": "docs/evidence/m8/pinyin-1793374416051958000/result.json"
+  },
+  "verificationLogs": {
+    "check": "logs/m12-gui-final-check.log",
+    "clippy": "logs/m12-gui-final-clippy.log",
+    "headless": "logs/m12-gui-final-headless-tests.log",
+    "headlessBuild": "logs/m12-gui-final-headless-build.log",
+    "headlessCommands": "logs/m12-gui-final-headless-commands.json",
+    "package": "logs/m12-verified-package.log"
+  },
+  "historicalLockedEvidence": "docs/evidence/m12/final-verification-before-unlock.json",
+  "correctedCaptureComparison": {
+    "reason": "Display ICC values were compared directly with sRGB reference; now transform via embedded ICC without changing thresholds",
+    "original": "docs/evidence/m12/regression-1793374344236729000/m9-m10/verification.json",
+    "corrected": "docs/evidence/m12/m9-m10-icc-verified/verification.json"
+  }
+}

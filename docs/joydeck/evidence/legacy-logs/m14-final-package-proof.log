@@ -1,0 +1,9 @@
+{
+  "package": "dist/joydeck-m14-final-darwin-arm64",
+  "manifestFiles": 2014,
+  "sourceFilesMatched": 69,
+  "zipSha256": "f022bcf7097d516ed41a1271ae37ea5e52625cc61ba50d80cb3190e8d95df45b",
+  "sbomPackages": 483,
+  "upgradeRollback": true,
+  "comparisonBothBinaries": true
+}

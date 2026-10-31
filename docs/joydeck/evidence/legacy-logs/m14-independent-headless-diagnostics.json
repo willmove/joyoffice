@@ -1,0 +1,1 @@
+{"application":"JoyDeck","architecture":"aarch64","automationProtocol":"joydeck-control-1","desktopFeature":false,"diagnosticScope":"build capabilities; not device or signature acceptance","nativeReaderMax":11,"os":"macos","preferencesSchema":2,"version":"0.1.0","videoExport":"static-page MP4 requires macOS encoder helper","writerSchema":"1.10"}

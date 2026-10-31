@@ -1,0 +1,48 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running `target\debug\xtask.exe stage M2`
+cargo build --locked -p joydeck
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.70s
+cargo test --workspace --locked
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.70s
+     Running unittests src\lib.rs (target\debug\deps\joydeck-9844b94dc4d3fa4f.exe)
+
+running 3 tests
+test edit::tests::rollback_identity_and_history ... ok
+test pptx::tests::relationship_paths_and_xml_limits ... ok
+test edit::tests::save_reopen_and_stale_save ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\main.rs (target\debug\deps\joydeck-73e1feecb9ab0010.exe)
+
+running 2 tests
+test jobs::tests::cancelled_job_never_publishes_a_completed_chunk ... ok
+test jobs::tests::restarting_uses_an_independent_cancellation_token ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\reader.rs (target\debug\deps\reader-e6f9ed3296f9df58.exe)
+
+running 7 tests
+test truncated_zip_and_pre_cancelled_load_are_errors ... ok
+test native_pages_text_and_geometry ... ok
+test pptx_resolves_main_part_and_uses_presentation_order ... ok
+test rejects_unknown_required_feature_major_duplicate_ids_and_bad_geometry ... ok
+test rejects_ambiguous_paths_duplicate_members_and_expansion_limit ... ok
+test background_preview_is_bounded_and_bgra ... ok
+test missing_slide_external_main_and_xml_dtd_fail_safely ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running unittests src\main.rs (target\debug\deps\xtask-f5ec38a185e7241c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

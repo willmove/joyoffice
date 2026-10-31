@@ -1,0 +1,13 @@
+{
+  "oldPackage": "joydeck-m14-delivered-darwin-arm64.zip",
+  "newPackage": "joydeck-m14-final-darwin-arm64.zip",
+  "oldSha256": "c65c7d08ac520547f578942183994fd7e2f83dd2f424db5c196a9e4f1357d232",
+  "newSha256": "f022bcf7097d516ed41a1271ae37ea5e52625cc61ba50d80cb3190e8d95df45b",
+  "installedFiles": 2014,
+  "realPackageUpgrade": true,
+  "realPackageRollback": true,
+  "executableModesRetained": true,
+  "launchedStagedPrograms": false,
+  "publisherSignatureVerified": false,
+  "passed": true
+}

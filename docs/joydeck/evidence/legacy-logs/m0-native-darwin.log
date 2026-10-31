@@ -1,0 +1,7 @@
+JoyDeck native window opened · Kit 0.8.1 / pre 0.3.10
+SMOKE utf16_commit=true value=中文✅
+SMOKE composition_cancel=true
+SMOKE modal_open=true
+SMOKE native_adapter_sequence_dispatched
+SMOKE second_window_closed=true
+Diagnostic worker settled at 100%

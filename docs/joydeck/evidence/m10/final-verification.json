@@ -1,0 +1,105 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m10-validated-darwin-arm64/joydeck",
+  "sha256": "414b4586565ab24e28bc17506d2d1d342da13a021174505ce7b3dcf1051d4abf",
+  "python": "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "suite": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000",
+  "checks": [
+    {
+      "name": "M0-M4",
+      "exit": 0,
+      "seconds": 17.49,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/M0-M4.log",
+      "lastLine": [
+        "M4 PASS: /Users/willm/Coding/joydeck/logs/m4-native-darwin.log"
+      ]
+    },
+    {
+      "name": "M5",
+      "exit": 0,
+      "seconds": 6.23,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/M5.log",
+      "lastLine": [
+        "/Users/willm/Coding/joydeck/docs/evidence/m5/run-1793363223008435000"
+      ]
+    },
+    {
+      "name": "M6",
+      "exit": 0,
+      "seconds": 8.67,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/M6.log",
+      "lastLine": [
+        "/Users/willm/Coding/joydeck/docs/evidence/m6/run-1793363229196372000"
+      ]
+    },
+    {
+      "name": "M7",
+      "exit": 0,
+      "seconds": 4.88,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/M7.log",
+      "lastLine": [
+        "/Users/willm/Coding/joydeck/docs/evidence/m7/run-1793363237977584000"
+      ]
+    },
+    {
+      "name": "M8",
+      "exit": 0,
+      "seconds": 5.92,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/M8.log",
+      "lastLine": [
+        "/Users/willm/Coding/joydeck/docs/evidence/m8/run-1793363242762441000"
+      ]
+    },
+    {
+      "name": "M9-M10",
+      "exit": 0,
+      "log": "/Users/willm/Coding/joydeck/logs/m10-validated-m9-m10.log",
+      "evidence": "/Users/willm/Coding/joydeck/docs/evidence/m10/run-1793363332827828000",
+      "note": "Re-ran after correcting unsupported python-pptx hole_size API; direct public XML verifies 50% hole."
+    },
+    {
+      "name": "text-IME",
+      "exit": 0,
+      "seconds": 6.46,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/text-IME.log",
+      "lastLine": [
+        "PASS: macOS system Pinyin commit/cancel/undo/roundtrip; evidence: /Users/willm/Coding/joydeck/docs/evidence/m3/pinyin-1793363257454203000"
+      ]
+    },
+    {
+      "name": "table-IME",
+      "exit": 0,
+      "seconds": 6.22,
+      "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/table-IME.log",
+      "lastLine": [
+        "PASS: macOS system Pinyin commit/cancel/undo/roundtrip; evidence: /Users/willm/Coding/joydeck/docs/evidence/m8/pinyin-1793363263932068000"
+      ]
+    }
+  ],
+  "passed": true,
+  "previousM9M10HarnessFailure": {
+    "name": "M9-M10",
+    "exit": 1,
+    "seconds": 8.82,
+    "log": "/Users/willm/Coding/joydeck/docs/evidence/m10/final-regression-1793363205405046000/M9-M10.log",
+    "lastLine": [
+      "AttributeError: 'DoughnutPlot' object has no attribute 'hole_size'"
+    ]
+  },
+  "regressionBinary": "/Users/willm/Coding/joydeck/dist/joydeck-m10-delivery-darwin-arm64/joydeck",
+  "package": "/Users/willm/Coding/joydeck/dist/joydeck-m10-validated-darwin-arm64.zip",
+  "sameBinaryAcrossPackages": true,
+  "codeChecks": {
+    "tests": 102,
+    "fmt": true,
+    "clippyAllTargetsDenyWarnings": true,
+    "checkLog": "logs/m10-xtask-delivery-check.log",
+    "stageM9": "logs/m9-delivery-stage.log",
+    "stageM10": "logs/m10-delivery-stage.log"
+  },
+  "benchShow": "docs/evidence/m10/authoring-delivery/BENCH-SHOW.json",
+  "packageManifestFiles": 52,
+  "packageHashesVerified": true,
+  "archiveSha256": "981398e3dedb4e4be3e6d1da858522232d9a4b151da02d66e9d60aa3733df6bf",
+  "officeGui": "docs/evidence/m10/ui-reference/office-verification.json",
+  "uiAudit": "docs/evidence/m10/ui-reference/audit.md"
+}

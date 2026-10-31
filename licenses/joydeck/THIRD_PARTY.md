@@ -1,0 +1,42 @@
+# Dependency and asset provenance
+
+The JoyDeck application, document model, native schema, OPC/PresentationML adapters, viewer actions and fixture generator are independently authored. Input semantics come from the public standards listed in docs/15-evidence-references.md. The following general-purpose libraries are dependencies, not document-engine implementations.
+
+| Dependency | Version | License | Purpose / upstream |
+|---|---|---|---|
+| GPUI Kit / Base / Component / Assets | 0.8.1 | Apache-2.0 | Desktop UI; https://github.com/longbridge/gpui-kit |
+| GPUI pre family | 0.3.10 | Apache-2.0 | Matching window/render runtime; https://github.com/zed-industries/zed |
+| image | 0.25.9 | MIT OR Apache-2.0 | BGRA frame storage and bounded PNG/JPEG decoding/EXIF orientation |
+| serde / serde_json | 1.0.228 / 1.0.154 | MIT OR Apache-2.0 | Native JSON schema; https://github.com/serde-rs/serde and https://github.com/serde-rs/json |
+| zip | 0.6.6 | MIT | Bounded ZIP access; https://github.com/zip-rs/zip |
+| roxmltree | 0.21.1 | MIT OR Apache-2.0 | Bounded XML reads; https://github.com/RazrFalcon/roxmltree |
+| resvg / usvg | 0.45.1 | MIT OR Apache-2.0 | CPU rasterization of generated, restricted SVG; https://github.com/linebender/resvg |
+| tiny-skia | 0.11.4 | BSD-3-Clause | Raster storage/path backend; https://github.com/RazrFalcon/tiny-skia |
+
+Kit icons include Lucide (ISC); notice is licenses/LICENSE-LUCIDE. Newly used reader/raster/serialization library notices are copied unmodified into licenses/ from the locked Cargo registry packages. Exact complete transitive versions and checksums are in Cargo.lock; GPUI itself also pulls a separate resvg version. M13 now generates a target-filtered SPDX dependency inventory; full redistribution/legal review remains a release gate.
+
+All native/PPTX fixture shapes and text, diagnostic paths and gradients are created by this project. Fonts are loaded from the operating system and are not redistributed. No external templates or media are packaged.
+
+M2 completion adds sha2 0.10.9 (MIT OR Apache-2.0, https://github.com/RustCrypto/hashes) for file fingerprints. Matching dependency license texts are in licenses/. Recovery uses the standard library file-lock API on the pinned Rust toolchain; no additional locking library was introduced.
+
+M3 adds unicode-segmentation 1.13.3 (MIT OR Apache-2.0, https://github.com/unicode-rs/unicode-segmentation) for Unicode grapheme and word boundaries; the already locked transitive version is now a direct dependency. License texts are in licenses/LICENSE-UNICODE-SEGMENTATION-*. The GPUI input adapter is independently implemented against the pinned EntityInputHandler, ShapedLine and ElementInputHandler APIs, consulted in the dependency's official API source/example; no example implementation was copied into this project.
+
+M3 macOS verification promotes the already locked ttf-parser 0.25.1 (MIT OR Apache-2.0, https://github.com/harfbuzz/ttf-parser) to a direct dependency to check complete emoji grapheme coverage before selecting a system font. Matching licenses are in licenses/LICENSE-TTF-PARSER-*. System font data remains OS-owned and is not redistributed. The native QA input-source helper calls public macOS Carbon/CoreFoundation APIs; its system Pinyin tests use OS-generated keyboard events and do not claim physical keyboard validation.
+
+M4 Scene/GPUI work adds no external dependency. It reuses the pinned usvg layout and ttf-parser outlines for exact font/glyph placement, tiny-skia for CPU references and glyph masks, and GPUI's documented path/image/frame APIs. BENCH-EDIT bitmaps and BENCH-EFFECT gradient/clip/opacity/filter compositions are generated independently in source. No system font binaries or external presentation assets are redistributed. Native screenshots and timings are local QA evidence; adapter resource counters are distinguished from driver VRAM telemetry.
+
+M5 promotes already locked base64 0.22.1 (MIT OR Apache-2.0, https://github.com/marshallpierce/rust-base64) to a direct dependency for generated SVG data URIs. Matching license texts are in licenses/LICENSE-BASE64-*. PNG/JPEG support uses the existing image dependency and pinned codecs. Images in QA are independently generated; imported user images are stored only in their document. No new presentation-engine dependency is introduced.
+
+M6 adds no third-party dependency. The master/layout/theme resolver, shared document/view wrapper, organization/search commands, cross-document page transfer and QA scenes are independently authored. The starter theme/layout is original. Pinned GPUI textarea/window/clipboard APIs are used for UI adapters; system fonts remain OS-owned and are not redistributed.
+
+M7 promotes already locked png 0.18.1 and flate2 1.1.10 (MIT OR Apache-2.0) to direct dependencies for DPI-tagged PNG and PDF image stream compression. Matching notices are in licenses/LICENSE-PNG-* and LICENSE-FLATE2-*. OPC/PresentationML writing, source-package preservation, PDF serialization and show snapshot/navigation are independently authored. Python-pptx, pypdf, Poppler and Microsoft PowerPoint are QA tools only, not production document engines. All 40 new corpus samples are original synthetic data; no third-party slides or templates are redistributed.
+
+M11 adds an independently authored Swift subprocess adapter using the OS AVFoundation/CoreImage frameworks. It probes only a declared codec/profile subset and delegates decoding, default audio-device output and media timing to Apple APIs; no FFmpeg/GStreamer or third-party presentation engine is bundled. H.264 fixture frames and tone PCM samples are original. AAC fixture encoding uses macOS afconvert and the original tone; MP3 fixture encoding uses lameenc 1.9.0 (LAME, LGPL-3.0-or-later), installed solely as a QA generator, absent from the product binaries and runtime dependency graph. Encoded test media contains no third-party recording. Apple system frameworks and system fonts are not redistributed.
+
+M12 adds svg2pdf 0.13.0, pdf-writer 0.12.1 and subsetter 0.2.6 (MIT OR Apache-2.0, https://github.com/typst/svg2pdf, https://github.com/typst/pdf-writer, https://github.com/typst/subsetter) for converting the existing generated SVG scene into vector paths and embedded subset fonts. Their fontations dependencies read-fonts 0.39.2, skrifa 0.42.1 and write-fonts 0.48.1 (MIT OR Apache-2.0, https://github.com/googlefonts/fontations) are locked. getrandom 0.3.4 (MIT OR Apache-2.0, https://github.com/rust-random/getrandom) supplies per-instance 256-bit control tokens. image's existing GIF codec feature is now enabled. Matching upstream license/notice files are in licenses/. PDFKit/AppKit printing uses system frameworks. MCP JSON-RPC/version adapters, review model, authenticated control dispatcher, roots and exporters are independently authored against public specifications.
+
+M13/M14 add no production Rust dependency. Versioned preferences/file events, stable-ID comparison and guarded object acceptance, release verification/staging/rollback, diagnostics and QA corpus generation are independently authored. The static-page H.264 Main MP4 encoder delegates to the OS AVFoundation AVAssetWriter API; the WebVTT sidecar contains page titles, not speaker notes. No recording, microphone or camera is enabled.
+
+The macOS ARM64 development package contains an SPDX 2.3 normal/build dependency graph with 483 packages, original cached license files and an index. Where published crates omit license files, 39 notices were obtained from the exact upstream VCS commits recorded by the Cargo archives; sources and SHA256 hashes accompany these notices in licenses/dependency-notices. Sixteen packages still have notice-text sourcing gaps, listed in docs/evidence/m13/license-notices.json and the dependency-license index. Metadata and collected texts do not close the formal redistribution review gate. System frameworks/fonts are not bundled. The SPDX JSON is checked against the official 2.3 schema; Python jsonschema 4.26.0 is a QA-only validator, absent from the product runtime.
+
+The additional 128 native/public PPTX corpus variants are original project data in eight families, licensed with this source repository (MIT OR Apache-2.0). They are not independently sourced external Office documents. Build information, source hashes, Cargo.lock and per-file package hashes record the precise development artifact. Unsigned offline staging requires an explicit development flag; it does not claim a verified publisher identity.

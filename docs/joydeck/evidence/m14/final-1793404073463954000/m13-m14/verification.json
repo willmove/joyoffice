@@ -1,0 +1,48 @@
+{
+  "binarySha256": "985950004f14afb0771a031c679384e054ec33344bb060e976a36dfc68202b30",
+  "cliSha256": "7e043cd4716b379baedabc9dd8395fe7ac55bf624e150c9a2a05e9e55367c502",
+  "nativeOnly": false,
+  "guiPassed": true,
+  "panelsCaptured": 5,
+  "canvas": {
+    "meanRgbError": 0.3285736149372513,
+    "fractionPixelsOver48": 0.0023209366391184574,
+    "interiorRgbError": 0.05444173529749181,
+    "interiorPixelsOver16": 0.0,
+    "edgePixelsOver128": 0.0,
+    "passed": true
+  },
+  "nativeState": {
+    "nativeWindowsOpenedClosed": 24,
+    "editUndoCycles": 120,
+    "liveWindows": 1,
+    "preferencesRestored": true,
+    "windowHeightRestoredWithoutShrink": true,
+    "comparisonAcceptedUndoRedo": true,
+    "mp4ExportDocumentUnchanged": true,
+    "exportedVideoDisplayed": true,
+    "scope": "native handlers; screenshot status recorded separately; no physical dual-display/reader certification"
+  },
+  "video": {
+    "audioTracks": 0,
+    "duration": 18,
+    "firstPts": 0,
+    "frames": 270,
+    "height": 540,
+    "lastPts": 17.933333333333334,
+    "monotonicPts": true,
+    "videoTracks": 1,
+    "width": 960
+  },
+  "decodedFrameMeanRgbError": 0.9073894032921811,
+  "cliCompareAcceptUndo": true,
+  "titleVttTimeline": true,
+  "diagnosticsFieldsChecked": true,
+  "appMaxRssKiB": 219264,
+  "preferences": {
+    "schema": 2,
+    "generation": 2,
+    "recentCount": 1
+  },
+  "passed": true
+}

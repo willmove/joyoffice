@@ -1,0 +1,168 @@
+{
+  "binarySha256": "985950004f14afb0771a031c679384e054ec33344bb060e976a36dfc68202b30",
+  "results": [
+    {
+      "name": "m13-m14",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m13-m14.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m13-m14"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m13-m14.log"
+    },
+    {
+      "name": "native-integration",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-macos-integration.py",
+        "--app",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/JoyDeck.app",
+        "--document",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m13-m14/current.joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/native-integration"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/native-integration.log"
+    },
+    {
+      "name": "m0-m4",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/smoke-native.py",
+        "M0",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m0-m4.log"
+    },
+    {
+      "name": "m4",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/benchmark-m4.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m4"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m4.log"
+    },
+    {
+      "name": "m5",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m5.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m5"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m5.log"
+    },
+    {
+      "name": "m6",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m6.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m6"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m6.log"
+    },
+    {
+      "name": "m7",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m7.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m7",
+        "--poppler",
+        "/opt/homebrew/bin"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m7.log"
+    },
+    {
+      "name": "m8",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m8.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m8",
+        "--poppler",
+        "/opt/homebrew/bin"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m8.log"
+    },
+    {
+      "name": "m9-m10",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m9-m10.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m9-m10"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m9-m10.log"
+    },
+    {
+      "name": "m11-m12",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m11-m12.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m14/final-1793404073463954000/m11-m12"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/m11-m12.log"
+    },
+    {
+      "name": "ime",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/smoke-macos-ime.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/ime.log"
+    },
+    {
+      "name": "table-ime",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/smoke-macos-ime.py",
+        "--table",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m14-final-darwin-arm64/joydeck"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m14/final-1793404073463954000/table-ime.log"
+    }
+  ],
+  "passed": true
+}

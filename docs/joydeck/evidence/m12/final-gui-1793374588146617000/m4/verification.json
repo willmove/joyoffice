@@ -1,0 +1,184 @@
+{
+  "deviceScale": 1.0,
+  "rasterWidth": 1000,
+  "seed": 5363639015887301380,
+  "profile": "release",
+  "framesPerBackend": 48,
+  "warmupFrames": 3,
+  "metric": "synthetic scene transform -> GPUI post-render frame callback; not hardware scan-out or physical input",
+  "geometryCache": {
+    "builds": 121,
+    "hits": 59,
+    "evictions": 0,
+    "bytes": 270004,
+    "build_micros": 35988,
+    "local_rasters": 0
+  },
+  "fixture": {
+    "objects": 200,
+    "geometryObjects": 120,
+    "textObjects": 60,
+    "imageObjects": 20,
+    "distinctImageResources": 20,
+    "imageDimensions": [
+      512,
+      512
+    ],
+    "shapedGlyphs": 8100,
+    "missingGlyphs": 0
+  },
+  "measurements": [
+    {
+      "scenario": "BENCH-EDIT",
+      "backend": "CPU",
+      "samples": 48,
+      "feedback_p50_ms": 38.465667,
+      "feedback_p95_ms": 46.133374999999994,
+      "feedback_p99_ms": 46.177083,
+      "frame_p95_ms": 46.134167,
+      "stats": {
+        "frames": 0,
+        "paths": 0,
+        "images": 0,
+        "glyph_masks": 0,
+        "fallbacks": 0,
+        "uploads": 51,
+        "atlas_removals": 0,
+        "upload_bytes": 153000000,
+        "tessellations": 0,
+        "cpu_raster_micros": 1409164,
+        "resource_prepare_micros": 0,
+        "full_rasters": 51,
+        "paint_micros": 0,
+        "gpu_cache_bytes": 0
+      }
+    },
+    {
+      "scenario": "BENCH-EDIT",
+      "backend": "GPUI",
+      "samples": 48,
+      "feedback_p50_ms": 7.688625,
+      "feedback_p95_ms": 8.119375,
+      "feedback_p99_ms": 8.646875,
+      "frame_p95_ms": 8.119458,
+      "stats": {
+        "frames": 51,
+        "paths": 11016,
+        "images": 1020,
+        "glyph_masks": 413100,
+        "fallbacks": 0,
+        "uploads": 44,
+        "atlas_removals": 0,
+        "upload_bytes": 24826688,
+        "tessellations": 216,
+        "cpu_raster_micros": 0,
+        "resource_prepare_micros": 12916,
+        "full_rasters": 0,
+        "paint_micros": 218630,
+        "gpu_cache_bytes": 25515584
+      }
+    },
+    {
+      "scenario": "BENCH-EFFECT",
+      "backend": "CPU",
+      "samples": 48,
+      "feedback_p50_ms": 23.076833,
+      "feedback_p95_ms": 23.142417,
+      "feedback_p99_ms": 23.813042,
+      "frame_p95_ms": 23.142709,
+      "stats": {
+        "frames": 0,
+        "paths": 0,
+        "images": 0,
+        "glyph_masks": 0,
+        "fallbacks": 0,
+        "uploads": 51,
+        "atlas_removals": 0,
+        "upload_bytes": 126480000,
+        "tessellations": 0,
+        "cpu_raster_micros": 707693,
+        "resource_prepare_micros": 0,
+        "full_rasters": 51,
+        "paint_micros": 0,
+        "gpu_cache_bytes": 0
+      }
+    },
+    {
+      "scenario": "BENCH-EFFECT",
+      "backend": "GPUI",
+      "samples": 48,
+      "feedback_p50_ms": 7.689417,
+      "feedback_p95_ms": 8.221457999999998,
+      "feedback_p99_ms": 8.519416,
+      "frame_p95_ms": 8.221917000000001,
+      "stats": {
+        "frames": 51,
+        "paths": 0,
+        "images": 0,
+        "glyph_masks": 0,
+        "fallbacks": 1530,
+        "uploads": 30,
+        "atlas_removals": 44,
+        "upload_bytes": 2737920,
+        "tessellations": 0,
+        "cpu_raster_micros": 0,
+        "resource_prepare_micros": 949,
+        "full_rasters": 0,
+        "paint_micros": 2269,
+        "gpu_cache_bytes": 2737920
+      }
+    }
+  ],
+  "editRelativeP95Reduction": 0.824002145951819,
+  "measuredRenderingGate": true,
+  "overallM4Accepted": false,
+  "binarySha256": "0c73a8d149cc9317b415e21b3150a067938e917ab8e1ac13ce816ca7a5435a10",
+  "rssKiBMaxObserved": 216176,
+  "rssSamplingIntervalSeconds": 0.5,
+  "pixelQuality": {
+    "BENCH-EDIT-CPU": {
+      "meanRgbError": 0.014000444444444444,
+      "fractionPixelsOver48": 0.0,
+      "interiorRgbError": 0.003956331117407491,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "BENCH-EDIT-GPUI": {
+      "meanRgbError": 3.451038222222222,
+      "fractionPixelsOver48": 0.027558666666666665,
+      "interiorRgbError": 0.003956331117407491,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.000876,
+      "passed": true
+    },
+    "BENCH-EFFECT-CPU": {
+      "meanRgbError": 0.004599462365591398,
+      "fractionPixelsOver48": 0.0,
+      "interiorRgbError": 0.0038218008336482795,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "BENCH-EFFECT-GPUI": {
+      "meanRgbError": 0.10065,
+      "fractionPixelsOver48": 0.0,
+      "interiorRgbError": 0.07029936298755005,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "pixelThresholds": {
+    "meanRgbError": 5.0,
+    "interiorRgbError": 1.0,
+    "interiorPixelsOver16": 0.001,
+    "edgePixelsOver128": 0.002,
+    "stableNeighborhoodColorRange": 8,
+    "edgeNeighborhoodRadius": 1
+  },
+  "releaseRenderingValidation": true,
+  "rssBudgetMiB": 450,
+  "memoryValidation": true,
+  "releaseValidation": true
+}

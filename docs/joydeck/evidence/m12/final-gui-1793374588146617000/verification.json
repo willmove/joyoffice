@@ -1,0 +1,88 @@
+{
+  "binarySha256": "0c73a8d149cc9317b415e21b3150a067938e917ab8e1ac13ce816ca7a5435a10",
+  "results": [
+    {
+      "name": "m11-m12",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m11-m12.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m11-m12"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m12/final-gui-1793374588146617000/m11-m12.log"
+    },
+    {
+      "name": "m4",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/benchmark-m4.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m4"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m12/final-gui-1793374588146617000/m4.log"
+    },
+    {
+      "name": "m5",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m5.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m5"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m12/final-gui-1793374588146617000/m5.log"
+    },
+    {
+      "name": "m6",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m6.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m6"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m12/final-gui-1793374588146617000/m6.log"
+    },
+    {
+      "name": "m7",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m7.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m7",
+        "--poppler",
+        "/opt/homebrew/bin"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m12/final-gui-1793374588146617000/m7.log"
+    },
+    {
+      "name": "m8",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joydeck/scripts/verify-m8.py",
+        "--binary",
+        "/Users/willm/Coding/joydeck/dist/joydeck-m12-verified-darwin-arm64/joydeck",
+        "--output",
+        "/Users/willm/Coding/joydeck/docs/evidence/m12/final-gui-1793374588146617000/m8",
+        "--poppler",
+        "/opt/homebrew/bin"
+      ],
+      "exitCode": 0,
+      "log": "docs/evidence/m12/final-gui-1793374588146617000/m8.log"
+    }
+  ],
+  "passed": true
+}

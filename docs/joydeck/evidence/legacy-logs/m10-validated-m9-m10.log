@@ -1,0 +1,42 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m10-validated-darwin-arm64/joydeck",
+  "sha256": "414b4586565ab24e28bc17506d2d1d342da13a021174505ce7b3dcf1051d4abf",
+  "canvas": {
+    "GPUI": {
+      "meanRgbError": 0.1842461312585734,
+      "fractionPixelsOver48": 0.0012699331275720165,
+      "interiorRgbError": 0.0,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "CPU": {
+      "meanRgbError": 0.4284001521776406,
+      "fractionPixelsOver48": 0.0014320237482853223,
+      "interiorRgbError": 0.0,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "publicCharts": 7,
+  "embeddedWorkbooks": 7,
+  "cacheWorkbookValue": 131,
+  "nativeShow": {
+    "renderedFrames": 31,
+    "renderP95Ms": 35.142,
+    "totalRenderMs": 872,
+    "monotonicPause": true,
+    "blackWhite": true,
+    "snapshotUnchanged": true,
+    "displays": [
+      4
+    ],
+    "scope": "native preview timer/render + one physical display; not physical dual-screen/hotplug or end-to-end 60fps certification",
+    "editorFocusRestored": true,
+    "clockHandoff": true,
+    "handoffDeltaMs": 220
+  },
+  "passed": true
+}
+/Users/willm/Coding/joydeck/docs/evidence/m10/run-1793363332827828000

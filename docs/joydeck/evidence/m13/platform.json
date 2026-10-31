@@ -1,0 +1,8 @@
+{
+  "os": "macOS",
+  "osVersion": "27.0.1",
+  "architecture": "arm64",
+  "cpu": "Apple M4",
+  "memoryBytes": 25769803776,
+  "scope": "public hardware/build descriptors only; no serial, account, document path or credentials"
+}

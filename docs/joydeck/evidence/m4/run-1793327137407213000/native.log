@@ -1,0 +1,5 @@
+M4_CAPTURE BENCH-EDIT CPU {"x":16.0,"y":50.0,"width":1000.0,"height":750.0,"viewportHeight":880.0}
+M4_CAPTURE BENCH-EDIT GPUI {"x":16.0,"y":50.0,"width":1000.0,"height":750.0,"viewportHeight":880.0}
+M4_CAPTURE BENCH-EFFECT CPU {"x":16.0,"y":50.0,"width":1000.0,"height":620.0,"viewportHeight":880.0}
+M4_CAPTURE BENCH-EFFECT GPUI {"x":16.0,"y":50.0,"width":1000.0,"height":620.0,"viewportHeight":880.0}
+M4_BENCH complete=true measured_gate=true edit_p95_reduction=0.6658
