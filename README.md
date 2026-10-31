@@ -1,6 +1,16 @@
-# JoyOffice · JoyWord
+# JoyOffice
 
-JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字处理软件 **JoyWord**。JoySheet、JoyDeck 为后续方向。项目采用 MIT 许可证。
+JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **JoyWord** 文字处理与 **JoyDeck** 演示文稿。JoySheet 为后续方向。Word 采用 MIT；Deck 保留 MIT OR Apache-2.0，具体见各包 manifest 与 `licenses/joydeck/`。
+
+## Monorepo 开发入口
+
+- [迁移计划、进度及继续工作的提示词](docs/joyoffice/MONOREPO-MIGRATION.md)
+- [JoyDeck 运行与范围](docs/joydeck/README.md) · [状态](docs/joydeck/STATUS.md) · [Word 规格](docs/joyword/README.md)
+- 应用在 `apps/`，产品模块在 `crates/joyword-*`／`crates/joydeck-*`，共享能力在 `crates/joyoffice-*`。产品共用根锁文件与工具链，分别构建、测试和发布。
+
+从仓库根目录使用 `cargo build -p joyword --locked`、`cargo build -p joydeck --locked` 或 `cargo build -p joydeck-cli --locked`。分产品工程入口为 `cargo xtask check joyword`、`cargo xtask check joydeck`，完整约定见迁移文档。
+
+下文为 JoyWord 当前功能与验证记录；不代表 JoyDeck 同时通过这些验收。
 
 **当前是 M0／M1 技术预览，不是 1.0 产品，M1 发布门槛也尚未通过。** M0 六项里四项 `done`——T001 已于 2026-10-26 收口（三台参考环境的工具链与可启动产物核对完毕，cargo-deny 在 CI 与 Mac 本机通过），T003 的 Retina／多显示器与 T005 的信创真机专项仍 `in_progress`。M1 十二项里七项已经 `done`，门槛任务 T107 仍是 `planned`：前置 T109（打开与保存的并发安全）和 T110（原件保存的元数据与确认路径）还没有同时具备自动证据和所要求的人工验收。M2 十二项里九项 `in_progress`、两项 `done`（T210、T211），门槛 T206 仍 `planned`；样式、编号、表格、页面、图片、PDF 与中文排版已有大量自动测试，所在任务仍因人工验收未关闭而保持进行中。M3 的 T300（文字与移动修订）、T301（段落与运行格式修订）、T302（批注线程）进行中。M4 的 T400、T401、T402（Provider 关闭基础、选区授权、有界替换提案与跨段修订）进行中，门槛 T403 未开始。2026-10-21 合入的 [#71](https://github.com/willmove/joyoffice/pull/71) 把 DOCX 健壮性实验改为绑定检出的 `crates/` 树 id，[#70](https://github.com/willmove/joyoffice/pull/70) 把银河麒麟修复会话的机器侧证据落进仓库；此后 T104 生产恢复双代、T202 章节页码、T402 有界替换与跨段修订、T204 的 PDF 书签跳转与书签导入／写回（[#95](https://github.com/willmove/joyoffice/pull/95)–[#98](https://github.com/willmove/joyoffice/pull/98)）以及 2026-10-24 的桌面外壳刷新（真实功能区分档、插入页表格网格、单行状态栏缩放滑块）均已合入 `main`。真实 DOCX 会话、中文文本编辑、基础格式、文本剪贴板、另存与重开、原件保存的元数据观测与显式确认路径、Windows 原件原子替换、统一页面场景的 PDF／CPU 光栅与无头输出、可见页缓存、打开／保存并发控制和恢复日志已有实现及相应自动测试。逐项复选框、阶段统计和完成证据见 [TASKS 进度总览](docs/joyword/TASKS.md#进度总览)。
 
@@ -23,7 +33,7 @@ JoyOffice 面向跨平台 Office 套件；当前集中开发 Rust + GPUI 文字�
 
 ## 运行技术预览
 
-工具链固定 Rust 1.98.1，GPUI 固定 crates.io gpui-pre 0.3.9（Zed 主干 93d7456 的快照，CI 逐文件核对其来源，见 ADR-010）；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux x86_64 与原生 ARM64）已实际运行并通过，另在 QEMU 下运行 ARM64／LoongArch64 无界面测试；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
+工具链固定 Rust 1.98.1，GPUI Kit 固定 0.8.1，对应 gpui-pre 0.3.10（Zed 快照 08cbb88a，CI 核对其来源，见 ADR-010）；提交 Cargo.lock。三端 CI（macOS 含预编译 Metal 构建、Windows、Linux x86_64 与原生 ARM64）已实际运行并通过，另在 QEMU 下运行 ARM64／LoongArch64 无界面测试；真实机器上的人工运行另行验收。GPUI 系统依赖参考 [macOS](https://zed.dev/docs/development/macos)、[Linux](https://zed.dev/docs/development/linux)、[Windows](https://zed.dev/docs/development/windows) 构建说明；JoyWord 不依赖 Zed 编辑器。
 
 Mac 开发环境缺少 Metal 编译工具时，可使用 GPUI 的运行时着色器选项：
 

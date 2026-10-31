@@ -16,11 +16,11 @@
 
 `cargo xtask check`：fmt、all-targets Clippy、**50项测试通过**（原45项和5项媒体/对齐领域集成测试）。新覆盖：导入/去重/删除回收、非法crop回滚、undo/redo、源会话销毁后的复制粘贴、旧格式兼容、新格式资源往返、CPU/Scene像素、EXIF旋转、错误资源尺寸、恢复快照、旋转边界对齐及分布。
 
-检查日志：[check](../logs/m5-check-full.log)、[stage M5](../logs/m5-stage.log)、[release打包](../logs/m5-package.log)。stage M5只执行链接与自动测试，不等同阶段验收。CI更新为M5，远端未执行。
+检查日志：[check](evidence/legacy-logs/m5-check-full.log)、[stage M5](evidence/legacy-logs/m5-stage.log)、[release打包](evidence/legacy-logs/m5-package.log)。stage M5只执行链接与自动测试，不等同阶段验收。CI更新为M5，远端未执行。
 
 调试构建的原生系统图片粘贴/内部对象粘贴去重/裁剪单次undo与redo/保存重开已通过。窗口像素复用M4既定阈值：meanRGB≤5、interiorRGB≤1、interior>16比例≤0.001、edge>128比例≤0.002。首轮分数像素高度造成crop 388行与reference 389行不匹配，并触发错误；将验证页面改为512pt高，使显示高度368整像素，复测通过，**未放宽阈值**。初次失败证据仍保留。该修正针对验证夹具；普通分数尺寸显示继续受采样误差影响，不据夹具覆盖所有DPI。
 
-最终 [release包](../dist/joydeck-m5-preview-darwin-arm64.zip) 的M0–M4原生adapter回归全部通过；macOS系统拼音预编辑/提交/取消/一次撤销/重做/保存重开通过。M5系统图片/内部对象剪贴板、裁剪历史、保存重开与CPU/GPUI窗口对照均通过。最终GPUI meanRGB=0.27085、interiorRGB=0.03577、edge>128=0.000902；CPU meanRGB=0.07085、interiorRGB=0.00643、edge>128=0。详情及二进制/ZIP哈希见 [交付索引](evidence/m5/verification.json)、[窗口指标](evidence/m5/run-1793333271691298000/verification.json)、[真实窗口](evidence/m5/run-1793333271691298000/M5-GPUI-window.png)、[系统拼音](evidence/m3/pinyin-1793333277405576000/result.json)。[当前源码快照](../dist/joydeck-m5-preview-source.tar.gz)。未实测项目不登记通过。QA脚本暂时占用并尽量恢复原剪贴板；正常完成会恢复，异常中断不作保证。
+最终 [release包（旧归档：joydeck-m5-preview-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md) 的M0–M4原生adapter回归全部通过；macOS系统拼音预编辑/提交/取消/一次撤销/重做/保存重开通过。M5系统图片/内部对象剪贴板、裁剪历史、保存重开与CPU/GPUI窗口对照均通过。最终GPUI meanRGB=0.27085、interiorRGB=0.03577、edge>128=0.000902；CPU meanRGB=0.07085、interiorRGB=0.00643、edge>128=0。详情及二进制/ZIP哈希见 [交付索引](evidence/m5/verification.json)、[窗口指标](evidence/m5/run-1793333271691298000/verification.json)、[真实窗口](evidence/m5/run-1793333271691298000/M5-GPUI-window.png)、[系统拼音](evidence/m3/pinyin-1793333277405576000/result.json)。[当前源码快照（旧归档：joydeck-m5-preview-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)。未实测项目不登记通过。QA脚本暂时占用并尽量恢复原剪贴板；正常完成会恢复，异常中断不作保证。
 
 ## 开放事项及后续顺序
 
@@ -32,4 +32,4 @@
 6. T-M5-09：完整“粘贴→裁剪→组→连接→对齐→保存重开”尚缺组/连接，AT-08父验收保持开放。
 7. M3统一CPU/活动编辑布局、自动换行/段落列表/混合字号/bidi，以及M4真实device-lost/完整输入到present trace、tile/长会话、多窗口/跨屏/其余平台，以及M0–M2 LARGE/完整人工故障矩阵仍依照[23](23-m3-implementation-report.md)、[26](26-m4-implementation-report.md)开放。
 
-本机目录无Git元数据，未创建提交。保留 [开发前源码](../dist/joydeck-before-m5-source.tar.gz)、M4 final包与新M5包；包未签名/公证，干净机器安装未验证。
+本机目录无Git元数据，未创建提交。保留 [开发前源码（旧归档：joydeck-before-m5-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)、M4 final包与新M5包；包未签名/公证，干净机器安装未验证。

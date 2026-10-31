@@ -35,13 +35,13 @@ schema1.4/minReader5，requiredFeatures新增design-v1；旧1.0–1.3仍可读�
 
 ## 验证与交付
 
-`cargo xtask check`的fmt、all-targets Clippy和 **60项测试通过**（旧50项+10项设计/共享会话领域集成测试）；`cargo xtask stage M6`构建与自动检查通过，release实际链接。检查日志：[check](../logs/m6-check-full.log)、[stage](../logs/m6-stage.log)、[release打包](../logs/m6-package-final.log)。CI已改为M6，未远端运行。
+`cargo xtask check`的fmt、all-targets Clippy和 **60项测试通过**（旧50项+10项设计/共享会话领域集成测试）；`cargo xtask stage M6`构建与自动检查通过，release实际链接。检查日志：[check](evidence/legacy-logs/m6-check-full.log)、[stage](evidence/legacy-logs/m6-stage.log)、[release打包](evidence/legacy-logs/m6-package-final.log)。CI已改为M6，未远端运行。
 
 新增覆盖：继承/direct/reset内容与ID保留、被引用设计删除拒绝/替代、中文/emoji替换与单次undo、备注/节保留、跨文档设计/媒体重映射与尺寸缩放、源销毁后粘贴、新格式原生往返、CPU/Scene像素、对象剪贴板固化、共享窗口过期写入/全局历史/旧revision保存dirty与保存租约、新建页备注隔离和字段合法性。
 
 最终包M0–M4原生adapter、M5系统图片/内部对象剪贴板与像素回归、M6共享双窗口/选择/undo、主题/direct、跨文档页面和保存重开均通过；macOS系统拼音预编辑/提交/取消/一次撤销/重做/保存重开通过，原输入源已恢复。M6 GPUI meanRGB=0.156745、CPU=0.172287，二者interiorRGB=0、edge>128比例=0；沿用M4既定阈值，未放宽。详见 [交付索引](evidence/m6/verification.json)、[原生指标](evidence/m6/run-1793335030458990000/verification.json)、[GPUI窗口](evidence/m6/run-1793335030458990000/M6-GPUI-window.png)、[设计面板](evidence/m6/run-1793335030458990000/M6-workspace-panel.png)、[最终包M5图片回归](evidence/m5/run-1793335024799192000/verification.json)、[系统拼音](evidence/m3/pinyin-1793335038382909000/result.json)。最初M6原生脚本因成功marker字符串不匹配误报失败；应用日志已完成共享历史/跨文档/像素步骤。修正marker后重跑，保留首轮证据，未改像素阈值。
 
-[macOS ARM64最终开发预览包](../dist/joydeck-m6-preview-final-darwin-arm64.zip) · [本轮源码](../dist/joydeck-m6-preview-source.tar.gz) · [M6开发前源码](../dist/joydeck-before-m6-source.tar.gz)。M5包作为旧格式回退点保留。包未签名/公证，干净机器安装未验证，目录无Git元数据，未创建提交。
+[macOS ARM64最终开发预览包（旧归档：joydeck-m6-preview-final-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md) · [本轮源码（旧归档：joydeck-m6-preview-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md) · [M6开发前源码（旧归档：joydeck-before-m6-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)。M5包作为旧格式回退点保留。包未签名/公证，干净机器安装未验证，目录无Git元数据，未创建提交。
 
 ## 完整M6及前序开放项
 

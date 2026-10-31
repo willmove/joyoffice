@@ -9,7 +9,7 @@ action 固定完整提交 SHA、CI 全绿才打标签）。发布完成的判定
 ## 1. 默认约定与前置检查
 
 - 从 `main` 发布，工作区干净，本地分支与 `origin/main` 同步。
-- 版本号以维护者明确给出的为准；未给出时从已有最高 `vMAJOR.MINOR.PATCH`
+- 版本号以维护者明确给出的为准；未给出时从 JoyWord 已有最高 `joyword-vMAJOR.MINOR.PATCH`（兼容历史 `v*`）
   标签递增 PATCH，不自行推断 major/minor/prerelease。
 - 技术预览阶段默认发布为 **prerelease**，除非维护者另有要求。
 - 每个 Release 必须带人工整理的双语发布说明（英文在前、中文在后）；工作流
@@ -26,27 +26,24 @@ git status --short --branch
 git tag --sort=-version:refname
 git log --oneline --decorate -10
 gh run list --branch main --limit 3   # main CI 全绿；红灯必须先查清并记录
-git tag --list vX.Y.Z
-git ls-remote --tags origin vX.Y.Z
-gh release view vX.Y.Z                # 新版本应返回 not-found
+git tag --list joyword-vX.Y.Z
+git ls-remote --tags origin joyword-vX.Y.Z
+gh release view joyword-vX.Y.Z                # 新版本应返回 not-found
 ```
 
 ## 2. 同步版本元数据
 
-版本真值是根 `Cargo.toml` 的 `[workspace.package].version`，所有 crate 继承。
+版本真值是 `apps/joyword/Cargo.toml` 的 `[package].version`，`apps/joyword-cli/Cargo.toml` 与其同步。根 workspace 版本与其它产品版本独立。
 改成 `X.Y.Z` 后让 Cargo 刷新锁文件（不要手工替换 `Cargo.lock` 里的版本字符串）：
 
 ```bash
-# 修改 [workspace.package].version 后：
+# 修改 apps/joyword 与 apps/joyword-cli 的版本后：
 cargo update --workspace
 cargo metadata --no-deps --format-version 1 | python3 -c \
   "import json,sys; print(sorted({p['version'] for p in json.load(sys.stdin)['packages']}))"
 ```
 
-期望 diff：`Cargo.toml` 一行 + `Cargo.lock` 中工作区成员版本行。根锁文件之外，
-`experiments/*/Cargo.lock`（path 依赖工作区成员的独立 crate）与
-`scripts/package_macos_dev.py` 的 bundle 版本号也要同步。发布工作流会校验标签
-版本与 `Cargo.toml` 一致并用 `--locked` 构建，锁文件过期会直接失败。
+期望 diff：两个应用 manifest 与根锁文件中对应包版本。若修改内部库版本，按需刷新使用它的独立实验锁文件。打包工具从应用 manifest 读取 bundle 版本。发布工作流校验标签与应用版本，使用 `--locked` 构建；锁文件过期直接失败。
 
 ## 3. 发布前验证
 
@@ -62,13 +59,13 @@ python3 scripts/package_release.py --binary target/release/joyword \
 ## 4. 提交、打标签、推送
 
 ```bash
-git add -- Cargo.toml Cargo.lock experiments scripts/package_macos_dev.py
-git commit -m "chore(release): bump workspace version to X.Y.Z"
-git tag -a vX.Y.Z -m "JoyWord vX.Y.Z"
-git push origin main vX.Y.Z
+git add -- apps/joyword/Cargo.toml apps/joyword-cli/Cargo.toml Cargo.lock
+git commit -m "chore(release): bump JoyWord version to X.Y.Z"
+git tag -a joyword-vX.Y.Z -m "JoyWord vX.Y.Z"
+git push origin main joyword-vX.Y.Z
 ```
 
-推送 `v*` 标签即触发 Release 工作流；这是权威发布运行。
+推送 `joyword-v*` 标签（`v*` 仅保留 JoyWord 历史兼容）即触发 Release 工作流；这是权威发布运行。
 
 ## 5. 监视标签工作流
 
@@ -91,11 +88,11 @@ SmartScreen 可能需要「更多信息 → 仍要运行」，Linux 需预装 GP
 
 ## 6. 整理发布说明
 
-先用 `gh release create vX.Y.Z --prerelease --notes-file <草稿>` 建 Release（或在
+先用 `gh release create joyword-vX.Y.Z --prerelease --notes-file <草稿>` 建 Release（或在
 打标签前建好），再触发工作流挂产物。草稿写在版本库之外（例如 `/tmp`），结构与
 语言对照 `docs/joyword/` 现有文档；至少包含：一句话总结、亮点、边界与已知限制、
 下载清单（每个产物的文件名与 `.sha256`）、验证证据（工作流结果与 main CI 状态）、
-完整对比链接 `https://github.com/willmove/joyoffice/compare/<上一标签>...vX.Y.Z`。
+完整对比链接 `https://github.com/willmove/joyoffice/compare/<上一标签>...joyword-vX.Y.Z`。
 
 发布说明规则：只写标签间 diff 能支撑的用户可见变化；覆盖直接提交与合并的 PR；
 不宣称未验证过的测试、平台构建或功能。
@@ -103,13 +100,13 @@ SmartScreen 可能需要「更多信息 → 仍要运行」，Linux 需预装 GP
 ## 7. 收尾核验
 
 ```bash
-gh release view vX.Y.Z --json name,tagName,isDraft,isPrerelease,publishedAt,url,assets
+gh release view joyword-vX.Y.Z --json name,tagName,isDraft,isPrerelease,publishedAt,url,assets
 git status --short --branch
 git log -1 --oneline --decorate
-git ls-remote --heads --tags origin main vX.Y.Z
+git ls-remote --heads --tags origin main joyword-vX.Y.Z
 ```
 
-确认：标题为 `JoyWord vX.Y.Z`、标签为 `vX.Y.Z`；Release 已发布且为预期
+确认：标题为 `JoyWord vX.Y.Z`、标签为 `joyword-vX.Y.Z`；Release 已发布且为预期
 prerelease 状态；双语说明与对比链接在位；资产为 4 个平台产物各带 `.sha256`
 共 8 个文件；标签工作流全绿；本地 `main`、`origin/main` 与标签指向预期提交。
 全部通过后才算发布完成。

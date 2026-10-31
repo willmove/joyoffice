@@ -18,8 +18,8 @@
 
 环境：macOS 27.0 / Darwin ARM64，Rust 1.98.1，Kit 0.8.1 / GPUI pre 0.3.10；debug 构建，不能作为 release 性能成绩。
 
-- `cargo xtask check`：fmt、all-targets Clippy、**35 项测试通过**。见 [日志](../logs/m3-unlocked-check.log)。
-- `cargo xtask stage M3`：实际链接与 workspace tests；见 [日志](../logs/m3-unlocked-stage.log)。
+- `cargo xtask check`：fmt、all-targets Clippy、**35 项测试通过**。见 [日志](evidence/legacy-logs/m3-unlocked-check.log)。
+- `cargo xtask stage M3`：实际链接与 workspace tests；见 [日志](evidence/legacy-logs/m3-unlocked-stage.log)。
 - 新增 8 项文字测试：UTF-16 surrogate/倒序/越界拒绝、ZWJ/旗帜/组合音标字素、预编辑提交/取消/失败原子性、局部样式 splice/保存重开/红色 CPU 像素、非法 run、反向选区、空标记取消、缺字体保留与定位。
 - 新增 1 项 macOS 混排真实 glyph 回归；见 [24](24-m3-macos-verification.md)。
 - 新增 2 项保存故障测试：目标已存在、目录占用、父路径缺失、Unix 父目录不可写；检查旧目标字节完整、dirty 保留、暂存清理。Unix 权限测试要求普通非 root 账户。
@@ -44,8 +44,8 @@
 
 ## 产物、复现和回退
 
-- [macOS ARM64 开发包](../dist/joydeck-m3-preview-darwin-arm64.zip)，内部有二进制、独立 fixtures、许可证与 SHA256.json；未签名，未验证干净机器安装。
-- [当前源码快照](../dist/joydeck-m3-preview-source.tar.gz)。
-- [开发前源码回退点](../dist/joydeck-before-m3-source.tar.gz)。当前目录无 Git 元数据，未创建虚构提交。当前环境没有上一轮 STATUS 指向的 Windows dist 文件，不声称那些二进制已在本机保留或重新验证。
+- [macOS ARM64 开发包（旧归档：joydeck-m3-preview-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)，内部有二进制、独立 fixtures、许可证与 SHA256.json；未签名，未验证干净机器安装。
+- [当前源码快照（旧归档：joydeck-m3-preview-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)。
+- [开发前源码回退点（旧归档：joydeck-before-m3-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)。当前目录无 Git 元数据，未创建虚构提交。当前环境没有上一轮 STATUS 指向的 Windows dist 文件，不声称那些二进制已在本机保留或重新验证。
 - `cargo xtask check`；`cargo xtask stage M3`；`python3 scripts/smoke-native.py M0 M1 M2 M3`。
 - `python3 scripts/package-native.py` 只打包当前原生平台，并拒绝覆盖已有同名目录。`--binary /绝对路径/joydeck` 可验证分发二进制；package 里附带 fixtures，已消除 viewer smoke 依赖编译机源码 fixtures 的问题。

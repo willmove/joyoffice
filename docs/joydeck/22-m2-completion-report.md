@@ -44,6 +44,6 @@ AT-03、AT-06、AT-14的核心自动流程已覆盖。完整3–10分钟人工�
 
 ## 产物与回退
 
-[分发目录](../dist/joydeck-m2-complete-windows-x64/README.md)、[ZIP](../dist/joydeck-m2-complete-windows-x64.zip)、[EXE校验值](../dist/joydeck-m2-complete-windows-x64/SHA256.txt)、[源码快照](../dist/joydeck-m2-complete-source.zip)。保留原M0/M1及初始M2包，避免覆盖回退点。新包为未签名Windows x64 debug开发构建，无远端CI、签名或安装器发布。
+[分发目录（旧归档：README.md）](../joyoffice/JOYDECK-ARCHIVES.md)、[ZIP（旧归档：joydeck-m2-complete-windows-x64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)、[EXE校验值（旧归档：SHA256.txt）](../joyoffice/JOYDECK-ARCHIVES.md)、[源码快照（旧归档：joydeck-m2-complete-source.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。保留原M0/M1及初始M2包，避免覆盖回退点。新包为未签名Windows x64 debug开发构建，无远端CI、签名或安装器发布。
 
 运行：pwsh.exe -File scripts/dev.ps1 run；检查：cargo xtask check；阶段：cargo xtask stage M2；实际窗口：pwsh.exe -File scripts/smoke-m2.ps1。当前无Git元数据，源码ZIP不称为提交。

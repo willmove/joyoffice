@@ -1,6 +1,6 @@
 # M11/M12 解锁后 GUI 与收尾验证
 
-2026-10-30，macOS ARM64、一个物理显示器。最终包为 [joydeck-m12-verified-darwin-arm64.zip](../dist/joydeck-m12-verified-darwin-arm64.zip)。本机软件子项已按实测更新为 done；完整 M11/M12、前序未实现功能和多平台/硬件门禁保持开放。
+2026-10-30，macOS ARM64、一个物理显示器。最终包为 [joydeck-m12-verified-darwin-arm64.zip（旧归档：joydeck-m12-verified-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。本机软件子项已按实测更新为 done；完整 M11/M12、前序未实现功能和多平台/硬件门禁保持开放。
 
 ## 本次修复
 

@@ -51,7 +51,7 @@ ShowSnapshot持有不可变文稿，独立全屏窗口fit显示、跳过隐藏�
 
 独立QA最初还暴露两个验证脚本问题：Poppler的pdftotext位于嵌套bin，已增加查找；全屏CGWindow截图含窗口frame区域，已按实测viewport计算内容位置，未放宽原5级meanRGB阈值。失败证据保留。
 
-[macOS ARM64 release开发预览包](../dist/joydeck-m7-preview-darwin-arm64.zip) · [当前源码](../dist/joydeck-m7-preview-source.tar.gz) · [开发前源码](../dist/joydeck-before-m7-source.tar.gz)。包未签名/公证、未做干净机器安装；目录无Git元数据，未创建提交。检查日志见 [check](../logs/m7-check-full.log)、[stage](../logs/m7-stage.log)、[打包](../logs/m7-package.log)。CI已更新为M7，未远端运行。
+[macOS ARM64 release开发预览包（旧归档：joydeck-m7-preview-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md) · [当前源码（旧归档：joydeck-m7-preview-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md) · [开发前源码（旧归档：joydeck-before-m7-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)。包未签名/公证、未做干净机器安装；目录无Git元数据，未创建提交。检查日志见 [check](evidence/legacy-logs/m7-check-full.log)、[stage](evidence/legacy-logs/m7-stage.log)、[打包](evidence/legacy-logs/m7-package.log)。CI已更新为M7，未远端运行。
 
 ## 未关闭门槛
 

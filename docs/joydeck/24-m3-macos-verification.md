@@ -12,9 +12,9 @@
 
 ## 自动检查与最终分发包
 
-- `cargo xtask check`：fmt、`clippy --workspace --all-targets --locked -- -D warnings` 与 **35 项测试通过**；[日志](../logs/m3-unlocked-check.log)。
-- `cargo xtask stage M3`：本机实际链接和 workspace tests 通过；[日志](../logs/m3-unlocked-stage.log)。
-- 最终分发二进制执行 M0/M1/M2/M3 adapter 回归全部通过；[汇总](../logs/m3-verified-package-native.log)，[M0](../logs/m0-native-darwin.log)、[M1](../logs/m1-native-darwin.log)、[M2](../logs/m2-native-darwin.log)、[M3](../logs/m3-native-darwin.log)。
+- `cargo xtask check`：fmt、`clippy --workspace --all-targets --locked -- -D warnings` 与 **35 项测试通过**；[日志](evidence/legacy-logs/m3-unlocked-check.log)。
+- `cargo xtask stage M3`：本机实际链接和 workspace tests 通过；[日志](evidence/legacy-logs/m3-unlocked-stage.log)。
+- 最终分发二进制执行 M0/M1/M2/M3 adapter 回归全部通过；[汇总](evidence/legacy-logs/m3-verified-package-native.log)，[M0](evidence/legacy-logs/m0-native-darwin.log)、[M1](evidence/legacy-logs/m1-native-darwin.log)、[M2](evidence/legacy-logs/m2-native-darwin.log)、[M3](evidence/legacy-logs/m3-native-darwin.log)。
 - M3 原生日志含 `painted_lines=2 complete=true`、`overlay_shape_cache=true`。M2 包含保存重开、恢复、dirty close 取消/保存/放弃与旧快照保存后仍 dirty。
 - 分发包 31 个文件 SHA-256、ZIP CRC 和分发二进制与最后构建逐字节一致性检查通过。包未签名/公证，未验证干净机器安装。
 
@@ -24,7 +24,7 @@
 
 运行 `python3 scripts/smoke-macos-ime.py --binary dist/joydeck-m3-verified-darwin-arm64/joydeck`，使用独立测试窗口和系统输入源 `com.apple.inputmethod.SCIM.ITABC`。通过 OS 键盘事件输入 zhongwen、Space 提交“中文”，再组合 quxiao 并 Esc 取消；由真实 NSTextInputClient/IME 链路进入生产输入桥。不是直接调用 replace 方法，也不冒充物理键盘或 Windows/Linux/日文/韩文验收。
 
-最终包 [测试输出](../logs/m3-verified-package-pinyin.log)、[native 日志](evidence/m3/pinyin-1793315456742457000/native.log)、[结果](evidence/m3/pinyin-1793315456742457000/result.json)、[保存重开样例](evidence/m3/pinyin-1793315456742457000/roundtrip.joydeck)：
+最终包 [测试输出](evidence/legacy-logs/m3-verified-package-pinyin.log)、[native 日志](evidence/m3/pinyin-1793315456742457000/native.log)、[结果](evidence/m3/pinyin-1793315456742457000/result.json)、[保存重开样例](evidence/m3/pinyin-1793315456742457000/roundtrip.joydeck)：
 
 - `marked_calls=8 commit_calls=1`，预编辑不修改文档，提交只需一次撤销。
 - 下一次组合取消，文档内容与 revision 不增加；撤销回到空文本，重做恢复“中文”。
@@ -39,8 +39,8 @@
 
 ## 产物与剩余条件
 
-- [已验证 macOS ARM64 开发包](../dist/joydeck-m3-verified-darwin-arm64.zip)。旧 preview 包保留用于对照。
-- [本轮源码快照](../dist/joydeck-m3-verified-source.tar.gz)，以及 [M3 开发前回退点](../dist/joydeck-before-m3-source.tar.gz)。无 Git 元数据，未伪造提交。
+- [已验证 macOS ARM64 开发包（旧归档：joydeck-m3-verified-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。旧 preview 包保留用于对照。
+- [本轮源码快照（旧归档：joydeck-m3-verified-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)，以及 [M3 开发前回退点（旧归档：joydeck-before-m3-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)。无 Git 元数据，未伪造提交。
 - QA 脚本：`scripts/smoke-native.py`、`scripts/smoke-macos-ime.py`、`scripts/macos-input-source.c`；打包脚本支持 `--name`，仍拒绝覆盖已有目录。
 
 未完成：统一 CPU/编辑布局、自动换行、完整段落/列表/缩进/段距/混合字号和文字装饰、旋转输入、完整 bidi/视觉行导航、其他脚本与嵌入字体、其他平台/输入法、物理键盘、跨屏 DPI、读屏；M1 LARGE/资源诊断与完整故障/断电/其他平台门槛也未因此关闭。不能将本机原生通过等同于整个 M3 或此前全部收尾完成。

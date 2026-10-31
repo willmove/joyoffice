@@ -16,12 +16,12 @@
 
 ## 验证
 
-- `cargo xtask check`：fmt、all-targets Clippy（-D warnings）和 **45 项测试通过**；[日志](../logs/m4-check.log)。
-- `cargo xtask stage M4`：实际链接及 workspace tests 通过；[日志](../logs/m4-stage.log)。release 实际链接见 [日志](../logs/m4-release-build.log)。
+- `cargo xtask check`：fmt、all-targets Clippy（-D warnings）和 **45 项测试通过**；[日志](evidence/legacy-logs/m4-check.log)。
+- `cargo xtask stage M4`：实际链接及 workspace tests 通过；[日志](evidence/legacy-logs/m4-stage.log)。release 实际链接见 [日志](evidence/legacy-logs/m4-release-build.log)。
 - 新增 10 项 Scene 测试：CPU 原画面/几何/透明度/顺序、位置复用与样式局部失效、真实 image 数据与隔离效果、取消/非法模型、CPU 基准入口、alpha 边界、LRU/清理不改文档、共享 glyph 轮廓/位置、超限文字在 shaping 前拒绝且不改文档、image primitive 拒绝非法尺寸/字节/非有限坐标。原 35 项测试保留。
-- M0–M4 原生 adapter 回归覆盖窗口、浏览、保存/关闭/恢复、文字输入桥、正文平移缓存、CPU 切换、undo/redo、atlas 重建和跨文档过期 job 丢弃。最终分发包 [M0–M4 汇总](../logs/m4-final-packaged-native.log) 与 [M4 日志](../logs/m4-native-darwin.log) 均通过；它调用生产处理器，不能等同于物理鼠标/键盘或三平台验收。
+- M0–M4 原生 adapter 回归覆盖窗口、浏览、保存/关闭/恢复、文字输入桥、正文平移缓存、CPU 切换、undo/redo、atlas 重建和跨文档过期 job 丢弃。最终分发包 [M0–M4 汇总](evidence/legacy-logs/m4-final-packaged-native.log) 与 [M4 日志](evidence/legacy-logs/m4-native-darwin.log) 均通过；它调用生产处理器，不能等同于物理鼠标/键盘或三平台验收。
 
-- 最终包实际 macOS 系统拼音预编辑候选、提交/取消、单次 undo、保存重开通过；[运行日志](../logs/m4-packaged-pinyin.log)、[机器结果](evidence/m3/pinyin-1793327159880251000/result.json)、[候选窗](evidence/m3/pinyin-1793327159880251000/candidate.png)、[提交后](evidence/m3/pinyin-1793327159880251000/committed.png)。自动发送 OS 键盘事件，原输入源已在 finally 中恢复，非物理键盘验收。
+- 最终包实际 macOS 系统拼音预编辑候选、提交/取消、单次 undo、保存重开通过；[运行日志](evidence/legacy-logs/m4-packaged-pinyin.log)、[机器结果](evidence/m3/pinyin-1793327159880251000/result.json)、[候选窗](evidence/m3/pinyin-1793327159880251000/candidate.png)、[提交后](evidence/m3/pinyin-1793327159880251000/committed.png)。自动发送 OS 键盘事件，原输入源已在 finally 中恢复，非物理键盘验收。
 
 ## 性能与画质结果
 
@@ -36,7 +36,7 @@ EDIT 的 p95 降低 **66.6%**，达到 ≤20ms 与相对 ≥40% 两种门槛。�
 
 最终基准进程每 0.5 秒采样 RSS 最大观察值 **205.72 MiB**，通过本轮 450 MiB 观察门槛；它不是精确峰值，也不能替代 SMALL/LARGE/长期验收。首轮逐轮廓方案约 2.7 GiB 的问题经 glyph mask 相位纹理方案修复，没有通过放宽内存门槛掩盖。
 
-最终分发包 [完整基准 JSON](evidence/m4/run-1793327137407213000/verification.json)、[原生日志](evidence/m4/run-1793327137407213000/native.log)、[运行输出](../logs/m4-packaged-benchmark.log)。其二进制 SHA-256 为 `b5115e4b5f0bfcd8e3c6deaecfe0c819855fcfe0a77d04aebfbe8a12a90fe264`，与包内 macOS Mach-O 可执行文件逐字节一致。
+最终分发包 [完整基准 JSON](evidence/m4/run-1793327137407213000/verification.json)、[原生日志](evidence/m4/run-1793327137407213000/native.log)、[运行输出](evidence/legacy-logs/m4-packaged-benchmark.log)。其二进制 SHA-256 为 `b5115e4b5f0bfcd8e3c6deaecfe0c819855fcfe0a77d04aebfbe8a12a90fe264`，与包内 macOS Mach-O 可执行文件逐字节一致。
 
 四组实际窗口像素比较均通过既定门槛：CPU 自身截图误差 0；EDIT GPUI 平均 RGB 误差 3.441，稳定内部误差 0，边缘 >128 差异像素占 0.0876%；EFFECT GPUI 平均误差 0.099。保留原始差分，不将抗锯齿误差称为逐像素相同。
 
@@ -59,7 +59,7 @@ Windows/Linux 的 M4 本机结果未取得；CI 已更新但未远端执行。�
 
 ## 产物与回退
 
-- 推荐：[M4 macOS ARM64 release 开发包](../dist/joydeck-m4-final-darwin-arm64.zip)。包内有校验值、fixtures、许可证和 QA 脚本；交付归档的外部校验值见 [checksums](../dist/joydeck-m4-final-checksums.json)。
-- 回退：[M4 开发前源码](../dist/joydeck-before-m4-source.tar.gz)、[M3 已验证包](../dist/joydeck-m3-verified-darwin-arm64.zip)。源码目录没有 Git 元数据，未虚构提交。
+- 推荐：[M4 macOS ARM64 release 开发包（旧归档：joydeck-m4-final-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。包内有校验值、fixtures、许可证和 QA 脚本；交付归档的外部校验值见 [checksums（旧归档：joydeck-m4-final-checksums.json）](../joyoffice/JOYDECK-ARCHIVES.md)。
+- 回退：[M4 开发前源码（旧归档：joydeck-before-m4-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)、[M3 已验证包（旧归档：joydeck-m3-verified-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。源码目录没有 Git 元数据，未虚构提交。
 - `joydeck-m4-verified-darwin-arm64.zip` 为首轮逐轮廓方案，RSS 高，不推荐使用；保留作故障对照。glyph-cache 中间包也不是本次最终交付入口。
-- [本轮源码快照](../dist/joydeck-m4-final-source.tar.gz)；[机器可读交付索引](evidence/m4/verification.json)。复现：`cargo xtask check`、`cargo xtask stage M4`、`python3 scripts/smoke-native.py M0 M1 M2 M3 M4 --binary <release binary>`；原生像素基准使用带 Pillow/numpy 的 Python 运行 `scripts/benchmark-m4.py`。
+- [本轮源码快照（旧归档：joydeck-m4-final-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)；[机器可读交付索引](evidence/m4/verification.json)。复现：`cargo xtask check`、`cargo xtask stage M4`、`python3 scripts/smoke-native.py M0 M1 M2 M3 M4 --binary <release binary>`；原生像素基准使用带 Pillow/numpy 的 Python 运行 `scripts/benchmark-m4.py`。

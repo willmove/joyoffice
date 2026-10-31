@@ -45,9 +45,9 @@ PowerPoint16.114.1（build16.114.26102031）打开本次GUI导出的原创合并
 
 ## 产物与证据
 
-[最终release包](../dist/joydeck-m8-release-darwin-arm64.zip)包含双击JoyDeck.app、命令行binary、README、许可证、校验清单、fixtures和QA脚本。[最终验证索引](evidence/m8/verification.json)记录binary/ZIP哈希、全部结果及原始日志。GUI/PowerPoint证据在[evidence/m8/gui](evidence/m8/gui/powerpoint-verification.json)，受支持能力对照及实测边界以本报告为准。
+[最终release包（旧归档：joydeck-m8-release-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)包含双击JoyDeck.app、命令行binary、README、许可证、校验清单、fixtures和QA脚本。[最终验证索引](evidence/m8/verification.json)记录binary/ZIP哈希、全部结果及原始日志。GUI/PowerPoint证据在[evidence/m8/gui](evidence/m8/gui/powerpoint-verification.json)，受支持能力对照及实测边界以本报告为准。
 
-[源码快照](../dist/joydeck-m8-release-source.tar.gz)；[开发前源码](../dist/joydeck-before-m8-source.tar.gz)；[M7回退包](../dist/joydeck-m7-preview-darwin-arm64.zip)。本地目录无Git元数据，未创建提交。未做正式签名、公证、干净机器安装或远端CI；配置升级为stage M8不等于远端已运行。
+[源码快照（旧归档：joydeck-m8-release-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)；[开发前源码（旧归档：joydeck-before-m8-source.tar.gz）](../joyoffice/JOYDECK-ARCHIVES.md)；[M7回退包（旧归档：joydeck-m7-preview-darwin-arm64.zip）](../joyoffice/JOYDECK-ARCHIVES.md)。本地目录无Git元数据，未创建提交。未做正式签名、公证、干净机器安装或远端CI；配置升级为stage M8不等于远端已运行。
 
 截图对照：[改造前M7](evidence/m7/run-1793340619859559000/editor.png) · [改造后标准工作区](evidence/m8/gui/final-normal.png) · [宽窗口](evidence/m8/gui/final-wide.png) · [备注抽屉](evidence/m8/gui/final-notes.png)。
 
