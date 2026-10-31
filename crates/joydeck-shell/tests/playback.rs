@@ -83,7 +83,9 @@ fn h264_real_decode_pause_twenty_seeks_and_bounded_frame() {
     if !cfg!(target_os = "macos") {
         return;
     }
+    eprintln!("TRACE import start");
     let asset = playback::import(&fixture("original-h264-aac.mp4")).unwrap();
+    eprintln!("TRACE import complete");
     assert_eq!((asset.info.width, asset.info.height), (1920, 1080));
     let clip = Clip {
         id: "v".into(),
@@ -96,14 +98,18 @@ fn h264_real_decode_pause_twenty_seeks_and_bounded_frame() {
         autoplay: true,
         cross_slide: false,
     };
+    eprintln!("TRACE player new");
     let mut p = Player::new(&asset, &clip).unwrap();
+    eprintln!("TRACE player created, initial wait");
     wait(&p, |s| s.ready && s.sequence > 2 && s.seconds > 0.2);
+    eprintln!("TRACE initial wait complete, pause");
     p.control(serde_json::json!({"command":"pause"})).unwrap();
     wait(&p, |s| !s.playing);
     let at = p.status.lock().unwrap().seconds;
     std::thread::sleep(Duration::from_millis(120));
     assert!((p.status.lock().unwrap().seconds - at).abs() < 0.06);
     for i in 0..20 {
+        eprintln!("TRACE seek {i} start");
         let generation = p.status.lock().unwrap().generation;
         let target = 0.2 + (i % 4) as f64;
         p.control(serde_json::json!({"command":"seek","seconds":target}))
@@ -111,17 +117,21 @@ fn h264_real_decode_pause_twenty_seeks_and_bounded_frame() {
         wait(&p, |s| {
             s.generation > generation && (s.seconds - target).abs() < 0.08 && s.frame.is_some()
         });
+        eprintln!("TRACE seek {i} ready");
         let s = p.status.lock().unwrap();
         let f = s.frame.as_ref().unwrap();
         assert_eq!(f.bgra.len(), f.width as usize * f.height as usize * 4);
         assert!(f.width <= 960 && f.height <= 960);
     }
+    eprintln!("TRACE final seek");
     p.control(serde_json::json!({"command":"seek","seconds":4.7}))
         .unwrap();
     wait(&p, |s| s.seconds > 4.6);
     let generation = p.status.lock().unwrap().generation;
     p.control(serde_json::json!({"command":"play"})).unwrap();
+    eprintln!("TRACE loop wait");
     wait(&p, |s| s.generation > generation && s.seconds < 1.);
+    eprintln!("TRACE test complete, dropping player");
 }
 #[test]
 fn malformed_media_fails_without_document_changes() {
