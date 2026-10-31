@@ -1,6 +1,6 @@
 //! Cell border and hatch primitives, clipped before expanding dash patterns.
 use gpui_kit::*;
-use gridcraft_engine::model::{BorderStyle, PatternType};
+use joysheet_engine::model::{BorderStyle, PatternType};
 pub fn checkbox(checked: bool, readonly: bool, rect: Bounds<Pixels>, scale: f32, window: &mut Window) {
     let side = (14. * scale).min(f32::from(rect.size.width) - 4.).min(f32::from(rect.size.height) - 2.).max(1.);
     let b = Bounds::new(

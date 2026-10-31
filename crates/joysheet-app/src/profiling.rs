@@ -15,7 +15,7 @@ pub struct CommandTiming {
     pub snapshot_ms: f64,
     pub publish_ms: f64,
 }
-pub fn calculation(s: gridcraft_engine::calc::profile::Sample) -> Value {
+pub fn calculation(s: joysheet_engine::calc::profile::Sample) -> Value {
     json!({"recalcMs":s.recalc_ms,"dependencyMs":s.dependency_ms,"evaluationMs":s.evaluation_ms,"writebackMs":s.writeback_ms,
         "preparationMs":s.preparation_ms,"spillSeedMs":s.spill_seed_ms,"rangeReadMs":s.range_read_ms,"usedRangeMs":s.used_range_ms,"rowFitMs":s.row_fit_ms,"formulasEvaluated":s.formulas,"rangesRead":s.ranges,"sumCacheHits":s.sum_cache_hits})
 }

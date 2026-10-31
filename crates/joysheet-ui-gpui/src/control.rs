@@ -458,7 +458,7 @@ impl Desktop {
                     .get("command")
                     .or_else(|| params.get("id"))
                     .and_then(Value::as_str)
-                    .filter(|id| gridcraft_engine::find_command(id).is_some())
+                    .filter(|id| joysheet_engine::find_command(id).is_some())
                 {
                     let arguments = params.get("params").cloned().unwrap_or_else(|| json!({}));
                     if !arguments.is_object() {
@@ -657,7 +657,7 @@ impl Desktop {
             let cell = params
                 .get(name)
                 .and_then(Value::as_str)
-                .and_then(gridcraft_engine::core::CellRef::parse)
+                .and_then(joysheet_engine::core::CellRef::parse)
                 .ok_or_else(|| format!("missing valid {name}"))?;
             let view = self.view().ok_or("no document")?;
             let geo = self.geometry.as_ref().ok_or("grid not laid out")?;
@@ -749,7 +749,7 @@ fn screenshot(window: &mut Window, params: &Value) -> Result<Value, String> {
         if writer.0.len() > 48 * 1024 * 1024 {
             return Err("base64 screenshot exceeds 64 MiB".into());
         }
-        Ok(json!({"base64":gridcraft_engine::io::base64_encode(&writer.0),"width":image.width(),"height":image.height()}))
+        Ok(json!({"base64":joysheet_engine::io::base64_encode(&writer.0),"width":image.width(),"height":image.height()}))
     }
 }
 #[cfg(feature = "automation")]

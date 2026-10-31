@@ -3,7 +3,7 @@
 
 use std::fmt::Write as _;
 
-use gridcraft_model::{PhoneticProps, PhoneticRun, PhoneticString};
+use joysheet_model::{PhoneticProps, PhoneticRun, PhoneticString};
 use quick_xml::Reader;
 use quick_xml::XmlVersion;
 use quick_xml::events::{BytesStart, Event};

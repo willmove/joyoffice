@@ -1,5 +1,5 @@
 use gpui_kit::*;
-use gridcraft_engine::model::{Anchor, Color, ShapeKind};
+use joysheet_engine::model::{Anchor, Color, ShapeKind};
 use joysheet_app::{
     WindowSnapshot,
     geometry::{COL_HEADER, GridLayout, ROW_HEADER, SheetGeometry},
@@ -149,12 +149,12 @@ pub fn paint(
                     return;
                 }
                 if shape.kind == ShapeKind::Ink {
-                    let points = gridcraft_engine::cmd::draw::ink_points(shape);
+                    let points = joysheet_engine::cmd::draw::ink_points(shape);
                     crate::charts::path(
                         &points,
                         false,
                         None,
-                        Some((rgba(shape.line), gridcraft_engine::cmd::draw::ink_width(shape))),
+                        Some((rgba(shape.line), joysheet_engine::cmd::draw::ink_width(shape))),
                         origin,
                         k,
                         window,
@@ -169,15 +169,15 @@ pub fn paint(
                                 [w / 2. + w / 2. * a.cos(), h / 2. + h / 2. * a.sin()]
                             })
                             .collect();
-                        gridcraft_chart::Prim::Polygon { pts, fill: fill.unwrap_or([0; 4]), stroke }
+                        joysheet_chart::Prim::Polygon { pts, fill: fill.unwrap_or([0; 4]), stroke }
                     }
                     ShapeKind::Triangle => {
-                        gridcraft_chart::Prim::Polygon { pts: vec![[w / 2., 0.], [w, h], [0., h]], fill: fill.unwrap_or([0; 4]), stroke }
+                        joysheet_chart::Prim::Polygon { pts: vec![[w / 2., 0.], [w, h], [0., h]], fill: fill.unwrap_or([0; 4]), stroke }
                     }
                     ShapeKind::Line | ShapeKind::Arrow => {
-                        gridcraft_chart::Prim::Line { pts: vec![[0., 0.], [w, h]], color: rgba(shape.line), width: 1., dash: false }
+                        joysheet_chart::Prim::Line { pts: vec![[0., 0.], [w, h]], color: rgba(shape.line), width: 1., dash: false }
                     }
-                    _ => gridcraft_chart::Prim::Rect {
+                    _ => joysheet_chart::Prim::Rect {
                         x: 0.,
                         y: 0.,
                         w,
@@ -200,19 +200,19 @@ pub fn paint(
             if !layout.rows.iter().any(|r| r.index == spark.cell.row) || !layout.cols.iter().any(|c| c.index == spark.cell.col) {
                 continue;
             }
-            let values: Vec<Option<f64>> = match gridcraft_engine::calc::evaluate(&view.workbook, view.sheet, spark.cell, &spark.source) {
-                gridcraft_engine::core::Value::Array(a) => a.iter().take(10000).map(|v| v.as_f64()).collect(),
+            let values: Vec<Option<f64>> = match joysheet_engine::calc::evaluate(&view.workbook, view.sheet, spark.cell, &spark.source) {
+                joysheet_engine::core::Value::Array(a) => a.iter().take(10000).map(|v| v.as_f64()).collect(),
                 v => vec![v.as_f64()],
             };
             let r = layout.cell_rect(spark.cell, geo, freeze);
             let origin = area.origin + point(px(r.x), px(r.y));
-            for prim in gridcraft_chart::render_sparkline(spark.kind, &values, rgba(spark.color), spark.markers, r.width, r.height) {
+            for prim in joysheet_chart::render_sparkline(spark.kind, &values, rgba(spark.color), spark.markers, r.width, r.height) {
                 crate::charts::paint_primitive(&prim, origin, 1., window, cx);
             }
         }
     });
 }
-fn paint_shape_text(shape: &gridcraft_engine::model::Shape, b: Bounds<Pixels>, scale: f32, view: &WindowSnapshot, window: &mut Window, cx: &mut App) {
+fn paint_shape_text(shape: &joysheet_engine::model::Shape, b: Bounds<Pixels>, scale: f32, view: &WindowSnapshot, window: &mut Window, cx: &mut App) {
     let font = Font {
         family: shape.format.font.clone().unwrap_or("Calibri".into()).into(),
         weight: if shape.format.bold { FontWeight::BOLD } else { FontWeight::NORMAL },
@@ -253,8 +253,8 @@ fn paint_shape_text(shape: &gridcraft_engine::model::Shape, b: Bounds<Pixels>, s
     }
     let total = lines.len() as f32 * line_height;
     let offset = match shape.format.anchor {
-        Some(gridcraft_engine::model::ShapeTextAnchor::Bottom) => (f32::from(b.size.height) - total - margin).max(margin),
-        Some(gridcraft_engine::model::ShapeTextAnchor::Middle) => (f32::from(b.size.height) - total).max(0.) / 2.,
+        Some(joysheet_engine::model::ShapeTextAnchor::Bottom) => (f32::from(b.size.height) - total - margin).max(margin),
+        Some(joysheet_engine::model::ShapeTextAnchor::Middle) => (f32::from(b.size.height) - total).max(0.) / 2.,
         _ if shape.kind != ShapeKind::TextBox => (f32::from(b.size.height) - total).max(0.) / 2.,
         _ => margin,
     };
@@ -280,8 +280,8 @@ fn paint_shape_text(shape: &gridcraft_engine::model::Shape, b: Bounds<Pixels>, s
             let natural = f32::from(line.width());
             let x = f32::from(b.origin.x)
                 + match shape.format.align {
-                    Some(gridcraft_engine::model::ShapeTextAlign::Right) => width - natural + margin,
-                    Some(gridcraft_engine::model::ShapeTextAlign::Center) => (width - natural) / 2. + margin,
+                    Some(joysheet_engine::model::ShapeTextAlign::Right) => width - natural + margin,
+                    Some(joysheet_engine::model::ShapeTextAlign::Center) => (width - natural) / 2. + margin,
                     _ if shape.format.rtl => width - natural + margin,
                     _ if shape.kind != ShapeKind::TextBox => (width - natural) / 2. + margin,
                     _ => margin,
@@ -497,11 +497,11 @@ mod tests {
     }
     #[test]
     fn frozen_clip_uses_absolute_anchor_including_offsets() {
-        let mut sheet = gridcraft_engine::model::Sheet::new("Test");
+        let mut sheet = joysheet_engine::model::Sheet::new("Test");
         sheet.freeze = Some((1, 1));
         let geo = joysheet_app::geometry::SheetGeometry::new(&sheet);
         let layout = joysheet_app::geometry::GridLayout::new(&sheet, &geo, 220., 240., 1200., 700.);
-        let mut anchor = gridcraft_engine::model::Anchor { cell: gridcraft_engine::core::CellRef::new(11, 4), ..Default::default() };
+        let mut anchor = joysheet_engine::model::Anchor { cell: joysheet_engine::core::CellRef::new(11, 4), ..Default::default() };
         let origin = gpui_kit::point(gpui_kit::px(0.), gpui_kit::px(0.));
         let clip = super::object_clip(&anchor, &layout, &geo, (1, 1), origin);
         assert!(f32::from(clip.origin.x) > joysheet_app::geometry::ROW_HEADER);
@@ -511,7 +511,7 @@ mod tests {
     }
     #[test]
     fn resize_retains_anchor_and_clamps_dimensions() {
-        let mut a = gridcraft_engine::model::Anchor::default();
+        let mut a = joysheet_engine::model::Anchor::default();
         let cell = a.cell;
         super::apply_delta(&mut a, (-100000., 100000.), true);
         assert_eq!((a.width, a.height), (1., 10000.));

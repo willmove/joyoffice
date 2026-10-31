@@ -17,13 +17,13 @@ pub fn paint(set: &str, index: usize, b: Bounds<Pixels>, window: &mut Window, cx
     };
     let path = |pts: &[[f32; 2]], fill, stroke, window: &mut Window| crate::charts::path(pts, true, fill, stroke, origin, k, window);
     let circle = |fill, stroke, window: &mut Window, cx: &mut App| {
-        crate::charts::paint_primitive(&gridcraft_chart::Prim::Circle { cx: 0., cy: 0., r: 5.7, fill, stroke }, origin, k, window, cx)
+        crate::charts::paint_primitive(&joysheet_chart::Prim::Circle { cx: 0., cy: 0., r: 5.7, fill, stroke }, origin, k, window, cx)
     };
     if set.contains("Quarters") {
         circle(Some([255, 255, 255, 255]), Some(([75, 87, 94, 255], 1.)), window, cx);
         if index > 0 {
             crate::charts::paint_primitive(
-                &gridcraft_chart::Prim::Wedge {
+                &joysheet_chart::Prim::Wedge {
                     cx: 0.,
                     cy: 0.,
                     r_outer: 5.,
@@ -43,7 +43,7 @@ pub fn paint(set: &str, index: usize, b: Bounds<Pixels>, window: &mut Window, cx
         for i in 0..count {
             let h = 3. + i as f32 * 2.;
             crate::charts::paint_primitive(
-                &gridcraft_chart::Prim::Rect {
+                &joysheet_chart::Prim::Rect {
                     x: -6. + i as f32 * 3.,
                     y: 6. - h,
                     w: 2.,

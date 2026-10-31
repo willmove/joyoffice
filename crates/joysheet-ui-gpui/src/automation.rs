@@ -169,7 +169,7 @@ impl Desktop {
     }
     pub fn request_trust(&mut self, name: String, run: bool, window: &mut Window, cx: &mut Context<Self>) {
         let Some(v) = self.view() else { return };
-        let (doc, revision, bodies) = (v.doc, v.revision, gridcraft_engine::cmd::extra::script_definitions(&v.workbook));
+        let (doc, revision, bodies) = (v.doc, v.revision, joysheet_engine::cmd::extra::script_definitions(&v.workbook));
         self.script_bodies = bodies;
         self.script_doc = Some(doc);
         self.trust_request = Some(TrustRequest { doc, revision, name, run });

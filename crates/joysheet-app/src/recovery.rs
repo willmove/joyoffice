@@ -1,5 +1,5 @@
 //! Recovery copies serialize immutable snapshots on a dedicated bounded worker.
-use gridcraft_engine::model::Workbook;
+use joysheet_engine::model::Workbook;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{
@@ -238,7 +238,7 @@ mod tests {
     fn unchanged_backups_skip_but_draft_changes_and_failed_writes_retry() {
         let dir = std::env::temp_dir().join(format!("joysheet-recovery-dedup-{}-{}", now(), std::process::id()));
         let service = RecoveryService::start(dir.clone()).unwrap();
-        let mut s = gridcraft_engine::Session::new();
+        let mut s = joysheet_engine::Session::new();
         s.execute("file.new", serde_json::json!({})).unwrap();
         let mut d = RecoveryDocument {
             doc: 1,
@@ -283,7 +283,7 @@ mod tests {
     fn forgotten_document_cannot_reappear_from_queued_backup() {
         let dir = std::env::temp_dir().join(format!("joysheet-recovery-forget-{}-{}", now(), std::process::id()));
         let service = RecoveryService::start(dir.clone()).unwrap();
-        let mut s = gridcraft_engine::Session::new();
+        let mut s = joysheet_engine::Session::new();
         s.execute("file.new", serde_json::json!({})).unwrap();
         let workbook = s.active().unwrap().wb.clone();
         let first = RecoveryDocument { doc: 1, title: "closed".into(), original: None, revision: 1, workbook, drafts: Vec::new() };
@@ -308,7 +308,7 @@ mod tests {
     fn recovery_preserves_formula_and_draft_without_changing_saved_workbook() {
         let dir = std::env::temp_dir().join(format!("joysheet-recovery-test-{}-{}", now(), std::process::id()));
         let service = RecoveryService::start(dir.clone()).unwrap();
-        let mut s = gridcraft_engine::Session::new();
+        let mut s = joysheet_engine::Session::new();
         s.execute("file.new", serde_json::json!({})).unwrap();
         s.execute("cell.set", serde_json::json!({"cell":"A1","input":"=2+3"})).unwrap();
         let d = s.active().unwrap();
@@ -333,8 +333,8 @@ mod tests {
         };
         let (meta, bytes) = service.restore(&entry.id).unwrap();
         assert_eq!(meta.drafts[0]["text"], "未提交草稿");
-        let (restored, _) = gridcraft_engine::io::open_bytes_with("Recovered.json", &bytes, None, false).unwrap();
-        assert_eq!(restored.sheets[0].value(gridcraft_engine::core::CellRef::new(0, 0)).display(), "5");
+        let (restored, _) = joysheet_engine::io::open_bytes_with("Recovered.json", &bytes, None, false).unwrap();
+        assert_eq!(restored.sheets[0].value(joysheet_engine::core::CellRef::new(0, 0)).display(), "5");
         assert_eq!(workbook.sheets[0].cells.len(), 1);
         assert!(service.restore("../outside").is_err());
         service.discard(&entry.id).unwrap();

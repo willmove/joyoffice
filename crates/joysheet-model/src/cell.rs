@@ -2,8 +2,8 @@
 
 use std::sync::Arc;
 
-use gridcraft_core::{RangeRef, Value};
-use gridcraft_formula::Expr;
+use joysheet_core::{RangeRef, Value};
+use joysheet_formula::Expr;
 use serde::{Deserialize, Serialize};
 
 use crate::style::StyleId;
@@ -30,21 +30,21 @@ impl Formula {
     /// `#NAME?`.
     pub fn new(text: &str) -> Formula {
         let body = text.strip_prefix('=').unwrap_or(text);
-        match gridcraft_formula::parse(body) {
-            Ok(e) => Formula { text: gridcraft_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false },
+        match joysheet_formula::parse(body) {
+            Ok(e) => Formula { text: joysheet_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false },
             Err(_) => Formula { text: body.to_string(), expr: None, array: None, dynamic: false },
         }
     }
     pub fn from_expr(e: Expr) -> Formula {
-        Formula { text: gridcraft_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false }
+        Formula { text: joysheet_formula::print(&e), expr: Some(Arc::new(e)), array: None, dynamic: false }
     }
     /// The parsed expression, re-parsing after deserialization.
     pub fn expr(&self) -> Option<Expr> {
-        self.expr.as_deref().cloned().or_else(|| gridcraft_formula::parse(&self.text).ok())
+        self.expr.as_deref().cloned().or_else(|| joysheet_formula::parse(&self.text).ok())
     }
     /// The parsed expression without copying it (re-parses after deserialization).
     pub fn expr_arc(&self) -> Option<Arc<Expr>> {
-        self.expr.clone().or_else(|| gridcraft_formula::parse(&self.text).ok().map(Arc::new))
+        self.expr.clone().or_else(|| joysheet_formula::parse(&self.text).ok().map(Arc::new))
     }
 }
 

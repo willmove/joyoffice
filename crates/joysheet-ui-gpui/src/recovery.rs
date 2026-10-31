@@ -76,7 +76,7 @@ impl Desktop {
                     let draft = entry.drafts.get(draft_index).cloned().unwrap_or(Value::Null);
                     this.issue(
                         "file.open",
-                        json!({"name":"Recovered.json","base64":gridcraft_engine::io::base64_encode(&bytes)}),
+                        json!({"name":"Recovered.json","base64":joysheet_engine::io::base64_encode(&bytes)}),
                         After::Recovered(draft),
                         cx,
                     );

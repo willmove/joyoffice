@@ -100,7 +100,7 @@ impl Desktop {
             }),
         ));
         panel=panel.child(Button::new("calculation-settings").label(self.label("计算模式与迭代参数…","Calculation and iteration…")).on_click(cx.listener(|this,_,w,cx|{
-            let p=this.view().map(|v|json!({"mode":match v.workbook.calc.mode{gridcraft_engine::model::CalcMode::Manual=>"manual",gridcraft_engine::model::CalcMode::AutomaticExceptTables=>"automaticExceptTables",_=>"automatic"},"iterative":v.workbook.calc.iterative,"maxIterations":v.workbook.calc.max_iterations,"maxChange":v.workbook.calc.max_change})).unwrap_or_else(||json!({}));
+            let p=this.view().map(|v|json!({"mode":match v.workbook.calc.mode{joysheet_engine::model::CalcMode::Manual=>"manual",joysheet_engine::model::CalcMode::AutomaticExceptTables=>"automaticExceptTables",_=>"automatic"},"iterative":v.workbook.calc.iterative,"maxIterations":v.workbook.calc.max_iterations,"maxChange":v.workbook.calc.max_change})).unwrap_or_else(||json!({}));
             this.open_prefilled("formulas.calculationOptions",p,w,cx);
         })));
         panel

@@ -1,7 +1,7 @@
 //! Toolkit-free GridCraft primitives painted by GPUI; data/layout cached per document revision.
 use crate::chart_dash::dashed;
 use gpui_kit::*;
-use gridcraft_chart::{Prim, Rgba};
+use joysheet_chart::{Prim, Rgba};
 use joysheet_app::{
     WindowSnapshot,
     geometry::{GridLayout, SheetGeometry},
@@ -9,7 +9,7 @@ use joysheet_app::{
 use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::Arc};
 pub type ChartCache = Rc<RefCell<HashMap<u32, Arc<Vec<Prim>>>>>;
 struct Measure(Arc<WindowTextSystem>);
-impl gridcraft_chart::Measure for Measure {
+impl joysheet_chart::Measure for Measure {
     fn text_width(&self, text: &str, size: f32, bold: bool) -> f32 {
         let font = Font { family: "Calibri".into(), weight: if bold { FontWeight::BOLD } else { FontWeight::NORMAL }, ..Default::default() };
         f32::from(self.0.shape_line(text.to_string().into(), px(size), &[TextRun { len: text.len(), font, ..Default::default() }], None).width())
@@ -84,8 +84,8 @@ pub fn paint(
         }
         let cached = cache.borrow().get(&chart.id).cloned();
         let primitives = cached.unwrap_or_else(|| {
-            let data = gridcraft_chart::resolve(&view.workbook, view.sheet, chart);
-            let primitives = Arc::new(gridcraft_chart::render(chart, &data, anchor.width, anchor.height, &Measure(window.text_system().clone())));
+            let data = joysheet_chart::resolve(&view.workbook, view.sheet, chart);
+            let primitives = Arc::new(joysheet_chart::render(chart, &data, anchor.width, anchor.height, &Measure(window.text_system().clone())));
             cache.borrow_mut().insert(chart.id, primitives.clone());
             primitives
         });
@@ -156,14 +156,14 @@ pub(crate) fn paint_primitive(primitive: &Prim, origin: Point<Pixels>, scale: f3
             );
             let width = f32::from(line.width());
             let dx = match align {
-                gridcraft_chart::HAlign::Left => 0.,
-                gridcraft_chart::HAlign::Center => -width / 2.,
-                gridcraft_chart::HAlign::Right => -width,
+                joysheet_chart::HAlign::Left => 0.,
+                joysheet_chart::HAlign::Center => -width / 2.,
+                joysheet_chart::HAlign::Right => -width,
             };
             let dy = match valign {
-                gridcraft_chart::VAlign::Top => 0.,
-                gridcraft_chart::VAlign::Middle => -height / 2.,
-                gridcraft_chart::VAlign::Bottom => -height,
+                joysheet_chart::VAlign::Top => 0.,
+                joysheet_chart::VAlign::Middle => -height / 2.,
+                joysheet_chart::VAlign::Bottom => -height,
             };
             if rotation.abs() > 0.0001 {
                 let lines = vec![text.clone()];

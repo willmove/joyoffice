@@ -2,11 +2,11 @@
 
 use std::fmt::Write;
 
-use gridcraft_core::{CellRef, col_to_letters, number_to_text};
+use joysheet_core::{CellRef, col_to_letters, number_to_text};
 
 use crate::ast::{Anchor, BinOp, Expr, RefKind, Reference, SheetSel, StructItem, StructRef, UnOp};
 
-pub use gridcraft_core::{quote_sheet, sheet_needs_quotes as needs_quotes};
+pub use joysheet_core::{quote_sheet, sheet_needs_quotes as needs_quotes};
 
 fn sheet_prefix(s: &SheetSel) -> String {
     match s {

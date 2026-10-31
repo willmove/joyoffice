@@ -1,6 +1,6 @@
 use gpui_kit::component::input::{Input, InputEvent as TextEvent, InputState, TextareaState};
 use gpui_kit::{prelude::*, *};
-use gridcraft_engine::{Selection, UiRequest, core::CellRef};
+use joysheet_engine::{Selection, UiRequest, core::CellRef};
 use joysheet_app::{
     AppSnapshot, EngineClient, Ticket, WindowSnapshot,
     geometry::{GridLayout, SheetGeometry},
@@ -135,7 +135,7 @@ pub struct Desktop {
     pub sheet_views: HashMap<(u64, String), ((f64, f64), CellRef)>,
     pub geometry: Option<SheetGeometry>,
     pub geometry_key: Option<(u64, usize, u64)>,
-    pub cf_cache: std::rc::Rc<std::cell::RefCell<gridcraft_engine::cf::CfCache>>,
+    pub cf_cache: std::rc::Rc<std::cell::RefCell<joysheet_engine::cf::CfCache>>,
     pub chart_cache: crate::charts::ChartCache,
     pub object_images: crate::objects::Images,
     pub image_decoding: usize,
@@ -456,7 +456,7 @@ impl Desktop {
         }
         let (address, text) = self
             .view()
-            .and_then(|v| v.sheet().map(|s| (v.selection.active.a1(), gridcraft_engine::display::edit_text(&v.workbook, s, v.selection.active))))
+            .and_then(|v| v.sheet().map(|s| (v.selection.active.a1(), joysheet_engine::display::edit_text(&v.workbook, s, v.selection.active))))
             .unwrap_or_default();
         self.formula.update(cx, |input, cx| {
             if input.value().as_ref() != text {
@@ -978,7 +978,7 @@ impl Render for Desktop {
                     .sheets
                     .iter()
                     .enumerate()
-                    .filter(|(_, s)| s.visibility == gridcraft_engine::model::Visibility::Visible)
+                    .filter(|(_, s)| s.visibility == joysheet_engine::model::Visibility::Visible)
                     .map(|(i, s)| (i, s.name.clone(), i == v.sheet))
                     .collect()
             })

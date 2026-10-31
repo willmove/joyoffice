@@ -1,5 +1,5 @@
 [package]
-name = "gridcraft-mcp"
+name = "joysheet-mcp"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,6 +9,6 @@ description = "GridCraft MCP server: JSON-RPC 2.0 over stdio, driving a running 
 workspace = true
 
 [dependencies]
-gridcraft-engine = { workspace = true }
+joysheet-engine = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }

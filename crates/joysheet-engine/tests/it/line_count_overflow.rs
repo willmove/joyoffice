@@ -1,4 +1,4 @@
-use gridcraft_engine::{EngineError, Session};
+use joysheet_engine::{EngineError, Session};
 use serde_json::json;
 
 fn new_session() -> Session {

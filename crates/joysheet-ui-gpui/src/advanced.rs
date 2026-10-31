@@ -69,7 +69,7 @@ pub fn parameters(id: &str, p: &mut Value) -> Result<(), String> {
                     return Err("脚本最多 100000 步".into());
                 }
                 for (i, st) in steps.iter().enumerate() {
-                    if st.get("command").and_then(Value::as_str).and_then(gridcraft_engine::find_command).is_none()
+                    if st.get("command").and_then(Value::as_str).and_then(joysheet_engine::find_command).is_none()
                         || !st.get("params").is_some_and(Value::is_object)
                     {
                         return Err(format!("第 {} 步必须包含已注册 command 和对象 params", i + 1));
@@ -131,7 +131,7 @@ pub fn multiline(id: &str, key: &str) -> bool {
 }
 pub fn choices(key: &str) -> Vec<(&'static str, &'static str)> {
     match key {
-        "tool" => gridcraft_engine::cmd::analysis::TOOLS.to_vec(),
+        "tool" => joysheet_engine::cmd::analysis::TOOLS.to_vec(),
         "aggregate" | "func" => vec![("sum", "求和"), ("count", "计数"), ("average", "平均"), ("min", "最小"), ("max", "最大"), ("stdDev", "标准差")],
         "method" => vec![("simplex", "Simplex LP"), ("grg", "非线性"), ("evolutionary", "进化算法")],
         "goal" => vec![("max", "最大值"), ("min", "最小值"), ("value", "目标值")],

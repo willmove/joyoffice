@@ -64,7 +64,7 @@ pub fn parameters(id: &str, mut p: Value) -> Result<Value, String> {
             let value = |k: &str| m.get(k).cloned().unwrap_or(Value::Null);
             let color = |k: &str| -> Result<Value, String> {
                 let s = m.get(k).and_then(Value::as_str).ok_or("Color must be #RRGGBB")?;
-                let c = gridcraft_engine::model::Color::from_hex(s).ok_or("Color must be #RRGGBB")?;
+                let c = joysheet_engine::model::Color::from_hex(s).ok_or("Color must be #RRGGBB")?;
                 serde_json::to_value(c).map_err(|e| e.to_string())
             };
             let style = json!({"font":{"name":value("fontName"),"size":value("fontSize"),"bold":value("bold"),"italic":value("italic"),"underline":value("underline"),"vert":value("fontScript"),"color":color("fontColor")?},"fill":{"pattern":value("fillPattern"),"fg":color("fillForeground")?,"bg":color("fillBackground")?},"align":{"h":value("horizontal"),"v":value("vertical"),"rotation":value("angle"),"indent":value("indent"),"wrap":value("wrap"),"shrink":value("shrink")},"num_fmt":value("numberFormat")});

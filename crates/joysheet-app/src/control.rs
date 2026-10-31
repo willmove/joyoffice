@@ -64,7 +64,7 @@ impl ControlServer {
         } else {
             let mut bytes = [0u8; 32];
             getrandom::fill(&mut bytes).map_err(|e| e.to_string())?;
-            let token = gridcraft_mcp::control_auth::hex(&bytes);
+            let token = joysheet_mcp::control_auth::hex(&bytes);
             let path = joysheet_protocol::token_path(port);
             let parent = path.parent().ok_or("token folder unavailable")?;
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
@@ -152,7 +152,7 @@ fn serve(stream: TcpStream, token: &str, engine: &EngineClient, queue: &UiQueue)
     let Some(first) = read_line(&mut reader, 4096)? else {
         return Ok(());
     };
-    match gridcraft_mcp::control_auth::check_first_line(&first, token) {
+    match joysheet_mcp::control_auth::check_first_line(&first, token) {
         Ok(reply) => write_line(&mut writer, reply)?,
         Err(reply) => {
             write_line(&mut writer, reply)?;
@@ -238,11 +238,11 @@ mod tests {
         let server = ControlServer::start(0, engine).unwrap();
         let addr = format!("127.0.0.1:{}", server.port);
         let token = joysheet_protocol::client_token(&addr).unwrap();
-        let mut remote = gridcraft_mcp::Remote::connect_with_token(&addr, token).unwrap();
-        use gridcraft_mcp::Backend;
+        let mut remote = joysheet_mcp::Remote::connect_with_token(&addr, token).unwrap();
+        use joysheet_mcp::Backend;
         remote.call("engine.execute", json!({"command":"cell.set","params":{"input":"=SUM(1,2,3)"}})).unwrap();
         assert_eq!(remote.call("cell.get", json!({})).unwrap()["value"], 6.0);
-        assert!(gridcraft_mcp::Remote::connect_with_token(&addr, "incorrect-token-123".into()).is_err());
+        assert!(joysheet_mcp::Remote::connect_with_token(&addr, "incorrect-token-123".into()).is_err());
         assert!(remote.call("ui.inspect", json!({"doc":999999})).is_err());
         assert!(remote.call("ui.inspect", json!({"doc":1,"window":1})).is_err());
         assert_eq!(remote.call("cell.get", json!({})).unwrap()["value"], 6.0);

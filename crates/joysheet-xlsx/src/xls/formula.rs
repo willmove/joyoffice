@@ -4,8 +4,8 @@
 
 use std::sync::Arc;
 
-use gridcraft_core::{CellError, CellRef};
-use gridcraft_formula::{Anchor, BinOp, Expr, RefKind, Reference, SheetSel, UnOp};
+use joysheet_core::{CellError, CellRef};
+use joysheet_formula::{Anchor, BinOp, Expr, RefKind, Reference, SheetSel, UnOp};
 
 use super::ftab::FTAB;
 
@@ -497,7 +497,7 @@ mod tests {
     }
 
     fn text(rgce: &[u8], rgcb: &[u8]) -> Result<String, Unsupported> {
-        decode(rgce, rgcb, CellRef::new(0, 0), Mode::Cell, &links()).map(|e| gridcraft_formula::print(&e))
+        decode(rgce, rgcb, CellRef::new(0, 0), Mode::Cell, &links()).map(|e| joysheet_formula::print(&e))
     }
 
     #[test]

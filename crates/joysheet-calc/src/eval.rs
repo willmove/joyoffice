@@ -6,10 +6,10 @@
 
 use std::sync::Arc;
 
-use gridcraft_core::{Array, CellError, CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value, compare};
-use gridcraft_formula::{BinOp, Expr, RefKind, Reference, SheetSel, StructItem, StructRef, UnOp};
-use gridcraft_functions::{Arg, Ctx};
-use gridcraft_model::Workbook;
+use joysheet_core::{Array, CellError, CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value, compare};
+use joysheet_formula::{BinOp, Expr, RefKind, Reference, SheetSel, StructItem, StructRef, UnOp};
+use joysheet_functions::{Arg, Ctx};
+use joysheet_model::Workbook;
 
 mod array;
 mod call;
@@ -156,7 +156,7 @@ struct FnCtx<'a, 'h> {
 }
 
 impl Ctx for FnCtx<'_, '_> {
-    fn date_system(&self) -> gridcraft_core::DateSystem {
+    fn date_system(&self) -> joysheet_core::DateSystem {
         self.ev.host.workbook().date_system
     }
     fn now_serial(&self) -> f64 {
@@ -175,7 +175,7 @@ impl Ctx for FnCtx<'_, '_> {
         let area = self.criteria?;
         let at = area.range.start.offset(row as i64, col as i64).filter(|c| area.range.contains(*c))?;
         let expr = self.ev.host.workbook().sheet(area.sheet)?.cell(at)?.formula.as_ref()?.expr_arc()?;
-        let shifted = gridcraft_formula::adjust::shift_relative((*expr).clone(), record as i64 - 1, 0);
+        let shifted = joysheet_formula::adjust::shift_relative((*expr).clone(), record as i64 - 1, 0);
         let env = (0..db.cols)
             .filter_map(|c| match db.get(0, c) {
                 Some(Value::Text(t)) if !t.trim().is_empty() => {
@@ -361,13 +361,13 @@ impl<'h> Evaluator<'h> {
     }
 
     fn name(&mut self, n: &str) -> Ev {
-        if let Some((_, v)) = self.env.iter().rev().find(|(k, _)| gridcraft_formula::same_name(k, n)) {
+        if let Some((_, v)) = self.env.iter().rev().find(|(k, _)| joysheet_formula::same_name(k, n)) {
             return v.clone();
         }
         let wb = self.host.workbook();
         // Sheet-qualified `Sheet1!Name`.
         let (scope_sheet, bare) = match n.split_once('!') {
-            Some((s, b)) => match wb.sheet_index(&gridcraft_core::unquote_sheet(s)) {
+            Some((s, b)) => match wb.sheet_index(&joysheet_core::unquote_sheet(s)) {
                 Some(i) => (i, b),
                 None => return err(CellError::Name),
             },
@@ -376,12 +376,12 @@ impl<'h> Evaluator<'h> {
         if let Some(def) = wb.name(bare, scope_sheet) {
             let text = def.formula.clone();
             let scope = def.scope.unwrap_or(self.sheet);
-            return match gridcraft_formula::parse_name(&text) {
+            return match joysheet_formula::parse_name(&text) {
                 Ok(expr) => {
                     // Relative references in a name are relative to A1: used here, they move by
                     // this cell's offset from it.
-                    let expr = if gridcraft_formula::adjust::has_relative_refs(&expr) {
-                        gridcraft_formula::adjust::shift_relative_wrapping(expr, self.at.row as i64, self.at.col as i64)
+                    let expr = if joysheet_formula::adjust::has_relative_refs(&expr) {
+                        joysheet_formula::adjust::shift_relative_wrapping(expr, self.at.row as i64, self.at.col as i64)
                     } else {
                         expr
                     };
@@ -645,7 +645,7 @@ impl<T> Pipe for T {}
 #[cfg(test)]
 mod fuel_tests {
     use super::*;
-    use gridcraft_model::Workbook;
+    use joysheet_model::Workbook;
 
     struct Empty {
         wb: Workbook,
@@ -669,7 +669,7 @@ mod fuel_tests {
         let mut host = Empty { wb: Workbook::default() };
         let mut ev = Evaluator::new(&mut host, 0, CellRef::new(0, 0));
         ev.fuel = fuel;
-        ev.value(&gridcraft_formula::parser::parse(src).unwrap_or_else(|e| panic!("{e}")))
+        ev.value(&joysheet_formula::parser::parse(src).unwrap_or_else(|e| panic!("{e}")))
     }
 
     #[test]

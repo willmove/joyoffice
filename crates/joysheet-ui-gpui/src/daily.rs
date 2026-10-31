@@ -235,7 +235,7 @@ impl Desktop {
             && let Some(sheet) = view.sheet()
             && let Some(rule) = sheet.validations.iter().find(|r| r.ranges.iter().any(|range| range.contains(view.selection.active)))
         {
-            for (i, value) in gridcraft_engine::cmd::data::list_items(&view.workbook, view.sheet, rule).into_iter().take(200).enumerate() {
+            for (i, value) in joysheet_engine::cmd::data::list_items(&view.workbook, view.sheet, rule).into_iter().take(200).enumerate() {
                 panel = panel.child(div().id(("validation-item", i)).p_2().cursor_pointer().child(value.clone()).on_click(cx.listener(
                     move |this, _, window, cx| {
                         this.daily_group = 0;

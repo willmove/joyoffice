@@ -1,6 +1,6 @@
 //! The virtual grid exports only visible, clipped cells, sharing its production geometry.
 use gpui_kit::{Role, accesskit};
-use gridcraft_engine::{Selection, core::CellRef};
+use joysheet_engine::{Selection, core::CellRef};
 use joysheet_app::{
     WindowSnapshot,
     geometry::{COL_HEADER, GridLayout, ROW_HEADER, Rect, SheetGeometry},
@@ -91,7 +91,7 @@ pub fn cells(v: &WindowSnapshot, l: &GridLayout, g: &SheetGeometry, selection: &
             result.push(Cell {
                 at,
                 rect: r,
-                value: gridcraft_engine::display::cell_text(&v.workbook, s, at).chars().take(4096).collect(),
+                value: joysheet_engine::display::cell_text(&v.workbook, s, at).chars().take(4096).collect(),
                 description: description.chars().take(4096).collect(),
                 selected: selection.ranges.iter().any(|r| r.contains(at)),
                 readonly,
@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn merged_accessible_bounds_are_physical_at_fractional_dpi() {
         let cell = super::Cell {
-            at: gridcraft_engine::core::CellRef::new(1, 1),
+            at: joysheet_engine::core::CellRef::new(1, 1),
             rect: joysheet_app::geometry::Rect { x: 116., y: 48., width: 128., height: 40. },
             value: "中文🙂".into(),
             description: String::new(),

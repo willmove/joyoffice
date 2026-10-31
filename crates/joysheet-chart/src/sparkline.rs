@@ -1,6 +1,6 @@
 //! In-cell sparklines.
 
-use gridcraft_model::SparklineKind;
+use joysheet_model::SparklineKind;
 
 use crate::render::{DOWN, finalize};
 use crate::resolve::MAX_POINTS;

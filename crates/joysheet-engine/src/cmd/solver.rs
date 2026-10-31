@@ -24,14 +24,14 @@
 //! saved as hidden sheet-scoped names (`solver_opt`, `solver_adj`, `solver_lhs1`…), so it
 //! travels with the workbook through XLSX.
 
-use gridcraft_core::{CellRef, RangeRef, Value};
-use gridcraft_model::{Cell, DefinedName, Sheet, Workbook};
+use joysheet_core::{CellRef, RangeRef, Value};
+use joysheet_model::{Cell, DefinedName, Sheet, Workbook};
 use serde_json::{Value as Json, json};
 
 use super::check_arrays;
 use super::whatif::Trial;
 use super::{CommandSpec, Ctx, DocState, EngineError, Result, Session, bad, bool_param, cmd, edit, f64_param, has_doc, str_param};
-use gridcraft_core::split_sheet;
+use joysheet_core::split_sheet;
 
 mod evolutionary;
 mod lp;

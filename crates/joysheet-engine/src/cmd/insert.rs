@@ -1,9 +1,9 @@
 //! Insert tab: tables, charts, sparklines, pictures, shapes, hyperlinks, comments and notes,
 //! conditional formatting (Home › Styles) and symbols.
 
-use gridcraft_core::{CellRef, MAX_ROWS, RangeRef};
-use gridcraft_formula::adjust::{Axis, Edit};
-use gridcraft_model::*;
+use joysheet_core::{CellRef, MAX_ROWS, RangeRef};
+use joysheet_formula::adjust::{Axis, Edit};
+use joysheet_model::*;
 use serde_json::{Value as Json, json};
 
 use super::sheet::{rewrite, shift_cell_features};

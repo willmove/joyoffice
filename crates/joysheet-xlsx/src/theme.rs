@@ -5,7 +5,7 @@
 
 use std::fmt::Write as _;
 
-use gridcraft_model::Theme;
+use joysheet_model::Theme;
 
 use crate::xml::{El, esc_attr};
 

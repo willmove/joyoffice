@@ -3,9 +3,9 @@
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write as _;
 
-use gridcraft_core::RangeRef;
-use gridcraft_formula::quote_sheet;
-use gridcraft_model::{CalcMode, CalcSettings, PhoneticString, ShowObjects, Style, Visibility, Workbook};
+use joysheet_core::RangeRef;
+use joysheet_formula::quote_sheet;
+use joysheet_model::{CalcMode, CalcSettings, PhoneticString, ShowObjects, Style, Visibility, Workbook};
 
 use crate::package::ZipOut;
 use crate::xml::{esc, esc_attr};
@@ -164,7 +164,7 @@ pub fn person_guid(i: usize) -> String {
 
 /// `$A$1:$D$20` (or `$1:$3` / `$A:$C`).
 pub fn abs_range(r: &RangeRef) -> String {
-    let c = |col: u32| gridcraft_core::col_to_letters(col);
+    let c = |col: u32| joysheet_core::col_to_letters(col);
     if r.is_full_rows() && !r.is_full_cols() {
         return format!("${}:${}", r.start.row + 1, r.end.row + 1);
     }
@@ -349,7 +349,7 @@ pub fn write_xlsx_named(wb: &Workbook, kind: XlsxKind, book_name: Option<&str>) 
         ShowObjects::Placeholders => w.push_str(" showObjects=\"placeholders\""),
         ShowObjects::None => w.push_str(" showObjects=\"none\""),
     }
-    if wb.date_system == gridcraft_core::DateSystem::D1904 {
+    if wb.date_system == joysheet_core::DateSystem::D1904 {
         w.push_str(" date1904=\"1\"");
     }
     w.push_str("/>");

@@ -1,5 +1,5 @@
 [package]
-name = "gridcraft-xlsx"
+name = "joysheet-xlsx"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,9 +14,9 @@ workspace = true
 test-support = []
 
 [dependencies]
-gridcraft-core = { workspace = true }
-gridcraft-formula = { workspace = true }
-gridcraft-model = { workspace = true }
+joysheet-core = { workspace = true }
+joysheet-formula = { workspace = true }
+joysheet-model = { workspace = true }
 thiserror = { workspace = true }
 quick-xml = { workspace = true }
 zip = { workspace = true }

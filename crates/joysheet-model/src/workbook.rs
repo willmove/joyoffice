@@ -3,8 +3,8 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use gridcraft_core::DateSystem;
-use gridcraft_formula::Expr;
+use joysheet_core::DateSystem;
+use joysheet_formula::Expr;
 use serde::{Deserialize, Serialize};
 
 use crate::cell::Formula;
@@ -375,10 +375,10 @@ impl Workbook {
             }
         }
         for n in self.names.iter_mut() {
-            if let Ok(e) = gridcraft_formula::parse_name(&n.formula) {
+            if let Ok(e) = joysheet_formula::parse_name(&n.formula) {
                 let ne = spell_calls(e.clone(), &lambdas);
                 if ne != e {
-                    n.formula = gridcraft_formula::print(&ne);
+                    n.formula = joysheet_formula::print(&ne);
                 }
             }
         }

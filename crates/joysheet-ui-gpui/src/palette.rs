@@ -5,7 +5,7 @@ use gpui_kit::component::{
     input::{Input, InputState, Textarea},
 };
 use gpui_kit::{prelude::*, *};
-use gridcraft_engine::find_command;
+use joysheet_engine::find_command;
 use serde_json::{Value, json};
 
 pub struct CommandField {
@@ -237,7 +237,7 @@ impl Desktop {
         if id == "sheet.unhide"
             && let Some(name) = self
                 .view()
-                .and_then(|v| v.workbook.sheets.iter().find(|s| s.visibility != gridcraft_engine::model::Visibility::Visible))
+                .and_then(|v| v.workbook.sheets.iter().find(|s| s.visibility != joysheet_engine::model::Visibility::Visible))
                 .map(|s| s.name.clone())
         {
             values["sheet"] = json!(name);
@@ -251,7 +251,7 @@ impl Desktop {
                 && self.selection().current().height() == 1
                 && let Some(sheet) = self.view().and_then(|v| v.sheet())
             {
-                values["range"] = json!(gridcraft_engine::selection::current_region(sheet, self.selection().active).a1());
+                values["range"] = json!(joysheet_engine::selection::current_region(sheet, self.selection().active).a1());
             }
         }
         self.advanced_params = values.as_object().is_some_and(|fields| fields.values().any(|v| v.is_array() || v.is_object()));
@@ -384,7 +384,7 @@ impl Desktop {
         let panel = if dark { 0x20332a } else { 0xffffff };
         let muted = if dark { 0xa6b7ac } else { 0x708477 };
         let query = self.search.read(cx).value().to_lowercase();
-        let commands: Vec<_> = gridcraft_engine::command_specs()
+        let commands: Vec<_> = joysheet_engine::command_specs()
             .iter()
             .filter(|s| query.is_empty() || s.id.to_lowercase().contains(&query) || s.label.to_lowercase().contains(&query))
             .take(70)

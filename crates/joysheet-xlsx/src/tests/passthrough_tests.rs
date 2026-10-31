@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::sync::Arc;
 
-use gridcraft_model::Sheet;
+use joysheet_model::Sheet;
 
 use super::make_zip;
 use crate::package::{normalize, resolve, split_dir};
@@ -304,7 +304,7 @@ fn edited_workbooks_keep_consistent_relationships() {
     let s = wb.sheet_mut(1).unwrap();
     s.name = "Renamed".into();
     s.comments.clear();
-    s.set_value(gridcraft_core::CellRef::new(5, 5), gridcraft_core::Value::Number(3.0));
+    s.set_value(joysheet_core::CellRef::new(5, 5), joysheet_core::Value::Number(3.0));
     let u = Unpacked::new(&write_xlsx(&wb).unwrap());
     u.assert_valid();
     let sheet = sheet_part(&u, "Renamed");
@@ -561,20 +561,20 @@ fn xml_maps_and_their_bindings_survive_a_round_trip() {
 /// Where a link with `target`, in a workbook read from `from`, points once saved into `to`.
 #[cfg(unix)]
 fn rebased(target: &str, from: &str, to: &str) -> String {
-    let link = |rel_type: &str| gridcraft_model::PreservedRel {
+    let link = |rel_type: &str| joysheet_model::PreservedRel {
         id: "rId1".into(),
         rel_type: format!("{NS_R}/{rel_type}"),
         target: target.into(),
         external: true,
     };
-    let part = gridcraft_model::PreservedPart {
+    let part = joysheet_model::PreservedPart {
         name: "xl/externalLinks/externalLink1.xml".into(),
         content_type: String::new(),
         data: Arc::from(&b""[..]),
         rels: vec![link("externalLinkPath"), link("hyperlink")],
     };
-    let mut wb = gridcraft_model::Workbook::new();
-    wb.preserved = Some(Arc::new(gridcraft_model::Preserved { parts: vec![part], ..Default::default() }));
+    let mut wb = joysheet_model::Workbook::new();
+    wb.preserved = Some(Arc::new(joysheet_model::Preserved { parts: vec![part], ..Default::default() }));
     wb.source_dir = Some(from.into());
     let Some(out) = crate::rebase_links(&wb, std::path::Path::new(to)) else { return target.into() };
     let rels = &out.preserved.as_ref().unwrap().parts[0].rels;
@@ -821,7 +821,7 @@ fn file_version_and_calc_features_survive_a_save() {
 
     // A workbook that had neither gets a <fileVersion> naming GridCraft (#1699), kept on the next
     // save, and no calcFeatures: Excel recalculates it on open.
-    let new = write_xlsx(&gridcraft_model::Workbook::new()).unwrap();
+    let new = write_xlsx(&joysheet_model::Workbook::new()).unwrap();
     let (reread, _) = read_xlsx(&new).unwrap();
     for saved in [new, write_xlsx(&reread).unwrap()] {
         let u = Unpacked::new(&saved);

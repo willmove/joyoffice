@@ -12,9 +12,9 @@ gpui-kit = { workspace = true }
 joysheet-app = { workspace = true }
 joysheet-platform = { workspace = true }
 joysheet-protocol = { workspace = true }
-gridcraft-engine = { workspace = true }
-gridcraft-chart = { workspace = true }
-gridcraft-functions.workspace = true
+joysheet-engine = { workspace = true }
+joysheet-chart = { workspace = true }
+joysheet-functions.workspace = true
 serde_json = { workspace = true }
 serde.workspace=true
 log = { workspace = true }

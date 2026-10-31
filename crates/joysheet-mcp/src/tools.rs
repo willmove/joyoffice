@@ -386,7 +386,7 @@ fn base_tool_definitions() -> Vec<Value> {
         tool(
             "screenshot",
             "Screenshot",
-            "Save a PNG screenshot of the GridCraft window to `path`. Desktop app only (`gridcraft-cli mcp --connect 7979`).",
+            "Save a PNG screenshot of the GridCraft window to `path`. Desktop app only (`joysheet-cli mcp --connect 7979`).",
             obj(json!({"path": string("Output PNG path")}), &["path"]),
             true,
         ),
@@ -675,7 +675,7 @@ impl Backend for Targeted<'_> {
     fn call(&mut self, method: &str, params: Value) -> Result<Value, String> {
         let envelope = if method == "engine.execute" {
             params
-        } else if gridcraft_engine::find_command(method).is_some() {
+        } else if joysheet_engine::find_command(method).is_some() {
             json!({"command": method, "params": params})
         } else {
             let mut params = params;

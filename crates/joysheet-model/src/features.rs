@@ -1,7 +1,7 @@
 //! Sheet features beyond cells: tables, conditional formatting, data validation, comments,
 //! hyperlinks, charts, images, autofilter, print settings.
 
-use gridcraft_core::{CellRef, RangeRef};
+use joysheet_core::{CellRef, RangeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::style::{Color, Style};

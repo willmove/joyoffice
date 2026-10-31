@@ -1,7 +1,7 @@
 //! View tab (sheet view state that's saved with the file) and Page Layout settings.
 
-use gridcraft_core::{CellRef, RangeRef};
-use gridcraft_model::Orientation;
+use joysheet_core::{CellRef, RangeRef};
+use joysheet_model::Orientation;
 use serde_json::{Value as Json, json};
 
 use super::*;
@@ -188,7 +188,7 @@ fn sheet_flag(s: &mut Session, p: &Json, which: &str) -> Result<Json> {
 
 /// Ctrl+6: hides every object, or shows them again. Placeholders (from a file) count as shown.
 fn show_objects(s: &mut Session, p: &Json) -> Result<Json> {
-    use gridcraft_model::ShowObjects;
+    use joysheet_model::ShowObjects;
     edit(s, |cx| {
         let on = bool_param(p, "on").unwrap_or(cx.wb.show_objects == ShowObjects::None);
         cx.wb.show_objects = if on { ShowObjects::All } else { ShowObjects::None };
@@ -395,8 +395,8 @@ fn header_footer(s: &mut Session, p: &Json) -> Result<Json> {
                 other => return Err(bad(CMD, format!("`section` must be left, center or right, not `{other}`"))),
             };
             let page = match str_param(p, "page") {
-                None => gridcraft_model::HfPage::Odd,
-                Some(id) => gridcraft_model::HfPage::parse(id).ok_or_else(|| bad(CMD, format!("`page` must be odd, even or first, not `{id}`")))?,
+                None => joysheet_model::HfPage::Odd,
+                Some(id) => joysheet_model::HfPage::parse(id).ok_or_else(|| bad(CMD, format!("`page` must be odd, even or first, not `{id}`")))?,
             };
             Some((page, footer, idx, super::print::fields_to_codes(str_param(p, "text").unwrap_or(""))))
         }

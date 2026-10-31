@@ -1,5 +1,5 @@
 [package]
-name = "gridcraft-pdf"
+name = "joysheet-pdf"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

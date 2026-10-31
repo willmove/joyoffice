@@ -2,7 +2,7 @@ use std::process::Command;
 
 #[test]
 fn text_to_columns_preserves_doubled_quotes() {
-    let dir = std::env::temp_dir().join(format!("gridcraft-t2c-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("joysheet-t2c-{}", std::process::id()));
     std::fs::create_dir_all(&dir).expect("make temp directory");
     let script = dir.join("steps.jsonl");
     std::fs::write(

@@ -9,7 +9,7 @@ pub mod recovery;
 pub mod smoke;
 pub mod tasks;
 
-use gridcraft_engine::{
+use joysheet_engine::{
     Selection, Session, Target, UiRequest,
     model::{Sheet, Workbook},
 };
@@ -92,14 +92,14 @@ impl Ticket {
 }
 struct Request {
     enqueued_at: Instant,
-    control: Option<gridcraft_engine::ScriptControl>,
+    control: Option<joysheet_engine::ScriptControl>,
     id: u64,
     command: String,
     params: Value,
     target: CommandTarget,
     expected_revision: Option<u64>,
     reply: mpsc::Sender<Completion>,
-    text_width: Option<gridcraft_engine::TextWidth>,
+    text_width: Option<joysheet_engine::TextWidth>,
 }
 #[derive(Clone)]
 pub struct EngineClient {
@@ -143,14 +143,14 @@ impl EngineClient {
                     tasks::state(&worker_tasks, request.id, "running", String::new());
                     session.script_control = request.control.clone();
                     let execute_started = Instant::now();
-                    gridcraft_engine::calc::profile::start();
+                    joysheet_engine::calc::profile::start();
                     let result = if request.control.as_ref().is_some_and(|c| c.cancelled.load(Ordering::Acquire)) {
                         Err("script cancelled before execution".into())
                     } else {
                         execute_request(&mut session, &request)
                     };
                     let execute_ms = execute_started.elapsed().as_secs_f64() * 1000.;
-                    let calculation = profiling::calculation(gridcraft_engine::calc::profile::finish());
+                    let calculation = profiling::calculation(joysheet_engine::calc::profile::finish());
                     session.script_control = None;
                     let state = if result.is_ok() {
                         "completed"
@@ -201,7 +201,7 @@ impl EngineClient {
         }
         let id = self.next_id.fetch_add(1, Ordering::Relaxed);
         let (reply, receiver) = mpsc::channel();
-        let control = (command == "automate.runScript").then(gridcraft_engine::ScriptControl::default);
+        let control = (command == "automate.runScript").then(joysheet_engine::ScriptControl::default);
         if let Some(control) = &control {
             let snapshot = self.latest();
             let window = match (target.window, target.doc) {
@@ -254,7 +254,7 @@ impl EngineClient {
             })?;
         Ok(Ticket { id, receiver })
     }
-    pub fn install_text_width(&self, text_width: gridcraft_engine::TextWidth) -> Result<(), String> {
+    pub fn install_text_width(&self, text_width: joysheet_engine::TextWidth) -> Result<(), String> {
         let id = self.next_id.fetch_add(1, Ordering::Relaxed);
         let (reply, _) = mpsc::channel();
         self.sender
@@ -363,7 +363,7 @@ fn execute_request(s: &mut Session, r: &Request) -> Result<Value, String> {
         }
         if r.command == "__joysheet.scriptDetails" {
             let d = s.active().ok_or("No document")?;
-            let scripts = gridcraft_engine::cmd::extra::script_definitions(&d.wb);
+            let scripts = joysheet_engine::cmd::extra::script_definitions(&d.wb);
             return Ok(scripts);
         }
         if r.command == "__joysheet.previewImport" {
@@ -378,7 +378,7 @@ fn execute_request(s: &mut Session, r: &Request) -> Result<Value, String> {
                 .map(|row| {
                     let values: Vec<_> = (used.start.col..=used.end.col)
                         .take(10)
-                        .map(|col| sheet.value(gridcraft_engine::core::CellRef::new(row, col)).display().chars().take(256).collect::<String>())
+                        .map(|col| sheet.value(joysheet_engine::core::CellRef::new(row, col)).display().chars().take(256).collect::<String>())
                         .collect();
                     json!({"name":format!("行 {}",row+1),"value":values.join(" | ")})
                 })
@@ -418,16 +418,16 @@ fn execute_request(s: &mut Session, r: &Request) -> Result<Value, String> {
         }
         if r.command == "__joysheet.validatedSet" {
             let issue = s.active().and_then(|d| {
-                let at = r.params.get("cell").and_then(Value::as_str).and_then(gridcraft_engine::core::CellRef::parse)?;
+                let at = r.params.get("cell").and_then(Value::as_str).and_then(joysheet_engine::core::CellRef::parse)?;
                 let text = r.params.get("input").and_then(Value::as_str)?;
-                gridcraft_engine::cmd::data::check_validation(
+                joysheet_engine::cmd::data::check_validation(
                     &d.wb,
                     r.params.get("sheet").and_then(Value::as_u64).map(|i| i as usize).unwrap_or(d.sheet_index()),
                     at,
                     text,
                 )
                 .filter(|(rule, _)| rule.show_error)
-                .map(|(rule, message)| (rule.error_style == gridcraft_engine::model::ErrorStyle::Stop, message))
+                .map(|(rule, message)| (rule.error_style == joysheet_engine::model::ErrorStyle::Stop, message))
             });
             if let Some((stop, message)) = issue {
                 if stop {
@@ -590,7 +590,7 @@ mod tests {
         run(&e, "__joysheet.validatedSet", json!({"sheet":0,"cell":"A1","input":"999","validationAccepted":true}));
         let view = e.latest();
         let wb = &view.active().unwrap().workbook;
-        assert_eq!(wb.sheets[0].value(gridcraft_engine::core::CellRef::new(0, 0)).display(), "999");
+        assert_eq!(wb.sheets[0].value(joysheet_engine::core::CellRef::new(0, 0)).display(), "999");
         assert!(wb.sheets[1].cells.is_empty());
         run(&e, "edit.undo", json!({}));
         assert!(e.latest().active().unwrap().workbook.sheets[0].cells.is_empty());
@@ -625,7 +625,7 @@ mod tests {
         run(&e, "__joysheet.nativeActivate", json!({"window":first,"previousActive":second}));
         assert_eq!(e.latest().active_window, Some(first));
         run(&e, "cell.set", json!({"cell":"A1","input":"intended document"}));
-        assert_eq!(e.latest().active().unwrap().workbook.sheets[0].value(gridcraft_engine::core::CellRef::new(0, 0)).display(), "intended document");
+        assert_eq!(e.latest().active().unwrap().workbook.sheets[0].value(joysheet_engine::core::CellRef::new(0, 0)).display(), "intended document");
         assert!(e.latest().window(second).unwrap().workbook.sheets[0].cells.is_empty());
     }
     #[test]

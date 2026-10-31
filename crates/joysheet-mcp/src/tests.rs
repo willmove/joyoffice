@@ -69,7 +69,7 @@ fn err_code(v: &Value) -> i64 {
 }
 
 fn tmp(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("gridcraft-mcp-test-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("joysheet-mcp-test-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     dir.join(name)
 }

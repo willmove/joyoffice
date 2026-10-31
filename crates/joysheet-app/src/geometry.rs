@@ -1,5 +1,5 @@
 //! Two-dimensional, sparse, f64 worksheet geometry shared by paint and hit testing.
-use gridcraft_engine::{
+use joysheet_engine::{
     core::{CellRef, MAX_COLS, MAX_ROWS},
     model::{LineIndex, Sheet},
 };
@@ -147,7 +147,7 @@ mod tests {
     use super::*;
     #[test]
     fn used_extent_follows_expansion_clear_and_undo() {
-        let mut s = gridcraft_engine::Session::new();
+        let mut s = joysheet_engine::Session::new();
         s.execute("file.new", serde_json::json!({})).unwrap();
         for (command, params, expected) in [
             ("cell.set", serde_json::json!({"cell":"B2","input":"1"}), CellRef::new(1, 1)),
@@ -200,9 +200,9 @@ mod tests {
     fn hidden_prefix_and_custom_dimensions_share_hit_geometry() {
         let mut sh = Sheet::new("Hidden");
         for row in 0..128 {
-            sh.rows.insert(row, gridcraft_engine::model::LineInfo { hidden: true, ..Default::default() });
+            sh.rows.insert(row, joysheet_engine::model::LineInfo { hidden: true, ..Default::default() });
         }
-        sh.cols.insert(0, gridcraft_engine::model::LineInfo { size: Some(137.), ..Default::default() });
+        sh.cols.insert(0, joysheet_engine::model::LineInfo { size: Some(137.), ..Default::default() });
         let geo = SheetGeometry::new(&sh);
         let view = GridLayout::new(&sh, &geo, 0., 0., 800., 600.);
         assert_eq!(view.rows.first().unwrap().index, 128);

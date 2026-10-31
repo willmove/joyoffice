@@ -1,7 +1,7 @@
 use crate::desktop::{After, Desktop};
 use gpui_kit::component::input::Input;
 use gpui_kit::{prelude::*, *};
-use gridcraft_engine::{
+use joysheet_engine::{
     core::{CellRef, MAX_COLS, RangeRef, Value as CellValue},
     model::{Color, HAlign, PatternType, Style as CellStyle},
 };
@@ -25,8 +25,8 @@ struct PaintState {
     view: WindowSnapshot,
     geo: SheetGeometry,
     layout: GridLayout,
-    selection: gridcraft_engine::Selection,
-    cf_cache: std::rc::Rc<std::cell::RefCell<gridcraft_engine::cf::CfCache>>,
+    selection: joysheet_engine::Selection,
+    cf_cache: std::rc::Rc<std::cell::RefCell<joysheet_engine::cf::CfCache>>,
     chart_cache: crate::charts::ChartCache,
     images: crate::objects::Images,
 }
@@ -50,7 +50,7 @@ impl Element for SheetElement {
     }
     fn a11y_synthetic_children(&mut self, state: &mut Option<PaintState>, builder: &mut A11ySubtreeBuilder) {
         let Some(state) = state.as_ref() else { return };
-        builder.parent_node().set_row_count(gridcraft_engine::core::MAX_ROWS as usize);
+        builder.parent_node().set_row_count(joysheet_engine::core::MAX_ROWS as usize);
         builder.parent_node().set_column_count(MAX_COLS as usize);
         let parent = builder.parent_node().bounds().unwrap_or(accesskit::Rect::ZERO);
         for cell in crate::accessibility::cells(&state.view, &state.layout, &state.geo, &state.selection) {
@@ -94,7 +94,7 @@ impl Element for SheetElement {
                 view.geometry = Some(SheetGeometry::with_extent(sheet, used_end));
                 dimensions_ms = dimensions_started.elapsed().as_secs_f64() * 1000.;
                 view.geometry_key = Some(key);
-                *view.cf_cache.borrow_mut() = gridcraft_engine::cf::CfCache::new();
+                *view.cf_cache.borrow_mut() = joysheet_engine::cf::CfCache::new();
                 view.chart_cache.borrow_mut().clear();
                 if first {
                     cx.notify();
@@ -216,7 +216,7 @@ impl Element for SheetElement {
 fn bounds(x: f32, y: f32, w: f32, h: f32) -> Bounds<Pixels> {
     Bounds::new(point(px(x), px(y)), size(px(w.max(0.)), px(h.max(0.))))
 }
-fn filter_header(sheet: &gridcraft_engine::model::Sheet, cell: CellRef) -> bool {
+fn filter_header(sheet: &joysheet_engine::model::Sheet, cell: CellRef) -> bool {
     sheet.autofilter.as_ref().is_some_and(|f| cell.row == f.range.start.row && cell.col >= f.range.start.col && cell.col <= f.range.end.col)
         || sheet
             .tables
@@ -316,7 +316,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
             let rect = bounds(ox + x, oy + y, width, height);
             let mut style = state.view.workbook.styles.get(sheet.style_id(anchor)).clone();
             if let Some(table) = sheet.table_at(anchor) {
-                style = gridcraft_engine::tables::table_cell_style(&state.view.workbook, state.view.sheet, table, anchor);
+                style = joysheet_engine::tables::table_cell_style(&state.view.workbook, state.view.sheet, table, anchor);
             }
             let look = cf.look(&state.view.workbook, state.view.sheet, anchor);
             let mut background =
@@ -336,7 +336,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                     style.font.bold |= dxf.font.bold;
                     style.font.italic |= dxf.font.italic;
                     style.font.strike |= dxf.font.strike;
-                    if dxf.font.underline != gridcraft_engine::model::Underline::None {
+                    if dxf.font.underline != joysheet_engine::model::Underline::None {
                         style.font.underline = dxf.font.underline;
                     }
                     for (dst, src) in [
@@ -410,7 +410,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
                     crate::complex_format::border(a, z, line.style, rgb_color(line.color, &state.view, 0x3c5144), layout.zoom as f32, clip, window);
                 }
             });
-            let formatted = gridcraft_engine::display::format(&sheet.value(anchor), style.num_fmt.as_str(), &state.view.workbook);
+            let formatted = joysheet_engine::display::format(&sheet.value(anchor), style.num_fmt.as_str(), &state.view.workbook);
             if !look.as_ref().and_then(|l| l.style.as_ref()).is_some_and(|s| s.font.color != Color::Auto)
                 && let Some([r, g, b]) = formatted.color.and_then(|c| c.rgb())
             {
@@ -423,7 +423,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
             } else if !sheet.show_formulas {
                 formatted.text
             } else {
-                gridcraft_engine::display::cell_text(&state.view.workbook, sheet, anchor)
+                joysheet_engine::display::cell_text(&state.view.workbook, sheet, anchor)
             };
             let align = if style.align.h == HAlign::General {
                 if matches!(sheet.value(anchor), CellValue::Number(_)) { HAlign::Right } else { HAlign::Left }
@@ -627,7 +627,7 @@ fn paint_sheet(state: &PaintState, area: Bounds<Pixels>, window: &mut Window, cx
             if selected {
                 fill(bounds(ox + col.start, oy, col.size, COL_HEADER), 0xe2efe5, window);
             }
-            let text = gridcraft_engine::core::col_to_letters(col.index);
+            let text = joysheet_engine::core::col_to_letters(col.index);
             paint_text(
                 &text,
                 Font::default(),
@@ -711,7 +711,7 @@ fn paint_cell_text(
 ) {
     let indent = style.align.indent as f32 * font_size * 0.75;
     let base_size = font_size;
-    if style.font.vert != gridcraft_engine::model::VertAlign::Baseline {
+    if style.font.vert != joysheet_engine::model::VertAlign::Baseline {
         font_size *= 0.65;
     }
     let x = if align == HAlign::Right { x } else { x + indent };
@@ -768,7 +768,7 @@ fn paint_cell_text(
             font: &font,
             size: font_size,
             angle: -(style.align.rotation.clamp(-90, 90) as f32).to_radians(),
-            underline: style.font.underline != gridcraft_engine::model::Underline::None,
+            underline: style.font.underline != joysheet_engine::model::Underline::None,
             strike: style.font.strike,
             outline: 0.,
         };
@@ -780,8 +780,8 @@ fn paint_cell_text(
             _ => 6.,
         };
         let dy = match style.align.v {
-            gridcraft_engine::model::VAlign::Top => 0.,
-            gridcraft_engine::model::VAlign::Center => (height - rh) / 2.,
+            joysheet_engine::model::VAlign::Top => 0.,
+            joysheet_engine::model::VAlign::Center => (height - rh) / 2.,
             _ => height - rh,
         };
         if block.paint(point(px(x + dx - left), px(y + dy - top)), 0., 0., color, window, cx) {
@@ -798,16 +798,16 @@ fn paint_cell_text(
     let line_height = font_size * 1.22;
     let total = line_height * lines.len() as f32;
     let spread_v =
-        matches!(style.align.v, gridcraft_engine::model::VAlign::Distributed | gridcraft_engine::model::VAlign::Justify) && lines.len() > 1;
+        matches!(style.align.v, joysheet_engine::model::VAlign::Distributed | joysheet_engine::model::VAlign::Justify) && lines.len() > 1;
     let gap = if spread_v { (height - total).max(0.) / (lines.len() - 1) as f32 } else { 0. };
     let top = match style.align.v {
-        gridcraft_engine::model::VAlign::Top => y,
-        gridcraft_engine::model::VAlign::Center => y + (height - total).max(0.) / 2.,
+        joysheet_engine::model::VAlign::Top => y,
+        joysheet_engine::model::VAlign::Center => y + (height - total).max(0.) / 2.,
         _ => y + (height - total).max(0.),
     };
     for (i, line) in lines.iter().enumerate() {
         let yy = (if spread_v { y } else { top }) + i as f32 * (line_height + gap)
-            - if style.font.vert == gridcraft_engine::model::VertAlign::Superscript { base_size * 0.35 } else { 0. };
+            - if style.font.vert == joysheet_engine::model::VertAlign::Superscript { base_size * 0.35 } else { 0. };
         if yy >= y + height {
             break;
         }
@@ -837,9 +837,9 @@ fn paint_cell_text(
         if style.font.strike {
             fill(bounds(xx, yy + line_height * 0.52, w, 1.), color, window);
         }
-        if style.font.underline != gridcraft_engine::model::Underline::None {
+        if style.font.underline != joysheet_engine::model::Underline::None {
             fill(bounds(xx, yy + line_height - 2., w, 1.), color, window);
-            if matches!(style.font.underline, gridcraft_engine::model::Underline::Double | gridcraft_engine::model::Underline::DoubleAccounting) {
+            if matches!(style.font.underline, joysheet_engine::model::Underline::Double | joysheet_engine::model::Underline::DoubleAccounting) {
                 fill(bounds(xx, yy + line_height - 4., w, 1.), color, window);
             }
         }
@@ -957,7 +957,7 @@ impl Desktop {
                                 "单元格编辑器 / Cell editor".to_string()
                             } else {
                                 view.sheet()
-                                    .map(|s| gridcraft_engine::display::cell_text(&view.workbook, s, active).chars().take(512).collect::<String>())
+                                    .map(|s| joysheet_engine::display::cell_text(&view.workbook, s, active).chars().take(512).collect::<String>())
                                     .unwrap_or_default()
                             }
                         ))),
@@ -1024,7 +1024,7 @@ impl Desktop {
             if event.click_count >= 2
                 && let Some(d) = self.resize_drag.take()
             {
-                let name = gridcraft_engine::core::col_to_letters(d.index);
+                let name = joysheet_engine::core::col_to_letters(d.index);
                 self.issue(
                     if d.column { "home.autofitColumnWidth" } else { "home.autofitRowHeight" },
                     if d.column { json!({"cols":format!("{name}:{name}")}) } else { json!({"rows":format!("{0}:{0}",d.index+1)}) },
@@ -1054,7 +1054,7 @@ impl Desktop {
         }
         if y < COL_HEADER && x >= ROW_HEADER {
             if let Some(col) = self.layout.cols.iter().find(|col| x >= col.start && x < col.start + col.size) {
-                let range = format!("{0}:{0}", gridcraft_engine::core::col_to_letters(col.index));
+                let range = format!("{0}:{0}", joysheet_engine::core::col_to_letters(col.index));
                 self.commit(After::Command("selection.set".into(), json!({"range":range})), window, cx);
             }
             cx.stop_propagation();
@@ -1111,7 +1111,7 @@ impl Desktop {
         {
             self.select(cell, false, cx);
             self.open_command("data.filterBy", window, cx);
-            let column = gridcraft_engine::core::col_to_letters(cell.col);
+            let column = joysheet_engine::core::col_to_letters(cell.col);
             for field in &self.command_fields {
                 if field.key == "column" {
                     field.value.update(cx, |input, cx| input.set_value(column.clone(), window, cx));
@@ -1205,7 +1205,7 @@ impl Desktop {
             if self.selection().current() == range {
                 return;
             }
-            let selection = gridcraft_engine::Selection::range(range);
+            let selection = joysheet_engine::Selection::range(range);
             self.local_selection = Some(selection);
             self.issue("selection.set", json!({"range":range.a1(),"active":anchor.a1()}), After::None, cx);
         }

@@ -171,7 +171,7 @@ pub fn run(options: LaunchOptions) -> Result<(), String> {
 fn install_text_measurements(engine: &EngineClient, cx: &App) {
     let shared = cx.text_system().clone();
     let meter = std::sync::Mutex::new((WindowTextSystem::new(shared.clone()), 0usize));
-    let measure: gridcraft_engine::TextWidth = std::sync::Arc::new(move |text, font, _exact| {
+    let measure: joysheet_engine::TextWidth = std::sync::Arc::new(move |text, font, _exact| {
         let mut meter = meter.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         if meter.1 >= 4096 {
             meter.0 = WindowTextSystem::new(shared.clone());

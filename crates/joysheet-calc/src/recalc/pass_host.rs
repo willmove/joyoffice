@@ -116,8 +116,8 @@ fn spill_blocked(host: &PassHost<'_>, (sheet, anchor): Key, a: &Array) -> bool {
         !own.is_some_and(|o| o.contains(c))
             && sh.spill_ranges.iter().any(|(o, r)| *o != anchor && r.contains(c) && !host.exprs.contains_key(&(sheet, *o)))
     };
-    end.row >= gridcraft_core::MAX_ROWS
-        || end.col >= gridcraft_core::MAX_COLS
+    end.row >= joysheet_core::MAX_ROWS
+        || end.col >= joysheet_core::MAX_COLS
         || sh.merges.iter().any(|m| m.intersects(&range))
         || sh.tables.iter().any(|t| t.range.contains(anchor))
         || sh.cells.iter_range(range).any(|(c, cell)| c != anchor && (!cell.value.is_empty() || cell.formula.is_some()))
@@ -126,7 +126,7 @@ fn spill_blocked(host: &PassHost<'_>, (sheet, anchor): Key, a: &Array) -> bool {
 
 /// Whether `arr`, anchored at `anchor`, would spill exactly what the sheet already holds over
 /// `range`: the same area, nothing new in the way, and the same values.
-pub(super) fn spills_as_before(sheet: &gridcraft_model::Sheet, anchor: CellRef, range: RangeRef, arr: &Array) -> bool {
+pub(super) fn spills_as_before(sheet: &joysheet_model::Sheet, anchor: CellRef, range: RangeRef, arr: &Array) -> bool {
     let end =
         CellRef::new(anchor.row.saturating_add((arr.rows as u32).saturating_sub(1)), anchor.col.saturating_add((arr.cols as u32).saturating_sub(1)));
     RangeRef::new(anchor, end) == range
@@ -431,8 +431,8 @@ impl Host for PassHost<'_> {
         );
         let range = RangeRef::new(anchor, end);
         let sh = self.wb.sheet(sheet)?;
-        let blocked = end.row >= gridcraft_core::MAX_ROWS
-            || end.col >= gridcraft_core::MAX_COLS
+        let blocked = end.row >= joysheet_core::MAX_ROWS
+            || end.col >= joysheet_core::MAX_COLS
             || sh.cells.iter_range(range).any(|(c, cell)| c != anchor && (cell.formula.is_some() || !cell.value.is_empty()))
             || sh.merges.iter().any(|m| m.intersects(&range));
         (!blocked).then_some(range)
@@ -596,12 +596,12 @@ mod memo_tests {
     fn new_spill_declines_a_previously_cached_empty_area() {
         let mut wb = Workbook::new();
         let anchor = CellRef::new(0, 1);
-        wb.sheet_mut(0).unwrap().cells.set(anchor, gridcraft_model::Cell::formula(gridcraft_model::Formula::new("=SEQUENCE(3)")));
+        wb.sheet_mut(0).unwrap().cells.set(anchor, joysheet_model::Cell::formula(joysheet_model::Formula::new("=SEQUENCE(3)")));
         let mut exprs = HashMap::default();
-        exprs.insert((0, anchor), std::sync::Arc::new(gridcraft_formula::parse("SEQUENCE(3)").unwrap()));
+        exprs.insert((0, anchor), std::sync::Arc::new(joysheet_formula::parse("SEQUENCE(3)").unwrap()));
         let mut rng = 1;
         let mut host = PassHost::new(&wb, &exprs, &mut rng, 0.);
-        let expression = gridcraft_formula::parse("SUM(B2:B3)").unwrap();
+        let expression = joysheet_formula::parse("SUM(B2:B3)").unwrap();
         assert_eq!(Evaluator::new(&mut host, 0, CellRef::new(0, 25)).value(&expression), Value::Number(0.));
         assert_eq!(host.sums.len(), 1);
         host.calculate((0, anchor));

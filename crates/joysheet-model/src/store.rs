@@ -6,7 +6,7 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, OnceLock};
 
-use gridcraft_core::{CellRef, RangeRef};
+use joysheet_core::{CellRef, RangeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::cell::Cell;
@@ -112,7 +112,7 @@ impl CellStore {
     }
     /// Calculation results in row-major order. Detaches each touched band once and preserves
     /// formula/extent indexes: only values change. Unknown cells are ignored, like get_mut.
-    pub fn write_values(&mut self, values: impl Iterator<Item = (CellRef, gridcraft_core::Value)>) {
+    pub fn write_values(&mut self, values: impl Iterator<Item = (CellRef, joysheet_core::Value)>) {
         let mut values = values.peekable();
         while let Some((at, _)) = values.peek() {
             let key = at.row / BAND;
@@ -361,20 +361,20 @@ impl CellStore {
                     {
                         bytes = bytes.saturating_add(size_of::<crate::cell::Formula>() + formula.text.len());
                         if let Some(expr) = &formula.expr {
-                            expr.walk(&mut |_| bytes = bytes.saturating_add(size_of::<gridcraft_formula::Expr>()));
+                            expr.walk(&mut |_| bytes = bytes.saturating_add(size_of::<joysheet_formula::Expr>()));
                         }
                     }
                     match &cell.value {
-                        gridcraft_core::Value::Text(text)
+                        joysheet_core::Value::Text(text)
                             if !next_cell.and_then(|c| c.value.as_text()).is_some_and(|t| std::ptr::eq(t, text.as_ref())) =>
                         {
                             bytes = bytes.saturating_add(text.len());
                         }
-                        gridcraft_core::Value::Array(array)
-                            if !next_cell.is_some_and(|c| matches!(&c.value, gridcraft_core::Value::Array(a) if Arc::ptr_eq(a, array))) =>
+                        joysheet_core::Value::Array(array)
+                            if !next_cell.is_some_and(|c| matches!(&c.value, joysheet_core::Value::Array(a) if Arc::ptr_eq(a, array))) =>
                         {
                             bytes = bytes.saturating_add(
-                                size_of::<gridcraft_core::Array>() + array.data.len().saturating_mul(size_of::<gridcraft_core::Value>()),
+                                size_of::<joysheet_core::Array>() + array.data.len().saturating_mul(size_of::<joysheet_core::Value>()),
                             );
                         }
                         _ => {}
@@ -398,7 +398,7 @@ impl CellStore {
         };
         for (c, cell) in moved {
             let nr = c.row as i64 + delta;
-            if (0..gridcraft_core::MAX_ROWS as i64).contains(&nr) {
+            if (0..joysheet_core::MAX_ROWS as i64).contains(&nr) {
                 self.set(CellRef::new(nr as u32, c.col), cell);
             }
         }
@@ -408,7 +408,7 @@ impl CellStore {
         let moved: Vec<(CellRef, Cell)> = keys.into_iter().filter_map(|c| self.remove(c).map(|cell| (c, cell))).collect();
         for (c, cell) in moved {
             let nc = c.col as i64 + delta;
-            if (0..gridcraft_core::MAX_COLS as i64).contains(&nc) {
+            if (0..joysheet_core::MAX_COLS as i64).contains(&nc) {
                 self.set(CellRef::new(c.row, nc as u32), cell);
             }
         }
@@ -416,22 +416,22 @@ impl CellStore {
     /// Shifts cells within rows `r0..=r1` and columns `>= from` horizontally (Insert/Delete Cells
     /// with shift right/left).
     pub fn shift_cols_in_rows(&mut self, r0: u32, r1: u32, from: u32, delta: i64) {
-        let range = RangeRef::new(CellRef::new(r0, from), CellRef::new(r1, gridcraft_core::MAX_COLS - 1));
+        let range = RangeRef::new(CellRef::new(r0, from), CellRef::new(r1, joysheet_core::MAX_COLS - 1));
         let moved = self.take_range(range);
         for (c, cell) in moved {
             let nc = c.col as i64 + delta;
-            if (0..gridcraft_core::MAX_COLS as i64).contains(&nc) {
+            if (0..joysheet_core::MAX_COLS as i64).contains(&nc) {
                 self.set(CellRef::new(c.row, nc as u32), cell);
             }
         }
     }
     /// Shifts cells within columns `c0..=c1` and rows `>= from` vertically.
     pub fn shift_rows_in_cols(&mut self, c0: u32, c1: u32, from: u32, delta: i64) {
-        let range = RangeRef::new(CellRef::new(from, c0), CellRef::new(gridcraft_core::MAX_ROWS - 1, c1));
+        let range = RangeRef::new(CellRef::new(from, c0), CellRef::new(joysheet_core::MAX_ROWS - 1, c1));
         let moved = self.take_range(range);
         for (c, cell) in moved {
             let nr = c.row as i64 + delta;
-            if (0..gridcraft_core::MAX_ROWS as i64).contains(&nr) {
+            if (0..joysheet_core::MAX_ROWS as i64).contains(&nr) {
                 self.set(CellRef::new(nr as u32, c.col), cell);
             }
         }
@@ -441,7 +441,7 @@ impl CellStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gridcraft_core::Value;
+    use joysheet_core::Value;
 
     fn c(r: u32, col: u32) -> CellRef {
         CellRef::new(r, col)
@@ -517,7 +517,7 @@ mod tests {
                 }
             }
         }
-        s.set(c(gridcraft_core::MAX_ROWS + 1, gridcraft_core::MAX_COLS + 1), Cell::formula(crate::Formula::new("=1")));
+        s.set(c(joysheet_core::MAX_ROWS + 1, joysheet_core::MAX_COLS + 1), Cell::formula(crate::Formula::new("=1")));
         assert_eq!(
             s.formulas().map(|(c, _)| c).collect::<Vec<_>>(),
             s.iter().filter(|(_, cell)| cell.formula.is_some()).map(|(c, _)| c).collect::<Vec<_>>()
@@ -657,11 +657,11 @@ mod tests {
         let original = s.clone();
         let range = RangeRef::parse("A1:D300").unwrap();
         let before: Vec<_> = s.iter_formulas(range).map(|(c, _)| c).collect();
-        s.write_values((0..300).map(|r| (c(r, 1), gridcraft_core::Value::Number(r as f64))));
+        s.write_values((0..300).map(|r| (c(r, 1), joysheet_core::Value::Number(r as f64))));
         assert_eq!(s.len(), 200);
         assert_eq!(s.iter_formulas(range).map(|(c, _)| c).collect::<Vec<_>>(), before);
-        assert_eq!(s.get(c(199, 1)).unwrap().value, gridcraft_core::Value::Number(199.));
-        assert_eq!(original.get(c(199, 1)).unwrap().value, gridcraft_core::Value::Empty);
+        assert_eq!(s.get(c(199, 1)).unwrap().value, joysheet_core::Value::Number(199.));
+        assert_eq!(original.get(c(199, 1)).unwrap().value, joysheet_core::Value::Empty);
         assert_eq!(s.used_range(), original.used_range());
     }
 }

@@ -2,13 +2,13 @@
 use std::io::Write as _;
 use std::sync::Arc;
 
-use gridcraft_engine::model::Formula;
+use joysheet_engine::model::Formula;
 
 use super::*;
 
 #[test]
 fn discovery_reports_a_directory_read_error() {
-    let path = std::env::temp_dir().join(format!("gridcraft-check-not-a-directory-{}", std::process::id()));
+    let path = std::env::temp_dir().join(format!("joysheet-check-not-a-directory-{}", std::process::id()));
     std::fs::write(&path, "not a directory").unwrap();
     let mut discovery = Discovery::default();
     let mut seen = std::collections::HashSet::new();
@@ -52,7 +52,7 @@ fn book(cells: &[(&str, &str, Value)]) -> Workbook {
 }
 
 fn check(wb: &Workbook, opts: &Options) -> FileReport {
-    let bytes = gridcraft_engine::io::save_bytes(wb, "t.xlsx").unwrap();
+    let bytes = joysheet_engine::io::save_bytes(wb, "t.xlsx").unwrap();
     check_bytes("t.xlsx", &bytes, opts)
 }
 
@@ -154,12 +154,12 @@ fn full_calc_on_load_means_no_oracle() {
     // `fullCalcOnLoad`, like libraries that store 0 for every formula: B1's wrong "cached"
     // value must not count as a mismatch then.
     let wb = book(&[("A1", "=1+1", Value::Empty), ("B1", "=2+2", n(0.0))]);
-    let bytes = gridcraft_engine::io::save_bytes(&wb, "t.xlsx").unwrap();
+    let bytes = joysheet_engine::io::save_bytes(&wb, "t.xlsx").unwrap();
     assert!(full_calc_on_load(&bytes));
     let r = check_bytes("t.xlsx", &bytes, &Options::default());
     assert!(r.calc.stale_cache);
     assert_eq!((r.calc.checked, r.calc.no_oracle, r.calc.mismatched), (0, 2, 0));
-    let fresh = gridcraft_engine::io::save_bytes(&book(&[("B1", "=2+2", n(0.0))]), "t.xlsx").unwrap();
+    let fresh = joysheet_engine::io::save_bytes(&book(&[("B1", "=2+2", n(0.0))]), "t.xlsx").unwrap();
     assert!(!full_calc_on_load(&fresh));
     assert!(!full_calc_on_load(b"not a zip"));
 }
@@ -167,7 +167,7 @@ fn full_calc_on_load_means_no_oracle() {
 #[test]
 fn volatile_names_propagate() {
     let mut wb = book(&[("A1", "=Stamp+1", n(1.0))]);
-    wb.names.push(gridcraft_engine::model::DefinedName {
+    wb.names.push(joysheet_engine::model::DefinedName {
         name: "Stamp".into(),
         scope: None,
         formula: "TODAY()".into(),
@@ -181,8 +181,8 @@ fn volatile_names_propagate() {
 #[test]
 fn round_trip_of_a_simple_book_is_clean() {
     let mut wb = book(&[("A1", "2", n(2.0)), ("B1", "=A1*3", n(6.0)), ("A2", "x", Value::text("x"))]);
-    wb.sheet_mut(0).unwrap().merges.push(gridcraft_engine::core::RangeRef::parse("C1:D2").unwrap());
-    let source = gridcraft_engine::io::save_bytes(&wb, "t.xlsx").unwrap();
+    wb.sheet_mut(0).unwrap().merges.push(joysheet_engine::core::RangeRef::parse("C1:D2").unwrap());
+    let source = joysheet_engine::io::save_bytes(&wb, "t.xlsx").unwrap();
     let rt = round_trip(&wb, &source, &Options::default());
     assert_eq!(rt.error, None);
     assert!(rt.is_clean(), "{rt:?}");
@@ -192,7 +192,7 @@ fn round_trip_of_a_simple_book_is_clean() {
 #[test]
 fn diff_detects_lost_features() {
     let mut a = book(&[("A1", "2", n(2.0)), ("B1", "=A1*3", n(6.0))]);
-    a.sheet_mut(0).unwrap().merges.push(gridcraft_engine::core::RangeRef::parse("C1:D2").unwrap());
+    a.sheet_mut(0).unwrap().merges.push(joysheet_engine::core::RangeRef::parse("C1:D2").unwrap());
     let mut b = a.clone();
     let sh = b.sheet_mut(0).unwrap();
     sh.merges.clear();
@@ -211,9 +211,9 @@ fn diff_detects_lost_features() {
 
 #[test]
 fn diff_detects_changed_cond_format_rule() {
-    use gridcraft_engine::model::{CfRule, CfValueKind, Color, CondFormat};
+    use joysheet_engine::model::{CfRule, CfValueKind, Color, CondFormat};
     let bar = |gradient: bool, priority: u32| CondFormat {
-        ranges: vec![gridcraft_engine::core::RangeRef::parse("A1").unwrap()],
+        ranges: vec![joysheet_engine::core::RangeRef::parse("A1").unwrap()],
         rule: CfRule::DataBar { min: CfValueKind::Min, max: CfValueKind::Max, color: Color::Rgb(0x638EC6), gradient, show_value: true },
         priority,
         stop_if_true: false,
@@ -264,7 +264,7 @@ fn package_validation_finds_what_excel_would_repair() {
         ]
     );
     assert!(validate_package(b"not a zip").is_err());
-    let own = gridcraft_engine::io::save_bytes(&book(&[("A1", "=1", n(1.0))]), "t.xlsx").unwrap();
+    let own = joysheet_engine::io::save_bytes(&book(&[("A1", "=1", n(1.0))]), "t.xlsx").unwrap();
     assert_eq!(validate_package(&own).unwrap(), Vec::<String>::new());
 }
 
@@ -307,7 +307,7 @@ fn package_of(source: &[u8]) -> Vec<String> {
 }
 
 fn plain() -> Vec<u8> {
-    gridcraft_engine::io::save_bytes(&book(&[("A1", "1", n(1.0))]), "t.xlsx").unwrap()
+    joysheet_engine::io::save_bytes(&book(&[("A1", "1", n(1.0))]), "t.xlsx").unwrap()
 }
 
 #[test]

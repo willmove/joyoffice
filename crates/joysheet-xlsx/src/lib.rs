@@ -41,8 +41,8 @@ mod xml;
 #[cfg(test)]
 mod tests;
 
-use gridcraft_core::DateSystem;
-use gridcraft_model::Workbook;
+use joysheet_core::DateSystem;
+use joysheet_model::Workbook;
 
 pub use crypto::{DecryptError, check_encryption, decrypt};
 pub use csv::{MAX_CSV_BYTES, read_csv, write_csv, write_csv_limited};

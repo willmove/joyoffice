@@ -74,7 +74,7 @@ fn layers() -> Result<(), String> {
     let metadata: serde_json::Value = serde_json::from_slice(&output.stdout).map_err(|e| e.to_string())?;
     for package in metadata["packages"].as_array().into_iter().flatten() {
         let name = package["name"].as_str().unwrap_or_default();
-        if name.starts_with("gridcraft-") {
+        if name.starts_with("joysheet-") {
             for dep in package["dependencies"].as_array().into_iter().flatten() {
                 let dependency = dep["name"].as_str().unwrap_or_default();
                 if dependency.starts_with("joysheet-") || dependency.starts_with("gpui") || ["rfd", "arboard", "winit"].contains(&dependency) {
@@ -87,7 +87,7 @@ fn layers() -> Result<(), String> {
     Ok(())
 }
 fn wasm() -> Result<(), String> {
-    cargo(&["check", "--locked", "--target", "wasm32-unknown-unknown", "-p", "gridcraft-engine", "-p", "gridcraft-chart", "-p", "gridcraft-pdf"])
+    cargo(&["check", "--locked", "--target", "wasm32-unknown-unknown", "-p", "joysheet-engine", "-p", "joysheet-chart", "-p", "joysheet-pdf"])
 }
 fn smoke(args: &[String]) -> Result<(), String> {
     let stage = args.windows(2).find(|w| w.first().is_some_and(|s| s == "--stage")).and_then(|w| w.get(1)).map(String::as_str).unwrap_or("M3");
@@ -140,7 +140,7 @@ fn smoke(args: &[String]) -> Result<(), String> {
 }
 fn bench() -> Result<(), String> {
     use joysheet_app::geometry::{GridLayout, SheetGeometry};
-    let sh = gridcraft_sheet();
+    let sh = joysheet_sheet();
     let geo = SheetGeometry::new(&sh);
     let start = std::time::Instant::now();
     let mut max_cells = 0;
@@ -161,14 +161,14 @@ fn bench() -> Result<(), String> {
     println!("{report}");
     Ok(())
 }
-fn gridcraft_sheet() -> gridcraft_engine::model::Sheet {
-    gridcraft_engine::model::Sheet::new("Sparse million")
+fn joysheet_sheet() -> joysheet_engine::model::Sheet {
+    joysheet_engine::model::Sheet::new("Sparse million")
 }
 fn inventory() -> Result<(), String> {
-    let specs = gridcraft_engine::command_specs();
+    let specs = joysheet_engine::command_specs();
     let registered:Vec<_>=specs.iter().map(|s|json!({"id":s.id,"label":s.label,"menu":s.menu,"params":s.params,"undoable":s.undoable,"interface":"routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md"})).collect();
     let catalog_only: Vec<_> =
-        gridcraft_engine::catalog::CATALOG.iter().filter(|(id, _, _, _)| !specs.iter().any(|s| s.id == *id)).map(|(id, _, _, _)| *id).collect();
+        joysheet_engine::catalog::CATALOG.iter().filter(|(id, _, _, _)| !specs.iter().any(|s| s.id == *id)).map(|(id, _, _, _)| *id).collect();
     let report =
         json!({"registeredCount":registered.len(),"registered":registered,"catalogOnlyNotCounted":catalog_only,"desktopParityComplete":false});
     std::fs::write(root().join("docs/commands.json"), serde_json::to_vec_pretty(&report).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;

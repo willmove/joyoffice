@@ -1,5 +1,5 @@
 [package]
-name = "gridcraft-functions"
+name = "joysheet-functions"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,5 +9,5 @@ description = "GridCraft worksheet function library: math, statistics, text, dat
 workspace = true
 
 [dependencies]
-gridcraft-core = { workspace = true }
+joysheet-core = { workspace = true }
 regex = { workspace = true }

@@ -4,7 +4,7 @@ use crate::{
 };
 use gpui_kit::component::button::Button;
 use gpui_kit::{prelude::*, *};
-use gridcraft_engine::model::Anchor;
+use joysheet_engine::model::Anchor;
 use serde_json::{Value, json};
 impl Desktop {
     pub fn object_selection(&self) -> Vec<(ObjectKey, Anchor)> {
@@ -75,10 +75,10 @@ impl Desktop {
                 }) else {
                     continue;
                 };
-                let cell = operation["params"]["at"].as_str().and_then(gridcraft_engine::core::CellRef::parse).unwrap_or(a.cell);
+                let cell = operation["params"]["at"].as_str().and_then(joysheet_engine::core::CellRef::parse).unwrap_or(a.cell);
                 let x = (geo.cols.start(cell.col) + operation["params"]["dx"].as_f64().unwrap_or(a.dx as f64)).max(0.);
                 let y = (geo.rows.start(cell.row) + operation["params"]["dy"].as_f64().unwrap_or(a.dy as f64)).max(0.);
-                let at = gridcraft_engine::core::CellRef::new(geo.rows.at(y), geo.cols.at(x));
+                let at = joysheet_engine::core::CellRef::new(geo.rows.at(y), geo.cols.at(x));
                 operation["params"]["at"] = json!(at.a1());
                 operation["params"]["dx"] = json!(x - geo.cols.start(at.col));
                 operation["params"]["dy"] = json!(y - geo.rows.start(at.row));

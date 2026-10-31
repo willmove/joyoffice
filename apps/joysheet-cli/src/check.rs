@@ -17,11 +17,11 @@ use std::io::{Cursor, Read as _};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use gridcraft_engine::calc::{Calc, Key};
-use gridcraft_engine::cmd::inspect::value_json;
-use gridcraft_engine::core::{CellError, CellRef, Value};
-use gridcraft_engine::formula::{Expr, quote_sheet};
-use gridcraft_engine::model::{Cell, Sheet, Workbook};
+use joysheet_engine::calc::{Calc, Key};
+use joysheet_engine::cmd::inspect::value_json;
+use joysheet_engine::core::{CellError, CellRef, Value};
+use joysheet_engine::formula::{Expr, quote_sheet};
+use joysheet_engine::model::{Cell, Sheet, Workbook};
 use serde_json::{Value as Json, json};
 
 use super::{Args, USAGE, number_text, pretty};
@@ -217,7 +217,7 @@ pub fn main(args: &[String]) -> ExitCode {
     let Discovery { files, failures: mut reports } = collect_inputs(&a.positional);
     reports.extend(files.iter().map(|p| {
         let path = p.to_string_lossy().into_owned();
-        match gridcraft_engine::io::read_file(&path) {
+        match joysheet_engine::io::read_file(&path) {
             Ok(bytes) => check_bytes(&path, &bytes, &opts),
             Err(e) => FileReport { path, error: Some(e.to_string()), ..Default::default() },
         }
@@ -350,7 +350,7 @@ pub fn check_bytes(path: &str, bytes: &[u8], opts: &Options) -> FileReport {
 
 fn check_inner(path: &str, bytes: &[u8], opts: &Options) -> FileReport {
     let mut report = FileReport { path: path.to_string(), ..Default::default() };
-    let (cached, warnings) = match gridcraft_engine::io::open_bytes(path, bytes) {
+    let (cached, warnings) = match joysheet_engine::io::open_bytes(path, bytes) {
         Ok(x) => x,
         Err(e) => {
             report.error = Some(e.to_string());

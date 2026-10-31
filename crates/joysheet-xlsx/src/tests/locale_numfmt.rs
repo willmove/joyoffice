@@ -6,8 +6,8 @@
 use std::io::Read;
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, Value};
-use gridcraft_model::*;
+use joysheet_core::{CellRef, Value};
+use joysheet_model::*;
 
 use crate::tables::builtin_format;
 use crate::{read_xlsx, write_xlsx};

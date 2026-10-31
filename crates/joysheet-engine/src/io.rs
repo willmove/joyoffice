@@ -2,8 +2,8 @@
 
 use std::fmt::Write as _;
 
-use gridcraft_core::{CellRef, RangeRef};
-use gridcraft_model::{Sheet, Workbook};
+use joysheet_core::{CellRef, RangeRef};
+use joysheet_model::{Sheet, Workbook};
 
 use crate::{EngineError, Result};
 
@@ -62,19 +62,19 @@ pub fn open_bytes_with_password(name: &str, bytes: &[u8], password: Option<&str>
 /// the text it holds, with no number, date or boolean conversion (identifiers such as GTINs, SKUs
 /// and ZIP codes survive). It does not apply to other formats.
 pub fn open_bytes_with(name: &str, bytes: &[u8], password: Option<&str>, csv_as_text: bool) -> Result<(Workbook, Vec<String>)> {
-    if gridcraft_xlsx::sniff(bytes) != gridcraft_xlsx::Format::Encrypted {
+    if joysheet_xlsx::sniff(bytes) != joysheet_xlsx::Format::Encrypted {
         let (mut wb, warnings) = open_plain(name, bytes, csv_as_text)?;
         fit_imported_rows(&mut wb);
         return Ok((wb, warnings));
     }
     // A scheme no password opens is said straight away, rather than after asking for one.
-    let decrypt_error = |e: gridcraft_xlsx::DecryptError| EngineError::Other(decrypt_message(name, e));
+    let decrypt_error = |e: joysheet_xlsx::DecryptError| EngineError::Other(decrypt_message(name, e));
     let Some(password) = password else {
-        gridcraft_xlsx::check_encryption(bytes).map_err(decrypt_error)?;
+        joysheet_xlsx::check_encryption(bytes).map_err(decrypt_error)?;
         return Err(EngineError::Other(format!("'{name}' {PASSWORD_REQUIRED}")));
     };
-    let plain = gridcraft_xlsx::decrypt(bytes, password).map_err(decrypt_error)?;
-    if gridcraft_xlsx::sniff(&plain) == gridcraft_xlsx::Format::Encrypted {
+    let plain = joysheet_xlsx::decrypt(bytes, password).map_err(decrypt_error)?;
+    if joysheet_xlsx::sniff(&plain) == joysheet_xlsx::Format::Encrypted {
         return Err(EngineError::Other(format!("We can't open '{name}': the encrypted file is damaged (it holds another encrypted file).")));
     }
     let (mut wb, mut warnings) = open_plain(name, &plain, csv_as_text)?;
@@ -108,25 +108,25 @@ fn fit_imported_rows(wb: &mut Workbook) {
 }
 
 /// What to tell the user when an encrypted workbook can't be decrypted. Never quotes the password.
-fn decrypt_message(name: &str, e: gridcraft_xlsx::DecryptError) -> String {
+fn decrypt_message(name: &str, e: joysheet_xlsx::DecryptError) -> String {
     match e {
-        gridcraft_xlsx::DecryptError::WrongPassword => format!("{WRONG_PASSWORD} Check that Caps Lock is off and try again."),
-        gridcraft_xlsx::DecryptError::Unsupported(scheme) => {
+        joysheet_xlsx::DecryptError::WrongPassword => format!("{WRONG_PASSWORD} Check that Caps Lock is off and try again."),
+        joysheet_xlsx::DecryptError::Unsupported(scheme) => {
             format!("'{name}' uses {scheme} encryption, which GridCraft can't open yet. Remove the password in Excel and try again.")
         }
-        gridcraft_xlsx::DecryptError::Malformed(detail) => format!("We can't open '{name}': the encrypted file is damaged ({detail})."),
+        joysheet_xlsx::DecryptError::Malformed(detail) => format!("We can't open '{name}': the encrypted file is damaged ({detail})."),
     }
 }
 
 /// Parses bytes that aren't encrypted.
 fn open_plain(name: &str, bytes: &[u8], csv_as_text: bool) -> Result<(Workbook, Vec<String>)> {
     let kind = FileKind::from_path(name);
-    let sniffed = gridcraft_xlsx::sniff(bytes);
-    if sniffed == gridcraft_xlsx::Format::Xls {
-        let (wb, report) = gridcraft_xlsx::read_xls(bytes).map_err(|e| EngineError::Other(format!("We can't open '{name}': {e}")))?;
+    let sniffed = joysheet_xlsx::sniff(bytes);
+    if sniffed == joysheet_xlsx::Format::Xls {
+        let (wb, report) = joysheet_xlsx::read_xls(bytes).map_err(|e| EngineError::Other(format!("We can't open '{name}': {e}")))?;
         return Ok((wb, report.warnings));
     }
-    if sniffed == gridcraft_xlsx::Format::LegacyBinary {
+    if sniffed == joysheet_xlsx::Format::LegacyBinary {
         return Err(EngineError::Other(format!(
             "'{name}' is a legacy binary file but not an Excel workbook (no workbook stream). GridCraft can't open it."
         )));
@@ -134,22 +134,22 @@ fn open_plain(name: &str, bytes: &[u8], csv_as_text: bool) -> Result<(Workbook, 
     // Content wins over the extension: an ODS or XLSB package is imported as what it is,
     // whatever it is called; the extension only decides when the bytes don't say.
     let import = match sniffed {
-        gridcraft_xlsx::Format::Ods => Some(FileKind::Ods),
-        gridcraft_xlsx::Format::Xlsb => Some(FileKind::Xlsb),
+        joysheet_xlsx::Format::Ods => Some(FileKind::Ods),
+        joysheet_xlsx::Format::Xlsb => Some(FileKind::Xlsb),
         // An XLSX package is never read as ODS/XLSB just because of its name.
-        gridcraft_xlsx::Format::Xlsx => None,
+        joysheet_xlsx::Format::Xlsx => None,
         _ => kind.filter(|k| matches!(k, FileKind::Ods | FileKind::Xlsb)),
     };
     if let Some(import) = import {
-        let read = if import == FileKind::Ods { gridcraft_xlsx::read_ods } else { gridcraft_xlsx::read_xlsb };
+        let read = if import == FileKind::Ods { joysheet_xlsx::read_ods } else { joysheet_xlsx::read_xlsb };
         let (wb, report) = read(bytes).map_err(|e| EngineError::Other(format!("We can't import '{name}': {e}")))?;
         return Ok((wb, report.warnings));
     }
     // Text named `.xlsx` is read as text.
-    if sniffed == gridcraft_xlsx::Format::Xlsx || (kind == Some(FileKind::Xlsx) && sniffed != gridcraft_xlsx::Format::Csv) {
-        let (wb, report) = gridcraft_xlsx::read_xlsx(bytes).map_err(|e| {
-            EngineError::Other(match (&e, gridcraft_xlsx::oversized_part(bytes)) {
-                (gridcraft_xlsx::IoError::TooLarge(_), Some((part, size))) => part_too_large_message(name, &part, size),
+    if sniffed == joysheet_xlsx::Format::Xlsx || (kind == Some(FileKind::Xlsx) && sniffed != joysheet_xlsx::Format::Csv) {
+        let (wb, report) = joysheet_xlsx::read_xlsx(bytes).map_err(|e| {
+            EngineError::Other(match (&e, joysheet_xlsx::oversized_part(bytes)) {
+                (joysheet_xlsx::IoError::TooLarge(_), Some((part, size))) => part_too_large_message(name, &part, size),
                 _ => format!("We can't open '{name}': {e}"),
             })
         })?;
@@ -172,16 +172,16 @@ fn open_plain(name: &str, bytes: &[u8], csv_as_text: bool) -> Result<(Workbook, 
             Ok((wb, warnings))
         }
         Some(FileKind::Tsv) => {
-            let opts = gridcraft_xlsx::CsvOptions { delimiter: b'\t', parse_values: !csv_as_text, ..Default::default() };
-            let mut wb = gridcraft_xlsx::read_csv(bytes, &opts).map_err(|e| EngineError::Other(e.to_string()))?;
+            let opts = joysheet_xlsx::CsvOptions { delimiter: b'\t', parse_values: !csv_as_text, ..Default::default() };
+            let mut wb = joysheet_xlsx::read_csv(bytes, &opts).map_err(|e| EngineError::Other(e.to_string()))?;
             // Tab is what makes it a .tsv/.txt; saved as .csv it gets the CSV default.
             wb.csv_delimiter = None;
             rename_first_sheet(&mut wb, name);
             Ok((wb, vec![]))
         }
         _ => {
-            let opts = gridcraft_xlsx::CsvOptions { delimiter: 0, parse_values: !csv_as_text, ..Default::default() };
-            let mut wb = gridcraft_xlsx::read_csv(bytes, &opts).map_err(|e| EngineError::Other(e.to_string()))?;
+            let opts = joysheet_xlsx::CsvOptions { delimiter: 0, parse_values: !csv_as_text, ..Default::default() };
+            let mut wb = joysheet_xlsx::read_csv(bytes, &opts).map_err(|e| EngineError::Other(e.to_string()))?;
             rename_first_sheet(&mut wb, name);
             Ok((wb, vec![]))
         }
@@ -193,7 +193,7 @@ fn open_plain(name: &str, bytes: &[u8], csv_as_text: bool) -> Result<(Workbook, 
 /// per part, so smaller sheets fit; the shared strings are one part for every sheet, so only a
 /// CSV, which has no parts, helps there.
 fn part_too_large_message(name: &str, part: &str, size: u64) -> String {
-    let limit = gridcraft_xlsx::MAX_PART >> 20;
+    let limit = joysheet_xlsx::MAX_PART >> 20;
     let mb = size >> 20;
     let size = if mb > limit { format!("{mb} MB") } else { format!("more than {limit} MB") };
     let remedy = if part.contains("worksheets/") {
@@ -240,7 +240,7 @@ pub fn save_bytes_as(wb: &Workbook, path: &str, kind: FileKind) -> Result<Vec<u8
         // the VBA project, so any other name saves without it, as Excel does.
         FileKind::Xlsx => {
             let book = std::path::Path::new(path).file_name().and_then(std::ffi::OsStr::to_str).unwrap_or_default();
-            gridcraft_xlsx::write_xlsx_named(wb, gridcraft_xlsx::XlsxKind::from_path(path), book).map_err(|e| EngineError::Other(e.to_string()))
+            joysheet_xlsx::write_xlsx_named(wb, joysheet_xlsx::XlsxKind::from_path(path), book).map_err(|e| EngineError::Other(e.to_string()))
         }
         FileKind::Xls => {
             Err(EngineError::Other("Excel 97-2003 (.xls) is supported for import only. Save as .xlsx or another supported export format.".into()))
@@ -258,7 +258,7 @@ pub fn save_bytes_as(wb: &Workbook, path: &str, kind: FileKind) -> Result<Vec<u8
 /// [`save_bytes`] for the file at `path`: relative paths to linked workbooks are rewritten for
 /// its folder, so they still name the same files.
 pub fn save_file_bytes(wb: &Workbook, path: &str) -> Result<Vec<u8>> {
-    match source_dir(path).and_then(|f| gridcraft_xlsx::rebase_links(wb, &f)) {
+    match source_dir(path).and_then(|f| joysheet_xlsx::rebase_links(wb, &f)) {
         Some(rebased) => save_bytes(&rebased, path),
         None => save_bytes(wb, path),
     }
@@ -279,11 +279,11 @@ pub fn source_path(path: &str) -> Option<std::path::PathBuf> {
 /// characters in each cell" (Microsoft Support, *Excel formatting and features that are not
 /// transferred to other file formats*): number formats applied, never column-width `#####`.
 fn csv(wb: &Workbook, sh: &Sheet, delimiter: u8) -> Result<Vec<u8>> {
-    gridcraft_xlsx::write_csv(sh, delimiter, |c| {
+    joysheet_xlsx::write_csv(sh, delimiter, |c| {
         // General's grid-width formatting rounds large identifiers to scientific notation.
         // Delimited files have no column width, so preserve the whole numeric value instead.
         if wb.styles.get(sh.style_id(c)).num_fmt.as_str().eq_ignore_ascii_case("General")
-            && let gridcraft_core::Value::Number(number) = sh.value(c)
+            && let joysheet_core::Value::Number(number) = sh.value(c)
             && number.is_finite()
         {
             number.to_string()
@@ -310,16 +310,16 @@ fn html_cell_css(wb: &Workbook, sh: &Sheet, c: CellRef, dir: CellDir) -> String 
     if let Some(h) = st.font.color.hex(&wb.theme) {
         let _ = write!(css, "color:{h};");
     }
-    if st.fill.pattern != gridcraft_model::PatternType::None
+    if st.fill.pattern != joysheet_model::PatternType::None
         && let Some(h) = st.fill.fg.hex(&wb.theme)
     {
         let _ = write!(css, "background:{h};");
     }
     let v = sh.value(c);
     let align = match st.align.h {
-        gridcraft_model::HAlign::Center => Some("center"),
-        gridcraft_model::HAlign::Right => Some("right"),
-        gridcraft_model::HAlign::Left => Some("left"),
+        joysheet_model::HAlign::Center => Some("center"),
+        joysheet_model::HAlign::Right => Some("right"),
+        joysheet_model::HAlign::Left => Some("left"),
         _ if v.is_number() => Some(if sh.right_to_left { "left" } else { "right" }),
         _ if dir == CellDir::Auto => None,
         _ => Some("left"),
@@ -542,7 +542,7 @@ pub fn to_html(wb: &Workbook, sheet: usize) -> Result<String> {
     if fixed {
         // Sheet units are CSS pixels; the table starts at the used range, not at A1.
         let (left, top) = used.map_or((0.0, 0.0), |r| (sh.col_left(r.start.col), sh.row_top(r.start.row)));
-        let place = |a: &gridcraft_model::Anchor| {
+        let place = |a: &joysheet_model::Anchor| {
             format!(
                 "position:absolute;left:{}px;top:{}px;width:{}px;height:{}px",
                 sh.col_left(a.cell.col) - left + f64::from(a.dx),

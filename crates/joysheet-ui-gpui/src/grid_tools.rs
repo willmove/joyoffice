@@ -30,14 +30,14 @@ pub fn axes(layout: &joysheet_app::geometry::GridLayout, geo: &joysheet_app::geo
         scroll_axis(
             layout.width - ROW_HEADER,
             layout.scroll_x,
-            geo.cols.start(end.col.saturating_add(2).min(gridcraft_engine::core::MAX_COLS)) * layout.zoom,
-            geo.cols.start(gridcraft_engine::core::MAX_COLS) * layout.zoom,
+            geo.cols.start(end.col.saturating_add(2).min(joysheet_engine::core::MAX_COLS)) * layout.zoom,
+            geo.cols.start(joysheet_engine::core::MAX_COLS) * layout.zoom,
         ),
         scroll_axis(
             layout.height - COL_HEADER,
             layout.scroll_y,
-            geo.rows.start(end.row.saturating_add(2).min(gridcraft_engine::core::MAX_ROWS)) * layout.zoom,
-            geo.rows.start(gridcraft_engine::core::MAX_ROWS) * layout.zoom,
+            geo.rows.start(end.row.saturating_add(2).min(joysheet_engine::core::MAX_ROWS)) * layout.zoom,
+            geo.rows.start(joysheet_engine::core::MAX_ROWS) * layout.zoom,
         ),
     )
 }
@@ -88,7 +88,7 @@ impl Desktop {
         }
         let pixels = (d.size + d.delta / self.layout.zoom as f32).clamp(8., if d.column { 1800. } else { 546. });
         let (id, p) = if d.column {
-            let name = gridcraft_engine::core::col_to_letters(d.index);
+            let name = joysheet_engine::core::col_to_letters(d.index);
             ("home.columnWidth", json!({"cols":format!("{name}:{name}"),"width":pixels}))
         } else {
             ("home.rowHeight", json!({"rows":format!("{0}:{0}",d.index+1),"height":pixels}))
@@ -132,9 +132,9 @@ impl Desktop {
                     self.layout.hit(x.clamp(ROW_HEADER + 1., self.layout.width - 1.), y.clamp(COL_HEADER + 1., self.layout.height - 1.)),
                 )
             {
-                let range = gridcraft_engine::core::RangeRef::new(anchor, cell);
+                let range = joysheet_engine::core::RangeRef::new(anchor, cell);
                 if self.selection().current() != range {
-                    self.local_selection = Some(gridcraft_engine::Selection::range(range));
+                    self.local_selection = Some(joysheet_engine::Selection::range(range));
                     self.issue("selection.set", json!({"range":range.a1(),"active":anchor.a1()}), Default::default(), cx);
                 }
             }

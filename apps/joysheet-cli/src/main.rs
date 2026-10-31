@@ -31,7 +31,7 @@ macro_rules! outln {
 
 mod check;
 
-use gridcraft_engine::Session;
+use joysheet_engine::Session;
 use serde_json::{Value, json};
 
 const USAGE: &str = "usage:
@@ -285,7 +285,7 @@ fn convert(args: &[String]) -> Result<(), String> {
     let out = a.pos(1, "<out>")?;
     a.no_extra(2)?;
     let pdf = out.to_ascii_lowercase().ends_with(".pdf");
-    if !pdf && gridcraft_engine::io::FileKind::from_path(out).is_none() {
+    if !pdf && joysheet_engine::io::FileKind::from_path(out).is_none() {
         return Err(format!("{out}: unknown output format (use .xlsx, .csv, .tsv, .json, .html or .pdf)"));
     }
     let mut s = open(input)?;
@@ -296,8 +296,8 @@ fn convert(args: &[String]) -> Result<(), String> {
         return Ok(());
     }
     let d = s.doc().map_err(|e| e.to_string())?;
-    let bytes = gridcraft_engine::io::save_file_bytes(&d.wb, out).map_err(|e| e.to_string())?;
-    gridcraft_engine::io::write_file(out, &bytes).map_err(|e| e.to_string())?;
+    let bytes = joysheet_engine::io::save_file_bytes(&d.wb, out).map_err(|e| e.to_string())?;
+    joysheet_engine::io::write_file(out, &bytes).map_err(|e| e.to_string())?;
     eprintln!("wrote {out} ({} bytes)", bytes.len());
     Ok(())
 }
@@ -525,7 +525,7 @@ fn functions(args: &[String]) -> Result<(), String> {
 /// `mcp` (headless, in-process engine) or `mcp --connect PORT|HOST:PORT` (drive a running app
 /// started with `joysheet --control PORT`). JSON-RPC on stdin/stdout; logs on stderr.
 fn mcp(args: &[String]) -> Result<(), String> {
-    use gridcraft_mcp::{Backend, Headless, Remote, Server, control_addr};
+    use joysheet_mcp::{Backend, Headless, Remote, Server, control_addr};
     let a = Args::parse(args, &["connect", "in", "sample"], &[])?;
     a.no_extra(0)?;
     let backend: Box<dyn Backend> = match a.opt("connect") {
@@ -557,7 +557,7 @@ fn mcp(args: &[String]) -> Result<(), String> {
 
 /// `send PORT METHOD [JSON]`: one control-channel request to a running app.
 fn send(args: &[String]) -> Result<(), String> {
-    use gridcraft_mcp::{Backend, Remote, control_addr};
+    use joysheet_mcp::{Backend, Remote, control_addr};
     let port = args.first().ok_or_else(|| format!("missing <port>\n{USAGE}"))?;
     let method = args.get(1).ok_or_else(|| format!("missing <method>\n{USAGE}"))?;
     let params: Value = match args.get(2) {
@@ -658,8 +658,8 @@ mod tests {
         let output = dir.join("links.pdf");
         let mut s = blank();
         s.execute("insert.link", json!({"cell": "A1", "target": "https://example.org"})).unwrap();
-        let bytes = gridcraft_engine::io::save_file_bytes(&s.doc().unwrap().wb, input.to_str().unwrap()).unwrap();
-        gridcraft_engine::io::write_file(input.to_str().unwrap(), &bytes).unwrap();
+        let bytes = joysheet_engine::io::save_file_bytes(&s.doc().unwrap().wb, input.to_str().unwrap()).unwrap();
+        joysheet_engine::io::write_file(input.to_str().unwrap(), &bytes).unwrap();
         convert(&[input.to_string_lossy().into_owned(), output.to_string_lossy().into_owned()]).unwrap();
         let pdf = std::fs::read(&output).unwrap();
         assert!(pdf.starts_with(b"%PDF-"));

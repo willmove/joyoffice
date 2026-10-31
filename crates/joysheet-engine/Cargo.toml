@@ -1,5 +1,5 @@
 [package]
-name = "gridcraft-engine"
+name = "joysheet-engine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,21 +9,21 @@ description = "GridCraft engine: sessions, commands, history, clipboard, fill, s
 workspace = true
 
 [dependencies]
-gridcraft-core = { workspace = true }
-gridcraft-numfmt = { workspace = true }
-gridcraft-formula = { workspace = true }
-gridcraft-functions = { workspace = true }
-gridcraft-model = { workspace = true }
-gridcraft-calc = { workspace = true }
+joysheet-core = { workspace = true }
+joysheet-numfmt = { workspace = true }
+joysheet-formula = { workspace = true }
+joysheet-functions = { workspace = true }
+joysheet-model = { workspace = true }
+joysheet-calc = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
-gridcraft-xlsx = { workspace = true }
-gridcraft-chart = { workspace = true }
-gridcraft-pdf = { workspace = true }
+joysheet-xlsx = { workspace = true }
+joysheet-chart = { workspace = true }
+joysheet-pdf = { workspace = true }
 image = { workspace = true }
 
 [dev-dependencies]
-gridcraft-xlsx = { workspace = true, features = ["test-support"] }
+joysheet-xlsx = { workspace = true, features = ["test-support"] }
 zip = { workspace = true }

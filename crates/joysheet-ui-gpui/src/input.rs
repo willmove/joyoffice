@@ -1,6 +1,6 @@
 use crate::desktop::{After, Desktop, Draft, NativeWindows, Pending};
 use gpui_kit::{prelude::*, *};
-use gridcraft_engine::{core::CellRef, display};
+use joysheet_engine::{core::CellRef, display};
 use serde_json::json;
 
 impl Desktop {
@@ -237,9 +237,9 @@ impl Desktop {
         }
         if !self.validation_accepted
             && let Some(view) = self.snapshot.window(draft.window)
-            && let Some((rule, message)) = gridcraft_engine::cmd::data::check_validation(&view.workbook, draft.sheet, draft.cell, &draft.text)
+            && let Some((rule, message)) = joysheet_engine::cmd::data::check_validation(&view.workbook, draft.sheet, draft.cell, &draft.text)
             && rule.show_error
-            && rule.error_style != gridcraft_engine::model::ErrorStyle::Stop
+            && rule.error_style != joysheet_engine::model::ErrorStyle::Stop
         {
             self.validation_prompt = Some(crate::validation::ValidationPrompt { after, message, revision: view.revision });
             self.trust_focus.focus(window, cx);
@@ -523,7 +523,7 @@ impl Desktop {
         if key == "space" && grid_focus && self.draft.is_none() && (command || modifiers.shift) {
             let at = self.selection().active;
             let range = if command {
-                let c = gridcraft_engine::core::col_to_letters(at.col);
+                let c = joysheet_engine::core::col_to_letters(at.col);
                 format!("{c}:{c}")
             } else {
                 format!("{0}:{0}", at.row + 1)
@@ -689,7 +689,7 @@ impl Desktop {
             return false;
         }
         let prefix = prefix.to_ascii_uppercase();
-        if let Some(function) = gridcraft_functions::all().iter().find(|function| function.name.starts_with(&prefix)) {
+        if let Some(function) = joysheet_functions::all().iter().find(|function| function.name.starts_with(&prefix)) {
             let end = caret
                 + draft
                     .text
@@ -718,7 +718,7 @@ impl Desktop {
         let input = if draft.inline { &self.editor } else { &self.formula };
         let caret = input.read(cx).selected_range().end.min(text.len());
         if let Some((name, argument)) = crate::formula_feedback::context(text, caret)
-            && let Some(f) = gridcraft_functions::all().iter().find(|f| f.name.eq_ignore_ascii_case(&name))
+            && let Some(f) = joysheet_functions::all().iter().find(|f| f.name.eq_ignore_ascii_case(&name))
         {
             return Some(crate::formula_feedback::Hint {
                 signature: f.signature.into(),
@@ -745,7 +745,7 @@ impl Desktop {
         if let Some(open) = opens.last() {
             let before = text.get(..*open)?;
             let name = before.rsplit(|c: char| !c.is_ascii_alphanumeric() && c != '.' && c != '_').next()?.to_ascii_uppercase();
-            if let Some(f) = gridcraft_functions::all().iter().find(|f| f.name == name) {
+            if let Some(f) = joysheet_functions::all().iter().find(|f| f.name == name) {
                 return Some(crate::formula_feedback::Hint { signature: f.signature.into(), description: f.description.into(), active: 0..0 });
             }
         }
@@ -753,7 +753,7 @@ impl Desktop {
         if prefix.is_empty() {
             return None;
         }
-        let names: Vec<_> = gridcraft_functions::all().iter().filter(|f| f.name.starts_with(&prefix)).take(6).map(|f| f.name).collect();
+        let names: Vec<_> = joysheet_functions::all().iter().filter(|f| f.name.starts_with(&prefix)).take(6).map(|f| f.name).collect();
         if names.is_empty() {
             None
         } else {

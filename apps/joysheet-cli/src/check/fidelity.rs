@@ -7,7 +7,7 @@ use super::*;
 /// Writes `wb` with GridCraft's XLSX writer, validates the package against itself and against
 /// `source` (the file `wb` was read from), reads it back and compares.
 pub fn round_trip(wb: &Workbook, source: &[u8], opts: &Options) -> RoundTrip {
-    let bytes = match gridcraft_engine::io::save_bytes(wb, "roundtrip.xlsx") {
+    let bytes = match joysheet_engine::io::save_bytes(wb, "roundtrip.xlsx") {
         Ok(b) => b,
         Err(e) => return RoundTrip { error: Some(format!("write failed: {e}")), categories: vec![] },
     };
@@ -23,7 +23,7 @@ pub fn round_trip(wb: &Workbook, source: &[u8], opts: &Options) -> RoundTrip {
             }
         }
     }
-    let back = match gridcraft_engine::io::open_bytes("roundtrip.xlsx", &bytes) {
+    let back = match joysheet_engine::io::open_bytes("roundtrip.xlsx", &bytes) {
         Ok((b, _)) => b,
         Err(e) => return RoundTrip { error: Some(format!("reading the written file failed: {e}")), categories: vec![package.done()] },
     };

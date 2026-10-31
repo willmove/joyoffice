@@ -23,7 +23,7 @@
 //!
 //! Knobs (environment variables):
 //! - `GRIDCRAFT_FUZZ_SEEDS` (default 6) and `GRIDCRAFT_FUZZ_STEPS` (default 40): the budget. Soak with
-//!   `GRIDCRAFT_FUZZ_SEEDS=200 GRIDCRAFT_FUZZ_STEPS=200 cargo test --release -p gridcraft-engine --test it command_sequence_fuzz::`.
+//!   `GRIDCRAFT_FUZZ_SEEDS=200 GRIDCRAFT_FUZZ_STEPS=200 cargo test --release -p joysheet-engine --test it command_sequence_fuzz::`.
 //! - `GRIDCRAFT_FUZZ_SEED=17`: replay that one seed (the failure message prints the command line).
 //! - `GRIDCRAFT_FUZZ_SHRINK=1`: on failure, shrink the sequence to a minimal list of commands that
 //!   still fails the same way, printed as `execute` calls ready for a regression test.
@@ -32,10 +32,10 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use gridcraft_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value, col_to_letters};
-use gridcraft_engine::calc::Calc;
-use gridcraft_engine::model::{CalcMode, Formula, Sheet, Workbook};
-use gridcraft_engine::{EngineError, Session, command_specs, find_command, io};
+use joysheet_core::{CellRef, MAX_COLS, MAX_ROWS, RangeRef, Value, col_to_letters};
+use joysheet_engine::calc::Calc;
+use joysheet_engine::model::{CalcMode, Formula, Sheet, Workbook};
+use joysheet_engine::{EngineError, Session, command_specs, find_command, io};
 use serde_json::{Value as Json, json};
 
 const SAMPLES: [&str; 3] = ["sales", "budget", "grades"];
@@ -139,7 +139,7 @@ fn report(seed: u64, steps: usize, sample: &str, sequence: &[Step], f: &Failure)
         None => format!("end-of-run checks after {} steps", sequence.len()),
     };
     let mut out = format!(
-        "command-sequence fuzz failure: seed {seed} (sample `{sample}`), {at}\n  invariant [{}]: {}\n  replay: GRIDCRAFT_FUZZ_SEED={seed} GRIDCRAFT_FUZZ_STEPS={steps} cargo test -p gridcraft-engine --test it command_sequence_fuzz::\n",
+        "command-sequence fuzz failure: seed {seed} (sample `{sample}`), {at}\n  invariant [{}]: {}\n  replay: GRIDCRAFT_FUZZ_SEED={seed} GRIDCRAFT_FUZZ_STEPS={steps} cargo test -p joysheet-engine --test it command_sequence_fuzz::\n",
         f.kind, f.what
     );
     let end = (f.step + 1).min(sequence.len());
@@ -336,7 +336,7 @@ impl Harness {
 
 // ---------------------------------------------------------------- invariants
 
-fn has_content(c: &gridcraft_engine::model::Cell) -> bool {
+fn has_content(c: &joysheet_engine::model::Cell) -> bool {
     c.formula.is_some() || !c.value.is_empty()
 }
 
@@ -369,7 +369,7 @@ fn overlaps(a: &RangeRef, b: &RangeRef) -> bool {
     a.intersection(b).is_some()
 }
 
-fn structure_problem(wb: &Workbook, sel: &gridcraft_engine::Selection) -> Option<String> {
+fn structure_problem(wb: &Workbook, sel: &joysheet_engine::Selection) -> Option<String> {
     if wb.sheets.is_empty() {
         return Some("no sheets left".into());
     }
@@ -604,7 +604,7 @@ fn spill_anchors(wb: &Workbook) -> Vec<(usize, CellRef)> {
     wb.sheets.iter().enumerate().flat_map(|(i, sh)| sh.spill_ranges.keys().map(move |c| (i, *c))).collect()
 }
 
-fn tables(wb: &Workbook) -> Vec<(usize, &gridcraft_engine::model::Table)> {
+fn tables(wb: &Workbook) -> Vec<(usize, &joysheet_engine::model::Table)> {
     wb.sheets.iter().enumerate().flat_map(|(i, sh)| sh.tables.iter().map(move |t| (i, t))).collect()
 }
 
