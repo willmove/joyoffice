@@ -69,7 +69,13 @@ def source_hashes(data, packages, reached):
                          if p.is_file() and p.suffix in ('.rs', '.swift', '.toml', '.c', '.h'))
         if (directory / 'build.rs').is_file():
             files.add(directory / 'build.rs')
-    files.update(p for p in (ROOT / 'scripts/joydeck').glob('*.py'))
+    is_word = any(packages[i]['name'] == 'joyword' for i in reached)
+    if is_word:
+        files.update(ROOT / 'scripts/joydeck' / name for name in ('sbom.py', 'paths.py'))
+        files.add(ROOT / 'scripts/package_release.py')
+    else:
+        files.update(p for p in (ROOT / 'scripts/joydeck').glob('*.py'))
+    files.update(p for p in (ROOT / 'tools/xtask').glob('*.py') if not p.name.startswith('test_'))
     return {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(files) if p.is_file()}
 
@@ -77,7 +83,12 @@ def source_hashes(data, packages, reached):
 def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=()):
     product = 'joyword' if roots and roots[0].startswith('joyword') else 'joydeck'
     data, packages, reached, edges, root_ids = graph(target, roots, features)
-    ids = {i: 'SPDXRef-' + hashlib.sha256(i.encode()).hexdigest()[:20] for i in reached}
+    ids = {}
+    for identifier in reached:
+        package = packages[identifier]
+        origin = package.get('source') or Path(package['manifest_path']).relative_to(ROOT).as_posix()
+        identity = package['name'] + '@' + package['version'] + '|' + origin
+        ids[identifier] = 'SPDXRef-' + hashlib.sha256(identity.encode()).hexdigest()[:20]
     lock = hashlib.sha256((ROOT / 'Cargo.lock').read_bytes()).hexdigest()
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     output = Path(output)
