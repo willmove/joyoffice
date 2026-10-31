@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-31",
+  "platform": "macOS ARM64",
+  "package": "dist/joydeck-m14-final-darwin-arm64.zip",
+  "packageSha256": "f022bcf7097d516ed41a1271ae37ea5e52625cc61ba50d80cb3190e8d95df45b",
+  "packageHashRecords": 2014,
+  "binaries": {
+    "joydeck": "985950004f14afb0771a031c679384e054ec33344bb060e976a36dfc68202b30",
+    "joydeck-cli": "7e043cd4716b379baedabc9dd8395fe7ac55bf624e150c9a2a05e9e55367c502",
+    "joydeck-media-macos": "401fcd5218b7df61f3ed227f5b60f0785a26daad17dc12be03e631eac335648f",
+    "joydeck-print-macos": "b9d4bfaaf42b38cb048bda8a8fa818fb2ab2cf0611d30b0dd5c6bdb79a2a40d8",
+    "joydeck-video-macos": "26722d5bbc48b487b7d94d44d2f5ae397a74b1a1b6fc04b5ba6c5a435457f6cb"
+  },
+  "build": {
+    "version": "0.1.0",
+    "stage": "m14",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "features": [
+      "desktop"
+    ],
+    "nativeReaderMax": 11,
+    "writerSchema": "1.10",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "cargoLockSha256": "c6f25ada0b5a022ac9387277ac7fc16793e542af2e9c4ec932b454f34be66978",
+    "sourceGraphSha256": "21e7c3ad3eea4f8cb3533fdf8175b519dc5d92d39f00894ccd3a2f2f53067bfd",
+    "dependencyPackages": 483,
+    "officialSignatureVerified": false
+  },
+  "rustTests": 122,
+  "headlessTests": 41,
+  "checkLog": "logs/m14-final-desktop-check.log",
+  "headlessLog": "logs/m14-tested-headless.log",
+  "headlessBuildLog": "logs/m14-final-headless-build.log",
+  "headlessDependenciesLog": "logs/m14-headless-dependencies.log",
+  "crossTargetCore": {
+    "windowsMsvc": "logs/m13-windows-core-clippy.log",
+    "linuxX86_64": "logs/m13-linux-core-clippy.log",
+    "scope": "headless core check/Clippy only; no target GUI linking or execution"
+  },
+  "gui": {
+    "passed": true,
+    "evidence": "docs/evidence/m14/final-1793404073463954000/verification.json",
+    "mainAcceptance": "docs/evidence/m14/final-1793404073463954000/m13-m14/verification.json",
+    "relocatedApp": "docs/evidence/m14/final-1793404073463954000/native-integration/verification.json",
+    "allRuntimeBinariesIdenticalToFinalPackage": true,
+    "testedPackageDirectory": "dist/joydeck-m14-final-darwin-arm64",
+    "scope": "native macOS windows, handlers, menu clicks and synthetic OS keyboard events; one physical display"
+  },
+  "ime": {
+    "ime": "docs/evidence/m3/pinyin-1793404172035558000/result.json",
+    "table-ime": "docs/evidence/m8/pinyin-1793404177546420000/result.json"
+  },
+  "automation": "docs/evidence/m14/automation.json",
+  "releaseVerification": "docs/evidence/m13/final-release-verification.json",
+  "actualUpgradeRollback": "docs/evidence/m13/actual-update-rollback.json",
+  "sbom": "docs/evidence/m13/final-sbom-validation.json",
+  "corpus": "docs/evidence/m13/qualification-20261031/corpus/independent-verification.json",
+  "corpusCount": 128,
+  "externalCorpusCount": 0,
+  "engineSoak": "docs/evidence/m13/qualification-20261031/soak.json",
+  "engineRss": "docs/evidence/m13/qualification-20261031/rss.json",
+  "audioClockReuse": "docs/evidence/m11/audio-clock-bench.json",
+  "licenseNoticeGaps": "docs/evidence/m13/license-notices.json",
+  "validSigningIdentities": 0,
+  "publisherSignatureVerified": false,
+  "sourceArchive": "dist/joydeck-m14-final-source.tar.gz",
+  "rollbackSource": "dist/joydeck-before-m13-m14-source.tar.gz",
+  "stageM13Done": false,
+  "stageM14Done": false,
+  "openDevelopment": [
+    "prior M0-M12 implementation and compatibility gaps",
+    "full animation/audio/video recording timeline",
+    "full dependency/three-way merge and real-time collaboration",
+    "long-tail formats, advanced text, GPU interop and extra platforms/plugins",
+    "Tagged PDF and full accessibility",
+    "16 upstream notice texts and full redistribution review"
+  ],
+  "openExternalGates": [
+    "100 independently sourced licensed Office corpus documents",
+    "Windows/Linux desktop and clean-machine installation",
+    "signing/notarization credentials",
+    "physical multi-display/audio/GPU/input/reader matrix"
+  ],
+  "historicalFailedAttempts": [
+    "logs/m14-candidate-gui.log (re-locked screen)",
+    "logs/m14-final-check.log (concurrent media temporary name collision, fixed)",
+    "logs/m14-native-menu-before-fix.log (unregistered history menu actions, fixed)",
+    "docs/evidence/m14/reviewed-1793403988068661000/native-integration.log (window borrowed during menu routing, fixed)"
+  ],
+  "platformEvidence": "docs/evidence/m13/platform.json",
+  "independentHeadlessDiagnostics": "logs/m14-independent-headless-diagnostics.json",
+  "releaseBuildLog": "logs/m14-final-package.log",
+  "packageProofLog": "logs/m14-final-package-proof.log",
+  "addedObjectIdentityProof": "docs/evidence/m14/added-object-cli.json",
+  "priorFixVerificationLog": "logs/m14-final-pass-check.log"
+}

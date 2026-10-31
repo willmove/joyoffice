@@ -1,0 +1,956 @@
+{
+  "date": "2026-10-31",
+  "scope": "Local legacy artifacts; not a new release and not required by builds",
+  "files": [
+    {
+      "originalPath": "dist/joydeck-before-m11-m12-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m11-m12-source.tar.gz",
+      "bytes": 70348994,
+      "sha256": "eb8bd2d35fd6a16b961dc91a9ca49081a1b845acbb526d623a40416314226237"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m13-m14-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m13-m14-source.tar.gz",
+      "bytes": 117250679,
+      "sha256": "ed2d3bcf71af9b9f14ec8b1e3ed9e7106513910ab90ca1ef9031d92e8998961b"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m13-m14-source.tar.gz.sha256",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m13-m14-source.tar.gz.sha256",
+      "bytes": 103,
+      "sha256": "6536f4c93b7c473801bb199e455165259bba362e1c4251c06e373583df909201"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m3-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m3-source.tar.gz",
+      "bytes": 1556180,
+      "sha256": "7dae5ca5ff19d5e24378ea030528a679f0843963e9c599bfb3143e400e41fc28"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m4-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m4-source.tar.gz",
+      "bytes": 2864505,
+      "sha256": "8965dcef9029ae7303fef5e699e68db08f7b239b424c6f212904617532aed355"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m5-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m5-source.tar.gz",
+      "bytes": 293685,
+      "sha256": "c601c72f79c9794bdf385567e40b040dceaa13b25a382cfc54a222eec82a0851"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m6-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m6-source.tar.gz",
+      "bytes": 322129,
+      "sha256": "44d20d75f4ed5dd6d5ab9df6b6a18c75f9ace1d61a93c1efd2d28924125e3dda"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m7-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m7-source.tar.gz",
+      "bytes": 336569,
+      "sha256": "813e09754d84126f86d179e967c00c8f97628202c08b5018ba984ad42dd9a512"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m8-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m8-source.tar.gz",
+      "bytes": 484907,
+      "sha256": "0c62cb36eeb8117ecb60225564ce8951d79157fa6f20200d4e383c55acddc9e2"
+    },
+    {
+      "originalPath": "dist/joydeck-before-m9-m10-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-before-m9-m10-source.tar.gz",
+      "bytes": 533696,
+      "sha256": "cb7a07d940387cb7dd303ff32eaacf4cf226043bcd3f4cb8344841324f58c586"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-delivery-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-delivery-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 53,
+      "bytes": 35250563,
+      "contentsSha256": "f3dfc60165a8f0fed7954cf3ce64fcd523a3014523c043ca8dd2cb4aa0356eaf",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m10-delivery-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-delivery-darwin-arm64/SHA256.json",
+        "bytes": 5298,
+        "sha256": "22d12a312a4ff04fa65a5c16c3a871378839e285e2ac915e1610fffdd41082bb"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m10-delivery-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-delivery-darwin-arm64.zip",
+      "bytes": 11902934,
+      "sha256": "5de8ffa52e54a900cc5078e172cbdcae3a461a40041ca75153fae885ba28fc06"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-delivery-manifest.json",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-delivery-manifest.json",
+      "bytes": 1068,
+      "sha256": "d35b3b674a2f6cc19e7a6f66fb3f4a639b910b9860c684b5fefff02986b965c1"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-delivery-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-delivery-source.tar.gz",
+      "bytes": 71096448,
+      "sha256": "f13fe6d243cfae5fd8803c889e582b4caf4d7896065fcd8b98e844692d0dc362"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 53,
+      "bytes": 35221590,
+      "contentsSha256": "ac6e1b038db6bb96df40d75e4bec52365424a5beec1e3e61a2ad37b91198ab14",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m10-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-final-darwin-arm64/SHA256.json",
+        "bytes": 5298,
+        "sha256": "2b4b03b5a11c5b3ddf642b33929efbc4eba6c671dc13f057e93f8ed1605d635a"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m10-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-final-darwin-arm64.zip",
+      "bytes": 11894556,
+      "sha256": "900fea6076a9abb3166f0f26ec1460d60054d8621f93079de67706e07e4f0fd3"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-release-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-release-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 53,
+      "bytes": 35219903,
+      "contentsSha256": "27997a715aa97b777bdb1f825c7923b73c24e81f3cd94dfa2ce27a34a47bc969",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m10-release-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-release-darwin-arm64/SHA256.json",
+        "bytes": 5298,
+        "sha256": "f1aecd5f0e767f2c8dd0b62341f886080f8d075c33894215e0b15df54c8dfed2"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m10-release-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-release-darwin-arm64.zip",
+      "bytes": 11894685,
+      "sha256": "bc298f3fc94d800c241516e7eb87c0ccea781fb2a403b6f6e62dad8eb11494b1"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-validated-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-validated-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 53,
+      "bytes": 35250812,
+      "contentsSha256": "4cd5388574d2bfe367d908f0a24540517d4723ccb2c5fc09df560df32d21fef9",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m10-validated-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-validated-darwin-arm64/SHA256.json",
+        "bytes": 5298,
+        "sha256": "b82cf73ce5244e6c2c9b71fc5c8d6a35cbb644f33aad9184646608b4f841ccd2"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m10-validated-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-validated-darwin-arm64.zip",
+      "bytes": 11903136,
+      "sha256": "981398e3dedb4e4be3e6d1da858522232d9a4b151da02d66e9d60aa3733df6bf"
+    },
+    {
+      "originalPath": "dist/joydeck-m10-verified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-verified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 53,
+      "bytes": 35219903,
+      "contentsSha256": "d92995425640ecb8ec4ab71de51819a0b52fd0e5be38b4436811e320b8dc223a",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m10-verified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-verified-darwin-arm64/SHA256.json",
+        "bytes": 5298,
+        "sha256": "aff761064f5db16c07b2441e54a3bcff7de522fc2209467ff2ca9e9e57c79344"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m10-verified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m10-verified-darwin-arm64.zip",
+      "bytes": 11894552,
+      "sha256": "02b9017de88a3d1f0793afc69ed6fb208a766086fe8d6879dae17fd06de435bb"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-delivery-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-delivery-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58275432,
+      "contentsSha256": "2ddc430b9080d76840285612238188c71fdc4a1ec676b314b1321c0a8e3f7a68",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-delivery-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-delivery-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "7cf9c0a4a4301a566b5202c28d6127c5f9d3bf99309bf49478d2d8e1321ad446"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-delivery-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-delivery-darwin-arm64.zip",
+      "bytes": 18499154,
+      "sha256": "eb1b4e81b7e28b84906781edbd51734add67d3aa15430bdc6c47ab80d2b9b9de"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-delivery-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-delivery-source.tar.gz",
+      "bytes": 80135625,
+      "sha256": "930f13c55b02e7416b2842305584f3fe7a08afa187acfe9c12cac7a513946b0b"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-delivery-source.tar.gz.sha256",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-delivery-source.tar.gz.sha256",
+      "bytes": 101,
+      "sha256": "4b1e0058dd4316131d76a4ed9fe79e80d69aedd086adff1ebe85ebd6488058b2"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58275432,
+      "contentsSha256": "2786442cc5456e5587eb054d439937728d481ab7c32822215f72bae4a3b70e9c",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-final-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "bde860f9242abd7b86574099e0d11171b2f96ed6542711a252e39d78798b8444"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-final-darwin-arm64.zip",
+      "bytes": 18498733,
+      "sha256": "686cce7f36bed4464df5d17367c4263d13c411ead4adfb0b183d45c10ea6fe85"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-gui-validated-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-gui-validated-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58326746,
+      "contentsSha256": "e80a3eebcda695b376ec5f67d3d24e4f9deb83a4555322eb708f89d329da0a27",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-gui-validated-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-gui-validated-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "368acccdb69d6f212a0cacc85cdc295d66d7e0444aef0a0297fb34e9a8f74a20"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-gui-validated-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-gui-validated-darwin-arm64.zip",
+      "bytes": 18507061,
+      "sha256": "344398befb8a3f1561179c37f70173784289fb675ead1f50b73e0aa45e627026"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-preview-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-preview-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58275084,
+      "contentsSha256": "465e61f7e4d79f88349c11c703277a08a5c82992c28c2a072d4038540fc12e4e",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-preview-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-preview-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "b89ec30379c80f6c9e8525c75232222decc673f2f3c2e5560dedd73eb8d1a5e9"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-preview-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-preview-darwin-arm64.zip",
+      "bytes": 18498328,
+      "sha256": "7e5931730187b2df6eb461cb23d86aed89d63fe6f5406a62959182242dad4891"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-unlocked-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-unlocked-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58326796,
+      "contentsSha256": "99e99ec162665b640f66de705b2fa5917cb27dedb3ea26308a009fb08ac36e80",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-unlocked-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-unlocked-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "2af3c25f9c685dc64e1cff0f29f3caa924d082f38082081507c88605a3cdd748"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-unlocked-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-unlocked-darwin-arm64.zip",
+      "bytes": 18506586,
+      "sha256": "81f911c1be832b696ca2ceccceb4ff6753855f3099cd16ee96aa3daacbb17524"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-validated-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-validated-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58275100,
+      "contentsSha256": "f6fc06a107b4a8dbfef2687e842621a11c62f189bd11d44b14ef9c9fa8917f7a",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-validated-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-validated-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "a7c68a2090dc6e01a5bb2e9e05ba7c216e0751c7e057c5467c73a2b2a8d53fdc"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-validated-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-validated-darwin-arm64.zip",
+      "bytes": 18498803,
+      "sha256": "8e470a6bb99faa945c4040245363b28e49ea695aec8a80ed6565593eba0d9d03"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-verified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-verified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 81,
+      "bytes": 58327197,
+      "contentsSha256": "da5fadae53a0534424d2b73592a708dfe89ebae99256ac311e1fe8726a86dfdc",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m12-verified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-verified-darwin-arm64/SHA256.json",
+        "bytes": 8291,
+        "sha256": "36cad2ab6bd8a41118bc86ddafce27415504b577d2260393875af169ec347911"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m12-verified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-verified-darwin-arm64.zip",
+      "bytes": 18506328,
+      "sha256": "af876e72abe8caf482c382f88eef6b0207f09ba61600e581f9b95dc9572fbce8"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-verified-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-verified-source.tar.gz",
+      "bytes": 118220891,
+      "sha256": "a0a747362cc64e88c6da78b9a118c705801776fffab3134e2c788fac163eedd2"
+    },
+    {
+      "originalPath": "dist/joydeck-m12-verified-source.tar.gz.sha256",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m12-verified-source.tar.gz.sha256",
+      "bytes": 101,
+      "sha256": "7141db720bba00913706a31faf8bf2d3a8e6de851650b0d85d2f4f9031ff4356"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-candidate-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-candidate-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 896,
+      "bytes": 113627746,
+      "contentsSha256": "e34a20e6bc7ec2a46692fdf18a97907aaeaa119d446e1c469c5342517d1e51e4",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-candidate-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-candidate-darwin-arm64/SHA256.json",
+        "bytes": 109080,
+        "sha256": "61a8a3fa0fe09a3ef536cff21c29ec82d99f33984d41368639c797288c7e97a9"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-candidate-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-candidate-darwin-arm64.zip",
+      "bytes": 35119314,
+      "sha256": "9c357caa043f2fee331e2459dfa0842925a2de6df5159220d00610a36da22092"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-delivered-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-delivered-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119062564,
+      "contentsSha256": "e0852bafb4025d168d9ab82e7981d14df8d175d32bc6f849dd3ade1d03be3b40",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-delivered-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-delivered-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "5ecffa5201bd87d2addf63d09abf6fc473a853feea340a5ee796be54734bd0be"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-delivered-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-delivered-darwin-arm64.zip",
+      "bytes": 40154568,
+      "sha256": "c65c7d08ac520547f578942183994fd7e2f83dd2f424db5c196a9e4f1357d232"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-delivery-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-delivery-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 896,
+      "bytes": 113632213,
+      "contentsSha256": "8d38c4fa3c1907c0f5a8972f251d9c5fd04c1292e67a4a64c3a445088a217e8c",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-delivery-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-delivery-darwin-arm64/SHA256.json",
+        "bytes": 109080,
+        "sha256": "c3aa00c94968cbf69fd2fb9efb74c0a46dcd3137f174867c144d371770784f0f"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-delivery-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-delivery-darwin-arm64.zip",
+      "bytes": 37926031,
+      "sha256": "a9a432ded656530ace8498486ec7775b6757a47a95fff31dfe9039b150e7a3a2"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-development-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-development-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119062666,
+      "contentsSha256": "505ab6b62bec884523bb926131a555034365b8e14ad67cfb15d14248e215e7b6",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-development-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-development-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "de6feb5cd2db040f98d99da01a7fbe30b3c663f330795b9a61d02aff2f9169cf"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-development-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-development-darwin-arm64.zip",
+      "bytes": 40162660,
+      "sha256": "9d892ec6f836c5200d114348dcc53838d38d8ab1b96cebca6204550ed5ff9ab8"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-development-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-development-source.tar.gz",
+      "bytes": 151809841,
+      "sha256": "0c895de504d5584f859987f2c2a0676072b4afdb20121df00173e7943ee8e924"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-development-source.tar.gz.sha256",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-development-source.tar.gz.sha256",
+      "bytes": 104,
+      "sha256": "0b5f0bfebb4b9a7936648808bcff3c9e06f95aef5e256ade99c253dba7103713"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119054946,
+      "contentsSha256": "cb83202221a4afc0584de8b0bee6688db7d0a7f631b36adf33a38160defce82a",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-final-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "1439f2633ab6c63e419d98d06fd970e39b1f0429ad8173894242ed7f6144fbf6"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-final-darwin-arm64.zip",
+      "bytes": 40142300,
+      "sha256": "f022bcf7097d516ed41a1271ae37ea5e52625cc61ba50d80cb3190e8d95df45b"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-final-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-final-source.tar.gz",
+      "bytes": 193199123,
+      "sha256": "0614a2c5a40a9cda30cd84dc1975e63e87fd98535fbb732b9268ed32576638d6"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-final-source.tar.gz.sha256",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-final-source.tar.gz.sha256",
+      "bytes": 98,
+      "sha256": "4d21c788faf358491f061622aabc1dd32f17eeb9348a1f70f1b0509dc3bff8d5"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-qualified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-qualified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119062564,
+      "contentsSha256": "ff37e095e7f611418b307e4bfb2d91a3f5999b7ed33d62d6d38981e914b3b0d6",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-qualified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-qualified-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "024983d8327cceec1a9bb0d3e71978de38298e08bf5ae5bfc615e5b13c28d7db"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-qualified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-qualified-darwin-arm64.zip",
+      "bytes": 40154569,
+      "sha256": "9be1565273839d5a74035da530a5f38cd3c059f3f3985a8961e451fa6d84a87f"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-reconciled-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-reconciled-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119066826,
+      "contentsSha256": "63508890830b2fa5057dbd2c1f6752c0cf40a80bbd23ebb46160d2fef1417721",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-reconciled-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-reconciled-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "e785eef7b38e3fef717f50593177e2d8fab5287c8eb5468dec0b85850a369977"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-reconciled-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-reconciled-darwin-arm64.zip",
+      "bytes": 40174610,
+      "sha256": "56fefa966542730fb9962f87e8d82a062b0eab718de25d1fcda12ed318b81bd8"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-reviewed-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-reviewed-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119054210,
+      "contentsSha256": "e67dc64acb6a68736393f6fda9fed9498395a8fee38016575f540b94c5cff70d",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-reviewed-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-reviewed-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "2b6b4c7b9f0dada451c2d882523a874f99201419461a610c9d55967adf486564"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-reviewed-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-reviewed-darwin-arm64.zip",
+      "bytes": 40153720,
+      "sha256": "f5e84318eadabb6cbae8ed69894426ef11baa5efd1f5b3ad29d8594e4ae816a9"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-stable-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-stable-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119091838,
+      "contentsSha256": "4c964292be721efa222fd1b1cc2bdbf778f9e45662a4c5fac39f999a7b17f3ca",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-stable-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-stable-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "8a8b2241eed6088a271d132e303457e8fb797c8de4b6551b5f2013b029b249c9"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-stable-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-stable-darwin-arm64.zip",
+      "bytes": 40180052,
+      "sha256": "a2596bd6b7ffa9a64656b9606a7bdb179104dbcabad85901d0b493cea1ed72a9"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-tested-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-tested-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119052862,
+      "contentsSha256": "b812f909198a602df593c59405378776241bacb1502f0f995813abed88f7072a",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-tested-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-tested-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "d6bd9610d27df25242fd589a847d3078967eddacc19ae38c491c6287a4551feb"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-tested-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-tested-darwin-arm64.zip",
+      "bytes": 40146547,
+      "sha256": "7020f3e328b88b4241c74ef17396d50fe14c2b7433e3ab308d4e11b02920e211"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-validated-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-validated-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 896,
+      "bytes": 113627773,
+      "contentsSha256": "618e12d1617aee68267dc9d93274604c89b313e5a7f606d0917b2dc35375bc2e",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-validated-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-validated-darwin-arm64/SHA256.json",
+        "bytes": 109080,
+        "sha256": "086f7136d11fd2cbf44d97e92e253228cd8d08ae4f295ee60225da732d2f9a27"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-validated-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-validated-darwin-arm64.zip",
+      "bytes": 37928593,
+      "sha256": "764dea14d6c09eae1c24272c2e61df5c036defbfd11dae7893a68a48c08d3f9b"
+    },
+    {
+      "originalPath": "dist/joydeck-m14-verified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-verified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 2015,
+      "bytes": 119059188,
+      "contentsSha256": "c4ee9f6733a4bbd64ad2bb3f2dceb0c6e6172bb954e0e434c924562faff929cc",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m14-verified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-verified-darwin-arm64/SHA256.json",
+        "bytes": 278384,
+        "sha256": "7626ce8670f5064b8590e4c3b6dac76717be255bb343af0888d5ca5fd82499cc"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m14-verified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m14-verified-darwin-arm64.zip",
+      "bytes": 40149192,
+      "sha256": "d4837e0adf89e034a639dcd2a3082ce749bc1d820eaf865ecf17b3a50a4d8137"
+    },
+    {
+      "originalPath": "dist/joydeck-m3-preview-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-preview-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 30,
+      "bytes": 42034801,
+      "contentsSha256": "20850554eff0faef9ec804287874933221397c82c7fec8d11460e65e86497551",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m3-preview-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-preview-darwin-arm64/SHA256.json",
+        "bytes": 2940,
+        "sha256": "c35aaeda674190eda3e20d2bfa67aab61271c7b3da4be57a33ffe3bdd9303cee"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m3-preview-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-preview-darwin-arm64.zip",
+      "bytes": 11674703,
+      "sha256": "7fa2d9273c09183d27ce3db80acde8aeebba90114c149142337b17873af9187a"
+    },
+    {
+      "originalPath": "dist/joydeck-m3-preview-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-preview-source.tar.gz",
+      "bytes": 1580713,
+      "sha256": "9a18d37f7ac821f5a6975e968b4ff3dac6a083c668f430261b56ce9e930d889c"
+    },
+    {
+      "originalPath": "dist/joydeck-m3-verified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-verified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 32,
+      "bytes": 42160041,
+      "contentsSha256": "9da1181fbcb70e329f3528a5a247bfc00d4c8bfa0f8c6d0b3447972353aaaf6c",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m3-verified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-verified-darwin-arm64/SHA256.json",
+        "bytes": 3153,
+        "sha256": "65df4ecf81e44afd0bcdaeeca679d683e6f4ea8740bc7d6a9a7e3dce5ad9224b"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m3-verified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-verified-darwin-arm64.zip",
+      "bytes": 11702918,
+      "sha256": "e55a909aca1ef8e10ab97a127e331abba9270ebe2a16b5a1880aa0ab8d413119"
+    },
+    {
+      "originalPath": "dist/joydeck-m3-verified-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m3-verified-source.tar.gz",
+      "bytes": 2863583,
+      "sha256": "366c0a5186624cb5e72ee1ddce52a408377c61df2985482a93cade82d20c27e1"
+    },
+    {
+      "originalPath": "dist/joydeck-m4-final-checksums.json",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-final-checksums.json",
+      "bytes": 340,
+      "sha256": "37eafaa8d293adc25648873bfeda9c546352a122e30691a33677ba22aac14fc0"
+    },
+    {
+      "originalPath": "dist/joydeck-m4-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 36,
+      "bytes": 28060698,
+      "contentsSha256": "577a95edbb605539057cc0adf8c15106e3d3c4308ff35780fe366fc3c847b662",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m4-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-final-darwin-arm64/SHA256.json",
+        "bytes": 3549,
+        "sha256": "87ef2cde5e4a20a3bd0730846a4c1b597501aeebd7d55ac4dc0bfcde789976c8"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m4-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-final-darwin-arm64.zip",
+      "bytes": 9563945,
+      "sha256": "0d0a5d4935ecb2aacb14100aaceb74bb70705888fdd30b8cda9c9271ccf5fc4f"
+    },
+    {
+      "originalPath": "dist/joydeck-m4-final-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-final-source.tar.gz",
+      "bytes": 34287013,
+      "sha256": "81243615462c3d3ce08cb20ac2fd145666398d212fd90ed6dcae0f79f533c6ce"
+    },
+    {
+      "originalPath": "dist/joydeck-m4-glyph-cache-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-glyph-cache-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 36,
+      "bytes": 28059351,
+      "contentsSha256": "7cfe845be6d2308d6faca30fc085059d183e5f127d842b368d4e5169370e7dc3",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m4-glyph-cache-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-glyph-cache-darwin-arm64/SHA256.json",
+        "bytes": 3549,
+        "sha256": "0cc5443d6cfdd0936c818cfc9300b328db2e589a4138b5b784ac24185b445ef1"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m4-glyph-cache-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-glyph-cache-darwin-arm64.zip",
+      "bytes": 9562166,
+      "sha256": "cbab3a5d12da5ab3c26678675800dbd8fa9874c65ab798725f68abaaebfb685f"
+    },
+    {
+      "originalPath": "dist/joydeck-m4-verified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-verified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 36,
+      "bytes": 28020755,
+      "contentsSha256": "72937505ec47badf7262b11a9b2068e44130aefdca8ebd02709c8163949d9a76",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m4-verified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-verified-darwin-arm64/SHA256.json",
+        "bytes": 3549,
+        "sha256": "65d24ae136f7e77acf83a92be8cad50b4da21a7af170b2b57ae9f1d0418c5893"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m4-verified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m4-verified-darwin-arm64.zip",
+      "bytes": 9547758,
+      "sha256": "9c1ed1284efae3ebf4a7b6738044a180bc8b56035dc3b7e67861da1401c4c9d9"
+    },
+    {
+      "originalPath": "dist/joydeck-m5-preview-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m5-preview-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 39,
+      "bytes": 29741768,
+      "contentsSha256": "2f1a7ed379042d2705a0aac1d268f1aa9abe9a5625c9686008528553bd0c0e91",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m5-preview-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m5-preview-darwin-arm64/SHA256.json",
+        "bytes": 3848,
+        "sha256": "5b677f4f6df5417ac0c5de40f625b7441dbcd05f64192c3ec3f80398bb68d815"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m5-preview-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m5-preview-darwin-arm64.zip",
+      "bytes": 10087371,
+      "sha256": "92706f117cbd537d32bcf877e8b261c50e2fe98a91fabf5d5f6c9506e0b129fb"
+    },
+    {
+      "originalPath": "dist/joydeck-m5-preview-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m5-preview-source.tar.gz",
+      "bytes": 316478,
+      "sha256": "11fc7930e9717b49e1ba0dfff7d7ef7e2b9b1d86ad76ef6db5989f5277fd1ffc"
+    },
+    {
+      "originalPath": "dist/joydeck-m6-preview-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 40,
+      "bytes": 30866014,
+      "contentsSha256": "0d6e841654c540e2e07acd1a481316f4d5805ab711d83aafd531fab8c071d1e8",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m6-preview-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-darwin-arm64/SHA256.json",
+        "bytes": 3942,
+        "sha256": "b22e41cbe99c728cdf781c5425d7a73b9b47aad17f8567e3785ff8a8c9d78469"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m6-preview-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-darwin-arm64.zip",
+      "bytes": 10459140,
+      "sha256": "84ad950a799c4a8ecb74a4cf9627d125f61c0ee734052b05fca2493a1e6aa79a"
+    },
+    {
+      "originalPath": "dist/joydeck-m6-preview-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 40,
+      "bytes": 30866126,
+      "contentsSha256": "382d3b46b354370b453df7f0f5d31763e08444eda280f14d27145e43f7ad51f5",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m6-preview-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-final-darwin-arm64/SHA256.json",
+        "bytes": 3942,
+        "sha256": "e685255ebee07efbcf5bb5e2777de92172b10245cd8fcaf23189ae6103b329f8"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m6-preview-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-final-darwin-arm64.zip",
+      "bytes": 10459740,
+      "sha256": "ef5af4b719764427f884890182e70c8129707fb7970e87d04e0d03c5edabb7ee"
+    },
+    {
+      "originalPath": "dist/joydeck-m6-preview-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m6-preview-source.tar.gz",
+      "bytes": 336569,
+      "sha256": "d745d72b9ec8dbf8a451a5ea207945a4c8eb3efca6a1bd2129d75a11f050d9af"
+    },
+    {
+      "originalPath": "dist/joydeck-m7-preview-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m7-preview-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 45,
+      "bytes": 31998424,
+      "contentsSha256": "24a4323beee4e2c71fa6c7a8cf6be02f88d916cab77e3ca90f135f61ee13cc35",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m7-preview-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m7-preview-darwin-arm64/SHA256.json",
+        "bytes": 4440,
+        "sha256": "36fe734ed59c882223b8f3e7287783996f56d5184b31eb7ec09bb72c325079eb"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m7-preview-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m7-preview-darwin-arm64.zip",
+      "bytes": 10887764,
+      "sha256": "fcc64c1fda192a129cd0ccb0962f04ced21e0b8fa06d4c2568332fcbfdc22862"
+    },
+    {
+      "originalPath": "dist/joydeck-m7-preview-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m7-preview-source.tar.gz",
+      "bytes": 484907,
+      "sha256": "6505077d74bfb9cd251ae42b43187c0783aa3c4fa20609a9b81ac167e286f827"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-delivery-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-delivery-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 49,
+      "bytes": 32626172,
+      "contentsSha256": "31c849fa4298d74d7a3010a6f758dc1cbec2ef05e30bff365838e0ea8aaa7b03",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m8-delivery-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-delivery-darwin-arm64/SHA256.json",
+        "bytes": 4855,
+        "sha256": "89cbfc3f2a901d65d6bec4e959e4a8d5bd83b0431c866890ef019a80c1208618"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m8-delivery-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-delivery-darwin-arm64.zip",
+      "bytes": 11105532,
+      "sha256": "7c8891b7b9dfc07c57ab6d0795e297249a6c4d73e260bb17f9f1f46db785c7b2"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 49,
+      "bytes": 32628028,
+      "contentsSha256": "fc58dcfe60de703096cec870217bf72b20be3d64c09ab540b5841d51f226651d",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m8-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-final-darwin-arm64/SHA256.json",
+        "bytes": 4855,
+        "sha256": "5ce5c3d9b6e4a76174f4541a5e69da95a3019aa2d22211230a096c79731ede96"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m8-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-final-darwin-arm64.zip",
+      "bytes": 11105032,
+      "sha256": "87e7097f289cff6d7200bcc59426fb008e378b066441a8af312f433884538e43"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-preview-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-preview-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 49,
+      "bytes": 32627276,
+      "contentsSha256": "ccdef9d07395eed5b086967c4f87736100720604d920e60d63fe65dd40d5b78d",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m8-preview-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-preview-darwin-arm64/SHA256.json",
+        "bytes": 4855,
+        "sha256": "080f65070a6ca9aced0dd722d73130a0271c016b588f9b72f0d1bbc5866997bf"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m8-preview-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-preview-darwin-arm64.zip",
+      "bytes": 11102137,
+      "sha256": "3cd7f05590706cf745f71640d83a587ac1378aac5820458d081610435bf2d6c6"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-preview-final-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-preview-final-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 49,
+      "bytes": 32630508,
+      "contentsSha256": "f1dcf48adad24129ab5e64d5f6de1c0560a5344d400a3958b0118af186f7c3d5",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m8-preview-final-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-preview-final-darwin-arm64/SHA256.json",
+        "bytes": 4855,
+        "sha256": "4352004c462dd034c6dc282cedda4d2aade45bfbb492ee91dab75dfe3353b968"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m8-preview-final-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-preview-final-darwin-arm64.zip",
+      "bytes": 11105606,
+      "sha256": "0ff94664c2933dd1b61d1890f20aaa3efdcb5c88983ee690e955a65812ea9b41"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-release-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-release-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 49,
+      "bytes": 32627452,
+      "contentsSha256": "2a4d7774f13e6322fc9ffd1a145137e2fe3b815fb09ef17aac7fbd1e7f054caa",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m8-release-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-release-darwin-arm64/SHA256.json",
+        "bytes": 4855,
+        "sha256": "de5a50d5cf980d91bf513b90b9ca669bfde05b82e5c4db730472d31e06f666e0"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m8-release-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-release-darwin-arm64.zip",
+      "bytes": 11110457,
+      "sha256": "cacb6f54fea077e8060cbf7931b7e8fc4a2fba45d1bdeb059c91f52827d03b88"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-release-source.tar.gz",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-release-source.tar.gz",
+      "bytes": 533696,
+      "sha256": "e78efc5abe08f99c5e84251caa7bdbfd84ad9ea33b0224e3fcbdd85255dd845d"
+    },
+    {
+      "originalPath": "dist/joydeck-m8-verified-darwin-arm64",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-verified-darwin-arm64",
+      "kind": "directory",
+      "fileCount": 49,
+      "bytes": 32630108,
+      "contentsSha256": "314bdbf17e0205c813f80c4bc3d16dcf1e200861b3c699c8a439634c12367f4b",
+      "packageManifest": {
+        "originalPath": "dist/joydeck-m8-verified-darwin-arm64/SHA256.json",
+        "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-verified-darwin-arm64/SHA256.json",
+        "bytes": 4855,
+        "sha256": "8aac8038181e3920eab81bf4123c096ab299aae404522f07b26fa7b6beba563e"
+      }
+    },
+    {
+      "originalPath": "dist/joydeck-m8-verified-darwin-arm64.zip",
+      "archivePath": "backups/joydeck-migration-20261031/dist/joydeck-m8-verified-darwin-arm64.zip",
+      "bytes": 11104973,
+      "sha256": "a9d55cb86129d92412f5d229c334993c7f0d7d5366b22fc187a69ef373c576c8"
+    }
+  ],
+  "directoryHashAlgorithm": "SHA-256 of sorted lines: package-relative path + NUL + file SHA-256 + newline",
+  "archivedFileCount": 22350
+}

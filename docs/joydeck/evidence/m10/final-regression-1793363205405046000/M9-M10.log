@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/willm/Coding/joydeck/scripts/verify-m9-m10.py", line 44, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/Users/willm/Coding/joydeck/scripts/verify-m9-m10.py", line 32, in main
+    assert charts[6].plots[0].hole_size==50
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DoughnutPlot' object has no attribute 'hole_size'

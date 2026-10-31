@@ -1,0 +1,548 @@
+{
+  "date": "2026-10-31",
+  "scope": "Static test function-name multiplicity; runtime platform and feature results are recorded separately",
+  "originalStaticTests": 123,
+  "migratedStaticTests": 132,
+  "removedTests": [],
+  "addedTests": [
+    "stale_table_resize_is_rejected_without_changing_the_document",
+    "valid_table_resize_remains_a_preview_until_committed",
+    "poisoned_show_is_rejected_without_resuming_partial_state",
+    "malformed_preview_pixels_are_reported_instead_of_panicking",
+    "full_document_does_not_inherit_embedded_workbook_limits",
+    "raw_duplicate_names_are_rejected_before_name_indexing",
+    "symbolic_link_member_is_rejected_without_extraction",
+    "poisoned_session_keeps_snapshot_dirty_and_rejects_writes",
+    "id_overflow_is_checked"
+  ],
+  "migratedTests": [
+    {
+      "test": "abnormal_process_exit_releases_lease_and_restores_three_pages",
+      "file": "apps/joydeck/tests/recovery_process.rs"
+    },
+    {
+      "test": "cancelled_job_never_publishes_a_completed_chunk",
+      "file": "apps/joydeck/src/jobs.rs"
+    },
+    {
+      "test": "restarting_uses_an_independent_cancellation_token",
+      "file": "apps/joydeck/src/jobs.rs"
+    },
+    {
+      "test": "stale_table_resize_is_rejected_without_changing_the_document",
+      "file": "apps/joydeck/src/table_ui_tests/tests.rs"
+    },
+    {
+      "test": "valid_table_resize_remains_a_preview_until_committed",
+      "file": "apps/joydeck/src/table_ui_tests/tests.rs"
+    },
+    {
+      "test": "poisoned_show_is_rejected_without_resuming_partial_state",
+      "file": "apps/joydeck/src/slideshow_tests/tests.rs"
+    },
+    {
+      "test": "malformed_preview_pixels_are_reported_instead_of_panicking",
+      "file": "apps/joydeck/src/viewer_tests/tests.rs"
+    },
+    {
+      "test": "full_document_does_not_inherit_embedded_workbook_limits",
+      "file": "crates/joydeck-formats/src/document/tests.rs"
+    },
+    {
+      "test": "raw_duplicate_names_are_rejected_before_name_indexing",
+      "file": "crates/joydeck-formats/src/document/tests.rs"
+    },
+    {
+      "test": "symbolic_link_member_is_rejected_without_extraction",
+      "file": "crates/joydeck-formats/src/document/tests.rs"
+    },
+    {
+      "test": "relationship_paths_and_xml_limits",
+      "file": "crates/joydeck-formats/src/pptx/tests.rs"
+    },
+    {
+      "test": "scene_cpu_reference_preserves_geometry_text_opacity_and_z_order",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "movement_reuses_outlines_and_only_changed_styles_invalidate",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "effects_are_isolated_and_images_are_real_bounded_rgba",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "cancellation_and_invalid_model_do_not_publish_a_scene",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "benchmark_cpu_measurement_is_recorded_without_claiming_native_latency",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "local_alpha_crosses_gpui_boundary_once_in_bgra_order",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "cache_eviction_is_bounded_and_clear_does_not_mutate_model",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "shared_glyph_outlines_keep_layout_positions_without_reshaping",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "oversized_text_is_rejected_before_shaping_without_changing_document",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "image_primitive_rejects_invalid_dimensions_and_payloads",
+      "file": "crates/joydeck-shell/tests/scene.rs"
+    },
+    {
+      "test": "occupied_destination_and_missing_parent_preserve_document",
+      "file": "crates/joydeck-shell/tests/save_faults.rs"
+    },
+    {
+      "test": "unwritable_parent_preserves_target_and_cleans_staging",
+      "file": "crates/joydeck-shell/tests/save_faults.rs"
+    },
+    {
+      "test": "cascade_direct_override_reset_and_reapply_preserve_content",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "referenced_design_delete_is_atomic_and_replacement_retains_text",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "notes_sections_search_replace_are_single_undo_and_utf8_safe",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "cross_document_page_transfer_remaps_designs_resources_ids_and_theme",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "design_roundtrip_fields_scene_and_clipboard_flattening",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "shared_document_stale_write_history_and_save_snapshot_guard",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "invalid_design_and_paste_never_partially_mutate",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "page_transfer_scales_media_and_preserves_references_after_source_closes",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "replace_fonts_updates_theme_and_direct_runs_and_is_undoable",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "new_page_has_no_copied_notes_and_unbound_fields_are_rejected",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "transfer_avoids_source_identity_and_animation_target_cascades",
+      "file": "crates/joydeck-shell/tests/design.rs"
+    },
+    {
+      "test": "preferences_migration_quarantine_future_and_atomic_validation",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "preferences_concurrent_updates_keep_recent_and_layout",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "offline_compare_accept_stale_guard_delete_and_undo",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "video_plan_and_cancel_do_not_touch_existing_output",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "mp4_actual_encode_probe_and_running_cancel",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "file_events_are_local_decoded_and_bounded",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "title_captions_match_video_timeline_and_keep_notes_private",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "accepting_added_object_preserves_identity_through_recompare_and_history",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "comparison_rejects_legacy_objects_without_identity",
+      "file": "crates/joydeck-shell/tests/beta.rs"
+    },
+    {
+      "test": "authenticated_service_shares_desktop_history_and_rejects_unauthenticated",
+      "file": "crates/joydeck-shell/tests/control.rs"
+    },
+    {
+      "test": "rollback_identity_and_history",
+      "file": "crates/joydeck-shell/tests/unit_edit.rs"
+    },
+    {
+      "test": "save_reopen_and_stale_save",
+      "file": "crates/joydeck-shell/tests/unit_edit.rs"
+    },
+    {
+      "test": "save_new_never_replaces_existing_target",
+      "file": "crates/joydeck-shell/tests/unit_edit.rs"
+    },
+    {
+      "test": "versioned_style_and_ids_roundtrip",
+      "file": "crates/joydeck-shell/tests/unit_edit.rs"
+    },
+    {
+      "test": "legacy_upgrade_and_id_overflow_are_checked",
+      "file": "crates/joydeck-shell/tests/unit_edit.rs"
+    },
+    {
+      "test": "static_pptx_public_xml_relationships_and_private_snapshot_are_consistent",
+      "file": "crates/joydeck-shell/tests/delivery.rs"
+    },
+    {
+      "test": "preserve_unknown_relationship_closure_and_patch_single_run_text",
+      "file": "crates/joydeck-shell/tests/delivery.rs"
+    },
+    {
+      "test": "dangling_duplicate_and_escaping_relationships_are_rejected",
+      "file": "crates/joydeck-shell/tests/delivery.rs"
+    },
+    {
+      "test": "page_range_transparency_dpi_and_no_clobber_exports",
+      "file": "crates/joydeck-shell/tests/delivery.rs"
+    },
+    {
+      "test": "snapshot_show_skips_hidden_and_source_edits_do_not_change_show",
+      "file": "crates/joydeck-shell/tests/delivery.rs"
+    },
+    {
+      "test": "pdf_snapshot_notes_and_export_failure_preserve_document_and_files",
+      "file": "crates/joydeck-shell/tests/delivery.rs"
+    },
+    {
+      "test": "review_transaction_undo_anchor_cleanup_and_reopen",
+      "file": "crates/joydeck-shell/tests/review_automation.rs"
+    },
+    {
+      "test": "reading_order_is_independent_and_delete_undo_restores_access",
+      "file": "crates/joydeck-shell/tests/review_automation.rs"
+    },
+    {
+      "test": "dispatcher_idempotence_conflict_target_and_dirty_open",
+      "file": "crates/joydeck-shell/tests/review_automation.rs"
+    },
+    {
+      "test": "canonical_roots_reject_symlink_escape_and_existing_write",
+      "file": "crates/joydeck-shell/tests/review_automation.rs"
+    },
+    {
+      "test": "import_crop_dedup_undo_transfer_and_resource_collection",
+      "file": "crates/joydeck-shell/tests/media.rs"
+    },
+    {
+      "test": "native_resource_roundtrip_and_cpu_scene_pixels",
+      "file": "crates/joydeck-shell/tests/media.rs"
+    },
+    {
+      "test": "malformed_oversize_missing_hash_and_crop_rejected",
+      "file": "crates/joydeck-shell/tests/media.rs"
+    },
+    {
+      "test": "arrange_uses_rotated_bounds_and_single_undo",
+      "file": "crates/joydeck-shell/tests/media.rs"
+    },
+    {
+      "test": "jpeg_exif_orientation_and_resource_recovery",
+      "file": "crates/joydeck-shell/tests/media.rs"
+    },
+    {
+      "test": "media_resources_and_params_undo_native_roundtrip",
+      "file": "crates/joydeck-shell/tests/playback.rs"
+    },
+    {
+      "test": "h264_real_decode_pause_twenty_seeks_and_bounded_frame",
+      "file": "crates/joydeck-shell/tests/playback.rs"
+    },
+    {
+      "test": "malformed_media_fails_without_document_changes",
+      "file": "crates/joydeck-shell/tests/playback.rs"
+    },
+    {
+      "test": "mp3_probe_and_real_default_device_playback",
+      "file": "crates/joydeck-shell/tests/playback.rs"
+    },
+    {
+      "test": "tsv_transaction_budget_and_undo",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "merge_structure_and_illegal_intersection_are_atomic",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "seeded_structure_operations_preserve_topology",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "inherited_style_rich_merge_and_native_roundtrip",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "public_pptx_has_real_merged_cells_without_private_snapshot",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "multiline_empty_paragraphs_and_rich_public_read",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "hit_rotation_resize_and_theme_override",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "scene_cpu_pixel_parity_and_cache",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "hostile_spans_and_global_cells_are_rejected",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "cross_document_table_copy_freezes_source_and_page_sizes_scale",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "table_missing_font_diagnostic_preserves_the_authored_name",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "merged_selection_expands_before_applying_cell_style",
+      "file": "crates/joydeck-shell/tests/unit_table.rs"
+    },
+    {
+      "test": "utf16_surrogates_reversed_and_out_of_bounds_are_rejected",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "graphemes_are_atomic_for_zwj_flags_and_combining_marks",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "composition_commit_cancel_and_failed_replacement_are_atomic",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "rich_splice_preserves_adjacent_styles_and_roundtrips",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "invalid_run_gaps_style_and_boundaries_are_rejected",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "reversed_selection_extends_and_shrinks_across_unicode",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "empty_mark_cancels_replacement_of_existing_selection",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "unavailable_font_is_located_and_preserved",
+      "file": "crates/joydeck-shell/tests/text.rs"
+    },
+    {
+      "test": "actual_powerpoint_edit_uses_public_cells_and_preserves_merges",
+      "file": "crates/joydeck-shell/tests/tables.rs"
+    },
+    {
+      "test": "rotated_hit_and_gesture_single_history",
+      "file": "crates/joydeck-shell/tests/unit_geometry.rs"
+    },
+    {
+      "test": "composite_failure_preserves_snapshot_and_reorder_identity",
+      "file": "crates/joydeck-shell/tests/unit_geometry.rs"
+    },
+    {
+      "test": "all_handles_center_and_aspect_constraints",
+      "file": "crates/joydeck-shell/tests/unit_geometry.rs"
+    },
+    {
+      "test": "native_pages_text_and_geometry",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "truncated_zip_and_pre_cancelled_load_are_errors",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "pptx_resolves_main_part_and_uses_presentation_order",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "background_preview_is_bounded_and_bgra",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "rejects_ambiguous_paths_duplicate_members_and_expansion_limit",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "rejects_unknown_required_feature_major_duplicate_ids_and_bad_geometry",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "missing_slide_external_main_and_xml_dtd_fail_safely",
+      "file": "crates/joydeck-shell/tests/reader.rs"
+    },
+    {
+      "test": "chart_empty_negative_scatter_and_atomic_paste",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "chart_all_types_public_cache_workbook_and_holes",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "chart_validation_aggregate_and_palette",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "chart_and_diagram_native_scene_and_pdf",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "area_gaps_and_doughnut_hole_survive_public_formats",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "diagram_tree_switch_and_atomic_cycle_rejection",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "chart_data_and_diagram_conversion_are_one_undo",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "motion_click_with_after_repeat_reverse_rewind_and_seek",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "controller_snapshot_pause_custom_order_loop_revisit",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "motion_invalid_ids_budget_and_reconcile_undo",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "morph_geometry_unmatched_opacity_and_crop",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "paragraph_animation_preserves_byte_runs_and_document",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "public_animation_fade_and_actual_powerpoint_sample",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "transition_pixels_boundaries_fade_push_wipe",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "page_copy_and_cross_document_transfer_remap_effects",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "ink_budget_and_annotation_copy",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "actual_powerpoint_chart_edit_and_stale_workbook_detection",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "links_rehearsal_and_automatic_advance_share_controller",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "unknown_chart_smartart_ole_closure_survives_native_and_preserve",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "all_basic_public_effect_parameters_and_transitions_roundtrip",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "smartart_text_topology_import_is_explicit_simplification",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "morph_image_crop_interpolates_only_same_resource",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "empty_scatter_has_finite_axes_and_renders",
+      "file": "crates/joydeck-shell/tests/authoring.rs"
+    },
+    {
+      "test": "poisoned_session_keeps_snapshot_dirty_and_rejects_writes",
+      "file": "crates/joydeck-shell/src/workspace/tests.rs"
+    },
+    {
+      "test": "concurrent_private_directories_are_unique_and_private",
+      "file": "crates/joydeck-shell/src/storage/tests.rs"
+    },
+    {
+      "test": "conflict_and_recovery_restart_locks_quota",
+      "file": "crates/joydeck-shell/src/storage/tests.rs"
+    },
+    {
+      "test": "clean_revision_and_corruption",
+      "file": "crates/joydeck-shell/src/storage/tests.rs"
+    },
+    {
+      "test": "legacy_snapshot_is_visible_and_never_cleaned_automatically",
+      "file": "crates/joydeck-shell/src/storage/tests.rs"
+    },
+    {
+      "test": "readonly_replace_failure_preserves_original",
+      "file": "crates/joydeck-shell/src/storage/tests.rs"
+    },
+    {
+      "test": "history_cap_and_new_branch_clear_redo",
+      "file": "crates/joydeck-engine/src/edit/tests.rs"
+    },
+    {
+      "test": "history_budget_includes_redo_and_large_to_small_edits",
+      "file": "crates/joydeck-engine/src/edit/tests.rs"
+    },
+    {
+      "test": "id_overflow_is_checked",
+      "file": "crates/joydeck-engine/src/edit/tests.rs"
+    },
+    {
+      "test": "mixed_bold_cjk_emoji_and_accents_use_real_glyphs",
+      "file": "crates/joydeck-scene/src/preview/tests.rs"
+    }
+  ]
+}

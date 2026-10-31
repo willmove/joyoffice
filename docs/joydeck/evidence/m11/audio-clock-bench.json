@@ -1,0 +1,19 @@
+{
+  "helperSha256": "401fcd5218b7df61f3ed227f5b60f0785a26daad17dc12be03e631eac335648f",
+  "requestedSeconds": 600,
+  "elapsedSeconds": 599.8277158749997,
+  "samples": 17996,
+  "maxAbsoluteClockDriftMs": 60.347375999327824,
+  "last": {
+    "ended": false,
+    "frame": false,
+    "generation": 1,
+    "playing": true,
+    "ready": true,
+    "seconds": 599.762501916,
+    "sequence": 0
+  },
+  "adapterMaxRssKiB": 45536,
+  "scope": "AVPlayer position vs monotonic host; low volume actual default device output; not acoustic measurement or A/V sync calibration",
+  "passed": true
+}

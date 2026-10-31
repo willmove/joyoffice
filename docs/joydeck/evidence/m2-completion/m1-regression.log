@@ -1,0 +1,27 @@
+JoyDeck M1 native viewer opened
+M1 opened=true pages=20 elapsed_ms=1
+M1 raster page=1 width=1561 elapsed_ms=96 count=1
+M1_SMOKE native_open=true
+M1 raster page=2 width=1561 elapsed_ms=68 count=2
+M1_SMOKE native_next=true
+M1 raster page=20 width=1561 elapsed_ms=66 count=3
+M1_SMOKE last_page=true
+M1 raster page=1 width=1561 elapsed_ms=47 count=4
+M1 raster page=3 width=1561 elapsed_ms=46 count=5
+M1_SMOKE rapid_navigation_no_stale=true
+M1 raster page=3 width=2048 elapsed_ms=66 count=6
+M1_SMOKE zoom_max=true raster_bounded=true
+M1 raster page=3 width=420 elapsed_ms=23 count=7
+M1_SMOKE zoom_min=true
+M1 raster page=3 width=1141 elapsed_ms=51 count=8
+M1_SMOKE fit_resize=true
+M1_SMOKE cancel_preserves_document=true
+M1 opened=true pages=20 elapsed_ms=2
+M1 raster page=1 width=1141 elapsed_ms=51 count=9
+M1_SMOKE pptx_open_order=true
+M1 raster page=2 width=1141 elapsed_ms=38 count=10
+M1_SMOKE pptx_next_report=true
+M1 open_failed=true reason=不是可读的 ZIP 文稿：invalid Zip archive: Invalid zip header
+M1_SMOKE failure_preserves_document=true
+M1_SMOKE passed=true native_pages=20 pptx_pages=20 elapsed_ms=1064
+M1_SMOKE source_hash_unchanged=true

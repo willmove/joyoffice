@@ -1,0 +1,24 @@
+{
+  "videoPreview": {
+    "meanRgbError": 3.281276933154066,
+    "rectangle": [
+      779,
+      277,
+      1072,
+      442
+    ],
+    "passed": true
+  },
+  "printCancelGui": true,
+  "videoShowCaptured": true,
+  "binarySha256": "0c73a8d149cc9317b415e21b3150a067938e917ab8e1ac13ce816ca7a5435a10",
+  "panelsCaptured": 3,
+  "nativeOnly": false,
+  "pdfPages": 2,
+  "pdfMeanRgbError": 0.4762120627572016,
+  "pdfFonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nHCJHVZ+PingFangSC-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes      6  0\nULBEXA+PingFangSC-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes     14  0\n",
+  "gifStaticPageFrames": 2,
+  "nativeComments": 1,
+  "mediaEmbedded": true,
+  "passed": true
+}

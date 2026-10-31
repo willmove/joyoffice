@@ -1,0 +1,9 @@
+{
+  "input_method": "com.apple.inputmethod.SCIM.ITABC",
+  "events": "System Events synthetic keyboard events",
+  "commit": true,
+  "cancel": true,
+  "single_undo": true,
+  "roundtrip": true,
+  "physical_keyboard": false
+}

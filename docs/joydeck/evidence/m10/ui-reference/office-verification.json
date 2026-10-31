@@ -1,0 +1,41 @@
+{
+  "powerpointVersion": "16.114.1",
+  "finalBinarySha256": "414b4586565ab24e28bc17506d2d1d342da13a021174505ce7b3dcf1051d4abf",
+  "initialSevenPageExchange": {
+    "source": "docs/evidence/m10/authoring-final/authoring-public.pptx",
+    "nativeGuiDataValue": 131,
+    "powerpointSavedValue": 133,
+    "joydeckPublicImportedValue": 133,
+    "fixedPositive": "tests/fixtures/m9-powerpoint-edited-chart.pptx",
+    "fixedNegative": "tests/fixtures/m9-powerpoint-stale-cache.pptx",
+    "negativeCache": 91,
+    "negativeWorkbook": 132
+  },
+  "finalNinePageOpen": {
+    "source": "docs/evidence/m10/authoring-delivery/authoring-public.pptx",
+    "repairPromptObserved": false,
+    "doughnutVisible": true,
+    "areaVisible": true
+  },
+  "guiLimit": "Final extra editor import not signed off: CUA AX raise/connection timeout. Default editor rendering and final binary read-only viewer 133 visible; native editor import regression passed. Physical dual-screen remains untested.",
+  "screenshots": {
+    "03-powerpoint-animations.png": "b0e1548c44ad482d6ac914cd3a95ba7c93a3232f06f1a1f67c7df99f3e196a9b",
+    "10-powerpoint-edited-chart.png": "76871c8349ba404e1c0f370289cffe0e0fbf18a54d91e921f064cdb76d0165ad",
+    "13-joydeck-final-presenter.png": "46dd2dd72dd77cb243f5a4369142def49c6ccf4b9c341b26cd534ca59abee7d4",
+    "05-joydeck-before.png": "62b4dd5c82f6982fc2cf460379488b39feb62c3a845e1b4441b6856b4384f741",
+    "15-joydeck-final-powerpoint-133.png": "0e6f3e692a818a6dea629c180f88aceb13d08f0765ecb3809cbfb678d3e6bf81",
+    "06-joydeck-home.png": "1d81f1c8fb817f600e8906fa42e755f6b5ec8bb32b78b9338fa05e751a2359d6",
+    "14-joydeck-ink-laser.png": "1674f43e094a4a64b1d9df32c21e8490d38362bbefeb010efbc0b5a19d58c570",
+    "08-joydeck-preview.png": "7ee071444e785a55733b859277917acf5128451df9aea3537cce56e665c4f68b",
+    "12-joydeck-rehearsal.png": "5e76a6a894ee7c65a532fadaf8538d9d4c847fa6ddef160f7210d4dbe35d1cc8",
+    "16-powerpoint-doughnut.png": "ebf30d3615c2a60703d7106678a3badb54b27417b955a5df595a862d1baab4e8",
+    "11-joydeck-final-home.png": "35e642ef10c62b5ffbc8252b62e269a1d6d6ac1a0f548b1ddaed307dfe6637b8",
+    "07-joydeck-chart-edit.png": "bf14c4d0525d44de195e46bffa17b1eb05245046bf29e3626f0d70f03c920d55",
+    "02-powerpoint-insert.png": "c9868759018de1c9208e375b0fa56b64aae35e74be49cce762c967b4324e245d",
+    "01-powerpoint-home.png": "470f562d401d395995b7056c16f8a9f86d164dbd3476188be52197ed146a42de",
+    "04-powerpoint-show.png": "3de9c0faed03d508456ae4f194b0602b3d2ef63268ac4a7d0f394af448f6d08d",
+    "17-powerpoint-area.png": "29287c7bc1cc49079780254eef3a407a181e90062b04c833cfc4d760392d5e96",
+    "18-joydeck-final-empty-editor.png": "7c2965b2aaa85d4ed7958c32b480395a3721e588d635db71a04997d527cf0486",
+    "09-joydeck-presenter.png": "6edfb80f23e37fb06b33b717066db012d68306de3f5fd165fe738bfc3538d028"
+  }
+}

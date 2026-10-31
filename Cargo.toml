@@ -1,5 +1,15 @@
 [workspace]
 members = [
+    "tools/xtask",
+    "apps/joydeck",
+    "apps/joydeck-cli",
+    "crates/joydeck-model",
+    "crates/joydeck-engine",
+    "crates/joydeck-formats",
+    "crates/joydeck-scene",
+    "crates/joydeck-export",
+    "crates/joydeck-platform",
+    "crates/joydeck-shell",
     "apps/joyword-cli",
     "apps/joyword",
     "crates/joyoffice-cfb",
@@ -23,6 +33,14 @@ members = [
     "crates/joyword-textfmt",
 ]
 default-members = [
+    "apps/joydeck-cli",
+    "crates/joydeck-model",
+    "crates/joydeck-engine",
+    "crates/joydeck-formats",
+    "crates/joydeck-scene",
+    "crates/joydeck-export",
+    "crates/joydeck-platform",
+    "crates/joydeck-shell",
     "apps/joyword-cli",
     "crates/joyoffice-cfb",
     "crates/joyoffice-drawingml",
@@ -54,6 +72,25 @@ license = "MIT"
 repository = "https://github.com/willmove/joyoffice"
 
 [workspace.dependencies]
+joydeck-model = { path = "crates/joydeck-model" }
+joydeck-engine = { path = "crates/joydeck-engine" }
+joydeck-formats = { path = "crates/joydeck-formats" }
+joydeck-scene = { path = "crates/joydeck-scene" }
+joydeck-export = { path = "crates/joydeck-export" }
+joydeck-platform = { path = "crates/joydeck-platform" }
+joydeck-shell = { path = "crates/joydeck-shell" }
+serde = { version = "=1.0.228", features = ["derive", "rc"] }
+serde_json = "=1.0.154"
+zip = { version = "=9.0.0", default-features = false, features = ["deflate-flate2"] }
+roxmltree = "=0.21.1"
+resvg = "=0.45.1"
+ttf-parser = "=0.25.1"
+base64 = "=0.22.1"
+png = "=0.18.1"
+svg2pdf = "=0.13.0"
+pdf-writer = "=0.12.1"
+getrandom = "=0.3.4"
+
 # ADR-010: align with JoyDeck before workspace integration. Kit 0.8.1 pins
 # gpui-pre 0.3.10 (zed@08cbb88a152c3751a43e853425a70e9f631a5918).
 gpui-kit = "=0.8.1"
@@ -112,3 +149,10 @@ lto = "thin"
 codegen-units = 1
 strip = "debuginfo"
 
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 2
+debug = false

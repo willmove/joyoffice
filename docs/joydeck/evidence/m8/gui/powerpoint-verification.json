@@ -1,0 +1,24 @@
+{
+  "applicationVersion": "16.114.1",
+  "build": "16.114.26102031",
+  "generatedFile": "gui-table.pptx",
+  "editedFile": "powerpoint-edited.pptx",
+  "openedWithoutRepair": true,
+  "editableTable": true,
+  "edit": {
+    "row": 1,
+    "column": 1,
+    "before": "130",
+    "after": "131"
+  },
+  "mergedSpan": [
+    2,
+    2
+  ],
+  "publicReaderVerified": true,
+  "files": {
+    "gui-table.pptx": "966fa5f450347156d7b20d99906dd4393f917ba61e1033d52d658c9277fd8353",
+    "powerpoint-edited.pptx": "3d0728c6d07d787de01711f983ef0c3e6104f67cc66a2a0e91cc08f4c24040bd"
+  },
+  "joydeckGuiReimport": true
+}

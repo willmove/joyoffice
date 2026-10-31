@@ -1,0 +1,7 @@
+M2 command=object.add document=1
+M3_IME ready=true
+2026-10-30 07:10:58.261 joydeck[7921:325738] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+2026-10-30 07:10:59.257 joydeck[7921:325738] TSM AdjustCapsLockLEDForKeyTransitionHandling - _ISSetPhysicalKeyboardCapsLockLED Inhibit
+M3_IME committed=true marked_calls=8 commit_calls=1
+M3_IME cancel_ready=true
+M3_IME cancel=true single_undo=true roundtrip=true complete=true

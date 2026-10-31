@@ -1,0 +1,204 @@
+{
+  "M0": {
+    "passed": true,
+    "log": "M0.log"
+  },
+  "M1": {
+    "passed": true,
+    "log": "M1.log"
+  },
+  "M2": {
+    "passed": true,
+    "log": "M2.log"
+  },
+  "M3": {
+    "passed": true,
+    "log": "M3.log"
+  },
+  "M4": {
+    "passed": true,
+    "log": "M4.log"
+  },
+  "M5": {
+    "passed": true,
+    "log": "M5.log"
+  },
+  "M6": {
+    "passed": true,
+    "log": "M6.log"
+  },
+  "M7": {
+    "passed": true,
+    "log": "M7.log"
+  },
+  "M8": {
+    "passed": true,
+    "log": "M8.log"
+  },
+  "IME-text": {
+    "passed": true,
+    "log": "IME-text.log"
+  },
+  "IME-table": {
+    "passed": true,
+    "log": "IME-table.log"
+  },
+  "automatedTests": 79,
+  "binarySha256": "19f085216ae381b1320282078614bd045ac9fccf9c80bfd7de29157931ee9697",
+  "packageSha256": "cacb6f54fea077e8060cbf7931b7e8fc4a2fba45d1bdeb059c91f52827d03b88",
+  "passed": true,
+  "nativeSuite": "completed/verification.json",
+  "gui": "gui/final-gui-verification.json",
+  "office": "gui/powerpoint-verification.json",
+  "package": "dist/joydeck-m8-release-darwin-arm64.zip",
+  "source": "dist/joydeck-m8-release-source.tar.gz",
+  "platform": "macOS ARM64",
+  "globalMvpAccepted": false,
+  "ime_text": {
+    "path": "docs/evidence/m3/pinyin-1793352364536124000",
+    "result": {
+      "input_method": "com.apple.inputmethod.SCIM.ITABC",
+      "events": "System Events synthetic keyboard events",
+      "commit": true,
+      "cancel": true,
+      "single_undo": true,
+      "roundtrip": true,
+      "physical_keyboard": false
+    }
+  },
+  "ime_table": {
+    "path": "docs/evidence/m8/pinyin-1793352370480846000",
+    "result": {
+      "input_method": "com.apple.inputmethod.SCIM.ITABC",
+      "events": "System Events synthetic keyboard events",
+      "commit": true,
+      "cancel": true,
+      "single_undo": true,
+      "roundtrip": true,
+      "physical_keyboard": false
+    }
+  },
+  "m5": {
+    "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m8-release-darwin-arm64/joydeck",
+    "pixelChecks": {
+      "GPUI": {
+        "meanRgbError": 0.17463991769547324,
+        "fractionPixelsOver48": 0.0016975308641975309,
+        "interiorRgbError": 0.02342290921657018,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      },
+      "CPU": {
+        "meanRgbError": 0.0632239750038104,
+        "fractionPixelsOver48": 0.0005772748056698674,
+        "interiorRgbError": 0.005123336711357539,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      }
+    },
+    "passed": true,
+    "scope": "macOS native adapter; physical keyboard, Windows/Linux unverified"
+  },
+  "m6": {
+    "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m8-release-darwin-arm64/joydeck",
+    "pixelChecks": {
+      "GPUI": {
+        "meanRgbError": 0.10270252248132906,
+        "fractionPixelsOver48": 0.00040294924554183816,
+        "interiorRgbError": 0.0,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      },
+      "CPU": {
+        "meanRgbError": 0.16540256820606614,
+        "fractionPixelsOver48": 0.00011716963877457705,
+        "interiorRgbError": 0.0,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      }
+    },
+    "passed": true,
+    "scope": "macOS native adapter; physical keyboard, Windows/Linux unverified"
+  },
+  "m7": {
+    "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m8-release-darwin-arm64/joydeck",
+    "passed": true,
+    "publicPptxReader": "python-pptx",
+    "syntheticCorpusPublicReaderCount": 40,
+    "pdf": {
+      "slides": {
+        "pages": 2,
+        "outline": 2,
+        "unicodeText": true,
+        "sizePoints": [
+          0,
+          0,
+          960,
+          512
+        ]
+      },
+      "notes": {
+        "pages": 2,
+        "outline": 2,
+        "unicodeText": true,
+        "sizePoints": [
+          0,
+          0,
+          960,
+          652
+        ]
+      }
+    },
+    "pdfPngMeanError": 0.3589389377170139,
+    "slideshowMeanError": 0.9652650621202257,
+    "imageDpi": 144,
+    "scope": "macOS adapter/fullscreen; PowerPoint visual and other platforms recorded separately"
+  },
+  "m8": {
+    "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m8-release-darwin-arm64/joydeck",
+    "pixelChecks": {
+      "GPUI": {
+        "meanRgbError": 0.725474074074074,
+        "fractionPixelsOver48": 0.002025,
+        "interiorRgbError": 0.0,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      },
+      "CPU": {
+        "meanRgbError": 0.49741944444444447,
+        "fractionPixelsOver48": 0.00019166666666666667,
+        "interiorRgbError": 0.0,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      }
+    },
+    "publicPptx": {
+      "table": {
+        "publicTable": true,
+        "rows": 4,
+        "columns": 5,
+        "merge": false,
+        "headerBold": true
+      },
+      "merged": {
+        "publicTable": true,
+        "rows": 4,
+        "columns": 5,
+        "merge": true,
+        "headerBold": true
+      }
+    },
+    "pdfCellText": true,
+    "passed": true,
+    "scope": "macOS ARM64 native adapters and independent public readers; other platforms and physical keyboard unverified"
+  },
+  "packageManifestChecked": true,
+  "sourceSha256": "e78efc5abe08f99c5e84251caa7bdbfd84ad9ea33b0224e3fcbdd85255dd845d",
+  "sourceArchiveVerified": true
+}

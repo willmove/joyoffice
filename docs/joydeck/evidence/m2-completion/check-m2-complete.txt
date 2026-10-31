@@ -1,0 +1,70 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running `target\debug\xtask.exe check`
+cargo fmt --all -- --check
+cargo clippy --workspace --locked -- -D warnings
+    Checking joydeck v0.1.0 (D:\Coding\EditorProjects\joydeck\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.52s
+cargo test --workspace --locked
+   Compiling joydeck v0.1.0 (D:\Coding\EditorProjects\joydeck\apps\joydeck)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.45s
+     Running unittests src\lib.rs (target\debug\deps\joydeck-c53de944a9a2182b.exe)
+
+running 15 tests
+test edit::tests::rollback_identity_and_history ... ok
+test geometry::tests::all_handles_center_and_aspect_constraints ... ok
+test geometry::tests::rotated_hit_and_gesture_single_history ... ok
+test geometry::tests::composite_failure_preserves_snapshot_and_reorder_identity ... ok
+test pptx::tests::relationship_paths_and_xml_limits ... ok
+test edit::tests::legacy_upgrade_and_id_overflow_are_checked ... ok
+test edit::tests::versioned_style_and_ids_roundtrip ... ok
+test edit::tests::save_new_never_replaces_existing_target ... ok
+test edit::tests::save_reopen_and_stale_save ... ok
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::readonly_replace_failure_preserves_original ... ok
+test edit::tests::history_cap_and_new_branch_clear_redo ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test edit::tests::history_budget_includes_redo_and_large_to_small_edits ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running unittests src\main.rs (target\debug\deps\joydeck-f49a626d1a4009a1.exe)
+
+running 2 tests
+test jobs::tests::cancelled_job_never_publishes_a_completed_chunk ... ok
+test jobs::tests::restarting_uses_an_independent_cancellation_token ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\reader.rs (target\debug\deps\reader-b9c77fe0e61ed224.exe)
+
+running 7 tests
+test truncated_zip_and_pre_cancelled_load_are_errors ... ok
+test native_pages_text_and_geometry ... ok
+test pptx_resolves_main_part_and_uses_presentation_order ... ok
+test rejects_unknown_required_feature_major_duplicate_ids_and_bad_geometry ... ok
+test rejects_ambiguous_paths_duplicate_members_and_expansion_limit ... ok
+test background_preview_is_bounded_and_bgra ... ok
+test missing_slide_external_main_and_xml_dtd_fail_safely ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests\recovery_process.rs (target\debug\deps\recovery_process-affd31ef3ede63d2.exe)
+
+running 1 test
+test abnormal_process_exit_releases_lease_and_restores_three_pages ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+     Running unittests src\main.rs (target\debug\deps\xtask-f5ec38a185e7241c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

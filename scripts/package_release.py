@@ -12,6 +12,9 @@ The archive name is the updater-facing contract: joyword-<version>-<platform>-<a
 Existing archives are refused rather than overwritten, matching the CLI convention.
 """
 import argparse
+import importlib.util
+import json
+import subprocess
 import hashlib
 import plistlib
 import shutil
@@ -43,6 +46,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--binary", required=True, type=Path,
                         help="release-built joyword binary to package")
+    parser.add_argument("--profile", choices=["debug", "release"], default="release")
+    parser.add_argument("--source-snapshot", type=Path, help="source hash map captured before the product build")
+    parser.add_argument("--cli", type=Path, help="matching joyword-cli executable to include")
     parser.add_argument("--version", required=True,
                         help="release version without the v prefix")
     parser.add_argument("--platform", required=True, choices=["macos", "windows", "linux"])
@@ -117,26 +123,61 @@ def main() -> int:
     if asset.exists():
         sys.exit(f"refusing to overwrite existing archive: {asset}")
     args.out.mkdir(parents=True, exist_ok=True)
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("products", root / "tools/xtask/product.py")
+    products = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(products)
+    if args.version != products.manifest_version("joyword", root):
+        sys.exit("Package version must match apps/joyword/Cargo.toml")
+    if args.cli and not args.cli.is_file():
+        sys.exit("CLI binary not found: " + str(args.cli))
     with tempfile.TemporaryDirectory() as temp:
         staging = Path(temp)
         readme = staging / "README-joyword.txt"
         readme.write_text(README.format(version=args.version, platform=args.platform,
                                         arch=args.arch), encoding="utf-8")
+        # A product package contains only its selected normal/build graph,
+        # licenses and executable(s), even though the workspace lock is shared.
+        script_dir = root / "scripts/joydeck"
+        sys.path.insert(0, str(script_dir))
+        try:
+            import sbom
+            rustc = subprocess.check_output(["rustc", "-vV"], cwd=root, text=True, encoding='utf-8')
+            target = next(line.split(": ", 1)[1] for line in rustc.splitlines() if line.startswith("host:"))
+            roots = ("joyword", "joyword-cli") if args.cli else ("joyword",)
+            dependency = sbom.generate(staging / "SBOM.spdx.json", target, profile=args.profile, roots=roots)
+        finally:
+            sys.path.pop(0)
+        hashes = dependency.pop("sourceHashes")
+        if args.source_snapshot:
+            sbom.require_unchanged_sources(json.loads(args.source_snapshot.read_text(encoding='utf-8')), hashes)
+        hashes["scripts/package_release.py"] = sha256(Path(__file__))
+        (staging / "SOURCE-HASHES.json").write_text(json.dumps(hashes, indent=2) + "\n", encoding='utf-8')
+        (staging / "BUILD-INFO.json").write_text(json.dumps({"product": "joyword", "version": args.version,
+            "target": target, "profile": args.profile, "packageRoots": list(roots),
+            "binarySha256": sha256(binary), "cliSha256": sha256(args.cli) if args.cli else None, "cargoLockSha256": dependency["lockSha256"],
+            "dependencyPackages": dependency["packages"], "sourceSnapshotVerified": args.source_snapshot is not None, "officialSignatureVerified": False}, indent=2) + "\n", encoding='utf-8')
+        materials = [("README-joyword.txt", readme, False), ("LICENSE", root / "LICENSE", False)]
+        materials.extend((p.relative_to(staging).as_posix(), p, False)
+                         for p in sorted(staging.rglob("*"))
+                         if p.is_file() and p != readme)
         if args.platform == "macos":
             bundle = app_bundle(binary, args.version, staging)
-            entries = [(f"JoyWord.app/Contents/MacOS/{item.name}", item, True)
-                       for item in sorted((bundle / "Contents" / "MacOS").iterdir())]
-            entries += [(f"JoyWord.app/Contents/{item.name}", item, False)
-                        for item in sorted((bundle / "Contents").iterdir())
-                        if item.name != "MacOS"]
-            entries.append(("README-joyword.txt", readme, False))
-            make_zip(entries, asset)
+            if args.cli:
+                shutil.copy2(args.cli, bundle / "Contents/MacOS/joyword-cli")
+            entries = [(p.relative_to(staging).as_posix(), p, "MacOS" in p.parts)
+                       for p in sorted(bundle.rglob("*")) if p.is_file()]
+            make_zip(entries + materials, asset)
         elif args.platform == "windows":
-            exe = staging / "joyword.exe"
-            shutil.copy2(binary, exe)
-            make_zip([("joyword.exe", exe, True), ("README-joyword.txt", readme, False)], asset)
+            entries = [("joyword.exe", binary, True)]
+            if args.cli:
+                entries.append(("joyword-cli.exe", args.cli, True))
+            make_zip(entries + materials, asset)
         else:
-            make_tar_gz([("joyword", binary, True), ("README-joyword.txt", readme, False)], asset)
+            entries = [("joyword", binary, True)]
+            if args.cli:
+                entries.append(("joyword-cli", args.cli, True))
+            make_tar_gz(entries + materials, asset)
     sidecar = write_sidecar(asset)
     print(asset)
     print(sidecar)

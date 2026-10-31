@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-30",
+  "stage": "M4",
+  "overallM4Accepted": false,
+  "localImplementationAndRenderingValidated": true,
+  "automatedTests": 45,
+  "checks": [
+    "fmt",
+    "clippy --workspace --all-targets --locked -- -D warnings",
+    "workspace tests",
+    "stage M4",
+    "release link"
+  ],
+  "benchmark": "run-1793327137407213000/verification.json",
+  "package": "../../../dist/joydeck-m4-final-darwin-arm64.zip",
+  "binarySha256": "b5115e4b5f0bfcd8e3c6deaecfe0c819855fcfe0a77d04aebfbe8a12a90fe264",
+  "nativeRegressionLog": "../../../logs/m4-final-packaged-native.log",
+  "nativeStagesPassed": [
+    "M0",
+    "M1",
+    "M2",
+    "M3",
+    "M4"
+  ],
+  "imeResult": "../m3/pinyin-1793327159880251000/result.json",
+  "report": "../../26-m4-implementation-report.md",
+  "openConditions": "See report open matrix; full M3/M4 and previous-stage exit gates remain open.",
+  "source": "../../../dist/joydeck-m4-final-source.tar.gz",
+  "checksums": "../../../dist/joydeck-m4-final-checksums.json"
+}

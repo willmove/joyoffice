@@ -1,0 +1,17 @@
+{
+  "packaged": {
+    "cliSha256": "7e043cd4716b379baedabc9dd8395fe7ac55bf624e150c9a2a05e9e55367c502",
+    "identityPreservedAfterUndoRedo": true,
+    "differencesAfterAccept": 0,
+    "legacyMissingIdentityRejectedWithoutFileChange": true,
+    "passed": true
+  },
+  "independentHeadless": {
+    "cliSha256": "b1ca98a19adcb32f4b0e94ec7a68c40422925952170dc6e77986a699ce2efc53",
+    "identityPreservedAfterUndoRedo": true,
+    "differencesAfterAccept": 0,
+    "legacyMissingIdentityRejectedWithoutFileChange": true,
+    "passed": true
+  },
+  "passed": true
+}

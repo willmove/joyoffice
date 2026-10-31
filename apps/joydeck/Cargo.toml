@@ -1,0 +1,31 @@
+[package]
+name = "joydeck"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+publish = false
+repository.workspace = true
+default-run = "joydeck"
+
+[dependencies]
+joydeck-shell.workspace = true
+unicode-segmentation.workspace = true
+gpui-kit = { workspace = true, optional = true }
+image.workspace = true
+resvg.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+
+[features]
+default = ["desktop"]
+desktop = ["dep:gpui-kit"]
+validation = []
+
+[[bin]]
+name = "joydeck"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[lints]
+workspace = true

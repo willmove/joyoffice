@@ -1,0 +1,27 @@
+{
+  "spdxSchema": "https://raw.githubusercontent.com/spdx/spdx-spec/v2.3/schemas/spdx-schema.json",
+  "schemaSha256": "239208b7ac287b3cf5d9a9af23f9d69863971102a5e1587a27a398b43490b89b",
+  "packages": 483,
+  "validator": "jsonschema 4.26.0",
+  "schemaValid": true,
+  "packagesWithoutLocalLicenseText": [
+    "block2-0.5.1",
+    "block-0.1.6",
+    "mac-0.1.1",
+    "malloc_buf-0.0.6",
+    "objc-sys-0.3.5",
+    "objc2-app-kit-0.2.2",
+    "objc2-core-data-0.2.2",
+    "objc2-core-image-0.2.2",
+    "objc2-foundation-0.2.2",
+    "objc2-metal-0.2.2",
+    "objc2-quartz-core-0.2.2",
+    "objc2-0.5.3",
+    "objc_exception-0.1.2",
+    "pathfinder_geometry-0.5.1",
+    "seahash-4.1.0",
+    "simd_helpers-0.1.0"
+  ],
+  "package": "dist/joydeck-m14-final-darwin-arm64",
+  "sbomSha256": "cd813ee0d4c4e7a3aafb07a4c314b5d86df174dcfa669584c81530320d416538"
+}

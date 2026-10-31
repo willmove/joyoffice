@@ -1,0 +1,34 @@
+{
+  "binary": "dist/joydeck-m8-release-darwin-arm64/joydeck",
+  "binarySha256": "19f085216ae381b1320282078614bd045ac9fccf9c80bfd7de29157931ee9697",
+  "appBundleLaunch": true,
+  "initialCommandOpen": true,
+  "nativePickerOpen": true,
+  "mergedCellStyleApplied": true,
+  "dragRow": {
+    "before": 60.0,
+    "after": 88.8,
+    "undo": 60.0,
+    "singleUndoRestoredTable": true
+  },
+  "wideWindow": {
+    "X": 0,
+    "Height": 969,
+    "Y": 30,
+    "Width": 1920
+  },
+  "keyboard": "CUA shortcuts / mouse; Pinyin separate OS-event suite",
+  "files": {
+    "gui-table.joydeck": "f590c878c0c06b128dfc3f8064eaef23e13e26a6a139a803ee627dbddb8f9696",
+    "final-drag.joydeck": "33dcebdad67982c02fb866b9767bf716bf47b4daec1c3656d419de392cf34a47",
+    "final-drag-undo.joydeck": "f590c878c0c06b128dfc3f8064eaef23e13e26a6a139a803ee627dbddb8f9696"
+  },
+  "normalWindow": {
+    "X": 280,
+    "Height": 933,
+    "Y": 64,
+    "Width": 1360
+  },
+  "notesDrawer": true,
+  "twoWindowSizesVerified": true
+}

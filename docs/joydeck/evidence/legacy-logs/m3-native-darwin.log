@@ -1,0 +1,4 @@
+M2 command=object.add document=1
+M3_SMOKE composition_draft=true commit_once_undo=true cancel=true rich_roundtrip=true
+M3_SMOKE painted_lines=2 complete=true
+M3_SMOKE overlay_shape_cache=true

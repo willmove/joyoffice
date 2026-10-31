@@ -1,0 +1,3352 @@
+{
+  "documents": [
+    {
+      "id": "case-000",
+      "family": "text",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9fe032376dc31c893368e20800faae4f58c3ba68d55cd9d039f103f61822d333",
+      "publicPptxSha256": "d8567c2720597bfc7a502e43ba5b3fd7ca602c52b9ee1e7e96d2d2f110b52f40",
+      "pages": 9,
+      "firstTitle": "业务 0 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "0ea55c828c33535e5308a10415f1e012636a5e8d9b17051a5ddf39c8e8e62f0d",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-001",
+      "family": "geometry",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9a42b63e6c56fa58cc7d6f9867d916052eb199b2fef09b57b871ab66460a438f",
+      "publicPptxSha256": "fd48bdacd6098ce33f780293de05aa1b06db22151bd78c83afebeb32e202a3f8",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "7bda6f39e23f14c964f068f26a9e5bb1cbe94b57d746f1d62e7cc407ae246f15",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-002",
+      "family": "table",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ba1bb4750af1509b12bc309f2d9a3445ed853f7262fd6ffda847f6b4b4d72346",
+      "publicPptxSha256": "277d4251894fbf0aa2fbd45b299a483a5db9612a3c1d9a7b2eba4d3b7c3bebcb",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "e58bd38249ff4044c703fd1686476aa870e3d24168ca036e29e79110393c8a72",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-003",
+      "family": "chart-data",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "d8e19a1d4c6a8b01331adb16c5313eef91d1f43d74f5cf91c5ee64968ce3ee68",
+      "publicPptxSha256": "a4181d07407673c2433a610ad7d6663c31769988196322ffc85f9ad7b813165b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -20.0,
+        0.0,
+        31.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b1581c01d09b696ec567ba5df4f5c9a882b873edb0eb5c388c2a3316ace9f02e",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-004",
+      "family": "image-crop",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "13d4f47eff406f312717d000c0c3571eb5ba98de00a3aee4edf2f18e9b62a6ae",
+      "publicPptxSha256": "c3aec31511616e803c32fb6ded37d16c1fdba7ca07edd9356f98ae1e2a53625d",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "49012efd91af00c559ecc3600225c7b52a45eb65d45538ced9f9a6d461d7f692",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-005",
+      "family": "organization",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "03464a46ee50c90a8d8c6d56013b2eeb59fa1ff250fe4d2c1d2a802455085975",
+      "publicPptxSha256": "78628d86d0e98a7678344169e24b05612fdd3b1a0870527f4edf8268e74d7e2f",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-006",
+      "family": "review-native",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "23a4ec77e2ac3b60774d54df149baa6617db850a0da6394ff7f2bb5d2efd8d60",
+      "publicPptxSha256": "21581267bfffd6e9c7b640fe6b34726ee9a5dcfcda0bbc112f0730a6608ae3bc",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-007",
+      "family": "motion",
+      "variant": 0,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "deb7be08aa3a9972e3c53e31a517d4ac670e07cccc7b3f2588f59910019588bf",
+      "publicPptxSha256": "51ca4c333b455e41632dba341a95370537b5ff27da6dae12ca7f331401b365a7",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-008",
+      "family": "text",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e4ab6801611845fe3ce4dee8be10efb909ac24e5fb55896a01e1d2b8cda85ca6",
+      "publicPptxSha256": "3186b32d58240e5f5726a8ad949b4f8234b3bf721c5d67acbdefbde246a40559",
+      "pages": 9,
+      "firstTitle": "业务 1 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "0a51d2ba7e18cb8181b0b5e13fd1cb22844013cfa588696a207d1b01cef2bc85",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-009",
+      "family": "geometry",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "1f53a5963f8b0e4ea159151d141a5263d00244875274962281506b49f5e69ac6",
+      "publicPptxSha256": "0ea06380fa06cd732c62afe0481ede9dc7da54f7a2800f146cd5fb6c353faa5b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "2511e892f2f59dace247cecc0769eb4f851fafd7d25a40a12be4b9efd60e286d",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-010",
+      "family": "table",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ebfb6b93796eb0081c04e7ea8359b4b62cc13b48e28ed8b85a96c9a9d88f9c7f",
+      "publicPptxSha256": "8fd8db59227970342c37418276592b9427a8d3d61fdfbf810ab27790e2b3d973",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "19a32f01174f0fedbbb7da56a685c68bcf881c3739640f8e0f27e71460ff4cc5",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-011",
+      "family": "chart-data",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "5f873678369149006e5a462edf15c8665a05279d98f5f6120100927ab58b508d",
+      "publicPptxSha256": "85cd1d936b2cb134fd918613a65904fc5f8a29d876a730d49eb0ea728f7d9f30",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -21.0,
+        0.0,
+        32.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b78856d720c4ea37fc065ad6d400dbd9fc6be614201c491399ff5ea421fe0af0",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-012",
+      "family": "image-crop",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "d6503c60f299188fe11fceed6d14ca5fce95700ed9437f0f335a9c7730fbf51f",
+      "publicPptxSha256": "7e3a54b05797d63600405fc88481af44b72202a1525923cf634757f45a3f3e1e",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "2df49a30e07f5538751a0e9f467936a9186674acbe9f35962829e272a9dc69ce",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-013",
+      "family": "organization",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e0458a2b4e10bfea3a4bc7ad762dd1acaf62b1f78b43beb5deb76634d7a4e8fc",
+      "publicPptxSha256": "5c9f8381c671d338a1f2a3914be30735323d61bc125cc8de08cc7337c561c2d0",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-014",
+      "family": "review-native",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "7aa3926d89ab284eac4de79bdfd4f91a7b410247e6afc8b185803ed6137983da",
+      "publicPptxSha256": "678ab35e184ed5237fe8749516d6098fd35b7c5988f7cc487c4a4cd2ea204d2a",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-015",
+      "family": "motion",
+      "variant": 1,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "39f7f85c3f497f621d670d7c624b12e8857cc61e00547cdb064a243ea179c365",
+      "publicPptxSha256": "affaa34c627d18f080d2be63ccbeb1d5ccbebab9e9387b300811b59358b92c2c",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-016",
+      "family": "text",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9d3cfe5d80cf9bd110cb4ca5010e411e75f49bb13fbe85f04a3ad9bc8ffa4793",
+      "publicPptxSha256": "82c3004de4f1b635a21022598b8326a66c57452a2617e5ea26144b1efbc764ec",
+      "pages": 9,
+      "firstTitle": "业务 2 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "fc63146cdabefa37f066f8a190b764fac09282ae44a1837bb3d679541e64a1af",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-017",
+      "family": "geometry",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ab16a6980975ae8e2294fbefe9985fd2a378ca34b425675b068a13d3ce62da08",
+      "publicPptxSha256": "f668aab5ebb993492e351c0a8dd8a9b5b01f9c5d7145abaaedb13b60469e2047",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "993fd98347c7f312e40ac3adb5171c9d73975110539e2be32305c5e5b0da1d85",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-018",
+      "family": "table",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "28461798c8cf7dc4cea97e79ea88e14247a45cbd24da307dda9b6f694d2dccf7",
+      "publicPptxSha256": "0fd7306ff9b8b372449a9db2777a5e4a36212f03c95d0dca5a8a33e8e6d8ab57",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "5584089df8eb3d97316db231156f59513086b3c14e7e1c56b5dcbb26a4d377a0",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-019",
+      "family": "chart-data",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "8b94158fd5cfea0c2ddbe676b4b1a1783ddc31fd74deaa5f0c78a4b835d77e89",
+      "publicPptxSha256": "1f7900ce3dbd54eb4f35a6add98772cd57ddd7a934e58e169e7b271b816316bd",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -22.0,
+        0.0,
+        33.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "84dcc095ab555917b4eda6f162c224987ce21a575129e60ec0bec2c9db4314b1",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-020",
+      "family": "image-crop",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "a7e89e2890effea4333e191d91e95e58f407d9fb0fbb66f35819ae0d5a0d82c0",
+      "publicPptxSha256": "d7a99cd612ba92120b5db7ad443ee370390e4a6fa82de2f74a72e531669da72c",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "6536b6405ddead8f6b1f87fde8b84c50acf7ad1243268c114bed35acf763b30a",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-021",
+      "family": "organization",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ff3fcf60cea4daa3cb4b152f077c5c3a09e992688e4de27c552329179e4d4742",
+      "publicPptxSha256": "4b49f1b308f09ec104e66daae71b12615da05c349509eb87cd8e9afe06b64f78",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-022",
+      "family": "review-native",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "98af92c6701b29f1e0675588992ed894be2285368b45b4249a0bd1b73e3d5175",
+      "publicPptxSha256": "a5bd3a7cb6c24daeb24a2d7fcba804a4b3f9eb62baf117af316be346e63fd2f4",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-023",
+      "family": "motion",
+      "variant": 2,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "db2fb035b509665453f4170748b26b3ea480f910e1cf35a963228135a65d7cd0",
+      "publicPptxSha256": "28ce910fc47239bc1a446f128bda05ce841f7c21014c6ae89b9ebd509bde11e3",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-024",
+      "family": "text",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "76559d6b8dfde18e67206a468cc2f8b98b4f31361e918c1f7397437577a072a4",
+      "publicPptxSha256": "ccf0a0a20020348d8b39708b98aa87d51604a941872de4f027e056ba2ce59e97",
+      "pages": 9,
+      "firstTitle": "业务 3 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "34d4d74cb00fb43370c8826624212c634a87f83b23e80453a71abed02d48d7bd",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-025",
+      "family": "geometry",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "d399f7297ecc10dcd9ea9d9e9e0295075f82de2900dd0bde0ed525c43cef804d",
+      "publicPptxSha256": "35e000dd31f13d2ef9b3b8cb4daf59db29fdb9c9ea5983a29ad3be99e85190c4",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "a2dd5e649ac201bafe6758f92efb57d3966789d0ffc2122104a23e8d765f6611",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-026",
+      "family": "table",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e7d1c079579d79258d28e5b0e610e70d7bae267e7bad363d2ad7156d40d2fd08",
+      "publicPptxSha256": "9c416ceb17f85557b82f61fe45177dfc123a3a7b21237d9424a6ceecc75a7340",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "df806f46947332a824082d82a5d3db6bf468d33c91b1f37a61a839c865c7eeb8",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-027",
+      "family": "chart-data",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e9e9784c87a9fba18eb87e6976472f12fcd0f531369599d1efac6d9b0db5292f",
+      "publicPptxSha256": "3b53281a9fba124ac71ecb4e341e72f42e2b042eb4166497ed00b0ce66fc1843",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -23.0,
+        0.0,
+        34.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "451c3ee98a37545763e5ff6193e9ddafa36d5d243047a670b8f45f7a7dea19da",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-028",
+      "family": "image-crop",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "2d2132eacd897ea09de842573a79d231b2110b0ff6b938805f8b9fe21871094d",
+      "publicPptxSha256": "747d86b32079cecd7957046940461780cd99afd1486bf2b89e949dfc17f44c45",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "6a8b57b47986c0bc901792ec75d357ea4e894295c2095aa0fd316deee7feadcd",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-029",
+      "family": "organization",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "472b8f795950e36aa46712473bc0bf9e00cbac0b1751d9c5fb83a6bb22b7e9be",
+      "publicPptxSha256": "39765e0461a84a41e7505cd66e44f66a4fa706d4456f7fe4598af45d10102cea",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-030",
+      "family": "review-native",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "121a516a8f6f9e0df6c2ce039906275fe160048b1a17120b2e62de7167f60ea0",
+      "publicPptxSha256": "c1e7e84fcfd94804b146c7898aea7349fca9ee3009c8ec4a69600bbeae6cc543",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-031",
+      "family": "motion",
+      "variant": 3,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e2ac0275ac09e14e037e9b3731832b8a89770952f50c7619716f2a169c877b9d",
+      "publicPptxSha256": "fda15b2c2971bb1ca69f600de853773614b13c62b9b6f5c33c85e35d536f2915",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-032",
+      "family": "text",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "04c05f28b3ee57df3c0a424daaccadbf4c7e816a97c27406574c64f47945ad85",
+      "publicPptxSha256": "46081dcfd286bca5c228201f4f7145a261eb9a8322b18ea54e6ab4b7ac3cb924",
+      "pages": 9,
+      "firstTitle": "业务 4 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "f5d8a442122d17882492a423aaddf209459ac6820092b9302a400230757ebb9f",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-033",
+      "family": "geometry",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "313cbe9bfb202a50b6ca083b1329df0d5a72e110b25073a467eca160d9658949",
+      "publicPptxSha256": "8f68a8c5f112b7185493a748d969282127dff18c9d865ce802519ebdc018fd4f",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "94981baee5891f1f45a29fa78a8289a46a841919e005fa3b1411afa522940dc0",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-034",
+      "family": "table",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "970100a18a29bfe8dfe5cc04f34c676211009e5bbb9a3475b6247b851b0b7fc5",
+      "publicPptxSha256": "d1bd9785da813ac3ae460043c7cb65d32b0a0d89248a9d5ada5ab74407ea7c13",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "80e26473b8f43a2300a0d80c12fa7b6f1fd1071ebeee41a7e91d4dfb3b1315a9",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-035",
+      "family": "chart-data",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "73142e82624e5b3a981a5eaca814ed683f019fc9c398550fba593ff0a1c0419e",
+      "publicPptxSha256": "a643af43e2a91742410be9377da816159d58067c82866da93903ce5ba939e06b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -24.0,
+        0.0,
+        35.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "d8f04c47f23e48aba95563d9c7e3ae0d51c830b50983060c0fdc279dcde202e4",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-036",
+      "family": "image-crop",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "8ef465b84b4dd6e4ea39abdef97e5708aea2df6a810475d7b8c44a079d0fc882",
+      "publicPptxSha256": "da0a442f8f2aa056315248ba084ef262b3d19cbc32c342ceda3465e62020b944",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "19de910ed7e8e19b8c721faada310f5201231694755c458cd09a973e64c8fec8",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-037",
+      "family": "organization",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "19592d49cdeb5bb0f5f5644b29bb5680cd0551fa6cc969a027fed1f835d0ebf3",
+      "publicPptxSha256": "4f62288d54df711fabd2a1631ffe7e2c4587340aedd97c215168a4f953f28932",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-038",
+      "family": "review-native",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "b31828577ad0063a60eef7db497696e9f069c5dabe7fcb7e0d47724dcf59acdc",
+      "publicPptxSha256": "71d49c01983673805b55dbfe9c39019c7ce60dbcd455dfd67c079711fe558cf6",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-039",
+      "family": "motion",
+      "variant": 4,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ead7352c1764ce3ef229c62160475224343e876f2f590a8ae3699cc3b34ce301",
+      "publicPptxSha256": "b3c6f399e9391f3eefab9112a94fb8fce1cb6cf85d4b0e43dfa1ba3753670e82",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-040",
+      "family": "text",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "8b33e7b596b0e6cda4ce07958304ee9068dad75a13ac21d598da009cc7c1b6cb",
+      "publicPptxSha256": "dfc06aa98b693c66a24d36d63db4a359dc774e55b095607a9a8a4c7f9f00c6a0",
+      "pages": 9,
+      "firstTitle": "业务 5 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "664a81db5bc4dd45341e5ce714856b8d4a999a9c1ce0f9d7e270b484d81f2924",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-041",
+      "family": "geometry",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "89e170580c8d2441e4984cff13b9ea6d2c75ef86c4a6a58fde1fe4ac012fbf4e",
+      "publicPptxSha256": "5ef0ef1eff614a9c18f51a61468e382ad6e9ccf6d91389b82d107113e4b7d1cf",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "26569ab9b494a19f5d5b8bc516d788c31c614e2062d8268eec199418df996d95",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-042",
+      "family": "table",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "6b517102bf4096004fc5b07227ce71332004744b4d13e2e65cdd8e1d48340ecc",
+      "publicPptxSha256": "c6dc8428141b2fdec9c1fd4367c0318d6bdbcbfb37da0618c02d459f58920452",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "06d9e7b3dd3d34e98564d790ebad5928e5abfa537189ac8da1278e43ce39d185",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-043",
+      "family": "chart-data",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "086c45aeb50567bc565ce8a4c26af9e931f471bd9052f984a210a8a9c75042cb",
+      "publicPptxSha256": "e7b4ac0709a3698d591c82cc6ad09d024f018819cbd4974341778d5d2b1a0d66",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -25.0,
+        0.0,
+        36.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "aa737c97772fc7c715f8d2563f74128067d1fe3734fda3d531b4b595c993f6a1",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-044",
+      "family": "image-crop",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "bc45ccfad0ef80706cfca6fa536ce9a609cd34537ab844511b3f1d05ace54057",
+      "publicPptxSha256": "0879e8e9039959a410bbe4e37ea40625d81c1bcb88b4f034774966282a2934fb",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "3587e15fc75611260b16026d226c0d81894353e502c59bf2b1e9b7a3d142b9f6",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-045",
+      "family": "organization",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "067efd94be4ae9296c08f7ee930e26482a8368a20744093b8304e010e391a479",
+      "publicPptxSha256": "75aa573fd2ec85ca8e2d8d1babc7a111fde91d58a3a23bd523ba4bd001a74ce4",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-046",
+      "family": "review-native",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "643d88287d23a578e5c1bc5b7a6c7c3d199023fd2a3f1bb4fe48c5d3f051218f",
+      "publicPptxSha256": "244243a1f6c9768701a21fd91856503f8267dbcbdc7e36fd803ea99ffa66340e",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-047",
+      "family": "motion",
+      "variant": 5,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "2d0ce6b76b46f190f292d34b075d2dfccf0aceedf175a48e7487470590f891a9",
+      "publicPptxSha256": "fdd7b2e519ba7df8d31a507e1468c641e103280990884c88e13ccbeb6e055df0",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-048",
+      "family": "text",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "68ae86f7f53e6b04ab5a21c41f96e129903d4da9547dfa321b318ea44f25052a",
+      "publicPptxSha256": "db16b9901c4395746c827574b7894af968d36b511beb0b9a10416ce222deb025",
+      "pages": 9,
+      "firstTitle": "业务 6 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "6390652fadcf7a2d055b02880855edad00e472ec8aad8a00f149f4d1988db1d4",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-049",
+      "family": "geometry",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "793825266cab3df29289eca93d4082b3c3afffc1637213716e94cf08ba72b03f",
+      "publicPptxSha256": "3627ddc4b6cc06cd65fa7b7047bda20d384a506d43058de79d39b7f8d087a0d7",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b670255ebcd594ff4425c292da00c66ee3e4e181299d3b98563a0d760a2c50a1",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-050",
+      "family": "table",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "7387e269e449f82f87cda298c3451e42bbf8374b705731aedab1aa2a32897838",
+      "publicPptxSha256": "0c2fa5148c64c17a7bfc9454221f004cae8005ab8e5d8a9e01ebf541d2bb1649",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b9e20b2702b85f8dda81fdc5a7c8b0b018cb5cfe4cae4e75df0240fafc023ef8",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-051",
+      "family": "chart-data",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "3cb881742fe345eab7f60f631fe0800ba21dd78061cbbeb447b7e6bc5df54d1a",
+      "publicPptxSha256": "77ce3af5d34d8db0c6d2c680bedb7b07414e65fed6c35ac370d896a0502d3b86",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -26.0,
+        0.0,
+        37.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "07d3460ab6e7f210122acb8c142ea44902f3e4db7ef4626eb2b0dee76d112c0c",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-052",
+      "family": "image-crop",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "0e9b5ba976c91a2bd2285b8a64c1b8ab25f4666f859f369f145681c030a8cf31",
+      "publicPptxSha256": "fe523c3bb1c5399ea48bcc5d22fe33ff2b5986c93373ea59ef31ce7bf542a00b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "7b74c8839a25aba3df4ec150f44bbff48313037fde057d765a1b6a130622152b",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-053",
+      "family": "organization",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "f8fd1409a2629454d34d79ddebe0b23a855e8f2818bd840d2e259c2a935a68cd",
+      "publicPptxSha256": "9d16e881402712b25a32f6451a25de66966e81a80557a3f375ed2622fff859c5",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-054",
+      "family": "review-native",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "f408958c1b06763f2c34c5394f2ce65f9948c4f9295a634d2a2bf4d9a0e94aff",
+      "publicPptxSha256": "6997c087e89aad359e2823d4d47ac47182a3fed77bdd9db8a667229041b03f32",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-055",
+      "family": "motion",
+      "variant": 6,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "76c5f8cd42f7e66fc01bce869009332f8cf68fee897fda99d14a3a32e4e473d3",
+      "publicPptxSha256": "8515e26a04701f355830da79a8a5b6d5801d821b285e475d73d55a0edaf42584",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-056",
+      "family": "text",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "8dfc56a5e5b7a636caf2184dbf777ef73c075903dc4e274b235a81d8f498e14c",
+      "publicPptxSha256": "492fa9c6d02ce4286797423d64957e0aa5f36d395c6a6088bf83350b522aeffe",
+      "pages": 9,
+      "firstTitle": "业务 7 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "99a228d11ffd4741034341366061f0a9f8b7d7379365c410b1ea3dbeeb360b6e",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-057",
+      "family": "geometry",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "171b51b9059e81de19ddde315432fd90e2f0786858a15430854ab9d0b6d586f9",
+      "publicPptxSha256": "19e8ed3e1bf2e1cfc9a7a796edfa065308c2b2f204490fcd63ad1c1ab376a14b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "bcb342b1b7735815469358b49ed30efcbde7ecfbbce6e61e9514ae8d53803973",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-058",
+      "family": "table",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "85dc741f48660c76a2db06a8e14c8dca883a67de929638ac22e3a183fcb2c1de",
+      "publicPptxSha256": "44ee0b68aeedaea7ef295978eaa90a5b8739c55f8626ceb6c943ecc66f61a914",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "57d8caf6a2f35d7306903b1e5bd2180424cd13c1273ad2b57dc63556de05e851",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-059",
+      "family": "chart-data",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "71a873cd2950ba7d43e537162c9777f17b0478fab591f7c205234186e0476690",
+      "publicPptxSha256": "42e2f5b7e5974968743c5fa7fa77bd568c5567212da922d860ebe16bc2cc7183",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -27.0,
+        0.0,
+        38.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "304dca4e14b0f832fd51c50be8b31b1dd151de623b4cb27bee9a1aab8e458ac8",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-060",
+      "family": "image-crop",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "cdd2afeed77b19c8a12b35a0f22bc2dba70c096ad7c9665f5d2cb83db9718e2c",
+      "publicPptxSha256": "94c457d5d1a7b017582e4643c21dc95726ff5d276b23436b120d3457cee12db1",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "4e8b4eb42184c6882907434e7688530650b06ceca9e88f5776fb936003d8be6d",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-061",
+      "family": "organization",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "7dc1434202c6307184702edbbb859e1ba345114cc7af6b051c2adfbd630230c7",
+      "publicPptxSha256": "66f0cdfd7257949ad1895ea029bc3fdf9056c16fb99b21d9aca6e3a0adab3552",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-062",
+      "family": "review-native",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "d3d8505ec8636976834efcad8a71a99422cfa328693d5e1cc9ae8d9b6cc5017a",
+      "publicPptxSha256": "f2477c3ca63c424572144bcb2167a3630cf8dfea0bdc6e0a11043ff24569a4fa",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-063",
+      "family": "motion",
+      "variant": 7,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "84e608cb6aed4de1126beb18cc4ee7e3fbf54f861eda29a1d2c50c70ebbed615",
+      "publicPptxSha256": "8cea58ef988ae2e0a47f239040e3bef61c9463620dbe30adae623100ccea6942",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-064",
+      "family": "text",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "62b614d111b6a9ab6a18e50f6df39daf9edd27900b943b46803cb9d19669f19f",
+      "publicPptxSha256": "6d710d9482e1509526508449483fc6d3ff1dc9f3f4572308396f55b5c9fc3aaa",
+      "pages": 9,
+      "firstTitle": "业务 8 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "fd8ca3922a6b7a3463f96eb34d98d4b6e2f16510efe9dedd4fa813ecebe33ce0",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-065",
+      "family": "geometry",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "b9428914e499b22b194fad9ae291ed076e50cac0de555281b3b9db11e40195df",
+      "publicPptxSha256": "ca49071bccf1d970c31152c89e68aff52efef2ecfc673485527b24a6e574d0c1",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "3b5619c22edbf2d87d99e7cad10af0c0844ad48fac7049b1f90228979f75262b",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-066",
+      "family": "table",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "bfa655e97512947907c33553285d1a7a9b6f9eb1be1c1c5d6deb7fce94f07c77",
+      "publicPptxSha256": "ffad9a3c97aef18da847ab51ef46be72365a1a1d91a8d2555a72d28ce3138465",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "f44e27ed2cf56cab29eeee9ac5ae787f7fa68195f45b37d5e726264e6b889864",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-067",
+      "family": "chart-data",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "c043876f45b0eca5ef1cb244a3a60fe8e1d835c1ed4421106d4a02ac628fa696",
+      "publicPptxSha256": "36f77d5fd971464681fa12d77ddd2fb018dfad10a968d2f107c864059b839150",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -28.0,
+        0.0,
+        39.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "ed9d851cb52275d8ef659c559349349762c8899c04e4ce4a138bba98d8196834",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-068",
+      "family": "image-crop",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "afcf3d0e4ad21a168cf7c555e67b7d7d0aeb846fffec479f361ff299a05f52cf",
+      "publicPptxSha256": "402cfc6c9278acbd9f74b60025ac715462cb34f5c6a6c550958636050d23732d",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "5ea9acf10946311d98bd34c974ce675a055fcf324dda7c7a2c8a2c241b755ef3",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-069",
+      "family": "organization",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "df031808d7d3b6098be1e34d9cfb7e600090d000d729df60ffbff36d4fb9ac52",
+      "publicPptxSha256": "e3600b81b805dd047ffb67c8367aeff66589ce034656dfc0927d11b952a96a6a",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-070",
+      "family": "review-native",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "76ac36ab00db74cecef8c59c8b72a464fa9fe5ba790370354de58cf02830623c",
+      "publicPptxSha256": "cf7eed6fea2cb83387254ab6352d526ce7e45771dba795c2ebaf5d0aef16f786",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-071",
+      "family": "motion",
+      "variant": 8,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e1f3186ec68ca847f6efbadda28d04b3a1635fbd987b0005bca0eb9411f2f3d3",
+      "publicPptxSha256": "07ead0fee7ba5e8c8dc50150f2d599d3741679436f0ca3d8e6accfccf8f97701",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-072",
+      "family": "text",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "765fc0962b538e38990c86a32a974701b97429bd5b3f5281339be61da1c97b00",
+      "publicPptxSha256": "4b76e99411cecdec47af3e20f8fd2ae8899bf99f2606b42693508eb7b9309948",
+      "pages": 9,
+      "firstTitle": "业务 9 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "32c154692076a22fdf830552f8ae78527047e748d3ec8411967c226a74ac9879",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-073",
+      "family": "geometry",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "1705549fe60bb5330259e1111a1b9b92b6a43e5cfb93dc8e1c6e76ca480cd5a2",
+      "publicPptxSha256": "b6f9e010280897d0a68685c7211c75a02ac27e8f4896e91befed497aed884e85",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "ae9a38c1825f8a791e34c2b2ecb410f79e5f13c569696b15004bba5066b6c92f",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-074",
+      "family": "table",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "4cb77ef2e50e6d87056ce561582bca224d8325f1b15ca927e8fce63eff7f6d2b",
+      "publicPptxSha256": "96172cb8fd85e6592637339fd3be52f66fc9cdd6bbcde4c2c3622706d045bb06",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b94c5838b331251e5767962c9dfee974865d2f98f1f0ee4fe1f38471cd3f7837",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-075",
+      "family": "chart-data",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "c699caa82b0c9dd6f678890f21b229a6223f9585ed518a0fbf6550e9a2f9796b",
+      "publicPptxSha256": "86980293ec9fbc0d5169fc98798ca574d7500885787f7d9ba329be595c5e03b4",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -29.0,
+        0.0,
+        40.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "7f00e2c39eef466207d9a0cbca883bad6eb4a8110ef5172f2ffe3b462af333c6",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-076",
+      "family": "image-crop",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "b0308434b3ab49f30b6d7d187dde4a6a2ec32143ad2e1169292d304b31225e6f",
+      "publicPptxSha256": "2d691c68a220cc42d2acfef10b066f2a1fa21b2ce3c8a5f40928b8b862b2c1ca",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "f5f640ef3a396a06ff01a942b56dd5876d3ec685a6d72866b7288d7c90f2e6db",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-077",
+      "family": "organization",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "4a40eb2376145940ddec5c4b70e7e107e9b6689aef4a832a7a532ffc26aaa876",
+      "publicPptxSha256": "5d838d2a30f1527b28987c8d5962126ddc75185231ef656a00e7bf0d7d354d53",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-078",
+      "family": "review-native",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "13de179c85514315c7f43fbea6497e8f66dfa793309cc538020becc255e5234f",
+      "publicPptxSha256": "0d8780e6acb70989c1685ae12ceed67413644d0409712ed6022c750f339adf49",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-079",
+      "family": "motion",
+      "variant": 9,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "3e957f8e48a21489fc0ba1f26d2fa6e42e7856d884227868fe25ee2b55229efb",
+      "publicPptxSha256": "0d3dbb757a9b8e731d61e9e8962218fbb7fa2ac963fcd111a6aaa1452f43c9a3",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-080",
+      "family": "text",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ce24b6ec0a40b36bb7d715ed7491556b8a15ba6d48e5ef2e7ff0bc3074b9f142",
+      "publicPptxSha256": "b660e9c7fa2dbd66e7a549482d790b9904dcb20e835a14b42b80803c796b0ad2",
+      "pages": 9,
+      "firstTitle": "业务 10 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "9743e466bf66c1c99d128f9d91b5a9bd108594a21cb02aa16137a2b0c37e986a",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-081",
+      "family": "geometry",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "427fd34a5662334738094fe9389ba1b33b0db161314ca0c14350e04063027490",
+      "publicPptxSha256": "33fbcc3d0d889613118cd76577708a9bb831bd12e62aef630944dd76cf6b3074",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "64136b8823a143483f7f8c1b06bc2ab2bb9d24cd339145d8f8be86d5004d17ac",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-082",
+      "family": "table",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "471d1683e7e6d0fc5adf56f0ae4cc72dc152710c2781eba0a9a0b178d07b4bad",
+      "publicPptxSha256": "13e4433d56bed88ab8578eba30374a846ce4b18d0fe3377a6bfa052164f38cbe",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "75f5e995a72f87d0aa27323812ef062a0ba1e5d82de860bc8e6b77c8de9b48d7",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-083",
+      "family": "chart-data",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "1ee15cbce1b6ab65355eff1a087de49423fca06753e3f293a092e469b351d33d",
+      "publicPptxSha256": "41f27783afd0aefc5955c398f9292dd088217486be67dd529b5df6f669e05721",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -30.0,
+        0.0,
+        41.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "e62ca2fa8eb9bdf5ac6954f2ce7eed7a800ff0b93c887e3841cd041a1fc93302",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-084",
+      "family": "image-crop",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9a1756432ee95fa8897dd4eec213de255dfe0dd48572a0e839d6dc209fed421f",
+      "publicPptxSha256": "690e4ee804aa2f2f45d808f32642990fdd354418a9bd780153a30b7f8de2b94b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b4afe6e371402279733561099d52a923c7d8ba36feb0305947f04c04e1742d70",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-085",
+      "family": "organization",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "3f28e7eb2084a4a8040e30835baf91142cca1f6945baa435be9e6d793b65ef6f",
+      "publicPptxSha256": "fd3c3a3a75a09851451a51ffdf8dc55f78764b84a4eb9d30e375ef7ccfc95563",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-086",
+      "family": "review-native",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ef7ed0dac93d3fb7f4c85bb4ab4d22668d5f8c27e518561184a0935376e61279",
+      "publicPptxSha256": "89768ae871aeb9769990fc7fa4918704d1cd3bcbfb30e502a949bb06253f4fa8",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-087",
+      "family": "motion",
+      "variant": 10,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "615ea44165c095d23de2211260cd73aaf2ae89a4d1bea2385c911fad5410768a",
+      "publicPptxSha256": "04c79630964e300a1d45c98e3b20e0a8207aa7fe8054f2d2745b4172786c0c84",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-088",
+      "family": "text",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "2aa9223a006c2e44dfd535eed20d5589322a4ba324ac8e9b57a6f64be9eb7b94",
+      "publicPptxSha256": "01aaf1adbdd3cec10001c8cf2defc6ba885498f22484c6554808e4a18fb66802",
+      "pages": 9,
+      "firstTitle": "业务 11 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "b3efdba0d5c7d4fb300f7a5568170bf9404764f1b45b1073d4a7635065aa6551",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-089",
+      "family": "geometry",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "290b5635f745c543a32fb97f09fdb2be95df7d688fc03fb5a8c80fb2782bfce1",
+      "publicPptxSha256": "003092da5dec74a462fa13f58c05c1c631adba9feee5493015bdd32adefc8379",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "28cf02682d62e8df380376cac209a80adebfad00b1d52ed81a1ed4f9fe147211",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-090",
+      "family": "table",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "dec9508d5db6d8ae8b8662add3beb3f6c721e307b1a5fc66c09aabc78c1cb6be",
+      "publicPptxSha256": "25cb297d3d4203398b9b617f55333114c52e94f380b6df9a3d25ef45bd476a3d",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "24dbd5a5f484ba6e4cea4fcadfc1f587ce53cf951f5ad1bf73449693f40046b0",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-091",
+      "family": "chart-data",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "2cacca14a21e534882ba736e3f8009226646993c2bdbab930a3690090e0b6db5",
+      "publicPptxSha256": "cd76943bb6b55878ae55c1cc84f8357f53ead72cb74ba0a50b066306378b15c5",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -31.0,
+        0.0,
+        42.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "0b0d55dc10cd4773a4ebe2bd47ce8247effc15df58eee9375e4b8473547bf043",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-092",
+      "family": "image-crop",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "92704b5fcd236755c23e6536a002b5f8cf0e635a7634e6e8ea12f272c030766a",
+      "publicPptxSha256": "f840c912008483d9af12919238aeddc80ced1d158b5625125923389293d01983",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "ffd9057db9ffbaf4e8cb7dcca0e9d75a1b3a6410b567ff722f5531e9333dcce8",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-093",
+      "family": "organization",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9c9cfa5874aa573a643c3af372cfcb991c811ca32a9928da0b21b52696bae132",
+      "publicPptxSha256": "00ecb719b4b530b8955adfda4f4e1cf181b32e7ae777fedb40432a1bab06b121",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-094",
+      "family": "review-native",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "4e3d956e9094ef040a51394dd1f77c1eb51d06aea81e5b79f29f66d75bb6ee95",
+      "publicPptxSha256": "14d0b5ca043ac435cdd915fa5b1ecaec785c7b92d3246ee9e4a3316be4010f20",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-095",
+      "family": "motion",
+      "variant": 11,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "c2d093985fc500f4e7dc1ba5aac7a8d044f4893050b657a6ccd052ceda97a51e",
+      "publicPptxSha256": "7162138983e60e31effcc8a777a67e76d11bf11ec8043627a12b26bec54e9c8e",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-096",
+      "family": "text",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "06f63d9730263d8f86f66885f0aff347a54e6b5c0d02ca24d0714f3c70996b5d",
+      "publicPptxSha256": "741befe85b35e07372a54737a113a54586ed3671670a2517e43363a8921b699b",
+      "pages": 9,
+      "firstTitle": "业务 12 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "c064d82951e1c9da9a04fb24e5ace203aaa8751f67f714c87dfae5106105dfc4",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-097",
+      "family": "geometry",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "2bdbdba4f01ab9cce3e851726f290f9025e158e18ce90c15e4630e8b0d85c183",
+      "publicPptxSha256": "5a0fcc06a71eecc556f26e621565290cce61544118adc71077ccfe4815bce4d1",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "52be332f71c35f7a7b75164396cf952c319d7f5354eb3e2d5777a0149f623663",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-098",
+      "family": "table",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "3600979eb17998b3f9aea6c47acf4c42a800712c50a28a21519bc72fa3cfee72",
+      "publicPptxSha256": "13ad699c0e397b1dabf064a254f1fefb24f224c768cfbd28b7249c48c43a13e8",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "d82e91fa8c94086787777213b5b944aa447790b094c39ed6a16c959467fe612c",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-099",
+      "family": "chart-data",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "bf886eaa1ba7351aa82f7b9e98c7d8011e132d2002bcce0d6d0ca985e1663458",
+      "publicPptxSha256": "6447150b8393c51c4dc9ce7c4d57871663bdb00b1830091957cb7edd2038d874",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -32.0,
+        0.0,
+        43.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "e846fb3b124ffa0dae0991eb6e9fa868dcf939920972a3d3beb6d09b9ff7cbc4",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-100",
+      "family": "image-crop",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "bbda5a0f2b855940f5711af05c36d9c22d3c140a365a5c69bae61ba102aa9381",
+      "publicPptxSha256": "3f41f3000f22b2ae9fa68c3f4907c2be6ceb7539db7069b38c35cafc302d136a",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "caa16be52d9c5a31abe98e9ac7465f2d514bf4a2fefd017409da0d2015c956b7",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-101",
+      "family": "organization",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "dc9a74d48790bc3fb599d376eb28c6beb5e1e55b343032d0e0016ed10424ebaf",
+      "publicPptxSha256": "9cd5a6b8376e86ae51483cc63da782638c5d2a89e57a81b2d9a136a8929d028e",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-102",
+      "family": "review-native",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "a77073d0200d6c4c492945e60ba052016bcf61900e82dcbd069e9f765b1762a0",
+      "publicPptxSha256": "d09e769906f2da1ec58804f39397d41b40158a956713254a680a099e32ff9bfd",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-103",
+      "family": "motion",
+      "variant": 12,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "c4ac004e45e06ec335c804d30f300b3f2b89147770b502480d1f4a2bb1a796bd",
+      "publicPptxSha256": "ca95ee273086fa409d07bdfce7980265f6a84779cba33f76881396f6df7e0d76",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-104",
+      "family": "text",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e1200aaae12aab92d719c9f5517c0a97c63d3922c381ecd4f091b1ec44eb8b90",
+      "publicPptxSha256": "0af9a5260d92c34a346afc9d937b03f8fa2b0184946d76a844274eac874ee120",
+      "pages": 9,
+      "firstTitle": "业务 13 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "bc7cd0cc03d5c93d52f46a0a5405434a80aed45fc8f3c0527fd8cf10b064e527",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-105",
+      "family": "geometry",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "06cfb5ea9b003f2520818b9fbf7d33babd1661d01a18aff41e9f725c936c9768",
+      "publicPptxSha256": "d31d29addc5890717d7c2375681b3b59da8e73aba481e4159f3640be2ebcbe28",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "25556eebcf8ae0ad9ff00764752bbbf01404ebcdfb7db5a7c40d71db3b8ae889",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-106",
+      "family": "table",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "1bca94be3840ac62010bd0ae06a161c86719bed2f6c3ee99408f899088d7dac0",
+      "publicPptxSha256": "d0dbca4c2ae57b186ee57f79f9dee8d89dbb2b95ffc49a7532296f8429da1faf",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "1ffe5aa1a128f4107d44f90807a93098c66b4984df542706c8088337e3578a8c",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-107",
+      "family": "chart-data",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "c906870acffcffbc5737a30f3ba1aef7c0e2bcda47a5fa8ac90ab5b3b986a42e",
+      "publicPptxSha256": "6e0e22cdad0d98e14515e0aab07dc965693e179451c31efec557a85e1ca4047b",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -33.0,
+        0.0,
+        44.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "a3bed4a11a624da51f356434fcfa506dfb85d5ce7b4691f16a6364f4477de15a",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-108",
+      "family": "image-crop",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "4ea6461cde0fd8eb9b172eeb62d7f2d042d4c1f236f34d794b3a5bb6d1da12ca",
+      "publicPptxSha256": "a1d37873a2b2349732d4d5a5cf0ac2fda4b3fa4474610c4d3894d0b3793b8b77",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "44cbbc72c5c7338ab9bc8a06e3f50702337e32f4f59f507594e37ff2d5ca6671",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-109",
+      "family": "organization",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "f5555aa720982a20f37c41ac547bb0ea84d5377147b549270c99568bd1c9c668",
+      "publicPptxSha256": "edbd22bb7754c7ad3f1e3861d3e0a17ad67a38e5c5b76f76b7381ee4ef86b5c1",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-110",
+      "family": "review-native",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "dca5f8aa64e8b0298b9e11efa1af381aa7a3c331c7cc8229c003cef6c3077ef3",
+      "publicPptxSha256": "a93323baa1f715dc359d979a4c8216a677e3b31ecd8b92dee6301ec4253828b7",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-111",
+      "family": "motion",
+      "variant": 13,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "ad42b447b1affc3ad03303d8e861ff1cd04d6a5b969dc1d778f3f14a1caedda9",
+      "publicPptxSha256": "727e701c609a99e9f3547cc840354204f6a8aeaa2548242f88ad7f4d649f12d2",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-112",
+      "family": "text",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "3ae3395969e05aa51043d915cf5028aa2de7dd31abb9f7ffaa3e0b63107632a2",
+      "publicPptxSha256": "786d5b8bd9685336134ec60c96b8442303cc382fb7d4bc85ec8e6292d9d73ab8",
+      "pages": 9,
+      "firstTitle": "业务 14 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "56bbeee8aba488b580232a3919990a794d3032dcbfcc5cc0e06b3d19e1525ebe",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-113",
+      "family": "geometry",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "5df2ed40a04cc5dcfe759955a00ca665d1b841c5c834e56360673ea214c9959e",
+      "publicPptxSha256": "4c3c251515899876841a8ba582e2dab44ca874996179f24de2650c3ad2266872",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "453478b402c4470aa9fcc8eba67329e8c08c1725c28cc1e0e308a571b880a599",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-114",
+      "family": "table",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9a27772d53764bde4664e36e590eeed09b9b1da12027d915f7b36f9f06a4166e",
+      "publicPptxSha256": "754f73f3664873ccd29872b8aecc457efd8e7d7b1441eddae1ebc0d05b1c3991",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "55dbf6b2ece0351a5286fe0cee7a6fc5982c5cd44aca03595671d59418603e3d",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-115",
+      "family": "chart-data",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "64bb045f7f7d572c26e31f0e81c85cde9172d8b97444755b64cfb0808dda1d3c",
+      "publicPptxSha256": "f74dba2c9631eed5b1904350621a5e068f47e843ec991a75e618db18e6cb4367",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -34.0,
+        0.0,
+        45.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "2a00c113dbb7941ac0fb26eecb31304543c53368f4fdc731cbded9ac10055999",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-116",
+      "family": "image-crop",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "577af2266c4903a12ecefadd54de41ae44a236662fd2b44f41c61bb0bbe22206",
+      "publicPptxSha256": "7258e31867ce0ada64a20a1e56b74ad08f6004fc73dda3ad8fd738d763f85cba",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "4e319f1e7e0152f3c7088c9c92cdeacb90bb8758dd7fc6440718bf4d39f7f68e",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-117",
+      "family": "organization",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "8bc3ead93811d2b5a51b9feefdf1f9cea9a995eb31382cf6fe4fcc6a54e1921a",
+      "publicPptxSha256": "ff8ef755a5ab318e059adb8cf387b1a0469fdd1ee54e959ccb45a00583408620",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-118",
+      "family": "review-native",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e5dca08bae1cf2e9f23ee925221b38c987d10d6ae7465b57ba7448acfe562c6a",
+      "publicPptxSha256": "a1aa246b6842c03079d4702434f957e2c57eed0ab5572d3cccc1489cd3a4db2c",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-119",
+      "family": "motion",
+      "variant": 14,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "e299a7408b0bff726c7ee0e5e2cf603f551d7d347a622d0b71ac384f7d76fdec",
+      "publicPptxSha256": "b42121754459956fadd175eff47f04c3f494a1e8afa554f28eb51e197e41e6c5",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-120",
+      "family": "text",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "6730c19b4f95fd850bb6403b21d8262e2635ff93d3f1417911f0ee97bce0dc9f",
+      "publicPptxSha256": "59bcbeb1184d36c8a299836195fdc89a27a4efff688a4038847ab85088b0e5d3",
+      "pages": 9,
+      "firstTitle": "业务 15 · café 中文😀",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "323890a7209aeb921018eda2cf10c7552d91fd38d863bcf81699ba6dfdf7d486",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-121",
+      "family": "geometry",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9a25061c4f75b5eac18449aeca06981c5cdc52d00134753ada5a9d9aee26ea15",
+      "publicPptxSha256": "4f85fd564a5b88f90b67eb12cba6193ae583565cab548b696dc8036c0b13b8b0",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "8a8b4ca77d467a682e3e9502c333c1272ed979307b4dc461d4d627c6cd0c038b",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-122",
+      "family": "table",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "46c9e508f258078f4368270a1cfdeeffe764fc558464727462e456efefeb900c",
+      "publicPptxSha256": "9638f229867a2523ad27ee0e87aab80c9e05810853af06e0dd0044beb8b12c64",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "2709a2e0601874e6d300006aa2c9d5c9cb83fbdc9d350d52f8a8c1c7b3441ddc",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-123",
+      "family": "chart-data",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "0fddef40a545bbf3a8ef9f1b5cbb3c7cb5bd65f7596fb3316c776cbb20a1df78",
+      "publicPptxSha256": "fc05a8353c57719d54d33fa726c90fbf0b1d03759251c7bb4a9b9943dd39951d",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        -35.0,
+        0.0,
+        46.0,
+        60.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "3158f6dc57527550b89f2a5b626642994f27d5173291874cb2872914e5dceed9",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-124",
+      "family": "image-crop",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "8b1a5c5247b1357757a067340946c5b474a2b9b53df0a29e0dcd4ba49a9764ba",
+      "publicPptxSha256": "3eb90b8d7024bfd2263d7a55b847d89d63c1a313c3e664a68ffdd7c68f0a88f1",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "c0f7fa87e26bd2c9c9b9efb0c520cb3f69c4eb38bd7cbc0b076e46d171cc2203",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-125",
+      "family": "organization",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "9d8da95931b62063e08586659a35ef76024589bb5dbb5246de132f39c3d58bfa",
+      "publicPptxSha256": "480b4d0fbea5c3304f9fce85936257d69c852b8d64115922d3365f00dbcd5965",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-126",
+      "family": "review-native",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "00a3e2e28ccfde6795ac696ce3b30edc424cde11d0cc1e9249748eda37a3534b",
+      "publicPptxSha256": "86cdee64e79f1dd292bee039c96d2d2df2a37456aa734b8b48143e1a7d4ad858",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "评论与阅读顺序仅在JoyDeck原生文件保留；公开PPTX暂不生成评论或alt text",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    },
+    {
+      "id": "case-127",
+      "family": "motion",
+      "variant": 15,
+      "origin": "project-authored",
+      "license": "MIT OR Apache-2.0",
+      "nativeSha256": "509d2fd40b926aa1243e54e822377f058b66b8f855c331fe569934b11ce6fcd8",
+      "publicPptxSha256": "a9b67273c679e7c47cdcdb04dd95232de41e4857472aa4047f0ed9c5c0d1c479",
+      "pages": 9,
+      "firstTitle": "季度业务表现 · 柱形图",
+      "firstChartValues": [
+        42.0,
+        58.0,
+        72.0,
+        91.0
+      ],
+      "nativeRoundtrip": true,
+      "publicImportForced": true,
+      "render320Sha256": "265843962d71f5de3f5c856096ff708820a46e92a94ead3d257d6dc879341408",
+      "declaredPublicLosses": [
+        "公开PPTX重新生成已解析对象与基础时间线；母版/主题继承、节和动态字段会固化，专有快照仅供未被外部改写的文件在JoyDeck完整重开",
+        "外部应用字体与排版可能有差异；本机原创基础样例已验证，不代表任意PPTX",
+        "基础图示公开输出为可编辑形状组合；自动布局与文本层级仅在JoyDeck快照中保留",
+        "公开输出支持基础动画与转场；Morph对象名称匹配、自动布局、复杂文本效果和自定义顺序在其他软件中可能不同"
+      ]
+    }
+  ],
+  "count": 128,
+  "externalDocuments": 0,
+  "fonts": "runtime system fonts; no fonts redistributed",
+  "scope": "128 variations from 8 project-authored families; not 100 independently sourced Office files"
+}

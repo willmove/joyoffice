@@ -1,0 +1,3 @@
+M2_SMOKE properties_close_cancel=true
+M2_SMOKE ui_save_clean=true
+M2_SMOKE save_reopen_recovery=true

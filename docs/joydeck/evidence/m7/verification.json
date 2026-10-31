@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-30",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "scope": "M7 delivery development preview; full M7/MVP and M0-M6 exit conditions remain open",
+  "checks": {
+    "fmt": true,
+    "allTargetsClippy": true,
+    "testsPassed": 66,
+    "stageM7": true,
+    "releaseLink": true,
+    "finalBinaryM0M4Native": true,
+    "finalBinaryM5": true,
+    "finalBinaryM6": true,
+    "finalBinaryM7DeliveryShow": true,
+    "systemPinyinCommitCancelUndoRoundtrip": true,
+    "packageHashManifest": true,
+    "independentSyntheticPptxPublicReadCount": 40,
+    "powerPointSingleSyntheticReadOnlyOpenWithoutRepair": true
+  },
+  "m7Evidence": "docs/evidence/m7/run-1793340619859559000",
+  "m7Metrics": {
+    "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m7-preview-darwin-arm64/joydeck",
+    "passed": true,
+    "publicPptxReader": "python-pptx",
+    "syntheticCorpusPublicReaderCount": 40,
+    "pdf": {
+      "slides": {
+        "pages": 2,
+        "outline": 2,
+        "unicodeText": true,
+        "sizePoints": [
+          0,
+          0,
+          960,
+          512
+        ]
+      },
+      "notes": {
+        "pages": 2,
+        "outline": 2,
+        "unicodeText": true,
+        "sizePoints": [
+          0,
+          0,
+          960,
+          652
+        ]
+      }
+    },
+    "pdfPngMeanError": 0.3589389377170139,
+    "slideshowMeanError": 0.9652650621202257,
+    "imageDpi": 144,
+    "scope": "macOS adapter/fullscreen; PowerPoint visual and other platforms recorded separately"
+  },
+  "m5Evidence": "docs/evidence/m5/run-1793340605585410000",
+  "m6Evidence": "docs/evidence/m6/run-1793340611491303000",
+  "imeEvidence": "docs/evidence/m3/pinyin-1793340624171938000",
+  "powerPointVerification": "docs/evidence/m7/powerpoint-verification.json",
+  "artifacts": {
+    "dist/joydeck-m7-preview-darwin-arm64/joydeck": "538f9ccd964a529642d1da1c08f6121fb880a361cf258d4868ff945c63e92955",
+    "dist/joydeck-m7-preview-darwin-arm64.zip": "fcc64c1fda192a129cd0ccb0962f04ced21e0b8fa06d4c2568332fcbfdc22862"
+  },
+  "sourceArtifact": "dist/joydeck-m7-preview-source.tar.gz",
+  "rollback": "dist/joydeck-before-m7-source.tar.gz",
+  "unverified": [
+    "Full M7/MVP/AT-10/11/12-static/14/15",
+    "5 authorized external presentations",
+    "Entire corpus PowerPoint/visual/edit-save roundtrip",
+    "Windows/Linux M7 native/clipboard/show",
+    "Exact PDF glyph selection, links, handouts, printing",
+    "Complete native unknown field bags and all source object mapping",
+    "Full M0-M6 exit conditions",
+    "Remote CI/signing/notarization/clean-machine install"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "platform": "macOS ARM64",
+  "version": "16.114.1",
+  "build": "16.114.26102031",
+  "mode": "read-only; no account login or subscription purchase",
+  "testedArtifact": "docs/evidence/m7/run-1793340342890075000/slides.pptx",
+  "testedSha256": "4af67c003ea121f9ba2c8253656efd44a80e92ccae20d64432570e53643aa95b",
+  "finalArtifact": "docs/evidence/m7/run-1793340619859559000/slides.pptx",
+  "finalSha256": "4af67c003ea121f9ba2c8253656efd44a80e92ccae20d64432570e53643aa95b",
+  "byteIdenticalToFinal": true,
+  "openWithoutRepair": true,
+  "visuallyChecked": [
+    "Chinese and English text",
+    "PNG image",
+    "hidden slide flag",
+    "speaker notes"
+  ],
+  "editSaveRoundtrip": false,
+  "evidence": "CUA AX tree and screenshot observed in this chat; original repaired/diagnostic variants retained",
+  "scope": "One independently generated sample; not full corpus or universal PPTX C2"
+}

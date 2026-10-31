@@ -1,0 +1,41 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m10-delivery-darwin-arm64/joydeck",
+  "pixelChecks": {
+    "GPUI": {
+      "meanRgbError": 1.3175480288351624,
+      "fractionPixelsOver48": 0.011240515689300411,
+      "interiorRgbError": 0.009811308313430477,
+      "interiorPixelsOver16": 0.00018181659505517043,
+      "edgePixelsOver128": 0.0008747535150891632,
+      "passed": true
+    },
+    "CPU": {
+      "meanRgbError": 0.7014040709304984,
+      "fractionPixelsOver48": 0.0027434842249657062,
+      "interiorRgbError": 0.00015418047260678454,
+      "interiorPixelsOver16": 4.36359828132409e-06,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "publicPptx": {
+    "table": {
+      "publicTable": true,
+      "rows": 4,
+      "columns": 5,
+      "merge": false,
+      "headerBold": true
+    },
+    "merged": {
+      "publicTable": true,
+      "rows": 4,
+      "columns": 5,
+      "merge": true,
+      "headerBold": true
+    }
+  },
+  "pdfCellText": true,
+  "passed": true,
+  "scope": "macOS ARM64 native adapters and independent public readers; other platforms and physical keyboard unverified"
+}
+/Users/willm/Coding/joydeck/docs/evidence/m8/run-1793363242762441000

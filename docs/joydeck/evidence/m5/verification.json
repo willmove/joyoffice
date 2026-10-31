@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-30",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "scope": "M5 image creation preview; complete M5 and earlier milestone exit conditions remain open",
+  "checks": {
+    "fmt": true,
+    "clippyAllTargets": true,
+    "testsPassed": 50,
+    "stageM5": true,
+    "releaseLink": true,
+    "finalBinaryNativeM0M4": true,
+    "macOSSystemPinyin": true,
+    "macOSImageAndInternalClipboard": true,
+    "cropUndoRedoNativeRoundtrip": true
+  },
+  "windowPixelEvidence": "docs/evidence/m5/run-1793333271691298000",
+  "windowPixels": {
+    "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m5-preview-darwin-arm64/joydeck",
+    "pixelChecks": {
+      "GPUI": {
+        "meanRgbError": 0.2708530245746692,
+        "fractionPixelsOver48": 0.0017800882167611847,
+        "interiorRgbError": 0.03576775107448127,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0009018588531821046,
+        "passed": true
+      },
+      "CPU": {
+        "meanRgbError": 0.07084646082755723,
+        "fractionPixelsOver48": 0.0006813169502205419,
+        "interiorRgbError": 0.006430790528467717,
+        "interiorPixelsOver16": 0.0,
+        "edgePixelsOver128": 0.0,
+        "passed": true
+      }
+    },
+    "passed": true,
+    "scope": "macOS native adapter; physical keyboard, Windows/Linux unverified"
+  },
+  "imeEvidence": "docs/evidence/m3/pinyin-1793333277405576000",
+  "artifacts": {
+    "dist/joydeck-m5-preview-darwin-arm64/joydeck": "914eb370754b924e39b5273b00f0fdc6e2a15cf06169debfc072ef02b52ef827",
+    "dist/joydeck-m5-preview-darwin-arm64.zip": "92706f117cbd537d32bcf877e8b261c50e2fe98a91fabf5d5f6c9506e0b129fb"
+  },
+  "sourceArtifact": "dist/joydeck-m5-preview-source.tar.gz",
+  "rollback": "dist/joydeck-before-m5-source.tar.gz",
+  "unverified": [
+    "Windows/Linux clipboard and native M5 acceptance",
+    "physical drag/drop and keyboard",
+    "full AT-08 groups/connectors/path operations",
+    "complete M0-M4 exit criteria",
+    "remote CI",
+    "signed/notarized/clean-machine installation"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "pages": 30,
+  "objectsPerPage": 20,
+  "effectsPerPage": 5,
+  "frames": 600,
+  "width": 1024,
+  "cpuFrameMsP50": 0.5499580000000001,
+  "cpuFrameMsP95": 0.626667,
+  "cpuFrameMsMax": 0.790625,
+  "scope": "offline CPU raster; native latency and physical dual-display acceptance are separate"
+}

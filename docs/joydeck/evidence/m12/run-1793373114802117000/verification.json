@@ -1,0 +1,12 @@
+{
+  "binarySha256": "d9a8efe7ac9e0c4c20aca291a357d84472f7481b428a6929889ffd06a6fa9d2a",
+  "panelsCaptured": 0,
+  "nativeOnly": true,
+  "pdfPages": 2,
+  "pdfMeanRgbError": 0.4762120627572016,
+  "pdfFonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nHCJHVZ+PingFangSC-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes      6  0\nULBEXA+PingFangSC-Regular-Identity-H CID Type 0C       Identity-H       yes yes yes     14  0\n",
+  "gifStaticPageFrames": 2,
+  "nativeComments": 1,
+  "mediaEmbedded": true,
+  "passed": true
+}

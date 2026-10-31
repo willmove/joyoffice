@@ -1,0 +1,32 @@
+{
+  "package": "dist/joydeck/joydeck-monorepo-final-utf8-debug.zip",
+  "packageSha256": "b9f24a6ad3475e52f4185b2f5f9c1c43d2981ff9bc02fd89c53d4b41e50447e7",
+  "hashRecordsVerified": 1925,
+  "sourceFilesVerified": 167,
+  "sourceSnapshotVerified": true,
+  "sourceGraphVerifiedAgainstCurrentTree": true,
+  "dependencyPackages": 444,
+  "packageRoots": [
+    "joydeck",
+    "joydeck-cli"
+  ],
+  "sevenDeckCrates": true,
+  "sharedOpcIncluded": true,
+  "wordExcluded": true,
+  "zipVersion": "9.0.0",
+  "appRuntimeMatchesPackageRoot": true,
+  "cliDiagnostics": {
+    "application": "JoyDeck",
+    "architecture": "aarch64",
+    "automationProtocol": "joydeck-control-1",
+    "desktopFeature": false,
+    "diagnosticScope": "build capabilities; not device or signature acceptance",
+    "nativeReaderMax": 11,
+    "os": "macos",
+    "preferencesSchema": 2,
+    "version": "0.1.0",
+    "videoExport": "static-page MP4 requires macOS encoder helper",
+    "writerSchema": "1.10"
+  },
+  "passed": true
+}

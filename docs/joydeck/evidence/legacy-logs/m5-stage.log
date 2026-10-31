@@ -1,0 +1,120 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running `target/debug/xtask stage M5`
+cargo build --locked -p joydeck
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.38s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+cargo test --workspace --locked
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/deps/joydeck-0345bd149780b30d)
+
+running 15 tests
+test geometry::tests::all_handles_center_and_aspect_constraints ... ok
+test edit::tests::rollback_identity_and_history ... ok
+test geometry::tests::rotated_hit_and_gesture_single_history ... ok
+test geometry::tests::composite_failure_preserves_snapshot_and_reorder_identity ... ok
+test pptx::tests::relationship_paths_and_xml_limits ... ok
+test edit::tests::legacy_upgrade_and_id_overflow_are_checked ... ok
+test edit::tests::save_new_never_replaces_existing_target ... ok
+test edit::tests::versioned_style_and_ids_roundtrip ... ok
+test edit::tests::history_cap_and_new_branch_clear_redo ... ok
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test edit::tests::save_reopen_and_stale_save ... ok
+test preview::font_tests::mixed_bold_cjk_emoji_and_accents_use_real_glyphs ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test edit::tests::history_budget_includes_redo_and_large_to_small_edits ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+
+     Running unittests src/main.rs (target/debug/deps/joydeck-c2874cbfaff4d94b)
+
+running 2 tests
+test jobs::tests::cancelled_job_never_publishes_a_completed_chunk ... ok
+test jobs::tests::restarting_uses_an_independent_cancellation_token ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/media.rs (target/debug/deps/media-a12aae369aded460)
+
+running 5 tests
+test arrange_uses_rotated_bounds_and_single_undo ... ok
+test malformed_oversize_missing_hash_and_crop_rejected ... ok
+test import_crop_dedup_undo_transfer_and_resource_collection ... ok
+test jpeg_exif_orientation_and_resource_recovery ... ok
+test native_resource_roundtrip_and_cpu_scene_pixels ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/reader.rs (target/debug/deps/reader-c6bb42db8669f1d8)
+
+running 7 tests
+test truncated_zip_and_pre_cancelled_load_are_errors ... ok
+test rejects_unknown_required_feature_major_duplicate_ids_and_bad_geometry ... ok
+test missing_slide_external_main_and_xml_dtd_fail_safely ... ok
+test rejects_ambiguous_paths_duplicate_members_and_expansion_limit ... ok
+test native_pages_text_and_geometry ... ok
+test pptx_resolves_main_part_and_uses_presentation_order ... ok
+test background_preview_is_bounded_and_bgra ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/recovery_process.rs (target/debug/deps/recovery_process-957fdb4565d1ad1a)
+
+running 1 test
+test abnormal_process_exit_releases_lease_and_restores_three_pages ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.68s
+
+     Running tests/save_faults.rs (target/debug/deps/save_faults-f26487d7cc34db83)
+
+running 2 tests
+test unwritable_parent_preserves_target_and_cleans_staging ... ok
+test occupied_destination_and_missing_parent_preserve_document ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/scene.rs (target/debug/deps/scene-e7ed5e698d12b9d1)
+
+running 10 tests
+test local_alpha_crosses_gpui_boundary_once_in_bgra_order ... ok
+test image_primitive_rejects_invalid_dimensions_and_payloads ... ok
+test cancellation_and_invalid_model_do_not_publish_a_scene ... ok
+test oversized_text_is_rejected_before_shaping_without_changing_document ... ok
+test shared_glyph_outlines_keep_layout_positions_without_reshaping ... ok
+test movement_reuses_outlines_and_only_changed_styles_invalidate ... ok
+test cache_eviction_is_bounded_and_clear_does_not_mutate_model ... ok
+test scene_cpu_reference_preserves_geometry_text_opacity_and_z_order ... ok
+test effects_are_isolated_and_images_are_real_bounded_rgba ... ok
+test benchmark_cpu_measurement_is_recorded_without_claiming_native_latency ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/text.rs (target/debug/deps/text-c2c894c708a5f7e9)
+
+running 8 tests
+test graphemes_are_atomic_for_zwj_flags_and_combining_marks ... ok
+test utf16_surrogates_reversed_and_out_of_bounds_are_rejected ... ok
+test empty_mark_cancels_replacement_of_existing_selection ... ok
+test invalid_run_gaps_style_and_boundaries_are_rejected ... ok
+test reversed_selection_extends_and_shrinks_across_unicode ... ok
+test composition_commit_cancel_and_failed_replacement_are_atomic ... ok
+test unavailable_font_is_located_and_preserved ... ok
+test rich_splice_preserves_adjacent_styles_and_roundtrips ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/main.rs (target/debug/deps/xtask-312d9e22997d7775)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

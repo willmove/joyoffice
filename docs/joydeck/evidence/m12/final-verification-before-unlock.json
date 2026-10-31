@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-30",
+  "platform": "macOS ARM64",
+  "package": "dist/joydeck-m12-delivery-darwin-arm64.zip",
+  "packageSha256": "eb1b4e81b7e28b84906781edbd51734add67d3aa15430bdc6c47ab80d2b9b9de",
+  "binaries": {
+    "joydeck": "d9a8efe7ac9e0c4c20aca291a357d84472f7481b428a6929889ffd06a6fa9d2a",
+    "joydeck-cli": "6c9c7785e627fbf594dc6addcc5849ba30c10995928d625c07684e55e2fbd6ce",
+    "joydeck-media-macos": "401fcd5218b7df61f3ed227f5b60f0785a26daad17dc12be03e631eac335648f",
+    "joydeck-print-macos": "03c4f39ab1b019d3209280b578940291f4b4be1b2d63702252ad4e4dae26d4d4"
+  },
+  "packageHashRecords": 80,
+  "rustTests": 111,
+  "headlessTests": 32,
+  "fmtClippyPassed": true,
+  "releaseLinked": true,
+  "nativeFormats": "docs/evidence/m12/run-1793373114802117000/verification.json",
+  "automation": "docs/evidence/m12/automation.json",
+  "audioClock": "docs/evidence/m11/audio-clock-bench.json",
+  "pdfStructure": "docs/evidence/m12/headless/pdf-structure.json",
+  "gui": {
+    "passed": false,
+    "reason": "macOS IOConsoleLocked=Yes; screen capture permission true; nativeOnly=true is not GUI screenshot acceptance"
+  },
+  "stageM11Done": false,
+  "stageM12Done": false,
+  "openDevelopment": [
+    "Office comments/media public roundtrip",
+    "full accessibility checks and PDF reading order",
+    "async jobs/cancellation and remaining domain commands",
+    "multitrack/ShowClock integration, A/V/device matrix",
+    "Windows/Linux media and print adapters",
+    "previous M0-M7 implementation gaps"
+  ],
+  "sourceArchive": "dist/joydeck-m12-delivery-source.tar.gz",
+  "rollback": "dist/joydeck-before-m11-m12-source.tar.gz"
+}

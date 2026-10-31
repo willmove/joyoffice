@@ -1,0 +1,12 @@
+{
+  "seed": "0x4a6f796465636b13",
+  "elapsedSeconds": 600.001406375,
+  "operations": 370081,
+  "saveOpenCheckpoints": 740,
+  "undoDepthAtEnd": 100,
+  "commandMsP95": 0.136,
+  "commandMsP99": 0.18016700000000002,
+  "samplesRetained": 70081,
+  "passed": true,
+  "scope": "seeded transactional engine and atomic checkpoint/save/reopen on this machine; not power-loss hardware certification"
+}

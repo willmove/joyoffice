@@ -1,0 +1,41 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m12-gui-validated-darwin-arm64/joydeck",
+  "sha256": "0c73a8d149cc9317b415e21b3150a067938e917ab8e1ac13ce816ca7a5435a10",
+  "canvas": {
+    "GPUI": {
+      "meanRgbError": 0.22704966492341105,
+      "fractionPixelsOver48": 0.0012699331275720165,
+      "interiorRgbError": 0.04348686037801487,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "CPU": {
+      "meanRgbError": 0.47100453317901236,
+      "fractionPixelsOver48": 0.0014320237482853223,
+      "interiorRgbError": 0.04348686037801487,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "publicCharts": 7,
+  "embeddedWorkbooks": 7,
+  "cacheWorkbookValue": 131,
+  "nativeShow": {
+    "renderedFrames": 48,
+    "renderP95Ms": 24.662,
+    "totalRenderMs": 772,
+    "monotonicPause": true,
+    "blackWhite": true,
+    "snapshotUnchanged": true,
+    "displays": [
+      1
+    ],
+    "scope": "native preview timer/render + one physical display; not physical dual-screen/hotplug or end-to-end 60fps certification",
+    "editorFocusRestored": true,
+    "clockHandoff": true,
+    "handoffDeltaMs": 204
+  },
+  "passed": true
+}

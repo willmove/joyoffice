@@ -1,0 +1,23 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m6-preview-final-darwin-arm64/joydeck",
+  "pixelChecks": {
+    "GPUI": {
+      "meanRgbError": 0.15674490653224113,
+      "fractionPixelsOver48": 0.0010042533081285445,
+      "interiorRgbError": 0.0,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "CPU": {
+      "meanRgbError": 0.17228654694391934,
+      "fractionPixelsOver48": 0.00014571518588531822,
+      "interiorRgbError": 0.0,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "passed": true,
+  "scope": "macOS native adapter; physical keyboard, Windows/Linux unverified"
+}

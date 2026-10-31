@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-31",
+  "platform": "macOS ARM64",
+  "codeCommit": "d2ed9dd0c508b4608194ed08c04bcbd317e1a6bf",
+  "rustToolchain": "1.98.1",
+  "commands": [
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-word-check.log",
+      "sha256": "59ec5148bf117682ae8576e1bf578f4f84d38016fa3b61546249dfcc71cc5b45",
+      "rustTestsPassed": 1272
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-deck-final-check.log",
+      "sha256": "f88b1b10aa3413df3a070b766398d6f107dc68ffc398d84b692d44eb5d856e16",
+      "rustTestsPassed": 143
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-joint-clippy.log",
+      "sha256": "d4e7b3b0e0ca3b19c1114b154729c027a6b3538a4049485b6607776c85b6e2d8",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-joint-tests.log",
+      "sha256": "e0d49e7347acfe8200c8ad7e66e4e010b98e8d627d6938d0ab32de77e269f637",
+      "rustTestsPassed": 1403
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-tool-final-clippy.log",
+      "sha256": "284393a3c6ba2e18db1f1eb5759183fe98cc127c82917cb0cc168e462b134441",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-python-final-tests.log",
+      "sha256": "e1a2ab9020abbc65296f81a29b796e44a469f92a57368f61d2c52c6af5fc7271",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-delivery-final-tests.log",
+      "sha256": "6ab41b725f6edcaf1ccc3ab15d4afc6dd74fc4830e1dbbd747dc6591f86ff5d7",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-deny-final.log",
+      "sha256": "f1a0fca39d4280363937aabd77783990ea6480bd9ca257816de3b68fc8efa845",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-deck-release-build.log",
+      "sha256": "92feb08fa0c939604bfe527cc2da205ecbdb9ee0afee66039f66f7f5f30a4c6f",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-word-release-build.log",
+      "sha256": "b730d25b593e71662ca3d6e85e9835f737ed3018d59adce5d213ee13562e4f8d",
+      "rustTestsPassed": 0
+    },
+    {
+      "log": "docs/joyoffice/validation/20261031-monorepo/monorepo-release-routing.log",
+      "sha256": "457717931b2c92d24c6ee7a6ebc14c360af189268e054aef67310ca160ff7fda",
+      "rustTestsPassed": 0
+    }
+  ],
+  "productChecks": {
+    "joywordRustTests": 1272,
+    "joydeckRustTests": 131,
+    "sharedOpcTestsInDeckCheck": 12,
+    "jointWorkspaceRustTests": 1403,
+    "gatePythonTests": 56,
+    "existingAndGatePythonTests": 139,
+    "deliveryPythonTests": 20
+  },
+  "releaseBuilds": [
+    "joyword",
+    "joyword-cli",
+    "joydeck",
+    "joydeck-cli"
+  ],
+  "rustsec": {
+    "mode": "offline cached database; online local fetch timed out",
+    "databaseCommit": "2295466c4e9df26647fd67d8fa1c705ac2fc7f81",
+    "result": "advisories/bans/licenses/sources passed",
+    "ignoredVulnerabilitiesAdded": []
+  },
+  "guiEvidence": [
+    {
+      "kind": "m14",
+      "path": "docs/joyoffice/validation/20261031-monorepo/m14.json",
+      "sha256": "e97f41acb8313fdb4395c971f28d94b65375b1d54b099d7daf6b412e7a0df5c9"
+    },
+    {
+      "kind": "moved-app",
+      "path": "docs/joyoffice/validation/20261031-monorepo/moved-app.json",
+      "sha256": "24a6e3819164c2cb7463d1df98bbb54b11894e12dfeeab9dc6c7bc20f732573c"
+    },
+    {
+      "kind": "ime",
+      "path": "docs/joyoffice/validation/20261031-monorepo/ime.json",
+      "sha256": "a1b75dd67bfe5e1382c646164cf908cad99ce8b764a4c5403df732ae99a8b9e4"
+    },
+    {
+      "kind": "table-ime",
+      "path": "docs/joyoffice/validation/20261031-monorepo/table-ime.json",
+      "sha256": "a1b75dd67bfe5e1382c646164cf908cad99ce8b764a4c5403df732ae99a8b9e4"
+    }
+  ],
+  "pullRequest": "https://github.com/willmove/joyoffice/pull/115",
+  "remoteCi": "authoritative current commit status on PR; must pass before merge",
+  "notClaimed": [
+    "Windows/Linux native GUI or clean-machine installation",
+    "physical keyboard/multi-display/device acceptance",
+    "formal signing/notarization or release readiness"
+  ]
+}

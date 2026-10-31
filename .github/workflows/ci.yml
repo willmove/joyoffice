@@ -1,7 +1,8 @@
-name: JoyWord foundation
+name: JoyWord CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -51,7 +52,7 @@ jobs:
       - name: Rust format
         run: cargo fmt --all -- --check
       - name: Headless crate tests (default workspace members)
-        run: cargo test --locked
+        run: cargo xtask test joyword --headless
       - name: M7 fixed model/layout corpus smoke
         run: cargo run --locked -p joyword-layout --example m7_performance -- 10 1 2
       - name: AI off by default (T400)
@@ -62,7 +63,7 @@ jobs:
           cargo clippy -p joyword-agent --all-targets --locked --offline -- -D warnings
           cargo clippy -p joyword-shell --all-targets --features ai --locked --offline -- -D warnings
       - name: Lints
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+        run: cargo xtask check joyword
       - name: Headless application adapter tests
         run: cargo test --locked -p joyword
       - name: Recovery journal experiment
@@ -123,7 +124,7 @@ jobs:
           prefix="CARGO_TARGET_$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')"
           export "${prefix}_LINKER=${{ matrix.linker }}"
           export "${prefix}_RUNNER=${{ matrix.runner }}"
-          cargo test --locked --target ${{ matrix.target }}
+          cargo xtask test joyword --headless --target ${{ matrix.target }}
 
   # T003: shape original text with one OFL font, render the same page scene
   # to PDF and read it back with poppler. Proves the scene's text and

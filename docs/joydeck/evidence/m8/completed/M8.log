@@ -1,0 +1,41 @@
+{
+  "binary": "/Users/willm/Coding/joydeck/dist/joydeck-m8-release-darwin-arm64/joydeck",
+  "pixelChecks": {
+    "GPUI": {
+      "meanRgbError": 0.725474074074074,
+      "fractionPixelsOver48": 0.002025,
+      "interiorRgbError": 0.0,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "CPU": {
+      "meanRgbError": 0.49741944444444447,
+      "fractionPixelsOver48": 0.00019166666666666667,
+      "interiorRgbError": 0.0,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "publicPptx": {
+    "table": {
+      "publicTable": true,
+      "rows": 4,
+      "columns": 5,
+      "merge": false,
+      "headerBold": true
+    },
+    "merged": {
+      "publicTable": true,
+      "rows": 4,
+      "columns": 5,
+      "merge": true,
+      "headerBold": true
+    }
+  },
+  "pdfCellText": true,
+  "passed": true,
+  "scope": "macOS ARM64 native adapters and independent public readers; other platforms and physical keyboard unverified"
+}
+/Users/willm/Coding/joydeck/docs/evidence/m8/completed/m8

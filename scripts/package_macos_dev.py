@@ -3,9 +3,16 @@
 import plistlib
 import shutil
 import sys
+import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
+manifest = (root / "apps/joyword/Cargo.toml").read_text(encoding='utf-8')
+section = re.search(r"(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)", manifest)
+match = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else "", re.M)
+if not match:
+    sys.exit("JoyWord must declare an independent application version")
+version = match[1]
 binary = root / "target/debug/joyword"
 bundle = root / "target/dev/JoyWord.app"
 if sys.platform != "darwin":
@@ -22,7 +29,7 @@ with (bundle / "Contents/Info.plist").open("wb") as handle:
         "CFBundleName": "JoyWord",
         "CFBundleDisplayName": "JoyWord",
         "CFBundlePackageType": "APPL",
-        "CFBundleShortVersionString": "0.1.0",
+        "CFBundleShortVersionString": version,
         "CFBundleVersion": "1",
         "NSHighResolutionCapable": True,
     }, handle)
