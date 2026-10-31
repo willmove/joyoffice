@@ -605,7 +605,7 @@ impl Editor {
                     if let Some(bytes) = bytes {
                         joydeck::media::Resource::import(&bytes)
                     } else {
-                        joydeck::media::Resource::read(&path)
+                        joydeck::media::read(&path)
                     }
                 })
                 .await;

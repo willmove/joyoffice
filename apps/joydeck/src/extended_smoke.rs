@@ -69,7 +69,7 @@ pub(super) fn run(handle: AnyWindowHandle, view: Entity<Editor>, cx: &mut App) {
                         .spawn(async {
                             joydeck::playback::import(
                                 &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                                    .join("../../tests/fixtures/media/original-h264.mp4"),
+                                    .join("../../tests/fixtures/joydeck/media/original-h264.mp4"),
                             )
                         })
                         .await?;

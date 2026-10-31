@@ -217,7 +217,8 @@ impl Editor {
                     button("copy-diagnostics", "复制诊断摘要").on_click(cx.listener(
                         |s, _, _, cx| {
                             cx.write_to_clipboard(ClipboardItem::new_string(
-                                joydeck::diagnostics::report().to_string(),
+                                joydeck::diagnostics::report_for(env!("CARGO_PKG_VERSION"), true)
+                                    .to_string(),
                             ));
                             s.message = "诊断摘要已复制（版本/平台/能力）".into();
                             cx.notify();

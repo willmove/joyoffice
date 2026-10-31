@@ -1,45 +1,30 @@
 [package]
 name = "joydeck"
-version.workspace = true
+version = "0.1.0"
 edition.workspace = true
-license.workspace = true
 rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+publish = false
+repository.workspace = true
+default-run = "joydeck"
 
 [dependencies]
-gpui-kit = { version = "=0.8.1", optional = true }
-image = { version = "=0.25.9", default-features = false, features = ["png", "jpeg", "gif"] }
-serde = { version = "=1.0.228", features = ["derive", "rc"] }
-serde_json = "=1.0.154"
-zip = { version = "=0.6.6", default-features = false, features = ["deflate"] }
-roxmltree = "=0.21.1"
-resvg = "=0.45.1"
-
-
-sha2 = "=0.10.9"
-
-unicode-segmentation = "=1.13.3"
-
-ttf-parser = "=0.25.1"
-
-base64 = "=0.22.1"
-png = "=0.18.1"
-flate2 = "=1.1.10"
-svg2pdf = "=0.13.0"
-pdf-writer = "=0.12.1"
-getrandom = "=0.3.4"
+joydeck-shell.workspace = true
+gpui-kit = { workspace = true, optional = true }
+image.workspace = true
+resvg.workspace = true
+serde_json.workspace = true
+serde.workspace = true
 
 [features]
 default = ["desktop"]
 desktop = ["dep:gpui-kit"]
+validation = []
 
 [[bin]]
 name = "joydeck"
 path = "src/main.rs"
 required-features = ["desktop"]
-
-[[bin]]
-name = "joydeck-cli"
-path = "src/bin/joydeck-cli.rs"
 
 [lints]
 workspace = true
