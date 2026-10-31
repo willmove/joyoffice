@@ -8,7 +8,7 @@ The JoyDeck application, document model, native schema, OPC/PresentationML adapt
 | GPUI pre family | 0.3.10 | Apache-2.0 | Matching window/render runtime; https://github.com/zed-industries/zed |
 | image | 0.25.9 | MIT OR Apache-2.0 | BGRA frame storage and bounded PNG/JPEG decoding/EXIF orientation |
 | serde / serde_json | 1.0.228 / 1.0.154 | MIT OR Apache-2.0 | Native JSON schema; https://github.com/serde-rs/serde and https://github.com/serde-rs/json |
-| zip | 0.6.6 | MIT | Bounded ZIP access; https://github.com/zip-rs/zip |
+| zip | 9.0.0 | MIT | Bounded ZIP access; https://github.com/zip-rs/zip2 |
 | roxmltree | 0.21.1 | MIT OR Apache-2.0 | Bounded XML reads; https://github.com/RazrFalcon/roxmltree |
 | resvg / usvg | 0.45.1 | MIT OR Apache-2.0 | CPU rasterization of generated, restricted SVG; https://github.com/linebender/resvg |
 | tiny-skia | 0.11.4 | BSD-3-Clause | Raster storage/path backend; https://github.com/RazrFalcon/tiny-skia |

@@ -85,7 +85,8 @@ fn workbook(c: &Chart) -> Result<Vec<u8>> {
     for (name, xml) in files {
         z.start_file(
             name,
-            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated),
+            zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated),
         )
         .map_err(|e| e.to_string())?;
         z.write_all(xml.as_bytes()).map_err(|e| e.to_string())?;

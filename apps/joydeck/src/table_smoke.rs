@@ -1,7 +1,7 @@
 //! Real GPUI acceptance route. Screenshot acknowledgements come from the external verifier.
 pub(super) use super::table_demo::seed;
 use super::*;
-use joydeck::table::{self, Action, Range};
+use joydeck::table::{Action, Range};
 pub(super) fn run(handle: AnyWindowHandle, view: Entity<Editor>, cx: &mut App) {
     let clipboard = cx.read_from_clipboard();
     cx.spawn(async move|cx|{

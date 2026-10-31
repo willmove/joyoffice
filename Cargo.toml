@@ -81,7 +81,7 @@ joydeck-platform = { path = "crates/joydeck-platform" }
 joydeck-shell = { path = "crates/joydeck-shell" }
 serde = { version = "=1.0.228", features = ["derive", "rc"] }
 serde_json = "=1.0.154"
-zip = { version = "=0.6.6", default-features = false, features = ["deflate"] }
+zip = { version = "=9.0.0", default-features = false, features = ["deflate-flate2"] }
 roxmltree = "=0.21.1"
 resvg = "=0.45.1"
 ttf-parser = "=0.25.1"

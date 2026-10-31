@@ -1,9 +1,6 @@
 extern crate joydeck_shell as joydeck;
 use joydeck::document::*;
-use std::{
-    io::Write,
-    sync::atomic::{AtomicU64, Ordering},
-};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::{path::PathBuf, sync::atomic::AtomicBool};
 
 fn fixture(name: &str) -> PathBuf {
@@ -57,17 +54,19 @@ fn read_generated(entries: Vec<(String, Vec<u8>)>) -> Result<Deck> {
         std::process::id(),
         SEQUENCE.fetch_add(1, Ordering::Relaxed)
     ));
-    let file = std::fs::File::create(&path).unwrap();
-    let mut z = zip::ZipWriter::new(file);
-    for (name, bytes) in entries {
-        z.start_file(
-            name,
-            zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated),
-        )
-        .unwrap();
-        z.write_all(&bytes).unwrap();
-    }
-    z.finish().unwrap();
+    let raw: Vec<_> = entries
+        .iter()
+        .map(|(name, bytes)| {
+            (
+                name.as_str(),
+                bytes.as_slice(),
+                joyoffice_opc::Method::Deflated,
+            )
+        })
+        .collect();
+    // Intentionally construct invalid members with the raw format writer so
+    // this tests the reader, rather than zip 9's duplicate-name writer guard.
+    std::fs::write(&path, joyoffice_opc::write_archive(&raw).unwrap()).unwrap();
     let result = open(&path, &AtomicBool::new(false));
     std::fs::remove_file(path).unwrap();
     result

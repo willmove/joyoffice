@@ -116,6 +116,9 @@ LAYERS = {
 # reviewed exception list for `[dev-dependencies]` only and never weakens the
 # normal-dependency check.
 DEV_LAYERS = {
+    # Negative reader fixtures deliberately contain duplicate/raw invalid names;
+    # the production zip writer correctly refuses to create these archives.
+    "joydeck-shell": {"joyoffice-opc"},
     "joyword-epub": {"joyword-docx"},
     # apps/joyword-cli/Cargo.toml:22 -- CLI integration tests replay corpus cases.
     "joyword-cli": {"joyword-corpus"},

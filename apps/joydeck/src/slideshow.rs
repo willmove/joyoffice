@@ -26,6 +26,16 @@ type Shared = Arc<Mutex<Runtime>>;
 // A poisoned show cannot be advanced safely. Keep the immutable document intact
 // and surface the error instead of resuming a partially updated controller.
 macro_rules! runtime_state {
+    ($owner:ident, $cx:ident, ()) => {
+        match $owner.shared.lock() {
+            Ok(state) => state,
+            Err(_) => {
+                $owner.message = "放映状态异常，已停止更新；请关闭放映后重新开始".into();
+                $cx.notify();
+                return;
+            }
+        }
+    };
     ($owner:ident, $cx:ident, $failure:expr) => {
         match $owner.shared.lock() {
             Ok(state) => state,

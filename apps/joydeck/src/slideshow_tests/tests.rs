@@ -1,4 +1,5 @@
-use super::*;
+use super::{close_runtime, runtime};
+use std::sync::Arc;
 
 #[test]
 fn poisoned_show_is_rejected_without_resuming_partial_state() {

@@ -1,4 +1,5 @@
-use super::*;
+use super::image_of;
+use joydeck::preview;
 
 #[test]
 fn malformed_preview_pixels_are_reported_instead_of_panicking() {

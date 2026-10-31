@@ -18,19 +18,45 @@ struct Manifest {
     #[serde(default)]
     media: Vec<String>,
 }
+pub fn read_package_bytes(bytes: &[u8], cancel: &AtomicBool) -> Result<BTreeMap<String, Vec<u8>>> {
+    if bytes.len() as u64 > MAX_FILE {
+        return Err("压缩文件超过64MiB预算".into());
+    }
+    read_zip(bytes, cancel, MAX_TOTAL, 4096)
+}
 pub fn read_nested_package(bytes: &[u8], cancel: &AtomicBool) -> Result<BTreeMap<String, Vec<u8>>> {
     if bytes.len() > 4 * 1024 * 1024 {
         return Err("嵌入工作簿超过4MiB压缩预算".into());
     }
-    read_zip(std::io::Cursor::new(bytes), cancel, 8 * 1024 * 1024, 128)
+    read_zip(bytes, cancel, 8 * 1024 * 1024, 128)
 }
-fn read_zip<R: std::io::Read + std::io::Seek>(
-    reader: R,
+fn read_zip(
+    bytes: &[u8],
     cancel: &AtomicBool,
     max_total: usize,
     max_entries: usize,
 ) -> Result<BTreeMap<String, Vec<u8>>> {
-    let mut zip = zip::ZipArchive::new(reader).map_err(|e| format!("不是可读的ZIP文稿：{e}"))?;
+    check_cancel(cancel)?;
+    // Validate raw entries before zip's name-indexed view can coalesce duplicate
+    // names. Reuse the suite's format-neutral container checks, with Deck's
+    // existing limits; bounded highly-compressible media remains supported.
+    let budget = joyoffice_opc::Budget {
+        max_entries: max_entries as u64,
+        max_part_bytes: MAX_PART as u64,
+        max_total_bytes: max_total as u64,
+        max_ratio: u64::MAX,
+        ..Default::default()
+    };
+    let raw = joyoffice_opc::ZipArchive::new(bytes, &budget)
+        .map_err(|e| format!("ZIP结构或8 MiB成员/总量预算无效：{e:?}"))?;
+    let mut names = std::collections::BTreeSet::new();
+    for entry in raw.entries() {
+        if !names.insert(entry.name.as_str()) {
+            return Err(format!("重复ZIP成员：{}", entry.name));
+        }
+    }
+    let mut zip = zip::ZipArchive::new(std::io::Cursor::new(bytes))
+        .map_err(|e| format!("不是可读的ZIP文稿：{e}"))?;
     if zip.len() > max_entries {
         return Err("ZIP 成员超过 4096 项".into());
     }
@@ -39,7 +65,7 @@ fn read_zip<R: std::io::Read + std::io::Seek>(
     for i in 0..zip.len() {
         check_cancel(cancel)?;
         let mut entry = zip.by_index(i).map_err(|e| e.to_string())?;
-        let name = entry.name().to_string();
+        let name = entry.name().map_err(|e| e.to_string())?.into_owned();
         let bare = name.trim_end_matches('/');
         if bare.is_empty()
             || bare.contains(['\\', ':', '%'])
@@ -75,6 +101,10 @@ fn read_zip<R: std::io::Read + std::io::Seek>(
     }
     Ok(parts)
 }
+
+#[cfg(test)]
+#[path = "document/tests.rs"]
+mod tests;
 pub fn part<'a>(parts: &'a BTreeMap<String, Vec<u8>>, name: &str) -> Result<&'a str> {
     std::str::from_utf8(parts.get(name).ok_or_else(|| format!("缺少部件：{name}"))?)
         .map_err(|_| format!("部件不是 UTF-8：{name}"))

@@ -1218,10 +1218,9 @@ impl Editor {
         }
         if let Some(g) = &self.table_resize
             && let Some(o) = objects.iter_mut().find(|o| o.id == g.base.id)
+            && let Ok(resized) = g.result()
         {
-            if let Ok(resized) = g.result() {
-                *o = resized;
-            }
+            *o = resized;
         }
         objects
     }
@@ -1232,10 +1231,9 @@ impl Editor {
                 .objects
                 .iter_mut()
                 .find(|o| o.id == g.base.id)
+                && let Ok(resized) = g.result()
             {
-                if let Ok(resized) = g.result() {
-                    *o = resized;
-                }
+                *o = resized;
             }
             return Arc::new(d);
         }

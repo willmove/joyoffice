@@ -1,4 +1,5 @@
-use super::*;
+use super::Resize;
+use joydeck::{edit, table};
 
 #[test]
 fn stale_table_resize_is_rejected_without_changing_the_document() {

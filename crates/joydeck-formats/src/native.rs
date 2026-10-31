@@ -14,8 +14,8 @@ pub fn encode(deck: &Deck) -> Result<Vec<u8>> {
         return Err("模型超过读取预算".into());
     }
     let mut z = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
-    let opts =
-        zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let opts = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
     for (name, data) in [
         (
             "mimetype",

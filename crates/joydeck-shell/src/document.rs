@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::Path, sync::atomic::AtomicBool};
 pub fn read_package(path: &Path, cancel: &AtomicBool) -> Result<BTreeMap<String, Vec<u8>>> {
     check_cancel(cancel)?;
     let bytes = joydeck_platform::files::read_bounded(path, MAX_FILE as usize)?;
-    joydeck_formats::document::read_nested_package(&bytes, cancel)
+    joydeck_formats::document::read_package_bytes(&bytes, cancel)
 }
 pub use joydeck_formats::document::{part, read_nested_package};
 pub fn open(path: &Path, cancel: &AtomicBool) -> Result<Deck> {

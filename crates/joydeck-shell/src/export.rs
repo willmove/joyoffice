@@ -52,8 +52,8 @@ pub fn save_parts(
 ) -> Result<()> {
     crate::interop::validate_graph(parts)?;
     let mut zip = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
-    let options =
-        zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    let options = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
     for (name, data) in parts {
         check_cancel(cancel)?;
         zip.start_file(name, options).map_err(|e| e.to_string())?;

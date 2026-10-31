@@ -10,6 +10,7 @@ default-run = "joydeck"
 
 [dependencies]
 joydeck-shell.workspace = true
+unicode-segmentation.workspace = true
 gpui-kit = { workspace = true, optional = true }
 image.workspace = true
 resvg.workspace = true

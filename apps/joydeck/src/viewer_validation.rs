@@ -11,7 +11,9 @@ pub fn smoke(handle: AnyWindowHandle, view: &Entity<Viewer>, cx: &mut App) {
                 .and_then(|p| p.parent().map(|p| p.join("fixtures")))
                 .filter(|p| p.is_dir())
         })
-        .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/joydeck"));
+        .unwrap_or_else(|| {
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/joydeck")
+        });
     load_path(view, fixtures.join("native-20.joydeck"), cx);
     let view = view.downgrade();
     cx.spawn(async move |cx| {
