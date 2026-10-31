@@ -172,6 +172,7 @@ impl Slideshow {
             }
         }
     }
+    #[cfg(feature = "validation")]
     pub(super) fn ready(&self) -> bool {
         self.image.is_some()
     }
