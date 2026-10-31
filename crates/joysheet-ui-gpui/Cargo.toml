@@ -1,0 +1,29 @@
+[package]
+name = "joysheet-ui-gpui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+gpui-kit = { workspace = true }
+joysheet-app = { workspace = true }
+joysheet-platform = { workspace = true }
+joysheet-protocol = { workspace = true }
+gridcraft-engine = { workspace = true }
+gridcraft-chart = { workspace = true }
+gridcraft-functions.workspace = true
+serde_json = { workspace = true }
+serde.workspace=true
+log = { workspace = true }
+image.workspace = true
+usvg = "=0.45.1"
+raw-window-handle = "=0.6.2"
+gpui-base = "=0.8.1"
+gpui-readback = { package = "gpui-pre-platform", version = "=0.3.10", optional = true, features = ["test-support"] }
+
+[features]
+automation = ["dep:gpui-readback"]
+

@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "testsFailed": 0,
+  "log": "artifacts/Quality-ci.log",
+  "testsPassed": 1372,
+  "command": "cargo xtask ci",
+  "testsIgnored": 1,
+  "checks": [
+    "fmt",
+    "strict workspace/all-targets Clippy",
+    "workspace tests",
+    "dependency layers: no egui/eframe"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-29",
+  "changed": [
+    "crates/engine/src/io.rs",
+    "crates/engine/src/lib.rs",
+    "crates/engine/src/cmd/extra.rs",
+    "crates/engine/src/cmd/extra/scripts.rs",
+    "crates/engine/src/io/tests.rs",
+    "crates/mcp/src/tests.rs",
+    "crates/mcp/src/tools.rs"
+  ],
+  "missing": [],
+  "note": "Imported file hash differences retained and documented; upstream source directory not modified."
+}

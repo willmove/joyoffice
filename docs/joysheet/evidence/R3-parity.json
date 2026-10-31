@@ -1,0 +1,23 @@
+{
+  "candidateSha256": "a044f1f6cff208543d2b79e888e7d8843f411fbce2e518350463194e3ce5c6dd",
+  "referenceSha256": "c6426bad795e1c004e09c8aed96c829db2a42213dc4ab980a31740ee9de0659e",
+  "persistedWorkbookEqual": true,
+  "candidate": "D:\\Coding\\EditorProjects\\joysheet\\target\\release\\joysheet-cli.exe",
+  "commands": 17,
+  "passed": true,
+  "checks": [
+    "SUM",
+    "SUMIFS",
+    "SUMPRODUCT",
+    "nested",
+    "spill",
+    "errors",
+    "undo-redo",
+    "format",
+    "full-recalc",
+    "JSON parity",
+    "cross-version XLSX values and formulas"
+  ],
+  "reference": "D:\\Coding\\EditorProjects\\joysheet\\dist\\joysheet-0.1.0-M8-preview5-windows-x86_64\\joysheet-cli.exe",
+  "crossVersionXlsxReaders": 2
+}

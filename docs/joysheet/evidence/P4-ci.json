@@ -1,0 +1,11 @@
+{
+  "command": "cargo xtask ci",
+  "includesStandaloneBenchmarkPackaging": true,
+  "layers": true,
+  "strictClippy": true,
+  "passed": true,
+  "testsIgnored": 1,
+  "legacyUiDependencies": false,
+  "format": true,
+  "testsPassed": 1377
+}

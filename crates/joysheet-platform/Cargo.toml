@@ -1,0 +1,20 @@
+[package]
+name = "joysheet-platform"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+rfd = { workspace = true }
+arboard = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winsafe = { version = "=0.0.19", features = ["user"] }
+windows = { version = "=0.62.2", features = ["Data_Pdf", "Storage", "Storage_Streams", "Foundation"] }
+

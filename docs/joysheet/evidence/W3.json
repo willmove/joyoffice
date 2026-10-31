@@ -1,0 +1,34 @@
+{
+  "m5Task": 0,
+  "stage": "M1",
+  "processId": 10864,
+  "port": 59582,
+  "saveDialog": false,
+  "m8Task": 0,
+  "m6Task": 0,
+  "platform": "Windows x64",
+  "m7Task": 0,
+  "nativeImeVerified": false,
+  "passed": true,
+  "m4Task": 0,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "W3 Ctrl mixed-object selection, group pointer drag, one-step undo, keyboard nudge, group delete/undo and actual align button",
+    "W3 caret-aware function parameter highlight/reference outlines, F6 shared-draft focus, Ctrl+1 and merged editing across freeze at 125% zoom",
+    "W3 native vector icon-set screenshots for arrows, flags, lights, signs, symbols, ratings and quarters"
+  ],
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 126,
+    "paintP95Ms": 2.4581,
+    "paintedCells": 699,
+    "gpuPresentationMeasured": false,
+    "editSamples": 1,
+    "editP95Ms": 22.8524,
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe"
+}

@@ -1,0 +1,3763 @@
+{
+  "catalogOnlyNotCounted": [
+    "insert.smartArt",
+    "insert.screenshot",
+    "insert.map",
+    "insert.timeline",
+    "insert.wordArt",
+    "insert.signatureLine",
+    "insert.object",
+    "insert.equation",
+    "data.fromWeb",
+    "data.stocks",
+    "data.geography",
+    "data.relationships",
+    "data.analyzeData",
+    "review.smartLookup",
+    "review.translate",
+    "review.showChanges"
+  ],
+  "desktopParityComplete": false,
+  "registered": [
+    {
+      "id": "file.new",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "New Workbook",
+      "menu": [
+        "File"
+      ],
+      "params": "{sample?: \"budget\"|\"sales\"|\"grades\"}",
+      "undoable": false
+    },
+    {
+      "id": "file.open",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Open…",
+      "menu": [
+        "File"
+      ],
+      "params": "{path} | {name, base64}, plus {password} for a password-protected workbook and {csvAsText?: bool} to keep every csv/tsv/txt field as text, with no number or date conversion (xlsx, xlsm, xls import, xlsb and ods data import, csv, tsv, txt, json)",
+      "undoable": false
+    },
+    {
+      "id": "file.save",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Save",
+      "menu": [
+        "File"
+      ],
+      "params": "{path?} (xlsx by default; .csv/.tsv/.json/.html/.pdf by extension)",
+      "undoable": false
+    },
+    {
+      "id": "file.saveAs",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Save As…",
+      "menu": [
+        "File"
+      ],
+      "params": "{path} (.xlsx, .csv, .tsv, .json, .html, or .pdf: a PDF of the active sheet)",
+      "undoable": false
+    },
+    {
+      "id": "file.saveBytes",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Encode Workbook",
+      "menu": [],
+      "params": "{format?: xlsx|csv|tsv|json|html} → {base64}",
+      "undoable": false
+    },
+    {
+      "id": "file.close",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Close",
+      "menu": [
+        "File"
+      ],
+      "params": "{force?: bool, document?: bool} (closes the active window, or with `document` the workbook and all its windows; the workbook closes with its last window)",
+      "undoable": false
+    },
+    {
+      "id": "file.exportCsv",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Export as CSV",
+      "menu": [
+        "File",
+        "Export"
+      ],
+      "params": "{path, sheet?}",
+      "undoable": false
+    },
+    {
+      "id": "file.exportHtml",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Save as Web Page",
+      "menu": [
+        "File",
+        "Export"
+      ],
+      "params": "{path}",
+      "undoable": false
+    },
+    {
+      "id": "file.properties",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Properties",
+      "menu": [
+        "File"
+      ],
+      "params": "{title?, subject?, author?, company?, keywords?, description?}",
+      "undoable": true
+    },
+    {
+      "id": "file.options",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Options",
+      "menu": [
+        "File"
+      ],
+      "params": "{} → {calculation: {mode, iterative, maxIterations, maxChange}} for the active workbook (the interface opens File › Options; change settings with their own commands, e.g. formulas.calculationOptions, view.theme, app.language.set)",
+      "undoable": false
+    },
+    {
+      "id": "window.activate",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Switch Window",
+      "menu": [
+        "Window"
+      ],
+      "params": "{window} | {doc} | {index} (a window id, a workbook id, or the workbook's position in the list)",
+      "undoable": false
+    },
+    {
+      "id": "window.close",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Close Window",
+      "menu": [
+        "Window"
+      ],
+      "params": "{window?, doc?, force?: bool} → {closed, document}: closes a window (the active one by default); its workbook closes with its last window, asking first when it has unsaved changes unless `force`",
+      "undoable": false
+    },
+    {
+      "id": "window.list",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Windows",
+      "menu": [
+        "Window"
+      ],
+      "params": "{} → [{window, doc, index, title, dirty, active, hidden}]",
+      "undoable": false
+    },
+    {
+      "id": "cell.set",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Enter Cell",
+      "menu": [],
+      "params": "{cell?: \"B2\", input: \"text, number or =formula\", sheet?, array?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "range.setValues",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Set Values",
+      "menu": [],
+      "params": "{range?: \"A1\", values: [[...]] (rows of numbers/strings/bools/null; strings starting with = are formulas), parse?: bool (default true: a string goes through typed input, so \"05.04.2026\" becomes a date and \"2.500\" a number, by en-US rules; false stores every other string as the text it is, so a dd.mm.yyyy date or a thousands separator survives)}",
+      "undoable": true
+    },
+    {
+      "id": "range.fill",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fill Range With Input",
+      "menu": [],
+      "params": "{range?, input}: enters the same input in every selected cell (relative formulas adjust)",
+      "undoable": true
+    },
+    {
+      "id": "selection.set",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select",
+      "menu": [],
+      "params": "{range: \"A1:B2,D4\" | cell, active?: \"A1\", sheet?}",
+      "undoable": false
+    },
+    {
+      "id": "selection.move",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Move Selection",
+      "menu": [],
+      "params": "{dr, dc, extend?: bool, jump?: bool (Ctrl+arrow), page?: bool}",
+      "undoable": false
+    },
+    {
+      "id": "selection.next",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Next Cell in Selection",
+      "menu": [],
+      "params": "{forward?: true, byRow?: false} (Enter/Tab inside a selection)",
+      "undoable": false
+    },
+    {
+      "id": "edit.selectAll",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select All",
+      "menu": [
+        "Edit"
+      ],
+      "params": "{} (current region first, then the whole sheet)",
+      "undoable": false
+    },
+    {
+      "id": "selection.currentRegion",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select Current Region",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "selection.row",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select Entire Row",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "selection.column",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select Entire Column",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "edit.goTo",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Go To…",
+      "menu": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ],
+      "params": "{reference: \"B5\" | \"Sheet2!A1:C3\" | name | \"Sheet2!Name\" | \"B14:C22,F19:G30\" | \"Price, Type\", record?: bool} (record: keep a reference without names among the recent ones) or {list: true} → {names, recent}",
+      "undoable": false
+    },
+    {
+      "id": "edit.goToSpecial",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Go To Special…",
+      "menu": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ],
+      "params": "{kind: blanks|constants|formulas|comments|lastCell|currentRegion|visible|conditionalFormats|dataValidation|errors|numbers|text}",
+      "undoable": false
+    },
+    {
+      "id": "edit.undo",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Undo",
+      "menu": [
+        "Edit"
+      ],
+      "params": "{steps?: 1}",
+      "undoable": false
+    },
+    {
+      "id": "edit.redo",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Redo",
+      "menu": [
+        "Edit"
+      ],
+      "params": "{steps?: 1}",
+      "undoable": false
+    },
+    {
+      "id": "edit.copy",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Copy",
+      "menu": [
+        "Home",
+        "Clipboard"
+      ],
+      "params": "{range?, html?: bool} → {range, text, html?} (html: a styled HTML table, only when requested and small enough)",
+      "undoable": false
+    },
+    {
+      "id": "edit.cut",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Cut",
+      "menu": [
+        "Home",
+        "Clipboard"
+      ],
+      "params": "{range?, html?: bool} → {range, text, html?} (html: a styled HTML table, only when requested and small enough)",
+      "undoable": false
+    },
+    {
+      "id": "edit.paste",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Paste",
+      "menu": [
+        "Home",
+        "Clipboard"
+      ],
+      "params": "{at?: \"C3\", text?: \"tab-separated text from the system clipboard\", html?: \"the clipboard's HTML flavour; cells the source recorded as numbers (x:num, sdval) stay numbers\"}",
+      "undoable": true
+    },
+    {
+      "id": "edit.pasteSpecial",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Paste Special…",
+      "menu": [
+        "Home",
+        "Clipboard"
+      ],
+      "params": "{what: all|formulas|values|formats|comments|validation|allExceptBorders|columnWidths|formulasAndNumberFormats|valuesAndNumberFormats, operation?: none|add|subtract|multiply|divide, skipBlanks?, transpose?, link?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.clearClipboard",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Cancel Copy",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "edit.clearAll",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear All",
+      "menu": [
+        "Home",
+        "Editing",
+        "Clear"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.clearFormats",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Formats",
+      "menu": [
+        "Home",
+        "Editing",
+        "Clear"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.clearContents",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Contents",
+      "menu": [
+        "Home",
+        "Editing",
+        "Clear"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.clearComments",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Comments and Notes",
+      "menu": [
+        "Home",
+        "Editing",
+        "Clear"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.clearHyperlinks",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Hyperlinks",
+      "menu": [
+        "Home",
+        "Editing",
+        "Clear"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.fillDown",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fill Down",
+      "menu": [
+        "Home",
+        "Editing",
+        "Fill"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.fillRight",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fill Right",
+      "menu": [
+        "Home",
+        "Editing",
+        "Fill"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.fillUp",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fill Up",
+      "menu": [
+        "Home",
+        "Editing",
+        "Fill"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.fillLeft",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fill Left",
+      "menu": [
+        "Home",
+        "Editing",
+        "Fill"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.autoFill",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "AutoFill",
+      "menu": [],
+      "params": "{source: \"A1:A2\", target: \"A1:A10\", mode?: series|alternate|copy|formats|values|extend|days|weekdays|months|years}: the fill-handle drag (alternate = Ctrl+drag: a lone number counts up, any other series copies; values = Fill Without Formatting: the series, targets keep their formats; extend = Fill Series: the series, and a lone number counts up; days, weekdays, months, years = Fill Days, Fill Weekdays, Fill Months, Fill Years: dates step by one unit, or by the difference between the first two dates in that unit, and weekdays skip Saturday and Sunday)",
+      "undoable": true
+    },
+    {
+      "id": "edit.fillSeries",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Series…",
+      "menu": [
+        "Home",
+        "Editing",
+        "Fill"
+      ],
+      "params": "{range?, direction?: columns|rows, type?: linear|growth|date|autofill, step?: 1, stop?, dateUnit?: day|weekday|month|year}",
+      "undoable": true
+    },
+    {
+      "id": "edit.flashFill",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Flash Fill",
+      "menu": [
+        "Home",
+        "Editing",
+        "Fill"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "edit.find",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Find…",
+      "menu": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ],
+      "params": "{what, matchCase?, wholeCell?, lookIn?: formulas|values, byColumns?, all?: bool, within?: sheet|workbook}",
+      "undoable": false
+    },
+    {
+      "id": "edit.replace",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Replace…",
+      "menu": [
+        "Home",
+        "Editing",
+        "Find & Select"
+      ],
+      "params": "{what, with, matchCase?, wholeCell?, all?: true, within?: sheet|workbook}",
+      "undoable": true
+    },
+    {
+      "id": "edit.formatPainter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Format Painter",
+      "menu": [
+        "Home",
+        "Clipboard"
+      ],
+      "params": "{sticky?: bool} — first call picks up the selection's formats; with {apply: \"C3:D4\"} pastes them",
+      "undoable": true
+    },
+    {
+      "id": "edit.beginEdit",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Edit Cell",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "home.bold",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Bold",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, on?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "home.italic",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Italic",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.underline",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Underline",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, on?, style?: single|double|singleAccounting|doubleAccounting}",
+      "undoable": true
+    },
+    {
+      "id": "home.doubleUnderline",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Double Underline",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.strikethrough",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Strikethrough",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.superscript",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Superscript",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.subscript",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Subscript",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.fontName",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Font",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, name: \"Calibri\"}",
+      "undoable": true
+    },
+    {
+      "id": "home.fontSize",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Font Size",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, size: 11}",
+      "undoable": true
+    },
+    {
+      "id": "home.increaseFontSize",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Increase Font Size",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.decreaseFontSize",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Decrease Font Size",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.fontColor",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Font Color",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, color: \"#C00000\" | \"auto\" | {theme: 4, tint: -0.25}}",
+      "undoable": true
+    },
+    {
+      "id": "home.fillColor",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fill Color",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, color: \"#FFFF00\" | \"none\" | {theme, tint}}",
+      "undoable": true
+    },
+    {
+      "id": "home.borders",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Borders",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range?, preset: bottom|top|left|right|none|all|outside|thickOutside|thickBottom|doubleBottom|topBottom|topThickBottom|topDoubleBottom|insideHorizontal|insideVertical|inside|diagonalDown|diagonalUp, style?: thin|medium|thick|dashed|dotted|double|hair…, color?}",
+      "undoable": true
+    },
+    {
+      "id": "home.formatCells",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Format Cells…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{range?, style: {font?, fill?, borders?, align?, numFmt?, protection?}} (partial Style JSON merged in)",
+      "undoable": true
+    },
+    {
+      "id": "home.alignLeft",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Align Left",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.alignCenter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Center",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.alignRight",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Align Right",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.justify",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Justify",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.alignTop",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Top Align",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.alignMiddle",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Middle Align",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.alignBottom",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Bottom Align",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.wrapText",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Wrap Text",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.shrinkToFit",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Shrink to Fit",
+      "menu": [],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.increaseIndent",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Increase Indent",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.decreaseIndent",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Decrease Indent",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.orientation",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Orientation",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?, angle: -90..90 | \"vertical\" | \"counterclockwise\" | \"clockwise\" | \"up\" | \"down\" | 0}",
+      "undoable": true
+    },
+    {
+      "id": "home.mergeCenter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Merge & Center",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.mergeAcross",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Merge Across",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.mergeCells",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Merge Cells",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.unmergeCells",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unmerge Cells",
+      "menu": [
+        "Home",
+        "Alignment"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.numberFormat",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Number Format",
+      "menu": [
+        "Home",
+        "Number"
+      ],
+      "params": "{range?, format: \"General\"|\"Number\"|\"Currency\"|\"Accounting\"|\"Short Date\"|\"Long Date\"|\"Time\"|\"Percentage\"|\"Fraction\"|\"Scientific\"|\"Text\" | code: \"0.00\"}",
+      "undoable": true
+    },
+    {
+      "id": "home.accounting",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Accounting Number Format",
+      "menu": [
+        "Home",
+        "Number"
+      ],
+      "params": "{range?, symbol?: \"$\"}",
+      "undoable": true
+    },
+    {
+      "id": "home.percent",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Percent Style",
+      "menu": [
+        "Home",
+        "Number"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.comma",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Comma Style",
+      "menu": [
+        "Home",
+        "Number"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.increaseDecimal",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Increase Decimal",
+      "menu": [
+        "Home",
+        "Number"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.decreaseDecimal",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Decrease Decimal",
+      "menu": [
+        "Home",
+        "Number"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "home.cellStyle",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Cell Styles",
+      "menu": [
+        "Home",
+        "Styles"
+      ],
+      "params": "{range?, name: \"Good\"|\"Bad\"|\"Neutral\"|\"Heading 1\"|\"Title\"|\"Total\"|\"Accent1\"…|\"Normal\"}",
+      "undoable": true
+    },
+    {
+      "id": "home.rowHeight",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Row Height…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, rows?: \"2:5\" | \"2:2,4:5\" | \"Sheet2!2:5\", height: 20 (pixels) | points: 15}",
+      "undoable": true
+    },
+    {
+      "id": "home.columnWidth",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Column Width…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, cols?: \"B:D\" | \"B:B,D:F\" | \"Sheet2!B:D\", width: 64 (pixels) | chars: 8.43}",
+      "undoable": true
+    },
+    {
+      "id": "home.autofitRowHeight",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "AutoFit Row Height",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, rows?}",
+      "undoable": true
+    },
+    {
+      "id": "home.autofitColumnWidth",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "AutoFit Column Width",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, cols?}",
+      "undoable": true
+    },
+    {
+      "id": "home.defaultWidth",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Default Width…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, width: 64 (pixels)}",
+      "undoable": true
+    },
+    {
+      "id": "home.hideRows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Hide Rows",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ],
+      "params": "{sheet?, rows?}",
+      "undoable": true
+    },
+    {
+      "id": "home.hideColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Hide Columns",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ],
+      "params": "{sheet?, cols?}",
+      "undoable": true
+    },
+    {
+      "id": "home.unhideRows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unhide Rows",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ],
+      "params": "{sheet?, rows?}",
+      "undoable": true
+    },
+    {
+      "id": "home.unhideColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unhide Columns",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ],
+      "params": "{sheet?, cols?}",
+      "undoable": true
+    },
+    {
+      "id": "home.lockCell",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Lock Cell",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{range?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "home.insertRows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Sheet Rows",
+      "menu": [
+        "Home",
+        "Cells",
+        "Insert"
+      ],
+      "params": "{rows?: \"3:5\", count?}",
+      "undoable": true
+    },
+    {
+      "id": "home.insertColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Sheet Columns",
+      "menu": [
+        "Home",
+        "Cells",
+        "Insert"
+      ],
+      "params": "{cols?: \"B:C\"}",
+      "undoable": true
+    },
+    {
+      "id": "home.deleteRows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Sheet Rows",
+      "menu": [
+        "Home",
+        "Cells",
+        "Delete"
+      ],
+      "params": "{rows?}",
+      "undoable": true
+    },
+    {
+      "id": "home.deleteColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Sheet Columns",
+      "menu": [
+        "Home",
+        "Cells",
+        "Delete"
+      ],
+      "params": "{cols?}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.moveColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Move Columns",
+      "menu": [],
+      "params": "{cols?: \"B:C\", before: zero-based column index}",
+      "undoable": true
+    },
+    {
+      "id": "home.insertCells",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Cells…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Insert"
+      ],
+      "params": "{range?, shift: right|down|row|column}",
+      "undoable": true
+    },
+    {
+      "id": "home.insertCopiedCells",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Copied Cells",
+      "menu": [
+        "Home",
+        "Cells",
+        "Insert"
+      ],
+      "params": "{at?: \"B3\", shift?: down|right}: inserts the copied cells at `at` (the active cell) and pastes them there. Whole copied rows or columns insert whole rows or columns; other blocks shift the cells at `at` down (default) or right. A cut of whole rows or columns moves them (Insert Cut Cells)",
+      "undoable": true
+    },
+    {
+      "id": "home.deleteCells",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Cells…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Delete"
+      ],
+      "params": "{range?, shift: left|up|row|column}",
+      "undoable": true
+    },
+    {
+      "id": "home.insertSheet",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Sheet",
+      "menu": [
+        "Home",
+        "Cells",
+        "Insert"
+      ],
+      "params": "{name?, before?: index}",
+      "undoable": true
+    },
+    {
+      "id": "home.deleteSheet",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Sheet",
+      "menu": [
+        "Home",
+        "Cells",
+        "Delete"
+      ],
+      "params": "{sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.rename",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Rename Sheet",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, name}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.move",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Move or Copy Sheet…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, to: index, copy?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.tabColor",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Tab Color",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format"
+      ],
+      "params": "{sheet?, color: \"#FF0000\"|\"none\"}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.hide",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Hide Sheet",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ],
+      "params": "{sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.unhide",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unhide Sheet…",
+      "menu": [
+        "Home",
+        "Cells",
+        "Format",
+        "Hide & Unhide"
+      ],
+      "params": "{sheet}",
+      "undoable": true
+    },
+    {
+      "id": "sheet.activate",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Activate Sheet",
+      "menu": [],
+      "params": "{sheet: index | name}",
+      "undoable": false
+    },
+    {
+      "id": "sheet.next",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Next Sheet",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "sheet.previous",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Previous Sheet",
+      "menu": [],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "insert.table",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Table",
+      "menu": [
+        "Insert",
+        "Tables"
+      ],
+      "params": "{range?, header?: true, style?: \"TableStyleMedium2\", name?}",
+      "undoable": true
+    },
+    {
+      "id": "home.formatAsTable",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Format as Table",
+      "menu": [
+        "Home",
+        "Styles"
+      ],
+      "params": "{range?, style: \"TableStyleMedium2\", header?} (inside a table: restyles it)",
+      "undoable": true
+    },
+    {
+      "id": "table.totalRow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Total Row",
+      "menu": [
+        "Table",
+        "Table Style Options"
+      ],
+      "params": "{table?, on?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "table.bandedRows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Banded Rows",
+      "menu": [
+        "Table",
+        "Table Style Options"
+      ],
+      "params": "{table?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "table.bandedColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Banded Columns",
+      "menu": [
+        "Table",
+        "Table Style Options"
+      ],
+      "params": "{table?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "table.headerRow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Header Row",
+      "menu": [
+        "Table",
+        "Table Style Options"
+      ],
+      "params": "{table?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "table.firstColumn",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "First Column",
+      "menu": [
+        "Table",
+        "Table Style Options"
+      ],
+      "params": "{table?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "table.lastColumn",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Last Column",
+      "menu": [
+        "Table",
+        "Table Style Options"
+      ],
+      "params": "{table?, on?}",
+      "undoable": true
+    },
+    {
+      "id": "table.style",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Table Styles",
+      "menu": [
+        "Table",
+        "Table Styles"
+      ],
+      "params": "{table?, style}",
+      "undoable": true
+    },
+    {
+      "id": "table.rename",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Table Name",
+      "menu": [
+        "Table",
+        "Properties"
+      ],
+      "params": "{table?, name}",
+      "undoable": true
+    },
+    {
+      "id": "table.convertToRange",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Convert to Range",
+      "menu": [
+        "Table",
+        "Tools"
+      ],
+      "params": "{table?}",
+      "undoable": true
+    },
+    {
+      "id": "table.totalFunction",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Totals Function",
+      "menu": [],
+      "params": "{table?, column: \"Sales\", function: sum|average|count|countNums|max|min|stdDev|var|none}",
+      "undoable": true
+    },
+    {
+      "id": "insert.chart",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Chart",
+      "menu": [
+        "Insert",
+        "Charts"
+      ],
+      "params": "{range?, type?: column|bar|line|pie|doughnut|area|scatter|bubble|radar|combo|histogram|waterfall|funnel|treemap|sunburst|boxWhisker|stock, subtype?: clustered|stacked|stacked100|markers, title?, at?: \"H2\", width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.recommendedCharts",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Recommended Charts",
+      "menu": [
+        "Insert",
+        "Charts"
+      ],
+      "params": "{range?, type?, subtype?} (no type: the first of insert.chartRecommendations; the ribbon button opens the dialog)",
+      "undoable": true
+    },
+    {
+      "id": "insert.chartRecommendations",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Chart Recommendations",
+      "menu": [],
+      "params": "{range?} → [{type, subtype, label}] chart types that suit the data's shape, best first",
+      "undoable": false
+    },
+    {
+      "id": "chart.set",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Chart Properties",
+      "menu": [
+        "Chart Design"
+      ],
+      "params": "{chart?: id, type?, subtype?, title?, legend?: none|bottom|top|left|right, dataLabels?, gridlines?, quartiles?: exclusive|inclusive, style?, xTitle?, yTitle?, at?, width?, height?, dx?, dy?}",
+      "undoable": true
+    },
+    {
+      "id": "chart.switchRowColumn",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Switch Row/Column",
+      "menu": [
+        "Chart Design",
+        "Data"
+      ],
+      "params": "{chart?}",
+      "undoable": true
+    },
+    {
+      "id": "chart.delete",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Chart",
+      "menu": [],
+      "params": "{chart?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.sparkline",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Sparklines",
+      "menu": [
+        "Insert",
+        "Sparklines"
+      ],
+      "params": "{range: \"B2:M2\", location: \"N2\", type?: line|column|winLoss, markers?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.picture",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Picture",
+      "menu": [
+        "Insert",
+        "Illustrations"
+      ],
+      "params": "{path? | base64?: \"...\", mime?, at?: \"B2\", width?, height?, alt?, mode?: moveOnly|moveAndSize|absolute, placement?: cell|overCells}",
+      "undoable": true
+    },
+    {
+      "id": "insert.shape",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Shapes",
+      "menu": [
+        "Insert",
+        "Illustrations"
+      ],
+      "params": "{kind: rectangle|roundedRectangle|ellipse|triangle|line|arrow|textBox, at?, width?, height?, text?, fill?, line?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.icons",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Icons",
+      "menu": [
+        "Insert",
+        "Illustrations"
+      ],
+      "params": "{name: chart|table|sum|filter|lock|comment|picture|book|folder|search|calc|check|… , at?, size?: 48, color?: hex}",
+      "undoable": true
+    },
+    {
+      "id": "insert.textBox",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Text Box",
+      "menu": [
+        "Insert",
+        "Text"
+      ],
+      "params": "{at?, width?, height?, text?}",
+      "undoable": true
+    },
+    {
+      "id": "shape.setText",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Edit Text Box",
+      "menu": [],
+      "params": "{id: textBox id, text: string}",
+      "undoable": true
+    },
+    {
+      "id": "object.delete",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Object",
+      "menu": [],
+      "params": "{kind: chart|image|shape, id}",
+      "undoable": true
+    },
+    {
+      "id": "object.move",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Move Object",
+      "menu": [],
+      "params": "{kind: chart|image|shape, id, at?: \"C3\", dx?, dy?, width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "object.setAnchorMode",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Object Properties",
+      "menu": [],
+      "params": "{kind: chart|image|shape, id, mode: moveAndSize|moveOnly|absolute}",
+      "undoable": true
+    },
+    {
+      "id": "insert.link",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Link",
+      "menu": [
+        "Insert",
+        "Links"
+      ],
+      "params": "{cell?, target: \"https://…\" | \"Book.xlsx\" | \"Sheet2!A1\" | \"mailto:…\", text?, tooltip?, remove?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "link.open",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Open Hyperlink",
+      "menu": [],
+      "params": "{url?: \"https://…\" | \"mailto:…\" | \"Sheet2!A1\", cell?} (default: the cell's link); only http, https and mailto are opened, any other scheme is an error; the UI asks before opening",
+      "undoable": true
+    },
+    {
+      "id": "review.newNote",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "New Note",
+      "menu": [
+        "Review",
+        "Notes"
+      ],
+      "params": "{cell?, text, author?}",
+      "undoable": true
+    },
+    {
+      "id": "review.newComment",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "New Comment",
+      "menu": [
+        "Review",
+        "Comments"
+      ],
+      "params": "{cell?, text, author?}",
+      "undoable": true
+    },
+    {
+      "id": "review.replyComment",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Reply",
+      "menu": [],
+      "params": "{cell?, text, author?}",
+      "undoable": true
+    },
+    {
+      "id": "review.resolveComment",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Resolve Thread",
+      "menu": [],
+      "params": "{cell?, resolved?: true}",
+      "undoable": true
+    },
+    {
+      "id": "review.deleteComment",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Comment",
+      "menu": [
+        "Review",
+        "Comments"
+      ],
+      "params": "{cell?}",
+      "undoable": true
+    },
+    {
+      "id": "review.showNote",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show/Hide Note",
+      "menu": [
+        "Review",
+        "Notes"
+      ],
+      "params": "{cell?}",
+      "undoable": true
+    },
+    {
+      "id": "insert.symbol",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Symbol",
+      "menu": [
+        "Insert",
+        "Symbols"
+      ],
+      "params": "{char: \"€\"} (inserted at the end of the active cell's text)",
+      "undoable": true
+    },
+    {
+      "id": "home.conditionalFormat",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Conditional Formatting",
+      "menu": [
+        "Home",
+        "Styles"
+      ],
+      "params": "{range?, rule: {type: cellIs|expression|containsText|beginsWith|endsWith|blanks|noBlanks|errors|noErrors|duplicate|unique|top10|aboveAverage|timePeriod|colorScale|dataBar|iconSet, operator?, value?, value2?, formula?, text?, rank?, bottom?, percent?, below?, period?, colors?: [..], color?, set?, style?: {font?: {bold?, italic?, color?}, fill?: \"#FFC7CE\" | {pattern?, fg?, bg?}, borders?, num_fmt?} (colours \"#RRGGBB\") | preset?: lightRedFill|redText|yellowFill|greenFill|redBorder|lightRedFillDarkRedText…}; a text `value` is matched as text, or kept when already a quoted literal}",
+      "undoable": true
+    },
+    {
+      "id": "home.clearRules",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Rules",
+      "menu": [
+        "Home",
+        "Styles",
+        "Conditional Formatting"
+      ],
+      "params": "{range?|sheet: true}",
+      "undoable": true
+    },
+    {
+      "id": "home.manageRules",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Manage Rules…",
+      "menu": [
+        "Home",
+        "Styles",
+        "Conditional Formatting"
+      ],
+      "params": "{delete?: index, moveUp?: index, moveDown?: index}",
+      "undoable": true
+    },
+    {
+      "id": "data.sortAscending",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Sort A to Z",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{range?, column?: \"B\"}",
+      "undoable": true
+    },
+    {
+      "id": "data.sortDescending",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Sort Z to A",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{range?, column?}",
+      "undoable": true
+    },
+    {
+      "id": "data.sort",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Sort…",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{range?, header?: bool, keys: [{column: \"B\", order: asc|desc, by?: values|cellColor|fontColor, customList?: [..]}], orientation?: rows|columns, matchCase?}",
+      "undoable": true
+    },
+    {
+      "id": "data.filter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Filter",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{range?} toggles AutoFilter on the current region",
+      "undoable": true
+    },
+    {
+      "id": "data.filterBy",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Filter Column",
+      "menu": [],
+      "params": "{column: \"B\" (or 0-based offset), values?: [..], blanks?: bool, custom?: {op: \">\", value: \"10\", op2?, value2?, and?}, top?: {count, bottom?, percent?}, aboveAverage?: bool, clear?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "data.clearFilter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{}",
+      "undoable": true
+    },
+    {
+      "id": "data.reapply",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Reapply",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{}",
+      "undoable": true
+    },
+    {
+      "id": "data.removeDuplicates",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Remove Duplicates",
+      "menu": [
+        "Data",
+        "Data Tools"
+      ],
+      "params": "{range?, columns?: [\"A\",\"C\"], header?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "data.textToColumns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Text to Columns",
+      "menu": [
+        "Data",
+        "Data Tools"
+      ],
+      "params": "{range?, delimiters?: [\",\", \"\\t\", \" \", \";\"], other?: \"|\", fixedWidths?: [5, 10], treatConsecutive?: bool, textQualifier?: \"\\\"\", destination?: \"B1\"}",
+      "undoable": true
+    },
+    {
+      "id": "data.validation",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Data Validation…",
+      "menu": [
+        "Data",
+        "Data Tools"
+      ],
+      "params": "{range?, type: any|whole|decimal|list|date|time|textLength|custom, operator?: between|notBetween|equal|notEqual|greater|less|greaterOrEqual|lessOrEqual, formula1, formula2?, ignoreBlank?, dropdown?, inputTitle?, inputMessage?, errorStyle?: stop|warning|information, errorTitle?, errorMessage?, clear?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "data.validate",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Check Value Against Validation",
+      "menu": [],
+      "params": "{cell?, input} → {ok, message?}",
+      "undoable": false
+    },
+    {
+      "id": "data.circleInvalid",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Circle Invalid Data",
+      "menu": [
+        "Data",
+        "Data Tools",
+        "Data Validation"
+      ],
+      "params": "{} → invalid cells",
+      "undoable": false
+    },
+    {
+      "id": "data.group",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Group",
+      "menu": [
+        "Data",
+        "Outline"
+      ],
+      "params": "{rows?: \"2:5\" | cols?: \"B:C\" | by?: rows|cols (the selection's rows or columns; a block of cells groups rows by default), sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "data.ungroup",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Ungroup",
+      "menu": [
+        "Data",
+        "Outline"
+      ],
+      "params": "{rows? | cols? | by?: rows|cols, sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "data.hideDetail",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Hide Detail",
+      "menu": [
+        "Data",
+        "Outline"
+      ],
+      "params": "{rows? | cols? | by?, level?: 1-7} (the innermost group, or the one at `level`, holding the lines or summarised by them)",
+      "undoable": true
+    },
+    {
+      "id": "data.showDetail",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Detail",
+      "menu": [
+        "Data",
+        "Outline"
+      ],
+      "params": "{rows? | cols? | by?, level?: 1-7}",
+      "undoable": true
+    },
+    {
+      "id": "data.showLevels",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Outline Levels",
+      "menu": [],
+      "params": "{rows?: 1-8, cols?: 1-8} (1 shows only the top-level summaries, as the outline's level buttons)",
+      "undoable": true
+    },
+    {
+      "id": "data.outlineSettings",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Outline Settings",
+      "menu": [
+        "Data",
+        "Outline"
+      ],
+      "params": "{sheet?, summaryBelow?: bool, summaryRight?: bool} (summary rows below their detail, summary columns right of it; off puts them above / left) → {summaryBelow, summaryRight}",
+      "undoable": true
+    },
+    {
+      "id": "data.subtotal",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Subtotal",
+      "menu": [
+        "Data",
+        "Outline"
+      ],
+      "params": "{range?, groupBy: \"A\", function?: sum|count|average|max|min|product, columns: [\"C\"], header?: true}",
+      "undoable": true
+    },
+    {
+      "id": "data.flashFill",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Flash Fill",
+      "menu": [
+        "Data",
+        "Data Tools"
+      ],
+      "params": "{range?}",
+      "undoable": true
+    },
+    {
+      "id": "formulas.autoSum",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "AutoSum",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{function?: SUM|AVERAGE|COUNT|MAX|MIN, range?}",
+      "undoable": true
+    },
+    {
+      "id": "formulas.insertFunction",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Function…",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{name?: \"VLOOKUP\"} (UI opens the dialog; with a name, starts the formula in the active cell)",
+      "undoable": true
+    },
+    {
+      "id": "formulas.functions",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "List Functions",
+      "menu": [],
+      "params": "{category?, search?} → [{name, category, signature, description}]",
+      "undoable": false
+    },
+    {
+      "id": "formulas.defineName",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Define Name…",
+      "menu": [
+        "Formulas",
+        "Defined Names"
+      ],
+      "params": "{name, refersTo?: \"=Sheet1!$A$1:$A$10\" (default: the selection), scope?: \"Workbook\"|sheet name, comment?, oldName?, oldScope?, force?: bool} (oldName: edit that name (Name Manager › Edit); a new name also renames it in formulas; a hidden name GridCraft keeps its own data in, `_gc_<key>_<n>` or `_sc_<key>`, is refused unless force is true)",
+      "undoable": true
+    },
+    {
+      "id": "formulas.deleteName",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Name",
+      "menu": [],
+      "params": "{name, scope?: \"Workbook\"|sheet name (default: every scope), force?: bool} (a hidden name GridCraft keeps its own data in, `_gc_<key>_<n>` or `_sc_<key>`, is refused unless force is true)",
+      "undoable": true
+    },
+    {
+      "id": "formulas.nameManager",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Name Manager",
+      "menu": [
+        "Formulas",
+        "Defined Names"
+      ],
+      "params": "{} → names with values",
+      "undoable": false
+    },
+    {
+      "id": "formulas.createFromSelection",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Create from Selection",
+      "menu": [
+        "Formulas",
+        "Defined Names"
+      ],
+      "params": "{range?, top?: true, left?: false, bottom?: false, right?: false, replace?: false (existing names are kept and listed in `skipped`), force?: false (labels of the shape GridCraft keeps its own data in, `_gc_<key>_<n>` and `_sc_<key>`, are listed in `skipped` unless force is true)}",
+      "undoable": true
+    },
+    {
+      "id": "formulas.pasteName",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Paste Names…",
+      "menu": [
+        "Formulas",
+        "Defined Names"
+      ],
+      "params": "{name?: \"Sales\" (one of the names listed; OK: puts the name at the caret of the cell being edited, or starts `=Sales` in the active cell), list?: true (Paste List: writes each name and what it refers to in two columns, from `at`), at?: cell (default the active cell)} → {names: [{name, refersTo}]}: the names the Paste Name dialog lists (workbook names and the active sheet's own, hidden names left out, in alphabetical order). With neither nothing changes; the menu opens the dialog.",
+      "undoable": true
+    },
+    {
+      "id": "formulas.tracePrecedents",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Trace Precedents",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{cell?} → ranges",
+      "undoable": false
+    },
+    {
+      "id": "formulas.traceDependents",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Trace Dependents",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{cell?} → cells",
+      "undoable": false
+    },
+    {
+      "id": "formulas.selectPrecedents",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select Precedents",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{cell?, all?: true = every level (Ctrl+Shift+[)} → selects the precedent cells",
+      "undoable": false
+    },
+    {
+      "id": "formulas.selectDependents",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select Dependents",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{cell?, all?: true = every level (Ctrl+Shift+])}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.removeArrows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Remove Arrows",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.showFormulas",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Formulas",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "formulas.convertToNumber",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Convert to Number",
+      "menu": [],
+      "params": "{range?} → {converted} (numbers stored as text in the range or selection become numbers)",
+      "undoable": true
+    },
+    {
+      "id": "formulas.errorChecking",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Error Checking",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{} → cells with errors",
+      "undoable": false
+    },
+    {
+      "id": "formulas.evaluateFormula",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Evaluate Formula",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{cell?, formula?} → steps",
+      "undoable": false
+    },
+    {
+      "id": "formulas.evaluate",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Evaluate",
+      "menu": [],
+      "params": "{formula: \"=SUM(A1:A3)\", cell?} → value without changing the sheet; a formula that couldn't be entered in a cell is an error",
+      "undoable": false
+    },
+    {
+      "id": "formulas.calculateNow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Calculate Now",
+      "menu": [
+        "Formulas",
+        "Calculation"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.calculateSheet",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Calculate Sheet",
+      "menu": [
+        "Formulas",
+        "Calculation"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.calculationOptions",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Calculation Options",
+      "menu": [
+        "Formulas",
+        "Calculation"
+      ],
+      "params": "{mode?: automatic|automaticExceptTables|manual, iterative?: bool (Enable iterative calculation), maxIterations?: 1–32767 (100), maxChange?: number (0.001)} → the settings. File › Options › Formulas › Calculation options; stored in the workbook.",
+      "undoable": true
+    },
+    {
+      "id": "review.protectSheet",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Protect Sheet…",
+      "menu": [
+        "Review",
+        "Protect"
+      ],
+      "params": "{password?, formatCells?, formatColumns?, formatRows?, insertRows?, insertColumns?, deleteRows?, deleteColumns?, sort?, autofilter?}",
+      "undoable": true
+    },
+    {
+      "id": "review.unprotectSheet",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unprotect Sheet",
+      "menu": [
+        "Review",
+        "Protect"
+      ],
+      "params": "{password?}",
+      "undoable": true
+    },
+    {
+      "id": "review.protectWorkbook",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Protect Workbook",
+      "menu": [
+        "Review",
+        "Protect"
+      ],
+      "params": "{on?: bool (default: toggle), password?} (structure protection; unprotecting needs the password when one was set)",
+      "undoable": true
+    },
+    {
+      "id": "review.workbookStatistics",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Workbook Statistics",
+      "menu": [
+        "Review",
+        "Proofing"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "review.allowEditRanges",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Allow Edit Ranges…",
+      "menu": [
+        "Review",
+        "Protect"
+      ],
+      "params": "{action?: list (default) | add | modify | delete | unlock, title?, range?, password?, newTitle?, sheet?} → ranges",
+      "undoable": true
+    },
+    {
+      "id": "review.checkAccessibility",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Check Accessibility",
+      "menu": [
+        "Review",
+        "Accessibility"
+      ],
+      "params": "{} → issues",
+      "undoable": false
+    },
+    {
+      "id": "review.previousComment",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Previous Comment",
+      "menu": [
+        "Review",
+        "Comments"
+      ],
+      "params": "{} → {sheet, cell}",
+      "undoable": false
+    },
+    {
+      "id": "review.nextComment",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Next Comment",
+      "menu": [
+        "Review",
+        "Comments"
+      ],
+      "params": "{} → {sheet, cell}",
+      "undoable": false
+    },
+    {
+      "id": "review.showComments",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Comments",
+      "menu": [
+        "Review",
+        "Comments"
+      ],
+      "params": "{on?: bool} (toggles the Comments pane)",
+      "undoable": false
+    },
+    {
+      "id": "review.showAllNotes",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show All Notes",
+      "menu": [
+        "Review",
+        "Notes"
+      ],
+      "params": "{on?: bool}",
+      "undoable": false
+    },
+    {
+      "id": "review.convertToComments",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Convert to Comments",
+      "menu": [
+        "Review",
+        "Notes"
+      ],
+      "params": "{} (every note in the workbook) → {converted}",
+      "undoable": true
+    },
+    {
+      "id": "view.freezePanes",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Freeze Panes",
+      "menu": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ],
+      "params": "{sheet?, cell?: \"B2\" (rows above and columns left of it freeze); without `cell`, unfreezes a frozen sheet}",
+      "undoable": true
+    },
+    {
+      "id": "view.freezeTopRow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Freeze Top Row",
+      "menu": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ],
+      "params": "{sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "view.freezeFirstColumn",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Freeze First Column",
+      "menu": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ],
+      "params": "{sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "view.unfreezePanes",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unfreeze Panes",
+      "menu": [
+        "View",
+        "Window",
+        "Freeze Panes"
+      ],
+      "params": "{sheet?}",
+      "undoable": true
+    },
+    {
+      "id": "view.gridlines",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Gridlines",
+      "menu": [
+        "View",
+        "Show"
+      ],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "view.headings",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Headings",
+      "menu": [
+        "View",
+        "Show"
+      ],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "view.showZeros",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Zeros",
+      "menu": [],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "view.showOutlineSymbols",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Outline Symbols",
+      "menu": [],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "view.showObjects",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Objects",
+      "menu": [],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "view.rightToLeft",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Sheet Right-to-Left",
+      "menu": [
+        "Page Layout",
+        "Sheet Options"
+      ],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "view.zoom",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Zoom",
+      "menu": [
+        "View",
+        "Zoom"
+      ],
+      "params": "{percent: 10..400}",
+      "undoable": true
+    },
+    {
+      "id": "view.zoom100",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "100%",
+      "menu": [
+        "View",
+        "Zoom"
+      ],
+      "params": "{}",
+      "undoable": true
+    },
+    {
+      "id": "view.formulaBar",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Formula Bar",
+      "menu": [
+        "View",
+        "Show"
+      ],
+      "params": "{on?: bool}",
+      "undoable": false
+    },
+    {
+      "id": "view.statusBar",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Customize Status Bar",
+      "menu": [],
+      "params": "{average?, count?, numericalCount?, minimum?, maximum?, sum?: bool (the statistics shown for a selection; returns all six)}",
+      "undoable": false
+    },
+    {
+      "id": "view.zoomToSelection",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Zoom to Selection",
+      "menu": [
+        "View",
+        "Zoom"
+      ],
+      "params": "{viewWidth?, viewHeight?}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.orientation",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Orientation",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{orientation: portrait|landscape}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.size",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Size",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{paper: Letter|Legal|A4|A3|A5|A6|Tabloid|Executive|Ledger|B4|B5|B6|B4 (ISO)|B5 (ISO)|B6 (ISO)|Japanese Postcard|Japanese Double Postcard|Japanese Envelope #3|Japanese Envelope #4|Japanese Envelope Kaku #2|Japanese Envelope Kaku #3 (B4/B5/B6 are the JIS sizes)}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.margins",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Margins",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{preset?: normal|wide|narrow, left?, right?, top?, bottom?, header?, footer? (inches)}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.printArea",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Set Print Area",
+      "menu": [
+        "Page Layout",
+        "Page Setup",
+        "Print Area"
+      ],
+      "params": "{range?, clear?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.printTitles",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Print Titles",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{rows?: \"1:1\", cols?: \"A:A\"}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.scaleToFit",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Scale to Fit",
+      "menu": [
+        "Page Layout",
+        "Scale to Fit"
+      ],
+      "params": "{scale?: 100, width?: pages, height?: pages}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.printGridlines",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Print Gridlines",
+      "menu": [
+        "Page Layout",
+        "Sheet Options"
+      ],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.printHeadings",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Print Headings",
+      "menu": [
+        "Page Layout",
+        "Sheet Options"
+      ],
+      "params": "{on?}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.breaks",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Breaks",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{insert?: bool, remove?: bool, reset?: bool, cell?}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.headerFooter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Header & Footer",
+      "menu": [
+        "Insert",
+        "Text"
+      ],
+      "params": "{sheet?, header?: \"&C&P\", footer?: \"&CPage &P of &N\", differentFirst?: bool, differentOddEven?: bool, scaleWithDoc?: bool, alignWithMargins?: bool, firstHeader?, firstFooter?, evenHeader?, evenFooter?} or one section: {sheet?, page?: odd|even|first, part: header|footer, section: left|center|right, text: \"Page &[Page] of &[Pages]\"} (field names or codes) → {header, footer, differentFirst, differentOddEven, scaleWithDoc, alignWithMargins, firstHeader, firstFooter, evenHeader, evenFooter}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.theme",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Themes",
+      "menu": [
+        "Page Layout",
+        "Themes"
+      ],
+      "params": "{name: Craft|Slate|Meadow|Ember|Ocean|Orchid|Graphite, colors?: [12 hex], majorFont?, minorFont?}",
+      "undoable": true
+    },
+    {
+      "id": "document.inspect",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Inspect Workbook",
+      "menu": [],
+      "params": "{} → sheets, selection, names, tables, charts, dirty, trust (local|fromFile), history",
+      "undoable": false
+    },
+    {
+      "id": "sheet.read",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Read Range",
+      "menu": [],
+      "params": "{range?: \"A1:D10\" (default: used range), sheet?, formulas?: bool, formatted?: bool} → rows of values",
+      "undoable": false
+    },
+    {
+      "id": "cell.get",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Get Cell",
+      "menu": [],
+      "params": "{cell?, sheet?} → value, formula, display text, style, comment, link",
+      "undoable": false
+    },
+    {
+      "id": "selection.stats",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Selection Statistics",
+      "menu": [],
+      "params": "{} → count, sum, average, min, max",
+      "undoable": false
+    },
+    {
+      "id": "history.list",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Undo History",
+      "menu": [],
+      "params": "{} → undo/redo labels, grouping (an undo group is open)",
+      "undoable": false
+    },
+    {
+      "id": "app.commands",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "List Commands",
+      "menu": [],
+      "params": "{search?} → ids, labels, params",
+      "undoable": false
+    },
+    {
+      "id": "chart.addElement",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Add Chart Element",
+      "menu": [
+        "Chart Design",
+        "Chart Layouts"
+      ],
+      "params": "{chart?, element: title|legend|dataLabels|gridlines|axisTitles|smooth|trendline, on?: bool, position?: bottom|top|left|right; trendline: series?: index (default all), type?: linear|exponential|linearForecast|movingAverage|logarithmic|power|polynomial, order?: 2..6, period?: 2..255, forward?, backward?, displayEquation?, displayRSquared?}",
+      "undoable": true
+    },
+    {
+      "id": "chart.quickLayout",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Quick Layout",
+      "menu": [
+        "Chart Design",
+        "Chart Layouts"
+      ],
+      "params": "{chart?, layout: 1..6}",
+      "undoable": true
+    },
+    {
+      "id": "chart.changeColors",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Change Colors",
+      "menu": [
+        "Chart Design",
+        "Chart Styles"
+      ],
+      "params": "{chart?, palette: colorful|monochrome|accent1..accent6 | colors: [hex…]}",
+      "undoable": true
+    },
+    {
+      "id": "chart.selectData",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Select Data…",
+      "menu": [
+        "Chart Design",
+        "Data"
+      ],
+      "params": "{chart?, range?: \"Sheet1!A1:D7\", byRows?: bool, categories?: \"Sheet1!A2:A7\" (Horizontal (Category) Axis Labels for every series; \"\" clears), removeSeries?: [index…]}",
+      "undoable": true
+    },
+    {
+      "id": "chart.changeType",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Change Chart Type…",
+      "menu": [
+        "Chart Design",
+        "Type"
+      ],
+      "params": "{chart?, type, subtype?}",
+      "undoable": true
+    },
+    {
+      "id": "chart.move",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Move Chart…",
+      "menu": [
+        "Chart Design",
+        "Location"
+      ],
+      "params": "{chart?, sheet?: name (moves to that sheet), at?: \"B2\"}",
+      "undoable": true
+    },
+    {
+      "id": "chart.formatSelection",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Format Selection",
+      "menu": [
+        "Format",
+        "Current Selection"
+      ],
+      "params": "{chart?, series?: index, color?: hex}",
+      "undoable": true
+    },
+    {
+      "id": "chart.shapeFill",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Shape Fill",
+      "menu": [
+        "Format",
+        "Shape Styles"
+      ],
+      "params": "{chart? | kind: shape, id?, series?, color: hex}",
+      "undoable": true
+    },
+    {
+      "id": "chart.shapeOutline",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Shape Outline",
+      "menu": [
+        "Format",
+        "Shape Styles"
+      ],
+      "params": "{kind: shape, id?, color: hex}",
+      "undoable": true
+    },
+    {
+      "id": "arrange.bringForward",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Bring Forward",
+      "menu": [
+        "Page Layout",
+        "Arrange"
+      ],
+      "params": "{kind: chart|image|shape, id, toFront?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "arrange.sendBackward",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Send Backward",
+      "menu": [
+        "Page Layout",
+        "Arrange"
+      ],
+      "params": "{kind: chart|image|shape, id, toBack?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "arrange.selectionPane",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Selection Pane",
+      "menu": [
+        "Page Layout",
+        "Arrange"
+      ],
+      "params": "{} → objects on the sheet in stacking order",
+      "undoable": false
+    },
+    {
+      "id": "arrange.align",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Align",
+      "menu": [
+        "Page Layout",
+        "Arrange"
+      ],
+      "params": "{kind: chart|image|shape, ids: [..], align: left|center|right|top|middle|bottom}",
+      "undoable": true
+    },
+    {
+      "id": "arrange.group",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Group",
+      "menu": [
+        "Page Layout",
+        "Arrange"
+      ],
+      "params": "{kind, ids} (moves objects together: aligns their anchors to the first)",
+      "undoable": true
+    },
+    {
+      "id": "arrange.rotate",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Rotate",
+      "menu": [
+        "Page Layout",
+        "Arrange"
+      ],
+      "params": "{kind: shape, id} (swaps width/height for a 90° turn; `flip` is rejected: shapes have no flip state)",
+      "undoable": true
+    },
+    {
+      "id": "view.normal",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Normal",
+      "menu": [
+        "View",
+        "Workbook Views"
+      ],
+      "params": "{sheet?} → {view} (per sheet, saved with the file)",
+      "undoable": false
+    },
+    {
+      "id": "view.pageLayout",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Page Layout",
+      "menu": [
+        "View",
+        "Workbook Views"
+      ],
+      "params": "{sheet?} → {view}: pages on paper with rulers; headers and footers are edited in place (per sheet, saved with the file)",
+      "undoable": false
+    },
+    {
+      "id": "view.pageBreakPreview",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Page Break Preview",
+      "menu": [
+        "View",
+        "Workbook Views"
+      ],
+      "params": "{sheet?} → {view} (per sheet, saved with the file)",
+      "undoable": false
+    },
+    {
+      "id": "view.customViews",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Custom Views…",
+      "menu": [
+        "View",
+        "Workbook Views"
+      ],
+      "params": "{save?: name, show?: name, delete?: name} → list",
+      "undoable": false
+    },
+    {
+      "id": "view.split",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Split",
+      "menu": [
+        "View",
+        "Window"
+      ],
+      "params": "{} (toggles a split at the active cell; shown as frozen panes in this version)",
+      "undoable": false
+    },
+    {
+      "id": "view.newWindow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "New Window",
+      "menu": [
+        "View",
+        "Window"
+      ],
+      "params": "{} → {window, doc, title}: opens another window on the active workbook (the same workbook: saving from either window saves it)",
+      "undoable": false
+    },
+    {
+      "id": "view.arrangeAll",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Arrange All",
+      "menu": [
+        "View",
+        "Window"
+      ],
+      "params": "{arrange?: tiled|horizontal|vertical|cascade, activeWorkbook?: bool} → {arrange, windows}: lays out the visible windows (tiled by default; `activeWorkbook` only the active workbook's), the active window first",
+      "undoable": false
+    },
+    {
+      "id": "view.hideWindow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Hide",
+      "menu": [
+        "View",
+        "Window"
+      ],
+      "params": "{window?, doc?} (the active window by default)",
+      "undoable": false
+    },
+    {
+      "id": "view.unhideWindow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Unhide…",
+      "menu": [
+        "View",
+        "Window"
+      ],
+      "params": "{window?, doc?, index?} (the most recently hidden window by default)",
+      "undoable": false
+    },
+    {
+      "id": "view.switchWindows",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Switch Windows",
+      "menu": [
+        "View",
+        "Window"
+      ],
+      "params": "{window?, doc?} → open windows [{window, doc, index, title, dirty, active, hidden}]; with `window` (an id from the list), or `doc` (a workbook id: its most recent window), shows and activates that window first",
+      "undoable": false
+    },
+    {
+      "id": "view.ruler",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Ruler",
+      "menu": [
+        "View",
+        "Show"
+      ],
+      "params": "{on?} → {on}: rulers in Page Layout view (an application option)",
+      "undoable": false
+    },
+    {
+      "id": "view.macros",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Macros",
+      "menu": [
+        "View",
+        "Macros"
+      ],
+      "params": "{} → scripts",
+      "undoable": false
+    },
+    {
+      "id": "table.resize",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Resize Table",
+      "menu": [
+        "Table Design",
+        "Properties"
+      ],
+      "params": "{table?, range: \"A1:F20\"}",
+      "undoable": true
+    },
+    {
+      "id": "table.removeDuplicates",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Remove Duplicates",
+      "menu": [
+        "Table Design",
+        "Tools"
+      ],
+      "params": "{table?, columns?}",
+      "undoable": true
+    },
+    {
+      "id": "data.fromTextCsv",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "From Text/CSV",
+      "menu": [
+        "Data",
+        "Get & Transform Data"
+      ],
+      "params": "{path | text, delimiter?: \",\", sheet?: new sheet name} → imports into a new sheet as a table",
+      "undoable": true
+    },
+    {
+      "id": "data.getData",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Get Data",
+      "menu": [
+        "Data",
+        "Get & Transform Data"
+      ],
+      "params": "{path | text} (CSV/TSV/JSON array of objects) → new sheet table",
+      "undoable": true
+    },
+    {
+      "id": "data.fromTableRange",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "From Table/Range",
+      "menu": [
+        "Data",
+        "Get & Transform Data"
+      ],
+      "params": "{range?} → copies the table/range to a new sheet as a table",
+      "undoable": true
+    },
+    {
+      "id": "data.queriesConnections",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Queries & Connections",
+      "menu": [
+        "Data",
+        "Queries & Connections"
+      ],
+      "params": "{} → imported tables",
+      "undoable": false
+    },
+    {
+      "id": "automate.recordActions",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Record Actions",
+      "menu": [
+        "Automate",
+        "Scripting Tools"
+      ],
+      "params": "{stop?: bool, name?: script name when stopping}",
+      "undoable": false
+    },
+    {
+      "id": "automate.newScript",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "New Script",
+      "menu": [
+        "Automate",
+        "Scripting Tools"
+      ],
+      "params": "{name, commands: [{command, params}] }",
+      "undoable": true
+    },
+    {
+      "id": "automate.allScripts",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "All Scripts",
+      "menu": [
+        "Automate",
+        "Scripting Tools"
+      ],
+      "params": "{} → saved scripts",
+      "undoable": false
+    },
+    {
+      "id": "automate.runScript",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Run Script",
+      "menu": [],
+      "params": "{name, trusted?: bool (runs a script from an untrusted workbook this once)} — refuses scripts in a workbook opened from a file until it is trusted, and steps that reach outside the workbook (file.*, link.*, any `path` param)",
+      "undoable": true
+    },
+    {
+      "id": "automate.trustScripts",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Trust Scripts",
+      "menu": [
+        "Automate",
+        "Scripting Tools"
+      ],
+      "params": "{trusted?: bool (default true)} → {trusted}: lets this workbook's scripts run for the rest of the session",
+      "undoable": false
+    },
+    {
+      "id": "automate.deleteScript",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Script",
+      "menu": [],
+      "params": "{name}",
+      "undoable": true
+    },
+    {
+      "id": "automate.stopAction",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Stop Action",
+      "menu": [],
+      "params": "{} → {stopped: bool}: stops an action left running on the active workbook (an open undo group, such as a debugger's) and puts back the workbook and its undo history as they were when it began",
+      "undoable": false
+    },
+    {
+      "id": "insert.checkbox",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Checkbox",
+      "menu": [
+        "Insert",
+        "Cell Controls"
+      ],
+      "params": "{range?} (TRUE/FALSE and empty cells draw as checkboxes, empty ones become FALSE, other values show as they are; click or Space toggles; Delete unchecks, then removes; Clear Formats removes and keeps the values)",
+      "undoable": true
+    },
+    {
+      "id": "cell.toggleCheckbox",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Toggle Checkbox",
+      "menu": [],
+      "params": "{cell?}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.themeColors",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Colors",
+      "menu": [
+        "Page Layout",
+        "Themes"
+      ],
+      "params": "{name: theme name | colors: [12 hex]}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.themeFonts",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Fonts",
+      "menu": [
+        "Page Layout",
+        "Themes"
+      ],
+      "params": "{major, minor}",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.themeEffects",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Effects",
+      "menu": [
+        "Page Layout",
+        "Themes"
+      ],
+      "params": "{name} (chart effects preset; stored with the theme name)",
+      "undoable": true
+    },
+    {
+      "id": "pageLayout.background",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Background",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{path? | clear?: bool} (sheet background picture)",
+      "undoable": true
+    },
+    {
+      "id": "home.drawBorder",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Draw Border",
+      "menu": [
+        "Home",
+        "Font"
+      ],
+      "params": "{range, edge: top|bottom|left|right|grid, style?, color?}",
+      "undoable": true
+    },
+    {
+      "id": "home.newCellStyle",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "New Cell Style…",
+      "menu": [
+        "Home",
+        "Styles"
+      ],
+      "params": "{name, fromCell?: \"A1\" (default: active cell)}",
+      "undoable": true
+    },
+    {
+      "id": "home.addIns",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Add-ins",
+      "menu": [
+        "Home",
+        "Add-ins"
+      ],
+      "params": "{} → GridCraft extends through MCP and scripts instead of add-ins",
+      "undoable": false
+    },
+    {
+      "id": "formulas.recentlyUsed",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Recently Used",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{} → recently used functions in this workbook",
+      "undoable": false
+    },
+    {
+      "id": "formulas.financial",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Financial",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.logical",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Logical",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.text",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Text",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.dateTime",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Date & Time",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.lookupReference",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Lookup & Reference",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.mathTrig",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Math & Trig",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.moreFunctions",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "More Functions",
+      "menu": [
+        "Formulas",
+        "Function Library"
+      ],
+      "params": "{category?: Statistical|Engineering|Information|Database|Compatibility|Web|Cube}",
+      "undoable": false
+    },
+    {
+      "id": "formulas.useInFormula",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Use in Formula",
+      "menu": [
+        "Formulas",
+        "Defined Names"
+      ],
+      "params": "{name} (inserts the name into the cell being edited)",
+      "undoable": true
+    },
+    {
+      "id": "formulas.watchWindow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Watch Window",
+      "menu": [
+        "Formulas",
+        "Formula Auditing"
+      ],
+      "params": "{add?: \"Sheet1!B5\", remove?: \"…\"} → watched cells with current values",
+      "undoable": false
+    },
+    {
+      "id": "draw.pen",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Pen",
+      "menu": [
+        "Draw",
+        "Tools"
+      ],
+      "params": "{on?: bool, color?: hex, width?: 2}",
+      "undoable": false
+    },
+    {
+      "id": "draw.eraser",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Eraser",
+      "menu": [
+        "Draw",
+        "Tools"
+      ],
+      "params": "{on?: bool}",
+      "undoable": false
+    },
+    {
+      "id": "draw.lasso",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Lasso Select",
+      "menu": [
+        "Draw",
+        "Tools"
+      ],
+      "params": "{} (selects ink by dragging; same as Select Objects)",
+      "undoable": false
+    },
+    {
+      "id": "draw.stroke",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Ink Stroke",
+      "menu": [],
+      "params": "{points: [[x,y],…] in sheet points, color?: hex, width?: 2}",
+      "undoable": true
+    },
+    {
+      "id": "draw.inkToShape",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Ink to Shape",
+      "menu": [
+        "Draw",
+        "Convert"
+      ],
+      "params": "{id?} converts an ink stroke (default: the last) into a rectangle, ellipse, triangle or line",
+      "undoable": true
+    },
+    {
+      "id": "review.spelling",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Spelling",
+      "menu": [
+        "Review",
+        "Proofing"
+      ],
+      "params": "{range?, sheet?} → misspelled words with cells and suggestions",
+      "undoable": false
+    },
+    {
+      "id": "review.addToDictionary",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Add to Dictionary",
+      "menu": [],
+      "params": "{word}",
+      "undoable": false
+    },
+    {
+      "id": "review.changeSpelling",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Change",
+      "menu": [],
+      "params": "{cell, word, to, all?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "review.thesaurus",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Thesaurus",
+      "menu": [
+        "Review",
+        "Proofing"
+      ],
+      "params": "{word} → related words (words sharing the stem in the dictionary)",
+      "undoable": false
+    },
+    {
+      "id": "data.solver",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Solver…",
+      "menu": [
+        "Data",
+        "Analysis"
+      ],
+      "params": "{objective: \"B10\" (formula cell), goal?: max|min|value (default max), value?: number (for goal value), variables: \"B2:B4,D1\" (≤200 constant cells, same sheet), constraints?: [\"B5 <= 10\", \"B2:B4 >= C2:C4\", \"B2 int\", \"B3 bin\", {lhs: \"B6\", op: \"=\", rhs: 3 | \"C6\"}], nonNegative?: bool (default true: variables without a lower bound get 0), method?: grg|simplex|evolutionary (default grg), populationSize?: 100, mutationRate?: 0.075, randomSeed?: 0 (a fixed seed, so runs repeat), convergence?: 0.0001, generationsWithoutImprovement?: 50, requireBounds?: bool (default true: every variable needs both bounds; false searches within ±100 of the start) (Evolutionary options), keep?: bool (default true; false restores the original values), saveModel?: bool (default true: hidden solver_* names), maxEvaluations?: 20000, integerOptimality?: percent (default 0), saved?: bool (solve the sheet's saved model; other params override), reports?: [answer|limits] (written on new sheets when a solution is found)} → {status: optimal|converged|cannotImprove|iterationLimit|infeasible|unbounded|notLinear, message, objective, values: {cell: value}, original: {cell: value}, model: the model as params, evaluations, changed, reports?: [sheet names]}. No `objective` → {model: the saved model} (the menu opens the dialog).",
+      "undoable": true
+    },
+    {
+      "id": "data.solverReport",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Solver Reports",
+      "menu": [],
+      "params": "{reports: [answer|limits], values?: {cell: number} (the solution; default the variable cells' current values), original?: {cell: number} (the values before solving; default `values`), message?: text (the result line), model?: data.solver params (default the sheet's saved model, with any data.solver params given here over it)} → {sheets: [names]}. Writes Answer and Limits reports on new sheets before the model's sheet; Limits needs Simplex LP or GRG Nonlinear and no integer constraints. data.solver's result can be passed as is.",
+      "undoable": true
+    },
+    {
+      "id": "insert.pivotTable",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotTable",
+      "menu": [
+        "Insert",
+        "Tables"
+      ],
+      "params": "{source?: \"Sheet1!$A$1:$E$200\" | table name (default: the table or current region of the selection), destination?: \"new\" (default: new sheet before the current one, report at A3) | \"Sheet1!H3\", name?, rows?: [field | {field, group?: years|quarters|months|days}], columns?: [..], values?: [field | {field, func?, name?}], filters?: [field], replace?: bool} → {id, name, sheet, anchor, fields}",
+      "undoable": true
+    },
+    {
+      "id": "insert.recommendedPivotTables",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Recommended PivotTables",
+      "menu": [
+        "Insert",
+        "Tables"
+      ],
+      "params": "{source?, apply?: index, destination?} → suggestions [{index, title, rows, columns, values}]; with apply, creates that one",
+      "undoable": true
+    },
+    {
+      "id": "table.summarizePivot",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Summarize with PivotTable",
+      "menu": [
+        "Table Design",
+        "Tools"
+      ],
+      "params": "{table?, destination?} creates a PivotTable from the table",
+      "undoable": true
+    },
+    {
+      "id": "pivot.calculatedField",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Calculated Field",
+      "menu": [
+        "PivotTable Analyze",
+        "Calculations"
+      ],
+      "params": "{pivot?, name, formula?: \"=Sales*0.1\" (fields bare or 'quoted'; evaluated on each cell's sums), delete?: bool, values?: bool (add a new field to Values, default true)} adds, changes or deletes a calculated field; without `name` opens the dialog → {name, formula, calculatedFields}",
+      "undoable": true
+    },
+    {
+      "id": "insert.pivotChart",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotChart",
+      "menu": [
+        "Insert",
+        "Charts"
+      ],
+      "params": "{pivot?: name | id | a cell of the report (\"Sheet2!B5\"; default: the PivotTable at the active cell), type?: column|bar|line|pie|area|… (default column), subtype?, title?, at?: \"H2\", width?, height?} adds a chart bound to the PivotTable's report: categories are the innermost row items, series the column items × value fields; it follows refreshes and layout changes → {chart, pivot, series}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.fields",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotTable Fields",
+      "menu": [],
+      "params": "{pivot?} → source fields (name, numeric, date, samples, areas) and the current layout",
+      "undoable": false
+    },
+    {
+      "id": "pivot.fieldList",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Field List",
+      "menu": [
+        "PivotTable Analyze",
+        "Show"
+      ],
+      "params": "{pivot?} (same as pivot.fields)",
+      "undoable": false
+    },
+    {
+      "id": "pivot.list",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotTables",
+      "menu": [],
+      "params": "{} → every PivotTable in the workbook",
+      "undoable": false
+    },
+    {
+      "id": "pivot.addField",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Add Field",
+      "menu": [],
+      "params": "{pivot?, field, area: rows|columns|values|filters, func?: sum|count|average|max|min|product|countNumbers|stdDev|stdDevP|var|varP, name?, position?: index, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.removeField",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Remove Field",
+      "menu": [],
+      "params": "{pivot?, field (or value caption), area?: rows|columns|values|filters, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.moveField",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Move Field",
+      "menu": [],
+      "params": "{pivot?, field (\"Σ Values\" moves the value fields between rows and columns; in columns it stays after the last field), from: rows|columns|values|filters, to: rows|columns|values|filters, position?: index, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.valueSettings",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Value Field Settings",
+      "menu": [
+        "PivotTable Analyze",
+        "Active Field"
+      ],
+      "params": "{pivot?, field: caption or source field | index: n, func?, name?, showAs?: normal|percentOfGrandTotal|percentOfColumnTotal|percentOfRowTotal|runningTotal|rank, numberFormat?: \"#,##0\" | null, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.filter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Filter Items",
+      "menu": [],
+      "params": "{pivot?, field, selected: [\"East\", ..] | null (all), replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.sort",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Sort Field",
+      "menu": [],
+      "params": "{pivot?, field, order: asc|desc|none, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.group",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Group Field",
+      "menu": [
+        "PivotTable Analyze",
+        "Group"
+      ],
+      "params": "{pivot?, field, by: years|quarters|months|days|none, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.collapse",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Expand/Collapse Field",
+      "menu": [
+        "PivotTable Analyze",
+        "Active Field"
+      ],
+      "params": "{pivot?, field, items?: [labels] (default: all), collapse?: true, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.layout",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotTable Layout",
+      "menu": [
+        "PivotTable Design",
+        "Layout"
+      ],
+      "params": "{pivot?, layout?: compact|outline|tabular, grandTotalsRows?: bool, grandTotalsCols?: bool, subtotals?: bool|top|bottom|none, style?: \"PivotStyleLight16\", showHeaders?: bool, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.grandTotals",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Grand Totals",
+      "menu": [
+        "PivotTable Design",
+        "Layout"
+      ],
+      "params": "{pivot?, mode?: off|on|rows|columns, rows?: bool, cols?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.subtotals",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Subtotals",
+      "menu": [
+        "PivotTable Design",
+        "Layout"
+      ],
+      "params": "{pivot?, mode: none|top|bottom}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.reportLayout",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Report Layout",
+      "menu": [
+        "PivotTable Design",
+        "Layout"
+      ],
+      "params": "{pivot?, layout: compact|outline|tabular}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.style",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotTable Styles",
+      "menu": [
+        "PivotTable Design",
+        "PivotTable Styles"
+      ],
+      "params": "{pivot?, style: \"PivotStyleMedium9\"}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.refresh",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Refresh",
+      "menu": [
+        "PivotTable Analyze",
+        "Data"
+      ],
+      "params": "{pivot?, replace?}",
+      "undoable": true
+    },
+    {
+      "id": "data.refreshAll",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Refresh All",
+      "menu": [
+        "Data",
+        "Queries & Connections"
+      ],
+      "params": "{replace?} refreshes every PivotTable → {refreshed, errors}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.changeSource",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Change Data Source",
+      "menu": [
+        "PivotTable Analyze",
+        "Data"
+      ],
+      "params": "{pivot?, source: \"Sheet1!$A$1:$E$300\" | table name, replace?} (fields missing from the new source are removed)",
+      "undoable": true
+    },
+    {
+      "id": "pivot.showDetails",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Details",
+      "menu": [],
+      "params": "{cell?: \"B5\" (a value, subtotal or grand total cell of a PivotTable on the active sheet; default: the active cell)} puts the source records behind that value on a new sheet before the current one → {sheet, records}. An error when the PivotTable's Enable show details option is off (`pivot.options` `{enableShowDetails: true}` turns it on).",
+      "undoable": true
+    },
+    {
+      "id": "pivot.options",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "PivotTable Options",
+      "menu": [
+        "PivotTable Analyze",
+        "PivotTable"
+      ],
+      "params": "{pivot?, enableShowDetails?: bool (Data › Enable show details: off, Show Details and double-clicking a value cell list no records)} → {enableShowDetails}",
+      "undoable": true
+    },
+    {
+      "id": "pivot.delete",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete PivotTable",
+      "menu": [
+        "PivotTable Analyze",
+        "Actions"
+      ],
+      "params": "{pivot?} clears the report and removes the PivotTable",
+      "undoable": true
+    },
+    {
+      "id": "insert.slicer",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Slicer",
+      "menu": [
+        "Insert",
+        "Filters"
+      ],
+      "params": "{table?, column?: \"Region\", columns?: 1, at?: \"H2\", width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "table.insertSlicer",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Insert Slicer",
+      "menu": [
+        "Table",
+        "Tools"
+      ],
+      "params": "{table?, column?: \"Region\", columns?: 1, at?, width?, height?}",
+      "undoable": true
+    },
+    {
+      "id": "slicer.toggle",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Toggle Slicer Value",
+      "menu": [],
+      "params": "{slicer?: id, value: \"East\", multi?: false}",
+      "undoable": true
+    },
+    {
+      "id": "slicer.selectAll",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Slicer Filter",
+      "menu": [],
+      "params": "{slicer?: id}",
+      "undoable": true
+    },
+    {
+      "id": "slicer.clear",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Clear Slicer Filter",
+      "menu": [],
+      "params": "{slicer?: id}",
+      "undoable": true
+    },
+    {
+      "id": "slicer.delete",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Slicer",
+      "menu": [],
+      "params": "{slicer?: id}",
+      "undoable": true
+    },
+    {
+      "id": "data.goalSeek",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Goal Seek…",
+      "menu": [
+        "Data",
+        "Forecast",
+        "What-If Analysis"
+      ],
+      "params": "{set: \"B5\" (formula cell), to: number, changing: \"B2\" (constant cell)} → {value, result, iterations, converged}. Secant search with bisection once the answer is bracketed; stops within Maximum Change (0.001) or after Maximum Iterations (100) from File › Options › Formulas. Writes the found value into `changing`.",
+      "undoable": true
+    },
+    {
+      "id": "data.scenarioManager",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Scenario Manager…",
+      "menu": [
+        "Data",
+        "Forecast",
+        "What-If Analysis"
+      ],
+      "params": "{sheet?} → {scenarios: [{name, sheet, changing, values, comment}]} (scenarios of the active sheet; `sheet: \"*\"` lists all)",
+      "undoable": false
+    },
+    {
+      "id": "data.scenarioAdd",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Add Scenario",
+      "menu": [],
+      "params": "{name, changing: \"B2:B4\" or \"B2,B4\" (≤32 cells, active sheet), values?: [..] (default: the cells' current values), comment?, replace?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "data.scenarioShow",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Show Scenario",
+      "menu": [],
+      "params": "{name} writes the scenario's values into its changing cells",
+      "undoable": true
+    },
+    {
+      "id": "data.scenarioDelete",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Delete Scenario",
+      "menu": [],
+      "params": "{name}",
+      "undoable": true
+    },
+    {
+      "id": "data.scenarioSummary",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Scenario Summary",
+      "menu": [],
+      "params": "{resultCells?: \"B10\" or \"B10:B12,D4\"} inserts a \"Scenario Summary\" sheet: changing cells and result cells for the current values and each scenario",
+      "undoable": true
+    },
+    {
+      "id": "data.dataTable",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Data Table…",
+      "menu": [
+        "Data",
+        "Forecast",
+        "What-If Analysis"
+      ],
+      "params": "{range: \"D2:E10\", rowInput?: \"B1\", columnInput?: \"B2\"} one-variable (values down the first column with columnInput, or across the top row with rowInput; formulas in the other edge) or two-variable (formula in the top-left corner). Computes every result by substitution and writes static values (a snapshot, not a live {=TABLE()}); ≤100,000 cells.",
+      "undoable": true
+    },
+    {
+      "id": "data.advancedFilter",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Advanced…",
+      "menu": [
+        "Data",
+        "Sort & Filter"
+      ],
+      "params": "{range? (list with headers; default current region), criteria?: \"H1:I3\" (omitted/blank matches all rows; header row of field names; rows OR'ed, columns AND'ed; \">100\", \"=abc\", \"a*\", \"<>\"; blank-headed formula cells are computed criteria for the first data row), copyTo?: \"K1\" (else filter in place by hiding rows), unique?: bool}",
+      "undoable": true
+    },
+    {
+      "id": "data.consolidate",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Consolidate…",
+      "menu": [
+        "Data",
+        "Data Tools"
+      ],
+      "params": "{sources: [\"Sheet2!A1:C10\", ..], destination?: \"A1\" (default active cell), function?: sum|count|countNums|average|max|min|product, topRow?: bool, leftColumn?: bool (consolidate by labels; else by position)}",
+      "undoable": true
+    },
+    {
+      "id": "data.forecastSheet",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Forecast Sheet",
+      "menu": [
+        "Data",
+        "Forecast"
+      ],
+      "params": "{timeline?: \"A2:A25\", values?: \"B2:B25\" (default: the first two columns of `range`, the selection or the current region; a text first cell is the header), end?: timeline value or date text | periods?: n (default: a third of the history, at least 1; ≤10,000 and history × periods ≤ 500,000; history ≤ 10,000 rows), forecastStart?: a timeline value or date text on the history, before its last point (hindcast: the model is fit to the points before it, the forecast columns start there and run over the actuals; default and the last point: forecast after the history), confidenceInterval?: bool (default true), confidence?: 0.95 or 95, seasonality?: \"auto\" | 0 (none) | 2–8,760, fillMissing?: interpolate|zeros, aggregate?: average|count|counta|max|median|min|sum, statistics?: bool, chart?: line|column} → {sheet, table, chart, history, periods}. Inserts a sheet before the active one: timeline, values, Forecast (FORECAST.ETS), Lower/Upper Confidence Bound (FORECAST.ETS.CONFINT), optional FORECAST.ETS.STAT table, and a chart.",
+      "undoable": true
+    },
+    {
+      "id": "data.analysisToolPak",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Data Analysis…",
+      "menu": [
+        "Data",
+        "Analysis"
+      ],
+      "params": "{tool: anovaSingle|correlation|covariance|descriptive|exponentialSmoothing|fTest|histogram|movingAverage|rankPercentile|regression|tTestPaired|tTestEqual|tTestUnequal (or the tool's label), output?: \"E1\" (top-left of the report; default a new sheet), newSheet?: name, outputTo?: range|newSheet (picks between the two), overwrite?: bool (else non-empty output cells are refused), labels?: bool (first row/column holds names), groupedBy?: columns|rows, …tool params} — range tools take `range`; descriptive: summary? (default true), confidence?: 95, kthLargest?, kthSmallest?; histogram: bins?: range (default evenly spaced), pareto?, cumulative?; regression: inputY, inputX, constantZero?, confidence?: 95, residuals?, standardizedResiduals?, normalProbability?; movingAverage: interval? (3), standardErrors?; exponentialSmoothing: damping? (0.3), standardErrors?; t-tests and fTest: range1, range2, alpha? (0.05), hypothesizedDifference? (0); anovaSingle: alpha?. Writes static values. No `tool` → {tools} (the menu opens the dialog).",
+      "undoable": true
+    },
+    {
+      "id": "file.exportPdf",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Export as PDF",
+      "menu": [
+        "File",
+        "Export"
+      ],
+      "params": "{path?, sheets?: active|all, range?: \"A1:F40\" (active sheet), fitToPage?: bool} → {pages, bytes, path} or {pages, bytes, base64} when no path. Honours each sheet's Page Setup.",
+      "undoable": false
+    },
+    {
+      "id": "file.print",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Print…",
+      "menu": [
+        "File"
+      ],
+      "params": "{path?, sheets?: active|all, range?, fitToPage?: bool} → {pages, bytes, base64} — the PDF the UI hands to the system print dialog",
+      "undoable": false
+    },
+    {
+      "id": "file.printPreview",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Print Preview",
+      "menu": [
+        "File"
+      ],
+      "params": "{page? (1-based), sheets?: active|all, range?, fitToPage?} → {pages, pageList: [{page, sheet, range, rows, columns, scale, paper, orientation, width, height}]}",
+      "undoable": false
+    },
+    {
+      "id": "pageLayout.pageSetup",
+      "interface": "routed by command center and CLI; dedicated GPUI workflow verification tracked in MIGRATION.md",
+      "label": "Page Setup…",
+      "menu": [
+        "Page Layout",
+        "Page Setup"
+      ],
+      "params": "{sheet?, orientation?: portrait|landscape, paper?: Letter|Legal|A4|A3|A5|A6|Tabloid|Executive|Ledger|B4|B5|B6|B4 (ISO)|B5 (ISO)|B6 (ISO)|Japanese Postcard|Japanese Double Postcard|Japanese Envelope #3|Japanese Envelope #4|Japanese Envelope Kaku #2|Japanese Envelope Kaku #3 (B4/B5/B6 are the JIS sizes), margins?: {left,right,top,bottom,header,footer} (inches; also accepted as top-level keys), scale?: 10..400, fitWidth?, fitHeight? (pages; 0 = automatic), fitToPage?: bool, centerH?, centerV?, gridlines?, headings?, header?: \"&L&A&RPage &P of &N\", footer?, printArea?: \"A1:F50\" (\"\" clears), titleRows?: \"1:2\", titleCols?: \"A:A\", rowBreaks?: [46, 91], colBreaks?: [\"K\"]} → the sheet's print settings",
+      "undoable": true
+    }
+  ],
+  "registeredCount": 355
+}

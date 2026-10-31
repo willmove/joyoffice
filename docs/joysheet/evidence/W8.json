@@ -1,0 +1,41 @@
+{
+  "processId": 28600,
+  "nativeImeVerified": false,
+  "m8Task": 0,
+  "m7Task": 0,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "W5 both real input handlers: UTF-16 Chinese/emoji composition, Enter/Tab/F6 and pointer/commit/save guards, candidate layout and exactly-once commit (synthetic IME)",
+    "W6 production logical layout at synthetic 100/125/150/175/200/300 percent DPI with native-resolution GPU captures, 125 percent worksheet zoom/freeze, IME anchors and hit testing; real OS scale restored",
+    "W7 actual Windows UIA discovers the AccessKit grid and focuses a merged cell through its provider; spans/values, virtual node budget and frozen clipping verified (screen-reader speech remains manual)",
+    "W8 real WPF paginator writes a one-page XPS with selected page/margins and no queue submission; invalid ranges, stale-sheet print rejection, background close race and keyboard preview retry verified",
+    "W8 actual native PrintDialog Cancel invoked through its owned-process UIA provider twice: outcome/retry and closing preview while the dialog retains its document; no spool job submitted"
+  ],
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "saveDialog": false,
+  "port": 54987,
+  "passed": true,
+  "windowsQualityTask": 4,
+  "m6Task": 0,
+  "windowsFrom": 1,
+  "m4Task": 0,
+  "platform": "Windows x64",
+  "m5Task": 0,
+  "binarySha256": "385cd17db2b4b0742806a7ea025694900a8fffff25841269072b59e5c0f74f41",
+  "windowsTask": 0,
+  "stage": "M1",
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 53,
+    "paintP95Ms": 2.1437,
+    "paintedCells": 704,
+    "gpuPresentationMeasured": false,
+    "editSamples": 0,
+    "editP95Ms": null,
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  }
+}

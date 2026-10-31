@@ -1,0 +1,11 @@
+{
+  "queueSubmissionVerified": false,
+  "dialogOpened": true,
+  "source": "GPUI file.print → guarded engine PDF export → native rasterization → WPF PrintDialog",
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\artifacts\\M6-package-smoke\\joysheet-0.1.0-M6-alpha-windows-x86_64\\joysheet.exe",
+  "sha256": "0F635D2603E6834A5ED1CEF23A14775162357B298263A2EA895D5641A2CD821E",
+  "windowTitle": "打印",
+  "cleanup": "only the test-owned print helper was terminated",
+  "passed": true,
+  "cancelVerified": false
+}

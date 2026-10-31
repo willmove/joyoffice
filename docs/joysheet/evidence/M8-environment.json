@@ -1,0 +1,11 @@
+{
+  "host": "Windows x64",
+  "note": "No remote CI dispatched; native platform acceptance is not inferred from configuration.",
+  "date": "2026-10-29",
+  "gitRemoteConfigured": false,
+  "signingIdentityProvided": false,
+  "macosRuntime": false,
+  "windowsRuntime": true,
+  "linuxRuntime": false,
+  "wslDistributions": 0
+}

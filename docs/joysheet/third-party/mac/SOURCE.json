@@ -1,0 +1,11 @@
+{
+  "package": "mac-0.1.1",
+  "source": "published crates.io archive",
+  "standardText": "Apache-2.0",
+  "originalStandaloneTextAvailable": false,
+  "files": {
+    "DECLARATION.md": "82a998747f4a540cf0ccd33dbade1eacd026a74367936314e25cadc987263bc5",
+    "LICENSE-APACHE-standard": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+    "README.md": "8edb7a912d295acf1e1cfeafdd19a6813a63b301c7bbfda3c67f65509bd8d8cc"
+  }
+}

@@ -1,0 +1,17 @@
+[package]
+name = "joysheet"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+joysheet-ui-gpui.workspace = true
+
+[features]
+automation = ["joysheet-ui-gpui/automation"]
+
+[build-dependencies]
+embed-resource = "=3.0.12"

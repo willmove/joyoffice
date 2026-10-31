@@ -1,0 +1,60 @@
+[
+  {
+    "openToViewMs": 1078.3836,
+    "paint": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 61,
+      "paintP95Ms": 4.844399999999999,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false,
+      "editSamples": 0,
+      "editP95Ms": null,
+      "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+    },
+    "gpuFrameTimeMeasured": false,
+    "editResponse": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 175,
+      "paintP95Ms": 3.6969,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false,
+      "editSamples": 30,
+      "editP95Ms": 50.0784,
+      "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+    },
+    "workingSetBytes": 446095360,
+    "columns": 20,
+    "openEngineCommandMs": 39.9453,
+    "rows": 10000,
+    "inputLatencyMeasured": false
+  },
+  {
+    "openToViewMs": 1464.6296,
+    "paint": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 61,
+      "paintP95Ms": 8.199,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false,
+      "editSamples": 0,
+      "editP95Ms": null,
+      "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+    },
+    "gpuFrameTimeMeasured": false,
+    "editResponse": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 173,
+      "paintP95Ms": 8.1573,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false,
+      "editSamples": 30,
+      "editP95Ms": 54.147,
+      "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+    },
+    "workingSetBytes": 630198272,
+    "columns": 20,
+    "openEngineCommandMs": 396.5736,
+    "rows": 100000,
+    "inputLatencyMeasured": false
+  }
+]

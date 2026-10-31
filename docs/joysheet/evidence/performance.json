@@ -1,0 +1,34 @@
+[
+  {
+    "paint": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 61,
+      "paintP95Ms": 3.3141,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false
+    },
+    "columns": 20,
+    "openEngineCommandMs": 36.6374,
+    "workingSetBytes": 451252224,
+    "gpuFrameTimeMeasured": false,
+    "openToViewMs": 747.0024,
+    "rows": 10000,
+    "inputLatencyMeasured": false
+  },
+  {
+    "paint": {
+      "kind": "CPU worksheet paint submission",
+      "samples": 59,
+      "paintP95Ms": 2.4758,
+      "paintedCells": 704,
+      "gpuPresentationMeasured": false
+    },
+    "columns": 20,
+    "openEngineCommandMs": 380.1444,
+    "workingSetBytes": 646709248,
+    "gpuFrameTimeMeasured": false,
+    "openToViewMs": 772.1177,
+    "rows": 100000,
+    "inputLatencyMeasured": false
+  }
+]

@@ -1,0 +1,60 @@
+name: Joysheet native builds
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '15.0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98.1
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Verify Apple Silicon baseline
+        if: runner.os == 'macOS'
+        run: test "$(uname -m)" = arm64
+      - name: Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake clang pkg-config libfontconfig-dev libwayland-dev libwebkit2gtk-4.1-dev libxkbcommon-x11-dev libx11-xcb-dev libssl-dev libzstd-dev libvulkan1
+      - name: Prepare Windows environment
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Windows installer compiler
+        if: runner.os == 'Windows'
+        run: choco install nsis --version=3.11 -y --no-progress
+      - run: cargo xtask ci
+      - run: cargo xtask wasm
+      - run: cargo xtask smoke --stage M8 --engine-only
+      - run: cargo xtask inventory
+      - run: cargo xtask dist
+      - name: Validate native bundle structure
+        if: runner.os == 'macOS'
+        run: |
+          plutil -lint dist/joysheet-*/Joysheet.app/Contents/Info.plist
+          codesign --verify --deep --strict dist/joysheet-*/Joysheet.app
+      - name: Validate Linux dynamic dependencies
+        if: runner.os == 'Linux'
+        run: |
+          ldd target/release/joysheet | tee artifacts/linux-ldd.txt
+          ! grep -q 'not found' artifacts/linux-ldd.txt
+          dpkg-deb --info dist/*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: joysheet-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            dist/*.zip
+            dist/*-setup.exe
+            dist/*.dmg
+            dist/*.deb
+            dist/*.tar.gz
+            artifacts/

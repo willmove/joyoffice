@@ -1,0 +1,181 @@
+{
+  "m5Task": 0,
+  "processId": 8608,
+  "m6Task": 0,
+  "nativeImeVerified": false,
+  "saveDialog": false,
+  "windowsQualityTask": 0,
+  "platform": "Windows x64",
+  "binarySha256": "dda994901f8419f0969933ff484573dfa95f99ef077281767ead3e4c8d0558f6",
+  "m7Task": 0,
+  "port": 51396,
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "passed": true,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 183,
+    "paintP95Ms": 1.0948,
+    "paintedCells": 450,
+    "gpuPresentationMeasured": false,
+    "editSamples": 0,
+    "editP95Ms": null,
+    "stages": {
+      "scope": "commit handler through first matching worksheet CPU paint; no GPU presentation",
+      "capacity": 512,
+      "pending": 0,
+      "discarded": 0,
+      "editCount": 0,
+      "phases": {
+        "totalMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "preflightMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "queueMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "engineMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "snapshotMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "publishMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "uiPollMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "uiSyncMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "frameWaitMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "prepaintMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "geometryMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "layoutMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "paintMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "cellsMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "textMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "scrollbarMs": {
+          "count": 0,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        }
+      },
+      "edits": null,
+      "frames": null
+    },
+    "recovery": {
+      "busy": false,
+      "completed": 29,
+      "doc": 6,
+      "serializeMs": 194.7681,
+      "ioMs": 100.9573,
+      "bytes": 127507655,
+      "totalMs": 295.7387,
+      "success": true
+    },
+    "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
+  },
+  "windowsTask": 0,
+  "m4Task": 0,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "GPUI pointer and text events; Unicode; formula editing and recalculation",
+    "keyboard undo and redo",
+    "GPUI marked composition blocks premature spreadsheet submission (synthetic)",
+    "shared formula/cell draft and Escape cancellation",
+    "native millionth-row go-to, bounded painting and hit testing",
+    "formula range picking and registered function completion",
+    "native clipboard keyboard copy/paste preserves relative formulas",
+    "TSV paste; formatting; freeze; zoom",
+    "GPUI formatting form and command submission",
+    "debounced automatic save of an existing XLSX",
+    "cancelled close retains workbook edits",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "live stdio MCP handshake, cell query and native screenshot",
+    "independent native views, retained background draft and explicit-window commit",
+    "native 10000x20 and 100000x20 CSV viewing and bounded scroll paint samples"
+  ],
+  "stage": "M3",
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\artifacts\\P2-bin\\joysheet.exe",
+  "windowsFrom": 1,
+  "m8Task": 0
+}

@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-29",
+  "command": "cargo xtask ci",
+  "passed": 1360,
+  "failed": 0,
+  "ignored": 1,
+  "fmt": true,
+  "strictClippy": true,
+  "layers": true,
+  "log": "artifacts/M8-ci-final.log"
+}

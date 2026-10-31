@@ -1,0 +1,12 @@
+{
+  "package": "gpui-kit",
+  "repo": "longbridge/gpui-kit",
+  "revision": "99576db58ec8103417c41a092e891b4022d24e7e",
+  "files": [
+    {
+      "file": "LICENSE-APACHE",
+      "url": "https://raw.githubusercontent.com/longbridge/gpui-kit/99576db58ec8103417c41a092e891b4022d24e7e/LICENSE-APACHE",
+      "sha256": "d1b0449e5478c574ba4f686c2656df7fe77d66821a61f8b6ed3378a58ed9a811"
+    }
+  ]
+}

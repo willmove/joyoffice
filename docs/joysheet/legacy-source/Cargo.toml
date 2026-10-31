@@ -1,0 +1,66 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "apps/*", "xtask"]
+default-members = ["apps/joysheet", "apps/joysheet-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.98"
+
+[workspace.dependencies]
+gridcraft-core = { path = "crates/core" }
+gridcraft-numfmt = { path = "crates/numfmt" }
+gridcraft-formula = { path = "crates/formula" }
+gridcraft-functions = { path = "crates/functions" }
+gridcraft-model = { path = "crates/model" }
+gridcraft-calc = { path = "crates/calc" }
+gridcraft-xlsx = { path = "crates/xlsx" }
+gridcraft-chart = { path = "crates/chart" }
+gridcraft-pdf = { path = "crates/pdf" }
+gridcraft-engine = { path = "crates/engine" }
+gridcraft-mcp = { path = "crates/mcp" }
+joysheet-app = { path = "crates/joysheet-app" }
+joysheet-protocol = { path = "crates/joysheet-protocol" }
+joysheet-platform = { path = "crates/joysheet-platform" }
+joysheet-ui-gpui = { path = "crates/joysheet-ui-gpui" }
+gpui-kit = "=0.8.1"
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+thiserror = "2"
+log = "0.4"
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+regex = { version = "1", default-features = false, features = ["std", "unicode", "perf"] }
+quick-xml = "0.41"
+zip = { version = "3", default-features = false, features = ["deflate"] }
+aes = { version = "0.9", default-features = false }
+sha1 = { version = "0.11", default-features = false }
+sha2 = { version = "0.11", default-features = false }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+rfd = "0.17"
+arboard = "3.6"
+getrandom = "0.4"
+url = "2.5.8"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+dbg_macro = "warn"
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[profile.dev]
+opt-level = 1
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
+
+[profile.release]
+lto = "thin"
+codegen-units = 16
+strip = "symbols"
+

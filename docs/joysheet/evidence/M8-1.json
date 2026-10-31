@@ -1,0 +1,29 @@
+{
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 24,
+    "paintP95Ms": 1.7401,
+    "paintedCells": 450,
+    "gpuPresentationMeasured": false
+  },
+  "stage": "M1",
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "platform": "Windows x64",
+  "m4Task": 0,
+  "m6Task": 0,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "M8.1 local file URL/drop handler validates paths and commits draft; unsupported file rejected (synthetic control regression)"
+  ],
+  "m7Task": 0,
+  "m8Task": 1,
+  "saveDialog": false,
+  "nativeImeVerified": false,
+  "port": 59858,
+  "passed": true,
+  "processId": 27020,
+  "m5Task": 0
+}

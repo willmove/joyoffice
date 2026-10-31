@@ -1,0 +1,30 @@
+{
+  "m6Task": 0,
+  "m4Task": 0,
+  "m5Task": 0,
+  "m8Task": 2,
+  "processId": 3860,
+  "checks": [
+    "native GPUI window and sales screenshot",
+    "engine workbook data and formula preview",
+    "TSV paste; formatting; freeze; zoom",
+    "XLSX save/close/reopen and native GPU screenshot",
+    "M8.1 local file URL/drop handler validates paths and commits draft; unsupported file rejected (synthetic control regression)",
+    "M8.2 settings/shortcut, multi-area selection, resize and undo, cross-sheet formula reference and sheet tab reorder through production GPUI events"
+  ],
+  "platform": "Windows x64",
+  "saveDialog": false,
+  "performance": {
+    "kind": "CPU worksheet paint submission",
+    "samples": 77,
+    "paintP95Ms": 2.0071,
+    "paintedCells": 450,
+    "gpuPresentationMeasured": false
+  },
+  "nativeImeVerified": false,
+  "port": 59028,
+  "stage": "M1",
+  "m7Task": 0,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\target\\debug\\joysheet.exe",
+  "passed": true
+}

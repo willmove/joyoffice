@@ -1,0 +1,1 @@
+Published crate omits a standalone license text. The published Cargo manifest and README preserve its authors and declared license. The accompanying standard license body is supplied separately; no original copyright notice has been invented. Original-text provenance remains an audit limitation.

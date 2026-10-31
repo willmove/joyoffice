@@ -1,0 +1,12 @@
+{
+  "source": "Windows sky native click with accessibility and screenshot refresh, separately verified via app inspection",
+  "checks": [
+    "Home/Data visible tab selection",
+    "native Data Sort button opens production parameter form",
+    "final packaged Release"
+  ],
+  "ribbonTab": 5,
+  "dialog": "commands",
+  "passed": true,
+  "binarySha256": "80c862341e77cb60c731ff5d95bf3dba8f6ecfe6f02b694a0377c12492642169"
+}

@@ -1,0 +1,8 @@
+{
+  "layers": "passed",
+  "testsPassed": 1353,
+  "clippy": "workspace all-targets automation -D warnings",
+  "command": "cargo xtask ci",
+  "passed": true,
+  "testsIgnored": 1
+}

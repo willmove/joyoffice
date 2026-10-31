@@ -1,0 +1,11 @@
+{
+  "ordinaryDesktopCheck": true,
+  "testsPassed": 1387,
+  "wasmCoreCheck": true,
+  "passed": true,
+  "testsIgnored": 1,
+  "command": "cargo xtask ci",
+  "layers": true,
+  "format": true,
+  "strictClippy": true
+}
