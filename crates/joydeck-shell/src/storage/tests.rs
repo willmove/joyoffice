@@ -130,13 +130,13 @@ fn readonly_replace_failure_preserves_original() {
     let fp = save(&path, &s.deck, None).unwrap();
     let before = std::fs::read(&path).unwrap();
     let mut permissions = std::fs::metadata(&path).unwrap().permissions();
+    let original_permissions = permissions.clone();
     permissions.set_readonly(true);
     std::fs::set_permissions(&path, permissions).unwrap();
     s.execute(s.id, Command::AddPage).unwrap();
     assert!(save(&path, &s.deck, Some(fp)).is_err());
     assert_eq!(std::fs::read(&path).unwrap(), before);
-    let mut permissions = std::fs::metadata(&path).unwrap().permissions();
-    permissions.set_readonly(false);
+    let permissions = original_permissions;
     std::fs::set_permissions(&path, permissions).unwrap();
     std::fs::remove_file(path).unwrap();
     std::fs::remove_dir(root).unwrap();
