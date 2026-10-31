@@ -1,0 +1,101 @@
+{
+  "binarySha256": "958868912abd6739423c64a8a1ddd8e7684a1bd5c8312692a33af60e6ccd308b",
+  "cliSha256": "9361882c35fc42f506e3e0b06226039e613f43f81964c578992b5d30cca3b14e",
+  "nativeOnly": false,
+  "guiPassed": true,
+  "foregroundActivation": {
+    "required": true,
+    "panels": {
+      "0": {
+        "requestedPid": 66486,
+        "frontmostPid": 66486,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "1": {
+        "requestedPid": 66486,
+        "frontmostPid": 66486,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "2": {
+        "requestedPid": 66486,
+        "frontmostPid": 66486,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "3": {
+        "requestedPid": 66486,
+        "frontmostPid": 66486,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "4": {
+        "requestedPid": 66486,
+        "frontmostPid": 66486,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    }
+  },
+  "panelsCaptured": 5,
+  "canvas": {
+    "foregroundActivation": {
+      "requestedPid": 66486,
+      "frontmostPid": 66486,
+      "verified": true,
+      "activationRequested": true,
+      "attempts": 1,
+      "settleSeconds": 0.2
+    },
+    "meanRgbError": 0.3285736149372513,
+    "fractionPixelsOver48": 0.0023209366391184574,
+    "interiorRgbError": 0.05444173529749181,
+    "interiorPixelsOver16": 0.0,
+    "edgePixelsOver128": 0.0,
+    "passed": true
+  },
+  "nativeState": {
+    "nativeWindowsOpenedClosed": 24,
+    "editUndoCycles": 120,
+    "liveWindows": 1,
+    "preferencesRestored": true,
+    "windowHeightRestoredWithoutShrink": true,
+    "comparisonAcceptedUndoRedo": true,
+    "mp4ExportDocumentUnchanged": true,
+    "exportedVideoDisplayed": true,
+    "scope": "native handlers; screenshot status recorded separately; no physical dual-display/reader certification"
+  },
+  "video": {
+    "audioTracks": 0,
+    "duration": 18,
+    "firstPts": 0,
+    "frames": 270,
+    "height": 540,
+    "lastPts": 17.933333333333334,
+    "monotonicPts": true,
+    "videoTracks": 1,
+    "width": 960
+  },
+  "decodedFrameMeanRgbError": 0.9073894032921811,
+  "cliCompareAcceptUndo": true,
+  "titleVttTimeline": true,
+  "diagnosticsFieldsChecked": true,
+  "appMaxRssKiB": 215424,
+  "preferences": {
+    "schema": 2,
+    "generation": 2,
+    "recentCount": 1
+  },
+  "passed": true
+}

@@ -79,7 +79,8 @@ impl Default for TableStyle {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Range {
     pub top: usize,
     pub left: usize,
@@ -104,7 +105,13 @@ impl Range {
         }
     }
 }
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(
+    tag = "type",
+    content = "value",
+    rename_all = "camelCase",
+    deny_unknown_fields
+)]
 pub enum Action {
     SetCell(usize, usize, String, Vec<Run>),
     Paste(usize, usize, String),

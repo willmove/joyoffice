@@ -1,0 +1,70 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running `target/debug/joyoffice-xtask package joydeck --release --validation --name joydeck-m14-closeout-20261031-r4`
++ /opt/homebrew/opt/python@3.15/bin/python3.15 scripts/joydeck/package-native.py --profile release --validation --name joydeck-m14-closeout-20261031-r4
+   Compiling joydeck-shell v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-shell)
+   Compiling joydeck v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck)
+    Finished `release` profile [optimized] target(s) in 1m 02s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+   Compiling joydeck-shell v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-shell)
+   Compiling joydeck-cli v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 18.22s
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/media-macos.swift:38:13: warning: 'init(pixelBufferAttributes:)' was deprecated in macOS 27.0: Use init(pixelBufferAttributes: CVPixelBuffer.Attributes) instead [#DeprecatedDeclaration]
+36 |  Task {do{_=try await probe();permitted=true}catch{send(["error":error.localizedDescription]);exit(3)}}
+37 |  let item=AVPlayerItem(asset:asset);item.preferredForwardBufferDuration=0.5
+38 |  let output=AVPlayerItemVideoOutput(pixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32BGRA]);item.add(output)
+   |             `- warning: 'init(pixelBufferAttributes:)' was deprecated in macOS 27.0: Use init(pixelBufferAttributes: CVPixelBuffer.Attributes) instead [#DeprecatedDeclaration]
+39 |  let player=AVPlayer(playerItem:item);player.volume=volume;player.actionAtItemEnd = .pause
+40 |  let context=CIContext(options:[.cacheIntermediates:false]);var generation=0;var sequence=0;var seeking=false;var started=false;var ended=false
+
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/media-macos.swift:61:95: warning: 'copyPixelBuffer(forItemTime:itemTimeForDisplay:)' was deprecated in macOS 27.0: Use pixelBufferAndDisplayTime(forItemTime:) instead [#DeprecatedDeclaration]
+59 |   if started && !seeking && time>=end-0.015 && !ended {if looping {seek(start,true)}else{ended=true;player.pause()}}
+60 |   var frame=false
+61 |   if !seeking && output.hasNewPixelBuffer(forItemTime:player.currentTime()),let buffer=output.copyPixelBuffer(forItemTime:player.currentTime(),itemTimeForDisplay:nil) {
+   |                                                                                               `- warning: 'copyPixelBuffer(forItemTime:itemTimeForDisplay:)' was deprecated in macOS 27.0: Use pixelBufferAndDisplayTime(forItemTime:) instead [#DeprecatedDeclaration]
+62 |    let image=CIImage(cvPixelBuffer:buffer);let scale=min(1,960/image.extent.width);let small=image.transformed(by:CGAffineTransform(scaleX:scale,y:scale));let width=Int(small.extent.width);let height=Int(small.extent.height)
+63 |    if width>0 && height>0 && width*height<=960*960 {
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/video-macos.swift:23:7: warning: 'expectsMediaDataInRealTime' was deprecated in macOS 27.0: Use the input receiver's appendImmediately(...) method instead [#DeprecatedDeclaration]
+21 | do{writer=try AVAssetWriter(outputURL:url,fileType:.mp4)}catch{fail("cannot create encoder")}
+22 | let input=AVAssetWriterInput(mediaType:.video,outputSettings:[AVVideoCodecKey:AVVideoCodecType.h264,AVVideoWidthKey:width,AVVideoHeightKey:height,AVVideoCompressionPropertiesKey:[AVVideoAverageBitRateKey:2000000,AVVideoProfileLevelKey:AVVideoProfileLevelH264MainAutoLevel],AVVideoColorPropertiesKey:[AVVideoColorPrimariesKey:AVVideoColorPrimaries_ITU_R_709_2,AVVideoTransferFunctionKey:AVVideoTransferFunction_ITU_R_709_2,AVVideoYCbCrMatrixKey:AVVideoYCbCrMatrix_ITU_R_709_2]])
+23 | input.expectsMediaDataInRealTime=false
+   |       `- warning: 'expectsMediaDataInRealTime' was deprecated in macOS 27.0: Use the input receiver's appendImmediately(...) method instead [#DeprecatedDeclaration]
+24 | let adaptor=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32BGRA,kCVPixelBufferWidthKey as String:width,kCVPixelBufferHeightKey as String:height,kCVPixelBufferIOSurfacePropertiesKey as String:[:]])
+25 | guard writer.canAdd(input)else{fail("unsupported settings")};writer.add(input)
+
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/video-macos.swift:24:13: warning: 'AVAssetWriterInputPixelBufferAdaptor' was deprecated in macOS 27.0: Use AVAssetWriter.inputPixelBufferReceiver(for:pixelBufferAttributes:) instead [#DeprecatedDeclaration]
+22 | let input=AVAssetWriterInput(mediaType:.video,outputSettings:[AVVideoCodecKey:AVVideoCodecType.h264,AVVideoWidthKey:width,AVVideoHeightKey:height,AVVideoCompressionPropertiesKey:[AVVideoAverageBitRateKey:2000000,AVVideoProfileLevelKey:AVVideoProfileLevelH264MainAutoLevel],AVVideoColorPropertiesKey:[AVVideoColorPrimariesKey:AVVideoColorPrimaries_ITU_R_709_2,AVVideoTransferFunctionKey:AVVideoTransferFunction_ITU_R_709_2,AVVideoYCbCrMatrixKey:AVVideoYCbCrMatrix_ITU_R_709_2]])
+23 | input.expectsMediaDataInRealTime=false
+24 | let adaptor=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32BGRA,kCVPixelBufferWidthKey as String:width,kCVPixelBufferHeightKey as String:height,kCVPixelBufferIOSurfacePropertiesKey as String:[:]])
+   |             `- warning: 'AVAssetWriterInputPixelBufferAdaptor' was deprecated in macOS 27.0: Use AVAssetWriter.inputPixelBufferReceiver(for:pixelBufferAttributes:) instead [#DeprecatedDeclaration]
+25 | guard writer.canAdd(input)else{fail("unsupported settings")};writer.add(input)
+26 | guard writer.startWriting()else{fail("cannot start")};writer.startSession(atSourceTime:.zero)
+
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/video-macos.swift:25:69: warning: 'add' was deprecated in macOS 27.0: Use the appropriate AVAssetWriter.inputReceiver(for:...) overload for your input and optional adaptor instead [#DeprecatedDeclaration]
+23 | input.expectsMediaDataInRealTime=false
+24 | let adaptor=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32BGRA,kCVPixelBufferWidthKey as String:width,kCVPixelBufferHeightKey as String:height,kCVPixelBufferIOSurfacePropertiesKey as String:[:]])
+25 | guard writer.canAdd(input)else{fail("unsupported settings")};writer.add(input)
+   |                                                                     `- warning: 'add' was deprecated in macOS 27.0: Use the appropriate AVAssetWriter.inputReceiver(for:...) overload for your input and optional adaptor instead [#DeprecatedDeclaration]
+26 | guard writer.startWriting()else{fail("cannot start")};writer.startSession(atSourceTime:.zero)
+27 | for index in 0..<frames {
+
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/video-macos.swift:26:14: warning: 'startWriting()' was deprecated in macOS 27.0: Use start() instead [#DeprecatedDeclaration]
+24 | let adaptor=AVAssetWriterInputPixelBufferAdaptor(assetWriterInput:input,sourcePixelBufferAttributes:[kCVPixelBufferPixelFormatTypeKey as String:kCVPixelFormatType_32BGRA,kCVPixelBufferWidthKey as String:width,kCVPixelBufferHeightKey as String:height,kCVPixelBufferIOSurfacePropertiesKey as String:[:]])
+25 | guard writer.canAdd(input)else{fail("unsupported settings")};writer.add(input)
+26 | guard writer.startWriting()else{fail("cannot start")};writer.startSession(atSourceTime:.zero)
+   |              `- warning: 'startWriting()' was deprecated in macOS 27.0: Use start() instead [#DeprecatedDeclaration]
+27 | for index in 0..<frames {
+28 |  guard let bytes=exact(width*height*4)else{writer.cancelWriting();fail("truncated frame")}
+
+/Users/willm/Coding/joyoffice/crates/joydeck-platform/native/video-macos.swift:29:15: warning: 'isReadyForMoreMediaData' was deprecated in macOS 27.0: Use the input receiver's async append(...) method instead [#DeprecatedDeclaration]
+27 | for index in 0..<frames {
+28 |  guard let bytes=exact(width*height*4)else{writer.cancelWriting();fail("truncated frame")}
+29 |  while !input.isReadyForMoreMediaData {if writer.status != .writing{fail("encoder failed")};Thread.sleep(forTimeInterval:0.002)}
+   |               `- warning: 'isReadyForMoreMediaData' was deprecated in macOS 27.0: Use the input receiver's async append(...) method instead [#DeprecatedDeclaration]
+30 |  var buffer:CVPixelBuffer?
+31 |  guard let pool=adaptor.pixelBufferPool,CVPixelBufferPoolCreatePixelBuffer(nil,pool,&buffer)==kCVReturnSuccess,let pixel=buffer else{writer.cancelWriting();fail("pixel budget")}
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4.zip

@@ -319,3 +319,189 @@ fn comparison_rejects_legacy_objects_without_identity() {
     assert!(d.validate().is_ok());
     assert!(compare::compare(&d, &d).unwrap_err().contains("稳定ID"));
 }
+
+#[test]
+fn accepting_added_objects_preserves_reference_layers_in_either_order() {
+    for reverse in [false, true] {
+        let mut s = Session::new();
+        s.execute(s.id, Command::AddObject(0, edit::object("rect")))
+            .unwrap();
+        s.execute(s.id, Command::AddObject(0, edit::object("ellipse")))
+            .unwrap();
+        let original = s.deck.clone();
+        let mut reference = (*original).clone();
+        for (position, id) in [(0, "reference-bottom"), (2, "reference-middle")] {
+            let mut o = edit::object("text");
+            o.id = id.into();
+            reference.slides[0].objects.insert(position, o);
+        }
+        let mut additions = ["reference-bottom", "reference-middle"];
+        if reverse {
+            additions.reverse();
+        }
+        for id in additions {
+            let before = s.deck.clone();
+            let report = compare::compare(&s.deck, &reference).unwrap();
+            let index = report
+                .differences
+                .iter()
+                .position(|r| r.object.as_deref() == Some(id))
+                .unwrap();
+            let revision = s.revision;
+            s.execute(
+                s.id,
+                compare::accept_object(&s.deck, &reference, &report, index).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(s.revision, revision + 1);
+            let accepted = s.deck.clone();
+            s.undo();
+            assert_eq!(s.deck, before);
+            s.redo();
+            assert_eq!(s.deck, accepted);
+        }
+        assert!(
+            compare::compare(&s.deck, &reference)
+                .unwrap()
+                .differences
+                .is_empty()
+        );
+        s.undo();
+        s.undo();
+        assert_eq!(s.deck, original);
+    }
+}
+
+#[test]
+fn comparison_reports_media_metadata_changes_without_copying_asset_bytes() {
+    use joydeck::playback::{Asset, Info};
+    let mut d = (*Session::new().deck).clone();
+    let asset = Asset {
+        extension: "wav".into(),
+        info: Info {
+            profiles: vec![],
+            fps: 0.,
+            duration: 2.,
+            codecs: vec!["lpcm".into()],
+            width: 0,
+            height: 0,
+            adapter: "fixture".into(),
+        },
+        bytes: vec![1, 2, 3],
+    };
+    let id = asset.id();
+    d.playback
+        .assets
+        .insert(id.clone(), std::sync::Arc::new(asset));
+    let mut reference = d.clone();
+    std::sync::Arc::make_mut(reference.playback.assets.get_mut(&id).unwrap())
+        .info
+        .duration = 3.;
+    let report = compare::compare(&d, &reference).unwrap();
+    assert_ne!(report.base_sha256, report.reference_sha256);
+    assert!(
+        report
+            .differences
+            .iter()
+            .any(|r| r.kind == "document" && r.fields.contains(&"playbackAssets".into()))
+    );
+}
+
+#[test]
+fn comparison_accept_rejects_missing_image_dependency_without_changing_history() {
+    let mut s = Session::new();
+    let original = s.deck.clone();
+    let mut reference = Session::from_deck((*original).clone(), true);
+    let pixels = image::RgbaImage::from_pixel(2, 2, image::Rgba([12, 34, 56, 255]));
+    let mut png = std::io::Cursor::new(vec![]);
+    pixels.write_to(&mut png, image::ImageFormat::Png).unwrap();
+    let resource = joydeck::media::Resource::import(png.get_ref()).unwrap();
+    reference
+        .execute(reference.id, Command::ImportImage(0, None, resource))
+        .unwrap();
+    let report = compare::compare(&s.deck, &reference.deck).unwrap();
+    let index = report
+        .differences
+        .iter()
+        .position(|r| r.kind == "object.added")
+        .unwrap();
+    let command = compare::accept_object(&s.deck, &reference.deck, &report, index).unwrap();
+    assert!(s.execute(s.id, command).is_err());
+    assert_eq!(s.deck, original);
+    assert_eq!(s.revision, 0);
+    assert!(!s.can_undo());
+}
+
+#[test]
+fn accepting_image_dependencies_is_opt_in_atomic_and_roundtrips() {
+    let mut s = Session::new();
+    s.execute(s.id, Command::AddObject(0, edit::object("rect")))
+        .unwrap();
+    let original = s.deck.clone();
+    let mut reference = Session::from_deck((*original).clone(), true);
+    let pixels = image::RgbaImage::from_pixel(2, 2, image::Rgba([23, 45, 67, 255]));
+    let mut png = std::io::Cursor::new(vec![]);
+    pixels.write_to(&mut png, image::ImageFormat::Png).unwrap();
+    let resource = joydeck::media::Resource::import(png.get_ref()).unwrap();
+    reference
+        .execute(reference.id, Command::ImportImage(0, None, resource))
+        .unwrap();
+    // Place the reference image underneath the existing shape.
+    reference
+        .execute(reference.id, Command::ReorderObjects(0, vec![1], 0))
+        .unwrap();
+    let report = compare::compare(&s.deck, &reference.deck).unwrap();
+    let index = report
+        .differences
+        .iter()
+        .position(|r| r.kind == "object.added")
+        .unwrap();
+    assert!(
+        s.execute(
+            s.id,
+            compare::accept_object(&s.deck, &reference.deck, &report, index).unwrap()
+        )
+        .is_err()
+    );
+    let revision = s.revision;
+    s.execute(
+        s.id,
+        compare::accept_object_with_resources(&s.deck, &reference.deck, &report, index).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(s.revision, revision + 1);
+    assert_eq!(s.deck.resources, reference.deck.resources);
+    assert!(
+        compare::compare(&s.deck, &reference.deck)
+            .unwrap()
+            .differences
+            .is_empty()
+    );
+    let accepted = s.deck.clone();
+    s.undo();
+    assert_eq!(s.deck, original);
+    s.redo();
+    assert_eq!(s.deck, accepted);
+    let p = temp("image-dependency");
+    edit::save_new(&p.join("accepted.joydeck"), &s.deck).unwrap();
+    let reopened = edit::open_editable(&p.join("accepted.joydeck")).unwrap();
+    assert!(
+        compare::compare(&reopened, &s.deck)
+            .unwrap()
+            .differences
+            .is_empty()
+    );
+    // A later failure in the same transaction must also undo resource import.
+    s.undo();
+    let before = s.deck.clone();
+    let command =
+        compare::accept_object_with_resources(&s.deck, &reference.deck, &report, index).unwrap();
+    assert!(
+        s.execute(s.id, Command::Batch(vec![command, Command::DeletePage(99)]))
+            .is_err()
+    );
+    assert_eq!(s.deck, before);
+    assert!(s.deck.resources.is_empty());
+    assert!(s.can_redo());
+    std::fs::remove_dir_all(p).unwrap();
+}

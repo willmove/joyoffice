@@ -1,0 +1,2 @@
+exit 0 [{"requestId":"cli-0","result":{"documentId":2}},{"requestId":"cli-1","result":{"revision":1}}] 
+exit 4 [{"error":{"code":"id-conflict","message":"相同ID不得使用不同参数"},"requestId":"cli-0"}] {"error":"operation failed"}

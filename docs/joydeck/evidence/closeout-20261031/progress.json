@@ -1,0 +1,186 @@
+[
+  {
+    "name": "automation",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-automation.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck-cli",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/automation.json"
+    ],
+    "exitCode": 0,
+    "seconds": 1.512
+  },
+  {
+    "name": "release",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-release.py",
+      "--package",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/release.json"
+    ],
+    "exitCode": 0,
+    "seconds": 0.224
+  },
+  {
+    "name": "m0-m4",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/smoke-native.py",
+      "M0",
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck"
+    ],
+    "exitCode": 0,
+    "seconds": 15.416
+  },
+  {
+    "name": "m4",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/benchmark-m4.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m4"
+    ],
+    "exitCode": 0,
+    "seconds": 7.21
+  },
+  {
+    "name": "m5",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m5.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m5"
+    ],
+    "exitCode": 0,
+    "seconds": 6.398
+  },
+  {
+    "name": "m6",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m6.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m6"
+    ],
+    "exitCode": 0,
+    "seconds": 8.856
+  },
+  {
+    "name": "m7",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m7.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m7"
+    ],
+    "exitCode": 0,
+    "seconds": 3.842
+  },
+  {
+    "name": "m8",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m8.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m8"
+    ],
+    "exitCode": 0,
+    "seconds": 6.219
+  },
+  {
+    "name": "m9-m10",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m9-m10.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m9-m10"
+    ],
+    "exitCode": 0,
+    "seconds": 9.05
+  },
+  {
+    "name": "m11-m12",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m11-m12.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m11-m12"
+    ],
+    "exitCode": 0,
+    "seconds": 16.319
+  },
+  {
+    "name": "m13-m14",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m13-m14.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m13-m14"
+    ],
+    "exitCode": 0,
+    "seconds": 22.89
+  },
+  {
+    "name": "native-integration",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-macos-integration.py",
+      "--app",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/JoyDeck.app",
+      "--document",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m13-m14/current.joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/native-integration"
+    ],
+    "exitCode": 0,
+    "seconds": 6.577
+  },
+  {
+    "name": "ime",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/smoke-macos-ime.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck"
+    ],
+    "exitCode": 0,
+    "seconds": 5.477
+  },
+  {
+    "name": "table-ime",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/smoke-macos-ime.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+      "--table"
+    ],
+    "exitCode": 0,
+    "seconds": 5.466
+  }
+]

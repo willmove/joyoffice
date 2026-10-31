@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "binarySha256": "d0c0246c86bddd7ef85043cb5fe1f4feb76124a2f4f21cc25fd879660162a879",
+  "commands": [
+    "document.design",
+    "media.edit",
+    "object.add",
+    "object.delete",
+    "object.reorder",
+    "object.update",
+    "page.add",
+    "page.copy",
+    "page.delete",
+    "page.reorder",
+    "page.size",
+    "page.visibility",
+    "presentation.motion",
+    "review.edit",
+    "table.edit",
+    "transaction.batch"
+  ],
+  "commandCount": 16,
+  "localAndRemoteMcpEqual": true,
+  "validatePreservesDocumentAndHistory": true,
+  "replayAndSingleUndoRedo": true,
+  "staleRevisionAndUnknownParametersRejected": true,
+  "imageDependencyAcceptedUndo": true
+}

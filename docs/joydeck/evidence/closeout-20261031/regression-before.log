@@ -1,0 +1,40 @@
+   Compiling joydeck-shell v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.71s
+     Running tests/beta.rs (target/debug/deps/beta-301ad629f29abef7)
+
+running 12 tests
+test file_events_are_local_decoded_and_bounded ... ok
+test comparison_rejects_legacy_objects_without_identity ... ok
+test title_captions_match_video_timeline_and_keep_notes_private ... ok
+test accepting_added_object_preserves_identity_through_recompare_and_history ... ok
+test comparison_reports_media_metadata_changes_without_copying_asset_bytes ... FAILED
+test comparison_accept_rejects_missing_image_dependency_without_changing_history ... ok
+test offline_compare_accept_stale_guard_delete_and_undo ... ok
+test accepting_added_objects_preserves_reference_layers_in_either_order ... FAILED
+test video_plan_and_cancel_do_not_touch_existing_output ... ok
+test preferences_migration_quarantine_future_and_atomic_validation ... ok
+test preferences_concurrent_updates_keep_recent_and_layout ... ok
+test mp4_actual_encode_probe_and_running_cancel ... ok
+
+failures:
+
+---- comparison_reports_media_metadata_changes_without_copying_asset_bytes stdout ----
+
+thread 'comparison_reports_media_metadata_changes_without_copying_asset_bytes' (826912) panicked at crates/joydeck-shell/tests/beta.rs:373:5:
+assertion failed: report.differences.iter().any(|r|
+        r.kind == "document" && r.fields.contains(&"playbackAssets".into()))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- accepting_added_objects_preserves_reference_layers_in_either_order stdout ----
+
+thread 'accepting_added_objects_preserves_reference_layers_in_either_order' (826909) panicked at crates/joydeck-shell/tests/beta.rs:351:9:
+assertion failed: compare::compare(&s.deck, &reference).unwrap().differences.is_empty()
+
+
+failures:
+    accepting_added_objects_preserves_reference_layers_in_either_order
+    comparison_reports_media_metadata_changes_without_copying_asset_bytes
+
+test result: FAILED. 10 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.14s
+
+error: test failed, to rerun pass `-p joydeck-shell --test beta`

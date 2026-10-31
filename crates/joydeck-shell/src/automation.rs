@@ -1,5 +1,6 @@
 //! Synchronous, framework-independent dispatcher. No listener is created by this module.
-use crate::{document::Result, edit::Command, review, workspace::SharedSession as Session};
+use crate::{document::Result, review, workspace::SharedSession as Session};
+use joydeck_engine::command_request::CommandRequest;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{
@@ -9,6 +10,13 @@ use std::{
 };
 pub const VERSION: &str = "joydeck-control-1";
 pub const LIMIT: usize = 1024 * 1024;
+/// Generated operations are independent across clients. Callers retain explicit
+/// operation IDs when they need to retry a mutation after an unknown outcome.
+pub fn operation_id() -> Result<String> {
+    let mut nonce = [0u8; 16];
+    getrandom::fill(&mut nonce).map_err(|e| e.to_string())?;
+    Ok(format!("auto-{:032x}", u128::from_le_bytes(nonce)))
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Request {
@@ -33,6 +41,26 @@ pub struct Dispatcher {
     completed_bytes: usize,
 }
 impl Dispatcher {
+    /// Discover the current document from the running service, since a credential
+    /// descriptor can outlive document replacement by another client.
+    pub fn connect(&mut self, descriptor: PathBuf) -> Result<()> {
+        let response = crate::control::remote(
+            &descriptor,
+            &Request {
+                protocol_version: VERSION.into(),
+                request_id: operation_id()?,
+                method: "engine.commands".into(),
+                target: None,
+                params: json!({}),
+            },
+        )?;
+        let id = response["result"]["documentId"]
+            .as_u64()
+            .ok_or("无法取得远程当前文稿ID")?;
+        self.session.id = id;
+        self.remote = Some(descriptor);
+        Ok(())
+    }
     pub fn new(read: Vec<PathBuf>, write: Vec<PathBuf>) -> Result<Self> {
         let roots = |paths: Vec<PathBuf>| {
             paths
@@ -91,9 +119,15 @@ impl Dispatcher {
     }
     pub fn dispatch(&mut self, r: Request) -> Value {
         if let Some(path) = &self.remote {
-            return crate::control::remote(path, &r).unwrap_or_else(
+            let response = crate::control::remote(path, &r).unwrap_or_else(
                 |e| json!({"requestId":r.request_id,"error":{"code":"remote-error","message":e}}),
             );
+            if matches!(r.method.as_str(), "document.new" | "document.open")
+                && let Some(id) = response["result"]["documentId"].as_u64()
+            {
+                self.session.id = id;
+            }
+            return response;
         }
         let id = r.request_id.clone();
         let err =
@@ -131,7 +165,11 @@ impl Dispatcher {
             };
         if matches!(
             r.method.as_str(),
-            "engine.commands" | "document.inspect" | "document.check" | "document.compare"
+            "engine.commands"
+                | "document.inspect"
+                | "document.check"
+                | "document.compare"
+                | "command.validate"
         ) {
             return result;
         }
@@ -155,7 +193,11 @@ impl Dispatcher {
             return Err("target与当前文稿ID不匹配".into());
         }
         match r.method.as_str() {
-            "engine.commands" => Ok(describe()),
+            "engine.commands" => {
+                let mut result = describe();
+                result["documentId"] = json!(self.session.id);
+                Ok(result)
+            }
             "document.new" | "document.open" => {
                 if self.session.dirty() && p["dirtyPolicy"] != "discard" {
                     return Err("文稿有未保存修改；需显式dirtyPolicy=discard".into());
@@ -200,24 +242,37 @@ impl Dispatcher {
                     return Err("比较版本已改变，请重新比较".into());
                 }
                 let index = p["index"].as_u64().ok_or("缺少index")? as usize;
-                let command =
-                    crate::compare::accept_object(&self.session.deck, &other, &report, index)?;
+                let include_resources = match p.get("includeResources") {
+                    None => false,
+                    Some(v) => v.as_bool().ok_or("includeResources须为布尔值")?,
+                };
+                let accept = if include_resources {
+                    crate::compare::accept_object_with_resources
+                } else {
+                    crate::compare::accept_object
+                };
+                let command = accept(&self.session.deck, &other, &report, index)?;
                 self.session.execute(self.session.id, command)?;
                 Ok(json!({"revision":self.session.revision}))
             }
-            "command.execute" => {
-                let c = match string("command")? {
-                    "page.add" => Command::AddPage,
-                    "review.edit" => Command::Review(
-                        serde_json::from_value(p["action"].clone()).map_err(|e| e.to_string())?,
-                    ),
-                    "object.add" => Command::AddObject(
-                        p["page"].as_u64().ok_or("缺少page")? as usize,
-                        serde_json::from_value(p["object"].clone()).map_err(|e| e.to_string())?,
-                    ),
-                    _ => return Err("不支持的自动化命令".into()),
-                };
-                self.session.execute(self.session.id, c)?;
+            "command.execute" | "command.validate" => {
+                let mut params = p.as_object().ok_or("命令参数必须为对象")?.clone();
+                if let Some(value) = params.remove("expectedRevision") {
+                    let revision = value.as_u64().ok_or("expectedRevision须为非负整数")?;
+                    if revision != self.session.revision {
+                        return Err("文稿修订号已改变，请同步后重试".into());
+                    }
+                }
+                let command = serde_json::from_value::<CommandRequest>(Value::Object(params))
+                    .map_err(|e| e.to_string())?
+                    .into_command()?;
+                if r.method == "command.validate" {
+                    self.session.enabled(&command)?;
+                    return Ok(
+                        json!({"valid":true,"documentId":self.session.id,"revision":self.session.revision,"sideEffects":false}),
+                    );
+                }
+                self.session.execute(self.session.id, command)?;
                 Ok(json!({"revision":self.session.revision}))
             }
             "document.undo" => {
@@ -290,5 +345,9 @@ impl Dispatcher {
     }
 }
 pub fn describe() -> Value {
-    json!({"protocolVersion":VERSION,"backend":"headless","methods":["engine.commands","document.new","document.open","document.inspect","document.check","document.compare","document.acceptObject","command.execute","document.undo","document.redo","document.save","document.export"],"commands":["page.add","object.add","review.edit"],"limits":{"requestBytes":LIMIT,"operationRecords":1024,"replayBytes":16777216,"responseBytes":4194304},"execution":"serial-synchronous; optional authenticated loopback bridge; no asynchronous jobs"})
+    json!({"protocolVersion":VERSION,"backend":"headless","methods":["engine.commands","document.new","document.open","document.inspect","document.check","document.compare","document.acceptObject","command.execute","command.validate","document.undo","document.redo","document.save","document.export"],"commandSchemaVersion":1,"commands":joydeck_engine::edit::COMMANDS.iter().map(|c|c.id).collect::<Vec<_>>(),"commandParameters":{
+        "page.add":[],"page.copy":["pages"],"page.delete":["pages"],"page.reorder":["pages","target"],"page.visibility":["pages"],"page.size":["width","height"],
+        "object.add":["page","object"],"object.update":["page","objects"],"object.delete":["page","objects"],"object.reorder":["page","objects","target"],
+        "review.edit":["action"],"table.edit":["page","object","action"],"document.design":["action"],"presentation.motion":["presentation"],"media.edit":["playback"],"transaction.batch":["commands"]
+    },"optionalCommandParameters":["expectedRevision"],"commandIndices":"zero-based; reorder target is a gap before removal","limits":{"requestBytes":LIMIT,"operationRecords":1024,"replayBytes":16777216,"responseBytes":4194304,"batchCommands":1000,"batchDepth":16},"execution":"serial-synchronous; optional authenticated loopback bridge; no asynchronous jobs"})
 }

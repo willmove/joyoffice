@@ -1,0 +1,57 @@
+{
+  "binary": "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+  "sha256": "958868912abd6739423c64a8a1ddd8e7684a1bd5c8312692a33af60e6ccd308b",
+  "canvas": {
+    "GPUI": {
+      "foregroundActivation": {
+        "requestedPid": 66340,
+        "frontmostPid": 66340,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "meanRgbError": 0.22704966492341105,
+      "fractionPixelsOver48": 0.0012699331275720165,
+      "interiorRgbError": 0.04348686037801487,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "CPU": {
+      "foregroundActivation": {
+        "requestedPid": 66340,
+        "frontmostPid": 66340,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "meanRgbError": 0.47100453317901236,
+      "fractionPixelsOver48": 0.0014320237482853223,
+      "interiorRgbError": 0.04348686037801487,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "publicCharts": 7,
+  "embeddedWorkbooks": 7,
+  "cacheWorkbookValue": 131,
+  "nativeShow": {
+    "renderedFrames": 48,
+    "renderP95Ms": 27.55,
+    "totalRenderMs": 789,
+    "monotonicPause": true,
+    "blackWhite": true,
+    "snapshotUnchanged": true,
+    "displays": [
+      1
+    ],
+    "scope": "native preview timer/render + one physical display; not physical dual-screen/hotplug or end-to-end 60fps certification",
+    "editorFocusRestored": true,
+    "clockHandoff": true,
+    "handoffDeltaMs": 202
+  },
+  "passed": true
+}

@@ -1,0 +1,9 @@
+M2 command=transaction.batch document=2
+M2 command=object.add document=2
+M2 command=table.edit document=2
+M2 command=object.add document=2
+M2 command=document.design document=2
+M13_OPEN_FILE accepted=true
+2026-10-31 14:44:47.574 JoyDeck[71772:990631] TSM AdjustCapsLockLEDForKeyTransitionHandling - _ISSetPhysicalKeyboardCapsLockLED Inhibit
+M2 command=transaction.batch document=4
+M2 command=transaction.batch document=4

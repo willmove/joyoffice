@@ -16,6 +16,8 @@ pub enum Command {
     Design(crate::design_commands::Action),
     Paste(usize, crate::media::Transfer),
     ImportImage(usize, Option<usize>, crate::media::Resource),
+    /// Supply content-addressed dependencies as part of a containing edit transaction.
+    MergeResources(std::collections::BTreeMap<String, Arc<crate::media::Resource>>),
     Batch(Vec<Command>),
     ReplaceMany(usize, Vec<Object>),
     ReorderPages(Vec<usize>, usize),
@@ -124,7 +126,7 @@ impl Command {
             Self::Table(..) => "table.edit",
             Self::Design(..) => "document.design",
             Self::Paste(..) => "object.add",
-            Self::ImportImage(..) => "object.add",
+            Self::ImportImage(..) | Self::MergeResources(..) => "object.add",
             Self::Playback(..) => "media.edit",
             Self::Review(..) => "review.edit",
             Self::Motion(..) => "presentation.motion",
@@ -222,32 +224,30 @@ impl Session {
         self.saved = Some(snapshot);
     }
     pub fn enabled(&self, command: &Command) -> Result<()> {
+        self.prepare(command.clone()).map(|_| ())
+    }
+    fn prepare(&self, command: Command) -> Result<(Deck, u64, usize)> {
         let mut draft = (*self.deck).clone();
         let mut next = self.next_id;
-        apply(&mut draft, command.clone(), &mut next, 0)?;
+        apply(&mut draft, command, &mut next, 0, self.id)?;
         crate::motion::reconcile(&mut draft);
         crate::review::reconcile(&mut draft);
         crate::playback::reconcile(&mut draft);
-        draft.validate()
+        crate::media::collect_unused(&mut draft);
+        draft.validate()?;
+        let bytes = serde_json::to_vec(&draft).map_err(|e| e.to_string())?.len();
+        if bytes > MAX_PART {
+            return Err("模型超过8 MiB预算".into());
+        }
+        Ok((draft, next, bytes))
     }
     pub fn execute(&mut self, target: u64, command: Command) -> Result<()> {
         if target != self.id {
             return Err("文档身份已改变".into());
         }
-        let mut d = (*self.deck).clone();
-        let mut next_id = self.next_id;
-        apply(&mut d, command, &mut next_id, 0)?;
-        crate::motion::reconcile(&mut d);
-        crate::review::reconcile(&mut d);
-        crate::playback::reconcile(&mut d);
-        crate::media::collect_unused(&mut d);
-        d.validate()?;
+        let (d, next_id, bytes) = self.prepare(command)?;
         if d == *self.deck {
             return Ok(());
-        }
-        let bytes = serde_json::to_vec(&d).map_err(|e| e.to_string())?.len();
-        if bytes > MAX_PART {
-            return Err("模型超过8 MiB预算".into());
         }
         self.undo.push_back(Snapshot {
             deck: self.deck.clone(),
@@ -329,11 +329,49 @@ fn reorder<T: Clone>(items: &mut Vec<T>, ids: Vec<usize>, target: usize) -> Resu
     items.splice(insert..insert, moved);
     Ok(())
 }
-fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
+/// Draft validation and commit must allocate the same IDs without consuming a
+/// process-global counter. The session publishes this cursor only on commit.
+fn normalize_edit_ids(d: &mut Deck, next: &mut u64, namespace: u64) -> Result<()> {
+    let mut used = d
+        .slides
+        .iter()
+        .flat_map(|s| &s.objects)
+        .filter(|o| !o.id.is_empty())
+        .map(|o| o.id.clone())
+        .collect::<std::collections::BTreeSet<_>>();
+    for o in d
+        .slides
+        .iter_mut()
+        .flat_map(|s| &mut s.objects)
+        .filter(|o| o.id.is_empty())
+    {
+        loop {
+            *next = next.checked_add(1).ok_or("ID耗尽")?;
+            let id = format!("object-{namespace}-{next}");
+            if used.insert(id.clone()) {
+                o.id = id;
+                break;
+            }
+        }
+    }
+    Ok(())
+}
+fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize, namespace: u64) -> Result<()> {
     if depth > 16 {
         return Err("复合命令嵌套超限".into());
     }
     match c {
+        Command::MergeResources(resources) => {
+            for (id, resource) in resources {
+                if let Some(old) = d.resources.get(&id) {
+                    if old != &resource {
+                        return Err("图片资源身份冲突".into());
+                    }
+                } else {
+                    d.resources.insert(id, resource);
+                }
+            }
+        }
         Command::Playback(p) => {
             p.validate(d)?;
             d.playback = p;
@@ -399,12 +437,12 @@ fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
                 return Err("复合命令数量超限".into());
             }
             for c in list {
-                apply(d, c, next, depth + 1)?;
+                apply(d, c, next, depth + 1, namespace)?;
             }
         }
         Command::Design(action) => {
             crate::design_commands::apply(d, action, next)?;
-            normalize_ids(d);
+            normalize_edit_ids(d, next, namespace)?;
         }
         Command::Paste(p, transfer) => {
             transfer.validate()?;
@@ -422,7 +460,7 @@ fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
                 }
                 o.x += 16.;
                 o.y += 16.;
-                apply(d, Command::AddObject(p, o), next, depth + 1)?;
+                apply(d, Command::AddObject(p, o), next, depth + 1, namespace)?;
             }
         }
         Command::ImportImage(p, replace, resource) => {
@@ -458,6 +496,7 @@ fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
                 },
                 next,
                 depth + 1,
+                namespace,
             )?;
         }
         Command::AddPage => {
@@ -474,8 +513,16 @@ fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
             page.title = format!("第{}页", d.slides.len() + 1);
             d.slides.push(page);
         }
-        Command::DuplicatePage(i) => apply(d, Command::DuplicatePages(vec![i]), next, depth + 1)?,
-        Command::DeletePage(i) => apply(d, Command::DeletePages(vec![i]), next, depth + 1)?,
+        Command::DuplicatePage(i) => apply(
+            d,
+            Command::DuplicatePages(vec![i]),
+            next,
+            depth + 1,
+            namespace,
+        )?,
+        Command::DeletePage(i) => {
+            apply(d, Command::DeletePages(vec![i]), next, depth + 1, namespace)?
+        }
         Command::DuplicatePages(ids) => {
             let mut copies = vec![];
             for i in indices(&ids, d.slides.len())? {
@@ -491,7 +538,7 @@ fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
                 copies.push((i, d.slides.len()));
                 d.slides.push(s);
             }
-            normalize_ids(d);
+            normalize_edit_ids(d, next, namespace)?;
             for (old, new) in copies {
                 let source = &d.slides[old];
                 let target = &d.slides[new];
@@ -537,7 +584,7 @@ fn apply(d: &mut Deck, c: Command, next: &mut u64, depth: usize) -> Result<()> {
         Command::AddObject(p, mut o) => {
             o.id.clear();
             d.slides.get_mut(p).ok_or("页面不存在")?.objects.push(o);
-            normalize_ids(d);
+            normalize_edit_ids(d, next, namespace)?;
         }
         Command::AdoptObject(p, o) => {
             if o.id.is_empty()

@@ -42,3 +42,64 @@ fn authenticated_service_shares_desktop_history_and_rejects_unauthenticated() {
     drop(service);
     assert!(!descriptor.exists());
 }
+
+#[test]
+fn remote_dispatcher_tracks_replaced_document_identity_and_replays() {
+    if !cfg!(unix) {
+        return;
+    }
+    let d = Dispatcher::new(vec![], vec![]).unwrap();
+    let old_id = d.session.id;
+    let descriptor = std::env::temp_dir().join(format!("joydeck-control-replace-{old_id}.json"));
+    let service = Service::start(d, &descriptor, false).unwrap();
+    let mut client = Dispatcher::new(vec![], vec![]).unwrap();
+    client.connect(descriptor.clone()).unwrap();
+    assert_eq!(client.session.id, old_id);
+    let request = Request {
+        protocol_version: VERSION.into(),
+        request_id: "new-document".into(),
+        method: "document.new".into(),
+        target: None,
+        params: json!({}),
+    };
+    let response = client.dispatch(request.clone());
+    let new_id = response["result"]["documentId"].as_u64().unwrap();
+    assert_ne!(new_id, old_id);
+    assert_eq!(client.session.id, new_id);
+    assert_eq!(client.dispatch(request), response);
+    let add = Request {
+        protocol_version: VERSION.into(),
+        request_id: "add".into(),
+        method: "command.execute".into(),
+        target: Some(client.session.id),
+        params: json!({"command":"page.add"}),
+    };
+    assert!(client.dispatch(add).get("result").is_some());
+    let rejected = Request {
+        protocol_version: VERSION.into(),
+        request_id: "dirty-new".into(),
+        method: "document.new".into(),
+        target: None,
+        params: json!({}),
+    };
+    assert!(client.dispatch(rejected).get("error").is_some());
+    assert_eq!(client.session.id, new_id);
+    let mut fresh = Dispatcher::new(vec![], vec![]).unwrap();
+    fresh.connect(descriptor).unwrap();
+    assert_eq!(fresh.session.id, new_id);
+    let inspect = Request {
+        protocol_version: VERSION.into(),
+        request_id: "fresh-inspect".into(),
+        method: "document.inspect".into(),
+        target: Some(fresh.session.id),
+        params: json!({}),
+    };
+    assert_eq!(
+        fresh.dispatch(inspect)["result"]["deck"]["slides"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    drop(service);
+}

@@ -26,7 +26,12 @@ def mcp(command):
   inspected=call(9,'inspect','document.inspect',{},target);assert len(inspected['result']['deck']['slides'])==2
   refreshed=json.loads(rpc(5,'resources/read',{'uri':'joydeck://current/summary'})['result']['contents'][0]['text']);assert refreshed['pages']==2,refreshed
   assert call(10,'dirty-new','document.new',{})['error']
-  return {'handshake':'2025-11-25','tools':1,'resources':1,'newTransportIdSameOperationIdReplayed':True,'idConflictRejected':True,'pagesAfterReplay':2,'dirtyNewRejected':True}
+  replacement=call(11,'replace-document','document.new',{'dirtyPolicy':'discard'})
+  new_target=replacement['result']['documentId'];assert new_target!=target
+  refreshed=json.loads(rpc(12,'resources/read',{'uri':'joydeck://current/summary'})['result']['contents'][0]['text'])
+  assert refreshed['documentId']==new_target and refreshed['pages']==1,refreshed
+  assert 'result' in call(13,'append-replacement','command.execute',{'command':'page.add'},new_target)
+  return {'handshake':'2025-11-25','tools':1,'resources':1,'newTransportIdSameOperationIdReplayed':True,'idConflictRejected':True,'pagesAfterReplay':2,'dirtyNewRejected':True,'replacementDocumentSummary':True}
  finally:
   proc.stdin.close();proc.wait(timeout=8)
 local=mcp([binary,'mcp'])
@@ -41,8 +46,13 @@ with tempfile.TemporaryDirectory(prefix='joydeck-control-verifier-')as temp:
    s.sendall(b'{"token":"wrong","request":{}}\n');unauth=json.loads(s.makefile().readline());assert unauth['error']['code']=='unauthenticated'
   # Remote resources must describe the remote target, not the bridge's scratch model.
   remote=mcp([binary,'--connect',str(descriptor),'mcp'])
+  commands=[{'method':'document.new','params':{'dirtyPolicy':'discard'}},{'method':'command.execute','params':{'command':'page.add'}},{'method':'document.inspect','params':{}}]
+  result=json.loads(subprocess.check_output([binary,'--connect',str(descriptor),'run',json.dumps(commands)],text=True,encoding='utf-8'))
+  assert result[2]['result']['documentId']==result[0]['result']['documentId'] and len(result[2]['result']['deck']['slides'])==2,result
+  inspected=json.loads(subprocess.check_output([binary,'--connect',str(descriptor),'run',json.dumps([{'method':'document.inspect','params':{}}])],text=True,encoding='utf-8'))
+  assert inspected[0]['result']['documentId']==result[0]['result']['documentId'] and len(inspected[0]['result']['deck']['slides'])==2,inspected
  finally:
   server.stdin.write('\n');server.stdin.flush();server.wait(timeout=8)
  assert not descriptor.exists()
-result={'binarySha256':hashlib.sha256(a.binary.read_bytes()).hexdigest(),'headless':local,'remote':remote,'unauthenticatedRejected':True,'descriptorRemovedOnShutdown':True,'passed':True}
+result={'binarySha256':hashlib.sha256(a.binary.read_bytes()).hexdigest(),'headless':local,'remote':remote,'remoteCliRunAfterReplacement':True,'freshClientFindsCurrentDocument':True,'unauthenticatedRejected':True,'descriptorRemovedOnShutdown':True,'passed':True}
 a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8');print(json.dumps(result,indent=2))

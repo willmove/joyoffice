@@ -1,6 +1,6 @@
 # 可执行开发任务清单
 
-更新：2026-10-30。**M8、M9本机受支持范围done，M10的软件实现与单屏双窗口验证done，完整M10仍待硬件验收**。本轮含PowerPoint实机对照后的功能区重构、图表/图示/动画/放映、前序回归与系统拼音；证据见 [31](31-m9-implementation-report.md)、[32](32-m10-implementation-report.md) 和 [最终包验证](evidence/m10/final-verification.json)。M0–M7完整父阶段及其真实实现缺口、三平台/MVP条件保持开放；勾选范围必须结合实施记录阅读。
+更新：2026-10-31。迁移后已交付功能收尾见[39](39-m14-closeout-report.md)及下方新增子项；以下保留原阶段验收边界。**M8、M9本机受支持范围done，M10的软件实现与单屏双窗口验证done，完整M10仍待硬件验收**。本轮含PowerPoint实机对照后的功能区重构、图表/图示/动画/放映、前序回归与系统拼音；证据见 [31](31-m9-implementation-report.md)、[32](32-m10-implementation-report.md) 和 [最终包验证](evidence/m10/final-verification.json)。M0–M7完整父阶段及其真实实现缺口、三平台/MVP条件保持开放；勾选范围必须结合实施记录阅读。
 
 | 阶段 | 当前状态 | 仍需关闭的主要条件 |
 |---|---|---|
@@ -357,7 +357,7 @@ Windows 历史 build/check/stage 与 macOS ARM64 构建/原生 adapter smoke 已
 - [x] T-M12-02a：原生alt/装饰/独立阅读顺序与迁移、标题/alt/低透明文字定位检查；完整对比度与读屏未验收。
 - [x] T-M12-03a：审阅开发包、评论/回复/解决/undo与真实面板截图、检查结果定位完成；Office评论/完整无障碍和AT-19属于父任务。
 - [x] T-M12-04a：无GPUI依赖的请求/target/error/有界去重dispatcher、桌面SharedSession宿主；异步job协议未实现。
-- [x] T-M12-05a：真正headless CLI构建，commands/describe/inspect/run/render/convert、JSON/退出码；当前开放page.add/object.add/review.edit及历史/文件方法，非全部领域命令。
+- [x] T-M12-05a：真正headless CLI构建，commands/describe/inspect/run/render/convert、JSON/退出码；初始子项开放page.add/object.add/review.edit及历史/文件方法。2026-10-31由05c扩展至16个已注册领域命令，仍不含异步jobs与UI放映控制。
 - [x] T-M12-06a：默认关闭、loopback/token/0600凭据、独立读写roots/符号链接逃逸拒绝、≤8同步连接、容量/超时/outcome-unknown、关闭清理；没有异步队列job/主动取消。
 - [x] T-M12-07a：锁2025-11-25 stdio initialize/initialized、tools/resources/ping、operationId、真实Headless/Remote客户端与共享历史；完整进度/取消通知未实现。
 - [ ] T-M12-08a：重复/冲突/未认证/越界/dirty-new与共享undo已验证并打包；完整UI/CLI/MCP命令覆盖、dirty close及AT-18仍开放。
@@ -418,12 +418,28 @@ Windows 历史 build/check/stage 与 macOS ARM64 构建/原生 adapter smoke 已
 ### M14本轮已完成扩展及下一步
 
 - [x] T-M14-04a：macOS静态页H.264 Main MP4、显式无音轨/动画/转场/录制范围、有界帧通道/取消/新目标保护；最终包导出后实际播放，独立解码270帧/18秒/PTS/像素验证。
-- [x] T-M14-06a：稳定ID离线比较、≤4096项报告、base/reference hash保护、逐对象新增/替换/删除进入undo；GUI/CLI/MCP同核。资源须已存在，非完整三方合并/实时协作。
+- [x] T-M14-06a：稳定ID离线比较、≤4096项报告、base/reference hash保护、逐对象新增/替换/删除进入undo；GUI/CLI/MCP同核。原子项要求资源已存在，06d另增显式图片复制；非完整三方合并/实时协作。
 - [x] T-M14-08a：按静态视频相同时间轴生成页标题WebVTT，标记转义、无私密备注；不含语音转录/内嵌字幕或Tagged PDF。
 - [ ] T-M14-04b：动画/转场/音轨/嵌入媒体时间轴、旁白/录制与同步标定，分别定义语义、权限及可播放样例。
 - [ ] T-M14-06b：完整资源/版式/主题依赖迁移与三方冲突选择，再评估实时服务与协作协议。
 - [ ] T-M14-08b：PDF独立阅读顺序/Tagged结构和实际读屏，语音字幕及更多可访问语义。
 - [ ] T-M14-01/02/03/05/07：长尾格式、全量动画/设计、高级文字、硬件互操作及额外平台/插件继续独立开发；未将现有基线回归计为新功能完成。
+
+## 2026-10-31 Monorepo中的已交付功能收尾
+
+证据与实际验证范围见[39收尾报告](39-m14-closeout-report.md)，未改写迁移前记录或完整父任务条件。
+
+- [x] T-M14-06c：逐个接受新增对象保留参考图层、稳定ID及单事务历史；正序/逆序接受与undo/redo回归。媒体扩展名/探测信息变化进入文稿级差异；缺图片依赖时原子拒绝。
+- [x] T-M12-05b：远程新建/打开成功后同步客户端DocumentId，新连接查询当前ID，失败保留旧ID；CLI自动ID跨进程隔离，显式operationId去重不变。CLI连续操作与MCP摘要的协议回归见39索引。
+- [x] T-M2-08c：恢复会话与保存暂存名增加进程内序号，恢复测试独立随机目录；16并发会话的租约/快照/清理通过。并非完整断电/跨平台认证。
+
+## 2026-10-31继续推进的软件子项
+
+实施和最终验证见[40](40-command-and-image-dependencies.md)，不缩减M12/M14父任务范围。
+
+- [x] T-M12-05c：全部16个已注册领域命令的强类型机器参数、CLI/MCP覆盖、无副作用validate、expectedRevision、单事务batch及失败拒绝；不含尚未实现的异步jobs或UI放映控制。
+- [x] T-M14-06d-core：显式复制所选图片资源与对象一起接受，hash/预算/依赖验证、原子回滚、单次undo/redo及原生重开。完整主题/版式/媒体/审阅依赖和三方冲突仍在06b。
+- [x] T-M14-06d-gui：解锁后交付包前台/像素、实际合成鼠标点击图片接受按钮、保存及单次undo/redo通过；12张窗口截图与原锁屏失败记录见40索引。仅关闭本机自动GUI子项，不代替物理输入及完整跨平台验收。
 
 ## 实施记录模板
 

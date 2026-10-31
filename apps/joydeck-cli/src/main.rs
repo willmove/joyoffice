@@ -43,14 +43,10 @@ fn run() -> Result<(), (u8, String)> {
     }
     let mut d = Dispatcher::new(reads, writes).map_err(|e| (2, e))?;
     if let Some(path) = remote {
-        let v: Value =
-            serde_json::from_slice(&std::fs::read(&path).map_err(|e| (2, e.to_string()))?)
-                .map_err(|e| (2, e.to_string()))?;
-        d.session.id = v["documentId"]
-            .as_u64()
-            .ok_or((2, "缺少远程文稿ID".into()))?;
-        d.remote = Some(path);
+        d.connect(path).map_err(|e| (2, e))?;
     }
+    let invocation = joydeck::automation::operation_id().map_err(|e| (2, e))?;
+    let auto_id = |suffix: &str| format!("{invocation}-{suffix}");
     let command = args.first().map(String::as_str).unwrap_or("commands");
     if command == "serve" {
         let path = args.get(1).ok_or((2, "serve需要新建凭据文件路径".into()))?;
@@ -73,7 +69,7 @@ fn run() -> Result<(), (u8, String)> {
             let input = args.get(1).ok_or((2, "缺少输入绝对路径".into()))?;
             let opened = request(
                 &mut d,
-                "cli-open".into(),
+                auto_id("cli-open"),
                 "document.open",
                 json!({"path":input}),
             );
@@ -86,12 +82,17 @@ fn run() -> Result<(), (u8, String)> {
                     .ok_or((2, "compare需要参考文稿绝对路径".into()))?;
                 request(
                     &mut d,
-                    "cli-compare".into(),
+                    auto_id("cli-compare"),
                     "document.compare",
                     json!({"path":other}),
                 )
             } else if command == "inspect" {
-                request(&mut d, "cli-inspect".into(), "document.inspect", json!({}))
+                request(
+                    &mut d,
+                    auto_id("cli-inspect"),
+                    "document.inspect",
+                    json!({}),
+                )
             } else {
                 let output = args.get(2).ok_or((2, "缺少输出绝对路径".into()))?;
                 let format = args
@@ -100,7 +101,7 @@ fn run() -> Result<(), (u8, String)> {
                     .unwrap_or(if command == "render" { "png" } else { "pdf" });
                 request(
                     &mut d,
-                    "cli-export".into(),
+                    auto_id("cli-export"),
                     "document.export",
                     json!({"path":output,"format":format,"range":if command=="render"{"1"}else{""},"acceptLosses":args.iter().any(|a|a=="--accept-losses")}),
                 )
@@ -124,7 +125,7 @@ fn run() -> Result<(), (u8, String)> {
                     c["operationId"]
                         .as_str()
                         .map(str::to_owned)
-                        .unwrap_or_else(|| format!("cli-{i}")),
+                        .unwrap_or_else(|| auto_id(&format!("cli-{i}"))),
                     method,
                     c["params"].clone(),
                 );
@@ -244,7 +245,7 @@ fn mcp(d: &mut Dispatcher) -> Result<(), String> {
                     if v["params"]["uri"] == "joydeck://current/summary" {
                         let response = d.dispatch(Request {
                             protocol_version: VERSION.into(),
-                            request_id: format!("resource-{}", id),
+                            request_id: joydeck::automation::operation_id()?,
                             method: "document.inspect".into(),
                             target: Some(d.session.id),
                             params: json!({}),

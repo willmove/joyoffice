@@ -1,0 +1,221 @@
+Recovery concurrency repetition 1
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 2
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 3
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 4
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.26s
+
+Recovery concurrency repetition 5
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.26s
+
+Recovery concurrency repetition 6
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.23s
+
+Recovery concurrency repetition 7
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.22s
+
+Recovery concurrency repetition 8
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.28s
+
+Recovery concurrency repetition 9
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.26s
+
+Recovery concurrency repetition 10
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.23s
+
+Recovery concurrency repetition 11
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.26s
+
+Recovery concurrency repetition 12
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.24s
+
+Recovery concurrency repetition 13
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.25s
+
+Recovery concurrency repetition 14
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 15
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 16
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 17
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.24s
+
+Recovery concurrency repetition 18
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+Recovery concurrency repetition 19
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.23s
+
+Recovery concurrency repetition 20
+
+running 5 tests
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... ok
+test storage::tests::conflict_and_recovery_restart_locks_quota ... ok
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+test storage::tests::concurrent_recovery_sessions_have_independent_leases_and_snapshots ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.27s
+
+PASS: 20 repetitions

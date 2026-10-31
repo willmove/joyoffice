@@ -1,0 +1,46 @@
+{
+  "binarySha256": "7dc8c4118c8bfc42952ba7780876133cda74b36164e0461187af747ef3ed2bac",
+  "cliSha256": "d0c0246c86bddd7ef85043cb5fe1f4feb76124a2f4f21cc25fd879660162a879",
+  "nativeOnly": true,
+  "guiPassed": false,
+  "foregroundActivation": {
+    "required": false,
+    "panels": {}
+  },
+  "panelsCaptured": 0,
+  "canvas": null,
+  "nativeState": {
+    "nativeWindowsOpenedClosed": 24,
+    "editUndoCycles": 120,
+    "liveWindows": 1,
+    "preferencesRestored": true,
+    "windowHeightRestoredWithoutShrink": true,
+    "comparisonAcceptedUndoRedo": true,
+    "imageDependencyAcceptedUndoRedo": true,
+    "mp4ExportDocumentUnchanged": true,
+    "exportedVideoDisplayed": true,
+    "scope": "native handlers; screenshot status recorded separately; no physical dual-display/reader certification"
+  },
+  "video": {
+    "audioTracks": 0,
+    "duration": 18,
+    "firstPts": 0,
+    "frames": 270,
+    "height": 540,
+    "lastPts": 17.933333333333334,
+    "monotonicPts": true,
+    "videoTracks": 1,
+    "width": 960
+  },
+  "decodedFrameMeanRgbError": 0.9073894032921811,
+  "cliCompareAcceptUndo": true,
+  "titleVttTimeline": true,
+  "diagnosticsFieldsChecked": true,
+  "appMaxRssKiB": 136272,
+  "preferences": {
+    "schema": 2,
+    "generation": 2,
+    "recentCount": 1
+  },
+  "passed": true
+}

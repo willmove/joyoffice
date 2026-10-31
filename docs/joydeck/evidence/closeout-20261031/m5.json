@@ -1,0 +1,39 @@
+{
+  "binary": "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+  "pixelChecks": {
+    "GPUI": {
+      "foregroundActivation": {
+        "requestedPid": 66274,
+        "frontmostPid": 66274,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "meanRgbError": 0.22219639621331436,
+      "fractionPixelsOver48": 0.0019051973784484073,
+      "interiorRgbError": 0.039036754081152265,
+      "interiorPixelsOver16": 0.00012488396734477373,
+      "edgePixelsOver128": 0.0001295534217344917,
+      "passed": true
+    },
+    "CPU": {
+      "foregroundActivation": {
+        "requestedPid": 66274,
+        "frontmostPid": 66274,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "meanRgbError": 0.05498611322799709,
+      "fractionPixelsOver48": 1.5241579027587257e-05,
+      "interiorRgbError": 0.010986355890124425,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    }
+  },
+  "passed": true,
+  "scope": "macOS native adapter; physical keyboard, Windows/Linux unverified"
+}

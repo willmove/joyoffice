@@ -5,7 +5,13 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(
+    tag = "type",
+    content = "value",
+    rename_all = "camelCase",
+    deny_unknown_fields
+)]
 pub enum Action {
     SetDesign(Design),
     ApplyLayout(usize, String, bool),

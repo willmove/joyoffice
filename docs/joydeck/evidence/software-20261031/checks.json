@@ -1,0 +1,65 @@
+[
+  {
+    "name": "automation",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-automation.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-software-m12-m14-20261031-final/joydeck-cli",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/software-validation-final-20261031/automation.json"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "release",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-release.py",
+      "--package",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-software-m12-m14-20261031-final",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/software-validation-final-20261031/release.json"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "native-handlers",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m13-m14.py",
+      "--native-only",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-software-m12-m14-20261031-final/joydeck",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/software-validation-final-20261031/native-handlers"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "catalog",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-command-catalog.py",
+      "--binary",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-software-m12-m14-20261031-final/joydeck-cli",
+      "--comparison-directory",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/software-validation-final-20261031/native-handlers",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/software-validation-final-20261031/catalog.json"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "release-after-run",
+    "command": [
+      "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-release.py",
+      "--package",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-software-m12-m14-20261031-final",
+      "--output",
+      "/Users/willm/Coding/joyoffice/dist/joydeck/software-validation-final-20261031/release-after-run.json"
+    ],
+    "exitCode": 0
+  }
+]

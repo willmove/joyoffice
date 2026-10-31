@@ -10,9 +10,13 @@ use std::{
     fs::{File, OpenOptions},
     io::{Read, Write},
     path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
+    },
     time::{SystemTime, UNIX_EPOCH},
 };
+static IDS: AtomicU64 = AtomicU64::new(1);
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Fingerprint {
     pub size: u64,
@@ -38,9 +42,10 @@ pub fn save(path: &Path, deck: &Deck, expected: Option<Fingerprint>) -> Result<F
         return Err("文件已被外部修改或删除，请重新打开或另存".into());
     }
     let temp = path.with_file_name(format!(
-        ".prepare-{}-{}.joydeck",
+        ".prepare-{}-{}-{}.joydeck",
         std::process::id(),
-        stamp()
+        stamp(),
+        IDS.fetch_add(1, Ordering::Relaxed)
     ));
     edit::save_new(&temp, deck)?;
     let prepared = fingerprint(&temp)?;
@@ -107,7 +112,12 @@ impl Recovery {
     pub fn new(root: PathBuf) -> Self {
         Self {
             root,
-            session: format!("{}-{}", std::process::id(), stamp()),
+            session: format!(
+                "{}-{}-{}",
+                std::process::id(),
+                stamp(),
+                IDS.fetch_add(1, Ordering::Relaxed)
+            ),
             state: Arc::new(Mutex::new(State {
                 lease: None,
                 latest: 0,

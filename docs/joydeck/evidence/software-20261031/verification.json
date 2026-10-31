@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-31",
+  "branch": "codex/joydeck-m14-closeout",
+  "baseCommit": "4902c5bb13366564352de2b6ae2dfa631700d96f",
+  "workingTree": "uncommitted task changes; retains preceding closeout work",
+  "platform": {
+    "os": "27.0.1",
+    "architecture": "arm64"
+  },
+  "implementation": [
+    "16 registered domain commands over CLI/MCP",
+    "pure command.validate and expectedRevision",
+    "transaction-local namespaced object IDs",
+    "opt-in image dependency adoption with atomic undo/redo"
+  ],
+  "automatedPassed": true,
+  "rustTests": {
+    "total": 153,
+    "deck": 141,
+    "sharedOpc": 12
+  },
+  "checks": {
+    "fmt": true,
+    "strictClippy": true,
+    "gates": true,
+    "repositoryPythonTests": 139,
+    "deckDeliveryPythonTests": 11,
+    "docs": true,
+    "diffWhitespace": true,
+    "foregroundGuiAndImageButton": true,
+    "docsAfterGui": true,
+    "deliveryManifestAfterGui": true
+  },
+  "commandCount": 16,
+  "localAndRemoteMcpEqual": true,
+  "nativeHandlerPassed": true,
+  "guiPassed": true,
+  "guiBlocker": null,
+  "originalGuiFailureBinary": "target/debug/joydeck; raw failure retained; not claimed as final release GUI evidence",
+  "sourceInputs": 170,
+  "sourceInputsStillMatch": true,
+  "package": {
+    "path": "dist/joydeck/joydeck-software-m12-m14-20261031-delivery.zip",
+    "sha256": "2e8c3ddc2e685127ddc912b4ae9a90c00e4a72d91c061d73e52ebfd36e8753ec",
+    "filesVerified": 1926,
+    "build": {
+      "version": "0.1.0",
+      "stage": "m14",
+      "target": "aarch64-apple-darwin",
+      "profile": "release",
+      "features": [
+        "desktop",
+        "validation"
+      ],
+      "packageRoots": [
+        "joydeck",
+        "joydeck-cli"
+      ],
+      "nativeReaderMax": 11,
+      "writerSchema": "1.10",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "cargoLockSha256": "262236b97e5bb43f7eb201457686a45c40582b4674d7544f946560efbe6ef424",
+      "sourceGraphSha256": "ed231b003ac91b0f2daa46d689938643cdd5a3c36d80fd72b6545394163f5248",
+      "dependencyPackages": 444,
+      "sourceSnapshotVerified": true,
+      "officialSignatureVerified": false
+    }
+  },
+  "runtimeVerification": {
+    "executedPackage": "dist/joydeck/joydeck-software-m12-m14-20261031-final",
+    "deliveryOnlyDifference": "updated help text and regenerated package metadata; all five runtime binaries byte-identical",
+    "deliveryRuntimeBytesIdentical": true,
+    "sha256": {
+      "joydeck": "7dc8c4118c8bfc42952ba7780876133cda74b36164e0461187af747ef3ed2bac",
+      "joydeck-cli": "d0c0246c86bddd7ef85043cb5fe1f4feb76124a2f4f21cc25fd879660162a879",
+      "joydeck-media-macos": "401fcd5218b7df61f3ed227f5b60f0785a26daad17dc12be03e631eac335648f",
+      "joydeck-print-macos": "b9d4bfaaf42b38cb048bda8a8fa818fb2ab2cf0611d30b0dd5c6bdb79a2a40d8",
+      "joydeck-video-macos": "26722d5bbc48b487b7d94d44d2f5ae397a74b1a1b6fc04b5ba6c5a435457f6cb"
+    },
+    "guiExecutedPackage": "dist/joydeck/joydeck-software-m12-m14-20261031-delivery"
+  },
+  "results": {
+    "automation": {
+      "path": "docs/joydeck/evidence/software-20261031/automation.json",
+      "sha256": "563fb891b48b11ab86ca5db784fafc8fc9d59145e63532ad872a9d171c3fd39a"
+    },
+    "catalog": {
+      "path": "docs/joydeck/evidence/software-20261031/catalog.json",
+      "sha256": "ee2640d8c6eda9d1b28f3d6fcc2eb29899e47935042048c69f61c2f0e45bc78a"
+    },
+    "native-handlers": {
+      "path": "docs/joydeck/evidence/software-20261031/native-handlers.json",
+      "sha256": "39cb0fa40c24ddf00bc12797856dbaf9ae102dcb7152c9fb493bd630ccb786d3"
+    },
+    "native-state": {
+      "path": "docs/joydeck/evidence/software-20261031/native-state.json",
+      "sha256": "f1e2b1c5594f745488f6948da7458b874f9e4a1bd75278bed0b3d31420cd1818"
+    },
+    "release": {
+      "path": "docs/joydeck/evidence/software-20261031/release.json",
+      "sha256": "ce6c4ebf151399dac59292470ce581541fbbe806a89fcb8f851476d6c2852d1b"
+    },
+    "desktop-state": {
+      "path": "docs/joydeck/evidence/software-20261031/desktop-state.json",
+      "sha256": "9652465c17bb5a74e0c5d3df4eb2bd051f217010e58a7a342b861f8d9650ec4e"
+    },
+    "checks": {
+      "path": "docs/joydeck/evidence/software-20261031/checks.json",
+      "sha256": "770cdb4f587bef783d2dbac6811a2a4252478a15da085f2d07f678eed9470ede"
+    },
+    "gui-unlocked": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/verification.json",
+      "sha256": "b398c6d4646a880d9346eba16d689b8b8de13bc6996cad21d8038d3db650bf9c"
+    }
+  },
+  "logs": {
+    "deck-check.log": {
+      "path": "docs/joydeck/evidence/software-20261031/deck-check.log",
+      "sha256": "8d526dcdac487c7e322d0fed360d506b5e7b566e1ee2547a5571c927cd3bed02"
+    },
+    "package.log": {
+      "path": "docs/joydeck/evidence/software-20261031/package.log",
+      "sha256": "0b3b80ddee46fc2d3437cd6095abd3ff6107aaf275dacb770d9f904a5f6e59c7"
+    },
+    "gates.log": {
+      "path": "docs/joydeck/evidence/software-20261031/gates.log",
+      "sha256": "29118190536dbc3f196a75aa8195b8ecd6c073ff8b16a9d658693419286de284"
+    },
+    "python.log": {
+      "path": "docs/joydeck/evidence/software-20261031/python.log",
+      "sha256": "3eee17636015ce70a855407940b029aa6985ad4baec868f2c2f3297facf743de"
+    },
+    "delivery-python.log": {
+      "path": "docs/joydeck/evidence/software-20261031/delivery-python.log",
+      "sha256": "ce895947b8ffcb2e77addf8382970fd1c07ecab9486fbbfca209319a47c37f4f"
+    },
+    "gui-blocked.log": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-blocked.log",
+      "sha256": "454d2848e6b293dba44461148b944b25e0d1f432a73c8a003f3636e66d1ab116"
+    },
+    "docs.log": {
+      "path": "docs/joydeck/evidence/software-20261031/docs.log",
+      "sha256": "7db7d2756644ab95b4491b05f2d31c2e74e4151b102abe722f1f0ceff8a3357d"
+    }
+  },
+  "sharedModulesModified": false,
+  "wordRegression": "not required: no shared code, dependencies, lockfile or build rules changed",
+  "remaining": [
+    "asynchronous jobs/cancel/progress",
+    "full layout/theme/media/review dependency migration and three-way merge",
+    "other pre-existing software and platform milestone gates"
+  ],
+  "humanAcceptance": false,
+  "officialRelease": false,
+  "nativeOnlyInterpretation": "Native state flags prove handler/image-bridge publication; they do not prove foreground visibility.",
+  "previousGuiBlocker": "macOS loginwindow is foreground; genuine foreground/pixel verification blocked; no threshold relaxation"
+}

@@ -1,7 +1,42 @@
 use super::*;
 use crate::edit::{Command, Session};
 fn root() -> PathBuf {
-    std::env::temp_dir().join(format!("joydeck-store-{}", stamp()))
+    private_directory("store-test").unwrap()
+}
+#[test]
+fn concurrent_recovery_sessions_have_independent_leases_and_snapshots() {
+    let root = root();
+    let workers = (0..16)
+        .map(|_| {
+            let root = root.clone();
+            std::thread::spawn(move || Recovery::new(root))
+        })
+        .collect::<Vec<_>>();
+    let sessions = workers
+        .into_iter()
+        .map(|w| w.join().unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(
+        sessions
+            .iter()
+            .map(|r| &r.session)
+            .collect::<std::collections::BTreeSet<_>>()
+            .len(),
+        16
+    );
+    let d = Session::new().deck;
+    for r in &sessions {
+        r.write(1, &d, None, None).unwrap();
+    }
+    let reader = Recovery::new(root.clone());
+    let entries = reader.list().unwrap();
+    assert_eq!(entries.len(), 16);
+    assert!(entries.iter().all(|r| r.active));
+    assert!(reader.prune(0).is_err());
+    drop(sessions);
+    assert!(reader.list().unwrap().iter().all(|r| !r.active));
+    reader.prune(0).unwrap();
+    std::fs::remove_dir_all(root).unwrap();
 }
 #[test]
 fn concurrent_private_directories_are_unique_and_private() {

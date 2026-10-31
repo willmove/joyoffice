@@ -115,7 +115,11 @@ impl SharedSession {
     }
     pub fn enabled(&self, c: &Command) -> Result<()> {
         self.healthy()?;
-        self.core.lock().map_err(|_| "文稿会话锁已损坏")?.enabled(c)
+        let s = self.core.lock().map_err(|_| "文稿会话锁已损坏")?;
+        if self.revision != s.revision {
+            return Err("其他窗口已修改文稿，请同步后重试".into());
+        }
+        s.enabled(c)
     }
     pub fn execute(&mut self, id: u64, c: Command) -> Result<()> {
         self.healthy()?;

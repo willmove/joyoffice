@@ -4,6 +4,7 @@ pub use joydeck_model::{
     show, table, text,
 };
 pub mod authoring_demo;
+pub mod command_request;
 pub mod compare;
 pub mod design_commands;
 pub mod edit;

@@ -1,0 +1,28 @@
+{
+  "binarySha256": "9361882c35fc42f506e3e0b06226039e613f43f81964c578992b5d30cca3b14e",
+  "headless": {
+    "handshake": "2025-11-25",
+    "tools": 1,
+    "resources": 1,
+    "newTransportIdSameOperationIdReplayed": true,
+    "idConflictRejected": true,
+    "pagesAfterReplay": 2,
+    "dirtyNewRejected": true,
+    "replacementDocumentSummary": true
+  },
+  "remote": {
+    "handshake": "2025-11-25",
+    "tools": 1,
+    "resources": 1,
+    "newTransportIdSameOperationIdReplayed": true,
+    "idConflictRejected": true,
+    "pagesAfterReplay": 2,
+    "dirtyNewRejected": true,
+    "replacementDocumentSummary": true
+  },
+  "remoteCliRunAfterReplacement": true,
+  "freshClientFindsCurrentDocument": true,
+  "unauthenticatedRejected": true,
+  "descriptorRemovedOnShutdown": true,
+  "passed": true
+}

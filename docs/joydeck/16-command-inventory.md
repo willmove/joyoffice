@@ -2,6 +2,8 @@
 
 从产品 FR 推导动作；不继承外部命令名或数量。M1 使用下列 GPUI Action 名称；M2以后为拟定行为键，尚未开放机器 API，具体 schema 在实现时固定。
 
+以上为阶段编制时的基线。2026-10-31机器接口已覆盖下述16个已注册领域命令，当前契约见本节末尾；先前M2–M10章节的“尚未开放”保留其历史语义。
+
 | ID | 用户行为 | 阶段 | 副作用与验证 |
 |---|---|---|---|
 | viewer::Open | 选择原生文稿/PPTX | M1 | 后台读取；失败保留当前页；Ctrl+O |
@@ -49,3 +51,60 @@ M1 动作不提供内容写入、保存、格式化和导出。编辑动作必�
 图表网格/TSV/类型/样式、基础图示文本/布局通过现有object.update事务；转换图示使用transaction.batch，确认损失后删除原对象/添加形状，一步undo。注册presentation.motion持久化时间线/转场/Morph匹配/顺序/链接/自动翻页，先验证并清理已删除目标；复制页面重映射动画目标/链接，粘贴对象清除冲突匹配名。
 
 动画预览、从头/当前页、演示者视图、排练、屏幕选择/交换、pause/seek、黑白屏/激光/墨迹属于ViewSession/Controller，播放位置不入undo。墨迹与排练只另存新副本，拒绝覆盖已有目标。F5/Shift+F5、Cmd+N/Cmd+Shift+N及放映快捷键见 [32](32-m10-implementation-report.md)。这仍不是外部CLI/MCP已开放的声明。
+
+## M12机器参数v1（2026-10-31）
+
+当前`engine.commands`从引擎注册目录返回16个ID及必需参数名；强类型解析实现为`crates/joydeck-engine/src/command_request.rs`。UI、CLI和MCP最终均提交同一编辑内核。`command.execute`与`command.validate`使用相同参数；后者只构造、验证草稿，不发布文稿、历史或ID游标，不读写文件。
+
+所有方法需要显式文稿target。命令参数必须含`command`，可含非负整数`expectedRevision`；修订号不匹配立即拒绝。索引从0开始，重排target表示移除前列表的间隙位置；visibility切换所选页隐藏状态。未知参数/动作、重复或空选择、非法引用和预算超限拒绝，复合事务失败整体回滚。
+
+| command | 必需参数 | 含义 |
+| --- | --- | --- |
+| page.add | 无 | 新增页面 |
+| page.copy / page.delete / page.visibility | pages | 页索引数组 |
+| page.reorder | pages, target | 重排所选页 |
+| page.size | width, height | 文档点单位的页面尺寸 |
+| object.add | page, object | 新对象完整模型，ID由事务分配 |
+| object.update | page, objects | 完整对象模型数组，含已有稳定ID |
+| object.delete | page, objects | 待删除对象索引数组 |
+| object.reorder | page, objects, target | 对象索引数组与间隙位置 |
+| table.edit | page, object, action | object为表格稳定ID |
+| document.design | action | 设计/组织动作 |
+| presentation.motion | presentation | 完整持久化动画/放映模型 |
+| media.edit | playback | 完整媒体资源/clip模型，非运行时播放控制 |
+| review.edit | action | 原有审阅type对象契约 |
+| transaction.batch | commands | 上述命令参数数组，1–1000项、内核嵌套深度≤16 |
+
+表格与设计动作使用`{"type":"动作名","value":参数}`。一个参数直接作为value，多个参数按以下顺序组成数组，无参数动作不提供value。模型字段仍使用其原生序列化定义；所有输入同时受1MiB请求和既有模型/资源预算限制。
+
+| table.edit type | value |
+| --- | --- |
+| setCell | [row, column, text, runs] |
+| paste | [row, column, TSV] |
+| insertRow / deleteRow / insertColumn / deleteColumn | index |
+| merge | {top, left, bottom, right} |
+| split | [row, column] |
+| rowHeight / columnWidth | [index, points] |
+| distributeRows / distributeColumns | 无 |
+| style | 完整TableStyle |
+| cellStyle | [range, CellStyle] |
+
+| document.design type | value |
+| --- | --- |
+| setDesign | 完整Design |
+| applyLayout | [page, layoutId, reset] |
+| deleteLayout | [layoutId, replacementId或null] |
+| notes | [page, text] |
+| properties | [title, Organization, fieldDate] |
+| section | [pages, sectionId, name] |
+| deleteSection | sectionId |
+| replaceAll / replaceFont | [old, new] |
+| pastePages | [insertAt, PageTransfer, targetThemeId或null] |
+
+示例：
+
+```json
+{"method":"command.execute","params":{"command":"transaction.batch","expectedRevision":4,"commands":[{"command":"page.add"},{"command":"document.design","action":{"type":"notes","value":[0,"演讲者备注"]}}]}}
+```
+
+这是CLI `run`中的一条请求。MCP将相同method/params连同target和稳定operationId交给`joydeck_dispatch`；对执行结果不确定的修改只以相同operationId重试。自动生成的CLI操作ID按调用隔离。文件、放映/UI动作与异步jobs不因领域命令覆盖而自动开放，完整M12验收仍见任务清单。

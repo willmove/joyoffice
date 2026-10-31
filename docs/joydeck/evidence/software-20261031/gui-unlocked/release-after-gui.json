@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "checks": [
+    "unsigned_requires_explicit_flag",
+    "first_install",
+    "wrong_trusted_digest",
+    "immutable_upgrade",
+    "idempotent_same_release",
+    "rollback_previous_intact",
+    "stage_only_keeps_current",
+    "incompatible_reader_rejected",
+    "traversal_rejected",
+    "symlink_rejected",
+    "absolute_rejected",
+    "unindexed_files_rejected",
+    "tampered_rollback_rejected",
+    "staging_cleanup"
+  ],
+  "executedStagedBinaries": false,
+  "actualPackage": {
+    "filesVerified": 1926,
+    "build": {
+      "version": "0.1.0",
+      "stage": "m14",
+      "target": "aarch64-apple-darwin",
+      "profile": "release",
+      "features": [
+        "desktop",
+        "validation"
+      ],
+      "packageRoots": [
+        "joydeck",
+        "joydeck-cli"
+      ],
+      "nativeReaderMax": 11,
+      "writerSchema": "1.10",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "cargoLockSha256": "262236b97e5bb43f7eb201457686a45c40582b4674d7544f946560efbe6ef424",
+      "sourceGraphSha256": "ed231b003ac91b0f2daa46d689938643cdd5a3c36d80fd72b6545394163f5248",
+      "dependencyPackages": 444,
+      "sourceSnapshotVerified": true,
+      "officialSignatureVerified": false
+    }
+  }
+}

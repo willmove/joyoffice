@@ -96,6 +96,40 @@ pub(super) fn run(handle: AnyWindowHandle, view: Entity<Editor>, cx: &mut App) {
                     _=>{}
                 }
             }
+            // Exercise opt-in dependency adoption through the real comparison UI handler.
+            let before=handle.update(cx,|_,_,cx|view.read(cx).session.deck.clone()).map_err(|e|e.to_string())?;
+            let original=before.clone();let files=out.clone();
+            let expected=cx.background_executor().spawn(async move {
+                let mut reference=edit::Session::from_deck((*original).clone(),true);
+                let pixels=image::RgbaImage::from_pixel(4,4,image::Rgba([220,70,30,255]));
+                let mut png=std::io::Cursor::new(vec![]);pixels.write_to(&mut png,image::ImageFormat::Png).map_err(|e|e.to_string())?;
+                let resource=joydeck::media::Resource::import(png.get_ref())?;
+                reference.execute(reference.id,Command::ImportImage(0,None,resource))?;
+                edit::save_new(&files.join("image-base.joydeck"),&original)?;
+                edit::save_new(&files.join("image-reference.joydeck"),&reference.deck)?;
+                Ok::<_,String>(reference.deck)
+            }).await?;
+            handle.update(cx,|_,w,cx|view.update(cx,|s,cx|{
+                s.ribbon="比较".into();s.comparison_path.update(cx,|f,cx|f.set_value(out.join("image-reference.joydeck").to_string_lossy().to_string(),w,cx));s.compare_file(cx);
+            })).map_err(|e|e.to_string())?;
+            let start=Instant::now();
+            while !handle.update(cx,|_,_,cx|view.read(cx).comparison.is_some()).map_err(|e|e.to_string())? {
+                if start.elapsed()>Duration::from_secs(15){return Err("image dependency comparison timeout".into());}
+                cx.background_executor().timer(Duration::from_millis(50)).await;
+            }
+            handle.update(cx,|_,_,cx|view.update(cx,|s,cx|->std::result::Result<(),String>{
+                let (report,_)=s.comparison.as_ref().ok_or("comparison missing")?;
+                s.comparison_pick=report.differences.iter().position(|r|r.kind=="object.added").ok_or("image difference missing")?;
+                let revision=s.session.revision;
+                s.accept_comparison_mode(true,cx);
+                if s.session.revision!=revision+1 || s.session.deck.resources!=expected.resources {return Err("image dependency was not adopted atomically".into());}
+                if !joydeck::compare::compare(&s.session.deck,&expected)?.differences.is_empty(){return Err("adopted image differs from reference".into());}
+                let accepted=s.session.deck.clone();s.session.undo();
+                if s.session.deck!=before {return Err("image dependency undo changed the baseline".into());}
+                s.session.redo();if s.session.deck!=accepted{return Err("image dependency redo failed".into());}
+                s.session.undo();s.ribbon="开始".into();s.changed(cx);Ok(())
+            })).map_err(|e|e.to_string())??;
+            eprintln!("M14_IMAGE_DEPENDENCIES accepted=true undo=true redo=true");
             // Repeated actual window lifetimes. The primary window and its document survive.
             for _ in 0..24 {
                 cx.update(|cx|{
@@ -118,7 +152,7 @@ pub(super) fn run(handle: AnyWindowHandle, view: Entity<Editor>, cx: &mut App) {
             let report=cx.update(|cx|{
                 let live=cx.global::<Registry>().0.iter().filter(|(_,v)|v.upgrade().is_some()).count();
                 assert_eq!(live,1);
-                serde_json::json!({"nativeWindowsOpenedClosed":24,"editUndoCycles":120,"liveWindows":live,"preferencesRestored":true,"windowHeightRestoredWithoutShrink":true,"comparisonAcceptedUndoRedo":true,"mp4ExportDocumentUnchanged":true,"exportedVideoDisplayed":true,"scope":"native handlers; screenshot status recorded separately; no physical dual-display/reader certification"})
+                serde_json::json!({"nativeWindowsOpenedClosed":24,"editUndoCycles":120,"liveWindows":live,"preferencesRestored":true,"windowHeightRestoredWithoutShrink":true,"comparisonAcceptedUndoRedo":true,"imageDependencyAcceptedUndoRedo":true,"mp4ExportDocumentUnchanged":true,"exportedVideoDisplayed":true,"scope":"native handlers; screenshot status recorded separately; no physical dual-display/reader certification"})
             });
             std::fs::write(out.join("native-state.json"),serde_json::to_vec_pretty(&report).unwrap()).map_err(|e|e.to_string())?;
             Ok(())

@@ -1,0 +1,134 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running `target/debug/joyoffice-xtask check joydeck --validation`
++ cargo fmt -p joydeck -p joydeck-cli -p joydeck-engine -p joydeck-export -p joydeck-formats -p joydeck-model -p joydeck-platform -p joydeck-scene -p joydeck-shell -p joyoffice-opc -- --check
++ cargo clippy -p joydeck -p joydeck-cli -p joydeck-engine -p joydeck-export -p joydeck-formats -p joydeck-model -p joydeck-platform -p joydeck-scene -p joydeck-shell -p joyoffice-opc --all-targets --locked --features joydeck/validation -- -D warnings
+    Checking joydeck-model v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-model)
+   Compiling joydeck-platform v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-platform)
+    Checking joydeck-formats v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-formats)
+    Checking joydeck-scene v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-scene)
+    Checking joydeck-engine v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-engine)
+    Checking joydeck-export v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-export)
+    Checking joydeck-shell v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-shell)
+    Checking joydeck v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck)
+    Checking joydeck-cli v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 21.41s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
++ cargo test -p joydeck -p joydeck-cli -p joydeck-engine -p joydeck-export -p joydeck-formats -p joydeck-model -p joydeck-platform -p joydeck-scene -p joydeck-shell -p joyoffice-opc --locked --features joydeck/validation
+   Compiling joydeck-model v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-model)
+   Compiling joydeck-formats v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-formats)
+   Compiling joydeck-scene v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-scene)
+   Compiling joydeck-engine v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-engine)
+   Compiling joydeck-platform v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-platform)
+   Compiling joydeck-export v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-export)
+   Compiling joydeck-shell v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-shell)
+   Compiling joydeck v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck)
+   Compiling joydeck-cli v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.82s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`
+     Running unittests src/lib.rs (target/debug/deps/joydeck-c5ed7435979f2303)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/joydeck-ce562d6839906623)
+
+running 6 tests
+test jobs::tests::cancelled_job_never_publishes_a_completed_chunk ... ok
+test viewer::tests::malformed_preview_pixels_are_reported_instead_of_panicking ... ok
+test editor::table_ui::tests::stale_table_resize_is_rejected_without_changing_the_document ... ok
+test editor::table_ui::tests::valid_table_resize_remains_a_preview_until_committed ... ok
+test slideshow::tests::poisoned_show_is_rejected_without_resuming_partial_state ... ok
+test jobs::tests::restarting_uses_an_independent_cancellation_token ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/recovery_process.rs (target/debug/deps/recovery_process-748d675f5944bfc6)
+
+running 1 test
+test abnormal_process_exit_releases_lease_and_restores_three_pages ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+
+     Running unittests src/main.rs (target/debug/deps/joydeck_cli-9a797f92bcba8a6b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_engine-7a22c76f43029e79)
+
+running 3 tests
+test edit::tests::id_overflow_is_checked ... ok
+test edit::tests::history_cap_and_new_branch_clear_redo ... ok
+test edit::tests::history_budget_includes_redo_and_large_to_small_edits ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_export-6c478030fb32744f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_formats-ee827b456ae54f70)
+
+running 4 tests
+test document::tests::symbolic_link_member_is_rejected_without_extraction ... ok
+test document::tests::raw_duplicate_names_are_rejected_before_name_indexing ... ok
+test pptx::tests::relationship_paths_and_xml_limits ... ok
+test document::tests::full_document_does_not_inherit_embedded_workbook_limits ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_model-534260d511ea086a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_platform-de577372e61aa721)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_scene-7385192000706ba3)
+
+running 1 test
+test preview::tests::mixed_bold_cjk_emoji_and_accents_use_real_glyphs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running unittests src/lib.rs (target/debug/deps/joydeck_shell-b222de8c6552a400)
+
+running 5 tests
+test workspace::tests::poisoned_session_keeps_snapshot_dirty_and_rejects_writes ... ok
+test storage::tests::legacy_snapshot_is_visible_and_never_cleaned_automatically ... ok
+test storage::tests::clean_revision_and_corruption ... FAILED
+test storage::tests::conflict_and_recovery_restart_locks_quota ... FAILED
+test storage::tests::concurrent_private_directories_are_unique_and_private ... ok
+
+failures:
+
+---- storage::tests::clean_revision_and_corruption stdout ----
+
+thread 'storage::tests::clean_revision_and_corruption' (826551) panicked at crates/joydeck-shell/src/storage/tests.rs:85:5:
+assertion failed: r.list().unwrap()[0].problem.is_some()
+
+---- storage::tests::conflict_and_recovery_restart_locks_quota stdout ----
+
+thread 'storage::tests::conflict_and_recovery_restart_locks_quota' (826553) panicked at crates/joydeck-shell/src/storage/tests.rs:57:5:
+assertion failed: b.list().unwrap().iter().all(|r| r.active)
+
+
+failures:
+    storage::tests::clean_revision_and_corruption
+    storage::tests::conflict_and_recovery_restart_locks_quota
+
+test result: FAILED. 3 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `-p joydeck-shell --lib`
+error: Command '['cargo', 'test', '-p', 'joydeck', '-p', 'joydeck-cli', '-p', 'joydeck-engine', '-p', 'joydeck-export', '-p', 'joydeck-formats', '-p', 'joydeck-model', '-p', 'joydeck-platform', '-p', 'joydeck-scene', '-p', 'joydeck-shell', '-p', 'joyoffice-opc', '--locked', '--features', 'joydeck/validation']' returned non-zero exit status 101.

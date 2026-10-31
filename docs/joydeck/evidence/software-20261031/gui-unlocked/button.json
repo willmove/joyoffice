@@ -1,0 +1,159 @@
+{
+  "binarySha256": "7dc8c4118c8bfc42952ba7780876133cda74b36164e0461187af747ef3ed2bac",
+  "events": [
+    {
+      "type": "mouse",
+      "x": 804,
+      "y": 44
+    },
+    {
+      "type": "mouse",
+      "x": 600,
+      "y": 202
+    },
+    {
+      "type": "mouse",
+      "x": 920,
+      "y": 238
+    },
+    {
+      "type": "mouse",
+      "x": 920,
+      "y": 452
+    },
+    {
+      "type": "mouse",
+      "x": 920,
+      "y": 308
+    },
+    {
+      "type": "baseline-restored",
+      "objects": 3,
+      "resourceCount": 0
+    },
+    {
+      "type": "mouse",
+      "x": 920,
+      "y": 344
+    },
+    {
+      "type": "mouse",
+      "x": 110,
+      "y": 44
+    },
+    {
+      "type": "mouse",
+      "x": 1350,
+      "y": 680
+    },
+    {
+      "type": "adopted-file",
+      "objects": 4,
+      "resourceCount": 1
+    },
+    {
+      "type": "baseline-restored",
+      "objects": 3,
+      "resourceCount": 0
+    },
+    {
+      "type": "adopted-file",
+      "objects": 4,
+      "resourceCount": 1
+    },
+    {
+      "type": "baseline-restored",
+      "objects": 3,
+      "resourceCount": 0
+    }
+  ],
+  "captures": [
+    {
+      "name": "01-baseline",
+      "sha256": "a866e240770227433df1dd8e8896efd96ecd4f07116ca84ee6435db9ce9fde8b",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    },
+    {
+      "name": "03b-rejection-message",
+      "sha256": "8e3ec5c05f62123dfa099c5b881c68bd7990f7988b33347b671307e193f4c533",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    },
+    {
+      "name": "04-accepted-message",
+      "sha256": "a08371ffcbf2012d9ac23deee13aec4274c5c5182187d7800334ca851e3de3ce",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    },
+    {
+      "name": "05-accepted-canvas",
+      "sha256": "1871a2ae96a7be489019c6e7178710a9b42d8efe73579c45c53d41c1c31ee3f3",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    },
+    {
+      "name": "06-undo-canvas",
+      "sha256": "4a0cd3171ffc2771d60cb373f284bdf0b354f6f86130057357175856c7794967",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    },
+    {
+      "name": "07-redo-canvas",
+      "sha256": "1871a2ae96a7be489019c6e7178710a9b42d8efe73579c45c53d41c1c31ee3f3",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    },
+    {
+      "name": "08-final-restored",
+      "sha256": "4a0cd3171ffc2771d60cb373f284bdf0b354f6f86130057357175856c7794967",
+      "foreground": {
+        "requestedPid": 71772,
+        "frontmostPid": 71772,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    }
+  ],
+  "passed": true,
+  "physicalMouse": false,
+  "eventSource": "CoreGraphics synthetic mouse; System Events keyboard"
+}

@@ -1,0 +1,9 @@
+{
+  "requestId": "auto-913300f6e0cf0486d57d77db928d80db-cli-compare",
+  "result": {
+    "base_sha256": "e402492e0323dba876673ca34093b6a2b3235205c726bade1625c08948695527",
+    "differences": [],
+    "reference_sha256": "e402492e0323dba876673ca34093b6a2b3235205c726bade1625c08948695527",
+    "truncated": false
+  }
+}

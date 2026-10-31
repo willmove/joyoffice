@@ -1,0 +1,201 @@
+{
+  "date": "2026-10-31",
+  "guiPassed": true,
+  "sameDeliveryBinary": true,
+  "guiBinarySha256": "7dc8c4118c8bfc42952ba7780876133cda74b36164e0461187af747ef3ed2bac",
+  "cliSha256": "d0c0246c86bddd7ef85043cb5fe1f4feb76124a2f4f21cc25fd879660162a879",
+  "foregroundVerifiedForEveryCapture": true,
+  "stageWindowScreenshots": 5,
+  "buttonWindowScreenshots": 7,
+  "canvas": {
+    "foregroundActivation": {
+      "requestedPid": 71184,
+      "frontmostPid": 71184,
+      "verified": true,
+      "activationRequested": true,
+      "attempts": 1,
+      "settleSeconds": 0.2
+    },
+    "meanRgbError": 0.3285736149372513,
+    "fractionPixelsOver48": 0.0023209366391184574,
+    "interiorRgbError": 0.05444173529749181,
+    "interiorPixelsOver16": 0.0,
+    "edgePixelsOver128": 0.0,
+    "passed": true
+  },
+  "video": {
+    "audioTracks": 0,
+    "duration": 18,
+    "firstPts": 0,
+    "frames": 270,
+    "height": 540,
+    "lastPts": 17.933333333333334,
+    "monotonicPts": true,
+    "videoTracks": 1,
+    "width": 960
+  },
+  "nativeState": {
+    "nativeWindowsOpenedClosed": 24,
+    "editUndoCycles": 120,
+    "liveWindows": 1,
+    "preferencesRestored": true,
+    "windowHeightRestoredWithoutShrink": true,
+    "comparisonAcceptedUndoRedo": true,
+    "imageDependencyAcceptedUndoRedo": true,
+    "mp4ExportDocumentUnchanged": true,
+    "exportedVideoDisplayed": true,
+    "scope": "native handlers; screenshot status recorded separately; no physical dual-display/reader certification"
+  },
+  "button": {
+    "missingResourceRejectedWithoutDocumentChange": true,
+    "mouseClickedOptInAccept": true,
+    "savedDocumentMatchesReference": true,
+    "singleUndoRestoresOriginalDocumentAndRemovesResource": true,
+    "redoRestoresObjectResourceAndVisiblePixels": true,
+    "keyboardContext": "Returned to Home and focused the canvas before save/undo/redo shortcuts",
+    "inputSourceRestored": true,
+    "physicalInput": false,
+    "eventSource": "CoreGraphics synthetic mouse; System Events keyboard",
+    "pixels": {
+      "scope": "visible slide-body pixels; ICC converted to sRGB; original PNG RGB 220/70/30; per-channel tolerance 2",
+      "counts": {
+        "01-baseline": 0,
+        "05-accepted-canvas": 31974,
+        "06-undo-canvas": 0,
+        "07-redo-canvas": 31974,
+        "08-final-restored": 0
+      },
+      "acceptedMinimumPixels": 20000,
+      "acceptedRecompareDifferences": 0,
+      "singleUndoAndRedoSavedModelVerified": true,
+      "passed": true
+    }
+  },
+  "previousLockFailurePreserved": true,
+  "artifacts": {
+    "m13-m14.json": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/m13-m14.json",
+      "sha256": "33fca54ec05aad2a3e5928b9a3f76fec19618b95d180f8b9df0990575f1bc987"
+    },
+    "native-state.json": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/native-state.json",
+      "sha256": "f1e2b1c5594f745488f6948da7458b874f9e4a1bd75278bed0b3d31420cd1818"
+    },
+    "m13-m14-native.log": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/m13-m14-native.log",
+      "sha256": "de3e0187984f53d94ae0f5dc9faed7ea9dd864c2d4779a68878323ec993c9fe4"
+    },
+    "button.json": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button.json",
+      "sha256": "8d1245b9baf2873c42578d79ed79a01480c0e129b1a86e5aa51a2c37aaebaec8"
+    },
+    "button-pixels.json": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-pixels.json",
+      "sha256": "aeb8797dd9491f3c077cb9189ac850e3d1f28bd04afaf74d1c305a061fb433ec"
+    },
+    "accepted-recompare.json": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/accepted-recompare.json",
+      "sha256": "0ce0a9f467ef7e793f3209a0d97ac8729706a8ef1e7bb460183a438458f37e16"
+    },
+    "button-native.log": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-native.log",
+      "sha256": "7951a490b332b3f5382a7bfc1276801be3cac73e7a5f7eb3545a984e7a6d328f"
+    },
+    "m13-m14.log": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/m13-m14.log",
+      "sha256": "2da5bda636bbab8c9c9d95a0daeaada79a6afeb0ae955bb547ddc417386d8489"
+    },
+    "button-driver.py": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-driver.py",
+      "sha256": "65012a805a9a8b1b99ff0f5e2744a8d8dac7f4c41ee4cdf3932ff68e2a7f0779"
+    },
+    "click.swift": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/click.swift",
+      "sha256": "9ed95f55581b064919037d15ab9f892b991cfbb3040f8120d75356a628e9643c"
+    },
+    "panel-0.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/panel-0.png",
+      "sha256": "4b0f61db5f7482e09f70bd0d83dca5e94e1252dac9f1232bcd1c2b13ecb4fa32"
+    },
+    "panel-1.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/panel-1.png",
+      "sha256": "107e0ee07e2fb28fe5d6294471bdb26b27a34340ea7e0c2352dbcbc9d356bdab"
+    },
+    "panel-2.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/panel-2.png",
+      "sha256": "d3fba63a98adb7454c3b2fb7cc64347cce9929a6fa16eccfbde97efb9c75d215"
+    },
+    "panel-3.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/panel-3.png",
+      "sha256": "d9baa82d09c4278dfbbf1e4783861ade66e5cd2932a02dbe3b3f1bc586c6fb8c"
+    },
+    "panel-4.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/panel-4.png",
+      "sha256": "7a105d920d1b0fd95b19a31158afd352af32dbca669844ce357c4ed8a47e816a"
+    },
+    "M14-compare-canvas.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/M14-compare-canvas.png",
+      "sha256": "ecec5dad22315c291a8758f1019b2abda4382dc068b1629fd004c4b1a6b05065"
+    },
+    "M14-compare-reference.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/M14-compare-reference.png",
+      "sha256": "0f6cd94c6c895a3ff38b624a07a92ce8b7295f2772969d7e91005807260dfd00"
+    },
+    "M14-compare-difference.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/M14-compare-difference.png",
+      "sha256": "cf6713525902345fbb912a48271e887dc541c1fd6a9f4633806dd597385cf4f4"
+    },
+    "button-01-baseline.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-01-baseline.png",
+      "sha256": "a866e240770227433df1dd8e8896efd96ecd4f07116ca84ee6435db9ce9fde8b"
+    },
+    "button-03b-rejection-message.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-03b-rejection-message.png",
+      "sha256": "8e3ec5c05f62123dfa099c5b881c68bd7990f7988b33347b671307e193f4c533"
+    },
+    "button-04-accepted-message.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-04-accepted-message.png",
+      "sha256": "a08371ffcbf2012d9ac23deee13aec4274c5c5182187d7800334ca851e3de3ce"
+    },
+    "button-05-accepted-canvas.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-05-accepted-canvas.png",
+      "sha256": "1871a2ae96a7be489019c6e7178710a9b42d8efe73579c45c53d41c1c31ee3f3"
+    },
+    "button-06-undo-canvas.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-06-undo-canvas.png",
+      "sha256": "4a0cd3171ffc2771d60cb373f284bdf0b354f6f86130057357175856c7794967"
+    },
+    "button-07-redo-canvas.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-07-redo-canvas.png",
+      "sha256": "1871a2ae96a7be489019c6e7178710a9b42d8efe73579c45c53d41c1c31ee3f3"
+    },
+    "button-08-final-restored.png": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/button-08-final-restored.png",
+      "sha256": "4a0cd3171ffc2771d60cb373f284bdf0b354f6f86130057357175856c7794967"
+    },
+    "base.joydeck": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/base.joydeck",
+      "sha256": "f5ea5bb8a2fbae46e6dcc15ea1032cebca4a168a14bbf5c93057c351c3d8936d"
+    },
+    "reference.joydeck": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/reference.joydeck",
+      "sha256": "5699b6c5cbb49d06ea25a740667bb5cf8a3d5841b6eecdd0cdfa0a6b56e8840d"
+    },
+    "accepted.joydeck": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/accepted.joydeck",
+      "sha256": "54d9f9e7455422d9459a3811ab1d8fa3ce0643c60abd9de18b98ca1e9b40ba7d"
+    },
+    "docs.log": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/docs.log",
+      "sha256": "7db7d2756644ab95b4491b05f2d31c2e74e4151b102abe722f1f0ceff8a3357d"
+    },
+    "release-after-gui.json": {
+      "path": "docs/joydeck/evidence/software-20261031/gui-unlocked/release-after-gui.json",
+      "sha256": "ce6c4ebf151399dac59292470ce581541fbbe806a89fcb8f851476d6c2852d1b"
+    }
+  },
+  "passed": true,
+  "docsPassed": true,
+  "packageManifestAfterGuiPassed": true,
+  "sourceInputsStillMatch": 170
+}

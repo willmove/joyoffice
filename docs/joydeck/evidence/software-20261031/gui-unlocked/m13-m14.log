@@ -1,0 +1,103 @@
+{
+  "binarySha256": "7dc8c4118c8bfc42952ba7780876133cda74b36164e0461187af747ef3ed2bac",
+  "cliSha256": "d0c0246c86bddd7ef85043cb5fe1f4feb76124a2f4f21cc25fd879660162a879",
+  "nativeOnly": false,
+  "guiPassed": true,
+  "foregroundActivation": {
+    "required": true,
+    "panels": {
+      "0": {
+        "requestedPid": 71184,
+        "frontmostPid": 71184,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "1": {
+        "requestedPid": 71184,
+        "frontmostPid": 71184,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "2": {
+        "requestedPid": 71184,
+        "frontmostPid": 71184,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "3": {
+        "requestedPid": 71184,
+        "frontmostPid": 71184,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "4": {
+        "requestedPid": 71184,
+        "frontmostPid": 71184,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      }
+    }
+  },
+  "panelsCaptured": 5,
+  "canvas": {
+    "foregroundActivation": {
+      "requestedPid": 71184,
+      "frontmostPid": 71184,
+      "verified": true,
+      "activationRequested": true,
+      "attempts": 1,
+      "settleSeconds": 0.2
+    },
+    "meanRgbError": 0.3285736149372513,
+    "fractionPixelsOver48": 0.0023209366391184574,
+    "interiorRgbError": 0.05444173529749181,
+    "interiorPixelsOver16": 0.0,
+    "edgePixelsOver128": 0.0,
+    "passed": true
+  },
+  "nativeState": {
+    "nativeWindowsOpenedClosed": 24,
+    "editUndoCycles": 120,
+    "liveWindows": 1,
+    "preferencesRestored": true,
+    "windowHeightRestoredWithoutShrink": true,
+    "comparisonAcceptedUndoRedo": true,
+    "imageDependencyAcceptedUndoRedo": true,
+    "mp4ExportDocumentUnchanged": true,
+    "exportedVideoDisplayed": true,
+    "scope": "native handlers; screenshot status recorded separately; no physical dual-display/reader certification"
+  },
+  "video": {
+    "audioTracks": 0,
+    "duration": 18,
+    "firstPts": 0,
+    "frames": 270,
+    "height": 540,
+    "lastPts": 17.933333333333334,
+    "monotonicPts": true,
+    "videoTracks": 1,
+    "width": 960
+  },
+  "decodedFrameMeanRgbError": 0.9073894032921811,
+  "cliCompareAcceptUndo": true,
+  "titleVttTimeline": true,
+  "diagnosticsFieldsChecked": true,
+  "appMaxRssKiB": 218752,
+  "preferences": {
+    "schema": 2,
+    "generation": 2,
+    "recentCount": 1
+  },
+  "passed": true
+}
+/Users/willm/Coding/joyoffice/dist/joydeck/software-gui-20261031-unlocked

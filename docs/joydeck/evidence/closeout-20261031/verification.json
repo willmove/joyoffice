@@ -1,0 +1,402 @@
+{
+  "date": "2026-10-31",
+  "baseCommit": "4902c5bb13366564352de2b6ae2dfa631700d96f",
+  "branch": "codex/joydeck-m14-closeout",
+  "workingTree": "uncommitted task changes",
+  "platform": {
+    "system": "Darwin",
+    "version": "27.0.1",
+    "architecture": "arm64"
+  },
+  "scope": "M14 and earlier delivered slices: comparison, remote automation identity/deduplication and recovery naming",
+  "rustTests": {
+    "total": 148,
+    "deck": 136,
+    "sharedOpc": 12
+  },
+  "checks": {
+    "fmt": true,
+    "strictClippy": true,
+    "gates": true,
+    "repositoryPythonTests": 139,
+    "deckDeliveryPythonTests": 11,
+    "recoveryConcurrentRepetitions": 20,
+    "cliDependsOnGpuiOrWord": false,
+    "docs": true,
+    "diffWhitespace": true,
+    "packageManifestAfterGui": true
+  },
+  "build": {
+    "version": "0.1.0",
+    "stage": "m14",
+    "target": "aarch64-apple-darwin",
+    "profile": "release",
+    "features": [
+      "desktop",
+      "validation"
+    ],
+    "packageRoots": [
+      "joydeck",
+      "joydeck-cli"
+    ],
+    "nativeReaderMax": 11,
+    "writerSchema": "1.10",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "cargoLockSha256": "262236b97e5bb43f7eb201457686a45c40582b4674d7544f946560efbe6ef424",
+    "sourceGraphSha256": "eb1215c4dac0cbe685c6950d4bc1f0cd54b31b665a4fa0bfc42e64c8e046e935",
+    "dependencyPackages": 444,
+    "sourceSnapshotVerified": true,
+    "officialSignatureVerified": false
+  },
+  "sourceInputs": 167,
+  "sourceInputsStillMatch": true,
+  "package": {
+    "path": "dist/joydeck/joydeck-m14-closeout-20261031-r4.zip",
+    "sha256": "2a114d623ac238434b85216a8d38351868922da91a33f7eeea03dafa8ad73ca2",
+    "filesVerified": 1925
+  },
+  "binaries": {
+    "joydeck": "958868912abd6739423c64a8a1ddd8e7684a1bd5c8312692a33af60e6ccd308b",
+    "joydeck-cli": "9361882c35fc42f506e3e0b06226039e613f43f81964c578992b5d30cca3b14e"
+  },
+  "guiAndProtocols": [
+    {
+      "name": "automation",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-automation.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck-cli",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/automation.json"
+      ],
+      "exitCode": 0,
+      "seconds": 1.512
+    },
+    {
+      "name": "release",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-release.py",
+        "--package",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/release.json"
+      ],
+      "exitCode": 0,
+      "seconds": 0.224
+    },
+    {
+      "name": "m0-m4",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/smoke-native.py",
+        "M0",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck"
+      ],
+      "exitCode": 0,
+      "seconds": 15.416
+    },
+    {
+      "name": "m4",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/benchmark-m4.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m4"
+      ],
+      "exitCode": 0,
+      "seconds": 7.21
+    },
+    {
+      "name": "m5",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m5.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m5"
+      ],
+      "exitCode": 0,
+      "seconds": 6.398
+    },
+    {
+      "name": "m6",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m6.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m6"
+      ],
+      "exitCode": 0,
+      "seconds": 8.856
+    },
+    {
+      "name": "m7",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m7.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m7"
+      ],
+      "exitCode": 0,
+      "seconds": 3.842
+    },
+    {
+      "name": "m8",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m8.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m8"
+      ],
+      "exitCode": 0,
+      "seconds": 6.219
+    },
+    {
+      "name": "m9-m10",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m9-m10.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m9-m10"
+      ],
+      "exitCode": 0,
+      "seconds": 9.05
+    },
+    {
+      "name": "m11-m12",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m11-m12.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m11-m12"
+      ],
+      "exitCode": 0,
+      "seconds": 16.319
+    },
+    {
+      "name": "m13-m14",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-m13-m14.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m13-m14"
+      ],
+      "exitCode": 0,
+      "seconds": 22.89
+    },
+    {
+      "name": "native-integration",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/verify-macos-integration.py",
+        "--app",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/JoyDeck.app",
+        "--document",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/m13-m14/current.joydeck",
+        "--output",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/closeout-validation-20261031-final/native-integration"
+      ],
+      "exitCode": 0,
+      "seconds": 6.577
+    },
+    {
+      "name": "ime",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/smoke-macos-ime.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck"
+      ],
+      "exitCode": 0,
+      "seconds": 5.477
+    },
+    {
+      "name": "table-ime",
+      "command": [
+        "/Users/willm/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "/Users/willm/Coding/joyoffice/scripts/joydeck/smoke-macos-ime.py",
+        "--binary",
+        "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-m14-closeout-20261031-r4/joydeck",
+        "--table"
+      ],
+      "exitCode": 0,
+      "seconds": 5.466
+    }
+  ],
+  "results": {
+    "m11-m12": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m11-m12.json",
+      "sha256": "31dca20ce59fd48628cb3ea3c598058e8d53818a3d82ab4ab4e012979049b403"
+    },
+    "m13-m14": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m13-m14.json",
+      "sha256": "788bb221c8fe553170a483d53cddbbe0512166daf7562925a51a01d1460a7c4f"
+    },
+    "m4": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m4.json",
+      "sha256": "c62236fa72cfc5a581a0517cb090cf313483e4fa864abd5d956bf0c71ce91772"
+    },
+    "m5": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m5.json",
+      "sha256": "c07daacd06472420e6b60f255322aafe87bcd24bb9768b86ee37e4754e5b1f78"
+    },
+    "m6": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m6.json",
+      "sha256": "1f3db4b49918412dd0249bb3ccd49d8223f53f406d2c0d35cfc2deb42cf012cd"
+    },
+    "m7": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m7.json",
+      "sha256": "0459870f5b88f575da2ba9b8933b22b25872a538c7d91262842e435eefa73203"
+    },
+    "m8": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m8.json",
+      "sha256": "36a36d07e383bedfcb51bd520c46560eb7d2eca8c7fdb3bbb16b5690f9042e07"
+    },
+    "m9-m10": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m9-m10.json",
+      "sha256": "d610719159dc8b49101e3b09125966cca6168c96f96b54eb78b5dbe2695397f4"
+    },
+    "native-integration": {
+      "path": "docs/joydeck/evidence/closeout-20261031/native-integration.json",
+      "sha256": "b0353f0006f85d7b088f11daf07564fc6c294c7f3f7276a85a35de77b7e9da8d"
+    },
+    "automation": {
+      "path": "docs/joydeck/evidence/closeout-20261031/automation.json",
+      "sha256": "f8ccb4b83634bfcc5da213d2914a0f2d0b634f1a82c5309f1efd2a2b2ad91de7"
+    },
+    "release": {
+      "path": "docs/joydeck/evidence/closeout-20261031/release.json",
+      "sha256": "42ac409c8c23dca239a6a2dc52a1f4476312db6b1f1b1ce426418612f7e5e94a"
+    },
+    "progress": {
+      "path": "docs/joydeck/evidence/closeout-20261031/progress.json",
+      "sha256": "8da0d5cbdddcd2346dab4ede8c574a2c0d267101e2fec7b4649d461eb0096ffd"
+    },
+    "releaseAfterGui": {
+      "path": "docs/joydeck/evidence/closeout-20261031/release-after-gui.json",
+      "sha256": "42ac409c8c23dca239a6a2dc52a1f4476312db6b1f1b1ce426418612f7e5e94a"
+    }
+  },
+  "ime": {
+    "ime": {
+      "result": "docs/joydeck/evidence/closeout-20261031/ime.json",
+      "rawArtifacts": "dist/joydeck/closeout-validation-20261031-final/ime"
+    },
+    "table-ime": {
+      "result": "docs/joydeck/evidence/closeout-20261031/table-ime.json",
+      "rawArtifacts": "dist/joydeck/closeout-validation-20261031-final/table-ime"
+    }
+  },
+  "logs": {
+    "deck-check.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/deck-check.log",
+      "sha256": "459c69b35369eb2c3dbc938acde575530b40052483f0bfc0810d943896976df2"
+    },
+    "package.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/package.log",
+      "sha256": "ab0a29b415bc354f7d5905ae64039f19e6df5dc05d1124b1fd171ff3e0dce4d5"
+    },
+    "gates.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/gates.log",
+      "sha256": "a6da4df7b312023cd92e8635500efc2b7af5048a993accd0756c286a1e4cfa83"
+    },
+    "python.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/python.log",
+      "sha256": "1aba601355d86a529f137cc3c9d99fb1318bcfa9f2536bbf39863b8597f62099"
+    },
+    "deck-delivery-python.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/deck-delivery-python.log",
+      "sha256": "ce895947b8ffcb2e77addf8382970fd1c07ecab9486fbbfca209319a47c37f4f"
+    },
+    "recovery-repeat.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/recovery-repeat.log",
+      "sha256": "b0ba1b75662f90d1b4f883b54300a83cb1a702ce4b5f44fac418872e1e2af00f"
+    },
+    "baseline-before.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/baseline-before.log",
+      "sha256": "be31417455802fb1c5b0e691ecc94097936b9097f24b6274c9b487b17ed39a10"
+    },
+    "regression-before.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/regression-before.log",
+      "sha256": "dc469ed3bbbdfc730bbb3bbcd7cf82c1423d303ea96e702a725578b23b502be0"
+    },
+    "remote-id-before.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/remote-id-before.log",
+      "sha256": "9398e38b89e66f77771db4118bfd711509266f12ddf14a971da6dc2c851c34cf"
+    },
+    "cli-auto-id-before.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/cli-auto-id-before.log",
+      "sha256": "707857081998f8026339daa910686d7a9743f8890e3b17efc6b5287c0d7b810b"
+    },
+    "cli-dependencies.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/cli-dependencies.log",
+      "sha256": "be3c508eb743c45e9f2a2a9c240c605dd86586c4b1aefa9026ec8c37b8c8bcb9"
+    },
+    "docs.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/docs.log",
+      "sha256": "7db7d2756644ab95b4491b05f2d31c2e74e4151b102abe722f1f0ceff8a3357d"
+    },
+    "m0-native.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m0-native.log",
+      "sha256": "7157f76618ff74c6537fdc5a7d1b00f719659e4b808bc7cb1d0bec666d7b1196"
+    },
+    "m1-native.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m1-native.log",
+      "sha256": "897761e3ac8485e11c2cc084ec11800e88b079a1c6d0e8378eb7ddf63457a07b"
+    },
+    "m2-native.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m2-native.log",
+      "sha256": "c2f59af88e801c2af76093f8fc4d42ad464f537450fdbbe5230631a93fc7a71d"
+    },
+    "m3-native.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m3-native.log",
+      "sha256": "847fe36cacda61b6779eaaa76f0e720bfec727fec1196af243b4f1c181a45b9c"
+    },
+    "m4-native.log": {
+      "path": "docs/joydeck/evidence/closeout-20261031/m4-native.log",
+      "sha256": "f00c9ea304759e224e1221d2c0f9df6ea7cc202c0ec1b00db2c53d2a85fca081"
+    }
+  },
+  "priorRun": {
+    "path": "dist/joydeck/closeout-validation-20261031",
+    "automationFailure": "default cli-0 operationId reused across CLI processes; fixed and final run repeated",
+    "otherGuiChecksPassed": true
+  },
+  "sharedModulesModified": false,
+  "wordRegression": "not required: no shared modules, dependency manifests, lockfile or build rules modified",
+  "humanAcceptance": false,
+  "officialRelease": false,
+  "unverified": [
+    "Windows/Linux native GUI",
+    "clean-machine installation",
+    "physical keyboard and screen readers",
+    "multiple physical displays/DPI/hotplug",
+    "official signing/notarization",
+    "licensed external Office corpus",
+    "Xinchuang hardware"
+  ],
+  "remainingSoftwareWork": "DocumentStore, unified text layout, full groups/masters, Office comments/media roundtrips, asynchronous jobs, PDF reading order and independent M14 feature pool tasks remain open",
+  "passed": true
+}

@@ -1,0 +1,29 @@
+M2 command=transaction.batch document=1
+M2 command=object.add document=1
+M2 command=object.add document=1
+M2 command=object.add document=1
+M2 command=object.add document=1
+M2_SMOKE click_jitter_and_page_drag_cancel=true
+M2 command=object.update document=1
+M2 command=object.update document=1
+M2 command=object.update document=1
+M2_SMOKE drag_scale_rotate_cancel_single_history=true
+M2 command=object.update document=1
+M2 command=object.reorder document=1
+M2 command=page.reorder document=1
+M2 command=page.visibility document=1
+M2 command=object.update document=1
+M2_SMOKE marquee_multiselect_reorder=true
+M2_SMOKE properties_close_cancel=true
+M2_SMOKE ui_save_clean=true
+M2 command=object.add document=1
+M2 command=object.add document=1
+M2_SMOKE overwrite_old_snapshot_stays_dirty=true
+M2 command=object.add document=1
+M2_SMOKE global_quit_dirty_guard=true
+M2_SMOKE save_reopen_recovery=true
+M2 command=object.add document=10
+M2_SMOKE save_then_close=true
+M2 command=object.add document=12
+M2_SMOKE discard_then_close=true
+M2_SMOKE complete=true

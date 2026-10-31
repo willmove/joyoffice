@@ -57,6 +57,10 @@ impl Editor {
     }
     pub(super) fn compare_file(&mut self, cx: &mut Context<Self>) {
         self.finish_text(cx);
+        self.session.sync();
+        self.comparison = None;
+        self.comparison_request = self.comparison_request.wrapping_add(1);
+        let request = self.comparison_request;
         let path = PathBuf::from(self.comparison_path.read(cx).value().trim());
         let base = self.session.deck.clone();
         let id = self.session.id;
@@ -72,6 +76,9 @@ impl Editor {
                 })
                 .await;
             let _ = view.update(cx, |s, cx| {
+                if s.comparison_request != request {
+                    return;
+                }
                 s.session.sync();
                 if s.session.id != id || s.session.revision != revision {
                     s.message = "文稿已改变，请重新比较".into();
@@ -99,13 +106,26 @@ impl Editor {
         .detach();
     }
     pub(super) fn accept_comparison(&mut self, cx: &mut Context<Self>) {
+        self.accept_comparison_mode(false, cx);
+    }
+    pub(super) fn accept_comparison_mode(
+        &mut self,
+        include_resources: bool,
+        cx: &mut Context<Self>,
+    ) {
+        self.finish_text(cx);
         self.session.sync();
         let command = self
             .comparison
             .as_ref()
             .ok_or("请先比较文稿".to_owned())
             .and_then(|(report, reference)| {
-                compare::accept_object(&self.session.deck, reference, report, self.comparison_pick)
+                let accept = if include_resources {
+                    compare::accept_object_with_resources
+                } else {
+                    compare::accept_object
+                };
+                accept(&self.session.deck, reference, report, self.comparison_pick)
             });
         match command {
             Ok(command) => self.command(command, cx),
@@ -131,8 +151,9 @@ impl Editor {
             pane=pane.child("将当前文稿与另一文稿比较")
                 .child(Input::new(&self.comparison_path).small())
                 .child(button("compare-file","比较").on_click(cx.listener(|s,_,_,cx|s.compare_file(cx))))
-                .child("可逐个接受对象内容更改，并使用撤销恢复。目标须已有所需图片/版式资源；页面、主题和审阅差异仅报告。")
-                .child(button("accept-difference","接受选中的对象更改").on_click(cx.listener(|s,_,_,cx|s.accept_comparison(cx))));
+                .child("可逐个接受对象更改，并使用撤销恢复。图片可连同所需资源一起复制；页面、主题和审阅差异仅报告。")
+                .child(button("accept-difference","接受选中的对象更改").on_click(cx.listener(|s,_,_,cx|s.accept_comparison(cx))))
+                .child(button("accept-difference-resources","接受并复制所需图片").on_click(cx.listener(|s,_,_,cx|s.accept_comparison_mode(true,cx))));
             if let Some((report, _)) = &self.comparison {
                 for (i, row) in report.differences.iter().enumerate() {
                     let kind = match row.kind.as_str() {
