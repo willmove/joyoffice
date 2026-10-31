@@ -1,7 +1,8 @@
 name: Product release
 
 # Product tags release independently. Historical v* tags still route to Word.
-# This workflow attaches artifacts; curated release notes are not rewritten.
+# Curated bilingual notes live in the tagged tree. A release remains a draft
+# until every platform artifact and its uploaded digest have been checked.
 on:
   push:
     tags: ["v*", "joyword-v*", "joydeck-v*"]
@@ -21,7 +22,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: release-${{ github.ref }}-${{ inputs.product }}-${{ inputs.version }}
+  group: release-${{ github.event_name == 'push' && github.ref_name || format('{0}-v{1}', inputs.product, inputs.version) }}
   cancel-in-progress: false
 env:
   CARGO_TERM_COLOR: always
@@ -52,6 +53,14 @@ jobs:
           else
             python tools/xtask/product.py release-version --tag "$RELEASE_REF" --github-output "$GITHUB_OUTPUT"
           fi
+      - name: Verify tag points to this checkout
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          git fetch --no-tags origin "refs/tags/$RELEASE_TAG"
+          test "$(git rev-parse 'FETCH_HEAD^{commit}')" = "$(git rev-parse HEAD)"
+          test -s "docs/releases/$RELEASE_TAG.md"
   package:
     name: Package ${{ needs.resolve.outputs.product }} (${{ matrix.platform }} ${{ matrix.arch }})
     needs: resolve
@@ -102,38 +111,81 @@ jobs:
             dist/${{ needs.resolve.outputs.product }}/*.sha256
           if-no-files-found: error
   publish:
-    name: Attach selected product artifacts
+    name: Verify and publish selected product
     needs: [resolve, package]
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           pattern: release-${{ needs.resolve.outputs.product }}-*
           path: dist
           merge-multiple: true
-      - name: Require an existing curated preview release
+      - name: Verify complete archives and SHA-256 files
+        env:
+          RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
+          RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+        run: python scripts/verify_release_assets.py dist "$RELEASE_PRODUCT" "$RELEASE_VERSION"
+      - name: Create or resume a curated preview draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
+          RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
+          RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+        shell: bash
+        run: |
+          notes="docs/releases/$RELEASE_TAG.md"
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,isPrerelease,isDraft > release-state.json; then
+            case "$RELEASE_PRODUCT" in
+              joyword) title="JoyWord v$RELEASE_VERSION · Preview 预览版" ;;
+              joydeck) title="JoyDeck v$RELEASE_VERSION · Preview 预览版" ;;
+              *) exit 1 ;;
+            esac
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease --latest=false --title "$title" --notes-file "$notes"
+            gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,isPrerelease,isDraft > release-state.json
+          fi
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+          import sys
+          release = json.load(open('release-state.json', encoding='utf-8'))
+          notes = Path('docs/releases', os.environ['RELEASE_TAG'] + '.md').read_text(encoding='utf-8').strip()
+          if '## English' not in notes or '## 中文' not in notes:
+              sys.exit('Curated English and Chinese notes are required')
+          if release.get('body', '').strip() != notes:
+              sys.exit('Existing draft notes differ from the tagged notes')
+          if not release.get('isDraft') or not release.get('isPrerelease'):
+              sys.exit('Refusing to alter an already published or non-preview release')
+          PYTHON
+      - name: Upload to draft and check GitHub asset digests
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
         shell: bash
         run: |
-          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body,isPrerelease,isDraft > release-state.json
+          gh release upload "$RELEASE_TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets > uploaded-assets.json
           python3 - <<'PYTHON'
+          import hashlib
           import json
+          from pathlib import Path
           import sys
-          release = json.load(open('release-state.json', encoding='utf-8'))
-          if not release.get('body', '').strip():
-              sys.exit('Author curated release notes before attaching artifacts')
-          if release.get('isDraft') or not release.get('isPrerelease'):
-              sys.exit('These products remain previews; an existing published prerelease is required')
+          files = {p.name: p for p in Path('dist').iterdir() if p.is_file()}
+          assets = json.load(open('uploaded-assets.json', encoding='utf-8'))['assets']
+          if {a['name'] for a in assets} != set(files) or len(assets) != len(files):
+              sys.exit('Uploaded asset set does not match the verified files')
+          for asset in assets:
+              with files[asset['name']].open('rb') as stream:
+                  digest = 'sha256:' + hashlib.file_digest(stream, 'sha256').hexdigest()
+              if asset['state'] != 'uploaded' or asset.get('digest') != digest:
+                  sys.exit('Uploaded digest mismatch: ' + asset['name'])
           PYTHON
-      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
-        with:
-          tag_name: ${{ needs.resolve.outputs.tag }}
-          prerelease: true
-          make_latest: false
-          fail_on_unmatched_files: true
-          files: |
-            dist/*.zip
-            dist/*.tar.gz
-            dist/*.sha256
+      - name: Publish completed preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.resolve.outputs.tag }}
+        run: gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease --latest=false

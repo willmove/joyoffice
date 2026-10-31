@@ -3383,7 +3383,7 @@ version = "0.1.0"
 
 [[package]]
 name = "joyword"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "accesskit",
  "gpui-kit",
@@ -3410,7 +3410,7 @@ dependencies = [
 
 [[package]]
 name = "joyword-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "joyoffice-opc",
  "joyword-corpus",

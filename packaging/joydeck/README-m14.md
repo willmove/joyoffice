@@ -1,6 +1,6 @@
-# JoyDeck M13/M14 macOS ARM64 开发包
+# JoyDeck M13/M14 开发预览包
 
-双击 JoyDeck.app，或运行 ./joydeck --authoring-demo。JoyDeck.app 自包含，可单独移动到带空格/中文的目录；保留原版本以便回退。本包未正式签名或公证，完整三平台 Beta 与 M14 功能池尚未验收。
+macOS 双击 JoyDeck.app，或运行 `./joydeck --authoring-demo`；Linux 运行 `./joydeck --authoring-demo`，Windows 运行 `joydeck.exe --authoring-demo`。macOS 的 JoyDeck.app 自包含，可单独移动到带空格/中文的目录；保留原版本以便回退。本包未正式签名或公证，完整三平台 Beta 与 M14 功能池尚未验收。下文标注的 macOS 原生打印、媒体和视频 helper 等功能仅适用于 macOS；其他平台的可用功能以实际应用提示为准。
 
 维护：保存窗口大小、缩放、格式栏和备注布局；最近文件最多12项，打开成功/保存后更新，支持清空。偏好版本2，旧版本1迁移，坏配置保留副本后重置，未来版本拒绝覆盖。macOS文件菜单及本地文件打开事件可用；同进程再次打开同一已保存原生文稿会激活现有窗口；其他进程独立编辑，保存冲突保护。
 
