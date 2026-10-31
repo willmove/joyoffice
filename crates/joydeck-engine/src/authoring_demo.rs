@@ -68,23 +68,23 @@ pub fn deck() -> Deck {
                 c.x_title = "投入".into();
             }
         }
-        if *kind == "hierarchy" {
-            if let Some(diagram) = &mut o.diagram {
-                diagram.nodes = [
-                    ("业务计划", None),
-                    ("客户增长", Some("node-0")),
-                    ("客户体验", Some("node-1")),
-                    ("产品迭代", Some("node-0")),
-                ]
-                .into_iter()
-                .enumerate()
-                .map(|(i, (text, parent))| crate::diagram::Node {
-                    id: format!("node-{i}"),
-                    text: text.into(),
-                    parent: parent.map(str::to_owned),
-                })
-                .collect();
-            }
+        if *kind == "hierarchy"
+            && let Some(diagram) = &mut o.diagram
+        {
+            diagram.nodes = [
+                ("业务计划", None),
+                ("客户增长", Some("node-0")),
+                ("客户体验", Some("node-1")),
+                ("产品迭代", Some("node-0")),
+            ]
+            .into_iter()
+            .enumerate()
+            .map(|(i, (text, parent))| crate::diagram::Node {
+                id: format!("node-{i}"),
+                text: text.into(),
+                parent: parent.map(str::to_owned),
+            })
+            .collect();
         }
         let mut footer = edit::object("text");
         footer.id = format!("footer-{i}");

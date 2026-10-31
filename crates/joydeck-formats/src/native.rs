@@ -54,7 +54,7 @@ pub fn encode(deck: &Deck) -> Result<Vec<u8>> {
 }
 pub fn validate_editable(parts: &std::collections::BTreeMap<String, Vec<u8>>) -> Result<()> {
     let manifest: serde_json::Value =
-        serde_json::from_str(crate::document::part(&parts, "manifest.json")?)
+        serde_json::from_str(crate::document::part(parts, "manifest.json")?)
             .map_err(|e| e.to_string())?;
     if !matches!(manifest["schemaMinor"].as_u64(), Some(0..=10)) {
         return Err("新版本格式只能只读查看".into());
@@ -80,7 +80,7 @@ pub fn validate_editable(parts: &std::collections::BTreeMap<String, Vec<u8>>) ->
         return Err("未知部件：请使用只读查看器打开".into());
     }
     let raw: serde_json::Value =
-        serde_json::from_str(crate::document::part(&parts, "document.json")?)
+        serde_json::from_str(crate::document::part(parts, "document.json")?)
             .map_err(|e| e.to_string())?;
     fn keys(v: &serde_json::Value, allowed: &[&str]) -> Result<()> {
         if v.as_object()
