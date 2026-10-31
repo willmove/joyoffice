@@ -13,53 +13,67 @@ artifacts = [json.loads(line) for line in (OUT / "build.json").read_text(encodin
 executables = [row["executable"] for row in artifacts if row.get("reason") == "compiler-artifact"
                and row.get("executable") and row["target"]["name"] == "playback"]
 assert len(executables) == 1, executables
-environment = dict(os.environ, RUST_BACKTRACE="full")
-started = time.monotonic()
-report = {"test": "h264_real_decode_pause_twenty_seeks_and_bounded_frame", "timedOut": False}
-with (OUT / "test.log").open("w", encoding="utf-8") as log:
-    child = subprocess.Popen([executables[0], "--exact", report["test"], "--nocapture"],
-                             cwd=ROOT, env=environment, stdout=log, stderr=subprocess.STDOUT,
-                             start_new_session=True)
-    report["testPid"] = child.pid
-    try:
-        report["returncode"] = child.wait(timeout=45)
-    except subprocess.TimeoutExpired:
-        report["timedOut"] = True
-        lines = subprocess.check_output(["ps", "-axo", "pid=,ppid=,comm="], text=True).splitlines()
-        processes = []
-        for line in lines:
-            fields = line.strip().split(None, 2)
-            if len(fields) == 3:
-                processes.append({"pid": int(fields[0]), "parent": int(fields[1]), "executable": fields[2]})
-        owned = {child.pid}
-        while True:
-            expanded = owned | {row["pid"] for row in processes if row["parent"] in owned}
-            if expanded == owned:
-                break
-            owned = expanded
-        report["ownedProcesses"] = [row for row in processes if row["pid"] in owned]
-        for row in report["ownedProcesses"]:
-            pid = str(row["pid"])
-            with (OUT / ("sample-" + pid + "-command.log")).open("w", encoding="utf-8") as output:
-                try:
-                    subprocess.run(["sample", pid, "3", "-file", str(OUT / ("sample-" + pid + ".txt"))],
-                                   stdout=output, stderr=subprocess.STDOUT, timeout=15, check=False)
-                except subprocess.TimeoutExpired:
-                    output.write("Sampling timed out.\n")
-            with (OUT / ("files-" + pid + ".txt")).open("w", encoding="utf-8") as output:
-                try:
-                    subprocess.run(["lsof", "-p", pid, "-Fpn"], stdout=output, stderr=subprocess.STDOUT,
-                                   timeout=5, check=False)
-                except subprocess.TimeoutExpired:
-                    output.write("File inventory timed out.\n")
-        if child.poll() is None and os.getpgid(child.pid) == child.pid:
-            os.killpg(child.pid, signal.SIGKILL)
+def run_case(label, extra_args):
+    case = OUT / label
+    case.mkdir()
+    environment = dict(os.environ, RUST_BACKTRACE="full")
+    started = time.monotonic()
+    report = {"selection": extra_args, "timedOut": False}
+    with (case / "test.log").open("w", encoding="utf-8") as log:
+        child = subprocess.Popen([executables[0], *extra_args, "--nocapture"],
+                                 cwd=ROOT, env=environment, stdout=log, stderr=subprocess.STDOUT,
+                                 start_new_session=True)
+        report["testPid"] = child.pid
         try:
-            report["returncode"] = child.wait(timeout=8)
+            report["returncode"] = child.wait(timeout=45)
         except subprocess.TimeoutExpired:
-            report["killDidNotReapWithinEightSeconds"] = True
-report["seconds"] = time.monotonic() - started
-(OUT / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-print(json.dumps(report, indent=2), flush=True)
-print((OUT / "test.log").read_text(encoding="utf-8"), flush=True)
-raise SystemExit(1 if report["timedOut"] else report["returncode"])
+            report["timedOut"] = True
+            lines = subprocess.check_output(["ps", "-axo", "pid=,ppid=,comm="], text=True).splitlines()
+            processes = []
+            for line in lines:
+                fields = line.strip().split(None, 2)
+                if len(fields) == 3:
+                    processes.append({"pid": int(fields[0]), "parent": int(fields[1]), "executable": fields[2]})
+            owned = {child.pid}
+            while True:
+                expanded = owned | {row["pid"] for row in processes if row["parent"] in owned}
+                if expanded == owned:
+                    break
+                owned = expanded
+            report["ownedProcesses"] = [row for row in processes if row["pid"] in owned]
+            for row in report["ownedProcesses"]:
+                pid = str(row["pid"])
+                with (case / ("sample-" + pid + "-command.log")).open("w", encoding="utf-8") as output:
+                    try:
+                        subprocess.run(["sample", pid, "3", "-file", str(case / ("sample-" + pid + ".txt"))],
+                                       stdout=output, stderr=subprocess.STDOUT, timeout=15, check=False)
+                    except subprocess.TimeoutExpired:
+                        output.write("Sampling timed out.\n")
+                with (case / ("files-" + pid + ".txt")).open("w", encoding="utf-8") as output:
+                    try:
+                        subprocess.run(["lsof", "-p", pid, "-Fpn"], stdout=output, stderr=subprocess.STDOUT,
+                                       timeout=5, check=False)
+                    except subprocess.TimeoutExpired:
+                        output.write("File inventory timed out.\n")
+            if child.poll() is None and os.getpgid(child.pid) == child.pid:
+                os.killpg(child.pid, signal.SIGKILL)
+            try:
+                report["returncode"] = child.wait(timeout=8)
+            except subprocess.TimeoutExpired:
+                report["killDidNotReapWithinEightSeconds"] = True
+    report["seconds"] = time.monotonic() - started
+    (case / "report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, indent=2), flush=True)
+    print((case / "test.log").read_text(encoding="utf-8"), flush=True)
+    return report
+
+mode = os.environ.get("DIAGNOSTIC_MODE", "parallel")
+arguments = ["--test-threads=1"] if mode == "serial" else []
+reports = []
+for index in range(3):
+    report = run_case(f"{mode}-{index}", arguments)
+    reports.append(report)
+    if report["timedOut"] or report["returncode"] != 0:
+        break
+(OUT / "summary.json").write_text(json.dumps({"mode": mode, "reports": reports}, indent=2) + "\n", encoding="utf-8")
+raise SystemExit(1 if any(row["timedOut"] or row["returncode"] != 0 for row in reports) else 0)
