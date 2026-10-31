@@ -67,6 +67,8 @@ Sheet 开发 profile 保持原 opt-level=1；不放宽递归预算。zip 接入�
 
 独立源码检查复现了共享 Cargo 目标目录时工程入口使用编译时旧路径的问题。入口改为从当前目录向上寻找 workspace；缓存程序跨检出目录调用与仓库外拒绝两项集成回归、严格 Clippy 已通过。测试依赖沿用现有 tempfile 精确版本，原有注册表依赖未升级。
 
+macOS CI 在[首次整合](https://github.com/willmove/joyoffice/actions/runs/41196806738/job/124524511418)和[后续提交](https://github.com/willmove/joyoffice/actions/runs/41203068690/job/124542574612)两次复现既有 Word CLI 输出测试夹具的时序失败：对端关闭后循环写入仍未得到 EPIPE，CLI 尚未启动。夹具改为关闭本地写方向并先断言 BrokenPipe，再把同一描述符传给子进程；三种 stdout/stderr 失败场景、退出码及输入文件原样保留的断言保持。Windows 的 8 项 CLI 集成测试、fmt、严格 Clippy 通过；本机不运行 Unix 条件测试，实际 macOS/Linux 结果以最终 PR CI 为准。
+
 ## 保留的验收项
 
 本机实测平台为 Windows x64。macOS/Linux 的实际 GUI、正式签名/公证、真实系统 IME、多显示器/系统 DPI、读屏语音、物理打印设备与 GPU 呈现性能仍未验证。CI 构建或合成输入不代替这些验收；信创真机按仓库约定后补，不阻塞工程整合。本次不将原 M8 或产品功能矩阵整体改为完成。

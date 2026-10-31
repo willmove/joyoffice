@@ -42,6 +42,12 @@
       "passed": 1395,
       "failed": 0,
       "ignored": 1
+    },
+    "word-cli-fixture-windows.log": {
+      "suites": 1,
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0
     }
   },
   "pythonTests": {
@@ -243,6 +249,18 @@
     "performance-new-verified2.log": {
       "bytes": 7812,
       "sha256": "72266a2601f37668d7ed20251d8a8617b905fce6c5ee820a9d6593c25ca32560"
+    },
+    "word-cli-fixture-windows.log": {
+      "bytes": 3043,
+      "sha256": "d75c0437e927121b6c3ded92f283d62611ebab69e5cf872b9c4b61f652f5906b"
+    },
+    "word-cli-fixture-clippy.log": {
+      "bytes": 2180,
+      "sha256": "2c1f52884dfc8fe5e3d4b042e36916c1b28e0876686d8bc896bb063210f4a610"
+    },
+    "ci-word-macos-second-failure-excerpt.log": {
+      "bytes": 3072,
+      "sha256": "389f8890912145fc41ed10f4d8192f9f9bf256bbdba4c0bb06ff98a101d5e565"
     }
   },
   "newNativeChecks": 52,
