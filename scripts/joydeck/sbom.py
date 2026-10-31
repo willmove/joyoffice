@@ -109,7 +109,7 @@ def require_unchanged_sources(before, after):
                          json.dumps({'added': added, 'removed': removed, 'changed': changed}))
 
 
-def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=()):
+def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=(), require_license_texts=False):
     product = roots[0].split('-')[0] if roots else 'joydeck'
     data, packages, reached, edges, root_ids = graph(target, roots, features)
     ids = {}
@@ -157,11 +157,14 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
             candidates.extend(v for v in supplement.iterdir() if v.is_file())
         if product == 'joysheet':
             supplement = ROOT / 'docs/joysheet/third-party' / p['name']
+            versioned = supplement / p['version']
+            if versioned.is_dir():
+                supplement = versioned
             if supplement.is_dir():
                 candidates.extend(v for v in supplement.iterdir() if v.is_file())
         copied = []
         for candidate in sorted(set(candidates)):
-            if not candidate.is_file() or candidate.stat().st_size > 2 * 1024 * 1024:
+            if not candidate.is_file() or not 0 < candidate.stat().st_size <= 2 * 1024 * 1024:
                 continue
             folder = license_root / (p['name'] + '-' + p['version'])
             folder.mkdir(exist_ok=True)
@@ -173,6 +176,12 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
         license_index.append({'name': p['name'], 'version': p['version'], 'declared': p.get('license'),
                               'texts': sorted(set(copied)), 'workspace': p.get('source') is None})
         objects.append(row)
+    if require_license_texts:
+        missing = [row['name'] + '@' + row['version'] for row in license_index
+                   if not any(Path(name).name.upper().startswith(('LICENSE', 'LICENCE', 'COPYING', 'NOTICE', 'UNLICENSE'))
+                              for name in row['texts'])]
+        if missing:
+            raise ValueError('Missing dependency license texts: ' + ', '.join(missing))
     relationships = [{'spdxElementId': 'SPDXRef-DOCUMENT', 'relationshipType': 'DESCRIBES',
                       'relatedSpdxElement': ids[i]} for i in sorted(root_ids)]
     relationships += [{'spdxElementId': ids[a], 'relationshipType': 'DEPENDS_ON',
@@ -189,6 +198,7 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
     (license_root / 'index.json').write_text(json.dumps(license_index, indent=2) + '\n', encoding='utf-8')
     return {'packages': len(objects), 'lockSha256': lock, 'target': target, 'profile': profile,
             'roots': list(roots), 'features': list(features),
+            'licenseTextsVerified': require_license_texts,
             'sourceHashes': source_hashes(data, packages, reached)}
 
 if __name__ == '__main__':

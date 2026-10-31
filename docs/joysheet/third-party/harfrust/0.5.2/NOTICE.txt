@@ -1,0 +1,7 @@
+harfrust-0.5.2
+
+Published crate license declaration: MIT
+
+Published authors (not a synthesized copyright notice):
+
+See SOURCE.json for exact source URLs, refs and hashes.

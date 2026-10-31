@@ -1,6 +1,13 @@
 //! Product-scoped engineering commands; no dependency on a product runtime.
 use std::process::{Command, ExitCode};
 
+fn workspace_script(start: &std::path::Path) -> Option<std::path::PathBuf> {
+    start.ancestors().find_map(|directory| {
+        let script = directory.join("tools/xtask/product.py");
+        (directory.join("Cargo.toml").is_file() && script.is_file()).then_some(script)
+    })
+}
+
 fn supported_python(candidate: &std::ffi::OsStr) -> bool {
     Command::new(candidate)
         .args([
@@ -12,6 +19,16 @@ fn supported_python(candidate: &std::ffi::OsStr) -> bool {
 }
 
 fn main() -> ExitCode {
+    // A shared CARGO_TARGET_DIR can reuse this executable in another checkout.
+    // Resolve the caller's workspace at runtime, never the compiled-in source path.
+    let Some(script) = std::env::current_dir()
+        .ok()
+        .as_deref()
+        .and_then(workspace_script)
+    else {
+        eprintln!("Cannot locate JoyOffice workspace from the current directory.");
+        return ExitCode::FAILURE;
+    };
     let candidates = match std::env::var_os("JOYOFFICE_PYTHON") {
         Some(value) => vec![value],
         None => [
@@ -34,7 +51,6 @@ fn main() -> ExitCode {
         );
         return ExitCode::FAILURE;
     };
-    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("product.py");
     match Command::new(python)
         .env("PYTHONUTF8", "1")
         .env("PYTHONIOENCODING", "utf-8")

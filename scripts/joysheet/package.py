@@ -151,7 +151,8 @@ def package(profile, validation, output=None):
     shutil.copytree(ROOT / "assets/joysheet", destination / "assets/joysheet")
     shutil.copytree(ROOT / "scripts/joysheet", destination / "scripts/joysheet",
                     ignore=shutil.ignore_patterns("__pycache__", "tests"))
-    inventory = sbom.generate(destination / "SBOM.spdx.json", target, profile, roots=APPLICATIONS, features=features)
+    inventory = sbom.generate(destination / "SBOM.spdx.json", target, profile, roots=APPLICATIONS, features=features,
+                              require_license_texts=True)
     manifest = {
         "product": "joysheet", "version": version, "stage": "M8-preview6-monorepo", "milestoneComplete": False,
         "profile": profile, "target": target, "automation": validation, "publisherSigned": False,

@@ -1,15 +1,19 @@
 {
-  "binarySha256": "80c862341e77cb60c731ff5d95bf3dba8f6ecfe6f02b694a0377c12492642169",
-  "m6Task": 0,
-  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
-  "processId": 19548,
-  "platform": "Windows x64",
-  "m5Task": 0,
-  "nativeImeVerified": false,
   "stage": "M1",
-  "m7Task": 0,
+  "passed": true,
+  "m6Task": 0,
+  "windowsTask": 0,
+  "processId": 19464,
+  "nativeImeVerified": false,
+  "port": 57354,
   "m4Task": 0,
-  "port": 60956,
+  "platform": "Windows x64",
+  "windowsQualityTask": 0,
+  "m7Task": 0,
+  "saveDialog": false,
+  "binarySha256": "80c862341e77cb60c731ff5d95bf3dba8f6ecfe6f02b694a0377c12492642169",
+  "m5Task": 0,
+  "binary": "D:\\Coding\\EditorProjects\\joysheet\\dist\\joysheet-0.1.0-M8-preview6-windows-x86_64\\joysheet.exe",
   "checks": [
     "native GPUI window and sales screenshot",
     "engine workbook data and formula preview",
@@ -18,13 +22,12 @@
     "custom 10k/100k row heights and 1000 column widths; dense 10k/100k dependent formulas; dynamic 10k/100k spills with real values, shrink/block/undo",
     "native 10000x20 and 100000x20 CSV viewing and bounded scroll paint samples; identity-fenced edit phases and correct range aggregates"
   ],
-  "m8Task": 0,
   "windowsFrom": 1,
-  "passed": true,
+  "m8Task": 0,
   "performance": {
     "kind": "CPU worksheet paint submission",
-    "samples": 729,
-    "paintP95Ms": 0.9563,
+    "samples": 724,
+    "paintP95Ms": 0.8787,
     "paintedCells": 450,
     "gpuPresentationMeasured": false,
     "editSamples": 0,
@@ -229,17 +232,17 @@
       "framePhases": {
         "prepaintMs": {
           "count": 512,
-          "p50": 0.0051,
-          "p95": 0.0094,
-          "p99": 0.0183,
-          "max": 0.0269
+          "p50": 0.0045000000000000005,
+          "p95": 0.0097,
+          "p99": 0.0178,
+          "max": 0.024
         },
         "geometryMs": {
           "count": 512,
           "p50": 0.0,
           "p95": 9.999999999999999e-05,
           "p99": 9.999999999999999e-05,
-          "max": 0.0003
+          "max": 0.00019999999999999998
         },
         "extentMs": {
           "count": 512,
@@ -258,37 +261,37 @@
         "layoutMs": {
           "count": 512,
           "p50": 0.0019,
-          "p95": 0.0031999999999999997,
-          "p99": 0.0048,
-          "max": 0.0070999999999999995
+          "p95": 0.0028,
+          "p99": 0.0065,
+          "max": 0.0212
         },
         "paintMs": {
           "count": 512,
-          "p50": 0.7414999999999999,
-          "p95": 0.9575,
-          "p99": 1.4355,
-          "max": 2.0707999999999998
+          "p50": 0.7383,
+          "p95": 0.8868,
+          "p99": 1.4243999999999999,
+          "max": 2.1302
         },
         "cellsMs": {
           "count": 512,
-          "p50": 0.5881000000000001,
-          "p95": 0.756,
-          "p99": 1.0907,
-          "max": 1.648
+          "p50": 0.5843,
+          "p95": 0.7073999999999999,
+          "p99": 1.0784,
+          "max": 1.7635
         },
         "textMs": {
           "count": 512,
-          "p50": 0.0497,
-          "p95": 0.0649,
-          "p99": 0.1272,
-          "max": 0.1787
+          "p50": 0.050800000000000005,
+          "p95": 0.0637,
+          "p99": 0.11019999999999999,
+          "max": 0.1614
         },
         "scrollbarMs": {
           "count": 512,
           "p50": 0.00039999999999999996,
-          "p95": 0.0007,
-          "p99": 0.001,
-          "max": 0.0012
+          "p95": 0.0006,
+          "p99": 0.0009,
+          "max": 0.0013
         }
       },
       "edits": null,
@@ -296,19 +299,16 @@
     },
     "recovery": {
       "busy": false,
-      "completed": 13,
+      "completed": 11,
       "skipped": 0,
       "doc": 12,
-      "serializeMs": 209.9339,
-      "ioMs": 110.844,
-      "bytes": 127507873,
-      "totalMs": 320.8008,
+      "serializeMs": 201.2713,
+      "ioMs": 130.9408,
+      "bytes": 127507983,
+      "totalMs": 332.236,
       "success": true
     },
     "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
   },
-  "binary": "D:\\Coding\\EditorProjects\\joysheet\\dist\\joysheet-0.1.0-M8-preview6-windows-x86_64\\joysheet.exe",
-  "saveDialog": false,
-  "windowsTask": 0,
-  "windowsQualityTask": 0
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process"
 }

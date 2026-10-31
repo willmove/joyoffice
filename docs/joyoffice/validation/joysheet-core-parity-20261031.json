@@ -1,9 +1,10 @@
 {
-  "passed": true,
   "commands": 17,
-  "persistedWorkbookEqual": true,
-  "crossVersionXlsxReaders": 2,
   "reference": "D:\\Coding\\EditorProjects\\joysheet\\dist\\joysheet-0.1.0-M8-preview6-windows-x86_64\\joysheet-cli.exe",
+  "candidateSha256": "9c8cbc630d493870544a8ca81e71ec0768b9f306ab8fac6124c696bbc2887b20",
+  "candidate": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet verified package 中文 z59xszuk\\joysheet-0.1.0-windows-x86_64-release-validation-verified\\joysheet-cli.exe",
+  "passed": true,
+  "crossVersionXlsxReaders": 2,
   "referenceSha256": "a044f1f6cff208543d2b79e888e7d8843f411fbce2e518350463194e3ce5c6dd",
   "checks": [
     "SUM",
@@ -18,6 +19,5 @@
     "JSON parity",
     "cross-version XLSX values and formulas"
   ],
-  "candidate": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet 最终解压 中文 oc4wzpbh\\joysheet-0.1.0-windows-x86_64-release-validation\\joysheet-cli.exe",
-  "candidateSha256": "5a60a7b645f430fa78b8c247a21dc928586db878de87bf6a64075ca09181e1b7"
+  "persistedWorkbookEqual": true
 }

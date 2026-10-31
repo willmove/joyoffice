@@ -1,0 +1,25 @@
+{
+  "package": "objc-sys",
+  "version": "0.3.5",
+  "declaredLicense": "MIT",
+  "publishedCrateChecksum": "cdb91bdd390c7ce1a8607f35f3ca7151b65afc0ff5ff3b34fa350f7d7c7e4310",
+  "repository": "https://github.com/madsmtm/objc2",
+  "authorsFromPublishedManifest": [
+    "Mads Marquart <mads@marquart.dk>"
+  ],
+  "publishedVcs": {
+    "git": {
+      "sha1": "4fc083f1c6d6784577e38b0ee8dbd344481e2fd2"
+    },
+    "path_in_vcs": "crates/objc-sys"
+  },
+  "files": [
+    {
+      "url": "https://github.com/madsmtm/objc2/blob/4fc083f1c6d6784577e38b0ee8dbd344481e2fd2/LICENSE.txt",
+      "gitBlobSha": "e9ab3babc0d8602b83dccde8a462f8f3dc1e52ad",
+      "file": "LICENSE-OBJC-SYS-LICENSE.txt",
+      "sha256": "e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5",
+      "kind": "verbatim upstream file"
+    }
+  ]
+}

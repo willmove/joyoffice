@@ -31,6 +31,8 @@ pwsh -NoProfile -File scripts/joysheet/installer-smoke.ps1 -Installer dist/joysh
 
 `SBOM.spdx.json` 与 `dependency-licenses/index.json` 只记录当前宿主、功能和 GUI/CLI 两个入口实际使用的普通/构建依赖闭包。依赖版本、SPDX 声明、源地址及原始许可正文随包保留，其他产品运行时代码不进入清单。
 
+Sheet 分发要求实际正文/通知存在；缺失时直接失败。补充按精确包版本匹配，上游文件、发布包声明和标准条款分别标注来源，见[许可材料](third-party/README.md)。
+
 `SOURCE-HASHES.json`、`BUILD.json`、`BUILD-INFO.json` 和 `PAYLOAD-SHA256.json` 分别记录源码、构建、功能和载荷。源码 ZIP 包含 Sheet 专属 workspace；仅裁剪成员与锁文件，验证依赖版本/校验和未升级，并在包中记录原始及派生输入。完整 Monorepo 工程门禁仍在 JoyOffice 仓库运行。
 
 mac、seahash 的正文补充保留来源限制，详见 `third-party/` 声明；不能冒充原始版权文件。发行者签名、公证、更新 feed 与完整供应链复核仍是正式发行开放项。当前预览采用人工下载更新并保留用户配置。迁移前包和超集许可清单见[历史产物](LEGACY-ARTIFACTS.md)，不作为新包证据。

@@ -1,18 +1,19 @@
 {
   "m7Task": 4,
-  "windowsQualityTask": 4,
-  "m4Task": 4,
-  "processId": 3312,
-  "port": 51855,
-  "binarySha256": "545ede6418dbebacd0af9330e97f2fbd4eb5671fe5f4f7d9d201007a8e431f19",
-  "stage": "M3",
   "saveDialog": true,
-  "passed": true,
+  "m5Task": 4,
+  "binary": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet final package 中文 r8w7sw3d\\joysheet-0.1.0-windows-x86_64-release-validation-verified2\\joysheet.exe",
+  "m6Task": 4,
   "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "passed": true,
+  "processId": 2488,
+  "binarySha256": "e21d01e6fbb8f5ac916f995ff7b1881c00c37cff25b3e2cc67f0a0bdbd64d704",
+  "port": 51714,
+  "nativeImeVerified": false,
   "performance": {
     "kind": "CPU worksheet paint submission",
-    "samples": 72,
-    "paintP95Ms": 1.6915,
+    "samples": 74,
+    "paintP95Ms": 1.9459,
     "paintedCells": 682,
     "gpuPresentationMeasured": false,
     "editSamples": 0,
@@ -216,63 +217,63 @@
       },
       "framePhases": {
         "prepaintMs": {
-          "count": 72,
-          "p50": 0.007,
-          "p95": 0.0168,
-          "p99": 0.0178,
-          "max": 0.0178
+          "count": 74,
+          "p50": 0.0067,
+          "p95": 0.0222,
+          "p99": 0.035800000000000005,
+          "max": 0.035800000000000005
         },
         "geometryMs": {
-          "count": 72,
+          "count": 74,
           "p50": 9.999999999999999e-05,
-          "p95": 0.0015999999999999999,
-          "p99": 0.0031999999999999997,
-          "max": 0.0031999999999999997
+          "p95": 0.0024,
+          "p99": 0.0047,
+          "max": 0.0047
         },
         "extentMs": {
-          "count": 72,
+          "count": 74,
           "p50": 0.0,
           "p95": 0.0006,
-          "p99": 0.0015999999999999999,
-          "max": 0.0015999999999999999
+          "p99": 0.0019,
+          "max": 0.0019
         },
         "dimensionsMs": {
-          "count": 72,
+          "count": 74,
           "p50": 0.0,
-          "p95": 0.0005,
-          "p99": 0.0015999999999999999,
-          "max": 0.0015999999999999999
+          "p95": 0.0006,
+          "p99": 0.0014,
+          "max": 0.0014
         },
         "layoutMs": {
-          "count": 72,
-          "p50": 0.0028,
-          "p95": 0.0047,
-          "p99": 0.0094,
-          "max": 0.0094
+          "count": 74,
+          "p50": 0.0027,
+          "p95": 0.015000000000000001,
+          "p99": 0.0285,
+          "max": 0.0285
         },
         "paintMs": {
-          "count": 72,
-          "p50": 1.0191,
-          "p95": 1.6915,
-          "p99": 5.899299999999999,
-          "max": 5.899299999999999
+          "count": 74,
+          "p50": 1.0153,
+          "p95": 1.9459,
+          "p99": 22.7391,
+          "max": 22.7391
         },
         "cellsMs": {
-          "count": 72,
-          "p50": 0.7796,
-          "p95": 1.1796,
-          "p99": 2.0690999999999997,
-          "max": 2.0690999999999997
+          "count": 74,
+          "p50": 0.7804,
+          "p95": 1.5537999999999998,
+          "p99": 2.1128,
+          "max": 2.1128
         },
         "textMs": {
-          "count": 72,
-          "p50": 0.0621,
-          "p95": 0.1837,
-          "p99": 4.9962,
-          "max": 4.9962
+          "count": 74,
+          "p50": 0.0607,
+          "p95": 0.1555,
+          "p99": 21.748,
+          "max": 21.748
         },
         "scrollbarMs": {
-          "count": 72,
+          "count": 74,
           "p50": 0.00039999999999999996,
           "p95": 0.0006,
           "p99": 0.0007999999999999999,
@@ -284,17 +285,23 @@
     },
     "recovery": {
       "busy": false,
-      "completed": 13,
-      "skipped": 20,
-      "doc": 20,
-      "serializeMs": 0.0239,
-      "ioMs": 0.8696,
-      "bytes": 4317,
-      "totalMs": 0.9045000000000001,
+      "completed": 14,
+      "skipped": 19,
+      "doc": 23,
+      "serializeMs": 0.0557,
+      "ioMs": 1.1311,
+      "bytes": 3388,
+      "totalMs": 1.2091999999999998,
       "success": true
     },
     "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
   },
+  "windowsFrom": 1,
+  "windowsTask": 4,
+  "m4Task": 4,
+  "m8Task": 4,
+  "windowsQualityTask": 4,
+  "platform": "Windows x64",
   "checks": [
     "native GPUI window and sales screenshot",
     "GPUI pointer and text events; Unicode; formula editing and recalculation",
@@ -349,12 +356,5 @@
     "Actual close dialog: exclusive file lock causes visible save failure without closing; retry persists and reopens successfully",
     "Actual close dialog Discard closes without writing the file"
   ],
-  "m8Task": 4,
-  "nativeImeVerified": false,
-  "platform": "Windows x64",
-  "windowsTask": 4,
-  "m6Task": 4,
-  "windowsFrom": 1,
-  "binary": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet 最终解压 中文 oc4wzpbh\\joysheet-0.1.0-windows-x86_64-release-validation\\joysheet.exe",
-  "m5Task": 4
+  "stage": "M3"
 }

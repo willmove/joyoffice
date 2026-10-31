@@ -38,3 +38,4 @@ docs/joysheet/evidence/** -text whitespace=cr-at-eol
 docs/joysheet/legacy-source/** -text whitespace=cr-at-eol
 docs/joysheet/upstream-source.json -text whitespace=cr-at-eol
 docs/joysheet/source-checkpoint.json -text whitespace=cr-at-eol
+docs/joysheet/third-party/** -text whitespace=cr-at-eol

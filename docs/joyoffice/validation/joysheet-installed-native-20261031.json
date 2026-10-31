@@ -1,7 +1,5 @@
 {
-  "m8Task": 1,
-  "binarySha256": "545ede6418dbebacd0af9330e97f2fbd4eb5671fe5f4f7d9d201007a8e431f19",
-  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "m7Task": 0,
   "checks": [
     "native GPUI window and sales screenshot",
     "engine workbook data and formula preview",
@@ -9,26 +7,15 @@
     "XLSX save/close/reopen and native GPU screenshot",
     "M8.1 local file URL/drop handler validates paths and commits draft; unsupported file rejected (synthetic control regression)"
   ],
-  "windowsFrom": 1,
-  "passed": true,
-  "binary": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\artifacts\\joysheet\\install-smoke-1793445432158\\joysheet.exe",
-  "processId": 3988,
-  "platform": "Windows x64",
-  "port": 60904,
-  "m7Task": 0,
-  "nativeImeVerified": false,
-  "m4Task": 0,
-  "windowsTask": 0,
-  "m6Task": 0,
-  "saveDialog": false,
+  "stage": "M1",
   "performance": {
     "kind": "CPU worksheet paint submission",
-    "samples": 11,
-    "paintP95Ms": 2.1601,
+    "samples": 12,
+    "paintP95Ms": 1.6779,
     "paintedCells": 682,
     "gpuPresentationMeasured": false,
     "editSamples": 1,
-    "editP95Ms": 14.3418,
+    "editP95Ms": 9.3098,
     "stages": {
       "scope": "commit handler through first matching worksheet CPU paint; no GPU presentation",
       "capacity": 512,
@@ -38,10 +25,10 @@
       "phases": {
         "totalMs": {
           "count": 1,
-          "p50": 14.3363,
-          "p95": 14.3363,
-          "p99": 14.3363,
-          "max": 14.3363
+          "p50": 9.3027,
+          "p95": 9.3027,
+          "p99": 9.3027,
+          "max": 9.3027
         },
         "preflightMs": {
           "count": 1,
@@ -52,31 +39,31 @@
         },
         "queueMs": {
           "count": 1,
-          "p50": 0.0118,
-          "p95": 0.0118,
-          "p99": 0.0118,
-          "max": 0.0118
+          "p50": 0.022,
+          "p95": 0.022,
+          "p99": 0.022,
+          "max": 0.022
         },
         "engineMs": {
           "count": 1,
-          "p50": 0.0821,
-          "p95": 0.0821,
-          "p99": 0.0821,
-          "max": 0.0821
+          "p50": 0.09469999999999999,
+          "p95": 0.09469999999999999,
+          "p99": 0.09469999999999999,
+          "max": 0.09469999999999999
         },
         "recalcMs": {
           "count": 1,
-          "p50": 0.0065,
-          "p95": 0.0065,
-          "p99": 0.0065,
-          "max": 0.0065
+          "p50": 0.0087,
+          "p95": 0.0087,
+          "p99": 0.0087,
+          "max": 0.0087
         },
         "dependencyMs": {
           "count": 1,
-          "p50": 0.0025,
-          "p95": 0.0025,
-          "p99": 0.0025,
-          "max": 0.0025
+          "p50": 0.0033,
+          "p95": 0.0033,
+          "p99": 0.0033,
+          "max": 0.0033
         },
         "evaluationMs": {
           "count": 1,
@@ -94,10 +81,10 @@
         },
         "spillSeedMs": {
           "count": 1,
-          "p50": 0.0021,
-          "p95": 0.0021,
-          "p99": 0.0021,
-          "max": 0.0021
+          "p50": 0.0026,
+          "p95": 0.0026,
+          "p99": 0.0026,
+          "max": 0.0026
         },
         "writebackMs": {
           "count": 1,
@@ -122,17 +109,17 @@
         },
         "rowFitMs": {
           "count": 1,
-          "p50": 0.0007,
-          "p95": 0.0007,
-          "p99": 0.0007,
-          "max": 0.0007
+          "p50": 0.0011,
+          "p95": 0.0011,
+          "p99": 0.0011,
+          "max": 0.0011
         },
         "snapshotMs": {
           "count": 1,
-          "p50": 0.0028,
-          "p95": 0.0028,
-          "p99": 0.0028,
-          "max": 0.0028
+          "p50": 0.0043,
+          "p95": 0.0043,
+          "p99": 0.0043,
+          "max": 0.0043
         },
         "publishMs": {
           "count": 1,
@@ -143,152 +130,152 @@
         },
         "uiPollMs": {
           "count": 1,
-          "p50": 0.2004,
-          "p95": 0.2004,
-          "p99": 0.2004,
-          "max": 0.2004
+          "p50": 0.14479999999999998,
+          "p95": 0.14479999999999998,
+          "p99": 0.14479999999999998,
+          "max": 0.14479999999999998
         },
         "uiSyncMs": {
           "count": 1,
-          "p50": 0.1887,
-          "p95": 0.1887,
-          "p99": 0.1887,
-          "max": 0.1887
+          "p50": 0.18569999999999998,
+          "p95": 0.18569999999999998,
+          "p99": 0.18569999999999998,
+          "max": 0.18569999999999998
         },
         "frameWaitMs": {
           "count": 1,
-          "p50": 11.4705,
-          "p95": 11.4705,
-          "p99": 11.4705,
-          "max": 11.4705
+          "p50": 7.5433,
+          "p95": 7.5433,
+          "p99": 7.5433,
+          "max": 7.5433
         },
         "prepaintMs": {
           "count": 1,
-          "p50": 0.0062,
-          "p95": 0.0062,
-          "p99": 0.0062,
-          "max": 0.0062
+          "p50": 0.008,
+          "p95": 0.008,
+          "p99": 0.008,
+          "max": 0.008
         },
         "geometryMs": {
           "count": 1,
-          "p50": 0.0024,
-          "p95": 0.0024,
-          "p99": 0.0024,
-          "max": 0.0024
+          "p50": 0.0037,
+          "p95": 0.0037,
+          "p99": 0.0037,
+          "max": 0.0037
         },
         "extentMs": {
           "count": 1,
-          "p50": 0.0015999999999999999,
-          "p95": 0.0015999999999999999,
-          "p99": 0.0015999999999999999,
-          "max": 0.0015999999999999999
+          "p50": 0.0026,
+          "p95": 0.0026,
+          "p99": 0.0026,
+          "max": 0.0026
         },
         "dimensionsMs": {
-          "count": 1,
-          "p50": 0.00019999999999999998,
-          "p95": 0.00019999999999999998,
-          "p99": 0.00019999999999999998,
-          "max": 0.00019999999999999998
-        },
-        "layoutMs": {
-          "count": 1,
-          "p50": 0.002,
-          "p95": 0.002,
-          "p99": 0.002,
-          "max": 0.002
-        },
-        "paintMs": {
-          "count": 1,
-          "p50": 2.1601,
-          "p95": 2.1601,
-          "p99": 2.1601,
-          "max": 2.1601
-        },
-        "cellsMs": {
-          "count": 1,
-          "p50": 0.7464000000000001,
-          "p95": 0.7464000000000001,
-          "p99": 0.7464000000000001,
-          "max": 0.7464000000000001
-        },
-        "textMs": {
-          "count": 1,
-          "p50": 1.2795,
-          "p95": 1.2795,
-          "p99": 1.2795,
-          "max": 1.2795
-        },
-        "scrollbarMs": {
           "count": 1,
           "p50": 0.0005,
           "p95": 0.0005,
           "p99": 0.0005,
           "max": 0.0005
+        },
+        "layoutMs": {
+          "count": 1,
+          "p50": 0.0021,
+          "p95": 0.0021,
+          "p99": 0.0021,
+          "max": 0.0021
+        },
+        "paintMs": {
+          "count": 1,
+          "p50": 1.0685,
+          "p95": 1.0685,
+          "p99": 1.0685,
+          "max": 1.0685
+        },
+        "cellsMs": {
+          "count": 1,
+          "p50": 0.7808999999999999,
+          "p95": 0.7808999999999999,
+          "p99": 0.7808999999999999,
+          "max": 0.7808999999999999
+        },
+        "textMs": {
+          "count": 1,
+          "p50": 0.16620000000000001,
+          "p95": 0.16620000000000001,
+          "p99": 0.16620000000000001,
+          "max": 0.16620000000000001
+        },
+        "scrollbarMs": {
+          "count": 1,
+          "p50": 0.00019999999999999998,
+          "p95": 0.00019999999999999998,
+          "p99": 0.00019999999999999998,
+          "max": 0.00019999999999999998
         }
       },
       "framePhases": {
         "prepaintMs": {
-          "count": 11,
-          "p50": 0.0068000000000000005,
-          "p95": 0.0108,
-          "p99": 0.0108,
-          "max": 0.0108
+          "count": 12,
+          "p50": 0.006,
+          "p95": 0.0099,
+          "p99": 0.0099,
+          "max": 0.0099
         },
         "geometryMs": {
-          "count": 11,
-          "p50": 0.0,
-          "p95": 0.0040999999999999995,
-          "p99": 0.0040999999999999995,
-          "max": 0.0040999999999999995
+          "count": 12,
+          "p50": 9.999999999999999e-05,
+          "p95": 0.0037,
+          "p99": 0.0037,
+          "max": 0.0037
         },
         "extentMs": {
-          "count": 11,
+          "count": 12,
           "p50": 0.0,
-          "p95": 0.0015999999999999999,
-          "p99": 0.0015999999999999999,
-          "max": 0.0015999999999999999
+          "p95": 0.0026,
+          "p99": 0.0026,
+          "max": 0.0026
         },
         "dimensionsMs": {
-          "count": 11,
+          "count": 12,
           "p50": 0.0,
-          "p95": 0.0018,
-          "p99": 0.0018,
-          "max": 0.0018
+          "p95": 0.0014,
+          "p99": 0.0014,
+          "max": 0.0014
         },
         "layoutMs": {
-          "count": 11,
-          "p50": 0.0029000000000000002,
-          "p95": 0.0035,
-          "p99": 0.0035,
-          "max": 0.0035
+          "count": 12,
+          "p50": 0.0024,
+          "p95": 0.0033,
+          "p99": 0.0033,
+          "max": 0.0033
         },
         "paintMs": {
-          "count": 11,
-          "p50": 0.9641,
-          "p95": 2.1601,
-          "p99": 2.1601,
-          "max": 2.1601
+          "count": 12,
+          "p50": 0.9362,
+          "p95": 1.6779,
+          "p99": 1.6779,
+          "max": 1.6779
         },
         "cellsMs": {
-          "count": 11,
-          "p50": 0.756,
-          "p95": 1.3011,
-          "p99": 1.3011,
-          "max": 1.3011
+          "count": 12,
+          "p50": 0.7537,
+          "p95": 1.0637,
+          "p99": 1.0637,
+          "max": 1.0637
         },
         "textMs": {
-          "count": 11,
-          "p50": 0.0479,
-          "p95": 1.2795,
-          "p99": 1.2795,
-          "max": 1.2795
+          "count": 12,
+          "p50": 0.0491,
+          "p95": 0.16620000000000001,
+          "p99": 0.16620000000000001,
+          "max": 0.16620000000000001
         },
         "scrollbarMs": {
-          "count": 11,
-          "p50": 0.0005,
-          "p95": 0.0007999999999999999,
-          "p99": 0.0007999999999999999,
-          "max": 0.0007999999999999999
+          "count": 12,
+          "p50": 0.00039999999999999996,
+          "p95": 0.0012,
+          "p99": 0.0012,
+          "max": 0.0012
         }
       },
       "edits": null,
@@ -300,7 +287,20 @@
     },
     "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
   },
-  "stage": "M1",
+  "windowsQualityTask": 0,
+  "processId": 27200,
+  "nativeImeVerified": false,
+  "m8Task": 1,
+  "saveDialog": false,
+  "port": 53167,
+  "passed": true,
+  "windowsTask": 0,
+  "m6Task": 0,
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "m4Task": 0,
+  "binarySha256": "e21d01e6fbb8f5ac916f995ff7b1881c00c37cff25b3e2cc67f0a0bdbd64d704",
   "m5Task": 0,
-  "windowsQualityTask": 0
+  "windowsFrom": 1,
+  "platform": "Windows x64",
+  "binary": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\artifacts\\joysheet\\install-smoke-1793451075650\\joysheet.exe"
 }

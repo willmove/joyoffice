@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tomllib
 import unittest
+import tempfile
 from unittest.mock import patch
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -16,6 +17,54 @@ SPEC.loader.exec_module(package)
 
 
 class Packaging(unittest.TestCase):
+    def license_inventory(self, root):
+        source = root / 'registry/fake-native-1.0.0'
+        source.mkdir(parents=True)
+        (source / 'Cargo.toml').write_text('[package]\nname="fake-native"\n', encoding='utf-8')
+        (root / 'Cargo.lock').write_text('version = 4\n', encoding='utf-8')
+        item = {'id': 'native', 'name': 'fake-native', 'version': '1.0.0', 'license': 'MIT',
+                'source': 'registry+https://github.com/rust-lang/crates.io-index',
+                'manifest_path': str(source / 'Cargo.toml')}
+        return ({'workspace_members': []}, {'native': item}, {'native'}, set(), set())
+
+    def test_declared_license_without_text_stops_distribution(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            graph = self.license_inventory(root)
+            with patch.object(package.sbom, 'ROOT', root), patch.object(package.sbom, 'LICENSES', root / 'legacy'), \
+                    patch.object(package.sbom, 'graph', return_value=graph):
+                with self.assertRaisesRegex(ValueError, 'fake-native@1.0.0'):
+                    package.sbom.generate(root / 'SBOM.json', 'host', roots=project.APPLICATIONS, require_license_texts=True)
+            self.assertFalse((root / 'SBOM.json').exists())
+
+    def test_exact_version_supplement_is_copied_verbatim(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            graph = self.license_inventory(root)
+            supplement = root / 'docs/joysheet/third-party/fake-native/1.0.0'
+            supplement.mkdir(parents=True)
+            text = b'MIT license text from the recorded upstream source.\r\n'
+            (supplement / 'LICENSE.txt').write_bytes(text)
+            with patch.object(package.sbom, 'ROOT', root), patch.object(package.sbom, 'LICENSES', root / 'legacy'), \
+                    patch.object(package.sbom, 'graph', return_value=graph):
+                result = package.sbom.generate(root / 'SBOM.json', 'host', roots=project.APPLICATIONS, require_license_texts=True)
+            self.assertTrue(result['licenseTextsVerified'])
+            self.assertEqual((root / 'dependency-licenses/fake-native-1.0.0/LICENSE.txt').read_bytes(), text)
+
+    def test_wrong_version_and_provenance_alone_do_not_satisfy_text_requirement(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            graph = self.license_inventory(root)
+            base = root / 'docs/joysheet/third-party/fake-native'
+            (base / '0.9.0').mkdir(parents=True)
+            (base / '0.9.0/LICENSE.txt').write_text('Old license', encoding='utf-8')
+            (base / '1.0.0').mkdir()
+            (base / '1.0.0/SOURCE.json').write_text('{}', encoding='utf-8')
+            with patch.object(package.sbom, 'ROOT', root), patch.object(package.sbom, 'LICENSES', root / 'legacy'), \
+                    patch.object(package.sbom, 'graph', return_value=graph):
+                with self.assertRaisesRegex(ValueError, 'Missing dependency license texts'):
+                    package.sbom.generate(root / 'SBOM.json', 'host', roots=project.APPLICATIONS, require_license_texts=True)
+
     def test_standalone_workspace_keeps_consumed_shared_crates_and_features(self):
         source = '''[workspace]
 members = ["apps/joyword", "apps/joysheet", "crates/joyoffice-opc"]

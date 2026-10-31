@@ -1,0 +1,31 @@
+{
+  "package": "pathfinder_geometry",
+  "version": "0.5.1",
+  "declaredLicense": "MIT/Apache-2.0",
+  "publishedCrateChecksum": "0b7b7e7b4ea703700ce73ebf128e1450eb69c3a8329199ffbfb9b2a0418e5ad3",
+  "repository": "https://github.com/servo/pathfinder",
+  "authorsFromPublishedManifest": [
+    "Patrick Walton <pcwalton@mimiga.net>"
+  ],
+  "publishedVcs": {
+    "git": {
+      "sha1": "a5e98fac00f433fe2ff4b2135383d82491b8bfc5"
+    }
+  },
+  "files": [
+    {
+      "url": "https://github.com/servo/pathfinder/blob/6c3c0466f451c5bd2007087728cd168798cd64e8/LICENSE-MIT",
+      "gitBlobSha": "25597d5838fa4cd7ff5c3c2bb1d1b4c3731eda7f",
+      "file": "LICENSE-PATHFINDER-MIT.txt",
+      "sha256": "0621878e61f0d0fda054bcbe02df75192c28bde1ecc8289cbd86aeba2dd72720",
+      "kind": "verbatim upstream file"
+    },
+    {
+      "url": "https://github.com/servo/pathfinder/blob/6c3c0466f451c5bd2007087728cd168798cd64e8/LICENSE-APACHE",
+      "gitBlobSha": "16fe87b06e802f094b3fbb0894b137bca2b16ef1",
+      "file": "LICENSE-PATHFINDER-APACHE.txt",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "kind": "verbatim upstream file"
+    }
+  ]
+}

@@ -1,18 +1,9 @@
 {
-  "port": 65434,
-  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
-  "binarySha256": "545ede6418dbebacd0af9330e97f2fbd4eb5671fe5f4f7d9d201007a8e431f19",
-  "processId": 14104,
   "m7Task": 0,
-  "windowsQualityTask": 0,
-  "windowsFrom": 1,
-  "saveDialog": false,
-  "windowsTask": 0,
-  "m5Task": 0,
   "performance": {
     "kind": "CPU worksheet paint submission",
-    "samples": 724,
-    "paintP95Ms": 0.9255,
+    "samples": 721,
+    "paintP95Ms": 0.9389,
     "paintedCells": 450,
     "gpuPresentationMeasured": false,
     "editSamples": 0,
@@ -217,10 +208,10 @@
       "framePhases": {
         "prepaintMs": {
           "count": 512,
-          "p50": 0.0052,
-          "p95": 0.0104,
-          "p99": 0.0144,
-          "max": 0.019
+          "p50": 0.0048,
+          "p95": 0.0098,
+          "p99": 0.0172,
+          "max": 0.0445
         },
         "geometryMs": {
           "count": 512,
@@ -245,38 +236,38 @@
         },
         "layoutMs": {
           "count": 512,
-          "p50": 0.0022,
+          "p50": 0.002,
           "p95": 0.0035,
-          "p99": 0.0048,
-          "max": 0.0122
+          "p99": 0.0049,
+          "max": 0.0406
         },
         "paintMs": {
           "count": 512,
-          "p50": 0.7477999999999999,
-          "p95": 0.9176,
-          "p99": 1.5318,
-          "max": 2.1064
+          "p50": 0.7484,
+          "p95": 0.9366,
+          "p99": 1.5070000000000001,
+          "max": 2.1383
         },
         "cellsMs": {
           "count": 512,
-          "p50": 0.5974,
-          "p95": 0.7514000000000001,
-          "p99": 1.2325000000000002,
-          "max": 1.7659
+          "p50": 0.5969,
+          "p95": 0.7636000000000001,
+          "p99": 1.2914,
+          "max": 1.6959
         },
         "textMs": {
           "count": 512,
-          "p50": 0.0453,
-          "p95": 0.058699999999999995,
-          "p99": 0.1086,
-          "max": 0.1537
+          "p50": 0.045200000000000004,
+          "p95": 0.0625,
+          "p99": 0.1095,
+          "max": 0.2086
         },
         "scrollbarMs": {
           "count": 512,
           "p50": 0.00039999999999999996,
-          "p95": 0.0006,
+          "p95": 0.0007,
           "p99": 0.001,
-          "max": 0.0014
+          "max": 0.0015
         }
       },
       "edits": null,
@@ -287,21 +278,14 @@
       "completed": 12,
       "skipped": 0,
       "doc": 12,
-      "serializeMs": 185.7474,
-      "ioMs": 119.7029,
-      "bytes": 127508883,
-      "totalMs": 305.4727,
+      "serializeMs": 186.6368,
+      "ioMs": 117.581,
+      "bytes": 127507918,
+      "totalMs": 304.2353,
       "success": true
     },
     "editScope": "GPUI commit event through engine completion to worksheet CPU paint; excludes GPU presentation"
   },
-  "platform": "Windows x64",
-  "m6Task": 0,
-  "m8Task": 0,
-  "stage": "M1",
-  "binary": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet 最终解压 中文 oc4wzpbh\\joysheet-0.1.0-windows-x86_64-release-validation\\joysheet.exe",
-  "passed": true,
-  "m4Task": 0,
   "checks": [
     "native GPUI window and sales screenshot",
     "engine workbook data and formula preview",
@@ -310,5 +294,21 @@
     "custom 10k/100k row heights and 1000 column widths; dense 10k/100k dependent formulas; dynamic 10k/100k spills with real values, shrink/block/undo",
     "native 10000x20 and 100000x20 CSV viewing and bounded scroll paint samples; identity-fenced edit phases and correct range aggregates"
   ],
-  "nativeImeVerified": false
+  "m6Task": 0,
+  "windowsTask": 0,
+  "saveDialog": false,
+  "stage": "M1",
+  "platform": "Windows x64",
+  "windowsQualityTask": 0,
+  "windowsFrom": 1,
+  "m8Task": 0,
+  "m5Task": 0,
+  "m4Task": 0,
+  "nativeImeVerified": false,
+  "binarySha256": "e21d01e6fbb8f5ac916f995ff7b1881c00c37cff25b3e2cc67f0a0bdbd64d704",
+  "eventSource": "production GPUI synthetic input and GPU readback in native Windows process",
+  "binary": "C:\\Users\\willm\\AppData\\Local\\Temp\\JoySheet final package 中文 r8w7sw3d\\joysheet-0.1.0-windows-x86_64-release-validation-verified2\\joysheet.exe",
+  "port": 53232,
+  "passed": true,
+  "processId": 26740
 }

@@ -1,0 +1,7 @@
+objc2-0.5.3
+
+Published crate license declaration: MIT
+
+Published authors (not a synthesized copyright notice): Steven Sheldon; Mads Marquart <mads@marquart.dk>
+
+See SOURCE.json for exact source URLs, refs and hashes.

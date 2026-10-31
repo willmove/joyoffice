@@ -1,0 +1,26 @@
+{
+  "package": "objc2",
+  "version": "0.5.3",
+  "declaredLicense": "MIT",
+  "publishedCrateChecksum": "19d5490aaf8f1d7cf7688dfa9b0ce07900e168852c45cd2c03f534dfd27cfd0b",
+  "repository": "https://github.com/madsmtm/objc2",
+  "authorsFromPublishedManifest": [
+    "Steven Sheldon",
+    "Mads Marquart <mads@marquart.dk>"
+  ],
+  "publishedVcs": {
+    "git": {
+      "sha1": "5237cbf081d04ef75a1f6a207b4018e7c1ae7438"
+    },
+    "path_in_vcs": "crates/objc2"
+  },
+  "files": [
+    {
+      "url": "https://github.com/madsmtm/objc2/blob/5237cbf081d04ef75a1f6a207b4018e7c1ae7438/LICENSE.txt",
+      "gitBlobSha": "e9ab3babc0d8602b83dccde8a462f8f3dc1e52ad",
+      "file": "LICENSE-OBJC-OLD-LICENSE.txt",
+      "sha256": "e353f37b12aefbb9f9b29490e837cfee05d9bda70804b3562839a3285c1df1e5",
+      "kind": "verbatim upstream file"
+    }
+  ]
+}

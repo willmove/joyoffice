@@ -14,7 +14,7 @@
 
 [来源复核](validation/joysheet-source-audit-20261031.json)确认 703 个源码文件的路径集合及哈希未改变，首次导入提交 `ffc076df151d54f67b896a44a8b1d1f4935146a7` 保留原始字节；`7fedd54becb684dfeed8ba5e21274f15fe240c31` 单独处理包名更名。原独立仓库没有提交历史，因此没有构造不存在的 Git 历史。
 
-原源码 ZIP、30,610 个历史产物/日志及完整索引保存在任务检出的 `backups/joysheet-migration-20261031/`，归档大小与 SHA256 已记录；原目录 `D:\Coding\EditorProjects\joysheet` 保留。[路径映射](validation/joysheet-migration-map.json)记录最终文件去向和测试拆分。归档不作为日常构建输入。
+原源码 ZIP、30,610 个历史产物/日志及完整索引保存在任务检出的 `backups/joysheet-migration-20261031/`，归档大小与 SHA256 已记录；原目录 `D:\Coding\EditorProjects\joysheet` 保留。[路径映射](validation/joysheet-migration-map.json)记录最终文件去向和测试拆分。归档不作为日常构建输入。另一份经 SHA256 核对的恢复副本及 `ARCHIVE-INDEX.json` 位于原主仓库的 `backups/joysheet-migration-20261031-d3e744e/`，不依赖任务 worktree 保留。
 
 ## 本机自动验证
 
@@ -25,7 +25,8 @@
 | workspace 联合验证功能 | 2,788 通过、1 忽略；Sheet automation + Deck validation，全部 target 严格 Clippy 通过 |
 | 解压独立源码包 | 仓库外中文/空格路径下执行产品 check；fmt、严格 Clippy、1,395 测试通过、1 忽略 |
 | XLSX 独立 crate | 268 通过；包含名称编码、保留、预算、加密和往返回归 |
-| 工程脚本 | 根脚本 145、产品路由 13、Sheet 分发 4、Deck 工程 11 项通过 |
+| 工程入口 | 缓存程序跨检出目录调用、仓库外拒绝，两项集成回归及严格 Clippy 通过 |
+| 工程脚本 | 根脚本 145、产品路由 13、Sheet 分发 7、Deck 工程 11 项通过 |
 | 根门禁/依赖 | 分层、文件副作用、生产 panic、文档检查及 cargo-deny advisories/bans/licenses/sources 通过 |
 | 可移植核心/工具 | WASM check、355 条命令清单、M8 引擎往返、稀疏几何基准通过 |
 | 新旧文件对照 | 17 条命令持久化 JSON 一致；两代 CLI 交叉读取两代 XLSX 的值/公式通过 |
@@ -43,22 +44,28 @@ Sheet 开发 profile 保持原 opt-level=1；不放宽递归预算。zip 接入�
 
 | 场景/规模 | 原版 CPU 总响应 P95 | 新包 CPU 总响应 P95 | 原版/新包引擎 P95 |
 | --- | ---: | ---: | ---: |
-| 自定义尺寸 10,000 | 18.92 ms | 19.19 ms | 0.14 / 0.14 ms |
-| 密集公式 10,000 | 28.69 ms | 27.65 ms | 12.43 / 10.20 ms |
-| 动态数组 10,000 | 20.74 ms | 18.94 ms | 2.08 / 2.63 ms |
-| 自定义尺寸 100,000 | 24.31 ms | 22.71 ms | 0.13 / 0.09 ms |
-| 密集公式 100,000 | 135.72 ms | 130.93 ms | 117.97 / 114.69 ms |
-| 动态数组 100,000 | 35.19 ms | 36.45 ms | 17.52 / 15.20 ms |
+| 自定义尺寸 10,000 | 17.98 ms | 20.38 ms | 0.15 / 0.13 ms |
+| 密集公式 10,000 | 31.73 ms | 30.02 ms | 11.84 / 10.46 ms |
+| 动态数组 10,000 | 21.73 ms | 19.79 ms | 2.12 / 1.73 ms |
+| 自定义尺寸 100,000 | 20.24 ms | 18.10 ms | 0.11 / 0.15 ms |
+| 密集公式 100,000 | 130.77 ms | 130.35 ms | 113.47 / 115.11 ms |
+| 动态数组 100,000 | 38.37 ms | 34.81 ms | 15.68 / 16.04 ms |
 
-本轮全部结果和求值数量断言通过，计时存在小幅波动：100k 动态数组 CPU 总响应 P95 增加约 1.26 ms；10k 动态数组引擎 P95 为 2.08→2.63 ms，总响应则为 20.74→18.94 ms。没有隐去波动或声称逐项提速。这些是单机少样本 CPU 提交/首帧数据，不代表 GPU 呈现、物理输入延迟或长期上界。[对照汇总](validation/joysheet-performance-comparison-20261031.json)、[旧原始压力样本](validation/joysheet-stress-old-20261031.json)、[新原始压力样本](validation/joysheet-stress-new-20261031.json)及 CSV/复杂公式原始报告均保留。
+本轮全部结果和求值数量断言通过。每组完整样本及分位数均保留，不声称逐项提速。这些是单机少样本 CPU 提交/首帧数据，不代表 GPU 呈现、物理输入延迟或长期上界。[对照汇总](validation/joysheet-performance-comparison-20261031.json)、[旧原始压力样本](validation/joysheet-stress-old-20261031.json)、[新原始压力样本](validation/joysheet-stress-new-20261031.json)及 CSV/复杂公式原始报告均保留。
 
 ## 分发与 CI
 
-本机产物位于 `dist/joysheet/`，含普通版和验证版的便携 ZIP、NSIS 安装器与源码 ZIP。[分发复核](validation/joysheet-packages-20261031.json)记录完整文件名、SHA256、二进制、857 项源码输入及载荷校验。两个源码 ZIP 的 859 个文件内容一致。
+本机产物位于 `dist/joysheet/`，含普通版和验证版的便携 ZIP、NSIS 安装器与源码 ZIP。[分发复核](validation/joysheet-packages-20261031.json)记录完整文件名、SHA256、二进制、903 项源码输入及载荷校验。两个源码 ZIP 的 905 个文件内容一致。
 
 普通版实际依赖 431 项、验证版 451 项，均附许可正文，未包含 Word/Deck 产品代码。源码包独立验证通过；普通/验证特性分别写入构建信息。包不含正式发行者签名，本轮没有创建 Git 标签、正式 release 或更新 feed。
 
 新增 CI 覆盖四平台产品构建/分发、headless/WASM、独立源码解析及 workspace 默认/联合特性。实际远端结果以 PR 检查页为准；合并前须同步最新 main、CI 全绿且可合并，由用户完成合并。
+
+## 分发复核补充
+
+首次 CI 的 20 项检查通过后，独立产物复核发现 macOS/Linux 的部分发布包省略许可正文。本轮按精确版本补充 13 组材料并保留原始版权头，标明上游原文、标准条款与不可用旧修订的区别，见[许可材料来源](../joysheet/third-party/README.md)。Sheet 分发现在在缺少正文/通知时直接失败；增加缺失拒绝、精确版本匹配及元数据不能替代正文的三项回归。四平台目标依赖清单的[正文预检](validation/joysheet-license-preflight-20261031.json)全部通过；预检使用 Windows 构建宿主，原生矩阵结果仍由 CI 记录。
+
+独立源码检查复现了共享 Cargo 目标目录时工程入口使用编译时旧路径的问题。入口改为从当前目录向上寻找 workspace；缓存程序跨检出目录调用与仓库外拒绝两项集成回归、严格 Clippy 已通过。测试依赖沿用现有 tempfile 精确版本，原有注册表依赖未升级。
 
 ## 保留的验收项
 

@@ -1,8 +1,8 @@
 {
-  "installation": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\artifacts\\joysheet\\install-smoke-1793445432158",
-  "nativeInstalledApp": true,
+  "installation": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\artifacts\\joysheet\\install-smoke-1793451075650",
+  "installer": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2-setup.exe",
   "shortcutsAndRegistry": "not modified by isolated TEST mode",
-  "passed": true,
-  "installer": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-setup.exe",
-  "unrelatedFilePreserved": true
+  "unrelatedFilePreserved": true,
+  "nativeInstalledApp": true,
+  "passed": true
 }

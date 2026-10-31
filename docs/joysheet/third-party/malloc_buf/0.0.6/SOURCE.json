@@ -1,0 +1,21 @@
+{
+  "package": "malloc_buf",
+  "version": "0.0.6",
+  "declaredLicense": "MIT",
+  "publishedCrateChecksum": "62bb907fe88d54d8d9ce32a3cceab4218ed2f6b7d35617cafe9adf84e43919cb",
+  "repository": "https://github.com/SSheldon/malloc_buf",
+  "authorsFromPublishedManifest": [
+    "Steven Sheldon"
+  ],
+  "publishedVcs": null,
+  "files": [
+    {
+      "url": "https://github.com/spdx/license-list-data/blob/main/text/MIT.txt",
+      "gitBlobSha": "d817195dad53ec992418c28ffca5fbd1cd86502a",
+      "file": "LICENSE-STANDARD-MIT.txt",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "kind": "standard SPDX template, not a publisher-provided file"
+    }
+  ],
+  "checkedUpstreamTag": "https://github.com/SSheldon/malloc_buf/tree/0.0.6"
+}

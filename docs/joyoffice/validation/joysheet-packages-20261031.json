@@ -6,31 +6,31 @@
       "automation": false,
       "version": "0.1.0",
       "target": "x86_64-pc-windows-msvc",
-      "directory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release",
+      "directory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2",
       "archive": {
-        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release.zip",
-        "bytes": 34050222,
-        "sha256": "5a1259f553b927598731287e55edb1c561d9c8b559ce0b1e37ba451aaf63ffab"
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2.zip",
+        "bytes": 34130055,
+        "sha256": "adea3ab15726e25c0bb31719743d1fface193e68c50ccd65d191e6b37ffef472"
       },
       "sourceArchive": {
-        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-source.zip",
-        "bytes": 11394148,
-        "sha256": "1078314455816abf94c1b0ab930315797023994e1d76e5a8a8028dd07a05d8cc"
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2-source.zip",
+        "bytes": 11442748,
+        "sha256": "f80c1d255f7edeb89136520b97ceed4602d44218022df15cf2d2007857494e76"
       },
       "installer": {
-        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-setup.exe",
-        "bytes": 31477521,
-        "sha256": "0d5ac7f6d585a5974dd5a4721c60f26be01ebe4133faf5d0cb0186dadad96f9d"
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2-setup.exe",
+        "bytes": 31498527,
+        "sha256": "72d124a431f4f59c17dada3a32f35e4b0b053b68f1175e9da51ab5b661931acc"
       },
       "binaries": {
-        "joysheet.exe": "7efc5467eb453af6a7e60ad73e7d67a9325b82d8852924029401b8cb2ed6cb11",
-        "joysheet-cli.exe": "5a60a7b645f430fa78b8c247a21dc928586db878de87bf6a64075ca09181e1b7"
+        "joysheet.exe": "f046f3283ef945282005b440c6f8faabae7c8a14a97c07d48f1e6c584a1e935a",
+        "joysheet-cli.exe": "9c8cbc630d493870544a8ca81e71ec0768b9f306ab8fac6124c696bbc2887b20"
       },
       "dependencyCount": 431,
       "missingLicenseTexts": 0,
       "foreignProductDependencies": [],
-      "payloadFilesVerified": 1196,
-      "sourceFilesVerified": 857,
+      "payloadFilesVerified": 1241,
+      "sourceFilesVerified": 903,
       "currentRepositoryInputsStillMatch": true,
       "sourceSnapshotVerified": true,
       "officialSignatureVerified": false
@@ -39,50 +39,37 @@
       "automation": true,
       "version": "0.1.0",
       "target": "x86_64-pc-windows-msvc",
-      "directory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation",
+      "directory": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2",
       "archive": {
-        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation.zip",
-        "bytes": 34248691,
-        "sha256": "bb37f3eb1bc50055e54fb00a3d259106fd9840b9365d7a548e068982e04d3c8b"
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2.zip",
+        "bytes": 34330330,
+        "sha256": "e7a1e280f842445861ef50b286c54bac655a50ee298d32ac1c25f1487eb85987"
       },
       "sourceArchive": {
-        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-source.zip",
-        "bytes": 11394148,
-        "sha256": "68ede918ed92bc4120ef5b447383d36e54712968b39dcdc677d6b0651de74462"
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2-source.zip",
+        "bytes": 11442748,
+        "sha256": "7a334950821fa5785010f5e75f489337379e3d4f9390e1880dcd7cabfce5ddf5"
       },
       "installer": {
-        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-setup.exe",
-        "bytes": 31562463,
-        "sha256": "b26cf012d903bdb0a327e78a063ab81a86b62e9344001386bdb35e8aff72ff8b"
+        "path": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-validation-verified2-setup.exe",
+        "bytes": 31583536,
+        "sha256": "81156750625d816178c33101f4e2a6169e8e9a69882bd194f94b47dff681c15e"
       },
       "binaries": {
-        "joysheet.exe": "545ede6418dbebacd0af9330e97f2fbd4eb5671fe5f4f7d9d201007a8e431f19",
-        "joysheet-cli.exe": "5a60a7b645f430fa78b8c247a21dc928586db878de87bf6a64075ca09181e1b7"
+        "joysheet.exe": "e21d01e6fbb8f5ac916f995ff7b1881c00c37cff25b3e2cc67f0a0bdbd64d704",
+        "joysheet-cli.exe": "9c8cbc630d493870544a8ca81e71ec0768b9f306ab8fac6124c696bbc2887b20"
       },
       "dependencyCount": 451,
       "missingLicenseTexts": 0,
       "foreignProductDependencies": [],
-      "payloadFilesVerified": 1236,
-      "sourceFilesVerified": 857,
+      "payloadFilesVerified": 1281,
+      "sourceFilesVerified": 903,
       "currentRepositoryInputsStillMatch": true,
       "sourceSnapshotVerified": true,
       "officialSignatureVerified": false
     }
   ],
   "ordinaryAutomationDefaultOffNativeProbe": {
-    "automationDefaultOff": true,
-    "binarySha256": "7efc5467eb453af6a7e60ad73e7d67a9325b82d8852924029401b8cb2ed6cb11",
-    "capabilities": {
-      "screenshot": false,
-      "nativeImeVerified": false,
-      "gpuiInput": true,
-      "versionFences": true,
-      "lifecycleCompletion": true,
-      "scriptCancellation": "betweenCommands",
-      "mcpTargetedScreenshots": true
-    },
-    "binary": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release\\joysheet.exe",
-    "passed": true,
     "cell": {
       "cell": "A1",
       "value": 12345.0,
@@ -165,10 +152,23 @@
       "merge": null,
       "comment": null,
       "hyperlink": null
-    }
+    },
+    "binarySha256": "f046f3283ef945282005b440c6f8faabae7c8a14a97c07d48f1e6c584a1e935a",
+    "automationDefaultOff": true,
+    "binary": "D:\\Coding\\EditorProjects\\joyoffice-sheet-integration\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-release-verified2\\joysheet.exe",
+    "capabilities": {
+      "screenshot": false,
+      "nativeImeVerified": false,
+      "gpuiInput": true,
+      "versionFences": true,
+      "lifecycleCompletion": true,
+      "scriptCancellation": "betweenCommands",
+      "mcpTargetedScreenshots": true
+    },
+    "passed": true
   },
   "standaloneSourceContentsIdentical": true,
-  "standaloneSourceFiles": 859,
+  "standaloneSourceFiles": 905,
   "originalMonorepoRegistryPinsRetained": true,
   "addedRegistryPins": 25,
   "formalReleasePublished": false,
