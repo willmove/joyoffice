@@ -2,13 +2,16 @@
   "date": "2026-10-31",
   "scope": "Static test function-name multiplicity; runtime platform and feature results are recorded separately",
   "originalStaticTests": 123,
-  "migratedStaticTests": 129,
+  "migratedStaticTests": 132,
   "removedTests": [],
   "addedTests": [
     "stale_table_resize_is_rejected_without_changing_the_document",
     "valid_table_resize_remains_a_preview_until_committed",
     "poisoned_show_is_rejected_without_resuming_partial_state",
     "malformed_preview_pixels_are_reported_instead_of_panicking",
+    "full_document_does_not_inherit_embedded_workbook_limits",
+    "raw_duplicate_names_are_rejected_before_name_indexing",
+    "symbolic_link_member_is_rejected_without_extraction",
     "poisoned_session_keeps_snapshot_dirty_and_rejects_writes",
     "id_overflow_is_checked"
   ],
@@ -40,6 +43,18 @@
     {
       "test": "malformed_preview_pixels_are_reported_instead_of_panicking",
       "file": "apps/joydeck/src/viewer_tests/tests.rs"
+    },
+    {
+      "test": "full_document_does_not_inherit_embedded_workbook_limits",
+      "file": "crates/joydeck-formats/src/document/tests.rs"
+    },
+    {
+      "test": "raw_duplicate_names_are_rejected_before_name_indexing",
+      "file": "crates/joydeck-formats/src/document/tests.rs"
+    },
+    {
+      "test": "symbolic_link_member_is_rejected_without_extraction",
+      "file": "crates/joydeck-formats/src/document/tests.rs"
     },
     {
       "test": "relationship_paths_and_xml_limits",

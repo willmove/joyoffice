@@ -1,6 +1,6 @@
 # JoyDeck 开发状态
 
-当前开发入口为 JoyOffice Monorepo，参见[开发指南](DEVELOPMENT.md)与[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)。下述数字和证据是迁移前 M13/M14 的历史基线；新布局验证单独登记，不改写历史结果。
+当前开发入口为 JoyOffice Monorepo，参见[开发指南](DEVELOPMENT.md)与[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)。[迁移结果及新布局验证](../joyoffice/MONOREPO-RESULT.md)已单独登记。下述数字和证据是迁移前M13/M14历史基线，不改写为新验收结果。
 
 更新：2026-10-31。**M13本机资格化/发布维护，以及M14静态页MP4、离线比较/逐对象接受、标题WebVTT已交付；完整三平台Beta和M14其余功能池仍开放。** 已按实测关闭本机子项，未改变原父任务的完整验收要求。见[任务清单](11-task-backlog.md)、[M13报告](36-m13-implementation-report.md)、[M14报告](37-m14-implementation-report.md)。
 

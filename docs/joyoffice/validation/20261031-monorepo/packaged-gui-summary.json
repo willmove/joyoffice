@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-31",
+  "package": "dist/joydeck/joydeck-monorepo-final-utf8-debug.zip",
+  "packageSha256": "b9f24a6ad3475e52f4185b2f5f9c1c43d2981ff9bc02fd89c53d4b41e50447e7",
+  "packageIntegrity": {
+    "package": "dist/joydeck/joydeck-monorepo-final-utf8-debug.zip",
+    "packageSha256": "b9f24a6ad3475e52f4185b2f5f9c1c43d2981ff9bc02fd89c53d4b41e50447e7",
+    "hashRecordsVerified": 1925,
+    "sourceFilesVerified": 167,
+    "sourceSnapshotVerified": true,
+    "sourceGraphVerifiedAgainstCurrentTree": true,
+    "dependencyPackages": 444,
+    "packageRoots": [
+      "joydeck",
+      "joydeck-cli"
+    ],
+    "sevenDeckCrates": true,
+    "sharedOpcIncluded": true,
+    "wordExcluded": true,
+    "zipVersion": "9.0.0",
+    "appRuntimeMatchesPackageRoot": true,
+    "cliDiagnostics": {
+      "application": "JoyDeck",
+      "architecture": "aarch64",
+      "automationProtocol": "joydeck-control-1",
+      "desktopFeature": false,
+      "diagnosticScope": "build capabilities; not device or signature acceptance",
+      "nativeReaderMax": 11,
+      "os": "macos",
+      "preferencesSchema": 2,
+      "version": "0.1.0",
+      "videoExport": "static-page MP4 requires macOS encoder helper",
+      "writerSchema": "1.10"
+    },
+    "passed": true
+  },
+  "runtimeBinariesMatchPackage": true,
+  "evidence": {
+    "m14": {
+      "path": "target/joydeck-verification/m14-monorepo-final-utf8-debug/verification.json",
+      "sha256": "e97f41acb8313fdb4395c971f28d94b65375b1d54b099d7daf6b412e7a0df5c9"
+    },
+    "movedApp": {
+      "path": "target/joydeck-verification/moved-monorepo-final-utf8-debug/verification.json",
+      "sha256": "24a6e3819164c2cb7463d1df98bbb54b11894e12dfeeab9dc6c7bc20f732573c"
+    },
+    "ordinaryPinyin": {
+      "path": "target/joydeck-verification/m3/pinyin-1793417101740284000/result.json",
+      "sha256": "a1b75dd67bfe5e1382c646164cf908cad99ce8b764a4c5403df732ae99a8b9e4"
+    },
+    "tablePinyin": {
+      "path": "target/joydeck-verification/m8/pinyin-1793417110192771000/result.json",
+      "sha256": "a1b75dd67bfe5e1382c646164cf908cad99ce8b764a4c5403df732ae99a8b9e4"
+    }
+  },
+  "m14": {
+    "binarySha256": "85ba43d47a954b9cfe77d90412c35d0657f10717615dfe73599265b4af548332",
+    "cliSha256": "1ee5cb2ef28c0a6d26c54875a251a8f88a03872fc842e8d071339545f03cc58a",
+    "nativeOnly": false,
+    "guiPassed": true,
+    "foregroundActivation": {
+      "required": true,
+      "panels": {
+        "0": {
+          "requestedPid": 55508,
+          "frontmostPid": 55508,
+          "verified": true,
+          "activationRequested": true,
+          "attempts": 1,
+          "settleSeconds": 0.2
+        },
+        "1": {
+          "requestedPid": 55508,
+          "frontmostPid": 55508,
+          "verified": true,
+          "activationRequested": true,
+          "attempts": 1,
+          "settleSeconds": 0.2
+        },
+        "2": {
+          "requestedPid": 55508,
+          "frontmostPid": 55508,
+          "verified": true,
+          "activationRequested": true,
+          "attempts": 1,
+          "settleSeconds": 0.2
+        },
+        "3": {
+          "requestedPid": 55508,
+          "frontmostPid": 55508,
+          "verified": true,
+          "activationRequested": true,
+          "attempts": 1,
+          "settleSeconds": 0.2
+        },
+        "4": {
+          "requestedPid": 55508,
+          "frontmostPid": 55508,
+          "verified": true,
+          "activationRequested": true,
+          "attempts": 1,
+          "settleSeconds": 0.2
+        }
+      }
+    },
+    "panelsCaptured": 5,
+    "canvas": {
+      "foregroundActivation": {
+        "requestedPid": 55508,
+        "frontmostPid": 55508,
+        "verified": true,
+        "activationRequested": true,
+        "attempts": 1,
+        "settleSeconds": 0.2
+      },
+      "meanRgbError": 0.3285736149372513,
+      "fractionPixelsOver48": 0.0023209366391184574,
+      "interiorRgbError": 0.05444173529749181,
+      "interiorPixelsOver16": 0.0,
+      "edgePixelsOver128": 0.0,
+      "passed": true
+    },
+    "nativeState": {
+      "nativeWindowsOpenedClosed": 24,
+      "editUndoCycles": 120,
+      "liveWindows": 1,
+      "preferencesRestored": true,
+      "windowHeightRestoredWithoutShrink": true,
+      "comparisonAcceptedUndoRedo": true,
+      "mp4ExportDocumentUnchanged": true,
+      "exportedVideoDisplayed": true,
+      "scope": "native handlers; screenshot status recorded separately; no physical dual-display/reader certification"
+    },
+    "video": {
+      "audioTracks": 0,
+      "duration": 18,
+      "firstPts": 0,
+      "frames": 270,
+      "height": 540,
+      "lastPts": 17.933333333333334,
+      "monotonicPts": true,
+      "videoTracks": 1,
+      "width": 960
+    },
+    "decodedFrameMeanRgbError": 0.9073894032921811,
+    "cliCompareAcceptUndo": true,
+    "titleVttTimeline": true,
+    "diagnosticsFieldsChecked": true,
+    "appMaxRssKiB": 221872,
+    "preferences": {
+      "schema": 2,
+      "generation": 2,
+      "recentCount": 1
+    },
+    "passed": true
+  },
+  "movedApp": {
+    "binarySha256": "85ba43d47a954b9cfe77d90412c35d0657f10717615dfe73599265b4af548332",
+    "appRelocated": true,
+    "cwdOutsideRepository": true,
+    "unicodeSpaceFileEvent": true,
+    "sameFileActivatedExistingWindow": true,
+    "windowsAfterDuplicateOpen": 2,
+    "nativeMenus": "Apple, JoyDeck, 文件, 编辑",
+    "menuUndoRedoBeforeOpenDialog": true,
+    "savedPageCounts": [
+      21,
+      20,
+      21,
+      20
+    ],
+    "systemDynamicLibrariesOnly": true,
+    "cleanMachineInstall": false,
+    "passed": true
+  },
+  "ordinaryPinyin": {
+    "input_method": "com.apple.inputmethod.SCIM.ITABC",
+    "events": "System Events synthetic keyboard events",
+    "commit": true,
+    "cancel": true,
+    "single_undo": true,
+    "roundtrip": true,
+    "physical_keyboard": false
+  },
+  "tablePinyin": {
+    "input_method": "com.apple.inputmethod.SCIM.ITABC",
+    "events": "System Events synthetic keyboard events",
+    "commit": true,
+    "cancel": true,
+    "single_undo": true,
+    "roundtrip": true,
+    "physical_keyboard": false
+  },
+  "scope": "macOS ARM64 debug validation package, real native windows and synthetic OS keyboard events; not clean-machine installation, physical keyboard, Windows/Linux GUI, official signing or release qualification",
+  "passed": true
+}

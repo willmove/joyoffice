@@ -11,5 +11,17 @@ tests/fixtures/mail-merge/*.csv -text
 *.wps binary
 *.pdf binary
 *.ttf binary
+*.pptx binary
+*.potx binary
+*.ppsx binary
+*.joydeck binary
+*.mp4 binary
+*.wav binary
+*.m4a binary
+*.mp3 binary
+# Migrated evidence and verbatim notices carry recorded byte hashes.
+docs/joydeck/evidence/** -text
+docs/joyoffice/validation/** -text
+licenses/joydeck/** -text
 # Preserve the pinned third-party license verbatim, including original spacing.
 tests/fixtures/fonts/OFL.txt -whitespace
