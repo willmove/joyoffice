@@ -209,10 +209,14 @@ impl Player {
 }
 impl Drop for Player {
     fn drop(&mut self) {
+        eprintln!("TRACE player drop kill");
         let _ = self.child.kill();
+        eprintln!("TRACE player drop wait");
         let _ = self.child.wait();
+        eprintln!("TRACE player drop join");
         if let Some(t) = self.reader.take() {
             let _ = t.join();
         }
+        eprintln!("TRACE player drop complete");
     }
 }

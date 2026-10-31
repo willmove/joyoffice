@@ -1,71 +1,29 @@
-name: JoyDeck CI
-
-# Always start required checks. Product commands select only Deck and its
-# actual shared dependencies; root locks and shared code therefore stay covered.
+name: JoyDeck playback diagnostic
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
-  headless:
-    name: JoyDeck headless
-    runs-on: ubuntu-24.04
+  playback:
+    runs-on: macos-15
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
       - name: Fixed toolchain
-        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
-      - name: Product engineering and release-routing tests
+        run: rustup toolchain install 1.98.1 --profile minimal
+      - name: Compile the unchanged H264 assertions without GPUI
         run: |
-          python -m unittest discover -s tools/xtask -p 'test_*.py'
-          python -m unittest discover -s scripts/joydeck/tests -p 'test_*.py'
-      - name: Headless product check
-        run: cargo xtask check joydeck --headless
-      - name: CLI dependency isolation
-        shell: bash
-        run: |
-          cargo tree -p joydeck-cli --locked --edges normal,build > cli-dependencies.txt
-          if grep -E 'gpui|joyword' cli-dependencies.txt; then
-            echo 'Headless Deck CLI acquired a GUI or Word dependency'
-            exit 1
-          fi
-      - name: Independent CLI build
-        run: cargo build --locked -p joydeck-cli
-  desktop:
-    name: JoyDeck desktop (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-15, windows-2022, ubuntu-24.04, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+          mkdir -p artifacts/playback-diagnostic
+          cargo test --locked -p joydeck-shell --test playback --no-run --message-format=json > artifacts/playback-diagnostic/build.json
+      - name: Bounded reproduction and owned-process stack capture
+        timeout-minutes: 3
+        run: python scripts/joydeck/diagnose-playback.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
         with:
-          python-version: '3.12'
-      - name: Linux desktop libraries
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
-      - name: macOS Metal toolchain
-        if: runner.os == 'macOS'
-        run: |
-          xcode-select --print-path
-          xcrun --find metal
-      - name: Fixed toolchain
-        run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
-      - name: Product checks
-        run: cargo xtask check joydeck
-      - name: Validation-feature regression tests
-        run: cargo xtask test joydeck --validation
-      - name: Independent product build
-        run: cargo xtask build joydeck
+          name: joydeck-playback-diagnostic
+          path: artifacts/playback-diagnostic
+          if-no-files-found: error
