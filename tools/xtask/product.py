@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Product-scoped build/test/package and release-version routing for JoyOffice."""
 import argparse
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,7 @@ import platform
 import re
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli")}
@@ -155,6 +157,12 @@ def main(argv=None):
         else:
             rustc = subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True)
             host = next(line.split(": ", 1)[1] for line in rustc.splitlines() if line.startswith("host:"))
+            sys.path.insert(0, str(ROOT / "scripts/joydeck"))
+            try:
+                import sbom
+            finally:
+                sys.path.pop(0)
+            baseline = sbom.snapshot(host, roots=PRODUCTS[args.product])
             # Explicit host target prevents CARGO_BUILD_TARGET or a Cargo config
             # from producing a cross binary labeled as a native package.
             output = subprocess.check_output(["cargo", "build", "-p", "joyword", "-p", "joyword-cli", "--locked",
@@ -174,7 +182,11 @@ def main(argv=None):
             system = {"Darwin": "macos", "Windows": "windows", "Linux": "linux"}[platform.system()]
             architecture = {"arm64": "aarch64", "aarch64": "aarch64", "AMD64": "x86_64", "x86_64": "x86_64"}[platform.machine()]
             binary = Path(artifacts["joyword"])
-            run([sys.executable, "scripts/package_release.py", "--binary", str(binary), "--cli", artifacts["joyword-cli"], "--version", manifest_version("joyword"), "--profile", "release" if args.release else "debug", "--platform", system, "--arch", architecture, "--out", "dist/joyword", *extra])
+            sbom.require_unchanged_sources(baseline, sbom.snapshot(host, roots=PRODUCTS[args.product]))
+            with tempfile.TemporaryDirectory(prefix="word-source-snapshot-", dir=data["target_directory"]) as temporary:
+                snapshot_file = Path(temporary) / "sources.json"
+                snapshot_file.write_text(json.dumps(baseline))
+                run([sys.executable, "scripts/package_release.py", "--binary", str(binary), "--cli", artifacts["joyword-cli"], "--version", manifest_version("joyword"), "--profile", "release" if args.release else "debug", "--source-snapshot", str(snapshot_file), "--platform", system, "--arch", architecture, "--out", "dist/joyword", *extra])
 
 if __name__ == "__main__":
     try:

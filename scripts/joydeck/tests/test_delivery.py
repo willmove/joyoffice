@@ -43,6 +43,19 @@ class DependencyGraph(unittest.TestCase):
         with self.assertRaises(ValueError):
             sbom.selected_graph(data, ['0joydeck-model v1.0.0\n'])
 
+class BuildSourceSnapshots(unittest.TestCase):
+    def test_unchanged_build_inputs_are_accepted(self):
+        sbom.require_unchanged_sources({'src.rs': 'abc'}, {'src.rs': 'abc'})
+
+    def test_concurrent_source_add_remove_or_change_rejects_package(self):
+        before = {'unchanged.rs': 'ok', 'modified.rs': 'old', 'removed.rs': 'gone'}
+        after = {'unchanged.rs': 'ok', 'modified.rs': 'new', 'added.rs': 'new'}
+        with self.assertRaisesRegex(ValueError, 'Source inputs changed') as error:
+            sbom.require_unchanged_sources(before, after)
+        for filename in ('modified.rs', 'removed.rs', 'added.rs'):
+            self.assertIn(filename, str(error.exception))
+
+
 class PackagePaths(unittest.TestCase):
     def test_relocated_package_resolves_its_own_assets(self):
         with tempfile.TemporaryDirectory() as tmp:

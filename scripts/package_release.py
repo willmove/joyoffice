@@ -47,6 +47,7 @@ def parse_args():
     parser.add_argument("--binary", required=True, type=Path,
                         help="release-built joyword binary to package")
     parser.add_argument("--profile", choices=["debug", "release"], default="release")
+    parser.add_argument("--source-snapshot", type=Path, help="source hash map captured before the product build")
     parser.add_argument("--cli", type=Path, help="matching joyword-cli executable to include")
     parser.add_argument("--version", required=True,
                         help="release version without the v prefix")
@@ -148,12 +149,14 @@ def main() -> int:
         finally:
             sys.path.pop(0)
         hashes = dependency.pop("sourceHashes")
+        if args.source_snapshot:
+            sbom.require_unchanged_sources(json.loads(args.source_snapshot.read_text()), hashes)
         hashes["scripts/package_release.py"] = sha256(Path(__file__))
         (staging / "SOURCE-HASHES.json").write_text(json.dumps(hashes, indent=2) + "\n")
         (staging / "BUILD-INFO.json").write_text(json.dumps({"product": "joyword", "version": args.version,
             "target": target, "profile": args.profile, "packageRoots": list(roots),
             "binarySha256": sha256(binary), "cliSha256": sha256(args.cli) if args.cli else None, "cargoLockSha256": dependency["lockSha256"],
-            "dependencyPackages": dependency["packages"], "officialSignatureVerified": False}, indent=2) + "\n")
+            "dependencyPackages": dependency["packages"], "sourceSnapshotVerified": args.source_snapshot is not None, "officialSignatureVerified": False}, indent=2) + "\n")
         materials = [("README-joyword.txt", readme, False), ("LICENSE", root / "LICENSE", False)]
         materials.extend((p.relative_to(staging).as_posix(), p, False)
                          for p in sorted(staging.rglob("*"))

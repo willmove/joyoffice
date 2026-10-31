@@ -80,6 +80,20 @@ def source_hashes(data, packages, reached):
             for p in sorted(files) if p.is_file()}
 
 
+def snapshot(target, roots=('joydeck', 'joydeck-cli'), features=()):
+    data, packages, reached, _, _ = graph(target, roots, features)
+    return source_hashes(data, packages, reached)
+
+
+def require_unchanged_sources(before, after):
+    added = sorted(set(after) - set(before))
+    removed = sorted(set(before) - set(after))
+    changed = sorted(key for key in set(before) & set(after) if before[key] != after[key])
+    if added or removed or changed:
+        raise ValueError('Source inputs changed during the build; rebuild under a new output name. ' +
+                         json.dumps({'added': added, 'removed': removed, 'changed': changed}))
+
+
 def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli'), features=()):
     product = 'joyword' if roots and roots[0].startswith('joyword') else 'joydeck'
     data, packages, reached, edges, root_ids = graph(target, roots, features)

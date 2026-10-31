@@ -69,6 +69,10 @@ def main():
     archive = output.with_name(output.name + '.zip')
     if output.exists() or archive.exists():
         raise FileExistsError('Choose a new package name or output directory: ' + str(output))
+    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True)
+    target = next(line.split(': ', 1)[1] for line in rustc.splitlines() if line.startswith('host:'))
+    features = ('joydeck/validation',) if args.validation else ()
+    baseline = sbom.snapshot(target, features=features)
     app_binary = build_binary('joydeck', args.profile, args.validation)
     cli_binary = build_binary('joydeck-cli', args.profile)
     output.mkdir(parents=True)
@@ -118,18 +122,16 @@ def main():
         launch = output / 'Launch.command'
         launch.write_text('#!/bin/sh\ncd -- "$(dirname -- "$0")" || exit 1\nexec ./joydeck\n')
         launch.chmod(0o755)
-    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True)
-    target = next(line.split(': ', 1)[1] for line in rustc.splitlines() if line.startswith('host:'))
-    features = ('joydeck/validation',) if args.validation else ()
     dependency_info = sbom.generate(output / 'SBOM.spdx.json', target, args.profile, features=features)
     source_hashes = dependency_info.pop('sourceHashes')
+    sbom.require_unchanged_sources(baseline, source_hashes)
     (output / 'SOURCE-HASHES.json').write_text(json.dumps(source_hashes, indent=2) + '\n')
     info = {'version': version, 'stage': args.stage, 'target': target, 'profile': args.profile,
             'features': ['desktop', *(['validation'] if args.validation else [])],
             'packageRoots': ['joydeck', 'joydeck-cli'], 'nativeReaderMax': 11, 'writerSchema': '1.10',
             'rustc': rustc, 'cargoLockSha256': dependency_info['lockSha256'],
             'sourceGraphSha256': hashlib.sha256(json.dumps(source_hashes, sort_keys=True).encode()).hexdigest(),
-            'dependencyPackages': dependency_info['packages'], 'officialSignatureVerified': False}
+            'dependencyPackages': dependency_info['packages'], 'sourceSnapshotVerified': True, 'officialSignatureVerified': False}
     (output / 'BUILD-INFO.json').write_text(json.dumps(info, indent=2) + '\n')
     if system == 'macos':
         resources = output / 'JoyDeck.app/Contents/Resources'
