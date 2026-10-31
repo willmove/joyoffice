@@ -16,16 +16,16 @@ assert len(executables) == 1, executables
 def run_case(label, extra_args):
     case = OUT / label
     case.mkdir()
-    environment = dict(os.environ, RUST_BACKTRACE="full")
+    environment = dict(os.environ)
     started = time.monotonic()
     report = {"selection": extra_args, "timedOut": False}
     with (case / "test.log").open("w", encoding="utf-8") as log:
-        child = subprocess.Popen([executables[0], *extra_args, "--nocapture"],
+        child = subprocess.Popen(["cargo", "test", "-p", "joydeck", "-p", "joydeck-cli", "-p", "joydeck-engine", "-p", "joydeck-export", "-p", "joydeck-formats", "-p", "joydeck-model", "-p", "joydeck-platform", "-p", "joydeck-scene", "-p", "joydeck-shell", "-p", "joyoffice-opc", "--locked", *extra_args],
                                  cwd=ROOT, env=environment, stdout=log, stderr=subprocess.STDOUT,
                                  start_new_session=True)
         report["testPid"] = child.pid
         try:
-            report["returncode"] = child.wait(timeout=45)
+            report["returncode"] = child.wait(timeout=120)
         except subprocess.TimeoutExpired:
             report["timedOut"] = True
             lines = subprocess.check_output(["ps", "-axo", "pid=,ppid=,comm="], text=True).splitlines()
@@ -68,9 +68,9 @@ def run_case(label, extra_args):
     return report
 
 mode = os.environ.get("DIAGNOSTIC_MODE", "parallel")
-arguments = ["--test-threads=1"] if mode == "serial" else []
+arguments = ["--", "--test-threads=1"] if mode == "serial" else []
 reports = []
-for index in range(3):
+for index in range(1):
     report = run_case(f"{mode}-{index}", arguments)
     reports.append(report)
     if report["timedOut"] or report["returncode"] != 0:
