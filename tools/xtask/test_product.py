@@ -2,6 +2,9 @@
 import importlib.util
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
+import json
 import unittest
 from unittest.mock import patch
 
@@ -26,11 +29,11 @@ class ProductRouting(unittest.TestCase):
         for name, version in [('joyword', '0.2.1'), ('joydeck', '0.1.3')]:
             directory = self.root / 'apps' / name
             directory.mkdir(parents=True)
-            (directory / 'Cargo.toml').write_text('[package]\nname = "' + name + '"\nversion = "' + version + '"\n')
+            (directory / 'Cargo.toml').write_text('[package]\nname = "' + name + '"\nversion = "' + version + '"\n', encoding='utf-8')
             cli = self.root / 'apps' / (name + '-cli')
             cli.mkdir()
-            (cli / 'Cargo.toml').write_text('[package]\nname = "' + name + '-cli"\nversion = "' + version + '"\n')
-        (self.root / 'Cargo.toml').write_text('[workspace.package]\nversion = "9.9.9"\n')
+            (cli / 'Cargo.toml').write_text('[package]\nname = "' + name + '-cli"\nversion = "' + version + '"\n', encoding='utf-8')
+        (self.root / 'Cargo.toml').write_text('[workspace.package]\nversion = "9.9.9"\n', encoding='utf-8')
 
     def test_versions_are_product_scoped(self):
         self.assertEqual(product.manifest_version('joydeck', self.root), '0.1.3')
@@ -52,7 +55,7 @@ class ProductRouting(unittest.TestCase):
             product.release_target('joysheet-v0.1.0', root=self.root)
 
     def test_cli_version_must_match_application(self):
-        (self.root / 'apps/joydeck-cli/Cargo.toml').write_text('[package]\nversion = "0.1.2"\n')
+        (self.root / 'apps/joydeck-cli/Cargo.toml').write_text('[package]\nversion = "0.1.2"\n', encoding='utf-8')
         with self.assertRaisesRegex(ValueError, 'CLI version'):
             product.release_target('joydeck-v0.1.3', root=self.root)
 
@@ -79,6 +82,20 @@ class ProductRouting(unittest.TestCase):
         data['resolve']['nodes'][7]['deps'].append({'pkg': 'joyword-model'})
         with self.assertRaisesRegex(ValueError, 'another product'):
             product.product_packages(data, 'joydeck')
+
+    def test_cargo_metadata_decodes_utf8_under_windows_ansi_locale(self):
+        metadata = {'workspace_members': [], 'packages': [], 'unicode': '中文文稿😀'}
+        payload = json.dumps(metadata, ensure_ascii=False).encode('utf-8')
+        real_output = subprocess.check_output
+        def cargo_output(command, **kwargs):
+            self.assertEqual(command[:2], ['cargo', 'metadata'])
+            return real_output([sys.executable, '-c',
+                                'import sys; sys.stdout.buffer.write(' + repr(payload) + ')'], **kwargs)
+        # Force the exact non-UTF8 text default used on the failing Windows
+        # runner. Without explicit encoding, this corrupts or rejects metadata.
+        with patch.object(product.subprocess, 'check_output', side_effect=cargo_output), \
+                patch.object(subprocess, '_text_encoding', return_value='cp1252'):
+            self.assertEqual(product.metadata(), metadata)
 
     def test_build_selects_only_application_entrypoints(self):
         with patch.object(product, 'metadata', return_value=graph()), patch.object(product, 'run') as run:

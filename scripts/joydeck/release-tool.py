@@ -16,7 +16,7 @@ def safe_name(name):
  return path
 def verify(directory):
  root=Path(directory)
- manifest=json.loads((root/'SHA256.json').read_text())
+ manifest=json.loads((root/'SHA256.json').read_text(encoding='utf-8'))
  if not isinstance(manifest,dict) or not 1<=len(manifest)<MAX_FILES:raise ValueError('Invalid file manifest')
  entries=list(root.rglob('*'))
  if any(p.is_symlink() for p in entries):raise ValueError('Release contains a symbolic link')
@@ -25,7 +25,7 @@ def verify(directory):
  for name,expected in manifest.items():
   safe_name(name);path=root/name
   if path.is_symlink() or not re.fullmatch('[0-9a-f]{64}',expected) or digest(path)!=expected:raise ValueError('Release hash mismatch: '+name)
- info=json.loads((root/'BUILD-INFO.json').read_text())
+ info=json.loads((root/'BUILD-INFO.json').read_text(encoding='utf-8'))
  if info['nativeReaderMax']<11:raise ValueError('Release cannot read current documents')
  return {'filesVerified':len(manifest),'build':info}
 def extract(archive,dest):
@@ -76,13 +76,13 @@ def signature(root,team):
  if sys.platform!='darwin':raise ValueError('Pinned Team ID verification requires macOS')
  app=root/'JoyDeck.app'
  subprocess.run(['/usr/bin/codesign','--verify','--deep','--strict',str(app)],check=True,capture_output=True)
- result=subprocess.run(['/usr/bin/codesign','-d','--verbose=4',str(app)],check=True,capture_output=True,text=True)
+ result=subprocess.run(['/usr/bin/codesign','-d','--verbose=4',str(app)],check=True,capture_output=True,text=True, encoding='utf-8')
  if 'TeamIdentifier='+team not in result.stderr.splitlines():raise ValueError('Signing team mismatch')
  return 'verified-team:'+team
 def selection(root):
  path=Path(root)/'active.json'
  if not path.exists():return {'current':None,'previous':None}
- value=json.loads(path.read_text())
+ value=json.loads(path.read_text(encoding='utf-8'))
  for key in ('current','previous'):
   if value.get(key) is not None and not re.fullmatch('joydeck-[a-z0-9-]+',value[key]):raise ValueError('Invalid saved release pointer')
  return value

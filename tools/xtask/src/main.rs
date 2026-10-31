@@ -36,6 +36,8 @@ fn main() -> ExitCode {
     };
     let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("product.py");
     match Command::new(python)
+        .env("PYTHONUTF8", "1")
+        .env("PYTHONIOENCODING", "utf-8")
         .arg(script)
         .args(std::env::args_os().skip(1))
         .status()

@@ -41,7 +41,7 @@ def selected_graph(data, trees):
 def graph(target, roots=('joydeck', 'joydeck-cli'), features=()):
     data = json.loads(subprocess.check_output(
         ['cargo', 'metadata', '--locked', '--offline', '--filter-platform', target,
-         '--format-version', '1'], cwd=ROOT, text=True))
+         '--format-version', '1'], cwd=ROOT, text=True, encoding='utf-8'))
     trees = []
     for package in roots:
         command = ['cargo', 'tree', '-p', package, '--locked', '--offline', '--target', target,
@@ -49,7 +49,7 @@ def graph(target, roots=('joydeck', 'joydeck-cli'), features=()):
         selected_features = [f for f in features if '/' not in f or f.split('/', 1)[0] == package]
         if selected_features:
             command += ['--features', ','.join(selected_features)]
-        trees.append(subprocess.check_output(command, cwd=ROOT, text=True))
+        trees.append(subprocess.check_output(command, cwd=ROOT, text=True, encoding='utf-8'))
     reached, edges = selected_graph(data, trees)
     packages = {package['id']: package for package in data['packages']}
     root_ids = {i for i in reached if packages[i]['name'] in roots}
@@ -109,7 +109,7 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
     license_root = output.parent / 'dependency-licenses'
     license_root.mkdir()
     checksums = {}
-    for section in (ROOT / 'Cargo.lock').read_text().split('[[package]]')[1:]:
+    for section in (ROOT / 'Cargo.lock').read_text(encoding='utf-8').split('[[package]]')[1:]:
         record = {key: json.loads(value) for key, value in re.findall(r'^(name|version|source|checksum) = ("[^\n]*")$', section, re.M)}
         checksums[(record['name'], record['version'], record.get('source'))] = record.get('checksum')
     objects, license_index = [], []
@@ -164,8 +164,8 @@ def generate(output, target, profile='release', roots=('joydeck', 'joydeck-cli')
             'comment': 'Selected Cargo normal/build graph for roots ' + ','.join(roots) +
                        '; target=' + target + '; features=' + ','.join(features) +
                        '. License declarations are metadata, not conclusions. System frameworks/fonts and QA tools are listed in THIRD_PARTY.md.'}
-    output.write_text(json.dumps(sbom, indent=2) + '\n')
-    (license_root / 'index.json').write_text(json.dumps(license_index, indent=2) + '\n')
+    output.write_text(json.dumps(sbom, indent=2) + '\n', encoding='utf-8')
+    (license_root / 'index.json').write_text(json.dumps(license_index, indent=2) + '\n', encoding='utf-8')
     return {'packages': len(objects), 'lockSha256': lock, 'target': target, 'profile': profile,
             'roots': list(roots), 'features': list(features),
             'sourceHashes': source_hashes(data, packages, reached)}

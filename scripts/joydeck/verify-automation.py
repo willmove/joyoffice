@@ -4,7 +4,7 @@ from pathlib import Path
 from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
 p=argparse.ArgumentParser();p.add_argument('--binary',type=Path,default=binary('joydeck-cli', 'debug'));p.add_argument('--output',type=Path,default=EVIDENCE / 'm14/automation.json');a=p.parse_args();binary=str(a.binary.resolve())
 def mcp(command):
- proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
+ proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1, encoding='utf-8')
  def rpc(i,method,params={}):
   proc.stdin.write(json.dumps({'jsonrpc':'2.0','id':i,'method':method,'params':params})+'\n');proc.stdin.flush();v=json.loads(proc.stdout.readline());assert v['id']==i,v;return v
  try:
@@ -31,12 +31,12 @@ def mcp(command):
   proc.stdin.close();proc.wait(timeout=8)
 local=mcp([binary,'mcp'])
 with tempfile.TemporaryDirectory(prefix='joydeck-control-verifier-')as temp:
- descriptor=Path(temp)/'control.json';server=subprocess.Popen([binary,'serve',str(descriptor)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+ descriptor=Path(temp)/'control.json';server=subprocess.Popen([binary,'serve',str(descriptor)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True, encoding='utf-8')
  try:
   for _ in range(100):
    if descriptor.exists():break
    assert server.poll()is None,server.stderr.read();time.sleep(.05)
-  credentials=json.loads(descriptor.read_text());host,port=credentials['address'].split(':')
+  credentials=json.loads(descriptor.read_text(encoding='utf-8'));host,port=credentials['address'].split(':')
   with socket.create_connection((host,int(port)),timeout=3)as s:
    s.sendall(b'{"token":"wrong","request":{}}\n');unauth=json.loads(s.makefile().readline());assert unauth['error']['code']=='unauthenticated'
   # Remote resources must describe the remote target, not the bridge's scratch model.
@@ -45,4 +45,4 @@ with tempfile.TemporaryDirectory(prefix='joydeck-control-verifier-')as temp:
   server.stdin.write('\n');server.stdin.flush();server.wait(timeout=8)
  assert not descriptor.exists()
 result={'binarySha256':hashlib.sha256(a.binary.read_bytes()).hexdigest(),'headless':local,'remote':remote,'unauthenticatedRejected':True,'descriptorRemovedOnShutdown':True,'passed':True}
-a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8');print(json.dumps(result,indent=2))

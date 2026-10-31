@@ -10,7 +10,7 @@ def main():
   try:
    deadline=time.monotonic()+80
    while time.monotonic()<deadline:
-    text=(out/'native.log').read_text(errors='replace')
+    text=(out/'native.log').read_text(errors='replace', encoding='utf-8')
     if 'failed=' in text or 'panicked' in text:raise RuntimeError(text[-2500:])
     for line in text.splitlines():
      if not line.startswith('M9_CAPTURE '):continue
@@ -39,8 +39,8 @@ def main():
  book=zipfile.ZipFile(io.BytesIO(z.read('ppt/embeddings/chart-1-3.xlsx')));r=E.fromstring(book.read('xl/worksheets/sheet1.xml'));assert r.find('.//s:c[@r="B5"]/s:v',ns).text=='131'
  from pypdf import PdfReader
  assert len(PdfReader(out/'authoring.pdf').pages)==2
- show=json.loads((out/'native-show.json').read_text());assert show['renderedFrames']>5 and show['snapshotUnchanged'] and show['monotonicPause']
+ show=json.loads((out/'native-show.json').read_text(encoding='utf-8'));assert show['renderedFrames']>5 and show['snapshotUnchanged'] and show['monotonicPause']
  result={'binary':str(a.binary.resolve()),'sha256':hashlib.sha256(a.binary.read_bytes()).hexdigest(),'canvas':quality,'publicCharts':len(charts),'embeddedWorkbooks':len(workbooks),'cacheWorkbookValue':131,'nativeShow':show,'passed':len(quality)==2 and all(x['passed'] for x in quality.values())}
- (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2));print(out)
+ (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n', encoding='utf-8');print(json.dumps(result,ensure_ascii=False,indent=2));print(out)
  if not result['passed']:raise SystemExit(1)
 if __name__=='__main__':main()

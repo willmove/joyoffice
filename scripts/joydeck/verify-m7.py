@@ -24,7 +24,7 @@ def main():
         try:
             deadline=time.monotonic()+100;show=False;editor=False
             while time.monotonic()<deadline:
-                text=(out/'native.log').read_text(errors='replace')
+                text=(out/'native.log').read_text(errors='replace', encoding='utf-8')
                 if 'failed=' in text or 'panicked at' in text or 'startup/runtime failure' in text:raise RuntimeError(text[-3000:])
                 if 'M7_SHOW_CAPTURE' in text and not show:
                     # macOS may return the pre-transition backing store after
@@ -47,7 +47,7 @@ def main():
                         if time.monotonic()-capture_start>=5.:raise AssertionError(f'Fullscreen first frame timeout: {attempts}')
                         if len(attempts)==1:captured.save(out/'slideshow-first-capture.png')
                         time.sleep(.15)
-                    (out/'capture-readiness.json').write_text(json.dumps(attempts,indent=2)+'\n')
+                    (out/'capture-readiness.json').write_text(json.dumps(attempts,indent=2)+'\n', encoding='utf-8')
                     (out/'show.ack').touch();show=True
                 if 'M7_EDITOR_CAPTURE' in text and not editor:
                     capture(app.pid,'JoyDeck — M7 Acceptance Editor',out/'editor.png');(out/'editor.ack').touch();editor=True
@@ -77,7 +77,7 @@ def main():
         textbin=args.poppler/'pdftotext'
         if not textbin.exists():textbin=args.poppler.parent/'poppler/bin/pdftotext'
         subprocess.run([str(textbin),'-layout',str(out/f'{name}.pdf'),str(out/f'{name}.txt')],check=True)
-        text=(out/f'{name}.txt').read_text();assert '中文导出与静态放映' in text
+        text=(out/f'{name}.txt').read_text(encoding='utf-8');assert '中文导出与静态放映' in text
         if name=='notes':assert '演讲备注' in text
         subprocess.run([str(args.poppler/'pdftoppm'),'-f','1','-singlefile','-r','144','-png',str(out/f'{name}.pdf'),str(out/f'{name}-render')],check=True)
         pdfs[name]={'pages':2,'outline':2,'unicodeText':True,'sizePoints':list(pdf.pages[0].mediabox)}
@@ -88,5 +88,5 @@ def main():
     targetw=min(vw,vh*aspect);targeth=targetw/aspect;box=(round((vw-targetw)/2),round(title+(vh-targeth)/2),round((vw+targetw)/2),round(title+(vh+targeth)/2))
     crop=showimage.crop(box).resize(png.size,Image.Resampling.BOX);crop.save(out/'slideshow-canvas.png');showerror=float(np.abs(np.asarray(crop,dtype=np.int16)-reference).mean());assert showerror<5.,showerror
     result={'binary':str(args.binary.resolve()),'passed':True,'publicPptxReader':'python-pptx','syntheticCorpusPublicReaderCount':40,'pdf':pdfs,'pdfPngMeanError':error,'slideshowMeanError':showerror,'imageDpi':144,'scope':'macOS adapter/fullscreen; PowerPoint visual and other platforms recorded separately'}
-    (out/'verification.json').write_text(json.dumps(result,indent=2,default=float)+'\n');print(json.dumps(result,indent=2,default=float));print(out)
+    (out/'verification.json').write_text(json.dumps(result,indent=2,default=float)+'\n', encoding='utf-8');print(json.dumps(result,indent=2,default=float));print(out)
 if __name__=='__main__':main()

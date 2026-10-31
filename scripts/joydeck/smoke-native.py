@@ -29,7 +29,7 @@ def main():
             try:
                 deadline = time.monotonic() + args.timeout
                 while True:
-                    content = log.read_text(errors='replace')
+                    content = log.read_text(errors='replace', encoding='utf-8')
                     if 'M3_SMOKE blocked=' in content:
                         raise RuntimeError(f'{stage} native validation blocked; requires an active drawable window: {log}')
                     if 'JoyDeck startup/runtime failure:' in content or 'error=timeout' in content or 'M3_SMOKE blocked=' in content or any(line.startswith(('M1_SMOKE failed=true', 'M2_SMOKE error=', 'M4_SMOKE failed=')) for line in content.splitlines()):

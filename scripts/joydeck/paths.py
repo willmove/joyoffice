@@ -23,7 +23,7 @@ def target_directory():
         return value if value.is_absolute() else ROOT / value
     data = json.loads(subprocess.check_output(
         ['cargo', 'metadata', '--no-deps', '--locked', '--format-version', '1'],
-        cwd=ROOT, text=True))
+        cwd=ROOT, text=True, encoding='utf-8'))
     return Path(data['target_directory'])
 
 def binary(name='joydeck', profile='debug'):
@@ -38,7 +38,7 @@ def native_helper(name='media', profile='debug'):
                  '--message-format=json-render-diagnostics']
     if profile == 'release':
         arguments.append('--release')
-    output = subprocess.check_output(arguments, cwd=ROOT, text=True)
+    output = subprocess.check_output(arguments, cwd=ROOT, text=True, encoding='utf-8')
     for line in output.splitlines():
         try:
             value = json.loads(line)

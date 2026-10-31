@@ -22,7 +22,7 @@ def main():
         try:
             deadline=time.monotonic()+55
             while time.monotonic()<deadline:
-                text=(out/'native.log').read_text(errors='replace')
+                text=(out/'native.log').read_text(errors='replace', encoding='utf-8')
                 if 'failed=' in text or 'startup/runtime failure' in text:raise RuntimeError(text[-3000:])
                 for line in text.splitlines():
                     if not line.startswith('M8_CAPTURE '):continue
@@ -48,8 +48,8 @@ def main():
     textbin=a.poppler/'pdftotext'
     if not textbin.exists():textbin=a.poppler.parent/'poppler/bin/pdftotext'
     subprocess.run([str(textbin),'-layout',str(out/'table.pdf'),str(out/'pdf-text.txt')],check=True)
-    text=(out/'pdf-text.txt').read_text();assert '业务板块' in text and '企业服务' in text
+    text=(out/'pdf-text.txt').read_text(encoding='utf-8');assert '业务板块' in text and '企业服务' in text
     result={'binary':str(a.binary.resolve()),'pixelChecks':quality,'publicPptx':independent,'pdfCellText':True,'passed':len(quality)==2 and all(v['passed'] for v in quality.values()),'scope':'macOS ARM64 native adapters and independent public readers; other platforms and physical keyboard unverified'}
-    (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n');print(json.dumps(result,ensure_ascii=False,indent=2));print(out)
+    (out/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n', encoding='utf-8');print(json.dumps(result,ensure_ascii=False,indent=2));print(out)
     if not result['passed']:raise SystemExit(1)
 if __name__=='__main__':main()

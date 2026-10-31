@@ -24,7 +24,7 @@ def focus_window(pid, timeout=3.0, settle=0.2):
     last = None
     while time.monotonic() < deadline:
         last = json.loads(subprocess.check_output(
-            ['osascript', '-l', 'JavaScript', '-e', script], text=True))
+            ['osascript', '-l', 'JavaScript', '-e', script], text=True, encoding='utf-8'))
         attempts += 1
         if last.get('frontmostPid') == pid:
             # Allow the activation-triggered frame to be presented before the

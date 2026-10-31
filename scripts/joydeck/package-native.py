@@ -16,7 +16,7 @@ import sbom
 
 
 def product_version(application='joydeck'):
-    text = (ROOT / 'apps' / application / 'Cargo.toml').read_text()
+    text = (ROOT / 'apps' / application / 'Cargo.toml').read_text(encoding='utf-8')
     section = re.search(r'(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)', text)
     match = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else '', re.M)
     if not match:
@@ -25,14 +25,14 @@ def product_version(application='joydeck'):
 
 
 def build_binary(package, profile, validation=False):
-    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True)
+    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True, encoding='utf-8')
     host = next(line.split(': ', 1)[1] for line in rustc.splitlines() if line.startswith('host:'))
     command = ['cargo', 'build', '--locked', '-p', package, '--target', host, '--message-format=json-render-diagnostics']
     if profile == 'release':
         command.append('--release')
     if validation and package == 'joydeck':
         command += ['--features', 'validation']
-    completed = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, check=True)
+    completed = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, check=True, encoding='utf-8')
     artifacts = []
     for line in completed.stdout.splitlines():
         try:
@@ -69,7 +69,7 @@ def main():
     archive = output.with_name(output.name + '.zip')
     if output.exists() or archive.exists():
         raise FileExistsError('Choose a new package name or output directory: ' + str(output))
-    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True)
+    rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, text=True, encoding='utf-8')
     target = next(line.split(': ', 1)[1] for line in rustc.splitlines() if line.startswith('host:'))
     features = ('joydeck/validation',) if args.validation else ()
     baseline = sbom.snapshot(target, features=features)
@@ -120,19 +120,19 @@ def main():
             shutil.copy2(output / filename, resources / filename)
         shutil.copytree(output / 'licenses', resources / 'licenses')
         launch = output / 'Launch.command'
-        launch.write_text('#!/bin/sh\ncd -- "$(dirname -- "$0")" || exit 1\nexec ./joydeck\n')
+        launch.write_text('#!/bin/sh\ncd -- "$(dirname -- "$0")" || exit 1\nexec ./joydeck\n', encoding='utf-8')
         launch.chmod(0o755)
     dependency_info = sbom.generate(output / 'SBOM.spdx.json', target, args.profile, features=features)
     source_hashes = dependency_info.pop('sourceHashes')
     sbom.require_unchanged_sources(baseline, source_hashes)
-    (output / 'SOURCE-HASHES.json').write_text(json.dumps(source_hashes, indent=2) + '\n')
+    (output / 'SOURCE-HASHES.json').write_text(json.dumps(source_hashes, indent=2) + '\n', encoding='utf-8')
     info = {'version': version, 'stage': args.stage, 'target': target, 'profile': args.profile,
             'features': ['desktop', *(['validation'] if args.validation else [])],
             'packageRoots': ['joydeck', 'joydeck-cli'], 'nativeReaderMax': 11, 'writerSchema': '1.10',
             'rustc': rustc, 'cargoLockSha256': dependency_info['lockSha256'],
             'sourceGraphSha256': hashlib.sha256(json.dumps(source_hashes, sort_keys=True).encode()).hexdigest(),
             'dependencyPackages': dependency_info['packages'], 'sourceSnapshotVerified': True, 'officialSignatureVerified': False}
-    (output / 'BUILD-INFO.json').write_text(json.dumps(info, indent=2) + '\n')
+    (output / 'BUILD-INFO.json').write_text(json.dumps(info, indent=2) + '\n', encoding='utf-8')
     if system == 'macos':
         resources = output / 'JoyDeck.app/Contents/Resources'
         for filename in ['BUILD-INFO.json', 'SBOM.spdx.json', 'SOURCE-HASHES.json']:
@@ -140,13 +140,13 @@ def main():
         shutil.copytree(output / 'dependency-licenses', resources / 'dependency-licenses')
     hashes = {p.relative_to(output).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
               for p in sorted(output.rglob('*')) if p.is_file()}
-    (output / 'SHA256.json').write_text(json.dumps(hashes, indent=2) + '\n')
+    (output / 'SHA256.json').write_text(json.dumps(hashes, indent=2) + '\n', encoding='utf-8')
     with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6, strict_timestamps=False) as zipped:
         for path in sorted(output.rglob('*')):
             if path.is_file():
                 zipped.write(path, path.relative_to(output.parent))
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-    archive.with_name(archive.name + '.sha256').write_text(digest + '  ' + archive.name + '\n')
+    archive.with_name(archive.name + '.sha256').write_text(digest + '  ' + archive.name + '\n', encoding='utf-8')
     print(archive)
 
 if __name__ == '__main__':

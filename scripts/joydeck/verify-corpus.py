@@ -4,7 +4,7 @@ from pathlib import Path
 from pptx import Presentation
 def main():
  p=argparse.ArgumentParser();p.add_argument('directory',type=Path);a=p.parse_args();root=a.directory
- manifest=json.loads((root/'manifest.json').read_text());assert manifest['count']==128 and manifest['externalDocuments']==0
+ manifest=json.loads((root/'manifest.json').read_text(encoding='utf-8'));assert manifest['count']==128 and manifest['externalDocuments']==0
  summaries=[]
  for row in manifest['documents']:
   native=root/(row['id']+'.joydeck');public=root/(row['id']+'.pptx')
@@ -19,5 +19,5 @@ def main():
   assert row['origin']=='project-authored' and row['license']=='MIT OR Apache-2.0'
   summaries.append({'id':row['id'],'charts':len(charts),'passed':True})
  result={'publicReader':'python-pptx','documents':len(summaries),'pages':sum(r['pages'] for r in manifest['documents']),'charts':sum(r['charts'] for r in summaries),'families':sorted({r['family'] for r in manifest['documents']}),'externalDocuments':0,'passed':True,'scope':'public structure, text/data, hashes and declared losses; no independent Office visual certification'}
- (root/'independent-verification.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+ (root/'independent-verification.json').write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8');print(json.dumps(result,indent=2))
 if __name__=='__main__':main()

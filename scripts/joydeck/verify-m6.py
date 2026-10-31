@@ -25,7 +25,7 @@ def main():
         deadline=time.monotonic()+45
         try:
             while time.monotonic()<deadline:
-                text=(output/'native.log').read_text(errors='replace')
+                text=(output/'native.log').read_text(errors='replace', encoding='utf-8')
                 if 'M6_SMOKE failed=' in text or 'panicked at' in text or 'startup/runtime failure' in text: raise RuntimeError(text[-3000:])
                 for line in text.splitlines():
                     if not line.startswith('M6_CAPTURE '):continue
@@ -48,7 +48,7 @@ def main():
         finally:
             if process.poll() is None:process.terminate();process.wait(timeout=5)
     result={'binary':str(args.binary.resolve()),'pixelChecks':quality,'passed':len(quality)==2 and all(q['passed'] for q in quality.values()),'scope':'macOS native adapter; physical keyboard, Windows/Linux unverified'}
-    (output/'verification.json').write_text(json.dumps(result,indent=2)+'\n')
+    (output/'verification.json').write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8')
     print(json.dumps(result,indent=2));print(output)
     if not result['passed']:raise SystemExit(1)
 if __name__=='__main__':main()

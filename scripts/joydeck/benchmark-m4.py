@@ -24,7 +24,7 @@ def srgb_image(path):
 
 def windows(pid):
     js=f'ObjC.import("CoreGraphics"); var list=ObjC.deepUnwrap(ObjC.castRefToObject($.CGWindowListCopyWindowInfo(1,0))); JSON.stringify(list.filter(x=>x.kCGWindowOwnerPID==={pid}&&x.kCGWindowLayer===0));'
-    return json.loads(subprocess.check_output(['osascript','-l','JavaScript','-e',js],text=True))
+    return json.loads(subprocess.check_output(['osascript','-l','JavaScript','-e',js],text=True, encoding='utf-8'))
 
 def capture(pid, output, label, bounds):
     foreground=focus_window(pid)
@@ -70,10 +70,10 @@ def main():
         try:
             while time.monotonic()<deadline:
                 if time.monotonic()-last_rss_sample>=.5:
-                    sample=subprocess.run(['ps','-o','rss=','-p',str(process.pid)],text=True,capture_output=True)
+                    sample=subprocess.run(['ps','-o','rss=','-p',str(process.pid)],text=True,capture_output=True, encoding='utf-8')
                     if sample.stdout.strip().isdigit():max_rss_kib=max(max_rss_kib,int(sample.stdout.strip()))
                     last_rss_sample=time.monotonic()
-                text=log.read_text(errors='replace')
+                text=log.read_text(errors='replace', encoding='utf-8')
                 if 'startup/runtime failure' in text: raise RuntimeError(f'Native benchmark panic: {log}')
                 for line in text.splitlines():
                     if not line.startswith('M4_CAPTURE '): continue
@@ -84,7 +84,7 @@ def main():
                     quality[label]=capture(process.pid,output,label,json.loads(raw))
                     processed.add(label);(output/f'capture-{len(processed)-1}.ack').touch()
                 if 'M4_BENCH complete=true' in text:
-                    report=json.loads((output/'native-benchmark.json').read_text())
+                    report=json.loads((output/'native-benchmark.json').read_text(encoding='utf-8'))
                     report['binarySha256']=hashlib.sha256(args.binary.resolve().read_bytes()).hexdigest()
                     report['rssKiBMaxObserved']=max_rss_kib
                     report['rssSamplingIntervalSeconds']=.5
@@ -94,7 +94,7 @@ def main():
                     report['rssBudgetMiB']=450
                     report['memoryValidation']=max_rss_kib>0 and max_rss_kib<=450*1024
                     report['releaseValidation']=report['releaseRenderingValidation'] and report['memoryValidation']
-                    (output/'verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+                    (output/'verification.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n', encoding='utf-8')
                     print(json.dumps({'output':str(output),'releaseValidation':report['releaseValidation'],'rssMiBObserved':max_rss_kib/1024,'releaseRenderingValidation':report['releaseRenderingValidation'],'relativeP95Reduction':report['editRelativeP95Reduction'],'pixels':quality},ensure_ascii=False),flush=True)
                     if not args.diagnostic and not report['releaseValidation']: raise RuntimeError('Rendering/performance validation failed; inspect verification.json')
                     return

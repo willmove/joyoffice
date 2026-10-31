@@ -8,8 +8,8 @@ def main():
  with tempfile.TemporaryDirectory(prefix='joydeck-release-test-') as tmp:
   tmp=Path(tmp);releases=tmp/'versions'
   def fixture(name,reader=11):
-   d=tmp/name;d.mkdir();(d/'joydeck').write_text('fixture only: '+name);(d/'BUILD-INFO.json').write_text(json.dumps({'nativeReaderMax':reader,'version':name}))
-   manifest={f.name:release.digest(f) for f in d.iterdir()};(d/'SHA256.json').write_text(json.dumps(manifest))
+   d=tmp/name;d.mkdir();(d/'joydeck').write_text('fixture only: '+name, encoding='utf-8');(d/'BUILD-INFO.json').write_text(json.dumps({'nativeReaderMax':reader,'version':name}), encoding='utf-8')
+   manifest={f.name:release.digest(f) for f in d.iterdir()};(d/'SHA256.json').write_text(json.dumps(manifest), encoding='utf-8')
    return Path(shutil.make_archive(str(d),'zip',root_dir=tmp,base_dir=name))
   def rejected(call,label):
    before=release.selection(releases)
@@ -35,10 +35,10 @@ def main():
   corrupt=fixture('joydeck-test-corrupt')
   with zipfile.ZipFile(corrupt,'a') as z:z.writestr('joydeck-test-corrupt/unindexed',b'new file')
   rejected(lambda:release.install(corrupt,releases,release.digest(corrupt),True),'unindexed_files_rejected')
-  selected=release.selection(releases);previous=releases/selected['previous'];(previous/'joydeck').write_text('tampered')
+  selected=release.selection(releases);previous=releases/selected['previous'];(previous/'joydeck').write_text('tampered', encoding='utf-8')
   rejected(lambda:release.rollback(releases),'tampered_rollback_rejected')
   assert not list(releases.glob('.stage-*'));checks.append('staging_cleanup')
  result={'passed':True,'checks':checks,'executedStagedBinaries':False}
  if a.package:result['actualPackage']=release.verify(a.package)
- a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+ a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(result,indent=2)+'\n', encoding='utf-8');print(json.dumps(result,indent=2))
 if __name__=='__main__':main()

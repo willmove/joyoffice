@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-manifest = (root / "apps/joyword/Cargo.toml").read_text()
+manifest = (root / "apps/joyword/Cargo.toml").read_text(encoding='utf-8')
 section = re.search(r"(?ms)^\[package\]\s*(.*?)(?=^\[|\Z)", manifest)
 match = re.search(r'^version\s*=\s*"([^"]+)"', section[1] if section else "", re.M)
 if not match:

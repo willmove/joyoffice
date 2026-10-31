@@ -13,7 +13,7 @@ import time
 from paths import ROOT, SCRIPTS, FIXTURES, EVIDENCE, LICENSES, binary, native_helper
 
 def command(args):
-    return subprocess.check_output(args, text=True).strip()
+    return subprocess.check_output(args, text=True, encoding='utf-8').strip()
 
 def applescript(script):
     return command(['osascript', '-e', script])
@@ -21,7 +21,7 @@ def applescript(script):
 def wait_marker(log, marker, process, timeout=12):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        content = log.read_text(errors='replace')
+        content = log.read_text(errors='replace', encoding='utf-8')
         if 'startup/runtime failure' in content or 'failed=timeout' in content:
             raise RuntimeError(f'IME regression failed: {log}')
         if marker in content:
@@ -68,7 +68,7 @@ def main():
                     applescript('tell application "System Events" to key code 49 using control down')
                 time.sleep(.4)
                 selected = command([helper])
-                (output / 'input-source.txt').write_text(selected + '\n')
+                (output / 'input-source.txt').write_text(selected + '\n', encoding='utf-8')
                 if selected != 'com.apple.inputmethod.SCIM.ITABC':
                     raise RuntimeError(f'Pinyin source is not active: {selected}')
                 time.sleep(.4)
@@ -84,7 +84,7 @@ def main():
                 wait_marker(log, 'complete=true', process)
                 time.sleep(.4)
                 capture(process.pid, output / 'committed.png')
-                (output / 'result.json').write_text(json.dumps({'input_method':'com.apple.inputmethod.SCIM.ITABC', 'events':'System Events synthetic keyboard events', 'commit':True,'cancel':True,'single_undo':True,'roundtrip':True,'physical_keyboard':False}, indent=2)+'\n')
+                (output / 'result.json').write_text(json.dumps({'input_method':'com.apple.inputmethod.SCIM.ITABC', 'events':'System Events synthetic keyboard events', 'commit':True,'cancel':True,'single_undo':True,'roundtrip':True,'physical_keyboard':False}, indent=2)+'\n', encoding='utf-8')
                 print(f'PASS: macOS system Pinyin commit/cancel/undo/roundtrip; evidence: {output}', flush=True)
             finally:
                 restore = subprocess.run([helper, previous])

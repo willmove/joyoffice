@@ -142,7 +142,7 @@ def main() -> int:
         sys.path.insert(0, str(script_dir))
         try:
             import sbom
-            rustc = subprocess.check_output(["rustc", "-vV"], cwd=root, text=True)
+            rustc = subprocess.check_output(["rustc", "-vV"], cwd=root, text=True, encoding='utf-8')
             target = next(line.split(": ", 1)[1] for line in rustc.splitlines() if line.startswith("host:"))
             roots = ("joyword", "joyword-cli") if args.cli else ("joyword",)
             dependency = sbom.generate(staging / "SBOM.spdx.json", target, profile=args.profile, roots=roots)
@@ -150,13 +150,13 @@ def main() -> int:
             sys.path.pop(0)
         hashes = dependency.pop("sourceHashes")
         if args.source_snapshot:
-            sbom.require_unchanged_sources(json.loads(args.source_snapshot.read_text()), hashes)
+            sbom.require_unchanged_sources(json.loads(args.source_snapshot.read_text(encoding='utf-8')), hashes)
         hashes["scripts/package_release.py"] = sha256(Path(__file__))
-        (staging / "SOURCE-HASHES.json").write_text(json.dumps(hashes, indent=2) + "\n")
+        (staging / "SOURCE-HASHES.json").write_text(json.dumps(hashes, indent=2) + "\n", encoding='utf-8')
         (staging / "BUILD-INFO.json").write_text(json.dumps({"product": "joyword", "version": args.version,
             "target": target, "profile": args.profile, "packageRoots": list(roots),
             "binarySha256": sha256(binary), "cliSha256": sha256(args.cli) if args.cli else None, "cargoLockSha256": dependency["lockSha256"],
-            "dependencyPackages": dependency["packages"], "sourceSnapshotVerified": args.source_snapshot is not None, "officialSignatureVerified": False}, indent=2) + "\n")
+            "dependencyPackages": dependency["packages"], "sourceSnapshotVerified": args.source_snapshot is not None, "officialSignatureVerified": False}, indent=2) + "\n", encoding='utf-8')
         materials = [("README-joyword.txt", readme, False), ("LICENSE", root / "LICENSE", False)]
         materials.extend((p.relative_to(staging).as_posix(), p, False)
                          for p in sorted(staging.rglob("*"))

@@ -51,7 +51,7 @@ def release_target(tag=None, product=None, version=None, root=ROOT):
 
 def metadata():
     return json.loads(subprocess.check_output(
-        ["cargo", "metadata", "--locked", "--format-version", "1"], cwd=ROOT, text=True))
+        ["cargo", "metadata", "--locked", "--format-version", "1"], cwd=ROOT, text=True, encoding='utf-8'))
 
 def product_packages(data, product, headless=False):
     if product not in PRODUCTS:
@@ -155,7 +155,7 @@ def main(argv=None):
         if args.product == "joydeck":
             run([sys.executable, "scripts/joydeck/package-native.py", "--profile", "release" if args.release else "debug", *(["--validation"] if args.validation else []), *extra])
         else:
-            rustc = subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True)
+            rustc = subprocess.check_output(["rustc", "-vV"], cwd=ROOT, text=True, encoding='utf-8')
             host = next(line.split(": ", 1)[1] for line in rustc.splitlines() if line.startswith("host:"))
             sys.path.insert(0, str(ROOT / "scripts/joydeck"))
             try:
@@ -167,7 +167,7 @@ def main(argv=None):
             # from producing a cross binary labeled as a native package.
             output = subprocess.check_output(["cargo", "build", "-p", "joyword", "-p", "joyword-cli", "--locked",
                                               "--target", host, "--message-format=json-render-diagnostics", *options],
-                                             cwd=ROOT, text=True)
+                                             cwd=ROOT, text=True, encoding='utf-8')
             artifacts = {}
             for line in output.splitlines():
                 try:
@@ -185,7 +185,7 @@ def main(argv=None):
             sbom.require_unchanged_sources(baseline, sbom.snapshot(host, roots=PRODUCTS[args.product]))
             with tempfile.TemporaryDirectory(prefix="word-source-snapshot-", dir=data["target_directory"]) as temporary:
                 snapshot_file = Path(temporary) / "sources.json"
-                snapshot_file.write_text(json.dumps(baseline))
+                snapshot_file.write_text(json.dumps(baseline), encoding='utf-8')
                 run([sys.executable, "scripts/package_release.py", "--binary", str(binary), "--cli", artifacts["joyword-cli"], "--version", manifest_version("joyword"), "--profile", "release" if args.release else "debug", "--source-snapshot", str(snapshot_file), "--platform", system, "--arch", architecture, "--out", "dist/joyword", *extra])
 
 if __name__ == "__main__":
