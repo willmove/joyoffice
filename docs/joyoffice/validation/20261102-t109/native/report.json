@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "binarySha256": "339c8bedc06586c1542f80a26156f3e3ffc44b7bebdd1e6f2ebd382d458d69d8",
+  "eventSource": "X11 OS synthetic keys/pointer and actual window pixels",
+  "timingControl": "validation feature and explicit flag; channel gates on real production workers",
+  "checks": [
+    "large open held read-only; typing buffered; format refused; cancel keeps input on old document; original unchanged",
+    "cancelled A's late result cannot clear B's open gate or consume its buffered input",
+    "save IO paused after capture N; native typing continues to N+1; close asks and Cancel keeps document; output N excludes N+1; later copy includes it",
+    "switch to C while B save is paused; late B output stays B and cannot change C's content/identity/unsaved choice"
+  ],
+  "sourceHashes": {
+    "initial.docx": "a4e19a14374824354d00a26c22009edf4ea3a35e11aa99e9c09fabf9ef2a664f",
+    "slow-a.docx": "88847ebcf1971efc07bb8ff682a9d77e018c066c16ef495357af229ecea68b78",
+    "slow-b.docx": "a40bac2e38a5a60c93e7f88fa0793f0678fe2d31ab8b13b48efeb27d132b4a71",
+    "other.docx": "e0b89c659ccd37013abe2c59f53567e307a9844ceaded27c3d7d58fa240526c3"
+  },
+  "paragraphsInLargeInput": 2000,
+  "desktopScale": 1.25,
+  "nativeImeVerified": false
+}

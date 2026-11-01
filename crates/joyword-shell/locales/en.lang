@@ -373,3 +373,9 @@ ui.table_edit = Edit table
 recovery.fallback = The latest recovery checkpoint is damaged. The previous valid state was restored. Save a new copy before continuing.
 recovery.restore_failed = Recovery could not be restored. Keep the recovery directory and continue from a saved document.
 recovery.dismiss = Dismiss
+
+validation.io.open = Validation pause: open
+validation.io.copy = Validation pause: save copy
+validation.io.original = Validation pause: save original
+validation.io.oldest = Release oldest
+validation.io.newest = Release newest

@@ -10,6 +10,7 @@ mod epub_ui;
 mod export;
 mod field_edit;
 mod input_ui;
+mod io_validation;
 mod linux_files;
 mod mail_merge_ui;
 mod pdfa_ui;
@@ -527,6 +528,7 @@ struct Popup {
 }
 
 struct JoyWord {
+    io_validation: io_validation::IoValidation,
     recovery_warning: Option<&'static str>,
     merge_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
     epub_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
@@ -1908,6 +1910,7 @@ impl Render for JoyWord {
             )
             .child(self.ruler(cx))
             .children(self.recovery_notice_panel(cx))
+            .children(self.validation_io_panel(cx))
             .child(
                 div()
                     .flex()
@@ -2271,6 +2274,7 @@ fn main() {
                             .and_then(|dir| recovery_notice(dir, editor.is_some()));
                         let mut view = JoyWord {
                             recovery_warning,
+                            io_validation: io_validation::IoValidation::from_environment(),
                             zoom_percent: ZOOM_DEFAULT,
                             locale,
                             registry: registry.clone(),

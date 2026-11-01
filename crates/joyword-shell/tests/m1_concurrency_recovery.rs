@@ -54,6 +54,9 @@ fn input_during_open_is_kept_and_a_stale_save_stays_dirty() {
     office.type_during_open("迟到").unwrap();
     let error = office.accept_open(stale + 1, &path).unwrap_err();
     assert!(error.to_string().contains("stale"));
+    assert_eq!(office.buffered_open_text(), Some("迟到"));
+    let buffered = office.finish_open(stale).unwrap();
+    office.keep_unopened_keystrokes(&buffered).unwrap();
     let kept = office.active().unwrap().view().index().text();
     assert!(kept.contains("迟到"), "{kept}");
     office

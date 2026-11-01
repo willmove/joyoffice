@@ -1,0 +1,24 @@
+   Compiling joyword-shell v0.1.0 (/home/Wilmer/Coding/joyoffice/crates/joyword-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.46s
+     Running tests/t109_open_save_gate.rs (target/debug/deps/t109_open_save_gate-86d7eff80438af41)
+
+running 1 test
+test stale_acceptances_never_steal_a_newer_buffer_or_replace_an_accepted_session ... FAILED
+
+failures:
+
+---- stale_acceptances_never_steal_a_newer_buffer_or_replace_an_accepted_session stdout ----
+
+thread 'stale_acceptances_never_steal_a_newer_buffer_or_replace_an_accepted_session' (752650) panicked at crates/joyword-shell/tests/t109_open_save_gate.rs:464:9:
+assertion `left == right` failed
+  left: None
+ right: Some("AB")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    stale_acceptances_never_steal_a_newer_buffer_or_replace_an_accepted_session
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p joyword-shell --test t109_open_save_gate`

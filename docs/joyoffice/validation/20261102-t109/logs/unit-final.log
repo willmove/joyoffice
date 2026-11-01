@@ -1,0 +1,25 @@
+   Compiling joyword-shell v0.1.0 (/home/Wilmer/Coding/joyoffice/crates/joyword-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.46s
+     Running tests/m1_concurrency_recovery.rs (target/debug/deps/m1_concurrency_recovery-69ce7d2ad044ea68)
+
+running 3 tests
+test recent_open_and_document_switch_use_the_command_registry ... ok
+test input_during_open_is_kept_and_a_stale_save_stays_dirty ... ok
+test killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/t109_open_save_gate.rs (target/debug/deps/t109_open_save_gate-86d7eff80438af41)
+
+running 9 tests
+test cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes ... ok
+test a_failed_current_open_returns_buffered_input_to_the_existing_document ... ok
+test stale_finish_keeps_the_newer_open_and_all_buffered_keystrokes ... ok
+test a_stale_or_failed_open_keeps_keystrokes_on_the_current_document ... ok
+test slow_open_stays_read_only_until_accept_and_keeps_keystrokes ... ok
+test cancelling_a_slow_open_discards_it_and_keeps_keystrokes_on_the_current_document ... ok
+test close_and_quit_while_a_copy_save_is_in_flight_prompt_for_later_edits ... ok
+test an_original_save_in_flight_prompts_for_later_edits_and_routes_to_its_document ... ok
+test stale_acceptances_never_steal_a_newer_buffer_or_replace_an_accepted_session ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s

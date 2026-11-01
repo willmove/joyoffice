@@ -1,0 +1,36 @@
+{
+  "baseRevision": "ae10728249f6cd4af9697528295eef81b3dbe008",
+  "sourceFiles": {
+    "apps/joyword/Cargo.toml": "e91fc4d5dd7b27e0106212eaa65f21fc8d5321ae1cf4d77608aba741c89893c0",
+    "apps/joyword/src/input_ui.rs": "3acdb0180c5ef58e21c969a8221984d4cbdee8bd2ee83b2b5341d8dbb950576e",
+    "apps/joyword/src/io_validation.rs": "e11303a7001ba209c27b6728e7985a6de1935e975001808b5c888b226d064577",
+    "apps/joyword/src/main.rs": "71982a72f06d35bb09c337065cc79f7ca60eb1062a25b4896fbf8b8a18d5a391",
+    "crates/joyword-shell/locales/en.lang": "92d27e822120716129b77c26aacaa06246d1c796d369bbefc52fe5b0e9ad2f86",
+    "crates/joyword-shell/locales/zh-CN.lang": "47dcd714ec091711f0290f73851f385509969723c7a6fb4cc2a12dbba233b73d",
+    "crates/joyword-shell/src/host.rs": "12092e99ef09eca31214a37c7894b232f3fe9fc5393058ecb778ed2d10630785",
+    "crates/joyword-shell/tests/m1_concurrency_recovery.rs": "7fe13ba9b00d98d85ee1a09c54fcdfafcb7ae0fb9143b264d9e916fe0156100c",
+    "crates/joyword-shell/tests/t109_open_save_gate.rs": "ca358ece33f7dc15021fb996309ed575a3356f0b68899d024d701e62d2b40ad9",
+    "scripts/smoke_word_io_linux.py": "05b20b91684d8bb7f448e2ffd7170f57b27daa2f26ae4075fa49970159d71dc8"
+  },
+  "validationBinarySha256": "339c8bedc06586c1542f80a26156f3e3ffc44b7bebdd1e6f2ebd382d458d69d8",
+  "regularBinarySha256": "5e99f7ce2089f9c5552a9923be612e16ee65f95e0f8c1703edd10007969c6b7a",
+  "productCheck": {
+    "passed": 1317,
+    "failed": 0,
+    "ignored": 0
+  },
+  "validationAppTestsPassed": 99,
+  "targetedTestsPassed": 12,
+  "pythonTestsPassed": 146,
+  "nativeIoGroupsPassed": 4,
+  "regularRecoveryGroupsPassed": 5,
+  "negativeEvidence": [
+    "logs/unit-negative.log",
+    "logs/accept-negative.log"
+  ],
+  "nativeGuiNegativeClaimed": false,
+  "physicalPowerLossTested": false,
+  "systemImeCertified": false,
+  "logNormalization": "trailing blank lines only",
+  "screenshots": "actual X11 window pixels; no pixel editing"
+}

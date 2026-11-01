@@ -1,0 +1,22 @@
+   Compiling joyword-shell v0.1.0 (/home/Wilmer/Coding/joyoffice/crates/joyword-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.10s
+     Running tests/t109_open_save_gate.rs (target/debug/deps/t109_open_save_gate-86d7eff80438af41)
+
+running 1 test
+test stale_finish_keeps_the_newer_open_and_all_buffered_keystrokes ... FAILED
+
+failures:
+
+---- stale_finish_keeps_the_newer_open_and_all_buffered_keystrokes stdout ----
+
+thread 'stale_finish_keeps_the_newer_open_and_all_buffered_keystrokes' (742180) panicked at crates/joyword-shell/tests/t109_open_save_gate.rs:419:5:
+a stale result must not consume the current gate
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    stale_finish_keeps_the_newer_open_and_all_buffered_keystrokes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p joyword-shell --test t109_open_save_gate`

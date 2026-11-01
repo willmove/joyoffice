@@ -372,3 +372,9 @@ ui.table_edit = 编辑表格
 recovery.fallback = 最新恢复检查点已损坏，已恢复上一份有效状态。请另存新副本后继续。
 recovery.restore_failed = 无法恢复检查点。请保留恢复目录，并从正式保存的文档继续。
 recovery.dismiss = 关闭提示
+
+validation.io.open = 验收暂停：后台打开
+validation.io.copy = 验收暂停：保存副本
+validation.io.original = 验收暂停：保存原件
+validation.io.oldest = 放行最早作业
+validation.io.newest = 放行最新作业

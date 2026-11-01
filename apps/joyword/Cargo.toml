@@ -9,6 +9,8 @@ publish = false
 
 [features]
 default = []
+# Explicit native acceptance build; inert unless JOYWORD_VALIDATION_IO_GATE=1.
+validation = []
 # Development-only escape hatch for macOS machines without the Metal compiler.
 # Release validation must also build without this feature using full Xcode.
 dev-runtime-shaders = ["gpui_platform/runtime_shaders"]

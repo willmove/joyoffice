@@ -392,21 +392,30 @@ impl Office {
             // The buffered keystrokes were already handed back by the cancel.
             return Err(ExecuteError::Failed("open cancelled".into()));
         }
+        if self
+            .opening
+            .as_ref()
+            .is_some_and(|pending| pending.generation != generation)
+        {
+            return Err(ExecuteError::Failed("stale open dropped".into()));
+        }
         match self.opening.take() {
-            Some(pending) if pending.generation == generation => Ok(pending.buffered),
-            Some(pending) => {
-                self.apply_buffered(&pending.buffered)?;
-                Err(ExecuteError::Failed("stale open dropped".into()))
-            }
+            Some(pending) => Ok(pending.buffered),
             None => Err(ExecuteError::Failed("no open in progress".into())),
         }
     }
 
     pub fn begin_open(&mut self) -> u64 {
         self.open_generation += 1;
+        // A newer target inherits input typed while opening; never silently
+        // drop it or apply it to the old document from a stale callback.
+        let buffered = self
+            .opening
+            .take()
+            .map_or_else(String::new, |pending| pending.buffered);
         self.opening = Some(PendingOpen {
             generation: self.open_generation,
-            buffered: String::new(),
+            buffered,
         });
         self.open_generation
     }
@@ -439,7 +448,7 @@ impl Office {
     }
 
     /// Input during open is kept and applied when that open is accepted.
-    /// A stale acceptance applies it to the document that is still current.
+    /// Stale acceptances leave the current generation and its input untouched.
     pub fn type_during_open(&mut self, text: &str) -> Result<(), InputError> {
         if let Some(opening) = &mut self.opening {
             opening.buffered.push_str(text);
@@ -452,21 +461,15 @@ impl Office {
     }
 
     pub fn accept_open(&mut self, generation: u64, path: &Path) -> Result<(), ExecuteError> {
-        if self.open_was_cancelled(generation) {
-            return Err(ExecuteError::Failed("open cancelled".into()));
+        let buffered = self.finish_open(generation)?;
+        if let Err(error) = self.open_path(path) {
+            self.apply_buffered(&buffered)?;
+            return Err(error);
         }
-        let Some(pending) = self.opening.take() else {
-            return self.open_path(path);
-        };
-        if pending.generation != generation {
-            self.apply_buffered(&pending.buffered)?;
-            return Err(ExecuteError::Failed("stale open dropped".into()));
-        }
-        self.open_path(path)?;
-        if !pending.buffered.is_empty() {
+        if !buffered.is_empty() {
             self.active_mut()
                 .ok_or_else(|| ExecuteError::Failed("no document".into()))?
-                .replace_from(InputSource::Command, None, &pending.buffered)
+                .replace_from(InputSource::Command, None, &buffered)
                 .map_err(input_error)?;
         }
         Ok(())
@@ -481,20 +484,11 @@ impl Office {
 
     /// Install a package that was opened off the UI thread for `generation`.
     /// Keystrokes buffered since [`Self::begin_open`] land in that document.
-    /// A stale generation keeps them on the document that is still current.
+    /// A stale or duplicate generation cannot consume input or install a package.
     pub fn accept_bound(&mut self, generation: u64, bound: BoundDocx) -> Result<(), ExecuteError> {
-        if self.open_was_cancelled(generation) {
-            return Err(ExecuteError::Failed("open cancelled".into()));
-        }
-        let Some(pending) = self.opening.take() else {
-            return self.install_bound(bound, "");
-        };
-        if pending.generation != generation {
-            self.apply_buffered(&pending.buffered)?;
-            return Err(ExecuteError::Failed("stale open dropped".into()));
-        }
-        if let Err(error) = self.install_bound(bound, &pending.buffered) {
-            self.apply_buffered(&pending.buffered)?;
+        let buffered = self.finish_open(generation)?;
+        if let Err(error) = self.install_bound(bound, &buffered) {
+            self.apply_buffered(&buffered)?;
             return Err(error);
         }
         Ok(())

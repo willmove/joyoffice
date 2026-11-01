@@ -140,6 +140,9 @@ fn a_stale_or_failed_open_keeps_keystrokes_on_the_current_document() {
     let bound = BoundDocx::open_default(&second).unwrap();
     let error = office.accept_bound(generation + 1, bound).unwrap_err();
     assert!(error.to_string().contains("stale"));
+    assert_eq!(office.buffered_open_text(), Some("迟到"));
+    let buffered = office.finish_open(generation).unwrap();
+    office.keep_unopened_keystrokes(&buffered).unwrap();
     let kept = body(&office);
     assert!(kept.contains("迟到"), "{kept}");
     assert!(office.buffered_open_text().is_none());
@@ -399,4 +402,110 @@ fn cancelling_with_no_current_document_reports_instead_of_dropping_keystrokes() 
     ));
     assert!(!office.is_opening());
     let _ = generation;
+}
+
+#[test]
+fn stale_finish_keeps_the_newer_open_and_all_buffered_keystrokes() {
+    let directory = tempfile::tempdir().unwrap();
+    let initial = directory.path().join("initial.docx");
+    let next = directory.path().join("next.docx");
+    fs::write(&initial, fixture()).unwrap();
+    fs::write(&next, fixture()).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(initial))])
+        .unwrap();
+    let unchanged = body(&office);
+    let old = office.begin_open();
+    office
+        .invoke(EDIT_INSERT, &[("text", ArgValue::Text("A".into()))])
+        .unwrap();
+    let current = office.begin_open();
+    office
+        .invoke(EDIT_INSERT, &[("text", ArgValue::Text("B".into()))])
+        .unwrap();
+    assert!(office.finish_open(old).is_err());
+    assert!(
+        office.is_opening(),
+        "a stale result must not consume the current gate"
+    );
+    assert_eq!(
+        body(&office),
+        unchanged,
+        "buffer belongs to the pending open"
+    );
+    office
+        .accept_bound(current, BoundDocx::open_default(&next).unwrap())
+        .unwrap();
+    assert_eq!(body(&office), format!("AB{unchanged}"));
+}
+
+#[test]
+fn stale_acceptances_never_steal_a_newer_buffer_or_replace_an_accepted_session() {
+    for bound_api in [false, true] {
+        let directory = tempfile::tempdir().unwrap();
+        let initial = directory.path().join("initial.docx");
+        fs::write(&initial, fixture()).unwrap();
+        let mut office = Office::new();
+        office
+            .invoke(FILE_OPEN, &[("path", ArgValue::Path(initial))])
+            .unwrap();
+        let initial_id = office.active_id();
+        let unchanged = body(&office);
+        let old = office.begin_open();
+        office.type_during_open("A").unwrap();
+        let current = office.begin_open();
+        office.type_during_open("B").unwrap();
+        let call = std::cell::Cell::new(0);
+        let accept = |office: &mut Office, generation| {
+            call.set(call.get() + 1);
+            let candidate = directory
+                .path()
+                .join(format!("candidate-{}.docx", call.get()));
+            fs::write(&candidate, fixture()).unwrap();
+            if bound_api {
+                office.accept_bound(generation, BoundDocx::open_default(&candidate).unwrap())
+            } else {
+                office.accept_open(generation, &candidate)
+            }
+        };
+        assert!(accept(&mut office, old).is_err());
+        assert_eq!(office.buffered_open_text(), Some("AB"));
+        assert_eq!(office.active_id(), initial_id);
+        assert_eq!(body(&office), unchanged);
+        accept(&mut office, current).unwrap();
+        let accepted_id = office.active_id();
+        let accepted_body = body(&office);
+        assert_eq!(accepted_body, format!("AB{unchanged}"));
+        assert!(accept(&mut office, old).is_err());
+        assert!(
+            accept(&mut office, current).is_err(),
+            "duplicate acceptance must fail"
+        );
+        assert_eq!(office.active_id(), accepted_id);
+        assert_eq!(body(&office), accepted_body);
+    }
+}
+
+#[test]
+fn a_failed_current_open_returns_buffered_input_to_the_existing_document() {
+    let directory = tempfile::tempdir().unwrap();
+    let initial = directory.path().join("initial.docx");
+    fs::write(&initial, fixture()).unwrap();
+    let mut office = Office::new();
+    office
+        .invoke(FILE_OPEN, &[("path", ArgValue::Path(initial))])
+        .unwrap();
+    let initial_id = office.active_id();
+    let unchanged = body(&office);
+    let generation = office.begin_open();
+    office.type_during_open("kept").unwrap();
+    assert!(
+        office
+            .accept_open(generation, &directory.path().join("missing.docx"))
+            .is_err()
+    );
+    assert!(!office.is_opening());
+    assert_eq!(office.active_id(), initial_id);
+    assert_eq!(body(&office), format!("kept{unchanged}"));
 }

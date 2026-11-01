@@ -1861,27 +1861,28 @@ async fn open_chosen_path(
     {
         return;
     }
-    let Some(generation) = view
-        .update(cx, |view, _cx| {
+    let Some((generation, pause)) = view
+        .update(cx, |view, cx| {
             let generation = view.session.begin_open();
             view.open_gate = Some(generation);
-            generation
+            let pause = view.validation_io_gate("validation.io.open", cx);
+            cx.notify();
+            (generation, pause)
         })
         .ok()
     else {
         return;
     };
     let opened = cx
-        .background_spawn(async move { BoundDocx::open_default(&path) })
+        .background_spawn(async move { BoundDocx::open_default_paused(&path, pause.as_ref()) })
         .await;
     let _ = view.update(cx, |view, cx| {
-        let gate_matches = view.open_gate == Some(generation);
-        view.open_gate = None;
-        if !gate_matches {
-            let _ = view.session.finish_open(generation);
-            cx.notify();
+        if view.open_gate != Some(generation) {
+            // A cancelled/superseded worker owns neither the current gate nor
+            // its buffered input. Dropping its bound result releases its lock.
             return;
         }
+        view.open_gate = None;
         match opened {
             Ok(bound) => {
                 view.return_held_document();
@@ -2165,12 +2166,16 @@ impl JoyWord {
             return;
         }
         self.original_save = Some(OriginalSavePhase::Writing(request));
+        let pause = self.validation_io_gate("validation.io.original", cx);
         self.copy_note = None;
         self.input_error = None;
         cx.spawn_in(window, async move |view, cx| {
             let output = cx
                 .background_spawn(async move {
-                    job.run(joyword_shell::storage::OriginalChoice::Confirm)
+                    job.run_paused(
+                        joyword_shell::storage::OriginalChoice::Confirm,
+                        pause.as_ref(),
+                    )
                 })
                 .await;
             let _ = view.update(cx, |view, cx| {
@@ -2310,11 +2315,14 @@ impl JoyWord {
         cx.spawn_in(window, async move |view, cx| {
             let picked = receiver.await.ok().and_then(Result::ok).flatten();
             let started = view.update(cx, |view, cx| view.start_copy(epoch, picked, cx));
-            let Ok(Some((request, job, path))) = started else {
+            let Ok(Some((request, job, path, pause))) = started else {
                 return;
             };
             let result = cx
-                .background_spawn(async move { job.run(&path).map_err(|error| error.to_string()) })
+                .background_spawn(async move {
+                    job.run_paused(&path, pause.as_ref())
+                        .map_err(|error| error.to_string())
+                })
                 .await;
             let _ = view.update(cx, |view, cx| view.copy_landed(request, result, cx));
         })
@@ -2331,6 +2339,7 @@ impl JoyWord {
         CopyRequest,
         joyword_shell::docx::SaveCopyJob,
         std::path::PathBuf,
+        Option<joyword_shell::pause::StepGate>,
     )> {
         if self.copy == Some(CopyPhase::Picking(epoch)) {
             self.copy = None;
@@ -2347,7 +2356,8 @@ impl JoyWord {
         };
         self.copy = Some(CopyPhase::Writing(request));
         self.copy_note = None;
-        Some((request, job, path))
+        let pause = self.validation_io_gate("validation.io.copy", cx);
+        Some((request, job, path, pause))
     }
     fn copy_landed(
         &mut self,
@@ -3125,12 +3135,15 @@ impl JoyWord {
         }
         let epoch = self.copy_epoch;
         self.copy = Some(CopyPhase::Picking(epoch));
-        let Some((request, job, path)) = self.start_copy(epoch, Some(path), cx) else {
+        let Some((request, job, path, pause)) = self.start_copy(epoch, Some(path), cx) else {
             return;
         };
         cx.spawn_in(window, async move |view, cx| {
             let result = cx
-                .background_spawn(async move { job.run(&path).map_err(|error| error.to_string()) })
+                .background_spawn(async move {
+                    job.run_paused(&path, pause.as_ref())
+                        .map_err(|error| error.to_string())
+                })
                 .await;
             let _ = view.update(cx, |view, cx| view.copy_landed(request, result, cx));
         })
