@@ -3387,6 +3387,7 @@ impl JoyWord {
             return;
         };
         self.held_document = self.session.active_id();
+        self.ruler_drag = None;
         self.clear_canvas(cx);
         self.install_editor(Box::new(input));
         self.ime_anchor = None;
@@ -3896,6 +3897,10 @@ impl JoyWord {
                 }
             }
             _ => return Err(format!("{id} is not an input command")),
+        }
+        if id.0.starts_with("table.") && self.input_error.is_none() && self.format_dialog.is_none()
+        {
+            window.focus(&self.focus_handle, cx);
         }
         window.invalidate_character_coordinates();
         match &self.input_error {

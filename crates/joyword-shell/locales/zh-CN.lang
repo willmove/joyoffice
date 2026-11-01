@@ -364,3 +364,7 @@ pdfa.description = 将当前页面场景导出为 PDF/A-2b，创建年份为 {ye
 input.format_compatibility = 版式兼容显示：表格和文字可编辑；部分字体、样式及图片位置使用兼容显示，未知对象以方框标记，分页可能与 Word 不同。保存 DOCX 保留原始内容。
 
 input.row_revision = 文档含未解决的表格行插入修订；可编辑文字并保留修订，暂不支持原始视图或接受/拒绝修订。
+
+ruler.drag.stale_table = 拖动期间表格已变化，请重新选择单元格后再试
+dialog.table.cell_fill = 当前单元格底纹（RRGGBB／auto／none）
+ui.table_edit = 编辑表格

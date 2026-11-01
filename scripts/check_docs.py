@@ -15,7 +15,7 @@ RELEASE_GATE = "T704"  # Every M0–M7 task must be a prerequisite of the 1.0 ga
 # T205: evidenced ribbon, ruler and status controls. Lowering this is a coverage regression.
 # Word keyboard parity, review controls, the table insertion grid and the T300
 # simple-markup view on top of 53.
-FEATURE_FLOOR = 61
+FEATURE_FLOOR = 69
 # T209: undo-group rules (SPEC §6) that must stay registered with a test.
 REQUIRED_BEHAVIORS = (
     "EDIT-UNDO-TYPING",

@@ -365,3 +365,7 @@ pdfa.description = Export the current page scene as PDF/A-2b using creation year
 input.format_compatibility = Compatibility layout: tables and text are editable. Some fonts, styles and image positions are approximate; unknown objects appear as squares. Pagination may differ from Word. DOCX saving retains original content.
 
 input.row_revision = This document contains pending table row insertions. Text editing retains them; original view and revision resolution are unavailable.
+
+ruler.drag.stale_table = The table changed during the drag. Select its cell and try again
+dialog.table.cell_fill = Current cell fill (RRGGBB/auto/none)
+ui.table_edit = Edit table

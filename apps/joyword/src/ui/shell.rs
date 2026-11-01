@@ -702,6 +702,20 @@ impl JoyWord {
                 .into_any_element(),
             PopupKind::FontColor => self.color_palette(card, cx),
             PopupKind::TableGrid => self.table_grid(card, cx),
+            PopupKind::TableEdit => card
+                .w(px(220.0))
+                .max_h(px(480.0))
+                .overflow_y_scroll()
+                .children(
+                    chrome::visible_controls(&self.registry, chrome::RIBBON)
+                        .into_iter()
+                        .filter(|control| {
+                            control.id == "insert.table" || control.id.starts_with("insert.table_")
+                        })
+                        .filter(|control| control.command != TABLE_INSERT)
+                        .map(|control| self.popup_ribbon(control.id, cx)),
+                )
+                .into_any_element(),
             PopupKind::PageSize => card
                 .w(px(180.0))
                 .child(self.popup_ribbon("layout.a4", cx))

@@ -1564,9 +1564,6 @@ fn place_paragraph_batch(
     Ok(())
 }
 
-const DEFAULT_CELL_MARGIN_LEFT: i64 = 108;
-const DEFAULT_CELL_MARGIN_RIGHT: i64 = 108;
-
 /// Omitted `w:tblCellMar` uses the application default from slice 1: left and
 /// right 108 twips, top and bottom 0. ECMA-376 §17.4.43 leaves an omitted
 /// element to the table style or the application. Table styles are not
@@ -1575,9 +1572,7 @@ fn cell_pad(
     margin: Option<CellMargins>,
     table: NodeId,
 ) -> Result<(i64, i64, i64, i64), LayoutError> {
-    let Some(margin) = margin else {
-        return Ok((0, DEFAULT_CELL_MARGIN_LEFT, 0, DEFAULT_CELL_MARGIN_RIGHT));
-    };
+    let margin = margin.unwrap_or(joyword_model::DEFAULT_TABLE_CELL_MARGINS);
     for value in [margin.top, margin.left, margin.bottom, margin.right] {
         if value < 0 {
             return Err(unsupported(Some(table), "table cell margin is negative"));

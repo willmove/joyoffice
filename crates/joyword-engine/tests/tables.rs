@@ -996,3 +996,153 @@ fn editing_outer_or_inner_cell_text_is_one_undoable_transaction() {
     assert_eq!(table_of(&session).rows[0].cells.len(), 2);
     assert!(table_structure(table_of(&session)).is_empty());
 }
+
+#[test]
+fn resizing_a_boundary_resolves_percent_cells_preserves_merges_and_is_one_undo() {
+    let mut document = blank(&["after"]);
+    let mut left = cell(&mut document, "甲", 1, VerticalMerge::None);
+    left.width = Some(Measure::PercentFiftieths(3000));
+    let right = cell(&mut document, "乙", 1, VerticalMerge::None);
+    let merged = cell(&mut document, "合同", 2, VerticalMerge::None);
+    let mut built = table(&mut document, vec![vec![left, right], vec![merged]], 2);
+    built.width = Some(TableWidth::Pct(5000));
+    built.alignment = Some(TableAlign::Center);
+    let before = built.clone();
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let at = pos(&session, first_cell_paragraph(&session), 0);
+    exec(
+        &mut session,
+        vec![Command::ResizeTableColumnBoundary {
+            at,
+            boundary: 1,
+            delta_twips: 240,
+            content_width_twips: 6000,
+        }],
+    )
+    .unwrap();
+    let resized = table_of(&session).clone();
+    assert_eq!(
+        resized.grid,
+        vec![Measure::Twips(3840), Measure::Twips(2160)]
+    );
+    assert_eq!(resized.width, before.width);
+    assert_eq!(resized.alignment, before.alignment);
+    assert_eq!(resized.rows[0].cells[0].width, Some(Measure::Twips(3840)));
+    assert_eq!(resized.rows[1].cells[0].width, Some(Measure::Twips(6000)));
+    assert_eq!(resized.rows[1].cells[0].grid_span, 2);
+    assert!(table_structure(&resized).is_empty());
+    let metrics = joyword_model::table_metrics(&resized, 6000).unwrap();
+    assert_eq!(metrics.columns, vec![3840, 2160]);
+    assert_eq!(metrics.origin, 0);
+    session.undo().unwrap();
+    assert!(table_of(&session).same_content(&before));
+    session.redo().unwrap();
+    assert!(table_of(&session).same_content(&resized));
+}
+
+#[test]
+fn invalid_boundary_drags_are_atomic_and_zero_delta_has_no_history() {
+    let mut document = blank(&["after"]);
+    let left = cell(&mut document, "甲", 1, VerticalMerge::None);
+    let right = cell(&mut document, "乙", 1, VerticalMerge::None);
+    let built = table(&mut document, vec![vec![left, right]], 2);
+    let before = built.clone();
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let at = pos(&session, first_cell_paragraph(&session), 0);
+    let version = session.version();
+    for (boundary, delta_twips, content_width_twips) in [
+        (0, 100, 6000),
+        (2, 100, 6000),
+        (u32::MAX, 1, 6000),
+        (1, 2000, 6000),
+        (1, 1800, 6000), // Positive 200-twip cell still fails the 216-twip default margins.
+        (1, -2000, 6000),
+        (1, i64::MAX, 6000),
+        (1, i64::MIN, 6000),
+        (1, 10, 0),
+        (1, 10, i64::MAX),
+    ] {
+        assert!(
+            exec(
+                &mut session,
+                vec![Command::ResizeTableColumnBoundary {
+                    at,
+                    boundary,
+                    delta_twips,
+                    content_width_twips,
+                }]
+            )
+            .is_err()
+        );
+        assert_eq!(session.version(), version);
+        assert!(table_of(&session).same_content(&before));
+        assert!(!session.can_undo());
+    }
+    assert!(matches!(
+        exec(
+            &mut session,
+            vec![Command::ResizeTableColumnBoundary {
+                at,
+                boundary: 1,
+                delta_twips: 0,
+                content_width_twips: 6000,
+            }]
+        )
+        .unwrap(),
+        Outcome::NoOp(_)
+    ));
+    assert!(!session.can_undo());
+}
+
+#[test]
+fn column_resize_and_cell_fill_refuse_read_only_and_preserved_tables() {
+    let mut document = blank(&["after"]);
+    let left = cell(&mut document, "甲", 1, VerticalMerge::None);
+    let right = cell(&mut document, "乙", 1, VerticalMerge::None);
+    let mut built = table(&mut document, vec![vec![left, right]], 2);
+    built.preserved = Some(document.ids().preserved());
+    install(&mut document, built);
+    let mut session = Session::new(document);
+    let at = pos(&session, first_cell_paragraph(&session), 0);
+    let commands = [
+        Command::ResizeTableColumnBoundary {
+            at,
+            boundary: 1,
+            delta_twips: 100,
+            content_width_twips: 6000,
+        },
+        Command::SetTableCellShading {
+            at,
+            shading: Some(joyword_model::Shading {
+                fill: Color::Rgb(1, 2, 3),
+            }),
+        },
+    ];
+    let version = session.version();
+    let before = session.document().clone();
+    for command in &commands {
+        assert!(matches!(
+            exec(&mut session, vec![command.clone()]),
+            Err(TxError::Command {
+                error: CommandError::TableStructure { .. },
+                ..
+            })
+        ));
+        assert_eq!(before.semantic_difference(session.document()), None);
+        assert_eq!(session.version(), version);
+    }
+    session.set_policy(joyword_engine::EditPolicy {
+        read_only: true,
+        ..Default::default()
+    });
+    for command in commands {
+        assert!(matches!(
+            exec(&mut session, vec![command]),
+            Err(TxError::ReadOnly)
+        ));
+        assert_eq!(session.version(), version);
+        assert!(!session.can_undo());
+    }
+}

@@ -1,0 +1,47 @@
+[0.000s INFO common.rs:60] write_command; command=Auth(Some(External), Some([49, 48, 48, 48]))
+[0.000s INFO common.rs:65] write_commands; commands=[Auth(Some(External), Some([49, 48, 48, 48]))] extra_bytes=None
+[0.000s INFO client.rs:403] XInput version: 2.4, gesture support: true
+[0.000s INFO common.rs:106] read_command;
+[0.000s INFO common.rs:113] read_commands; n_commands=1
+[0.000s INFO common.rs:65] write_commands; commands=[NegotiateUnixFD, Begin] extra_bytes=Some([108, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 109, 0, 0, 0, 1, 1, 111, 0, 21, 0, 0, 0, 47, 111, 114, 103, 47, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 47, 68, 66, 117, 115, 0, 0, 0, 2, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0, 3, 1, 115, 0, 5, 0, 0, 0, 72, 101, 108, 108, 111, 0, 0, 0, 6, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0])
+[0.000s INFO client.rs:423] x11: compositor present: true, gtk_frame_extents_supported: true
+[0.000s INFO common.rs:113] read_commands; n_commands=1
+[0.003s INFO client.rs:2680] Using scale factor from Xft.dpi: 1.25
+[0.004s INFO platform.rs:1650] Compositor GPU hint: vendor=0x1002, device=0x150e (from dev 226:128)
+[0.004s INFO x11rb.rs:427] Try connect fcitx
+[0.004s INFO common.rs:60] write_command; command=Auth(Some(External), Some([49, 48, 48, 48]))
+[0.004s INFO common.rs:65] write_commands; commands=[Auth(Some(External), Some([49, 48, 48, 48]))] extra_bytes=None
+[0.004s INFO common.rs:106] read_command;
+[0.004s INFO common.rs:113] read_commands; n_commands=1
+[0.005s INFO common.rs:65] write_commands; commands=[NegotiateUnixFD, Begin] extra_bytes=Some([108, 1, 0, 1, 0, 0, 0, 0, 5, 0, 0, 0, 109, 0, 0, 0, 1, 1, 111, 0, 21, 0, 0, 0, 47, 111, 114, 103, 47, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 47, 68, 66, 117, 115, 0, 0, 0, 2, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0, 3, 1, 115, 0, 5, 0, 0, 0, 72, 101, 108, 108, 111, 0, 0, 0, 6, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0])
+[0.005s INFO common.rs:113] read_commands; n_commands=1
+[0.006s WARN text_system.rs:618] failed to load font Font { family: ".SystemUIFont", features: FontFeatures, fallbacks: None, weight: FontWeight(400.0), style: Normal }: requested font family contains no font matching the other parameters: no font found
+[0.006s INFO system_font.rs:47] UI font ".SystemUIFont" resolves to "Noto Sans", naming it on the theme.
+[0.006s INFO mod.rs:320] {}; task_name="org.freedesktop.portal.Settings proxy caching"
+[0.008s INFO window.rs:496] Using Visual { id: 133, colormap: 0, depth: 32 }
+[0.008s INFO window.rs:502] Creating colormap 205520898
+[0.043s WARN instance.rs:97] GENERAL [Loader Message (0x0)]
+	terminator_CreateInstance: Received return code -3 from call to vkCreateInstance in ICD /usr/lib/x86_64-linux-gnu/libvulkan_virtio.so. Skipping this driver.
+[0.043s WARN instance.rs:149] 	objects: (type: INSTANCE, hndl: 0x55a1c5b8bde0, name: ?)
+[0.089s INFO adapter.rs:3546] Found 2 cooperative matrix configurations supported by wgpu
+[0.090s INFO wgpu_context.rs:531] Found 3 GPU adapter(s):
+[0.090s INFO wgpu_context.rs:534]   - AMD Radeon Graphics (RADV GFX1150) (vendor=0x1002, device=0x150e, backend=Vulkan, type=IntegratedGpu)
+[0.090s INFO wgpu_context.rs:534]   - AMD Radeon Graphics (radeonsi, gfx1150, ACO, DRM 3.64, 6.18.57-061857-generic) (vendor=0x1002, device=0x0000, backend=Gl, type=Other)
+[0.090s INFO wgpu_context.rs:534]   - llvmpipe (LLVM 17.0.6, 256 bits) (vendor=0x10005, device=0x0000, backend=Vulkan, type=Cpu)
+[0.090s INFO wgpu_context.rs:557] Testing adapter: AMD Radeon Graphics (RADV GFX1150) (Vulkan)...
+[0.098s INFO wgpu_context.rs:561] Selected GPU (passed configuration test): AMD Radeon Graphics (RADV GFX1150) (Vulkan)
+[0.098s INFO wgpu_context.rs:301] Selected GPU adapter: "AMD Radeon Graphics (RADV GFX1150)" (Vulkan)
+[0.118s INFO common.rs:60] write_command; command=Auth(Some(External), Some([49, 48, 48, 48]))
+[0.118s INFO common.rs:65] write_commands; commands=[Auth(Some(External), Some([49, 48, 48, 48]))] extra_bytes=None
+[0.119s INFO common.rs:106] read_command;
+[0.119s INFO common.rs:113] read_commands; n_commands=1
+[0.119s INFO common.rs:65] write_commands; commands=[NegotiateUnixFD, Begin] extra_bytes=Some([108, 1, 0, 1, 0, 0, 0, 0, 22, 0, 0, 0, 109, 0, 0, 0, 1, 1, 111, 0, 21, 0, 0, 0, 47, 111, 114, 103, 47, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 47, 68, 66, 117, 115, 0, 0, 0, 2, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0, 3, 1, 115, 0, 5, 0, 0, 0, 72, 101, 108, 108, 111, 0, 0, 0, 6, 1, 115, 0, 20, 0, 0, 0, 111, 114, 103, 46, 102, 114, 101, 101, 100, 101, 115, 107, 116, 111, 112, 46, 68, 66, 117, 115, 0, 0, 0, 0])
+[0.119s INFO common.rs:113] read_commands; n_commands=1
+[0.121s WARN text_system.rs:618] failed to load font Font { family: ".SystemUIFont", features: FontFeatures, fallbacks: None, weight: FontWeight(600.0), style: Normal }: requested font family contains no font matching the other parameters: no font found
+[0.121s INFO mod.rs:320] {}; task_name="org.a11y.Status proxy caching"
+[0.122s WARN mod.rs:301] Failed to populate properties cache via GetAll: org.freedesktop.DBus.Error.ServiceUnknown: The name org.a11y.Bus was not provided by any .service files. Property change streams will not produce values.
+[0.124s WARN text_system.rs:618] failed to load font Font { family: ".SystemUIFont", features: FontFeatures, fallbacks: None, weight: FontWeight(500.0), style: Normal }: requested font family contains no font matching the other parameters: no font found
+[0.136s INFO platform.rs:713] activate is not implemented on Linux, ignoring the call
+[0.137s INFO mod.rs:320] {}; task_name="org.freedesktop.portal.Settings proxy caching"
+[0.137s INFO x11rb.rs:547] XConnected server on 69206062, transport version: 0.0, TRANSPORT_MAX: 20
+[0.145s INFO client.rs:2231] Refreshing every 7ms

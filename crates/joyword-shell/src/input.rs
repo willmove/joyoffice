@@ -2075,6 +2075,20 @@ impl<B: InputBackend> TextInput<B> {
                 .find_paragraph(at.story, at.paragraph)
                 .ok_or(InputError::InvalidDocument)?;
             match drag {
+                RulerDrag::TableColumn { mark, delta_twips } => {
+                    if document.version() != mark.version
+                        || joyword_engine::cell_address(document, &at)
+                            .map_or(true, |address| address.table != mark.table)
+                    {
+                        return Err(InputError::Rejected("ruler.drag.stale_table"));
+                    }
+                    vec![Command::ResizeTableColumnBoundary {
+                        at,
+                        boundary: mark.boundary,
+                        delta_twips,
+                        content_width_twips: mark.content_width_twips,
+                    }]
+                }
                 RulerDrag::Indent {
                     marker,
                     position_emu,

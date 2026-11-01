@@ -795,6 +795,22 @@ fn execute(
         Command::SetTableProperties { at, change } => {
             crate::table::set_properties(document, at, change, changes)
         }
+        Command::SetTableCellShading { at, shading } => {
+            crate::table::set_cell_shading(document, at, *shading, changes)
+        }
+        Command::ResizeTableColumnBoundary {
+            at,
+            boundary,
+            delta_twips,
+            content_width_twips,
+        } => crate::table::resize_column_boundary(
+            document,
+            at,
+            *boundary,
+            *delta_twips,
+            *content_width_twips,
+            changes,
+        ),
         Command::SetPageSetup { section, page } => {
             set_page_setup(document, *section, page, changes)
         }

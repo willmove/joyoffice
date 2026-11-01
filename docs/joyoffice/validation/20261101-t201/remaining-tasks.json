@@ -1,0 +1,1353 @@
+{
+  "date": "2026-11-01",
+  "method": "Word status fields and atomic checklists; Deck unchecked backlog rows; Sheet migration follow-up columns. Historical checklist rows may require reconciliation; these lists are not a claim that every listed deliverable lacks implementation.",
+  "sources": [
+    "docs/joyword/TASKS.md",
+    "docs/joyword/acceptance/",
+    "docs/joydeck/11-task-backlog.md",
+    "docs/joysheet/MIGRATION.md"
+  ],
+  "wordCounts": {
+    "done": 18,
+    "in_progress": 37,
+    "planned": 11
+  },
+  "wordRemaining": [
+    {
+      "id": "T003",
+      "title": "字体、IME 与统一 PDF 技术验证",
+      "status": "in_progress",
+      "deliverablesToAssess": "固定字体字节／face 的整形、屏幕与 PDF 定位验证，按字体字节取得 FontId 的验证或补丁，以及 IME 验证程序。",
+      "automatedCriterion": "同一字形场景几何比较；Unicode 范围和组合态测试；PDF 文本抽取。",
+      "guiOrExternalCriterion": "系统拼音提交／取消、候选框、一次撤销、多显示器 DPI；PDF 独立阅读器检查。"
+    },
+    {
+      "id": "T005",
+      "title": "信创平台技术验证",
+      "status": "in_progress",
+      "deliverablesToAssess": "ARM64 与 LoongArch64 构建记录、目标系统 glibc／ABI 核对、GL 与 CPU 渲染启动结果、Fcitx 中文输入与系统字体清单，以及供 ADR-010 选型的结论。",
+      "automatedCriterion": "交叉构建与目标机冒烟启动；无 GPU 渲染路径的启动与帧时间记录。",
+      "guiOrExternalCriterion": "有条件时在至少一台国产 CPU 与 GPU 的机器上启动窗口、输入中文并缩放；真机专项为非阻塞待补验项。"
+    },
+    {
+      "id": "T103",
+      "title": "DOCX 最小语义与保留读写",
+      "status": "in_progress",
+      "deliverablesToAssess": "OPC、关系图、正文段落和基础格式；兼容模式写入与保留；ImportResult、ExportPlan、未知保留；解析资源预算与 fuzz 目标；锁文件检测与保留元数据的原子保存。",
+      "automatedCriterion": "规范最小文件、无编辑复制、编辑往返、未知部件散列、失败保存、元数据保留和 fuzz 冒烟测试。",
+      "guiOrExternalCriterion": "打开自建与固定 Word／WPS 样例，编辑支持区域、保存、重新打开。",
+      "checklist": "docs/joyword/acceptance/T103.md",
+      "openChecklistRows": [
+        "| 未知部件散列 | partial | `text_round_trip_preserves_unknown_parts_properties_and_all_other_markup`（[docx_export.rs](../../../crates/joyword-shell/tests/docx_export.rs)）、`edit_format_clipboard_save_and_reopen_keeps_text_and_unknown_parts`（[m1_edit_save.rs](../../../crates/joyword-shell/tests/m1_edit_save.rs)）；CI 作业 build | 非正文部件按字节相等保留，测试没有单独打印 SHA-256 |",
+        "| 元数据保留 | partial | `confirming_a_fully_observed_file_replaces_bytes_and_keeps_metadata`（[m1_save_original.rs](../../../crates/joyword-shell/tests/m1_save_original.rs)）、`declining_replacement_lists_metadata_and_keeps_the_source`（[m1_save_original.rs](../../../crates/joyword-shell/tests/m1_save_original.rs)）；CI 作业 build | 精确 ACL、命名流和非 NTFS 仍未完成，属 T110 |",
+        "| fuzz 冒烟测试 | partial | `mutation_smoke`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）、`mutation_smoke_never_panics`（[package.rs](../../../crates/joyoffice-opc/tests/package.rs)）；CI 作业 build | 确定性变异冒烟。行为特征语料扩展已在 T103 记录里，不是代码覆盖引导 |",
+        "| 代码覆盖引导 fuzz | partial | [T103 覆盖引导 fuzz](../verification/t103-coverage-fuzz.md)、[coverage-20261020.json](../../../experiments/docx-robustness/evidence/coverage-20261020.json)；夜间工作流 [fuzz-nightly.yml](../../../.github/workflows/fuzz-nightly.yml)，不在 CI 作业 build | 反馈是 LLVM 源码区域计数器；稳定版 1.98.1 没有分支计数器。固定种子 20261020 的一次 60 次变异活动没有异常 |",
+        "| 兼容模式写入与保留 | partial | `min_002_recognises_builtin_styles_by_name_and_keeps_mode_15`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）；CI 作业 build | 读回兼容模式；样式部件本身不改写 |",
+        "| fuzz 目标 | partial | `mutation_smoke_never_panics`（[package.rs](../../../crates/joyoffice-opc/tests/package.rs)）；CI 作业 build | 测试内冒烟，不是覆盖引导目标 |",
+        "| 锁文件检测与保留元数据的原子保存 | partial | `declining_replacement_lists_metadata_and_keeps_the_source`（[m1_save_original.rs](../../../crates/joyword-shell/tests/m1_save_original.rs)）；CI 作业 build | 另存副本与确认替换已有测试；断电未验证 |",
+        "| 未知嵌套 | partial | `text_round_trip_preserves_unknown_parts_properties_and_all_other_markup`（[docx_export.rs](../../../crates/joyword-shell/tests/docx_export.rs)）；CI 作业 build | 未知标记保留；不是静默丢弃 |",
+        "| 受保护或强制修订在能力完成前只读 | partial | `tracked_changes_make_the_document_read_only`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）；CI 作业 build | 格式与表格结构修订仍整篇或整表只读。单独的 trackRevisions 已可编辑，见 T300 |",
+        "| 打开自建与固定 Word／WPS 样例，编辑支持区域、保存、重新打开 | partial | [kylin_report.json](../../../tests/fixtures/reference/kylin/kylin_report.json)；CI 不跑图形会话 | 2026-10-19 记录了 Word 重存读回和两处 WPS 复制读回。完整人工交换仍缺，本页不把它计为通过 |"
+      ]
+    },
+    {
+      "id": "T104",
+      "title": "撤销、本地日志与恢复",
+      "status": "in_progress",
+      "deliverablesToAssess": "独立撤销栈、日志校验、周期快照、dirty 版本与恢复选择。周期快照必须包含 PackageBacking 与原包基线所需信息，不能只含模型；加密文档不落明文副本；快照写入经临时文件、校验与原子改名，并保留上一代有效副本。",
+      "automatedCriterion": "故障注入、有效前缀恢复、保存版本竞争、undo／redo 属性测试。",
+      "guiOrExternalCriterion": "强制结束测试进程后恢复，比较最后完整事务和正式保存文件。",
+      "checklist": "docs/joyword/acceptance/T104.md",
+      "openChecklistRows": [
+        "| 恢复失败的可观测性 | partial | [`take_recovered`](../../../apps/joyword/src/main.rs) 在 CI 作业 build | 启动恢复失败会写入应用日志，但只在失败路径记录，且目录里存在 `recovery.jwr`／`recovery-a.jwr`／`recovery-b.jwr` 之一时才记；阶段名经通用脱敏后可能丢失 |",
+        "| 人工验收整句 | partial | [2026-10-30 GUI 记录](../verification/m7-gui-20261030.md)、[精确读回](../validation/20261030/gui/package-readback.json) | Windows 真实进程强制结束后，新版恢复保存与最后完整文本提交逐字一致，正式源文件不含标记；已有加粗／居中保持；富文档编辑恢复、断电未验证 |",
+        "| 图形界面验收 | partial | [本机 GUI 记录](../verification/m7-gui-20261030.md) | 已实际执行恢复、重复恢复与丢弃重启；不等于全平台或断电验收 |",
+        "| 信创真机与打印 | needs-hardware | 无 | 未做 |"
+      ]
+    },
+    {
+      "id": "T109",
+      "title": "打开与保存的并发安全",
+      "status": "in_progress",
+      "deliverablesToAssess": "打开读取期间编辑器处于只读“打开中”状态，新文档就绪按版本复核后才替换当前会话；保存副本与原件保存作为携带会话身份与版本的后台任务，计划、校验与 IO 在后台完成，结果按身份与版本应用。",
+      "automatedCriterion": "版本复核、迟到结果丢弃、保存期间脏版本绑定的竞争测试。",
+      "guiOrExternalCriterion": "慢速打开大文档期间输入与取消；保存期间连续编辑后关闭提示正确。"
+    },
+    {
+      "id": "T110",
+      "title": "原件保存的元数据观测与用户选择路径",
+      "status": "in_progress",
+      "deliverablesToAssess": "各平台 ACL、扩展属性、来源标记与创建时间的观测实现（经审计的平台接口或按 ADR-009 精确固定的依赖）；不可保留或不可观测项在替换前列出，默认另存副本，用户显式确认才替换原件；以平台交换或替换语义（RENAME_SWAP／RENAME_EXCHANGE／ReplaceFileW）处理最后检查与改名之间的竞争窗口。",
+      "automatedCriterion": "逐项元数据的保留与拒绝测试、锁与外部修改检测、确认替换与另存副本两条路径。",
+      "guiOrExternalCriterion": "普通本地文档保存原件并重开；含 ACL 或隔离标记的文档在替换前列出损失项且默认仍为另存。"
+    },
+    {
+      "id": "T107",
+      "title": "M1 发布门槛",
+      "status": "planned",
+      "deliverablesToAssess": "中文输入—编辑—保存 DOCX—退出—重开的端到端报告、不可信文件预算与 fuzz 冒烟报告、首个性能冒烟基线。",
+      "automatedCriterion": "端到端脚本、保存故障注入、fuzz 冒烟及 20 页样例的打开与输入延迟。",
+      "guiOrExternalCriterion": "在 Mac 上完成 M1 工作流，并用 Word 与 WPS 打开保存结果。"
+    },
+    {
+      "id": "T200",
+      "title": "样式、编号与编辑便利",
+      "status": "in_progress",
+      "deliverablesToAssess": "样式面板、继承、主题、多级编号、制表位、查找替换与格式刷。",
+      "automatedCriterion": "样式解析、编号重启、批量替换原子性和 Word 往返测试。",
+      "guiOrExternalCriterion": "制作多级标题与列表，格式刷、查找替换和撤销。",
+      "checklist": "docs/joyword/acceptance/T200.md",
+      "openChecklistRows": [
+        "| Word 往返测试 | partial | `style_assignments_export_and_unknown_styles_are_rejected`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）、`numbering_and_tab_stops_import_and_export_keeps_the_numbering_part`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）、`theme_colour_text_round_trips_when_the_run_is_rewritten`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）、`appended_bullet_definitions_are_inserted_without_touching_other_numbering_bytes`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）、`an_unchanged_numbering_store_keeps_the_part_verbatim_and_preserved`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）、`restoring_the_previous_store_keeps_the_package_unchanged`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）；CI 作业 build | 样式指定、段落 numPr 和改写后的主题色 run 用合成包。2026-10-22 起 `numbering.xml` 在「追加」形状下写回：新条目按 ECMA-376 §17.9.17 拼在最后一个既有 abstractNum 与最后一个既有 num 之后，其余字节不动（测试把插入的标记删掉后与原 part 逐字节比对）；编号库没变时 part 仍原样复制并报为 preserved；直接恢复上一份模型快照后导出与原包字节相同（该测试不执行 engine 撤销）。语料没有 Word 2024 编号样例，也没有 Word／WPS 打开导出件的对照 |",
+        "| 制作多级标题与列表 | needs-gui | 无自动测试能代替窗口操作 | 命令路径见下方产物行 |",
+        "| 格式刷 | needs-gui | `painting_a_format_is_one_undoable_transaction`（[find_paint.rs](../../../crates/joyword-engine/tests/find_paint.rs)）；CI 作业 build | 引擎测试不是人工点选。2026-10-19 麒麟会话有格式刷记录，见 [kylin_report.json](../../../tests/fixtures/reference/kylin/kylin_report.json)，不关闭本准则 |",
+        "| 查找替换 | needs-gui | `find_bar_checkboxes_set_width_and_regex_on_every_find_command`（[tests.rs](../../../apps/joyword/src/tests.rs)）；CI 作业 build 的 joyword 适配器 | 查找栏勾选有测试。人工点选未做 |",
+        "| 撤销 | needs-gui | `replace_all_is_one_undo_and_skips_locked_and_preserved`（[find_paint.rs](../../../crates/joyword-engine/tests/find_paint.rs)）、`painting_a_format_is_one_undoable_transaction`（[find_paint.rs](../../../crates/joyword-engine/tests/find_paint.rs)）；CI 作业 build | 自动撤销不等于人工逐步撤销 |",
+        "| 样式面板 | partial | `style_list_and_apply_go_through_the_command_registry`（[m1_edit_save.rs](../../../crates/joyword-shell/tests/m1_edit_save.rs)）；CI 作业 build | 列表与应用走注册表。面板外观未做人工验收 |",
+        "| 主题 | partial | `tint_and_shade_follow_the_linear_examples`（[theme.rs](../../../crates/joyword-model/src/theme.rs)）、`theme_font_and_colour_resolve_when_the_scheme_has_them`（[style.rs](../../../crates/joyword-model/src/style.rs)）、`theme_colour_text_paints_the_resolved_srgb`（[view_paint.rs](../../../crates/joyword-layout/tests/view_paint.rs)）、`theme_colour_text_round_trips_when_the_run_is_rewritten`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）；CI 作业 build | tint／shade 收成 Rgb 后绘制文字；改写 run 写回 themeColor。格式刷仍拒绝主题色。表格底纹仍拒绝主题色。缺方案项时导出拒绝。先 shade 再 tint 是 JoyWord 假定，不是 Word 观察 |",
+        "| 多级编号 | partial | `applying_a_list_is_one_undoable_transaction`（[engine.rs](../../../crates/joyword-engine/tests/engine.rs)）、`chinese_counting_and_legal_follow_place_value`（[numbering.rs](../../../crates/joyword-model/src/numbering.rs)）、`letters_roman_and_ideographs_follow_the_repeat_and_the_label_budget`（[numbering.rs](../../../crates/joyword-model/src/numbering.rs)）、`chinese_numbering_labels_are_prefixed_and_unsupported_formats_are_diagnosed`（[document.rs](../../../crates/joyword-layout/tests/document.rs)）、`numbering_edges_place_labels_past_the_old_caps`（[document.rs](../../../crates/joyword-layout/tests/document.rs)）；CI 作业 build | 甲乙超过 10 按天干重复，这是假定，不是规范句子。中文计数含 0 与亿。正数罗马数字超过 3999 继续加法表；0 与负数仍不绘制。字母重复到 256 个标量。排版侧 bar 对齐与 middleDot／heavy 引导符仍拒绝（写回侧已能写出，见「编号部件写回」行）。`numbering.xml` 只在追加形状下写回 |",
+        "| 编号部件写回 | partial | `a_new_numbering_part_gets_a_relationship_and_a_content_type_override`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）、`modified_or_unrepresentable_numbering_changes_are_refused`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）、`appended_bullet_definitions_are_inserted_without_touching_other_numbering_bytes`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）；CI 作业 build | 2026-10-22 新增。追加式差异要求旧的 abstractNum 与 num 序列是新序列的逐元素严格前缀、未建模标志一致，否则报 existing numbering definitions are not rewritten，part 绝不重建；`check_envelope` 里「编号库一变就整体拒绝」那一条已由这个差异取代。缺 part 时新建，关系 rId 取现有最大数字加一、追加在结束标签之前，内容类型只追加一条 Override。写出的级别标记按 §17.9.11 顺序含 start、numFmt、lvlRestart、suff（不等于 tab 时才写）、lvlText、pPr（§17.17.86，tabs 在 ind 之前）、rPr（§17.18.74）；`w:num` 按 §17.9.14–15／§17.9.19 写 abstractNumId 再写 lvlOverride。链接定义、未建模条目或级别、图片项目符号、Theme 字体、超出子集的段落／字符属性、非 twips 的缩进与制表位、非半磅字号、无法往返的控制字符、指向不存在 abstract id 的实例、空格式记号全部显式拒绝，不猜测。段落 `w:numPr` 的改写规则本切片未动 |",
+        "| 制表位 | partial | `a_left_tab_places_the_following_glyph_at_the_stop`（[document.rs](../../../crates/joyword-layout/tests/document.rs)）、`numbering_level_tabs_write_every_align_and_leader`（[numbering_writeback.rs](../../../crates/joyword-docx/tests/numbering_writeback.rs)）；CI 作业 build | 排版：left／center／right／decimal 与 none／dot／hyphen／underscore。bar、middleDot、heavy 排版仍拒绝。写回：编号级别制表位的全部 7 种对齐与 6 种引导符都能写出并往返，heavy 没有规范字形、只按原拼写写记号而不发明字形，所以 bar／middleDot／heavy 的端到端支持没有做。段落（非编号级别）制表位的导出拒绝仍在 |",
+        "| 编号冲突显式拒绝 | partial | `removing_a_list_is_one_undoable_transaction`（[engine.rs](../../../crates/joyword-engine/tests/engine.rs)）；CI 作业 build | 未知 numId 99 拒绝。重复编号定义没有单独命名为冲突的测试 |",
+        "| 替换跨修订显式拒绝 | not-implemented | 无对应测试 | 查找会跳过锁定和保留段落，不把「跨修订」单独拒绝 |",
+        "| 场景排练（无界面） | partial | `t200_headings_lists_painter_and_regex_undo_round_trip`（[tests.rs](../../../apps/joyword/src/tests.rs)）；CI 作业 build 的 joyword 适配器 | 标题样式、两级列表、格式刷、正则替换、逐步撤销与另存重开，见 [场景排练](../verification/scenario-rehearsals.md)。不替代人工验收 |",
+        "| 编号与制表位金样 | partial | `numbering_label_and_a_tab_stop_match_the_golden_scene`（[golden_scenes.rs](../../../apps/joyword-cli/tests/golden_scenes.rs)）、`feature_fixtures_import_round_trip_and_keep_unknown_parts`（[fixture_roundtrip.rs](../../../apps/joyword-cli/tests/fixture_roundtrip.rs)）；CI 作业 build | 场景与 PDF 摘要锁定标签和制表间隙，见 [页面场景金样](../verification/golden-scenes.md)、[特性样例](../verification/feature-fixtures.md)。原已知缺口已由 [#67](https://github.com/willmove/joyoffice/pull/67) 修复：CPU 光栅不再以 InvalidGeometry 拒绝编号加制表位的行，光栅金样已重新 bless，见 [验证波次缺口修复](../verification/verify-wave-fixes.md) |"
+      ]
+    },
+    {
+      "id": "T202",
+      "title": "页面与页眉页脚",
+      "status": "in_progress",
+      "deliverablesToAssess": "分页符、页面设置、页眉页脚（首页不同、奇偶页不同、链接到前一节）、页码域、基础分节及孤行等段落分页约束。",
+      "automatedCriterion": "段落分页、孤行、页眉链接、分页几何及保存样例。",
+      "guiOrExternalCriterion": "改变页边距与方向，检查页码、页眉及缩放后分页。",
+      "checklist": "docs/joyword/acceptance/T202.md",
+      "openChecklistRows": [
+        "| 改变页边距与方向，检查页码、页眉及缩放后分页 | needs-gui | `page_setup_and_break_go_through_the_command_registry`（[m1_edit_save.rs](../../../crates/joyword-shell/tests/m1_edit_save.rs)）；CI 作业 build | 2026-10-19 麒麟会话看过方向和分页符，见 [kylin_report.json](../../../tests/fixtures/reference/kylin/kylin_report.json)。页眉编辑与页面设置写回没有在该窗口复验 |",
+        "| 章节页码（`chapStyle`／`chapSep`） | partial | `chapter_five_separators_body_header_footer_and_counts`、`chapter_heading_nine_multilevel_and_no_guessed_heading_numbers`、`chapter_page_first_heading_then_predecessor_and_section_level_switch`、`chapter_revision_hidden_projection_and_warm_incremental_agree`、`chapter_feedback_cache_changes_when_numbering_or_page_placement_changes`、`chapter_next_column_separator_and_continuous_sections_keep_page_context`、`chapter_prefix_width_feeds_back_into_keep_lines_pagination`、`chapter_cross_page_field_paragraph_is_refused_instead_of_stale`（[pages.rs](../../../crates/joyword-layout/tests/pages.rs)）、`chapter_bookmarks_warm_scene_and_selected_pdf_share_real_page_geometry`（[tests.rs](../../../apps/joyword/src/tests.rs)）；CI 作业 build、unified-pdf | 五种分隔符（hyphen 为 U+2011 非断行连字符）、Heading1..9、页眉页脚同前缀、修订与隐藏投影一致、反馈与缓存收敛、跨页 PAGE 段落明确拒绝。Word／WPS 对照未做，选章规则是已声明的 JoyWord 假定 |",
+        "| 页码域 | partial | `a_body_page_field_uses_the_displayed_number`（[pages.rs](../../../crates/joyword-layout/tests/pages.rs)）、`section_pages_count_pages_opened_by_that_section`（[pages.rs](../../../crates/joyword-layout/tests/pages.rs)）、`inserting_a_page_number_is_one_undoable_transaction`（[m1_edit_save.rs](../../../crates/joyword-shell/tests/m1_edit_save.rs)）、`a_page_field_inserted_into_a_plain_paragraph_exports_and_round_trips`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）；CI 作业 build | PAGE／NUMPAGES／SECTIONPAGES 与 pgNumType 的 fmt、start。正文新插入的无格式页码域写成 `w:fldSimple`；带格式域和已有行内对象的段落仍拒绝导出。章节页码见下一行。状态栏仍是物理页序 |",
+        "| 基础分节 | partial | `section_break_page_numbers_and_equal_columns_are_imported`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）、`unequal_columns_import_and_a_separator_or_missing_width_stays_preserved`（[import.rs](../../../crates/joyword-docx/tests/import.rs)）、`next_column_section_break_imports_typed_and_round_trips`（[column_separator.rs](../../../crates/joyword-docx/tests/column_separator.rs)）、`next_column_section_break_advances_one_column`（[columns.rs](../../../crates/joyword-layout/tests/columns.rs)）、`next_column_with_different_columns_splits_the_page`（[columns.rs](../../../crates/joyword-layout/tests/columns.rs)）；CI 作业 build | 2026-10-22 起 `nextColumn`（ECMA-376 §17.6.22）类型化并参与分页：纸张与分栏几何不变且当页已有墨迹时在同页下一栏续排、页码连续；纸张或分栏不同、或当页为空时退化为连续式页拆分并发既有注记。该页仍归打开它的那一节。`unequal_columns_import_and_a_separator_or_missing_width_stays_preserved` 这个名字已经过时：两个 `w:sep` 用例已移到 [column_separator.rs](../../../crates/joyword-docx/tests/column_separator.rs) 成为正向断言，它现在只覆盖不等宽栏的类型化导入、等宽栏，以及三种仍在子集外的形态（缺宽度、`equalWidth=\"0\"` 而无 `w:col`、只有一个 `w:col`）。改名要动 `crates/`，不在文档范围内 |",
+        "| 栏分隔线 | partial | `equal_column_separator_paints_one_centered_rule`（[columns.rs](../../../crates/joyword-layout/tests/columns.rs)）、`unequal_column_separator_paints_a_rule_per_gap`（[columns.rs](../../../crates/joyword-layout/tests/columns.rs)）、`separator_off_paints_no_rule`（[columns.rs](../../../crates/joyword-layout/tests/columns.rs)）、`incremental_layout_matches_full_with_separators`（[columns.rs](../../../crates/joyword-layout/tests/columns.rs)）、`equal_column_separator_imports_typed_and_round_trips`（[column_separator.rs](../../../crates/joyword-docx/tests/column_separator.rs)）、`unequal_column_separator_imports_typed`（[column_separator.rs](../../../crates/joyword-docx/tests/column_separator.rs)）、`separator_false_or_omitted_is_not_flagged`（[column_separator.rs](../../../crates/joyword-docx/tests/column_separator.rs)）、`invalid_separator_value_stays_preserved`（[column_separator.rs](../../../crates/joyword-docx/tests/column_separator.rs)）、`the_column_separator_rule_is_in_the_pdf_page_scene`（[column_separator.rs](../../../crates/joyword-pdf/tests/column_separator.rs)）；CI 作业 build、unified-pdf | 2026-10-22：1 pt 黑色竖线画在每个栏间空隙的中点，纵向从页边距顶铺到正文框底，进屏幕、PDF 与 CPU 光栅共用的同一批场景矩形。标 partial 的理由：ECMA-376 §17.6.4 只记录 `sep` 打开，既不定线宽也不定位置，「1 pt／居中／铺满正文框而不按最高那一栏裁切」是 JoyWord 假定，没有 Word 对照；在页中途才打开 `sep` 的节不会在已经打开的那一页画线，归前一节的奇偶补白页也带前一节的分隔线；带分隔线的文档失去增量的后缀复制复用，退回完整放置（结果正确，略慢）。非法值（例如 `sep=\"maybe\"`）仍整节保留 |",
+        "| 页面场景排练（无界面） | partial | `t202_margins_orientation_page_numbers_and_zoom`（[tests.rs](../../../apps/joyword/src/tests.rs)）；CI 作业 build 的 joyword 适配器 | 页边距、方向、页眉页码、缩放与另存重开，见 [场景排练](../verification/scenario-rehearsals.md)。原已知缺口已由 [#67](https://github.com/willmove/joyoffice/pull/67) 修复，有限制：对已有正文段落插入页码后可以导出，排练保留正文页码保存并重开断言；只限无行内对象段落里的无格式域，带格式域和复杂域仍不支持，见 [验证波次缺口修复](../verification/verify-wave-fixes.md) |",
+        "| 分栏、分节与页眉金样 | partial | `unequal_columns_and_a_column_break_match_the_golden_scene`（[golden_scenes.rs](../../../apps/joyword-cli/tests/golden_scenes.rs)）、`continuous_and_even_page_sections_match_the_golden_scene`（[golden_scenes.rs](../../../apps/joyword-cli/tests/golden_scenes.rs)）、`first_even_and_default_headers_match_the_golden_scene`（[golden_scenes.rs](../../../apps/joyword-cli/tests/golden_scenes.rs)）；CI 作业 build | 合成样例，见 [页面场景金样](../verification/golden-scenes.md)、[特性样例](../verification/feature-fixtures.md)。没有 Word 对照 |"
+      ]
+    },
+    {
+      "id": "T203",
+      "title": "图片与富文本剪贴板",
+      "status": "in_progress",
+      "deliverablesToAssess": "行内图片、超链接插入编辑与确认后打开、拖放、纯文本／HTML／RTF／内部片段及粘贴策略；富剪贴板格式由 platform 层实现（GPUI 仅提供文本与图片）。",
+      "automatedCriterion": "清理、资源去重、样式编号映射、单次撤销与剪切失败原子性。",
+      "guiOrExternalCriterion": "Word／WPS／浏览器双向复制列表、表格、图片，比较粘贴选项。",
+      "checklist": "docs/joyword/acceptance/T203.md",
+      "openChecklistRows": [
+        "| Word／WPS／浏览器双向复制列表、表格、图片，比较粘贴选项 | needs-word-wps | 无自动测试代替跨应用粘贴 | 本环境没有启动浏览器。平台专有剪贴板格式不由 GPUI 提供 |",
+        "| 超链接插入、编辑与确认后打开 | partial | `an_external_hyperlink_imports_without_being_fetched`（[hyperlinks.rs](../../../crates/joyword-docx/tests/hyperlinks.rs)）、`javascript_and_file_targets_import_and_are_not_openable`（[hyperlinks.rs](../../../crates/joyword-docx/tests/hyperlinks.rs)）、`a_table_cell_hyperlink_round_trips_after_a_cell_edit`（[hyperlinks.rs](../../../crates/joyword-docx/tests/hyperlinks.rs)）；CI 作业 build | 允许打开的只有 http、https、mailto。测试不拉起浏览器 |",
+        "| 拖放 | partial | `dropped_image_paths_insert_in_order_and_skip_refused_files`（[images.rs](../../../crates/joyword-shell/tests/images.rs)）；CI 作业 build | 固定 GPUI 只在 Windows 与 Wayland 携带路径。X11 不触发 |",
+        "| 富剪贴板由 platform 层实现 | not-implemented | 无对应测试 | GPUI 只提供文本与图片 |",
+        "| ID 冲突 | not-implemented | `two_equal_inserts_share_one_resource`（[images.rs](../../../crates/joyword-engine/tests/images.rs)）；CI 作业 build | 相同字节去重，没有单独的标识冲突拒绝 |",
+        "| wrapTight／Through | partial | `a_tight_or_through_wrap_is_approximated_as_a_square_and_its_markup_survives_an_edit`（[images.rs](../../../crates/joyword-docx/tests/images.rs)）；CI 作业 build | 页面相对时按锚点范围近似为方形绕排，原绕排 XML 照原样写回（[#67](https://github.com/willmove/joyoffice/pull/67)）。不沿 wrapPolygon，不是真正的轮廓绕排 |",
+        "| 绕排金样与特性样例 | partial | `wrap_none_anchor_matches_the_golden_scene`（[golden_scenes.rs](../../../apps/joyword-cli/tests/golden_scenes.rs)）、`wrap_square_text_avoids_the_rectangle`（[golden_scenes.rs](../../../apps/joyword-cli/tests/golden_scenes.rs)）、`feature_fixtures_import_round_trip_and_keep_unknown_parts`（[fixture_roundtrip.rs](../../../apps/joyword-cli/tests/fixture_roundtrip.rs)）、`an_imported_image_relationship_is_consumed_and_unused_parts_stay_reported`（[images.rs](../../../crates/joyword-docx/tests/images.rs)）；CI 作业 build | 样例里的 wrapTight 原先锁定段落、编辑导出返回 Restricted；[#67](https://github.com/willmove/joyoffice/pull/67) 之后按方形近似排版、渲染并接受文字修补，见 [特性样例](../verification/feature-fixtures.md)、[验证波次缺口修复](../verification/verify-wave-fixes.md)。已导入的图片关系不再另报 not-imported（[#69](https://github.com/willmove/joyoffice/pull/69)）。真正的轮廓绕排仍未做 |"
+      ]
+    },
+    {
+      "id": "T204",
+      "title": "统一 PDF 与平台打印",
+      "status": "in_progress",
+      "deliverablesToAssess": "PageScene 完整页面输出、可选文本 PDF、平台打印层（GPUI 无打印接口）与预览，以及 PageScene 的 CPU 光栅后端。",
+      "automatedCriterion": "页面几何一致、PDF 文本／链接、纸型和打印范围测试。",
+      "guiOrExternalCriterion": "两个独立阅读器检查 PDF；真实打印或平台打印到文件。",
+      "checklist": "docs/joyword/acceptance/T204.md",
+      "openChecklistRows": [
+        "| 文档内跳转 | partial | [`model_forward_backward_same_page_and_uri_actions_survive_pdf_readback`](../../../crates/joyword-pdf/tests/navigation.rs)、[`a_non_ascii_bookmark_name_survives_the_name_tree_readback`](../../../crates/joyword-pdf/tests/navigation.rs)、[`an_external_reader_sees_named_destinations_and_resolves_goto_actions`](../../../crates/joyword-pdf/tests/navigation.rs)、[`an_anchor_without_a_bookmark_is_counted_and_leaves_the_rest_usable`](../../../crates/joyword-pdf/tests/navigation.rs)、[`chapter_bookmarks_warm_scene_and_selected_pdf_share_real_page_geometry`](../../../apps/joyword/src/tests.rs)、[`an_imported_bookmark_is_a_pdf_goto_named_destination`](../../../apps/joyword-cli/tests/bookmark_goto.rs)、[`header_footer_and_comment_bookmarks_are_goto_destinations`](../../../apps/joyword-cli/tests/bookmark_goto.rs)、[`column_and_opaque_table_bookmarks_are_goto_destinations`](../../../apps/joyword-cli/tests/bookmark_goto.rs) 在 CI 作业 build、unified-pdf | 模型书签写成命名目标，锚点内链写成真实 `/S /GoTo` 动作与显式 `/D` 引用；名称精确匹配且区分大小写，空名、控制字符名、重名、脱离锚点、未布局位置、过期布局、非法几何与超预算都拒绝。正文、页眉、页脚、可定位批注、列书签和不透明表格旁点目标的书签可从 DOCX 导入；批注文字不绘制，目标是批注锚点。同一份导出字节再由外部 qpdf 结构读取器（`qpdf --json=2`；设 `JOYWORD_REQUIRE_QPDF` 时要求，本机无 qpdf 则跳过；unified-pdf 安装 qpdf 的 CI 步骤另跟）复核：命名目标按键字节可见（含非 ASCII 名「目录」）、GoTo 动作的 `/D` 解析到对应命名目标与正确页面、坐标与内部读回一致。标 partial 的理由只剩：锚点目标不在本文档书签中时该链接被跳过而不阻断导出 |",
+        "| DOCX 书签 | partial | [`a_body_bookmark_keeps_its_name_and_range`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`bookmark_names_keep_case_and_reject_empty_duplicates_and_overlong_values`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`column_and_opaque_table_bookmarks_are_destinations`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`an_opaque_table_at_the_body_start_anchors_the_first_paragraph`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`bad_opaque_table_bookmark_pairs_stay_refused`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`the_pdf_bookmark_budget_keeps_the_first_names`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`an_edited_export_writes_body_bookmarks_back`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`bookmark_write_back_refuses_unrepresentable_shapes`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`an_edited_export_writes_story_bookmarks_back`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`story_bookmark_write_back_refuses_cross_part_and_bad_shapes`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`header_footer_and_comment_bookmarks_import_with_body_rules`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`story_bookmarks_refuse_bad_names_duplicates_and_detached_comments`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`a_header_bookmark_past_the_shared_budget_is_refused`](../../../crates/joyword-docx/tests/bookmarks.rs)、[`an_imported_bookmark_is_a_pdf_goto_named_destination`](../../../apps/joyword-cli/tests/bookmark_goto.rs)、[`header_footer_and_comment_bookmarks_are_goto_destinations`](../../../apps/joyword-cli/tests/bookmark_goto.rs)、[`column_and_opaque_table_bookmarks_are_goto_destinations`](../../../apps/joyword-cli/tests/bookmark_goto.rs) 在 CI 作业 build | 正文、页眉、页脚和可定位批注的成对书签导入为模型书签，名称原样且区分大小写；空名、控制字符、重名、脱离锚点、游离批注和超预算只诊断不插入。映射段落里的 `colFirst`／`colLast` 对也按范围书签导入，但所在段落保持锁定（列属性不写回，编辑导出为 `Restricted`）。只在未映射标记里观察到的成对书签（不透明表格、块级内容控件、页眉页脚非段落子元素）成为块旁的点目标：前置段落末尾，或块在故事开头时的第一个段落开头；标记字节留在保留标记内、不设 source，写回不会移动它们，并保留信息性的 `BookmarkAnchorUnmapped`。不成对、颠倒、未知属性、列标记和坏名称的未映射对仍拒绝。已接受的正文、页眉、页脚和可定位批注书签按导入时的标记字节写回各自部件，`w:id` 仍按部件配对，非正文书签不会被写进 `document.xml`；未改动的包仍逐字节复制。游离批注仍锁定所在段落。改名、脱离、颠倒、偏置变化和跨部件移动拒绝。标 partial：外部阅读器与 Word／WPS 未对照 |",
+        "| 纸型 | partial | [`page_range_copies_and_review_marks_are_bounded`](../../../crates/joyword-shell/tests/print_to_file.rs) 在 CI 作业 build | 打印到文件带页盒；系统对话框未验 |",
+        "| 两个独立阅读器 | partial | [UOS 报告](../../../tests/fixtures/reference/uos/uos_report.json) 记录 qpdfview 与 WPS PDF | 本清单不关闭人工验收 |",
+        "| 真实打印 | needs-hardware | 无 | |",
+        "| 系统打印对话框 | not-implemented | [`the_native_dialog_is_not_verified_and_creates_no_file`](../../../crates/joyword-shell/tests/print_to_file.rs) 在 CI 作业 build | 测试钉死「未验证、不建文件」 |",
+        "| 人工验收整句 | needs-gui | 无 | 两个独立阅读器加真实打印 |",
+        "| 纸型与链接金样 | partial | [`paper_sizes_and_an_https_link_match_the_golden_scene`](../../../apps/joyword-cli/tests/golden_scenes.rs) 在 CI 作业 build；特性场景 PDF 的 pdftotext 回读在 CI 作业 unified-pdf | 页盒与场景差不超过 0.01 pt，见 [页面场景金样](../verification/golden-scenes.md)。不证明内容流文本矩阵 |"
+      ]
+    },
+    {
+      "id": "T205",
+      "title": "功能区、标尺与状态栏",
+      "status": "in_progress",
+      "deliverablesToAssess": "开始、插入、布局、视图等功能区中的已实现命令，字体与段落对话框（含中文字号），标尺（缩进、制表位），状态栏（页码、字数），编辑标记／隐藏文字／域代码显示切换；功能区图标以代码绘制并纳入资产署名门禁；功能目录逐项绑定需求 ID 与证据等级（存在／单元测试／语料／参考对照），只统计有证据的项。",
+      "automatedCriterion": "功能区与注册表一致、字数统计规则（中文按字，与固定 Word 样例的对话框数字对照）、视图选项进入布局快照键、对话框到命令的映射；功能目录地板测试只升不降。",
+      "guiOrExternalCriterion": "只用功能区和对话框完成报告排版，切换编辑标记与缩放。",
+      "checklist": "docs/joyword/acceptance/T205.md",
+      "openChecklistRows": [
+        "| 与 Word 对话框数字对照 | needs-word-wps | 无固定 Word 样例的对话框数字 | 自动测试没有打开 Word |",
+        "| 对话框确认失败 | partial | [`font_apply_is_one_undo_and_an_empty_selection_is_not`](../../../crates/joyword-shell/tests/dialogs.rs) 在 CI 作业 build | 空选区拒绝；其它确认失败未逐项列 |",
+        "| 人工验收整句 | needs-gui | [UOS 报告](../../../tests/fixtures/reference/uos/uos_report.json) 只覆盖三个视图开关和缩放 | 整篇报告排版未做 |"
+      ]
+    },
+    {
+      "id": "T206",
+      "title": "M2 发布门槛",
+      "status": "planned",
+      "deliverablesToAssess": "含样式、编号、表格、图片、页眉页脚和页码的报告往返与 PDF／打印报告，以及中文基础排版对照结果。",
+      "automatedCriterion": "报告语料往返、几何比较、PDF 文本抽取和性能冒烟。",
+      "guiOrExternalCriterion": "在 Mac 上按报告工作流完成制作、跨应用粘贴、导出 PDF 与打印。"
+    },
+    {
+      "id": "T207",
+      "title": "中文基础排版",
+      "status": "in_progress",
+      "deliverablesToAssess": "文档网格（行／字符）吸附、字符与行单位的缩进和间距、禁则字符表、中西文自动间距、标点压缩、adjustRightInd 及相关兼容标志的支持子集；两端对齐在纯中文行字间分配余量；四槽字体与主题东亚字体（a:ea）落地；CJK 字体替代表（宋体、仿宋、楷体、黑体、等线、微软雅黑到各平台实际字体）与替代／缺字诊断；行高在 hhea／OS/2 typo／win 三套度量间的选择以固定 Word 实测为准。",
+      "automatedCriterion": "中文默认文档和公文网格样例的行／页断点比较、单位换算、禁则与间距单元测试。",
+      "guiOrExternalCriterion": "打开中文 Word 与 WPS 生成的合同和报告，对照参考 PDF 检查断行与分页。"
+    },
+    {
+      "id": "T209",
+      "title": "撤销组与输入来源区分",
+      "status": "in_progress",
+      "deliverablesToAssess": "事务层撤销组（连续打字合并为一步，组合输入一次提交、拖动手势、自动更正各自成一步，边界不跨作者、审阅模式与版本冲突）；输入层区分键入与粘贴两类来源，粘贴文本中的段落分隔不触发按键语义；行为登记表中的撤销条目逐条有测试。",
+      "automatedCriterion": "撤销组合并性质测试、行为登记表撤销条目存在性校验。",
+      "guiOrExternalCriterion": "连续打字、IME 提交、拖动与粘贴混合操作后逐步撤销，每步粒度符合预期。"
+    },
+    {
+      "id": "T300",
+      "title": "文字与移动修订",
+      "status": "in_progress",
+      "deliverablesToAssess": "插入／删除／移动、作者时间、分组、四种视图（排版随投影变化）和局部处理。",
+      "automatedCriterion": "原始／最终投影、接受／拒绝、undo 与文件往返性质测试。",
+      "guiOrExternalCriterion": "在 Word 与 JoyWord 交换文字修订，逐项和批量接受／拒绝。",
+      "checklist": "docs/joyword/acceptance/T300.md",
+      "openChecklistRows": [
+        "| 复杂修订只读 | partial | 表格结构修订仍拒绝编辑；正文段落的属性修订已由 T301 第一切片类型化，见 [T301](T301.md) | 文字插入删除不在此列 |",
+        "| 作者缺失 | partial | [`review_commands_use_the_registry_and_the_author_preference`](../../../crates/joyword-shell/tests/review.rs) 在 CI 作业 build | 作者来自首选项；缺失时的拒绝没有单独测试 |",
+        "| 在已有修订内继续编辑 | partial | 无专门测试 | |",
+        "| 人工验收整句 | needs-word-wps | 无 | Word 与 JoyWord 交换未做 |",
+        "| 修订场景排练（无界面） | partial | [`t300_tracked_edits_views_and_revision_round_trip`](../../../apps/joyword/src/tests.rs) 在 CI 作业 build | 只排练 JoyWord 一侧，见 [场景排练](../verification/scenario-rehearsals.md) |",
+        "| 修订金样与特性样例 | partial | [`revision_markup_final_and_original_match_the_golden_scene`](../../../apps/joyword-cli/tests/golden_scenes.rs)、[`feature_fixture_cli_projections_match_goldens`](../../../apps/joyword-cli/tests/fixture_roundtrip.rs) 在 CI 作业 build | 见 [页面场景金样](../verification/golden-scenes.md)、[特性样例](../verification/feature-fixtures.md)。原已知缺口已由 [#67](https://github.com/willmove/joyoffice/pull/67) 修复：text 投影声明排除删除和移出，输出现在也不含这些文字，见 [验证波次缺口修复](../verification/verify-wave-fixes.md) |"
+      ]
+    },
+    {
+      "id": "T301",
+      "title": "格式与表格结构修订",
+      "status": "in_progress",
+      "deliverablesToAssess": "属性前值、段落标记、编号、节属性和表格网格结构修订，覆盖支持的 story。",
+      "automatedCriterion": "格式拒绝还原、表格结构与内容守恒、局部接受合法性测试。",
+      "guiOrExternalCriterion": "对含表格的合同增删行、改样式并交换审阅。",
+      "checklist": "docs/joyword/acceptance/T301.md",
+      "openChecklistRows": [
+        "| 表格结构修订（接受／拒绝） | partial | [`table_structure_revisions_stay_preserved_and_read_only`](../../../crates/joyword-docx/tests/format_revisions.rs)、[`accepting_table_property_revisions_exports_the_current_properties`](../../../crates/joyword-docx/tests/table_revisions.rs) 在 CI 作业 build | 属性修订（`w:tblPrChange`／`w:trPrChange`／`w:tcPrChange`）已可接受／拒绝；结构修订 `w:cellIns`／`w:cellDel`／`w:cellMerge` 仍没有任何路径接受、改写或丢弃，只有只读与保留的守恒 |",
+        "| 段落标记修订 | not-implemented | 无对应测试 | 段落标记 `w:rPr` 上的 `w:rPrChange` 经普通属性路径退回「保留＋锁定段落」，行为由构造保证，只被子集外测试间接覆盖 |",
+        "| 编号修订 | not-implemented | 无对应测试 | `w:numberingChange` 仍让整篇只读 |",
+        "| 节属性修订 | not-implemented | 无对应测试 | `w:sectPrChange` 仍让整篇只读 |",
+        "| 表格网格结构修订 | not-implemented | 无对应测试 | `w:tblGridChange`、`w:tblPrExChange` 与自定义 XML 修订仍让整篇只读 |",
+        "| 覆盖支持的 story | partial | 无 story 级专门测试 | 页眉页脚与批注 story 里表格之外的格式修订走正文同一条 `body::paragraph` 路径，但没有按 story 分别断言的测试 |",
+        "| 锁定容器内的格式修订 | partial | [`out_of_subset_format_changes_are_preserved_and_lock_the_paragraph`](../../../crates/joyword-docx/tests/format_revisions.rs)、[`a_table_inside_a_locked_content_control_refuses_resolution`](../../../crates/joyword-engine/tests/table_revisions.rs) 在 CI 作业 build | 引擎对锁定段落以 `CommandError::Locked` 拒绝已实现，但段落侧没有直接单测，由 docx 侧的锁定与 `Restricted` 导出拒绝间接覆盖；内容锁定的内容控件里的表格属性修订有直接单测：接受、拒绝与全部接受都返回 `Locked`，版本与记录不变 |",
+        "| 修订依赖冲突 | partial | [`one_id_carrying_a_text_and_a_format_revision_resolves_both_in_one_command`](../../../crates/joyword-engine/tests/format_revisions.rs) 在 CI 作业 build | 只覆盖同一 id 承载两种修订的情形。跨修订的依赖冲突（例如解决落在删除范围内或移动对里的格式变更）没有单独语义，也没有测试 |",
+        "| 人工验收整句 | needs-word-wps | 无 | 对含表格的合同增删行、改样式并交换审阅：Word／WPS 往返、审阅栏里逐项接受／拒绝，全部没有做 |",
+        "| 审阅栏与图形界面 | needs-gui | 无自动测试能代替窗口操作 | 本切片未启动图形界面，也未操作审阅栏 |",
+        "| 信创真机与打印 | needs-hardware | 无 | 未做 |"
+      ]
+    },
+    {
+      "id": "T302",
+      "title": "批注线程与现代扩展",
+      "status": "in_progress",
+      "deliverablesToAssess": "范围批注、回复、解决、重开、作者信息及现代扩展映射。",
+      "automatedCriterion": "范围变换、线程往返、解决／删除区别及未知 XML 保留。",
+      "guiOrExternalCriterion": "跨段批注后移动或删除正文，交换 Word 并检查线程。"
+    },
+    {
+      "id": "T303",
+      "title": "比较与合并",
+      "status": "in_progress",
+      "deliverablesToAssess": "语义比较、目标投影选择、可接受／拒绝的修订结果与合并冲突；本地版本历史的保留、浏览、比较与另存恢复。",
+      "automatedCriterion": "A/B 比较后全部拒绝=A、全部接受=B；合并冲突及幂等性。",
+      "guiOrExternalCriterion": "比较两份合同并在 Word 审阅结果，检查格式和表格差异；与本地历史版本比较后另存恢复。"
+    },
+    {
+      "id": "T304",
+      "title": "审阅交换发布门槛",
+      "status": "planned",
+      "deliverablesToAssess": "固定 Word／WPS／LibreOffice 审阅语料和往返报告。",
+      "automatedCriterion": "批量语义、关系、部件保留与打印投影测试。",
+      "guiOrExternalCriterion": "按语料执行跨软件接受／拒绝和批注回复，保存证据。"
+    },
+    {
+      "id": "T400",
+      "title": "Provider 与关闭基础",
+      "status": "in_progress",
+      "deliverablesToAssess": "独立 Provider、配置、系统凭据、默认关闭、管理员策略（强制关闭、Provider 白名单）及 generation 权限门。",
+      "automatedCriterion": "假 Provider 契约、无 AI 构建、策略禁用、启动零请求及凭据脱敏。",
+      "guiOrExternalCriterion": "首次启动离线编辑，配置服务后开启／关闭，检查入口与任务。"
+    },
+    {
+      "id": "T401",
+      "title": "受限工具与授权",
+      "status": "in_progress",
+      "deliverablesToAssess": "选区授权、结构读取、受限检索、定位引用及工具白名单。",
+      "automatedCriterion": "最小上下文、注入语料、过期授权和能力边界测试。",
+      "guiOrExternalCriterion": "对合同选区提问，验证引用和实际发送内容不超范围。"
+    },
+    {
+      "id": "T402",
+      "title": "修改预览与 AI 修订",
+      "status": "in_progress",
+      "deliverablesToAssess": "结构化 ChangeProposal、差异预览、AI 作者与单事务提交。",
+      "automatedCriterion": "重复提交防护、预览不修改原稿、提交与撤销、审阅往返。",
+      "guiOrExternalCriterion": "选区改写／格式调整，逐项接受并整体撤销。"
+    },
+    {
+      "id": "T403",
+      "title": "取消、竞争与离线门槛",
+      "status": "planned",
+      "deliverablesToAssess": "任务取消、连接释放、自有进程结束、迟到结果丢弃和关闭验证报告。",
+      "automatedCriterion": "记录假服务请求；关闭后请求／提交为零；无 AI 与有 AI 核心回归。",
+      "guiOrExternalCriterion": "在流式生成和提交前关闭，继续普通输入、保存及打印。"
+    },
+    {
+      "id": "T500",
+      "title": "复杂分页与长文档",
+      "status": "in_progress",
+      "deliverablesToAssess": "多栏、连续及奇偶分节、跨页／嵌套表格、浮动绕排与增量分页。",
+      "automatedCriterion": "最小约束样例、稳定页尾复用、几何对照和长文档取消。",
+      "guiOrExternalCriterion": "百页报告改首段／末段、改变方向与图文绕排，观察定位与响应。"
+    },
+    {
+      "id": "T501",
+      "title": "注释、域与引用体系",
+      "status": "in_progress",
+      "deliverablesToAssess": "脚注尾注、目录、题注、交叉引用、文献、索引与域代码／缓存。",
+      "automatedCriterion": "字段求值、引用更新、脚注分页和循环诊断测试。",
+      "guiOrExternalCriterion": "长报告插入章节与图表后更新目录、页码和交叉引用。"
+    },
+    {
+      "id": "T502",
+      "title": "公式、形状和表单内容",
+      "status": "in_progress",
+      "deliverablesToAssess": "公式结构、常见形状／文本框、内容控件和模板编辑。",
+      "automatedCriterion": "OMML 子集语义、对象关系、控件限制与文件往返。",
+      "guiOrExternalCriterion": "编辑带公式和表单的报告，与 Word 交换并修改。"
+    },
+    {
+      "id": "T503",
+      "title": "语言工具与视图",
+      "status": "in_progress",
+      "deliverablesToAssess": "离线拼写与语言工具、草稿／大纲／阅读视图。",
+      "automatedCriterion": "拼写与语言规则、视图不改变文档及无 AI 测试。",
+      "guiOrExternalCriterion": "离线检查中英文拼写，切换草稿、大纲和阅读视图并核对文档未改变。"
+    },
+    {
+      "id": "T504",
+      "title": "中文高级版式与公文",
+      "status": "in_progress",
+      "deliverablesToAssess": "拼音指南、双行合一、合并字符、带圈字符、稿纸与 GB/T 9704 公文版式样例；双向与复杂文字保真保留并提示排版受限。",
+      "automatedCriterion": "固定字体的 Unicode、cluster、几何和光标测试，公文样例行字网格对照。",
+      "guiOrExternalCriterion": "公文、拼音和中文版式样例对照与编辑，在 Word 与 WPS 中检查。"
+    },
+    {
+      "id": "T600",
+      "title": "RTF 与 Strict OOXML 交换",
+      "status": "in_progress",
+      "deliverablesToAssess": "RTF 文件读写、Strict profile 独立读写和元素级损失分析。",
+      "automatedCriterion": "规范样例、双向语义、资源关系、损失报告和异常输入。",
+      "guiOrExternalCriterion": "与 Word／WPS 交换带样式、脚注、修订的 RTF 与 Strict 文件。"
+    },
+    {
+      "id": "T601",
+      "title": "HTML、Markdown 与文本",
+      "status": "in_progress",
+      "deliverablesToAssess": "受控 HTML／Markdown／TXT 文件双向转换和编码诊断。",
+      "automatedCriterion": "清理、读取顺序、编码、语义子集和转换损失测试。",
+      "guiOrExternalCriterion": "导入网页片段／Markdown，导出文本后核对丢失说明。"
+    },
+    {
+      "id": "T602",
+      "title": "旧版 DOC 导入",
+      "status": "in_progress",
+      "deliverablesToAssess": "依据 MS-DOC／CFB 自研导入（CFB 读取供 T604 加密 OOXML 复用）、原始结构保留及支持变体矩阵。",
+      "automatedCriterion": "二进制结构最小样例、模糊输入、内容关系和对照导入。",
+      "guiOrExternalCriterion": "固定 Word 生成旧 DOC，导入后与原稿语义和版面比较。"
+    },
+    {
+      "id": "T603",
+      "title": "PDF 导航、标签与页面图片",
+      "status": "in_progress",
+      "deliverablesToAssess": "PDF 书签、链接与结构标签，页面图片输出。",
+      "automatedCriterion": "文本抽取、阅读顺序、链接、标签结构和图像尺寸测试。",
+      "guiOrExternalCriterion": "两个 PDF 阅读器检查导航、可检索性与结构。"
+    },
+    {
+      "id": "T604",
+      "title": "加密、保护与活动内容",
+      "status": "in_progress",
+      "deliverablesToAssess": "加解密、编辑限制、签名识别与修改即失效提示、宏容器保留、受限解析和来源标记。",
+      "automatedCriterion": "密码／保护独立测试、签名改动、ZIP／XML／图像预算及无网络验证。",
+      "guiOrExternalCriterion": "打开受保护和宏文档，编辑安全区域、另存并检查状态。"
+    },
+    {
+      "id": "T605",
+      "title": "WPS 文字原生格式导入",
+      "status": "in_progress",
+      "deliverablesToAssess": ".wps／.wpt 类型识别、DOC 兼容内容导入、WPS 私有流原样保留、模板新建、另存为 DOCX 的损失计划及支持变体矩阵。",
+      "automatedCriterion": "样例导入语义、私有流散列保留、模糊输入及资源预算测试。",
+      "guiOrExternalCriterion": "用固定版本 WPS 生成含样式、表格、批注和修订的 .wps，导入后与 WPS 中的显示和语义比较。"
+    },
+    {
+      "id": "T700",
+      "title": "三端及信创产品验收",
+      "status": "in_progress",
+      "deliverablesToAssess": "Mac／Windows／Linux 的全流程对照报告，Wayland／X11 分列，统信 UOS 与银河麒麟按 x86_64／ARM64／LoongArch64 分列。",
+      "automatedCriterion": "三端核心、格式、审阅及平台适配测试集合。",
+      "guiOrExternalCriterion": "逐平台运行新建、编辑、交换、打印、恢复和关闭 AI。",
+      "checklist": "docs/joyword/acceptance/T700.md",
+      "openChecklistRows": [
+        "| Windows／Mac／X11／Wayland 全流程 | partial | [Windows GUI 记录](../verification/m7-gui-20261030.md)、[发布清单](../release/checklist.json) | Windows 两轮桌面步骤及 WPS／百页修复复验完成；完整读屏／打印、其他平台未完成 |",
+        "| 信创真机 | needs-hardware | [本轮记录](../verification/m7-20261030.md) | 非阻塞待补验，保持未验证 |"
+      ]
+    },
+    {
+      "id": "T701",
+      "title": "输入法与可访问性",
+      "status": "in_progress",
+      "deliverablesToAssess": "结构化可访问树、焦点导航、高对比度、IME 与多显示器专项。",
+      "automatedCriterion": "键盘焦点、语义树、范围与 DPI 自动检查。",
+      "guiOrExternalCriterion": "VoiceOver、Narrator、Linux 辅助技术和中文 IME（含信创系统的 Fcitx 输入法）真实操作。",
+      "checklist": "docs/joyword/acceptance/T701.md",
+      "openChecklistRows": [
+        "| 系统 IME／焦点／多屏 | partial | [Windows GUI 记录](../verification/m7-gui-20261030.md) | 系统拼音预编辑、取消、提交和单次撤销通过；DPI／多屏及其他平台未执行 |",
+        "| 结构化可访问树与读屏 | partial | [发布清单](../release/checklist.json) | 按钮／复选框／功能区原生语义已接入并自动检查 Node 元数据；正文原生子树／全文选区／读写／只读保护已实测；完整实际读屏未做 |",
+        "| 三端辅助技术验收 | needs-gui | [发布清单](../release/checklist.json) | VoiceOver／Narrator／Linux 读屏均待当前候选实测 |"
+      ]
+    },
+    {
+      "id": "T702",
+      "title": "性能、故障和恢复",
+      "status": "in_progress",
+      "deliverablesToAssess": "固定三级语料、分位数／RSS／峰值／体积报告、故障回归。",
+      "automatedCriterion": "性能采样、首尾段重排、取消、fuzz 和故障注入。",
+      "guiOrExternalCriterion": "在固定硬件反复运行长文档场景，核对原始样本与统计。",
+      "checklist": "docs/joyword/acceptance/T702.md",
+      "openChecklistRows": [
+        "| GUI 预算与稳定 RSS | needs-gui | [发布清单](../release/checklist.json) | 进程工作集采样不替代稳定 RSS／GPU／实际呈现 |",
+        "| 恢复与 fuzz 全套 | partial | [验证驱动](../../../scripts/run_m7_validation.py) | 自动故障、杀进程和语料回归；不冒充断电 |"
+      ]
+    },
+    {
+      "id": "T703",
+      "title": "安装、签名和升级",
+      "status": "in_progress",
+      "deliverablesToAssess": "三端安装器与信创 deb 软件包、文件关联、代码签名与统信／麒麟软件包签名、卸载、更新回退与日志迁移。",
+      "automatedCriterion": "安装／卸载、升级中断、旧日志迁移、依赖通知和资源许可检查。",
+      "guiOrExternalCriterion": "干净机器安装、升级与回退，确认用户文档未改动。",
+      "checklist": "docs/joyword/acceptance/T703.md",
+      "openChecklistRows": [
+        "| SPDX 与依赖通知 | partial | [打包工具](../../../scripts/package_preview.py) | 源码依赖图含 build／dev；缺通知显式列出 |",
+        "| 安装／卸载／文件关联／更新回退 | not-implemented | [发布清单](../release/checklist.json) | 无原生安装器与升级迁移实现 |",
+        "| 平台签名／公证 | not-started | [发布清单](../release/checklist.json) | 凭据和发布环境尚缺 |",
+        "| 干净机器验收 | needs-hardware | [发布清单](../release/checklist.json) | 未运行，不能借便携解包计通过 |"
+      ]
+    },
+    {
+      "id": "T704",
+      "title": "1.0 发布门槛与公开矩阵",
+      "status": "in_progress",
+      "deliverablesToAssess": "兼容矩阵、限制、证据、发布说明、SBOM 和隐私默认值。",
+      "automatedCriterion": "完整追踪、发布清单、无静默丢失语料和双构建验证。",
+      "guiOrExternalCriterion": "按公开说明从安装到合同审阅执行端到端验收。",
+      "checklist": "docs/joyword/acceptance/T704.md",
+      "openChecklistRows": [
+        "| 当前候选公开矩阵 | partial | [发布清单](../release/checklist.json) | Windows／Mac／X11／Wayland 与信创待补验分列 |",
+        "| 双构建、安装至审阅端到端 | not-started | [本轮记录](../verification/m7-20261030.md) | 同一输入的双打包不代替双独立构建 |"
+      ]
+    },
+    {
+      "id": "T800",
+      "title": "DOC 写出",
+      "status": "planned",
+      "deliverablesToAssess": "MS-DOC 指定变体写出和逐元素损失计划。",
+      "automatedCriterion": "二进制有效性、Word 重开与内容／修订对照。",
+      "guiOrExternalCriterion": "保存旧 DOC 并在指定 Word 版本继续编辑。"
+    },
+    {
+      "id": "T801",
+      "title": "图表与 SmartArt 原生编辑",
+      "status": "planned",
+      "deliverablesToAssess": "按类型逐项实现图表／SmartArt 模型、编辑与资源交换。",
+      "automatedCriterion": "对象语义、资源、撤销、排版与往返测试。",
+      "guiOrExternalCriterion": "编辑真实图表数据和布局，Word 重开检查。"
+    },
+    {
+      "id": "T802",
+      "title": "稀有域与嵌入对象",
+      "status": "planned",
+      "deliverablesToAssess": "扩展域和复杂对象的安全预览、保留和已声明的编辑子集。",
+      "automatedCriterion": "对象保留、字段求值边界、关系及资源预算。",
+      "guiOrExternalCriterion": "对特殊文档操作并确认每个对象的实际支持等级。"
+    },
+    {
+      "id": "T803",
+      "title": "高级签名与复杂模板",
+      "status": "planned",
+      "deliverablesToAssess": "指定标准的签名创建／验证、证书选择和复杂模板能力。",
+      "automatedCriterion": "签名验证、篡改失效、模板实例化与原件保护。",
+      "guiOrExternalCriterion": "用独立验证器检查签名，在 Word 检查模板实例。"
+    },
+    {
+      "id": "T804",
+      "title": "PDF 重建与 OCR",
+      "status": "planned",
+      "deliverablesToAssess": "近似文档重建、OCR 置信度、阅读顺序及可定位误差说明。",
+      "automatedCriterion": "原创 PDF／扫描语料、文字与结构误差、无损原件保存。",
+      "guiOrExternalCriterion": "将重建结果与原 PDF 并排审校，确认用户能发现不确定区域。"
+    },
+    {
+      "id": "T805",
+      "title": "ODT 文件交换",
+      "status": "planned",
+      "deliverablesToAssess": "ODF 1.3 双向、1.4 扩展和元素级损失分析。",
+      "automatedCriterion": "规范样例、双向语义、资源关系、损失报告和异常输入。",
+      "guiOrExternalCriterion": "与 LibreOffice／WPS 交换带样式、脚注、修订的文件。"
+    },
+    {
+      "id": "T806",
+      "title": "EPUB 与归档 PDF",
+      "status": "in_progress",
+      "deliverablesToAssess": "EPUB 导出和声明范围的 PDF/A 归档输出。",
+      "automatedCriterion": "PDF 合规验证器、EPUB 校验、阅读顺序与文本抽取。",
+      "guiOrExternalCriterion": "EPUB 阅读器和 PDF/A 验证器检查导航、可检索性与结构。",
+      "checklist": "docs/joyword/acceptance/T806.md",
+      "openChecklistRows": [
+        "| 独立 EPUB 阅读器完整验收 | partial | [本轮报告](../verification/m8-focus-epub-20261030.md) | SumatraPDF 3.6 已检查中文搜索／目录／表格／PNG；阿文与 emoji 缺字仍待处理 |"
+      ]
+    },
+    {
+      "id": "T808",
+      "title": "纵排、双向与复杂文字",
+      "status": "planned",
+      "deliverablesToAssess": "纵排、双向文本与复杂脚本的排版、光标移动和编辑。",
+      "automatedCriterion": "固定字体的方向、cluster、几何和光标测试。",
+      "guiOrExternalCriterion": "中英阿文混排与纵排样例对照与编辑。"
+    }
+  ],
+  "deckUnchecked": [
+    {
+      "task": "T-M0-04 输入和焦点 spike",
+      "dependencies": "03",
+      "acceptanceOrRemainingWork": "普通输入的中文预编辑/commit/cancel、UTF-16范围、Tab/focus/快捷键；记录锁定 API 和各 OS 结果，为 M3 建桥"
+    },
+    {
+      "task": "T-M0-06 双窗口和任务 spike",
+      "dependencies": "03",
+      "acceptanceOrRemainingWork": "双窗口独立焦点、可取消后台计算、句柄生命周期和关闭后结果丢弃；不在 foreground 做长计算"
+    },
+    {
+      "task": "T-M0-07 三平台构建与基准机",
+      "dependencies": "02、03",
+      "acceptanceOrRemainingWork": "建立原生 CI/build、记录真实 toolchain/OS/驱动/字体；能取得平台则实际弹窗，缺硬件标未验证"
+    },
+    {
+      "task": "T-M0-08 M0 交付",
+      "dependencies": "04–07",
+      "acceptanceOrRemainingWork": "可运行测试包、AT-01、技术风险结论与阶段记录；固定 API/输入/绘制问题的后续 owner 和截止阶段"
+    },
+    {
+      "task": "T-M1-02 字体输入与兜底",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "明确系统字体来源；明确合法 UI/文档字体与系统 fallback；缺 CJK/嵌入字体均有可读状态"
+    },
+    {
+      "task": "T-M1-03 受限导入服务",
+      "dependencies": "01、02",
+      "acceptanceOrRemainingWork": "native/PPTX 嗅探、预算、progress、cancel、DocumentId 发布；只读 `.joydeck` v1/PPTX 子集；失败不替换旧文档"
+    },
+    {
+      "task": "T-M1-04 CPU 图像桥",
+      "dependencies": "03、M0-05",
+      "acceptanceOrRemainingWork": "后台 render → GPUI 图像，完整 key/revision 防串页；支持 pasteboard/输出裁剪差别；UI 不同步 raster"
+    },
+    {
+      "task": "T-M1-06 兼容报告",
+      "dependencies": "03",
+      "acceptanceOrRemainingWork": "结构化缺字体/未知对象/丢失 part 警告、页/对象定位及只读标签；日志之外有 UI 报告"
+    },
+    {
+      "task": "T-M1-07 基线与故障样例",
+      "dependencies": "03–06",
+      "acceptanceOrRemainingWork": "SMALL/LARGE 首屏、RSS、raster/upload 计数；损坏 ZIP/超限/XML 和取消回归；样本来源记录"
+    },
+    {
+      "task": "T-M1-08 M1 交付",
+      "dependencies": "07",
+      "acceptanceOrRemainingWork": "AT-02/15、native/PPTX 各一次真实浏览、可运行包与当前兼容范围；旧阶段回归"
+    },
+    {
+      "task": "T-M2-10 M2 交付",
+      "dependencies": "09",
+      "acceptanceOrRemainingWork": "AT-03/06/14，通过“制作三页→保存→重开→修改→取消关闭→恢复”演示；测试包持续可用"
+    },
+    {
+      "task": "T-M3-01 文本布局接口",
+      "dependencies": "M2-10",
+      "acceptanceOrRemainingWork": "继承格式→font→glyph/line/caret/cluster 契约；坐标单测；不让 UI 和 renderer 各排一套"
+    },
+    {
+      "task": "T-M3-02 文本选择导航",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "点击定位、范围拖选、词/段、Home/End/方向键、bidi affinity、grapheme 删除；Unicode 合法"
+    },
+    {
+      "task": "T-M3-03 CanvasTextInput",
+      "dependencies": "01、02、M0-04",
+      "acceptanceOrRemainingWork": "实接 GPUI surrounding/marked/selected/replacement 范围，预编辑/commit/cancel 及候选屏幕位置"
+    },
+    {
+      "task": "T-M3-04 焦点和事务整合",
+      "dependencies": "03",
+      "acceptanceOrRemainingWork": "工具栏格式化后恢复选区、属性输入不穿透、切页/保存/弹窗 settle、一次 IME 一次 undo，避免重复 commit"
+    },
+    {
+      "task": "T-M3-05 字符和段落格式",
+      "dependencies": "01、02",
+      "acceptanceOrRemainingWork": "字体 face/字号/粗斜/颜色/列表/缩进/段距；混合格式、空段列表、输入继承及 undo"
+    },
+    {
+      "task": "T-M3-06 字体替代及文字粘贴",
+      "dependencies": "03、05",
+      "acceptanceOrRemainingWork": "缺字/缺字体说明，CJK/emoji/组合音标与 plain/rich text fallback；拒绝非法替换范围"
+    },
+    {
+      "task": "T-M3-07 多平台输入验收",
+      "dependencies": "03–06",
+      "acceptanceOrRemainingWork": "Windows/macOS/Linux 实际 IME smoke，测试 DPI、跨屏、失焦、撤销和多语言；记录未验证项"
+    },
+    {
+      "task": "T-M3-08 M3 交付",
+      "dependencies": "07",
+      "acceptanceOrRemainingWork": "AT-04/05、可制作真实中文图文文稿；保存重开文字样式/Unicode 不破坏；发布测试包"
+    },
+    {
+      "task": "T-M4-01 固定性能方法",
+      "dependencies": "M3-08",
+      "acceptanceOrRemainingWork": "固定 BENCH-EDIT/EFFECT、轨迹/seed、基准机，记录 R0 的 input/command/layout/raster/upload/present 与内存"
+    },
+    {
+      "task": "T-M4-02 提取 Scene",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "背景、Path/Text/Image/Group、clip/effect/命中/链接，CPU adapter 保持正确；分批迁，不删除可运行基线"
+    },
+    {
+      "task": "T-M4-03 GPUI 图形图片",
+      "dependencies": "02、M0-05",
+      "acceptanceOrRemainingWork": "常用 fill/stroke/image/transform/clip 与缓存；半透明/z-order/裁剪正确；拖动不整页 CPU raster"
+    },
+    {
+      "task": "T-M4-04 文字绘制桥",
+      "dependencies": "02、M3-01",
+      "acceptanceOrRemainingWork": "保持原 glyph layout，缓存 glyph mask/outline 或验证可用 bridge；放大/移动不重复全文 shaping"
+    },
+    {
+      "task": "T-M4-05 局部 fallback",
+      "dependencies": "03、04",
+      "acceptanceOrRemainingWork": "按语义封闭 subtree raster，halo/opacity/clip 不重复；复杂 effect 对照 CPU，无错序和双重 alpha"
+    },
+    {
+      "task": "T-M4-06 失效与调度",
+      "dependencies": "02–05",
+      "acceptanceOrRemainingWork": "changed IDs/母版/字体/资源 generation、tile/scale cache、有界 worker、合并拖动与缩略图优先级"
+    },
+    {
+      "task": "T-M4-07 诊断与设备恢复",
+      "dependencies": "03–06",
+      "acceptanceOrRemainingWork": "后端覆盖、实际耗时、raster/upload/cache bytes；device lost 清理及支持范围内恢复/受控退出"
+    },
+    {
+      "task": "T-M4-08 画质及性能验证",
+      "dependencies": "01–07",
+      "acceptanceOrRemainingWork": "同机 CPU/GPU 对照、glyph 和像素容差、09预算/06相对门槛、overlay-only 计数不增长"
+    },
+    {
+      "task": "T-M4-09 M4 交付",
+      "dependencies": "08",
+      "acceptanceOrRemainingWork": "AT-07/15、加速对照演示、可运行包、ADR 后端结论；不以静态 FPS 替代结果"
+    },
+    {
+      "task": "T-M5-01 资源与图片导入",
+      "dependencies": "M4-09",
+      "acceptanceOrRemainingWork": "类型嗅探、decode budget、EXIF、拖放、替换、资源去重；图片在 CPU/GPU 输出一致"
+    },
+    {
+      "task": "T-M5-02 裁剪与图片面板",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "非破坏 crop、aspect/重置、填充/变换；预览取消还原，保存重开不破坏原图"
+    },
+    {
+      "task": "T-M5-03 系统剪贴板",
+      "dependencies": "01、M3-06",
+      "acceptanceOrRemainingWork": "plain/rich text、图片、版本化内部对象；平台 adapter、fallback 与独立 transferable snapshot"
+    },
+    {
+      "task": "T-M5-04 SVG 与 metafile",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "受限 SVG，无脚本/联网；EMF/WMF 实现范围与 PNG fallback；异常路径/超大图受控"
+    },
+    {
+      "task": "T-M5-05 预设及高级路径",
+      "dependencies": "M2-04、M4-02",
+      "acceptanceOrRemainingWork": "批次迁预设/调节点、freeform/curve/scribble、Edit Points 和布尔合并；每批可用且有退化输入验证"
+    },
+    {
+      "task": "T-M5-06 对齐分布和组",
+      "dependencies": "M2-05",
+      "acceptanceOrRemainingWork": "顺序/对齐/分布/翻转/锁定、嵌套 group transform、组内选择；数值和手势相同结果"
+    },
+    {
+      "task": "T-M5-07 连接符与选择面板",
+      "dependencies": "06",
+      "acceptanceOrRemainingWork": "glue/reroute/delete target、名称/可见/锁定/z-order；逻辑阅读顺序不由 z-order 覆盖"
+    },
+    {
+      "task": "T-M5-08 资源和平台回归",
+      "dependencies": "01–07",
+      "acceptanceOrRemainingWork": "跨文档对象暂存迁移接口，三平台图片粘贴、连续 copy/delete/undo、资源引用/缓存回收"
+    },
+    {
+      "task": "T-M5-09 M5 交付",
+      "dependencies": "08",
+      "acceptanceOrRemainingWork": "AT-08/03，“粘贴→裁剪→组→连接→对齐→保存重开”，可运行包与能力清单"
+    },
+    {
+      "task": "T-M6-01 ViewSession 解耦",
+      "dependencies": "M5-09",
+      "acceptanceOrRemainingWork": "选择/视口与文档分离，多文档/同文档双窗口共用写入者和历史；跨窗口 undo 不串目标"
+    },
+    {
+      "task": "T-M6-02 继承和占位符",
+      "dependencies": "M4-02",
+      "acceptanceOrRemainingWork": "slide/layout/master/theme 优先级、kind/idx 匹配、reset 不丢内容、依赖页失效"
+    },
+    {
+      "task": "T-M6-03 母版版式编辑",
+      "dependencies": "02",
+      "acceptanceOrRemainingWork": "插入/复制/重命名/删除/占位符工具；拒绝悬空引用；被用版式删除策略可见"
+    },
+    {
+      "task": "T-M6-04 主题及背景",
+      "dependencies": "02、03",
+      "acceptanceOrRemainingWork": "主题颜色/字体、渐变/图片/图案背景、页码/页脚、模板保存；主题色不固化 RGB"
+    },
+    {
+      "task": "T-M6-05 完整格式面板",
+      "dependencies": "M5-02、04",
+      "acceptanceOrRemainingWork": "阴影等已支持效果、图片压缩/基础修正、mixed/draft/preview/cancel；未支持功能按能力禁用"
+    },
+    {
+      "task": "T-M6-06 文字扩展",
+      "dependencies": "M3-08、02",
+      "acceptanceOrRemainingWork": "autofit、列/边距/锚点、字段/链接、查找替换/字体替换；动态字段上下文稳定"
+    },
+    {
+      "task": "T-M6-07 节视图与备注",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "节、大纲/排序/备注视图、文档属性；切换保留有效焦点，不修改页面实际尺寸"
+    },
+    {
+      "task": "T-M6-08 跨文档页复制",
+      "dependencies": "01–04、M5-03",
+      "acceptanceOrRemainingWork": "重新映射 IDs/母版/媒体/关系；保留源格式或目标主题；history/关闭源文档后仍合法"
+    },
+    {
+      "task": "T-M6-09 本地化和访问性",
+      "dependencies": "01–07",
+      "acceptanceOrRemainingWork": "所有已交付文案 resource keys、简中/英文、菜单/区域键盘/role/name/state/画布对象语义；真实读屏初验"
+    },
+    {
+      "task": "T-M6-10 M6 交付",
+      "dependencies": "08、09",
+      "acceptanceOrRemainingWork": "AT-09/05/14，多母版/双窗口/跨文档演示，可运行包与本地化覆盖报告"
+    },
+    {
+      "task": "T-M7-01 PPTX package sidecar",
+      "dependencies": "M6-10",
+      "acceptanceOrRemainingWork": "未知 part/relationships/owner/raw bytes、继承扩展、对象复制删除映射；unknown closure 测试而非只检查 XML 存在"
+    },
+    {
+      "task": "T-M7-02 PPTX 写回与能力表",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "受支持模型写回、content types/namespaces、图表/SmartArt/OLE 保留；Import/Render/Edit/RoundTrip 分列"
+    },
+    {
+      "task": "T-M7-03 损失与冲突策略",
+      "dependencies": "02、M2-07",
+      "acceptanceOrRemainingWork": "C0–C3、损失清单、默认另存、external fingerprint/只读/权限/空间不足；保存前后 revision 正确"
+    },
+    {
+      "task": "T-M7-04 native 迁移加固",
+      "dependencies": "M2-06、01",
+      "acceptanceOrRemainingWork": "unknown field bag/requiredFeatures、资源 hash、schema 迁移、保存重开与本项目扩展数据"
+    },
+    {
+      "task": "T-M7-05 图片与基础 PDF 导出",
+      "dependencies": "M4-02、M6-06",
+      "acceptanceOrRemainingWork": "page range、DPI/透明、备注/讲义、selectable text/links/bookmark；栅格范围如实标注"
+    },
+    {
+      "task": "T-M7-06 静态放映",
+      "dependencies": "M4-09、M6-07",
+      "acceptanceOrRemainingWork": "全屏 current/first、隐藏页、键盘/点击/退出、ShowSnapshot；不依赖 M10 时间轴即可运行"
+    },
+    {
+      "task": "T-M7-07 MVP 语料库",
+      "dependencies": "01–05",
+      "acceptanceOrRemainingWork": "≥40 样本及≥5授权外部样本，结构/语义/视觉/PowerPoint 重开验证，记录版本和授权"
+    },
+    {
+      "task": "T-M7-08 三平台 MVP 验证",
+      "dependencies": "03–07",
+      "acceptanceOrRemainingWork": "实际打开/编辑/IME/保存/剪贴板/静态放映 smoke，检查测试包，不仅 cargo check"
+    },
+    {
+      "task": "T-M7-09 MVP 发布",
+      "dependencies": "07、08",
+      "acceptanceOrRemainingWork": "AT-10/11/12静态/14/15，MVP 范围声明和包、回退点；不把合成语料泛化为任意 PPTX 无损"
+    },
+    {
+      "task": "T-M10-07 屏幕 adapter",
+      "dependencies": "06",
+      "acceptanceOrRemainingWork": "选择/交换display、DPI、全屏、镜像/热插拔；设备 ID 变化安全退回"
+    },
+    {
+      "task": "T-M10-09 放映专项验证",
+      "dependencies": "03–08",
+      "acceptanceOrRemainingWork": "BENCH-SHOW、睡眠/唤醒、前后跳转、双屏热插拔、PPTX动画参数往返"
+    },
+    {
+      "task": "T-M10-10 M10 交付",
+      "dependencies": "09",
+      "acceptanceOrRemainingWork": "AT-12完整，真实双屏演示、支持效果表、可运行包"
+    },
+    {
+      "task": "T-M11-01 最小媒体依赖",
+      "dependencies": "M10-10",
+      "acceptanceOrRemainingWork": "codec/container 按 feature 引入通用库；记录独立适配器与依赖许可；probe 返回真实格式/profile支持"
+    },
+    {
+      "task": "T-M11-02 音频输出与时钟",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "cpal/平台音频适配、bounded PCM、resample/mix、音频master；回调不锁文档/解码/大分配"
+    },
+    {
+      "task": "T-M11-03 视频解码显示",
+      "dependencies": "01、02",
+      "acceptanceOrRemainingWork": "H.264 MP4指定样本后台解码、帧队列/海报/过期帧丢弃，GPU图像与预算"
+    },
+    {
+      "task": "T-M11-04 媒体交互与参数",
+      "dependencies": "02、03",
+      "acceptanceOrRemainingWork": "play/pause/seek/trim/volume/loop/autoplay/cross-slide，编辑参数可撤销，播放态不写文档"
+    },
+    {
+      "task": "T-M11-05 错误设备及往返",
+      "dependencies": "04",
+      "acceptanceOrRemainingWork": "设备切换、断音频、非法/不支持流、seek generation、media timing native/PPTX 保留"
+    },
+    {
+      "task": "T-M11-06 性能与稳定性",
+      "dependencies": "03–05",
+      "acceptanceOrRemainingWork": "BENCH-MEDIA、连续seek/loop、10分钟drift、队列/内存，无冻结"
+    },
+    {
+      "task": "T-M11-07 M11 交付",
+      "dependencies": "06",
+      "acceptanceOrRemainingWork": "AT-13，带音视频实际演示和支持格式/profile清单，测试包"
+    },
+    {
+      "task": "T-M12-01 评论与线程",
+      "dependencies": "M11-07",
+      "acceptanceOrRemainingWork": "作者/回复/解决、页/对象锚点、legacy/modern comments保留、undo与PPTX回归"
+    },
+    {
+      "task": "T-M12-02 文稿无障碍",
+      "dependencies": "01、M6-09",
+      "acceptanceOrRemainingWork": "alt text/装饰/独立阅读顺序、缺标题/替代文字检查、可定位报告，schema迁移"
+    },
+    {
+      "task": "T-M12-03 M12a 交付",
+      "dependencies": "01、02",
+      "acceptanceOrRemainingWork": "AT-19，审阅可用测试包；文稿检查不冒充 Tagged PDF或完整WCAG认证"
+    },
+    {
+      "task": "T-M12-04 无框架 dispatcher",
+      "dependencies": "M7-03",
+      "acceptanceOrRemainingWork": "transport请求/响应、target、job、error、request去重，UI宿主适配；协议模块不依赖GPUI"
+    },
+    {
+      "task": "T-M12-05 CLI",
+      "dependencies": "04",
+      "acceptanceOrRemainingWork": "commands/describe/inspect/run/render/convert、退出码/stdout/stderr、headless构建与测试"
+    },
+    {
+      "task": "T-M12-06 本地服务边界",
+      "dependencies": "04",
+      "acceptanceOrRemainingWork": "默认关闭、loopback/IPC、token、roots、请求/队列预算、queued取消与outcome-unknown"
+    },
+    {
+      "task": "T-M12-07 MCP 后端",
+      "dependencies": "05、06",
+      "acceptanceOrRemainingWork": "锁协议版本，新版discover/请求级能力或旧版initialize按版本隔离；tool/resource/notification/cancel、operationId去重、headless/remote一致"
+    },
+    {
+      "task": "T-M12-08 M12b 交付",
+      "dependencies": "05–07",
+      "acceptanceOrRemainingWork": "AT-18，UI/CLI/MCP同结果、重复请求/未认证/越界/dirty close回归，自动化可用包"
+    },
+    {
+      "task": "T-M12-09 矢量 PDF",
+      "dependencies": "M4-02、M9-01",
+      "acceptanceOrRemainingWork": "Scene路径/文字→PDF，字体子集/提取/阅读顺序/链接，局部raster，画面与结构验证"
+    },
+    {
+      "task": "T-M12-10 系统打印",
+      "dependencies": "09",
+      "acceptanceOrRemainingWork": "三平台print adapter，纸张/页范围/方向/缩放预览，取消不改文档，fallback PDF"
+    },
+    {
+      "task": "T-M12-12 M12c 交付",
+      "dependencies": "09–11",
+      "acceptanceOrRemainingWork": "AT-11扩展/19，打印真实测试与PDF放大/提取、输出能力报告和测试包"
+    },
+    {
+      "task": "T-M13-01 扩充兼容语料",
+      "dependencies": "M12-12",
+      "acceptanceOrRemainingWork": "≥100份、授权/字体/PowerPoint版本、按特性覆盖，修复已声明C2中的结构/语义/视觉损失"
+    },
+    {
+      "task": "T-M13-02 长会话与资源",
+      "dependencies": "01",
+      "acceptanceOrRemainingWork": "seeded engine/UI soak、反复open/close、历史/缓存/媒体RSS，恢复与断电边界测试"
+    },
+    {
+      "task": "T-M13-03 性能发布门槛",
+      "dependencies": "02",
+      "acceptanceOrRemainingWork": "所有BENCH的release数据、p95/p99/设备、绝对预算；未达标修复或明确缩范围"
+    },
+    {
+      "task": "T-M13-04 输入文字与读屏",
+      "dependencies": "M6-09、M12-02",
+      "acceptanceOrRemainingWork": "三平台IME、RTL/复杂脚本、NVDA/VoiceOver/Orca、键盘-only、DPI焦点；不以语义树存在代替读屏"
+    },
+    {
+      "task": "T-M13-05 GPU显示媒体矩阵",
+      "dependencies": "M10-09、M11-06",
+      "acceptanceOrRemainingWork": "集显/独显、Wayland/X11、双屏/镜像/热插拔、音频设备；已知驱动问题有重现/策略"
+    },
+    {
+      "task": "T-M13-06 偏好原生集成",
+      "dependencies": "M6-01",
+      "acceptanceOrRemainingWork": "最近文件/布局迁移、坏配置重置、mac菜单/打开事件、OS文件关联、单实例/多实例策略"
+    },
+    {
+      "task": "T-M13-07 打包签名与安装",
+      "dependencies": "03–06",
+      "acceptanceOrRemainingWork": "ZIP/安装器、mac签名公证、deb/tar；干净环境安装/启动/卸载/路径/依赖验证"
+    },
+    {
+      "task": "T-M13-08 更新与回退",
+      "dependencies": "07",
+      "acceptanceOrRemainingWork": "签名/来源验证、保留可用版本、失败恢复、schema兼容；没有凭据时不宣称正式签名验证完成"
+    },
+    {
+      "task": "T-M13-09 许可帮助与发布说明",
+      "dependencies": "01–08",
+      "acceptanceOrRemainingWork": "notices/SBOM/字体来源、支持能力/平台/恢复帮助、诊断脱敏、版本/lock/features/hash"
+    },
+    {
+      "task": "T-M13-10 Beta 发布验收",
+      "dependencies": "09",
+      "acceptanceOrRemainingWork": "AT-20、全部发布阻断项关闭，使用正式包完成闭环，STATUS/追踪矩阵更新"
+    },
+    {
+      "task": "T-M14-01 长尾文件格式",
+      "dependencies": "M7、M13",
+      "acceptanceOrRemainingWork": "分开评估PPT二进制/ODP/宏保留/加密，明确公开规范、许可、语料和无损边界，再拆独立里程碑"
+    },
+    {
+      "task": "T-M14-02 动画与设计长尾",
+      "dependencies": "M9、M10",
+      "acceptanceOrRemainingWork": "全量效果、复杂chartex/SmartArt/3D、母版扩展和离线建议，逐特性能力表与视觉golden"
+    },
+    {
+      "task": "T-M14-03 高级文字",
+      "dependencies": "M3、M6、M13",
+      "acceptanceOrRemainingWork": "真竖排、公式、warp、拼写/同义词/自动更正，先定义文本语义和授权字典"
+    },
+    {
+      "task": "T-M14-04 录制与视频输出",
+      "dependencies": "M10、M11、M12",
+      "acceptanceOrRemainingWork": "确定编码/容器/旁白/摄像头权限、时间轴和同步，交可播放小视频再扩展"
+    },
+    {
+      "task": "T-M14-05 硬件媒体及GPU互操作",
+      "dependencies": "M4、M11",
+      "acceptanceOrRemainingWork": "各OS surface/device/fence/format验证，测收益，保留稳定CPU fallback与失败边界"
+    },
+    {
+      "task": "T-M14-06 比较与协作",
+      "dependencies": "M6、M12",
+      "acceptanceOrRemainingWork": "比较合并先做离线差异，协作另定服务/冲突/权限协议；不先无理由引入CRDT"
+    },
+    {
+      "task": "T-M14-07 额外平台与扩展",
+      "dependencies": "M13",
+      "acceptanceOrRemainingWork": "ARM64/BSD/Web/插件分别评估工具链/窗口/安全模型，独立可运行产物"
+    },
+    {
+      "task": "T-M14-08 高级输出与文档检查",
+      "dependencies": "M12",
+      "acceptanceOrRemainingWork": "Tagged PDF、caption/字幕、更多可访问语义和版式检查，独立结构/读屏验证"
+    }
+  ],
+  "sheetFollowups": [
+    {
+      "id": "M0.1",
+      "title": "工作区、许可证、来源",
+      "existingEvidence": "独立工作区、来源清单、双许可证、NOTICE；M8 打包收集 508 项依赖文本及来源",
+      "remainingCriteria": "mac/seahash 原发布包缺独立正文，声明及标准条款补充单列追踪；新依赖持续审计",
+      "statusChanged": false
+    },
+    {
+      "id": "M0.2",
+      "title": "锁定依赖、环境检查",
+      "existingEvidence": "Rust 1.98.1、Kit =0.8.1、Cargo.lock、Windows 开发环境脚本",
+      "remainingCriteria": "在两种其他系统复核安装文档",
+      "statusChanged": false
+    },
+    {
+      "id": "M0.3",
+      "title": "窗口、主题、菜单、输入",
+      "existingEvidence": "原生窗口、GPUI 控件、菜单、亮暗主题、中英切换",
+      "remainingCriteria": "系统 IME/DPI/系统菜单人工验收",
+      "statusChanged": false
+    },
+    {
+      "id": "M0.4",
+      "title": "三端构建与包",
+      "existingEvidence": "三端 CI；Windows Release ZIP 实际生成",
+      "remainingCriteria": "运行远程 CI，保留各平台构建证据",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.1",
+      "title": "导入核心与测试",
+      "existingEvidence": "导入 11 crate；完整工作区回归通过",
+      "remainingCriteria": "保留后续升级差异记录",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.2",
+      "title": "移除旧 UI 依赖",
+      "existingEvidence": "layers 检查通过，无 egui/eframe 和原目录路径依赖",
+      "remainingCriteria": "CI 持续约束",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.3",
+      "title": "引擎线程与快照",
+      "existingEvidence": "有界队列、定向请求、版本保护、Arc 快照；P3 有界主动完成通知；顺序/窗口/撤销测试",
+      "remainingCriteria": "后台任务取消、快照增量优化",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.4",
+      "title": "CLI、协议、打开保存",
+      "existingEvidence": "原 CLI、MCP、认证回环服务；真实文件往返",
+      "remainingCriteria": "文件关联、拖放、加密文件交互",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.1",
+      "title": "虚拟网格",
+      "existingEvidence": "自定义 Element、双向稀疏几何、冻结象限、滚动条",
+      "remainingCriteria": "M8.2 已实现范围滚动条与抓取点；触控板需其他平台实测",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.2",
+      "title": "选择与导航",
+      "existingEvidence": "单选、范围、拖选、键盘、地址框；远端坐标单测",
+      "remainingCriteria": "M8.2 已实现边缘自动滚动与 Ctrl 非连续选区；长按拖选待扩大场景",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.3",
+      "title": "尺寸、隐藏、缩放、冻结",
+      "existingEvidence": "共用 f64 坐标转换；隐藏前缀、125% 缩放与冻结命中单测",
+      "remainingCriteria": "M8.2 已实现尺寸拖动/双击；复杂合并跨冻结边界待视觉验收",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.4",
+      "title": "性能采样",
+      "existingEvidence": "P1–P4 绘制数量、512 条有界分段样本、几何基准、原生 10k/100k 编辑/滚动和范围聚合；测试包含独立基准入口",
+      "remainingCriteria": "P3 消除逐帧已用范围扫描和轮询等待；GPU 呈现与物理输入延迟待专项，不用 CPU paint 冒充帧耗时",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.1",
+      "title": "编辑与共享草稿",
+      "existingEvidence": "真实覆盖输入框，公式栏同步；提交与冲突保护",
+      "remainingCriteria": "更多光标/选区切换回归",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.2",
+      "title": "IME 与按键",
+      "existingEvidence": "原生输入处理器、marked text 观察、工作表专用按键上下文",
+      "remainingCriteria": "W5 两输入框组合态、生命周期保护、UTF-16 候选锚点合成回归通过；真实 Windows 候选框与系统组合态仍需人工；macOS/Linux 暂跳过",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.3",
+      "title": "剪贴板与历史",
+      "existingEvidence": "系统文本/HTML、引擎富剪贴板；原生快捷键、撤销重做",
+      "remainingCriteria": "外部 Excel/LibreOffice 互操作、多窗口富内容回归",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.4",
+      "title": "公式辅助",
+      "existingEvidence": "范围引用拖选、注册函数 Tab 补全、签名说明",
+      "remainingCriteria": "M8.2 光标中间补全、跨表引用已接入；W3 已加入引用彩色区域/图例和光标位置参数高亮，原生回归通过",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.1",
+      "title": "格式与自动列宽",
+      "existingEvidence": "常用格式面板；换行、缩小、垂直对齐、下划线/删除线绘制；构建及 M4-1 原生回归通过",
+      "remainingCriteria": "W1 旋转/竖排、上下标/缩进/双下划线、边框线型/斜线及图案填充已构建并通过原生回归与 XLSX 往返；原核心单元格模型无分段富文本，保持上游语义",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.2",
+      "title": "表与行列操作",
+      "existingEvidence": "工作表/行列操作面板，删除需应用确认；增加/重命名/隐藏/恢复及行操作原生回归通过",
+      "remainingCriteria": "M8.2 标签拖动重排回归通过；更多上下文快捷操作仍可优化",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.3",
+      "title": "文档生命周期",
+      "existingEvidence": "最近文件同步、统一 UI 命令提交；保存确认模态隔离、真实按钮保存/取消/放弃、锁文件失败重试及磁盘重开原生测试通过",
+      "remainingCriteria": "M8.2 最近文件清理、M8.3 崩溃恢复副本与草稿恢复回归通过；W4 恢复侧栏仅在启动窗口自动提示；超大副本限制见 M8.md",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.4",
+      "title": "多窗口多视图",
+      "existingEvidence": "窗口切换面板、原生激活同步、独立每表滚动恢复；M4-4 构建和原生回归通过",
+      "remainingCriteria": "W2 四种原生排列、仅当前工作簿过滤、草稿保留及共享提交回归通过；W4 关闭/重开激活竞争修复、六次循环和过期通知单测通过；真实多显示器/DPI 专项仍待人工",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.1",
+      "title": "数据整理",
+      "existingEvidence": "普通排序/列筛选/查找替换/去重/填充表单、结果列表定位；分项构建与原生回归通过",
+      "remainingCriteria": "W4 多键排序表单构建/原生回归通过；复杂自定义筛选保留高级参数",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.2",
+      "title": "表、条件格式、验证",
+      "existingEvidence": "表格样式/汇总/转换、表头筛选按钮；条件格式表单与规则清单；验证列表和停止型校验保留草稿；分项原生回归通过",
+      "remainingCriteria": "W3 已加入箭头/旗帜/信号灯/符号/评级/四分圆矢量图标及条件格式边框/数字格式；M8.3 警告/信息型验证显式确认，取消保留草稿，分项回归通过",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.3",
+      "title": "分组与窗格",
+      "existingEvidence": "分组方向/范围表单、折叠展开、大纲层级、行标题折叠入口、窗格菜单；分项原生回归通过",
+      "remainingCriteria": "split 保持原引擎冻结语义；独立滚动拆分窗格不属于原有实现",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.4",
+      "title": "导入与连接",
+      "existingEvidence": "本地文件选择、多行 CSV/TSV/JSON、临时会话预览、当前表区域导入、可定位连接清单；分项构建与原生回归通过",
+      "remainingCriteria": "原项目不提供持续数据库连接/自动刷新；大文件预览仍需完整解析",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.1",
+      "title": "图表绘制",
+      "existingEvidence": "路径/文字/矩形/扇形和虚线适配；图表插入及数据修改后原生截图回归通过",
+      "remainingCriteria": "W1 已接入图表旋转文字；W4 旋转轴标题与冻结对象绘制/命中裁剪回归通过；复杂类型继续扩大视觉回归",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.2",
+      "title": "图片、形状、迷你图",
+      "existingEvidence": "后台图片解码、自定义形状/文本框/迷你图绘制、插入表单；M6-2 构建及原生回归通过",
+      "remainingCriteria": "W3 已支持形状字体、斜体、文字轮廓、RTL、换行与裁剪；W4 原 30 个插入图标名映射到内嵌资产，资源存在性测试及 GPU 截图通过",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.3",
+      "title": "对象操作",
+      "existingEvidence": "选择框、拖动/缩放、版本保护、属性表单、删除及撤销；M6-3 构建/原生回归通过",
+      "remainingCriteria": "W3 多选、批量拖动/删除一次撤销、混合对齐/分布面板与键盘微调已接入，原生回归通过；持久组合沿用原模型语义",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.4",
+      "title": "布局与打印",
+      "existingEvidence": "页面设置、PDF 导出、实际 PDF 栅格预览、Windows WPF 打印；M6-4 原生回归及打印窗口打开检查通过",
+      "remainingCriteria": "W8 原生 Cancel、重试/预览关闭、真实 WPF 页码/边距及 XPS 回归通过；实体队列与驱动仍需人工，其他平台继续跳过",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.1",
+      "title": "透视、分析、求解",
+      "existingEvidence": "透视表单、字段按钮/拖放、分析工具选择、求解表单与结果；M7-1 构建及原生回归通过",
+      "remainingCriteria": "更多复杂分析模型专项验证",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.2",
+      "title": "审阅与保护",
+      "existingEvidence": "批注气泡/面板、回复/解决、笔记、密码遮蔽/保护、名称管理；M7-2 构建及原生回归通过",
+      "remainingCriteria": "大量批注、复杂作用域与辅助功能持续验证",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.3",
+      "title": "动作、脚本、信任",
+      "existingEvidence": "录制、JSON 步骤编辑/预览、会话信任确认、任务队列/进度/取消；M7-3 原生回归通过",
+      "remainingCriteria": "取消在命令之间生效；跨文档录制仍按上游语义限制",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.4",
+      "title": "桌面控制与 MCP",
+      "existingEvidence": "目标草稿保存/打开/新建、实际完成/版本等待、MCP 定向截图、取消任务、控制面板和旧协议对照；M7-4 构建/原生回归通过",
+      "remainingCriteria": "低层关闭/切表仍保留引擎语义；M8 options/settings 已接入，ribbon 使用 GPUI 面板映射；更新发布源仍需配置，详见 CONTROL.md",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.1",
+      "title": "三端原生运行",
+      "existingEvidence": "Windows 构建启动、GPU 截图、本地路径/URL/拖入处理器的合成回归通过；见 M8-1.json",
+      "remainingCriteria": "macOS Apple Silicon、Ubuntu x64 仍缺原生环境，见 M8.md",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.2",
+      "title": "平台差异",
+      "existingEvidence": "Windows 中文字体、原生输入、文件选择、设置与网格交互回归通过（M8-2.json）",
+      "remainingCriteria": "W5/W6 组合态、候选锚点及六档模拟布局缩放回归通过；实际 IME、拖放、多显示器/DPI、系统菜单、外部剪贴板仍待人工",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.3",
+      "title": "质量与性能",
+      "existingEvidence": "严格 Clippy、核心回归、恢复/验证原生回归、虚拟辅助功能节点及绘制计数",
+      "remainingCriteria": "W3/W4 已补齐输入组件快捷键路由、Ctrl+1/Esc、F6 五区域和标签键盘导航；W7 实际 UIA 值/聚焦/合并与 DPI 坐标回归通过；P1–P4 已补齐大表 CPU 基线；真实读屏语音、GPU 呈现/物理输入仍待人工，复杂重算保留核心限制",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.4",
+      "title": "发布包",
+      "existingEvidence": "Windows 原始图标/版本资源、许可证清单、NSIS 安装器、app-local CRT、便携/源码 ZIP；macOS app/DMG、Ubuntu AppDir/deb 打包代码",
+      "remainingCriteria": "Windows 隔离安装/启动/卸载回归通过；其他平台包尚未执行，发行签名、公证、更新发布源仍待外部条件",
+      "statusChanged": false
+    },
+    {
+      "id": "P1",
+      "title": "编辑/大表分段采样",
+      "existingEvidence": "已运行两轮原生基线，512 条有界样本，含身份与版本",
+      "remainingCriteria": "GPU 呈现与物理输入未测",
+      "statusChanged": false
+    },
+    {
+      "id": "P2",
+      "title": "大表滚动与输入同步",
+      "existingEvidence": "编译和原生回归通过；去除逐帧全表扫描，内容不变不重置输入；10 万行滚动 CPU paint P95 3.78 ms",
+      "remainingCriteria": "版本变化仍重新计算几何，分段记录",
+      "statusChanged": false
+    },
+    {
+      "id": "P3",
+      "title": "完成通知与恢复去重",
+      "existingEvidence": "35 项应用/UI 测试和 Release 两轮原生复测通过；通知有界合并且先发布后唤醒，恢复失败重试和同 revision 草稿变化已覆盖",
+      "remainingCriteria": "实际退出/恢复通过；完整解压包 52 项串联回归通过",
+      "statusChanged": false
+    },
+    {
+      "id": "P4",
+      "title": "总回归与测试包",
+      "existingEvidence": "M8-preview4 解压 Release 52 项原生回归、1,377 项工作区测试通过；独立记录范围聚合与低依赖编辑",
+      "remainingCriteria": "包内独立基准、恢复开关对照、打印宿主退出和安装/运行/安全卸载通过；GPU/人工、其他系统及签名门槛继续保留",
+      "statusChanged": false
+    },
+    {
+      "id": "Q1",
+      "title": "重算结构化分段与复杂基线",
+      "existingEvidence": "原生 10k/100k 低依赖、SUM/SUMIFS/SUMPRODUCT/嵌套/扇出基线通过；Q1-performance.json",
+      "remainingCriteria": "CPU 口径，未测 GPU/物理输入",
+      "statusChanged": false
+    },
+    {
+      "id": "Q2",
+      "title": "编辑几何重建",
+      "existingEvidence": "64 行块范围缓存，值修改保留、键变更局部失效；152 项分层测试及原生复测通过；100k geometry P95 5.60→0.05 ms",
+      "remainingCriteria": "冷构建与大量自定义尺寸仍需独立索引工作",
+      "statusChanged": false
+    },
+    {
+      "id": "Q3",
+      "title": "复杂范围重算",
+      "existingEvidence": "空公式块索引、单列查找、pass 内受限 SUM 复用及兼容测试已实现，完整 CI 1,387 通过；前版 CLI 差异、冷索引补充及最终解压包性能/52 项串联回归通过",
+      "remainingCriteria": "密集公式/动态数组/复杂非 SUM 函数继续走通用路径",
+      "statusChanged": false
+    },
+    {
+      "id": "Q4",
+      "title": "最终回归与交付",
+      "existingEvidence": "M8-preview5 便携/安装/源码包；1,387 测试、52 项原生串联、包内独立启动、打印宿主退出和安装/安全卸载通过",
+      "remainingCriteria": "CPU 指标已分组；其他系统/签名及既有人工门槛保留",
+      "statusChanged": false
+    },
+    {
+      "id": "R1",
+      "title": "自定义尺寸/密集公式/动态数组分段基线",
+      "existingEvidence": "preview5 原生 Release 10k/100k 三组，各 12 次；追加无并发构建的 100k 串行复核，R1-baseline-clean-100k.json",
+      "remainingCriteria": "CPU 口径",
+      "statusChanged": false
+    },
+    {
+      "id": "R2",
+      "title": "主流功能区与尺寸共享",
+      "existingEvidence": "9 个选项卡、分组工具栏、公式确认/取消、状态栏缩放；行列 COW/索引共享；Release/M3 F6/实际 Windows 选项卡点击通过",
+      "remainingCriteria": "49 项解压包串联与 R2-native-ui.json 实际点击通过；物理 IME/DPI 等边界保留",
+      "statusChanged": false
+    },
+    {
+      "id": "R3",
+      "title": "密集公式与溢出优化",
+      "existingEvidence": "批量写回、范围依赖种子、交集遍历、浅层求值免分配；161 项分层/1,390 项完整 CI 和六组包内压力通过",
+      "remainingCriteria": "CPU 首帧；10k 密集引擎 P95 有一次求值波动，原始样本保留",
+      "statusChanged": false
+    },
+    {
+      "id": "R4",
+      "title": "CI 和新测试包",
+      "existingEvidence": "M8-preview6 便携/安装器/源码；R4-ci.json 1,390 通过/1 忽略，R4-release-native.json 49 项，六组压力、跨版文件、安装/安全卸载及打印宿主退出通过；UI-PERFORMANCE.md 汇总",
+      "remainingCriteria": "CPU 口径；旧 W7/W8 报告未冒充新运行，真实 IME/多显示器/读屏/设备打印等既有人工门槛保留；macOS/Linux/签名跳过",
+      "statusChanged": false
+    }
+  ],
+  "closedThisRun": [
+    {
+      "id": "T201",
+      "from": "in_progress",
+      "to": "done",
+      "evidence": "README.md; native/report.json"
+    }
+  ]
+}

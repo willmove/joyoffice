@@ -26,8 +26,9 @@ use crate::command::{
     PAGE_BREAK, PAGE_EDIT_BODY, PAGE_EDIT_FOOTER, PAGE_EDIT_HEADER, PAGE_MARGINS, PAGE_ORIENTATION,
     PAGE_SIZE, REVIEW_ACCEPT, REVIEW_ACCEPT_ALL, REVIEW_FINAL, REVIEW_MARKUP, REVIEW_ORIGINAL,
     REVIEW_REJECT, REVIEW_REJECT_ALL, REVIEW_SIMPLE, REVIEW_TRACK, STYLE_LIST, SWITCH_LANGUAGE,
-    TABLE_INSERT, TABLE_PROPERTIES, VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT,
-    ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
+    TABLE_COLUMN_DELETE, TABLE_COLUMN_INSERT, TABLE_INSERT, TABLE_MERGE_DOWN, TABLE_MERGE_RIGHT,
+    TABLE_PROPERTIES, TABLE_ROW_DELETE, TABLE_ROW_INSERT, TABLE_SELECT, TABLE_SPLIT,
+    VIEW_FIELD_CODES, VIEW_FORMATTING_MARKS, VIEW_HIDDEN_TEXT, ZOOM_IN, ZOOM_OUT, ZOOM_RESET,
 };
 use crate::l10n::Catalog;
 
@@ -578,6 +579,94 @@ pub const RIBBON: &[RibbonControl] = &[
         icon: "table",
         args: RibbonArgs::Dialog,
         requirement: "PLATFORM-003",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_row_insert",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_ROW_INSERT,
+        label: "command.table.row.insert",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_row_delete",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_ROW_DELETE,
+        label: "command.table.row.delete",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_column_insert",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_COLUMN_INSERT,
+        label: "command.table.column.insert",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_column_delete",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_COLUMN_DELETE,
+        label: "command.table.column.delete",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_select",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_SELECT,
+        label: "command.table.select",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_merge_right",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_MERGE_RIGHT,
+        label: "command.table.merge.right",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_merge_down",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_MERGE_DOWN,
+        label: "command.table.merge.down",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
+        evidence: Evidence::Unit,
+    },
+    RibbonControl {
+        id: "insert.table_split",
+        tab: RibbonTab::Insert,
+        group_key: "ribbon.group.tables",
+        command: TABLE_SPLIT,
+        label: "command.table.split",
+        icon: "table",
+        args: RibbonArgs::None,
+        requirement: "LAYOUT-005",
         evidence: Evidence::Unit,
     },
     RibbonControl {
@@ -1250,6 +1339,54 @@ pub struct RulerModel {
     pub right: Option<i64>,
     pub tabs: Vec<RulerTab>,
     pub unresolved: bool,
+    pub table_columns: Vec<RulerColumn>,
+}
+
+/// One internal boundary of the caret's top-level table. Version and table
+/// identity bind a gesture to the document that supplied its geometry.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RulerColumn {
+    pub table: joyword_model::NodeId,
+    pub version: joyword_model::DocumentVersion,
+    pub boundary: u32,
+    pub position_emu: i64,
+    pub content_width_twips: i64,
+}
+
+pub fn table_ruler_columns(
+    document: &joyword_model::Document,
+    at: joyword_model::Position,
+    content_width_emu: i64,
+) -> Option<Vec<RulerColumn>> {
+    let address = joyword_engine::cell_address(document, &at).ok()?;
+    let table = document
+        .story(address.story)?
+        .blocks
+        .iter()
+        .find_map(|block| match block {
+            joyword_model::Block::Table(table) if table.id == address.table => Some(table),
+            _ => None,
+        })?;
+    let content_width_twips = content_width_emu.checked_div(635)?;
+    let metrics = joyword_model::table_metrics(table, content_width_twips)?;
+    let mut edge = metrics.origin;
+    let mut columns = Vec::new();
+    for (index, width) in metrics
+        .columns
+        .iter()
+        .enumerate()
+        .take(metrics.columns.len().saturating_sub(1))
+    {
+        edge = edge.checked_add(*width)?;
+        columns.push(RulerColumn {
+            table: table.id,
+            version: document.version(),
+            boundary: u32::try_from(index + 1).ok()?,
+            position_emu: edge.checked_mul(635)?,
+            content_width_twips,
+        });
+    }
+    Some(columns)
 }
 
 /// The painter's horizontal scale. Unknown page boxes use six inches so an

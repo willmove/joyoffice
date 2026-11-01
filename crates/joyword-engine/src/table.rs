@@ -460,6 +460,132 @@ pub(crate) fn set_properties(
     Ok(())
 }
 
+pub(crate) fn set_cell_shading(
+    document: &mut Document,
+    at: &Position,
+    shading: Option<joyword_model::Shading>,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    let site = site(document, at)?;
+    let paragraphs = {
+        let table = table_mut(document, at.story, site.index, site.table)?;
+        let row = &mut table.rows[site.row];
+        let cell = &mut row.cells[site.cell];
+        if table.preserved.is_some() || row.preserved.is_some() || cell.preserved.is_some() {
+            return Err(refuse(site.table, TableStructure::Preserved));
+        }
+        if cell.shading == shading {
+            return Ok(());
+        }
+        cell.shading = shading;
+        paragraph_ids_of_cell(cell)
+    };
+    note_table(changes, at.story, site.table, &[], &[]);
+    changes.paragraphs.extend(paragraphs);
+    Ok(())
+}
+
+/// Resolve against the same content box as layout, then move only the two
+/// adjacent columns. Percentage cell preferences must follow the resized grid;
+/// otherwise tcW would override tblGrid on the next layout. Table percentage
+/// width, alignment, merges, content and all other formatting stay intact.
+pub(crate) fn resize_column_boundary(
+    document: &mut Document,
+    at: &Position,
+    boundary: u32,
+    delta_twips: i64,
+    content_width_twips: i64,
+    changes: &mut ChangeSet,
+) -> Result<(), CommandError> {
+    if !(1..=MAX_PROPERTY_TWIPS).contains(&content_width_twips) {
+        return Err(CommandError::TableProperties(
+            "table content width is out of range",
+        ));
+    }
+    let site = site(document, at)?;
+    let table_id = site.table;
+    let paragraphs = {
+        let table = table_mut(document, at.story, site.index, table_id)?;
+        if table.preserved.is_some()
+            || table.rows.iter().any(|row| {
+                row.preserved.is_some() || row.cells.iter().any(|cell| cell.preserved.is_some())
+            })
+        {
+            return Err(refuse(table_id, TableStructure::Preserved));
+        }
+        let mut columns = joyword_model::table_metrics(table, content_width_twips)
+            .ok_or(CommandError::TableProperties("table widths do not resolve"))?
+            .columns;
+        let boundary = boundary as usize;
+        if boundary == 0 || boundary >= columns.len() {
+            return Err(CommandError::TableProperties(
+                "not an internal column boundary",
+            ));
+        }
+        let left = columns[boundary - 1].checked_add(delta_twips);
+        let right = columns[boundary].checked_sub(delta_twips);
+        let (Some(left), Some(right)) = (left, right) else {
+            return Err(CommandError::TableProperties("column width overflow"));
+        };
+        // One point minimum; do not silently clamp an invalid gesture.
+        if ![left, right]
+            .iter()
+            .all(|width| (20..=MAX_PROPERTY_TWIPS).contains(width))
+        {
+            return Err(CommandError::TableProperties(
+                "column width is out of range",
+            ));
+        }
+        if delta_twips == 0 {
+            return Ok(());
+        }
+        columns[boundary - 1] = left;
+        columns[boundary] = right;
+        for row in &mut table.rows {
+            let mut column = row.grid_before as usize;
+            for cell in &mut row.cells {
+                let end = column
+                    .checked_add(cell.grid_span as usize)
+                    .ok_or(CommandError::TableProperties("cell span overflow"))?;
+                let width = columns
+                    .get(column..end)
+                    .and_then(|widths| {
+                        widths
+                            .iter()
+                            .try_fold(0i64, |sum, width| sum.checked_add(*width))
+                    })
+                    .ok_or(CommandError::TableProperties("cell span exceeds grid"))?;
+                let margin = cell
+                    .margin
+                    .or(table.cell_margin)
+                    .unwrap_or(joyword_model::DEFAULT_TABLE_CELL_MARGINS);
+                if margin.left < 0
+                    || margin.right < 0
+                    || margin
+                        .left
+                        .checked_add(margin.right)
+                        .is_none_or(|padding| width <= padding)
+                {
+                    return Err(CommandError::TableProperties(
+                        "cell is narrower than its margins",
+                    ));
+                }
+                cell.width = Some(Measure::Twips(width));
+                column = end;
+            }
+        }
+        table.grid = columns.into_iter().map(Measure::Twips).collect();
+        table
+            .rows
+            .iter()
+            .flat_map(|row| row.cells.iter().flat_map(paragraph_ids_of_cell))
+            .collect::<Vec<_>>()
+    };
+    note_table(changes, at.story, table_id, &[], &[]);
+    changes.paragraphs.extend(paragraphs);
+    Ok(())
+}
+
 /// Twenty-two inches, the same direct-length limit as paragraph indents.
 const MAX_PROPERTY_TWIPS: i64 = 22 * 1_440;
 /// 1000% in fiftieths of a percent. Larger percentages stay outside the dialog.

@@ -141,6 +141,19 @@ pub enum Command {
         at: Position,
         change: TablePropertyChange,
     },
+    /// Changes only the caret cell's solid fill; None clears its direct fill.
+    SetTableCellShading {
+        at: Position,
+        shading: Option<joyword_model::Shading>,
+    },
+    /// Moves an internal grid boundary by rendered twips, keeping the table's
+    /// rendered outer width. Cell preferred widths follow the new grid.
+    ResizeTableColumnBoundary {
+        at: Position,
+        boundary: u32,
+        delta_twips: i64,
+        content_width_twips: i64,
+    },
     /// Replaces one section's page size, margins and orientation.
     SetPageSetup {
         section: NodeId,

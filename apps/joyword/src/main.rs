@@ -181,7 +181,12 @@ pub(crate) enum RulerHit {
     First,
     Body,
     Right,
-    Tab { from_emu: i64 },
+    Tab {
+        from_emu: i64,
+    },
+    TableColumn {
+        mark: joyword_shell::chrome::RulerColumn,
+    },
 }
 
 const ZOOM_MIN: u16 = 50;
@@ -508,6 +513,7 @@ enum PopupKind {
     FontSize,
     FontColor,
     TableGrid,
+    TableEdit,
     PageSize,
     Margins,
     Orientation,
@@ -580,7 +586,7 @@ struct JoyWord {
     path_sheet: Option<linux_files::PathSheet>,
     view_toggles: joyword_shell::dialogs::ViewToggles,
     ruler_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
-    ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>)>,
+    ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>, Bounds<gpui::Pixels>)>,
     side_panel: Option<SidePanel>,
     popup: Option<Popup>,
     table_preview: (u32, u32),

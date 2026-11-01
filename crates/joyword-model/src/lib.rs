@@ -73,7 +73,7 @@ pub use style::{
     TableFormat, overlay_paragraph,
 };
 pub use symbol_font::{is_mapped_family, map_private_use};
-pub use table_geom::{TableMetrics, table_metrics};
+pub use table_geom::{DEFAULT_TABLE_CELL_MARGINS, TableMetrics, table_metrics};
 pub use text::{
     CHUNK_MAX_BYTES, OBJECT_MARKER, ParagraphText, ScalarOffset, TextError, TextSummary,
     Utf8Offset, Utf16Offset,

@@ -242,6 +242,10 @@ pub enum RulerDrag {
     /// `to_emu` none removes a custom stop. A `from_emu` that is not a custom
     /// stop adds a left stop (the ruler's default stops are not stored).
     Tab { from_emu: i64, to_emu: Option<i64> },
+    TableColumn {
+        mark: crate::chrome::RulerColumn,
+        delta_twips: i64,
+    },
 }
 
 /// Registry rows for the dialog and the disabled view switches.
@@ -440,6 +444,11 @@ const TABLE_PROPERTY_PARAMS: &[crate::command::ParamSpec] = {
         },
         ParamSpec {
             name: "border_color",
+            kind: ParamKind::Text,
+            required: false,
+        },
+        ParamSpec {
+            name: "cell_fill",
             kind: ParamKind::Text,
             required: false,
         },
@@ -1092,6 +1101,8 @@ pub struct TableDraft {
     pub alignment: Option<TableAlign>,
     pub cell_margin: Option<CellMargins>,
     pub borders: Option<CellBorders>,
+    /// None leaves the caret cell; Some(None) removes its direct shading.
+    pub cell_shading: Option<Option<joyword_model::Shading>>,
 }
 
 impl TableDraft {
@@ -1100,6 +1111,7 @@ impl TableDraft {
             && self.alignment.is_none()
             && self.cell_margin.is_none()
             && self.borders.is_none()
+            && self.cell_shading.is_none()
     }
 }
 
@@ -1117,9 +1129,13 @@ pub fn parse_table_properties(
     args: &BTreeMap<&'static str, ArgValue>,
 ) -> Result<TableDraft, &'static str> {
     require_commit(args)?;
-    let margin_keys = ["top", "left", "bottom", "right"]
-        .into_iter()
-        .any(|name| args.contains_key(name));
+    let margin_keys =
+        ["top", "left", "bottom", "right"]
+            .into_iter()
+            .try_fold(false, |any, name| {
+                text_arg(args.get(name))
+                    .map(|value| any || value.is_some_and(|text| !text.trim().is_empty()))
+            })?;
     Ok(TableDraft {
         width: optional_table_width(args.get("width"))?,
         alignment: optional_table_align(args.get("align"))?,
@@ -1134,6 +1150,15 @@ pub fn parse_table_properties(
             None
         },
         borders: optional_table_borders(args)?,
+        cell_shading: match text_arg(args.get("cell_fill"))?.map(str::trim) {
+            None | Some("") => None,
+            Some("none") => Some(None),
+            Some(_) => Some(Some(joyword_model::Shading {
+                fill: optional_color(args.get("cell_fill"))
+                    .map_err(|_| "dialog.table.cell_fill")?
+                    .ok_or("dialog.table.cell_fill")?,
+            })),
+        },
     })
 }
 
@@ -1145,15 +1170,20 @@ pub fn table_property_commands(
     if draft.leaves_everything() {
         return Ok(Vec::new());
     }
-    Ok(vec![Command::SetTableProperties {
-        at,
-        change: TablePropertyChange {
-            width: draft.width,
-            alignment: draft.alignment,
-            cell_margin: draft.cell_margin,
-            borders: draft.borders,
-        },
-    }])
+    let mut commands = Vec::new();
+    let change = TablePropertyChange {
+        width: draft.width,
+        alignment: draft.alignment,
+        cell_margin: draft.cell_margin,
+        borders: draft.borders,
+    };
+    if !change.is_empty() {
+        commands.push(Command::SetTableProperties { at, change });
+    }
+    if let Some(shading) = draft.cell_shading {
+        commands.push(Command::SetTableCellShading { at, shading });
+    }
+    Ok(commands)
 }
 
 fn optional_table_width(value: Option<&ArgValue>) -> Result<Option<TableWidth>, &'static str> {

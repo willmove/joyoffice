@@ -796,3 +796,48 @@ fn column_and_band_table_style_conditions_import_and_survive_an_edit() {
         style.table_conditionals
     );
 }
+
+#[test]
+fn resized_grid_and_cell_widths_round_trip_without_losing_shading_or_content() {
+    use joyword_engine::{Command, Session, Transaction};
+    use joyword_model::{Bias, Position, ScalarOffset};
+    let bytes = package(&simple_table());
+    let imported = import(&bytes, &Budget::default()).unwrap();
+    let mut session = Session::new(imported.document);
+    let Block::Table(before) = session.document().body().blocks.get(0).unwrap() else {
+        panic!("table")
+    };
+    let before = before.clone();
+    let at = Position {
+        story: session.document().body_id(),
+        paragraph: before.rows[0].cells[0].blocks.get(0).unwrap().id(),
+        offset: ScalarOffset(0),
+        bias: Bias::After,
+    };
+    session
+        .apply(Transaction::new(
+            session.version(),
+            vec![Command::ResizeTableColumnBoundary {
+                at,
+                boundary: 1,
+                delta_twips: 400,
+                content_width_twips: 9000,
+            }],
+        ))
+        .unwrap();
+    let exported = plan_export(&imported.backing, &session.snapshot(), &Budget::default()).unwrap();
+    let saved = import(exported.bytes(), &Budget::default()).unwrap();
+    assert_eq!(
+        session.document().semantic_difference(&saved.document),
+        None
+    );
+    let Block::Table(after) = saved.document.body().blocks.get(0).unwrap() else {
+        panic!("table")
+    };
+    assert_eq!(after.grid, vec![Measure::Twips(2400), Measure::Twips(2600)]);
+    for (cell, old) in after.rows[0].cells.iter().zip(&before.rows[0].cells) {
+        assert_eq!(cell.shading, old.shading);
+        assert_eq!(cell.borders, old.borders);
+    }
+    assert!(xml_of(exported.bytes()).contains("w:gridCol w:w=\"2400\""));
+}

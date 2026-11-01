@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "binarySha256": "252ad692f55dfeebd6814259012fe213a74a30e815aec5a3fedcbf13d35fa5b7",
+  "eventSource": "X11 OS synthetic keys and actual window pixels",
+  "checks": [
+    "native typing, undo/redo, long-path Save As and independent DOCX readback",
+    "document focus restored after Save As; immediate keyboard PDF export and Poppler readback",
+    "export completion retains keyboard focus; cancellation and original bytes preserved"
+  ],
+  "nativeImeVerified": false
+}

@@ -1,0 +1,15 @@
+{
+  "beforeBinarySha256": "2dd19aa25f09660ea5d37dcbea52ebffb52e977e5a2f2ae81fa6269bb9b95161",
+  "beforeMargins": {
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "right": 0
+  },
+  "afterMargins": null,
+  "expected": "Keep omitted table margins when the native dialog submits blank fields",
+  "beforeArtifact": "before-empty-margin-fix.docx",
+  "afterArtifact": "../native/16-cell-fill.docx",
+  "regressionReproduced": true,
+  "fixed": true
+}

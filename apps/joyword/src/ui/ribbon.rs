@@ -279,13 +279,22 @@ impl JoyWord {
             ))
             .child(self.group(
                 "ribbon.group.tables",
-                vec![self.dropdown(
-                    "insert-table",
-                    self.label("command.table.insert"),
-                    PopupKind::TableGrid,
-                    110.0,
-                    cx,
-                )],
+                vec![
+                    self.dropdown(
+                        "insert-table",
+                        self.label("command.table.insert"),
+                        PopupKind::TableGrid,
+                        110.0,
+                        cx,
+                    ),
+                    self.dropdown(
+                        "edit-table",
+                        self.label("ui.table_edit"),
+                        PopupKind::TableEdit,
+                        110.0,
+                        cx,
+                    ),
+                ],
                 cx,
             ))
             .child(self.group(

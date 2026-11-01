@@ -234,6 +234,10 @@ impl JoyWord {
         if unresolved_interval {
             model.unresolved = true;
         }
+        if let Some(width) = model.content_width {
+            model.table_columns =
+                chrome::table_ruler_columns(document, head, width).unwrap_or_default();
+        }
         model
     }
 
@@ -304,7 +308,8 @@ impl JoyWord {
     }
 
     pub(crate) fn open_table_dialog(&mut self, cx: &mut Context<Self>) {
-        let (width, align, top, left, bottom, right, border, size, color) = self.table_prefill();
+        let (width, align, top, left, bottom, right, border, size, color, cell_fill) =
+            self.table_prefill();
         self.format_dialog_focused = false;
         self.format_dialog = Some(FormatDialog {
             kind: DialogKind::Table,
@@ -318,6 +323,7 @@ impl JoyWord {
                 dialog_field("border", "dialog.table.border", border, cx),
                 dialog_field("border_size", "dialog.table.border_size", size, cx),
                 dialog_field("border_color", "dialog.table.border_color", color, cx),
+                dialog_field("cell_fill", "dialog.table.cell_fill", cell_fill, cx),
             ],
             bold: false,
             italic: false,
@@ -863,7 +869,7 @@ impl JoyWord {
         let Some(hit) = hit_ruler(&model, bounds, position) else {
             return;
         };
-        self.ruler_drag = Some((hit, position));
+        self.ruler_drag = Some((hit, position, bounds));
         cx.notify();
     }
 
@@ -873,7 +879,7 @@ impl JoyWord {
         outside: bool,
         cx: &mut Context<Self>,
     ) {
-        let Some((hit, origin)) = self.ruler_drag.take() else {
+        let Some((hit, origin, original_bounds)) = self.ruler_drag.take() else {
             return;
         };
         let moved = (f32::from(position.x - origin.x)).abs() >= 3.0
@@ -889,6 +895,19 @@ impl JoyWord {
         let position_emu = x_to_emu(bounds, scale, position.x);
         let drop_tab = outside && (f32::from(position.y - bounds.bottom())).abs() > 24.0;
         let drag = match hit {
+            RulerHit::TableColumn { mark } => {
+                if bounds != original_bounds {
+                    return;
+                }
+                if outside && (f32::from(position.y - bounds.center().y)).abs() > 24.0 {
+                    return;
+                }
+                let width = f32::from(bounds.size.width).max(1.0);
+                let delta_twips = (f32::from(position.x - origin.x) / width
+                    * mark.content_width_twips as f32)
+                    .round() as i64;
+                joyword_shell::dialogs::RulerDrag::TableColumn { mark, delta_twips }
+            }
             RulerHit::First => joyword_shell::dialogs::RulerDrag::Indent {
                 marker: joyword_shell::dialogs::IndentMarker::FirstLine,
                 position_emu,
@@ -1002,6 +1021,7 @@ impl JoyWord {
             String::new(),
             String::new(),
             String::new(),
+            String::new(),
         );
         let Some(editor) = &self.editor else {
             return empty;
@@ -1049,11 +1069,19 @@ impl JoyWord {
             border,
             size,
             color,
+            table
+                .rows
+                .get(address.row)
+                .and_then(|row| row.cells.get(address.cell))
+                .and_then(|cell| cell.shading)
+                .map(|shading| border_color_text(shading.fill))
+                .unwrap_or_else(|| "none".to_owned()),
         )
     }
 }
 
 type TablePrefill = (
+    String,
     String,
     String,
     String,
@@ -1263,6 +1291,17 @@ fn hit_ruler(
 ) -> Option<RulerHit> {
     let scale = model.content_width.unwrap_or_else(|| ruler_scale(model));
     let distance = |emu: i64| (f32::from(position.x - emu_x(bounds, scale, emu))).abs();
+    if (f32::from(position.y - bounds.center().y)).abs() <= 6.0
+        && let Some(mark) = model
+            .table_columns
+            .iter()
+            .filter(|mark| distance(mark.position_emu) <= 6.0)
+            .min_by(|left, right| {
+                distance(left.position_emu).total_cmp(&distance(right.position_emu))
+            })
+    {
+        return Some(RulerHit::TableColumn { mark: *mark });
+    }
     let top = position.y < bounds.center().y;
     if top {
         if let Some(mark) = model.first_line
@@ -1414,6 +1453,16 @@ fn paint_ruler(bounds: Bounds<Pixels>, scale: i64, model: &RulerModel, window: &
     }
     for tab in &model.tabs {
         paint_tab(bounds, scale, tab, window);
+    }
+    for mark in &model.table_columns {
+        let x = emu_x(bounds, scale, mark.position_emu);
+        window.paint_quad(fill(
+            Bounds {
+                origin: point(x - px(3.0), bounds.center().y - px(5.0)),
+                size: size(px(6.0), px(10.0)),
+            },
+            rgb(0x1f5b9b),
+        ));
     }
     if let Some(position) = model.left {
         paint_block(bounds, scale, position, false, INK, window);

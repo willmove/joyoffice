@@ -1,0 +1,50 @@
+{
+  "baseRevision": "1a21273bf33604d78244a6c19c50f461fa86bc9f",
+  "sourceIdentity": "Final source file SHA256 below; GUI binary built before final product checks. Commit ID is not embedded to avoid a self-referential artifact.",
+  "sourceFiles": {
+    "apps/joyword/src/chrome_ui.rs": "f1b2ebc14b213a45927a3c2fab0ca83950d9ff70baeec4c478ad68755938c5d8",
+    "apps/joyword/src/input_ui.rs": "609014203f1af99d8430aa5e4831cfe4343f6915aa5538e057b41fb52a82f222",
+    "apps/joyword/src/main.rs": "31298fab03d9575470371f1f19d13044cb28aba4edbde907f1df32d39502a925",
+    "apps/joyword/src/ui/ribbon.rs": "426e5bbda5eea07442a8a249e978ba17792dd1cfc26c85f567103a1183aabf8d",
+    "apps/joyword/src/ui/shell.rs": "78f163b13711c3ef120b735a1e3dbaba02b12da02f58fb19e4ab8f93c97ff27b",
+    "crates/joyword-docx/tests/tables.rs": "5071438dccffa43b48cba6e2a2c6034bd53b5042e50b0b2ad4db44b4420844c2",
+    "crates/joyword-engine/src/command.rs": "af6e0ddb3db73ca92755466d49b0c0dda77398251e0bac6151634c80f6abc71f",
+    "crates/joyword-engine/src/session.rs": "6e9189d621939c654cb8dc9ba224af066376f8c77140927f6609d31ded1d4b61",
+    "crates/joyword-engine/src/table.rs": "ccab413fb284986620d1665baeeb8550cd220a15370366c018c0e810953cf0a4",
+    "crates/joyword-engine/tests/tables.rs": "4a26ac19e8f411cfe29e9442e4b8e8b5db33b91a2e1f34f78503f62b7ddce39b",
+    "crates/joyword-layout/src/document.rs": "16f8e61e037a88b90563c676bf99ce1c60c95fecdcb3d51e56ffbc3db3adf441",
+    "crates/joyword-model/src/lib.rs": "e8cada54e0f26a78dcc71185243702c9c764366b2c7cc4cd438d969162334d1e",
+    "crates/joyword-model/src/table_geom.rs": "c08b031ef1cbea36aa3792782324b72479cc2c10ea6daddc424e2c2dc5e0b15a",
+    "crates/joyword-shell/locales/en.lang": "fbf5c15f43f302d2095302979a4eade2230b5868b3ba47b7479ceb71ac6df813",
+    "crates/joyword-shell/locales/zh-CN.lang": "7262e68e862d707408aff9c6408570c00a21f385ba260bf3c313be13d75d265e",
+    "crates/joyword-shell/src/chrome.rs": "7641b9b4cefc4a330b6c44f20f454cdb20e6805541d0eaa33b50abf88027af5b",
+    "crates/joyword-shell/src/dialogs.rs": "8a5da5d9482f78c002c8edfd3e15bf9032021bd654e43e7cb330d435094824e4",
+    "crates/joyword-shell/src/input.rs": "bcb725807e737ee1782cdfa11f11a3158893a96e8e7a04da9204aede809f2f71",
+    "crates/joyword-shell/tests/dialogs.rs": "6d30ede1231b7702208d8558f6e643f3640103dee32f02dcd600a560deb7e237",
+    "scripts/check_docs.py": "b722579226260a89da70561dfedc2c967af9c93dd83929d9443f18f4acd2de58",
+    "scripts/smoke_word_table_linux.py": "42219bee57bb1d6ad7231ea376ca76c6587ffc3273774ddcd5478a031b536caf"
+  },
+  "wordBinarySha256": "252ad692f55dfeebd6814259012fe213a74a30e815aec5a3fedcbf13d35fa5b7",
+  "nativeTableReport": "native/report.json",
+  "nativePathFocusReport": "path-focus/report.json",
+  "productChecks": {
+    "joyword": {
+      "passed": 1304,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joydeck": {
+      "passed": 194,
+      "failed": 0,
+      "ignored": 1
+    },
+    "joysheet": {
+      "passed": 1400,
+      "failed": 0,
+      "ignored": 1
+    }
+  },
+  "pythonTestsPassed": 146,
+  "guiInput": "X11 OS synthetic keys and pointer, actual native application/window pixels; no system IME certification",
+  "artifacts": "Console logs have trailing blank lines normalized only; no screenshot pixel editing. Test profile/config and recovery files excluded."
+}

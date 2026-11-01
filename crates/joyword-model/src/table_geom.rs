@@ -9,6 +9,16 @@
 use crate::block::{Table, TableAlign, TableLayoutKind, TableWidth, VerticalMerge};
 use crate::props::Measure;
 
+/// Application default when both cell and table margins are absent. Shared by
+/// editing and layout so a resize cannot leave a cell with no content box.
+/// ECMA-376 §17.4.43 permits an application default; this is not a Word rule.
+pub const DEFAULT_TABLE_CELL_MARGINS: crate::CellMargins = crate::CellMargins {
+    top: 0,
+    left: 108,
+    bottom: 0,
+    right: 108,
+};
+
 /// Column widths and the origin from the content left, both in twips.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TableMetrics {

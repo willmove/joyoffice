@@ -84,6 +84,20 @@ fn a_cancelled_table_dialog_does_not_open_a_transaction() {
     editor.apply_table_properties(&draft).unwrap();
     assert_eq!(editor.backend().version(), version);
     assert!(!editor.can_undo());
+
+    // The native dialog sends empty strings for all untouched margin fields.
+    let blank_fields = table_draft_from_decision(Some(&args(&[
+        ("top", ""),
+        ("left", " "),
+        ("bottom", ""),
+        ("right", ""),
+    ])))
+    .unwrap()
+    .unwrap();
+    assert!(blank_fields.leaves_everything());
+    editor.apply_table_properties(&blank_fields).unwrap();
+    assert_eq!(editor.backend().version(), version);
+    assert!(!editor.can_undo());
 }
 
 #[test]
@@ -240,4 +254,105 @@ fn underline_and_srgb_do_not_record_a_paint_refusal() {
         })
         .unwrap();
     assert!(!notes.contains(&"dialog.font.paint"));
+}
+
+#[test]
+fn table_ruler_uses_layout_metrics_and_rejects_a_stale_drag() {
+    use joyword_model::{Block, TableAlign, TableWidth};
+    use joyword_shell::chrome::table_ruler_columns;
+    use joyword_shell::dialogs::RulerDrag;
+    let mut editor = input("");
+    editor.insert_table(2, 3).unwrap();
+    let head = editor.view().selection().head;
+    let mut document = editor.backend().document().clone();
+    let table = document
+        .body()
+        .blocks
+        .iter()
+        .find_map(|block| match block {
+            Block::Table(table) => Some(table.id),
+            _ => None,
+        })
+        .unwrap();
+    let body = document.body_id();
+    for index in 0..document.body().blocks.len() {
+        let block = document
+            .story_mut(body)
+            .unwrap()
+            .blocks
+            .get_mut(index)
+            .unwrap();
+        if let Block::Table(found) = block {
+            let found = Arc::make_mut(found);
+            found.width = Some(TableWidth::Pct(2500));
+            found.alignment = Some(TableAlign::Right);
+        }
+    }
+    let mut editor = TextInput::new(Session::new(document), InputLimits::default()).unwrap();
+    editor
+        .select_positions(joyword_engine::Selection::caret(head))
+        .unwrap();
+    let marks = table_ruler_columns(editor.backend().document(), head, 6000 * 635).unwrap();
+    assert_eq!(marks.len(), 2);
+    assert_eq!(marks[0].table, table);
+    assert_eq!(marks[0].position_emu, 4000 * 635);
+    assert_eq!(marks[1].position_emu, 5000 * 635);
+    let drag = RulerDrag::TableColumn {
+        mark: marks[0],
+        delta_twips: 100,
+    };
+    editor.apply_ruler(drag).unwrap();
+    let version = editor.backend().version();
+    assert!(editor.apply_ruler(drag).is_err());
+    assert_eq!(editor.backend().version(), version);
+    editor.undo().unwrap();
+    assert!(
+        editor.apply_ruler(drag).is_err(),
+        "undo advances the version too"
+    );
+}
+
+#[test]
+fn cell_fill_and_table_border_apply_together_and_undo_together() {
+    use joyword_model::{Block, Color};
+    let mut editor = input("");
+    editor.insert_table(2, 2).unwrap();
+    let before = editor.backend().document().clone();
+    for fill in ["GG0000", "theme:accent1", "#ffffff"] {
+        assert!(table_draft_from_decision(Some(&args(&[("cell_fill", fill)]))).is_err());
+    }
+    let draft = table_draft_from_decision(Some(&args(&[
+        ("cell_fill", "DDEEFF"),
+        ("border", "double"),
+    ])))
+    .unwrap()
+    .unwrap();
+    editor.apply_table_properties(&draft).unwrap();
+    let table = editor
+        .backend()
+        .document()
+        .body()
+        .blocks
+        .iter()
+        .find_map(|block| match block {
+            Block::Table(table) => Some(table),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(
+        table.rows[0].cells[0].shading.unwrap().fill,
+        Color::Rgb(0xdd, 0xee, 0xff)
+    );
+    assert!(table.rows[0].cells[1].shading.is_none());
+    assert!(table.rows[1].cells[0].shading.is_none());
+    let clear = table_draft_from_decision(Some(&args(&[("cell_fill", "none")])))
+        .unwrap()
+        .unwrap();
+    editor.apply_table_properties(&clear).unwrap();
+    editor.undo().unwrap();
+    editor.undo().unwrap();
+    assert_eq!(
+        before.semantic_difference(editor.backend().document()),
+        None
+    );
 }
