@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "capturedWindows": {
+    "01-main.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1200
+    },
+    "02-insert.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1200
+    },
+    "03-table-dialog.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1200
+    },
+    "04-design.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1200
+    },
+    "05-font-menu.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1200
+    },
+    "06-workflows.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1200
+    },
+    "07-width-1600.png": {
+      "X": 360,
+      "Height": 800,
+      "Y": 110,
+      "Width": 1560
+    },
+    "07-width-960.png": {
+      "X": 360,
+      "Height": 700,
+      "Y": 110,
+      "Width": 960
+    },
+    "07-width-800.png": {
+      "X": 360,
+      "Height": 700,
+      "Y": 110,
+      "Width": 800
+    }
+  },
+  "binarySha256": "24ffffc98b442812d077dbfc10025d132395b166ed0b4fe91a0941cd5e3df80e",
+  "checks": [
+    "initial undo disabled; localized controls and stable IDs",
+    "table dialog opens and cancels without editing",
+    "real add-page button and undo/redo state transitions",
+    "create design, apply layout and edit actual theme color",
+    "keyboard opens font picker and advanced workflow menu",
+    "requested 1600/960/800 widths retain commands; actual window bounds recorded",
+    "save and independent CLI reopen preserve theme edit and page count"
+  ],
+  "scope": "macOS AX actions and OS synthetic events; not physical keyboard, IME or screen-reader certification"
+}

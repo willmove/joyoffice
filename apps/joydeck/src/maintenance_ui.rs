@@ -1,3 +1,4 @@
+use super::ui::PALETTE;
 use super::*;
 use gpui_kit::component::Sizable;
 use joydeck::{compare, preferences};
@@ -135,17 +136,19 @@ impl Editor {
             }
         }
     }
-    pub(super) fn maintenance_pane(&self, cx: &mut Context<Self>) -> AnyElement {
+    pub(super) fn maintenance_pane(&self, pane_width: f32, cx: &mut Context<Self>) -> AnyElement {
         let button = |id: &'static str, label: &'static str| Button::new(id).label(label).small();
         let mut pane = div()
             .id("maintenance-pane")
-            .size_full()
+            .flex_1()
+            .min_h_0()
+            .h_full()
             .p_4()
             .flex()
             .flex_col()
             .gap_3()
             .overflow_y_scroll()
-            .bg(rgb(0xffffff))
+            .bg(rgb(PALETTE.surface))
             .text_size(px(13.));
         if self.ribbon == "比较" {
             pane=pane.child("将当前文稿与另一文稿比较")
@@ -300,6 +303,9 @@ impl Editor {
                 .child("输出到新路径。PPTX公开输出有能力损失提示；静态页MP4不含音轨、动画、转场或录制。")
                 .child("开发包的README、BUILD-INFO、SBOM与SHA256清单记录支持范围和依赖；正式签名和跨平台验收以状态文档为准。");
         }
-        pane.into_any_element()
+        ui::pane(pane_width)
+            .child(self.pane_header(&self.ribbon, cx))
+            .child(pane)
+            .into_any_element()
     }
 }

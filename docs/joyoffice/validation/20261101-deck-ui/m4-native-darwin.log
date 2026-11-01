@@ -1,0 +1,8 @@
+M2 command=object.add document=1
+M2 command=object.add document=1
+M2 command=object.add document=1
+M2 command=object.update document=1
+M4_SMOKE move_no_page_raster=true move_no_upload=true cached_glyphs=true
+M4_SMOKE cpu_switch_undo_redo=true cache_rebuild_preserves_document=true
+M2 command=object.update document=1
+M4_SMOKE stale_document_job_discarded=true complete=true

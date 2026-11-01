@@ -4,12 +4,13 @@
 //! surfaces only supply the shared visual vocabulary and interaction states.
 pub use gpui_kit::assets::IconName;
 use gpui_kit::component::Icon;
-use gpui_kit::{Div, Styled, div, px, rgb};
+use gpui_kit::{Div, ParentElement, Styled, div, px, rgb};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Brand {
     Word,
     Sheet,
+    Deck,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -36,6 +37,7 @@ impl Palette {
         let (accent, accent_hover, selected, header) = match brand {
             Brand::Word => (0x315fa8, 0x244b87, 0xe6eefb, 0xeaf0f8),
             Brand::Sheet => (0x146c43, 0x105735, 0xe3f0e8, 0xe9f0ec),
+            Brand::Deck => (0xa63d24, 0x87301b, 0xf9eae3, 0xf5ece7),
         };
         Self {
             canvas: 0xf0f3f2,
@@ -60,6 +62,7 @@ impl Palette {
         let (accent, accent_hover, selected, header) = match brand {
             Brand::Word => (0xa8c8ff, 0xc5daff, 0x293d58, 0x202e40),
             Brand::Sheet => (0x94dbb4, 0xb2ebcb, 0x294638, 0x1d3529),
+            Brand::Deck => (0xffba9e, 0xffd1be, 0x50382f, 0x3e3029),
         };
         Self {
             canvas: 0x172620,
@@ -132,6 +135,29 @@ pub fn card(palette: Palette) -> Div {
         .rounded(px(metrics::CARD_RADIUS))
 }
 
+/// A section heading inside a task pane or form. Identity stays with the caller.
+pub fn section(palette: Palette, title: impl Into<gpui_kit::SharedString>) -> Div {
+    div()
+        .pt_3()
+        .pb_1()
+        .text_size(px(12.0))
+        .font_weight(gpui_kit::FontWeight::SEMIBOLD)
+        .text_color(rgb(palette.text))
+        .child(title.into())
+}
+
+/// Keep labels and their controls together when a form reflows or scrolls.
+pub fn field(palette: Palette, label: impl Into<gpui_kit::SharedString>) -> Div {
+    div()
+        .flex()
+        .flex_col()
+        .gap_1()
+        .min_w_0()
+        .text_size(px(12.0))
+        .text_color(rgb(palette.muted))
+        .child(label.into())
+}
+
 pub fn icon(name: IconName, size: f32, color: u32) -> Icon {
     Icon::new(name).size(px(size)).text_color(rgb(color))
 }
@@ -159,7 +185,7 @@ mod tests {
 
     #[test]
     fn reading_and_action_colors_remain_legible_across_brands_and_modes() {
-        for brand in [Brand::Word, Brand::Sheet] {
+        for brand in [Brand::Word, Brand::Sheet, Brand::Deck] {
             for p in [Palette::light(brand), Palette::dark(brand)] {
                 for surface in [p.canvas, p.surface, p.chrome, p.header] {
                     assert!(contrast(p.text, surface) >= 4.5);

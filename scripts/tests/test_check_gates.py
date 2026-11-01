@@ -219,6 +219,8 @@ class MonorepoGate(TempTree):
 
     def test_shared_ui_is_presentation_only_and_not_a_headless_escape(self):
         self.assertEqual(check_gates.layer_violations('joyoffice-ui', {'gpui-kit'}), [])
+        self.assertEqual(check_gates.layer_violations('joydeck', {'gpui-kit', 'joyoffice-ui'}), [])
+        self.assertTrue(check_gates.layer_violations('joydeck-cli', {'joyoffice-ui'}))
         self.assertTrue(any('must not depend on product package' in e for e in
                             check_gates.layer_violations('joyoffice-ui', {'joyword-model'})))
         self.assertTrue(any('layer does not allow' in e for e in

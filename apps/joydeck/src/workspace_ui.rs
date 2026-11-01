@@ -60,6 +60,7 @@ impl Editor {
         self.command(Command::Design(a), cx);
     }
     pub(super) fn sync_doc_fields(&mut self, w: &mut Window, cx: &mut Context<Self>) {
+        self.sync_fields(w, cx);
         let d = &self.session.deck;
         let s = &d.slides[self.page];
         self.doc_page = s.id.clone();
@@ -72,6 +73,22 @@ impl Editor {
             .and_then(|id| d.organization.sections.get(id))
             .cloned()
             .unwrap_or_default();
+        let layout = d
+            .design
+            .layouts
+            .get(&self.chosen_layout)
+            .or_else(|| s.layout.as_ref().and_then(|id| d.design.layouts.get(id)))
+            .or_else(|| d.design.layouts.values().next());
+        let theme = layout
+            .and_then(|l| d.design.masters.get(&l.master))
+            .and_then(|m| d.design.themes.get(&m.theme));
+        if let Some(theme) = theme {
+            for (i, key) in [(7, "accent"), (11, "background")] {
+                if let Some(value) = theme.colors.get(key) {
+                    self.doc_fields[i].update(cx, |f, cx| f.set_value(value.clone(), w, cx));
+                }
+            }
+        }
         for (i, value) in [
             (0, d.title.clone()),
             (1, d.organization.author.clone()),

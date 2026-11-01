@@ -20,6 +20,10 @@ mod delivery_ui;
 mod extended_smoke;
 #[path = "extended_ui.rs"]
 mod extended_ui;
+#[path = "header.rs"]
+mod header;
+#[path = "inspector.rs"]
+mod inspector;
 #[path = "maintenance_ui.rs"]
 mod maintenance_ui;
 #[cfg(feature = "validation")]
@@ -28,10 +32,14 @@ mod media_smoke;
 #[cfg(feature = "validation")]
 #[path = "render_bench.rs"]
 mod render_bench;
+#[path = "ribbon.rs"]
+mod ribbon;
 #[path = "ribbon_menus.rs"]
 mod ribbon_menus;
 #[path = "scene_canvas.rs"]
 mod scene_canvas;
+#[path = "stage.rs"]
+mod stage;
 #[path = "table_demo.rs"]
 mod table_demo;
 #[cfg(feature = "validation")]
@@ -39,9 +47,13 @@ mod table_demo;
 mod table_smoke;
 #[path = "table_ui.rs"]
 mod table_ui;
+#[path = "ui.rs"]
+mod ui;
 #[cfg(feature = "validation")]
 #[path = "editor_validation.rs"]
 mod validation;
+#[path = "workspace_layout.rs"]
+mod workspace_layout;
 #[cfg(feature = "validation")]
 #[path = "workspace_smoke.rs"]
 mod workspace_smoke;

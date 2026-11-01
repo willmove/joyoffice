@@ -12,6 +12,7 @@ default-run = "joydeck"
 joydeck-shell.workspace = true
 unicode-segmentation.workspace = true
 gpui-kit = { workspace = true, optional = true }
+joyoffice-ui = { workspace = true, optional = true }
 image.workspace = true
 resvg.workspace = true
 serde_json.workspace = true
@@ -19,7 +20,7 @@ serde.workspace = true
 
 [features]
 default = ["desktop"]
-desktop = ["dep:gpui-kit"]
+desktop = ["dep:gpui-kit", "dep:joyoffice-ui"]
 validation = []
 
 [[bin]]

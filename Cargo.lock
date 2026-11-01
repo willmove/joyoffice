@@ -3366,6 +3366,7 @@ dependencies = [
  "gpui-kit",
  "image",
  "joydeck-shell",
+ "joyoffice-ui",
  "resvg 0.45.1",
  "serde",
  "serde_json",
