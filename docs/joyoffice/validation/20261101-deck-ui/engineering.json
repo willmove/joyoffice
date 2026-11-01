@@ -1,0 +1,131 @@
+{
+  "platform": "macOS 27.0.1 / Apple Silicon",
+  "checks": {
+    "deck-ui-check": {
+      "passedTests": 155,
+      "ignoredTests": 0,
+      "logSha256": "f82cc9d647066b69bff97b10655a96ba270cfb2f1bae533fecdeb7fd778c303e"
+    },
+    "deck-ui-word-check": {
+      "passedTests": 1273,
+      "ignoredTests": 0,
+      "logSha256": "a93fa403602efaae4dc19b5c1cd4dbdcff72978de088cbfde38b5611753970ab"
+    },
+    "deck-ui-sheet-check": {
+      "passedTests": 1400,
+      "ignoredTests": 1,
+      "logSha256": "263bc5aa60d635eafa8684c3a1650388581ed338b2cf5f572b35776dca00d4c4"
+    },
+    "deck-ui-headless": {
+      "passedTests": 146,
+      "ignoredTests": 0,
+      "logSha256": "0320190596d897510614590bfb586ff5b5c29a2eb84a4aec90d442f0a133fa29"
+    },
+    "deck-ui-build": {
+      "passedTests": 0,
+      "ignoredTests": 0,
+      "logSha256": "4d454626d00334870987f9e7a1fb21cfecdf2c7a066ec813fafaeaaf0c9be971"
+    },
+    "deck-ui-release": {
+      "passedTests": 0,
+      "ignoredTests": 0,
+      "logSha256": "3f8332f7d23e1f9c7cd7c78fac9b1ce0cf0af65f8433418a329bd99c906b0852"
+    },
+    "deck-ui-native": {
+      "passedTests": 0,
+      "ignoredTests": 0,
+      "logSha256": "ecbc29d0640d1740b6d3b5d9e6eef7e217a65887acca9ada24abc2f7e70e5470"
+    },
+    "deck-ui-gates": {
+      "passedTests": 0,
+      "ignoredTests": 0,
+      "logSha256": "a496198537241f37206a12e031366c5871ea108fe3927bcc01f2faf4a1fdf1ca"
+    },
+    "deck-ui-gate-tests": {
+      "passedTests": 0,
+      "ignoredTests": 0,
+      "logSha256": "fba037695f9d42ee23be4b63a5ec614a28819573c737b9a7f5e0a3cfff7659bd"
+    },
+    "gatesPythonTests": {
+      "passedTests": 58,
+      "ignoredTests": 0
+    },
+    "engineeringToolTests": {
+      "passedTests": 13,
+      "ignoredTests": 0
+    }
+  },
+  "nativeResult": "native-result.json",
+  "package": {
+    "path": "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-unified-ui-20261101-final/JoyDeck.app",
+    "archive": "/Users/willm/Coding/joyoffice/dist/joydeck/joydeck-unified-ui-20261101-final.zip",
+    "binarySha256": "24ffffc98b442812d077dbfc10025d132395b166ed0b4fe91a0941cd5e3df80e",
+    "archiveSha256": "820893ea4b913adb19ab982a2e36f71bf38a76d0dbdca3099582b4b409b75215",
+    "verifiedPackagedFiles": 1930,
+    "verifiedSourceFiles": 179,
+    "buildInfo": {
+      "version": "0.1.0",
+      "stage": "m14",
+      "target": "aarch64-apple-darwin",
+      "profile": "release",
+      "features": [
+        "desktop"
+      ],
+      "packageRoots": [
+        "joydeck",
+        "joydeck-cli"
+      ],
+      "nativeReaderMax": 11,
+      "writerSchema": "1.10",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-apple-darwin\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+      "cargoLockSha256": "72084777c2ca1718f4a9e8115e10e7737868e0c89394bc15d7801c1dc5596fa5",
+      "sourceGraphSha256": "137005b9c2e7d5b84c5ab1227e785e0aa74742b3f5ea41fb198088c14282114e",
+      "dependencyPackages": 445,
+      "sourceSnapshotVerified": true,
+      "officialSignatureVerified": false
+    },
+    "nativeAcceptance": "packaged-result.json"
+  },
+  "screenshots": {
+    "08-table-properties.png": "f5cf517024b897212076c66b28d3659266682aecfa6e55f3a5babae5c78d2dae",
+    "02-insert.png": "492c5989130dd322b1d4083c3d991fc392e17e0c61de65172b73d5f3c2492213",
+    "03-table-dialog.png": "30fbf8c7db0da3a337bd27c0533f6518786c6c583bf6a1ea3e661ef34801c9f2",
+    "06-workflows.png": "8a96458fdaedc9b5cbd979990e24cd4558342340035dc8191732ec6fe3d3c8bf",
+    "01-main.png": "c801e4cfa63d34ffc689d21aef5b1164950738ec6e65c4d2cd28974bc3bc188a",
+    "07-width-960.png": "6ff0a4953d79eded17b66274a4091a550eaa299fd22cf54d9d1376dd07813ba8",
+    "07-width-800.png": "a33b7f75aee32129be8080a416eccd3d801c62bd30ca8b01e726348a5b41fda5",
+    "00-before-design.png": "dd16e178780607ab8a8d3ba183a273287745617b0b408f8be2c08965f661d493",
+    "00-before-main.png": "ecfef5a379f2a2fa2e43cdc63c9bccb2d75d992885241ba541fac4de3b2895d8",
+    "07-width-1600.png": "12a3d69fdabda47ff8646956e6dd3659d167e6f6a54cd9d25328bfad0c821136",
+    "04-design.png": "2cbea1db3c7282ef660fff7b1011db2ff573f49f14bf68ce3190752b85db5cd2",
+    "05-font-menu.png": "b6cd253783c8914e41a6018d203152a109b8a046aa31a570f6c56fcdf0b3b7d8"
+  },
+  "logs": {
+    "m4-native-darwin.log": "f00c9ea304759e224e1221d2c0f9df6ea7cc202c0ec1b00db2c53d2a85fca081",
+    "deck-ui-gates.log": "a496198537241f37206a12e031366c5871ea108fe3927bcc01f2faf4a1fdf1ca",
+    "deck-ui-headless.log": "0320190596d897510614590bfb586ff5b5c29a2eb84a4aec90d442f0a133fa29",
+    "deck-ui-build.log": "4d454626d00334870987f9e7a1fb21cfecdf2c7a066ec813fafaeaaf0c9be971",
+    "deck-ui-native.log": "28e2243416e26123453cb2ca5dd5acbe0c494769008f6fc18930200d8b035fa6",
+    "deck-ui-package.log": "fa0255e4f4c4b4bcb29da1b7075c24f179555fd581d9a65f1112494ee5bf0efc",
+    "m2-native-darwin.log": "c763769e087dba5fdd1acac86af27e63737b363dadb01e4cd322dd7b6496e72c",
+    "deck-ui-sheet-check.log": "263bc5aa60d635eafa8684c3a1650388581ed338b2cf5f572b35776dca00d4c4",
+    "deck-ui-gate-tests.log": "58c55832ab1a2e055d4250f77d4185856ce50bcf9b13d7754a9c40d690220099",
+    "deck-ui-check.log": "f82cc9d647066b69bff97b10655a96ba270cfb2f1bae533fecdeb7fd778c303e",
+    "m3-native-darwin.log": "847fe36cacda61b6779eaaa76f0e720bfec727fec1196af243b4f1c181a45b9c",
+    "deck-ui-docs.log": "bdfbf8d258b316c6ee69a54394c2a61aaa36085cd8fc51ee8a7937ba6e2681c0",
+    "deck-ui-release.log": "3f8332f7d23e1f9c7cd7c78fac9b1ce0cf0af65f8433418a329bd99c906b0852",
+    "deck-ui-tools-tests.log": "0ddad63669987e0e417fdc8d96d362ee8d8191de389002f123926075f811f446",
+    "deck-ui-word-check.log": "a93fa403602efaae4dc19b5c1cd4dbdcff72978de088cbfde38b5611753970ab",
+    "m1-native-darwin.log": "e44bc167ffc098e4bbed0b32b4f774565e5628fc807c9accc184784d024cf194"
+  },
+  "nativeSmokes": {
+    "passed": true,
+    "stages": [
+      "M1",
+      "M2",
+      "M3",
+      "M4"
+    ],
+    "binarySha256": "2658d60e14418d8ce146f47e9800c03544a5b756c37627136797738c31bfd4d1"
+  }
+}

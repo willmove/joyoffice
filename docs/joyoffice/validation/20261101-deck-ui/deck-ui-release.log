@@ -1,0 +1,16 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running `target/debug/joyoffice-xtask build joydeck --release`
++ cargo build -p joydeck -p joydeck-cli --locked --release
+   Compiling joydeck-model v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-model)
+   Compiling joydeck-platform v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-platform)
+   Compiling joyoffice-ui v0.1.0 (/Users/willm/Coding/joyoffice/crates/joyoffice-ui)
+   Compiling joydeck-formats v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-formats)
+   Compiling joydeck-scene v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-scene)
+   Compiling joydeck-engine v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-engine)
+   Compiling joydeck-export v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-export)
+   Compiling joydeck-shell v0.1.0 (/Users/willm/Coding/joyoffice/crates/joydeck-shell)
+   Compiling joydeck v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck)
+   Compiling joydeck-cli v0.1.0 (/Users/willm/Coding/joyoffice/apps/joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 08s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 2`

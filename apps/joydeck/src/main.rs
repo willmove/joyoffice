@@ -434,6 +434,22 @@ fn main() {
             return;
         }
         Theme::change(ThemeMode::Light, None, cx);
+        let palette = joyoffice_ui::Palette::light(joyoffice_ui::Brand::Deck);
+        let theme = Theme::global_mut(cx);
+        theme.colors.primary = rgb(palette.accent).into();
+        theme.colors.primary_hover = rgb(palette.accent_hover).into();
+        theme.colors.primary_active = rgb(palette.accent_hover).into();
+        theme.colors.primary_foreground = rgb(palette.on_accent).into();
+        theme.colors.ring = rgb(palette.accent).into();
+        theme.colors.button_primary = rgb(palette.accent).into();
+        theme.colors.button_primary_hover = rgb(palette.accent_hover).into();
+        theme.colors.button_primary_active = rgb(palette.accent_hover).into();
+        theme.colors.button_primary_foreground = rgb(palette.on_accent).into();
+        theme.tokens.button_primary = theme.colors.button_primary.into();
+        theme.tokens.button_primary_hover = theme.colors.button_primary_hover.into();
+        theme.tokens.button_primary_active = theme.colors.button_primary_active.into();
+        theme.colors.secondary_foreground = rgb(palette.text).into();
+        theme.radius = px(joyoffice_ui::metrics::RADIUS);
         cx.on_action(|_: &Quit, cx| editor::quit(cx));
         cx.bind_keys([
             KeyBinding::new("ctrl-q", Quit, None),
@@ -449,9 +465,14 @@ fn main() {
         .detach();
         if !std::env::args().any(|x| {
             x == "--diagnostics" || x == "--smoke" || x == "--viewer-smoke" || x == "--viewer"
-        }) && !std::env::args().skip(1).any(|x| !x.starts_with("--"))
-        {
-            if let Err(e) = editor::open(cx) {
+        }) {
+            let result = if let Some(path) = std::env::args().skip(1).find(|x| !x.starts_with("--"))
+            {
+                editor::open_path(path.into(), cx)
+            } else {
+                editor::open(cx)
+            };
+            if let Err(e) = result {
                 eprintln!("Editor startup failed: {e}");
                 cx.quit();
             }

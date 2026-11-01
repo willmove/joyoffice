@@ -1,4 +1,5 @@
 //! Chart data, diagram text and animation panes. Draft fields never become document state until validated.
+use super::ui::PALETTE;
 use super::*;
 use gpui_kit::{
     assets::IconName as I,
@@ -357,14 +358,12 @@ impl Editor {
         w.refresh();
         cx.notify();
     }
-    pub(super) fn author_pane(&self, cx: &mut Context<Self>) -> AnyElement {
+    pub(super) fn author_pane(&self, pane_width: f32, cx: &mut Context<Self>) -> AnyElement {
         let mut body = div()
             .id("author-pane")
-            .w(px(320.))
-            .flex_shrink_0()
-            .border_l_1()
-            .border_color(rgb(0xd3d3d3))
-            .bg(rgb(0xfafafa))
+            .flex_1()
+            .min_h_0()
+            .bg(rgb(PALETTE.surface))
             .px_4()
             .py_3()
             .flex()
@@ -375,11 +374,6 @@ impl Editor {
         let diagram = self
             .author_object()
             .is_some_and(|(_, o)| o.diagram.is_some());
-        body = body.child(
-            div()
-                .font_weight(FontWeight::SEMIBOLD)
-                .child(self.ribbon.clone()),
-        );
         if self.ribbon == "动画" {
             let t = self
                 .session
@@ -576,7 +570,10 @@ impl Editor {
         } else {
             body = body.child(caption("选择图表或图示后编辑数据与布局。"));
         }
-        body.into_any_element()
+        ui::pane(pane_width)
+            .child(self.pane_header(&self.ribbon, cx))
+            .child(body)
+            .into_any_element()
     }
     pub(super) fn author_ribbon(&self, cx: &mut Context<Self>) -> AnyElement {
         let mut r = div().flex().items_start().gap_3();

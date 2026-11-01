@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "binarySha256": "2658d60e14418d8ce146f47e9800c03544a5b756c37627136797738c31bfd4d1",
+  "checks": [
+    "initial undo disabled; localized controls and stable IDs",
+    "table dialog opens and cancels without editing",
+    "real add-page button and undo/redo state transitions",
+    "create design, apply layout and edit actual theme color",
+    "keyboard opens font picker and advanced workflow menu",
+    "1600/960/800 logical widths retain main commands and compact overflow",
+    "save and independent CLI reopen preserve theme edit and page count"
+  ],
+  "scope": "macOS AX actions and OS synthetic events; not physical keyboard, IME or screen-reader certification"
+}

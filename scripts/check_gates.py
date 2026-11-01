@@ -77,6 +77,7 @@ LAYERS = {
         "joydeck-export", "joydeck-platform",
     },
     "joydeck": {
+        "joyoffice-ui",
         "joydeck-model", "joydeck-engine", "joydeck-formats", "joydeck-scene",
         "joydeck-export", "joydeck-platform", "joydeck-shell",
     },

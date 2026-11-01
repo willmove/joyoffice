@@ -1,3 +1,4 @@
+use super::ui::PALETTE;
 use super::*;
 use gpui_kit::component::Sizable;
 use joydeck::{
@@ -394,10 +395,11 @@ impl Editor {
         })
         .detach();
     }
-    pub(super) fn extended_pane(&self, cx: &mut Context<Self>) -> AnyElement {
+    pub(super) fn extended_pane(&self, pane_width: f32, cx: &mut Context<Self>) -> AnyElement {
         let mut pane = div()
             .id("extended-pane-scroll")
-            .w_full()
+            .flex_1()
+            .min_h_0()
             .h_full()
             .overflow_y_scroll()
             .p_3()
@@ -405,7 +407,7 @@ impl Editor {
             .flex_col()
             .gap_2()
             .text_size(px(13.))
-            .bg(rgb(0xffffff));
+            .bg(rgb(PALETTE.surface));
         if self.ribbon == "审阅" {
             pane = pane
                 .child(label("离线作者"))
@@ -611,6 +613,9 @@ impl Editor {
                     .on_click(cx.listener(|s, _, _, cx| s.toggle_control(cx))),
                 );
         }
-        pane.into_any_element()
+        ui::pane(pane_width)
+            .child(self.pane_header(&self.ribbon, cx))
+            .child(pane)
+            .into_any_element()
     }
 }

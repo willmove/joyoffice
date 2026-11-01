@@ -80,7 +80,8 @@ pub(super) fn smoke(handle: AnyWindowHandle, view: Entity<Editor>, cx: &mut App)
                             s.text_anchor = None;
                             s.end_gesture(cx);
                             assert_eq!(s.session.revision, rev + 1);
-                            assert_eq!(s.session.deck.slides[0].objects[0].x, 110.);
+                            // Screen-to-document conversion includes a floating-point fit scale.
+                            assert!((s.session.deck.slides[0].objects[0].x - 110.).abs() < 0.001);
                             s.session.undo();
                             assert!(Arc::ptr_eq(&before, &s.session.deck));
                             s.session.redo();
