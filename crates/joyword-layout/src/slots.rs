@@ -174,7 +174,8 @@ pub fn wrap_mixed(
     let mut start = 0usize;
     while start < text.len() {
         let mut best = start;
-        for &end in opportunities.iter().filter(|end| **end > start) {
+        let first = opportunities.partition_point(|end| *end <= start);
+        for &end in &opportunities[first..] {
             let slice_width = width_of(&pieces, start, end);
             if slice_width.raw() <= width.raw() || best == start {
                 best = end;
@@ -201,9 +202,10 @@ pub fn wrap_mixed(
             }
         }
         let line_text = text[start..best].to_owned();
+        let first_piece = pieces.partition_point(|piece| piece.end <= start);
         let font = pieces
-            .iter()
-            .find(|piece| piece.start < best && piece.end > start)
+            .get(first_piece)
+            .filter(|piece| piece.start < best && piece.end > start)
             .map(|piece| piece.font)
             .unwrap_or_else(|| faces.fallback.key());
         lines.push(MixedLine {
@@ -243,17 +245,19 @@ fn shaped_pieces(faces: FaceSet<'_>, text: &str, size: Emu, hint: Option<FontHin
         } else {
             crate::cjk::face_cjk_family(faces.fallback)
         };
+        // Contextual shaping can repeat or reorder cluster offsets. Sort once
+        // rather than rescan every glyph to find each cluster's next boundary.
+        let mut clusters: Vec<_> = shaped.glyphs.iter().map(|glyph| glyph.cluster).collect();
+        clusters.sort_unstable();
+        clusters.dedup();
         let mut cursor = 0usize;
         for (glyph_index, glyph) in shaped.glyphs.iter().enumerate() {
             if glyph.cluster < cursor {
                 continue;
             }
-            let next = shaped
-                .glyphs
-                .iter()
-                .map(|item| item.cluster)
-                .filter(|cluster| *cluster > glyph.cluster)
-                .min()
+            let next = clusters
+                .get(clusters.partition_point(|cluster| *cluster <= glyph.cluster))
+                .copied()
                 .unwrap_or(slice.len());
             if next > cursor {
                 let one_glyph = shaped
@@ -327,10 +331,13 @@ fn shape_or_fallback(
 }
 
 fn width_of(pieces: &[Piece], start: usize, end: usize) -> Emu {
+    // Pieces have increasing, non-overlapping byte ranges. Only visit the
+    // clusters inside this candidate line, including at partial-cluster edges.
+    let first = pieces.partition_point(|piece| piece.start < start);
+    let last = pieces.partition_point(|piece| piece.end <= end).max(first);
     Emu::new(
-        pieces
+        pieces[first..last]
             .iter()
-            .filter(|piece| piece.start >= start && piece.end <= end)
             .map(|piece| piece.width.raw())
             .sum(),
     )
@@ -339,6 +346,31 @@ fn width_of(pieces: &[Piece], start: usize, end: usize) -> Emu {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn candidate_width_counts_only_whole_clusters_at_both_edges() {
+        let font = FontKey::from_raw_parts([0; 32], 0);
+        let pieces: Vec<_> = [(0, 1, 10), (1, 4, 100), (4, 7, 120), (7, 9, 80)]
+            .into_iter()
+            .map(|(start, end, width)| Piece {
+                start,
+                end,
+                font,
+                width: Emu::new(width),
+            })
+            .collect();
+        for (start, end, expected) in [
+            (0, 9, 310),
+            (1, 7, 220),
+            (2, 7, 120),
+            (1, 6, 100),
+            (2, 6, 0),
+            (4, 4, 0),
+            (10, 12, 0),
+        ] {
+            assert_eq!(width_of(&pieces, start, end).raw(), expected);
+        }
+    }
 
     #[test]
     fn cjk_adjustment_moves_a_break_off_closing_punctuation() {

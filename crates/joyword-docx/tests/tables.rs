@@ -33,6 +33,57 @@ fn xml_of(bytes: &[u8]) -> String {
     String::from_utf8(package.part("/word/document.xml").unwrap().data.to_vec()).unwrap()
 }
 
+#[test]
+fn large_table_keeps_each_cells_ancestor_namespace_scope() {
+    let mut table = String::from(
+        r#"<w:tbl xmlns:x="urn:table"><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="2000"/></w:tblGrid>"#,
+    );
+    for row in 0..80 {
+        let namespaces = [
+            "http://schemas.microsoft.com/office/word/2010/wordml",
+            "http://schemas.microsoft.com/office/word/2012/wordml",
+        ];
+        let row_ns = namespaces[row % 2];
+        let cell_ns = namespaces[(row + 1) % 2];
+        table.push_str(&format!(
+            r#"<w:tr xmlns:x="{row_ns}"><w:tc><w:p><w:r><w:t>左</w:t><x:stamp/></w:r></w:p></w:tc><w:tc xmlns:x="{cell_ns}"><w:p><w:r><w:t>右</w:t><x:stamp/></w:r></w:p></w:tc></w:tr>"#,
+        ));
+    }
+    table.push_str("</w:tbl>");
+    let bytes = package(&table);
+    let result = import(&bytes, &Budget::default()).unwrap();
+    assert!(!result.editability.is_read_only());
+    assert!(!result.document.validate().has_errors());
+    let Block::Table(table) = result.document.body().blocks.get(0).unwrap() else {
+        panic!("typed table");
+    };
+    assert_eq!(table.rows.len(), 80);
+    let fragments: Vec<_> = result
+        .backing
+        .fragments()
+        .filter(|(_, fragment)| &*fragment.element == "x:stamp")
+        .collect();
+    assert_eq!(fragments.len(), 160);
+    for (id, fragment) in fragments {
+        let bound = fragment
+            .namespaces
+            .iter()
+            .rev()
+            .find(|(prefix, _)| &**prefix == "x")
+            .map(|(_, uri)| uri.as_ref());
+        assert_eq!(bound, fragment.namespace.as_deref());
+        assert_eq!(fragment.reason, joyword_docx::PreservedReason::Unsupported);
+        assert_eq!(result.backing.fragment_bytes(id).unwrap(), b"<x:stamp/>");
+    }
+    let plan = plan_export(
+        &result.backing,
+        &result.document.snapshot(),
+        &Budget::default(),
+    )
+    .unwrap();
+    assert_eq!(plan.bytes(), bytes, "untouched XML remains byte-identical");
+}
+
 fn simple_table() -> String {
     r#"<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/><w:gridCol w:w="3000"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w="2000" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="FF0000"/><w:tcBorders><w:top w:val="single" w:sz="4" w:color="auto"/><w:left w:val="nil"/><w:bottom w:val="single" w:sz="8" w:color="00FF00"/><w:right w:val="single" w:color="auto"/></w:tcBorders></w:tcPr><w:p><w:r><w:t>左</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w="3000" w:type="dxa"/></w:tcPr><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>右</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#.to_owned()
 }

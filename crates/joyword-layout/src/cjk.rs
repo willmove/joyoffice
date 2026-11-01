@@ -685,6 +685,10 @@ pub fn measured_line_family(family: CjkFamily) -> bool {
 /// Family of `font` from name IDs 16 then 1. A name that is not one of the
 /// six CJK families returns `None`; this does not load or substitute a face.
 pub fn face_cjk_family(font: &LoadedFont) -> Option<CjkFamily> {
+    *font.cjk_family.get_or_init(|| read_cjk_family(font))
+}
+
+fn read_cjk_family(font: &LoadedFont) -> Option<CjkFamily> {
     use read_fonts::types::NameId;
     let table = font.font_ref().name().ok()?;
     let data = table.string_data();

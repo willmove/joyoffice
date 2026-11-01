@@ -3912,12 +3912,11 @@ impl JoyWord {
         let Ok(caret) = frame.layout.caret(selection.head) else {
             return;
         };
-        let Some(i) = frame
-            .layout
-            .lines()
-            .iter()
-            .position(|l| l.page == caret.page && l.top == caret.top)
-        else {
+        let Some(i) = frame.layout.lines().iter().position(|line| {
+            line.paragraph == selection.head.paragraph
+                && line.page == caret.page
+                && line.top == caret.top
+        }) else {
             return;
         };
         let lines = frame.layout.lines();

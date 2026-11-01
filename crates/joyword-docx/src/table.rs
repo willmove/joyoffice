@@ -1231,6 +1231,11 @@ fn read_bold(format: &mut TableFormat, element: &Element) -> bool {
 }
 
 fn paragraph_scope(element: &Element, span: &Range<usize>, parent: &Scope) -> Option<Scope> {
+    // XML spans are nested. Skip unrelated subtrees before entering their
+    // namespace scopes; a large table must not be rescanned for every cell.
+    if element.span.start > span.start || element.span.end < span.end {
+        return None;
+    }
     if element.span == *span {
         return Some(parent.clone());
     }

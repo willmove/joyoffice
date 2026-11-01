@@ -3,7 +3,7 @@
 //! different fonts. Variation axes join the key when variable fonts arrive.
 
 use std::fmt;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use read_fonts::{FontRef, TableProvider};
 use sha2::{Digest, Sha256};
@@ -50,6 +50,7 @@ pub enum FontError {
 pub struct LoadedFont {
     key: FontKey,
     data: Arc<[u8]>,
+    pub(crate) cjk_family: OnceLock<Option<crate::cjk::CjkFamily>>,
     pub units_per_em: u16,
     pub ascender: i16,
     pub descender: i16,
@@ -86,6 +87,7 @@ impl LoadedFont {
         Ok(Self {
             key,
             data,
+            cjk_family: OnceLock::new(),
             units_per_em,
             ascender,
             descender,

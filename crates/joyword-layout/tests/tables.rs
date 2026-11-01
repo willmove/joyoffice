@@ -145,6 +145,34 @@ fn two_cells_place_glyphs_at_different_x_and_paint_borders() {
 }
 
 #[test]
+fn hit_testing_distinguishes_cells_on_the_same_visual_line() {
+    let document = document();
+    let laid = layout_document(
+        &document.snapshot(),
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    assert_eq!(laid.lines().len(), 2);
+    assert_eq!(laid.lines()[0].top, laid.lines()[1].top);
+    for line in laid.lines() {
+        for stop in &line.carets {
+            let hit = laid
+                .hit_test(
+                    line.page,
+                    stop.x,
+                    Emu::new(line.top.raw() + line.height.raw() / 2),
+                )
+                .unwrap();
+            assert_eq!(hit.paragraph, line.paragraph);
+            assert_eq!(hit.offset, stop.offset);
+        }
+    }
+}
+
+#[test]
 fn incremental_layout_of_a_table_matches_a_full_layout() {
     let document = document();
     let full = layout_document(

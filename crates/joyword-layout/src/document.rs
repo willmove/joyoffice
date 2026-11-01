@@ -5642,25 +5642,39 @@ impl LayoutSnapshot {
     /// Nearest safe cluster boundary on the nearest line of this physical
     /// page. Outside-page points clamp to a line/endpoint; invalid pages fail.
     /// Zero-advance boundaries share a coordinate and have a deterministic tie.
+    /// Lines in adjacent table cells can share a vertical range; their closest
+    /// horizontal caret breaks that tie instead of always choosing the first cell.
     pub fn hit_test(&self, page: usize, x: Emu, y: Emu) -> Result<Position, LayoutError> {
         if page >= self.pages.len() {
             return Err(LayoutError::UnknownPage(page));
         }
+        let vertical = |line: &PlacedLine| {
+            let y = i128::from(y.raw());
+            let start = i128::from(line.top.raw());
+            let end = start + i128::from(line.height.raw());
+            if y < start {
+                start - y
+            } else if y >= end {
+                y - end + 1
+            } else {
+                0
+            }
+        };
+        let horizontal = |line: &PlacedLine| {
+            line.carets
+                .iter()
+                .map(|stop| (i128::from(stop.x.raw()) - i128::from(x.raw())).abs())
+                .min()
+                .unwrap_or(i128::MAX)
+        };
         let line = self
             .lines
             .iter()
             .filter(|line| line.page == page)
-            .min_by_key(|line| {
-                let y = i128::from(y.raw());
-                let start = i128::from(line.top.raw());
-                let end = start + i128::from(line.height.raw());
-                if y < start {
-                    start - y
-                } else if y >= end {
-                    y - end + 1
-                } else {
-                    0
-                }
+            .min_by(|left, right| {
+                vertical(left)
+                    .cmp(&vertical(right))
+                    .then_with(|| horizontal(left).cmp(&horizontal(right)))
             })
             .ok_or(LayoutError::UnknownPage(page))?;
         let stop = line

@@ -579,6 +579,10 @@ fn wanted_pages(
 pub struct CanvasPipeline {
     document: u64,
     layout: Option<LayoutFrame>,
+    /// Keep the immutable index alive after the full handoff check. Selection
+    /// updates share it; edits and IME previews build a different index even
+    /// when their document version is unchanged.
+    checked_input: Option<InputView>,
     pages: PageCache,
     /// Caret pixels of the page whose raster carried the caret, keyed by the
     /// pixels they were copied from.
@@ -605,6 +609,7 @@ impl CanvasPipeline {
         Self {
             document: 0,
             layout: None,
+            checked_input: None,
             pages: PageCache::new(budget),
             caret_overlay: None,
             visible: 0..0,
@@ -746,6 +751,7 @@ impl CanvasPipeline {
         }
         match result {
             Ok(layout) => {
+                self.checked_input = None;
                 self.layout = Some(LayoutFrame {
                     key: current.clone(),
                     layout: Arc::new(layout),
@@ -841,16 +847,27 @@ impl CanvasPipeline {
         let Some(frame) = &mut self.layout else {
             return false;
         };
-        if frame
-            .layout
-            .ensure_current(
-                &joyword_layout::compatibility::with_compatible_styles(view.snapshot()),
-                font,
-                profile,
-            )
-            .is_err()
-        {
+        let key = frame.layout.key();
+        if key.font != font.key() || key.profile != profile {
             return false;
+        }
+        let checked = self
+            .checked_input
+            .as_ref()
+            .is_some_and(|known| std::ptr::eq(known.index(), view.index()));
+        if !checked {
+            if frame
+                .layout
+                .ensure_current(
+                    &joyword_layout::compatibility::with_compatible_styles(view.snapshot()),
+                    font,
+                    profile,
+                )
+                .is_err()
+            {
+                return false;
+            }
+            self.checked_input = Some(view.clone());
         }
         frame.key.revision = view.revision();
         true
@@ -864,6 +881,7 @@ impl CanvasPipeline {
             .checked_add(1)
             .expect("document number exhausted");
         self.layout = None;
+        self.checked_input = None;
         self.caret_overlay = None;
         self.running = None;
         self.visible = 0..0;
@@ -1408,6 +1426,59 @@ mod input_pipeline_tests {
         ));
         assert!(pipeline.ready_page(&mark_key, 0, at_80).is_some());
     }
+    #[test]
+    fn checked_selection_reuse_still_rejects_other_content_and_profiles()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let source = source();
+        let mut input = input(&source);
+        let mut pipeline = CanvasPipeline::default();
+        assert!(matches!(
+            lay_out(&mut pipeline, input.view(), &source),
+            Landed::Installed(_)
+        ));
+        assert!(pipeline.reuse(input.view(), &source.font, source.profile));
+        let checked = pipeline
+            .checked_input
+            .as_ref()
+            .ok_or("missing checked input")?
+            .clone();
+        input.select(1..2, false)?;
+        assert!(std::ptr::eq(checked.index(), input.view().index()));
+        assert!(pipeline.reuse(input.view(), &source.font, source.profile));
+
+        let changed_profile = SingleFontProfile {
+            size: Emu::new(source.profile.size.raw() + Emu::PER_POINT),
+            ..source.profile
+        };
+        assert!(!pipeline.reuse(input.view(), &source.font, changed_profile));
+        let other_source = source_with_text(font(), "AA\nfi")?;
+        let other = self::input(&other_source);
+        assert_eq!(
+            other.view().snapshot().version(),
+            input.view().snapshot().version()
+        );
+        assert!(!pipeline.reuse(other.view(), &source.font, source.profile));
+
+        // Two successive IME previews can change content at the same version.
+        input.mark(None, "A", None)?;
+        assert!(!pipeline.reuse(input.view(), &source.font, source.profile));
+        assert!(matches!(
+            lay_out(&mut pipeline, input.view(), &source),
+            Landed::Installed(_)
+        ));
+        assert!(pipeline.reuse(input.view(), &source.font, source.profile));
+        let preview = input.view().clone();
+        input.mark(None, "V", None)?;
+        assert_eq!(
+            input.view().snapshot().version(),
+            preview.snapshot().version()
+        );
+        assert!(!pipeline.reuse(input.view(), &source.font, source.profile));
+        pipeline.clear();
+        assert!(pipeline.checked_input.is_none());
+        Ok(())
+    }
+
     #[test]
     fn commit_equal_to_its_preview_reuses_layout_and_pixels_without_jobs() {
         let source = source();
