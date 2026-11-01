@@ -101,19 +101,25 @@ fn shape(o: &Object, id: usize) -> Result<String> {
             ((1. - y - h) * 100000.).round().max(0.) as i32
         ));
     }
-    let geom = match o.kind.as_str() {
-        "rect" | "text" => "rect",
-        "ellipse" => "ellipse",
-        "roundRect" => "roundRect",
-        "arrow" => "rightArrow",
-        "line" => "line",
-        _ => return Err(format!("PPTX导出尚不支持对象 {}", o.kind)),
-    };
-    let paint = if o.kind == "text" || o.kind == "line" {
-        "<a:noFill/>".into()
+    let geom = if let Some(p) = &o.preset {
+        crate::preset_pptx::geometry_xml(p)?
     } else {
-        fill(&o.fill, o.opacity)
+        let name = match o.kind.as_str() {
+            "rect" | "text" => "rect",
+            "ellipse" => "ellipse",
+            "roundRect" => "roundRect",
+            "arrow" => "rightArrow",
+            "line" => "line",
+            _ => return Err(format!("PPTX导出尚不支持对象 {}", o.kind)),
+        };
+        format!(r#"<a:prstGeom prst="{name}"><a:avLst/></a:prstGeom>"#)
     };
+    let paint =
+        if o.kind == "text" || o.kind == "line" || o.preset.as_ref().is_some_and(|p| p.no_fill) {
+            "<a:noFill/>".into()
+        } else {
+            fill(&o.fill, o.opacity)
+        };
     let line = if o.kind == "line" {
         format!(
             r#"<a:ln w="{}">{}</a:ln>"#,
@@ -129,7 +135,7 @@ fn shape(o: &Object, id: usize) -> Result<String> {
         String::new()
     };
     Ok(format!(
-        r#"<p:sp><p:nvSpPr><p:cNvPr id="{id}" name="{name}"/><p:cNvSpPr txBox="{}"/><p:nvPr/></p:nvSpPr><p:spPr>{transform}<a:prstGeom prst="{geom}"><a:avLst/></a:prstGeom>{paint}{line}</p:spPr>{text}</p:sp>"#,
+        r#"<p:sp><p:nvSpPr><p:cNvPr id="{id}" name="{name}"/><p:cNvSpPr txBox="{}"/><p:nvPr/></p:nvSpPr><p:spPr>{transform}{geom}{paint}{line}</p:spPr>{text}</p:sp>"#,
         u8::from(o.kind == "text")
     ))
 }

@@ -1,0 +1,65 @@
+{
+  "repository": "https://github.com/storytold/deckcraft",
+  "revision": "82573331a8f2b87ccb536b9b66d55b90295f2111",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors.",
+  "files": [
+    {
+      "upstream": "crates/geom/src/preset.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/mod.rs",
+      "gitBlob": "3e3b5af5a97acf9146738b9a9148880f873948e6",
+      "localSha256": "cf8f3fc38686ba473020ccc2f9e5c400bdbfd307e9fe654f4d414e1d05e36e41"
+    },
+    {
+      "upstream": "crates/geom/src/preset/build.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/build.rs",
+      "gitBlob": "95b833efd4ec3d448d7fcf507b58d68968b37be4",
+      "localSha256": "6906cb3da000efe18cd1ceab77218c95e2253862ce6991bbe714095a8c0c36d8"
+    },
+    {
+      "upstream": "crates/geom/src/preset/builder.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/builder.rs",
+      "gitBlob": "701d15242987eb4600314ad700e369ccc81fea40",
+      "localSha256": "5d2b557f93dcf6ec92a982ecd95ba60266a522d025609b30f33afc62496b82fa"
+    },
+    {
+      "upstream": "crates/geom/src/preset/catalog.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/catalog.rs",
+      "gitBlob": "ca090f94d05d9f81954c2363c78966a63864701c",
+      "localSha256": "b95c8f517964c462a6f1162b99a2239372bbca08dbb3f22f7b45e7a6206abc5c"
+    },
+    {
+      "upstream": "crates/geom/src/preset/shapes.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/shapes.rs",
+      "gitBlob": "156475435d32f81d501ea92181116d4b206b6fca",
+      "localSha256": "a3777bc87214cb2534b79782becff320c399d0f90336fe0580f62ea17c2478f2"
+    },
+    {
+      "upstream": "crates/geom/src/preset/extra.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/extra.rs",
+      "gitBlob": "8c61e5f11a8035cc520f73c0e9aec4ea986df523",
+      "localSha256": "9bee62c4c134458b864dc2bf7b7cfee574aeeb1207b379997ee266e4e76fb509"
+    },
+    {
+      "upstream": "crates/geom/src/preset/tests.rs",
+      "target": "crates/joydeck-model/src/preset/vendor/tests.rs",
+      "gitBlob": "dc18dcdb55eba200982f5f613a48a9f6960f1d58",
+      "localSha256": "a47c2c046f50210013a3529ff417026ed638990ba3b7babc2de76d469cf35ead"
+    },
+    {
+      "upstream": "LICENSE-MIT",
+      "target": "licenses/joydeck/deckcraft-geometry/LICENSE-MIT",
+      "gitBlob": "326ccf1d304c3f00e229dfcc3da48c8204ac5c62",
+      "localSha256": "772cea77653631662ea0ac191406d64f82cc0e1c3044cbab2d51b9c8468cc5b4"
+    }
+  ],
+  "splitTests": {
+    "crates/joydeck-model/src/preset/vendor/extra/tests.rs": "crates/geom/src/preset/extra.rs"
+  },
+  "modifications": [
+    "Rust formatting",
+    "Remove unused re-exports in mod.rs",
+    "Move extra.rs test body to extra/tests.rs preserving module hierarchy"
+  ],
+  "splitTestSha256": "fb602a37749d75f69dbe8c453d8a0f61982fa9284770554e6966ed2d6c59a9b8"
+}

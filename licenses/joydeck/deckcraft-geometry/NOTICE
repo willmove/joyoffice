@@ -1,0 +1,13 @@
+Preset geometry adapted from DeckCraft
+Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors.
+Used under the MIT License; see LICENSE-MIT in this directory.
+
+Upstream: https://github.com/storytold/deckcraft
+Revision: 82573331a8f2b87ccb536b9b66d55b90295f2111
+Scope: crates/geom/src/preset.rs and crates/geom/src/preset/*.rs only.
+Original Git blob IDs and local file mappings: SOURCE.json.
+
+Local adaptations: cargo fmt; unused re-exports removed; extra.rs test module
+split into extra/tests.rs without changing the module hierarchy. Independent
+JoyDeck adapters retain input limits, explicit unsupported reports and source
+package preservation. No upstream brand assets, fonts or editor are included.

@@ -1,0 +1,147 @@
+{
+  "date": "2026-11-01",
+  "platform": "macOS ARM64, Rust 1.98.1",
+  "baseline": "5c0dd3672089401a02aa49f17ffe52cab41f77cb",
+  "branch": "codex/joydeck-preset-geometry",
+  "upstream": {
+    "repository": "https://github.com/storytold/deckcraft",
+    "revision": "82573331a8f2b87ccb536b9b66d55b90295f2111",
+    "license": "MIT",
+    "scope": "Preset geometry only; 29 upstream preset tests retained"
+  },
+  "catalogEntriesIncludingAlias": 183,
+  "newPublicPresetNamesRoundtripped": 177,
+  "galleryEntriesAdded": 18,
+  "fixtureSha256": "928e3f310e73289abff3f7bad52aba9ab2e7073e3aa23ab356e4c4691a8ab39f",
+  "sameInputBytes": true,
+  "comparison": {
+    "before": {
+      "placeholder": 18,
+      "preset": 0,
+      "text": 19
+    },
+    "after": {
+      "placeholder": 0,
+      "preset": 18,
+      "text": 19
+    }
+  },
+  "checks": [
+    {
+      "log": "deck-check.log",
+      "passed": true,
+      "testsPassed": 196
+    },
+    {
+      "log": "word-check.log",
+      "passed": true,
+      "testsPassed": 1180
+    },
+    {
+      "log": "sheet-check.log",
+      "passed": true,
+      "testsPassed": 1383
+    },
+    {
+      "log": "workspace-check.log",
+      "passed": true,
+      "testsPassed": 0
+    },
+    {
+      "log": "deck-build.log",
+      "passed": true,
+      "testsPassed": 0
+    },
+    {
+      "log": "docs-check.log",
+      "passed": true,
+      "testsPassed": 0
+    },
+    {
+      "log": "gates-check.log",
+      "passed": true,
+      "testsPassed": 0
+    }
+  ],
+  "packageVersionsSourcesAndChecksumsUnchanged": true,
+  "native": {
+    "passed": true,
+    "checks": [
+      "Real gallery inserts and selects triangle",
+      "Parameter increment, undo and redo via native controls",
+      "Native save independently reopened by CLI with triangle adjustment 55000"
+    ],
+    "binarySha256": "f9991216a840c99dac8b83e60331a601555e00abba590fdaf01893194de07ce9",
+    "scope": "macOS AX actions and synthetic keyboard events; no physical-keyboard, screen-reader or other-platform certification"
+  },
+  "oldReaderRejectsWithoutChangingFile": true,
+  "codeSha256": {
+    "crates/joydeck-formats/src/preset_pptx.rs": "76574f42562b55cedfb40f614f6c4ec0fd2e5446ff5701a7f705798e75cd0d72",
+    "crates/joydeck-formats/src/preset_pptx/tests.rs": "8baa61de9d0d4e78cb162d71f8eeed2ff96e69b1410e854955c1e6251e62b14e",
+    "crates/joydeck-model/src/preset.rs": "240db6c828e567853f1bc5fd476b1ab79b70a4f097a8f3c67b96770aa1ee3d3e",
+    "crates/joydeck-model/src/preset/tests.rs": "b34832044dbf31ada09dd9675f22ad0efdc00887dca4b70bdb6fa5bdeeb25049",
+    "crates/joydeck-model/src/preset/vendor/build.rs": "6906cb3da000efe18cd1ceab77218c95e2253862ce6991bbe714095a8c0c36d8",
+    "crates/joydeck-model/src/preset/vendor/builder.rs": "5d2b557f93dcf6ec92a982ecd95ba60266a522d025609b30f33afc62496b82fa",
+    "crates/joydeck-model/src/preset/vendor/catalog.rs": "b95c8f517964c462a6f1162b99a2239372bbca08dbb3f22f7b45e7a6206abc5c",
+    "crates/joydeck-model/src/preset/vendor/extra.rs": "9bee62c4c134458b864dc2bf7b7cfee574aeeb1207b379997ee266e4e76fb509",
+    "crates/joydeck-model/src/preset/vendor/extra/tests.rs": "fb602a37749d75f69dbe8c453d8a0f61982fa9284770554e6966ed2d6c59a9b8",
+    "crates/joydeck-model/src/preset/vendor/mod.rs": "cf8f3fc38686ba473020ccc2f9e5c400bdbfd307e9fe654f4d414e1d05e36e41",
+    "crates/joydeck-model/src/preset/vendor/shapes.rs": "a3777bc87214cb2534b79782becff320c399d0f90336fe0580f62ea17c2478f2",
+    "crates/joydeck-model/src/preset/vendor/tests.rs": "a47c2c046f50210013a3529ff417026ed638990ba3b7babc2de76d469cf35ead",
+    "crates/joydeck-shell/tests/presets.rs": "ae10be1b03a5d282fea728fffe8df3d0a55056268daa3f11ce5508411b0d68d2",
+    "scripts/joydeck/verify-preset-geometry.py": "65e4bdf7ad88b198da38354ba03e8c855d143c5049860dbadf8fab753af0ac30",
+    "scripts/joydeck/verify-preset-ui.py": "c770c21b132a4c0dd90ebae68532b2b13def22ca6eeb815294d667f40ec34a50",
+    "Cargo.lock": "e434516e8e13b8535a88faebc7fa29fb8e67425f03c8585f63c3c94de99ea01e",
+    "Cargo.toml": "c981c24b197323aa392b46a153bcaa0c8a1048f2765ed6b984f3c370a8560309",
+    "apps/joydeck/src/inspector.rs": "4dd9f3bce7ff98f8973132515e566e55d67f6471db64625c580e01891c980f2c",
+    "apps/joydeck/src/ribbon_menus.rs": "de78964d8e772e19aa9283055503f76faf74e2278677908b31115d02bad463bb",
+    "crates/joydeck-formats/src/document.rs": "4f03958ad3de8cdcf378e2895deabc9a9392cc9ef9716e31387fcb91cb7d3172",
+    "crates/joydeck-formats/src/lib.rs": "eaba748ac58cc6a42b1dc669dcfeaca73e06fee933d6cca6a0aef25b5c603b82",
+    "crates/joydeck-formats/src/native.rs": "16317e1e8a295128d6a3f90f6e5a3cd4e6956cbc16d6dcb135ac34df85164e89",
+    "crates/joydeck-formats/src/pptx.rs": "b2651ce12c6ac8568fa45ee222285317c4209f76af077af151f0329867db0dbe",
+    "crates/joydeck-formats/src/pptx_write.rs": "8374948ccbd5d8411a01081deb4c6e2b16683aa66cdfef2edfe300bd73c6c44b",
+    "crates/joydeck-model/Cargo.toml": "00cf2359c73d212e7fd3a9480160ebc19c515451953bf635545435163c838f57",
+    "crates/joydeck-model/src/document.rs": "a55c0d537537af04f9ce446f388edc9c507f04a12c678c6c7574abd315368dc4",
+    "crates/joydeck-model/src/geometry.rs": "2d352414c40f4d357763db5e132eb39e14c88e4938fb3ba0f7e9a55e55b890f6",
+    "crates/joydeck-model/src/identity.rs": "507753d1aeb213ce3ba2599f8ac0993b85a2122f9ff08094cd4d04cfdf10867b",
+    "crates/joydeck-model/src/lib.rs": "0c9d9c3af3cb347d71b994a540c4846ee32b5b94b39c70b6d984ef197e0fa9fd",
+    "crates/joydeck-model/src/motion.rs": "1a12a0d8dc04f0ea4fc15be9de02ab98e963fc422dcfb6d536dc8fc988adc817",
+    "crates/joydeck-scene/src/preview.rs": "48c59ce8cbff1b7e6a22f877c3974d02b5ea4c191062a53a6949edc9f356db02",
+    "crates/joydeck-shell/src/lib.rs": "d335b56f74e283ad218f07705763e6cb30174ff77580a4bc96e44d07d3f1e2f1"
+  },
+  "unverified": [
+    "Real external Office corpus and PowerPoint reference rendering",
+    "Windows/Linux GUI and Xinchuang hardware",
+    "Complete complex formatting, themes, free paths and connector routing",
+    "Direct yellow-handle dragging, screen-reader certification and official release"
+  ],
+  "artifactSha256": {
+    "after/fixture.json": "d6df3b11fc6d5f030caf02f468553bb7fb2fdbaab83635896e3e6e097d7496d0",
+    "after/inspect.json": "353c00cd4478e08fdac9b34d8454456374b65291ebc23e4cfb2930bca01963b6",
+    "after/presets.pptx": "928e3f310e73289abff3f7bad52aba9ab2e7073e3aa23ab356e4c4691a8ab39f",
+    "after/render.json": "f0e1ee3a3880d8d88bc7197e562d91b880cc38046fe2f6a9325b1064fe8aee2c",
+    "after/render.png": "c55ac8a4b40f71c9af995ac40499fc2234033cac29857a78abf3c772fa7426cb",
+    "before/fixture.json": "0c3a38420d9f2a5de3a0cbfd9d495aa2a54faf927bbcad002fac6f2a0b741668",
+    "before/inspect.json": "72490344eceeec57b6d63d9c6d11ee534fdf0b8545ac35ca97625ca32632122f",
+    "before/presets.pptx": "928e3f310e73289abff3f7bad52aba9ab2e7073e3aa23ab356e4c4691a8ab39f",
+    "before/render.json": "f2d1a1c1a5a3057ffbe377ab304d29f000229f56d5ad7e07cfa220fcae761e95",
+    "before/render.png": "2e7789753a860c7b82e343b1e20ed4098c082d873a4ac8b3450b8cbe0ab9ed2d",
+    "deck-build.log": "11e2db74dea806162b9b4819ee2124538897d113959369ef5842f522baa4dbe7",
+    "deck-check.log": "50310828f1c51779d165d34fc59d75321b72a530db937a26411f14790b677c2a",
+    "docs-check.log": "bdfbf8d258b316c6ee69a54394c2a61aaa36085cd8fc51ee8a7937ba6e2681c0",
+    "gates-check.log": "53796015ff6c515bc2ec81854f6ba9117ce95972e72c207fa9351f9ed8b843dc",
+    "native/01-gallery.png": "d0ab533906e9e8671790fbe36dabe1de91e273f3ea31dea6c17eaac6dc12ee69",
+    "native/02-inserted.png": "92059d1ac53ca7c0a49e2ee27abb6c53c0b2f7e32d75d0364b73bab46963602e",
+    "native/03-adjusted.png": "23e0c3052087d16f893c515ece569a1a606f555304b1ef885f1d6ad19e60feae",
+    "native/adjusted-inspection.json": "f8eedb4c5f7d1c383460960a9902abab1d839a41af2e1f117a68159925e86c5a",
+    "native/native.log": "f54c9fa1aeb4bb699af531d2045e1f38f6f2c0cd5b5baf99630572733c7e5931",
+    "native/redo-inspection.json": "83e0a641de636b486accb690ec73bf05147eedeb98e133ef3ff8ecd2c4e339c1",
+    "native/result.json": "8ca98de54a4cbdf7da1e9eaa193fc3f0455fdd81b81fe3d892235fbfe4ad2176",
+    "native/undo-inspection.json": "e26747fd6469115a5cdf2832e67b02b9b090fee46c3950094701a73be7b06b54",
+    "native/working.joydeck": "4d8187b2f5dffeca0a9ec5c57e5e092db297f12cb48cd47b47acb3eb72e1d3ef",
+    "old-reader.json": "c1df2854b2e246b821abf86fa6f24057a4897f6f8a60506c3548f623a412e890",
+    "sheet-check.log": "9fe582739a0abfa27a5bd1dfb9dc5654377e7bf652eeec37c0547cbe7f8ad56d",
+    "word-check.log": "c40afbf9659a9541d6793fbd5e61c7b8d5d4f2a5473ef3027395bd34b5133c55",
+    "workspace-check.log": "1aed1b0baf24de4d6391492451d40cf6063ae55a85c000ee20ec526d41f6f9ab"
+  }
+}

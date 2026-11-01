@@ -129,7 +129,7 @@ fn native(parts: &BTreeMap<String, Vec<u8>>) -> Result<Deck> {
         .map_err(|e| format!("manifest 无效：{e}"))?;
     if m.format != "joydeck"
         || m.schema_major != 1
-        || m.min_reader > 11
+        || m.min_reader > 12
         || m.required_features.iter().any(|s| {
             s != "object-transform-v1"
                 && s != "rich-text-v1"
@@ -141,6 +141,7 @@ fn native(parts: &BTreeMap<String, Vec<u8>>) -> Result<Deck> {
                 && s != "motion-v1"
                 && s != "review-v1"
                 && s != "media-v1"
+                && s != "preset-geometry-v1"
         })
         || m.document != "document.json"
     {
@@ -194,7 +195,17 @@ fn native(parts: &BTreeMap<String, Vec<u8>>) -> Result<Deck> {
         deck.source = Some(std::sync::Arc::new(source));
         deck.warn("pptx-source",None,"source/metadata.json","包含原始PPTX源包；当前显示是受支持子集。源包写回仅允许唯一单行文字，其他修改需明确有损导出。");
     }
-    if m.schema_minor > 10 {
+    if joydeck_model::preset::has_presets(&deck)
+        && (m.schema_minor < 11
+            || m.min_reader < 12
+            || !m
+                .required_features
+                .iter()
+                .any(|s| s == "preset-geometry-v1"))
+    {
+        return Err("预设形状缺少版本或必需特性声明".into());
+    }
+    if m.schema_minor > 11 {
         deck.warn(
             "schema-minor",
             None,

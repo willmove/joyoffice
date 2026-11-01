@@ -154,6 +154,7 @@ pub fn svg(deck: &Deck, page: usize, cancel: &AtomicBool) -> Result<String> {
         }
     }
     let objects = crate::table::expand(deck, page, &expanded)?;
+    let mut preset_segments = 0;
     for (i, o) in objects.iter().enumerate() {
         check_cancel(cancel)?;
         if o.opacity == 0. {
@@ -170,6 +171,42 @@ pub fn svg(deck: &Deck, page: usize, cancel: &AtomicBool) -> Result<String> {
             o.stroke_width
         ));
         match o.kind.as_str() {
+            "preset" => {
+                let geometry = joydeck_model::preset::geometry(o)?;
+                preset_segments += geometry
+                    .paths
+                    .iter()
+                    .map(|p| p.path.elements().len())
+                    .sum::<usize>();
+                if preset_segments > 100_000 {
+                    return Err("页面预设路径超过100000段预算；原内容保留".into());
+                }
+                svg.push_str(&format!(r#"<g transform="translate({x} {y})">"#));
+                for path in &geometry.paths {
+                    use joydeck_model::preset::FillMode;
+                    let fill = if path.fill == FillMode::None
+                        || o.preset.as_ref().is_some_and(|p| p.no_fill)
+                    {
+                        "none".to_owned()
+                    } else {
+                        let amount = match path.fill {
+                            FillMode::Lighten => 0.4,
+                            FillMode::LightenLess => 0.2,
+                            FillMode::Darken => -0.4,
+                            FillMode::DarkenLess => -0.2,
+                            _ => 0.,
+                        };
+                        shade(&o.fill, amount)?
+                    };
+                    svg.push_str(&format!(
+                        r#"<path d="{}" fill="{fill}" fill-rule="{}"{} />"#,
+                        path.path.to_svg(),
+                        if path.even_odd { "evenodd" } else { "nonzero" },
+                        if path.stroke { "" } else { r#" stroke="none""# }
+                    ));
+                }
+                svg.push_str("</g>");
+            }
             "chart" => svg.push_str(&crate::chart::svg(deck, page, o)?),
             "image" => svg.push_str(&crate::media::svg(deck, o, i)?),
             "ellipse" => svg.push_str(&format!(
@@ -247,6 +284,23 @@ pub fn svg(deck: &Deck, page: usize, cancel: &AtomicBool) -> Result<String> {
     }
     svg.push_str("</svg>");
     Ok(svg)
+}
+fn shade(color: &str, amount: f64) -> Result<String> {
+    if !crate::document::color(color) {
+        return Err("预设形状颜色无效".into());
+    }
+    let value = u32::from_str_radix(&color[1..], 16).map_err(|_| "无效颜色")?;
+    let mut out = String::from("#");
+    for shift in [16, 8, 0] {
+        let v = f64::from((value >> shift) & 255);
+        let v = if amount > 0. {
+            v + (255. - v) * amount
+        } else {
+            v * (1. + amount)
+        };
+        out.push_str(&format!("{:02x}", v.round() as u8));
+    }
+    Ok(out)
 }
 pub fn options() -> usvg::Options<'static> {
     usvg::Options {

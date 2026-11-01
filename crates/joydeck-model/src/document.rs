@@ -58,6 +58,8 @@ pub struct Slide {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Object {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preset: Option<crate::preset::Preset>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub morph_key: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub chart: Option<crate::chart::Chart>,
@@ -172,6 +174,7 @@ impl Deck {
                 return Err("对象数量超限".into());
             }
             for o in &s.objects {
+                crate::preset::validate(o)?;
                 if !matches!(o.text_align.as_str(), "left" | "center" | "right") {
                     return Err("文字对齐无效".into());
                 }
@@ -235,6 +238,7 @@ impl Deck {
                     "placeholder",
                     "arrow",
                     "roundRect",
+                    "preset",
                 ]
                 .contains(&o.kind.as_str())
                 {
