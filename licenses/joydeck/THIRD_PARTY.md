@@ -1,6 +1,8 @@
 # Dependency and asset provenance
 
-The JoyDeck application, document model, native schema, OPC/PresentationML adapters, viewer actions and fixture generator are independently authored. Input semantics come from the public standards listed in docs/15-evidence-references.md. The following general-purpose libraries are dependencies, not document-engine implementations.
+The JoyDeck application, document model, native schema, OPC/PresentationML adapters, viewer actions and fixture generator are independently authored, with the explicitly attributed preset-geometry exception below. Input semantics come from the public standards listed in docs/joydeck/15-evidence-references.md. General-purpose libraries and vendored implementation sources are recorded separately.
+
+2026-11-01: `crates/joydeck-model/src/preset/vendor/` contains preset geometry and regression tests adapted from DeckCraft commit `82573331a8f2b87ccb536b9b66d55b90295f2111`, Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors, used under MIT. The retained license and immutable upstream file map are in `licenses/joydeck/deckcraft-geometry/`. Local changes are Rust formatting, removal of unused re-exports and separation of test-module bodies. No DeckCraft document model, renderer, UI, fonts, artwork or branding is included. JoyDeck owns the bounded model, native/PPTX and scene adapters. `kurbo =0.13.1` (MIT OR Apache-2.0, https://github.com/linebender/kurbo) was already resolved in Cargo.lock and is now a direct geometry dependency, without additional features.
 
 | Dependency | Version | License | Purpose / upstream |
 |---|---|---|---|

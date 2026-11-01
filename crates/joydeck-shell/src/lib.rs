@@ -16,7 +16,7 @@ pub use joydeck_engine::{authoring_demo, compare, design_commands};
 pub use joydeck_formats::{
     chart_package, diagram_package, motion_package, pptx, pptx_write, table_pptx,
 };
-pub use joydeck_model::{design, diagram, geometry, review, show, table, text};
+pub use joydeck_model::{design, diagram, geometry, preset, review, show, table, text};
 pub mod preview;
 pub mod playback {
     pub use joydeck_platform::playback::*;

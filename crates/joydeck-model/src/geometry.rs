@@ -49,6 +49,9 @@ pub fn union(objects: &[Object]) -> Rect {
 pub fn hit(o: &Object, x: f32, y: f32) -> bool {
     let (x, y) = rotate(x - o.x - o.width / 2., y - o.y - o.height / 2., -o.rotation);
     let (x, y) = (x + o.width / 2., y + o.height / 2.);
+    if o.kind == "preset" {
+        return crate::preset::hit(o, x, y);
+    }
     if o.kind == "ellipse" {
         return ((x - o.width / 2.) / (o.width / 2.).max(0.1)).powi(2)
             + ((y - o.height / 2.) / (o.height / 2.).max(0.1)).powi(2)

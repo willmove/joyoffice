@@ -225,6 +225,55 @@ impl Editor {
                     )),
                 );
         } else {
+            if self.selection.len() == 1
+                && let Some(object) = self.selected_objects().first()
+                && object.preset.is_some()
+            {
+                body = body.child(section("形状调整"));
+                if let Ok(handles) = joydeck::preset::adjustment_handles(object) {
+                    for (index, _, _) in handles {
+                        body =
+                            body.child(
+                                div()
+                                    .flex()
+                                    .gap_2()
+                                    .items_center()
+                                    .child(label(format!("参数 {}", index + 1)))
+                                    .children([(-1, "减少"), (1, "增加")].into_iter().map(
+                                        |(direction, name)| {
+                                            Button::new(SharedString::from(format!(
+                                                "preset-adjust-{index}-{direction}"
+                                            )))
+                                            .small()
+                                            .label(name)
+                                            .accessibility_label(format!(
+                                                "形状参数 {} {name}",
+                                                index + 1
+                                            ))
+                                            .on_click(cx.listener(move |s, _, _, cx| {
+                                                if let Some(o) = s.selected_objects().first() {
+                                                    match joydeck::preset::adjust(
+                                                        o,
+                                                        index,
+                                                        f64::from(direction),
+                                                    ) {
+                                                        Ok(o) => s.command(
+                                                            Command::ReplaceMany(s.page, vec![o]),
+                                                            cx,
+                                                        ),
+                                                        Err(e) => {
+                                                            s.message = e;
+                                                            cx.notify();
+                                                        }
+                                                    }
+                                                }
+                                            }))
+                                        },
+                                    )),
+                            );
+                    }
+                }
+            }
             body = body
                 .child(section("位置与大小"))
                 .child(self.property_pair(0, "水平位置 · pt", 1, "垂直位置 · pt"))

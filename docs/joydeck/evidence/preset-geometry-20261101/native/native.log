@@ -1,0 +1,2 @@
+M2 command=object.add document=2
+M2 command=object.update document=2

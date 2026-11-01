@@ -1,0 +1,6 @@
+{
+  "exitCode": 3,
+  "stdout": "",
+  "stderr": "{\"error\":\"{\\\"error\\\":{\\\"code\\\":\\\"operation-failed\\\",\\\"message\\\":\\\"不支持的原生版本、入口或必需特性\\\"},\\\"requestId\\\":\\\"auto-900ac06f35ec9b804728c7d15a8cae2d-cli-open\\\"}\"}\n",
+  "inputPreserved": true
+}

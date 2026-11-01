@@ -9,6 +9,7 @@ pub mod interop;
 pub mod media;
 pub mod motion;
 pub mod playback;
+pub mod preset;
 pub mod review;
 pub mod show;
 pub mod table;

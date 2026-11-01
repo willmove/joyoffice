@@ -329,6 +329,7 @@ pub fn morph(d: &Deck, from: usize, to: usize, p: f32) -> Result<Deck> {
             d.slides[from].objects.iter().find(|o| {
                 o.morph_key.as_ref() == Some(key)
                     && o.kind == current.kind
+                    && o.preset == current.preset
                     && o.text == current.text
                     && o.fill == current.fill
                     && o.stroke == current.stroke

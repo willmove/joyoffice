@@ -46,6 +46,7 @@ impl Editor {
         let weak = cx.entity().downgrade();
         ui::large_tool("shape-gallery", "形状", I::Shapes)
             .dropdown_menu(move |mut menu, _, _| {
+                menu = menu.scrollable(true);
                 for (kind, name) in [
                     ("rect", "矩形"),
                     ("roundRect", "圆角矩形"),
@@ -58,6 +59,44 @@ impl Editor {
                     menu = menu.item(PopupMenuItem::new(name).on_click(move |_, _, cx| {
                         let _ = weak.update(cx, |s, cx| {
                             s.command(Command::AddObject(s.page, edit::object(kind)), cx)
+                        });
+                    }));
+                }
+                for (preset, name) in [
+                    ("triangle", "三角形"),
+                    ("diamond", "菱形"),
+                    ("pentagon", "五边形"),
+                    ("hexagon", "六边形"),
+                    ("star5", "五角星"),
+                    ("heart", "心形"),
+                    ("leftArrow", "左箭头"),
+                    ("leftRightArrow", "双向箭头"),
+                    ("chevron", "燕尾形"),
+                    ("parallelogram", "平行四边形"),
+                    ("trapezoid", "梯形"),
+                    ("donut", "圆环"),
+                    ("flowChartDecision", "流程图：判断"),
+                    ("flowChartDocument", "流程图：文档"),
+                    ("cloud", "云形"),
+                    ("sun", "太阳"),
+                    ("moon", "月亮"),
+                    ("lightningBolt", "闪电"),
+                ] {
+                    let weak = weak.clone();
+                    menu = menu.item(PopupMenuItem::new(name).on_click(move |_, w, cx| {
+                        let _ = weak.update(cx, |s, cx| match joydeck::preset::object(preset) {
+                            Ok(o) => {
+                                let count = s.session.deck.slides[s.page].objects.len();
+                                s.command(Command::AddObject(s.page, o), cx);
+                                if s.session.deck.slides[s.page].objects.len() == count + 1 {
+                                    s.inspector_open = true;
+                                    s.select(count, w, cx);
+                                }
+                            }
+                            Err(e) => {
+                                s.message = e;
+                                cx.notify();
+                            }
                         });
                     }));
                 }

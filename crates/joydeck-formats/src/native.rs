@@ -9,7 +9,23 @@ pub fn encode(deck: &Deck) -> Result<Vec<u8>> {
         Arc::make_mut(asset).bytes.clear();
     }
     let bytes = serde_json::to_vec(&model).map_err(|e| e.to_string())?;
-    let manifest = serde_json::to_vec(&serde_json::json!({"format":"joydeck","schemaMajor":1,"schemaMinor":10,"minReader":11,"requiredFeatures":["object-transform-v1","rich-text-v1","image-resource-v1","design-v1","pptx-source-v1","table-v1","charts-v1","motion-v1","review-v1","media-v1"],"document":"document.json","source":deck.source.is_some(),"media":deck.playback.assets.keys().collect::<Vec<_>>(),"resources":deck.resources.keys().map(|id| format!("resources/{id}.png")).collect::<Vec<_>>()})).map_err(|e| e.to_string())?;
+    let presets = joydeck_model::preset::has_presets(deck);
+    let mut features = vec![
+        "object-transform-v1",
+        "rich-text-v1",
+        "image-resource-v1",
+        "design-v1",
+        "pptx-source-v1",
+        "table-v1",
+        "charts-v1",
+        "motion-v1",
+        "review-v1",
+        "media-v1",
+    ];
+    if presets {
+        features.push("preset-geometry-v1");
+    }
+    let manifest = serde_json::to_vec(&serde_json::json!({"format":"joydeck","schemaMajor":1,"schemaMinor":if presets {11} else {10},"minReader":if presets {12} else {11},"requiredFeatures":features,"document":"document.json","source":deck.source.is_some(),"media":deck.playback.assets.keys().collect::<Vec<_>>(),"resources":deck.resources.keys().map(|id| format!("resources/{id}.png")).collect::<Vec<_>>()})).map_err(|e| e.to_string())?;
     if bytes.len() > MAX_PART {
         return Err("模型超过读取预算".into());
     }
@@ -56,7 +72,7 @@ pub fn validate_editable(parts: &std::collections::BTreeMap<String, Vec<u8>>) ->
     let manifest: serde_json::Value =
         serde_json::from_str(crate::document::part(parts, "manifest.json")?)
             .map_err(|e| e.to_string())?;
-    if !matches!(manifest["schemaMinor"].as_u64(), Some(0..=10)) {
+    if !matches!(manifest["schemaMinor"].as_u64(), Some(0..=11)) {
         return Err("新版本格式只能只读查看".into());
     }
     let empty = vec![];
