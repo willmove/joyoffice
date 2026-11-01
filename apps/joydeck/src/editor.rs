@@ -40,6 +40,9 @@ mod ribbon_menus;
 mod scene_canvas;
 #[path = "stage.rs"]
 mod stage;
+#[cfg(feature = "validation")]
+#[path = "startup_smoke.rs"]
+mod startup_smoke;
 #[path = "table_demo.rs"]
 mod table_demo;
 #[cfg(feature = "validation")]
@@ -151,6 +154,9 @@ impl Gesture {
     }
 }
 fn recovery_root() -> PathBuf {
+    if std::env::args().any(|s| s == "--startup-smoke") {
+        return joydeck::preferences::root().join("startup-smoke-recovery");
+    }
     if std::env::args().any(|s| {
         s == "--beta-smoke"
             || s == "--extended-smoke"
@@ -2111,6 +2117,10 @@ fn open_session(cx: &mut App, shared: Option<Session>) -> Result<()> {
     cx.global_mut::<Registry>()
         .0
         .push((handle, view.downgrade()));
+    #[cfg(feature = "validation")]
+    if std::env::args().any(|s| s == "--startup-smoke") {
+        startup_smoke::run(handle, view.clone(), cx);
+    }
     #[cfg(feature = "validation")]
     if std::env::args().any(|s| s == "--workspace-smoke") && cx.global::<Registry>().0.len() == 1 {
         workspace_smoke::run(handle, view.clone(), cx);

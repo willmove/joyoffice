@@ -2,6 +2,8 @@
 
 当前开发入口为 JoyOffice Monorepo，参见[开发指南](DEVELOPMENT.md)与[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)。[迁移结果及新布局验证](../joyoffice/MONOREPO-RESULT.md)已单独登记。下述数字和证据是迁移前M13/M14历史基线，不改写为新验收结果。
 
+2026-11-01 Windows 启动修复：定位并拆分 debug 首帧中过大的工具栏与属性表单栈帧，保留默认 1 MiB 主线程栈。Windows 原生两种布局共 96 个绘制场景和 Deck 分产品检查通过；根因、回归命令与边界见 [42 启动栈溢出修复](42-windows-startup-stack.md)。
+
 2026-11-01 预设几何：按用户明确授权提取 DeckCraft MIT 预设轮廓，接入18种新增插入菜单、参数增减、路径命中与原生/公共PPTX读写。相同原创PPTX的18个未支持占位变为18个实际轮廓；无预设文稿保留旧schema。来源、同源对比、自动/桌面验证与未覆盖项见 [41引入记录](41-preset-geometry.md)。M5/M7完整父阶段继续开放。
 
 2026-11-01 界面统一：JoyDeck 接入 JoyOffice 公共 UI，刷新主工作区、任务面板、颜色与字体工具和实际版式预览；默认文件参数进入编辑器，显式 `--viewer` 保留只读模式。本轮验证与平台边界单列于 [UI 验证](../joyoffice/validation/20261101-deck-ui/README.md)，不改变原功能里程碑的验收状态。
