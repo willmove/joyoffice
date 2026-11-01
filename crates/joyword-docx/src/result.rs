@@ -146,6 +146,37 @@ impl Editability {
         !self.is_read_only() && !self.locked.contains(&node)
     }
 
+    /// A completely typed table document can isolate preserved paragraphs.
+    /// Documents with opaque body blocks keep the existing whole-file boundary.
+    pub fn supports_local_editing(&self, document: &Document) -> bool {
+        !self.is_read_only()
+            && document
+                .body()
+                .blocks
+                .iter()
+                .any(|b| matches!(b, joyword_model::Block::Table(_)))
+            && document.body().blocks.iter().all(|b| {
+                matches!(
+                    b,
+                    joyword_model::Block::Table(_) | joyword_model::Block::Paragraph(_)
+                )
+            })
+    }
+
+    pub(crate) fn remap_locked(
+        &self,
+        ids: &std::collections::BTreeMap<NodeId, NodeId>,
+    ) -> Option<Self> {
+        Some(Self {
+            read_only: self.read_only.clone(),
+            locked: self
+                .locked
+                .iter()
+                .map(|id| ids.get(id).copied())
+                .collect::<Option<BTreeSet<_>>>()?,
+        })
+    }
+
     /// Whether nothing at all is restricted.
     pub fn is_unrestricted(&self) -> bool {
         self.read_only.is_empty() && self.locked.is_empty()

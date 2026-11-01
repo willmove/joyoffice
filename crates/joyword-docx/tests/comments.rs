@@ -783,3 +783,65 @@ fn thread_package() -> Vec<u8> {
         ("word/commentsExtensible.xml", &extensible),
     ])
 }
+
+#[test]
+fn table_headers_combining_comments_and_revisions_are_locally_locked() {
+    let source = Package::read(&thread_package(), &Budget::default()).unwrap();
+    let main = document(
+        r#"<w:tbl><w:tblGrid><w:gridCol w:w="3000"/></w:tblGrid><w:tr><w:tc><w:p><w:commentRangeStart w:id="0"/><w:ins w:id="19" w:author="Test"><w:r><w:t>Header</w:t></w:r></w:ins><w:commentRangeEnd w:id="0"/><w:r><w:commentReference w:id="0"/></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:p><w:r><w:t>Editable</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"#,
+    );
+    let mut items = vec![(
+        "[Content_Types].xml",
+        source.content_types_xml(),
+        Method::Deflated,
+    )];
+    for part in source.parts() {
+        items.push((
+            part.name.item_name(),
+            if part.name.as_str() == "/word/document.xml" {
+                main.as_bytes()
+            } else {
+                &part.data
+            },
+            part.method,
+        ));
+    }
+    let bytes = write_archive(&items).unwrap();
+    let imported = import(&bytes, &Budget::default()).unwrap();
+    assert!(
+        imported
+            .editability
+            .supports_local_editing(&imported.document)
+    );
+    let Block::Table(t) = imported.document.body().blocks.get(0).unwrap() else {
+        panic!("table")
+    };
+    assert!(
+        !imported
+            .editability
+            .can_edit(t.rows[0].cells[0].blocks.get(0).unwrap().id())
+    );
+    assert!(
+        imported
+            .editability
+            .can_edit(t.rows[1].cells[0].blocks.get(0).unwrap().id())
+    );
+    let mut model = imported.document.clone();
+    let body = model.body_id();
+    model.story_mut(body).unwrap().blocks.update(0, |b| {
+        let Block::Table(t) = b else { panic!("table") };
+        Arc::make_mut(t).rows[1].cells[0].blocks.update(0, |b| {
+            let Block::Paragraph(p) = b else {
+                panic!("paragraph")
+            };
+            Arc::make_mut(p).insert_text(ScalarOffset(0), "X").unwrap();
+        });
+    });
+    let plan = plan_export(&imported.backing, &model.snapshot(), &Budget::default()).unwrap();
+    let xml = part_bytes(plan.bytes(), "/word/document.xml");
+    assert!(
+        std::str::from_utf8(&xml)
+            .unwrap()
+            .contains(r#"<w:commentRangeStart w:id="0"/><w:ins w:id="19" w:author="Test">"#)
+    );
+}

@@ -91,6 +91,7 @@ fn document(with_record: bool) -> Document {
             props_revision: None,
         };
         rows.push(Row {
+            insertion: None,
             id: ids.node(),
             grid_before: 0,
             grid_after: 0,
@@ -111,6 +112,7 @@ fn document(with_record: bool) -> Document {
         }));
     }
     let table = Table {
+        borders: [None; 6],
         id: ids.node(),
         grid: vec![Measure::Twips(4000); 2],
         rows,

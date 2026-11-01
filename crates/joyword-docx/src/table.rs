@@ -21,39 +21,28 @@
 //! `r:id` and/or `w:anchor`), the same subset the body parser maps.
 //! `w:tblLook`, `top` / `center` / `bottom` and `auto` / `atLeast` / positive
 //! `exact` are stored. The caller preserves the whole `w:tbl` byte range.
-//! This parser allocates no identifiers and records no fragments, so a
-//! refusal leaves the document untouched.
+//! Table structure is preflighted before paragraphs are imported through the
+//! body parser. Unsupported paragraph content retains its source and lock.
 
 use std::ops::Range;
 use std::sync::Arc;
 
 use joyword_model::{
     BlockSeq, BorderEdge, BorderKind, Cell, CellBorders, CellChangeProps, CellMargins, Color,
-    Hyperlink, Indent, Measure, OBJECT_MARKER, ParaProps, Paragraph, PreviousTableProps,
-    RevisionKind, Row, RowChangeProps, RowHeight, RowHeightRule, RunProps, Shading, Spacing, Style,
-    StyleId, Table, TableAlign, TableChangeProps, TableCondition, TableConditional, TableFormat,
-    TableLayoutKind, TableLook, TablePropsRevision, TableWidth, TextRevision, ThemeColorSlot,
+    Measure, Paragraph, PreviousTableProps, Row, RowChangeProps, RowHeight, RowHeightRule, Shading,
+    Style, StyleId, Table, TableAlign, TableChangeProps, TableCondition, TableConditional,
+    TableFormat, TableLayoutKind, TableLook, TablePropsRevision, TableWidth, ThemeColorSlot,
     VerticalAlign, VerticalMerge,
 };
 
-use crate::import::Importer;
+use crate::import::{Importer, Scope};
 use crate::ns::W;
 use crate::props::{self, Findings};
-use crate::xml::{Attribute, Element, Node, XML_NAMESPACE, is_xml_space};
+use crate::xml::{Attribute, Element, Node, is_xml_space};
 use joyoffice_opc::PartName;
 
-struct DraftRun {
-    text: String,
-    props: RunProps,
-    link: Option<Arc<Hyperlink>>,
-    revision: Option<TextRevision>,
-}
-
 struct DraftParagraph {
-    style: Option<StyleId>,
-    props: ParaProps,
-    runs: Vec<DraftRun>,
-    span: Range<usize>,
+    element: Element,
 }
 
 struct CellProps {
@@ -77,7 +66,7 @@ struct RowProps {
 
 enum DraftBlock {
     Paragraph(DraftParagraph),
-    Table(DraftTable),
+    Table(Box<DraftTable>),
 }
 
 struct DraftCell {
@@ -97,6 +86,7 @@ struct DraftCell {
 const MAX_NESTED_DEPTH: u8 = 1;
 
 struct DraftRow {
+    insertion: Option<joyword_model::TextRevision>,
     before: u32,
     after: u32,
     header: bool,
@@ -107,6 +97,7 @@ struct DraftRow {
 }
 
 struct DraftTable {
+    borders: [Option<BorderEdge>; 6],
     style: Option<StyleId>,
     width: Option<TableWidth>,
     layout: Option<TableLayoutKind>,
@@ -121,6 +112,7 @@ struct DraftTable {
 }
 
 struct TableProps {
+    borders: [Option<BorderEdge>; 6],
     style: Option<StyleId>,
     width: Option<TableWidth>,
     layout: Option<TableLayoutKind>,
@@ -133,6 +125,7 @@ struct TableProps {
 impl TableProps {
     fn previous(self) -> TableChangeProps {
         TableChangeProps {
+            borders: self.borders,
             style: self.style,
             width: self.width,
             layout: self.layout,
@@ -150,9 +143,10 @@ pub(crate) fn import_table(
     importer: &mut Importer<'_>,
     part: &PartName,
     element: &Element,
+    scope: &Scope,
 ) -> Option<Table> {
     let draft = parse_table(importer, part, element, 0)?;
-    build(importer, part, element, draft)
+    build(importer, part, element, draft, scope)
 }
 
 fn build(
@@ -160,6 +154,7 @@ fn build(
     part: &PartName,
     element: &Element,
     draft: DraftTable,
+    scope: &Scope,
 ) -> Option<Table> {
     let mut rows = Vec::new();
     for row in draft.rows {
@@ -169,10 +164,12 @@ fn build(
             for block in cell.blocks {
                 match block {
                     DraftBlock::Paragraph(paragraph) => {
-                        blocks.push(build_paragraph(importer, part, element, paragraph)?.into());
+                        blocks.push(
+                            build_paragraph(importer, part, element, paragraph, scope)?.into(),
+                        );
                     }
                     DraftBlock::Table(nested) => {
-                        blocks.push(build(importer, part, element, nested)?.into());
+                        blocks.push(build(importer, part, element, *nested, scope)?.into());
                     }
                 }
             }
@@ -196,10 +193,14 @@ fn build(
                 props_revision: cell.props_revision.map(Arc::new),
             });
         }
+        if let Some(revision) = &row.insertion {
+            importer.document.note_revision_id(revision.id);
+        }
         if let Some(revision) = &row.props_revision {
             importer.document.note_revision_id(revision.id);
         }
         rows.push(Row {
+            insertion: row.insertion,
             id: importer.document.ids().node(),
             grid_before: row.before,
             grid_after: row.after,
@@ -215,6 +216,7 @@ fn build(
         importer.document.note_revision_id(revision.id);
     }
     Some(Table {
+        borders: draft.borders,
         id: importer.document.ids().node(),
         grid: draft.grid,
         rows,
@@ -239,28 +241,19 @@ fn build_paragraph(
     part: &PartName,
     table: &Element,
     draft: DraftParagraph,
+    scope: &Scope,
 ) -> Option<Paragraph> {
-    let mut paragraph = Paragraph::new(importer.document.ids().node());
-    paragraph.style = draft.style;
-    paragraph.props = Arc::new(draft.props);
-    if let Some(element) = find_span(table, &draft.span) {
-        paragraph.source = Some(Importer::source(part, element));
+    let scope = paragraph_scope(table, &draft.element.span, scope)?;
+    let (paragraph, section) = crate::body::paragraph(importer, part, &draft.element, &scope);
+    if section.is_some() {
+        return None;
     }
-    for run in draft.runs {
-        match run.revision {
-            Some(revision) => {
-                importer.document.note_revision_id(revision.id);
-                paragraph
-                    .push_text_marked(&run.text, None, Arc::new(run.props), revision)
-                    .ok()?;
-            }
-            None => paragraph
-                .push_text(&run.text, None, Arc::new(run.props))
-                .ok()?,
-        }
-        if run.link.is_some() {
-            paragraph.set_last_run_link(run.link);
-        }
+    // Revision rewrites cannot yet relocate comment markers. Keep just this
+    // paragraph immutable rather than permit an edit that cannot be saved.
+    if crate::comment::has_markup(&draft.element)
+        && paragraph.runs().iter().any(|r| r.revision.is_some())
+    {
+        importer.editability.lock(paragraph.id());
     }
     Some(paragraph)
 }
@@ -275,6 +268,7 @@ fn parse_table(
         return None;
     }
     let mut props = TableProps {
+        borders: [None; 6],
         style: None,
         width: None,
         layout: None,
@@ -296,6 +290,11 @@ fn parse_table(
             grid = Some(parse_grid(child)?);
         } else if child.is(W, "tr") {
             seen_row = true;
+            if let Some(jc) = child.child(W, "trPr").and_then(|p| p.child(W, "jc"))
+                && parse_alignment(jc)? != props.alignment.unwrap_or(TableAlign::Left)
+            {
+                return None;
+            }
             rows.push(parse_row(importer, part, child, depth)?);
         } else {
             return None;
@@ -306,6 +305,7 @@ fn parse_table(
         return None;
     }
     Some(DraftTable {
+        borders: props.borders,
         style: props.style,
         width: props.width,
         layout: props.layout,
@@ -325,6 +325,7 @@ fn parse_tbl_pr(element: &Element) -> Option<(TableProps, Option<TablePropsRevis
         return None;
     }
     let mut props = TableProps {
+        borders: [None; 6],
         style: None,
         width: None,
         layout: None,
@@ -344,6 +345,13 @@ fn parse_tbl_pr(element: &Element) -> Option<(TableProps, Option<TablePropsRevis
                 return None;
             }
             props.style = Some(StyleId::new(name));
+        } else if child.is(W, "tblBorders") {
+            for edge in child.elements() {
+                let index = ["top", "left", "bottom", "right", "insideH", "insideV"]
+                    .iter()
+                    .position(|name| *name == edge.local.as_ref())?;
+                props.borders[index] = Some(parse_edge(edge)?);
+            }
         } else if child.is(W, "tblW") && props.width.is_none() {
             props.width = Some(parse_table_width(child)?);
         } else if child.is(W, "tblLayout") && props.layout.is_none() {
@@ -574,7 +582,19 @@ fn parse_row(
             return None;
         }
     }
+    let insertion = if let Some(e) = element.child(W, "trPr").and_then(|p| p.child(W, "ins")) {
+        let (id, author, date) = crate::revision::track_attrs(e, false)?;
+        Some(joyword_model::TextRevision {
+            id,
+            author,
+            date,
+            kind: joyword_model::RevisionKind::Insert,
+        })
+    } else {
+        None
+    };
     (!cells.is_empty()).then_some(DraftRow {
+        insertion,
         before,
         after,
         header,
@@ -606,6 +626,10 @@ fn parse_tr_pr(element: &Element) -> Option<(RowProps, Option<TablePropsRevision
             header = Some(on_off_element(child)?);
         } else if child.is(W, "trHeight") && height.is_none() {
             height = Some(parse_row_height(child)?);
+        } else if child.is(W, "ins") {
+            let _ = crate::revision::track_attrs(child, false)?;
+        } else if child.is(W, "jc") {
+            let _ = parse_alignment(child)?;
         } else if child.is(W, "trPrChange") && change.is_none() {
             change = Some(parse_props_change(child, PropsChangeLevel::Row)?);
         } else {
@@ -692,12 +716,12 @@ fn parse_cell(
             if depth >= MAX_NESTED_DEPTH {
                 return None;
             }
-            blocks.push(DraftBlock::Table(parse_table(
+            blocks.push(DraftBlock::Table(Box::new(parse_table(
                 importer,
                 part,
                 child,
                 depth + 1,
-            )?));
+            )?)));
         } else {
             return None;
         }
@@ -919,8 +943,14 @@ fn parse_borders(element: &Element) -> Option<CellBorders> {
 
 fn parse_edge(element: &Element) -> Option<BorderEdge> {
     if !element.namespace.as_deref().is_some_and(|ns| ns == W)
-        || !only_word_attributes(element, &["val", "sz", "color", "themeColor"])
+        || !only_word_attributes(element, &["val", "sz", "color", "themeColor", "space"])
         || !text_is_space(element)
+    {
+        return None;
+    }
+    if element
+        .attribute(Some(W), "space")
+        .is_some_and(|v| v != "0")
     {
         return None;
     }
@@ -958,7 +988,7 @@ fn parse_shading(element: &Element) -> Option<Shading> {
     if !only_word_attributes(element, &["val", "color", "fill"]) || !text_is_space(element) {
         return None;
     }
-    if element.attribute(Some(W), "val")? != "clear" {
+    if element.attribute(Some(W), "val").unwrap_or("clear") != "clear" {
         return None;
     }
     if let Some(color) = element.attribute(Some(W), "color")
@@ -978,65 +1008,31 @@ fn parse_paragraph(
     part: &PartName,
     element: &Element,
 ) -> Option<DraftParagraph> {
-    if !only_word_attributes(element, &[]) || !text_is_space(element) {
+    fn admits(importer: &Importer<'_>, part: &PartName, element: &Element) -> bool {
+        if element.is(W, "hyperlink") && crate::hyperlink::mapped(importer, part, element).is_none()
+        {
+            return false;
+        }
+        if ["drawing", "pict", "object", "sdt", "rPrChange", "pPrChange"]
+            .iter()
+            .any(|name| element.is(W, name))
+        {
+            return false;
+        }
+        element.elements().all(|e| admits(importer, part, e))
+    }
+    if !admits(importer, part, element) {
         return None;
     }
-    let mut style = None;
-    let mut props = ParaProps::default();
-    let mut runs = Vec::new();
-    let mut saw_ppr = false;
-    for child in element.elements() {
-        if child.is(W, "pPr") && !saw_ppr && runs.is_empty() {
-            saw_ppr = true;
-            (style, props) = parse_ppr(child)?;
-        } else if child.is(W, "r") {
-            let (text, props) = parse_run(child, false)?;
-            runs.push(DraftRun {
-                text,
-                props,
-                link: None,
-                revision: None,
-            });
-        } else if child.is(W, "hyperlink") {
-            // The same simple subset the body parser maps: text and tab runs
-            // under `r:id` and/or `w:anchor`. A complex wrapper refuses the
-            // whole table, which stays preserved instead.
-            let link = crate::hyperlink::mapped(importer, part, child)?;
-            for run_element in child.elements() {
-                let (text, props) = parse_run(run_element, false)?;
-                runs.push(DraftRun {
-                    text,
-                    props,
-                    link: Some(Arc::new(link.clone())),
-                    revision: None,
-                });
-            }
-        } else {
-            let kind = crate::revision::revision_kind(child.local.as_ref())?;
-            let mark = crate::revision::cell_text_revision(child, kind)?;
-            let deleted = matches!(kind, RevisionKind::Delete | RevisionKind::MoveFrom);
-            for run in child.elements() {
-                if run.is(W, "proofErr") {
-                    continue;
-                }
-                if !run.is(W, "r") {
-                    return None;
-                }
-                let (text, props) = parse_run(run, deleted)?;
-                runs.push(DraftRun {
-                    text,
-                    props,
-                    link: None,
-                    revision: Some(mark.clone()),
-                });
-            }
-        }
+    if element
+        .child(W, "pPr")
+        .and_then(|p| p.child(W, "sectPr"))
+        .is_some()
+    {
+        return None;
     }
     Some(DraftParagraph {
-        style,
-        props,
-        runs,
-        span: element.span.clone(),
+        element: element.clone(),
     })
 }
 
@@ -1045,88 +1041,6 @@ fn find_span<'a>(element: &'a Element, span: &Range<usize>) -> Option<&'a Elemen
         return Some(element);
     }
     element.elements().find_map(|child| find_span(child, span))
-}
-
-fn parse_ppr(element: &Element) -> Option<(Option<StyleId>, ParaProps)> {
-    if !only_word_attributes(element, &[]) || !text_is_space(element) {
-        return None;
-    }
-    let mut findings = Findings::default();
-    let parsed = props::para(element, &mut findings);
-    if !findings.complete || parsed.mark.is_some() || parsed.section.is_some() {
-        return None;
-    }
-    let props = parsed.props;
-    let plain = props.indent == Indent::default()
-        && props.spacing == Spacing::default()
-        && props.keep_next.is_none()
-        && props.keep_lines.is_none()
-        && props.widow_control.is_none()
-        && props.page_break_before.is_none()
-        && props.snap_to_grid.is_none()
-        && props.outline_level.is_none()
-        && props.numbering.is_none()
-        && props.tabs.is_none()
-        && props.preserved.is_none();
-    plain.then_some((parsed.style, props))
-}
-
-fn parse_run(element: &Element, deleted: bool) -> Option<(String, RunProps)> {
-    if !only_word_attributes(element, &[]) || !text_is_space(element) {
-        return None;
-    }
-    let mut props = RunProps::default();
-    let mut text = String::new();
-    let mut saw_rpr = false;
-    for child in element.elements() {
-        if child.is(W, "rPr") && !saw_rpr && text.is_empty() {
-            saw_rpr = true;
-            props = parse_rpr(child)?;
-        } else if child.is(W, if deleted { "delText" } else { "t" })
-            && child.elements().next().is_none()
-            && t_attributes_ok(child)
-        {
-            let piece = child.text();
-            if piece.contains('\u{FFFC}') || piece.contains(OBJECT_MARKER) {
-                return None;
-            }
-            text.push_str(&piece);
-        } else if child.is(W, "tab") && only_word_attributes(child, &[]) && text_is_space(child) {
-            text.push('\t');
-        } else {
-            return None;
-        }
-    }
-    Some((text, props))
-}
-
-fn parse_rpr(element: &Element) -> Option<RunProps> {
-    if !only_word_attributes(element, &[]) || !text_is_space(element) {
-        return None;
-    }
-    let mut findings = Findings::default();
-    let (props, style) = props::run(element, &mut findings);
-    if !findings.complete || style.is_some() || props.preserved.is_some() {
-        return None;
-    }
-    let allowed = props.strike.is_none()
-        && props.hidden.is_none()
-        && props.underline.is_none()
-        && props.fonts == joyword_model::FontSlots::default()
-        && props.languages == joyword_model::Languages::default()
-        && props
-            .size
-            .is_none_or(|size| matches!(size, Measure::HalfPoints(_)))
-        && props
-            .color
-            .is_none_or(|color| matches!(color, Color::Auto | Color::Rgb(_, _, _)));
-    allowed.then_some(props)
-}
-
-fn t_attributes_ok(element: &Element) -> bool {
-    element.attributes.iter().all(|attribute| {
-        attribute.namespace.as_deref() == Some(XML_NAMESPACE) && attribute.local.as_ref() == "space"
-    })
 }
 
 fn decimal_val(element: &Element) -> Option<u32> {
@@ -1168,8 +1082,14 @@ fn only_word_attributes(element: &Element, allowed: &[&str]) -> bool {
 }
 
 fn word_allowed(attribute: &Attribute, allowed: &[&str]) -> bool {
-    attribute.namespace.as_deref() == Some(W)
-        && allowed.iter().any(|name| attribute.local.as_ref() == *name)
+    (attribute.namespace.as_deref() == Some(W)
+        && (allowed.iter().any(|name| attribute.local.as_ref() == *name)
+            || matches!(
+                attribute.local.as_ref(),
+                "rsidR" | "rsidRPr" | "rsidRDefault" | "rsidDel" | "rsidTr"
+            )))
+        || (attribute.namespace.as_deref() == Some(crate::ns::W14)
+            && matches!(attribute.local.as_ref(), "paraId" | "textId"))
 }
 
 fn text_is_space(element: &Element) -> bool {
@@ -1308,4 +1228,14 @@ fn read_bold(format: &mut TableFormat, element: &Element) -> bool {
         && run.fonts == joyword_model::FontSlots::default()
         && run.languages == joyword_model::Languages::default()
         && run.preserved.is_none()
+}
+
+fn paragraph_scope(element: &Element, span: &Range<usize>, parent: &Scope) -> Option<Scope> {
+    if element.span == *span {
+        return Some(parent.clone());
+    }
+    let inner = parent.enter(element);
+    element
+        .elements()
+        .find_map(|child| paragraph_scope(child, span, &inner))
 }

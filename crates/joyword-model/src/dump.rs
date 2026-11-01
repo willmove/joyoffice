@@ -251,7 +251,13 @@ impl Dumper<'_> {
                             ),
                         );
                     }
+                    if table.borders.iter().any(Option::is_some) {
+                        self.line(depth + 1, &format!("tblBorders {:?}", table.borders));
+                    }
                     for row in &table.rows {
+                        if let Some(insertion) = &row.insertion {
+                            self.line(depth + 2, &format!("rowInsertion {:?}", insertion));
+                        }
                         let head = self.label("row", row.id);
                         let height = row.height.map_or("-".into(), |height| {
                             format!("{:?}:{}", height.rule, height.twips)
@@ -722,8 +728,8 @@ impl Document {
     /// allocated identifiers.
     pub fn semantic_difference(&self, actual: &Document) -> Option<SemanticDifference> {
         let options = DumpOptions { node_ids: false };
-        let expected = self.canonical_dump(options);
-        let actual = actual.canonical_dump(options);
+        let expected = semantic_runs(self).canonical_dump(options);
+        let actual = semantic_runs(actual).canonical_dump(options);
         let mut left = expected.lines();
         let mut right = actual.lines();
         let mut line = 0;
@@ -742,4 +748,31 @@ impl Document {
             }
         }
     }
+}
+
+fn semantic_runs(document: &Document) -> Document {
+    fn walk(blocks: &mut BlockSeq) {
+        for index in 0..blocks.len() {
+            blocks.update(index, |block| match block {
+                Block::Paragraph(p) => std::sync::Arc::make_mut(p).coalesce_runs(),
+                Block::Table(t) => {
+                    for r in &mut std::sync::Arc::make_mut(t).rows {
+                        for c in &mut r.cells {
+                            walk(&mut c.blocks)
+                        }
+                    }
+                }
+                Block::Sdt(s) => walk(&mut std::sync::Arc::make_mut(s).blocks),
+                _ => {}
+            });
+        }
+    }
+    let mut normalized = document.clone();
+    let ids: Vec<_> = document.stories().map(|s| s.id).collect();
+    for id in ids {
+        if let Some(story) = normalized.story_mut(id) {
+            walk(&mut story.blocks)
+        }
+    }
+    normalized
 }

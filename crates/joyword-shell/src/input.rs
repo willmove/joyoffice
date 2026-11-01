@@ -29,6 +29,11 @@ use unicode_segmentation::UnicodeSegmentation;
 
 pub trait InputBackend {
     fn session(&self) -> &Session;
+    /// Optional separate display snapshot for an unsupported DOCX body.
+    /// It must never replace the backend document or its export binding.
+    fn text_preview(&self, _limits: InputLimits) -> Result<Option<DocumentSnapshot>, InputError> {
+        Ok(None)
+    }
     fn apply_mapped(
         &mut self,
         transaction: Transaction,
@@ -71,6 +76,9 @@ impl InputBackend for crate::docx::BoundDocx {
     fn session(&self) -> &Session {
         crate::docx::BoundDocx::session(self).session()
     }
+    fn text_preview(&self, limits: InputLimits) -> Result<Option<DocumentSnapshot>, InputError> {
+        docx_text_preview(crate::docx::BoundDocx::session(self), limits).map(Some)
+    }
     fn apply_mapped(&mut self, t: Transaction, s: Selection) -> Result<Outcome, TxError> {
         self.session_mut().apply_with_mapped_selection(t, s)
     }
@@ -90,6 +98,9 @@ impl InputBackend for crate::docx::BoundDocx {
 impl InputBackend for DocxSession {
     fn session(&self) -> &Session {
         DocxSession::session(self)
+    }
+    fn text_preview(&self, limits: InputLimits) -> Result<Option<DocumentSnapshot>, InputError> {
+        docx_text_preview(self, limits).map(Some)
     }
     fn apply_mapped(&mut self, t: Transaction, s: Selection) -> Result<Outcome, TxError> {
         self.apply_with_mapped_selection(t, s)
@@ -160,6 +171,24 @@ impl InputLimits {
             max_commands: self.max_commands.min(d.max_commands),
         }
     }
+}
+
+fn docx_text_preview(
+    session: &DocxSession,
+    limits: InputLimits,
+) -> Result<DocumentSnapshot, InputError> {
+    session
+        .text_preview(joyword_docx::TextPreviewLimits {
+            max_paragraphs: limits.max_paragraphs,
+            max_paragraph_bytes: limits.max_paragraph_bytes,
+            max_text_bytes: limits.max_text_bytes,
+            max_runs: limits.max_runs,
+        })
+        .map(|document| document.snapshot())
+        .map_err(|error| match error {
+            joyword_docx::TextPreviewError::Budget(limit) => InputError::Budget(limit),
+            _ => InputError::InvalidDocument,
+        })
 }
 #[derive(Clone, Debug, PartialEq)]
 pub enum InputError {
@@ -379,7 +408,10 @@ struct ParagraphEntry {
 fn projected_inline(kind: &InlineKind) -> bool {
     matches!(
         kind,
-        InlineKind::Break(BreakKind::Page) | InlineKind::PageField(_) | InlineKind::Image { .. }
+        InlineKind::Break(_)
+            | InlineKind::PageField(_)
+            | InlineKind::Image { .. }
+            | InlineKind::Preserved(_)
     )
 }
 
@@ -394,6 +426,7 @@ pub struct TextIndex {
     paragraphs: Vec<ParagraphEntry>,
     by_id: BTreeMap<NodeId, usize>,
     len_utf16: usize,
+    read_only_preview: bool,
 }
 impl TextIndex {
     fn new_for_story(
@@ -401,14 +434,6 @@ impl TextIndex {
         story: StoryId,
         limits: InputLimits,
     ) -> Result<Self, InputError> {
-        if snapshot.stories().any(|item| {
-            !matches!(
-                item.kind,
-                StoryKind::Body | StoryKind::Header | StoryKind::Footer
-            )
-        }) {
-            return Err(InputError::UnsupportedBody);
-        }
         if snapshot
             .styles()
             .len()
@@ -417,6 +442,14 @@ impl TextIndex {
             > limits.max_metadata_items
         {
             return Err(InputError::Budget("metadata"));
+        }
+        if snapshot.stories().any(|item| {
+            !matches!(
+                item.kind,
+                StoryKind::Body | StoryKind::Header | StoryKind::Footer | StoryKind::Comment
+            )
+        }) {
+            return Err(InputError::UnsupportedBody);
         }
         let mut text = String::new();
         let mut paragraphs = Vec::new();
@@ -512,7 +545,13 @@ impl TextIndex {
             paragraphs,
             by_id,
             len_utf16: utf16,
+            read_only_preview: false,
         })
+    }
+    /// The display snapshot is a plain-text projection, distinct from the
+    /// backend's imported document and package. All edits must be refused.
+    pub fn is_read_only_preview(&self) -> bool {
+        self.read_only_preview
     }
     pub fn text(&self) -> &str {
         &self.text
@@ -821,7 +860,21 @@ impl<B: InputBackend> TextInput<B> {
         let saved_version = backend.session().version();
         let snapshot = backend.session().snapshot();
         let edit_story = snapshot.body_id();
-        let base = Arc::new(TextIndex::new_for_story(snapshot, edit_story, limits)?);
+        let base = match TextIndex::new_for_story(snapshot, edit_story, limits) {
+            Ok(index) => index,
+            Err(InputError::UnsupportedBody) => {
+                let Some(preview) = backend.text_preview(limits)? else {
+                    return Err(InputError::UnsupportedBody);
+                };
+                let story = preview.body_id();
+                let mut index = TextIndex::new_for_story(preview, story, limits)?;
+                index.read_only_preview = true;
+                index
+            }
+            Err(error) => return Err(error),
+        };
+        let edit_story = base.story;
+        let base = Arc::new(base);
         let selection = Selection::caret(base.position(0, Bias::After)?);
         let view = InputView {
             index: base.clone(),
@@ -895,13 +948,16 @@ impl<B: InputBackend> TextInput<B> {
         }
     }
     pub fn can_undo(&self) -> bool {
-        self.is_composing() || self.backend.session().can_undo()
+        !self.base.is_read_only_preview()
+            && (self.is_composing() || self.backend.session().can_undo())
     }
     pub fn can_redo(&self) -> bool {
-        !self.is_composing() && self.backend.session().can_redo()
+        !self.base.is_read_only_preview()
+            && !self.is_composing()
+            && self.backend.session().can_redo()
     }
     pub fn read_only(&self) -> bool {
-        self.backend.session().policy().read_only
+        self.base.is_read_only_preview() || self.backend.session().policy().read_only
     }
     fn writable(&self) -> Result<(), InputError> {
         if self.read_only() {
@@ -950,6 +1006,10 @@ impl<B: InputBackend> TextInput<B> {
         self.base.check(&range)?;
         let start = self.base.position(range.start, Bias::After)?;
         let end = self.base.position(range.end, Bias::Before)?;
+        let replacement_format = (range.start != range.end)
+            .then(|| paragraph_by_id(self.backend.session().document(), start.paragraph))
+            .flatten()
+            .map(|p| p.format_at(start.offset));
         let mut commands = Vec::new();
         if range.start != range.end {
             commands.push(Command::DeleteRange { start, end });
@@ -966,9 +1026,18 @@ impl<B: InputBackend> TextInput<B> {
         }
         for (i, line) in lines.iter().enumerate().rev() {
             if !line.is_empty() {
-                commands.push(Command::InsertText {
-                    at: start,
-                    text: (*line).into(),
+                commands.push(if let Some((style, props)) = &replacement_format {
+                    Command::InsertFormattedText {
+                        at: start,
+                        text: (*line).into(),
+                        style: style.clone(),
+                        props: props.clone(),
+                    }
+                } else {
+                    Command::InsertText {
+                        at: start,
+                        text: (*line).into(),
+                    }
                 });
             }
             if i > 0 {
@@ -981,6 +1050,7 @@ impl<B: InputBackend> TextInput<B> {
         let target = Selection::caret(start);
         let mut candidate = Session::new(self.backend.session().document().clone());
         candidate.set_policy(self.backend.session().policy().clone());
+        candidate.set_locked_nodes(self.backend.session().locked_nodes().iter().copied());
         let outcome = candidate.apply_with_mapped_selection(transaction.clone(), target)?;
         let selection = match outcome {
             Outcome::Applied(a) => a.selection.expect("valid target survived"),
@@ -1552,7 +1622,7 @@ impl<B: InputBackend> TextInput<B> {
 
     /// Styles with the resolved preview the panel shows.
     pub fn style_rows(&self) -> Vec<StyleRow> {
-        let sheet = self.backend.session().document().styles();
+        let sheet = self.base.snapshot().styles();
         sheet
             .iter()
             .map(|style| {
@@ -1589,8 +1659,7 @@ impl<B: InputBackend> TextInput<B> {
     /// Paragraph style and character style at the caret.
     pub fn caret_styles(&self) -> (Option<String>, Option<String>) {
         let head = self.selection.head;
-        let Some(paragraph) = paragraph_by_id(self.backend.session().document(), head.paragraph)
-        else {
+        let Some(paragraph) = paragraph_by_id(self.base.snapshot(), head.paragraph) else {
             return (None, None);
         };
         let (character, _) = paragraph.format_at(head.offset);
@@ -1624,8 +1693,7 @@ impl<B: InputBackend> TextInput<B> {
             }
             EditRequest::CopyFormat { repeat } => {
                 let (start, end) = self.selection_positions()?;
-                let brush = capture(self.backend.session().document(), start, end)
-                    .map_err(paint_input_error)?;
+                let brush = capture(self.base.snapshot(), start, end).map_err(paint_input_error)?;
                 self.brush = Some(brush);
                 self.brush_repeat = repeat;
                 Ok(EditReport {
@@ -1686,12 +1754,8 @@ impl<B: InputBackend> TextInput<B> {
         }
         let (start, end) = self.selection_positions()?;
         let cursor = if forward { end } else { start };
-        let order = paragraph_order(
-            self.backend.session().document(),
-            cursor.story,
-            cursor.paragraph,
-        )
-        .unwrap_or(0);
+        let order =
+            paragraph_order(self.base.snapshot(), cursor.story, cursor.paragraph).unwrap_or(0);
         let chosen = if forward {
             report
                 .hits
@@ -1795,8 +1859,8 @@ impl<B: InputBackend> TextInput<B> {
         query: &str,
         flags: FindFlags,
     ) -> Result<joyword_engine::FindReport, InputError> {
-        search(
-            self.backend.session().document(),
+        let mut report = search(
+            self.base.snapshot(),
             &FindQuery {
                 text: query.to_owned(),
                 case_sensitive: flags.case_sensitive,
@@ -1805,7 +1869,9 @@ impl<B: InputBackend> TextInput<B> {
                 regex: flags.regex,
             },
         )
-        .map_err(find_input_error)
+        .map_err(find_input_error)?;
+        report.hits.retain(|hit| hit.story == self.edit_story);
+        Ok(report)
     }
 
     fn report_of(&self, report: &joyword_engine::FindReport, replaced: usize) -> EditReport {
@@ -2114,6 +2180,7 @@ impl<B: InputBackend> TextInput<B> {
         target: Selection,
         adjust: impl FnOnce(&Document, &ChangeSet, Selection) -> Result<Selection, InputError>,
     ) -> Result<bool, InputError> {
+        self.writable()?;
         let revision = self.next_revision()?;
         let outcome = self.backend.apply_mapped(transaction, target)?;
         let changed = matches!(outcome, Outcome::Applied(_));
@@ -2238,6 +2305,9 @@ impl<B: InputBackend> TextInput<B> {
     }
 
     fn focus_story(&mut self, story: StoryId) -> Result<bool, InputError> {
+        if self.base.is_read_only_preview() {
+            return Err(InputError::ReadOnly);
+        }
         if story == self.edit_story {
             return Ok(false);
         }

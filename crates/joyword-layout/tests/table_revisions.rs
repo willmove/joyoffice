@@ -85,6 +85,7 @@ fn cell(ids: &mut IdAllocator, blocks: Vec<Block>) -> Cell {
 
 fn row(ids: &mut IdAllocator, cells: Vec<Cell>) -> Row {
     Row {
+        insertion: None,
         id: ids.node(),
         grid_before: 0,
         grid_after: 0,
@@ -99,6 +100,7 @@ fn row(ids: &mut IdAllocator, cells: Vec<Cell>) -> Row {
 
 fn table(ids: &mut IdAllocator, rows: Vec<Row>) -> Table {
     Table {
+        borders: [None; 6],
         id: ids.node(),
         grid: vec![Measure::Twips(4000); 2],
         rows,

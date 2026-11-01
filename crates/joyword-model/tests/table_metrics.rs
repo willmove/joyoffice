@@ -9,9 +9,11 @@ use joyword_model::{
 fn bare(grid: Vec<i64>, width: Option<TableWidth>, layout: Option<TableLayoutKind>) -> Table {
     let mut ids = IdAllocator::default();
     Table {
+        borders: [None; 6],
         id: ids.node(),
         grid: grid.into_iter().map(Measure::Twips).collect(),
         rows: vec![Row {
+            insertion: None,
             id: ids.node(),
             grid_before: 0,
             grid_after: 0,

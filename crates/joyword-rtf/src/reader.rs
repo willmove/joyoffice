@@ -134,6 +134,7 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
                         if !current_row_cells.is_empty() {
                             let row_id = doc.ids().node();
                             let row = Row {
+                                insertion: None,
                                 id: row_id,
                                 grid_before: 0,
                                 grid_after: 0,
@@ -146,6 +147,7 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
                             };
                             let table_id = doc.ids().node();
                             let table = Table {
+                                borders: [None; 6],
                                 id: table_id,
                                 grid: Vec::new(),
                                 rows: vec![row],

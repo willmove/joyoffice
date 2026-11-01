@@ -18,7 +18,7 @@
 //! re-imported under the same budget and compared before a plan can be
 //! returned. This module performs no IO.
 
-mod compare;
+pub(crate) mod compare;
 mod header_footer;
 mod numbering;
 mod structure;
@@ -188,7 +188,14 @@ pub fn plan_export(
     budget: &Budget,
 ) -> Result<ExportPlan, ExportError> {
     let source = import(backing.original_bytes(), budget)?;
-    plan_export_after_import(&source, backing, &source.document, current, budget)
+    plan_export_after_import(
+        &source,
+        backing,
+        &source.document,
+        current,
+        budget,
+        &source.editability,
+    )
 }
 
 /// Use an immutable baseline whose stable model IDs were retained across an
@@ -199,9 +206,10 @@ pub(crate) fn plan_export_with_original(
     original: &Document,
     current: &DocumentSnapshot,
     budget: &Budget,
+    editability: &crate::Editability,
 ) -> Result<ExportPlan, ExportError> {
     let source = import(backing.original_bytes(), budget)?;
-    plan_export_after_import(&source, backing, original, current, budget)
+    plan_export_after_import(&source, backing, original, current, budget, editability)
 }
 
 fn plan_export_after_import(
@@ -210,6 +218,7 @@ fn plan_export_after_import(
     original: &Document,
     current: &DocumentSnapshot,
     budget: &Budget,
+    editability: &crate::Editability,
 ) -> Result<ExportPlan, ExportError> {
     check_envelope(original, current)?;
     let text_bytes = current
@@ -268,7 +277,10 @@ fn plan_export_after_import(
     {
         return Ok(plan);
     }
-    if !source.editability.is_unrestricted() {
+    if !editability.is_unrestricted()
+        && (!editability.supports_local_editing(original)
+            || !locked_nodes_unchanged(original, current, editability.locked()))
+    {
         return Err(ExportError::Restricted);
     }
     if has_signatures(package) {
@@ -368,6 +380,24 @@ fn plan_export_after_import(
         patches.push((at..at, markup.into_bytes()));
     }
     for &(before, after) in &alignment.edited_tables {
+        if let Some(edits) = table_paragraph_edits(before, after) {
+            for (old, new) in edits {
+                patch_paragraph(
+                    current.styles(),
+                    current.numbering(),
+                    old,
+                    new,
+                    &markers_of(original, old.id()),
+                    &markers_of(current, new.id()),
+                    &[&root, body],
+                    xml.paragraph(old)?,
+                    &mut patches,
+                    budget.max_part_bytes,
+                    &xml,
+                )?;
+            }
+            continue;
+        }
         let element = xml.table(before)?;
         let markup = structure::table_markup(&xml, after, &names, budget.max_part_bytes)?;
         patches.push((element.span.clone(), markup.into_bytes()));
@@ -599,7 +629,7 @@ fn plan_export_after_import(
     }
     let bytes = write_archive(&items).map_err(|error| ExportError::Write(error.to_string()))?;
     let verified = import(&bytes, budget)?;
-    if !verified.editability.is_unrestricted()
+    if (!verified.editability.is_unrestricted() && !verified.editability.supports_local_editing(&verified.document))
         || !compare::equivalent(
             current,
             &source.backing,
@@ -1352,6 +1382,16 @@ fn patch_paragraph(
         patches.push((element.span.clone(), bytes));
         return Ok(());
     }
+    if same_paragraph_metadata(before, after)
+        && !before.inlines().is_empty()
+        && before.inlines() == after.inlines()
+        && before
+            .inlines()
+            .iter()
+            .all(|i| matches!(i.kind, InlineKind::Break(BreakKind::Line)))
+    {
+        return patch_soft_line_text(before, after, element, patches, limit, source.bytes());
+    }
     let numbering_changed = before.props.numbering != after.props.numbering;
     if style_assignment_differs(before, after) || numbering_changed {
         if after_unresolved || after.mark_revision.is_some() {
@@ -1660,6 +1700,97 @@ fn patch_paragraph(
     Ok(())
 }
 
+/// Text-only patches on either side of unchanged soft breaks. A break is a
+/// grouping barrier, so text can never migrate across its original XML leaf.
+fn patch_soft_line_text(
+    before: &Paragraph,
+    after: &Paragraph,
+    element: &Element,
+    patches: &mut Vec<(Range<usize>, Vec<u8>)>,
+    limit: u64,
+    xml: &[u8],
+) -> Result<(), ExportError> {
+    fn split_groups(p: &Paragraph) -> Vec<(Group, bool)> {
+        let mut out: Vec<(Group, bool)> = Vec::new();
+        let text = p.plain_text(|_| joyword_model::OBJECT_MARKER.to_string());
+        let mut chars = text.chars();
+        for run in p.runs() {
+            for ch in chars.by_ref().take(run.len) {
+                let is_break = ch == joyword_model::OBJECT_MARKER;
+                let group = Group {
+                    style: run.style.clone(),
+                    props: run.props.clone(),
+                    link: run.link.clone(),
+                    format_revision: run.format_revision.clone(),
+                    text: ch.to_string(),
+                };
+                if !is_break
+                    && let Some((last, false)) = out.last_mut()
+                    && same_group(last, &group)
+                {
+                    last.text.push(ch);
+                } else {
+                    out.push((group, is_break));
+                }
+            }
+        }
+        out
+    }
+    let error = |reason| unsupported(Some(before.id()), reason);
+    let left = split_groups(before);
+    let right = split_groups(after);
+    if left.len() != right.len()
+        || !left
+            .iter()
+            .zip(&right)
+            .all(|((a, ab), (b, bb))| ab == bb && same_group(a, b))
+    {
+        return Err(error(
+            "soft-break text edits must retain character formatting boundaries",
+        ));
+    }
+    let slots = source_slots(element, xml, true).map_err(error)?;
+    if slots.len() != before.runs().len() {
+        return Err(error("source text tokens do not match imported runs"));
+    }
+    let mut group = 0;
+    let mut consumed = 0;
+    for ((leaf, text), run) in slots.into_iter().zip(before.runs()) {
+        if run.len != text.chars().count() {
+            return Err(error("source text token length changed"));
+        }
+        let Some((old, is_break)) = left.get(group) else {
+            return Err(error("source soft-break grouping changed"));
+        };
+        if *is_break {
+            if text != joyword_model::OBJECT_MARKER.to_string() || consumed != 0 {
+                return Err(error("source soft-break grouping changed"));
+            }
+        } else {
+            let replacement = if consumed == 0 {
+                right[group].0.text.as_str()
+            } else {
+                ""
+            };
+            patches.push((
+                leaf.span.clone(),
+                bounded_text_xml(&Names::Declared, replacement, limit)?.into_bytes(),
+            ));
+        }
+        consumed += run.len;
+        if consumed == old.text.chars().count() {
+            group += 1;
+            consumed = 0;
+        } else if consumed > old.text.chars().count() {
+            return Err(error("source soft-break grouping changed"));
+        }
+    }
+    if group != left.len() || consumed != 0 {
+        return Err(error("source soft-break grouping changed"));
+    }
+    Ok(())
+}
+
 /// Source text leaves of a paragraph with their text, one per imported text
 /// run. Only the plain subset is accepted; no unknown element is
 /// reconstructed.
@@ -1680,6 +1811,14 @@ fn text_slots<'e>(
     element: &'e Element,
     xml: &[u8],
 ) -> Result<Vec<(&'e Element, String)>, &'static str> {
+    source_slots(element, xml, false)
+}
+
+fn source_slots<'e>(
+    element: &'e Element,
+    xml: &[u8],
+    soft_breaks: bool,
+) -> Result<Vec<(&'e Element, String)>, &'static str> {
     // One source leaf corresponds to each import push_text call. Empty text
     // leaves do not create runs. A simple `w:hyperlink` is descended into;
     // its wrapper is not a text leaf.
@@ -1699,14 +1838,14 @@ fn text_slots<'e>(
                 return Err("unsupported paragraph markup");
             }
             for run in child.elements() {
-                collect_run_slots(run, xml, &mut slots)?;
+                collect_run_slots(run, xml, &mut slots, soft_breaks)?;
             }
             continue;
         }
         if !child.is(W, "r") {
             return Err("unsupported paragraph markup");
         }
-        collect_run_slots(child, xml, &mut slots)?;
+        collect_run_slots(child, xml, &mut slots, soft_breaks)?;
     }
     Ok(slots)
 }
@@ -1746,6 +1885,7 @@ fn collect_run_slots<'e>(
     run: &'e Element,
     xml: &[u8],
     slots: &mut Vec<(&'e Element, String)>,
+    soft_breaks: bool,
 ) -> Result<(), &'static str> {
     if !run.is(W, "r") {
         return Err("unsupported paragraph markup");
@@ -1757,6 +1897,18 @@ fn collect_run_slots<'e>(
             || leaf.is(W, "bookmarkStart")
             || leaf.is(W, "bookmarkEnd")
         {
+            continue;
+        }
+        if soft_breaks
+            && leaf.is(W, "br")
+            && leaf.elements().next().is_none()
+            && leaf.attributes.iter().all(|a| {
+                a.namespace.as_deref() == Some(W)
+                    && a.local.as_ref() == "type"
+                    && a.value == "textWrapping"
+            })
+        {
+            slots.push((leaf, joyword_model::OBJECT_MARKER.to_string()));
             continue;
         }
         if !(leaf.is(W, "t") || leaf.is(W, "tab")) || leaf.elements().next().is_some() {
@@ -1957,6 +2109,94 @@ fn text_xml_leaf(names: &Names, text: &str, leaf: &str) -> String {
         xml.push_str(&names.end(leaf));
     }
     xml
+}
+
+/// Restore cell paragraphs into a candidate table and prove that ALL remaining
+/// structure and metadata are unchanged before choosing local XML patches.
+fn table_paragraph_edits<'a>(
+    before: &'a joyword_model::Table,
+    after: &'a joyword_model::Table,
+) -> Option<Vec<(&'a joyword_model::Paragraph, &'a joyword_model::Paragraph)>> {
+    let mut restored = after.clone();
+    let mut edits = Vec::new();
+    if before.rows.len() != after.rows.len() {
+        return None;
+    }
+    for (ri, (old_row, new_row)) in before.rows.iter().zip(&after.rows).enumerate() {
+        if old_row.cells.len() != new_row.cells.len() {
+            return None;
+        }
+        for (ci, (old_cell, new_cell)) in old_row.cells.iter().zip(&new_row.cells).enumerate() {
+            if old_cell.blocks.len() != new_cell.blocks.len() {
+                return None;
+            }
+            for (bi, (old, new)) in old_cell
+                .blocks
+                .iter()
+                .zip(new_cell.blocks.iter())
+                .enumerate()
+            {
+                match (old, new) {
+                    (joyword_model::Block::Paragraph(a), joyword_model::Block::Paragraph(b))
+                        if a.id() == b.id() =>
+                    {
+                        if a != b {
+                            edits.push((a.as_ref(), b.as_ref()));
+                        }
+                        restored.rows[ri].cells[ci]
+                            .blocks
+                            .update(bi, |block| *block = old.clone());
+                    }
+                    (joyword_model::Block::Table(a), joyword_model::Block::Table(b)) => {
+                        edits.extend(table_paragraph_edits(a, b)?);
+                        restored.rows[ri].cells[ci]
+                            .blocks
+                            .update(bi, |block| *block = old.clone());
+                    }
+                    _ => return None,
+                }
+            }
+        }
+    }
+    before.same_content(&restored).then_some(edits)
+}
+
+fn locked_nodes_unchanged(
+    before: &Document,
+    after: &Document,
+    ids: &std::collections::BTreeSet<NodeId>,
+) -> bool {
+    fn find(document: &Document, id: NodeId) -> Option<&Block> {
+        fn walk(blocks: &joyword_model::BlockSeq, id: NodeId) -> Option<&Block> {
+            for b in blocks.iter() {
+                if b.id() == id {
+                    return Some(b);
+                }
+                match b {
+                    Block::Table(t) => {
+                        for r in &t.rows {
+                            for c in &r.cells {
+                                if let Some(b) = walk(&c.blocks, id) {
+                                    return Some(b);
+                                }
+                            }
+                        }
+                    }
+                    Block::Sdt(s) => {
+                        if let Some(b) = walk(&s.blocks, id) {
+                            return Some(b);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            None
+        }
+        document.stories().find_map(|s| walk(&s.blocks, id))
+    }
+    ids.iter().all(
+        |id| matches!((find(before,*id),find(after,*id)),(Some(a),Some(b)) if a.same_content(b)),
+    )
 }
 
 #[cfg(test)]

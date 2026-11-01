@@ -629,6 +629,10 @@ fn resolve_one(
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
+    if document.has_table_row_insertions() {
+        return Err(CommandError::RevisionConflict);
+    }
+
     let hits = hits_for(document, id);
     let marks = mark_targets(document, id);
     if hits.is_empty() && marks.is_empty() {
@@ -684,6 +688,10 @@ fn resolve_all(
     map: &mut PositionMap,
     changes: &mut ChangeSet,
 ) -> Result<(), CommandError> {
+    if document.has_table_row_insertions() {
+        return Err(CommandError::RevisionConflict);
+    }
+
     let pairs = classified_moves(document)?;
     let order = order_of(document);
     if runs(document).iter().any(|hit| {

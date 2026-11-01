@@ -234,9 +234,11 @@ fn a_hyperlink_in_a_table_cell_is_an_underline_in_the_page_scene() {
         .set_links(ScalarOffset(0)..ScalarOffset(2), Some(Arc::new(link)))
         .unwrap();
     let table = joyword_model::Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![joyword_model::Measure::Twips(2400)],
         rows: vec![joyword_model::Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,

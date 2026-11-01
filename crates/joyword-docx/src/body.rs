@@ -193,7 +193,7 @@ impl Body {
         } else if element.is(W, "sectPr") && self.last.is_none() {
             self.last = Some(section(importer, part, element, scope, None));
         } else if element.is(W, "tbl")
-            && let Some(table) = crate::table::import_table(importer, part, element)
+            && let Some(table) = crate::table::import_table(importer, part, element, scope)
         {
             self.blocks.push(table.into());
         } else {

@@ -3128,6 +3128,48 @@ impl JoyWord {
     pub(crate) fn input_availability(&self, id: CommandId) -> Availability {
         if matches!(
             id,
+            REVIEW_ORIGINAL | REVIEW_ACCEPT | REVIEW_REJECT | REVIEW_ACCEPT_ALL | REVIEW_REJECT_ALL
+        ) && self
+            .editor
+            .as_ref()
+            .is_some_and(|e| e.view().snapshot().has_table_row_insertions())
+        {
+            return Availability::Disabled("input.row_revision");
+        }
+
+        if matches!(
+            id,
+            FILE_EXPORT_PDF | FILE_EXPORT_PDFA | FILE_PRINT | FILE_EXPORT_EPUB
+        ) && self.editor.as_ref().is_some_and(|e| {
+            joyword_layout::compatibility::has_style_approximations(e.view().snapshot())
+        }) {
+            return Availability::Disabled("input.format_compatibility");
+        }
+
+        if self
+            .editor
+            .as_ref()
+            .is_some_and(|editor| editor.view().index().is_read_only_preview())
+            && matches!(
+                id,
+                FILE_SAVE
+                    | FILE_EXPORT_PDF
+                    | FILE_EXPORT_PDFA
+                    | FILE_EXPORT_EPUB
+                    | FILE_PRINT
+                    | FILE_MAIL_MERGE
+                    | VIEW_HIDDEN_TEXT
+                    | VIEW_FIELD_CODES
+                    | REVIEW_ORIGINAL
+                    | REVIEW_MARKUP
+                    | REVIEW_FINAL
+                    | REVIEW_SIMPLE
+            )
+        {
+            return Availability::Disabled("input.preview_unavailable");
+        }
+        if matches!(
+            id,
             VIEW_FORMATTING_MARKS
                 | VIEW_HIDDEN_TEXT
                 | VIEW_FIELD_CODES
@@ -4029,6 +4071,9 @@ impl JoyWord {
             return note.clone();
         }
         if let Some(editor) = &self.editor {
+            if editor.view().index().is_read_only_preview() {
+                return self.label("input.preview_status");
+            }
             if editor.is_composing() {
                 return self.label("input.composing");
             }

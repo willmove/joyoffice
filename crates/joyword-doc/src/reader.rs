@@ -107,6 +107,7 @@ pub fn import_doc(
 
             if !current_row_cells.is_empty() {
                 let row = Row {
+                    insertion: None,
                     id: doc.ids().node(),
                     grid_before: 0,
                     grid_after: 0,
@@ -118,6 +119,7 @@ pub fn import_doc(
                     props_revision: None,
                 };
                 let table = Table {
+                    borders: [None; 6],
                     id: doc.ids().node(),
                     grid: Vec::new(),
                     rows: vec![row],

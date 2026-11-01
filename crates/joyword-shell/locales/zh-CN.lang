@@ -144,6 +144,9 @@ find.regex = 正则
 ribbon.page.edit_footer = 页脚
 input.loading = 文档正在准备
 input.read_only = 文档为只读
+input.preview_status = 兼容预览（只读）
+input.preview_notice = 兼容预览（只读）：此文档含尚不支持编辑的结构。仅显示正文文字，表格按行、单元格展开；图片和未知对象显示为 [Object]，页眉页脚、批注及脚注不在此预览中。版式与原文不同。原始内容完整保留，可另存 DOCX 副本。
+input.preview_unavailable = 兼容预览仅支持阅读、查找、复制和另存原始 DOCX 副本
 input.no_undo = 没有可撤销的修改
 input.no_redo = 没有可重做的修改
 input.composing = 正在组合输入
@@ -357,3 +360,7 @@ epub.cancelled = EPUB 导出已取消，原文档未改动。
 command.file.export_pdfa = 导出 PDF/A-2b…
 pdfa.review = 确认归档导出
 pdfa.description = 将当前页面场景导出为 PDF/A-2b，创建年份为 {year}（UTC）。字体须允许嵌入。请选择新的 .pdf 文件，不覆盖已有文件。实际产物仍需独立合规验证；不声称 PDF/UA 合规。
+
+input.format_compatibility = 版式兼容显示：表格和文字可编辑；部分字体、样式及图片位置使用兼容显示，未知对象以方框标记，分页可能与 Word 不同。保存 DOCX 保留原始内容。
+
+input.row_revision = 文档含未解决的表格行插入修订；可编辑文字并保留修订，暂不支持原始视图或接受/拒绝修订。

@@ -527,9 +527,11 @@ fn a_tracked_delete_refuses_to_cross_a_table_or_a_cell() {
         props_revision: None,
     };
     let table = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(2000)],
         rows: vec![Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,

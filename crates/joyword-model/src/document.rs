@@ -528,6 +528,22 @@ impl Document {
         Arc::make_mut(&mut self.settings)
     }
 
+    /// Pending row insertion markers are retained for text-only table editing.
+    /// Structural resolution and an original view are not implemented yet.
+    pub fn has_table_row_insertions(&self) -> bool {
+        fn walk(blocks: &BlockSeq) -> bool {
+            blocks.iter().any(|b| match b {
+                Block::Table(t) => t
+                    .rows
+                    .iter()
+                    .any(|r| r.insertion.is_some() || r.cells.iter().any(|c| walk(&c.blocks))),
+                Block::Sdt(s) => walk(&s.blocks),
+                _ => false,
+            })
+        }
+        self.stories().any(|s| walk(&s.blocks))
+    }
+
     pub fn move_markers(&self) -> &[MoveMarker] {
         &self.move_markers
     }

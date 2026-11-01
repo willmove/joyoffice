@@ -642,6 +642,7 @@ fn hash_body_paragraph(hash: &mut Sha256, document: &Document, paragraph: &Parag
 
 fn hash_table(hash: &mut Sha256, document: &Document, table: &Table) {
     hash.update(b"table");
+    hash.update(format!("{:?}", table.borders).as_bytes());
     hash.update(table.id.get().to_le_bytes());
     hash.update((table.grid.len() as u64).to_le_bytes());
     for column in &table.grid {
@@ -746,7 +747,14 @@ fn table_paragraphs(table: &Table) -> Result<Vec<&Paragraph>, LayoutError> {
                 for block in cell.blocks.iter() {
                     match block {
                         Block::Paragraph(paragraph) => {
-                            if !paragraph.inlines().is_empty() {
+                            if paragraph.inlines().iter().any(|i| {
+                                !matches!(
+                                    i.kind,
+                                    joyword_model::InlineKind::Break(
+                                        joyword_model::BreakKind::Line
+                                    )
+                                )
+                            }) {
                                 return Err(unsupported(
                                     Some(paragraph.id()),
                                     "inline objects or breaks in a table cell",
@@ -1092,8 +1100,8 @@ fn line_box_for(
     }
 }
 
-fn fit_line_box(baseline: Emu, length: Emu) -> Result<Emu, LayoutError> {
-    if length.raw() <= 0 || baseline.raw() > length.raw() {
+fn fit_line_box(_baseline: Emu, length: Emu) -> Result<Emu, LayoutError> {
+    if length.raw() <= 0 {
         Err(LayoutError::LineTooTall)
     } else {
         Ok(length)
@@ -1866,7 +1874,30 @@ fn build_row_flows(
                     column_count: metrics.columns.len(),
                 },
             )?;
-            let borders = overlay_borders(table_format.borders, cell.borders);
+            let direct = joyword_model::CellBorders {
+                top: if row_index == 0 {
+                    table.borders[0]
+                } else {
+                    table.borders[4]
+                },
+                left: if start == 0 {
+                    table.borders[1]
+                } else {
+                    table.borders[5]
+                },
+                bottom: if row_index + 1 == table.rows.len() {
+                    table.borders[2]
+                } else {
+                    table.borders[4]
+                },
+                right: if start + cell.grid_span as usize == metrics.columns.len() {
+                    table.borders[3]
+                } else {
+                    table.borders[5]
+                },
+            };
+            let borders =
+                overlay_borders(overlay_borders(table_format.borders, direct), cell.borders);
             let shading = cell.shading.or(table_format.shading);
             let numbering = numbering_of(document, section);
             let mut paragraphs = Vec::new();
@@ -2021,6 +2052,9 @@ fn build_row_flows(
 fn table_row_bar_colour(table: &Table, row: &Row, view: RevisionView) -> Option<(u8, u8, u8)> {
     if !matches!(view, RevisionView::FinalWithMarkup | RevisionView::Simple) {
         return None;
+    }
+    if let Some(insertion) = &row.insertion {
+        return Some(crate::revision_view::author_color(&insertion.author));
     }
     let revision = table
         .props_revision
@@ -2582,6 +2616,21 @@ fn flow_rows(
     let header_height: i64 = rows.iter().take(header_count).map(|row| row.height).sum();
     if header_count > 0 && header_height > content_box {
         result.note(LayoutNote::HeaderTallerThanPage { table });
+    }
+    // A leading header must not consume the last space on a used page by
+    // itself. Move it together with the first indivisible body-row piece.
+    if header_count > 0 && header_count < rows.len() && page_ink(result) {
+        let first = &rows[header_count];
+        let body_piece = if first.cant_split {
+            first.height
+        } else {
+            next_piece(rows, tops, header_count, 0)
+        };
+        let need = header_height.saturating_add(body_piece);
+        if need <= content_box && need > geometry.bottom_edge().raw().saturating_sub(*y) {
+            result.new_page(geometry, section)?;
+            *y = geometry.top.raw();
+        }
     }
     let stamp_page = result.pages.len().saturating_sub(1);
     let stamp_rects = result
@@ -3741,6 +3790,7 @@ pub(crate) fn fit_paragraph(
     } else {
         Vec::new()
     };
+    let slice_limits = std::cell::Cell::new(request_limits);
     let mut fit_slice = |slice: &str,
                          base: usize,
                          slice_width: Emu|
@@ -3790,7 +3840,7 @@ pub(crate) fn fit_paragraph(
                 slice_width,
                 &breaks,
                 LineFit {
-                    limits: request_limits,
+                    limits: slice_limits.get(),
                     adjust: &mut adjust,
                 },
                 &spans,
@@ -3804,7 +3854,7 @@ pub(crate) fn fit_paragraph(
                     slice_width,
                     &cancellation.0,
                     LineFit {
-                        limits: request_limits,
+                        limits: slice_limits.get(),
                         adjust: &mut adjust,
                     },
                     &spans,
@@ -3820,7 +3870,7 @@ pub(crate) fn fit_paragraph(
                 slice_width,
                 &cancellation.0,
                 LineFit {
-                    limits: request_limits,
+                    limits: slice_limits.get(),
                     adjust: &mut adjust,
                 },
                 &spans,
@@ -3853,7 +3903,58 @@ pub(crate) fn fit_paragraph(
     });
     let mut used_field_cache = false;
     let trailing_breaks;
-    let mut fitted = if has_image {
+    let has_soft_break = paragraph.inlines().iter().any(|i| {
+        matches!(
+            i.kind,
+            joyword_model::InlineKind::Break(joyword_model::BreakKind::Line)
+        )
+    });
+    let mut fitted = if has_soft_break {
+        if has_image
+            || column_breaks
+            || paragraph.inlines().iter().any(|i| {
+                !matches!(
+                    i.kind,
+                    joyword_model::InlineKind::Break(joyword_model::BreakKind::Line)
+                )
+            })
+        {
+            return Err(unsupported(
+                Some(paragraph.id()),
+                "soft break with another inline object",
+            ));
+        }
+        let mut result = crate::ParagraphLines {
+            lines: Vec::new(),
+            diagnostics: Vec::new(),
+            omitted_diagnostics: 0,
+            stats: crate::LineStats::default(),
+        };
+        let pieces = crate::pages::split_soft_lines(paragraph);
+        for (index, piece) in pieces.iter().enumerate() {
+            let mut remaining = request_limits;
+            remaining.max_shape_calls = remaining
+                .max_shape_calls
+                .saturating_sub(result.stats.shape_calls);
+            remaining.max_shaped_bytes = remaining
+                .max_shaped_bytes
+                .saturating_sub(result.stats.shaped_bytes);
+            remaining.max_lines = remaining.max_lines.saturating_sub(result.lines.len());
+            slice_limits.set(remaining);
+            let mut part = fit_slice(&piece.text, piece.byte_origin, width)?;
+            crate::pages::shift_piece(&mut part.lines, piece);
+            if index + 1 < pieces.len() {
+                crate::pages::extend_trailing(&mut part.lines, 1);
+            }
+            result.lines.append(&mut part.lines);
+            result.diagnostics.append(&mut part.diagnostics);
+            result.omitted_diagnostics += part.omitted_diagnostics;
+            result.stats.shape_calls += part.stats.shape_calls;
+            result.stats.shaped_bytes += part.stats.shaped_bytes;
+        }
+        trailing_breaks = 0;
+        result
+    } else if has_image {
         let available = Emu::new(
             (geometry.bottom_edge().raw() - geometry.top.raw() - painted.flow.before.raw()).max(1),
         );

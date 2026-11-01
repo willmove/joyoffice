@@ -225,7 +225,7 @@ fn unchanged_and_neighbour_exports_keep_table_change_bytes_verbatim() {
 
 #[test]
 fn rewriting_a_table_with_a_pending_property_revision_is_refused() {
-    // Editing cell text forces the table to be synthesised, which would drop
+    // Editing cell properties forces the table to be synthesised, which would drop
     // the pending change or invent its previous-property bytes; each level
     // refuses with its own reason and the plan fails before any write.
     let cases = [
@@ -251,13 +251,8 @@ fn rewriting_a_table_with_a_pending_property_revision_is_refused() {
                 panic!("table");
             };
             let table = Arc::make_mut(table);
-            table.rows[0].cells[1].blocks.update(0, |inner| {
-                let Block::Paragraph(paragraph) = inner else {
-                    panic!("cell paragraph");
-                };
-                Arc::make_mut(paragraph)
-                    .insert_text(ScalarOffset(3), "!")
-                    .unwrap();
+            table.rows[0].cells[1].shading = Some(joyword_model::Shading {
+                fill: joyword_model::Color::Rgb(1, 2, 3),
             });
         });
         match plan_export(&source.backing, &model.snapshot(), &Budget::default()) {
@@ -386,9 +381,9 @@ fn out_of_subset_table_property_changes_keep_the_table_preserved_and_the_documen
             ),
         ),
         (
-            "unrepresentable previous table property",
+            "unrepresentable previous table border",
             table_body(
-                r#"<w:tblPrChange w:id="73" w:author="A"><w:tblPr><w:tblBorders><w:top w:val="single"/></w:tblBorders></w:tblPr></w:tblPrChange>"#,
+                r#"<w:tblPrChange w:id="73" w:author="A"><w:tblPr><w:tblBorders><w:top w:val="triple"/></w:tblBorders></w:tblPr></w:tblPrChange>"#,
                 "",
                 "",
             ),

@@ -115,6 +115,7 @@ pub(crate) fn insert_table(
             });
         }
         table_rows.push(Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -128,6 +129,7 @@ pub(crate) fn insert_table(
     }
     let table_id = document.ids().node();
     let table = Table {
+        borders: [None; 6],
         id: table_id,
         grid: widths,
         rows: table_rows,
@@ -198,6 +200,7 @@ pub(crate) fn insert_row(
         });
     }
     let row = Row {
+        insertion: None,
         id: document.ids().node(),
         grid_before: template.0,
         grid_after: template.1,
@@ -960,7 +963,12 @@ fn table_mut(
         .story_mut(story)
         .and_then(|story| story.blocks.get_mut(index))
     {
-        Some(Block::Table(table)) => Ok(Arc::make_mut(table)),
+        Some(Block::Table(table)) => {
+            if table.rows.iter().any(|row| row.insertion.is_some()) {
+                return Err(CommandError::Locked(table.id));
+            }
+            Ok(Arc::make_mut(table))
+        }
         _ => Err(CommandError::NotATable(table)),
     }
 }

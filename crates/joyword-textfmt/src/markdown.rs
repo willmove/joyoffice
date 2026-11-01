@@ -154,6 +154,7 @@ fn parse_gfm_table(
 
         let row_id = doc.ids().node();
         rows.push(Row {
+            insertion: None,
             id: row_id,
             grid_before: 0,
             grid_after: 0,
@@ -168,6 +169,7 @@ fn parse_gfm_table(
 
     let table_id = doc.ids().node();
     Some(Table {
+        borders: [None; 6],
         id: table_id,
         grid: Vec::new(),
         rows,

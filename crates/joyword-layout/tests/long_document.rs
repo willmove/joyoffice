@@ -113,6 +113,7 @@ fn cell(document: &mut Document, texts: &[&str]) -> Cell {
 /// two-paragraph cells so the table spans several pages.
 fn cross_page_table(document: &mut Document, rows: usize) -> Table {
     let header_row = Row {
+        insertion: None,
         id: document.ids().node(),
         grid_before: 0,
         grid_after: 0,
@@ -126,6 +127,7 @@ fn cross_page_table(document: &mut Document, rows: usize) -> Table {
     let mut table_rows = vec![header_row];
     for index in 0..rows {
         table_rows.push(Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -147,6 +149,7 @@ fn cross_page_table(document: &mut Document, rows: usize) -> Table {
         });
     }
     Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(4000); 2],
         rows: table_rows,

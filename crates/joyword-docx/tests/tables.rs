@@ -140,7 +140,7 @@ fn editing_a_cell_round_trips_and_keeps_merge_state() {
     );
     let xml = xml_of(plan.bytes());
     assert!(xml.contains(r#"w:val="restart""#), "{xml}");
-    assert!(xml.contains(r#"w:val="continue""#), "{xml}");
+    assert!(xml.contains("<w:vMerge/>"), "{xml}");
     assert!(xml.contains(r#"w:val="2""#), "{xml}");
 }
 
@@ -232,12 +232,12 @@ fn tbl_look_bits_and_attributes_round_trip_after_a_cell_edit() {
     });
     let plan = plan_export(&source.backing, &model.snapshot(), &Budget::default()).unwrap();
     let xml = xml_of(plan.bytes());
-    assert!(xml.contains(r#"w:firstRow="0""#), "{xml}");
-    assert!(xml.contains(r#"w:lastRow="0""#), "{xml}");
-    assert!(xml.contains(r#"w:firstColumn="1""#), "{xml}");
-    assert!(xml.contains(r#"w:lastColumn="0""#), "{xml}");
-    assert!(xml.contains(r#"w:noHBand="0""#), "{xml}");
-    assert!(xml.contains(r#"w:noVBand="1""#), "{xml}");
+    assert!(
+        xml.contains(r#"<w:tblLook w:val="04A0" w:firstRow="0"/>"#),
+        "{xml}"
+    );
+    let saved = import(plan.bytes(), &Budget::default()).unwrap();
+    assert_eq!(model.semantic_difference(&saved.document), None);
     assert!(xml.contains("乙"), "{xml}");
 }
 

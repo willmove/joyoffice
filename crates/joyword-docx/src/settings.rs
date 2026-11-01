@@ -182,6 +182,17 @@ fn unselected_alternatives(element: &Element, scope: &Scope) -> bool {
 fn w_layout_neutral(child: &Element) -> bool {
     match &*child.local {
         "compat" => child.elements().all(compat_neutral),
+        "footnotePr" | "endnotePr" => child.elements().all(|e| {
+            e.is(
+                W,
+                if child.is(W, "footnotePr") {
+                    "footnote"
+                } else {
+                    "endnote"
+                },
+            ) && matches!(e.attribute(Some(W), "id"), Some("-1" | "0"))
+                && e.elements().next().is_none()
+        }),
         // Layout applies the R7 punctuation widths measured on Word 2024
         // whether or not punctuation compression is requested; kana
         // compression is not implemented.

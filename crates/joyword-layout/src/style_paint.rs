@@ -313,7 +313,7 @@ fn accept_paragraph(
     node: Option<NodeId>,
     props: &joyword_model::ParaProps,
 ) -> Result<Flow, LayoutError> {
-    let Some(edges) = indent_edges(&props.indent) else {
+    let Some(_edges) = indent_edges(&props.indent) else {
         return Err(unsupported(node, "relative paragraph indent"));
     };
     if let Some(stops) = &props.tabs {
@@ -328,26 +328,6 @@ fn accept_paragraph(
                 return Err(unsupported(node, "tab leader"));
             }
         }
-    }
-    let listed = props.numbering.is_some_and(|item| item.num_id != 0);
-    let custom_tabs = props
-        .tabs
-        .as_ref()
-        .is_some_and(|stops| stops.iter().any(|stop| stop.align != TabAlign::Clear));
-    // A list or a custom tab stop carries its own placement. Indent alone
-    // still has no centered, right or justified line.
-    if edges.moves_text()
-        && !listed
-        && !custom_tabs
-        && matches!(
-            props.justification,
-            Some(Justification::Center | Justification::End | Justification::Both)
-        )
-    {
-        return Err(unsupported(
-            node,
-            "justification with indent, numbering or tabs",
-        ));
     }
     if props.preserved.is_some() {
         return Err(unsupported(node, "preserved paragraph properties"));

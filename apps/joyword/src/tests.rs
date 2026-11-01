@@ -1463,6 +1463,36 @@ fn plain_package(paragraphs: &str) -> Vec<u8> {
     store_zip(&parts)
 }
 
+#[test]
+fn preserved_docx_body_installs_a_read_only_preview_that_reaches_the_page_scene() {
+    let bytes = plain_package(
+        r#"<w:p><w:r><w:t>AV</w:t></w:r></w:p><w:tbl><w:tblPr><w:tblOverlap w:val="never"/></w:tblPr><w:tblGrid><w:gridCol w:w="2000"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>fi</w:t><w:br/><w:t>AV</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p><w:r><w:t>AVfi</w:t></w:r></w:p>"#,
+    );
+    let (dir, office) = open_package(&bytes, "read-only-preview");
+    let input = office.active().unwrap();
+    assert!(input.view().index().is_read_only_preview());
+    assert!(input.read_only());
+    let layout = lay(&office, ViewOptions::default());
+    assert!(!layout.pages().is_empty());
+    let painted = layout
+        .pages()
+        .iter()
+        .flat_map(|page| &page.runs)
+        .map(|run| run.text.as_str())
+        .collect::<String>();
+    // The bundled deterministic test font contains A/V/f/i, not a full
+    // alphabet. User-document GUI checks use the actual system CJK font.
+    assert!(painted.contains("fi"));
+    assert!(painted.contains("AV"));
+    assert!(painted.contains("AVfi"));
+    assert_eq!(
+        input.backend().session().export_plan().unwrap().bytes(),
+        bytes
+    );
+    drop(office);
+    let _ = std::fs::remove_dir_all(dir);
+}
+
 /// Automated rehearsal; does not replace 人工验收.
 ///
 /// T200: headings, two list levels, the format painter, width-folded regex

@@ -215,7 +215,7 @@ pub(super) fn align<'a>(
 pub(super) struct Source<'a> {
     part: &'a str,
     xml: &'a [u8],
-    /// Direct children of `w:body`, by byte range.
+    /// Body descendants, including cell paragraphs and nested tables, by byte range.
     elements: HashMap<(usize, usize), &'a Element>,
     /// Preserved fragment ranges in this part, by start.
     fragments: Vec<Range<usize>>,
@@ -251,10 +251,20 @@ impl<'a> Source<'a> {
         Self {
             part,
             xml,
-            elements: body
-                .elements()
-                .map(|element| ((element.span.start, element.span.end), element))
-                .collect(),
+            elements: {
+                fn collect<'a>(
+                    element: &'a Element,
+                    out: &mut HashMap<(usize, usize), &'a Element>,
+                ) {
+                    for child in element.elements() {
+                        out.insert((child.span.start, child.span.end), child);
+                        collect(child, out);
+                    }
+                }
+                let mut out = HashMap::new();
+                collect(body, &mut out);
+                out
+            },
             fragments,
             section_ends: original
                 .sections()
@@ -1666,6 +1676,11 @@ pub(super) fn table_markup(
     limit: u64,
 ) -> Result<String, ExportError> {
     let refuse = |reason| unsupported(Some(table.id), reason);
+    if table.rows.iter().any(|r| r.insertion.is_some()) {
+        return Err(refuse(
+            "row insertion revision requires source-preserving cell edits",
+        ));
+    }
     if table.preserved.is_some() {
         return Err(refuse("table holds preserved markup"));
     }
@@ -1680,7 +1695,8 @@ pub(super) fn table_markup(
     let mut markup = String::new();
     markup.push_str(&names.start("tbl"));
     markup.push('>');
-    if table.style.is_some()
+    if table.borders.iter().any(Option::is_some)
+        || table.style.is_some()
         || table.width.is_some()
         || table.layout.is_some()
         || table.alignment.is_some()
@@ -1690,6 +1706,19 @@ pub(super) fn table_markup(
     {
         markup.push_str(&names.start("tblPr"));
         markup.push('>');
+        if table.borders.iter().any(Option::is_some) {
+            markup.push_str(&names.start("tblBorders"));
+            markup.push('>');
+            for (local, edge) in ["top", "left", "bottom", "right", "insideH", "insideV"]
+                .iter()
+                .zip(table.borders)
+            {
+                if let Some(edge) = edge {
+                    markup.push_str(&edge_markup(names, local, edge)?);
+                }
+            }
+            markup.push_str(&names.end("tblBorders"));
+        }
         if let Some(style) = &table.style {
             if !table_style_id(style.as_str()) {
                 return Err(refuse("table style id cannot be written"));

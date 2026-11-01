@@ -80,9 +80,11 @@ fn document() -> Document {
         props_revision: None,
     };
     let table = Table {
+        borders: [None; 6],
         id: table_id,
         grid: vec![Measure::Twips(2400), Measure::Twips(2400)],
         rows: vec![Row {
+            insertion: None,
             id: row_id,
             grid_before: 0,
             grid_after: 0,
@@ -241,6 +243,7 @@ fn install_table(
     margin: Option<CellMargins>,
 ) {
     let table = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(2400); columns],
         rows,
@@ -261,6 +264,7 @@ fn install_table(
 
 fn row(document: &mut Document, cells: Vec<Cell>, header: bool, cant_split: bool) -> Row {
     Row {
+        insertion: None,
         id: document.ids().node(),
         grid_before: 0,
         grid_after: 0,
@@ -350,6 +354,7 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
     );
     let table_row = row(&mut splitting, vec![cell], false, false);
     let table = Table {
+        borders: [None; 6],
         id: splitting.ids().node(),
         grid: vec![Measure::Twips(2400)],
         rows: vec![table_row],
@@ -389,6 +394,7 @@ fn a_splittable_row_breaks_across_pages_and_cant_split_moves_whole() {
     );
     let table_row = row(&mut whole, vec![cell], false, true);
     let table = Table {
+        borders: [None; 6],
         id: whole.ids().node(),
         grid: vec![Measure::Twips(2400)],
         rows: vec![table_row],
@@ -515,6 +521,7 @@ fn a_header_taller_than_the_page_is_not_repeated() {
         let row = row(&mut document, vec![cell], true, false);
         let id = document.ids().node();
         let table = Table {
+            borders: [None; 6],
             id,
             grid: vec![Measure::Twips(2400)],
             rows: vec![row],
@@ -1410,9 +1417,11 @@ fn nested_document() -> Document {
         right: Some(edge()),
     };
     let inner = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(2000)],
         rows: vec![Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -1449,9 +1458,11 @@ fn nested_document() -> Document {
         source: None,
     };
     let outer = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(4000)],
         rows: vec![Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -1558,9 +1569,11 @@ fn a_table_nested_two_levels_deep_is_refused() {
     let mut marked = Paragraph::new(document.ids().node());
     marked.push_text("深", None, Arc::default()).unwrap();
     let deeper = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(800)],
         rows: vec![Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -1625,4 +1638,29 @@ fn a_table_nested_two_levels_deep_is_refused() {
             ..
         }
     ));
+}
+
+#[test]
+fn a_leading_header_moves_with_the_first_data_row_instead_of_being_orphaned() {
+    for cant_split in [false, true] {
+        let mut document = Document::new_blank();
+        squeeze(&mut document, 3);
+        let head = text_paragraph(&mut document, "H");
+        let data = text_paragraph(&mut document, "D");
+        let hc = plain_cell(&mut document, vec![head], 1, VerticalMerge::None, None);
+        let dc = plain_cell(&mut document, vec![data], 1, VerticalMerge::None, None);
+        let hr = row(&mut document, vec![hc], true, true);
+        let dr = row(&mut document, vec![dc], false, cant_split);
+        install_table(&mut document, vec![hr, dr], 1, None);
+        let table = document.body().blocks.get(0).unwrap().clone();
+        let p = text_paragraph(&mut document, "P");
+        let q = text_paragraph(&mut document, "Q");
+        let body = document.body_id();
+        document.story_mut(body).unwrap().blocks =
+            BlockSeq::from_vec(vec![p.into(), q.into(), table]);
+        let laid = lay(&document);
+        assert_eq!(laid.pages().len(), 2);
+        assert_eq!(run_texts(&laid.pages()[0]), vec!["P", "Q"]);
+        assert_eq!(run_texts(&laid.pages()[1]), vec!["H", "D"]);
+    }
 }

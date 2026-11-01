@@ -100,6 +100,7 @@ mod images;
 mod import;
 mod ns;
 mod numbering;
+mod preview;
 mod props;
 mod result;
 mod revision;
@@ -116,6 +117,7 @@ pub use ns::{
     MC, R, REL_NUMBERING, REL_OFFICE_DOCUMENT, REL_OFFICE_DOCUMENT_STRICT, REL_SETTINGS,
     REL_STYLES, W, W_STRICT,
 };
+pub use preview::{TextPreviewError, TextPreviewLimits, text_preview};
 pub use result::{
     Diagnostic, DiagnosticKind, Diagnostics, Editability, ImageOutcome, ImportError, ImportResult,
     MAX_DIAGNOSTICS, ReadOnlyReason, Severity,

@@ -53,6 +53,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
     let rows = rows
         .into_iter()
         .map(|cells| joyword_model::Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -65,6 +66,7 @@ fn table(document: &mut Document, rows: Vec<Vec<Cell>>, columns: usize) -> Table
         })
         .collect();
     Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(2000); columns],
         rows,

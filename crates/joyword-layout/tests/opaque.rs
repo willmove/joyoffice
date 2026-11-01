@@ -244,9 +244,11 @@ fn a_table_and_an_opaque_block_still_match_full_layout() {
         right: None,
     };
     let table = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(2400)],
         rows: vec![Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,

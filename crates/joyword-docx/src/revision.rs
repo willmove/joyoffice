@@ -266,12 +266,6 @@ fn move_ends(local: &str) -> Option<(MoveSide, bool)> {
     }
 }
 
-/// Plain `w:ins` / `w:del` / move wrapper for a typed table cell.
-/// Anything the cell parser cannot represent returns `None`.
-pub(crate) fn cell_text_revision(element: &Element, kind: RevisionKind) -> Option<TextRevision> {
-    plain_revision(element, kind)
-}
-
 /// A revision on the paragraph mark (`w:pPr/w:rPr/w:del` or
 /// `w:pPr/w:rPr/w:ins`, T402 and T303). Only the empty form with exactly the
 /// tracked attributes types; move kinds and any child stay gaps. `false`

@@ -843,7 +843,11 @@ impl CanvasPipeline {
         };
         if frame
             .layout
-            .ensure_current(view.snapshot(), font, profile)
+            .ensure_current(
+                &joyword_layout::compatibility::with_compatible_styles(view.snapshot()),
+                font,
+                profile,
+            )
             .is_err()
         {
             return false;
@@ -977,8 +981,9 @@ pub fn layout_view_incremental_with(
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
     let invalidation = invalidation_of(view.layout_changes());
+    let display = joyword_layout::compatibility::with_compatible_styles(view.snapshot());
     layout_incremental_reviewed(
-        view.snapshot(),
+        &display,
         FaceSet::uniform(font),
         profile,
         LayoutLimits::default(),

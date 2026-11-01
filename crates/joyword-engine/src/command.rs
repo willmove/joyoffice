@@ -19,6 +19,14 @@ pub enum Command {
         at: Position,
         text: String,
     },
+    /// Keyboard replacement retains the character formatting at the original
+    /// insertion point, including when deleting the selection empties it.
+    InsertFormattedText {
+        at: Position,
+        text: String,
+        style: Option<StyleId>,
+        props: Arc<RunProps>,
+    },
     InsertInline {
         at: Position,
         kind: InlineKind,

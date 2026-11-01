@@ -1439,9 +1439,11 @@ fn a_table_in_unequal_columns_is_refused() {
     let mut paragraph = Paragraph::new(document.ids().node());
     paragraph.push_text("T", None, Arc::default()).unwrap();
     let table = Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![Measure::Twips(2400)],
         rows: vec![Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -1795,4 +1797,105 @@ fn an_unpainted_first_header_and_an_empty_header_still_resolve_carets() {
     assert_eq!(caret.page, 0);
     assert_eq!(caret.x, pt(6));
     assert_eq!(caret.top, pt(2));
+}
+
+#[test]
+fn soft_break_lines_keep_source_offsets_and_share_the_work_budget() {
+    let mut document = document_with(&["AB"]);
+    let object = InlineObject {
+        id: document.ids().node(),
+        kind: InlineKind::Break(BreakKind::Line),
+        source: None,
+    };
+    change(&mut document, 0, |p| {
+        p.insert_inline(ScalarOffset(1), object, None, Arc::default())
+            .unwrap()
+    });
+    let snapshot = layout(&document);
+    assert_eq!(snapshot.lines().len(), 2);
+    assert_eq!(body_text(&snapshot, 0), "AB");
+    let id = document.body().blocks.get(0).unwrap().id();
+    let position = |offset| Position {
+        story: document.body_id(),
+        paragraph: id,
+        offset: ScalarOffset(offset),
+        bias: Bias::After,
+    };
+    assert!(snapshot.caret(position(2)).unwrap().top > snapshot.caret(position(0)).unwrap().top);
+    for limits in [
+        LayoutLimits {
+            max_lines: 1,
+            ..LayoutLimits::default()
+        },
+        LayoutLimits {
+            max_shape_calls: 1,
+            ..LayoutLimits::default()
+        },
+    ] {
+        assert!(matches!(
+            layout_document(
+                &document.snapshot(),
+                FaceSet::uniform(&font()),
+                profile(),
+                limits,
+                &LayoutCancellation::default()
+            ),
+            Err(LayoutError::LimitExceeded(_))
+                | Err(LayoutError::Line {
+                    error: joyword_layout::LineError::LimitExceeded(_),
+                    ..
+                })
+        ));
+    }
+}
+
+#[test]
+fn compatible_display_retains_source_and_marks_unknown_objects() {
+    use joyword_layout::compatibility::{has_style_approximations, with_compatible_styles};
+    let mut document = document_with(&["AB"]);
+    assert!(!has_style_approximations(&document.snapshot()));
+    let handle = document.ids().preserved();
+    let object = InlineObject {
+        id: document.ids().node(),
+        kind: InlineKind::Preserved(Preserved {
+            element: "w:object".into(),
+            handle,
+        }),
+        source: None,
+    };
+    change(&mut document, 0, |p| {
+        p.insert_inline(ScalarOffset(1), object, None, Arc::default())
+            .unwrap()
+    });
+    let original = document.canonical_dump(joyword_model::DumpOptions { node_ids: true });
+    assert!(has_style_approximations(&document.snapshot()));
+    let display = with_compatible_styles(&document.snapshot());
+    assert_eq!(
+        document.canonical_dump(joyword_model::DumpOptions { node_ids: true }),
+        original
+    );
+    assert_eq!(display.version(), document.version());
+    assert_eq!(
+        display.body().blocks.get(0).unwrap().id(),
+        document.body().blocks.get(0).unwrap().id()
+    );
+    let result = layout_document(
+        &display,
+        FaceSet::uniform(&font()),
+        profile(),
+        LayoutLimits::default(),
+        &LayoutCancellation::default(),
+    )
+    .unwrap();
+    assert_eq!(body_text(&result, 0), "A□B");
+    assert!(
+        layout_document(
+            &document.snapshot(),
+            FaceSet::uniform(&font()),
+            profile(),
+            LayoutLimits::default(),
+            &LayoutCancellation::default()
+        )
+        .is_err()
+    );
 }

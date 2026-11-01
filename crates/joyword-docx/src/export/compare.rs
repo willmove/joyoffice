@@ -24,7 +24,7 @@ type Key<'a> = (&'a str, &'a str, &'a [(Arc<str>, Arc<str>)], &'a [u8]);
 
 /// `actual` (re-imported with `actual_backing`) holds the same semantic
 /// content as `expected` (whose handles refer to `expected_backing`).
-pub(super) fn equivalent(
+pub(crate) fn equivalent(
     expected: &Document,
     expected_backing: &PackageBacking,
     actual: &Document,
@@ -65,9 +65,8 @@ fn story_handles<'a>(
     document: &Document,
     backing: &'a PackageBacking,
 ) -> Option<HashMap<PreservedId, Key<'a>>> {
-    let mut handles = Vec::new();
-    for story in document.stories() {
-        for block in story.blocks.iter() {
+    fn walk(blocks: &BlockSeq, handles: &mut Vec<PreservedId>) {
+        for block in blocks.iter() {
             match block {
                 Block::Paragraph(paragraph) => {
                     handles.extend(paragraph.props.preserved);
@@ -86,11 +85,20 @@ fn story_handles<'a>(
                     ));
                 }
                 Block::Opaque(opaque) => handles.push(opaque.preserved.handle),
-                // The importer does not produce these yet; their handles stay
-                // as they are and must then match exactly.
-                Block::Table(_) | Block::Sdt(_) => {}
+                Block::Table(table) => {
+                    for row in &table.rows {
+                        for cell in &row.cells {
+                            walk(&cell.blocks, handles);
+                        }
+                    }
+                }
+                Block::Sdt(sdt) => walk(&sdt.blocks, handles),
             }
         }
+    }
+    let mut handles = Vec::new();
+    for story in document.stories() {
+        walk(&story.blocks, &mut handles);
     }
     handles
         .into_iter()
@@ -120,28 +128,15 @@ fn remap(
 /// Every story with canonical handles and adjacent equally formatted text
 /// joined into one run. Bookmark splicing splits runs in the body and in
 /// header, footer, and comment parts; that partitioning is not semantic.
-fn normalize(
+pub(crate) fn normalize(
     document: &Document,
     canonical: &dyn Fn(PreservedId) -> Option<PreservedId>,
 ) -> Option<Document> {
     let story_ids: Vec<_> = document.stories().map(|story| story.id).collect();
     let mut normalized = document.clone();
     for id in story_ids {
-        let blocks = document
-            .story(id)?
-            .blocks
-            .iter()
-            .map(|block| match block {
-                Block::Paragraph(paragraph) => rebuild(paragraph, canonical).map(Block::from),
-                Block::Opaque(opaque) => {
-                    let mut opaque = OpaqueBlock::clone(opaque);
-                    opaque.preserved.handle = canonical(opaque.preserved.handle)?;
-                    Some(Block::from(opaque))
-                }
-                other => Some(other.clone()),
-            })
-            .collect::<Option<Vec<_>>>()?;
-        normalized.story_mut(id)?.blocks = BlockSeq::from_vec(blocks);
+        let blocks = normalize_blocks(&document.story(id)?.blocks, canonical)?;
+        normalized.story_mut(id)?.blocks = blocks;
     }
     Some(normalized)
 }
@@ -316,6 +311,58 @@ pub(super) fn same_preserved(expected: &PackageBacking, actual: &PackageBacking)
     }
     let expected = fragments(expected);
     expected.is_some() && expected == fragments(actual)
+}
+
+fn normalize_blocks(
+    blocks: &BlockSeq,
+    canonical: &dyn Fn(PreservedId) -> Option<PreservedId>,
+) -> Option<BlockSeq> {
+    blocks
+        .iter()
+        .map(|block| match block {
+            Block::Paragraph(paragraph) => rebuild(paragraph, canonical).map(Block::from),
+            Block::Opaque(opaque) => {
+                let mut opaque = OpaqueBlock::clone(opaque);
+                opaque.preserved.handle = canonical(opaque.preserved.handle)?;
+                Some(Block::from(opaque))
+            }
+            Block::Table(table) => {
+                let mut table = table.as_ref().clone();
+                for row in &mut table.rows {
+                    for cell in &mut row.cells {
+                        cell.blocks = normalize_blocks(&cell.blocks, canonical)?;
+                    }
+                }
+                Some(Block::from(table))
+            }
+            other => Some(other.clone()),
+        })
+        .collect::<Option<Vec<_>>>()
+        .map(BlockSeq::from_vec)
+}
+
+/// Match preserved content by its actual XML and namespace context, never by
+/// allocated handle numbers. Used when a saved package becomes the baseline.
+pub(crate) fn handle_map(
+    expected: &Document,
+    expected_backing: &PackageBacking,
+    actual: &Document,
+    actual_backing: &PackageBacking,
+) -> Option<std::collections::BTreeMap<PreservedId, PreservedId>> {
+    let expected = story_handles(expected, expected_backing)?;
+    let actual = story_handles(actual, actual_backing)?;
+    expected
+        .into_iter()
+        .map(|(id, key)| {
+            Some((
+                id,
+                actual
+                    .iter()
+                    .filter_map(|(id, value)| (value == &key).then_some(*id))
+                    .min()?,
+            ))
+        })
+        .collect()
 }
 
 #[cfg(test)]

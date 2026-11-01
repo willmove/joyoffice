@@ -119,6 +119,7 @@ fn contract_structure_preserves_unsupported_nodes() {
     let mut document = Document::new_blank();
     let ids = document.ids();
     let row = |ids: &mut IdAllocator, left: &str, right: &str| Row {
+        insertion: None,
         id: ids.node(),
         grid_before: 0,
         grid_after: 0,
@@ -157,6 +158,7 @@ fn contract_structure_preserves_unsupported_nodes() {
         props_revision: None,
     };
     let table = Table {
+        borders: [None; 6],
         id: ids.node(),
         grid: vec![Measure::Twips(2_000), Measure::Twips(3_000)],
         rows: vec![row(ids, "项目", "金额"), row(ids, "设计费", "12,345.67")],
@@ -354,10 +356,12 @@ fn invalid_trees_report_bounded_errors() {
         props_revision: None,
     };
     let table = Table {
+        borders: [None; 6],
         id: ids.node(),
         grid: vec![Measure::Twips(1_000); 3],
         rows: vec![
             Row {
+                insertion: None,
                 id: ids.node(),
                 grid_before: 0,
                 grid_after: 0,
@@ -369,6 +373,7 @@ fn invalid_trees_report_bounded_errors() {
                 props_revision: None,
             },
             Row {
+                insertion: None,
                 id: ids.node(),
                 grid_before: 1,
                 grid_after: 1,

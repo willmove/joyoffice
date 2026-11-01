@@ -668,6 +668,14 @@ struct ViewHost<'a, 'b> {
 
 impl CommandHost for ViewHost<'_, '_> {
     fn availability(&self, id: CommandId) -> Availability {
+        if self.view.is_text_preview()
+            || self.view.editor.as_ref().is_some_and(|e| {
+                joyword_layout::compatibility::has_style_approximations(e.view().snapshot())
+                    || e.view().snapshot().has_table_row_insertions()
+            })
+        {
+            return self.view.input_availability(id);
+        }
         match id {
             FILE_MAIL_MERGE => Availability::Enabled,
             FILE_EXPORT_EPUB => {
@@ -1109,6 +1117,9 @@ impl JoyWord {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if self.reject_preview_command(id, cx) {
+            return;
+        }
         let supplemented;
         let args = if matches!(
             id,
@@ -1429,6 +1440,11 @@ impl JoyWord {
     /// Single entry for menus, shortcuts and on-screen controls. Disabled and
     /// failed commands surface their reason instead of doing nothing silently.
     fn run(&mut self, id: CommandId, window: &mut Window, cx: &mut Context<Self>) {
+        // The registry asks for missing arguments before checking availability.
+        // A text preview must refuse lossy commands before a path picker opens.
+        if self.reject_preview_command(id, cx) {
+            return;
+        }
         let registry = self.registry.clone();
         match registry.invoke(
             &mut ViewHost {
@@ -1481,6 +1497,27 @@ impl JoyWord {
             }
             _ => {}
         }
+    }
+
+    fn is_text_preview(&self) -> bool {
+        self.editor
+            .as_ref()
+            .is_some_and(|editor| editor.view().index().is_read_only_preview())
+    }
+
+    fn reject_preview_command(&mut self, id: CommandId, cx: &mut Context<Self>) -> bool {
+        if (self.is_text_preview()
+            || self.editor.as_ref().is_some_and(|e| {
+                joyword_layout::compatibility::has_style_approximations(e.view().snapshot())
+                    || e.view().snapshot().has_table_row_insertions()
+            }))
+            && let Availability::Disabled(reason) = self.input_availability(id)
+        {
+            self.report_input_error(self.label(reason));
+            cx.notify();
+            return true;
+        }
+        false
     }
 }
 
@@ -1829,6 +1866,39 @@ impl Render for JoyWord {
             .child(self.title_bar(cx))
             .children(self.stage_notice.then(|| self.stage_notification(cx)))
             .child(self.ribbon(window, cx))
+            .children(
+                self.editor
+                    .as_ref()
+                    .is_some_and(|editor| editor.view().index().is_read_only_preview())
+                    .then(|| {
+                        div()
+                            .id("read-only-preview-notice")
+                            .flex_shrink_0()
+                            .px_4()
+                            .py_2()
+                            .bg(rgb(ui::theme::NOTICE))
+                            .text_sm()
+                            .child(self.label("input.preview_notice"))
+                    }),
+            )
+            .children(
+                self.editor
+                    .as_ref()
+                    .is_some_and(|e| {
+                        !e.view().index().is_read_only_preview()
+                            && joyword_layout::compatibility::has_style_approximations(
+                                e.view().snapshot(),
+                            )
+                    })
+                    .then(|| {
+                        div()
+                            .px_4()
+                            .py_2()
+                            .bg(rgb(ui::theme::NOTICE))
+                            .text_sm()
+                            .child(self.label("input.format_compatibility"))
+                    }),
+            )
             .child(self.ruler(cx))
             .child(
                 div()

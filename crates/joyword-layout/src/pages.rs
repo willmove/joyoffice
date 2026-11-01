@@ -439,9 +439,7 @@ pub(crate) fn accept_body_inlines(
         match &inline.kind {
             InlineKind::Break(BreakKind::Page) => page_break = true,
             InlineKind::Break(BreakKind::Column) => column_break = true,
-            InlineKind::Break(BreakKind::Line) => {
-                return Err(unsupported(Some(paragraph.id()), "line break"));
-            }
+            InlineKind::Break(BreakKind::Line) => {}
             InlineKind::PageField(_) => field = true,
             InlineKind::Image { .. } => image = true,
             InlineKind::Preserved(_) => {
@@ -662,6 +660,41 @@ pub(crate) fn shift_piece(lines: &mut [LayoutLine], piece: &TextPiece) {
             .start
             .saturating_sub(breaks.saturating_mul(marker_bytes));
     }
+}
+
+pub(crate) fn split_soft_lines(paragraph: &Paragraph) -> Vec<TextPiece> {
+    let mut pieces = Vec::new();
+    let mut text = String::new();
+    let (mut scalar, mut byte) = (0, 0);
+    let (mut scalar_origin, mut byte_origin) = (0, 0);
+    for segment in paragraph.segments() {
+        match segment {
+            Segment::Text(chunk) => {
+                scalar += chunk.chars().count();
+                byte += chunk.len();
+                text.push_str(&chunk);
+            }
+            Segment::Inline(_) => {
+                pieces.push(TextPiece {
+                    text: std::mem::take(&mut text),
+                    scalar_origin,
+                    byte_origin,
+                    breaks_before: 0,
+                });
+                scalar += 1;
+                byte += OBJECT_MARKER.len_utf8();
+                scalar_origin = scalar;
+                byte_origin = byte;
+            }
+        }
+    }
+    pieces.push(TextPiece {
+        text,
+        scalar_origin,
+        byte_origin,
+        breaks_before: 0,
+    });
+    pieces
 }
 
 pub(crate) fn extend_trailing(lines: &mut [LayoutLine], trailing: u32) {

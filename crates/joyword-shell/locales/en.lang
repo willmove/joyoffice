@@ -145,6 +145,9 @@ find.regex = Regex
 ribbon.page.edit_footer = Footer
 input.loading = Document is loading
 input.read_only = Document is read-only
+input.preview_status = Compatibility preview (read-only)
+input.preview_notice = Compatibility preview (read-only): this document contains structures that cannot yet be edited. Only main-body text is shown; tables are expanded in row/cell order. Pictures and unknown objects appear as [Object]; headers, footers, comments and notes are excluded. Layout differs from the original. All original content is retained; Save a Copy preserves the DOCX.
+input.preview_unavailable = Compatibility preview supports reading, finding, copying and saving an original DOCX copy
 input.no_undo = Nothing to undo
 input.no_redo = Nothing to redo
 input.composing = Composition is active
@@ -358,3 +361,7 @@ epub.cancelled = EPUB export cancelled. The source document was not changed.
 command.file.export_pdfa = Export PDF/A-2b…
 pdfa.review = Review archival export
 pdfa.description = Export the current page scene as PDF/A-2b using creation year {year} (UTC). Fonts must permit embedding. Choose a new .pdf file; existing files are never overwritten. Independent conformance validation is required; this does not claim PDF/UA.
+
+input.format_compatibility = Compatibility layout: tables and text are editable. Some fonts, styles and image positions are approximate; unknown objects appear as squares. Pagination may differ from Word. DOCX saving retains original content.
+
+input.row_revision = This document contains pending table row insertions. Text editing retains them; original view and revision resolution are unavailable.

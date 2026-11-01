@@ -741,11 +741,12 @@ impl JoyWord {
             .get(command)
             .map(|spec| self.label(spec.label))
             .unwrap_or_else(|| command.0.to_owned());
+        let enabled = !matches!(self.input_availability(command), Availability::Disabled(_));
         controls::button(
             format!("popup-{}", command.0),
             label.clone(),
             label,
-            true,
+            enabled,
             false,
             false,
             close_and_run(&cx.entity(), command),

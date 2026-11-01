@@ -295,6 +295,7 @@ fn pending_revisions_tables_comments_and_story_gaps_are_refused() {
             props_revision: None,
         };
         let row = joyword_model::Row {
+            insertion: None,
             id: ids.node(),
             grid_before: 0,
             grid_after: 0,
@@ -306,6 +307,7 @@ fn pending_revisions_tables_comments_and_story_gaps_are_refused() {
             props_revision: None,
         };
         let table = joyword_model::Table {
+            borders: [None; 6],
             id: ids.node(),
             grid: vec![joyword_model::Measure::Twips(2400)],
             rows: vec![row],

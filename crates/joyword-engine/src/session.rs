@@ -25,6 +25,35 @@ thread_local! {
 }
 
 /// Test hook: the next [`Session::apply`] panics inside the transaction guard.
+fn preserved_block(document: &Document, id: NodeId) -> Option<&Block> {
+    fn walk(blocks: &joyword_model::BlockSeq, id: NodeId) -> Option<&Block> {
+        for block in blocks.iter() {
+            if block.id() == id {
+                return Some(block);
+            }
+            match block {
+                Block::Table(t) => {
+                    for row in &t.rows {
+                        for cell in &row.cells {
+                            if let Some(b) = walk(&cell.blocks, id) {
+                                return Some(b);
+                            }
+                        }
+                    }
+                }
+                Block::Sdt(s) => {
+                    if let Some(b) = walk(&s.blocks, id) {
+                        return Some(b);
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+    document.stories().find_map(|story| walk(&story.blocks, id))
+}
+
 #[cfg(test)]
 fn fail_next_apply() {
     FAIL_NEXT_APPLY.with(|flag| flag.set(true));
@@ -251,6 +280,7 @@ impl ChangeSet {
 }
 
 pub struct Session {
+    locked_nodes: BTreeSet<NodeId>,
     document: Document,
     policy: EditPolicy,
     undo: Vec<UndoEntry>,
@@ -268,6 +298,7 @@ pub struct Session {
 impl Session {
     pub fn new(document: Document) -> Self {
         Self {
+            locked_nodes: BTreeSet::new(),
             document,
             policy: EditPolicy::default(),
             undo: Vec::new(),
@@ -277,6 +308,14 @@ impl Session {
             revision_date: None,
             revision_clock: false,
         }
+    }
+
+    pub fn set_locked_nodes(&mut self, nodes: impl IntoIterator<Item = NodeId>) {
+        self.locked_nodes = nodes.into_iter().collect();
+    }
+
+    pub fn locked_nodes(&self) -> &BTreeSet<NodeId> {
+        &self.locked_nodes
     }
 
     /// Author stored on revisions created while track changes is on.
@@ -453,6 +492,16 @@ impl Session {
         }
         if changes.is_empty() {
             return Ok(Outcome::NoOp(current));
+        }
+        for id in &self.locked_nodes {
+            if !matches!((preserved_block(&self.document, *id), preserved_block(&candidate, *id)),
+                (Some(a), Some(b)) if a.same_content(b))
+            {
+                return Err(TxError::Command {
+                    index: 0,
+                    error: CommandError::Locked(*id),
+                });
+            }
         }
         let issues = touched_issues(&candidate, &changes);
         if !issues.is_empty() {
@@ -662,6 +711,23 @@ fn execute(
 ) -> Result<(), CommandError> {
     match command {
         Command::InsertText { at, text } => insert_text(document, at, text, ctx, map, changes),
+        Command::InsertFormattedText {
+            at,
+            text,
+            style,
+            props,
+        } => {
+            insert_text(document, at, text, ctx, map, changes)?;
+            if !text.is_empty() {
+                let location = locate_paragraph(document, at)?;
+                let paragraph = locate::paragraph_mut(document, &location)
+                    .ok_or(CommandError::UnknownNode(at.paragraph))?;
+                let range = at.offset..ScalarOffset(at.offset.0 + text.chars().count());
+                paragraph.format_runs(range.clone(), |value| *value = props.as_ref().clone())?;
+                paragraph.restyle_runs(range, style.clone())?;
+            }
+            Ok(())
+        }
         Command::InsertInline { at, kind } => insert_inline(document, at, kind, map, changes),
         Command::InsertImage { at, data } => insert_image(document, at, data, map, changes),
         Command::SetHyperlink { start, end, link } => {

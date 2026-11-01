@@ -170,9 +170,11 @@ fn table_input(text: &str) -> TextInput {
     let mut paragraph = Paragraph::new(document.ids().node());
     paragraph.push_text(text, None, Arc::default()).unwrap();
     let table = joyword_model::Table {
+        borders: [None; 6],
         id: document.ids().node(),
         grid: vec![joyword_model::Measure::Twips(2400)],
         rows: vec![joyword_model::Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,

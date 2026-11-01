@@ -1,8 +1,9 @@
 //! DOCX-to-engine session boundary (T103/T106).
 //!
 //! Import restrictions are enforced before the first transaction. Until the
-//! engine supports local locks, any locked node makes the whole session
-//! read-only. The mutable engine is private so callers cannot clear that
+//! body is fully typed, locked nodes keep the whole session read-only. Fully
+//! typed table documents enforce immutable preserved nodes inside each atomic
+//! engine transaction, while global protection remains read-only. The mutable engine is private so callers cannot clear that
 //! policy or substitute a document while retaining an unrelated backing.
 //! [`DocxSession`] performs no IO. [`BoundDocx`] is the open path: `open_source`
 //! then [`DocxSession::open`], and only then a sibling JoyWord lock. A failed
@@ -74,9 +75,13 @@ impl DocxSession {
         let result = import(bytes, budget)?;
         let mut session = Session::new(result.document);
         session.set_policy(EditPolicy {
-            read_only: !result.editability.is_unrestricted(),
+            read_only: !result.editability.is_unrestricted()
+                && !result
+                    .editability
+                    .supports_local_editing(session.document()),
             agent_writes: false,
         });
+        session.set_locked_nodes(result.editability.locked().iter().copied());
         let imported_version = session.version();
         Ok(Self {
             session,
@@ -125,13 +130,32 @@ impl DocxSession {
         &self.backing
     }
 
+    /// A separate, bounded body-text display document. The live engine and
+    /// original package are untouched; this projection is never saved.
+    pub fn text_preview(
+        &self,
+        limits: joyword_docx::TextPreviewLimits,
+    ) -> Result<joyword_model::Document, joyword_docx::TextPreviewError> {
+        if self.session.version() != self.imported_version
+            || self.session.document().validate().has_errors()
+        {
+            return Err(joyword_docx::TextPreviewError::InvalidDocument);
+        }
+        joyword_docx::text_preview(&self.backing, self.session.document(), &self.budget, limits)
+    }
+
     fn rebind(&mut self, rebound: ReboundPackage) {
         self.backing = rebound.backing;
         self.rebound = Some(rebound.binding);
         self.diagnostics = rebound.diagnostics;
         self.editability = rebound.editability;
+        self.session
+            .set_locked_nodes(self.editability.locked().iter().copied());
         self.session.set_policy(EditPolicy {
-            read_only: !self.editability.is_unrestricted(),
+            read_only: !self.editability.is_unrestricted()
+                && !self
+                    .editability
+                    .supports_local_editing(self.session.document()),
             agent_writes: false,
         });
     }
@@ -509,16 +533,25 @@ impl SaveOriginalJob {
         .map_err(BoundOriginalSaveError::Export)?;
         let imported =
             import(plan.bytes(), &self.budget).map_err(BoundOriginalSaveError::Import)?;
-        let binding = ExportBinding::rebind(imported.backing, &self.snapshot, &self.budget)
-            .map_err(BoundOriginalSaveError::Export)?;
+        let binding = match &self.rebound {
+            Some(previous) => previous.rebind_next(imported.backing, &self.snapshot, &self.budget),
+            None => ExportBinding::rebind_from_previous(
+                imported.backing,
+                &self.snapshot,
+                &self.backing,
+                &self.budget,
+            ),
+        }
+        .map_err(BoundOriginalSaveError::Export)?;
         let backing = Arc::new(binding.backing().clone());
+        let editability = binding.editability().clone();
         Ok((
             plan,
             ReboundPackage {
                 backing,
                 binding,
                 diagnostics: imported.diagnostics,
-                editability: imported.editability,
+                editability,
             },
         ))
     }

@@ -12,6 +12,7 @@
 
 pub mod cache;
 pub mod cjk;
+pub mod compatibility;
 pub mod document;
 pub mod font;
 mod images;

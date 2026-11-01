@@ -109,6 +109,7 @@ fn mixed_document(section_paragraphs: usize, table_rows: usize) -> Document {
         );
     }
     let mut rows = vec![Row {
+        insertion: None,
         id: document.ids().node(),
         grid_before: 0,
         grid_after: 0,
@@ -124,6 +125,7 @@ fn mixed_document(section_paragraphs: usize, table_rows: usize) -> Document {
     }];
     for index in 0..table_rows {
         rows.push(Row {
+            insertion: None,
             id: document.ids().node(),
             grid_before: 0,
             grid_after: 0,
@@ -140,6 +142,7 @@ fn mixed_document(section_paragraphs: usize, table_rows: usize) -> Document {
     }
     blocks.push(
         Table {
+            borders: [None; 6],
             id: document.ids().node(),
             grid: vec![Measure::Twips(4000); 2],
             rows,

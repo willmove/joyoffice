@@ -832,9 +832,11 @@ fn locked_content_controls_and_containers_are_respected() {
     let cell_text = inner(ids, "单元格");
     let cell_id = cell_text.id();
     let table = Table {
+        borders: [None; 6],
         id: ids.node(),
         grid: vec![Measure::Twips(3_000)],
         rows: vec![Row {
+            insertion: None,
             id: ids.node(),
             grid_before: 0,
             grid_after: 0,

@@ -257,6 +257,14 @@ impl Paragraph {
         &self.runs
     }
 
+    /// XML text-token partitioning is not semantic. Keep differing style,
+    /// revision, link and format-revision boundaries intact.
+    pub fn coalesce_runs(&mut self) {
+        for index in (1..self.runs.len()).rev() {
+            self.join_runs_at(index);
+        }
+    }
+
     pub fn inlines(&self) -> &[InlineObject] {
         &self.inlines
     }
@@ -1079,6 +1087,8 @@ pub struct Shading {
 /// without a `w:tblPr` child rejects back to.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct TableChangeProps {
+    /// Table edges in order: top, left, bottom, right, insideH, insideV.
+    pub borders: [Option<BorderEdge>; 6],
     pub style: Option<StyleId>,
     pub width: Option<TableWidth>,
     pub layout: Option<TableLayoutKind>,
@@ -1138,6 +1148,8 @@ pub struct Cell {
 
 #[derive(Clone, Debug)]
 pub struct Row {
+    /// Preserved row insertion revision. Kept on text-only edits.
+    pub insertion: Option<TextRevision>,
     pub id: NodeId,
     /// Grid columns skipped before the first cell (`w:gridBefore`).
     pub grid_before: u32,
@@ -1157,6 +1169,9 @@ pub struct Row {
 
 #[derive(Clone, Debug)]
 pub struct Table {
+    /// Direct borders: top, left, bottom, right, insideH, insideV.
+    /// Table edges in order: top, left, bottom, right, insideH, insideV.
+    pub borders: [Option<BorderEdge>; 6],
     pub id: NodeId,
     /// Column widths of `w:tblGrid`, independent of any screen geometry.
     pub grid: Vec<Measure>,
@@ -1185,7 +1200,8 @@ impl Table {
     /// leave an untouched table's original bytes alone. Pending property
     /// revisions count as content, so resolving one is always an edit.
     pub fn same_content(&self, other: &Self) -> bool {
-        self.grid == other.grid
+        self.borders == other.borders
+            && self.grid == other.grid
             && self.style == other.style
             && self.width == other.width
             && self.layout == other.layout
@@ -1233,6 +1249,7 @@ impl Table {
                 && !accept
                 && let crate::revision::PreviousTableProps::Table(previous) = &revision.previous
             {
+                self.borders = previous.borders;
                 self.style = previous.style.clone();
                 self.width = previous.width;
                 self.layout = previous.layout;
@@ -1305,7 +1322,8 @@ fn cell_has(cell: &Cell, id: Option<u32>) -> bool {
 }
 
 fn same_row(left: &Row, right: &Row) -> bool {
-    left.id == right.id
+    left.insertion == right.insertion
+        && left.id == right.id
         && left.grid_before == right.grid_before
         && left.grid_after == right.grid_after
         && left.header == right.header
@@ -1414,6 +1432,9 @@ pub enum Block {
 }
 
 impl Block {
+    pub fn same_content(&self, other: &Self) -> bool {
+        same_block(self, other)
+    }
     pub fn id(&self) -> NodeId {
         match self {
             Block::Paragraph(paragraph) => paragraph.id,

@@ -201,6 +201,7 @@ fn parse_html_table(doc: &mut Document, tbl_html: &str) -> Option<Table> {
         if !cells.is_empty() {
             let row_id = doc.ids().node();
             rows.push(Row {
+                insertion: None,
                 id: row_id,
                 grid_before: 0,
                 grid_after: 0,
@@ -220,6 +221,7 @@ fn parse_html_table(doc: &mut Document, tbl_html: &str) -> Option<Table> {
 
     let table_id = doc.ids().node();
     Some(Table {
+        borders: [None; 6],
         id: table_id,
         grid: Vec::new(),
         rows,
