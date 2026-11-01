@@ -18,6 +18,12 @@ cargo xtask package joydeck --release
 
 CLI 没有 GPUI 依赖。媒体、打印和视频的可用能力取决于平台及打包的原生 helper；不能将无 GUI 构建成功记为三端实际运行通过。桌面包和 helper 必须从新位置重新构建，不能沿用旧目录的 target 文件冒充迁移验证。
 
+## macOS 播放挂起诊断
+
+手动运行 GitHub Actions 的 `JoyDeck playback diagnostic`（`.github/workflows/diagnose-joydeck-playback.yml`），可通过 `cargo xtask check joydeck` 复现原生播放测试挂起，并在超时后采样所启动进程及其子进程的栈和打开文件。日志与报告保存在 `joydeck-playback-diagnostic-entrypoint` artifact 中；超时或测试失败仍返回失败，不视为修复或验收通过。
+
+该诊断来自原 `codex/diagnose-joydeck-playback-20261031` 分支，合入时迁为独立的手动 workflow，保留 `ci-joydeck.yml` 的自动触发、headless 和跨平台桌面检查。脚本依赖 macOS 的 `sample`、`lsof` 与 POSIX 进程组，不在 Windows 上直接执行；本轮仅在 Windows 验证整合和工程检查，未重新执行 macOS 挂起采样。
+
 ## 目录与证据
 
 - `apps/joydeck`：GPUI 应用；`apps/joydeck-cli`：命令行入口。

@@ -1,4 +1,4 @@
-"""Temporary diagnostic branch only: sample a hung, owned playback test."""
+"""Manual macOS diagnostic: sample a hung, owned playback test process tree."""
 import json
 import os
 from pathlib import Path
