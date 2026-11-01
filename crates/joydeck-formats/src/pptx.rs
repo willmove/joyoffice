@@ -441,6 +441,7 @@ fn solid(n: Node<'_, '_>) -> Option<String> {
 }
 fn placeholder(index: usize, text: &str) -> Object {
     Object {
+        preset: None,
         text_align: "left".into(),
         morph_key: None,
         chart: None,
@@ -504,6 +505,14 @@ fn parse_shape(
         Some("line") => "line",
         _ => "placeholder",
     };
+    let preset = match crate::preset_pptx::read(props) {
+        Ok(p) => p,
+        Err(message) => {
+            deck.warn("preset-unsupported", Some(page), path, &message);
+            None
+        }
+    };
+    let kind = if preset.is_some() { "preset" } else { kind };
     if kind == "placeholder"
         || props.descendants().any(|n| {
             matches!(
@@ -511,7 +520,7 @@ fn parse_shape(
                 "gradFill" | "effectLst" | "custGeom" | "schemeClr"
             )
         })
-        || xf.attribute("rot").is_some()
+        || (xf.attribute("rot").is_some() && preset.is_none())
         || xf.attribute("flipH").is_some()
         || xf.attribute("flipV").is_some()
     {
@@ -523,7 +532,7 @@ fn parse_shape(
         );
     }
     let no_fill = child(props, A, "noFill").is_some();
-    if !no_fill || kind == "line" || kind == "placeholder" {
+    if !no_fill || kind == "line" || kind == "placeholder" || kind == "preset" {
         let fill = if kind == "line" {
             child(props, A, "ln").and_then(solid)
         } else {
@@ -531,6 +540,7 @@ fn parse_shape(
         }
         .unwrap_or_else(|| "#dce5ef".into());
         slide.objects.push(Object {
+            preset: preset.clone(),
             text_align: "left".into(),
             morph_key: None,
             chart: None,
@@ -540,10 +550,34 @@ fn parse_shape(
             binding: None,
             field: None,
             id: String::new(),
-            rotation: 0.,
+            rotation: if preset.is_some() {
+                xf.attribute("rot")
+                    .unwrap_or("0")
+                    .parse::<f32>()
+                    .map_err(|_| "无效形状旋转")?
+                    / 60000.
+            } else {
+                0.
+            },
             opacity: 1.,
-            stroke: "#202b3a".into(),
-            stroke_width: 0.,
+            stroke: child(props, A, "ln")
+                .and_then(solid)
+                .unwrap_or_else(|| "#202b3a".into()),
+            stroke_width: if preset.is_some() {
+                child(props, A, "ln")
+                    .filter(|n| child(*n, A, "noFill").is_none())
+                    .map(|n| {
+                        n.attribute("w")
+                            .unwrap_or("12700")
+                            .parse::<f32>()
+                            .map(|v| v / 12700.)
+                            .map_err(|_| "无效描边宽度")
+                    })
+                    .transpose()?
+                    .unwrap_or(0.)
+            } else {
+                0.
+            },
             kind: kind.into(),
             x,
             y,
@@ -584,6 +618,7 @@ fn parse_shape(
         };
         let fill = style.and_then(solid).unwrap_or_else(|| "#202b3a".into());
         slide.objects.push(Object {
+            preset: None,
             text_align: "left".into(),
             morph_key: None,
             chart: None,

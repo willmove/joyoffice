@@ -26,6 +26,7 @@ pub fn normalize_ids(d: &mut Deck) {
 }
 pub fn object(kind: &str) -> Object {
     Object {
+        preset: None,
         text_align: "left".into(),
         morph_key: None,
         chart: None,

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "Real gallery inserts and selects triangle",
+    "Parameter increment, undo and redo via native controls",
+    "Native save independently reopened by CLI with triangle adjustment 55000"
+  ],
+  "binarySha256": "f9991216a840c99dac8b83e60331a601555e00abba590fdaf01893194de07ce9",
+  "scope": "macOS AX actions and synthetic keyboard events; no physical-keyboard, screen-reader or other-platform certification"
+}
