@@ -1770,25 +1770,40 @@ mod tests {
     #[test]
     fn metadata_drift_on_the_temporary_is_refused_before_publication() {
         use std::os::unix::fs::PermissionsExt;
-        let case = Case::new();
-        let error = case
-            .publish(|at, path| {
-                if at == SourceStage::Verify {
-                    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o666))?;
-                }
-                Ok(())
-            })
-            .unwrap_err();
-        assert_eq!(
-            error.blockers(),
-            Some(
-                &[ReplacementBlocker::UnpreservableMetadata(
-                    MetadataItem::Permissions
-                )][..]
-            )
-        );
-        assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
-        assert_eq!(case.entries(), ["report.docx"]);
+        // Do not assume the process umask: with umask 000 a new source is
+        // already 0666, so assigning that mode would inject no drift at all.
+        for mode in [0o600, 0o640, 0o666] {
+            let mut case = Case::new();
+            std::fs::set_permissions(&case.path, std::fs::Permissions::from_mode(mode)).unwrap();
+            case.stamp = super::super::open_source(&case.path, &joyoffice_opc::Budget::default())
+                .unwrap()
+                .into_stamp();
+            let error = case
+                .publish(|at, path| {
+                    if at == SourceStage::Verify {
+                        std::fs::set_permissions(
+                            path,
+                            std::fs::Permissions::from_mode(mode ^ 0o020),
+                        )?;
+                    }
+                    Ok(())
+                })
+                .unwrap_err();
+            assert_eq!(
+                error.blockers(),
+                Some(
+                    &[ReplacementBlocker::UnpreservableMetadata(
+                        MetadataItem::Permissions
+                    )][..]
+                )
+            );
+            assert_eq!(std::fs::read(&case.path).unwrap(), case.bytes);
+            assert_eq!(
+                std::fs::metadata(&case.path).unwrap().permissions().mode() & 0o777,
+                mode
+            );
+            assert_eq!(case.entries(), ["report.docx"]);
+        }
     }
 
     #[cfg(unix)]

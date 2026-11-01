@@ -1,0 +1,430 @@
+{
+  "passed": true,
+  "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+  "checks": [
+    "Linux GPU capability is accurate; unsupported request rejects without output",
+    "native sales window, charts and window screenshot",
+    "Unicode/emoji, pointer/text input and dependent formula recalculation",
+    "platform keyboard undo and redo",
+    "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+    "system clipboard and relative formula references",
+    "registered function completion and calculation",
+    "freeze, zoom and real formatting form",
+    "cancelled close retains unsaved edits",
+    "Chinese/space path XLSX save, close, reopen and retained formulas/text"
+  ],
+  "binary": "/home/Wilmer/Coding/joyoffice/target/debug/joysheet",
+  "binarySha256": "132bf823fa5c986fb2102df19f7d607defd37f2a6d9443ef129e208667fbd469",
+  "eventSource": "production GPUI synthetic input",
+  "nativeImeVerified": false,
+  "gpuPresentationMeasured": false,
+  "display": {
+    "scaleFactor": 1.25,
+    "viewportWidth": 1440.0,
+    "viewportHeight": 900.0
+  },
+  "captures": {
+    "01-sales.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "218103809"
+    },
+    "02-format-dialog.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "218103834"
+    },
+    "03-roundtrip.png": {
+      "source": "X11 window pixels via ImageMagick",
+      "window": "218103848"
+    }
+  },
+  "finalView": {
+    "sequence": 56,
+    "activeWindow": 3,
+    "commandMs": 0.106545,
+    "windows": [
+      {
+        "window": 1,
+        "doc": 2,
+        "title": "Quarterly Sales Dashboard",
+        "dirty": false,
+        "path": null,
+        "revision": 1,
+        "sheet": 0,
+        "selection": "A1",
+        "active": false
+      },
+      {
+        "window": 3,
+        "doc": 4,
+        "title": "中文 空格.xlsx",
+        "dirty": false,
+        "path": "/home/Wilmer/Coding/joyoffice/target/uos-validation/sheet-gui-final/中文 空格.xlsx",
+        "revision": 1,
+        "sheet": 0,
+        "selection": "A1",
+        "active": true
+      }
+    ],
+    "window": 3,
+    "editor": null,
+    "selection": "A1",
+    "scroll": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "visibleColumns": [
+      {
+        "index": 0,
+        "start": 52.0,
+        "size": 80.0
+      },
+      {
+        "index": 1,
+        "start": 132.0,
+        "size": 80.0
+      },
+      {
+        "index": 2,
+        "start": 212.0,
+        "size": 80.0
+      },
+      {
+        "index": 3,
+        "start": 292.0,
+        "size": 80.0
+      },
+      {
+        "index": 4,
+        "start": 372.0,
+        "size": 80.0
+      },
+      {
+        "index": 5,
+        "start": 452.0,
+        "size": 80.0
+      },
+      {
+        "index": 6,
+        "start": 532.0,
+        "size": 80.0
+      },
+      {
+        "index": 7,
+        "start": 612.0,
+        "size": 80.0
+      },
+      {
+        "index": 8,
+        "start": 692.0,
+        "size": 80.0
+      },
+      {
+        "index": 9,
+        "start": 772.0,
+        "size": 80.0
+      },
+      {
+        "index": 10,
+        "start": 852.0,
+        "size": 80.0
+      },
+      {
+        "index": 11,
+        "start": 932.0,
+        "size": 80.0
+      },
+      {
+        "index": 12,
+        "start": 1012.0,
+        "size": 80.0
+      },
+      {
+        "index": 13,
+        "start": 1092.0,
+        "size": 80.0
+      },
+      {
+        "index": 14,
+        "start": 1172.0,
+        "size": 80.0
+      },
+      {
+        "index": 15,
+        "start": 1252.0,
+        "size": 80.0
+      },
+      {
+        "index": 16,
+        "start": 1332.0,
+        "size": 80.0
+      },
+      {
+        "index": 17,
+        "start": 1412.0,
+        "size": 80.0
+      }
+    ],
+    "visibleRows": [
+      {
+        "index": 0,
+        "start": 28.0,
+        "size": 25.0
+      },
+      {
+        "index": 1,
+        "start": 53.0,
+        "size": 25.0
+      },
+      {
+        "index": 2,
+        "start": 78.0,
+        "size": 31.81818199157715
+      },
+      {
+        "index": 3,
+        "start": 109.81818389892578,
+        "size": 25.0
+      },
+      {
+        "index": 4,
+        "start": 134.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 5,
+        "start": 159.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 6,
+        "start": 184.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 7,
+        "start": 209.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 8,
+        "start": 234.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 9,
+        "start": 259.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 10,
+        "start": 284.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 11,
+        "start": 309.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 12,
+        "start": 334.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 13,
+        "start": 359.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 14,
+        "start": 384.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 15,
+        "start": 409.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 16,
+        "start": 434.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 17,
+        "start": 459.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 18,
+        "start": 484.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 19,
+        "start": 509.81817626953125,
+        "size": 25.0
+      },
+      {
+        "index": 20,
+        "start": 534.8181762695312,
+        "size": 25.0
+      },
+      {
+        "index": 21,
+        "start": 559.8181762695312,
+        "size": 25.0
+      },
+      {
+        "index": 22,
+        "start": 584.8181762695312,
+        "size": 25.0
+      },
+      {
+        "index": 23,
+        "start": 609.8181762695312,
+        "size": 25.0
+      }
+    ],
+    "sheetNames": [
+      "Sheet1"
+    ],
+    "grid": {
+      "x": 0.0,
+      "y": 208.0,
+      "width": 1426.0,
+      "height": 621.2000122070312
+    },
+    "perf": {
+      "paintMs": 1.47255,
+      "paintedCells": 432,
+      "frame": 10
+    },
+    "message": "就绪 · Ready",
+    "autosave": false,
+    "closeSaving": false,
+    "closeButtons": null,
+    "worksheet": {
+      "name": "Sheet1",
+      "tables": 0,
+      "conditionalFormats": 0,
+      "validations": 0,
+      "hiddenRows": []
+    },
+    "recentFiles": [
+      "/home/Wilmer/Coding/joyoffice/target/uos-validation/sheet-gui-final/中文 空格.xlsx"
+    ],
+    "dataResults": [],
+    "dataResultKind": "",
+    "tasks": [],
+    "dataRaw": null,
+    "advancedBounds": {
+      "sheet-tab:0": {
+        "x": 12.0,
+        "y": 844.7999877929688,
+        "width": 80.0,
+        "height": 28.0
+      }
+    },
+    "sheetCount": 1,
+    "review": {
+      "comments": [],
+      "sheetProtected": false,
+      "structureProtected": false,
+      "names": [],
+      "scriptsTrusted": true,
+      "recording": false
+    },
+    "decodedImages": 0,
+    "selectedObject": null,
+    "selectedObjects": [],
+    "formulaReferences": [],
+    "formulaHint": null,
+    "outlineText": {
+      "fontsReady": true,
+      "cachedBlocks": 0
+    },
+    "nativeWindows": {
+      "error": "Native arrangement currently supports Windows"
+    },
+    "arrangement": null,
+    "keyTrace": [],
+    "focus": {
+      "grid": true,
+      "formula": false,
+      "name": false,
+      "sheets": false
+    },
+    "printStatus": "",
+    "printWork": {
+      "exporting": 0,
+      "rendering": 0,
+      "dialogOpen": false,
+      "current": false
+    },
+    "printPreview": null,
+    "objectBounds": [],
+    "drawingObjects": {
+      "charts": [],
+      "images": [],
+      "shapes": []
+    },
+    "formulaText": "中文报表😀",
+    "cellEditorText": "",
+    "dark": false,
+    "settings": {
+      "dark": false,
+      "language": "zh",
+      "recent": [
+        "/home/Wilmer/Coding/joyoffice/target/uos-validation/sheet-gui-final/中文 空格.xlsx"
+      ],
+      "autosave": false,
+      "formula_bar": true,
+      "autocomplete": true,
+      "recovery": true,
+      "animations": false
+    },
+    "ribbonTab": 1,
+    "panel": 0,
+    "composing": false,
+    "inputGeometry": {
+      "source": "GPUI EntityInputHandler UTF-16 layout",
+      "formula": false,
+      "scaleFactor": 1.25,
+      "input": {
+        "x": 61.599998474121094,
+        "y": 238.39999389648438,
+        "width": 60.79999923706055,
+        "height": 20.0
+      },
+      "candidate": {
+        "x": 61.599998474121094,
+        "y": 238.39999389648438,
+        "width": 0.0,
+        "height": 20.0
+      },
+      "selectionUtf16": [
+        0,
+        0
+      ],
+      "markedUtf16": null
+    },
+    "display": {
+      "scaleFactor": 1.25,
+      "viewportWidth": 1440.0,
+      "viewportHeight": 900.0
+    },
+    "error": false,
+    "dialog": "",
+    "capabilities": {
+      "screenshot": false,
+      "syntheticIme": true,
+      "nativeImeVerified": false,
+      "gpuiInput": true,
+      "versionFences": true,
+      "lifecycleCompletion": true,
+      "scriptCancellation": "betweenCommands",
+      "mcpTargetedScreenshots": false
+    }
+  }
+}

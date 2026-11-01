@@ -1,0 +1,63 @@
+[
+  {
+    "log": "joyword-check.log",
+    "sha256": "aef99ba2fc68cbecbc7d808d17b98427cdfb64d931b0346f21f2e0109228dd85",
+    "excerpt": "failures:\n\n---- storage::original::tests::metadata_drift_on_the_temporary_is_refused_before_publication stdout ----\n\nthread 'storage::original::tests::metadata_drift_on_the_temporary_is_refused_before_publication' (575406) panicked at crates/joyword-shell/src/storage/original.rs:1781:14:\ncalled `Result::unwrap_err()` on an `Ok` value: SaveOriginalReceipt { path: \"/tmp/.tmpzGQTBQ/report.docx\", version: DocumentVersion(1), durability: FileAndDirectorySynced, stamp: SourceStamp { given_path: \"/tmp/.tmpzGQTBQ/report.docx\", canonical_path: \"/tmp/.tmpzGQTBQ/report.docx\", identity: SourceIdentity { len: 1544, unix: UnixIdentity { dev: 51, ino: 29466, mode: 33206, nlink: 1, uid: 1000, gid: 1000, mtime_secs: 1793540817, mtime_nanos: 811190875, ctime_secs: 1793540817, ctime_nanos: 811298031, birth: Some(SystemTime { tv_sec: 1793540817, tv_nsec: 811190875 }) } }, budget_limit: 2147483648, bytes: \"<1544 bytes>\" } }\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    storage::original::tests::metadata_drift_on_the_temporary_is_refused_before_publication\n\ntest result: FAILED. 75 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\nerror: test failed, to rerun pass `-p joyword-shell --lib`\nerror: Command '['cargo', 'test', '-p', 'joyoffice-cfb', '-p', 'joyoffice-drawingml', '-p', 'joyoffice-omml', '-p', 'joyoffice-opc', '-p', 'joyword-agent', '-p', 'joyword-cli', '-p', 'joyword-corpus', '-p', 'joyword-doc', '-p', 'joyword-docx', '-p', 'joyword-engine', '-p', 'joyword-epub', '-p', 'joyword-foundation', '-p', 'joyword-layout', '-p', 'joyword-model', '-p', 'joyword-pdf', '-p', 'joyword-protect', '-p', 'joyword-render', '-p', 'joyword-rtf', '-p', 'joyword-shell', '-p', 'joyword-textfmt', '--locked']' returned non-zero exit status 101.\n"
+  },
+  {
+    "log": "joysheet-check.log",
+    "sha256": "8afabbd96772064d51702a3d293f05b2c1cbe352f74c017d3ed5c13b18b5bded",
+    "excerpt": "failures:\n\n---- io::tests::save_keeps_the_destination_access_restrictions stdout ----\n\nthread 'io::tests::save_keeps_the_destination_access_restrictions' (589762) panicked at crates/joysheet-engine/src/io/tests.rs:58:5:\nmode 666\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    io::tests::save_keeps_the_destination_access_restrictions\n\ntest result: FAILED. 502 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.66s\n\nerror: test failed, to rerun pass `-p joysheet-engine --lib`\nerror: Command '['cargo', 'test', '-p', 'joyoffice-ui', '-p', 'joysheet', '-p', 'joysheet-app', '-p', 'joysheet-calc', '-p', 'joysheet-chart', '-p', 'joysheet-cli', '-p', 'joysheet-core', '-p', 'joysheet-engine', '-p', 'joysheet-formula', '-p', 'joysheet-functions', '-p', 'joysheet-mcp', '-p', 'joysheet-model', '-p', 'joysheet-numfmt', '-p', 'joysheet-pdf', '-p', 'joysheet-platform', '-p', 'joysheet-protocol', '-p', 'joysheet-tools', '-p', 'joysheet-ui-gpui', '-p', 'joysheet-xlsx', '--locked', '--features', 'joysheet/automation']' returned non-zero exit status 101.\n"
+  },
+  {
+    "log": "sheet-gui-1/report.json",
+    "report": {
+      "passed": false,
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "checks": [],
+      "binary": "/home/Wilmer/Coding/joyoffice/target/debug/joysheet",
+      "binarySha256": "e22f2e35ebe57d5c96292043da8ebbe5fcf2a4250af1b4df96246200238d3759",
+      "eventSource": "production GPUI synthetic input and real GPU readback",
+      "nativeImeVerified": false,
+      "gpuPresentationMeasured": false,
+      "display": {
+        "scaleFactor": 1.25,
+        "viewportWidth": 1440.0,
+        "viewportHeight": 900.0
+      },
+      "error": "ui.screenshot: render_to_image not implemented for this platform"
+    }
+  },
+  {
+    "log": "sheet-gui-2/report.json",
+    "report": {
+      "passed": false,
+      "platform": "Linux-6.18.57-061857-generic-x86_64-with-glibc2.38",
+      "checks": [
+        "native sales window, charts and window screenshot",
+        "Unicode/emoji, pointer/text input and dependent formula recalculation",
+        "platform keyboard undo and redo",
+        "synthetic composition blocks premature Enter; commit retains UTF-16 text",
+        "system clipboard and relative formula references",
+        "registered function completion and calculation"
+      ],
+      "binary": "/home/Wilmer/Coding/joyoffice/target/debug/joysheet",
+      "binarySha256": "6519aaa123305c56c1e378b5ad14fafdc693e98cdfa9084b2508548eed71c7a8",
+      "eventSource": "production GPUI synthetic input",
+      "nativeImeVerified": false,
+      "gpuPresentationMeasured": false,
+      "display": {
+        "scaleFactor": 1.25,
+        "viewportWidth": 1440.0,
+        "viewportHeight": 900.0
+      },
+      "captures": {
+        "01-sales.png": {
+          "source": "X11 window pixels via ImageMagick",
+          "window": "216006657"
+        }
+      },
+      "error": "Expected one visible test-process window, got ['216006657', '216006682']"
+    }
+  }
+]

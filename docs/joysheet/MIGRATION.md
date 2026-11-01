@@ -1,5 +1,7 @@
 # 功能迁移与待办矩阵
 
+2026-11-01 UOS 25 x86_64：新增 Linux 基础原生 GUI 回归入口，10 组编辑／生命周期／能力声明场景通过；产品检查 1400 项通过、1 项忽略，修复新文件权限与 Linux GPU 截图能力误报。见 [UOS 三产品报告](../joyoffice/validation/20261101-uos/README.md)。矩阵中 Windows 历史证据保留；本轮不代替完整 Linux／系统 IME／跨平台验收。
+
 基线：GridCraft 0.12.1。原始文件 SHA256 见 [upstream-source.json](upstream-source.json)，必要适配见 [UPSTREAM-PATCHES.md](UPSTREAM-PATCHES.md)。以下“实现”表示有实际代码；“验证”仅覆盖列出的场景，不替代整个里程碑验收。
 
 | ID | 任务 | 当前实现与验证 | 后续事项 |

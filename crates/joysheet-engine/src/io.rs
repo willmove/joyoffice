@@ -642,15 +642,16 @@ pub fn write_file(path: &str, bytes: &[u8]) -> Result<()> {
     // The temporary file is created exclusively, so an existing file or symlink at that
     // path (planted by another local user) makes the save fail instead of truncating the
     // link's target; and it inherits the destination's access restrictions, so saving a
-    // private workbook doesn't widen who can read it.
+    // private workbook doesn't widen who can read it. New workbooks start private
+    // even when the desktop process has a permissive umask.
     let tmp = format!("{path}.sctmp");
     let prior = std::fs::metadata(path).ok().map(|m| m.permissions());
     let mut opts = std::fs::OpenOptions::new();
     opts.write(true).create_new(true);
     #[cfg(unix)]
-    if let Some(p) = &prior {
+    {
         use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
-        opts.mode(p.mode());
+        opts.mode(prior.as_ref().map_or(0o600, PermissionsExt::mode));
     }
     // If exclusive creation failed, the path belongs to somebody else. Never delete it.
     let mut f = opts.open(&tmp).map_err(|e| EngineError::Other(format!("{path}: {e}")))?;

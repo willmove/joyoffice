@@ -1,5 +1,7 @@
 # JoyDeck 开发状态
 
+2026-11-01 UOS 25 x86_64：产品检查 194 项通过、1 项忽略；M0–M4 原生窗口冒烟，以及随后显式执行的原生启动测试（两种布局共 96 个真实绘制场景）通过。最终二进制的新增幻灯片／撤销／重做每步保存均经 ZIP 断言，CLI 最终读回 21 页。本轮环境、截图及未覆盖项见 [UOS 三产品验证](../joyoffice/validation/20261101-uos/README.md)。这是 Linux 本机子场景的新证据，完整阶段与三平台验收状态不变。
+
 当前开发入口为 JoyOffice Monorepo，参见[开发指南](DEVELOPMENT.md)与[迁移计划](../joyoffice/MONOREPO-MIGRATION.md)。[迁移结果及新布局验证](../joyoffice/MONOREPO-RESULT.md)已单独登记。下述数字和证据是迁移前M13/M14历史基线，不改写为新验收结果。
 
 2026-11-01 Windows 启动修复：定位并拆分 debug 首帧中过大的工具栏与属性表单栈帧，保留默认 1 MiB 主线程栈。Windows 原生两种布局共 96 个绘制场景和 Deck 分产品检查通过；根因、回归命令与边界见 [42 启动栈溢出修复](42-windows-startup-stack.md)。

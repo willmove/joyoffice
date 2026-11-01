@@ -1,0 +1,880 @@
+{
+  "wordCounts": {
+    "done": 17,
+    "in_progress": 38,
+    "planned": 11
+  },
+  "word": [
+    {
+      "product": "joyword",
+      "id": "T000",
+      "title": "规格落盘与追踪",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T001",
+      "title": "工具链、依赖锁与三端 CI",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T002",
+      "title": "GPUI 原生窗口与页面投影",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T003",
+      "title": "字体、IME 与统一 PDF 技术验证",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "PDF scene independent readback passed; system IME failed; emoji font incomplete"
+    },
+    {
+      "product": "joyword",
+      "id": "T004",
+      "title": "原创语料与验证框架",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T005",
+      "title": "信创平台技术验证",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "UOS 25 x86_64 RADV native windows; no domestic CPU/GPU certification"
+    },
+    {
+      "product": "joyword",
+      "id": "T100",
+      "title": "类型化文档模型",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T101",
+      "title": "事务与位置映射",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T102",
+      "title": "输入、选择与基础格式",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "native Word editing/history and Sheet-to-Word Unicode clipboard"
+    },
+    {
+      "product": "joyword",
+      "id": "T103",
+      "title": "DOCX 最小语义与保留读写",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "GUI DOCX save/copy/reopen and source-byte preservation; no new Office interoperability matrix"
+    },
+    {
+      "product": "joyword",
+      "id": "T104",
+      "title": "撤销、本地日志与恢复",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "GUI undo/redo only; existing recovery suite rerun; no power-cut test"
+    },
+    {
+      "product": "joyword",
+      "id": "T105",
+      "title": "基础排版引擎",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T106",
+      "title": "应用外壳、命令注册表与偏好",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T108",
+      "title": "画布可见页光栅与缓存",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T109",
+      "title": "打开与保存的并发安全",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "path-dialog document focus restored; concurrency unit suites rerun; slow-open GUI matrix not run"
+    },
+    {
+      "product": "joyword",
+      "id": "T110",
+      "title": "原件保存的元数据观测与用户选择路径",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "permission-drift regression strengthened; actual save confirmation/cancel/confirm; full metadata matrix not closed"
+    },
+    {
+      "product": "joyword",
+      "id": "T111",
+      "title": "工程门禁自动化",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T107",
+      "title": "M1 发布门槛",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T200",
+      "title": "样式、编号与编辑便利",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T201",
+      "title": "基础表格编辑",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T202",
+      "title": "页面与页眉页脚",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T203",
+      "title": "图片与富文本剪贴板",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "actual Sheet-to-Word Unicode clipboard; no complete rich-object clipboard matrix"
+    },
+    {
+      "product": "joyword",
+      "id": "T204",
+      "title": "统一 PDF 与平台打印",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "native PDF export + Poppler and shared scene readback; no physical printer"
+    },
+    {
+      "product": "joyword",
+      "id": "T205",
+      "title": "功能区、标尺与状态栏",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "long path bounds and keyboard focus regression; other UI criteria unchanged"
+    },
+    {
+      "product": "joyword",
+      "id": "T206",
+      "title": "M2 发布门槛",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T207",
+      "title": "中文基础排版",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T208",
+      "title": "段落缓存与增量重排",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T209",
+      "title": "撤销组与输入来源区分",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T210",
+      "title": "无头读回与转换 CLI",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T211",
+      "title": "应用日志与崩溃诊断",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T300",
+      "title": "文字与移动修订",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T301",
+      "title": "格式与表格结构修订",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T302",
+      "title": "批注线程与现代扩展",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T303",
+      "title": "比较与合并",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T304",
+      "title": "审阅交换发布门槛",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T400",
+      "title": "Provider 与关闭基础",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T401",
+      "title": "受限工具与授权",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T402",
+      "title": "修改预览与 AI 修订",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T403",
+      "title": "取消、竞争与离线门槛",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T500",
+      "title": "复杂分页与长文档",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T501",
+      "title": "注释、域与引用体系",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T502",
+      "title": "公式、形状和表单内容",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T503",
+      "title": "语言工具与视图",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T504",
+      "title": "中文高级版式与公文",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T600",
+      "title": "RTF 与 Strict OOXML 交换",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T601",
+      "title": "HTML、Markdown 与文本",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T602",
+      "title": "旧版 DOC 导入",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T603",
+      "title": "PDF 导航、标签与页面图片",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T604",
+      "title": "加密、保护与活动内容",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T605",
+      "title": "WPS 文字原生格式导入",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T700",
+      "title": "三端及信创产品验收",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "local UOS native subset passed; other operating systems not retested"
+    },
+    {
+      "product": "joyword",
+      "id": "T701",
+      "title": "输入法与可访问性",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "system Sogou/Fcitx5 native Chinese composition failed; no screen reader certification"
+    },
+    {
+      "product": "joyword",
+      "id": "T702",
+      "title": "性能、故障和恢复",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T703",
+      "title": "安装、签名和升级",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T704",
+      "title": "1.0 发布门槛与公开矩阵",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T800",
+      "title": "DOC 写出",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T801",
+      "title": "图表与 SmartArt 原生编辑",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T802",
+      "title": "稀有域与嵌入对象",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T803",
+      "title": "高级签名与复杂模板",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T804",
+      "title": "PDF 重建与 OCR",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T805",
+      "title": "ODT 文件交换",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T806",
+      "title": "EPUB 与归档 PDF",
+      "existingStatus": "in_progress",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T807",
+      "title": "邮件合并",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T808",
+      "title": "纵排、双向与复杂文字",
+      "existingStatus": "planned",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T900",
+      "title": "实时协作规格入口",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    },
+    {
+      "product": "joyword",
+      "id": "T901",
+      "title": "套件共享边界规格入口",
+      "existingStatus": "done",
+      "statusChanged": false,
+      "thisRun": "product automated regression only; no new task-level acceptance closure"
+    }
+  ],
+  "sheet": [
+    {
+      "id": "M0.1",
+      "title": "工作区、许可证、来源",
+      "existingEvidence": "独立工作区、来源清单、双许可证、NOTICE；M8 打包收集 508 项依赖文本及来源",
+      "remainingCriteria": "mac/seahash 原发布包缺独立正文，声明及标准条款补充单列追踪；新依赖持续审计",
+      "statusChanged": false
+    },
+    {
+      "id": "M0.2",
+      "title": "锁定依赖、环境检查",
+      "existingEvidence": "Rust 1.98.1、Kit =0.8.1、Cargo.lock、Windows 开发环境脚本",
+      "remainingCriteria": "在两种其他系统复核安装文档",
+      "statusChanged": false
+    },
+    {
+      "id": "M0.3",
+      "title": "窗口、主题、菜单、输入",
+      "existingEvidence": "原生窗口、GPUI 控件、菜单、亮暗主题、中英切换",
+      "remainingCriteria": "系统 IME/DPI/系统菜单人工验收",
+      "statusChanged": false
+    },
+    {
+      "id": "M0.4",
+      "title": "三端构建与包",
+      "existingEvidence": "三端 CI；Windows Release ZIP 实际生成",
+      "remainingCriteria": "运行远程 CI，保留各平台构建证据",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.1",
+      "title": "导入核心与测试",
+      "existingEvidence": "导入 11 crate；完整工作区回归通过",
+      "remainingCriteria": "保留后续升级差异记录",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.2",
+      "title": "移除旧 UI 依赖",
+      "existingEvidence": "layers 检查通过，无 egui/eframe 和原目录路径依赖",
+      "remainingCriteria": "CI 持续约束",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.3",
+      "title": "引擎线程与快照",
+      "existingEvidence": "有界队列、定向请求、版本保护、Arc 快照；P3 有界主动完成通知；顺序/窗口/撤销测试",
+      "remainingCriteria": "后台任务取消、快照增量优化",
+      "statusChanged": false
+    },
+    {
+      "id": "M1.4",
+      "title": "CLI、协议、打开保存",
+      "existingEvidence": "原 CLI、MCP、认证回环服务；真实文件往返",
+      "remainingCriteria": "文件关联、拖放、加密文件交互",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.1",
+      "title": "虚拟网格",
+      "existingEvidence": "自定义 Element、双向稀疏几何、冻结象限、滚动条",
+      "remainingCriteria": "M8.2 已实现范围滚动条与抓取点；触控板需其他平台实测",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.2",
+      "title": "选择与导航",
+      "existingEvidence": "单选、范围、拖选、键盘、地址框；远端坐标单测",
+      "remainingCriteria": "M8.2 已实现边缘自动滚动与 Ctrl 非连续选区；长按拖选待扩大场景",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.3",
+      "title": "尺寸、隐藏、缩放、冻结",
+      "existingEvidence": "共用 f64 坐标转换；隐藏前缀、125% 缩放与冻结命中单测",
+      "remainingCriteria": "M8.2 已实现尺寸拖动/双击；复杂合并跨冻结边界待视觉验收",
+      "statusChanged": false
+    },
+    {
+      "id": "M2.4",
+      "title": "性能采样",
+      "existingEvidence": "P1–P4 绘制数量、512 条有界分段样本、几何基准、原生 10k/100k 编辑/滚动和范围聚合；测试包含独立基准入口",
+      "remainingCriteria": "P3 消除逐帧已用范围扫描和轮询等待；GPU 呈现与物理输入延迟待专项，不用 CPU paint 冒充帧耗时",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.1",
+      "title": "编辑与共享草稿",
+      "existingEvidence": "真实覆盖输入框，公式栏同步；提交与冲突保护",
+      "remainingCriteria": "更多光标/选区切换回归",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.2",
+      "title": "IME 与按键",
+      "existingEvidence": "原生输入处理器、marked text 观察、工作表专用按键上下文",
+      "remainingCriteria": "W5 两输入框组合态、生命周期保护、UTF-16 候选锚点合成回归通过；真实 Windows 候选框与系统组合态仍需人工；macOS/Linux 暂跳过",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.3",
+      "title": "剪贴板与历史",
+      "existingEvidence": "系统文本/HTML、引擎富剪贴板；原生快捷键、撤销重做",
+      "remainingCriteria": "外部 Excel/LibreOffice 互操作、多窗口富内容回归",
+      "statusChanged": false
+    },
+    {
+      "id": "M3.4",
+      "title": "公式辅助",
+      "existingEvidence": "范围引用拖选、注册函数 Tab 补全、签名说明",
+      "remainingCriteria": "M8.2 光标中间补全、跨表引用已接入；W3 已加入引用彩色区域/图例和光标位置参数高亮，原生回归通过",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.1",
+      "title": "格式与自动列宽",
+      "existingEvidence": "常用格式面板；换行、缩小、垂直对齐、下划线/删除线绘制；构建及 M4-1 原生回归通过",
+      "remainingCriteria": "W1 旋转/竖排、上下标/缩进/双下划线、边框线型/斜线及图案填充已构建并通过原生回归与 XLSX 往返；原核心单元格模型无分段富文本，保持上游语义",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.2",
+      "title": "表与行列操作",
+      "existingEvidence": "工作表/行列操作面板，删除需应用确认；增加/重命名/隐藏/恢复及行操作原生回归通过",
+      "remainingCriteria": "M8.2 标签拖动重排回归通过；更多上下文快捷操作仍可优化",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.3",
+      "title": "文档生命周期",
+      "existingEvidence": "最近文件同步、统一 UI 命令提交；保存确认模态隔离、真实按钮保存/取消/放弃、锁文件失败重试及磁盘重开原生测试通过",
+      "remainingCriteria": "M8.2 最近文件清理、M8.3 崩溃恢复副本与草稿恢复回归通过；W4 恢复侧栏仅在启动窗口自动提示；超大副本限制见 M8.md",
+      "statusChanged": false
+    },
+    {
+      "id": "M4.4",
+      "title": "多窗口多视图",
+      "existingEvidence": "窗口切换面板、原生激活同步、独立每表滚动恢复；M4-4 构建和原生回归通过",
+      "remainingCriteria": "W2 四种原生排列、仅当前工作簿过滤、草稿保留及共享提交回归通过；W4 关闭/重开激活竞争修复、六次循环和过期通知单测通过；真实多显示器/DPI 专项仍待人工",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.1",
+      "title": "数据整理",
+      "existingEvidence": "普通排序/列筛选/查找替换/去重/填充表单、结果列表定位；分项构建与原生回归通过",
+      "remainingCriteria": "W4 多键排序表单构建/原生回归通过；复杂自定义筛选保留高级参数",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.2",
+      "title": "表、条件格式、验证",
+      "existingEvidence": "表格样式/汇总/转换、表头筛选按钮；条件格式表单与规则清单；验证列表和停止型校验保留草稿；分项原生回归通过",
+      "remainingCriteria": "W3 已加入箭头/旗帜/信号灯/符号/评级/四分圆矢量图标及条件格式边框/数字格式；M8.3 警告/信息型验证显式确认，取消保留草稿，分项回归通过",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.3",
+      "title": "分组与窗格",
+      "existingEvidence": "分组方向/范围表单、折叠展开、大纲层级、行标题折叠入口、窗格菜单；分项原生回归通过",
+      "remainingCriteria": "split 保持原引擎冻结语义；独立滚动拆分窗格不属于原有实现",
+      "statusChanged": false
+    },
+    {
+      "id": "M5.4",
+      "title": "导入与连接",
+      "existingEvidence": "本地文件选择、多行 CSV/TSV/JSON、临时会话预览、当前表区域导入、可定位连接清单；分项构建与原生回归通过",
+      "remainingCriteria": "原项目不提供持续数据库连接/自动刷新；大文件预览仍需完整解析",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.1",
+      "title": "图表绘制",
+      "existingEvidence": "路径/文字/矩形/扇形和虚线适配；图表插入及数据修改后原生截图回归通过",
+      "remainingCriteria": "W1 已接入图表旋转文字；W4 旋转轴标题与冻结对象绘制/命中裁剪回归通过；复杂类型继续扩大视觉回归",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.2",
+      "title": "图片、形状、迷你图",
+      "existingEvidence": "后台图片解码、自定义形状/文本框/迷你图绘制、插入表单；M6-2 构建及原生回归通过",
+      "remainingCriteria": "W3 已支持形状字体、斜体、文字轮廓、RTL、换行与裁剪；W4 原 30 个插入图标名映射到内嵌资产，资源存在性测试及 GPU 截图通过",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.3",
+      "title": "对象操作",
+      "existingEvidence": "选择框、拖动/缩放、版本保护、属性表单、删除及撤销；M6-3 构建/原生回归通过",
+      "remainingCriteria": "W3 多选、批量拖动/删除一次撤销、混合对齐/分布面板与键盘微调已接入，原生回归通过；持久组合沿用原模型语义",
+      "statusChanged": false
+    },
+    {
+      "id": "M6.4",
+      "title": "布局与打印",
+      "existingEvidence": "页面设置、PDF 导出、实际 PDF 栅格预览、Windows WPF 打印；M6-4 原生回归及打印窗口打开检查通过",
+      "remainingCriteria": "W8 原生 Cancel、重试/预览关闭、真实 WPF 页码/边距及 XPS 回归通过；实体队列与驱动仍需人工，其他平台继续跳过",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.1",
+      "title": "透视、分析、求解",
+      "existingEvidence": "透视表单、字段按钮/拖放、分析工具选择、求解表单与结果；M7-1 构建及原生回归通过",
+      "remainingCriteria": "更多复杂分析模型专项验证",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.2",
+      "title": "审阅与保护",
+      "existingEvidence": "批注气泡/面板、回复/解决、笔记、密码遮蔽/保护、名称管理；M7-2 构建及原生回归通过",
+      "remainingCriteria": "大量批注、复杂作用域与辅助功能持续验证",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.3",
+      "title": "动作、脚本、信任",
+      "existingEvidence": "录制、JSON 步骤编辑/预览、会话信任确认、任务队列/进度/取消；M7-3 原生回归通过",
+      "remainingCriteria": "取消在命令之间生效；跨文档录制仍按上游语义限制",
+      "statusChanged": false
+    },
+    {
+      "id": "M7.4",
+      "title": "桌面控制与 MCP",
+      "existingEvidence": "目标草稿保存/打开/新建、实际完成/版本等待、MCP 定向截图、取消任务、控制面板和旧协议对照；M7-4 构建/原生回归通过",
+      "remainingCriteria": "低层关闭/切表仍保留引擎语义；M8 options/settings 已接入，ribbon 使用 GPUI 面板映射；更新发布源仍需配置，详见 CONTROL.md",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.1",
+      "title": "三端原生运行",
+      "existingEvidence": "Windows 构建启动、GPU 截图、本地路径/URL/拖入处理器的合成回归通过；见 M8-1.json",
+      "remainingCriteria": "macOS Apple Silicon、Ubuntu x64 仍缺原生环境，见 M8.md",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.2",
+      "title": "平台差异",
+      "existingEvidence": "Windows 中文字体、原生输入、文件选择、设置与网格交互回归通过（M8-2.json）",
+      "remainingCriteria": "W5/W6 组合态、候选锚点及六档模拟布局缩放回归通过；实际 IME、拖放、多显示器/DPI、系统菜单、外部剪贴板仍待人工",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.3",
+      "title": "质量与性能",
+      "existingEvidence": "严格 Clippy、核心回归、恢复/验证原生回归、虚拟辅助功能节点及绘制计数",
+      "remainingCriteria": "W3/W4 已补齐输入组件快捷键路由、Ctrl+1/Esc、F6 五区域和标签键盘导航；W7 实际 UIA 值/聚焦/合并与 DPI 坐标回归通过；P1–P4 已补齐大表 CPU 基线；真实读屏语音、GPU 呈现/物理输入仍待人工，复杂重算保留核心限制",
+      "statusChanged": false
+    },
+    {
+      "id": "M8.4",
+      "title": "发布包",
+      "existingEvidence": "Windows 原始图标/版本资源、许可证清单、NSIS 安装器、app-local CRT、便携/源码 ZIP；macOS app/DMG、Ubuntu AppDir/deb 打包代码",
+      "remainingCriteria": "Windows 隔离安装/启动/卸载回归通过；其他平台包尚未执行，发行签名、公证、更新发布源仍待外部条件",
+      "statusChanged": false
+    },
+    {
+      "id": "P1",
+      "title": "编辑/大表分段采样",
+      "existingEvidence": "已运行两轮原生基线，512 条有界样本，含身份与版本",
+      "remainingCriteria": "GPU 呈现与物理输入未测",
+      "statusChanged": false
+    },
+    {
+      "id": "P2",
+      "title": "大表滚动与输入同步",
+      "existingEvidence": "编译和原生回归通过；去除逐帧全表扫描，内容不变不重置输入；10 万行滚动 CPU paint P95 3.78 ms",
+      "remainingCriteria": "版本变化仍重新计算几何，分段记录",
+      "statusChanged": false
+    },
+    {
+      "id": "P3",
+      "title": "完成通知与恢复去重",
+      "existingEvidence": "35 项应用/UI 测试和 Release 两轮原生复测通过；通知有界合并且先发布后唤醒，恢复失败重试和同 revision 草稿变化已覆盖",
+      "remainingCriteria": "实际退出/恢复通过；完整解压包 52 项串联回归通过",
+      "statusChanged": false
+    },
+    {
+      "id": "P4",
+      "title": "总回归与测试包",
+      "existingEvidence": "M8-preview4 解压 Release 52 项原生回归、1,377 项工作区测试通过；独立记录范围聚合与低依赖编辑",
+      "remainingCriteria": "包内独立基准、恢复开关对照、打印宿主退出和安装/运行/安全卸载通过；GPU/人工、其他系统及签名门槛继续保留",
+      "statusChanged": false
+    },
+    {
+      "id": "Q1",
+      "title": "重算结构化分段与复杂基线",
+      "existingEvidence": "原生 10k/100k 低依赖、SUM/SUMIFS/SUMPRODUCT/嵌套/扇出基线通过；Q1-performance.json",
+      "remainingCriteria": "CPU 口径，未测 GPU/物理输入",
+      "statusChanged": false
+    },
+    {
+      "id": "Q2",
+      "title": "编辑几何重建",
+      "existingEvidence": "64 行块范围缓存，值修改保留、键变更局部失效；152 项分层测试及原生复测通过；100k geometry P95 5.60→0.05 ms",
+      "remainingCriteria": "冷构建与大量自定义尺寸仍需独立索引工作",
+      "statusChanged": false
+    },
+    {
+      "id": "Q3",
+      "title": "复杂范围重算",
+      "existingEvidence": "空公式块索引、单列查找、pass 内受限 SUM 复用及兼容测试已实现，完整 CI 1,387 通过；前版 CLI 差异、冷索引补充及最终解压包性能/52 项串联回归通过",
+      "remainingCriteria": "密集公式/动态数组/复杂非 SUM 函数继续走通用路径",
+      "statusChanged": false
+    },
+    {
+      "id": "Q4",
+      "title": "最终回归与交付",
+      "existingEvidence": "M8-preview5 便携/安装/源码包；1,387 测试、52 项原生串联、包内独立启动、打印宿主退出和安装/安全卸载通过",
+      "remainingCriteria": "CPU 指标已分组；其他系统/签名及既有人工门槛保留",
+      "statusChanged": false
+    },
+    {
+      "id": "R1",
+      "title": "自定义尺寸/密集公式/动态数组分段基线",
+      "existingEvidence": "preview5 原生 Release 10k/100k 三组，各 12 次；追加无并发构建的 100k 串行复核，R1-baseline-clean-100k.json",
+      "remainingCriteria": "CPU 口径",
+      "statusChanged": false
+    },
+    {
+      "id": "R2",
+      "title": "主流功能区与尺寸共享",
+      "existingEvidence": "9 个选项卡、分组工具栏、公式确认/取消、状态栏缩放；行列 COW/索引共享；Release/M3 F6/实际 Windows 选项卡点击通过",
+      "remainingCriteria": "49 项解压包串联与 R2-native-ui.json 实际点击通过；物理 IME/DPI 等边界保留",
+      "statusChanged": false
+    },
+    {
+      "id": "R3",
+      "title": "密集公式与溢出优化",
+      "existingEvidence": "批量写回、范围依赖种子、交集遍历、浅层求值免分配；161 项分层/1,390 项完整 CI 和六组包内压力通过",
+      "remainingCriteria": "CPU 首帧；10k 密集引擎 P95 有一次求值波动，原始样本保留",
+      "statusChanged": false
+    },
+    {
+      "id": "R4",
+      "title": "CI 和新测试包",
+      "existingEvidence": "M8-preview6 便携/安装器/源码；R4-ci.json 1,390 通过/1 忽略，R4-release-native.json 49 项，六组压力、跨版文件、安装/安全卸载及打印宿主退出通过；UI-PERFORMANCE.md 汇总",
+      "remainingCriteria": "CPU 口径；旧 W7/W8 报告未冒充新运行，真实 IME/多显示器/读屏/设备打印等既有人工门槛保留；macOS/Linux/签名跳过",
+      "statusChanged": false
+    }
+  ],
+  "deck": {
+    "source": "docs/joydeck/11-task-backlog.md",
+    "thisRun": "native M0-M4 smoke; native startup test 1280/980 widths, 96 draws; actual add/save=21, undo/save=20, redo/save=21 and CLI readback",
+    "fullParentMilestonesClosed": false
+  }
+}

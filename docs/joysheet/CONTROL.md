@@ -13,7 +13,7 @@ PowerShell 中 JSON 使用单引号包裹，例如：
 .\target\debug\joysheet-cli.exe send 7979 engine.execute '{"command":"cell.set","params":{"cell":"B1","input":"=SUM(1,2,3)"}}'
 ```
 
-服务只绑定 `127.0.0.1`。客户端自动读取 Joysheet 配置目录下对应端口的 token，也接受 `JOYSHEET_CONTROL_TOKEN`。测试脚本通过 `JOYSHEET_CONFIG_DIR` 隔离配置和 token。连接须先发送 `{"hello":"TOKEN"}`，随后逐行发送 `{id,method,params}`；响应保留 id，使用 `{ok,result}` 或 `{ok:false,error}`。
+服务只绑定 `127.0.0.1`。客户端自动读取 Joysheet 配置目录下对应端口的 token，也接受 `JOYSHEET_CONTROL_TOKEN`。测试脚本通过 `JOYSHEET_CONFIG_DIR` 隔离配置和 token。连接须先发送 `{"id":0,"method":"auth","params":{"token":"TOKEN"}}`，随后逐行发送 `{id,method,params}`；响应保留 id，使用 `{ok,result}` 或 `{ok:false,error}`。
 
 每条请求可携带 `window` 或 `doc`，二者互斥；未知目标返回错误，不能退回活动窗口。`engine.execute` 的目标位于外层 params，其内部 params 保持原命令语义。
 
@@ -34,7 +34,7 @@ PowerShell 中 JSON 使用单引号包裹，例如：
 | ui.import.preview | 使用当前导入表单的文件或多行文本进行独立会话预览；等待 dataResultKind 为 __joysheet.previewImport |
 | ui.resize / ui.focus | 逻辑尺寸与窗口聚焦 |
 | ui.set | dark/autosave；persist=false 仅改变本次应用状态 |
-| ui.screenshot | `{path?,base64?,minRevision?,minSequence?,allowBusy?}`；automation 功能，真实 GPU 读回；返回身份和版本 |
+| ui.screenshot | `{path?,base64?,minRevision?,minSequence?,allowBusy?}`；macOS/Windows automation 功能，真实 GPU 读回；返回身份和版本。固定 GPUI 的 Linux 后端未实现，capabilities.screenshot 为 false 并明确拒绝 |
 | ui.perf | CPU worksheet paint 与提交到匹配绘制的分段分位数；raw=true 返回最多 512 条帧/编辑样本；reset=true 清空样本 |
 | app.quit | 有未保存工作簿/任一窗口草稿时拒绝；force=true 明确丢弃 |
 

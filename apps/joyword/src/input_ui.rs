@@ -2795,6 +2795,8 @@ impl JoyWord {
         };
         let mut row = div()
             .flex()
+            .w_full()
+            .min_w_0()
             .items_center()
             .gap_2()
             .child(
@@ -2823,6 +2825,8 @@ impl JoyWord {
                 .key_context(crate::field_edit::FIELD_CONTEXT)
                 .focusable()
                 .flex_1()
+                .min_w_0()
+                .overflow_x_hidden()
                 .px_2()
                 .py_1()
                 .border_1()
@@ -2864,6 +2868,7 @@ impl JoyWord {
                         .flex_col()
                         .gap_2()
                         .w(px(560.0))
+                        .max_w_full()
                         .p_4()
                         .rounded_md()
                         .bg(rgb(crate::ui::theme::WHITE))
@@ -2889,6 +2894,7 @@ impl JoyWord {
         let browse = id == "linux-path-browse";
         div()
             .id(id)
+            .flex_none()
             .cursor_pointer()
             .px_2()
             .py_1()
@@ -2943,6 +2949,9 @@ impl JoyWord {
         match crate::linux_files::accept_typed_path(role, &draft) {
             Ok(path) => {
                 self.path_sheet = None;
+                // The path field is about to disappear. Keep subsequent keys
+                // routed to the document, including buffered typing during open.
+                window.focus(&self.focus_handle, cx);
                 match role {
                     crate::linux_files::PathRole::Open => self.begin_open_path(path, cx),
                     crate::linux_files::PathRole::SaveCopy => {

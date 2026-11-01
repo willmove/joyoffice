@@ -697,3 +697,6 @@ apps/joydeck/src/scene_canvas_validation.rs:47:assert_eq!(s.scene_cache.lock().u
 apps/joydeck/src/scene_canvas_validation.rs:54:assert!(Arc::ptr_eq(moved.as_ref().unwrap(),&s.session.deck));
 apps/joydeck/src/scene_canvas_validation.rs:59:assert!(s.accelerated);assert!(s.gpu_cache.stats.atlas_removals>before.atlas_removals);assert!(Arc::ptr_eq(moved.as_ref().unwrap(),&s.session.deck));
 apps/joydeck/src/scene_canvas_validation.rs:69:assert!(s.accelerated);assert!(s.scene.as_ref().unwrap().nodes.is_empty());
+crates/joyword-shell/src/storage/original.rs:1777:std::fs::set_permissions(&case.path, std::fs::Permissions::from_mode(mode)).unwrap();
+crates/joyword-shell/src/storage/original.rs:1779:.unwrap()
+crates/joyword-shell/src/storage/original.rs:1802:std::fs::metadata(&case.path).unwrap().permissions().mode() & 0o777,

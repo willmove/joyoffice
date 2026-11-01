@@ -6,6 +6,7 @@ from pathlib import Path
 import platform
 import subprocess
 import sys
+import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 APPLICATIONS = ("joysheet", "joysheet-cli")
@@ -52,9 +53,16 @@ def smoke(stage, engine_only=False):
     helper("smoke", stage)
     if engine_only:
         return
-    if platform.system() != "Windows":
-        raise ValueError("Native smoke currently requires Windows; use --engine-only")
     artifacts = build(validation=True)
+    if platform.system() != "Windows":
+        # Portable GUI coverage is the M3 editing/lifecycle baseline. The helper
+        # above checks the requested engine stage; do not claim the Windows
+        # M4-M8 desktop matrix ran on another OS.
+        output = ROOT / "target/joysheet-native" / (stage + "-" + uuid.uuid4().hex)
+        print("Native GUI scope: portable editing/lifecycle baseline; not the Windows M4-M8 desktop matrix", flush=True)
+        run([sys.executable, "scripts/joysheet/smoke-native.py", "--binary", str(artifacts["joysheet"]),
+             "--output", str(output)])
+        return
     number = int(stage[1:])
     command = ["pwsh.exe", "-NoProfile", "-File", "scripts/joysheet/desktop-smoke.ps1",
                "-BinaryDirectory", str(artifacts["joysheet"].parent),

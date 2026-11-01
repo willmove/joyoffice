@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "binarySha256": "feffe9ba1eefadc5d7dfc22e31d6ee31799073ec70ffd062bd2e6065eff3759f",
+  "checks": {
+    "add": 21,
+    "undo": 20,
+    "redo": 21
+  },
+  "eventSource": "X11 pointer events and window pixels; ZIP and CLI readback",
+  "nativeImeVerified": false
+}

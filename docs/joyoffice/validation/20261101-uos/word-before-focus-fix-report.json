@@ -1,0 +1,10 @@
+{
+  "passed": false,
+  "binarySha256": "287a2951e901967c8785a30be04ed0212ba11555fbd9c478307d4dd08c33d567",
+  "eventSource": "X11 OS synthetic keys and actual window pixels",
+  "checks": [
+    "native typing, undo/redo, long-path Save As and independent DOCX readback"
+  ],
+  "nativeImeVerified": false,
+  "error": "keyboard PDF export after Save As"
+}

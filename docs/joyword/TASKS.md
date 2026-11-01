@@ -1,5 +1,7 @@
 # JoyWord 实施任务
 
+2026-11-01 UOS 25 本机验证：产品检查 1298 项通过；三产品联合回归 2880 项通过、2 项忽略。原件权限测试、长路径对话框与成功提交后的正文焦点已修复，新增原生回归覆盖另存后立即键盘导出及 PDF 独立读回。系统搜狗／Fcitx5 仍有拼音直通问题，选定 CJK 字体的 emoji 覆盖未通过；各完整任务状态不作批量改写。逐任务证据、未覆盖条件及截图见 [UOS 三产品报告](../joyoffice/validation/20261101-uos/README.md)和 [66 项任务核对](../joyoffice/validation/20261101-uos/task-ledger.json)。
+
 版本 0.3 · 2026-10-17。需求以 [SPEC](SPEC.md) 为准，验收以 [QUALITY](QUALITY.md) 为准。状态证据见 [IMPLEMENTATION](IMPLEMENTATION.md)。
 
 ## 任务规则

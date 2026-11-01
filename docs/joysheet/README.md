@@ -35,6 +35,14 @@ cargo xtask package joysheet --release
 
 `--validation` 显式启用原 automation feature 的 GPU 截图能力；普通桌面和普通发布包不启用该 feature。控制服务仍需显式传入 `--control PORT`，既有 token、请求预算与脚本信任语义保持。
 
+Linux/macOS 的 `cargo xtask smoke joysheet --stage M8` 先运行所选阶段的引擎检查，再运行可移植的基础编辑／生命周期 GUI 回归（中文与 emoji、公式、撤销重做、剪贴板、合成组合态保护、格式表单、保存取消及 XLSX 重开）。它使用隔离配置，输出窗口截图与 `report.json` 到 `target/joysheet-native/`；不是 Windows M4–M8 桌面全矩阵，也不替代系统 IME、物理输入或读屏验收。桌面须解锁且窗口可绘制。Linux X11 通过 `xdotool` 和 ImageMagick `import` 抓取真实窗口像素，报告注明来源；固定 GPUI 在 Linux 不支持 `render_to_image`，不将其记作 GPU 读回。Wayland 截图尚未接入。已有 validation 二进制可直接运行：
+
+```text
+python3 scripts/joysheet/smoke-native.py --binary target/debug/joysheet --output target/joysheet-native/local-run
+```
+
+输出目录必须尚不存在，以保留每轮成功或失败的证据。macOS 执行结果另行记录，不能以脚本支持该平台宣称实测通过。
+
 ## 分发和证据
 
 包输出到 `dist/joysheet/`，包含所属二进制、资源、平台依赖许可、SBOM、源码哈希和构建信息。源码 ZIP 生成 Sheet 专属 workspace，并验证裁剪后的锁文件保留原依赖版本及校验和；完整 Monorepo 门禁仍在 Git 仓库运行。

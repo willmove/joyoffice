@@ -1,0 +1,56 @@
+STARTUP_SMOKE selection=empty tab=开始 drawn=true
+STARTUP_SMOKE selection=empty tab=插入 drawn=true
+STARTUP_SMOKE selection=empty tab=表格 drawn=true
+STARTUP_SMOKE selection=empty tab=设计 drawn=true
+STARTUP_SMOKE selection=empty tab=视图 drawn=true
+STARTUP_SMOKE selection=empty tab=文件 drawn=true
+STARTUP_SMOKE selection=empty tab=图表 drawn=true
+STARTUP_SMOKE selection=empty tab=图示 drawn=true
+STARTUP_SMOKE selection=empty tab=动画 drawn=true
+STARTUP_SMOKE selection=empty tab=切换 drawn=true
+STARTUP_SMOKE selection=empty tab=幻灯片放映 drawn=true
+STARTUP_SMOKE selection=empty tab=审阅 drawn=true
+STARTUP_SMOKE selection=empty tab=媒体 drawn=true
+STARTUP_SMOKE selection=empty tab=输出 drawn=true
+STARTUP_SMOKE selection=empty tab=比较 drawn=true
+STARTUP_SMOKE selection=empty tab=维护 drawn=true
+M2 command=document.design document=1
+M2 command=object.add document=1
+STARTUP_SMOKE selection=shape tab=开始 drawn=true
+STARTUP_SMOKE selection=shape tab=插入 drawn=true
+STARTUP_SMOKE selection=shape tab=表格 drawn=true
+STARTUP_SMOKE selection=shape tab=设计 drawn=true
+STARTUP_SMOKE selection=shape tab=视图 drawn=true
+STARTUP_SMOKE selection=shape tab=文件 drawn=true
+STARTUP_SMOKE selection=shape tab=图表 drawn=true
+STARTUP_SMOKE selection=shape tab=图示 drawn=true
+STARTUP_SMOKE selection=shape tab=动画 drawn=true
+STARTUP_SMOKE selection=shape tab=切换 drawn=true
+STARTUP_SMOKE selection=shape tab=幻灯片放映 drawn=true
+STARTUP_SMOKE selection=shape tab=审阅 drawn=true
+STARTUP_SMOKE selection=shape tab=媒体 drawn=true
+STARTUP_SMOKE selection=shape tab=输出 drawn=true
+STARTUP_SMOKE selection=shape tab=比较 drawn=true
+STARTUP_SMOKE selection=shape tab=维护 drawn=true
+M2 command=transaction.batch document=2
+M2 command=object.add document=2
+M2 command=table.edit document=2
+M2 command=object.add document=2
+M2 command=document.design document=2
+STARTUP_SMOKE selection=table tab=开始 drawn=true
+STARTUP_SMOKE selection=table tab=插入 drawn=true
+STARTUP_SMOKE selection=table tab=表格 drawn=true
+STARTUP_SMOKE selection=table tab=设计 drawn=true
+STARTUP_SMOKE selection=table tab=视图 drawn=true
+STARTUP_SMOKE selection=table tab=文件 drawn=true
+STARTUP_SMOKE selection=table tab=图表 drawn=true
+STARTUP_SMOKE selection=table tab=图示 drawn=true
+STARTUP_SMOKE selection=table tab=动画 drawn=true
+STARTUP_SMOKE selection=table tab=切换 drawn=true
+STARTUP_SMOKE selection=table tab=幻灯片放映 drawn=true
+STARTUP_SMOKE selection=table tab=审阅 drawn=true
+STARTUP_SMOKE selection=table tab=媒体 drawn=true
+STARTUP_SMOKE selection=table tab=输出 drawn=true
+STARTUP_SMOKE selection=table tab=比较 drawn=true
+STARTUP_SMOKE selection=table tab=维护 drawn=true
+STARTUP_SMOKE complete=true cases=48

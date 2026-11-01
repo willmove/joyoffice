@@ -4,6 +4,9 @@ use gpui_kit::{prelude::*, *};
 use joysheet_app::control::{ControlServer, UiCall, UiQueue};
 use serde_json::{Value, json};
 
+// GPUI pre 0.3.10 implements render_to_image only on macOS and Windows.
+const GPU_SCREENSHOT_SUPPORTED: bool = cfg!(all(feature = "automation", any(target_os = "macos", target_os = "windows")));
+
 pub struct ControlRuntime {
     pub _server: Option<ControlServer>,
     pub queue: UiQueue,
@@ -392,10 +395,16 @@ impl Desktop {
                 } else {
                     ""
                 });
-                inspect["capabilities"] = json!({"screenshot":cfg!(feature="automation"),"nativeImeVerified":false,"gpuiInput":true,"versionFences":true,"lifecycleCompletion":true,"scriptCancellation":"betweenCommands","mcpTargetedScreenshots":true});
+                inspect["capabilities"] = json!({"screenshot":GPU_SCREENSHOT_SUPPORTED,"syntheticIme":cfg!(feature="automation"),"nativeImeVerified":false,"gpuiInput":true,"versionFences":true,"lifecycleCompletion":true,"scriptCancellation":"betweenCommands","mcpTargetedScreenshots":GPU_SCREENSHOT_SUPPORTED});
                 call.respond(Ok(inspect));
             }
             "ui.screenshot" => {
+                if !GPU_SCREENSHOT_SUPPORTED {
+                    call.respond(Err(
+                        "GPU screenshots require an automation build on macOS or Windows; GPUI render_to_image is unavailable on Linux".into(),
+                    ));
+                    return;
+                }
                 window.activate_window();
                 if self.captures.len() >= 4 {
                     call.respond(Err("at most four screenshots may be outstanding".into()));

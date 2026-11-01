@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-01T22:12:28.644242+08:00",
+  "baseCommit": "6500e3a50f6abf4b83b09581def1344a7995015c",
+  "branch": "codex/uos-product-validation",
+  "remoteFreshness": "SSH host-key verification failed; local main and origin/main matched at start",
+  "hostOsRelease": "PRETTY_NAME=\"UOS Desktop 25 Professional\"\nNAME=\"Uos\"\nVERSION_ID=\"25\"\nVERSION=\"25\"\nID=uos\nHOME_URL=\"https://www.chinauos.com/\"\nBUG_REPORT_URL=\"http://bbs.chinauos.com\"\nVERSION_CODENAME=snipe\n",
+  "runtimeOsRelease": "PRETTY_NAME=\"Deepin 25\"\nNAME=\"Deepin\"\nVERSION_CODENAME=crimson\nID=deepin\nHOME_URL=\"https://www.deepin.org/\"\nBUG_REPORT_URL=\"https://bbs.deepin.org\"\nVERSION_ID=\"25\"\nVERSION=\"25\"\n",
+  "machine": "x86_64",
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+  "gpu": "AMD Radeon Graphics (RADV GFX1150), Vulkan; observed in Word application log",
+  "display": "native X11; scale factor 1.25",
+  "rust": "1.98.1",
+  "umask": "0o0",
+  "results": {
+    "joyword": {
+      "passed": 1298,
+      "failed": 0,
+      "ignored": 0,
+      "suites": 173,
+      "sourceLog": "target/uos-validation/joyword-final-check.log",
+      "sourceSha256": "2dd44c6a470004c655851d74a2f5f9732091b5287023f966461035c8d0614f79"
+    },
+    "joydeck": {
+      "passed": 194,
+      "failed": 0,
+      "ignored": 1,
+      "suites": 42,
+      "sourceLog": "target/uos-validation/joydeck-check.log",
+      "sourceSha256": "74c87c8352b3ae9bbd681666a68b6709cce003aa0284a43a70d0e72cf255b484"
+    },
+    "joysheet": {
+      "passed": 1400,
+      "failed": 0,
+      "ignored": 1,
+      "suites": 39,
+      "sourceLog": "target/uos-validation/joysheet-final-check.log",
+      "sourceSha256": "b7d836ac612dea0866f12b6870ca9eb43cfc22090854f07fb8c9167e7b209de2"
+    },
+    "workspace": {
+      "passed": 2880,
+      "failed": 0,
+      "ignored": 2,
+      "suites": 249,
+      "sourceLog": "target/uos-validation/workspace-final-tests.log",
+      "sourceSha256": "398f7463859472747a7342a820c90796e60e26aa30c211c2cb46de50fa03caae"
+    }
+  },
+  "binaries": {
+    "joyword": "53c7d6f98dc84ac292a5e278f28d2b932c53b0f8531d1e7b68fa93c545f92b3f",
+    "joydeck": "feffe9ba1eefadc5d7dfc22e31d6ee31799073ec70ffd062bd2e6065eff3759f",
+    "joysheet": "132bf823fa5c986fb2102df19f7d607defd37f2a6d9443ef129e208667fbd469"
+  },
+  "lockUnchanged": true,
+  "eventScope": "OS/GPUI synthetic input plus actual displayed-window screenshots; not physical keyboard or system IME certification",
+  "nativeIme": {
+    "engine": "Sogou via Fcitx5, com.sogou.ime.ng.fcitx5.uos",
+    "word": "failed: zhongwen passed through; no Chinese candidate observed",
+    "sheet": "synthetic composition only",
+    "deck": "synthetic M0/M3 composition only"
+  },
+  "outstanding": [
+    "system IME failure",
+    "Word emoji absent from selected CJK font; DOCX text preserved, glyph/PDF coverage incomplete",
+    "Wayland screenshots",
+    "physical input, screen readers, multiple displays, device printing",
+    "other OS/architectures and domestic CPU/GPU hardware",
+    "unimplemented task criteria and complete product acceptance"
+  ],
+  "preexistingUntrackedPreserved": [
+    "Joysheet.pdf"
+  ],
+  "changesCommitted": false,
+  "nativeGui": {
+    "word": "53c7d6f98dc84ac292a5e278f28d2b932c53b0f8531d1e7b68fa93c545f92b3f",
+    "deck": "feffe9ba1eefadc5d7dfc22e31d6ee31799073ec70ffd062bd2e6065eff3759f",
+    "sheet": "132bf823fa5c986fb2102df19f7d607defd37f2a6d9443ef129e208667fbd469"
+  },
+  "deckExtraNativeStartup": {
+    "passed": true,
+    "layouts": [
+      1280,
+      980
+    ],
+    "drawCases": 96,
+    "log": "deck-native-startup-test.log"
+  },
+  "savedFilePermissions": {
+    "sheet": "0o600"
+  },
+  "readOnlyCase": {
+    "fixture": "DOCX-MIN-005.docx",
+    "inspect": "word-readonly-inspect.json",
+    "sourceUntouched": true,
+    "sha256": "917b5dee4368c6e1c595728e0825a14b39e3f58756a4374c12f83c66a6abaa44"
+  },
+  "deliveryRemoteBaseVerified": "6500e3a50f6abf4b83b09581def1344a7995015c",
+  "archivedLogNormalization": "Removed extra blank lines at EOF in deck-native-startup-test.log and workspace-tests.log; original full-log SHA values are retained in results."
+}
