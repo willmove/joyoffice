@@ -3242,7 +3242,7 @@ fn append_linked_runs(
         for (style, props, _, content) in &groups[start..index] {
             let text = match content {
                 GroupContent::Text(text) => text,
-                GroupContent::Inline(InlineKind::Break(joyword_model::BreakKind::Line)) => {
+                GroupContent::Inline(InlineKind::Break(kind)) => {
                     let rpr = properties(style, props)?;
                     inner.push_str(&names.start("r"));
                     inner.push('>');
@@ -3250,6 +3250,15 @@ fn append_linked_runs(
                         inner.push_str(&rpr);
                     }
                     inner.push_str(&names.start("br"));
+                    match kind {
+                        joyword_model::BreakKind::Line => {}
+                        joyword_model::BreakKind::Page => {
+                            inner.push_str(&names.attribute("type", "page"))
+                        }
+                        joyword_model::BreakKind::Column => {
+                            inner.push_str(&names.attribute("type", "column"))
+                        }
+                    }
                     inner.push_str("/>");
                     inner.push_str(&names.end("r"));
                     continue;

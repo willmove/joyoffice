@@ -1,0 +1,34 @@
+{
+  "baseRevision": "59205b11541331bb847b4d3be557c62b7067287a",
+  "sourceFiles": {
+    "apps/joyword/src/input_ui.rs": "5d6ebc7575e8113d932d938764311a8e3bf20d54440606034dbbddc0900a9339",
+    "apps/joyword/src/main.rs": "86fe1a1f1e8dce527682f1dafe667f1b7a6e14835dbfd03ddd7eaeff7c3743ea",
+    "crates/joyword-docx/src/export.rs": "2919d0687c35ce25ec4945f6a580eb4b569970259e0eefb580f8d0fc81127738",
+    "crates/joyword-docx/src/export/structure.rs": "abeeff9bf42c58a66fb571f84c06acc0347f3b541aee2c893abbc3777c732722",
+    "crates/joyword-docx/tests/explicit_breaks.rs": "8bbc6105d4b543b754a05342d0d12f11e3e8ffaa34eaf7e6a359203c0f076d05",
+    "crates/joyword-shell/locales/en.lang": "ec136599a32098be33b1095549b2a67dee462ad200cef30f8d0e0b2661e42fcb",
+    "crates/joyword-shell/locales/zh-CN.lang": "d55bb93dffd55f1f346b1be5a2b8f0228127b5f8da777bb0b2315dba20a80147",
+    "crates/joyword-shell/src/host.rs": "0c95679552a7a394939d6ebc8a2b770349a3b02e90c96df6f918636a68a50535",
+    "crates/joyword-shell/src/input.rs": "e0cfa89a52bd30c370d88294d9a56ce810c1fa1c83cb01759abe013bc115b367",
+    "crates/joyword-shell/src/storage.rs": "2e194d98310cfe1fbeb45ff33eb305830e76405551bb57aa6cce7cd56ca75cbc",
+    "crates/joyword-shell/src/storage/recovery.rs": "03b4cf3a1ea875f8027c4276396bda83a91450ae7624d4fefe8ed4911484fa44",
+    "crates/joyword-shell/tests/m1_concurrency_recovery.rs": "ccf7862a8e98052a17b054d652b05a443a5cbfc7e58d1b3fc3f70a43721eb861",
+    "crates/joyword-shell/tests/recovery_document.rs": "16534cf52c9c68bc8a1ae281e5846ec55d0865f84afec2e371809df89b471779",
+    "crates/joyword-shell/tests/t104_periodic_snapshots.rs": "620b1c4e008670b70e73542e054bed6394319c81f3b4c4e36ab1d4a72695f099",
+    "scripts/smoke_word_recovery_linux.py": "1c21323b587252f9dfc5105b54b1132e90436ece296c1a5eccfb58fe8d316361"
+  },
+  "wordBinarySha256": "4b9e16d4dc43f79b848a711a9041e493f8636bd603d725b1e7aa770f65fb7228",
+  "negativeBinarySha256": "252ad692f55dfeebd6814259012fe213a74a30e815aec5a3fedcbf13d35fa5b7",
+  "productCheck": {
+    "passed": 1314,
+    "failed": 0,
+    "ignored": 0
+  },
+  "nativeRecoveryGroupsPassed": 5,
+  "nativeTableGroupsPassed": 6,
+  "pythonTestsPassed": 146,
+  "physicalPowerLossTested": false,
+  "systemImeCertified": false,
+  "logNormalization": "trailing blank lines only",
+  "screenshots": "actual X11 window pixels; no pixel editing"
+}

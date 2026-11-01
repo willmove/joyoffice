@@ -527,6 +527,7 @@ struct Popup {
 }
 
 struct JoyWord {
+    recovery_warning: Option<&'static str>,
     merge_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
     epub_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
     zoom_percent: u16,
@@ -1906,6 +1907,7 @@ impl Render for JoyWord {
                     }),
             )
             .child(self.ruler(cx))
+            .children(self.recovery_notice_panel(cx))
             .child(
                 div()
                     .flex()
@@ -1918,6 +1920,51 @@ impl Render for JoyWord {
             .child(self.status_bar(cx))
             .children(self.popup_overlay(cx))
             .children(self.format_panel(window, cx))
+    }
+}
+
+fn recovery_notice(directory: &std::path::Path, restored: bool) -> Option<&'static str> {
+    match joyword_shell::storage::recover_document_checkpoint(directory) {
+        Ok(checkpoint) if checkpoint.degraded => Some("recovery.fallback"),
+        Ok(_) if !restored => Some("recovery.restore_failed"),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(_) => Some("recovery.restore_failed"),
+        _ => None,
+    }
+}
+
+impl JoyWord {
+    fn recovery_notice_panel(&self, cx: &mut Context<Self>) -> Option<gpui::AnyElement> {
+        let message = self.recovery_warning?;
+        let entity = cx.entity();
+        Some(
+            div()
+                .id("recovery-notice")
+                .role(gpui::Role::Alert)
+                .flex()
+                .items_center()
+                .justify_between()
+                .px_4()
+                .py_2()
+                .bg(rgb(ui::theme::NOTICE))
+                .text_sm()
+                .child(self.label(message))
+                .child(ui::controls::button(
+                    "recovery-notice-dismiss",
+                    self.label("recovery.dismiss"),
+                    self.label("recovery.dismiss"),
+                    true,
+                    false,
+                    false,
+                    std::rc::Rc::new(move |_, cx| {
+                        entity.update(cx, |this, cx| {
+                            this.recovery_warning = None;
+                            cx.notify();
+                        });
+                    }),
+                ))
+                .into_any_element(),
+        )
     }
 }
 
@@ -2219,7 +2266,11 @@ fn main() {
                         if let Some(editor) = editor.as_mut() {
                             editor.set_revision_author(session.revision_author());
                         }
+                        let recovery_warning = recovery_dir
+                            .as_deref()
+                            .and_then(|dir| recovery_notice(dir, editor.is_some()));
                         let mut view = JoyWord {
+                            recovery_warning,
                             zoom_percent: ZOOM_DEFAULT,
                             locale,
                             registry: registry.clone(),
@@ -2469,6 +2520,35 @@ mod tests {
             window_title(Some("合同.docx"), true),
             "*合同.docx - JoyWord"
         );
+    }
+
+    #[test]
+    fn recovery_notices_distinguish_absence_discard_fallback_and_failure()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let directory = tempfile::tempdir()?;
+        assert_eq!(super::recovery_notice(directory.path(), false), None);
+        let baseline = include_bytes!("../../../tests/fixtures/docx/DOCX-MIN-001.docx");
+        let first = joyword_shell::storage::commit_recovery(directory.path(), baseline, "one")?;
+        assert_eq!(super::recovery_notice(directory.path(), true), None);
+        assert_eq!(
+            super::recovery_notice(directory.path(), false),
+            Some("recovery.restore_failed")
+        );
+        let second = joyword_shell::storage::commit_recovery(directory.path(), baseline, "two")?;
+        std::fs::write(second, b"corrupt latest")?;
+        assert_eq!(
+            super::recovery_notice(directory.path(), true),
+            Some("recovery.fallback")
+        );
+        std::fs::write(first, b"corrupt previous")?;
+        assert_eq!(
+            super::recovery_notice(directory.path(), false),
+            Some("recovery.restore_failed")
+        );
+        let discarded = tempfile::tempdir()?;
+        joyword_shell::storage::clear_recovery(discarded.path())?;
+        assert_eq!(super::recovery_notice(discarded.path(), false), None);
+        Ok(())
     }
 
     #[test]

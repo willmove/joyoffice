@@ -368,3 +368,7 @@ input.row_revision = 文档含未解决的表格行插入修订；可编辑文�
 ruler.drag.stale_table = 拖动期间表格已变化，请重新选择单元格后再试
 dialog.table.cell_fill = 当前单元格底纹（RRGGBB／auto／none）
 ui.table_edit = 编辑表格
+
+recovery.fallback = 最新恢复检查点已损坏，已恢复上一份有效状态。请另存新副本后继续。
+recovery.restore_failed = 无法恢复检查点。请保留恢复目录，并从正式保存的文档继续。
+recovery.dismiss = 关闭提示

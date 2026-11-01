@@ -258,7 +258,7 @@ impl Office {
     }
 
     /// Directory for the production recovery journal. Edits committed through
-    /// this session write the original package and the document text there.
+    /// this session write the original baseline, committed DOCX snapshot and body text there.
     pub fn set_recovery_directory(&mut self, directory: PathBuf) {
         self.recovery_dir = Some(directory);
     }
@@ -271,10 +271,21 @@ impl Office {
             return Ok(());
         };
         let baseline = input.backend().session().backing().original_bytes();
-        let text = input.view().index().text();
-        let version = input.backend().session().session().version().get();
-        crate::storage::commit_recovery_versioned(directory, version, baseline, text)
+        let text = input.committed_body_text().map_err(io::Error::other)?;
+        let plan = input
+            .backend()
+            .session()
+            .export_plan()
             .map_err(io::Error::other)?;
+        let version = input.backend().session().session().version().get();
+        crate::storage::commit_document_recovery_versioned(
+            directory,
+            version,
+            baseline,
+            &text,
+            plan.bytes(),
+        )
+        .map_err(io::Error::other)?;
         Ok(())
     }
 
@@ -287,11 +298,25 @@ impl Office {
         crate::storage::commit_recovery(directory, baseline, text)
     }
 
-    /// Open the journaled package and apply its committed text as an engine
-    /// transaction on that session.
+    /// Restore the complete committed package in a new independent file. V1/V2
+    /// text checkpoints retain their bounded text-replay compatibility path.
     pub fn recover_from(directory: &Path) -> Result<Self, ExecuteError> {
-        let recovered = crate::storage::recover(directory)
+        let document = crate::storage::recover_document_checkpoint(directory)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+        let recovered = document.checkpoint.recovered;
+        let package = document.snapshot.as_deref().unwrap_or(&recovered.baseline);
+        if document.snapshot.is_some() {
+            // Refuse mismatched or malformed rich checkpoints before writing any
+            // recovered document. Never apply a text patch to an unrelated table.
+            let imported = crate::docx::DocxSession::open_default(package)
+                .map_err(|error| ExecuteError::Failed(error.to_string()))?;
+            let input = TextInput::new(imported, InputLimits::default()).map_err(input_error)?;
+            if input.committed_body_text().map_err(input_error)? != recovered.text {
+                return Err(ExecuteError::Failed(
+                    "recovery snapshot body text mismatch".into(),
+                ));
+            }
+        }
         // Each recovery owns a new copy. A previously recovered document may
         // still be open, or its lock may survive another crash; never overwrite
         // that document or remove its lock to make the next recovery succeed.
@@ -300,7 +325,7 @@ impl Office {
             .suffix(".docx")
             .tempfile_in(directory)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
-        copy.write_all(&recovered.baseline)
+        copy.write_all(package)
             .map_err(|error| ExecuteError::Failed(error.to_string()))?;
         copy.as_file()
             .sync_all()
@@ -319,7 +344,7 @@ impl Office {
             .index()
             .text()
             .to_owned();
-        if current != recovered.text {
+        if document.snapshot.is_none() && current != recovered.text {
             // A text checkpoint is not a rich-document snapshot. Preserve the
             // unchanged edges instead of deleting all existing runs (which
             // loses their formatting and can make a safe export impossible).
@@ -348,6 +373,10 @@ impl Office {
                 .replace_from(InputSource::Command, Some(start..end), replacement)
                 .map_err(input_error)?;
         }
+        office
+            .active_mut()
+            .ok_or_else(|| ExecuteError::Failed("no recovered document".into()))?
+            .mark_recovered();
         Ok(office)
     }
 

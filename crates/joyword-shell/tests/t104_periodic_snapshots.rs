@@ -15,11 +15,37 @@ use joyword_shell::host::Office;
 use joyword_shell::storage;
 
 fn fixture() -> Vec<u8> {
-    fs::read(
+    use joyoffice_opc::{Budget, Method, Package, write_archive};
+    let original = fs::read(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../tests/fixtures/docx/DOCX-MIN-001.docx"),
     )
-    .unwrap()
+    .unwrap();
+    let package = Package::read(&original, &Budget::default()).unwrap();
+    // trackRevisions currently requires an existing settings part (T103's
+    // separate creation limitation). Use a writable review-capable package.
+    let content_types = String::from_utf8(package.content_types_xml().to_vec()).unwrap()
+        .replace("</Types>", "<Override PartName=\"/word/settings.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml\"/></Types>");
+    let relationships = r#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdSettings" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>"#;
+    let settings = r#"<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"></w:settings>"#;
+    let mut parts = vec![(
+        "[Content_Types].xml",
+        content_types.as_bytes(),
+        Method::Deflated,
+    )];
+    parts.extend(
+        package
+            .parts()
+            .filter(|part| part.name.as_str() != "/word/_rels/document.xml.rels")
+            .map(|part| (part.name.item_name(), part.data.as_ref(), part.method)),
+    );
+    parts.push((
+        "word/_rels/document.xml.rels",
+        relationships.as_bytes(),
+        Method::Deflated,
+    ));
+    parts.push(("word/settings.xml", settings.as_bytes(), Method::Deflated));
+    write_archive(&parts).unwrap()
 }
 
 #[test]
@@ -43,7 +69,9 @@ fn every_committed_edit_publishes_a_complete_periodic_snapshot() {
                 command: CommandId,
                 args: &[(&'static str, ArgValue)],
                 expected_generation: u64| {
-        office.invoke(command, args).unwrap();
+        office
+            .invoke(command, args)
+            .unwrap_or_else(|error| panic!("checkpoint after {}: {error:?}", command.0));
         let checkpoint = storage::recover_checkpoint(&recovery).unwrap();
         assert_eq!(
             checkpoint.generation, expected_generation,
@@ -65,6 +93,31 @@ fn every_committed_edit_publishes_a_complete_periodic_snapshot() {
             checkpoint.version.is_some(),
             "versioned snapshot after {}",
             command.0
+        );
+        let document = storage::recover_document_checkpoint(&recovery).unwrap();
+        assert!(
+            document.snapshot.is_some(),
+            "complete package after {}",
+            command.0
+        );
+        let restored = Office::recover_from(&recovery).unwrap();
+        let live = office
+            .active()
+            .unwrap()
+            .backend()
+            .session()
+            .session()
+            .document();
+        let recovered = restored.active().unwrap();
+        assert_eq!(
+            live.semantic_difference(recovered.backend().session().session().document()),
+            None,
+            "rich recovery after {}",
+            command.0
+        );
+        assert!(
+            recovered.has_unsaved_changes(),
+            "recovered document retains save/discard choice"
         );
     };
 

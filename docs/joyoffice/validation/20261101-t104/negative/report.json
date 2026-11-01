@@ -1,0 +1,11 @@
+{
+  "passed": false,
+  "binarySha256": "252ad692f55dfeebd6814259012fe213a74a30e815aec5a3fedcbf13d35fa5b7",
+  "sourceSha256": "84baa62b27d04ed4c496be6195a432de08c5ed47c8ad0bf85b17434fb104f8f0",
+  "desktopScale": 1.25,
+  "eventSource": "X11 OS synthetic keys/pointer; real windows; owned process SIGKILL",
+  "powerLossTested": false,
+  "nativeImeVerified": false,
+  "checks": [],
+  "error": "AssertionError: Only original package + text was journaled; rich edits cannot recover"
+}

@@ -763,6 +763,7 @@ pub struct TextInput<B = Session> {
     view: InputView,
     limits: InputLimits,
     saved_version: DocumentVersion,
+    recovered_unsaved: bool,
     /// Union of committed changes not yet covered by an installed layout.
     pending: ChangeSet,
     brush: Option<FormatBrush>,
@@ -892,6 +893,7 @@ impl<B: InputBackend> TextInput<B> {
             view,
             limits,
             saved_version,
+            recovered_unsaved: false,
             pending: ChangeSet::default(),
             brush: None,
             brush_repeat: false,
@@ -933,9 +935,28 @@ impl<B: InputBackend> TextInput<B> {
     pub fn is_composing(&self) -> bool {
         self.composition.is_some()
     }
-    pub fn has_unsaved_changes(&self) -> bool {
-        self.backend.session().version() != self.saved_version
+    /// Full committed body text, independent of the active header/footer story
+    /// and of an IME preview. Recovery uses the complete package for all stories.
+    pub fn committed_body_text(&self) -> Result<String, InputError> {
+        if self.edit_story == self.backend.session().document().body_id() {
+            return Ok(self.base.text().to_owned());
+        }
+        let snapshot = self.backend.session().snapshot();
+        let body = snapshot.body_id();
+        Ok(TextIndex::new_for_story(snapshot, body, self.limits)?
+            .text()
+            .to_owned())
     }
+
+    pub fn has_unsaved_changes(&self) -> bool {
+        self.recovered_unsaved || self.backend.session().version() != self.saved_version
+    }
+    /// A restored checkpoint is an independent, not-yet-accepted document.
+    /// Keep the close/save choice even when a rich snapshot needs no text patch.
+    pub fn mark_recovered(&mut self) {
+        self.recovered_unsaved = true;
+    }
+
     pub fn saved_version(&self) -> DocumentVersion {
         self.saved_version
     }
@@ -943,6 +964,9 @@ impl<B: InputBackend> TextInput<B> {
     /// edits remain dirty; an older asynchronous completion cannot move the
     /// saved baseline backwards.
     pub fn mark_saved(&mut self, version: DocumentVersion) {
+        if version == self.backend.session().version() {
+            self.recovered_unsaved = false;
+        }
         if version.get() > self.saved_version.get() {
             self.saved_version = version;
         }

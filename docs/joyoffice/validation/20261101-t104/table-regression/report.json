@@ -1,0 +1,1060 @@
+{
+  "passed": true,
+  "binarySha256": "4b9e16d4dc43f79b848a711a9041e493f8636bd603d725b1e7aa770f65fb7228",
+  "sourceSha256": "2d03ec2e2d20443b19b0010c7332832c2e51fa9f8de7048fdafe2b0e4410a6b9",
+  "eventSource": "X11 OS synthetic keys/pointer; actual window pixels",
+  "desktopScale": 1.25,
+  "nativeImeVerified": false,
+  "checks": [
+    "create a 3x2 table using native grid picker; immediate typing; six cell values read from DOCX",
+    "native row insert/delete and column insert/delete; row undo/redo preserves all content",
+    "merge right and split through visible menu; each is one undo; no content loss",
+    "real ruler drags at 80% and 100% document zoom on a 125% desktop; exact twips; undo/redo",
+    "cell fill and double border in one undo; adjacent cells unchanged; cancelled properties unchanged",
+    "save and reopen contract in native app; unchanged grid/fill/borders/content; independent PDF text readback; original bytes intact"
+  ],
+  "snapshots": {
+    "01-created": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "02-row-insert": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "03-row-undo": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "04-row-redo": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "05-row-delete": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "06-column-insert": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "07-column-delete": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "08-merged": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "ItemQty",
+            "span": 2,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "09-split": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "ItemQty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "10-split-undo": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "ItemQty",
+            "span": 2,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "11-merge-undo": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "12-resized-80": {
+      "margins": null,
+      "grid": [
+        3840,
+        2400,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "13-resize-undo": {
+      "margins": null,
+      "grid": [
+        3120,
+        3120,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "14-resize-redo": {
+      "margins": null,
+      "grid": [
+        3840,
+        2400,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "15-resized-100": {
+      "margins": null,
+      "grid": [
+        4128,
+        2112,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "16-cell-fill": {
+      "margins": null,
+      "grid": [
+        4128,
+        2112,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": "DDEEFF",
+            "border": "double"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ]
+      ]
+    },
+    "17-format-undo": {
+      "margins": null,
+      "grid": [
+        4128,
+        2112,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "single"
+          }
+        ]
+      ]
+    },
+    "18-format-redo": {
+      "margins": null,
+      "grid": [
+        4128,
+        2112,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": "DDEEFF",
+            "border": "double"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ]
+      ]
+    },
+    "19-cancelled-fill": {
+      "margins": null,
+      "grid": [
+        4128,
+        2112,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": "DDEEFF",
+            "border": "double"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ]
+      ]
+    },
+    "20-reopened": {
+      "margins": null,
+      "grid": [
+        4128,
+        2112,
+        3120
+      ],
+      "rows": [
+        [
+          {
+            "text": "Item",
+            "span": 1,
+            "fill": "DDEEFF",
+            "border": "double"
+          },
+          {
+            "text": "Qty",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "Amount",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ],
+        [
+          {
+            "text": "Service",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "2",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          },
+          {
+            "text": "100",
+            "span": 1,
+            "fill": null,
+            "border": "double"
+          }
+        ]
+      ]
+    }
+  },
+  "windowGeometry": "WINDOW=205520897\nX=425\nY=178\nWIDTH=1500\nHEIGHT=1063\nSCREEN=0"
+}

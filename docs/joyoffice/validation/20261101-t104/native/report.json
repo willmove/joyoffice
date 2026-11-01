@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "binarySha256": "4b9e16d4dc43f79b848a711a9041e493f8636bd603d725b1e7aa770f65fb7228",
+  "sourceSha256": "84baa62b27d04ed4c496be6195a432de08c5ed47c8ad0bf85b17434fb104f8f0",
+  "desktopScale": 1.25,
+  "eventSource": "X11 OS synthetic keys/pointer; real windows; owned process SIGKILL",
+  "powerLossTested": false,
+  "nativeImeVerified": false,
+  "checks": [
+    "real table row/column-width/fill/bold/alignment edits; checkpoint equals independent Save As; SIGKILL after last commit",
+    "native startup restores exact complete DOCX, including formatting and table structure; formal source unchanged",
+    "recovered rich document keeps unsaved choice after Save As; explicit discard publishes tombstone; restart does not resurrect it",
+    "corrupt latest slot restores exact prior rich generation; visible fallback notice; damaged and valid slots retained",
+    "both corrupt slots refuse recovery, show notice and preserve evidence; no fabricated recovered package"
+  ],
+  "lastCommitted": {
+    "generation": 17,
+    "version": 17,
+    "state": {
+      "rows": 3,
+      "grid": [
+        4488,
+        1752,
+        3120
+      ],
+      "text": "ItemQtyAmountRecoveredRowService2100",
+      "fill": "FFDDCC",
+      "bold": 1,
+      "center": 1
+    }
+  }
+}

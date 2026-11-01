@@ -1,4 +1,4 @@
-//! Production text checkpoints (T104), not rich-document or undo recovery.
+//! Production text and complete DOCX checkpoints (T104). Undo history is session-local.
 //!
 //! Two published slots retain the last valid generation throughout replacement.
 //! As in experiments/recovery-journal, written bytes must be synced and verified
@@ -16,11 +16,13 @@ use joyoffice_opc::{Budget, ZipArchive, ZipError};
 
 const MAGIC: &[u8; 8] = b"JWREC001";
 const MAGIC_V2: &[u8; 8] = b"JWREC002";
+const MAGIC_V3: &[u8; 8] = b"JWREC003";
 const SLOTS: [&str; 2] = ["recovery-a.jwr", "recovery-b.jwr"];
 const LOCK: &str = "recovery.lock";
 // Hard allocation/IO ceilings, including for legacy files. Check before copying.
 const MAX_BASELINE: usize = 96 * 1024 * 1024;
 const MAX_TEXT: usize = 32 * 1024 * 1024;
+const MAX_SNAPSHOT: usize = MAX_BASELINE;
 const MAX_RECORD: usize = MAX_BASELINE + MAX_TEXT + 49;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -36,6 +38,17 @@ pub struct RecoveryCheckpoint {
     /// None for legacy or callers of the unversioned compatibility API.
     pub version: Option<u64>,
     pub recovered: Recovered,
+}
+
+/// Additive rich-checkpoint API. Legacy callers still get their original
+/// baseline and text through RecoveryCheckpoint; the production opener uses
+/// this wrapper to restore the complete committed package when present.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DocumentCheckpoint {
+    pub checkpoint: RecoveryCheckpoint,
+    pub snapshot: Option<Vec<u8>>,
+    /// A published slot was unreadable; the selected generation is a fallback.
+    pub degraded: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -100,6 +113,7 @@ struct Record {
     version: Option<u64>,
     // A published tombstone invalidates both old slots and outstanding requests.
     recovered: Option<Recovered>,
+    snapshot: Option<Vec<u8>>,
 }
 
 struct Selected {
@@ -114,10 +128,13 @@ impl Selected {
 }
 
 pub fn package_is_encrypted(bytes: &[u8]) -> bool {
-    matches!(
-        ZipArchive::new(bytes, &Budget::default()),
-        Err(ZipError::Unsupported(message)) if message.contains("encrypted")
-    )
+    // OOXML encryption uses a CFB envelope. It is never a DOCX recovery
+    // baseline; conservatively refuse any such envelope before writing.
+    bytes.starts_with(&[0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])
+        || matches!(
+            ZipArchive::new(bytes, &Budget::default()),
+            Err(ZipError::Unsupported(message)) if message.contains("encrypted")
+        )
 }
 
 fn invalid(message: &'static str) -> io::Error {
@@ -165,6 +182,54 @@ pub fn commit_versioned(
     publish(&request, baseline, text)
 }
 
+fn validate_snapshot(baseline: &[u8], text: &str, snapshot: &[u8]) -> io::Result<()> {
+    validate(baseline, text)?;
+    let total = baseline
+        .len()
+        .checked_add(text.len())
+        .and_then(|value| value.checked_add(snapshot.len()))
+        .and_then(|value| value.checked_add(57));
+    if snapshot.is_empty()
+        || snapshot.len() > MAX_SNAPSHOT
+        || total.is_none_or(|value| value > MAX_RECORD)
+    {
+        return Err(invalid("recovery snapshot byte budget"));
+    }
+    if package_is_encrypted(snapshot) {
+        return Err(invalid("encrypted recovery snapshot"));
+    }
+    Ok(())
+}
+
+/// Publish an immutable export of the committed document alongside its original
+/// package baseline. The existing total record budget and two-slot protocol stay
+/// in force. Export failure must be reported by the caller, never downgraded to
+/// a text-only checkpoint.
+pub fn commit_document_versioned(
+    directory: &Path,
+    version: u64,
+    baseline: &[u8],
+    text: &str,
+    snapshot: &[u8],
+) -> Result<RecoveryReceipt, RecoveryError> {
+    validate_snapshot(baseline, text, snapshot)
+        .map_err(|source| failure(RecoveryStage::Prepare, source))?;
+    let request =
+        prepare(directory, Some(version)).map_err(|source| failure(RecoveryStage::Read, source))?;
+    publish_document(&request, baseline, text, snapshot)
+}
+
+pub fn publish_document(
+    request: &RecoveryRequest,
+    baseline: &[u8],
+    text: &str,
+    snapshot: &[u8],
+) -> Result<RecoveryReceipt, RecoveryError> {
+    publish_document_inner(request, Some((baseline, text)), Some(snapshot), |_, _| {
+        Ok(())
+    })
+}
+
 /// Read-only preparation. A missing directory represents generation zero.
 pub fn prepare(directory: &Path, version: Option<u64>) -> io::Result<RecoveryRequest> {
     let _lock = reader_lock(directory)?;
@@ -207,6 +272,15 @@ fn require_writable(selected: &Selected) -> io::Result<()> {
 fn publish_inner(
     request: &RecoveryRequest,
     content: Option<(&[u8], &str)>,
+    before: impl FnMut(RecoveryStage, &Path) -> io::Result<()>,
+) -> Result<RecoveryReceipt, RecoveryError> {
+    publish_document_inner(request, content, None, before)
+}
+
+fn publish_document_inner(
+    request: &RecoveryRequest,
+    content: Option<(&[u8], &str)>,
+    snapshot: Option<&[u8]>,
     mut before: impl FnMut(RecoveryStage, &Path) -> io::Result<()>,
 ) -> Result<RecoveryReceipt, RecoveryError> {
     let directory = &request.directory;
@@ -216,7 +290,13 @@ fn publish_inner(
         before(RecoveryStage::Prepare, directory),
     )?;
     if let Some((baseline, text)) = content {
-        step(RecoveryStage::Prepare, validate(baseline, text))?;
+        step(
+            RecoveryStage::Prepare,
+            match snapshot {
+                Some(snapshot) => validate_snapshot(baseline, text, snapshot),
+                None => validate(baseline, text),
+            },
+        )?;
     }
     step(RecoveryStage::Lock, before(RecoveryStage::Lock, directory))?;
     let _lock = writer_lock(directory).map_err(|e| failure(RecoveryStage::Lock, e))?;
@@ -242,6 +322,7 @@ fn publish_inner(
     let record = Record {
         generation,
         version: content.and(request.version),
+        snapshot: snapshot.map(<[u8]>::to_vec),
         recovered: content.map(|(baseline, text)| Recovered {
             baseline: baseline.to_vec(),
             text: text.to_owned(),
@@ -321,17 +402,26 @@ pub fn recover(directory: &Path) -> io::Result<Recovered> {
 }
 
 pub fn recover_checkpoint(directory: &Path) -> io::Result<RecoveryCheckpoint> {
+    recover_document_checkpoint(directory).map(|document| document.checkpoint)
+}
+
+pub fn recover_document_checkpoint(directory: &Path) -> io::Result<DocumentCheckpoint> {
     let _lock = reader_lock(directory)?;
-    let record = select(directory)?
+    let selected = select(directory)?;
+    let record = selected
         .record
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "no published recovery"))?;
     let recovered = record
         .recovered
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "recovery explicitly discarded"))?;
-    Ok(RecoveryCheckpoint {
-        generation: record.generation,
-        version: record.version,
-        recovered,
+    Ok(DocumentCheckpoint {
+        checkpoint: RecoveryCheckpoint {
+            generation: record.generation,
+            version: record.version,
+            recovered,
+        },
+        snapshot: record.snapshot,
+        degraded: selected.degraded,
     })
 }
 
@@ -456,7 +546,12 @@ fn read_record(path: &Path, legacy: bool) -> io::Result<Option<Record>> {
 }
 
 fn encode(record: &Record) -> Vec<u8> {
-    let mut bytes = MAGIC_V2.to_vec();
+    let mut bytes = if record.snapshot.is_some() {
+        MAGIC_V3
+    } else {
+        MAGIC_V2
+    }
+    .to_vec();
     bytes.extend_from_slice(&record.generation.to_le_bytes());
     bytes.push(if record.recovered.is_none() {
         2
@@ -467,13 +562,23 @@ fn encode(record: &Record) -> Vec<u8> {
     if let Some(recovered) = &record.recovered {
         write_blob(&mut bytes, &recovered.baseline);
         write_blob(&mut bytes, recovered.text.as_bytes());
+        if let Some(snapshot) = &record.snapshot {
+            write_blob(&mut bytes, snapshot);
+        }
     }
     bytes.extend_from_slice(&crc32fast::hash(&bytes).to_le_bytes());
     bytes
 }
 
 fn decode(bytes: &[u8], legacy: bool) -> io::Result<Record> {
-    let magic = if legacy { MAGIC } else { MAGIC_V2 };
+    let rich = !legacy && bytes.starts_with(MAGIC_V3);
+    let magic = if legacy {
+        MAGIC
+    } else if rich {
+        MAGIC_V3
+    } else {
+        MAGIC_V2
+    };
     if bytes.len() < 12 || bytes.len() > MAX_RECORD || &bytes[..8] != magic {
         return Err(invalid("recovery header or budget"));
     }
@@ -487,6 +592,7 @@ fn decode(bytes: &[u8], legacy: bool) -> io::Result<Record> {
         generation: 0,
         version: None,
         recovered: None,
+        snapshot: None,
     };
     if !legacy {
         record.generation = read_u64(&mut cursor)?;
@@ -507,13 +613,19 @@ fn decode(bytes: &[u8], legacy: bool) -> io::Result<Record> {
     }
     let baseline = read_blob(&mut cursor, MAX_BASELINE)?;
     let text = read_blob(&mut cursor, MAX_TEXT)?;
+    if rich {
+        record.snapshot = Some(read_blob(&mut cursor, MAX_SNAPSHOT)?);
+    }
     if !cursor.is_empty() {
         return Err(invalid("trailing recovery bytes"));
     }
     let text = String::from_utf8(text).map_err(|_| invalid("recovery text"))?;
     // Also reject encrypted bytes from legacy/untrusted recovery files before
     // Office::recover_from can write a recovered package or apply plaintext.
-    validate(&baseline, &text)?;
+    match &record.snapshot {
+        Some(snapshot) => validate_snapshot(&baseline, &text, snapshot)?,
+        None => validate(&baseline, &text)?,
+    }
     record.recovered = Some(Recovered { baseline, text });
     Ok(record)
 }
@@ -637,6 +749,7 @@ mod tests {
     fn record(generation: u64, text: &str) -> Record {
         Record {
             generation,
+            snapshot: None,
             version: Some(generation),
             recovered: Some(Recovered {
                 baseline: b"PK".to_vec(),
@@ -648,52 +761,70 @@ mod tests {
     #[test]
     fn real_io_faults_have_stages_and_keep_the_last_published_generation()
     -> Result<(), Box<dyn std::error::Error>> {
-        for stage in [
-            RecoveryStage::Prepare,
-            RecoveryStage::Lock,
-            RecoveryStage::Read,
-            RecoveryStage::CreateTemporary,
-            RecoveryStage::Write,
-            RecoveryStage::Flush,
-            RecoveryStage::SyncFile,
-            RecoveryStage::Verify,
-            RecoveryStage::Publish,
-            RecoveryStage::SyncDirectory,
-        ] {
-            let dir = tempfile::tempdir()?;
-            commit(dir.path(), b"PK", "one")?;
-            commit(dir.path(), b"PK", "two")?;
-            let request = prepare(dir.path(), Some(3))?;
-            let result = publish_inner(&request, Some((b"PK", "three")), |at, path| {
-                if at == stage {
-                    if at == RecoveryStage::Write {
-                        fs::write(path, b"partial")?;
+        for rich in [false, true] {
+            for stage in [
+                RecoveryStage::Prepare,
+                RecoveryStage::Lock,
+                RecoveryStage::Read,
+                RecoveryStage::CreateTemporary,
+                RecoveryStage::Write,
+                RecoveryStage::Flush,
+                RecoveryStage::SyncFile,
+                RecoveryStage::Verify,
+                RecoveryStage::Publish,
+                RecoveryStage::SyncDirectory,
+            ] {
+                let dir = tempfile::tempdir()?;
+                let commit = |version, text| {
+                    if rich {
+                        commit_document_versioned(dir.path(), version, b"PK", text, b"PKsnapshot")
+                    } else {
+                        commit_versioned(dir.path(), version, b"PK", text)
                     }
-                    Err(io::Error::new(
-                        io::ErrorKind::StorageFull,
-                        "injected IO failure",
-                    ))
+                };
+                commit(1, "one")?;
+                commit(2, "two")?;
+                let request = prepare(dir.path(), Some(3))?;
+                let result = publish_document_inner(
+                    &request,
+                    Some((b"PK", "three")),
+                    rich.then_some(b"PKsnapshot".as_slice()),
+                    |at, path| {
+                        if at == stage {
+                            if at == RecoveryStage::Write {
+                                fs::write(path, b"partial")?;
+                            }
+                            Err(io::Error::new(
+                                io::ErrorKind::StorageFull,
+                                "injected IO failure",
+                            ))
+                        } else {
+                            Ok(())
+                        }
+                    },
+                );
+                let error = result
+                    .err()
+                    .ok_or_else(|| invalid("fault unexpectedly succeeded"))?;
+                assert_eq!(error.stage, stage);
+                assert!(error.to_string().contains(&format!("{stage:?}")));
+                if stage == RecoveryStage::SyncDirectory {
+                    let receipt = error
+                        .published
+                        .ok_or_else(|| invalid("missing published receipt"))?;
+                    assert_eq!(receipt.generation, 3);
+                    assert!(!receipt.directory_synced);
+                    assert_eq!(recover(dir.path())?.text, "three");
+                    fs::write(receipt.path, b"corrupt after publication")?;
                 } else {
-                    Ok(())
+                    assert!(error.published.is_none());
                 }
-            });
-            let error = result
-                .err()
-                .ok_or_else(|| invalid("fault unexpectedly succeeded"))?;
-            assert_eq!(error.stage, stage);
-            assert!(error.to_string().contains(&format!("{stage:?}")));
-            if stage == RecoveryStage::SyncDirectory {
-                let receipt = error
-                    .published
-                    .ok_or_else(|| invalid("missing published receipt"))?;
-                assert_eq!(receipt.generation, 3);
-                assert!(!receipt.directory_synced);
-                assert_eq!(recover(dir.path())?.text, "three");
-                fs::write(receipt.path, b"corrupt after publication")?;
-            } else {
-                assert!(error.published.is_none());
+                assert_eq!(recover(dir.path())?.text, "two");
+                assert_eq!(
+                    recover_document_checkpoint(dir.path())?.snapshot.is_some(),
+                    rich
+                );
             }
-            assert_eq!(recover(dir.path())?.text, "two");
         }
         Ok(())
     }
@@ -905,6 +1036,26 @@ mod tests {
         assert!(validate_lengths(usize::MAX, 1).is_err());
         assert!(validate_lengths(MAX_BASELINE + 1, 0).is_err());
         assert!(validate_lengths(0, MAX_TEXT + 1).is_err());
+        let mut rich_record = record(1, "text");
+        rich_record.snapshot = Some(b"PKsnapshot".to_vec());
+        let rich = encode(&rich_record);
+        for end in 0..rich.len() {
+            assert!(
+                decode(&rich[..end], false).is_err(),
+                "rich truncation {end}"
+            );
+        }
+        for offset in 0..rich.len() {
+            let mut corrupt = rich.clone();
+            corrupt[offset] ^= 1;
+            assert!(decode(&corrupt, false).is_err(), "rich checksum {offset}");
+        }
+        let mut overflow = rich.clone();
+        let length_offset = rich.len() - 4 - b"PKsnapshot".len() - 8;
+        overflow[length_offset..length_offset + 8].copy_from_slice(&u64::MAX.to_le_bytes());
+        overflow.truncate(overflow.len() - 4);
+        overflow.extend_from_slice(&crc32fast::hash(&overflow).to_le_bytes());
+        assert!(decode(&overflow, false).is_err());
         let absent = dir.path().join("over-budget");
         assert!(commit(&absent, b"PK", &"x".repeat(MAX_TEXT + 1)).is_err());
         assert!(!absent.exists());
@@ -951,6 +1102,7 @@ mod tests {
         assert!(crate::host::Office::recover_from(dir.path()).is_err());
         assert!(!dir.path().join("recovered.docx").exists());
         let malicious = Record {
+            snapshot: None,
             generation: 1,
             version: Some(1),
             recovered: Some(Recovered {

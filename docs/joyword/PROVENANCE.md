@@ -241,3 +241,8 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 
 
 
+
+### T104 完整恢复检查点与显式 break 写回（2026-11-01）
+
+- 恢复容器 V3 为原创版本化二进制协议，在既有总预算、CRC、双代轮换、读回校验、文件锁与临时发布之上追加已验证 DOCX；不引入外部实现或依赖。
+- 新增的显式分页／分栏写出依据 ECMA-376 Part 1 §17.3.3.1（br）及 Microsoft 公开规范说明 [Break](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.break?view=openxml-3.0.1)、[BreakValues](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.breakvalues?view=openxml-3.0.1) 的 `page`／`column`／`textWrapping` 值；只读公开规范／API 说明，未读取 SDK 或编辑器实现源码。保留原有未知 inline／源标记拒绝契约。

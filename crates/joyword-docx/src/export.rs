@@ -1284,7 +1284,7 @@ type RewriteParagraph = fn(
 ) -> Result<Vec<u8>, ExportError>;
 
 /// `after` without its inline objects when the only objects it gained are
-/// new page fields (`page.number`) or soft line breaks and `before` had none. Paragraphs that
+/// new page fields (`page.number`) or explicit line/page/column breaks and `before` had none. Paragraphs that
 /// already held inline objects keep the refusal: their source markup (a
 /// complex field, a cached result's formatting) is not rebuilt.
 fn without_added_fields_or_line_breaks(before: &Paragraph, after: &Paragraph) -> Option<Paragraph> {
@@ -1294,8 +1294,7 @@ fn without_added_fields_or_line_breaks(before: &Paragraph, after: &Paragraph) ->
             inline.source.is_none()
                 && matches!(
                     inline.kind,
-                    joyword_model::InlineKind::PageField(_)
-                        | joyword_model::InlineKind::Break(joyword_model::BreakKind::Line)
+                    joyword_model::InlineKind::PageField(_) | joyword_model::InlineKind::Break(_)
                 )
         })
     {

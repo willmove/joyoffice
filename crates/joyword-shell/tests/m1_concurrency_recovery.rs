@@ -143,7 +143,10 @@ fn killed_child_restores_the_commit_and_encrypted_bytes_are_not_copied() {
         .session()
         .backing()
         .original_bytes();
-    assert_eq!(baseline, fixture());
+    let checkpoint = joyword_shell::storage::recover_document_checkpoint(dir.path()).unwrap();
+    assert_eq!(checkpoint.checkpoint.recovered.baseline, fixture());
+    assert_eq!(checkpoint.snapshot.as_deref(), Some(baseline));
+    assert!(restored.active().unwrap().has_unsaved_changes());
 
     let mut encrypted = fixture();
     for signature in [b"PK\x03\x04".as_slice(), b"PK\x01\x02".as_slice()] {

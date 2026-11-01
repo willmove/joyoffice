@@ -369,3 +369,7 @@ input.row_revision = This document contains pending table row insertions. Text e
 ruler.drag.stale_table = The table changed during the drag. Select its cell and try again
 dialog.table.cell_fill = Current cell fill (RRGGBB/auto/none)
 ui.table_edit = Edit table
+
+recovery.fallback = The latest recovery checkpoint is damaged. The previous valid state was restored. Save a new copy before continuing.
+recovery.restore_failed = Recovery could not be restored. Keep the recovery directory and continue from a saved document.
+recovery.dismiss = Dismiss

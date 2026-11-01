@@ -310,6 +310,10 @@ pub(crate) trait DocEditor {
     fn recovery_baseline(&self) -> Option<&[u8]> {
         None
     }
+    fn recovery_snapshot(&self) -> Result<Option<Vec<u8>>, String> {
+        Ok(None)
+    }
+    fn recovery_body_text(&self) -> Result<String, InputError>;
     fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
         None
     }
@@ -386,6 +390,9 @@ macro_rules! forward_review {
 impl DocEditor for TextInput<joyword_engine::Session> {
     fn has_unsaved_changes(&self) -> bool {
         TextInput::has_unsaved_changes(self)
+    }
+    fn recovery_body_text(&self) -> Result<String, InputError> {
+        TextInput::committed_body_text(self)
     }
     fn is_composing(&self) -> bool {
         TextInput::is_composing(self)
@@ -593,6 +600,9 @@ impl DocEditor for TextInput<joyword_engine::Session> {
 impl DocEditor for TextInput<BoundDocx> {
     fn has_unsaved_changes(&self) -> bool {
         TextInput::has_unsaved_changes(self)
+    }
+    fn recovery_body_text(&self) -> Result<String, InputError> {
+        TextInput::committed_body_text(self)
     }
     fn is_composing(&self) -> bool {
         TextInput::is_composing(self)
@@ -818,6 +828,13 @@ impl DocEditor for TextInput<BoundDocx> {
     fn recovery_baseline(&self) -> Option<&[u8]> {
         Some(self.backend().session().backing().original_bytes())
     }
+    fn recovery_snapshot(&self) -> Result<Option<Vec<u8>>, String> {
+        self.backend()
+            .session()
+            .export_plan()
+            .map(|plan| Some(plan.bytes().to_vec()))
+            .map_err(|error| error.to_string())
+    }
     fn into_bound(self: Box<Self>) -> Option<TextInput<BoundDocx>> {
         Some(*self)
     }
@@ -830,6 +847,9 @@ impl DocEditor for TextInput<BoundDocx> {
 impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     fn has_unsaved_changes(&self) -> bool {
         TextInput::has_unsaved_changes(self)
+    }
+    fn recovery_body_text(&self) -> Result<String, InputError> {
+        TextInput::committed_body_text(self)
     }
     fn is_composing(&self) -> bool {
         TextInput::is_composing(self)
@@ -1048,6 +1068,12 @@ impl DocEditor for TextInput<joyword_shell::docx::DocxSession> {
     }
     fn recovery_baseline(&self) -> Option<&[u8]> {
         Some(self.backend().backing().original_bytes())
+    }
+    fn recovery_snapshot(&self) -> Result<Option<Vec<u8>>, String> {
+        self.backend()
+            .export_plan()
+            .map(|plan| Some(plan.bytes().to_vec()))
+            .map_err(|error| error.to_string())
     }
     forward_review!();
     forward_word_keys!();
@@ -1317,7 +1343,24 @@ pub(crate) fn close_prompt_key(prompt: joyword_shell::host::ClosePrompt) -> Opti
     }
 }
 
-/// Checkpoint only committed text, never an IME preview. Save completion does
+fn editor_close_prompt(
+    editor: &dyn DocEditor,
+    in_flight: Option<u64>,
+) -> joyword_shell::host::ClosePrompt {
+    let prompt =
+        joyword_shell::host::close_prompt(editor.saved_version(), editor.version(), in_flight);
+    if prompt == joyword_shell::host::ClosePrompt::Allow && editor.has_unsaved_changes() {
+        // A restored rich package can be at local version zero, but still
+        // requires an explicit save/discard choice.
+        joyword_shell::host::ClosePrompt::Unsaved {
+            version: editor.version(),
+        }
+    } else {
+        prompt
+    }
+}
+
+/// Checkpoint the complete committed package, never an IME preview. Save completion does
 /// not clear this record: a detached save of N must not remove a journal of N+1.
 /// The current recovery directory remains a single-active-document checkpoint.
 fn journal_editor(
@@ -1328,11 +1371,24 @@ fn journal_editor(
         return Ok(());
     }
     if let Some(baseline) = editor.recovery_baseline() {
-        joyword_shell::storage::commit_recovery_versioned(
+        let failed = |reason| joyword_shell::storage::RecoveryError {
+            stage: joyword_shell::storage::RecoveryStage::Prepare,
+            source: std::io::Error::other(reason),
+            published: None,
+        };
+        let snapshot = editor
+            .recovery_snapshot()
+            .map_err(failed)?
+            .ok_or_else(|| failed("missing complete recovery snapshot".to_owned()))?;
+        let text = editor
+            .recovery_body_text()
+            .map_err(|error| failed(error.to_string()))?;
+        joyword_shell::storage::commit_document_recovery_versioned(
             directory,
             editor.version(),
             baseline,
-            editor.view().index().text(),
+            &text,
+            &snapshot,
         )?;
     }
     Ok(())
@@ -2624,11 +2680,7 @@ impl JoyWord {
             self.finish_discard(then, window, cx);
             return;
         };
-        let prompt = joyword_shell::host::close_prompt(
-            editor.saved_version(),
-            editor.version(),
-            self.in_flight_save_version(),
-        );
+        let prompt = editor_close_prompt(editor.as_ref(), self.in_flight_save_version());
         let Some(key) = close_prompt_key(prompt) else {
             self.finish_discard(then, window, cx);
             return;
@@ -3092,14 +3144,16 @@ impl JoyWord {
         let Some(editor) = &mut self.editor else {
             return;
         };
+        let before_version = editor.version();
         let result = f(editor.as_mut());
+        let committed = editor.version() != before_version;
         self.input_error = result
             .as_ref()
             .err()
             .map(|error| self.label(input_error_label(error)));
         if result.is_ok() {
             self.copy_note = None;
-            if let Err(error) = self.journal_edit() {
+            if committed && let Err(error) = self.journal_edit() {
                 // The edit succeeded; surface the checkpoint stage without
                 // pretending the edit was rolled back or durably recovered.
                 self.report_input_error(error.to_string());
@@ -4892,6 +4946,33 @@ mod tests {
                 .numbering
                 .is_none()
         );
+    }
+
+    #[test]
+    fn rich_recovery_at_local_version_zero_requires_close_confirmation()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let backend = joyword_shell::docx::DocxSession::open_default(include_bytes!(
+            "../../../tests/fixtures/docx/DOCX-MIN-001.docx"
+        ))?;
+        let mut input = TextInput::new(backend, InputLimits::default())?;
+        let version = DocEditor::version(&input);
+        input.mark_recovered();
+        assert!(input.has_unsaved_changes());
+        assert_eq!(
+            editor_close_prompt(&input, None),
+            joyword_shell::host::ClosePrompt::Unsaved { version }
+        );
+        assert_eq!(
+            editor_close_prompt(&input, Some(version)),
+            joyword_shell::host::ClosePrompt::Unsaved { version }
+        );
+        let saved = input.backend().session().version();
+        input.mark_saved(saved);
+        assert_eq!(
+            editor_close_prompt(&input, None),
+            joyword_shell::host::ClosePrompt::Allow
+        );
+        Ok(())
     }
 
     #[test]
