@@ -5,6 +5,7 @@ pub(crate) mod dml;
 mod shapes;
 mod theme;
 mod timing;
+mod workbook;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -65,6 +66,7 @@ const CT_APP: &str = "application/vnd.openxmlformats-officedocument.extended-pro
 
 /// Export state.
 pub struct Exp<'a> {
+    error: Option<PptxError>,
     pub p: &'a Presentation,
     pub pkg: PackageOut,
     media_parts: HashMap<MediaId, String>,
@@ -243,10 +245,49 @@ impl Exp<'_> {
         self.n_chart += 1;
         let name = format!("ppt/charts/chart{}.xml", self.n_chart);
         let (xml, preserved) = chart::chart_xml(c);
+        let xml = if !preserved
+            && matches!(
+                c.kind,
+                joydeck_model::chart::ChartType::Column
+                    | joydeck_model::chart::ChartType::StackedColumn
+                    | joydeck_model::chart::ChartType::PercentColumn
+                    | joydeck_model::chart::ChartType::Bar
+                    | joydeck_model::chart::ChartType::StackedBar
+                    | joydeck_model::chart::ChartType::PercentBar
+                    | joydeck_model::chart::ChartType::Line
+                    | joydeck_model::chart::ChartType::LineMarkers
+                    | joydeck_model::chart::ChartType::StackedLine
+                    | joydeck_model::chart::ChartType::Area
+                    | joydeck_model::chart::ChartType::StackedArea
+                    | joydeck_model::chart::ChartType::Pie
+                    | joydeck_model::chart::ChartType::Doughnut
+            )
+            && c.series.len() <= 64
+            && c.categories.len() <= 4096
+            && c.series.len().saturating_mul(c.categories.len()) <= 65536
+        {
+            match workbook::attach(&mut self.pkg, &name, c, &xml, self.n_chart) {
+                Ok(xml) => xml,
+                Err(e) => {
+                    self.error = Some(e);
+                    xml
+                }
+            }
+        } else {
+            xml
+        };
         self.pkg.xml_part(&name, CT_CHART, xml);
         if preserved {
             chart::write_kept(&mut self.pkg, &name, c, &mut self.n_kept);
-        } else if !c.kept.parts.is_empty() {
+        } else if !c.kept.parts.is_empty()
+            && !matches!(
+                c.kind,
+                joydeck_model::chart::ChartType::Column
+                    | joydeck_model::chart::ChartType::Bar
+                    | joydeck_model::chart::ChartType::Line
+                    | joydeck_model::chart::ChartType::Pie
+            )
+        {
             log::warn!("pptx: chart data changed; the embedded workbook was not written back");
         }
         o.rels
@@ -707,6 +748,7 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
     let p = sanitized(p);
     let p: &Presentation = &p;
     let mut x = Exp {
+        error: None,
         p,
         pkg: PackageOut::default(),
         media_parts: HashMap::new(),
@@ -1021,6 +1063,9 @@ pub fn export(p: &Presentation, main_ct: &str) -> Result<Vec<u8>, PptxError> {
         root.add_new(&k.rel_type, &k.name, false);
     }
     x.pkg.rels("", &root);
+    if let Some(error) = x.error {
+        return Err(error);
+    }
     x.pkg.finish()
 }
 

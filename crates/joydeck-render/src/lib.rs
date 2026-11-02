@@ -74,6 +74,7 @@ mod geometry;
 mod opts;
 mod raster;
 mod renderer;
+pub mod scene;
 mod slide;
 mod stroke;
 mod text_draw;

@@ -9,6 +9,8 @@ use std::{
     collections::BTreeMap,
     io::{Cursor, Read, Write},
 };
+#[path = "preserve_content.rs"]
+mod content;
 pub struct SlideBinding {
     pub slide: SlideId,
     pub source: SlideId,
@@ -133,7 +135,12 @@ fn rel_element(id: &str, kind: &str, target: &str) -> El {
     }
 }
 fn namespaces(root: &mut El) -> Result<(), PptxError> {
-    for (prefix, ns) in [("p", opc::NS_P), ("a", opc::NS_A), ("r", opc::NS_R)] {
+    for (prefix, ns) in [
+        ("p", opc::NS_P),
+        ("a", opc::NS_A),
+        ("r", opc::NS_R),
+        ("c", opc::NS_C),
+    ] {
         let key = format!("xmlns:{prefix}");
         if root.attrs.iter().any(|(k, v)| k == &key && v != ns) {
             return Err(error(
@@ -198,6 +205,7 @@ pub fn export_preserving(
         .xml(&opc::rels_path("ppt/presentation.xml"))
         .ok_or_else(|| error("missing presentation relationships"))?
         .root;
+    content::globals(&pkg, &gen_pkg, base, current, &mut parts, &mut pres)?;
     let mut ids = vec![];
     let mut next_file_id = ordered
         .iter()
@@ -349,6 +357,33 @@ pub fn export_preserving(
             .root;
         let gen_tree =
             tree(&generated_root).ok_or_else(|| error("missing generated shape tree"))?;
+        if slide.background != source_slide.background {
+            let common = child_mut(&mut root, "cSld").ok_or_else(|| error("missing slide cSld"))?;
+            replace(
+                common,
+                "bg",
+                generated_root
+                    .child("cSld")
+                    .and_then(|e| e.child("bg"))
+                    .cloned(),
+            );
+            if let Some(at) = common
+                .children
+                .iter()
+                .position(|n| matches!(n,Node::El(e) if e.is("bg")))
+            {
+                let bg = common.children.remove(at);
+                common.children.insert(0, bg);
+            }
+        }
+        if slide.show_master_shapes != source_slide.show_master_shapes {
+            set(
+                &mut root,
+                "showMasterSp",
+                if slide.show_master_shapes { "1" } else { "0" }.into(),
+            );
+        }
+        let mut added_rels = vec![];
         // Any unbound drawing on a touched page is refused rather than silently removed.
         for e in old_tree
             .elements()
@@ -529,6 +564,22 @@ pub fn export_preserving(
                 generated.clone()
             };
             // Generated shapes only reference existing theme or explicit colors; R2 inserts no new media.
+            let old = binding
+                .shapes
+                .get(&shape.id)
+                .and_then(|id| source_slide.shapes.iter().find(|s| s.id == *id));
+            content::shape(
+                &mut e,
+                generated,
+                old,
+                shape,
+                &gen_pkg,
+                &format!("ppt/slides/slide{}.xml", index + 1),
+                &part,
+                &mut parts,
+                &mut ct,
+                &mut added_rels,
+            )?;
             if let Some(nv) = find_mut(&mut e, "cNvPr") {
                 set(nv, "id", shape.id.0.to_string());
             }
@@ -585,16 +636,47 @@ pub fn export_preserving(
             }
             parts.insert(opc::rels_path(&part), slide_rels.to_xml().into_bytes());
         }
+        if !added_rels.is_empty() || slide.layout != source_slide.layout {
+            let path = opc::rels_path(&part);
+            let mut relationships = parts
+                .get(&path)
+                .and_then(|b| crate::xml::parse(b).ok())
+                .or_else(|| pkg.xml(&opc::rels_path(source_part)))
+                .ok_or_else(|| error("missing slide relationships"))?
+                .root;
+            relationships
+                .children
+                .extend(added_rels.into_iter().map(Node::El));
+            if slide.layout != source_slide.layout {
+                let target = content::layout_target(&pkg, base, slide.layout)?;
+                let rel = relationships
+                    .elements_mut()
+                    .find(|r| r.attr("Type").is_some_and(|t| t.ends_with("/slideLayout")))
+                    .ok_or_else(|| error("layout relationship missing"))?;
+                set(rel, "Target", opc::relative(&part, &target));
+            }
+            parts.insert(path, relationships.to_xml().into_bytes());
+        }
     }
     if structural {
         child_mut(&mut pres, "sldIdLst")
             .ok_or_else(|| error("missing slide list"))?
             .children = ids;
-        parts.insert("ppt/presentation.xml".into(), pres.to_xml().into_bytes());
         parts.insert(
             opc::rels_path("ppt/presentation.xml"),
             pres_rels.to_xml().into_bytes(),
         );
+    }
+    if structural || current.slide_size != base.slide_size {
+        parts.insert("ppt/presentation.xml".into(), pres.to_xml().into_bytes());
+    }
+    // New image/chart/workbook parts also need content types without changing slide structure.
+    if ct
+        != pkg
+            .xml("[Content_Types].xml")
+            .ok_or_else(|| error("content types missing"))?
+            .root
+    {
         parts.insert("[Content_Types].xml".into(), ct.to_xml().into_bytes());
     }
     let mut z = zip::ZipWriter::new(Cursor::new(vec![]));

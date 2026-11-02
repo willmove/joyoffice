@@ -4,7 +4,9 @@ use joydeck_model::{text::RunKind, *};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
 mod authoring;
+mod content;
 mod history_cost;
+pub use content::ContentAction;
 pub mod text;
 pub use authoring::{TableAction, TextTarget};
 pub use authoring::{body as text_body, set_body as set_draft_body};
@@ -48,6 +50,18 @@ pub struct EditorSnapshot {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "kebab-case", deny_unknown_fields)]
 pub enum Command {
+    Content {
+        action: ContentAction,
+    },
+    InsertPicture {
+        png: Vec<u8>,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+        #[serde(default)]
+        replace: bool,
+    },
     Select {
         page: usize,
         shapes: Vec<ShapeId>,
@@ -110,6 +124,8 @@ pub enum Command {
 impl Command {
     pub fn id(&self) -> &'static str {
         match self {
+            Self::Content { .. } => "content",
+            Self::InsertPicture { .. } => "insert-picture",
             Self::Select { .. } => "select",
             Self::InsertRect { .. } => "insert-rect",
             Self::InsertText { .. } => "insert-text",
@@ -132,6 +148,8 @@ impl Command {
     }
 }
 pub const COMMANDS: &[&str] = &[
+    "content",
+    "insert-picture",
     "select",
     "insert-rect",
     "insert-text",
@@ -295,6 +313,9 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Some(result) = content::apply(st, &cmd) {
+        return result;
+    }
     if let Some(result) = authoring::apply(st, &cmd) {
         return result;
     }

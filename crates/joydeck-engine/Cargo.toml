@@ -8,6 +8,7 @@ publish = false
 description = "Pure JoyDeck document commands, snapshots and bounded undo history"
 
 [dependencies]
+image.workspace = true
 joydeck-model.workspace = true
 serde.workspace = true
 serde_json.workspace = true

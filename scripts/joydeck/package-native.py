@@ -32,7 +32,7 @@ def source_snapshot():
 
 
 def output_name(version, system, arch, profile, fingerprint):
-    return f'joydeck-{version}-r3-{system}-{arch}-{profile}-{fingerprint[:10]}'
+    return f'joydeck-{version}-r4-r5-{system}-{arch}-{profile}-{fingerprint[:10]}'
 
 
 def create_archive(output, archive):
@@ -90,6 +90,7 @@ def main():
     cli_version = tomllib.loads((ROOT / 'apps/joydeck-cli/Cargo.toml').read_text(encoding='utf-8'))['package']['version']
     if version != cli_version:
         raise ValueError('Application and CLI versions must match')
+    subprocess.run([sys.executable, ROOT / 'scripts/check_sources.py'], cwd=ROOT, env=native_environment(), check=True)
     before = source_snapshot()
     binaries = [build(package, args.profile) for package in ['joydeck', 'joydeck-cli']]
     rustc = subprocess.check_output(['rustc', '-vV'], cwd=ROOT, encoding='utf-8')
@@ -110,7 +111,7 @@ def main():
     for file in ['LICENSE', 'THIRD_PARTY.md', 'Cargo.lock', 'rust-toolchain.toml']:
         shutil.copy2(ROOT / file, output / file)
     shutil.copytree(ROOT / 'licenses', output / 'licenses')
-    shutil.copy2(ROOT / 'packaging/joydeck/README-r3.md', output / 'README.md')
+    shutil.copy2(ROOT / 'packaging/joydeck/README-r4-r5.md', output / 'README.md')
     shutil.copytree(ROOT / 'tests/fixtures/joydeck', output / 'samples')
     license_records = []
     for package in dependencies:
@@ -136,7 +137,7 @@ def main():
     create_archive(output, archive)
     archive.with_suffix('.zip.sha256').write_text(f'{sha256(archive)}  {archive.name}\n', encoding='utf-8')
     report = {'directory': str(output), 'archive': str(archive), 'archive_sha256': sha256(archive), 'source_sha256': before['sha256'], 'target': target, 'profile': args.profile, 'sbom_packages': len(dependencies), 'missing_license_texts': [r['name'] for r in license_records if r['source'] and not r['license_texts']], 'signed': False}
-    (ROOT / 'docs/joydeck/evidence/R3/package.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    (ROOT / 'docs/joydeck/evidence/R4-R5/package.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False))
 
 

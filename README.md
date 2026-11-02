@@ -19,9 +19,9 @@
 
 ## 当前状态
 
-2026-11-02：JoyDeck 0.4.0 / R3 文字与表格基础切片。真实 PPTX 支持画布原位文字、系统 IME 草稿/候选提交、选区粗体/斜体、表格单元格/行列/合并/底色、备注，以及 Unicode/内部富文字/TSV 剪贴板。沿用 R2 的统一命令、undo/redo、保存重开及恢复。详见 [R3 验证记录](docs/joydeck/evidence/R3/README.md) 和 [开发包说明](packaging/joydeck/README-r3.md)。
+2026-11-03：JoyDeck 0.5.0 / R4–R5 场景与内容工作区切片。默认 GPUI 场景、精确字形轮廓、对象/背景缓存及 CPU 对照；新增母版/主题/现有版式、图片裁剪调整与插入替换、分类图表及配套公开工作簿、渐变/形状和属性标签工作区。沿用 R2/R3 保存重开、原位输入、撤销和恢复。详见 [本轮验证记录](docs/joydeck/evidence/R4-R5/README.md) 和 [开发包说明](packaging/joydeck/README-r4-r5.md)。
 
-依赖仍锁定 Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10。复用 JoyOffice 原位输入适配与 UTF-16/组合草稿行为，文字、光标和命中使用 DeckCraft 同一布局。旋转/竖排原位编辑、完整格式 UI、图片/对象剪贴板、多窗口和 GPUI 原生场景加速继续后续切片；当前边界详见验证记录，R0/R1/R2 包保留。
+Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10 继续与 JoyOffice 对齐。复用原 JoyDeck 场景缓存/释放方法及公共 UI，不引入旧的并行文稿模型。完整 R4/R5 和 329 命令覆盖继续推进；所有旧开发包保留。
 
 ## 构建与体验
 
@@ -41,7 +41,7 @@ Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它�
 .\target\debug\joydeck-cli.exe render ".\tests\fixtures\joydeck\independent.pptx" --output ".\rendered" --all --scale 1
 ```
 
-输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r2.md)。
+输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r4-r5.md)。
 
 后续应从 [TASKS](docs/joydeck/TASKS.md) 选择任务，完成后填写新证据。JoyOffice 原有里程碑和上游自评不计入新 JoyDeck 的完成状态。
 

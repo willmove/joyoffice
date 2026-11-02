@@ -17,6 +17,7 @@ joydeck-geom = { workspace = true }
 joydeck-color = { workspace = true }
 quick-xml = { workspace = true }
 zip = { workspace = true }
+flate2 = { workspace = true }
 thiserror = { workspace = true }
 log = { workspace = true }
 

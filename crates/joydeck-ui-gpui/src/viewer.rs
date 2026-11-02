@@ -41,13 +41,36 @@ actions!(
         PreviousCell
     ]
 );
+#[path = "content_ui.rs"]
+mod content_ui;
 #[path = "editor_actions.rs"]
 mod editing;
 #[path = "inline_text.rs"]
 mod inline;
+#[path = "scene_benchmark.rs"]
+mod scene_benchmark;
+#[path = "scene_canvas.rs"]
+mod scene_canvas;
+#[path = "scene_view.rs"]
+mod scene_view;
 
 type ImageKey = (u64, usize, u32);
 pub struct Viewer {
+    benchmark: Option<Box<scene_benchmark::Benchmark>>,
+    benchmark_task: Option<Task<()>>,
+    retired_images: Vec<Arc<RenderImage>>,
+    gpu_document: u64,
+    ribbon: &'static str,
+    inspector: bool,
+    content_task: Option<Task<()>>,
+    cpu_view: bool,
+    scene: Option<(ImageKey, Arc<joydeck_render::scene::Scene>)>,
+    scene_cache: Arc<std::sync::Mutex<joydeck_render::scene::Cache>>,
+    gpu_cache: scene_canvas::GpuCache,
+    scene_pending: Option<ImageKey>,
+    scene_task: Option<Task<()>>,
+    scene_busy: bool,
+    scene_cancel: Arc<AtomicBool>,
     inline: Option<Box<inline::Inline>>,
     cell: Option<(ShapeId, usize, usize)>,
     notes_input: Entity<TextareaState>,
@@ -93,6 +116,7 @@ pub struct Viewer {
 }
 impl Drop for Viewer {
     fn drop(&mut self) {
+        self.scene_cancel.store(true, Ordering::Relaxed);
         for token in [&self.read_cancel, &self.paint_cancel, &self.thumbs_cancel] {
             token.store(true, Ordering::Relaxed);
         }
@@ -111,6 +135,21 @@ impl Viewer {
         let focus = cx.focus_handle();
         focus.focus(window, cx);
         Self {
+            benchmark: None,
+            benchmark_task: None,
+            retired_images: vec![],
+            gpu_document: 0,
+            ribbon: "开始",
+            inspector: true,
+            content_task: None,
+            cpu_view: false,
+            scene: None,
+            scene_cache: Arc::default(),
+            gpu_cache: scene_canvas::GpuCache::default(),
+            scene_pending: None,
+            scene_task: None,
+            scene_busy: false,
+            scene_cancel: Arc::new(AtomicBool::new(false)),
             inline: None,
             cell: None,
             notes_input: cx.new(|cx| TextareaState::new(window, cx).auto_grow(3, 8)),
@@ -231,7 +270,7 @@ impl Viewer {
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation {
-                    eprintln!("R3 stale_open_discarded=true");
+                    eprintln!("R4/R5 stale_open_discarded=true");
                     return;
                 }
                 s.loading = false;
@@ -276,19 +315,19 @@ impl Viewer {
                         s.thumbs_cancel = Arc::new(AtomicBool::new(false));
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
                         s.message = format!(
-                            "读取完成 · {} 页 · {} ms · R3 编辑",
+                            "读取完成 · {} 页 · {} ms · R4/R5 编辑",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                         eprintln!(
-                            "R3 opened=true pages={} elapsed_ms={}",
+                            "R4/R5 opened=true pages={} elapsed_ms={}",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                     }
                     Err(error) => {
                         s.message = format!("打开失败：{error} · 当前文稿保持不变");
-                        eprintln!("R3 open_failed=true reason={error}");
+                        eprintln!("R4/R5 open_failed=true reason={error}");
                     }
                 }
                 cx.notify();
@@ -355,8 +394,13 @@ impl Viewer {
             return 1.;
         };
         let sz = window.viewport_size();
-        ((f32::from(sz.width) - 288.).max(64.) / (d.info.width_pt as f32))
-            .min((f32::from(sz.height) - 376.).max(64.) / (d.info.height_pt as f32))
+        let inspector = if self.inspector && f32::from(sz.width) >= 1180. {
+            264.
+        } else {
+            0.
+        };
+        ((f32::from(sz.width) - 288. - inspector).max(64.) / (d.info.width_pt as f32))
+            .min((f32::from(sz.height) - 330.).max(64.) / (d.info.height_pt as f32))
             .clamp(0.01, 4.)
     }
     fn zoom_in(&mut self, _: &ZoomIn, w: &mut Window, cx: &mut Context<Self>) {
@@ -426,7 +470,7 @@ impl Viewer {
                         s.image = Some((key, r));
                         s.rasters += 1;
                         eprintln!(
-                            "R3 raster page={} width={} elapsed_ms={} count={}",
+                            "R4/R5 raster page={} width={} elapsed_ms={} count={}",
                             key.1 + 1,
                             key.2,
                             started.elapsed().as_millis(),
@@ -495,6 +539,18 @@ impl Viewer {
 }
 impl Render for Viewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        for image in self.retired_images.drain(..) {
+            let _ = window.drop_image(image);
+        }
+        if self.gpu_document != self.generation {
+            self.gpu_document = self.generation;
+            self.scene_cancel.store(true, Ordering::Relaxed);
+            self.scene = None;
+            self.scene_pending = None;
+            self.scene_cache = Arc::default();
+            self.gpu_cache.clear(window);
+            self.benchmark = None;
+        }
         let palette = if self.dark {
             joyoffice_ui::Palette::dark(joyoffice_ui::Brand::Deck)
         } else {
@@ -512,7 +568,7 @@ impl Render for Viewer {
         let scale = self.scale(window);
         if let Some(e) = &self.editor {
             window.set_window_title(&format!(
-                "JoyDeck · R3 · {}{}",
+                "JoyDeck · R4/R5 · {}{}",
                 self.deck
                     .as_ref()
                     .map(|d| d.info.name.as_str())
@@ -522,12 +578,15 @@ impl Render for Viewer {
         }
         let deck = self.deck.clone();
         if let Some(d) = &deck {
-            self.request_image(
-                ((d.info.width_pt as f32) * scale * window.scale_factor())
-                    .ceil()
-                    .clamp(1., 2048.) as u32,
-                cx,
-            );
+            let width = ((d.info.width_pt as f32) * scale * window.scale_factor())
+                .ceil()
+                .clamp(1., 4096.) as u32;
+            if self.benchmark.is_some() { /* Benchmark owns its immutable frame sequence. */
+            } else if self.cpu_view || self.inline.is_some() {
+                self.request_image(width, cx);
+            } else {
+                self.request_scene(width, cx);
+            }
         }
         let count = deck.as_ref().map_or(0, |d| d.info.slides.len());
         let warning_count = deck.as_ref().map_or(0, |d| d.info.warnings.len());
@@ -536,7 +595,14 @@ impl Render for Viewer {
             .map(|d| d.info.name.clone())
             .unwrap_or_else(|| "未打开文稿".into());
         let sz = window.viewport_size();
-        let aw = (f32::from(sz.width) - 224.).max(64.);
+        let aw = (f32::from(sz.width)
+            - 224.
+            - if self.inspector && f32::from(sz.width) >= 1180. {
+                264.
+            } else {
+                0.
+            })
+        .max(64.);
         let ah = (f32::from(sz.height) - 312.).max(64.);
         let canvas = if let Some(d) = &deck {
             let (w, h) = (
@@ -544,7 +610,9 @@ impl Render for Viewer {
                 (d.info.height_pt as f32) * scale,
             );
             let current = self.image.as_ref().filter(|(key, _)| {
-                (key.0 == self.render_generation || self.inline.is_some()) && key.1 == self.page
+                (self.cpu_view || self.inline.is_some())
+                    && (key.0 == self.render_generation || self.inline.is_some())
+                    && key.1 == self.page
             });
             div()
                 .id("page-viewport")
@@ -586,6 +654,8 @@ impl Render for Viewer {
                                         }),
                                         {
                                             let paint = cx.processor(move |s, bounds, w, cx| {
+                                                s.paint_scene(bounds, scale, w);
+                                                s.paint_benchmark(bounds, scale, w, cx);
                                                 s.paint_inline(bounds, scale, w, cx)
                                             });
                                             move |bounds, _, w, cx| paint(bounds, w, cx)
@@ -688,16 +758,27 @@ impl Render for Viewer {
                     .border_color(rgb(palette.border))
                     .child(
                         div()
+                            .flex_1()
+                            .min_w_0()
+                            .overflow_hidden()
                             .flex()
                             .gap_3()
                             .items_center()
                             .child(
                                 div()
+                                    .flex_shrink_0()
                                     .text_lg()
                                     .text_color(rgb(palette.accent))
-                                    .child("JoyDeck · R3"),
+                                    .child("JoyDeck · R4/R5"),
                             )
-                            .child(div().text_sm().text_ellipsis().child(source))
+                            .child(
+                                div()
+                                    .flex_1()
+                                    .min_w_0()
+                                    .text_sm()
+                                    .text_ellipsis()
+                                    .child(source),
+                            )
                             .child(div().text_xs().text_color(rgb(palette.accent)).child(
                                 if self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
                                     "未保存"
@@ -708,6 +789,7 @@ impl Render for Viewer {
                     )
                     .child(
                         div()
+                            .flex_shrink_0()
                             .flex()
                             .gap_2()
                             .child(
@@ -723,6 +805,24 @@ impl Render for Viewer {
                                         crate::apply_theme(s.dark, Some(w), cx);
                                         cx.notify();
                                     })),
+                            )
+                            .child(
+                                Button::new("scene-toggle")
+                                    .label(if self.cpu_view {
+                                        "CPU 对照"
+                                    } else {
+                                        "GPUI 场景"
+                                    })
+                                    .on_click(cx.listener(|s, _, w, cx| {
+                                        s.cpu_view = !s.cpu_view;
+                                        s.gpu_cache.clear(w);
+                                        cx.notify();
+                                    })),
+                            )
+                            .child(
+                                Button::new("scene-statistics")
+                                    .label("渲染诊断")
+                                    .on_click(cx.listener(|s, _, w, cx| s.scene_report(w, cx))),
                             )
                             .child(
                                 Button::new("speaker-notes")
@@ -845,7 +945,11 @@ impl Render for Viewer {
                                 .h_full(),
                             ),
                     )
-                    .child(canvas),
+                    .child(canvas)
+                    .children(
+                        (self.inspector && f32::from(window.viewport_size().width) >= 1180.)
+                            .then(|| self.content_inspector(cx)),
+                    ),
             )
             .child(
                 div()
@@ -959,7 +1063,7 @@ pub fn open_window(
         },
         cx,
         move |w, cx| {
-            w.set_window_title("JoyDeck · R3 编辑器");
+            w.set_window_title("JoyDeck · R4/R5 编辑器");
             let view = cx.new(|cx| Viewer::new(dark, w, cx));
             view.update(cx, |s, cx| {
                 s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {

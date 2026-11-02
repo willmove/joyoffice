@@ -220,6 +220,7 @@ impl SaveJob {
             bytes.clone(),
             &Cancellation::default(),
         )?;
+        validate_content(&self.snapshot.model, &reopened.presentation)?;
         if reopened.presentation.slides.len() != self.snapshot.model.slides.len() {
             return Err("prepared output page count mismatch".into());
         }
@@ -292,4 +293,67 @@ impl SaveJob {
             warning,
         })
     }
+}
+
+fn validate_content(
+    expected: &joydeck_model::Presentation,
+    actual: &joydeck_model::Presentation,
+) -> Result<(), String> {
+    let near = |a: f64, b: f64| (a - b).abs() < 0.001;
+    if !near(expected.slide_size.width, actual.slide_size.width)
+        || !near(expected.slide_size.height, actual.slide_size.height)
+    {
+        return Err("prepared output slide size mismatch".into());
+    }
+    if expected.props.title != actual.props.title || expected.props.author != actual.props.author {
+        return Err("prepared output metadata mismatch".into());
+    }
+    if expected.masters.len() != actual.masters.len() {
+        return Err("prepared output masters mismatch".into());
+    }
+    for (a, b) in expected.masters.iter().zip(&actual.masters) {
+        if a.theme.colors.colors != b.theme.colors.colors
+            || a.theme.fonts.major.latin != b.theme.fonts.major.latin
+            || a.theme.fonts.minor.latin != b.theme.fonts.minor.latin
+        {
+            return Err("prepared output theme color/font mismatch".into());
+        }
+    }
+    for (a, b) in expected.slides.iter().zip(&actual.slides) {
+        if a.show_master_shapes != b.show_master_shapes {
+            return Err("prepared output master visibility mismatch".into());
+        }
+        for (a, b) in a.shapes.iter().zip(&b.shapes) {
+            match (&a.kind, &b.kind) {
+                (
+                    joydeck_model::ShapeKind::Picture { fill: a },
+                    joydeck_model::ShapeKind::Picture { fill: b },
+                ) => {
+                    if !a.crop.iter().zip(&b.crop).all(|(a, b)| near(*a, *b))
+                        || !near(a.alpha.unwrap_or(1.), b.alpha.unwrap_or(1.))
+                        || !near(a.adjust.brightness, b.adjust.brightness)
+                        || !near(a.adjust.contrast, b.adjust.contrast)
+                        || expected.media(a.media).map(|m| m.data.as_slice())
+                            != actual.media(b.media).map(|m| m.data.as_slice())
+                    {
+                        return Err("prepared output picture bytes/crop/adjust mismatch".into());
+                    }
+                }
+                (joydeck_model::ShapeKind::Chart(a), joydeck_model::ShapeKind::Chart(b))
+                    if (a.kind != b.kind
+                        || a.title != b.title
+                        || a.categories != b.categories
+                        || a.series.len() != b.series.len()
+                        || a.series
+                            .iter()
+                            .zip(&b.series)
+                            .any(|(a, b)| a.name != b.name || a.values != b.values)) =>
+                {
+                    return Err("prepared output chart data mismatch".into());
+                }
+                _ => {}
+            }
+        }
+    }
+    Ok(())
 }

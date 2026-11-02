@@ -115,12 +115,12 @@ impl Default for WorkspaceState {
 
 pub fn diagnostics() -> serde_json::Value {
     serde_json::json!({
-        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R3",
+        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R4-R5",
         "rust_toolchain": RUST_TOOLCHAIN, "gpui_kit": GPUI_KIT_VERSION,
         "gpui_pre": GPUI_VERSION, "gpui_fast": false,
         "os": std::env::consts::OS, "arch": std::env::consts::ARCH,
         "cli_uses_gui": false, "preview": "original bundled immutable sample",
-        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery", "inline-text", "native-ime", "table-edit", "text-clipboard", "table-tsv", "notes-edit"],
+        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery", "inline-text", "native-ime", "table-edit", "text-clipboard", "table-tsv", "notes-edit", "gpui-scene", "incremental-object-cache", "scene-bench", "desktop-render-benchmark", "master-theme-edit", "picture-insert-crop-adjust", "category-chart-edit", "chart-workbook", "context-ribbon", "content-inspector"],
         "pending": ["rotated-in-place-text", "image-object-clipboard", "advanced-editing", "pdf"]
     })
 }

@@ -1,0 +1,16 @@
+{
+  "region": [
+    257,
+    300,
+    985,
+    709
+  ],
+  "channels_over_32": 1213,
+  "fraction": 0.0013579533750682894,
+  "mean_absolute_error": 0.4167640631577062,
+  "limits": {
+    "fraction": 0.02,
+    "mae": 4
+  },
+  "passed": true
+}

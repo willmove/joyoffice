@@ -1,4 +1,4 @@
-﻿command_id,kind,upstream_label,source_file,source_line,suggested_stage,ui_migration_status,headless_validation_status,gpui_surface,evidence
+command_id,kind,upstream_label,source_file,source_line,suggested_stage,ui_migration_status,headless_validation_status,gpui_surface,evidence
 animation.add,action,Add Animation,crates/engine/src/cmd/animation.rs,24,R7,待分类,待验证,,
 animation.clear,action,Remove All Animations,crates/engine/src/cmd/animation.rs,53,R7,待分类,待验证,,
 animation.get,query,Animations on Slide,crates/engine/src/cmd/animation.rs,65,R7,待分类,待验证,,
@@ -25,9 +25,9 @@ arrange.rotateRight,action,Rotate Right 90°,crates/engine/src/cmd/arrange.rs,63
 arrange.sendBackward,action,Send Backward,crates/engine/src/cmd/arrange.rs,29,R2/R5,待分类,待验证,,
 arrange.sendToBack,action,Send to Back,crates/engine/src/cmd/arrange.rs,30,R2/R5,待分类,待验证,,
 arrange.ungroup,action,Ungroup,crates/engine/src/cmd/arrange.rs,41,R2/R5,待分类,待验证,,
-chart.data,action,Edit Data,crates/engine/src/cmd/insert.rs,125,R5,待分类,待验证,,
-chart.options,action,Chart Elements,crates/engine/src/cmd/insert.rs,134,R5,待分类,待验证,,
-chart.type,action,Change Chart Type,crates/engine/src/cmd/insert.rs,124,R5,待分类,待验证,,
+chart.data,action,Edit Data,crates/engine/src/cmd/insert.rs,125,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,图表数据（基础分类图表/单元格）,evidence/R4-R5/README.md
+chart.options,action,Chart Elements,crates/engine/src/cmd/insert.rs,134,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,图表标题子集,evidence/R4-R5/README.md
+chart.type,action,Change Chart Type,crates/engine/src/cmd/insert.rs,124,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,图表类型（柱形/折线/饼图）,evidence/R4-R5/README.md
 commands.list,query,List Commands,crates/engine/src/cmd/inspect.rs,17,R5,待分类,待验证,,
 comment.add,action,New Comment,crates/engine/src/cmd/review.rs,15,R5,待分类,待验证,,
 comment.delete,action,Delete Comment,crates/engine/src/cmd/review.rs,17,R5,待分类,待验证,,
@@ -37,15 +37,15 @@ comment.prev,noundo,Previous Comment,crates/engine/src/cmd/review.rs,29,R5,待�
 comment.reply,action,Reply,crates/engine/src/cmd/review.rs,16,R5,待分类,待验证,,
 comment.resolve,action,Resolve Thread,crates/engine/src/cmd/review.rs,18,R5,待分类,待验证,,
 design.applyIdea,action,Apply Design Idea,crates/engine/src/cmd/ideas.rs,17,R5,待分类,待验证,,
-design.background,action,Format Background,crates/engine/src/cmd/design.rs,60,R5,待分类,待验证,,
+design.background,action,Format Background,crates/engine/src/cmd/design.rs,60,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,页面背景（实色）,evidence/R4-R5/README.md
 design.browseTheme,action,Browse for Themes…,crates/engine/src/cmd/design.rs,37,R5,待分类,待验证,,
-design.colors,action,Colors,crates/engine/src/cmd/design.rs,47,R5,待分类,待验证,,
+design.colors,action,Colors,crates/engine/src/cmd/design.rs,47,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,主题强调色 1–6,evidence/R4-R5/README.md
 design.effects,action,Effects,crates/engine/src/cmd/design.rs,59,R5,待分类,待验证,,
-design.fonts,action,Fonts,crates/engine/src/cmd/design.rs,58,R5,待分类,待验证,,
+design.fonts,action,Fonts,crates/engine/src/cmd/design.rs,58,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,主题拉丁字体,evidence/R4-R5/README.md
 design.headerFooter,action,Header and Footer…,crates/engine/src/cmd/design.rs,79,R5,待分类,待验证,,
-design.hideBackgroundGraphics,action,Hide Background Graphics,crates/engine/src/cmd/design.rs,69,R5,待分类,待验证,,
+design.hideBackgroundGraphics,action,Hide Background Graphics,crates/engine/src/cmd/design.rs,69,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,母版图形显隐,evidence/R4-R5/README.md
 design.ideas,query,Design Ideas,crates/engine/src/cmd/ideas.rs,16,R5,待分类,待验证,,
-design.slideSize,action,Slide Size,crates/engine/src/cmd/design.rs,70,R5,待分类,待验证,,
+design.slideSize,action,Slide Size,crates/engine/src/cmd/design.rs,70,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,页面尺寸（不缩放对象）,evidence/R4-R5/README.md
 design.theme,action,Themes,crates/engine/src/cmd/design.rs,36,R5,待分类,待验证,,
 design.themes,query,Theme Gallery,crates/engine/src/cmd/design.rs,46,R5,待分类,待验证,,
 design.variant,action,Variants,crates/engine/src/cmd/design.rs,56,R5,待分类,待验证,,
@@ -71,7 +71,7 @@ file.info,query,Info,crates/engine/src/cmd/file.rs,41,R1/R2/R6,待分类,待验�
 file.new,noundo,New Presentation,crates/engine/src/cmd/file.rs,15,R1/R2/R6,待分类,待验证,,
 file.open,noundo,Open…,crates/engine/src/cmd/file.rs,25,R1/R2/R6,待分类,待验证,,
 file.openBytes,noundo,Open Data,crates/engine/src/cmd/file.rs,35,R1/R2/R6,待分类,待验证,,
-file.properties,action,Properties,crates/engine/src/cmd/file.rs,61,R1/R2/R6,待分类,待验证,,
+file.properties,action,Properties,crates/engine/src/cmd/file.rs,61,R1/R2/R6,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,标题/作者子集,evidence/R4-R5/README.md
 file.recovery.discard,noundo,Discard Recovered Presentations,crates/engine/src/cmd/file.rs,73,R1/R2/R6,待分类,待验证,,
 file.recovery.list,query,Recovered Presentations,crates/engine/src/cmd/file.rs,71,R1/R2/R6,待分类,待验证,,
 file.recovery.open,noundo,Open Recovered Presentations,crates/engine/src/cmd/file.rs,72,R1/R2/R6,待分类,待验证,,
@@ -148,7 +148,7 @@ insert.icon,action,Icons,crates/engine/src/cmd/insert.rs,43,R5,待分类,待验�
 insert.icons,query,Icon Gallery,crates/engine/src/cmd/insert.rs,52,R5,待分类,待验证,,
 insert.photoAlbum,action,Photo Album…,crates/engine/src/cmd/insert.rs,64,R5,待分类,待验证,,
 insert.photoAlbumEdit,action,Edit Photo Album…,crates/engine/src/cmd/insert.rs,73,R5,待分类,待验证,,
-insert.picture,action,Picture from File…,crates/engine/src/cmd/insert.rs,55,R5,待分类,待验证,,
+insert.picture,action,Picture from File…,crates/engine/src/cmd/insert.rs,55,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,本地位图插入,evidence/R4-R5/README.md
 insert.slideNumber,action,Slide Number,crates/engine/src/cmd/insert.rs,95,R5,待分类,待验证,,
 insert.smartArt,action,SmartArt,crates/engine/src/cmd/insert.rs,143,R5,待分类,待验证,,
 insert.symbol,action,Symbol,crates/engine/src/cmd/insert.rs,105,R5,待分类,待验证,,
@@ -173,11 +173,11 @@ media.seek,noundo,Seek,crates/engine/src/cmd/media.rs,17,R7,待分类,待验证,
 media.stop,noundo,Stop,crates/engine/src/cmd/media.rs,16,R7,待分类,待验证,,
 media.toggle,noundo,Play/Pause,crates/engine/src/cmd/media.rs,15,R7,待分类,待验证,,
 notes.placeholders,action,Notes Placeholders,crates/engine/src/cmd/design.rs,116,R5,待分类,待验证,,
-picture.adjust,action,Corrections,crates/engine/src/cmd/shape.rs,159,R5,待分类,待验证,,
+picture.adjust,action,Corrections,crates/engine/src/cmd/shape.rs,159,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,亮度/对比度/透明度子集,evidence/R4-R5/README.md
 picture.artisticEffect,action,Artistic Effects,crates/engine/src/cmd/artistic.rs,27,R5,待分类,待验证,,
-picture.change,action,Change Picture,crates/engine/src/cmd/shape.rs,177,R5,待分类,待验证,,
+picture.change,action,Change Picture,crates/engine/src/cmd/shape.rs,177,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,本地位图替换,evidence/R4-R5/README.md
 picture.compress,action,Compress Pictures,crates/engine/src/cmd/compress.rs,15,R5,待分类,待验证,,
-picture.crop,action,Crop,crates/engine/src/cmd/shape.rs,150,R5,待分类,待验证,,
+picture.crop,action,Crop,crates/engine/src/cmd/shape.rs,150,R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,数值裁剪,evidence/R4-R5/README.md
 picture.recolor,action,Recolor,crates/engine/src/cmd/recolor.rs,14,R5,待分类,待验证,,
 picture.recolors,query,Recolor Gallery,crates/engine/src/cmd/recolor.rs,23,R5,待分类,待验证,,
 picture.removeBackground,action,Remove Background,crates/engine/src/cmd/background.rs,18,R5,待分类,待验证,,
@@ -216,7 +216,7 @@ shape.deletePoint,action,Delete Point,crates/engine/src/cmd/points.rs,56,R2/R5,�
 shape.deleteSegment,action,Delete Segment,crates/engine/src/cmd/points.rs,57,R2/R5,待分类,待验证,,
 shape.editPoints,action,Edit Points,crates/engine/src/cmd/points.rs,18,R2/R5,待分类,待验证,,
 shape.effects,action,Shape Effects,crates/engine/src/cmd/shape.rs,119,R2/R5,待分类,待验证,,
-shape.fill,action,Shape Fill,crates/engine/src/cmd/shape.rs,101,R2/R5,待分类,待验证,,
+shape.fill,action,Shape Fill,crates/engine/src/cmd/shape.rs,101,R2/R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,实色/线性渐变子集,evidence/R4-R5/README.md
 shape.flip,action,Flip,crates/engine/src/cmd/shape.rs,89,R2/R5,待分类,待验证,,
 shape.freeform,action,Freeform,crates/engine/src/cmd/shape.rs,41,R2/R5,待分类,待验证,,
 shape.insert,action,Shapes,crates/engine/src/cmd/insert.rs,34,R2/R5,待分类,待验证,,
@@ -256,7 +256,7 @@ slide.go,noundo,Go to Slide,crates/engine/src/cmd/slide.rs,35,R2/R5,待分类,�
 slide.hide,action,Hide Slide,crates/engine/src/cmd/slide.rs,42,R2/R5,待分类,待验证,,
 slide.inspect,query,Inspect Slide,crates/engine/src/cmd/inspect.rs,14,R2/R5,待分类,待验证,,
 slide.last,noundo,Last Slide,crates/engine/src/cmd/slide.rs,39,R2/R5,待分类,待验证,,
-slide.layout,action,Layout,crates/engine/src/cmd/slide.rs,43,R2/R5,待分类,待验证,,
+slide.layout,action,Layout,crates/engine/src/cmd/slide.rs,43,R2/R5,部分实现，本轮子集已验证,CLI/公开格式独立读取通过；桌面子集见记录；完整命令待覆盖,现有版式选择,evidence/R4-R5/README.md
 slide.move,action,Move Slide,crates/engine/src/cmd/slide.rs,26,R2/R5,待分类,待验证,,
 slide.new,action,New Slide,crates/engine/src/cmd/slide.rs,15,R2/R5,待分类,待验证,,
 slide.next,noundo,Next Slide,crates/engine/src/cmd/slide.rs,36,R2/R5,待分类,待验证,,

@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 use std::process::ExitCode;
+mod scene_bench;
 
 fn execute() -> Result<(), String> {
     execute_args(&std::env::args().skip(1).collect::<Vec<_>>())
@@ -8,6 +9,60 @@ fn execute() -> Result<(), String> {
 fn execute_args(args: &[String]) -> Result<(), String> {
     use joydeck_shell::{Cancellation, Document};
     use std::path::Path;
+    if let [
+        command,
+        input,
+        page_flag,
+        page,
+        count_flag,
+        count,
+        output_flag,
+        output,
+    ] = args
+        && command == "scene-bench"
+        && page_flag == "--page"
+        && count_flag == "--iterations"
+        && output_flag == "--output"
+    {
+        return scene_bench::run(
+            Path::new(input),
+            page.parse().map_err(|_| "invalid page")?,
+            count.parse().map_err(|_| "invalid iteration count")?,
+            Path::new(output),
+        );
+    }
+    if let [command, input] = args
+        && command == "content"
+    {
+        let doc = Document::open(Path::new(input), &Cancellation::default())?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&doc.presentation).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, input, picture, flag, output] = args
+        && command == "import-picture"
+        && flag == "--output"
+    {
+        let mut editor = joydeck_shell::editor::Editor::open(
+            Path::new(input),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        editor
+            .session
+            .execute(joydeck_shell::platform::picture_command(
+                Path::new(picture),
+                false,
+            )?)?;
+        let saved = editor.save_job(output.into())?.run()?;
+        editor.apply_saved(saved);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&editor.display()?.info).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
     if let [command] = args
         && command == "commands"
     {
@@ -158,7 +213,7 @@ fn execute_args(args: &[String]) -> Result<(), String> {
     match args {
         [] => {
             println!(
-                "JoyDeck CLI · R2\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
+                "JoyDeck CLI · R4/R5\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  content INPUT\n  import-picture INPUT IMAGE --output NEW.pptx|NEW.joydeck\n  scene-bench INPUT --page N --iterations N --output NEW_DIRECTORY\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
             );
         }
         [command] if command == "--help" || command == "help" => {

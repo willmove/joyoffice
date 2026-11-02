@@ -356,6 +356,7 @@ struct CatalogEntry {
 
 /// Process-wide font database.
 pub struct FontDb {
+    cache_revision: AtomicU32,
     faces: RwLock<Vec<Arc<FontFace>>>,
     outlines: Mutex<HashMap<(u32, u32), Arc<BezPath>>>,
     #[cfg(not(target_arch = "wasm32"))]
@@ -1092,6 +1093,7 @@ impl FontDb {
             }
         }
         Self {
+            cache_revision: AtomicU32::new(1),
             faces: RwLock::new(faces),
             outlines: Mutex::new(HashMap::new()),
             #[cfg(not(target_arch = "wasm32"))]
@@ -1114,6 +1116,7 @@ impl FontDb {
     /// Enable or disable the lazy system-font fallback for characters the loaded fonts lack
     /// (native only; on by default).
     pub fn set_system_fallback(&self, on: bool) {
+        self.cache_revision.fetch_add(1, Ordering::Relaxed);
         #[cfg(not(target_arch = "wasm32"))]
         {
             self.sys
@@ -1123,6 +1126,13 @@ impl FontDb {
         }
         #[cfg(target_arch = "wasm32")]
         let _ = on;
+    }
+
+    /// Conservative cache revision: exact face allocations and fallback/catalog settings.
+    /// Loading another script can change the best available fallback for an earlier run.
+    pub fn revision(&self) -> u64 {
+        ((self.read_faces().len() as u64) << 32)
+            | u64::from(self.cache_revision.load(Ordering::Relaxed))
     }
 
     /// Process-wide database: the bundled fonts, then the installed system fonts, cataloged the
@@ -1252,6 +1262,7 @@ impl FontDb {
     /// Returns the number of faces cataloged.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn load_system_fonts(&self) -> usize {
+        self.cache_revision.fetch_add(1, Ordering::Relaxed);
         // Families load again from the new catalog when next looked up.
         self.loaded_families
             .lock()

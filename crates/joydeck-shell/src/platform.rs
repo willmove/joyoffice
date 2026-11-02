@@ -6,6 +6,35 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 static IDS: AtomicU64 = AtomicU64::new(1);
+/// Read and normalize a local raster picture under the same byte/pixel budgets as the editor.
+pub fn picture_command(path: &Path, replace: bool) -> Result<joydeck_engine::Command> {
+    let bytes = read_bounded(path, 16 << 20)?;
+    let mut reader = image::ImageReader::new(std::io::Cursor::new(bytes))
+        .with_guessed_format()
+        .map_err(|e| e.to_string())?;
+    let mut limits = image::Limits::default();
+    limits.max_image_width = Some(8192);
+    limits.max_image_height = Some(8192);
+    limits.max_alloc = Some(64 << 20);
+    reader.limits(limits);
+    let image = reader.decode().map_err(|e| e.to_string())?;
+    let (w, h) = (image.width(), image.height());
+    if u64::from(w) * u64::from(h) > 16_000_000 {
+        return Err("picture exceeds 16 MP".into());
+    }
+    let mut out = std::io::Cursor::new(vec![]);
+    image
+        .write_to(&mut out, image::ImageFormat::Png)
+        .map_err(|e| e.to_string())?;
+    Ok(joydeck_engine::Command::InsertPicture {
+        png: out.into_inner(),
+        x: 72.,
+        y: 150.,
+        width: 240.,
+        height: 240. * f64::from(h) / f64::from(w),
+        replace,
+    })
+}
 /// Random names prevent concurrent allocations from colliding on coarse or adjusted wall clocks.
 pub fn private_directory(label: &str) -> Result<PathBuf> {
     for _ in 0..8 {

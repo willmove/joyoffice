@@ -3,10 +3,10 @@ use super::*;
 use joydeck_engine::Command;
 use joydeck_model::{ShapeId, resolve};
 pub(super) struct Drag {
-    start: Point<Pixels>,
-    current: Point<Pixels>,
-    resize: bool,
-    marquee: bool,
+    pub(super) start: Point<Pixels>,
+    pub(super) current: Point<Pixels>,
+    pub(super) resize: bool,
+    pub(super) marquee: bool,
 }
 impl Viewer {
     pub(super) fn block_replace(&mut self, cx: &mut Context<Self>) -> bool {
@@ -25,6 +25,7 @@ impl Viewer {
     }
     pub(super) fn sync_editor(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.end_inline(cx);
+        let previous = self.deck.clone();
         if let Some(editor) = &self.editor {
             self.page = editor.session.selection().page;
             match editor.display() {
@@ -48,8 +49,25 @@ impl Viewer {
         self.render_generation += 1;
         self.image = None;
         self.pending = None;
-        self.thumbnails.clear();
-        self.thumbnail_errors.clear();
+        let unchanged = |page: &usize| {
+            previous
+                .as_ref()
+                .zip(self.deck.as_ref())
+                .is_some_and(|(a, b)| {
+                    a.presentation.masters == b.presentation.masters
+                        && a.presentation.media == b.presentation.media
+                        && a.presentation.slide_size == b.presentation.slide_size
+                        && a.presentation.header_footer == b.presentation.header_footer
+                        && a.presentation.default_text_style == b.presentation.default_text_style
+                        && a.presentation
+                            .slides
+                            .get(*page)
+                            .zip(b.presentation.slides.get(*page))
+                            .is_some_and(|(a, b)| a == b)
+                })
+        };
+        self.thumbnails.retain(|page, _| unchanged(page));
+        self.thumbnail_errors.retain(unchanged);
         self.thumb_busy = false;
         self.thumbs_cancel = Arc::new(AtomicBool::new(false));
         self.thumbs_task = None;
@@ -57,7 +75,7 @@ impl Viewer {
         self.scroll.scroll_to_item(self.page, ScrollStrategy::Top);
         cx.notify();
     }
-    fn checkpoint(&mut self, cx: &mut Context<Self>) {
+    pub(super) fn checkpoint(&mut self, cx: &mut Context<Self>) {
         let Some(editor) = &self.editor else { return };
         let dirty = editor.session.dirty();
         let job = editor.checkpoint_job();
@@ -82,7 +100,7 @@ impl Viewer {
                     return;
                 }
                 match result {
-                    Ok(()) => eprintln!("R3 checkpoint revision={revision}"),
+                    Ok(()) => eprintln!("R4/R5 checkpoint revision={revision}"),
                     Err(e) => {
                         s.message = format!("恢复快照未写入：{e}");
                         cx.notify();
@@ -97,6 +115,11 @@ impl Viewer {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if self.benchmark.is_some() {
+            self.message = "性能对照进行中；完成后可以继续编辑".into();
+            cx.notify();
+            return;
+        }
         if self.composing() {
             self.message = "请先完成或取消输入法组合输入".into();
             cx.notify();
@@ -119,7 +142,7 @@ impl Viewer {
                     editor.session.revision()
                 );
                 eprintln!(
-                    "R3 command={label} revision={} dirty={}",
+                    "R4/R5 command={label} revision={} dirty={}",
                     editor.session.revision(),
                     editor.session.dirty()
                 );
@@ -241,7 +264,7 @@ impl Viewer {
                                 s.message.push_str(&format!(" · 恢复清理提示：{warning}"));
                             }
                             eprintln!(
-                                "R3 saved revision={revision} dirty={} path={}",
+                                "R4/R5 saved revision={revision} dirty={} path={}",
                                 editor.session.dirty(),
                                 path.display()
                             );
@@ -506,7 +529,7 @@ impl Viewer {
         let x = f32::from(event.position.x - self.canvas_bounds.origin.x) as f64 / scale as f64;
         let y = f32::from(event.position.y - self.canvas_bounds.origin.y) as f64 / scale as f64;
         eprintln!(
-            "R3 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
+            "R4/R5 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
             event.position, self.canvas_bounds
         );
         let id = slide
@@ -683,7 +706,13 @@ impl Viewer {
             .editor
             .as_ref()
             .is_some_and(|e| !e.session.selection().shapes.is_empty());
-        let mut first = div().h(px(40.)).flex().items_center().gap_1().px_2();
+        let mut first = div()
+            .min_h(px(40.))
+            .flex()
+            .flex_wrap()
+            .items_center()
+            .gap_1()
+            .px_2();
         first = first.child(
             Button::new("new-document")
                 .label("新建")
@@ -835,9 +864,15 @@ impl Viewer {
             .flex_shrink_0()
             .flex()
             .flex_col()
-            .child(first)
-            .child(second)
-            .child(self.text_table_toolbar(cx))
+            .child(self.ribbon_tabs(cx))
+            .when(self.ribbon == "开始", |d| d.child(first))
+            .when(self.ribbon == "格式", |d| d.child(second))
+            .when(self.ribbon == "文字表格", |d| {
+                d.child(self.text_table_toolbar(cx))
+            })
+            .when(matches!(self.ribbon, "设计" | "图片" | "图表"), |d| {
+                d.child(self.content_toolbar(cx))
+            })
             .child(
                 div()
                     .h(px(40.))
