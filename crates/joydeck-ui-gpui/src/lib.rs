@@ -712,7 +712,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR4/R5 basic editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
+                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR6/R7 basic editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }

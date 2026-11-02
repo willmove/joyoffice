@@ -959,12 +959,13 @@
       "source_path": "crates/anim/src/show.rs",
       "source_sha256": "48521485fae5accc109228f893fe4f53cb82e74d2c39704c05610f33ec348a84",
       "target_path": "crates/joydeck-anim/src/show.rs",
-      "adapted_sha256": "253dddb746e5cefa719db1c36f6ec02e88e2e0f7dceb2f02d7cf54fca164e735",
+      "adapted_sha256": "19727cf6f7faaa2308db1558f948649add779db8f6b3edd5c564edfc7d71d4cb",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
       ]
     },
     {
@@ -1187,14 +1188,15 @@
       "source_path": "crates/render/src/lib.rs",
       "source_sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b",
       "target_path": "crates/joydeck-render/src/lib.rs",
-      "adapted_sha256": "e62f8f058aa201926c072f0fd1bd9cf6fd0b2d11535c6cc4bd661677dbe569e1",
+      "adapted_sha256": "6c043d126ac472e0853f100e0397fc610701bbb2bbf3145f84470eb33864941f",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
         "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
         "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained",
-        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse"
+        "R4/R5 scene/content/workbook/font-revision adaptation, exact JoyOffice dependency reuse",
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
       ]
     },
     {
@@ -1430,12 +1432,13 @@
       "source_path": "crates/render/src/transition.rs",
       "source_sha256": "bae8e69100dcf1d4b018d1a9fe7344b808d3086d0cd4221c10bba03585b726f0",
       "target_path": "crates/joydeck-render/src/transition.rs",
-      "adapted_sha256": "e16c64a49b35e222c949a724310129075725817c037799d600aa7a3e996262ea",
+      "adapted_sha256": "45e943af7a4ad5735528061b7df61f946cb18e9759bb7c6cd2ff3dd70a976da6",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R6/R7 version baseline, macro-preserve refusal, explicit previous transition/custom show order or rustfmt; no upstream checkout edits."
       ]
     },
     {
@@ -2209,6 +2212,24 @@
       "adapted_sha256": "43fa55b5e6c02fa1610866214523b869257aeb0b5d52cba8c4cb1ea6c28d52c1",
       "changes": [
         "R4/R5 adapts shared text-outline placement to a neutral per-object scene; exact FontFace retained; adds bounded cache and explicit fallback"
+      ]
+    },
+    {
+      "source_path": "crates/pdf/Cargo.toml",
+      "source_sha256": "0df2c9d4c8bdf9bdedbb4a56dcbbc283d6014d2e5bcb6a9a2f44aeac0d032ee6",
+      "target_path": "crates/joydeck-pdf/Cargo.toml",
+      "adapted_sha256": "a9e2f723916875dc42c61681f1b0db32dc5193b3b850c105542d75f2e6d20a1e",
+      "changes": [
+        "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling."
+      ]
+    },
+    {
+      "source_path": "crates/pdf/src/lib.rs",
+      "source_sha256": "54e202f2aaefab915db9ac755fe7d8dc4c14a214f17acfb950a664951987040c",
+      "target_path": "crates/joydeck-pdf/src/lib.rs",
+      "adapted_sha256": "b943d8458c54bed4b45933b9d355671f18645aae807b1fd1fa4309559ee03e60",
+      "changes": [
+        "R6 PDF adaptation to official JoyOffice Krilla 0.8.2, shared glyph layout, font permissions, cancellation and page/raster budgets; notes CJK/overflow handling."
       ]
     }
   ]

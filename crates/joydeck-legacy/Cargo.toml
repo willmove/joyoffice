@@ -1,0 +1,21 @@
+[package]
+name = "joydeck-legacy"
+description = "Read-only JoyOffice JoyDeck v1 DTO and OOXML migration bridge"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "MIT OR Apache-2.0"
+publish = false
+[dependencies]
+joyoffice-opc.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+zip.workspace = true
+roxmltree.workspace = true
+base64.workspace = true
+image.workspace = true
+kurbo.workspace = true
+unicode-segmentation.workspace = true
+[lints]
+workspace = true

@@ -123,3 +123,9 @@ R0 建立或复用自动检查，至少包括：
 GPUI/Kit、图像、ZIP、XML、字体和文件/恢复版本及 feature 不变。纯 engine 复用工作区已锁定的 unicode-segmentation =1.13.3；GPUI 适配器增加对已有 joydeck-text/render 的直接依赖，光标、选择、命中和候选锚点与 CPU 文字布局一致。无新增 registry 包，无 egui/epaint 或主机绝对路径依赖。shell 仅在几何集成测试中直接引用已有 text/geom。
 
 复用 JoyOffice `crates/joydeck-model/src/text.rs` 的范围/组合草稿实现思路与代码，以及 `apps/joydeck/src/canvas_text.rs` 的 EntityInputHandler/剪贴板适配和备注 Textarea 模式；源哈希与适配说明登记在同步表。新纯引擎命令适配到 DeckCraft TextBody/edit/Table，保留其段落/run/列表等模型内容。Windows MSVC 应用增加局部 linker 栈预留 8 MiB，避免 debug GPUI 组合视图超过默认 1 MiB，不添加平台运行库或系统配置修改。
+
+## R6/R7 实施增量（2026-11-03）
+
+新增 joydeck-pdf，使用 JoyOffice/JoyWord 同源的官方 `krilla =0.8.2`，关闭默认 feature、仅 `raster-images`，无 craft-libs 全局 patch。Krilla、pdf-writer 0.15.0、subsetter 0.2.6、tiny-skia-path 0.12.0、write-fonts 0.48.1、xmp-writer 0.3.3 的 version/source/checksum 与固定 JoyOffice lock 对齐。legacy 私有读取器复用工作区精确 roxmltree 0.21.1/base64 0.22.1 和既有 OPC/ZIP/image/serde，不引入旧产品应用。
+
+Windows helper 从自有 C# 源构建，使用 .NET Framework 4.x WinForms/WPF 和 Windows SDK WinRT MediaComposition；运行依赖本机媒体组件，不附带下载的 codec。编译工具/SDK/源文件/二进制指纹随包登记。其它平台 helper 尚未实现，明确返回不支持，未以跨平台 Rust check 代替原生验证。GPUI Kit 0.8.1/pre 0.3.10、Rust 1.98.1 不变；新增 PDF/legacy 均加入无 GUI/跨产品依赖门禁。

@@ -1,6 +1,8 @@
 [workspace]
 members = [
     "crates/joydeck-engine",
+    "crates/joydeck-pdf",
+    "crates/joydeck-legacy",
     "crates/joyoffice-opc",
     "apps/joydeck",
     "apps/joydeck-cli",
@@ -24,13 +26,18 @@ default-members = ["crates/joydeck-shell", "crates/joydeck-color", "crates/joyde
 resolver = "3"
 
 [workspace.package]
-version = "0.5.0"
+version = "0.7.0"
 edition = "2024"
 rust-version = "1.98"
 license = "MIT"
 repository = "https://github.com/willmove/joyoffice"
 
 [workspace.dependencies]
+joydeck-pdf = { path = "crates/joydeck-pdf" }
+joydeck-legacy = { path = "crates/joydeck-legacy" }
+roxmltree = "=0.21.1"
+base64 = "=0.22.1"
+krilla = { version = "=0.8.2", default-features = false, features = ["raster-images"] }
 joydeck-engine = { path = "crates/joydeck-engine" }
 sha2 = "=0.10.9"
 getrandom = "=0.3.4"

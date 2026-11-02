@@ -1,0 +1,8 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R4/R5 opened=true pages=3 elapsed_ms=86
+R4 scene {"builds":2,"hits":0,"misses":16,"cpu_tiles":8,"backdrop_rasters":2,"native_paths":4,"glyphs":125,"cache_bytes":11614384,"build_micros":20127}
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1,2,3],"previous":null,"serial":0}
+R7 show_first_frame prepare_us=17199
+R7 show_state {"page":2,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":16.327895700000006,"order":[1,2,3],"previous":1,"serial":1}
+R7 show_state {"page":2,"step":0,"playing":false,"ended":false,"paused":false,"blank":false,"elapsed_seconds":0.0,"slide_seconds":3.7561666,"total_seconds":20.084062299999996,"order":[1,2,3],"previous":1,"serial":2}
+R7 show_closed frames=3

@@ -8,7 +8,7 @@ import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN = re.compile(r'^(egui(?:[-_].*)?|eframe|epaint(?:[-_].*)?|craft-ui)$')
-EXPECTED = {'gpui-kit': '0.8.1', 'gpui-base': '0.8.1', 'gpui-component': '0.8.1', 'gpui-kit-assets': '0.8.1', 'gpui-pre': '0.3.10', 'gpui-pre-platform': '0.3.10', 'serde': '1.0.228', 'serde_json': '1.0.154'}
+EXPECTED = {'krilla': '0.8.2', 'gpui-kit': '0.8.1', 'gpui-base': '0.8.1', 'gpui-component': '0.8.1', 'gpui-kit-assets': '0.8.1', 'gpui-pre': '0.3.10', 'gpui-pre-platform': '0.3.10', 'serde': '1.0.228', 'serde_json': '1.0.154'}
 
 
 def check_lock(lock):
@@ -29,7 +29,7 @@ def check_lock(lock):
 def main():
     lock = tomllib.loads((ROOT / 'Cargo.lock').read_text(encoding='utf-8'))
     errors = check_lock(lock)
-    for package in ['joydeck-cli', 'joydeck-shell', 'joydeck-engine', 'joydeck-color', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-pptx', 'joydeck-format']:
+    for package in ['joydeck-cli', 'joydeck-shell', 'joydeck-engine', 'joydeck-color', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-pptx', 'joydeck-format', 'joydeck-pdf', 'joydeck-legacy']:
         tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', package, '--edges', 'normal,build', '--prefix', 'none'], cwd=ROOT, encoding='utf-8')
         for line in tree.splitlines():
             name = line.split(' ', 1)[0]
@@ -39,6 +39,8 @@ def main():
     if 'gpui-fast' in features:
         errors.append('gpui-fast was enabled without a baseline change')
     workspace = tomllib.loads((ROOT / 'Cargo.toml').read_text(encoding='utf-8'))
+    if workspace['workspace']['dependencies']['krilla'] != {'version': '=0.8.2', 'default-features': False, 'features': ['raster-images']}:
+        errors.append('Krilla must match JoyOffice official 0.8.2 raster-images-only baseline')
     for name, pin in {'sha2': '=0.10.9', 'getrandom': '=0.3.4'}.items():
         if workspace['workspace']['dependencies'][name] != pin:
             errors.append(f'{name} must match the JoyOffice direct pin {pin}')

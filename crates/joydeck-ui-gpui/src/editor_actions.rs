@@ -870,9 +870,10 @@ impl Viewer {
             .when(self.ribbon == "文字表格", |d| {
                 d.child(self.text_table_toolbar(cx))
             })
-            .when(matches!(self.ribbon, "设计" | "图片" | "图表"), |d| {
-                d.child(self.content_toolbar(cx))
-            })
+            .when(
+                matches!(self.ribbon, "设计" | "图片" | "图表" | "输出" | "放映"),
+                |d| d.child(self.content_toolbar(cx)),
+            )
             .child(
                 div()
                     .h(px(40.))

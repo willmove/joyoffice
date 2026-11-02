@@ -19,14 +19,14 @@
 
 ## 当前状态
 
-2026-11-03：JoyDeck 0.5.0 / R4–R5 场景与内容工作区切片。默认 GPUI 场景、精确字形轮廓、对象/背景缓存及 CPU 对照；新增母版/主题/现有版式、图片裁剪调整与插入替换、分类图表及配套公开工作簿、渐变/形状和属性标签工作区。沿用 R2/R3 保存重开、原位输入、撤销和恢复。详见 [本轮验证记录](docs/joydeck/evidence/R4-R5/README.md) 和 [开发包说明](packaging/joydeck/README-r4-r5.md)。
+2026-11-03：JoyDeck 0.7.0 / R6–R7 文件输出、放映和控制切片。新增旧 JoyDeck 基础迁移与原件附件、显式 PPTX 保留/再生交换、PDF 可检索文字/备注/讲义、PNG/JPEG/GIF、Windows 打印、静态 MP4/标题 VTT；独立放映/演示者窗口、已有动画采样、本地内嵌媒体及无界面 control/MCP/jobs。沿用 R2–R5 编辑、输入、场景和缓存。详见 [本轮验证](docs/joydeck/evidence/R6-R7/README.md) 和 [包说明](packaging/joydeck/README-r6-r7.md)。
 
-Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10 继续与 JoyOffice 对齐。复用原 JoyDeck 场景缓存/释放方法及公共 UI，不引入旧的并行文稿模型。完整 R4/R5 和 329 命令覆盖继续推进；所有旧开发包保留。
+Rust 1.98.1、GPUI Kit 0.8.1/pre 0.3.10、官方 Krilla 0.8.2 与 JoyOffice 对齐。复用旧 JoyDeck 只读迁移、放映/媒体边界和自动化方案，旧 DTO 不进入新编辑状态。完整阶段与 329 命令覆盖仍推进；旧开发包保留，源 JoyOffice/DeckCraft 未修改。
 
 ## 构建与体验
 
 ```powershell
-cargo build --locked -p joydeck -p joydeck-cli
+cargo xtask build joydeck
 pwsh.exe -File scripts/joydeck/dev.ps1 run
 cargo xtask check joydeck
 cargo xtask check joydeck --headless
@@ -41,7 +41,7 @@ Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它�
 .\target\debug\joydeck-cli.exe render ".\tests\fixtures\joydeck\independent.pptx" --output ".\rendered" --all --scale 1
 ```
 
-输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r4-r5.md)。
+输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r6-r7.md)。
 
 后续应从 [TASKS](docs/joydeck/TASKS.md) 选择任务，完成后填写新证据。JoyOffice 原有里程碑和上游自评不计入新 JoyDeck 的完成状态。
 

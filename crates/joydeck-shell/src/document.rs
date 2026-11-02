@@ -13,7 +13,7 @@ use std::{
 
 pub const MAX_INPUT: u64 = 64 << 20;
 const MAX_PIXELS: u64 = 16_000_000;
-static RENDER_LOCK: Mutex<()> = Mutex::new(());
+pub(crate) static RENDER_LOCK: Mutex<()> = Mutex::new(());
 
 #[derive(Clone, Default)]
 pub struct Cancellation(Arc<AtomicBool>);
@@ -87,9 +87,31 @@ impl Document {
             return Err("input exceeds 64 MiB".into());
         }
         cancel.check()?;
+        if joydeck_legacy::sniff(&bytes) {
+            let converted = joydeck_legacy::convert(&bytes, &cancel.0)
+                .map_err(|e| format!("legacy migration refused: {e}"))?;
+            let mut doc = Self::from_bytes(name, converted.pptx, cancel)?;
+            doc.info.format = "joydeck-v1".into();
+            doc.info.warnings.extend(converted.warnings);
+            doc.original = bytes.into();
+            doc.info.source_bytes = doc.original.len();
+            return Ok(doc);
+        }
         if crate::native::sniff(&bytes) {
             let native = crate::native::load(&bytes, cancel)?;
             let mut doc = Self::from_model(name, native.model)?;
+            if let Some(report) = crate::native::parts(&bytes)?.get("migration/report.json") {
+                let report: serde_json::Value =
+                    serde_json::from_slice(report).map_err(|e| e.to_string())?;
+                if let Some(warnings) = report["warnings"].as_array() {
+                    doc.info.warnings.extend(
+                        warnings
+                            .iter()
+                            .filter_map(|w| w.as_str().map(str::to_owned))
+                            .take(100),
+                    );
+                }
+            }
             doc.original = bytes.into();
             doc.info.format = "joydeck".into();
             doc.info.source_bytes = doc.original.len();
@@ -173,7 +195,7 @@ impl Document {
         {
             return Err("invalid slide dimensions/count (1–4096 pt; 1–1000 pages)".into());
         }
-        warnings.push("R1 read-only preview; unsupported features may be approximated. Original package bytes are retained. Linked media is not fetched; fonts may be substituted.".into());
+        warnings.push("Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.".into());
         audit_model(&p, &mut warnings, cancel)?;
         let slides = p
             .slides
@@ -232,6 +254,16 @@ impl Document {
         scale: f64,
         cancel: &Cancellation,
     ) -> Result<joydeck_render::Image, String> {
+        self.render_output(page, scale, false, cancel)
+    }
+
+    pub fn render_output(
+        &self,
+        page: usize,
+        scale: f64,
+        transparent: bool,
+        cancel: &Cancellation,
+    ) -> Result<joydeck_render::Image, String> {
         cancel.check()?;
         if page >= self.presentation.slides.len() {
             return Err("page outside document".into());
@@ -258,6 +290,7 @@ impl Document {
             &joydeck_render::RenderOpts {
                 scale,
                 threads: 0,
+                transparent_background: transparent,
                 ..Default::default()
             },
         );

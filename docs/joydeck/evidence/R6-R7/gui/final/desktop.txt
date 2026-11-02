@@ -1,0 +1,31 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=61
+R4 scene {"builds":2,"hits":0,"misses":10,"cpu_tiles":4,"backdrop_rasters":2,"native_paths":5,"glyphs":48,"cache_bytes":5267904,"build_micros":2361}
+R6 delivery revision=0 输出完成：3 页 / 1 个文件 / 97921 字节
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1,3],"previous":null,"serial":0}
+R7 show_first_frame prepare_us=2145
+R7 show_state {"page":1,"step":0,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":39.58464530000002,"total_seconds":39.58464530000002,"order":[1,3],"previous":null,"serial":3}
+R7 show_state {"page":1,"step":0,"playing":false,"ended":false,"paused":true,"blank":false,"elapsed_seconds":0.0,"slide_seconds":39.58464530000002,"total_seconds":39.58464530000002,"order":[1,3],"previous":null,"serial":4}
+R7 show_state {"page":1,"step":0,"playing":false,"ended":false,"paused":true,"blank":true,"elapsed_seconds":0.0,"slide_seconds":39.58464530000002,"total_seconds":39.58464530000002,"order":[1,3],"previous":null,"serial":5}
+R7 show_state {"page":1,"step":0,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":39.58464530000002,"total_seconds":39.58464530000002,"order":[1,3],"previous":null,"serial":6}
+R7 show_state {"page":3,"step":0,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":39.58464530000002,"order":[1,3],"previous":1,"serial":7}
+R7 show_closed frames=278
+R6/R7 opened=true pages=1 elapsed_ms=5
+R4 scene {"builds":1,"hits":0,"misses":2,"cpu_tiles":0,"backdrop_rasters":1,"native_paths":1,"glyphs":0,"cache_bytes":2073824,"build_micros":761}
+R4/R5 saved revision=0 dirty=false path=C:\Users\willm\AppData\Local\Temp\joydeck-r67-final-c8rnb1cr\中文 开发包\GUI 迁移.joydeck
+R6/R7 opened=true pages=1 elapsed_ms=4
+R4 scene {"builds":1,"hits":0,"misses":2,"cpu_tiles":0,"backdrop_rasters":1,"native_paths":1,"glyphs":0,"cache_bytes":2073824,"build_micros":422}
+R6/R7 opened=true pages=1 elapsed_ms=5
+R4 scene {"builds":1,"hits":0,"misses":3,"cpu_tiles":0,"backdrop_rasters":1,"native_paths":2,"glyphs":8,"cache_bytes":2088928,"build_micros":924}
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1],"previous":null,"serial":0}
+R7 show_first_frame prepare_us=2453
+R7 show_state {"page":1,"step":0,"playing":true,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":6.830024499999997,"total_seconds":6.830024499999997,"order":[1],"previous":null,"serial":1}
+R7 show_closed frames=15
+
+thread '<unnamed>' (29608) panicked at C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\accesskit_windows-0.34.0\src\util.rs:380:52:
+called `Result::unwrap()` on an `Err` value: Error { code: HRESULT(0x80070578), message: "无效的窗口句柄。" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (29608) panicked at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library\core\src\panicking.rs:225:5:
+panic in a function that cannot unwind
+stack backtrace:

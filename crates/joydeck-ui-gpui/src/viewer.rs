@@ -43,6 +43,8 @@ actions!(
 );
 #[path = "content_ui.rs"]
 mod content_ui;
+#[path = "delivery_ui.rs"]
+mod delivery_ui;
 #[path = "editor_actions.rs"]
 mod editing;
 #[path = "inline_text.rs"]
@@ -53,9 +55,14 @@ mod scene_benchmark;
 mod scene_canvas;
 #[path = "scene_view.rs"]
 mod scene_view;
+#[path = "slideshow.rs"]
+mod slideshow;
 
 type ImageKey = (u64, usize, u32);
 pub struct Viewer {
+    delivery_task: Option<Task<()>>,
+    delivery_cancel: joydeck_shell::Cancellation,
+    delivery_busy: bool,
     benchmark: Option<Box<scene_benchmark::Benchmark>>,
     benchmark_task: Option<Task<()>>,
     retired_images: Vec<Arc<RenderImage>>,
@@ -116,6 +123,7 @@ pub struct Viewer {
 }
 impl Drop for Viewer {
     fn drop(&mut self) {
+        self.delivery_cancel.cancel();
         self.scene_cancel.store(true, Ordering::Relaxed);
         for token in [&self.read_cancel, &self.paint_cancel, &self.thumbs_cancel] {
             token.store(true, Ordering::Relaxed);
@@ -135,6 +143,9 @@ impl Viewer {
         let focus = cx.focus_handle();
         focus.focus(window, cx);
         Self {
+            delivery_task: None,
+            delivery_cancel: Default::default(),
+            delivery_busy: false,
             benchmark: None,
             benchmark_task: None,
             retired_images: vec![],
@@ -228,6 +239,7 @@ impl Viewer {
         if self.block_replace(cx) {
             return;
         }
+        self.delivery_cancel.cancel();
         self.end_inline(cx);
         self.cell = None;
 
@@ -270,7 +282,7 @@ impl Viewer {
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation {
-                    eprintln!("R4/R5 stale_open_discarded=true");
+                    eprintln!("R6/R7 stale_open_discarded=true");
                     return;
                 }
                 s.loading = false;
@@ -315,19 +327,19 @@ impl Viewer {
                         s.thumbs_cancel = Arc::new(AtomicBool::new(false));
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
                         s.message = format!(
-                            "读取完成 · {} 页 · {} ms · R4/R5 编辑",
+                            "读取完成 · {} 页 · {} ms · R6/R7 编辑",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                         eprintln!(
-                            "R4/R5 opened=true pages={} elapsed_ms={}",
+                            "R6/R7 opened=true pages={} elapsed_ms={}",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                     }
                     Err(error) => {
                         s.message = format!("打开失败：{error} · 当前文稿保持不变");
-                        eprintln!("R4/R5 open_failed=true reason={error}");
+                        eprintln!("R6/R7 open_failed=true reason={error}");
                     }
                 }
                 cx.notify();
@@ -424,7 +436,7 @@ impl Viewer {
             .unwrap_or_default();
         window.open_dialog(cx, move |dialog, _, _| {
             dialog
-                .title("兼容报告 · 只读预览")
+                .title("兼容报告 · 导入与输出限制")
                 .child(format!("共 {total} 条提示；此面板最多显示前 200 条"))
                 .child(
                     div()
@@ -470,7 +482,7 @@ impl Viewer {
                         s.image = Some((key, r));
                         s.rasters += 1;
                         eprintln!(
-                            "R4/R5 raster page={} width={} elapsed_ms={} count={}",
+                            "R6/R7 raster page={} width={} elapsed_ms={} count={}",
                             key.1 + 1,
                             key.2,
                             started.elapsed().as_millis(),
@@ -568,7 +580,7 @@ impl Render for Viewer {
         let scale = self.scale(window);
         if let Some(e) = &self.editor {
             window.set_window_title(&format!(
-                "JoyDeck · R4/R5 · {}{}",
+                "JoyDeck · R6/R7 · {}{}",
                 self.deck
                     .as_ref()
                     .map(|d| d.info.name.as_str())
@@ -686,7 +698,7 @@ impl Render for Viewer {
                 .gap_4()
                 .bg(rgb(palette.canvas))
                 .child(div().text_3xl().child("JoyDeck"))
-                .child("打开一份文稿，开始只读浏览")
+                .child("打开文稿，编辑、导出或放映")
                 .child(
                     div()
                         .text_sm()
@@ -769,7 +781,7 @@ impl Render for Viewer {
                                     .flex_shrink_0()
                                     .text_lg()
                                     .text_color(rgb(palette.accent))
-                                    .child("JoyDeck · R4/R5"),
+                                    .child("JoyDeck · R6/R7"),
                             )
                             .child(
                                 div()
@@ -1063,7 +1075,7 @@ pub fn open_window(
         },
         cx,
         move |w, cx| {
-            w.set_window_title("JoyDeck · R4/R5 编辑器");
+            w.set_window_title("JoyDeck · R6/R7 编辑器");
             let view = cx.new(|cx| Viewer::new(dark, w, cx));
             view.update(cx, |s, cx| {
                 s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {

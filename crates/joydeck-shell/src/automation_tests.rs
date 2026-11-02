@@ -1,0 +1,128 @@
+use super::automation::*;
+use super::helpers::Scratch;
+use serde_json::{Value, json};
+fn request(
+    id: &str,
+    method: &str,
+    target: Option<u64>,
+    revision: Option<u64>,
+    params: Value,
+) -> Request {
+    Request {
+        protocol_version: VERSION.into(),
+        request_id: id.into(),
+        method: method.into(),
+        target,
+        expected_revision: revision,
+        params,
+    }
+}
+#[test]
+fn revision_includes_selection_and_replays_do_not_execute_twice() {
+    let root = Scratch::new().unwrap();
+    let mut d = Dispatcher::new(&root.0).unwrap();
+    let new = d.dispatch(request("new", "document.new", None, None, json!({})));
+    let target = new["result"]["documentId"].as_u64().unwrap();
+    assert!(target < (1 << 53));
+    let select = request(
+        "select",
+        "command.execute",
+        Some(target),
+        Some(0),
+        json!({"command":{"command":"select","page":1,"shapes":[]}}),
+    );
+    assert_eq!(d.dispatch(select.clone())["result"]["revision"], 1);
+    assert_eq!(d.dispatch(select)["result"]["revision"], 1);
+    let stale = d.dispatch(request(
+        "stale",
+        "command.execute",
+        Some(target),
+        Some(0),
+        json!({"command":{"command":"insert-text","x":10.,"y":10.,"text":"must not be inserted"}}),
+    ));
+    assert!(stale.get("error").is_some());
+    let insert = request(
+        "insert",
+        "command.execute",
+        Some(target),
+        Some(1),
+        json!({"command":{"command":"insert-text","x":10.,"y":10.,"text":"中文😀"}}),
+    );
+    assert_eq!(d.dispatch(insert.clone())["result"]["revision"], 2);
+    assert_eq!(d.dispatch(insert)["result"]["revision"], 2);
+    let conflict = d.dispatch(request(
+        "insert",
+        "command.execute",
+        Some(target),
+        Some(2),
+        json!({"command":{"command":"delete"}}),
+    ));
+    assert_eq!(conflict["error"]["code"], "id-conflict");
+    let inspected = d.dispatch(request(
+        "inspect",
+        "document.inspect",
+        Some(target),
+        None,
+        json!({}),
+    ));
+    let objects = inspected["result"]["slides"][0]["objects"]
+        .as_array()
+        .unwrap();
+    assert_eq!(objects.iter().filter(|o| o["text"] == "中文😀").count(), 1);
+}
+#[test]
+fn paths_and_dirty_replacement_are_guarded() {
+    let root = Scratch::new().unwrap();
+    let mut d = Dispatcher::new(&root.0).unwrap();
+    assert!(d.path("relative.pptx", false).is_err());
+    assert!(
+        d.path(&root.0.join("../escape.pptx").to_string_lossy(), true)
+            .is_err()
+    );
+    let elsewhere = Scratch::new().unwrap();
+    assert!(
+        d.path(&elsewhere.0.join("new.pdf").to_string_lossy(), true)
+            .is_err()
+    );
+    assert!(
+        d.path(&root.0.join("new.pdf:hidden").to_string_lossy(), true)
+            .is_err()
+    );
+    d.dispatch(request("new", "document.new", None, None, json!({})));
+    let status = d.dispatch(request("status", "document.status", None, None, json!({})));
+    let target = status["result"]["documentId"].as_u64().unwrap();
+    d.dispatch(request(
+        "edit",
+        "command.execute",
+        Some(target),
+        Some(0),
+        json!({"command":{"command":"insert-rect","x":10.,"y":10.,"width":100.,"height":50.}}),
+    ));
+    assert!(
+        d.dispatch(request("replace", "document.new", None, None, json!({})))
+            .get("error")
+            .is_some()
+    );
+    assert!(
+        d.dispatch(request(
+            "close",
+            "document.close",
+            Some(target),
+            Some(1),
+            json!({})
+        ))
+        .get("error")
+        .is_some()
+    );
+    assert!(
+        d.dispatch(request(
+            "discard",
+            "document.close",
+            Some(target),
+            Some(1),
+            json!({"dirtyPolicy":"discard"})
+        ))
+        .get("result")
+        .is_some()
+    );
+}

@@ -1,11 +1,34 @@
 #![forbid(unsafe_code)]
 //! Headless workspace state. Preview data is immutable and is not a document editor model.
 use serde::{Deserialize, Serialize};
+pub mod automation;
+#[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "Integration assertions"
+)]
+mod automation_tests;
 pub mod document;
 pub mod editor;
+pub mod exchange;
+pub mod helpers;
 pub mod native;
+pub mod output;
 pub mod platform;
+pub mod playback;
 mod recovery_io;
+pub mod show;
+pub mod show_media;
+#[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "Integration assertions"
+)]
+mod show_tests;
 pub mod storage;
 pub use document::{Cancellation, Document};
 
@@ -115,13 +138,13 @@ impl Default for WorkspaceState {
 
 pub fn diagnostics() -> serde_json::Value {
     serde_json::json!({
-        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R4-R5",
+        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R6-R7",
         "rust_toolchain": RUST_TOOLCHAIN, "gpui_kit": GPUI_KIT_VERSION,
         "gpui_pre": GPUI_VERSION, "gpui_fast": false,
         "os": std::env::consts::OS, "arch": std::env::consts::ARCH,
         "cli_uses_gui": false, "preview": "original bundled immutable sample",
-        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery", "inline-text", "native-ime", "table-edit", "text-clipboard", "table-tsv", "notes-edit", "gpui-scene", "incremental-object-cache", "scene-bench", "desktop-render-benchmark", "master-theme-edit", "picture-insert-crop-adjust", "category-chart-edit", "chart-workbook", "context-ribbon", "content-inspector"],
-        "pending": ["rotated-in-place-text", "image-object-clipboard", "advanced-editing", "pdf"]
+        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery", "inline-text", "native-ime", "table-edit", "text-clipboard", "table-tsv", "notes-edit", "gpui-scene", "incremental-object-cache", "scene-bench", "desktop-render-benchmark", "master-theme-edit", "picture-insert-crop-adjust", "category-chart-edit", "chart-workbook", "context-ribbon", "content-inspector", "legacy-migration-subset", "pptx-exchange", "pdf-searchable", "notes-handouts", "png-jpeg-gif", "windows-print-dialog", "slideshow", "presenter", "windows-media", "static-mp4", "title-vtt", "headless-control", "mcp-2025-11-25", "export-jobs"],
+        "pending": ["rotated-in-place-text", "image-object-clipboard", "advanced-editing", "legacy-media-review-migration", "multi-display-qualification", "full-animation-editing", "media-device-qualification", "pdf-a-tagged"]
     })
 }
 

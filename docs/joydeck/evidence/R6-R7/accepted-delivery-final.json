@@ -1,0 +1,136 @@
+{
+  "cli_sha256": "452e00a30296d148660b694226796e47c1eac3e7b44a844ad2e93976faf61090",
+  "pdf": [
+    {
+      "layout": "slides",
+      "pages": 3,
+      "geometry": [
+        0.0,
+        0.0,
+        720.0,
+        405.0
+      ],
+      "fonts": [
+        "/AZBLFW+ArialMT",
+        "/JNAAPZ+Calibri",
+        "/VUUXJQ+MicrosoftYaHei"
+      ],
+      "embedded": true,
+      "to_unicode": true,
+      "bookmarks": 3,
+      "links": [
+        "https://example.com/joydeck"
+      ],
+      "text": "R6 / R7 · 真实 PPTX 1\n中文 · é · · public OOXML\nOfficial project documentation\nR6 / R7 · 真实 PPTX 2\n中文 · é · · public OOXML\nR6 / R7 · 真实 PPTX 3\n中文 · é · · public OOXML\nEnd / 结束（隐藏的第二页应被跳过）"
+    },
+    {
+      "layout": "notes",
+      "pages": 3,
+      "geometry": [
+        0.0,
+        0.0,
+        612.0,
+        792.0
+      ],
+      "fonts": [
+        "/BJRWYA+Calibri",
+        "/BLPXDB+MicrosoftYaHei",
+        "/MIPCHW+ArialMT"
+      ],
+      "embedded": true,
+      "to_unicode": true,
+      "bookmarks": 3,
+      "links": [
+        "https://example.com/joydeck"
+      ],
+      "text": "R6 / R7 · 真实 PPTX 1\n中文 · é · · public OOXML\nOfficial project documentation\nPRIVATE SPEAKER NOTES 1 / 中文备注：仅演示者可见。\n11/1//1 /\u001d\n1\nR6 / R7 · 真实 PPTX 2\n中文 · é · · public OOXML\nPRIVATE SPEAKER NOTES 2 / 中文备注：仅演示者可见。\n11/1//1 /\u001d\n/\nR6 / R7 · 真实 PPTX 3\n中文 · é · · public OOXML\nEnd / 结束（隐藏的第二页应被跳过）\nPRIVATE SPEAKER NOTES 3 / 中文备注：仅演示者可见。\n11/1//1 /\u001d\n1"
+    },
+    {
+      "layout": "handouts-3",
+      "pages": 1,
+      "geometry": [
+        0.0,
+        0.0,
+        612.0,
+        792.0
+      ],
+      "fonts": [
+        "/GQVGWB+ArialMT",
+        "/JNAAPZ+Calibri",
+        "/VUUXJQ+MicrosoftYaHei"
+      ],
+      "embedded": true,
+      "to_unicode": true,
+      "bookmarks": 3,
+      "links": [
+        "https://example.com/joydeck"
+      ],
+      "text": "R6 / R7 · 真实 PPTX 1\n中文 · é · · public OOXML\nOfficial project documentation\nR6 / R7 · 真实 PPTX 2\n中文 · é · · public OOXML\nR6 / R7 · 真实 PPTX 3\n中文 · é · · public OOXML\nEnd / 结束（隐藏的第二页应被跳过）\n1"
+    }
+  ],
+  "poppler_cpu_mean_absolute_channel_error": 1.9670290352080475,
+  "mp4": {
+    "bytes": 263470,
+    "tracks": [
+      "vide"
+    ],
+    "decoder": {
+      "info": {
+        "ready": true,
+        "width": 360,
+        "height": 202,
+        "duration": 1,
+        "durationKnown": true,
+        "audio": false,
+        "video": true,
+        "backend": "Windows WPF MediaPlayer"
+      },
+      "frame": {
+        "ready": true,
+        "seconds": 0.351444,
+        "paused": true,
+        "width": 360,
+        "height": 202
+      },
+      "frame_sha256": "f130438bc3d55a2e87edd831f84859cadac344022e50c4c996ad183ba0f0f86e",
+      "seek_frame": {
+        "ready": true,
+        "seconds": 0.8004658,
+        "paused": true,
+        "width": 360,
+        "height": 202
+      },
+      "seek_sha256": "f54b7e50c961a01d6116541c8bf25fd6ce3548ccaaf4e3c6f033fcba0d7fcc04",
+      "seek_changed": true
+    }
+  },
+  "media": {
+    "info": {
+      "ready": true,
+      "width": 1920,
+      "height": 1080,
+      "duration": 5,
+      "durationKnown": true,
+      "audio": true,
+      "video": true,
+      "backend": "Windows WPF MediaPlayer"
+    },
+    "frame": {
+      "ready": true,
+      "seconds": 0.33000009999999996,
+      "paused": true,
+      "width": 640,
+      "height": 360
+    },
+    "frame_sha256": "9974ca078bbceae8f8b7ba9383103a90ac128b2698780ca04b3df001e663f297",
+    "seek_frame": {
+      "ready": true,
+      "seconds": 0.7999999999999999,
+      "paused": true,
+      "width": 640,
+      "height": 360
+    },
+    "seek_sha256": "57dbf131ae34e348a52377e01c6be295c55ac4414229c48904263da25b94b5a2",
+    "seek_changed": true
+  }
+}

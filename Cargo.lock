@@ -1573,6 +1573,9 @@ name = "float-cmp"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "float-ord"
@@ -3272,14 +3275,14 @@ dependencies = [
 
 [[package]]
 name = "joydeck"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "joydeck-ui-gpui",
 ]
 
 [[package]]
 name = "joydeck-anim"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "joydeck-geom",
  "joydeck-model",
@@ -3288,7 +3291,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-cli"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "joydeck-engine",
  "joydeck-model",
@@ -3300,14 +3303,14 @@ dependencies = [
 
 [[package]]
 name = "joydeck-color"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "joydeck-engine"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "image",
  "joydeck-model",
@@ -3318,7 +3321,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-fonts"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "harfrust 0.8.4",
  "kurbo 0.13.1",
@@ -3329,7 +3332,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-format"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "joydeck-model",
  "serde",
@@ -3340,15 +3343,31 @@ dependencies = [
 
 [[package]]
 name = "joydeck-geom"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "kurbo 0.13.1",
  "serde",
 ]
 
 [[package]]
+name = "joydeck-legacy"
+version = "0.7.0"
+dependencies = [
+ "base64",
+ "image",
+ "joyoffice-opc",
+ "kurbo 0.13.1",
+ "roxmltree 0.21.1",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "unicode-segmentation",
+ "zip",
+]
+
+[[package]]
 name = "joydeck-metafile"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "image",
  "kurbo 0.13.1",
@@ -3357,7 +3376,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-model"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "joydeck-color",
  "joydeck-geom",
@@ -3368,8 +3387,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "joydeck-pdf"
+version = "0.7.0"
+dependencies = [
+ "joydeck-fonts",
+ "joydeck-model",
+ "joydeck-render",
+ "joydeck-text",
+ "krilla",
+ "kurbo 0.13.1",
+ "serde",
+ "skrifa 0.42.1",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "joydeck-pptx"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "flate2",
  "image",
@@ -3385,7 +3419,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-render"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "image",
  "joydeck-anim",
@@ -3407,15 +3441,19 @@ dependencies = [
 
 [[package]]
 name = "joydeck-shell"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
+ "base64",
  "getrandom 0.3.4",
  "image",
+ "joydeck-anim",
  "joydeck-engine",
  "joydeck-fonts",
  "joydeck-format",
  "joydeck-geom",
+ "joydeck-legacy",
  "joydeck-model",
+ "joydeck-pdf",
  "joydeck-pptx",
  "joydeck-render",
  "joydeck-text",
@@ -3429,7 +3467,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-text"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "chrono",
  "joydeck-color",
@@ -3443,7 +3481,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-ui-gpui"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "gpui-kit",
  "gpui-pre-platform",
@@ -3461,11 +3499,11 @@ dependencies = [
 
 [[package]]
 name = "joydeck-xtask"
-version = "0.5.0"
+version = "0.7.0"
 
 [[package]]
 name = "joyoffice-opc"
-version = "0.5.0"
+version = "0.7.0"
 dependencies = [
  "crc32fast",
  "flate2",
@@ -3525,6 +3563,33 @@ checksum = "07293a4e297ac234359b510362495713f75ea345d5307140414f20c69ffeb087"
 dependencies = [
  "bitflags 2.13.2",
  "libc",
+]
+
+[[package]]
+name = "krilla"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27da593198b20eeba65caeb73c2bbeec3e53ab08fa549898312ce81c4fce5e33"
+dependencies = [
+ "base64",
+ "bumpalo",
+ "flate2",
+ "float-cmp",
+ "gif 0.14.2",
+ "image-webp",
+ "imagesize 0.14.0",
+ "indexmap",
+ "pdf-writer",
+ "png 0.18.1",
+ "rustc-hash 2.1.3",
+ "siphasher",
+ "skrifa 0.42.1",
+ "smallvec",
+ "subsetter",
+ "tiny-skia-path 0.12.0",
+ "xmp-writer",
+ "yoke",
+ "zune-jpeg 0.5.15",
 ]
 
 [[package]]
@@ -4708,6 +4773,18 @@ checksum = "f8ed6a7761f76e3b9f92dfb0a60a6a6477c61024b775147ff0973a02653abaf2"
 dependencies = [
  "digest 0.10.7",
  "hmac",
+]
+
+[[package]]
+name = "pdf-writer"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5e456864a7a304047bff84977dc6fb162bd956475d40ba50b2dcecaada7f753"
+dependencies = [
+ "bitflags 2.13.2",
+ "itoa",
+ "memchr",
+ "ryu",
 ]
 
 [[package]]
@@ -6269,6 +6346,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "subsetter"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38803281d1c23166c5ebcb455439a5d2afe711cc909cf88af72448c297756ad6"
+dependencies = [
+ "kurbo 0.13.1",
+ "rustc-hash 2.1.3",
+ "skrifa 0.42.1",
+ "write-fonts",
+]
+
+[[package]]
 name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6567,7 +6656,7 @@ dependencies = [
  "cfg-if",
  "log",
  "png 0.17.16",
- "tiny-skia-path",
+ "tiny-skia-path 0.11.4",
 ]
 
 [[package]]
@@ -6575,6 +6664,17 @@ name = "tiny-skia-path"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c9e7fc0c2e86a30b117d0462aa261b72b7a99b7ebd7deb3a14ceda95c5bdc93"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "strict-num",
+]
+
+[[package]]
+name = "tiny-skia-path"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edca365c3faccca67d06593c5980fa6c57687de727a03131735bb85f01fdeeb9"
 dependencies = [
  "arrayref",
  "bytemuck",
@@ -6957,7 +7057,7 @@ dependencies = [
  "siphasher",
  "strict-num",
  "svgtypes 0.15.3",
- "tiny-skia-path",
+ "tiny-skia-path 0.11.4",
  "unicode-bidi",
  "unicode-script",
  "unicode-vo",
@@ -6984,7 +7084,7 @@ dependencies = [
  "siphasher",
  "strict-num",
  "svgtypes 0.16.1",
- "tiny-skia-path",
+ "tiny-skia-path 0.11.4",
  "unicode-bidi",
  "unicode-script",
  "unicode-vo",
@@ -8181,6 +8281,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
+name = "write-fonts"
+version = "0.48.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb731d4c4d93eacc69a1ad2f270f905788a98e4a3438267bcafbe08d3431c8d8"
+dependencies = [
+ "font-types 0.11.3",
+ "indexmap",
+ "kurbo 0.13.1",
+ "log",
+ "read-fonts 0.39.2",
+]
+
+[[package]]
 name = "writeable"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8292,6 +8405,12 @@ name = "xmlwriter"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec7a2a501ed189703dba8b08142f057e887dfc4b2cc4db2d343ac6376ba3e0b9"
+
+[[package]]
+name = "xmp-writer"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "y4m"

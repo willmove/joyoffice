@@ -15,6 +15,7 @@ pub struct Editor {
     pub base: Arc<Document>,
     pub template: Arc<[u8]>,
     pub recovery: Recovery,
+    import_warnings: Vec<String>,
 }
 #[derive(Clone)]
 pub struct SaveJob {
@@ -77,12 +78,32 @@ impl Editor {
         Ok(e)
     }
     pub fn from_document(doc: Document, root: PathBuf) -> Result<Self, String> {
-        let template = doc.original.clone();
+        let mut import_warnings = doc.info.warnings.clone();
+        let mut template = doc.original.clone();
+        let migration = if doc.info.format == "joydeck-v1" {
+            Some(joydeck_legacy::convert(
+                &doc.original,
+                &std::sync::atomic::AtomicBool::new(false),
+            )?)
+        } else {
+            None
+        };
         let (model, origins, base) = if doc.info.format == "joydeck" {
             let n = native::load(&doc.original, &Cancellation::default())?;
             let base =
                 Document::from_bytes("original source".into(), n.source, &Cancellation::default())?;
             (n.model, n.manifest.origins, base)
+        } else if let Some(converted) = &migration {
+            let base = Document::from_bytes(
+                "legacy public conversion.pptx".into(),
+                converted.pptx.clone(),
+                &Cancellation::default(),
+            )?;
+            (
+                base.presentation.clone(),
+                original_bindings(&base.presentation),
+                base,
+            )
         } else {
             (
                 doc.presentation.clone(),
@@ -90,24 +111,60 @@ impl Editor {
                 doc,
             )
         };
+        let session = Session::new(model, origins, true);
+        if native::sniff(&template) {
+            let entries = native::parts(&template)?;
+            if let Some(report) = entries.get("migration/report.json") {
+                let report: serde_json::Value =
+                    serde_json::from_slice(report).map_err(|e| e.to_string())?;
+                if let Some(warnings) = report["warnings"].as_array() {
+                    import_warnings.extend(
+                        warnings
+                            .iter()
+                            .filter_map(|w| w.as_str().map(str::to_owned)),
+                    );
+                }
+            }
+        }
+        if let Some(converted) = migration {
+            let bytes =
+                native::encode(&session.snapshot(), &base.original, &base.info.format, None)?;
+            let mut entries = native::parts(&bytes)?;
+            entries.insert(
+                "migration/legacy-original.joydeck".into(),
+                template.to_vec(),
+            );
+            entries.insert(
+                "migration/report.json".into(),
+                serde_json::to_vec(&converted).map_err(|e| e.to_string())?,
+            );
+            template = native::pack(entries)?.into();
+        }
         Ok(Self {
-            session: Session::new(model, origins, true),
+            session,
             source: None,
             fingerprint: None,
             base: Arc::new(base),
             template,
             recovery: Recovery::new(root),
+            import_warnings,
         })
     }
     pub fn display(&self) -> Result<Document, String> {
-        Document::from_model(
+        let mut doc = Document::from_model(
             self.source
                 .as_ref()
                 .and_then(|p| p.file_name())
                 .map(|s| s.to_string_lossy().into_owned())
                 .unwrap_or_else(|| "Untitled.joydeck".into()),
             self.session.model().clone(),
-        )
+        )?;
+        for warning in &self.import_warnings {
+            if !doc.info.warnings.contains(warning) && doc.info.warnings.len() < 200 {
+                doc.info.warnings.push(warning.clone());
+            }
+        }
+        Ok(doc)
     }
     pub fn save_job(&self, path: PathBuf) -> Result<SaveJob, String> {
         let same = self.source.as_ref().is_some_and(|source| {
@@ -177,6 +234,16 @@ impl SaveJob {
         )
     }
     pub fn run(&self) -> Result<Saved, String> {
+        if let Some(expected) = &self.expected
+            && native::sniff(&self.template)
+            && let Some(original) =
+                native::parts(&self.template)?.get("migration/legacy-original.joydeck")
+        {
+            use sha2::{Digest, Sha256};
+            if format!("{:x}", Sha256::digest(original)) == expected.sha256 {
+                return Err("legacy original is import-only; save a new .joydeck file".into());
+            }
+        }
         let extension = self
             .destination
             .extension()

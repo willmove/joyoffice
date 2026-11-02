@@ -1,0 +1,3 @@
+R6/R7 passed: 32 CLI calls, 37 MCP responses; C:\Users\willm\AppData\Local\Temp\joydeck-r6-r7-e0222n5t\中文 空格
+R3 public/native/table/text/notes checks passed: 20 executable calls
+R4/R5 verification passed: 23 executable calls; C:\Users\willm\AppData\Local\Temp\joydeck-r4-r5-85ooniog\中文 空格

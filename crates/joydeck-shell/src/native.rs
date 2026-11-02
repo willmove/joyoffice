@@ -172,6 +172,10 @@ pub fn encode(
         joydeck_format::save(&snapshot.model).map_err(|e| e.to_string())?,
     );
     entries.insert("source.package".into(), source.to_vec());
+    pack(entries)
+}
+
+pub(crate) fn pack(mut entries: BTreeMap<String, Vec<u8>>) -> Result<Vec<u8>, String> {
     entries.remove("mimetype");
     if entries.len() + 1 > 4096
         || entries.values().any(|b| b.len() as u64 > MAX_INPUT)

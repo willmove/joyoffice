@@ -88,6 +88,17 @@ pub fn composite_transition(
 /// the first) going out, slide `index` coming in, at `opts`' scale and size. Morph frames are
 /// rendered shape by shape like the show does.
 pub fn render_transition(pres: &Presentation, index: usize, t: f64, opts: &RenderOpts) -> Image {
+    render_transition_between(pres, index, index.checked_sub(1), t, opts)
+}
+
+/// Explicit outgoing slide for hidden-slide/custom-show navigation. Uses original page indices.
+pub fn render_transition_between(
+    pres: &Presentation,
+    index: usize,
+    prev: Option<usize>,
+    t: f64,
+    opts: &RenderOpts,
+) -> Image {
     let Some(slide) = pres.slides.get(index) else {
         return Image::default();
     };
@@ -96,9 +107,7 @@ pub fn render_transition(pres: &Presentation, index: usize, t: f64, opts: &Rende
         .as_ref()
         .map(|tr| (tr.kind.as_str(), tr.option.as_str()))
         .unwrap_or(("none", ""));
-    let prev = index
-        .checked_sub(1)
-        .filter(|i| pres.slides.get(*i).is_some());
+    let prev = prev.filter(|i| pres.slides.get(*i).is_some());
     if kind == "morph"
         && let Some(from) = prev
         && let Some(a) = pres.slides.get(from)

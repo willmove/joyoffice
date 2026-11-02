@@ -21,7 +21,16 @@ pub(super) enum Form {
 impl Viewer {
     pub(super) fn ribbon_tabs(&self, cx: &mut Context<Self>) -> Div {
         let mut row = div().h(px(34.)).flex().items_center().gap_1().px_2();
-        for tab in ["开始", "格式", "文字表格", "设计", "图片", "图表"] {
+        for tab in [
+            "开始",
+            "格式",
+            "文字表格",
+            "设计",
+            "图片",
+            "图表",
+            "输出",
+            "放映",
+        ] {
             row = row.child(
                 Button::new(tab)
                     .label(if self.ribbon == tab {
@@ -45,6 +54,9 @@ impl Viewer {
         )
     }
     pub(super) fn content_toolbar(&self, cx: &mut Context<Self>) -> Div {
+        if self.ribbon == "输出" {
+            return self.delivery_toolbar(cx);
+        }
         let mut row = div()
             .min_h(px(40.))
             .flex()
@@ -52,6 +64,35 @@ impl Viewer {
             .items_center()
             .gap_1()
             .px_2();
+        if self.ribbon == "放映" {
+            for (label, full, presenter) in [
+                ("放映预览", false, false),
+                ("从头全屏", true, false),
+                ("演示者视图", false, true),
+            ] {
+                row = row.child(
+                    Button::new(label)
+                        .label(label)
+                        .disabled(self.editor.is_none())
+                        .on_click(cx.listener(move |s, _, _, cx| {
+                            s.end_inline(cx);
+                            if let Some(editor) = &s.editor {
+                                let model = editor.session.snapshot().model;
+                                if let Err(e) = slideshow::open(
+                                    model,
+                                    if full { None } else { Some(s.page) },
+                                    full,
+                                    presenter,
+                                    cx,
+                                ) {
+                                    s.message = e;
+                                    cx.notify();
+                                }
+                            }
+                        })),
+                );
+            }
+        }
         let forms: &[(&str, Form)] = match self.ribbon {
             "设计" => &[
                 ("页面背景", Form::Background),

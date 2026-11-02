@@ -189,7 +189,7 @@ impl ShowState {
         self.visit(pres).last().copied()
     }
 
-    fn visit(&self, pres: &Presentation) -> Vec<usize> {
+    pub fn visit(&self, pres: &Presentation) -> Vec<usize> {
         match &self.order {
             Some(order) => order
                 .iter()

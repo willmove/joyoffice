@@ -66,7 +66,7 @@ edit.selectAll,noundo,Select All,crates/engine/src/cmd/edit.rs,43,R2,待分类,�
 edit.undo,noundo,Undo,crates/engine/src/cmd/edit.rs,18,R2,待分类,待验证,,
 file.adopt,noundo,Open,crates/engine/src/cmd/file.rs,26,R1/R2/R6,待分类,待验证,,
 file.close,noundo,Close,crates/engine/src/cmd/file.rs,60,R1/R2/R6,待分类,待验证,,
-file.export,noundo,Export…,crates/engine/src/cmd/file.rs,40,R6,待分类,待验证,,
+file.export,noundo,Export…,crates/engine/src/cmd/file.rs,40,R6,子集已验证,切片脚本通过,输出标签；基础格式/新路径,docs/joydeck/evidence/R6-R7/README.md
 file.info,query,Info,crates/engine/src/cmd/file.rs,41,R1/R2/R6,待分类,待验证,,
 file.new,noundo,New Presentation,crates/engine/src/cmd/file.rs,15,R1/R2/R6,待分类,待验证,,
 file.open,noundo,Open…,crates/engine/src/cmd/file.rs,25,R1/R2/R6,待分类,待验证,,
@@ -167,7 +167,7 @@ media.gifPlay,noundo,Play/Pause GIF,crates/engine/src/cmd/media.rs,36,R7,待分�
 media.info,query,Media Info,crates/engine/src/cmd/media.rs,18,R7,待分类,待验证,,
 media.options,action,Playback,crates/engine/src/cmd/shape.rs,186,R7,待分类,待验证,,
 media.pause,noundo,Pause,crates/engine/src/cmd/media.rs,14,R7,待分类,待验证,,
-media.play,noundo,Play,crates/engine/src/cmd/media.rs,13,R7,待分类,待验证,,
+media.play,noundo,Play,crates/engine/src/cmd/media.rs,13,R7,子集已验证,切片脚本通过,放映 M/V/J/K；每页一个嵌入片段,docs/joydeck/evidence/R6-R7/README.md
 media.posterFrame,action,Poster Frame,crates/engine/src/cmd/media.rs,27,R7,待分类,待验证,,
 media.seek,noundo,Seek,crates/engine/src/cmd/media.rs,17,R7,待分类,待验证,,
 media.stop,noundo,Stop,crates/engine/src/cmd/media.rs,16,R7,待分类,待验证,,
@@ -243,8 +243,8 @@ shape.sizePosition,action,Size and Position…,crates/engine/src/cmd/shape.rs,80
 shape.smoothCorners,action,Smooth Corners,crates/engine/src/cmd/shape.rs,92,R2/R5,待分类,待验证,,
 shape.visible,action,Show/Hide,crates/engine/src/cmd/shape.rs,139,R2/R5,待分类,待验证,,
 show.customShow,action,Custom Slide Show,crates/engine/src/cmd/review.rs,96,R7,待分类,待验证,,
-show.fromCurrent,noundo,Play from Current Slide,crates/engine/src/cmd/review.rs,83,R7,待分类,待验证,,
-show.fromStart,noundo,Play from Start,crates/engine/src/cmd/review.rs,82,R7,待分类,待验证,,
+show.fromCurrent,noundo,Play from Current Slide,crates/engine/src/cmd/review.rs,83,R7,子集已验证,切片脚本通过,放映标签；当前页,docs/joydeck/evidence/R6-R7/README.md
+show.fromStart,noundo,Play from Start,crates/engine/src/cmd/review.rs,82,R7,子集已验证,切片脚本通过,放映标签；首个可见页,docs/joydeck/evidence/R6-R7/README.md
 show.setup,action,Set Up Slide Show…,crates/engine/src/cmd/review.rs,87,R7,待分类,待验证,,
 slide.actions,query,Inspect Slide Actions,crates/engine/src/cmd/inspect.rs,15,R2/R5,待分类,待验证,,
 slide.colorAt,query,Color At,crates/engine/src/cmd/file.rs,51,R2/R5,待分类,待验证,,

@@ -158,6 +158,17 @@ pub fn export_preserving(
     bindings: &[SlideBinding],
 ) -> Result<Vec<u8>, PptxError> {
     let mut parts = read_parts(original)?;
+    if parts
+        .keys()
+        .any(|p| p.to_ascii_lowercase().ends_with("vbaproject.bin"))
+        || parts
+            .get("[Content_Types].xml")
+            .is_some_and(|b| String::from_utf8_lossy(b).contains("macroEnabled"))
+    {
+        return Err(error(
+            "macro-enabled Office source cannot be saved as ordinary PPTX; retain the original in a .joydeck project or explicitly regenerate a copy",
+        ));
+    }
     if parts.keys().any(|p| p.starts_with("_xmlsignatures/")) {
         return Err(error(
             "signed PPTX cannot be edited in place; save a .joydeck project",

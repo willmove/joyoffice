@@ -63,6 +63,8 @@ def main():
         run([sys.executable, ROOT / 'scripts/joydeck/package-native.py', '--profile', 'release' if args.release else 'debug'])
         return
     if args.operation == 'run':
+        if not args.headless and sys.platform == 'win32':
+            run([sys.executable, ROOT / 'scripts/joydeck/build-windows-helpers.py', '--output', ROOT / ('target/release' if args.release else 'target/debug')])
         run(['cargo', 'run', '--locked', '-p', 'joydeck-cli' if args.headless else 'joydeck', *(['--release'] if args.release else [])])
         return
     packages = selected_packages(args.headless)
@@ -83,6 +85,8 @@ def main():
         run(['cargo', 'test', '--locked', *flags])
     else:
         run(['cargo', args.operation, '--locked', *flags])
+        if args.operation == 'build' and not args.headless and sys.platform == 'win32':
+            run([sys.executable, ROOT / 'scripts/joydeck/build-windows-helpers.py', '--output', ROOT / ('target/release' if args.release else 'target/debug')])
 
 
 if __name__ == '__main__':

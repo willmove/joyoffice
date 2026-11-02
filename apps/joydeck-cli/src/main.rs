@@ -1,12 +1,94 @@
 #![forbid(unsafe_code)]
 use std::process::ExitCode;
+mod output;
 mod scene_bench;
+mod stdio;
 
 fn execute() -> Result<(), String> {
     execute_args(&std::env::args().skip(1).collect::<Vec<_>>())
 }
 
 fn execute_args(args: &[String]) -> Result<(), String> {
+    if let [command, input, mode_flag, mode, output_flag, output] = args
+        && command == "exchange"
+        && mode_flag == "--mode"
+        && output_flag == "--output"
+    {
+        let editor = joydeck_shell::editor::Editor::open(
+            std::path::Path::new(input),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&joydeck_shell::exchange::export(
+                &editor,
+                std::path::Path::new(output),
+                mode,
+                &Default::default()
+            )?)
+            .map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, flag, root] = args
+        && matches!(command.as_str(), "control" | "mcp")
+        && flag == "--root"
+    {
+        return stdio::run(std::path::Path::new(root), command == "mcp");
+    }
+    if args.first().is_some_and(|s| s == "export") {
+        return output::run(&args[1..]);
+    }
+    if let [command, input] = args
+        && command == "print"
+    {
+        let cancel = joydeck_shell::Cancellation::default();
+        let doc = joydeck_shell::Document::open(std::path::Path::new(input), &cancel)?;
+        println!(
+            "{}",
+            joydeck_shell::output::print(
+                &doc,
+                &joydeck_shell::output::Options::default(),
+                &cancel
+            )?
+        );
+        return Ok(());
+    }
+    if let [command, input] = args
+        && command == "media-inspect"
+    {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&joydeck_shell::playback::inspect(std::path::Path::new(
+                input
+            ))?)
+            .map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, input, flag, output] = args
+        && command == "migrate"
+        && flag == "--output"
+    {
+        if std::path::Path::new(output)
+            .extension()
+            .and_then(|e| e.to_str())
+            != Some("joydeck")
+        {
+            return Err("migration output must be a new .joydeck file".into());
+        }
+        let mut editor = joydeck_shell::editor::Editor::open(
+            std::path::Path::new(input),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        let saved = editor.save_job(output.into())?.run()?;
+        editor.apply_saved(saved);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&editor.display()?.info).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
     use joydeck_shell::{Cancellation, Document};
     use std::path::Path;
     if let [
@@ -213,12 +295,12 @@ fn execute_args(args: &[String]) -> Result<(), String> {
     match args {
         [] => {
             println!(
-                "JoyDeck CLI · R4/R5\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  content INPUT\n  import-picture INPUT IMAGE --output NEW.pptx|NEW.joydeck\n  scene-bench INPUT --page N --iterations N --output NEW_DIRECTORY\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
+                "JoyDeck CLI · R6/R7\n  migrate LEGACY.joydeck --output NEW.joydeck\n  exchange INPUT --mode preserve|regenerate --output NEW.pptx|NEW.potx|NEW.ppsx\n  export INPUT --format pdf|png|jpeg|gif|mp4|outline|rtf|vtt --output NEW_PATH [--pages 1,3] [--dpi 144] [--scale 1] [--layout slides|notes|handouts-3|handouts-6] [--seconds 1] [--fps 10] [--transparent]\n  print INPUT | media-inspect LOCAL_MEDIA\n  control --root ABS_DIRECTORY | mcp --root ABS_DIRECTORY\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  content INPUT\n  import-picture INPUT IMAGE --output NEW.pptx|NEW.joydeck\n  scene-bench INPUT --page N --iterations N --output NEW_DIRECTORY\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
             );
         }
         [command] if command == "--help" || command == "help" => {
             println!(
-                "Usage: joydeck-cli inspect INPUT\n       joydeck-cli render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n       joydeck-cli [diagnostics|sample|--version]\nOutputs slide-NNNN.png and inspect.json. Existing directories are refused."
+                "JoyDeck R6/R7: use joydeck-cli without arguments for the complete command list.\nUsage: joydeck-cli inspect INPUT\n       joydeck-cli render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n       joydeck-cli [diagnostics|sample|--version]\nOutputs slide-NNNN.png and inspect.json. Existing directories are refused."
             );
         }
         [command] if command == "--version" => println!("JoyDeck {}", env!("CARGO_PKG_VERSION")),

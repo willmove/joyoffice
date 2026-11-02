@@ -68,6 +68,7 @@ pub use placed::{
 pub use table::cell_body as table_cell_body;
 pub use table::cell_rects as table_cell_rects;
 pub use table::row_heights as table_row_heights;
+pub use transition::render_transition_between;
 pub use transition::{SlideParts, composite_transition, render_transition};
 
 mod geometry;
