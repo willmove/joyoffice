@@ -1,0 +1,38 @@
+{
+  "package_source_sha256": "4159f14e1cbc383d930cb4fe3b19a9c57f26d3d7649ebe558cc825963832eab3",
+  "standalone_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r0-final-e7jqe7is\\中文 空格路径\\JoyDeck",
+  "gui_executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r0-final-e7jqe7is\\中文 空格路径\\JoyDeck\\joydeck.exe",
+  "gui_sha256": "7e107a1fcd5d77afacb663d029611637d6aa0d88ea27dc0cc90a56871f8ac037",
+  "process_id": 29760,
+  "cli_diagnostics": {
+    "arch": "x86_64",
+    "capabilities": [
+      "native-workspace",
+      "page-navigation",
+      "zoom",
+      "theme",
+      "notes-input"
+    ],
+    "cli_uses_gui": false,
+    "gpui_fast": false,
+    "gpui_kit": "0.8.1",
+    "gpui_pre": "0.3.10",
+    "os": "windows",
+    "pending": [
+      "document-import",
+      "editing",
+      "document-save",
+      "pptx",
+      "pdf"
+    ],
+    "preview": "original bundled immutable sample",
+    "product": "JoyDeck",
+    "rust_toolchain": "1.98.1",
+    "stage": "R0",
+    "version": "0.1.0"
+  },
+  "window_size_requested": [
+    980,
+    800
+  ]
+}

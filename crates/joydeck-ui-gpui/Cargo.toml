@@ -1,0 +1,21 @@
+[package]
+name = "joydeck-ui-gpui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+gpui-kit.workspace = true
+gpui_platform.workspace = true
+joyoffice-ui.workspace = true
+joydeck-shell.workspace = true
+serde_json.workspace = true
+
+[features]
+validation = []
+dev-runtime-shaders = ["gpui_platform/runtime_shaders"]
+
+[lints]
+workspace = true

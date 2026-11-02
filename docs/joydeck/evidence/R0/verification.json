@@ -1,0 +1,21 @@
+{
+  "source_sha256": "4159f14e1cbc383d930cb4fe3b19a9c57f26d3d7649ebe558cc825963832eab3",
+  "gui_sha256": "7e107a1fcd5d77afacb663d029611637d6aa0d88ea27dc0cc90a56871f8ac037",
+  "native_release_window": "observed at 980x800 from a standalone Chinese/space path",
+  "native_release_screenshot": "09-final-release-980.png",
+  "source_checks": "pass",
+  "product_check": "pass",
+  "headless_check": "pass",
+  "gpui_provenance_packages": 21,
+  "dependency_probe": "pass",
+  "host_compile": "pass",
+  "rust_tests": 3,
+  "python_regressions": 5,
+  "unverified": [
+    "macOS/Linux native build/run",
+    "remote CI",
+    "complete IME/accessibility/performance matrix",
+    "full license notice review",
+    "R1-R9 application functionality"
+  ]
+}

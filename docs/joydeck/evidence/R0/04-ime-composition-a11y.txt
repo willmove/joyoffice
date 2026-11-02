@@ -1,0 +1,33 @@
+Window: "JoyDeck · R0 原生技术预览", App: joydeck.exe.
+	0 区域 JoyDeck · R0 原生技术预览 Secondary Actions: Raise
+		29 窗格
+		1 标题栏 (settable, string) Value: JoyDeck · R0 原生技术预览
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 按钮 浅色
+		8 按钮 关于
+		9 按钮 文件
+		10 按钮 开始
+		11 按钮 插入
+		12 按钮 设计
+		13 按钮 切换
+		14 按钮 动画
+		15 按钮 放映
+		16 按钮 视图
+		17 按钮 上一页
+		18 按钮 下一页
+		19 按钮 适应窗口
+		20 按钮 属性
+		21 按钮 备注
+		22 按钮 演讲备注 · 本窗口临时输入
+		28 编辑 (settable, string) Value: 
+		23 按钮 备注
+		24 按钮 属性
+		25 按钮 −
+		26 按钮 ＋
+		27 按钮 适应
+
+The focused UI element is 28 编辑 (settable, string) Value: .

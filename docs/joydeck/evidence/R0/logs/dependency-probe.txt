@@ -1,0 +1,4 @@
+   Compiling joydeck-dependency-probe v0.1.0 (D:\Coding\EditorProjects\joydeck-new\experiments\dependency-probe)
+    Finished `dev` profile [unoptimized] target(s) in 6.59s
+     Running `target\dependency-probe\debug\joydeck-dependency-probe.exe C:/Windows/Fonts/simsun.ttc 0`
+{"face":0,"font_bytes":18316748,"krilla":"0.8.2 registry","mapped_glyph":36,"pdf_bytes":1408,"result":"pass","scope":"font read/shaping, PDF writer/font acceptance, ZIP roundtrip, CPU path API; full slide/PDF parity remains R1/R6","shaped_glyphs":10,"vello_cpu":"0.2.0","zip":"9.0.0","zip_bytes":147}

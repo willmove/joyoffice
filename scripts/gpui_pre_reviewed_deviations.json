@@ -1,0 +1,107 @@
+{
+  "note": "gpui-pre 0.3.10 differences from zed@08cbb88a152c3751a43e853425a70e9f631a5918, reviewed on 2026-10-31 in docs/joyoffice/JOYDECK-INTEGRATION.md. Retains the previous publication adaptations and pins the wgpu 30 adaptations, including changed path alpha blending. All source changes remain content-pinned; upgrade requires another review.",
+  "deviations": [
+    {
+      "package": "gpui-pre",
+      "version": "0.3.10",
+      "path": "src/action.rs",
+      "kind": "modified",
+      "sha256": "d94a908e55d4165b5862b0fe448580fa312b5a3762ae0a0568c82a6030d358e9",
+      "zed_blob": "07c47fc2e4ade97b1398eae3f2eaae003fab782c",
+      "reason": "actions! derives $crate::Action instead of gpui::Action so it works under the renamed package; plus one provenance comment line"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.10",
+      "path": "build.rs",
+      "kind": "modified",
+      "sha256": "8b4360d0fa24716e384f9881d8d7072d33a410952f0626f0e92531b552882349",
+      "zed_blob": "530959482d175879cfdbc9d97f780ff342a0a013",
+      "reason": "find_gpui_crate_dir reads vendor/gpui instead of the sibling ../gpui of a Zed checkout; plus one provenance comment line"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.10",
+      "path": "vendor/gpui/src/color.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/color.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.10",
+      "path": "vendor/gpui/src/geometry.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/geometry.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.10",
+      "path": "vendor/gpui/src/platform.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/platform.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.10",
+      "path": "vendor/gpui/src/scene.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/scene.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-apple",
+      "version": "0.3.10",
+      "path": "vendor/gpui/src/window.rs",
+      "kind": "copied",
+      "zed_path": "crates/gpui/src/window.rs",
+      "reason": "gpui source that build.rs reads to generate the Metal shader header"
+    },
+    {
+      "package": "gpui-pre-macros",
+      "version": "0.3.10",
+      "path": "src/gpui_macros.rs",
+      "kind": "modified",
+      "sha256": "d8e07bd8a00ca9cf651f9686024667664b1497ffb8d8f87abfb5923579421621",
+      "zed_blob": "501a9911d2a6fcaa874ece8ed26accaa9c636527",
+      "reason": "every proc-macro entry point passes its output through gpui_pre_facade_paths::rewrite; only lines added (mod declaration, comment, wrappers), none removed"
+    },
+    {
+      "package": "gpui-pre-macros",
+      "version": "0.3.10",
+      "path": "src/gpui_pre_facade_paths.rs",
+      "kind": "added",
+      "sha256": "af0f3b45a7ec517bd8f6241622b4ff60ba18b18e1094e050793c68e3a5c0b3fb",
+      "reason": "Kit facade rewriter; implementation unchanged from the 0.3.9 review except the snapshot provenance comment. JoyWord now resolves macro output through gpui-kit."
+    },
+    {
+      "package": "gpui-pre-wgpu",
+      "version": "0.3.10",
+      "path": "src/wgpu_atlas.rs",
+      "kind": "modified",
+      "sha256": "5696934d4d3631acfbc98c6b7c22174f9d02f4aac420b939e9e4da66e40c7e9b",
+      "zed_blob": "b2a7bfeb49035de88bb1d1636f13ad3abcbab13b",
+      "reason": "wgpu 30 adapter request adds apply_limit_buckets=false; snapshot provenance comment"
+    },
+    {
+      "package": "gpui-pre-wgpu",
+      "version": "0.3.10",
+      "path": "src/wgpu_context.rs",
+      "kind": "modified",
+      "sha256": "402c6cac59e4bf14e7cc36445990473f8789e76fb35d3ad6e5889f728b48ab71",
+      "zed_blob": "16d451f008524575f07b7124e289f69fff479438",
+      "reason": "wgpu 30 removes DeviceDescriptor.default_queue; snapshot provenance comment"
+    },
+    {
+      "package": "gpui-pre-wgpu",
+      "version": "0.3.10",
+      "path": "src/wgpu_renderer.rs",
+      "kind": "modified",
+      "sha256": "accdb28e2d1cfcbd12714e8460b335886a694fe199d5fce629e3e28850f1adbf",
+      "zed_blob": "a148a4ccfbe9ff27bbe95dead033898957a77943",
+      "reason": "wgpu 30 adds SurfaceColorSpace::Auto, queue.present(frame), fallible get_mapped_range; path blending switches to PREMULTIPLIED_ALPHA_BLENDING (alpha destination factor OneMinusSrcAlpha), plus formatting and provenance comment. Linux pixel/driver behavior remains unverified."
+    }
+  ]
+}

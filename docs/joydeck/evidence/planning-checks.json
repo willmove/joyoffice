@@ -1,0 +1,29 @@
+{
+  "result": "pass",
+  "scope": "planning documents and source inspection; no Rust build/test or GUI execution",
+  "markdown_files": 5,
+  "implementation_tasks": 98,
+  "task_counts_by_stage": {
+    "R0": 9,
+    "R1": 9,
+    "R2": 10,
+    "R3": 10,
+    "R4": 10,
+    "R5": 11,
+    "R6": 10,
+    "R7": 10,
+    "R8": 10,
+    "R9": 9
+  },
+  "command_rows": 329,
+  "unique_command_ids": 329,
+  "source_fingerprints_verified": 125,
+  "checks": [
+    "local document links",
+    "code fence balance",
+    "task IDs and explicit dependency cycles",
+    "command count and uniqueness",
+    "inspected source fingerprints"
+  ],
+  "issues": []
+}

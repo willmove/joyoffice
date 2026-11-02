@@ -1,0 +1,17 @@
+{
+  "host_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+  "command": [
+    "cargo",
+    "check",
+    "--locked",
+    "-p",
+    "joydeck",
+    "-p",
+    "joydeck-cli",
+    "--offline",
+    "--target-dir",
+    "D:\\Coding\\EditorProjects\\joydeck-new\\target\\host-check"
+  ],
+  "exit_code": 0,
+  "scope": "GUI/CLI compile only in isolated host; old application facade replaced; no Word/Sheet or old Deck integration-test qualification"
+}

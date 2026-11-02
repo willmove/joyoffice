@@ -1,0 +1,25 @@
+[package]
+name = "joydeck"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+default-run = "joydeck"
+
+[dependencies]
+joydeck-ui-gpui = { workspace = true, optional = true }
+
+[features]
+default = ["desktop"]
+desktop = ["dep:joydeck-ui-gpui"]
+validation = ["joydeck-ui-gpui?/validation"]
+dev-runtime-shaders = ["joydeck-ui-gpui?/dev-runtime-shaders"]
+
+[[bin]]
+name = "joydeck"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[lints]
+workspace = true

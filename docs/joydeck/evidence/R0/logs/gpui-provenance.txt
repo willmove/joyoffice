@@ -1,0 +1,45 @@
+gpui-pre provenance: 21 packages in Cargo.lock, Zed 08cbb88a152c3751a43e853425a70e9f631a5918
+  Zed source: https://github.com/zed-industries/zed.git (commit must be an ancestor of main)
+reviewed gpui-pre 0.3.10 = crates/gpui: 159 files identical; 1 reviewed deviations; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+           modified: src/action.rs - actions! derives $crate::Action instead of gpui::Action so it works under the renamed package; plus one provenance comment line
+reviewed gpui-pre-apple 0.3.10 = crates/gpui_apple: 10 files identical; 6 reviewed deviations; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+           modified: build.rs - find_gpui_crate_dir reads vendor/gpui instead of the sibling ../gpui of a Zed checkout; plus one provenance comment line
+           copied: vendor/gpui/src/color.rs - gpui source that build.rs reads to generate the Metal shader header
+           copied: vendor/gpui/src/geometry.rs - gpui source that build.rs reads to generate the Metal shader header
+           copied: vendor/gpui/src/platform.rs - gpui source that build.rs reads to generate the Metal shader header
+           copied: vendor/gpui/src/scene.rs - gpui source that build.rs reads to generate the Metal shader header
+           copied: vendor/gpui/src/window.rs - gpui source that build.rs reads to generate the Metal shader header
+ok       gpui-pre-collections 0.3.10 = crates/collections: 4 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-derive-refineable 0.3.10 = crates/refineable/derive_refineable: 2 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-http-client 0.3.10 = crates/http_client: 5 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-ios 0.3.10 = crates/gpui_ios: 13 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-linux 0.3.10 = crates/gpui_linux: 28 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-macos 0.3.10 = crates/gpui_macos: 12 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+reviewed gpui-pre-macros 0.3.10 = crates/gpui_macros: 15 files identical; 2 reviewed deviations; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+           modified: src/gpui_macros.rs - every proc-macro entry point passes its output through gpui_pre_facade_paths::rewrite; only lines added (mod declaration, comment, wrappers), none removed
+           added: src/gpui_pre_facade_paths.rs - Kit facade rewriter; implementation unchanged from the 0.3.9 review except the snapshot provenance comment. JoyWord now resolves macro output through gpui-kit.
+ok       gpui-pre-platform 0.3.10 = crates/gpui_platform: 4 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-refineable 0.3.10 = crates/refineable: 2 files identical; symlinks resolved: LICENSE-APACHE; nested packages left out: derive_refineable; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+reviewed gpui-pre-reqwest 0.12.15 = crates.io/zed-reqwest@0.12.15-zed: 78 files identical; 1 reviewed deviations; not compared: .cargo_vcs_info.json, Cargo.lock, Cargo.toml, Cargo.toml.orig
+           renamed registry source, checksum ac2d05756ff48539950c3282ad7acf3817ad3f08797c205ad1c34a2ce03b9970
+ok       gpui-pre-scheduler 0.3.10 = crates/scheduler: 6 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-shared-string 0.3.10 = crates/gpui_shared_string: 2 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-sum-tree 0.3.10 = crates/sum_tree: 5 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-util 0.3.10 = crates/gpui_util: 3 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-web 0.3.10 = crates/gpui_web: 17 files identical; symlinks resolved: LICENSE-APACHE; nested packages left out: examples/hello_web; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+reviewed gpui-pre-wgpu 0.3.10 = crates/gpui_wgpu: 8 files identical; 3 reviewed deviations; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+           modified: src/wgpu_atlas.rs - wgpu 30 adapter request adds apply_limit_buckets=false; snapshot provenance comment
+           modified: src/wgpu_context.rs - wgpu 30 removes DeviceDescriptor.default_queue; snapshot provenance comment
+           modified: src/wgpu_renderer.rs - wgpu 30 adds SurfaceColorSpace::Auto, queue.present(frame), fallible get_mapped_range; path blending switches to PREMULTIPLIED_ALPHA_BLENDING (alpha destination factor OneMinusSrcAlpha), plus formatting and provenance comment. Linux pixel/driver behavior remains unverified.
+ok       gpui-pre-windows 0.3.10 = crates/gpui_windows: 25 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-ztracing 0.3.10 = crates/ztracing: 4 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+ok       gpui-pre-ztracing-macro 0.3.10 = crates/ztracing_macro: 2 files identical; symlinks resolved: LICENSE-APACHE; not compared: Cargo.lock, Cargo.toml, Cargo.toml.orig
+Not compared (cargo packaging output, never accepted as a build target):
+  Cargo.toml: normalized by cargo publish; gpui-pre also renames the package and its gpui dependencies to gpui-pre-* and adds [package.metadata.gpui-pre]
+  Cargo.toml.orig: the publisher's manifest before normalization; Cargo never reads it
+  Cargo.lock: generated by cargo package for the crate alone; ignored when the crate is a dependency
+  .cargo_vcs_info.json: VCS note written by cargo package; metadata only (gpui-pre ships none)
+Upstream normalization:
+  symlinks: Zed tracks LICENSE-* as git symlinks; cargo packages the target's content, so the crate file is compared with the target blob
+  nested packages: files below a subdirectory with its own Cargo.toml belong to another package and are left out by cargo package (as Zed's derive_refineable and gpui_web/examples/hello_web)
+Result: OK, 16 identical, 5 accepted with reviewed deviations, 0 failed (packages 0.1 s, Zed 11.5 s)

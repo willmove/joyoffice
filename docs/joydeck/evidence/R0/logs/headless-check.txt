@@ -1,0 +1,59 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.23s
+     Running `target\debug\joydeck-xtask.exe check joydeck --headless`
++ C:\Applications\Python\Python314\python.exe D:\Coding\EditorProjects\joydeck-new\scripts\check_docs.py
+Documentation and task references passed
++ C:\Applications\Python\Python314\python.exe D:\Coding\EditorProjects\joydeck-new\scripts\check_dependencies.py
+Exact dependency baseline and CLI isolation passed
++ C:\Applications\Python\Python314\python.exe -m unittest discover -s scripts/tests -p test_*.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK
++ cargo fmt --all -- --check
++ cargo clippy --locked --all-targets -p joydeck-cli -p joydeck-shell -p joydeck-xtask -- -D warnings
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+    Checking memchr v2.8.3
+   Compiling syn v2.0.119
+    Checking serde_json v1.0.154
+   Compiling serde_derive v1.0.228
+    Checking joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Checking joydeck-cli v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.52s
++ cargo test --locked -p joydeck-cli -p joydeck-shell -p joydeck-xtask
+   Compiling memchr v2.8.3
+   Compiling serde_core v1.0.228
+   Compiling serde_json v1.0.154
+   Compiling serde v1.0.228
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-cli v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.42s
+     Running unittests src\main.rs (target\debug\deps\joydeck_cli-e24990a194b47b35.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_shell-b69383e3beed362d.exe)
+
+running 2 tests
+test tests::navigation_and_zoom_remain_bounded_for_untrusted_events ... ok
+test tests::malformed_preview_is_rejected_instead_of_entering_layout ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\joydeck_xtask-752675cab2047363.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_shell
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

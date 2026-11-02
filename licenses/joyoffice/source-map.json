@@ -1,0 +1,50 @@
+[
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-ui/Cargo.toml",
+    "target_path": "crates/joyoffice-ui/Cargo.toml",
+    "source_sha256": "567500515b66356c40ea3e65f11f160093b88f78edf1a834ae138e7047a52da9",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
+    "adapted_sha256": "b142babb482b11493bbdb1287156714b1506d6d78eda6f1bfa1be91835346be8"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-ui/src/lib.rs",
+    "target_path": "crates/joyoffice-ui/src/lib.rs",
+    "source_sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
+    "adapted_sha256": "acad6ff295610ae704278806d57f7ec92fc25bdcc867d18015abf930b55030b9"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "LICENSE",
+    "target_path": "licenses/joyoffice/LICENSE-MIT",
+    "source_sha256": "507699be1a533254e00494aafb31153582e9ffa8a27ec0f7f11639217f816b1d",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
+    "adapted_sha256": "2d4a159ea2bffa4cdbac4134d3c773447cc808a11293f35309ca255a202a730b"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "apps/joydeck/src/workspace_layout.rs",
+    "target_path": "crates/joydeck-ui-gpui/src/layout.rs",
+    "source_sha256": "2e5eb9db87f4110176965a1bea042ea48a440419d4eb27e397e9bff729aea87a",
+    "local_changes": "retain pure WorkspaceLayout section; remove old Editor bindings; crate visibility; normalize line endings to LF",
+    "adapted_sha256": "d8ca03721244c713d1e6602c2211c9979a30be3eb262b71cb4797e2450b9679b"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "scripts/verify_gpui_pre_provenance.py",
+    "target_path": "scripts/verify_gpui_pre_provenance.py",
+    "source_sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
+    "adapted_sha256": "d061412aed0d0cf3242f53414bdeb7500a6b43480e6c509c88e1a7df9ce30ad8"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "scripts/gpui_pre_reviewed_deviations.json",
+    "target_path": "scripts/gpui_pre_reviewed_deviations.json",
+    "source_sha256": "d617723255026cf380ddb6345600ce808a4ee807d8ed4af84dbb12de299055a7",
+    "local_changes": "CRLF normalized to LF; content otherwise unchanged",
+    "adapted_sha256": "5d3826ac032e813fb983a25310023908f5e31575856fedd5b30c5d23b864afda"
+  }
+]
