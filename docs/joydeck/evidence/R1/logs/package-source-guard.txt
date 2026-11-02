@@ -1,0 +1,66 @@
+   Compiling joydeck-render v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.2.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `release` profile [optimized] target(s) in 1m 25s
+   Compiling proc-macro2 v1.0.107
+   Compiling arrayvec v0.7.8
+   Compiling bitflags v2.13.2
+   Compiling serde_json v1.0.154
+   Compiling foldhash v0.2.0
+   Compiling num-traits v0.2.19
+   Compiling log v0.4.34
+   Compiling once_cell v1.21.4
+   Compiling either v1.19.0
+   Compiling png v0.18.1
+   Compiling hashbrown v0.17.1
+   Compiling polycool v0.4.0
+   Compiling rayon v1.12.0
+   Compiling euclid v0.22.14
+   Compiling moxcms v0.7.11
+   Compiling chrono v0.4.45
+   Compiling indexmap v2.14.2
+   Compiling quote v1.0.47
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling guillotiere v0.7.0
+   Compiling zip v9.0.0
+   Compiling bytemuck_derive v1.12.1
+   Compiling thiserror-impl v2.0.21
+   Compiling serde_derive v1.0.228
+   Compiling zerocopy-derive v0.8.62
+   Compiling bytemuck v1.25.2
+   Compiling thiserror v2.0.21
+   Compiling font-types v0.11.3
+   Compiling font-types v0.12.6
+   Compiling color v0.3.3
+   Compiling read-fonts v0.39.2
+   Compiling read-fonts v0.41.0
+   Compiling zerocopy v0.8.62
+   Compiling serde v1.0.228
+   Compiling smallvec v1.16.3
+   Compiling joydeck-color v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling kurbo v0.13.1
+   Compiling joydeck-geom v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling peniko v0.6.1
+   Compiling vello_common v0.2.0
+   Compiling half v2.7.1
+   Compiling joydeck-model v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling tiff v0.10.3
+   Compiling image v0.25.9
+   Compiling harfrust v0.8.4
+   Compiling skrifa v0.42.1
+   Compiling skrifa v0.44.0
+   Compiling joydeck-metafile v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-fonts v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling glifo v0.3.0
+   Compiling joydeck-anim v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-pptx v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-format v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling vello_cpu v0.2.0
+   Compiling joydeck-text v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-render v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-cli v0.2.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 16s
+Packaging failed: Source changed during packaging; rebuild the new source

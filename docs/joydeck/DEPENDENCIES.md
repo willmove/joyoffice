@@ -103,3 +103,10 @@ R0 建立或复用自动检查，至少包括：
 - Linux：沿宿主已验证的系统库与 Wayland/X11 配置，按目标图形驱动和字体验证；不可仅安装用户态 Vulkan loader 就视为窗口可用。参考 [Kit 安装说明](https://gpui-kit.com/docs/installation/)和 [上游 Linux 构建说明](https://zed.dev/docs/development/linux)。
 
 三平台文档只提供构建前提；最终支持范围由本项目当次构建和实际运行证据决定。
+
+
+## R1 实施增量（2026-11-02）
+
+十个纯核心库已按本表目标版本编译：image 0.25.9、zip 9.0.0、harfrust 0.8.4、skrifa 0.42.1、kurbo 0.13.1、quick-xml 0.41.0。ZIP 成员名和 data_start 的新 Result/Option API 已适配，原格式测试保留。新增 CPU 参考依赖精确固定 vello_cpu/vello_common 0.2.0；它们不提供窗口循环，未改变 GPUI/Kit 来源。
+
+`joyoffice-opc` 与旧 JoyDeck viewer 的来源、原始/适配指纹加入同步清单；OPC 的有界 cursor 和绝对路径内部 expect 改为可恢复或有默认值的等价处理。宿主合入时回接唯一公共 crate，R1 未修改 JoyOffice 源检出。受控 Ubuntu/Hack 独立字体资产记录于 `licenses/fonts/sources.json`，外部 CRAFT_FONTS_DIR 在 R1 被禁用，避免未登记字体进入产物。核心、CLI、格式与渲染依赖闭包均禁止 GPUI/其它产品和 egui/epaint。

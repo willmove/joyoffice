@@ -19,9 +19,9 @@
 
 ## 当前状态
 
-2026-11-02：已建立独立 Rust workspace，交付 R0 Windows GPUI 开发预览。支持原创样例浏览、页面导航、缩放、明暗主题、属性面板及临时备注输入。实际验证和跨平台边界见 [实施状态](docs/joydeck/STATUS.md)。
+2026-11-02：已实现 JoyDeck 0.2.0 / R1 真实文稿只读查看。支持 PPTX / .deckcraft v1 读取、CPU 参考渲染、虚拟缩略图、翻页/缩放/主题、只读备注及 CLI inspect/render。复用 JoyOffice OPC、公共配色和既有异步查看器；原始文稿不写回。详见 [R1 验证记录](docs/joydeck/evidence/R1/README.md) 与 [实施状态](docs/joydeck/STATUS.md)。
 
-工具链为 Rust 1.98.1，GPUI Kit 0.8.1 / GPUI pre 0.3.10。R1 首批已迁入 DeckCraft 的颜色、几何与文稿模型，保留 167 项原有核心测试；真实文稿读取与渲染继续推进。R2 将形成编辑、保存、重开和撤销闭环。当前预览不提供文件导入或编辑保存。
+工具链为 Rust 1.98.1，GPUI Kit 0.8.1 / GPUI pre 0.3.10；依赖无 egui/epaint。R2 将接入编辑、保存、重开和撤销闭环。原生对象绘制与性能优化属于 R4，当前使用共享 CPU 参考渲染器。
 
 ## 构建与体验
 
@@ -33,6 +33,14 @@ cargo xtask check joydeck --headless
 cargo xtask package joydeck --release
 ```
 
-Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它们会定位 Visual Studio 自带的 CMake。应用可用 `--dark` / `--light` 和 `--window-size=980x800` 指定预览窗口。`joydeck-cli diagnostics` 输出当前能力。
+Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它们会定位 Visual Studio 自带的 CMake。应用默认打开真实 native 样例，可传入本地文稿路径。应用可用 `--dark` / `--light` 和 `--window-size=980x800` 指定预览窗口。`joydeck-cli diagnostics` 输出当前能力。
+
+```powershell
+.\target\debug\joydeck.exe ".\tests\fixtures\joydeck\independent.pptx"
+.\target\debug\joydeck-cli.exe inspect ".\tests\fixtures\joydeck\r1-preview.deckcraft"
+.\target\debug\joydeck-cli.exe render ".\tests\fixtures\joydeck\independent.pptx" --output ".\rendered" --all --scale 1
+```
+
+输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r1.md)。
 
 后续应从 [TASKS](docs/joydeck/TASKS.md) 选择任务，完成后填写新证据。JoyOffice 原有里程碑和上游自评不计入新 JoyDeck 的完成状态。

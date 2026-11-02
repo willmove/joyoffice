@@ -68,7 +68,79 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "8b75d8c29b4de18beb1aaf983d2a33dd1e530100fff004edf4329d99287eda99",
-    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF"
+    "adapted_sha256": "5e681d06476deebde4253bd06a4dae96b5ff0b36d5aa2fc83ddfb284bf8551b2",
+    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/Cargo.toml",
+    "target_path": "crates/joyoffice-opc/Cargo.toml",
+    "source_sha256": "01264a4a46067cbb7f2660f2cde2e01c5b51344354f23095017d7111ddc501db",
+    "adapted_sha256": "c5b0fbc5a8904f9edfa1d573afb80775fcb56125a0f723ddee512dca7bf4abb2",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/src/budget.rs",
+    "target_path": "crates/joyoffice-opc/src/budget.rs",
+    "source_sha256": "e643b6e783451a03c5cf708d406a9e712261d878e510ac28794ace75bec61f11",
+    "adapted_sha256": "f855c0df3c7aae8d4c883d17b5261d9adb3f4edeb845ef834a0396af28b54fe2",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/src/lib.rs",
+    "target_path": "crates/joyoffice-opc/src/lib.rs",
+    "source_sha256": "073949433fe217bcaad7ba34313fd49e183c98580ec8c32462780e490b678c2f",
+    "adapted_sha256": "34a3166790e5d968e1767c77d1be57d43541181c43f210559dbc269054004b86",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/src/package.rs",
+    "target_path": "crates/joyoffice-opc/src/package.rs",
+    "source_sha256": "53deec46e5ae05ae9b3387a6858d76fe34c36373831158d42a6ee4db351c72da",
+    "adapted_sha256": "d7c9b288c39b1ddfeaf6cbad863b0dd473ec9957cf32f7825115918a84d07277",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/src/part.rs",
+    "target_path": "crates/joyoffice-opc/src/part.rs",
+    "source_sha256": "812a48afc98653d0159d4be8911129569ba56f84c2d7627cb3b27443dda00436",
+    "adapted_sha256": "69e4f7af305ca98f7a57e4e639c145c9f0cf948445ff018e85967b85cf8aa1db",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/src/xml.rs",
+    "target_path": "crates/joyoffice-opc/src/xml.rs",
+    "source_sha256": "0e009f2bdd67c1f692e7c5f46082bd4f231ceaaba3eb9781bafee1bfd27c1431",
+    "adapted_sha256": "ba14d800c74e07bb2f75eeb355c99f1ca79bfa763b59913c22fcdb7fccc8ee4f",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/src/zip.rs",
+    "target_path": "crates/joyoffice-opc/src/zip.rs",
+    "source_sha256": "ca48284426f24a6afb05c12dd5376cc470e0cb7ca683f660c4640885e7e554b0",
+    "adapted_sha256": "8f8d3cbe288d3f6193d589314bc20115bbc7e5e26fcba2d66ebe44612f5c2a60",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joyoffice-opc/tests/package.rs",
+    "target_path": "crates/joyoffice-opc/tests/package.rs",
+    "source_sha256": "616a16d4577732334fb8a34ad20c6182e779851a21c2ff468ebeab91453def11",
+    "adapted_sha256": "63c9db86db6f792524a8827e9be621b856e3436d1d39d358c1d5a7a6a86f09b3",
+    "local_changes": "LF normalization; fallible cursor conversions under stricter local panic policy; test-only assertion allowances; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "apps/joydeck/src/viewer.rs",
+    "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
+    "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
+    "adapted_sha256": "3f62eeb30f0a50fa4676b90407441003b1f51ed839a03b93addb259fb69c64e0",
+    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
   }
 ]

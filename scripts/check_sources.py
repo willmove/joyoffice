@@ -12,6 +12,8 @@ def main():
     deckcraft = ROOT / 'licenses/deckcraft/file-map.json'
     if deckcraft.is_file():
         records += json.loads(deckcraft.read_text(encoding='utf-8'))['files']
+    fonts = json.loads((ROOT / 'licenses/fonts/sources.json').read_text(encoding='utf-8'))
+    records += [{'target_path': r['path'], 'source_sha256': r['sha256']} for r in fonts['files']]
     errors = []
     for record in records:
         path = (ROOT / record['target_path']).resolve()

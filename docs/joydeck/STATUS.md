@@ -1,25 +1,21 @@
 # JoyDeck 实施状态
 
-2026-11-02，当前为 R0 Windows 原生技术预览。应用和 CLI 均由当前 workspace 编译，使用 JoyOffice 固定的 Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10。
-
-R1 首批底座已迁入 `joydeck-color`、`joydeck-geom`、`joydeck-model`，对应 31 个源码/manifest 文件；167 项上游核心测试保留并通过。它们与 CLI 均通过无 GPUI 依赖检查，桌面功能范围仍为 R0。详见 [R1 底座记录](evidence/R1/README.md)。
+2026-11-02：当前为 JoyDeck 0.2.0 / R1 真实文稿只读查看切片。Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10 与 JoyOffice 保持一致，未引入 egui/epaint。
 
 ## 已实现
 
-- 独立 workspace、无 GUI 的 shell/CLI、GPUI 视图 crate 和产品工程工具。
-- 按固定 JoyOffice 提交复用公共 UI 与纯工作区布局，保留许可证和文件来源。
-- 原创三页样例、页面导航、缩放/适应窗口、明暗主题、属性面板和临时备注输入；未实现动作保持禁用。
-- 统一构建、fmt/严格 Clippy/测试、文档/依赖/来源检查，以及不覆盖既有产物的开发包装。
-- 实际 GPUI 来源校验与独立依赖兼容实验；三平台 CI 配置及隔离 JoyOffice 宿主编译演练。
+- 迁入 DeckCraft 的 color/geom/model/metafile/fonts/text/anim/render/format/pptx，共十个无 GPUI 核心库，保留来源、许可和可运行测试；engine 依赖的历史集成测试保留在 tests-upstream，等 R2 接回，未计为通过。
+- 复用 JoyOffice 公共 UI、OPC 严格 ZIP 读取器与现有 JoyDeck 的异步只读浏览器。只保留一份 Presentation，CLI 与桌面都通过 shell 文稿会话读取并使用同一 CPU 渲染器。
+- 真实 PPTX / .deckcraft v1 读取，包/对象/像素预算，坏文件恢复、取消和过期结果丢弃；保留原始字节与未知内容，R1 不写回文件。
+- 实际页画布、虚拟缩略图、32 张缩略图缓存、切页、适应窗口、缩放、明暗配色、只读备注和兼容提示。当前画布保留一张页面栅格；可见缩略图每批最多 12 张后台生成。
+- 无窗口 CLI inspect/render，PNG 与 JSON 输出；新目录要求防止覆盖既有结果。包含原创 native/PPTX 和独立 python-pptx 样本。
 
-## 实际验证
+## 验证与交付
 
-Windows x86_64/MSVC 下，产品检查、无界面检查、release 构建与 ZIP 打包通过。实际窗口覆盖 1280 和 980 像素宽布局、翻页、主题、缩放、备注展开、系统拼音候选提交及撤销、关于对话框和退出。release 包在仓库外的中文空格路径运行，CLI 诊断和错误参数返回码通过。
+当次命令、测试、截图、包路径及 SHA-256 见 [R1 验证记录](evidence/R1/README.md)。R0 开发包和原有证据保留。当前验证环境是 Windows x86_64/MSVC；macOS/Linux 和远端 CI 未执行本轮原生验证。CPU 参考栅格通过 GPUI 显示，原生对象场景加速仍属于 R4，不将本切片称为性能优化已完成。
 
-当前 [开发包记录](evidence/R0/package.json)、[仓库外启动记录](evidence/R0/standalone-launch.json)、[宿主编译记录](evidence/R0/host-check.json)与 [R0 验证说明](evidence/R0/README.md)可追溯实际产物和范围。完整构建日志与窗口截图保存在同目录。
+## 后续范围
 
-macOS/Linux 原生构建、窗口、IME 及远端三平台 CI 尚未执行；CI 配置不能替代这些结果。R0 没有文稿编辑器，临时备注不写入文件；输入法结果只覆盖本次普通备注控件的 Windows 子场景，不代表 R3 原位编辑已完成。
+R2 接入 engine 的统一命令/撤销、编辑与保存重开，并恢复 engine 相关格式集成测试、对齐 329 条编辑命令 registry。R3 继续精确字体替代/缺字报告及原位文字系统 IME。R1 的格式兼容报告和只读备注不代表编辑或 PowerPoint 全保真；外链媒体不下载，3D/SmartArt/OLE/动画及复杂效果可能使用 fallback。
 
-## 下一阶段
-
-继续 JD-100–JD-108：完成其余核心的依赖顺序迁移、字体 fallback 脱离 epaint、包读取预算与 CPU 参考渲染，再接入真实文稿打开/取消、页缩略图及 CLI inspect/render。已迁移的三个底层库不代表查看器完成。保留 R0 包及本地提交 `95b84eb` 作为可运行检查点。
+取消在读取、包检查、解析前后与光栅任务边界检查；已进入的单次解析/光栅不能立即抢占，旧结果由 generation 校验拦截。字体由许可明确的 Ubuntu fallback 和本机字体提供，不分发系统字体。正式签名、安装/更新及完整再分发许可审计仍待后续阶段。

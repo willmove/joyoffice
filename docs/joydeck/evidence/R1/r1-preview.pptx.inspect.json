@@ -1,0 +1,32 @@
+{
+  "name": "r1-preview.pptx",
+  "format": "pptx",
+  "read_only": true,
+  "source_bytes": 29581,
+  "width_pt": 960.0,
+  "height_pt": 540.0,
+  "media": 0,
+  "slides": [
+    {
+      "page": 1,
+      "title": "JoyDeck · 真实文稿预览",
+      "shapes": 5,
+      "notes": "Speaker notes / 演讲备注 1"
+    },
+    {
+      "page": 2,
+      "title": "Shapes, theme & Unicode",
+      "shapes": 5,
+      "notes": "Speaker notes / 演讲备注 2"
+    },
+    {
+      "page": 3,
+      "title": "Read once. Render everywhere.",
+      "shapes": 5,
+      "notes": "Speaker notes / 演讲备注 3"
+    }
+  ],
+  "warnings": [
+    "R1 read-only preview; unsupported features may be approximated. Original package bytes are retained. Linked media is not fetched; fonts may be substituted."
+  ]
+}

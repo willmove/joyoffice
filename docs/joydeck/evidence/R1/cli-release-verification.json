@@ -1,0 +1,343 @@
+{
+  "cli": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-final-ef39p_j5\\中文 空格路径\\joydeck-0.2.0-r1-windows-x86_64-release-fdd20f30eb\\joydeck-cli.exe",
+  "cli_sha256": "f6ea27e7908a5a0c17dbba257b82fc11fdf5fc353d56d744714986c82fe45af2",
+  "working_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径",
+  "checks": 28,
+  "passed": true,
+  "runs": [
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"name\": \"r1-preview.deckcraft\",\n  \"format\": \"deckcraft\",\n  \"read_only\": true,\n  \"source_bytes\": 4849,\n  \"width_pt\": 960.0,\n  \"height_pt\": 540.0,\n  \"media\": 0,\n  \"slides\": [\n    {\n      \"page\": 1,\n      \"title\": \"JoyDeck · 真实文稿预览\",\n      \"shapes\": 5,\n      \"notes\": \"Speaker notes / 演讲备注 1\"\n    },\n    {\n      \"page\": 2,\n      \"title\": \"Shapes, theme & Unicode\",\n      \"shapes\": 5,\n      \"notes\": \"Speaker notes / 演讲备注 2\"\n    },\n    {\n      \"page\": 3,\n      \"title\": \"Read once. Render everywhere.\",\n      \"shapes\": 5,\n      \"notes\": \"Speaker notes / 演讲备注 3\"\n    }\n  ],\n  \"warnings\": [\n    \"R1 read-only preview; unsupported features may be approximated. Original package bytes are retained. Linked media is not fetched; fonts may be substituted.\",\n    \"Font family unavailable: Inter; renderer will substitute it.\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft.pngs",
+        "--all",
+        "--scale",
+        "1"
+      ],
+      "exit_code": 0,
+      "stdout": "Rendered 3 page(s) to C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft.pngs\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft.pngs"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: output directory must be new: 当文件已存在时，无法创建该文件。 (os error 183)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-3",
+        "--page",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: pages start at 1\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-4",
+        "--page",
+        "9999"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: page outside document\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-5",
+        "--scale",
+        "NaN"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: render exceeds scale/pixel budget (0.05–8; 8192 side; 16 MP)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-6",
+        "--scale",
+        "8"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: render exceeds scale/pixel budget (0.05–8; 8192 side; 16 MP)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.deckcraft",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-7",
+        "--all",
+        "--page",
+        "1"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: use either --all or --page\n"
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"name\": \"r1-preview.pptx\",\n  \"format\": \"pptx\",\n  \"read_only\": true,\n  \"source_bytes\": 29581,\n  \"width_pt\": 960.0,\n  \"height_pt\": 540.0,\n  \"media\": 0,\n  \"slides\": [\n    {\n      \"page\": 1,\n      \"title\": \"JoyDeck · 真实文稿预览\",\n      \"shapes\": 5,\n      \"notes\": \"Speaker notes / 演讲备注 1\"\n    },\n    {\n      \"page\": 2,\n      \"title\": \"Shapes, theme & Unicode\",\n      \"shapes\": 5,\n      \"notes\": \"Speaker notes / 演讲备注 2\"\n    },\n    {\n      \"page\": 3,\n      \"title\": \"Read once. Render everywhere.\",\n      \"shapes\": 5,\n      \"notes\": \"Speaker notes / 演讲备注 3\"\n    }\n  ],\n  \"warnings\": [\n    \"R1 read-only preview; unsupported features may be approximated. Original package bytes are retained. Linked media is not fetched; fonts may be substituted.\",\n    \"Font family unavailable: Inter; renderer will substitute it.\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx.pngs",
+        "--all",
+        "--scale",
+        "1"
+      ],
+      "exit_code": 0,
+      "stdout": "Rendered 3 page(s) to C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx.pngs\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx.pngs"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: output directory must be new: 当文件已存在时，无法创建该文件。 (os error 183)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-11",
+        "--page",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: pages start at 1\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-12",
+        "--page",
+        "9999"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: page outside document\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-13",
+        "--scale",
+        "NaN"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: render exceeds scale/pixel budget (0.05–8; 8192 side; 16 MP)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-14",
+        "--scale",
+        "8"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: render exceeds scale/pixel budget (0.05–8; 8192 side; 16 MP)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\r1-preview.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-15",
+        "--all",
+        "--page",
+        "1"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: use either --all or --page\n"
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"name\": \"independent.pptx\",\n  \"format\": \"pptx\",\n  \"read_only\": true,\n  \"source_bytes\": 39325,\n  \"width_pt\": 959.9999212598425,\n  \"height_pt\": 540.0,\n  \"media\": 1,\n  \"slides\": [\n    {\n      \"page\": 1,\n      \"title\": \"Independent PPTX / 独立样本\",\n      \"shapes\": 4,\n      \"notes\": \"Original independent speaker notes / 备注 1\"\n    },\n    {\n      \"page\": 2,\n      \"title\": \"Raster, table & geometry\",\n      \"shapes\": 6,\n      \"notes\": \"Original independent speaker notes / 备注 2\"\n    },\n    {\n      \"page\": 3,\n      \"title\": \"Portrait-independent navigation\",\n      \"shapes\": 4,\n      \"notes\": \"Original independent speaker notes / 备注 3\"\n    }\n  ],\n  \"warnings\": [\n    \"R1 read-only preview; unsupported features may be approximated. Original package bytes are retained. Linked media is not fetched; fonts may be substituted.\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx.pngs",
+        "--all",
+        "--scale",
+        "1"
+      ],
+      "exit_code": 0,
+      "stdout": "Rendered 3 page(s) to C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx.pngs\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx.pngs"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: output directory must be new: 当文件已存在时，无法创建该文件。 (os error 183)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-19",
+        "--page",
+        "0"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: pages start at 1\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-20",
+        "--page",
+        "9999"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: page outside document\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-21",
+        "--scale",
+        "NaN"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: render exceeds scale/pixel budget (0.05–8; 8192 side; 16 MP)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-22",
+        "--scale",
+        "8"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: render exceeds scale/pixel budget (0.05–8; 8192 side; 16 MP)\n"
+    },
+    {
+      "args": [
+        "render",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\independent.pptx",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\error-23",
+        "--all",
+        "--page",
+        "1"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: use either --all or --page\n"
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\损坏文件.pptx"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: invalid package: NotZip\n"
+    },
+    {
+      "args": [
+        "inspect",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-4520s4qb\\中文 空格路径\\future.deckcraft"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: unsupported .deckcraft format/version (only version 1 is supported)\n"
+    },
+    {
+      "args": [
+        "unknown-command"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: unknown command or extra argument; use --help\n"
+    },
+    {
+      "args": [
+        "diagnostics"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"arch\": \"x86_64\",\n  \"capabilities\": [\n    \"native-workspace\",\n    \"page-navigation\",\n    \"zoom\",\n    \"theme\",\n    \"pptx-read\",\n    \"deckcraft-read\",\n    \"cpu-render\",\n    \"thumbnails\",\n    \"inspect\",\n    \"render-png\"\n  ],\n  \"cli_uses_gui\": false,\n  \"gpui_fast\": false,\n  \"gpui_kit\": \"0.8.1\",\n  \"gpui_pre\": \"0.3.10\",\n  \"os\": \"windows\",\n  \"pending\": [\n    \"editing\",\n    \"document-save\",\n    \"pdf\"\n  ],\n  \"preview\": \"original bundled immutable sample\",\n  \"product\": \"JoyDeck\",\n  \"rust_toolchain\": \"1.98.1\",\n  \"stage\": \"R1\",\n  \"version\": \"0.2.0\"\n}\n",
+      "stderr": ""
+    }
+  ]
+}

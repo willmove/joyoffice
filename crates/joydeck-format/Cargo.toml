@@ -1,0 +1,18 @@
+[package]
+name = "joydeck-format"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license.workspace = true
+description = "DeckCraft native file format (.deckcraft: zip of a JSON manifest plus media) and outline text import/export"
+
+[lints]
+workspace = true
+
+[dependencies]
+joydeck-model = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+zip = { workspace = true }
+thiserror = { workspace = true }

@@ -7,6 +7,15 @@ license.workspace = true
 publish = false
 
 [dependencies]
+joydeck-model.workspace = true
+joydeck-render.workspace = true
+joydeck-fonts.workspace = true
+joydeck-format.workspace = true
+joydeck-pptx.workspace = true
+joyoffice-opc.workspace = true
+quick-xml.workspace = true
+zip.workspace = true
+image.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 

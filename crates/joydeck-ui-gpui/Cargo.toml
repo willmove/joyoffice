@@ -12,6 +12,7 @@ gpui_platform.workspace = true
 joyoffice-ui.workspace = true
 joydeck-shell.workspace = true
 serde_json.workspace = true
+image.workspace = true
 
 [features]
 validation = []

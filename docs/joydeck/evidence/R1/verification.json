@@ -1,20 +1,59 @@
 {
-  "scope": "R1 foundation libraries only; desktop remains R0",
-  "crates": [
-    "joydeck-color",
-    "joydeck-geom",
-    "joydeck-model"
+  "stage": "R1-readonly-viewer",
+  "version": "0.2.0",
+  "toolchain": "1.98.1",
+  "gpui_kit": "0.8.1",
+  "gpui_pre": "0.3.10",
+  "rust_tests": 824,
+  "headless_tests": 823,
+  "python_tests": 5,
+  "cli_release_checks": 28,
+  "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.2.0-r1-windows-x86_64-release-fdd20f30eb.zip",
+  "archive_sha256": "ceecf4e4aee3337aa20eaec45ec24d8072c3bf128ef7fde2338c4f5dbe4bfc0b",
+  "source_sha256": "fdd20f30ebd824fd16254235189532b2ee276418c93770c44a5a479f0c684426",
+  "screenshots": [
+    {
+      "path": "01-release-native-980.png",
+      "sha256": "a6913b2a01606128cd3cbf0fad7a8b5b8e7de935fd07372a7a64bdf8ac5174c8"
+    },
+    {
+      "path": "02-release-pptx-page2.png",
+      "sha256": "cd748727df8185b4efda0dcc161c9f133fbbf7f15f385259aa0e3759b71221fa"
+    },
+    {
+      "path": "03-release-speaker-notes.png",
+      "sha256": "86690eeb9ea6d76eaba71f15d2a37c5901c19d9ef5c1a9ca576306385bfe141f"
+    },
+    {
+      "path": "04-release-dark-pptx.png",
+      "sha256": "b9c718ff484692b0dae221a3af14ac971706d05810637e3c36b30784ca48bc57"
+    },
+    {
+      "path": "05-release-compatibility.png",
+      "sha256": "df5f5e986ced62fee99635aaf95f361c6f12597b3126bdc5011b0c46e946e3ef"
+    },
+    {
+      "path": "06-release-broken-preserves-document.png",
+      "sha256": "f89a834c3025378e81d764b75ebc8b066495eed9dd3438d1d03878ead9ef76e1"
+    },
+    {
+      "path": "07-release-96-pages-virtual-rail.png",
+      "sha256": "7cbb8b52acef668e7c648930ff865b7b4c2e94d30ba7799b45e67c8c63d29f56"
+    },
+    {
+      "path": "08-release-zoom.png",
+      "sha256": "07e1effa53598459eee45e0127ba186a41aa9f7f0072112eab6346f5081e8e4f"
+    }
   ],
-  "imported_files": 31,
-  "upstream_core_tests": 167,
-  "product_rust_tests": 170,
-  "headless_rust_tests": 169,
-  "python_regressions": 5,
-  "fmt": "pass",
-  "strict_clippy": "pass",
-  "desktop_build": "pass",
-  "source_hashes": "pass",
-  "cli_core_gui_isolation": "pass",
-  "new_document_import_or_editing": false,
-  "original_source_fingerprints_unchanged": 125
+  "unverified": [
+    "macOS/Linux native build and GUI",
+    "in-flight cancel and late-result race acceptance",
+    "native file-picker selection automation"
+  ],
+  "next": [
+    "R2 engine commands/edit/save/reopen",
+    "restore engine-dependent historical format tests",
+    "R3 exact font/glyph diagnostics",
+    "R4 native object scene/performance"
+  ]
 }

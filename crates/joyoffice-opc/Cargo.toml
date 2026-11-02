@@ -1,0 +1,17 @@
+[package]
+name = "joyoffice-opc"
+description = "Format-neutral Open Packaging Conventions layer with untrusted-input budgets"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+crc32fast.workspace = true
+flate2.workspace = true
+quick-xml.workspace = true
+
+[lints]
+workspace = true

@@ -1,6 +1,8 @@
 #![forbid(unsafe_code)]
 //! Headless workspace state. Preview data is immutable and is not a document editor model.
 use serde::{Deserialize, Serialize};
+pub mod document;
+pub use document::{Cancellation, Document};
 
 pub const GPUI_KIT_VERSION: &str = "0.8.1";
 pub const GPUI_VERSION: &str = "0.3.10";
@@ -108,13 +110,13 @@ impl Default for WorkspaceState {
 
 pub fn diagnostics() -> serde_json::Value {
     serde_json::json!({
-        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R0",
+        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R1",
         "rust_toolchain": RUST_TOOLCHAIN, "gpui_kit": GPUI_KIT_VERSION,
         "gpui_pre": GPUI_VERSION, "gpui_fast": false,
         "os": std::env::consts::OS, "arch": std::env::consts::ARCH,
         "cli_uses_gui": false, "preview": "original bundled immutable sample",
-        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "notes-input"],
-        "pending": ["document-import", "editing", "document-save", "pptx", "pdf"]
+        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png"],
+        "pending": ["editing", "document-save", "pdf"]
     })
 }
 

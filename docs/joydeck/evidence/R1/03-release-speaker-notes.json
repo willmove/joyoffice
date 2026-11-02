@@ -1,0 +1,16 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-final-ef39p_j5\\中文 空格路径\\joydeck-0.2.0-r1-windows-x86_64-release-fdd20f30eb\\joydeck.exe",
+    "id": 6164852,
+    "title": "JoyDeck · R1 真实文稿预览"
+  },
+  "accessibility": {
+    "focused_element": "20 对话框 Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck · R1 真实文稿预览\", App: joydeck.exe.\n\t0 区域 JoyDeck · R1 真实文稿预览 Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: JoyDeck · R1 真实文稿预览\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t19 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 打开文稿\n\t\t8 按钮 深色\n\t\t9 按钮 备注\n\t\t10 按钮 兼容报告 · 1\n\t\t11 编辑 (settable, string) 输入 .deckcraft / .pptx 路径 Description: 输入 .deckcraft / .pptx 路径\n\t\t12 按钮 读取路径\n\t\t13 按钮 (disabled) 取消读取\n\t\t14 按钮 上一页\n\t\t15 按钮 下一页\n\t\t16 按钮 −\n\t\t17 按钮 +\n\t\t18 按钮 适应窗口\n\t\t20 对话框 Secondary Actions: Raise\n\t\t\t21 按钮 Close\n\nThe focused UI element is 20 对话框 Secondary Actions: Raise."
+  },
+  "screenshot": {
+    "id": "screenshot-0",
+    "width": 1282,
+    "height": 851
+  }
+}

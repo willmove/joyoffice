@@ -29,7 +29,7 @@ def check_lock(lock):
 def main():
     lock = tomllib.loads((ROOT / 'Cargo.lock').read_text(encoding='utf-8'))
     errors = check_lock(lock)
-    for package in ['joydeck-cli', 'joydeck-color', 'joydeck-geom', 'joydeck-model']:
+    for package in ['joydeck-cli', 'joydeck-shell', 'joydeck-color', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-pptx', 'joydeck-format']:
         tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', package, '--edges', 'normal,build', '--prefix', 'none'], cwd=ROOT, encoding='utf-8')
         for line in tree.splitlines():
             name = line.split(' ', 1)[0]

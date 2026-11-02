@@ -1,0 +1,9 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R1 opened=true pages=3 elapsed_ms=73
+R1 raster page=1 width=1736 elapsed_ms=34 count=1
+R1 raster page=2 width=1736 elapsed_ms=10 count=2
+R1 open_failed=true reason=invalid package: NotZip
+R1 opened=true pages=96 elapsed_ms=22
+R1 raster page=1 width=1736 elapsed_ms=3 count=3
+R1 raster page=96 width=1736 elapsed_ms=3 count=4
+R1 raster page=96 width=2048 elapsed_ms=5 count=5

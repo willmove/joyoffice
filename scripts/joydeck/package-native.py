@@ -32,7 +32,7 @@ def source_snapshot():
 
 
 def output_name(version, system, arch, profile, fingerprint):
-    return f'joydeck-{version}-r0-{system}-{arch}-{profile}-{fingerprint[:10]}'
+    return f'joydeck-{version}-r1-{system}-{arch}-{profile}-{fingerprint[:10]}'
 
 
 def create_archive(output, archive):
@@ -110,7 +110,7 @@ def main():
     for file in ['LICENSE', 'THIRD_PARTY.md', 'Cargo.lock', 'rust-toolchain.toml']:
         shutil.copy2(ROOT / file, output / file)
     shutil.copytree(ROOT / 'licenses', output / 'licenses')
-    shutil.copy2(ROOT / 'packaging/joydeck/README-r0.md', output / 'README.md')
+    shutil.copy2(ROOT / 'packaging/joydeck/README-r1.md', output / 'README.md')
     shutil.copytree(ROOT / 'tests/fixtures/joydeck', output / 'samples')
     license_records = []
     for package in dependencies:
@@ -136,7 +136,7 @@ def main():
     create_archive(output, archive)
     archive.with_suffix('.zip.sha256').write_text(f'{sha256(archive)}  {archive.name}\n', encoding='utf-8')
     report = {'directory': str(output), 'archive': str(archive), 'archive_sha256': sha256(archive), 'source_sha256': before['sha256'], 'target': target, 'profile': args.profile, 'sbom_packages': len(dependencies), 'missing_license_texts': [r['name'] for r in license_records if r['source'] and not r['license_texts']], 'signed': False}
-    (ROOT / 'docs/joydeck/evidence/R0/package.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    (ROOT / 'docs/joydeck/evidence/R1/package.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False))
 
 

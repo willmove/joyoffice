@@ -13,6 +13,7 @@ use joyoffice_ui::{Brand, Palette, metrics};
 use std::{cell::RefCell, rc::Rc};
 
 mod layout;
+mod viewer;
 use layout::WorkspaceLayout;
 
 actions!(
@@ -702,13 +703,16 @@ fn apply_theme(dark: bool, window: Option<&mut Window>, cx: &mut App) {
 pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
     let mut dark = false;
     let mut window_size = (1280., 820.);
+    let mut input = None;
+    let mut sample_workspace = false;
     for arg in arguments {
         match arg.as_str() {
             "--dark" => dark = true,
             "--light" => dark = false,
+            "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR0: original preview workspace. Document editing is being migrated."
+                    "JoyDeck [INPUT.pptx|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR1 read-only document preview. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }
@@ -728,6 +732,9 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
                 }
                 window_size = (width as f32, height as f32);
             }
+            _ if !arg.starts_with('-') && input.is_none() => {
+                input = Some(std::path::PathBuf::from(arg))
+            }
             _ => return Err(format!("unsupported argument: {arg}; use --help")),
         }
     }
@@ -739,6 +746,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
         .run(move |cx| {
             gpui_kit::init(cx);
             apply_theme(dark, None, cx);
+            viewer::bind(cx);
             cx.on_action(|_: &Quit, cx| cx.quit());
             cx.bind_keys([
                 KeyBinding::new("ctrl-q", Quit, None),
@@ -754,25 +762,33 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
                 }
             })
             .detach();
-            let result = gpui_kit::open_window(
-                WindowOptions {
-                    window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
-                        None,
-                        size(px(window_size.0), px(window_size.1)),
-                        cx,
-                    ))),
-                    window_min_size: Some(size(px(800.), px(600.))),
-                    ..Default::default()
-                },
-                cx,
-                move |window, cx| {
-                    window.set_window_title("JoyDeck · R0 原生技术预览");
-                    cx.new(|cx| Workspace::new(preview, dark, window, cx))
-                },
-            );
+            let result = if !sample_workspace {
+                viewer::open_window(dark, window_size, cx).map(|(handle, view)| {
+                    viewer::load_path(&view, input.unwrap_or_else(|| "@bundled".into()), cx);
+                    handle
+                })
+            } else {
+                gpui_kit::open_window(
+                    WindowOptions {
+                        window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
+                            None,
+                            size(px(window_size.0), px(window_size.1)),
+                            cx,
+                        ))),
+                        window_min_size: Some(size(px(800.), px(600.))),
+                        ..Default::default()
+                    },
+                    cx,
+                    move |window, cx| {
+                        window.set_window_title("JoyDeck · R0 原生技术预览");
+                        cx.new(|cx| Workspace::new(preview, dark, window, cx))
+                    },
+                )
+                .map(|(handle, _)| handle)
+            };
             match result {
                 Ok(_) => {
-                    eprintln!("JoyDeck R0 window opened · GPUI Kit 0.8.1 / pre 0.3.10");
+                    eprintln!("JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10");
                     cx.activate(true);
                 }
                 Err(error) => {

@@ -1,8 +1,17 @@
 [workspace]
 members = [
+    "crates/joyoffice-opc",
     "apps/joydeck",
     "apps/joydeck-cli",
     "crates/joydeck-shell",
+    "crates/joydeck-metafile",
+    "crates/joydeck-fonts",
+    "crates/joydeck-text",
+    "crates/joydeck-anim",
+    "crates/joydeck-render",
+    "crates/joydeck-format",
+    "crates/joydeck-pptx",
+
     "crates/joydeck-color",
     "crates/joydeck-geom",
     "crates/joydeck-model",
@@ -14,13 +23,14 @@ default-members = ["crates/joydeck-shell", "crates/joydeck-color", "crates/joyde
 resolver = "3"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.98"
 license = "MIT"
 repository = "https://github.com/willmove/joyoffice"
 
 [workspace.dependencies]
+joyoffice-opc = { path = "crates/joyoffice-opc" }
 joydeck-shell = { path = "crates/joydeck-shell" }
 joydeck-color = { path = "crates/joydeck-color" }
 joydeck-geom = { path = "crates/joydeck-geom" }
@@ -34,6 +44,27 @@ serde_json = { version = "=1.0.154", features = ["float_roundtrip"] }
 thiserror = "=2.0.21"
 unicode-segmentation = "=1.13.3"
 kurbo = { version = "=0.13.1", features = ["serde"] }
+
+joydeck-metafile = { path = "crates/joydeck-metafile" }
+joydeck-fonts = { path = "crates/joydeck-fonts" }
+joydeck-text = { path = "crates/joydeck-text" }
+joydeck-anim = { path = "crates/joydeck-anim" }
+joydeck-render = { path = "crates/joydeck-render" }
+joydeck-format = { path = "crates/joydeck-format" }
+joydeck-pptx = { path = "crates/joydeck-pptx" }
+log = "=0.4.34"
+unicode-bidi = "=0.3.18"
+unicode-linebreak = "=0.1.5"
+chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
+skrifa = "=0.42.1"
+harfrust = "=0.8.4"
+vello_cpu = "=0.2.0"
+vello_common = { version = "=0.2.0", default-features = false }
+image = { version = "=0.25.9", default-features = false, features = ["png","jpeg","webp","gif","tiff","bmp"] }
+quick-xml = "=0.41.0"
+zip = { version = "=9.0.0", default-features = false, features = ["deflate-flate2"] }
+flate2 = { version = "=1.1.10", default-features = false, features = ["rust_backend"] }
+crc32fast = "=1.5.2"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

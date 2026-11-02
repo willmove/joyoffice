@@ -1,0 +1,28 @@
+[package]
+autotests = false
+name = "joydeck-pptx"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license.workspace = true
+description = "DeckCraft PPTX: Office Open XML (PresentationML/DrawingML) import and export, written from the public ECMA-376 standard"
+
+[lints]
+workspace = true
+
+[dependencies]
+joydeck-model = { workspace = true }
+joydeck-geom = { workspace = true }
+joydeck-color = { workspace = true }
+quick-xml = { workspace = true }
+zip = { workspace = true }
+thiserror = { workspace = true }
+log = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+joydeck-color = { workspace = true }
+joydeck-geom = { workspace = true }
+image = { workspace = true }
+zip = { workspace = true }
