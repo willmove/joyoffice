@@ -331,7 +331,7 @@ fn objects(p: &Presentation, page: usize) -> Vec<serde_json::Value> {
     let Some(ctx) = joydeck_model::resolve::Ctx::for_slide(p, s) else {
         return vec![];
     };
-    s.shapes.iter().map(|shape|serde_json::json!({"id":shape.id.0,"name":shape.name,"kind":shape.kind_name(),"text":shape.text.as_ref().map(|t|t.text()),"transform":joydeck_model::resolve::xfrm(&ctx,shape),"locked":shape.locked})).collect()
+    s.shapes.iter().map(|shape|serde_json::json!({"id":shape.id.0,"name":shape.name,"kind":shape.kind_name(),"text":shape.text.as_ref().map(|t|t.text()),"transform":joydeck_model::resolve::xfrm(&ctx,shape),"locked":shape.locked,"text_body":shape.text,"table":if let joydeck_model::ShapeKind::Table(t)=&shape.kind {Some(t)}else{None}})).collect()
 }
 
 fn audit_model(

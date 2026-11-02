@@ -68,7 +68,7 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "104aa5224a7488f7fbf1663da246137ca9df19486cab86e63264b144a8ad5a8e",
+    "adapted_sha256": "6a44c142b4cde35122b266ffe44013002518fa0dc7d7b538dfc20fdd2f11bde5",
     "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
   },
   {
@@ -140,7 +140,7 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "5c65ab45194495c2e5307ee496cfb08e937280a5ccd031ca52628a10b741e45f",
+    "adapted_sha256": "5ec3a48c00855a47253cd2b528d5738cc5fbae7be59cc624e2acc000b9b3c98f",
     "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
   },
   {
@@ -158,5 +158,27 @@
     "source_sha256": "a13a4e50806f4c4e6b78c75208d11325254ffed035617e56336939f1221c7ebc",
     "adapted_sha256": "9022822f880f3363b4487eb3f49d5fa8a3f3011d68470f0cd1b61cc11ea28836",
     "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joydeck-model/src/text.rs",
+    "target_path": "crates/joydeck-engine/src/text.rs",
+    "source_sha256": "0f5c0c5ba05a35a5f064271e1c3efd1bdf7afb959a8634b865206d9f1ed13de3",
+    "local_changes": "Extract checked UTF-16/grapheme helpers; adapt composition draft to DeckCraft TextBody/edit; preserve rich runs/paragraphs, bounded drafts, no IO.",
+    "adapted_sha256": "8fab4b2e72a93242745ea7c1ec1cc5daeddb9f37e8e775e91b532ee95127be9c"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "apps/joydeck/src/canvas_text.rs",
+    "target_path": "crates/joydeck-ui-gpui/src/inline_text.rs",
+    "source_sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4",
+    "local_changes": "Adapt EntityInputHandler, selection/clipboard/composition routing to new pure engine; consume shared CPU text/table layout for all geometry; add bounded text metadata/TSV and notes Textarea flow from apps/joydeck/src/chrome.rs.",
+    "adapted_sha256": "9a5ab40916cd45582f5e69d43073a47fbd8e05fbff776966a34b58e2ae6e5414",
+    "additional_sources": [
+      {
+        "source_path": "apps/joydeck/src/chrome.rs",
+        "source_sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328"
+      }
+    ]
   }
 ]

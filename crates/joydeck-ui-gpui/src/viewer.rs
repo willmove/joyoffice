@@ -2,9 +2,11 @@ use gpui_kit::base::Disableable;
 use gpui_kit::component::{
     WindowExt,
     button::Button,
-    input::{Input, InputState},
+    input::{Input, InputState, Textarea, TextareaState},
 };
+use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::*;
+use joydeck_model::ShapeId;
 use joydeck_shell::Document as Deck;
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -34,14 +36,21 @@ actions!(
         RedoEdit,
         NewDocument,
         DeleteObject,
-        CloseEditor
+        CloseEditor,
+        NextCell,
+        PreviousCell
     ]
 );
 #[path = "editor_actions.rs"]
 mod editing;
+#[path = "inline_text.rs"]
+mod inline;
 
 type ImageKey = (u64, usize, u32);
 pub struct Viewer {
+    inline: Option<Box<inline::Inline>>,
+    cell: Option<(ShapeId, usize, usize)>,
+    notes_input: Entity<TextareaState>,
     editor: Option<joydeck_shell::editor::Editor>,
     save_input: Entity<InputState>,
     text_input: Entity<InputState>,
@@ -102,6 +111,9 @@ impl Viewer {
         let focus = cx.focus_handle();
         focus.focus(window, cx);
         Self {
+            inline: None,
+            cell: None,
+            notes_input: cx.new(|cx| TextareaState::new(window, cx).auto_grow(3, 8)),
             editor: None,
             save_input: cx.new(|cx| {
                 InputState::new(window, cx).placeholder("另存路径 .pptx / .joydeck（新文件）")
@@ -177,6 +189,8 @@ impl Viewer {
         if self.block_replace(cx) {
             return;
         }
+        self.end_inline(cx);
+        self.cell = None;
 
         self.read_cancel.store(true, Ordering::Relaxed);
         let cancel = Arc::new(AtomicBool::new(false));
@@ -217,7 +231,7 @@ impl Viewer {
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation {
-                    eprintln!("R2 stale_open_discarded=true");
+                    eprintln!("R3 stale_open_discarded=true");
                     return;
                 }
                 s.loading = false;
@@ -262,19 +276,19 @@ impl Viewer {
                         s.thumbs_cancel = Arc::new(AtomicBool::new(false));
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
                         s.message = format!(
-                            "读取完成 · {} 页 · {} ms · R2 编辑",
+                            "读取完成 · {} 页 · {} ms · R3 编辑",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                         eprintln!(
-                            "R2 opened=true pages={} elapsed_ms={}",
+                            "R3 opened=true pages={} elapsed_ms={}",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                     }
                     Err(error) => {
                         s.message = format!("打开失败：{error} · 当前文稿保持不变");
-                        eprintln!("R2 open_failed=true reason={error}");
+                        eprintln!("R3 open_failed=true reason={error}");
                     }
                 }
                 cx.notify();
@@ -283,6 +297,10 @@ impl Viewer {
         cx.notify();
     }
     fn cancel(&mut self, _: &Cancel, _: &mut Window, cx: &mut Context<Self>) {
+        if self.inline.is_some() {
+            self.cancel_inline(cx);
+            return;
+        }
         if self.drag.take().is_some() {
             self.message = "手势已取消，未修改文稿".into();
             cx.notify();
@@ -298,6 +316,8 @@ impl Viewer {
         }
     }
     fn select(&mut self, page: usize, cx: &mut Context<Self>) {
+        self.end_inline(cx);
+        self.cell = None;
         if let Some(d) = &self.deck {
             let page = page.min(d.info.slides.len() - 1);
             if page != self.page {
@@ -336,7 +356,7 @@ impl Viewer {
         };
         let sz = window.viewport_size();
         ((f32::from(sz.width) - 288.).max(64.) / (d.info.width_pt as f32))
-            .min((f32::from(sz.height) - 336.).max(64.) / (d.info.height_pt as f32))
+            .min((f32::from(sz.height) - 376.).max(64.) / (d.info.height_pt as f32))
             .clamp(0.01, 4.)
     }
     fn zoom_in(&mut self, _: &ZoomIn, w: &mut Window, cx: &mut Context<Self>) {
@@ -406,7 +426,7 @@ impl Viewer {
                         s.image = Some((key, r));
                         s.rasters += 1;
                         eprintln!(
-                            "R2 raster page={} width={} elapsed_ms={} count={}",
+                            "R3 raster page={} width={} elapsed_ms={} count={}",
                             key.1 + 1,
                             key.2,
                             started.elapsed().as_millis(),
@@ -492,7 +512,7 @@ impl Render for Viewer {
         let scale = self.scale(window);
         if let Some(e) = &self.editor {
             window.set_window_title(&format!(
-                "JoyDeck · R2 · {}{}",
+                "JoyDeck · R3 · {}{}",
                 self.deck
                     .as_ref()
                     .map(|d| d.info.name.as_str())
@@ -517,16 +537,15 @@ impl Render for Viewer {
             .unwrap_or_else(|| "未打开文稿".into());
         let sz = window.viewport_size();
         let aw = (f32::from(sz.width) - 224.).max(64.);
-        let ah = (f32::from(sz.height) - 272.).max(64.);
+        let ah = (f32::from(sz.height) - 312.).max(64.);
         let canvas = if let Some(d) = &deck {
             let (w, h) = (
                 (d.info.width_pt as f32) * scale,
                 (d.info.height_pt as f32) * scale,
             );
-            let current = self
-                .image
-                .as_ref()
-                .filter(|(key, _)| key.0 == self.render_generation && key.1 == self.page);
+            let current = self.image.as_ref().filter(|(key, _)| {
+                (key.0 == self.render_generation || self.inline.is_some()) && key.1 == self.page
+            });
             div()
                 .id("page-viewport")
                 .on_mouse_down(
@@ -565,7 +584,12 @@ impl Render for Viewer {
                                         cx.processor(|s, bounds, _, _| {
                                             s.canvas_bounds = bounds;
                                         }),
-                                        |_, _, _, _| {},
+                                        {
+                                            let paint = cx.processor(move |s, bounds, w, cx| {
+                                                s.paint_inline(bounds, scale, w, cx)
+                                            });
+                                            move |bounds, _, w, cx| paint(bounds, w, cx)
+                                        },
                                     )
                                     .absolute()
                                     .top_0()
@@ -609,6 +633,9 @@ impl Render for Viewer {
         div()
             .id("viewer")
             .key_context("Viewer")
+            .when(self.inline.is_some(), |d| {
+                d.key_context("Viewer InlineText")
+            })
             .track_focus(&self.focus)
             .size_full()
             .flex()
@@ -622,6 +649,9 @@ impl Render for Viewer {
                 "sans-serif"
             })
             .on_action(cx.listener(Self::save))
+            .on_action(cx.listener(|s, _: &NextCell, w, cx| s.next_cell(false, w, cx)))
+            .on_action(cx.listener(|s, _: &PreviousCell, w, cx| s.next_cell(true, w, cx)))
+            .on_key_down(cx.listener(Self::inline_key))
             .on_action(cx.listener(Self::undo_edit))
             .on_action(cx.listener(Self::redo_edit))
             .on_action(cx.listener(Self::new_document))
@@ -665,7 +695,7 @@ impl Render for Viewer {
                                 div()
                                     .text_lg()
                                     .text_color(rgb(palette.accent))
-                                    .child("JoyDeck · R2"),
+                                    .child("JoyDeck · R3"),
                             )
                             .child(div().text_sm().text_ellipsis().child(source))
                             .child(div().text_xs().text_color(rgb(palette.accent)).child(
@@ -698,27 +728,7 @@ impl Render for Viewer {
                                 Button::new("speaker-notes")
                                     .label("备注")
                                     .disabled(count == 0)
-                                    .on_click(cx.listener(|s, _, w, cx| {
-                                        let notes = s
-                                            .deck
-                                            .as_ref()
-                                            .and_then(|d| d.info.slides.get(s.page))
-                                            .map(|slide| slide.notes.clone())
-                                            .unwrap_or_default();
-                                        w.open_dialog(cx, move |dialog, _, _| {
-                                            dialog.title("演讲备注 · 只读").child(
-                                                div()
-                                                    .id("read-notes")
-                                                    .max_h(px(360.))
-                                                    .overflow_y_scroll()
-                                                    .child(if notes.is_empty() {
-                                                        "本页无备注".to_string()
-                                                    } else {
-                                                        notes.clone()
-                                                    }),
-                                            )
-                                        });
-                                    })),
+                                    .on_click(cx.listener(|s, _, w, cx| s.edit_notes(w, cx))),
                             )
                             .child(
                                 Button::new("compatibility")
@@ -895,27 +905,41 @@ impl Render for Viewer {
 }
 pub fn bind(cx: &mut App) {
     cx.bind_keys([
+        KeyBinding::new("tab", NextCell, Some("Viewer && InlineText && !Input")),
+        KeyBinding::new(
+            "shift-tab",
+            PreviousCell,
+            Some("Viewer && InlineText && !Input"),
+        ),
         KeyBinding::new("ctrl-o", Open, Some("Viewer")),
         KeyBinding::new("ctrl-s", Save, Some("Viewer")),
         KeyBinding::new("cmd-s", Save, Some("Viewer")),
         KeyBinding::new("ctrl-z", UndoEdit, Some("Viewer && !Input")),
         KeyBinding::new("ctrl-y", RedoEdit, Some("Viewer && !Input")),
         KeyBinding::new("ctrl-shift-z", RedoEdit, Some("Viewer && !Input")),
-        KeyBinding::new("delete", DeleteObject, Some("Viewer && !Input")),
-        KeyBinding::new("ctrl-n", NewDocument, Some("Viewer && !Input")),
+        KeyBinding::new(
+            "delete",
+            DeleteObject,
+            Some("Viewer && !Input && !InlineText"),
+        ),
+        KeyBinding::new(
+            "ctrl-n",
+            NewDocument,
+            Some("Viewer && !Input && !InlineText"),
+        ),
         KeyBinding::new("ctrl-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-o", Open, Some("Viewer")),
         KeyBinding::new("escape", Cancel, Some("Viewer")),
-        KeyBinding::new("pageup", Previous, Some("Viewer && !Input")),
-        KeyBinding::new("pagedown", Next, Some("Viewer && !Input")),
-        KeyBinding::new("left", Previous, Some("Viewer && !Input")),
-        KeyBinding::new("right", Next, Some("Viewer && !Input")),
-        KeyBinding::new("home", First, Some("Viewer && !Input")),
-        KeyBinding::new("end", Last, Some("Viewer && !Input")),
-        KeyBinding::new("ctrl-=", ZoomIn, Some("Viewer && !Input")),
-        KeyBinding::new("ctrl--", ZoomOut, Some("Viewer && !Input")),
-        KeyBinding::new("ctrl-0", Fit, Some("Viewer && !Input")),
+        KeyBinding::new("pageup", Previous, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("pagedown", Next, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("left", Previous, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("right", Next, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("home", First, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("end", Last, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("ctrl-=", ZoomIn, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("ctrl--", ZoomOut, Some("Viewer && !Input && !InlineText")),
+        KeyBinding::new("ctrl-0", Fit, Some("Viewer && !Input && !InlineText")),
     ]);
 }
 pub fn open_window(
@@ -935,13 +959,16 @@ pub fn open_window(
         },
         cx,
         move |w, cx| {
-            w.set_window_title("JoyDeck · R2 编辑器");
+            w.set_window_title("JoyDeck · R3 编辑器");
             let view = cx.new(|cx| Viewer::new(dark, w, cx));
             view.update(cx, |s, cx| {
                 s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {
-                    if !w.is_window_active() && s.drag.take().is_some() {
-                        s.message = "失焦，手势已取消".into();
-                        cx.notify();
+                    if !w.is_window_active() {
+                        s.end_inline(cx);
+                        if s.drag.take().is_some() {
+                            s.message = "失焦，手势已取消".into();
+                            cx.notify();
+                        }
                     }
                 }));
             });

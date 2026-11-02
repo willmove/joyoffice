@@ -10,6 +10,11 @@ pub(super) struct Drag {
 }
 impl Viewer {
     pub(super) fn block_replace(&mut self, cx: &mut Context<Self>) -> bool {
+        if self.composing() {
+            self.message = "请先完成或取消输入法组合输入".into();
+            cx.notify();
+            return true;
+        }
         if self.saving || self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
             self.message = "当前文稿有未保存修改或正在保存；请先保存，或使用“放弃修改”".into();
             cx.notify();
@@ -19,6 +24,7 @@ impl Viewer {
         }
     }
     pub(super) fn sync_editor(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.end_inline(cx);
         if let Some(editor) = &self.editor {
             self.page = editor.session.selection().page;
             match editor.display() {
@@ -76,7 +82,7 @@ impl Viewer {
                     return;
                 }
                 match result {
-                    Ok(()) => eprintln!("R2 checkpoint revision={revision}"),
+                    Ok(()) => eprintln!("R3 checkpoint revision={revision}"),
                     Err(e) => {
                         s.message = format!("恢复快照未写入：{e}");
                         cx.notify();
@@ -85,7 +91,18 @@ impl Viewer {
             });
         }));
     }
-    fn dispatch(&mut self, command: Command, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn dispatch(
+        &mut self,
+        command: Command,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.composing() {
+            self.message = "请先完成或取消输入法组合输入".into();
+            cx.notify();
+            return;
+        }
+        self.end_inline(cx);
         if self.loading {
             self.message = "正在读取，请稍后编辑".into();
             cx.notify();
@@ -102,7 +119,7 @@ impl Viewer {
                     editor.session.revision()
                 );
                 eprintln!(
-                    "R2 command={label} revision={} dirty={}",
+                    "R3 command={label} revision={} dirty={}",
                     editor.session.revision(),
                     editor.session.dirty()
                 );
@@ -149,6 +166,12 @@ impl Viewer {
         cx.notify();
     }
     pub(super) fn save(&mut self, _: &Save, w: &mut Window, cx: &mut Context<Self>) {
+        if self.composing() {
+            self.message = "请先完成或取消输入法组合输入再保存".into();
+            cx.notify();
+            return;
+        }
+        self.end_inline(cx);
         if self.saving || self.loading {
             return;
         }
@@ -218,7 +241,7 @@ impl Viewer {
                                 s.message.push_str(&format!(" · 恢复清理提示：{warning}"));
                             }
                             eprintln!(
-                                "R2 saved revision={revision} dirty={} path={}",
+                                "R3 saved revision={revision} dirty={} path={}",
                                 editor.session.dirty(),
                                 path.display()
                             );
@@ -467,6 +490,9 @@ impl Viewer {
         w: &mut Window,
         cx: &mut Context<Self>,
     ) {
+        if self.inline_pointer(event, scale, w, cx) {
+            return;
+        }
         self.focus.focus(w, cx);
         if self.loading {
             return;
@@ -480,7 +506,7 @@ impl Viewer {
         let x = f32::from(event.position.x - self.canvas_bounds.origin.x) as f64 / scale as f64;
         let y = f32::from(event.position.y - self.canvas_bounds.origin.y) as f64 / scale as f64;
         eprintln!(
-            "R2 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
+            "R3 pointer position={:?} bounds={:?} point=({x},{y}) scale={scale}",
             event.position, self.canvas_bounds
         );
         let id = slide
@@ -498,6 +524,30 @@ impl Viewer {
             if event.modifiers.shift || !e.session.selection().shapes.contains(&id) {
                 self.select_object(id, event.modifiers.shift, w, cx);
             }
+            self.cell = None;
+            if let Some(e) = &self.editor {
+                let p = e.session.model();
+                let slide = &p.slides[self.page];
+                if let Some(s) = slide.shape(id)
+                    && let joydeck_model::ShapeKind::Table(t) = &s.kind
+                    && let Some(ctx) = resolve::Ctx::for_slide(p, slide)
+                {
+                    let fields = joydeck_text::NoFields;
+                    let point =
+                        resolve::xfrm(&ctx, s).affine().inverse() * joydeck_geom::Point::new(x, y);
+                    self.cell = joydeck_render::table_cell_rects(
+                        t,
+                        &joydeck_render::table_row_heights(&ctx, t, &fields),
+                    )
+                    .into_iter()
+                    .find(|(_, _, rect)| rect.contains(point))
+                    .map(|(r, c, _)| (id, r, c));
+                }
+            }
+            if event.click_count >= 2 {
+                self.begin_selected_text(w, cx);
+                return;
+            }
         } else if let Some(e) = &mut self.editor {
             let _ = e.session.select(self.page, vec![]);
         }
@@ -512,9 +562,12 @@ impl Viewer {
     pub(super) fn pointer_move(
         &mut self,
         event: &MouseMoveEvent,
-        _scale: f32,
+        scale: f32,
         cx: &mut Context<Self>,
     ) {
+        if self.inline_move(event, scale, cx) {
+            return;
+        }
         if let Some(d) = &mut self.drag {
             d.current = event.position;
             cx.notify();
@@ -784,6 +837,7 @@ impl Viewer {
             .flex_col()
             .child(first)
             .child(second)
+            .child(self.text_table_toolbar(cx))
             .child(
                 div()
                     .h(px(40.))

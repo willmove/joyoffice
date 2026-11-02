@@ -3,7 +3,11 @@
 use joydeck_model::{text::RunKind, *};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
+mod authoring;
 mod history_cost;
+pub mod text;
+pub use authoring::{TableAction, TextTarget};
+pub use authoring::{body as text_body, set_body as set_draft_body};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Origin {
@@ -72,6 +76,27 @@ pub enum Command {
     ReplaceText {
         text: String,
     },
+    SetText {
+        target: TextTarget,
+        body: Box<TextBody>,
+    },
+    EditText {
+        target: TextTarget,
+        start: usize,
+        end: usize,
+        text: String,
+    },
+    InsertTable {
+        x: f64,
+        y: f64,
+        rows: usize,
+        cols: usize,
+        width: f64,
+        row_height: f64,
+    },
+    Table {
+        action: TableAction,
+    },
     Delete,
     Duplicate,
     BringForward,
@@ -90,6 +115,10 @@ impl Command {
             Self::InsertText { .. } => "insert-text",
             Self::Transform { .. } => "transform",
             Self::ReplaceText { .. } => "replace-text",
+            Self::SetText { .. } => "set-text",
+            Self::EditText { .. } => "edit-text",
+            Self::InsertTable { .. } => "insert-table",
+            Self::Table { .. } => "table",
             Self::Delete => "delete",
             Self::Duplicate => "duplicate",
             Self::BringForward => "bring-forward",
@@ -108,6 +137,10 @@ pub const COMMANDS: &[&str] = &[
     "insert-text",
     "transform",
     "replace-text",
+    "set-text",
+    "edit-text",
+    "insert-table",
+    "table",
     "delete",
     "duplicate",
     "bring-forward",
@@ -262,6 +295,9 @@ fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
     p.alloc_id().ok_or_else(|| "ID space exhausted".into())
 }
 fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    if let Some(result) = authoring::apply(st, &cmd) {
+        return result;
+    }
     let page = st.selection.page;
     let p = Arc::make_mut(&mut st.model);
     if matches!(cmd, Command::NewSlide | Command::DuplicateSlide) {

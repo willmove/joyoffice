@@ -1,0 +1,24 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R3 opened=true pages=3 elapsed_ms=84
+R3 raster page=1 width=1579 elapsed_ms=48 count=1
+R3 raster page=2 width=1579 elapsed_ms=32 count=2
+R3 pointer position=Point { x: 854px, y: 492px } bounds=Bounds { origin: Point { x: 357px, y: 300px }, size: Size { 789.5px × 444px } } point=(604.4594516694939,233.51351050411031) scale=0.82222223
+R3 pointer position=Point { x: 854px, y: 492px } bounds=Bounds { origin: Point { x: 357px, y: 300px }, size: Size { 789.5px × 444px } } point=(604.4594516694939,233.51351050411031) scale=0.82222223
+R3 raster page=2 width=1579 elapsed_ms=29 count=3
+R3 input=commit utf16=5 marked=false
+R3 command=set-text revision=1 dirty=true
+R3 raster page=2 width=1579 elapsed_ms=31 count=4
+R3 checkpoint revision=1
+R3 raster page=2 width=1579 elapsed_ms=30 count=5
+R3 command=set-text revision=2 dirty=true
+R3 raster page=2 width=1579 elapsed_ms=30 count=6
+R3 checkpoint revision=2
+R3 saved revision=2 dirty=false path=C:\Users\willm\AppData\Local\Temp\joydeck-r3-debug-jz93d3sw\debug-table.pptx
+
+thread '<unnamed>' (3716) panicked at C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\accesskit_windows-0.34.0\src\util.rs:380:52:
+called `Result::unwrap()` on an `Err` value: Error { code: HRESULT(0x80070578), message: "无效的窗口句柄。" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (3716) panicked at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library\core\src\panicking.rs:225:5:
+panic in a function that cannot unwind
+stack backtrace:

@@ -117,3 +117,9 @@ R0 建立或复用自动检查，至少包括：
 新增纯 joydeck-engine 仅依赖 model/serde/serde_json；文件/恢复/PPTX 编排留在 shell。复用 JoyOffice `crates/joydeck-platform/src/files.rs` 和 `crates/joydeck-shell/src/storage.rs`，适配到新模型/v2 项目；同步表记录原始/适配指纹。sha2 固定 `=0.10.9`、getrandom 固定 `=0.3.4`，均与宿主直接依赖一致。共同 GPUI、图像、ZIP、字体和 XML 版本/来源不变。
 
 依赖门禁新增 engine 闭包和生产代码无 IO/导出服务检查，并核对新增两项宿主精确版本。没有为搬迁完整 Session 引入 PDF/媒体库、全局 patch 或第二套 UI。R2 的原包保留 writer、项目协议和纯命令子集为新适配；不把未迁入的上游 engine 测试计作通过。
+
+## R3 实施增量（2026-11-02）
+
+GPUI/Kit、图像、ZIP、XML、字体和文件/恢复版本及 feature 不变。纯 engine 复用工作区已锁定的 unicode-segmentation =1.13.3；GPUI 适配器增加对已有 joydeck-text/render 的直接依赖，光标、选择、命中和候选锚点与 CPU 文字布局一致。无新增 registry 包，无 egui/epaint 或主机绝对路径依赖。shell 仅在几何集成测试中直接引用已有 text/geom。
+
+复用 JoyOffice `crates/joydeck-model/src/text.rs` 的范围/组合草稿实现思路与代码，以及 `apps/joydeck/src/canvas_text.rs` 的 EntityInputHandler/剪贴板适配和备注 Textarea 模式；源哈希与适配说明登记在同步表。新纯引擎命令适配到 DeckCraft TextBody/edit/Table，保留其段落/run/列表等模型内容。Windows MSVC 应用增加局部 linker 栈预留 8 MiB，避免 debug GPUI 组合视图超过默认 1 MiB，不添加平台运行库或系统配置修改。

@@ -17,6 +17,32 @@ pub struct SlideBinding {
 fn error(s: impl Into<String>) -> PptxError {
     PptxError::Write(s.into())
 }
+// Structural table edits regenerate rows, so admit only the documented simple subset.
+// Ordinary cell text/fill edits retain the surrounding original XML and do not use this gate.
+fn simple_table_rows(e: &El) -> bool {
+    if e.name
+        .split_once(':')
+        .is_none_or(|(prefix, _)| prefix != "a")
+    {
+        return false;
+    }
+    let attrs: &[&str] = match e.local() {
+        "tblGrid" | "tcPr" | "txBody" | "bodyPr" | "lstStyle" | "p" | "solidFill" => &[],
+        "gridCol" => &["w"],
+        "tr" => &["h"],
+        "tc" => &["rowSpan", "gridSpan", "hMerge", "vMerge"],
+        "pPr" => &["algn", "lvl"],
+        "r" | "br" => &[],
+        "rPr" | "endParaRPr" | "defRPr" => {
+            &["lang", "altLang", "sz", "b", "i", "dirty", "smtClean"]
+        }
+        "latin" | "ea" | "cs" => &["typeface", "panose", "pitchFamily", "charset"],
+        "srgbClr" | "schemeClr" => &["val"],
+        "t" => &["xml:space"],
+        _ => return false,
+    };
+    e.attrs.iter().all(|(k, _)| attrs.contains(&k.as_str())) && e.elements().all(simple_table_rows)
+}
 fn child_mut<'a>(e: &'a mut El, local: &str) -> Option<&'a mut El> {
     e.elements_mut().find(|e| e.is(local))
 }
@@ -39,10 +65,17 @@ fn set(e: &mut El, key: &str, value: String) {
     }
 }
 fn replace(e: &mut El, local: &str, new: Option<El>) {
+    let at = e
+        .children
+        .iter()
+        .position(|n| matches!(n,Node::El(e) if e.is(local)));
     e.children
         .retain(|n| !matches!(n,Node::El(e) if e.is(local)));
     if let Some(new) = new {
-        e.children.push(Node::El(new));
+        e.children.insert(
+            at.unwrap_or(e.children.len()).min(e.children.len()),
+            Node::El(new),
+        );
     }
 }
 fn tree(e: &El) -> Option<&El> {
@@ -212,6 +245,62 @@ pub fn export_preserving(
             );
         }
         ids.push(Node::El(id));
+        if slide.notes != source_slide.notes && (existing || !slide.notes.is_empty()) {
+            if !existing {
+                return Err(error(
+                    "editing notes while cloning a slide requires .joydeck Save As",
+                ));
+            }
+            let notes = pkg
+                .rels(source_part)
+                .items
+                .into_iter()
+                .find(|r| r.kind == "notesSlide")
+                .ok_or_else(|| error("no reusable notes part; save .joydeck instead"))?;
+            let mut root = pkg
+                .xml(&notes.target)
+                .ok_or_else(|| error("missing original notes XML"))?
+                .root;
+            namespaces(&mut root)?;
+            let body = child_mut(
+                child_mut(&mut root, "cSld").ok_or_else(|| error("missing notes cSld"))?,
+                "spTree",
+            )
+            .ok_or_else(|| error("missing notes spTree"))?
+            .elements_mut()
+            .find(|s| s.find("ph").is_some_and(|p| p.attr("type") == Some("body")))
+            .ok_or_else(|| error("no speaker notes placeholder"))?;
+            if slide.notes.is_empty() {
+                let tx = child_mut(body, "txBody").ok_or_else(|| error("missing speaker body"))?;
+                tx.children
+                    .retain(|n| !matches!(n,Node::El(e) if e.is("p")));
+                tx.children.push(Node::El(El {
+                    name: "a:p".into(),
+                    attrs: vec![],
+                    children: vec![],
+                }));
+            } else {
+                let generated = gen_pkg
+                    .xml(&format!("ppt/notesSlides/notesSlide{}.xml", index + 1))
+                    .ok_or_else(|| error("missing generated notes"))?
+                    .root;
+                let speaker = generated
+                    .path(&["cSld", "spTree"])
+                    .and_then(|t| {
+                        t.elements()
+                            .find(|s| s.find("ph").is_some_and(|p| p.attr("type") == Some("body")))
+                    })
+                    .and_then(|s| s.child("txBody"))
+                    .cloned()
+                    .ok_or_else(|| error("missing generated speaker body"))?;
+                if speaker.find("hlinkClick").is_some() || speaker.find("hlinkMouseOver").is_some()
+                {
+                    return Err(error("edited notes hyperlinks require .joydeck Save As"));
+                }
+                replace(body, "txBody", Some(speaker));
+            }
+            parts.insert(notes.target, root.to_xml().into_bytes());
+        }
         if existing && slide.as_ref() == source_slide.as_ref() {
             continue;
         }
@@ -330,7 +419,110 @@ pub fn export_preserving(
                     }
                 }
                 if shape.text != old.text {
+                    if generated.find("hlinkClick").is_some()
+                        || generated.find("hlinkMouseOver").is_some()
+                    {
+                        return Err(error(
+                            "edited hyperlink relationships require .joydeck Save As",
+                        ));
+                    }
                     replace(&mut e, "txBody", generated.child("txBody").cloned());
+                }
+                if let (
+                    joydeck_model::ShapeKind::Table(before),
+                    joydeck_model::ShapeKind::Table(after),
+                ) = (&old.kind, &shape.kind)
+                    && before != after
+                {
+                    let source =
+                        find_mut(&mut e, "tbl").ok_or_else(|| error("missing source table"))?;
+                    let generated = generated
+                        .find("tbl")
+                        .ok_or_else(|| error("missing generated table"))?;
+                    if before.cols == after.cols
+                        && before.rows.len() == after.rows.len()
+                        && before
+                            .rows
+                            .iter()
+                            .zip(&after.rows)
+                            .all(|(a, b)| a.height == b.height && a.cells.len() == b.cells.len())
+                    {
+                        // Text/fill edits retain untouched cells, table style and unknown table XML.
+                        for (r, row) in source.elements_mut().filter(|e| e.is("tr")).enumerate() {
+                            let generated_row = generated
+                                .elements()
+                                .filter(|e| e.is("tr"))
+                                .nth(r)
+                                .ok_or_else(|| error("missing generated table row"))?;
+                            for (c, cell) in row.elements_mut().filter(|e| e.is("tc")).enumerate() {
+                                let a = before
+                                    .cell(r, c)
+                                    .ok_or_else(|| error("unmapped source cell"))?;
+                                let b = after
+                                    .cell(r, c)
+                                    .ok_or_else(|| error("unmapped edited cell"))?;
+                                let g = generated_row
+                                    .elements()
+                                    .filter(|e| e.is("tc"))
+                                    .nth(c)
+                                    .ok_or_else(|| error("missing generated cell"))?;
+                                if a.text != b.text {
+                                    if g.find("hlinkClick").is_some()
+                                        || g.find("hlinkMouseOver").is_some()
+                                    {
+                                        return Err(error(
+                                            "edited cell hyperlinks require .joydeck Save As",
+                                        ));
+                                    }
+                                    replace(cell, "txBody", g.child("txBody").cloned());
+                                }
+                                if a.fill != b.fill
+                                    || a.grid_span != b.grid_span
+                                    || a.row_span != b.row_span
+                                    || a.h_merge != b.h_merge
+                                    || a.v_merge != b.v_merge
+                                {
+                                    // Merge identity is on a:tc, fill is inside a:tcPr.
+                                    for key in ["gridSpan", "rowSpan", "hMerge", "vMerge"] {
+                                        cell.attrs.retain(|(k, _)| k != key);
+                                        if let Some(v) = g.attr(key) {
+                                            set(cell, key, v.into());
+                                        }
+                                    }
+                                    let pr = child_mut(cell, "tcPr")
+                                        .ok_or_else(|| error("missing cell properties"))?;
+                                    pr.children.retain(|n|!matches!(n,Node::El(e) if matches!(e.local(),"gradFill"|"pattFill"|"noFill"|"blipFill"|"grpFill")));
+                                    replace(
+                                        pr,
+                                        "solidFill",
+                                        g.child("tcPr").and_then(|x| x.child("solidFill")).cloned(),
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        // Structural edits of extension-bearing tables are intentionally refused.
+                        if source
+                            .elements()
+                            .filter(|e| e.is("tblGrid") || e.is("tr"))
+                            .any(|e| !simple_table_rows(e))
+                        {
+                            return Err(error(
+                                "table extensions require .joydeck Save As for structural edits",
+                            ));
+                        }
+                        replace(source, "tblGrid", generated.child("tblGrid").cloned());
+                        source
+                            .children
+                            .retain(|n| !matches!(n,Node::El(e) if e.is("tr")));
+                        source.children.extend(
+                            generated
+                                .elements()
+                                .filter(|e| e.is("tr"))
+                                .cloned()
+                                .map(Node::El),
+                        );
+                    }
                 }
                 e
             } else {

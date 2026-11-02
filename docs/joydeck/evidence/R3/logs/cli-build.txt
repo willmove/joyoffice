@@ -1,0 +1,2 @@
+   Compiling joydeck-cli v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.72s

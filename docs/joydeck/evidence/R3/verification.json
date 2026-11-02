@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-02",
+  "platform": "Windows x86_64 MSVC",
+  "rust": "1.98.1",
+  "gpui_kit": "0.8.1",
+  "gpui_pre": "0.3.10",
+  "new_registry_dependencies": 0,
+  "source_records": 211,
+  "deckcraft_original_snapshot_files_unchanged": 755,
+  "joyoffice_baseline_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+  "joyoffice_worktree_unchanged": true,
+  "product-check": {
+    "rust_tests_passed": 847,
+    "python_tests_passed": 5,
+    "python_gate_passed": true,
+    "strict_clippy_fmt_passed": true
+  },
+  "headless-check": {
+    "rust_tests_passed": 846,
+    "python_tests_passed": 5,
+    "python_gate_passed": true,
+    "strict_clippy_fmt_passed": true
+  },
+  "release_r3_cli_calls_passed": 20,
+  "release_r2_regression_cli_calls_passed": 20,
+  "r2_regression_stage_assertion": "Only expected diagnostics stage adjusted R2 to R3 in memory; all functional assertions unchanged; original R2 script remains unchanged.",
+  "r2_script_sha256": "c443a2de32629d3b12f8a768a38eab132813d3c4206fec33dd9592a5fcea432e",
+  "archive_sha256": "f4c9c8cba4e647dab2a1c0fed46b65b71ce4445431289566b6ce9109954ed5c6",
+  "archive_bytes": 21090291,
+  "files_sha256_verified": 759,
+  "production_source_matches_package": true,
+  "windows_gui_stack_reserve_bytes": 8388608,
+  "final_gui_status": "pending Windows desktop unlock; initial capture showed LockApp screen; no further UI input sent",
+  "debug_gui_verified": [
+    "real PPTX inline Unicode, actual system Pinyin candidate commit and one-step undo",
+    "real table Unicode edit and notes save; independent python-pptx reopened output"
+  ],
+  "final_gui_not_yet_verified": [
+    "fixed Tab navigation",
+    "rich text system clipboard",
+    "release GUI input and save/reopen"
+  ],
+  "staged_production_source_files_sha256_verified": 275,
+  "packaged_edit_inspect_render_example_passed": true,
+  "packaged_example_calls": 3,
+  "git_staged_diff_check_passed": true,
+  "waiting_gui_process_pid": 20192
+}

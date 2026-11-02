@@ -1,0 +1,23 @@
+   Compiling joydeck-color v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling joydeck-geom v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-fonts v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-model v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling joydeck-anim v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-text v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-format v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-engine v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-pptx v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.89s
+     Running tests\authoring.rs (target\debug\deps\authoring-1afb05a8cb1f5ad3.exe)
+
+running 5 tests
+test range_edit_preserves_other_runs_and_paragraphs ... ok
+test composition_ranges_graphemes_cancel_and_single_commit ... ok
+test table_structure_insert_delete_and_new_table_public_roundtrip ... ok
+test notes_public_and_native_preserve_speaker_body ... ok
+test real_pptx_table_cells_tsv_merge_fill_undo_and_reopen ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s

@@ -231,6 +231,9 @@ impl SaveJob {
             .zip(&reopened.presentation.slides)
             .enumerate()
         {
+            if expected.notes.text() != actual.notes.text() {
+                return Err("notes cannot round-trip; save .joydeck instead".into());
+            }
             if expected.shapes.len() != actual.shapes.len() {
                 return Err(format!(
                     "page {} cannot round-trip its object tree; save .joydeck instead",
@@ -242,6 +245,26 @@ impl SaveJob {
             let after = joydeck_model::resolve::Ctx::for_slide(&reopened.presentation, actual)
                 .ok_or("missing output layout")?;
             for (a, b) in expected.shapes.iter().zip(&actual.shapes) {
+                if let (joydeck_model::ShapeKind::Table(a), joydeck_model::ShapeKind::Table(b)) =
+                    (&a.kind, &b.kind)
+                    && (a.n_rows() != b.n_rows()
+                        || a.n_cols() != b.n_cols()
+                        || a.rows.iter().zip(&b.rows).any(|(a, b)| {
+                            a.cells.iter().zip(&b.cells).any(|(a, b)| {
+                                a.text.text() != b.text.text()
+                                    || a.grid_span != b.grid_span
+                                    || a.row_span != b.row_span
+                                    || a.h_merge != b.h_merge
+                                    || a.v_merge != b.v_merge
+                                    || a.fill != b.fill
+                            })
+                        }))
+                {
+                    return Err(
+                        "table cannot round-trip its cells/merges/fill; save .joydeck instead"
+                            .into(),
+                    );
+                }
                 let x = joydeck_model::resolve::xfrm(&before, a);
                 let y = joydeck_model::resolve::xfrm(&after, b);
                 let same = [(x.x, y.x), (x.y, y.y), (x.w, y.w), (x.h, y.h)]

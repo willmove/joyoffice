@@ -1185,12 +1185,13 @@
       "source_path": "crates/render/src/lib.rs",
       "source_sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b",
       "target_path": "crates/joydeck-render/src/lib.rs",
-      "adapted_sha256": "3cb7edb8e63d2275ffb7312d91398ce4c484b46982382ce3cb61e3dd1861a547",
+      "adapted_sha256": "926c3c4080e5488790f76ae8e93e480e26bbfc89ae23156a4179005881c19d4a",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained"
       ]
     },
     {
@@ -1293,12 +1294,13 @@
       "source_path": "crates/render/src/placed.rs",
       "source_sha256": "f2851a72da1ed824bfadafcc409a6ebbaa9a711671021ebdb4d46696d0f31f0c",
       "target_path": "crates/joydeck-render/src/placed.rs",
-      "adapted_sha256": "2330b90d9fae53e985d6499ab0959b9d7f5c002a1c2e9c3db692bbfc9784d44e",
+      "adapted_sha256": "3a0870daca0b1e9fef99b6a9479f2f5a333dbb52bda7643de4b4a0e81c418137",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R3 shared editable shape/cell text layout consumer; exact original font/renderer layout retained"
       ]
     },
     {

@@ -17,6 +17,41 @@ pub struct PlacedText {
     pub body: TextBody,
 }
 
+/// Editing geometry for a top-level shape/cell, using the exact rendering layout and transform.
+/// Empty bodies are included so an empty cell has a caret and IME candidate anchor.
+pub fn editable_text(
+    pres: &Presentation,
+    page: usize,
+    id: ShapeId,
+    cell: Option<(usize, usize)>,
+) -> Option<PlacedText> {
+    let slide = pres.slides.get(page)?;
+    let ctx = Ctx::for_slide(pres, slide)?;
+    let s = slide.shapes.iter().find(|s| s.id == id)?;
+    let x = resolve::xfrm(&ctx, s);
+    let fields = SlideFields::new(
+        pres.slide_number(page),
+        pres.header_footer.footer_text.clone(),
+        &crate::RenderOpts::default(),
+    );
+    let mut out = Placed::default();
+    if let (ShapeKind::Table(t), Some((r, c))) = (&s.kind, cell) {
+        let target = t.cell(r, c).filter(|c| !c.is_covered())?;
+        let body = table::cell_body(&ctx, t, r, c, target);
+        let rect = table::cell_rects(t, &table::row_heights(&ctx, t, &fields))
+            .into_iter()
+            .find(|(a, b, _)| *a == r && *b == c)?
+            .2;
+        let tmp = Shape::table_cell(body.clone());
+        place_text(&mut out, &ctx, &fields, id, &tmp, &body, rect, x.affine());
+    } else {
+        let body = s.text.clone().unwrap_or_default();
+        let rect = shape_geometry(s, x.w, x.h).text_rect;
+        place_text(&mut out, &ctx, &fields, id, s, &body, rect, x.affine());
+    }
+    out.texts.pop()
+}
+
 /// A clickable area: a shape action or a text hyperlink.
 pub struct PlacedLink {
     /// Slide-space bounding box.

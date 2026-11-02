@@ -3272,14 +3272,14 @@ dependencies = [
 
 [[package]]
 name = "joydeck"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "joydeck-ui-gpui",
 ]
 
 [[package]]
 name = "joydeck-anim"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "joydeck-geom",
  "joydeck-model",
@@ -3288,7 +3288,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-cli"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "joydeck-engine",
  "joydeck-shell",
@@ -3297,23 +3297,24 @@ dependencies = [
 
 [[package]]
 name = "joydeck-color"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "joydeck-engine"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "joydeck-model",
  "serde",
  "serde_json",
+ "unicode-segmentation",
 ]
 
 [[package]]
 name = "joydeck-fonts"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "harfrust 0.8.4",
  "kurbo 0.13.1",
@@ -3324,7 +3325,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-format"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "joydeck-model",
  "serde",
@@ -3335,7 +3336,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-geom"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "kurbo 0.13.1",
  "serde",
@@ -3343,7 +3344,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-metafile"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "image",
  "kurbo 0.13.1",
@@ -3352,7 +3353,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-model"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "joydeck-color",
  "joydeck-geom",
@@ -3364,7 +3365,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-pptx"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "image",
  "joydeck-color",
@@ -3379,7 +3380,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-render"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "image",
  "joydeck-anim",
@@ -3398,16 +3399,18 @@ dependencies = [
 
 [[package]]
 name = "joydeck-shell"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "getrandom 0.3.4",
  "image",
  "joydeck-engine",
  "joydeck-fonts",
  "joydeck-format",
+ "joydeck-geom",
  "joydeck-model",
  "joydeck-pptx",
  "joydeck-render",
+ "joydeck-text",
  "joyoffice-opc",
  "quick-xml",
  "serde",
@@ -3418,7 +3421,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-text"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "joydeck-color",
@@ -3432,7 +3435,7 @@ dependencies = [
 
 [[package]]
 name = "joydeck-ui-gpui"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "gpui-kit",
  "gpui-pre-platform",
@@ -3440,18 +3443,20 @@ dependencies = [
  "joydeck-engine",
  "joydeck-geom",
  "joydeck-model",
+ "joydeck-render",
  "joydeck-shell",
+ "joydeck-text",
  "joyoffice-ui",
  "serde_json",
 ]
 
 [[package]]
 name = "joydeck-xtask"
-version = "0.3.0"
+version = "0.4.0"
 
 [[package]]
 name = "joyoffice-opc"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "crc32fast",
  "flate2",
