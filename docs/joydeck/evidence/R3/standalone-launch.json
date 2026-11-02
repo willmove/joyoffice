@@ -14,6 +14,10 @@
   "second_pid": 20192,
   "second_launch_default_bundled_sample": true,
   "desktop_locked_observed": true,
-  "awaiting_user_unlock": true,
-  "final_gui_editing_input_sent": false
+  "awaiting_user_unlock": false,
+  "final_gui_editing_input_sent": true,
+  "user_unlock_confirmed": true,
+  "gui_validation_completed": true,
+  "second_process_clean_exit": true,
+  "final_gui_evidence": "gui-validation.json"
 }

@@ -1,10 +1,10 @@
 # R3 文字输入、表格和剪贴板验证
 
-2026-11-02，JoyDeck 0.4.0，Windows x86_64/MSVC，Rust 1.98.1、GPUI Kit 0.8.1 / pre 0.3.10。[使用与范围说明](../../../../packaging/joydeck/README-r3.md)。最终包已生成并完成无界面验证；Windows 锁屏阻止了最终包交互验收，待用户解锁后继续，不据锁屏中的 accessibility 树宣称桌面验证通过。
+2026-11-02，JoyDeck 0.4.0，Windows x86_64/MSVC，Rust 1.98.1、GPUI Kit 0.8.1 / pre 0.3.10。[使用与范围说明](../../../../packaging/joydeck/README-r3.md)。最终 release 包的基础桌面验收已完成，代码、依赖和 ZIP 与原构建一致。期间因 Windows 锁屏暂停，用户确认解锁后完成以下实际交互检查；未将锁屏中的 accessibility 树当作通过证据。
 
 ## Windows 开发包与来源
 
-- [release 开发包](../../../../dist/joydeck/joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70.zip)，解压运行 `joydeck.exe`。原 R0/R1/R2 包保留。
+- release 开发包：`dist/joydeck/joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70.zip`，位置见 [包元数据](package.json)，解压运行 `joydeck.exe`。开发包位于忽略的 dist 目录，不作为全新源码检出的必需文件。原 R0/R1/R2 包保留。
 - ZIP SHA-256：`f4c9c8cba4e647dab2a1c0fed46b65b71ce4445431289566b6ce9109954ed5c6`。
 - 生产源码指纹：`6fb3ff2b709b1d358b5ff933e796d90e96f58c7d071c7f508b97f7ff9246be1e`，与当前源码逐文件一致。
 - GUI SHA-256：`3a4dfe7c2b53412e4f41fa0f3866167e8247b68c92e096c1cb05ec01cdbab454`。
@@ -20,15 +20,28 @@
 
 [最终包 R2 回归](r2-regression-release.json)另 **20 次调用**通过，包括新文稿、原文件/已有输出保护、故障与未来恢复记录隔离和真实强制终止恢复。复用原 `verify-r2.py`，只在内存中将 `diagnostics.stage` 的期望值从 R2 改为 R3，功能断言不变；原脚本未修改。起初未经该阶段调整的运行停在最后的版本断言，见 [首次日志](logs/cli-release-verification.txt)；[调整后完整通过日志](logs/r2-regression-release.txt)。
 
-[实际输出与哈希](outputs/SHA256.json)保留了最终 CLI 写出的公开 PPTX、v2、恢复后 PPTX 和保留未知属性的 PPTX，便于独立复核。
+[实际输出与哈希](outputs/SHA256.json)保留了最终 CLI 和桌面写出的公开 PPTX、v2、恢复后 PPTX 和保留未知属性的 PPTX，便于独立复核。[包内 r3-edit.json 示例](package-example.json)另已实际执行 edit/inspect/render 并由 python-pptx 读回。
 
 ## 桌面验证状态
 
 调试切片中已实际验证：真实 PPTX 标题原位 Unicode 输入、系统拼音候选 n→ni→“你”、一次提交一次撤销；真实表格单元格与演讲备注编辑后保存，独立 python-pptx 读取正确。日志为 [文字与系统 IME](logs/desktop-runtime.txt)、[表格/备注](logs/desktop-table-runtime.txt)，均为真实进程，不是模拟调用 EntityInputHandler 冒充系统输入法。
 
-最终 ZIP 解压到 `%LOCALAPPDATA%/Temp/joydeck-r3-final-c7x8g34r/中文 空格路径/`，校验 759 文件，并从该目录启动。首进程 28420 成功读取 PPTX、完成后台光栅且 Responding=True，但自动化连续返回 `failed to activate captured window`；重启后实际截图确认 Windows 处于锁屏。已按 computer-use 技能停止界面操作并请求用户手动解锁，未保存锁屏截图为产品证据。
+最终 ZIP 解压到 `%LOCALAPPDATA%/Temp/joydeck-r3-final-c7x8g34r/中文 空格路径/`，校验 759 文件。首进程 28420 的自动化返回 `failed to activate captured window`；重启后截图确认 Windows 锁屏，随即停止界面操作。用户手动解锁后，在同一 release 二进制的进程 **20192** 完成实测，未改代码、依赖或开发包。27 张主窗口截图及 4 张候选附图、[结构化结果](gui-validation.json)已保存。部分画布截图未返回 accessibility，使用 sky 支持的截图坐标操作；备注对话框能返回输入控件树。未将其它应用或锁屏截图存为产品证据。
 
-**待解锁验收**：最终 release 的原位/候选/取消/undo/redo、修复后的 Tab/Shift+Tab、内部富文字与系统 TSV 剪贴板、表格/备注保存重开及截图。当前不能把这些最终包交互场景写成通过。
+| 场景 | 实际结果与证据 |
+| --- | --- |
+| 真实 PPTX 原位文字 | [打开公开文稿](01-release-real-pptx.png)，[输入中文、emoji 和 e+U+0301](02-release-inline-unicode.png)，实际模型 revision 1 |
+| 系统拼音提交与历史 | 物理 n/i 键出现 [真实候选](03-release-pinyin-preedit.png)，Space [提交“你”](04-release-pinyin-commit.png)后 revision 2；[一次撤销](05-release-ime-undo.png)移除整个提交，[重做](06-release-ime-redo.png)恢复 |
+| 系统组合取消 | [重新组合](07-release-preedit-before-cancel.png)，[Esc 取消](08-release-composition-cancelled.png)恢复标题；下一次 [选区粗体](09-release-bold-after-cancel.png)为 revision 5，取消未新增历史 |
+| 内部富文字系统剪贴板 | Ctrl+C 复制粗体标题，Ctrl+V [粘贴到另一文字对象](10-release-rich-text-paste.png)，revision 6；独立 PPTX 读取确认两处文字相同且都为粗体 |
+| 单元格文字与导航 | [原位输入](11-release-table-inline.png)后，[Tab](12-release-table-tab-next.png)到 1:2，输入 `Tab OK` 确实落在第二格；[Shift+Tab](13-release-table-shift-tab.png)返回 1:1 |
+| 系统 TSV 区域粘贴 | 整表复制至系统剪贴板，在新 3×3 表 [粘贴 3×2 区域](14-release-tsv-paste.png)，revision 10；[单次撤销](15-release-tsv-one-step-undo.png)清空整块、[重做](16-release-tsv-redo.png)恢复，分别 revision 11/12 |
+| 表格原生 IME | 新表首格内 [真实拼音候选](17-release-table-system-ime.png)，[提交“你”](18-release-table-ime-commit.png)，revision 13；其它已粘贴单元格保持不变 |
+| 备注原生 IME | JoyOffice Textarea 的 [真实候选](19-release-notes-system-ime.png)及 [提交后的多行草稿](20-release-notes-draft-committed.png)；此时文稿仍 revision 13，点击“应用备注”后才到 revision 14 |
+| 保存与界面重开 | Ctrl+S [保存 PPTX](21-release-saved-pptx.png)，[另存 v2](22-release-saved-native.png)；[重开 PPTX 文字](23-release-reopened-pptx.png)、[两张表格](24-release-reopened-pptx-tables.png)和 [多行备注](25-release-reopened-notes.png)均保持，重开后新建历史 |
+| 项目重开 | [重开 .joydeck 文字](26-release-reopened-native.png)和 [表格](27-release-reopened-native-tables.png)，内容保持，干净状态正常关闭窗口 |
+
+[独立 python-pptx 读回桌面产物](gui-independent-readback.json)逐项核对原始中文/emoji/组合字符、系统 IME 的“你”、粗体粘贴目标、两张表格内容和多行备注，原输入 SHA 不变。[公开 PPTX inspect](gui-saved.inspect.json)、[v2 inspect](gui-native.inspect.json)及 [v2 转公开 PPTX 结果](outputs/gui-native-to-public.pptx)进一步复核同一实际桌面结果；[共享 CLI 渲染首面](gui-render/slide-0001.png)与 [表格页](gui-render/slide-0002.png)可直接查看。上述桌面步骤未使用模拟 IME 回调替代操作系统候选界面。
 
 ## 可运行切片
 

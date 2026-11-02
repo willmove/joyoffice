@@ -30,19 +30,34 @@
   "files_sha256_verified": 759,
   "production_source_matches_package": true,
   "windows_gui_stack_reserve_bytes": 8388608,
-  "final_gui_status": "pending Windows desktop unlock; initial capture showed LockApp screen; no further UI input sent",
+  "final_gui_status": "passed after user-confirmed desktop unlock; release PID 20192 edited and reopened real PPTX/native and closed normally",
   "debug_gui_verified": [
     "real PPTX inline Unicode, actual system Pinyin candidate commit and one-step undo",
     "real table Unicode edit and notes save; independent python-pptx reopened output"
-  ],
-  "final_gui_not_yet_verified": [
-    "fixed Tab navigation",
-    "rich text system clipboard",
-    "release GUI input and save/reopen"
   ],
   "staged_production_source_files_sha256_verified": 275,
   "packaged_edit_inspect_render_example_passed": true,
   "packaged_example_calls": 3,
   "git_staged_diff_check_passed": true,
-  "waiting_gui_process_pid": 20192
+  "final_gui_verified": [
+    "original PPTX opened from package outside repository/Chinese space path",
+    "inline Unicode/emoji/combining character input",
+    "physical-key Pinyin candidate commit, one-step undo/redo and composition cancel",
+    "bold selection copied via system rich text metadata and pasted in a second text object",
+    "table inline input, Tab/Shift+Tab and system Pinyin commit",
+    "system TSV grid copy/paste with one-step undo/redo",
+    "notes Textarea multiline/system Pinyin and explicit apply",
+    "Ctrl+S public PPTX and native project save, GUI reopen of both formats",
+    "independent python-pptx validation of actual GUI PPTX and native-to-public conversion",
+    "original sample unchanged and normal GUI window close"
+  ],
+  "final_gui_passed": true,
+  "final_gui_screenshots": 31,
+  "final_gui_main_screenshots": 27,
+  "code_or_dependencies_changed_during_gui_validation": false,
+  "gui_artifact_readback_report": "gui-independent-readback.json",
+  "gui_runtime_validation_report": "gui-validation.json",
+  "final_source_dependency_document_gates_passed": true,
+  "final_archive_and_759_extracted_hashes_unchanged": true,
+  "final_gui_process_exit_confirmed": true
 }

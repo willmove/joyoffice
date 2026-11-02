@@ -1,0 +1,11 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70\\joydeck.exe",
+    "id": 13504310,
+    "title": "JoyDeck · R3 · gui-verified.joydeck"
+  },
+  "accessibility": {
+    "focused_element": "0 区域 JoyDeck · R3 · gui-verified.joydeck Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck · R3 · gui-verified.joydeck\", App: joydeck.exe.\n\t0 区域 JoyDeck · R3 · gui-verified.joydeck Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: JoyDeck · R3 · gui-verified.joydeck\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t47 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 打开文稿\n\t\t8 按钮 深色\n\t\t9 按钮 备注\n\t\t10 按钮 兼容报告 · 0\n\t\t11 编辑 (settable, string) 输入 .pptx / .joydeck / .deckcraft 路径 Description: 输入 .pptx / .joydeck / .deckcraft 路径 Value: C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70\\gui-verified.joydeck\n\t\t12 按钮 读取路径\n\t\t13 按钮 (disabled) 取消读取\n\t\t14 按钮 新建\n\t\t15 按钮 (disabled) 撤销\n\t\t16 按钮 (disabled) 重做\n\t\t17 按钮 矩形\n\t\t18 按钮 (disabled) 复制\n\t\t19 按钮 (disabled) 上移层\n\t\t20 按钮 (disabled) 下移层\n\t\t21 按钮 (disabled) 删除\n\t\t22 按钮 新页\n\t\t23 按钮 复制页\n\t\t24 按钮 删页\n\t\t25 按钮 下一对象\n\t\t26 编辑 (settable, string) 选中文字对象后，在这里修改并应用 Description: 选中文字对象后，在这里修改并应用\n\t\t27 按钮 插入文字\n\t\t28 按钮 (disabled) 应用文字\n\t\t29 按钮 (disabled) ←\n\t\t30 按钮 (disabled) →\n\t\t31 按钮 (disabled) 放大\n\t\t32 按钮 (disabled) 缩小\n\t\t33 按钮 (disabled) 旋转\n\t\t34 按钮 原位文字\n\t\t35 按钮 表格 3×3\n\t\t36 按钮 复制文字/表格\n\t\t37 按钮 粘贴\n\t\t38 编辑 (settable, string) 另存路径 .pptx / .joydeck（新文件） Description: 另存路径 .pptx / .joydeck（新文件） Value: C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70\\gui-verified.joydeck\n\t\t39 按钮 保存 / 另存\n\t\t40 按钮 恢复\n\t\t41 按钮 放弃修改\n\t\t42 按钮 上一页\n\t\t43 按钮 下一页\n\t\t44 按钮 −\n\t\t45 按钮 +\n\t\t46 按钮 适应窗口\n\nThe focused UI element is 0 区域 JoyDeck · R3 · gui-verified.joydeck Secondary Actions: Raise."
+  }
+}
