@@ -4,6 +4,47 @@ use joydeck::{
     design_commands::{self, Action, PageTransfer},
 };
 impl Editor {
+    pub(super) fn link_workspace_inputs(
+        &self,
+        w: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Vec<Subscription> {
+        // A rendered GPUI input owns its focus, text layout and a11y identity.
+        // Each visible control needs its own entity; only the draft is shared.
+        let mut links = Vec::new();
+        for (source, peer) in [
+            (&self.notes_input, &self.workspace_notes_input),
+            (&self.workspace_notes_input, &self.notes_input),
+        ] {
+            let peer = peer.clone();
+            links.push(cx.observe_in(source, w, move |_, source, w, cx| {
+                let value = source.read(cx).value();
+                peer.update(cx, |state, cx| {
+                    if state.value() != value {
+                        state.set_value(value, w, cx);
+                    }
+                });
+            }));
+        }
+        for (index, field) in [7, 11].into_iter().zip(&self.workspace_colors) {
+            for (source, peer) in [
+                (&self.doc_fields[index], field),
+                (field, &self.doc_fields[index]),
+            ] {
+                let peer = peer.clone();
+                links.push(cx.observe_in(source, w, move |_, source, w, cx| {
+                    let value = source.read(cx).value();
+                    peer.update(cx, |state, cx| {
+                        if state.value() != value {
+                            state.set_value(value, w, cx);
+                        }
+                    });
+                }));
+            }
+        }
+        links
+    }
+
     pub(super) fn effective_objects(&self) -> Vec<Object> {
         design::resolve_slide(&self.session.deck, self.page)
             .map(|mut s| {
@@ -65,8 +106,11 @@ impl Editor {
         let s = &d.slides[self.page];
         self.doc_page = s.id.clone();
         self.notes_base = s.notes.clone();
-        self.notes_input
-            .update(cx, |f, cx| f.set_value(s.notes.clone(), w, cx));
+        // Model refresh can run during render. Reset both views explicitly;
+        // notification delivery is for edits, not a substitute for refreshing.
+        for input in [&self.notes_input, &self.workspace_notes_input] {
+            input.update(cx, |f, cx| f.set_value(s.notes.clone(), w, cx));
+        }
         let section = s
             .section
             .as_ref()
@@ -83,9 +127,10 @@ impl Editor {
             .and_then(|l| d.design.masters.get(&l.master))
             .and_then(|m| d.design.themes.get(&m.theme));
         if let Some(theme) = theme {
-            for (i, key) in [(7, "accent"), (11, "background")] {
+            for (j, (i, key)) in [(7, "accent"), (11, "background")].into_iter().enumerate() {
                 if let Some(value) = theme.colors.get(key) {
                     self.doc_fields[i].update(cx, |f, cx| f.set_value(value.clone(), w, cx));
+                    self.workspace_colors[j].update(cx, |f, cx| f.set_value(value.clone(), w, cx));
                 }
             }
         }
@@ -410,9 +455,24 @@ impl Editor {
         .enumerate()
         {
             if i == 3 {
-                panel = panel.child(div().child(*label).child(Textarea::new(&self.notes_input)));
+                panel = panel.child(
+                    div().child(*label).child(
+                        Textarea::new(&self.workspace_notes_input)
+                            .aria_label("高级设计 · 当前页备注")
+                            .accessibility_id("workspace-notes"),
+                    ),
+                );
             } else {
-                panel = panel.child(div().child(*label).child(Input::new(&self.doc_fields[i])));
+                let input = match i {
+                    7 => &self.workspace_colors[0],
+                    11 => &self.workspace_colors[1],
+                    _ => &self.doc_fields[i],
+                };
+                panel = panel.child(
+                    div()
+                        .child(*label)
+                        .child(Input::new(input).aria_label(*label)),
+                );
             }
         }
         panel = panel

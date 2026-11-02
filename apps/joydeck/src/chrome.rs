@@ -500,7 +500,13 @@ impl Editor {
                                     .flex()
                                     .gap_4()
                                     .child(label("演讲者备注"))
-                                    .child(div().flex_1().child(Textarea::new(&self.notes_input)))
+                                    .child(
+                                        div().flex_1().child(
+                                            Textarea::new(&self.notes_input)
+                                                .aria_label("演讲者备注")
+                                                .accessibility_id("slide-notes"),
+                                        ),
+                                    )
                                     .child(
                                         Button::new("notes")
                                             .small()

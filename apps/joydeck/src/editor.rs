@@ -230,6 +230,9 @@ struct Editor {
     workspace_panel: bool,
     doc_fields: Vec<Entity<InputState>>,
     notes_input: Entity<TextareaState>,
+    workspace_notes_input: Entity<TextareaState>,
+    workspace_colors: [Entity<InputState>; 2],
+    _workspace_input_links: Vec<Subscription>,
     doc_page: String,
     notes_base: String,
     chosen_layout: String,
@@ -330,7 +333,7 @@ impl Editor {
                 })
             })
             .collect();
-        let doc_fields = [
+        let doc_fields: Vec<Entity<InputState>> = [
             "",
             "",
             "",
@@ -364,6 +367,15 @@ impl Editor {
             })
             .collect();
         let notes_input = cx.new(|cx| TextareaState::new(w, cx).auto_grow(3, 8));
+        let workspace_notes_input = cx.new(|cx| TextareaState::new(w, cx).auto_grow(3, 8));
+        let workspace_colors = [7, 11].map(|i| {
+            let value = doc_fields[i].read(cx).value();
+            cx.new(|cx| {
+                let mut state = InputState::new(w, cx);
+                state.set_value(value, w, cx);
+                state
+            })
+        });
         let focus = cx.focus_handle();
         focus.focus(w, cx);
         let session = Session::new();
@@ -420,7 +432,7 @@ impl Editor {
                 })
             })
             .collect();
-        Self {
+        let mut editor = Self {
             comparison_path,
             comparison: None,
             comparison_pick: 0,
@@ -459,6 +471,9 @@ impl Editor {
             delivery_cancel: Arc::new(AtomicBool::new(false)),
             delivery_busy: false,
             notes_input,
+            workspace_notes_input,
+            workspace_colors,
+            _workspace_input_links: vec![],
             doc_page: String::new(),
             notes_base: String::new(),
             workspace_panel: false,
@@ -517,7 +532,9 @@ impl Editor {
             thumb_errors: BTreeSet::new(),
             thumb_task: None,
             recovery_task: None,
-        }
+        };
+        editor._workspace_input_links = editor.link_workspace_inputs(w, cx);
+        editor
     }
     fn prepare_show(&mut self, w: &mut Window, cx: &mut Context<Self>) {
         self.restore_focus_after_show = true;
@@ -806,7 +823,7 @@ impl Editor {
             .map(|(i, _)| i)
             .collect();
         self.changed(cx);
-        self.sync_fields(w, cx);
+        self.sync_doc_fields(w, cx);
         if matches!(self.ribbon.as_str(), "图表" | "图示" | "动画") {
             self.sync_author(w, cx);
         }

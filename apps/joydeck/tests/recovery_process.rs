@@ -70,6 +70,10 @@ fn native_startup_and_all_ribbons_fit_the_default_ui_thread_stack() {
             .env("JOYDECK_STATE_DIR", &state)
             .stdout(Stdio::null())
             .stderr(Stdio::piped());
+        let require_a11y = std::env::var_os("JOYDECK_TEST_A11Y").is_some();
+        if require_a11y {
+            command.arg("--require-a11y");
+        }
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
@@ -92,7 +96,11 @@ fn native_startup_and_all_ribbons_fit_the_default_ui_thread_stack() {
         let log = String::from_utf8_lossy(&output.stderr);
         assert!(output.status.success(), "width={width}: {log}");
         assert!(
-            log.contains("STARTUP_SMOKE complete=true cases=48"),
+            log.contains(if require_a11y {
+                "A11Y_SMOKE design_notes_complete=true"
+            } else {
+                "STARTUP_SMOKE complete=true cases=48"
+            }),
             "width={width}: {log}"
         );
     }
