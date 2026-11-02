@@ -13,15 +13,19 @@ JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **Joy
 
 下文为 JoyWord 当前功能与验证记录；不代表 JoyDeck 同时通过这些验收。
 
-**当前是 M0／M1 技术预览，不是 1.0 产品，M1 发布门槛也尚未通过。** M0 六项里四项 `done`——T001 已于 2026-10-26 收口（三台参考环境的工具链与可启动产物核对完毕，cargo-deny 在 CI 与 Mac 本机通过），T003 的 Retina／多显示器与 T005 的信创真机专项仍 `in_progress`。M1 十二项里七项已经 `done`，门槛任务 T107 仍是 `planned`：前置 T109（打开与保存的并发安全）和 T110（原件保存的元数据与确认路径）还没有同时具备自动证据和所要求的人工验收。M2 十二项里九项 `in_progress`、两项 `done`（T210、T211），门槛 T206 仍 `planned`；样式、编号、表格、页面、图片、PDF 与中文排版已有大量自动测试，所在任务仍因人工验收未关闭而保持进行中。M3 的 T300（文字与移动修订）、T301（段落与运行格式修订）、T302（批注线程）进行中。M4 的 T400、T401、T402（Provider 关闭基础、选区授权、有界替换提案与跨段修订）进行中，门槛 T403 未开始。2026-10-21 合入的 [#71](https://github.com/willmove/joyoffice/pull/71) 把 DOCX 健壮性实验改为绑定检出的 `crates/` 树 id，[#70](https://github.com/willmove/joyoffice/pull/70) 把银河麒麟修复会话的机器侧证据落进仓库；此后 T104 生产恢复双代、T202 章节页码、T402 有界替换与跨段修订、T204 的 PDF 书签跳转与书签导入／写回（[#95](https://github.com/willmove/joyoffice/pull/95)–[#98](https://github.com/willmove/joyoffice/pull/98)）以及 2026-10-24 的桌面外壳刷新（真实功能区分档、插入页表格网格、单行状态栏缩放滑块）均已合入 `main`。真实 DOCX 会话、中文文本编辑、基础格式、文本剪贴板、另存与重开、原件保存的元数据观测与显式确认路径、Windows 原件原子替换、统一页面场景的 PDF／CPU 光栅与无头输出、可见页缓存、打开／保存并发控制和恢复日志已有实现及相应自动测试。逐项复选框、阶段统计和完成证据见 [TASKS 进度总览](docs/joyword/TASKS.md#进度总览)。
+**当前是可运行技术预览，JoyWord 1.0 发布门槛尚未通过。** 截至 2026-11-02，Word 全路线图为 **20 done／35 in_progress／11 planned**；其中 1.0 范围 M0–M7 为 **17 done／34 in_progress／4 planned**，仍开放 38 项。任务关闭要求实现、自动验证和对应人工验收齐备；进行中不表示尚无代码。
+
+T201 基础表格、T104 完整 DOCX 检查点恢复及 T109 打开／保存并发安全已完成。基础中文编辑、格式、另存重开、统一页面场景 PDF／CPU 光栅、可见页缓存、增量重排与 CLI 已有实现。M2 的其余办公任务、M3 审阅、M4 Agent、M5 专业文档、M6 格式与保护以及 M7 稳定发布仍分别推进；当前收口范围、证据及完整任务账本见 [M0–M7 持续收口](docs/joyword/verification/m0-m7-completion-20261102.md)和 [TASKS](docs/joyword/TASKS.md#进度总览)。
 
 当前支持边界与剩余门槛：
 
-- DOCX 仅支持已声明子集；原始包、未知部件与无法安全映射的内容按契约保留或拒绝，超出支持边界的编辑不作假成功。
-- 中文编辑—格式—剪贴板—另存—重开已有自动闭环测试；Mac GUI／IME 与固定 Word／WPS 读回已有记录，Windows 原生 GUI 原件保存确认、WPS 参考 PDF 和信创真机仍待补验。信创真机不阻塞开发、阶段验收或发布，但仍明确标为未验证。
-- M2 的样式、编号、表格、页面、图片、查找替换、PDF 与打印到文件、功能区已有进行中的自动覆盖，任务状态仍是 `in_progress`。M3 的文字与移动修订（T300）、格式修订（T301）与批注线程（T302）进行中。M4 的 AI 切片（T400–T402）进行中，AI 能力默认关闭、支持无 AI 构建。比较合并、M5 及以后和 1.0 门槛仍属后续任务。富文本剪贴板只覆盖已声明的安全子集。
+- DOCX 仅支持已声明子集；原始包、未知部件和无法安全映射的内容保留或拒绝。复杂文档的兼容显示不代表完整 Word 分页保真。
+- 固定 Word／WPS 交换、富剪贴板、系统打印、完整结构修订、Agent 桌面接入和多格式工作流仍有开发及验收缺口。
+- T600／T601 新增有界文本格式交换计划、CLI 与桌面文本导出，可先核对损失再生成新文件，保留源件及未保存编辑状态；输入输出范围见 [文本交换指南](docs/joyword/guide/text-exchange.md)。桌面导入、Strict 和完整复杂内容转换仍开放。
+- 三端完整原生、系统 IME／DPI／读屏、实际呈现性能、安装签名和升级回退尚未完成。信创真机继续按约定非阻塞后补，未实测项明确标注。
+- M8 的邮件合并 T807 已完成，EPUB／PDF/A 的 T806 仍进行中；M9 完成的是独立规格入口。它们不替代 1.0 验收。
 
-详细实现与验证记录见 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
+详细实现与历史验证记录见 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
 
 ## 规格与任务
 
@@ -128,4 +132,4 @@ cargo clippy --workspace --all-targets --features dev-runtime-shaders --locked -
 
 ## 实施原则
 
-从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；默认关闭的 joyword-agent 与有界替换提案正在推进（T400–T402），启动不调用 Provider。M2 的样式、编号、表格、图片等已经在进行并有自动测试。仍须关闭 M0／M1 剩余验收，尤其是 T107 所依赖的 T109／T110，以及固定 Word／WPS 对照和恢复与原件保存的人工场景。M5 及以后尚未开始。信创真机留待有条件时补验，不阻塞上述推进与发布。逐项依据见 [TASKS](docs/joyword/TASKS.md) 与 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。
+从公开规范独立实现文档语义、读写、事务与分页；允许复用通用基础库。每阶段交付可运行版本，所有兼容声明附验收证据。AI 计划默认关闭并支持无 AI 构建；默认关闭的 joyword-agent 与有界替换提案正在推进（T400–T402），启动不调用 Provider。M2 的样式、编号、表格、图片等已经在进行并有自动测试。仍须关闭 M0／M1 剩余验收，尤其是 T107 所依赖的 T103／T110，以及固定 Word／WPS 对照和恢复与原件保存的人工场景。M5、M6 和 M7 已进入进行中，完整任务仍按各自验收条件收口。信创真机留待有条件时补验，不阻塞上述推进与发布。逐项依据见 [TASKS](docs/joyword/TASKS.md) 与 [IMPLEMENTATION](docs/joyword/IMPLEMENTATION.md)。

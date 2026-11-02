@@ -1,5 +1,13 @@
 # JoyWord 实施任务
 
+2026-11-02 导出限制可见性：复杂文档的版式兼容门禁继续生效，文件页新增兼容说明及每个禁用格式的原因；CLI 可选兼容标记帮助只读诊断。见 [本轮记录](verification/export-availability-20261102.md)。这次修复说明和诊断缺口，没有完成复杂文档转换，也不改变 T205／T600／T601 等父任务状态与计数。
+
+2026-11-02 文件工作区增量：主界面“文件”切换到侧栏导航页面，“导出”Tab 直接选择 PDF／DOCX／RTF／HTML／Markdown／TXT／EPUB／PDF/A-2b；返回、Esc 和现有文件作业保留。相关实现、Windows 原生观察及检查见 [本轮记录](verification/file-workspace-20261102.md)。T205／T600／T601 的完整范围仍 in_progress，任务计数不变。
+
+2026-11-02 桌面文本导出后续：完成格式选择／差异确认／新路径的生产入口、已提交编辑快照、代次／版本检查及 CLI／桌面共享的不覆盖发布器；包括未保存内容导出与取消回归。见 [验证记录](verification/text-exchange-ui-20261102.md)。完整 T600／T601 继续 in_progress；M0–M7 仍 17／34／4。用户确认暂无 macOS／Linux 桌面环境及发行签名身份，保留相关未验证项，继续独立开发。
+
+2026-11-02 M0–M7 全范围收口开始：本批接入 T600／T601 有界格式交换生产 CLI，并修复编码、Markdown／HTML 及 RTF 正确性问题。M0–M7 当前 **17 done／34 in_progress／4 planned**，开放 38 项；全路线图计数保持 20／35／11。完整范围、逐项账本和新增证据见 [持续收口记录](verification/m0-m7-completion-20261102.md)。实现和回归按证据逐项推进，不批量改为 done。
+
 2026-11-02 T109 收口：修复过期／重复打开接纳消费新请求输入、打开失败丢缓冲及窗口迟到结果清理新门的问题；补齐真实后台作业受控时序的 UOS GUI 验收。当前 **20 done／35 in_progress／11 planned**，仍开放 46 项；本批关闭 T104、T109，逐项证据和剩余任务见 [并发验收报告](../joyoffice/validation/20261102-t109/README.md)。下文旧计数保留为历史。
 
 2026-11-01 T104 收口：完整 DOCX 检查点、恢复未保存状态、损坏提示与 UOS 强制终止场景通过，任务改为 `done`。当前 **19 done／36 in_progress／11 planned**；本轮实现、测试与边界见 [恢复验收报告](../joyoffice/validation/20261101-t104/README.md)。以下为更早快照。
@@ -724,6 +732,8 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 
 ### T600：RTF 与 Strict OOXML 交换
 
+2026-11-02：有界 RTF 交换计划、CLI 与桌面导出入口接入生产依赖；修复 Unicode 代理对、字体目的地、隐藏属性、空段落、截断输入及代码页误解码。Strict、复杂审阅／脚注及桌面导入仍开放，状态保持 in_progress。见 [本轮记录](verification/m0-m7-completion-20261102.md)和 [桌面导出](verification/text-exchange-ui-20261102.md)。
+
 - 输入：RTF／Strict OOXML 公开规范、文档模型、审阅子集和 ExportPlan。
 - [ ] 状态：`in_progress`
 - 需求：`FORMAT-006`、`FORMAT-003`、`FORMAT-011`
@@ -732,10 +742,12 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 错误路径：未知属性、修订映射缺口和复杂对象不能静默扁平化。
 - 自动验证：规范样例、双向语义、资源关系、损失报告和异常输入。
 - 人工验收：与 Word／WPS 交换带样式、脚注、修订的 RTF 与 Strict 文件。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：有界 RTF 生产交换入口、Unicode／目的地／隐藏状态和根组异常回归完成；本轮完整 Word 产品检查及 Word／WPS 原创 RTF 显示证据见 [持续收口记录](verification/m0-m7-completion-20261102.md)。桌面从未保存编辑快照导出 RTF，并由 CLI 独立读回，见 [桌面后续](verification/text-exchange-ui-20261102.md)。Strict、复杂审阅／脚注及桌面导入仍开放，任务保持 in_progress。
 - 2026-10-28 第一切片（任务由 `planned` 改为 `in_progress`，进度计数改为 13 done／26 in_progress／27 planned／0 blocked）：实现 `crates/joyword-rtf`，支持带不可信输入资源预算（`RtfBudget`）与损失报告（`LossReport`）的标准 RTF 1.9 读写器。支持组嵌套作用域栈、控制词与控制符分发、Unicode `\uN?` 解析与 `\uc` 替代字符跳过、可忽略目标 `\*` 过滤，以及段落、运行、表格行与单元格转换。执行 `cargo test -p joyword-rtf` 4 项测试全部通过。Word/WPS 人工交换未做，标未验证，见 [T600 证据](verification/t600-rtf.md)。
 
 ### T601：HTML、Markdown 与文本
+
+2026-11-02：TXT／Markdown／HTML 通过 shell 共享计划接入 CLI 与桌面导出，具备损失预检、显式确认和不覆盖发布；补齐 BOM 非法编码、Markdown 字面量转义和 HTML 单次实体解码。桌面导入及完整支持矩阵仍开放，状态保持 in_progress。见 [指南](guide/text-exchange.md)、[本轮记录](verification/m0-m7-completion-20261102.md)和 [桌面导出](verification/text-exchange-ui-20261102.md)。
 
 - 输入：HTML／Markdown／TXT 明确方言、编码、导入资源与目标损失策略。
 - [ ] 状态：`in_progress`
@@ -745,7 +757,7 @@ T400 于 2026-10-21 改为 `in_progress`。T302 第一切片也是 `in_progress`
 - 错误路径：脚本／外链、错误编码、目标表达不足产生明确诊断。
 - 自动验证：清理、读取顺序、编码、语义子集和转换损失测试。
 - 人工验收：导入网页片段／Markdown，导出文本后核对丢失说明。
-- 完成证据：未执行；完成时记录源码修订、命令、样例和人工结果。
+- 完成证据：DOCX／TXT／Markdown／HTML 的有界双向文本投影通过共享计划和 CLI 接入；BOM 异常、实体／转义、损失确认和不覆盖发布已有回归，新建 DOCX 在 Word 实际显示。桌面三种文本输出、TXT 专用损失提示、三阶段取消及未保存状态保留已在 Windows 原生验证，四格式输出均独立读回；完整支持与桌面导入仍开放。见 [持续收口记录](verification/m0-m7-completion-20261102.md)和 [桌面后续](verification/text-exchange-ui-20261102.md)。
 - 2026-10-28 第一切片（任务由 `planned` 改为 `in_progress`，进度计数改为 13 done／25 in_progress／28 planned／0 blocked）：实现 `crates/joyword-textfmt`，支持带有结构化损失报告（LossReport）的 TXT、Markdown（CommonMark + GFM 表格子集）与受控 HTML5 双向转换。支持编码探测（UTF-8、BOM、UTF-16LE/BE）与 CRLF/LF 换行规范化；过滤剥离 `<script>`、`<iframe>` 与 `javascript:` 恶意外链。执行 `cargo test -p joyword-textfmt` 3 项测试全部通过。人工网页片段与 Markdown 导入比对未做，标未验证，见 [T601 证据](verification/t601-textfmt.md)。
 
 - 2026-10-30 补齐 Unicode case expansion 导致 HTML 标签边界错位／切片 panic 的修复，以及未闭合活动内容和孤立关闭标签回归；三项新增测试通过。转换的完整支持子集与人工交换仍未完成。见 [本轮证据](verification/m7-20261030.md)。

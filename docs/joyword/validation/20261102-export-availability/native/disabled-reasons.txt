@@ -1,0 +1,39 @@
+Window: "synthetic-compat.docx - JoyWord", App: joyword.exe.
+	0 区域 synthetic-compat.docx - JoyWord Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: synthetic-compat.docx - JoyWord
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		47 选项卡 文件
+			48 按钮 返回文档 ID: file-back
+			49 选项卡项目 (selectable) 开始 ID: file-tab-home
+			50 选项卡项目 (selectable) 打开 ID: file-tab-open
+			51 选项卡项目 (selectable) 信息 ID: file-tab-info
+			52 按钮 保存 ID: file-save
+			53 按钮 另存为 ID: file-save-copy
+			54 选项卡项目 (selectable) 打印 ID: file-tab-print
+			55 选项卡项目 (selectable) 导出 ID: file-tab-export
+			56 按钮 关闭 ID: file-close
+			57 选项卡项目 (selectable) 选项 ID: file-tab-options
+			58 按钮 退出 JoyWord ID: file-quit
+		59 选项卡面板 导出
+			63 备注 当前文档处于版式兼容显示。部分样式或对象尚未完整支持，因此暂停 PDF 及其他格式转换。DOCX 副本仍按原包保留规则处理。
+			64 按钮 (disabled) PDF 文档 (*.pdf) ID: file-export-pdf
+			65 备注 版式尚未完整支持，暂不能生成此格式。
+			66 按钮 Word 文档 (*.docx) ID: file-export-docx
+			67 按钮 (disabled) RTF 格式 (*.rtf) ID: file-export-rtf
+			68 备注 文档超出当前格式转换范围，暂不能导出。
+			69 按钮 (disabled) 网页 (*.html) ID: file-export-html
+			70 备注 文档超出当前格式转换范围，暂不能导出。
+			71 按钮 (disabled) Markdown (*.md) ID: file-export-markdown
+			72 备注 文档超出当前格式转换范围，暂不能导出。
+			73 按钮 (disabled) 纯文本 (*.txt) ID: file-export-txt
+			74 备注 文档超出当前格式转换范围，暂不能导出。
+			75 按钮 (disabled) EPUB 电子书 (*.epub) ID: file-export-epub
+			76 备注 文档超出当前格式转换范围，暂不能导出。
+			77 按钮 (disabled) PDF/A-2b 归档文档 (*.pdf) ID: file-export-pdfa
+			78 备注 版式尚未完整支持，暂不能生成此格式。
+
+The focused UI element is 0 区域 synthetic-compat.docx - JoyWord Secondary Actions: Raise.

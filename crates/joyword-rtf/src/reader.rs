@@ -15,12 +15,19 @@ struct FormatState {
     bold: bool,
     italic: bool,
     strike: bool,
+    hidden: bool,
     uc: usize,
     skip_chars: usize,
     is_destination_skip: bool,
 }
 
 pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossReport), RtfError> {
+    if bytes.len() > budget.max_text_bytes {
+        return Err(RtfError::BudgetExceeded("input bytes"));
+    }
+    if budget.max_group_depth == 0 {
+        return Err(RtfError::GroupDepthExceeded);
+    }
     let mut report = LossReport::new();
     let mut tokenizer = RtfTokenizer::new(bytes, budget);
 
@@ -31,7 +38,10 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
     }
     let second = tokenizer.next_token()?;
     match second {
-        Some(RtfToken::ControlWord { ref name, .. }) if name == "rtf" => {}
+        Some(RtfToken::ControlWord {
+            ref name,
+            param: Some(1),
+        }) if name == "rtf" => {}
         _ => return Err(RtfError::InvalidHeader),
     }
 
@@ -43,6 +53,7 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
         bold: false,
         italic: false,
         strike: false,
+        hidden: false,
         uc: 1,
         skip_chars: 0,
         is_destination_skip: false,
@@ -50,18 +61,38 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
 
     let mut current_para: Option<Paragraph> = None;
     let mut current_row_cells: Vec<Cell> = Vec::new();
+    let mut closed = false;
+    let mut pending_high = None;
+    let mut text_bytes = 0usize;
 
     while let Some(token) = tokenizer.next_token()? {
+        if closed {
+            if matches!(&token, RtfToken::Text(text) if text.trim().is_empty()) {
+                continue;
+            }
+            return Err(RtfError::Unsupported("data after root group"));
+        }
+        if blocks.len() + current_row_cells.len() > 100_000 {
+            return Err(RtfError::BudgetExceeded("block count"));
+        }
         match token {
             RtfToken::GroupStart => {
+                if pending_high.is_some() {
+                    return Err(RtfError::Unsupported("split Unicode surrogate pair"));
+                }
                 if state_stack.len() >= budget.max_group_depth {
                     return Err(RtfError::GroupDepthExceeded);
                 }
                 state_stack.push(current_state.clone());
             }
             RtfToken::GroupEnd => {
+                if pending_high.is_some() {
+                    return Err(RtfError::Unsupported("unpaired Unicode surrogate"));
+                }
                 if let Some(prev) = state_stack.pop() {
                     current_state = prev;
+                } else {
+                    closed = true;
                 }
             }
             RtfToken::ControlWord { name, param } => {
@@ -77,13 +108,55 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
                     "b" => current_state.bold = param.unwrap_or(1) != 0,
                     "i" => current_state.italic = param.unwrap_or(1) != 0,
                     "strike" => current_state.strike = param.unwrap_or(1) != 0,
+                    "v" => current_state.hidden = param.unwrap_or(1) != 0,
+                    "deleted" | "revised" | "revauth" | "revdttm" => {
+                        return Err(RtfError::Unsupported(
+                            "review data requires an explicit projection",
+                        ));
+                    }
+                    "fonttbl" | "colortbl" | "stylesheet" | "info" | "header" | "footer"
+                    | "field" | "object" | "pict" => {
+                        current_state.is_destination_skip = true;
+                        if name != "fonttbl" {
+                            report.record(
+                                LossKind::UnsupportedElement,
+                                format!("RTF destination {name} omitted"),
+                            );
+                        }
+                    }
                     "uc" => current_state.uc = param.unwrap_or(1).max(0) as usize,
                     "u" => {
+                        if param.is_none() {
+                            return Err(RtfError::Unsupported(
+                                "Unicode control requires a UTF-16 value",
+                            ));
+                        }
                         if let Some(val) = param {
-                            let code_point = if val < 0 {
-                                (val as u16) as u32
+                            if !(-32768..=65535).contains(&val) {
+                                return Err(RtfError::Unsupported("Unicode value outside UTF-16"));
+                            }
+                            let unit = val as u16;
+                            current_state.skip_chars = current_state.uc;
+                            let code_point = if (0xd800..=0xdbff).contains(&unit) {
+                                if pending_high.replace(unit).is_some() {
+                                    return Err(RtfError::Unsupported(
+                                        "unpaired Unicode surrogate",
+                                    ));
+                                }
+                                continue;
+                            } else if (0xdc00..=0xdfff).contains(&unit) {
+                                let high = pending_high
+                                    .take()
+                                    .ok_or(RtfError::Unsupported("unpaired Unicode surrogate"))?;
+                                0x10000 + ((u32::from(high) - 0xd800) << 10) + u32::from(unit)
+                                    - 0xdc00
                             } else {
-                                val as u32
+                                if pending_high.is_some() {
+                                    return Err(RtfError::Unsupported(
+                                        "unpaired Unicode surrogate",
+                                    ));
+                                }
+                                u32::from(unit)
                             };
                             if let Some(ch) = char::from_u32(code_point) {
                                 let para = current_para
@@ -98,15 +171,21 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
                                 if current_state.strike {
                                     props.strike = Some(true);
                                 }
-                                let _ = para.push_text(&ch.to_string(), None, Arc::new(props));
-                                current_state.skip_chars = current_state.uc;
+                                props.hidden = current_state.hidden.then_some(true);
+                                para.push_text(&ch.to_string(), None, Arc::new(props))
+                                    .map_err(|_| RtfError::Unsupported("invalid Unicode text"))?;
+                                text_bytes += ch.len_utf8();
+                                if text_bytes > budget.max_text_bytes {
+                                    return Err(RtfError::BudgetExceeded("decoded text"));
+                                }
                             }
                         }
                     }
                     "par" => {
-                        if let Some(para) = current_para.take() {
-                            blocks.push(Block::Paragraph(Arc::new(para)));
-                        }
+                        let para = current_para
+                            .take()
+                            .unwrap_or_else(|| Paragraph::new(doc.ids().node()));
+                        blocks.push(Block::Paragraph(Arc::new(para)));
                     }
                     "cell" => {
                         // Cell boundary in table
@@ -165,11 +244,19 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
                             blocks.push(Block::Table(Arc::new(table)));
                         }
                     }
-                    "pict" => {
-                        report.record(
-                            LossKind::ImageOmitted,
-                            "RTF \\pict object omitted from typed document model",
-                        );
+                    "line" | "tab" => {
+                        let text = if name == "line" { "\n" } else { "\t" };
+                        let para =
+                            current_para.get_or_insert_with(|| Paragraph::new(doc.ids().node()));
+                        let props = RunProps {
+                            bold: current_state.bold.then_some(true),
+                            italic: current_state.italic.then_some(true),
+                            strike: current_state.strike.then_some(true),
+                            hidden: current_state.hidden.then_some(true),
+                            ..RunProps::default()
+                        };
+                        para.push_text(text, None, Arc::new(props))
+                            .map_err(|_| RtfError::Unsupported("invalid whitespace"))?;
                     }
                     _ => {}
                 }
@@ -201,11 +288,25 @@ pub fn import_rtf(bytes: &[u8], budget: RtfBudget) -> Result<(Document, LossRepo
                 if current_state.strike {
                     props.strike = Some(true);
                 }
-                let _ = para.push_text(&run_text, None, Arc::new(props));
+                if pending_high.is_some() {
+                    return Err(RtfError::Unsupported(
+                        "text interrupts Unicode surrogate pair",
+                    ));
+                }
+                props.hidden = current_state.hidden.then_some(true);
+                text_bytes += run_text.len();
+                if text_bytes > budget.max_text_bytes {
+                    return Err(RtfError::BudgetExceeded("decoded text"));
+                }
+                para.push_text(&run_text, None, Arc::new(props))
+                    .map_err(|_| RtfError::Unsupported("invalid paragraph text"))?;
             }
         }
     }
 
+    if !closed || !state_stack.is_empty() || pending_high.is_some() {
+        return Err(RtfError::UnexpectedEof);
+    }
     if let Some(para) = current_para.take() {
         blocks.push(Block::Paragraph(Arc::new(para)));
     }

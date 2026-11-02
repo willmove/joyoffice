@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-02",
+  "scope": "Native file workspace and direct export format list",
+  "base": "95f632dee778d53bee67d9391c6c1b402861bca3",
+  "tests": {
+    "command": "cargo xtask check joyword",
+    "exit_code": 0,
+    "passed": 1315,
+    "failed": 0,
+    "ignored": 0,
+    "log": "logs/check.log"
+  },
+  "build": {
+    "command": "cargo xtask build joyword",
+    "exit_code": 0,
+    "log": "logs/build.log"
+  },
+  "source_sha256": {
+    "apps/joyword/src/ui/file.rs": "938cc5afea4c0046d9b48f5696f122acdc6dbc52ed2e29179edcee3c2f19c483",
+    "apps/joyword/src/ui/shell.rs": "fe2f8525177ecc150cc4905225bfd229369c5bb2973adb54699b777dd6f861f0",
+    "apps/joyword/src/main.rs": "10a71e5d49a41de3090b7e5275270e546b7ac97787f13838a6365396c54b2ffe",
+    "apps/joyword/src/chrome_ui.rs": "575b7c0d30aaeb843531c1f4aec7b0308487d551f9d8b9debd6a9450cf4dd1d0",
+    "apps/joyword/src/exchange_ui.rs": "3b853457e645d8970fb28b692ad2f3a9602f3e479a7d5a16d78f2886deb235f8",
+    "apps/joyword/src/input_ui.rs": "8d88a16fab2c688892657f5051ac2e9da0633a50ec7ba941af8b981ccd95fe49",
+    "apps/joyword/src/tests.rs": "f8f75c6facb294c9c0e0be7b2dbd1dfda46cc75d06f287b2deb5d97c8e762012",
+    "apps/joyword/src/ui.rs": "edb7395931b60d3b9cd3439a3412e164923256aadcbcabf01d094b1f75e9b8ed",
+    "crates/joyword-shell/locales/en.lang": "68228440374c90d96262bbc5fa1cc1f17bd918c340c4e95f82ed9f16f6a1f799",
+    "crates/joyword-shell/locales/zh-CN.lang": "98bf30f692198cba0faf7eb1f709b3d7aab034909a4362b3b62238472815fc46"
+  },
+  "binary_sha256": "1f27cb52add585fb7c6609ff079c1627c8c413ce7e50a403057dede865c28a49",
+  "native_observations": [
+    "File click opens blue navigation workspace",
+    "Export tab exposes eight real jobs",
+    "TXT opens loss confirmation directly and Escape cancels",
+    "Escape from file page restores editor focus",
+    "Typing q on file page does not modify hidden document",
+    "Markdown created through direct format button and read back exactly with Chinese/emoji/unsaved FILE_PAGE_1 marker",
+    "Source DOCX bytes unchanged; document remains dirty",
+    "Final build: explicit Tab stops, Tab then Enter returns to editor; final export page screenshot saved"
+  ],
+  "task_status_changes": [],
+  "limits": [
+    "Windows GUI only; macOS/Linux native checks not performed",
+    "No new XML/ODT/LaTeX/PNG exporter",
+    "Does not close complete T205/T600/T601 tasks"
+  ],
+  "native_export_binary_sha256": "c961373699133d227db8d2d9843c298ecc461127c1d57371172d85b6bbc58625",
+  "metadata_checks": [
+    {
+      "command": "python scripts/check_docs.py",
+      "exit_code": 0,
+      "log": "logs/docs.log"
+    },
+    {
+      "command": "python scripts/check_gates.py",
+      "exit_code": 0,
+      "log": "logs/gates.log"
+    },
+    {
+      "command": "python scripts/check_acceptance.py",
+      "exit_code": 0,
+      "log": "logs/acceptance.log"
+    }
+  ]
+}

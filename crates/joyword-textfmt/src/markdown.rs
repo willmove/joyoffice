@@ -195,6 +195,13 @@ fn extract_delimited<'a>(text: &'a str, delim: &str) -> Option<(&'a str, &'a str
 fn parse_inlines_into_para(para: &mut Paragraph, text: &str, report: &mut LossReport) {
     let mut rest = text;
     while !rest.is_empty() {
+        if let Some(after) = rest.strip_prefix('\\')
+            && let Some(c) = after.chars().next().filter(char::is_ascii_punctuation)
+        {
+            let _ = para.push_text(&c.to_string(), None, Arc::default());
+            rest = &after[c.len_utf8()..];
+            continue;
+        }
         if let Some((bold_text, remainder)) = extract_delimited(rest, "**") {
             let props = RunProps {
                 bold: Some(true),
@@ -248,7 +255,7 @@ fn parse_inlines_into_para(para: &mut Paragraph, text: &str, report: &mut LossRe
         let next_special = rest
             .char_indices()
             .skip(1)
-            .find(|&(_, c)| c == '*' || c == '`' || c == '~' || c == '[')
+            .find(|&(_, c)| c == '*' || c == '`' || c == '~' || c == '[' || c == '\\')
             .map(|(idx, _)| idx)
             .unwrap_or(rest.len());
 
@@ -305,7 +312,7 @@ pub fn export_markdown(doc: &Document) -> (String, LossReport) {
                                 cell_text.push_str(&cp.raw_text());
                             }
                         }
-                        out.push_str(cell_text.trim());
+                        out.push_str(&escape_markdown(cell_text.trim()));
                         out.push_str(" |");
                     }
                     out.push('\n');
@@ -323,7 +330,7 @@ pub fn export_markdown(doc: &Document) -> (String, LossReport) {
             Block::Sdt(sdt) => {
                 for b in sdt.blocks.iter() {
                     if let Block::Paragraph(p) = b {
-                        out.push_str(&p.raw_text());
+                        out.push_str(&escape_markdown(&p.raw_text()));
                         out.push_str("\n\n");
                     }
                 }
@@ -355,7 +362,7 @@ fn render_run_markdown(run: &Run, run_text: &str, out: &mut String, _report: &mu
         out.push_str("~~");
     }
 
-    out.push_str(run_text);
+    out.push_str(&escape_markdown(run_text));
 
     if is_strike {
         out.push_str("~~");
@@ -366,4 +373,17 @@ fn render_run_markdown(run: &Run, run_text: &str, out: &mut String, _report: &mu
     if is_bold {
         out.push_str("**");
     }
+}
+
+/// CommonMark §2.4 permits every ASCII punctuation character to be escaped.
+/// Escape literal data before adding the format delimiters owned by us.
+fn escape_markdown(text: &str) -> String {
+    let mut output = String::with_capacity(text.len());
+    for c in text.chars() {
+        if c.is_ascii_punctuation() {
+            output.push('\\');
+        }
+        output.push(c);
+    }
+    output
 }

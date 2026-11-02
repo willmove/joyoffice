@@ -41,6 +41,44 @@ fn package(body: &str) -> Vec<u8> {
 }
 
 #[test]
+fn optional_compatibility_report_detects_preserved_layout_without_exposing_text() {
+    let dir = tempfile::tempdir().unwrap();
+    for (name, props, expected) in [
+        ("plain", "", false),
+        ("preserved", "<w:rPr><w:unhandledLayout/></w:rPr>", true),
+    ] {
+        let path = dir.path().join(format!("{name}.docx"));
+        let source = package(&format!(
+            "<w:p><w:r>{props}<w:t>PRIVATE_BODY</w:t></w:r></w:p>"
+        ));
+        std::fs::write(&path, &source).unwrap();
+        let result = run(
+            "inspect",
+            &path,
+            &["--max-text-bytes", "0", "--compatibility"],
+        );
+        assert_eq!(result.status.code(), Some(3)); // requested zero text budget
+        let report: Value = serde_json::from_slice(&result.stdout).unwrap();
+        assert_eq!(
+            report["compatibility"]["style_approximation_required"],
+            expected
+        );
+        assert_eq!(report["text"], "");
+        assert!(!String::from_utf8_lossy(&result.stdout).contains("PRIVATE_BODY"));
+        let ordinary = run("inspect", &path, &[]);
+        let ordinary: Value = serde_json::from_slice(&ordinary.stdout).unwrap();
+        assert!(ordinary.get("compatibility").is_none());
+        assert_eq!(std::fs::read(&path).unwrap(), source);
+        assert_eq!(
+            run("inspect", &path, &["--compatibility", "--compatibility"])
+                .status
+                .code(),
+            Some(2)
+        );
+    }
+}
+
+#[test]
 fn five_original_cases_are_stable_and_text_agrees() {
     let dir = tempfile::tempdir().unwrap();
     for case in joyword_corpus::cases().into_iter().take(5) {

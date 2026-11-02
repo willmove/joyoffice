@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-02",
+  "branch": "codex/joyword-1-0-completion",
+  "base": "95f632dee778d53bee67d9391c6c1b402861bca3",
+  "scope_complete": false,
+  "task_status_changes": [],
+  "m0_m7_task_counts": {
+    "done": 17,
+    "in_progress": 34,
+    "planned": 4
+  },
+  "tests": [
+    {
+      "command": "pwsh.exe -NoProfile -File scripts/joysheet/dev.ps1 xtask check joyword",
+      "exit_code": 0,
+      "passed": 1314,
+      "failed": 0,
+      "ignored": 0,
+      "includes": [
+        "fmt",
+        "strict Clippy",
+        "product tests"
+      ],
+      "log": "logs/word-final.log"
+    },
+    {
+      "command": "pwsh.exe -NoProfile -File scripts/joysheet/dev.ps1 xtask build joyword",
+      "exit_code": 0,
+      "log": "logs/build-status.log"
+    },
+    {
+      "command": "python -X utf8 -m unittest discover -s scripts/tests",
+      "exit_code": 0,
+      "passed": 146,
+      "log": "logs/python-tests.log"
+    }
+  ],
+  "native_verification": "native-readback.json",
+  "source_sha256": {
+    "Cargo.lock": "db3bb1d90e5812e1ab33b9a009a22bcbd27d0818ee7f024445de8b420f6dc87b",
+    "apps/joyword-cli/src/exchange.rs": "b1e95b1f59388dff61fff5a2b775e3715b40c36931ffde86c0188cc2c6741424",
+    "apps/joyword-cli/src/main.rs": "29cfd2243bf09e84a6b3cbd5155e3f063d20c003015e1b93d816c9ac51720c38",
+    "apps/joyword-cli/tests/exchange.rs": "92bc162e377de9241bed8b9d1ac5e6281c9e440dc127295612019eb7abcccdea",
+    "apps/joyword/src/exchange_ui.rs": "d4160e9aafcbe527490cb7e274fac441e7308ce5b9372953b63feb39e0c91666",
+    "apps/joyword/src/input_ui.rs": "e7bf6df855dbf7c6f47e09020010b09ae05daf0b146898442c09ac19b5c595a1",
+    "apps/joyword/src/main.rs": "39138043b7402e38ef0077fb39104f9386f4233a3f9444afa80c5714cb0045b8",
+    "apps/joyword/src/tests.rs": "1481106787308df20d712c46e1134909fd359d1521c832c21f901ec7732b42c6",
+    "apps/joyword/src/ui/shell.rs": "0919356274beb7320d240726b8164128370bbd2de42170751d54086a448a6def",
+    "crates/joyword-docx/src/lib.rs": "0c10fb1e571a929d426d3a6d399935077dd6792eb5642cc70ad8181519caac08",
+    "crates/joyword-docx/src/text_document.rs": "597b6822ce324394827588bc8137b8b1217465f8ae3759b79c6aa0348fb9e579",
+    "crates/joyword-docx/tests/text_document.rs": "243261c4afcd7a9110fd28956c515f2af885b643d1e0c6b15b381ce02bdb972a",
+    "crates/joyword-rtf/src/budget.rs": "4effe63d466972d84715dff2c21eb61312db2a61049e12d33aeeb5ec7ad0b5b8",
+    "crates/joyword-rtf/src/reader.rs": "f66e6ddce3a95c361284103f5749ce89801463df09ff2b8e369d997efcb44329",
+    "crates/joyword-rtf/src/token.rs": "49eb985df3b384bd2fb8b1f57442b9877b54ae43d5050a5466f3ab9caff49c33",
+    "crates/joyword-rtf/tests/unicode_and_boundaries.rs": "5967a39c5a579eb0fe518d1dd77c84563238914069212725d16a12a15ceffc1b",
+    "crates/joyword-shell/Cargo.toml": "a799ec3278f8647d214e5f6580bcd1dff0217ba47a0291e263252e9eaeb0817c",
+    "crates/joyword-shell/locales/en.lang": "c863ff8936f5d43fc90936d90e460b68f8c9decdc609fac31b7b81d0ad1f8922",
+    "crates/joyword-shell/locales/zh-CN.lang": "150348f80f4c41cc477d0d0a4b700393c4296b639fdb7359bfee5906c0e8e1dd",
+    "crates/joyword-shell/src/command.rs": "b6295e6b453efcfcf71c7b3339528e6dd5d1004665f6619b27b38d85627e2481",
+    "crates/joyword-shell/src/exchange.rs": "ca73353695b6e374dbb7848e19b609e5c7222cc1e6a87805736349d9b6a9a6bd",
+    "crates/joyword-shell/src/exchange_output.rs": "7dbd9122f3e5c8cdeb7f346a989ec9c201fd27bdad8035c4177c9c53189f7cc3",
+    "crates/joyword-shell/src/lib.rs": "87638c4d78577208364ec23a042cfab1a131e32c674f783ac0e9a3580d5fa160",
+    "crates/joyword-shell/tests/c09_open_session.rs": "bcf45d9304b35a3aa62dc1d510253e89c120cbd9acb2012d3ab73357b3437534",
+    "crates/joyword-shell/tests/exchange.rs": "65d8e673ed0a0fa01b9aaf5148660c9c87eea2888209b36429210d950e6c00bb",
+    "crates/joyword-shell/tests/exchange_output.rs": "0a74f5aba6eb64727ced776e8d0b6cbe905edf8385c7da7c836964d523a0330c",
+    "crates/joyword-textfmt/src/encoding.rs": "8fa571bb62b28f1b3cd5d60b54881bc63feae81ab485959124317264972b18d2",
+    "crates/joyword-textfmt/src/html.rs": "355078beed53a0fd15882651e948597904dbd62cfecd785639ba09ab41a60271",
+    "crates/joyword-textfmt/src/markdown.rs": "7547764e462d07704f68ac67daf781bd2cab7ed2276c3c2f0ea667db11dcc720",
+    "crates/joyword-textfmt/src/plain_text.rs": "b5ffaa0782254ad2e31f707fd7bdaf35b6424502a7fbb4c22677c1ccb617ca9a",
+    "crates/joyword-textfmt/tests/encoding_and_literals.rs": "99134cfd4e659935d4025632b82ccc0532fc216c6c922a3e75556f534d1e7b02",
+    "scripts/check_gates.py": "0f86937b3349fff639f7834af593155bb84aea0ac08901f613755a062beb712e"
+  },
+  "binary_sha256": {
+    "target/debug/joyword.exe": "7527e79b4bf8180a3c21b828beaab902dd100e5729864e9a4ae4d7a5fdbb1587",
+    "target/debug/joyword-cli.exe": "a44bd3f729c07c1324bec63fddd8c4b0c349156fbf78b0b031f3a3769f68e1d0"
+  },
+  "limits": [
+    "Only the declared paragraph conversion subset; desktop import, Strict and complex review/note/table exchange remain open.",
+    "Native screenshots are automated GUI observations, not full physical input, accessibility or performance acceptance.",
+    "User confirmed no macOS/Linux desktop environment and no release signing identity; these checks remain unverified.",
+    "Earlier Deck/Sheet regression is historical in 20261102-completion; this continuation changes Word-specific code only."
+  ],
+  "metadata_checks": [
+    {
+      "command": "python -X utf8 scripts/check_docs.py",
+      "exit_code": 0,
+      "log": "logs/docs-final.log"
+    },
+    {
+      "command": "python -X utf8 scripts/check_gates.py",
+      "exit_code": 0,
+      "log": "logs/gates-final.log"
+    },
+    {
+      "command": "python -X utf8 scripts/check_acceptance.py",
+      "exit_code": 0,
+      "log": "logs/acceptance-final.log"
+    }
+  ]
+}

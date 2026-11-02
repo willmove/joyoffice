@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use joyword_model::{Block, Document, Paragraph, SeqTree};
 
-use crate::encoding::{DetectedEncoding, decode_and_normalize};
+use crate::encoding::decode_and_normalize;
 use crate::loss::{LossKind, LossReport};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,7 +30,7 @@ pub fn import_plain_text(bytes: &[u8]) -> (Document, LossReport) {
     let mut report = LossReport::new();
     let decoded = decode_and_normalize(bytes);
 
-    if decoded.encoding == DetectedEncoding::FallbackLossy {
+    if decoded.unmapped_chars != 0 {
         report.record(
             LossKind::FormattingDropped,
             format!(

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "source_sha256": "7e31b837e5f75ceba65517173035f8dfa61d452f4bcd4a183e9bc9b9335ae843",
+  "source_unchanged": true,
+  "gui_exports": [
+    {
+      "gui_format": "markdown",
+      "source_sha256": "1de5fc12724f000b1e2044a15e838fa298325a0687006381b9ab2bdb12ba4153",
+      "independent_cli_readback": true,
+      "exact_text_including_unsaved_marker": true,
+      "report": "samples/readback-md.json"
+    },
+    {
+      "gui_format": "html",
+      "source_sha256": "17590901b95bc6b0280a630a748487c4fd052fbdd470db69df84973d40becfc5",
+      "independent_cli_readback": true,
+      "exact_text_including_unsaved_marker": true,
+      "report": "samples/readback-html.json"
+    },
+    {
+      "gui_format": "rtf",
+      "source_sha256": "9bc99eb681734d1d5725d5ee37207ce3dbcd23c246be95eebc97ca5e70cb3650",
+      "independent_cli_readback": true,
+      "exact_text_including_unsaved_marker": true,
+      "report": "samples/readback-rtf.json"
+    },
+    {
+      "gui_format": "txt",
+      "source_sha256": "82fbb55da1ba61ca6bf1c68e27e3b121f2b91f50e2c3eb33958274941095b188",
+      "independent_cli_readback": true,
+      "exact_text_including_unsaved_marker": true,
+      "report": "samples/readback-txt.json"
+    }
+  ],
+  "txt_gui_verified": true,
+  "automation_recovery": "Initial @oai/sky capture/rebind failed with foreground window did not report a process id. Configured cua_repl interface successfully reselected same window; subsequent TXT actions and captures passed.",
+  "path_cancelled_without_output": true,
+  "source_dirty_and_text_preserved_after_cancel": true,
+  "cancel_notice_visibly_takes_priority_over_missing_glyph_warning": true
+}

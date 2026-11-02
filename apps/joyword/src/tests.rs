@@ -6,6 +6,73 @@
 //! Rehearsals drive `Office` / `TextInput` directly. Each one is an automated
 //! rehearsal and does not replace 人工验收.
 
+#[test]
+fn desktop_text_export_rejects_changed_sessions() {
+    use crate::exchange_ui::source_is_current;
+    assert!(source_is_current(8, 10, Some((8, 10))));
+    assert!(!source_is_current(8, 10, None));
+    assert!(!source_is_current(8, 10, Some((8, 11))));
+    // New documents may start at the same numeric model version.
+    assert!(!source_is_current(8, 10, Some((9, 10))));
+}
+
+#[test]
+fn file_workspace_exports_route_to_real_jobs_and_have_unique_names() {
+    use crate::ui::file::{EXPORTS, ExportAction};
+    use joyword_shell::{command::*, exchange::Format};
+    let registry = Registry::builtin();
+    let mut ids = std::collections::BTreeSet::new();
+    let mut targets = Vec::new();
+    for &(id, key, action) in EXPORTS {
+        assert!(ids.insert(id));
+        for locale in joyword_shell::l10n::Locale::ALL {
+            assert_ne!(joyword_shell::l10n::Catalog::shipped(locale).text(key), key);
+        }
+        match action {
+            ExportAction::Command(command) => assert!(
+                registry
+                    .commands()
+                    .iter()
+                    .any(|c| c.id == command && !c.modifies_document)
+            ),
+            ExportAction::Text(format) => targets.push(format),
+        }
+    }
+    assert_eq!(
+        targets,
+        [Format::Rtf, Format::Html, Format::Markdown, Format::Txt]
+    );
+    assert!(
+        EXPORTS
+            .iter()
+            .any(|e| e.2 == ExportAction::Command(FILE_SAVE_COPY))
+    );
+    assert!(
+        EXPORTS
+            .iter()
+            .any(|e| e.2 == ExportAction::Command(FILE_EXPORT_PDF))
+    );
+}
+
+#[test]
+fn in_window_file_popup_exposes_registered_text_export_on_every_platform() {
+    use joyword_shell::command::{FILE_EXPORT_TEXT, Platform, Registry};
+    let registry = Registry::builtin();
+    for platform in [Platform::Windows, Platform::MacOs, Platform::Linux] {
+        let commands = crate::ui::shell::file_popup_commands(&registry, platform);
+        assert_eq!(
+            commands
+                .iter()
+                .filter(|id| **id == FILE_EXPORT_TEXT)
+                .count(),
+            1
+        );
+    }
+    assert!(
+        crate::ui::shell::file_popup_commands(&Registry::new(vec![]), Platform::Windows).is_empty()
+    );
+}
+
 use super::input_ui::edit_request_from_args;
 use super::{
     ArgValue, CommandId, FIND_NEXT, FIND_PREVIOUS, FIND_REPLACE, FIND_REPLACE_ALL, FindBarFlags,

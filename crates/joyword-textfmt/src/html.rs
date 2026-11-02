@@ -22,7 +22,9 @@ pub fn import_html(html: &str) -> (Document, LossReport) {
     while !rest.is_empty() {
         if let Some(tag_start) = rest.find('<') {
             let plain_prefix = &rest[..tag_start];
-            if !plain_prefix.is_empty() {
+            if !plain_prefix.is_empty()
+                && (current_para.is_some() || !plain_prefix.trim().is_empty())
+            {
                 let unescaped = unescape_html(plain_prefix);
                 let para = current_para.get_or_insert_with(|| Paragraph::new(doc.ids().node()));
                 let mut props = RunProps::default();
@@ -53,6 +55,13 @@ pub fn import_html(html: &str) -> (Document, LossReport) {
 
                 // Security check: strip dangerous tags
                 match clean_tag.as_str() {
+                    "head" if !is_closing => {
+                        // Metadata such as <title> is not document body text.
+                        rest = find_ascii_case(rest, "</head>")
+                            .map(|end| &rest[end + 7..])
+                            .unwrap_or("");
+                        continue;
+                    }
                     "script" | "style" | "iframe" | "object" | "embed" | "applet" => {
                         report.record(
                             LossKind::ActiveContentStripped,
@@ -122,6 +131,9 @@ pub fn import_html(html: &str) -> (Document, LossReport) {
                 break;
             }
         } else {
+            if current_para.is_none() && rest.trim().is_empty() {
+                break;
+            }
             let unescaped = unescape_html(rest);
             let para = current_para.get_or_insert_with(|| Paragraph::new(doc.ids().node()));
             let _ = para.push_text(&unescaped, None, Arc::default());
@@ -342,12 +354,43 @@ pub fn escape_html(input: &str) -> String {
 }
 
 pub fn unescape_html(input: &str) -> String {
-    input
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&quot;", "\"")
-        .replace("&apos;", "'")
-        .replace("&#39;", "'")
-        .replace("&nbsp;", " ")
+    let mut output = String::with_capacity(input.len());
+    let mut rest = input;
+    while let Some(start) = rest.find('&') {
+        output.push_str(&rest[..start]);
+        rest = &rest[start..];
+        // Bounded lookahead; malformed ampersands cannot cause quadratic scans.
+        let entity_end = rest
+            .char_indices()
+            .take(34)
+            .find_map(|(i, c)| (c == ';').then_some(i));
+        let decoded = entity_end.and_then(|end| {
+            let name = &rest[1..end];
+            match name {
+                "amp" => Some('&'),
+                "lt" => Some('<'),
+                "gt" => Some('>'),
+                "quot" => Some('"'),
+                "apos" | "#39" => Some('\''),
+                "nbsp" => Some('\u{a0}'),
+                _ => {
+                    let number = name
+                        .strip_prefix("#x")
+                        .or_else(|| name.strip_prefix("#X"))
+                        .and_then(|n| u32::from_str_radix(n, 16).ok())
+                        .or_else(|| name.strip_prefix('#').and_then(|n| n.parse().ok()));
+                    number.and_then(char::from_u32).filter(|c| !c.is_control())
+                }
+            }
+        });
+        if let (Some(end), Some(c)) = (entity_end, decoded) {
+            output.push(c);
+            rest = &rest[end + 1..];
+        } else {
+            output.push('&');
+            rest = &rest[1..];
+        }
+    }
+    output.push_str(rest);
+    output
 }

@@ -7,6 +7,7 @@ extern crate gpui_kit as gpui;
 mod chrome_ui;
 mod document_canvas;
 mod epub_ui;
+mod exchange_ui;
 mod export;
 mod field_edit;
 mod input_ui;
@@ -151,7 +152,8 @@ actions!(
         ReviewSimple,
         SetReviewAuthor,
         MailMerge,
-        ExportEpub
+        ExportEpub,
+        ExportText
     ]
 );
 
@@ -259,6 +261,7 @@ fn action_for(id: CommandId) -> Option<Box<dyn Action>> {
         FILE_MAIL_MERGE => Box::new(MailMerge),
         FILE_EXPORT_PDFA => Box::new(ExportPdfa),
         FILE_EXPORT_EPUB => Box::new(ExportEpub),
+        FILE_EXPORT_TEXT => Box::new(ExportText),
         FILE_PRINT => Box::new(PrintFile),
         EDIT_BOLD => Box::new(Bold),
         EDIT_ITALIC => Box::new(Italic),
@@ -532,6 +535,9 @@ struct JoyWord {
     recovery_warning: Option<&'static str>,
     merge_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
     epub_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
+    exchange_cancel: Option<Arc<std::sync::atomic::AtomicBool>>,
+    file_page: Option<ui::file::FilePage>,
+    file_focus: FocusHandle,
     zoom_percent: u16,
     locale: Locale,
     registry: Registry,
@@ -689,8 +695,9 @@ impl CommandHost for ViewHost<'_, '_> {
         }
         match id {
             FILE_MAIL_MERGE => Availability::Enabled,
-            FILE_EXPORT_EPUB => {
+            FILE_EXPORT_EPUB | FILE_EXPORT_TEXT => {
                 if self.view.epub_cancel.is_some()
+                    || self.view.exchange_cancel.is_some()
                     || self
                         .view
                         .editor
@@ -718,6 +725,9 @@ impl CommandHost for ViewHost<'_, '_> {
             FILE_MAIL_MERGE => view.begin_mail_merge(self.window, self.cx),
             FILE_EXPORT_PDFA => view.begin_pdfa(self.window, self.cx),
             FILE_EXPORT_EPUB => view.begin_epub(self.window, self.cx),
+            FILE_EXPORT_TEXT => {
+                view.show_file_page(ui::file::FilePage::Export, self.window, self.cx)
+            }
             ZOOM_IN => view.set_zoom_percent((view.zoom_percent + 10).min(ZOOM_MAX)),
             ZOOM_OUT => view.set_zoom_percent((view.zoom_percent - 10).max(ZOOM_MIN)),
             ZOOM_RESET => view.set_zoom_percent(100),
@@ -828,6 +838,9 @@ impl Drop for JoyWord {
             cancel.store(true, std::sync::atomic::Ordering::Release);
         }
         if let Some(cancel) = &self.epub_cancel {
+            cancel.store(true, std::sync::atomic::Ordering::Release);
+        }
+        if let Some(cancel) = &self.exchange_cancel {
             cancel.store(true, std::sync::atomic::Ordering::Release);
         }
         self.canvas.cancel();
@@ -1451,6 +1464,23 @@ impl JoyWord {
     /// Single entry for menus, shortcuts and on-screen controls. Disabled and
     /// failed commands surface their reason instead of doing nothing silently.
     fn run(&mut self, id: CommandId, window: &mut Window, cx: &mut Context<Self>) {
+        if self.file_page.is_some()
+            && matches!(
+                id,
+                FILE_OPEN
+                    | FILE_SAVE
+                    | FILE_SAVE_COPY
+                    | FILE_EXPORT_PDF
+                    | FILE_EXPORT_PDFA
+                    | FILE_EXPORT_EPUB
+                    | FILE_PRINT
+                    | FILE_CLOSE
+                    | QUIT
+                    | FILE_MAIL_MERGE
+            )
+        {
+            self.dismiss_file_page(window, cx);
+        }
         // The registry asks for missing arguments before checking availability.
         // A text preview must refuse lossy commands before a path picker opens.
         if self.reject_preview_command(id, cx) {
@@ -1548,17 +1578,17 @@ impl Render for JoyWord {
         }
 
         div()
-            .key_context(
-                if self
-                    .editor
-                    .as_ref()
-                    .is_some_and(|editor| editor.is_composing())
-                {
-                    "JoyWordInput composing"
-                } else {
-                    "JoyWordInput"
-                },
-            )
+            .key_context(if self.file_page.is_some() {
+                "JoyWordFile"
+            } else if self
+                .editor
+                .as_ref()
+                .is_some_and(|editor| editor.is_composing())
+            {
+                "JoyWordInput composing"
+            } else {
+                "JoyWordInput"
+            })
             .on_key_down(cx.listener(|this, event: &gpui::KeyDownEvent, window, cx| {
                 this.escape_panel(event, window, cx)
             }))
@@ -1705,6 +1735,9 @@ impl Render for JoyWord {
             )
             .on_action(cx.listener(|this, _: &ExportEpub, window, cx| {
                 this.run(FILE_EXPORT_EPUB, window, cx)
+            }))
+            .on_action(cx.listener(|this, _: &ExportText, window, cx| {
+                this.run(FILE_EXPORT_TEXT, window, cx)
             }))
             .on_action(
                 cx.listener(|this, _: &MailMerge, window, cx| {
@@ -1874,57 +1907,62 @@ impl Render for JoyWord {
             .flex_col()
             .bg(rgb(ui::theme::CANVAS))
             .text_color(rgb(ui::theme::TEXT))
-            .child(self.title_bar(cx))
-            .children(self.stage_notice.then(|| self.stage_notification(cx)))
-            .child(self.ribbon(window, cx))
-            .children(
-                self.editor
-                    .as_ref()
-                    .is_some_and(|editor| editor.view().index().is_read_only_preview())
-                    .then(|| {
+            .when_some(self.file_page, |root, page| {
+                root.child(self.file_workspace(page, cx))
+            })
+            .when(self.file_page.is_none(), |root| {
+                root.child(self.title_bar(cx))
+                    .children(self.stage_notice.then(|| self.stage_notification(cx)))
+                    .child(self.ribbon(window, cx))
+                    .children(
+                        self.editor
+                            .as_ref()
+                            .is_some_and(|editor| editor.view().index().is_read_only_preview())
+                            .then(|| {
+                                div()
+                                    .id("read-only-preview-notice")
+                                    .flex_shrink_0()
+                                    .px_4()
+                                    .py_2()
+                                    .bg(rgb(ui::theme::NOTICE))
+                                    .text_sm()
+                                    .child(self.label("input.preview_notice"))
+                            }),
+                    )
+                    .children(
+                        self.editor
+                            .as_ref()
+                            .is_some_and(|e| {
+                                !e.view().index().is_read_only_preview()
+                                    && joyword_layout::compatibility::has_style_approximations(
+                                        e.view().snapshot(),
+                                    )
+                            })
+                            .then(|| {
+                                div()
+                                    .px_4()
+                                    .py_2()
+                                    .bg(rgb(ui::theme::NOTICE))
+                                    .text_sm()
+                                    .child(self.label("input.format_compatibility"))
+                            }),
+                    )
+                    .child(self.ruler(cx))
+                    .children(self.recovery_notice_panel(cx))
+                    .children(self.validation_io_panel(cx))
+                    .child(
                         div()
-                            .id("read-only-preview-notice")
-                            .flex_shrink_0()
-                            .px_4()
-                            .py_2()
-                            .bg(rgb(ui::theme::NOTICE))
-                            .text_sm()
-                            .child(self.label("input.preview_notice"))
-                    }),
-            )
-            .children(
-                self.editor
-                    .as_ref()
-                    .is_some_and(|e| {
-                        !e.view().index().is_read_only_preview()
-                            && joyword_layout::compatibility::has_style_approximations(
-                                e.view().snapshot(),
-                            )
-                    })
-                    .then(|| {
-                        div()
-                            .px_4()
-                            .py_2()
-                            .bg(rgb(ui::theme::NOTICE))
-                            .text_sm()
-                            .child(self.label("input.format_compatibility"))
-                    }),
-            )
-            .child(self.ruler(cx))
-            .children(self.recovery_notice_panel(cx))
-            .children(self.validation_io_panel(cx))
-            .child(
-                div()
-                    .flex()
-                    .flex_1()
-                    .min_h_0()
-                    .children(self.workspace_side_panel(cx))
-                    .child(self.input_viewport(cx)),
-            )
-            .children(self.path_sheet_panel(cx))
-            .child(self.status_bar(cx))
-            .children(self.popup_overlay(cx))
-            .children(self.format_panel(window, cx))
+                            .flex()
+                            .flex_1()
+                            .min_h_0()
+                            .children(self.workspace_side_panel(cx))
+                            .child(self.input_viewport(cx)),
+                    )
+                    .children(self.path_sheet_panel(cx))
+                    .child(self.status_bar(cx))
+                    .children(self.popup_overlay(cx))
+                    .children(self.format_panel(window, cx))
+            })
     }
 }
 
@@ -2285,6 +2323,9 @@ fn main() {
                             copy_note: None,
                             merge_cancel: None,
                             epub_cancel: None,
+                            exchange_cancel: None,
+                            file_page: None,
+                            file_focus: cx.focus_handle(),
                             font: None,
                             profile: None,
                             canvas: CanvasPipeline::default(),

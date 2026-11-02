@@ -489,6 +489,7 @@ pub const FILE_SAVE_COPY: CommandId = CommandId("file.save_copy");
 pub const FILE_EXPORT_PDF: CommandId = CommandId("file.export_pdf");
 pub const FILE_EXPORT_PDFA: CommandId = CommandId("file.export_pdfa");
 pub const FILE_EXPORT_EPUB: CommandId = CommandId("file.export_epub");
+pub const FILE_EXPORT_TEXT: CommandId = CommandId("file.export_text");
 pub const FILE_MAIL_MERGE: CommandId = CommandId("file.mail_merge");
 pub const FILE_PRINT: CommandId = CommandId("file.print");
 pub const ZOOM_IN: CommandId = CommandId("view.zoom_in");
@@ -692,6 +693,17 @@ impl Registry {
             CommandSpec {
                 id: FILE_EXPORT_EPUB,
                 label: "command.file.export_epub",
+                menu: Some(MenuPlacement {
+                    menu: MenuKind::File,
+                    group: 1,
+                }),
+                shortcut: Shortcut::NONE,
+                modifies_document: false,
+                parameters: &[],
+            },
+            CommandSpec {
+                id: FILE_EXPORT_TEXT,
+                label: "command.file.export_text",
                 menu: Some(MenuPlacement {
                     menu: MenuKind::File,
                     group: 1,
@@ -1839,6 +1851,7 @@ mod tests {
                 MenuEntry::Command(FILE_EXPORT_PDF),
                 MenuEntry::Command(FILE_EXPORT_PDFA),
                 MenuEntry::Command(FILE_EXPORT_EPUB),
+                MenuEntry::Command(FILE_EXPORT_TEXT),
                 MenuEntry::Command(FILE_MAIL_MERGE),
                 MenuEntry::Command(FILE_PRINT),
                 MenuEntry::Separator,
@@ -1871,6 +1884,7 @@ mod tests {
                     MenuEntry::Command(FILE_EXPORT_PDF),
                     MenuEntry::Command(FILE_EXPORT_PDFA),
                     MenuEntry::Command(FILE_EXPORT_EPUB),
+                    MenuEntry::Command(FILE_EXPORT_TEXT),
                     MenuEntry::Command(FILE_MAIL_MERGE),
                     MenuEntry::Command(FILE_PRINT),
                     MenuEntry::Separator,

@@ -3914,6 +3914,8 @@ dependencies = [
  "joyword-engine",
  "joyword-epub",
  "joyword-model",
+ "joyword-rtf",
+ "joyword-textfmt",
  "rustix",
  "tempfile",
  "unicode-segmentation",

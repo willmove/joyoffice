@@ -1,0 +1,53 @@
+Window: "ui-keyboard.docx - JoyWord", App: joyword.exe.
+	0 区域 ui-keyboard.docx - JoyWord Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: ui-keyboard.docx - JoyWord
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		63 按钮 文件 ID: file-menu
+		64 按钮 打开… ID: quick-open
+		65 按钮 保存原件 ID: quick-save
+		66 按钮 (disabled) 撤销 ID: quick-undo
+		67 按钮 (disabled) 重做 ID: quick-redo
+		68 选项卡
+			69 选项卡项目 (selectable) 开始 ID: ribbon.tab.start
+			70 选项卡项目 (selectable) 插入 ID: ribbon.tab.insert
+			71 选项卡项目 (selectable) 布局 ID: ribbon.tab.layout
+			72 选项卡项目 (selectable) 审阅 ID: ribbon.tab.review
+			73 选项卡项目 (selectable) 视图 ID: ribbon.tab.view
+		74 工具栏
+			75 按钮 粘贴 ID: start.paste
+			76 按钮 剪切 ID: start.cut
+			77 按钮 复制 ID: start.copy
+			78 按钮 格式刷 ID: start.format_copy
+			79 按钮 字体 ID: font-family
+			80 按钮 12 ID: font-size
+			81 按钮 A ID: font-color
+			82 按钮 加粗 ID: start.bold
+			83 按钮 斜体 ID: start.italic
+			84 按钮 下划线 ID: start.underline
+			85 按钮 字体 ID: start.font
+			86 按钮 项目符号 ID: start.list_bullet
+			87 按钮 级别 1 ID: start.list_level_1
+			88 按钮 级别 2 ID: start.list_level_2
+			89 按钮 取消列表 ID: start.list_remove
+			90 按钮 左对齐 ID: start.align_left
+			91 按钮 居中 ID: start.align
+			92 按钮 右对齐 ID: start.align_right
+			93 按钮 两端对齐 ID: start.justify
+			94 按钮 段落 ID: start.paragraph
+			95 按钮 样式 ID: open-styles
+			96 按钮 查找 ID: start.find_next
+			97 按钮 替换 ID: start.replace
+		98 编辑 (settable, string) 文档文本 Value: 中文交换 😀 斜体 加粗 Literal * and <xml> & value ID: document-text
+		99 按钮 缩小 ID: status-zoom-out
+		100 滑块 (settable, float) 缩放 Value: 80 ID: zoom-slider
+		101 按钮 放大 ID: status-zoom-in
+		102 按钮 实际大小 ID: status-zoom-value
+
+Document text: ```
+中文交换 😀 斜体 加粗
+Literal * and <xml> & value
+```

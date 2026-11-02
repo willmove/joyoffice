@@ -1,0 +1,5 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running `target\debug\joyoffice-xtask.exe build joyword`
++ cargo build -p joyword -p joyword-cli --locked
+   Compiling joyword v0.1.1 (D:\Coding\EditorProjects\joyoffice\apps\joyword)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.46s

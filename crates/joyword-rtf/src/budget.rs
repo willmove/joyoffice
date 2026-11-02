@@ -23,6 +23,7 @@ pub enum RtfError {
     InvalidHeader,
     GroupDepthExceeded,
     MalformedHexByte,
+    Unsupported(&'static str),
     BudgetExceeded(&'static str),
 }
 
@@ -33,6 +34,7 @@ impl std::fmt::Display for RtfError {
             Self::InvalidHeader => write!(f, "missing or invalid {{{{rtf header"),
             Self::GroupDepthExceeded => write!(f, "RTF group nesting depth exceeded budget"),
             Self::MalformedHexByte => write!(f, "malformed hex escape \\'xx"),
+            Self::Unsupported(reason) => write!(f, "unsupported or malformed RTF: {reason}"),
             Self::BudgetExceeded(msg) => write!(f, "RTF budget exceeded: {msg}"),
         }
     }

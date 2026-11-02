@@ -768,7 +768,9 @@ impl JoyWord {
         {
             return;
         }
-        if self.popup.is_some() {
+        if self.file_page.is_some() {
+            self.dismiss_file_page(window, cx);
+        } else if self.popup.is_some() {
             self.popup = None;
             window.focus(&self.focus_handle, cx);
             cx.notify();

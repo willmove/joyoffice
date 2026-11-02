@@ -106,6 +106,9 @@ LAYERS = {
     "joyword-textfmt": {"joyword-model"},
     "joyword-shell": {
         "joyoffice-opc",
+        # T600/T601 pure conversion planners; no IO, UI or network in formats.
+        "joyword-rtf",
+        "joyword-textfmt",
         "joyword-agent",
         "joyword-docx",
         "joyword-epub",
@@ -168,6 +171,10 @@ DEV_LAYERS = {
 }
 
 FS_ALLOW = {
+    # T600/T601 shared, bounded new-file publisher for desktop and CLI.
+    "crates/joyword-shell/src/exchange_output.rs",
+    # T600/T601: explicit input, same-directory verified temporary, no-clobber publication.
+    "apps/joyword-cli/src/exchange.rs",
     "crates/joyword-shell/src/mail_merge.rs",
     "crates/joyword-shell/src/epub.rs",
     "apps/joyword-cli/src/main.rs",

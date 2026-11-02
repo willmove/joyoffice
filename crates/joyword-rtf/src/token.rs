@@ -78,6 +78,11 @@ impl<'a> RtfTokenizer<'a> {
                 let byte_val =
                     u8::from_str_radix(hex_str, 16).map_err(|_| RtfError::MalformedHexByte)?;
                 self.pos += 2;
+                if !byte_val.is_ascii() {
+                    return Err(RtfError::Unsupported(
+                        "legacy code-page hex bytes require a decoder",
+                    ));
+                }
                 // Return as text char (latin1/ascii range or buffered)
                 return Ok(Some(RtfToken::Text((byte_val as char).to_string())));
             }
@@ -85,7 +90,9 @@ impl<'a> RtfTokenizer<'a> {
                 b'{' => '{',
                 b'}' => '}',
                 b'\\' => '\\',
-                b'~' => ' ',
+                b'~' => '\u{a0}',
+                b'-' => '\u{ad}',
+                b'_' => '\u{2011}',
                 _ => b as char,
             };
             return Ok(Some(RtfToken::Text(ch.to_string())));
@@ -118,7 +125,11 @@ impl<'a> RtfTokenizer<'a> {
             }
             if has_digit && let Ok(num_str) = std::str::from_utf8(&self.input[num_start..self.pos])
             {
-                param = num_str.parse::<i32>().ok();
+                param = Some(
+                    num_str
+                        .parse::<i32>()
+                        .map_err(|_| RtfError::Unsupported("control parameter overflow"))?,
+                );
             }
         }
 
@@ -140,7 +151,14 @@ impl<'a> RtfTokenizer<'a> {
             self.pos += 1;
         }
         let slice = &self.input[start..self.pos];
-        let text = String::from_utf8_lossy(slice).into_owned();
+        if !slice.is_ascii() {
+            return Err(RtfError::Unsupported(
+                "raw code-page bytes require a decoder; use Unicode escapes",
+            ));
+        }
+        let text = std::str::from_utf8(slice)
+            .map_err(|_| RtfError::Unsupported("invalid text bytes"))?
+            .to_owned();
         Ok(Some(RtfToken::Text(text)))
     }
 }

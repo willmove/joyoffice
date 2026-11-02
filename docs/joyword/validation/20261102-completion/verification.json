@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-02",
+  "branch": "codex/joyword-1-0-completion",
+  "base": "95f632dee778d53bee67d9391c6c1b402861bca3",
+  "scope_complete": false,
+  "task_status_changes": [],
+  "tests": [
+    {
+      "command": "cargo xtask check joyword",
+      "exit_code": 0,
+      "passed": 1309,
+      "failed": 0,
+      "ignored": 0,
+      "log": "logs/word-final.log"
+    },
+    {
+      "command": "cargo xtask test joydeck",
+      "exit_code": 0,
+      "passed": 194,
+      "failed": 0,
+      "ignored": 0,
+      "log": "logs/deck-test.log"
+    },
+    {
+      "command": "cargo xtask test joysheet",
+      "exit_code": 0,
+      "passed": 1396,
+      "failed": 0,
+      "ignored": 1,
+      "log": "logs/sheet-test.log"
+    },
+    {
+      "command": "python -X utf8 -m unittest discover -s scripts/tests",
+      "exit_code": 0,
+      "passed": 146,
+      "log": "logs/python-tests.log"
+    }
+  ],
+  "source_sha256": {
+    "Cargo.lock": "db3bb1d90e5812e1ab33b9a009a22bcbd27d0818ee7f024445de8b420f6dc87b",
+    "apps/joyword-cli/src/exchange.rs": "a43fa5e389c2d8393370e3f0bc53a0f0b8d03141f5c291a29649323f9d86d2f5",
+    "apps/joyword-cli/src/main.rs": "29cfd2243bf09e84a6b3cbd5155e3f063d20c003015e1b93d816c9ac51720c38",
+    "apps/joyword-cli/tests/exchange.rs": "92bc162e377de9241bed8b9d1ac5e6281c9e440dc127295612019eb7abcccdea",
+    "crates/joyword-docx/src/lib.rs": "0c10fb1e571a929d426d3a6d399935077dd6792eb5642cc70ad8181519caac08",
+    "crates/joyword-docx/src/text_document.rs": "597b6822ce324394827588bc8137b8b1217465f8ae3759b79c6aa0348fb9e579",
+    "crates/joyword-docx/tests/text_document.rs": "243261c4afcd7a9110fd28956c515f2af885b643d1e0c6b15b381ce02bdb972a",
+    "crates/joyword-rtf/src/budget.rs": "4effe63d466972d84715dff2c21eb61312db2a61049e12d33aeeb5ec7ad0b5b8",
+    "crates/joyword-rtf/src/reader.rs": "f66e6ddce3a95c361284103f5749ce89801463df09ff2b8e369d997efcb44329",
+    "crates/joyword-rtf/src/token.rs": "49eb985df3b384bd2fb8b1f57442b9877b54ae43d5050a5466f3ab9caff49c33",
+    "crates/joyword-rtf/tests/unicode_and_boundaries.rs": "5967a39c5a579eb0fe518d1dd77c84563238914069212725d16a12a15ceffc1b",
+    "crates/joyword-shell/Cargo.toml": "a799ec3278f8647d214e5f6580bcd1dff0217ba47a0291e263252e9eaeb0817c",
+    "crates/joyword-shell/src/exchange.rs": "20092741bada1f8d7ce91a1bc2ab3c5e940d7a050f10a9236fa53e9e29ce78d9",
+    "crates/joyword-shell/src/lib.rs": "8d4e1de86a3fd0a444bf1c1b4a8ef84d01e96d6258b09f7b37983c39fc104241",
+    "crates/joyword-shell/tests/exchange.rs": "65d8e673ed0a0fa01b9aaf5148660c9c87eea2888209b36429210d950e6c00bb",
+    "crates/joyword-textfmt/src/encoding.rs": "8fa571bb62b28f1b3cd5d60b54881bc63feae81ab485959124317264972b18d2",
+    "crates/joyword-textfmt/src/html.rs": "355078beed53a0fd15882651e948597904dbd62cfecd785639ba09ab41a60271",
+    "crates/joyword-textfmt/src/markdown.rs": "7547764e462d07704f68ac67daf781bd2cab7ed2276c3c2f0ea667db11dcc720",
+    "crates/joyword-textfmt/src/plain_text.rs": "b5ffaa0782254ad2e31f707fd7bdaf35b6424502a7fbb4c22677c1ccb617ca9a",
+    "crates/joyword-textfmt/tests/encoding_and_literals.rs": "99134cfd4e659935d4025632b82ccc0532fc216c6c922a3e75556f534d1e7b02",
+    "scripts/check_gates.py": "b75dd7b8043fe9f13ee2d08d337db174ed2bc72d3d30ee20fa4ca566a99ec16d"
+  },
+  "native_observations": [
+    {
+      "application": "Word 2024 Home Retail",
+      "build": "16.0.20527.20088",
+      "file": "samples/final-sample.rtf",
+      "observed": "Chinese, emoji, bold, italic and literal punctuation visibly correct",
+      "image": "native/word-rtf.jpg",
+      "physical_input": false
+    },
+    {
+      "application": "WPS Office",
+      "installation_directory_version": "12.1.0.29158",
+      "full_internal_build_obtained": false,
+      "file": "samples/final-sample.rtf",
+      "observed": "Same bytes opened read-only while Word held the file; Chinese, emoji and formatting visibly present; default-application/security prompt dismissed without changing settings",
+      "image": "native/wps-rtf.jpg",
+      "physical_input": false
+    },
+    {
+      "application": "Word 2024 Home Retail",
+      "build": "16.0.20527.20088",
+      "file": "samples/final-sample.docx",
+      "observed": "New Transitional document opened without repair dialog; Chinese, emoji, bold, italic and escaped literal punctuation visibly correct; CLI text independently read back",
+      "image": "native/word-docx.jpg",
+      "physical_input": false
+    }
+  ],
+  "limits": [
+    "Paragraph-only conversion subset; complete T600/T601 remain in progress",
+    "No current macOS/Linux GUI, physical IME/DPI/readers or signing certification",
+    "No full Office exchange, printing or 1.0 acceptance claim"
+  ],
+  "metadata_checks": [
+    {
+      "command": "python scripts/check_docs.py",
+      "exit_code": 0,
+      "log": "logs/docs-final.log"
+    },
+    {
+      "command": "python scripts/check_acceptance.py",
+      "exit_code": 0,
+      "log": "logs/acceptance-final.log"
+    },
+    {
+      "command": "python scripts/check_gates.py",
+      "exit_code": 0,
+      "log": "logs/gates-final.log"
+    }
+  ]
+}

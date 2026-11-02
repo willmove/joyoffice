@@ -12,6 +12,23 @@ use joyword_shell::l10n::Catalog;
 use std::rc::Rc;
 use std::sync::Arc;
 
+pub(crate) fn file_popup_commands(registry: &Registry, platform: Platform) -> Vec<CommandId> {
+    registry
+        .menus(platform)
+        .into_iter()
+        .find(|menu| menu.kind == MenuKind::File)
+        .map(|menu| {
+            menu.entries
+                .into_iter()
+                .filter_map(|entry| match entry {
+                    MenuEntry::Command(id) => Some(id),
+                    MenuEntry::Separator => None,
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 pub(crate) const START_MORE_CONTROLS: &[&str] = &[
     "start.paste",
     "start.cut",
@@ -81,17 +98,29 @@ impl JoyWord {
             .key_context(controls::CONTROL_CONTEXT)
             .aria_expanded(self.popup.is_some_and(|popup| popup.kind == kind))
             .focusable()
-            .on_click(cx.listener(move |this, event: &gpui::ClickEvent, _, cx| {
-                this.open_popup(kind, event.position());
-                cx.notify();
-            }))
-            .on_key_down(cx.listener(move |this, event: &gpui::KeyDownEvent, _, cx| {
-                if matches!(event.keystroke.key.as_str(), "enter" | "space" | "down") {
-                    this.open_popup(kind, anchor.get());
-                    cx.stop_propagation();
+            .on_click(
+                cx.listener(move |this, event: &gpui::ClickEvent, window, cx| {
+                    if kind == PopupKind::File {
+                        this.show_file_page(super::file::FilePage::Home, window, cx);
+                    } else {
+                        this.open_popup(kind, event.position());
+                    }
                     cx.notify();
-                }
-            }))
+                }),
+            )
+            .on_key_down(
+                cx.listener(move |this, event: &gpui::KeyDownEvent, window, cx| {
+                    if matches!(event.keystroke.key.as_str(), "enter" | "space" | "down") {
+                        if kind == PopupKind::File {
+                            this.show_file_page(super::file::FilePage::Home, window, cx);
+                        } else {
+                            this.open_popup(kind, anchor.get());
+                        }
+                        cx.stop_propagation();
+                        cx.notify();
+                    }
+                }),
+            )
     }
 
     pub(crate) fn show_find_panel(
@@ -662,19 +691,9 @@ impl JoyWord {
             PopupKind::File => card
                 .w(px(230.0))
                 .children(
-                    [
-                        FILE_OPEN,
-                        FILE_SAVE,
-                        FILE_SAVE_COPY,
-                        FILE_EXPORT_PDF,
-                        FILE_EXPORT_PDFA,
-                        FILE_EXPORT_EPUB,
-                        FILE_MAIL_MERGE,
-                        FILE_PRINT,
-                        FILE_CLOSE,
-                    ]
-                    .into_iter()
-                    .map(|command| self.popup_command(command, cx)),
+                    file_popup_commands(&self.registry, Platform::current())
+                        .into_iter()
+                        .map(|command| self.popup_command(command, cx)),
                 )
                 .into_any_element(),
             PopupKind::FontFamily => card

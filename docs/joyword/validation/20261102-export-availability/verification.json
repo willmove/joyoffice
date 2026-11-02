@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-02",
+  "scope": "Explain existing export restrictions without changing gates",
+  "private_document_content_included": false,
+  "private_document_diagnosis": {
+    "style_approximation_required": true,
+    "read_only": false,
+    "partial": true,
+    "source_unchanged": true
+  },
+  "synthetic_native_observations": [
+    "compatibility notice visible",
+    "seven disabled conversions each have an accessible visible reason",
+    "DOCX copy remains enabled"
+  ],
+  "source_sha256": {
+    "apps/joyword/src/ui/file.rs": "6c7745a05d5388a851166a4a9c646025a37d242a1850adeaa2a342026e7b929a",
+    "apps/joyword-cli/src/main.rs": "8f60d7b7b174a3ff2ce2ab517c506ee45fa4e7db560b10653aa68e40aea75854",
+    "apps/joyword-cli/tests/commands.rs": "ab1710f1da731f39ec8ecc64801b621d75898c9624c8c6d7512c9b877c3070bf",
+    "crates/joyword-shell/locales/en.lang": "164da21c9bc259e3681400237cda590e2d0446272d78cd05547ae18ac0d369ab",
+    "crates/joyword-shell/locales/zh-CN.lang": "d9e7945612cf08228f2a53334581b1e0004ebf2e8c35083508e61fcba23f9d89"
+  },
+  "task_status_changes": [],
+  "checks": [
+    {
+      "command": "cargo xtask check joyword",
+      "exit_code": 0,
+      "passed": 1316,
+      "failed": 0,
+      "ignored": 0,
+      "log": "logs/check.log"
+    },
+    {
+      "command": "cargo xtask build joyword",
+      "exit_code": 0,
+      "log": "logs/build.log"
+    },
+    {
+      "command": "python check_docs.py",
+      "exit_code": 0,
+      "log": "logs/docs.log"
+    },
+    {
+      "command": "python check_gates.py",
+      "exit_code": 0,
+      "log": "logs/gates.log"
+    },
+    {
+      "command": "python check_acceptance.py",
+      "exit_code": 0,
+      "log": "logs/acceptance.log"
+    }
+  ],
+  "binary_sha256": {
+    "target/debug/joyword.exe": "da55e358bc052abfb51cdf67c59ebc2f119d41471ee78aab025c895c11149800",
+    "target/debug/joyword-cli.exe": "b89a13091bb3470bab31d4cb17e699fe94021c6ffef35735a5b692ee93c10fb2"
+  }
+}

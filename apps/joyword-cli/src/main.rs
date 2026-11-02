@@ -11,18 +11,20 @@ use serde_json::{Value, json};
 const MAX_INPUT: u64 = 32 << 20;
 const MAX_TEXT: usize = 1 << 20;
 const HELP: &str = concat!(
-    "joyword-cli inspect|text [--max-text-bytes N] [--] FILE\n",
+    "joyword-cli inspect|text [--max-text-bytes N] [--compatibility] [--] FILE\n",
     "joyword-cli render FILE --font PATH:FACE --output DIR [--dpi N] [--page N]\n",
     "joyword-cli convert FILE --to pdf|pdfa-2b --font PATH:FACE --output FILE.pdf\n",
     "joyword-cli merge --template FILE.docx --data FILE.csv [--map FIELD=COLUMN] ",
     "(--preview-row N | --output-parent DIR)\n",
     "joyword-cli epub FILE.docx (--plan | --output FILE.epub [--accept-losses]) [--title TEXT] [--language TAG] [--modified UTC]\n",
+    "joyword-cli exchange FILE --from docx|txt|markdown|html|rtf --to docx|txt|markdown|html|rtf (--plan | --output FILE --accept-losses)\n",
     "Options may also follow FILE; -- ends option parsing.\n",
     "Inspection keeps the source unchanged; text N is UTF-8 bytes (0..1048576), default 1048576.\n",
     "Projection: imported main body, INCLUDING hidden text; deleted revisions,\n",
     "comments and other stories excluded; inserted/moveTo text included.\n",
     "Unsupported XML is preserved by import but omitted from text.\n",
     "inspect: schema 1 JSON, partial and truncated are independent.\n",
+    "--compatibility: include model compatibility flags; no document content beyond the requested projection.\n",
     "text: UTF-8 stdout; projection/partial/truncated JSON on stderr.\n",
     "render: deterministic CPU PNG pages from the unified PageScene.\n",
     "convert: searchable PDF from that same scene; other targets are refused.\n",
@@ -32,6 +34,7 @@ const HELP: &str = concat!(
 );
 
 mod epub;
+mod exchange;
 mod merge;
 mod visual;
 
@@ -73,12 +76,14 @@ enum Options {
     Visual(visual::Options),
     Merge(merge::Options),
     Epub(epub::Options),
+    Exchange(exchange::Options),
 }
 
 struct TextOptions {
     inspect: bool,
     path: OsString,
     limit: usize,
+    compatibility: bool,
 }
 
 fn options() -> Result<Option<Options>, &'static str> {
@@ -95,6 +100,9 @@ fn options() -> Result<Option<Options>, &'static str> {
     }
     if command == "epub" {
         return epub::options(args).map(|options| options.map(Options::Epub));
+    }
+    if command == "exchange" {
+        return exchange::options(args).map(|options| options.map(Options::Exchange));
     }
     if command == "merge" {
         return merge::options(args).map(|options| options.map(Options::Merge));
@@ -119,6 +127,7 @@ fn options() -> Result<Option<Options>, &'static str> {
     let mut path = None;
     let mut limit = MAX_TEXT;
     let mut budget_seen = false;
+    let mut compatibility = false;
     let mut positional_only = false;
     while let Some(arg) = args.next() {
         if !positional_only && arg == "--" {
@@ -129,6 +138,11 @@ fn options() -> Result<Option<Options>, &'static str> {
             } else {
                 Err("unexpected arguments")
             };
+        } else if !positional_only && arg == "--compatibility" {
+            if compatibility {
+                return Err("duplicate compatibility option");
+            }
+            compatibility = true;
         } else if !positional_only && arg == "--max-text-bytes" {
             if budget_seen {
                 return Err("duplicate text budget");
@@ -150,6 +164,7 @@ fn options() -> Result<Option<Options>, &'static str> {
         inspect,
         path,
         limit,
+        compatibility,
     })))
 }
 
@@ -299,6 +314,11 @@ fn execute_text(options: TextOptions) -> Result<u8, &'static str> {
         "read_only": imported.editability.is_read_only(),
     });
     let mut report = report;
+    if options.compatibility {
+        report["compatibility"] = json!({
+            "style_approximation_required": joyword_layout::compatibility::has_style_approximations(&imported.document.snapshot()),
+        });
+    }
     if options.inspect {
         report["text"] = json!(text.value);
     }
@@ -327,6 +347,7 @@ fn main() -> ExitCode {
         Ok(Some(Options::Visual(options))) => visual::execute(options),
         Ok(Some(Options::Merge(options))) => merge::execute(options),
         Ok(Some(Options::Epub(options))) => epub::execute(options),
+        Ok(Some(Options::Exchange(options))) => exchange::execute(options),
         Ok(None) => std::io::stdout()
             .write_all(HELP.as_bytes())
             .map(|()| 0)

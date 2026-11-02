@@ -245,4 +245,13 @@ MIT 主项目不能删去第三方 Apache 等许可证的通知。当前锁文�
 ### T104 完整恢复检查点与显式 break 写回（2026-11-01）
 
 - 恢复容器 V3 为原创版本化二进制协议，在既有总预算、CRC、双代轮换、读回校验、文件锁与临时发布之上追加已验证 DOCX；不引入外部实现或依赖。
+
+
 - 新增的显式分页／分栏写出依据 ECMA-376 Part 1 §17.3.3.1（br）及 Microsoft 公开规范说明 [Break](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.break?view=openxml-3.0.1)、[BreakValues](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.breakvalues?view=openxml-3.0.1) 的 `page`／`column`／`textWrapping` 值；只读公开规范／API 说明，未读取 SDK 或编辑器实现源码。保留原有未知 inline／源标记拒绝契约。
+
+
+### T600／T601 文本交换与新建 DOCX（2026-11-02）
+
+- Markdown 字面量转义依据 [CommonMark 0.31.2 §2.4](https://spec.commonmark.org/0.31.2/#backslash-escapes)；HTML 单次实体解码依据 [HTML 字符引用语法](https://html.spec.whatwg.org/multipage/syntax.html#character-references)。仅实现声明子集，不宣称完整 CommonMark／HTML 解析器。
+- 新建文本投影 DOCX 使用 [ECMA-376](https://ecma-international.org/publications-and-standards/standards/ecma-376/) Part 1 §§17.2、17.3、17.6、17.15 和 Part 2；使用仓库已有 OPC 写入器及既有新文档 A4／兼容模式 15 配置，独立构造部件、关系及转义文本，再经生产导入器验证。原件保留保存继续使用独立 ExportPlan。
+- RTF 增量沿既有公开规范记录实现 UTF-16 代理对、目的地隔离、隐藏状态及根组验证；无第三方解析器、无新增注册表依赖版本，未读取 Office／WPS 编辑器或 SDK 实现。

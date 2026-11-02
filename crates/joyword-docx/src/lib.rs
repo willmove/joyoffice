@@ -106,6 +106,7 @@ mod result;
 mod revision;
 mod settings;
 mod table;
+mod text_document;
 mod xml;
 
 pub use backing::{Fragment, PackageBacking, PreservedReason};
@@ -122,3 +123,4 @@ pub use result::{
     Diagnostic, DiagnosticKind, Diagnostics, Editability, ImageOutcome, ImportError, ImportResult,
     MAX_DIAGNOSTICS, ReadOnlyReason, Severity,
 };
+pub use text_document::create_text_document;

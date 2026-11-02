@@ -1,0 +1,21 @@
+[0.000s INFO direct_write.rs:1918] Use Microsoft YaHei UI as UI font.
+[0.111s INFO directx_devices.rs:121] Using GPU: Intel(R) Arc(TM) 140T GPU (16GB)
+[0.189s INFO directx_devices.rs:55] Created device with Direct3D 11.1 feature level.
+[0.454s INFO window.rs:1702] Accessibility activated
+[0.484s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.488s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.491s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.494s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.497s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.500s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.501s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.503s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.895s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.897s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.898s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.899s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.901s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.901s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.902s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.903s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[74.904s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled

@@ -3298,7 +3298,7 @@ impl JoyWord {
 
         if matches!(
             id,
-            FILE_EXPORT_PDF | FILE_EXPORT_PDFA | FILE_PRINT | FILE_EXPORT_EPUB
+            FILE_EXPORT_PDF | FILE_EXPORT_PDFA | FILE_PRINT | FILE_EXPORT_EPUB | FILE_EXPORT_TEXT
         ) && self.editor.as_ref().is_some_and(|e| {
             joyword_layout::compatibility::has_style_approximations(e.view().snapshot())
         }) {
@@ -3315,6 +3315,7 @@ impl JoyWord {
                     | FILE_EXPORT_PDF
                     | FILE_EXPORT_PDFA
                     | FILE_EXPORT_EPUB
+                    | FILE_EXPORT_TEXT
                     | FILE_PRINT
                     | FILE_MAIL_MERGE
                     | VIEW_HIDDEN_TEXT
@@ -3366,6 +3367,18 @@ impl JoyWord {
                 return Availability::Disabled("input.read_only");
             }
             return Availability::Enabled;
+        }
+        if matches!(id, FILE_EXPORT_TEXT | FILE_EXPORT_EPUB) {
+            return if self.open_gate.is_none()
+                && self
+                    .editor
+                    .as_ref()
+                    .is_some_and(|e| !e.read_only() && !e.is_composing())
+            {
+                Availability::Enabled
+            } else {
+                Availability::Disabled("input.read_only")
+            };
         }
         if matches!(id, FILE_EXPORT_PDF | FILE_EXPORT_PDFA | FILE_PRINT) {
             return if self.ready_layout().is_some() && self.editor.is_some() {
@@ -4219,6 +4232,12 @@ impl JoyWord {
         {
             return self.label("file.copy.saving");
         }
+        // A completed/cancelled file action must remain visible even when the
+        // current layout also has a missing-glyph warning. The next successful
+        // editor input clears this note and restores the layout status.
+        if let Some(note) = &self.copy_note {
+            return note.clone();
+        }
         if let Some(frame) = self.ready_layout()
             && !frame.layout.diagnostics().is_empty()
         {
@@ -4229,9 +4248,6 @@ impl JoyWord {
             && self.ready_layout().is_none()
         {
             return self.label("input.layout_pending");
-        }
-        if let Some(note) = &self.copy_note {
-            return note.clone();
         }
         if let Some(editor) = &self.editor {
             if editor.view().index().is_read_only_preview() {

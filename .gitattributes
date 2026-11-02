@@ -22,6 +22,11 @@ tests/fixtures/mail-merge/*.csv -text
 # Migrated evidence and verbatim notices carry recorded byte hashes.
 docs/joydeck/evidence/** -text
 docs/joyoffice/validation/** -text
+# Preserve the exact bytes recorded by JoyWord validation manifests.
+docs/joyword/validation/20261102-completion/** -text whitespace=-blank-at-eof,cr-at-eol
+docs/joyword/validation/20261102-exchange-ui/** -text whitespace=-blank-at-eof,cr-at-eol
+docs/joyword/validation/20261102-file-workspace/** -text whitespace=-blank-at-eof,cr-at-eol
+docs/joyword/validation/20261102-export-availability/** -text whitespace=-blank-at-eof,cr-at-eol
 licenses/joydeck/** -text
 # Preserve the pinned third-party license verbatim, including original spacing.
 tests/fixtures/fonts/OFL.txt -whitespace
