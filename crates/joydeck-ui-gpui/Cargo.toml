@@ -7,6 +7,9 @@ license.workspace = true
 publish = false
 
 [dependencies]
+joydeck-engine.workspace = true
+joydeck-model.workspace = true
+joydeck-geom.workspace = true
 gpui-kit.workspace = true
 gpui_platform.workspace = true
 joyoffice-ui.workspace = true

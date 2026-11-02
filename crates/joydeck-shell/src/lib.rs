@@ -2,6 +2,11 @@
 //! Headless workspace state. Preview data is immutable and is not a document editor model.
 use serde::{Deserialize, Serialize};
 pub mod document;
+pub mod editor;
+pub mod native;
+pub mod platform;
+mod recovery_io;
+pub mod storage;
 pub use document::{Cancellation, Document};
 
 pub const GPUI_KIT_VERSION: &str = "0.8.1";
@@ -110,13 +115,13 @@ impl Default for WorkspaceState {
 
 pub fn diagnostics() -> serde_json::Value {
     serde_json::json!({
-        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R1",
+        "product": "JoyDeck", "version": env!("CARGO_PKG_VERSION"), "stage": "R2",
         "rust_toolchain": RUST_TOOLCHAIN, "gpui_kit": GPUI_KIT_VERSION,
         "gpui_pre": GPUI_VERSION, "gpui_fast": false,
         "os": std::env::consts::OS, "arch": std::env::consts::ARCH,
         "cli_uses_gui": false, "preview": "original bundled immutable sample",
-        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png"],
-        "pending": ["editing", "document-save", "pdf"]
+        "capabilities": ["native-workspace", "page-navigation", "zoom", "theme", "pptx-read", "deckcraft-read", "cpu-render", "thumbnails", "inspect", "render-png", "basic-edit", "undo-redo", "pptx-preserving-save", "joydeck-v2", "recovery"],
+        "pending": ["in-place-text-ime", "advanced-editing", "pdf"]
     })
 }
 

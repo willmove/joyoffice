@@ -1,0 +1,16 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-final-kyv887ym\\中文 空格路径\\joydeck-0.3.0-r2-windows-x86_64-release-be894dc194\\joydeck.exe",
+    "id": 97846670,
+    "title": "JoyDeck · R2 · independent.pptx *"
+  },
+  "accessibility": {
+    "focused_element": "0 区域 JoyDeck · R2 · independent.pptx * Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck · R2 · independent.pptx *\", App: joydeck.exe.\n\t0 区域 JoyDeck · R2 · independent.pptx * Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: JoyDeck · R2 · independent.pptx *\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 打开文稿\n\t\t8 按钮 深色\n\t\t9 按钮 备注\n\t\t10 按钮 兼容报告 · 0\n\t\t11 编辑 (settable, string) 输入 .pptx / .joydeck / .deckcraft 路径 Description: 输入 .pptx / .joydeck / .deckcraft 路径\n\t\t12 按钮 读取路径\n\t\t13 按钮 (disabled) 取消读取\n\t\t14 按钮 新建\n\t\t15 按钮 撤销\n\t\t16 按钮 (disabled) 重做\n\t\t17 按钮 矩形\n\t\t18 按钮 复制\n\t\t19 按钮 上移层\n\t\t20 按钮 下移层\n\t\t21 按钮 删除\n\t\t22 按钮 新页\n\t\t23 按钮 复制页\n\t\t24 按钮 删页\n\t\t25 按钮 下一对象\n\t\t26 编辑 (settable, string) 选中文字对象后，在这里修改并应用 Description: 选中文字对象后，在这里修改并应用\n\t\t27 按钮 插入文字\n\t\t28 按钮 应用文字\n\t\t29 按钮 ←\n\t\t30 按钮 →\n\t\t31 按钮 放大\n\t\t32 按钮 缩小\n\t\t33 按钮 旋转\n\t\t34 编辑 (settable, string) 另存路径 .pptx / .joydeck（新文件） Description: 另存路径 .pptx / .joydeck（新文件） Value: C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-final-kyv887ym\\中文 空格路径\\joydeck-0.3.0-r2-windows-x86_64-release-be894dc194\\edited-from-gui.pptx\n\t\t35 按钮 保存 / 另存\n\t\t36 按钮 恢复\n\t\t37 按钮 放弃修改\n\t\t39 按钮 (disabled) 上一页\n\t\t40 按钮 下一页\n\t\t41 按钮 −\n\t\t42 按钮 +\n\t\t43 按钮 适应窗口\n\nThe focused UI element is 0 区域 JoyDeck · R2 · independent.pptx * Secondary Actions: Raise."
+  },
+  "screenshot": {
+    "id": "screenshot-0",
+    "width": 1282,
+    "height": 850
+  }
+}

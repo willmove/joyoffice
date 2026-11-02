@@ -7,6 +7,9 @@ license.workspace = true
 publish = false
 
 [dependencies]
+joydeck-engine.workspace = true
+sha2.workspace = true
+getrandom.workspace = true
 joydeck-model.workspace = true
 joydeck-render.workspace = true
 joydeck-fonts.workspace = true

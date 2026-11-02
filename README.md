@@ -19,9 +19,9 @@
 
 ## 当前状态
 
-2026-11-02：已实现 JoyDeck 0.2.0 / R1 真实文稿只读查看。支持 PPTX / .deckcraft v1 读取、CPU 参考渲染、虚拟缩略图、翻页/缩放/主题、只读备注及 CLI inspect/render。复用 JoyOffice OPC、公共配色和既有异步查看器；原始文稿不写回。详见 [R1 验证记录](docs/joydeck/evidence/R1/README.md) 与 [实施状态](docs/joydeck/STATUS.md)。
+2026-11-02：已实现 JoyDeck 0.3.0 / R2 基础编辑闭环切片。真实 PPTX 支持顶层对象选择/拖动、矩形与文字插入、整体文字替换、复制/删除、大小/旋转/层次和基础页面操作。支持 PPTX 保留原包写回、JoyDeck v2 项目保存重开、撤销重做、后台恢复快照与恢复列表。UI/CLI 使用同一纯命令引擎。详见 [R2 验证记录](docs/joydeck/evidence/R2/README.md) 和 [开发包说明](packaging/joydeck/README-r2.md)。
 
-工具链为 Rust 1.98.1，GPUI Kit 0.8.1 / GPUI pre 0.3.10；依赖无 egui/epaint。R2 将接入编辑、保存、重开和撤销闭环。原生对象绘制与性能优化属于 R4，当前使用共享 CPU 参考渲染器。
+依赖仍锁定 Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10；新增文件/恢复服务复用 JoyOffice，sha2/getrandom 采用宿主精确版本。没有 egui/epaint 或 engine 的文件/PDF/媒体服务依赖。原位富文本/IME、完整编辑命令迁移、多窗口共享和原生对象场景加速仍待后续切片。
 
 ## 构建与体验
 
@@ -41,6 +41,16 @@ Windows 缺少 PATH 中的 CMake 时，优先使用开发脚本或 xtask，它�
 .\target\debug\joydeck-cli.exe render ".\tests\fixtures\joydeck\independent.pptx" --output ".\rendered" --all --scale 1
 ```
 
-输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r1.md)。
+输出目录必须尚不存在，父目录需已存在；页码从 1 开始。详细限制见 [开发包说明](packaging/joydeck/README-r2.md)。
 
 后续应从 [TASKS](docs/joydeck/TASKS.md) 选择任务，完成后填写新证据。JoyOffice 原有里程碑和上游自评不计入新 JoyDeck 的完成状态。
+
+
+基础编辑脚本示例：
+
+```powershell
+.\target\debug\joydeck-cli.exe edit ".\tests\fixtures\joydeck\independent.pptx" --script ".\tests\fixtures\joydeck\r2-edit.json" --output ".\edited.pptx"
+.\target\debug\joydeck-cli.exe inspect ".\edited.pptx"
+```
+
+编辑后也可保存为 `.joydeck` v2；旧 `.deckcraft` 仅导入。保存会先读回核对页面、顶层对象、文字和几何，超出受支持写回范围时拒绝发布，原文件保留。撤销历史为本次会话内，重开/恢复后重新建立。恢复快照包含原始文稿，应按原文件的访问范围保管。

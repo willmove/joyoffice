@@ -8,6 +8,94 @@ fn execute() -> Result<(), String> {
 fn execute_args(args: &[String]) -> Result<(), String> {
     use joydeck_shell::{Cancellation, Document};
     use std::path::Path;
+    if let [command] = args
+        && command == "commands"
+    {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(joydeck_engine::COMMANDS).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, root] = args
+        && command == "recovery-list"
+    {
+        let recovery = joydeck_shell::storage::Recovery::new(root.into());
+        let entries = recovery.list()?;
+        let rows = entries
+            .iter()
+            .map(|e| serde_json::json!({"record":e.record,"active":e.active,"problem":e.problem}))
+            .collect::<Vec<_>>();
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&rows).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, root, session, flag, output] = args
+        && command == "recover"
+        && flag == "--output"
+    {
+        let recovery = joydeck_shell::storage::Recovery::new(root.into());
+        let entry = recovery
+            .list()?
+            .into_iter()
+            .find(|e| &e.record.session == session && !e.active && e.problem.is_none())
+            .ok_or("recovery entry unavailable")?;
+        let editor = joydeck_shell::editor::Editor::restore(root.into(), &entry.record)?;
+        editor.save_job(output.into())?.run()?;
+        println!("Recovered to {output}");
+        return Ok(());
+    }
+    if let [command, input, script_flag, script, output_flag, output] = args
+        && command == "edit"
+        && script_flag == "--script"
+        && output_flag == "--output"
+    {
+        let mut editor = if input == "--new" {
+            joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root())?
+        } else {
+            joydeck_shell::editor::Editor::open(
+                Path::new(input),
+                joydeck_shell::editor::recovery_root(),
+            )?
+        };
+        let bytes = joydeck_shell::platform::read_bounded(Path::new(script), 1 << 20)?;
+        let commands: Vec<joydeck_engine::Command> =
+            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+        if commands.len() > 1000 {
+            return Err("command batch exceeds 1000 steps".into());
+        }
+        for command in commands {
+            editor.session.execute(command)?;
+        }
+        let saved = editor.save_job(output.into())?.run()?;
+        editor.apply_saved(saved);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&editor.display()?.info).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    // Probe is an explicit CLI operation: writes recovery, then remains alive for crash tests.
+    if let [command, input, script, root] = args
+        && command == "checkpoint-probe"
+    {
+        use std::io::Write;
+        let mut editor = joydeck_shell::editor::Editor::open(Path::new(input), root.into())?;
+        let bytes = joydeck_shell::platform::read_bounded(Path::new(script), 1 << 20)?;
+        let commands: Vec<joydeck_engine::Command> =
+            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+        for command in commands {
+            editor.session.execute(command)?;
+        }
+        editor.checkpoint_job().checkpoint()?;
+        println!("READY {}", editor.recovery.session);
+        std::io::stdout().flush().map_err(|e| e.to_string())?;
+        loop {
+            std::thread::park();
+        }
+    }
     if let [command, path, rest @ ..] = args {
         if command == "inspect" && rest.is_empty() {
             let doc = Document::open(Path::new(path), &Cancellation::default())?;
@@ -70,7 +158,7 @@ fn execute_args(args: &[String]) -> Result<(), String> {
     match args {
         [] => {
             println!(
-                "JoyDeck CLI · R1\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  diagnostics | sample | --version"
+                "JoyDeck CLI · R2\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
             );
         }
         [command] if command == "--help" || command == "help" => {

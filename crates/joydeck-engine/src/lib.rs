@@ -1,0 +1,537 @@
+#![forbid(unsafe_code)]
+//! One transaction entry point for desktop and CLI. No file, renderer or window services.
+use joydeck_model::{text::RunKind, *};
+use serde::{Deserialize, Serialize};
+use std::{collections::BTreeMap, sync::Arc};
+mod history_cost;
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct Origin {
+    pub slide: SlideId,
+    pub shapes: BTreeMap<ShapeId, ShapeId>,
+}
+pub type Origins = BTreeMap<SlideId, Origin>;
+pub fn original_bindings(p: &Presentation) -> Origins {
+    p.slides
+        .iter()
+        .map(|s| {
+            let mut shapes = BTreeMap::new();
+            walk(&s.shapes, &mut |sh, _| {
+                shapes.insert(sh.id, sh.id);
+            });
+            (
+                s.id,
+                Origin {
+                    slide: s.id,
+                    shapes,
+                },
+            )
+        })
+        .collect()
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Selection {
+    pub page: usize,
+    pub shapes: Vec<ShapeId>,
+}
+#[derive(Clone, Debug)]
+pub struct EditorSnapshot {
+    pub model: Arc<Presentation>,
+    pub origins: Origins,
+    pub selection: Selection,
+    pub content_id: u64,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "command", rename_all = "kebab-case", deny_unknown_fields)]
+pub enum Command {
+    Select {
+        page: usize,
+        shapes: Vec<ShapeId>,
+    },
+    InsertRect {
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    },
+    InsertText {
+        x: f64,
+        y: f64,
+        text: String,
+    },
+    Transform {
+        dx: f64,
+        dy: f64,
+        #[serde(default)]
+        dw: f64,
+        #[serde(default)]
+        dh: f64,
+        #[serde(default)]
+        rotation: f64,
+    },
+    ReplaceText {
+        text: String,
+    },
+    Delete,
+    Duplicate,
+    BringForward,
+    SendBackward,
+    NewSlide,
+    DuplicateSlide,
+    DeleteSlide,
+    Undo,
+    Redo,
+}
+impl Command {
+    pub fn id(&self) -> &'static str {
+        match self {
+            Self::Select { .. } => "select",
+            Self::InsertRect { .. } => "insert-rect",
+            Self::InsertText { .. } => "insert-text",
+            Self::Transform { .. } => "transform",
+            Self::ReplaceText { .. } => "replace-text",
+            Self::Delete => "delete",
+            Self::Duplicate => "duplicate",
+            Self::BringForward => "bring-forward",
+            Self::SendBackward => "send-backward",
+            Self::NewSlide => "new-slide",
+            Self::DuplicateSlide => "duplicate-slide",
+            Self::DeleteSlide => "delete-slide",
+            Self::Undo => "undo",
+            Self::Redo => "redo",
+        }
+    }
+}
+pub const COMMANDS: &[&str] = &[
+    "select",
+    "insert-rect",
+    "insert-text",
+    "transform",
+    "replace-text",
+    "delete",
+    "duplicate",
+    "bring-forward",
+    "send-backward",
+    "new-slide",
+    "duplicate-slide",
+    "delete-slide",
+    "undo",
+    "redo",
+];
+#[derive(Clone)]
+struct Entry {
+    state: EditorSnapshot,
+    cost: usize,
+}
+pub struct Session {
+    state: EditorSnapshot,
+    undo: Vec<Entry>,
+    redo: Vec<Entry>,
+    saved: Option<u64>,
+    revision: u64,
+    next_content: u64,
+}
+impl Session {
+    pub fn new(model: Presentation, origins: Origins, saved: bool) -> Self {
+        Self {
+            state: EditorSnapshot {
+                model: Arc::new(model),
+                origins,
+                selection: Selection {
+                    page: 0,
+                    shapes: vec![],
+                },
+                content_id: 0,
+            },
+            undo: vec![],
+            redo: vec![],
+            saved: saved.then_some(0),
+            revision: 0,
+            next_content: 1,
+        }
+    }
+    pub fn snapshot(&self) -> EditorSnapshot {
+        self.state.clone()
+    }
+    pub fn model(&self) -> &Presentation {
+        &self.state.model
+    }
+    pub fn selection(&self) -> &Selection {
+        &self.state.selection
+    }
+    pub fn revision(&self) -> u64 {
+        self.revision
+    }
+    pub fn dirty(&self) -> bool {
+        self.saved != Some(self.state.content_id)
+    }
+    pub fn can_undo(&self) -> bool {
+        !self.undo.is_empty()
+    }
+    pub fn can_redo(&self) -> bool {
+        !self.redo.is_empty()
+    }
+    pub fn mark_saved(&mut self, content_id: u64) {
+        self.saved = Some(content_id);
+    }
+    pub fn select(&mut self, page: usize, shapes: Vec<ShapeId>) -> std::result::Result<(), String> {
+        let slide = self
+            .model()
+            .slides
+            .get(page)
+            .ok_or("page outside document")?;
+        if shapes
+            .iter()
+            .any(|id| !slide.shapes.iter().any(|s| s.id == *id))
+        {
+            return Err("select top-level shapes only".into());
+        }
+        self.state.selection = Selection { page, shapes };
+        Ok(())
+    }
+    pub fn execute(&mut self, cmd: Command) -> std::result::Result<bool, String> {
+        if let Command::Select { page, shapes } = cmd {
+            self.select(page.checked_sub(1).ok_or("pages start at 1")?, shapes)?;
+            return Ok(false);
+        }
+        if self
+            .state
+            .model
+            .slides
+            .get(self.state.selection.page)
+            .is_none()
+        {
+            return Err("no active slide".into());
+        }
+        if matches!(cmd, Command::Undo | Command::Redo) {
+            let (from, to) = if matches!(cmd, Command::Undo) {
+                (&mut self.undo, &mut self.redo)
+            } else {
+                (&mut self.redo, &mut self.undo)
+            };
+            let Some(entry) = from.pop() else {
+                return Ok(false);
+            };
+            let cost = history_cost::undo_cost(&self.state.model, &entry.state.model);
+            to.push(Entry {
+                state: std::mem::replace(&mut self.state, entry.state),
+                cost,
+            });
+            self.revision += 1;
+            return Ok(true);
+        }
+        let mut next = self.state.clone();
+        apply(&mut next, cmd)?;
+        if next.model == self.state.model && next.origins == self.state.origins {
+            return Ok(false);
+        }
+        if next.model.slides.len() > 1000 {
+            return Err("page budget exceeded".into());
+        }
+        let mut count = 0;
+        for s in &next.model.slides {
+            walk(&s.shapes, &mut |_, _| count += 1);
+        }
+        if count > 20_000 {
+            return Err("shape budget exceeded".into());
+        }
+        next.content_id = self.next_content;
+        self.next_content += 1;
+        let cost = history_cost::undo_cost(&self.state.model, &next.model);
+        self.undo.push(Entry {
+            state: std::mem::replace(&mut self.state, next),
+            cost,
+        });
+        self.redo.clear();
+        self.revision += 1;
+        let mut cost: usize = self.undo.iter().map(|e| e.cost).sum();
+        while self.undo.len() > 1 && (self.undo.len() > 128 || cost > 64 << 20) {
+            cost = cost.saturating_sub(self.undo.remove(0).cost);
+        }
+        Ok(true)
+    }
+}
+fn checked(v: f64) -> std::result::Result<f64, String> {
+    if v.is_finite() && v.abs() <= 32768. {
+        Ok(v)
+    } else {
+        Err("geometry outside finite coordinate budget".into())
+    }
+}
+fn next_id(p: &mut Presentation) -> std::result::Result<u32, String> {
+    p.alloc_id().ok_or_else(|| "ID space exhausted".into())
+}
+fn apply(st: &mut EditorSnapshot, cmd: Command) -> std::result::Result<(), String> {
+    let page = st.selection.page;
+    let p = Arc::make_mut(&mut st.model);
+    if matches!(cmd, Command::NewSlide | Command::DuplicateSlide) {
+        let old = p
+            .slides
+            .get(page)
+            .ok_or("page outside document")?
+            .as_ref()
+            .clone();
+        let id = SlideId(next_id(p)?);
+        let mut slide = old.clone();
+        slide.id = id;
+        slide.name = format!("Slide {}", p.slides.len() + 1);
+        let mut origin = st.origins.get(&old.id).cloned();
+        if matches!(cmd, Command::NewSlide) {
+            slide.shapes.clear();
+            slide.notes = TextBody::default();
+            slide.animations.clear();
+            slide.transition = None;
+            if let Some(o) = &mut origin {
+                o.shapes.clear();
+            }
+        } else {
+            if slide.shapes.iter().any(|s| {
+                !matches!(
+                    s.kind,
+                    ShapeKind::Shape | ShapeKind::Picture { .. } | ShapeKind::Table(_)
+                )
+            }) {
+                return Err(
+                    "R2 duplicates simple slides; grouped/opaque/3D slides remain intact".into(),
+                );
+            }
+            for shape in &mut slide.shapes {
+                let old = shape.id;
+                shape.id = ShapeId(next_id(p)?);
+                if let Some(o) = &mut origin
+                    && let Some(source) = o.shapes.remove(&old)
+                {
+                    o.shapes.insert(shape.id, source);
+                }
+            }
+            slide.animations.clear();
+        }
+        if let Some(origin) = origin {
+            st.origins.insert(id, origin);
+        }
+        p.slides.insert(page + 1, Arc::new(slide));
+        st.selection = Selection {
+            page: page + 1,
+            shapes: vec![],
+        };
+        return Ok(());
+    }
+    if matches!(cmd, Command::DeleteSlide) {
+        if p.slides.len() <= 1 {
+            return Err("keep at least one slide".into());
+        }
+        let removed = p.slides.remove(page);
+        for section in &mut p.sections {
+            section.slides.retain(|id| *id != removed.id);
+        }
+        for show in &mut p.custom_shows {
+            show.slides.retain(|id| *id != removed.id);
+        }
+        st.origins.remove(&removed.id);
+        st.selection = Selection {
+            page: page.min(p.slides.len() - 1),
+            shapes: vec![],
+        };
+        return Ok(());
+    }
+    if let Command::InsertRect {
+        x,
+        y,
+        width,
+        height,
+    } = cmd
+    {
+        let id = ShapeId(next_id(p)?);
+        let (x, y, w, h) = (checked(x)?, checked(y)?, checked(width)?, checked(height)?);
+        if w < 1. || h < 1. {
+            return Err("shape size must be at least 1 point".into());
+        }
+        Arc::make_mut(&mut p.slides[page]).shapes.push(Shape {
+            id,
+            name: "Rectangle".into(),
+            xfrm: Some(Xfrm::new(x, y, w, h)),
+            fill: Some(Fill::solid(ColorRef::rgb(Rgba::rgb(166, 61, 36)))),
+            ..Default::default()
+        });
+        st.selection.shapes = vec![id];
+        return Ok(());
+    }
+    if let Command::InsertText { x, y, text } = cmd {
+        if text.len() > 65536 {
+            return Err("text exceeds 64 KiB".into());
+        }
+        let id = ShapeId(next_id(p)?);
+        let mut body = TextBody::from_text(&text);
+        for para in &mut body.paragraphs {
+            para.def_props = RunProps {
+                font: Some("Arial".into()),
+                size: Some(24.),
+                ..Default::default()
+            };
+        }
+        Arc::make_mut(&mut p.slides[page]).shapes.push(Shape {
+            id,
+            name: "Text".into(),
+            xfrm: Some(Xfrm::new(checked(x)?, checked(y)?, 400., 80.)),
+            text: Some(body),
+            text_box: true,
+            ..Default::default()
+        });
+        st.selection.shapes = vec![id];
+        return Ok(());
+    }
+    if p.slides[page]
+        .shapes
+        .iter()
+        .any(|s| s.locked && st.selection.shapes.contains(&s.id))
+    {
+        return Err("selected object is locked".into());
+    }
+    if st.selection.shapes.is_empty() {
+        return Err("select an object first".into());
+    }
+    if matches!(cmd, Command::Duplicate) {
+        let old = p.slides[page]
+            .shapes
+            .iter()
+            .filter(|s| st.selection.shapes.contains(&s.id))
+            .cloned()
+            .collect::<Vec<_>>();
+        let slide_id = p.slides[page].id;
+        let mut copies = vec![];
+        for mut shape in old {
+            if !matches!(
+                shape.kind,
+                ShapeKind::Shape | ShapeKind::Picture { .. } | ShapeKind::Table(_)
+            ) {
+                return Err("duplicate simple shapes only in R2".into());
+            }
+            let old_id = shape.id;
+            shape.id = ShapeId(next_id(p)?);
+            let ctx = resolve::Ctx::for_slide(p, &p.slides[page]).ok_or("missing layout")?;
+            let mut x = resolve::xfrm(&ctx, &shape);
+            x.x += 18.;
+            x.y += 18.;
+            shape.xfrm = Some(x);
+            if let Some(origin) = st.origins.get_mut(&slide_id)
+                && let Some(source) = origin.shapes.get(&old_id).copied()
+            {
+                origin.shapes.insert(shape.id, source);
+            }
+            copies.push(shape);
+        }
+        st.selection.shapes = copies.iter().map(|s| s.id).collect();
+        Arc::make_mut(&mut p.slides[page]).shapes.extend(copies);
+        return Ok(());
+    }
+    let transforms = {
+        let ctx = resolve::Ctx::for_slide(p, &p.slides[page]).ok_or("missing layout")?;
+        p.slides[page]
+            .shapes
+            .iter()
+            .map(|s| (s.id, resolve::xfrm(&ctx, s)))
+            .collect::<BTreeMap<_, _>>()
+    };
+    let slide = Arc::make_mut(&mut p.slides[page]);
+    match cmd {
+        Command::Delete => {
+            slide
+                .shapes
+                .retain(|s| !st.selection.shapes.contains(&s.id));
+            st.selection.shapes.clear();
+        }
+        Command::BringForward | Command::SendBackward => {
+            let forward = matches!(cmd, Command::BringForward);
+            let indices: Vec<usize> = if forward {
+                (0..slide.shapes.len().saturating_sub(1)).rev().collect()
+            } else {
+                (1..slide.shapes.len()).collect()
+            };
+            for i in indices {
+                let j = if forward { i + 1 } else { i - 1 };
+                if st.selection.shapes.contains(&slide.shapes[i].id)
+                    && !st.selection.shapes.contains(&slide.shapes[j].id)
+                {
+                    slide.shapes.swap(i, j);
+                }
+            }
+        }
+        Command::Transform {
+            dx,
+            dy,
+            dw,
+            dh,
+            rotation,
+        } => {
+            for v in [dx, dy, dw, dh, rotation] {
+                checked(v)?;
+            }
+            for s in slide
+                .shapes
+                .iter_mut()
+                .filter(|s| st.selection.shapes.contains(&s.id))
+            {
+                if s.locked {
+                    return Err("object is locked".into());
+                }
+                let mut x = transforms[&s.id];
+                x.x = checked(x.x + dx)?;
+                x.y = checked(x.y + dy)?;
+                x.w = checked(x.w + dw)?;
+                x.h = checked(x.h + dh)?;
+                x.rot = (x.rot + rotation).rem_euclid(360.);
+                if x.w < 1. || x.h < 1. {
+                    return Err("shape size must be at least 1 point".into());
+                }
+                s.xfrm = Some(x);
+            }
+        }
+        Command::ReplaceText { text } => {
+            if text.len() > 65536 || st.selection.shapes.len() != 1 {
+                return Err("replace one text object (up to 64 KiB)".into());
+            }
+            let shape = slide
+                .shapes
+                .iter_mut()
+                .find(|s| s.id == st.selection.shapes[0])
+                .ok_or("missing object")?;
+            let body = shape
+                .text
+                .as_mut()
+                .filter(|_| matches!(shape.kind, ShapeKind::Shape))
+                .ok_or("object is not an editable text shape")?;
+            let mut props = joydeck_model::edit::props_at(body, (0, 0));
+            props.link = None;
+            props.hover = None;
+            let mut replacement = TextBody {
+                body: body.body.clone(),
+                ..Default::default()
+            };
+            replacement.paragraphs = text
+                .replace("\r\n", "\n")
+                .replace('\r', "\n")
+                .split('\n')
+                .map(|line| {
+                    let mut para = Paragraph::new(line);
+                    para.def_props = body
+                        .paragraphs
+                        .first()
+                        .map(|p| p.def_props.clone())
+                        .unwrap_or_default();
+                    para.runs = vec![Run {
+                        text: line.into(),
+                        props: props.clone(),
+                        kind: RunKind::Text,
+                    }];
+                    para
+                })
+                .collect();
+            if replacement.paragraphs.is_empty() {
+                replacement.paragraphs.push(Paragraph::default());
+            }
+            *body = replacement;
+        }
+        _ => return Err("unsupported transaction".into()),
+    }
+    Ok(())
+}

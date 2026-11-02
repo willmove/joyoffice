@@ -110,3 +110,10 @@ R0 建立或复用自动检查，至少包括：
 十个纯核心库已按本表目标版本编译：image 0.25.9、zip 9.0.0、harfrust 0.8.4、skrifa 0.42.1、kurbo 0.13.1、quick-xml 0.41.0。ZIP 成员名和 data_start 的新 Result/Option API 已适配，原格式测试保留。新增 CPU 参考依赖精确固定 vello_cpu/vello_common 0.2.0；它们不提供窗口循环，未改变 GPUI/Kit 来源。
 
 `joyoffice-opc` 与旧 JoyDeck viewer 的来源、原始/适配指纹加入同步清单；OPC 的有界 cursor 和绝对路径内部 expect 改为可恢复或有默认值的等价处理。宿主合入时回接唯一公共 crate，R1 未修改 JoyOffice 源检出。受控 Ubuntu/Hack 独立字体资产记录于 `licenses/fonts/sources.json`，外部 CRAFT_FONTS_DIR 在 R1 被禁用，避免未登记字体进入产物。核心、CLI、格式与渲染依赖闭包均禁止 GPUI/其它产品和 egui/epaint。
+
+
+## R2 实施增量（2026-11-02）
+
+新增纯 joydeck-engine 仅依赖 model/serde/serde_json；文件/恢复/PPTX 编排留在 shell。复用 JoyOffice `crates/joydeck-platform/src/files.rs` 和 `crates/joydeck-shell/src/storage.rs`，适配到新模型/v2 项目；同步表记录原始/适配指纹。sha2 固定 `=0.10.9`、getrandom 固定 `=0.3.4`，均与宿主直接依赖一致。共同 GPUI、图像、ZIP、字体和 XML 版本/来源不变。
+
+依赖门禁新增 engine 闭包和生产代码无 IO/导出服务检查，并核对新增两项宿主精确版本。没有为搬迁完整 Session 引入 PDF/媒体库、全局 patch 或第二套 UI。R2 的原包保留 writer、项目协议和纯命令子集为新适配；不把未迁入的上游 engine 测试计作通过。

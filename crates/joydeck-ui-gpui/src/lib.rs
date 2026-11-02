@@ -712,7 +712,7 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             "--sample-workspace" => sample_workspace = true,
             "--help" => {
                 println!(
-                    "JoyDeck [INPUT.pptx|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR1 read-only document preview. --sample-workspace opens the R0 UI sample."
+                    "JoyDeck [INPUT.pptx|INPUT.joydeck|INPUT.deckcraft] [--dark|--light] [--window-size=WIDTHxHEIGHT]\nR2 basic editor, save/reopen and recovery. --sample-workspace opens the R0 UI sample."
                 );
                 return Ok(());
             }
@@ -747,7 +747,13 @@ pub fn run(arguments: impl Iterator<Item = String>) -> Result<(), String> {
             gpui_kit::init(cx);
             apply_theme(dark, None, cx);
             viewer::bind(cx);
-            cx.on_action(|_: &Quit, cx| cx.quit());
+            cx.on_action(move |_: &Quit, cx| {
+                if sample_workspace {
+                    cx.quit()
+                } else {
+                    viewer::quit(cx)
+                }
+            });
             cx.bind_keys([
                 KeyBinding::new("ctrl-q", Quit, None),
                 KeyBinding::new("cmd-q", Quit, None),

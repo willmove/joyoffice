@@ -1,0 +1,4 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R2 opened=true pages=3 elapsed_ms=79
+R2 raster page=1 width=1721 elapsed_ms=52 count=1
+R2 pointer position=Point { x: 464px, y: 511px } bounds=Bounds { origin: Point { x: 321.5px, y: 744px }, size: Size { 860.5px × 484px } } point=(158.98759868506147,-259.9586701306619) scale=0.8962963

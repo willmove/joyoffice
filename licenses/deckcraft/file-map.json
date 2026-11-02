@@ -1601,12 +1601,13 @@
       "source_path": "crates/pptx/src/lib.rs",
       "source_sha256": "7886430c0095c036472d8a84d8b4d2eccf001b0c8660e5c2b43572f6a0f79c1f",
       "target_path": "crates/joydeck-pptx/src/lib.rs",
-      "adapted_sha256": "d48358ba7cfbaee8676a470b60dc7c5108df358522b7622899e867490cb7b686",
+      "adapted_sha256": "43fe0f97d6129aa29ffe754026e6823c53b465192090c65b76694c960cc52398",
       "changes": [
         "namespace and dependency alignment",
         "test assertion scope",
         "PPTX engine-dependent integration/CFB tests retained for R2 in tests-upstream",
-        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests"
+        "R1: JoyOffice pinned APIs; scoped test/style lint adaptation; rustfmt/LF; see R1 evidence for renderer budgets, font asset replacement and deferred engine integration tests",
+        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure"
       ]
     },
     {
@@ -2182,6 +2183,16 @@
       "adapted_sha256": "192a3fbceff884eab87a2c9bad90c146bff6925fc16b468c749bfe6a43e69339",
       "changes": [
         "Extract original engine-dependent cfg(test) section; namespace normalization; retained for R2, not compiled or counted in R1"
+      ]
+    },
+    {
+      "source_path": "crates/engine/src/lib.rs",
+      "target_path": "crates/joydeck-engine/src/history_cost.rs",
+      "source_sha256": "5f9bfddf317c43c3ccc51a82b3fdca56ccd27420e5d68d9935fbae02d813175f",
+      "adapted_sha256": "52c51343889bf296269354f49a8c8ac9fa147f6e9257876a1ac50985de737908",
+      "changes": [
+        "Extract pure copy-on-write history memory estimation; no engine IO/PDF/media services imported",
+        "R2 shared preservation writer entry point or rustfmt; history cost extraction kept pure"
       ]
     }
   ]

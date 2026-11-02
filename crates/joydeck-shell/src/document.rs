@@ -33,14 +33,15 @@ impl Cancellation {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct SlideInfo {
     pub page: usize,
     pub title: String,
     pub shapes: usize,
     pub notes: String,
+    pub objects: Vec<serde_json::Value>,
 }
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DocumentInfo {
     pub name: String,
     pub format: String,
@@ -52,6 +53,7 @@ pub struct DocumentInfo {
     pub slides: Vec<SlideInfo>,
     pub warnings: Vec<String>,
 }
+#[derive(Clone)]
 pub struct Document {
     pub presentation: Presentation,
     /// Exact original package, including unsupported/unknown parts. R1 never writes it back.
@@ -85,6 +87,14 @@ impl Document {
             return Err("input exceeds 64 MiB".into());
         }
         cancel.check()?;
+        if crate::native::sniff(&bytes) {
+            let native = crate::native::load(&bytes, cancel)?;
+            let mut doc = Self::from_model(name, native.model)?;
+            doc.original = bytes.into();
+            doc.info.format = "joydeck".into();
+            doc.info.source_bytes = doc.original.len();
+            return Ok(doc);
+        }
         if joydeck_pptx::is_encrypted(&bytes) {
             return Err("encrypted Office files are not supported; decrypt a copy first".into());
         }
@@ -195,6 +205,7 @@ impl Document {
                 },
                 shapes: s.shapes.len(),
                 notes: s.notes.text(),
+                objects: objects(&p, i),
             })
             .collect();
         let info = DocumentInfo {
@@ -256,6 +267,71 @@ impl Document {
         }
         Ok(result)
     }
+}
+
+impl Document {
+    pub fn from_model(name: String, presentation: Presentation) -> Result<Self, String> {
+        let mut warnings = vec![];
+        audit_model(&presentation, &mut warnings, &Cancellation::default())?;
+        let info = DocumentInfo {
+            name,
+            format: "joydeck".into(),
+            read_only: false,
+            source_bytes: 0,
+            width_pt: presentation.slide_size.width,
+            height_pt: presentation.slide_size.height,
+            media: presentation.media.len(),
+            slides: presentation
+                .slides
+                .iter()
+                .enumerate()
+                .map(|(i, s)| SlideInfo {
+                    page: i + 1,
+                    title: {
+                        let t = s.title();
+                        if !t.is_empty() {
+                            t
+                        } else if !s.name.is_empty() {
+                            s.name.clone()
+                        } else {
+                            s.shapes
+                                .iter()
+                                .find_map(|shape| {
+                                    shape
+                                        .text
+                                        .as_ref()
+                                        .map(|t| t.text())
+                                        .filter(|t| !t.is_empty())
+                                })
+                                .unwrap_or_default()
+                                .chars()
+                                .take(80)
+                                .collect()
+                        }
+                    },
+                    shapes: s.shapes.len(),
+                    notes: s.notes.text(),
+                    objects: objects(&presentation, i),
+                })
+                .collect(),
+            warnings,
+        };
+        Ok(Self {
+            presentation,
+            original: Arc::from([]),
+            info,
+        })
+    }
+}
+
+fn objects(p: &Presentation, page: usize) -> Vec<serde_json::Value> {
+    let Some(s) = p.slides.get(page) else {
+        return vec![];
+    };
+    let Some(ctx) = joydeck_model::resolve::Ctx::for_slide(p, s) else {
+        return vec![];
+    };
+    s.shapes.iter().map(|shape|serde_json::json!({"id":shape.id.0,"name":shape.name,"kind":shape.kind_name(),"text":shape.text.as_ref().map(|t|t.text()),"transform":joydeck_model::resolve::xfrm(&ctx,shape),"locked":shape.locked})).collect()
 }
 
 fn audit_model(

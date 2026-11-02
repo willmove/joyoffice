@@ -29,7 +29,7 @@ def check_lock(lock):
 def main():
     lock = tomllib.loads((ROOT / 'Cargo.lock').read_text(encoding='utf-8'))
     errors = check_lock(lock)
-    for package in ['joydeck-cli', 'joydeck-shell', 'joydeck-color', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-pptx', 'joydeck-format']:
+    for package in ['joydeck-cli', 'joydeck-shell', 'joydeck-engine', 'joydeck-color', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-pptx', 'joydeck-format']:
         tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', package, '--edges', 'normal,build', '--prefix', 'none'], cwd=ROOT, encoding='utf-8')
         for line in tree.splitlines():
             name = line.split(' ', 1)[0]
@@ -38,6 +38,13 @@ def main():
     features = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', 'joydeck', '-e', 'features'], cwd=ROOT, encoding='utf-8')
     if 'gpui-fast' in features:
         errors.append('gpui-fast was enabled without a baseline change')
+    workspace = tomllib.loads((ROOT / 'Cargo.toml').read_text(encoding='utf-8'))
+    for name, pin in {'sha2': '=0.10.9', 'getrandom': '=0.3.4'}.items():
+        if workspace['workspace']['dependencies'][name] != pin:
+            errors.append(f'{name} must match the JoyOffice direct pin {pin}')
+    for path in (ROOT / 'crates/joydeck-engine/src').rglob('*.rs'):
+        if re.search(r'std::(?:fs|io|process)|joydeck_(?:pdf|media|shell)', path.read_text(encoding='utf-8')):
+            errors.append('IO/service dependency in pure engine: ' + str(path.relative_to(ROOT)))
     print('\n'.join(errors) if errors else 'Exact dependency baseline and CLI/core isolation passed')
     return bool(errors)
 

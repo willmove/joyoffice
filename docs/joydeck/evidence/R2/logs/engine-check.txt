@@ -1,0 +1,5 @@
+    Checking joydeck-color v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+    Checking joydeck-geom v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+    Checking joydeck-model v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+    Checking joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.26s

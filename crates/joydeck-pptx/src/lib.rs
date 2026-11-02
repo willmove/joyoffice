@@ -30,6 +30,8 @@ mod xml;
 pub use xml::{Doc as XmlDoc, El as XmlEl, parse as parse_xml};
 
 use joydeck_model::Presentation;
+mod preserve;
+pub use preserve::{SlideBinding, export_preserving};
 
 /// Extension URI of the PowerPoint 2010 section list in `presentation.xml`.
 pub(crate) const SECTION_EXT_URI: &str = "{521415D9-36F7-43E2-AB2F-B90AF26B5E84}";

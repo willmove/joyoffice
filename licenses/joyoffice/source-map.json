@@ -68,8 +68,8 @@
     "source_path": "scripts/joydeck/package-native.py",
     "target_path": "scripts/joydeck/package-native.py",
     "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
-    "adapted_sha256": "5e681d06476deebde4253bd06a4dae96b5ff0b36d5aa2fc83ddfb284bf8551b2",
-    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+    "adapted_sha256": "104aa5224a7488f7fbf1663da246137ca9df19486cab86e63264b144a8ad5a8e",
+    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
   },
   {
     "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
@@ -140,7 +140,23 @@
     "source_path": "apps/joydeck/src/viewer.rs",
     "target_path": "crates/joydeck-ui-gpui/src/viewer.rs",
     "source_sha256": "249104bdece51947664a50fe4b8166f358662e78d0000ed7d0024b10fade5584",
-    "adapted_sha256": "3f62eeb30f0a50fa4676b90407441003b1f51ed839a03b93addb259fb69c64e0",
-    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable"
+    "adapted_sha256": "5c65ab45194495c2e5307ee496cfb08e937280a5ccd031ca52628a10b741e45f",
+    "local_changes": "Reuse asynchronous read-only viewer, generation guards, cancellation, virtual thumbnail rail and bounded cache; adapt to DeckCraft model and shared CPU renderer; R1 branding and aspect fit; upstream validation modules deferred; R1 rustfmt and bounded reader/CPU-renderer/palette/notes adapters as applicable; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joydeck-platform/src/files.rs",
+    "target_path": "crates/joydeck-shell/src/platform.rs",
+    "source_sha256": "fa05e64cb6b044a0db850990889d8ead4b0012339aad9133ed9cb381d1485496",
+    "adapted_sha256": "ecb654f83c31f02277835b28a3a074679cd5e5382032ac6992c8fce9db865da3",
+    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "crates/joydeck-shell/src/storage.rs",
+    "target_path": "crates/joydeck-shell/src/storage.rs",
+    "source_sha256": "a13a4e50806f4c4e6b78c75208d11325254ffed035617e56336939f1221c7ebc",
+    "adapted_sha256": "9022822f880f3363b4487eb3f49d5fa8a3f3011d68470f0cd1b61cc11ea28836",
+    "local_changes": "R2 adapt bounded IO/fingerprints and leased revision recovery to encoded JoyDeck v2 packages; recovery indexes read under bound; tests replaced by new-model integration tests; R2 editable viewer adapter, background save/recovery, command-driven gestures, coordinate anchoring and close guard; rustfmt"
   }
 ]

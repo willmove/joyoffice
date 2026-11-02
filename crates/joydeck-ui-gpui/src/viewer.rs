@@ -19,11 +19,42 @@ use std::{
 actions!(
     viewer,
     [
-        Open, Cancel, Previous, Next, First, Last, ZoomIn, ZoomOut, Fit, Report
+        Open,
+        Cancel,
+        Previous,
+        Next,
+        First,
+        Last,
+        ZoomIn,
+        ZoomOut,
+        Fit,
+        Report,
+        Save,
+        UndoEdit,
+        RedoEdit,
+        NewDocument,
+        DeleteObject,
+        CloseEditor
     ]
 );
+#[path = "editor_actions.rs"]
+mod editing;
+
 type ImageKey = (u64, usize, u32);
 pub struct Viewer {
+    editor: Option<joydeck_shell::editor::Editor>,
+    save_input: Entity<InputState>,
+    text_input: Entity<InputState>,
+    save_task: Option<Task<()>>,
+    checkpoint_task: Option<Task<()>>,
+    recovery_rows: Option<Vec<joydeck_shell::storage::Entry>>,
+    refresh_pending: bool,
+    pending_save_path: Option<String>,
+    saving: bool,
+    close_after_save: bool,
+    canvas_bounds: Bounds<Pixels>,
+    drag: Option<editing::Drag>,
+    activation: Option<Subscription>,
     dark: bool,
     input: Entity<InputState>,
     focus: FocusHandle,
@@ -65,11 +96,29 @@ fn image_of(r: Raster) -> std::result::Result<Arc<RenderImage>, String> {
 }
 impl Viewer {
     fn new(dark: bool, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        let input =
-            cx.new(|cx| InputState::new(window, cx).placeholder("输入 .deckcraft / .pptx 路径"));
+        let input = cx.new(|cx| {
+            InputState::new(window, cx).placeholder("输入 .pptx / .joydeck / .deckcraft 路径")
+        });
         let focus = cx.focus_handle();
         focus.focus(window, cx);
         Self {
+            editor: None,
+            save_input: cx.new(|cx| {
+                InputState::new(window, cx).placeholder("另存路径 .pptx / .joydeck（新文件）")
+            }),
+            text_input: cx.new(|cx| {
+                InputState::new(window, cx).placeholder("选中文字对象后，在这里修改并应用")
+            }),
+            save_task: None,
+            checkpoint_task: None,
+            recovery_rows: None,
+            refresh_pending: false,
+            pending_save_path: None,
+            saving: false,
+            close_after_save: false,
+            canvas_bounds: Bounds::default(),
+            drag: None,
+            activation: None,
             dark,
             input,
             focus,
@@ -93,17 +142,20 @@ impl Viewer {
             thumbs_task: None,
             dialog_task: None,
             loading: false,
-            message: "选择本地文稿开始浏览 · 支持 .deckcraft v1 / PPTX 预览子集".into(),
+            message: "选择本地文稿开始编辑 · PPTX / JoyDeck v2 / DeckCraft 导入".into(),
             rasters: 0,
             started: Instant::now(),
         }
     }
     fn open(&mut self, _: &Open, _: &mut Window, cx: &mut Context<Self>) {
+        if self.block_replace(cx) {
+            return;
+        }
         let receiver = cx.prompt_for_paths(PathPromptOptions {
             files: true,
             directories: false,
             multiple: false,
-            prompt: Some("打开只读文稿".into()),
+            prompt: Some("打开文稿".into()),
         });
         self.dialog_task = Some(cx.spawn(async move |view, cx| {
             let result = receiver.await;
@@ -122,6 +174,10 @@ impl Viewer {
         }));
     }
     fn load(&mut self, path: PathBuf, cx: &mut Context<Self>) {
+        if self.block_replace(cx) {
+            return;
+        }
+
         self.read_cancel.store(true, Ordering::Relaxed);
         let cancel = Arc::new(AtomicBool::new(false));
         self.read_cancel = cancel.clone();
@@ -142,28 +198,59 @@ impl Viewer {
                                 .to_vec(),
                             &joydeck_shell::Cancellation::from_flag(cancel),
                         )
+                        .and_then(|doc| {
+                            joydeck_shell::editor::Editor::from_document(
+                                doc,
+                                joydeck_shell::editor::recovery_root(),
+                            )
+                        })
                     } else {
-                        joydeck_shell::Document::open(
+                        if cancel.load(Ordering::Relaxed) {
+                            return Err("operation cancelled".into());
+                        }
+                        joydeck_shell::editor::Editor::open(
                             &source,
-                            &joydeck_shell::Cancellation::from_flag(cancel),
+                            joydeck_shell::editor::recovery_root(),
                         )
                     }
                 })
                 .await;
             let _ = view.update(cx, |s, cx| {
                 if s.generation != generation {
-                    eprintln!("R1 stale_open_discarded=true");
+                    eprintln!("R2 stale_open_discarded=true");
                     return;
                 }
                 s.loading = false;
                 match result {
-                    Ok(deck) => {
+                    Ok(editor) => {
+                        let deck = match editor.display() {
+                            Ok(d) => d,
+                            Err(e) => {
+                                s.message = e;
+                                cx.notify();
+                                return;
+                            }
+                        };
+                        s.editor = Some(editor);
                         s.paint_cancel.store(true, Ordering::Relaxed);
                         s.thumbs_cancel.store(true, Ordering::Relaxed);
                         s.render_generation += 1;
                         let pages = deck.info.slides.len();
                         s.deck = Some(Arc::new(deck));
-                        s.source = Some(path);
+                        s.source = if path == std::path::Path::new("@bundled") {
+                            None
+                        } else {
+                            Some(path.clone())
+                        };
+                        let default = if path
+                            .extension()
+                            .is_some_and(|e| e == "pptx" || e == "joydeck")
+                        {
+                            path.to_string_lossy().into_owned()
+                        } else {
+                            "".to_string()
+                        };
+                        s.pending_save_path = Some(default);
                         s.page = 0;
                         s.zoom = None;
                         s.image = None;
@@ -175,19 +262,19 @@ impl Viewer {
                         s.thumbs_cancel = Arc::new(AtomicBool::new(false));
                         s.scroll.scroll_to_item(0, ScrollStrategy::Top);
                         s.message = format!(
-                            "读取完成 · {} 页 · {} ms · 只读",
+                            "读取完成 · {} 页 · {} ms · R2 编辑",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                         eprintln!(
-                            "R1 opened=true pages={} elapsed_ms={}",
+                            "R2 opened=true pages={} elapsed_ms={}",
                             pages,
                             s.started.elapsed().as_millis()
                         );
                     }
                     Err(error) => {
                         s.message = format!("打开失败：{error} · 当前文稿保持不变");
-                        eprintln!("R1 open_failed=true reason={error}");
+                        eprintln!("R2 open_failed=true reason={error}");
                     }
                 }
                 cx.notify();
@@ -196,6 +283,11 @@ impl Viewer {
         cx.notify();
     }
     fn cancel(&mut self, _: &Cancel, _: &mut Window, cx: &mut Context<Self>) {
+        if self.drag.take().is_some() {
+            self.message = "手势已取消，未修改文稿".into();
+            cx.notify();
+            return;
+        }
         if self.loading {
             self.read_cancel.store(true, Ordering::Relaxed);
             self.generation += 1;
@@ -213,6 +305,10 @@ impl Viewer {
                 self.pending = None;
             }
             self.page = page;
+            if let Some(editor) = &mut self.editor {
+                let _ = editor.session.select(page, vec![]);
+            }
+            self.drag = None;
             self.scroll.scroll_to_item(self.page, ScrollStrategy::Top);
             cx.notify();
         }
@@ -240,7 +336,7 @@ impl Viewer {
         };
         let sz = window.viewport_size();
         ((f32::from(sz.width) - 288.).max(64.) / (d.info.width_pt as f32))
-            .min((f32::from(sz.height) - 216.).max(64.) / (d.info.height_pt as f32))
+            .min((f32::from(sz.height) - 336.).max(64.) / (d.info.height_pt as f32))
             .clamp(0.01, 4.)
     }
     fn zoom_in(&mut self, _: &ZoomIn, w: &mut Window, cx: &mut Context<Self>) {
@@ -310,7 +406,7 @@ impl Viewer {
                         s.image = Some((key, r));
                         s.rasters += 1;
                         eprintln!(
-                            "R1 raster page={} width={} elapsed_ms={} count={}",
+                            "R2 raster page={} width={} elapsed_ms={} count={}",
                             key.1 + 1,
                             key.2,
                             started.elapsed().as_millis(),
@@ -384,7 +480,26 @@ impl Render for Viewer {
         } else {
             joyoffice_ui::Palette::light(joyoffice_ui::Brand::Deck)
         };
+        if let Some(path) = self.pending_save_path.take() {
+            self.save_input
+                .update(cx, |s, cx| s.set_value(path, window, cx));
+        }
+        if self.refresh_pending {
+            self.refresh_pending = false;
+            self.sync_editor(window, cx);
+        }
+        self.show_recoveries(window, cx);
         let scale = self.scale(window);
+        if let Some(e) = &self.editor {
+            window.set_window_title(&format!(
+                "JoyDeck · R2 · {}{}",
+                self.deck
+                    .as_ref()
+                    .map(|d| d.info.name.as_str())
+                    .unwrap_or("Untitled"),
+                if e.session.dirty() { " *" } else { "" }
+            ));
+        }
         let deck = self.deck.clone();
         if let Some(d) = &deck {
             self.request_image(
@@ -402,7 +517,7 @@ impl Render for Viewer {
             .unwrap_or_else(|| "未打开文稿".into());
         let sz = window.viewport_size();
         let aw = (f32::from(sz.width) - 224.).max(64.);
-        let ah = (f32::from(sz.height) - 152.).max(64.);
+        let ah = (f32::from(sz.height) - 272.).max(64.);
         let canvas = if let Some(d) = &deck {
             let (w, h) = (
                 (d.info.width_pt as f32) * scale,
@@ -432,6 +547,8 @@ impl Render for Viewer {
                         .justify_center()
                         .child(
                             div()
+                                .id("editable-page")
+                                .relative()
                                 .w(px(w))
                                 .h(px(h))
                                 .bg(rgb(0xffffff))
@@ -442,7 +559,26 @@ impl Render for Viewer {
                                         .w(px(w))
                                         .h(px(h))
                                         .object_fit(ObjectFit::Contain)
-                                })),
+                                }))
+                                .child(
+                                    canvas(
+                                        cx.processor(|s, bounds, _, _| {
+                                            s.canvas_bounds = bounds;
+                                        }),
+                                        |_, _, _, _| {},
+                                    )
+                                    .absolute()
+                                    .top_0()
+                                    .left_0()
+                                    .size_full(),
+                                )
+                                .children(self.selection_overlays(scale, palette.accent))
+                                .on_mouse_down(
+                                    MouseButton::Left,
+                                    cx.listener(move |s, event, w, cx| {
+                                        s.pointer_down(event, scale, w, cx)
+                                    }),
+                                ),
                         ),
                 )
                 .into_any_element()
@@ -485,6 +621,21 @@ impl Render for Viewer {
             } else {
                 "sans-serif"
             })
+            .on_action(cx.listener(Self::save))
+            .on_action(cx.listener(Self::undo_edit))
+            .on_action(cx.listener(Self::redo_edit))
+            .on_action(cx.listener(Self::new_document))
+            .on_action(cx.listener(Self::delete_object))
+            .on_action(cx.listener(Self::request_close))
+            .on_mouse_move(cx.listener(move |s, event, _, cx| s.pointer_move(event, scale, cx)))
+            .on_mouse_up(
+                MouseButton::Left,
+                cx.listener(move |s, event, w, cx| s.pointer_up(event, scale, w, cx)),
+            )
+            .on_mouse_up_out(
+                MouseButton::Left,
+                cx.listener(move |s, event, w, cx| s.pointer_up(event, scale, w, cx)),
+            )
             .on_action(cx.listener(Self::open))
             .on_action(cx.listener(Self::cancel))
             .on_action(cx.listener(Self::previous))
@@ -514,15 +665,16 @@ impl Render for Viewer {
                                 div()
                                     .text_lg()
                                     .text_color(rgb(palette.accent))
-                                    .child("JoyDeck · R1"),
+                                    .child("JoyDeck · R2"),
                             )
                             .child(div().text_sm().text_ellipsis().child(source))
-                            .child(
-                                div()
-                                    .text_xs()
-                                    .text_color(rgb(palette.accent))
-                                    .child("只读预览"),
-                            ),
+                            .child(div().text_xs().text_color(rgb(palette.accent)).child(
+                                if self.editor.as_ref().is_some_and(|e| e.session.dirty()) {
+                                    "未保存"
+                                } else {
+                                    "无修改"
+                                },
+                            )),
                     )
                     .child(
                         div()
@@ -603,6 +755,7 @@ impl Render for Viewer {
                             .on_click(cx.listener(|s, _, w, cx| s.cancel(&Cancel, w, cx))),
                     ),
             )
+            .child(self.edit_toolbar(window, cx))
             .child(
                 div()
                     .flex_1()
@@ -743,6 +896,15 @@ impl Render for Viewer {
 pub fn bind(cx: &mut App) {
     cx.bind_keys([
         KeyBinding::new("ctrl-o", Open, Some("Viewer")),
+        KeyBinding::new("ctrl-s", Save, Some("Viewer")),
+        KeyBinding::new("cmd-s", Save, Some("Viewer")),
+        KeyBinding::new("ctrl-z", UndoEdit, Some("Viewer && !Input")),
+        KeyBinding::new("ctrl-y", RedoEdit, Some("Viewer && !Input")),
+        KeyBinding::new("ctrl-shift-z", RedoEdit, Some("Viewer && !Input")),
+        KeyBinding::new("delete", DeleteObject, Some("Viewer && !Input")),
+        KeyBinding::new("ctrl-n", NewDocument, Some("Viewer && !Input")),
+        KeyBinding::new("ctrl-q", CloseEditor, Some("Viewer")),
+        KeyBinding::new("cmd-q", CloseEditor, Some("Viewer")),
         KeyBinding::new("cmd-o", Open, Some("Viewer")),
         KeyBinding::new("escape", Cancel, Some("Viewer")),
         KeyBinding::new("pageup", Previous, Some("Viewer && !Input")),
@@ -761,7 +923,7 @@ pub fn open_window(
     dimensions: (f32, f32),
     cx: &mut App,
 ) -> Result<(AnyWindowHandle, Entity<Viewer>)> {
-    gpui_kit::open_window(
+    let result = gpui_kit::open_window(
         WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
                 None,
@@ -773,10 +935,55 @@ pub fn open_window(
         },
         cx,
         move |w, cx| {
-            w.set_window_title("JoyDeck · R1 真实文稿预览");
-            cx.new(|cx| Viewer::new(dark, w, cx))
+            w.set_window_title("JoyDeck · R2 编辑器");
+            let view = cx.new(|cx| Viewer::new(dark, w, cx));
+            view.update(cx, |s, cx| {
+                s.activation = Some(cx.observe_window_activation(w, |s, w, cx| {
+                    if !w.is_window_active() && s.drag.take().is_some() {
+                        s.message = "失焦，手势已取消".into();
+                        cx.notify();
+                    }
+                }));
+            });
+            let weak = view.downgrade();
+            w.on_window_should_close(cx, move |w, cx| {
+                weak.update(cx, |s, cx| {
+                    if s.editor.as_ref().is_some_and(|e| e.session.dirty()) || s.saving {
+                        s.request_close(&CloseEditor, w, cx);
+                        false
+                    } else {
+                        true
+                    }
+                })
+                .unwrap_or(true)
+            });
+            view
         },
-    )
+    );
+    if let Ok((handle, view)) = &result {
+        cx.set_global(ActiveEditor {
+            window: *handle,
+            view: view.downgrade(),
+        });
+    }
+    result
+}
+#[derive(Clone)]
+struct ActiveEditor {
+    window: AnyWindowHandle,
+    view: WeakEntity<Viewer>,
+}
+impl Global for ActiveEditor {}
+pub fn quit(cx: &mut App) {
+    if let Some(active) = cx.try_global::<ActiveEditor>().cloned() {
+        let _ = active.window.update(cx, |_, w, cx| {
+            active
+                .view
+                .update(cx, |s, cx| s.request_close(&CloseEditor, w, cx))
+        });
+    } else {
+        cx.quit();
+    }
 }
 pub fn load_path(view: &Entity<Viewer>, path: PathBuf, cx: &mut App) {
     view.update(cx, |s, cx| s.load(path, cx));
