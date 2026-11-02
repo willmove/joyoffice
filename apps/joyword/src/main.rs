@@ -587,6 +587,8 @@ struct JoyWord {
     format_dialog: Option<FormatDialog>,
     format_dialog_focused: bool,
     path_sheet: Option<linux_files::PathSheet>,
+    /// Identity of the pending Linux system file chooser, if any.
+    linux_open_picker: Option<Arc<()>>,
     view_toggles: joyword_shell::dialogs::ViewToggles,
     ruler_bounds: std::sync::Arc<std::sync::Mutex<Option<Bounds<gpui::Pixels>>>>,
     ruler_drag: Option<(RulerHit, gpui::Point<gpui::Pixels>, Bounds<gpui::Pixels>)>,
@@ -2327,6 +2329,7 @@ fn main() {
                             format_dialog: None,
                             format_dialog_focused: false,
                             path_sheet: None,
+                            linux_open_picker: None,
                             view_toggles: joyword_shell::dialogs::ViewToggles::default(),
                             ruler_bounds: std::sync::Arc::new(std::sync::Mutex::new(None)),
                             ruler_drag: None,

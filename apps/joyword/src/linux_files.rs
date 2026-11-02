@@ -1,11 +1,11 @@
 //! Linux file entry when GPUI does not draw a menu bar.
 //!
-//! `gpui-pre-linux` 0.3.9 stores `set_menus` and never paints them. Its file
-//! prompt waits on the XDG desktop portal with no timeout; on UKUI/X11 that
-//! request can return nothing and show no window. Open, save-copy and export
-//! therefore ask for a path inside the window. Browse tries zenity, qarma,
-//! then kdialog, and leaves the typed path usable when those programs are
-//! missing or fail.
+//! Open first uses GPUI's XDG FileChooser portal so the desktop provides its
+//! own file selection UI. If the portal reports an error, the in-window path
+//! sheet and zenity/qarma/kdialog remain available as fallbacks. Save-copy and
+//! export retain their existing path sheets. A cancelled system chooser never
+//! triggers the fallback. Missing or unresponsive portal backends still need
+//! desktop-specific validation; this module does not replace the desktop UI.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;

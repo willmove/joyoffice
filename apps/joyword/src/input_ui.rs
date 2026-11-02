@@ -2756,12 +2756,7 @@ impl JoyWord {
     }
     fn pick_open(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if crate::linux_files::window_needs_command_bar() {
-            self.show_path_sheet(
-                crate::linux_files::PathRole::Open,
-                String::new(),
-                window,
-                cx,
-            );
+            self.pick_linux_open(false, window, cx);
             return;
         }
         let receiver = cx.prompt_for_paths(gpui::PathPromptOptions {
@@ -2783,7 +2778,75 @@ impl JoyWord {
             open_chosen_path(view, cx, path).await;
         }));
     }
+    fn pick_linux_open(
+        &mut self,
+        from_path_sheet: bool,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.linux_open_picker.is_some() {
+            return;
+        }
+        let request = Arc::new(());
+        self.linux_open_picker = Some(request.clone());
+        let receiver = cx.prompt_for_paths(gpui::PathPromptOptions {
+            files: true,
+            directories: false,
+            multiple: false,
+            prompt: Some(
+                self.label("command.file.open")
+                    .trim_end_matches(['.', '…'])
+                    .to_owned()
+                    .into(),
+            ),
+        });
+        self.close_task = Some(cx.spawn_in(window, async move |view, cx| {
+            let result = receiver.await;
+            let _ = view.update_in(cx, |view, window, cx| {
+                if !view
+                    .linux_open_picker
+                    .as_ref()
+                    .is_some_and(|current| Arc::ptr_eq(current, &request))
+                {
+                    return;
+                }
+                view.linux_open_picker = None;
+                window.focus(&view.focus_handle, cx);
+                match result {
+                    Ok(Ok(Some(mut paths))) if !paths.is_empty() => {
+                        view.path_sheet = None;
+                        if let Some(path) = paths.pop() {
+                            view.begin_open_path(path, cx);
+                        }
+                    }
+                    Ok(Ok(_)) => {
+                        // Cancelling the system chooser does not open another dialog.
+                        if from_path_sheet && let Some(sheet) = &view.path_sheet {
+                            window.focus(&sheet.focus, cx);
+                        }
+                    }
+                    error => {
+                        log::warn!("System file chooser unavailable: {error:?}");
+                        if !from_path_sheet {
+                            view.show_path_sheet(
+                                crate::linux_files::PathRole::Open,
+                                String::new(),
+                                window,
+                                cx,
+                            );
+                        } else if let Some(sheet) = &view.path_sheet {
+                            window.focus(&sheet.focus, cx);
+                        }
+                        // Desktop helpers are a fallback for desktops without a portal.
+                        view.browse_path_helper(window, cx);
+                    }
+                }
+                cx.notify();
+            });
+        }));
+    }
     fn begin_open_path(&mut self, path: std::path::PathBuf, cx: &mut Context<Self>) {
+        self.linux_open_picker = None;
         self.close_task = Some(cx.spawn(async move |view, cx| {
             open_chosen_path(view, cx, path).await;
         }));
@@ -2825,7 +2888,8 @@ impl JoyWord {
             draft: crate::field_edit::FieldBuffer::from_text(draft),
             focus: focus.clone(),
             note: None,
-            browse: crate::linux_files::dialog_program_available(),
+            browse: role == crate::linux_files::PathRole::Open
+                || crate::linux_files::dialog_program_available(),
             browsing: false,
         });
         window.focus(&focus, cx);
@@ -2998,6 +3062,7 @@ impl JoyWord {
         }
     }
     pub(crate) fn cancel_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.linux_open_picker = None;
         self.path_sheet = None;
         window.focus(&self.focus_handle, cx);
         cx.notify();
@@ -3057,6 +3122,17 @@ impl JoyWord {
         }
     }
     fn browse_path_sheet(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self
+            .path_sheet
+            .as_ref()
+            .is_some_and(|sheet| sheet.role == crate::linux_files::PathRole::Open)
+        {
+            self.pick_linux_open(true, window, cx);
+        } else {
+            self.browse_path_helper(window, cx);
+        }
+    }
+    fn browse_path_helper(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let Some(sheet) = &mut self.path_sheet else {
             return;
         };
@@ -3064,6 +3140,7 @@ impl JoyWord {
             return;
         }
         sheet.browsing = true;
+        let focus = sheet.focus.clone();
         let role = sheet.role;
         let draft = sheet.draft.text().to_owned();
         let (directory, suggested) = path_suggestion(&draft);
@@ -3074,7 +3151,13 @@ impl JoyWord {
                 })
                 .await;
             let _ = view.update_in(cx, |view, window, cx| {
-                view.linux_dialog_finished(picked, window, cx);
+                if view
+                    .path_sheet
+                    .as_ref()
+                    .is_some_and(|sheet| sheet.focus == focus)
+                {
+                    view.linux_dialog_finished(picked, window, cx);
+                }
             });
         })
         .detach();
@@ -3107,7 +3190,7 @@ impl JoyWord {
             crate::linux_files::LinuxPick::Unavailable => {
                 if let Some(sheet) = &mut self.path_sheet {
                     sheet.browsing = false;
-                    sheet.browse = false;
+                    sheet.browse = sheet.role == crate::linux_files::PathRole::Open;
                     sheet.note = Some(
                         Catalog::shipped(self.locale)
                             .format("file.open.error", &[("reason", "dialog")]),
