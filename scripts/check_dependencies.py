@@ -29,15 +29,16 @@ def check_lock(lock):
 def main():
     lock = tomllib.loads((ROOT / 'Cargo.lock').read_text(encoding='utf-8'))
     errors = check_lock(lock)
-    tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', 'joydeck-cli', '--edges', 'normal,build', '--prefix', 'none'], cwd=ROOT, encoding='utf-8')
-    for line in tree.splitlines():
-        name = line.split(' ', 1)[0]
-        if 'gpui' in name or name.startswith(('joyword', 'joysheet')):
-            errors.append('CLI acquired a GUI/other-product dependency: ' + name)
+    for package in ['joydeck-cli', 'joydeck-color', 'joydeck-geom', 'joydeck-model']:
+        tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', package, '--edges', 'normal,build', '--prefix', 'none'], cwd=ROOT, encoding='utf-8')
+        for line in tree.splitlines():
+            name = line.split(' ', 1)[0]
+            if 'gpui' in name or name.startswith(('joyword', 'joysheet')):
+                errors.append(f'{package} acquired a GUI/other-product dependency: ' + name)
     features = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', 'joydeck', '-e', 'features'], cwd=ROOT, encoding='utf-8')
     if 'gpui-fast' in features:
         errors.append('gpui-fast was enabled without a baseline change')
-    print('\n'.join(errors) if errors else 'Exact dependency baseline and CLI isolation passed')
+    print('\n'.join(errors) if errors else 'Exact dependency baseline and CLI/core isolation passed')
     return bool(errors)
 
 

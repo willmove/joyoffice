@@ -22,6 +22,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - run: cargo fetch --locked
       - run: cargo xtask check joydeck --headless
   desktop:
     strategy:
@@ -41,6 +42,7 @@ jobs:
       - if: runner.os == 'macOS'
         run: xcrun --find metal
       - run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - run: cargo fetch --locked
       - run: cargo xtask check joydeck
       - run: cargo xtask build joydeck
       - run: cargo xtask package joydeck --release

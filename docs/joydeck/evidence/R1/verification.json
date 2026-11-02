@@ -1,0 +1,20 @@
+{
+  "scope": "R1 foundation libraries only; desktop remains R0",
+  "crates": [
+    "joydeck-color",
+    "joydeck-geom",
+    "joydeck-model"
+  ],
+  "imported_files": 31,
+  "upstream_core_tests": 167,
+  "product_rust_tests": 170,
+  "headless_rust_tests": 169,
+  "python_regressions": 5,
+  "fmt": "pass",
+  "strict_clippy": "pass",
+  "desktop_build": "pass",
+  "source_hashes": "pass",
+  "cli_core_gui_isolation": "pass",
+  "new_document_import_or_editing": false,
+  "original_source_fingerprints_unchanged": 125
+}

@@ -2,6 +2,8 @@
 
 2026-11-02，当前为 R0 Windows 原生技术预览。应用和 CLI 均由当前 workspace 编译，使用 JoyOffice 固定的 Rust 1.98.1、GPUI Kit 0.8.1、GPUI pre 0.3.10。
 
+R1 首批底座已迁入 `joydeck-color`、`joydeck-geom`、`joydeck-model`，对应 31 个源码/manifest 文件；167 项上游核心测试保留并通过。它们与 CLI 均通过无 GPUI 依赖检查，桌面功能范围仍为 R0。详见 [R1 底座记录](evidence/R1/README.md)。
+
 ## 已实现
 
 - 独立 workspace、无 GUI 的 shell/CLI、GPUI 视图 crate 和产品工程工具。
@@ -20,4 +22,4 @@ macOS/Linux 原生构建、窗口、IME 及远端三平台 CI 尚未执行；CI 
 
 ## 下一阶段
 
-接入 DeckCraft 核心时，先完成依赖顺序迁移、字体 fallback 脱离 epaint、包读取预算与 CPU 参考渲染，再接入真实文稿打开/取消、页缩略图及 CLI inspect/render。对应 JD-100–JD-108。保留当前 R0 包作为可运行检查点。
+继续 JD-100–JD-108：完成其余核心的依赖顺序迁移、字体 fallback 脱离 epaint、包读取预算与 CPU 参考渲染，再接入真实文稿打开/取消、页缩略图及 CLI inspect/render。已迁移的三个底层库不代表查看器完成。保留 R0 包及本地提交 `95b84eb` 作为可运行检查点。

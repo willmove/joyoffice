@@ -46,5 +46,29 @@
     "source_sha256": "d617723255026cf380ddb6345600ce808a4ee807d8ed4af84dbb12de299055a7",
     "local_changes": "CRLF normalized to LF; content otherwise unchanged",
     "adapted_sha256": "5d3826ac032e813fb983a25310023908f5e31575856fedd5b30c5d23b864afda"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "scripts/joydeck/dev.ps1",
+    "target_path": "scripts/joydeck/dev.ps1",
+    "source_sha256": "56e10e1049fbad22e7e2738410cf775ac98928538e36ecc891360d99872b1ddc",
+    "adapted_sha256": "ade94fcdcd9341edb41df4281ac08730b922bc63531cc440fcb8233776ee910a",
+    "local_changes": "adapt standalone engineering command routing; reuse Visual Studio CMake discovery; LF"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "tools/xtask/src/main.rs",
+    "target_path": "tools/xtask/src/main.rs",
+    "source_sha256": "9553100b00664b64f237a20286eb5a7f686bda4b365faa2d7b2a607e360fc4c4",
+    "adapted_sha256": "992c1d8a84774a8c80ec410deb44168f48d2f70b2611f0a2fc9599a54b5a398c",
+    "local_changes": "adapt caller-workspace and Python engineering bridge for standalone JoyDeck; LF"
+  },
+  {
+    "source_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "source_path": "scripts/joydeck/package-native.py",
+    "target_path": "scripts/joydeck/package-native.py",
+    "source_sha256": "a4ae844b6c2488524872bc69e418673dce6cd1599530447e9efc54ab6be1398e",
+    "adapted_sha256": "8b75d8c29b4de18beb1aaf983d2a33dd1e530100fff004edf4329d99287eda99",
+    "local_changes": "adapt product packaging and Cargo artifact discovery; add source checks, selected SBOM and atomic ZIP; LF"
   }
 ]

@@ -1,4 +1,4 @@
-"""Verify imported JoyOffice files against their recorded adaptation hashes."""
+"""Verify imported source files against their recorded adaptation hashes."""
 import hashlib
 import json
 from pathlib import Path
@@ -9,6 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     records = json.loads((ROOT / 'licenses/joyoffice/source-map.json').read_text(encoding='utf-8'))
+    deckcraft = ROOT / 'licenses/deckcraft/file-map.json'
+    if deckcraft.is_file():
+        records += json.loads(deckcraft.read_text(encoding='utf-8'))['files']
     errors = []
     for record in records:
         path = (ROOT / record['target_path']).resolve()

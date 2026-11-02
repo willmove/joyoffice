@@ -1,0 +1,203 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running unittests src\lib.rs (target\debug\deps\joydeck_color-69d53177d0b9c9b4.exe)
+
+running 7 tests
+test tests::contrast_ratio ... ok
+test tests::from_hex_rejects_multiple_hashes ... ok
+test tests::hex_roundtrip ... ok
+test tests::hsl_roundtrip ... ok
+test tests::scheme_slots ... ok
+test tests::from_hex_rejects_signs ... ok
+test tests::transforms ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_geom-7e5d36590c2c54ce.exe)
+
+running 62 tests
+test morph::tests::contours_turn_lines_and_quads_into_cubics ... ok
+test morph::tests::refine_splits_the_longest_curves_and_keeps_the_shape ... ok
+test morph::tests::scales_bring_both_sides_into_the_current_box ... ok
+test preset::extra::tests::arrow_callouts_match_reference_points ... ok
+test morph::tests::extra_sub_paths_grow_out_of_a_point ... ok
+test morph::tests::differing_looks_cross_fade ... ok
+test preset::extra::tests::new_presets_are_in_the_catalog ... ok
+test preset::extra::tests::line_callouts_follow_their_adjusts ... ok
+test preset::extra::tests::circular_arrows_match_reference_points ... ok
+test morph::tests::ellipse_turns_into_a_star_and_lands_exactly ... ok
+test preset::extra::tests::curved_arrows_match_reference_points ... ok
+test morph::tests::triangle_does_not_twist_into_a_circle ... ok
+test preset::extra::tests::gears_and_funnel_match_reference_points ... ok
+test morph::tests::empty_and_degenerate_geometries_do_not_crash ... ok
+test preset::extra::tests::simple_new_presets_match_reference_points ... ok
+test preset::extra::tests::swoosh_matches_reference_points ... ok
+test preset::tests::brackets_and_braces_fill_out_to_their_straight_side ... ok
+test preset::tests::catalog_names_are_unique ... ok
+test preset::extra::tests::ribbons_match_reference_points ... ok
+test preset::tests::equation_shapes_match_powerpoints_outlines ... ok
+test preset::tests::fixed_shapes_follow_the_standards_coordinates ... ok
+test preset::tests::moon_disk_and_drum_match_powerpoints_outlines ... ok
+test preset::tests::lines_are_open ... ok
+test preset::tests::notched_arrow_notch_parallels_the_head ... ok
+test preset::tests::partial_circle_angle_handles_map_back ... ok
+test preset::tests::round_rect_handle_maps_back ... ok
+test preset::tests::rect_area_and_ellipse_area ... ok
+test preset::tests::spec_arcs_take_angles_as_directions_from_the_centre ... ok
+test preset::tests::presets_with_adjust_values_expose_handles ... ok
+test preset::tests::star_text_rectangles_follow_the_standard ... ok
+test preset::tests::stars_are_stretched_like_the_standards ... ok
+test preset::tests::sun_and_waves_match_powerpoints_outlines ... ok
+test squircle::tests::edge_curve_meets_the_arc ... ok
+test squircle::tests::four_symmetric_corners ... ok
+test preset::tests::the_cloud_fills_its_box_at_any_aspect_and_has_creases ... ok
+test squircle::tests::no_radius_is_a_rectangle ... ok
+test preset::tests::wedge_callout_mirrors_with_its_tip ... ok
+test squircle::tests::smoothing_uses_more_of_the_edge ... ok
+test squircle::tests::zero_smoothing_is_a_circular_corner ... ok
+test squircle::tests::stays_inside_and_reduces_smoothing_when_the_rectangle_is_small ... ok
+test tests::emu_roundtrip_is_exact ... ok
+test tests::flips_mirror_local_space ... ok
+test tests::segment_distance ... ok
+test tests::group_child_mapping ... ok
+test tests::unit_parse_and_format ... ok
+test tests::xfrm_affine_rotation_about_center ... ok
+test warp::tests::arch_and_inflate_handles_follow_the_pointer ... ok
+test preset::tests::hostile_adjust_values_never_panic ... ok
+test warp::tests::catalog_is_the_forty_drawn_presets ... ok
+test warp::tests::every_preset_has_one_handle_per_adjust ... ok
+test warp::tests::deflate_inflate_maps_each_band_separately ... ok
+test warp::tests::guides_extrapolate_and_wrap ... ok
+test warp::tests::lines_share_bands_in_order ... ok
+test warp::tests::follow_presets_keep_text_size_and_stack_lines_outwards ... ok
+test warp::tests::every_preset_builds_finite_guides ... ok
+test warp::tests::arc_presets_follow_ellipses ... ok
+test warp::tests::curved_presets_bend_where_powerpoint_bends_them ... ok
+test preset::tests::every_catalog_preset_builds_within_bounds ... ok
+test warp::tests::straight_presets_put_the_ink_corners_on_their_guides ... ok
+test preset::extra::tests::new_presets_build_within_bounds_at_many_sizes_and_adjusts ... ok
+test morph::tests::long_contours_sample_their_start_points ... ok
+test warp::tests::hostile_adjusts_and_boxes_stay_finite ... ok
+
+test result: ok. 62 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_model-3f9ad2c38a0a1dbf.exe)
+
+running 98 tests
+test bidi::tests::detects_arabic_and_kurdish ... ok
+test bidi::tests::detects_hebrew ... ok
+test anim::option_label_tests::transition_option_labels ... ok
+test bidi::tests::detects_latin_as_not_rtl ... ok
+test bidi::tests::skips_neutrals_numbers_and_whitespace ... ok
+test anim::build_role_tests::blank_and_deeper_paragraphs_follow_the_top_one_before_them ... ok
+test chart::chartex_tests::box_stats_use_exclusive_quartiles_and_fence_outliers ... ok
+test chart::tests::a_forecast_grows_the_value_axis ... ok
+test chart::chartex_tests::category_tree_groups_runs_and_fills_blank_parents ... ok
+test chart::chartex_tests::histogram_fixed_bin_count_is_exact_despite_float_rounding ... ok
+test chart::chartex_tests::histogram_bins_by_count_size_and_scott ... ok
+test chart::chartex_tests::histogram_value_on_a_bin_edge_counts_in_that_bin ... ok
+test chart::chartex_tests::inclusive_quartiles_follow_quartile_inc ... ok
+test chart::chartex_tests::pareto_view_sorts_bins_and_adds_the_cumulative_line ... ok
+test bidi::tests::honours_directional_marks ... ok
+test chart::chartex_tests::box_groups_follow_category_labels ... ok
+test chart::tests::automatic_axis_matches_office ... ok
+test chart::tests::automatic_axis_minimum ... ok
+test chart::tests::fixed_axis_limits_are_kept ... ok
+test chart::tests::axis_labels_use_the_format_and_language ... ok
+test chart::tests::degenerate_axes_are_finite ... ok
+test chart::tests::error_bar_ranges ... ok
+test chart::tests::automatic_axis_scales_like_powerpoint ... ok
+test chart::tests::full_percent_axes_count_in_percent ... ok
+test chart::tests::nice_scale_covers ... ok
+test chart::tests::general_labels_keep_every_digit_the_data_has ... ok
+test chart::tests::log_axes_run_over_whole_powers ... ok
+test chart::tests::percent_axis_is_zero_to_one ... ok
+test chart::tests::tiny_data_keeps_its_own_scale ... ok
+test chart::tests::sample_ranges ... ok
+test chart::tests::combo_axis_ranges ... ok
+test chart::tests::subnormal_data_gives_a_finite_scale ... ok
+test chart::tests::series_data_labels_override_the_chart_wide_setting ... ok
+test edit::tests::case_cycle ... ok
+test edit::tests::line_break_insert ... ok
+test edit::tests::ctrl_backspace_like_powerpoint ... ok
+test edit::tests::insert_and_split ... ok
+test edit::tests::format_splits_runs ... ok
+test edit::tests::paragraph_moves ... ok
+test edit::tests::words_and_moves ... ok
+test numfmt::tests::blank_whole_codes_and_general_keep_their_fallback ... ok
+test edit::tests::replace_text_crlf_matches_from_text ... ok
+test edit::tests::delete_within_and_across ... ok
+test numfmt::tests::common_codes ... ok
+test numfmt::tests::explicit_empty_sections_hide_their_values ... ok
+test edit::tests::ctrl_delete_like_powerpoint ... ok
+test numfmt::tests::russian_accounting_roubles ... ok
+test edit::tests::replace_text_keeps_formatting ... ok
+test numfmt::tests::scientific_formats ... ok
+test numfmt::tests::never_panics ... ok
+test numfmt::tests::scientific_subnormal ... ok
+test table::tests::deleting_the_only_row_or_column_of_a_merge_removes_it ... ok
+test table::tests::insert_delete_merge_split ... ok
+test numfmt::tests::trailing_commas_with_decimals ... ok
+test table::tests::inserting_inside_a_merge_grows_it ... ok
+test table::tests::merging_over_an_existing_merge_takes_it_in ... ok
+test table::tests::split_ignores_spans_past_the_table ... ok
+test tests::builtin_themes_have_distinct_names ... ok
+test table::tests::deleting_the_anchor_row_or_column_keeps_the_text ... ok
+test tests::group_find_and_walk ... ok
+test tests::ink_width_follows_pressure_and_keeps_the_old_placeholder ... ok
+test tests::only_web_and_mail_links_are_safe_to_open ... ok
+test tests::body_levels_from_master ... ok
+test tests::a_gradient_without_stops_takes_them_from_its_style ... ok
+test tests::sibling_lists_and_parents_reach_into_groups ... ok
+test tests::text_body_helpers ... ok
+test tests::exhausted_id_space_allocates_nothing ... ok
+test trendline::tests::equation_keeps_tiny_coefficients ... ok
+test trendline::tests::exp_log_power_and_quadratic_round_their_points ... ok
+test tests::a_layout_colour_map_override_applies_to_its_slides ... ok
+test text::tests::explicit_bullet_follow_text_resets_block_inheritance ... ok
+test trendline::tests::linear_fits_tiny_x_values ... ok
+test trendline::tests::linear_fits_offset_but_narrow_x_range ... ok
+   Doc-tests joydeck_color
+test trendline::tests::linear_rejects_constant_x_with_large_offset ... ok
+test trendline::tests::moving_average_and_forecast_span ... ok
+test trendline::tests::linear_fixed_intercept_on_offset_narrow_x_range ... ok
+test tests::new_presentation_is_valid ... ok
+test tests::four_by_three_master_scales ... ok
+test trendline::tests::linear_fixed_intercept_rejects_overflowing_x ... ok
+test tests::shape_style_fill_resolves_through_theme ... ok
+test trendline::tests::linear_recovers_slope_and_a_fixed_intercept ... ok
+test tests::table_text_takes_the_masters_other_style_and_shapes_the_default_text_style ... ok
+test trendline::tests::moving_average_shows_neither_equation_nor_r2 ... ok
+test trendline::tests::too_few_points_and_non_finite_input_fit_nothing ... ok
+test tests::placeholder_inherits_position_and_styles ... ok
+test words::tests::cjk_each_character ... ok
+test tests::ids_are_unique_and_fix_next_id ... ok
+test table::tests::row_and_column_edits_keep_merges_consistent ... ok
+test words::tests::double_click_word ... ok
+test words::tests::delete_forward_extent ... ok
+test words::tests::next_and_prev ... ok
+test words::tests::rtl_words_in_logical_order ... ok
+test words::tests::hyphens_apostrophes_numbers ... ok
+test words::tests::marks_emoji_symbols ... ok
+test words::tests::punctuation_and_spaces ... ok
+test tests::hyperlinked_runs_take_the_theme_hyperlink_look ... ok
+test words::tests::tabs_breaks_and_other_spaces ... ok
+test tests::serde_roundtrip ... ok
+
+test result: ok. 98 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_geom
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_model
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

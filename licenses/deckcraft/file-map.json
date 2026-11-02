@@ -1,0 +1,404 @@
+{
+  "upstream_snapshot_inventory": "source-inventory.json",
+  "selected_license": "MIT",
+  "files": [
+    {
+      "source_path": "crates/color/Cargo.toml",
+      "source_sha256": "a40ec478be86aa7afa1c445ae975a6fad88ccafcebdc7e09ddfd1e170f76c707",
+      "target_path": "crates/joydeck-color/Cargo.toml",
+      "adapted_sha256": "a65ac11c1e4dd642932680258f66bdc7b5885a9bb6a7d45edf6261d2b9c69524",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "inherit JoyOffice Rust/repository metadata and keep package private"
+      ]
+    },
+    {
+      "source_path": "crates/color/src/lib.rs",
+      "source_sha256": "93b024e9e9031f8cb1ac73dd4a325ce23099a4e4b1ebd347c085f2674b21addc",
+      "target_path": "crates/joydeck-color/src/lib.rs",
+      "adapted_sha256": "03596e80002915146e1a49abf4a9cce502bf218649c50283e3c5dd1582f2e2ea",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "preserve upstream rgba constructor with local Clippy style annotation",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/geom/Cargo.toml",
+      "source_sha256": "7424df077a7ef2d5eb9fbc35a723f66c59aaefcdbd9803fa001f455b1c31b3b8",
+      "target_path": "crates/joydeck-geom/Cargo.toml",
+      "adapted_sha256": "56eef0769884043955e5c80132f51ae3f514fac0d1c1982f6816b167af723634",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "inherit JoyOffice Rust/repository metadata and keep package private"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/lib.rs",
+      "source_sha256": "28929d4b6a2f93a402ffb96d4193beaa2b7dc3040ab700e2e70dbb0909e55449",
+      "target_path": "crates/joydeck-geom/src/lib.rs",
+      "adapted_sha256": "42a142cbdd3384f81f49177c24d91a05214bac893924af5b956279899c399e8e",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/morph.rs",
+      "source_sha256": "38435f8a08bc23ddd27f8914ce002b4810b3a3bf39d3be27a4ff2de557ec0435",
+      "target_path": "crates/joydeck-geom/src/morph.rs",
+      "adapted_sha256": "ff3f67b8b111f50de7c11e042473ebc60ceaf0c2ba9d5a0f9ee13b4322701cc9",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/build.rs",
+      "source_sha256": "0f20c9e24506d28aaa495311d6d653279dcd297f898e5d10104bc2526ab8b154",
+      "target_path": "crates/joydeck-geom/src/preset/build.rs",
+      "adapted_sha256": "6906cb3da000efe18cd1ceab77218c95e2253862ce6991bbe714095a8c0c36d8",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/builder.rs",
+      "source_sha256": "26d0f06d29087a8ac5895105d80a32884ef4c7212ca6628ab6c42331991054ae",
+      "target_path": "crates/joydeck-geom/src/preset/builder.rs",
+      "adapted_sha256": "5d2b557f93dcf6ec92a982ecd95ba60266a522d025609b30f33afc62496b82fa",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/catalog.rs",
+      "source_sha256": "20743d98648bcf7ff0fd56694cc1ecb941d7b3f4b8fe6494ece25278741ff4c7",
+      "target_path": "crates/joydeck-geom/src/preset/catalog.rs",
+      "adapted_sha256": "b95c8f517964c462a6f1162b99a2239372bbca08dbb3f22f7b45e7a6206abc5c",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/extra.rs",
+      "source_sha256": "8c93e1910fe4326296182a582be0a776f7ac6a3644b349110895319d7b8a01f9",
+      "target_path": "crates/joydeck-geom/src/preset/extra.rs",
+      "adapted_sha256": "dee9400580dfb06512364f5256088eb81cee889f4d5ef3f6c2ed586a10454355",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/shapes.rs",
+      "source_sha256": "8e6ee19c5ea29805df9285991c69a9c0c6d153c82a0d1ebee75c48ff39b1a696",
+      "target_path": "crates/joydeck-geom/src/preset/shapes.rs",
+      "adapted_sha256": "a3777bc87214cb2534b79782becff320c399d0f90336fe0580f62ea17c2478f2",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset/tests.rs",
+      "source_sha256": "699ff3f3b3a56deddab09f7e96df123a410666891b29c309cf9b96788b2e73c7",
+      "target_path": "crates/joydeck-geom/src/preset/tests.rs",
+      "adapted_sha256": "a47c2c046f50210013a3529ff417026ed638990ba3b7babc2de76d469cf35ead",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/preset.rs",
+      "source_sha256": "94c4d928be5b4d8f44d570ce5c3376d6128617ab8cc14a7450b1c0383c6190fd",
+      "target_path": "crates/joydeck-geom/src/preset.rs",
+      "adapted_sha256": "4e4ada1f226be3a811b16ddfe989a6d94ca5e812f9037572e224de0eac392e6f",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/squircle.rs",
+      "source_sha256": "ec3a473d9a183b792832b516fe059b44b26a60693b594794996b7eefa909999b",
+      "target_path": "crates/joydeck-geom/src/squircle.rs",
+      "adapted_sha256": "194c46072a378a9c01ce8c79f009d7e465549647e4821bfc1c62fe4cbaaff11d",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/warp/tests.rs",
+      "source_sha256": "fe6a5c6fa1cd8489ecd279998cf12659da696a32a9cea9ffe2197e0b306c7d2c",
+      "target_path": "crates/joydeck-geom/src/warp/tests.rs",
+      "adapted_sha256": "ba7e8022790ec8aad172a545c174ee5314fac2739752b77d02b42d78a5f08219",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/geom/src/warp.rs",
+      "source_sha256": "f0571db9848e253d30a082cb4d1e6c0b91a6ab6c61d33769004d90ec04ffe71b",
+      "target_path": "crates/joydeck-geom/src/warp.rs",
+      "adapted_sha256": "c536cc35c90dee9b7aae90559e210229e5df3d446ddebc235e654d1cd2e87dd5",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/Cargo.toml",
+      "source_sha256": "3579cd669b5afb8ddc458487e33e9906117f8907746a28306cf2889e7b7b87b8",
+      "target_path": "crates/joydeck-model/Cargo.toml",
+      "adapted_sha256": "1c1be90412b47068a110e68361649cc3f916739c59c80e724b24a64c2566f24a",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "inherit JoyOffice Rust/repository metadata and keep package private"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/anim.rs",
+      "source_sha256": "0cf8e492f0588779208f950975d3309d3681af1d65ae525fa8ef38b2b31b385f",
+      "target_path": "crates/joydeck-model/src/anim.rs",
+      "adapted_sha256": "57b500a9ca20fd78df2dd9c639bdaf83f066ad71bb85c9115aa1933570745198",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/bidi.rs",
+      "source_sha256": "3c99f99c4c274cca974fff0e2c3f54a5710b36a4369b824d8ea353b33529428f",
+      "target_path": "crates/joydeck-model/src/bidi.rs",
+      "adapted_sha256": "5ce02b6a3b8618686fa5c1f4d7d43206eb277abf2687fb09877516ebd9bf699c",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/chart.rs",
+      "source_sha256": "116161d8208a9e578fc85bb4c1e099e4a1c1289cee9b84245a9f85d9dc67d870",
+      "target_path": "crates/joydeck-model/src/chart.rs",
+      "adapted_sha256": "ce00870b7176e2294fce499d5dee9cc40fce7fa85e184099eafb7e0bea219289",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/defaults.rs",
+      "source_sha256": "a0778227fc80ff263fcefa12d581f6527de18858883d63ca2dc3d0d1952397eb",
+      "target_path": "crates/joydeck-model/src/defaults.rs",
+      "adapted_sha256": "2bca0037bb67dc877ee05110c4a4c2013019486876d9f21371cd59a55941084d",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/edit.rs",
+      "source_sha256": "3952ebabd1b3589acbbf23e2f5097ad4c961c1da7e33b631ece895cfaad54481",
+      "target_path": "crates/joydeck-model/src/edit.rs",
+      "adapted_sha256": "6a69b5715ef0e44337b64683c7fb81508a56bfa367b44fb7bd9c6ed37487dc83",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/lib.rs",
+      "source_sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2",
+      "target_path": "crates/joydeck-model/src/lib.rs",
+      "adapted_sha256": "9b9de374f62158faa2b16af5face911c777712a0dd1c8170e9f1820d0ef19410",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/numfmt.rs",
+      "source_sha256": "9a2f381bc781cee896ef080754b78e52dfefc4ac996653a82904beaa96b36a50",
+      "target_path": "crates/joydeck-model/src/numfmt.rs",
+      "adapted_sha256": "e1f989508bbd4c3d0b68539646df158a37dd03b5de8bc450132efa7c38555e62",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/resolve.rs",
+      "source_sha256": "fa9f06a5f23b585e9c15b882c334a7a87b32690ed6f4571fe7e865de76a91feb",
+      "target_path": "crates/joydeck-model/src/resolve.rs",
+      "adapted_sha256": "71475d2e9081484eea7afe47002eea617970e9446b97ce55f4a64e5766298d7b",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/style.rs",
+      "source_sha256": "b1d45ac675f57e9fa8c87d01354e164cbf45d6aa15b47f733d16cc7d391be576",
+      "target_path": "crates/joydeck-model/src/style.rs",
+      "adapted_sha256": "2b89bbdd23dc04ae4161e366743fefcb6ce59b0771262c1d102392b778de925a",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/table.rs",
+      "source_sha256": "1c212558120b794f94c4cd40b68e276a31bfea19fef9fe0149658635d01cc5ab",
+      "target_path": "crates/joydeck-model/src/table.rs",
+      "adapted_sha256": "cb7548800a0b9daec2f0d06f4b98001ec96afc02e991cae25d2813d0df5ae8a7",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained",
+        "scoped Clippy style allowances preserve imported public representations"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/tests.rs",
+      "source_sha256": "04dd0eb5316422a73480514039dec3e8728eb260afa81feefe422ed85eed2ca4",
+      "target_path": "crates/joydeck-model/src/tests.rs",
+      "adapted_sha256": "0db71cd274d57d141b93179fc00f8e4d8c85c310290a5f104aa71e4fe4b00d6d",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/text.rs",
+      "source_sha256": "bfeeba6e1c07c4aa0f724c2d830b4483f8e7663d9459a22cba45cbc7420ecab8",
+      "target_path": "crates/joydeck-model/src/text.rs",
+      "adapted_sha256": "27ed7b745221d14452618db657b9ae0d633113460f7a3b1d015f03d92f3c580e",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/theme.rs",
+      "source_sha256": "f5f856c5fd5dc3a8f070a2895ffdbc6737ec5d5c4447b20e56ad674f2b2dcbaf",
+      "target_path": "crates/joydeck-model/src/theme.rs",
+      "adapted_sha256": "4ab169b2596f4a06586295f0683c6881e299e6700575376e43ad7a25fe584ea7",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/trendline.rs",
+      "source_sha256": "cde3f030b19505e6ff651d1607aeb19b4a24cd47e0abd7fa8f1d5ecbf19647e4",
+      "target_path": "crates/joydeck-model/src/trendline.rs",
+      "adapted_sha256": "4b8a63e828e726992483318657fdf9e8d81d3f12b9a057fbb64677be3abd5865",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    },
+    {
+      "source_path": "crates/model/src/words.rs",
+      "source_sha256": "aa8b8b81b7fff4d030f3337bf00aac6e58640ad6842c34f4317c3f3cc694a099",
+      "target_path": "crates/joydeck-model/src/words.rs",
+      "adapted_sha256": "6b014c13572588b419c1011877d5115912acfeae16725c594f2913c2b5b9b557",
+      "changes": [
+        "crate/import namespace deckcraft -> joydeck",
+        "LF normalization",
+        "package description credits origin",
+        "rustfmt using repository Unix newline policy",
+        "test-only assertion lint allowances; production no-panic guards retained"
+      ]
+    }
+  ]
+}

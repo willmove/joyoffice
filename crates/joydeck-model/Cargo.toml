@@ -1,0 +1,20 @@
+[package]
+name = "joydeck-model"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+license.workspace = true
+description = "JoyDeck (adapted from DeckCraft) document model: presentations, masters, layouts, slides, shapes, text, themes, transitions, animations"
+
+[lints]
+workspace = true
+
+[dependencies]
+joydeck-geom = { workspace = true }
+joydeck-color = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+unicode-segmentation = { workspace = true }
