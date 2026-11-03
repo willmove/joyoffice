@@ -1,0 +1,16 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-package-pqy90ifl\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4\\joydeck.exe",
+    "id": 3541324,
+    "title": "JoyDeck · 放映"
+  },
+  "accessibility": {
+    "focused_element": "0 区域 JoyDeck · 放映 Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck · 放映\", App: joydeck.exe.\n\t0 区域 JoyDeck · 放映 Secondary Actions: Raise\n\nThe focused UI element is 0 区域 JoyDeck · 放映 Secondary Actions: Raise."
+  },
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-package-pqy90ifl\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4\\joydeck.exe",
+  "exe_sha256": "876c0a08c520eebd196830b11669e6dd95200cde58a32f4af6386c69dfd70e3d",
+  "archive_sha256": "4b3b87d1432384e8dac01b3c3280a1280eb8856db0dfe35256b5fe09ae4dc271",
+  "scope": "R9 extracted Windows package",
+  "note": "Right arrow advances the actual slideshow to page 2; supported text and graphic content displayed."
+}

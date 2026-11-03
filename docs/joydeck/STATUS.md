@@ -2,6 +2,8 @@
 
 2026-11-03 R9：按用户明确要求，将 0.8.0 DeckCraft/GPUI 重构整合到 JoyOffice，替换 apps/joydeck、apps/joydeck-cli 与相关产品 crate。今后仅在 JoyOffice 内继续开发，原 joydeck-new 目录退出开发。当前整合、回归、备份和剩余任务见 [R9 交接](../joyoffice/JOYDECK-R9-HANDOFF.md) 与 [R9 验证](evidence/R9/README.md)。
 
+当前分支 codex/joydeck-r9-integration，[PR #120](https://github.com/willmove/joyoffice/pull/120)。备份/恢复及旧软件可运行包已验证；最终本机联合测试 3,573 通过、0 失败、1 忽略，Deck check 873 通过。已交付新的 R9 Windows Release 开发包，实际验证仓库外读取、编辑、Undo/Redo、另存/重启重开和放映，R1–R7 CLI 重跑通过。JD-900–904 完成，JD-905/907 已实现待验收；JD-906 旧功能完整无回退与 JD-908 最终 PR/CI/合入仍开放。UI 与 DeckCraft/PowerPoint 完整一致目标继续保留，下一步优先该产品差距。
+
 
 ## R8 替换前历史切片
 

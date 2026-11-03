@@ -1,0 +1,41 @@
+{
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-gui-_gqiyoey\\中文 空格",
+  "processes": [
+    {
+      "product": "joydeck",
+      "pid": 18620,
+      "executable": "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joydeck.exe",
+      "sha256": "477cfaa492c7f092c64ad011b2b24ec836d7ccb0c28f98f2271aae6a7446e8d1",
+      "stack_reserve": 1048576,
+      "args": [
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-gui-_gqiyoey\\中文 空格\\R9 演示文稿.pptx",
+        "--light",
+        "--window-size=1440x900"
+      ],
+      "build_scope": "R9 rehearsal debug, same committed product source; final host/package run recorded separately"
+    },
+    {
+      "product": "joyword",
+      "pid": 21464,
+      "executable": "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joyword.exe",
+      "sha256": "a82b4884ee0a2b482d931df068fa58e70731154952960482d4003f6ab3205983",
+      "stack_reserve": 1048576,
+      "args": [
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-gui-_gqiyoey\\中文 空格\\R9 文档.docx"
+      ],
+      "build_scope": "R9 rehearsal debug, same committed product source; final host/package run recorded separately"
+    },
+    {
+      "product": "joysheet",
+      "pid": 32124,
+      "executable": "D:\\Coding\\EditorProjects\\joyoffice\\target\\debug\\joysheet.exe",
+      "sha256": "5c33221acf6ee227815689f06457ebd35d2283f22c512102a222112ad9245803",
+      "stack_reserve": 1048576,
+      "args": [
+        "--sample",
+        "sales"
+      ],
+      "build_scope": "R9 rehearsal debug, same committed product source; final host/package run recorded separately"
+    }
+  ]
+}

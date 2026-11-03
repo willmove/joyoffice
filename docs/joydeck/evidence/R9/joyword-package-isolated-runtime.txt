@@ -1,0 +1,12 @@
+[0.000s INFO direct_write.rs:1918] Use Microsoft YaHei UI as UI font.
+[0.118s INFO directx_devices.rs:121] Using GPU: Intel(R) Arc(TM) 140T GPU (16GB)
+[0.217s INFO directx_devices.rs:55] Created device with Direct3D 11.1 feature level.
+[0.543s INFO window.rs:1702] Accessibility activated
+[0.566s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.567s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.567s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.567s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.568s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.569s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.570s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled
+[0.570s WARN painter.rs:228] empty paths and horizontal/vertical lines cannot be filled

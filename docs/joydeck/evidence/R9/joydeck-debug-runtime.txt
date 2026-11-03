@@ -1,0 +1,4 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=127
+R4 scene {"builds":2,"hits":0,"misses":12,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":5,"glyphs":63,"cache_bytes":16227344,"build_micros":7589}
+R4 scene {"builds":3,"hits":0,"misses":18,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":63,"cache_bytes":24341016,"build_micros":6618}

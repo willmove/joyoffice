@@ -161,16 +161,18 @@ R8 当前推进 Windows 编辑器与可搬移开发包切片，并纠正工程�
 
 ## R9 JoyOffice 整合替换
 
+2026-11-03：用户授权先把当前 0.8.0 可运行切片迁入 JoyOffice，继续开发也移到该仓库。备份、模块/锁/公共库和工程门禁已落地；三产品包、最终 Windows 原生与本机 3,573 项联合回归已通过。整体旧功能/命令兼容和远端 CI/最终合入仍开放，消费者不提前标完整验收。逐项证据见 [R9 验证](evidence/R9/README.md) 和 [继续开发交接](../joyoffice/JOYDECK-R9-HANDOFF.md)。
+
 | 状态 | ID | 任务与交付 | 完成条件 | 前置 |
 | --- | --- | --- | --- | --- |
-| 进行中 | JD-900 | 固定整合时最新 JoyOffice main 与旧 JoyDeck 回退基线 | 旧源码、文件/协议/功能矩阵与可运行包可追溯；保留用户现有修改 | R8 |
-| 进行中 | JD-901 | 在独立分支/worktree 合入目标目录，替换旧产品实现 | 单一 apps/joydeck 和相关 crate；不留下另一个长期可编辑模型或绝对路径依赖 | JD-900 |
-| 进行中 | JD-902 | 公共库快照回接宿主，合并必要公共 UI/OPC 增量 | 仓库只有一套公共实现；所有使用方 API/行为得到验证 | JD-901 |
-| 进行中 | JD-903 | 合并 workspace/根 Cargo.lock、feature 与工具链 | GPUI 单一基线；版本/来源/checksum 可审计；无 egui 闭包；无整体无关升级 | JD-902 |
-| 进行中 | JD-904 | 更新产品工具、layers/IO/panic、provenance、文档/许可和 CI | 新增 crate/IO 均登记；不放宽为目录级忽略；独立产品版本/标签保持 | JD-903 |
-| 进行中 | JD-905 | Deck 全量、Word/Sheet 使用方与联合 feature 回归 | 三产品分别 build/check/test/package；CLI 闭包无 GPUI；合并 CI 通过 | JD-904 |
+| 完成 | JD-900 | 固定整合时最新 JoyOffice main 与旧 JoyDeck 回退基线 | 旧源码、文件/协议/功能矩阵与可运行包可追溯；保留用户现有修改 | R8 |
+| 完成 | JD-901 | 在独立分支/worktree 合入目标目录，替换旧产品实现 | 单一 apps/joydeck 和相关 crate；不留下另一个长期可编辑模型或绝对路径依赖 | JD-900 |
+| 完成 | JD-902 | 公共库快照回接宿主，合并必要公共 UI/OPC 增量 | 仓库只有一套公共实现；所有使用方 API/行为得到验证 | JD-901 |
+| 完成 | JD-903 | 合并 workspace/根 Cargo.lock、feature 与工具链 | GPUI 单一基线；版本/来源/checksum 可审计；无 egui 闭包；无整体无关升级 | JD-902 |
+| 完成 | JD-904 | 更新产品工具、layers/IO/panic、provenance、文档/许可和 CI | 新增 crate/IO 均登记；不放宽为目录级忽略；独立产品版本/标签保持 | JD-903 |
+| 已实现待验收 | JD-905 | Deck 全量、Word/Sheet 使用方与联合 feature 回归 | 三产品分别 build/check/test/package；CLI 闭包无 GPUI；合并 CI 通过 | JD-904 |
 | 进行中 | JD-906 | 旧文件、旧自动化、完整命令矩阵及现有 JoyDeck 功能无回退验收 | 所有迁移范围内未延期项完成；延期逐项有归属；用户文稿无静默损失 | JD-600、JD-706、JD-905 |
-| 进行中 | JD-907 | 新宿主包、仓库外运行、回退演练和新状态文档 | 能从 JoyOffice 构建/体验新产品；旧证据保留历史原义；更换失败可恢复旧包 | JD-906 |
+| 已实现待验收 | JD-907 | 新宿主包、仓库外运行、回退演练和新状态文档 | 能从 JoyOffice 构建/体验新产品；旧证据保留历史原义；更换失败可恢复旧包 | JD-906 |
 | 进行中 | JD-908 | 按 JoyOffice 仓库规则完成 PR/CI/替换交付 | 最终来源和版本清楚，公共库与锁文件唯一，验收及剩余项可追溯 | JD-907 |
 
 ## 命令和界面的覆盖规则

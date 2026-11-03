@@ -4,6 +4,10 @@
 
 当前依据依次为根 AGENTS.md、本文、[Deck 状态](../joydeck/STATUS.md)、[98 项任务](../joydeck/TASKS.md)、[UI 差距](../joydeck/UI-PARITY.md)、[329 命令范围](../joydeck/COMMANDS.csv) 与 [R9 验证](../joydeck/evidence/R9/README.md)。旧 M0–M14 状态见 [替换前状态](../joydeck/STATUS-pre-r9.md)，仅作历史基线。
 
+主工作目录当前分支为 `codex/joydeck-r9-integration`，[PR #120](https://github.com/willmove/joyoffice/pull/120) 非草稿。已保留源仓库 9 个提交为宿主祖先；后续直接在本分支继续或在合入后从最新 main 开切片，不重新迁移。原 main a973f75 保留，远端 main 未由执行 Agent 自行合并。
+
+本机最终联合回归为 **3,573 通过、0 失败、1 项原计时测试忽略**；Deck 单产品 check 为 **873 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。
+
 ## 备份与恢复
 
 本机完整备份位于 `D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321`。
@@ -16,6 +20,8 @@
 - R8 历史开发包 `joydeck-0.8.0-r8-windows-x86_64-release-97c23f9b0a.zip` 及校验文件也位于备份根目录。它是导入前重构包，不是旧 JoyOffice 产品，也不是 R9 宿主构建。
 
 完整备份不参与编译或运行。回退旧软件可从 bundle 克隆旧基线另建目录并使用其工程入口。v2 文稿不能直接交给旧 reader；使用保留的原件，或显式导出公共 PPTX。迁移生成的包中还保留 `migration/legacy-original.joydeck` 原始字节与迁移报告，不能静默降版覆盖用户文件。
+
+旧软件已有可运行回退包：备份下 `rollback-runtime/joydeck-pre-r9-a973f75-windows-amd64-debug.zip`，SHA-256 `f01230240370144a0dbc58cfde40b7b357b38ec02c490be968a151ab065d7453`。它由额外 clone 的旧基线构建，未改 repository/ 备份；965 项 payload 校验、CLI 及旧桌面 20 页文稿通过。恢复源码依然按 RESTORE.md 到新空目录，不覆盖继续开发的工作区。
 
 ## 当前模块和依赖
 
@@ -56,6 +62,10 @@ cargo test --locked -p joyword-shell --features ai --test ai_toggle
 ```
 
 新 CLI 的行为回归为 scripts/joydeck/verify-r1.py、verify-r2.py、verify-r3.py、verify-r4-r5.py、verify-r6-r7.py。旧 M* 工具针对旧模型/UI，见 [工具边界](../joydeck/LEGACY-TOOLS.md)。不能仅运行应用入口的零项测试代替整个产品。
+
+当前 Windows Release 开发包为 `dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4.zip`，SHA-256 `4b3b87d1432384e8dac01b3c3280a1280eb8856db0dfe35256b5fe09ae4dc271`，源码快照 `dd8add7cf47351bf069de289a56065b4569afac963775faa1b0bca58973ff60b`。包内 1,753 项 SHA 校验通过；最终 GUI 中文原位输入、Undo/Redo、原生另存/重启重开、F5/翻页/Esc，以及独立 PPTX 读取均已验证。所有 R1–R7 CLI 验证也已在最终解压包重跑，详见 R9 记录；不复用 R8 二进制证据。
+
+本轮还修复了旧公共 PPTX 的自定义路径：沿根 officeDocument 关系定位并保留 `slideset/main.xml` 等部件、处理合法无 .rels/未变母版的最简文稿、克隆时重定位内部关系。原宿主五个公共/PowerPoint 文稿的读取和首页渲染通过，native-20 原始附件逐字节保留。完整命令与旧媒体/审阅语义仍按下面缺项继续。
 
 ## 旧文件与自动化边界
 

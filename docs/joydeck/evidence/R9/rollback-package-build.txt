@@ -1,0 +1,97 @@
+    Blocking waiting for file lock on build directory
+   Compiling exr v1.74.2
+   Compiling tiny-skia-path v0.11.4
+   Compiling rustybuzz v0.20.1
+   Compiling fontdb v0.23.0
+   Compiling gpui-pre-http-client v0.3.10
+   Compiling rustix v1.1.5
+   Compiling write-fonts v0.48.1
+   Compiling pdf-writer v0.12.1
+   Compiling joydeck-platform v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-platform)
+   Compiling tiny-skia v0.11.4
+   Compiling async-io v2.6.0
+   Compiling async-process v2.5.0
+   Compiling async-net v2.0.0
+   Compiling smol v2.0.2
+   Compiling usvg v0.46.0
+   Compiling usvg v0.45.1
+   Compiling image v0.25.9
+   Compiling resvg v0.45.1
+   Compiling resvg v0.46.0
+   Compiling subsetter v0.2.6
+   Compiling gpui-pre v0.3.10
+   Compiling joydeck-model v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-model)
+   Compiling svg2pdf v0.13.0
+   Compiling joydeck-scene v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-scene)
+   Compiling joydeck-formats v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-formats)
+   Compiling joydeck-engine v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-engine)
+   Compiling joydeck-export v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-export)
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-shell)
+   Compiling gpui-base v0.8.1
+   Compiling gpui-kit-assets v0.8.1
+   Compiling gpui-pre-windows v0.3.10
+   Compiling gpui-pre-platform v0.3.10
+   Compiling gpui-component v0.8.1
+   Compiling gpui-kit v0.8.1
+   Compiling joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joyoffice-ui)
+   Compiling joydeck v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4m 22s
+    Blocking waiting for file lock on build directory
+   Compiling arrayvec v0.7.8
+   Compiling smallvec v1.16.3
+   Compiling bitflags v2.13.2
+   Compiling typenum v1.20.1
+   Compiling log v0.4.34
+   Compiling serde_core v1.0.228
+   Compiling num-traits v0.2.19
+   Compiling syn v3.0.9
+   Compiling syn v2.0.119
+   Compiling slotmap v1.1.1
+   Compiling serde v1.0.228
+   Compiling serde_json v1.0.154
+   Compiling indexmap v2.14.2
+   Compiling getrandom v0.3.4
+   Compiling png v0.18.1
+   Compiling pdf-writer v0.12.1
+   Compiling simplecss v0.2.2
+   Compiling polycool v0.4.0
+   Compiling kurbo v0.11.3
+   Compiling kurbo v0.13.1
+   Compiling generic-array v0.14.7
+   Compiling fontdb v0.23.0
+   Compiling zip v9.0.0
+   Compiling moxcms v0.7.11
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling svgtypes v0.15.3
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling serde_derive v1.0.228
+   Compiling bytemuck_derive v1.12.1
+   Compiling bytemuck v1.25.2
+   Compiling image v0.25.9
+   Compiling font-types v0.11.3
+   Compiling tiny-skia-path v0.11.4
+   Compiling rustybuzz v0.20.1
+   Compiling rgb v0.8.53
+   Compiling read-fonts v0.39.2
+   Compiling tiny-skia v0.11.4
+   Compiling joydeck-model v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-model)
+   Compiling usvg v0.45.1
+   Compiling resvg v0.45.1
+   Compiling joydeck-scene v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-scene)
+   Compiling joydeck-formats v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-formats)
+   Compiling joydeck-platform v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-platform)
+   Compiling joydeck-engine v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-engine)
+   Compiling skrifa v0.42.1
+   Compiling write-fonts v0.48.1
+   Compiling subsetter v0.2.6
+   Compiling svg2pdf v0.13.0
+   Compiling joydeck-export v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-export)
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\crates\joydeck-shell)
+   Compiling joydeck-cli v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\baseline-runtime-build\apps\joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 10s
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\rollback-runtime\joydeck-pre-r9-a973f75-windows-amd64-debug.zip

@@ -1,0 +1,14 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s
+     Running `target\debug\joyoffice-xtask.exe package joydeck --release`
++ C:\Applications\Python\Python314\python.exe scripts/joydeck/package-native.py --profile release
+Imported source records passed (268 files)
+   Compiling joydeck-pptx v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-pptx)
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joyoffice\apps\joydeck)
+    Finished `release` profile [optimized] target(s) in 2m 37s
+   Compiling joydeck-pptx v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-pptx)
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-shell)
+   Compiling joydeck-cli v0.8.0 (D:\Coding\EditorProjects\joyoffice\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 54s
+{"directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4", "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4.zip", "archive_sha256": "4b3b87d1432384e8dac01b3c3280a1280eb8856db0dfe35256b5fe09ae4dc271", "source_sha256": "dd8add7cf47351bf069de289a56065b4569afac963775faa1b0bca58973ff60b", "target": "x86_64-pc-windows-msvc", "profile": "release", "sbom_packages": 455, "missing_license_texts": ["accesskit", "accesskit_consumer", "accesskit_windows", "gpui-kit", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

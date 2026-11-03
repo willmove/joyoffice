@@ -3,6 +3,7 @@
 只在 JoyOffice 仓库开发，原 joydeck-new 目录退出开发。先读 [交接](../joyoffice/JOYDECK-R9-HANDOFF.md)、[状态](STATUS.md)、[任务](TASKS.md)、[界面对照](UI-PARITY.md)。
 
 ```powershell
+cargo fetch --locked # fresh checkout before offline dependency gates
 cargo xtask check joydeck --headless
 cargo xtask check joydeck
 cargo xtask run joydeck

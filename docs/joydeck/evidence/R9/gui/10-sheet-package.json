@@ -1,0 +1,16 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-joint-packages-botd3ob4\\中文 空格\\joysheet\\joysheet-0.1.0-r9-joint-windows-x86_64-debug\\joysheet.exe",
+    "id": 3084634,
+    "title": "R9 Sheet 已保存.xlsx — Joysheet"
+  },
+  "accessibility": {
+    "focused_element": "49 编辑 (settable, string) Sales B1 3",
+    "tree": "Window: \"R9 Sheet 已保存.xlsx — Joysheet\", App: joysheet.exe.\n\t0 区域 R9 Sheet 已保存.xlsx — Joysheet Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: R9 Sheet 已保存.xlsx — Joysheet\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 新建\n\t\t8 按钮 保存\n\t\t9 按钮 ↶\n\t\t10 按钮 ↷\n\t\t11 按钮 搜索命令\n\t\t12 选项卡 功能区\n\t\t\t13 选项卡项目 (selectable) 文件\n\t\t\t14 选项卡项目 (selectable) 开始\n\t\t\t15 选项卡项目 (selectable) 插入\n\t\t\t16 选项卡项目 (selectable) 页面布局\n\t\t\t17 选项卡项目 (selectable) 公式\n\t\t\t18 选项卡项目 (selectable) 数据\n\t\t\t19 选项卡项目 (selectable) 审阅\n\t\t\t20 选项卡项目 (selectable) 视图\n\t\t\t21 选项卡项目 (selectable) 自动化\n\t\t22 按钮 粘贴\n\t\t23 按钮 复制\n\t\t24 按钮 剪切\n\t\t25 按钮 字体 ▾\n\t\t26 按钮 字号 ▾\n\t\t27 按钮 B\n\t\t28 按钮 I\n\t\t29 按钮 U\n\t\t30 按钮 字色 ▾\n\t\t31 按钮 填色 ▾\n\t\t32 按钮 左对齐\n\t\t33 按钮 居中\n\t\t34 按钮 右对齐\n\t\t35 按钮 自动换行\n\t\t36 按钮 合并居中\n\t\t37 按钮 数字格式 ▾\n\t\t38 按钮 ¥\n\t\t39 按钮 %\n\t\t40 按钮 .00\n\t\t41 按钮 单元格格式…\n\t\t42 按钮 边框 ▾\n\t\t43 按钮 自动列宽\n\t\t44 编辑 (settable, string) 单元格地址 / Cell address Value: B1\n\t\t45 按钮 取消编辑\n\t\t46 按钮 确认编辑\n\t\t47 编辑 (settable, string) 公式栏 / Formula bar Description: 输入数据或公式 / Enter a value or formula Value: =1+2\n\t\t48 数据网格 工作表 / Worksheet (truncated: child_limit, omitted 600 children)\n\t\t49 编辑 (settable, string) Sales B1 3\n\t\t50 选项卡 工作表 / Worksheets\n\t\t\t51 选项卡项目 (selectable) Sales\n\t\t\t52 按钮 +\n\t\t53 状态\n\nThe focused UI element is 49 编辑 (settable, string) Sales B1 3."
+  },
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-joint-packages-botd3ob4\\中文 空格\\joysheet\\joysheet-0.1.0-r9-joint-windows-x86_64-debug\\joysheet.exe",
+  "exe_sha256": "a3949fdde1f03a298ef0f18b5db6b373812b8847f2fa4633362dd820c3156acf",
+  "archive_sha256": "f96a5210358c5259e4cc6db72287a52aa2a0fa1e5e1b40fa35bb0d9b3daff101",
+  "scope": "R9 extracted Windows package",
+  "note": "Reopened native Save As XLSX; B1 formula =1+2 displays 3; both original charts/table retained; clean session."
+}
