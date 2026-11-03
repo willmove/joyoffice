@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "seed": 20261102,
+  "canvas": [960, 540],
+  "display": {"pixels": [1920, 1080], "refresh_hz": 60},
+  "scenarios": [
+    {"id": "BENCH-EDIT", "slides": 30, "objects_per_slide": 50},
+    {"id": "BENCH-LARGE", "slides": 300, "objects_per_slide": 100},
+    {"id": "BENCH-TEXT", "scripts": ["CJK", "Latin", "Arabic", "emoji"], "table": true},
+    {"id": "BENCH-SHOW", "slides": 60, "transitions": true, "media": true}
+  ],
+  "measurement": ["command", "main-thread", "actual-presentation", "input-to-visible", "raster-count", "upload-bytes", "rss"],
+  "status": "generation parameters; not a benchmark result"
+}

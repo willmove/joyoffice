@@ -22,6 +22,23 @@ def graph():
                 'joydeck-shell': ['joyoffice-opc'], 'joyoffice-opc': ['joyoffice-cfb']}.get(n, [])]}
                 for n in names]}}
 
+class DeckHeadlessBoundary(unittest.TestCase):
+    def test_new_deck_ui_is_excluded_from_headless_selection(self):
+        data = graph()
+        data['workspace_members'] += ['joydeck-ui-gpui', 'joyoffice-ui']
+        data['packages'] += [{'id': n, 'name': n} for n in ['joydeck-ui-gpui', 'joyoffice-ui', 'gpui-kit']]
+        data['resolve']['nodes'] += [
+            {'id': 'joydeck-ui-gpui', 'deps': [{'pkg': 'joyoffice-ui'}]},
+            {'id': 'joyoffice-ui', 'deps': [{'pkg': 'gpui-kit'}]},
+            {'id': 'gpui-kit', 'deps': []}]
+        headless = product.product_packages(data, 'joydeck', True)
+        self.assertNotIn('joydeck-ui-gpui', headless)
+        self.assertNotIn('joyoffice-ui', headless)
+        desktop = product.product_packages(data, 'joydeck', False)
+        self.assertIn('joydeck-ui-gpui', desktop)
+        self.assertIn('joyoffice-ui', desktop)
+
+
 class ProductRouting(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

@@ -1,0 +1,1833 @@
+2026-11-03T02:47:45.7959167Z Current runner version: '2.338.2'
+2026-11-03T02:47:45.7979914Z ##[group]Runner Image Provisioner
+2026-11-03T02:47:45.7980635Z Hosted Compute Agent
+2026-11-03T02:47:45.7981373Z Version: 20261021.618
+2026-11-03T02:47:45.7981936Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-11-03T02:47:45.7982589Z Build Date: 2026-10-21T00:45:21Z
+2026-11-03T02:47:45.7983222Z Worker ID: {e9c1f8fb-54bc-480a-a2a4-89ee67fc0b82}
+2026-11-03T02:47:45.7983830Z Region: westus2
+2026-11-03T02:47:45.7984371Z Cloud: Azure
+2026-11-03T02:47:45.7984857Z ##[endgroup]
+2026-11-03T02:47:45.7986300Z ##[group]Operating System
+2026-11-03T02:47:45.7986909Z Ubuntu
+2026-11-03T02:47:45.7987367Z 24.04.5
+2026-11-03T02:47:45.7987798Z LTS
+2026-11-03T02:47:45.7988312Z ##[endgroup]
+2026-11-03T02:47:45.7988836Z ##[group]Runner Image
+2026-11-03T02:47:45.7989386Z Image: ubuntu-24.04
+2026-11-03T02:47:45.7989903Z Version: 20261025.353.1
+2026-11-03T02:47:45.7991268Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-03T02:47:45.7992608Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-11-03T02:47:45.7993429Z ##[endgroup]
+2026-11-03T02:47:45.7994419Z ##[group]GITHUB_TOKEN Permissions
+2026-11-03T02:47:45.7996078Z Contents: read
+2026-11-03T02:47:45.7996629Z Metadata: read
+2026-11-03T02:47:45.7997103Z ##[endgroup]
+2026-11-03T02:47:45.7998840Z Secret source: Actions
+2026-11-03T02:47:45.7999617Z Cache mode: write
+2026-11-03T02:47:45.8000323Z Prepare workflow directory
+2026-11-03T02:47:45.8260431Z Prepare all required actions
+2026-11-03T02:47:45.8299671Z Getting action download info
+2026-11-03T02:47:46.1409125Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-03T02:47:46.2352880Z Download action repository 'actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+2026-11-03T02:47:46.4619213Z Complete job name: JoyOffice joint feature regression
+2026-11-03T02:47:46.5294409Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-11-03T02:47:46.5295220Z with:
+2026-11-03T02:47:46.5295583Z   repository: willmove/joyoffice
+2026-11-03T02:47:46.5298881Z   token: ***
+2026-11-03T02:47:46.5299242Z   ssh-strict: true
+2026-11-03T02:47:46.5299604Z   ssh-user: git
+2026-11-03T02:47:46.5299965Z   persist-credentials: true
+2026-11-03T02:47:46.5300356Z   clean: true
+2026-11-03T02:47:46.5300715Z   sparse-checkout-cone-mode: true
+2026-11-03T02:47:46.5301309Z   fetch-depth: 1
+2026-11-03T02:47:46.5301663Z   fetch-tags: false
+2026-11-03T02:47:46.5302024Z   show-progress: true
+2026-11-03T02:47:46.5302402Z   lfs: false
+2026-11-03T02:47:46.5302740Z   submodules: false
+2026-11-03T02:47:46.5303117Z   set-safe-directory: true
+2026-11-03T02:47:46.5303528Z   allow-unsafe-pr-checkout: false
+2026-11-03T02:47:46.5304088Z ##[endgroup]
+2026-11-03T02:47:46.8084627Z Syncing repository: willmove/joyoffice
+2026-11-03T02:47:46.8086051Z ##[group]Getting Git version info
+2026-11-03T02:47:46.8086675Z Working directory is '/home/runner/work/joyoffice/joyoffice'
+2026-11-03T02:47:46.8087480Z [command]/usr/bin/git version
+2026-11-03T02:47:46.8149867Z git version 2.56.0
+2026-11-03T02:47:46.8166586Z ##[endgroup]
+2026-11-03T02:47:46.8175139Z Temporarily overriding HOME='/home/runner/work/_temp/f139bb8f-8ffa-4947-b744-18bd6b1cd9c5' before making global git config changes
+2026-11-03T02:47:46.8177060Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:47:46.8180391Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/joyoffice/joyoffice
+2026-11-03T02:47:46.8218730Z Deleting the contents of '/home/runner/work/joyoffice/joyoffice'
+2026-11-03T02:47:46.8221677Z ##[group]Determining repository object format
+2026-11-03T02:47:46.8223052Z ##[endgroup]
+2026-11-03T02:47:46.8223967Z ##[group]Initializing the repository
+2026-11-03T02:47:46.8227858Z [command]/usr/bin/git init /home/runner/work/joyoffice/joyoffice
+2026-11-03T02:47:46.8325942Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-03T02:47:46.8327220Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-03T02:47:46.8328410Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-03T02:47:46.8329318Z hint: call:
+2026-11-03T02:47:46.8329793Z hint:
+2026-11-03T02:47:46.8330398Z hint: 	git config --global init.defaultBranch <name>
+2026-11-03T02:47:46.8331344Z hint:
+2026-11-03T02:47:46.8332056Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-03T02:47:46.8333204Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-03T02:47:46.8334170Z hint:
+2026-11-03T02:47:46.8334674Z hint: 	git branch -m <name>
+2026-11-03T02:47:46.8335239Z hint:
+2026-11-03T02:47:46.8336005Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-03T02:47:46.8340299Z Initialized empty Git repository in /home/runner/work/joyoffice/joyoffice/.git/
+2026-11-03T02:47:46.8349330Z [command]/usr/bin/git remote add origin https://github.com/willmove/joyoffice
+2026-11-03T02:47:46.8398467Z ##[endgroup]
+2026-11-03T02:47:46.8399424Z ##[group]Disabling automatic garbage collection
+2026-11-03T02:47:46.8408812Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-03T02:47:46.8432823Z ##[endgroup]
+2026-11-03T02:47:46.8433701Z ##[group]Setting up auth
+2026-11-03T02:47:46.8434760Z Removing SSH command configuration
+2026-11-03T02:47:46.8438898Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:47:46.8471955Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:47:46.8921949Z Removing HTTP extra header
+2026-11-03T02:47:46.8923612Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:47:46.8973631Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:47:46.9183505Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:47:46.9188003Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:47:46.9227535Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:47:46.9433445Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-03T02:47:46.9474420Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path /home/runner/work/_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:47:46.9512597Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:47:46.9548964Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:47:46.9674877Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:47:46.9710410Z ##[endgroup]
+2026-11-03T02:47:46.9711186Z ##[group]Fetching the repository
+2026-11-03T02:47:46.9716166Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +cb87cd97a5898e63f0fc088b32089594294fd3f3:refs/remotes/pull/120/merge
+2026-11-03T02:47:51.1048397Z From https://github.com/willmove/joyoffice
+2026-11-03T02:47:51.1050809Z  * [new ref]         cb87cd97a5898e63f0fc088b32089594294fd3f3 -> pull/120/merge
+2026-11-03T02:47:51.1055229Z ##[endgroup]
+2026-11-03T02:47:51.1056701Z ##[group]Determining the checkout info
+2026-11-03T02:47:51.1058517Z ##[endgroup]
+2026-11-03T02:47:51.1059257Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T02:47:51.1111757Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T02:47:51.1149297Z ##[group]Checking out the ref
+2026-11-03T02:47:51.1152945Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/120/merge
+2026-11-03T02:47:51.6372644Z Note: switching to 'refs/remotes/pull/120/merge'.
+2026-11-03T02:47:51.6373161Z
+2026-11-03T02:47:51.6373462Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-03T02:47:51.6374144Z changes and commit them, and you can discard any commits you make in this
+2026-11-03T02:47:51.6374851Z state without impacting any branches by switching back to a branch.
+2026-11-03T02:47:51.6375316Z
+2026-11-03T02:47:51.6375637Z If you want to create a new branch to retain commits you create, you may
+2026-11-03T02:47:51.6376270Z do so (now or later) by using -c with the switch command. Example:
+2026-11-03T02:47:51.6376626Z
+2026-11-03T02:47:51.6376786Z   git switch -c <new-branch-name>
+2026-11-03T02:47:51.6377084Z
+2026-11-03T02:47:51.6377257Z Or undo this operation with:
+2026-11-03T02:47:51.6377494Z
+2026-11-03T02:47:51.6377632Z   git switch -
+2026-11-03T02:47:51.6377834Z
+2026-11-03T02:47:51.6378197Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-03T02:47:51.6378602Z
+2026-11-03T02:47:51.6379084Z HEAD is now at cb87cd9 Merge 15554e126a17c007c2fe77ec7cff5cc6e591b5a5 into a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d
+2026-11-03T02:47:51.6465293Z ##[endgroup]
+2026-11-03T02:47:51.6468162Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T02:47:51.6500301Z cb87cd97a5898e63f0fc088b32089594294fd3f3
+2026-11-03T02:47:51.6697413Z ##[group]Run sudo apt-get update
+2026-11-03T02:47:51.6697806Z sudo apt-get update
+2026-11-03T02:47:51.6698736Z sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+2026-11-03T02:47:51.6720058Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:47:51.6720382Z ##[endgroup]
+2026-11-03T02:47:51.7842583Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-03T02:47:51.8093505Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+2026-11-03T02:47:51.8470759Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+2026-11-03T02:47:51.8472140Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+2026-11-03T02:47:51.8473165Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+2026-11-03T02:47:51.8524813Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+2026-11-03T02:47:51.9421702Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [685 kB]
+2026-11-03T02:47:51.9581913Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [617 kB]
+2026-11-03T02:47:52.0476758Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1408 kB]
+2026-11-03T02:47:52.0540629Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [311 kB]
+2026-11-03T02:47:52.0565669Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1707 kB]
+2026-11-03T02:47:52.0647742Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [343 kB]
+2026-11-03T02:47:52.0676315Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1813 kB]
+2026-11-03T02:47:52.0772601Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [412 kB]
+2026-11-03T02:47:52.0789657Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.3 kB]
+2026-11-03T02:47:52.1370628Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1153 kB]
+2026-11-03T02:47:52.1427363Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [232 kB]
+2026-11-03T02:47:52.1450711Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1224 kB]
+2026-11-03T02:47:52.1982152Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [246 kB]
+2026-11-03T02:47:52.2007143Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1721 kB]
+2026-11-03T02:47:52.2084768Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [394 kB]
+2026-11-03T02:47:52.2109914Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [12.4 kB]
+2026-11-03T02:47:58.0166106Z Fetched 12.7 MB in 1s (11.1 MB/s)
+2026-11-03T02:47:58.8348747Z Reading package lists...
+2026-11-03T02:47:58.8684349Z Reading package lists...
+2026-11-03T02:47:59.0572548Z Building dependency tree...
+2026-11-03T02:47:59.0578497Z Reading state information...
+2026-11-03T02:47:59.1857527Z pkg-config is already the newest version (1.8.1-2build1).
+2026-11-03T02:47:59.1858137Z libssl-dev is already the newest version (3.0.13-0ubuntu3.16).
+2026-11-03T02:47:59.1858643Z The following additional packages will be installed:
+2026-11-03T02:47:59.1859275Z   brotli bzip2-doc cmake-data libbrotli-dev libbrotli1 libbz2-dev
+2026-11-03T02:47:59.1859941Z   libfontconfig-dev libjsoncpp25 libpng-dev libpng-tools libpthread-stubs0-dev
+2026-11-03T02:47:59.1862577Z   librhash0 libwayland-bin libwayland-server0 libx11-dev libxau-dev
+2026-11-03T02:47:59.1863298Z   libxcb-render0-dev libxcb-shape0 libxcb-xinput0 libxcb-xkb1 libxdmcp-dev
+2026-11-03T02:47:59.1866669Z   libxkbcommon-x11-0 uuid-dev x11proto-dev xorg-sgml-doctools xtrans-dev
+2026-11-03T02:47:59.1872325Z Suggested packages:
+2026-11-03T02:47:59.1872702Z   cmake-doc cmake-format elpa-cmake-mode ninja-build libasound2-doc
+2026-11-03T02:47:59.1873032Z   freetype2-doc libwayland-doc libx11-doc libxcb-doc
+2026-11-03T02:47:59.2218964Z The following NEW packages will be installed:
+2026-11-03T02:47:59.2219644Z   bzip2-doc clang cmake cmake-data libasound2-dev libbrotli-dev libbz2-dev
+2026-11-03T02:47:59.2220323Z   libfontconfig-dev libfontconfig1-dev libfreetype-dev libjsoncpp25 libpng-dev
+2026-11-03T02:47:59.2223552Z   libpng-tools libpthread-stubs0-dev librhash0 libvulkan-dev libwayland-bin
+2026-11-03T02:47:59.2224170Z   libwayland-dev libwayland-server0 libx11-dev libx11-xcb-dev libxau-dev
+2026-11-03T02:47:59.2224760Z   libxcb-randr0-dev libxcb-render0-dev libxcb-shape0 libxcb-shape0-dev
+2026-11-03T02:47:59.2225310Z   libxcb-xfixes0-dev libxcb-xinput-dev libxcb-xinput0 libxcb-xkb-dev
+2026-11-03T02:47:59.2225750Z   libxcb-xkb1 libxcb1-dev libxdmcp-dev libxkbcommon-dev libxkbcommon-x11-0
+2026-11-03T02:47:59.2226173Z   libxkbcommon-x11-dev uuid-dev x11proto-dev xorg-sgml-doctools xtrans-dev
+2026-11-03T02:47:59.2226723Z The following packages will be upgraded:
+2026-11-03T02:47:59.2231429Z   brotli libbrotli1
+2026-11-03T02:47:59.2403223Z 2 upgraded, 40 newly installed, 0 to remove and 4 not upgraded.
+2026-11-03T02:47:59.2403752Z Need to get 19.2 MB of archives.
+2026-11-03T02:47:59.2404193Z After this operation, 90.5 MB of additional disk space will be used.
+2026-11-03T02:47:59.2404725Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-11-03T02:47:59.3983077Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libbrotli1 amd64 1.1.0-2ubuntu0.1 [331 kB]
+2026-11-03T02:47:59.8027198Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 brotli amd64 1.1.0-2ubuntu0.1 [70.8 kB]
+2026-11-03T02:47:59.8737171Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 bzip2-doc all 1.0.8-5.1ubuntu0.1 [499 kB]
+2026-11-03T02:47:59.9529260Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 clang amd64 1:18.0-59~exp2 [5846 B]
+2026-11-03T02:48:00.0234847Z Get:6 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libjsoncpp25 amd64 1.9.5-6build1 [82.8 kB]
+2026-11-03T02:48:00.1009654Z Get:7 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 librhash0 amd64 1.4.3-3build1 [129 kB]
+2026-11-03T02:48:00.3552523Z Get:8 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 cmake-data all 3.28.3-1build7 [2155 kB]
+2026-11-03T02:48:00.7304415Z Get:9 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 cmake amd64 3.28.3-1build7 [11.2 MB]
+2026-11-03T02:48:01.1072009Z Get:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libasound2-dev amd64 1.2.11-1ubuntu0.3 [115 kB]
+2026-11-03T02:48:01.1806130Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libbrotli-dev amd64 1.1.0-2ubuntu0.1 [353 kB]
+2026-11-03T02:48:01.2552300Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libbz2-dev amd64 1.0.8-5.1ubuntu0.1 [33.6 kB]
+2026-11-03T02:48:01.3263729Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpng-dev amd64 1.6.43-5ubuntu0.7 [265 kB]
+2026-11-03T02:48:01.4016674Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libfreetype-dev amd64 2.13.2+dfsg-1ubuntu0.2 [574 kB]
+2026-11-03T02:48:01.4787978Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 uuid-dev amd64 2.39.3-9ubuntu6.6 [33.5 kB]
+2026-11-03T02:48:01.5502859Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libfontconfig-dev amd64 2.15.0-1.1ubuntu2 [161 kB]
+2026-11-03T02:48:01.6252942Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libfontconfig1-dev amd64 2.15.0-1.1ubuntu2 [1840 B]
+2026-11-03T02:48:01.6974626Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpng-tools amd64 1.6.43-5ubuntu0.7 [28.5 kB]
+2026-11-03T02:48:01.7707829Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libpthread-stubs0-dev amd64 0.4-1build3 [4746 B]
+2026-11-03T02:48:01.8453379Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libvulkan-dev amd64 1.3.275.0-1build1 [1239 kB]
+2026-11-03T02:48:01.9285346Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwayland-server0 amd64 1.22.0-2.1build1 [33.9 kB]
+2026-11-03T02:48:01.9998731Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xorg-sgml-doctools all 1:1.11-1.1 [10.9 kB]
+2026-11-03T02:48:02.0706558Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 x11proto-dev all 2023.2-1 [602 kB]
+2026-11-03T02:48:02.1462085Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxau-dev amd64 1:1.0.9-1build6 [9570 B]
+2026-11-03T02:48:02.2170283Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxdmcp-dev amd64 1:1.1.3-0ubuntu6 [26.5 kB]
+2026-11-03T02:48:02.2936620Z Get:26 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xtrans-dev all 1.4.0-1 [68.9 kB]
+2026-11-03T02:48:02.3690129Z Get:27 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb1-dev amd64 1.15-1ubuntu2 [85.8 kB]
+2026-11-03T02:48:02.4423146Z Get:28 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libx11-dev amd64 2:1.8.7-1ubuntu0.1 [732 kB]
+2026-11-03T02:48:02.5272485Z Get:29 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 libx11-xcb-dev amd64 2:1.8.7-1ubuntu0.1 [9954 B]
+2026-11-03T02:48:02.5988754Z Get:30 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-render0-dev amd64 1.15-1ubuntu2 [19.6 kB]
+2026-11-03T02:48:02.6744903Z Get:31 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-randr0-dev amd64 1.15-1ubuntu2 [21.7 kB]
+2026-11-03T02:48:02.7457537Z Get:32 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-shape0 amd64 1.15-1ubuntu2 [6100 B]
+2026-11-03T02:48:02.8182001Z Get:33 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-shape0-dev amd64 1.15-1ubuntu2 [7310 B]
+2026-11-03T02:48:02.8965986Z Get:34 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xfixes0-dev amd64 1.15-1ubuntu2 [12.6 kB]
+2026-11-03T02:48:02.9669357Z Get:35 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xinput0 amd64 1.15-1ubuntu2 [33.2 kB]
+2026-11-03T02:48:03.0376117Z Get:36 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xinput-dev amd64 1.15-1ubuntu2 [46.1 kB]
+2026-11-03T02:48:03.1083137Z Get:37 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
+2026-11-03T02:48:03.1788722Z Get:38 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb-dev amd64 1.15-1ubuntu2 [42.5 kB]
+2026-11-03T02:48:03.2504889Z Get:39 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-dev amd64 1.6.0-1build1 [56.3 kB]
+2026-11-03T02:48:03.3213234Z Get:40 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
+2026-11-03T02:48:03.3915476Z Get:41 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwayland-bin amd64 1.22.0-2.1build1 [20.6 kB]
+2026-11-03T02:48:03.4622009Z Get:42 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libwayland-dev amd64 1.22.0-2.1build1 [71.3 kB]
+2026-11-03T02:48:03.5387884Z Get:43 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-dev amd64 1.6.0-1build1 [5586 B]
+2026-11-03T02:48:03.8153788Z Fetched 19.2 MB in 4s (4465 kB/s)
+2026-11-03T02:48:03.9104303Z (Reading database ...
+2026-11-03T02:48:03.9104672Z (Reading database ... 5%
+2026-11-03T02:48:03.9104918Z (Reading database ... 10%
+2026-11-03T02:48:03.9105110Z (Reading database ... 15%
+2026-11-03T02:48:03.9110037Z (Reading database ... 20%
+2026-11-03T02:48:03.9110300Z (Reading database ... 25%
+2026-11-03T02:48:03.9110541Z (Reading database ... 30%
+2026-11-03T02:48:03.9110784Z (Reading database ... 35%
+2026-11-03T02:48:03.9111186Z (Reading database ... 40%
+2026-11-03T02:48:03.9111407Z (Reading database ... 45%
+2026-11-03T02:48:03.9111590Z (Reading database ... 50%
+2026-11-03T02:48:03.9722585Z (Reading database ... 55%
+2026-11-03T02:48:04.3078546Z (Reading database ... 60%
+2026-11-03T02:48:04.6171601Z (Reading database ... 65%
+2026-11-03T02:48:04.8902811Z (Reading database ... 70%
+2026-11-03T02:48:05.1672875Z (Reading database ... 75%
+2026-11-03T02:48:05.6927341Z (Reading database ... 80%
+2026-11-03T02:48:06.2619862Z (Reading database ... 85%
+2026-11-03T02:48:06.9593837Z (Reading database ... 90%
+2026-11-03T02:48:07.6455387Z (Reading database ... 95%
+2026-11-03T02:48:07.6455756Z (Reading database ... 100%
+2026-11-03T02:48:07.6456175Z (Reading database ... 215504 files and directories currently installed.)
+2026-11-03T02:48:07.6500209Z Preparing to unpack .../00-libbrotli1_1.1.0-2ubuntu0.1_amd64.deb ...
+2026-11-03T02:48:07.6662738Z Unpacking libbrotli1:amd64 (1.1.0-2ubuntu0.1) over (1.1.0-2build2) ...
+2026-11-03T02:48:07.7178588Z Preparing to unpack .../01-brotli_1.1.0-2ubuntu0.1_amd64.deb ...
+2026-11-03T02:48:07.7198551Z Unpacking brotli (1.1.0-2ubuntu0.1) over (1.1.0-2build2) ...
+2026-11-03T02:48:07.7559318Z Selecting previously unselected package bzip2-doc.
+2026-11-03T02:48:07.7678901Z Preparing to unpack .../02-bzip2-doc_1.0.8-5.1ubuntu0.1_all.deb ...
+2026-11-03T02:48:07.7700161Z Unpacking bzip2-doc (1.0.8-5.1ubuntu0.1) ...
+2026-11-03T02:48:07.8022926Z Selecting previously unselected package clang.
+2026-11-03T02:48:07.8143303Z Preparing to unpack .../03-clang_1%3a18.0-59~exp2_amd64.deb ...
+2026-11-03T02:48:07.8149829Z Unpacking clang (1:18.0-59~exp2) ...
+2026-11-03T02:48:07.8344798Z Selecting previously unselected package libjsoncpp25:amd64.
+2026-11-03T02:48:07.8463192Z Preparing to unpack .../04-libjsoncpp25_1.9.5-6build1_amd64.deb ...
+2026-11-03T02:48:07.8469825Z Unpacking libjsoncpp25:amd64 (1.9.5-6build1) ...
+2026-11-03T02:48:07.8892072Z Selecting previously unselected package librhash0:amd64.
+2026-11-03T02:48:07.9011498Z Preparing to unpack .../05-librhash0_1.4.3-3build1_amd64.deb ...
+2026-11-03T02:48:07.9021476Z Unpacking librhash0:amd64 (1.4.3-3build1) ...
+2026-11-03T02:48:07.9388888Z Selecting previously unselected package cmake-data.
+2026-11-03T02:48:07.9506626Z Preparing to unpack .../06-cmake-data_3.28.3-1build7_all.deb ...
+2026-11-03T02:48:07.9571199Z Unpacking cmake-data (3.28.3-1build7) ...
+2026-11-03T02:48:08.4413034Z Selecting previously unselected package cmake.
+2026-11-03T02:48:08.4549206Z Preparing to unpack .../07-cmake_3.28.3-1build7_amd64.deb ...
+2026-11-03T02:48:08.4555321Z Unpacking cmake (3.28.3-1build7) ...
+2026-11-03T02:48:08.7301435Z Selecting previously unselected package libasound2-dev:amd64.
+2026-11-03T02:48:08.7425761Z Preparing to unpack .../08-libasound2-dev_1.2.11-1ubuntu0.3_amd64.deb ...
+2026-11-03T02:48:08.7458039Z Unpacking libasound2-dev:amd64 (1.2.11-1ubuntu0.3) ...
+2026-11-03T02:48:08.7881354Z Selecting previously unselected package libbrotli-dev:amd64.
+2026-11-03T02:48:08.8001256Z Preparing to unpack .../09-libbrotli-dev_1.1.0-2ubuntu0.1_amd64.deb ...
+2026-11-03T02:48:08.8008103Z Unpacking libbrotli-dev:amd64 (1.1.0-2ubuntu0.1) ...
+2026-11-03T02:48:08.8254186Z Selecting previously unselected package libbz2-dev:amd64.
+2026-11-03T02:48:08.8371462Z Preparing to unpack .../10-libbz2-dev_1.0.8-5.1ubuntu0.1_amd64.deb ...
+2026-11-03T02:48:08.8377940Z Unpacking libbz2-dev:amd64 (1.0.8-5.1ubuntu0.1) ...
+2026-11-03T02:48:08.8561751Z Selecting previously unselected package libpng-dev:amd64.
+2026-11-03T02:48:08.8677404Z Preparing to unpack .../11-libpng-dev_1.6.43-5ubuntu0.7_amd64.deb ...
+2026-11-03T02:48:08.8684358Z Unpacking libpng-dev:amd64 (1.6.43-5ubuntu0.7) ...
+2026-11-03T02:48:08.8996700Z Selecting previously unselected package libfreetype-dev:amd64.
+2026-11-03T02:48:08.9116504Z Preparing to unpack .../12-libfreetype-dev_2.13.2+dfsg-1ubuntu0.2_amd64.deb ...
+2026-11-03T02:48:08.9307448Z Unpacking libfreetype-dev:amd64 (2.13.2+dfsg-1ubuntu0.2) ...
+2026-11-03T02:48:08.9706515Z Selecting previously unselected package uuid-dev:amd64.
+2026-11-03T02:48:08.9826951Z Preparing to unpack .../13-uuid-dev_2.39.3-9ubuntu6.6_amd64.deb ...
+2026-11-03T02:48:08.9833679Z Unpacking uuid-dev:amd64 (2.39.3-9ubuntu6.6) ...
+2026-11-03T02:48:09.0069866Z Selecting previously unselected package libfontconfig-dev:amd64.
+2026-11-03T02:48:09.0190341Z Preparing to unpack .../14-libfontconfig-dev_2.15.0-1.1ubuntu2_amd64.deb ...
+2026-11-03T02:48:09.0277594Z Unpacking libfontconfig-dev:amd64 (2.15.0-1.1ubuntu2) ...
+2026-11-03T02:48:09.0512890Z Selecting previously unselected package libfontconfig1-dev:amd64.
+2026-11-03T02:48:09.0631199Z Preparing to unpack .../15-libfontconfig1-dev_2.15.0-1.1ubuntu2_amd64.deb ...
+2026-11-03T02:48:09.0638346Z Unpacking libfontconfig1-dev:amd64 (2.15.0-1.1ubuntu2) ...
+2026-11-03T02:48:09.0815026Z Selecting previously unselected package libpng-tools.
+2026-11-03T02:48:09.0929665Z Preparing to unpack .../16-libpng-tools_1.6.43-5ubuntu0.7_amd64.deb ...
+2026-11-03T02:48:09.0935752Z Unpacking libpng-tools (1.6.43-5ubuntu0.7) ...
+2026-11-03T02:48:09.1299904Z Selecting previously unselected package libpthread-stubs0-dev:amd64.
+2026-11-03T02:48:09.1419147Z Preparing to unpack .../17-libpthread-stubs0-dev_0.4-1build3_amd64.deb ...
+2026-11-03T02:48:09.1624377Z Unpacking libpthread-stubs0-dev:amd64 (0.4-1build3) ...
+2026-11-03T02:48:09.2230620Z Selecting previously unselected package libvulkan-dev:amd64.
+2026-11-03T02:48:09.2355910Z Preparing to unpack .../18-libvulkan-dev_1.3.275.0-1build1_amd64.deb ...
+2026-11-03T02:48:09.2362342Z Unpacking libvulkan-dev:amd64 (1.3.275.0-1build1) ...
+2026-11-03T02:48:09.5466311Z Selecting previously unselected package libwayland-server0:amd64.
+2026-11-03T02:48:09.5590585Z Preparing to unpack .../19-libwayland-server0_1.22.0-2.1build1_amd64.deb ...
+2026-11-03T02:48:09.5663695Z Unpacking libwayland-server0:amd64 (1.22.0-2.1build1) ...
+2026-11-03T02:48:09.5876356Z Selecting previously unselected package xorg-sgml-doctools.
+2026-11-03T02:48:09.5995075Z Preparing to unpack .../20-xorg-sgml-doctools_1%3a1.11-1.1_all.deb ...
+2026-11-03T02:48:09.6001780Z Unpacking xorg-sgml-doctools (1:1.11-1.1) ...
+2026-11-03T02:48:09.6259173Z Selecting previously unselected package x11proto-dev.
+2026-11-03T02:48:09.6381080Z Preparing to unpack .../21-x11proto-dev_2023.2-1_all.deb ...
+2026-11-03T02:48:09.6587410Z Unpacking x11proto-dev (2023.2-1) ...
+2026-11-03T02:48:09.7115287Z Selecting previously unselected package libxau-dev:amd64.
+2026-11-03T02:48:09.7239657Z Preparing to unpack .../22-libxau-dev_1%3a1.0.9-1build6_amd64.deb ...
+2026-11-03T02:48:09.7246598Z Unpacking libxau-dev:amd64 (1:1.0.9-1build6) ...
+2026-11-03T02:48:09.7443484Z Selecting previously unselected package libxdmcp-dev:amd64.
+2026-11-03T02:48:09.7560672Z Preparing to unpack .../23-libxdmcp-dev_1%3a1.1.3-0ubuntu6_amd64.deb ...
+2026-11-03T02:48:09.7566614Z Unpacking libxdmcp-dev:amd64 (1:1.1.3-0ubuntu6) ...
+2026-11-03T02:48:09.7754623Z Selecting previously unselected package xtrans-dev.
+2026-11-03T02:48:09.7869981Z Preparing to unpack .../24-xtrans-dev_1.4.0-1_all.deb ...
+2026-11-03T02:48:09.7875493Z Unpacking xtrans-dev (1.4.0-1) ...
+2026-11-03T02:48:09.8097189Z Selecting previously unselected package libxcb1-dev:amd64.
+2026-11-03T02:48:09.8213038Z Preparing to unpack .../25-libxcb1-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:09.8218861Z Unpacking libxcb1-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:09.8444182Z Selecting previously unselected package libx11-dev:amd64.
+2026-11-03T02:48:09.8561903Z Preparing to unpack .../26-libx11-dev_2%3a1.8.7-1ubuntu0.1_amd64.deb ...
+2026-11-03T02:48:09.8567917Z Unpacking libx11-dev:amd64 (2:1.8.7-1ubuntu0.1) ...
+2026-11-03T02:48:09.9161196Z Selecting previously unselected package libx11-xcb-dev:amd64.
+2026-11-03T02:48:09.9284214Z Preparing to unpack .../27-libx11-xcb-dev_2%3a1.8.7-1ubuntu0.1_amd64.deb ...
+2026-11-03T02:48:09.9291183Z Unpacking libx11-xcb-dev:amd64 (2:1.8.7-1ubuntu0.1) ...
+2026-11-03T02:48:09.9487240Z Selecting previously unselected package libxcb-render0-dev:amd64.
+2026-11-03T02:48:09.9606291Z Preparing to unpack .../28-libxcb-render0-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:09.9622118Z Unpacking libxcb-render0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:09.9812689Z Selecting previously unselected package libxcb-randr0-dev:amd64.
+2026-11-03T02:48:09.9929246Z Preparing to unpack .../29-libxcb-randr0-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:09.9935326Z Unpacking libxcb-randr0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.0134107Z Selecting previously unselected package libxcb-shape0:amd64.
+2026-11-03T02:48:10.0251652Z Preparing to unpack .../30-libxcb-shape0_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.0258098Z Unpacking libxcb-shape0:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.0441327Z Selecting previously unselected package libxcb-shape0-dev:amd64.
+2026-11-03T02:48:10.0556265Z Preparing to unpack .../31-libxcb-shape0-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.0562791Z Unpacking libxcb-shape0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.0896861Z Selecting previously unselected package libxcb-xfixes0-dev:amd64.
+2026-11-03T02:48:10.1016578Z Preparing to unpack .../32-libxcb-xfixes0-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.1022845Z Unpacking libxcb-xfixes0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.1400744Z Selecting previously unselected package libxcb-xinput0:amd64.
+2026-11-03T02:48:10.1521230Z Preparing to unpack .../33-libxcb-xinput0_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.1528132Z Unpacking libxcb-xinput0:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.1792624Z Selecting previously unselected package libxcb-xinput-dev:amd64.
+2026-11-03T02:48:10.1911468Z Preparing to unpack .../34-libxcb-xinput-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.1918545Z Unpacking libxcb-xinput-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.2155338Z Selecting previously unselected package libxcb-xkb1:amd64.
+2026-11-03T02:48:10.2271530Z Preparing to unpack .../35-libxcb-xkb1_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.2278896Z Unpacking libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.2473027Z Selecting previously unselected package libxcb-xkb-dev:amd64.
+2026-11-03T02:48:10.2591217Z Preparing to unpack .../36-libxcb-xkb-dev_1.15-1ubuntu2_amd64.deb ...
+2026-11-03T02:48:10.2597644Z Unpacking libxcb-xkb-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.2811737Z Selecting previously unselected package libxkbcommon-dev:amd64.
+2026-11-03T02:48:10.2933326Z Preparing to unpack .../37-libxkbcommon-dev_1.6.0-1build1_amd64.deb ...
+2026-11-03T02:48:10.2939979Z Unpacking libxkbcommon-dev:amd64 (1.6.0-1build1) ...
+2026-11-03T02:48:10.3154787Z Selecting previously unselected package libxkbcommon-x11-0:amd64.
+2026-11-03T02:48:10.3272924Z Preparing to unpack .../38-libxkbcommon-x11-0_1.6.0-1build1_amd64.deb ...
+2026-11-03T02:48:10.3280223Z Unpacking libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+2026-11-03T02:48:10.3481802Z Selecting previously unselected package libwayland-bin.
+2026-11-03T02:48:10.3598360Z Preparing to unpack .../39-libwayland-bin_1.22.0-2.1build1_amd64.deb ...
+2026-11-03T02:48:10.3688968Z Unpacking libwayland-bin (1.22.0-2.1build1) ...
+2026-11-03T02:48:10.3877785Z Selecting previously unselected package libwayland-dev:amd64.
+2026-11-03T02:48:10.3994292Z Preparing to unpack .../40-libwayland-dev_1.22.0-2.1build1_amd64.deb ...
+2026-11-03T02:48:10.4001284Z Unpacking libwayland-dev:amd64 (1.22.0-2.1build1) ...
+2026-11-03T02:48:10.4219554Z Selecting previously unselected package libxkbcommon-x11-dev:amd64.
+2026-11-03T02:48:10.4337740Z Preparing to unpack .../41-libxkbcommon-x11-dev_1.6.0-1build1_amd64.deb ...
+2026-11-03T02:48:10.4379216Z Unpacking libxkbcommon-x11-dev:amd64 (1.6.0-1build1) ...
+2026-11-03T02:48:10.4948402Z Setting up bzip2-doc (1.0.8-5.1ubuntu0.1) ...
+2026-11-03T02:48:10.4968795Z Setting up libwayland-server0:amd64 (1.22.0-2.1build1) ...
+2026-11-03T02:48:10.4999700Z Setting up libvulkan-dev:amd64 (1.3.275.0-1build1) ...
+2026-11-03T02:48:10.5019542Z Setting up libxcb-xinput0:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.5036065Z Setting up libpng-tools (1.6.43-5ubuntu0.7) ...
+2026-11-03T02:48:10.5051622Z Setting up libxkbcommon-dev:amd64 (1.6.0-1build1) ...
+2026-11-03T02:48:10.5066748Z Setting up libbrotli1:amd64 (1.1.0-2ubuntu0.1) ...
+2026-11-03T02:48:10.5085526Z Setting up libpng-dev:amd64 (1.6.43-5ubuntu0.7) ...
+2026-11-03T02:48:10.5101923Z Setting up libxcb-shape0:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.5117528Z Setting up libpthread-stubs0-dev:amd64 (0.4-1build3) ...
+2026-11-03T02:48:10.5132937Z Setting up libxcb-xkb1:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:10.5147988Z Setting up xtrans-dev (1.4.0-1) ...
+2026-11-03T02:48:10.5177699Z Setting up libwayland-bin (1.22.0-2.1build1) ...
+2026-11-03T02:48:10.5194289Z Setting up uuid-dev:amd64 (2.39.3-9ubuntu6.6) ...
+2026-11-03T02:48:10.5210177Z Setting up clang (1:18.0-59~exp2) ...
+2026-11-03T02:48:10.5396524Z Setting up libxkbcommon-x11-0:amd64 (1.6.0-1build1) ...
+2026-11-03T02:48:10.5414746Z Setting up libjsoncpp25:amd64 (1.9.5-6build1) ...
+2026-11-03T02:48:10.5430732Z Setting up librhash0:amd64 (1.4.3-3build1) ...
+2026-11-03T02:48:10.5447361Z Setting up xorg-sgml-doctools (1:1.11-1.1) ...
+2026-11-03T02:48:10.5464358Z Setting up cmake-data (3.28.3-1build7) ...
+2026-11-03T02:48:10.5521673Z Setting up libasound2-dev:amd64 (1.2.11-1ubuntu0.3) ...
+2026-11-03T02:48:10.5538954Z Setting up libbrotli-dev:amd64 (1.1.0-2ubuntu0.1) ...
+2026-11-03T02:48:10.5557480Z Setting up brotli (1.1.0-2ubuntu0.1) ...
+2026-11-03T02:48:10.5577317Z Setting up libbz2-dev:amd64 (1.0.8-5.1ubuntu0.1) ...
+2026-11-03T02:48:10.5593770Z Setting up libwayland-dev:amd64 (1.22.0-2.1build1) ...
+2026-11-03T02:48:10.5609624Z Setting up libfreetype-dev:amd64 (2.13.2+dfsg-1ubuntu0.2) ...
+2026-11-03T02:48:10.5638438Z Setting up cmake (3.28.3-1build7) ...
+2026-11-03T02:48:10.5656158Z Setting up libfontconfig-dev:amd64 (2.15.0-1.1ubuntu2) ...
+2026-11-03T02:48:10.5672309Z Setting up libfontconfig1-dev:amd64 (2.15.0-1.1ubuntu2) ...
+2026-11-03T02:48:10.5724741Z Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+2026-11-03T02:48:12.3219070Z Processing triggers for man-db (2.12.0-4build2) ...
+2026-11-03T02:48:12.3242208Z Not building database; man-db/auto-update is not 'true'.
+2026-11-03T02:48:12.3258114Z Processing triggers for sgml-base (1.31) ...
+2026-11-03T02:48:12.3409400Z Processing triggers for install-info (7.1-3build2) ...
+2026-11-03T02:48:12.5928595Z Setting up x11proto-dev (2023.2-1) ...
+2026-11-03T02:48:12.5947993Z Setting up libxau-dev:amd64 (1:1.0.9-1build6) ...
+2026-11-03T02:48:12.5993799Z Setting up libxdmcp-dev:amd64 (1:1.1.3-0ubuntu6) ...
+2026-11-03T02:48:12.6033314Z Setting up libxcb1-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:12.6053075Z Setting up libxcb-xkb-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:12.6070466Z Setting up libx11-dev:amd64 (2:1.8.7-1ubuntu0.1) ...
+2026-11-03T02:48:12.6088807Z Setting up libxcb-render0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:12.6106203Z Setting up libxcb-shape0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:12.6126285Z Setting up libxcb-xfixes0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:12.6146257Z Setting up libxkbcommon-x11-dev:amd64 (1.6.0-1build1) ...
+2026-11-03T02:48:12.6169618Z Setting up libx11-xcb-dev:amd64 (2:1.8.7-1ubuntu0.1) ...
+2026-11-03T02:48:12.6188303Z Setting up libxcb-randr0-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:12.6205882Z Setting up libxcb-xinput-dev:amd64 (1.15-1ubuntu2) ...
+2026-11-03T02:48:13.6090285Z
+2026-11-03T02:48:13.6090979Z Running kernel seems to be up-to-date.
+2026-11-03T02:48:13.6091217Z
+2026-11-03T02:48:13.6091297Z Restarting services...
+2026-11-03T02:48:13.6235150Z  systemctl restart packagekit.service php8.3-fpm.service
+2026-11-03T02:48:13.7179046Z
+2026-11-03T02:48:13.7179632Z No containers need to be restarted.
+2026-11-03T02:48:13.7179922Z
+2026-11-03T02:48:13.7180084Z No user sessions are running outdated binaries.
+2026-11-03T02:48:13.7180266Z
+2026-11-03T02:48:13.7180422Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-11-03T02:48:14.5320397Z ##[group]Run rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+2026-11-03T02:48:14.5321163Z rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+2026-11-03T02:48:14.5339417Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:48:14.5339631Z ##[endgroup]
+2026-11-03T02:48:14.6073232Z info: syncing channel updates for 1.98.1-x86_64-unknown-linux-gnu
+2026-11-03T02:48:14.9713216Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+2026-11-03T02:48:14.9756988Z info: downloading 5 components
+2026-11-03T02:48:22.1023437Z
+2026-11-03T02:48:22.1090559Z   1.98.1-x86_64-unknown-linux-gnu installed - rustc 1.98.1 (48a229cea 2026-09-01)
+2026-11-03T02:48:22.1091148Z
+2026-11-03T02:48:22.1757977Z ##[group]Run actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+2026-11-03T02:48:22.1758296Z with:
+2026-11-03T02:48:22.1758494Z   path: ~/.cargo/registry
+~/.cargo/git
+target
+
+2026-11-03T02:48:22.1758901Z   key: Linux-X64-joyoffice-joint-5005672ac8d92f2442fd22bd5d641d5da10209bd452cfa9c54f2939571e6ad95
+2026-11-03T02:48:22.1759292Z   enableCrossOsArchive: false
+2026-11-03T02:48:22.1759494Z   fail-on-cache-miss: false
+2026-11-03T02:48:22.1759681Z   lookup-only: false
+2026-11-03T02:48:22.1759865Z   save-always: false
+2026-11-03T02:48:22.1760030Z ##[endgroup]
+2026-11-03T02:48:22.2600105Z (node:3347) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-03T02:48:22.2601039Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-03T02:48:22.4914047Z Cache not found for input keys: Linux-X64-joyoffice-joint-5005672ac8d92f2442fd22bd5d641d5da10209bd452cfa9c54f2939571e6ad95
+2026-11-03T02:48:22.4993657Z ##[group]Run cargo clippy --workspace --all-targets --locked -- -D warnings
+2026-11-03T02:48:22.4994071Z cargo clippy --workspace --all-targets --locked -- -D warnings
+2026-11-03T02:48:22.4994372Z cargo test --workspace --locked
+2026-11-03T02:48:22.5012174Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:48:22.5012452Z ##[endgroup]
+2026-11-03T02:48:22.5915345Z     Updating crates.io index
+2026-11-03T02:48:23.5519997Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5521489Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5522250Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5522981Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5523627Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5524280Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5524918Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5525554Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5526195Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5526830Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5527483Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5528138Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5528782Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5529430Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5530062Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5530694Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5531726Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5532691Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5533568Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5534548Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5535407Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5536023Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5536835Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5537433Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5538056Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5538652Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5539350Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5539946Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5540551Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5541372Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5541970Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5542572Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5543173Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5543764Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5544364Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5544956Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5545545Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5546136Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5546725Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5547321Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5547937Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5548533Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5549121Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5549712Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5550303Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5551044Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5551774Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5552372Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5552979Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5553573Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5554415Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5555079Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5555682Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5556272Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5556858Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5557447Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5558036Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5558632Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5559226Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5559817Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5560407Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5561217Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5561808Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5562412Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5563014Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5563634Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5564288Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5564877Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5565473Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5566066Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5566658Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5567367Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5567976Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5568567Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5569168Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5569857Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5570450Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5571243Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5571838Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5572434Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5573465Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5574415Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5575109Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5575712Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5576301Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5576891Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5577495Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5578087Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5578675Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5579268Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5579864Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5580453Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5581238Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5581838Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5582440Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:23.5583031Z warning: spurious network error (3 tries remaining): [55] Failed sending data to the peer (OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0)
+2026-11-03T02:48:25.1524078Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1524941Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1525508Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1526046Z warning: spurious network error (3 tries remaining): [18] Transferred a partial file
+2026-11-03T02:48:25.1526561Z warning: spurious network error (3 tries remaining): [18] Transferred a partial file
+2026-11-03T02:48:25.1527222Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1527767Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1528295Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1528818Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1529338Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1529849Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1530367Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1531063Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1531604Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1532121Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1532629Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1533135Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1533670Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1534190Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1534708Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1535217Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1535727Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1536240Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1536748Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1537275Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1537805Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1538313Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1538826Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1539334Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1539858Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1540368Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1541058Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:25.1541571Z warning: spurious network error (3 tries remaining): [16] Error in the HTTP2 framing layer
+2026-11-03T02:48:26.8534991Z  Downloading crates ...
+2026-11-03T02:48:26.9222232Z   Downloaded globset v0.4.21
+2026-11-03T02:48:26.9249786Z   Downloaded lazy_static v1.5.1
+2026-11-03T02:48:26.9268042Z   Downloaded lyon_algorithms v1.0.21
+2026-11-03T02:48:26.9390534Z   Downloaded guillotiere v0.7.0
+2026-11-03T02:48:26.9401942Z   Downloaded krilla v0.8.2
+2026-11-03T02:48:26.9460284Z   Downloaded mac v0.1.1
+2026-11-03T02:48:26.9468640Z   Downloaded icu_properties v2.3.0
+2026-11-03T02:48:26.9498149Z   Downloaded hashbrown v0.14.5
+2026-11-03T02:48:26.9538784Z   Downloaded gpui-component v0.8.1
+2026-11-03T02:48:26.9782756Z   Downloaded hkdf v0.12.4
+2026-11-03T02:48:26.9802495Z   Downloaded gpui-pre-wgpu v0.3.10
+2026-11-03T02:48:26.9821672Z   Downloaded roxmltree v0.21.1
+2026-11-03T02:48:26.9928127Z   Downloaded scopeguard v1.2.0
+2026-11-03T02:48:26.9939906Z   Downloaded spin v0.10.1
+2026-11-03T02:48:26.9960751Z   Downloaded schemars_derive v1.2.3
+2026-11-03T02:48:26.9977986Z   Downloaded reborrow v0.5.5
+2026-11-03T02:48:26.9985088Z   Downloaded sysinfo v0.31.4
+2026-11-03T02:48:27.0075067Z   Downloaded glob v0.3.4
+2026-11-03T02:48:27.0088458Z   Downloaded is-docker v0.2.0
+2026-11-03T02:48:27.0097703Z   Downloaded ropey v2.0.0-beta.1
+2026-11-03T02:48:27.0130492Z   Downloaded smol v2.0.2
+2026-11-03T02:48:27.0162800Z   Downloaded hex v0.4.3
+2026-11-03T02:48:27.0176526Z   Downloaded read-fonts v0.37.0
+2026-11-03T02:48:27.0297666Z   Downloaded ropey v1.6.1
+2026-11-03T02:48:27.0340554Z   Downloaded inout v0.2.5
+2026-11-03T02:48:27.0351742Z   Downloaded icu_provider v2.3.1
+2026-11-03T02:48:27.0374097Z   Downloaded litrs v1.0.1
+2026-11-03T02:48:27.0398412Z   Downloaded read-fonts v0.41.0
+2026-11-03T02:48:27.0552320Z   Downloaded http v1.5.0
+2026-11-03T02:48:27.0582666Z   Downloaded lyon_geom v1.0.19
+2026-11-03T02:48:27.0597210Z   Downloaded serde_spanned v0.6.9
+2026-11-03T02:48:27.0620640Z   Downloaded linktime-proc-macro v0.2.3
+2026-11-03T02:48:27.0621497Z   Downloaded lsp-types v0.97.0
+2026-11-03T02:48:27.0669129Z   Downloaded simdutf8 v0.1.5
+2026-11-03T02:48:27.0688926Z   Downloaded strict-num v0.1.1
+2026-11-03T02:48:27.0696940Z   Downloaded libloading v0.8.9
+2026-11-03T02:48:27.0716444Z   Downloaded lock_api v0.4.14
+2026-11-03T02:48:27.0727737Z   Downloaded rustc_version v0.4.1
+2026-11-03T02:48:27.0737871Z   Downloaded slab v0.4.12
+2026-11-03T02:48:27.0748096Z   Downloaded stable_deref_trait v1.2.1
+2026-11-03T02:48:27.0755817Z   Downloaded gpui-pre-linux v0.3.10
+2026-11-03T02:48:27.0793680Z   Downloaded link-section v0.19.3
+2026-11-03T02:48:27.0835223Z   Downloaded hashbrown v0.17.1
+2026-11-03T02:48:27.0880538Z   Downloaded icu_collections v2.3.0
+2026-11-03T02:48:27.0933707Z   Downloaded renderdoc-sys v1.1.0
+2026-11-03T02:48:27.0941928Z   Downloaded simplecss v0.2.2
+2026-11-03T02:48:27.0958121Z   Downloaded smol_str v0.3.6
+2026-11-03T02:48:27.0972061Z   Downloaded gpui-pre-http-client v0.3.10
+2026-11-03T02:48:27.0981052Z   Downloaded hmac v0.12.1
+2026-11-03T02:48:27.0996664Z   Downloaded gpui-kit-assets v0.8.1
+2026-11-03T02:48:27.2008154Z   Downloaded ref-cast v1.0.27
+2026-11-03T02:48:27.2031989Z   Downloaded roxmltree v0.20.0
+2026-11-03T02:48:27.2133129Z   Downloaded inventory v0.3.25
+2026-11-03T02:48:27.2150419Z   Downloaded itertools v0.13.0
+2026-11-03T02:48:27.2208909Z   Downloaded lyon_tessellation v1.0.22
+2026-11-03T02:48:27.2239901Z   Downloaded futures-lite v2.6.1
+2026-11-03T02:48:27.2255105Z   Downloaded spin v0.9.9
+2026-11-03T02:48:27.2275635Z   Downloaded heapless v0.9.3
+2026-11-03T02:48:27.2321703Z   Downloaded imagesize v0.13.0
+2026-11-03T02:48:27.2343441Z   Downloaded inotify v0.11.5
+2026-11-03T02:48:27.2358871Z   Downloaded sha2 v0.11.1
+2026-11-03T02:48:27.2389912Z   Downloaded crossbeam-channel v0.5.17
+2026-11-03T02:48:27.2422278Z   Downloaded gpui-pre-refineable v0.3.10
+2026-11-03T02:48:27.2430591Z   Downloaded icu_normalizer v2.3.0
+2026-11-03T02:48:27.2515718Z   Downloaded serde_core v1.0.228
+2026-11-03T02:48:27.2537868Z   Downloaded serde v1.0.228
+2026-11-03T02:48:27.2566183Z   Downloaded skrifa v0.42.1
+2026-11-03T02:48:27.2641384Z   Downloaded thiserror v2.0.21
+2026-11-03T02:48:27.2692276Z   Downloaded glow v0.17.0
+2026-11-03T02:48:27.2731463Z   Downloaded digest v0.11.3
+2026-11-03T02:48:27.2751832Z   Downloaded flate2 v1.1.10
+2026-11-03T02:48:27.2795581Z   Downloaded svgtypes v0.15.3
+2026-11-03T02:48:27.2815750Z   Downloaded regex v1.13.1
+2026-11-03T02:48:27.2861551Z   Downloaded syn v3.0.9
+2026-11-03T02:48:27.2949172Z   Downloaded wayland-scanner v0.31.11
+2026-11-03T02:48:27.2965925Z   Downloaded taffy v0.15.1
+2026-11-03T02:48:27.3025192Z   Downloaded enumn v0.1.14
+2026-11-03T02:48:27.3035127Z   Downloaded regex-syntax v0.8.11
+2026-11-03T02:48:27.3090298Z   Downloaded cfg_aliases v0.2.2
+2026-11-03T02:48:27.3097868Z   Downloaded swash v0.2.10
+2026-11-03T02:48:27.3157025Z   Downloaded num_cpus v1.17.0
+2026-11-03T02:48:27.3180735Z   Downloaded bstr v1.13.1
+2026-11-03T02:48:27.3245106Z   Downloaded self_cell v1.3.0
+2026-11-03T02:48:27.3254941Z   Downloaded sys-locale v0.3.2
+2026-11-03T02:48:27.3265796Z   Downloaded ordered-channel v1.2.0
+2026-11-03T02:48:27.3272399Z   Downloaded rust-embed-impl v8.13.0
+2026-11-03T02:48:27.3279199Z   Downloaded rust-embed-utils v8.13.0
+2026-11-03T02:48:27.3287359Z   Downloaded sha1 v0.11.0
+2026-11-03T02:48:27.3301669Z   Downloaded zerofrom v0.1.8
+2026-11-03T02:48:27.3309014Z   Downloaded wayland-sys v0.31.11
+2026-11-03T02:48:27.3318880Z   Downloaded zbus_macros v5.19.0
+2026-11-03T02:48:27.3331366Z   Downloaded miniz_oxide v0.9.1
+2026-11-03T02:48:27.3356051Z   Downloaded futures-util v0.3.34
+2026-11-03T02:48:27.3456267Z   Downloaded scoped-tls v1.0.1
+2026-11-03T02:48:27.3463544Z   Downloaded siphasher v1.0.4
+2026-11-03T02:48:27.3475926Z   Downloaded maybe-rayon v0.1.1
+2026-11-03T02:48:27.3484380Z   Downloaded flume v0.12.0
+2026-11-03T02:48:27.3512045Z   Downloaded markup5ever_rcdom v0.3.0
+2026-11-03T02:48:27.3526091Z   Downloaded event-listener v5.4.2
+2026-11-03T02:48:27.3542257Z   Downloaded zbus-lockstep-macros v0.5.2
+2026-11-03T02:48:27.3550420Z   Downloaded option-ext v0.2.0
+2026-11-03T02:48:27.3559446Z   Downloaded rustversion v1.0.23
+2026-11-03T02:48:27.3590484Z   Downloaded serde_urlencoded v0.7.1
+2026-11-03T02:48:27.3609572Z   Downloaded simd-adler32 v0.3.10
+2026-11-03T02:48:27.3629046Z   Downloaded dlib v0.5.3
+2026-11-03T02:48:27.3638021Z   Downloaded lyon_path v1.0.19
+2026-11-03T02:48:27.3654198Z   Downloaded gpui-pre-ztracing-macro v0.3.10
+2026-11-03T02:48:27.3659917Z   Downloaded arg_enum_proc_macro v0.3.4
+2026-11-03T02:48:27.3673264Z   Downloaded same-file v1.0.6
+2026-11-03T02:48:27.3686250Z   Downloaded serde_derive_internals v0.30.0
+2026-11-03T02:48:27.3700706Z   Downloaded thiserror v1.0.69
+2026-11-03T02:48:27.3761469Z   Downloaded zeroize v1.9.1
+2026-11-03T02:48:27.3774212Z   Downloaded zerofrom-derive v0.1.8
+2026-11-03T02:48:27.3783012Z   Downloaded getrandom v0.3.4
+2026-11-03T02:48:27.3811645Z   Downloaded ppv-lite86 v0.2.21
+2026-11-03T02:48:27.3821923Z   Downloaded itertools v0.11.0
+2026-11-03T02:48:27.3881143Z   Downloaded xmlwriter v0.1.0
+2026-11-03T02:48:27.3888802Z   Downloaded image-webp v0.2.4
+2026-11-03T02:48:27.3908555Z   Downloaded async-process v2.5.0
+2026-11-03T02:48:27.3941415Z   Downloaded hash32 v0.3.1
+2026-11-03T02:48:27.3941762Z   Downloaded enumflags2_derive v0.7.12
+2026-11-03T02:48:27.3951556Z   Downloaded font-types v0.11.3
+2026-11-03T02:48:27.3960769Z   Downloaded kurbo v0.13.1
+2026-11-03T02:48:27.4005351Z   Downloaded rustc-hash v1.1.0
+2026-11-03T02:48:27.4013649Z   Downloaded string_cache_codegen v0.5.4
+2026-11-03T02:48:27.4019267Z   Downloaded strum_macros v0.28.0
+2026-11-03T02:48:27.4042803Z   Downloaded icu_normalizer_data v2.3.0
+2026-11-03T02:48:27.4074656Z   Downloaded strum v0.28.0
+2026-11-03T02:48:27.4082606Z   Downloaded endi v1.1.1
+2026-11-03T02:48:27.4093325Z   Downloaded svg_fmt v0.4.5
+2026-11-03T02:48:27.4101145Z   Downloaded globwalk v0.8.1
+2026-11-03T02:48:27.4113947Z   Downloaded html5ever v0.27.0
+2026-11-03T02:48:27.4151370Z   Downloaded idna_adapter v1.2.2
+2026-11-03T02:48:27.4158384Z   Downloaded find-msvc-tools v0.1.14
+2026-11-03T02:48:27.4171660Z   Downloaded y4m v0.8.0
+2026-11-03T02:48:27.4180741Z   Downloaded zeroize_derive v1.5.0
+2026-11-03T02:48:27.4190232Z   Downloaded rgb v0.8.53
+2026-11-03T02:48:27.4208846Z   Downloaded rust-i18n-macro v4.2.4
+2026-11-03T02:48:27.4216372Z   Downloaded libc v0.2.186
+2026-11-03T02:48:27.4540644Z   Downloaded rust-i18n v4.2.4
+2026-11-03T02:48:27.4567967Z   Downloaded rustc-demangle v0.1.28
+2026-11-03T02:48:27.4582547Z   Downloaded str_indices v0.4.4
+2026-11-03T02:48:27.4596267Z   Downloaded either v1.19.0
+2026-11-03T02:48:27.4607614Z   Downloaded fontconfig-parser v0.5.8
+2026-11-03T02:48:27.4653722Z   Downloaded image v0.25.9
+2026-11-03T02:48:27.4728015Z   Downloaded sha2 v0.10.9
+2026-11-03T02:48:27.4751850Z   Downloaded signal-hook-registry v1.4.8
+2026-11-03T02:48:27.4760728Z   Downloaded smallvec v1.16.3
+2026-11-03T02:48:27.4771245Z   Downloaded tinystr v0.8.4
+2026-11-03T02:48:27.4786688Z   Downloaded unicode-vo v0.1.0
+2026-11-03T02:48:27.4793386Z   Downloaded ryu v1.0.23
+2026-11-03T02:48:27.4817259Z   Downloaded shlex v2.0.1
+2026-11-03T02:48:27.4826932Z   Downloaded simd_helpers v0.1.0
+2026-11-03T02:48:27.4833536Z   Downloaded similar v2.7.0
+2026-11-03T02:48:27.4872586Z   Downloaded tempfile v3.27.0
+2026-11-03T02:48:27.4892244Z   Downloaded tendril v0.4.3
+2026-11-03T02:48:27.4906151Z   Downloaded termcolor v1.4.1
+2026-11-03T02:48:27.4915453Z   Downloaded new_debug_unreachable v1.0.6
+2026-11-03T02:48:27.4923657Z   Downloaded walkdir v2.5.0
+2026-11-03T02:48:27.4936893Z   Downloaded precomputed-hash v0.1.1
+2026-11-03T02:48:27.4941704Z   Downloaded rust-i18n-support v4.2.4
+2026-11-03T02:48:27.4950415Z   Downloaded utf-8 v0.7.6
+2026-11-03T02:48:27.4959111Z   Downloaded rfd v0.17.2
+2026-11-03T02:48:27.4997820Z   Downloaded async-trait v0.1.92
+2026-11-03T02:48:27.5025063Z   Downloaded open v5.4.4
+2026-11-03T02:48:27.5038081Z   Downloaded ordered-float v5.5.0
+2026-11-03T02:48:27.5050629Z   Downloaded mime v0.3.17
+2026-11-03T02:48:27.5060049Z   Downloaded svgtypes v0.16.1
+2026-11-03T02:48:27.5078223Z   Downloaded num-iter v0.1.46
+2026-11-03T02:48:27.5085507Z   Downloaded resvg v0.46.0
+2026-11-03T02:48:27.5106722Z   Downloaded serde_derive v1.0.228
+2026-11-03T02:48:27.5130409Z   Downloaded spirv v0.4.0+sdk-1.4.341.0
+2026-11-03T02:48:27.5139794Z   Downloaded synstructure v0.14.0
+2026-11-03T02:48:27.5148057Z   Downloaded xmp-writer v0.3.3
+2026-11-03T02:48:27.5158000Z   Downloaded zerotrie v0.2.5
+2026-11-03T02:48:27.5190395Z   Downloaded serde_json v1.0.154
+2026-11-03T02:48:27.5250227Z   Downloaded tracing-attributes v0.1.31
+2026-11-03T02:48:27.5270004Z   Downloaded displaydoc v0.2.7
+2026-11-03T02:48:27.5285433Z   Downloaded litemap v0.8.3
+2026-11-03T02:48:27.5302740Z   Downloaded pkg-config v0.3.34
+2026-11-03T02:48:27.5314009Z   Downloaded accesskit v0.24.1
+2026-11-03T02:48:27.5323501Z   Downloaded cpubits v0.1.1
+2026-11-03T02:48:27.5330075Z   Downloaded wayland-protocols-wlr v0.3.12
+2026-11-03T02:48:27.5345849Z   Downloaded gpui-pre v0.3.10
+2026-11-03T02:48:27.5692434Z   Downloaded rustybuzz v0.20.1
+2026-11-03T02:48:27.5777789Z   Downloaded typed-path v0.12.4
+2026-11-03T02:48:27.5838546Z   Downloaded bytemuck v1.25.2
+2026-11-03T02:48:27.5865548Z   Downloaded derive_more v2.1.1
+2026-11-03T02:48:27.5961381Z   Downloaded aligned-vec v0.6.4
+2026-11-03T02:48:27.5968497Z   Downloaded gpui-pre-derive-refineable v0.3.10
+2026-11-03T02:48:27.5974164Z   Downloaded kurbo v0.11.3
+2026-11-03T02:48:27.6007405Z   Downloaded gpui-pre-sum-tree v0.3.10
+2026-11-03T02:48:27.6016257Z   Downloaded async-broadcast v0.7.2
+2026-11-03T02:48:27.6028799Z   Downloaded harfrust v0.5.2
+2026-11-03T02:48:27.6093407Z   Downloaded raw-cpuid v11.6.0
+2026-11-03T02:48:27.6120396Z   Downloaded autocfg v1.5.1
+2026-11-03T02:48:27.6134045Z   Downloaded futures-sink v0.3.34
+2026-11-03T02:48:27.6140141Z   Downloaded indexmap v2.14.2
+2026-11-03T02:48:27.6172946Z   Downloaded vello_common v0.2.0
+2026-11-03T02:48:27.6204716Z   Downloaded wasm-bindgen-macro-support v0.2.129
+2026-11-03T02:48:27.6224325Z   Downloaded wayland-protocols v0.32.13
+2026-11-03T02:48:27.6289090Z   Downloaded inotify-sys v0.1.8
+2026-11-03T02:48:27.6297791Z   Downloaded granit-parser v1.3.0
+2026-11-03T02:48:27.6355340Z   Downloaded rustix v1.1.5
+2026-11-03T02:48:27.6556974Z   Downloaded bitflags v1.3.2
+2026-11-03T02:48:27.6583327Z   Downloaded chrono v0.4.45
+2026-11-03T02:48:27.6635669Z   Downloaded web-time v1.1.0
+2026-11-03T02:48:27.6649029Z   Downloaded wgpu-types v30.0.1
+2026-11-03T02:48:27.6680676Z   Downloaded zmij v1.0.23
+2026-11-03T02:48:27.6694340Z   Downloaded serde_repr v0.1.21
+2026-11-03T02:48:27.6709792Z   Downloaded static_assertions v1.1.0
+2026-11-03T02:48:27.6720526Z   Downloaded base62 v2.2.6
+2026-11-03T02:48:27.6728894Z   Downloaded tiny-skia-path v0.12.0
+2026-11-03T02:48:27.6743484Z   Downloaded arraydeque v0.5.1
+2026-11-03T02:48:27.6753226Z   Downloaded calloop-wayland-source v0.4.1
+2026-11-03T02:48:27.6762069Z   Downloaded downcast-rs v1.2.1
+2026-11-03T02:48:27.6771945Z   Downloaded async-recursion v1.2.0
+2026-11-03T02:48:27.6801374Z   Downloaded enumflags2 v0.7.12
+2026-11-03T02:48:27.6812251Z   Downloaded form_urlencoded v1.2.2
+2026-11-03T02:48:27.6818176Z   Downloaded gpui-component-macros v0.8.1
+2026-11-03T02:48:27.6824972Z   Downloaded x11 v2.21.0
+2026-11-03T02:48:27.6849241Z   Downloaded string_cache v0.8.9
+2026-11-03T02:48:27.6862488Z   Downloaded enum-iterator-derive v1.5.0
+2026-11-03T02:48:27.6884706Z   Downloaded libm v0.2.16
+2026-11-03T02:48:27.6968733Z   Downloaded itertools v0.14.0
+2026-11-03T02:48:27.7025569Z   Downloaded inout v0.1.4
+2026-11-03T02:48:27.7034364Z   Downloaded pbkdf2 v0.12.2
+2026-11-03T02:48:27.7046878Z   Downloaded subsetter v0.2.6
+2026-11-03T02:48:27.7072804Z   Downloaded tiny-keccak v2.0.2
+2026-11-03T02:48:27.7091795Z   Downloaded arrayvec v0.7.8
+2026-11-03T02:48:27.7108264Z   Downloaded dirs-sys v0.4.1
+2026-11-03T02:48:27.7117981Z   Downloaded iana-time-zone v0.1.65
+2026-11-03T02:48:27.7141366Z   Downloaded unicode-segmentation v1.13.3
+2026-11-03T02:48:27.7165035Z   Downloaded dirs v5.0.1
+2026-11-03T02:48:27.7175128Z   Downloaded semver v1.0.28
+2026-11-03T02:48:27.7192681Z   Downloaded skrifa v0.44.0
+2026-11-03T02:48:27.7269383Z   Downloaded gpui-pre-util v0.3.10
+2026-11-03T02:48:27.7276404Z   Downloaded num-bigint-dig v0.9.1
+2026-11-03T02:48:27.7314407Z   Downloaded imgref v1.12.3
+2026-11-03T02:48:27.7325388Z   Downloaded imagesize v0.14.0
+2026-11-03T02:48:27.7347750Z   Downloaded lyon v1.0.19
+2026-11-03T02:48:27.7353979Z   Downloaded glifo v0.3.0
+2026-11-03T02:48:27.7371256Z   Downloaded bytemuck_derive v1.12.1
+2026-11-03T02:48:27.7382187Z   Downloaded object v0.37.3
+2026-11-03T02:48:27.7466402Z   Downloaded instant v0.1.13
+2026-11-03T02:48:27.7476698Z   Downloaded serde_spanned v1.1.2
+2026-11-03T02:48:27.7486675Z   Downloaded once_cell v1.21.4
+2026-11-03T02:48:27.7506037Z   Downloaded wasm-bindgen v0.2.129
+2026-11-03T02:48:27.7527738Z   Downloaded zlib-rs v0.6.8
+2026-11-03T02:48:27.7570604Z   Downloaded gpui-pre-platform v0.3.10
+2026-11-03T02:48:27.7585545Z   Downloaded pollster v0.4.0
+2026-11-03T02:48:27.7597576Z   Downloaded ref-cast-impl v1.0.27
+2026-11-03T02:48:27.7604269Z   Downloaded atspi-proxies v0.13.0
+2026-11-03T02:48:27.7622168Z   Downloaded gpu-allocator v0.28.0
+2026-11-03T02:48:27.7649798Z   Downloaded gpui-pre-collections v0.3.10
+2026-11-03T02:48:27.7656279Z   Downloaded utf8_iter v1.0.4
+2026-11-03T02:48:27.7664372Z   Downloaded jobserver v0.1.35
+2026-11-03T02:48:27.7680993Z   Downloaded rand_chacha v0.3.1
+2026-11-03T02:48:27.7691899Z   Downloaded wgpu-core-deps-windows-linux-android v30.0.1
+2026-11-03T02:48:27.7698904Z   Downloaded proc-macro-crate v3.5.0
+2026-11-03T02:48:27.7709452Z   Downloaded aligned v0.4.3
+2026-11-03T02:48:27.7718376Z   Downloaded arboard v3.7.0
+2026-11-03T02:48:27.7739519Z   Downloaded cpufeatures v0.3.1
+2026-11-03T02:48:27.7750603Z   Downloaded crossbeam-epoch v0.9.21
+2026-11-03T02:48:27.7769560Z   Downloaded backtrace v0.3.76
+2026-11-03T02:48:27.7808622Z   Downloaded cipher v0.4.4
+2026-11-03T02:48:27.7820001Z   Downloaded embed-resource v3.0.12
+2026-11-03T02:48:27.7833455Z   Downloaded rangemap v1.8.0
+2026-11-03T02:48:27.7851278Z   Downloaded skrifa v0.40.0
+2026-11-03T02:48:27.7921311Z   Downloaded log v0.4.34
+2026-11-03T02:48:27.7940400Z   Downloaded normpath v1.5.2
+2026-11-03T02:48:27.7955012Z   Downloaded phf v0.11.3
+2026-11-03T02:48:27.7964542Z   Downloaded num-rational v0.4.2
+2026-11-03T02:48:27.7974150Z   Downloaded toml_datetime v1.1.2+spec-1.1.0
+2026-11-03T02:48:27.7984240Z   Downloaded quick-error v2.0.1
+2026-11-03T02:48:27.7993757Z   Downloaded crypto-common v0.1.7
+2026-11-03T02:48:27.8000288Z   Downloaded color_quant v1.1.0
+2026-11-03T02:48:27.8008149Z   Downloaded ctor v1.0.13
+2026-11-03T02:48:27.8026680Z   Downloaded gpui-pre-macros v0.3.10
+2026-11-03T02:48:27.8040693Z   Downloaded harfrust v0.8.4
+2026-11-03T02:48:27.8105827Z   Downloaded icu_properties_data v2.3.0
+2026-11-03T02:48:27.8189137Z   Downloaded event-listener-strategy v0.5.4
+2026-11-03T02:48:27.8197713Z   Downloaded vello_cpu v0.2.0
+2026-11-03T02:48:27.8236678Z   Downloaded polycool v0.4.0
+2026-11-03T02:48:27.8249450Z   Downloaded thiserror-impl v1.0.69
+2026-11-03T02:48:27.8259589Z   Downloaded thiserror-impl v2.0.21
+2026-11-03T02:48:27.8270731Z   Downloaded itoa v1.0.18
+2026-11-03T02:48:27.8281835Z   Downloaded anyhow v1.0.104
+2026-11-03T02:48:27.8311901Z   Downloaded bit_field v0.10.3
+2026-11-03T02:48:27.8321454Z   Downloaded notify-rust v4.18.2
+2026-11-03T02:48:27.8347985Z   Downloaded uuid v1.28.0
+2026-11-03T02:48:27.8371327Z   Downloaded zune-core v0.4.12
+2026-11-03T02:48:27.8383534Z   Downloaded async-io v2.6.0
+2026-11-03T02:48:27.8405220Z   Downloaded phf v0.13.1
+2026-11-03T02:48:27.8415010Z   Downloaded atomic-waker v1.1.2
+2026-11-03T02:48:27.8424141Z   Downloaded serde_bytes v0.11.19
+2026-11-03T02:48:27.8436076Z   Downloaded sha1_smol v1.0.1
+2026-11-03T02:48:27.8445976Z   Downloaded toml_edit v0.25.17+spec-1.1.0
+2026-11-03T02:48:27.8475821Z   Downloaded pastey v0.1.1
+2026-11-03T02:48:27.8488676Z   Downloaded ordered-stream v0.2.0
+2026-11-03T02:48:27.8497432Z   Downloaded rand_core v0.6.4
+2026-11-03T02:48:27.8507481Z   Downloaded tinyvec v1.13.3
+2026-11-03T02:48:27.8533800Z   Downloaded data-url v0.3.2
+2026-11-03T02:48:27.8545693Z   Downloaded zbus v5.19.0
+2026-11-03T02:48:27.8618353Z   Downloaded num v0.4.3
+2026-11-03T02:48:27.8626287Z   Downloaded cfg-if v1.0.5
+2026-11-03T02:48:27.8636289Z   Downloaded zbus_xml v5.2.1
+2026-11-03T02:48:27.8656220Z   Downloaded pin-project-internal v1.1.13
+2026-11-03T02:48:27.8668465Z   Downloaded schemars v1.2.3
+2026-11-03T02:48:27.8801616Z   Downloaded heck v0.5.0
+2026-11-03T02:48:27.8811139Z   Downloaded pin-project-lite v0.2.17
+2026-11-03T02:48:27.8856565Z   Downloaded png v0.17.16
+2026-11-03T02:48:27.8888309Z   Downloaded typenum v1.20.1
+2026-11-03T02:48:27.8916057Z   Downloaded futures-io v0.3.34
+2026-11-03T02:48:27.8924333Z   Downloaded gpui-kit v0.8.1
+2026-11-03T02:48:27.8971587Z   Downloaded icu_locale_core v2.3.0
+2026-11-03T02:48:27.9024131Z   Downloaded pxfm v0.1.30
+2026-11-03T02:48:27.9214064Z   Downloaded unicode-linebreak v0.1.5
+2026-11-03T02:48:27.9221247Z   Downloaded async-net v2.0.0
+2026-11-03T02:48:27.9230379Z   Downloaded idna v1.1.0
+2026-11-03T02:48:27.9258135Z   Downloaded slotmap v1.1.1
+2026-11-03T02:48:27.9274899Z   Downloaded font-types v0.12.6
+2026-11-03T02:48:27.9289263Z   Downloaded fontdb v0.23.0
+2026-11-03T02:48:27.9308193Z   Downloaded gpui-pre-scheduler v0.3.10
+2026-11-03T02:48:27.9318350Z   Downloaded phf_shared v0.11.3
+2026-11-03T02:48:27.9326116Z   Downloaded subtle v2.6.1
+2026-11-03T02:48:27.9335473Z   Downloaded as-slice v0.2.1
+2026-11-03T02:48:27.9343073Z   Downloaded bitflags v2.13.2
+2026-11-03T02:48:27.9376530Z   Downloaded color v0.3.3
+2026-11-03T02:48:27.9399322Z   Downloaded zeno v0.3.3
+2026-11-03T02:48:27.9416889Z   Downloaded parking_lot v0.12.5
+2026-11-03T02:48:27.9435650Z   Downloaded futures-executor v0.3.34
+2026-11-03T02:48:27.9447284Z   Downloaded block-buffer v0.12.1
+2026-11-03T02:48:27.9456651Z   Downloaded blocking v1.7.0
+2026-11-03T02:48:27.9466498Z   Downloaded zvariant_derive v5.15.0
+2026-11-03T02:48:27.9475654Z   Downloaded memchr v2.8.3
+2026-11-03T02:48:27.9518617Z   Downloaded block-padding v0.3.3
+2026-11-03T02:48:27.9534058Z   Downloaded percent-encoding v2.3.2
+2026-11-03T02:48:27.9534633Z   Downloaded xml5ever v0.18.1
+2026-11-03T02:48:27.9551198Z   Downloaded num-bigint v0.4.8
+2026-11-03T02:48:27.9588083Z   Downloaded atspi-common v0.13.0
+2026-11-03T02:48:27.9626388Z   Downloaded tracing-core v0.1.36
+2026-11-03T02:48:27.9646888Z   Downloaded url v2.5.8
+2026-11-03T02:48:27.9667479Z   Downloaded addr2line v0.25.1
+2026-11-03T02:48:27.9681976Z   Downloaded bytes v1.12.1
+2026-11-03T02:48:27.9709587Z   Downloaded read-fonts v0.39.2
+2026-11-03T02:48:27.9849997Z   Downloaded tiny-skia v0.11.4
+2026-11-03T02:48:27.9949002Z   Downloaded ttf-parser v0.25.1
+2026-11-03T02:48:28.0020129Z   Downloaded usvg v0.46.0
+2026-11-03T02:48:28.0053156Z   Downloaded aes v0.9.3
+2026-11-03T02:48:28.0082110Z   Downloaded aho-corasick v1.1.5
+2026-11-03T02:48:28.0123363Z   Downloaded ashpd v0.13.13
+2026-11-03T02:48:28.0176137Z   Downloaded cbc v0.1.2
+2026-11-03T02:48:28.0187736Z   Downloaded digest v0.10.7
+2026-11-03T02:48:28.0201667Z   Downloaded multiversion_no_op v1.0.0
+2026-11-03T02:48:28.0208552Z   Downloaded parking_lot_core v0.9.12
+2026-11-03T02:48:28.0224616Z   Downloaded aes v0.8.4
+2026-11-03T02:48:28.0251302Z   Downloaded winnow v1.0.4
+2026-11-03T02:48:28.0325477Z   Downloaded paste v1.0.15
+2026-11-03T02:48:28.0349740Z   Downloaded regex-automata v0.4.18
+2026-11-03T02:48:28.0460154Z   Downloaded syn v2.0.119
+2026-11-03T02:48:28.0543203Z   Downloaded float_next_after v1.0.0
+2026-11-03T02:48:28.0551335Z   Downloaded ignore v0.4.34
+2026-11-03T02:48:28.0572271Z   Downloaded pulp-wasm-simd-flag v0.1.1
+2026-11-03T02:48:28.0577126Z   Downloaded serde-saphyr v1.3.0
+2026-11-03T02:48:28.0903205Z   Downloaded lebe v0.5.3
+2026-11-03T02:48:28.0912366Z   Downloaded gimli v0.32.3
+2026-11-03T02:48:28.0967762Z   Downloaded async-executor v1.14.0
+2026-11-03T02:48:28.0982068Z   Downloaded async-fs v2.2.0
+2026-11-03T02:48:28.0989762Z   Downloaded crypto-common v0.2.2
+2026-11-03T02:48:28.0998506Z   Downloaded wgpu-hal v30.0.1
+2026-11-03T02:48:28.1090527Z   Downloaded pathfinder_geometry v0.5.1
+2026-11-03T02:48:28.1099102Z   Downloaded encoding_rs v0.8.42
+2026-11-03T02:48:28.1178316Z   Downloaded accesskit_consumer v0.38.0
+2026-11-03T02:48:28.1191641Z   Downloaded dyn-clone v1.0.20
+2026-11-03T02:48:28.1204211Z   Downloaded nom v8.0.0
+2026-11-03T02:48:28.1244661Z   Downloaded phf_codegen v0.11.3
+2026-11-03T02:48:28.1251899Z   Downloaded wayland-backend v0.3.17
+2026-11-03T02:48:28.1281991Z   Downloaded xim-parser v0.2.2
+2026-11-03T02:48:28.1290287Z   Downloaded quick-xml v0.41.0
+2026-11-03T02:48:28.1336481Z   Downloaded wasm-bindgen-macro v0.2.129
+2026-11-03T02:48:28.1344200Z   Downloaded toml_writer v1.1.3+spec-1.1.0
+2026-11-03T02:48:28.1355008Z   Downloaded profiling-procmacros v1.0.18
+2026-11-03T02:48:28.1360632Z   Downloaded toml_datetime v0.6.11
+2026-11-03T02:48:28.1369136Z   Downloaded arc-swap v1.9.3
+2026-11-03T02:48:28.1399310Z   Downloaded async-task v4.7.1
+2026-11-03T02:48:28.1419790Z   Downloaded futf v0.1.5
+2026-11-03T02:48:28.1427347Z   Downloaded accesskit_unix v0.22.1
+2026-11-03T02:48:28.1443573Z   Downloaded atspi v0.29.0
+2026-11-03T02:48:28.1451743Z   Downloaded is-wsl v0.4.0
+2026-11-03T02:48:28.1459607Z   Downloaded futures-channel v0.3.34
+2026-11-03T02:48:28.1473783Z   Downloaded zune-inflate v0.2.54
+2026-11-03T02:48:28.1486903Z   Downloaded zip v9.0.0
+2026-11-03T02:48:28.1534086Z   Downloaded rustc-hash v2.1.3
+2026-11-03T02:48:28.1544273Z   Downloaded gethostname v1.1.0
+2026-11-03T02:48:28.1552100Z   Downloaded async-channel v2.5.0
+2026-11-03T02:48:28.1561548Z   Downloaded getrandom v0.4.3
+2026-11-03T02:48:28.1590378Z   Downloaded loop9 v0.1.5
+2026-11-03T02:48:28.1596358Z   Downloaded gpui-pre-ztracing v0.3.10
+2026-11-03T02:48:28.1604219Z   Downloaded adler2 v2.0.1
+2026-11-03T02:48:28.1613663Z   Downloaded equator-macro v0.4.2
+2026-11-03T02:48:28.1619581Z   Downloaded yoke-derive v0.8.4
+2026-11-03T02:48:28.1628378Z   Downloaded unicode-bidi-mirroring v0.4.0
+2026-11-03T02:48:28.1635342Z   Downloaded zerocopy-derive v0.8.62
+2026-11-03T02:48:28.1728453Z   Downloaded bumpalo v3.20.3
+2026-11-03T02:48:28.1748844Z   Downloaded freetype-sys v0.20.1
+2026-11-03T02:48:28.2487247Z   Downloaded linux-raw-sys v0.12.1
+2026-11-03T02:48:28.2977075Z   Downloaded xkeysym v0.2.1
+2026-11-03T02:48:28.2999304Z   Downloaded phf_macros v0.13.1
+2026-11-03T02:48:28.3007457Z   Downloaded rand_core v0.9.5
+2026-11-03T02:48:28.3018030Z   Downloaded phf_generator v0.11.3
+2026-11-03T02:48:28.3026974Z   Downloaded unicode-bidi v0.3.18
+2026-11-03T02:48:28.3045846Z   Downloaded rav1e v0.8.1
+2026-11-03T02:48:28.3313494Z   Downloaded calloop v0.14.5
+2026-11-03T02:48:28.3340440Z   Downloaded no_std_io2 v0.9.4
+2026-11-03T02:48:28.3355786Z   Downloaded num-derive v0.4.2
+2026-11-03T02:48:28.3369708Z   Downloaded cpufeatures v0.2.17
+2026-11-03T02:48:28.3380355Z   Downloaded xattr v1.6.1
+2026-11-03T02:48:28.3394679Z   Downloaded khronos-egl v6.0.0
+2026-11-03T02:48:28.3409064Z   Downloaded linebender_resource_handle v0.1.1
+2026-11-03T02:48:28.3417948Z   Downloaded rand_core v0.10.1
+2026-11-03T02:48:28.3430223Z   Downloaded gpui-pre-shared-string v0.3.10
+2026-11-03T02:48:28.3435445Z   Downloaded unicode-ccc v0.4.0
+2026-11-03T02:48:28.3442254Z   Downloaded futures-macro v0.3.34
+2026-11-03T02:48:28.3449767Z   Downloaded v_frame v0.3.9
+2026-11-03T02:48:28.3461710Z   Downloaded hybrid-array v0.4.15
+2026-11-03T02:48:28.3478328Z   Downloaded concurrent-queue v2.5.0
+2026-11-03T02:48:28.3491259Z   Downloaded const-random-macro v0.1.16
+2026-11-03T02:48:28.3497557Z   Downloaded half v2.7.1
+2026-11-03T02:48:28.3517719Z   Downloaded quote v1.0.47
+2026-11-03T02:48:28.3537904Z   Downloaded built v0.8.1
+2026-11-03T02:48:28.3553136Z   Downloaded profiling v1.0.18
+2026-11-03T02:48:28.3562121Z   Downloaded core_detect v1.0.0
+2026-11-03T02:48:28.3574458Z   Downloaded derive_more-impl v2.1.1
+2026-11-03T02:48:28.3613819Z   Downloaded const-oid v0.10.2
+2026-11-03T02:48:28.3632699Z   Downloaded num-traits v0.2.19
+2026-11-03T02:48:28.3652726Z   Downloaded ahash v0.8.12
+2026-11-03T02:48:28.3671157Z   Downloaded hashbrown v0.16.1
+2026-11-03T02:48:28.3711638Z   Downloaded markup5ever v0.12.1
+2026-11-03T02:48:28.3724341Z   Downloaded generic-array v0.14.7
+2026-11-03T02:48:28.3734722Z   Downloaded thread_local v1.1.10
+2026-11-03T02:48:28.3744890Z   Downloaded arrayref v0.3.9
+2026-11-03T02:48:28.3754515Z   Downloaded float-ord v0.3.2
+2026-11-03T02:48:28.3761734Z   Downloaded yeslogic-fontconfig-sys v6.0.1
+2026-11-03T02:48:28.3768185Z   Downloaded wayland-cursor v0.31.14
+2026-11-03T02:48:28.3775025Z   Downloaded getrandom v0.2.17
+2026-11-03T02:48:28.3797548Z   Downloaded raw-window-handle v0.6.2
+2026-11-03T02:48:28.3811785Z   Downloaded waker-fn v1.2.0
+2026-11-03T02:48:28.3818389Z   Downloaded toml_write v0.1.2
+2026-11-03T02:48:28.3831000Z   Downloaded fdeflate v0.3.7
+2026-11-03T02:48:28.3843703Z   Downloaded float-cmp v0.9.0
+2026-11-03T02:48:28.3852357Z   Downloaded futures-core v0.3.34
+2026-11-03T02:48:28.3862527Z   Downloaded async-lock v3.4.2
+2026-11-03T02:48:28.3879036Z   Downloaded shellexpand v3.1.2
+2026-11-03T02:48:28.3892348Z   Downloaded weezl v0.1.12
+2026-11-03T02:48:28.3911026Z   Downloaded potential_utf v0.1.6
+2026-11-03T02:48:28.3919809Z   Downloaded fax v0.2.7
+2026-11-03T02:48:28.3935130Z   Downloaded cipher v0.5.2
+2026-11-03T02:48:28.3952762Z   Downloaded wgpu-naga-bridge v30.0.1
+2026-11-03T02:48:28.3958942Z   Downloaded writeable v0.6.4
+2026-11-03T02:48:28.3974661Z   Downloaded toml_parser v1.1.5+spec-1.1.0
+2026-11-03T02:48:28.3992472Z   Downloaded allocator-api2 v0.2.21
+2026-11-03T02:48:28.4012041Z   Downloaded annotate-snippets v0.12.17
+2026-11-03T02:48:28.4039498Z   Downloaded yoke v0.8.3
+2026-11-03T02:48:28.4053619Z   Downloaded noop_proc_macro v0.3.0
+2026-11-03T02:48:28.4061124Z   Downloaded async-signal v0.2.14
+2026-11-03T02:48:28.4071977Z   Downloaded avif-serialize v0.8.9
+2026-11-03T02:48:28.4079991Z   Downloaded fearless_simd v0.4.1
+2026-11-03T02:48:28.4179305Z   Downloaded zerovec-derive v0.11.6
+2026-11-03T02:48:28.4179758Z   Downloaded zed-font-kit v0.14.1-zed
+2026-11-03T02:48:28.4347553Z   Downloaded naga v30.0.1
+2026-11-03T02:48:28.4347864Z   Downloaded x11rb-protocol v0.13.2
+2026-11-03T02:48:28.4447698Z   Downloaded unicode-id v0.3.7
+2026-11-03T02:48:28.4459959Z   Downloaded http-body v1.1.0
+2026-11-03T02:48:28.4467950Z   Downloaded wayland-protocols-plasma v0.3.12
+2026-11-03T02:48:28.4502049Z   Downloaded gpui-base v0.8.1
+2026-11-03T02:48:28.4694414Z   Downloaded etagere v0.2.15
+2026-11-03T02:48:28.4705420Z   Downloaded notify-types v2.2.0
+2026-11-03T02:48:28.4731364Z   Downloaded pathfinder_simd v0.5.6
+2026-11-03T02:48:28.4746163Z   Downloaded crc32fast v1.5.2
+2026-11-03T02:48:28.4762233Z   Downloaded zbus-lockstep v0.5.2
+2026-11-03T02:48:28.4769760Z   Downloaded toml v1.1.8+spec-1.1.0
+2026-11-03T02:48:28.4801190Z   Downloaded proc-macro2 v1.0.107
+2026-11-03T02:48:28.4823533Z   Downloaded document-features v0.2.12
+2026-11-03T02:48:28.4833121Z   Downloaded xim-ctext v0.3.0
+2026-11-03T02:48:28.4838558Z   Downloaded xkbcommon v0.8.0
+2026-11-03T02:48:28.4855812Z   Downloaded zerocopy v0.8.62
+2026-11-03T02:48:28.5060044Z   Downloaded base64 v0.22.1
+2026-11-03T02:48:28.5088808Z   Downloaded miniz_oxide v0.8.9
+2026-11-03T02:48:28.5107778Z   Downloaded write-fonts v0.48.1
+2026-11-03T02:48:28.5188693Z   Downloaded rand v0.8.8
+2026-11-03T02:48:28.5214624Z   Downloaded wayland-client v0.31.15
+2026-11-03T02:48:28.5230639Z   Downloaded crossbeam-utils v0.8.23
+2026-11-03T02:48:28.5251774Z   Downloaded equivalent v1.0.2
+2026-11-03T02:48:28.5259390Z   Downloaded crossbeam-deque v0.8.8
+2026-11-03T02:48:28.5270736Z   Downloaded zvariant_utils v4.2.0
+2026-11-03T02:48:28.5285554Z   Downloaded fluent-uri v0.1.4
+2026-11-03T02:48:28.5302696Z   Downloaded yazi v0.2.1
+2026-11-03T02:48:28.5313276Z   Downloaded zune-jpeg v0.4.21
+2026-11-03T02:48:28.5335475Z   Downloaded rust-embed v8.13.0
+2026-11-03T02:48:28.5402901Z   Downloaded seahash v4.1.0
+2026-11-03T02:48:28.5415096Z   Downloaded anstyle v1.0.14
+2026-11-03T02:48:28.5426386Z   Downloaded tracing v0.1.44
+2026-11-03T02:48:28.5552985Z   Downloaded bit-vec v0.9.1
+2026-11-03T02:48:28.5565612Z   Downloaded xcb v1.7.1
+2026-11-03T02:48:28.5629348Z   Downloaded core_maths v0.1.1
+2026-11-03T02:48:28.5635538Z   Downloaded pdf-writer v0.15.0
+2026-11-03T02:48:28.5720172Z   Downloaded cosmic-text v0.19.0
+2026-11-03T02:48:28.5973257Z   Downloaded euclid v0.22.14
+2026-11-03T02:48:28.5997954Z   Downloaded qoi v0.4.1
+2026-11-03T02:48:28.6019594Z   Downloaded accesskit_atspi_common v0.19.1
+2026-11-03T02:48:28.6032854Z   Downloaded foldhash v0.2.0
+2026-11-03T02:48:28.6042400Z   Downloaded naga-types v30.0.1
+2026-11-03T02:48:28.6051064Z   Downloaded num-complex v0.4.6
+2026-11-03T02:48:28.6062187Z   Downloaded presser v0.3.1
+2026-11-03T02:48:28.6075299Z   Downloaded rand_chacha v0.9.0
+2026-11-03T02:48:28.6084440Z   Downloaded tiny-skia-path v0.11.4
+2026-11-03T02:48:28.6098711Z   Downloaded cc v1.8.0
+2026-11-03T02:48:28.6128788Z   Downloaded png v0.18.1
+2026-11-03T02:48:28.6160536Z   Downloaded rand v0.9.5
+2026-11-03T02:48:28.6192223Z   Downloaded mime_guess v2.0.5
+2026-11-03T02:48:28.6211122Z   Downloaded exr v1.74.2
+2026-11-03T02:48:28.6293151Z   Downloaded av1-grain v0.2.5
+2026-11-03T02:48:28.6311522Z   Downloaded byteorder v1.5.0
+2026-11-03T02:48:28.6324393Z   Downloaded ravif v0.12.0
+2026-11-03T02:48:28.6333597Z   Downloaded num-integer v0.1.47
+2026-11-03T02:48:28.6346724Z   Downloaded piper v0.2.5
+2026-11-03T02:48:28.6359373Z   Downloaded wgpu v30.0.1
+2026-11-03T02:48:28.6473300Z   Downloaded av-scenechange v0.14.1
+2026-11-03T02:48:28.6561438Z   Downloaded gif v0.14.2
+2026-11-03T02:48:28.6575571Z   Downloaded md-5 v0.10.6
+2026-11-03T02:48:28.6587550Z   Downloaded notify v8.2.1
+2026-11-03T02:48:28.6604653Z   Downloaded bitstream-io v4.10.0
+2026-11-03T02:48:28.6627041Z   Downloaded nohash-hasher v0.2.0
+2026-11-03T02:48:28.6634117Z   Downloaded futures v0.3.34
+2026-11-03T02:48:28.6672263Z   Downloaded zvariant v5.15.0
+2026-11-03T02:48:28.6724919Z   Downloaded unicase v2.10.0
+2026-11-03T02:48:28.6736609Z   Downloaded triomphe v0.1.17
+2026-11-03T02:48:28.6753194Z   Downloaded pico-args v0.5.0
+2026-11-03T02:48:28.6764028Z   Downloaded rayon-core v1.13.0
+2026-11-03T02:48:28.6792108Z   Downloaded unicode-script v0.5.8
+2026-11-03T02:48:28.6806331Z   Downloaded ash v0.38.0+1.3.281
+2026-11-03T02:48:28.6929201Z   Downloaded wasm-bindgen-shared v0.2.129
+2026-11-03T02:48:28.6937856Z   Downloaded zed-xim v0.4.0-zed
+2026-11-03T02:48:28.6956691Z   Downloaded phf_generator v0.13.1
+2026-11-03T02:48:28.6966411Z   Downloaded usvg v0.45.1
+2026-11-03T02:48:28.6999877Z   Downloaded bit-set v0.10.0
+2026-11-03T02:48:28.7011404Z   Downloaded moxcms v0.7.11
+2026-11-03T02:48:28.7087516Z   Downloaded unicode-properties v0.1.4
+2026-11-03T02:48:28.7103246Z   Downloaded pulp v0.22.3
+2026-11-03T02:48:28.7142448Z   Downloaded phf_shared v0.13.1
+2026-11-03T02:48:28.7149822Z   Downloaded as-raw-xcb-connection v1.0.1
+2026-11-03T02:48:28.7156171Z   Downloaded errno v0.3.14
+2026-11-03T02:48:28.7167982Z   Downloaded xcursor v0.3.11
+2026-11-03T02:48:28.7174773Z   Downloaded equator v0.4.2
+2026-11-03T02:48:28.8078770Z   Downloaded mio v1.2.4
+2026-11-03T02:48:28.8125789Z   Downloaded rayon v1.12.0
+2026-11-03T02:48:28.8198092Z   Downloaded tiff v0.10.3
+2026-11-03T02:48:28.8286016Z   Downloaded wgpu-core v30.0.1
+2026-11-03T02:48:28.8363267Z   Downloaded convert_case v0.10.0
+2026-11-03T02:48:28.8376247Z   Downloaded peniko v0.6.1
+2026-11-03T02:48:28.8386967Z   Downloaded crunchy v0.2.4
+2026-11-03T02:48:28.8393680Z   Downloaded zcheapstr v1.1.0
+2026-11-03T02:48:28.8406858Z   Downloaded codespan-reporting v0.13.1
+2026-11-03T02:48:28.8462730Z   Downloaded memmap2 v0.9.11
+2026-11-03T02:48:28.8475853Z   Downloaded polling v3.11.0
+2026-11-03T02:48:28.8498950Z   Downloaded block-buffer v0.10.4
+2026-11-03T02:48:28.8507069Z   Downloaded toml v0.8.23
+2026-11-03T02:48:28.8525366Z   Downloaded futures-task v0.3.34
+2026-11-03T02:48:28.8534560Z   Downloaded pin-project v1.1.13
+2026-11-03T02:48:28.8632974Z   Downloaded enum-iterator v2.3.0
+2026-11-03T02:48:28.8639559Z   Downloaded oo7 v0.6.0
+2026-11-03T02:48:28.8674001Z   Downloaded zed-scap v0.0.8-zed
+2026-11-03T02:48:28.8795874Z   Downloaded byteorder-lite v0.1.0
+2026-11-03T02:48:28.8804119Z   Downloaded zerovec v0.11.8
+2026-11-03T02:48:28.8849691Z   Downloaded unicode-ident v1.0.27
+2026-11-03T02:48:28.8870756Z   Downloaded toml_edit v0.22.27
+2026-11-03T02:48:28.8904133Z   Downloaded zbus_names v4.3.4
+2026-11-03T02:48:28.8916349Z   Downloaded encoding_rs_io v0.1.8
+2026-11-03T02:48:28.8926594Z   Downloaded version_check v0.9.5
+2026-11-03T02:48:28.8936048Z   Downloaded const-random v0.1.18
+2026-11-03T02:48:28.8944410Z   Downloaded parking v2.2.1
+2026-11-03T02:48:28.8952244Z   Downloaded zune-core v0.5.3
+2026-11-03T02:48:28.8969280Z   Downloaded zune-jpeg v0.5.15
+2026-11-03T02:48:28.8995368Z   Downloaded unicode-width v0.2.2
+2026-11-03T02:48:28.9040162Z   Downloaded winnow v0.7.15
+2026-11-03T02:48:28.9113268Z   Downloaded x11rb v0.13.2
+2026-11-03T02:48:28.9175483Z   Downloaded fastrand v2.5.0
+2026-11-03T02:48:28.9186426Z   Downloaded filedescriptor v0.8.3
+2026-11-03T02:48:28.9193820Z   Downloaded markdown v1.0.0
+2026-11-03T02:48:29.1398793Z    Compiling quote v1.0.47
+2026-11-03T02:48:29.1399252Z    Compiling proc-macro2 v1.0.107
+2026-11-03T02:48:29.1400709Z    Compiling unicode-ident v1.0.27
+2026-11-03T02:48:29.1401251Z    Compiling serde_core v1.0.228
+2026-11-03T02:48:29.2337994Z     Checking cfg-if v1.0.5
+2026-11-03T02:48:29.2721946Z    Compiling serde v1.0.228
+2026-11-03T02:48:29.5891935Z    Compiling autocfg v1.5.1
+2026-11-03T02:48:29.6749704Z    Compiling libm v0.2.16
+2026-11-03T02:48:30.8699759Z    Compiling syn v2.0.119
+2026-11-03T02:48:31.1802658Z    Compiling syn v3.0.9
+2026-11-03T02:48:31.2471820Z     Checking bitflags v2.13.2
+2026-11-03T02:48:31.3514488Z    Compiling num-traits v0.2.19
+2026-11-03T02:48:32.0251980Z     Checking memchr v2.8.3
+2026-11-03T02:48:32.0714277Z     Checking simd-adler32 v0.3.10
+2026-11-03T02:48:32.1661909Z    Compiling version_check v0.9.5
+2026-11-03T02:48:32.3642008Z     Checking adler2 v2.0.1
+2026-11-03T02:48:32.4161777Z    Compiling crc32fast v1.5.2
+2026-11-03T02:48:32.7101753Z    Compiling crossbeam-utils v0.8.23
+2026-11-03T02:48:33.0690568Z     Checking miniz_oxide v0.9.1
+2026-11-03T02:48:33.3980444Z     Checking typenum v1.20.1
+2026-11-03T02:48:33.4175179Z     Checking flate2 v1.1.10
+2026-11-03T02:48:33.6481964Z    Compiling zerocopy v0.8.62
+2026-11-03T02:48:34.1342046Z    Compiling crossbeam-epoch v0.9.21
+2026-11-03T02:48:34.3391946Z    Compiling crossbeam-deque v0.8.8
+2026-11-03T02:48:34.4253562Z     Checking miniz_oxide v0.8.9
+2026-11-03T02:48:34.5281979Z     Checking fdeflate v0.3.7
+2026-11-03T02:48:34.7821992Z    Compiling rayon-core v1.13.0
+2026-11-03T02:48:34.8892005Z     Checking either v1.19.0
+2026-11-03T02:48:35.0311771Z     Checking png v0.18.1
+2026-11-03T02:48:35.3954183Z    Compiling paste v1.0.15
+2026-11-03T02:48:35.6602354Z     Checking quick-error v2.0.1
+2026-11-03T02:48:35.7131782Z     Checking weezl v0.1.12
+2026-11-03T02:48:35.7482460Z    Compiling pulp v0.22.3
+2026-11-03T02:48:35.9072122Z     Checking byteorder-lite v0.1.0
+2026-11-03T02:48:36.0751460Z     Checking zune-core v0.5.3
+2026-11-03T02:48:36.2271915Z     Checking color_quant v1.1.0
+2026-11-03T02:48:36.2391748Z     Checking zune-jpeg v0.5.15
+2026-11-03T02:48:36.3112172Z     Checking gif v0.14.2
+2026-11-03T02:48:36.6131967Z     Checking image-webp v0.2.4
+2026-11-03T02:48:37.3651819Z     Checking rayon v1.12.0
+2026-11-03T02:48:37.8343053Z     Checking raw-cpuid v11.6.0
+2026-11-03T02:48:38.8311944Z     Checking reborrow v0.5.5
+2026-11-03T02:48:38.8710530Z     Checking pulp-wasm-simd-flag v0.1.1
+2026-11-03T02:48:38.9067131Z     Checking zune-core v0.4.12
+2026-11-03T02:48:39.0441942Z     Checking zune-jpeg v0.4.21
+2026-11-03T02:48:39.1921703Z     Checking zune-inflate v0.2.54
+2026-11-03T02:48:39.3422006Z     Checking fax v0.2.7
+2026-11-03T02:48:39.4401764Z     Checking bit_field v0.10.3
+2026-11-03T02:48:39.5199576Z     Checking lebe v0.5.3
+2026-11-03T02:48:39.5317596Z     Checking pxfm v0.1.30
+2026-11-03T02:48:39.6261859Z    Compiling generic-array v0.14.7
+2026-11-03T02:48:40.1842096Z     Checking crypto-common v0.1.7
+2026-11-03T02:48:40.2421969Z     Checking block-buffer v0.10.4
+2026-11-03T02:48:40.3108996Z     Checking subtle v2.6.1
+2026-11-03T02:48:40.4011857Z     Checking digest v0.10.7
+2026-11-03T02:48:40.5281740Z     Checking cpufeatures v0.2.17
+2026-11-03T02:48:40.5651809Z     Checking sha2 v0.10.9
+2026-11-03T02:48:40.7698869Z     Checking unicode-segmentation v1.13.3
+2026-11-03T02:48:41.0465814Z    Compiling libc v0.2.186
+2026-11-03T02:48:41.5481576Z     Checking moxcms v0.7.11
+2026-11-03T02:48:41.7221944Z     Checking aho-corasick v1.1.5
+2026-11-03T02:48:42.4801987Z     Checking regex-syntax v0.8.11
+2026-11-03T02:48:43.8242007Z     Checking regex-automata v0.4.18
+2026-11-03T02:48:44.5961967Z     Checking log v0.4.34
+2026-11-03T02:48:45.4561965Z     Checking regex v1.13.1
+2026-11-03T02:48:45.4872103Z     Checking joyword-foundation v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-foundation)
+2026-11-03T02:48:45.5603347Z     Checking once_cell v1.21.4
+2026-11-03T02:48:45.7001947Z     Checking arrayvec v0.7.8
+2026-11-03T02:48:45.7160771Z     Checking quick-xml v0.41.0
+2026-11-03T02:48:45.8401988Z     Checking foldhash v0.2.0
+2026-11-03T02:48:45.9311877Z     Checking equivalent v1.0.2
+2026-11-03T02:48:45.9691773Z     Checking hashbrown v0.17.1
+2026-11-03T02:48:46.2906532Z    Compiling rustix v1.1.5
+2026-11-03T02:48:46.4181945Z     Checking indexmap v2.14.2
+2026-11-03T02:48:46.8871892Z     Checking linux-raw-sys v0.12.1
+2026-11-03T02:48:46.9082473Z     Checking itoa v1.0.18
+2026-11-03T02:48:47.0062381Z    Compiling getrandom v0.4.3
+2026-11-03T02:48:47.2861846Z     Checking fastrand v2.5.0
+2026-11-03T02:48:47.4022220Z     Checking joyoffice-opc v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyoffice-opc)
+2026-11-03T02:48:47.6822043Z    Compiling zmij v1.0.23
+2026-11-03T02:48:48.0002372Z     Checking polycool v0.4.0
+2026-11-03T02:48:48.1569674Z    Compiling serde_json v1.0.154
+2026-11-03T02:48:49.3671987Z     Checking float-cmp v0.9.0
+2026-11-03T02:48:49.4312461Z     Checking strict-num v0.1.1
+2026-11-03T02:48:49.5131869Z     Checking arrayref v0.3.9
+2026-11-03T02:48:49.5468260Z    Compiling thiserror v2.0.21
+2026-11-03T02:48:50.1426297Z     Checking unicode-linebreak v0.1.5
+2026-11-03T02:48:50.2899379Z     Checking stable_deref_trait v1.2.1
+2026-11-03T02:48:50.3292487Z    Compiling synstructure v0.14.0
+2026-11-03T02:48:51.1871968Z     Checking siphasher v1.0.4
+2026-11-03T02:48:51.3001961Z     Checking tempfile v3.27.0
+2026-11-03T02:48:51.4592002Z     Checking base64 v0.22.1
+2026-11-03T02:48:51.6481987Z     Checking ryu v1.0.23
+2026-11-03T02:48:51.7481907Z     Checking rustc-hash v2.1.3
+2026-11-03T02:48:51.8046424Z     Checking imagesize v0.14.0
+2026-11-03T02:48:52.0172225Z     Checking iana-time-zone v0.1.65
+2026-11-03T02:48:52.1031964Z     Checking bitflags v1.3.2
+2026-11-03T02:48:54.6312678Z     Checking png v0.17.16
+2026-11-03T02:48:55.2242325Z     Checking xattr v1.6.1
+2026-11-03T02:48:55.3231877Z     Checking pin-project-lite v0.2.17
+2026-11-03T02:48:55.3641815Z     Checking pdf-writer v0.15.0
+2026-11-03T02:48:56.5591961Z     Checking xmp-writer v0.3.3
+2026-11-03T02:48:56.7591795Z    Compiling serde_derive v1.0.228
+2026-11-03T02:48:56.8072012Z    Compiling zerocopy-derive v0.8.62
+2026-11-03T02:48:56.8158035Z     Checking bumpalo v3.20.3
+2026-11-03T02:48:57.7821760Z    Compiling bytemuck_derive v1.12.1
+2026-11-03T02:48:58.1302044Z    Compiling thiserror-impl v2.0.21
+2026-11-03T02:49:07.8972698Z     Checking bytemuck v1.25.2
+2026-11-03T02:49:08.0571919Z     Checking num-complex v0.4.6
+2026-11-03T02:49:10.6462242Z     Checking qoi v0.4.1
+2026-11-03T02:49:10.7681772Z     Checking font-types v0.11.3
+2026-11-03T02:49:10.8282109Z    Compiling zerofrom-derive v0.1.8
+2026-11-03T02:49:11.0142001Z     Checking read-fonts v0.39.2
+2026-11-03T02:49:13.3441994Z     Checking smallvec v1.16.3
+2026-11-03T02:49:13.4782002Z     Checking kurbo v0.13.1
+2026-11-03T02:49:14.5151920Z    Compiling yoke-derive v0.8.4
+2026-11-03T02:49:14.5261604Z     Checking half v2.7.1
+2026-11-03T02:49:14.8131875Z     Checking exr v1.74.2
+2026-11-03T02:49:16.2165833Z     Checking tiff v0.10.3
+2026-11-03T02:49:16.9302298Z     Checking skrifa v0.42.1
+2026-11-03T02:49:16.9952032Z     Checking image v0.25.9
+2026-11-03T02:49:18.6631970Z     Checking harfrust v0.8.4
+2026-11-03T02:49:19.1592239Z     Checking joyword-model v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-model)
+2026-11-03T02:49:20.3662177Z     Checking joyword-engine v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-engine)
+2026-11-03T02:49:20.8956106Z     Checking joyword-docx v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-docx)
+2026-11-03T02:49:21.3902280Z     Checking joyword-textfmt v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-textfmt)
+2026-11-03T02:49:21.5892013Z     Checking chrono v0.4.45
+2026-11-03T02:49:22.5280157Z     Checking tiny-skia-path v0.11.4
+2026-11-03T02:49:23.0117346Z     Checking tiny-skia v0.11.4
+2026-11-03T02:49:23.1812196Z     Checking joyword-rtf v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-rtf)
+2026-11-03T02:49:23.3477601Z     Checking joyword-layout v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-layout)
+2026-11-03T02:49:23.9632201Z     Checking joyword-epub v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-epub)
+2026-11-03T02:49:24.1622293Z     Checking joyword-shell v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-shell)
+2026-11-03T02:49:25.0094673Z     Checking write-fonts v0.48.1
+2026-11-03T02:49:26.0732352Z     Checking tiny-skia-path v0.12.0
+2026-11-03T02:49:26.1372061Z     Checking zerofrom v0.1.8
+2026-11-03T02:49:26.2069179Z     Checking futures-core v0.3.34
+2026-11-03T02:49:26.2811882Z    Compiling winnow v1.0.4
+2026-11-03T02:49:26.5041796Z    Compiling toml_datetime v1.1.2+spec-1.1.0
+2026-11-03T02:49:27.2862107Z     Checking yoke v0.8.3
+2026-11-03T02:49:27.4132638Z    Compiling toml_parser v1.1.5+spec-1.1.0
+2026-11-03T02:49:28.2972038Z     Checking hybrid-array v0.4.15
+2026-11-03T02:49:28.5531778Z     Checking parking v2.2.1
+2026-11-03T02:49:28.6201999Z    Compiling find-msvc-tools v0.1.14
+2026-11-03T02:49:28.6652084Z    Compiling pkg-config v0.3.34
+2026-11-03T02:49:28.7425772Z    Compiling shlex v2.0.1
+2026-11-03T02:49:28.8681967Z     Checking subsetter v0.2.6
+2026-11-03T02:49:28.9668165Z    Compiling cc v1.8.0
+2026-11-03T02:49:29.0191991Z     Checking crypto-common v0.2.2
+2026-11-03T02:49:29.2993906Z     Checking krilla v0.8.2
+2026-11-03T02:49:29.5651804Z     Checking futures-io v0.3.34
+2026-11-03T02:49:29.6311884Z    Compiling toml_edit v0.25.17+spec-1.1.0
+2026-11-03T02:49:30.2732228Z     Checking joyword-render v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-render)
+2026-11-03T02:49:30.4823166Z     Checking euclid v0.22.14
+2026-11-03T02:49:30.9922002Z    Compiling proc-macro-crate v3.5.0
+2026-11-03T02:49:31.0441431Z     Checking block-buffer v0.12.1
+2026-11-03T02:49:31.1316212Z     Checking event-listener v5.4.2
+2026-11-03T02:49:31.2802286Z     Checking concurrent-queue v2.5.0
+2026-11-03T02:49:31.4013473Z     Checking unicode-bidi v0.3.18
+2026-11-03T02:49:31.6801999Z     Checking cpufeatures v0.3.1
+2026-11-03T02:49:31.7212091Z     Checking const-oid v0.10.2
+2026-11-03T02:49:31.8292003Z     Checking scopeguard v1.2.0
+2026-11-03T02:49:31.8743199Z     Checking digest v0.11.3
+2026-11-03T02:49:31.9649019Z     Checking event-listener-strategy v0.5.4
+2026-11-03T02:49:32.0421991Z     Checking libloading v0.8.9
+2026-11-03T02:49:32.1883774Z     Checking slab v0.4.12
+2026-11-03T02:49:32.2871922Z     Checking sha2 v0.11.1
+2026-11-03T02:49:32.8251848Z     Checking async-channel v2.5.0
+2026-11-03T02:49:32.8541216Z     Checking lock_api v0.4.14
+2026-11-03T02:49:32.9481837Z    Compiling enumflags2_derive v0.7.12
+2026-11-03T02:49:32.9973957Z     Checking typed-path v0.12.4
+2026-11-03T02:49:33.7262900Z     Checking dlib v0.5.3
+2026-11-03T02:49:33.7785381Z    Compiling zvariant_utils v4.2.0
+2026-11-03T02:49:33.7901687Z     Checking zip v9.0.0
+2026-11-03T02:49:34.5001958Z    Compiling getrandom v0.3.4
+2026-11-03T02:49:34.8571916Z    Compiling parking_lot_core v0.9.12
+2026-11-03T02:49:35.0512156Z     Checking joyword-pdf v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-pdf)
+2026-11-03T02:49:35.5292037Z    Compiling wayland-sys v0.31.11
+2026-11-03T02:49:35.7301922Z     Checking async-task v4.7.1
+2026-11-03T02:49:36.1112008Z     Checking font-types v0.12.6
+2026-11-03T02:49:36.3911991Z     Checking read-fonts v0.41.0
+2026-11-03T02:49:36.6551987Z     Checking parking_lot v0.12.5
+2026-11-03T02:49:36.7871992Z     Checking futures-lite v2.6.1
+2026-11-03T02:49:36.8011726Z    Compiling zerovec-derive v0.11.6
+2026-11-03T02:49:37.3052561Z    Compiling tracing-attributes v0.1.31
+2026-11-03T02:49:41.6872257Z     Checking joyword-corpus v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-corpus)
+2026-11-03T02:49:41.7621995Z     Checking tracing-core v0.1.36
+2026-11-03T02:49:42.0322059Z     Checking linebender_resource_handle v0.1.1
+2026-11-03T02:49:42.0961851Z    Compiling rustversion v1.0.23
+2026-11-03T02:49:42.5932298Z     Checking skrifa v0.44.0
+2026-11-03T02:49:43.7942033Z     Checking zerovec v0.11.8
+2026-11-03T02:49:44.0922682Z    Compiling zvariant_derive v5.15.0
+2026-11-03T02:49:44.4051949Z    Compiling displaydoc v0.2.7
+2026-11-03T02:49:44.5101942Z     Checking polling v3.11.0
+2026-11-03T02:49:44.6269204Z     Checking roxmltree v0.21.1
+2026-11-03T02:49:46.2391998Z    Compiling enumflags2 v0.7.12
+2026-11-03T02:49:46.3847982Z    Compiling zcheapstr v1.1.0
+2026-11-03T02:49:46.3941666Z     Checking joysheet-core v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-core)
+2026-11-03T02:49:46.5241953Z    Compiling async-io v2.6.0
+2026-11-03T02:49:46.6867805Z     Checking sha1_smol v1.0.1
+2026-11-03T02:49:46.7631900Z    Compiling endi v1.1.1
+2026-11-03T02:49:46.7901905Z     Checking uuid v1.28.0
+2026-11-03T02:49:46.8691911Z    Compiling zvariant v5.15.0
+2026-11-03T02:49:47.6332143Z     Checking tracing v0.1.44
+2026-11-03T02:49:48.6102021Z     Checking atomic-waker v1.1.2
+2026-11-03T02:49:48.6601846Z    Compiling semver v1.0.28
+2026-11-03T02:49:49.1352258Z    Compiling rustc_version v0.4.1
+2026-11-03T02:49:49.7050015Z    Compiling zbus_names v4.3.4
+2026-11-03T02:49:50.0292288Z     Checking piper v0.2.5
+2026-11-03T02:49:50.2771997Z     Checking tinystr v0.8.4
+2026-11-03T02:49:50.3961784Z    Compiling wayland-backend v0.3.17
+2026-11-03T02:49:50.5752039Z     Checking errno v0.3.14
+2026-11-03T02:49:50.6102504Z     Checking serde_bytes v0.11.19
+2026-11-03T02:49:50.6392941Z     Checking core_maths v0.1.1
+2026-11-03T02:49:50.6521886Z    Compiling cfg_aliases v0.2.2
+2026-11-03T02:49:50.6869021Z     Checking writeable v0.6.4
+2026-11-03T02:49:50.7258535Z     Checking litemap v0.8.3
+2026-11-03T02:49:50.7802214Z     Checking futures-sink v0.3.34
+2026-11-03T02:49:50.8361890Z     Checking signal-hook-registry v1.4.8
+2026-11-03T02:49:50.8612063Z     Checking icu_locale_core v2.3.0
+2026-11-03T02:49:51.5702995Z     Checking zerotrie v0.2.5
+2026-11-03T02:49:51.5793068Z     Checking blocking v1.7.0
+2026-11-03T02:49:51.6925472Z     Checking potential_utf v0.1.6
+2026-11-03T02:49:51.7255763Z     Checking async-lock v3.4.2
+2026-11-03T02:49:51.9546281Z     Checking downcast-rs v1.2.1
+2026-11-03T02:49:51.9851232Z     Checking scoped-tls v1.0.1
+2026-11-03T02:49:52.0173974Z    Compiling wayland-client v0.31.15
+2026-11-03T02:49:52.0775108Z    Compiling icu_properties_data v2.3.0
+2026-11-03T02:49:52.1471793Z    Compiling icu_normalizer_data v2.3.0
+2026-11-03T02:49:52.2150286Z     Checking raw-window-handle v0.6.2
+2026-11-03T02:49:52.2993528Z     Checking utf8_iter v1.0.4
+2026-11-03T02:49:52.3471326Z     Checking icu_collections v2.3.0
+2026-11-03T02:49:52.5684678Z     Checking icu_provider v2.3.1
+2026-11-03T02:49:52.7160278Z     Checking async-signal v0.2.14
+2026-11-03T02:49:52.7546185Z     Checking futures-channel v0.3.34
+2026-11-03T02:49:52.8062268Z     Checking joydeck-geom v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-geom)
+2026-11-03T02:49:52.8711420Z     Checking joydeck-color v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-color)
+2026-11-03T02:49:53.0946798Z    Compiling futures-macro v0.3.34
+2026-11-03T02:49:53.6118484Z    Compiling wayland-scanner v0.31.11
+2026-11-03T02:49:58.2752498Z    Compiling slotmap v1.1.1
+2026-11-03T02:49:58.3497059Z     Checking futures-task v0.3.34
+2026-11-03T02:49:58.4480479Z     Checking percent-encoding v2.3.2
+2026-11-03T02:49:58.5443712Z     Checking async-process v2.5.0
+2026-11-03T02:49:58.7763399Z     Checking async-executor v1.14.0
+2026-11-03T02:49:58.9138018Z    Compiling serde_repr v0.1.21
+2026-11-03T02:49:59.8112024Z     Checking futures-util v0.3.34
+2026-11-03T02:50:02.6262494Z     Checking static_assertions v1.1.0
+2026-11-03T02:50:02.6632191Z     Checking icu_normalizer v2.3.0
+2026-11-03T02:50:02.9387184Z     Checking icu_properties v2.3.0
+2026-11-03T02:50:03.2652294Z     Checking joydeck-model v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-model)
+2026-11-03T02:50:03.8076725Z    Compiling zbus_macros v5.19.0
+2026-11-03T02:50:05.4982028Z     Checking ttf-parser v0.25.1
+2026-11-03T02:50:07.1148122Z    Compiling encoding_rs v0.8.42
+2026-11-03T02:50:07.2082191Z     Checking async-broadcast v0.7.2
+2026-11-03T02:50:07.2581347Z     Checking ordered-stream v0.2.0
+2026-11-03T02:50:07.3421824Z    Compiling async-trait v0.1.92
+2026-11-03T02:50:07.4702046Z    Compiling async-recursion v1.2.0
+2026-11-03T02:50:11.8461940Z    Compiling bstr v1.13.1
+2026-11-03T02:50:12.4431972Z    Compiling serde_spanned v1.1.2
+2026-11-03T02:50:12.5188744Z     Checking memmap2 v0.9.11
+2026-11-03T02:50:12.6441948Z     Checking roxmltree v0.20.0
+2026-11-03T02:50:13.1372222Z     Checking hex v0.4.3
+2026-11-03T02:50:13.2982159Z    Compiling same-file v1.0.6
+2026-11-03T02:50:13.4322539Z    Compiling toml_writer v1.1.3+spec-1.1.0
+2026-11-03T02:50:13.6122319Z    Compiling toml v1.1.8+spec-1.1.0
+2026-11-03T02:50:13.7362018Z    Compiling walkdir v2.5.0
+2026-11-03T02:50:14.4141939Z    Compiling globset v0.4.21
+2026-11-03T02:50:17.6961879Z     Checking fontconfig-parser v0.5.8
+2026-11-03T02:50:17.7521931Z     Checking idna_adapter v1.2.2
+2026-11-03T02:50:17.8182355Z     Checking form_urlencoded v1.2.2
+2026-11-03T02:50:17.8952673Z     Checking joysheet-formula v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-formula)
+2026-11-03T02:50:17.9502012Z     Checking rand_core v0.9.5
+2026-11-03T02:50:18.0652361Z     Checking ppv-lite86 v0.2.21
+2026-11-03T02:50:18.3166839Z    Compiling profiling-procmacros v1.0.18
+2026-11-03T02:50:18.4512132Z     Checking allocator-api2 v0.2.21
+2026-11-03T02:50:18.6878042Z     Checking unicode-script v0.5.8
+2026-11-03T02:50:18.9201962Z    Compiling anyhow v1.0.104
+2026-11-03T02:50:19.6067857Z     Checking tinyvec v1.13.3
+2026-11-03T02:50:19.8581959Z    Compiling multiversion_no_op v1.0.0
+2026-11-03T02:50:20.0218218Z    Compiling rand_core v0.6.4
+2026-11-03T02:50:20.1371810Z    Compiling rand v0.8.8
+2026-11-03T02:50:20.6062085Z     Checking fontdb v0.23.0
+2026-11-03T02:50:20.7421954Z     Checking profiling v1.0.18
+2026-11-03T02:50:20.8081705Z     Checking hashbrown v0.16.1
+2026-11-03T02:50:20.8502005Z     Checking rand_chacha v0.9.0
+2026-11-03T02:50:20.9961950Z     Checking idna v1.1.0
+2026-11-03T02:50:21.2171989Z    Compiling embed-resource v3.0.12
+2026-11-03T02:50:21.2382190Z     Checking wayland-protocols v0.32.13
+2026-11-03T02:50:21.9511970Z    Compiling phf_shared v0.11.3
+2026-11-03T02:50:22.1092006Z     Checking lyon_geom v1.0.19
+2026-11-03T02:50:22.4251968Z    Compiling enumn v0.1.14
+2026-11-03T02:50:22.5412645Z     Checking unicode-width v0.2.2
+2026-11-03T02:50:22.7046491Z    Compiling ref-cast v1.0.27
+2026-11-03T02:50:23.1321381Z    Compiling object v0.37.3
+2026-11-03T02:50:23.4042281Z     Checking unicode-bidi-mirroring v0.4.0
+2026-11-03T02:50:23.4471845Z     Checking unicode-ccc v0.4.0
+2026-11-03T02:50:23.4961908Z     Checking unicode-properties v0.1.4
+2026-11-03T02:50:23.6161993Z     Checking rustc-hash v1.1.0
+2026-11-03T02:50:23.6631829Z     Checking byteorder v1.5.0
+2026-11-03T02:50:23.8041849Z     Checking naga-types v30.0.1
+2026-11-03T02:50:23.8911982Z     Checking rustybuzz v0.20.1
+2026-11-03T02:50:24.0875572Z     Checking zbus v5.19.0
+2026-11-03T02:50:25.2643507Z     Checking accesskit v0.24.1
+2026-11-03T02:50:25.3101859Z     Checking lyon_path v1.0.19
+2026-11-03T02:50:25.3991961Z    Compiling phf_generator v0.11.3
+2026-11-03T02:50:25.5791997Z     Checking url v2.5.8
+2026-11-03T02:50:25.6212375Z     Checking rand v0.9.5
+2026-11-03T02:50:26.0002252Z     Checking futures-executor v0.3.34
+2026-11-03T02:50:26.0231907Z    Compiling naga v30.0.1
+2026-11-03T02:50:26.0892031Z    Compiling ref-cast-impl v1.0.27
+2026-11-03T02:50:26.4141951Z     Checking simplecss v0.2.2
+2026-11-03T02:50:26.4546819Z    Compiling serde_derive_internals v0.30.0
+2026-11-03T02:50:26.5972431Z    Compiling heapless v0.9.3
+2026-11-03T02:50:27.6901972Z     Checking data-url v0.3.2
+2026-11-03T02:50:27.8271836Z     Checking bit-vec v0.9.1
+2026-11-03T02:50:27.9601875Z    Compiling gpui-pre-ztracing v0.3.10
+2026-11-03T02:50:28.0511959Z     Checking pollster v0.4.0
+2026-11-03T02:50:28.1081771Z     Checking bytes v1.12.1
+2026-11-03T02:50:28.5062499Z     Checking unicode-vo v0.1.0
+2026-11-03T02:50:28.5662036Z     Checking pico-args v0.5.0
+2026-11-03T02:50:28.6601608Z    Compiling ash v0.38.0+1.3.281
+2026-11-03T02:50:28.6758870Z     Checking gimli v0.32.3
+2026-11-03T02:50:28.8191935Z     Checking xmlwriter v0.1.0
+2026-11-03T02:50:28.8982412Z    Compiling heck v0.5.0
+2026-11-03T02:50:29.4341819Z    Compiling convert_case v0.10.0
+2026-11-03T02:50:29.5742575Z     Checking http v1.5.0
+2026-11-03T02:50:30.1561825Z     Checking bit-set v0.10.0
+2026-11-03T02:50:30.2946706Z     Checking addr2line v0.25.1
+2026-11-03T02:50:30.4838666Z     Checking futures v0.3.34
+2026-11-03T02:50:30.6262489Z     Checking hash32 v0.3.1
+2026-11-03T02:50:30.6622187Z     Checking codespan-reporting v0.13.1
+2026-11-03T02:50:30.7022518Z     Checking joysheet-model v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-model)
+2026-11-03T02:50:30.9092080Z    Compiling zbus_xml v5.2.1
+2026-11-03T02:50:33.0071957Z     Checking spin v0.9.9
+2026-11-03T02:50:33.1201925Z     Checking svgtypes v0.16.1
+2026-11-03T02:50:33.4482264Z     Checking spirv v0.4.0+sdk-1.4.341.0
+2026-11-03T02:50:33.6782420Z     Checking smol_str v0.3.6
+2026-11-03T02:50:33.8032499Z    Compiling khronos-egl v6.0.0
+2026-11-03T02:50:33.9002033Z    Compiling gpui-pre-ztracing-macro v0.3.10
+2026-11-03T02:50:34.0671975Z     Checking rustc-demangle v0.1.28
+2026-11-03T02:50:34.1572149Z    Compiling crunchy v0.2.4
+2026-11-03T02:50:34.2611934Z     Checking str_indices v0.4.4
+2026-11-03T02:50:34.3560779Z     Checking new_debug_unreachable v1.0.6
+2026-11-03T02:50:34.3752671Z     Checking float_next_after v1.0.0
+2026-11-03T02:50:34.3911892Z     Checking dyn-clone v1.0.20
+2026-11-03T02:50:34.4201941Z     Checking lyon_tessellation v1.0.22
+2026-11-03T02:50:34.4571971Z     Checking backtrace v0.3.76
+2026-11-03T02:50:34.7891787Z     Checking usvg v0.46.0
+2026-11-03T02:50:34.8359305Z     Checking flume v0.12.0
+2026-11-03T02:50:34.9859957Z    Compiling zbus-lockstep v0.5.2
+2026-11-03T02:50:35.8241963Z    Compiling derive_more-impl v2.1.1
+2026-11-03T02:50:35.9002109Z     Checking http-body v1.1.0
+2026-11-03T02:50:38.2392012Z    Compiling schemars_derive v1.2.3
+2026-11-03T02:50:40.0452009Z    Compiling strum_macros v0.28.0
+2026-11-03T02:50:44.4712186Z     Checking gpui-pre-util v0.3.10
+2026-11-03T02:50:44.5621875Z     Checking lyon_algorithms v1.0.21
+2026-11-03T02:50:44.7541837Z    Compiling phf_codegen v0.11.3
+2026-11-03T02:50:44.8441841Z    Compiling string_cache_codegen v0.5.4
+2026-11-03T02:50:46.1737899Z     Checking wgpu-types v30.0.1
+2026-11-03T02:50:47.8142142Z    Compiling gpui-pre v0.3.10
+2026-11-03T02:50:48.5212456Z     Checking serde_urlencoded v0.7.1
+2026-11-03T02:50:49.1152075Z    Compiling wgpu-hal v30.0.1
+2026-11-03T02:50:49.9262292Z     Checking joysheet-numfmt v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-numfmt)
+2026-11-03T02:50:50.2181970Z     Checking rgb v0.8.53
+2026-11-03T02:50:50.4477616Z    Compiling gpui-pre-derive-refineable v0.3.10
+2026-11-03T02:50:51.8241921Z    Compiling zeroize_derive v1.5.0
+2026-11-03T02:50:52.0622094Z     Checking schemars v1.2.3
+2026-11-03T02:50:52.6722067Z    Compiling pin-project-internal v1.1.13
+2026-11-03T02:50:55.1391832Z     Checking num-integer v0.1.47
+2026-11-03T02:50:55.3211952Z     Checking xcursor v0.3.11
+2026-11-03T02:50:55.4456557Z     Checking as-raw-xcb-connection v1.0.1
+2026-11-03T02:50:55.4864633Z     Checking presser v0.3.1
+2026-11-03T02:50:55.5512697Z    Compiling joydeck-fonts v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-fonts)
+2026-11-03T02:50:55.9361971Z     Checking link-section v0.19.3
+2026-11-03T02:50:56.0822220Z    Compiling linktime-proc-macro v0.2.3
+2026-11-03T02:50:56.5271898Z     Checking web-time v1.1.0
+2026-11-03T02:50:56.5643755Z     Checking mac v0.1.1
+2026-11-03T02:50:56.6022470Z    Compiling tiny-keccak v2.0.2
+2026-11-03T02:50:56.6991810Z     Checking svg_fmt v0.4.5
+2026-11-03T02:50:56.8161879Z     Checking etagere v0.2.15
+2026-11-03T02:50:56.9940014Z     Checking futf v0.1.5
+2026-11-03T02:50:57.0631934Z     Checking gpui-pre-scheduler v0.3.10
+2026-11-03T02:50:57.3271960Z     Checking gpui-pre-refineable v0.3.10
+2026-11-03T02:50:57.4065114Z     Checking gpu-allocator v0.28.0
+2026-11-03T02:50:57.6321916Z     Checking strum v0.28.0
+2026-11-03T02:50:57.6848318Z     Checking gpui-pre-shared-string v0.3.10
+2026-11-03T02:50:57.7562529Z     Checking derive_more v2.1.1
+2026-11-03T02:50:57.8212302Z     Checking resvg v0.46.0
+2026-11-03T02:50:57.8831365Z     Checking zeroize v1.9.1
+2026-11-03T02:50:58.0922101Z     Checking gpui-pre-http-client v0.3.10
+2026-11-03T02:50:58.1252507Z     Checking wgpu-naga-bridge v30.0.1
+2026-11-03T02:50:58.1832029Z    Compiling markup5ever v0.12.1
+2026-11-03T02:50:58.2032239Z     Checking ctor v1.0.13
+2026-11-03T02:50:58.2898396Z     Checking lyon v1.0.19
+2026-11-03T02:50:58.3021825Z     Checking gpui-pre-collections v0.3.10
+2026-11-03T02:50:58.3281962Z    Compiling ignore v0.4.34
+2026-11-03T02:50:58.3560047Z     Checking gpui-pre-sum-tree v0.3.10
+2026-11-03T02:50:58.6385661Z    Compiling zbus-lockstep-macros v0.5.2
+2026-11-03T02:51:01.3022821Z    Compiling gpui-pre-macros v0.3.10
+2026-11-03T02:51:01.8322419Z     Checking taffy v0.15.1
+2026-11-03T02:51:03.1156871Z    Compiling pathfinder_simd v0.5.6
+2026-11-03T02:51:03.2502720Z     Checking joysheet-functions v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-functions)
+2026-11-03T02:51:03.6392061Z     Checking pin-project v1.1.13
+2026-11-03T02:51:03.6872235Z    Compiling freetype-sys v0.20.1
+2026-11-03T02:51:04.0872432Z    Compiling phf_shared v0.13.1
+2026-11-03T02:51:04.3121980Z     Checking spin v0.10.1
+2026-11-03T02:51:04.3692010Z    Compiling yeslogic-fontconfig-sys v6.0.1
+2026-11-03T02:51:04.5401975Z     Checking inout v0.2.5
+2026-11-03T02:51:04.6112062Z     Checking gethostname v1.1.0
+2026-11-03T02:51:04.6532234Z     Checking joyoffice-omml v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyoffice-omml)
+2026-11-03T02:51:04.6752412Z     Checking joyoffice-drawingml v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyoffice-drawingml)
+2026-11-03T02:51:04.7767150Z     Checking num_cpus v1.17.0
+2026-11-03T02:51:04.7932246Z     Checking block-padding v0.3.3
+2026-11-03T02:51:04.8572472Z     Checking itertools v0.14.0
+2026-11-03T02:51:04.8871945Z     Checking ordered-float v5.5.0
+2026-11-03T02:51:05.0632023Z     Checking seahash v4.1.0
+2026-11-03T02:51:05.1248141Z     Checking x11rb-protocol v0.13.2
+2026-11-03T02:51:05.1375034Z     Checking utf-8 v0.7.6
+2026-11-03T02:51:05.2181995Z     Checking inventory v0.3.25
+2026-11-03T02:51:05.2661871Z     Checking precomputed-hash v0.1.1
+2026-11-03T02:51:05.3041809Z    Compiling unicase v2.10.0
+2026-11-03T02:51:05.6352328Z     Checking renderdoc-sys v1.1.0
+2026-11-03T02:51:05.6938856Z    Compiling simdutf8 v0.1.5
+2026-11-03T02:51:05.8579041Z    Compiling core_detect v1.0.0
+2026-11-03T02:51:05.9582285Z    Compiling option-ext v0.2.0
+2026-11-03T02:51:06.0621847Z     Checking glow v0.17.0
+2026-11-03T02:51:06.1092002Z     Checking waker-fn v1.2.0
+2026-11-03T02:51:06.1481825Z    Compiling globwalk v0.8.1
+2026-11-03T02:51:06.6796234Z    Compiling dirs-sys v0.4.1
+2026-11-03T02:51:09.8565276Z    Compiling phf_generator v0.13.1
+2026-11-03T02:51:10.2091999Z    Compiling mime_guess v2.0.5
+2026-11-03T02:51:11.1582141Z     Checking string_cache v0.8.9
+2026-11-03T02:51:11.2691986Z     Checking tendril v0.4.3
+2026-11-03T02:51:11.5051946Z     Checking inout v0.1.4
+2026-11-03T02:51:11.5762307Z     Checking cipher v0.5.2
+2026-11-03T02:51:11.8192033Z     Checking atspi-common v0.13.0
+2026-11-03T02:51:12.2274729Z     Checking phf v0.11.3
+2026-11-03T02:51:12.3202226Z    Compiling getrandom v0.2.17
+2026-11-03T02:51:12.4781841Z     Checking async-fs v2.2.0
+2026-11-03T02:51:12.6281992Z    Compiling wgpu-core v30.0.1
+2026-11-03T02:51:13.4801951Z     Checking read-fonts v0.37.0
+2026-11-03T02:51:14.2951912Z     Checking x11rb v0.13.2
+2026-11-03T02:51:14.6853464Z    Compiling serde_spanned v0.6.9
+2026-11-03T02:51:14.7686824Z    Compiling toml_datetime v0.6.11
+2026-11-03T02:51:15.0572386Z     Checking color v0.3.3
+2026-11-03T02:51:15.7472562Z    Compiling winnow v0.7.15
+2026-11-03T02:51:15.7771937Z    Compiling litrs v1.0.1
+2026-11-03T02:51:16.8662225Z    Compiling arraydeque v0.5.1
+2026-11-03T02:51:17.0051939Z    Compiling toml_write v0.1.2
+2026-11-03T02:51:17.2629410Z    Compiling anstyle v1.0.14
+2026-11-03T02:51:17.5954020Z     Checking cpubits v0.1.1
+2026-11-03T02:51:17.7792038Z    Compiling annotate-snippets v0.12.17
+2026-11-03T02:51:17.7911572Z     Checking aes v0.9.3
+2026-11-03T02:51:18.0512025Z    Compiling const-random-macro v0.1.16
+2026-11-03T02:51:18.0764881Z    Compiling toml_edit v0.22.27
+2026-11-03T02:51:18.5652071Z    Compiling granit-parser v1.3.0
+2026-11-03T02:51:19.8282060Z    Compiling document-features v0.2.12
+2026-11-03T02:51:22.5851682Z     Checking peniko v0.6.1
+2026-11-03T02:51:23.0292177Z     Checking cipher v0.4.4
+2026-11-03T02:51:23.3432081Z    Compiling phf_macros v0.13.1
+2026-11-03T02:51:23.9362706Z     Checking wgpu-core-deps-windows-linux-android v30.0.1
+2026-11-03T02:51:23.9782006Z    Compiling encoding_rs_io v0.1.8
+2026-11-03T02:51:24.0981890Z    Compiling dirs v5.0.1
+2026-11-03T02:51:24.1962537Z     Checking joysheet-calc v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-calc)
+2026-11-03T02:51:25.1881972Z     Checking num-bigint v0.4.8
+2026-11-03T02:51:26.1142944Z     Checking num-iter v0.1.46
+2026-11-03T02:51:26.1761808Z     Checking ashpd v0.13.13
+2026-11-03T02:51:26.1997028Z     Checking async-net v2.0.0
+2026-11-03T02:51:26.4071756Z    Compiling wgpu v30.0.1
+2026-11-03T02:51:27.2152382Z    Compiling arc-swap v1.9.3
+2026-11-03T02:51:27.3412116Z     Checking sha1 v0.11.0
+2026-11-03T02:51:27.4372094Z     Checking guillotiere v0.7.0
+2026-11-03T02:51:27.4624663Z    Compiling html5ever v0.27.0
+2026-11-03T02:51:27.7392267Z     Checking hmac v0.12.1
+2026-11-03T02:51:27.8101928Z    Compiling ahash v0.8.12
+2026-11-03T02:51:28.2432152Z    Compiling thiserror v1.0.69
+2026-11-03T02:51:28.4518252Z    Compiling mime v0.3.17
+2026-11-03T02:51:28.5764244Z     Checking yazi v0.2.1
+2026-11-03T02:51:28.5871996Z    Compiling inotify-sys v0.1.8
+2026-11-03T02:51:28.8481870Z    Compiling xim-parser v0.2.2
+2026-11-03T02:51:28.9322183Z    Compiling num-bigint-dig v0.9.1
+2026-11-03T02:51:28.9711084Z     Checking zeno v0.3.3
+2026-11-03T02:51:29.0046981Z    Compiling zed-font-kit v0.14.1-zed
+2026-11-03T02:51:29.1002340Z     Checking fearless_simd v0.4.1
+2026-11-03T02:51:29.3412234Z    Compiling nohash-hasher v0.2.0
+2026-11-03T02:51:29.3944647Z    Compiling serde-saphyr v1.3.0
+2026-11-03T02:51:29.4072047Z     Checking swash v0.2.10
+2026-11-03T02:51:31.7382358Z    Compiling triomphe v0.1.17
+2026-11-03T02:51:31.8842075Z     Checking vello_common v0.2.0
+2026-11-03T02:51:33.0021884Z    Compiling itertools v0.11.0
+2026-11-03T02:51:33.2541965Z     Checking phf v0.13.1
+2026-11-03T02:51:34.5131995Z     Checking smol v2.0.2
+2026-11-03T02:51:34.5680123Z     Checking num-rational v0.4.2
+2026-11-03T02:51:34.8111957Z    Compiling shellexpand v3.1.2
+2026-11-03T02:51:35.5462067Z     Checking pathfinder_geometry v0.5.1
+2026-11-03T02:51:35.6751950Z    Compiling rust-embed-utils v8.13.0
+2026-11-03T02:51:36.1216909Z    Compiling toml v0.8.23
+2026-11-03T02:51:37.8581896Z     Checking const-random v0.1.18
+2026-11-03T02:51:37.8971841Z     Checking skrifa v0.40.0
+2026-11-03T02:51:38.7481917Z     Checking harfrust v0.5.2
+2026-11-03T02:51:39.5622049Z     Checking atspi-proxies v0.13.0
+2026-11-03T02:51:39.8988608Z     Checking accesskit_consumer v0.38.0
+2026-11-03T02:51:40.8355958Z    Compiling thiserror-impl v1.0.69
+2026-11-03T02:51:40.8472164Z     Checking is-docker v0.2.0
+2026-11-03T02:51:40.8922157Z     Checking crossbeam-channel v0.5.17
+2026-11-03T02:51:41.1761894Z     Checking rangemap v1.8.0
+2026-11-03T02:51:41.3648796Z     Checking lazy_static v1.5.1
+2026-11-03T02:51:41.4106879Z    Compiling gpui-kit-assets v0.8.1
+2026-11-03T02:51:41.6261895Z    Compiling base62 v2.2.6
+2026-11-03T02:51:41.8946544Z     Checking float-ord v0.3.2
+2026-11-03T02:51:41.9501952Z    Compiling normpath v1.5.2
+2026-11-03T02:51:42.2511959Z     Checking sys-locale v0.3.2
+2026-11-03T02:51:42.2641810Z     Checking self_cell v1.3.0
+2026-11-03T02:51:42.3131956Z    Compiling rust-i18n-support v4.2.4
+2026-11-03T02:51:42.3213502Z     Checking cosmic-text v0.19.0
+2026-11-03T02:51:42.7657738Z    Compiling rust-i18n v4.2.4
+2026-11-03T02:51:43.2792060Z     Checking ordered-channel v1.2.0
+2026-11-03T02:51:43.3411977Z     Checking is-wsl v0.4.0
+2026-11-03T02:51:43.5701832Z     Checking atspi v0.29.0
+2026-11-03T02:51:43.6182071Z     Checking accesskit_atspi_common v0.19.1
+2026-11-03T02:51:44.6331912Z    Compiling rust-embed-impl v8.13.0
+2026-11-03T02:51:45.4862041Z     Checking num v0.4.3
+2026-11-03T02:51:45.6041955Z     Checking xim-ctext v0.3.0
+2026-11-03T02:51:46.3211965Z     Checking glifo v0.3.0
+2026-11-03T02:51:47.3851954Z     Checking hkdf v0.12.4
+2026-11-03T02:51:47.4561810Z     Checking pbkdf2 v0.12.2
+2026-11-03T02:51:47.5150736Z     Checking joysheet-xlsx v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-xlsx)
+2026-11-03T02:51:48.5302207Z     Checking joysheet-chart v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-chart)
+2026-11-03T02:51:49.4248137Z     Checking xml5ever v0.18.1
+2026-11-03T02:51:49.4631982Z     Checking aes v0.8.4
+2026-11-03T02:51:49.6842285Z     Checking cbc v0.1.2
+2026-11-03T02:51:49.7751960Z     Checking calloop v0.14.5
+2026-11-03T02:51:49.8052236Z     Checking fluent-uri v0.1.4
+2026-11-03T02:51:49.8162271Z     Checking md-5 v0.10.6
+2026-11-03T02:51:49.8881826Z     Checking thread_local v1.1.10
+2026-11-03T02:51:49.9892001Z    Compiling glob v0.3.4
+2026-11-03T02:51:50.0422232Z     Checking xkeysym v0.2.1
+2026-11-03T02:51:50.1813494Z     Checking hashbrown v0.14.5
+2026-11-03T02:51:50.1954750Z     Checking unicode-id v0.3.7
+2026-11-03T02:51:50.2522895Z     Checking joysheet-pdf v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-pdf)
+2026-11-03T02:51:50.5651917Z     Checking zed-xim v0.4.0-zed
+2026-11-03T02:51:50.5912065Z     Checking xkbcommon v0.8.0
+2026-11-03T02:51:50.7131875Z     Checking markdown v1.0.0
+2026-11-03T02:51:50.7351820Z     Checking calloop-wayland-source v0.4.1
+2026-11-03T02:51:50.7832054Z     Checking lsp-types v0.97.0
+2026-11-03T02:51:50.8062027Z     Checking vello_cpu v0.2.0
+2026-11-03T02:51:50.8792317Z    Compiling rust-i18n-macro v4.2.4
+2026-11-03T02:51:51.6882312Z     Checking oo7 v0.6.0
+2026-11-03T02:51:52.2906641Z     Checking filedescriptor v0.8.3
+2026-11-03T02:51:52.4022014Z     Checking markup5ever_rcdom v0.3.0
+2026-11-03T02:51:52.4981856Z     Checking rust-embed v8.13.0
+2026-11-03T02:51:52.5461928Z     Checking inotify v0.11.5
+2026-11-03T02:51:52.7901906Z     Checking gpui-pre-wgpu v0.3.10
+2026-11-03T02:51:53.0181971Z     Checking accesskit_unix v0.22.1
+2026-11-03T02:51:53.4940722Z     Checking open v5.4.4
+2026-11-03T02:51:53.5812009Z     Checking joydeck-text v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-text)
+2026-11-03T02:51:54.1160687Z     Checking wayland-cursor v0.31.14
+2026-11-03T02:51:54.2331944Z     Checking ropey v2.0.0-beta.1
+2026-11-03T02:51:54.6772323Z     Checking notify-rust v4.18.2
+2026-11-03T02:51:54.9722058Z     Checking wayland-protocols-plasma v0.3.12
+2026-11-03T02:51:55.1653183Z     Checking wayland-protocols-wlr v0.3.12
+2026-11-03T02:51:55.9472254Z     Checking joydeck-anim v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-anim)
+2026-11-03T02:51:56.6642271Z     Checking joydeck-metafile v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-metafile)
+2026-11-03T02:51:56.7341981Z    Compiling enum-iterator-derive v1.5.0
+2026-11-03T02:51:57.3671983Z     Checking mio v1.2.4
+2026-11-03T02:51:57.4591939Z     Checking itertools v0.13.0
+2026-11-03T02:51:57.5333694Z     Checking notify-types v2.2.0
+2026-11-03T02:51:57.6862808Z     Checking instant v0.1.13
+2026-11-03T02:51:57.7300314Z    Compiling gpui-component v0.8.1
+2026-11-03T02:51:57.8591934Z     Checking notify v8.2.1
+2026-11-03T02:51:58.0524846Z     Checking gpui-pre-linux v0.3.10
+2026-11-03T02:51:58.4431970Z     Checking gpui-base v0.8.1
+2026-11-03T02:51:59.4145674Z     Checking joysheet-engine v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-engine)
+2026-11-03T02:52:00.1711841Z    Compiling gpui-component-macros v0.8.1
+2026-11-03T02:52:03.5501970Z     Checking enum-iterator v2.3.0
+2026-11-03T02:52:04.0732025Z     Checking similar v2.7.0
+2026-11-03T02:52:04.4171918Z     Checking gpui-pre-platform v0.3.10
+2026-11-03T02:52:04.4267233Z     Checking joydeck-render v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-render)
+2026-11-03T02:52:04.5102777Z     Checking joydeck-engine v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-engine)
+2026-11-03T02:52:04.9582303Z     Checking joydeck-format v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-format)
+2026-11-03T02:52:05.2893791Z     Checking joydeck-pptx v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-pptx)
+2026-11-03T02:52:05.5502262Z     Checking joydeck-legacy v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-legacy)
+2026-11-03T02:52:06.0004296Z     Checking joydeck-pdf v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-pdf)
+2026-11-03T02:52:06.3662143Z     Checking joysheet-mcp v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-mcp)
+2026-11-03T02:52:06.7092966Z     Checking joysheet-protocol v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-protocol)
+2026-11-03T02:52:06.8262274Z    Compiling rfd v0.17.2
+2026-11-03T02:52:06.9612337Z     Checking joyoffice-cfb v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyoffice-cfb)
+2026-11-03T02:52:07.3312224Z     Checking joysheet-app v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-app)
+2026-11-03T02:52:07.4572063Z     Checking arboard v3.7.0
+2026-11-03T02:52:07.7402262Z     Checking kurbo v0.11.3
+2026-11-03T02:52:07.7651914Z     Checking ropey v1.6.1
+2026-11-03T02:52:08.2302047Z     Checking imagesize v0.13.0
+2026-11-03T02:52:08.4162008Z     Checking svgtypes v0.15.3
+2026-11-03T02:52:08.4337425Z     Checking joysheet-platform v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-platform)
+2026-11-03T02:52:08.4645544Z     Checking joydeck-shell v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-shell)
+2026-11-03T02:52:08.7069677Z     Checking joyword-agent v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyword-agent)
+2026-11-03T02:52:08.7552017Z     Checking usvg v0.45.1
+2026-11-03T02:52:09.1281861Z error: variable does not need to be mutable
+2026-11-03T02:52:09.1301740Z   --> crates/joydeck-shell/src/helpers.rs:25:9
+2026-11-03T02:52:09.1331514Z    |
+2026-11-03T02:52:09.1366988Z 25 |     let mut command = Command::new(path);
+2026-11-03T02:52:09.1367449Z    |         ----^^^^^^^
+2026-11-03T02:52:09.1391251Z    |         |
+2026-11-03T02:52:09.1411434Z    |         help: remove this `mut`
+2026-11-03T02:52:09.1451333Z    |
+2026-11-03T02:52:09.1451702Z    = note: `-D unused-mut` implied by `-D warnings`
+2026-11-03T02:52:09.1481562Z    = help: to override `-D warnings` add `#[allow(unused_mut)]`
+2026-11-03T02:52:09.1511221Z
+2026-11-03T02:52:09.1772117Z    Compiling joysheet v0.1.0 (/home/runner/work/joyoffice/joyoffice/apps/joysheet)
+2026-11-03T02:52:09.4408487Z error: could not compile `joydeck-shell` (lib) due to 1 previous error
+2026-11-03T02:52:09.4410831Z warning: build failed, waiting for other jobs to finish...
+2026-11-03T02:52:13.5103075Z ##[error]Process completed with exit code 101.
+2026-11-03T02:52:13.5223632Z Post job cleanup.
+2026-11-03T02:52:13.5925994Z [command]/usr/bin/git version
+2026-11-03T02:52:13.5963333Z git version 2.56.0
+2026-11-03T02:52:13.6029163Z Temporarily overriding HOME='/home/runner/work/_temp/b60d56de-c9de-48c4-9bc5-ee21aec867d6' before making global git config changes
+2026-11-03T02:52:13.6036084Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:52:13.6036985Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/joyoffice/joyoffice
+2026-11-03T02:52:13.6064694Z Removing SSH command configuration
+2026-11-03T02:52:13.6070094Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:52:13.6103254Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:52:13.6327664Z Removing HTTP extra header
+2026-11-03T02:52:13.6333248Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:52:13.6364860Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:52:13.6597765Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:52:13.6605541Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:52:13.6635755Z includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path
+2026-11-03T02:52:13.6636417Z includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path
+2026-11-03T02:52:13.6637000Z includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:52:13.6637545Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:52:13.6644563Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path
+2026-11-03T02:52:13.6679542Z /home/runner/work/_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:52:13.6692084Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-48ccbf5f\-ac4f\-4c56\-8e73\-40a5e1a51cad\.config
+2026-11-03T02:52:13.6793219Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path
+2026-11-03T02:52:13.6826331Z /home/runner/work/_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:52:13.6834867Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-48ccbf5f\-ac4f\-4c56\-8e73\-40a5e1a51cad\.config
+2026-11-03T02:52:13.6948245Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:52:13.6978231Z /github/runner_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:52:13.6985566Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-48ccbf5f\-ac4f\-4c56\-8e73\-40a5e1a51cad\.config
+2026-11-03T02:52:13.7039382Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:52:13.7068427Z /github/runner_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config
+2026-11-03T02:52:13.7075230Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-48ccbf5f\-ac4f\-4c56\-8e73\-40a5e1a51cad\.config
+2026-11-03T02:52:13.7179637Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:52:13.7391372Z Removing credentials config '/home/runner/work/_temp/git-credentials-48ccbf5f-ac4f-4c56-8e73-40a5e1a51cad.config'
+2026-11-03T02:52:13.7548278Z Cleaning up orphan processes
+2026-11-03T02:52:13.7878506Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

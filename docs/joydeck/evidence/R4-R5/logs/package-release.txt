@@ -1,0 +1,16 @@
+    Finished `release` profile [optimized] target(s) in 0.82s
+   Compiling joydeck-color v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling joydeck-geom v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-fonts v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-model v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling joydeck-anim v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-text v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-engine v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-format v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-pptx v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.5.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-cli v0.5.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 13s
+Packaging failed: Source changed during packaging; rebuild the new source

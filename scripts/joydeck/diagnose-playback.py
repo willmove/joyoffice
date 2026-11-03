@@ -11,7 +11,7 @@ OUT = ROOT / "artifacts/playback-diagnostic"
 OUT.mkdir(parents=True, exist_ok=True)
 artifacts = [json.loads(line) for line in (OUT / "build.json").read_text(encoding="utf-8").splitlines()]
 executables = [row["executable"] for row in artifacts if row.get("reason") == "compiler-artifact"
-               and row.get("executable") and row["target"]["name"] == "playback"]
+               and row.get("executable") and row["target"]["name"] == "joydeck_shell"]
 assert len(executables) == 1, executables
 def run_case(label, extra_args):
     case = OUT / label
@@ -20,7 +20,7 @@ def run_case(label, extra_args):
     started = time.monotonic()
     report = {"selection": extra_args, "timedOut": False}
     with (case / "test.log").open("w", encoding="utf-8") as log:
-        command = ["cargo", "test", "-p", "joydeck", "-p", "joydeck-cli", "-p", "joydeck-engine", "-p", "joydeck-export", "-p", "joydeck-formats", "-p", "joydeck-model", "-p", "joydeck-platform", "-p", "joydeck-scene", "-p", "joydeck-shell", "-p", "joyoffice-opc", "--locked", *extra_args]
+        command = ["cargo", "test", "-p", "joydeck-shell", "-p", "joyoffice-opc", "--locked", *extra_args]
         if os.environ.get("DIAGNOSTIC_MODE") == "entrypoint":
             command = ["cargo", "xtask", "check", "joydeck"]
         child = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=log, stderr=subprocess.STDOUT,
@@ -30,7 +30,7 @@ def run_case(label, extra_args):
             deadline = started + 420
             while child.poll() is None:
                 contents = (case / "test.log").read_text(encoding="utf-8", errors="replace")
-                if "Running tests/playback.rs" in contents:
+                if "Running unittests src/lib.rs" in contents:
                     deadline = min(deadline, time.monotonic() + 45) if not report.get("playbackStarted") else deadline
                     report["playbackStarted"] = True
                 if time.monotonic() >= deadline:

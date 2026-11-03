@@ -2,6 +2,12 @@
 
 适用于整个仓库，用户明确指令优先。
 
+## JoyDeck 当前入口（R9）
+
+- 用户已授权用 0.8.0 的 DeckCraft/GPUI 重构替换旧 JoyDeck。以后仅在本 JoyOffice 仓库开发；原 joydeck-new 目录已退出开发。开始 Deck 任务须先读 `docs/joyoffice/JOYDECK-R9-HANDOFF.md`、`docs/joydeck/STATUS.md`、`docs/joydeck/TASKS.md` 和 `docs/joydeck/UI-PARITY.md`。
+- 旧 M0–M14 报告是历史基线；新 R0–R9 实现不能继承旧平台/功能验收。未覆盖旧功能与自动化见交接中的兼容表，禁止静默视为已实现。`joydeck-legacy` 仅是私有只读迁移桥，不得演进成第二个可编辑模型。
+- 公共 `joyoffice-ui` / OPC 使用宿主唯一实现；导入来源与精确指纹见 `licenses/deckcraft` 和 `licenses/joyoffice`，重用遵循本次用户明确授权及各文件许可。
+
 ## 工作方式
 
 - 可由当前会话直接完成任务，也可由协调者按任务边界并行派工多个 Agent；是否单会话或并发以加快交付为准，不强制某一种。

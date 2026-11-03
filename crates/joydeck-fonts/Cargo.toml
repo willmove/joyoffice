@@ -1,0 +1,19 @@
+[package]
+name = "joydeck-fonts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license.workspace = true
+description = "DeckCraft fonts: font database (craft-fonts + system), substitutes for Office fonts, metrics, outlines, shaping"
+
+[lints]
+workspace = true
+
+[dependencies]
+kurbo = { workspace = true, features = ["serde"] }
+skrifa = { workspace = true }
+harfrust = { workspace = true }
+unicode-bidi = { workspace = true }
+log = { workspace = true }
+# Last-resort face only (Ubuntu Light); no UI code.

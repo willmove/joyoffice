@@ -1,0 +1,14 @@
+{
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-1db7fba9b9",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格",
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-1db7fba9b9\\joydeck.exe",
+  "input": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格\\GUI 已保存.pptx",
+  "pid": 13120,
+  "stack_reserve": 1048576,
+  "verified_files": 784,
+  "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+  "cli_sha256": "2a68b10912fa2b78c3db4114e4a21e39c9d85e5b002e4c2675824b0df61f4bf6",
+  "regression_cli_identical": true,
+  "archive_sha256": "8336702f2e78743ed6b90cfea731022103013d33d27c557571b84a5706d01781",
+  "source_sha256": "1db7fba9b9689228d382ed0ae28e25918833ccfc3b98e3545a3c16905b1f6030"
+}

@@ -1,0 +1,24 @@
+{
+  "reproduced_on_original_a973f75": true,
+  "reason": "Old independent experiment locks omitted existing joyword-shell RTF/text-format path dependencies.",
+  "locks": [
+    {
+      "lock": "experiments/recovery-journal/Cargo.lock",
+      "registry_pins_unchanged": true,
+      "added_workspace_packages": [
+        "joyword-rtf",
+        "joyword-textfmt"
+      ],
+      "sha256": "834e3018134f4c5d67b143dad3e39dea9b730fc3faefbadc80da000ddd028d7b"
+    },
+    {
+      "lock": "experiments/docx-robustness/Cargo.lock",
+      "registry_pins_unchanged": true,
+      "added_workspace_packages": [
+        "joyword-rtf",
+        "joyword-textfmt"
+      ],
+      "sha256": "e750d3d42e84299c4a05c558563451aedbff931ec2dfad7aaa1908d8baf93267"
+    }
+  ]
+}

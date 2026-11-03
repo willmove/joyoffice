@@ -1,0 +1,3899 @@
+{
+  "scanner": "unchanged exact-site gate, no directory bypass",
+  "test_assertions": 972,
+  "compiled_font_invariants": 1,
+  "sites": [
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:286:let c = tl.state(ShapeId(1), None, 0, 0.5).clip.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:488:let at = tl.start_of(2).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:670:let new = ls.iter().find(|l| l.source == Source::New).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:831:panic!(\"not a picture\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:910:assert!((m.xfrm.unwrap().x - 200.0).abs() < 1e-9);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:996:assert_eq!(m.from, a.shapes[0].xfrm.unwrap());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:1041:(a.shapes[0].xfrm.unwrap(), b.shapes[0].xfrm.unwrap())",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:1157:let mut s = ShowState::play_custom(&p, \"Ends\").expect(\"the show exists\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-anim/src/tests.rs:1172:let only = ShowState::play_custom(&p, \"Ends\").expect(\"the visible slide remains\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/src/content.rs:475:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/src/content.rs:479:assert!(s.execute(Command::Undo).unwrap());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/src/content.rs:482:assert!(s.execute(Command::Redo).unwrap());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/src/content.rs:505:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/src/content.rs:513:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/src/media_refs.rs:426:let mut s = (**p.slides.first().expect(\"slide\")).clone();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:36:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:41:s.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:43:s.execute(Command::Redo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:51:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:52:let id = ShapeId(source.alloc_id().unwrap());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:65:let transfer = transfer::capture(&source, 0, &[id]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:66:let encoded = serde_json::to_string(&transfer).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:67:let transfer = serde_json::from_str(&encoded).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:71:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:77:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:78:let pasted = s.model().slides[0].shapes.last().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:81:panic!(\"picture missing\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:84:s.model().media(fill.media).unwrap().data.as_ref(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:93:s.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:95:s.execute(Command::Redo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:108:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:109:let mut transfer = transfer::capture(s.model(), 0, &s.selection().shapes).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-engine/tests/r8.rs:126:let clip = transfer::capture(&p, 0, &[id]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:281:std::fs::create_dir(&path).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:282:std::fs::create_dir(path.join(\"fonts\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:283:std::fs::write(path.join(\"fonts/fixture.ttf\"), b\"build-input path fixture\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:289:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:295:std::fs::write(self.0.join(\"fonts/manifest.txt\"), text).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:300:std::fs::write(self.0.join(\"fonts/latin-manifest.txt\"), text).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:318:std::fs::write(self.0.join(\"fonts/simplified-chinese-manifest.txt\"), text).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:337:assert_eq!(input_fonts(None, false, false).unwrap(), \"\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:345:let main = input_fonts(Some(&fixture.0), false, false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:347:assert_eq!(input_fonts(Some(&fixture.0), false, false).unwrap(), main);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:350:assert_eq!(input_fonts(Some(&fixture.0), false, false).unwrap(), main);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:359:let before = input_fonts(Some(&fixture.0), true, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:361:let native = input_fonts(Some(&fixture.0), false, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:363:assert_eq!(input_fonts(Some(&fixture.0), true, true).unwrap(), before);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:365:assert_eq!(input_fonts(Some(&fixture.0), true, true).unwrap(), before);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:421:let native = input_fonts(Some(&fixture.0), false, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:456:let native = input_fonts(Some(&fixture.0), false, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:480:let catalog = input_fonts(Some(&fixture.0), wasm, false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:510:let native = input_fonts(Some(&fixture.0), false, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:534:let web = input_fonts(Some(&fixture.0), true, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:630:let web = input_fonts(Some(&fixture.0), true, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:646:let static_catalog = input_fonts(Some(&fixture.0), wasm, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/build.rs:651:let variable_catalog = input_fonts(Some(&fixture.0), wasm, true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/fallback.rs:362:.expect(\"cascade did not return\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/fontdb.rs:891:.expect(\"the compiled-in last-resort face parses\");",
+      "reason": "compiled-in font invariant; asset SHA and last_resort_face_parses test"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:72:let font = skrifa::FontRef::new(f.data()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:73:let os2 = font.os2().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:101:let first = db.fallback_for('A', u32::MAX).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:109:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:114:db.fallback_for('A', u32::MAX).unwrap().id(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:130:let first = db.fallback_for('A', u32::MAX).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:139:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:150:std::fs::create_dir_all(&dir).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:151:std::fs::write(dir.join(\"Hack-Regular.ttf\"), crate::builtins::HACK_REGULAR).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:165:threads.into_iter().map(|t| t.join().unwrap()).collect()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:271:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:289:std::fs::create_dir_all(&dir).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:290:std::fs::write(dir.join(\"legacy-semibold.ttf\"), &semibold).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:295:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:476:std::fs::create_dir_all(dir.join(\"sub\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:481:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:486:std::fs::create_dir(dir.join(\"folder.ttf\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:487:std::fs::write(dir.join(\"empty.otf\"), b\"\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:488:std::os::unix::fs::symlink(&dir, dir.join(\"sub/loop\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-fonts/src/tests.rs:497:.expect(\"the font scan hung\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:18:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:32:id: ShapeId(p.alloc_id().unwrap()),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:37:id: ShapeId(p.alloc_id().unwrap()),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:61:let mut z = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:63:serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:67:let f = z.by_index(i).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:68:if f.name().unwrap() == \"presentation.json\" {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:73:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:74:out.write_all(&serde_json::to_vec(&json).unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:76:out.raw_copy_file(f).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:79:out.finish().unwrap().into_inner()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:86:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:87:let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:89:z.by_name(\"presentation.json\").unwrap().size() < 128 * 1024,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:93:serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:94:let part = part_json(&mut manifest).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:99:let entry = part[\"nativeEntry\"].as_str().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:101:assert_eq!(read_entry(&mut z, entry).unwrap(), payload);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:103:assert_eq!(load(&bytes).unwrap(), p);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:110:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:111:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:145:let media = manifest[\"presentation\"][\"media\"].as_array_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:165:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:166:let legacy = rewrite_manifest(&save(&p).unwrap(), |manifest| {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:167:let part = part_json(manifest).unwrap().as_object_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:179:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:220:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:221:let z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:224:.map(|n| n.unwrap())",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:229:assert_eq!(load(&bytes).unwrap(), p);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:235:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:236:let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:238:serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:239:let name = part_json(&mut json).unwrap()[\"nativeEntry\"]",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:241:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:243:let start = z.by_name(&name).unwrap().data_start().unwrap() as usize;",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:246:let f = z.by_index(i).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:247:if f.name().unwrap() != name {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:248:out.raw_copy_file(f).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:251:let missing = out.finish().unwrap().into_inner();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:252:let (q, damaged) = load_checked(&missing).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:255:panic!(\"group\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:258:panic!(\"chart\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:269:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:277:part_json(manifest).unwrap()[\"nativeEntry\"] = json!(entry);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:282:part_json(manifest).unwrap()[\"bytes\"] = json!([3]);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:289:panic!(\"group\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:292:panic!(\"chart\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:295:let aliased = rewrite_manifest(&save(&p).unwrap(), |manifest| {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:318:panic!(\"group\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:321:panic!(\"chart\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:331:let mut bytes = save(&with_two_parts()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:333:let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:337:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:339:.unwrap() as usize",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:364:let mut bytes = save(&with_two_parts()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:376:let z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:379:.map(|n| n.unwrap())",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:391:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:398:panic!(\"group\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/chart_parts_tests.rs:401:panic!(\"chart\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/lib.rs:846:let layout = defaults::layout_of_kind(&p, LayoutType::TitleAndContent).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/lib.rs:847:let mut s = defaults::new_slide(&mut p, layout).expect(\"slide\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/rtf.rs:530:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:7:let mut json = serde_json::to_value(&chart).expect(\"chart JSON\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:13:serde_json::from_value::<Chart>(json.clone()).expect(\"old chart without kept\"),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:18:serde_json::from_value::<Chart>(json).expect(\"empty sidecar\"),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:50:id: ShapeId(p.alloc_id().expect(\"id\")),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:56:id: ShapeId(p.alloc_id().expect(\"group id\")),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:63:let mut q = load(&save(&p).expect(\"save\")).expect(\"load\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:66:panic!(\"group\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:69:panic!(\"chart\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:72:q = load(&save(&q).expect(\"save again\")).expect(\"load again\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:78:let mut z = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:81:let f = z.by_index(i).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:82:if f.name().unwrap() != drop {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:83:out.raw_copy_file(f).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:86:out.finish().unwrap().into_inner()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:94:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:95:let good = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:96:assert!(load_checked(&good).unwrap().1.is_empty());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:98:let (q, damaged) = load_checked(&without(&good, &format!(\"media/{}\", id.0))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:103:let at = bad.windows(13).position(|w| w == b\"PICTURE-BYTES\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:105:let (_, damaged) = load_checked(&bad).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:109:let lid = l.add_media(\"v.mp4\", \"video/mp4\", vec![]).expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:113:assert!(load_checked(&save(&l).unwrap()).unwrap().1.is_empty());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:121:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:160:let good = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:162:let mut z = zip::ZipArchive::new(Cursor::new(good.as_slice())).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:165:let mut f = z.by_index(i).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:166:if f.name().unwrap() == \"presentation.json\" {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:168:f.read_to_end(&mut json).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:169:let mut v: serde_json::Value = serde_json::from_slice(&json).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:177:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:178:out.write_all(&serde_json::to_vec(&v).unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:180:out.raw_copy_file(f).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:183:let bytes = out.finish().unwrap().into_inner();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:192:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:205:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:206:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:208:let q = load(&bytes).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:215:serde_json::to_value(&q.slides).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:216:serde_json::to_value(&p.slides).unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:225:let mut b = save(&Presentation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:245:let back = load(&save(&p).unwrap()).unwrap_or_else(|e| panic!(\"{e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:246:let ShapeKind::Media(m) = &back.slides[0].shapes.last().unwrap().kind else {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:247:panic!(\"media\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:320:let bytes = save(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:321:let back = load(&bytes).unwrap_or_else(|e| panic!(\"{e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:322:let g = back.slides[0].shapes.last().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:324:panic!(\"group\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:327:let x = children[0].xfrm.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:330:panic!(\"picture\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:333:assert_eq!(children[0].line.as_ref().unwrap().width, Some(1584.0));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:334:assert_eq!(children[1].xfrm.unwrap().rot, 0.0);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:335:let para = &children[1].text.as_ref().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:339:assert_eq!(load(&save(&back).unwrap()).unwrap(), back);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:390:let json = serde_json::to_vec(&m).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:392:let back = parse_manifest(&json).unwrap_or_else(|e| panic!(\"case {case}: {e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:417:let back = load(&save(&p).unwrap()).unwrap_or_else(|e| panic!(\"{e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:418:let body = back.slides[0].shapes.last().unwrap().text.clone().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:437:let back = load(&save(&p).unwrap()).unwrap_or_else(|e| panic!(\"{e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:438:let body = back.slides[0].shapes.last().unwrap().text.clone().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:451:let ok = serde_json::to_vec(&serde_json::json!({\"format\": \"deckcraft\", \"version\": 1, \"generator\": \"t\", \"presentation\": {}})).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:459:let m = parse_manifest(pretty).unwrap_or_else(|e| panic!(\"{e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:460:assert_eq!(m.presentation.slides[0].shapes[0].xfrm.unwrap().x, 0.0);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:493:let saved = save(&Presentation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:494:let mut z = zip::ZipArchive::new(Cursor::new(&saved[..])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:496:serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:510:w.start_file(\"mimetype\", o).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:511:w.write_all(MIMETYPE.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:512:w.start_file(\"presentation.json\", o).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:513:w.write_all(&serde_json::to_vec(&m).unwrap()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:514:w.finish().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:516:let p = load(buf.get_ref()).unwrap_or_else(|e| panic!(\"{size}: {e}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:589:.expect(\"title placeholder\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:629:let layout = defaults::layout_of_kind(&p, LayoutType::TitleAndContent).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-format/src/tests.rs:630:let mut s = defaults::new_slide(&mut p, layout).expect(\"slide\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/lib.rs:291:assert!((Unit::Inches.parse(\"2.54 cm\").unwrap() - 72.0).abs() < 1e-9);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:617:build(\"ellipse\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:618:build(\"star5\", 200.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:640:build(\"triangle\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:641:build(\"ellipse\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:659:build(\"rect\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:660:build(\"cube\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:704:build(\"rect\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:705:build(\"line\", 100.0, 0.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:717:build(\"donut\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:718:build(\"ellipse\", 100.0, 100.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:745:build(\"rect\", 10.0, 10.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:746:build(\"ellipse\", 40.0, 20.0, &[]).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:773:let r = build(\"rect\", 10.0, 10.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:774:let line = build(\"line\", 10.0, 0.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/morph.rs:828:let e = contours(&build(\"ellipse\", 100.0, 100.0, &[]).unwrap().paths[0].path);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:849:let i = info(n).unwrap_or_else(|| panic!(\"{n} missing from the catalog\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:902:let g = build(n, w, h, adj).unwrap_or_else(|| panic!(\"{n} did not build\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:937:let g = build(n, 480.0, 300.0, &[]).unwrap_or_else(|| panic!(\"{n}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:1003:let g = build(n, 100.0, 100.0, &[]).unwrap_or_else(|| panic!(\"{n}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:1026:.unwrap_or_else(|| panic!(\"accentBorderCallout3\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:1146:.unwrap_or_else(|| panic!(\"curvedRightArrow\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/extra.rs:1270:let g = build(\"funnel\", 480.0, 300.0, &[]).unwrap_or_else(|| panic!(\"funnel\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:14:let g = build(p.name, w, h, &[]).unwrap_or_else(|| panic!(\"{} did not build\", p.name));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:67:let g = build(\"roundRect\", 200.0, 100.0, &[16667.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:68:let h = g.handles.first().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:78:let g = build(name, 200.0, 100.0, &[0.0, 16200000.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:102:let g = build(name, 200.0, 100.0, &[2700000.0, 8100000.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:129:let g = build(\"blockArc\", 200.0, 100.0, &[deg * 60000.0, 0.0, 25000.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:130:let start = g.handles.iter().find(|h| h.index == 0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:149:let g = build(\"blockArc\", 200.0, 100.0, &[10800000.0, 0.0, 25000.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:150:let start = g.handles.iter().find(|h| h.index == 0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:152:let thick = g.handles.iter().find(|h| h.index == 2).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:237:let g = build(p.name, 200.0, 100.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:248:let g = build(\"rect\", 100.0, 50.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:250:let e = build(\"ellipse\", 100.0, 50.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:257:assert!(build(\"line\", 10.0, 10.0, &[]).unwrap().is_open());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:258:assert!(!build(\"rect\", 10.0, 10.0, &[]).unwrap().is_open());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:275:let g = build(\"lightningBolt\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:284:let g = build(\"irregularSeal1\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:286:let g = build(\"irregularSeal2\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:289:let g = build(\"heart\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:294:let g = build(\"flowChartDocument\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:297:let g = build(\"flowChartPunchedTape\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:302:let g = build(\"flowChartMultidocument\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:314:let g = build(\"notchedRightArrow\", w, h, &adj).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:333:let g = build(\"mathMultiply\", 216.0, 216.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:346:let g = build(\"mathEqual\", 300.0, 120.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:358:let g = build(\"mathPlus\", 216.0, 216.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:365:let g = build(\"mathNotEqual\", 100.0, 260.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:381:let g = build(\"sun\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:396:let g = build(\"wave\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:404:let g = build(\"wave\", 300.0, 120.0, &[20000.0, 8000.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:417:let g = build(\"star5\", 144.0, 144.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:425:let g = build(\"star4\", 144.0, 144.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:439:let g = build(\"star5\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:455:let g = build(\"star6\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:464:let g = build(\"moon\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:472:let g = build(\"moon\", 300.0, 120.0, &[30000.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:475:let g = build(\"flowChartMagneticDisk\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:479:let g = build(\"flowChartMagneticDrum\", k, k, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:489:let g = build(\"cloud\", w, h, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:518:let q = end.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:530:let g = build(name, 40.0, 100.0, &[]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:579:let a = vertices(&build(\"wedgeRectCallout\", w, h, &right).unwrap().paths[0].path);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:580:let b = vertices(&build(\"wedgeRectCallout\", w, h, &left).unwrap().paths[0].path);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/preset/tests.rs:607:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:24:let w = warp(name, adj, rect()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:87:let w = warp(name, &[], rect()).unwrap_or_else(|| panic!(\"{name}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:404:let w = warp(\"textArchUp\", &[], rect()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:452:let w = warp(\"textArchDown\", &[], rect()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:457:let w = warp(\"textArchUp\", &[], rect()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:507:let w = warp(\"textDeflateInflate\", &[], rect()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:572:let w = warp(\"textCircle\", &[], rect()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:574:panic!()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-geom/src/warp/tests.rs:624:panic!(\"{name} {adj:?} {r:?}\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/clip.rs:208:let or = combine(a.clone(), vec![[200.0, 0.0, 210.0, 10.0]], RGN_OR, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/clip.rs:210:let diff = combine(a.clone(), vec![[20.0, 0.0, 40.0, 40.0]], RGN_DIFF, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/clip.rs:212:let xor = combine(a, vec![[80.0, 0.0, 120.0, 40.0]], RGN_XOR, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/clip.rs:219:let r = exclude(None, [10.0, 0.0, 20.0, 40.0], Some([0.0, 0.0, 40.0, 40.0])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:157:other => panic!(\"expected a path: {other:?}\"),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:172:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:209:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:238:let p = parse(&wmf(&winding, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:244:let p = parse(&wmf(&alternate, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:266:let p = parse(&wmf(&[wrec(0x0F43, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:276:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:293:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:310:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:338:let p = parse(&file).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:349:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:371:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:382:let p = parse(&emf(&[erec(42, &rect)], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:404:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:424:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:567:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:578:let p = parse(&emf(&[rec], [0, 0, 50, 25], [0, 0, 2500, 1250])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:591:let p = parse(&emf(&[rec], [0, 0, 50, 25], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:605:let p = parse(&wmf(&recs, Some([0, 0, 200, 100]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:632:let p = parse(&wmf(&[wrec(0x0F43, &params)], Some([0, 0, 20, 10]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:641:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:665:let p = parse(&wmf(&[wrec(0x0F43, &params)], Some([-20, 0, 0, 10]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:667:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:683:let p = parse(&emf(&[erec(76, &payload)], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:694:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:736:let p = parse(&wmf(&[wrec(0x0F43, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:802:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:828:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:863:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:881:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:897:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:912:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:927:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:958:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:982:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1008:let p = parse(&wmf(&recs, Some([0, 0, 1440, 1440]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1035:let p = parse(&wmf(&[origin_rect(), wrec(0x0940, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1065:let p = parse(&wmf(&[origin_rect(), wrec(0x0B41, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1095:let p = parse(&wmf(&[origin_rect(), wrec(0x0B41, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1097:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1118:let p = parse(&wmf(&[wrec(0x0F43, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1120:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1149:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1158:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1183:let p = parse(&emf(&[rec], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1185:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1212:let p = parse(&emf(&[r, rec], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1214:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1241:let p = parse(&emf(&[rec], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1243:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1268:let p = parse(&emf(&[rec], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1270:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1288:let p = parse(&emf(&[rec], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1290:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1310:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1312:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1320:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1322:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1348:let p = parse(&wmf(&[wrec(0x0F43, &params)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1350:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1362:let p = parse(&emf(&[erec(4, &poly), erec(7, &groups)], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1378:let p = parse(&emf(&[erec(91, &short), erec(91, &two)], [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1407:let p = parse(&emf(&recs, [0; 4], [0; 4])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1470:panic!(\"expected a path\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1498:panic!(\"expected a bitmap\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1584:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1606:let p = parse(&wmf(&recs, Some([238, 539, 1678, 1979]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1624:let p = parse(&wmf(&recs, Some([0, 0, 600, 300]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1647:let p = parse(&wmf(&recs, Some([0, 0, 100, 100]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1665:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1709:parse(&wmf(&recs, None)).unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1817:let p = parse(&wmf(&recs, None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:1991:let p = parse(&emf(&recs, [0, 0, 200, 100], [0, 0, 5000, 2500])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2029:let p = parse(&emf(&recs, [0, 0, 200, 100], [0, 0, 5000, 2500])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2037:let p = parse(&emf(&recs, [0, 0, 200, 100], [0, 0, 5000, 2500])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2041:let p = parse(&emf(&recs, [0, 0, 200, 100], [0, 0, 5000, 2500])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2066:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2073:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2090:other => panic!(\"expected a pattern fill: {other:?}\"),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2097:t.rgba[o..o + 4].try_into().unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2118:let p = parse(&wmf(&recs, Some([0, 0, 1440, 720]))).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2281:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2296:let p = parse(&emf(&recs, [0, 0, 200, 100], [0, 0, 5000, 2500])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2387:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2481:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2503:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2522:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2558:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2571:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2580:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2596:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2612:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2620:let p = parse(&wmf(&[wrec(0x0416, &clip), wrec(0x041B, &rect)], None)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2694:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2718:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2733:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2738:let (c, w) = stroke.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2779:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2811:parse(&emf(&[plus_comment(&all)], [0; 4], [0; 4])).unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2865:other => panic!(\"expected a bitmap: {other:?}\"),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2897:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:2974:.expect(\"a text item\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:3016:panic!(\"expected text: {:?}\", p.items)",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:3083:panic!(\"expected a pattern: {:?}\", p.items)",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:3172:panic!()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:3503:let p = parse(&bytes).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-metafile/src/tests.rs:3633:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/chart.rs:1205:let (lo, hi) = e.range(&vals, 0, 3.0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/chart.rs:1965:.expect(\"a bin holds 2.1\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/chart.rs:1990:let b = box_stats(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/chart.rs:1996:let one = box_stats(vec![5.0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/chart.rs:2005:let b = box_stats_by(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0], true).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:605:t.cell(r, c).unwrap().text.text()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:617:let a = t.cell(0, 0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:646:let a = t.cell(1, 1).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:648:assert!(t.cell(2, 2).unwrap().h_merge && t.cell(2, 2).unwrap().v_merge);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:650:assert_eq!(t.cell(1, 2).unwrap().grid_span, 2);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:659:let a = t.cell(1, 1).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/table.rs:664:let a = t.cell(1, 1).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:17:let (m, l) = p.master_for(s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:18:assert_eq!(l.unwrap().kind, LayoutType::Title);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:29:let ctx = Ctx::for_slide(&p, s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:44:let lay = defaults::layout_of_kind(&p, LayoutType::TitleAndContent).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:45:let s = defaults::new_slide(&mut p, lay).expect(\"slide\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:46:let ctx = Ctx::for_slide(&p, &s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:60:let ctx = Ctx::for_slide(&p, s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:68:panic!(\"expected solid\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:85:let ctx = Ctx::for_slide(&p, s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:105:panic!(\"expected a gradient\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:108:panic!(\"theme fill 3 is a gradient\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:126:let j = serde_json::to_string(&p).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:127:let q: Presentation = serde_json::from_str(&j).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:130:let q: Presentation = serde_json::from_str(r#\"{\"slides\":[],\"zzz\":1}\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:158:let a = p.alloc_id().expect(\"ids\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:159:let b = p.alloc_id().expect(\"ids\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:164:let c = p.alloc_id().expect(\"ids\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:227:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:228:let x = title.xfrm.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:237:let ctx = Ctx::for_slide(&p, s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:340:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:343:let ctx = Ctx::for_slide(&p, &s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:361:let ctx = Ctx::for_slide(&p, &own).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:368:let l = m.layout(layout).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/tests.rs:455:let ctx = Ctx::for_slide(&p, &s).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:639:.expect(\"fit of tiny x values\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:640:assert!((fit.y(3e-10).unwrap() - 3.0).abs() < 1e-6);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:649:.expect(\"fit of offset x values\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:650:assert!((fit.y(45000.02).unwrap() - 3.0).abs() < 1e-4);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:654:.expect(\"fit of 1e7 offset\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:655:assert!((fit.y(1e7 + 2.0).unwrap() - 3.0).abs() < 1e-4);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:664:let fit = forced.fit(&xs, &ys).expect(\"fixed-intercept fit\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:665:assert!((fit.y(1e7 + 2.0).unwrap() / (2.0 * (1e7 + 2.0)) - 1.0).abs() < 1e-9);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:688:let fit = line(TrendlineType::Linear).fit(&xs, &ys).expect(\"fit\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:689:assert!((fit.y(1.0).unwrap() - 3.0).abs() < 1e-9);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:690:assert!((fit.y(4.0).unwrap() - 9.0).abs() < 1e-9);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:695:let fit = forced.fit(&[1.0, 2.0], &[2.0, 4.0]).expect(\"fit\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:696:assert!((fit.y(3.0).unwrap() - 6.0).abs() < 1e-6);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:705:.expect(\"exp\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:707:assert!((exp.y(*x).unwrap() - y).abs() < 1e-6, \"{x}\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:709:assert!(exp.equation().unwrap().contains(\"e^(\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:715:.expect(\"log\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:716:assert!((log.y(2.0).unwrap() - 2.0_f64.ln()).abs() < 1e-6);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:717:assert!(log.equation().unwrap().contains(\"ln(x)\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:720:.expect(\"power\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:721:assert!((power.y(3.0).unwrap() - 9.0).abs() < 1e-6);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:725:let quad = poly.fit(&xs, &[1.0, 4.0, 9.0, 16.0]).expect(\"poly\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:726:assert!((quad.y(3.0).unwrap() - 9.0).abs() < 1e-6);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:738:.expect(\"ma\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:747:.expect(\"line\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:763:.expect(\"ma\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:789:let fit = t.fit(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]).expect(\"fit\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:798:.expect(\"linear\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:803:let quad = poly.fit(&xs, &ys).expect(\"poly\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:806:let log = line(TrendlineType::Log).fit(&xs, &ys).expect(\"log\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-model/src/trendline.rs:810:.expect(\"zero\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/custgeom.rs:503:let d = parse(x).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/custgeom.rs:530:let d = parse(w.s.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1102:let doc = crate::xml::parse(&xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1104:let s = String::from_utf8(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1134:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1137:let doc = crate::xml::parse(&xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1149:let doc = crate::xml::parse(&xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1165:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/dgm.rs:1230:let doc = crate::xml::parse(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:167:let mut z = zip::ZipArchive::new(std::io::Cursor::new(pptx)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:170:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:172:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:175:out.start_file(\"[Content_Types].xml\", o).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:176:out.write_all(br#\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/theme/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/></Types>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:177:out.start_file(\"_rels/.rels\", o).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:178:out.write_all(br#\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"theme/theme/theme1.xml\"/></Relationships>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:179:out.start_file(\"theme/theme/theme1.xml\", o).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:180:out.write_all(theme.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:181:out.finish().unwrap().into_inner()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:186:let pptx = crate::export(&custom()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:188:let (t, _) = crate::import_theme(&bytes).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:207:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:208:out.write_all(b\"<Types/>\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/lib.rs:209:assert!(crate::import_theme(&out.finish().unwrap().into_inner()).is_err());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/maps.rs:560:let e = effect_for_preset(AnimClass::Exit, preset).expect(\"known exit\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/maps.rs:583:.unwrap_or_else(|| panic!(\"no xml for {kind}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/maps.rs:585:let d = parse(w.s.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/maps.rs:587:transition_from_xml(&d.root).unwrap_or_else(|| panic!(\"no read for {kind}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:591:zw.start_file(*name, o).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:592:zw.write_all(&vec![b'x'; *len]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:594:zw.finish().unwrap().into_inner()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:603:let p = Package::open_within(&z, 1000, 100, 130).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:608:let p = Package::open_within(&z, 1000, 100, 10_000).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:615:let p = Package::open(&z).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/opc.rs:626:let p = Package::open(&z).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:888:let doc = crate::xml::parse(xml.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:889:let c = chart_within(&doc.root, 250_000).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:900:let c = chart_from(&doc.root).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:908:let back = read_chart_xml(&crate::write::chart::chart_xml(&c).0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:913:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:922:let c = read_chart_xml(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:939:let back = read_chart_xml(&crate::write::chart::chart_xml(&edited).0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:947:assert_eq!(read_chart_xml(xml).unwrap().y_log_base, Some(10.0));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:953:let c = read_chart_xml(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:954:let e = c.series[0].error_bars.clone().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:967:let c = read_chart_xml(xml.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:971:let c = read_chart_xml(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:985:let c = read_chart_xml(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1015:let c2 = read_chart_xml(swapped.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1026:let c = read_chart_xml(single.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1038:let fmt = |x: &str| read_chart_xml(xml(x).as_bytes()).unwrap().y_format;",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1054:let c = read_chart_xml(xml.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1066:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1087:let c = read_chart_xml(xml.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1093:let c = read_chart_xml(xml.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1099:read_chart_xml(xml.as_bytes()).unwrap().text_size,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1116:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1124:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1136:let c = read_chart_xml(xml).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/chart.rs:1169:read_chart_xml(xml.as_bytes()).unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:904:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:905:let c = color(&d.root).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:916:let d = parse(br#\"<x><a:sysClr val=\"window\" lastClr=\"FFFFFF\"/></x>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:918:color(&d.root).unwrap().base,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:924:let d = parse(br#\"<x><a:scrgbClr r=\"100000\" g=\"0\" b=\"0\"/></x>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:926:color(&d.root).unwrap().base,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:945:let d = parse(br#\"<a:bodyPr lIns=\"91440\" anchor=\"ctr\" wrap=\"none\" vert=\"vert270\" numCol=\"2\"><a:normAutofit fontScale=\"62500\" lnSpcReduction=\"20000\"/></a:bodyPr>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:962:let d = parse(br#\"<a:bodyPr><a:normAutofit/></a:bodyPr>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:970:let d = parse(br#\"<a:bodyPr><a:normAutofit fontScale=\"100000\"/></a:bodyPr>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:978:let d = parse(br#\"<a:bodyPr spcFirstLastPara=\"1\"/>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:982:let d = parse(br#\"<a:bodyPr vert=\"mongolianVert\"/>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/read/dml.rs:986:let d = parse(br#\"<a:bodyPr vert=\"wordArtVertRtl\"/>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/tables.rs:410:let d = crate::xml::parse(&table_styles_xml(&used, &[])).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/tables.rs:416:.map(|e| ORDER.iter().position(|o| *o == e.local()).unwrap())",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1281:let c = crate::read::read_chartex_xml(MAP.as_bytes()).expect(\"a region map is read\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1307:let back = crate::read::read_chartex_xml(built.as_bytes()).expect(\"the rebuilt part reads\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1342:let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1357:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1365:crate::read::chart::read_chart_xml(&xml).unwrap().text_color,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1369:let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1373:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1384:let c = crate::read::chart::read_chart_xml(xml.as_bytes()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1397:let back = crate::read::chart::read_chart_xml(&out).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1410:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/write/chart.rs:1416:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/xml.rs:574:.expect(\"parse\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/xml.rs:587:let d = parse(w.s.as_bytes()).expect(\"parse\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/xml.rs:594:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/xml.rs:600:let x = d.root.child(\"x\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-pptx/src/xml.rs:622:let d = parse(b\"<p:sp a=\\\"1\\\"><p:t>x &amp; y</p:t><e/></p:sp>\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/bevel.rs:248:let b = from_raw(raw).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/camera.rs:252:let c = from_raw(r#\"<a:scene3d><a:camera prst=\"orthographicFront\"><a:rot lat=\"0\" lon=\"3600000\" rev=\"0\"/></a:camera><a:lightRig rig=\"threePt\" dir=\"t\"><a:rot lat=\"0\" lon=\"0\" rev=\"1200000\"/></a:lightRig></a:scene3d>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/camera.rs:253:let m = affine(&c, 100.0, 75.0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/camera.rs:269:let c = from_raw(r#\"<a:scene3d><a:camera prst=\"isometricTopUp\"/><a:lightRig rig=\"threePt\" dir=\"t\"/></a:scene3d>\"#).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/camera.rs:270:let k = corners(affine(&c, 100.0, 75.0).unwrap(), 100.0, 75.0);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/camera.rs:299:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/camera.rs:300:let k = corners(affine(&c, 100.0, 75.0).unwrap(), 100.0, 75.0);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/chart.rs:2113:clip_seg(Point::new(-50.0, 25.0), Point::new(150.0, 25.0), r).expect(\"clipped\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/chart.rs:2117:let (a, b) = clip_seg(Point::new(10.0, 10.0), Point::new(40.0, 20.0), r).expect(\"inside\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/extent.rs:313:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/extent.rs:329:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/extrude.rs:216:let e = from_raw(raw).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:621:.expect(\"encode\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:633:let img = decode_raster(&png, rgba).expect(\"fits exactly\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:657:let last = srcs.last().expect(\"source\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:677:let a = decode_for(&good, 64.0, &PictureAdjust::default()).expect(\"decodes\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:678:let b = decode_for(&good, 64.0, &PictureAdjust::default()).expect(\"cached\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:859:.expect(\"gif\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/images.rs:860:let a = decode_anim(&out, &PictureAdjust::default()).expect(\"animated\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:691:let a = cache.build(before, 0, 1., &|| false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:692:let b = cache.build(after, 0, 1., &|| false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:697:panic!(\"font environment did not stabilize for cache identity check\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:707:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:726:let s = Cache::default().build(&p, 0, 1., &|| false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:727:let actual = raster(&s, 1.).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:751:let dpi = cache.build(&p, 0, 2., &|| false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:757:let theme = cache.build(&p, 0, 1., &|| false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:792:let first = cache.build(&p, 0, 1., &|| false).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:797:assert!(first.nodes[1].geometry.bitmap.as_ref().unwrap().width < 400);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:798:let actual = raster(&first, 1.).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/scene.rs:811:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:137:let img = render_shapes(&p, &p.slides[0], &[ShapeId(880)], 1.0).expect(\"picture\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:294:t.cell_mut(0, 0).unwrap().text = TextBody::from_text(\"Head\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:558:std::fs::write(\"/tmp/joydeck-trendlines.png\", &png).expect(\"write trendline screenshot\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:660:let ctx = joydeck_model::resolve::Ctx::for_slide(&p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:730:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:747:let mid = kurbo::ParamCurve::eval(&p.segments().next().unwrap(), 0.5);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:938:let decoded = image::load_from_memory(&png).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:975:t.cell_mut(r, c).unwrap().text = TextBody::from_text(text);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:985:let ctx = joydeck_model::resolve::Ctx::for_slide(&p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1012:.unwrap_or_else(|| panic!(\"no placed text {s:?}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1075:let rctx = Ctx::for_slide(&p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1080:s.text.as_ref().unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1252:.expect(\"gif\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1261:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1295:let bytes = p.media(media).map(|m| m.data.clone()).expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1915:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:1919:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2157:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2170:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2576:t.cell_mut(r, c).unwrap().fill = Some(Fill::None);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2606:t.cell_mut(r, c).unwrap().text = TextBody::from_text(\"Body\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2618:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2660:let ctx = Ctx::for_slide(&p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2869:top_near(&ftops, fx0 + 20).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2870:top_near(&ftops, (fx0 + fx1) / 2).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2876:top_near(&atops, ax0 + 20).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2877:top_near(&atops, (ax0 + ax1) / 2).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2878:top_near(&atops, ax1 - 20).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:2993:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3044:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3079:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3086:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3227:.expect(\"layout\")",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3434:let img = crate::metafile::rasterize(&wmf_with(2880, 1440, &recs), 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3435:let (x0, y0, x1, y1) = mf_ink(&img).expect(\"text ink\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3454:let img = crate::metafile::rasterize(&wmf_with(2880, 1440, &recs), 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3455:let (x0, _, x1, y1) = mf_ink(&img).expect(\"ink\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3464:let img = crate::metafile::rasterize(&wmf_with(2880, 1440, &recs), 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3465:let (x0, y0, x1, y1) = mf_ink(&img).expect(\"ink\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3481:let img = crate::metafile::rasterize(&wmf_with(2880, 1440, &recs), 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3495:let img = crate::metafile::rasterize(&wmf_with(2880, 1440, &recs), 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3496:let (x0, y0, x1, y1) = mf_ink(&img).expect(\"ink\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3522:let img = crate::metafile::rasterize(&wmf_with(2880, 1440, &recs), 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3552:let img = crate::metafile::rasterize(&bytes, 288).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3560:let img = crate::metafile::rasterize(&bytes, 32).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3701:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3713:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3799:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:3819:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:4245:let img = crate::metafile::rasterize(&file, 100).expect(\"raster\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:4564:t.cell_mut(r, c).unwrap().text = TextBody::from_text(&format!(\"Row {r} col {c}\"));",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:4866:let rctx = Ctx::for_slide(&p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:4931:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:4991:.expect(\"png\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:5002:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests.rs:5122:.expect(\"theme\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:264:other => panic!(\"{other:?}\"),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:460:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:468:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:734:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:743:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:1087:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-render/src/tests_wild.rs:1233:.expect(\"media\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:22:let root = Scratch::new().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:23:let mut d = Dispatcher::new(&root.0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:25:let target = new[\"result\"][\"documentId\"].as_u64().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:70:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:75:let root = Scratch::new().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:76:let mut d = Dispatcher::new(&root.0).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:82:let elsewhere = Scratch::new().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/automation_tests.rs:93:let target = status[\"result\"][\"documentId\"].as_u64().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:20:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:22:let id = model.slides[0].shapes.last().unwrap().id;",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:31:let mut p = Player::new(model.clone(), None, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:33:let before = p.frame(0.25, &cancel).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:34:p.navigate(\"next\", None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:35:p.advance(0.5).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:36:let middle = p.frame(0.25, &cancel).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:39:p.navigate(\"pause\", None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:40:p.advance(2.).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:42:p.navigate(\"pause\", None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:43:p.advance(5.).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:45:let after = p.frame(0.25, &cancel).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:47:p.navigate(\"black\", None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:48:let blank = p.frame(0.1, &cancel).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:68:session.execute(joydeck_engine::Command::NewSlide).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:69:session.execute(joydeck_engine::Command::NewSlide).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:76:let mut player = Player::new(Arc::new(model), None, Some(\"reverse\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/src/show_tests.rs:79:player.navigate(\"next\", None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:10:let root = joydeck_shell::platform::private_directory(\"r3-tests\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:12:std::fs::write(&input, PPTX).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:13:(Editor::open(&input, root.join(\"recovery\")).unwrap(), root)",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:23:d.replace(None, \"pin\", true, Some(3..3)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:32:d.replace(None, \"zhong\", true, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:33:d.replace(None, \"中文\", false, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:39:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:41:e.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:43:e.session.execute(Command::Redo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:45:e.session.model().slides[0].shapes[0].text.as_ref().unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:59:text::replace(&mut b, 4..7, \"二😀\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:72:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:74:e.session.select(1, vec![s]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:83:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:105:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:115:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:117:e.save_job(output.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:118:let read = Document::open(&output, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:119:let ShapeKind::Table(t) = &read.presentation.slides[1].shape(s).unwrap().kind else {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:120:unreachable!()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:122:assert_eq!(t.cell(0, 0).unwrap().text.text(), \"中文😀\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:123:assert_eq!(t.cell(1, 0).unwrap().grid_span, 2);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:124:assert!(t.cell(1, 1).unwrap().h_merge);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:125:e.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:126:e.session.execute(Command::Redo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:128:e.save_job(native.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:131:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:135:assert_eq!(std::fs::read(root.join(\"input.pptx\")).unwrap(), PPTX);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:144:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:146:e.session.select(1, vec![id]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:153:e.session.execute(Command::Table { action }).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:156:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:158:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:168:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:170:e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:171:let doc = Document::open(&path, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:185:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:187:e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:190:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:198:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:200:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:206:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:208:e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:211:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:225:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:228:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:238:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:240:e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:241:let d = Document::open(&path, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:244:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:247:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:250:let p = joydeck_render::editable_text(&d.presentation, 0, id, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:252:let (x, top, bottom) = p.layout.caret(at).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:270:d.replace(None, \"ni\", true, Some(2..2)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:271:d.replace(None, \"\", true, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:273:d.replace(None, \"ni\", true, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:286:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:288:e.session.select(1, vec![id]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/authoring.rs:298:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:15:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:16:writer.write_all(bytes).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:18:writer.finish().unwrap().into_inner()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:30:let doc = load(bytes).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:40:let doc = load(PPTX).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:43:let page = doc.render(1, 1., &cancel).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:44:let thumb = doc.render(1, 0.25, &cancel).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:56:let a = load(NATIVE).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:60:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:64:a.render(0, 0.25, &cancel).unwrap().pixel(1, 60),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:65:b.render(0, 0.25, &cancel).unwrap().pixel(1, 60)",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:100:let pos = broken.windows(6).position(|p| p == b\"foobar\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/documents.rs:106:let doc = load(NATIVE).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:12:joydeck_shell::platform::private_directory(\"r2-tests\").unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:16:std::fs::write(&source, PPTX).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:17:Editor::open(&source, root.join(\"recovery\")).unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:20:let mut z = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:23:let mut f = z.by_index(i).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:24:let name = f.name().unwrap().into_owned();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:26:f.read_to_end(&mut b).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:35:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:36:z.write_all(&b).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:38:z.finish().unwrap().into_inner()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:47:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:52:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:61:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:63:let saved = e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:66:let read = Document::open(&path, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:71:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:75:assert_eq!(read.presentation.slides[0].shapes[0].xfrm.unwrap().rot, 15.);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:77:let after = parts(&std::fs::read(path).unwrap());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:83:assert_eq!(std::fs::read(root.join(\"原稿 test.pptx\")).unwrap(), PPTX);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:85:old.model.slides[0].shapes[0].text.as_ref().unwrap().text(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:95:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:137:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:140:e.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:143:e.session.execute(Command::Redo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:145:e.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:152:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:166:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:167:let job = e.save_job(root.join(\"snapshot.joydeck\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:176:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:177:e.apply_saved(job.run().unwrap());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:179:let read = Document::open(&root.join(\"snapshot.joydeck\"), &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:184:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:186:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:190:e.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:192:e.session.execute(Command::Redo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:199:let path = e.source.clone().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:200:let job = e.save_job(path.clone()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:201:std::fs::write(&path, b\"external change\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:203:assert_eq!(std::fs::read(&path).unwrap(), b\"external change\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:205:std::fs::write(&dest, b\"retain me\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:206:assert!(e.save_job(dest.clone()).unwrap().run().is_err());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:207:assert_eq!(std::fs::read(dest).unwrap(), b\"retain me\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:220:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:222:std::fs::write(&bad, b\"file\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:223:assert!(e.save_job(bad.join(\"x.pptx\")).unwrap().run().is_err());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:225:assert_eq!(std::fs::read(e.source.as_ref().unwrap()).unwrap(), PPTX);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:238:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:240:e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:241:let bytes = std::fs::read(&path).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:243:let mut loaded = Editor::open(&path, root.join(\"other-recovery\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:245:loaded.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:249:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:251:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:254:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:262:let mut manifest: serde_json::Value = serde_json::from_slice(&p[\"manifest.json\"]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:265:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:269:serde_json::to_vec(&manifest).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:277:e.session.select(1, vec![]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:278:e.session.execute(Command::DuplicateSlide).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:279:e.session.execute(Command::NewSlide).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:286:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:287:e.session.select(0, vec![]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:288:e.session.execute(Command::DeleteSlide).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:290:e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:291:let read = Document::open(&path, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:298:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:316:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:321:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:322:e.checkpoint_job().checkpoint().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:323:assert!(observer.list().unwrap()[0].active);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:325:let rows = observer.list().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:329:let recovered = Editor::restore(recovery_root.clone(), &rows[0].record).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:336:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:341:bad.write(5, &b\"broken\".to_vec(), None, None).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:343:let rows = observer.list().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:346:assert_eq!(std::fs::read(root.join(\"原稿 test.pptx\")).unwrap(), PPTX);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:359:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:361:e.recovery.clean(99).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:362:old.checkpoint().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:363:assert!(e.recovery.list().unwrap().is_empty());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:371:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:373:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:375:let mut manifest: serde_json::Value = serde_json::from_slice(&p[\"manifest.json\"]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:379:serde_json::to_vec(&manifest).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:386:let loaded = joydeck_shell::native::load(&decorated, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:395:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:401:let manifest: serde_json::Value = serde_json::from_slice(&entries[\"manifest.json\"]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:412:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:422:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:425:while e.session.execute(Command::Undo).unwrap() {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:460:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:469:std::fs::write(&bad, b\"keep\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:472:let saved = e.save_job(path.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:485:let source = e.source.clone().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:493:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:498:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:499:assert!(e.save_job(source.clone()).unwrap().run().is_err());",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/editing.rs:500:assert_eq!(std::fs::read(source).unwrap(), PPTX);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:6:let root = joydeck_shell::platform::private_directory(\"r8-new\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:7:let mut e = Editor::new(root.join(\"recovery\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:17:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:19:e.checkpoint_job().checkpoint().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:21:let saved = e.save_job(output.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:23:let reopened = Editor::open(&output, root.join(\"reopened\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:26:e.session.execute(Command::Undo).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:31:let root = joydeck_shell::platform::private_directory(\"r8-clipboard\").unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:32:let mut e = Editor::new(root.join(\"recovery\")).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:41:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:44:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:45:let encoded = serde_json::to_string(&transfer).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:48:transfer: Box::new(serde_json::from_str(&encoded).unwrap()),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:50:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:54:e.save_job(output.clone()).unwrap().run().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:55:let read = Document::open(&output, &Cancellation::default()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-shell/tests/r8.rs:63:joydeck_shell::platform::picture_bytes_command(data, false).unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/bidi.rs:599:let num = l[chars.iter().position(|c| *c == '5').unwrap()];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:16:let lay = defaults::layout_of_kind(&p, LayoutType::TitleAndContent).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:17:let mut s = defaults::new_slide(&mut p, lay).expect(\"slide\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:27:let ctx = Ctx::for_slide(p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:31:sh.text.as_ref().unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:49:li.caret_x.last().unwrap() <= &(200.0 + 0.5),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:72:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:157:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:241:sh.text.as_mut().unwrap().paragraphs[0].props.bullet =",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:248:.expect(\"bullet run\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:264:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:274:.expect(\"bullet run\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:309:sh.text.as_mut().unwrap().body.autofit = Some(AutoFit::Shrink {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:322:sh.text.as_mut().unwrap().body.autofit = Some(AutoFit::Shrink {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:328:sh.text.as_mut().unwrap().body.autofit = Some(AutoFit::Shrink {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:336:sh.text.as_mut().unwrap().body.autofit = Some(AutoFit::Shrink {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:353:sh.text.as_mut().unwrap().body.autofit = Some(AutoFit::Shrink {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:370:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:389:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:401:for (i, para) in sh.text.as_mut().unwrap().paragraphs.iter_mut().enumerate() {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:409:let ctx = Ctx::for_slide(&p, &p.slides[0]).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:410:let body = sh.text.clone().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:431:let k = l.lines.iter().position(|x| x.para == 1).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:481:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:486:sh.text.as_mut().unwrap().body.space_first_last = Some(true);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:498:let (x, top, bot) = l.caret(pos).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:516:let (cx0, ..) = l.caret(a).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:517:let (cx1, ..) = l.caret(b).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:554:sh.text.as_mut().unwrap().paragraphs[0].props.align = Some(Align::Center);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:555:sh.text.as_mut().unwrap().paragraphs[0].props.bullet = Some(Bullet::None);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:557:sh.text.as_mut().unwrap().paragraphs[0].props.align = Some(Align::Right);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:569:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:604:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:621:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:702:let pp = &mut sh.text.as_mut().unwrap().paragraphs[0].props;",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:720:.expect(\"bullet run\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:729:sh.text.as_mut().unwrap().paragraphs[0].props.rtl = Some(false);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:730:sh.text.as_mut().unwrap().paragraphs[0].props.align = Some(Align::Left);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:736:.expect(\"bullet run\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:766:let (cx, ..) = l.caret_at(Pos { para: 0, ch }, aff).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:783:let (cx, ..) = l.caret_at(pos, aff).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:808:xs.push(l.caret_at(pos, aff).unwrap().0);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:816:(xs.last().unwrap() - right).abs() < 0.01,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:891:Rgba::from_hex(\"C00000\").unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:901:.map(|c| arabic_face().unwrap().glyph_for(c))",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:943:let last = l.lines.last().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1033:line.caret_x.last().unwrap() - line.caret_x.first().unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1058:let r = l.runs.iter().find(|r| !r.cells.is_empty()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1076:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1104:(bx.unwrap() - rest).abs() < 0.5,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1114:(rest - bx.unwrap() - 18.0).abs() < 0.5,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1139:assert!((rest - bx.unwrap() - 36.0).abs() < 0.5);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1150:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1180:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1196:l.lines[0].caret_x.last().unwrap() - l.lines[0].caret_x[0]",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1306:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1332:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1355:let star = String::from_utf8(vec![0xEF, 0x83, 0xAA]).unwrap(); // U+F0EA",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1400:let f0de = String::from_utf8(vec![0xEF, 0x83, 0x9E]).unwrap(); // U+F0DE",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1467:let pua = char::from_u32(0xF000 | code).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1468:let ascii = char::from_u32(code).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1508:let pua = char::from_u32(0xF000 | code).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1741:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1779:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1827:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1846:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1849:let r = l.runs.iter().find(|r| !r.cells.is_empty()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1859:let run = &mut sh.text.as_mut().unwrap().paragraphs[0].runs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1865:let r = l.runs.iter().find(|r| !r.cells.is_empty()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1874:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1945:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1957:let r = l.runs.iter().find(|r| !r.cells.is_empty()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:1984:let (pts, w) = wavy[0].wave().expect(\"a wave\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2009:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2028:.expect(\"a glyph for the soft hyphen\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2030:r.glyphs[r.cells.iter().position(|c| c.0 == shy).unwrap()].0,",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2110:sh.text.as_mut().unwrap().body.vert = Some(joydeck_model::text::TextDir::EaVertical);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2126:sh.text.as_mut().unwrap().body.vert = Some(joydeck_model::text::TextDir::Vertical);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2141:sh.text.as_mut().unwrap().body.vert = Some(joydeck_model::text::TextDir::Vertical);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2143:sh.text.as_mut().unwrap().body.vert = Some(joydeck_model::text::TextDir::MongolianVertical);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2159:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2171:sh2.text.as_mut().unwrap().body.vert = Some(joydeck_model::text::TextDir::Stacked);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2175:sh2.text.as_mut().unwrap().body.vert = Some(joydeck_model::text::TextDir::StackedRtl);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2238:let para = &mut sh.text.as_mut().unwrap().paragraphs[0];",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2243:let r = l.runs.iter().find(|r| !r.cells.is_empty()).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2245:let d = l.decos.iter().find(|d| !d.behind).expect(\"a strikethrough\");",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2257:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2262:sh.text.as_mut().unwrap().body.rtl_col = Some(true);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2269:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2276:.unwrap()",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2285:sh.text.as_mut().unwrap().body.anchor = Some(Anchor::Bottom);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2288:sh.text.as_mut().unwrap().body.anchor = Some(a);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2433:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2445:let caret = empty.caret(Pos { para: 1, ch: 0 }).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2449:sh.text.as_mut().unwrap(),",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2456:let after = typed.caret(Pos { para: 1, ch: 0 }).unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2470:for para in &mut sh.text.as_mut().unwrap().paragraphs {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2482:.unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2496:sh.text.as_mut().unwrap().paragraphs[0].props.bullet = Some(Bullet::None);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2499:joydeck_model::edit::insert(sh.text.as_mut().unwrap(), (0, 5), \"\\u{b}\", None);",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2529:sh.text.as_mut().unwrap().paragraphs = vec![Paragraph {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2550:sh.text.as_mut().unwrap().paragraphs = vec![Paragraph {",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2616:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2648:let t = sh.text.as_mut().unwrap();",
+      "reason": "test assertion / cfg(test) scope"
+    },
+    {
+      "site": "crates/joydeck-text/src/tests.rs:2679:for (para, st) in sh.text.as_mut().unwrap().paragraphs.iter_mut().zip(starts) {",
+      "reason": "test assertion / cfg(test) scope"
+    }
+  ]
+}

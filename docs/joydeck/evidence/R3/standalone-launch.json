@@ -1,0 +1,23 @@
+{
+  "directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70",
+  "pid": 28420,
+  "working_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70",
+  "archive_sha256": "f4c9c8cba4e647dab2a1c0fed46b65b71ce4445431289566b6ce9109954ed5c6",
+  "source_sha256": "6fb3ff2b709b1d358b5ff933e796d90e96f58c7d071c7f508b97f7ff9246be1e",
+  "files_sha256_verified": 759,
+  "gui_sha256": "3a4dfe7c2b53412e4f41fa0f3866167e8247b68c92e096c1cb05ec01cdbab454",
+  "cli_sha256": "46ec18711deecb580640c9a3967038861777c347e9f9d2341cc9eb7d24546fd0",
+  "first_activation_error": "failed to activate captured window (initial attempt + refreshed binding retry)",
+  "first_process_responding": true,
+  "first_process_terminated_before_edit": true,
+  "restarted_via": "sky.launch_app",
+  "second_pid": 20192,
+  "second_launch_default_bundled_sample": true,
+  "desktop_locked_observed": true,
+  "awaiting_user_unlock": false,
+  "final_gui_editing_input_sent": true,
+  "user_unlock_confirmed": true,
+  "gui_validation_completed": true,
+  "second_process_clean_exit": true,
+  "final_gui_evidence": "gui-validation.json"
+}

@@ -1,0 +1,18 @@
+{
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-final-c8rnb1cr\\中文 开发包\\joydeck-0.7.0-r6-r7-windows-x86_64-release-e5aab1f38b",
+  "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.7.0-r6-r7-windows-x86_64-release-e5aab1f38b.zip",
+  "archive_sha256": "72efc300c5878229a316611871d88b12366bea4bc5d566ad9f0071e5dbf39c29",
+  "source_sha256": "e5aab1f38badc5bd5983d2e73e95039e331aa94d4e437e1800b8c7746e4b7ae7",
+  "sha256sum_files": 784,
+  "main_stack_bytes": 8388608,
+  "desktop_exe_sha256": "62efececc529060a8f870bf7b643f5d9bf36146a0461d7c1ee191bf32d5d1691",
+  "cli_exe_sha256": "452e00a30296d148660b694226796e47c1eac3e7b44a844ad2e93976faf61090",
+  "prior_cli_binary_identical": true,
+  "sample": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-final-c8rnb1cr\\中文 开发包\\joydeck-0.7.0-r6-r7-windows-x86_64-release-e5aab1f38b\\samples\\r6-r7\\delivery-media.pptx",
+  "sample_sha256": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
+  "pid": 29336,
+  "launch_cwd": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-final-c8rnb1cr\\中文 开发包",
+  "closed": true,
+  "all_input_hashes_unchanged": true,
+  "no_native_helper_processes": true
+}

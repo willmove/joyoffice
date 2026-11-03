@@ -1,0 +1,5 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=1 elapsed_ms=72
+R4 scene {"builds":2,"hits":0,"misses":8,"cpu_tiles":2,"backdrop_rasters":2,"native_paths":2,"glyphs":17,"cache_bytes":5660336,"build_micros":4724}
+R4/R5 pointer position=Point { x: 493px, y: 320px } bounds=Bounds { origin: Point { x: 228px, y: 181.5px }, size: Size { 524px × 294.5px } } point=(485.49616906854266,253.74045062638928) scale=0.54583335
+R4/R5 pointer position=Point { x: 407px, y: 444px } bounds=Bounds { origin: Point { x: 228px, y: 181.5px }, size: Size { 524px × 294.5px } } point=(327.9389217481854,480.9160165301602) scale=0.54583335

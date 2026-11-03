@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "completed_utc": "2026-11-02T15:32:01.380179+00:00",
+  "process_pid": 20192,
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\中文 空格路径\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70",
+  "system_input": "actual installed Windows Pinyin candidate UI via physical n/i/space keys; inline shape, table cell and notes Textarea",
+  "unicode_and_combining_character": "😀 and e + U+0301 preserved by independent PPTX readback",
+  "ime_commit_undo_redo": true,
+  "ime_cancel_did_not_add_history": true,
+  "history_observed": {
+    "unicode": 1,
+    "ime_commit": 2,
+    "undo": 3,
+    "redo": 4,
+    "bold_after_cancel": 5,
+    "rich_paste": 6,
+    "table_first_cell": 7,
+    "tab_target_edit": 8,
+    "new_table": 9,
+    "tsv_paste": 10,
+    "tsv_undo": 11,
+    "tsv_redo": 12,
+    "table_ime_commit": 13,
+    "apply_notes": 14,
+    "save": 14
+  },
+  "rich_text_system_clipboard_bold_preserved": true,
+  "tab_and_shift_tab_targets_verified": true,
+  "system_tsv_grid_single_undo_redo": true,
+  "notes_native_ime_and_multiline": true,
+  "pptx_saved_and_reopened_in_gui": true,
+  "native_saved_and_reopened_in_gui": true,
+  "native_converted_public_pptx_independently_opened": true,
+  "input_pptx_unchanged": true,
+  "clean_window_close_verified": true,
+  "a11y_observation": "Some loaded-canvas snapshots returned null accessibility; used supported sky screenshot coordinates; notes/dialog snapshots returned accessibility. No screenshots of other apps saved as product evidence.",
+  "cli_post_gui_checks": [
+    {
+      "operation": "inspect",
+      "file": "gui-verified.pptx",
+      "passed": true
+    },
+    {
+      "operation": "inspect",
+      "file": "gui-verified.joydeck",
+      "passed": true
+    }
+  ],
+  "native_to_public_notes_and_cells_verified": true,
+  "post_gui_cli_operations": [
+    "inspect actual GUI PPTX",
+    "inspect actual GUI native project",
+    "convert native to public PPTX with empty command batch",
+    "render native project all 3 pages"
+  ],
+  "screenshots_main": 27,
+  "screenshot_files_including_popups": 31,
+  "passed_without_code_changes": true
+}

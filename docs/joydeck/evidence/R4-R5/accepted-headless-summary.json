@@ -1,0 +1,144 @@
+{
+  "profile": "release",
+  "cli_sha256": "d29bc0e41bf3fcee27470b96422b1d283028072c678e3f767331271a47c0c1ec",
+  "input_sha256": "3908ab2ead42451118627853ee5a245fe9591cd57bda14e1ebe2c808de544ffe",
+  "iterations": 100,
+  "consumer": "headless vello_cpu reference, not GPUI draw",
+  "pages": [
+    {
+      "page": 1,
+      "parity": {
+        "channels_over_12": 0,
+        "fixed_fraction_limit": 0.01,
+        "fraction": 0.0,
+        "max_error": 1,
+        "mean_absolute_error": 0.0016729359567901234,
+        "passed": true
+      },
+      "cold_scene_build_us": 39083,
+      "cached_scene_build": {
+        "p50": 332,
+        "p95": 656,
+        "p99": 743,
+        "unit": "microseconds"
+      },
+      "cpu_full_page": {
+        "p50": 4381,
+        "p95": 6613,
+        "p99": 6973,
+        "unit": "microseconds"
+      },
+      "font_bytes_sha256_and_face": [
+        [
+          0,
+          "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a"
+        ],
+        [
+          0,
+          "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f"
+        ]
+      ],
+      "scene_stats": {
+        "backdrop_rasters": 2,
+        "build_micros": 426,
+        "builds": 102,
+        "cache_bytes": 5183376,
+        "cpu_tiles": 8,
+        "glyphs": 125,
+        "hits": 800,
+        "misses": 16,
+        "native_paths": 4
+      }
+    },
+    {
+      "page": 2,
+      "parity": {
+        "channels_over_12": 0,
+        "fixed_fraction_limit": 0.01,
+        "fraction": 0.0,
+        "max_error": 2,
+        "mean_absolute_error": 0.007260320216049383,
+        "passed": true
+      },
+      "cold_scene_build_us": 30085,
+      "cached_scene_build": {
+        "p50": 284,
+        "p95": 474,
+        "p99": 599,
+        "unit": "microseconds"
+      },
+      "cpu_full_page": {
+        "p50": 1493,
+        "p95": 1916,
+        "p99": 2771,
+        "unit": "microseconds"
+      },
+      "font_bytes_sha256_and_face": [
+        [
+          0,
+          "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a"
+        ],
+        [
+          0,
+          "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f"
+        ]
+      ],
+      "scene_stats": {
+        "backdrop_rasters": 2,
+        "build_micros": 248,
+        "builds": 102,
+        "cache_bytes": 6101776,
+        "cpu_tiles": 4,
+        "glyphs": 149,
+        "hits": 600,
+        "misses": 12,
+        "native_paths": 4
+      }
+    },
+    {
+      "page": 3,
+      "parity": {
+        "channels_over_12": 0,
+        "fixed_fraction_limit": 0.01,
+        "fraction": 0.0,
+        "max_error": 3,
+        "mean_absolute_error": 0.003156828703703704,
+        "passed": true
+      },
+      "cold_scene_build_us": 34229,
+      "cached_scene_build": {
+        "p50": 356,
+        "p95": 746,
+        "p99": 913,
+        "unit": "microseconds"
+      },
+      "cpu_full_page": {
+        "p50": 4268,
+        "p95": 5567,
+        "p99": 6632,
+        "unit": "microseconds"
+      },
+      "font_bytes_sha256_and_face": [
+        [
+          0,
+          "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a"
+        ],
+        [
+          0,
+          "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f"
+        ]
+      ],
+      "scene_stats": {
+        "backdrop_rasters": 2,
+        "build_micros": 356,
+        "builds": 102,
+        "cache_bytes": 5712216,
+        "cpu_tiles": 6,
+        "glyphs": 140,
+        "hits": 700,
+        "misses": 14,
+        "native_paths": 4
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "base": "3691d4dea11df473c95f94af9718cc699cd984f8",
+  "rust": "1.98.1",
+  "gpui_kit": "0.8.1",
+  "gpui_pre": "0.3.10",
+  "registry_and_workspace_dependencies_unchanged": true,
+  "shared_libraries_changed": false,
+  "lock_sha256": "bad7c3ba802b25217dd829c473a56bb67950ba2286e3ea186738abe586f189b7",
+  "tests": {
+    "deck-check": {
+      "groups": 43,
+      "passed": 874,
+      "failed": 0,
+      "ignored": 0
+    },
+    "joint-tests": {
+      "groups": 258,
+      "passed": 3574,
+      "failed": 0,
+      "ignored": 1
+    }
+  }
+}

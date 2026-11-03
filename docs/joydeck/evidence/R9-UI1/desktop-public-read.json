@@ -1,0 +1,28 @@
+{
+  "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-ui1-final-package-jljcq4_y\\中文 空格\\R9 UI1 最终 36磅 已保存.pptx",
+  "sha256": "a8742865123f3d29bdbe10bc4e77008279f6dc6786a7cdd1fe5438d35144f6be",
+  "source_unchanged": true,
+  "pages": 3,
+  "text": "JoyDeck · 真实文稿预览",
+  "font": "Arial",
+  "size": 36,
+  "theme_color": "accent2",
+  "theme_color_range": "first character J only",
+  "changed_parts": [
+    "ppt/slides/slide1.xml"
+  ],
+  "runs": [
+    {
+      "text": "J",
+      "font": "Arial",
+      "size": 36.0,
+      "color_type": "SCHEME (2)"
+    },
+    {
+      "text": "oyDeck · 真实文稿预览",
+      "font": "Arial",
+      "size": 36.0,
+      "color_type": "None"
+    }
+  ]
+}

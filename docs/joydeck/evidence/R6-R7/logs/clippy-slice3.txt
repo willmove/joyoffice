@@ -1,0 +1,4 @@
+    Checking joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Checking joydeck-ui-gpui v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Checking joydeck v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.47s

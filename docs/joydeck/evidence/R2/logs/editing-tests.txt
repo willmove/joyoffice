@@ -1,0 +1,23 @@
+   Compiling joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.72s
+     Running tests\editing.rs (target\debug\deps\editing-160259d5d6179a65.exe)
+
+running 15 tests
+test undo_redo_branches_dirty_and_selection_restore ... ok
+test id_exhaustion_and_locked_objects_fail_atomically ... ok
+test failed_transactions_do_not_mutate_history_ids_or_model ... ok
+test recovery_clean_blocks_stale_checkpoints ... ok
+test history_budget_keeps_only_latest_128_gestures ... ok
+test invalid_destination_retains_original_and_session_dirty ... ok
+test windows_atomic_replace_failure_preserves_existing_file_and_dirty_state ... ok
+test unknown_native_parts_survive_resave ... ok
+test text_transform_save_reopen_and_untouched_parts_preserved ... ok
+test published_save_is_reported_as_success_even_if_recovery_cleanup_fails ... ok
+test simple_slide_structure_and_picture_copy_round_trip_in_public_pptx ... ok
+test external_changes_and_existing_save_as_targets_are_not_overwritten ... ok
+test save_captures_revision_and_later_edits_stay_dirty ... ok
+test native_v2_round_trip_restores_source_binding_and_rejects_legacy_reader ... ok
+test recovery_leases_corruption_and_restore_without_overwriting_source ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s

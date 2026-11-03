@@ -19,7 +19,7 @@ jobs:
       - name: Linux desktop libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev fonts-noto-cjk
       - name: Fixed toolchain
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
       - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830

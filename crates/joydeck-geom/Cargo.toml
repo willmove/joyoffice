@@ -1,0 +1,16 @@
+[package]
+name = "joydeck-geom"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+license.workspace = true
+description = "JoyDeck (adapted from DeckCraft) geometry: units (EMU/pt), transforms, preset shape generators, adjust handles, hit testing"
+
+[lints]
+workspace = true
+
+[dependencies]
+kurbo = { workspace = true, features = ["serde"] }
+serde = { workspace = true }

@@ -1,0 +1,71 @@
+    Checking tempfile v3.27.0
+    Checking joyword-model v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-model)
+    Checking rustix v1.1.5
+   Compiling thiserror v1.0.69
+   Compiling convert_case v0.11.0
+   Compiling thiserror-impl v1.0.69
+    Checking bit-vec v0.8.0
+    Checking fnv v1.0.7
+    Checking wait-timeout v0.2.1
+    Checking quick-error v1.2.3
+   Compiling gpui-pre v0.3.10
+    Checking rand_xorshift v0.4.0
+    Checking crossbeam-queue v0.3.14
+    Checking pollster v0.2.5
+    Checking fixedbitset v0.5.7
+    Checking unarray v0.1.4
+    Checking atomic v0.5.3
+    Checking gpui-pre-http-client v0.3.10
+    Checking gpui-pre-collections v0.3.10
+    Checking bit-set v0.8.0
+   Compiling gpui-pre-windows v0.3.10
+    Checking joysheet-xlsx v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-xlsx)
+    Checking rusty-fork v0.3.1
+    Checking usvg v0.45.1
+    Checking joydeck-shell v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joydeck-shell)
+    Checking joysheet-protocol v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-protocol)
+    Checking arboard v3.7.0
+    Checking ropey v1.6.1
+    Checking futures-concurrency v7.7.1
+    Checking async-io v2.6.0
+   Compiling joysheet v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joysheet)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joydeck)
+    Checking joysheet-platform v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-platform)
+    Checking joyoffice-xtask v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\tools\xtask)
+    Checking async-process v2.5.0
+    Checking async-net v2.0.0
+    Checking joysheet-model v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-model)
+    Checking smol v2.0.2
+    Checking joysheet-core v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-core)
+   Compiling proptest-macro v0.5.0
+    Checking joyword-engine v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-engine)
+    Checking joyword-docx v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-docx)
+    Checking joyword-textfmt v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-textfmt)
+    Checking joyword-epub v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-epub)
+    Checking joyword-layout v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-layout)
+    Checking resvg v0.45.1
+    Checking joyword-rtf v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-rtf)
+    Checking joyword-doc v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-doc)
+    Checking joydeck-cli v0.8.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joydeck-cli)
+    Checking joysheet-engine v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-engine)
+    Checking joyword-agent v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-agent)
+    Checking joyword-render v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-render)
+    Checking joyword-pdf v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-pdf)
+    Checking joyword-shell v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-shell)
+    Checking joyword-cli v0.1.1 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joyword-cli)
+    Checking joysheet-mcp v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-mcp)
+    Checking joysheet-app v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-app)
+    Checking joysheet-cli v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joysheet-cli)
+    Checking joysheet-tools v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\tools\joysheet)
+    Checking proptest v1.11.0
+    Checking postage v0.5.0
+    Checking gpui-kit-assets v0.8.1
+    Checking gpui-base v0.8.1
+    Checking gpui-pre-platform v0.3.10
+    Checking gpui-component v0.8.1
+    Checking gpui-kit v0.8.1
+    Checking joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyoffice-ui)
+    Checking joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joydeck-ui-gpui)
+    Checking joysheet-ui-gpui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-ui-gpui)
+    Checking joyword v0.1.1 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joyword)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 39.93s

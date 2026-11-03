@@ -269,6 +269,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "joyword-rtf"
+version = "0.1.0"
+dependencies = [
+ "joyword-model",
+ "joyword-textfmt",
+]
+
+[[package]]
 name = "joyword-shell"
 version = "0.1.0"
 dependencies = [
@@ -278,11 +286,20 @@ dependencies = [
  "joyword-engine",
  "joyword-epub",
  "joyword-model",
+ "joyword-rtf",
+ "joyword-textfmt",
  "rustix",
  "tempfile",
  "unicode-segmentation",
  "winsafe",
  "xattr",
+]
+
+[[package]]
+name = "joyword-textfmt"
+version = "0.1.0"
+dependencies = [
+ "joyword-model",
 ]
 
 [[package]]

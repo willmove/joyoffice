@@ -1,0 +1,1 @@
+Windows archive contract passed; this is not the complete multi-platform release matrix.

@@ -1,0 +1,16 @@
+{
+  "changed": true,
+  "seconds_before": 0.7900003999999999,
+  "seconds_after": 0,
+  "seek_response_seconds": 0.1594104000250809,
+  "decoder": {
+    "ready": true,
+    "width": 1920,
+    "height": 1080,
+    "duration": 5,
+    "durationKnown": true,
+    "audio": true,
+    "video": true,
+    "backend": "Windows WPF MediaPlayer"
+  }
+}

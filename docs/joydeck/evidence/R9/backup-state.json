@@ -1,0 +1,14 @@
+{
+  "source": "D:\\Coding\\EditorProjects\\joyoffice",
+  "head": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+  "branch": "main",
+  "status": "",
+  "refs": "18b8c4ff1f7b578911b13154ef511038ccc03fec refs/codex/turn-diffs/checkpoints/09e2674b2c2831173c475c5ffbcd6f8c/6c7c2abb28e23eb62d77b3121e6e748f/1793586661307/78fe1ae3-a290-4b2a-9f66-648a74336c5e\n0d6afa7d1fa567458a2009e12b9501ff65dcf3be refs/codex/turn-diffs/checkpoints/0c23adf5d49f495d26a0bfc8cf6a4dd4/7e1d8dcc4df29c8d1c38743d45eb8143/1793670666071/2f6eb551-8f8a-4771-8570-a447cb7e53eb\nd6e7e4e956239b4976cd4af6672c84d48d19ab44 refs/codex/turn-diffs/checkpoints/15f61518b09e9121c6182cbecb25503e/d12644e08ac2eaaa0d95c41d6e3eca83/1793460082179/9a5a9119-1730-49f1-b12d-2d5d8f5f7933\ndd5c4ea4786ed10d7bcb4a9639f58da7b3a6ec19 refs/codex/turn-diffs/checkpoints/8c9bd4b13d45b71879ed650b831dd042/49e8c796ef51084e13473734de2a06e3/1793530688528/5148306c-b13a-435e-a45f-2b2e47d5394d\n8b0e04ce48e3c39c08ec0a878c975e2cc9fd3ca5 refs/codex/turn-diffs/checkpoints/b9831381941d9553dac7d6f7c21a88c0/47bd58cd0e0d7b48adb0409fba0a0e99/1793358436930/97f07702-0469-4eb4-92b1-269f9c55fa3a\nabaab66082849347db03ed71d4591159a1741e29 refs/codex/turn-diffs/checkpoints/c33c125e3bea9dc4d017abad447c4396/19e80448de0aed42573b63208bfb9991/1793607386598/65a76fa4-517a-4218-a2d8-232c0ec436d2\n23b9744024f1858af37516aacf86cf07d8559d43 refs/codex/verification/m7-20261030\n869ae8678d86917fae4b9a736f04e3d40e744f72 refs/codex/verification/m7-20261030-before-pdf-readback\n7aa041e667f33664b59011c22b9e05ed6f5a43d8 refs/codex/verification/m7-20261030-gui\n2cd8ce9373be03d5b4e34f91bb4447085bbe78cb refs/codex/verification/m7-followup-20261030\n21a938e8facbf0b2f82c5537b93f648ac9ceca7a refs/codex/verification/m7-followup-final-20261030\n118cca1f16d2301676c7a6a7d167f5f36522db1b refs/codex/verification/m8-20261030\n26e148f394e0dcaabd88bf8ee05dc7e5a58389df refs/codex/verification/m8-focus-20261030\na973f75d7d58ab8dd5f05b0e3db5f0c53137d57d refs/heads/codex/joyword-1-0-completion\na973f75d7d58ab8dd5f05b0e3db5f0c53137d57d refs/heads/main\na973f75d7d58ab8dd5f05b0e3db5f0c53137d57d refs/remotes/origin/HEAD\n09a64c9418c2466745c29672d83849b3f95da7da refs/remotes/origin/fix/joyword-linux-file-picker\na483d80df71b91698c6e088c71f8f8d94004bb7f refs/remotes/origin/fix/joyword-native-file-chooser\na973f75d7d58ab8dd5f05b0e3db5f0c53137d57d refs/remotes/origin/main\ne1e6d1cc9298974461dc5916b62559c5d97c824c refs/tags/joydeck-v0.1.0\n346a2aaab92c121bfe4530028f0d1339d56b22da refs/tags/joyword-v0.1.1\na23d67cead384ebacaf162cbbf9a4bb6a253688e refs/tags/v0.1.0\n",
+  "worktrees": "worktree D:/Coding/EditorProjects/joyoffice\nHEAD a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d\nbranch refs/heads/main\n\n",
+  "created_at": "2026-11-03T10:03:21.963605+08:00",
+  "verified_files": 3979,
+  "verified_bytes": 177075313,
+  "bundle_sha256": "363a16ba246e59de116bb98cc3da1e8c71f5287dd565a91f962a918c4605c6bc",
+  "bundle_verified": true,
+  "restored_clone_fsck_passed": true
+}

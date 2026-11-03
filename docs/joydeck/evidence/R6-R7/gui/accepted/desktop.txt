@@ -1,0 +1,33 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=66
+R4 scene {"builds":2,"hits":0,"misses":10,"cpu_tiles":4,"backdrop_rasters":2,"native_paths":5,"glyphs":48,"cache_bytes":14885528,"build_micros":5335}
+R6 delivery revision=0 输出完成：3 页 / 1 个文件 / 97921 字节
+R6 delivery revision=0 输出失败：print cancelled or timed out; a job already submitted to the spooler may still print
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1,3],"previous":null,"serial":0}
+R7 show_first_frame prepare_us=3651
+R7 show_state {"page":1,"step":0,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":42.665893200000006,"total_seconds":42.665893200000006,"order":[1,3],"previous":null,"serial":2}
+R7 show_state {"page":1,"step":0,"playing":false,"ended":false,"paused":true,"blank":null,"elapsed_seconds":0.0,"slide_seconds":42.665893200000006,"total_seconds":42.665893200000006,"order":[1,3],"previous":null,"serial":3}
+R7 show_closed frames=163
+
+thread '<unnamed>' (32620) panicked at C:\Users\willm\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\accesskit_windows-0.34.0\src\util.rs:380:52:
+called `Result::unwrap()` on an `Err` value: Error { code: HRESULT(0x80070578), message: "无效的窗口句柄。" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (32620) panicked at /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library\core\src\panicking.rs:225:5:
+panic in a function that cannot unwind
+stack backtrace:
+   0:     0x7ff7db099dc3 - <unknown>
+   1:     0x7ff7d9470481 - <unknown>
+   2:     0x7ff7db09f7d4 - <unknown>
+   3:     0x7ff7db07e7d1 - <unknown>
+   4:     0x7ff7db091038 - <unknown>
+   5:     0x7ff7db091463 - <unknown>
+   6:     0x7ff7db07e8e5 - <unknown>
+   7:     0x7ff7db07c46f - <unknown>
+   8:     0x7ff7db07efbe - <unknown>
+   9:     0x7ff7db373ca7 - <unknown>
+  10:     0x7ff7db373c21 - <unknown>
+  11:     0x7ff7db373dda - <unknown>
+  12:     0x7ff7d9400d55 - <unknown>
+  13:     0x7ff928a2bb00 - _CxxFrameHandler3
+  14:     0x7ff928a133c7 - is_exception_typeof

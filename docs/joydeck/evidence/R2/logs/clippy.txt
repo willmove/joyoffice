@@ -1,0 +1,21 @@
+    Checking joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Checking joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Checking joydeck-ui-gpui v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Checking joydeck-cli v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+error: field assignment outside of initializer for an instance created with Default::default()
+   --> crates\joydeck-shell\tests\editing.rs:434:5
+    |
+434 |     p.next_id = u32::MAX;
+    |     ^^^^^^^^^^^^^^^^^^^^^
+    |
+note: consider initializing the variable with `joydeck_model::Presentation { next_id: u32::MAX, ..Default::default() }` and removing relevant reassignments
+   --> crates\joydeck-shell\tests\editing.rs:433:5
+    |
+433 |     let mut p = joydeck_model::Presentation::default();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#field_reassign_with_default
+    = note: `-D clippy::field-reassign-with-default` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::field_reassign_with_default)]`
+
+error: could not compile `joydeck-shell` (test "editing") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

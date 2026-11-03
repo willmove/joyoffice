@@ -1,0 +1,43 @@
+   Compiling rustix v1.1.5
+   Compiling gpui-pre v0.3.10
+   Compiling joyword-model v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-model)
+   Compiling usvg v0.45.1
+   Compiling joysheet-xlsx v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-xlsx)
+   Compiling joysheet-protocol v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-protocol)
+   Compiling tempfile v3.27.0
+   Compiling arboard v3.7.0
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joydeck-shell)
+   Compiling joysheet-platform v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-platform)
+   Compiling async-io v2.6.0
+   Compiling async-process v2.5.0
+   Compiling async-net v2.0.0
+   Compiling smol v2.0.2
+   Compiling resvg v0.45.1
+   Compiling joydeck-cli v0.8.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joydeck-cli)
+   Compiling joyword-layout v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-layout)
+   Compiling joyword-textfmt v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-textfmt)
+   Compiling joyword-epub v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-epub)
+   Compiling joyword-rtf v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-rtf)
+   Compiling joyword-engine v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-engine)
+   Compiling joyword-docx v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-docx)
+   Compiling joysheet-engine v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-engine)
+   Compiling joyword-pdf v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-pdf)
+   Compiling joyword-render v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-render)
+   Compiling joyword-shell v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyword-shell)
+   Compiling joyword-cli v0.1.1 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joyword-cli)
+   Compiling joysheet-mcp v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-mcp)
+   Compiling joysheet-app v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-app)
+   Compiling gpui-base v0.8.1
+   Compiling gpui-pre-windows v0.3.10
+   Compiling gpui-kit-assets v0.8.1
+   Compiling gpui-pre-platform v0.3.10
+   Compiling gpui-component v0.8.1
+   Compiling joysheet-cli v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joysheet-cli)
+   Compiling gpui-kit v0.8.1
+   Compiling joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joyoffice-ui)
+   Compiling joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joydeck-ui-gpui)
+   Compiling joysheet-ui-gpui v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\crates\joysheet-ui-gpui)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joydeck)
+   Compiling joysheet v0.1.0 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joysheet)
+   Compiling joyword v0.1.1 (D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal\apps\joyword)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 34s

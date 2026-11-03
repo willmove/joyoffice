@@ -1,0 +1,33 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=71
+R4 scene {"builds":2,"hits":0,"misses":12,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":5,"glyphs":63,"cache_bytes":16227344,"build_micros":2579}
+R4 scene {"builds":3,"hits":0,"misses":18,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":63,"cache_bytes":24341016,"build_micros":3233}
+R4/R5 pointer position=Point { x: 816px, y: 317.7143px } bounds=Bounds { origin: Point { x: 297.14285px, y: 177.14285px }, size: Size { 1081.1428px × 608px } } point=(460.82710984948466,124.84963871173075) scale=1.1259259
+R4/R5 pointer position=Point { x: 816px, y: 317.7143px } bounds=Bounds { origin: Point { x: 297.14285px, y: 177.14285px }, size: Size { 1081.1428px × 608px } } point=(460.82710984948466,124.84963871173075) scale=1.1259259
+R6/R7 raster page=1 width=1892 elapsed_ms=4 count=1
+R3 input=commit utf16=10 marked=false
+R4/R5 command=set-text revision=1 dirty=true
+R6/R7 raster page=1 width=1892 elapsed_ms=13 count=2
+R4/R5 checkpoint revision=1
+R3 input=commit utf16=1 marked=false
+R4/R5 command=set-text revision=2 dirty=true
+R6/R7 raster page=1 width=1892 elapsed_ms=6 count=3
+R4/R5 checkpoint revision=2
+R4/R5 command=undo revision=3 dirty=true
+R4 scene {"builds":4,"hits":5,"misses":19,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":73,"cache_bytes":24380080,"build_micros":526}
+R4/R5 checkpoint revision=3
+R4/R5 command=undo revision=4 dirty=false
+R4 scene {"builds":5,"hits":11,"misses":19,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":63,"cache_bytes":24380080,"build_micros":336}
+R4/R5 checkpoint revision=4
+R4/R5 command=redo revision=5 dirty=true
+R4 scene {"builds":6,"hits":17,"misses":19,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":73,"cache_bytes":24380080,"build_micros":320}
+R4/R5 checkpoint revision=5
+R4/R5 saved revision=5 dirty=false path=C:\Users\willm\AppData\Local\Temp\joyoffice-r9-package-pqy90ifl\中文 空格\R9 桌面 已保存.pptx
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R6/R7 opened=true pages=3 elapsed_ms=63
+R4 scene {"builds":2,"hits":0,"misses":12,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":5,"glyphs":73,"cache_bytes":16256368,"build_micros":2845}
+R4 scene {"builds":3,"hits":0,"misses":18,"cpu_tiles":0,"backdrop_rasters":3,"native_paths":5,"glyphs":73,"cache_bytes":24384552,"build_micros":3887}
+R7 show_start {"page":1,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":0.0,"order":[1,2,3],"previous":null,"serial":0}
+R7 show_first_frame prepare_us=3720
+R7 show_state {"page":2,"step":0,"playing":false,"ended":false,"paused":false,"blank":null,"elapsed_seconds":0.0,"slide_seconds":0.0,"total_seconds":15.408336600000004,"order":[1,2,3],"previous":1,"serial":1}
+R7 show_closed frames=2

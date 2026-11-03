@@ -1,0 +1,155 @@
+{
+  "capture": "Unmodified Sky window screenshots, saved then visually inspected; each metadata file retains accessibility state.",
+  "records": [
+    {
+      "image": "gui/01-new-document.jpg",
+      "sha256": "de7ee56c828a7cb1b8ad56d04d87f3925cd38da3097225c2c48c62fe67170a5e",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "最终 ZIP 搬到仓库外中文空格目录，默认 1 MiB 栈，空白文稿及主界面。"
+    },
+    {
+      "image": "gui/02-ime-cancel.jpg",
+      "sha256": "323fe079e86a987b1280b9818d5fba5829b9156db4645dbef6329e5ad660cfac",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "真实微软拼音 preedit n 后 Esc 取消；标题未修改、无 dirty。"
+    },
+    {
+      "image": "gui/03-ime-candidate.jpg",
+      "sha256": "7f03c737baf33a2c7fba42e67b0288b805053592541ad0f14b673e047875c91f",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "真实微软拼音 ni 候选框位于原位 caret；组合尚未持久化。"
+    },
+    {
+      "image": "gui/04-ime-committed.jpg",
+      "sha256": "e300ec2d9b234070adb9e9e4f9406778a83832d124ca08f37d5469cbce8c9a9b",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "拼音空格提交“你”，正文和缩略图更新；单次提交产生文稿修改。"
+    },
+    {
+      "image": "gui/05-ime-undo.jpg",
+      "sha256": "2cf2837c573003865375aef8ca5234566cdcde14f3e4a670b5a8559213fc18f2",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "一次 Ctrl+Z 撤销拼音提交，恢复空标题和 clean 状态；等待场景更新后记录。"
+    },
+    {
+      "image": "gui/06-font-dialog.jpg",
+      "sha256": "54ead5d9dc072d03a40e58501d6727ddad2cd7753b38c1eff87bcaa1d28d2745",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "真实字体/字号/RGB 对话框：44 磅、D95A1A；输入实体可由 UIA 独立访问。"
+    },
+    {
+      "image": "gui/07-insert-ribbon.jpg",
+      "sha256": "1b6d70e6088fed3c13131dd1da25e912d6dd3a95bbbe756ec02063a7a46bb5ce",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "最终包插入页；表格、图片、形状、文本框均接入真实操作。"
+    },
+    {
+      "image": "gui/08-table-edit.jpg",
+      "sha256": "b956af158fb28aef4ba43e30076228a2b927470322763bdd8bce885fa545bea9",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "3×3 表格已插入并拖动到页面下部；两个单元格中文输入与 Tab/Shift+Tab 导航。"
+    },
+    {
+      "image": "gui/09-save-as.jpg",
+      "sha256": "a2ba5090dce8cff9b8f9bb6bc7e90c23f0b41bbc4cd840ecd2325a645b7bebb0",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "系统另存为：显式选择 .pptx，保存到仓库外中文空格目录中的新文件。"
+    },
+    {
+      "image": "gui/10-powerpoint-public-read.jpg",
+      "sha256": "d4573adb944d9f9431648cf565f996b0041a92dd03bb7b56399af21681a718b0",
+      "exe_sha256": null,
+      "note": "PowerPoint 公开 PPTX 独立读回：标题、颜色、表格及备注；无修复提示。"
+    },
+    {
+      "image": "gui/11-saved-workspace.jpg",
+      "sha256": "e9add693fc7fdc9844764b6e8763933aeaa00576651fb5a98f07982201191672",
+      "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798",
+      "note": "原生开始 Ribbon、44 磅橙色标题、可移动表格和直接备注；PPTX 已保存并由 PowerPoint 读回。"
+    },
+    {
+      "image": "gui/12-final-reopened.jpg",
+      "sha256": "9900907e280ed82f43ad23c9bf77c2ec693e16a4d46fe92aebab713c26feae00",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "最终修正版 ZIP：仓库外中文路径重新打开前一候选通过 GUI 保存并由 PowerPoint 读回的 PPTX；标题、备注、表格均保留。"
+    },
+    {
+      "image": "gui/13-object-clipboard.jpg",
+      "sha256": "f650a61414d82a06274e3aeb57f42681713372e12800d034bd5610cf94815307",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "系统对象剪贴板：表格粘贴分配新 ID，副本首格“副本”、第二格“独立”；原表格仍是“能力/状态”。"
+    },
+    {
+      "image": "gui/14-save-before-open.jpg",
+      "sha256": "dbb23438168212df22b0892beba3e90ab08a453e219828d023d4524f9181f698",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "Final release: modified untitled document prompts Save / Do not save / Cancel before Open."
+    },
+    {
+      "image": "gui/15-file-page.jpg",
+      "sha256": "ddd78c60822f4cd433e3282579186b152f38eb6fcdd131cd1e78d77c393f4aba",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "Final release File page exposes native New/Open/Save/Save As/Recover and existing output commands."
+    },
+    {
+      "image": "gui/16-design.jpg",
+      "sha256": "306d99ef0446bc7da356fc4403014babc47bfcd070165c23141cafd50751b7dc",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "Final release design group and same reopened PPTX."
+    },
+    {
+      "image": "gui/17-slide-browser.jpg",
+      "sha256": "12a334d16792f7a888ef2499b1c53456d3e965bc85db1589d8966c6e6dfd7147",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "Final release slide browser switches from normal view and exposes slide navigation."
+    },
+    {
+      "image": "gui/18-selection-pane.jpg",
+      "sha256": "f027b415215aa7dbeaaec398bac31b47400a6b9ece806f7668fc43761c52f4a8",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "Final release selection pane selects named objects and exposes format/geometry controls."
+    },
+    {
+      "image": "gui/19-dark-theme.jpg",
+      "sha256": "d7e10f799daa02572f778d315b56180652261e5656a351a25b5b1cf808a4d2bb",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "Final release dark chrome; document colors remain unchanged."
+    },
+    {
+      "image": "gui/20-slideshow.jpg",
+      "sha256": "0570da50e0a681ab4607de1e48414baabb089d8dadc64bf9cf41bc5d150639d3",
+      "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+      "note": "F5 opens actual slideshow; title/table render and empty placeholder is hidden."
+    },
+    {
+      "image": "gui/21-debug-narrow.jpg",
+      "sha256": "b8d9d6e8a44f62555e3b31abba3c7fdc2a473d12b5879e451569041f2f4efb5e",
+      "exe_sha256": "9f2b8958e9992ba8c83f695e3a2d7ebbd5ec04a1f7110b15e817c43df9f72881",
+      "note": "Unoptimized debug, default 1 MiB stack, 800x600, right ribbon scroll works."
+    },
+    {
+      "image": "gui/22-debug-file-page.jpg",
+      "sha256": "7f188cca2be11d6ab3b3c8175449649a844a0404435960cbf7b8af1cc2474fb7",
+      "exe_sha256": "9f2b8958e9992ba8c83f695e3a2d7ebbd5ec04a1f7110b15e817c43df9f72881",
+      "note": "800x600 file page wraps output controls. Debug default-stack Home/Insert/Design/Slideshow/Review/View/Shape/Table/File tabs rendered without crash."
+    },
+    {
+      "image": "gui/23-final-same-pptx.jpg",
+      "sha256": "234b997c98e7617ac38c8513977b10275df0885c4f17a727cd12cc16a903952a",
+      "exe_sha256": "898ce04dc6c67fef0354bd45d33a8bc093605ba584c14b1fdabd156519352226",
+      "note": "Delivery 97c23f9b0a opens the identical r1-preview PPTX also viewed in DeckCraft reference 05; three thumbnails, canvas and notes."
+    },
+    {
+      "image": "gui/24-final-duplicate.jpg",
+      "sha256": "5dae0a3d1f24f0d366a5bc2aacfde7da37b5b2bb98989368b9f7fc85d6cfa368",
+      "exe_sha256": "898ce04dc6c67fef0354bd45d33a8bc093605ba584c14b1fdabd156519352226",
+      "note": "Delivery package Ctrl+D creates a distinct title object and enables Undo."
+    },
+    {
+      "image": "gui/25-final-editor.jpg",
+      "sha256": "676081b347c5185b416912ab1631e20f67e77300fe59f58e51c6898cd606a6e3",
+      "exe_sha256": "898ce04dc6c67fef0354bd45d33a8bc093605ba584c14b1fdabd156519352226",
+      "note": "Delivery 97c23f9b0a: Ctrl+D followed by Undo restores the clean source view and selected-object formatting."
+    }
+  ]
+}

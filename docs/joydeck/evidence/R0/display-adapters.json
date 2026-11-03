@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "GameViewer Virtual Display Adapter",
+    "DriverVersion": "15.6.5.199"
+  },
+  {
+    "Name": "Intel(R) Arc(TM) 140T GPU (16GB)",
+    "DriverVersion": "32.0.101.9150"
+  },
+  {
+    "Name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "DriverVersion": "32.0.16.2101"
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "file": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\R8 界面验证.pptx",
+  "sha256": "62cfa49cb9bdb17ba08cde8e388aba9890b631a5d8e43e0ccc1143e7da39e318",
+  "reader": "python-pptx 1.0.2 + PowerPoint desktop",
+  "slides": 1,
+  "title": "JoyDeck · R8 界面验证",
+  "font_points": 44.0,
+  "font_color": "D95A1A",
+  "table": [
+    3,
+    3
+  ],
+  "first_cells": [
+    "能力",
+    "状态",
+    ""
+  ],
+  "notes": "R8 备注：真实文稿、原生 GPUI、保存重开验证。",
+  "passed": true
+}

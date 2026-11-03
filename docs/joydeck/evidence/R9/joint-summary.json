@@ -1,0 +1,14 @@
+{
+  "passed": 3571,
+  "failed": 0,
+  "ignored": 1,
+  "groups": 258,
+  "features": [
+    "joydeck/validation",
+    "joysheet/automation"
+  ],
+  "ignored_cases": [
+    "test recalc::tests::recalc_with_range_formulas_scales_linearly ... ignored, timing-sensitive; run with --ignored in release"
+  ],
+  "word_ai_toggle": "1 test passed; startup makes no provider request"
+}

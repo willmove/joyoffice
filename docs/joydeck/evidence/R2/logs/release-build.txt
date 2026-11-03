@@ -1,0 +1,25 @@
++ cargo build --locked -p joydeck -p joydeck-anim -p joydeck-cli -p joydeck-color -p joydeck-engine -p joydeck-fonts -p joydeck-format -p joydeck-geom -p joydeck-metafile -p joydeck-model -p joydeck-pptx -p joydeck-render -p joydeck-shell -p joydeck-text -p joydeck-ui-gpui -p joydeck-xtask -p joyoffice-opc -p joyoffice-ui --release
+   Compiling joydeck-geom v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-color v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling generic-array v0.14.7
+   Compiling joydeck-fonts v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling cpufeatures v0.2.17
+   Compiling joyoffice-opc v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+   Compiling joydeck-xtask v0.3.0 (D:\Coding\EditorProjects\joydeck-new\tools\xtask)
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling joydeck-model v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling joydeck-text v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-anim v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-format v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-engine v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-pptx v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+   Compiling joydeck-cli v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 27s

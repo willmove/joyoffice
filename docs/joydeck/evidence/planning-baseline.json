@@ -1,0 +1,1709 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-02T16:57:38+08:00",
+  "purpose": "JoyDeck refactoring planning baseline; static inspection only",
+  "implementation_started": false,
+  "rust_build_executed": false,
+  "gui_validation_executed": false,
+  "sources": {
+    "deckcraft": {
+      "local_path": "D:\\Coding\\GithubProjects\\deckcraft-main",
+      "workspace_package": {
+        "version": "0.14.1",
+        "edition": "2024",
+        "license": "MIT OR Apache-2.0",
+        "rust-version": "1.95",
+        "repository": "https://github.com/storytold/deckcraft"
+      },
+      "git_head": null,
+      "git_status_at_generation": null,
+      "commit_inferred": false,
+      "metadata_command": [
+        "cargo",
+        "metadata",
+        "--locked",
+        "--offline",
+        "--no-deps",
+        "--format-version",
+        "1"
+      ],
+      "workspace_member_count": 28,
+      "workspace_packages": [
+        {
+          "name": "deckcraft",
+          "version": "0.14.1",
+          "manifest": "apps/deckcraft/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-anim",
+          "version": "0.14.1",
+          "manifest": "crates/anim/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-av1",
+          "version": "0.14.1",
+          "manifest": "crates/av1/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-bitstream",
+          "version": "0.14.1",
+          "manifest": "crates/bitstream/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-cli",
+          "version": "0.14.1",
+          "manifest": "apps/deckcraft-cli/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-color",
+          "version": "0.14.1",
+          "manifest": "crates/color/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-engine",
+          "version": "0.14.1",
+          "manifest": "crates/engine/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-fonts",
+          "version": "0.14.1",
+          "manifest": "crates/fonts/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-format",
+          "version": "0.14.1",
+          "manifest": "crates/format/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-geom",
+          "version": "0.14.1",
+          "manifest": "crates/geom/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-h264",
+          "version": "0.14.1",
+          "manifest": "crates/h264/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-hevc",
+          "version": "0.14.1",
+          "manifest": "crates/hevc/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-isobmff",
+          "version": "0.14.1",
+          "manifest": "crates/isobmff/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-matroska",
+          "version": "0.14.1",
+          "manifest": "crates/matroska/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-mcp",
+          "version": "0.14.1",
+          "manifest": "crates/mcp/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-media",
+          "version": "0.14.1",
+          "manifest": "crates/media/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-metafile",
+          "version": "0.14.1",
+          "manifest": "crates/metafile/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-model",
+          "version": "0.14.1",
+          "manifest": "crates/model/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-ogg",
+          "version": "0.14.1",
+          "manifest": "crates/ogg/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-opus",
+          "version": "0.14.1",
+          "manifest": "crates/opus/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-pdf",
+          "version": "0.14.1",
+          "manifest": "crates/pdf/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-pptx",
+          "version": "0.14.1",
+          "manifest": "crates/pptx/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-render",
+          "version": "0.14.1",
+          "manifest": "crates/render/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-text",
+          "version": "0.14.1",
+          "manifest": "crates/text/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-ui-egui",
+          "version": "0.14.1",
+          "manifest": "crates/ui-egui/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-vp9",
+          "version": "0.14.1",
+          "manifest": "crates/vp9/Cargo.toml"
+        },
+        {
+          "name": "deckcraft-web",
+          "version": "0.14.1",
+          "manifest": "apps/deckcraft-web/Cargo.toml"
+        },
+        {
+          "name": "xtask",
+          "version": "0.14.1",
+          "manifest": "xtask/Cargo.toml"
+        }
+      ],
+      "selected_workspace_dependencies": {
+        "kurbo": {
+          "version": "0.13",
+          "features": [
+            "serde"
+          ]
+        },
+        "thiserror": "2",
+        "serde": {
+          "version": "1",
+          "features": [
+            "derive",
+            "rc"
+          ]
+        },
+        "serde_json": {
+          "version": "1",
+          "features": [
+            "float_roundtrip"
+          ]
+        },
+        "log": "0.4",
+        "skrifa": "0.47",
+        "harfrust": "0.13",
+        "vello_cpu": "0.2",
+        "vello_common": {
+          "version": "0.2",
+          "default-features": false
+        },
+        "image": {
+          "version": "0.25",
+          "default-features": false,
+          "features": [
+            "png",
+            "jpeg",
+            "webp",
+            "gif",
+            "tiff",
+            "bmp"
+          ]
+        },
+        "craft-media": {
+          "git": "https://github.com/storytold/craft-libs",
+          "rev": "c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "version": "=0.1.0",
+          "default-features": false
+        },
+        "craft-pdf": {
+          "git": "https://github.com/storytold/craft-libs",
+          "rev": "c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "version": "=0.1.0",
+          "default-features": false,
+          "features": [
+            "write",
+            "write-simple-text"
+          ]
+        },
+        "craft-update": {
+          "git": "https://github.com/storytold/craft-libs",
+          "version": "=0.1.0",
+          "rev": "c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "features": [
+            "egui"
+          ]
+        },
+        "craft-ui": {
+          "git": "https://github.com/storytold/craft-libs",
+          "rev": "c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "version": "=0.1.0"
+        },
+        "quick-xml": "0.41",
+        "zip": {
+          "version": "3",
+          "default-features": false,
+          "features": [
+            "deflate"
+          ]
+        },
+        "egui": {
+          "version": "0.37",
+          "default-features": false
+        },
+        "eframe": {
+          "version": "0.37",
+          "default-features": false
+        },
+        "rfd": "0.17",
+        "arboard": {
+          "version": "3.6",
+          "default-features": false
+        }
+      },
+      "selected_lock_packages": [
+        {
+          "name": "arboard",
+          "version": "3.7.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "aeb9553e62312c8756a5979254fc6d7da8bbeb5986a1e17037fab932f7037917"
+        },
+        {
+          "name": "craft-media",
+          "version": "0.1.0",
+          "source": "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "checksum": null
+        },
+        {
+          "name": "craft-pdf",
+          "version": "0.1.0",
+          "source": "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "checksum": null
+        },
+        {
+          "name": "craft-ui",
+          "version": "0.1.0",
+          "source": "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "checksum": null
+        },
+        {
+          "name": "craft-update",
+          "version": "0.1.0",
+          "source": "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "checksum": null
+        },
+        {
+          "name": "eframe",
+          "version": "0.37.0",
+          "source": "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a",
+          "checksum": null
+        },
+        {
+          "name": "egui",
+          "version": "0.37.0",
+          "source": "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a",
+          "checksum": null
+        },
+        {
+          "name": "epaint_default_fonts",
+          "version": "0.37.0",
+          "source": "git+https://github.com/storytold/egui.git?rev=6d518fc799681571963842f95b55a6b68431b15a#6d518fc799681571963842f95b55a6b68431b15a",
+          "checksum": null
+        },
+        {
+          "name": "harfrust",
+          "version": "0.12.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "c03d949a14aa089bbb282f7dd76a498a7f684428e4257202efc119ec010376f9"
+        },
+        {
+          "name": "harfrust",
+          "version": "0.13.3",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "948d0741125ba89cd3e1c23e5642415b6ade7e1d29d67ba25fb925b533e989d6"
+        },
+        {
+          "name": "image",
+          "version": "0.25.10",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "85ab80394333c02fe689eaf900ab500fbd0c2213da414687ebf995a65d5a6104"
+        },
+        {
+          "name": "krilla",
+          "version": "0.8.2",
+          "source": "git+https://github.com/storytold/craft-libs?rev=c5a1cbfb5f9049f9270955caffb5bee5997aebf7#c5a1cbfb5f9049f9270955caffb5bee5997aebf7",
+          "checksum": null
+        },
+        {
+          "name": "kurbo",
+          "version": "0.13.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "4b60dfc32f652b926df6192e55525b16d186c69d47876c3ead4da5cc9f8450e2"
+        },
+        {
+          "name": "log",
+          "version": "0.4.34",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
+        },
+        {
+          "name": "quick-xml",
+          "version": "0.41.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+        },
+        {
+          "name": "quick-xml",
+          "version": "0.42.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "41b1177fdf999d2321d3fb46ff47159d9c1fb9ad66a4879f8c50a0b504615e9b"
+        },
+        {
+          "name": "rfd",
+          "version": "0.17.2",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220"
+        },
+        {
+          "name": "serde",
+          "version": "1.0.229",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
+        },
+        {
+          "name": "serde_json",
+          "version": "1.0.154",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
+        },
+        {
+          "name": "skrifa",
+          "version": "0.42.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "0c34617370ae968efb7161bb2beb517d9084659aae19e24b89e3db25b46e4564"
+        },
+        {
+          "name": "skrifa",
+          "version": "0.44.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "819ab7d62b1d3e72d9d9dea5650bac30424f9111364bb94928dbf5ecad1baa68"
+        },
+        {
+          "name": "skrifa",
+          "version": "0.47.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "526e654b303ff4ad73a5a40b25de2b3ce3d039c5e3b6da5f89ae6e57004cb40f"
+        },
+        {
+          "name": "thiserror",
+          "version": "1.0.69",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
+        },
+        {
+          "name": "thiserror",
+          "version": "2.0.21",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
+        },
+        {
+          "name": "vello_common",
+          "version": "0.2.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "bbb2141a2bca6e6d598e471fd4d1d7eed8e020aad6a28187edda07f091a325dd"
+        },
+        {
+          "name": "vello_cpu",
+          "version": "0.2.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "ace506ca414548966fcf3c283be94eb1cad8254de488791ee698bf438b0890a9"
+        },
+        {
+          "name": "zip",
+          "version": "3.0.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "12598812502ed0105f607f941c386f43d441e00148fce9dec3ca5ffb0bde9308"
+        },
+        {
+          "name": "zip",
+          "version": "9.1.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "2886b00003a72c4ccee3f42cfc34908d33b2508a74d827dc2a4244706475c704"
+        }
+      ],
+      "rust_metrics": {
+        "apps/deckcraft": {
+          "rust_files": 10,
+          "text_lines_including_tests_comments_blank": 2126
+        },
+        "apps/deckcraft-cli": {
+          "rust_files": 9,
+          "text_lines_including_tests_comments_blank": 1839
+        },
+        "apps/deckcraft-web": {
+          "rust_files": 3,
+          "text_lines_including_tests_comments_blank": 549
+        },
+        "crates/anim": {
+          "rust_files": 15,
+          "text_lines_including_tests_comments_blank": 6062
+        },
+        "crates/av1": {
+          "rust_files": 21,
+          "text_lines_including_tests_comments_blank": 20466
+        },
+        "crates/bitstream": {
+          "rust_files": 2,
+          "text_lines_including_tests_comments_blank": 96
+        },
+        "crates/color": {
+          "rust_files": 1,
+          "text_lines_including_tests_comments_blank": 831
+        },
+        "crates/engine": {
+          "rust_files": 101,
+          "text_lines_including_tests_comments_blank": 42693
+        },
+        "crates/fonts": {
+          "rust_files": 8,
+          "text_lines_including_tests_comments_blank": 3269
+        },
+        "crates/format": {
+          "rust_files": 6,
+          "text_lines_including_tests_comments_blank": 2139
+        },
+        "crates/geom": {
+          "rust_files": 12,
+          "text_lines_including_tests_comments_blank": 5903
+        },
+        "crates/h264": {
+          "rust_files": 20,
+          "text_lines_including_tests_comments_blank": 9471
+        },
+        "crates/hevc": {
+          "rust_files": 17,
+          "text_lines_including_tests_comments_blank": 7364
+        },
+        "crates/isobmff": {
+          "rust_files": 1,
+          "text_lines_including_tests_comments_blank": 6
+        },
+        "crates/matroska": {
+          "rust_files": 1,
+          "text_lines_including_tests_comments_blank": 6
+        },
+        "crates/mcp": {
+          "rust_files": 8,
+          "text_lines_including_tests_comments_blank": 1803
+        },
+        "crates/media": {
+          "rust_files": 12,
+          "text_lines_including_tests_comments_blank": 2973
+        },
+        "crates/metafile": {
+          "rust_files": 13,
+          "text_lines_including_tests_comments_blank": 7249
+        },
+        "crates/model": {
+          "rust_files": 15,
+          "text_lines_including_tests_comments_blank": 9292
+        },
+        "crates/ogg": {
+          "rust_files": 2,
+          "text_lines_including_tests_comments_blank": 851
+        },
+        "crates/opus": {
+          "rust_files": 16,
+          "text_lines_including_tests_comments_blank": 6569
+        },
+        "crates/pdf": {
+          "rust_files": 2,
+          "text_lines_including_tests_comments_blank": 1447
+        },
+        "crates/pptx": {
+          "rust_files": 53,
+          "text_lines_including_tests_comments_blank": 20488
+        },
+        "crates/render": {
+          "rust_files": 32,
+          "text_lines_including_tests_comments_blank": 14480
+        },
+        "crates/text": {
+          "rust_files": 11,
+          "text_lines_including_tests_comments_blank": 5889
+        },
+        "crates/ui-egui": {
+          "rust_files": 172,
+          "text_lines_including_tests_comments_blank": 45553
+        },
+        "crates/vp9": {
+          "rust_files": 16,
+          "text_lines_including_tests_comments_blank": 7661
+        },
+        "xtask/src": {
+          "rust_files": 9,
+          "text_lines_including_tests_comments_blank": 1489
+        }
+      },
+      "inspected_file_fingerprints": [
+        {
+          "path": ".cargo/config.toml",
+          "bytes": 296,
+          "sha256": "6c0e7d271520f7d771b1c0e4958f34be903cb2d64de5f7b95548baa25ef14554"
+        },
+        {
+          "path": "AGENTS.md",
+          "bytes": 11999,
+          "sha256": "82fe3169ddc79a84d06d53f50d8a62f3041e36cc310350f113ad68392da59c7b"
+        },
+        {
+          "path": "Cargo.lock",
+          "bytes": 158936,
+          "sha256": "91594bc6b91f1501b9bd1330e46cfaa262b8c757359880786dbe098e8fc1ace4"
+        },
+        {
+          "path": "Cargo.toml",
+          "bytes": 5920,
+          "sha256": "53de935c126ee402b7572f93d174c69cfe5c911e019adf65161ce2521746bf8e"
+        },
+        {
+          "path": "LICENSE-APACHE",
+          "bytes": 10174,
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "path": "LICENSE-MIT",
+          "bytes": 1101,
+          "sha256": "90e96fef569474cd526350e716e4b05dd32f179ca96d39d61e6b928485e35406"
+        },
+        {
+          "path": "NOTICE",
+          "bytes": 6550,
+          "sha256": "2ce764ed5d83f2453a7dba485092c0c41b465fe795b31c2c59bc5279332bc4f3"
+        },
+        {
+          "path": "README.md",
+          "bytes": 22808,
+          "sha256": "439cab25aa6809bb410ca7f377ed0081ea81c47234bd94f23951e951aa7a3aea"
+        },
+        {
+          "path": "apps/deckcraft-cli/Cargo.toml",
+          "bytes": 478,
+          "sha256": "3ded2cf7ece8c897bebed06a8ee5ab9ce2f136797f21cd15eec74c0340776be5"
+        },
+        {
+          "path": "apps/deckcraft-web/Cargo.toml",
+          "bytes": 1017,
+          "sha256": "13ec574ff73efce16fe019ff891e0f3999203422c0b15953063d028b6bc808d3"
+        },
+        {
+          "path": "apps/deckcraft/Cargo.toml",
+          "bytes": 1528,
+          "sha256": "8c6476a631164d0020d1a19b7f2242e7dafa11c61f9bd553d63c7a19402cbfba"
+        },
+        {
+          "path": "crates/anim/Cargo.toml",
+          "bytes": 389,
+          "sha256": "5a3a87da8998646343243b1b70347e4758fc535ab1b93907f4f8471ad7766899"
+        },
+        {
+          "path": "crates/av1/Cargo.toml",
+          "bytes": 469,
+          "sha256": "0e6da096c9c1d840f62d72a9a6809c5187ca5b20edd22bb9ceb68d25185ed847"
+        },
+        {
+          "path": "crates/bitstream/Cargo.toml",
+          "bytes": 247,
+          "sha256": "17295d73e72c54591a10d6d0367a6d8f94ab33b9e16d5a732bd083704e2b3d0d"
+        },
+        {
+          "path": "crates/color/Cargo.toml",
+          "bytes": 278,
+          "sha256": "a40ec478be86aa7afa1c445ae975a6fad88ccafcebdc7e09ddfd1e170f76c707"
+        },
+        {
+          "path": "crates/engine/Cargo.toml",
+          "bytes": 1132,
+          "sha256": "208ed687e0d1b078c88ae36b1d87b9ee11b549b71ace1a5efbfb31a2fa619189"
+        },
+        {
+          "path": "crates/engine/src/cmd.rs",
+          "bytes": 29066,
+          "sha256": "713f38eb4eb05edddee9c77ffcc1b2ca08b777afe61972f8626a0f6bc2a0a776"
+        },
+        {
+          "path": "crates/engine/src/io.rs",
+          "bytes": 4768,
+          "sha256": "aaf419d40bc62855b581a1cf807a8bffaf34ee8fc7ac816147c7ff8e3c648a1b"
+        },
+        {
+          "path": "crates/engine/src/lib.rs",
+          "bytes": 36011,
+          "sha256": "5f9bfddf317c43c3ccc51a82b3fdca56ccd27420e5d68d9935fbae02d813175f"
+        },
+        {
+          "path": "crates/fonts/Cargo.toml",
+          "bytes": 516,
+          "sha256": "a194d97837f02d615456d5cd181ba03ac4c462a99b9fd1cd04038e7d3b114fd7"
+        },
+        {
+          "path": "crates/fonts/build.rs",
+          "bytes": 25854,
+          "sha256": "692cbe7723d5860c3b35816c5a274ae04919d80d6147cdf7d6288bb429f45bdf"
+        },
+        {
+          "path": "crates/fonts/src/fontdb.rs",
+          "bytes": 68327,
+          "sha256": "bce2264f3781c38b8ee60c3e3b39322c5d42a6d9236c01f835297dfb957869bd"
+        },
+        {
+          "path": "crates/format/Cargo.toml",
+          "bytes": 439,
+          "sha256": "a3bc629279e17b7c45e818c15eb7394a21735c66285841715d010d664c7cc72c"
+        },
+        {
+          "path": "crates/format/src/lib.rs",
+          "bytes": 29812,
+          "sha256": "b22413e017a2ce81282870713d06d22f085b32ec520af6afdcd6a7fc58b18d4e"
+        },
+        {
+          "path": "crates/geom/Cargo.toml",
+          "bytes": 326,
+          "sha256": "7424df077a7ef2d5eb9fbc35a723f66c59aaefcdbd9803fa001f455b1c31b3b8"
+        },
+        {
+          "path": "crates/h264/Cargo.toml",
+          "bytes": 430,
+          "sha256": "92343063db7a1dfc3986a43198775be411e108cdac3577d01442b5b7223298e3"
+        },
+        {
+          "path": "crates/hevc/Cargo.toml",
+          "bytes": 431,
+          "sha256": "18214df5a537003a2bd86b4df4fbaecb49f2e797167c8dbdf50e0a057c9075e5"
+        },
+        {
+          "path": "crates/isobmff/Cargo.toml",
+          "bytes": 323,
+          "sha256": "99f214df642bf05cf3d292a860bfdfbe4134373bd27614435ff3a7f6a0fb6360"
+        },
+        {
+          "path": "crates/matroska/Cargo.toml",
+          "bytes": 314,
+          "sha256": "3f03bcb155672805f1efcf5d0c55b856ecf31ef5d5aca86f833a5be04058ab9d"
+        },
+        {
+          "path": "crates/mcp/Cargo.toml",
+          "bytes": 398,
+          "sha256": "e0111d2023fec4e9dfb8938568a326154bd6e5901646acf9fb6c403aae95ddde"
+        },
+        {
+          "path": "crates/media/Cargo.toml",
+          "bytes": 1073,
+          "sha256": "cf7af03a2078547c244a56cdf83bb7326bf8d9d8d66dfe468988a8db43818804"
+        },
+        {
+          "path": "crates/metafile/Cargo.toml",
+          "bytes": 390,
+          "sha256": "671d63f1daa3371ca4de65b4e8c1cfb3ad000c294b7a45436721eb81c5d77f58"
+        },
+        {
+          "path": "crates/model/Cargo.toml",
+          "bytes": 498,
+          "sha256": "3579cd669b5afb8ddc458487e33e9906117f8907746a28306cf2889e7b7b87b8"
+        },
+        {
+          "path": "crates/model/src/lib.rs",
+          "bytes": 39529,
+          "sha256": "4b5a99b737768e630d877382837063a3f43ca12f9385ee8834e9437ed53b16d2"
+        },
+        {
+          "path": "crates/ogg/Cargo.toml",
+          "bytes": 285,
+          "sha256": "ec4812225a3f96c57e1bf334c7893260ea942035cf12f46bf05cfdf2af76f271"
+        },
+        {
+          "path": "crates/opus/Cargo.toml",
+          "bytes": 285,
+          "sha256": "3d310eaa81662b3d3884bea08b2455b143f43b7d12f495aac62d27ac1b3952ba"
+        },
+        {
+          "path": "crates/pdf/Cargo.toml",
+          "bytes": 1191,
+          "sha256": "0df2c9d4c8bdf9bdedbb4a56dcbbc283d6014d2e5bcb6a9a2f44aeac0d032ee6"
+        },
+        {
+          "path": "crates/pptx/Cargo.toml",
+          "bytes": 750,
+          "sha256": "30a783dcadbf5eb12d1e93df304c77586d1d82013cee8c8c2147ce42345fc86a"
+        },
+        {
+          "path": "crates/render/Cargo.toml",
+          "bytes": 876,
+          "sha256": "8aa25ab13f507069d45d9a06d68cefd43d412b84c7d3cd7fdfb25ce738886133"
+        },
+        {
+          "path": "crates/render/src/lib.rs",
+          "bytes": 4362,
+          "sha256": "34736a5334491485d5026bfec7642fe44146d59332ea09a176ed0a10b3d1aa5b"
+        },
+        {
+          "path": "crates/text/Cargo.toml",
+          "bytes": 964,
+          "sha256": "61d81bf587886eaba4a7f1e10f0ee8ff3fd6e36a61ed091fb9384ea45d4fb059"
+        },
+        {
+          "path": "crates/ui-egui/Cargo.toml",
+          "bytes": 1304,
+          "sha256": "786804e994b6b6f29a17db4e1c03eaa0e51a33c46fdcfab30c8d6a0cc0a91bf7"
+        },
+        {
+          "path": "crates/vp9/Cargo.toml",
+          "bytes": 458,
+          "sha256": "be42dcafaf42ea35ef05e642306951db16a2f2a5060556a7a5656ebcee7d8e4e"
+        },
+        {
+          "path": "docs/architecture.md",
+          "bytes": 9225,
+          "sha256": "f690bb586891755cf620d385e5b1ff4e2d279d8cdd1874d1684dde4ad2a05e03"
+        },
+        {
+          "path": "xtask/Cargo.toml",
+          "bytes": 192,
+          "sha256": "903abc8d1c536c2ffce3f33085915253328db5765c57020aeb6066431b675cc6"
+        }
+      ],
+      "fingerprint_scope": "root config, workspace package manifests and selected inspected source/docs; full file provenance inventory remains JD-000"
+    },
+    "joyoffice": {
+      "local_path": "D:\\Coding\\EditorProjects\\joyoffice",
+      "workspace_package": {
+        "version": "0.1.0",
+        "edition": "2024",
+        "rust-version": "1.98",
+        "license": "MIT",
+        "repository": "https://github.com/willmove/joyoffice"
+      },
+      "git_head": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+      "git_status_at_generation": [],
+      "commit_inferred": false,
+      "metadata_command": [
+        "cargo",
+        "metadata",
+        "--locked",
+        "--offline",
+        "--no-deps",
+        "--format-version",
+        "1"
+      ],
+      "workspace_member_count": 50,
+      "workspace_packages": [
+        {
+          "name": "joydeck",
+          "version": "0.1.0",
+          "manifest": "apps/joydeck/Cargo.toml"
+        },
+        {
+          "name": "joydeck-cli",
+          "version": "0.1.0",
+          "manifest": "apps/joydeck-cli/Cargo.toml"
+        },
+        {
+          "name": "joydeck-engine",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-engine/Cargo.toml"
+        },
+        {
+          "name": "joydeck-export",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-export/Cargo.toml"
+        },
+        {
+          "name": "joydeck-formats",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-formats/Cargo.toml"
+        },
+        {
+          "name": "joydeck-model",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-model/Cargo.toml"
+        },
+        {
+          "name": "joydeck-platform",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-platform/Cargo.toml"
+        },
+        {
+          "name": "joydeck-scene",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-scene/Cargo.toml"
+        },
+        {
+          "name": "joydeck-shell",
+          "version": "0.1.0",
+          "manifest": "crates/joydeck-shell/Cargo.toml"
+        },
+        {
+          "name": "joyoffice-cfb",
+          "version": "0.1.0",
+          "manifest": "crates/joyoffice-cfb/Cargo.toml"
+        },
+        {
+          "name": "joyoffice-drawingml",
+          "version": "0.1.0",
+          "manifest": "crates/joyoffice-drawingml/Cargo.toml"
+        },
+        {
+          "name": "joyoffice-omml",
+          "version": "0.1.0",
+          "manifest": "crates/joyoffice-omml/Cargo.toml"
+        },
+        {
+          "name": "joyoffice-opc",
+          "version": "0.1.0",
+          "manifest": "crates/joyoffice-opc/Cargo.toml"
+        },
+        {
+          "name": "joyoffice-ui",
+          "version": "0.1.0",
+          "manifest": "crates/joyoffice-ui/Cargo.toml"
+        },
+        {
+          "name": "joyoffice-xtask",
+          "version": "0.1.0",
+          "manifest": "tools/xtask/Cargo.toml"
+        },
+        {
+          "name": "joysheet",
+          "version": "0.1.0",
+          "manifest": "apps/joysheet/Cargo.toml"
+        },
+        {
+          "name": "joysheet-app",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-app/Cargo.toml"
+        },
+        {
+          "name": "joysheet-calc",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-calc/Cargo.toml"
+        },
+        {
+          "name": "joysheet-chart",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-chart/Cargo.toml"
+        },
+        {
+          "name": "joysheet-cli",
+          "version": "0.1.0",
+          "manifest": "apps/joysheet-cli/Cargo.toml"
+        },
+        {
+          "name": "joysheet-core",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-core/Cargo.toml"
+        },
+        {
+          "name": "joysheet-engine",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-engine/Cargo.toml"
+        },
+        {
+          "name": "joysheet-formula",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-formula/Cargo.toml"
+        },
+        {
+          "name": "joysheet-functions",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-functions/Cargo.toml"
+        },
+        {
+          "name": "joysheet-mcp",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-mcp/Cargo.toml"
+        },
+        {
+          "name": "joysheet-model",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-model/Cargo.toml"
+        },
+        {
+          "name": "joysheet-numfmt",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-numfmt/Cargo.toml"
+        },
+        {
+          "name": "joysheet-pdf",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-pdf/Cargo.toml"
+        },
+        {
+          "name": "joysheet-platform",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-platform/Cargo.toml"
+        },
+        {
+          "name": "joysheet-protocol",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-protocol/Cargo.toml"
+        },
+        {
+          "name": "joysheet-tools",
+          "version": "0.1.0",
+          "manifest": "tools/joysheet/Cargo.toml"
+        },
+        {
+          "name": "joysheet-ui-gpui",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-ui-gpui/Cargo.toml"
+        },
+        {
+          "name": "joysheet-xlsx",
+          "version": "0.1.0",
+          "manifest": "crates/joysheet-xlsx/Cargo.toml"
+        },
+        {
+          "name": "joyword",
+          "version": "0.1.1",
+          "manifest": "apps/joyword/Cargo.toml"
+        },
+        {
+          "name": "joyword-agent",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-agent/Cargo.toml"
+        },
+        {
+          "name": "joyword-cli",
+          "version": "0.1.1",
+          "manifest": "apps/joyword-cli/Cargo.toml"
+        },
+        {
+          "name": "joyword-corpus",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-corpus/Cargo.toml"
+        },
+        {
+          "name": "joyword-doc",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-doc/Cargo.toml"
+        },
+        {
+          "name": "joyword-docx",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-docx/Cargo.toml"
+        },
+        {
+          "name": "joyword-engine",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-engine/Cargo.toml"
+        },
+        {
+          "name": "joyword-epub",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-epub/Cargo.toml"
+        },
+        {
+          "name": "joyword-foundation",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-foundation/Cargo.toml"
+        },
+        {
+          "name": "joyword-layout",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-layout/Cargo.toml"
+        },
+        {
+          "name": "joyword-model",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-model/Cargo.toml"
+        },
+        {
+          "name": "joyword-pdf",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-pdf/Cargo.toml"
+        },
+        {
+          "name": "joyword-protect",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-protect/Cargo.toml"
+        },
+        {
+          "name": "joyword-render",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-render/Cargo.toml"
+        },
+        {
+          "name": "joyword-rtf",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-rtf/Cargo.toml"
+        },
+        {
+          "name": "joyword-shell",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-shell/Cargo.toml"
+        },
+        {
+          "name": "joyword-textfmt",
+          "version": "0.1.0",
+          "manifest": "crates/joyword-textfmt/Cargo.toml"
+        }
+      ],
+      "selected_workspace_dependencies": {
+        "thiserror": "=2.0.21",
+        "log": "=0.4.34",
+        "rfd": "=0.17.2",
+        "arboard": "=3.7.0",
+        "serde": {
+          "version": "=1.0.228",
+          "features": [
+            "derive",
+            "rc"
+          ]
+        },
+        "serde_json": "=1.0.154",
+        "zip": {
+          "version": "=9.0.0",
+          "default-features": false,
+          "features": [
+            "deflate-flate2"
+          ]
+        },
+        "gpui-kit": "=0.8.1",
+        "gpui_platform": {
+          "package": "gpui-pre-platform",
+          "version": "=0.3.10",
+          "features": [
+            "font-kit",
+            "wayland",
+            "x11"
+          ]
+        },
+        "harfrust": "=0.8.4",
+        "krilla": {
+          "version": "=0.8.2",
+          "default-features": false
+        },
+        "skrifa": "=0.42.1",
+        "kurbo": "=0.13.1",
+        "image": {
+          "version": "=0.25.9",
+          "default-features": false
+        },
+        "quick-xml": "=0.41.0"
+      },
+      "selected_lock_packages": [
+        {
+          "name": "arboard",
+          "version": "3.7.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "aeb9553e62312c8756a5979254fc6d7da8bbeb5986a1e17037fab932f7037917"
+        },
+        {
+          "name": "gpui-base",
+          "version": "0.8.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "d862bc8f2e27710039013d075ac4995892e9687ff207fa530f880cbcd513936f"
+        },
+        {
+          "name": "gpui-component",
+          "version": "0.8.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "46ce53430332e30f303364eaabfa10ed2aa23dfaf2a147e04370e0e9c423578b"
+        },
+        {
+          "name": "gpui-kit",
+          "version": "0.8.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "25210f6e59ea9ffac3a033dbce9edafe5ff0dd2900f894fd1316f54da2fe2b89"
+        },
+        {
+          "name": "gpui-kit-assets",
+          "version": "0.8.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "c214017b45e5654665f18faa551f58a2c2c8d25efe6632b1a443ba8edf365e96"
+        },
+        {
+          "name": "gpui-pre",
+          "version": "0.3.10",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "df4b5f8d0c278308df2f11e0bfe0212dd77d7848ce1bdc4b9d513334414396f6"
+        },
+        {
+          "name": "gpui-pre-platform",
+          "version": "0.3.10",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e8a7f07a15187e82ec76491492c7e3245db1b59633d3bedb00b828ffaf67c4b8"
+        },
+        {
+          "name": "harfrust",
+          "version": "0.5.2",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "9da2e5ae821f6e96664977bf974d6d6a2d6682f9ccee23e62ec1d134246845f9"
+        },
+        {
+          "name": "harfrust",
+          "version": "0.8.4",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "d12c7c642d4ce8c2e784b4751a6634bd89583912265add4a679a8882d123fbcd"
+        },
+        {
+          "name": "image",
+          "version": "0.25.9",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e6506c6c10786659413faa717ceebcb8f70731c0a60cbae39795fdf114519c1a"
+        },
+        {
+          "name": "krilla",
+          "version": "0.8.2",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "27da593198b20eeba65caeb73c2bbeec3e53ab08fa549898312ce81c4fce5e33"
+        },
+        {
+          "name": "kurbo",
+          "version": "0.11.3",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "c62026ae44756f8a599ba21140f350303d4f08dcdcc71b5ad9c9bb8128c13c62"
+        },
+        {
+          "name": "kurbo",
+          "version": "0.13.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "4b60dfc32f652b926df6192e55525b16d186c69d47876c3ead4da5cc9f8450e2"
+        },
+        {
+          "name": "log",
+          "version": "0.4.34",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
+        },
+        {
+          "name": "quick-xml",
+          "version": "0.41.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+        },
+        {
+          "name": "rfd",
+          "version": "0.17.2",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220"
+        },
+        {
+          "name": "serde",
+          "version": "1.0.228",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
+        },
+        {
+          "name": "serde_json",
+          "version": "1.0.154",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
+        },
+        {
+          "name": "skrifa",
+          "version": "0.40.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "7fbdfe3d2475fbd7ddd1f3e5cf8288a30eb3e5f95832829570cd88115a7434ac"
+        },
+        {
+          "name": "skrifa",
+          "version": "0.42.1",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "0c34617370ae968efb7161bb2beb517d9084659aae19e24b89e3db25b46e4564"
+        },
+        {
+          "name": "skrifa",
+          "version": "0.44.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "819ab7d62b1d3e72d9d9dea5650bac30424f9111364bb94928dbf5ecad1baa68"
+        },
+        {
+          "name": "thiserror",
+          "version": "1.0.69",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
+        },
+        {
+          "name": "thiserror",
+          "version": "2.0.21",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
+        },
+        {
+          "name": "zip",
+          "version": "9.0.0",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "checksum": "711e8c9646791c49b7eb799a19c4ae70a9b8372ddc6a1fa4778defd1e2aa5d5e"
+        }
+      ],
+      "rust_metrics": {
+        "apps/joydeck": {
+          "rust_files": 40,
+          "text_lines_including_tests_comments_blank": 13535
+        },
+        "apps/joydeck-cli": {
+          "rust_files": 1,
+          "text_lines_including_tests_comments_blank": 283
+        },
+        "crates/joydeck-engine": {
+          "rust_files": 7,
+          "text_lines_including_tests_comments_blank": 1678
+        },
+        "crates/joydeck-export": {
+          "rust_files": 4,
+          "text_lines_including_tests_comments_blank": 608
+        },
+        "crates/joydeck-formats": {
+          "rust_files": 13,
+          "text_lines_including_tests_comments_blank": 3038
+        },
+        "crates/joydeck-model": {
+          "rust_files": 25,
+          "text_lines_including_tests_comments_blank": 10198
+        },
+        "crates/joydeck-platform": {
+          "rust_files": 5,
+          "text_lines_including_tests_comments_blank": 345
+        },
+        "crates/joydeck-scene": {
+          "rust_files": 6,
+          "text_lines_including_tests_comments_blank": 1406
+        },
+        "crates/joydeck-shell": {
+          "rust_files": 39,
+          "text_lines_including_tests_comments_blank": 6763
+        },
+        "crates/joyoffice-ui": {
+          "rust_files": 1,
+          "text_lines_including_tests_comments_blank": 199
+        }
+      },
+      "inspected_file_fingerprints": [
+        {
+          "path": ".cargo/config.toml",
+          "bytes": 53,
+          "sha256": "0035f90fd7bad2530d11ab4271b4e3989601cb65337e49bf6d15c54a5f775f8b"
+        },
+        {
+          "path": ".github/workflows/ci-joydeck.yml",
+          "bytes": 2859,
+          "sha256": "dc0bd8b98f43c899b716611444fb9d50809f7d8c9d4930c9b1ee276d1ae1d6c8"
+        },
+        {
+          "path": "AGENTS.md",
+          "bytes": 3758,
+          "sha256": "deb1952785588b94fc4f75d0f13ee5bf930ab6988c6d701dcd8019d233c6ac6f"
+        },
+        {
+          "path": "Cargo.lock",
+          "bytes": 233234,
+          "sha256": "ca3b69badbdda062544306d26bda2fb76d395dd3de2ca2885084f1ca3999c213"
+        },
+        {
+          "path": "Cargo.toml",
+          "bytes": 8596,
+          "sha256": "70405b00200a2d70f9c582d1100aa906f3a46c5ffa3b3cf5310abd048adde2ec"
+        },
+        {
+          "path": "apps/joydeck-cli/Cargo.toml",
+          "bytes": 294,
+          "sha256": "8f166cb027c079376c7484b295c2b36fd7fa8a4f5dc6b9d93e17c63da86f7faa"
+        },
+        {
+          "path": "apps/joydeck/Cargo.toml",
+          "bytes": 716,
+          "sha256": "eb7fb90337c09c1fa4256677be4348ee5fc0101aebdf02fb7942bfc1921450b8"
+        },
+        {
+          "path": "apps/joydeck/src/canvas_text.rs",
+          "bytes": 22806,
+          "sha256": "e6caa4311e30aaa39f91b1da6d328e8bba46ae9afcf4a890e44e43278e5ef4f4"
+        },
+        {
+          "path": "apps/joydeck/src/chrome.rs",
+          "bytes": 29084,
+          "sha256": "68b6b3800e63f68f65ccab43e81304728295aa7aaa407c3ba4a46408666e6328"
+        },
+        {
+          "path": "apps/joydeck/src/editor.rs",
+          "bytes": 84538,
+          "sha256": "abbab8d7003a2cd60c0c8dcfe3ab0d08258633ba94eb82a61ff1989ce1a61d06"
+        },
+        {
+          "path": "apps/joydeck/src/scene_canvas.rs",
+          "bytes": 20939,
+          "sha256": "4d948c8511b32763611b6327ea3d773b37a3ba8e6898b80e45eb0d9a6c7ef973"
+        },
+        {
+          "path": "apps/joysheet-cli/Cargo.toml",
+          "bytes": 852,
+          "sha256": "b36723c2528430cbd01bb0863d89b091cb8c1a850e58780ef6109d4b8afce5dd"
+        },
+        {
+          "path": "apps/joysheet/Cargo.toml",
+          "bytes": 329,
+          "sha256": "2e64da4afe6368ebe52c0335396ced85f60f58a82c6d81ef3c0f034511cc4ac4"
+        },
+        {
+          "path": "apps/joyword-cli/Cargo.toml",
+          "bytes": 1214,
+          "sha256": "c921151e195cee311b8df3bef1953b2a8c3ec34204c9b2150ebf97c741cb7a44"
+        },
+        {
+          "path": "apps/joyword/Cargo.toml",
+          "bytes": 1244,
+          "sha256": "750a6b0fc7031e87f3f4641459657b3aae74d8d5edf34cc96a4feef04d89740c"
+        },
+        {
+          "path": "crates/joydeck-engine/Cargo.toml",
+          "bytes": 409,
+          "sha256": "765b6e7e3400f0fec333c1c741db31f9e97ecf81e2e3aa77ff487e1ddb994f59"
+        },
+        {
+          "path": "crates/joydeck-engine/src/edit.rs",
+          "bytes": 22699,
+          "sha256": "586ad69cfed982900b5e745df80645d11b63a63729b0a7838c3608df056288b7"
+        },
+        {
+          "path": "crates/joydeck-export/Cargo.toml",
+          "bytes": 588,
+          "sha256": "26abf8c08027e8160492edf526123f909d3433c6247169ec3bc6c410d4105d94"
+        },
+        {
+          "path": "crates/joydeck-formats/Cargo.toml",
+          "bytes": 452,
+          "sha256": "597c0ea6efa4bf3c9f771ddcc1ab465c56bbe0a753ffe92bddb1684eebf81808"
+        },
+        {
+          "path": "crates/joydeck-formats/src/native.rs",
+          "bytes": 5302,
+          "sha256": "a74970b2e60a9bf282df544ee3e5308d8e9e0635c405cabe169a53cb0187d2f3"
+        },
+        {
+          "path": "crates/joydeck-model/Cargo.toml",
+          "bytes": 492,
+          "sha256": "6efa9cd7bf368cfb268279b9d173c861e1a1c72b62f691bb727c08b6c3675666"
+        },
+        {
+          "path": "crates/joydeck-model/src/document.rs",
+          "bytes": 9233,
+          "sha256": "a5370770498ce2bb481556733e84f03faade9e35415c738baa73f827f3505775"
+        },
+        {
+          "path": "crates/joydeck-platform/Cargo.toml",
+          "bytes": 392,
+          "sha256": "03e2475021158f5481f58af47a74cc364bdfb7fb541910ff733eed38d5ba3fca"
+        },
+        {
+          "path": "crates/joydeck-scene/Cargo.toml",
+          "bytes": 502,
+          "sha256": "65cbc7ff1f4921bb182467e384e0b5a1d91dabf1faaea64ec5a65c08de10baa0"
+        },
+        {
+          "path": "crates/joydeck-shell/Cargo.toml",
+          "bytes": 897,
+          "sha256": "a5d5581e431eaefdfa6559c59c29728e2782bc2c0d993181f8cdc3da645c7d3c"
+        },
+        {
+          "path": "crates/joydeck-shell/src/storage.rs",
+          "bytes": 15885,
+          "sha256": "a13a4e50806f4c4e6b78c75208d11325254ffed035617e56336939f1221c7ebc"
+        },
+        {
+          "path": "crates/joydeck-shell/src/workspace.rs",
+          "bytes": 5208,
+          "sha256": "4957b8d5b9241cb19052b5b9d693e0295add86b3f275dc2c0ce73833d4df0466"
+        },
+        {
+          "path": "crates/joyoffice-cfb/Cargo.toml",
+          "bytes": 334,
+          "sha256": "69d281e8f40e59e6d536eb07ed74205526fec05ac5716e02daaaed0255589300"
+        },
+        {
+          "path": "crates/joyoffice-drawingml/Cargo.toml",
+          "bytes": 382,
+          "sha256": "d083bb9c2ad4b2778e3f5ebf6281f4fdde7120be11594909cdd4093ef04102c2"
+        },
+        {
+          "path": "crates/joyoffice-omml/Cargo.toml",
+          "bytes": 377,
+          "sha256": "db8a779180c6aaa72e89f5e97f93b36acf325602264f4540c5cd78f4a27e8ddf"
+        },
+        {
+          "path": "crates/joyoffice-opc/Cargo.toml",
+          "bytes": 412,
+          "sha256": "01264a4a46067cbb7f2660f2cde2e01c5b51344354f23095017d7111ddc501db"
+        },
+        {
+          "path": "crates/joyoffice-ui/Cargo.toml",
+          "bytes": 227,
+          "sha256": "567500515b66356c40ea3e65f11f160093b88f78edf1a834ae138e7047a52da9"
+        },
+        {
+          "path": "crates/joyoffice-ui/src/lib.rs",
+          "bytes": 5983,
+          "sha256": "08e23515fe8a44ea93dda33be7d47554c6c6fc4240f35f2fb27b6339fcd7c5cc"
+        },
+        {
+          "path": "crates/joysheet-app/Cargo.toml",
+          "bytes": 567,
+          "sha256": "e2e9a6b9cc52cb994a5cd8b0b17316f11dcbb34827ea14c72d58484b0e975873"
+        },
+        {
+          "path": "crates/joysheet-calc/Cargo.toml",
+          "bytes": 644,
+          "sha256": "fd9fcdd08ddf31b44ddfb6dce27f69587d043a7ab219d8c22f2d15b0baba5947"
+        },
+        {
+          "path": "crates/joysheet-chart/Cargo.toml",
+          "bytes": 619,
+          "sha256": "a089817920c8b43b6dcd815b451be883b57fcb7be03d5590729e7994eab285aa"
+        },
+        {
+          "path": "crates/joysheet-core/Cargo.toml",
+          "bytes": 650,
+          "sha256": "045f4a77db634b81567ddd300af8faaeb71577d3c8711c6c93266bc35c529069"
+        },
+        {
+          "path": "crates/joysheet-engine/Cargo.toml",
+          "bytes": 1080,
+          "sha256": "87421dd9014635ae2dede62b0a3d4eead9d379571f6a68b9fbe17b8ce7ce86b5"
+        },
+        {
+          "path": "crates/joysheet-formula/Cargo.toml",
+          "bytes": 510,
+          "sha256": "77c57bafcf01f3ac2fc87bb23b83dfc9eb0a5d0acea831b233575ea5b3d51357"
+        },
+        {
+          "path": "crates/joysheet-functions/Cargo.toml",
+          "bytes": 503,
+          "sha256": "d6eaff4e45d17d4ea7cbc2715b0c856a921de35a034cec524b383833f74b3a62"
+        },
+        {
+          "path": "crates/joysheet-mcp/Cargo.toml",
+          "bytes": 554,
+          "sha256": "03e5a75354f5bf944e645fead1c283d9ed2409172d6426be696ed3bcd6705561"
+        },
+        {
+          "path": "crates/joysheet-model/Cargo.toml",
+          "bytes": 690,
+          "sha256": "a1cb0e335639ba468a3279261b5e97251dda7847009482e288f09ce497089f94"
+        },
+        {
+          "path": "crates/joysheet-numfmt/Cargo.toml",
+          "bytes": 441,
+          "sha256": "10c2ef45a6985c2f5760a9982e09ff3304bb81961b8a9f25194d30ab8e47a77b"
+        },
+        {
+          "path": "crates/joysheet-pdf/Cargo.toml",
+          "bytes": 427,
+          "sha256": "49936fdaa2757095b94f56ee2e8c242f246464203473d4ff2343a9ec56f8c4c6"
+        },
+        {
+          "path": "crates/joysheet-platform/Cargo.toml",
+          "bytes": 711,
+          "sha256": "6d7c3fb1f7dc0a498f42e03052b37de3608ae40f9facc698298c82787f5d459a"
+        },
+        {
+          "path": "crates/joysheet-protocol/Cargo.toml",
+          "bytes": 416,
+          "sha256": "543ee4f65bc7b81a32b7b765a69f74e438421672491584b08d632814c3fade1c"
+        },
+        {
+          "path": "crates/joysheet-ui-gpui/Cargo.toml",
+          "bytes": 1015,
+          "sha256": "139fe4fb8cebd9040b3ee270fe458f0c82d06f24aa1257743776b0f517f990ec"
+        },
+        {
+          "path": "crates/joysheet-xlsx/Cargo.toml",
+          "bytes": 1066,
+          "sha256": "bb189c87d7753b5f7873d9483109fc5cc559b5c987ce64ebbce517ea5fcaf1f3"
+        },
+        {
+          "path": "crates/joyword-agent/Cargo.toml",
+          "bytes": 824,
+          "sha256": "12db8a3f6388749536860f12975b975f66e54da85e799f0707ff92bf9d777333"
+        },
+        {
+          "path": "crates/joyword-corpus/Cargo.toml",
+          "bytes": 361,
+          "sha256": "dfa5bc707aa9ab520329163b7dbb5efae3ceb1cf728896e79d752604f85edee5"
+        },
+        {
+          "path": "crates/joyword-doc/Cargo.toml",
+          "bytes": 474,
+          "sha256": "4c07d5ad2fb04ec82d986399a73185295f2616102f303eb5363307b53fabb87a"
+        },
+        {
+          "path": "crates/joyword-docx/Cargo.toml",
+          "bytes": 732,
+          "sha256": "7bfe2e897ca267d4ac25d297af268413fae11299cf66feb7e37cd9f2ee706ebd"
+        },
+        {
+          "path": "crates/joyword-engine/Cargo.toml",
+          "bytes": 422,
+          "sha256": "899465b0020278df3366ed29c48e3e0130d4d3fb25d250221a3560f57e106f70"
+        },
+        {
+          "path": "crates/joyword-epub/Cargo.toml",
+          "bytes": 435,
+          "sha256": "676f372de064408e9f64c7d1e9bf2bba910028b370cd5345e77ba8e60835aa34"
+        },
+        {
+          "path": "crates/joyword-foundation/Cargo.toml",
+          "bytes": 226,
+          "sha256": "0f4084303212ee1314652dd5aaf08225b68bf4cca240f013c0e7976dbe2a8750"
+        },
+        {
+          "path": "crates/joyword-layout/Cargo.toml",
+          "bytes": 593,
+          "sha256": "acbc2e3707ad4d2bc2dddf9ff471c2ee6b37c2c7bb1b73b25a555a3e528a757f"
+        },
+        {
+          "path": "crates/joyword-model/Cargo.toml",
+          "bytes": 596,
+          "sha256": "81be8b80b5d6d19842e09590c2f1a4be645db65ffebf7a1da106b7b3799392c7"
+        },
+        {
+          "path": "crates/joyword-pdf/Cargo.toml",
+          "bytes": 849,
+          "sha256": "a8cd408cdbfe2f19c0684b957fee62f9455df1f266daec61c36b3bf55d0c881d"
+        },
+        {
+          "path": "crates/joyword-protect/Cargo.toml",
+          "bytes": 440,
+          "sha256": "eb66e2dbfbdd503477e495a67c477e14a168a6f3530f1ad065b5546be564366e"
+        },
+        {
+          "path": "crates/joyword-render/Cargo.toml",
+          "bytes": 616,
+          "sha256": "fb51a3a4e96d67b490cf9044286671c6b0d67fa140d5c43969b2945f48f900c5"
+        },
+        {
+          "path": "crates/joyword-rtf/Cargo.toml",
+          "bytes": 394,
+          "sha256": "b22a01c671994b6cc2fe2fc8545fb8137f16dfa2d1ef09bfdb568078bca944fc"
+        },
+        {
+          "path": "crates/joyword-shell/Cargo.toml",
+          "bytes": 1074,
+          "sha256": "a799ec3278f8647d214e5f6580bcd1dff0217ba47a0291e263252e9eaeb0817c"
+        },
+        {
+          "path": "crates/joyword-textfmt/Cargo.toml",
+          "bytes": 369,
+          "sha256": "4fdaddea4844b04e88e9bf8c5e0da33edd84c7c2d660347d033777228a64cef5"
+        },
+        {
+          "path": "docs/joydeck/01-clean-room.md",
+          "bytes": 2576,
+          "sha256": "f952d823265628fafd859479ca0268268237b20e4e38da4edc98fbc764148f7c"
+        },
+        {
+          "path": "docs/joydeck/41-preset-geometry.md",
+          "bytes": 6486,
+          "sha256": "9e1be1dd966ee0859356146ee9f1b7da88fee4cae20651e0ba5286718f012ab0"
+        },
+        {
+          "path": "docs/joydeck/42-windows-startup-stack.md",
+          "bytes": 4954,
+          "sha256": "cf658fdeefea981b1f790f64bd302dd982ad4f08d918b2ebcdf96dddf27abc9d"
+        },
+        {
+          "path": "docs/joydeck/43-design-notes-a11y.md",
+          "bytes": 4533,
+          "sha256": "261941c08e607ee029cb00fa6fd6e4855e692568a081ce2588dba70c900c21cb"
+        },
+        {
+          "path": "docs/joydeck/DEVELOPMENT.md",
+          "bytes": 3096,
+          "sha256": "ef5600e2fa597be300a29f88144f2276f99b1251cb04d4020768a40b6dfa4a33"
+        },
+        {
+          "path": "docs/joydeck/STATUS.md",
+          "bytes": 7273,
+          "sha256": "ff7ae00b029dcdcc03156c11f82484352dbcd353fa4396d2c6f5d650dbb56da7"
+        },
+        {
+          "path": "docs/joyoffice/ARCHITECTURE.md",
+          "bytes": 3112,
+          "sha256": "860ca2bc793996a2f12862b44941e777ef926f70ac1250b2a77036bad05b186b"
+        },
+        {
+          "path": "docs/joyoffice/MONOREPO-MIGRATION.md",
+          "bytes": 3634,
+          "sha256": "54d5148162aed76c61e0bd44cb0a6b14d8eeeeaf1e534d59b65fc834b7028869"
+        },
+        {
+          "path": "docs/joyoffice/MONOREPO-RESULT.md",
+          "bytes": 6510,
+          "sha256": "a70fd86dbc8177cc3362d342dc667083ebfedd12de62c4ed5a29e61408c027c3"
+        },
+        {
+          "path": "docs/joyword/ARCHITECTURE.md",
+          "bytes": 28318,
+          "sha256": "548b525ee9fa0b8b83bd598898dfae87d729390024c10630a1f6023fe3bbdcc8"
+        },
+        {
+          "path": "rust-toolchain.toml",
+          "bytes": 92,
+          "sha256": "1b709d1ecd0da76c2ff745c56244fc358045d70d50a7aaf8b0c63c0dc94cf558"
+        },
+        {
+          "path": "scripts/gpui_pre_reviewed_deviations.json",
+          "bytes": 4892,
+          "sha256": "d617723255026cf380ddb6345600ce808a4ee807d8ed4af84dbb12de299055a7"
+        },
+        {
+          "path": "scripts/joydeck/dev.ps1",
+          "bytes": 1028,
+          "sha256": "56e10e1049fbad22e7e2738410cf775ac98928538e36ecc891360d99872b1ddc"
+        },
+        {
+          "path": "scripts/verify_gpui_pre_provenance.py",
+          "bytes": 42482,
+          "sha256": "cc8f0c60d19e9576943906043ce34ef1ad0f12fbfa4e8b5c08d647fb5d329af6"
+        },
+        {
+          "path": "tools/joysheet/Cargo.toml",
+          "bytes": 319,
+          "sha256": "aebc6b42d00e3bb3f7183eff6fcdcc0e548103e0248924aadb97dc2950c1d719"
+        },
+        {
+          "path": "tools/xtask/Cargo.toml",
+          "bytes": 234,
+          "sha256": "597fad7203af1c5e42cb96f65f9dce1c1e13782c3e7e93a4164fe5907007419e"
+        },
+        {
+          "path": "tools/xtask/src/main.rs",
+          "bytes": 2394,
+          "sha256": "9553100b00664b64f237a20286eb5a7f686bda4b365faa2d7b2a607e360fc4c4"
+        }
+      ],
+      "fingerprint_scope": "root config, workspace package manifests and selected inspected source/docs; full file provenance inventory remains JD-000"
+    }
+  },
+  "command_inventory": {
+    "file": "../COMMANDS.csv",
+    "entries": 329,
+    "unique_ids": 329,
+    "method": "static cmd! macro extraction from crates/engine/src/cmd/**/*.rs; runtime registry validation remains JD-107",
+    "stage_routing_is_provisional": true,
+    "suggested_stage_counts": {
+      "R1/R2/R6": 18,
+      "R2": 15,
+      "R2/R5": 74,
+      "R3": 83,
+      "R5": 108,
+      "R6": 1,
+      "R7": 30
+    }
+  },
+  "toolchain_observed": {
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)"
+  },
+  "task_count": 98
+}

@@ -1,0 +1,6 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R1 opened=true pages=3 elapsed_ms=13
+R1 raster page=1 width=1736 elapsed_ms=136 count=1
+R1 opened=true pages=3 elapsed_ms=10
+R1 raster page=1 width=1736 elapsed_ms=47 count=2
+R1 raster page=2 width=1736 elapsed_ms=51 count=3

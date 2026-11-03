@@ -1,0 +1,17 @@
+{
+  "independent_reader": "python-pptx 1.0.2",
+  "pptx_sha256": "836da71f7aad88e42de50a7b49b221f0584928f54afa96ccfa86bceb746f8035",
+  "chart_values": [
+    10.0,
+    55.0,
+    14.0,
+    24.0
+  ],
+  "chart_title": "R5 桌面图表",
+  "workbook_B3": 55,
+  "picture_crop_left": 0.12,
+  "gradient_ellipse_id": 919,
+  "gradient_angle": 30,
+  "theme_fonts": "Arial / Arial",
+  "passed": true
+}

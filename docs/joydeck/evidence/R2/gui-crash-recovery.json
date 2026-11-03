@@ -1,0 +1,22 @@
+{
+  "forced_termination_pid": 18320,
+  "restarted_pid": 19736,
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-final-kyv887ym\\中文 空格路径\\joydeck-0.3.0-r2-windows-x86_64-release-be894dc194",
+  "checkpoint_revision": 1,
+  "unsaved_edit": "insert-rect after saved PPTX reopened",
+  "time_utc": "2026-11-02T13:33:34.947238+00:00",
+  "recovery_list_found": true,
+  "restored_unsaved_rectangle": true,
+  "restored_save_destination_blank": true,
+  "saved_native": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-final-kyv887ym\\中文 空格路径\\joydeck-0.3.0-r2-windows-x86_64-release-be894dc194\\recovered-from-gui.joydeck",
+  "saved_native_sha256": "7bdcdf121fa86d17d15f1bfb95b80578350da8def1e9aacc4691a1495a5c5fed",
+  "native_reopened_in_gui": true,
+  "converted_pptx": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-final-kyv887ym\\中文 空格路径\\joydeck-0.3.0-r2-windows-x86_64-release-be894dc194\\recovered-from-gui.pptx",
+  "converted_pptx_sha256": "9e30f3c4a5aca09fc49aee13f1939c5106fbc4aa61e29c214c3f7033fe4be2be",
+  "independent_pptx_reader": "python-pptx 1.0.2",
+  "slides": 3,
+  "first_slide_shapes": 5,
+  "first_title": "JoyDeck R2 · 编辑成功",
+  "clean_exit_verified": true,
+  "paint_observation": "Initial screenshot can precede asynchronous image paint; waited 1.5 seconds on repeat open and confirmed actual canvas/thumbnail. No code changed."
+}

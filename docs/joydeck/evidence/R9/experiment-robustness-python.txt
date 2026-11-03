@@ -1,0 +1,31 @@
+test_coverage_budget_and_tool_errors (test_driver.CoverageTests.test_coverage_budget_and_tool_errors) ... ok
+test_coverage_end_to_end_with_instrumented_stub (test_driver.CoverageTests.test_coverage_end_to_end_with_instrumented_stub) ... skipped 'instrumented stub is compiled for this POSIX runner'
+test_coverage_fuzz_is_deterministic_and_honors_corpus_cap (test_driver.CoverageTests.test_coverage_fuzz_is_deterministic_and_honors_corpus_cap) ... ok
+test_coverage_fuzz_stops_at_eight_failures_and_at_the_time_budget (test_driver.CoverageTests.test_coverage_fuzz_stops_at_eight_failures_and_at_the_time_budget) ... ok
+test_fuzz_cli_defaults_remain_behavioral (test_driver.CoverageTests.test_fuzz_cli_defaults_remain_behavioral) ... ok
+test_new_regions_are_novelty_and_repeat_regions_are_not (test_driver.CoverageTests.test_new_regions_are_novelty_and_repeat_regions_are_not) ... ok
+test_parser_counts_only_crates_regions_and_branch_sides (test_driver.CoverageTests.test_parser_counts_only_crates_regions_and_branch_sides) ... ok
+test_sanitize_and_comparison_keep_only_campaign_numbers (test_driver.CoverageTests.test_sanitize_and_comparison_keep_only_campaign_numbers) ... ok
+test_unprofiled_runs_do_not_claim_a_coverage_result (test_driver.CoverageTests.test_unprofiled_runs_do_not_claim_a_coverage_result) ... ok
+test_deterministic_byte_and_structural_mutations (test_driver.DriverTests.test_deterministic_byte_and_structural_mutations) ... ok
+test_extract_features_prefers_harness_list_and_falls_back (test_driver.DriverTests.test_extract_features_prefers_harness_list_and_falls_back) ... ok
+test_fuzz_budget_validation (test_driver.DriverTests.test_fuzz_budget_validation) ... ok
+test_fuzz_end_to_end_with_stub_binary (test_driver.DriverTests.test_fuzz_end_to_end_with_stub_binary) ... skipped 'shebang stub binary; Windows native execution is a separate runner concern'
+test_fuzz_enforces_corpus_cap_and_anomaly_exit (test_driver.DriverTests.test_fuzz_enforces_corpus_cap_and_anomaly_exit) ... ok
+test_fuzz_expands_corpus_on_novelty_deterministically (test_driver.DriverTests.test_fuzz_expands_corpus_on_novelty_deterministically) ... ok
+test_matrix_regenerates_exact_manifest_hashes (test_driver.DriverTests.test_matrix_regenerates_exact_manifest_hashes) ... ok
+test_minimization_preserves_exact_failure_class_and_budget (test_driver.DriverTests.test_minimization_preserves_exact_failure_class_and_budget) ... ok
+test_nonzero_exit_protocol_and_binary_input (test_driver.DriverTests.test_nonzero_exit_protocol_and_binary_input) ... ok
+test_resource_probe_reports_capability_without_assuming_platform (test_driver.DriverTests.test_resource_probe_reports_capability_without_assuming_platform) ... ok
+test_result_schema_status_and_source_are_checked (test_driver.DriverTests.test_result_schema_status_and_source_are_checked) ... ok
+test_size_limit_is_checked_before_starting_a_child (test_driver.DriverTests.test_size_limit_is_checked_before_starting_a_child) ... ok
+test_smoke_requires_complete_matrix_within_total_time_budget (test_driver.DriverTests.test_smoke_requires_complete_matrix_within_total_time_budget) ... ok
+test_timeout_reaps_child_and_collects_output (test_driver.DriverTests.test_timeout_reaps_child_and_collects_output) ... ok
+test_unicode_space_paths_and_bounded_output (test_driver.DriverTests.test_unicode_space_paths_and_bounded_output) ... ok
+test_minimize_a_real_crashing_subprocess (test_driver.ProcessFailureTests.test_minimize_a_real_crashing_subprocess) ... ok
+test_timeout_kills_descendants_in_its_own_group (test_driver.ProcessFailureTests.test_timeout_kills_descendants_in_its_own_group) ... skipped 'POSIX process-group test; Windows requires native taskkill validation'
+
+----------------------------------------------------------------------
+Ran 26 tests in 2.302s
+
+OK (skipped=3)

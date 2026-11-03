@@ -1,0 +1,16 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-joint-packages-botd3ob4\\中文 空格\\old-joydeck\\joydeck-pre-r9-a973f75-windows-amd64-debug\\joydeck.exe",
+    "id": 8392016,
+    "title": "JoyDeck — 演示文稿"
+  },
+  "accessibility": {
+    "focused_element": "0 区域 JoyDeck — 演示文稿 Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck — 演示文稿\", App: joydeck.exe.\n\t0 区域 JoyDeck — 演示文稿 Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: JoyDeck — 演示文稿\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 保存 ID: save\n\t\t8 按钮 (disabled) 撤销 ID: undo\n\t\t9 按钮 (disabled) 重做 ID: redo\n\t\t10 按钮 导出 ID: export\n\t\t11 按钮 放映 ID: show\n\t\t12 按钮 文件 ID: 文件\n\t\t13 按钮 开始 ID: 开始\n\t\t14 按钮 插入 ID: 插入\n\t\t15 按钮 设计 ID: 设计\n\t\t16 按钮 切换 ID: 切换\n\t\t17 按钮 动画 ID: 动画\n\t\t18 按钮 放映 ID: 幻灯片放映\n\t\t19 按钮 审阅 ID: 审阅\n\t\t20 按钮 视图 ID: 视图\n\t\t21 按钮 更多 ID: more-workflows\n\t\t22 按钮 格式 ID: inspector-toggle\n\t\t23 按钮 粘贴 ID: paste\n\t\t24 按钮 复制 ID: copy\n\t\t25 按钮 (disabled) 删除 ID: delete-object\n\t\t26 按钮 新建幻灯片 ID: add-page\n\t\t27 按钮 复制幻灯片 ID: copy-page\n\t\t28 按钮 版式 ID: layout-pane\n\t\t29 按钮 字体列表 ID: font-picker\n\t\t30 编辑 (settable, string) 字号 Value: 28\n\t\t31 按钮 应用 ID: apply-font\n\t\t32 按钮 (disabled) 粗体 ID: bold\n\t\t33 按钮 (disabled) 斜体 ID: italic\n\t\t34 按钮 文字颜色 ID: text-color\n\t\t35 按钮 左对齐 ID: left\n\t\t36 按钮 居中 ID: center\n\t\t37 按钮 右对齐 ID: right\n\t\t38 按钮 对象格式 ID: format-pane\n\t\t39 按钮 置于顶层 ID: front\n\t\t40 按钮 置于底层 ID: back\n\t\t41 按钮 新建幻灯片 ID: rail-add\n\t\t42 按钮 上移\n\t\t43 按钮 下移\n\t\t44 按钮 删除\n\t\t45 按钮 备注\n\t\t46 按钮\n\t\t47 按钮\n\t\t48 按钮 适应窗口 ID: zoom-fit\n\nThe focused UI element is 0 区域 JoyDeck — 演示文稿 Secondary Actions: Raise."
+  },
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-joint-packages-botd3ob4\\中文 空格\\old-joydeck\\joydeck-pre-r9-a973f75-windows-amd64-debug\\joydeck.exe",
+  "exe_sha256": "bfeef5556408c49fbcbf4e2cf67e5afc5a2e3f269e1c19134a7514e17a0e3b7f",
+  "archive_sha256": "f01230240370144a0dbc58cfde40b7b357b38ec02c490be968a151ab065d7453",
+  "scope": "R9 extracted Windows package",
+  "note": "Original a973f75 source reconstructed in a separate clone; extracted old package opens original native-20.joydeck, 20 pages, clean session. This is rollback evidence only."
+}

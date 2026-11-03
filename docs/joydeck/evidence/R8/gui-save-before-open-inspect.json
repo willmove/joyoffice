@@ -1,0 +1,101 @@
+{
+  "name": "保存后继续.joydeck",
+  "format": "joydeck",
+  "read_only": false,
+  "source_bytes": 8892,
+  "width_pt": 960.0,
+  "height_pt": 540.0,
+  "media": 0,
+  "slides": [
+    {
+      "page": 1,
+      "title": "R8 未保存流程",
+      "shapes": 2,
+      "notes": "",
+      "objects": [
+        {
+          "id": 258,
+          "kind": "placeholder",
+          "locked": false,
+          "name": "Title 1",
+          "table": null,
+          "text": "R8 未保存流程",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": null,
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": null
+            },
+            "paragraphs": [
+              {
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "R8 未保存流程"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 188.0,
+            "w": 720.0,
+            "x": 120.0,
+            "y": 88.0
+          }
+        },
+        {
+          "id": 259,
+          "kind": "placeholder",
+          "locked": false,
+          "name": "Subtitle 2",
+          "table": null,
+          "text": "",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": null,
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": null
+            },
+            "paragraphs": []
+          },
+          "transform": {
+            "h": 130.0,
+            "w": 720.0,
+            "x": 120.0,
+            "y": 284.0
+          }
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    "Font family unavailable: Inter; renderer will substitute it."
+  ]
+}

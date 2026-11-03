@@ -1,0 +1,136 @@
+Imported source records passed (261 files)
+   Compiling stable_deref_trait v1.2.1
+   Compiling smallvec v1.16.3
+   Compiling zerofrom v0.1.8
+   Compiling float-cmp v0.9.0
+   Compiling strict-num v0.1.1
+   Compiling yoke v0.8.3
+   Compiling kurbo v0.13.1
+   Compiling parking_lot_core v0.9.12
+   Compiling exr v1.74.2
+   Compiling tiny-skia-path v0.11.4
+   Compiling zerovec v0.11.8
+   Compiling zerotrie v0.2.5
+   Compiling rustybuzz v0.20.1
+   Compiling parking_lot v0.12.5
+   Compiling read-fonts v0.39.2
+   Compiling heapless v0.9.3
+   Compiling joydeck-color v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling tiny-skia v0.11.4
+   Compiling string_cache v0.8.9
+   Compiling gpui-pre-scheduler v0.3.10
+   Compiling taffy v0.15.1
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling kurbo v0.11.3
+   Compiling joydeck-fonts v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling markup5ever v0.12.1
+   Compiling icu_collections v2.3.0
+   Compiling icu_locale_core v2.3.0
+   Compiling triomphe v0.1.17
+   Compiling gpui-pre-sum-tree v0.3.10
+   Compiling pdf-writer v0.15.0
+   Compiling tiny-skia-path v0.12.0
+   Compiling xmp-writer v0.3.3
+   Compiling svgtypes v0.16.1
+   Compiling joydeck-geom v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling peniko v0.6.1
+   Compiling svgtypes v0.15.3
+   Compiling xml5ever v0.18.1
+   Compiling vello_common v0.2.0
+   Compiling html5ever v0.27.0
+   Compiling rust-i18n-support v4.2.4
+   Compiling bumpalo v3.20.3
+   Compiling usvg v0.46.0
+   Compiling icu_provider v2.3.1
+   Compiling joydeck-model v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling usvg v0.45.1
+   Compiling rust-i18n v4.2.4
+   Compiling icu_properties v2.3.0
+   Compiling icu_normalizer v2.3.0
+   Compiling markup5ever_rcdom v0.3.0
+   Compiling joyoffice-opc v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+   Compiling image v0.25.9
+   Compiling joydeck v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+   Compiling glifo v0.3.0
+   Compiling vello_cpu v0.2.0
+   Compiling resvg v0.46.0
+   Compiling resvg v0.45.1
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling url v2.5.8
+   Compiling gpui-pre-http-client v0.3.10
+   Compiling joydeck-anim v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-pptx v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-format v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling gpui-pre v0.3.10
+   Compiling joydeck-metafile v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-engine v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-legacy v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+   Compiling skrifa v0.42.1
+   Compiling harfrust v0.8.4
+   Compiling write-fonts v0.48.1
+   Compiling joydeck-text v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-render v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling subsetter v0.2.6
+   Compiling krilla v0.8.2
+   Compiling joydeck-pdf v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling gpui-kit-assets v0.8.1
+   Compiling gpui-base v0.8.1
+   Compiling gpui-pre-windows v0.3.10
+   Compiling gpui-pre-platform v0.3.10
+   Compiling gpui-component v0.8.1
+   Compiling gpui-kit v0.8.1
+   Compiling joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-ui)
+   Compiling joydeck-ui-gpui v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Finished `release` profile [optimized] target(s) in 2m 51s
+   Compiling syn v3.0.9
+   Compiling smallvec v1.16.3
+   Compiling joydeck-color v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling strict-num v0.1.1
+   Compiling float-cmp v0.9.0
+   Compiling pdf-writer v0.15.0
+   Compiling kurbo v0.13.1
+   Compiling joydeck-geom v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling synstructure v0.14.0
+   Compiling bytemuck_derive v1.12.1
+   Compiling thiserror-impl v2.0.21
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling zerofrom v0.1.8
+   Compiling yoke v0.8.3
+   Compiling bytemuck v1.25.2
+   Compiling thiserror v2.0.21
+   Compiling joydeck-model v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling font-types v0.11.3
+   Compiling color v0.3.3
+   Compiling font-types v0.12.6
+   Compiling image v0.25.9
+   Compiling tiny-skia-path v0.12.0
+   Compiling read-fonts v0.39.2
+   Compiling read-fonts v0.41.0
+   Compiling peniko v0.6.1
+   Compiling vello_common v0.2.0
+   Compiling joydeck-metafile v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-legacy v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+   Compiling joydeck-anim v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-engine v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-format v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-pptx v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling skrifa v0.42.1
+   Compiling harfrust v0.8.4
+   Compiling write-fonts v0.48.1
+   Compiling joydeck-fonts v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling skrifa v0.44.0
+   Compiling joydeck-text v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling subsetter v0.2.6
+   Compiling glifo v0.3.0
+   Compiling krilla v0.8.2
+   Compiling vello_cpu v0.2.0
+   Compiling joydeck-render v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-pdf v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-cli v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 34s
+{"directory": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.7.0-r6-r7-windows-x86_64-release-9cac764e69", "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.7.0-r6-r7-windows-x86_64-release-9cac764e69.zip", "archive_sha256": "f22352303d90672ff7a0a68e2902ba9a85294e16626a7f1d1c0306664f49859b", "source_sha256": "9cac764e69d9a3922e8659bdc8077f815723d3b46ac1c96f3773fac318c5600a", "target": "x86_64-pc-windows-msvc", "profile": "release", "sbom_packages": 455, "missing_license_texts": ["accesskit", "accesskit_consumer", "accesskit_windows", "gpui-kit", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

@@ -1,0 +1,16 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R2 opened=true pages=3 elapsed_ms=76
+R2 raster page=1 width=1721 elapsed_ms=52 count=1
+R2 pointer position=Point { x: 464px, y: 511px } bounds=Bounds { origin: Point { x: 321.5px, y: 260px }, size: Size { 860.5px × 484px } } point=(158.98759868506147,280.04131417509075) scale=0.8962963
+R2 command=Transform { dx: 105.99173245670765, dy: 44.628097876508484, dw: 0.0, dh: 0.0, rotation: 0.0 } revision=1 dirty=true
+R2 raster page=1 width=1721 elapsed_ms=32 count=2
+R2 checkpoint revision=1
+R2 command=Undo revision=2 dirty=false
+R2 raster page=1 width=1721 elapsed_ms=32 count=3
+R2 checkpoint revision=2
+R2 command=Redo revision=3 dirty=true
+R2 raster page=1 width=1721 elapsed_ms=32 count=4
+R2 checkpoint revision=3
+R2 command=Undo revision=4 dirty=false
+R2 raster page=1 width=1721 elapsed_ms=32 count=5
+R2 checkpoint revision=4

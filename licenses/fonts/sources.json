@@ -1,0 +1,27 @@
+{
+  "source_url": "https://static.crates.io/crates/epaint_default_fonts/epaint_default_fonts-0.37.0.crate",
+  "archive_sha256": "cfc1cc505827f4c23eedc297975a0fd038268d41293f389dd8ff3b574aefab19",
+  "reason": "Independent unmodified font files only; no epaint code, Cargo dependency or icon fonts",
+  "files": [
+    {
+      "path": "crates/joydeck-fonts/assets/Hack-Regular.ttf",
+      "sha256": "15f55cc0c85a2988d2b4b3a8cdb5d77fdfbaf319e1bb5309d725db9818fb7125",
+      "usage": "tests only"
+    },
+    {
+      "path": "crates/joydeck-fonts/assets/Hack-Regular.txt",
+      "sha256": "47c0cccbeec7e8614548cc485588b28149e7874188df5f41b36efebcee285c87",
+      "usage": "tests only"
+    },
+    {
+      "path": "crates/joydeck-fonts/assets/Ubuntu-Light.ttf",
+      "sha256": "80307b8da7649aa4ee4d484b232140e3ce1ec0ca093073d3c53c8f5a5ced7a70",
+      "usage": "licensed fallback font/license"
+    },
+    {
+      "path": "crates/joydeck-fonts/assets/UFL.txt",
+      "sha256": "2f0015108d68627bd788d313f529c21ff4da2c2c42a5e1f3883acc83480f9002",
+      "usage": "licensed fallback font/license"
+    }
+  ]
+}

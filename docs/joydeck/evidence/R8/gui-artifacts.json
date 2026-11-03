@@ -1,0 +1,8 @@
+{
+  "files": {
+    "ui-authored.pptx": "62cfa49cb9bdb17ba08cde8e388aba9890b631a5d8e43e0ccc1143e7da39e318",
+    "clipboard-independent.pptx": "aa877f4a5b3a6dfe1d9be8ce39fd9e4be0c0949409abb322d2f9c37987380497",
+    "save-before-open.joydeck": "6d5ab75dca9b8a35308d0b8a0da2beaff29fc0bc3b0855c3054983d135f8beb6"
+  },
+  "save_before_open": "Cancel retained edits; Save created native file and resumed native Open; selected PPTX opened cleanly."
+}

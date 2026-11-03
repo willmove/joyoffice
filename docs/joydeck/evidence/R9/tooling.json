@@ -1,0 +1,7 @@
+{
+  "cargo_deny_version": "0.20.2",
+  "release": "https://github.com/EmbarkStudios/cargo-deny/releases/tag/0.20.2",
+  "archive_sha256": "975a22143262fd27476d19ee00c7af67978426e40e1dee94eed6bbade1cf87dc",
+  "verified_official_sidecar": true,
+  "executable": "D:\\Coding\\EditorProjects\\a-backups\\joyoffice-before-joydeck-r9-20261103-100321\\validation-tools\\cargo-deny\\cargo-deny-0.20.2-x86_64-pc-windows-msvc\\cargo-deny.exe"
+}

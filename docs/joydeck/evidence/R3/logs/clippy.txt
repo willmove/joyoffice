@@ -1,0 +1,46 @@
+    Checking joydeck-geom v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+    Checking joydeck-color v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling joydeck-fonts v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+    Checking joydeck-model v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+    Checking joydeck-metafile v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+    Checking joyoffice-opc v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+   Compiling joydeck v0.4.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Checking joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-ui)
+    Checking joydeck-anim v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+    Checking joydeck-text v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+    Checking joydeck-pptx v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+    Checking joydeck-engine v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Checking joydeck-format v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+    Checking joydeck-render v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+    Checking joydeck-shell v0.4.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+error: this `if` statement can be collapsed
+   --> crates\joydeck-shell\src\editor.rs:248:17
+    |
+248 | /                 if let (joydeck_model::ShapeKind::Table(a), joydeck_model::ShapeKind::Table(b)) =
+249 | |                     (&a.kind, &b.kind)
+250 | |                 {
+251 | |                     if a.n_rows() != b.n_rows()
+...   |
+269 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+249 ~                     (&a.kind, &b.kind)
+250 ~                     && (a.n_rows() != b.n_rows()
+251 |                         || a.n_cols() != b.n_cols()
+...
+260 |                             })
+261 ~                         }))
+262 |                     {
+...
+266 |                         );
+267 ~                     }
+    |
+
+error: could not compile `joydeck-shell` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `joydeck-shell` (lib test) due to 1 previous error

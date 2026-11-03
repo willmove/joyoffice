@@ -14,7 +14,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = {"joyword": ("joyword", "joyword-cli"), "joydeck": ("joydeck", "joydeck-cli"),
             "joysheet": ("joysheet", "joysheet-cli")}
-GUI_PACKAGES = {"joyword": {"joyword"}, "joydeck": {"joydeck"},
+GUI_PACKAGES = {"joyword": {"joyword"}, "joydeck": {"joydeck", "joydeck-ui-gpui"},
                 "joysheet": {"joysheet", "joysheet-ui-gpui", "joysheet-platform"}}
 VALIDATION_FEATURES = {"joydeck": "joydeck/validation", "joysheet": "joysheet/automation"}
 
@@ -112,9 +112,23 @@ def product_packages(data, product, headless=False):
         raise ValueError("no workspace packages for " + product)
     return sorted(packages[i]["name"] for i in chosen)
 
+def native_environment():
+    env = os.environ.copy()
+    env['PYTHONUTF8'] = '1'
+    if sys.platform == 'win32' and not any((Path(p) / 'cmake.exe').is_file() for p in env.get('PATH', '').split(os.pathsep)):
+        vswhere = Path(env.get('ProgramFiles(x86)', 'C:/Program Files (x86)')) / 'Microsoft Visual Studio/Installer/vswhere.exe'
+        if vswhere.is_file():
+            install = subprocess.check_output([str(vswhere), '-latest', '-products', '*', '-property', 'installationPath'], text=True, encoding='utf-8').strip()
+            cmake = Path(install) / 'Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin'
+            if (cmake / 'cmake.exe').is_file():
+                env['PATH'] = str(cmake) + os.pathsep + env.get('PATH', '')
+    return env
+
+
+
 def run(command):
     print("+ " + " ".join(str(v) for v in command), flush=True)
-    subprocess.run(command, cwd=ROOT, check=True)
+    subprocess.run(command, cwd=ROOT, env=native_environment(), check=True)
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
@@ -130,7 +144,7 @@ def main(argv=None):
         command.add_argument("--stage", choices=["M" + str(n) for n in range(9)], default="M8")
         command.add_argument("--engine-only", action="store_true")
         command.add_argument("--headless", action="store_true")
-    for name in ("check", "test", "build", "package", "packages", "stage"):
+    for name in ("check", "test", "build", "package", "packages", "stage", "run"):
         command = sub.add_parser(name)
         command.add_argument("product", choices=PRODUCTS)
         command.add_argument("--headless", action="store_true")
@@ -173,9 +187,16 @@ def main(argv=None):
         if extra:
             parser.error("unrecognized arguments: " + " ".join(extra))
         if args.command == "check":
+            if args.product == "joydeck":
+                for gate in ("check_sources.py", "check_dependencies.py", "check_refactor_docs.py"):
+                    run([sys.executable, "scripts/joydeck/" + gate])
             run(["cargo", "fmt", *selected, "--", "--check"])
             run(["cargo", "clippy", *selected, "--all-targets", "--locked", *options, "--", "-D", "warnings"])
         run(["cargo", "test", *selected, "--locked", *options])
+    elif args.command == "run":
+        if args.product == "joydeck" and sys.platform == "win32" and not args.headless:
+            run([sys.executable, "scripts/joydeck/build-windows-helpers.py", "--output", Path(data["target_directory"]) / ("release" if args.release else "debug")])
+        run(["cargo", "run", "--locked", "-p", PRODUCTS[args.product][1] if args.headless else PRODUCTS[args.product][0], *options, "--", *extra])
     elif args.command in ("build", "stage"):
         applications = [PRODUCTS[args.product][1]] if args.headless else list(PRODUCTS[args.product])
         run(["cargo", "build", *[v for name in applications for v in ("-p", name)], "--locked", *options, *extra])

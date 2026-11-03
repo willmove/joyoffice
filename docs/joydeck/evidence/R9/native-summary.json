@@ -1,0 +1,37 @@
+{
+  "platform": "Windows x86_64",
+  "scope": "R9 extracted packages; no claim of full parity or other native platforms",
+  "joydeck": {
+    "gui_sha256": "876c0a08c520eebd196830b11669e6dd95200cde58a32f4af6386c69dfd70e3d",
+    "archive_sha256": "4b3b87d1432384e8dac01b3c3280a1280eb8856db0dfe35256b5fe09ae4dc271",
+    "stack_reserve": 1048576,
+    "opened_pptx": true,
+    "inline_chinese_text": true,
+    "undo_redo": true,
+    "native_save_as": true,
+    "restarted_and_reopened": true,
+    "slideshow_pages": [
+      1,
+      2
+    ],
+    "slideshow_escape": true,
+    "ime_composition_requalified": false
+  },
+  "joyword": {
+    "native_input_undo_save_copy": true,
+    "extracted_package_reopened": true,
+    "recovery_isolated_for_portable_reopen": true
+  },
+  "joysheet": {
+    "formula": "=1+2",
+    "value": 3,
+    "undo_redo": true,
+    "native_save_as": true,
+    "extracted_package_reopened": true,
+    "charts": 2
+  },
+  "rollback": {
+    "old_deck_package_rebuilt_from": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+    "native_20_page_file_opened": true
+  }
+}

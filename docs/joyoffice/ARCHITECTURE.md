@@ -8,7 +8,7 @@
 
 - `joyword-*`、`joydeck-*` 和 `joysheet-*` 拥有各自产品语义；产品应用之间没有依赖。
 - `joyoffice-*` 是格式或平台中立的公共实现，不能反向依赖产品模型、应用、GUI 或产品服务。
-- Deck model 只含数据、序列化与不变量；engine 执行内存编辑；formats 在字节与模型间转换；scene 只读解析布局与场景；export 生成输出内容；platform 隔离文件、系统与 helper 进程；shell 管理会话、持久化和自动化。具体可用依赖由统一 LAYERS/DEV_LAYERS 检查。
+- Deck R9 使用 `joydeck-model/engine` 的单一可编辑模型；`format/pptx` 在字节与模型间转换；`geom/color/text/anim/metafile/render/pdf` 是纯计算/呈现；`fonts` 的系统字体发现是逐文件登记的只读边界；`shell` 管理文稿、存储、平台 helper、输出与控制；`ui-gpui` 负责 GPUI 窗口；`legacy` 是旧 v1 格式的私有只读 DTO/OOXML 转换桥。旧 `formats/scene/export/platform` crate 已移除。具体依赖由统一 LAYERS/DEV_LAYERS 检查。
 - GPUI 仅进入桌面 UI。CLI 和核心测试必须独立构建，并检查其依赖闭包不包含 GPUI。
 - 文件/进程副作用须有明确归属与逐文件登记。不能因拆包降低输入预算、未知部件保留或失败拒绝契约。
 

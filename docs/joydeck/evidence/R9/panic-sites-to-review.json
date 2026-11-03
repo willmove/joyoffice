@@ -1,0 +1,1354 @@
+{
+  "crates/joydeck-engine/src/content.rs": [
+    {
+      "line": 475,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 479,
+      "code": "assert!(s.execute(Command::Undo).unwrap());"
+    },
+    {
+      "line": 482,
+      "code": "assert!(s.execute(Command::Redo).unwrap());"
+    },
+    {
+      "line": 505,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 513,
+      "code": ".unwrap();"
+    }
+  ],
+  "crates/joydeck-engine/src/media_refs.rs": [
+    {
+      "line": 426,
+      "code": "let mut s = (**p.slides.first().expect(\"slide\")).clone();"
+    }
+  ],
+  "crates/joydeck-fonts/build.rs": [
+    {
+      "line": 281,
+      "code": "std::fs::create_dir(&path).unwrap();"
+    },
+    {
+      "line": 282,
+      "code": "std::fs::create_dir(path.join(\"fonts\")).unwrap();"
+    },
+    {
+      "line": 283,
+      "code": "std::fs::write(path.join(\"fonts/fixture.ttf\"), b\"build-input path fixture\").unwrap();"
+    },
+    {
+      "line": 289,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 295,
+      "code": "std::fs::write(self.0.join(\"fonts/manifest.txt\"), text).unwrap();"
+    },
+    {
+      "line": 300,
+      "code": "std::fs::write(self.0.join(\"fonts/latin-manifest.txt\"), text).unwrap();"
+    },
+    {
+      "line": 318,
+      "code": "std::fs::write(self.0.join(\"fonts/simplified-chinese-manifest.txt\"), text).unwrap();"
+    },
+    {
+      "line": 337,
+      "code": "assert_eq!(input_fonts(None, false, false).unwrap(), \"\");"
+    },
+    {
+      "line": 345,
+      "code": "let main = input_fonts(Some(&fixture.0), false, false).unwrap();"
+    },
+    {
+      "line": 347,
+      "code": "assert_eq!(input_fonts(Some(&fixture.0), false, false).unwrap(), main);"
+    },
+    {
+      "line": 350,
+      "code": "assert_eq!(input_fonts(Some(&fixture.0), false, false).unwrap(), main);"
+    },
+    {
+      "line": 359,
+      "code": "let before = input_fonts(Some(&fixture.0), true, true).unwrap();"
+    },
+    {
+      "line": 361,
+      "code": "let native = input_fonts(Some(&fixture.0), false, true).unwrap();"
+    },
+    {
+      "line": 363,
+      "code": "assert_eq!(input_fonts(Some(&fixture.0), true, true).unwrap(), before);"
+    },
+    {
+      "line": 365,
+      "code": "assert_eq!(input_fonts(Some(&fixture.0), true, true).unwrap(), before);"
+    },
+    {
+      "line": 421,
+      "code": "let native = input_fonts(Some(&fixture.0), false, true).unwrap();"
+    },
+    {
+      "line": 456,
+      "code": "let native = input_fonts(Some(&fixture.0), false, true).unwrap();"
+    },
+    {
+      "line": 480,
+      "code": "let catalog = input_fonts(Some(&fixture.0), wasm, false).unwrap();"
+    },
+    {
+      "line": 510,
+      "code": "let native = input_fonts(Some(&fixture.0), false, true).unwrap();"
+    },
+    {
+      "line": 534,
+      "code": "let web = input_fonts(Some(&fixture.0), true, true).unwrap();"
+    },
+    {
+      "line": 630,
+      "code": "let web = input_fonts(Some(&fixture.0), true, true).unwrap();"
+    },
+    {
+      "line": 646,
+      "code": "let static_catalog = input_fonts(Some(&fixture.0), wasm, true).unwrap();"
+    },
+    {
+      "line": 651,
+      "code": "let variable_catalog = input_fonts(Some(&fixture.0), wasm, true).unwrap();"
+    }
+  ],
+  "crates/joydeck-fonts/src/fallback.rs": [
+    {
+      "line": 362,
+      "code": ".expect(\"cascade did not return\");"
+    }
+  ],
+  "crates/joydeck-fonts/src/fontdb.rs": [
+    {
+      "line": 891,
+      "code": ".expect(\"the compiled-in last-resort face parses\");"
+    }
+  ],
+  "crates/joydeck-format/src/chart_parts_tests.rs": [
+    {
+      "line": 18,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 32,
+      "code": "id: ShapeId(p.alloc_id().unwrap()),"
+    },
+    {
+      "line": 37,
+      "code": "id: ShapeId(p.alloc_id().unwrap()),"
+    },
+    {
+      "line": 61,
+      "code": "let mut z = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();"
+    },
+    {
+      "line": 63,
+      "code": "serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();"
+    },
+    {
+      "line": 67,
+      "code": "let f = z.by_index(i).unwrap();"
+    },
+    {
+      "line": 68,
+      "code": "if f.name().unwrap() == \"presentation.json\" {"
+    },
+    {
+      "line": 73,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 74,
+      "code": "out.write_all(&serde_json::to_vec(&json).unwrap()).unwrap();"
+    },
+    {
+      "line": 76,
+      "code": "out.raw_copy_file(f).unwrap();"
+    },
+    {
+      "line": 79,
+      "code": "out.finish().unwrap().into_inner()"
+    },
+    {
+      "line": 86,
+      "code": "let bytes = save(&p).unwrap();"
+    },
+    {
+      "line": 87,
+      "code": "let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();"
+    },
+    {
+      "line": 89,
+      "code": "z.by_name(\"presentation.json\").unwrap().size() < 128 * 1024,"
+    },
+    {
+      "line": 93,
+      "code": "serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();"
+    },
+    {
+      "line": 94,
+      "code": "let part = part_json(&mut manifest).unwrap();"
+    },
+    {
+      "line": 99,
+      "code": "let entry = part[\"nativeEntry\"].as_str().unwrap();"
+    },
+    {
+      "line": 101,
+      "code": "assert_eq!(read_entry(&mut z, entry).unwrap(), payload);"
+    },
+    {
+      "line": 103,
+      "code": "assert_eq!(load(&bytes).unwrap(), p);"
+    },
+    {
+      "line": 110,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 111,
+      "code": "let bytes = save(&p).unwrap();"
+    },
+    {
+      "line": 145,
+      "code": "let media = manifest[\"presentation\"][\"media\"].as_array_mut().unwrap();"
+    },
+    {
+      "line": 165,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 166,
+      "code": "let legacy = rewrite_manifest(&save(&p).unwrap(), |manifest| {"
+    },
+    {
+      "line": 167,
+      "code": "let part = part_json(manifest).unwrap().as_object_mut().unwrap();"
+    },
+    {
+      "line": 179,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 220,
+      "code": "let bytes = save(&p).unwrap();"
+    },
+    {
+      "line": 221,
+      "code": "let z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();"
+    },
+    {
+      "line": 224,
+      "code": ".map(|n| n.unwrap())"
+    },
+    {
+      "line": 229,
+      "code": "assert_eq!(load(&bytes).unwrap(), p);"
+    },
+    {
+      "line": 235,
+      "code": "let bytes = save(&p).unwrap();"
+    },
+    {
+      "line": 236,
+      "code": "let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();"
+    },
+    {
+      "line": 238,
+      "code": "serde_json::from_slice(&read_entry(&mut z, \"presentation.json\").unwrap()).unwrap();"
+    },
+    {
+      "line": 239,
+      "code": "let name = part_json(&mut json).unwrap()[\"nativeEntry\"]"
+    },
+    {
+      "line": 241,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 243,
+      "code": "let start = z.by_name(&name).unwrap().data_start().unwrap() as usize;"
+    },
+    {
+      "line": 246,
+      "code": "let f = z.by_index(i).unwrap();"
+    },
+    {
+      "line": 247,
+      "code": "if f.name().unwrap() != name {"
+    },
+    {
+      "line": 248,
+      "code": "out.raw_copy_file(f).unwrap();"
+    },
+    {
+      "line": 251,
+      "code": "let missing = out.finish().unwrap().into_inner();"
+    },
+    {
+      "line": 252,
+      "code": "let (q, damaged) = load_checked(&missing).unwrap();"
+    },
+    {
+      "line": 255,
+      "code": "panic!(\"group\")"
+    },
+    {
+      "line": 258,
+      "code": "panic!(\"chart\")"
+    },
+    {
+      "line": 269,
+      "code": "let bytes = save(&p).unwrap();"
+    },
+    {
+      "line": 277,
+      "code": "part_json(manifest).unwrap()[\"nativeEntry\"] = json!(entry);"
+    },
+    {
+      "line": 282,
+      "code": "part_json(manifest).unwrap()[\"bytes\"] = json!([3]);"
+    },
+    {
+      "line": 289,
+      "code": "panic!(\"group\")"
+    },
+    {
+      "line": 292,
+      "code": "panic!(\"chart\")"
+    },
+    {
+      "line": 295,
+      "code": "let aliased = rewrite_manifest(&save(&p).unwrap(), |manifest| {"
+    },
+    {
+      "line": 318,
+      "code": "panic!(\"group\")"
+    },
+    {
+      "line": 321,
+      "code": "panic!(\"chart\")"
+    },
+    {
+      "line": 331,
+      "code": "let mut bytes = save(&with_two_parts()).unwrap();"
+    },
+    {
+      "line": 333,
+      "code": "let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();"
+    },
+    {
+      "line": 337,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 339,
+      "code": ".unwrap() as usize"
+    },
+    {
+      "line": 364,
+      "code": "let mut bytes = save(&with_two_parts()).unwrap();"
+    },
+    {
+      "line": 376,
+      "code": "let z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();"
+    },
+    {
+      "line": 379,
+      "code": ".map(|n| n.unwrap())"
+    },
+    {
+      "line": 391,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 398,
+      "code": "panic!(\"group\")"
+    },
+    {
+      "line": 401,
+      "code": "panic!(\"chart\")"
+    }
+  ],
+  "crates/joydeck-format/src/lib.rs": [
+    {
+      "line": 846,
+      "code": "let layout = defaults::layout_of_kind(&p, LayoutType::TitleAndContent).unwrap();"
+    },
+    {
+      "line": 847,
+      "code": "let mut s = defaults::new_slide(&mut p, layout).expect(\"slide\");"
+    }
+  ],
+  "crates/joydeck-format/src/rtf.rs": [
+    {
+      "line": 530,
+      "code": ".unwrap();"
+    }
+  ],
+  "crates/joydeck-geom/src/lib.rs": [
+    {
+      "line": 291,
+      "code": "assert!((Unit::Inches.parse(\"2.54 cm\").unwrap() - 72.0).abs() < 1e-9);"
+    }
+  ],
+  "crates/joydeck-geom/src/morph.rs": [
+    {
+      "line": 617,
+      "code": "build(\"ellipse\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 618,
+      "code": "build(\"star5\", 200.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 640,
+      "code": "build(\"triangle\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 641,
+      "code": "build(\"ellipse\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 659,
+      "code": "build(\"rect\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 660,
+      "code": "build(\"cube\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 704,
+      "code": "build(\"rect\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 705,
+      "code": "build(\"line\", 100.0, 0.0, &[]).unwrap(),"
+    },
+    {
+      "line": 717,
+      "code": "build(\"donut\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 718,
+      "code": "build(\"ellipse\", 100.0, 100.0, &[]).unwrap(),"
+    },
+    {
+      "line": 745,
+      "code": "build(\"rect\", 10.0, 10.0, &[]).unwrap(),"
+    },
+    {
+      "line": 746,
+      "code": "build(\"ellipse\", 40.0, 20.0, &[]).unwrap(),"
+    },
+    {
+      "line": 773,
+      "code": "let r = build(\"rect\", 10.0, 10.0, &[]).unwrap();"
+    },
+    {
+      "line": 774,
+      "code": "let line = build(\"line\", 10.0, 0.0, &[]).unwrap();"
+    },
+    {
+      "line": 828,
+      "code": "let e = contours(&build(\"ellipse\", 100.0, 100.0, &[]).unwrap().paths[0].path);"
+    }
+  ],
+  "crates/joydeck-geom/src/preset/extra.rs": [
+    {
+      "line": 849,
+      "code": "let i = info(n).unwrap_or_else(|| panic!(\"{n} missing from the catalog\"));"
+    },
+    {
+      "line": 902,
+      "code": "let g = build(n, w, h, adj).unwrap_or_else(|| panic!(\"{n} did not build\"));"
+    },
+    {
+      "line": 937,
+      "code": "let g = build(n, 480.0, 300.0, &[]).unwrap_or_else(|| panic!(\"{n}\"));"
+    },
+    {
+      "line": 1003,
+      "code": "let g = build(n, 100.0, 100.0, &[]).unwrap_or_else(|| panic!(\"{n}\"));"
+    },
+    {
+      "line": 1026,
+      "code": ".unwrap_or_else(|| panic!(\"accentBorderCallout3\"));"
+    },
+    {
+      "line": 1146,
+      "code": ".unwrap_or_else(|| panic!(\"curvedRightArrow\"));"
+    },
+    {
+      "line": 1270,
+      "code": "let g = build(\"funnel\", 480.0, 300.0, &[]).unwrap_or_else(|| panic!(\"funnel\"));"
+    }
+  ],
+  "crates/joydeck-metafile/src/clip.rs": [
+    {
+      "line": 208,
+      "code": "let or = combine(a.clone(), vec![[200.0, 0.0, 210.0, 10.0]], RGN_OR, None).unwrap();"
+    },
+    {
+      "line": 210,
+      "code": "let diff = combine(a.clone(), vec![[20.0, 0.0, 40.0, 40.0]], RGN_DIFF, None).unwrap();"
+    },
+    {
+      "line": 212,
+      "code": "let xor = combine(a, vec![[80.0, 0.0, 120.0, 40.0]], RGN_XOR, None).unwrap();"
+    },
+    {
+      "line": 219,
+      "code": "let r = exclude(None, [10.0, 0.0, 20.0, 40.0], Some([0.0, 0.0, 40.0, 40.0])).unwrap();"
+    }
+  ],
+  "crates/joydeck-model/src/chart.rs": [
+    {
+      "line": 1205,
+      "code": "let (lo, hi) = e.range(&vals, 0, 3.0).unwrap();"
+    },
+    {
+      "line": 1965,
+      "code": ".expect(\"a bin holds 2.1\");"
+    },
+    {
+      "line": 1990,
+      "code": "let b = box_stats(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0]).unwrap();"
+    },
+    {
+      "line": 1996,
+      "code": "let one = box_stats(vec![5.0]).unwrap();"
+    },
+    {
+      "line": 2005,
+      "code": "let b = box_stats_by(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0], true).unwrap();"
+    }
+  ],
+  "crates/joydeck-model/src/table.rs": [
+    {
+      "line": 605,
+      "code": "t.cell(r, c).unwrap().text.text()"
+    },
+    {
+      "line": 617,
+      "code": "let a = t.cell(0, 0).unwrap();"
+    },
+    {
+      "line": 646,
+      "code": "let a = t.cell(1, 1).unwrap();"
+    },
+    {
+      "line": 648,
+      "code": "assert!(t.cell(2, 2).unwrap().h_merge && t.cell(2, 2).unwrap().v_merge);"
+    },
+    {
+      "line": 650,
+      "code": "assert_eq!(t.cell(1, 2).unwrap().grid_span, 2);"
+    },
+    {
+      "line": 659,
+      "code": "let a = t.cell(1, 1).unwrap();"
+    },
+    {
+      "line": 664,
+      "code": "let a = t.cell(1, 1).unwrap();"
+    }
+  ],
+  "crates/joydeck-model/src/trendline.rs": [
+    {
+      "line": 639,
+      "code": ".expect(\"fit of tiny x values\");"
+    },
+    {
+      "line": 640,
+      "code": "assert!((fit.y(3e-10).unwrap() - 3.0).abs() < 1e-6);"
+    },
+    {
+      "line": 649,
+      "code": ".expect(\"fit of offset x values\");"
+    },
+    {
+      "line": 650,
+      "code": "assert!((fit.y(45000.02).unwrap() - 3.0).abs() < 1e-4);"
+    },
+    {
+      "line": 654,
+      "code": ".expect(\"fit of 1e7 offset\");"
+    },
+    {
+      "line": 655,
+      "code": "assert!((fit.y(1e7 + 2.0).unwrap() - 3.0).abs() < 1e-4);"
+    },
+    {
+      "line": 664,
+      "code": "let fit = forced.fit(&xs, &ys).expect(\"fixed-intercept fit\");"
+    },
+    {
+      "line": 665,
+      "code": "assert!((fit.y(1e7 + 2.0).unwrap() / (2.0 * (1e7 + 2.0)) - 1.0).abs() < 1e-9);"
+    },
+    {
+      "line": 688,
+      "code": "let fit = line(TrendlineType::Linear).fit(&xs, &ys).expect(\"fit\");"
+    },
+    {
+      "line": 689,
+      "code": "assert!((fit.y(1.0).unwrap() - 3.0).abs() < 1e-9);"
+    },
+    {
+      "line": 690,
+      "code": "assert!((fit.y(4.0).unwrap() - 9.0).abs() < 1e-9);"
+    },
+    {
+      "line": 695,
+      "code": "let fit = forced.fit(&[1.0, 2.0], &[2.0, 4.0]).expect(\"fit\");"
+    },
+    {
+      "line": 696,
+      "code": "assert!((fit.y(3.0).unwrap() - 6.0).abs() < 1e-6);"
+    },
+    {
+      "line": 705,
+      "code": ".expect(\"exp\");"
+    },
+    {
+      "line": 707,
+      "code": "assert!((exp.y(*x).unwrap() - y).abs() < 1e-6, \"{x}\");"
+    },
+    {
+      "line": 709,
+      "code": "assert!(exp.equation().unwrap().contains(\"e^(\"));"
+    },
+    {
+      "line": 715,
+      "code": ".expect(\"log\");"
+    },
+    {
+      "line": 716,
+      "code": "assert!((log.y(2.0).unwrap() - 2.0_f64.ln()).abs() < 1e-6);"
+    },
+    {
+      "line": 717,
+      "code": "assert!(log.equation().unwrap().contains(\"ln(x)\"));"
+    },
+    {
+      "line": 720,
+      "code": ".expect(\"power\");"
+    },
+    {
+      "line": 721,
+      "code": "assert!((power.y(3.0).unwrap() - 9.0).abs() < 1e-6);"
+    },
+    {
+      "line": 725,
+      "code": "let quad = poly.fit(&xs, &[1.0, 4.0, 9.0, 16.0]).expect(\"poly\");"
+    },
+    {
+      "line": 726,
+      "code": "assert!((quad.y(3.0).unwrap() - 9.0).abs() < 1e-6);"
+    },
+    {
+      "line": 738,
+      "code": ".expect(\"ma\");"
+    },
+    {
+      "line": 747,
+      "code": ".expect(\"line\");"
+    },
+    {
+      "line": 763,
+      "code": ".expect(\"ma\");"
+    },
+    {
+      "line": 789,
+      "code": "let fit = t.fit(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]).expect(\"fit\");"
+    },
+    {
+      "line": 798,
+      "code": ".expect(\"linear\");"
+    },
+    {
+      "line": 803,
+      "code": "let quad = poly.fit(&xs, &ys).expect(\"poly\");"
+    },
+    {
+      "line": 806,
+      "code": "let log = line(TrendlineType::Log).fit(&xs, &ys).expect(\"log\");"
+    },
+    {
+      "line": 810,
+      "code": ".expect(\"zero\");"
+    }
+  ],
+  "crates/joydeck-pptx/src/custgeom.rs": [
+    {
+      "line": 503,
+      "code": "let d = parse(x).unwrap();"
+    },
+    {
+      "line": 530,
+      "code": "let d = parse(w.s.as_bytes()).unwrap();"
+    }
+  ],
+  "crates/joydeck-pptx/src/dgm.rs": [
+    {
+      "line": 1102,
+      "code": "let doc = crate::xml::parse(&xml).unwrap();"
+    },
+    {
+      "line": 1104,
+      "code": "let s = String::from_utf8(xml).unwrap();"
+    },
+    {
+      "line": 1134,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 1137,
+      "code": "let doc = crate::xml::parse(&xml).unwrap();"
+    },
+    {
+      "line": 1149,
+      "code": "let doc = crate::xml::parse(&xml).unwrap();"
+    },
+    {
+      "line": 1165,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 1230,
+      "code": "let doc = crate::xml::parse(xml).unwrap();"
+    }
+  ],
+  "crates/joydeck-pptx/src/lib.rs": [
+    {
+      "line": 167,
+      "code": "let mut z = zip::ZipArchive::new(std::io::Cursor::new(pptx)).unwrap();"
+    },
+    {
+      "line": 170,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 172,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 175,
+      "code": "out.start_file(\"[Content_Types].xml\", o).unwrap();"
+    },
+    {
+      "line": 176,
+      "code": "out.write_all(br#\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/theme/theme/theme1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.theme+xml\"/></Types>\"#).unwrap();"
+    },
+    {
+      "line": 177,
+      "code": "out.start_file(\"_rels/.rels\", o).unwrap();"
+    },
+    {
+      "line": 178,
+      "code": "out.write_all(br#\"<?xml version=\"1.0\" encoding=\"UTF-8\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"theme/theme/theme1.xml\"/></Relationships>\"#).unwrap();"
+    },
+    {
+      "line": 179,
+      "code": "out.start_file(\"theme/theme/theme1.xml\", o).unwrap();"
+    },
+    {
+      "line": 180,
+      "code": "out.write_all(theme.as_bytes()).unwrap();"
+    },
+    {
+      "line": 181,
+      "code": "out.finish().unwrap().into_inner()"
+    },
+    {
+      "line": 186,
+      "code": "let pptx = crate::export(&custom()).unwrap();"
+    },
+    {
+      "line": 188,
+      "code": "let (t, _) = crate::import_theme(&bytes).unwrap();"
+    },
+    {
+      "line": 207,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 208,
+      "code": "out.write_all(b\"<Types/>\").unwrap();"
+    },
+    {
+      "line": 209,
+      "code": "assert!(crate::import_theme(&out.finish().unwrap().into_inner()).is_err());"
+    }
+  ],
+  "crates/joydeck-pptx/src/maps.rs": [
+    {
+      "line": 560,
+      "code": "let e = effect_for_preset(AnimClass::Exit, preset).expect(\"known exit\");"
+    },
+    {
+      "line": 583,
+      "code": ".unwrap_or_else(|| panic!(\"no xml for {kind}\"));"
+    },
+    {
+      "line": 585,
+      "code": "let d = parse(w.s.as_bytes()).unwrap();"
+    },
+    {
+      "line": 587,
+      "code": "transition_from_xml(&d.root).unwrap_or_else(|| panic!(\"no read for {kind}\"));"
+    }
+  ],
+  "crates/joydeck-pptx/src/opc.rs": [
+    {
+      "line": 591,
+      "code": "zw.start_file(*name, o).unwrap();"
+    },
+    {
+      "line": 592,
+      "code": "zw.write_all(&vec![b'x'; *len]).unwrap();"
+    },
+    {
+      "line": 594,
+      "code": "zw.finish().unwrap().into_inner()"
+    },
+    {
+      "line": 603,
+      "code": "let p = Package::open_within(&z, 1000, 100, 130).unwrap();"
+    },
+    {
+      "line": 608,
+      "code": "let p = Package::open_within(&z, 1000, 100, 10_000).unwrap();"
+    },
+    {
+      "line": 615,
+      "code": "let p = Package::open(&z).unwrap();"
+    },
+    {
+      "line": 626,
+      "code": "let p = Package::open(&z).unwrap();"
+    }
+  ],
+  "crates/joydeck-pptx/src/read/chart.rs": [
+    {
+      "line": 888,
+      "code": "let doc = crate::xml::parse(xml.as_bytes()).unwrap();"
+    },
+    {
+      "line": 889,
+      "code": "let c = chart_within(&doc.root, 250_000).unwrap();"
+    },
+    {
+      "line": 900,
+      "code": "let c = chart_from(&doc.root).unwrap();"
+    },
+    {
+      "line": 908,
+      "code": "let back = read_chart_xml(&crate::write::chart::chart_xml(&c).0).unwrap();"
+    },
+    {
+      "line": 913,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 922,
+      "code": "let c = read_chart_xml(xml).unwrap();"
+    },
+    {
+      "line": 939,
+      "code": "let back = read_chart_xml(&crate::write::chart::chart_xml(&edited).0).unwrap();"
+    },
+    {
+      "line": 947,
+      "code": "assert_eq!(read_chart_xml(xml).unwrap().y_log_base, Some(10.0));"
+    },
+    {
+      "line": 953,
+      "code": "let c = read_chart_xml(xml).unwrap();"
+    },
+    {
+      "line": 954,
+      "code": "let e = c.series[0].error_bars.clone().unwrap();"
+    },
+    {
+      "line": 967,
+      "code": "let c = read_chart_xml(xml.as_bytes()).unwrap();"
+    },
+    {
+      "line": 971,
+      "code": "let c = read_chart_xml(xml).unwrap();"
+    },
+    {
+      "line": 985,
+      "code": "let c = read_chart_xml(xml).unwrap();"
+    },
+    {
+      "line": 1015,
+      "code": "let c2 = read_chart_xml(swapped.as_bytes()).unwrap();"
+    },
+    {
+      "line": 1026,
+      "code": "let c = read_chart_xml(single.as_bytes()).unwrap();"
+    },
+    {
+      "line": 1038,
+      "code": "let fmt = |x: &str| read_chart_xml(xml(x).as_bytes()).unwrap().y_format;"
+    },
+    {
+      "line": 1054,
+      "code": "let c = read_chart_xml(xml.as_bytes()).unwrap();"
+    },
+    {
+      "line": 1066,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 1087,
+      "code": "let c = read_chart_xml(xml.as_bytes()).unwrap();"
+    },
+    {
+      "line": 1093,
+      "code": "let c = read_chart_xml(xml.as_bytes()).unwrap();"
+    },
+    {
+      "line": 1099,
+      "code": "read_chart_xml(xml.as_bytes()).unwrap().text_size,"
+    },
+    {
+      "line": 1116,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 1124,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 1136,
+      "code": "let c = read_chart_xml(xml).unwrap();"
+    },
+    {
+      "line": 1169,
+      "code": "read_chart_xml(xml.as_bytes()).unwrap()"
+    }
+  ],
+  "crates/joydeck-pptx/src/read/dml.rs": [
+    {
+      "line": 904,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 905,
+      "code": "let c = color(&d.root).unwrap();"
+    },
+    {
+      "line": 916,
+      "code": "let d = parse(br#\"<x><a:sysClr val=\"window\" lastClr=\"FFFFFF\"/></x>\"#).unwrap();"
+    },
+    {
+      "line": 918,
+      "code": "color(&d.root).unwrap().base,"
+    },
+    {
+      "line": 924,
+      "code": "let d = parse(br#\"<x><a:scrgbClr r=\"100000\" g=\"0\" b=\"0\"/></x>\"#).unwrap();"
+    },
+    {
+      "line": 926,
+      "code": "color(&d.root).unwrap().base,"
+    },
+    {
+      "line": 945,
+      "code": "let d = parse(br#\"<a:bodyPr lIns=\"91440\" anchor=\"ctr\" wrap=\"none\" vert=\"vert270\" numCol=\"2\"><a:normAutofit fontScale=\"62500\" lnSpcReduction=\"20000\"/></a:bodyPr>\"#).unwrap();"
+    },
+    {
+      "line": 962,
+      "code": "let d = parse(br#\"<a:bodyPr><a:normAutofit/></a:bodyPr>\"#).unwrap();"
+    },
+    {
+      "line": 970,
+      "code": "let d = parse(br#\"<a:bodyPr><a:normAutofit fontScale=\"100000\"/></a:bodyPr>\"#).unwrap();"
+    },
+    {
+      "line": 978,
+      "code": "let d = parse(br#\"<a:bodyPr spcFirstLastPara=\"1\"/>\"#).unwrap();"
+    },
+    {
+      "line": 982,
+      "code": "let d = parse(br#\"<a:bodyPr vert=\"mongolianVert\"/>\"#).unwrap();"
+    },
+    {
+      "line": 986,
+      "code": "let d = parse(br#\"<a:bodyPr vert=\"wordArtVertRtl\"/>\"#).unwrap();"
+    }
+  ],
+  "crates/joydeck-pptx/src/tables.rs": [
+    {
+      "line": 410,
+      "code": "let d = crate::xml::parse(&table_styles_xml(&used, &[])).unwrap();"
+    },
+    {
+      "line": 416,
+      "code": ".map(|e| ORDER.iter().position(|o| *o == e.local()).unwrap())"
+    }
+  ],
+  "crates/joydeck-pptx/src/write/chart.rs": [
+    {
+      "line": 1281,
+      "code": "let c = crate::read::read_chartex_xml(MAP.as_bytes()).expect(\"a region map is read\");"
+    },
+    {
+      "line": 1307,
+      "code": "let back = crate::read::read_chartex_xml(built.as_bytes()).expect(\"the rebuilt part reads\");"
+    },
+    {
+      "line": 1342,
+      "code": "let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();"
+    },
+    {
+      "line": 1357,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 1365,
+      "code": "crate::read::chart::read_chart_xml(&xml).unwrap().text_color,"
+    },
+    {
+      "line": 1369,
+      "code": "let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();"
+    },
+    {
+      "line": 1373,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 1384,
+      "code": "let c = crate::read::chart::read_chart_xml(xml.as_bytes()).unwrap();"
+    },
+    {
+      "line": 1397,
+      "code": "let back = crate::read::chart::read_chart_xml(&out).unwrap();"
+    },
+    {
+      "line": 1410,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 1416,
+      "code": ".unwrap()"
+    }
+  ],
+  "crates/joydeck-pptx/src/xml.rs": [
+    {
+      "line": 574,
+      "code": ".expect(\"parse\");"
+    },
+    {
+      "line": 587,
+      "code": "let d = parse(w.s.as_bytes()).expect(\"parse\");"
+    },
+    {
+      "line": 594,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 600,
+      "code": "let x = d.root.child(\"x\").unwrap();"
+    },
+    {
+      "line": 622,
+      "code": "let d = parse(b\"<p:sp a=\\\"1\\\"><p:t>x &amp; y</p:t><e/></p:sp>\").unwrap();"
+    }
+  ],
+  "crates/joydeck-render/src/bevel.rs": [
+    {
+      "line": 248,
+      "code": "let b = from_raw(raw).unwrap();"
+    }
+  ],
+  "crates/joydeck-render/src/camera.rs": [
+    {
+      "line": 252,
+      "code": "let c = from_raw(r#\"<a:scene3d><a:camera prst=\"orthographicFront\"><a:rot lat=\"0\" lon=\"3600000\" rev=\"0\"/></a:camera><a:lightRig rig=\"threePt\" dir=\"t\"><a:rot lat=\"0\" lon=\"0\" rev=\"1200000\"/></a:lightRig></a:scene3d>\"#).unwrap();"
+    },
+    {
+      "line": 253,
+      "code": "let m = affine(&c, 100.0, 75.0).unwrap();"
+    },
+    {
+      "line": 269,
+      "code": "let c = from_raw(r#\"<a:scene3d><a:camera prst=\"isometricTopUp\"/><a:lightRig rig=\"threePt\" dir=\"t\"/></a:scene3d>\"#).unwrap();"
+    },
+    {
+      "line": 270,
+      "code": "let k = corners(affine(&c, 100.0, 75.0).unwrap(), 100.0, 75.0);"
+    },
+    {
+      "line": 299,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 300,
+      "code": "let k = corners(affine(&c, 100.0, 75.0).unwrap(), 100.0, 75.0);"
+    }
+  ],
+  "crates/joydeck-render/src/chart.rs": [
+    {
+      "line": 2113,
+      "code": "clip_seg(Point::new(-50.0, 25.0), Point::new(150.0, 25.0), r).expect(\"clipped\");"
+    },
+    {
+      "line": 2117,
+      "code": "let (a, b) = clip_seg(Point::new(10.0, 10.0), Point::new(40.0, 20.0), r).expect(\"inside\");"
+    }
+  ],
+  "crates/joydeck-render/src/extent.rs": [
+    {
+      "line": 313,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 329,
+      "code": ".unwrap();"
+    }
+  ],
+  "crates/joydeck-render/src/extrude.rs": [
+    {
+      "line": 216,
+      "code": "let e = from_raw(raw).unwrap();"
+    }
+  ],
+  "crates/joydeck-render/src/images.rs": [
+    {
+      "line": 621,
+      "code": ".expect(\"encode\");"
+    },
+    {
+      "line": 633,
+      "code": "let img = decode_raster(&png, rgba).expect(\"fits exactly\");"
+    },
+    {
+      "line": 657,
+      "code": "let last = srcs.last().expect(\"source\");"
+    },
+    {
+      "line": 677,
+      "code": "let a = decode_for(&good, 64.0, &PictureAdjust::default()).expect(\"decodes\");"
+    },
+    {
+      "line": 678,
+      "code": "let b = decode_for(&good, 64.0, &PictureAdjust::default()).expect(\"cached\");"
+    },
+    {
+      "line": 859,
+      "code": ".expect(\"gif\");"
+    },
+    {
+      "line": 860,
+      "code": "let a = decode_anim(&out, &PictureAdjust::default()).expect(\"animated\");"
+    }
+  ],
+  "crates/joydeck-render/src/scene.rs": [
+    {
+      "line": 691,
+      "code": "let a = cache.build(before, 0, 1., &|| false).unwrap();"
+    },
+    {
+      "line": 692,
+      "code": "let b = cache.build(after, 0, 1., &|| false).unwrap();"
+    },
+    {
+      "line": 697,
+      "code": "panic!(\"font environment did not stabilize for cache identity check\")"
+    },
+    {
+      "line": 707,
+      "code": ".unwrap()"
+    },
+    {
+      "line": 726,
+      "code": "let s = Cache::default().build(&p, 0, 1., &|| false).unwrap();"
+    },
+    {
+      "line": 727,
+      "code": "let actual = raster(&s, 1.).unwrap();"
+    },
+    {
+      "line": 751,
+      "code": "let dpi = cache.build(&p, 0, 2., &|| false).unwrap();"
+    },
+    {
+      "line": 757,
+      "code": "let theme = cache.build(&p, 0, 1., &|| false).unwrap();"
+    },
+    {
+      "line": 792,
+      "code": "let first = cache.build(&p, 0, 1., &|| false).unwrap();"
+    },
+    {
+      "line": 797,
+      "code": "assert!(first.nodes[1].geometry.bitmap.as_ref().unwrap().width < 400);"
+    },
+    {
+      "line": 798,
+      "code": "let actual = raster(&first, 1.).unwrap();"
+    },
+    {
+      "line": 811,
+      "code": ".unwrap()"
+    }
+  ],
+  "crates/joydeck-render/src/tests_wild.rs": [
+    {
+      "line": 264,
+      "code": "other => panic!(\"{other:?}\"),"
+    },
+    {
+      "line": 460,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 468,
+      "code": ".expect(\"media\");"
+    },
+    {
+      "line": 734,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 743,
+      "code": ".expect(\"media\");"
+    },
+    {
+      "line": 1087,
+      "code": ".expect(\"media\");"
+    },
+    {
+      "line": 1233,
+      "code": ".expect(\"media\");"
+    }
+  ],
+  "crates/joydeck-shell/src/automation_tests.rs": [
+    {
+      "line": 22,
+      "code": "let root = Scratch::new().unwrap();"
+    },
+    {
+      "line": 23,
+      "code": "let mut d = Dispatcher::new(&root.0).unwrap();"
+    },
+    {
+      "line": 25,
+      "code": "let target = new[\"result\"][\"documentId\"].as_u64().unwrap();"
+    },
+    {
+      "line": 70,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 75,
+      "code": "let root = Scratch::new().unwrap();"
+    },
+    {
+      "line": 76,
+      "code": "let mut d = Dispatcher::new(&root.0).unwrap();"
+    },
+    {
+      "line": 82,
+      "code": "let elsewhere = Scratch::new().unwrap();"
+    },
+    {
+      "line": 93,
+      "code": "let target = status[\"result\"][\"documentId\"].as_u64().unwrap();"
+    }
+  ],
+  "crates/joydeck-shell/src/show_tests.rs": [
+    {
+      "line": 20,
+      "code": ".unwrap();"
+    },
+    {
+      "line": 22,
+      "code": "let id = model.slides[0].shapes.last().unwrap().id;"
+    },
+    {
+      "line": 31,
+      "code": "let mut p = Player::new(model.clone(), None, None).unwrap();"
+    },
+    {
+      "line": 33,
+      "code": "let before = p.frame(0.25, &cancel).unwrap();"
+    },
+    {
+      "line": 34,
+      "code": "p.navigate(\"next\", None).unwrap();"
+    },
+    {
+      "line": 35,
+      "code": "p.advance(0.5).unwrap();"
+    },
+    {
+      "line": 36,
+      "code": "let middle = p.frame(0.25, &cancel).unwrap();"
+    },
+    {
+      "line": 39,
+      "code": "p.navigate(\"pause\", None).unwrap();"
+    },
+    {
+      "line": 40,
+      "code": "p.advance(2.).unwrap();"
+    },
+    {
+      "line": 42,
+      "code": "p.navigate(\"pause\", None).unwrap();"
+    },
+    {
+      "line": 43,
+      "code": "p.advance(5.).unwrap();"
+    },
+    {
+      "line": 45,
+      "code": "let after = p.frame(0.25, &cancel).unwrap();"
+    },
+    {
+      "line": 47,
+      "code": "p.navigate(\"black\", None).unwrap();"
+    },
+    {
+      "line": 48,
+      "code": "let blank = p.frame(0.1, &cancel).unwrap();"
+    },
+    {
+      "line": 68,
+      "code": "session.execute(joydeck_engine::Command::NewSlide).unwrap();"
+    },
+    {
+      "line": 69,
+      "code": "session.execute(joydeck_engine::Command::NewSlide).unwrap();"
+    },
+    {
+      "line": 76,
+      "code": "let mut player = Player::new(Arc::new(model), None, Some(\"reverse\")).unwrap();"
+    },
+    {
+      "line": 79,
+      "code": "player.navigate(\"next\", None).unwrap();"
+    }
+  ],
+  "crates/joydeck-text/src/bidi.rs": [
+    {
+      "line": 599,
+      "code": "let num = l[chars.iter().position(|c| *c == '5').unwrap()];"
+    }
+  ]
+}

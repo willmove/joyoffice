@@ -1,0 +1,15 @@
+R3 public/native/table/text/notes checks passed: 20 executable calls
+Traceback (most recent call last):
+  File "D:\Coding\EditorProjects\joydeck-new\scripts\joydeck\verify-r2.py", line 84, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "D:\Coding\EditorProjects\joydeck-new\scripts\joydeck\verify-r2.py", line 79, in main
+    diagnostics=json.loads(run(['diagnostics']));assert diagnostics['stage']=='R2' and not diagnostics['cli_uses_gui']
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "C:\Applications\Python\Python314\Lib\subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['python', 'scripts/joydeck/verify-r2.py', '--cli', 'C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r3-final-c7x8g34r\\���� �ո�·��\\joydeck-0.4.0-r3-windows-x86_64-release-6fb3ff2b70\\joydeck-cli.exe', '--evidence', 'docs\\joydeck\\evidence\\R3\\r2-regression-release.json']' returned non-zero exit status 1.

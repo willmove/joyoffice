@@ -105,10 +105,12 @@ jobs:
             packages: gcc-aarch64-linux-gnu libc6-dev-arm64-cross
             linker: aarch64-linux-gnu-gcc
             runner: qemu-aarch64 -L /usr/aarch64-linux-gnu
+            sysroot: /usr/aarch64-linux-gnu
           - target: loongarch64-unknown-linux-gnu
             packages: gcc-14-loongarch64-linux-gnu libc6-dev-loong64-cross
             linker: loongarch64-linux-gnu-gcc-14
             runner: qemu-loongarch64 -L /usr/loongarch64-linux-gnu
+            sysroot: /usr/loongarch64-linux-gnu
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -124,6 +126,8 @@ jobs:
           prefix="CARGO_TARGET_$(echo '${{ matrix.target }}' | tr 'a-z-' 'A-Z_')"
           export "${prefix}_LINKER=${{ matrix.linker }}"
           export "${prefix}_RUNNER=${{ matrix.runner }}"
+          # CLI integration tests spawn target binaries through binfmt, outside Cargo's runner.
+          export QEMU_LD_PREFIX="${{ matrix.sysroot }}"
           cargo xtask test joyword --headless --target ${{ matrix.target }}
 
   # T003: shape original text with one OFL font, render the same page scene

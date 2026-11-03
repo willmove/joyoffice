@@ -1,0 +1,10 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-final-ibewychh\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-1db7fba9b9\\joydeck.exe",
+    "id": 22285772,
+    "title": "JoyDeck · 放映"
+  },
+  "a11y": "Window: \"JoyDeck · 放映\", App: joydeck.exe.\n\t0 区域 JoyDeck · 放映 Secondary Actions: Raise\n\nThe focused UI element is 0 区域 JoyDeck · 放映 Secondary Actions: Raise.",
+  "exe_sha256": "53ccbe22f44ef5e604645079411d8503088c5326c6336cd55ebe84336478b7b3",
+  "note": "F5 opens actual slideshow; title/table render and empty placeholder is hidden."
+}

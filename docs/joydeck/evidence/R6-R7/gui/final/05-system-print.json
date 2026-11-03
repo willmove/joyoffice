@@ -1,0 +1,12 @@
+{
+  "window": {
+    "app": "process:C:\\Windows\\explorer.exe",
+    "id": 4918128,
+    "title": "从 Win32 应用程序打印 - 打印"
+  },
+  "accessibility": {
+    "document_text": "1",
+    "focused_element": "21 编辑 (settable, string) 份数 最小1 最大999 Value: 1 ID: InputBox",
+    "tree": "Window: \"从 Win32 应用程序打印 - 打印\", App: explorer.exe.\n\t0 窗口 从 Win32 应用程序打印 - 打印 Secondary Actions: Raise\n\t\t1 window 从 Win32 应用程序打印 - 打印 Value: 从 Win32 应用程序打印 - 打印 Secondary Actions: Raise ID: TitleBar\n\t\t\t2 菜单栏 系统 ID: SystemMenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 关闭 从 Win32 应用程序打印 - 打印 ID: Close\n\t\t5 窗口 Windows 打印 Secondary Actions: Raise\n\t\t\t6 文本 从 Win32 应用程序打印 - 打印\n\t\t\t7 按钮 (disabled) 上一页 ID: PreviousButton\n\t\t\t8 按钮 (disabled) 下一页 ID: NextButton\n\t\t\t9 按钮 重置预览缩放 ID: FitToPageButton\n\t\t\t10 文本 此应用不支持打印预览 ID: NoPreviewAvailableText\n\t\t\t11 组合框 打印机 ID: printerSelector\n\t\t\t\t12 列表项目 (selectable) EPSON4F4EED (L4160 Series) ID: ContentPresenter\n\t\t\t13 链接 添加打印机\n\t\t\t\t14 文本 添加打印机 ID: AddPrinterTextBlock\n\t\t\t15 组合框 方向 ID: PageOrientation_ItemList\n\t\t\t\t16 列表项目 (selectable) 横向 ID: ContentPresenter\n\t\t\t\t\t17 组 横向\n\t\t\t\t\t\t18 文本 横向\n\t\t\t19 沙网 (settable, float) 份数 Value: 1\n\t\t\t\t20 文本 份数\n\t\t\t\t21 编辑 (settable, string) 份数 最小1 最大999 Value: 1 ID: InputBox\n\t\t\t\t22 按钮 增加 ID: UpSpinButton\n\t\t\t\t23 按钮 (disabled) 减少 ID: DownSpinButton\n\t\t\t24 组合框 色彩模式 ID: PageOutputColor_ItemList\n\t\t\t\t25 列表项目 (selectable) AutoSelect ID: ContentPresenter\n\t\t\t\t\t26 组 AutoSelect\n\t\t\t\t\t\t27 文本 AutoSelect\n\t\t\t28 切换开关 启用 打印到文件 ID: PrintToFile_ToggleFeatureSwitch\n\t\t\t29 文本 将打印输出存储到文件 ID: PrintToFile_Description\n\t\t\t30 组合框 排序规则 ID: DocumentCollate_ItemList\n\t\t\t\t31 列表项目 (selectable) 启用 ID: ContentPresenter\n\t\t\t\t\t32 组 启用\n\t\t\t\t\t\t33 文本 启用\n\t\t\t\t\t\t34 文本 1,2,3 1,2,3 1,2,3\n\t\t\t35 链接 更多设置 ID: moreOptionsButton\n\t\t\t36 滚动条 (settable, float) 垂直 Value: 0 ID: VerticalScrollBar\n\t\t\t37 复选框 让应用更改我的打印首选项 ID: UseAppFeaturesCheckBox\n\t\t\t38 按钮 打印 ID: PrintButton\n\t\t\t39 按钮 取消 ID: CloseButton\n\t\t40 窗格\n\nDocument text: ```\n1\n```"
+  }
+}

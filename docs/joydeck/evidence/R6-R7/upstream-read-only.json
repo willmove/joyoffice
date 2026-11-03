@@ -1,0 +1,44 @@
+{
+  "joyoffice_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+  "joyoffice_status": "",
+  "deckcraft_inventory_files": 755,
+  "deckcraft_changed_files": [],
+  "new_pdf_dependencies": [
+    {
+      "name": "krilla",
+      "version": "0.8.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "27da593198b20eeba65caeb73c2bbeec3e53ab08fa549898312ce81c4fce5e33"
+    },
+    {
+      "name": "pdf-writer",
+      "version": "0.15.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f5e456864a7a304047bff84977dc6fb162bd956475d40ba50b2dcecaada7f753"
+    },
+    {
+      "name": "subsetter",
+      "version": "0.2.6",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "38803281d1c23166c5ebcb455439a5d2afe711cc909cf88af72448c297756ad6"
+    },
+    {
+      "name": "tiny-skia-path",
+      "version": "0.11.4",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "9c9e7fc0c2e86a30b117d0462aa261b72b7a99b7ebd7deb3a14ceda95c5bdc93"
+    },
+    {
+      "name": "write-fonts",
+      "version": "0.48.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "cb731d4c4d93eacc69a1ad2f270f905788a98e4a3438267bcafbe08d3431c8d8"
+    },
+    {
+      "name": "xmp-writer",
+      "version": "0.3.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
+    }
+  ]
+}

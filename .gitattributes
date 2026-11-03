@@ -44,3 +44,23 @@ docs/joysheet/legacy-source/** -text whitespace=cr-at-eol
 docs/joysheet/upstream-source.json -text whitespace=cr-at-eol
 docs/joysheet/source-checkpoint.json -text whitespace=cr-at-eol
 docs/joysheet/third-party/** -text whitespace=cr-at-eol
+
+# R9 Deck source representation and verbatim imported provenance.
+apps/joydeck*/** text=auto eol=lf
+crates/joydeck-*/** text=auto eol=lf
+scripts/joydeck/** text=auto eol=lf
+licenses/deckcraft/** -text
+licenses/joyoffice/** -text
+licenses/fonts/** -text
+docs/joydeck/upstream-tests/** -text
+tests/fixtures/joydeck/** -text
+crates/joyoffice-ui/** text=auto eol=lf
+crates/joyoffice-opc/** text=auto eol=lf
+scripts/verify_gpui_pre_provenance.py text=auto eol=lf
+scripts/gpui_pre_reviewed_deviations.json text=auto eol=lf
+tools/xtask/src/main.rs text=auto eol=lf
+
+# R0-R8 imported evidence is a verbatim archive with recorded byte hashes.
+docs/joydeck/evidence/R[0-8]*/** -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+docs/joydeck/evidence/planning*.json -text whitespace=-blank-at-eol,-blank-at-eof,cr-at-eol
+tests/fixtures/joydeck/README-pre-r9.md -text whitespace=cr-at-eol
