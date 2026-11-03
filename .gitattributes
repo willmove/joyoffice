@@ -67,3 +67,7 @@ tests/fixtures/joydeck/README-pre-r9.md -text whitespace=cr-at-eol
 
 # Keep the original bundled OFL notice byte-for-byte.
 apps/joyword/LICENSE-NotoEmoji.txt -text -whitespace
+
+# Preserve the exact reviewed AccessKit package bytes.
+third-party/accesskit_windows/** -text -whitespace
+licenses/accesskit-windows/source.json -text

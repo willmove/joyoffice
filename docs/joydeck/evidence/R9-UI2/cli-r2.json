@@ -1,15 +1,15 @@
 {
-  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final\\joydeck-cli.exe",
+  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-qualified\\joydeck-cli.exe",
   "cli_sha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
-  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径",
   "checks": 20,
   "passed": true,
-  "forced_crash_pid": 34576,
-  "recovered_session": "34576-1793703251321838600-1",
-  "source_sha256": "96803363ecbd1d0c72d31b695d55d87d3fa834b5dc2ec67dd9a62a89379e3b12",
+  "forced_crash_pid": 28940,
+  "recovered_session": "28940-1793710714510441400-1",
+  "source_sha256": "797377bd5a5afe07e9e1d0eddc8c661c8f1ef8a2a697cd7f89cd9e1c598bff16",
   "outputs": {
     "已编辑.pptx": "3d9d42c6f214d39be031868e596887629961d03a9660750cbbf031d7177b589e",
-    "已编辑.joydeck": "8905037857aea01e0f5cf3fd829b870c8eae92731b0c353b91a94962f92aeacb",
+    "已编辑.joydeck": "c884b6885c1e7e8ee6517528e098f199a33862ce53fe5e40e48603876e66995d",
     "slide-0001.png": "6b5a99bfb96cd520f17960f98c4f13ee7b5bb4b5db4a9900a847c5f3bddc066c",
     "slide-0002.png": "3c825ea69747b57e2251f2ec106ade0f7146e46478288091be348e66fd341939",
     "slide-0003.png": "9c3e8fb2388ec30c8d4fbb5c03c0250bf8e944562445370a05600792e0df240e"
@@ -18,7 +18,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\真实 原稿.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\真实 原稿.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "485320f978ee4025cc3e07e9684dd5c8e3a228c911c1da7651c780c5e7291b89",
@@ -39,22 +39,22 @@
     {
       "args": [
         "edit",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\真实 原稿.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\真实 原稿.pptx",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\修改.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\修改.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.pptx"
       ],
       "exit_code": 0,
-      "stdoutSha256": "d8063c8e8f573e466fc4cb69ab42e7778cd2433df1fb7677f50e607b6a7e2535",
-      "stdoutBytes": 41461,
+      "stdoutSha256": "74765a4ba6abf179d91d57007582b6230c5ee20079ca690ce57a0f99906896ef",
+      "stdoutBytes": 41381,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
     },
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "5dec09d08106d77be198bceb584e84cceff42b069e3c32891ae1c2e03a2a5ded",
@@ -65,11 +65,11 @@
     {
       "args": [
         "edit",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\真实 原稿.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\真实 原稿.pptx",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\修改.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\修改.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.pptx"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -80,11 +80,11 @@
     {
       "args": [
         "edit",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\真实 原稿.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\真实 原稿.pptx",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\修改.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\修改.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "a6a6e4ea4837c0e3a6bf712eec6d060f2b2ccb2257a25e7fc4918b4d18738758",
@@ -95,7 +95,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "a082e79f07ad904d69ca22448e80eb8fcc77d68838f83bc258116dd4591200e5",
@@ -106,11 +106,11 @@
     {
       "args": [
         "edit",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\真实 原稿.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\真实 原稿.pptx",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\修改.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\修改.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.joydeck"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -121,13 +121,13 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\rendered",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\rendered",
         "--all"
       ],
       "exit_code": 0,
-      "stdoutSha256": "ff90690f49f76c8d6200fa53b04a775900f6ccb891f7ab25a966ee7eb3f9b4d2",
+      "stdoutSha256": "9b5ec439ae16977e05af2c0e0a17641d155a8bb8dc188597a1eb19fd1737cee2",
       "stdoutBytes": 105,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -135,11 +135,11 @@
     {
       "args": [
         "edit",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\已编辑.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\已编辑.joydeck",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\empty.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\empty.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\native-to-pptx.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\native-to-pptx.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "a3a91bc97bf7d1b58dd5fdf0ed5a2a1d5a28e2dc2abd5d97b49a3b55ccdd9b30",
@@ -150,7 +150,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\native-to-pptx.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\native-to-pptx.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "fb4a111aaf5766d96a5c538a634533caf93a5773df4c42d3456b7e49697ea4b2",
@@ -163,9 +163,9 @@
         "edit",
         "--new",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\new.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\new.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\new.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\new.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "c78d9c2c11db100baa425ddf2558d6afe0cfc3e684473630ba771266c9fc2312",
@@ -176,7 +176,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\new.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\new.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "ffe32d30c1a5577362e828b33271b7490cd56039078af8582a1da3fb6f5b883b",
@@ -187,11 +187,11 @@
     {
       "args": [
         "edit",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\真实 原稿.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\真实 原稿.pptx",
         "--script",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\invalid.json",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\invalid.json",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\must-not-exist.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\must-not-exist.pptx"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -202,10 +202,10 @@
     {
       "args": [
         "recovery-list",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\recovery"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\recovery"
       ],
       "exit_code": 0,
-      "stdoutSha256": "a985c711d6708715c1674ddff2df44a2f17b5b71cbc78eac904d38044851f05b",
+      "stdoutSha256": "e204953214593137a630da1bd2e9a93002f3e3236c9fdb53c43227158dcbf5b2",
       "stdoutBytes": 530,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -213,10 +213,10 @@
     {
       "args": [
         "recovery-list",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\recovery"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\recovery"
       ],
       "exit_code": 0,
-      "stdoutSha256": "bb847910cf58c4eeb9b684fad5e47afc5cabf304e5383ed4dbcfdc551e908277",
+      "stdoutSha256": "ce46ffbd63ab53059adcaa6ea9cab54ad63b6a6cdfae8b6ac683437c48b680c0",
       "stdoutBytes": 531,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -224,13 +224,13 @@
     {
       "args": [
         "recover",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\recovery",
-        "34576-1793703251321838600-1",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\recovery",
+        "28940-1793710714510441400-1",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\崩溃 恢复.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\崩溃 恢复.joydeck"
       ],
       "exit_code": 0,
-      "stdoutSha256": "e8b2baf49a5559da863c52a8adf834bb24027fd4a03d3164d8d8ed902bcd20b2",
+      "stdoutSha256": "0b924fac49228431e91b1df8fcf86d593ded4a9120d0df31651b445581faccaf",
       "stdoutBytes": 109,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -238,7 +238,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\崩溃 恢复.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\崩溃 恢复.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "8b18846de4d56adafa3e08edec192db185d79582da583edddd4c492d17768756",
@@ -249,10 +249,10 @@
     {
       "args": [
         "recovery-list",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-y6qu_qvb\\中文 空格路径\\recovery"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r2-r008q9xk\\中文 空格路径\\recovery"
       ],
       "exit_code": 0,
-      "stdoutSha256": "9f1a6c6023b5e5e438aee37d1e4afede05a5ed2aa773a036db7c588af9f4a996",
+      "stdoutSha256": "9c55df1eaf7fc271e3715f9dcb2243709a1249712805a6f95b68fae9bfb7dbef",
       "stdoutBytes": 1285,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -268,7 +268,7 @@
       "stderrBytes": 0
     }
   ],
-  "fullReportSha256": "ce5d66e2357043aee61bca400685f9afc14f1478117ecba802ff4fe981767fa0",
-  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\final-cli-r2-full.json",
+  "fullReportSha256": "f50b7485bcf5f81f91b8692c767b0cc8cd07bbfe81385493042e7d353205ed7c",
+  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\delivery-cli-r2-full.json",
   "allAssertionsPassed": true
 }

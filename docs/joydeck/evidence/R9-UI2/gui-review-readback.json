@@ -1,0 +1,44 @@
+{
+  "guiExeSha256": "facc1c4eceacfe351f6e97b43e81197bd3f5b25cdfd6ebf08bf76464fb717530",
+  "reader": "Python zipfile/json, separate from application",
+  "nativeSha256": "201786b80cc549b4ecb92c825fe860d51ba6677195f55b1903dac42a00365506",
+  "comments": [
+    {
+      "author": "作者",
+      "initials": "",
+      "text": "GUI 审阅：核对格式保留",
+      "date": "",
+      "x": 0.0,
+      "y": 0.0,
+      "resolved": true,
+      "replies": [
+        {
+          "author": "作者",
+          "initials": "",
+          "text": "已核对，格式与原文均保留",
+          "date": "",
+          "x": 0.0,
+          "y": 0.0,
+          "resolved": false,
+          "replies": [],
+          "shape": null
+        }
+      ],
+      "shape": 2
+    }
+  ],
+  "objectDescriptions": [
+    {
+      "id": 2,
+      "descr": "混合格式说明：比较后的标题与独立段落",
+      "decorative": false
+    },
+    {
+      "id": 3,
+      "descr": "",
+      "decorative": false
+    }
+  ],
+  "refusedPptxSavePreservedOriginal": true,
+  "passed": true
+}

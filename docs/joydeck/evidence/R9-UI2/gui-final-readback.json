@@ -1,0 +1,40 @@
+{
+  "guiExeSha256": "11c2a1c809a364e3e4f536384edfb354747b21d26adb06b2a198499c51ce87f1",
+  "reader": "python-pptx",
+  "pptxSha256": "e71c0d087164ffa22934359ce6f0f5cb0e6089f2568a68157f13de32a5377ca7",
+  "runs": [
+    {
+      "text": "比较后",
+      "size": 32.0,
+      "font": "Arial"
+    },
+    {
+      "text": "格式验证 ABC",
+      "size": 44.0,
+      "font": "Arial"
+    },
+    {
+      "text": "第二段：保留独立格式",
+      "size": 28.0,
+      "font": "Arial"
+    }
+  ],
+  "text": "比较后格式验证 ABC\n第二段：保留独立格式",
+  "positionUnchanged": [
+    100.0,
+    80.0
+  ],
+  "paragraphLeftPt": 19,
+  "paragraphFirstLinePt": -9,
+  "paragraphAfterPt": 6,
+  "lineSpacing": 1.5,
+  "tableTopRowFills": [
+    "4472C4",
+    "ED7D31"
+  ],
+  "rowHeightsPt": [
+    72,
+    60
+  ],
+  "passed": true
+}

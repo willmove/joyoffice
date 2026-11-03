@@ -1,23 +1,8 @@
 {
-  "archive": "dist\\joyword\\r9-ui2-delivery\\joyword-0.1.1-windows-x86_64.zip",
-  "archiveSha256": "0770c87547d2840c6b53d7704335f27da21bc71ffc9b2e1266c3d32b3d7578fe",
-  "binarySha256": "bfe41a958f95997588dc31c0eeb69330c70daab06e2089359874ce5f9aa10b33",
-  "noticeSha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
-  "previousGuiBinarySha256": "f84a2c721de39ecc2af5de8951cf2d18420499450a3a22d09427d78a004d5bbe",
-  "sameBytesAsGuiValidatedBinary": false,
-  "changedSourceInputs": [
-    {
-      "path": "scripts/joydeck/paths.py",
-      "oldSha256": "6f01af52e646976c94e1d854058fe14982a48cb7641d5f80414d60ad3f5490f9",
-      "newSha256": "86b24fc16ccb04c746ddc268c7ca7429965c0ba5ec6854ad2c1c83f3c5aee3e3",
-      "lineEndingsOnly": true
-    },
-    {
-      "path": "scripts/joydeck/sbom.py",
-      "oldSha256": "3b9f057c723705ed6393a10816aa7063dfb1bb73ae5f9a4248c8e10d0a1de6f7",
-      "newSha256": "e42ef674f657497b07a4c277cf3fdd15e0359968486c9cb2b589c32a85a85667",
-      "lineEndingsOnly": true
-    }
-  ],
-  "guiQualification": "Previous exact binary was visually verified; this repackaged binary has a distinct SHA and awaits desktop unlock for a repeat."
+  "archive": "dist\\joyword\\r9-ui2-window-qualified\\joyword-0.1.1-windows-x86_64.zip",
+  "archiveSha256": "23f59e9d2c2e70a3cc75e64d6be44f0df42f2502f5beb4c341de3ff16f2118b6",
+  "binarySha256": "c10593d0d91f63d138b2314586d7410030ef5178f56a9c23d8060118137fd5b3",
+  "runtime": "D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Word-window-qualified\\joyword.exe",
+  "pid": 34608,
+  "guiQualification": "Passed on these exact packaged bytes: 100% Windows GUI, native PDF export, independent pypdf/Poppler readback and visual inspection"
 }

@@ -1,0 +1,61 @@
+Window: "review-final.joydeck - JoyDeck", App: joydeck.exe.
+	0 区域 review-final.joydeck - JoyDeck Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: review-final.joydeck - JoyDeck
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 按钮 文件
+		8 按钮 保存
+		9 按钮 撤销
+		10 按钮 (disabled) 重做
+		11 按钮 从头开始放映
+		12 按钮 查找文字
+		13 按钮 切换明暗主题
+		14 按钮 放映
+		15 按钮 文件
+		16 按钮 开始
+		17 按钮 插入
+		18 按钮 设计
+		19 按钮 放映
+		20 按钮 审阅
+		21 按钮 视图
+		71 按钮 新增批注
+		72 按钮 批注列表
+		73 按钮 替代文字
+		74 按钮 比较文稿
+		75 按钮 兼容性检查
+		76 按钮 文稿属性
+		77 按钮 演讲备注
+		82 按钮 返回
+		83 按钮 新建
+		84 按钮 打开 · Ctrl+O
+		85 按钮 保存 · Ctrl+S
+		86 按钮 另存为
+		87 按钮 恢复未保存文稿
+		88 按钮 简洁简报
+		89 按钮 课程讲义
+		90 按钮 项目计划
+		91 按钮 在新窗口中新建空白文稿
+		92 按钮 review-final.joydeck
+		93 按钮 PDF
+		94 按钮 备注 PDF
+		95 按钮 讲义 PDF
+		96 按钮 PNG
+		97 按钮 JPEG
+		98 按钮 动画 GIF
+		99 按钮 静态 MP4
+		100 按钮 提纲
+		101 按钮 标题 VTT
+		102 按钮 打印
+		103 按钮 (disabled) 取消输出
+		64 按钮 备注
+		65 按钮 普通视图
+		66 按钮 幻灯片浏览
+		67 按钮 从当前页放映
+		68 按钮 缩小
+		69 按钮 放大
+		70 按钮 适应窗口
+
+The focused UI element is 0 区域 review-final.joydeck - JoyDeck Secondary Actions: Raise.

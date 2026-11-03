@@ -901,3 +901,13 @@ crates/joydeck-shell/src/show_tests.rs:69:session.execute(joydeck_engine::Comman
 crates/joydeck-shell/src/show_tests.rs:76:let mut player = Player::new(Arc::new(model), None, Some("reverse")).unwrap();
 crates/joydeck-shell/src/show_tests.rs:79:player.navigate("next", None).unwrap();
 crates/joydeck-text/src/bidi.rs:599:let num = l[chars.iter().position(|c| *c == '5').unwrap()];
+
+# R9-UI2: assertions in starter template save/reopen regression only.
+crates/joydeck-ui-gpui/src/file_ui.rs:203:.unwrap()
+crates/joydeck-ui-gpui/src/file_ui.rs:206:std::fs::create_dir_all(&root).unwrap();
+crates/joydeck-ui-gpui/src/file_ui.rs:212:let mut editor = template_editor(name, root.join("recovery")).unwrap();
+crates/joydeck-ui-gpui/src/file_ui.rs:223:let saved = editor.save_job(path.clone()).unwrap().run().unwrap();
+crates/joydeck-ui-gpui/src/file_ui.rs:227:joydeck_shell::editor::Editor::open(&path, root.join("recovery")).unwrap();
+crates/joydeck-ui-gpui/src/file_ui.rs:229:serde_json::to_value(editor.session.model()).unwrap(),
+crates/joydeck-ui-gpui/src/file_ui.rs:230:serde_json::to_value(reopened.session.model()).unwrap()
+crates/joydeck-ui-gpui/src/file_ui.rs:234:std::fs::remove_dir_all(root).unwrap();

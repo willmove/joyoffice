@@ -11,6 +11,9 @@ use joydeck_model::{
 
 impl Viewer {
     pub(super) fn format_targets(&self) -> Vec<TextTarget> {
+        if let Some(inline) = &self.inline {
+            return vec![inline.target.clone()];
+        }
         if let Some((shape, row, col)) = self.cell {
             return vec![TextTarget::Cell { shape, row, col }];
         }

@@ -1,0 +1,8 @@
+{
+  "guiExeSha256": "facc1c4eceacfe351f6e97b43e81197bd3f5b25cdfd6ebf08bf76464fb717530",
+  "workflow": "GUI compare accept -> Undo restored original -> Redo -> Save",
+  "text": "比较后格式验证 ABC\n第二段：保留独立格式",
+  "pptxSha256": "ab95e70ad0dd87733724c53a121d5bd1355996198eb6b468aa0d045d4746016a",
+  "independentReader": "python-pptx",
+  "passed": true
+}

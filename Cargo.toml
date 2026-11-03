@@ -1,4 +1,5 @@
 [workspace]
+exclude = ["third-party/accesskit_windows"]
 members = [
     "crates/joysheet-app",
     "crates/joysheet-calc",
@@ -288,3 +289,7 @@ opt-level = 1
 
 [profile.dev.package.joysheet-tools]
 opt-level = 1
+
+# Exact AccessKit 0.34.0 with a retained-provider HWND lifetime fix.
+[patch.crates-io]
+accesskit_windows = { path = "third-party/accesskit_windows" }

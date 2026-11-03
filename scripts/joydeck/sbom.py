@@ -62,7 +62,10 @@ def graph(target, roots=('joydeck', 'joydeck-cli'), features=()):
 def source_hashes(data, packages, reached):
     files = {ROOT / name for name in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml')}
     workspace = set(data['workspace_members'])
-    for identifier in reached & workspace:
+    local = {identifier for identifier in reached
+             if not packages[identifier].get('source')
+             and Path(packages[identifier]['manifest_path']).is_relative_to(ROOT)}
+    for identifier in local:
         directory = Path(packages[identifier]['manifest_path']).parent
         files.add(directory / 'Cargo.toml')
         for folder in ('src', 'native', 'tests', 'examples'):

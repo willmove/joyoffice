@@ -24,7 +24,7 @@ def sha256(path):
 
 def source_snapshot():
     paths = [ROOT / p for p in ['Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', 'rustfmt.toml', '.gitattributes', 'LICENSE', 'THIRD_PARTY-JOYDECK.md']]
-    for folder in ['.cargo', 'apps', 'crates', 'tools', 'scripts', 'tests/fixtures', 'licenses', 'packaging']:
+    for folder in ['.cargo', 'apps', 'crates', 'tools', 'scripts', 'tests/fixtures', 'licenses', 'packaging', 'third-party']:
         paths += [p for p in (ROOT / folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc']
     records = {p.relative_to(ROOT).as_posix(): sha256(p) for p in sorted(set(paths))}
     combined = hashlib.sha256(json.dumps(records, sort_keys=True).encode()).hexdigest()

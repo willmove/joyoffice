@@ -519,6 +519,11 @@ impl Viewer {
         if command && matches!(key, "s" | "z" | "y" | "q" | "o" | "n") {
             return;
         }
+        if command && key == "enter" {
+            self.end_inline(cx);
+            cx.stop_propagation();
+            return;
+        }
         if key == "tab" {
             self.next_cell(mods.shift, w, cx);
             cx.stop_propagation();

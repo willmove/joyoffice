@@ -647,6 +647,8 @@ impl Viewer {
 }
 impl Render for Viewer {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        // GPUI Kit refreshes every window when its application theme changes.
+        self.dark = gpui_kit::component::Theme::global(cx).is_dark();
         if self.close_ready {
             self.close_ready = false;
             cx.defer_in(window, |s, w, _| {

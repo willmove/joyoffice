@@ -1,7 +1,7 @@
 {
-  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final\\joydeck-cli.exe",
+  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-qualified\\joydeck-cli.exe",
   "cli_sha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
-  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格",
   "fixture_hashes": {
     "delivery-media.pptx": "2644d3e6925aa788f7a4629c9a639ecfb4a5f9ba37951135a08db35102949067",
     "legacy-1.0.joydeck": "b01b770d75c5cf47851f8895ba916ebac000a530f1416cfc923dccfc6be044f9",
@@ -27,7 +27,7 @@
         "migrate",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\legacy-1.0.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.0.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "2d9bbfa9363fa0a3a3084f2c63865598e1f5b1d603f2a1f711fb1d569eeb54b1",
@@ -38,7 +38,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.0.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "c5b256c997156058e359a672fd2f921b9510e8ed5f02da106a13eb07d96348c6",
@@ -49,11 +49,11 @@
     {
       "args": [
         "exchange",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.0.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.joydeck",
         "--mode",
         "preserve",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.0.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "e086d467c95fc077bad8d8e623af1c6197c00896cc1f1de76c6e2242e8781d11",
@@ -64,9 +64,9 @@
     {
       "args": [
         "migrate",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.0-original.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0-original.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.0-original.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.0-original.joydeck"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -79,7 +79,7 @@
         "migrate",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\legacy-1.11.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.11.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "67c0abdcab0b0deb87eaa59c963de02976841489b940855c9df81e73600ca8b1",
@@ -90,7 +90,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.11.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.joydeck"
       ],
       "exit_code": 0,
       "stdoutSha256": "05693c1720ef528f3c75a44381234379a2632d7035d1b4eaed33296174389662",
@@ -101,11 +101,11 @@
     {
       "args": [
         "exchange",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.11.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.joydeck",
         "--mode",
         "preserve",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.11.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "1308614eb80bd3f6e8aa58d275c744c45dfbd6e4124d8906443fc0b069bf37cf",
@@ -116,9 +116,9 @@
     {
       "args": [
         "migrate",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.11-original.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11-original.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\legacy-1.11-original.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\legacy-1.11-original.joydeck"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -129,9 +129,9 @@
     {
       "args": [
         "migrate",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\future.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\future.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\future-must-not-exist.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\future-must-not-exist.joydeck"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -142,9 +142,9 @@
     {
       "args": [
         "migrate",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\required.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\required.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\required-must-not-exist.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\required-must-not-exist.joydeck"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -155,9 +155,9 @@
     {
       "args": [
         "migrate",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\unknown-field.joydeck",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\unknown-field.joydeck",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\unknown-field-must-not-exist.joydeck"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\unknown-field-must-not-exist.joydeck"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -172,7 +172,7 @@
         "--mode",
         "preserve",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\preserve.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\preserve.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "9d34010eab6184b6efa39746a701506fbaba507445c6741f81d9a8adaaa84141",
@@ -187,7 +187,7 @@
         "--mode",
         "regenerate",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\regenerate.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\regenerate.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "729aef8222ec97540aeaeff915ae92de01a33ca00bfcd4c3905e7cc7ff5dc08b",
@@ -202,7 +202,7 @@
         "--mode",
         "regenerate",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\regenerate.potx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\regenerate.potx"
       ],
       "exit_code": 0,
       "stdoutSha256": "b6c073eb0744a7cfd10e0b5430f6eef1de47a1c035ef7b3f6a438b17256fef76",
@@ -217,11 +217,11 @@
         "--mode",
         "regenerate",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\regenerate.ppsx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\regenerate.ppsx"
       ],
       "exit_code": 0,
-      "stdoutSha256": "2e1b1061e9ff0afbc16d57cc97cbabed663fc73c612a1190b2861c764d18ba2a",
-      "stdoutBytes": 600,
+      "stdoutSha256": "b83c8161823d17602efe7e932eb25fde046b12b0a21f21236faa9bb0f371585c",
+      "stdoutBytes": 520,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
     },
@@ -232,7 +232,7 @@
         "--format",
         "pdf",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\pdf-slides.pdf",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\pdf-slides.pdf",
         "--layout",
         "slides"
       ],
@@ -249,7 +249,7 @@
         "--format",
         "pdf",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\pdf-notes.pdf",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\pdf-notes.pdf",
         "--layout",
         "notes"
       ],
@@ -266,7 +266,7 @@
         "--format",
         "pdf",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\pdf-handouts-3.pdf",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\pdf-handouts-3.pdf",
         "--layout",
         "handouts-3"
       ],
@@ -283,7 +283,7 @@
         "--format",
         "png",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\png-slides",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\png-slides",
         "--layout",
         "slides",
         "--transparent"
@@ -301,7 +301,7 @@
         "--format",
         "jpeg",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\jpeg-slides",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\jpeg-slides",
         "--layout",
         "slides"
       ],
@@ -318,7 +318,7 @@
         "--format",
         "gif",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\gif-slides.gif",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\gif-slides.gif",
         "--layout",
         "slides",
         "--seconds",
@@ -341,7 +341,7 @@
         "--format",
         "mp4",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\mp4-slides.mp4",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\mp4-slides.mp4",
         "--layout",
         "slides",
         "--seconds",
@@ -364,7 +364,7 @@
         "--format",
         "outline",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\outline-slides.outline",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\outline-slides.outline",
         "--layout",
         "slides"
       ],
@@ -381,7 +381,7 @@
         "--format",
         "rtf",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\rtf-slides.rtf",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\rtf-slides.rtf",
         "--layout",
         "slides"
       ],
@@ -398,7 +398,7 @@
         "--format",
         "vtt",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\vtt-slides.vtt",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\vtt-slides.vtt",
         "--layout",
         "slides"
       ],
@@ -413,7 +413,7 @@
         "export",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\invalid-26",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-26",
         "--pages",
         "0"
       ],
@@ -428,7 +428,7 @@
         "export",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\invalid-27",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-27",
         "--dpi",
         "301"
       ],
@@ -443,7 +443,7 @@
         "export",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\invalid-28",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-28",
         "--scale",
         "nan"
       ],
@@ -458,7 +458,7 @@
         "export",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\invalid-29",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\invalid-29",
         "--format",
         "jpeg",
         "--transparent"
@@ -474,7 +474,7 @@
         "export",
         "D:\\Coding\\EditorProjects\\joyoffice\\tests\\fixtures\\joydeck\\r6-r7\\delivery-media.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\existing.pdf"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\existing.pdf"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -619,7 +619,7 @@
             "requestId": "r-3",
             "method": "document.open",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\input.pptx"
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\input.pptx"
             },
             "target": null,
             "expectedRevision": 0
@@ -632,7 +632,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-3\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6483314430034852,\"engineRevision\":0,\"pages\":3,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "text": "{\"requestId\":\"r-3\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6253584295371427,\"engineRevision\":0,\"pages\":3,\"revision\":0,\"selection\":{\"page\":0,\"shapes\":[]}}}",
               "type": "text"
             }
           ],
@@ -643,7 +643,7 @@
               "canRedo": false,
               "canUndo": false,
               "dirty": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "engineRevision": 0,
               "pages": 3,
               "revision": 0,
@@ -674,7 +674,7 @@
                 "shapes": []
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 0
           }
         }
@@ -685,7 +685,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"selection\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6483314430034852,\"engineRevision\":0,\"pages\":3,\"revision\":1,\"selection\":{\"page\":0,\"shapes\":[]}}}",
+              "text": "{\"requestId\":\"selection\",\"result\":{\"canRedo\":false,\"canUndo\":false,\"dirty\":false,\"documentId\":6253584295371427,\"engineRevision\":0,\"pages\":3,\"revision\":1,\"selection\":{\"page\":0,\"shapes\":[]}}}",
               "type": "text"
             }
           ],
@@ -696,7 +696,7 @@
               "canRedo": false,
               "canUndo": false,
               "dirty": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "engineRevision": 0,
               "pages": 3,
               "revision": 1,
@@ -728,7 +728,7 @@
                 "y": 20
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 0
           }
         }
@@ -773,7 +773,7 @@
                 "y": 20
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 1
           }
         }
@@ -784,7 +784,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"insert\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":6483314430034852,\"engineRevision\":1,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
+              "text": "{\"requestId\":\"insert\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":6253584295371427,\"engineRevision\":1,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
               "type": "text"
             }
           ],
@@ -795,7 +795,7 @@
               "canRedo": false,
               "canUndo": true,
               "dirty": true,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "engineRevision": 1,
               "pages": 3,
               "revision": 2,
@@ -829,7 +829,7 @@
                 "y": 20
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 1
           }
         }
@@ -840,7 +840,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"insert\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":6483314430034852,\"engineRevision\":1,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
+              "text": "{\"requestId\":\"insert\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":true,\"documentId\":6253584295371427,\"engineRevision\":1,\"pages\":3,\"revision\":2,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
               "type": "text"
             }
           ],
@@ -851,7 +851,7 @@
               "canRedo": false,
               "canUndo": true,
               "dirty": true,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "engineRevision": 1,
               "pages": 3,
               "revision": 2,
@@ -882,7 +882,7 @@
                 "command": "undo"
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 2
           }
         }
@@ -920,7 +920,7 @@
             "requestId": "r-9",
             "method": "document.inspect",
             "params": {},
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 2
           }
         }
@@ -1652,7 +1652,7 @@
             "params": {
               "path": "C:\\Users\\willm\\outside.pptx"
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 2
           }
         }
@@ -1690,9 +1690,9 @@
             "requestId": "r-11",
             "method": "document.save",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\control.pptx"
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\control.pptx"
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 2
           }
         }
@@ -1703,7 +1703,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-11\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":false,\"documentId\":6483314430034852,\"engineRevision\":1,\"pages\":3,\"revision\":3,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
+              "text": "{\"requestId\":\"r-11\",\"result\":{\"canRedo\":false,\"canUndo\":true,\"dirty\":false,\"documentId\":6253584295371427,\"engineRevision\":1,\"pages\":3,\"revision\":3,\"selection\":{\"page\":0,\"shapes\":[28]}}}",
               "type": "text"
             }
           ],
@@ -1714,7 +1714,7 @@
               "canRedo": false,
               "canUndo": true,
               "dirty": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "engineRevision": 1,
               "pages": 3,
               "revision": 3,
@@ -1741,10 +1741,10 @@
             "requestId": "r-12",
             "method": "document.exchange",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\control-regenerated.pptx",
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\control-regenerated.pptx",
               "mode": "regenerate"
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -1788,7 +1788,7 @@
             "requestId": "r-13",
             "method": "export.start",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\control.pdf",
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\control.pdf",
               "options": {
                 "format": "pdf",
                 "pages": [
@@ -1796,7 +1796,7 @@
                 ]
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -1837,7 +1837,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -1848,7 +1848,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-14\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-14\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -1857,7 +1857,7 @@
             "requestId": "r-14",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -1881,7 +1881,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -1892,7 +1892,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-15\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-15\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -1901,7 +1901,7 @@
             "requestId": "r-15",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -1925,7 +1925,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -1936,7 +1936,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-16\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-16\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -1945,7 +1945,7 @@
             "requestId": "r-16",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -1969,7 +1969,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -1980,7 +1980,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-17\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-17\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -1989,7 +1989,7 @@
             "requestId": "r-17",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2013,7 +2013,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2024,7 +2024,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-18\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-18\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2033,7 +2033,7 @@
             "requestId": "r-18",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2057,7 +2057,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2068,7 +2068,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-19\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-19\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2077,7 +2077,7 @@
             "requestId": "r-19",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2101,7 +2101,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2112,7 +2112,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-20\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-20\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2121,7 +2121,7 @@
             "requestId": "r-20",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2145,7 +2145,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2156,7 +2156,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-21\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-21\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2165,7 +2165,7 @@
             "requestId": "r-21",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2189,7 +2189,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2200,7 +2200,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-22\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-22\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2209,7 +2209,7 @@
             "requestId": "r-22",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2233,7 +2233,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2244,7 +2244,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-23\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-23\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2253,7 +2253,7 @@
             "requestId": "r-23",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "encoding",
               "revision": 3,
@@ -2277,7 +2277,7 @@
             "params": {
               "jobId": 1
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2288,7 +2288,7 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-24\",\"result\":{\"cancelRequested\":false,\"documentId\":6483314430034852,\"jobId\":1,\"phase\":\"finished\",\"result\":{\"bytes\":108188,\"files\":1,\"format\":\"pdf\",\"pages\":[1],\"warnings\":[\"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\",\"Slide artwork is rasterized; searchable positioned glyph subsets, links and bookmarks use the shared layout. No PDF/A or tagged-PDF claim.\"]},\"revision\":3,\"state\":\"completed\"}}",
+              "text": "{\"requestId\":\"r-24\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
@@ -2297,7 +2297,51 @@
             "requestId": "r-24",
             "result": {
               "cancelRequested": false,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
+              "jobId": 1,
+              "phase": "encoding",
+              "revision": 3,
+              "state": "running"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 26,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-25",
+            "method": "jobs.get",
+            "params": {
+              "jobId": 1
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 26,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-25\",\"result\":{\"cancelRequested\":false,\"documentId\":6253584295371427,\"jobId\":1,\"phase\":\"finished\",\"result\":{\"bytes\":108188,\"files\":1,\"format\":\"pdf\",\"pages\":[1],\"warnings\":[\"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\",\"Slide artwork is rasterized; searchable positioned glyph subsets, links and bookmarks use the shared layout. No PDF/A or tagged-PDF claim.\"]},\"revision\":3,\"state\":\"completed\"}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-25",
+            "result": {
+              "cancelRequested": false,
+              "documentId": 6253584295371427,
               "jobId": 1,
               "phase": "finished",
               "result": {
@@ -2322,33 +2366,33 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 26,
+        "id": 27,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-25",
+            "requestId": "r-26",
             "method": "show.start",
             "params": {},
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 26,
+        "id": 27,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-25\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":1,\"paused\":false,\"playing\":false,\"previous\":null,\"serial\":0,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
+              "text": "{\"requestId\":\"r-26\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":1,\"paused\":false,\"playing\":false,\"previous\":null,\"serial\":0,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-25",
+            "requestId": "r-26",
             "result": {
               "blank": null,
               "elapsed_seconds": 0.0,
@@ -2373,35 +2417,35 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 27,
+        "id": 28,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-26",
+            "requestId": "r-27",
             "method": "show.action",
             "params": {
               "action": "next"
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 27,
+        "id": 28,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-26\",\"result\":{\"exit\":false,\"status\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":false,\"playing\":false,\"previous\":1,\"serial\":1,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "text": "{\"requestId\":\"r-27\",\"result\":{\"exit\":false,\"status\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":false,\"playing\":false,\"previous\":1,\"serial\":1,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-26",
+            "requestId": "r-27",
             "result": {
               "exit": false,
               "status": {
@@ -2429,39 +2473,39 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 28,
+        "id": 29,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-27",
+            "requestId": "r-28",
             "method": "show.frame",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\show.png",
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\show.png",
               "scale": 0.5
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 28,
+        "id": 29,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-27\",\"result\":{\"bytes\":12092,\"path\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-r6-r7-lvcnj7cz\\\\中文 空格\\\\show.png\",\"state\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":false,\"playing\":false,\"previous\":1,\"serial\":1,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "text": "{\"requestId\":\"r-28\",\"result\":{\"bytes\":12092,\"path\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-r6-r7-0c7fhf9t\\\\中文 空格\\\\show.png\",\"state\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":false,\"playing\":false,\"previous\":1,\"serial\":1,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-27",
+            "requestId": "r-28",
             "result": {
               "bytes": 12092,
-              "path": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\show.png",
+              "path": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\show.png",
               "state": {
                 "blank": null,
                 "elapsed_seconds": 0.0,
@@ -2487,35 +2531,35 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 29,
+        "id": 30,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-28",
+            "requestId": "r-29",
             "method": "show.action",
             "params": {
               "action": "pause"
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 29,
+        "id": 30,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-28\",\"result\":{\"exit\":false,\"status\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "text": "{\"requestId\":\"r-29\",\"result\":{\"exit\":false,\"status\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-28",
+            "requestId": "r-29",
             "result": {
               "exit": false,
               "status": {
@@ -2543,57 +2587,6 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 30,
-        "method": "tools/call",
-        "params": {
-          "name": "joydeck.control",
-          "arguments": {
-            "protocolVersion": "joydeck-control-1",
-            "requestId": "r-29",
-            "method": "show.status",
-            "params": {},
-            "target": 6483314430034852,
-            "expectedRevision": 3
-          }
-        }
-      },
-      {
-        "id": 30,
-        "jsonrpc": "2.0",
-        "result": {
-          "content": [
-            {
-              "text": "{\"requestId\":\"r-29\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
-              "type": "text"
-            }
-          ],
-          "isError": false,
-          "structuredContent": {
-            "requestId": "r-29",
-            "result": {
-              "blank": null,
-              "elapsed_seconds": 0.0,
-              "ended": false,
-              "order": [
-                1,
-                3
-              ],
-              "page": 3,
-              "paused": true,
-              "playing": false,
-              "previous": 1,
-              "serial": 2,
-              "slide_seconds": 0.0,
-              "step": 0,
-              "total_seconds": 0.0
-            }
-          }
-        }
-      }
-    ],
-    [
-      {
-        "jsonrpc": "2.0",
         "id": 31,
         "method": "tools/call",
         "params": {
@@ -2601,11 +2594,9 @@
           "arguments": {
             "protocolVersion": "joydeck-control-1",
             "requestId": "r-30",
-            "method": "show.tick",
-            "params": {
-              "seconds": 2
-            },
-            "target": 6483314430034852,
+            "method": "show.status",
+            "params": {},
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2654,9 +2645,11 @@
           "arguments": {
             "protocolVersion": "joydeck-control-1",
             "requestId": "r-31",
-            "method": "show.status",
-            "params": {},
-            "target": 6483314430034852,
+            "method": "show.tick",
+            "params": {
+              "seconds": 2
+            },
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2705,11 +2698,9 @@
           "arguments": {
             "protocolVersion": "joydeck-control-1",
             "requestId": "r-32",
-            "method": "show.action",
-            "params": {
-              "action": "black"
-            },
-            "target": 6483314430034852,
+            "method": "show.status",
+            "params": {},
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
@@ -2720,13 +2711,66 @@
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-32\",\"result\":{\"exit\":false,\"status\":{\"blank\":false,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":3,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "text": "{\"requestId\":\"r-32\",\"result\":{\"blank\":null,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":2,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
             "requestId": "r-32",
+            "result": {
+              "blank": null,
+              "elapsed_seconds": 0.0,
+              "ended": false,
+              "order": [
+                1,
+                3
+              ],
+              "page": 3,
+              "paused": true,
+              "playing": false,
+              "previous": 1,
+              "serial": 2,
+              "slide_seconds": 0.0,
+              "step": 0,
+              "total_seconds": 0.0
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "jsonrpc": "2.0",
+        "id": 34,
+        "method": "tools/call",
+        "params": {
+          "name": "joydeck.control",
+          "arguments": {
+            "protocolVersion": "joydeck-control-1",
+            "requestId": "r-33",
+            "method": "show.action",
+            "params": {
+              "action": "black"
+            },
+            "target": 6253584295371427,
+            "expectedRevision": 3
+          }
+        }
+      },
+      {
+        "id": 34,
+        "jsonrpc": "2.0",
+        "result": {
+          "content": [
+            {
+              "text": "{\"requestId\":\"r-33\",\"result\":{\"exit\":false,\"status\":{\"blank\":false,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":3,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "type": "text"
+            }
+          ],
+          "isError": false,
+          "structuredContent": {
+            "requestId": "r-33",
             "result": {
               "exit": false,
               "status": {
@@ -2754,39 +2798,39 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 34,
+        "id": 35,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-33",
+            "requestId": "r-34",
             "method": "show.frame",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\black.png",
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\black.png",
               "scale": 0.25
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 34,
+        "id": 35,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-33\",\"result\":{\"bytes\":704,\"path\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-r6-r7-lvcnj7cz\\\\中文 空格\\\\black.png\",\"state\":{\"blank\":false,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":3,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
+              "text": "{\"requestId\":\"r-34\",\"result\":{\"bytes\":704,\"path\":\"\\\\\\\\?\\\\C:\\\\Users\\\\willm\\\\AppData\\\\Local\\\\Temp\\\\joydeck-r6-r7-0c7fhf9t\\\\中文 空格\\\\black.png\",\"state\":{\"blank\":false,\"elapsed_seconds\":0.0,\"ended\":false,\"order\":[1,3],\"page\":3,\"paused\":true,\"playing\":false,\"previous\":1,\"serial\":3,\"slide_seconds\":0.0,\"step\":0,\"total_seconds\":0.0}}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-33",
+            "requestId": "r-34",
             "result": {
               "bytes": 704,
-              "path": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\black.png",
+              "path": "\\\\?\\C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\black.png",
               "state": {
                 "blank": false,
                 "elapsed_seconds": 0.0,
@@ -2812,16 +2856,16 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 35,
+        "id": 36,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-34",
+            "requestId": "r-35",
             "method": "export.start",
             "params": {
-              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-lvcnj7cz\\中文 空格\\cancel.gif",
+              "path": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r6-r7-0c7fhf9t\\中文 空格\\cancel.gif",
               "options": {
                 "format": "gif",
                 "pages": [
@@ -2832,24 +2876,24 @@
                 "scale": 0.5
               }
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 35,
+        "id": 36,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-34\",\"result\":{\"jobId\":2,\"semantics\":\"cancel before publication prevents output; commit may win a concurrent cancellation\",\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-35\",\"result\":{\"jobId\":2,\"semantics\":\"cancel before publication prevents output; commit may win a concurrent cancellation\",\"state\":\"running\"}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-34",
+            "requestId": "r-35",
             "result": {
               "jobId": 2,
               "semantics": "cancel before publication prevents output; commit may win a concurrent cancellation",
@@ -2862,38 +2906,38 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 36,
+        "id": 37,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-35",
+            "requestId": "r-36",
             "method": "jobs.cancel",
             "params": {
               "jobId": 2
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 36,
+        "id": 37,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-35\",\"result\":{\"cancelRequested\":true,\"documentId\":6483314430034852,\"jobId\":2,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
+              "text": "{\"requestId\":\"r-36\",\"result\":{\"cancelRequested\":true,\"documentId\":6253584295371427,\"jobId\":2,\"phase\":\"encoding\",\"revision\":3,\"state\":\"running\"}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-35",
+            "requestId": "r-36",
             "result": {
               "cancelRequested": true,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "jobId": 2,
               "phase": "encoding",
               "revision": 3,
@@ -2906,38 +2950,38 @@
     [
       {
         "jsonrpc": "2.0",
-        "id": 37,
+        "id": 38,
         "method": "tools/call",
         "params": {
           "name": "joydeck.control",
           "arguments": {
             "protocolVersion": "joydeck-control-1",
-            "requestId": "r-36",
+            "requestId": "r-37",
             "method": "jobs.get",
             "params": {
               "jobId": 2
             },
-            "target": 6483314430034852,
+            "target": 6253584295371427,
             "expectedRevision": 3
           }
         }
       },
       {
-        "id": 37,
+        "id": 38,
         "jsonrpc": "2.0",
         "result": {
           "content": [
             {
-              "text": "{\"requestId\":\"r-36\",\"result\":{\"cancelRequested\":true,\"documentId\":6483314430034852,\"error\":\"operation cancelled\",\"jobId\":2,\"phase\":\"finished\",\"revision\":3,\"state\":\"cancelled\"}}",
+              "text": "{\"requestId\":\"r-37\",\"result\":{\"cancelRequested\":true,\"documentId\":6253584295371427,\"error\":\"operation cancelled\",\"jobId\":2,\"phase\":\"finished\",\"revision\":3,\"state\":\"cancelled\"}}",
               "type": "text"
             }
           ],
           "isError": false,
           "structuredContent": {
-            "requestId": "r-36",
+            "requestId": "r-37",
             "result": {
               "cancelRequested": true,
-              "documentId": 6483314430034852,
+              "documentId": 6253584295371427,
               "error": "operation cancelled",
               "jobId": 2,
               "phase": "finished",
@@ -2949,7 +2993,7 @@
       }
     ]
   ],
-  "fullReportSha256": "aa0d5aa1942b7c864e034dcb47f9a81aa87d13a6fb944d6a31acefec2ddf5f94",
-  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\final-cli-r6-r7-full.json",
+  "fullReportSha256": "5141ff4b584ed819df496ad13a7b2e11e81e4296c112216baa74baa7d97893f6",
+  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\delivery-cli-r6-r7-full.json",
   "allAssertionsPassed": true
 }

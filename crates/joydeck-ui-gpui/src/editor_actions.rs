@@ -665,6 +665,7 @@ impl Viewer {
                     s.ph.is_some() && s.text.as_ref().is_some_and(|t| t.text().is_empty())
                 });
             if event.click_count >= 2 || empty_placeholder {
+                self.select_object(id, false, w, cx);
                 self.begin_selected_text(w, cx);
                 return;
             }
@@ -704,6 +705,12 @@ impl Viewer {
         cx: &mut Context<Self>,
     ) {
         let Some(d) = self.drag.take() else { return };
+        let pixels_x = f32::from(event.position.x - d.start.x);
+        let pixels_y = f32::from(event.position.y - d.start.y);
+        if d.resize.is_none() && !d.rotate && pixels_x.hypot(pixels_y) < 6. {
+            cx.notify();
+            return;
+        }
         let dx = f32::from(event.position.x - d.start.x) as f64 / scale as f64;
         let dy = f32::from(event.position.y - d.start.y) as f64 / scale as f64;
         if dx.abs() + dy.abs() < 1. {

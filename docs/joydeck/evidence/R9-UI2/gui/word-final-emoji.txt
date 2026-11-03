@@ -1,0 +1,56 @@
+Window: "emoji-final-验证.docx - JoyWord", App: joyword.exe.
+	0 区域 emoji-final-验证.docx - JoyWord Secondary Actions: Raise
+		1 标题栏 (settable, string) Value: emoji-final-验证.docx - JoyWord
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 按钮 文件 ID: file-menu
+		8 按钮 打开… ID: quick-open
+		9 按钮 保存原件 ID: quick-save
+		10 按钮 (disabled) 撤销 ID: quick-undo
+		11 按钮 (disabled) 重做 ID: quick-redo
+		12 选项卡
+			13 选项卡项目 (selectable) 开始 ID: ribbon.tab.start
+			14 选项卡项目 (selectable) 插入 ID: ribbon.tab.insert
+			15 选项卡项目 (selectable) 布局 ID: ribbon.tab.layout
+			16 选项卡项目 (selectable) 审阅 ID: ribbon.tab.review
+			17 选项卡项目 (selectable) 视图 ID: ribbon.tab.view
+		18 工具栏
+			19 按钮 粘贴 ID: start.paste
+			20 按钮 剪切 ID: start.cut
+			21 按钮 复制 ID: start.copy
+			22 按钮 格式刷 ID: start.format_copy
+			23 按钮 字体 ID: font-family
+			24 按钮 12 ID: font-size
+			25 按钮 A ID: font-color
+			26 按钮 加粗 ID: start.bold
+			27 按钮 斜体 ID: start.italic
+			28 按钮 下划线 ID: start.underline
+			29 按钮 字体 ID: start.font
+			30 按钮 项目符号 ID: start.list_bullet
+			31 按钮 级别 1 ID: start.list_level_1
+			32 按钮 级别 2 ID: start.list_level_2
+			33 按钮 取消列表 ID: start.list_remove
+			34 按钮 左对齐 ID: start.align_left
+			35 按钮 居中 ID: start.align
+			36 按钮 右对齐 ID: start.align_right
+			37 按钮 两端对齐 ID: start.justify
+			38 按钮 段落 ID: start.paragraph
+			39 按钮 样式 ID: open-styles
+			40 按钮 查找 ID: start.find_next
+			41 按钮 替换 ID: start.replace
+		42 编辑 (settable, string) 文档文本 Value: JoyWord emoji 验证 😀 甲方：青禾工作室；乙方：远山设计室。 双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。 交付内容包括：正文、表格、图片以及 English summary。 “完成”应以书面验收为准；未经确认，不得视为自动接受。 ID: document-text
+		43 按钮 缩小 ID: status-zoom-out
+		44 滑块 (settable, float) 缩放 Value: 100 ID: zoom-slider
+		45 按钮 放大 ID: status-zoom-in
+		46 按钮 实际大小 ID: status-zoom-value
+
+Document text: ```
+JoyWord emoji 验证 😀
+甲方：青禾工作室；乙方：远山设计室。
+双方约定于 2026 年 10 月 13 日提交报告，金额为人民币 12,345.67 元。
+交付内容包括：正文、表格、图片以及 English summary。
+“完成”应以书面验收为准；未经确认，不得视为自动接受。
+```

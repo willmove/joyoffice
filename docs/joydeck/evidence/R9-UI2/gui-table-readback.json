@@ -1,0 +1,47 @@
+{
+  "binarySha256": "facc1c4eceacfe351f6e97b43e81197bd3f5b25cdfd6ebf08bf76464fb717530",
+  "pptxSha256": "30216537c9a607763a3d2e7f9c1982343cd834f4ac51644fd868373e9048d290",
+  "rowHeights": [
+    72.0,
+    60.0
+  ],
+  "columnWidths": [
+    180.0,
+    180.0
+  ],
+  "cells": [
+    [
+      {
+        "text": "R1C1",
+        "leftMargin": 12.0,
+        "rightMargin": 7.2,
+        "anchor": "ctr"
+      },
+      {
+        "text": "R1C2",
+        "leftMargin": 12.0,
+        "rightMargin": 7.2,
+        "anchor": "ctr"
+      }
+    ],
+    [
+      {
+        "text": "R2C1",
+        "leftMargin": 7.2,
+        "rightMargin": 7.2,
+        "anchor": "ctr"
+      },
+      {
+        "text": "R2C2",
+        "leftMargin": 7.2,
+        "rightMargin": 7.2,
+        "anchor": "ctr"
+      }
+    ]
+  ],
+  "styleId": "{E0E4BF5C-8CB8-46EF-8A4C-E8E2F1C7E3F0}",
+  "rangeBorderRgb": "123456",
+  "rangeBorderPoints": 1.5,
+  "mergeSplitUndoRedoGuiPassed": true,
+  "allAssertionsPassed": true
+}

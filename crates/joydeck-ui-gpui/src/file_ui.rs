@@ -106,64 +106,7 @@ impl Viewer {
         if self.confirm_replace(document_ui::ReplaceDocument::Template(name), w, cx) {
             return;
         }
-        let result = (|| {
-            let pages: &[(&str, &str)] = match name {
-                "简洁简报" => &[
-                    ("项目简报", "主题 · 日期 · 汇报人"),
-                    ("关键结论", "结论一\n结论二\n下一步行动"),
-                    ("行动计划", "任务 · 负责人 · 完成时间"),
-                ],
-                "课程讲义" => &[
-                    ("课程主题", "学习目标与适用对象"),
-                    ("核心概念", "概念说明\n原创示例\n练习与讨论"),
-                    ("课程回顾", "重点总结\n课后练习"),
-                ],
-                "项目计划" => &[
-                    ("项目计划", "项目目标与预期成果"),
-                    ("里程碑", "启动\n实施\n验收"),
-                    ("风险与资源", "主要风险\n应对措施\n所需资源"),
-                ],
-                _ => return Err("未知模板".to_string()),
-            };
-            let mut editor =
-                joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root())?;
-            let ids = editor.session.model().slides[0]
-                .shapes
-                .iter()
-                .map(|s| s.id)
-                .collect();
-            editor.session.select(0, ids)?;
-            editor.session.execute(Command::Delete)?;
-            let mut commands = vec![Command::Content {
-                action: ContentAction::ThemeAccent {
-                    slot: 0,
-                    rgb: if name == "课程讲义" {
-                        0x268270
-                    } else {
-                        0xd95a1a
-                    },
-                },
-            }];
-            for (index, (title, body)) in pages.iter().enumerate() {
-                if index > 0 {
-                    commands.push(Command::NewSlide);
-                }
-                commands.push(Command::InsertText {
-                    x: 72.,
-                    y: 70.,
-                    text: (*title).into(),
-                });
-                commands.push(Command::InsertText {
-                    x: 72.,
-                    y: 170.,
-                    text: (*body).into(),
-                });
-            }
-            editor.session.execute(Command::Batch { commands })?;
-            let snapshot = editor.session.snapshot();
-            editor.session = Session::new(snapshot.model.as_ref().clone(), snapshot.origins, false);
-            Ok(editor)
-        })();
+        let result = template_editor(name, joydeck_shell::editor::recovery_root());
         match result {
             Ok(editor) => {
                 self.editor = Some(editor);
@@ -183,5 +126,111 @@ impl Viewer {
             Err(error) => self.message = error,
         }
         cx.notify();
+    }
+}
+
+fn template_editor(
+    name: &str,
+    root: std::path::PathBuf,
+) -> Result<joydeck_shell::editor::Editor, String> {
+    let pages: &[(&str, &str)] = match name {
+        "简洁简报" => &[
+            ("项目简报", "主题 · 日期 · 汇报人"),
+            ("关键结论", "结论一\n结论二\n下一步行动"),
+            ("行动计划", "任务 · 负责人 · 完成时间"),
+        ],
+        "课程讲义" => &[
+            ("课程主题", "学习目标与适用对象"),
+            ("核心概念", "概念说明\n原创示例\n练习与讨论"),
+            ("课程回顾", "重点总结\n课后练习"),
+        ],
+        "项目计划" => &[
+            ("项目计划", "项目目标与预期成果"),
+            ("里程碑", "启动\n实施\n验收"),
+            ("风险与资源", "主要风险\n应对措施\n所需资源"),
+        ],
+        _ => return Err("未知模板".to_string()),
+    };
+    let mut editor = joydeck_shell::editor::Editor::new(root)?;
+    let ids = editor.session.model().slides[0]
+        .shapes
+        .iter()
+        .map(|s| s.id)
+        .collect();
+    editor.session.select(0, ids)?;
+    editor.session.execute(Command::Delete)?;
+    let mut commands = vec![Command::Content {
+        action: ContentAction::ThemeAccent {
+            slot: 1,
+            rgb: if name == "课程讲义" {
+                0x268270
+            } else {
+                0xd95a1a
+            },
+        },
+    }];
+    for (index, (title, body)) in pages.iter().enumerate() {
+        if index > 0 {
+            commands.push(Command::NewSlide);
+        }
+        commands.push(Command::InsertText {
+            x: 72.,
+            y: 70.,
+            text: (*title).into(),
+        });
+        commands.push(Command::InsertText {
+            x: 72.,
+            y: 170.,
+            text: (*body).into(),
+        });
+    }
+    editor.session.execute(Command::Batch { commands })?;
+    let snapshot = editor.session.snapshot();
+    editor.session = Session::new(snapshot.model.as_ref().clone(), snapshot.origins, false);
+    Ok(editor)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::template_editor;
+    #[test]
+    fn starter_templates_create_save_and_reopen_all_three_pages() {
+        let root = std::env::temp_dir().join(format!(
+            "joydeck-template-roundtrip-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        for (name, titles) in [
+            ("简洁简报", ["项目简报", "关键结论", "行动计划"]),
+            ("课程讲义", ["课程主题", "核心概念", "课程回顾"]),
+            ("项目计划", ["项目计划", "里程碑", "风险与资源"]),
+        ] {
+            let mut editor = template_editor(name, root.join("recovery")).unwrap();
+            assert!(editor.session.dirty());
+            assert_eq!(editor.session.model().slides.len(), 3);
+            for (slide, title) in editor.session.model().slides.iter().zip(titles) {
+                assert!(
+                    slide.shapes.iter().any(|shape| {
+                        shape.text.as_ref().is_some_and(|text| text.text() == title)
+                    })
+                );
+            }
+            let path = root.join(format!("{name}.joydeck"));
+            let saved = editor.save_job(path.clone()).unwrap().run().unwrap();
+            editor.apply_saved(saved);
+            assert!(!editor.session.dirty());
+            let reopened =
+                joydeck_shell::editor::Editor::open(&path, root.join("recovery")).unwrap();
+            assert_eq!(
+                serde_json::to_value(editor.session.model()).unwrap(),
+                serde_json::to_value(reopened.session.model()).unwrap()
+            );
+            assert!(!reopened.session.dirty());
+        }
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

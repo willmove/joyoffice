@@ -1,15 +1,14 @@
 {
-  "directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final",
-  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final.zip",
-  "archive_sha256": "e729970351e0aa428c78086cc30c48c770380a69b2dc724928d53ef5ebdfacc4",
-  "source_sha256": "3bcc90324c4440921a800863d7e7e720426ed84fcc15f3353d845ab69d6ad77b",
+  "directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-final-qualified",
+  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-final-qualified.zip",
+  "archive_sha256": "ce650696244a6795be0c04b9d050d2e6ae3ff8ad36dca97ee45d919dde28dfc8",
+  "source_sha256": "3e03ea7dfc7bc1fce16a83ff02545e363b68726622f1e1e3a7cbfd557ef9a0f0",
   "target": "x86_64-pc-windows-msvc",
   "profile": "release",
   "sbom_packages": 455,
   "missing_license_texts": [
     "accesskit",
     "accesskit_consumer",
-    "accesskit_windows",
     "gpui-kit",
     "krilla",
     "lyon",
@@ -30,5 +29,10 @@
     "zune-inflate",
     "zune-jpeg"
   ],
-  "signed": false
+  "signed": false,
+  "guiBinarySha256": "7c38d969aa5491e389addd2248bcde83a8bcad9fd070bc61fa52d8ba9d9f6dd5",
+  "cliBinarySha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
+  "extractedRuntime": "D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Deck-delivery-qualified\\app",
+  "guiQualification": "Passed exact packaged executable: mixed formatting edit/Ctrl+Enter/native save with independent readback, review reopen/edit/save, persistent table/slide order, new window/close with late UIA queries, shared dark theme and recent-file reopen. Per-binary earlier PPTX/template evidence remains linked in README. Final archive includes the test-only panic baseline update; GUI and CLI executables are byte-identical to the GUI-qualified delivery archive. Native C# helpers were rebuilt from identical sources and compiler/SDK; their bytes differ and their media/printing device qualification remains open.",
+  "byteIdentityEvidence": "final-package-equivalence.json"
 }
