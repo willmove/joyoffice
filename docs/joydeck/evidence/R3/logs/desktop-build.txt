@@ -1,0 +1,2 @@
+   Compiling joydeck v0.4.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.33s

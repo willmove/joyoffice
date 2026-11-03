@@ -10,12 +10,9 @@ if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
     }
 }
 switch ($Action) {
-    build { cargo build --locked -p joydeck }
+    build { cargo xtask build joydeck }
     check { cargo xtask check joydeck }
-    run { cargo run --locked -p joydeck --bin joydeck }
-    package {
-        python scripts/joydeck/package-native.py --profile release
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    }
+    run { cargo xtask run joydeck }
+    package { cargo xtask package joydeck --release }
 }
 exit $LASTEXITCODE

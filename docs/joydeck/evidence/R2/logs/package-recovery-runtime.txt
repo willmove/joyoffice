@@ -1,0 +1,11 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R2 opened=true pages=3 elapsed_ms=67
+R2 raster page=1 width=1721 elapsed_ms=18 count=1
+R2 raster page=1 width=1721 elapsed_ms=7 count=2
+R2 saved revision=0 dirty=false path=C:\Users\willm\AppData\Local\Temp\joydeck-r2-final-kyv887ym\中文 空格路径\joydeck-0.3.0-r2-windows-x86_64-release-be894dc194\recovered-from-gui.joydeck
+R2 opened=true pages=3 elapsed_ms=26
+R2 raster page=1 width=1721 elapsed_ms=6 count=3
+R2 raster page=2 width=1721 elapsed_ms=9 count=4
+R2 raster page=1 width=1721 elapsed_ms=8 count=5
+R2 opened=true pages=3 elapsed_ms=22
+R2 raster page=1 width=1721 elapsed_ms=6 count=6

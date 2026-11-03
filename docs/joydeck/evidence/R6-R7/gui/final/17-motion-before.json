@@ -1,0 +1,11 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-final-c8rnb1cr\\中文 开发包\\joydeck-0.7.0-r6-r7-windows-x86_64-release-e5aab1f38b\\joydeck.exe",
+    "id": 2297042,
+    "title": "JoyDeck · 放映"
+  },
+  "accessibility": {
+    "focused_element": "0 区域 JoyDeck · 放映 Secondary Actions: Raise",
+    "tree": "Window: \"JoyDeck · 放映\", App: joydeck.exe.\n\t0 区域 JoyDeck · 放映 Secondary Actions: Raise\n\nThe focused UI element is 0 区域 JoyDeck · 放映 Secondary Actions: Raise."
+  }
+}

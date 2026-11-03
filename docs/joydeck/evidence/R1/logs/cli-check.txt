@@ -1,0 +1,11 @@
+   Compiling joydeck-fonts v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+    Checking joyoffice-opc v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+    Checking joydeck-metafile v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+    Checking joydeck-anim v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+    Checking joydeck-pptx v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+    Checking joydeck-format v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+    Checking joydeck-text v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+    Checking joydeck-render v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+    Checking joydeck-shell v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Checking joydeck-cli v0.2.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.55s

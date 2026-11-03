@@ -1,0 +1,14 @@
+{
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-97c23f9b0a",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格",
+  "executable": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-97c23f9b0a\\joydeck.exe",
+  "input": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-delivery-uvj90kop\\中文 空格\\参照 同一文稿.pptx",
+  "pid": 8040,
+  "stack_reserve": 1048576,
+  "verified_files": 784,
+  "exe_sha256": "898ce04dc6c67fef0354bd45d33a8bc093605ba584c14b1fdabd156519352226",
+  "cli_sha256": "2a68b10912fa2b78c3db4114e4a21e39c9d85e5b002e4c2675824b0df61f4bf6",
+  "regression_cli_identical": true,
+  "archive_sha256": "f989fe72ab22618b0769e9ed3c77470ad415b9787a95d6f508dc1bf35f691b60",
+  "source_sha256": "97c23f9b0aa069e59d796969dafeed71c5830576ba27ba888972ed8c65590e9a"
+}

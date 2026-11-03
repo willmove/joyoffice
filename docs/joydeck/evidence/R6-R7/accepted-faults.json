@@ -1,0 +1,78 @@
+{
+  "cli_sha256": "452e00a30296d148660b694226796e47c1eac3e7b44a844ad2e93976faf61090",
+  "work": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj",
+  "records": [
+    {
+      "args": [
+        "exchange",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\macro.pptx",
+        "--mode",
+        "preserve",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\macro-copy.pptx"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: write failed: macro-enabled Office source cannot be saved as ordinary PPTX; retain the original in a .joydeck project or explicitly regenerate a copy\n"
+    },
+    {
+      "args": [
+        "exchange",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\macro.pptx",
+        "--mode",
+        "regenerate",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\macro-regenerated.pptx"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"bytes\": 553626,\n  \"format\": \"pptx\",\n  \"mode\": \"regenerate\",\n  \"sourceUnchanged\": true,\n  \"warnings\": [\n    \"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\",\n    \"Explicit regeneration writes the supported public model; unknown source parts, relationships and unsupported semantics are not carried over. Keep the source or .joydeck archive.\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "exchange",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\signed.pptx",
+        "--mode",
+        "preserve",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\signed-copy.pptx"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: write failed: signed PPTX cannot be edited in place; save a .joydeck project\n"
+    },
+    {
+      "args": [
+        "exchange",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\signed.pptx",
+        "--mode",
+        "regenerate",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\signed-regenerated.pptx"
+      ],
+      "exit_code": 0,
+      "stdout": "{\n  \"bytes\": 553626,\n  \"format\": \"pptx\",\n  \"mode\": \"regenerate\",\n  \"sourceUnchanged\": true,\n  \"warnings\": [\n    \"Import/render compatibility: unsupported features may be approximated. Original package bytes are retained; preserving writeback validates the editable subset. Linked media is not fetched; fonts may be substituted.\",\n    \"Explicit regeneration writes the supported public model; unknown source parts, relationships and unsupported semantics are not carried over. Keep the source or .joydeck archive.\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "migrate",
+        "D:\\Coding\\EditorProjects\\joyoffice\\docs\\joydeck\\evidence\\software-20261031\\gui-unlocked\\accepted.joydeck",
+        "--output",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r67-faults-cnw58vcj\\unsupported-old-media.joydeck"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "JoyDeck CLI: legacy migration refused: legacy media, review or show-link state requires a later migration adapter; original retained unchanged\n"
+    }
+  ],
+  "existing_outside_root": {
+    "error": {
+      "code": "operation-failed",
+      "message": "path outside authorized root"
+    },
+    "requestId": "outside"
+  },
+  "oversize_framing_closed": true,
+  "eof_export_cancelled": true
+}

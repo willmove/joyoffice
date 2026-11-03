@@ -1,0 +1,71 @@
+{
+  "registry_added": [
+    [
+      "color",
+      "0.3.3",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "crossbeam-channel",
+      "0.5.17",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "fearless_simd",
+      "0.4.1",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "glifo",
+      "0.3.0",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "guillotiere",
+      "0.7.0",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "ordered-channel",
+      "1.2.0",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "peniko",
+      "0.6.1",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "thread_local",
+      "1.1.10",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "vello_common",
+      "0.2.0",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "vello_cpu",
+      "0.2.0",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ]
+  ],
+  "registry_removed": [
+    [
+      "pdf-writer",
+      "0.12.1",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ],
+    [
+      "svg2pdf",
+      "0.13.0",
+      "registry+https://github.com/rust-lang/crates.io-index"
+    ]
+  ],
+  "existing_registry_checksum_changes": [],
+  "workspace_version": "0.1.0 unchanged",
+  "deck_app_version": "0.8.0",
+  "gpui_kit": "0.8.1",
+  "gpui_pre": "0.3.10"
+}

@@ -1,0 +1,10 @@
+   Compiling joydeck-anim v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-pptx v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-legacy v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+   Compiling joydeck-render v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-pdf v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck-cli v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+   Compiling joydeck v0.7.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.09s

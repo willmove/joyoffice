@@ -1,5 +1,7 @@
 # JoyOffice Monorepo 迁移结果
 
+2026-11-03 R9 更新：JoyDeck 已按用户要求切换至 DeckCraft/GPUI 0.8.0 实现，当前入口、回归与未完成项见 [R9 交接](JOYDECK-R9-HANDOFF.md)。下文保留此前 Monorepo/M0–M14 的历史含义，不能作为新实现的验收结果。
+
 2026-10-31。代码整合和本机验收已完成；远端 CI 与最终主分支合入状态以 [PR #115](https://github.com/willmove/joyoffice/pull/115) 为准。**从 main 检出本文件后直接开展产品开发，不要重新导入旧 JoyDeck。**
 
 ## 新的开发入口

@@ -1,0 +1,11 @@
+JoyDeck window opened · GPUI Kit 0.8.1 / pre 0.3.10
+R4 scene {"builds":1,"hits":0,"misses":3,"cpu_tiles":0,"backdrop_rasters":1,"native_paths":0,"glyphs":0,"cache_bytes":10515968,"build_micros":5101}
+R4/R5 checkpoint revision=0
+R4/R5 pointer position=Point { x: 837px, y: 382px } bounds=Bounds { origin: Point { x: 297.5px, y: 178px }, size: Size { 1081px × 608px } } point=(479.161195860095,181.1842149313427) scale=1.1259259
+R6/R7 raster page=1 width=2162 elapsed_ms=4 count=1
+R3 input=commit utf16=7 marked=false
+R4/R5 command=set-text revision=1 dirty=true
+R6/R7 raster page=1 width=2162 elapsed_ms=7 count=2
+R4/R5 checkpoint revision=1
+R4 scene {"builds":2,"hits":0,"misses":6,"cpu_tiles":0,"backdrop_rasters":2,"native_paths":2,"glyphs":7,"cache_bytes":21048568,"build_micros":4561}
+R4/R5 saved revision=1 dirty=false path=C:\Users\willm\AppData\Local\Temp\joydeck-r8-title-check.joydeck

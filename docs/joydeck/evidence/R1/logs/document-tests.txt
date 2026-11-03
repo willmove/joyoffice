@@ -1,0 +1,31 @@
+   Compiling joydeck-metafile v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-anim v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-pptx v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-format v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-render v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-shell v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.29s
+     Running unittests src\lib.rs (target\debug\deps\joydeck_shell-4f3f43cac2697798.exe)
+
+running 2 tests
+test tests::navigation_and_zoom_remain_bounded_for_untrusted_events ... ok
+test tests::malformed_preview_is_rejected_instead_of_entering_layout ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\documents.rs (target\debug\deps\documents-179607eb1b49d814.exe)
+
+running 5 tests
+test malformed_packages_and_future_native_versions_fail_recoverably ... ok
+test budgets_crc_and_cancellation_are_enforced ... ok
+test public_formats_are_sniffed_from_bytes_and_original_is_preserved ... ok
+test native_and_standard_pptx_do_not_depend_on_private_sidecars ... ok
+test independent_pptx_renders_geometry_picture_table_and_same_thumbnail_content ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+   Doc-tests joydeck_shell
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

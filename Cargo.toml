@@ -19,15 +19,6 @@ members = [
     "apps/joysheet-cli",
     "tools/joysheet",
     "tools/xtask",
-    "apps/joydeck",
-    "apps/joydeck-cli",
-    "crates/joydeck-model",
-    "crates/joydeck-engine",
-    "crates/joydeck-formats",
-    "crates/joydeck-scene",
-    "crates/joydeck-export",
-    "crates/joydeck-platform",
-    "crates/joydeck-shell",
     "apps/joyword-cli",
     "apps/joyword",
     "crates/joyoffice-cfb",
@@ -50,6 +41,23 @@ members = [
     "crates/joyword-rtf",
     "crates/joyword-shell",
     "crates/joyword-textfmt",
+    "crates/joydeck-engine",
+    "crates/joydeck-pdf",
+    "crates/joydeck-legacy",
+    "apps/joydeck",
+    "apps/joydeck-cli",
+    "crates/joydeck-shell",
+    "crates/joydeck-metafile",
+    "crates/joydeck-fonts",
+    "crates/joydeck-text",
+    "crates/joydeck-anim",
+    "crates/joydeck-render",
+    "crates/joydeck-format",
+    "crates/joydeck-pptx",
+    "crates/joydeck-color",
+    "crates/joydeck-geom",
+    "crates/joydeck-model",
+    "crates/joydeck-ui-gpui",
 ]
 default-members = [
     "crates/joysheet-app",
@@ -66,14 +74,6 @@ default-members = [
     "crates/joysheet-protocol",
     "crates/joysheet-xlsx",
     "apps/joysheet-cli",
-    "apps/joydeck-cli",
-    "crates/joydeck-model",
-    "crates/joydeck-engine",
-    "crates/joydeck-formats",
-    "crates/joydeck-scene",
-    "crates/joydeck-export",
-    "crates/joydeck-platform",
-    "crates/joydeck-shell",
     "apps/joyword-cli",
     "crates/joyoffice-cfb",
     "crates/joyoffice-drawingml",
@@ -94,6 +94,11 @@ default-members = [
     "crates/joyword-rtf",
     "crates/joyword-shell",
     "crates/joyword-textfmt",
+    "crates/joydeck-shell",
+    "crates/joydeck-color",
+    "crates/joydeck-geom",
+    "crates/joydeck-model",
+    "apps/joydeck-cli",
 ]
 resolver = "3"
 
@@ -130,10 +135,6 @@ arboard = "=3.7.0"
 url = "=2.5.8"
 joydeck-model = { path = "crates/joydeck-model" }
 joydeck-engine = { path = "crates/joydeck-engine" }
-joydeck-formats = { path = "crates/joydeck-formats" }
-joydeck-scene = { path = "crates/joydeck-scene" }
-joydeck-export = { path = "crates/joydeck-export" }
-joydeck-platform = { path = "crates/joydeck-platform" }
 joydeck-shell = { path = "crates/joydeck-shell" }
 serde = { version = "=1.0.228", features = ["derive", "rc"] }
 serde_json = "=1.0.154"
@@ -195,6 +196,22 @@ winsafe = { version = "=0.0.19", features = ["kernel"] }
 # Already in the lock via tempfile. Direct use is the safe renameat2 /
 # renamex_np wrapper (RENAME_EXCHANGE / RENAME_SWAP). No other features.
 rustix = { version = "=1.1.5", features = ["std", "fs"] }
+
+joydeck-pdf = { path = "crates/joydeck-pdf" }
+joydeck-legacy = { path = "crates/joydeck-legacy" }
+joydeck-color = { path = "crates/joydeck-color" }
+joydeck-geom = { path = "crates/joydeck-geom" }
+joydeck-ui-gpui = { path = "crates/joydeck-ui-gpui" }
+joydeck-metafile = { path = "crates/joydeck-metafile" }
+joydeck-fonts = { path = "crates/joydeck-fonts" }
+joydeck-text = { path = "crates/joydeck-text" }
+joydeck-anim = { path = "crates/joydeck-anim" }
+joydeck-render = { path = "crates/joydeck-render" }
+joydeck-format = { path = "crates/joydeck-format" }
+joydeck-pptx = { path = "crates/joydeck-pptx" }
+unicode-bidi = "=0.3.18"
+vello_cpu = "=0.2.0"
+vello_common = { version = "=0.2.0", default-features = false }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -1,0 +1,7 @@
++ cargo build --locked -p joydeck -p joydeck-anim -p joydeck-cli -p joydeck-color -p joydeck-engine -p joydeck-fonts -p joydeck-format -p joydeck-geom -p joydeck-metafile -p joydeck-model -p joydeck-pptx -p joydeck-render -p joydeck-shell -p joydeck-text -p joydeck-ui-gpui -p joydeck-xtask -p joyoffice-opc -p joyoffice-ui
+   Compiling joydeck-pptx v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-shell v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.3.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck-cli v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+   Compiling joydeck v0.3.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.20s

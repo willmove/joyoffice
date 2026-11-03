@@ -1,5 +1,7 @@
 # Gate hardening report (T111 follow-up)
 
+2026-11-03 R9：新 JoyDeck 的分层、逐文件 IO 与精确断言条目见 [R9 门禁审阅](docs/joyoffice/JOYDECK-R9-GATE-AUDIT.md)。旧报告保留历史原义，不能用于当前产品通过声明。
+
 Branch `chore/gate-hardening-20261022`, base `main` at `dd5d0dd`. Scope: `scripts/` only.
 No file under `crates/`, `apps/`, `docs/`, `.github/`, `tests/fixtures/` or `experiments/`
 was touched. No `cargo` command was run (five sibling worktrees share `CARGO_TARGET_DIR`).

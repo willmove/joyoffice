@@ -1,0 +1,17 @@
+    Checking joydeck-engine v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+    Checking joydeck-shell v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Checking joydeck-ui-gpui v0.7.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+error[E0600]: cannot apply unary operator `!` to type `std::option::Option<(i8, i8)>`
+   --> crates\joydeck-ui-gpui\src\scene_view.rs:78:25
+    |
+ 78 |             .filter(|d| !d.resize && !d.marquee)
+    |                         ^^^^^^^^^ cannot apply unary operator `!`
+    |
+note: `std::option::Option<(i8, i8)>` does not implement `std::ops::Not`
+   --> C:\Users\willm\.rustup\toolchains\1.98.1-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\core\src\option.rs:598:1
+    |
+598 | pub enum Option<T> {
+    | ^^^^^^^^^^^^^^^^^^ `std::option::Option<(i8, i8)>` is defined in another crate
+
+For more information about this error, try `rustc --explain E0600`.
+error: could not compile `joydeck-ui-gpui` (lib) due to 1 previous error

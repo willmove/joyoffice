@@ -1,0 +1,12 @@
+{
+  "independent_reader": "python-pptx 1.0.2",
+  "picture_crop_left": 0.12,
+  "title": "R5 桌面图表",
+  "series0_values": [
+    10.0,
+    45.0,
+    14.0,
+    24.0
+  ],
+  "workbook_B3": 45
+}

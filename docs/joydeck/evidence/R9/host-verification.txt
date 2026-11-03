@@ -1,0 +1,1 @@
+{"passed": true, "extracted": "C:\\Users\\willm\\AppData\\Local\\Temp\\joyoffice-r9-package-pqy90ifl\\中文 空格\\joydeck-0.8.0-r9-windows-x86_64-release-dd8add7cf4", "sha256_entries_verified": 1753, "cli_sha256": "8c1b2edfe691f832e63d5b86aad637edc8630d082b8bf5a2be584d83ff5563a8", "gui_sha256": "876c0a08c520eebd196830b11669e6dd95200cde58a32f4af6386c69dfd70e3d"}

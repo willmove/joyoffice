@@ -1,0 +1,2201 @@
+2026-11-03T03:02:57.5950411Z Current runner version: '2.338.2'
+2026-11-03T03:02:57.5978204Z ##[group]Runner Image Provisioner
+2026-11-03T03:02:57.5979313Z Hosted Compute Agent
+2026-11-03T03:02:57.5980067Z Version: 20261021.618
+2026-11-03T03:02:57.5980844Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-11-03T03:02:57.5981890Z Build Date: 2026-10-21T00:45:21Z
+2026-11-03T03:02:57.5982769Z Worker ID: {fd6bbefc-2ec5-41f1-8ebe-36d9acfb3adb}
+2026-11-03T03:02:57.5983652Z Region: centralus
+2026-11-03T03:02:57.5984474Z Cloud: Azure
+2026-11-03T03:02:57.5985152Z ##[endgroup]
+2026-11-03T03:02:57.5987021Z ##[group]Operating System
+2026-11-03T03:02:57.5987869Z Ubuntu
+2026-11-03T03:02:57.5988721Z 24.04.5
+2026-11-03T03:02:57.5989502Z LTS
+2026-11-03T03:02:57.5990143Z ##[endgroup]
+2026-11-03T03:02:57.5990880Z ##[group]Runner Image
+2026-11-03T03:02:57.5991700Z Image: ubuntu-24.04
+2026-11-03T03:02:57.5992493Z Version: 20261025.353.1
+2026-11-03T03:02:57.5994125Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-03T03:02:57.5996107Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-11-03T03:02:57.5997335Z ##[endgroup]
+2026-11-03T03:02:57.5999252Z ##[group]GITHUB_TOKEN Permissions
+2026-11-03T03:02:57.6001320Z Contents: read
+2026-11-03T03:02:57.6002042Z Metadata: read
+2026-11-03T03:02:57.6002862Z ##[endgroup]
+2026-11-03T03:02:57.6005178Z Secret source: Actions
+2026-11-03T03:02:57.6006471Z Cache mode: write
+2026-11-03T03:02:57.6007327Z Prepare workflow directory
+2026-11-03T03:02:57.6312446Z Prepare all required actions
+2026-11-03T03:02:57.6350859Z Getting action download info
+2026-11-03T03:02:57.8569832Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-03T03:02:58.0482016Z Download action repository 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97' (SHA:5fda3b95a4ea91299a34e894583c3862153e4b97)
+2026-11-03T03:02:58.4751809Z Complete job name: JoyDeck headless
+2026-11-03T03:02:58.5466797Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-11-03T03:02:58.5467692Z with:
+2026-11-03T03:02:58.5468311Z   repository: willmove/joyoffice
+2026-11-03T03:02:58.5471668Z   token: ***
+2026-11-03T03:02:58.5472067Z   ssh-strict: true
+2026-11-03T03:02:58.5472459Z   ssh-user: git
+2026-11-03T03:02:58.5472852Z   persist-credentials: true
+2026-11-03T03:02:58.5473294Z   clean: true
+2026-11-03T03:02:58.5473705Z   sparse-checkout-cone-mode: true
+2026-11-03T03:02:58.5474166Z   fetch-depth: 1
+2026-11-03T03:02:58.5474552Z   fetch-tags: false
+2026-11-03T03:02:58.5474947Z   show-progress: true
+2026-11-03T03:02:58.5475342Z   lfs: false
+2026-11-03T03:02:58.5475721Z   submodules: false
+2026-11-03T03:02:58.5476127Z   set-safe-directory: true
+2026-11-03T03:02:58.5476566Z   allow-unsafe-pr-checkout: false
+2026-11-03T03:02:58.5477202Z ##[endgroup]
+2026-11-03T03:02:58.7366127Z Syncing repository: willmove/joyoffice
+2026-11-03T03:02:58.7367667Z ##[group]Getting Git version info
+2026-11-03T03:02:58.7368649Z Working directory is '/home/runner/work/joyoffice/joyoffice'
+2026-11-03T03:02:58.7369556Z [command]/usr/bin/git version
+2026-11-03T03:02:58.7414579Z git version 2.56.0
+2026-11-03T03:02:58.7434791Z ##[endgroup]
+2026-11-03T03:02:58.7443780Z Temporarily overriding HOME='/home/runner/work/_temp/f0bb79d5-864b-4229-9078-6f7050e867cc' before making global git config changes
+2026-11-03T03:02:58.7445835Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T03:02:58.7448901Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/joyoffice/joyoffice
+2026-11-03T03:02:58.7490300Z Deleting the contents of '/home/runner/work/joyoffice/joyoffice'
+2026-11-03T03:02:58.7493097Z ##[group]Determining repository object format
+2026-11-03T03:02:58.7494497Z ##[endgroup]
+2026-11-03T03:02:58.7495524Z ##[group]Initializing the repository
+2026-11-03T03:02:58.7498878Z [command]/usr/bin/git init /home/runner/work/joyoffice/joyoffice
+2026-11-03T03:02:58.7584170Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-03T03:02:58.7590544Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-03T03:02:58.7592484Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-03T03:02:58.7593784Z hint: call:
+2026-11-03T03:02:58.7594461Z hint:
+2026-11-03T03:02:58.7595322Z hint: 	git config --global init.defaultBranch <name>
+2026-11-03T03:02:58.7596349Z hint:
+2026-11-03T03:02:58.7597303Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-03T03:02:58.7600410Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-03T03:02:58.7601556Z hint:
+2026-11-03T03:02:58.7602143Z hint: 	git branch -m <name>
+2026-11-03T03:02:58.7602815Z hint:
+2026-11-03T03:02:58.7603707Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-03T03:02:58.7605169Z Initialized empty Git repository in /home/runner/work/joyoffice/joyoffice/.git/
+2026-11-03T03:02:58.7609257Z [command]/usr/bin/git remote add origin https://github.com/willmove/joyoffice
+2026-11-03T03:02:58.7649847Z ##[endgroup]
+2026-11-03T03:02:58.7650950Z ##[group]Disabling automatic garbage collection
+2026-11-03T03:02:58.7652658Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-03T03:02:58.7683707Z ##[endgroup]
+2026-11-03T03:02:58.7685382Z ##[group]Setting up auth
+2026-11-03T03:02:58.7686357Z Removing SSH command configuration
+2026-11-03T03:02:58.7688788Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T03:02:58.7723042Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T03:02:58.8057785Z Removing HTTP extra header
+2026-11-03T03:02:58.8063040Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T03:02:58.8112771Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T03:02:58.8315574Z Removing includeIf entries pointing to credentials config files
+2026-11-03T03:02:58.8320855Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T03:02:58.8357337Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T03:02:58.8567387Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-03T03:02:58.8986357Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path /home/runner/work/_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:02:58.9024873Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:02:58.9060929Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:02:58.9096966Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:02:58.9134309Z ##[endgroup]
+2026-11-03T03:02:58.9135438Z ##[group]Fetching the repository
+2026-11-03T03:02:58.9141172Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +57ba9d22716c6e8573d40a9a3382075313ea163c:refs/remotes/pull/120/merge
+2026-11-03T03:03:03.3819941Z From https://github.com/willmove/joyoffice
+2026-11-03T03:03:03.3821799Z  * [new ref]         57ba9d22716c6e8573d40a9a3382075313ea163c -> pull/120/merge
+2026-11-03T03:03:03.3825472Z ##[endgroup]
+2026-11-03T03:03:03.3826366Z ##[group]Determining the checkout info
+2026-11-03T03:03:03.3827547Z ##[endgroup]
+2026-11-03T03:03:03.3828619Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T03:03:03.3880903Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T03:03:03.3916243Z ##[group]Checking out the ref
+2026-11-03T03:03:03.3919504Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/120/merge
+2026-11-03T03:03:03.9131401Z Note: switching to 'refs/remotes/pull/120/merge'.
+2026-11-03T03:03:03.9131922Z
+2026-11-03T03:03:03.9132234Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-03T03:03:03.9132865Z changes and commit them, and you can discard any commits you make in this
+2026-11-03T03:03:03.9133500Z state without impacting any branches by switching back to a branch.
+2026-11-03T03:03:03.9133988Z
+2026-11-03T03:03:03.9134286Z If you want to create a new branch to retain commits you create, you may
+2026-11-03T03:03:03.9134892Z do so (now or later) by using -c with the switch command. Example:
+2026-11-03T03:03:03.9135261Z
+2026-11-03T03:03:03.9135420Z   git switch -c <new-branch-name>
+2026-11-03T03:03:03.9135674Z
+2026-11-03T03:03:03.9135845Z Or undo this operation with:
+2026-11-03T03:03:03.9136075Z
+2026-11-03T03:03:03.9136216Z   git switch -
+2026-11-03T03:03:03.9136422Z
+2026-11-03T03:03:03.9136730Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-03T03:03:03.9137183Z
+2026-11-03T03:03:03.9137654Z HEAD is now at 57ba9d2 Merge b9e3af2e599dc3e31cd44f2c08a26362ed44ff98 into a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d
+2026-11-03T03:03:03.9183480Z ##[endgroup]
+2026-11-03T03:03:03.9232595Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T03:03:03.9263433Z 57ba9d22716c6e8573d40a9a3382075313ea163c
+2026-11-03T03:03:04.0043182Z ##[group]Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+2026-11-03T03:03:04.0043573Z with:
+2026-11-03T03:03:04.0043799Z   python-version: 3.12
+2026-11-03T03:03:04.0044025Z   check-latest: false
+2026-11-03T03:03:04.0045920Z   token: ***
+2026-11-03T03:03:04.0046140Z   update-environment: true
+2026-11-03T03:03:04.0046380Z   allow-prereleases: false
+2026-11-03T03:03:04.0046636Z   freethreaded: false
+2026-11-03T03:03:04.0046854Z ##[endgroup]
+2026-11-03T03:03:04.1286395Z ##[group]Installed versions
+2026-11-03T03:03:04.1345712Z Successfully set up CPython (3.12.15)
+2026-11-03T03:03:04.1346275Z ##[endgroup]
+2026-11-03T03:03:04.1662853Z ##[group]Run rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+2026-11-03T03:03:04.1663474Z rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+2026-11-03T03:03:04.1699063Z shell: /usr/bin/bash -e {0}
+2026-11-03T03:03:04.1699301Z env:
+2026-11-03T03:03:04.1699537Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:04.1699917Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T03:03:04.1700263Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:04.1700568Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:04.1700879Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:04.1701222Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T03:03:04.1701477Z ##[endgroup]
+2026-11-03T03:03:04.2778762Z info: syncing channel updates for 1.98.1-x86_64-unknown-linux-gnu
+2026-11-03T03:03:04.7617078Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+2026-11-03T03:03:04.7690828Z info: downloading 5 components
+2026-11-03T03:03:12.4022492Z
+2026-11-03T03:03:12.4091246Z   1.98.1-x86_64-unknown-linux-gnu installed - rustc 1.98.1 (48a229cea 2026-09-01)
+2026-11-03T03:03:12.4091569Z
+2026-11-03T03:03:12.4263381Z ##[group]Run cargo fetch --locked
+2026-11-03T03:03:12.4263793Z cargo fetch --locked
+2026-11-03T03:03:12.4281990Z shell: /usr/bin/bash -e {0}
+2026-11-03T03:03:12.4282199Z env:
+2026-11-03T03:03:12.4282421Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:12.4282767Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T03:03:12.4283099Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:12.4283402Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:12.4283689Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:12.4283980Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T03:03:12.4284233Z ##[endgroup]
+2026-11-03T03:03:12.4868951Z     Updating crates.io index
+2026-11-03T03:03:13.9070386Z  Downloading crates ...
+2026-11-03T03:03:13.9807944Z   Downloaded cfg_aliases v0.2.2
+2026-11-03T03:03:13.9896394Z   Downloaded sha2 v0.10.9
+2026-11-03T03:03:13.9917590Z   Downloaded termcolor v1.4.1
+2026-11-03T03:03:14.0100593Z   Downloaded bit-set v0.10.0
+2026-11-03T03:03:14.0113505Z   Downloaded glutin_wgl_sys v0.6.1
+2026-11-03T03:03:14.0119934Z   Downloaded rustc-demangle v0.1.28
+2026-11-03T03:03:14.0133603Z   Downloaded raw-window-metal v1.1.0
+2026-11-03T03:03:14.0142360Z   Downloaded windows-link v0.1.3
+2026-11-03T03:03:14.0243064Z   Downloaded windows-collections v0.2.0
+2026-11-03T03:03:14.0291793Z   Downloaded unicode-width v0.2.2
+2026-11-03T03:03:14.0420520Z   Downloaded objc2-metal v0.3.2
+2026-11-03T03:03:14.0512212Z   Downloaded objc2 v0.6.5
+2026-11-03T03:03:14.0607798Z   Downloaded spin v0.9.9
+2026-11-03T03:03:14.0626811Z   Downloaded ordered-float v5.5.0
+2026-11-03T03:03:14.0643069Z   Downloaded objc2-core-foundation v0.3.2
+2026-11-03T03:03:14.0715837Z   Downloaded wasm-bindgen-shared v0.2.129
+2026-11-03T03:03:14.0726817Z   Downloaded itoa v1.0.18
+2026-11-03T03:03:14.0740823Z   Downloaded wayland-sys v0.31.11
+2026-11-03T03:03:14.0754056Z   Downloaded rand v0.8.8
+2026-11-03T03:03:14.0784464Z   Downloaded windows-threading v0.1.0
+2026-11-03T03:03:14.0793800Z   Downloaded uuid v1.28.0
+2026-11-03T03:03:14.0818504Z   Downloaded wgpu-core-deps-wasm v30.0.1
+2026-11-03T03:03:14.0827051Z   Downloaded document-features v0.2.12
+2026-11-03T03:03:14.0842890Z   Downloaded objc v0.2.7
+2026-11-03T03:03:14.0868287Z   Downloaded objc_id v0.1.1
+2026-11-03T03:03:14.0876453Z   Downloaded renderdoc-sys v1.1.0
+2026-11-03T03:03:14.0886187Z   Downloaded gpui-pre-collections v0.3.10
+2026-11-03T03:03:14.0894971Z   Downloaded raw-window-handle v0.6.2
+2026-11-03T03:03:14.0917843Z   Downloaded iana-time-zone-haiku v0.1.2
+2026-11-03T03:03:14.0925750Z   Downloaded futures-sink v0.3.34
+2026-11-03T03:03:14.0932109Z   Downloaded windows-interface v0.59.3
+2026-11-03T03:03:14.0940077Z   Downloaded version_check v0.9.5
+2026-11-03T03:03:14.0949361Z   Downloaded xcb v1.7.1
+2026-11-03T03:03:14.1030330Z   Downloaded windows_x86_64_gnullvm v0.52.6
+2026-11-03T03:03:14.1112622Z   Downloaded objc-foundation v0.1.1
+2026-11-03T03:03:14.1124597Z   Downloaded core-graphics v0.23.2
+2026-11-03T03:03:14.1149074Z   Downloaded objc2-core-graphics v0.3.2
+2026-11-03T03:03:14.1194914Z   Downloaded core-graphics-helmer-fork v0.24.0
+2026-11-03T03:03:14.1212259Z   Downloaded presser v0.3.1
+2026-11-03T03:03:14.1226569Z   Downloaded futures-core v0.3.34
+2026-11-03T03:03:14.1239591Z   Downloaded crypto-common v0.1.7
+2026-11-03T03:03:14.1247213Z   Downloaded font-types v0.11.3
+2026-11-03T03:03:14.1263271Z   Downloaded allocator-api2 v0.2.21
+2026-11-03T03:03:14.1285004Z   Downloaded gpui-pre-util v0.3.10
+2026-11-03T03:03:14.1293576Z   Downloaded gpui-pre-refineable v0.3.10
+2026-11-03T03:03:14.1300647Z   Downloaded digest v0.10.7
+2026-11-03T03:03:14.1316990Z   Downloaded yeslogic-fontconfig-sys v6.0.1
+2026-11-03T03:03:14.1325388Z   Downloaded addr2line v0.25.1
+2026-11-03T03:03:14.1345097Z   Downloaded jni-sys v0.4.1
+2026-11-03T03:03:14.1356425Z   Downloaded wgpu-core-deps-windows-linux-android v30.0.1
+2026-11-03T03:03:14.1365138Z   Downloaded malloc_buf v0.0.6
+2026-11-03T03:03:14.1371148Z   Downloaded windows-implement v0.57.0
+2026-11-03T03:03:14.1381538Z   Downloaded autocfg v1.5.1
+2026-11-03T03:03:14.1397699Z   Downloaded block2 v0.6.2
+2026-11-03T03:03:14.1416112Z   Downloaded gl_generator v0.14.0
+2026-11-03T03:03:14.1433264Z   Downloaded once_cell v1.21.4
+2026-11-03T03:03:14.1456370Z   Downloaded jobserver v0.1.35
+2026-11-03T03:03:14.1471886Z   Downloaded wgpu-core-deps-apple v30.0.1
+2026-11-03T03:03:14.1479560Z   Downloaded windows-interface v0.57.0
+2026-11-03T03:03:14.1486319Z   Downloaded smallvec v1.16.3
+2026-11-03T03:03:14.1498901Z   Downloaded windows-core v0.62.2
+2026-11-03T03:03:14.1523919Z   Downloaded zmij v1.0.23
+2026-11-03T03:03:14.1539610Z   Downloaded log v0.4.34
+2026-11-03T03:03:14.1562445Z   Downloaded windows-future v0.2.1
+2026-11-03T03:03:14.1574905Z   Downloaded proc-macro2 v1.0.107
+2026-11-03T03:03:14.1600776Z   Downloaded r-efi v6.0.0
+2026-11-03T03:03:14.1643111Z   Downloaded float-ord v0.3.2
+2026-11-03T03:03:14.1652696Z   Downloaded windows-result v0.3.4
+2026-11-03T03:03:14.1665009Z   Downloaded objc_exception v0.1.2
+2026-11-03T03:03:14.1670714Z   Downloaded windows-strings v0.4.2
+2026-11-03T03:03:14.1682365Z   Downloaded windows-result v0.1.2
+2026-11-03T03:03:14.1692082Z   Downloaded dispatch v0.2.0
+2026-11-03T03:03:14.1701516Z   Downloaded screencapturekit v0.2.8
+2026-11-03T03:03:14.1713257Z   Downloaded rand_chacha v0.3.1
+2026-11-03T03:03:14.1721603Z   Downloaded flume v0.12.0
+2026-11-03T03:03:14.1750241Z   Downloaded thiserror-impl v1.0.69
+2026-11-03T03:03:14.1761618Z   Downloaded euclid v0.22.14
+2026-11-03T03:03:14.1789359Z   Downloaded dispatch2 v0.3.1
+2026-11-03T03:03:14.1809796Z   Downloaded slotmap v1.1.1
+2026-11-03T03:03:14.1827627Z   Downloaded wgpu-core-deps-emscripten v30.0.1
+2026-11-03T03:03:14.1835323Z   Downloaded gpui-pre-shared-string v0.3.10
+2026-11-03T03:03:14.1841255Z   Downloaded windows-future v0.3.2
+2026-11-03T03:03:14.1854631Z   Downloaded objc2-quartz-core v0.3.2
+2026-11-03T03:03:14.1881936Z   Downloaded objc2-encode v4.1.0
+2026-11-03T03:03:14.1891010Z   Downloaded range-alloc v0.1.5
+2026-11-03T03:03:14.1900801Z   Downloaded windows-core v0.61.2
+2026-11-03T03:03:14.1926821Z   Downloaded rand_core v0.6.4
+2026-11-03T03:03:14.1938370Z   Downloaded core-foundation v0.9.4
+2026-11-03T03:03:14.1956071Z   Downloaded unicode-segmentation v1.13.3
+2026-11-03T03:03:14.1980628Z   Downloaded x11 v2.21.0
+2026-11-03T03:03:14.2006854Z   Downloaded screencapturekit-sys v0.2.8
+2026-11-03T03:03:14.2023817Z   Downloaded khronos-egl v6.0.0
+2026-11-03T03:03:14.2037840Z   Downloaded which v8.0.6
+2026-11-03T03:03:14.2054670Z   Downloaded bitflags v1.3.2
+2026-11-03T03:03:14.2080580Z   Downloaded gpu-allocator v0.28.0
+2026-11-03T03:03:14.2121009Z   Downloaded ntapi v0.4.3
+2026-11-03T03:03:14.2161254Z   Downloaded self_cell v1.3.0
+2026-11-03T03:03:14.2169193Z   Downloaded portable-atomic-util v0.2.8
+2026-11-03T03:03:14.2185510Z   Downloaded windows-core v0.57.0
+2026-11-03T03:03:14.2220132Z   Downloaded wasm-bindgen-macro-support v0.2.129
+2026-11-03T03:03:14.2241108Z   Downloaded hashbrown v0.17.1
+2026-11-03T03:03:14.2287465Z   Downloaded zip v9.0.0
+2026-11-03T03:03:14.2342883Z   Downloaded chrono v0.4.45
+2026-11-03T03:03:14.2404576Z   Downloaded zerofrom v0.1.8
+2026-11-03T03:03:14.2412248Z   Downloaded syn v2.0.119
+2026-11-03T03:03:14.2506265Z   Downloaded syn v3.0.9
+2026-11-03T03:03:14.2610488Z   Downloaded objc-sys v0.3.5
+2026-11-03T03:03:14.2627380Z   Downloaded xml-rs v0.8.29
+2026-11-03T03:03:14.2655205Z   Downloaded xmp-writer v0.3.3
+2026-11-03T03:03:14.2670812Z   Downloaded jni-sys-macros v0.4.1
+2026-11-03T03:03:14.2676633Z   Downloaded libc v0.2.186
+2026-11-03T03:03:14.3039048Z   Downloaded sysinfo v0.31.4
+2026-11-03T03:03:14.3150143Z   Downloaded glow v0.17.0
+2026-11-03T03:03:14.3223961Z   Downloaded wayland-scanner v0.31.11
+2026-11-03T03:03:14.3252346Z   Downloaded num-iter v0.1.46
+2026-11-03T03:03:14.3263936Z   Downloaded is-docker v0.2.0
+2026-11-03T03:03:14.3282104Z   Downloaded block v0.1.6
+2026-11-03T03:03:14.3289386Z   Downloaded windows-threading v0.2.1
+2026-11-03T03:03:14.3301511Z   Downloaded foreign-types v0.5.0
+2026-11-03T03:03:14.3310504Z   Downloaded event-listener-strategy v0.5.4
+2026-11-03T03:03:14.3324322Z   Downloaded portable-atomic v1.15.0
+2026-11-03T03:03:14.3397341Z   Downloaded core-graphics-types v0.1.3
+2026-11-03T03:03:14.3405288Z   Downloaded windows-result v0.4.1
+2026-11-03T03:03:14.3418767Z   Downloaded equivalent v1.0.2
+2026-11-03T03:03:14.3428204Z   Downloaded web-time v1.1.0
+2026-11-03T03:03:14.3448615Z   Downloaded bit-vec v0.9.1
+2026-11-03T03:03:14.3464460Z   Downloaded swash v0.2.10
+2026-11-03T03:03:14.3530205Z   Downloaded cocoa v0.25.0
+2026-11-03T03:03:14.3547591Z   Downloaded generic-array v0.14.7
+2026-11-03T03:03:14.3563900Z   Downloaded accesskit_windows v0.34.0
+2026-11-03T03:03:14.3592924Z   Downloaded ndk-sys v0.6.0+11769913
+2026-11-03T03:03:14.3670908Z   Downloaded litrs v1.0.1
+2026-11-03T03:03:14.3703085Z   Downloaded windows-targets v0.52.6
+2026-11-03T03:03:14.3713329Z   Downloaded winnow v0.7.15
+2026-11-03T03:03:14.3833275Z   Downloaded jni-sys v0.3.1
+2026-11-03T03:03:14.3845693Z   Downloaded toml_write v0.1.2
+2026-11-03T03:03:14.3861040Z   Downloaded windows_x86_64_gnullvm v0.48.5
+2026-11-03T03:03:14.3943046Z   Downloaded windows-implement v0.58.0
+2026-11-03T03:03:14.3950200Z   Downloaded ctor v1.0.13
+2026-11-03T03:03:14.3972686Z   Downloaded unicode-linebreak v0.1.5
+2026-11-03T03:03:14.3983731Z   Downloaded futures-task v0.3.34
+2026-11-03T03:03:14.3997609Z   Downloaded windows-implement v0.60.2
+2026-11-03T03:03:14.4007111Z   Downloaded gpui-pre-derive-refineable v0.3.10
+2026-11-03T03:03:14.4013802Z   Downloaded windows-link v0.2.1
+2026-11-03T03:03:14.4021859Z   Downloaded objc2-io-surface v0.3.2
+2026-11-03T03:03:14.4034243Z   Downloaded hashbrown v0.16.1
+2026-11-03T03:03:14.4080605Z   Downloaded kqueue-sys v1.1.2
+2026-11-03T03:03:14.4093730Z   Downloaded pin-project-lite v0.2.17
+2026-11-03T03:03:14.4148307Z   Downloaded zeno v0.3.3
+2026-11-03T03:03:14.4168296Z   Downloaded block-buffer v0.10.4
+2026-11-03T03:03:14.4176597Z   Downloaded adler2 v2.0.1
+2026-11-03T03:03:14.4187208Z   Downloaded markup5ever_rcdom v0.3.0
+2026-11-03T03:03:14.4204465Z   Downloaded windows_aarch64_msvc v0.52.6
+2026-11-03T03:03:14.4317323Z   Downloaded mime_guess v2.0.5
+2026-11-03T03:03:14.4332139Z   Downloaded foreign-types-shared v0.3.1
+2026-11-03T03:03:14.4337797Z   Downloaded thiserror-impl v2.0.21
+2026-11-03T03:03:14.4350607Z   Downloaded rand_core v0.10.1
+2026-11-03T03:03:14.4365595Z   Downloaded foldhash v0.2.0
+2026-11-03T03:03:14.4377376Z   Downloaded crc32fast v1.5.2
+2026-11-03T03:03:14.4396663Z   Downloaded futures-io v0.3.34
+2026-11-03T03:03:14.4404923Z   Downloaded arrayref v0.3.9
+2026-11-03T03:03:14.4416204Z   Downloaded bytemuck v1.25.2
+2026-11-03T03:03:14.4446517Z   Downloaded wasm-bindgen-macro v0.2.129
+2026-11-03T03:03:14.4455586Z   Downloaded yazi v0.2.1
+2026-11-03T03:03:14.4468550Z   Downloaded unicode-bidi v0.3.18
+2026-11-03T03:03:14.4489427Z   Downloaded wgpu-core v30.0.1
+2026-11-03T03:03:14.4577403Z   Downloaded bitflags v2.13.2
+2026-11-03T03:03:14.4626769Z   Downloaded flate2 v1.1.10
+2026-11-03T03:03:14.4687817Z   Downloaded miniz_oxide v0.9.1
+2026-11-03T03:03:14.4716879Z   Downloaded svgtypes v0.16.1
+2026-11-03T03:03:14.4738383Z   Downloaded wasm-bindgen v0.2.129
+2026-11-03T03:03:14.4762735Z   Downloaded ryu v1.0.23
+2026-11-03T03:03:14.4791243Z   Downloaded windows-numerics v0.2.0
+2026-11-03T03:03:14.4800929Z   Downloaded dyn-clone v1.0.20
+2026-11-03T03:03:14.4815393Z   Downloaded cpufeatures v0.2.17
+2026-11-03T03:03:14.4828992Z   Downloaded windows-strings v0.5.1
+2026-11-03T03:03:14.4844509Z   Downloaded simd-adler32 v0.3.10
+2026-11-03T03:03:14.4859504Z   Downloaded toml_datetime v1.1.2+spec-1.1.0
+2026-11-03T03:03:14.4870073Z   Downloaded unarray v0.1.4
+2026-11-03T03:03:14.4881513Z   Downloaded lyon v1.0.19
+2026-11-03T03:03:14.4887428Z   Downloaded serde_derive v1.0.228
+2026-11-03T03:03:14.4914172Z   Downloaded polycool v0.4.0
+2026-11-03T03:03:14.4927992Z   Downloaded gpui-pre-macros v0.3.10
+2026-11-03T03:03:14.4943010Z   Downloaded slab v0.4.12
+2026-11-03T03:03:14.4958945Z   Downloaded typenum v1.20.1
+2026-11-03T03:03:14.4994698Z   Downloaded enumn v0.1.14
+2026-11-03T03:03:14.5004599Z   Downloaded shlex v2.0.1
+2026-11-03T03:03:14.5027134Z   Downloaded rustls-pki-types v1.15.1
+2026-11-03T03:03:14.5047788Z   Downloaded unicode-ident v1.0.27
+2026-11-03T03:03:14.5072679Z   Downloaded js-sys v0.3.106
+2026-11-03T03:03:14.5099958Z   Downloaded cfg-if v1.0.5
+2026-11-03T03:03:14.5110768Z   Downloaded bumpalo v3.20.3
+2026-11-03T03:03:14.5133982Z   Downloaded getrandom v0.4.3
+2026-11-03T03:03:14.5169016Z   Downloaded async-executor v1.14.0
+2026-11-03T03:03:14.5186727Z   Downloaded async-task v4.7.1
+2026-11-03T03:03:14.5210124Z   Downloaded arrayvec v0.7.8
+2026-11-03T03:03:14.5230234Z   Downloaded typed-path v0.12.4
+2026-11-03T03:03:14.5292704Z   Downloaded enumflags2 v0.7.12
+2026-11-03T03:03:14.5304608Z   Downloaded ropey v1.6.1
+2026-11-03T03:03:14.5351679Z   Downloaded fontconfig-parser v0.5.8
+2026-11-03T03:03:14.5402812Z   Downloaded quote v1.0.47
+2026-11-03T03:03:14.5429531Z   Downloaded objc2-cloud-kit v0.3.2
+2026-11-03T03:03:14.5477598Z   Downloaded crossbeam-epoch v0.9.21
+2026-11-03T03:03:14.5501449Z   Downloaded http v1.5.0
+2026-11-03T03:03:14.5535926Z   Downloaded serde_json v1.0.154
+2026-11-03T03:03:14.5608664Z   Downloaded zune-jpeg v0.4.21
+2026-11-03T03:03:14.5639352Z   Downloaded powerfmt v0.2.1
+2026-11-03T03:03:14.5655380Z   Downloaded cpubits v0.1.1
+2026-11-03T03:03:14.5663329Z   Downloaded tao-core-video-sys v0.2.0
+2026-11-03T03:03:14.5684253Z   Downloaded memchr v2.8.3
+2026-11-03T03:03:14.5741121Z   Downloaded idna v1.1.0
+2026-11-03T03:03:14.5776283Z   Downloaded image-webp v0.2.4
+2026-11-03T03:03:14.5796881Z   Downloaded same-file v1.0.6
+2026-11-03T03:03:14.5810145Z   Downloaded futures-channel v0.3.34
+2026-11-03T03:03:14.5827470Z   Downloaded num-bigint-dig v0.9.1
+2026-11-03T03:03:14.5888507Z   Downloaded usvg v0.45.1
+2026-11-03T03:03:14.5948595Z   Downloaded serde_spanned v1.1.2
+2026-11-03T03:03:14.5974015Z   Downloaded time-core v0.1.9
+2026-11-03T03:03:14.5978726Z   Downloaded dirs v5.0.1
+2026-11-03T03:03:14.5988854Z   Downloaded option-ext v0.2.0
+2026-11-03T03:03:14.5989613Z   Downloaded gethostname v1.1.0
+2026-11-03T03:03:14.6001420Z   Downloaded num-derive v0.4.2
+2026-11-03T03:03:14.6016836Z   Downloaded walkdir v2.5.0
+2026-11-03T03:03:14.6033273Z   Downloaded blocking v1.7.0
+2026-11-03T03:03:14.6044401Z   Downloaded tokio-util v0.7.20
+2026-11-03T03:03:14.6117674Z   Downloaded normpath v1.5.2
+2026-11-03T03:03:14.6144685Z   Downloaded smol_str v0.3.6
+2026-11-03T03:03:14.6161109Z   Downloaded futures-macro v0.3.34
+2026-11-03T03:03:14.6172077Z   Downloaded core-text v21.0.0
+2026-11-03T03:03:14.6187290Z   Downloaded tiny-skia-path v0.12.0
+2026-11-03T03:03:14.6217900Z   Downloaded xcursor v0.3.11
+2026-11-03T03:03:14.6226260Z   Downloaded atspi-proxies v0.13.0
+2026-11-03T03:03:14.6248570Z   Downloaded tokio-socks v0.5.3
+2026-11-03T03:03:14.6282736Z   Downloaded accesskit_unix v0.22.1
+2026-11-03T03:03:14.6304559Z   Downloaded atspi v0.29.0
+2026-11-03T03:03:14.6315280Z   Downloaded windows-capture v1.5.0
+2026-11-03T03:03:14.6342369Z   Downloaded tinystr v0.8.4
+2026-11-03T03:03:14.6365159Z   Downloaded seahash v4.1.0
+2026-11-03T03:03:14.6381860Z   Downloaded subsetter v0.2.6
+2026-11-03T03:03:14.6412143Z   Downloaded pkg-config v0.3.34
+2026-11-03T03:03:14.6427447Z   Downloaded hmac v0.12.1
+2026-11-03T03:03:14.6452244Z   Downloaded rust-i18n v4.2.4
+2026-11-03T03:03:14.6480722Z   Downloaded redox_syscall v0.5.18
+2026-11-03T03:03:14.6507198Z   Downloaded bstr v1.13.1
+2026-11-03T03:03:14.6592988Z   Downloaded oo7 v0.6.0
+2026-11-03T03:03:14.6639953Z   Downloaded icu_provider v2.3.1
+2026-11-03T03:03:14.6662127Z   Downloaded hermit-abi v0.5.3
+2026-11-03T03:03:14.6671450Z   Downloaded yoke v0.8.3
+2026-11-03T03:03:14.6688743Z   Downloaded socket2 v0.6.5
+2026-11-03T03:03:14.6706930Z   Downloaded codespan-reporting v0.13.1
+2026-11-03T03:03:14.6772823Z   Downloaded rangemap v1.8.0
+2026-11-03T03:03:14.6793842Z   Downloaded annotate-snippets v0.12.17
+2026-11-03T03:03:14.6831837Z   Downloaded icu_normalizer_data v2.3.0
+2026-11-03T03:03:14.6852301Z   Downloaded indexmap v2.14.2
+2026-11-03T03:03:14.6888823Z   Downloaded simd_helpers v0.1.0
+2026-11-03T03:03:14.6895916Z   Downloaded byteorder v1.5.0
+2026-11-03T03:03:14.6907885Z   Downloaded svg_fmt v0.4.5
+2026-11-03T03:03:14.6914612Z   Downloaded rustls-webpki v0.103.16
+2026-11-03T03:03:14.6942554Z   Downloaded phf_shared v0.11.3
+2026-11-03T03:03:14.6950050Z   Downloaded bytes v1.12.1
+2026-11-03T03:03:14.6976684Z   Downloaded toml_datetime v0.6.11
+2026-11-03T03:03:14.6985719Z   Downloaded objc2 v0.5.3
+2026-11-03T03:03:14.7041241Z   Downloaded num-conv v0.2.2
+2026-11-03T03:03:14.7047682Z   Downloaded num v0.4.3
+2026-11-03T03:03:14.7055252Z   Downloaded untrusted v0.9.0
+2026-11-03T03:03:14.7068149Z   Downloaded libm v0.2.16
+2026-11-03T03:03:14.7152414Z   Downloaded fontdb v0.23.0
+2026-11-03T03:03:14.7171109Z   Downloaded tempfile v3.27.0
+2026-11-03T03:03:14.7190966Z   Downloaded accesskit v0.24.1
+2026-11-03T03:03:14.7200782Z   Downloaded async-io v2.6.0
+2026-11-03T03:03:14.7223418Z   Downloaded async-net v2.0.0
+2026-11-03T03:03:14.7232805Z   Downloaded zlib-rs v0.6.8
+2026-11-03T03:03:14.7275462Z   Downloaded accesskit_atspi_common v0.19.1
+2026-11-03T03:03:14.7288997Z   Downloaded anstyle v1.0.14
+2026-11-03T03:03:14.7300491Z   Downloaded gimli v0.32.3
+2026-11-03T03:03:14.7360969Z   Downloaded zeroize_derive v1.5.0
+2026-11-03T03:03:14.7369623Z   Downloaded gpui-component-macros v0.8.1
+2026-11-03T03:03:14.7377141Z   Downloaded async-recursion v1.2.0
+2026-11-03T03:03:14.7406520Z   Downloaded rustls v0.23.46
+2026-11-03T03:03:14.7499465Z   Downloaded want v0.3.2
+2026-11-03T03:03:14.7507572Z   Downloaded vswhom v0.1.0
+2026-11-03T03:03:14.7516955Z   Downloaded cipher v0.5.2
+2026-11-03T03:03:14.7536620Z   Downloaded instant v0.1.13
+2026-11-03T03:03:14.7547568Z   Downloaded objc2-foundation v0.3.2
+2026-11-03T03:03:14.7695479Z   Downloaded hashbrown v0.14.5
+2026-11-03T03:03:14.7733062Z   Downloaded shellexpand v3.1.2
+2026-11-03T03:03:14.7747138Z   Downloaded windows-registry v0.4.0
+2026-11-03T03:03:14.7757642Z   Downloaded futures-util v0.3.34
+2026-11-03T03:03:14.7856837Z   Downloaded android_system_properties v0.1.6
+2026-11-03T03:03:14.7864783Z   Downloaded ipnet v2.12.2
+2026-11-03T03:03:14.7877935Z   Downloaded svgtypes v0.15.3
+2026-11-03T03:03:14.7896012Z   Downloaded strict-num v0.1.1
+2026-11-03T03:03:14.7903736Z   Downloaded winapi v0.3.9
+2026-11-03T03:03:14.8212165Z   Downloaded pathfinder_simd v0.5.6
+2026-11-03T03:03:14.8227487Z   Downloaded digest v0.11.3
+2026-11-03T03:03:14.8246443Z   Downloaded crunchy v0.2.4
+2026-11-03T03:03:14.8253564Z   Downloaded ppv-lite86 v0.2.21
+2026-11-03T03:03:14.8264183Z   Downloaded calloop v0.14.5
+2026-11-03T03:03:14.8292320Z   Downloaded miniz_oxide v0.8.9
+2026-11-03T03:03:14.8312173Z   Downloaded schemars v1.2.3
+2026-11-03T03:03:14.8447379Z   Downloaded similar v2.7.0
+2026-11-03T03:03:14.8487815Z   Downloaded ash v0.38.0+1.3.281
+2026-11-03T03:03:14.8609318Z   Downloaded windows_aarch64_gnullvm v0.52.6
+2026-11-03T03:03:14.8672089Z   Downloaded spin v0.10.1
+2026-11-03T03:03:14.8690017Z   Downloaded quick-error v1.2.3
+2026-11-03T03:03:14.8699991Z   Downloaded anyhow v1.0.104
+2026-11-03T03:03:14.8729797Z   Downloaded hyper v1.12.0
+2026-11-03T03:03:14.8784446Z   Downloaded markup5ever v0.12.1
+2026-11-03T03:03:14.8797514Z   Downloaded pin-project v1.1.13
+2026-11-03T03:03:14.8899169Z   Downloaded either v1.19.0
+2026-11-03T03:03:14.8910863Z   Downloaded rand_chacha v0.9.0
+2026-11-03T03:03:14.8920501Z   Downloaded concurrent-queue v2.5.0
+2026-11-03T03:03:14.8934037Z   Downloaded inventory v0.3.25
+2026-11-03T03:03:14.8950714Z   Downloaded gpui-pre-ztracing v0.3.10
+2026-11-03T03:03:14.8958979Z   Downloaded quick-xml v0.41.0
+2026-11-03T03:03:14.9006007Z   Downloaded paste v1.0.15
+2026-11-03T03:03:14.9030952Z   Downloaded arg_enum_proc_macro v0.3.4
+2026-11-03T03:03:14.9040687Z   Downloaded x11rb v0.13.2
+2026-11-03T03:03:14.9105391Z   Downloaded base64 v0.22.1
+2026-11-03T03:03:14.9134805Z   Downloaded tracing-core v0.1.36
+2026-11-03T03:03:14.9155984Z   Downloaded as-slice v0.2.1
+2026-11-03T03:03:14.9164087Z   Downloaded noop_proc_macro v0.3.0
+2026-11-03T03:03:14.9171273Z   Downloaded encoding_rs_io v0.1.8
+2026-11-03T03:03:14.9181785Z   Downloaded objc2-foundation v0.2.2
+2026-11-03T03:03:14.9314905Z   Downloaded windows_x86_64_msvc v0.52.6
+2026-11-03T03:03:14.9410625Z   Downloaded simplecss v0.2.2
+2026-11-03T03:03:14.9424394Z   Downloaded object v0.37.3
+2026-11-03T03:03:14.9508233Z   Downloaded skrifa v0.42.1
+2026-11-03T03:03:14.9586534Z   Downloaded ignore v0.4.34
+2026-11-03T03:03:14.9607919Z   Downloaded atspi-common v0.13.0
+2026-11-03T03:03:14.9646153Z   Downloaded zerovec v0.11.8
+2026-11-03T03:03:14.9692136Z   Downloaded interpolate_name v0.2.4
+2026-11-03T03:03:14.9701245Z   Downloaded windows_i686_gnullvm v0.52.6
+2026-11-03T03:03:14.9768378Z   Downloaded zerocopy-derive v0.8.62
+2026-11-03T03:03:14.9862626Z   Downloaded smol v2.0.2
+2026-11-03T03:03:14.9892622Z   Downloaded linktime-proc-macro v0.2.3
+2026-11-03T03:03:14.9904017Z   Downloaded async-broadcast v0.7.2
+2026-11-03T03:03:14.9917134Z   Downloaded lyon_tessellation v1.0.22
+2026-11-03T03:03:14.9945425Z   Downloaded rayon v1.12.0
+2026-11-03T03:03:15.0016799Z   Downloaded av1-grain v0.2.5
+2026-11-03T03:03:15.0036016Z   Downloaded fdeflate v0.3.7
+2026-11-03T03:03:15.0048908Z   Downloaded zbus-lockstep-macros v0.5.2
+2026-11-03T03:03:15.0055366Z   Downloaded aho-corasick v1.1.5
+2026-11-03T03:03:15.0095826Z   Downloaded windows-targets v0.53.5
+2026-11-03T03:03:15.0103601Z   Downloaded enumflags2_derive v0.7.12
+2026-11-03T03:03:15.0110317Z   Downloaded async-trait v0.1.92
+2026-11-03T03:03:15.0138564Z   Downloaded phf_generator v0.11.3
+2026-11-03T03:03:15.0147361Z   Downloaded heck v0.5.0
+2026-11-03T03:03:15.0157226Z   Downloaded tokio-rustls v0.26.6
+2026-11-03T03:03:15.0169939Z   Downloaded proc-macro-crate v3.5.0
+2026-11-03T03:03:15.0180406Z   Downloaded unicode-ccc v0.4.0
+2026-11-03T03:03:15.0187406Z   Downloaded idna_adapter v1.2.2
+2026-11-03T03:03:15.0194688Z   Downloaded scopeguard v1.2.0
+2026-11-03T03:03:15.0204171Z   Downloaded zbus-lockstep v0.5.2
+2026-11-03T03:03:15.0212256Z   Downloaded unicase v2.10.0
+2026-11-03T03:03:15.0223255Z   Downloaded hex v0.4.3
+2026-11-03T03:03:15.0235426Z   Downloaded xattr v1.6.1
+2026-11-03T03:03:15.0250082Z   Downloaded zerovec-derive v0.11.6
+2026-11-03T03:03:15.0263640Z   Downloaded wasm_thread v0.3.3
+2026-11-03T03:03:15.0282175Z   Downloaded core_detect v1.0.0
+2026-11-03T03:03:15.0294830Z   Downloaded security-framework-sys v2.17.0
+2026-11-03T03:03:15.0311762Z   Downloaded cocoa-foundation v0.1.2
+2026-11-03T03:03:15.0321349Z   Downloaded zeroize v1.9.1
+2026-11-03T03:03:15.0333243Z   Downloaded roxmltree v0.20.0
+2026-11-03T03:03:15.0429706Z   Downloaded windows_x86_64_gnu v0.52.6
+2026-11-03T03:03:15.0579486Z   Downloaded read-fonts v0.39.2
+2026-11-03T03:03:15.0717350Z   Downloaded block-buffer v0.12.1
+2026-11-03T03:03:15.0727628Z   Downloaded png v0.17.16
+2026-11-03T03:03:15.0758525Z   Downloaded itertools v0.13.0
+2026-11-03T03:03:15.0811070Z   Downloaded windows-collections v0.3.2
+2026-11-03T03:03:15.0821147Z   Downloaded khronos_api v3.1.0
+2026-11-03T03:03:15.1006998Z   Downloaded wasm-streams v0.4.2
+2026-11-03T03:03:15.1040856Z   Downloaded rand_xorshift v0.4.0
+2026-11-03T03:03:15.1052010Z   Downloaded itertools v0.14.0
+2026-11-03T03:03:15.1104181Z   Downloaded x11rb-protocol v0.13.2
+2026-11-03T03:03:15.1205299Z   Downloaded clipboard-win v5.4.3
+2026-11-03T03:03:15.1217310Z   Downloaded zbus_macros v5.19.0
+2026-11-03T03:03:15.1248598Z   Downloaded ordered-stream v0.2.0
+2026-11-03T03:03:15.1248965Z   Downloaded dirs-sys v0.4.1
+2026-11-03T03:03:15.1255524Z   Downloaded icu_properties v2.3.0
+2026-11-03T03:03:15.1286840Z   Downloaded zune-core v0.4.12
+2026-11-03T03:03:15.1301793Z   Downloaded loop9 v0.1.5
+2026-11-03T03:03:15.1308574Z   Downloaded str_indices v0.4.4
+2026-11-03T03:03:15.1322229Z   Downloaded windows-strings v0.3.1
+2026-11-03T03:03:15.1337151Z   Downloaded globwalk v0.8.1
+2026-11-03T03:03:15.1349297Z   Downloaded siphasher v1.0.4
+2026-11-03T03:03:15.1363329Z   Downloaded sha1_smol v1.0.1
+2026-11-03T03:03:15.1375563Z   Downloaded rustls-native-certs v0.8.5
+2026-11-03T03:03:15.1387801Z   Downloaded web-sys v0.3.106
+2026-11-03T03:03:15.2339492Z   Downloaded objc2-user-notifications v0.3.2
+2026-11-03T03:03:15.2353243Z   Downloaded windows_i686_msvc v0.52.6
+2026-11-03T03:03:15.2458382Z   Downloaded weezl v0.1.12
+2026-11-03T03:03:15.2476985Z   Downloaded xml5ever v0.18.1
+2026-11-03T03:03:15.2495443Z   Downloaded regex-automata v0.4.18
+2026-11-03T03:03:15.2605544Z   Downloaded toml_edit v0.22.27
+2026-11-03T03:03:15.2638717Z   Downloaded objc2-metal v0.2.2
+2026-11-03T03:03:15.2682320Z   Downloaded rustybuzz v0.20.1
+2026-11-03T03:03:15.2755301Z   Downloaded icu_normalizer v2.3.0
+2026-11-03T03:03:15.2832048Z   Downloaded windows-numerics v0.3.1
+2026-11-03T03:03:15.2841387Z   Downloaded derive_more-impl v2.1.1
+2026-11-03T03:03:15.2881862Z   Downloaded getrandom v0.2.17
+2026-11-03T03:03:15.2904576Z   Downloaded crossbeam-channel v0.5.17
+2026-11-03T03:03:15.2935357Z   Downloaded itertools v0.11.0
+2026-11-03T03:03:15.2985138Z   Downloaded proptest v1.11.0
+2026-11-03T03:03:15.3059071Z   Downloaded utf8_iter v1.0.4
+2026-11-03T03:03:15.3067124Z   Downloaded stable_deref_trait v1.2.1
+2026-11-03T03:03:15.3073797Z   Downloaded windows_i686_gnu v0.52.6
+2026-11-03T03:03:15.3236382Z   Downloaded windows-targets v0.48.5
+2026-11-03T03:03:15.3243035Z   Downloaded pulp-wasm-simd-flag v0.1.1
+2026-11-03T03:03:15.3248474Z   Downloaded byteorder-lite v0.1.0
+2026-11-03T03:03:15.3256538Z   Downloaded windows-version v0.1.7
+2026-11-03T03:03:15.3263729Z   Downloaded enum-iterator-derive v1.5.0
+2026-11-03T03:03:15.3270022Z   Downloaded harfrust v0.8.4
+2026-11-03T03:03:15.3335642Z   Downloaded security-framework v3.7.0
+2026-11-03T03:03:15.3366718Z   Downloaded dunce v1.0.5
+2026-11-03T03:03:15.3374094Z   Downloaded percent-encoding v2.3.2
+2026-11-03T03:03:15.3381425Z   Downloaded windows_x86_64_msvc v0.53.1
+2026-11-03T03:03:15.3481048Z   Downloaded lru-slab v0.1.3
+2026-11-03T03:03:15.3488317Z   Downloaded fnv v1.0.7
+2026-11-03T03:03:15.3495712Z   Downloaded quick-error v2.0.1
+2026-11-03T03:03:15.3505973Z   Downloaded zbus_names v4.3.4
+2026-11-03T03:03:15.3518605Z   Downloaded gif v0.13.3
+2026-11-03T03:03:15.3532309Z   Downloaded schemars_derive v1.2.3
+2026-11-03T03:03:15.3547616Z   Downloaded rayon-core v1.13.0
+2026-11-03T03:03:15.3576744Z   Downloaded rand v0.9.5
+2026-11-03T03:03:15.3606592Z   Downloaded gpui-kit v0.8.1
+2026-11-03T03:03:15.3655224Z   Downloaded parking_lot_core v0.9.12
+2026-11-03T03:03:15.3671919Z   Downloaded convert_case v0.10.0
+2026-11-03T03:03:15.3685684Z   Downloaded const-oid v0.10.2
+2026-11-03T03:03:15.3705881Z   Downloaded sync_wrapper v1.0.2
+2026-11-03T03:03:15.3713051Z   Downloaded inotify-sys v0.1.8
+2026-11-03T03:03:15.3722731Z   Downloaded string_cache v0.8.9
+2026-11-03T03:03:15.3735099Z   Downloaded tiny-keccak v2.0.2
+2026-11-03T03:03:15.3753924Z   Downloaded notify v8.2.1
+2026-11-03T03:03:15.3771226Z   Downloaded static_assertions v1.1.0
+2026-11-03T03:03:15.3782339Z   Downloaded objc2-quartz-core v0.2.2
+2026-11-03T03:03:15.3804749Z   Downloaded windows_x86_64_gnullvm v0.53.1
+2026-11-03T03:03:15.3901079Z   Downloaded lyon_path v1.0.19
+2026-11-03T03:03:15.3913777Z   Downloaded rgb v0.8.53
+2026-11-03T03:03:15.3932001Z   Downloaded resvg v0.45.1
+2026-11-03T03:03:15.3953909Z   Downloaded xkbcommon v0.8.0
+2026-11-03T03:03:15.3972031Z   Downloaded tracing-attributes v0.1.31
+2026-11-03T03:03:15.3992689Z   Downloaded windows_aarch64_msvc v0.48.5
+2026-11-03T03:03:15.4086440Z   Downloaded phf_shared v0.13.1
+2026-11-03T03:03:15.4094672Z   Downloaded enum-iterator v2.3.0
+2026-11-03T03:03:15.4102577Z   Downloaded xim-ctext v0.3.0
+2026-11-03T03:03:15.4109163Z   Downloaded gpui-pre-macos v0.3.10
+2026-11-03T03:03:15.4132257Z   Downloaded triomphe v0.1.17
+2026-11-03T03:03:15.4149399Z   Downloaded pastey v0.1.1
+2026-11-03T03:03:15.4164722Z   Downloaded yoke-derive v0.8.4
+2026-11-03T03:03:15.4174182Z   Downloaded unicode-properties v0.1.4
+2026-11-03T03:03:15.4190423Z   Downloaded foreign-types-macros v0.2.4
+2026-11-03T03:03:15.4197979Z   Downloaded toml_edit v0.25.17+spec-1.1.0
+2026-11-03T03:03:15.4228800Z   Downloaded skrifa v0.40.0
+2026-11-03T03:03:15.4299040Z   Downloaded accesskit_consumer v0.38.0
+2026-11-03T03:03:15.4312763Z   Downloaded multiversion_no_op v1.0.0
+2026-11-03T03:03:15.4320526Z   Downloaded windows_x86_64_gnu v0.53.1
+2026-11-03T03:03:15.4487273Z   Downloaded hyper-util v0.1.21
+2026-11-03T03:03:15.4537443Z   Downloaded try-lock v0.2.5
+2026-11-03T03:03:15.4545253Z   Downloaded hyper-rustls v0.27.10
+2026-11-03T03:03:15.4557324Z   Downloaded windows-strings v0.1.0
+2026-11-03T03:03:15.4569976Z   Downloaded precomputed-hash v0.1.1
+2026-11-03T03:03:15.4575446Z   Downloaded proptest-macro v0.5.0
+2026-11-03T03:03:15.4595129Z   Downloaded profiling v1.0.18
+2026-11-03T03:03:15.4605396Z   Downloaded core-graphics v0.24.0
+2026-11-03T03:03:15.4622025Z   Downloaded objc2-core-image v0.2.2
+2026-11-03T03:03:15.4641194Z   Downloaded gpui-pre-reqwest v0.12.15
+2026-11-03T03:03:15.4721502Z   Downloaded ropey v2.0.0-beta.1
+2026-11-03T03:03:15.4762456Z   Downloaded futures-lite v2.6.1
+2026-11-03T03:03:15.4779694Z   Downloaded color_quant v1.1.0
+2026-11-03T03:03:15.4789367Z   Downloaded mac v0.1.1
+2026-11-03T03:03:15.4798557Z   Downloaded ahash v0.8.12
+2026-11-03T03:03:15.4821856Z   Downloaded arc-swap v1.9.3
+2026-11-03T03:03:15.4861395Z   Downloaded regex v1.13.1
+2026-11-03T03:03:15.4914325Z   Downloaded crossbeam-utils v0.8.23
+2026-11-03T03:03:15.4939010Z   Downloaded raw-cpuid v11.6.0
+2026-11-03T03:03:15.4966461Z   Downloaded hash32 v0.3.1
+2026-11-03T03:03:15.4977704Z   Downloaded httparse v1.10.1
+2026-11-03T03:03:15.4996939Z   Downloaded built v0.8.1
+2026-11-03T03:03:15.5012604Z   Downloaded gpui-pre-web v0.3.10
+2026-11-03T03:03:15.5033854Z   Downloaded objc2-app-kit v0.3.2
+2026-11-03T03:03:15.5254272Z   Downloaded tower v0.5.3
+2026-11-03T03:03:15.5331990Z   Downloaded zed-scap v0.0.8-zed
+2026-11-03T03:03:15.5456317Z   Downloaded time v0.3.55
+2026-11-03T03:03:15.5569577Z   Downloaded windows_aarch64_gnullvm v0.53.1
+2026-11-03T03:03:15.5664986Z   Downloaded icu_locale_core v2.3.0
+2026-11-03T03:03:15.5718832Z   Downloaded windows_i686_gnu v0.48.5
+2026-11-03T03:03:15.5875666Z   Downloaded unicode-bidi-mirroring v0.4.0
+2026-11-03T03:03:15.5882395Z   Downloaded exr v1.74.2
+2026-11-03T03:03:15.5967516Z   Downloaded inout v0.1.4
+2026-11-03T03:03:15.5975866Z   Downloaded tokio v1.53.2
+2026-11-03T03:03:15.6323927Z   Downloaded rustix v1.1.5
+2026-11-03T03:03:15.6532149Z   Downloaded encoding_rs v0.8.42
+2026-11-03T03:03:15.6611597Z   Downloaded lazy_static v1.5.1
+2026-11-03T03:03:15.6624847Z   Downloaded kqueue v1.2.1
+2026-11-03T03:03:15.6645277Z   Downloaded wgpu v30.0.1
+2026-11-03T03:03:15.6758822Z   Downloaded objc2-ui-kit v0.3.2
+2026-11-03T03:03:15.7040776Z   Downloaded gpui-pre-apple v0.3.10
+2026-11-03T03:03:15.7076523Z   Downloaded nohash-hasher v0.2.0
+2026-11-03T03:03:15.7083947Z   Downloaded zune-jpeg v0.5.15
+2026-11-03T03:03:16.4971064Z   Downloaded rfd v0.17.2
+2026-11-03T03:03:16.5017468Z   Downloaded md-5 v0.10.6
+2026-11-03T03:03:16.5030003Z   Downloaded memoffset v0.9.1
+2026-11-03T03:03:16.5039468Z   Downloaded objc2-core-text v0.3.2
+2026-11-03T03:03:16.5066800Z   Downloaded reborrow v0.5.5
+2026-11-03T03:03:16.5072514Z   Downloaded winnow v1.0.4
+2026-11-03T03:03:16.5145855Z   Downloaded rusty-fork v0.3.1
+2026-11-03T03:03:16.5157039Z   Downloaded windows-core v0.58.0
+2026-11-03T03:03:16.5179161Z   Downloaded xkeysym v0.2.1
+2026-11-03T03:03:16.5201007Z   Downloaded peniko v0.6.1
+2026-11-03T03:03:16.5211525Z   Downloaded wait-timeout v0.2.1
+2026-11-03T03:03:16.5222834Z   Downloaded const-random v0.1.18
+2026-11-03T03:03:16.5230997Z   Downloaded rust-i18n-support v4.2.4
+2026-11-03T03:03:16.5240088Z   Downloaded phf_codegen v0.11.3
+2026-11-03T03:03:16.5246851Z   Downloaded libredox v0.1.25
+2026-11-03T03:03:16.5253429Z   Downloaded winapi-util v0.1.11
+2026-11-03T03:03:16.5265063Z   Downloaded wayland-protocols-wlr v0.3.12
+2026-11-03T03:03:16.5280649Z   Downloaded parking v2.2.1
+2026-11-03T03:03:16.5289070Z   Downloaded gpui-pre-ztracing-macro v0.3.10
+2026-11-03T03:03:16.5293755Z   Downloaded v_frame v0.3.9
+2026-11-03T03:03:16.5305910Z   Downloaded gpui-pre-windows v0.3.10
+2026-11-03T03:03:16.5335505Z   Downloaded zvariant v5.15.0
+2026-11-03T03:03:16.5388794Z   Downloaded convert_case v0.11.0
+2026-11-03T03:03:16.5402966Z   Downloaded deranged v0.5.9
+2026-11-03T03:03:16.5414317Z   Downloaded zerofrom-derive v0.1.8
+2026-11-03T03:03:16.5422286Z   Downloaded scoped-tls v1.0.1
+2026-11-03T03:03:16.5430008Z   Downloaded tinyvec v1.13.3
+2026-11-03T03:03:16.5456042Z   Downloaded image v0.25.9
+2026-11-03T03:03:16.5527050Z   Downloaded unicode-script v0.5.8
+2026-11-03T03:03:16.5540829Z   Downloaded naga-types v30.0.1
+2026-11-03T03:03:16.5549735Z   Downloaded toml v0.8.23
+2026-11-03T03:03:16.5568423Z   Downloaded zbus v5.19.0
+2026-11-03T03:03:16.5641584Z   Downloaded memmap2 v0.9.11
+2026-11-03T03:03:16.5654898Z   Downloaded atomic v0.5.3
+2026-11-03T03:03:16.5663357Z   Downloaded console_error_panic_hook v0.1.7
+2026-11-03T03:03:16.5695626Z   Downloaded downcast-rs v1.2.1
+2026-11-03T03:03:16.5705589Z   Downloaded phf v0.13.1
+2026-11-03T03:03:16.5715009Z   Downloaded strum_macros v0.28.0
+2026-11-03T03:03:16.5733616Z   Downloaded font-types v0.12.6
+2026-11-03T03:03:16.5748444Z   Downloaded block2 v0.5.1
+2026-11-03T03:03:16.5758816Z   Downloaded crossbeam-deque v0.8.8
+2026-11-03T03:03:16.5770597Z   Downloaded const-random-macro v0.1.16
+2026-11-03T03:03:16.5776701Z   Downloaded rust-i18n-macro v4.2.4
+2026-11-03T03:03:16.5784371Z   Downloaded core_maths v0.1.1
+2026-11-03T03:03:16.5790448Z   Downloaded lyon_algorithms v1.0.21
+2026-11-03T03:03:16.5802953Z   Downloaded derive_more v2.1.1
+2026-11-03T03:03:16.5901242Z   Downloaded no_std_io2 v0.9.4
+2026-11-03T03:03:16.5916372Z   Downloaded aes v0.8.4
+2026-11-03T03:03:16.5942372Z   Downloaded libfuzzer-sys v0.4.13
+2026-11-03T03:03:16.5983293Z   Downloaded num_cpus v1.17.0
+2026-11-03T03:03:16.6007200Z   Downloaded serde_spanned v0.6.9
+2026-11-03T03:03:16.6015611Z   Downloaded ashpd v0.13.13
+2026-11-03T03:03:16.6067198Z   Downloaded usvg v0.46.0
+2026-11-03T03:03:16.6101041Z   Downloaded read-fonts v0.41.0
+2026-11-03T03:03:16.6248723Z   Downloaded wgpu-hal v30.0.1
+2026-11-03T03:03:16.6341164Z   Downloaded notify-rust v4.18.2
+2026-11-03T03:03:16.6368412Z   Downloaded png v0.18.1
+2026-11-03T03:03:16.6400279Z   Downloaded fearless_simd v0.4.1
+2026-11-03T03:03:16.6454392Z   Downloaded synstructure v0.14.0
+2026-11-03T03:03:16.6462445Z   Downloaded futures v0.3.34
+2026-11-03T03:03:16.6500805Z   Downloaded objc2-security v0.3.2
+2026-11-03T03:03:16.6577150Z   Downloaded objc2-app-kit v0.2.2
+2026-11-03T03:03:16.6759193Z   Downloaded zerotrie v0.2.5
+2026-11-03T03:03:16.6790294Z   Downloaded dlib v0.5.3
+2026-11-03T03:03:16.6797534Z   Downloaded futures-executor v0.3.34
+2026-11-03T03:03:16.6808289Z   Downloaded core-graphics-types v0.2.0
+2026-11-03T03:03:16.6814508Z   Downloaded tendril v0.4.3
+2026-11-03T03:03:16.6829183Z   Downloaded linebender_resource_handle v0.1.1
+2026-11-03T03:03:16.6837525Z   Downloaded find-msvc-tools v0.1.14
+2026-11-03T03:03:16.6850373Z   Downloaded winreg v0.56.0
+2026-11-03T03:03:16.6874468Z   Downloaded crossbeam-queue v0.3.14
+2026-11-03T03:03:16.6884560Z   Downloaded maybe-rayon v0.1.1
+2026-11-03T03:03:16.6890810Z   Downloaded gpui-kit-assets v0.8.1
+2026-11-03T03:03:16.7738265Z   Downloaded string_cache_codegen v0.5.4
+2026-11-03T03:03:16.7743514Z   Downloaded thread_local v1.1.10
+2026-11-03T03:03:16.7753380Z   Downloaded wasm-bindgen-futures v0.4.79
+2026-11-03T03:03:16.7761324Z   Downloaded vswhom-sys v0.1.3
+2026-11-03T03:03:16.7771859Z   Downloaded bitstream-io v4.10.0
+2026-11-03T03:03:16.7793459Z   Downloaded zed-font-kit v0.14.1-zed
+2026-11-03T03:03:16.7822914Z   Downloaded quinn v0.11.12
+2026-11-03T03:03:16.7848415Z   Downloaded data-url v0.3.2
+2026-11-03T03:03:16.7860089Z   Downloaded gpui-pre-scheduler v0.3.10
+2026-11-03T03:03:16.7869957Z   Downloaded zune-core v0.5.3
+2026-11-03T03:03:16.7887710Z   Downloaded ravif v0.12.0
+2026-11-03T03:03:16.7896330Z   Downloaded wayland-protocols-plasma v0.3.12
+2026-11-03T03:03:16.7931548Z   Downloaded phf_generator v0.13.1
+2026-11-03T03:03:16.7940287Z   Downloaded block-padding v0.3.3
+2026-11-03T03:03:16.7946840Z   Downloaded link-section v0.19.3
+2026-11-03T03:03:16.7983172Z   Downloaded polling v3.11.0
+2026-11-03T03:03:16.8006759Z   Downloaded cbc v0.1.2
+2026-11-03T03:03:16.8018502Z   Downloaded rust-embed-impl v8.13.0
+2026-11-03T03:03:16.8025051Z   Downloaded windows-interface v0.58.0
+2026-11-03T03:03:16.8031623Z   Downloaded phf v0.11.3
+2026-11-03T03:03:16.8041034Z   Downloaded lyon_geom v1.0.19
+2026-11-03T03:03:16.8054330Z   Downloaded moxcms v0.7.11
+2026-11-03T03:03:16.8129621Z   Downloaded num-complex v0.4.6
+2026-11-03T03:03:16.8140719Z   Downloaded rand_pcg v0.10.2
+2026-11-03T03:03:16.8151898Z   Downloaded markdown v1.0.0
+2026-11-03T03:03:16.8210582Z   Downloaded float_next_after v1.0.0
+2026-11-03T03:03:16.8218508Z   Downloaded heck v0.4.1
+2026-11-03T03:03:16.8228186Z   Downloaded rustc_version v0.4.1
+2026-11-03T03:03:16.8237969Z   Downloaded num-integer v0.1.47
+2026-11-03T03:03:16.8250459Z   Downloaded html5ever v0.27.0
+2026-11-03T03:03:16.8278818Z   Downloaded qoi v0.4.1
+2026-11-03T03:03:16.8300634Z   Downloaded float-cmp v0.9.0
+2026-11-03T03:03:16.8309482Z   Downloaded redox_users v0.4.6
+2026-11-03T03:03:16.8319514Z   Downloaded wayland-backend v0.3.17
+2026-11-03T03:03:16.8350465Z   Downloaded async-fs v2.2.0
+2026-11-03T03:03:16.8358931Z   Downloaded windows_aarch64_gnullvm v0.48.5
+2026-11-03T03:03:16.8429451Z   Downloaded http-body v1.1.0
+2026-11-03T03:03:16.8440714Z   Downloaded toml v1.1.8+spec-1.1.0
+2026-11-03T03:03:16.8485198Z   Downloaded pulp v0.22.3
+2026-11-03T03:03:16.8530753Z   Downloaded write-fonts v0.48.1
+2026-11-03T03:03:16.8612740Z   Downloaded gpui-pre-sum-tree v0.3.10
+2026-11-03T03:03:16.8622328Z   Downloaded cipher v0.4.4
+2026-11-03T03:03:16.8633982Z   Downloaded objc2-core-data v0.3.2
+2026-11-03T03:03:16.8670999Z   Downloaded globset v0.4.21
+2026-11-03T03:03:16.8682994Z   Downloaded tower-layer v0.3.3
+2026-11-03T03:03:16.8691059Z   Downloaded inotify v0.11.5
+2026-11-03T03:03:16.8705719Z   Downloaded inout v0.2.5
+2026-11-03T03:03:16.8716305Z   Downloaded taffy v0.15.1
+2026-11-03T03:03:16.8774110Z   Downloaded toml_writer v1.1.3+spec-1.1.0
+2026-11-03T03:03:16.8785228Z   Downloaded regex-syntax v0.8.11
+2026-11-03T03:03:16.8838530Z   Downloaded gpui-pre-ios v0.3.10
+2026-11-03T03:03:16.8856940Z   Downloaded form_urlencoded v1.2.2
+2026-11-03T03:03:16.8863584Z   Downloaded equator v0.4.2
+2026-11-03T03:03:16.8874163Z   Downloaded naga v30.0.1
+2026-11-03T03:03:16.9037438Z   Downloaded krilla v0.8.2
+2026-11-03T03:03:16.9092358Z   Downloaded sha1 v0.11.0
+2026-11-03T03:03:16.9106176Z   Downloaded arboard v3.7.0
+2026-11-03T03:03:16.9128220Z   Downloaded openssl-probe v0.2.2
+2026-11-03T03:03:16.9137189Z   Downloaded aes v0.9.3
+2026-11-03T03:03:16.9166581Z   Downloaded bit-vec v0.8.0
+2026-11-03T03:03:16.9179370Z   Downloaded rustc-hash v2.1.3
+2026-11-03T03:03:16.9189739Z   Downloaded rustc-hash v1.1.0
+2026-11-03T03:03:16.9196858Z   Downloaded toml_parser v1.1.5+spec-1.1.0
+2026-11-03T03:03:16.9214499Z   Downloaded async-channel v2.5.0
+2026-11-03T03:03:16.9224441Z   Downloaded glifo v0.3.0
+2026-11-03T03:03:16.9241184Z   Downloaded rand_core v0.9.5
+2026-11-03T03:03:16.9252054Z   Downloaded libloading v0.8.9
+2026-11-03T03:03:16.9270347Z   Downloaded calloop-wayland-source v0.4.1
+2026-11-03T03:03:16.9279679Z   Downloaded mime v0.3.17
+2026-11-03T03:03:16.9290030Z   Downloaded mio v1.2.4
+2026-11-03T03:03:16.9335979Z   Downloaded objc2-core-image v0.3.2
+2026-11-03T03:03:16.9366909Z   Downloaded wayland-protocols v0.32.13
+2026-11-03T03:03:16.9431537Z   Downloaded glob v0.3.4
+2026-11-03T03:03:16.9443259Z   Downloaded pbkdf2 v0.12.2
+2026-11-03T03:03:16.9453300Z   Downloaded resvg v0.46.0
+2026-11-03T03:03:16.9475508Z   Downloaded heapless v0.9.3
+2026-11-03T03:03:16.9514689Z   Downloaded lebe v0.5.3
+2026-11-03T03:03:16.9524560Z   Downloaded pollster v0.4.0
+2026-11-03T03:03:16.9534829Z   Downloaded phf_macros v0.13.1
+2026-11-03T03:03:16.9542811Z   Downloaded errno v0.3.14
+2026-11-03T03:03:16.9554673Z   Downloaded equator-macro v0.4.2
+2026-11-03T03:03:16.9561282Z   Downloaded atomic-waker v1.1.2
+2026-11-03T03:03:16.9570663Z   Downloaded xmlwriter v0.1.0
+2026-11-03T03:03:16.9578515Z   Downloaded icu_properties_data v2.3.0
+2026-11-03T03:03:16.9659634Z   Downloaded event-listener v5.4.2
+2026-11-03T03:03:16.9673379Z   Downloaded rand v0.10.3
+2026-11-03T03:03:16.9702552Z   Downloaded imagesize v0.13.0
+2026-11-03T03:03:16.9721872Z   Downloaded y4m v0.8.0
+2026-11-03T03:03:16.9730980Z   Downloaded h2 v0.4.20
+2026-11-03T03:03:16.9781001Z   Downloaded nom v8.0.0
+2026-11-03T03:03:16.9821951Z   Downloaded async-signal v0.2.14
+2026-11-03T03:03:16.9833544Z   Downloaded filedescriptor v0.8.3
+2026-11-03T03:03:16.9841392Z   Downloaded r-efi v5.3.0
+2026-11-03T03:03:16.9879052Z   Downloaded half v2.7.1
+2026-11-03T03:03:16.9899732Z   Downloaded windows_aarch64_msvc v0.53.1
+2026-11-03T03:03:16.9998714Z   Downloaded core-foundation-sys v0.8.7
+2026-11-03T03:03:17.0022237Z   Downloaded imgref v1.12.3
+2026-11-03T03:03:17.0031259Z   Downloaded serde_urlencoded v0.7.1
+2026-11-03T03:03:17.0044183Z   Downloaded avif-serialize v0.8.9
+2026-11-03T03:03:17.0052529Z   Downloaded mach2 v0.6.0
+2026-11-03T03:03:17.0082934Z   Downloaded zed-xim v0.4.0-zed
+2026-11-03T03:03:17.0101645Z   Downloaded xim-parser v0.2.2
+2026-11-03T03:03:17.0110551Z   Downloaded litemap v0.8.3
+2026-11-03T03:03:17.0128526Z   Downloaded serde_derive_internals v0.30.0
+2026-11-03T03:03:17.0140740Z   Downloaded tiny-skia v0.11.4
+2026-11-03T03:03:17.0239705Z   Downloaded bit_field v0.10.3
+2026-11-03T03:03:17.0249342Z   Downloaded winsafe v0.0.19
+2026-11-03T03:03:17.0480409Z   Downloaded writeable v0.6.4
+2026-11-03T03:03:17.0496303Z   Downloaded vello_cpu v0.2.0
+2026-11-03T03:03:17.0535026Z   Downloaded wayland-client v0.31.15
+2026-11-03T03:03:17.0551485Z   Downloaded tracing v0.1.44
+2026-11-03T03:03:17.0676932Z   Downloaded embed-resource v3.0.12
+2026-11-03T03:03:17.0690505Z   Downloaded fastrand v2.5.0
+2026-11-03T03:03:17.0701737Z   Downloaded waker-fn v1.2.0
+2026-11-03T03:03:17.0709083Z   Downloaded profiling-procmacros v1.0.18
+2026-11-03T03:03:17.0714916Z   Downloaded wasi v0.11.1+wasi-snapshot-preview1
+2026-11-03T03:03:17.0727617Z   Downloaded hkdf v0.12.4
+2026-11-03T03:03:17.0745894Z   Downloaded wit-bindgen v0.57.1
+2026-11-03T03:03:17.0773180Z   Downloaded ttf-parser v0.25.1
+2026-11-03T03:03:17.0844783Z   Downloaded aligned-vec v0.6.4
+2026-11-03T03:03:17.0852834Z   Downloaded wgpu-types v30.0.1
+2026-11-03T03:03:17.0884552Z   Downloaded guillotiere v0.7.0
+2026-11-03T03:03:17.0894922Z   Downloaded arraydeque v0.5.1
+2026-11-03T03:03:17.0906102Z   Downloaded core-foundation v0.10.0
+2026-11-03T03:03:17.0922847Z   Downloaded zcheapstr v1.1.0
+2026-11-03T03:03:17.0935702Z   Downloaded icu_collections v2.3.0
+2026-11-03T03:03:17.0983433Z   Downloaded open v5.4.4
+2026-11-03T03:03:17.0996578Z   Downloaded base62 v2.2.6
+2026-11-03T03:03:17.1005311Z   Downloaded wasip2 v1.0.4+wasi-0.2.12
+2026-11-03T03:03:17.1037700Z   Downloaded bit-set v0.8.0
+2026-11-03T03:03:17.1047885Z   Downloaded unicode-vo v0.1.0
+2026-11-03T03:03:17.1054882Z   Downloaded hybrid-array v0.4.15
+2026-11-03T03:03:17.1072316Z   Downloaded utf-8 v0.7.6
+2026-11-03T03:03:17.1082031Z   Downloaded url v2.5.8
+2026-11-03T03:03:17.1102134Z   Downloaded etagere v0.2.15
+2026-11-03T03:03:17.1113227Z   Downloaded chacha20 v0.10.2
+2026-11-03T03:03:17.1131952Z   Downloaded pollster v0.2.5
+2026-11-03T03:03:17.1141142Z   Downloaded imagesize v0.14.0
+2026-11-03T03:03:17.1161195Z   Downloaded system-configuration-sys v0.6.0
+2026-11-03T03:03:17.1170369Z   Downloaded gpui-pre-linux v0.3.10
+2026-11-03T03:03:17.1206038Z   Downloaded pin-project-internal v1.1.13
+2026-11-03T03:03:17.1218465Z   Downloaded mac-notification-sys v0.6.15
+2026-11-03T03:03:17.1230057Z   Downloaded backtrace v0.3.76
+2026-11-03T03:03:17.1268492Z   Downloaded metal v0.33.0
+2026-11-03T03:03:17.1443717Z   Downloaded displaydoc v0.2.7
+2026-11-03T03:03:17.1459732Z   Downloaded ordered-channel v1.2.0
+2026-11-03T03:03:17.1466231Z   Downloaded skrifa v0.44.0
+2026-11-03T03:03:17.1539398Z   Downloaded wio v0.2.2
+2026-11-03T03:03:17.1550097Z   Downloaded windows_x86_64_msvc v0.48.5
+2026-11-03T03:03:17.1643567Z   Downloaded futf v0.1.5
+2026-11-03T03:03:17.1651031Z   Downloaded tiny-skia-path v0.11.4
+2026-11-03T03:03:17.1665171Z   Downloaded color v0.3.3
+2026-11-03T03:03:17.1687077Z   Downloaded roxmltree v0.21.1
+2026-11-03T03:03:17.1785352Z   Downloaded rustls-pemfile v2.2.0
+2026-11-03T03:03:17.1803776Z   Downloaded gpui-pre-wgpu v0.3.10
+2026-11-03T03:03:17.1823437Z   Downloaded dwrote v0.11.5
+2026-11-03T03:03:17.1840118Z   Downloaded getrandom v0.3.4
+2026-11-03T03:03:17.1866344Z   Downloaded kurbo v0.11.3
+2026-11-03T03:03:17.1900400Z   Downloaded postage v0.5.0
+2026-11-03T03:03:17.1974150Z   Downloaded new_debug_unreachable v1.0.6
+2026-11-03T03:03:17.1982347Z   Downloaded crypto-common v0.2.2
+2026-11-03T03:03:17.1991088Z   Downloaded http-body-util v0.1.5
+2026-11-03T03:03:17.2006078Z   Downloaded zvariant_derive v5.15.0
+2026-11-03T03:03:17.2014719Z   Downloaded zvariant_utils v4.2.0
+2026-11-03T03:03:17.2029302Z   Downloaded futures-concurrency v7.7.1
+2026-11-03T03:03:17.2090970Z   Downloaded fixedbitset v0.5.7
+2026-11-03T03:03:17.2105651Z   Downloaded endi v1.1.1
+2026-11-03T03:03:17.2113863Z   Downloaded tower-service v0.3.3
+2026-11-03T03:03:17.2119904Z   Downloaded pxfm v0.1.30
+2026-11-03T03:03:17.2310681Z   Downloaded rust-embed-utils v8.13.0
+2026-11-03T03:03:17.2316891Z   Downloaded error-code v3.4.0
+2026-11-03T03:03:17.2325600Z   Downloaded serde_repr v0.1.21
+2026-11-03T03:03:17.2341403Z   Downloaded harfrust v0.5.2
+2026-11-03T03:03:17.2405343Z   Downloaded objc2-core-video v0.3.2
+2026-11-03T03:03:17.2425545Z   Downloaded bytemuck_derive v1.12.1
+2026-11-03T03:03:17.2436053Z   Downloaded spirv v0.4.0+sdk-1.4.341.0
+2026-11-03T03:03:17.2445715Z   Downloaded fluent-uri v0.1.4
+2026-11-03T03:03:17.2472321Z   Downloaded av-scenechange v0.14.1
+2026-11-03T03:03:17.2556112Z   Downloaded serde-saphyr v1.3.0
+2026-11-03T03:03:17.2882953Z   Downloaded gpui-base v0.8.1
+2026-11-03T03:03:17.3074362Z   Downloaded notify-types v2.2.0
+2026-11-03T03:03:17.3100250Z   Downloaded thiserror v2.0.21
+2026-11-03T03:03:17.3148685Z   Downloaded async-process v2.5.0
+2026-11-03T03:03:17.3162508Z   Downloaded gpui-pre v0.3.10
+2026-11-03T03:03:17.3504097Z   Downloaded windows_x86_64_gnu v0.48.5
+2026-11-03T03:03:17.3649628Z   Downloaded strum v0.28.0
+2026-11-03T03:03:17.3656259Z   Downloaded subtle v2.6.1
+2026-11-03T03:03:17.3665773Z   Downloaded windows_i686_msvc v0.48.5
+2026-11-03T03:03:17.3765766Z   Downloaded cbindgen v0.28.0
+2026-11-03T03:03:17.6052799Z   Downloaded windows_i686_msvc v0.53.1
+2026-11-03T03:03:17.6159507Z   Downloaded serde_core v1.0.228
+2026-11-03T03:03:17.6180510Z   Downloaded cc v1.8.0
+2026-11-03T03:03:17.6210973Z   Downloaded windows-registry v0.6.1
+2026-11-03T03:03:17.6223047Z   Downloaded quinn-udp v0.5.16
+2026-11-03T03:03:17.6235822Z   Downloaded num-traits v0.2.19
+2026-11-03T03:03:17.6255775Z   Downloaded quinn-proto v0.11.19
+2026-11-03T03:03:17.6310379Z   Downloaded gpui-component v0.8.1
+2026-11-03T03:03:17.6534806Z   Downloaded fax v0.2.7
+2026-11-03T03:03:17.6549894Z   Downloaded rav1e v0.8.1
+2026-11-03T03:03:17.6811791Z   Downloaded thiserror v1.0.69
+2026-11-03T03:03:17.6853576Z   Downloaded sha2 v0.11.1
+2026-11-03T03:03:17.6880922Z   Downloaded windows-result v0.2.0
+2026-11-03T03:03:17.6890288Z   Downloaded cpufeatures v0.3.1
+2026-11-03T03:03:17.6901338Z   Downloaded async-lock v3.4.2
+2026-11-03T03:03:17.6919909Z   Downloaded windows_i686_gnullvm v0.53.1
+2026-11-03T03:03:17.7022013Z   Downloaded kurbo v0.13.1
+2026-11-03T03:03:17.7062659Z   Downloaded potential_utf v0.1.6
+2026-11-03T03:03:17.7071205Z   Downloaded zerocopy v0.8.62
+2026-11-03T03:03:17.7280864Z   Downloaded num-rational v0.4.2
+2026-11-03T03:03:17.7290479Z   Downloaded aligned v0.4.3
+2026-11-03T03:03:17.7299292Z   Downloaded arbitrary v1.5.0
+2026-11-03T03:03:17.7333495Z   Downloaded as-raw-xcb-connection v1.0.1
+2026-11-03T03:03:17.7339200Z   Downloaded tiff v0.10.3
+2026-11-03T03:03:17.7428319Z   Downloaded schannel v0.1.30
+2026-11-03T03:03:17.7442548Z   Downloaded ref-cast v1.0.27
+2026-11-03T03:03:17.7465142Z   Downloaded semver v1.0.28
+2026-11-03T03:03:17.7482970Z   Downloaded wayland-cursor v0.31.14
+2026-11-03T03:03:17.7489967Z   Downloaded pathfinder_geometry v0.5.1
+2026-11-03T03:03:17.7498591Z   Downloaded wgpu-naga-bridge v30.0.1
+2026-11-03T03:03:17.7504573Z   Downloaded serde_bytes v0.11.19
+2026-11-03T03:03:17.7516752Z   Downloaded pico-args v0.5.0
+2026-11-03T03:03:17.7527401Z   Downloaded iana-time-zone v0.1.65
+2026-11-03T03:03:17.7548819Z   Downloaded gif v0.14.2
+2026-11-03T03:03:17.7562047Z   Downloaded rustversion v1.0.23
+2026-11-03T03:03:17.7583176Z   Downloaded pdf-writer v0.15.0
+2026-11-03T03:03:17.7667887Z   Downloaded simdutf8 v0.1.5
+2026-11-03T03:03:17.7685334Z   Downloaded piper v0.2.5
+2026-11-03T03:03:17.7697720Z   Downloaded serde v1.0.228
+2026-11-03T03:03:17.7724218Z   Downloaded lock_api v0.4.14
+2026-11-03T03:03:17.7734210Z   Downloaded gpui-pre-http-client v0.3.10
+2026-11-03T03:03:17.7742491Z   Downloaded system-configuration v0.6.1
+2026-11-03T03:03:17.7752507Z   Downloaded linux-raw-sys v0.12.1
+2026-11-03T03:03:17.8251627Z   Downloaded unicode-id v0.3.7
+2026-11-03T03:03:17.8264613Z   Downloaded lsp-types v0.97.0
+2026-11-03T03:03:17.8295546Z   Downloaded sys-locale v0.3.2
+2026-11-03T03:03:17.8305897Z   Downloaded accesskit_macos v0.26.3
+2026-11-03T03:03:17.8317349Z   Downloaded is-wsl v0.4.0
+2026-11-03T03:03:17.8325440Z   Downloaded uds_windows v1.2.1
+2026-11-03T03:03:17.8337222Z   Downloaded parking_lot v0.12.5
+2026-11-03T03:03:17.8356262Z   Downloaded cosmic-text v0.19.0
+2026-11-03T03:03:17.8613883Z   Downloaded winapi-i686-pc-windows-gnu v0.4.0
+2026-11-03T03:03:17.9691558Z   Downloaded objc2-core-data v0.2.2
+2026-11-03T03:03:17.9725589Z   Downloaded signal-hook-registry v1.4.8
+2026-11-03T03:03:17.9734840Z   Downloaded ref-cast-impl v1.0.27
+2026-11-03T03:03:17.9741275Z   Downloaded zbus_xml v5.2.1
+2026-11-03T03:03:17.9761585Z   Downloaded objc2-core-services v0.3.2
+2026-11-03T03:03:17.9803926Z   Downloaded num-bigint v0.4.8
+2026-11-03T03:03:17.9840176Z   Downloaded gpui-pre-platform v0.3.10
+2026-11-03T03:03:17.9853893Z   Downloaded zune-inflate v0.2.54
+2026-11-03T03:03:17.9867461Z   Downloaded winapi-x86_64-pc-windows-gnu v0.4.0
+2026-11-03T03:03:18.0982052Z   Downloaded vello_common v0.2.0
+2026-11-03T03:03:18.1014844Z   Downloaded windows-sys v0.48.0
+2026-11-03T03:03:18.1645065Z   Downloaded freetype-sys v0.20.1
+2026-11-03T03:03:18.2392179Z   Downloaded read-fonts v0.37.0
+2026-11-03T03:03:18.2514405Z   Downloaded ring v0.17.14
+2026-11-03T03:03:18.2843504Z   Downloaded windows v0.57.0
+2026-11-03T03:03:18.4995117Z   Downloaded tauri-winrt-notification v0.8.1
+2026-11-03T03:03:18.5018345Z   Downloaded windows-sys v0.52.0
+2026-11-03T03:03:18.7391281Z   Downloaded windows v0.61.3
+2026-11-03T03:03:18.9375150Z   Downloaded windows_i686_gnu v0.53.1
+2026-11-03T03:03:18.9540609Z   Downloaded rust-embed v8.13.0
+2026-11-03T03:03:18.9607843Z   Downloaded granit-parser v1.3.0
+2026-11-03T03:03:18.9666172Z   Downloaded windows-sys v0.61.2
+2026-11-03T03:03:19.0201332Z   Downloaded windows v0.62.2
+2026-11-03T03:03:19.2172884Z   Downloaded windows v0.58.0
+2026-11-03T03:03:20.2692835Z ##[group]Run python -m unittest discover -s tools/xtask -p 'test_*.py'
+2026-11-03T03:03:20.2693308Z python -m unittest discover -s tools/xtask -p 'test_*.py'
+2026-11-03T03:03:20.2693675Z python -m unittest discover -s scripts/joydeck/tests -p 'test_*.py'
+2026-11-03T03:03:20.2711495Z shell: /usr/bin/bash -e {0}
+2026-11-03T03:03:20.2711704Z env:
+2026-11-03T03:03:20.2711929Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:20.2712280Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T03:03:20.2712613Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:20.2712920Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:20.2713216Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:20.2713712Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T03:03:20.2713971Z ##[endgroup]
+2026-11-03T03:03:21.0968830Z ..............
+2026-11-03T03:03:21.0969250Z ----------------------------------------------------------------------
+2026-11-03T03:03:21.0969590Z Ran 14 tests in 0.044s
+2026-11-03T03:03:21.0969716Z
+2026-11-03T03:03:21.0969783Z OK
+2026-11-03T03:03:21.2141634Z ...........
+2026-11-03T03:03:21.2142040Z ----------------------------------------------------------------------
+2026-11-03T03:03:21.2142488Z Ran 11 tests in 0.005s
+2026-11-03T03:03:21.2142669Z
+2026-11-03T03:03:21.2142772Z OK
+2026-11-03T03:03:21.2492470Z ##[group]Run python scripts/joydeck/check_sources.py
+2026-11-03T03:03:21.2492986Z python scripts/joydeck/check_sources.py
+2026-11-03T03:03:21.2493444Z python scripts/joydeck/check_dependencies.py
+2026-11-03T03:03:21.2493897Z python scripts/joydeck/check_refactor_docs.py
+2026-11-03T03:03:21.2513642Z shell: /usr/bin/bash -e {0}
+2026-11-03T03:03:21.2513864Z env:
+2026-11-03T03:03:21.2514086Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:21.2514433Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T03:03:21.2514761Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:21.2515059Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:21.2515357Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:21.2515647Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T03:03:21.2515898Z ##[endgroup]
+2026-11-03T03:03:21.3070829Z Imported source records passed (268 files)
+2026-11-03T03:03:24.0241114Z Exact dependency baseline and CLI/core isolation passed
+2026-11-03T03:03:24.1309371Z Documentation and task references passed
+2026-11-03T03:03:24.1450985Z ##[group]Run cargo xtask check joydeck --headless
+2026-11-03T03:03:24.1451455Z cargo xtask check joydeck --headless
+2026-11-03T03:03:24.1475419Z shell: /usr/bin/bash -e {0}
+2026-11-03T03:03:24.1475722Z env:
+2026-11-03T03:03:24.1476054Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:24.1476588Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T03:03:24.1477122Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:24.1477610Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:24.1478298Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T03:03:24.1478768Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T03:03:24.1479167Z ##[endgroup]
+2026-11-03T03:03:24.3321030Z    Compiling joyoffice-xtask v0.1.0 (/home/runner/work/joyoffice/joyoffice/tools/xtask)
+2026-11-03T03:03:24.5732386Z     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s
+2026-11-03T03:03:24.5800672Z      Running `target/debug/joyoffice-xtask check joydeck --headless`
+2026-11-03T03:03:25.0930988Z + /opt/hostedtoolcache/Python/3.12.15/x64/bin/python3 scripts/joydeck/check_sources.py
+2026-11-03T03:03:25.1417144Z Imported source records passed (268 files)
+2026-11-03T03:03:25.1452112Z + /opt/hostedtoolcache/Python/3.12.15/x64/bin/python3 scripts/joydeck/check_dependencies.py
+2026-11-03T03:03:27.4973470Z Exact dependency baseline and CLI/core isolation passed
+2026-11-03T03:03:27.5030156Z + /opt/hostedtoolcache/Python/3.12.15/x64/bin/python3 scripts/joydeck/check_refactor_docs.py
+2026-11-03T03:03:27.5425321Z Documentation and task references passed
+2026-11-03T03:03:27.5458185Z + cargo fmt -p joydeck-anim -p joydeck-cli -p joydeck-color -p joydeck-engine -p joydeck-fonts -p joydeck-format -p joydeck-geom -p joydeck-legacy -p joydeck-metafile -p joydeck-model -p joydeck-pdf -p joydeck-pptx -p joydeck-render -p joydeck-shell -p joydeck-text -p joyoffice-opc -- --check
+2026-11-03T03:03:28.6781695Z + cargo clippy -p joydeck-anim -p joydeck-cli -p joydeck-color -p joydeck-engine -p joydeck-fonts -p joydeck-format -p joydeck-geom -p joydeck-legacy -p joydeck-metafile -p joydeck-model -p joydeck-pdf -p joydeck-pptx -p joydeck-render -p joydeck-shell -p joydeck-text -p joyoffice-opc --all-targets --locked -- -D warnings
+2026-11-03T03:03:28.9431589Z    Compiling proc-macro2 v1.0.107
+2026-11-03T03:03:28.9431997Z    Compiling quote v1.0.47
+2026-11-03T03:03:28.9432387Z    Compiling unicode-ident v1.0.27
+2026-11-03T03:03:28.9433659Z    Compiling serde_core v1.0.228
+2026-11-03T03:03:29.0089207Z    Compiling serde v1.0.228
+2026-11-03T03:03:29.2099593Z     Checking arrayvec v0.7.8
+2026-11-03T03:03:29.3079388Z     Checking polycool v0.4.0
+2026-11-03T03:03:29.4113410Z     Checking cfg-if v1.0.5
+2026-11-03T03:03:29.4311685Z     Checking simd-adler32 v0.3.10
+2026-11-03T03:03:29.4440493Z    Compiling crc32fast v1.5.2
+2026-11-03T03:03:29.5098962Z     Checking adler2 v2.0.1
+2026-11-03T03:03:29.5619048Z     Checking memchr v2.8.3
+2026-11-03T03:03:29.9015373Z     Checking miniz_oxide v0.9.1
+2026-11-03T03:03:30.2743507Z    Compiling syn v3.0.9
+2026-11-03T03:03:30.3699117Z    Compiling syn v2.0.119
+2026-11-03T03:03:30.9619447Z    Compiling autocfg v1.5.1
+2026-11-03T03:03:31.2399601Z     Checking flate2 v1.1.10
+2026-11-03T03:03:31.4729231Z     Checking bitflags v2.13.2
+2026-11-03T03:03:31.5585901Z    Compiling thiserror v2.0.21
+2026-11-03T03:03:32.0629169Z    Compiling num-traits v0.2.19
+2026-11-03T03:03:32.1123381Z     Checking itoa v1.0.18
+2026-11-03T03:03:32.2079028Z    Compiling zmij v1.0.23
+2026-11-03T03:03:32.4939176Z    Compiling serde_json v1.0.154
+2026-11-03T03:03:32.6791764Z     Checking unicode-segmentation v1.13.3
+2026-11-03T03:03:32.9525844Z     Checking miniz_oxide v0.8.9
+2026-11-03T03:03:33.2958934Z     Checking fdeflate v0.3.7
+2026-11-03T03:03:33.5078559Z     Checking foldhash v0.2.0
+2026-11-03T03:03:33.5369169Z     Checking png v0.18.1
+2026-11-03T03:03:33.5839595Z     Checking hashbrown v0.17.1
+2026-11-03T03:03:34.0085717Z     Checking log v0.4.34
+2026-11-03T03:03:34.0816196Z    Compiling zerocopy v0.8.62
+2026-11-03T03:03:34.1529163Z     Checking weezl v0.1.12
+2026-11-03T03:03:34.3299199Z     Checking quick-error v2.0.1
+2026-11-03T03:03:34.3629009Z     Checking zune-core v0.4.12
+2026-11-03T03:03:34.4689200Z     Checking byteorder-lite v0.1.0
+2026-11-03T03:03:34.6159150Z     Checking color_quant v1.1.0
+2026-11-03T03:03:34.6939155Z     Checking zune-core v0.5.3
+2026-11-03T03:03:34.8358992Z     Checking zune-jpeg v0.5.15
+2026-11-03T03:03:34.8472350Z     Checking gif v0.14.2
+2026-11-03T03:03:35.1169110Z     Checking image-webp v0.2.4
+2026-11-03T03:03:35.3069200Z     Checking zune-jpeg v0.4.21
+2026-11-03T03:03:35.6939199Z     Checking fax v0.2.7
+2026-11-03T03:03:35.8499273Z     Checking pxfm v0.1.30
+2026-11-03T03:03:35.8606544Z    Compiling crossbeam-utils v0.8.23
+2026-11-03T03:03:36.1379263Z    Compiling version_check v0.9.5
+2026-11-03T03:03:36.9280237Z     Checking equivalent v1.0.2
+2026-11-03T03:03:36.9519014Z     Checking indexmap v2.14.2
+2026-11-03T03:03:37.4189757Z    Compiling generic-array v0.14.7
+2026-11-03T03:03:37.8049211Z     Checking typenum v1.20.1
+2026-11-03T03:03:37.8451811Z     Checking moxcms v0.7.11
+2026-11-03T03:03:38.7595943Z    Compiling joydeck-fonts v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-fonts)
+2026-11-03T03:03:39.1469204Z    Compiling crossbeam-epoch v0.9.21
+2026-11-03T03:03:39.3223156Z    Compiling crossbeam-deque v0.8.8
+2026-11-03T03:03:39.4992086Z     Checking unicode-bidi v0.3.18
+2026-11-03T03:03:39.9249292Z     Checking crypto-common v0.1.7
+2026-11-03T03:03:39.9699069Z     Checking block-buffer v0.10.4
+2026-11-03T03:03:40.0239102Z     Checking euclid v0.22.14
+2026-11-03T03:03:40.4339225Z    Compiling rayon-core v1.13.0
+2026-11-03T03:03:40.5069381Z     Checking once_cell v1.21.4
+2026-11-03T03:03:40.5689047Z     Checking linebender_resource_handle v0.1.1
+2026-11-03T03:03:40.6189086Z     Checking guillotiere v0.7.0
+2026-11-03T03:03:40.7419093Z     Checking digest v0.10.7
+2026-11-03T03:03:40.9219159Z    Compiling synstructure v0.14.0
+2026-11-03T03:03:40.9409221Z     Checking quick-xml v0.41.0
+2026-11-03T03:03:41.4669657Z     Checking fearless_simd v0.4.1
+2026-11-03T03:03:43.8719181Z    Compiling bytemuck_derive v1.12.1
+2026-11-03T03:03:44.2749245Z    Compiling thiserror-impl v2.0.21
+2026-11-03T03:03:44.7239192Z     Checking typed-path v0.12.4
+2026-11-03T03:03:45.5209181Z     Checking iana-time-zone v0.1.65
+2026-11-03T03:03:45.5913450Z     Checking cpufeatures v0.2.17
+2026-11-03T03:03:45.6219186Z     Checking sha2 v0.10.9
+2026-11-03T03:03:45.8239043Z     Checking chrono v0.4.45
+2026-11-03T03:03:46.6359226Z     Checking zip v9.0.0
+2026-11-03T03:03:47.5869213Z     Checking crossbeam-channel v0.5.17
+2026-11-03T03:03:47.8499056Z     Checking either v1.19.0
+2026-11-03T03:03:47.9519042Z     Checking unicode-linebreak v0.1.5
+2026-11-03T03:03:48.0858999Z     Checking rayon v1.12.0
+2026-11-03T03:03:49.5316727Z     Checking ordered-channel v1.2.0
+2026-11-03T03:03:49.5758855Z    Compiling zerofrom-derive v0.1.8
+2026-11-03T03:03:50.7959160Z     Checking bytemuck v1.25.2
+2026-11-03T03:03:50.9357586Z     Checking font-types v0.11.3
+2026-11-03T03:03:51.1669158Z     Checking read-fonts v0.39.2
+2026-11-03T03:03:51.9610294Z    Compiling serde_derive v1.0.228
+2026-11-03T03:03:53.2659176Z    Compiling zerocopy-derive v0.8.62
+2026-11-03T03:03:56.2627354Z     Checking skrifa v0.42.1
+2026-11-03T03:03:56.9679080Z     Checking color v0.3.3
+2026-11-03T03:03:57.3177314Z     Checking font-types v0.12.6
+2026-11-03T03:03:57.6079519Z     Checking read-fonts v0.41.0
+2026-11-03T03:03:57.9999241Z     Checking thread_local v1.1.10
+2026-11-03T03:03:58.0890176Z     Checking base64 v0.22.1
+2026-11-03T03:03:58.2619154Z     Checking zerofrom v0.1.8
+2026-11-03T03:03:58.3168969Z    Compiling yoke-derive v0.8.4
+2026-11-03T03:04:02.9060139Z     Checking skrifa v0.44.0
+2026-11-03T03:04:04.1559195Z     Checking strict-num v0.1.1
+2026-11-03T03:04:04.2105359Z     Checking ryu v1.0.23
+2026-11-03T03:04:04.2992223Z     Checking arrayref v0.3.9
+2026-11-03T03:04:04.3239036Z     Checking rustc-hash v2.1.3
+2026-11-03T03:04:04.3659069Z     Checking stable_deref_trait v1.2.1
+2026-11-03T03:04:04.3899125Z     Checking yoke v0.8.3
+2026-11-03T03:04:04.4949455Z     Checking tiny-skia-path v0.12.0
+2026-11-03T03:04:04.7289194Z     Checking pdf-writer v0.15.0
+2026-11-03T03:04:04.8929204Z     Checking joyoffice-opc v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyoffice-opc)
+2026-11-03T03:04:05.1489049Z     Checking float-cmp v0.9.0
+2026-11-03T03:04:05.2029037Z     Checking xmp-writer v0.3.3
+2026-11-03T03:04:05.4429235Z     Checking siphasher v1.0.4
+2026-11-03T03:04:05.5389198Z     Checking bumpalo v3.20.3
+2026-11-03T03:04:05.6749136Z    Compiling libc v0.2.186
+2026-11-03T03:04:05.9389239Z     Checking imagesize v0.14.0
+2026-11-03T03:04:06.1329187Z     Checking roxmltree v0.21.1
+2026-11-03T03:04:06.3339169Z    Compiling getrandom v0.3.4
+2026-11-03T03:04:07.8274573Z     Checking smallvec v1.16.3
+2026-11-03T03:04:07.8275477Z     Checking joydeck-color v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-color)
+2026-11-03T03:04:07.9479036Z     Checking kurbo v0.13.1
+2026-11-03T03:04:08.0399130Z     Checking harfrust v0.8.4
+2026-11-03T03:04:08.7223388Z     Checking joydeck-geom v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-geom)
+2026-11-03T03:04:08.7224353Z     Checking peniko v0.6.1
+2026-11-03T03:04:08.8445578Z     Checking vello_common v0.2.0
+2026-11-03T03:04:09.4049355Z     Checking joydeck-model v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-model)
+2026-11-03T03:04:09.5748686Z     Checking glifo v0.3.0
+2026-11-03T03:04:09.8803261Z     Checking vello_cpu v0.2.0
+2026-11-03T03:04:10.6239251Z     Checking write-fonts v0.48.1
+2026-11-03T03:04:10.6689034Z     Checking half v2.7.1
+2026-11-03T03:04:10.8819609Z     Checking tiff v0.10.3
+2026-11-03T03:04:11.6009168Z     Checking image v0.25.9
+2026-11-03T03:04:13.1689565Z     Checking joydeck-metafile v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-metafile)
+2026-11-03T03:04:13.3619738Z     Checking joydeck-anim v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-anim)
+2026-11-03T03:04:13.8993792Z     Checking joydeck-text v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-text)
+2026-11-03T03:04:14.0379454Z     Checking joydeck-engine v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-engine)
+2026-11-03T03:04:14.3975022Z     Checking subsetter v0.2.6
+2026-11-03T03:04:14.4042256Z     Checking joydeck-render v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-render)
+2026-11-03T03:04:14.8127296Z     Checking krilla v0.8.2
+2026-11-03T03:04:15.0399333Z     Checking joydeck-format v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-format)
+2026-11-03T03:04:15.3569332Z     Checking joydeck-pptx v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-pptx)
+2026-11-03T03:04:15.8239605Z     Checking joydeck-legacy v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-legacy)
+2026-11-03T03:04:16.6669476Z     Checking joydeck-pdf v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-pdf)
+2026-11-03T03:04:18.5509339Z     Checking joydeck-shell v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-shell)
+2026-11-03T03:04:19.4638852Z     Checking joydeck-cli v0.8.0 (/home/runner/work/joyoffice/joyoffice/apps/joydeck-cli)
+2026-11-03T03:04:22.1095791Z     Finished `dev` profile [unoptimized + debuginfo] target(s) in 53.40s
+2026-11-03T03:04:22.1347405Z + cargo test -p joydeck-anim -p joydeck-cli -p joydeck-color -p joydeck-engine -p joydeck-fonts -p joydeck-format -p joydeck-geom -p joydeck-legacy -p joydeck-metafile -p joydeck-model -p joydeck-pdf -p joydeck-pptx -p joydeck-render -p joydeck-shell -p joydeck-text -p joyoffice-opc --locked
+2026-11-03T03:04:22.3477558Z    Compiling serde_core v1.0.228
+2026-11-03T03:04:22.3478235Z    Compiling arrayvec v0.7.8
+2026-11-03T03:04:22.3479922Z    Compiling bytemuck v1.25.2
+2026-11-03T03:04:22.3520189Z    Compiling cfg-if v1.0.5
+2026-11-03T03:04:22.3849478Z    Compiling memchr v2.8.3
+2026-11-03T03:04:22.4939171Z    Compiling polycool v0.4.0
+2026-11-03T03:04:22.5439322Z    Compiling simd-adler32 v0.3.10
+2026-11-03T03:04:22.7819369Z    Compiling adler2 v2.0.1
+2026-11-03T03:04:22.8757955Z    Compiling crc32fast v1.5.2
+2026-11-03T03:04:23.1069615Z    Compiling miniz_oxide v0.9.1
+2026-11-03T03:04:23.4000500Z    Compiling bitflags v2.13.2
+2026-11-03T03:04:23.5659406Z    Compiling flate2 v1.1.10
+2026-11-03T03:04:23.6499370Z    Compiling thiserror v2.0.21
+2026-11-03T03:04:23.6959264Z    Compiling num-traits v0.2.19
+2026-11-03T03:04:24.0069210Z    Compiling itoa v1.0.18
+2026-11-03T03:04:24.1829215Z    Compiling zmij v1.0.23
+2026-11-03T03:04:24.4109624Z    Compiling serde v1.0.228
+2026-11-03T03:04:24.4235148Z    Compiling serde_json v1.0.154
+2026-11-03T03:04:24.4809354Z    Compiling unicode-segmentation v1.13.3
+2026-11-03T03:04:24.5709236Z    Compiling miniz_oxide v0.8.9
+2026-11-03T03:04:24.9627980Z    Compiling smallvec v1.16.3
+2026-11-03T03:04:24.9699561Z    Compiling joydeck-color v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-color)
+2026-11-03T03:04:25.1509617Z    Compiling kurbo v0.13.1
+2026-11-03T03:04:25.3569463Z    Compiling fdeflate v0.3.7
+2026-11-03T03:04:25.9834441Z    Compiling png v0.18.1
+2026-11-03T03:04:26.1219174Z    Compiling foldhash v0.2.0
+2026-11-03T03:04:26.2709858Z    Compiling hashbrown v0.17.1
+2026-11-03T03:04:26.8868428Z    Compiling joydeck-geom v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-geom)
+2026-11-03T03:04:27.4648929Z    Compiling weezl v0.1.12
+2026-11-03T03:04:28.4135690Z    Compiling joydeck-model v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-model)
+2026-11-03T03:04:28.4289264Z    Compiling log v0.4.34
+2026-11-03T03:04:28.4659754Z    Compiling quick-error v2.0.1
+2026-11-03T03:04:28.5149697Z    Compiling zerocopy v0.8.62
+2026-11-03T03:04:28.5267665Z    Compiling zune-core v0.5.3
+2026-11-03T03:04:28.5569125Z    Compiling color_quant v1.1.0
+2026-11-03T03:04:28.7359350Z    Compiling byteorder-lite v0.1.0
+2026-11-03T03:04:28.7899216Z    Compiling zune-core v0.4.12
+2026-11-03T03:04:28.9479133Z    Compiling image-webp v0.2.4
+2026-11-03T03:04:28.9628831Z    Compiling zune-jpeg v0.4.21
+2026-11-03T03:04:30.0939119Z    Compiling zune-jpeg v0.5.15
+2026-11-03T03:04:31.5679261Z    Compiling gif v0.14.2
+2026-11-03T03:04:31.9709215Z    Compiling fax v0.2.7
+2026-11-03T03:04:32.2061492Z    Compiling half v2.7.1
+2026-11-03T03:04:32.2349188Z    Compiling pxfm v0.1.30
+2026-11-03T03:04:32.6219356Z    Compiling tiff v0.10.3
+2026-11-03T03:04:33.2819184Z    Compiling font-types v0.11.3
+2026-11-03T03:04:33.5949217Z    Compiling read-fonts v0.39.2
+2026-11-03T03:04:34.6979041Z    Compiling moxcms v0.7.11
+2026-11-03T03:04:35.4039058Z    Compiling equivalent v1.0.2
+2026-11-03T03:04:35.4309157Z    Compiling indexmap v2.14.2
+2026-11-03T03:04:36.1509457Z    Compiling typenum v1.20.1
+2026-11-03T03:04:36.7899513Z    Compiling joydeck-fonts v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-fonts)
+2026-11-03T03:04:37.1679239Z    Compiling generic-array v0.14.7
+2026-11-03T03:04:37.6421114Z    Compiling crossbeam-utils v0.8.23
+2026-11-03T03:04:38.1539196Z    Compiling unicode-bidi v0.3.18
+2026-11-03T03:04:39.2089008Z    Compiling image v0.25.9
+2026-11-03T03:04:40.4369319Z    Compiling skrifa v0.42.1
+2026-11-03T03:04:51.5469293Z    Compiling harfrust v0.8.4
+2026-11-03T03:04:57.7919697Z    Compiling block-buffer v0.10.4
+2026-11-03T03:04:57.8719337Z    Compiling crypto-common v0.1.7
+2026-11-03T03:04:57.9359012Z    Compiling digest v0.10.7
+2026-11-03T03:04:58.0739237Z    Compiling crossbeam-epoch v0.9.21
+2026-11-03T03:04:58.3729230Z    Compiling euclid v0.22.14
+2026-11-03T03:04:58.8959586Z    Compiling quick-xml v0.41.0
+2026-11-03T03:05:01.0118967Z    Compiling font-types v0.12.6
+2026-11-03T03:05:01.4029185Z    Compiling color v0.3.3
+2026-11-03T03:05:02.6779168Z    Compiling typed-path v0.12.4
+2026-11-03T03:05:02.9219214Z    Compiling cpufeatures v0.2.17
+2026-11-03T03:05:02.9529537Z    Compiling linebender_resource_handle v0.1.1
+2026-11-03T03:05:03.0119091Z    Compiling iana-time-zone v0.1.65
+2026-11-03T03:05:03.4129134Z    Compiling once_cell v1.21.4
+2026-11-03T03:05:03.5089150Z    Compiling read-fonts v0.41.0
+2026-11-03T03:05:04.1989510Z    Compiling zip v9.0.0
+2026-11-03T03:05:05.1459061Z    Compiling chrono v0.4.45
+2026-11-03T03:05:06.6469576Z    Compiling peniko v0.6.1
+2026-11-03T03:05:07.0088278Z    Compiling sha2 v0.10.9
+2026-11-03T03:05:07.6729169Z    Compiling guillotiere v0.7.0
+2026-11-03T03:05:07.9859628Z    Compiling crossbeam-deque v0.8.8
+2026-11-03T03:05:08.1299684Z    Compiling fearless_simd v0.4.1
+2026-11-03T03:05:08.1749649Z    Compiling unicode-linebreak v0.1.5
+2026-11-03T03:05:08.2719255Z    Compiling rayon-core v1.13.0
+2026-11-03T03:05:08.3499154Z    Compiling crossbeam-channel v0.5.17
+2026-11-03T03:05:08.8719285Z    Compiling either v1.19.0
+2026-11-03T03:05:09.0049235Z    Compiling rayon v1.12.0
+2026-11-03T03:05:09.7399280Z    Compiling skrifa v0.44.0
+2026-11-03T03:05:11.1629340Z    Compiling ordered-channel v1.2.0
+2026-11-03T03:05:11.2279421Z    Compiling joydeck-text v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-text)
+2026-11-03T03:05:11.7919493Z    Compiling vello_common v0.2.0
+2026-11-03T03:05:13.2039161Z    Compiling glifo v0.3.0
+2026-11-03T03:05:17.6499450Z    Compiling joydeck-metafile v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-metafile)
+2026-11-03T03:05:18.3529794Z    Compiling joydeck-anim v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-anim)
+2026-11-03T03:05:20.2949230Z    Compiling thread_local v1.1.10
+2026-11-03T03:05:20.4979844Z    Compiling base64 v0.22.1
+2026-11-03T03:05:20.8939266Z    Compiling vello_cpu v0.2.0
+2026-11-03T03:05:21.2301574Z    Compiling zerofrom v0.1.8
+2026-11-03T03:05:21.3019605Z    Compiling joyoffice-opc v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joyoffice-opc)
+2026-11-03T03:05:21.7204961Z    Compiling write-fonts v0.48.1
+2026-11-03T03:05:22.6029257Z    Compiling strict-num v0.1.1
+2026-11-03T03:05:22.6799174Z    Compiling arrayref v0.3.9
+2026-11-03T03:05:22.7079078Z    Compiling ryu v1.0.23
+2026-11-03T03:05:22.9650317Z    Compiling stable_deref_trait v1.2.1
+2026-11-03T03:05:22.9946776Z    Compiling rustc-hash v2.1.3
+2026-11-03T03:05:23.0519293Z    Compiling yoke v0.8.3
+2026-11-03T03:05:23.1849144Z    Compiling pdf-writer v0.15.0
+2026-11-03T03:05:24.7328985Z    Compiling tiny-skia-path v0.12.0
+2026-11-03T03:05:26.0289744Z    Compiling joydeck-render v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-render)
+2026-11-03T03:05:27.9579137Z    Compiling subsetter v0.2.6
+2026-11-03T03:05:31.0864248Z    Compiling float-cmp v0.9.0
+2026-11-03T03:05:31.1499331Z    Compiling xmp-writer v0.3.3
+2026-11-03T03:05:32.0829429Z    Compiling siphasher v1.0.4
+2026-11-03T03:05:32.2220307Z    Compiling bumpalo v3.20.3
+2026-11-03T03:05:32.4159155Z    Compiling imagesize v0.14.0
+2026-11-03T03:05:33.2779120Z    Compiling krilla v0.8.2
+2026-11-03T03:05:33.4039063Z    Compiling roxmltree v0.21.1
+2026-11-03T03:05:35.1939451Z    Compiling joydeck-engine v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-engine)
+2026-11-03T03:05:42.4179721Z    Compiling joydeck-pdf v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-pdf)
+2026-11-03T03:05:43.7259258Z    Compiling libc v0.2.186
+2026-11-03T03:05:44.5429487Z    Compiling joydeck-legacy v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-legacy)
+2026-11-03T03:05:50.8419625Z    Compiling joydeck-format v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-format)
+2026-11-03T03:05:53.4089406Z    Compiling joydeck-pptx v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-pptx)
+2026-11-03T03:05:56.3229401Z    Compiling getrandom v0.3.4
+2026-11-03T03:05:56.4579425Z    Compiling joydeck-shell v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joydeck-shell)
+2026-11-03T03:06:03.3479441Z    Compiling joydeck-cli v0.8.0 (/home/runner/work/joyoffice/joyoffice/apps/joydeck-cli)
+2026-11-03T03:06:21.1728325Z     Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 59s
+2026-11-03T03:06:21.2462310Z      Running unittests src/lib.rs (target/debug/deps/joydeck_anim-10257122ab895a49)
+2026-11-03T03:06:21.2476390Z
+2026-11-03T03:06:21.2476580Z running 95 tests
+2026-11-03T03:06:21.2480381Z test mesh::tests::degenerate_quads_do_not_blow_up ... ok
+2026-11-03T03:06:21.2481172Z test mesh::tests::rect_is_two_triangles ... ok
+2026-11-03T03:06:21.2481847Z test mesh::tests::trapezoid_is_subdivided_projectively ... ok
+2026-11-03T03:06:21.2484219Z test tests::after_hide_on_next_click ... ok
+2026-11-03T03:06:21.2484862Z test tests::after_previous_chains ... ok
+2026-11-03T03:06:21.2487826Z test tests::color_emphasis_tints ... ok
+2026-11-03T03:06:21.2488560Z test tests::auto_first_step ... ok
+2026-11-03T03:06:21.2489178Z test tests::compose_and_sanitize ... ok
+2026-11-03T03:06:21.2490393Z test tests::by_paragraph_groups_sub_bullets_with_their_parent ... ok
+2026-11-03T03:06:21.2498419Z test tests::custom_path_offsets_in_points ... ok
+2026-11-03T03:06:21.2499183Z test tests::default_state_is_identity ... ok
+2026-11-03T03:06:21.2499777Z test tests::delays_shift_start ... ok
+2026-11-03T03:06:21.2502521Z test tests::easing_endpoints ... ok
+2026-11-03T03:06:21.2503120Z test tests::emphasis_returns_or_persists ... ok
+2026-11-03T03:06:21.2503675Z test tests::empty_slide ... ok
+2026-11-03T03:06:21.2505108Z test tests::entrance_then_exit ... ok
+2026-11-03T03:06:21.2519432Z test tests::custom_show_resolves_duplicate_ids_to_the_first_slide ... ok
+2026-11-03T03:06:21.2618932Z test path::preset_path_tests::every_extra_motion_path_preset_starts_at_its_shape_and_moves ... ok
+2026-11-03T03:06:21.2619801Z test tests::fade_and_push_shapes ... ok
+2026-11-03T03:06:21.2648538Z test tests::fly_starts_off_slide ... ok
+2026-11-03T03:06:21.2678492Z test tests::hidden_after_exit ... ok
+2026-11-03T03:06:21.2679040Z test tests::hidden_before_entrance ... ok
+2026-11-03T03:06:21.3008910Z test tests::custom_show_with_many_entries_resolves_quickly ... ok
+2026-11-03T03:06:21.3038899Z test tests::hostile_times_and_durations ... ok
+2026-11-03T03:06:21.3039344Z test tests::locate_play_all_clock ... ok
+2026-11-03T03:06:21.3039731Z test tests::every_animation_evaluates_finite ... ok
+2026-11-03T03:06:21.3302523Z test tests::many_by_paragraph_animations_on_one_shape_share_paragraph_targets ... ok
+2026-11-03T03:06:21.3428623Z test tests::malformed_paths_dont_panic ... ok
+2026-11-03T03:06:21.3458686Z test tests::media_in_the_click_sequence_cues_and_does_not_hold_the_click ... ok
+2026-11-03T03:06:21.3488567Z test tests::mid_transitions_mix_sources ... ok
+2026-11-03T03:06:21.3489278Z test tests::morph_crop_moves_the_image_linearly ... ok
+2026-11-03T03:06:21.3548698Z test tests::morph_frame_cross_fades_changed_content ... ok
+2026-11-03T03:06:21.3584776Z test tests::morph_frame_lists_texts_for_words_and_characters ... ok
+2026-11-03T03:06:21.3618611Z test tests::morph_frame_morphs_a_picture_crop ... ok
+2026-11-03T03:06:21.3648535Z test tests::morph_frame_morphs_the_outline_of_a_changed_geometry ... ok
+2026-11-03T03:06:21.3649377Z test tests::morph_frame_moves_blends_and_fades ... ok
+2026-11-03T03:06:21.3678488Z test tests::morph_pairs_by_name_text_and_geometry ... ok
+2026-11-03T03:06:21.3715470Z test tests::morph_pairs_leaves_unrelated_text_boxes_alone ... ok
+2026-11-03T03:06:21.3738412Z test tests::morph_xfrm_interpolates ... ok
+2026-11-03T03:06:21.3764731Z test tests::motion_path_parse_and_eval ... ok
+2026-11-03T03:06:21.3765323Z test tests::on_click_starts_steps ... ok
+2026-11-03T03:06:21.3788590Z test tests::playing_a_custom_show_stays_on_its_slides ... ok
+2026-11-03T03:06:21.3818569Z test tests::preset_paths_move ... ok
+2026-11-03T03:06:21.3848507Z test tests::random_is_deterministic ... ok
+2026-11-03T03:06:21.3878434Z test tests::repeat_and_auto_reverse_extend_duration ... ok
+2026-11-03T03:06:21.3879109Z test tests::rewind_reverts_entrance ... ok
+2026-11-03T03:06:21.3908516Z test tests::same_text_morphs_even_by_objects ... ok
+2026-11-03T03:06:21.3938428Z test tests::show_auto_advance ... ok
+2026-11-03T03:06:21.3939473Z test tests::show_back_leaves_a_slide_whose_first_step_is_automatic ... ok
+2026-11-03T03:06:21.3968534Z test tests::show_custom_show_and_range ... ok
+2026-11-03T03:06:21.3998437Z test tests::show_empty_and_all_hidden ... ok
+2026-11-03T03:06:21.4028431Z test tests::show_follows_links ... ok
+2026-11-03T03:06:21.4028982Z test tests::show_loops ... ok
+2026-11-03T03:06:21.4058510Z test tests::show_remembers_a_slide_was_reached_by_going_back ... ok
+2026-11-03T03:06:21.4088539Z test tests::show_returns_to_the_zoom_slide ... ok
+2026-11-03T03:06:21.4118358Z test tests::show_skips_hidden_slides ... ok
+2026-11-03T03:06:21.4118974Z test tests::show_steps_through_builds ... ok
+2026-11-03T03:06:21.4148468Z test tests::sink_down_and_peek_out_to_bottom_move_down ... ok
+2026-11-03T03:06:21.4178687Z test tests::start_of_seeks_the_play_all_clock_to_an_effect ... ok
+2026-11-03T03:06:21.4179351Z test tests::text_build_by_paragraph ... ok
+2026-11-03T03:06:21.4208637Z test tests::timeline_targets_the_first_shape_with_a_duplicate_id ... ok
+2026-11-03T03:06:21.4238454Z test tests::transitions_hostile_t ... ok
+2026-11-03T03:06:21.4268841Z test tests::trigger_sequences_keep_first_appearance_order_when_interleaved ... ok
+2026-11-03T03:06:21.4269632Z test tests::triggered_sequences ... ok
+2026-11-03T03:06:21.4269995Z test tests::wipe_clips ... ok
+2026-11-03T03:06:21.4270332Z test tests::with_previous_joins_step ... ok
+2026-11-03T03:06:21.4270780Z test tests::every_transition_finite_and_complete ... ok
+2026-11-03T03:06:21.4288791Z test tests_interact::a_playing_main_step_is_finished_when_the_show_leaves ... ok
+2026-11-03T03:06:21.4572658Z test tests_interact::a_ring_of_triggers_goes_round_and_round ... ok
+2026-11-03T03:06:21.4989196Z test tests::honeycomb_cells_reach_the_bottom_before_the_slide_ends ... ok
+2026-11-03T03:06:21.5048935Z test tests_interact::a_shape_without_an_action_blocks_the_one_beneath_it ... ok
+2026-11-03T03:06:21.5098626Z test tests_interact::a_slide_comes_back_the_way_it_was_left ... ok
+2026-11-03T03:06:21.5118774Z test tests_interact::advance_on_click_off_still_plays_animation_steps ... ok
+2026-11-03T03:06:21.5148584Z test tests_interact::background_click_advances_when_the_slide_allows_it ... ok
+2026-11-03T03:06:21.5188566Z test tests_interact::clocks_and_pointers_with_hostile_numbers_are_harmless ... ok
+2026-11-03T03:06:21.5429134Z test tests_interact::a_shape_with_a_link_and_an_animation_follows_the_link_without_waiting ... ok
+2026-11-03T03:06:21.5469686Z test tests_interact::groups_answer_for_their_children ... ok
+2026-11-03T03:06:21.5534970Z test tests_interact::each_click_plays_one_step_of_a_trigger_and_a_click_completes_a_playing_step ... ok
+2026-11-03T03:06:21.5536110Z test tests_interact::hidden_shapes_stay_hidden_when_the_show_comes_back ... ok
+2026-11-03T03:06:21.5542359Z test tests_interact::pointer_outside_a_shape_is_not_on_it ... ok
+2026-11-03T03:06:21.5543181Z test tests_interact::a_link_is_followed_at_once_and_the_animation_goes_on_where_it_stopped ... ok
+2026-11-03T03:06:21.5544057Z test tests_interact::show_without_animation_ignores_triggers ... ok
+2026-11-03T03:06:21.5544861Z test transition_tests::cover_and_uncover_match_measured_positions ... ok
+2026-11-03T03:06:21.5545543Z test transition_tests::cube_turns_toward_the_option ... ok
+2026-11-03T03:06:21.5546003Z test transition_tests::dynamic_content_curves ... ok
+2026-11-03T03:06:21.5546471Z test transition_tests::fade_follows_powerpoints_s_curve ... ok
+2026-11-03T03:06:21.5559865Z test transition_tests::clock_hand_sweeps_at_constant_speed ... ok
+2026-11-03T03:06:21.5878790Z test transition_tests::hostile_aspects_are_safe ... ok
+2026-11-03T03:06:21.5879464Z test transition_tests::push_moves_both_slides_with_an_eased_curve ... ok
+2026-11-03T03:06:21.5880111Z test transition_tests::split_and_shape_open_from_the_middle ... ok
+2026-11-03T03:06:21.5880881Z test transition_tests::switch_swaps_the_cards_past_halfway ... ok
+2026-11-03T03:06:21.5881562Z test transition_tests::wipe_has_a_wide_soft_edge ... ok
+2026-11-03T03:06:21.6382225Z test transition_tests::options_change_the_frame ... ok
+2026-11-03T03:06:21.6630597Z test tests::many_distinct_triggers_past_the_effect_cap_build_in_order ... ok
+2026-11-03T03:06:21.7458448Z test transition_tests::frames_stay_cheap ... ok
+2026-11-03T03:06:21.7458806Z
+2026-11-03T03:06:21.7459112Z test result: ok. 95 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+2026-11-03T03:06:21.7459571Z
+2026-11-03T03:06:21.7502362Z      Running unittests src/main.rs (target/debug/deps/joydeck_cli-766da26991102779)
+2026-11-03T03:06:21.7514567Z
+2026-11-03T03:06:21.7514759Z running 0 tests
+2026-11-03T03:06:21.7514936Z
+2026-11-03T03:06:21.7515256Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-03T03:06:21.7515674Z
+2026-11-03T03:06:21.7516761Z      Running unittests src/lib.rs (target/debug/deps/joydeck_color-31d0b2191c6c3b48)
+2026-11-03T03:06:21.7525875Z
+2026-11-03T03:06:21.7525991Z running 7 tests
+2026-11-03T03:06:21.7529228Z test tests::contrast_ratio ... ok
+2026-11-03T03:06:21.7529796Z test tests::from_hex_rejects_multiple_hashes ... ok
+2026-11-03T03:06:21.7530220Z test tests::from_hex_rejects_signs ... ok
+2026-11-03T03:06:21.7530584Z test tests::hex_roundtrip ... ok
+2026-11-03T03:06:21.7530907Z test tests::scheme_slots ... ok
+2026-11-03T03:06:21.7531217Z test tests::hsl_roundtrip ... ok
+2026-11-03T03:06:21.7531540Z test tests::transforms ... ok
+2026-11-03T03:06:21.7531778Z
+2026-11-03T03:06:21.7532070Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-03T03:06:21.7532536Z      Running unittests src/lib.rs (target/debug/deps/joydeck_engine-e0034baa5badedea)
+2026-11-03T03:06:21.7532890Z
+2026-11-03T03:06:21.7542293Z
+2026-11-03T03:06:21.7542408Z running 6 tests
+2026-11-03T03:06:21.7555681Z test content::tests::malformed_pngs_cannot_add_media_or_history ... ok
+2026-11-03T03:06:21.7556516Z test media_refs::tests::every_kind_of_reference_is_found ... ok
+2026-11-03T03:06:21.7559120Z test content::tests::gradient_and_chart_cells_are_bounded_atomic_transactions ... ok
+2026-11-03T03:06:21.7564723Z test media_refs::tests::visit_mut_rewrites_every_reference ... ok
+2026-11-03T03:06:21.7565388Z test content::tests::global_edits_undo_restore_saved_state_and_keep_unedited_slides_shared ... ok
+2026-11-03T03:06:21.7568747Z test media_refs::tests::kept_parts_of_unmodelled_objects_are_references ... ok
+2026-11-03T03:06:21.7569127Z
+2026-11-03T03:06:21.7569331Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-03T03:06:21.7569708Z
+2026-11-03T03:06:21.7569859Z      Running tests/r8.rs (target/debug/deps/r8-613da955c18152f7)
+2026-11-03T03:06:21.7580695Z
+2026-11-03T03:06:21.7580824Z running 4 tests
+2026-11-03T03:06:21.7595687Z test clipboard_keeps_resolved_placeholder_position_as_regular_shape ... ok
+2026-11-03T03:06:21.7596247Z test preset_insertion_is_atomic_and_undoable ... ok
+2026-11-03T03:06:21.7596783Z test clipboard_missing_resources_and_duplicate_ids_do_not_change_history ... ok
+2026-11-03T03:06:21.7604032Z test clipboard_remaps_colliding_media_and_undo_keeps_destination ... ok
+2026-11-03T03:06:21.7604272Z
+2026-11-03T03:06:21.7604464Z test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-03T03:06:21.7604728Z
+2026-11-03T03:06:21.7607353Z      Running unittests src/lib.rs (target/debug/deps/joydeck_fonts-e6c7da3ef7c1f72c)
+2026-11-03T03:06:21.7617267Z
+2026-11-03T03:06:21.7617387Z running 34 tests
+2026-11-03T03:06:21.7622729Z test fallback::tests::falling_back_to_the_default_face_does_not_deadlock ... ok
+2026-11-03T03:06:21.7626166Z test fontdb::font_dir_tests::duplicate_collection_offsets_do_not_consume_face_cap ... ok
+2026-11-03T03:06:21.7626841Z test fontdb::font_dir_tests::fontconfig_dir_entries_are_read ... ok
+2026-11-03T03:06:21.7681007Z test fontdb::font_dir_tests::linux_dirs_include_flatpak_host_fonts_without_duplicates ... ok
+2026-11-03T03:06:21.7681808Z test fontdb::font_dir_tests::named_instance_limit_is_bounded_per_face ... ok
+2026-11-03T03:06:21.7683006Z test fontdb::font_dir_tests::xdg_data_dirs_contribute_their_fonts_folders ... ok
+2026-11-03T03:06:21.7683763Z test script::tests::joining_classes ... ok
+2026-11-03T03:06:21.7684240Z test script::tests::neutrals_take_the_surrounding_slot ... ok
+2026-11-03T03:06:21.7684856Z test script::tests::ranges_are_sorted_and_disjoint ... ok
+2026-11-03T03:06:21.7685577Z test script::tests::scripts_and_slots ... ok
+2026-11-03T03:06:21.7921952Z test fallback::tests::ligature_carets_never_fail ... ok
+2026-11-03T03:06:21.7922631Z test fallback::tests::requested_face_wins_when_it_covers ... ok
+2026-11-03T03:06:21.7923323Z test shape::tests::clusters_point_into_the_whole_paragraph ... ok
+2026-11-03T03:06:21.7923822Z test tests::colour_fonts_are_recognised ... ok
+2026-11-03T03:06:21.7932470Z test tests::craft_fonts_latin_when_present ... ok
+2026-11-03T03:06:21.7936545Z test tests::embedded_open_type_yields_the_font ... ok
+2026-11-03T03:06:21.7941604Z test tests::emoji_clusters_are_recognised ... ok
+2026-11-03T03:06:21.7943191Z test tests::faces_without_outlines_are_not_cataloged ... ok
+2026-11-03T03:06:21.7943757Z test tests::filtered_fallback_continues_after_a_rejected_loaded_face ... ok
+2026-11-03T03:06:21.7946946Z test tests::filtered_fallback_loads_an_eligible_system_face_and_does_not_cache_policy_misses ... ok
+2026-11-03T03:06:21.7951510Z test tests::last_resort_face_parses ... ok
+2026-11-03T03:06:21.7952033Z test tests::line_split_follows_the_windows_ascent_and_descent ... ok
+2026-11-03T03:06:21.8026869Z test tests::mapping_keeps_clusters ... ok
+2026-11-03T03:06:21.8027994Z test shape::tests::rtl_items_come_in_visual_order_and_mirror ... ok
+2026-11-03T03:06:21.8028774Z test fallback::tests::arabic_cluster_falls_back_to_an_arabic_face ... ok
+2026-11-03T03:06:21.8029617Z test tests::office_fonts_have_substitutes ... ok
+2026-11-03T03:06:21.8059156Z test tests::concurrent_lookups_all_find_an_installed_family ... ok
+2026-11-03T03:06:21.8061536Z test tests::some_face_always_resolves ... ok
+2026-11-03T03:06:21.8065851Z test tests::outlines_and_metrics ... ok
+2026-11-03T03:06:21.8066555Z test tests::shaping_produces_clusters_and_advances ... ok
+2026-11-03T03:06:21.8066927Z test tests::variable_font_instances_answer_to_their_windows_names ... ok
+2026-11-03T03:06:21.8070891Z test tests::windows_family_names_find_their_faces ... ok
+2026-11-03T03:06:21.8083731Z test tests::missing_document_fonts_are_drawn_in_calibri ... ok
+2026-11-03T03:06:21.8084750Z test tests::the_font_scan_skips_fifos_folders_and_link_loops ... ok
+2026-11-03T03:06:21.8084968Z
+2026-11-03T03:06:21.8085175Z test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+2026-11-03T03:06:21.8085447Z
+2026-11-03T03:06:21.8100143Z      Running tests/build_input.rs (target/debug/deps/build_input-a0002c2a86dc5460)
+2026-11-03T03:06:21.8109587Z
+2026-11-03T03:06:21.8109705Z running 13 tests
+2026-11-03T03:06:21.8115453Z test build_script::tests::all_noto_cjk_families_are_excluded_from_every_platform ... ok
+2026-11-03T03:06:21.8122955Z test build_script::tests::full_prior_latin_catalog_keeps_permitted_native_families ... ok
+2026-11-03T03:06:21.8152913Z test build_script::tests::required_builds_accept_static_or_variable_inter_with_biz ... ok
+2026-11-03T03:06:21.8153653Z test build_script::tests::native_opt_in_does_not_change_wasm_embedded_bytes ... ok
+2026-11-03T03:06:21.8155345Z test build_script::tests::optional_broken_latin_manifest_is_skipped_without_losing_core_or_chinese ... ok
+2026-11-03T03:06:21.8157614Z test build_script::tests::required_builds_need_the_latin_catalog_for_inter ... ok
+2026-11-03T03:06:21.8158620Z test build_script::tests::required_input_cannot_silently_disappear ... ok
+2026-11-03T03:06:21.8535785Z test build_script::tests::broken_optional_manifest_preserves_the_main_fonts ... ok
+2026-11-03T03:06:21.8719434Z test build_script::tests::required_builds_need_biz_udpgothic_regular ... ok
+2026-11-03T03:06:21.8723473Z test build_script::tests::required_native_input_requires_the_chinese_manifest ... ok
+2026-11-03T03:06:21.8908288Z test build_script::tests::required_native_builds_need_biz_bold_but_wasm_does_not ... ok
+2026-11-03T03:06:21.9652472Z test build_script::tests::required_native_chinese_manifest_must_emit_the_reviewed_face ... ok
+2026-11-03T03:06:22.0815079Z test build_script::tests::required_builds_reject_partial_or_unrelated_faces ... ok
+2026-11-03T03:06:22.0815569Z
+2026-11-03T03:06:22.0815785Z test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+2026-11-03T03:06:22.0816137Z
+2026-11-03T03:06:22.0818282Z      Running unittests src/lib.rs (target/debug/deps/joydeck_format-0a638c99093872cc)
+2026-11-03T03:06:22.0830625Z
+2026-11-03T03:06:22.0830776Z running 40 tests
+2026-11-03T03:06:22.0998947Z test chart_parts_tests::corrupt_chart_members_stop_before_reusing_the_inflation_budget ... ok
+2026-11-03T03:06:22.1029174Z test chart_parts_tests::chart_payloads_in_every_shape_owner_get_distinct_entries ... ok
+2026-11-03T03:06:22.1169419Z test chart_parts_tests::duplicate_physical_zip_names_are_indexed_and_inflated_once ... ok
+2026-11-03T03:06:22.1259413Z test chart_parts_tests::chart_parts_share_media_byte_and_item_budgets ... ok
+2026-11-03T03:06:22.1398865Z test chart_parts_tests::large_chart_payload_is_a_referenced_zip_entry ... ok
+2026-11-03T03:06:22.1416035Z test finite::tests::non_finite_floats_are_written_as_zero_and_nothing_else_changes ... ok
+2026-11-03T03:06:22.1424402Z test outline_table_rows_are_indented_and_do_not_become_slides ... ok
+2026-11-03T03:06:22.1458641Z test rtf::tests::every_title_paragraph_is_exported ... ok
+2026-11-03T03:06:22.1478716Z test rtf::tests::export_reads_back_as_the_same_outline ... ok
+2026-11-03T03:06:22.1508663Z test rtf::tests::hex_escape_rejects_sign ... ok
+2026-11-03T03:06:22.1522292Z test rtf::tests::huge_left_indent_gives_the_deepest_level ... ok
+2026-11-03T03:06:22.1538875Z test rtf::tests::non_ascii_text_after_escapes_does_not_panic ... ok
+2026-11-03T03:06:22.1568596Z test rtf::tests::non_breaking_hyphen_is_kept ... ok
+2026-11-03T03:06:22.1598696Z test rtf::tests::nul_escapes_do_not_drop_text_or_add_a_slide ... ok
+2026-11-03T03:06:22.1599452Z test rtf::tests::reads_word_style_rtf_by_indent_and_hex_escapes ... ok
+2026-11-03T03:06:22.1628708Z test rtf::tests::word_list_bullets_are_not_text_and_keep_the_indent ... ok
+2026-11-03T03:06:22.1658773Z test chart_parts_tests::missing_or_corrupt_chart_payload_is_reported ... ok
+2026-11-03T03:06:22.1673164Z test chart_parts_tests::legacy_inline_chart_bytes_are_budgeted_and_preserved ... ok
+2026-11-03T03:06:22.1679020Z test tests::a_bare_normautofit_body_round_trips ... ok
+2026-11-03T03:06:22.1681406Z test tests::chart_sidecars_are_optional_for_older_native_files ... ok
+2026-11-03T03:06:22.1808210Z test tests::a_file_saved_with_non_finite_numbers_reopens ... ok
+2026-11-03T03:06:22.1819032Z test tests::a_video_crop_is_repaired_like_a_picture_crop ... ok
+2026-11-03T03:06:22.1819692Z test tests::degenerate_slide_sizes_are_repaired ... ok
+2026-11-03T03:06:22.1820275Z test tests::markdown_headings_and_list_items ... ok
+2026-11-03T03:06:22.1889190Z test tests::garbage_is_an_error_not_a_panic ... ok
+2026-11-03T03:06:22.1987838Z test chart_parts_tests::chart_references_cannot_alias_other_members_or_mix_inline_bytes ... ok
+2026-11-03T03:06:22.2058914Z test tests::media_budget_is_cumulative ... ok
+2026-11-03T03:06:22.2239089Z test tests::missing_or_corrupt_media_is_reported ... ok
+2026-11-03T03:06:22.2269700Z test tests::other_damage_is_still_reported ... ok
+2026-11-03T03:06:22.2289087Z test tests::outline_export_keeps_multi_paragraph_title_on_one_line ... ok
+2026-11-03T03:06:22.2308962Z test tests::outline_includes_table_text ... ok
+2026-11-03T03:06:22.2338982Z test tests::outline_keeps_leading_dash_text ... ok
+2026-11-03T03:06:22.2362929Z test tests::outline_roundtrip ... ok
+2026-11-03T03:06:22.2365002Z test tests::repair_fixes_missing_layout_and_size ... ok
+2026-11-03T03:06:22.2365717Z test tests::repair_keeps_a_duplicate_it_cannot_reid ... ok
+2026-11-03T03:06:22.2366881Z test tests::native_save_keeps_chart_relationships_and_payloads ... ok
+2026-11-03T03:06:22.2398966Z test tests::older_files_with_null_numbers_open ... ok
+2026-11-03T03:06:22.2491306Z test tests::roundtrip_with_media ... ok
+2026-11-03T03:06:22.2552113Z test tests::files_with_unreadable_slide_sizes_still_open ... ok
+2026-11-03T03:06:22.2569972Z test tests::repeated_media_ids_are_read_once ... ok
+2026-11-03T03:06:22.2570266Z
+2026-11-03T03:06:22.2570522Z test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+2026-11-03T03:06:22.2570877Z
+2026-11-03T03:06:22.2589801Z      Running unittests src/lib.rs (target/debug/deps/joydeck_geom-c807f03b4062b0e7)
+2026-11-03T03:06:22.2602427Z
+2026-11-03T03:06:22.2602587Z running 62 tests
+2026-11-03T03:06:22.2608414Z test morph::tests::contours_turn_lines_and_quads_into_cubics ... ok
+2026-11-03T03:06:22.2610520Z test morph::tests::ellipse_turns_into_a_star_and_lands_exactly ... ok
+2026-11-03T03:06:22.2611162Z test morph::tests::differing_looks_cross_fade ... ok
+2026-11-03T03:06:22.2611665Z test morph::tests::empty_and_degenerate_geometries_do_not_crash ... ok
+2026-11-03T03:06:22.2612288Z test morph::tests::extra_sub_paths_grow_out_of_a_point ... ok
+2026-11-03T03:06:22.2613414Z test morph::tests::triangle_does_not_twist_into_a_circle ... ok
+2026-11-03T03:06:22.2625582Z test preset::extra::tests::arrow_callouts_match_reference_points ... ok
+2026-11-03T03:06:22.2630946Z test morph::tests::refine_splits_the_longest_curves_and_keeps_the_shape ... ok
+2026-11-03T03:06:22.2631700Z test preset::extra::tests::circular_arrows_match_reference_points ... ok
+2026-11-03T03:06:22.2632313Z test preset::extra::tests::gears_and_funnel_match_reference_points ... ok
+2026-11-03T03:06:22.2634386Z test preset::extra::tests::line_callouts_follow_their_adjusts ... ok
+2026-11-03T03:06:22.2635061Z test preset::extra::tests::curved_arrows_match_reference_points ... ok
+2026-11-03T03:06:22.2635725Z test morph::tests::scales_bring_both_sides_into_the_current_box ... ok
+2026-11-03T03:06:22.2636363Z test preset::extra::tests::new_presets_are_in_the_catalog ... ok
+2026-11-03T03:06:22.2637019Z test preset::extra::tests::simple_new_presets_match_reference_points ... ok
+2026-11-03T03:06:22.2638295Z test preset::extra::tests::swoosh_matches_reference_points ... ok
+2026-11-03T03:06:22.2639004Z test preset::tests::brackets_and_braces_fill_out_to_their_straight_side ... ok
+2026-11-03T03:06:22.2639633Z test preset::tests::catalog_names_are_unique ... ok
+2026-11-03T03:06:22.2640211Z test preset::tests::equation_shapes_match_powerpoints_outlines ... ok
+2026-11-03T03:06:22.2644701Z test preset::extra::tests::ribbons_match_reference_points ... ok
+2026-11-03T03:06:22.2645926Z test preset::tests::fixed_shapes_follow_the_standards_coordinates ... ok
+2026-11-03T03:06:22.2689115Z test preset::tests::every_catalog_preset_builds_within_bounds ... ok
+2026-11-03T03:06:22.2694129Z test preset::tests::hostile_adjust_values_never_panic ... ok
+2026-11-03T03:06:22.2695240Z test preset::tests::lines_are_open ... ok
+2026-11-03T03:06:22.2696505Z test preset::tests::moon_disk_and_drum_match_powerpoints_outlines ... ok
+2026-11-03T03:06:22.2697647Z test preset::tests::notched_arrow_notch_parallels_the_head ... ok
+2026-11-03T03:06:22.2698542Z test preset::tests::partial_circle_angle_handles_map_back ... ok
+2026-11-03T03:06:22.2700394Z test preset::tests::presets_with_adjust_values_expose_handles ... ok
+2026-11-03T03:06:22.2702078Z test preset::tests::rect_area_and_ellipse_area ... ok
+2026-11-03T03:06:22.2703358Z test preset::tests::round_rect_handle_maps_back ... ok
+2026-11-03T03:06:22.2704460Z test preset::tests::spec_arcs_take_angles_as_directions_from_the_centre ... ok
+2026-11-03T03:06:22.2705972Z test preset::tests::star_text_rectangles_follow_the_standard ... ok
+2026-11-03T03:06:22.2707608Z test preset::tests::stars_are_stretched_like_the_standards ... ok
+2026-11-03T03:06:22.2708455Z test preset::tests::sun_and_waves_match_powerpoints_outlines ... ok
+2026-11-03T03:06:22.2709537Z test preset::tests::the_cloud_fills_its_box_at_any_aspect_and_has_creases ... ok
+2026-11-03T03:06:22.2710857Z test preset::tests::wedge_callout_mirrors_with_its_tip ... ok
+2026-11-03T03:06:22.2713011Z test squircle::tests::edge_curve_meets_the_arc ... ok
+2026-11-03T03:06:22.2714198Z test squircle::tests::four_symmetric_corners ... ok
+2026-11-03T03:06:22.2714777Z test squircle::tests::no_radius_is_a_rectangle ... ok
+2026-11-03T03:06:22.2715364Z test squircle::tests::smoothing_uses_more_of_the_edge ... ok
+2026-11-03T03:06:22.2716108Z test squircle::tests::stays_inside_and_reduces_smoothing_when_the_rectangle_is_small ... ok
+2026-11-03T03:06:22.2716870Z test squircle::tests::zero_smoothing_is_a_circular_corner ... ok
+2026-11-03T03:06:22.2717454Z test tests::emu_roundtrip_is_exact ... ok
+2026-11-03T03:06:22.2717947Z test tests::flips_mirror_local_space ... ok
+2026-11-03T03:06:22.2718641Z test tests::group_child_mapping ... ok
+2026-11-03T03:06:22.2719110Z test tests::segment_distance ... ok
+2026-11-03T03:06:22.2719604Z test tests::unit_parse_and_format ... ok
+2026-11-03T03:06:22.2720232Z test tests::xfrm_affine_rotation_about_center ... ok
+2026-11-03T03:06:22.2721525Z test warp::tests::arc_presets_follow_ellipses ... ok
+2026-11-03T03:06:22.2722535Z test warp::tests::arch_and_inflate_handles_follow_the_pointer ... ok
+2026-11-03T03:06:22.2723211Z test warp::tests::catalog_is_the_forty_drawn_presets ... ok
+2026-11-03T03:06:22.2729879Z test warp::tests::deflate_inflate_maps_each_band_separately ... ok
+2026-11-03T03:06:22.2731186Z test warp::tests::curved_presets_bend_where_powerpoint_bends_them ... ok
+2026-11-03T03:06:22.2737368Z test warp::tests::every_preset_builds_finite_guides ... ok
+2026-11-03T03:06:22.2738720Z test warp::tests::every_preset_has_one_handle_per_adjust ... ok
+2026-11-03T03:06:22.2740295Z test warp::tests::follow_presets_keep_text_size_and_stack_lines_outwards ... ok
+2026-11-03T03:06:22.2741388Z test warp::tests::guides_extrapolate_and_wrap ... ok
+2026-11-03T03:06:22.2749579Z test warp::tests::lines_share_bands_in_order ... ok
+2026-11-03T03:06:22.2761491Z test warp::tests::straight_presets_put_the_ink_corners_on_their_guides ... ok
+2026-11-03T03:06:22.2768659Z test preset::extra::tests::new_presets_build_within_bounds_at_many_sizes_and_adjusts ... ok
+2026-11-03T03:06:22.2783843Z test morph::tests::long_contours_sample_their_start_points ... ok
+2026-11-03T03:06:22.6387509Z test warp::tests::hostile_adjusts_and_boxes_stay_finite ... ok
+2026-11-03T03:06:22.6387759Z
+2026-11-03T03:06:22.6387964Z test result: ok. 62 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+2026-11-03T03:06:22.6388419Z
+2026-11-03T03:06:22.6391829Z      Running unittests src/lib.rs (target/debug/deps/joydeck_legacy-156eeebb69d3eb65)
+2026-11-03T03:06:22.6403355Z
+2026-11-03T03:06:22.6403507Z running 0 tests
+2026-11-03T03:06:22.6403674Z
+2026-11-03T03:06:22.6403982Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-03T03:06:22.6404391Z
+2026-11-03T03:06:22.6405342Z      Running unittests src/lib.rs (target/debug/deps/joydeck_metafile-96c2b87450b8bb16)
+2026-11-03T03:06:22.6416288Z
+2026-11-03T03:06:22.6416415Z running 114 tests
+2026-11-03T03:06:22.6419340Z test clip::tests::a_zero_area_rectangle_clears_an_intersection ... ok
+2026-11-03T03:06:22.6419886Z test clip::tests::intersect_shrinks_to_the_overlap ... ok
+2026-11-03T03:06:22.6420379Z test clip::tests::excluding_from_the_default_clip_uses_the_surface ... ok
+2026-11-03T03:06:22.6420898Z test clip::tests::modes_copy_and_or_diff_and_xor ... ok
+2026-11-03T03:06:22.6425734Z test tests::a_y_up_mapping_moves_text_but_does_not_mirror_it ... ok
+2026-11-03T03:06:22.6429356Z test tests::an_empty_clip_drops_later_drawing ... ok
+2026-11-03T03:06:22.6429809Z test tests::canvas_stops_at_the_byte_budget ... ok
+2026-11-03T03:06:22.6430209Z test tests::clip_polygon_work_bound ... ok
+2026-11-03T03:06:22.6430582Z test tests::character_sets_decode_bytes ... ok
+2026-11-03T03:06:22.6430885Z test tests::detection_and_garbage ... ok
+2026-11-03T03:06:22.6431233Z test tests::emf_blackness_bitblt_fills_black_without_a_source ... ok
+2026-11-03T03:06:22.6432102Z test tests::emf_bounds_stand_in_when_the_frame_is_empty ... ok
+2026-11-03T03:06:22.6432663Z test tests::emf_alphablend_uses_constant_and_per_pixel_alpha ... ok
+2026-11-03T03:06:22.6433093Z test tests::emf_clip_follows_the_world_transform_and_save_restores_it ... ok
+2026-11-03T03:06:22.6433490Z test tests::emf_ellipse_is_four_cubics_back_to_start ... ok
+2026-11-03T03:06:22.6433949Z test tests::emf_dib_pattern_and_mono_brushes ... ok
+2026-11-03T03:06:22.6434240Z test tests::emf_exclude_clip_rect_cuts_the_surface ... ok
+2026-11-03T03:06:22.6434730Z test tests::emf_ext_select_clip_rgn_copies_and_intersects_rectangles ... ok
+2026-11-03T03:06:22.6435173Z test tests::emf_exttextoutw_reads_utf16_dx_and_the_font ... ok
+2026-11-03T03:06:22.6435788Z test tests::emf_ext_pen_cosmetic_is_a_hairline_and_null_brush_draws_nothing ... ok
+2026-11-03T03:06:22.6436243Z test tests::emf_frame_comes_from_rclframe_not_device_bounds ... ok
+2026-11-03T03:06:22.6436834Z test tests::emf_intersect_clip_rect_limits_later_records_only ... ok
+2026-11-03T03:06:22.6437333Z test tests::emf_point_counts_past_the_budget_are_rejected ... ok
+2026-11-03T03:06:22.6437854Z test tests::emf_path_bracket_strokeandfill_uses_stock_black_brush ... ok
+2026-11-03T03:06:22.6438514Z test tests::emf_polybezier_starts_its_own_figure_and_keeps_the_current_point ... ok
+2026-11-03T03:06:22.6439097Z test tests::emf_polypolygon_counts_must_fit_the_record ... ok
+2026-11-03T03:06:22.6439635Z test tests::emf_setdibitstodevice_source_counts_from_the_start_scan ... ok
+2026-11-03T03:06:22.6440233Z test tests::emf_smalltextout_reads_8_bit_and_16_bit_strings ... ok
+2026-11-03T03:06:22.6440735Z test tests::emf_srcand_mask_draws_all_but_its_white_pixels ... ok
+2026-11-03T03:06:22.6441229Z test tests::emf_srcpaint_makes_black_pixels_transparent ... ok
+2026-11-03T03:06:22.6441710Z test tests::emf_stretchdibits_flips_and_fits_frame ... ok
+2026-11-03T03:06:22.6442280Z test tests::emf_text_options_pdy_no_rect_ansi_and_glyph_indices ... ok
+2026-11-03T03:06:22.6442789Z test tests::emf_world_transform_scales_geometry ... ok
+2026-11-03T03:06:22.6443250Z test tests::emfplus_cardinal_curves_and_region_fill ... ok
+2026-11-03T03:06:22.6446972Z test tests::emf_polybezierto16_continues_the_open_path ... ok
+2026-11-03T03:06:22.6447630Z test tests::emf_savedc_past_the_stack_cap_stops_the_parse ... ok
+2026-11-03T03:06:22.6448407Z test tests::emf_setdibitstodevice_draws_the_image_at_its_own_size ... ok
+2026-11-03T03:06:22.6448968Z test tests::emfplus_clip_rect_cuts_fills_strokes_and_images ... ok
+2026-11-03T03:06:22.6449568Z test tests::emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing ... ok
+2026-11-03T03:06:22.6450150Z test tests::emfplus_compressed_png_image_decodes ... ok
+2026-11-03T03:06:22.6450582Z test tests::emfplus_draw_image_places_the_bitmap ... ok
+2026-11-03T03:06:22.6451113Z test tests::emfplus_curve_offsets_and_degenerate_input_are_safe ... ok
+2026-11-03T03:06:22.6451702Z test tests::emfplus_convex_clip_path_cuts_to_the_shape_not_its_box ... ok
+2026-11-03T03:06:22.6452282Z test tests::emfplus_draw_string_with_font_and_centred_format ... ok
+2026-11-03T03:06:22.6452852Z test tests::emfplus_draw_string_wraps_to_the_layout_width ... ok
+2026-11-03T03:06:22.6453277Z test tests::emfplus_driver_string_uses_character_codes_and_positions ... ok
+2026-11-03T03:06:22.6453638Z test tests::emfplus_dual_files_draw_only_the_emf_records ... ok
+2026-11-03T03:06:22.6453957Z test tests::emfplus_hatch_brush_fills_with_an_8x8_tile ... ok
+2026-11-03T03:06:22.6456296Z test tests::emfplus_nested_metafile_image_draws_its_items_into_the_destination ... ok
+2026-11-03T03:06:22.6457093Z test tests::emfplus_linear_gradient_fills_with_a_shaded_tile ... ok
+2026-11-03T03:06:22.6457856Z test tests::emfplus_object_split_across_records_is_joined ... ok
+2026-11-03T03:06:22.6459187Z test tests::emfplus_only_fill_rects_with_argb_colour ... ok
+2026-11-03T03:06:22.6461590Z test tests::emfplus_path_object_fills_with_brush_object_and_restore_undoes_transform ... ok
+2026-11-03T03:06:22.6462783Z test tests::emfplus_pen_object_draws_lines_under_a_scale_transform ... ok
+2026-11-03T03:06:22.6463558Z test tests::emfplus_pie_and_arc ... ok
+2026-11-03T03:06:22.6464180Z test tests::emfplus_region_clip_intersects_rectangles ... ok
+2026-11-03T03:06:22.6464858Z test tests::emfplus_region_path_cannot_read_into_its_sibling ... ok
+2026-11-03T03:06:22.6465638Z test tests::emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only ... ok
+2026-11-03T03:06:22.6466447Z test tests::emfplus_reset_clip_and_restore_bring_drawing_back ... ok
+2026-11-03T03:06:22.6467107Z test tests::emfplus_region_path_keeps_its_shape ... ok
+2026-11-03T03:06:22.6467781Z test tests::escapement_turns_the_baseline_counter_clockwise ... ok
+2026-11-03T03:06:22.6468655Z test tests::eto_opaque_fills_the_rectangle_and_eto_clipped_clips ... ok
+2026-11-03T03:06:22.6469352Z test tests::flip_tolerates_a_short_pixel_buffer ... ok
+2026-11-03T03:06:22.6469990Z test tests::font_height_sign_and_default_state_are_kept ... ok
+2026-11-03T03:06:22.6470704Z test tests::hairline_pen_stays_zero_under_an_anisotropic_window ... ok
+2026-11-03T03:06:22.6471462Z test tests::hatch_brushes_draw_lines_over_the_background_mode ... ok
+2026-11-03T03:06:22.6483008Z test tests::emfplus_wrap_line_linear_performance ... ok
+2026-11-03T03:06:22.6489614Z test tests::isotropic_mode_uses_one_scale_and_keeps_axis_signs ... ok
+2026-11-03T03:06:22.6508671Z test tests::metric_map_mode_flips_y_and_scales_to_device_pixels_emf ... ok
+2026-11-03T03:06:22.6525392Z test tests::metric_map_mode_uses_96_dpi_for_wmf ... ok
+2026-11-03T03:06:22.6528796Z test tests::modify_world_with_an_unknown_mode_keeps_the_transform ... ok
+2026-11-03T03:06:22.6529451Z test tests::null_pen_is_recognised_under_extra_style_bits ... ok
+2026-11-03T03:06:22.6530098Z test tests::oversized_dib_header_size_is_rejected_without_overflow ... ok
+2026-11-03T03:06:22.6530688Z test tests::patblt_fills_with_the_brush ... ok
+2026-11-03T03:06:22.6531218Z test tests::emfplus_garbage_records_never_panic ... ok
+2026-11-03T03:06:22.6531818Z test tests::place_fits_the_frame_scales_strokes_and_drops_far_paths ... ok
+2026-11-03T03:06:22.6549581Z test tests::place_keeps_only_finite_bounded_bitmaps_with_area ... ok
+2026-11-03T03:06:22.6551912Z test tests::placeable_wmf_keeps_its_target_when_the_window_changes_shape ... ok
+2026-11-03T03:06:22.6552549Z test tests::placeable_wmf_window_records_replace_the_bounds ... ok
+2026-11-03T03:06:22.6553164Z test tests::plain_anisotropic_wmf_without_a_viewport_fills_its_window ... ok
+2026-11-03T03:06:22.6554043Z test tests::plain_wmf_target_comes_from_a_window_that_was_read ... ok
+2026-11-03T03:06:22.6584221Z test tests::rop2_nop_draws_nothing_until_the_mode_changes ... ok
+2026-11-03T03:06:22.6584717Z test tests::round_rect_accepts_reversed_corners ... ok
+2026-11-03T03:06:22.6585166Z test tests::savedc_restores_text_colour_and_font ... ok
+2026-11-03T03:06:22.6585665Z test tests::stroke_width_is_clamped_to_the_picture_diagonal ... ok
+2026-11-03T03:06:22.6586201Z test tests::take_pixels_returns_only_drawable_bitmaps ... ok
+2026-11-03T03:06:22.7009146Z test tests::hostile_text_and_brush_records_never_panic ... ok
+2026-11-03T03:06:22.7248851Z test tests::truncated_random_and_mutated_inputs_never_panic ... ok
+2026-11-03T03:06:22.7269283Z test tests::update_cp_starts_at_the_current_position_and_moves_past_the_string ... ok
+2026-11-03T03:06:22.7298703Z test tests::wmf_dib_palette_entries_are_skipped_before_the_bits ... ok
+2026-11-03T03:06:22.7299674Z test tests::wmf_dib_pattern_brush_paints_its_rows_top_down ... ok
+2026-11-03T03:06:22.7300452Z test tests::wmf_dibbitblt_copies_the_dib_at_its_destination ... ok
+2026-11-03T03:06:22.7301198Z test tests::wmf_dibbitblt_without_a_dib_is_a_pattern_fill ... ok
+2026-11-03T03:06:22.7301996Z test tests::wmf_dibstretchblt_stretches_the_dib_into_its_destination ... ok
+2026-11-03T03:06:22.7302787Z test tests::wmf_dibstretchblt_without_a_dib_is_a_rop_fill ... ok
+2026-11-03T03:06:22.7303523Z test tests::wmf_font_takes_an_object_slot_so_handles_line_up ... ok
+2026-11-03T03:06:22.7304619Z test tests::wmf_intersect_clip_rect_limits_later_records ... ok
+2026-11-03T03:06:22.7305303Z test tests::wmf_mapping_window_and_viewport ... ok
+2026-11-03T03:06:22.7305997Z test tests::wmf_negative_destination_height_mirrors_the_rows ... ok
+2026-11-03T03:06:22.7306764Z test tests::wmf_negative_destination_width_mirrors_the_bitmap ... ok
+2026-11-03T03:06:22.7307552Z test tests::wmf_placeable_bounds_go_through_the_window_mapping ... ok
+2026-11-03T03:06:22.7308410Z test tests::wmf_placeable_header_sets_frame_in_points ... ok
+2026-11-03T03:06:22.7309130Z test tests::wmf_polygon_fill_rule_follows_polyfillmode ... ok
+2026-11-03T03:06:22.7309773Z test tests::wmf_polyline_with_pen ... ok
+2026-11-03T03:06:22.7310354Z test tests::wmf_rectangle_with_solid_brush ... ok
+2026-11-03T03:06:22.7311038Z test tests::wmf_stock_null_brush_by_16_bit_handle_has_no_fill ... ok
+2026-11-03T03:06:22.7311798Z test tests::wmf_stretchdib_clipped_source_keeps_its_place ... ok
+2026-11-03T03:06:22.7312499Z test tests::wmf_stretchdib_flips_bottom_up_rows ... ok
+2026-11-03T03:06:22.7313227Z test tests::wmf_text_reads_the_font_string_dx_colour_and_alignment ... ok
+2026-11-03T03:06:22.7313979Z test tests::wmf_textout_reads_its_string_and_position ... ok
+2026-11-03T03:06:22.7314706Z test tests::xor_mask_xor_draws_the_pattern_in_the_xor_colour ... ok
+2026-11-03T03:06:23.0154924Z test tests::text_items_are_capped_like_any_other ... ok
+2026-11-03T03:06:23.2309226Z test tests::item_cap_stops_the_parse_and_keeps_the_rest ... ok
+2026-11-03T03:06:32.9572764Z test tests::pattern_brush_pixels_count_against_the_byte_budget ... ok
+2026-11-03T03:06:32.9573049Z
+2026-11-03T03:06:32.9573257Z test result: ok. 114 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.32s
+2026-11-03T03:06:32.9573533Z
+2026-11-03T03:06:32.9859192Z      Running unittests src/lib.rs (target/debug/deps/joydeck_model-9e0cab1844d21047)
+2026-11-03T03:06:32.9872734Z
+2026-11-03T03:06:32.9872914Z running 98 tests
+2026-11-03T03:06:32.9876734Z test bidi::tests::detects_arabic_and_kurdish ... ok
+2026-11-03T03:06:32.9877590Z test anim::build_role_tests::blank_and_deeper_paragraphs_follow_the_top_one_before_them ... ok
+2026-11-03T03:06:32.9878733Z test bidi::tests::detects_hebrew ... ok
+2026-11-03T03:06:32.9879154Z test anim::option_label_tests::transition_option_labels ... ok
+2026-11-03T03:06:32.9879631Z test bidi::tests::detects_latin_as_not_rtl ... ok
+2026-11-03T03:06:32.9880027Z test bidi::tests::honours_directional_marks ... ok
+2026-11-03T03:06:32.9880718Z test bidi::tests::skips_neutrals_numbers_and_whitespace ... ok
+2026-11-03T03:06:32.9881288Z test chart::chartex_tests::category_tree_groups_runs_and_fills_blank_parents ... ok
+2026-11-03T03:06:32.9883417Z test chart::chartex_tests::box_groups_follow_category_labels ... ok
+2026-11-03T03:06:32.9883852Z test chart::chartex_tests::box_stats_use_exclusive_quartiles_and_fence_outliers ... ok
+2026-11-03T03:06:32.9888688Z test chart::chartex_tests::histogram_bins_by_count_size_and_scott ... ok
+2026-11-03T03:06:32.9889521Z test chart::chartex_tests::histogram_fixed_bin_count_is_exact_despite_float_rounding ... ok
+2026-11-03T03:06:32.9890315Z test chart::chartex_tests::histogram_value_on_a_bin_edge_counts_in_that_bin ... ok
+2026-11-03T03:06:32.9891056Z test chart::chartex_tests::pareto_view_sorts_bins_and_adds_the_cumulative_line ... ok
+2026-11-03T03:06:32.9891745Z test chart::chartex_tests::inclusive_quartiles_follow_quartile_inc ... ok
+2026-11-03T03:06:32.9892357Z test chart::tests::a_forecast_grows_the_value_axis ... ok
+2026-11-03T03:06:32.9892892Z test chart::tests::automatic_axis_matches_office ... ok
+2026-11-03T03:06:32.9893426Z test chart::tests::automatic_axis_scales_like_powerpoint ... ok
+2026-11-03T03:06:32.9893969Z test chart::tests::automatic_axis_minimum ... ok
+2026-11-03T03:06:32.9896727Z test chart::tests::axis_labels_use_the_format_and_language ... ok
+2026-11-03T03:06:32.9901319Z test chart::tests::combo_axis_ranges ... ok
+2026-11-03T03:06:32.9901642Z test chart::tests::degenerate_axes_are_finite ... ok
+2026-11-03T03:06:32.9902335Z test chart::tests::fixed_axis_limits_are_kept ... ok
+2026-11-03T03:06:32.9908164Z test chart::tests::error_bar_ranges ... ok
+2026-11-03T03:06:32.9908819Z test chart::tests::full_percent_axes_count_in_percent ... ok
+2026-11-03T03:06:32.9909542Z test chart::tests::general_labels_keep_every_digit_the_data_has ... ok
+2026-11-03T03:06:32.9910330Z test chart::tests::log_axes_run_over_whole_powers ... ok
+2026-11-03T03:06:32.9911140Z test chart::tests::nice_scale_covers ... ok
+2026-11-03T03:06:32.9911611Z test chart::tests::percent_axis_is_zero_to_one ... ok
+2026-11-03T03:06:32.9912104Z test chart::tests::subnormal_data_gives_a_finite_scale ... ok
+2026-11-03T03:06:32.9912580Z test chart::tests::tiny_data_keeps_its_own_scale ... ok
+2026-11-03T03:06:32.9913157Z test chart::tests::series_data_labels_override_the_chart_wide_setting ... ok
+2026-11-03T03:06:32.9913638Z test chart::tests::sample_ranges ... ok
+2026-11-03T03:06:32.9913871Z test edit::tests::case_cycle ... ok
+2026-11-03T03:06:32.9914109Z test edit::tests::format_splits_runs ... ok
+2026-11-03T03:06:32.9914362Z test edit::tests::delete_within_and_across ... ok
+2026-11-03T03:06:32.9914605Z test edit::tests::insert_and_split ... ok
+2026-11-03T03:06:32.9914840Z test edit::tests::line_break_insert ... ok
+2026-11-03T03:06:32.9915067Z test edit::tests::paragraph_moves ... ok
+2026-11-03T03:06:32.9915332Z test edit::tests::replace_text_crlf_matches_from_text ... ok
+2026-11-03T03:06:32.9915735Z test edit::tests::replace_text_keeps_formatting ... ok
+2026-11-03T03:06:32.9916046Z test edit::tests::ctrl_backspace_like_powerpoint ... ok
+2026-11-03T03:06:32.9916320Z test edit::tests::ctrl_delete_like_powerpoint ... ok
+2026-11-03T03:06:32.9916577Z test edit::tests::words_and_moves ... ok
+2026-11-03T03:06:32.9916875Z test numfmt::tests::blank_whole_codes_and_general_keep_their_fallback ... ok
+2026-11-03T03:06:32.9917185Z test numfmt::tests::common_codes ... ok
+2026-11-03T03:06:32.9917462Z test numfmt::tests::explicit_empty_sections_hide_their_values ... ok
+2026-11-03T03:06:32.9917776Z test numfmt::tests::russian_accounting_roubles ... ok
+2026-11-03T03:06:32.9918413Z test numfmt::tests::scientific_subnormal ... ok
+2026-11-03T03:06:32.9919095Z test numfmt::tests::trailing_commas_with_decimals ... ok
+2026-11-03T03:06:32.9919589Z test numfmt::tests::never_panics ... ok
+2026-11-03T03:06:32.9919994Z test numfmt::tests::scientific_formats ... ok
+2026-11-03T03:06:32.9920533Z test table::tests::deleting_the_only_row_or_column_of_a_merge_removes_it ... ok
+2026-11-03T03:06:32.9921099Z test table::tests::deleting_the_anchor_row_or_column_keeps_the_text ... ok
+2026-11-03T03:06:32.9938701Z test table::tests::merging_over_an_existing_merge_takes_it_in ... ok
+2026-11-03T03:06:32.9939275Z test table::tests::inserting_inside_a_merge_grows_it ... ok
+2026-11-03T03:06:32.9939732Z test table::tests::insert_delete_merge_split ... ok
+2026-11-03T03:06:32.9940205Z test table::tests::split_ignores_spans_past_the_table ... ok
+2026-11-03T03:06:32.9940749Z test tests::a_gradient_without_stops_takes_them_from_its_style ... ok
+2026-11-03T03:06:32.9941308Z test tests::a_layout_colour_map_override_applies_to_its_slides ... ok
+2026-11-03T03:06:32.9941855Z test table::tests::row_and_column_edits_keep_merges_consistent ... ok
+2026-11-03T03:06:32.9942430Z test tests::builtin_themes_have_distinct_names ... ok
+2026-11-03T03:06:32.9942902Z test tests::group_find_and_walk ... ok
+2026-11-03T03:06:32.9943244Z test tests::body_levels_from_master ... ok
+2026-11-03T03:06:32.9945514Z test tests::exhausted_id_space_allocates_nothing ... ok
+2026-11-03T03:06:32.9958442Z test tests::hyperlinked_runs_take_the_theme_hyperlink_look ... ok
+2026-11-03T03:06:32.9964386Z test tests::ids_are_unique_and_fix_next_id ... ok
+2026-11-03T03:06:32.9968777Z test tests::ink_width_follows_pressure_and_keeps_the_old_placeholder ... ok
+2026-11-03T03:06:32.9969542Z test tests::only_web_and_mail_links_are_safe_to_open ... ok
+2026-11-03T03:06:32.9970309Z test tests::four_by_three_master_scales ... ok
+2026-11-03T03:06:32.9971223Z test tests::new_presentation_is_valid ... ok
+2026-11-03T03:06:32.9971887Z test tests::sibling_lists_and_parents_reach_into_groups ... ok
+2026-11-03T03:06:32.9972378Z test tests::shape_style_fill_resolves_through_theme ... ok
+2026-11-03T03:06:32.9972859Z test tests::placeholder_inherits_position_and_styles ... ok
+2026-11-03T03:06:32.9973269Z test tests::text_body_helpers ... ok
+2026-11-03T03:06:32.9973781Z test tests::table_text_takes_the_masters_other_style_and_shapes_the_default_text_style ... ok
+2026-11-03T03:06:32.9974445Z test text::tests::explicit_bullet_follow_text_resets_block_inheritance ... ok
+2026-11-03T03:06:32.9975004Z test trendline::tests::equation_keeps_tiny_coefficients ... ok
+2026-11-03T03:06:32.9975547Z test trendline::tests::exp_log_power_and_quadratic_round_their_points ... ok
+2026-11-03T03:06:32.9976110Z test trendline::tests::linear_fits_offset_but_narrow_x_range ... ok
+2026-11-03T03:06:32.9976601Z test trendline::tests::linear_fits_tiny_x_values ... ok
+2026-11-03T03:06:32.9977134Z test trendline::tests::linear_fixed_intercept_on_offset_narrow_x_range ... ok
+2026-11-03T03:06:32.9977726Z test trendline::tests::linear_recovers_slope_and_a_fixed_intercept ... ok
+2026-11-03T03:06:32.9978442Z test trendline::tests::linear_rejects_constant_x_with_large_offset ... ok
+2026-11-03T03:06:32.9978976Z test trendline::tests::moving_average_and_forecast_span ... ok
+2026-11-03T03:06:32.9979511Z test trendline::tests::moving_average_shows_neither_equation_nor_r2 ... ok
+2026-11-03T03:06:32.9980086Z test trendline::tests::linear_fixed_intercept_rejects_overflowing_x ... ok
+2026-11-03T03:06:32.9980725Z test trendline::tests::too_few_points_and_non_finite_input_fit_nothing ... ok
+2026-11-03T03:06:32.9981240Z test words::tests::cjk_each_character ... ok
+2026-11-03T03:06:32.9981611Z test words::tests::delete_forward_extent ... ok
+2026-11-03T03:06:32.9981992Z test words::tests::double_click_word ... ok
+2026-11-03T03:06:32.9982389Z test words::tests::hyphens_apostrophes_numbers ... ok
+2026-11-03T03:06:32.9982801Z test words::tests::marks_emoji_symbols ... ok
+2026-11-03T03:06:32.9983185Z test words::tests::punctuation_and_spaces ... ok
+2026-11-03T03:06:32.9984473Z test words::tests::next_and_prev ... ok
+2026-11-03T03:06:32.9985150Z test words::tests::rtl_words_in_logical_order ... ok
+2026-11-03T03:06:32.9985618Z test words::tests::tabs_breaks_and_other_spaces ... ok
+2026-11-03T03:06:33.0043195Z test tests::serde_roundtrip ... ok
+2026-11-03T03:06:33.0043423Z
+2026-11-03T03:06:33.0043632Z test result: ok. 98 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+2026-11-03T03:06:33.0043894Z
+2026-11-03T03:06:33.0046617Z      Running unittests src/lib.rs (target/debug/deps/joydeck_pdf-ee5339accfd49a16)
+2026-11-03T03:06:33.0061120Z
+2026-11-03T03:06:33.0061272Z running 2 tests
+2026-11-03T03:06:33.0063941Z test tests::clusters_and_handout_layout_keep_unicode_and_aspect ... ok
+2026-11-03T03:06:33.0072336Z test tests::rejects_invalid_pages_layout_and_nonfinite_options ... ok
+2026-11-03T03:06:33.0072699Z
+2026-11-03T03:06:33.0073020Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-03T03:06:33.0073426Z
+2026-11-03T03:06:33.0075089Z      Running unittests src/lib.rs (target/debug/deps/joydeck_pptx-b748359e3b62904d)
+2026-11-03T03:06:33.0085138Z
+2026-11-03T03:06:33.0085276Z running 59 tests
+2026-11-03T03:06:33.0089431Z test custgeom::tests::parse_path_tokens ... ok
+2026-11-03T03:06:33.0089945Z test custgeom::tests::parse_path_uppercase_exponent ... ok
+2026-11-03T03:06:33.0090637Z test custgeom::tests::formulas ... ok
+2026-11-03T03:06:33.0091226Z test custgeom::tests::custgeom_with_guides_and_arc ... ok
+2026-11-03T03:06:33.0091868Z test dgm::tests::hostile_links_are_bounded ... ok
+2026-11-03T03:06:33.0092486Z test custgeom::tests::write_then_read_path ... ok
+2026-11-03T03:06:33.0103343Z test dgm::tests::assistants_survive_the_data_model ... ok
+2026-11-03T03:06:33.0103848Z test dgm::tests::node_pictures_come_from_presentation_points ... ok
+2026-11-03T03:06:33.0104559Z test dgm::tests::outline_survives_the_data_model ... ok
+2026-11-03T03:06:33.0104998Z test dgm::tests::style_and_colour_ids_round_trip ... ok
+2026-11-03T03:06:33.0107510Z test import_theme_tests::non_theme_packages_are_errors ... ok
+2026-11-03T03:06:33.0108371Z test maps::tests::exit_presets_import_as_their_own_effects ... ok
+2026-11-03T03:06:33.0113189Z test maps::tests::subtypes ... ok
+2026-11-03T03:06:33.0113647Z test maps::tests::darken_and_desaturate_use_powerpoints_ids ... ok
+2026-11-03T03:06:33.0114176Z test opc::tests::backslash_zip_entry_names_are_found ... ok
+2026-11-03T03:06:33.0114684Z test opc::tests::path_resolution ... ok
+2026-11-03T03:06:33.0120998Z test opc::tests::resolve_backslash_target ... ok
+2026-11-03T03:06:33.0121686Z test opc::tests::resolve_keeps_encoded_hash_and_strips_fragment ... ok
+2026-11-03T03:06:33.0122459Z test opc::tests::resolve_percent_decode_requires_two_hex_digits ... ok
+2026-11-03T03:06:33.0123472Z test opc::tests::sidecar_parts_stay_inside_chart_folders ... ok
+2026-11-03T03:06:33.0124158Z test opc::tests::xml_bytes_applies_the_xml_limit ... ok
+2026-11-03T03:06:33.0124772Z test png::tests::crc_known ... ok
+2026-11-03T03:06:33.0125432Z test opc::tests::discarded_parts_count_against_the_inflate_budget ... ok
+2026-11-03T03:06:33.0126080Z test read::chart::tests::error_bars_are_read ... ok
+2026-11-03T03:06:33.0126516Z test maps::tests::every_transition_kind_round_trips ... ok
+2026-11-03T03:06:33.0126920Z test read::chart::tests::explicit_title_wins ... ok
+2026-11-03T03:06:33.0130196Z test read::chart::tests::combo_chart_with_a_secondary_axis ... ok
+2026-11-03T03:06:33.0136997Z test read::chart::tests::legend_position_and_overlay_are_read ... ok
+2026-11-03T03:06:33.0137763Z test read::chart::tests::hidden_labels_and_unfilled_gridlines_are_read ... ok
+2026-11-03T03:06:33.0138689Z test read::chart::tests::explicit_vary_colors_is_respected ... ok
+2026-11-03T03:06:33.0139458Z test read::chart::tests::linked_axis_formats_come_from_the_data ... ok
+2026-11-03T03:06:33.0140188Z test read::chart::tests::log_base_is_read ... ok
+2026-11-03T03:06:33.0140847Z test read::chart::tests::missing_vary_colors_means_vary_by_point ... ok
+2026-11-03T03:06:33.0146443Z test read::chart::tests::no_automatic_title_when_deleted_or_multi_series ... ok
+2026-11-03T03:06:33.0147685Z test read::chart::tests::series_pattern_fills_are_read_and_written_back ... ok
+2026-11-03T03:06:33.0148726Z test read::chart::tests::minor_gridlines_are_read_and_written_back ... ok
+2026-11-03T03:06:33.0149479Z test read::chart::tests::single_series_gets_automatic_title ... ok
+2026-11-03T03:06:33.0151853Z test read::chart::tests::text_colour_is_read_from_the_axes ... ok
+2026-11-03T03:06:33.0153914Z test read::chart::tests::trendlines_are_read ... ok
+2026-11-03T03:06:33.0155066Z test read::dml::tests::body_props ... ok
+2026-11-03T03:06:33.0156431Z test read::dml::tests::colors_and_transforms ... ok
+2026-11-03T03:06:33.0157234Z test read::dml::tests::miter_limit_accepts_both_percentage_forms_with_schema_bounds ... ok
+2026-11-03T03:06:33.0168767Z test read::chart::tests::text_sizes_are_read_from_the_file ... ok
+2026-11-03T03:06:33.0176725Z test tables::tests::guids_round_trip ... ok
+2026-11-03T03:06:33.0183069Z test write::chart::region_map_tests::region_maps_keep_their_geography_through_save_and_edit ... ok
+2026-11-03T03:06:33.0198762Z test import_theme_tests::reads_the_theme_of_a_pptx_and_of_a_thmx ... ok
+2026-11-03T03:06:33.0210824Z test write::chart::tests::imported_text_colour_survives_an_edit_and_a_save ... ok
+2026-11-03T03:06:33.0214620Z test write::chart::tests::chart_text_colour_round_trips ... ok
+2026-11-03T03:06:33.0215866Z test write::chart::tests::reversed_category_axis_round_trips ... ok
+2026-11-03T03:06:33.0216659Z test write::dml::tests::unknown_preset_and_system_names_save_as_black_and_window_text ... ok
+2026-11-03T03:06:33.0217459Z test write::shapes::tests::preset_guides_are_complete ... ok
+2026-11-03T03:06:33.0218222Z test xml::tests::cr_in_text_survives_write_read ... ok
+2026-11-03T03:06:33.0219046Z test xml::tests::escape_drops_control_chars ... ok
+2026-11-03T03:06:33.0219748Z test xml::tests::literal_cr_lf_and_lone_cr_read_as_lf_but_char_ref_stays ... ok
+2026-11-03T03:06:33.0220434Z test xml::tests::parse_basic_and_entities ... ok
+2026-11-03T03:06:33.0221004Z test xml::tests::roundtrip_serialize ... ok
+2026-11-03T03:06:33.0222949Z test xml::tests::truncated_and_garbage ... ok
+2026-11-03T03:06:33.0237176Z test tables::tests::style_parts_follow_schema_order ... ok
+2026-11-03T03:06:33.0752947Z test read::chart::tests::sparse_caches_share_one_chart_wide_budget ... ok
+2026-11-03T03:06:33.0753348Z
+2026-11-03T03:06:33.0753672Z test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+2026-11-03T03:06:33.0754099Z
+2026-11-03T03:06:33.0757211Z      Running unittests src/lib.rs (target/debug/deps/joydeck_render-0435960184b557d7)
+2026-11-03T03:06:33.0773860Z
+2026-11-03T03:06:33.0774085Z running 195 tests
+2026-11-03T03:06:33.0777087Z test bevel::tests::the_light_comes_from_the_upper_left ... ok
+2026-11-03T03:06:33.0777523Z test camera::tests::a_perspective_camera_is_approximated_closely ... ok
+2026-11-03T03:06:33.0778147Z test bevel::tests::bevels_are_read_from_kept_3d_xml ... ok
+2026-11-03T03:06:33.0778956Z test camera::tests::turning_about_the_vertical_axis_narrows_the_shape ... ok
+2026-11-03T03:06:33.0779525Z test camera::tests::presets_turn_the_shape_as_powerpoint_does ... ok
+2026-11-03T03:06:33.0780145Z test chart::bar_label_tests::missing_bar_values_have_no_label_but_explicit_zero_does ... ok
+2026-11-03T03:06:33.0780755Z test chart::tests::bottom_legend_keeps_the_old_row_layout ... ok
+2026-11-03T03:06:33.0781315Z test chart::tests::caption_keeps_clear_of_a_line_into_the_top_right ... ok
+2026-11-03T03:06:33.0781971Z test chart::tests::forecast_reserves_at_most_three_category_slots ... ok
+2026-11-03T03:06:33.0782831Z test chart::tests::clip_keeps_the_part_inside_the_plot ... ok
+2026-11-03T03:06:33.0783429Z test chart::tests::left_top_and_corner_positions ... ok
+2026-11-03T03:06:33.0783909Z test chart::tests::overlay_does_not_shrink_the_plot ... ok
+2026-11-03T03:06:33.0784446Z test chart::tests::right_legend_is_a_centred_column_and_narrows_the_plot ... ok
+2026-11-03T03:06:33.0785308Z test chart::tests::tiny_data_gets_several_ticks ... ok
+2026-11-03T03:06:33.0785780Z test chart::tests::scatter_x_is_a_value_scale_over_all_series ... ok
+2026-11-03T03:06:33.0786305Z test chartex::tests::waterfall_bars_float_and_totals_stand ... ok
+2026-11-03T03:06:33.0786836Z test chartex::tests::squarify_handles_skewed_and_exhausted_rect ... ok
+2026-11-03T03:06:33.0787375Z test compound::tests::bands_split_the_width_like_powerpoint ... ok
+2026-11-03T03:06:33.0787896Z test chartex::tests::squarify_tiles_the_area_in_proportion ... ok
+2026-11-03T03:06:33.0788723Z test compound::tests::offsetting_a_rectangle_grows_or_shrinks_it ... ok
+2026-11-03T03:06:33.0789273Z test compound::tests::offsetting_a_circle_changes_its_radius ... ok
+2026-11-03T03:06:33.0794797Z test extent::tests::a_slide_with_nothing_off_it_extends_no_further_than_the_slide ... ok
+2026-11-03T03:06:33.0804653Z test extent::tests::scrolling_within_a_tile_keeps_the_region ... ok
+2026-11-03T03:06:33.0806930Z test extent::tests::master_graphics_off_the_slide_count_but_not_master_placeholders ... ok
+2026-11-03T03:06:33.0807875Z test extent::tests::effects_count_towards_the_extent ... ok
+2026-11-03T03:06:33.0808643Z test extent::tests::the_region_is_the_slide_unless_something_off_it_is_in_view ... ok
+2026-11-03T03:06:33.0809177Z test extrude::tests::reads_depth_and_colour ... ok
+2026-11-03T03:06:33.0809637Z test extrude::tests::the_back_face_goes_away_from_the_viewer ... ok
+2026-11-03T03:06:33.0812297Z test extent::tests::shapes_off_the_slide_grow_the_extent ... ok
+2026-11-03T03:06:33.0813135Z test images::tests::duotone_maps_luminance_between_its_two_colours ... ok
+2026-11-03T03:06:33.0819743Z test images::tests::brightness_and_contrast_map_greys_like_powerpoint ... ok
+2026-11-03T03:06:33.0826878Z test extent::tests::hidden_shapes_and_hostile_boxes_do_not_grow_it ... ok
+2026-11-03T03:06:33.0849490Z test images::tests::grayscale_black_and_white_and_inverted_alpha_like_powerpoint ... ok
+2026-11-03T03:06:33.0850302Z test images::tests::a_gif_of_many_tiny_frames_keeps_only_the_frame_cap ... ok
+2026-11-03T03:06:33.0852305Z test images::tests::opposite_brightness_and_contrast_are_cached_apart ... ok
+2026-11-03T03:06:33.0853225Z test images::tests::invalid_pictures_fail_and_valid_ones_still_decode_and_cache ... ok
+2026-11-03T03:06:33.0854004Z test light::tests::rigs_and_materials_differ_as_named ... ok
+2026-11-03T03:06:33.0854651Z test images::tests::rgba_conversion_is_refused_past_the_cap ... ok
+2026-11-03T03:06:33.0855315Z test light::tests::three_point_matte_is_the_measured_formula ... ok
+2026-11-03T03:06:33.0889166Z test mt_tests::effects_render_with_threads_requested ... ok
+2026-11-03T03:06:33.0889829Z test pathgrad::tests::rect_paths_take_the_larger_axis_share ... ok
+2026-11-03T03:06:33.0890513Z test pathgrad::tests::shape_paths_follow_the_outline ... ok
+2026-11-03T03:06:33.0891359Z test pathgrad::tests::shape_paths_from_off_the_shape_or_a_focus_box ... ok
+2026-11-03T03:06:33.0892598Z test pathgrad::tests::the_ramp_runs_through_the_stops ... ok
+2026-11-03T03:06:33.0893424Z test pattern::tests::every_drawingml_preset_has_a_tile ... ok
+2026-11-03T03:06:33.0894604Z test pattern::tests::percent_presets_get_denser ... ok
+2026-11-03T03:06:33.0895203Z test ramp::tests::black_to_white_follows_powerpoint ... ok
+2026-11-03T03:06:33.0895884Z test ramp::tests::colour_pairs_follow_powerpoint ... ok
+2026-11-03T03:06:33.0896617Z test ramp::tests::expand_keeps_stops_and_hard_edges ... ok
+2026-11-03T03:06:33.0897333Z test ramp::tests::the_ends_are_the_stops_and_the_weight_is_symmetric ... ok
+2026-11-03T03:06:33.1004163Z test pathgrad::tests::dense_outlines_are_simplified_to_the_work_budget ... ok
+2026-11-03T03:06:33.1048702Z test images::tests::failed_sources_are_bounded_and_released ... ok
+2026-11-03T03:06:33.1669832Z test scene::tests::gradient_is_a_local_cached_tile_and_background_fill_requires_cpu_view ... ok
+2026-11-03T03:06:33.1818842Z test scene::tests::translation_reuses_geometry_and_exact_glyphs ... ok
+2026-11-03T03:06:33.1838611Z test tests::a_background_is_laid_over_white ... ok
+2026-11-03T03:06:33.1878928Z test scene::tests::resources_scale_theme_and_edit_invalidate_but_notes_do_not ... ok
+2026-11-03T03:06:33.1918733Z test tests::a_file_defined_table_style_draws_its_parts ... ok
+2026-11-03T03:06:33.1968470Z test tests::a_fill_overlay_blends_over_the_fill ... ok
+2026-11-03T03:06:33.1969192Z test tests::a_gradient_with_a_stop_off_the_end_stays_linear ... ok
+2026-11-03T03:06:33.1998507Z test tests::a_linear_gradient_ramps_like_powerpoint ... ok
+2026-11-03T03:06:33.2138747Z test tests::a_picture_and_an_embedded_objects_preview_draw_their_fill_behind_transparent_pixels ... ok
+2026-11-03T03:06:33.2168736Z test scene::tests::scene_reference_matches_cpu_and_does_not_reshape ... ok
+2026-11-03T03:06:33.2198650Z test tests::a_quick_style_fills_an_empty_placeholder ... ok
+2026-11-03T03:06:33.2199209Z test tests::a_retina_export_records_144_dpi_and_still_decodes ... ok
+2026-11-03T03:06:33.2218924Z test tests::a_shape_far_larger_than_any_screen_is_skipped_not_flattened ... ok
+2026-11-03T03:06:33.2271957Z test tests::a_shape_filled_with_the_background_shows_the_slide_background ... ok
+2026-11-03T03:06:33.2289416Z test tests::a_shape_whose_outline_is_not_finite_is_not_drawable ... ok
+2026-11-03T03:06:33.2324442Z test tests::a_picture_casts_its_shadow_from_its_pixels ... ok
+2026-11-03T03:06:33.2326105Z test tests::a_table_fill_shows_behind_cells_without_their_own ... ok
+2026-11-03T03:06:33.2338814Z test tests::a_text_hyperlink_belongs_to_the_shape_that_holds_the_text ... ok
+2026-11-03T03:06:33.2378582Z test tests::a_transparent_background_leaves_the_slide_background_out ... ok
+2026-11-03T03:06:33.2609300Z test tests::a_text_gradient_starts_over_on_every_line ... ok
+2026-11-03T03:06:33.2688551Z test tests::an_object_joydeck_doesnt_model_shows_its_preview_picture ... ok
+2026-11-03T03:06:33.2708959Z test tests::animated_gif_shows_the_frame_for_its_time ... ok
+2026-11-03T03:06:33.2718619Z test tests::animation_state_skips_layout_and_master_shapes_sharing_a_slide_shape_id ... ok
+2026-11-03T03:06:33.2719327Z test tests::blank_slide_renders_white_background ... ok
+2026-11-03T03:06:33.2748525Z test tests::blend_ends_match_the_slides_and_mixes_backdrops ... ok
+2026-11-03T03:06:33.2998653Z test tests::broken_metafiles_draw_nothing_and_never_panic ... ok
+2026-11-03T03:06:33.3040031Z test tests::a_turned_camera_in_a_one_to_one_group_draws_its_3d_sizes_as_outside_one ... ok
+2026-11-03T03:06:33.3188585Z test tests::chart_axis_titles_are_drawn ... ok
+2026-11-03T03:06:33.3308742Z test tests::a_cropped_picture_is_decoded_at_the_resolution_of_the_whole_image ... ok
+2026-11-03T03:06:33.3518820Z test tests::colour_glyphs_paint_their_layers ... ok
+2026-11-03T03:06:33.3528475Z test tests::chart_text_follows_the_theme_when_it_has_no_colour_of_its_own ... ok
+2026-11-03T03:06:33.3688765Z test tests::column_points_take_their_own_fill_and_smooth_lines_curve ... ok
+2026-11-03T03:06:33.3758492Z test tests::combo_chart_draws_columns_and_a_line_on_its_own_axis ... ok
+2026-11-03T03:06:33.3878505Z test tests::compound_lines_draw_their_bands ... ok
+2026-11-03T03:06:33.4148567Z test tests::contours_band_the_outline_in_their_colour ... ok
+2026-11-03T03:06:33.4178307Z test tests::crop_dest_math ... ok
+2026-11-03T03:06:33.4208352Z test tests::custom_path_parse ... ok
+2026-11-03T03:06:33.4658638Z test tests::date_fields_show_the_date_in_their_format ... ok
+2026-11-03T03:06:33.5519336Z test tests::dotted_and_wavy_underlines_draw_their_pattern ... ok
+2026-11-03T03:06:33.6012321Z test tests::east_asian_vertical_text_stands_ideographs_upright ... FAILED
+2026-11-03T03:06:33.6298726Z test tests::effects_tables_charts_render ... ok
+2026-11-03T03:06:33.6478742Z test tests::empty_bullet_is_gray_only_while_editing_and_never_in_exports ... ok
+2026-11-03T03:06:33.6558495Z test tests::every_preset_renders_without_panic ... ok
+2026-11-03T03:06:33.7245232Z test tests::column_series_draw_their_pattern_fill_and_no_fill_with_their_outline ... ok
+2026-11-03T03:06:33.7588886Z test tests::every_warp_preset_renders_text_inside_the_slide ... ok
+2026-11-03T03:06:33.8099125Z test tests::extrusions_show_their_sides_under_a_turned_camera ... ok
+2026-11-03T03:06:33.8100426Z test tests::glow_of_a_shape_with_no_fill_and_no_line_is_not_drawn ... ok
+2026-11-03T03:06:33.8509362Z test tests::glow_of_an_unfilled_shape_follows_its_line ... ok
+2026-11-03T03:06:33.8828910Z test tests::flipped_shapes_draw_readable_text ... ok
+2026-11-03T03:06:33.9437452Z test tests::group_child_scale_does_not_scale_3d_depth_contours_or_bevels ... ok
+2026-11-03T03:06:33.9688858Z test tests::histogram_pareto_and_box_charts_draw ... ok
+2026-11-03T03:06:33.9989636Z test tests::group_child_scale_does_not_scale_line_widths ... ok
+2026-11-03T03:06:34.0582062Z test tests::hyperlinks_draw_in_the_hyperlink_colour_underlined ... ok
+2026-11-03T03:06:34.0679949Z test tests::ink_pressure_tapers_the_stroke_and_a_flat_half_stays_full_width ... ok
+2026-11-03T03:06:34.0709274Z test tests::master_graphics_off_the_slide_show_on_the_pasteboard ... ok
+2026-11-03T03:06:34.0714257Z test tests::metafile_intersect_clip_rect_hides_the_rest_of_the_picture ... ok
+2026-11-03T03:06:34.0738969Z test tests::metafile_opaque_text_fills_its_cell ... ok
+2026-11-03T03:06:34.0769132Z test tests::metafile_pattern_brush_tiles_and_averages_when_tiny ... ok
+2026-11-03T03:06:34.0788843Z test tests::horizontal_bars_list_the_first_category_at_the_bottom_unless_reversed ... ok
+2026-11-03T03:06:34.0848852Z test tests::metafile_symbol_text_draws_a_bullet_not_a_box ... ok
+2026-11-03T03:06:34.0888577Z test tests::metafile_text_centre_baseline_and_escapement ... ok
+2026-11-03T03:06:34.0898675Z test tests::metafile_text_follows_its_dx_array ... ok
+2026-11-03T03:06:34.0929135Z test tests::metafile_text_ink_lands_at_its_reference_point ... ok
+2026-11-03T03:06:34.0958836Z test tests::morph_path_aligns_once_per_transition ... ok
+2026-11-03T03:06:34.1309050Z test tests::morph_path_ends_match_the_slides ... ok
+2026-11-03T03:06:34.1348475Z test tests::morph_path_fades_a_fill_only_one_side_has ... ok
+2026-11-03T03:06:34.1678506Z test tests::morph_text_ends_match_the_slides ... ok
+2026-11-03T03:06:34.1708466Z test tests::morph_text_tokens_are_words_or_characters ... ok
+2026-11-03T03:06:34.1788831Z test tests::multilevel_treemap_and_sunburst_draw_their_groups ... ok
+2026-11-03T03:06:34.1918518Z test tests::office_2016_charts_draw_their_own_layouts ... ok
+2026-11-03T03:06:34.1919050Z test tests::pattern_fills_draw_powerpoints_tiles ... ok
+2026-11-03T03:06:34.2639575Z test tests::pie_data_labels_take_the_chart_text_colour_when_it_has_one ... ok
+2026-11-03T03:06:34.2669351Z test tests::placed_shapes_give_the_click_boxes_of_a_slide_in_drawing_order ... ok
+2026-11-03T03:06:34.2728934Z test tests::placeholder_prompts_only_in_edit_view ... ok
+2026-11-03T03:06:34.2758698Z test tests::png_encodes ... ok
+2026-11-03T03:06:34.3026654Z test tests::radar_stock_and_combo_draw_their_own_layouts ... ok
+2026-11-03T03:06:34.3198573Z test tests::rect_path_gradients_draw_x_shaped_contours ... ok
+2026-11-03T03:06:34.3258446Z test tests::region_map_draws_tiles_on_its_colour_scale ... ok
+2026-11-03T03:06:34.3258968Z test tests::render_an_emf_file_to_look_at ... ok
+2026-11-03T03:06:34.3318574Z test tests::render_shapes_draws_the_selection_on_a_transparent_canvas ... ok
+2026-11-03T03:06:34.3319182Z test tests::rounded_corners_in_a_stretched_group_stay_round ... ok
+2026-11-03T03:06:34.3378620Z test tests::metafile_pictures_draw_their_vectors ... ok
+2026-11-03T03:06:34.3399701Z test tests::shape_fill_uses_theme_accent ... ok
+2026-11-03T03:06:34.3429762Z test tests::shows_exports_and_thumbnails_clip_to_the_slide ... ok
+2026-11-03T03:06:34.3489119Z test tests::single_series_column_chart_varies_colours_by_point ... ok
+2026-11-03T03:06:34.3569096Z test tests::soft_edges_fade_to_the_outline ... ok
+2026-11-03T03:06:34.3638718Z test tests::shadows_and_glows_spread_like_powerpoints ... ok
+2026-11-03T03:06:34.3640470Z test tests::table_body_text_is_dark_on_the_tinted_cells_of_a_dark_theme ... ok
+2026-11-03T03:06:34.3641494Z test tests::table_light_and_dark_presets_give_their_own_header_and_body_looks ... ok
+2026-11-03T03:06:34.3703429Z test tests::table_rows_of_zero_height_grow_to_fit_text ... ok
+2026-11-03T03:06:34.3737185Z test tests::text_draws_ink ... ok
+2026-11-03T03:06:34.4079405Z test tests::text_glow_and_shadow_are_drawn ... ok
+2026-11-03T03:06:34.4689462Z test pathgrad::tests::a_dense_shape_gradient_renders_promptly ... ok
+2026-11-03T03:06:34.4759224Z test tests::text_spilling_out_of_its_box_below_the_slide_is_reported ... ok
+2026-11-03T03:06:34.4760160Z test tests::text_transform_unmirrors_flips ... ok
+2026-11-03T03:06:34.4798813Z test tests::the_editor_pasteboard_draws_shapes_off_the_slide ... ok
+2026-11-03T03:06:34.4919685Z test tests::tiny_chart_does_not_blank_the_slide ... ok
+2026-11-03T03:06:34.5559239Z test tests::trendlines_draw_through_the_points_with_a_label ... ok
+2026-11-03T03:06:34.5918968Z test tests::unknown_or_absent_warps_draw_flat_text ... ok
+2026-11-03T03:06:34.5948689Z test tests::text_in_a_scaled_group_keeps_its_point_size ... ok
+2026-11-03T03:06:34.6429194Z test tests::wordart_plain_stretches_the_ink_over_the_text_rect ... ok
+2026-11-03T03:06:34.6528769Z test tests_wild::a_3d_pictures_border_stays_centred_on_its_edge ... ok
+2026-11-03T03:06:34.6558713Z test tests_wild::a_3d_shapes_face_is_lit_even_without_a_bevel ... ok
+2026-11-03T03:06:34.6648613Z test tests_wild::a_bevelled_shape_is_lit_from_the_upper_left ... ok
+2026-11-03T03:06:34.6678695Z test tests_wild::a_corner_radial_centres_on_the_corner_through_its_tile ... ok
+2026-11-03T03:06:34.6708612Z test tests_wild::a_gradient_not_rotating_with_its_shape_keeps_to_the_slide ... ok
+2026-11-03T03:06:34.6738826Z test tests::table_rows_below_the_slide_are_not_laid_out_and_the_slide_looks_the_same ... ok
+2026-11-03T03:06:34.6753835Z test tests_wild::a_groups_shadow_is_cast_by_its_children ... ok
+2026-11-03T03:06:34.6789452Z test tests_wild::a_linear_gradient_spans_its_tile_rect ... ok
+2026-11-03T03:06:34.6790510Z test tests_wild::a_perspective_shadow_lies_along_the_edge_its_alignment_names ... ok
+2026-11-03T03:06:34.6819169Z test tests_wild::a_picture_reflects_its_pixels ... ok
+2026-11-03T03:06:34.6879620Z test tests_wild::a_pictures_border_lies_outside_the_picture ... ok
+2026-11-03T03:06:34.6880774Z test tests_wild::a_radial_gradient_off_centre_ends_on_the_circle_around_the_box ... ok
+2026-11-03T03:06:34.6909108Z test tests_wild::a_see_through_line_and_its_arrowhead_are_one_shape ... ok
+2026-11-03T03:06:34.6939060Z test tests_wild::a_tiles_first_copy_sits_on_the_point_its_alignment_names ... ok
+2026-11-03T03:06:34.6953247Z test tests_wild::a_tiny_dash_on_a_huge_shape_draws_without_running_out_of_memory ... ok
+2026-11-03T03:06:34.6969128Z test tests_wild::a_wide_line_stops_inside_its_arrowhead ... ok
+2026-11-03T03:06:34.6999045Z test tests_wild::an_open_arrowheads_point_is_on_the_lines_end ... ok
+2026-11-03T03:06:34.7024749Z test tests_wild::an_upright_picture_fill_stays_upright_in_a_turned_shape ... ok
+2026-11-03T03:06:34.7048606Z test tests_wild::arrowheads_are_sized_for_at_least_a_two_point_line ... ok
+2026-11-03T03:06:34.7059001Z test tests_wild::children_filled_with_the_group_fill_show_one_fill_across_the_group ... ok
+2026-11-03T03:06:34.7089027Z test tests_wild::custom_geometry_sub_paths_cut_holes_whichever_way_they_wind ... ok
+2026-11-03T03:06:34.7098741Z test tests_wild::dash_lengths_make_room_for_round_and_square_caps ... ok
+2026-11-03T03:06:34.7138646Z test tests_wild::gradient_lines_and_their_heads_take_the_gradient ... ok
+2026-11-03T03:06:34.7148981Z test tests_wild::open_freeforms_take_arrowheads_even_when_filled ... ok
+2026-11-03T03:06:34.7179097Z test tests_wild::patterns_between_whole_pixel_cells_blend_neighbouring_cells ... ok
+2026-11-03T03:06:34.7183444Z test tests_wild::picture_resolution_sizes_tiles ... ok
+2026-11-03T03:06:34.7209273Z test tests_wild::round_dots_are_separate_circles_with_the_caps_inside_each_dash ... ok
+2026-11-03T03:06:34.7239039Z test tests_wild::shadows_are_cast_by_what_is_drawn ... ok
+2026-11-03T03:06:34.7248701Z test tests_wild::stars_and_right_arrows_have_sharp_corners_by_default ... ok
+2026-11-03T03:06:34.7278676Z test tests_wild::table_borders_take_their_dashes_and_diagonals_are_drawn ... ok
+2026-11-03T03:06:34.7279394Z test tests_wild::tiled_pictures_flip_align_and_skip_non_positive_scales ... ok
+2026-11-03T03:06:34.7328523Z test tests_wild::trimming_a_path_leaves_its_ends_off_by_arc_length ... ok
+2026-11-03T03:06:34.7338782Z test tests::wordart_arch_up_lifts_the_middle_of_the_line ... ok
+2026-11-03T03:06:34.7859290Z test transition::tests::dynamic_content_moves_contents_over_backgrounds ... ok
+2026-11-03T03:06:34.8218953Z test tests_wild::a_large_pictures_shadow_is_whole ... ok
+2026-11-03T03:06:34.8238715Z test transition::tests::half_alpha_blends ... ok
+2026-11-03T03:06:34.8258665Z test transition::tests::layers_composite_in_order ... ok
+2026-11-03T03:06:34.8259470Z test transition::tests::missing_old_slide_is_black ... ok
+2026-11-03T03:06:34.8260105Z test warp::tests::warp_path_subdivides_and_maps_every_point ... ok
+2026-11-03T03:06:35.3550609Z test transition::tests::frames_match_powerpoint_probes ... ok
+2026-11-03T03:06:35.4013349Z test tests::charts_in_degenerate_frames_draw_without_panicking ... ok
+2026-11-03T03:06:39.1305946Z test transition::tests::every_transition_starts_old_and_ends_new ... ok
+2026-11-03T03:06:39.1306355Z
+2026-11-03T03:06:39.1306441Z failures:
+2026-11-03T03:06:39.1306546Z
+2026-11-03T03:06:39.1306737Z ---- tests::east_asian_vertical_text_stands_ideographs_upright stdout ----
+2026-11-03T03:06:39.1306984Z
+2026-11-03T03:06:39.1307294Z thread 'tests::east_asian_vertical_text_stands_ideographs_upright' (13719) panicked at crates/joydeck-render/src/tests.rs:4119:5:
+2026-11-03T03:06:39.1307729Z eaVert: upright stroke 43x54
+2026-11-03T03:06:39.1308147Z note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+2026-11-03T03:06:39.1308403Z
+2026-11-03T03:06:39.1308407Z
+2026-11-03T03:06:39.1308900Z failures:
+2026-11-03T03:06:39.1309128Z     tests::east_asian_vertical_text_stands_ideographs_upright
+2026-11-03T03:06:39.1309323Z
+2026-11-03T03:06:39.1309528Z test result: FAILED. 194 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.05s
+2026-11-03T03:06:39.1309815Z
+2026-11-03T03:06:39.1387545Z error: test failed, to rerun pass `-p joydeck-render --lib`
+2026-11-03T03:06:39.1491749Z error: Command '['cargo', 'test', '-p', 'joydeck-anim', '-p', 'joydeck-cli', '-p', 'joydeck-color', '-p', 'joydeck-engine', '-p', 'joydeck-fonts', '-p', 'joydeck-format', '-p', 'joydeck-geom', '-p', 'joydeck-legacy', '-p', 'joydeck-metafile', '-p', 'joydeck-model', '-p', 'joydeck-pdf', '-p', 'joydeck-pptx', '-p', 'joydeck-render', '-p', 'joydeck-shell', '-p', 'joydeck-text', '-p', 'joyoffice-opc', '--locked']' returned non-zero exit status 101.
+2026-11-03T03:06:39.1653724Z ##[error]Process completed with exit code 1.
+2026-11-03T03:06:39.1772290Z Post job cleanup.
+2026-11-03T03:06:39.2510247Z [command]/usr/bin/git version
+2026-11-03T03:06:39.2550135Z git version 2.56.0
+2026-11-03T03:06:39.2577248Z Temporarily overriding HOME='/home/runner/work/_temp/9e4c1746-d541-4d80-84b1-7cc8e09db881' before making global git config changes
+2026-11-03T03:06:39.2579011Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T03:06:39.2581343Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/joyoffice/joyoffice
+2026-11-03T03:06:39.2613677Z Removing SSH command configuration
+2026-11-03T03:06:39.2618732Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T03:06:39.2651440Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T03:06:39.2881030Z Removing HTTP extra header
+2026-11-03T03:06:39.2885831Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T03:06:39.2922092Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T03:06:39.3150094Z Removing includeIf entries pointing to credentials config files
+2026-11-03T03:06:39.3155600Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T03:06:39.3190063Z includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path
+2026-11-03T03:06:39.3190914Z includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path
+2026-11-03T03:06:39.3191478Z includeif.gitdir:/github/workspace/.git.path
+2026-11-03T03:06:39.3191949Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T03:06:39.3208779Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path
+2026-11-03T03:06:39.3232030Z /home/runner/work/_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:06:39.3240283Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-b47292e8\-9294\-49dd\-af8e\-b65f0b8b9faf\.config
+2026-11-03T03:06:39.3288673Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path
+2026-11-03T03:06:39.3322311Z /home/runner/work/_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:06:39.3340174Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-b47292e8\-9294\-49dd\-af8e\-b65f0b8b9faf\.config
+2026-11-03T03:06:39.3374911Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-03T03:06:39.3404870Z /github/runner_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:06:39.3411706Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-b47292e8\-9294\-49dd\-af8e\-b65f0b8b9faf\.config
+2026-11-03T03:06:39.3449854Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T03:06:39.3479263Z /github/runner_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config
+2026-11-03T03:06:39.3486137Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-b47292e8\-9294\-49dd\-af8e\-b65f0b8b9faf\.config
+2026-11-03T03:06:39.3525928Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T03:06:39.3739558Z Removing credentials config '/home/runner/work/_temp/git-credentials-b47292e8-9294-49dd-af8e-b65f0b8b9faf.config'
+2026-11-03T03:06:39.3886080Z Cleaning up orphan processes

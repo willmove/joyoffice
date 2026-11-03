@@ -1,0 +1,121 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running `target\debug\joyoffice-xtask.exe package joysheet`
++ C:\Applications\Python\Python314\python.exe scripts/joysheet/package.py --profile debug
+   Compiling smallvec v1.16.3
+   Compiling stable_deref_trait v1.2.1
+   Compiling bytemuck v1.25.2
+   Compiling windows-sys v0.61.2
+   Compiling zerofrom v0.1.8
+   Compiling serde_json v1.0.154
+   Compiling float-cmp v0.9.0
+   Compiling joysheet-core v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-core)
+   Compiling windows v0.62.2
+   Compiling yoke v0.8.3
+   Compiling rustix v1.1.5
+   Compiling heapless v0.9.3
+   Compiling inout v0.2.5
+   Compiling cpubits v0.1.1
+   Compiling typed-path v0.12.4
+   Compiling triomphe v0.1.17
+   Compiling sha1 v0.11.0
+   Compiling strict-num v0.1.1
+   Compiling num-complex v0.4.6
+   Compiling parking_lot_core v0.9.12
+   Compiling zerovec v0.11.8
+   Compiling zerotrie v0.2.5
+   Compiling qoi v0.4.1
+   Compiling tiny-skia-path v0.11.4
+   Compiling rustybuzz v0.20.1
+   Compiling parking_lot v0.12.5
+   Compiling pulp v0.22.3
+   Compiling kurbo v0.13.1
+   Compiling rgb v0.8.53
+   Compiling gpui-pre-sum-tree v0.3.10
+   Compiling gpui-pre-scheduler v0.3.10
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling tiny-skia v0.11.4
+   Compiling icu_locale_core v2.3.0
+   Compiling icu_collections v2.3.0
+   Compiling schemars v1.2.3
+   Compiling string_cache v0.8.9
+   Compiling svgtypes v0.16.1
+   Compiling joysheet-formula v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-formula)
+   Compiling taffy v0.15.1
+   Compiling icu_provider v2.3.1
+   Compiling icu_normalizer v2.3.0
+   Compiling icu_properties v2.3.0
+   Compiling usvg v0.46.0
+   Compiling exr v1.74.2
+   Compiling winapi-util v0.1.11
+   Compiling idna_adapter v1.2.2
+   Compiling errno v0.3.14
+   Compiling idna v1.1.0
+   Compiling same-file v1.0.6
+   Compiling polling v3.11.0
+   Compiling gpui-pre-shared-string v0.3.10
+   Compiling walkdir v2.5.0
+   Compiling joysheet-model v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-model)
+   Compiling url v2.5.8
+   Compiling markup5ever v0.12.1
+   Compiling resvg v0.46.0
+   Compiling async-io v2.6.0
+   Compiling gpui-pre-http-client v0.3.10
+   Compiling joysheet-functions v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-functions)
+   Compiling joysheet-numfmt v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-numfmt)
+   Compiling cipher v0.5.2
+   Compiling kurbo v0.11.3
+   Compiling aes v0.9.3
+   Compiling async-net v2.0.0
+   Compiling image v0.25.9
+   Compiling async-process v2.5.0
+   Compiling svgtypes v0.15.3
+   Compiling xml5ever v0.18.1
+   Compiling html5ever v0.27.0
+   Compiling rust-embed-utils v8.13.0
+   Compiling zip v9.0.0
+   Compiling joysheet-calc v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-calc)
+   Compiling joysheet-xlsx v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-xlsx)
+   Compiling markup5ever_rcdom v0.3.0
+   Compiling rust-embed v8.13.0
+   Compiling usvg v0.45.1
+   Compiling smol v2.0.2
+   Compiling lsp-types v0.97.0
+   Compiling joysheet-chart v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-chart)
+   Compiling rust-i18n-support v4.2.4
+   Compiling joysheet-pdf v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-pdf)
+   Compiling notify v8.2.1
+   Compiling rust-i18n v4.2.4
+   Compiling resvg v0.45.1
+   Compiling error-code v3.4.0
+   Compiling rfd v0.17.2
+   Compiling clipboard-win v5.4.3
+   Compiling joysheet-protocol v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-protocol)
+   Compiling joysheet-engine v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-engine)
+   Compiling arboard v3.7.0
+   Compiling winsafe v0.0.19
+   Compiling joysheet v0.1.0 (D:\Coding\EditorProjects\joyoffice\apps\joysheet)
+   Compiling joysheet-mcp v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-mcp)
+   Compiling joysheet-app v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-app)
+   Compiling gpui-pre v0.3.10
+   Compiling accesskit_windows v0.34.0
+   Compiling joysheet-platform v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-platform)
+   Compiling joysheet-cli v0.1.0 (D:\Coding\EditorProjects\joyoffice\apps\joysheet-cli)
+   Compiling gpui-pre-windows v0.3.10
+   Compiling gpui-kit-assets v0.8.1
+   Compiling gpui-base v0.8.1
+   Compiling gpui-pre-platform v0.3.10
+   Compiling gpui-component v0.8.1
+   Compiling gpui-kit v0.8.1
+   Compiling joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyoffice-ui)
+   Compiling joysheet-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joysheet-ui-gpui)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 32s
++ pwsh.exe -NoProfile -File scripts/joysheet/package-windows.ps1 -Directory D:\Coding\EditorProjects\joyoffice\dist\joysheet\joysheet-0.1.0-windows-x86_64-debug -Output D:\Coding\EditorProjects\joyoffice\dist\joysheet\joysheet-0.1.0-windows-x86_64-debug-setup.exe
+Exception: D:\Coding\EditorProjects\joyoffice\scripts\joysheet\package-windows.ps1:14
+Line |
+  14 |  … $compiler)){throw 'Install NSIS or set JOYSHEET_NSIS to makensis.exe. …
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Install NSIS or set JOYSHEET_NSIS to makensis.exe. See docs/joysheet/PACKAGING.md.
+error: Command '['pwsh.exe', '-NoProfile', '-File', 'scripts/joysheet/package-windows.ps1', '-Directory', 'D:\\Coding\\EditorProjects\\joyoffice\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-debug', '-Output', 'D:\\Coding\\EditorProjects\\joyoffice\\dist\\joysheet\\joysheet-0.1.0-windows-x86_64-debug-setup.exe']' returned non-zero exit status 1.
+error: Command '['C:\\Applications\\Python\\Python314\\python.exe', 'scripts/joysheet/package.py', '--profile', 'debug']' returned non-zero exit status 1.
+error: process didn't exit successfully: `target\debug\joyoffice-xtask.exe package joysheet` (exit code: 1)

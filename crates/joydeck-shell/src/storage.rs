@@ -1,9 +1,8 @@
 //! File transactions and recoverable snapshots. All methods are background work.
-use crate::{
-    document::{Deck, MAX_FILE, Result},
-    edit,
-};
-pub use joydeck_platform::files::private_directory;
+use crate::document::MAX_INPUT as MAX_FILE;
+use crate::recovery_io as edit;
+type Result<T> = std::result::Result<T, String>;
+type Deck = Vec<u8>;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
@@ -137,7 +136,7 @@ impl Recovery {
         if state.closed || revision < state.latest || state.clean.is_some_and(|r| revision <= r) {
             return Ok(());
         }
-        let reserve = serde_json::to_vec(deck).map_err(|e| e.to_string())?.len() as u64 + 65536;
+        let reserve = deck.len() as u64 + 65536;
         self.prune((1024u64 * 1024 * 1024).saturating_sub(reserve))?;
         std::fs::create_dir_all(&self.root).map_err(|e| e.to_string())?;
         if state.lease.is_none() {
@@ -421,7 +420,10 @@ fn records(root: &Path) -> Result<Vec<Record>> {
         if p.extension().is_none_or(|e| e != "json") {
             continue;
         }
-        let bytes = std::fs::read(&p).map_err(|e| e.to_string())?;
+        let mut bytes = Vec::new();
+        File::open(&p)
+            .and_then(|file| file.take(65537).read_to_end(&mut bytes))
+            .map_err(|e| e.to_string())?;
         if bytes.len() > 65536 {
             let _ = std::fs::rename(&p, p.with_extension("index-bad"));
             continue;
@@ -455,7 +457,3 @@ fn remove_record(root: &Path, r: &Record) -> Result<()> {
     }
     Ok(())
 }
-
-#[cfg(test)]
-#[path = "storage/tests.rs"]
-mod tests;

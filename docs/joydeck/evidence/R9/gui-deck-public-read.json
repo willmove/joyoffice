@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "public_reader": "python-pptx 1.0.2",
+  "slides": 3,
+  "title": "JoyDeck · 真实文稿预览 · R9 联合验证",
+  "changed_parts": [
+    "ppt/slides/slide1.xml"
+  ],
+  "source_unchanged": true,
+  "output": "docs\\joydeck\\evidence\\R9\\artifacts\\R9 桌面 已保存.pptx",
+  "sha256": "b0e03abecb9d730f0d781605e1a1c8e2ce8bb850e95d2fce3c06c162696b565e"
+}

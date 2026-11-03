@@ -1,0 +1,248 @@
+2026-11-03T02:59:24.2659188Z Current runner version: '2.338.2'
+2026-11-03T02:59:24.2684416Z ##[group]Runner Image Provisioner
+2026-11-03T02:59:24.2685384Z Hosted Compute Agent
+2026-11-03T02:59:24.2686002Z Version: 20261021.618
+2026-11-03T02:59:24.2686632Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-11-03T02:59:24.2687812Z Build Date: 2026-10-21T00:45:21Z
+2026-11-03T02:59:24.2688618Z Worker ID: {b9d11907-f442-4261-916d-2e0ef2402781}
+2026-11-03T02:59:24.2689404Z Region: westus
+2026-11-03T02:59:24.2689963Z Cloud: Azure
+2026-11-03T02:59:24.2690491Z ##[endgroup]
+2026-11-03T02:59:24.2692483Z ##[group]Operating System
+2026-11-03T02:59:24.2693152Z Ubuntu
+2026-11-03T02:59:24.2693754Z 24.04.5
+2026-11-03T02:59:24.2694313Z LTS
+2026-11-03T02:59:24.2694912Z ##[endgroup]
+2026-11-03T02:59:24.2695572Z ##[group]Runner Image
+2026-11-03T02:59:24.2696226Z Image: ubuntu-24.04
+2026-11-03T02:59:24.2696843Z Version: 20261025.353.1
+2026-11-03T02:59:24.2698413Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-03T02:59:24.2700103Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-11-03T02:59:24.2701093Z ##[endgroup]
+2026-11-03T02:59:24.2702278Z ##[group]GITHUB_TOKEN Permissions
+2026-11-03T02:59:24.2704188Z Contents: read
+2026-11-03T02:59:24.2704887Z Metadata: read
+2026-11-03T02:59:24.2705526Z ##[endgroup]
+2026-11-03T02:59:24.2707931Z Secret source: Actions
+2026-11-03T02:59:24.2709017Z Cache mode: write
+2026-11-03T02:59:24.2709724Z Prepare workflow directory
+2026-11-03T02:59:24.3049454Z Prepare all required actions
+2026-11-03T02:59:24.3100101Z Getting action download info
+2026-11-03T02:59:24.6706236Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-03T02:59:24.8159806Z Download action repository 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97' (SHA:5fda3b95a4ea91299a34e894583c3862153e4b97)
+2026-11-03T02:59:25.0379189Z Complete job name: JoyDeck headless
+2026-11-03T02:59:25.1276745Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-11-03T02:59:25.1278378Z with:
+2026-11-03T02:59:25.1278871Z   repository: willmove/joyoffice
+2026-11-03T02:59:25.1282600Z   token: ***
+2026-11-03T02:59:25.1283046Z   ssh-strict: true
+2026-11-03T02:59:25.1283495Z   ssh-user: git
+2026-11-03T02:59:25.1283960Z   persist-credentials: true
+2026-11-03T02:59:25.1284471Z   clean: true
+2026-11-03T02:59:25.1284931Z   sparse-checkout-cone-mode: true
+2026-11-03T02:59:25.1285458Z   fetch-depth: 1
+2026-11-03T02:59:25.1285898Z   fetch-tags: false
+2026-11-03T02:59:25.1286364Z   show-progress: true
+2026-11-03T02:59:25.1286823Z   lfs: false
+2026-11-03T02:59:25.1287427Z   submodules: false
+2026-11-03T02:59:25.1287902Z   set-safe-directory: true
+2026-11-03T02:59:25.1288431Z   allow-unsafe-pr-checkout: false
+2026-11-03T02:59:25.1289219Z ##[endgroup]
+2026-11-03T02:59:25.4526958Z Syncing repository: willmove/joyoffice
+2026-11-03T02:59:25.4529930Z ##[group]Getting Git version info
+2026-11-03T02:59:25.4531034Z Working directory is '/home/runner/work/joyoffice/joyoffice'
+2026-11-03T02:59:25.4532110Z [command]/usr/bin/git version
+2026-11-03T02:59:25.4641977Z git version 2.56.0
+2026-11-03T02:59:25.4669550Z ##[endgroup]
+2026-11-03T02:59:25.4676459Z Temporarily overriding HOME='/home/runner/work/_temp/15743acd-2355-427f-a3f0-42964a7f0cb5' before making global git config changes
+2026-11-03T02:59:25.4678955Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:59:25.4682737Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/joyoffice/joyoffice
+2026-11-03T02:59:25.4736632Z Deleting the contents of '/home/runner/work/joyoffice/joyoffice'
+2026-11-03T02:59:25.4740529Z ##[group]Determining repository object format
+2026-11-03T02:59:25.4742012Z ##[endgroup]
+2026-11-03T02:59:25.4743358Z ##[group]Initializing the repository
+2026-11-03T02:59:25.4746806Z [command]/usr/bin/git init /home/runner/work/joyoffice/joyoffice
+2026-11-03T02:59:25.4904917Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-03T02:59:25.4906759Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-03T02:59:25.4908783Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-03T02:59:25.4910031Z hint: call:
+2026-11-03T02:59:25.4910661Z hint:
+2026-11-03T02:59:25.4911467Z hint: 	git config --global init.defaultBranch <name>
+2026-11-03T02:59:25.4912488Z hint:
+2026-11-03T02:59:25.4913471Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-03T02:59:25.4915046Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-03T02:59:25.4916247Z hint:
+2026-11-03T02:59:25.4916886Z hint: 	git branch -m <name>
+2026-11-03T02:59:25.4917901Z hint:
+2026-11-03T02:59:25.4918975Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-03T02:59:25.4920683Z Initialized empty Git repository in /home/runner/work/joyoffice/joyoffice/.git/
+2026-11-03T02:59:25.4928627Z [command]/usr/bin/git remote add origin https://github.com/willmove/joyoffice
+2026-11-03T02:59:25.4995501Z ##[endgroup]
+2026-11-03T02:59:25.4996456Z ##[group]Disabling automatic garbage collection
+2026-11-03T02:59:25.5001302Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-03T02:59:25.5054890Z ##[endgroup]
+2026-11-03T02:59:25.5056150Z ##[group]Setting up auth
+2026-11-03T02:59:25.5056883Z Removing SSH command configuration
+2026-11-03T02:59:25.5061898Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:59:25.5111855Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:59:25.5555406Z Removing HTTP extra header
+2026-11-03T02:59:25.5562319Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:59:25.5613127Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:59:25.5873248Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:59:25.5879627Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:59:25.5924480Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:59:25.6175435Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-03T02:59:25.6226125Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path /home/runner/work/_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:25.6269841Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:25.6312542Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:25.6355607Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:25.6396272Z ##[endgroup]
+2026-11-03T02:59:25.6397101Z ##[group]Fetching the repository
+2026-11-03T02:59:25.6403571Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dac118e6b1a25bdd565b0d5aaebcbf4525a788f0:refs/remotes/pull/120/merge
+2026-11-03T02:59:31.4152774Z From https://github.com/willmove/joyoffice
+2026-11-03T02:59:31.4155630Z  * [new ref]         dac118e6b1a25bdd565b0d5aaebcbf4525a788f0 -> pull/120/merge
+2026-11-03T02:59:31.4162267Z ##[endgroup]
+2026-11-03T02:59:31.4164725Z ##[group]Determining the checkout info
+2026-11-03T02:59:31.4167706Z ##[endgroup]
+2026-11-03T02:59:31.4169412Z [command]/usr/bin/git sparse-checkout disable
+2026-11-03T02:59:31.4235337Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-03T02:59:31.4282798Z ##[group]Checking out the ref
+2026-11-03T02:59:31.4288171Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/120/merge
+2026-11-03T02:59:32.0708790Z Note: switching to 'refs/remotes/pull/120/merge'.
+2026-11-03T02:59:32.0709832Z
+2026-11-03T02:59:32.0710659Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-03T02:59:32.0711638Z changes and commit them, and you can discard any commits you make in this
+2026-11-03T02:59:32.0712536Z state without impacting any branches by switching back to a branch.
+2026-11-03T02:59:32.0713159Z
+2026-11-03T02:59:32.0713752Z If you want to create a new branch to retain commits you create, you may
+2026-11-03T02:59:32.0714676Z do so (now or later) by using -c with the switch command. Example:
+2026-11-03T02:59:32.0715278Z
+2026-11-03T02:59:32.0715848Z   git switch -c <new-branch-name>
+2026-11-03T02:59:32.0716230Z
+2026-11-03T02:59:32.0716478Z Or undo this operation with:
+2026-11-03T02:59:32.0716814Z
+2026-11-03T02:59:32.0717124Z   git switch -
+2026-11-03T02:59:32.0717840Z
+2026-11-03T02:59:32.0718282Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-03T02:59:32.0719001Z
+2026-11-03T02:59:32.0719869Z HEAD is now at dac118e Merge f487efcd722fb985a72b44a9b1405f16754a1626 into a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d
+2026-11-03T02:59:32.0772156Z ##[endgroup]
+2026-11-03T02:59:32.0830143Z [command]/usr/bin/git log -1 --format=%H
+2026-11-03T02:59:32.0867932Z dac118e6b1a25bdd565b0d5aaebcbf4525a788f0
+2026-11-03T02:59:32.1245600Z ##[group]Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+2026-11-03T02:59:32.1246134Z with:
+2026-11-03T02:59:32.1246399Z   python-version: 3.12
+2026-11-03T02:59:32.1246678Z   check-latest: false
+2026-11-03T02:59:32.1249482Z   token: ***
+2026-11-03T02:59:32.1249760Z   update-environment: true
+2026-11-03T02:59:32.1250058Z   allow-prereleases: false
+2026-11-03T02:59:32.1250359Z   freethreaded: false
+2026-11-03T02:59:32.1250618Z ##[endgroup]
+2026-11-03T02:59:32.2515367Z ##[group]Installed versions
+2026-11-03T02:59:32.2601728Z Successfully set up CPython (3.12.15)
+2026-11-03T02:59:32.2602659Z ##[endgroup]
+2026-11-03T02:59:32.2767521Z ##[group]Run rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+2026-11-03T02:59:32.2768463Z rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+2026-11-03T02:59:32.2805905Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:59:32.2806302Z env:
+2026-11-03T02:59:32.2806687Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:32.2807649Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T02:59:32.2808191Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:32.2808665Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:32.2809141Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:32.2809614Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T02:59:32.2810020Z ##[endgroup]
+2026-11-03T02:59:32.5775703Z info: syncing channel updates for 1.98.1-x86_64-unknown-linux-gnu
+2026-11-03T02:59:32.8648157Z info: latest update on 2026-09-03 for version 1.98.1 (48a229cea 2026-09-01)
+2026-11-03T02:59:32.8697270Z info: downloading 5 components
+2026-11-03T02:59:41.2357808Z
+2026-11-03T02:59:41.2432806Z   1.98.1-x86_64-unknown-linux-gnu installed - rustc 1.98.1 (48a229cea 2026-09-01)
+2026-11-03T02:59:41.2433531Z
+2026-11-03T02:59:41.2588131Z ##[group]Run python -m unittest discover -s tools/xtask -p 'test_*.py'
+2026-11-03T02:59:41.2588953Z python -m unittest discover -s tools/xtask -p 'test_*.py'
+2026-11-03T02:59:41.2589449Z python -m unittest discover -s scripts/joydeck/tests -p 'test_*.py'
+2026-11-03T02:59:41.2611079Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:59:41.2611345Z env:
+2026-11-03T02:59:41.2611616Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:41.2612071Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T02:59:41.2612507Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:41.2612904Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:41.2613317Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:41.2613721Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T02:59:41.2614053Z ##[endgroup]
+2026-11-03T02:59:42.1437903Z ..............
+2026-11-03T02:59:42.1438796Z ----------------------------------------------------------------------
+2026-11-03T02:59:42.1439803Z Ran 14 tests in 0.051s
+2026-11-03T02:59:42.1440177Z
+2026-11-03T02:59:42.1440379Z OK
+2026-11-03T02:59:42.2691724Z ...........
+2026-11-03T02:59:42.2692530Z ----------------------------------------------------------------------
+2026-11-03T02:59:42.2693388Z Ran 11 tests in 0.006s
+2026-11-03T02:59:42.2693792Z
+2026-11-03T02:59:42.2694281Z OK
+2026-11-03T02:59:42.2867821Z ##[group]Run python scripts/joydeck/check_sources.py
+2026-11-03T02:59:42.2868325Z python scripts/joydeck/check_sources.py
+2026-11-03T02:59:42.2868741Z python scripts/joydeck/check_dependencies.py
+2026-11-03T02:59:42.2869139Z python scripts/joydeck/check_refactor_docs.py
+2026-11-03T02:59:42.2889841Z shell: /usr/bin/bash -e {0}
+2026-11-03T02:59:42.2890099Z env:
+2026-11-03T02:59:42.2890374Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:42.2890854Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-11-03T02:59:42.2891303Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:42.2891689Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:42.2892096Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-11-03T02:59:42.2892506Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-11-03T02:59:42.2892835Z ##[endgroup]
+2026-11-03T02:59:42.3556357Z Imported source records passed (268 files)
+2026-11-03T02:59:42.5221186Z error: no matching package named `async-channel` found
+2026-11-03T02:59:42.5221902Z location searched: crates.io index
+2026-11-03T02:59:42.5222797Z required by package `joysheet-app v0.1.0 (/home/runner/work/joyoffice/joyoffice/crates/joysheet-app)`
+2026-11-03T02:59:42.5223995Z note: offline mode (via `--offline`) can sometimes cause surprising resolution failures
+2026-11-03T02:59:42.5225004Z help: if this error is too confusing you may wish to retry without `--offline`
+2026-11-03T02:59:42.5239380Z Traceback (most recent call last):
+2026-11-03T02:59:42.5244352Z   File "/home/runner/work/joyoffice/joyoffice/scripts/joydeck/check_dependencies.py", line 55, in <module>
+2026-11-03T02:59:42.5245284Z     sys.exit(main())
+2026-11-03T02:59:42.5245890Z              ^^^^^^
+2026-11-03T02:59:42.5246817Z   File "/home/runner/work/joyoffice/joyoffice/scripts/joydeck/check_dependencies.py", line 33, in main
+2026-11-03T02:59:42.5248427Z     tree = subprocess.check_output(['cargo', 'tree', '--locked', '--offline', '-p', package, '--edges', 'normal,build', '--prefix', 'none'], cwd=ROOT, encoding='utf-8')
+2026-11-03T02:59:42.5249637Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-03T02:59:42.5250560Z   File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/subprocess.py", line 466, in check_output
+2026-11-03T02:59:42.5699149Z     return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+2026-11-03T02:59:42.5700773Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-11-03T02:59:42.5701971Z   File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/subprocess.py", line 571, in run
+2026-11-03T02:59:42.5703175Z     raise CalledProcessError(retcode, process.args,
+2026-11-03T02:59:42.5704429Z subprocess.CalledProcessError: Command '['cargo', 'tree', '--locked', '--offline', '-p', 'joydeck-cli', '--edges', 'normal,build', '--prefix', 'none']' returned non-zero exit status 101.
+2026-11-03T02:59:42.5793923Z ##[error]Process completed with exit code 1.
+2026-11-03T02:59:42.5954132Z Post job cleanup.
+2026-11-03T02:59:42.6831086Z [command]/usr/bin/git version
+2026-11-03T02:59:42.6876664Z git version 2.56.0
+2026-11-03T02:59:42.6948202Z Temporarily overriding HOME='/home/runner/work/_temp/6210a707-707b-4034-88f7-0aaf9138176b' before making global git config changes
+2026-11-03T02:59:42.6949616Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-03T02:59:42.6953306Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/joyoffice/joyoffice
+2026-11-03T02:59:42.7012544Z Removing SSH command configuration
+2026-11-03T02:59:42.7013270Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-03T02:59:42.7063200Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-03T02:59:42.7349191Z Removing HTTP extra header
+2026-11-03T02:59:42.7362997Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-03T02:59:42.7414754Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-03T02:59:42.7733303Z Removing includeIf entries pointing to credentials config files
+2026-11-03T02:59:42.7734513Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-03T02:59:42.7780794Z includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path
+2026-11-03T02:59:42.7797945Z includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path
+2026-11-03T02:59:42.7798906Z includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:59:42.7799677Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:59:42.7801972Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path
+2026-11-03T02:59:42.7838389Z /home/runner/work/_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:42.7878996Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-0491b3e7\-8c10\-4cc1\-b85d\-3e55cf049f8a\.config
+2026-11-03T02:59:42.7968761Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path
+2026-11-03T02:59:42.7998480Z /home/runner/work/_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:42.8015117Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/joyoffice/joyoffice/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-0491b3e7\-8c10\-4cc1\-b85d\-3e55cf049f8a\.config
+2026-11-03T02:59:42.8070588Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-03T02:59:42.8109549Z /github/runner_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:42.8120099Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-0491b3e7\-8c10\-4cc1\-b85d\-3e55cf049f8a\.config
+2026-11-03T02:59:42.8170974Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-03T02:59:42.8209957Z /github/runner_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config
+2026-11-03T02:59:42.8218715Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-0491b3e7\-8c10\-4cc1\-b85d\-3e55cf049f8a\.config
+2026-11-03T02:59:42.8268762Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-03T02:59:42.8544750Z Removing credentials config '/home/runner/work/_temp/git-credentials-0491b3e7-8c10-4cc1-b85d-3e55cf049f8a.config'
+2026-11-03T02:59:42.8728305Z Cleaning up orphan processes

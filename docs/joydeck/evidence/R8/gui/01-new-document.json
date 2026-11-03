@@ -1,0 +1,10 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-a88695dfed\\joydeck.exe",
+    "id": 1379730,
+    "title": "演示文稿1 - JoyDeck"
+  },
+  "a11y": "Window: \"演示文稿1 - JoyDeck\", App: joydeck.exe.\n\t0 区域 演示文稿1 - JoyDeck Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: 演示文稿1 - JoyDeck\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 文件\n\t\t8 按钮 保存\n\t\t9 按钮 (disabled) 撤销\n\t\t10 按钮 (disabled) 重做\n\t\t11 按钮 从头开始放映\n\t\t12 按钮 查找文字\n\t\t13 按钮 切换明暗主题\n\t\t14 按钮 放映\n\t\t15 按钮 文件\n\t\t16 按钮 开始\n\t\t17 按钮 插入\n\t\t18 按钮 设计\n\t\t19 按钮 放映\n\t\t20 按钮 审阅\n\t\t21 按钮 视图\n\t\t22 按钮 粘贴\n\t\t23 按钮 (disabled) 剪切\n\t\t24 按钮 (disabled) 复制\n\t\t25 按钮 (disabled) 创建副本\n\t\t26 按钮 新建幻灯片\n\t\t27 按钮 版式\n\t\t28 按钮 复制幻灯片\n\t\t29 按钮 删除幻灯片\n\t\t30 按钮 (disabled) 主题字体\n\t\t31 按钮 (disabled) 18\n\t\t32 按钮 (disabled) 加粗\n\t\t33 按钮 (disabled) 倾斜\n\t\t34 按钮 (disabled) 下划线\n\t\t35 按钮 (disabled) 字体颜色\n\t\t36 按钮 (disabled) 清除字符格式\n\t\t37 按钮 (disabled) 项目符号\n\t\t38 按钮 (disabled) 编号\n\t\t39 按钮 (disabled) 减少缩进\n\t\t40 按钮 (disabled) 增加缩进\n\t\t41 按钮 (disabled) 左对齐\n\t\t42 按钮 (disabled) 居中\n\t\t43 按钮 (disabled) 右对齐\n\t\t44 按钮 (disabled) 两端对齐\n\t\t45 按钮 图片\n\t\t46 按钮 形状\n\t\t47 按钮 文本框\n\t\t48 按钮 (disabled) 上移一层\n\t\t49 按钮 (disabled) 下移一层\n\t\t50 按钮 选择窗格\n\t\t51 按钮 幻灯片 1\n\t\t52 按钮 单击此处添加标题\n\t\t53 按钮 单击此处添加副标题\n\t\t54 编辑 (settable, string) 演讲备注 Description: 单击此处添加备注 ID: speaker-notes\n\t\t55 按钮 备注\n\t\t56 按钮 普通视图\n\t\t57 按钮 幻灯片浏览\n\t\t58 按钮 从当前页放映\n\t\t59 按钮 缩小\n\t\t60 按钮 放大\n\t\t61 按钮 适应窗口\n\nThe focused UI element is 0 区域 演示文稿1 - JoyDeck Secondary Actions: Raise.",
+  "note": "最终 ZIP 搬到仓库外中文空格目录，默认 1 MiB 栈，空白文稿及主界面。",
+  "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798"
+}

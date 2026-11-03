@@ -102,9 +102,15 @@ jobs:
             target
           key: ${{ runner.os }}-${{ matrix.arch }}-${{ needs.resolve.outputs.product }}-release-${{ hashFiles('Cargo.lock') }}
       - name: Build and package selected product
+        shell: bash
         env:
           RELEASE_PRODUCT: ${{ needs.resolve.outputs.product }}
-        run: cargo xtask package ${{ needs.resolve.outputs.product }} --release
+        run: |
+          if [ "${{ needs.resolve.outputs.product }}" = "joydeck" ]; then
+            cargo xtask package joydeck --release --release-layout
+          else
+            cargo xtask package ${{ needs.resolve.outputs.product }} --release
+          fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: release-${{ needs.resolve.outputs.product }}-${{ matrix.platform }}-${{ matrix.arch }}

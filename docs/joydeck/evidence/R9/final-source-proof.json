@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "source_sha256": "dd8add7cf47351bf069de289a56065b4569afac963775faa1b0bca58973ff60b",
+  "source_files": 1643,
+  "archive_sha256": "4b3b87d1432384e8dac01b3c3280a1280eb8856db0dfe35256b5fe09ae4dc271",
+  "ci_and_docs_commits_do_not_change_payload": true
+}

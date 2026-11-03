@@ -1,821 +1,730 @@
-//! Independent editable table model. Covered slots are empty and point to a unique rectangular anchor by topology.
-use crate::{
-    document::{Deck, Object, Result},
-    text::{Run, Style},
-};
+//! Tables (graphic frames with `a:tbl`).
+
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Table {
-    pub rows: Vec<f32>,
-    pub columns: Vec<f32>,
-    pub cells: Vec<Cell>,
-    pub style: TableStyle,
-}
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Cell {
-    pub text: String,
-    pub runs: Vec<Run>,
-    pub span: [usize; 2],
-    pub style: CellStyle,
-}
-impl Default for Cell {
-    fn default() -> Self {
-        Self {
-            text: String::new(),
-            runs: vec![],
-            span: [1, 1],
-            style: CellStyle::default(),
-        }
-    }
-}
+
+use crate::style::{ColorRef, Fill, Line};
+use crate::text::{Anchor, TextBody};
+
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CellStyle {
-    pub fill: Option<String>,
-    pub color: Option<String>,
-    pub family: Option<String>,
-    pub size: Option<f32>,
-    pub bold: Option<bool>,
-    pub align: Option<String>,
-    pub border: Option<String>,
-    pub border_width: Option<f32>,
-    pub padding: Option<f32>,
+#[serde(default, rename_all = "camelCase")]
+pub struct Cell {
+    pub text: TextBody,
+    pub fill: Option<Fill>,
+    /// Left, right, top, bottom borders; `None` = from the table style.
+    pub borders: [Option<Line>; 4],
+    pub diag_down: Option<Line>,
+    pub diag_up: Option<Line>,
+    /// Margins (l, r, t, b) in points; `None` = defaults (7.2, 7.2, 3.6, 3.6).
+    pub margins: Option<[f64; 4]>,
+    pub anchor: Option<Anchor>,
+    pub grid_span: u32,
+    pub row_span: u32,
+    /// Covered by a merge to the left / above.
+    pub h_merge: bool,
+    pub v_merge: bool,
+    pub vertical: Option<crate::text::TextDir>,
 }
+
+impl Cell {
+    pub fn new(text: &str) -> Self {
+        Cell {
+            text: TextBody::from_text(text),
+            grid_span: 1,
+            row_span: 1,
+            ..Default::default()
+        }
+    }
+    pub fn is_covered(&self) -> bool {
+        self.h_merge || self.v_merge
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct Row {
+    pub height: f64,
+    pub cells: Vec<Cell>,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct TableStyle {
-    pub header: bool,
-    pub banded: bool,
-    pub border: String,
-    pub border_width: f32,
-    pub header_fill: String,
-    pub body_fill: String,
-    pub band_fill: String,
-    pub color: String,
-    pub header_color: String,
-    pub family: String,
-    pub size: f32,
-    pub padding: f32,
-    pub align: String,
+#[serde(default, rename_all = "camelCase")]
+pub struct Table {
+    /// Column widths in points.
+    pub cols: Vec<f64>,
+    pub rows: Vec<Row>,
+    /// Table style id (our built-in style names or a PPTX style GUID).
+    pub style: String,
+    pub first_row: bool,
+    pub first_col: bool,
+    pub last_row: bool,
+    pub last_col: bool,
+    pub band_row: bool,
+    pub band_col: bool,
+    /// `a:tblPr` fill: a fill behind the whole table (over the style's own background).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub background: Option<Fill>,
 }
-impl Default for TableStyle {
+
+impl Default for Table {
     fn default() -> Self {
-        Self {
-            header: true,
-            banded: true,
-            border: "#d8dfec".into(),
-            border_width: 1.,
-            header_fill: "@accent".into(),
-            body_fill: "#ffffff".into(),
-            band_fill: "#f2f4fa".into(),
-            color: "#243247".into(),
-            header_color: "#ffffff".into(),
-            family: "@body".into(),
-            size: 18.,
-            padding: 6.,
-            align: "left".into(),
+        Table {
+            cols: vec![],
+            rows: vec![],
+            style: "medium2-accent1".into(),
+            first_row: true,
+            first_col: false,
+            last_row: false,
+            last_col: false,
+            band_row: true,
+            band_col: false,
+            background: None,
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct Range {
-    pub top: usize,
-    pub left: usize,
-    pub bottom: usize,
-    pub right: usize,
-}
-impl Range {
-    pub fn cell(row: usize, col: usize) -> Self {
-        Self {
-            top: row,
-            left: col,
-            bottom: row,
-            right: col,
-        }
-    }
-    pub fn between(a: (usize, usize), b: (usize, usize)) -> Self {
-        Self {
-            top: a.0.min(b.0),
-            left: a.1.min(b.1),
-            bottom: a.0.max(b.0),
-            right: a.1.max(b.1),
-        }
-    }
-}
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(
-    tag = "type",
-    content = "value",
-    rename_all = "camelCase",
-    deny_unknown_fields
-)]
-pub enum Action {
-    SetCell(usize, usize, String, Vec<Run>),
-    Paste(usize, usize, String),
-    InsertRow(usize),
-    InsertColumn(usize),
-    DeleteRow(usize),
-    DeleteColumn(usize),
-    Merge(Range),
-    Split(usize, usize),
-    RowHeight(usize, f32),
-    ColumnWidth(usize, f32),
-    DistributeRows,
-    DistributeColumns,
-    Style(TableStyle),
-    CellStyle(Range, CellStyle),
-}
-#[derive(Clone)]
-pub struct Resolved {
-    pub fill: String,
-    pub text: Style,
-    pub border: String,
-    pub border_width: f32,
-    pub padding: f32,
-    pub align: String,
-}
-fn alignment(s: &str) -> bool {
-    matches!(s, "left" | "center" | "right")
-}
-fn token(s: &str) -> bool {
-    crate::document::color(s) || matches!(s, "@accent" | "@background")
-}
-fn family(s: &str) -> bool {
-    !s.trim().is_empty()
-        && s.len() <= 256
-        && !s.chars().any(char::is_control)
-        && (!s.starts_with('@') || s == "@body")
-}
+
 impl Table {
-    pub fn new(rows: usize, cols: usize) -> Result<Self> {
-        if rows == 0 || cols == 0 || rows > 128 || cols > 64 || rows * cols > 4096 {
-            return Err("表格须1–128行/1–64列且≤4096格".into());
-        }
-        Ok(Self {
-            rows: vec![44.; rows],
-            columns: vec![112.; cols],
-            cells: vec![Cell::default(); rows * cols],
-            style: TableStyle::default(),
-        })
-    }
-    pub fn index(&self, row: usize, col: usize) -> Result<usize> {
-        if row >= self.rows.len() || col >= self.columns.len() {
-            return Err("单元格已不存在".into());
-        }
-        Ok(row * self.columns.len() + col)
-    }
-    pub fn owner(&self, row: usize, col: usize) -> Result<(usize, usize)> {
-        self.index(row, col)?;
-        for (i, c) in self.cells.iter().enumerate() {
-            let r = i / self.columns.len();
-            let k = i % self.columns.len();
-            if c.span[0] > 0 && r <= row && k <= col && r + c.span[0] > row && k + c.span[1] > col {
-                return Ok((r, k));
-            }
-        }
-        Err("单元格合并引用失效".into())
-    }
-    /// View selections include every merged cell that intersects the rectangle.
-    pub fn selection_range(&self, a: (usize, usize), b: (usize, usize)) -> Result<Range> {
-        self.index(a.0, a.1)?;
-        self.index(b.0, b.1)?;
-        let mut range = Range::between(a, b);
-        loop {
-            let before = range;
-            for (i, c) in self.cells.iter().enumerate().filter(|(_, c)| c.span[0] > 0) {
-                let r = i / self.columns.len();
-                let col = i % self.columns.len();
-                let bottom = r + c.span[0] - 1;
-                let right = col + c.span[1] - 1;
-                if r <= range.bottom
-                    && bottom >= range.top
-                    && col <= range.right
-                    && right >= range.left
-                {
-                    range.top = range.top.min(r);
-                    range.left = range.left.min(col);
-                    range.bottom = range.bottom.max(bottom);
-                    range.right = range.right.max(right);
-                }
-            }
-            if range == before {
-                return Ok(range);
-            }
+    pub fn new(rows: usize, cols: usize, width: f64, row_height: f64) -> Self {
+        let rows = rows.clamp(1, 1000);
+        let cols = cols.clamp(1, 1000);
+        let cw = if cols > 0 { width / cols as f64 } else { width };
+        Table {
+            cols: vec![cw; cols],
+            rows: (0..rows)
+                .map(|_| Row {
+                    height: row_height,
+                    cells: (0..cols).map(|_| Cell::new("")).collect(),
+                })
+                .collect(),
+            ..Default::default()
         }
     }
-    pub fn bounds(&self, row: usize, col: usize) -> Result<[f32; 4]> {
-        let (r, c) = self.owner(row, col)?;
-        let cell = &self.cells[self.index(r, c)?];
-        Ok([
-            self.columns[..c].iter().sum(),
-            self.rows[..r].iter().sum(),
-            self.columns[c..c + cell.span[1]].iter().sum(),
-            self.rows[r..r + cell.span[0]].iter().sum(),
-        ])
+    pub fn n_rows(&self) -> usize {
+        self.rows.len()
     }
-    pub fn validate(&self) -> Result<()> {
-        if self.rows.is_empty()
-            || self.columns.is_empty()
-            || self.rows.len() > 128
-            || self.columns.len() > 64
-            || self.cells.len() != self.rows.len() * self.columns.len()
-            || self.cells.len() > 4096
-            || self
-                .rows
-                .iter()
-                .chain(&self.columns)
-                .any(|v| !v.is_finite() || *v < 8. || *v > 4096.)
-        {
-            return Err("表格行列/尺寸/预算无效（最小8pt）".into());
-        }
-        let mut occupied = vec![false; self.cells.len()];
-        let mut chars = 0;
-        for (i, cell) in self.cells.iter().enumerate() {
-            crate::text::validate(&cell.text, &cell.runs)?;
-            chars += cell.text.chars().count();
-            if cell.text.len() > 40000 || chars > 100000 {
-                return Err("表格文本超出预算".into());
-            }
-            let s = &cell.style;
-            if s.border.as_ref().is_some_and(|v| !token(v))
-                || s.border_width
-                    .is_some_and(|v| !v.is_finite() || !(0. ..=10.).contains(&v))
-                || s.padding
-                    .is_some_and(|v| !v.is_finite() || !(0. ..=24.).contains(&v))
-                || s.fill.as_ref().is_some_and(|v| !token(v))
-                || s.color.as_ref().is_some_and(|v| !token(v))
-                || s.family.as_ref().is_some_and(|v| !family(v))
-                || s.size
-                    .is_some_and(|v| !v.is_finite() || !(1. ..=512.).contains(&v))
-                || s.align.as_ref().is_some_and(|v| !alignment(v))
-            {
-                return Err("单元格样式无效".into());
-            }
-            if cell.span == [0, 0] {
-                if !cell.text.is_empty() || !cell.runs.is_empty() {
-                    return Err("覆盖单元格不能含隐藏文字".into());
-                }
-                continue;
-            }
-            let row = i / self.columns.len();
-            let col = i % self.columns.len();
-            if cell.span[0] == 0
-                || cell.span[1] == 0
-                || row
-                    .checked_add(cell.span[0])
-                    .is_none_or(|n| n > self.rows.len())
-                || col
-                    .checked_add(cell.span[1])
-                    .is_none_or(|n| n > self.columns.len())
-            {
-                return Err("表格合并越界".into());
-            }
-            for r in row..row + cell.span[0] {
-                for c in col..col + cell.span[1] {
-                    let k = self.index(r, c)?;
-                    if occupied[k] || (k != i && self.cells[k].span != [0, 0]) {
-                        return Err("表格合并重叠或覆盖失效".into());
-                    }
-                    occupied[k] = true;
-                }
-            }
-        }
-        if occupied.iter().any(|b| !*b) {
-            return Err("表格存在无主覆盖单元格".into());
-        }
-        let s = &self.style;
-        if ![
-            &s.border,
-            &s.header_fill,
-            &s.body_fill,
-            &s.band_fill,
-            &s.color,
-            &s.header_color,
-        ]
-        .iter()
-        .all(|v| token(v))
-            || !s.border_width.is_finite()
-            || !(0. ..=10.).contains(&s.border_width)
-            || !s.size.is_finite()
-            || !(1. ..=512.).contains(&s.size)
-            || !s.padding.is_finite()
-            || !(0. ..=24.).contains(&s.padding)
-            || !family(&s.family)
-            || !alignment(&s.align)
-        {
-            return Err("表格主题/边框样式无效".into());
-        }
-        Ok(())
+    pub fn n_cols(&self) -> usize {
+        self.cols.len()
     }
-    fn range(&self, r: Range) -> Result<()> {
-        if r.top > r.bottom || r.left > r.right {
-            return Err("非法单元格选区".into());
-        }
-        self.index(r.bottom, r.right)?;
-        Ok(())
+    pub fn cell(&self, r: usize, c: usize) -> Option<&Cell> {
+        self.rows.get(r).and_then(|row| row.cells.get(c))
     }
-    fn full_range(&self, r: Range) -> Result<()> {
-        self.range(r)?;
-        for row in r.top..=r.bottom {
-            for col in r.left..=r.right {
-                let (a, b) = self.owner(row, col)?;
-                let c = &self.cells[self.index(a, b)?];
-                if a < r.top
-                    || b < r.left
-                    || a + c.span[0] > r.bottom + 1
-                    || b + c.span[1] > r.right + 1
-                {
-                    return Err("选区不能穿过已有合并区域，请扩展选区或先拆分".into());
-                }
-            }
-        }
-        Ok(())
+    pub fn cell_mut(&mut self, r: usize, c: usize) -> Option<&mut Cell> {
+        self.rows.get_mut(r).and_then(|row| row.cells.get_mut(c))
     }
-    pub fn apply(&mut self, a: Action) -> Result<()> {
-        let mut draft = self.clone();
-        draft.apply_inner(a)?;
-        draft.validate()?;
-        *self = draft;
-        Ok(())
+    pub fn width(&self) -> f64 {
+        self.cols.iter().sum()
     }
-    fn apply_inner(&mut self, a: Action) -> Result<()> {
-        match a {
-            Action::SetCell(r, c, text, runs) => {
-                let (r, c) = self.owner(r, c)?;
-                let i = self.index(r, c)?;
-                self.cells[i].text = text;
-                self.cells[i].runs = runs;
-            }
-            Action::Paste(r, c, value) => {
-                let value = value.replace("\r\n", "\n").replace('\r', "\n");
-                let value = value.strip_suffix('\n').unwrap_or(&value);
-                let rows: Vec<Vec<_>> =
-                    value.split('\n').map(|r| r.split('\t').collect()).collect();
-                let width = rows[0].len();
-                if rows.iter().any(|r| r.len() != width)
-                    || rows.len() * width > 4096
-                    || value.len() > 400000
-                {
-                    return Err("TSV必须为有界矩形".into());
-                }
-                self.index(
-                    r.checked_add(rows.len() - 1).ok_or("TSV行越界")?,
-                    c.checked_add(width - 1).ok_or("TSV列越界")?,
-                )?;
-                for (dy, row) in rows.iter().enumerate() {
-                    for (dx, text) in row.iter().enumerate() {
-                        let i = self.index(r + dy, c + dx)?;
-                        if self.cells[i].span != [1, 1]
-                            && !(rows.len() == 1 && width == 1 && self.cells[i].span[0] > 0)
-                        {
-                            return Err("TSV粘贴与合并区域冲突，请先拆分".into());
-                        }
-                        self.cells[i].text = (*text).into();
-                        self.cells[i].runs.clear();
-                    }
-                }
-            }
-            Action::Merge(r) => {
-                self.full_range(r)?;
-                if r.top == r.bottom && r.left == r.right {
-                    return Ok(());
-                }
-                let mut text = String::new();
-                let mut runs = Vec::<Run>::new();
-                for row in r.top..=r.bottom {
-                    for col in r.left..=r.right {
-                        let i = self.index(row, col)?;
-                        if !self.cells[i].text.is_empty() {
-                            if !text.is_empty() {
-                                let start = text.len();
-                                text.push('\n');
-                                if let Some(last) = runs.last_mut() {
-                                    last.end = start + 1;
-                                }
-                            }
-                            let offset = text.len();
-                            text.push_str(&self.cells[i].text);
-                            for run in &self.cells[i].runs {
-                                let mut run = run.clone();
-                                run.start += offset;
-                                run.end += offset;
-                                runs.push(run);
-                            }
-                        }
-                        if row != r.top || col != r.left {
-                            self.cells[i] = Cell {
-                                span: [0, 0],
-                                ..Cell::default()
-                            };
-                        }
-                    }
-                }
-                let i = self.index(r.top, r.left)?;
-                self.cells[i].text = text;
-                self.cells[i].runs = runs;
-                self.cells[i].span = [r.bottom - r.top + 1, r.right - r.left + 1];
-            }
-            Action::Split(r, c) => {
-                let (r, c) = self.owner(r, c)?;
-                let i = self.index(r, c)?;
-                let span = self.cells[i].span;
-                self.cells[i].span = [1, 1];
-                for y in r..r + span[0] {
-                    for x in c..c + span[1] {
-                        if y != r || x != c {
-                            let i = self.index(y, x)?;
-                            self.cells[i] = Cell::default();
-                        }
-                    }
-                }
-            }
-            Action::InsertRow(at) => self.insert(true, at)?,
-            Action::InsertColumn(at) => self.insert(false, at)?,
-            Action::DeleteRow(at) => self.delete(true, at)?,
-            Action::DeleteColumn(at) => self.delete(false, at)?,
-            Action::RowHeight(r, h) => *self.rows.get_mut(r).ok_or("行不存在")? = h,
-            Action::ColumnWidth(c, w) => *self.columns.get_mut(c).ok_or("列不存在")? = w,
-            Action::DistributeRows => {
-                let h = self.rows.iter().sum::<f32>() / self.rows.len() as f32;
-                self.rows.fill(h);
-            }
-            Action::DistributeColumns => {
-                let w = self.columns.iter().sum::<f32>() / self.columns.len() as f32;
-                self.columns.fill(w);
-            }
-            Action::Style(style) => self.style = style,
-            Action::CellStyle(r, style) => {
-                self.full_range(r)?;
-                for row in r.top..=r.bottom {
-                    for col in r.left..=r.right {
-                        let i = self.index(row, col)?;
-                        if self.cells[i].span[0] > 0 {
-                            self.cells[i].style = style.clone();
-                        }
-                    }
-                }
-            }
-        }
-        Ok(())
+    pub fn height(&self) -> f64 {
+        self.rows.iter().map(|r| r.height).sum()
     }
-    fn insert(&mut self, row: bool, at: usize) -> Result<()> {
-        let old_rows = self.rows.len();
-        let old_cols = self.columns.len();
-        let count = if row { old_rows } else { old_cols };
-        if at > count {
-            return Err("插入位置越界".into());
-        }
-        let mut merged = vec![];
-        for (i, c) in self.cells.iter().enumerate() {
-            if c.span == [0, 0] {
-                continue;
-            }
-            let mut r = i / old_cols;
-            let mut k = i % old_cols;
-            let mut c = c.clone();
-            let pos = if row { r } else { k };
-            if pos >= at {
-                if row { r += 1 } else { k += 1 }
-            } else if pos + if row { c.span[0] } else { c.span[1] } > at {
-                if row { c.span[0] += 1 } else { c.span[1] += 1 }
-            }
-            merged.push((r, k, c));
-        }
-        if row {
-            self.rows.insert(at, 44.);
-        } else {
-            self.columns.insert(at, 112.);
-        }
-        self.rebuild(merged)
+    /// Insert an empty row before `at`. A merge the new row falls inside grows to cover it.
+    pub fn insert_row(&mut self, at: usize) {
+        let at = at.min(self.rows.len());
+        let merges = self.merges();
+        let h = self
+            .rows
+            .get(at.saturating_sub(1))
+            .map(|r| r.height)
+            .unwrap_or(30.0);
+        self.rows.insert(
+            at,
+            Row {
+                height: h,
+                cells: (0..self.cols.len()).map(|_| Cell::new("")).collect(),
+            },
+        );
+        self.set_merges(merges.into_iter().map(|m| m.insert_row(at)));
     }
-    fn delete(&mut self, row: bool, at: usize) -> Result<()> {
-        let count = if row {
-            self.rows.len()
-        } else {
-            self.columns.len()
-        };
-        if at >= count || count == 1 {
-            return Err("至少保留一行/列".into());
+    /// Insert an empty column before `at`. A merge the new column falls inside grows to cover it.
+    pub fn insert_col(&mut self, at: usize) {
+        let at = at.min(self.cols.len());
+        let merges = self.merges();
+        let w = self.cols.get(at.saturating_sub(1)).copied().unwrap_or(80.0);
+        self.cols.insert(at, w);
+        for r in &mut self.rows {
+            let i = at.min(r.cells.len());
+            r.cells.insert(i, Cell::new(""));
         }
-        let old_cols = self.columns.len();
-        let mut anchors = vec![];
-        for (i, c) in self.cells.iter().enumerate() {
-            if c.span == [0, 0] {
-                continue;
+        self.set_merges(merges.into_iter().map(|m| m.insert_col(at)));
+    }
+    /// Delete row `at`. Merges through it shrink; a merge anchored on it moves its anchor (and
+    /// text) to the next row it covers.
+    pub fn delete_row(&mut self, at: usize) -> bool {
+        if self.rows.len() <= 1 || at >= self.rows.len() {
+            return false;
+        }
+        let merges = self.merges();
+        for m in &merges {
+            if m.r == at && m.rs > 1 {
+                self.move_anchor((m.r, m.c), (m.r + 1, m.c));
             }
-            let (mut r, mut k) = (i / old_cols, i % old_cols);
-            let mut c = c.clone();
-            let pos = if row { r } else { k };
-            let span = if row { c.span[0] } else { c.span[1] };
-            if pos > at {
-                if row { r -= 1 } else { k -= 1 }
-            } else if pos <= at && pos + span > at {
-                if span == 1 {
+        }
+        self.rows.remove(at);
+        self.set_merges(merges.into_iter().filter_map(|m| m.delete_row(at)));
+        true
+    }
+    /// Delete column `at`. Merges through it shrink; a merge anchored on it moves its anchor (and
+    /// text) to the next column it covers.
+    pub fn delete_col(&mut self, at: usize) -> bool {
+        if self.cols.len() <= 1 || at >= self.cols.len() {
+            return false;
+        }
+        let merges = self.merges();
+        for m in &merges {
+            if m.c == at && m.gs > 1 {
+                self.move_anchor((m.r, m.c), (m.r, m.c + 1));
+            }
+        }
+        self.cols.remove(at);
+        for r in &mut self.rows {
+            if at < r.cells.len() {
+                r.cells.remove(at);
+            }
+        }
+        self.set_merges(merges.into_iter().filter_map(|m| m.delete_col(at)));
+        true
+    }
+    /// The merged areas: every uncovered cell spanning more than one cell, clipped to the grid.
+    fn merges(&self) -> Vec<Merge> {
+        let (nr, nc) = (self.rows.len(), self.cols.len());
+        let mut out = vec![];
+        for (r, row) in self.rows.iter().enumerate() {
+            for (c, cell) in row.cells.iter().enumerate().take(nc) {
+                if cell.is_covered() {
                     continue;
                 }
-                if row { c.span[0] -= 1 } else { c.span[1] -= 1 }
-            }
-            anchors.push((r, k, c));
-        }
-        if row {
-            self.rows.remove(at);
-        } else {
-            self.columns.remove(at);
-        }
-        self.rebuild(anchors)
-    }
-    fn rebuild(&mut self, anchors: Vec<(usize, usize, Cell)>) -> Result<()> {
-        if self.rows.len() > 128
-            || self.columns.len() > 64
-            || self.rows.len() * self.columns.len() > 4096
-        {
-            return Err("表格数量超限".into());
-        }
-        self.cells = vec![Cell::default(); self.rows.len() * self.columns.len()];
-        for (r, c, cell) in anchors {
-            let i = self.index(r, c)?;
-            for y in r..r + cell.span[0] {
-                for x in c..c + cell.span[1] {
-                    let k = self.index(y, x)?;
-                    self.cells[k] = Cell {
-                        span: [0, 0],
-                        ..Cell::default()
-                    };
+                let rs = (cell.row_span.max(1) as usize).min(nr - r);
+                let gs = (cell.grid_span.max(1) as usize).min(nc - c);
+                if rs > 1 || gs > 1 {
+                    out.push(Merge { r, c, rs, gs });
                 }
             }
-            self.cells[i] = cell;
         }
-        Ok(())
+        out
     }
-    pub fn next(&self, r: usize, c: usize, reverse: bool) -> Option<(usize, usize)> {
-        let (r, c) = self.owner(r, c).ok()?;
-        let i = self.index(r, c).ok()?;
-        let anchors: Vec<_> = self
-            .cells
-            .iter()
-            .enumerate()
-            .filter(|(_, c)| c.span[0] > 0)
-            .map(|(i, _)| i)
-            .collect();
-        let at = anchors.iter().position(|v| *v == i)?;
-        let next = if reverse { at.checked_sub(1)? } else { at + 1 };
-        anchors
-            .get(next)
-            .map(|i| (i / self.columns.len(), i % self.columns.len()))
-    }
-}
-pub fn object(rows: usize, cols: usize) -> Result<Object> {
-    let table = Table::new(rows, cols)?;
-    let mut o = crate::identity::object("table");
-    o.width = table.columns.iter().sum();
-    o.height = table.rows.iter().sum();
-    o.table = Some(table);
-    Ok(o)
-}
-pub fn validate(o: &Object) -> Result<()> {
-    match (&o.table, o.kind.as_str()) {
-        (Some(t), "table") => {
-            t.validate()?;
-            if (t.columns.iter().sum::<f32>() - o.width).abs() > 0.01
-                || (t.rows.iter().sum::<f32>() - o.height).abs() > 0.01
-            {
-                return Err("表格尺寸与行列不一致".into());
+    /// Rebuild every cell's spans and merge flags from `merges`.
+    fn set_merges(&mut self, merges: impl IntoIterator<Item = Merge>) {
+        for row in &mut self.rows {
+            for cell in &mut row.cells {
+                cell.grid_span = 1;
+                cell.row_span = 1;
+                cell.h_merge = false;
+                cell.v_merge = false;
             }
         }
-        (None, "table") | (Some(_), _) => return Err("表格对象与数据不匹配".into()),
-        _ => {}
-    }
-    Ok(())
-}
-pub fn resize(o: &mut Object) {
-    if let Some(t) = &mut o.table {
-        let w = t.columns.iter().sum::<f32>();
-        let h = t.rows.iter().sum::<f32>();
-        for c in &mut t.columns {
-            *c *= o.width / w;
-        }
-        for r in &mut t.rows {
-            *r *= o.height / h;
-        }
-    }
-}
-pub fn scale_content(o: &mut Object, factor: f32) {
-    if let Some(t) = &mut o.table {
-        t.style.size *= factor;
-        t.style.padding *= factor;
-        t.style.border_width *= factor;
-        for c in &mut t.cells {
-            if let Some(v) = &mut c.style.size {
-                *v *= factor;
-            }
-            if let Some(v) = &mut c.style.padding {
-                *v *= factor;
-            }
-            if let Some(v) = &mut c.style.border_width {
-                *v *= factor;
-            }
-            for r in &mut c.runs {
-                r.style.size *= factor;
-            }
-        }
-    }
-}
-pub fn theme_value(deck: &Deck, page: usize, value: &str, font: bool) -> String {
-    if let Some(slot) = value.strip_prefix('@') {
-        let theme = deck
-            .slides
-            .get(page)
-            .and_then(|s| s.layout.as_ref())
-            .and_then(|id| deck.design.layouts.get(id))
-            .and_then(|l| deck.design.masters.get(&l.master))
-            .and_then(|m| deck.design.themes.get(&m.theme))
-            .or_else(|| deck.design.themes.values().next());
-        return theme
-            .and_then(|t| {
-                if font {
-                    t.fonts.get(slot)
-                } else {
-                    t.colors.get(slot)
-                }
-            })
-            .cloned()
-            .unwrap_or_else(|| {
-                if font {
-                    "sans-serif".into()
-                } else if slot == "background" {
-                    "#ffffff".into()
-                } else {
-                    "#6d5ce7".into()
-                }
-            });
-    }
-    value.into()
-}
-pub fn resolve(deck: &Deck, page: usize, t: &Table, r: usize, c: usize) -> Resolved {
-    let cell = &t.cells[r * t.columns.len() + c];
-    let s = &t.style;
-    let header = s.header && r == 0;
-    let fill = cell.style.fill.as_ref().unwrap_or(if header {
-        &s.header_fill
-    } else if s.banded && r.is_multiple_of(2) {
-        &s.band_fill
-    } else {
-        &s.body_fill
-    });
-    Resolved {
-        fill: theme_value(deck, page, fill, false),
-        text: Style {
-            family: theme_value(
-                deck,
-                page,
-                cell.style.family.as_ref().unwrap_or(&s.family),
-                true,
-            ),
-            size: cell.style.size.unwrap_or(s.size),
-            bold: cell.style.bold.unwrap_or(header),
-            italic: false,
-            color: theme_value(
-                deck,
-                page,
-                cell.style.color.as_ref().unwrap_or(if header {
-                    &s.header_color
-                } else {
-                    &s.color
-                }),
-                false,
-            ),
-        },
-        border: theme_value(
-            deck,
-            page,
-            cell.style.border.as_ref().unwrap_or(&s.border),
-            false,
-        ),
-        border_width: cell.style.border_width.unwrap_or(s.border_width),
-        padding: cell.style.padding.unwrap_or(s.padding),
-        align: cell.style.align.clone().unwrap_or_else(|| s.align.clone()),
-    }
-}
-pub fn cell_object(deck: &Deck, page: usize, o: &Object, r: usize, c: usize) -> Result<Object> {
-    let t = o.table.as_ref().ok_or("不是表格")?;
-    let (r, c) = t.owner(r, c)?;
-    let [x, y, w, h] = t.bounds(r, c)?;
-    let style = resolve(deck, page, t, r, c);
-    let cell = &t.cells[t.index(r, c)?];
-    let mut text = crate::identity::object("text");
-    text.id = format!("{}:cell:{r}:{c}", o.id);
-    text.x = o.x + x + style.padding;
-    text.y = o.y + y + style.padding;
-    text.width = (w - 2. * style.padding).max(1.);
-    text.height = (h - 2. * style.padding).max(1.);
-    text.text = cell.text.clone();
-    text.font_size = style.text.size;
-    text.fill = style.text.color.clone();
-    text.opacity = o.opacity;
-    text.text_align = style.align;
-    text.runs = if cell.runs.is_empty() && !cell.text.is_empty() {
-        vec![Run {
-            start: 0,
-            end: cell.text.len(),
-            style: style.text,
-        }]
-    } else {
-        cell.runs.clone()
-    };
-    Ok(text)
-}
-pub fn expand(deck: &Deck, page: usize, objects: &[Object]) -> Result<Vec<Object>> {
-    let mut out = vec![];
-    for o in objects {
-        let Some(t) = &o.table else {
-            out.push(o.clone());
-            continue;
-        };
-        for (i, cell) in t.cells.iter().enumerate() {
-            if cell.span == [0, 0] {
+        for m in merges {
+            if m.rs <= 1 && m.gs <= 1 {
                 continue;
             }
-            let (r, c) = (i / t.columns.len(), i % t.columns.len());
-            let [x, y, w, h] = t.bounds(r, c)?;
-            let style = resolve(deck, page, t, r, c);
-            let mut bg = crate::identity::object("rect");
-            bg.id = format!("{}:bg:{i}", o.id);
-            bg.x = o.x + x;
-            bg.y = o.y + y;
-            bg.width = w;
-            bg.height = h;
-            bg.fill = style.fill;
-            bg.stroke = style.border;
-            bg.stroke_width = style.border_width;
-            bg.opacity = o.opacity;
-            let mut text = cell_object(deck, page, o, r, c)?;
-            for item in [&mut bg, &mut text] {
-                let dx = item.x + item.width / 2. - o.x - o.width / 2.;
-                let dy = item.y + item.height / 2. - o.y - o.height / 2.;
-                let (s, co) = o.rotation.to_radians().sin_cos();
-                item.x = o.x + o.width / 2. + dx * co - dy * s - item.width / 2.;
-                item.y = o.y + o.height / 2. + dx * s + dy * co - item.height / 2.;
-                item.rotation = o.rotation;
+            for r in m.r..m.r.saturating_add(m.rs) {
+                for c in m.c..m.c.saturating_add(m.gs) {
+                    if let Some(cell) = self.cell_mut(r, c) {
+                        cell.h_merge = c > m.c;
+                        cell.v_merge = r > m.r;
+                    }
+                }
             }
-            out.push(bg);
-            out.push(text);
+            if let Some(cell) = self.cell_mut(m.r, m.c) {
+                cell.grid_span = u32::try_from(m.gs).unwrap_or(u32::MAX);
+                cell.row_span = u32::try_from(m.rs).unwrap_or(u32::MAX);
+            }
         }
     }
-    Ok(out)
-}
-pub fn hit(o: &Object, x: f32, y: f32) -> Option<(usize, usize)> {
-    let t = o.table.as_ref()?;
-    let (dx, dy) = (x - o.x - o.width / 2., y - o.y - o.height / 2.);
-    let (s, c) = (-o.rotation).to_radians().sin_cos();
-    let (x, y) = (
-        dx * c - dy * s + o.width / 2.,
-        dx * s + dy * c + o.height / 2.,
-    );
-    if x < 0. || y < 0. || x > o.width || y > o.height {
-        return None;
+    /// Swap the anchor cell's contents into the cell that takes over as anchor.
+    fn move_anchor(&mut self, from: (usize, usize), to: (usize, usize)) {
+        let Some(a) = self.cell(from.0, from.1).cloned() else {
+            return;
+        };
+        let Some(b) = self.cell(to.0, to.1).cloned() else {
+            return;
+        };
+        if let Some(x) = self.cell_mut(to.0, to.1) {
+            *x = a;
+        }
+        if let Some(x) = self.cell_mut(from.0, from.1) {
+            *x = b;
+        }
     }
-    let mut edge = 0.;
-    let col = t.columns.iter().position(|w| {
-        edge += w;
-        edge >= x
-    })?;
-    edge = 0.;
-    let row = t.rows.iter().position(|h| {
-        edge += h;
-        edge >= y
-    })?;
-    t.owner(row, col).ok()
+    /// Merge the rectangle (r0,c0)–(r1,c1) inclusive into its top-left cell.
+    pub fn merge(&mut self, r0: usize, c0: usize, r1: usize, c1: usize) -> bool {
+        let (r0, r1) = (r0.min(r1), r0.max(r1));
+        let (c0, c1) = (c0.min(c1), c0.max(c1));
+        if r1 >= self.rows.len() || c1 >= self.cols.len() || (r0 == r1 && c0 == c1) {
+            return false;
+        }
+        // Grow the rectangle until no existing merge sticks out of it.
+        let (mut r0, mut c0, mut r1, mut c1) = (r0, c0, r1, c1);
+        loop {
+            let before = (r0, c0, r1, c1);
+            for (r, row) in self.rows.iter().enumerate() {
+                for (c, cell) in row.cells.iter().enumerate().take(self.cols.len()) {
+                    if cell.is_covered() {
+                        continue;
+                    }
+                    let ar1 = r
+                        .saturating_add((cell.row_span.max(1) as usize).saturating_sub(1))
+                        .min(self.rows.len() - 1);
+                    let ac1 = c
+                        .saturating_add((cell.grid_span.max(1) as usize).saturating_sub(1))
+                        .min(self.cols.len() - 1);
+                    if r <= r1 && ar1 >= r0 && c <= c1 && ac1 >= c0 {
+                        r0 = r0.min(r);
+                        c0 = c0.min(c);
+                        r1 = r1.max(ar1);
+                        c1 = c1.max(ac1);
+                    }
+                }
+            }
+            if (r0, c0, r1, c1) == before {
+                break;
+            }
+        }
+        let mut text = vec![];
+        for r in r0..=r1 {
+            for c in c0..=c1 {
+                if let Some(cell) = self.cell_mut(r, c) {
+                    if !cell.text.is_empty() {
+                        text.append(&mut cell.text.paragraphs);
+                    }
+                    cell.h_merge = c > c0;
+                    cell.v_merge = r > r0;
+                    cell.grid_span = 1;
+                    cell.row_span = 1;
+                }
+            }
+        }
+        if let Some(cell) = self.cell_mut(r0, c0) {
+            cell.grid_span = (c1 - c0 + 1) as u32;
+            cell.row_span = (r1 - r0 + 1) as u32;
+            cell.h_merge = false;
+            cell.v_merge = false;
+            if !text.is_empty() {
+                cell.text.paragraphs = text;
+            }
+        }
+        true
+    }
+    /// Undo a merge at (r, c).
+    pub fn split(&mut self, r: usize, c: usize) -> bool {
+        let Some(cell) = self.cell(r, c) else {
+            return false;
+        };
+        let (gs, rs) = (
+            cell.grid_span.max(1) as usize,
+            cell.row_span.max(1) as usize,
+        );
+        if gs == 1 && rs == 1 {
+            return false;
+        }
+        // Spans come from the file and may reach past the table; only walk the cells that exist.
+        for rr in r..r.saturating_add(rs).min(self.rows.len()) {
+            for cc in c..c.saturating_add(gs).min(self.cols.len()) {
+                if let Some(x) = self.cell_mut(rr, cc) {
+                    x.h_merge = false;
+                    x.v_merge = false;
+                    x.grid_span = 1;
+                    x.row_span = 1;
+                }
+            }
+        }
+        true
+    }
+    /// Make every row have exactly `cols.len()` cells (repair after loading).
+    pub fn normalize(&mut self) {
+        let n = self.cols.len();
+        for r in &mut self.rows {
+            r.cells.resize_with(n, || Cell::new(""));
+            for c in &mut r.cells {
+                c.grid_span = c.grid_span.max(1);
+                c.row_span = c.row_span.max(1);
+            }
+        }
+    }
 }
-pub fn freeze(deck: &Deck, page: usize, o: &mut Object) {
-    if let Some(t) = &mut o.table {
-        let s = &mut t.style;
-        for value in [
-            &mut s.border,
-            &mut s.header_fill,
-            &mut s.body_fill,
-            &mut s.band_fill,
-            &mut s.color,
-            &mut s.header_color,
-        ] {
-            *value = theme_value(deck, page, value, false);
+
+/// A merged area: anchor (r, c) spanning `rs` rows and `gs` columns.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Merge {
+    r: usize,
+    c: usize,
+    rs: usize,
+    gs: usize,
+}
+
+impl Merge {
+    fn insert_row(self, at: usize) -> Self {
+        if at <= self.r {
+            Merge {
+                r: self.r + 1,
+                ..self
+            }
+        } else if at < self.r + self.rs {
+            Merge {
+                rs: self.rs + 1,
+                ..self
+            }
+        } else {
+            self
         }
-        s.family = theme_value(deck, page, &s.family, true);
-        for cell in &mut t.cells {
-            if let Some(v) = &mut cell.style.fill {
-                *v = theme_value(deck, page, v, false);
+    }
+    fn insert_col(self, at: usize) -> Self {
+        if at <= self.c {
+            Merge {
+                c: self.c + 1,
+                ..self
             }
-            if let Some(v) = &mut cell.style.color {
-                *v = theme_value(deck, page, v, false);
+        } else if at < self.c + self.gs {
+            Merge {
+                gs: self.gs + 1,
+                ..self
             }
-            if let Some(v) = &mut cell.style.border {
-                *v = theme_value(deck, page, v, false);
+        } else {
+            self
+        }
+    }
+    fn delete_row(self, at: usize) -> Option<Self> {
+        let m = if at < self.r {
+            Merge {
+                r: self.r - 1,
+                ..self
             }
-            if let Some(v) = &mut cell.style.family {
-                *v = theme_value(deck, page, v, true);
+        } else if at < self.r + self.rs {
+            Merge {
+                rs: self.rs - 1,
+                ..self
+            }
+        } else {
+            self
+        };
+        // A merge that lost its only row or column is gone, not a 0-span merge over its neighbours.
+        (m.rs >= 1 && m.gs >= 1 && (m.rs > 1 || m.gs > 1)).then_some(m)
+    }
+    fn delete_col(self, at: usize) -> Option<Self> {
+        let m = if at < self.c {
+            Merge {
+                c: self.c - 1,
+                ..self
+            }
+        } else if at < self.c + self.gs {
+            Merge {
+                gs: self.gs - 1,
+                ..self
+            }
+        } else {
+            self
+        };
+        // A merge that lost its only row or column is gone, not a 0-span merge over its neighbours.
+        (m.rs >= 1 && m.gs >= 1 && (m.rs > 1 || m.gs > 1)).then_some(m)
+    }
+}
+
+/// A table style defined in the file (`ppt/tableStyles.xml`), as PowerPoint writes the built-in
+/// styles a deck uses: how each part of a table (whole table, banded rows and columns, first and
+/// last rows and columns, corner cells) is filled, bordered and lettered.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct TableStyleDef {
+    /// The style's GUID (`a:tableStyleId` on tables).
+    pub id: String,
+    pub name: String,
+    pub parts: Vec<(TablePart, TablePartStyle)>,
+    /// `a:tblBg`: a fill behind the whole table (only `fill` and `fill_ref` are used).
+    pub background: Option<TablePartStyle>,
+    /// The definition as read, written back unchanged.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub raw: String,
+}
+
+impl TableStyleDef {
+    pub fn part(&self, p: TablePart) -> Option<&TablePartStyle> {
+        self.parts.iter().find(|(k, _)| *k == p).map(|(_, s)| s)
+    }
+}
+
+/// The parts of a table style, in the order they apply (later ones win).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum TablePart {
+    WholeTbl,
+    Band1H,
+    Band2H,
+    Band1V,
+    Band2V,
+    LastCol,
+    FirstCol,
+    LastRow,
+    FirstRow,
+    SeCell,
+    SwCell,
+    NeCell,
+    NwCell,
+}
+
+impl TablePart {
+    pub const ALL: [TablePart; 13] = [
+        TablePart::WholeTbl,
+        TablePart::Band1H,
+        TablePart::Band2H,
+        TablePart::Band1V,
+        TablePart::Band2V,
+        TablePart::LastCol,
+        TablePart::FirstCol,
+        TablePart::LastRow,
+        TablePart::FirstRow,
+        TablePart::SeCell,
+        TablePart::SwCell,
+        TablePart::NeCell,
+        TablePart::NwCell,
+    ];
+
+    pub fn xml(self) -> &'static str {
+        match self {
+            TablePart::WholeTbl => "wholeTbl",
+            TablePart::Band1H => "band1H",
+            TablePart::Band2H => "band2H",
+            TablePart::Band1V => "band1V",
+            TablePart::Band2V => "band2V",
+            TablePart::LastCol => "lastCol",
+            TablePart::FirstCol => "firstCol",
+            TablePart::LastRow => "lastRow",
+            TablePart::FirstRow => "firstRow",
+            TablePart::SeCell => "seCell",
+            TablePart::SwCell => "swCell",
+            TablePart::NeCell => "neCell",
+            TablePart::NwCell => "nwCell",
+        }
+    }
+
+    pub fn from_xml(s: &str) -> Option<TablePart> {
+        TablePart::ALL.into_iter().find(|p| p.xml() == s)
+    }
+}
+
+/// One part of a table style. A theme reference (`a:fillRef`, `a:lnRef`) is kept as the theme's
+/// style index with its colour.
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct TablePartStyle {
+    pub fill: Option<Fill>,
+    pub fill_ref: Option<(u32, ColorRef)>,
+    /// Left, right, top, bottom, inside horizontal, inside vertical.
+    pub borders: [Option<TableBorder>; 6],
+    pub text_color: Option<ColorRef>,
+    pub bold: Option<bool>,
+    pub italic: Option<bool>,
+}
+
+/// A border of a table style part: a line, or a theme line style reference.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", tag = "kind")]
+#[allow(
+    clippy::large_enum_variant,
+    reason = "Preserve the imported value API; allocation changes require separate profiling"
+)]
+pub enum TableBorder {
+    Line { line: Line },
+    Ref { idx: u32, color: ColorRef },
+}
+
+/// Built-in table styles: (id, label). Styles are generated from the theme accents.
+pub fn table_styles() -> Vec<(String, String)> {
+    let mut v = vec![
+        ("none".to_string(), "No Style, No Grid".to_string()),
+        ("grid".to_string(), "No Style, Table Grid".to_string()),
+    ];
+    for (kind, label) in [
+        ("light1", "Light Style 1"),
+        ("light2", "Light Style 2"),
+        ("medium2", "Medium Style 2"),
+        ("medium4", "Medium Style 4"),
+        ("dark1", "Dark Style 1"),
+    ] {
+        v.push((format!("{kind}-tx1"), label.to_string()));
+        for a in 1..=6 {
+            v.push((format!("{kind}-accent{a}"), format!("{label} - Accent {a}")));
+        }
+    }
+    v
+}
+
+#[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "Test fixtures use explicit failure assertions"
+)]
+mod tests {
+    use super::*;
+
+    /// Every cell is owned by exactly one anchor (itself or a span over it), and no span leaves the grid.
+    fn assert_topology(t: &Table) {
+        let (nr, nc) = (t.n_rows(), t.n_cols());
+        let mut owner = vec![vec![0u32; nc]; nr];
+        for (r, row) in t.rows.iter().enumerate() {
+            assert_eq!(row.cells.len(), nc);
+            for (c, cell) in row.cells.iter().enumerate() {
+                if cell.is_covered() {
+                    assert_eq!(
+                        (cell.grid_span, cell.row_span),
+                        (1, 1),
+                        "covered ({r},{c}) has spans"
+                    );
+                    continue;
+                }
+                let (rs, gs) = (cell.row_span as usize, cell.grid_span as usize);
+                assert!(
+                    r + rs <= nr && c + gs <= nc,
+                    "span at ({r},{c}) leaves the grid"
+                );
+                for o in owner.iter_mut().skip(r).take(rs) {
+                    for x in o.iter_mut().skip(c).take(gs) {
+                        *x += 1;
+                    }
+                }
             }
         }
+        for (r, o) in owner.iter().enumerate() {
+            for (c, n) in o.iter().enumerate() {
+                assert_eq!(*n, 1, "cell ({r},{c}) owned {n} times");
+            }
+        }
+    }
+
+    fn merged() -> Table {
+        // 4x4 with a 2x2 merge at (1,1) holding "M".
+        let mut t = Table::new(4, 4, 400.0, 30.0);
+        if let Some(c) = t.cell_mut(1, 1) {
+            c.text = TextBody::from_text("M");
+        }
+        assert!(t.merge(1, 1, 2, 2));
+        assert_topology(&t);
+        t
+    }
+
+    fn anchor_text(t: &Table, r: usize, c: usize) -> String {
+        t.cell(r, c).unwrap().text.text()
+    }
+
+    #[test]
+    fn merging_over_an_existing_merge_takes_it_in() {
+        let mut t = Table::new(3, 3, 300.0, 30.0);
+        if let Some(c) = t.cell_mut(1, 2) {
+            c.text = TextBody::from_text("X");
+        }
+        assert!(t.merge(1, 1, 1, 2));
+        assert!(t.merge(0, 0, 1, 1));
+        assert_topology(&t);
+        let a = t.cell(0, 0).unwrap();
+        assert_eq!((a.row_span, a.grid_span), (2, 3));
+        assert_eq!(anchor_text(&t, 0, 0), "X");
+    }
+
+    #[test]
+    fn row_and_column_edits_keep_merges_consistent() {
+        for at in 0..=4 {
+            let mut t = merged();
+            t.insert_row(at);
+            assert_topology(&t);
+            let mut t = merged();
+            t.insert_col(at);
+            assert_topology(&t);
+        }
+        for at in 0..4 {
+            let mut t = merged();
+            assert!(t.delete_row(at));
+            assert_topology(&t);
+            let mut t = merged();
+            assert!(t.delete_col(at));
+            assert_topology(&t);
+        }
+    }
+
+    #[test]
+    fn inserting_inside_a_merge_grows_it() {
+        let mut t = merged();
+        t.insert_row(2);
+        let a = t.cell(1, 1).unwrap();
+        assert_eq!((a.row_span, a.grid_span), (3, 2));
+        assert!(t.cell(2, 2).unwrap().h_merge && t.cell(2, 2).unwrap().v_merge);
+        t.insert_col(0);
+        assert_eq!(t.cell(1, 2).unwrap().grid_span, 2);
+        assert_eq!(anchor_text(&t, 1, 2), "M");
+        assert_topology(&t);
+    }
+
+    #[test]
+    fn deleting_the_anchor_row_or_column_keeps_the_text() {
+        let mut t = merged();
+        assert!(t.delete_row(1));
+        let a = t.cell(1, 1).unwrap();
+        assert!(!a.is_covered());
+        assert_eq!((a.row_span, a.grid_span), (1, 2));
+        assert_eq!(anchor_text(&t, 1, 1), "M");
+        assert!(t.delete_col(1));
+        let a = t.cell(1, 1).unwrap();
+        assert!(!a.is_covered());
+        assert_eq!((a.row_span, a.grid_span), (1, 1));
+        assert_eq!(anchor_text(&t, 1, 1), "M");
+        assert_topology(&t);
+    }
+
+    #[test]
+    fn deleting_the_only_row_or_column_of_a_merge_removes_it() {
+        // A 1x3 merge across a row: deleting that row leaves no merge behind.
+        let mut t = Table::new(3, 3, 300.0, 30.0);
+        assert!(t.merge(1, 0, 1, 2));
+        assert!(t.delete_row(1));
+        assert!((0..t.n_rows()).all(|r| (0..t.n_cols()).all(|c| {
+            t.cell(r, c)
+                .is_some_and(|x| !x.is_covered() && x.grid_span <= 1)
+        })));
+        assert_topology(&t);
+        // A 3x1 merge down a column: deleting that column leaves no merge behind.
+        let mut t = Table::new(3, 3, 300.0, 30.0);
+        assert!(t.merge(0, 1, 2, 1));
+        assert!(t.delete_col(1));
+        assert!((0..t.n_rows()).all(|r| (0..t.n_cols()).all(|c| {
+            t.cell(r, c)
+                .is_some_and(|x| !x.is_covered() && x.row_span <= 1)
+        })));
+        assert_topology(&t);
+    }
+
+    #[test]
+    fn insert_delete_merge_split() {
+        let mut t = Table::new(3, 3, 300.0, 30.0);
+        assert_eq!((t.n_rows(), t.n_cols()), (3, 3));
+        t.insert_row(1);
+        t.insert_col(3);
+        assert_eq!((t.n_rows(), t.n_cols()), (4, 4));
+        assert!(t.delete_row(0) && t.delete_col(0));
+        assert_eq!((t.n_rows(), t.n_cols()), (3, 3));
+        assert!(t.merge(0, 0, 1, 1));
+        assert_eq!(
+            t.cell(0, 0).map(|c| (c.grid_span, c.row_span)),
+            Some((2, 2))
+        );
+        assert!(t.cell(1, 1).is_some_and(|c| c.is_covered()));
+        assert!(t.split(0, 0));
+        assert!(!t.cell(1, 1).is_some_and(|c| c.is_covered()));
+        assert!(!t.merge(5, 5, 6, 6));
+        assert!(!t.delete_row(99));
+        let mut one = Table::new(1, 1, 10.0, 10.0);
+        assert!(!one.delete_row(0) && !one.delete_col(0));
+        assert!(table_styles().len() > 30);
+    }
+
+    #[test]
+    fn split_ignores_spans_past_the_table() {
+        let mut t = Table::new(2, 2, 100.0, 10.0);
+        if let Some(c) = t.cell_mut(0, 0) {
+            c.grid_span = u32::MAX;
+            c.row_span = u32::MAX;
+        }
+        assert!(t.split(0, 0));
+        assert_eq!(
+            t.cell(0, 0).map(|c| (c.grid_span, c.row_span)),
+            Some((1, 1))
+        );
     }
 }

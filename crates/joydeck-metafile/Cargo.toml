@@ -1,0 +1,16 @@
+[package]
+name = "joydeck-metafile"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license.workspace = true
+description = "DeckCraft metafiles (ported from WordCraft): parses Windows WMF and EMF records into a neutral vector model (paths and bitmaps)"
+
+[lints]
+workspace = true
+
+[dependencies]
+kurbo = { workspace = true, features = ["serde"] }
+thiserror = { workspace = true }
+image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }

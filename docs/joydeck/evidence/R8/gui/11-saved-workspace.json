@@ -1,0 +1,10 @@
+{
+  "window": {
+    "app": "process:C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r8-qualified-ux39zv4d\\中文 空格\\joydeck-0.8.0-r8-windows-x86_64-release-a88695dfed\\joydeck.exe",
+    "id": 1379730,
+    "title": "R8 界面验证.pptx - JoyDeck"
+  },
+  "a11y": "Window: \"R8 界面验证.pptx - JoyDeck\", App: joydeck.exe.\n\t0 区域 R8 界面验证.pptx - JoyDeck Secondary Actions: Raise\n\t\t1 标题栏 (settable, string) Value: R8 界面验证.pptx - JoyDeck\n\t\t\t2 菜单栏 系统 ID: MenuBar\n\t\t\t\t3 菜单项 系统\n\t\t\t4 按钮 最小化\n\t\t\t5 按钮 最大化\n\t\t\t6 按钮 关闭\n\t\t7 按钮 文件\n\t\t8 按钮 保存\n\t\t9 按钮 撤销\n\t\t10 按钮 (disabled) 重做\n\t\t11 按钮 从头开始放映\n\t\t12 按钮 查找文字\n\t\t13 按钮 切换明暗主题\n\t\t14 按钮 放映\n\t\t15 按钮 文件\n\t\t16 按钮 开始\n\t\t17 按钮 插入\n\t\t18 按钮 设计\n\t\t19 按钮 放映\n\t\t20 按钮 审阅\n\t\t21 按钮 视图\n\t\t62 按钮 表格\n\t\t181 按钮 粘贴\n\t\t182 按钮 剪切\n\t\t183 按钮 复制\n\t\t184 按钮 创建副本\n\t\t185 按钮 新建幻灯片\n\t\t186 按钮 版式\n\t\t187 按钮 复制幻灯片\n\t\t188 按钮 删除幻灯片\n\t\t189 按钮 主题字体\n\t\t190 按钮 18\n\t\t191 按钮 加粗\n\t\t192 按钮 倾斜\n\t\t193 按钮 下划线\n\t\t194 按钮 字体颜色\n\t\t195 按钮 清除字符格式\n\t\t196 按钮 项目符号\n\t\t197 按钮 编号\n\t\t198 按钮 减少缩进\n\t\t199 按钮 增加缩进\n\t\t200 按钮 左对齐\n\t\t201 按钮 居中\n\t\t202 按钮 右对齐\n\t\t203 按钮 两端对齐\n\t\t204 按钮 图片\n\t\t205 按钮 形状\n\t\t206 按钮 文本框\n\t\t207 按钮 上移一层\n\t\t208 按钮 下移一层\n\t\t209 按钮 选择窗格\n\t\t51 按钮 幻灯片 1 JoyDeck · R8 界面验证\n\t\t53 按钮 单击此处添加副标题\n\t\t54 编辑 (settable, string) 演讲备注 Description: 单击此处添加备注 Value: R8 备注：真实文稿、原生 GPUI、保存重开验证。 ID: speaker-notes\n\t\t55 按钮 备注\n\t\t56 按钮 普通视图\n\t\t57 按钮 幻灯片浏览\n\t\t58 按钮 从当前页放映\n\t\t59 按钮 缩小\n\t\t60 按钮 放大\n\t\t61 按钮 适应窗口\n\nThe focused UI element is 0 区域 R8 界面验证.pptx - JoyDeck Secondary Actions: Raise.",
+  "note": "原生开始 Ribbon、44 磅橙色标题、可移动表格和直接备注；PPTX 已保存并由 PowerPoint 读回。",
+  "exe_sha256": "5b67fb4381dcd07f14041061510c47e02c06ab58e0a77ed2acb53ea7b0a10798"
+}

@@ -1,0 +1,14 @@
+{
+  "package": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-final-ef39p_j5\\中文 空格路径\\joydeck-0.2.0-r1-windows-x86_64-release-fdd20f30eb",
+  "pid": 20408,
+  "archive_sha256": "ceecf4e4aee3337aa20eaec45ec24d8072c3bf128ef7fde2338c4f5dbe4bfc0b",
+  "files_verified": 746,
+  "gui_sha256": "2768e333ff4a8550ca99e6ce1ccfe2f5135a4f981feddda648aea97d9b2dd1c6",
+  "cli_sha256": "f6ea27e7908a5a0c17dbba257b82fc11fdf5fc353d56d744714986c82fe45af2",
+  "working_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-final-ef39p_j5\\中文 空格路径\\joydeck-0.2.0-r1-windows-x86_64-release-fdd20f30eb",
+  "arguments": [
+    "--window-size=980x760"
+  ],
+  "pptx_pid": 17956,
+  "native_dialog_automation": "Dialog displayed; helper could not bind owned modal: point is over joydeck.exe empty title, not target root window. Test process restarted with file argument."
+}

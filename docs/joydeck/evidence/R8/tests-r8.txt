@@ -1,0 +1,34 @@
+   Compiling joydeck-color v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling joydeck-geom v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-fonts v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joyoffice-opc v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-opc)
+   Compiling joydeck-legacy v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+   Compiling joydeck-model v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling joydeck-anim v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-text v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-engine v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-format v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-pptx v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-pdf v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.50s
+     Running tests\r8.rs (target\debug\deps\r8-d0e6374c1eb92c25.exe)
+
+running 4 tests
+test preset_insertion_is_atomic_and_undoable ... ok
+test clipboard_keeps_resolved_placeholder_position_as_regular_shape ... ok
+test clipboard_missing_resources_and_duplicate_ids_do_not_change_history ... ok
+test clipboard_remaps_colliding_media_and_undo_keeps_destination ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\r8.rs (target\debug\deps\r8-3afc79db5747ab73.exe)
+
+running 3 tests
+test clipboard_image_uses_file_import_limits ... ok
+test copied_objects_survive_native_and_public_pptx_exchange ... ok
+test fresh_document_is_clean_but_first_edit_is_recoverable_and_saveable ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s

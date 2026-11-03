@@ -1,0 +1,4 @@
+Joysheet: engine initialized
+Joysheet: initializing GPUI components
+Joysheet: opening desktop window
+Joysheet: desktop window initialized

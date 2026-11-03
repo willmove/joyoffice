@@ -1,0 +1,41 @@
+{
+  "new_registry_packages": [
+    {
+      "name": "krilla",
+      "version": "0.8.2",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "27da593198b20eeba65caeb73c2bbeec3e53ab08fa549898312ce81c4fce5e33"
+    },
+    {
+      "name": "pdf-writer",
+      "version": "0.15.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "f5e456864a7a304047bff84977dc6fb162bd956475d40ba50b2dcecaada7f753"
+    },
+    {
+      "name": "subsetter",
+      "version": "0.2.6",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "38803281d1c23166c5ebcb455439a5d2afe711cc909cf88af72448c297756ad6"
+    },
+    {
+      "name": "tiny-skia-path",
+      "version": "0.12.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "edca365c3faccca67d06593c5980fa6c57687de727a03131735bb85f01fdeeb9"
+    },
+    {
+      "name": "write-fonts",
+      "version": "0.48.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "cb731d4c4d93eacc69a1ad2f270f905788a98e4a3438267bcafbe08d3431c8d8"
+    },
+    {
+      "name": "xmp-writer",
+      "version": "0.3.3",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
+    }
+  ],
+  "all_match_joyoffice": true
+}

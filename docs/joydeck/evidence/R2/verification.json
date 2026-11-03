@@ -1,0 +1,29 @@
+{
+  "product-check": {
+    "rust_tests_passed": 839,
+    "rust_tests_failed": 0,
+    "python_tests_passed": 5,
+    "python_gate_passed": true
+  },
+  "headless-check": {
+    "rust_tests_passed": 838,
+    "rust_tests_failed": 0,
+    "python_tests_passed": 5,
+    "python_gate_passed": true
+  },
+  "native_gui_crash_recovery_passed": true,
+  "final_source_matches_package": true,
+  "archive_sha256_matches": true,
+  "archive_bytes": 20351532,
+  "package_files_sha256_verified": 758,
+  "release_cli_checks_passed": 20,
+  "debug_cli_checks_passed": 20,
+  "source_records_verified": 209,
+  "gui_evidence_screenshots": 10,
+  "staged_source_files_sha256_verified": 267,
+  "final_fmt_clippy_product_exit_code": 0,
+  "joyoffice_baseline_commit": "a973f75d7d58ab8dd5f05b0e3db5f0c53137d57d",
+  "joyoffice_worktree_unchanged": true,
+  "final_document_source_dependency_gates_passed": true,
+  "git_staged_diff_check_passed": true
+}

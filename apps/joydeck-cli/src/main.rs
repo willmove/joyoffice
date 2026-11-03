@@ -1,283 +1,334 @@
-use joydeck::automation::{Dispatcher, LIMIT, Request, VERSION};
-use joydeck_shell as joydeck;
-use serde_json::{Value, json};
-use std::{
-    io::{self, BufRead, Read, Write},
-    path::PathBuf,
-};
-fn request(d: &mut Dispatcher, id: String, method: &str, params: Value) -> Value {
-    d.dispatch(Request {
-        protocol_version: VERSION.into(),
-        request_id: id,
-        method: method.into(),
-        target: Some(d.session.id),
-        params,
-    })
+#![forbid(unsafe_code)]
+use std::process::ExitCode;
+mod output;
+mod scene_bench;
+mod stdio;
+
+fn execute() -> Result<(), String> {
+    execute_args(&std::env::args().skip(1).collect::<Vec<_>>())
 }
-fn run() -> Result<(), (u8, String)> {
-    let mut args: Vec<String> = std::env::args().skip(1).collect();
-    let mut remote = None;
-    if args.first().is_some_and(|s| s == "--connect") {
-        if args.len() < 2 {
-            return Err((2, "缺少凭据路径".into()));
-        }
-        args.remove(0);
-        remote = Some(PathBuf::from(args.remove(0)));
-    }
-    let mut reads = vec![];
-    let mut writes = vec![];
-    while args
-        .first()
-        .is_some_and(|s| s == "--read-root" || s == "--write-root")
+
+fn execute_args(args: &[String]) -> Result<(), String> {
+    if let [command, input, mode_flag, mode, output_flag, output] = args
+        && command == "exchange"
+        && mode_flag == "--mode"
+        && output_flag == "--output"
     {
-        if args.len() < 2 {
-            return Err((2, "root参数缺少目录".into()));
-        }
-        let flag = args.remove(0);
-        let root = PathBuf::from(args.remove(0));
-        if flag == "--read-root" {
-            reads.push(root)
-        } else {
-            writes.push(root)
-        }
-    }
-    let mut d = Dispatcher::new(reads, writes).map_err(|e| (2, e))?;
-    if let Some(path) = remote {
-        d.connect(path).map_err(|e| (2, e))?;
-    }
-    let invocation = joydeck::automation::operation_id().map_err(|e| (2, e))?;
-    let auto_id = |suffix: &str| format!("{invocation}-{suffix}");
-    let command = args.first().map(String::as_str).unwrap_or("commands");
-    if command == "serve" {
-        let path = args.get(1).ok_or((2, "serve需要新建凭据文件路径".into()))?;
-        let service =
-            joydeck::control::Service::start(d, &PathBuf::from(path), false).map_err(|e| (2, e))?;
-        eprintln!("control listening on {}", service.address);
-        let mut line = String::new();
-        io::stdin()
-            .read_line(&mut line)
-            .map_err(|e| (5, e.to_string()))?;
+        let editor = joydeck_shell::editor::Editor::open(
+            std::path::Path::new(input),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&joydeck_shell::exchange::export(
+                &editor,
+                std::path::Path::new(output),
+                mode,
+                &Default::default()
+            )?)
+            .map_err(|e| e.to_string())?
+        );
         return Ok(());
     }
-    if command == "mcp" {
-        return mcp(&mut d).map_err(|e| (5, e));
+    if let [command, flag, root] = args
+        && matches!(command.as_str(), "control" | "mcp")
+        && flag == "--root"
+    {
+        return stdio::run(std::path::Path::new(root), command == "mcp");
     }
-    let result = match command {
-        "diagnostics" => joydeck::diagnostics::report_for(env!("CARGO_PKG_VERSION"), false),
-        "commands" | "describe" => joydeck::automation::describe(),
-        "inspect" | "render" | "convert" | "compare" => {
-            let input = args.get(1).ok_or((2, "缺少输入绝对路径".into()))?;
-            let opened = request(
-                &mut d,
-                auto_id("cli-open"),
-                "document.open",
-                json!({"path":input}),
-            );
-            if opened.get("error").is_some() {
-                return Err((3, opened.to_string()));
-            }
-            if command == "compare" {
-                let other = args
-                    .get(2)
-                    .ok_or((2, "compare需要参考文稿绝对路径".into()))?;
-                request(
-                    &mut d,
-                    auto_id("cli-compare"),
-                    "document.compare",
-                    json!({"path":other}),
-                )
-            } else if command == "inspect" {
-                request(
-                    &mut d,
-                    auto_id("cli-inspect"),
-                    "document.inspect",
-                    json!({}),
-                )
-            } else {
-                let output = args.get(2).ok_or((2, "缺少输出绝对路径".into()))?;
-                let format = args
-                    .get(3)
-                    .map(String::as_str)
-                    .unwrap_or(if command == "render" { "png" } else { "pdf" });
-                request(
-                    &mut d,
-                    auto_id("cli-export"),
-                    "document.export",
-                    json!({"path":output,"format":format,"range":if command=="render"{"1"}else{""},"acceptLosses":args.iter().any(|a|a=="--accept-losses")}),
-                )
-            }
-        }
-        "run" => {
-            let text = args.get(1).ok_or((2, "run需要JSON请求数组".into()))?;
-            if text.len() > LIMIT {
-                return Err((2, "输入超限".into()));
-            }
-            let commands: Vec<Value> =
-                serde_json::from_str(text).map_err(|e| (2, e.to_string()))?;
-            if commands.len() > 128 {
-                return Err((2, "最多128个请求".into()));
-            }
-            let mut out = vec![];
-            for (i, c) in commands.into_iter().enumerate() {
-                let method = c["method"].as_str().ok_or((2, "缺少method".into()))?;
-                let result = request(
-                    &mut d,
-                    c["operationId"]
-                        .as_str()
-                        .map(str::to_owned)
-                        .unwrap_or_else(|| auto_id(&format!("cli-{i}"))),
-                    method,
-                    c["params"].clone(),
-                );
-                let error = result.get("error").is_some();
-                out.push(result);
-                if error {
-                    break;
-                }
-            }
-            json!(out)
-        }
-        _ => {
-            return Err((
-                2,
-                "命令: commands/describe/inspect/run/render/convert/compare/mcp；roots需显式配置"
-                    .into(),
-            ));
-        }
-    };
-    let failure = result.get("error").is_some()
-        || result
-            .as_array()
-            .is_some_and(|a| a.iter().any(|v| v.get("error").is_some()));
-    println!("{result}");
-    if failure {
-        Err((4, "operation failed".into()))
-    } else {
-        Ok(())
+    if args.first().is_some_and(|s| s == "export") {
+        return output::run(&args[1..]);
     }
-}
-fn mcp(d: &mut Dispatcher) -> Result<(), String> {
-    let mut initialized = false;
-    let mut ready = false;
-    let stdin = io::stdin();
-    let mut reader = stdin.lock();
-    let mut line = vec![];
-    loop {
-        line.clear();
-        let n = reader
-            .by_ref()
-            .take((LIMIT + 1) as u64)
-            .read_until(b'\n', &mut line)
-            .map_err(|e| e.to_string())?;
-        if n == 0 {
-            break;
+    if let [command, input] = args
+        && command == "print"
+    {
+        let cancel = joydeck_shell::Cancellation::default();
+        let doc = joydeck_shell::Document::open(std::path::Path::new(input), &cancel)?;
+        println!(
+            "{}",
+            joydeck_shell::output::print(
+                &doc,
+                &joydeck_shell::output::Options::default(),
+                &cancel
+            )?
+        );
+        return Ok(());
+    }
+    if let [command, input] = args
+        && command == "media-inspect"
+    {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&joydeck_shell::playback::inspect(std::path::Path::new(
+                input
+            ))?)
+            .map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, input, flag, output] = args
+        && command == "migrate"
+        && flag == "--output"
+    {
+        if std::path::Path::new(output)
+            .extension()
+            .and_then(|e| e.to_str())
+            != Some("joydeck")
+        {
+            return Err("migration output must be a new .joydeck file".into());
         }
-        if line.len() > LIMIT {
-            return Err("MCP消息超过1MiB".into());
-        }
-        let v: Value = match serde_json::from_slice(&line) {
-            Ok(v) => v,
-            Err(_) => {
-                println!(
-                    "{}",
-                    json!({"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}})
-                );
-                continue;
-            }
-        };
-        let id = v.get("id").cloned();
-        let method = v["method"].as_str().unwrap_or("");
-        if id.is_none() {
-            if method == "notifications/initialized" && initialized {
-                ready = true;
-            }
-            continue;
-        }
-        let Some(id) = id else {
-            continue;
-        };
-        let result: Result<Value, (i32, &str)> = if v["jsonrpc"] != "2.0" {
-            Err((-32600, "Invalid Request"))
+        let mut editor = joydeck_shell::editor::Editor::open(
+            std::path::Path::new(input),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        let saved = editor.save_job(output.into())?.run()?;
+        editor.apply_saved(saved);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&editor.display()?.info).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    use joydeck_shell::{Cancellation, Document};
+    use std::path::Path;
+    if let [
+        command,
+        input,
+        page_flag,
+        page,
+        count_flag,
+        count,
+        output_flag,
+        output,
+    ] = args
+        && command == "scene-bench"
+        && page_flag == "--page"
+        && count_flag == "--iterations"
+        && output_flag == "--output"
+    {
+        return scene_bench::run(
+            Path::new(input),
+            page.parse().map_err(|_| "invalid page")?,
+            count.parse().map_err(|_| "invalid iteration count")?,
+            Path::new(output),
+        );
+    }
+    if let [command, input] = args
+        && command == "content"
+    {
+        let doc = Document::open(Path::new(input), &Cancellation::default())?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&doc.presentation).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, input, picture, flag, output] = args
+        && command == "import-picture"
+        && flag == "--output"
+    {
+        let mut editor = joydeck_shell::editor::Editor::open(
+            Path::new(input),
+            joydeck_shell::editor::recovery_root(),
+        )?;
+        editor
+            .session
+            .execute(joydeck_shell::platform::picture_command(
+                Path::new(picture),
+                false,
+            )?)?;
+        let saved = editor.save_job(output.into())?.run()?;
+        editor.apply_saved(saved);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&editor.display()?.info).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command] = args
+        && command == "commands"
+    {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(joydeck_engine::COMMANDS).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, root] = args
+        && command == "recovery-list"
+    {
+        let recovery = joydeck_shell::storage::Recovery::new(root.into());
+        let entries = recovery.list()?;
+        let rows = entries
+            .iter()
+            .map(|e| serde_json::json!({"record":e.record,"active":e.active,"problem":e.problem}))
+            .collect::<Vec<_>>();
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&rows).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    if let [command, root, session, flag, output] = args
+        && command == "recover"
+        && flag == "--output"
+    {
+        let recovery = joydeck_shell::storage::Recovery::new(root.into());
+        let entry = recovery
+            .list()?
+            .into_iter()
+            .find(|e| &e.record.session == session && !e.active && e.problem.is_none())
+            .ok_or("recovery entry unavailable")?;
+        let editor = joydeck_shell::editor::Editor::restore(root.into(), &entry.record)?;
+        editor.save_job(output.into())?.run()?;
+        println!("Recovered to {output}");
+        return Ok(());
+    }
+    if let [command, input, script_flag, script, output_flag, output] = args
+        && command == "edit"
+        && script_flag == "--script"
+        && output_flag == "--output"
+    {
+        let mut editor = if input == "--new" {
+            joydeck_shell::editor::Editor::new(joydeck_shell::editor::recovery_root())?
         } else {
-            match method {
-                "initialize" if !initialized => {
-                    if v["params"]["protocolVersion"] != "2025-11-25" {
-                        Err((-32602, "Only MCP 2025-11-25 is supported"))
-                    } else {
-                        initialized = true;
-                        Ok(
-                            json!({"protocolVersion":"2025-11-25","capabilities":{"tools":{},"resources":{}},"serverInfo":{"name":"joydeck-headless","version":env!("CARGO_PKG_VERSION")}}),
+            joydeck_shell::editor::Editor::open(
+                Path::new(input),
+                joydeck_shell::editor::recovery_root(),
+            )?
+        };
+        let bytes = joydeck_shell::platform::read_bounded(Path::new(script), 1 << 20)?;
+        let commands: Vec<joydeck_engine::Command> =
+            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+        if commands.len() > 1000 {
+            return Err("command batch exceeds 1000 steps".into());
+        }
+        for command in commands {
+            editor.session.execute(command)?;
+        }
+        let saved = editor.save_job(output.into())?.run()?;
+        editor.apply_saved(saved);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&editor.display()?.info).map_err(|e| e.to_string())?
+        );
+        return Ok(());
+    }
+    // Probe is an explicit CLI operation: writes recovery, then remains alive for crash tests.
+    if let [command, input, script, root] = args
+        && command == "checkpoint-probe"
+    {
+        use std::io::Write;
+        let mut editor = joydeck_shell::editor::Editor::open(Path::new(input), root.into())?;
+        let bytes = joydeck_shell::platform::read_bounded(Path::new(script), 1 << 20)?;
+        let commands: Vec<joydeck_engine::Command> =
+            serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+        for command in commands {
+            editor.session.execute(command)?;
+        }
+        editor.checkpoint_job().checkpoint()?;
+        println!("READY {}", editor.recovery.session);
+        std::io::stdout().flush().map_err(|e| e.to_string())?;
+        loop {
+            std::thread::park();
+        }
+    }
+    if let [command, path, rest @ ..] = args {
+        if command == "inspect" && rest.is_empty() {
+            let doc = Document::open(Path::new(path), &Cancellation::default())?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&doc.info).map_err(|e| e.to_string())?
+            );
+            return Ok(());
+        }
+        if command == "render" {
+            let mut output = None;
+            let mut page = None;
+            let mut all = false;
+            let mut scale = 1.;
+            let mut scale_set = false;
+            let mut iter = rest.iter();
+            while let Some(arg) = iter.next() {
+                match arg.as_str() {
+                    "--output" if output.is_none() => {
+                        output = Some(iter.next().ok_or("--output needs a new directory")?)
+                    }
+                    "--page" if page.is_none() => {
+                        page = Some(
+                            iter.next()
+                                .ok_or("--page needs a number")?
+                                .parse::<usize>()
+                                .map_err(|_| "invalid page")?
+                                .checked_sub(1)
+                                .ok_or("pages start at 1")?,
                         )
                     }
-                }
-                "ping" => Ok(json!({})),
-                _ if !ready => Err((-32002, "Server not initialized")),
-                "tools/list" => Ok(
-                    json!({"tools":[{"name":"joydeck_dispatch","description":"Serial JoyDeck headless operation. Mutations require stable operationId. Explicit document target and configured read/write roots are enforced.","inputSchema":{"type":"object","properties":{"operationId":{"type":"string"},"method":{"type":"string"},"target":{"type":"integer"},"params":{"type":"object"}},"required":["operationId","method","params"],"additionalProperties":false}}]}),
-                ),
-                "tools/call" => {
-                    if v["params"]["name"] != "joydeck_dispatch" {
-                        Err((-32602, "Unknown tool"))
-                    } else {
-                        let a = &v["params"]["arguments"];
-                        if let (Some(op), Some(method)) =
-                            (a["operationId"].as_str(), a["method"].as_str())
-                        {
-                            let response = d.dispatch(Request {
-                                protocol_version: VERSION.into(),
-                                request_id: op.into(),
-                                method: method.into(),
-                                target: a["target"].as_u64(),
-                                params: a["params"].clone(),
-                            });
-                            Ok(
-                                json!({"content":[{"type":"text","text":response.to_string()}],"isError":response.get("error").is_some()}),
-                            )
-                        } else {
-                            Err((-32602, "Missing operationId or method"))
-                        }
+                    "--all" if !all => all = true,
+                    "--scale" if !scale_set => {
+                        scale = iter
+                            .next()
+                            .ok_or("--scale needs a number")?
+                            .parse::<f64>()
+                            .map_err(|_| "invalid scale")?;
+                        scale_set = true;
                     }
+                    _ => return Err(format!("unknown or repeated option: {arg}")),
                 }
-                "resources/list" => Ok(
-                    json!({"resources":[{"uri":"joydeck://current/summary","name":"Current document summary","mimeType":"application/json"}]}),
-                ),
-                "resources/read" => {
-                    if v["params"]["uri"] == "joydeck://current/summary" {
-                        let response = d.dispatch(Request {
-                            protocol_version: VERSION.into(),
-                            request_id: joydeck::automation::operation_id()?,
-                            method: "document.inspect".into(),
-                            target: Some(d.session.id),
-                            params: json!({}),
-                        });
-                        if let Some(result) = response.get("result") {
-                            Ok(
-                                json!({"contents":[{"uri":"joydeck://current/summary","mimeType":"application/json","text":json!({"documentId":result["documentId"],"revision":result["revision"],"pages":result["deck"]["slides"].as_array().map(Vec::len),"dirty":result["dirty"]}).to_string()}]}),
-                            )
-                        } else {
-                            Err((-32603, "Backend inspect failed"))
-                        }
-                    } else {
-                        Err((-32602, "Unknown resource"))
-                    }
-                }
-                _ => Err((-32601, "Method not found")),
             }
-        };
-        let response = match result {
-            Ok(result) => json!({"jsonrpc":"2.0","id":id,"result":result}),
-            Err((code, message)) => {
-                json!({"jsonrpc":"2.0","id":id,"error":{"code":code,"message":message}})
+            if all && page.is_some() {
+                return Err("use either --all or --page".into());
             }
-        };
-        println!("{response}");
-        io::stdout().flush().map_err(|e| e.to_string())?;
+            let output = Path::new(output.ok_or("--output NEW_DIRECTORY is required")?);
+            let cancel = Cancellation::default();
+            let doc = Document::open(Path::new(path), &cancel)?;
+            let pages = if all {
+                (0..doc.info.slides.len()).collect()
+            } else {
+                vec![page.unwrap_or(0)]
+            };
+            joydeck_shell::document::render_to_directory(&doc, output, &pages, scale, &cancel)?;
+            println!("Rendered {} page(s) to {}", pages.len(), output.display());
+            return Ok(());
+        }
+    }
+    match args {
+        [] => {
+            println!(
+                "JoyDeck CLI · R8\n  migrate LEGACY.joydeck --output NEW.joydeck\n  exchange INPUT --mode preserve|regenerate --output NEW.pptx|NEW.potx|NEW.ppsx\n  export INPUT --format pdf|png|jpeg|gif|mp4|outline|rtf|vtt --output NEW_PATH [--pages 1,3] [--dpi 144] [--scale 1] [--layout slides|notes|handouts-3|handouts-6] [--seconds 1] [--fps 10] [--transparent]\n  print INPUT | media-inspect LOCAL_MEDIA\n  control --root ABS_DIRECTORY | mcp --root ABS_DIRECTORY\n  inspect INPUT.pptx|INPUT.deckcraft\n  render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n  edit INPUT|--new --script JSON --output NEW.pptx|NEW.joydeck\n  content INPUT\n  import-picture INPUT IMAGE --output NEW.pptx|NEW.joydeck\n  scene-bench INPUT --page N --iterations N --output NEW_DIRECTORY\n  commands | recovery-list DIR | recover DIR SESSION --output NEW.joydeck\n  diagnostics | sample | --version"
+            );
+        }
+        [command] if command == "--help" || command == "help" => {
+            println!(
+                "JoyDeck R8: use joydeck-cli without arguments for the complete command list.\nUsage: joydeck-cli inspect INPUT\n       joydeck-cli render INPUT --output NEW_DIRECTORY [--all|--page N] [--scale 1]\n       joydeck-cli [diagnostics|sample|--version]\nOutputs slide-NNNN.png and inspect.json. Existing directories are refused."
+            );
+        }
+        [command] if command == "--version" => println!("JoyDeck {}", env!("CARGO_PKG_VERSION")),
+        [command] if command == "diagnostics" => {
+            let report = joydeck_shell::diagnostics();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?
+            );
+        }
+        [command] if command == "sample" => {
+            let sample = joydeck_shell::PreviewDeck::bundled()?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&sample).map_err(|e| e.to_string())?
+            );
+        }
+        _ => return Err("unknown command or extra argument; use --help".into()),
     }
     Ok(())
 }
-fn main() {
-    if let Err((code, message)) = run() {
-        eprintln!("{}", json!({"error":message}));
-        std::process::exit(code as i32);
+
+fn main() -> ExitCode {
+    match execute() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("JoyDeck CLI: {error}");
+            ExitCode::FAILURE
+        }
     }
 }

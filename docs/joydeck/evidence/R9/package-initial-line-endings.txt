@@ -1,0 +1,13 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.24s
+     Running `target\debug\joyoffice-xtask.exe package joydeck --release`
++ C:\Applications\Python\Python314\python.exe scripts/joydeck/package-native.py --profile release
+unrecorded imported-source modification: crates/joyoffice-ui/Cargo.toml
+unrecorded imported-source modification: crates/joyoffice-ui/src/lib.rs
+unrecorded imported-source modification: crates/joyoffice-opc/Cargo.toml
+unrecorded imported-source modification: crates/joyoffice-opc/src/budget.rs
+unrecorded imported-source modification: crates/joyoffice-opc/src/lib.rs
+unrecorded imported-source modification: crates/joyoffice-opc/src/package.rs
+unrecorded imported-source modification: crates/joyoffice-opc/src/xml.rs
+Packaging failed: Command '['C:\\Applications\\Python\\Python314\\python.exe', WindowsPath('D:/Coding/EditorProjects/joyoffice/scripts/joydeck/check_sources.py')]' returned non-zero exit status 1.
+error: Command '['C:\\Applications\\Python\\Python314\\python.exe', 'scripts/joydeck/package-native.py', '--profile', 'release']' returned non-zero exit status 1.
+error: process didn't exit successfully: `target\debug\joyoffice-xtask.exe package joydeck --release` (exit code: 1)

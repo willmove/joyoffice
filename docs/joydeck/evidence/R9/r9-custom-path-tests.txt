@@ -1,0 +1,35 @@
+   Compiling joydeck-pptx v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-pptx)
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joydeck-shell)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.01s
+     Running unittests src\lib.rs (target\debug\deps\joydeck_shell-643a7c962335e416.exe)
+
+running 3 tests
+test automation_tests::r9_legacy_command_schema_fails_without_mutating_the_document ... ok
+test r9_tests::r9_old_host_public_pptx_uses_the_root_relationship ... ok
+test r9_tests::r9_custom_part_paths_survive_edit_undo_redo_and_slide_duplication ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.12s
+
+     Running tests\authoring.rs (target\debug\deps\authoring-cf8ab188dccdd31f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests\documents.rs (target\debug\deps\documents-8de15f6dd9c7bf86.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests\editing.rs (target\debug\deps\editing-cf89b965ae4022d7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+     Running tests\r8.rs (target\debug\deps\r8-e67bbbafbb81e4d7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s

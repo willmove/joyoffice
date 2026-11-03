@@ -1,0 +1,32 @@
+{
+  "gpu": [
+    {
+      "Name": "GameViewer Virtual Display Adapter",
+      "DriverVersion": "15.6.5.199",
+      "CurrentHorizontalResolution": null,
+      "CurrentVerticalResolution": null
+    },
+    {
+      "Name": "Intel(R) Arc(TM) 140T GPU (16GB)",
+      "DriverVersion": "32.0.101.9150",
+      "CurrentHorizontalResolution": 3200,
+      "CurrentVerticalResolution": 2000
+    },
+    {
+      "Name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "DriverVersion": "32.0.16.2101",
+      "CurrentHorizontalResolution": null,
+      "CurrentVerticalResolution": null
+    }
+  ],
+  "memory": 33752997888,
+  "cpu": {
+    "Name": "Intel(R) Core(TM) Ultra 9 285H"
+  },
+  "os": {
+    "Caption": "Microsoft Windows 11 专业版",
+    "Version": "10.0.26300",
+    "BuildNumber": "26300",
+    "OSArchitecture": "64 位"
+  }
+}

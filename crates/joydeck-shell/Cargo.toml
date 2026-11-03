@@ -1,36 +1,33 @@
 [package]
 name = "joydeck-shell"
-version = "0.1.0"
+version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-license = "MIT OR Apache-2.0"
+license.workspace = true
 publish = false
-repository.workspace = true
 
 [dependencies]
-joydeck-model.workspace = true
-joydeck-engine.workspace = true
-joydeck-formats.workspace = true
-joydeck-scene.workspace = true
-joydeck-export.workspace = true
-joydeck-platform.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-sha2.workspace = true
-zip.workspace = true
-roxmltree.workspace = true
-resvg.workspace = true
-image = { workspace = true, features = ["png", "jpeg", "gif"] }
-getrandom.workspace = true
-png.workspace = true
-flate2.workspace = true
-unicode-segmentation.workspace = true
+joydeck-pdf.workspace = true
+joydeck-legacy.workspace = true
 base64.workspace = true
-svg2pdf.workspace = true
-pdf-writer.workspace = true
-
-[dev-dependencies]
+joydeck-anim.workspace = true
+joydeck-engine.workspace = true
+sha2.workspace = true
+getrandom.workspace = true
+joydeck-model.workspace = true
+joydeck-render.workspace = true
+joydeck-fonts.workspace = true
+joydeck-format.workspace = true
+joydeck-pptx.workspace = true
 joyoffice-opc.workspace = true
-
+quick-xml.workspace = true
+zip.workspace = true
+image = { workspace = true, features = ["png", "jpeg", "webp", "gif", "tiff", "bmp"] }
+serde.workspace = true
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 [lints]
 workspace = true
+
+[dev-dependencies]
+joydeck-text.workspace = true
+joydeck-geom.workspace = true

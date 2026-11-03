@@ -1,0 +1,96 @@
+    Updating crates.io index
+     Locking 15 packages to latest Rust 1.98 compatible versions
+      Adding color v0.3.3
+      Adding crossbeam-channel v0.5.17
+      Adding fearless_simd v0.4.1
+      Adding glifo v0.3.0
+      Adding guillotiere v0.7.0
+      Adding harfrust v0.8.4 (available: v0.15.0)
+      Adding ordered-channel v1.2.0
+      Adding peniko v0.6.1
+      Adding read-fonts v0.39.2
+      Adding skrifa v0.42.1 (available: v0.49.0)
+      Adding thread_local v1.1.10
+      Adding typed-path v0.12.4
+      Adding vello_common v0.2.0 (available: v0.3.0)
+      Adding vello_cpu v0.2.0 (available: v0.3.0)
+      Adding zip v9.0.0 (available: v9.2.2)
+ Downloading crates ...
+  Downloaded ordered-channel v1.2.0
+  Downloaded crossbeam-channel v0.5.17
+    Checking bitflags v2.13.2
+    Checking foldhash v0.2.0
+    Checking log v0.4.34
+   Compiling syn v2.0.119
+    Checking num-traits v0.2.19
+    Checking serde_json v1.0.154
+    Checking once_cell v1.21.4
+    Checking linebender_resource_handle v0.1.1
+   Compiling bytemuck_derive v1.12.1
+   Compiling joydeck-fonts v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+    Checking fearless_simd v0.4.1
+    Checking crossbeam-channel v0.5.17
+    Checking either v1.19.0
+    Checking typed-path v0.12.4
+    Checking thread_local v1.1.10
+    Checking quick-xml v0.41.0
+    Checking png v0.18.1
+    Checking hashbrown v0.17.1
+    Checking rayon v1.12.0
+    Checking ordered-channel v1.2.0
+    Checking euclid v0.22.14
+    Checking moxcms v0.7.11
+    Checking chrono v0.4.45
+    Checking indexmap v2.14.2
+    Checking guillotiere v0.7.0
+    Checking zip v9.0.0
+    Checking bytemuck v1.25.2
+    Checking font-types v0.11.3
+    Checking font-types v0.12.6
+    Checking color v0.3.3
+    Checking read-fonts v0.39.2
+    Checking read-fonts v0.41.0
+   Compiling serde_derive v1.0.228
+   Compiling zerocopy-derive v0.8.62
+    Checking skrifa v0.42.1
+    Checking skrifa v0.44.0
+    Checking zerocopy v0.8.62
+    Checking serde v1.0.228
+    Checking smallvec v1.16.3
+    Checking joydeck-color v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+    Checking kurbo v0.13.1
+    Checking harfrust v0.8.4
+    Checking joydeck-geom v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+    Checking peniko v0.6.1
+    Checking vello_common v0.2.0
+    Checking half v2.7.1
+    Checking joydeck-model v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+    Checking tiff v0.10.3
+    Checking glifo v0.3.0
+    Checking vello_cpu v0.2.0
+    Checking image v0.25.9
+    Checking joydeck-metafile v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+    Checking joydeck-anim v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+    Checking joydeck-text v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+    Checking joydeck-pptx v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+    Checking joydeck-format v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+error[E0599]: no method named `trim_start_matches` found for enum `Result<T, E>` in the current scope
+    --> crates\joydeck-pptx\src\opc.rs:73:33
+     |
+  73 |             let name = f.name().trim_start_matches('/').to_string();
+     |                                 ^^^^^^^^^^^^^^^^^^ method not found in `Result<Cow<'_, str>, ZipError>`
+     |
+note: the method `trim_start_matches` exists on the type `Cow<'_, str>`
+    --> C:\Users\willm\.rustup\toolchains\1.98.1-x86_64-pc-windows-msvc\lib/rustlib/src/rust\library\core\src\str\mod.rs:2424:5
+     |
+2424 |     pub fn trim_start_matches<P: Pattern>(&self, pat: P) -> &str {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: use the `?` operator to extract the `Cow<'_, str>` value, propagating a `Result::Err` value to the caller
+     |
+  73 |             let name = f.name()?.trim_start_matches('/').to_string();
+     |                                +
+
+    Checking joydeck-render v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `joydeck-pptx` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

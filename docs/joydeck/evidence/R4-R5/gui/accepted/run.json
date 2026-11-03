@@ -1,0 +1,13 @@
+{
+  "pid": 29572,
+  "exe": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-accepted-mkkkeizv\\joydeck-0.5.0-r4-r5-windows-x86_64-release-6233617cc5\\joydeck.exe",
+  "exe_sha256": "25965ccb4be3275579bfea851c96006003b8fe1b061bc0b4138af02fd26ed365",
+  "source_sha256": "6233617cc50a8eda7ce097b42eb99cb89ac045d3bedafc33d153eecf9c2a3a32",
+  "input": "D:\\Coding\\EditorProjects\\joydeck-new\\docs\\joydeck\\evidence\\R4-R5\\gui\\desktop-edited.joydeck",
+  "input_sha256": "dba9d28fee29fcc1d5bc34ca8911c89fa684ef566a79a49ac11d078abad72138",
+  "outside_repository": true,
+  "archive_sha256": "5405e87d36bcc5b5d69715566416cc70ce81a392bb289051c93b43471948deaf",
+  "checksum_files": 762,
+  "stack_reserve": 8388608,
+  "input_preserved": true
+}

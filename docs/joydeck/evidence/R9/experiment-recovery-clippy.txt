@@ -1,0 +1,62 @@
+    Checking cfg-if v1.0.5
+    Checking simd-adler32 v0.3.10
+    Checking adler2 v2.0.1
+    Checking typenum v1.20.1
+    Checking weezl v0.1.12
+    Checking zune-core v0.4.12
+    Checking bitflags v2.13.2
+    Checking quick-error v2.0.1
+    Checking memchr v2.8.3
+    Checking pxfm v0.1.30
+    Checking fax v0.2.7
+    Checking color_quant v1.1.0
+    Checking zune-core v0.5.3
+    Checking num-traits v0.2.19
+    Checking bytemuck v1.25.2
+    Checking zerocopy v0.8.62
+    Checking crc32fast v1.5.2
+    Checking byteorder-lite v0.1.0
+    Checking miniz_oxide v0.9.1
+    Checking miniz_oxide v0.8.9
+    Checking fdeflate v0.3.7
+    Checking zune-jpeg v0.4.21
+    Checking cpufeatures v0.2.17
+    Checking joyword-foundation v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-foundation)
+    Checking windows-link v0.2.1
+    Checking regex-syntax v0.8.11
+    Checking getrandom v0.4.3
+    Checking unicode-segmentation v1.13.3
+    Checking zune-jpeg v0.5.15
+    Checking gif v0.14.2
+    Checking windows-sys v0.61.2
+    Checking once_cell v1.21.4
+    Checking fastrand v2.5.0
+    Checking aho-corasick v1.1.5
+    Checking quick-xml v0.41.0
+    Checking winsafe v0.0.19
+    Checking generic-array v0.14.7
+    Checking flate2 v1.1.10
+    Checking png v0.18.1
+    Checking block-buffer v0.10.4
+    Checking crypto-common v0.1.7
+    Checking joyoffice-opc v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyoffice-opc)
+    Checking digest v0.10.7
+    Checking sha2 v0.10.9
+    Checking regex-automata v0.4.18
+    Checking errno v0.3.14
+    Checking tempfile v3.27.0
+    Checking rustix v1.1.5
+    Checking moxcms v0.7.11
+    Checking regex v1.13.1
+    Checking half v2.7.1
+    Checking tiff v0.10.3
+    Checking image v0.25.9
+    Checking joyword-model v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-model)
+    Checking joyword-textfmt v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-textfmt)
+    Checking joyword-docx v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-docx)
+    Checking joyword-engine v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-engine)
+    Checking joyword-epub v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-epub)
+    Checking joyword-rtf v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-rtf)
+    Checking joyword-shell v0.1.0 (D:\Coding\EditorProjects\joyoffice\crates\joyword-shell)
+    Checking joyword-recovery-journal v0.1.0 (D:\Coding\EditorProjects\joyoffice\experiments\recovery-journal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.58s

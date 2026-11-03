@@ -1,0 +1,1906 @@
+{
+  "name": "gui-verified.pptx",
+  "format": "pptx",
+  "read_only": true,
+  "source_bytes": 39151,
+  "width_pt": 959.9999212598425,
+  "height_pt": 540.0,
+  "media": 1,
+  "slides": [
+    {
+      "page": 1,
+      "title": "JoyDeck R3 · 原位中文😀 é你",
+      "shapes": 4,
+      "notes": "Original independent speaker notes / 备注 1",
+      "objects": [
+        {
+          "id": 2,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 1",
+          "table": null,
+          "text": "JoyDeck R3 · 原位中文😀 é你",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 34.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "endProps": {
+                  "baseline": null,
+                  "bold": true,
+                  "caps": null,
+                  "fill": null,
+                  "font": null,
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": null,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "props": {
+                      "baseline": null,
+                      "bold": true,
+                      "caps": null,
+                      "fill": null,
+                      "font": null,
+                      "fontCs": null,
+                      "fontEa": null,
+                      "fontSym": null,
+                      "glow": null,
+                      "highlight": null,
+                      "hover": null,
+                      "innerShadow": null,
+                      "italic": null,
+                      "kern": null,
+                      "lang": null,
+                      "link": null,
+                      "noProof": null,
+                      "outline": null,
+                      "reflection": null,
+                      "shadow": null,
+                      "size": null,
+                      "softEdge": null,
+                      "spacing": null,
+                      "strike": null,
+                      "underline": null,
+                      "underlineColor": null
+                    },
+                    "text": "JoyDeck R3 · 原位中文😀 é你"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 72.0,
+            "w": 864.0,
+            "x": 46.8,
+            "y": 50.4
+          }
+        },
+        {
+          "id": 3,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 2",
+          "table": null,
+          "text": "JoyDeck R3 · 原位中文😀 é你",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 19.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "props": {
+                      "baseline": null,
+                      "bold": true,
+                      "caps": null,
+                      "fill": null,
+                      "font": null,
+                      "fontCs": null,
+                      "fontEa": null,
+                      "fontSym": null,
+                      "glow": null,
+                      "highlight": null,
+                      "hover": null,
+                      "innerShadow": null,
+                      "italic": null,
+                      "kern": null,
+                      "lang": null,
+                      "link": null,
+                      "noProof": null,
+                      "outline": null,
+                      "reflection": null,
+                      "shadow": null,
+                      "size": null,
+                      "softEdge": null,
+                      "spacing": null,
+                      "strike": null,
+                      "underline": null,
+                      "underlineColor": null
+                    },
+                    "text": "JoyDeck R3 · 原位中文😀 é你"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 50.4,
+            "w": 864.0,
+            "x": 50.4,
+            "y": 129.6
+          }
+        },
+        {
+          "id": 4,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rounded Rectangle 3",
+          "table": null,
+          "text": "",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": null,
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": false,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": null
+            },
+            "paragraphs": [
+              {
+                "level": 0,
+                "props": {
+                  "align": "center",
+                  "bullet": null,
+                  "bulletColor": null,
+                  "bulletColorFollowText": null,
+                  "bulletFont": null,
+                  "bulletFontFollowText": null,
+                  "bulletSize": null,
+                  "bulletSizeFollowText": null,
+                  "defaultTab": null,
+                  "eastAsianLineBreak": null,
+                  "fontAlign": null,
+                  "hangingPunct": null,
+                  "indent": null,
+                  "latinLineBreak": null,
+                  "lineSpacing": null,
+                  "marginLeft": null,
+                  "marginRight": null,
+                  "rtl": null,
+                  "spaceAfter": null,
+                  "spaceBefore": null,
+                  "tabs": null
+                },
+                "runs": []
+              }
+            ]
+          },
+          "transform": {
+            "h": 122.4,
+            "w": 237.6,
+            "x": 50.4,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 5,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 4",
+          "table": null,
+          "text": "JOYOFFICE / JOYDECK R1                         01",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 16.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "JOYOFFICE / JOYDECK R1                         01"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 43.2,
+            "w": 792.0,
+            "x": 50.4,
+            "y": 468.0
+          }
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "title": "Raster, table & geometry",
+      "shapes": 7,
+      "notes": "JoyDeck R3 备注😀\n原位、剪贴板和表格验证你",
+      "objects": [
+        {
+          "id": 2,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 1",
+          "table": null,
+          "text": "Raster, table & geometry",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 34.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "Raster, table & geometry"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 72.0,
+            "w": 864.0,
+            "x": 46.8,
+            "y": 50.4
+          }
+        },
+        {
+          "id": 3,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 2",
+          "table": null,
+          "text": "Made with python-pptx 1.0.2 · actual public OOXML",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 19.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "Made with python-pptx 1.0.2 · actual public OOXML"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 50.4,
+            "w": 864.0,
+            "x": 50.4,
+            "y": 129.6
+          }
+        },
+        {
+          "id": 4,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rounded Rectangle 3",
+          "table": null,
+          "text": "",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": null,
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": false,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": null
+            },
+            "paragraphs": [
+              {
+                "level": 0,
+                "props": {
+                  "align": "center",
+                  "bullet": null,
+                  "bulletColor": null,
+                  "bulletColorFollowText": null,
+                  "bulletFont": null,
+                  "bulletFontFollowText": null,
+                  "bulletSize": null,
+                  "bulletSizeFollowText": null,
+                  "defaultTab": null,
+                  "eastAsianLineBreak": null,
+                  "fontAlign": null,
+                  "hangingPunct": null,
+                  "indent": null,
+                  "latinLineBreak": null,
+                  "lineSpacing": null,
+                  "marginLeft": null,
+                  "marginRight": null,
+                  "rtl": null,
+                  "spaceAfter": null,
+                  "spaceBefore": null,
+                  "tabs": null
+                },
+                "runs": []
+              }
+            ]
+          },
+          "transform": {
+            "h": 122.4,
+            "w": 237.6,
+            "x": 50.4,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 5,
+          "kind": "picture",
+          "locked": false,
+          "name": "Picture 4",
+          "table": null,
+          "text": null,
+          "text_body": null,
+          "transform": {
+            "h": 115.2,
+            "w": 172.8,
+            "x": 324.0,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 6,
+          "kind": "table",
+          "locked": false,
+          "name": "Table 5",
+          "table": {
+            "bandCol": false,
+            "bandRow": true,
+            "cols": [
+              162.0,
+              162.0
+            ],
+            "firstCol": false,
+            "firstRow": true,
+            "lastCol": false,
+            "lastRow": false,
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "单元格 R3 😀"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Tab OK"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  }
+                ],
+                "height": 48.0
+              },
+              {
+                "cells": [
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 2/1"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 2/2"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  }
+                ],
+                "height": 48.0
+              },
+              {
+                "cells": [
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 3/1"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 3/2"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  }
+                ],
+                "height": 48.0
+              }
+            ],
+            "style": "medium2-accent1"
+          },
+          "text": null,
+          "text_body": null,
+          "transform": {
+            "h": 144.0,
+            "w": 324.0,
+            "x": 532.8,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 7,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 6",
+          "table": null,
+          "text": "JOYOFFICE / JOYDECK R1                         02",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 16.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "JOYOFFICE / JOYDECK R1                         02"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 43.2,
+            "w": 792.0,
+            "x": 50.4,
+            "y": 468.0
+          }
+        },
+        {
+          "id": 27,
+          "kind": "table",
+          "locked": false,
+          "name": "Table",
+          "table": {
+            "bandCol": false,
+            "bandRow": true,
+            "cols": [
+              160.0,
+              160.0,
+              160.0
+            ],
+            "firstCol": false,
+            "firstRow": true,
+            "lastCol": false,
+            "lastRow": false,
+            "rows": [
+              {
+                "cells": [
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "你"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Tab OK"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": []
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  }
+                ],
+                "height": 40.0
+              },
+              {
+                "cells": [
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 2/1"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 2/2"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": []
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  }
+                ],
+                "height": 40.0
+              },
+              {
+                "cells": [
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 3/1"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": [
+                            {
+                              "text": "Cell 3/2"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  },
+                  {
+                    "anchor": null,
+                    "borders": [
+                      null,
+                      null,
+                      null,
+                      null
+                    ],
+                    "diagDown": null,
+                    "diagUp": null,
+                    "fill": null,
+                    "gridSpan": 1,
+                    "hMerge": false,
+                    "margins": null,
+                    "rowSpan": 1,
+                    "text": {
+                      "body": {
+                        "anchor": null,
+                        "anchorCtr": null,
+                        "autofit": null,
+                        "colSpacing": null,
+                        "columns": null,
+                        "insetB": null,
+                        "insetL": null,
+                        "insetR": null,
+                        "insetT": null,
+                        "rot": null,
+                        "rtlCol": null,
+                        "spaceFirstLast": null,
+                        "upright": null,
+                        "vert": null,
+                        "warp": null,
+                        "wrap": null
+                      },
+                      "paragraphs": [
+                        {
+                          "level": 0,
+                          "runs": []
+                        }
+                      ]
+                    },
+                    "vMerge": false,
+                    "vertical": null
+                  }
+                ],
+                "height": 40.0
+              }
+            ],
+            "style": "medium2-accent1"
+          },
+          "text": null,
+          "text_body": null,
+          "transform": {
+            "h": 120.0,
+            "w": 480.0,
+            "x": 80.0,
+            "y": 220.0
+          }
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "title": "Portrait-independent navigation",
+      "shapes": 4,
+      "notes": "Original independent speaker notes / 备注 3",
+      "objects": [
+        {
+          "id": 2,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 1",
+          "table": null,
+          "text": "Portrait-independent navigation",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 34.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "Portrait-independent navigation"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 72.0,
+            "w": 864.0,
+            "x": 46.8,
+            "y": 50.4
+          }
+        },
+        {
+          "id": 3,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 2",
+          "table": null,
+          "text": "Made with python-pptx 1.0.2 · actual public OOXML",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 19.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "Made with python-pptx 1.0.2 · actual public OOXML"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 50.4,
+            "w": 864.0,
+            "x": 50.4,
+            "y": 129.6
+          }
+        },
+        {
+          "id": 4,
+          "kind": "shape",
+          "locked": false,
+          "name": "Rounded Rectangle 3",
+          "table": null,
+          "text": "",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": null,
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": false,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": null
+            },
+            "paragraphs": [
+              {
+                "level": 0,
+                "props": {
+                  "align": "center",
+                  "bullet": null,
+                  "bulletColor": null,
+                  "bulletColorFollowText": null,
+                  "bulletFont": null,
+                  "bulletFontFollowText": null,
+                  "bulletSize": null,
+                  "bulletSizeFollowText": null,
+                  "defaultTab": null,
+                  "eastAsianLineBreak": null,
+                  "fontAlign": null,
+                  "hangingPunct": null,
+                  "indent": null,
+                  "latinLineBreak": null,
+                  "lineSpacing": null,
+                  "marginLeft": null,
+                  "marginRight": null,
+                  "rtl": null,
+                  "spaceAfter": null,
+                  "spaceBefore": null,
+                  "tabs": null
+                },
+                "runs": []
+              }
+            ]
+          },
+          "transform": {
+            "h": 122.4,
+            "w": 237.6,
+            "x": 50.4,
+            "y": 216.0
+          }
+        },
+        {
+          "id": 5,
+          "kind": "textBox",
+          "locked": false,
+          "name": "TextBox 4",
+          "table": null,
+          "text": "JOYOFFICE / JOYDECK R1                         03",
+          "text_body": {
+            "body": {
+              "anchor": null,
+              "anchorCtr": null,
+              "autofit": {
+                "kind": "shape"
+              },
+              "colSpacing": null,
+              "columns": null,
+              "insetB": null,
+              "insetL": null,
+              "insetR": null,
+              "insetT": null,
+              "rot": null,
+              "rtlCol": null,
+              "spaceFirstLast": null,
+              "upright": null,
+              "vert": null,
+              "warp": null,
+              "wrap": false
+            },
+            "paragraphs": [
+              {
+                "defProps": {
+                  "baseline": null,
+                  "bold": null,
+                  "caps": null,
+                  "fill": {
+                    "color": {
+                      "base": {
+                        "kind": "rgb",
+                        "rgb": {
+                          "a": 255,
+                          "b": 45,
+                          "g": 53,
+                          "r": 38
+                        }
+                      }
+                    },
+                    "kind": "solid"
+                  },
+                  "font": "Microsoft YaHei",
+                  "fontCs": null,
+                  "fontEa": null,
+                  "fontSym": null,
+                  "glow": null,
+                  "highlight": null,
+                  "hover": null,
+                  "innerShadow": null,
+                  "italic": null,
+                  "kern": null,
+                  "lang": null,
+                  "link": null,
+                  "noProof": null,
+                  "outline": null,
+                  "reflection": null,
+                  "shadow": null,
+                  "size": 16.0,
+                  "softEdge": null,
+                  "spacing": null,
+                  "strike": null,
+                  "underline": null,
+                  "underlineColor": null
+                },
+                "level": 0,
+                "runs": [
+                  {
+                    "text": "JOYOFFICE / JOYDECK R1                         03"
+                  }
+                ]
+              }
+            ]
+          },
+          "transform": {
+            "h": 43.2,
+            "w": 792.0,
+            "x": 50.4,
+            "y": 468.0
+          }
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    "R1 read-only preview; unsupported features may be approximated. Original package bytes are retained. Linked media is not fetched; fonts may be substituted."
+  ]
+}

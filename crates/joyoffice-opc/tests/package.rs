@@ -1,3 +1,9 @@
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "Test assertions"
+)]
 //! Untrusted-package tests for the OPC layer (QUALITY-005): valid minimal
 //! packages, container attacks, part-name attacks, hostile XML, external
 //! targets and a deterministic mutation smoke run over the reader.

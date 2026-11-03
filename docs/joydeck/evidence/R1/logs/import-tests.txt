@@ -1,0 +1,763 @@
+   Compiling joydeck-metafile v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-fonts v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-format v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-text v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-pptx v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.2.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.49s
+     Running unittests src\lib.rs (target\debug\deps\joydeck_anim-b4b9c9412a5f805d.exe)
+
+running 95 tests
+test mesh::tests::rect_is_two_triangles ... ok
+test tests::compose_and_sanitize ... ok
+test mesh::tests::degenerate_quads_do_not_blow_up ... ok
+test mesh::tests::trapezoid_is_subdivided_projectively ... ok
+test tests::default_state_is_identity ... ok
+test tests::easing_endpoints ... ok
+test tests::by_paragraph_groups_sub_bullets_with_their_parent ... ok
+test tests::delays_shift_start ... ok
+test tests::after_previous_chains ... ok
+test tests::auto_first_step ... ok
+test tests::color_emphasis_tints ... ok
+test tests::after_hide_on_next_click ... ok
+test tests::entrance_then_exit ... ok
+test tests::custom_path_offsets_in_points ... ok
+test tests::empty_slide ... ok
+test tests::emphasis_returns_or_persists ... ok
+test tests::fade_and_push_shapes ... ok
+test tests::hidden_after_exit ... ok
+test tests::fly_starts_off_slide ... ok
+test tests::hidden_before_entrance ... ok
+test tests::locate_play_all_clock ... ok
+test tests::custom_show_resolves_duplicate_ids_to_the_first_slide ... ok
+test tests::hostile_times_and_durations ... ok
+test tests::media_in_the_click_sequence_cues_and_does_not_hold_the_click ... ok
+test tests::morph_crop_moves_the_image_linearly ... ok
+test tests::morph_pairs_by_name_text_and_geometry ... ok
+test tests::morph_xfrm_interpolates ... ok
+test tests::motion_path_parse_and_eval ... ok
+test tests::on_click_starts_steps ... ok
+test tests::morph_frame_morphs_the_outline_of_a_changed_geometry ... ok
+test tests::morph_frame_morphs_a_picture_crop ... ok
+test tests::morph_pairs_leaves_unrelated_text_boxes_alone ... ok
+test tests::morph_frame_cross_fades_changed_content ... ok
+test tests::morph_frame_moves_blends_and_fades ... ok
+test tests::morph_frame_lists_texts_for_words_and_characters ... ok
+test tests::repeat_and_auto_reverse_extend_duration ... ok
+test tests::rewind_reverts_entrance ... ok
+test tests::random_is_deterministic ... ok
+test tests::same_text_morphs_even_by_objects ... ok
+test tests::mid_transitions_mix_sources ... ok
+test tests::show_empty_and_all_hidden ... ok
+test tests::playing_a_custom_show_stays_on_its_slides ... ok
+test tests::show_auto_advance ... ok
+test tests::show_follows_links ... ok
+test tests::preset_paths_move ... ok
+test tests::show_custom_show_and_range ... ok
+test path::preset_path_tests::every_extra_motion_path_preset_starts_at_its_shape_and_moves ... ok
+test tests::show_loops ... ok
+test tests::start_of_seeks_the_play_all_clock_to_an_effect ... ok
+test tests::sink_down_and_peek_out_to_bottom_move_down ... ok
+test tests::text_build_by_paragraph ... ok
+test tests::transitions_hostile_t ... ok
+test tests::timeline_targets_the_first_shape_with_a_duplicate_id ... ok
+test tests::trigger_sequences_keep_first_appearance_order_when_interleaved ... ok
+test tests::show_steps_through_builds ... ok
+test tests::with_previous_joins_step ... ok
+test tests::show_skips_hidden_slides ... ok
+test tests::triggered_sequences ... ok
+test tests::show_back_leaves_a_slide_whose_first_step_is_automatic ... ok
+test tests::show_remembers_a_slide_was_reached_by_going_back ... ok
+test tests::wipe_clips ... ok
+test tests::many_by_paragraph_animations_on_one_shape_share_paragraph_targets ... ok
+test tests_interact::a_playing_main_step_is_finished_when_the_show_leaves ... ok
+test tests::show_returns_to_the_zoom_slide ... ok
+test tests_interact::advance_on_click_off_still_plays_animation_steps ... ok
+test tests::malformed_paths_dont_panic ... ok
+test tests_interact::a_shape_without_an_action_blocks_the_one_beneath_it ... ok
+test tests_interact::a_slide_comes_back_the_way_it_was_left ... ok
+test tests_interact::show_without_animation_ignores_triggers ... ok
+test tests_interact::pointer_outside_a_shape_is_not_on_it ... ok
+test tests_interact::clocks_and_pointers_with_hostile_numbers_are_harmless ... ok
+test transition_tests::cover_and_uncover_match_measured_positions ... ok
+test transition_tests::cube_turns_toward_the_option ... ok
+test transition_tests::clock_hand_sweeps_at_constant_speed ... ok
+test transition_tests::fade_follows_powerpoints_s_curve ... ok
+test transition_tests::dynamic_content_curves ... ok
+test tests_interact::background_click_advances_when_the_slide_allows_it ... ok
+test transition_tests::push_moves_both_slides_with_an_eased_curve ... ok
+test transition_tests::switch_swaps_the_cards_past_halfway ... ok
+test transition_tests::split_and_shape_open_from_the_middle ... ok
+test transition_tests::wipe_has_a_wide_soft_edge ... ok
+test tests::custom_show_with_many_entries_resolves_quickly ... ok
+test tests_interact::groups_answer_for_their_children ... ok
+test tests_interact::hidden_shapes_stay_hidden_when_the_show_comes_back ... ok
+test tests_interact::a_ring_of_triggers_goes_round_and_round ... ok
+test transition_tests::hostile_aspects_are_safe ... ok
+test tests_interact::each_click_plays_one_step_of_a_trigger_and_a_click_completes_a_playing_step ... ok
+test tests::every_animation_evaluates_finite ... ok
+test tests_interact::a_shape_with_a_link_and_an_animation_follows_the_link_without_waiting ... ok
+test transition_tests::options_change_the_frame ... ok
+test tests_interact::a_link_is_followed_at_once_and_the_animation_goes_on_where_it_stopped ... ok
+test tests::honeycomb_cells_reach_the_bottom_before_the_slide_ends ... ok
+test tests::every_transition_finite_and_complete ... ok
+test tests::many_distinct_triggers_past_the_effect_cap_build_in_order ... ok
+test transition_tests::frames_stay_cheap ... ok
+
+test result: ok. 95 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_fonts-8b7508ad3854f8c6.exe)
+
+running 32 tests
+test fontdb::font_dir_tests::named_instance_limit_is_bounded_per_face ... ok
+test script::tests::joining_classes ... ok
+test fontdb::font_dir_tests::fontconfig_dir_entries_are_read ... ok
+test fontdb::font_dir_tests::xdg_data_dirs_contribute_their_fonts_folders ... ok
+test script::tests::neutrals_take_the_surrounding_slot ... ok
+test script::tests::scripts_and_slots ... ok
+test script::tests::ranges_are_sorted_and_disjoint ... ok
+test fontdb::font_dir_tests::duplicate_collection_offsets_do_not_consume_face_cap ... ok
+test fallback::tests::falling_back_to_the_default_face_does_not_deadlock ... ok
+test tests::craft_fonts_latin_when_present ... ok
+test tests::colour_fonts_are_recognised ... ok
+test tests::emoji_clusters_are_recognised ... ok
+test tests::last_resort_face_parses ... ok
+test tests::filtered_fallback_continues_after_a_rejected_loaded_face ... ok
+test tests::line_split_follows_the_windows_ascent_and_descent ... ok
+test tests::embedded_open_type_yields_the_font ... ok
+test tests::office_fonts_have_substitutes ... ok
+test tests::variable_font_instances_answer_to_their_windows_names ... ok
+test tests::some_face_always_resolves ... ok
+test tests::filtered_fallback_loads_an_eligible_system_face_and_does_not_cache_policy_misses ... ok
+test tests::windows_family_names_find_their_faces ... ok
+test tests::faces_without_outlines_are_not_cataloged ... ok
+test tests::concurrent_lookups_all_find_an_installed_family ... ok
+test tests::outlines_and_metrics ... ok
+test shape::tests::clusters_point_into_the_whole_paragraph ... ok
+test fallback::tests::arabic_cluster_falls_back_to_an_arabic_face ... ok
+test shape::tests::rtl_items_come_in_visual_order_and_mirror ... ok
+test fallback::tests::requested_face_wins_when_it_covers ... ok
+test tests::mapping_keeps_clusters ... ok
+test tests::shaping_produces_clusters_and_advances ... ok
+test fallback::tests::ligature_carets_never_fail ... ok
+test tests::missing_document_fonts_are_drawn_in_calibri ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests\build_input.rs (target\debug\deps\build_input-a8eaf73dc6a8ff7d.exe)
+
+running 13 tests
+test build_script::tests::required_input_cannot_silently_disappear ... ok
+test build_script::tests::required_native_input_requires_the_chinese_manifest ... ok
+test build_script::tests::required_builds_need_the_latin_catalog_for_inter ... ok
+test build_script::tests::required_builds_need_biz_udpgothic_regular ... ok
+test build_script::tests::all_noto_cjk_families_are_excluded_from_every_platform ... ok
+test build_script::tests::required_native_builds_need_biz_bold_but_wasm_does_not ... ok
+test build_script::tests::native_opt_in_does_not_change_wasm_embedded_bytes ... ok
+test build_script::tests::required_builds_accept_static_or_variable_inter_with_biz ... ok
+test build_script::tests::full_prior_latin_catalog_keeps_permitted_native_families ... ok
+test build_script::tests::broken_optional_manifest_preserves_the_main_fonts ... ok
+test build_script::tests::required_native_chinese_manifest_must_emit_the_reviewed_face ... ok
+test build_script::tests::optional_broken_latin_manifest_is_skipped_without_losing_core_or_chinese ... ok
+test build_script::tests::required_builds_reject_partial_or_unrelated_faces ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_format-ea32275e870572e1.exe)
+
+running 40 tests
+test finite::tests::non_finite_floats_are_written_as_zero_and_nothing_else_changes ... ok
+test rtf::tests::hex_escape_rejects_sign ... ok
+test rtf::tests::non_breaking_hyphen_is_kept ... ok
+test rtf::tests::non_ascii_text_after_escapes_does_not_panic ... ok
+test rtf::tests::huge_left_indent_gives_the_deepest_level ... ok
+test rtf::tests::nul_escapes_do_not_drop_text_or_add_a_slide ... ok
+test rtf::tests::reads_word_style_rtf_by_indent_and_hex_escapes ... ok
+test rtf::tests::word_list_bullets_are_not_text_and_keep_the_indent ... ok
+test tests::chart_sidecars_are_optional_for_older_native_files ... ok
+test rtf::tests::every_title_paragraph_is_exported ... ok
+test rtf::tests::export_reads_back_as_the_same_outline ... ok
+test outline_table_rows_are_indented_and_do_not_become_slides ... ok
+test tests::markdown_headings_and_list_items ... ok
+test chart_parts_tests::chart_payloads_in_every_shape_owner_get_distinct_entries ... ok
+test chart_parts_tests::duplicate_physical_zip_names_are_indexed_and_inflated_once ... ok
+test tests::a_video_crop_is_repaired_like_a_picture_crop ... ok
+test tests::garbage_is_an_error_not_a_panic ... ok
+test tests::degenerate_slide_sizes_are_repaired ... ok
+test chart_parts_tests::corrupt_chart_members_stop_before_reusing_the_inflation_budget ... ok
+test tests::outline_includes_table_text ... ok
+test tests::other_damage_is_still_reported ... ok
+test tests::outline_export_keeps_multi_paragraph_title_on_one_line ... ok
+test tests::outline_keeps_leading_dash_text ... ok
+test tests::outline_roundtrip ... ok
+test tests::repair_keeps_a_duplicate_it_cannot_reid ... ok
+test chart_parts_tests::missing_or_corrupt_chart_payload_is_reported ... ok
+test tests::repair_fixes_missing_layout_and_size ... ok
+test chart_parts_tests::large_chart_payload_is_a_referenced_zip_entry ... ok
+test tests::a_bare_normautofit_body_round_trips ... ok
+test tests::a_file_saved_with_non_finite_numbers_reopens ... ok
+test tests::media_budget_is_cumulative ... ok
+test tests::roundtrip_with_media ... ok
+test chart_parts_tests::legacy_inline_chart_bytes_are_budgeted_and_preserved ... ok
+test tests::older_files_with_null_numbers_open ... ok
+test tests::missing_or_corrupt_media_is_reported ... ok
+test chart_parts_tests::chart_parts_share_media_byte_and_item_budgets ... ok
+test tests::native_save_keeps_chart_relationships_and_payloads ... ok
+test tests::repeated_media_ids_are_read_once ... ok
+test tests::files_with_unreadable_slide_sizes_still_open ... ok
+test chart_parts_tests::chart_references_cannot_alias_other_members_or_mix_inline_bytes ... ok
+
+test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_metafile-7d8d87b44d6d9440.exe)
+
+running 114 tests
+test clip::tests::excluding_from_the_default_clip_uses_the_surface ... ok
+test clip::tests::intersect_shrinks_to_the_overlap ... ok
+test clip::tests::a_zero_area_rectangle_clears_an_intersection ... ok
+test tests::detection_and_garbage ... ok
+test tests::clip_polygon_work_bound ... ok
+test clip::tests::modes_copy_and_or_diff_and_xor ... ok
+test tests::canvas_stops_at_the_byte_budget ... ok
+test tests::emf_blackness_bitblt_fills_black_without_a_source ... ok
+test tests::emf_ellipse_is_four_cubics_back_to_start ... ok
+test tests::a_y_up_mapping_moves_text_but_does_not_mirror_it ... ok
+test tests::emf_bounds_stand_in_when_the_frame_is_empty ... ok
+test tests::an_empty_clip_drops_later_drawing ... ok
+test tests::emf_dib_pattern_and_mono_brushes ... ok
+test tests::emf_clip_follows_the_world_transform_and_save_restores_it ... ok
+test tests::character_sets_decode_bytes ... ok
+test tests::emf_exclude_clip_rect_cuts_the_surface ... ok
+test tests::emf_alphablend_uses_constant_and_per_pixel_alpha ... ok
+test tests::emf_ext_pen_cosmetic_is_a_hairline_and_null_brush_draws_nothing ... ok
+test tests::emf_ext_select_clip_rgn_copies_and_intersects_rectangles ... ok
+test tests::emf_frame_comes_from_rclframe_not_device_bounds ... ok
+test tests::emf_exttextoutw_reads_utf16_dx_and_the_font ... ok
+test tests::emf_intersect_clip_rect_limits_later_records_only ... ok
+test tests::emf_path_bracket_strokeandfill_uses_stock_black_brush ... ok
+test tests::emf_point_counts_past_the_budget_are_rejected ... ok
+test tests::emf_polybezier_starts_its_own_figure_and_keeps_the_current_point ... ok
+test tests::emf_polybezierto16_continues_the_open_path ... ok
+test tests::emf_polypolygon_counts_must_fit_the_record ... ok
+test tests::emf_setdibitstodevice_draws_the_image_at_its_own_size ... ok
+test tests::emf_setdibitstodevice_source_counts_from_the_start_scan ... ok
+test tests::emf_srcand_mask_draws_all_but_its_white_pixels ... ok
+test tests::emf_smalltextout_reads_8_bit_and_16_bit_strings ... ok
+test tests::emf_srcpaint_makes_black_pixels_transparent ... ok
+test tests::emf_stretchdibits_flips_and_fits_frame ... ok
+test tests::emf_text_options_pdy_no_rect_ansi_and_glyph_indices ... ok
+test tests::emf_world_transform_scales_geometry ... ok
+test tests::emf_savedc_past_the_stack_cap_stops_the_parse ... ok
+test tests::emfplus_cardinal_curves_and_region_fill ... ok
+test tests::emfplus_clear_paints_the_whole_frame_and_transparent_clears_nothing ... ok
+test tests::emfplus_convex_clip_path_cuts_to_the_shape_not_its_box ... ok
+test tests::emfplus_clip_rect_cuts_fills_strokes_and_images ... ok
+test tests::emfplus_draw_image_places_the_bitmap ... ok
+test tests::emfplus_curve_offsets_and_degenerate_input_are_safe ... ok
+test tests::emfplus_draw_string_with_font_and_centred_format ... ok
+test tests::emfplus_driver_string_uses_character_codes_and_positions ... ok
+test tests::emfplus_draw_string_wraps_to_the_layout_width ... ok
+test tests::emfplus_dual_files_draw_only_the_emf_records ... ok
+test tests::emfplus_compressed_png_image_decodes ... ok
+test tests::emfplus_glyph_index_driver_strings_map_back_in_core_fonts_only ... ok
+test tests::emfplus_hatch_brush_fills_with_an_8x8_tile ... ok
+test tests::emfplus_nested_metafile_image_draws_its_items_into_the_destination ... ok
+test tests::emfplus_only_fill_rects_with_argb_colour ... ok
+test tests::emfplus_linear_gradient_fills_with_a_shaded_tile ... ok
+test tests::emfplus_object_split_across_records_is_joined ... ok
+test tests::emfplus_path_object_fills_with_brush_object_and_restore_undoes_transform ... ok
+test tests::emfplus_pen_object_draws_lines_under_a_scale_transform ... ok
+test tests::emfplus_pie_and_arc ... ok
+test tests::emfplus_region_clip_intersects_rectangles ... ok
+test tests::emfplus_region_path_cannot_read_into_its_sibling ... ok
+test tests::emfplus_region_path_keeps_its_shape ... ok
+test tests::emfplus_reset_clip_and_restore_bring_drawing_back ... ok
+test tests::escapement_turns_the_baseline_counter_clockwise ... ok
+test tests::flip_tolerates_a_short_pixel_buffer ... ok
+test tests::eto_opaque_fills_the_rectangle_and_eto_clipped_clips ... ok
+test tests::font_height_sign_and_default_state_are_kept ... ok
+test tests::hairline_pen_stays_zero_under_an_anisotropic_window ... ok
+test tests::hatch_brushes_draw_lines_over_the_background_mode ... ok
+test tests::isotropic_mode_uses_one_scale_and_keeps_axis_signs ... ok
+test tests::metric_map_mode_flips_y_and_scales_to_device_pixels_emf ... ok
+test tests::metric_map_mode_uses_96_dpi_for_wmf ... ok
+test tests::modify_world_with_an_unknown_mode_keeps_the_transform ... ok
+test tests::emfplus_wrap_line_linear_performance ... ok
+test tests::null_pen_is_recognised_under_extra_style_bits ... ok
+test tests::oversized_dib_header_size_is_rejected_without_overflow ... ok
+test tests::patblt_fills_with_the_brush ... ok
+test tests::place_fits_the_frame_scales_strokes_and_drops_far_paths ... ok
+test tests::place_keeps_only_finite_bounded_bitmaps_with_area ... ok
+test tests::placeable_wmf_keeps_its_target_when_the_window_changes_shape ... ok
+test tests::placeable_wmf_window_records_replace_the_bounds ... ok
+test tests::plain_anisotropic_wmf_without_a_viewport_fills_its_window ... ok
+test tests::plain_wmf_target_comes_from_a_window_that_was_read ... ok
+test tests::rop2_nop_draws_nothing_until_the_mode_changes ... ok
+test tests::round_rect_accepts_reversed_corners ... ok
+test tests::savedc_restores_text_colour_and_font ... ok
+test tests::stroke_width_is_clamped_to_the_picture_diagonal ... ok
+test tests::take_pixels_returns_only_drawable_bitmaps ... ok
+test tests::update_cp_starts_at_the_current_position_and_moves_past_the_string ... ok
+test tests::wmf_dib_palette_entries_are_skipped_before_the_bits ... ok
+test tests::wmf_dib_pattern_brush_paints_its_rows_top_down ... ok
+test tests::wmf_dibbitblt_copies_the_dib_at_its_destination ... ok
+test tests::wmf_dibbitblt_without_a_dib_is_a_pattern_fill ... ok
+test tests::wmf_dibstretchblt_stretches_the_dib_into_its_destination ... ok
+test tests::wmf_dibstretchblt_without_a_dib_is_a_rop_fill ... ok
+test tests::wmf_intersect_clip_rect_limits_later_records ... ok
+test tests::wmf_font_takes_an_object_slot_so_handles_line_up ... ok
+test tests::wmf_mapping_window_and_viewport ... ok
+test tests::wmf_negative_destination_height_mirrors_the_rows ... ok
+test tests::wmf_placeable_bounds_go_through_the_window_mapping ... ok
+test tests::wmf_negative_destination_width_mirrors_the_bitmap ... ok
+test tests::wmf_placeable_header_sets_frame_in_points ... ok
+test tests::wmf_polyline_with_pen ... ok
+test tests::wmf_polygon_fill_rule_follows_polyfillmode ... ok
+test tests::wmf_rectangle_with_solid_brush ... ok
+test tests::wmf_stock_null_brush_by_16_bit_handle_has_no_fill ... ok
+test tests::wmf_stretchdib_flips_bottom_up_rows ... ok
+test tests::wmf_stretchdib_clipped_source_keeps_its_place ... ok
+test tests::wmf_text_reads_the_font_string_dx_colour_and_alignment ... ok
+test tests::wmf_textout_reads_its_string_and_position ... ok
+test tests::xor_mask_xor_draws_the_pattern_in_the_xor_colour ... ok
+test tests::emfplus_garbage_records_never_panic ... ok
+test tests::truncated_random_and_mutated_inputs_never_panic ... ok
+test tests::hostile_text_and_brush_records_never_panic ... ok
+test tests::text_items_are_capped_like_any_other ... ok
+test tests::item_cap_stops_the_parse_and_keeps_the_rest ... ok
+test tests::pattern_brush_pixels_count_against_the_byte_budget ... ok
+
+test result: ok. 114 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.52s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_pptx-3c9895a27db16f33.exe)
+
+running 59 tests
+test custgeom::tests::parse_path_tokens ... ok
+test custgeom::tests::parse_path_uppercase_exponent ... ok
+test maps::tests::subtypes ... ok
+test dgm::tests::style_and_colour_ids_round_trip ... ok
+test custgeom::tests::write_then_read_path ... ok
+test maps::tests::darken_and_desaturate_use_powerpoints_ids ... ok
+test custgeom::tests::custgeom_with_guides_and_arc ... ok
+test custgeom::tests::formulas ... ok
+test dgm::tests::assistants_survive_the_data_model ... ok
+test maps::tests::every_transition_kind_round_trips ... ok
+test dgm::tests::hostile_links_are_bounded ... ok
+test dgm::tests::node_pictures_come_from_presentation_points ... ok
+test maps::tests::exit_presets_import_as_their_own_effects ... ok
+test import_theme_tests::non_theme_packages_are_errors ... ok
+test opc::tests::resolve_backslash_target ... ok
+test opc::tests::path_resolution ... ok
+test opc::tests::resolve_keeps_encoded_hash_and_strips_fragment ... ok
+test opc::tests::sidecar_parts_stay_inside_chart_folders ... ok
+test opc::tests::resolve_percent_decode_requires_two_hex_digits ... ok
+test png::tests::crc_known ... ok
+test dgm::tests::outline_survives_the_data_model ... ok
+test opc::tests::backslash_zip_entry_names_are_found ... ok
+test read::chart::tests::error_bars_are_read ... ok
+test opc::tests::xml_bytes_applies_the_xml_limit ... ok
+test read::chart::tests::explicit_title_wins ... ok
+test read::chart::tests::explicit_vary_colors_is_respected ... ok
+test read::chart::tests::hidden_labels_and_unfilled_gridlines_are_read ... ok
+test read::chart::tests::combo_chart_with_a_secondary_axis ... ok
+test read::chart::tests::linked_axis_formats_come_from_the_data ... ok
+test read::chart::tests::missing_vary_colors_means_vary_by_point ... ok
+test read::chart::tests::legend_position_and_overlay_are_read ... ok
+test read::chart::tests::log_base_is_read ... ok
+test read::chart::tests::no_automatic_title_when_deleted_or_multi_series ... ok
+test read::chart::tests::text_sizes_are_read_from_the_file ... ok
+test read::dml::tests::body_props ... ok
+test read::chart::tests::single_series_gets_automatic_title ... ok
+test read::chart::tests::text_colour_is_read_from_the_axes ... ok
+test read::dml::tests::miter_limit_accepts_both_percentage_forms_with_schema_bounds ... ok
+test read::dml::tests::colors_and_transforms ... ok
+test read::chart::tests::trendlines_are_read ... ok
+test read::chart::tests::series_pattern_fills_are_read_and_written_back ... ok
+test opc::tests::discarded_parts_count_against_the_inflate_budget ... ok
+test write::dml::tests::unknown_preset_and_system_names_save_as_black_and_window_text ... ok
+test write::shapes::tests::preset_guides_are_complete ... ok
+test read::chart::tests::minor_gridlines_are_read_and_written_back ... ok
+test xml::tests::parse_basic_and_entities ... ok
+test xml::tests::literal_cr_lf_and_lone_cr_read_as_lf_but_char_ref_stays ... ok
+test xml::tests::escape_drops_control_chars ... ok
+test xml::tests::cr_in_text_survives_write_read ... ok
+test xml::tests::roundtrip_serialize ... ok
+test xml::tests::truncated_and_garbage ... ok
+test write::chart::region_map_tests::region_maps_keep_their_geography_through_save_and_edit ... ok
+test write::chart::tests::imported_text_colour_survives_an_edit_and_a_save ... ok
+test write::chart::tests::reversed_category_axis_round_trips ... ok
+test write::chart::tests::chart_text_colour_round_trips ... ok
+test tables::tests::guids_round_trip ... ok
+test tables::tests::style_parts_follow_schema_order ... ok
+test import_theme_tests::reads_the_theme_of_a_pptx_and_of_a_thmx ... ok
+test read::chart::tests::sparse_caches_share_one_chart_wide_budget ... ok
+
+test result: ok. 59 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_render-205e4e5e1061b69e.exe)
+
+running 191 tests
+test bevel::tests::the_light_comes_from_the_upper_left ... ok
+test chart::tests::bottom_legend_keeps_the_old_row_layout ... ok
+test chart::tests::forecast_reserves_at_most_three_category_slots ... ok
+test chart::tests::clip_keeps_the_part_inside_the_plot ... ok
+test chart::tests::left_top_and_corner_positions ... ok
+test chart::bar_label_tests::missing_bar_values_have_no_label_but_explicit_zero_does ... ok
+test chart::tests::caption_keeps_clear_of_a_line_into_the_top_right ... ok
+test camera::tests::a_perspective_camera_is_approximated_closely ... ok
+test camera::tests::presets_turn_the_shape_as_powerpoint_does ... ok
+test bevel::tests::bevels_are_read_from_kept_3d_xml ... ok
+test chart::tests::right_legend_is_a_centred_column_and_narrows_the_plot ... ok
+test camera::tests::turning_about_the_vertical_axis_narrows_the_shape ... ok
+test chart::tests::tiny_data_gets_several_ticks ... ok
+test chartex::tests::waterfall_bars_float_and_totals_stand ... ok
+test compound::tests::bands_split_the_width_like_powerpoint ... ok
+test chart::tests::overlay_does_not_shrink_the_plot ... ok
+test chart::tests::scatter_x_is_a_value_scale_over_all_series ... ok
+test chartex::tests::squarify_handles_skewed_and_exhausted_rect ... ok
+test chartex::tests::squarify_tiles_the_area_in_proportion ... ok
+test compound::tests::offsetting_a_circle_changes_its_radius ... ok
+test compound::tests::offsetting_a_rectangle_grows_or_shrinks_it ... ok
+test extent::tests::scrolling_within_a_tile_keeps_the_region ... ok
+test extrude::tests::the_back_face_goes_away_from_the_viewer ... ok
+test extent::tests::the_region_is_the_slide_unless_something_off_it_is_in_view ... ok
+test extrude::tests::reads_depth_and_colour ... ok
+test images::tests::duotone_maps_luminance_between_its_two_colours ... ok
+test images::tests::grayscale_black_and_white_and_inverted_alpha_like_powerpoint ... ok
+test light::tests::rigs_and_materials_differ_as_named ... ok
+test images::tests::opposite_brightness_and_contrast_are_cached_apart ... ok
+test images::tests::brightness_and_contrast_map_greys_like_powerpoint ... ok
+test light::tests::three_point_matte_is_the_measured_formula ... ok
+test images::tests::invalid_pictures_fail_and_valid_ones_still_decode_and_cache ... ok
+test pathgrad::tests::rect_paths_take_the_larger_axis_share ... ok
+test images::tests::rgba_conversion_is_refused_past_the_cap ... ok
+test pathgrad::tests::shape_paths_from_off_the_shape_or_a_focus_box ... ok
+test pathgrad::tests::shape_paths_follow_the_outline ... ok
+test pattern::tests::every_drawingml_preset_has_a_tile ... ok
+test pathgrad::tests::the_ramp_runs_through_the_stops ... ok
+test pattern::tests::percent_presets_get_denser ... ok
+test extent::tests::effects_count_towards_the_extent ... ok
+test extent::tests::shapes_off_the_slide_grow_the_extent ... ok
+test ramp::tests::the_ends_are_the_stops_and_the_weight_is_symmetric ... ok
+test ramp::tests::colour_pairs_follow_powerpoint ... ok
+test extent::tests::master_graphics_off_the_slide_count_but_not_master_placeholders ... ok
+test ramp::tests::expand_keeps_stops_and_hard_edges ... ok
+test extent::tests::a_slide_with_nothing_off_it_extends_no_further_than_the_slide ... ok
+test ramp::tests::black_to_white_follows_powerpoint ... ok
+test images::tests::a_gif_of_many_tiny_frames_keeps_only_the_frame_cap ... ok
+test extent::tests::hidden_shapes_and_hostile_boxes_do_not_grow_it ... ok
+test tests::a_retina_export_records_144_dpi_and_still_decodes ... ok
+test tests::a_shape_whose_outline_is_not_finite_is_not_drawable ... ok
+test mt_tests::effects_render_with_threads_requested ... ok
+test tests::a_linear_gradient_ramps_like_powerpoint ... ok
+test tests::a_gradient_with_a_stop_off_the_end_stays_linear ... ok
+test tests::a_shape_far_larger_than_any_screen_is_skipped_not_flattened ... ok
+test tests::a_background_is_laid_over_white ... ok
+test tests::a_shape_filled_with_the_background_shows_the_slide_background ... ok
+test pathgrad::tests::dense_outlines_are_simplified_to_the_work_budget ... ok
+test images::tests::failed_sources_are_bounded_and_released ... ok
+test tests::a_fill_overlay_blends_over_the_fill ... ok
+test tests::a_quick_style_fills_an_empty_placeholder ... ok
+test tests::blank_slide_renders_white_background ... ok
+test tests::animated_gif_shows_the_frame_for_its_time ... ok
+test tests::animation_state_skips_layout_and_master_shapes_sharing_a_slide_shape_id ... ok
+test tests::a_transparent_background_leaves_the_slide_background_out ... ok
+test tests::an_object_joydeck_doesnt_model_shows_its_preview_picture ... ok
+test tests::blend_ends_match_the_slides_and_mixes_backdrops ... ok
+test tests::a_picture_casts_its_shadow_from_its_pixels ... ok
+test tests::a_picture_and_an_embedded_objects_preview_draw_their_fill_behind_transparent_pixels ... ok
+test tests::broken_metafiles_draw_nothing_and_never_panic ... ok
+test tests::compound_lines_draw_their_bands ... ok
+test tests::crop_dest_math ... ok
+test tests::custom_path_parse ... ok
+test tests::contours_band_the_outline_in_their_colour ... ok
+test tests::a_turned_camera_in_a_one_to_one_group_draws_its_3d_sizes_as_outside_one ... ok
+test tests::a_cropped_picture_is_decoded_at_the_resolution_of_the_whole_image ... ok
+test tests::a_table_fill_shows_behind_cells_without_their_own ... ok
+test tests::a_text_hyperlink_belongs_to_the_shape_that_holds_the_text ... ok
+test tests::a_file_defined_table_style_draws_its_parts ... ok
+test tests::combo_chart_draws_columns_and_a_line_on_its_own_axis ... ok
+test tests::colour_glyphs_paint_their_layers ... ok
+test tests::chart_axis_titles_are_drawn ... ok
+test tests::a_text_gradient_starts_over_on_every_line ... ok
+test tests::column_points_take_their_own_fill_and_smooth_lines_curve ... ok
+test tests::glow_of_a_shape_with_no_fill_and_no_line_is_not_drawn ... ok
+test tests::empty_bullet_is_gray_only_while_editing_and_never_in_exports ... ok
+test tests::every_preset_renders_without_panic ... ok
+test tests::glow_of_an_unfilled_shape_follows_its_line ... ok
+test tests::extrusions_show_their_sides_under_a_turned_camera ... ok
+test tests::ink_pressure_tapers_the_stroke_and_a_flat_half_stays_full_width ... ok
+test tests::group_child_scale_does_not_scale_3d_depth_contours_or_bevels ... ok
+test tests::metafile_intersect_clip_rect_hides_the_rest_of_the_picture ... ok
+test tests::effects_tables_charts_render ... ok
+test tests::metafile_opaque_text_fills_its_cell ... ok
+test tests::master_graphics_off_the_slide_show_on_the_pasteboard ... ok
+test tests::group_child_scale_does_not_scale_line_widths ... ok
+test tests::metafile_pattern_brush_tiles_and_averages_when_tiny ... ok
+test tests::metafile_text_follows_its_dx_array ... ok
+test tests::metafile_text_centre_baseline_and_escapement ... ok
+test tests::date_fields_show_the_date_in_their_format ... ok
+test tests::morph_path_aligns_once_per_transition ... ok
+test tests::metafile_text_ink_lands_at_its_reference_point ... ok
+test tests::metafile_symbol_text_draws_a_bullet_not_a_box ... ok
+test tests::chart_text_follows_the_theme_when_it_has_no_colour_of_its_own ... ok
+test tests::histogram_pareto_and_box_charts_draw ... ok
+test tests::morph_text_tokens_are_words_or_characters ... ok
+test tests::morph_path_fades_a_fill_only_one_side_has ... ok
+test tests::hyperlinks_draw_in_the_hyperlink_colour_underlined ... ok
+test tests::dotted_and_wavy_underlines_draw_their_pattern ... ok
+test tests::pattern_fills_draw_powerpoints_tiles ... ok
+test tests::morph_path_ends_match_the_slides ... ok
+test tests::placed_shapes_give_the_click_boxes_of_a_slide_in_drawing_order ... ok
+test tests::multilevel_treemap_and_sunburst_draw_their_groups ... ok
+test tests::png_encodes ... ok
+test tests::morph_text_ends_match_the_slides ... ok
+test tests::placeholder_prompts_only_in_edit_view ... ok
+test tests::office_2016_charts_draw_their_own_layouts ... ok
+test tests::render_an_emf_file_to_look_at ... ok
+test tests::rect_path_gradients_draw_x_shaped_contours ... ok
+test tests::shape_fill_uses_theme_accent ... ok
+test tests::region_map_draws_tiles_on_its_colour_scale ... ok
+test tests::render_shapes_draws_the_selection_on_a_transparent_canvas ... ok
+test tests::east_asian_vertical_text_stands_ideographs_upright ... ok
+test tests::rounded_corners_in_a_stretched_group_stay_round ... ok
+test tests::flipped_shapes_draw_readable_text ... ok
+test tests::every_warp_preset_renders_text_inside_the_slide ... ok
+test tests::table_light_and_dark_presets_give_their_own_header_and_body_looks ... ok
+test tests::shows_exports_and_thumbnails_clip_to_the_slide ... ok
+test tests::single_series_column_chart_varies_colours_by_point ... ok
+test tests::horizontal_bars_list_the_first_category_at_the_bottom_unless_reversed ... ok
+test tests::radar_stock_and_combo_draw_their_own_layouts ... ok
+test tests::soft_edges_fade_to_the_outline ... ok
+test tests::text_draws_ink ... ok
+test tests::text_transform_unmirrors_flips ... ok
+test tests::table_body_text_is_dark_on_the_tinted_cells_of_a_dark_theme ... ok
+test tests::the_editor_pasteboard_draws_shapes_off_the_slide ... ok
+test tests::text_spilling_out_of_its_box_below_the_slide_is_reported ... ok
+test tests::table_rows_of_zero_height_grow_to_fit_text ... ok
+test tests::shadows_and_glows_spread_like_powerpoints ... ok
+test tests::pie_data_labels_take_the_chart_text_colour_when_it_has_one ... ok
+test tests::tiny_chart_does_not_blank_the_slide ... ok
+test tests::text_glow_and_shadow_are_drawn ... ok
+test tests_wild::a_3d_shapes_face_is_lit_even_without_a_bevel ... ok
+test tests_wild::a_corner_radial_centres_on_the_corner_through_its_tile ... ok
+test tests_wild::a_3d_pictures_border_stays_centred_on_its_edge ... ok
+test tests_wild::a_bevelled_shape_is_lit_from_the_upper_left ... ok
+test tests_wild::a_linear_gradient_spans_its_tile_rect ... ok
+test tests_wild::a_perspective_shadow_lies_along_the_edge_its_alignment_names ... ok
+test tests_wild::a_groups_shadow_is_cast_by_its_children ... ok
+test tests_wild::a_picture_reflects_its_pixels ... ok
+test tests_wild::a_pictures_border_lies_outside_the_picture ... ok
+test tests_wild::a_radial_gradient_off_centre_ends_on_the_circle_around_the_box ... ok
+test tests::unknown_or_absent_warps_draw_flat_text ... ok
+test tests_wild::a_gradient_not_rotating_with_its_shape_keeps_to_the_slide ... ok
+test tests_wild::a_tiles_first_copy_sits_on_the_point_its_alignment_names ... ok
+test tests_wild::a_wide_line_stops_inside_its_arrowhead ... ok
+test tests_wild::a_see_through_line_and_its_arrowhead_are_one_shape ... ok
+test tests_wild::arrowheads_are_sized_for_at_least_a_two_point_line ... ok
+test tests_wild::an_open_arrowheads_point_is_on_the_lines_end ... ok
+test tests_wild::dash_lengths_make_room_for_round_and_square_caps ... ok
+test tests_wild::custom_geometry_sub_paths_cut_holes_whichever_way_they_wind ... ok
+test tests_wild::children_filled_with_the_group_fill_show_one_fill_across_the_group ... ok
+test tests_wild::an_upright_picture_fill_stays_upright_in_a_turned_shape ... ok
+test tests::trendlines_draw_through_the_points_with_a_label ... ok
+test tests_wild::a_tiny_dash_on_a_huge_shape_draws_without_running_out_of_memory ... ok
+test tests_wild::gradient_lines_and_their_heads_take_the_gradient ... ok
+test tests_wild::picture_resolution_sizes_tiles ... ok
+test tests_wild::open_freeforms_take_arrowheads_even_when_filled ... ok
+test tests_wild::patterns_between_whole_pixel_cells_blend_neighbouring_cells ... ok
+test tests::wordart_plain_stretches_the_ink_over_the_text_rect ... ok
+test tests_wild::trimming_a_path_leaves_its_ends_off_by_arc_length ... ok
+test tests_wild::shadows_are_cast_by_what_is_drawn ... ok
+test tests_wild::round_dots_are_separate_circles_with_the_caps_inside_each_dash ... ok
+test tests_wild::table_borders_take_their_dashes_and_diagonals_are_drawn ... ok
+test tests_wild::stars_and_right_arrows_have_sharp_corners_by_default ... ok
+test transition::tests::half_alpha_blends ... ok
+test transition::tests::missing_old_slide_is_black ... ok
+test transition::tests::layers_composite_in_order ... ok
+test warp::tests::warp_path_subdivides_and_maps_every_point ... ok
+test tests_wild::tiled_pictures_flip_align_and_skip_non_positive_scales ... ok
+test tests::metafile_pictures_draw_their_vectors ... ok
+test tests::column_series_draw_their_pattern_fill_and_no_fill_with_their_outline ... ok
+test transition::tests::dynamic_content_moves_contents_over_backgrounds ... ok
+test tests::wordart_arch_up_lifts_the_middle_of_the_line ... ok
+test tests_wild::a_large_pictures_shadow_is_whole ... ok
+test tests::text_in_a_scaled_group_keeps_its_point_size ... ok
+test tests::table_rows_below_the_slide_are_not_laid_out_and_the_slide_looks_the_same ... ok
+test pathgrad::tests::a_dense_shape_gradient_renders_promptly ... ok
+test transition::tests::frames_match_powerpoint_probes ... ok
+test tests::charts_in_degenerate_frames_draw_without_panicking ... ok
+test transition::tests::every_transition_starts_old_and_ends_new ... ok
+
+test result: ok. 191 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.25s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_text-b9f7dd14ed3f4ee9.exe)
+
+running 93 tests
+test bidi::tests::l1_resets_trailing_whitespace_and_tabs ... ok
+test bidi::tests::currency_signs_join_numbers_on_either_side_in_rtl_runs ... ok
+test bidi::tests::ltr_paragraph_fast_path_and_embedded_rtl ... ok
+test bidi::tests::mixed_arabic_latin_numbers_and_brackets ... ok
+test bidi::tests::next_non_et_points_past_each_et_run ... ok
+test bidi::tests::visual_order_edge_cases ... ok
+test bidi::tests::run_language_decides_neutrals_like_powerpoint ... ok
+test datetime::tests::english_formats_of_every_type ... ok
+test datetime::tests::unknown_types_and_impossible_dates_give_nothing ... ok
+test datetime::tests::language_orders_numeric_dates_and_keeps_names_english_only ... ok
+test datetime::tests::the_clock_reads_a_real_date ... ok
+test datetime::tests::long_english_dates_follow_each_locale ... ok
+test bidi::tests::matches_the_reference_on_random_mixed_text ... ok
+test bidi::tests::long_currency_and_neutral_runs_are_linear ... ok
+test tests::autonum_formats ... ok
+test tests::autonumber_schemes_follow_powerpoint ... ok
+test tests::an_installed_symbol_font_draws_its_own_bullet ... ok
+test tests::an_ordinary_hang_still_puts_the_text_at_the_margin ... ok
+test tests::alignment_center_and_right ... ok
+test tests::a_tab_past_the_end_moves_to_the_next_line ... ok
+test tests::an_english_run_keeps_digits_and_brackets_left_to_right ... ok
+test tests::a_line_broken_at_a_soft_hyphen_shows_a_hyphen ... ok
+test tests::an_empty_paragraph_keeps_its_paragraph_mark_height ... ok
+test tests::a_bullet_the_text_font_lacks_falls_back_to_a_face_that_has_it ... ok
+test tests::a_space_after_a_symbol_font_character_keeps_the_runs_font ... ok
+test tests::caret_and_hit_roundtrip ... ok
+test tests::capitals_keep_characters_whose_capital_is_a_sequence ... ok
+test tests::bullets_are_drawn_for_body_text ... ok
+test tests::bidi_caret_stops_round_trip_through_hit_testing ... ok
+test tests::east_asian_vertical_text_marks_cjk_upright ... ok
+test tests::an_empty_line_is_sized_by_the_break_that_ends_it ... ok
+test tests::anchorctr_centres_the_text_block ... ok
+test tests::an_empty_last_line_is_sized_by_the_paragraph_mark ... ok
+test tests::empty_plain_paragraphs_and_soft_breaks_have_no_bullet_preview ... ok
+test tests::a_hang_past_the_box_edge_keeps_its_width_on_the_first_line ... ok
+test tests::empty_numbered_paragraph_previews_the_next_number_without_consuming_it ... ok
+test tests::a_paragraph_with_its_own_start_at_restarts_the_count_there ... ok
+test tests::bare_normautofit_draws_at_full_size ... ok
+test tests::exact_line_spacing_ends_at_the_last_descent ... ok
+test tests::just_low_stretches_arabic_with_kashida ... ok
+test tests::empty_bullets_reserve_the_typed_indent_without_becoming_content ... ok
+test tests::latin_text_draws_no_ligatures ... ok
+test tests::closing_punctuation_hangs_past_the_end_with_hanging_punct ... ok
+test tests::character_spacing_in_the_body_keeps_kerning ... ok
+test tests::no_break_after_a_zero_width_space_or_before_an_em_dash ... ok
+test tests::mongolian_lines_run_left_to_right_and_stacked_letters_stand_one_em_apart ... ok
+test tests::numbered_list_counts ... ok
+test tests::logical_movement_steps_over_harakat ... ok
+test tests::only_the_first_character_of_a_bullet_is_drawn ... ok
+test tests::ligatures_stay_for_scripts_that_need_them ... ok
+test tests::a_word_does_not_break_after_a_slash_or_backslash ... ok
+test tests::line_spacing_reduction_comes_off_the_percentage ... ok
+test tests::paint_only_style_changes_keep_arabic_joining ... ok
+test tests::rtl_left_and_center_alignment ... ok
+test tests::pairs_are_kerned_only_from_the_kern_size ... ok
+test tests::rtl_paragraph_starts_at_the_right_with_the_bullet_outside ... ok
+test tests::selection_is_the_union_of_visual_boxes ... ok
+test tests::rtl_mixed_string_is_reordered_per_line ... ok
+test tests::space_before_the_first_paragraph_with_spc_first_last_para ... ok
+test tests::stacked_combining_marks_take_a_face_that_draws_them ... ok
+test tests::small_kana_and_closing_brackets_follow_powerpoint_kinsoku ... ok
+test tests::strikethrough_sits_at_the_font_strikeout_position ... ok
+test tests::small_capitals_draw_smaller_than_the_capitals_beside_them ... ok
+test tests::single_spaced_lines_are_1_2_times_the_size_apart_whatever_the_font ... ok
+test tests::superscript_glyphs_sit_inside_their_cells ... ok
+test tests::symbol_char_maps_symbol_font_codes ... ok
+test tests::symbol_font_bullets_map_by_font ... ok
+test tests::superscript_and_subscript_advance_at_their_drawn_size ... ok
+test tests::bullet_in_an_unavailable_unicode_symbol_font_keeps_its_character ... ok
+test tests::symbol_unicode_maps_the_euro ... ok
+test tests::symbol_unicode_table_covers_the_adobe_encoding ... ok
+test tests::symbol_font_char_keeps_covered_non_symbol_bullets ... ok
+test tests::symbol_font_draw_falls_back_to_ascii ... ok
+test tests::symbol_font_draw_tries_apple_alternatives ... ok
+test tests::symbol_font_remaps_private_use_to_real_unicode ... ok
+test tests::symbol_font_characters_draw_in_the_sym_font ... ok
+test tests::composition_is_underlined_per_line ... ok
+test tests::shrink_on_overflow ... ok
+test tests::transparent_text_is_faded_once ... ok
+test tests::korean_wraps_between_words ... ok
+test tests::saved_shrink_scale_is_drawn ... ok
+test tests::wraps_long_text_into_lines ... ok
+test tests::visual_movement_walks_the_line_left_to_right ... ok
+test tests::wrapped_rtl_lines_break_in_logical_order ... ok
+test tests::underlines_sit_at_the_font_underline_in_their_style ... ok
+test tests::tab_stops_align_the_text_after_them ... ok
+test tests::rtl_columns_start_on_the_right_and_just_anchoring_sits_at_the_bottom ... ok
+test tests::shrink_gives_up_at_once_when_even_the_smallest_scale_overflows ... ok
+test tests::hostile_bidi_input_never_panics ... ok
+test tests::empty_and_hostile_bodies_never_panic ... ok
+test tests::emoji_take_a_colour_face_when_one_is_installed ... ok
+test tests::symbols_after_an_emoji_keep_a_text_face ... ok
+test tests::fallback_faces_do_not_move_the_baseline ... ok
+
+test result: ok. 93 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.51s
+
+     Running unittests src\lib.rs (target\debug\deps\joyoffice_opc-9720aae71d71fda0.exe)
+
+running 3 tests
+test part::tests::accepts_valid_names_and_rejects_unsafe_ones ... ok
+test part::tests::references_resolve_without_escaping_the_root ... ok
+test part::tests::relationships_parts_map_to_their_sources ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\package.rs (target\debug\deps\package-3a894b896e6f8911.exe)
+
+running 9 tests
+test external_targets_are_classified_conservatively ... ok
+test stored_items_round_trip_through_the_writer ... ok
+test reads_a_minimal_package_and_keeps_exact_bytes ... ok
+test relationships_resolve_relative_targets_and_never_follow_external_ones ... ok
+test rejects_lying_and_overlapping_archives ... ok
+test rejects_unsafe_part_names ... ok
+test rejects_hostile_xml_before_expansion ... ok
+test budgets_stop_bombs_before_inflation ... ok
+test mutation_smoke_never_panics ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+   Doc-tests joydeck_anim
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_fonts
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_format
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_metafile
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_pptx
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_render
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_text
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyoffice_opc
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

@@ -1,0 +1,6 @@
+Imported source records passed (267 files)
+   Compiling joydeck-ui-gpui v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `release` profile [optimized] target(s) in 1m 38s
+    Finished `release` profile [optimized] target(s) in 0.36s
+Packaging failed: Source changed during packaging; rebuild the new source

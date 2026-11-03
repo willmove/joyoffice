@@ -22,10 +22,19 @@ jobs:
           python-version: '3.12'
       - name: Fixed toolchain
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Fetch the locked graph before offline dependency gates
+        run: cargo fetch --locked
+      - name: CJK glyphs required by vertical-text rendering tests
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
       - name: Product engineering and release-routing tests
         run: |
           python -m unittest discover -s tools/xtask -p 'test_*.py'
           python -m unittest discover -s scripts/joydeck/tests -p 'test_*.py'
+      - name: R9 source, dependency and documentation gates
+        run: |
+          python scripts/joydeck/check_sources.py
+          python scripts/joydeck/check_dependencies.py
+          python scripts/joydeck/check_refactor_docs.py
       - name: Headless product check
         run: cargo xtask check joydeck --headless
       - name: CLI dependency isolation
@@ -55,7 +64,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev
+          sudo apt-get install -y clang cmake pkg-config libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libxcb1-dev libxcb-shape0-dev libxcb-xfixes0-dev libxcb-randr0-dev libxcb-xinput-dev libxcb-xkb-dev libx11-xcb-dev libvulkan-dev libssl-dev libasound2-dev fonts-noto-cjk
       - name: macOS Metal toolchain
         if: runner.os == 'macOS'
         run: |
@@ -63,6 +72,8 @@ jobs:
           xcrun --find metal
       - name: Fixed toolchain
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+      - name: Fetch the locked graph before offline dependency gates
+        run: cargo fetch --locked
       - name: Product checks
         run: cargo xtask check joydeck
       - name: Validation-feature regression tests

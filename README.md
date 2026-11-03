@@ -1,5 +1,7 @@
 # JoyOffice
 
+2026-11-03：JoyDeck R9 已用 0.8.0 DeckCraft/GPUI 重构替换旧实现。后续开发统一在本仓库，先读 [R9 交接](docs/joyoffice/JOYDECK-R9-HANDOFF.md)；[当前状态](docs/joydeck/STATUS.md)、[功能差距](docs/joydeck/UI-PARITY.md) 和 [任务清单](docs/joydeck/TASKS.md) 为当前依据。Word/Sheet 保持各自实现与版本。
+
 JoyOffice 是 Rust + GPUI Kit 跨平台 Office 套件的 Monorepo，包含 **JoyWord** 文字处理、**JoyDeck** 演示文稿与 **JoySheet** 电子表格。Word 采用 MIT；Deck、Sheet 保留 MIT OR Apache-2.0，具体见各包 manifest 和产品许可记录。
 
 ## Monorepo 开发入口

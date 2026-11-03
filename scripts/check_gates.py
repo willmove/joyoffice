@@ -65,23 +65,24 @@ LAYERS = {
         "joyword-render",
         "joyword-shell",
     },
-    # JoyDeck's product layers. Public format primitives stay product-neutral.
-    "joydeck-model": set(),
-    "joydeck-engine": {"joydeck-model"},
-    "joydeck-formats": {"joydeck-model", "joyoffice-opc", "joyoffice-drawingml"},
-    "joydeck-scene": {"joydeck-model"},
-    "joydeck-export": {"joydeck-model", "joydeck-scene", "joydeck-formats"},
-    "joydeck-platform": {"joydeck-model"},
-    "joydeck-shell": {
-        "joydeck-model", "joydeck-engine", "joydeck-formats", "joydeck-scene",
-        "joydeck-export", "joydeck-platform",
-    },
-    "joydeck": {
-        "joyoffice-ui",
-        "joydeck-model", "joydeck-engine", "joydeck-formats", "joydeck-scene",
-        "joydeck-export", "joydeck-platform", "joydeck-shell",
-    },
-    "joydeck-cli": {"joydeck-model", "joydeck-shell"},
+    # R9: retained DeckCraft model / pure rendering and read-only v1 bridge.
+    'joydeck': {'joydeck-ui-gpui'},
+    'joydeck-anim': {'joydeck-geom', 'joydeck-model'},
+    'joydeck-cli': {'joydeck-engine', 'joydeck-model', 'joydeck-render', 'joydeck-shell'},
+    'joydeck-color': set(),
+    'joydeck-engine': {'joydeck-model'},
+    'joydeck-fonts': set(),
+    'joydeck-format': {'joydeck-model'},
+    'joydeck-geom': set(),
+    'joydeck-legacy': {'joyoffice-opc'},
+    'joydeck-metafile': set(),
+    'joydeck-model': {'joydeck-color', 'joydeck-geom'},
+    'joydeck-pdf': {'joydeck-fonts', 'joydeck-model', 'joydeck-render', 'joydeck-text'},
+    'joydeck-pptx': {'joydeck-color', 'joydeck-geom', 'joydeck-model'},
+    'joydeck-render': {'joydeck-anim', 'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-metafile', 'joydeck-model', 'joydeck-text'},
+    'joydeck-shell': {'joydeck-anim', 'joydeck-engine', 'joydeck-fonts', 'joydeck-format', 'joydeck-legacy', 'joydeck-model', 'joydeck-pdf', 'joydeck-pptx', 'joydeck-render', 'joyoffice-opc'},
+    'joydeck-text': {'joydeck-color', 'joydeck-fonts', 'joydeck-geom', 'joydeck-model'},
+    'joydeck-ui-gpui': {'joydeck-engine', 'joydeck-geom', 'joydeck-model', 'joydeck-render', 'joydeck-shell', 'joydeck-text', 'joyoffice-ui'},
     "joyoffice-xtask": set(),
     "joyword-foundation": set(),
     # T400: no document, engine, or network crate. Core crates must not depend
@@ -142,7 +143,8 @@ LAYERS = {
 DEV_LAYERS = {
     # Negative reader fixtures deliberately contain duplicate/raw invalid names;
     # the production zip writer correctly refuses to create these archives.
-    "joydeck-shell": {"joyoffice-opc"},
+    'joydeck-pptx': {'joydeck-color', 'joydeck-geom'},
+    'joydeck-shell': {'joydeck-geom', 'joydeck-text'},
     "joyword-epub": {"joyword-docx"},
     # apps/joyword-cli/Cargo.toml:22 -- CLI integration tests replay corpus cases.
     "joyword-cli": {"joyword-corpus"},
@@ -210,30 +212,8 @@ FS_ALLOW = {
 # source files, not directory exemptions. Pure model/engine/format/scene/export
 # crates are deliberately absent; their inputs and outputs stay in memory.
 # Detailed review and validation-only sites: docs/joyoffice/JOYDECK-GATE-AUDIT.md.
-DECK_FS_REVIEW = {
-    "apps/joydeck-cli/src/main.rs": "read the explicit local control credential descriptor",
-    "tools/xtask/src/main.rs": "invoke the product-scoped engineering runner, never product document commands",
-    "crates/joydeck-platform/build.rs": "compile packaged Swift helpers on desktop macOS builds",
-    "crates/joydeck-platform/src/files.rs": "bounded reads, private temp directories and atomic publication",
-    "crates/joydeck-platform/src/playback.rs": "owned native media process and private bounded frame files",
-    "crates/joydeck-shell/src/control.rs": "create/read/remove a private local-control descriptor",
-    "crates/joydeck-shell/src/export.rs": "stage and publish requested output files/directories",
-    "crates/joydeck-shell/src/media.rs": "bounded user-selected image import",
-    "crates/joydeck-shell/src/output.rs": "invoke the packaged print helper and clean its temporary input",
-    "crates/joydeck-shell/src/preferences.rs": "read/validate/atomically replace product preferences",
-    "crates/joydeck-shell/src/storage.rs": "document save, recovery, locks and source fingerprint checks",
-    "crates/joydeck-shell/src/video.rs": "owned encoder helper with private staging and cancellation",
-    "apps/joydeck/src/authoring_smoke.rs": "validation feature: independent authoring output/reference capture",
-    "apps/joydeck/src/beta_smoke.rs": "validation feature: native preference/compare/video acceptance record",
-    "apps/joydeck/src/delivery_smoke.rs": "validation feature: export fixtures and output manifest",
-    "apps/joydeck/src/editor_validation.rs": "validation feature: recovery/IME temporary roundtrip cleanup",
-    "apps/joydeck/src/extended_smoke.rs": "validation feature: media and print cancellation evidence",
-    "apps/joydeck/src/media_smoke.rs": "validation feature: clipboard/image reference capture",
-    "apps/joydeck/src/render_bench.rs": "validation feature: synthetic benchmark report and raster output",
-    "apps/joydeck/src/slideshow_validation.rs": "validation feature: native show acceptance report",
-    "apps/joydeck/src/table_smoke.rs": "validation feature: table roundtrip and raster reference capture",
-    "apps/joydeck/src/workspace_smoke.rs": "validation feature: multiwindow design and clipboard evidence",
-}
+DECK_FS_REVIEW = {'tools/xtask/src/main.rs': 'product engineering subprocess invocation', 'apps/joydeck-cli/src/main.rs': 'explicit source/output/control CLI paths', 'apps/joydeck-cli/src/scene_bench.rs': 'bounded CPU benchmark output to a new directory', 'crates/joydeck-fonts/build.rs': 'read registered font manifests and emit OUT_DIR Rust assets; test fixture IO', 'crates/joydeck-fonts/src/fontdb.rs': 'read-only system font discovery and bounded registered font bytes; no redistribution', 'crates/joydeck-shell/src/document.rs': 'bounded user-selected document read and new raster output publication', 'crates/joydeck-shell/src/platform.rs': 'private temp paths, bounded media reads, image decoding and atomic file publishing', 'crates/joydeck-shell/src/helpers.rs': 'owned platform helper subprocess and private temporary lifetime', 'crates/joydeck-shell/src/playback.rs': 'bounded owned media input/frame files and cancellation', 'crates/joydeck-shell/src/control.rs': 'local control descriptor and authenticated loopback IO', 'crates/joydeck-shell/src/storage.rs': 'document save, source fingerprint, recovery and lease IO', 'crates/joydeck-shell/src/output.rs': 'new output directories, verified PDF/image/GIF/video publication and cleanup of owned staging', 'crates/joydeck-shell/src/video.rs': 'bounded owned encoder helper and private staging'}
+
 FS_ALLOW.update(DECK_FS_REVIEW)
 
 # Exact imported Sheet adapters, reviewed in JOYSHEET-GATE-AUDIT.md. Pure model,
@@ -449,7 +429,7 @@ def dependency_isolation(crate: str, deps: set[str]) -> list[str]:
             crate.startswith("joyoffice-") and other
         ):
             errors.append(f"{crate} must not depend on product package {dep}")
-        if crate not in {"joyword", "joydeck", "joysheet", "joysheet-ui-gpui", "joyoffice-ui"} and gui_dependency(dep):
+        if crate not in {"joyword", "joydeck", "joysheet", "joysheet-ui-gpui", "joydeck-ui-gpui", "joyoffice-ui"} and gui_dependency(dep):
             errors.append(f"{crate} must remain headless; GUI dependency {dep} is forbidden")
         if crate.startswith("joysheet-") and crate not in {"joysheet-platform", "joysheet-ui-gpui"} and dep in {"rfd", "arboard", "winit", "egui", "eframe"}:
             errors.append(f"{crate} must not depend on platform/UI package {dep}")

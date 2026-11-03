@@ -936,6 +936,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "color"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ec7c5eb7a16992b1904d76c517d170ab353b0e0b3d5a0c81a8a0cd1037893cf"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1173,6 +1182,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01a7799fd6b852db0e61728dde9a204c423b44d689dbd432522543614b490e78"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1"
+dependencies = [
+ "crossbeam-utils",
 ]
 
 [[package]]
@@ -1619,6 +1637,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fearless_simd"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b97b65636e5b9ef369943878ac74335ba1c55c1cb6adbf1e2c293c624248d693"
+
+[[package]]
 name = "filedescriptor"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2013,6 +2037,23 @@ dependencies = [
  "khronos_api",
  "log",
  "xml-rs",
+]
+
+[[package]]
+name = "glifo"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "282a26c1e23de04bdab3e34a21b6f877a479b96737792516b9b8b8f69b6661be"
+dependencies = [
+ "bytemuck",
+ "foldhash",
+ "hashbrown 0.17.1",
+ "log",
+ "peniko",
+ "png 0.18.1",
+ "skrifa 0.44.0",
+ "smallvec",
+ "vello_common",
 ]
 
 [[package]]
@@ -2723,6 +2764,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "guillotiere"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b17e70c989c36bad147b27a58d148c0741c51448aa5653436547323e524d0ab"
+dependencies = [
+ "euclid",
+]
+
+[[package]]
 name = "h2"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3361,24 +3411,37 @@ dependencies = [
 
 [[package]]
 name = "joydeck"
+version = "0.8.0"
+dependencies = [
+ "joydeck-ui-gpui",
+]
+
+[[package]]
+name = "joydeck-anim"
 version = "0.1.0"
 dependencies = [
- "gpui-kit",
- "image",
- "joydeck-shell",
- "joyoffice-ui",
- "resvg 0.45.1",
+ "joydeck-geom",
+ "joydeck-model",
  "serde",
- "serde_json",
- "unicode-segmentation",
 ]
 
 [[package]]
 name = "joydeck-cli"
-version = "0.1.0"
+version = "0.8.0"
 dependencies = [
+ "joydeck-engine",
+ "joydeck-model",
+ "joydeck-render",
  "joydeck-shell",
  "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "joydeck-color"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -3389,76 +3452,127 @@ dependencies = [
  "joydeck-model",
  "serde",
  "serde_json",
- "sha2 0.10.9",
-]
-
-[[package]]
-name = "joydeck-export"
-version = "0.1.0"
-dependencies = [
- "flate2",
- "image",
- "joydeck-formats",
- "joydeck-model",
- "joydeck-scene",
- "pdf-writer 0.12.1",
- "png 0.18.1",
- "resvg 0.45.1",
- "serde",
- "svg2pdf",
  "unicode-segmentation",
 ]
 
 [[package]]
-name = "joydeck-formats"
+name = "joydeck-fonts"
 version = "0.1.0"
 dependencies = [
- "base64",
+ "harfrust 0.8.4",
+ "kurbo 0.13.1",
+ "log",
+ "skrifa 0.42.1",
+ "unicode-bidi",
+]
+
+[[package]]
+name = "joydeck-format"
+version = "0.1.0"
+dependencies = [
  "joydeck-model",
- "joyoffice-opc",
- "roxmltree 0.21.1",
  "serde",
  "serde_json",
- "sha2 0.10.9",
+ "thiserror 2.0.21",
  "zip",
 ]
 
 [[package]]
-name = "joydeck-model"
+name = "joydeck-geom"
+version = "0.1.0"
+dependencies = [
+ "kurbo 0.13.1",
+ "serde",
+]
+
+[[package]]
+name = "joydeck-legacy"
 version = "0.1.0"
 dependencies = [
  "base64",
  "image",
+ "joyoffice-opc",
  "kurbo 0.13.1",
  "roxmltree 0.21.1",
  "serde",
  "serde_json",
  "sha2 0.10.9",
  "unicode-segmentation",
+ "zip",
 ]
 
 [[package]]
-name = "joydeck-platform"
+name = "joydeck-metafile"
 version = "0.1.0"
 dependencies = [
- "getrandom 0.3.4",
  "image",
- "joydeck-model",
- "serde_json",
+ "kurbo 0.13.1",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "joydeck-scene"
+name = "joydeck-model"
 version = "0.1.0"
 dependencies = [
- "base64",
- "image",
- "joydeck-model",
- "resvg 0.45.1",
+ "joydeck-color",
+ "joydeck-geom",
  "serde",
  "serde_json",
- "ttf-parser",
+ "thiserror 2.0.21",
  "unicode-segmentation",
+]
+
+[[package]]
+name = "joydeck-pdf"
+version = "0.1.0"
+dependencies = [
+ "joydeck-fonts",
+ "joydeck-model",
+ "joydeck-render",
+ "joydeck-text",
+ "krilla",
+ "kurbo 0.13.1",
+ "serde",
+ "skrifa 0.42.1",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "joydeck-pptx"
+version = "0.1.0"
+dependencies = [
+ "flate2",
+ "image",
+ "joydeck-color",
+ "joydeck-geom",
+ "joydeck-model",
+ "log",
+ "quick-xml",
+ "serde_json",
+ "thiserror 2.0.21",
+ "zip",
+]
+
+[[package]]
+name = "joydeck-render"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "joydeck-anim",
+ "joydeck-color",
+ "joydeck-fonts",
+ "joydeck-geom",
+ "joydeck-metafile",
+ "joydeck-model",
+ "joydeck-text",
+ "kurbo 0.13.1",
+ "log",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "skrifa 0.42.1",
+ "vello_common",
+ "vello_cpu",
 ]
 
 [[package]]
@@ -3466,26 +3580,57 @@ name = "joydeck-shell"
 version = "0.1.0"
 dependencies = [
  "base64",
- "flate2",
  "getrandom 0.3.4",
  "image",
+ "joydeck-anim",
  "joydeck-engine",
- "joydeck-export",
- "joydeck-formats",
+ "joydeck-fonts",
+ "joydeck-format",
+ "joydeck-geom",
+ "joydeck-legacy",
  "joydeck-model",
- "joydeck-platform",
- "joydeck-scene",
+ "joydeck-pdf",
+ "joydeck-pptx",
+ "joydeck-render",
+ "joydeck-text",
  "joyoffice-opc",
- "pdf-writer 0.12.1",
- "png 0.18.1",
- "resvg 0.45.1",
- "roxmltree 0.21.1",
+ "quick-xml",
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "svg2pdf",
- "unicode-segmentation",
  "zip",
+]
+
+[[package]]
+name = "joydeck-text"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "joydeck-color",
+ "joydeck-fonts",
+ "joydeck-geom",
+ "joydeck-model",
+ "unicode-bidi",
+ "unicode-linebreak",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "joydeck-ui-gpui"
+version = "0.1.0"
+dependencies = [
+ "gpui-kit",
+ "gpui-pre-platform",
+ "image",
+ "joydeck-engine",
+ "joydeck-geom",
+ "joydeck-model",
+ "joydeck-render",
+ "joydeck-shell",
+ "joydeck-text",
+ "joyoffice-ui",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3992,7 +4137,7 @@ dependencies = [
  "image-webp",
  "imagesize 0.14.0",
  "indexmap",
- "pdf-writer 0.15.0",
+ "pdf-writer",
  "png 0.18.1",
  "rustc-hash 2.1.3",
  "siphasher",
@@ -4025,6 +4170,7 @@ dependencies = [
  "arrayvec",
  "euclid",
  "polycool",
+ "serde",
  "smallvec",
 ]
 
@@ -5090,6 +5236,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
+name = "ordered-channel"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95be4d57809897b5a7539fc15a7dfe0e84141bc3dfaa2e9b1b27caa90acf61ab"
+dependencies = [
+ "crossbeam-channel",
+]
+
+[[package]]
 name = "ordered-float"
 version = "5.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5180,18 +5335,6 @@ dependencies = [
 
 [[package]]
 name = "pdf-writer"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5df03c7d216de06f93f398ef06f1385a60f2c597bb96f8195c8d98e08a26b1d5"
-dependencies = [
- "bitflags 2.13.2",
- "itoa",
- "memchr",
- "ryu",
-]
-
-[[package]]
-name = "pdf-writer"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5e456864a7a304047bff84977dc6fb162bd956475d40ba50b2dcecaada7f753"
@@ -5200,6 +5343,19 @@ dependencies = [
  "itoa",
  "memchr",
  "ryu",
+]
+
+[[package]]
+name = "peniko"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "839c8299360d2e998bdb106dc0a6cd71dcc5f4df51df1b620361bf50e283cca6"
+dependencies = [
+ "bytemuck",
+ "color",
+ "kurbo 0.13.1",
+ "linebender_resource_handle",
+ "smallvec",
 ]
 
 [[package]]
@@ -6735,6 +6891,9 @@ name = "smallvec"
 version = "1.16.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "smol"
@@ -6889,26 +7048,6 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
-
-[[package]]
-name = "svg2pdf"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e50dc062439cc1a396181059c80932a6e6bd731b130e674c597c0c8874b6df22"
-dependencies = [
- "fontdb",
- "image",
- "log",
- "miniz_oxide 0.8.9",
- "once_cell",
- "pdf-writer 0.12.1",
- "resvg 0.45.1",
- "siphasher",
- "subsetter",
- "tiny-skia",
- "ttf-parser",
- "usvg 0.45.1",
-]
 
 [[package]]
 name = "svg_fmt"
@@ -7138,6 +7277,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.9",
+]
+
+[[package]]
+name = "thread_local"
+version = "1.1.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ad99c4c6d32803332c548b1af0540b357b3f5fc0be8f6c6bfe8b2e6ae784070"
+dependencies = [
+ "cfg-if",
 ]
 
 [[package]]
@@ -7669,6 +7817,39 @@ dependencies = [
  "aligned-vec",
  "num-traits",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vello_common"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbb2141a2bca6e6d598e471fd4d1d7eed8e020aad6a28187edda07f091a325dd"
+dependencies = [
+ "bytemuck",
+ "fearless_simd",
+ "guillotiere",
+ "log",
+ "peniko",
+ "png 0.18.1",
+ "smallvec",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "vello_cpu"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ace506ca414548966fcf3c283be94eb1cad8254de488791ee698bf438b0890a9"
+dependencies = [
+ "bytemuck",
+ "crossbeam-channel",
+ "glifo",
+ "hashbrown 0.17.1",
+ "ordered-channel",
+ "png 0.18.1",
+ "rayon",
+ "thread_local",
+ "vello_common",
 ]
 
 [[package]]

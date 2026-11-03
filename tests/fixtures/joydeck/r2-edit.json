@@ -1,0 +1,8 @@
+[
+  {"command":"select","page":1,"shapes":[2]},
+  {"command":"replace-text","text":"JoyDeck R2 · 已编辑"},
+  {"command":"transform","dx":12,"dy":6,"rotation":15},
+  {"command":"insert-rect","x":400,"y":350,"width":120,"height":60},
+  {"command":"undo"},
+  {"command":"redo"}
+]

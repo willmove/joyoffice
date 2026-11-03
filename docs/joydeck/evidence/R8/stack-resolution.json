@@ -1,0 +1,19 @@
+{
+  "initial_debug": "Windows unoptimized startup overflowed 1 MiB stack during monolithic Ribbon/Home builders.",
+  "fix": "Split per-tab and Home-group construction into bounded non-inlined functions; preserve default stack and unoptimized workspace profile. Fix scroll flex intrinsic width.",
+  "release_stack_reserve": 1048576,
+  "debug_stack_reserve": 1048576,
+  "debug_tabs_observed": [
+    "Home",
+    "Insert",
+    "Design",
+    "Slideshow",
+    "Review",
+    "View",
+    "Shape",
+    "Table",
+    "File"
+  ],
+  "debug_clean_exit": true,
+  "final_release_live_window": true
+}

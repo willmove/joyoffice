@@ -1,0 +1,51 @@
+warning[yanked]: detected yanked crate (try `cargo update -p async-executor`)
+   ┌─ D:\Coding\EditorProjects\a-backups\joyoffice-before-joydeck-r9-20261103-100321\integration-rehearsal/Cargo.lock:28:1
+   │
+28 │ async-executor 1.14.0 registry+https://github.com/rust-lang/crates.io-index
+   │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ yanked version
+   │
+   ├ async-executor v1.14.0
+     ├── accesskit_unix v0.22.1
+     │   └── gpui-pre-linux v0.3.10
+     │       └── gpui-pre-platform v0.3.10
+     │           ├── gpui-kit v0.8.1
+     │           │   ├── joydeck-ui-gpui v0.1.0
+     │           │   │   └── joydeck v0.8.0
+     │           │   ├── joyoffice-ui v0.1.0
+     │           │   │   ├── joydeck-ui-gpui v0.1.0 (*)
+     │           │   │   ├── joysheet-ui-gpui v0.1.0
+     │           │   │   │   └── joysheet v0.1.0
+     │           │   │   └── joyword v0.1.1
+     │           │   ├── joysheet-ui-gpui v0.1.0 (*)
+     │           │   └── joyword v0.1.1 (*)
+     │           ├── joydeck-ui-gpui v0.1.0 (*)
+     │           ├── joysheet-ui-gpui v0.1.0 (*)
+     │           └── joyword v0.1.1 (*)
+     ├── smol v2.0.2
+     │   ├── gpui-base v0.8.1
+     │   │   ├── gpui-component v0.8.1
+     │   │   │   └── gpui-kit v0.8.1 (*)
+     │   │   ├── gpui-kit v0.8.1 (*)
+     │   │   └── joysheet-ui-gpui v0.1.0 (*)
+     │   ├── gpui-component v0.8.1 (*)
+     │   └── gpui-pre-linux v0.3.10 (*)
+     └── zbus v5.19.0
+         ├── accesskit_unix v0.22.1 (*)
+         ├── ashpd v0.13.13
+         │   ├── gpui-base v0.8.1 (*)
+         │   ├── gpui-pre-linux v0.3.10 (*)
+         │   └── oo7 v0.6.0
+         │       └── gpui-pre-linux v0.3.10 (*)
+         ├── atspi-common v0.13.0
+         │   ├── accesskit_atspi_common v0.19.1
+         │   │   └── accesskit_unix v0.22.1 (*)
+         │   ├── atspi v0.29.0
+         │   │   └── accesskit_unix v0.22.1 (*)
+         │   └── atspi-proxies v0.13.0
+         │       └── atspi v0.29.0 (*)
+         ├── atspi-proxies v0.13.0 (*)
+         ├── notify-rust v4.18.2
+         │   └── gpui-pre-linux v0.3.10 (*)
+         └── oo7 v0.6.0 (*)
+
+advisories ok, bans ok, licenses ok, sources ok

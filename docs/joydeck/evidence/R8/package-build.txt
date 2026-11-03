@@ -1,0 +1,22 @@
+Imported source records passed (267 files)
+   Compiling joydeck v0.8.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+   Compiling joydeck-shell v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-ui-gpui v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Finished `release` profile [optimized] target(s) in 1m 39s
+   Compiling joydeck-color v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-color)
+   Compiling joydeck-geom v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-geom)
+   Compiling joydeck-fonts v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-fonts)
+   Compiling joydeck-metafile v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-metafile)
+   Compiling joydeck-legacy v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-legacy)
+   Compiling joydeck-model v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-model)
+   Compiling joydeck-text v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-text)
+   Compiling joydeck-anim v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-anim)
+   Compiling joydeck-engine v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-engine)
+   Compiling joydeck-format v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-format)
+   Compiling joydeck-pptx v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pptx)
+   Compiling joydeck-render v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-render)
+   Compiling joydeck-pdf v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-pdf)
+   Compiling joydeck-shell v0.8.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-cli v0.8.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Finished `release` profile [optimized] target(s) in 1m 38s
+{"directory": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.8.0-r8-windows-x86_64-release-e40383350e", "archive": "D:\\Coding\\EditorProjects\\joydeck-new\\dist\\joydeck\\joydeck-0.8.0-r8-windows-x86_64-release-e40383350e.zip", "archive_sha256": "73d414833d280db35f39d279aea8260c7d24ed0070ea3ed48011839267268747", "source_sha256": "e40383350ec724f70fbfc4512c366babe3335f6bb5bdde27f7d6cd0902d1ddc9", "target": "x86_64-pc-windows-msvc", "profile": "release", "sbom_packages": 455, "missing_license_texts": ["accesskit", "accesskit_consumer", "accesskit_windows", "gpui-kit", "krilla", "lyon", "lyon_algorithms", "lyon_geom", "lyon_path", "lyon_tessellation", "mac", "profiling", "profiling-procmacros", "pulp-wasm-simd-flag", "rust-i18n-macro", "rust-i18n-support", "seahash", "svg_fmt", "taffy", "zune-core", "zune-inflate", "zune-jpeg"], "signed": false}

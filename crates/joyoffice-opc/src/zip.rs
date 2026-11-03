@@ -98,19 +98,25 @@ impl<'a> Cursor<'a> {
 
     fn u16(&mut self) -> Result<u16, ZipError> {
         Ok(u16::from_le_bytes(
-            self.take(2)?.try_into().expect("two bytes"),
+            self.take(2)?
+                .try_into()
+                .map_err(|_| ZipError::Truncated(self.what))?,
         ))
     }
 
     fn u32(&mut self) -> Result<u32, ZipError> {
         Ok(u32::from_le_bytes(
-            self.take(4)?.try_into().expect("four bytes"),
+            self.take(4)?
+                .try_into()
+                .map_err(|_| ZipError::Truncated(self.what))?,
         ))
     }
 
     fn u64(&mut self) -> Result<u64, ZipError> {
         Ok(u64::from_le_bytes(
-            self.take(8)?.try_into().expect("eight bytes"),
+            self.take(8)?
+                .try_into()
+                .map_err(|_| ZipError::Truncated(self.what))?,
         ))
     }
 }
@@ -150,7 +156,11 @@ fn central_directory(bytes: &[u8]) -> Result<(u64, u64, u64), ZipError> {
         }
         return Ok((u64::from(entries), u64::from(offset), u64::from(size)));
     }
-    let mut cursor = Cursor::new(bytes, locator.expect("checked") + 4, "ZIP64 locator");
+    let mut cursor = Cursor::new(
+        bytes,
+        locator.ok_or(ZipError::Malformed("missing ZIP64 locator"))? + 4,
+        "ZIP64 locator",
+    );
     if cursor.u32()? != 0 {
         return Err(ZipError::Unsupported("spanned archive"));
     }

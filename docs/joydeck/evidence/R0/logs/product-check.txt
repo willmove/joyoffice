@@ -1,0 +1,86 @@
+   Compiling joydeck-xtask v0.1.0 (D:\Coding\EditorProjects\joydeck-new\tools\xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running `target\debug\joydeck-xtask.exe check joydeck`
++ C:\Applications\Python\Python314\python.exe D:\Coding\EditorProjects\joydeck-new\scripts\check_docs.py
+Documentation and task references passed
++ C:\Applications\Python\Python314\python.exe D:\Coding\EditorProjects\joydeck-new\scripts\check_dependencies.py
+Exact dependency baseline and CLI isolation passed
++ C:\Applications\Python\Python314\python.exe -m unittest discover -s scripts/tests -p test_*.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK
++ cargo fmt --all -- --check
++ cargo clippy --locked --all-targets -p joydeck -p joydeck-cli -p joydeck-shell -p joydeck-ui-gpui -p joydeck-xtask -p joyoffice-ui -- -D warnings
+    Checking joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+    Checking joydeck-xtask v0.1.0 (D:\Coding\EditorProjects\joydeck-new\tools\xtask)
+    Checking joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-ui)
+    Checking joydeck-cli v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+    Checking joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+    Checking joydeck v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.07s
++ cargo test --locked -p joydeck -p joydeck-cli -p joydeck-shell -p joydeck-ui-gpui -p joydeck-xtask -p joyoffice-ui
+   Compiling joydeck-shell v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-shell)
+   Compiling joydeck-xtask v0.1.0 (D:\Coding\EditorProjects\joydeck-new\tools\xtask)
+   Compiling joyoffice-ui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joyoffice-ui)
+   Compiling joydeck-ui-gpui v0.1.0 (D:\Coding\EditorProjects\joydeck-new\crates\joydeck-ui-gpui)
+   Compiling joydeck-cli v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck-cli)
+   Compiling joydeck v0.1.0 (D:\Coding\EditorProjects\joydeck-new\apps\joydeck)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.94s
+     Running unittests src\main.rs (target\debug\deps\joydeck-1a09c37eafdf61af.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\joydeck_cli-89b862299bc483a7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_shell-e133bdb338d51b86.exe)
+
+running 2 tests
+test tests::navigation_and_zoom_remain_bounded_for_untrusted_events ... ok
+test tests::malformed_preview_is_rejected_instead_of_entering_layout ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joydeck_ui_gpui-aa56c328466d4292.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\joydeck_xtask-752675cab2047363.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\joyoffice_ui-2eb8e515e74c38e8.exe)
+
+running 1 test
+test tests::reading_and_action_colors_remain_legible_across_brands_and_modes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_shell
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joydeck_ui_gpui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests joyoffice_ui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s

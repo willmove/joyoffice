@@ -354,7 +354,6 @@ crates/joyword-docx/src/export/compare.rs:380:let second = moved.body().blocks.g
 crates/joyword-docx/src/export/structure.rs:101:let group = alignment.inserted.last_mut().expect("open group");
 crates/joyword-docx/src/export/structure.rs:536:props: stored.expect("run stored"),
 crates/joyword-corpus/src/lib.rs:58:write_archive(&entries).expect("small in-memory archive")
-crates/joyoffice-opc/src/part.rs:116:let end = self.0.rfind('/').expect("absolute name") + 1;
 crates/joyoffice-opc/src/part.rs:232:let document = PartName::new("/word/document.xml").unwrap();
 crates/joyoffice-opc/src/part.rs:236:let package = PartName::new("/_rels/.rels").unwrap();
 crates/joyoffice-opc/src/part.rs:240:.unwrap()
@@ -362,10 +361,6 @@ crates/joyoffice-opc/src/part.rs:246:.unwrap()
 crates/joyoffice-opc/src/part.rs:251:PartName::new("/_rels/图图").unwrap().relationships_source(),
 crates/joyoffice-opc/src/part.rs:255:PartName::new("/Word/Document.XML").unwrap().key(),
 crates/joyoffice-opc/src/part.rs:260:.unwrap()
-crates/joyoffice-opc/src/zip.rs:101:self.take(2)?.try_into().expect("two bytes"),
-crates/joyoffice-opc/src/zip.rs:107:self.take(4)?.try_into().expect("four bytes"),
-crates/joyoffice-opc/src/zip.rs:113:self.take(8)?.try_into().expect("eight bytes"),
-crates/joyoffice-opc/src/zip.rs:153:let mut cursor = Cursor::new(bytes, locator.expect("checked") + 4, "ZIP64 locator");
 apps/joyword/src/document_canvas.rs:162:document.story_mut(story).expect("body").blocks = BlockSeq::from_vec(blocks);
 apps/joyword/src/document_canvas.rs:226:image::RgbaImage::from_raw(w, h, page.into_bgra()).expect("validated raster dimensions");
 apps/joyword/src/document_canvas.rs:242:.unwrap()
@@ -570,133 +565,339 @@ crates/joyword-shell/src/storage/original.rs:1641:.unwrap()
 # JoyDeck explicit validation/QA inventory, reviewed 2026-10-31.
 # No normal GUI, CLI or product-library sites are added here.
 # Reviewed explicit validation/QA only: apps/joydeck/src/editor_validation.rs — 固定事件阶段中的编辑/恢复/IME验收断言；独立测试文稿与显式证据输出，失败即终止该验收，不报告成功
-apps/joydeck/src/editor_validation.rs:92:assert!(s.gesture.as_ref().unwrap().mode == Some(Mode::Scale));
-apps/joydeck/src/editor_validation.rs:105:assert!(s.gesture.as_ref().unwrap().mode == Some(Mode::Rotate));
-apps/joydeck/src/editor_validation.rs:202:let readonly = cx.update(|cx| crate::viewer::open_window(cx).unwrap().0);
-apps/joydeck/src/editor_validation.rs:216:.unwrap();
-apps/joydeck/src/editor_validation.rs:222:.expect("own recovery snapshot");
-apps/joydeck/src/editor_validation.rs:234:open(cx).unwrap();
-apps/joydeck/src/editor_validation.rs:235:cx.global::<Registry>().0.last().unwrap().clone()
-apps/joydeck/src/editor_validation.rs:265:let path = close_path.take().unwrap();
-apps/joydeck/src/editor_validation.rs:274:assert_eq!(result.unwrap(), 1);
-apps/joydeck/src/editor_validation.rs:277:open(cx).unwrap();
-apps/joydeck/src/editor_validation.rs:278:cx.global::<Registry>().0.last().unwrap().clone()
-apps/joydeck/src/editor_validation.rs:292:let service = discarded.as_ref().unwrap().clone();
-apps/joydeck/src/editor_validation.rs:298:.unwrap();
-apps/joydeck/src/editor_validation.rs:301:cx.update(|cx| cx.global::<Registry>().0.last().unwrap().clone());
-apps/joydeck/src/editor_validation.rs:312:let service = discarded.take().unwrap();
-apps/joydeck/src/editor_validation.rs:318:.unwrap();
-apps/joydeck/src/editor_validation.rs:357:s.text_edit.as_mut().unwrap().cancel();
-apps/joydeck/src/editor_validation.rs:358:assert_eq!(s.text_edit.as_ref().unwrap().object.text,committed.slides[0].objects[0].text);
-apps/joydeck/src/editor_validation.rs:365:let t=s.text_edit.as_mut().unwrap();
-apps/joydeck/src/editor_validation.rs:368:joydeck::text::format(&mut t.object,0..6,t.typing.clone()).unwrap();
-apps/joydeck/src/editor_validation.rs:371:edit::save_new(&path,&s.session.deck).unwrap();
-apps/joydeck/src/editor_validation.rs:372:assert_eq!(edit::open_editable(&path).unwrap(),*s.session.deck);
-apps/joydeck/src/editor_validation.rs:373:std::fs::remove_file(path).unwrap();
-apps/joydeck/src/editor_validation.rs:375:})).unwrap();
-apps/joydeck/src/editor_validation.rs:383:})).unwrap();
-apps/joydeck/src/editor_validation.rs:389:})).unwrap();
-apps/joydeck/src/editor_validation.rs:395:})).unwrap();
-apps/joydeck/src/editor_validation.rs:405:let mut o = if table{joydeck::table::object(4,5).unwrap()}else{edit::object("text")}; o.text.clear(); if !table{o.width=480.;}
-apps/joydeck/src/editor_validation.rs:410:})).unwrap();
-apps/joydeck/src/editor_validation.rs:441:edit::save_new(&path,&s.session.deck).unwrap();
-apps/joydeck/src/editor_validation.rs:442:assert_eq!(edit::open_editable(&path).unwrap(),*s.session.deck);
-apps/joydeck/src/editor_validation.rs:450:})).unwrap();
 # Reviewed explicit validation/QA only: apps/joydeck/src/viewer_validation.rs — 20页原创固定样本；ready和阶段守卫后的文稿/图像/来源检查，缺失即验收失败
-apps/joydeck/src/viewer_validation.rs:37:assert_eq!(s.deck.as_ref().unwrap().slides.len(), 20);
-apps/joydeck/src/viewer_validation.rs:71:&& s.image.as_ref().unwrap().0.2 == 2048 =>
-apps/joydeck/src/viewer_validation.rs:81:&& s.image.as_ref().unwrap().0.2 < 2048 =>
-apps/joydeck/src/viewer_validation.rs:90:let old = s.deck.clone().unwrap();
-apps/joydeck/src/viewer_validation.rs:93:assert!(Arc::ptr_eq(&old, s.deck.as_ref().unwrap()));
-apps/joydeck/src/viewer_validation.rs:106:let d = s.deck.as_ref().unwrap();
-apps/joydeck/src/viewer_validation.rs:117:.unwrap()
-apps/joydeck/src/viewer_validation.rs:131:assert_eq!(s.deck.as_ref().unwrap().slides.len(), 20);
-apps/joydeck/src/viewer_validation.rs:135:.unwrap()
 # Reviewed explicit validation/QA only: apps/joydeck/src/authoring_smoke.rs — 原创作者样本的图表/公开部件/参考像素及已打开窗口断言
-apps/joydeck/src/authoring_smoke.rs:14:if s.session.deck.slides[0].objects[1].chart.as_ref().unwrap().series[0].values[3]!=Some(131.){return Err("chart grid failed".into());}s.history(false,w,cx);if s.session.deck!=base{return Err("chart grid undo failed".into());}s.history(true,w,cx);
-apps/joydeck/src/authoring_smoke.rs:19:let mut parts=joydeck::pptx_write::generate(&s.session.deck)?;joydeck::export::save_parts(&output.join("authoring.pptx"),&parts,&AtomicBool::new(false))?;parts.get_mut("ppt/slides/slide1.xml").unwrap().extend_from_slice(b"<!-- independent public import -->");joydeck::export::save_parts(&output.join("authoring-public.pptx"),&parts,&AtomicBool::new(false))?;
-apps/joydeck/src/authoring_smoke.rs:24:if (phase==1||phase==3)&&since.elapsed()>Duration::from_secs(2){let ready=handle.update(cx,|_,w,cx|view.update(cx,|s,_|->std::result::Result<bool,String>{let backend=if phase==1{"GPUI"}else{"CPU"};if (phase==1&&s.scene.is_none())||(phase==3&&s.image.is_none()){return Ok(false);}let scale=s.canvas_scale(w);let width=s.session.deck.width*scale;let height=s.session.deck.height*scale;let r=preview::render(&s.session.deck,0,(width*w.scale_factor()).round()as u32,&AtomicBool::new(false))?;let mut rgba=r.bgra;for p in rgba.as_chunks_mut::<4>().0{p.swap(0,2);}image::RgbaImage::from_raw(r.width,r.height,rgba).unwrap().save(output.join(format!("M9-{backend}-reference.png"))).map_err(|e|e.to_string())?;eprintln!("M9_CAPTURE {backend} {}",serde_json::json!({"x":s.canvas_origin.0,"y":s.canvas_origin.1,"width":width,"height":height,"viewportHeight":f32::from(w.viewport_size().height)}));Ok(true)})).map_err(|e|e.to_string())??;if ready{phase+=1;}continue;}
-apps/joydeck/src/authoring_smoke.rs:30:match result{Ok(d)=>{eprintln!("M9_SMOKE grid_clipboard_undo_native_public_pdf=true complete=true");let focus=handle.update(cx,|_,w,cx|view.update(cx,|s,cx|{s.prepare_show(w,cx);s.focus.clone()})).unwrap();cx.update(|cx|crate::slideshow::smoke(d,output,handle,focus,cx));},Err(e)=>{eprintln!("M9_SMOKE failed={e}");cx.update(|cx|cx.quit());}}
 # Reviewed explicit validation/QA only: apps/joydeck/src/beta_smoke.rs — 外部验证器提供输出目录；固定比较样本、窗口重开、偏好恢复和Value报告断言
-apps/joydeck/src/beta_smoke.rs:4:let out=PathBuf::from(std::env::var_os("JOYDECK_M14_OUTPUT").unwrap());
-apps/joydeck/src/beta_smoke.rs:36:image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(out.join("M14-compare-reference.png")).map_err(|e|e.to_string())?;
-apps/joydeck/src/beta_smoke.rs:55:let (report,_)=s.comparison.as_ref().unwrap();
-apps/joydeck/src/beta_smoke.rs:56:s.comparison_pick=report.differences.iter().position(|r|r.kind=="object.changed").unwrap();
-apps/joydeck/src/beta_smoke.rs:102:open_session(cx,None).unwrap();let (h,weak)=cx.global::<Registry>().0.last().unwrap().clone();
-apps/joydeck/src/beta_smoke.rs:103:let fresh=weak.upgrade().unwrap();assert_eq!(fresh.read(cx).zoom,0.9);assert!(fresh.read(cx).show_notes);
-apps/joydeck/src/beta_smoke.rs:104:h.update(cx,|_,w,cx|{let expected=fresh.read(cx).preferences.height;assert_eq!(f32::from(w.window_bounds().get_bounds().size.height).round() as u32,expected);}).unwrap();
-apps/joydeck/src/beta_smoke.rs:105:h.update(cx,|_,w,_|w.remove_window()).unwrap();
-apps/joydeck/src/beta_smoke.rs:123:std::fs::write(out.join("native-state.json"),serde_json::to_vec_pretty(&report).unwrap()).map_err(|e|e.to_string())?;
 # Reviewed explicit validation/QA only: apps/joydeck/src/extended_smoke.rs — 外部验证器提供输出目录；独立媒体样本状态、帧尺寸、打印取消和PDF参考断言
-apps/joydeck/src/extended_smoke.rs:6:let out = PathBuf::from(std::env::var_os("JOYDECK_M12_OUTPUT").unwrap());
-apps/joydeck/src/extended_smoke.rs:46:let status = s.av_player.as_ref().ok_or("no player")?.status.lock().unwrap().clone();
-apps/joydeck/src/extended_smoke.rs:51:image::RgbaImage::from_raw(frame.width, frame.height, rgba).unwrap()
-apps/joydeck/src/extended_smoke.rs:112:.unwrap()
-apps/joydeck/src/extended_smoke.rs:153:})).unwrap()).map_err(|e|e.to_string())
-apps/joydeck/src/extended_smoke.rs:198:.unwrap()
 # Reviewed explicit validation/QA only: apps/joydeck/src/media_smoke.rs — 已粘贴原创图片的资源引用与已验证尺寸的参考像素断言
-apps/joydeck/src/media_smoke.rs:30:let image=s.session.deck.slides[0].objects[0].image.as_ref().unwrap().resource.clone();
-apps/joydeck/src/media_smoke.rs:52:image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(output.join(format!("M5-{backend}-reference.png"))).map_err(|e|e.to_string())?;
 # Reviewed explicit validation/QA only: apps/joydeck/src/render_bench.rs — 显式基准程序：固定场景生成、CPU/GPU绘制、尺寸转换、输出目录和报告失败必须中止测量
-apps/joydeck/src/render_bench.rs:75:let r = result.expect("benchmark CPU reference");
-apps/joydeck/src/render_bench.rs:84:image::RgbaImage::from_raw(r.width, r.height, r.bgra).unwrap(),
-apps/joydeck/src/render_bench.rs:103:.expect("benchmark CPU upload");
-apps/joydeck/src/render_bench.rs:109:.expect("benchmark GPU draw");
-apps/joydeck/src/render_bench.rs:153:let bounds = self.bounds.unwrap();
-apps/joydeck/src/render_bench.rs:167:let r=scene.raster(raster_width,&AtomicBool::new(false)).unwrap();let mut rgba=r.bgra;
-apps/joydeck/src/render_bench.rs:169:resvg::tiny_skia::Pixmap::from_vec(rgba,resvg::tiny_skia::IntSize::from_wh(r.width,r.height).unwrap()).unwrap().save_png(path).unwrap();
-apps/joydeck/src/render_bench.rs:191:std::fs::write(s.output.join("native-benchmark.json"),serde_json::to_vec_pretty(&report).unwrap()).unwrap();
-apps/joydeck/src/render_bench.rs:244:std::fs::create_dir_all(&output).expect("benchmark output directory");
-apps/joydeck/src/render_bench.rs:250:let mut c = cache.lock().unwrap();
-apps/joydeck/src/render_bench.rs:251:let edit = bench::edit(&mut c).unwrap();
-apps/joydeck/src/render_bench.rs:252:let effect = bench::effect().unwrap();
-apps/joydeck/src/render_bench.rs:294:.unwrap();
 # Reviewed explicit validation/QA only: apps/joydeck/src/workspace_smoke.rs — 固定双窗口/主题阶段中的peer、theme-1和参考画面断言
-apps/joydeck/src/workspace_smoke.rs:28:let new=cx.update(|cx|->std::result::Result<_,String>{open_session(cx,Some(session)).map_err(|e|e.to_string())?;let (h,weak)=cx.global::<Registry>().0.last().unwrap().clone();Ok((h,weak.upgrade().ok_or("peer closed")?))})?;
-apps/joydeck/src/workspace_smoke.rs:33:let (peer_handle,peer_view)=peer.as_ref().unwrap();
-apps/joydeck/src/workspace_smoke.rs:35:let mut d=s.session.deck.design.clone();d.themes.get_mut("theme-1").unwrap().colors.insert("accent".into(),"#1265c5".into());s.command(Command::Design(Action::SetDesign(d)),cx);
-apps/joydeck/src/workspace_smoke.rs:45:let (h,p)=peer.as_ref().unwrap();h.update(cx,|_,_,cx|p.update(cx,|s,cx|->std::result::Result<(),String>{s.sync_document(cx);if s.selected!=Some(1){return Err("peer selection lost".into());}s.session=Session::new();s.renew_recovery();s.command(Command::Design(Action::PastePages(1,transfer,None)),cx);if s.session.deck.slides.len()!=2{return Err("cross document paste failed".into());}Ok(())})).map_err(|e|e.to_string())??;
-apps/joydeck/src/workspace_smoke.rs:56:image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(output.join(format!("M6-{backend}-reference.png"))).map_err(|e|e.to_string())?;
 # Reviewed explicit validation/QA only: apps/joydeck/src/table_smoke.rs — 固定4×5原创表格样本的焦点/预编辑/Tab/参考像素断言
-apps/joydeck/src/table_smoke.rs:15:let id=s.table_pick.as_ref().unwrap().id.clone();let base=s.session.deck.clone();
-apps/joydeck/src/table_smoke.rs:18:s.begin_cell(2,1,0,w,cx);s.replace_and_mark_text_in_range(None,"取消",None,w,cx);if s.session.deck!=base{return Err("preedit published".into());}s.text_edit.as_mut().unwrap().cancel();s.finish_text(cx);
-apps/joydeck/src/table_smoke.rs:19:let event=KeyDownEvent{keystroke:Keystroke{key:"tab".into(),..Default::default()},is_held:false,prefer_character_input:false};if !s.table_key(&event,w,cx)||s.table_pick.as_ref().unwrap().focus!=(1,1){return Err("Tab navigation failed".into());}s.finish_text(cx);
-apps/joydeck/src/table_smoke.rs:20:let mut reverse=event;reverse.keystroke.modifiers.shift=true;s.table_key(&reverse,w,cx);if s.table_pick.as_ref().unwrap().focus!=(1,0){return Err("reverse Tab failed".into());}s.finish_text(cx);
-apps/joydeck/src/table_smoke.rs:37:let scale=s.canvas_scale(w);let width=s.session.deck.width*scale;let height=s.session.deck.height*scale;let raster=preview::render(&s.session.deck,0,(width*w.scale_factor()).round() as u32,&AtomicBool::new(false))?;let mut rgba=raster.bgra;for p in rgba.as_chunks_mut::<4>().0{p.swap(0,2);}image::RgbaImage::from_raw(raster.width,raster.height,rgba).unwrap().save(output.join(format!("M8-{backend}-reference.png"))).map_err(|e|e.to_string())?;
 # Reviewed explicit validation/QA only: crates/joydeck-shell/examples/authoring-fixture.rs — 只能显式运行的QA样本/基准生成器：必需输出参数、原创样本、部件、渲染和报告失败即非零退出
-crates/joydeck-shell/examples/authoring-fixture.rs:12:.expect("output folder");
-crates/joydeck-shell/examples/authoring-fixture.rs:13:std::fs::create_dir_all(&out).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:15:edit::save(&out.join("authoring.joydeck"), &d).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:16:let parts = pptx_write::generate(&d).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:17:export::save_parts(&out.join("authoring.pptx"), &parts, &AtomicBool::new(false)).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:21:.unwrap()
-crates/joydeck-shell/examples/authoring-fixture.rs:28:.unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:29:let r = preview::render(&d, 0, 1600, &AtomicBool::new(false)).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:35:.unwrap()
-crates/joydeck-shell/examples/authoring-fixture.rs:37:.unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:71:bench.validate().unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:72:let mut s = show::ShowSnapshot::new(Arc::new(bench), 0).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:82:let frame = c.frame(&s).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:83:preview::render(&frame, s.page(), 1024, &AtomicBool::new(false)).unwrap();
-crates/joydeck-shell/examples/authoring-fixture.rs:92:serde_json::to_vec_pretty(&report).unwrap(),
-crates/joydeck-shell/examples/authoring-fixture.rs:94:.unwrap();
 # Reviewed explicit validation/QA only: crates/joydeck-shell/examples/beta-qualification.rs — 只能显式运行的QA资格化：原创语料分支构造、已生成样本hash/报告、必需输出父目录断言
-crates/joydeck-shell/examples/beta-qualification.rs:17:format!("{:x}", Sha256::digest(std::fs::read(path).unwrap()))
-crates/joydeck-shell/examples/beta-qualification.rs:20:std::fs::write(path, serde_json::to_vec_pretty(value).unwrap()).unwrap();
-crates/joydeck-shell/examples/beta-qualification.rs:60:for (i, c) in o.table.as_mut().unwrap().cells.iter_mut().enumerate() {
-crates/joydeck-shell/examples/beta-qualification.rs:66:d.slides[0].objects[1].chart.as_mut().unwrap().series[0].values = vec![
-crates/joydeck-shell/examples/beta-qualification.rs:117:let t = d.presentation.slides.get_mut("page-0").unwrap();
-crates/joydeck-shell/examples/beta-qualification.rs:146:.unwrap()
-crates/joydeck-shell/examples/beta-qualification.rs:158:.unwrap()
-crates/joydeck-shell/examples/beta-qualification.rs:266:std::fs::create_dir_all(out.parent().unwrap()).map_err(|e| e.to_string())?;
 # Reviewed explicit validation/QA only: apps/joydeck/src/scene_canvas_validation.rs — 显式画布验收：固定场景、缓存不变量、同快照身份与清空场景断言
-apps/joydeck/src/scene_canvas_validation.rs:25:assert!(s.accelerated);assert!(s.scene.as_ref().unwrap().coverage().2>0);
-apps/joydeck/src/scene_canvas_validation.rs:26:before=s.gpu_cache.stats.clone();builds=s.scene_cache.lock().unwrap().stats.builds;
-apps/joydeck/src/scene_canvas_validation.rs:40:assert_eq!(s.scene_cache.lock().unwrap().stats.builds,builds);
-apps/joydeck/src/scene_canvas_validation.rs:47:assert_eq!(s.scene_cache.lock().unwrap().stats.builds,builds);
-apps/joydeck/src/scene_canvas_validation.rs:54:assert!(Arc::ptr_eq(moved.as_ref().unwrap(),&s.session.deck));
-apps/joydeck/src/scene_canvas_validation.rs:59:assert!(s.accelerated);assert!(s.gpu_cache.stats.atlas_removals>before.atlas_removals);assert!(Arc::ptr_eq(moved.as_ref().unwrap(),&s.session.deck));
-apps/joydeck/src/scene_canvas_validation.rs:69:assert!(s.accelerated);assert!(s.scene.as_ref().unwrap().nodes.is_empty());
 crates/joyword-shell/src/storage/original.rs:1777:std::fs::set_permissions(&case.path, std::fs::Permissions::from_mode(mode)).unwrap();
 crates/joyword-shell/src/storage/original.rs:1779:.unwrap()
 crates/joyword-shell/src/storage/original.rs:1802:std::fs::metadata(&case.path).unwrap().permissions().mode() & 0o777,
+
+# R9: exact retained test assertions and compiled-font invariant; see panic-audit.json.
+crates/joydeck-engine/src/content.rs:475:.unwrap()
+crates/joydeck-engine/src/content.rs:479:assert!(s.execute(Command::Undo).unwrap());
+crates/joydeck-engine/src/content.rs:482:assert!(s.execute(Command::Redo).unwrap());
+crates/joydeck-engine/src/content.rs:505:.unwrap();
+crates/joydeck-engine/src/content.rs:513:.unwrap();
+crates/joydeck-engine/src/media_refs.rs:426:let mut s = (**p.slides.first().expect("slide")).clone();
+crates/joydeck-fonts/build.rs:281:std::fs::create_dir(&path).unwrap();
+crates/joydeck-fonts/build.rs:282:std::fs::create_dir(path.join("fonts")).unwrap();
+crates/joydeck-fonts/build.rs:283:std::fs::write(path.join("fonts/fixture.ttf"), b"build-input path fixture").unwrap();
+crates/joydeck-fonts/build.rs:289:.unwrap();
+crates/joydeck-fonts/build.rs:295:std::fs::write(self.0.join("fonts/manifest.txt"), text).unwrap();
+crates/joydeck-fonts/build.rs:300:std::fs::write(self.0.join("fonts/latin-manifest.txt"), text).unwrap();
+crates/joydeck-fonts/build.rs:318:std::fs::write(self.0.join("fonts/simplified-chinese-manifest.txt"), text).unwrap();
+crates/joydeck-fonts/build.rs:337:assert_eq!(input_fonts(None, false, false).unwrap(), "");
+crates/joydeck-fonts/build.rs:345:let main = input_fonts(Some(&fixture.0), false, false).unwrap();
+crates/joydeck-fonts/build.rs:347:assert_eq!(input_fonts(Some(&fixture.0), false, false).unwrap(), main);
+crates/joydeck-fonts/build.rs:350:assert_eq!(input_fonts(Some(&fixture.0), false, false).unwrap(), main);
+crates/joydeck-fonts/build.rs:359:let before = input_fonts(Some(&fixture.0), true, true).unwrap();
+crates/joydeck-fonts/build.rs:361:let native = input_fonts(Some(&fixture.0), false, true).unwrap();
+crates/joydeck-fonts/build.rs:363:assert_eq!(input_fonts(Some(&fixture.0), true, true).unwrap(), before);
+crates/joydeck-fonts/build.rs:365:assert_eq!(input_fonts(Some(&fixture.0), true, true).unwrap(), before);
+crates/joydeck-fonts/build.rs:421:let native = input_fonts(Some(&fixture.0), false, true).unwrap();
+crates/joydeck-fonts/build.rs:456:let native = input_fonts(Some(&fixture.0), false, true).unwrap();
+crates/joydeck-fonts/build.rs:480:let catalog = input_fonts(Some(&fixture.0), wasm, false).unwrap();
+crates/joydeck-fonts/build.rs:510:let native = input_fonts(Some(&fixture.0), false, true).unwrap();
+crates/joydeck-fonts/build.rs:534:let web = input_fonts(Some(&fixture.0), true, true).unwrap();
+crates/joydeck-fonts/build.rs:630:let web = input_fonts(Some(&fixture.0), true, true).unwrap();
+crates/joydeck-fonts/build.rs:646:let static_catalog = input_fonts(Some(&fixture.0), wasm, true).unwrap();
+crates/joydeck-fonts/build.rs:651:let variable_catalog = input_fonts(Some(&fixture.0), wasm, true).unwrap();
+crates/joydeck-fonts/src/fallback.rs:362:.expect("cascade did not return");
+crates/joydeck-fonts/src/fontdb.rs:891:.expect("the compiled-in last-resort face parses");
+crates/joydeck-format/src/chart_parts_tests.rs:18:.unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:32:id: ShapeId(p.alloc_id().unwrap()),
+crates/joydeck-format/src/chart_parts_tests.rs:37:id: ShapeId(p.alloc_id().unwrap()),
+crates/joydeck-format/src/chart_parts_tests.rs:61:let mut z = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:63:serde_json::from_slice(&read_entry(&mut z, "presentation.json").unwrap()).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:67:let f = z.by_index(i).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:68:if f.name().unwrap() == "presentation.json" {
+crates/joydeck-format/src/chart_parts_tests.rs:73:.unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:74:out.write_all(&serde_json::to_vec(&json).unwrap()).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:76:out.raw_copy_file(f).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:79:out.finish().unwrap().into_inner()
+crates/joydeck-format/src/chart_parts_tests.rs:86:let bytes = save(&p).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:87:let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:89:z.by_name("presentation.json").unwrap().size() < 128 * 1024,
+crates/joydeck-format/src/chart_parts_tests.rs:93:serde_json::from_slice(&read_entry(&mut z, "presentation.json").unwrap()).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:94:let part = part_json(&mut manifest).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:99:let entry = part["nativeEntry"].as_str().unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:101:assert_eq!(read_entry(&mut z, entry).unwrap(), payload);
+crates/joydeck-format/src/chart_parts_tests.rs:103:assert_eq!(load(&bytes).unwrap(), p);
+crates/joydeck-format/src/chart_parts_tests.rs:110:.unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:111:let bytes = save(&p).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:145:let media = manifest["presentation"]["media"].as_array_mut().unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:165:.unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:166:let legacy = rewrite_manifest(&save(&p).unwrap(), |manifest| {
+crates/joydeck-format/src/chart_parts_tests.rs:167:let part = part_json(manifest).unwrap().as_object_mut().unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:179:.unwrap()
+crates/joydeck-format/src/chart_parts_tests.rs:220:let bytes = save(&p).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:221:let z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:224:.map(|n| n.unwrap())
+crates/joydeck-format/src/chart_parts_tests.rs:229:assert_eq!(load(&bytes).unwrap(), p);
+crates/joydeck-format/src/chart_parts_tests.rs:235:let bytes = save(&p).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:236:let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:238:serde_json::from_slice(&read_entry(&mut z, "presentation.json").unwrap()).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:239:let name = part_json(&mut json).unwrap()["nativeEntry"]
+crates/joydeck-format/src/chart_parts_tests.rs:241:.unwrap()
+crates/joydeck-format/src/chart_parts_tests.rs:243:let start = z.by_name(&name).unwrap().data_start().unwrap() as usize;
+crates/joydeck-format/src/chart_parts_tests.rs:246:let f = z.by_index(i).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:247:if f.name().unwrap() != name {
+crates/joydeck-format/src/chart_parts_tests.rs:248:out.raw_copy_file(f).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:251:let missing = out.finish().unwrap().into_inner();
+crates/joydeck-format/src/chart_parts_tests.rs:252:let (q, damaged) = load_checked(&missing).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:255:panic!("group")
+crates/joydeck-format/src/chart_parts_tests.rs:258:panic!("chart")
+crates/joydeck-format/src/chart_parts_tests.rs:269:let bytes = save(&p).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:277:part_json(manifest).unwrap()["nativeEntry"] = json!(entry);
+crates/joydeck-format/src/chart_parts_tests.rs:282:part_json(manifest).unwrap()["bytes"] = json!([3]);
+crates/joydeck-format/src/chart_parts_tests.rs:289:panic!("group")
+crates/joydeck-format/src/chart_parts_tests.rs:292:panic!("chart")
+crates/joydeck-format/src/chart_parts_tests.rs:295:let aliased = rewrite_manifest(&save(&p).unwrap(), |manifest| {
+crates/joydeck-format/src/chart_parts_tests.rs:318:panic!("group")
+crates/joydeck-format/src/chart_parts_tests.rs:321:panic!("chart")
+crates/joydeck-format/src/chart_parts_tests.rs:331:let mut bytes = save(&with_two_parts()).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:333:let mut z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:337:.unwrap()
+crates/joydeck-format/src/chart_parts_tests.rs:339:.unwrap() as usize
+crates/joydeck-format/src/chart_parts_tests.rs:364:let mut bytes = save(&with_two_parts()).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:376:let z = zip::ZipArchive::new(Cursor::new(bytes.as_slice())).unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:379:.map(|n| n.unwrap())
+crates/joydeck-format/src/chart_parts_tests.rs:391:.unwrap();
+crates/joydeck-format/src/chart_parts_tests.rs:398:panic!("group")
+crates/joydeck-format/src/chart_parts_tests.rs:401:panic!("chart")
+crates/joydeck-format/src/lib.rs:846:let layout = defaults::layout_of_kind(&p, LayoutType::TitleAndContent).unwrap();
+crates/joydeck-format/src/lib.rs:847:let mut s = defaults::new_slide(&mut p, layout).expect("slide");
+crates/joydeck-format/src/rtf.rs:530:.unwrap();
+crates/joydeck-geom/src/lib.rs:291:assert!((Unit::Inches.parse("2.54 cm").unwrap() - 72.0).abs() < 1e-9);
+crates/joydeck-geom/src/morph.rs:617:build("ellipse", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:618:build("star5", 200.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:640:build("triangle", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:641:build("ellipse", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:659:build("rect", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:660:build("cube", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:704:build("rect", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:705:build("line", 100.0, 0.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:717:build("donut", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:718:build("ellipse", 100.0, 100.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:745:build("rect", 10.0, 10.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:746:build("ellipse", 40.0, 20.0, &[]).unwrap(),
+crates/joydeck-geom/src/morph.rs:773:let r = build("rect", 10.0, 10.0, &[]).unwrap();
+crates/joydeck-geom/src/morph.rs:774:let line = build("line", 10.0, 0.0, &[]).unwrap();
+crates/joydeck-geom/src/morph.rs:828:let e = contours(&build("ellipse", 100.0, 100.0, &[]).unwrap().paths[0].path);
+crates/joydeck-geom/src/preset/extra.rs:849:let i = info(n).unwrap_or_else(|| panic!("{n} missing from the catalog"));
+crates/joydeck-geom/src/preset/extra.rs:902:let g = build(n, w, h, adj).unwrap_or_else(|| panic!("{n} did not build"));
+crates/joydeck-geom/src/preset/extra.rs:937:let g = build(n, 480.0, 300.0, &[]).unwrap_or_else(|| panic!("{n}"));
+crates/joydeck-geom/src/preset/extra.rs:1003:let g = build(n, 100.0, 100.0, &[]).unwrap_or_else(|| panic!("{n}"));
+crates/joydeck-geom/src/preset/extra.rs:1026:.unwrap_or_else(|| panic!("accentBorderCallout3"));
+crates/joydeck-geom/src/preset/extra.rs:1146:.unwrap_or_else(|| panic!("curvedRightArrow"));
+crates/joydeck-geom/src/preset/extra.rs:1270:let g = build("funnel", 480.0, 300.0, &[]).unwrap_or_else(|| panic!("funnel"));
+crates/joydeck-metafile/src/clip.rs:208:let or = combine(a.clone(), vec![[200.0, 0.0, 210.0, 10.0]], RGN_OR, None).unwrap();
+crates/joydeck-metafile/src/clip.rs:210:let diff = combine(a.clone(), vec![[20.0, 0.0, 40.0, 40.0]], RGN_DIFF, None).unwrap();
+crates/joydeck-metafile/src/clip.rs:212:let xor = combine(a, vec![[80.0, 0.0, 120.0, 40.0]], RGN_XOR, None).unwrap();
+crates/joydeck-metafile/src/clip.rs:219:let r = exclude(None, [10.0, 0.0, 20.0, 40.0], Some([0.0, 0.0, 40.0, 40.0])).unwrap();
+crates/joydeck-model/src/chart.rs:1205:let (lo, hi) = e.range(&vals, 0, 3.0).unwrap();
+crates/joydeck-model/src/chart.rs:1965:.expect("a bin holds 2.1");
+crates/joydeck-model/src/chart.rs:1990:let b = box_stats(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0]).unwrap();
+crates/joydeck-model/src/chart.rs:1996:let one = box_stats(vec![5.0]).unwrap();
+crates/joydeck-model/src/chart.rs:2005:let b = box_stats_by(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 100.0], true).unwrap();
+crates/joydeck-model/src/table.rs:605:t.cell(r, c).unwrap().text.text()
+crates/joydeck-model/src/table.rs:617:let a = t.cell(0, 0).unwrap();
+crates/joydeck-model/src/table.rs:646:let a = t.cell(1, 1).unwrap();
+crates/joydeck-model/src/table.rs:648:assert!(t.cell(2, 2).unwrap().h_merge && t.cell(2, 2).unwrap().v_merge);
+crates/joydeck-model/src/table.rs:650:assert_eq!(t.cell(1, 2).unwrap().grid_span, 2);
+crates/joydeck-model/src/table.rs:659:let a = t.cell(1, 1).unwrap();
+crates/joydeck-model/src/table.rs:664:let a = t.cell(1, 1).unwrap();
+crates/joydeck-model/src/trendline.rs:639:.expect("fit of tiny x values");
+crates/joydeck-model/src/trendline.rs:640:assert!((fit.y(3e-10).unwrap() - 3.0).abs() < 1e-6);
+crates/joydeck-model/src/trendline.rs:649:.expect("fit of offset x values");
+crates/joydeck-model/src/trendline.rs:650:assert!((fit.y(45000.02).unwrap() - 3.0).abs() < 1e-4);
+crates/joydeck-model/src/trendline.rs:654:.expect("fit of 1e7 offset");
+crates/joydeck-model/src/trendline.rs:655:assert!((fit.y(1e7 + 2.0).unwrap() - 3.0).abs() < 1e-4);
+crates/joydeck-model/src/trendline.rs:664:let fit = forced.fit(&xs, &ys).expect("fixed-intercept fit");
+crates/joydeck-model/src/trendline.rs:665:assert!((fit.y(1e7 + 2.0).unwrap() / (2.0 * (1e7 + 2.0)) - 1.0).abs() < 1e-9);
+crates/joydeck-model/src/trendline.rs:688:let fit = line(TrendlineType::Linear).fit(&xs, &ys).expect("fit");
+crates/joydeck-model/src/trendline.rs:689:assert!((fit.y(1.0).unwrap() - 3.0).abs() < 1e-9);
+crates/joydeck-model/src/trendline.rs:690:assert!((fit.y(4.0).unwrap() - 9.0).abs() < 1e-9);
+crates/joydeck-model/src/trendline.rs:695:let fit = forced.fit(&[1.0, 2.0], &[2.0, 4.0]).expect("fit");
+crates/joydeck-model/src/trendline.rs:696:assert!((fit.y(3.0).unwrap() - 6.0).abs() < 1e-6);
+crates/joydeck-model/src/trendline.rs:705:.expect("exp");
+crates/joydeck-model/src/trendline.rs:707:assert!((exp.y(*x).unwrap() - y).abs() < 1e-6, "{x}");
+crates/joydeck-model/src/trendline.rs:709:assert!(exp.equation().unwrap().contains("e^("));
+crates/joydeck-model/src/trendline.rs:715:.expect("log");
+crates/joydeck-model/src/trendline.rs:716:assert!((log.y(2.0).unwrap() - 2.0_f64.ln()).abs() < 1e-6);
+crates/joydeck-model/src/trendline.rs:717:assert!(log.equation().unwrap().contains("ln(x)"));
+crates/joydeck-model/src/trendline.rs:720:.expect("power");
+crates/joydeck-model/src/trendline.rs:721:assert!((power.y(3.0).unwrap() - 9.0).abs() < 1e-6);
+crates/joydeck-model/src/trendline.rs:725:let quad = poly.fit(&xs, &[1.0, 4.0, 9.0, 16.0]).expect("poly");
+crates/joydeck-model/src/trendline.rs:726:assert!((quad.y(3.0).unwrap() - 9.0).abs() < 1e-6);
+crates/joydeck-model/src/trendline.rs:738:.expect("ma");
+crates/joydeck-model/src/trendline.rs:747:.expect("line");
+crates/joydeck-model/src/trendline.rs:763:.expect("ma");
+crates/joydeck-model/src/trendline.rs:789:let fit = t.fit(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]).expect("fit");
+crates/joydeck-model/src/trendline.rs:798:.expect("linear");
+crates/joydeck-model/src/trendline.rs:803:let quad = poly.fit(&xs, &ys).expect("poly");
+crates/joydeck-model/src/trendline.rs:806:let log = line(TrendlineType::Log).fit(&xs, &ys).expect("log");
+crates/joydeck-model/src/trendline.rs:810:.expect("zero");
+crates/joydeck-pptx/src/custgeom.rs:503:let d = parse(x).unwrap();
+crates/joydeck-pptx/src/custgeom.rs:530:let d = parse(w.s.as_bytes()).unwrap();
+crates/joydeck-pptx/src/dgm.rs:1102:let doc = crate::xml::parse(&xml).unwrap();
+crates/joydeck-pptx/src/dgm.rs:1104:let s = String::from_utf8(xml).unwrap();
+crates/joydeck-pptx/src/dgm.rs:1134:.unwrap()
+crates/joydeck-pptx/src/dgm.rs:1137:let doc = crate::xml::parse(&xml).unwrap();
+crates/joydeck-pptx/src/dgm.rs:1149:let doc = crate::xml::parse(&xml).unwrap();
+crates/joydeck-pptx/src/dgm.rs:1165:.unwrap()
+crates/joydeck-pptx/src/dgm.rs:1230:let doc = crate::xml::parse(xml).unwrap();
+crates/joydeck-pptx/src/lib.rs:167:let mut z = zip::ZipArchive::new(std::io::Cursor::new(pptx)).unwrap();
+crates/joydeck-pptx/src/lib.rs:170:.unwrap()
+crates/joydeck-pptx/src/lib.rs:172:.unwrap();
+crates/joydeck-pptx/src/lib.rs:175:out.start_file("[Content_Types].xml", o).unwrap();
+crates/joydeck-pptx/src/lib.rs:176:out.write_all(br#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/theme/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/></Types>"#).unwrap();
+crates/joydeck-pptx/src/lib.rs:177:out.start_file("_rels/.rels", o).unwrap();
+crates/joydeck-pptx/src/lib.rs:178:out.write_all(br#"<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="theme/theme/theme1.xml"/></Relationships>"#).unwrap();
+crates/joydeck-pptx/src/lib.rs:179:out.start_file("theme/theme/theme1.xml", o).unwrap();
+crates/joydeck-pptx/src/lib.rs:180:out.write_all(theme.as_bytes()).unwrap();
+crates/joydeck-pptx/src/lib.rs:181:out.finish().unwrap().into_inner()
+crates/joydeck-pptx/src/lib.rs:186:let pptx = crate::export(&custom()).unwrap();
+crates/joydeck-pptx/src/lib.rs:188:let (t, _) = crate::import_theme(&bytes).unwrap();
+crates/joydeck-pptx/src/lib.rs:207:.unwrap();
+crates/joydeck-pptx/src/lib.rs:208:out.write_all(b"<Types/>").unwrap();
+crates/joydeck-pptx/src/lib.rs:209:assert!(crate::import_theme(&out.finish().unwrap().into_inner()).is_err());
+crates/joydeck-pptx/src/maps.rs:560:let e = effect_for_preset(AnimClass::Exit, preset).expect("known exit");
+crates/joydeck-pptx/src/maps.rs:583:.unwrap_or_else(|| panic!("no xml for {kind}"));
+crates/joydeck-pptx/src/maps.rs:585:let d = parse(w.s.as_bytes()).unwrap();
+crates/joydeck-pptx/src/maps.rs:587:transition_from_xml(&d.root).unwrap_or_else(|| panic!("no read for {kind}"));
+crates/joydeck-pptx/src/opc.rs:591:zw.start_file(*name, o).unwrap();
+crates/joydeck-pptx/src/opc.rs:592:zw.write_all(&vec![b'x'; *len]).unwrap();
+crates/joydeck-pptx/src/opc.rs:594:zw.finish().unwrap().into_inner()
+crates/joydeck-pptx/src/opc.rs:603:let p = Package::open_within(&z, 1000, 100, 130).unwrap();
+crates/joydeck-pptx/src/opc.rs:608:let p = Package::open_within(&z, 1000, 100, 10_000).unwrap();
+crates/joydeck-pptx/src/opc.rs:615:let p = Package::open(&z).unwrap();
+crates/joydeck-pptx/src/opc.rs:626:let p = Package::open(&z).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:888:let doc = crate::xml::parse(xml.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:889:let c = chart_within(&doc.root, 250_000).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:900:let c = chart_from(&doc.root).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:908:let back = read_chart_xml(&crate::write::chart::chart_xml(&c).0).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:913:.unwrap()
+crates/joydeck-pptx/src/read/chart.rs:922:let c = read_chart_xml(xml).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:939:let back = read_chart_xml(&crate::write::chart::chart_xml(&edited).0).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:947:assert_eq!(read_chart_xml(xml).unwrap().y_log_base, Some(10.0));
+crates/joydeck-pptx/src/read/chart.rs:953:let c = read_chart_xml(xml).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:954:let e = c.series[0].error_bars.clone().unwrap();
+crates/joydeck-pptx/src/read/chart.rs:967:let c = read_chart_xml(xml.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:971:let c = read_chart_xml(xml).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:985:let c = read_chart_xml(xml).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1015:let c2 = read_chart_xml(swapped.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1026:let c = read_chart_xml(single.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1038:let fmt = |x: &str| read_chart_xml(xml(x).as_bytes()).unwrap().y_format;
+crates/joydeck-pptx/src/read/chart.rs:1054:let c = read_chart_xml(xml.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1066:.unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1087:let c = read_chart_xml(xml.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1093:let c = read_chart_xml(xml.as_bytes()).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1099:read_chart_xml(xml.as_bytes()).unwrap().text_size,
+crates/joydeck-pptx/src/read/chart.rs:1116:.unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1124:.unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1136:let c = read_chart_xml(xml).unwrap();
+crates/joydeck-pptx/src/read/chart.rs:1169:read_chart_xml(xml.as_bytes()).unwrap()
+crates/joydeck-pptx/src/read/dml.rs:904:.unwrap();
+crates/joydeck-pptx/src/read/dml.rs:905:let c = color(&d.root).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:916:let d = parse(br#"<x><a:sysClr val="window" lastClr="FFFFFF"/></x>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:918:color(&d.root).unwrap().base,
+crates/joydeck-pptx/src/read/dml.rs:924:let d = parse(br#"<x><a:scrgbClr r="100000" g="0" b="0"/></x>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:926:color(&d.root).unwrap().base,
+crates/joydeck-pptx/src/read/dml.rs:945:let d = parse(br#"<a:bodyPr lIns="91440" anchor="ctr" wrap="none" vert="vert270" numCol="2"><a:normAutofit fontScale="62500" lnSpcReduction="20000"/></a:bodyPr>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:962:let d = parse(br#"<a:bodyPr><a:normAutofit/></a:bodyPr>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:970:let d = parse(br#"<a:bodyPr><a:normAutofit fontScale="100000"/></a:bodyPr>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:978:let d = parse(br#"<a:bodyPr spcFirstLastPara="1"/>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:982:let d = parse(br#"<a:bodyPr vert="mongolianVert"/>"#).unwrap();
+crates/joydeck-pptx/src/read/dml.rs:986:let d = parse(br#"<a:bodyPr vert="wordArtVertRtl"/>"#).unwrap();
+crates/joydeck-pptx/src/tables.rs:410:let d = crate::xml::parse(&table_styles_xml(&used, &[])).unwrap();
+crates/joydeck-pptx/src/tables.rs:416:.map(|e| ORDER.iter().position(|o| *o == e.local()).unwrap())
+crates/joydeck-pptx/src/write/chart.rs:1281:let c = crate::read::read_chartex_xml(MAP.as_bytes()).expect("a region map is read");
+crates/joydeck-pptx/src/write/chart.rs:1307:let back = crate::read::read_chartex_xml(built.as_bytes()).expect("the rebuilt part reads");
+crates/joydeck-pptx/src/write/chart.rs:1342:let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();
+crates/joydeck-pptx/src/write/chart.rs:1357:.unwrap()
+crates/joydeck-pptx/src/write/chart.rs:1365:crate::read::chart::read_chart_xml(&xml).unwrap().text_color,
+crates/joydeck-pptx/src/write/chart.rs:1369:let xml = String::from_utf8(super::chart_xml(&c).0).unwrap();
+crates/joydeck-pptx/src/write/chart.rs:1373:.unwrap()
+crates/joydeck-pptx/src/write/chart.rs:1384:let c = crate::read::chart::read_chart_xml(xml.as_bytes()).unwrap();
+crates/joydeck-pptx/src/write/chart.rs:1397:let back = crate::read::chart::read_chart_xml(&out).unwrap();
+crates/joydeck-pptx/src/write/chart.rs:1410:.unwrap()
+crates/joydeck-pptx/src/write/chart.rs:1416:.unwrap()
+crates/joydeck-pptx/src/xml.rs:574:.expect("parse");
+crates/joydeck-pptx/src/xml.rs:587:let d = parse(w.s.as_bytes()).expect("parse");
+crates/joydeck-pptx/src/xml.rs:594:.unwrap();
+crates/joydeck-pptx/src/xml.rs:600:let x = d.root.child("x").unwrap();
+crates/joydeck-pptx/src/xml.rs:622:let d = parse(b"<p:sp a=\"1\"><p:t>x &amp; y</p:t><e/></p:sp>").unwrap();
+crates/joydeck-render/src/bevel.rs:248:let b = from_raw(raw).unwrap();
+crates/joydeck-render/src/camera.rs:252:let c = from_raw(r#"<a:scene3d><a:camera prst="orthographicFront"><a:rot lat="0" lon="3600000" rev="0"/></a:camera><a:lightRig rig="threePt" dir="t"><a:rot lat="0" lon="0" rev="1200000"/></a:lightRig></a:scene3d>"#).unwrap();
+crates/joydeck-render/src/camera.rs:253:let m = affine(&c, 100.0, 75.0).unwrap();
+crates/joydeck-render/src/camera.rs:269:let c = from_raw(r#"<a:scene3d><a:camera prst="isometricTopUp"/><a:lightRig rig="threePt" dir="t"/></a:scene3d>"#).unwrap();
+crates/joydeck-render/src/camera.rs:270:let k = corners(affine(&c, 100.0, 75.0).unwrap(), 100.0, 75.0);
+crates/joydeck-render/src/camera.rs:299:.unwrap();
+crates/joydeck-render/src/camera.rs:300:let k = corners(affine(&c, 100.0, 75.0).unwrap(), 100.0, 75.0);
+crates/joydeck-render/src/chart.rs:2113:clip_seg(Point::new(-50.0, 25.0), Point::new(150.0, 25.0), r).expect("clipped");
+crates/joydeck-render/src/chart.rs:2117:let (a, b) = clip_seg(Point::new(10.0, 10.0), Point::new(40.0, 20.0), r).expect("inside");
+crates/joydeck-render/src/extent.rs:313:.unwrap()
+crates/joydeck-render/src/extent.rs:329:.unwrap();
+crates/joydeck-render/src/extrude.rs:216:let e = from_raw(raw).unwrap();
+crates/joydeck-render/src/images.rs:621:.expect("encode");
+crates/joydeck-render/src/images.rs:633:let img = decode_raster(&png, rgba).expect("fits exactly");
+crates/joydeck-render/src/images.rs:657:let last = srcs.last().expect("source");
+crates/joydeck-render/src/images.rs:677:let a = decode_for(&good, 64.0, &PictureAdjust::default()).expect("decodes");
+crates/joydeck-render/src/images.rs:678:let b = decode_for(&good, 64.0, &PictureAdjust::default()).expect("cached");
+crates/joydeck-render/src/images.rs:859:.expect("gif");
+crates/joydeck-render/src/images.rs:860:let a = decode_anim(&out, &PictureAdjust::default()).expect("animated");
+crates/joydeck-render/src/scene.rs:691:let a = cache.build(before, 0, 1., &|| false).unwrap();
+crates/joydeck-render/src/scene.rs:692:let b = cache.build(after, 0, 1., &|| false).unwrap();
+crates/joydeck-render/src/scene.rs:697:panic!("font environment did not stabilize for cache identity check")
+crates/joydeck-render/src/scene.rs:707:.unwrap()
+crates/joydeck-render/src/scene.rs:726:let s = Cache::default().build(&p, 0, 1., &|| false).unwrap();
+crates/joydeck-render/src/scene.rs:727:let actual = raster(&s, 1.).unwrap();
+crates/joydeck-render/src/scene.rs:751:let dpi = cache.build(&p, 0, 2., &|| false).unwrap();
+crates/joydeck-render/src/scene.rs:757:let theme = cache.build(&p, 0, 1., &|| false).unwrap();
+crates/joydeck-render/src/scene.rs:792:let first = cache.build(&p, 0, 1., &|| false).unwrap();
+crates/joydeck-render/src/scene.rs:797:assert!(first.nodes[1].geometry.bitmap.as_ref().unwrap().width < 400);
+crates/joydeck-render/src/scene.rs:798:let actual = raster(&first, 1.).unwrap();
+crates/joydeck-render/src/scene.rs:811:.unwrap()
+crates/joydeck-render/src/tests_wild.rs:264:other => panic!("{other:?}"),
+crates/joydeck-render/src/tests_wild.rs:460:.unwrap();
+crates/joydeck-render/src/tests_wild.rs:468:.expect("media");
+crates/joydeck-render/src/tests_wild.rs:734:.unwrap();
+crates/joydeck-render/src/tests_wild.rs:743:.expect("media");
+crates/joydeck-render/src/tests_wild.rs:1087:.expect("media");
+crates/joydeck-render/src/tests_wild.rs:1233:.expect("media");
+crates/joydeck-shell/src/automation_tests.rs:22:let root = Scratch::new().unwrap();
+crates/joydeck-shell/src/automation_tests.rs:23:let mut d = Dispatcher::new(&root.0).unwrap();
+crates/joydeck-shell/src/automation_tests.rs:25:let target = new["result"]["documentId"].as_u64().unwrap();
+crates/joydeck-shell/src/automation_tests.rs:70:.unwrap();
+crates/joydeck-shell/src/automation_tests.rs:75:let root = Scratch::new().unwrap();
+crates/joydeck-shell/src/automation_tests.rs:76:let mut d = Dispatcher::new(&root.0).unwrap();
+crates/joydeck-shell/src/automation_tests.rs:82:let elsewhere = Scratch::new().unwrap();
+crates/joydeck-shell/src/automation_tests.rs:93:let target = status["result"]["documentId"].as_u64().unwrap();
+crates/joydeck-shell/src/show_tests.rs:20:.unwrap();
+crates/joydeck-shell/src/show_tests.rs:22:let id = model.slides[0].shapes.last().unwrap().id;
+crates/joydeck-shell/src/show_tests.rs:31:let mut p = Player::new(model.clone(), None, None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:33:let before = p.frame(0.25, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:34:p.navigate("next", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:35:p.advance(0.5).unwrap();
+crates/joydeck-shell/src/show_tests.rs:36:let middle = p.frame(0.25, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:39:p.navigate("pause", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:40:p.advance(2.).unwrap();
+crates/joydeck-shell/src/show_tests.rs:42:p.navigate("pause", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:43:p.advance(5.).unwrap();
+crates/joydeck-shell/src/show_tests.rs:45:let after = p.frame(0.25, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:47:p.navigate("black", None).unwrap();
+crates/joydeck-shell/src/show_tests.rs:48:let blank = p.frame(0.1, &cancel).unwrap();
+crates/joydeck-shell/src/show_tests.rs:68:session.execute(joydeck_engine::Command::NewSlide).unwrap();
+crates/joydeck-shell/src/show_tests.rs:69:session.execute(joydeck_engine::Command::NewSlide).unwrap();
+crates/joydeck-shell/src/show_tests.rs:76:let mut player = Player::new(Arc::new(model), None, Some("reverse")).unwrap();
+crates/joydeck-shell/src/show_tests.rs:79:player.navigate("next", None).unwrap();
+crates/joydeck-text/src/bidi.rs:599:let num = l[chars.iter().position(|c| *c == '5').unwrap()];
