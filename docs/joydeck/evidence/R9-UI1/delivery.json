@@ -29,12 +29,15 @@
       }
     }
   },
-  "native_validation": "pending Windows unlock; candidate gui/01–11 passed before shortcut normalization fix",
+  "native_validation": "passed final extracted 8e70ec1350: shortcuts, history, font search, color/undo, native Save As, independent PPTX and restart/reopen",
   "ci": "in progress; query PR live",
   "remaining": [
     "complete UI parity",
     "schema-1 arguments and compare/accept-object compatibility",
     "recent files and templates",
     "platform and distribution acceptance"
-  ]
+  ],
+  "saved_pptx_sha256": "a8742865123f3d29bdbe10bc4e77008279f6dc6786a7cdd1fe5438d35144f6be",
+  "native_evidence": "gui/12–23 and native-summary.json",
+  "source_proof": "final-source-proof.json"
 }

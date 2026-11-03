@@ -1,7 +1,7 @@
 # R9-UI1：格式控件与旧方法恢复
 
 2026-11-03，只在 JoyOffice 工作；起点为 main `3691d4dea11df473c95f94af9718cc699cd984f8`。
-后续实现与交付 PR：[#121](https://github.com/willmove/joyoffice/pull/121)，分支 `codex/joydeck-r9-formatting-compat`；CI 运行中，最终桌面专项等待解锁。
+后续实现与交付 PR：[#121](https://github.com/willmove/joyoffice/pull/121)，分支 `codex/joydeck-r9-formatting-compat`；CI 状态以 PR 实时结果为准；最终包 Windows 桌面专项已通过（gui/12–23）。
 用户已明确授权合入 PR #120；合入前 21 项检查通过，合并保留全部源历史，见 [合并记录](merged-pr120.json)。原始备份与回退包仍按 [R9 交接](../../../joyoffice/JOYDECK-R9-HANDOFF.md) 保留。
 
 ## 实现范围
@@ -18,9 +18,9 @@
 - [Deck check](deck-check.txt)：875 通过、0 失败，含 strict Clippy 与全产品 crate 测试；新增真实预检、无效/过期/旧请求、历史和请求重放回归。
 - [格式](format.txt)、[门禁](gates.txt)、[依赖](dependencies.txt)：已通过。Cargo.toml / Cargo.lock / Rust 和 GPUI pins 未变；公共库未修改。
 - [联合 Clippy](joint-clippy.txt) 与 [联合测试](joint-tests.txt)：3,575 通过、0 失败、1 项既有计时测试忽略（258 组）；见 test-summary.json。
-- [构建日志](package-build.txt)、package.json 登记本轮实际 Release 包；历史 R9/package.json 保留原字节。
+- [最终构建日志](package-final-build.txt)、package.json 登记本轮实际 Release 包（package-build.txt 为候选包构建）；历史 R9/package.json 保留原字节。
 - verify-compat.py 在最终包运行 control 与 MCP，两条传输使用公开 PPTX、预检、真实修改、Undo/Redo、重复请求和另存，再由 python-pptx 独立读回；原件 hash 必须不变。
-- 候选包 5ac9c94f1d 的桌面证据为 gui/01–11 与 candidate-*.json，覆盖字体/字号/主题色、另存与重开；它发现字号快捷键问题。最终 8e70ec1350 的 1,753 项校验和、全套 CLI 与兼容回归通过，最终桌面专项正在等待 Windows 解锁；不把候选包截图视为最终二进制证明。
+- 候选包 5ac9c94f1d 的桌面证据为 gui/01–11 与 candidate-*.json，覆盖字体/字号/主题色、另存与重开；它发现字号快捷键问题。最终 8e70ec1350 的 1,753 项校验和、全套 CLI 与兼容回归通过，最终桌面专项也已在解锁后通过，证据为 gui/12–23、native-summary.json、desktop-public-read.json 和 reopened-runtime.json；两个包的 hash 与范围分别记录。
 
 Windows 实测发现 OEM 标点归一化会清除 Shift：Ctrl+Shift+. 到达 GPUI 时为 Ctrl+>。已兼容两种表示并新增回归；末次重新通过完整 Deck 与联合检查。第一次修正打包在移动测试模块时触发源码快照保护并拒绝出包（package-source-guard.txt），最终使用冻结源码重新构建。
 
@@ -31,7 +31,7 @@ Windows x86_64 Release 未签名开发包：`dist/joydeck/joydeck-0.8.0-r9-windo
 - ZIP SHA-256：`110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d`。
 - 源码快照：`8e70ec13500373fe9196f85732bd1d3a4b4f4be8e30f42958c343428b0d72bfe`；GUI/CLI hash 与 1,753 项 payload 校验见 package-runtime.json。
 - 最终包 R1/R2/R3/R4–R5/R6–R7 分别 28/20/20/23/32 次 CLI 调用通过；R6–R7 另有 42 条 MCP 响应验证；本轮兼容预检/历史独立 control+MCP 共 36 次交换通过。
-- 候选包桌面字体搜索/选择、32pt、原位首字符主题色、单步 Undo/Redo、原生另存/重开成功；python-pptx 独立确认标题文本不变、全部标题 run 为 Arial/32pt、只有 J 是 accent2、原件 hash 不变、仅 ppt/slides/slide1.xml 改变，见 candidate-desktop-public-read.json。最终包的字号快捷键与保存重开专项待解锁后执行。
+- 候选包桌面字体搜索/选择、32pt、原位首字符主题色、单步 Undo/Redo、原生另存/重开成功；python-pptx 独立确认标题文本不变、全部标题 run 为 Arial/32pt、只有 J 是 accent2、原件 hash 不变、仅 ppt/slides/slide1.xml 改变，见 candidate-desktop-public-read.json。最终包也已完成 Ctrl+Shift+./, 的 32→36→32 磅实测、单步 Undo/Redo、Ribbon 增大字号、字体过滤、标准色事务/撤销、原生键盘另存与重启重开。独立读回确认 Arial/36pt、首 J 仍是 accent2、原件 hash 不变、仅首页 XML 改变，见 desktop-public-read.json；冻结源码/二进制证明见 final-source-proof.json。
 - 首次对话框 UIA set_value 虽改变显示文件名，返回仍是默认 .joydeck，记录在 save-dialog-observation.json；改用真实键盘输入完整 PPTX 路径并 Enter 后，实际文件与公开格式读回均通过，不把 UIA 显示值当保存成功。
 - 尚未逐项原生验证自定义字号/RGB 的全部非法输入、完整字体/混合格式和平台读屏；字体列表行在当前 GPUI Kit 的 UIA 名称为空，搜索框/触发器可访问，完整读屏资格仍留 JD-804。Ctrl+Shift+Right 当前仍为字符选择，完整按词快捷键保留 JD-305/308。
 

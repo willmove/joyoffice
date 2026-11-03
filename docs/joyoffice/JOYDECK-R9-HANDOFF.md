@@ -6,7 +6,7 @@
 
 [PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。当前 UI/兼容切片为 `codex/joydeck-r9-formatting-compat`，[PR #121](https://github.com/willmove/joyoffice/pull/121) 未合入；继续此切片先使用该分支，合入后再从 main 开新分支，避免遗漏本轮开发。见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。
 
-本机最终联合回归为 **3,573 通过、0 失败、1 项原计时测试忽略**；Deck 单产品 check 为 **873 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。
+R9 整合基线联合回归为 3,573 通过、0 失败、1 项原计时测试忽略，Deck check 为 873 通过；R9-UI1 最新检查为 **联合 3,575 通过、0 失败、1 忽略，Deck 875 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。
 
 ## 备份与恢复
 
@@ -63,7 +63,7 @@ cargo test --locked -p joyword-shell --features ai --test ai_toggle
 
 新 CLI 的行为回归为 scripts/joydeck/verify-r1.py、verify-r2.py、verify-r3.py、verify-r4-r5.py、verify-r6-r7.py。旧 M* 工具针对旧模型/UI，见 [工具边界](../joydeck/LEGACY-TOOLS.md)。不能仅运行应用入口的零项测试代替整个产品。
 
-最新 Windows Release 开发包为 `dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-release-8e70ec1350.zip`，SHA-256 `110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d`，源码快照 `8e70ec13500373fe9196f85732bd1d3a4b4f4be8e30f42958c343428b0d72bfe`。R9-UI1 候选包的字体/字号/主题色与原生保存重开、最终包的 R1–R7/Control/MCP 验证及待解锁桌面专项见 [切片记录](../joydeck/evidence/R9-UI1/README.md)。本机 Deck 875 通过、三产品联合 3,575 通过/0 失败/1 忽略。原 R9 dd8add7cf4 包与全部历史证据保留。
+最新 Windows Release 开发包为 `dist/joydeck/joydeck-0.8.0-r9-windows-x86_64-release-8e70ec1350.zip`，SHA-256 `110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d`，源码快照 `8e70ec13500373fe9196f85732bd1d3a4b4f4be8e30f42958c343428b0d72bfe`。R9-UI1 最终解压包的字号快捷键、Undo/Redo、字体/颜色控件、原生 PPTX 另存/重启重开、独立读回及 R1–R7/Control/MCP 验证均通过，见 [切片记录](../joydeck/evidence/R9-UI1/README.md)。本机 Deck 875 通过、三产品联合 3,575 通过/0 失败/1 忽略。原 R9 dd8add7cf4 包与全部历史证据保留。
 
 本轮还修复了旧公共 PPTX 的自定义路径：沿根 officeDocument 关系定位并保留 `slideset/main.xml` 等部件、处理合法无 .rels/未变母版的最简文稿、克隆时重定位内部关系。原宿主五个公共/PowerPoint 文稿的读取和首页渲染通过，native-20 原始附件逐字节保留。完整命令与旧媒体/审阅语义仍按下面缺项继续。
 

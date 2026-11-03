@@ -1,0 +1,10 @@
+{
+  "verified_at": "2026-11-03T06:14:17.397247+00:00",
+  "source_sha256": "8e70ec13500373fe9196f85732bd1d3a4b4f4be8e30f42958c343428b0d72bfe",
+  "archive_sha256": "110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d",
+  "gui_sha256": "ed67cdebf7c6d3f23c8fad662340b267260349412312e72592a19e8e54a4d381",
+  "cli_sha256": "cd6fd71a3e59cb5612f06ffee3f3303599b063d0ee2e0d58a73b592cd8831673",
+  "source_unchanged_after_desktop": true,
+  "saved_pptx_sha256": "a8742865123f3d29bdbe10bc4e77008279f6dc6786a7cdd1fe5438d35144f6be",
+  "scope": "same frozen source and extracted final Windows archive after desktop verification"
+}

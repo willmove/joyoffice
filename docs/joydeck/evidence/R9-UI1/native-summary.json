@@ -1,7 +1,31 @@
 {
-  "status": "pending-windows-unlock",
+  "status": "passed-windows-slice",
+  "verified_at": "2026-11-03T06:14:17.397247+00:00",
   "archive_sha256": "110db0a349561c989d8e2ea38b34ba6b3f6a090ffcf8c2d38e57acafe420f99d",
-  "candidate_scope": "gui/01–11 and candidate-*.json",
+  "gui_sha256": "ed67cdebf7c6d3f23c8fad662340b267260349412312e72592a19e8e54a4d381",
+  "final_scope": "gui/12–23, desktop-public-read.json and reopened-runtime.json",
+  "candidate_scope": "gui/01–11 and candidate-*.json (pre-shortcut-fix history)",
+  "checks": {
+    "shortcut_grow_32_to_36": true,
+    "shortcut_shrink_36_to_32": true,
+    "single_step_undo_redo": true,
+    "ribbon_grow_to_36": true,
+    "font_search_filters_Arial": true,
+    "standard_color_and_undo": true,
+    "native_keyboard_save_as_new_pptx": true,
+    "independent_public_pptx_read": true,
+    "original_pptx_unchanged": true,
+    "restart_and_reopen": true,
+    "saved_font_size_theme_color": true
+  },
   "automated_tests": "875 Deck / 3575 joint / 0 failures / 1 pre-existing timing ignore",
-  "cli": "R1–R7 + control/MCP passed from final extracted archive"
+  "cli": "R1–R7 + control/MCP passed from final extracted archive",
+  "not_qualified": [
+    "full UI/feature parity",
+    "all custom size/RGB invalid-input cases",
+    "font list row screen-reader names",
+    "new IME composition matrix",
+    "macOS/Linux/ARM hardware",
+    "signed distribution"
+  ]
 }
