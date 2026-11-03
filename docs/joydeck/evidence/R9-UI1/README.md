@@ -1,6 +1,7 @@
 # R9-UI1：格式控件与旧方法恢复
 
 2026-11-03，只在 JoyOffice 工作；起点为 main `3691d4dea11df473c95f94af9718cc699cd984f8`。
+后续实现与交付 PR：[#121](https://github.com/willmove/joyoffice/pull/121)，分支 `codex/joydeck-r9-formatting-compat`；CI 运行中，最终桌面专项等待解锁。
 用户已明确授权合入 PR #120；合入前 21 项检查通过，合并保留全部源历史，见 [合并记录](merged-pr120.json)。原始备份与回退包仍按 [R9 交接](../../../joyoffice/JOYDECK-R9-HANDOFF.md) 保留。
 
 ## 实现范围

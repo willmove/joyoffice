@@ -4,7 +4,7 @@
 
 当前依据依次为根 AGENTS.md、本文、[Deck 状态](../joydeck/STATUS.md)、[98 项任务](../joydeck/TASKS.md)、[UI 差距](../joydeck/UI-PARITY.md)、[329 命令范围](../joydeck/COMMANDS.csv) 与 [R9 验证](../joydeck/evidence/R9/README.md)。旧 M0–M14 状态见 [替换前状态](../joydeck/STATUS-pre-r9.md)，仅作历史基线。
 
-[PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。当前 UI/兼容切片为 `codex/joydeck-r9-formatting-compat`，见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。
+[PR #120](https://github.com/willmove/joyoffice/pull/120) 已按用户明确授权于 2026-11-03 合入 main，合并提交 `3691d4dea11df473c95f94af9718cc699cd984f8`，合入前 21 项检查全部通过。源仓库 9 个提交继续保留为宿主祖先。后续从最新 main 开切片，不重新迁移。当前 UI/兼容切片为 `codex/joydeck-r9-formatting-compat`，[PR #121](https://github.com/willmove/joyoffice/pull/121) 未合入；继续此切片先使用该分支，合入后再从 main 开新分支，避免遗漏本轮开发。见 [R9-UI1 验证](../joydeck/evidence/R9-UI1/README.md)。
 
 本机最终联合回归为 **3,573 通过、0 失败、1 项原计时测试忽略**；Deck 单产品 check 为 **873 通过**。新 Release 包、Word/Sheet 开发包和旧软件回退包均已实际构建，且在仓库外中文/空格路径运行。多平台 PR 检查和 JD-906 完整旧功能验收以任务表/实时 PR 为准，当前工程替换不代表整个 R9 已关闭。
 
