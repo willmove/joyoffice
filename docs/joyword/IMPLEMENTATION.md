@@ -1,6 +1,6 @@
 # JoyWord 当前实施与验证记录
 
-2026-11-03 字形增量：主字体缺字时在断行前尝试固定 OFL 单色 Noto Emoji，最终场景记录真实 face，屏幕与 PDF 共用；恢复缓存尺寸后长文档回归通过。Word 产品检查 1,318 项通过，本轮已实测包在仓库外中文路径真实显示 😀，原生导出普通 PDF 后由 pypdf／Poppler 独立抽取与渲染通过；最终包 c10593d0… 已按实际字节重新现场验证，见 [最终 PDF 回读](../joydeck/evidence/R9-UI2/word-final-pdf-readback.json)。字体原始字节与许可已登记，不承诺新 Unicode／彩色 emoji 或阿文。UOS 搜狗／Fcitx5 拼音直通缺陷保持开放：用户确认已有环境，稍后提供访问方式，尚未复现或标记修复。T101／T701／T806 等父任务状态与总计不变，见 [R9-UI2 证据](../joydeck/evidence/R9-UI2/README.md)。
+2026-11-03 字形增量：主字体缺字时在断行前尝试固定 OFL 单色 Noto Emoji，最终场景记录真实 face，屏幕与 PDF 共用；恢复缓存尺寸后长文档回归通过。Word 产品检查 1,318 项通过，本轮已实测包在仓库外中文路径真实显示 😀，原生导出普通 PDF 后由 pypdf／Poppler 独立抽取与渲染通过；最终包 c10593d0… 已按实际字节重新现场验证，见 [最终 PDF 回读](../joydeck/evidence/R9-UI2/word-final-pdf-readback.json)。字体原始字节与许可已登记，不承诺新 Unicode／彩色 emoji 或阿文。UOS 搜狗／Fcitx5 拼音直通缺陷保持开放：用户于 2026-11-03 明确本轮暂缓 UOS，后续进入该环境再验证；尚未复现或标记修复。T101／T701／T806 等父任务状态与总计不变，见 [R9-UI2 证据](../joydeck/evidence/R9-UI2/README.md)。
 
 2026-11-02 导出可用性说明：定位到真实复杂文档因版式兼容门禁只允许 DOCX 副本，而新文件页没有展示禁用原因。现增加兼容提示及逐项置灰原因，复用原有门禁，不放宽未知内容／预览保护；CLI inspect 可选 `--compatibility` 提供模型兼容标记，零正文预算可用于不输出正文的诊断。见 [原因与验证记录](verification/export-availability-20261102.md)。完整格式与版式任务仍 in_progress。
 

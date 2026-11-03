@@ -16,7 +16,7 @@
 | 审阅／旧文件，JD-506/600/906 | 一次性补齐旧批注／回复／解决、alt／阅读顺序标签、媒体原始字节与片段参数、链接／自定义放映；新批注／回复／解决／alt GUI | 原创 1.11 语料转 native／重开与原件逐字节一致；显式再生 PPTX 批注／媒体回读 | 完整媒体播放／设备／多片段、辅助技术消费阅读顺序、复杂动画与长尾交换 |
 | 比较／自动化，JD-506/706/906 | 离线比较；摘要绑定的单个基础对象接受与撤销；旧字符串命令严格子集；显式桌面 stdio 绑定唯一 Editor | 过期摘要／修订、重放、未知字段、批次原子性；附着会话自动回归 | 全 16 领域旧 schema、复杂组／媒体对象接受、跨页稳定匹配、桌面 MCP 分发入口 |
 | Word 字形，T101/204/701/806 | 固定 OFL 单色 Noto Emoji；缺字 cluster 回退在断行前发生，真实 font key 进入屏幕／PDF；预算与缓存保持 | 两项真实字形／raster／PDF 回归；长文档 4 项；Word 产品全量 | 新 Unicode／彩色 emoji、阿文与完整复杂文字不在本轮覆盖 |
-| Word UOS 输入法，T101/701 | 保留 Fcitx5／搜狗拼音直通缺陷，未凭 Windows 或依赖源码推测修复 | 尚未复现 | 用户确认已有 UOS 环境、稍后提供访问方式；等待连接后复现、修复、GUI 补验 |
+| Word UOS 输入法，T101/701 | 保留 Fcitx5／搜狗拼音直通缺陷，未凭 Windows 或依赖源码推测修复 | 尚未复现 | 用户于 2026-11-03 明确本轮暂缓 UOS，后续进入该环境时再复现、修复和 GUI 验证；当前不作通过声明 |
 
 `legacyCommandSchemaSupported=false` 继续表示**完整**旧 schema 未兼容；能力响应另列 `legacyCommandSubset`。支持 page.add/copy/delete/visibility/reorder/size、object.delete、table.edit 的结构／尺寸／TSV 子集、document.design 的备注、review.edit 的 add/reply/resolve/accessibility、transaction.batch。未覆盖 action 或未知字段明确拒绝，不返回空成功。 [16 项兼容矩阵](legacy-command-matrix.csv) 的 GUI 栏已按解锁后的实际场景更新；GUI 调用有类型命令，不冒充旧参数自身的 GUI 验收。
 

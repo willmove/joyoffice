@@ -10,7 +10,7 @@ R9 整合基线联合回归为 3,573 通过、0 失败、1 项原计时测试忽
 
 ## R9-UI2 当前接续
 
-PR #121 已按用户要求合入 main `6689c6e`。PR #119 已整理为 QEMU 子进程 runner 修复，并在 20 项 CI 全绿后合入 `8002f27`；没有回退 main 实验锁或升级 registry。当前任务分支为 `codex/joydeck-r9-ui-compat`，非草稿 [PR #122](https://github.com/willmove/joyoffice/pull/122) 已提交，CI 见 PR 实时状态，开发、自动检查、实际包和剩余差距统一见 [R9-UI2 范围账本](../joydeck/evidence/R9-UI2/README.md)。本轮已推进混合格式／段落表格、日常工作区、旧审阅媒体、比较接受、旧参数严格子集和 opt-in 桌面 stdio；完整旧 16 领域／JD-906／UI 一致仍开放。最终 Deck 包的格式保存、审阅／最近文件重开、跨窗口主题和子窗口关闭已现场验证，额外模板／UIA HWND 竞态修复含自动回归；联合 3,596 通过、Deck 894 通过、291 条来源指纹通过。Word emoji 的最终包 Windows GUI 与普通 PDF 已独立验证；UOS 输入法等待用户随后提供环境访问。下述兼容表已同步本轮新增能力；完整范围与实际验证以上述账本为准。
+PR #121 已按用户要求合入 main `6689c6e`。PR #119 已整理为 QEMU 子进程 runner 修复，并在 20 项 CI 全绿后合入 `8002f27`；没有回退 main 实验锁或升级 registry。当前任务分支为 `codex/joydeck-r9-ui-compat`，非草稿 [PR #122](https://github.com/willmove/joyoffice/pull/122) 已提交，CI 见 PR 实时状态，开发、自动检查、实际包和剩余差距统一见 [R9-UI2 范围账本](../joydeck/evidence/R9-UI2/README.md)。本轮已推进混合格式／段落表格、日常工作区、旧审阅媒体、比较接受、旧参数严格子集和 opt-in 桌面 stdio；完整旧 16 领域／JD-906／UI 一致仍开放。最终 Deck 包的格式保存、审阅／最近文件重开、跨窗口主题和子窗口关闭已现场验证，额外模板／UIA HWND 竞态修复含自动回归；联合 3,596 通过、Deck 894 通过、291 条来源指纹通过。Word emoji 的最终包 Windows GUI 与普通 PDF 已独立验证；UOS 输入法按用户 2026-11-03 最新安排留待之后进入该环境验证，本轮不再等待接入。下述兼容表已同步本轮新增能力；完整范围与实际验证以上述账本为准。
 
 ## 备份与恢复
 
