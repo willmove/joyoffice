@@ -1,8 +1,8 @@
 {
-  "directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-windows-delivery",
-  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-windows-delivery.zip",
-  "archive_sha256": "82a18fae3e4e8b7d26d1ddab446239d53ca286dc011be7e069735f6de4630971",
-  "source_sha256": "9c902ce47a24d48291b138118cfec8820ee5eecad94f3f94507d88bebb40063d",
+  "directory": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final",
+  "archive": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final.zip",
+  "archive_sha256": "e729970351e0aa428c78086cc30c48c770380a69b2dc724928d53ef5ebdfacc4",
+  "source_sha256": "3bcc90324c4440921a800863d7e7e720426ed84fcc15f3353d845ab69d6ad77b",
   "target": "x86_64-pc-windows-msvc",
   "profile": "release",
   "sbom_packages": 455,

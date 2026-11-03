@@ -6,6 +6,39 @@ use joydeck_shell::{
 };
 use serde_json::json;
 #[test]
+fn comparison_reports_resources_and_uneditable_metadata_instead_of_false_equality() {
+    use joydeck_model::{MediaId, MediaItem, Presentation};
+    use joydeck_shell::{Document, comparison::Comparison};
+    let base = Presentation::default();
+    let mut resource = base.clone();
+    resource.media.push(MediaItem {
+        id: MediaId(resource.next_id),
+        name: "original-tone.wav".into(),
+        content_type: "audio/wav".into(),
+        data: std::sync::Arc::new(
+            include_bytes!("../../../tests/fixtures/joydeck/media/original-tone.wav").to_vec(),
+        ),
+        link: None,
+    });
+    resource.next_id += 1;
+    let mut metadata = base.clone();
+    metadata.notes_size.width += 10.;
+    let mut slide = base.clone();
+    std::sync::Arc::make_mut(&mut slide.slides[0])
+        .tags
+        .push(("review-tag".into(), "changed".into()));
+    let mut order = base.clone();
+    std::sync::Arc::make_mut(&mut order.slides[0])
+        .shapes
+        .reverse();
+    for changed in [resource, metadata, slide, order] {
+        let reference = Document::from_model("reference".into(), changed).unwrap();
+        let report = Comparison::from_model(&base, reference).unwrap().report;
+        assert!(!report.differences.is_empty());
+        assert!(report.differences.iter().all(|d| !d.acceptable));
+    }
+}
+#[test]
 fn preserving_save_accepts_reassigned_resource_ids_but_rejects_media_edits() {
     let root = platform::private_directory("r9-media-save").unwrap();
     let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

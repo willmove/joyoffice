@@ -58,14 +58,13 @@ impl Comparison {
                 });
                 continue;
             };
-            if left.id != right.id
-                || left.layout != right.layout
-                || left.background != right.background
-                || left.notes != right.notes
-                || left.comments != right.comments
-                || left.transition != right.transition
-                || left.animations != right.animations
-                || left.hidden != right.hidden
+            let mut left_properties = left.as_ref().clone();
+            let mut right_properties = right.as_ref().clone();
+            left_properties.shapes.clear();
+            right_properties.shapes.clear();
+            if left_properties != right_properties
+                || left.shapes.iter().map(|s| s.id).collect::<Vec<_>>()
+                    != right.shapes.iter().map(|s| s.id).collect::<Vec<_>>()
             {
                 differences.push(Difference {
                     page: page + 1,
@@ -118,19 +117,32 @@ impl Comparison {
                 });
             }
         }
-        if p.slide_size != q.slide_size
-            || p.masters != q.masters
-            || p.sections != q.sections
-            || p.custom_shows != q.custom_shows
-            || p.show != q.show
-            || p.props != q.props
-        {
+        let mut properties = p.clone();
+        let mut reference_properties = q.clone();
+        for doc in [&mut properties, &mut reference_properties] {
+            doc.slides.clear();
+            doc.media.clear();
+            doc.next_id = 0;
+        }
+        if properties != reference_properties {
             differences.push(Difference {
                 page: 0,
                 object: None,
                 kind: "document-properties",
                 acceptable: false,
                 reason: Some("document settings/themes are report-only".into()),
+            });
+        }
+        if p.media != q.media {
+            differences.push(Difference {
+                page: 0,
+                object: None,
+                kind: "document-resources",
+                acceptable: false,
+                reason: Some(
+                    "resource changes are report-only; inspect object differences separately"
+                        .into(),
+                ),
             });
         }
         let truncated = differences.len() >= 4096;

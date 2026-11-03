@@ -1,14 +1,14 @@
 {
-  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-windows-delivery\\joydeck-cli.exe",
-  "cli_sha256": "1cef13746d2c36daf7e4f559c02ead99875bf72abdad1015bc6406b7a4e4ddf8",
-  "working_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径",
+  "cli": "D:\\Coding\\EditorProjects\\joyoffice\\dist\\joydeck\\joydeck-r9-ui2-delivery-final\\joydeck-cli.exe",
+  "cli_sha256": "7ea746486227a95c5ebb13aea7e27423eef91cdb5d09aeecc9885dd0ee517cc5",
+  "working_directory": "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径",
   "checks": 28,
   "passed": true,
   "runs": [
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft"
       ],
       "exit_code": 0,
       "stdoutSha256": "a8edae881f0616b0238efb7a619cff1c694203d44d95d639b6a099bf5f2a9c68",
@@ -19,15 +19,15 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft.pngs",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft.pngs",
         "--all",
         "--scale",
         "1"
       ],
       "exit_code": 0,
-      "stdoutSha256": "d4f1fb70461419244058abbc445df7454d601f9008e958e9a60cafe712035be4",
+      "stdoutSha256": "826ac776d2332c5ca0ecaa4a0c7bb39476b87b5b7b7fa206033fbfddf2459a10",
       "stdoutBytes": 126,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -35,9 +35,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft.pngs"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft.pngs"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -48,9 +48,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-3",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-3",
         "--page",
         "0"
       ],
@@ -63,9 +63,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-4",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-4",
         "--page",
         "9999"
       ],
@@ -78,9 +78,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-5",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-5",
         "--scale",
         "NaN"
       ],
@@ -93,9 +93,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-6",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-6",
         "--scale",
         "8"
       ],
@@ -108,9 +108,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.deckcraft",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.deckcraft",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-7",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-7",
         "--all",
         "--page",
         "1"
@@ -124,7 +124,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "4b9d7d4f486a90ff1291abf6cc9cb5307cd0740848e5982a086d622f39d34185",
@@ -135,15 +135,15 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx.pngs",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx.pngs",
         "--all",
         "--scale",
         "1"
       ],
       "exit_code": 0,
-      "stdoutSha256": "f47c7e5129fbea0254aa4e9ea954f425cb248ba8a8e6a536da513306e8577d0b",
+      "stdoutSha256": "a2653910a1ad9a4e578e809c24e371ed2fc592f7b15dad7b61dbf3b481c50a6b",
       "stdoutBytes": 121,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -151,9 +151,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx.pngs"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx.pngs"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -164,9 +164,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-11",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-11",
         "--page",
         "0"
       ],
@@ -179,9 +179,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-12",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-12",
         "--page",
         "9999"
       ],
@@ -194,9 +194,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-13",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-13",
         "--scale",
         "NaN"
       ],
@@ -209,9 +209,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-14",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-14",
         "--scale",
         "8"
       ],
@@ -224,9 +224,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\r1-preview.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\r1-preview.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-15",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-15",
         "--all",
         "--page",
         "1"
@@ -240,7 +240,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx"
       ],
       "exit_code": 0,
       "stdoutSha256": "760cf7cc25213292855c176e08b14e30965e53f00c6c7e98d3a7d9541139d0e8",
@@ -251,15 +251,15 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx.pngs",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx.pngs",
         "--all",
         "--scale",
         "1"
       ],
       "exit_code": 0,
-      "stdoutSha256": "924ee34a45c6bad189d0ce647afa4475aaee43fad6e1de98f3fd9deceba1c37b",
+      "stdoutSha256": "ea5fcab72c3a4f018af99dfe71c12463758d824e9b1ddad080a32cb009dbb7e3",
       "stdoutBytes": 122,
       "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stderrBytes": 0
@@ -267,9 +267,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx.pngs"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx.pngs"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -280,9 +280,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-19",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-19",
         "--page",
         "0"
       ],
@@ -295,9 +295,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-20",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-20",
         "--page",
         "9999"
       ],
@@ -310,9 +310,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-21",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-21",
         "--scale",
         "NaN"
       ],
@@ -325,9 +325,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-22",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-22",
         "--scale",
         "8"
       ],
@@ -340,9 +340,9 @@
     {
       "args": [
         "render",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\independent.pptx",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\independent.pptx",
         "--output",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\error-23",
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\error-23",
         "--all",
         "--page",
         "1"
@@ -356,7 +356,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\损坏文件.pptx"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\损坏文件.pptx"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -367,7 +367,7 @@
     {
       "args": [
         "inspect",
-        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-l7zodu1j\\中文 空格路径\\future.deckcraft"
+        "C:\\Users\\willm\\AppData\\Local\\Temp\\joydeck-r1-cli-hhgd3f14\\中文 空格路径\\future.deckcraft"
       ],
       "exit_code": 1,
       "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -396,7 +396,7 @@
       "stderrBytes": 0
     }
   ],
-  "fullReportSha256": "a837c2dfa03d7403652f50dfe936cac9f568316135f289a46e92f916a2807ef1",
-  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\delivery-cli-r1-full.json",
+  "fullReportSha256": "bba358d279a5cfdc77c0f30e96d1f6b7fb6a23f6d216889f2ef2be95e898879d",
+  "fullReportLocalPath": "D:\\Coding\\EditorProjects\\joyoffice\\target\\r9-ui2\\final-cli-r1-full.json",
   "allAssertionsPassed": true
 }

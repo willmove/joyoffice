@@ -1,15 +1,15 @@
 {
-  "joint-qualified-tests.log": {
-    "summaries": 261,
-    "passed": 3593,
+  "joint-delivery-final-tests.log": {
+    "summaries": 262,
+    "passed": 3595,
     "failed": 0,
     "ignored": 1,
     "failedSummaries": 0,
     "errors": 0
   },
-  "joydeck-qualified2-check.log": {
-    "summaries": 46,
-    "passed": 891,
+  "deck-delivery-final-check.log": {
+    "summaries": 47,
+    "passed": 893,
     "failed": 0,
     "ignored": 0,
     "failedSummaries": 0,
@@ -23,7 +23,7 @@
     "failedSummaries": 0,
     "errors": 0
   },
-  "qualified2-clippy.log": {
+  "final-workspace-clippy.log": {
     "summaries": 0,
     "passed": 0,
     "failed": 0,

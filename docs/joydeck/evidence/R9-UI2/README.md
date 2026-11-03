@@ -1,6 +1,6 @@
 # R9-UI2：格式、日常工作区与旧语义兼容
 
-2026-11-03，分支 `codex/joydeck-r9-ui-compat`，已同步 main `8002f27199cc7e0df928438d7f900b0add085861`。本轮推进用户指定的最高／高优先级范围，以下区分实现、自动验证和真实窗口；完整 UI 一致、JD-906 与所有平台资格仍开放。原有三份未提交 R9 运行日志保留且不纳入本轮提交。
+2026-11-03，分支 `codex/joydeck-r9-ui-compat`，已同步 main `8002f27199cc7e0df928438d7f900b0add085861`。非草稿 [PR #122](https://github.com/willmove/joyoffice/pull/122) 已提交，CI 进行中。本轮推进用户指定的最高／高优先级范围，以下区分实现、自动验证和真实窗口；完整 UI 一致、JD-906 与所有平台资格仍开放。原有三份未提交 R9 运行日志保留且不纳入本轮提交。
 
 ## PR #119 与 QEMU
 
@@ -20,24 +20,24 @@
 
 `legacyCommandSchemaSupported=false` 继续表示**完整**旧 schema 未兼容；能力响应另列 `legacyCommandSubset`。支持 page.add/copy/delete/visibility/reorder/size、object.delete、table.edit 的结构／尺寸／TSV 子集、document.design 的备注、review.edit 的 add/reply/resolve/accessibility、transaction.batch。未覆盖 action 或未知字段明确拒绝，不返回空成功。
 
-PPTX preserve 对无法保真写回的批注／回复／解决、动画编辑、alt／decorative、媒体及表格属性增加保存前回读检查。失败不发布输出，保留原文件与脏状态；可保存 native，或由用户显式选择 regenerate PPTX。显式再生会按原有契约报告损失，不自动替用户切换保存模式。比较当前按页序和对象 ID 配对，页面／文稿设置只报告；基础对象逐个接受会校验两个摘要，不能宣称完整审阅合并。
+PPTX preserve 对无法保真写回的批注／回复／解决、动画编辑、alt／decorative、媒体及表格属性增加保存前回读检查。失败不发布输出，保留原文件与脏状态；可保存 native，或由用户显式选择 regenerate PPTX。显式再生会按原有契约报告损失，不自动替用户切换保存模式。比较当前按页序和对象 ID 配对，页面／文稿设置及资源只报告；对象顺序、媒体字节、备注页面和扩展元数据变化均纳入报告，不把不能接受的变化误报为相同。页面／文稿设置只报告；基础对象逐个接受会校验两个摘要，不能宣称完整审阅合并。
 
 ## 自动检查与实际包
 
-[检查汇总](checks.json)：三产品联合 3,593 通过、0 失败、1 项原计时测试忽略；覆盖最终资源 ID 保存校验修复。最终产品 `cargo xtask check joydeck` **891 通过**，`cargo xtask check joyword` **1,318 通过**。最终 workspace 严格 Clippy、fmt、270 条来源指纹、1,049 Rust 文件门禁、文档检查通过。共享排版改动已覆盖 Word／Sheet／Deck 联合 feature 组合；Cargo.lock 和 registry pins 未改变。
+[检查汇总](checks.json)：三产品联合 3,595 通过、0 失败、1 项原计时测试忽略；覆盖最终资源 ID 保存校验、比较报告修复和 11 个广告子集工作流。最终产品 `cargo xtask check joydeck` **893 通过**，`cargo xtask check joyword` **1,318 通过**。最终 workspace 严格 Clippy、fmt、270 条来源指纹、1,050 Rust 文件门禁、文档检查通过。共享排版改动已覆盖 Word／Sheet／Deck 联合 feature 组合；Cargo.lock 和 registry pins 未改变。
 
-[Deck 包元数据](package.json)：Release Windows x86_64，源码快照 `9c902ce47a24d48291b138118cfec8820ee5eecad94f3f94507d88bebb40063d`，归档 SHA-256 `82a18fae3e4e8b7d26d1ddab446239d53ca286dc011be7e069735f6de4630971`，实际 GUI exe SHA-256 `6bc830bbf83d2256ade3bf6edd4a841fcb8988a3398e3f191e55abcb7d2da890`。Word 产品包 exe SHA-256 `f84a2c721de39ecc2af5de8951cf2d18420499450a3a22d09427d78a004d5bbe`。均在仓库外中文／空格路径解包运行，独立用户状态，不打开用户私有文稿。
+[Deck 包元数据](package.json)：Release Windows x86_64，源码快照 `3bcc90324c4440921a800863d7e7e720426ed84fcc15f3353d845ab69d6ad77b`，归档 SHA-256 `e729970351e0aa428c78086cc30c48c770380a69b2dc724928d53ef5ebdfacc4`，实际 GUI exe SHA-256 `fab10fd017c06c94c138e092c8642f4b793482e5cbe100273bd797291eca9316`。已实测 Word 产品包 exe SHA-256 `f84a2c721de39ecc2af5de8951cf2d18420499450a3a22d09427d78a004d5bbe`。均在仓库外中文／空格路径解包运行，独立用户状态，不打开用户私有文稿。
 
 开发包未签名；Deck 元数据继续列出 22 个依赖缺失许可全文，不作为正式发行资格。Word 新备用字体原始字节、来源、版权和 OFL 全文已登记并打包；没有打包系统字体。开发中两次出包期间源码／回归变更触发了正确拒绝，以上仅登记源码冻结后的成功包。
 
-最终 delivery 包的 R1–R7 脚本全部通过：123 次 CLI 调用、37 次 MCP 响应。逐项摘要：[R1](cli-r1.json)、[R2](cli-r2.json)、[R3](cli-r3.json)、[R4/R5](cli-r4-r5.json)、[R6/R7](cli-r6-r7.json)；摘要保留退出码、输出字节数／SHA，完整本机报告路径和 SHA 一并登记。R6/R7 首次暴露媒体资源 ID 重分配误判，修复为比较真实字节／海报／参数，回归确认普通编辑可保存且真实参数丢失仍拒绝；最终脚本重新全量通过。来源文件按 Git LF 约定冻结后更新精确指纹。
+最终 delivery-final 包的 R1–R7 脚本全部通过：123 次 CLI 调用、37 次 MCP 响应。逐项摘要：[R1](cli-r1.json)、[R2](cli-r2.json)、[R3](cli-r3.json)、[R4/R5](cli-r4-r5.json)、[R6/R7](cli-r6-r7.json)；摘要保留退出码、输出字节数／SHA，完整本机报告路径和 SHA 一并登记。R6/R7 首次暴露媒体资源 ID 重分配误判，修复为比较真实字节／海报／参数，回归确认普通编辑可保存且真实参数丢失仍拒绝；最终脚本重新全量通过。来源文件按 Git LF 约定冻结后更新精确指纹。
 
-qualified 与 delivery 的 GUI／CLI exe 字节相同，见 [摘要核对](binary-equivalence.json)。最终 GUI exe 实际桌面 stdio 已验证 attachedDesktop=true、同一 Editor 编辑／重放／过期修订拒绝／撤销恢复干净状态，见 [请求与响应](desktop-control.json)。这项机器接口验证未替代锁屏下无法进行的最终手动／像素场景。
+早期 qualified／delivery 字节对照仅为历史记录，见 [摘要核对](binary-equivalence.json)；最终包已包含比较报告修复和完整子集工作流回归。最终 GUI exe 实际桌面 stdio 已验证 attachedDesktop=true、同一 Editor 编辑／重放／过期修订拒绝／撤销恢复干净状态，见 [请求与响应](desktop-control.json)。这项机器接口验证未替代锁屏下无法进行的最终手动／像素场景。
 
 ## 真实产品与 Windows 窗口
 
 参照为本机 DeckCraft 0.14.1，使用新建空白文稿观察 Ribbon 与段落对话框。[原始截图](reference/deckcraft-paragraph.png)、[可访问树](reference/deckcraft-paragraph.txt)。参照包含对齐、左右缩进、首行／悬挂、段前／段后、行距和制表位；本轮未补制表位编辑，不标完全一致。
 
-Word 最终解包 GUI 已在 100% 显示原创测试文段“JoyWord emoji 验证 😀”，从原生文件页导出 PDF，并用独立 pypdf 抽取 Unicode、Poppler 120 DPI 渲染和人工检查：😀 未变为空白或缺字符方框。证据：[实际窗口](gui/word-emoji.png)、[可访问树](gui/word-emoji.txt)、[独立 PDF 渲染](gui/word-pdf-readback.png)、[回读／摘要](word-pdf-readback.json)。PDF 含系统字体子集仅保留在本机，不提交二进制。此项是普通 PDF 导出，不代替 PDF/A、阿文或 UOS 验收。
+已记录字节摘要的 Word 解包 GUI 已在 100% 显示原创测试文段“JoyWord emoji 验证 😀”，从原生文件页导出 PDF，并用独立 pypdf 抽取 Unicode、Poppler 120 DPI 渲染和人工检查：😀 未变为空白或缺字符方框。证据：[实际窗口](gui/word-emoji.png)、[可访问树](gui/word-emoji.txt)、[独立 PDF 渲染](gui/word-pdf-readback.png)、[回读／摘要](word-pdf-readback.json)。PDF 含系统字体子集仅保留在本机，不提交二进制。此项是普通 PDF 导出，不代替 PDF/A、阿文或 UOS 验收。之后仅规范化两份打包脚本行尾并再打包 Word，Rust 源码输入未变但 exe 摘要不同；[新包记录](word-package.json) 继续标待解锁后 GUI 重验，没有把前一个 exe 的窗口结果移作新字节验收。
 
 Deck 早期候选已通过真实窗口混合字号与保存独立回读；**最终包格式／段落／表格／排序／审阅等 GUI 场景尚待完成，不用候选结果代替最终资格**。2026-11-03 18:30 起 Windows 桌面锁屏，已请用户解锁；自动回归和文档工作继续。UOS 和其余平台未作本轮真机验收。

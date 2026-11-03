@@ -1,16 +1,16 @@
 {
   "kind": "actual desktop stdio API; Windows lock screen prevents pixel/manual qualification",
-  "binarySha256": "6bc830bbf83d2256ade3bf6edd4a841fcb8988a3398e3f191e55abcb7d2da890",
+  "binarySha256": "fab10fd017c06c94c138e092c8642f4b793482e5cbe100273bd797291eca9316",
   "allAssertionsPassed": true,
   "transcript": [
     {
       "protocolVersion": "joydeck-control-1",
-      "requestId": "final-cap",
+      "requestId": "cap",
       "method": "engine.commands",
       "params": {}
     },
     {
-      "requestId": "final-cap",
+      "requestId": "cap",
       "result": {
         "protocolVersion": "joydeck-control-1",
         "commandSchemaVersion": 2,
@@ -94,9 +94,9 @@
           "commandParameters": "schema 2: params.command; target and expectedRevision required",
           "validation": "snapshot execution, no live side effects"
         },
-        "documentId": 3141485149058001,
+        "documentId": 3054161780202592,
         "transport": "desktop stdio",
-        "root": "\\\\?\\D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Deck-final\\data",
+        "root": "\\\\?\\D:\\Coding\\JoyOffice GUI 验证\\R9-UI2-20261103\\Deck-review-final\\data",
         "outputs": "new paths only",
         "replay": "128 mutations / 16 MiB, same requestId and payload",
         "attachedDesktop": true
@@ -104,9 +104,9 @@
     },
     {
       "protocolVersion": "joydeck-control-1",
-      "requestId": "final-live-insert",
+      "requestId": "live-edit",
       "method": "command.execute",
-      "target": 3141485149058001,
+      "target": 3054161780202592,
       "expectedRevision": 0,
       "params": {
         "command": {
@@ -118,9 +118,9 @@
       }
     },
     {
-      "requestId": "final-live-insert",
+      "requestId": "live-edit",
       "result": {
-        "documentId": 3141485149058001,
+        "documentId": 3054161780202592,
         "revision": 1,
         "engineRevision": 1,
         "dirty": true,
@@ -137,9 +137,9 @@
     },
     {
       "protocolVersion": "joydeck-control-1",
-      "requestId": "final-live-insert",
+      "requestId": "live-edit",
       "method": "command.execute",
-      "target": 3141485149058001,
+      "target": 3054161780202592,
       "expectedRevision": 0,
       "params": {
         "command": {
@@ -151,9 +151,9 @@
       }
     },
     {
-      "requestId": "final-live-insert",
+      "requestId": "live-edit",
       "result": {
-        "documentId": 3141485149058001,
+        "documentId": 3054161780202592,
         "revision": 1,
         "engineRevision": 1,
         "dirty": true,
@@ -170,14 +170,14 @@
     },
     {
       "protocolVersion": "joydeck-control-1",
-      "requestId": "final-stale",
+      "requestId": "stale",
       "method": "document.undo",
-      "target": 3141485149058001,
+      "target": 3054161780202592,
       "expectedRevision": 0,
       "params": {}
     },
     {
-      "requestId": "final-stale",
+      "requestId": "stale",
       "error": {
         "code": "operation-failed",
         "message": "expectedRevision missing/stale"
@@ -185,16 +185,16 @@
     },
     {
       "protocolVersion": "joydeck-control-1",
-      "requestId": "final-live-undo",
+      "requestId": "undo",
       "method": "document.undo",
-      "target": 3141485149058001,
+      "target": 3054161780202592,
       "expectedRevision": 1,
       "params": {}
     },
     {
-      "requestId": "final-live-undo",
+      "requestId": "undo",
       "result": {
-        "documentId": 3141485149058001,
+        "documentId": 3054161780202592,
         "revision": 2,
         "engineRevision": 2,
         "dirty": false,
